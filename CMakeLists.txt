@@ -136,6 +136,8 @@ endforeach ()
 
 # Add our own cmake module path.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/)
+message(STATUS "PROJECT_SOURCE_DIR: ${PROJECT_SOURCE_DIR}")
+message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
 enable_testing ()
 
@@ -274,6 +276,9 @@ endif ()
 # Where all the bundled libraries reside?
 set(LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(LIBDIR_BIN ${CMAKE_CURRENT_BINARY_DIR}/src)
+message(STATUS "LIBDIR: ${LIBDIR}")
+message(STATUS "LIBDIR_BIN: ${LIBDIR_BIN}")
+
 # For the bundled boost libraries (boost::nowide)
 include_directories(${LIBDIR})
 # For generated header files
@@ -532,6 +537,10 @@ else ()
                    "OpenVDB installation with the OPENVDB_FIND_MODULE_PATH cache variable.")
 endif ()
 
+#add dds_fdal
+add_subdirectory(${FDAL_PATH} src/dds_fdal)
+
+
 set(TOP_LEVEL_PROJECT_DIR ${PROJECT_SOURCE_DIR})
 function(prusaslicer_copy_dlls target)
     if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
@@ -551,15 +560,56 @@ function(prusaslicer_copy_dlls target)
         set (_out_dir "$<TARGET_PROPERTY:${target},BINARY_DIR>")
     endif ()
     
+    message(STATUS "prusa_slicer-CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
     # This has to be a separate target due to the windows command line lenght limits    
     add_custom_command(TARGET ${target} POST_BUILD 
         COMMAND ${CMAKE_COMMAND} -E copy ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/win${_bits}/libgmp-10.dll ${_out_dir}
         COMMENT "Copy gmp runtime to build tree"
         VERBATIM)
-    
+
     add_custom_command(TARGET ${target} POST_BUILD 
         COMMAND ${CMAKE_COMMAND} -E copy ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/win${_bits}/libmpfr-4.dll ${_out_dir}
         COMMENT "Copy mpfr runtime to build tree"
+        VERBATIM)
+
+    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+        set (_in_file "${CMAKE_PREFIX_PATH}/bin/tinyxml2.dll")
+    else()
+        set (_in_file "${CMAKE_PREFIX_PATH}/bin/tinyxml2d.dll")
+    endif()
+    add_custom_command(TARGET ${target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
+        COMMENT "Copy tinyxml2 runtime to build tree"
+        VERBATIM)
+
+    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+        set (_in_file "${CMAKE_PREFIX_PATH}/bin/fastrtps-2.2.dll")
+    else()
+        set (_in_file "${CMAKE_PREFIX_PATH}/bin/fastrtpsd-2.2.dll")
+    endif()
+    add_custom_command(TARGET ${target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
+        COMMENT "Copy fastrtps runtime to build tree"
+        VERBATIM)
+
+    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+        set (_in_file "${CMAKE_PREFIX_PATH}/bin/fastcdr-1.0.dll")
+    else()
+        set (_in_file "${CMAKE_PREFIX_PATH}/bin/fastcdrd-1.0.dll")
+    endif()
+    add_custom_command(TARGET ${target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
+        COMMENT "Copy fastcdr runtime to build tree"
+        VERBATIM)
+
+    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+        set (_in_file "${LIBDIR_BIN}/dds_fdal/Release/dds_fdal.dll")
+    else()
+        set (_in_file "${LIBDIR_BIN}/dds_fdal/Debug/dds_fdal.dll")
+    endif()
+    add_custom_command(TARGET ${target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
+        COMMENT "Copy dds_fdal runtime to build tree"
         VERBATIM)
 
 endfunction()
