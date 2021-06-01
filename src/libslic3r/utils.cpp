@@ -35,6 +35,9 @@
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
+#include <boost/log/sinks/text_file_backend.hpp>
+#include <boost/log/utility/setup/file.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
 
 #include <boost/locale.hpp>
 
@@ -116,12 +119,15 @@ unsigned get_logging_level()
     }
 }
 
+boost::shared_ptr<boost::log::sinks::synchronous_sink<boost::log::sinks::text_file_backend>> g_log_sink;
+
 // Force set_logging_level(<=error) after loading of the DLL.
 // This is currently only needed if libslic3r is loaded as a shared library into Perl interpreter
 // to perform unit and integration tests.
 static struct RunOnInit {
     RunOnInit() { 
         set_logging_level(1);
+
     }
 } g_RunOnInit;
 
@@ -200,7 +206,6 @@ const std::string& sys_shapes_dir()
 
 // Translate function callback, to call wxWidgets translate function to convert non-localized UTF8 string to a localized one.
 Slic3r::I18N::translate_fn_type Slic3r::I18N::translate_fn = nullptr;
-
 static std::string g_data_dir;
 
 void set_data_dir(const std::string &dir)
@@ -233,6 +238,24 @@ std::string debug_out_path(const char *name, ...)
 	std::vsprintf(buffer, name, args);
 	va_end(args);
 	return std::string(SLIC3R_DEBUG_OUT_PATH_PREFIX) + std::string(buffer);
+}
+
+void set_log_path_and_level(const std::string& file, unsigned int level)
+{
+	auto full_path = (boost::filesystem::path(g_data_dir) / file).make_preferred();
+	//boost::log::add_file_log("C:\\Users\\86189\\AppData\\Roaming\\PrusaSlicer-alpha\\test.log");
+	g_log_sink = boost::log::add_file_log(full_path.string());
+	set_logging_level(level);
+
+	return;
+}
+
+void flush_logs()
+{
+	if (g_log_sink)
+		g_log_sink->flush();
+
+	return;
 }
 
 #ifdef _WIN32

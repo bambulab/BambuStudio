@@ -1040,6 +1040,9 @@ bool GUI_App::OnInit()
 
 bool GUI_App::on_init_inner()
 {
+    //start log here
+    set_log_path_and_level("debug.log", 5);
+
     // Set initialization of image handlers before any UI actions - See GH issue #7469
     wxInitAllImageHandlers();
 
@@ -1298,6 +1301,8 @@ bool GUI_App::on_init_inner()
     });
 
     m_initialized = true;
+
+    flush_logs();
     return true;
 }
 
