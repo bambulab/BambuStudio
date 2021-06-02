@@ -522,6 +522,8 @@ endforeach()
 
 find_package(NLopt 1.4 REQUIRED)
 
+find_package(eclipse-paho-mqtt-c REQUIRED)
+
 if(SLIC3R_STATIC)
     set(OPENVDB_USE_STATIC_LIBS ON)
     set(USE_BLOSC TRUE)
@@ -611,6 +613,21 @@ function(prusaslicer_copy_dlls target)
         COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
         COMMENT "Copy dds_fdal runtime to build tree"
         VERBATIM)
+    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+        set (_in_file "${CMAKE_PREFIX_PATH}/bin/paho-mqtt3as.dll")
+    else ()
+        set (_in_file "${CMAKE_PREFIX_PATH}/bin/paho-mqtt3asd.dll")
+    endif ()
+    add_custom_command(TARGET ${target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
+        COMMENT "Copy paho-mqtt3as runtime to build tree"
+        VERBATIM)
+    set (_in_file "${CMAKE_PREFIX_PATH}/bin/libcrypto-1_1-x64.dll" "${CMAKE_PREFIX_PATH}/bin/libssl-1_1-x64.dll")
+    add_custom_command(TARGET ${target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
+        COMMENT "Copy openssl runtime to build tree"
+        VERBATIM)
+
 
 endfunction()
 

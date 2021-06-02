@@ -149,6 +149,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ButtonsDescription.hpp
     GUI/ImGuiWrapper.hpp
     GUI/ImGuiWrapper.cpp
+    GUI/DeviceManager.hpp
+    GUI/DeviceManager.cpp
     Config/Snapshot.cpp
     Config/Snapshot.hpp
     Config/Version.cpp
@@ -210,6 +212,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/DesktopIntegrationDialog.hpp
     GUI/HintNotification.cpp
     GUI/HintNotification.hpp
+    GUI/CommuBackend.cpp
+    GUI/CommuBackend.hpp
+    GUI/DebugToolDialog.cpp
+    GUI/DebugToolDialog.hpp
     Utils/Http.cpp
     Utils/Http.hpp
     Utils/FixModelByWin10.cpp
@@ -261,7 +267,7 @@ add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
 encoding_check(libslic3r_gui)
 
 target_link_libraries(libslic3r_gui libslic3r avrdude cereal imgui GLEW::GLEW OpenGL::GL hidapi libcurl 
-${wxWidgets_LIBRARIES} dds_fdal)
+${wxWidgets_LIBRARIES} dds_fdal eclipse-paho-mqtt-c::paho-mqtt3cs)
 
 if (MSVC)
     target_link_libraries(libslic3r_gui Setupapi.lib)

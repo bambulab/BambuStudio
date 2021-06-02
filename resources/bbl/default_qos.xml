@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<dds>
+    <profiles xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles" >
+
+        <participant profile_name="participant_profile" is_default_profile="true">
+            <rtps>
+
+                <builtin>
+                    <!--<readerHistoryMemoryPolicy>PREALLOCATED_WITH_REALLOC</readerHistoryMemoryPolicy> -->
+                    <!-- <writerHistoryMemoryPolicy>PREALLOCATED</writerHistoryMemoryPolicy> -->
+                    <readerHistoryMemoryPolicy>PREALLOCATED_WITH_REALLOC</readerHistoryMemoryPolicy>
+                    <writerHistoryMemoryPolicy>PREALLOCATED_WITH_REALLOC</writerHistoryMemoryPolicy>
+                </builtin>
+
+            </rtps>
+        </participant>
+
+        <data_writer profile_name="data_writer_profile" is_default_profile="true">
+            <topic>
+                <historyQos>
+                    <kind>KEEP_LAST</kind>
+                    <depth>10</depth>
+                </historyQos>
+                <resourceLimitsQos>
+                    <max_samples>10</max_samples>
+                    <max_instances>1</max_instances>
+                    <max_samples_per_instance>10</max_samples_per_instance>
+                    <allocated_samples>10</allocated_samples>
+                </resourceLimitsQos>
+            </topic>
+
+            <qos> <!-- dataWriterQosPoliciesType -->
+                <durability>
+                    <kind>VOLATILE</kind>
+                </durability>
+                <liveliness>
+                    <kind>AUTOMATIC</kind>
+                    <lease_duration>
+                        <sec>DURATION_INFINITY</sec>
+                    </lease_duration>
+                    <announcement_period>
+                        <sec>DURATION_INFINITY</sec>
+                    </announcement_period>
+                </liveliness>
+                <reliability>
+                    <!--<kind>BEST_EFFORT</kind> -->
+                    <kind>RELIABLE</kind>
+                    <max_blocking_time>
+                        <sec>0</sec>
+                        <nanosec>100000000</nanosec>
+                    </max_blocking_time>
+                </reliability>
+                <lifespan>
+                    <duration>
+                        <sec>DURATION_INFINITY</sec>
+                    </duration>
+                </lifespan>
+                <publishMode>
+                    <kind>ASYNCHRONOUS</kind>
+                </publishMode>
+                <disablePositiveAcks>
+                    <enabled>false</enabled>
+                        <duration>
+                        <sec>DURATION_INFINITY</sec>
+                    </duration>
+                </disablePositiveAcks>
+                <deadline>
+                    <period>
+                        <sec>DURATION_INFINITY</sec>
+                    </period>
+                </deadline>
+            </qos>
+
+            <historyMemoryPolicy>PREALLOCATED_WITH_REALLOC</historyMemoryPolicy>
+
+        </data_writer>
+
+        <data_reader profile_name="data_reader_profile" is_default_profile="true">
+            <topic>
+                <historyQos>
+                    <kind>KEEP_LAST</kind>
+                    <depth>10</depth>
+                </historyQos>
+                <resourceLimitsQos>
+                    <max_samples>20</max_samples>
+                    <max_instances>2</max_instances>
+                    <max_samples_per_instance>10</max_samples_per_instance>
+                    <allocated_samples>20</allocated_samples>
+                </resourceLimitsQos>
+            </topic>
+
+            <qos> <!-- dataReaderQosPoliciesType -->
+                <durability>
+                    <kind>VOLATILE</kind>
+                </durability>
+                <liveliness>
+                    <kind>AUTOMATIC</kind>
+                    <lease_duration>
+                        <sec>DURATION_INFINITY</sec>
+                    </lease_duration>
+                    <announcement_period>
+                        <sec>DURATION_INFINITY</sec>
+                    </announcement_period>
+                </liveliness>
+                <reliability>
+                    <!--<kind>BEST_EFFORT</kind> -->
+                    <kind>RELIABLE</kind>
+                    <max_blocking_time>
+                        <sec>0</sec>
+                        <nanosec>100000000</nanosec>
+                    </max_blocking_time>
+                </reliability>
+                <lifespan>
+                    <duration>
+                        <sec>DURATION_INFINITY</sec>
+                    </duration>
+                </lifespan>
+                <disablePositiveAcks>
+                    <enabled>false</enabled>
+                        <duration>
+                        <sec>DURATION_INFINITY</sec>
+                    </duration>
+                </disablePositiveAcks>
+                <deadline>
+                    <period>
+                        <sec>DURATION_INFINITY</sec>
+                    </period>
+                </deadline>
+            </qos>
+
+            <historyMemoryPolicy>PREALLOCATED_WITH_REALLOC</historyMemoryPolicy>
+
+        </data_reader>
+    </profiles>
+
+    <log>
+        <use_default>FALSE</use_default>
+
+        <consumer>
+            <class>StdoutConsumer</class>
+        </consumer>
+        <consumer>
+            <class>StdoutErrConsumer</class>
+            <!--
+            <property>
+                <name>stderr_threshold</name>
+                <value>Log::Kind::Error</value>
+            </property>
+            -->
+            <property>
+                <name>stderr_threshold</name>
+                <value>Log::Kind::Info</value>
+            </property>
+        </consumer>
+        <consumer>
+            <class>FileConsumer</class>
+            <property>
+                <name>filename</name>
+                <value>D:\\execution.log</value>
+            </property>
+            <property>
+                <name>append</name>
+                <value>TRUE</value>
+            </property>
+        </consumer>
+    </log>
+
+</dds>

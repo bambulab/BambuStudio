@@ -791,6 +791,9 @@ void GUI_App::post_init()
     // Sets window property to mainframe so other instances can indentify it.
     OtherInstanceMessageHandler::init_windows_properties(mainframe, m_instance_hash_int);
 #endif //WIN32
+
+    // start dds mode
+    m_backend->start();
 }
 
 IMPLEMENT_APP(GUI_App)
@@ -802,6 +805,8 @@ GUI_App::GUI_App(EAppMode mode)
     , m_imgui(new ImGuiWrapper())
 	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
 	, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
+    , m_backend(new Slic3r::CommuBackend())
+    , m_device_manager(new Slic3r::DeviceManager())
 {
 	//app config initializes early becasuse it is used in instance checking in PrusaSlicer.cpp
 	this->init_app_config();
@@ -1743,6 +1748,7 @@ void GUI_App::persist_window_geometry(wxTopLevelWindow *window, bool default_max
     const std::string name = into_u8(window->GetName());
 
     window->Bind(wxEVT_CLOSE_WINDOW, [=](wxCloseEvent &event) {
+        m_backend->stop();
         window_pos_save(window, name);
         event.Skip();
     });

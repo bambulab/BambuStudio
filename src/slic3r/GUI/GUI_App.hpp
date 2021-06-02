@@ -7,6 +7,8 @@
 #include "ConfigWizard.hpp"
 #include "OpenGLManager.hpp"
 #include "libslic3r/Preset.hpp"
+#include "slic3r/GUI/CommuBackend.hpp"
+#include "slic3r/GUI/DeviceManager.hpp"
 
 #include <wx/app.h>
 #include <wx/colour.h>
@@ -32,6 +34,8 @@ class PresetUpdater;
 class ModelObject;
 class PrintHostJobQueue;
 class Model;
+class CommuBackend;
+class DeviceManager;
 
 namespace GUI{
 
@@ -154,6 +158,9 @@ private:
     std::string m_instance_hash_string;
 	size_t m_instance_hash_int;
 
+    Slic3r::CommuBackend* m_backend;
+    Slic3r::DeviceManager* m_device_manager;
+
 public:
     bool            OnInit() override;
     bool            initialized() const { return m_initialized; }
@@ -162,6 +169,8 @@ public:
     ~GUI_App() override;
 
     EAppMode get_app_mode() const { return m_app_mode; }
+    Slic3r::CommuBackend* getCommuBackend() { return m_backend; }
+    Slic3r::DeviceManager* getDeviceManager() { return m_device_manager; }
     bool is_editor() const { return m_app_mode == EAppMode::Editor; }
     bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
     bool is_recreating_gui() const { return m_is_recreating_gui; }

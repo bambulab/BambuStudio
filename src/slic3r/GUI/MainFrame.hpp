@@ -17,6 +17,7 @@
 #include "GUI_Utils.hpp"
 #include "Event.hpp"
 #include "UnsavedChangesDialog.hpp"
+#include "DebugToolDialog.hpp"
 
 class wxBookCtrlBase;
 class wxProgressDialog;
@@ -30,6 +31,7 @@ namespace GUI
 
 class Tab;
 class PrintHostQueueDialog;
+class DebugToolDialog;
 class Plater;
 class MainFrame;
 
@@ -196,6 +198,7 @@ public:
     void        technology_changed();
 
     PrintHostQueueDialog* printhost_queue_dlg() { return m_printhost_queue_dlg; }
+    DebugToolDialog* debug_tool_dlg() { return m_debug_tool_dlg; }
 
     Plater*               m_plater { nullptr };
     wxBookCtrlBase*       m_tabpanel { nullptr };
@@ -205,6 +208,7 @@ public:
 //    wxProgressDialog*     m_progress_dialog { nullptr };
     PrintHostQueueDialog* m_printhost_queue_dlg;
 //    std::shared_ptr<ProgressStatusBar>  m_statusbar;
+    DebugToolDialog*      m_debug_tool_dlg;
 
 #ifdef __APPLE__
     std::unique_ptr<wxTaskBarIcon> m_taskbar_icon;

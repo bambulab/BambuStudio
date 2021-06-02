@@ -123,6 +123,7 @@ static wxIcon main_frame_icon(GUI_App::EAppMode app_mode)
 MainFrame::MainFrame() :
 DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
     m_printhost_queue_dlg(new PrintHostQueueDialog(this))
+    , m_debug_tool_dlg(new DebugToolDialog(this))
     , m_recent_projects(9)
     , m_settings_dialog(this)
     , diff_dialog(this)
@@ -1440,6 +1441,12 @@ void MainFrame::init_menubar_as_editor()
 #endif // __APPLE__
     }
 
+    // Debug menu
+    auto debugMenu = new wxMenu();
+    append_menu_item(debugMenu, wxID_ANY, _L("Debug Tool"), _L("Display the Debug Tool"),
+        [this](wxCommandEvent&) { m_debug_tool_dlg->Show(); }, "upload_queue", nullptr, []() {return true; }, this);
+
+
     // Help menu
     auto helpMenu = generate_help_menu();
 
@@ -1452,6 +1459,7 @@ void MainFrame::init_menubar_as_editor()
     m_menubar->Append(windowMenu, _L("&Window"));
     if (viewMenu) m_menubar->Append(viewMenu, _L("&View"));
     // Add additional menus from C++
+    if (debugMenu) m_menubar->Append(debugMenu, _L("&Debug"));
     wxGetApp().add_config_menu(m_menubar);
     m_menubar->Append(helpMenu, _L("&Help"));
 
