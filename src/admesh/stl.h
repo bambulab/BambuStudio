@@ -195,6 +195,8 @@ extern void stl_mirror_xy(stl_file *stl);
 extern void stl_mirror_yz(stl_file *stl);
 extern void stl_mirror_xz(stl_file *stl);
 
+extern float get_area(stl_facet* facet);
+
 extern void stl_get_size(stl_file *stl);
 
 // the following function is not used

@@ -69,6 +69,7 @@
 #include "Camera.hpp"
 #include "Mouse3DController.hpp"
 #include "Tab.hpp"
+#include "Jobs/OrientJob.hpp"
 #include "Jobs/ArrangeJob.hpp"
 #include "Jobs/FillBedJob.hpp"
 #include "Jobs/RotoptimizeJob.hpp"
@@ -1645,7 +1646,7 @@ struct Plater::priv
     class Jobs: public ExclusiveJobGroup
     {
         priv *m;
-        size_t m_arrange_id, m_fill_bed_id, m_rotoptimize_id, m_sla_import_id;
+        size_t m_arrange_id, m_fill_bed_id, m_rotoptimize_id, m_sla_import_id, m_orient_id;
         std::shared_ptr<NotificationProgressIndicator> m_pri;
         
         void before_start() override { m->background_process.stop(); }
@@ -1656,6 +1657,7 @@ struct Plater::priv
             m_pri{std::make_shared<NotificationProgressIndicator>(m->notification_manager.get())}
         {
             m_arrange_id = add_job(std::make_unique<ArrangeJob>(m_pri, m->q));
+            m_orient_id = add_job(std::make_unique<OrientJob>(m->statusbar(), m->q));
             m_fill_bed_id = add_job(std::make_unique<FillBedJob>(m_pri, m->q));
             m_rotoptimize_id = add_job(std::make_unique<RotoptimizeJob>(m_pri, m->q));
             m_sla_import_id = add_job(std::make_unique<SLAImportJob>(m_pri, m->q));
@@ -1665,6 +1667,12 @@ struct Plater::priv
         {
             m->take_snapshot(_L("Arrange"));
             start(m_arrange_id);
+        }
+
+        void orient()
+        {
+            m->take_snapshot(_(L("Orient")));
+            start(m_orient_id);
         }
 
         void fill_bed()
@@ -2095,6 +2103,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE, [q](SimpleEvent&) { q->remove_selected(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE_ALL, [this](SimpleEvent&) { delete_all_objects_from_model(); });
 //        view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE_ALL, [q](SimpleEvent&) { q->reset_with_confirm(); });
+        view3D_canvas->Bind(EVT_GLTOOLBAR_ORIENT, [this](SimpleEvent&) { this->q->orient(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_ARRANGE, [this](SimpleEvent&) { this->q->arrange(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_COPY, [q](SimpleEvent&) { q->copy_selection_to_clipboard(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_PASTE, [q](SimpleEvent&) { q->paste_from_clipboard(); });
@@ -4322,6 +4331,11 @@ void Plater::priv::init_notification_manager()
     notification_manager->init_slicing_progress_notification(cancel_callback);
     notification_manager->set_fff(printer_technology == ptFFF);
     notification_manager->init_progress_indicator();
+}
+
+void Plater::orient()
+{
+    p->m_ui_jobs.orient();
 }
 
 void Plater::priv::set_current_canvas_as_dirty()

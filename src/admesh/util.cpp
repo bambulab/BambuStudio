@@ -245,7 +245,7 @@ void stl_mirror_xz(stl_file *stl)
 	stl->stats.facets_reversed -= stl->stats.number_of_facets;  // for not altering stats
 }
 
-static float get_area(stl_facet *facet)
+float get_area(stl_facet *facet)
 {
 	/* cast to double before calculating cross product because large coordinates
 	 can result in overflowing product

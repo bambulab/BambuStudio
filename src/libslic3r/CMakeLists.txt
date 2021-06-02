@@ -14,7 +14,7 @@ if (TARGET OpenVDB::openvdb)
     set(OpenVDBUtils_SOURCES OpenVDBUtils.cpp OpenVDBUtils.hpp)
 endif()
 
-add_library(libslic3r STATIC
+set(lisbslic3r_sources
     pchheader.cpp
     pchheader.hpp
     BoundingBox.cpp
@@ -142,7 +142,6 @@ add_library(libslic3r STATIC
     Layer.hpp
     LayerRegion.cpp
     libslic3r.h
-    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h"
     Line.cpp
     Line.hpp
     BlacklistedLibraryCheck.cpp
@@ -159,6 +158,8 @@ add_library(libslic3r STATIC
     CustomGCode.hpp
     Arrange.hpp
     Arrange.cpp
+    Orient.hpp
+    Orient.cpp
     MultiPoint.cpp
     MultiPoint.hpp
     MutablePriorityQueue.hpp
@@ -253,7 +254,6 @@ add_library(libslic3r STATIC
     Optimize/Optimizer.hpp
     Optimize/NLoptOptimizer.hpp
     Optimize/BruteforceOptimizer.hpp
-    ${OpenVDBUtils_SOURCES}
     SLA/Pad.hpp
     SLA/Pad.cpp
     SLA/SupportTreeBuilder.hpp
@@ -290,6 +290,11 @@ add_library(libslic3r STATIC
     SLA/Clustering.cpp
     SLA/ReprojectPointsOnMesh.hpp
 )
+
+add_library(libslic3r STATIC ${lisbslic3r_sources} 
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h"
+    ${OpenVDBUtils_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${lisbslic3r_sources})
 
 if (SLIC3R_STATIC)
     set(CGAL_Boost_USE_STATIC_LIBS ON CACHE BOOL "" FORCE)

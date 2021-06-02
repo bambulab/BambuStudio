@@ -176,6 +176,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Jobs/PlaterJob.cpp
     GUI/Jobs/ArrangeJob.hpp
     GUI/Jobs/ArrangeJob.cpp
+    GUI/Jobs/OrientJob.hpp
+    GUI/Jobs/OrientJob.cpp
     GUI/Jobs/RotoptimizeJob.hpp
     GUI/Jobs/RotoptimizeJob.cpp
     GUI/Jobs/FillBedJob.hpp
@@ -263,6 +265,8 @@ if (APPLE)
 endif ()
 
 add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
+
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SLIC3R_GUI_SOURCES})
 
 encoding_check(libslic3r_gui)
 
