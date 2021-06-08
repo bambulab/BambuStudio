@@ -523,6 +523,7 @@ endforeach()
 find_package(NLopt 1.4 REQUIRED)
 
 find_package(eclipse-paho-mqtt-c REQUIRED)
+find_package(paho-mqttpp3 REQUIRED)
 
 if(SLIC3R_STATIC)
     set(OPENVDB_USE_STATIC_LIBS ON)
@@ -616,7 +617,43 @@ function(prusaslicer_copy_dlls target)
     if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
         set (_in_file "${CMAKE_PREFIX_PATH}/bin/paho-mqtt3as.dll")
     else ()
-        set (_in_file "${CMAKE_PREFIX_PATH}/bin/paho-mqtt3asd.dll")
+        set (_in_file "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqtt3as.dll")
+    endif ()
+    add_custom_command(TARGET ${target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
+        COMMENT "Copy paho-mqtt3as runtime to build tree"
+        VERBATIM)
+    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+        set (_in_file "${CMAKE_PREFIX_PATH}/bin/paho-mqtt3cs.dll")
+    else ()
+        set (_in_file "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqtt3cs.dll")
+    endif ()
+    add_custom_command(TARGET ${target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
+        COMMENT "Copy paho-mqtt3as runtime to build tree"
+        VERBATIM)
+    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+        set (_in_file "${CMAKE_PREFIX_PATH}/bin/paho-mqtt3a.dll")
+    else ()
+        set (_in_file "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqtt3a.dll")
+    endif ()
+    add_custom_command(TARGET ${target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
+        COMMENT "Copy paho-mqtt3as runtime to build tree"
+        VERBATIM)
+    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+        set (_in_file "${CMAKE_PREFIX_PATH}/bin/paho-mqtt3c.dll")
+    else ()
+        set (_in_file "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqtt3c.dll")
+    endif ()
+    add_custom_command(TARGET ${target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
+        COMMENT "Copy paho-mqtt3as runtime to build tree"
+        VERBATIM)
+    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+        set (_in_file "${CMAKE_PREFIX_PATH}/bin/paho-mqttpp3.dll")
+    else ()
+        set (_in_file "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqttpp3.dll")
     endif ()
     add_custom_command(TARGET ${target} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}

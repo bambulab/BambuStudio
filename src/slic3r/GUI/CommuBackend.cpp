@@ -49,6 +49,19 @@ namespace Slic3r {
         return 0;
     }
 
+    int DdsClient::wait_for_client(std::string topic)
+    {
+        std::map<std::string, PublisherHandle*>::iterator it = m_pub_map.find(topic);
+        int result = wait_for_subscriber(it->second, 1000);
+        if (result == 1) {
+            BOOST_LOG_TRIVIAL(trace) << "wait for client OK! topic=" << topic;
+        }
+        else {
+            BOOST_LOG_TRIVIAL(trace) << "wait for client Failed! topic=" << topic;
+        }
+        return 0;
+    }
+
     int DdsClient::add_sub_topic(std::string topic, data_callback callback)
     {
         data_event_callback_t *cb = new data_event_callback_t();
@@ -83,17 +96,40 @@ namespace Slic3r {
         msg.set_sequence_id(DdsClient::m_sequence_id++);
         topic_device_json device_msg;
         device_msg.json(msg.json());
+        BOOST_LOG_TRIVIAL(trace) << "publish topic = " << topic << ", msg = " << msg.json();
         return publish(it->second, &device_msg);
     }
 
-    int MqttClient::connect()
+    void conn_callback::connected(const std::string& cause)
     {
-        return 0;
+        BOOST_LOG_TRIVIAL(trace) << "connected";
+        Slic3r::CommuBackend* backend = Slic3r::GUI::wxGetApp().getCommuBackend();
+        Slic3r::DeviceManager* manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+        std::vector<std::string> list = manager->get_connected_device_list();
+        std::vector<std::string>::iterator it;
+        for (it = list.begin(); it != list.end(); it++) {
+            std::string topic = backend->get_report_topic(*it);
+            backend->subscribe_device_topic(*it);
+        }
+    }
+
+    void conn_callback::on_success(const mqtt::token& tok)
+    {
+        BOOST_LOG_TRIVIAL(trace) << "on_success";
+    }
+
+    void conn_callback::message_arrived(mqtt::const_message_ptr msg)
+    {
+        BOOST_LOG_TRIVIAL(trace) << "message arrived";
+        std::string topic = msg->get_topic();
+        std::string payload = msg->get_payload_str();
     }
 
     void on_alive_msg(void* message, message_info_t* message_info, void* priv) {
         topic_device_json* msg = static_cast<topic_device_json*>(message);
         std::istringstream is(msg->json());
+        BOOST_LOG_TRIVIAL(trace) << "on_alive_msg json = " << msg->json();
+
         pt::ptree root;
         try {
             // Parse Json, TODO Use JsonMsg
@@ -103,23 +139,32 @@ namespace Slic3r {
             boost::optional<std::string> dev_id = root.get_optional<std::string>("dev_id");
             boost::optional<std::string> domain_id = root.get_optional<std::string>("domain_id");
             boost::optional<std::string> ip_addr = root.get_optional<std::string>("ip_addr");
-            if (dev_id.value_or("0").compare("0") == 0) {
+            if (!dev_id.has_value() || !domain_id.has_value() || !dev_name.has_value() || !prod_id.has_value() || !ip_addr.has_value()) {
+                BOOST_LOG_TRIVIAL(trace) << "on_alive_msg parse json failed! json = " << msg->json();
                 return;
             }
 
             // Insert a new device or not
-            Slic3r::DeviceManager* manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-            if (!manager->isExist(dev_id.value_or("0"))) {  // Insert a new device
-                Slic3r::DeviceInfo* newDevice = new Slic3r::DeviceInfo(dev_id.value_or("0"), dev_name.value_or(""), domain_id.value_or("0"));
-                newDevice->m_productId = prod_id.value_or("0");
-                newDevice->m_ipAddr = ip_addr.value_or("192.168.0.1");
-                manager->add_new_device(newDevice);
+            Slic3r::DeviceManager* device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+            if (!device_manager->isExist(dev_id.value())) {  // Insert a new device
+                Slic3r::DeviceInfo* newDevice = new Slic3r::DeviceInfo(dev_id.value(), dev_name.value(), domain_id.value());
+                newDevice->m_productId = prod_id.value();
+                newDevice->m_ipAddr = ip_addr.value();
+                device_manager->add_new_device(newDevice);
             }
             //TODO register update device alive timer
-            manager->update_alive_time(dev_id.value_or("0"));
+            device_manager->update_alive_time(dev_id.value());
+            Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+            if (account_manager->is_user_login()) {
+                if (!device_manager->has_bind_status(dev_id.value())) {
+                    account_manager->query_bind_status(dev_id.value());
+                }
+            }
+            
             return;
         }
-        catch (std::exception&) {
+        catch (std::exception &e) {
+
         }
     }
 
@@ -132,6 +177,7 @@ namespace Slic3r {
     void on_device_report_msg(void* message, message_info_t* message_info, void* priv)
     {
         topic_device_json* msg = static_cast<topic_device_json*>(message);
+        BOOST_LOG_TRIVIAL(trace) << "received device report msg = " << msg->json();
         Slic3r::GUI::MainFrame* frame = Slic3r::GUI::wxGetApp().mainframe;
         if (!frame) return;
         GUI::DebugToolDialog* dlg = frame->m_debug_tool_dlg;
@@ -145,6 +191,8 @@ namespace Slic3r {
         m_broadcast_client = new DdsClient(BROADCAST_DOMAIN);
         
         m_broadcast_client->add_sub_topic(TOPIC_BROADCAST_ALIVE, on_alive_msg);
+
+        m_mqtt_client = NULL;
     } 
 
     int CommuBackend::start()
@@ -161,13 +209,19 @@ namespace Slic3r {
         return m_broadcast_client->stop();
     }
 
-    int CommuBackend::connect(ConnectionType type, std::string device_id)
+    int CommuBackend::connect_mqtt_server(std::string user_id)
     {
-        if (type == DDS_CONNECTION) {
-            return connect_dds_device(device_id);
+        try {
+            m_mqtt_client = new mqtt::async_client(MQTT_SERVER_ADDRESS, user_id);
+            auto conn_opt = mqtt::connect_options_builder().clean_session().finalize();
+            m_mqtt_cb = new conn_callback(*m_mqtt_client, conn_opt);
+            m_mqtt_client->set_callback(*m_mqtt_cb);
+            mqtt::token_ptr token = m_mqtt_client->connect(conn_opt, nullptr, *m_mqtt_cb);
+            //token->wait();
         }
-        else if (type == MQTT_CONNECTION) {
-            ; //TODO
+        catch (mqtt::exception& e) {
+            m_mqtt_client = NULL;
+            return -1;
         }
         return 0;
     }
@@ -185,7 +239,6 @@ namespace Slic3r {
             }
 
             int domain_id = manager->getDomainId(device_id);
-
             DdsClient *client = new DdsClient(domain_id);
             m_dds_client.insert(std::make_pair(device_id, client));
             std::string pub_topic = manager->getRequestTopic(device_id);
@@ -194,7 +247,7 @@ namespace Slic3r {
             client->add_pub_topic(pub_topic, on_device_request_msg);
             client->add_sub_topic(sub_topic, on_device_report_msg);
 
-            return client->start();
+            client->start();
         }
         catch (std::exception& e)
         {
@@ -221,18 +274,62 @@ namespace Slic3r {
             return -1;
         }
 
+        /*
+        if (m_mqtt_client) {
+            if (m_mqtt_client->is_connected()) {
+                std::string topic = manager->getRequestTopic(device_id);
+                mqtt::message_ptr pubmsg = mqtt::make_message(topic, msg.json());
+                pubmsg->set_qos(0);
+                mqtt::delivery_token_ptr token = m_mqtt_client->publish(pubmsg);
+            }
+        }
+        */
+
+        
         std::map<std::string, DdsClient*>::iterator it = m_dds_client.find(device_id);
         if (it == m_dds_client.end()) {
             connect_dds_device(device_id);
-            if (m_dds_client.find(device_id) == m_dds_client.end()) {
+            it = m_dds_client.find(device_id);
+            if (it == m_dds_client.end()) {
                 return -1;
             }
+            std::string topic = manager->getRequestTopic(device_id);
+            it->second->wait_for_client(topic);
         }
-
         return send_async(device_id, msg, NULL);
+        
+        
+        return 0;
+    }
+
+    int CommuBackend::subscribe_device_topic(std::string device_id) {
+        try {
+            std::string topic = get_report_topic(device_id);
+            action_listener* sub_listener = new action_listener("Subscription");
+            BOOST_LOG_TRIVIAL(trace) << "subscribe topic = " << topic;
+            m_mqtt_client->subscribe(topic, 0, nullptr, *sub_listener);
+            return 0;
+        }
+        catch (mqtt::exception& e) {
+            return -1;
+        }
     }
 
     CommuBackend::~CommuBackend()
     {
+    }
+
+    std::string CommuBackend::get_request_topic(std::string dev_id)
+    {
+        Slic3r::DeviceManager* device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+        std::string prod_id = device_manager->getProductId(dev_id);
+            return (boost::format("device/%1%/%2%/request") % prod_id % dev_id).str();
+    }
+
+    std::string CommuBackend::get_report_topic(std::string dev_id)
+    {
+        Slic3r::DeviceManager* device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+        std::string prod_id = device_manager->getProductId(dev_id);
+        return (boost::format("device/%1%/%2%/report") % prod_id % dev_id).str();
     }
 }

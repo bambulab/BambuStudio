@@ -38,6 +38,10 @@ typedef pt::ptree JSON;
 
 namespace Slic3r {
 namespace GUI {
+
+    wxDEFINE_EVENT(EVT_DEVICE_REQUEST_MSG, JsonMsgEvent);
+    wxDEFINE_EVENT(EVT_DEVICE_REPORT_MSG, JsonMsgEvent);
+
     std::string DebugToolDialog::_getNewLogFilename()
     {
         std::time_t t = std::time(0);
@@ -80,6 +84,30 @@ namespace GUI {
     {
         selectGcodeDialog = new wxFileDialog(parent, "Open Gcode File", "", "", "Gcode files(*.gcode)|*.gcode", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
+        /*
+        btn_login = new wxButton(this, wxID_ANY, _L("Login"), wxDefaultPosition, wxDefaultSize);
+        btn_login->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+            Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+            account_manager->user_login(txt_user->GetValue().ToStdString(), txt_password->GetValue().ToStdString());
+            });
+        btn_logout = new wxButton(this, wxID_ANY, _L("Logout"), wxDefaultPosition, wxDefaultSize);
+        btn_logout->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+            Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+            account_manager->user_logout(txt_user->GetValue().ToStdString());
+            });
+
+        btn_register = new wxButton(this, wxID_ANY, _L("Register"), wxDefaultPosition, wxDefaultSize);
+        btn_register->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+            Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+            account_manager->user_register(txt_user->GetValue().ToStdString(), txt_password->GetValue().ToStdString());
+            });
+
+        auto* label_user = new wxStaticText(this, wxID_ANY, _L("User: "), wxDefaultPosition, wxDefaultSize);
+        auto* label_password = new wxStaticText(this, wxID_ANY, _L("Password: "), wxDefaultPosition, wxDefaultSize);
+        txt_user = new wxTextCtrl(this, wxID_ANY, _L(""), wxDefaultPosition, wxDefaultSize);
+        txt_password = new wxTextCtrl(this, wxID_ANY, _L(""), wxDefaultPosition, wxDefaultSize);
+        */
+
         btn_refresh_upgrade_list = new wxButton(this, wxID_ANY, _L("Refresh"), wxDefaultPosition, wxDefaultSize);
         btn_refresh_upgrade_list->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
             this->refresh_firmware_list(true);
@@ -108,6 +136,22 @@ namespace GUI {
             this->publish_json(json_str);
             wxMessageBox("Start Upgrading (About 2 Minutes)...");
             });
+
+
+        /*btn_bind = new wxButton(this, wxID_ANY, _L("Bind"), wxDefaultPosition, wxDefaultSize);
+        btn_bind->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+                Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+                std::string device_id;
+                if (get_current_device_id(device_id) < 0) return;
+                account_manager->request_bind(device_id);
+            });
+        btn_unbind = new wxButton(this, wxID_ANY, _L("Unbind"), wxDefaultPosition, wxDefaultSize);
+        btn_unbind->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+                Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+                std::string device_id;
+                if (get_current_device_id(device_id) < 0) return;
+                account_manager->request_unbind(device_id);
+            });*/
 
         btn_run_gcode = new wxButton(this, wxID_ANY, _L("Run Gcode"), wxDefaultPosition, wxSize(180, -1));
         btn_run_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
@@ -385,7 +429,6 @@ namespace GUI {
         label_gcode_filename = new wxStaticText(this, wxID_ANY, _L("File Path:"), wxDefaultPosition, wxDefaultSize);
         label_output_string = new wxStaticText(this, wxID_ANY, _L("MC String Info:"), wxDefaultPosition, wxDefaultSize);
         label_device_list = new wxStaticText(this, wxID_ANY, _L("Device List:"), wxDefaultPosition, wxDefaultSize);
-        //wxStaticText *label_connect_status = new wxStaticText(this, wxID_ANY, _L("offline"), wxDefaultPosition, wxDefaultSize);
 
         wxArrayString module_items;
         module_items.Add(_L("AP"));
@@ -397,11 +440,13 @@ namespace GUI {
         cb_upgrade_firmware->SetEditable(false);
         cb_device_list = new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize);
         cb_device_list->SetEditable(false);
+        //cb_device_list->Connect(COMBOBOX_ID, wxEVT_COMBOBOX, wxCommandEventHandler(DebugToolDialog::on_select_device));
         wxButton* btn_refresh_device_list = new wxButton(this, wxID_ANY, _L("Refresh"), wxDefaultPosition, wxDefaultSize);
         btn_refresh_device_list->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
             this->refresh_device_list();
         });
 
+        //label_device_status = new wxStaticText(this, wxID_ANY, _L("Unkown"), wxDefaultPosition, wxDefaultSize);
         cb_upgrade_module->Select(0);
 
         // Layout Sizer
@@ -419,9 +464,23 @@ namespace GUI {
         auto* output_content_sizer = new wxBoxSizer(wxVERTICAL);
         auto* output_btns_sizer = new wxBoxSizer(wxVERTICAL);
 
+        /*
+        auto* user_sizer = new wxBoxSizer(wxHORIZONTAL);
+        user_sizer->Add(label_user, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+        user_sizer->Add(txt_user, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+        user_sizer->Add(label_password, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+        user_sizer->Add(txt_password, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+        user_sizer->Add(btn_login, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+        user_sizer->Add(btn_logout, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+        user_sizer->Add(btn_register, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+        */
+
         conn_device_sizer->Add(label_device_list, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
         conn_device_sizer->Add(cb_device_list, 1, wxALL | wxEXPAND, SPACING);
         conn_device_sizer->Add(btn_refresh_device_list, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
+        //conn_device_sizer->Add(btn_bind, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
+        //conn_device_sizer->Add(btn_unbind, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
+        //conn_device_sizer->Add(label_device_status, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
 
         upgrade_sizer->Add(btn_upgrade_firmware, 0, wxLEFT, SPACING);
         upgrade_sizer->Add(label_upgrade_filename, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
@@ -522,6 +581,8 @@ namespace GUI {
         ctrl_custom_sizer->Add(control_sizer, 0, wxLEFT | wxALIGN_LEFT, 0);
         ctrl_custom_sizer->Add(custom_gcode_sizer, 1, wxLEFT | wxRIGHT | wxEXPAND, 5);
 
+        //top_sizer->Add(-1, 8);
+        //top_sizer->Add(user_sizer, 0, wxLEFT | wxRIGHT | wxEXPAND, 0);
         top_sizer->Add(-1, 8);
         top_sizer->Add(conn_device_sizer, 0, wxLEFT | wxRIGHT | wxEXPAND, 0);
         top_sizer->Add(-1, 8);
@@ -536,6 +597,8 @@ namespace GUI {
         SetSizer(top_sizer);
 
         Bind(wxEVT_TIMER, &DebugToolDialog::on_timer, this);
+
+        Bind(EVT_DEVICE_REPORT_MSG, &DebugToolDialog::on_device_report_msg, this);
 }
 
 
@@ -609,8 +672,15 @@ int DebugToolDialog::handle_request_print_msg(std::string json_str)
     return 0;
 }
 
+int DebugToolDialog::handle_device_report_msg(std::string json_str)
+{
+    wxPostEvent(this, JsonMsgEvent(EVT_DEVICE_REPORT_MSG, json_str));
+    return 0;
+}
+
 int DebugToolDialog::handle_report_print_msg(std::string json_str)
 {
+
     try {
         std::stringstream ss(json_str);
         pt::ptree root;
@@ -683,8 +753,19 @@ int DebugToolDialog::handle_alive_msg(std::string dev_id)
 void DebugToolDialog::refresh_device_list()
 {
     Slic3r::DeviceManager* manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-    wxArrayString new_items = manager->get_connected_devicelist();
-    cb_device_list->Set(new_items);
+    wxArrayString new_items;
+    std::vector<DeviceInfo*> list = manager->get_connected_device_info();
+    std::vector<DeviceInfo*>::iterator it;
+    for (it = list.begin(); it != list.end(); it++) {
+        new_items.Add(get_device_list_item(*it));
+        cb_device_list->Set(new_items);
+    }
+}
+
+std::string DebugToolDialog::get_device_list_item(DeviceInfo* info)
+{
+    //devices.Add(it->second->m_deviceName + "(" + it->first + ")");
+    return (boost::format("%1%(%2%)[%3%]") % info->m_deviceName % info->m_deviceId % info->get_bind_status_str()).str();
 }
 
 void DebugToolDialog::refresh_firmware_list(bool show_error)
@@ -740,6 +821,7 @@ int DebugToolDialog::curl_upload(std::string srcFile, std::string dstFile, std::
         " -T \"" + srcFile + "\" --ftp-create-dirs";
     std::string out;
     int result = callSystem(cmd, out);
+    BOOST_LOG_TRIVIAL(trace) << out;
     return 0;
 }
 
@@ -773,6 +855,31 @@ int DebugToolDialog::callSystem(std::string cmd, std::string& output)
     return 0;
 }
 
+int DebugToolDialog::set_current_device_id()
+{
+    std::string content = cb_device_list->GetValue().ToStdString();
+    size_t start = content.find_last_of("(") + 1;
+    std::string device_id = content.substr(start, content.find_last_of(")") - start);
+    if (device_id.compare("") == 0) {
+        return -1;
+    }
+    m_curr_dev_id = device_id;
+    return 0;
+}
+
+int DebugToolDialog::get_current_device_id(std::string& dev_id)
+{
+    std::string content = cb_device_list->GetValue().ToStdString();
+    size_t start = content.find_last_of("(") + 1;
+    std::string device_id = content.substr(start, content.find_last_of(")") - start);
+    if (device_id.compare("") == 0) {
+        return -1;
+    }
+    m_curr_dev_id = device_id;
+    dev_id = std::string(m_curr_dev_id);
+    return 0;
+}
+
 int DebugToolDialog::handle_offline_event(std::string dev_id)
 {
     std::string content = cb_device_list->GetValue().ToStdString();
@@ -799,5 +906,19 @@ void DebugToolDialog::on_timer(wxTimerEvent& event)
     pt::write_json("CustomGcode.json", custom_gcode_root);
 }
 
+void DebugToolDialog::on_device_report_msg(JsonMsgEvent& evt)
+{
+    this->handle_report_print_msg(evt.getJson());
+}
+
+void DebugToolDialog::on_select_device(wxCommandEvent& evt)
+{
+    this->set_current_device_id();
+}
+
 }
 }
+
+//BEGIN_EVENT_TABLE(Slic3r::GUI::DebugToolDialog, Slic3r::GUI::DPIDialog)
+//EVT_COMBOBOX(COMBOBOX_ID, Slic3r::GUI::DebugToolDialog::on_select_device)
+//END_EVENT_TABLE()

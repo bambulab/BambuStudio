@@ -218,6 +218,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/CommuBackend.hpp
     GUI/DebugToolDialog.cpp
     GUI/DebugToolDialog.hpp
+    GUI/AccountManager.hpp
+    GUI/AccountManager.cpp
     Utils/Http.cpp
     Utils/Http.hpp
     Utils/FixModelByWin10.cpp
@@ -271,7 +273,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SLIC3R_GUI_SOURCES})
 encoding_check(libslic3r_gui)
 
 target_link_libraries(libslic3r_gui libslic3r avrdude cereal imgui GLEW::GLEW OpenGL::GL hidapi libcurl 
-${wxWidgets_LIBRARIES} dds_fdal eclipse-paho-mqtt-c::paho-mqtt3cs)
+${wxWidgets_LIBRARIES} dds_fdal eclipse-paho-mqtt-c::paho-mqtt3as paho-mqttpp3)
 
 if (MSVC)
     target_link_libraries(libslic3r_gui Setupapi.lib)

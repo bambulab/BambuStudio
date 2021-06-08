@@ -13,6 +13,8 @@
 #include "GUI_Utils.hpp"
 #include "MsgDialog.hpp"
 #include "libslic3r/Utils.hpp"
+#include "slic3r/GUI/DeviceManager.hpp"
+
 
 class wxTimer;
 class wxTimerEvent;
@@ -23,7 +25,8 @@ class wxStaticText;
 class wxDataViewListCtrl;
 class wxFileDialog;
 
-#define TIMER_ID 1000
+#define TIMER_ID    1000
+#define COMBOBOX_ID 1001
 
 class WXDLLIMPEXP_CORE JsonMsgEvent : public wxEvent
 {
@@ -37,10 +40,9 @@ private:
     std::string json_str;
 };
 
-//const std::string SFTP_USERNAME = "bblp";
-//const std::string SFTP_PASSWORD = "bblp@001";
-//wxDEFINE_EVENT(EVT_DEVICE_REQUEST_MSG, JsonMsgEvent);
-//wxDEFINE_EVENT(EVT_DEVICE_REPORT_MSG, JsonMsgEvent);
+
+wxDECLARE_EVENT(EVT_DEVICE_REQUEST_MSG, JsonMsgEvent);
+wxDECLARE_EVENT(EVT_DEVICE_REPORT_MSG, JsonMsgEvent);
 
 namespace Slic3r {
 
@@ -59,6 +61,7 @@ namespace Slic3r {
             int publish_json_to_device(std::string dev_id, std::string json_str);
             int handle_report_print_msg(std::string json_str);
             int handle_request_print_msg(std::string json_str);
+            int handle_device_report_msg(std::string json_str);
             int handle_alive_msg(std::string dev_id);
             int append_output_string_info(std::string str);
             int handle_offline_event(std::string dev_id);
@@ -66,6 +69,8 @@ namespace Slic3r {
             void refresh_device_list();
             void refresh_firmware_list(bool show_error=false);
             void add_firmware(std::string firmware);
+            void on_device_report_msg(JsonMsgEvent& evt);
+            void on_select_device(wxCommandEvent& evt);
 
         protected:
             void on_dpi_changed(const wxRect& suggested_rect) override;
@@ -96,6 +101,11 @@ namespace Slic3r {
             wxButton* btn_cancel_print;
             wxButton* btn_clear_output_string;
             wxButton* btn_save_file;
+            wxButton* btn_bind;
+            wxButton* btn_unbind;
+            wxButton* btn_login;
+            wxButton* btn_logout;
+            wxButton* btn_register;
 
             wxButton* btn_set_x_pos_0_1;
             wxButton* btn_set_x_pos_1_0;
@@ -155,11 +165,14 @@ namespace Slic3r {
             wxTextCtrl* txt_custom_gcode5;
             wxTextCtrl* txt_custom_gcode6;
             wxTextCtrl* txt_custom_gcode7;
+            wxTextCtrl* txt_user;
+            wxTextCtrl* txt_password;
 
             wxStaticText* label_upgrade_filename;
             wxStaticText* label_gcode_filename;
             wxStaticText* label_output_string;
             wxStaticText* label_device_list;
+            wxStaticText* label_device_status;
 
             wxStaticText* label_pos_x;
             wxStaticText* label_pos_x_val;
@@ -175,6 +188,7 @@ namespace Slic3r {
             wxStaticText* label_bed_end_temp_val;
             wxStaticText* label_print_progress;
             wxStaticText* label_print_progress_val;
+
 
             wxComboBox* cb_upgrade_module;
             wxArrayString module_items;
@@ -192,6 +206,9 @@ namespace Slic3r {
             int curl_upload(std::string srcFile, std::string dstFile, std::string ip);
             int publishGcode(std::string gcode);
             int callSystem(std::string cmd, std::string& output);
+            int set_current_device_id();
+            int get_current_device_id(std::string &dev_id);
+            std::string get_device_list_item(DeviceInfo* info);
 
             std::unique_ptr<wxTimer> m_timer;
             void on_timer(wxTimerEvent&);
@@ -200,9 +217,9 @@ namespace Slic3r {
             std::mutex log_mutex;
 
             bool m_test_alive = false;
+            std::string m_curr_dev_id;
         };
     }
 }
-
 
 #endif

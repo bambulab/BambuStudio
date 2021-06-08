@@ -807,6 +807,7 @@ GUI_App::GUI_App(EAppMode mode)
 	, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
     , m_backend(new Slic3r::CommuBackend())
     , m_device_manager(new Slic3r::DeviceManager())
+    , m_account_manager(new Slic3r::AccountManager())
 {
 	//app config initializes early becasuse it is used in instance checking in PrusaSlicer.cpp
 	this->init_app_config();

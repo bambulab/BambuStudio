@@ -489,6 +489,19 @@ Http& Http::ca_file(const std::string &name)
 	return *this;
 }
 
+Http& Http::json_add(const std::string& json_str)
+{
+	if (p) {
+		::curl_formadd(&p->form, &p->form_end,
+			CURLFORM_COPYCONTENTS, json_str.c_str(),
+			CURLFORM_CONTENTTYPE, "application/json;charset=UTF-8",
+			CURLFORM_END
+		);
+	}
+
+	return *this;
+}
+
 Http& Http::form_add(const std::string &name, const std::string &contents)
 {
 	if (p) {

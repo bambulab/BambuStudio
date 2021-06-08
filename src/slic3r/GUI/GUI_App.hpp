@@ -9,6 +9,7 @@
 #include "libslic3r/Preset.hpp"
 #include "slic3r/GUI/CommuBackend.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
+#include "slic3r/GUI/AccountManager.hpp"
 
 #include <wx/app.h>
 #include <wx/colour.h>
@@ -36,6 +37,7 @@ class PrintHostJobQueue;
 class Model;
 class CommuBackend;
 class DeviceManager;
+class AccountManager;
 
 namespace GUI{
 
@@ -160,6 +162,7 @@ private:
 
     Slic3r::CommuBackend* m_backend;
     Slic3r::DeviceManager* m_device_manager;
+    Slic3r::AccountManager* m_account_manager;
 
 public:
     bool            OnInit() override;
@@ -171,6 +174,7 @@ public:
     EAppMode get_app_mode() const { return m_app_mode; }
     Slic3r::CommuBackend* getCommuBackend() { return m_backend; }
     Slic3r::DeviceManager* getDeviceManager() { return m_device_manager; }
+    Slic3r::AccountManager* getAccountManager() { return m_account_manager; }
     bool is_editor() const { return m_app_mode == EAppMode::Editor; }
     bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
     bool is_recreating_gui() const { return m_is_recreating_gui; }
