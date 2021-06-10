@@ -200,6 +200,9 @@ endif ()
 
 # Link the resources dir to where Slic3r GUI expects it
 if (WIN32)
+    # This has to be a separate target due to the windows command line lenght limits
+    add_custom_target(PrusaSlicerDllsCopy ALL DEPENDS PrusaSlicer)
+
     if (CMAKE_CONFIGURATION_TYPES)
         foreach (CONF ${CMAKE_CONFIGURATION_TYPES})
             file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CONF}" WIN_CONF_OUTPUT_DIR)
@@ -213,6 +216,12 @@ if (WIN32)
                 COMMENT "Symlinking the resources directory into the build tree"
                 VERBATIM
             )
+
+            if(${CONF} STREQUAL "Release")
+                prusaslicer_copy_dlls(PrusaSlicerDllsCopy "Release" "")
+            elseif(${CONF} STREQUAL "Debug")
+                prusaslicer_copy_dlls(PrusaSlicerDllsCopy "Debug" "d")
+            endif()
         endforeach ()
     else ()
         file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/resources" WIN_RESOURCES_SYMLINK)
@@ -223,9 +232,6 @@ if (WIN32)
         )
     endif ()
 
-    # This has to be a separate target due to the windows command line lenght limits
-    add_custom_target(PrusaSlicerDllsCopy ALL DEPENDS PrusaSlicer)
-    prusaslicer_copy_dlls(PrusaSlicerDllsCopy)
 
 else ()
     if (APPLE)

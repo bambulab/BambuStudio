@@ -545,127 +545,51 @@ add_subdirectory(${FDAL_PATH} src/dds_fdal)
 
 
 set(TOP_LEVEL_PROJECT_DIR ${PROJECT_SOURCE_DIR})
-function(prusaslicer_copy_dlls target)
+function(prusaslicer_copy_dlls target config postfix)
     if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
         set(_bits 64)
     elseif ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "4")
         set(_bits 32)
     endif ()
-    
+
     get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
     get_target_property(_alt_out_dir ${target} RUNTIME_OUTPUT_DIRECTORY)
 
     if (_alt_out_dir)
         set (_out_dir "${_alt_out_dir}")
     elseif (_is_multi)
-        set (_out_dir "$<TARGET_PROPERTY:${target},BINARY_DIR>/$<CONFIG>")
+        set(_out_dir "${CMAKE_CURRENT_BINARY_DIR}/${config}")
     else ()
-        set (_out_dir "$<TARGET_PROPERTY:${target},BINARY_DIR>")
+        set(_out_dir "${CMAKE_CURRENT_BINARY_DIR}")
     endif ()
+
+    file(COPY ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/win${_bits}/libgmp-10.dll
+            ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/win${_bits}/libmpfr-4.dll
+            "${CMAKE_PREFIX_PATH}/bin/libcrypto-1_1-x64.dll"
+            "${CMAKE_PREFIX_PATH}/bin/libssl-1_1-x64.dll"
+            "${CMAKE_PREFIX_PATH}/bin/tinyxml2${postfix}.dll"
+            "${CMAKE_PREFIX_PATH}/bin/fastrtps${postfix}-2.2.dll"
+            "${CMAKE_PREFIX_PATH}/bin/fastcdr${postfix}-1.0.dll"
+            "${LIBDIR_BIN}/dds_fdal/${config}/dds_fdal.dll"
+        DESTINATION ${_out_dir})
     
-    message(STATUS "prusa_slicer-CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
-    # This has to be a separate target due to the windows command line lenght limits    
-    add_custom_command(TARGET ${target} POST_BUILD 
-        COMMAND ${CMAKE_COMMAND} -E copy ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/win${_bits}/libgmp-10.dll ${_out_dir}
-        COMMENT "Copy gmp runtime to build tree"
-        VERBATIM)
-
-    add_custom_command(TARGET ${target} POST_BUILD 
-        COMMAND ${CMAKE_COMMAND} -E copy ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/win${_bits}/libmpfr-4.dll ${_out_dir}
-        COMMENT "Copy mpfr runtime to build tree"
-        VERBATIM)
-
-    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-        set (_in_file "${CMAKE_PREFIX_PATH}/bin/tinyxml2.dll")
-    else()
-        set (_in_file "${CMAKE_PREFIX_PATH}/bin/tinyxml2d.dll")
+    if(${config} STREQUAL "Debug")
+        file(COPY
+            "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqtt3a.dll"
+            "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqtt3as.dll"
+            "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqtt3c.dll"
+            "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqtt3cs.dll"
+            "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqttpp3.dll"
+            DESTINATION ${_out_dir})
+    elseif(${config} STREQUAL "Debug")
+        file(COPY
+            "${CMAKE_PREFIX_PATH}/bin/paho-mqtt3a.dll"
+            "${CMAKE_PREFIX_PATH}/bin/paho-mqtt3as.dll"
+            "${CMAKE_PREFIX_PATH}/bin/paho-mqtt3c.dll"
+            "${CMAKE_PREFIX_PATH}/bin/paho-mqtt3cs.dll"
+            "${CMAKE_PREFIX_PATH}/bin/paho-mqttpp3.dll"
+            DESTINATION ${_out_dir})
     endif()
-    add_custom_command(TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
-        COMMENT "Copy tinyxml2 runtime to build tree"
-        VERBATIM)
-
-    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-        set (_in_file "${CMAKE_PREFIX_PATH}/bin/fastrtps-2.2.dll")
-    else()
-        set (_in_file "${CMAKE_PREFIX_PATH}/bin/fastrtpsd-2.2.dll")
-    endif()
-    add_custom_command(TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
-        COMMENT "Copy fastrtps runtime to build tree"
-        VERBATIM)
-
-    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-        set (_in_file "${CMAKE_PREFIX_PATH}/bin/fastcdr-1.0.dll")
-    else()
-        set (_in_file "${CMAKE_PREFIX_PATH}/bin/fastcdrd-1.0.dll")
-    endif()
-    add_custom_command(TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
-        COMMENT "Copy fastcdr runtime to build tree"
-        VERBATIM)
-
-    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-        set (_in_file "${LIBDIR_BIN}/dds_fdal/Release/dds_fdal.dll")
-    else()
-        set (_in_file "${LIBDIR_BIN}/dds_fdal/Debug/dds_fdal.dll")
-    endif()
-    add_custom_command(TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
-        COMMENT "Copy dds_fdal runtime to build tree"
-        VERBATIM)
-    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-        set (_in_file "${CMAKE_PREFIX_PATH}/bin/paho-mqtt3as.dll")
-    else ()
-        set (_in_file "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqtt3as.dll")
-    endif ()
-    add_custom_command(TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
-        COMMENT "Copy paho-mqtt3as runtime to build tree"
-        VERBATIM)
-    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-        set (_in_file "${CMAKE_PREFIX_PATH}/bin/paho-mqtt3cs.dll")
-    else ()
-        set (_in_file "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqtt3cs.dll")
-    endif ()
-    add_custom_command(TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
-        COMMENT "Copy paho-mqtt3as runtime to build tree"
-        VERBATIM)
-    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-        set (_in_file "${CMAKE_PREFIX_PATH}/bin/paho-mqtt3a.dll")
-    else ()
-        set (_in_file "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqtt3a.dll")
-    endif ()
-    add_custom_command(TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
-        COMMENT "Copy paho-mqtt3as runtime to build tree"
-        VERBATIM)
-    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-        set (_in_file "${CMAKE_PREFIX_PATH}/bin/paho-mqtt3c.dll")
-    else ()
-        set (_in_file "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqtt3c.dll")
-    endif ()
-    add_custom_command(TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
-        COMMENT "Copy paho-mqtt3as runtime to build tree"
-        VERBATIM)
-    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-        set (_in_file "${CMAKE_PREFIX_PATH}/bin/paho-mqttpp3.dll")
-    else ()
-        set (_in_file "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqttpp3.dll")
-    endif ()
-    add_custom_command(TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
-        COMMENT "Copy paho-mqtt3as runtime to build tree"
-        VERBATIM)
-    set (_in_file "${CMAKE_PREFIX_PATH}/bin/libcrypto-1_1-x64.dll" "${CMAKE_PREFIX_PATH}/bin/libssl-1_1-x64.dll")
-    add_custom_command(TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
-        COMMENT "Copy openssl runtime to build tree"
-        VERBATIM)
-
-
 endfunction()
 
 
