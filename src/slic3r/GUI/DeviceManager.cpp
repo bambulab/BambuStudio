@@ -119,14 +119,10 @@ void DeviceManager::check_alive()
         double seconds;
         std::map<std::string, DeviceInfo*>::iterator it;
         m_devicelist_mutex.lock();
-        for (it = m_devicelist.begin(); it != m_devicelist.end();) {
+        for (it = m_devicelist.begin(); it != m_devicelist.end();it++) {
             seconds = difftime(curr, it->second->m_last_alive);
             if (seconds > ALIVE_TIMEOUT) {
                 it->second->connState = false;
-                //TODO emit offline event
-            }
-            else {
-                ++it;
             }
         }
         m_devicelist_mutex.unlock();
