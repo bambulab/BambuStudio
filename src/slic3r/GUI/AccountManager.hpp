@@ -9,16 +9,18 @@
 
 namespace Slic3r {
 
-
 class AccountInfo {
 public:
     AccountInfo(std::string account, std::string user_id);
 
     std::string user_id() { return m_user_id; }
+    void set_token(std::string token) { m_token = token; }
+    std::string get_token() { return m_token; }
 private:
     std::string m_account;
     std::string m_password;
     std::string m_user_id;
+    std::string m_token;
 };
 
 
@@ -33,6 +35,8 @@ private:
     std::string _get_unbind_url();
     std::string _get_login_url();
     std::string _get_register_url();
+    std::string _get_bind_list_url();
+    std::string _get_bind_list_request();
     std::string _get_device_json(std::string device_id);
     std::string _get_query_bind_request(std::string device_id);
     std::string _get_bind_request(std::string device_id);
@@ -52,6 +56,7 @@ public:
     int query_bind_status(std::string device_id);
     int request_bind(std::string device_id);
     int request_unbind(std::string device_id);
+    int request_bind_list(std::string user_id);
 };
 
 } // namespace Slic3r

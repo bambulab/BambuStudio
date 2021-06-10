@@ -1047,7 +1047,12 @@ bool GUI_App::OnInit()
 bool GUI_App::on_init_inner()
 {
     //start log here
-    set_log_path_and_level("debug.log", 5);
+    std::time_t t = std::time(0);
+    std::tm* now_time = std::localtime(&t);
+    std::stringstream buf;
+    buf << std::put_time(now_time, "debug_%a_%b_%d_%H_%M_%S.log");
+    std::string log_filename = buf.str();
+    set_log_path_and_level(log_filename, 5);
 
     // Set initialization of image handlers before any UI actions - See GH issue #7469
     wxInitAllImageHandlers();

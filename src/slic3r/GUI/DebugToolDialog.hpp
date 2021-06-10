@@ -41,14 +41,13 @@ private:
 };
 
 
-wxDECLARE_EVENT(EVT_DEVICE_REQUEST_MSG, JsonMsgEvent);
-wxDECLARE_EVENT(EVT_DEVICE_REPORT_MSG, JsonMsgEvent);
-
 namespace Slic3r {
 
     struct PrintHostJob;
 
     namespace GUI {
+
+        wxDECLARE_EVENT(EVT_DEVICE_REPORT_MSG, SimpleEvent);
 
         class DebugToolDialog : public GUI::DPIDialog
         {
@@ -59,8 +58,7 @@ namespace Slic3r {
 
             int publish_json(std::string json_str);
             int publish_json_to_device(std::string dev_id, std::string json_str);
-            int handle_report_print_msg(std::string json_str);
-            int handle_request_print_msg(std::string json_str);
+            int handle_report_print_msg(std::string topic, std::string json_str);
             int handle_device_report_msg(std::string json_str);
             int handle_alive_msg(std::string dev_id);
             int append_output_string_info(std::string str);
@@ -69,7 +67,7 @@ namespace Slic3r {
             void refresh_device_list();
             void refresh_firmware_list(bool show_error=false);
             void add_firmware(std::string firmware);
-            void on_device_report_msg(JsonMsgEvent& evt);
+            void on_device_report_msg(SimpleEvent& evt);
             void on_select_device(wxCommandEvent& evt);
 
         protected:
@@ -86,10 +84,10 @@ namespace Slic3r {
                 BTN_SEND_HEIGHT = 80, BTN_SEND_WIDTH = 100,
             };
 
-            std::string UPGRADE_URL = "http://upgrade.bbl.com/rk/";
-            std::string UPGRADE_MC_URL = UPGRADE_URL + "mc/";
-            std::string UPGRADE_TH_URL = UPGRADE_URL + "th/";
-            std::string UPGRADE_MMU_URL = UPGRADE_URL + "mmu/";
+            enum UPGRADE_MODULE { MODULE_RK = 0, MODULE_MC = 1, MODULE_TH = 2, MODULE_AMS = 3, MODULE_MAX };
+            std::string upgrade_post_url[MODULE_MAX] = { "rk/release/", "mc/", "th/", "ams/"};
+            std::string upgrade_module_name[MODULE_MAX] = { "rk1126", "mc", "th", "ams" };
+            std::string UPGRADE_URL = "http://upgrade.bbl.com/";
             std::string CURL_FILE = resources_dir() + "/bbl/curl";
 
             wxButton* btn_select_device;
@@ -188,6 +186,9 @@ namespace Slic3r {
             wxStaticText* label_bed_end_temp_val;
             wxStaticText* label_print_progress;
             wxStaticText* label_print_progress_val;
+            wxStaticText* label_wifi_signal;
+            wxStaticText* label_wifi_signal_val;
+
 
 
             wxComboBox* cb_upgrade_module;
@@ -201,6 +202,23 @@ namespace Slic3r {
             FILE* logFile;
             std::fstream customGcodeCacheFile;
             wxTimer* m_deviceListTimer;
+
+            wxBoxSizer* top_sizer;
+            wxGridSizer* pos_btns_sizer;
+            wxBoxSizer* user_sizer;
+            wxBoxSizer* conn_device_sizer;
+            wxBoxSizer* upgrade_sizer;
+            wxBoxSizer* run_gcode_sizer;
+            wxFlexGridSizer* custom_gcode_sizer;
+
+            /* GUI init control */
+            void init_account();
+            void init_device();
+            void init_upgrade();
+            void init_gcode_run_file();
+            void init_gcode_control();
+            void init_gcode_custom();
+            void init_push_info();
 
             int m_sequence_id = 2000;
             int curl_upload(std::string srcFile, std::string dstFile, std::string ip);

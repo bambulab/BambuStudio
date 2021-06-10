@@ -27,6 +27,8 @@ private:
 };
 
 
+enum CONNECTION_FLAGS { DDS_CONNECTION = 1, MQTT_CONNECTION = 2};
+
 class DeviceInfo {
 public:
     enum BindStatus {
@@ -35,20 +37,31 @@ public:
         BIND_SELF = 2,
         BIND_OHTER = 3,
         BIND_ERROR = 4};
-    DeviceInfo(std::string deviceId, std::string deviceName, std::string domainId);
-
-    int update_bind_status(std::string status);
+    DeviceInfo(std::string dev_id, std::string dev_name, int conn_flag);
+    void set_domain_id(std::string domain_id) { m_domain_id = domain_id; }
+    void set_ip_addr(std::string ip) { m_ip_addr = ip; }
+    int set_bind_status(std::string status);
+    void set_mqtt_conn_status(bool status) { m_mqtt_conn_status; }
     bool is_bind_self() { return m_bind_status == BindStatus::BIND_SELF; }
+    bool is_bind_free() { return m_bind_status == BindStatus::BIND_FREE; }
+    bool is_dds_online() { return m_dds_conn_status; }
+    std::string get_dev_id() { return m_dev_id; }
 
-    std::string m_deviceName;
-    std::string m_deviceId;
-    std::string m_productId;
-    std::string m_domainId;
-    std::string m_ipAddr;
+    std::string m_dev_name;
+    std::string m_dev_id;
+    std::string m_ip_addr;
     std::string get_bind_status_str();
-    time_t m_last_alive;
-    bool connState;
     BindStatus m_bind_status;
+
+    int m_conn_flag;
+
+    /* DDS attribute */
+    time_t m_last_alive;
+    bool m_dds_conn_status;
+    std::string m_domain_id;
+    
+    /* MQTT attribute */
+    bool m_mqtt_conn_status;
 };
 
 class DeviceManager
@@ -61,14 +74,14 @@ private:
     boost::thread m_device_check_alive;
 
 public:
-	DeviceManager();
-	~DeviceManager();
+    DeviceManager();
+    ~DeviceManager();
 
     bool isExist(std::string dev_id);
     bool has_bind_status(std::string dev_id);
-    bool is_online(std::string dev_id);
-    int getDomainId(std::string dev_id);
-    std::string getProductId(std::string dev_id);
+    bool is_bind_self(std::string dev_id);
+    bool is_dds_online(std::string dev_id);
+    int get_domain_id(std::string dev_id);
     std::string getRequestTopic(std::string dev_id);
     std::string getReportTopic(std::string dev_id);
     int add_new_device(DeviceInfo* device);
@@ -78,6 +91,7 @@ public:
     std::vector<DeviceInfo*> get_connected_device_info();
     std::vector<std::string> get_connected_device_list();
     std::vector<std::string> get_bind_self_device_list();
+    std::vector<std::string> get_free_and_self_device_list();
     void check_alive();
 };
 

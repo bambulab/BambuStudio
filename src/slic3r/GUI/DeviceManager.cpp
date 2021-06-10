@@ -10,26 +10,25 @@
 
 namespace Slic3r {
 
-
-DeviceInfo::DeviceInfo(std::string deviceId, std::string deviceName, std::string domain_id)
+DeviceInfo::DeviceInfo(std::string dev_id, std::string dev_name, int conn_flag):
+    m_dev_id(dev_id),
+    m_dev_name(dev_name),
+    m_conn_flag(conn_flag),
+    m_bind_status(BIND_UNKOWN)
 {
-    m_deviceName = deviceName;
-    m_deviceId = deviceId;
-    m_domainId = domain_id;
-    connState = false;
-    m_productId = "";
-    m_bind_status = BIND_UNKOWN;
+    m_dds_conn_status = false;
+    m_mqtt_conn_status = false;
 }
 
-int DeviceInfo::update_bind_status(std::string status)
+int DeviceInfo::set_bind_status(std::string status)
 {
-    if (status.compare("FREE") == 0) {
+    if (status.compare("free") == 0) {
         m_bind_status = BIND_FREE;
     }
-    else if (status.compare("SELF") == 0) {
+    else if (status.compare("self") == 0) {
         m_bind_status = BIND_SELF;
     }
-    else if (status.compare("OTHER") == 0) {
+    else if (status.compare("other") == 0) {
         m_bind_status = BIND_OHTER;
     }
     else {
@@ -41,16 +40,16 @@ int DeviceInfo::update_bind_status(std::string status)
 std::string DeviceInfo::get_bind_status_str()
 {
     if (m_bind_status == BIND_FREE) {
-        return "FREE";
+        return "bind:free";
     }
     else if (m_bind_status == BIND_SELF) {
-        return "SELF";
+        return "bind:self";
     }
     else if (m_bind_status == BIND_OHTER) {
-        return "OTHER";
+        return "bind:other";
     }
     else {
-        return "UNKOWN";
+        return "bind:unkown";
     }
 }
 
@@ -94,27 +93,30 @@ bool DeviceManager::has_bind_status(std::string dev_id)
     return true;
 }
 
-bool DeviceManager::is_online(std::string dev_id)
+bool DeviceManager::is_bind_self(std::string dev_id)
+{
+    std::map<std::string, DeviceInfo*>::iterator it = m_devicelist.find(dev_id);
+    if (it == m_devicelist.end()) {
+        return false;
+    }
+    else {
+        return it->second->is_bind_self();
+    }
+}
+
+bool DeviceManager::is_dds_online(std::string dev_id)
 {
     if (!isExist(dev_id))
         return false;
-    return m_devicelist[dev_id]->connState;
+    return m_devicelist[dev_id]->is_dds_online();
 }
 
-int DeviceManager::getDomainId(std::string dev_id)
+int DeviceManager::get_domain_id(std::string dev_id)
 {
     if (isExist(dev_id))
-        return std::stoi(m_devicelist[dev_id]->m_domainId);
+        return std::stoi(m_devicelist[dev_id]->m_domain_id);
     else
         return -1;
-}
-
-std::string DeviceManager::getProductId(std::string dev_id)
-{
-    if (isExist(dev_id))
-        return m_devicelist[dev_id]->m_productId;
-    else
-        return "";
 }
 
 std::string DeviceManager::getRequestTopic(std::string dev_id)
@@ -123,7 +125,7 @@ std::string DeviceManager::getRequestTopic(std::string dev_id)
     if (it == m_devicelist.end())
         return "";
 
-    std::string topic_request = "device/" + it->second->m_productId + "/" + dev_id + "/request";
+    std::string topic_request = "device/" + dev_id + "/request";
     return topic_request;
 }
 
@@ -132,16 +134,14 @@ std::string DeviceManager::getReportTopic(std::string dev_id)
     std::map<std::string, DeviceInfo*>::iterator it = m_devicelist.find(dev_id);
     if (it == m_devicelist.end())
         return "";
-    std::string topic_report = "device/" + it->second->m_productId + "/" + dev_id + "/report";
+    std::string topic_report = "device/" + dev_id + "/report";
     return topic_report;
 }
 
 int DeviceManager::add_new_device(DeviceInfo* device)
 {
     std::lock_guard<std::mutex> lock(m_devicelist_mutex);
-    std::string dev_id = device->m_deviceId;
-    device->connState = true;
-    m_devicelist.insert(std::make_pair(dev_id, device));
+    m_devicelist.insert(std::make_pair(device->get_dev_id(), device));
     return 0;
 }
 
@@ -152,8 +152,8 @@ int DeviceManager::update_alive_time(std::string dev_id)
     if (it != m_devicelist.end()) {
         DeviceInfo* deviceInfo = it->second;
         deviceInfo->m_last_alive = Slic3r::Utils::get_current_time_utc();
-        if (!it->second->connState) {
-            it->second->connState = true;
+        if (!it->second->m_dds_conn_status) {
+            it->second->m_dds_conn_status = true;
             BOOST_LOG_TRIVIAL(trace) << "device id = " << dev_id << " is online!";
         }
         BOOST_LOG_TRIVIAL(trace) << "update device id = " << dev_id << " alive time!";
@@ -167,7 +167,7 @@ int DeviceManager::update_bind_status(std::string device_id, std::string status)
     std::map<std::string, DeviceInfo*>::iterator it = m_devicelist.find(device_id);
     if (it != m_devicelist.end()) {
         DeviceInfo* deviceInfo = it->second;
-        deviceInfo->update_bind_status(status);
+        deviceInfo->set_bind_status(status);
         return 0;
     }
     return 0;
@@ -183,7 +183,7 @@ void DeviceManager::check_alive()
         for (it = m_devicelist.begin(); it != m_devicelist.end(); it++) {
             seconds = difftime(curr, it->second->m_last_alive);
             if (seconds > ALIVE_TIMEOUT) {
-                it->second->connState = false;
+                it->second->m_dds_conn_status = false;
                 BOOST_LOG_TRIVIAL(trace) << "device id = " << it->first << " is offline! difftime=" <<seconds;
             }
         }
@@ -198,8 +198,8 @@ wxArrayString DeviceManager::get_connected_devicelist()
     wxArrayString devices;
     std::map<std::string, DeviceInfo*>::iterator it;
     for (it = m_devicelist.begin(); it != m_devicelist.end(); it++) {
-        if (it->second->connState) {
-            devices.Add(it->second->m_deviceName + "(" + it->first + ")");
+        if (it->second->m_dds_conn_status) {
+            devices.Add(it->second->m_dev_name + "(" + it->first + ")");
         }
     }
     return devices;
@@ -211,7 +211,7 @@ std::vector<DeviceInfo*> DeviceManager::get_connected_device_info()
     std::vector<DeviceInfo*> list;
     std::map<std::string, DeviceInfo*>::iterator it;
     for (it = m_devicelist.begin(); it != m_devicelist.end(); it++) {
-        if (it->second->connState) {
+        if (it->second->m_dds_conn_status) {
             list.emplace_back(it->second);
         }
     }
@@ -224,7 +224,7 @@ std::vector<std::string> DeviceManager::get_connected_device_list()
     std::vector<std::string> list;
     std::map<std::string, DeviceInfo*>::iterator it;
     for (it = m_devicelist.begin(); it != m_devicelist.end(); it++) {
-        if (it->second->connState) {
+        if (it->second->m_dds_conn_status) {
             list.emplace_back(it->first);
         }
     }
@@ -238,6 +238,19 @@ std::vector<std::string> DeviceManager::get_bind_self_device_list()
     std::map<std::string, DeviceInfo*>::iterator it;
     for (it = m_devicelist.begin(); it != m_devicelist.end(); it++) {
         if (it->second->is_bind_self()) {
+            list.emplace_back(it->first);
+        }
+    }
+    return list;
+}
+
+std::vector<std::string> DeviceManager::get_free_and_self_device_list()
+{
+    std::lock_guard<std::mutex> lock(m_devicelist_mutex);
+    std::vector<std::string> list;
+    std::map<std::string, DeviceInfo*>::iterator it;
+    for (it = m_devicelist.begin(); it != m_devicelist.end(); it++) {
+        if (it->second->is_bind_self() || it->second->is_bind_free()) {
             list.emplace_back(it->first);
         }
     }

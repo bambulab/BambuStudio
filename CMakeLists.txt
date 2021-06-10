@@ -570,7 +570,6 @@ function(prusaslicer_copy_dlls target config postfix output_dlls)
             "${CMAKE_PREFIX_PATH}/bin/tinyxml2${postfix}.dll"
             "${CMAKE_PREFIX_PATH}/bin/fastrtps${postfix}-2.2.dll"
             "${CMAKE_PREFIX_PATH}/bin/fastcdr${postfix}-1.0.dll"
-            "${LIBDIR_BIN}/dds_fdal/${config}/dds_fdal.dll"
         DESTINATION ${_out_dir})
    
     if(${config} STREQUAL "Debug")
@@ -581,7 +580,7 @@ function(prusaslicer_copy_dlls target config postfix output_dlls)
             "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqtt3cs.dll"
             "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqttpp3.dll"
             DESTINATION ${_out_dir})
-    elseif(${config} STREQUAL "Debug")
+    elseif(${config} STREQUAL "Release")
         file(COPY
             "${CMAKE_PREFIX_PATH}/bin/paho-mqtt3a.dll"
             "${CMAKE_PREFIX_PATH}/bin/paho-mqtt3as.dll"

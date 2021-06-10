@@ -489,15 +489,15 @@ Http& Http::ca_file(const std::string &name)
 	return *this;
 }
 
-Http& Http::json_add(const std::string& json_str)
+Http& Http::set_header(const std::string token)
 {
-	if (p) {
-		::curl_formadd(&p->form, &p->form_end,
-			CURLFORM_COPYCONTENTS, json_str.c_str(),
-			CURLFORM_CONTENTTYPE, "application/json;charset=UTF-8",
-			CURLFORM_END
-		);
+	struct curl_slist* chunk = NULL;
+	chunk = curl_slist_append(chunk, "Content-Type: application/json");
+	if (!token.empty()) {
+		std::string token_str = "token:" + token;
+		chunk = curl_slist_append(chunk, token_str.c_str());
 	}
+	curl_easy_setopt(p->curl, CURLOPT_HTTPHEADER, chunk);
 
 	return *this;
 }

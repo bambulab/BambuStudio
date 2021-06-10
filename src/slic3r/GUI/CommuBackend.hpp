@@ -15,6 +15,8 @@
 #include "libslic3r/Utils.hpp"
 #include "mqtt/async_client.h"
 
+//#define USE_MQTT_CONTROL
+
 namespace pt = boost::property_tree;
 
 namespace Slic3r {
@@ -79,27 +81,15 @@ class conn_callback : public virtual mqtt::callback, public virtual mqtt::iactio
     mqtt::async_client& cli_;
     mqtt::connect_options& connOpts_;
 
-    void reconnect() {
-        std::this_thread::sleep_for(std::chrono::milliseconds(2500));
-        try {
-            cli_.connect(connOpts_, nullptr, *this);
-        }
-        catch (const mqtt::exception& exc) {
-            ;
-        }
-    }
+    void reconnect();
 
     void connected(const std::string& cause) override;
 
-    void on_failure(const mqtt::token& tok) override {
-        BOOST_LOG_TRIVIAL(trace) << "on_failure";
-    }
+    void on_failure(const mqtt::token& tok) override;
 
     void on_success(const mqtt::token& tok) override;
 
-    void connection_lost(const std::string& cause) override {
-        BOOST_LOG_TRIVIAL(trace) << "connection_lost";
-    }
+    void connection_lost(const std::string& cause) override;
 
     void message_arrived(mqtt::const_message_ptr msg) override;
 public:
@@ -120,11 +110,16 @@ public:
     int stop();
 
     int connect_mqtt_server(std::string user_id);
+    int disconnect_mqtt_server();
     int connect_dds_device(std::string device_id);
     int send_async(std::string device_id, JsonMsg msg, DdsClient::JsonMsgHandlerFn fn);
     int publish_json_to_device(std::string device_id, std::string json_str);
+    void on_report_msg(std::string &topic, std::string &payload);
+    void print_info(std::string info);
     mqtt::async_client* get_mqtt() { return m_mqtt_client; }
     int subscribe_device_topic(std::string device_id);
+    int subscribe_connect_topic(std::string device_id);
+    int subscribe_disconnect_topic(std::string device_id);
 
     static std::string get_request_topic(std::string dev_id);
     static std::string get_report_topic(std::string dev_id);
@@ -144,6 +139,7 @@ private:
     std::map<std::string, DdsClient*> m_dds_client;         /* key: device_id */
     mqtt::async_client* m_mqtt_client;
     conn_callback* m_mqtt_cb;
+    mqtt::connect_options conn_opt;
 };
 
 }
