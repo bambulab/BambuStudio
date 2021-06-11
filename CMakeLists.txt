@@ -545,7 +545,7 @@ add_subdirectory(${FDAL_PATH} src/dds_fdal)
 
 
 set(TOP_LEVEL_PROJECT_DIR ${PROJECT_SOURCE_DIR})
-function(prusaslicer_copy_dlls target config postfix)
+function(prusaslicer_copy_dlls target config postfix output_dlls)
     if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
         set(_bits 64)
     elseif ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "4")
@@ -572,7 +572,7 @@ function(prusaslicer_copy_dlls target config postfix)
             "${CMAKE_PREFIX_PATH}/bin/fastcdr${postfix}-1.0.dll"
             "${LIBDIR_BIN}/dds_fdal/${config}/dds_fdal.dll"
         DESTINATION ${_out_dir})
-    
+   
     if(${config} STREQUAL "Debug")
         file(COPY
             "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqtt3a.dll"
@@ -590,6 +590,25 @@ function(prusaslicer_copy_dlls target config postfix)
             "${CMAKE_PREFIX_PATH}/bin/paho-mqttpp3.dll"
             DESTINATION ${_out_dir})
     endif()
+     
+    set(${output_dlls}
+        ${_out_dir}/libgmp-10.dll
+        ${_out_dir}/libmpfr-4.dll
+        ${_out_dir}/libcrypto-1_1-x64.dll
+        ${_out_dir}/libssl-1_1-x64.dll
+        ${_out_dir}/libssl-1_1-x64.dll
+        ${_out_dir}/tinyxml2${postfix}.dll
+        ${_out_dir}/fastrtps${postfix}-2.2.dll
+        ${_out_dir}/fastcdr${postfix}-1.0.dll
+        ${_out_dir}/dds_fdal.dll
+        ${_out_dir}/paho-mqtt3a.dll
+        ${_out_dir}/paho-mqtt3as.dll
+        ${_out_dir}/paho-mqtt3c.dll
+        ${_out_dir}/paho-mqtt3cs.dll
+        ${_out_dir}/paho-mqttpp3.dll
+        PARENT_SCOPE
+    )
+    
 endfunction()
 
 
