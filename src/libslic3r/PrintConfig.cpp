@@ -4366,6 +4366,11 @@ CLITransformConfigDef::CLITransformConfigDef()
     def->tooltip = L("Arrange the supplied models in a plate and merge them in a single model in order to perform actions once.");
     def->cli = "merge|m";
 
+    def = this->add("orient", coBool);
+    def->label = L("Orient");
+    def->tooltip = L("Orient the supplied models.");
+    def->cli = "orient|o";
+
     def = this->add("repair", coBool);
     def->label = L("Repair");
     def->tooltip = L("Try to repair any non-manifold meshes (this option is implicitly added whenever we need to slice the model to perform the requested action).");

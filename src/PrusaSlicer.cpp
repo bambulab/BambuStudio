@@ -51,6 +51,8 @@
 #include "libslic3r/Thread.hpp"
 #include "libslic3r/BlacklistedLibraryCheck.hpp"
 
+#include "libslic3r/Orient.hpp"
+
 #include "PrusaSlicer.hpp"
 
 #ifdef SLIC3R_GUI
@@ -262,11 +264,11 @@ int CLI::run(int argc, char **argv)
     for (auto const &opt_key : m_transforms) {
         if (opt_key == "merge") {
             Model m;
-            for (auto &model : m_models)
-                for (ModelObject *o : model.objects)
+            for (auto& model : m_models)
+                for (ModelObject* o : model.objects)
                     m.add_object(*o);
             // Rearrange instances unless --dont-arrange is supplied
-            if (! m_config.opt_bool("dont_arrange")) {
+            if (!m_config.opt_bool("dont_arrange")) {
                 m.add_default_instances();
                 if (this->has_print_action())
                     arrange_objects(m, bed, arrange_cfg);
@@ -275,7 +277,15 @@ int CLI::run(int argc, char **argv)
             }
             m_models.clear();
             m_models.emplace_back(std::move(m));
-        } else if (opt_key == "duplicate") {
+        }
+        else if (opt_key == "orient") {
+            for (auto& model : m_models)
+                for (ModelObject* o : model.objects)
+                {
+                    orientation::orient(o);
+                }
+        }
+        else if (opt_key == "duplicate") {
             for (auto &model : m_models) {
                 const bool all_objects_have_instances = std::none_of(
                     model.objects.begin(), model.objects.end(),

@@ -4615,7 +4615,7 @@ bool GLCanvas3D::_init_main_toolbar()
 
     item.name = "orient";
     item.icon_filename = "orient.svg";
-    item.tooltip = _utf8(L("Orient")) + " [A]\n" + _utf8(L("Orient selection")) + " [Shift+A]\n" + _utf8(L("Click right mouse button to show auto-orientation options"));
+    item.tooltip = _utf8(L("Orient")) + " [O]\n" + _utf8(L("Orient selection")) + " [Shift+O]\n" + _utf8(L("Click right mouse button to show auto-orientation options"));
     item.sprite_id++;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ORIENT)); };
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };

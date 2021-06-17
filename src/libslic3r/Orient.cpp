@@ -33,7 +33,7 @@ namespace orientation {
         float unprintability;
         CostItems() { memset(this, 0, sizeof(*this)); }
         static std::string field_names() {
-            return "                                      overhang, bottom, bottom_hull, contour, area_laf, area_projected, volume, unprintability";
+            return "                                      overhang, bottom, bothull, contour, A_laf, A_prj, volume, unprintability";
         }
         std::string field_values() {
             std::stringstream ss;
@@ -62,7 +62,7 @@ public:
 
 
     std::vector< Vec3f> orientations;  // Vec3f == stl_normal
-    std::function<void(unsigned)> progressind;
+    std::function<void(unsigned)> progressind = { };  // default empty indicator function
     
 public:
     AutoOrienter(TriangleMesh* mesh_,
@@ -74,6 +74,12 @@ public:
         params = params_;
         progressind = progressind_;
 
+        preprocess();
+    }
+
+    AutoOrienter(TriangleMesh* mesh_)
+    {
+        mesh = mesh_;
         preprocess();
     }
 
@@ -95,11 +101,13 @@ public:
 
         add_supplements();
 
-        progressind(20);
+        if(progressind)
+            progressind(20);
 
         remove_duplicates();
         
-        progressind(30);
+        if (progressind)
+            progressind(30);
 
         std::map<Vec3f, CostItems, cmp_vec3f> results;
         BOOST_LOG_TRIVIAL(error) << CostItems::field_names();
@@ -108,24 +116,27 @@ public:
 
             project_vertices(orientation);
 
-            auto cost_items = get_features(orientation, true);
+            auto cost_items = get_features(orientation, params.min_volume);
 
-            float unprintability = target_function(cost_items, true);
+            float unprintability = target_function(cost_items, params.min_volume);
 
             results[orientation] = cost_items;
 
-            BOOST_LOG_TRIVIAL(error) << std::fixed << std::setprecision(2) << "orientation: " << orientation.transpose() << ", cost: " << cost_items.field_values();
+            BOOST_LOG_TRIVIAL(error) << std::fixed << std::setprecision(4) << "orientation:" << orientation.transpose() << ", cost:" << cost_items.field_values();
         }
-        progressind(60);
+        if (progressind)
+            progressind(60);
 
         typedef std::pair<Vec3f, CostItems> PAIR;
         std::vector<PAIR> results_vector(results.begin(), results.end());
         sort(results_vector.begin(), results_vector.end(), [](const PAIR& p1, const PAIR& p2) {return p1.second.unprintability < p2.second.unprintability; });
-        progressind(80);
+        
+        if (progressind)
+            progressind(80);
 
         auto best_orientation = results_vector[0].first;
 
-        BOOST_LOG_TRIVIAL(error) << std::fixed << std::setprecision(2) << "best orientation: " << best_orientation.transpose() << ", costs: " << results_vector[0].second.field_values();
+        BOOST_LOG_TRIVIAL(error) << std::fixed << std::setprecision(4) << "best:" << best_orientation.transpose() << ", costs:" << results_vector[0].second.field_values();
         flush_logs();
 
         return best_orientation;
@@ -154,7 +165,7 @@ public:
         // get convex hull statistics
         {
             mesh_convex_hull = mesh->convex_hull_3d();
-            mesh_convex_hull.write_binary("convex_hull_debug.stl");
+            //mesh_convex_hull.write_binary("convex_hull_debug.stl");
 
             auto& facets = mesh_convex_hull.stl.facet_start;
             int face_count = facets.size();
@@ -194,8 +205,6 @@ public:
             orientations.push_back(align_counts[i].first);
         }
     }
-
-    void death_star(int num_directions = 12);
 
     void add_supplements()
     {
@@ -346,7 +355,7 @@ public:
         if (min_volume)
         {
             float overhang = costs.overhang / 25;
-            cost = params.TAR_A * (overhang + params.TAR_B) + params.RELATIVE_F * (costs.volume/100 + params.TAR_C) / (params.TAR_D + params.CONTOUR_F * costs.contour + params.BOTTOM_F * costs.bottom + params.BOTTOM_HULL_F*costs.bottom_hull + params.TAR_E * overhang + params.TAR_PROJ_AREA*costs.area_projected);
+            cost = params.TAR_A * (overhang + params.TAR_B) + params.RELATIVE_F * (/*costs.volume/100*/overhang + params.TAR_C) / (params.TAR_D + params.CONTOUR_F * costs.contour + params.BOTTOM_F * costs.bottom + params.BOTTOM_HULL_F*costs.bottom_hull + params.TAR_E * overhang + params.TAR_PROJ_AREA*costs.area_projected);
         }
         else {
             float overhang = costs.overhang;
@@ -385,16 +394,16 @@ void get_axis_angle_from_two_vectors(Vec3f bestside, Vec3f& rotation_axis, float
 
 void _orient(OrientMeshs& meshs_,
         const OrientParams           &params,
-        std::function<void(unsigned)> progressfn,
+        std::function<void(unsigned, std::string)> progressfn,
         std::function<bool()>         stopfn)
 {
     for (auto& mesh_ : meshs_) {
+        auto progressfn_i = [&](unsigned cnt) {progressfn(cnt, "Orienting " + mesh_.name); };
+        AutoOrienter orienter(&mesh_.mesh, params, progressfn_i, stopfn);
 
-        AutoOrienter orienter(&mesh_.mesh, params, progressfn, stopfn);
+        mesh_.orientation = orienter.process();
 
-        auto orientation = orienter.process();
-
-        get_axis_angle_from_two_vectors(orientation, mesh_.axis, mesh_.angle);
+        get_axis_angle_from_two_vectors(mesh_.orientation, mesh_.axis, mesh_.angle);
 
         BOOST_LOG_TRIVIAL(error) << std::fixed << std::setprecision(3) << "v,phi: " << mesh_.axis.transpose() <<", "<<mesh_.angle;
         flush_logs();
@@ -411,6 +420,21 @@ void orient(OrientMeshs &      arrangables,
     
     _orient(arrangables, params, pri, cfn);
     
+}
+
+void orient(ModelObject* obj)
+{
+    auto m = obj->mesh();
+    AutoOrienter orienter(&m);
+    Vec3f orientation = orienter.process();
+    Vec3f axis;
+    float angle;
+    get_axis_angle_from_two_vectors(orientation, axis, angle);
+
+    auto axisd = -axis.cast<double>();
+    double angled = angle;
+    obj->rotate(angled, axisd);
+    obj->ensure_on_bed(false);
 }
 
 

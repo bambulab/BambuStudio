@@ -862,6 +862,9 @@ void Selection::flattening_rotate(const Vec3d& normal)
     if (!m_valid)
         return;
 
+    BOOST_LOG_TRIVIAL(debug) << "flattening_rotate at " << __FILE__ << ":" << __LINE__ << std::fixed << std::setprecision(4) << ": " << normal.transpose();
+    flush_logs();
+
     for (unsigned int i : m_list) {
         GLVolume& v = *(*m_volumes)[i];
         // Normal transformed from the object coordinate space to the world coordinate space.

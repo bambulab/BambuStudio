@@ -26,7 +26,8 @@ struct OrientMesh {
     TriangleMesh mesh;              /// The real mesh data
     float angle{ 0 };
     Vec3f axis{ 0,0,1 };
-    int bed_idx = 0;
+    Vec3f orientation{ 0,0,1 };
+    std::string name;
         
     /// Optional setter function which can store arbitrary data in its closure
     std::function<void(const OrientMesh&)> setter = nullptr;
@@ -34,16 +35,13 @@ struct OrientMesh {
     /// Helper function to call the setter with the orient data arguments
     void apply() const { if (setter) setter(*this); }
 
-    /// Test if orient() was called previously and gave a successful result.
-    bool is_orientd() const { return bed_idx != UNORIENTD; }
-
 };
 
 
 struct OrientParams {
     
     float overhang_angle = 60.f;
-    float TAR_A = 0.128f;
+    float TAR_A = 0.01;//0.128f;
     float TAR_B = 0.177f;
     float RELATIVE_F= 6.610621027964314;
     float CONTOUR_F = 0.23228623269775997;
@@ -51,7 +49,7 @@ struct OrientParams {
     float BOTTOM_HULL_F = 0.1;
     float TAR_C = 0.24308070476924726;
     float TAR_D = 0.6284515508160871;
-    float TAR_E = 0.032157292647062234;
+    float TAR_E = 0;//0.032157292647062234;
     float FIRST_LAY_H = 0.029227991916155015;
     float VECTOR_TOL = -0.0011163303070972383;
     float NEGL_FACE_SIZE = 0;
@@ -68,6 +66,7 @@ struct OrientParams {
     float TAR_PROJ_AREA = 0.1;
 
     bool use_low_angle_face = true;
+    bool min_volume = true;
     Eigen::Vector3f fun_dir;
 
     
@@ -76,12 +75,10 @@ struct OrientParams {
 
     /// Progress indicator callback called when an object gets packed. 
     /// The unsigned argument is the number of items remaining to pack.
-    std::function<void(unsigned)> progressind;
-
-    std::function<void(const OrientMesh &)> on_packed;
+    std::function<void(unsigned, std::string)> progressind = {};
     
     /// A predicate returning true if abort is needed.
-    std::function<bool(void)>     stopcondition;
+    std::function<bool(void)>     stopcondition = {};
     
     OrientParams() = default;
 };
@@ -96,6 +93,8 @@ using OrientMeshs = std::vector<OrientMesh>;
  * to apply the result on the input polygon.
  */
 void orient(OrientMeshs &items, const OrientMeshs &excludes, const OrientParams &params = {});
+
+void orient(ModelObject* obj);
 
 }} // namespace Slic3r::orientment
 

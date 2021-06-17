@@ -47,6 +47,7 @@ public:
     {
         using OrientMesh = orientation::OrientMesh;
         OrientMesh om;
+        om.name = obj->name;
         om.mesh = obj->mesh(); // don't know the difference to obj->raw_mesh(). Both seem OK
         om.setter = [obj, plater](const OrientMesh& p) {
             auto axis = -p.axis.cast<double>();

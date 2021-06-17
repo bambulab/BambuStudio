@@ -84,17 +84,20 @@ void OrientJob::process()
     auto count = unsigned(m_selected.size() + m_unprintable.size());
     params.stopcondition = [this]() { return was_canceled(); };
 
-    params.progressind = [this, count](unsigned st) {
+    params.progressind = [this, count](unsigned st, std::string orientstr) {
         st += m_unprintable.size();
-        if (st > 0) update_status(int(count - st), arrangestr);
+        if (st > 0) update_status(int(count - st), orientstr);
     };
 
     orientation::orient(m_selected, m_unselected, params);
 
+    std::stringstream ss;
+    ss<< std::fixed << std::setprecision(3) << "Orienting done. "<< m_selected.back().name <<"'s orientation: "<<m_selected.back().orientation.transpose()<<"; v,phi: " << m_selected.back().axis.transpose() << ", " << m_selected.back().angle;
+
     // finalize just here.
     update_status(int(count),
         was_canceled() ? _(L("Orienting canceled."))
-        : _(L("Orienting done.")));
+        : _(L(ss.str().c_str())));
 }
 
 void OrientJob::finalize() {
