@@ -52,6 +52,7 @@ public:
 
     void set_as_dirty();
     void bed_shape_changed();
+    void plates_count_changed();
 
     void select_view(const std::string& direction);
     void select_all();

@@ -49,7 +49,6 @@
 #include <wx/tooltip.h>
 #include <wx/debug.h>
 #include <wx/fontutil.h>
-
 // Print now includes tbb, and tbb includes Windows. This breaks compilation of wxWidgets if included before wx.
 #include "libslic3r/Print.hpp"
 #include "libslic3r/SLAPrint.hpp"
@@ -1230,6 +1229,12 @@ void GLCanvas3D::bed_shape_changed()
     m_dirty = true;
 }
 
+void GLCanvas3D::plates_count_changed()
+{
+    refresh_camera_scene_box();
+    m_dirty = true;
+}
+
 void GLCanvas3D::set_color_by(const std::string& value)
 {
     m_color_by = value;
@@ -1394,6 +1399,13 @@ void GLCanvas3D::select_view(const std::string& direction)
         m_canvas->Refresh();
 }
 
+void GLCanvas3D::select_plate()
+{
+    wxGetApp().plater()->get_partplate_list().select_plate_view();
+    if (m_canvas != nullptr)
+        m_canvas->Refresh();
+}
+
 void GLCanvas3D::update_volumes_colors_by_extruder()
 {
     if (m_config != nullptr)
@@ -1451,7 +1463,7 @@ void GLCanvas3D::render()
     }
 
     camera.apply_view_matrix();
-    camera.apply_projection(_max_bounding_box(true, true));
+    camera.apply_projection(_max_bounding_box(true, true, true));
 
     GLfloat position_cam[4] = { 1.0f, 0.0f, 1.0f, 0.0f };
     glsafe(::glLightfv(GL_LIGHT1, GL_POSITION, position_cam));
@@ -1483,6 +1495,7 @@ void GLCanvas3D::render()
     _render_selection();
     _render_bed(!camera.is_looking_downward(), true);
     _render_objects(GLVolumeCollection::ERenderType::Transparent);
+    _render_platelist(!camera.is_looking_downward());
 
     _render_sequential_clearance();
 #if ENABLE_RENDER_SELECTION_CENTER
@@ -2414,6 +2427,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case '4': { select_view("rear"); break; }
         case '5': { select_view("left"); break; }
         case '6': { select_view("right"); break; }
+        case '7': { select_plate(); break; }
         case '+': {
             if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
                 post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt));
@@ -3096,6 +3110,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
         }
         else {
+            // Select plate in this 3D canvas.
+            if (m_picking_enabled && !m_hover_plate_idxs.empty() && evt.LeftDown()) {
+                int hover_idx = m_hover_plate_idxs.front();
+                wxGetApp().plater()->get_partplate_list().select_plate_by_hover_id(hover_idx);
+                wxGetApp().plater()->get_partplate_list().select_plate_view();
+            }
+
             // Select volume in this 3D canvas.
             // Don't deselect a volume if layer editing is enabled or any gizmo is active. We want the object to stay selected
             // during the scene manipulation.
@@ -4531,6 +4552,25 @@ bool GLCanvas3D::_init_main_toolbar()
     if (!m_main_toolbar.add_item(item))
         return false;
 
+    item.name = "addplate";
+    item.icon_filename = "add_plate.svg";
+    item.tooltip = _utf8(L("Add plate")) + " [Add]";
+    item.sprite_id++;
+    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ADD_PLATE)); };
+    item.enabling_callback = []()->bool {return wxGetApp().plater()->can_add_plate(); };
+    if (!m_main_toolbar.add_item(item))
+        return false;
+
+    item.name = "delplate";
+    item.icon_filename = "del_plate.svg";
+    item.tooltip = _utf8(L("Delete plate")) + " [Del]";
+    item.sprite_id++;
+    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_DEL_PLATE)); };
+    item.enabling_callback = []()->bool { return wxGetApp().plater()->can_delete_plate(); };
+    if (!m_main_toolbar.add_item(item))
+        return false;
+
+
     item.name = "orient";
     item.icon_filename = "orient.svg";
     item.tooltip = _utf8(L("Orient")) + " [A]\n" + _utf8(L("Orient selection")) + " [Shift+A]\n" + _utf8(L("Click right mouse button to show auto-orientation options"));
@@ -4855,7 +4895,7 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     _set_current();
 }
 
-BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_bed_model) const
+BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_bed_model, bool include_plates) const
 {
     BoundingBoxf3 bb = volumes_bounding_box();
 
@@ -4870,6 +4910,9 @@ BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_be
     }
 
     bb.merge(include_bed_model ? m_bed.extended_bounding_box() : m_bed.build_volume().bounding_volume());
+    if (include_plates) {
+        bb.merge(wxGetApp().plater()->get_partplate_list().get_bounding_box());
+    }
 
     if (!m_main_toolbar.is_enabled())
         bb.merge(m_gcode_viewer.get_max_bounding_box());
@@ -4903,8 +4946,12 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
 
 void GLCanvas3D::_picking_pass()
 {
+    std::vector<int>* hover_volume_idxs = const_cast<std::vector<int>*>(&m_hover_volume_idxs);
+    std::vector<int>* hover_plate_idxs = const_cast<std::vector<int>*>(&m_hover_plate_idxs);
+
     if (m_picking_enabled && !m_mouse.dragging && m_mouse.position != Vec2d(DBL_MAX, DBL_MAX)) {
-        m_hover_volume_idxs.clear();
+        hover_volume_idxs->clear();
+        hover_plate_idxs->clear();
 
         // Render the object for picking.
         // FIXME This cannot possibly work in a multi - sampled context as the color gets mangled by the anti - aliasing.
@@ -4932,6 +4979,9 @@ void GLCanvas3D::_picking_pass()
 
         m_gizmos.render_current_gizmo_for_picking_pass();
 
+        //BBS: add plates related logic
+        _render_plates_for_picking();
+
         if (m_multisample_allowed)
             glsafe(::glEnable(GL_MULTISAMPLE));
 
@@ -4953,14 +5003,26 @@ void GLCanvas3D::_picking_pass()
                 gizmo_id = color[0] + (color[1] << 8) + (color[2] << 16);
             }
         }
-        if (0 <= volume_id && volume_id < (int)m_volumes.volumes.size()) {
-            // do not add the volume id if any gizmo is active and CTRL is pressed
-            if (m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined || !wxGetKeyState(WXK_CONTROL))
-                m_hover_volume_idxs.emplace_back(volume_id);
-            m_gizmos.set_hover_id(-1);
-        }
         else
             m_gizmos.set_hover_id(inside && (unsigned int)gizmo_id <= GLGizmoBase::BASE_ID ? ((int)GLGizmoBase::BASE_ID - gizmo_id) : -1);
+
+        int plate_hover_id = PartPlate::PLATE_BASE_ID - volume_id;
+
+        if (plate_hover_id >= 0 && plate_hover_id < PartPlateList::MAX_PLATES_COUNT * PartPlate::GRABBER_COUNT) {
+            wxGetApp().plater()->get_partplate_list().set_hover_id(plate_hover_id);
+            hover_plate_idxs->emplace_back(plate_hover_id);
+        }
+        else {
+            wxGetApp().plater()->get_partplate_list().reset_hover_id();
+            if (0 <= volume_id && volume_id < (int)m_volumes.volumes.size()) {
+                // do not add the volume id if any gizmo is active and CTRL is pressed
+                if (m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined || !wxGetKeyState(WXK_CONTROL))
+                    hover_volume_idxs->emplace_back(volume_id);
+                const_cast<GLGizmosManager*>(&m_gizmos)->set_hover_id(-1);
+            }
+            else
+                const_cast<GLGizmosManager*>(&m_gizmos)->set_hover_id(inside && (unsigned int)volume_id <= GLGizmoBase::BASE_ID ? ((int)GLGizmoBase::BASE_ID - volume_id) : -1);
+        }
 
         _update_volumes_hover_state();
     }
@@ -5115,6 +5177,21 @@ void GLCanvas3D::_render_bed_for_picking(bool bottom)
 #endif // ENABLE_RETINA_GL
 
     m_bed.render_for_picking(*this, bottom, scale_factor);
+}
+
+void GLCanvas3D::_render_platelist(bool bottom) const
+{
+    float scale_factor = 1.0;
+#if ENABLE_RETINA_GL
+    scale_factor = m_retina_helper->get_scale_factor();
+#endif // ENABLE_RETINA_GL
+
+    wxGetApp().plater()->get_partplate_list().render(const_cast<GLCanvas3D&>(*this), bottom, scale_factor);
+}
+
+void GLCanvas3D::_render_plates_for_picking() const
+{
+    wxGetApp().plater()->get_partplate_list().render_for_picking_pass();
 }
 
 void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)

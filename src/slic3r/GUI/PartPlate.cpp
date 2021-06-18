@@ -5,29 +5,52 @@
 #include <string>
 #include <regex>
 #include <future>
+#include <GL/glew.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/optional.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/convert.hpp>
-
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/log/trivial.hpp>
 
 #include "libslic3r/libslic3r.h"
+#include "libslic3r/Polygon.hpp"
+#include "libslic3r/ClipperUtils.hpp"
+#include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/Geometry.hpp"
+#include "libslic3r/Tesselate.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "libslic3r/Utils.hpp"
 
+#include "GUI_App.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "3DBed.hpp"
 #include "PartPlate.hpp"
+#include "Camera.hpp"
+#include <imgui/imgui_internal.h>
 
 using boost::optional;
 namespace fs = boost::filesystem;
+
+static const float GROUND_Z = -0.05f;
+static const float GRABBER_X_FACTOR = 0.20f;
+static const float GRABBER_Y_FACTOR = 0.03f;
+static const float GRABBER_Z_VALUE = 0.5f;
 
 namespace Slic3r {
 namespace GUI {
 
 class Bed3D;
+
+PartPlate::PartPlate()
+	: ObjectBase(-1), m_plater(nullptr), m_model(nullptr), m_quadric(nullptr)
+{
+	assert(this->id().invalid());
+	init();
+}
 
 PartPlate::PartPlate(Vec3d& origin, int width, int depth, int height, Plater* platerObj, Model* modelObj, bool printable, PrinterTechnology tech)
 	:m_plater(platerObj), m_model(modelObj), printer_technology(tech), m_origin(origin), m_width(width), m_depth(depth), m_height(height),  m_printable(printable)
@@ -35,10 +58,12 @@ PartPlate::PartPlate(Vec3d& origin, int width, int depth, int height, Plater* pl
 	init();
 }
 
-
 PartPlate::~PartPlate()
 {
 	clear();
+	if (m_quadric != nullptr)
+		::gluDeleteQuadric(m_quadric);
+	reset();
 }
 
 void PartPlate::init()
@@ -46,7 +71,11 @@ void PartPlate::init()
 	m_locked = false;
 	m_ready_for_slice = false;
 	m_slice_result_valid = false;
-	m_locked = false;
+	m_hover_id = -1;
+	m_selected = false;
+	m_quadric = ::gluNewQuadric();
+	if (m_quadric != nullptr)
+		::gluQuadricDrawStyle(m_quadric, GLU_FILL);
 }
 
 bool PartPlate::valid_instance(int obj_id, int instance_id)
@@ -59,6 +88,345 @@ bool PartPlate::valid_instance(int obj_id, int instance_id)
 	}
 
 	return false;
+}
+
+void PartPlate::calc_bounding_boexes() const {
+	BoundingBoxf3* bounding_box = const_cast<BoundingBoxf3*>(&m_bounding_box);
+	*bounding_box = BoundingBoxf3();
+	for (const Vec2d& p : m_shape) {
+		bounding_box->merge({ p(0), p(1), 0.0 });
+	}
+
+	BoundingBoxf3* extended_bounding_box = const_cast<BoundingBoxf3*>(&m_extended_bounding_box);
+	*extended_bounding_box = m_bounding_box;
+
+	double half_x = bounding_box->size().x() * GRABBER_X_FACTOR;
+	double half_y = bounding_box->size().y() * 1.0f * GRABBER_Y_FACTOR;
+	double half_z = GRABBER_Z_VALUE;
+	Vec3d center(bounding_box->center().x(), -half_y, GROUND_Z);
+	m_grabber_box.min = Vec3d(center.x() - half_x, center.y() - half_y, center.z() - half_z);
+	m_grabber_box.max = Vec3d(center.x() + half_x, center.y() + half_y, center.z() + half_z);
+	m_grabber_box.defined = true;
+	extended_bounding_box->merge(m_grabber_box);
+}
+
+void PartPlate::calc_triangles(const ExPolygon& poly) {
+	m_triangles.set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z);
+}
+
+void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox) {
+	Polylines axes_lines;
+	for (coord_t x = pp_bbox.min(0); x <= pp_bbox.max(0); x += scale_(10.0)) {
+		Polyline line;
+		line.append(Point(x, pp_bbox.min(1)));
+		line.append(Point(x, pp_bbox.max(1)));
+		axes_lines.push_back(line);
+	}
+	for (coord_t y = pp_bbox.min(1); y <= pp_bbox.max(1); y += scale_(10.0)) {
+		Polyline line;
+		line.append(Point(pp_bbox.min(0), y));
+		line.append(Point(pp_bbox.max(0), y));
+		axes_lines.push_back(line);
+	}
+
+	// clip with a slightly grown expolygon because our lines lay on the contours and may get erroneously clipped
+	Lines gridlines = to_lines(intersection_pl(axes_lines, offset(poly, (float)SCALED_EPSILON)));
+
+	// append bed contours
+	Lines contour_lines = to_lines(poly);
+	std::copy(contour_lines.begin(), contour_lines.end(), std::back_inserter(gridlines));
+
+	if (!m_gridlines.set_from_lines(gridlines, GROUND_Z))
+		BOOST_LOG_TRIVIAL(error) << "Unable to create bed grid lines\n";
+}
+
+void PartPlate::render_default(bool bottom) const {
+	const_cast<GLTexture*>(&m_texture)->reset();
+
+	unsigned int triangles_vcount = m_triangles.get_vertices_count();
+
+	glsafe(::glEnable(GL_DEPTH_TEST));
+	glsafe(::glEnable(GL_BLEND));
+	glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+	glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+
+	if (!bottom) {
+		// draw background
+		glsafe(::glDepthMask(GL_FALSE));
+		glsafe(::glColor4fv(m_model_color.data()));
+		glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
+		glsafe(::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_vertices_data()));
+		glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount));
+		glsafe(::glDepthMask(GL_TRUE));
+	}
+
+	// draw grid
+	glsafe(::glLineWidth(1.5f * m_scale_factor));
+	if (bottom)
+		glsafe(::glColor4f(0.9f, 0.9f, 0.9f, 1.0f));
+	else
+		glsafe(::glColor4f(0.9f, 0.9f, 0.9f, 0.6f));
+	glsafe(::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_gridlines.get_vertices_data()));
+	glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_gridlines.get_vertices_count()));
+
+	glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
+
+	glsafe(::glDisable(GL_BLEND));
+}
+
+void PartPlate::render_label(GLCanvas3D& canvas) const {
+	std::string label = (boost::format("Plate %1%") % m_plate_index).str();
+	const Camera& camera = wxGetApp().plater()->get_camera();
+	Transform3d world_to_eye = camera.get_view_matrix();
+	Transform3d world_to_screen = camera.get_projection_matrix() * world_to_eye;
+	const std::array<int, 4>& viewport = camera.get_viewport();
+
+	BoundingBoxf3* bounding_box = const_cast<BoundingBoxf3*>(&m_bounding_box);
+	Vec3d screen_box_center = world_to_screen * bounding_box->min;
+
+	float x = 0.0f;
+	float y = 0.0f;
+	if (camera.get_type() == Camera::Perspective) {
+		x = (0.5f + 0.001f * 0.5f * (float)screen_box_center(0)) * viewport[2];
+		y = (0.5f - 0.001f * 0.5f * (float)screen_box_center(1)) * viewport[3];
+	}
+	else {
+		x = (0.5f + 0.5f * (float)screen_box_center(0)) * viewport[2];
+		y = (0.5f - 0.5f * (float)screen_box_center(1)) * viewport[3];
+	}
+
+	ImGuiWrapper& imgui = *wxGetApp().imgui();
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.5f);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+	ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.75f, 0.75f, 0.75f, 1.0f));
+	imgui.set_next_window_pos(x, y, ImGuiCond_Always, 0.5f, 0.5f);
+	imgui.begin(label, ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+	ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
+	float win_w = ImGui::GetWindowWidth();
+	float label_len = imgui.calc_text_size(label).x;
+	ImGui::SetCursorPosX(0.5f * (win_w - label_len));
+	ImGui::AlignTextToFramePadding();
+	imgui.text(label);
+
+	// force re-render while the windows gets to its final size (it takes several frames)
+	if (ImGui::GetWindowContentRegionWidth() + 2.0f * ImGui::GetStyle().WindowPadding.x != ImGui::CalcWindowExpectedSize(ImGui::GetCurrentWindow()).x)
+		canvas.request_extra_frame();
+
+	imgui.end();
+	ImGui::PopStyleColor();
+	ImGui::PopStyleVar(2);
+
+}
+
+void PartPlate::render_grabber(const float* render_color, bool use_lighting) const
+{
+	BoundingBoxf3* bounding_box = const_cast<BoundingBoxf3*>(&m_bounding_box);
+	const Vec3d& center = m_grabber_box.center();
+
+	if (use_lighting)
+		glsafe(::glEnable(GL_LIGHTING));
+	glsafe(::glColor4fv(render_color));
+	glsafe(::glPushMatrix());
+
+	glsafe(::glTranslated(center(0), center(1), center(2)));
+
+	Vec3d angles(Vec3d::Zero());
+	glsafe(::glRotated(Geometry::rad2deg(angles(2)), 0.0, 0.0, 1.0));
+	glsafe(::glRotated(Geometry::rad2deg(angles(1)), 0.0, 1.0, 0.0));
+	glsafe(::glRotated(Geometry::rad2deg(angles(0)), 1.0, 0.0, 0.0));
+
+	float half_x = bounding_box->size().x() * GRABBER_X_FACTOR;
+	float half_y = bounding_box->size().y() * GRABBER_Y_FACTOR;
+	float half_z = GRABBER_Z_VALUE;
+	// face min x
+	glsafe(::glPushMatrix());
+	glsafe(::glTranslatef(-(GLfloat)half_x, 0, 0.0f));
+	glsafe(::glRotatef(-90.0f, 0.0f, 1.0f, 0.0f));
+	render_face(half_z, half_y);
+	glsafe(::glPopMatrix());
+
+	// face max x
+	glsafe(::glPushMatrix());
+	glsafe(::glTranslatef((GLfloat)half_x, 0, 0.0f));
+	glsafe(::glRotatef(90.0f, 0.0f, 1.0f, 0.0f));
+	render_face(half_z, half_y);
+	glsafe(::glPopMatrix());
+
+	// face min y
+	glsafe(::glPushMatrix());
+	glsafe(::glTranslatef(0.0f, -(GLfloat)half_y, 0.0f));
+	glsafe(::glRotatef(90.0f, 1.0f, 0.0f, 0.0f));
+	render_face(half_x, half_z);
+	glsafe(::glPopMatrix());
+
+	// face max y
+	glsafe(::glPushMatrix());
+	glsafe(::glTranslatef(0.0f, (GLfloat)half_y, 0.0f));
+	glsafe(::glRotatef(-90.0f, 1.0f, 0.0f, 0.0f));
+	render_face(half_x, half_z);
+	glsafe(::glPopMatrix());
+
+	// face min z
+	glsafe(::glPushMatrix());
+	glsafe(::glTranslatef(0.0f, 0.0f, -(GLfloat)half_z));
+	glsafe(::glRotatef(180.0f, 1.0f, 0.0f, 0.0f));
+	render_face(half_x, half_y);
+	glsafe(::glPopMatrix());
+
+	// face max z
+	glsafe(::glPushMatrix());
+	glsafe(::glTranslatef(0.0f, 0.0f, (GLfloat)half_z));
+	render_face(half_x, half_y);
+	glsafe(::glPopMatrix());
+
+	glsafe(::glPopMatrix());
+
+	if (use_lighting)
+		glsafe(::glDisable(GL_LIGHTING));
+}
+
+void PartPlate::render_face(float x_size, float y_size) const
+{
+	::glBegin(GL_TRIANGLES);
+	::glNormal3f(0.0f, 0.0f, 1.0f);
+	::glVertex3f(-(GLfloat)x_size, -(GLfloat)y_size, 0.0f);
+	::glVertex3f((GLfloat)x_size, -(GLfloat)y_size, 0.0f);
+	::glVertex3f((GLfloat)x_size, (GLfloat)y_size, 0.0f);
+	::glVertex3f((GLfloat)x_size, (GLfloat)y_size, 0.0f);
+	::glVertex3f(-(GLfloat)x_size, (GLfloat)y_size, 0.0f);
+	::glVertex3f(-(GLfloat)x_size, -(GLfloat)y_size, 0.0f);
+	glsafe(::glEnd());
+}
+
+void PartPlate::render_arrows(const float* render_color, bool use_lighting) const
+{
+	if (m_quadric == nullptr)
+		return;
+	double radius = m_grabber_box.size().y() * 0.5f;
+	double height = radius * 2.0f;
+	double position = m_grabber_box.size().x() * 0.8f;
+	if (use_lighting)
+		glsafe(::glEnable(GL_LIGHTING));
+
+	glsafe(::glColor4fv(render_color));
+	glsafe(::glPushMatrix());
+	glsafe(::glTranslated(m_grabber_box.center().x(), m_grabber_box.center().y(), m_grabber_box.center().z()));
+	glsafe(::glRotated(90.0, 0.0, 1.0, 0.0));
+	glsafe(::glTranslated(0.0, 0.0, position));
+
+	::gluQuadricOrientation(m_quadric, GLU_OUTSIDE);
+	::gluCylinder(m_quadric, 0.9 * radius, 0.0, height, 36, 1);
+	::gluQuadricOrientation(m_quadric, GLU_INSIDE);
+	::gluDisk(m_quadric, 0.0, 0.9 * radius, 36, 1);
+	glsafe(::glPopMatrix());
+
+	glsafe(::glPushMatrix());
+	glsafe(::glTranslated(m_grabber_box.center().x(), m_grabber_box.center().y(), m_grabber_box.center().z()));
+	glsafe(::glRotated(-90.0, 0.0, 1.0, 0.0));
+	glsafe(::glTranslated(0.0, 0.0, position));
+	::gluQuadricOrientation(m_quadric, GLU_OUTSIDE);
+	::gluCylinder(m_quadric, 0.9 * radius, 0.0, height, 36, 1);
+	::gluQuadricOrientation(m_quadric, GLU_INSIDE);
+	::gluDisk(m_quadric, 0.0, 0.9 * radius, 36, 1);
+	glsafe(::glPopMatrix());
+
+	if (use_lighting)
+		glsafe(::glDisable(GL_LIGHTING));
+}
+
+void PartPlate::render_left_arrow(const float* render_color, bool use_lighting) const
+{
+	if (m_quadric == nullptr)
+		return;
+	double radius = m_grabber_box.size().y() * 0.5f;
+	double height = radius * 2.0f;
+	double position = m_grabber_box.size().x() * 0.8f;
+	if (use_lighting)
+		glsafe(::glEnable(GL_LIGHTING));
+
+	glsafe(::glColor4fv(render_color));
+
+	glsafe(::glPushMatrix());
+	glsafe(::glTranslated(m_grabber_box.center().x(), m_grabber_box.center().y(), m_grabber_box.center().z()));
+	glsafe(::glRotated(-90.0, 0.0, 1.0, 0.0));
+	glsafe(::glTranslated(0.0, 0.0, position));
+	::gluQuadricOrientation(m_quadric, GLU_OUTSIDE);
+	::gluCylinder(m_quadric, 0.9 * radius, 0.0, height, 36, 1);
+	::gluQuadricOrientation(m_quadric, GLU_INSIDE);
+	::gluDisk(m_quadric, 0.0, 0.9 * radius, 36, 1);
+	glsafe(::glPopMatrix());
+
+	if (use_lighting)
+		glsafe(::glDisable(GL_LIGHTING));
+}
+void PartPlate::render_right_arrow(const float* render_color, bool use_lighting) const
+{
+	if (m_quadric == nullptr)
+		return;
+	double radius = m_grabber_box.size().y() * 0.5f;
+	double height = radius * 2.0f;
+	double position = m_grabber_box.size().x() * 0.8f;
+	if (use_lighting)
+		glsafe(::glEnable(GL_LIGHTING));
+
+	glsafe(::glColor4fv(render_color));
+	glsafe(::glPushMatrix());
+	glsafe(::glTranslated(m_grabber_box.center().x(), m_grabber_box.center().y(), m_grabber_box.center().z()));
+	glsafe(::glRotated(90.0, 0.0, 1.0, 0.0));
+	glsafe(::glTranslated(0.0, 0.0, position));
+	::gluQuadricOrientation(m_quadric, GLU_OUTSIDE);
+	::gluCylinder(m_quadric, 0.9 * radius, 0.0, height, 36, 1);
+	::gluQuadricOrientation(m_quadric, GLU_INSIDE);
+	::gluDisk(m_quadric, 0.0, 0.9 * radius, 36, 1);
+	glsafe(::glPopMatrix());
+
+	if (use_lighting)
+		glsafe(::glDisable(GL_LIGHTING));
+}
+
+void PartPlate::on_render_for_picking() const {
+	glsafe(::glDisable(GL_DEPTH_TEST));
+	int hover_id = 0;
+	std::array<float, 4> color = picking_color_component(hover_id);
+	m_grabber_color[0] = color[0];
+	m_grabber_color[1] = color[1];
+	m_grabber_color[2] = color[2];
+	m_grabber_color[3] = color[3];
+	render_grabber(m_grabber_color, false);
+	hover_id = 1;
+	color = picking_color_component(hover_id);
+	m_grabber_color[0] = color[0];
+	m_grabber_color[1] = color[1];
+	m_grabber_color[2] = color[2];
+	m_grabber_color[3] = color[3];
+	render_left_arrow(m_grabber_color, false);
+	hover_id = 2;
+	color = picking_color_component(hover_id);
+	m_grabber_color[0] = color[0];
+	m_grabber_color[1] = color[1];
+	m_grabber_color[2] = color[2];
+	m_grabber_color[3] = color[3];
+	render_right_arrow(m_grabber_color, false);
+}
+
+std::array<float, 4> PartPlate::picking_color_component(int idx) const
+{
+	static const float INV_255 = 1.0f / 255.0f;
+	unsigned int id = PLATE_BASE_ID - this->m_plate_index * GRABBER_COUNT - idx;
+	return std::array<float, 4> {
+		float((id >> 0) & 0xff)* INV_255, // red
+			float((id >> 8) & 0xff)* INV_255, // greeen
+			float((id >> 16) & 0xff)* INV_255, // blue
+			float(picking_checksum_alpha_channel(id & 0xff, (id >> 8) & 0xff, (id >> 16) & 0xff))* INV_255
+	};
+}
+
+void PartPlate::reset()
+{
+	if (m_vbo_id > 0) {
+		glsafe(::glDeleteBuffers(1, &m_vbo_id));
+		m_vbo_id = 0;
+	}
 }
 
 bool PartPlate::operator<(PartPlate& plate) const
@@ -281,12 +649,83 @@ int PartPlate::remove_instance(int obj_id, int instance_id)
 	return result;
 }
 
-
-/*rendering related functions*/
-//render
-void PartPlate::render(GLCanvas3D& canvas, float scale_factor, bool current) const
+bool PartPlate::set_shape(const Pointfs& shape, Vec2d position)
 {
+	if (m_shape == shape) {
+		BOOST_LOG_TRIVIAL(trace) << "PartPlate same shape";
+		return false;
+	}
 
+	m_shape.clear();
+	for (const Vec2d& p : shape) {
+		m_shape.push_back(Vec2d(p.x() + position.x(), p.y() + position.y()));
+	}
+
+	calc_bounding_boexes();
+
+	ExPolygon poly;
+	for (const Vec2d& p : m_shape) {
+		poly.contour.append({ scale_(p(0)), scale_(p(1)) });
+	}
+
+	calc_triangles(poly);
+
+	const BoundingBox& pp_bbox = poly.contour.bounding_box();
+	calc_gridlines(poly, pp_bbox);
+
+	reset();
+
+	return true;
+}
+
+bool PartPlate::contains(const Point& point) const
+{
+	return m_polygon.contains(point);
+}
+
+Point PartPlate::point_projection(const Point& point) const
+{
+	return m_polygon.point_projection(point);
+}
+
+void PartPlate::render(GLCanvas3D& canvas, bool bottom) {
+
+	glsafe(::glEnable(GL_DEPTH_TEST));
+	render_default(bottom);
+
+	float render_color[4];
+	::memcpy((void*)m_grabber_color, (const void*)DEFAULT_HIGHLIGHT_COLOR, 4 * sizeof(float));
+
+	render_color[0] = 1.0f - m_grabber_color[0];
+	render_color[1] = 1.0f - m_grabber_color[1];
+	render_color[2] = 1.0f - m_grabber_color[2];
+	render_color[3] = m_grabber_color[3];
+
+	if (m_hover_id == 0)
+		render_grabber(m_grabber_color, true);
+	else
+		render_grabber(render_color, true);
+
+	if (m_hover_id == 1)
+		render_left_arrow(m_grabber_color, true);
+	else
+		render_left_arrow(render_color, true);
+
+	if (m_hover_id == 2)
+		render_right_arrow(m_grabber_color, true);
+	else
+		render_right_arrow(render_color, true);
+
+	render_label(canvas);
+	glsafe(::glDisable(GL_DEPTH_TEST));
+}
+
+void PartPlate::set_selected() {
+	m_selected = true;
+}
+
+void PartPlate::set_unselected() {
+	m_selected = false;
 }
 
 
@@ -377,6 +816,7 @@ void PartPlateList::init()
 	m_plate_list.push_back(first_plate);
 	m_plate_count = 1;
 	m_current_plate = 0;
+	select_plate(m_current_plate);
 	unprintable_plate.set_index(1);
 }
 
@@ -468,15 +908,22 @@ int PartPlateList::create_plate()
 	int new_index;
 
 	new_index = m_plate_list.size();
+	if (new_index >= MAX_PLATES_COUNT)
+		return -1;
 	origin = compute_origin(new_index);
 	plate = new PartPlate(origin, m_plate_width, m_plate_depth, m_plate_height, m_plater, m_model, true, printer_technology);
 	assert(plate != NULL);
 
+	double stride = plate_stride();
+	Vec2d pos = { stride * new_index, 0 };
+	plate->set_shape(m_shape, pos);
 	plate->set_index(new_index);
 	m_plate_list.emplace_back(plate);
 
 	unprintable_plate.set_index(new_index+1);
 
+	//update bounding_boxes
+	calc_bounding_boexes();
 	return new_index;
 }
 
@@ -516,7 +963,16 @@ int PartPlateList::delete_plate(int index)
 		plate->set_pos_and_size(origin, m_plate_width, m_plate_depth, m_plate_height, true);
 		plate->set_index(i);
 	}
+
+	//update render shapes
+	set_shapes(m_shape);
+
+	//TODO, stone update selected status.
+
 	unprintable_plate.set_index(m_plate_list.size());
+
+	//update bounding_boxes
+	calc_bounding_boexes();
 
 	return ret;
 }
@@ -541,14 +997,40 @@ PartPlate* PartPlateList::get_plate(int index)
 //select plate
 int PartPlateList::select_plate(int index)
 {
-	int ret = 0;
-
+	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
+	if (m_plate_list.empty() || index >= m_plate_list.size()) {
+		return -1;
+	}
+	if (m_current_plate != -1) {
+		m_plate_list[m_current_plate]->set_unselected();
+	}
 	m_current_plate = index;
+	m_plate_list[index]->set_selected();
 
-	//TODO
-	//need to set camera related setttings
+	return 0;
+}
 
-	return ret;
+void PartPlateList::set_hover_id(int id)
+{
+	int index = id / PartPlate::GRABBER_COUNT;
+	int sub_hover_id = id % PartPlate::GRABBER_COUNT;
+	m_plate_list[index]->set_hover_id(sub_hover_id);
+}
+
+void PartPlateList::reset_hover_id()
+{
+	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
+	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
+	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
+		(*it)->set_hover_id(-1);
+	}
+}
+
+double PartPlateList::plate_stride()
+{
+	const auto plate_shape = Slic3r::Polygon::new_scale(m_shape);
+	double plate_width = plate_shape.bounding_box().size().x();
+	return unscaled<double>((1. + LOGICAL_PART_PLATE_GAP) * plate_width);
 }
 
 //get the plate counts, not including the invalid plate
@@ -798,10 +1280,85 @@ int PartPlateList::reload_all_objects()
 
 /*rendering related functions*/
 //render
-void PartPlateList::render(GLCanvas3D& canvas, float scale_factor) const
+void PartPlateList::render(GLCanvas3D& canvas, bool bottom, float scale_factor)
 {
-
+	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
+	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
+	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
+		(*it)->render(canvas, bottom);
+	}
 }
+
+void PartPlateList::render_for_picking_pass()
+{
+	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
+	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
+	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
+		(*it)->render_for_picking();
+	}
+}
+
+int PartPlateList::select_plate_by_hover_id(int hover_id)
+{
+	int index = hover_id / PartPlate::GRABBER_COUNT;
+	int sub_hover_id = hover_id % PartPlate::GRABBER_COUNT;
+	if (sub_hover_id == 0) {
+		select_plate(index);
+	}
+	else if (sub_hover_id == 1) {
+		if (m_current_plate == 0) {
+			select_plate(0);
+		}
+		else {
+			select_plate(index - 1);
+		}
+	}
+	else if (sub_hover_id == 2) {
+		if (m_current_plate == (get_plate_count() - 1)) {
+			select_plate(m_current_plate);
+		}
+		else {
+			select_plate(index + 1);
+		}
+	}
+	else {
+		return -1;
+	}
+	return 0;
+}
+
+void PartPlateList::calc_bounding_boexes()
+{
+	m_bounding_box.reset();
+	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
+	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
+		m_bounding_box.merge((*it)->get_bounding_box(true));
+	}
+}
+
+void PartPlateList::select_plate_view()
+{
+	if (m_current_plate < 0 || m_current_plate >= m_plate_list.size()) return;
+	double stride = plate_stride();
+	Vec3d target = m_plate_list[m_current_plate]->get_bounding_box(false).center();
+	Vec3d position(target.x(), target.y(), m_plater->get_camera().get_distance());
+	m_plater->get_camera().look_at(position, target, Vec3d::UnitY());
+}
+
+bool PartPlateList::set_shapes(const Pointfs& shape)
+{
+	m_shape = shape;
+	double stride = plate_stride();
+	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
+	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
+	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
+		Vec2d pos = { stride * std::distance(m_plate_list.begin(), it), 0.0 };
+		(*it)->set_shape(shape, pos);
+		(*it)->set_index(std::distance(m_plate_list.begin(), it));
+	}
+	return true;
+}
+
 
 /*slice related functions*/
 //update current slice context into backgroud slicing process

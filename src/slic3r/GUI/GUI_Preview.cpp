@@ -99,6 +99,12 @@ void View3D::bed_shape_changed()
         m_canvas->bed_shape_changed();
 }
 
+void View3D::plates_count_changed()
+{
+    if (m_canvas != nullptr)
+        m_canvas->plates_count_changed();
+}
+
 void View3D::select_view(const std::string& direction)
 {
     if (m_canvas != nullptr)

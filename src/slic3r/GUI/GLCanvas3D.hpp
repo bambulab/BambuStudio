@@ -497,6 +497,10 @@ private:
     GLSelectionRectangle m_rectangle_selection;
     std::vector<int> m_hover_volume_idxs;
 
+    //BBS:add plate related logic
+    std::vector<int> m_hover_volume_idxs;
+    std::vector<int> m_hover_plate_idxs;
+
     // Following variable is obsolete and it should be safe to remove it.
     // I just don't want to do it now before a release (Lukas Matena 24.3.2019)
     bool m_render_sla_auxiliaries;
@@ -646,8 +650,13 @@ public:
 
     void bed_shape_changed();
 
-    void set_clipping_plane(unsigned int id, const ClippingPlane& plane) {
-        if (id < 2) {
+    //BBS: add part plate related logic
+    void plates_count_changed();
+
+    void set_clipping_plane(unsigned int id, const ClippingPlane& plane)
+    {
+        if (id < 2)
+        {
             m_clipping_planes[id] = plane;
             m_sla_caps[id].reset();
         }
@@ -693,6 +702,8 @@ public:
     void zoom_to_selection();
     void zoom_to_gcode();
     void select_view(const std::string& direction);
+    //BBS: add part plate related logic
+    void select_plate();
 
     void update_volumes_colors_by_extruder();
 
@@ -892,7 +903,8 @@ private:
     bool _set_current();
     void _resize(unsigned int w, unsigned int h);
 
-    BoundingBoxf3 _max_bounding_box(bool include_gizmos, bool include_bed_model) const;
+    //BBS: add part plate related logic
+    BoundingBoxf3 _max_bounding_box(bool include_gizmos, bool include_bed_model, bool include_plates) const;
 
     void _zoom_to_box(const BoundingBoxf3& box, double margin_factor = DefaultCameraZoomToBoxMarginFactor);
     void _update_camera_zoom(double zoom);
@@ -904,6 +916,8 @@ private:
     void _render_background() const;
     void _render_bed(bool bottom, bool show_axes);
     void _render_bed_for_picking(bool bottom);
+    void _render_platelist(bool bottom) const;
+    void _render_plates_for_picking() const;
     void _render_objects(GLVolumeCollection::ERenderType type);
     void _render_gcode();
     void _render_selection() const;

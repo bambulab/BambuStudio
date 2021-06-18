@@ -32,6 +32,7 @@ using ModelObjectCutAttributes = enum_bitmask<ModelObjectCutAttribute>;
 class ModelInstance;
 class Print;
 class SLAPrint;
+class PartPlateList;
 enum SLAPrintObjectStep : unsigned int;
 enum class ConversionType : int;
 
@@ -309,6 +310,8 @@ public:
 
     bool can_delete() const;
     bool can_delete_all() const;
+    bool can_add_plate() const;
+    bool can_delete_plate() const;
     bool can_increase_instances() const;
     bool can_decrease_instances() const;
     bool can_set_instance_to_object() const;

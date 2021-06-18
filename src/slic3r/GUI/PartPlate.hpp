@@ -3,6 +3,9 @@
 
 #include <vector>
 #include <set>
+#include <array>
+#include <thread>
+#include <mutex>
 
 #include "libslic3r/ObjectID.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
@@ -12,6 +15,13 @@
 #include "libslic3r/Print.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "GLCanvas3D.hpp"
+#include "GLTexture.hpp"
+#include "3DScene.hpp"
+#include "GLModel.hpp"
+#include "3DBed.hpp"
+
+class GLUquadric;
+typedef class GLUquadric GLUquadricObject;
 
 namespace Slic3r {
 
@@ -23,6 +33,10 @@ class SLAPrint;
 
 namespace GUI {
 class Plater;
+class GLCanvas3D;
+struct Camera;
+
+static const constexpr double LOGICAL_PART_PLATE_GAP = 1. / 5.;
 
 class PartPlate : public ObjectBase
 {
@@ -46,12 +60,48 @@ class PartPlate : public ObjectBase
 
     std::string m_thumbnail_path; //use a temp path to store the thumbnail
 
-    void init();
-    bool valid_instance(int obj_id, int instance_id);
-
     friend class PartPlateList;
 
+    Pointfs m_shape;
+    BoundingBoxf3 m_bounding_box;
+    BoundingBoxf3 m_extended_bounding_box;
+    mutable BoundingBoxf3 m_grabber_box;
+    Transform3d m_grabber_trans_matrix;
+    Slic3r::Geometry::Transformation position;
+    std::vector<Vec3f> positions;
+    Polygon m_polygon;
+    unsigned int m_vbo_id{ 0 };
+    GeometryBuffer m_triangles;
+    GeometryBuffer m_gridlines;
+    GLTexture m_texture;
+    std::array<float, 4> m_model_color{ 0.235f, 0.235f, 0.235f, 1.0f };
+    mutable float m_grabber_color[4];
+    float m_scale_factor{ 1.0f };
+    GLUquadricObject* m_quadric;
+    int m_hover_id;
+    bool m_selected;
+
+    void init();
+    bool valid_instance(int obj_id, int instance_id);
+    void calc_bounding_boexes() const;
+    void calc_triangles(const ExPolygon& poly);
+    void calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox);
+    void render_default(bool bottom) const;
+    void render_label(GLCanvas3D& canvas) const;
+    void render_grabber(const float* render_color, bool use_lighting) const;
+    void render_face(float x_size, float y_size) const;
+    void render_arrows(const float* render_color, bool use_lighting) const;
+    void render_left_arrow(const float* render_color, bool use_lighting) const;
+    void render_right_arrow(const float* render_color, bool use_lighting) const;
+    void on_render_for_picking() const;
+    std::array<float, 4> picking_color_component(int idx) const;
+    void reset();
+
 public:
+    static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
+    static const unsigned int GRABBER_COUNT = 3;
+
+    PartPlate();
     PartPlate(Vec3d &origin, int width, int depth, int height, Plater* platerObj, Model* modelObj, bool printable=true, PrinterTechnology tech = ptFFF);
     ~PartPlate();
 
@@ -98,8 +148,16 @@ public:
 
 
     /*rendering related functions*/
-    //render
-    void render(GLCanvas3D& canvas, float scale_factor, bool current) const;
+    const Pointfs& get_shape() const { return m_shape; }
+    bool set_shape(const Pointfs& shape, Vec2d position);
+    bool contains(const Point& point) const;
+    Point point_projection(const Point& point) const;
+    void render(GLCanvas3D& canvas, bool bottom);
+    void render_for_picking() const { on_render_for_picking(); }
+    void set_selected();
+    void set_unselected();
+    void set_hover_id(int id) { m_hover_id = id; }
+    const BoundingBoxf3& get_bounding_box(bool extended) { return extended ? m_extended_bounding_box : m_bounding_box; }
 
 
     /*status related functions*/
@@ -133,8 +191,7 @@ public:
 
     friend class cereal::access;
     friend class UndoRedo::StackImpl;
-    // Used for deserialization
-    PartPlate() : ObjectBase(-1), m_plater(nullptr), m_model(nullptr) { assert(this->id().invalid()); }
+
     template<class Archive> void load(Archive& ar) {
         std::vector<std::pair<int, int>>	objects_and_instances;
 
@@ -167,6 +224,7 @@ class PartPlateList : public ObjectBase
     PrinterTechnology  printer_technology;
 
     std::vector <PartPlate*> m_plate_list;
+    std::mutex m_plates_mutex;
     int m_plate_count;
     int m_current_plate;
 
@@ -175,17 +233,22 @@ class PartPlateList : public ObjectBase
     int m_plate_height;
 
     PartPlate unprintable_plate;
+    Pointfs m_shape;
+    BoundingBoxf3 m_bounding_box;
 
     void init();
     //compute the origin for printable plate with index i
     Vec3d compute_origin(int index);
     //compute the origin for unprintable plate
     Vec3d compute_origin_for_unprintable();
+    double plate_stride();
 
     friend class cereal::access;
     friend class UndoRedo::StackImpl;
 
 public:
+    static const unsigned int MAX_PLATES_COUNT = 50;
+
     PartPlateList(int width, int depth, int height, Plater* platerObj, Model* modelObj, PrinterTechnology tech = ptFFF);
     PartPlateList(Plater* platerObj, Model* modelObj, PrinterTechnology tech = ptFFF);
     ~PartPlateList();
@@ -209,6 +272,8 @@ public:
     // 
     //get a plate pointer by index
     PartPlate* get_plate(int index);
+
+    int get_curr_plate() { return m_current_plate; }
 
     //select plate
     int select_plate(int index);
@@ -240,8 +305,15 @@ public:
     int reload_all_objects();
 
     /*rendering related functions*/
-    //render
-    void render(GLCanvas3D& canvas, float scale_factor) const;
+    void render(GLCanvas3D& canvas, bool bottom, float scale_factor);
+    void render_for_picking_pass();
+    BoundingBoxf3& get_bounding_box() { return m_bounding_box; }
+    int select_plate_by_hover_id(int hover_id);
+    void calc_bounding_boexes();
+    void select_plate_view();
+    bool set_shapes(const Pointfs& shape);
+    void set_hover_id(int id);
+    void reset_hover_id();
 
     /*slice related functions*/
     //update current slice context into backgroud slicing process

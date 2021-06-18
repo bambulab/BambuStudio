@@ -66,6 +66,7 @@
 #include "GLToolbar.hpp"
 #include "GUI_Preview.hpp"
 #include "3DBed.hpp"
+#include "PartPlate.hpp"
 #include "Camera.hpp"
 #include "Mouse3DController.hpp"
 #include "Tab.hpp"
@@ -1891,6 +1892,8 @@ struct Plater::priv
 	bool warnings_dialog();
 
     void on_action_add(SimpleEvent&);
+    void on_action_add_plate(SimpleEvent&);
+    void on_action_del_plate(SimpleEvent&);
     void on_action_split_objects(SimpleEvent&);
     void on_action_split_volumes(SimpleEvent&);
     void on_action_layersediting(SimpleEvent&);
@@ -1913,6 +1916,8 @@ struct Plater::priv
 
     bool can_delete() const;
     bool can_delete_all() const;
+    bool can_add_plate() const;
+    bool can_delete_plate() const;
     bool can_increase_instances() const;
     bool can_decrease_instances() const;
     bool can_split_to_objects() const;
@@ -2107,6 +2112,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE, [q](SimpleEvent&) { q->remove_selected(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE_ALL, [this](SimpleEvent&) { delete_all_objects_from_model(); });
 //        view3D_canvas->Bind(EVT_GLTOOLBAR_DELETE_ALL, [q](SimpleEvent&) { q->reset_with_confirm(); });
+
+        view3D_canvas->Bind(EVT_GLTOOLBAR_ADD_PLATE, &priv::on_action_add_plate, this);
+        view3D_canvas->Bind(EVT_GLTOOLBAR_DEL_PLATE, &priv::on_action_del_plate, this);
         view3D_canvas->Bind(EVT_GLTOOLBAR_ORIENT, [this](SimpleEvent&) { this->q->orient(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_ARRANGE, [this](SimpleEvent&) { this->q->arrange(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_COPY, [q](SimpleEvent&) { q->copy_selection_to_clipboard(); });
@@ -4166,6 +4174,20 @@ void Plater::priv::on_action_add(SimpleEvent&)
         q->add_model();
 }
 
+void Plater::priv::on_action_add_plate(SimpleEvent&)
+{
+    if (q != nullptr)
+        q->get_partplate_list().create_plate();
+}
+
+void Plater::priv::on_action_del_plate(SimpleEvent&)
+{
+    if (q != nullptr) {
+        int index = q->get_partplate_list().get_curr_plate();
+        q->get_partplate_list().delete_plate(index);
+    }
+}
+
 void Plater::priv::on_action_split_objects(SimpleEvent&)
 {
     split_object();
@@ -4584,6 +4606,8 @@ void Plater::priv::set_bed_shape(const Pointfs& shape, const double max_print_he
         double z = config->opt_float("max_print_height");
         partplate_list.reset_size(max.x() - min.x(), max.y() - min.y(), z);
     }
+
+    partplate_list.set_shapes(shape);
 }
 
 bool Plater::priv::can_delete() const
@@ -4594,6 +4618,16 @@ bool Plater::priv::can_delete() const
 bool Plater::priv::can_delete_all() const
 {
     return !model.objects.empty();
+}
+
+bool Plater::priv::can_add_plate() const
+{
+    return q->get_partplate_list().get_plate_count() < PartPlateList::MAX_PLATES_COUNT;
+}
+
+bool Plater::priv::can_delete_plate() const
+{
+    return q->get_partplate_list().get_plate_count() > 1;
 }
 
 bool Plater::priv::can_fix_through_netfabb() const
@@ -6801,6 +6835,8 @@ void Plater::init_notification_manager()
 
 bool Plater::can_delete() const { return p->can_delete(); }
 bool Plater::can_delete_all() const { return p->can_delete_all(); }
+bool Plater::can_add_plate() const { return p->can_add_plate(); }
+bool Plater::can_delete_plate() const { return p->can_delete_plate(); }
 bool Plater::can_increase_instances() const { return p->can_increase_instances(); }
 bool Plater::can_decrease_instances() const { return p->can_decrease_instances(); }
 bool Plater::can_set_instance_to_object() const { return p->can_set_instance_to_object(); }
