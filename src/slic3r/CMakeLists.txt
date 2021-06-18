@@ -91,6 +91,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/MainFrame.hpp
     GUI/Plater.cpp
     GUI/Plater.hpp
+    GUI/PartPlate.cpp
+    GUI/PartPlate.hpp
     GUI/PresetComboBoxes.hpp
     GUI/PresetComboBoxes.cpp
     GUI/BitmapComboBox.hpp
