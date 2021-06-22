@@ -18,6 +18,7 @@
 #include "libslic3r/Utils.hpp"
 
 #include "BackgroundSlicingProcess.hpp"
+#include "3DBed.hpp"
 #include "PartPlate.hpp"
 
 using boost::optional;
@@ -25,6 +26,8 @@ namespace fs = boost::filesystem;
 
 namespace Slic3r {
 namespace GUI {
+
+class Bed3D;
 
 PartPlate::PartPlate(Vec3d& origin, int width, int depth, int height, Plater* platerObj, Model* modelObj, bool printable, PrinterTechnology tech)
 	:m_plater(platerObj), m_model(modelObj), printer_technology(tech), m_origin(origin), m_width(width), m_depth(depth), m_height(height),  m_printable(printable)
@@ -58,6 +61,12 @@ bool PartPlate::valid_instance(int obj_id, int instance_id)
 	return false;
 }
 
+bool PartPlate::operator<(PartPlate& plate) const
+{
+	int index = plate.get_index();
+	return (this->m_plate_index < index);
+}
+
 //set the plate's index
 void PartPlate::set_index(int index)
 {
@@ -87,7 +96,7 @@ void PartPlate::set_pos_and_size(Vec3d& origin, int width, int depth, int height
 	size_changed = ((width != m_width) || (depth != m_depth) || (height != m_height));
 	pos_changed = (m_origin != origin);
 
-	if ((!size_changed) || (!pos_changed))
+	if ((!size_changed) && (!pos_changed))
 	{
 		//size and position the same with before, just return
 		return;
@@ -261,11 +270,11 @@ int PartPlate::remove_instance(int obj_id, int instance_id)
 		obj_to_instance_set.erase(it);
 		if (!m_ready_for_slice)
 			update_states();
-		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":plate_id %1%, found obj_id %1%, instance_id %2%") % m_plate_index % obj_id % instance_id;
+		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":plate_id %1%, found obj_id %2%, instance_id %3%") % m_plate_index % obj_id % instance_id;
 		result = 0;
 	}
 	else {
-		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plate_id %1%, can not find obj_id %1%, instance_id %2%") % m_plate_index % obj_id % instance_id;
+		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plate_id %1%, can not find obj_id %2%, instance_id %3%") % m_plate_index % obj_id % instance_id;
 		result = -1;
 	}
 
@@ -285,7 +294,7 @@ void PartPlate::render(GLCanvas3D& canvas, float scale_factor, bool current) con
 //update status
 void PartPlate::update_states()
 {
-	m_ready_for_slice = false;
+	m_ready_for_slice = true;
 	for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it) {
 		int obj_id = it->first;
 		int instance_id = it->second;
@@ -318,6 +327,25 @@ int PartPlate::load_gcode_from_file(const std::string& filename)
 	return ret;
 }
 
+void PartPlate::print() const
+{
+	unsigned int count=0;
+
+	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plate index %1%, pointer %2%") % m_plate_index % this;
+	BOOST_LOG_TRIVIAL(debug) << boost::format("origin {%1%,%2%,%3%}, width %4%,  depth %5%, height %6%") % m_origin.x() % m_origin.y() % m_origin.z() % m_width % m_depth % m_height;
+	BOOST_LOG_TRIVIAL(debug) << boost::format("m_printable %1%, m_locked %2%, m_ready_for_slice %3%, m_slice_result_valid %4%,  m_thumbnail_path %5%, set size %6%")\
+		% m_printable % m_locked % m_ready_for_slice % m_slice_result_valid % m_thumbnail_path % obj_to_instance_set.size();
+	for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it) {
+		int obj_id = it->first;
+		int instance_id = it->second;
+
+		BOOST_LOG_TRIVIAL(debug) << boost::format("the %1%th instance, obj_id %2%, instance id %3%") % count % obj_id % instance_id;
+	}
+
+	return;
+}
+
+/* PartPlate List related functions*/
 PartPlateList::PartPlateList(int width, int depth, int height, Plater* platerObj, Model* modelObj, PrinterTechnology tech)
 	:m_plate_width(width), m_plate_depth(depth), m_plate_height(height), m_plater(platerObj), m_model(modelObj), printer_technology(tech),
 	unprintable_plate(Vec3d(0.0 - width - PartPlate::plate_x_offset, 0.0, 0.0), width, depth, height, platerObj, modelObj, false, tech)
@@ -344,10 +372,12 @@ void PartPlateList::init()
 
 	first_plate = new PartPlate(Vec3d(0.0, 0.0, 0.0), m_plate_width, m_plate_depth, m_plate_height, m_plater, m_model, true, printer_technology);
 	assert(first_plate != NULL);
+	first_plate->set_index(0);
 
 	m_plate_list.push_back(first_plate);
 	m_plate_count = 1;
 	m_current_plate = 0;
+	unprintable_plate.set_index(1);
 }
 
 //compute the origin for printable plate with index i
@@ -416,12 +446,14 @@ void PartPlateList::clear()
 }
 
 //clear all the instances in the plate, and delete the plates, only keep the first default plate
-void PartPlateList::reset()
+void PartPlateList::reset(bool do_init)
 {
 	clear();
 
 	m_plate_list.clear();
-	init();
+
+	if (do_init)
+		init();
 
 	return;
 }
@@ -442,6 +474,8 @@ int PartPlateList::create_plate()
 
 	plate->set_index(new_index);
 	m_plate_list.emplace_back(plate);
+
+	unprintable_plate.set_index(new_index+1);
 
 	return new_index;
 }
@@ -482,6 +516,7 @@ int PartPlateList::delete_plate(int index)
 		plate->set_pos_and_size(origin, m_plate_width, m_plate_depth, m_plate_height, true);
 		plate->set_index(i);
 	}
+	unprintable_plate.set_index(m_plate_list.size());
 
 	return ret;
 }
@@ -622,7 +657,7 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 		//found it added before
 		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": found it in previous plate %1%") % index;
 		plate = m_plate_list[index];
-		if (!plate->contain_instance(obj_id, instance_id))
+		if (!plate->intersect_instance(obj_id, instance_id))
 		{
 			//not include anymore, remove it from original plate
 			plate->remove_instance(obj_id, instance_id);
@@ -720,6 +755,7 @@ int PartPlateList::reload_all_objects()
 
 	clear();
 
+	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": m_model->objects.size() is %1%") % m_model->objects.size();
 	//try to find a new plate
 	for (i = 0; i < (unsigned int)m_model->objects.size(); ++i)
 	{
@@ -811,6 +847,44 @@ int PartPlateList::create_plate_from_gcode_file(const std::string& filename)
 	int ret = 0;
 
 	return ret;
+}
+
+int PartPlateList::rebuild_plates_after_deserialize()
+{
+	int ret = 0;
+
+	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plates count %1%") % m_plate_list.size();
+	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+	{
+		m_plate_list[i]->m_plater = this->m_plater;
+		m_plate_list[i]->m_model = this->m_model;
+	}
+
+	if (m_plate_width == 0)
+	{
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": jump to the first init state, need to re-set size!");
+		Vec3d max = m_plater->get_bed().get_bounding_box(false).max;
+		Vec3d min = m_plater->get_bed().get_bounding_box(false).min;
+		double z = m_plater->config()->opt_float("max_print_height");
+		reset_size(max.x() - min.x(), max.y() - min.y(), z);
+	}
+	return ret;
+}
+
+void PartPlateList::print() const
+{
+	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format("PartPlateList %1%, m_plate_count %2%, current_plate %3%") % this % m_plate_count % m_current_plate;
+	BOOST_LOG_TRIVIAL(debug) << boost::format("m_plate_width %1%, m_plate_depth %2%, m_plate_height %3%, plate count %4%\nplate list:") % m_plate_width % m_plate_depth % m_plate_height % m_plate_list.size();
+	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+	{
+		BOOST_LOG_TRIVIAL(debug) << boost::format("the %1%th plate") % i;
+		m_plate_list[i]->print();
+	}
+	BOOST_LOG_TRIVIAL(debug) << boost::format("the unprintable plate:");
+	unprintable_plate.print();
+
+	flush_logs();
+	return;
 }
 
 }//end namespace GUI

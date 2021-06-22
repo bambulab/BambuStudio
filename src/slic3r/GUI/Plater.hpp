@@ -15,6 +15,7 @@
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "Jobs/Job.hpp"
 #include "Search.hpp"
+#include "PartPlate.hpp"
 
 class wxButton;
 class ScalableButton;
@@ -56,6 +57,7 @@ class NotificationManager;
 struct Camera;
 class GLToolbar;
 class PlaterPresetComboBox;
+class PartPlateList;
 
 using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
@@ -338,6 +340,9 @@ public:
 
     const Camera& get_camera() const;
     Camera& get_camera();
+
+    //partplate list related functions
+    PartPlateList& get_partplate_list();
 
 #if ENABLE_ENVIRONMENT_MAP
     void init_environment_texture();

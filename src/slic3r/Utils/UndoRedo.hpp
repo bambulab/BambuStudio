@@ -20,6 +20,8 @@ class Model;
 namespace GUI {
 	class Selection;
     class GLGizmosManager;
+	class PartPlateList;
+	class PartPlate;
 } // namespace GUI
 
 namespace UndoRedo {
@@ -120,6 +122,9 @@ public:
 
 	// Store the current application state onto the Undo / Redo stack, remove all snapshots after m_active_snapshot_time.
     void take_snapshot(const std::string& snapshot_name, const Slic3r::Model& model, const Slic3r::GUI::Selection& selection, const Slic3r::GUI::GLGizmosManager& gizmos, const SnapshotData &snapshot_data);
+
+    void take_snapshot(const std::string& snapshot_name, const Slic3r::Model& model, const Slic3r::GUI::Selection& selection, const Slic3r::GUI::GLGizmosManager& gizmos, const Slic3r::GUI::PartPlateList& plate_list, const SnapshotData& snapshot_data);
+
     // To be called just after take_snapshot() when leaving a gizmo, inside which small edits like support point add / remove events or paiting actions were allowed.
     // Remove all but the last edit between the gizmo enter / leave snapshots.
     void reduce_noisy_snapshots(const std::string& new_name);
@@ -132,10 +137,10 @@ public:
 
 	// Roll back the time. If time_to_load is SIZE_MAX, the previous snapshot is activated.
 	// Undoing an action may need to take a snapshot of the current application state, so that redo to the current state is possible.
-    bool undo(Slic3r::Model& model, const Slic3r::GUI::Selection& selection, Slic3r::GUI::GLGizmosManager& gizmos, const SnapshotData &snapshot_data, size_t time_to_load = SIZE_MAX);
+    bool undo(Slic3r::Model& model, const Slic3r::GUI::Selection& selection, Slic3r::GUI::GLGizmosManager& gizmos, Slic3r::GUI::PartPlateList& plate_list, const SnapshotData &snapshot_data, size_t time_to_load = SIZE_MAX);
 
 	// Jump forward in time. If time_to_load is SIZE_MAX, the next snapshot is activated.
-    bool redo(Slic3r::Model& model, Slic3r::GUI::GLGizmosManager& gizmos, size_t time_to_load = SIZE_MAX);
+    bool redo(Slic3r::Model& model, Slic3r::GUI::GLGizmosManager& gizmos, Slic3r::GUI::PartPlateList& plate_list, size_t time_to_load = SIZE_MAX);
 
 	// Snapshot history (names with timestamps).
 	// Each snapshot indicates start of an interval in which this operation is performed.

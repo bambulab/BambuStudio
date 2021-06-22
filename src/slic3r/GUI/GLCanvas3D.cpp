@@ -2053,8 +2053,14 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     m_gizmos.refresh_on_off_state();
 
     // Update the toolbar
-	if (update_object_list)
-		post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
+    //BBS: notify the PartPlateList to reload all objects
+    if (update_object_list)
+    {
+        post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
+
+        PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
+        plate_list.reload_all_objects();
+    }
 
     // checks for geometry outside the print volume to render it accordingly
     if (!m_volumes.empty()) {
@@ -3427,6 +3433,10 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
 
                 object_moved = true;
                 model_object->invalidate_bounding_box();
+
+                //BBS: notify instance updates to part plater list
+                PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
+                plate_list.notify_instance_update(object_idx, instance_idx);
             }
         }
         else if (object_idx == 1000)
@@ -3516,6 +3526,10 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
                 model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
             }
             model_object->invalidate_bounding_box();
+
+            //BBS: notify instance updates to part plater list
+            PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
+            plate_list.notify_instance_update(object_idx, instance_idx);
         }
     }
 
@@ -3585,6 +3599,10 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
                 model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
             }
             model_object->invalidate_bounding_box();
+
+            //BBS: notify instance updates to part plater list
+            PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
+            plate_list.notify_instance_update(object_idx, instance_idx);
         }
     }
 
@@ -3672,6 +3690,10 @@ void GLCanvas3D::do_mirror(const std::string& snapshot_type)
             m->translate_instance(i.second, shift);
         }
         wxGetApp().obj_list()->update_info_items(static_cast<size_t>(i.first));
+
+        //BBS: notify instance updates to part plater list
+        PartPlateList &plate_list = wxGetApp().plater()->get_partplate_list();
+        plate_list.notify_instance_update(i.first, i.second);
     }
 
     post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));

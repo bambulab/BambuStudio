@@ -1624,6 +1624,8 @@ struct Plater::priv
     Sidebar *sidebar;
     Bed3D bed;
     Camera camera;
+    //BBS: partplate related structure
+    PartPlateList partplate_list;
 #if ENABLE_ENVIRONMENT_MAP
     GLTexture environment_texture;
 #endif // ENABLE_ENVIRONMENT_MAP
@@ -2003,6 +2005,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , view_toolbar(GLToolbar::Radio, "View")
     , collapse_toolbar(GLToolbar::Normal, "Collapse")
     , m_project_filename(wxEmptyString)
+    //BBS :partplatelist construction
+    , partplate_list(this->q, &model)
 {
     this->q->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
@@ -4572,6 +4576,13 @@ void Plater::priv::set_bed_shape(const Pointfs& shape, const double max_print_he
     if (new_shape) {
         if (view3D) view3D->bed_shape_changed();
         if (preview) preview->bed_shape_changed();
+
+        //BBS: update part plate's size
+        // BBS: to be checked
+        Vec3d max = bed.extended_bounding_box().max;
+        Vec3d min = bed.extended_bounding_box().min;
+        double z = config->opt_float("max_print_height");
+        partplate_list.reset_size(max.x() - min.x(), max.y() - min.y(), z);
     }
 }
 
@@ -4776,6 +4787,8 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name, const UndoRed
         // Reset the "dirty project" flag.
         m_undo_redo_stack_main.mark_current_as_saved();
     }
+    //BBS: add PartPlateList as the paremeter for take_snapshot
+    this->undo_redo_stack().take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection(), view3D->get_canvas3d()->get_gizmos_manager(), partplate_list, snapshot_data);
     this->undo_redo_stack().release_least_recently_used();
 
     dirty_state.update_from_undo_redo_stack(m_undo_redo_stack_main.project_modified());
@@ -4869,8 +4882,8 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
     const UndoRedo::Snapshot snapshot_copy = *it_snapshot;
     // Do the jump in time.
     if (it_snapshot->timestamp < this->undo_redo_stack().active_snapshot_time() ?
-        this->undo_redo_stack().undo(model, this->view3D->get_canvas3d()->get_selection(), this->view3D->get_canvas3d()->get_gizmos_manager(), top_snapshot_data, it_snapshot->timestamp) :
-        this->undo_redo_stack().redo(model, this->view3D->get_canvas3d()->get_gizmos_manager(), it_snapshot->timestamp)) {
+        this->undo_redo_stack().undo(model, this->view3D->get_canvas3d()->get_selection(), this->view3D->get_canvas3d()->get_gizmos_manager(), this->partplate_list, top_snapshot_data, it_snapshot->timestamp) :
+        this->undo_redo_stack().redo(model, this->view3D->get_canvas3d()->get_gizmos_manager(), this->partplate_list, it_snapshot->timestamp)) {
         if (printer_technology_changed) {
             // Switch to the other printer technology. Switch to the last printer active for that particular technology.
             AppConfig *app_config = wxGetApp().app_config;
@@ -6695,6 +6708,12 @@ const Camera& Plater::get_camera() const
 Camera& Plater::get_camera()
 {
     return p->camera;
+}
+
+//BBS: partplate list related functions
+PartPlateList& Plater::get_partplate_list()
+{
+    return p->partplate_list;
 }
 
 #if ENABLE_ENVIRONMENT_MAP

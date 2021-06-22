@@ -4,6 +4,7 @@
 #include <vector>
 #include <set>
 
+#include "libslic3r/ObjectID.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "libslic3r/Slicing.hpp"
 #include "Plater.hpp"
@@ -20,9 +21,10 @@ class ModelInstance;
 class Print;
 class SLAPrint; 
 
-
 namespace GUI {
-class PartPlate
+class Plater;
+
+class PartPlate : public ObjectBase
 {
     Plater* m_plater; //Plater reference, not own it
     Model* m_model; //Model reference, not own it
@@ -52,6 +54,8 @@ class PartPlate
 public:
     PartPlate(Vec3d &origin, int width, int depth, int height, Plater* platerObj, Model* modelObj, bool printable=true, PrinterTechnology tech = ptFFF);
     ~PartPlate();
+
+    bool operator<(PartPlate&) const;
 
     //clear alll the instances in plate
     void clear();
@@ -124,9 +128,39 @@ public:
     GCodeProcessor::Result* get_slice_result() { return &m_gcode_result; }
     //load gcode from file
     int load_gcode_from_file(const std::string& filename);
+
+    void print() const;
+
+    friend class cereal::access;
+    friend class UndoRedo::StackImpl;
+    // Used for deserialization
+    PartPlate() : ObjectBase(-1), m_plater(nullptr), m_model(nullptr) { assert(this->id().invalid()); }
+    template<class Archive> void load(Archive& ar) {
+        std::vector<std::pair<int, int>>	objects_and_instances;
+
+        ar(m_plate_index, m_origin, m_width, m_depth, m_height, m_locked, m_ready_for_slice, m_printable, objects_and_instances);
+
+        for (std::vector<std::pair<int, int>>::iterator it = objects_and_instances.begin(); it != objects_and_instances.end(); ++it)
+            obj_to_instance_set.insert(std::pair(it->first, it->second));
+    }
+    template<class Archive> void save(Archive& ar) const {
+        std::vector<std::pair<int, int>>	objects_and_instances;
+
+        for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
+            objects_and_instances.emplace_back(it->first, it->second);
+
+        ar(m_plate_index, m_origin, m_width, m_depth, m_height, m_locked, m_ready_for_slice, m_printable, objects_and_instances);
+    }
+    /*template<class Archive> void serialize(Archive& ar)
+    {
+        std::vector<std::pair<int, int>> objects_and_instances;
+        for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
+            objects_and_instances.emplace_back(it->first, it->second);
+        ar(m_plate_index, m_origin, m_width, m_depth, m_height, m_locked, m_ready_for_slice, m_printable, objects_and_instances);
+    }*/
 };
 
-class PartPlateList
+class PartPlateList : public ObjectBase
 {
     Plater* m_plater; //Plater reference, not own it
     Model* m_model; //Model reference, not own it
@@ -148,6 +182,9 @@ class PartPlateList
     //compute the origin for unprintable plate
     Vec3d compute_origin_for_unprintable();
 
+    friend class cereal::access;
+    friend class UndoRedo::StackImpl;
+
 public:
     PartPlateList(int width, int depth, int height, Plater* platerObj, Model* modelObj, PrinterTechnology tech = ptFFF);
     PartPlateList(Plater* platerObj, Model* modelObj, PrinterTechnology tech = ptFFF);
@@ -158,7 +195,7 @@ public:
     //clear all the instances in the plate, but keep the plates
     void clear();
     //clear all the instances in the plate, and delete the plates, only keep the first default plate
-    void reset();
+    void reset(bool do_init);
 
     /*basic plate operations*/
    //create an empty plate and return its index
@@ -215,9 +252,25 @@ public:
     GCodeProcessor::Result* get_current_slice_result() const;
     //will create a plate and load gcode, return the plate index
     int create_plate_from_gcode_file(const std::string& filename);
+
+    void print() const;
+
+    //retruct plates structures after de-serialize
+    int rebuild_plates_after_deserialize();
+
+    template<class Archive> void serialize(Archive& ar)
+    {
+        //ar(cereal::base_class<ObjectBase>(this));
+        ar(m_plate_width, m_plate_depth, m_plate_height, m_plate_count, m_current_plate, m_plate_list, unprintable_plate);
+        //ar(m_plate_width, m_plate_depth, m_plate_height, m_plate_count, m_current_plate);
+    }
 };
 
 } // namespace GUI
 } // namespace Slic3r
 
+namespace cereal
+{
+    template <class Archive> struct specialize<Archive, Slic3r::GUI::PartPlate, cereal::specialization::member_load_save> {};
+}
 #endif //__part_plate_hpp_
