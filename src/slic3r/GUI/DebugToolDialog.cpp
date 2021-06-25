@@ -101,6 +101,20 @@ namespace GUI {
     {
         selectGcodeDialog = new wxFileDialog(parent, "Open Gcode File", "", "", "Gcode files(*.gcode)|*.gcode", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
+        btn_get_version = new wxButton(this, wxID_ANY, _L("Get Version"));
+        btn_get_version->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+            pt::ptree root, info;
+            info.put<int>("sequence_id", this->m_sequence_id++);
+            info.put("command", "get_version");
+            root.put_child("info", info);
+
+            std::stringstream oss;
+            pt::write_json(oss, root);
+            std::string json_str = oss.str();
+            json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());
+            this->publish_json(json_str);
+            });
+
         btn_return_home = new wxButton(this, wxID_ANY, _L("Return Home:G28"));
         btn_return_home->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
             this->publishGcode("G28 \n");
@@ -199,7 +213,7 @@ namespace GUI {
         temp_btns_sizer->Add(btn_auto_leveling, 0, wxRIGHT | wxALIGN_RIGHT);
         temp_btns_sizer->Add(btn_xyz_abs_mode, 0, wxLEFT | wxALIGN_LEFT);
         temp_btns_sizer->Add(btn_return_home, 0, wxRIGHT | wxALIGN_RIGHT);
-        temp_btns_sizer->Add(NULL, 0, wxLEFT | wxALIGN_LEFT);
+        temp_btns_sizer->Add(btn_get_version, 0, wxLEFT | wxALIGN_LEFT);
         temp_btns_sizer->Add(label_pos_x, 0, wxRIGHT | wxALIGN_RIGHT); 
         temp_btns_sizer->Add(label_pos_x_val, 0, wxLEFT | wxALIGN_LEFT);
         temp_btns_sizer->Add(label_pos_y, 0, wxRIGHT | wxALIGN_RIGHT);

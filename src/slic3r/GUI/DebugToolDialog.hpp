@@ -142,6 +142,7 @@ namespace Slic3r {
             wxButton* btn_stop_temp_push;
             wxButton* btn_get_curr_temp;
             wxButton* btn_get_curr_pos;
+            wxButton* btn_get_version;
 
             wxButton* btn_send_gcode_1;
             wxButton* btn_send_gcode_2;
@@ -188,7 +189,6 @@ namespace Slic3r {
             wxStaticText* label_print_progress_val;
             wxStaticText* label_wifi_signal;
             wxStaticText* label_wifi_signal_val;
-
 
 
             wxComboBox* cb_upgrade_module;
