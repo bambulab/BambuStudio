@@ -49,6 +49,8 @@ struct ArrangePolygon {
     coord_t   inflation = 0;        /// Arrange with inflated polygon
     int       bed_idx{UNARRANGED};  /// To which logical bed does poly belong...
     int       priority{0};
+    //BBS: add locked_plate to indicate whether it is in the locked plate
+    int       locked_plate{ -1 };
     
     // If empty, any rotation is allowed (currently unsupported)
     // If only a zero is there, no rotation is allowed

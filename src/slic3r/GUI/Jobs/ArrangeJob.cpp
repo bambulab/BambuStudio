@@ -5,6 +5,7 @@
 #include "libslic3r/Model.hpp"
 
 #include "slic3r/GUI/Plater.hpp"
+#include "slic3r/GUI/PartPlate.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
@@ -77,19 +78,41 @@ void ArrangeJob::clear_input()
 }
 
 void ArrangeJob::prepare_all() {
+    Model& model = m_plater->model();
+    PartPlateList& plate_list = m_plater->get_partplate_list();
+
     clear_input();
-    
-    for (ModelObject *obj: m_plater->model().objects)
-        for (ModelInstance *mi : obj->instances) {
-            ArrangePolygons & cont = mi->printable ? m_selected : m_unprintable;
-            cont.emplace_back(get_arrange_poly_(mi));
+
+    for (size_t oidx = 0; oidx < model.objects.size(); ++oidx)
+    {
+        ModelObject* mo = model.objects[oidx];
+        for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
+        {
+            ModelInstance* mi = mo->instances[inst_idx];
+            ArrangePolygons& cont = mi->printable ? m_selected : m_unprintable;
+            ArrangePolygon&& ap = get_arrange_poly(PtrWrapper{mi}, m_plater);
+            //BBS: partplate_list preprocess
+            //remove the locked plate's instances, neither in selected, nor in un-selected
+            bool locked = plate_list.preprocess_arrange_polygon(oidx, inst_idx, ap);
+            if (!locked)
+            {
+                cont.emplace_back(ap);
+            }
+            else
+            {
+                //skip this object due to be locked in plate
+                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%") % oidx % inst_idx;
+            }
         }
+    }
 
     if (auto wti = get_wipe_tower_arrangepoly(*m_plater))
         m_selected.emplace_back(std::move(*wti));
 }
 
 void ArrangeJob::prepare_selected() {
+    PartPlateList& plate_list = m_plater->get_partplate_list();
+
     clear_input();
     
     Model &model = m_plater->model();
@@ -117,12 +140,23 @@ void ArrangeJob::prepare_selected() {
             ModelInstance * mi = mo->instances[i];
             ArrangePolygon &&ap = get_arrange_poly_(mi);
 
-            ArrangePolygons &cont = mo->instances[i]->printable ?
-                        (inst_sel[i] ? m_selected :
-                                       m_unselected) :
-                        m_unprintable;
-            
-            cont.emplace_back(std::move(ap));
+            //BBS: partplate_list preprocess
+            //remove the locked plate's instances, neither in selected, nor in un-selected
+            bool locked = plate_list.preprocess_arrange_polygon(oidx, i, ap);
+            if (!locked)
+            {
+                ArrangePolygons& cont = mo->instances[i]->printable ?
+                    (inst_sel[i] ? m_selected :
+                        m_unselected) :
+                    m_unprintable;
+
+                cont.emplace_back(std::move(ap));
+            }
+            else
+            {
+                //skip this object due to be locked in plate
+                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%") % oidx % i;
+            }            
         }
     }
     
@@ -155,6 +189,72 @@ arrangement::ArrangePolygon ArrangeJob::get_arrange_poly_(ModelInstance *mi)
     };
 
     return ap;
+}
+
+void ArrangeJob::prepare_partplate() {
+    clear_input();
+
+    PartPlateList& plate_list = m_plater->get_partplate_list();
+    PartPlate* plate = plate_list.get_curr_plate();
+    assert(plate != nullptr);
+
+    if (plate->empty())
+    {
+        //no instances on this plate
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": no instances in current plate!");
+
+        return;
+    }
+
+    Model& model = m_plater->model();
+    double stride = bed_stride(m_plater);
+
+    // Go through the objects and check if inside the selection
+    for (size_t oidx = 0; oidx < model.objects.size(); ++oidx) 
+    {
+        ModelObject* mo = model.objects[oidx];
+        for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
+        {
+            bool in_plate = plate->contain_instance(oidx, inst_idx);
+            ArrangePolygon&& ap = get_arrange_poly(mo->instances[inst_idx], m_plater);
+            ArrangePolygons& cont = mo->instances[inst_idx]->printable ?
+                (in_plate ? m_selected :
+                    m_unselected) :
+                m_unprintable;
+            if (in_plate)
+            {
+                cont.emplace_back(std::move(ap));
+            }
+            else
+            {
+                //BBS: partplate_list preprocess
+                //remove the locked plate's instances, neither in selected, nor in un-selected
+                bool locked = plate_list.preprocess_arrange_polygon(oidx, inst_idx, ap);
+                if (!locked)
+                {
+                    cont.emplace_back(std::move(ap));
+                }
+                {
+                    //skip this object due to be locked in plate
+                    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%") % oidx % inst_idx;
+                }
+            }
+        }
+    }
+
+    //don't consider wipe_tower currently
+    /*if (auto wti = get_wipe_tower(*m_plater)) {
+        ArrangePolygon&& ap = get_arrange_poly(wti, m_plater);
+
+        auto& cont = m_plater->get_selection().is_wipe_tower() ? m_selected :
+            m_unselected;
+        cont.emplace_back(std::move(ap));
+    }*/
+
+    // The strides have to be removed from the fixed items. For the
+    // arrangeable (selected) items bed_idx is ignored and the
+    // translation is irrelevant.
+    for (auto& p : m_unselected) p.translation(X) -= p.bed_idx * stride;
 }
 
 void ArrangeJob::prepare()
@@ -221,20 +321,34 @@ void ArrangeJob::finalize() {
     
     // Unprintable items go to the last virtual bed
     int beds = 0;
+
+    //BBS: partplate
+    PartPlateList& plate_list = m_plater->get_partplate_list();
     
     // Apply the arrange result to all selected objects
     for (ArrangePolygon &ap : m_selected) {
         beds = std::max(ap.bed_idx, beds);
+        //BBS: partplate postprocess
+        plate_list.postprocess_arrange_polygon(ap, true, false);
+
         ap.apply();
     }
     
     // Get the virtual beds from the unselected items
-    for (ArrangePolygon &ap : m_unselected)
+    for (ArrangePolygon& ap : m_unselected)
+    {
         beds = std::max(ap.bed_idx, beds);
+
+        //BBS: partplate postprocess
+        plate_list.postprocess_arrange_polygon(ap, false, false);
+    }
     
     // Move the unprintable items to the last virtual bed.
     for (ArrangePolygon &ap : m_unprintable) {
         ap.bed_idx += beds + 1;
+        //BBS: partplate postprocess
+        plate_list.postprocess_arrange_polygon(ap, false, true);
+
         ap.apply();
     }
 
@@ -250,6 +364,11 @@ void ArrangeJob::finalize() {
             _L("Arrangement ignored the following objects which can't fit into a single bed:\n%s"),
             concat_strings(names, "\n")));
     }
+    
+    //BBS: reload all objects due to arrange
+    plate_list.rebuild_plates_after_arrangement();
+
+    m_plater->update();
 
     Job::finalize();
 }

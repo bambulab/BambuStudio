@@ -10,6 +10,7 @@
 #include "libslic3r/ObjectID.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "libslic3r/Slicing.hpp"
+#include "libslic3r/Arrange.hpp"
 #include "Plater.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Print.hpp"
@@ -95,7 +96,7 @@ class PartPlate : public ObjectBase
     void render_right_arrow(const float* render_color, bool use_lighting) const;
     void on_render_for_picking() const;
     std::array<float, 4> picking_color_component(int idx) const;
-    void reset();
+    void release_opengl_resource();
 
 public:
     static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
@@ -110,7 +111,8 @@ public:
     //clear alll the instances in plate
     void clear();
 
-    static const int plate_x_offset = 20; //mm
+    //static const int plate_x_offset = 20; //mm
+    //static const double plate_x_gap = 0.2;
     static const int plate_thumbnail_width = 1920; //pixels
     static const int plate_thumbnail_height = 1080; //pixels
 
@@ -134,6 +136,9 @@ public:
     //judge whether instance is bound in plate or not
     bool contain_instance(int obj_id, int instance_id);
 
+    //judge whether the plate's origin is at the left of instance or not
+    bool is_left_of(int obj_id, int instance_id);
+
     //check whether instance is outside the plate or not
     bool check_outside(int obj_id, int instance_id);
 
@@ -146,6 +151,14 @@ public:
     //remove instance from plate
     int remove_instance(int obj_id, int instance_id);
 
+    //whether it is empty
+    bool empty() { return obj_to_instance_set.empty(); }
+
+    //whether it is has printable instances
+    bool has_printable_instances();
+
+    //move instances to left or right PartPlate
+    void move_instances_to(PartPlate& left_plate, PartPlate& right_plate);
 
     /*rendering related functions*/
     const Pointfs& get_shape() const { return m_shape; }
@@ -241,7 +254,6 @@ class PartPlateList : public ObjectBase
     Vec3d compute_origin(int index);
     //compute the origin for unprintable plate
     Vec3d compute_origin_for_unprintable();
-    double plate_stride();
 
     friend class cereal::access;
     friend class UndoRedo::StackImpl;
@@ -260,6 +272,9 @@ public:
     //clear all the instances in the plate, and delete the plates, only keep the first default plate
     void reset(bool do_init);
 
+    //get the plate stride
+    double plate_stride();
+
     /*basic plate operations*/
    //create an empty plate and return its index
     int create_plate();
@@ -273,7 +288,8 @@ public:
     //get a plate pointer by index
     PartPlate* get_plate(int index);
 
-    int get_curr_plate() { return m_current_plate; }
+    int get_curr_plate_index() { return m_current_plate; }
+    PartPlate* get_curr_plate() { return m_plate_list[m_current_plate]; }
 
     //select plate
     int select_plate(int index);
@@ -289,7 +305,7 @@ public:
 
 
     /*instance related operations*/
-//find instance in which plate, return -1 when not found
+    //find instance in which plate, return -1 when not found
     int find_instance(int obj_id, int instance_id);
 
     //notify instance's update, need to refresh the instance in plates
@@ -303,6 +319,13 @@ public:
 
     //reload all objects
     int reload_all_objects();
+
+    /* arrangement related functions */
+    //preprocess an arrangement::ArrangePolygon, return true if it is in a locked plate
+    bool preprocess_arrange_polygon(int obj_index, int instance_index, arrangement::ArrangePolygon& arrange_polygon);
+
+    //postprocess an arrangement:;ArrangePolygon
+    void postprocess_arrange_polygon(arrangement::ArrangePolygon& arrange_polygon, bool create_new_plate, bool unprintable);
 
     /*rendering related functions*/
     void render(GLCanvas3D& canvas, bool bottom, float scale_factor);
@@ -329,6 +352,9 @@ public:
 
     //retruct plates structures after de-serialize
     int rebuild_plates_after_deserialize();
+
+    //retruct plates structures after auto-arrangement
+    int rebuild_plates_after_arrangement();
 
     template<class Archive> void serialize(Archive& ar)
     {

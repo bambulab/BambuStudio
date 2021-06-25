@@ -3456,6 +3456,7 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
                 model_object->invalidate_bounding_box();
 
                 //BBS: notify instance updates to part plater list
+                //TODO, judge whether this instance is moved or not, and only send the one selected to partplatelist
                 PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
                 plate_list.notify_instance_update(object_idx, instance_idx);
             }

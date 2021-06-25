@@ -63,7 +63,7 @@ PartPlate::~PartPlate()
 	clear();
 	if (m_quadric != nullptr)
 		::gluDeleteQuadric(m_quadric);
-	reset();
+	release_opengl_resource();
 }
 
 void PartPlate::init()
@@ -421,7 +421,7 @@ std::array<float, 4> PartPlate::picking_color_component(int idx) const
 	};
 }
 
-void PartPlate::reset()
+void PartPlate::release_opengl_resource()
 {
 	if (m_vbo_id > 0) {
 		glsafe(::glDeleteBuffers(1, &m_vbo_id));
@@ -438,9 +438,9 @@ bool PartPlate::operator<(PartPlate& plate) const
 //set the plate's index
 void PartPlate::set_index(int index)
 {
-	m_plate_index = index;
-
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plate_id update from %1% to %2%") % m_plate_index % index;
+
+	m_plate_index = index;
 }
 
 void PartPlate::clear()
@@ -580,14 +580,41 @@ bool PartPlate::intersect_instance(int obj_id, int instance_id)
 		return false;
 	}
 
+	if (m_printable)
+	{
+		ModelObject* object = m_model->objects[obj_id];
+		ModelInstance* instance = object->instances[instance_id];
+		BoundingBoxf3 instance_box = object->instance_bounding_box(instance_id);
+		Vec3d up_point(m_origin.x() + m_width, m_origin.y() + m_depth, m_origin.z() + m_height);
+		BoundingBoxf3 plate_box(m_origin, up_point);
+
+		result = plate_box.intersects(instance_box);
+	}
+	else
+	{
+		result = is_left_of(obj_id, instance_id);
+	}
+
+	return result;
+}
+
+//judge whether the plate's origin is at the left of instance or not
+bool PartPlate::is_left_of(int obj_id, int instance_id)
+{
+	bool result = false;
+
+	if (!valid_instance(obj_id, instance_id))
+	{
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": plate_id %1%, invalid obj_id %2%, instance_id %3%") % m_plate_index % obj_id % instance_id;
+		return false;
+	}
+
 	ModelObject* object = m_model->objects[obj_id];
 	ModelInstance* instance = object->instances[instance_id];
 	std::pair<int, int> pair(obj_id, instance_id);
 	BoundingBoxf3 instance_box = object->instance_bounding_box(instance_id);
-	Vec3d up_point(m_origin.x() + m_width, m_origin.y() + m_depth, m_origin.z() + m_height);
-	BoundingBoxf3 plate_box(m_origin, up_point);
 
-	result = plate_box.intersects(instance_box);
+	result = m_origin.x() <= instance_box.max.x();
 	return result;
 }
 
@@ -649,6 +676,45 @@ int PartPlate::remove_instance(int obj_id, int instance_id)
 	return result;
 }
 
+//whether it is has printable instances
+bool PartPlate::has_printable_instances()
+{
+	bool result = false;
+
+	for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it) 
+	{
+		int obj_id = it->first;
+		int instance_id = it->second;
+		ModelObject* object = m_model->objects[obj_id];
+		ModelInstance* instance = object->instances[instance_id];
+
+		if (instance->printable)
+		{
+			result = true;
+			break;
+		}
+	}
+
+	return result;
+}
+
+//move instances to left or right PartPlate
+void PartPlate::move_instances_to(PartPlate& left_plate, PartPlate& right_plate)
+{
+	for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
+	{
+		int obj_id = it->first;
+		int instance_id = it->second;
+
+		if (left_plate.intersect_instance(obj_id, instance_id))
+			left_plate.add_instance(obj_id, instance_id, false);
+		else
+			right_plate.add_instance(obj_id, instance_id, false);
+	}
+
+	return;
+}
+
 bool PartPlate::set_shape(const Pointfs& shape, Vec2d position)
 {
 	if (m_shape == shape) {
@@ -673,7 +739,7 @@ bool PartPlate::set_shape(const Pointfs& shape, Vec2d position)
 	const BoundingBox& pp_bbox = poly.contour.bounding_box();
 	calc_gridlines(poly, pp_bbox);
 
-	reset();
+	release_opengl_resource();
 
 	return true;
 }
@@ -771,14 +837,14 @@ void PartPlate::print() const
 	unsigned int count=0;
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plate index %1%, pointer %2%") % m_plate_index % this;
-	BOOST_LOG_TRIVIAL(debug) << boost::format("origin {%1%,%2%,%3%}, width %4%,  depth %5%, height %6%") % m_origin.x() % m_origin.y() % m_origin.z() % m_width % m_depth % m_height;
-	BOOST_LOG_TRIVIAL(debug) << boost::format("m_printable %1%, m_locked %2%, m_ready_for_slice %3%, m_slice_result_valid %4%,  m_thumbnail_path %5%, set size %6%")\
+	BOOST_LOG_TRIVIAL(debug) << boost::format("\t origin {%1%,%2%,%3%}, width %4%,  depth %5%, height %6%") % m_origin.x() % m_origin.y() % m_origin.z() % m_width % m_depth % m_height;
+	BOOST_LOG_TRIVIAL(debug) << boost::format("\t m_printable %1%, m_locked %2%, m_ready_for_slice %3%, m_slice_result_valid %4%,  m_thumbnail_path %5%, set size %6%")\
 		% m_printable % m_locked % m_ready_for_slice % m_slice_result_valid % m_thumbnail_path % obj_to_instance_set.size();
 	for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it) {
 		int obj_id = it->first;
 		int instance_id = it->second;
 
-		BOOST_LOG_TRIVIAL(debug) << boost::format("the %1%th instance, obj_id %2%, instance id %3%") % count % obj_id % instance_id;
+		BOOST_LOG_TRIVIAL(debug) << boost::format("\t the %1%th instance, obj_id %2%, instance id %3%") % count++ % obj_id % instance_id;
 	}
 
 	return;
@@ -787,7 +853,7 @@ void PartPlate::print() const
 /* PartPlate List related functions*/
 PartPlateList::PartPlateList(int width, int depth, int height, Plater* platerObj, Model* modelObj, PrinterTechnology tech)
 	:m_plate_width(width), m_plate_depth(depth), m_plate_height(height), m_plater(platerObj), m_model(modelObj), printer_technology(tech),
-	unprintable_plate(Vec3d(0.0 - width - PartPlate::plate_x_offset, 0.0, 0.0), width, depth, height, platerObj, modelObj, false, tech)
+	unprintable_plate(Vec3d(0.0 + width * (1. + LOGICAL_PART_PLATE_GAP), 0.0, 0.0), width, depth, height, platerObj, modelObj, false, tech)
 {
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":plate_width %1%, plate_depth %2%, plate_height %3%") % width % depth % height;
 
@@ -825,7 +891,7 @@ Vec3d PartPlateList::compute_origin(int i)
 {
 	Vec3d origin;
 
-	origin(0) = i * (PartPlate::plate_x_offset + m_plate_width);
+	origin(0) = i * (m_plate_width * (1. + LOGICAL_PART_PLATE_GAP));
 	origin(1) = 0;
 	origin(2) = 0;
 
@@ -837,7 +903,7 @@ Vec3d PartPlateList::compute_origin_for_unprintable()
 {
 	Vec3d origin;
 
-	origin(0) = m_plate_list.size() * (PartPlate::plate_x_offset + m_plate_width);
+	origin(0) = m_plate_list.size() * (m_plate_width * (1. + LOGICAL_PART_PLATE_GAP));
 	origin(1) = 0;
 	origin(2) = 0;
 
@@ -921,9 +987,13 @@ int PartPlateList::create_plate()
 	m_plate_list.emplace_back(plate);
 
 	unprintable_plate.set_index(new_index+1);
+	Vec3d origin2 = compute_origin_for_unprintable();
+	unprintable_plate.set_pos_and_size(origin2, m_plate_width, m_plate_depth, m_plate_height, true);
 
 	//update bounding_boxes
 	calc_bounding_boexes();
+
+	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":created a new plate %1%") % new_index;
 	return new_index;
 }
 
@@ -935,9 +1005,15 @@ int PartPlateList::delete_plate(int index)
 	int ret = 0;
 	PartPlate* plate = NULL;
 
+	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":delete plate %1%, count %2%") % index % m_plate_list.size();
 	if (index >= m_plate_list.size())
 	{
-		BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":can not find index %1%, size %2%") % index % m_plate_list.size();
+		BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":can not find plate");
+		return -1;
+	}
+	if (m_plate_list.size() <= 1)
+	{
+		BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":only one plate left, can not delete");
 		return -1;
 	}
 
@@ -949,9 +1025,15 @@ int PartPlateList::delete_plate(int index)
 	}
 
 	//update this plate
-	plate->clear();
+	//move this plate's instance to the end
+	Vec3d current_origin = compute_origin(m_plate_list.size()-1);
+	plate->set_pos_and_size(current_origin, m_plate_width, m_plate_depth, m_plate_height, true);
 	m_plate_list.erase(m_plate_list.begin() + index);
-	//TODO, lhwei
+	if (m_current_plate == index)
+	{
+		if (m_current_plate >= m_plate_list.size())
+			m_current_plate--;
+	}
 
 	//update the plates after it
 	for (unsigned int i = index; i < (unsigned int)m_plate_list.size(); ++i)
@@ -970,6 +1052,13 @@ int PartPlateList::delete_plate(int index)
 	//TODO, stone update selected status.
 
 	unprintable_plate.set_index(m_plate_list.size());
+
+	//update the position of the unprintable plate
+	Vec3d origin2 = compute_origin_for_unprintable();
+	unprintable_plate.set_pos_and_size(origin2, m_plate_width, m_plate_depth, m_plate_height, true);
+
+	plate->move_instances_to(*(m_plate_list[m_plate_list.size()-1]), unprintable_plate);
+	delete plate;
 
 	//update bounding_boxes
 	calc_bounding_boexes();
@@ -1142,12 +1231,29 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 		if (!plate->intersect_instance(obj_id, instance_id))
 		{
 			//not include anymore, remove it from original plate
+			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": not in plate %1% anymore, remove it") % index;
 			plate->remove_instance(obj_id, instance_id);
 		}
 		else
 		{
-			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": still in original plate, no need to be updated");
+			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": still in original plate %1%, no need to be updated") % index;
 			plate->update_states();
+			return 0;
+		}
+	}
+	else if (unprintable_plate.contain_instance(obj_id, instance_id))
+	{
+		//found it in the unprintable plate
+		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": found it in unprintable plate");
+		if (!unprintable_plate.intersect_instance(obj_id, instance_id))
+		{
+			//not include anymore, remove it from original plate
+			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": not in unprintable plate anymore, remove it");
+			unprintable_plate.remove_instance(obj_id, instance_id);
+		}
+		else
+		{
+			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": still in unprintable plate, no need to be updated");
 			return 0;
 		}
 	}
@@ -1167,6 +1273,14 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 		}
 	}
 
+	if (unprintable_plate.intersect_instance(obj_id, instance_id))
+	{
+		//found in unprintable plate, add it to plate
+		unprintable_plate.add_instance(obj_id, instance_id, false);
+		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": add it to unprintable plate");
+		return 0;
+	}
+
 	return 0;
 }
 
@@ -1181,9 +1295,18 @@ int PartPlateList::notify_instance_removed(int obj_id, int instance_id)
 	if (index != -1)
 	{
 		//found it added before
-		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": found it in plate %1%") % index;
+		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": found it in plate %1%, remove it") % index;
 		plate = m_plate_list[index];
 		plate->remove_instance(obj_id, instance_id);
+		return 0;
+	}
+
+	if (unprintable_plate.contain_instance(obj_id, instance_id))
+	{
+		//found in unprintable plate, add it to plate
+		unprintable_plate.remove_instance(obj_id, instance_id);
+		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": found it in unprintable plate, remove it");
+		return 0;
 	}
 
 	return 0;
@@ -1244,7 +1367,7 @@ int PartPlateList::reload_all_objects()
 		ModelObject* object = m_model->objects[i];
 		for (j = 0; j < (unsigned int)object->instances.size(); ++j)
 		{
-			//ModelInstance* instance = object->instances[j];
+			ModelInstance* instance = object->instances[j];
 			for (k = 0; k < (unsigned int)m_plate_list.size(); ++k)
 			{
 				PartPlate* plate = m_plate_list[k];
@@ -1276,6 +1399,116 @@ int PartPlateList::reload_all_objects()
 	}
 
 	return ret;
+}
+
+//preprocess a arrangement::ArrangePolygon, return true if it is in a locked plate
+bool PartPlateList::preprocess_arrange_polygon(int obj_index, int instance_index, arrangement::ArrangePolygon& arrange_polygon)
+{
+	bool locked = false;
+
+	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+	{
+		if (m_plate_list[i]->is_locked())
+		{
+			if (m_plate_list[i]->contain_instance(obj_index, instance_index))
+			{
+				//it is in locked plate
+				locked = true;
+				arrange_polygon.locked_plate = i;
+				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% instance_id %2% already in locked plate %3%") % obj_index % instance_index % i;
+				break;
+			}
+			else
+			{
+				if (unscale<double>(arrange_polygon.translation(X)) > ((i + 1) * plate_stride()))
+				{
+					arrange_polygon.translation(X) -= scaled<double>(plate_stride());
+					arrange_polygon.bed_idx -= 1;
+					BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% instance_id %2% at right of locked plate %3%") % obj_index % instance_index % i;
+				}
+				else
+				{
+					arrange_polygon.locked_plate = i;
+					BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% instance_id %2% around locked plate %3%") % obj_index % instance_index % i;
+					break;
+				}
+			}
+		}
+		else
+		{
+			//judge whether it is at the left side of the plate border
+			if (unscale<double>(arrange_polygon.translation(X)) <= ((i+1) * plate_stride()))
+			{
+				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% instance_id %2% found at left of plate %3%, translation(x) %4%, ") % obj_index % instance_index % i % unscale<double>(arrange_polygon.translation(X));
+				break;
+			}
+		}
+	}
+	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": bed_idx %1%, locked_plate %2%, translation(x) %3%, (y) %4%") % arrange_polygon.bed_idx % arrange_polygon.locked_plate % unscale<double>(arrange_polygon.translation(X)) % unscale<double>(arrange_polygon.translation(Y));
+
+	return locked;
+}
+
+//postprocess an arrangement:;ArrangePolygon
+void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arrange_polygon, bool create_new_plate, bool unprintable)
+{
+	double offset_x = arrange_polygon.translation(X);
+
+	offset_x += arrange_polygon.bed_idx * scaled<double>(plate_stride());
+
+	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": bed_idx %1%, locked_plate %2%, translation(x) %3%, (y) %4%") % arrange_polygon.bed_idx % arrange_polygon.locked_plate % unscale<double>(arrange_polygon.translation(X)) % unscale<double>(arrange_polygon.translation(Y));
+
+	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+	{
+		if (m_plate_list[i]->is_locked())
+		{
+			if (arrange_polygon.locked_plate == i)
+			{
+				//it is in current locked plate, keep the same
+				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": in locked_plate %1%") % i;
+				return;
+			}
+			else
+			{
+				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": add locked_plate %1%'s stride") % i;
+				//arrange_polygon.translation(X) += scaled<double>(plate_stride());
+				arrange_polygon.bed_idx += 1;
+				offset_x += scaled<double>(plate_stride());
+			}
+		}
+		else
+		{
+			//judge whether it is at the left side of the plate border
+			if (unscale<double>(offset_x) <= ((i + 1) * plate_stride()))
+			{
+				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":existing plate_index %1%, stride %2%, translation(x) %3%") % i % plate_stride() % offset_x;
+				return;
+			}
+		}
+	}
+
+	if (create_new_plate)
+	{
+		//create a new plate which can hold this arrange_polygon
+		int plate_index = create_plate();
+
+		while (plate_index != -1)
+		{
+			if (unscale<double>(offset_x) <= ((plate_index+1) * plate_stride()))
+			{
+				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":new plate_index %1%, stride %2%, translation(x) %3%") % plate_index % plate_stride() % unscale<double>(offset_x);
+				break;
+			}
+
+			plate_index = create_plate();
+		}
+	}
+	else
+	{
+		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":unselect instance, no need to create new plate, translation(x) %1%, unprintable %2%") % unscale<double>(offset_x) % unprintable;
+	}
+
+	return;
 }
 
 /*rendering related functions*/
@@ -1406,6 +1639,7 @@ int PartPlateList::create_plate_from_gcode_file(const std::string& filename)
 	return ret;
 }
 
+//rebuild data which are not serialized after de-serialize
 int PartPlateList::rebuild_plates_after_deserialize()
 {
 	int ret = 0;
@@ -1425,6 +1659,33 @@ int PartPlateList::rebuild_plates_after_deserialize()
 		double z = m_plater->config()->opt_float("max_print_height");
 		reset_size(max.x() - min.x(), max.y() - min.y(), z);
 	}
+	return ret;
+}
+
+//retruct plates structures after auto-arrangement
+int PartPlateList::rebuild_plates_after_arrangement()
+{
+	int ret = 0;
+
+	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":before rebuild, plates count %1%") % m_plate_list.size();
+
+	ret = reload_all_objects();
+
+	for (unsigned int i = (unsigned int)m_plate_list.size() - 1; i > 0; --i)
+	{
+		if (m_plate_list[i]->empty()
+			|| !m_plate_list[i]->has_printable_instances())
+		{
+			//delete it
+			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":delete plate %1% for empty") % i;
+			delete_plate(i);
+		}
+		else
+		{
+			break;
+		}
+	}
+	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":after rebuild, plates count %1%") % m_plate_list.size();
 	return ret;
 }
 

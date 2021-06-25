@@ -4174,17 +4174,22 @@ void Plater::priv::on_action_add(SimpleEvent&)
         q->add_model();
 }
 
+//BBS: add plate from toolbar
 void Plater::priv::on_action_add_plate(SimpleEvent&)
 {
     if (q != nullptr)
         q->get_partplate_list().create_plate();
 }
 
+//BBS: remove plate from toolbar
 void Plater::priv::on_action_del_plate(SimpleEvent&)
 {
     if (q != nullptr) {
-        int index = q->get_partplate_list().get_curr_plate();
+        int index = q->get_partplate_list().get_curr_plate_index();
         q->get_partplate_list().delete_plate(index);
+
+        //need to call update
+        update();
     }
 }
 

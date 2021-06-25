@@ -30,6 +30,9 @@ class ArrangeJob : public PlaterJob
 
     ArrangePolygon get_arrange_poly_(ModelInstance *mi);
 
+    //BBS:prepare the items from current selected partplate
+    void prepare_partplate();
+
 protected:
 
     void prepare() override;
