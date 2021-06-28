@@ -110,6 +110,8 @@ set(lisbslic3r_sources
     GCode/SpiralVase.hpp
     GCode/SeamPlacer.cpp
     GCode/SeamPlacer.hpp
+    GCode/SpeedGenerator.cpp
+    GCode/SpeedGenerator.hpp
     GCode/ToolOrdering.cpp
     GCode/ToolOrdering.hpp
     GCode/WipeTower.cpp

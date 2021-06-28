@@ -28,6 +28,8 @@ public:
     ExtrusionEntityCollection   *loops;
     ExtrusionEntityCollection   *gap_fill;
     SurfaceCollection           *fill_surfaces;
+
+    std::map<float, Polygons> m_lower_polygons_series;
     
     PerimeterGenerator(
         // Input:
@@ -61,6 +63,9 @@ public:
     double      mm3_per_mm()            const { return m_mm3_per_mm; }
     double      mm3_per_mm_overhang()   const { return m_mm3_per_mm_overhang; }
     Polygons    lower_slices_polygons() const { return m_lower_slices_polygons; }
+
+private:
+    void generate_lower_polygons_series();
 
 private:
     bool        m_spiral_vase;

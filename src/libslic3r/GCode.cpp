@@ -2883,12 +2883,15 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         // gcfNoExtrusion
         e_per_mm = 0;
 
+    double min_speed = double(m_config.min_print_speed.get_at(m_writer.extruder()->id()));
     // set speed
     if (speed == -1) {
         if (path.role() == erPerimeter) {
             speed = m_config.get_abs_value("perimeter_speed");
+            speed = m_speed_generator.calculate_speed(path, speed, min_speed);
         } else if (path.role() == erExternalPerimeter) {
             speed = m_config.get_abs_value("external_perimeter_speed");
+            speed = m_speed_generator.calculate_speed(path, speed, min_speed);
         } else if (path.role() == erOverhangPerimeter || path.role() == erBridgeInfill) {
             speed = m_config.get_abs_value("bridge_speed");
         } else if (path.role() == erInternalInfill) {

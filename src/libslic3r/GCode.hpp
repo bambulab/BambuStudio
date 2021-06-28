@@ -17,6 +17,7 @@
 #include "GCode/GCodeProcessor.hpp"
 #include "EdgeGrid.hpp"
 #include "GCode/ThumbnailData.hpp"
+#include "GCode/SpeedGenerator.hpp"
 
 #include <memory>
 #include <map>
@@ -117,7 +118,7 @@ public:
 
 class GCode {
 public:        
-    GCode() : 
+    GCode() :
     	m_origin(Vec2d::Zero()),
         m_enable_loop_clipping(true), 
         m_enable_cooling_markers(false), 
@@ -342,6 +343,8 @@ private:
 
     // Cache for custom seam enforcers/blockers for each layer.
     SeamPlacer                          m_seam_placer;
+
+    SpeedGenerator                      m_speed_generator;
 
     /* Origin of print coordinates expressed in unscaled G-code coordinates.
        This affects the input arguments supplied to the extrude*() and travel_to()
