@@ -940,22 +940,24 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
     ModelInstanceEPrintVolumeState overall_state = ModelInstancePVS_Inside;
     bool contained_min_one = false;
 
+    const Pointfs& pp_bed_shape = GUI::wxGetApp().plater()->get_partplate_list().get_selected_plate()->get_shape();
+    BuildVolume plate_build_volume(pp_bed_shape, build_volume.max_print_height());
     for (GLVolume* volume : this->volumes)
         if (! volume->is_modifier && (volume->shader_outside_printer_detection_enabled || (! volume->is_wipe_tower && volume->composite_id.volume_id >= 0))) {
             BuildVolume::ObjectState state;
             if (volume_below(*volume))
                 state = BuildVolume::ObjectState::Below;
             else {
-                switch (build_volume.type()) {
+                switch (plate_build_volume.type()) {
                 case BuildVolume::Type::Rectangle:
                 //FIXME this test does not evaluate collision of a build volume bounding box with non-convex objects.
-                    state = build_volume.volume_state_bbox(volume_bbox(*volume));
+                    state = plate_build_volume.volume_state_bbox(volume_bbox(*volume));
                     break;
                 case BuildVolume::Type::Circle:
                 case BuildVolume::Type::Convex:
                 //FIXME doing test on convex hull until we learn to do test on non-convex polygons efficiently.
                 case BuildVolume::Type::Custom:
-                    state = build_volume.object_state(volume_convex_mesh(*volume).its, volume->world_matrix().cast<float>(), volume_sinking(*volume));
+                    state = plate_build_volume.object_state(volume_convex_mesh(*volume).its, volume->world_matrix().cast<float>(), volume_sinking(*volume));
                     break;
                 default:
                     // Ignore, don't produce any collision.

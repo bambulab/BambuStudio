@@ -1082,6 +1082,31 @@ wxMenu* MenuFactory::multi_selection_menu()
     return menu;
 }
 
+//BBS: add part plate related logic
+wxMenu* MenuFactory::plate_menu()
+{
+    wxMenu* menu = new MenuWithSeparators();
+    append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDel", _L("Remove the selected plate"),
+        [](wxCommandEvent&) { plater()->get_partplate_list().delete_selected_plate(); }, "delete", nullptr,
+        []() { return plater()->can_delete_plate(); }, m_parent);
+
+    menu->AppendSeparator();
+
+    wxMenuItem* menu_item_locked = append_menu_check_item(menu, wxID_ANY, _L("Locked"), "",
+        [](wxCommandEvent&) {
+            //TODO
+        }, menu);
+
+    m_parent->Bind(wxEVT_UPDATE_UI, [](wxUpdateUIEvent& evt) {
+        //TODO
+        bool check = false;
+        evt.Check(check);
+        plater()->set_current_canvas_as_dirty();
+
+        }, menu_item_locked->GetId());
+    return menu;
+}
+
 void MenuFactory::append_menu_items_instance_manipulation(wxMenu* menu)
 {
     MenuType type = menu == &m_object_menu ? mtObjectFFF : mtObjectSLA;

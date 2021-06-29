@@ -27,6 +27,7 @@
 #include <wx/numdlg.h>
 #include <wx/debug.h>
 #include <wx/busyinfo.h>
+#include <wx/event.h>
 #ifdef _WIN32
 #include <wx/richtooltip.h>
 #include <wx/custombgwin.h>
@@ -1900,6 +1901,8 @@ struct Plater::priv
 
     void on_object_select(SimpleEvent&);
     void on_right_click(RBtnEvent&);
+    //BBS: add part plate related logic
+    void on_plate_right_click(RBtnPlateEvent&);
     void on_wipetower_moved(Vec3dEvent&);
     void on_wipetower_rotated(Vec3dEvent&);
     void on_update_geometry(Vec3dsEvent<2>&);
@@ -2081,6 +2084,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         view3D_canvas->Bind(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) { this->schedule_background_process(); });
         view3D_canvas->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
         view3D_canvas->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
+        //BBS: add part plate related logic
+        view3D_canvas->Bind(EVT_GLCANVAS_PLATE_RIGHT_CLICK, &priv::on_plate_right_click, this);
         view3D_canvas->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
         view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { this->q->arrange(); });
         view3D_canvas->Bind(EVT_GLCANVAS_SELECT_ALL, [this](SimpleEvent&) { this->q->select_all(); });
@@ -2263,6 +2268,7 @@ void Plater::priv::update(unsigned int flags)
         // Update the SLAPrint from the current Model, so that the reload_scene()
         // pulls the correct data.
         update_status = this->update_background_process(false, flags & (unsigned int)UpdateParams::POSTPONE_VALIDATION_ERROR_MESSAGE);
+    //BBS TODO reload_scene
     this->view3D->reload_scene(false, flags & (unsigned int)UpdateParams::FORCE_FULL_SCREEN_REFRESH);
     this->preview->reload_print();
     if (force_background_processing_restart)
@@ -4177,8 +4183,9 @@ void Plater::priv::on_action_add(SimpleEvent&)
 //BBS: add plate from toolbar
 void Plater::priv::on_action_add_plate(SimpleEvent&)
 {
-    if (q != nullptr)
+    if (q != nullptr) {
         q->get_partplate_list().create_plate();
+    }
 }
 
 //BBS: remove plate from toolbar
@@ -4262,6 +4269,13 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
         q->PopupMenu(menu, (int)evt.data.first.x(), (int)evt.data.first.y());
 #endif
     }
+}
+
+//BBS: add part plate related logic
+void Plater::priv::on_plate_right_click(RBtnPlateEvent& evt)
+{
+    wxMenu* menu = menus.plate_menu();
+    q->PopupMenu(menu, (int)evt.data.first.x(), (int)evt.data.first.y());
 }
 
 void Plater::priv::on_wipetower_moved(Vec3dEvent &evt)

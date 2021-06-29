@@ -1031,11 +1031,6 @@ int PartPlateList::delete_plate(int index)
 	Vec3d current_origin = compute_origin(m_plate_list.size()-1);
 	plate->set_pos_and_size(current_origin, m_plate_width, m_plate_depth, m_plate_height, true);
 	m_plate_list.erase(m_plate_list.begin() + index);
-	if (m_current_plate == index)
-	{
-		if (m_current_plate >= m_plate_list.size())
-			m_current_plate--;
-	}
 
 	//update the plates after it
 	for (unsigned int i = index; i < (unsigned int)m_plate_list.size(); ++i)
@@ -1050,11 +1045,6 @@ int PartPlateList::delete_plate(int index)
 
 	//update render shapes
 	set_shapes(m_shape);
-
-	if (m_plate_list.size() == 1 && index == 0) {
-		BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":plate %1%, has an invalid index %2%") % index % plate->get_index();
-		return -1;
-	}
 
 	//update current_plate if delete current
 	if (m_current_plate == index) {
@@ -1120,12 +1110,13 @@ int PartPlateList::select_plate(int index)
 		return -1;
 	}
 
-	if (m_current_plate != -1) {
-		m_plate_list[m_current_plate]->set_unselected();
+	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
+	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
+		(*it)->set_unselected();
 	}
 
 	m_current_plate = index;
-	m_plate_list[index]->set_selected();
+	m_plate_list[m_current_plate]->set_selected();
 
 	//BBS update bed origin
 	if (m_intialized) {

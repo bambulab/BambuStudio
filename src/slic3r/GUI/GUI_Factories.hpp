@@ -55,6 +55,8 @@ public:
     wxMenu* instance_menu();
     wxMenu* layer_menu();
     wxMenu* multi_selection_menu();
+    //BBS: add part plate related logic
+    wxMenu* plate_menu();
 
 private:
     enum MenuType {
