@@ -248,6 +248,7 @@ class PartPlateList : public ObjectBase
     PartPlate unprintable_plate;
     Pointfs m_shape;
     BoundingBoxf3 m_bounding_box;
+    bool m_intialized;
 
     void init();
     //compute the origin for printable plate with index i
@@ -284,12 +285,15 @@ public:
 
     //delete a plate by pointer
     //int delete_plate(PartPlate* plate);
-    // 
+    void delete_selected_plate();
+
     //get a plate pointer by index
     PartPlate* get_plate(int index);
 
     int get_curr_plate_index() { return m_current_plate; }
     PartPlate* get_curr_plate() { return m_plate_list[m_current_plate]; }
+
+    PartPlate* get_selected_plate();
 
     //select plate
     int select_plate(int index);

@@ -35,7 +35,7 @@
 using boost::optional;
 namespace fs = boost::filesystem;
 
-static const float GROUND_Z = -0.05f;
+static const float GROUND_Z = -0.01f;
 static const float GRABBER_X_FACTOR = 0.20f;
 static const float GRABBER_Y_FACTOR = 0.03f;
 static const float GRABBER_Z_VALUE = 0.5f;
@@ -873,6 +873,7 @@ PartPlateList::~PartPlateList()
 
 void PartPlateList::init()
 {
+	m_intialized = false;
 	PartPlate* first_plate = NULL;
 
 	first_plate = new PartPlate(Vec3d(0.0, 0.0, 0.0), m_plate_width, m_plate_depth, m_plate_height, m_plater, m_model, true, printer_technology);
@@ -884,6 +885,7 @@ void PartPlateList::init()
 	m_current_plate = 0;
 	select_plate(m_current_plate);
 	unprintable_plate.set_index(1);
+	m_intialized = true;
 }
 
 //compute the origin for printable plate with index i
@@ -1049,7 +1051,20 @@ int PartPlateList::delete_plate(int index)
 	//update render shapes
 	set_shapes(m_shape);
 
-	//TODO, stone update selected status.
+	if (m_plate_list.size() == 1 && index == 0) {
+		BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":plate %1%, has an invalid index %2%") % index % plate->get_index();
+		return -1;
+	}
+
+	//update current_plate if delete current
+	if (m_current_plate == index) {
+		if (index == 0) {
+			select_plate(index + 1);
+		}
+		else {
+			select_plate(index - 1);
+		}
+	}
 
 	unprintable_plate.set_index(m_plate_list.size());
 
@@ -1064,6 +1079,11 @@ int PartPlateList::delete_plate(int index)
 	calc_bounding_boexes();
 
 	return ret;
+}
+
+void PartPlateList::delete_selected_plate()
+{
+	delete_plate(m_current_plate);
 }
 
 //get a plate pointer by index
@@ -1083,6 +1103,15 @@ PartPlate* PartPlateList::get_plate(int index)
 	return plate;
 }
 
+PartPlate* PartPlateList::get_selected_plate()
+{
+	if (m_current_plate < 0 || m_current_plate >= m_plate_list.size()) {
+		BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":can not find m_current_plate  %1%, size %2%") % m_current_plate % m_plate_list.size();
+		return NULL;
+	}
+	return m_plate_list[m_current_plate];
+}
+
 //select plate
 int PartPlateList::select_plate(int index)
 {
@@ -1090,11 +1119,20 @@ int PartPlateList::select_plate(int index)
 	if (m_plate_list.empty() || index >= m_plate_list.size()) {
 		return -1;
 	}
+
 	if (m_current_plate != -1) {
 		m_plate_list[m_current_plate]->set_unselected();
 	}
+
 	m_current_plate = index;
 	m_plate_list[index]->set_selected();
+
+	//BBS update bed origin
+	if (m_intialized) {
+		double stride = plate_stride();
+		Vec2d pos = { stride * index, 0.0 };
+		m_plater->get_bed().set_position(pos);
+	}
 
 	return 0;
 }

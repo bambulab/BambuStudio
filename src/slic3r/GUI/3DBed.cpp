@@ -17,6 +17,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/timer.hpp>
 
 static const float GROUND_Z = -0.02f;
 static const std::array<float, 4> DEFAULT_MODEL_COLOR = { 0.235f, 0.235f, 0.235f, 1.0f };
@@ -137,7 +138,9 @@ void Bed3D::Axes::render() const
     glsafe(::glDisable(GL_DEPTH_TEST));
 }
 
-bool Bed3D::set_shape(const Pointfs& bed_shape, const double max_print_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom)
+//BBS: add part plate logic
+bool Bed3D::set_shape(const Pointfs& bed_shape, const double max_print_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom,
+    const Vec2d position, bool with_reset)
 {
     auto check_texture = [](const std::string& texture) {
         boost::system::error_code ec; // so the exists call does not throw (e.g. after a permission problem)
@@ -174,7 +177,7 @@ bool Bed3D::set_shape(const Pointfs& bed_shape, const double max_print_height, c
     }
 
     
-    if (m_build_volume.bed_shape() == bed_shape && m_build_volume.max_print_height() == max_print_height && m_type == type && m_texture_filename == texture_filename && m_model_filename == model_filename)
+    if (m_build_volume.bed_shape() == bed_shape && m_build_volume.max_print_height() == max_print_height && m_type == type && m_texture_filename == texture_filename && m_model_filename == model_filename && position == m_position)
         // No change, no need to update the UI.
         return false;
 
@@ -183,8 +186,18 @@ bool Bed3D::set_shape(const Pointfs& bed_shape, const double max_print_height, c
     m_texture_filename = texture_filename;
     m_model_filename = model_filename;
     m_extended_bounding_box = this->calc_extended_bounding_box();
+    //BBS: add part plate logic
+    m_position = position;
 
+    //BBS: add part plate logic
+#if 0
     ExPolygon poly{ Polygon::new_scale(bed_shape) };
+#else
+    ExPolygon poly;
+    for (const Vec2d& p : bed_shape) {
+        poly.contour.append(Point(scale_(p(0) + m_position.x()), scale_(p(1) + m_position.y())));
+    }
+#endif
 
     calc_triangles(poly);
 
@@ -193,9 +206,14 @@ bool Bed3D::set_shape(const Pointfs& bed_shape, const double max_print_height, c
 
     m_polygon = offset(poly.contour, (float)bed_bbox.radius() * 1.7f, jtRound, scale_(0.5))[0];
 
-    this->release_VBOs();
-    m_texture.reset();
-    m_model.reset();
+    if (with_reset) {
+        this->release_VBOs();
+        m_texture.reset();
+        m_model.reset();
+    }
+    else {
+        update_model_offset();
+    }
 
     // Set the origin and size for rendering the coordinate system axes.
     m_axes.set_origin({ 0.0, 0.0, static_cast<double>(GROUND_Z) });
@@ -203,6 +221,11 @@ bool Bed3D::set_shape(const Pointfs& bed_shape, const double max_print_height, c
 
     // Let the calee to update the UI.
     return true;
+}
+
+void Bed3D::set_position(Vec2d& position)
+{
+    set_shape(m_build_volume.bed_shape(), m_texture_filename, m_model_filename, false, position, false);
 }
 
 bool Bed3D::contains(const Point& point) const
@@ -252,6 +275,10 @@ void Bed3D::render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
 BoundingBoxf3 Bed3D::calc_extended_bounding_box() const
 {
     BoundingBoxf3 out { m_build_volume.bounding_volume() };
+    
+    //BBS: to be checked. add part plate related logic.
+    out.translate(Vec3d(m_position.x(), m_position.y(), 0.0));
+
     const Vec3d size = out.size();
     // ensures that the bounding box is set as defined or the following calls to merge() will not work as intented
     if (size.x() > 0.0 && size.y() > 0.0 && !out.defined)
@@ -478,6 +505,18 @@ void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
     }
 }
 
+//BBS: add part plate related logic
+void Bed3D::update_model_offset() const
+{
+    // move the model so that its origin (0.0, 0.0, 0.0) goes into the bed shape center and a bit down to avoid z-fighting with the texture quad
+    Vec3d shift = m_extended_bounding_box.center();
+    shift(2) = -0.03;
+    *const_cast<Vec3d*>(&m_model_offset) = shift;
+
+    // update extended bounding box
+    const_cast<BoundingBoxf3&>(m_extended_bounding_box) = calc_extended_bounding_box();
+}
+
 void Bed3D::render_model() const
 {
     if (m_model_filename.empty())
@@ -488,11 +527,7 @@ void Bed3D::render_model() const
     if (model->get_filename() != m_model_filename && model->init_from_file(m_model_filename)) {
         model->set_color(-1, DEFAULT_MODEL_COLOR);
 
-        // move the model so that its origin (0.0, 0.0, 0.0) goes into the bed shape center and a bit down to avoid z-fighting with the texture quad
-        *const_cast<Vec3d*>(&m_model_offset) = to_3d(m_build_volume.bounding_volume2d().center(), -0.03);
-
-        // update extended bounding box
-        const_cast<BoundingBoxf3&>(m_extended_bounding_box) = this->calc_extended_bounding_box();
+        update_model_offset();
     }
 
     if (!model->get_filename().empty()) {

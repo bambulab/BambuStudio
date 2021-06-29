@@ -139,6 +139,7 @@ wxDECLARE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
 using Vec2dEvent = Event<Vec2d>;
 // _bool_ value is used as a indicator of selection in the 3DScene
 using RBtnEvent = Event<std::pair<Vec2d, bool>>;
+using RBtnPlateEvent = Event<std::pair<Vec2d, int>>;
 template <size_t N> using Vec2dsEvent = ArrayEvent<Vec2d, N>;
 
 using Vec3dEvent = Event<Vec3d>;
@@ -148,6 +149,7 @@ using HeightProfileSmoothEvent = Event<HeightProfileSmoothingParams>;
 
 wxDECLARE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, RBtnEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_PLATE_RIGHT_CLICK, RBtnPlateEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ARRANGE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_SELECT_ALL, SimpleEvent);
