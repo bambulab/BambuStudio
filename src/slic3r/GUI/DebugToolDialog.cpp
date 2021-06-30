@@ -328,6 +328,7 @@ void DebugToolDialog::init_device()
             if (get_current_device_id(device_id) < 0) return;
             if (!account_manager->is_user_login()) {
                 wxMessageBox("Please login first!");
+                return;
             }
             account_manager->request_bind(device_id);
         });
@@ -338,6 +339,7 @@ void DebugToolDialog::init_device()
             if (get_current_device_id(device_id) < 0) return;
             if (!account_manager->is_user_login()) {
                 wxMessageBox("Please login first!");
+                return;
             }
             account_manager->request_unbind(device_id);
         });
@@ -369,9 +371,13 @@ void DebugToolDialog::init_upgrade()
             wxMessageBox("Please select a module");
             return;
         }
+        if (cb_upgrade_mode->GetValue().compare("") == 0) {
+            wxMessageBox("Please select a upgrade mode");
+            return;
+        }
         UPGRADE_MODULE upgrade_module = (UPGRADE_MODULE)cb_upgrade_module->GetCurrentSelection();
-
-        std::string dst_url = UPGRADE_URL + upgrade_post_url[upgrade_module] + firmware_name;
+        UPGRADE_MODE upgrade_mode = (UPGRADE_MODE)cb_upgrade_mode->GetCurrentSelection();
+        std::string dst_url = (boost::format("%1%%2%%3%%4%") % UPGRADE_URL % upgrade_post_url[upgrade_module] % upgrade_mode_name[upgrade_mode] %firmware_name).str();
         std::string version = firmware_name.substr(firmware_name.rfind("-v") + 2, 11);
 
         // send upgrade
@@ -396,9 +402,19 @@ void DebugToolDialog::init_upgrade()
     module_items.Add(_L("MC"));
     module_items.Add(_L("TH"));
     module_items.Add(_L("AMS"));
+    module_items.Add(_L("OTA"));
     cb_upgrade_module = new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, module_items);
+    cb_upgrade_module->SetEditable(false);
+    cb_upgrade_module->SetSelection(0);
     cb_upgrade_firmware = new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize);
     cb_upgrade_firmware->SetEditable(false);
+
+    wxArrayString mode_items;
+    mode_items.Add(_L("DailyBuild"));
+    mode_items.Add(_L("Release"));
+    cb_upgrade_mode = new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, mode_items);
+    cb_upgrade_mode->SetEditable(false);
+    cb_upgrade_mode->SetSelection(0);
 
     label_upgrade_filename = new wxStaticText(this, wxID_ANY, _L("File Path:"), wxDefaultPosition, wxDefaultSize);
 
@@ -407,6 +423,7 @@ void DebugToolDialog::init_upgrade()
     upgrade_sizer->Add(label_upgrade_filename, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
     upgrade_sizer->Add(cb_upgrade_firmware, 1, wxLEFT | wxRIGHT | wxEXPAND);
     upgrade_sizer->Add(cb_upgrade_module, 0);
+    upgrade_sizer->Add(cb_upgrade_mode, 0);
     upgrade_sizer->Add(btn_refresh_upgrade_list, 0, wxRIGHT | wxALIGN_RIGHT, SPACING);
 }
 
@@ -734,6 +751,12 @@ int DebugToolDialog::handle_device_report_msg(std::string json_str)
 int DebugToolDialog::handle_report_print_msg(std::string topic, std::string json_str)
 {
     try {
+        int found = topic.find(m_curr_dev_id);
+        if (found < 0) {
+            BOOST_LOG_TRIVIAL(trace) << "omit this msg, curr_dev_id is " << m_curr_dev_id;
+            return -1;
+        }
+
         std::stringstream ss(json_str);
         pt::ptree root;
         pt::read_json(ss, root);
@@ -834,7 +857,8 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
         return;
     }
     UPGRADE_MODULE upgrade_module = (UPGRADE_MODULE)cb_upgrade_module->GetCurrentSelection();
-    Http http = Http::get(UPGRADE_URL + upgrade_post_url[upgrade_module]);
+    UPGRADE_MODE upgrade_mode = (UPGRADE_MODE)cb_upgrade_mode->GetCurrentSelection();
+    Http http = Http::get(UPGRADE_URL + upgrade_post_url[upgrade_module] + upgrade_mode_name[upgrade_mode]);
     http.on_complete([&](std::string body, unsigned) {
         this->append_output_string_info(body);
         XML_Parser parser = XML_ParserCreate(nullptr);

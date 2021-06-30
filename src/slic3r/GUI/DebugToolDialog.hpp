@@ -84,9 +84,12 @@ namespace Slic3r {
                 BTN_SEND_HEIGHT = 80, BTN_SEND_WIDTH = 100,
             };
 
-            enum UPGRADE_MODULE { MODULE_RK = 0, MODULE_MC = 1, MODULE_TH = 2, MODULE_AMS = 3, MODULE_MAX };
-            std::string upgrade_post_url[MODULE_MAX] = { "rk/release/", "mc/", "th/", "ams/"};
-            std::string upgrade_module_name[MODULE_MAX] = { "rk1126", "mc", "th", "ams" };
+            enum UPGRADE_MODULE { MODULE_RK = 0, MODULE_MC = 1, MODULE_TH = 2, MODULE_AMS = 3, MODULE_OTA = 4, MODULE_MAX };
+            enum UPGRADE_MODE { MODE_DAILYBUILD = 0, MODE_RELEASE = 1, MODE_MAX};
+            std::string upgrade_post_url[MODULE_MAX] = { "rk/", "mc/", "th/", "ams/", "ota/"};
+            std::string upgrade_module_name[MODULE_MAX] = { "rk1126", "mc", "th", "ams", "ota"};
+            std::string upgrade_mode_name[MODE_MAX] = { "dailybuild/", "release/" };
+
             std::string UPGRADE_URL = "http://upgrade.bbl.com/";
             std::string CURL_FILE = resources_dir() + "/bbl/curl";
 
@@ -196,6 +199,7 @@ namespace Slic3r {
             wxComboBox* cb_device_list;
             wxComboBox* cb_publish_mode;
             wxComboBox* cb_upgrade_firmware;
+            wxComboBox* cb_upgrade_mode;
 
             std::vector<wxString> upgrade_file_list;
             wxFileDialog* selectGcodeDialog;
