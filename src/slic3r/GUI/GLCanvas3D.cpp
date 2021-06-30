@@ -1267,6 +1267,20 @@ BoundingBoxf3 GLCanvas3D::scene_bounding_box() const
     return bb;
 }
 
+BoundingBoxf3 GLCanvas3D::plate_scene_bounding_box(int plate_idx) const
+{
+    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+
+    BoundingBoxf3 bb = plate->get_bounding_box(true);
+    if (m_config != nullptr) {
+        double h = m_config->opt_float("max_print_height");
+        bb.min(2) = std::min(bb.min(2), -h);
+        bb.max(2) = std::max(bb.max(2), h);
+    }
+
+    return bb;
+}
+
 bool GLCanvas3D::is_layers_editing_enabled() const
 {
     return m_layers_editing.is_enabled();
@@ -1591,16 +1605,16 @@ void GLCanvas3D::render()
     m_render_stats.increment_fps_counter();
 }
 
-void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type)
+void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type, int plate_id)
 {
-    render_thumbnail(thumbnail_data, w, h, thumbnail_params, m_volumes, camera_type);
+    render_thumbnail(thumbnail_data, w, h, thumbnail_params, m_volumes, camera_type, plate_id);
 }
 
-void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, const GLVolumeCollection& volumes, Camera::EType camera_type)
+void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, const GLVolumeCollection& volumes, Camera::EType camera_type, int plate_id)
 {
     switch (OpenGLManager::get_framebuffers_type())
     {
-    case OpenGLManager::EFramebufferType::Arb: { _render_thumbnail_framebuffer(thumbnail_data, w, h, thumbnail_params, volumes, camera_type); break; }
+    case OpenGLManager::EFramebufferType::Arb: { _render_thumbnail_framebuffer(thumbnail_data, w, h, thumbnail_params, volumes, camera_type, plate_id); break; }
     case OpenGLManager::EFramebufferType::Ext: { _render_thumbnail_framebuffer_ext(thumbnail_data, w, h, thumbnail_params, volumes, camera_type); break; }
     default: { _render_thumbnail_legacy(thumbnail_data, w, h, thumbnail_params, volumes, camera_type); break; }
     }
@@ -4161,11 +4175,25 @@ static void debug_output_thumbnail(const ThumbnailData& thumbnail_data)
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
 
-void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, const GLVolumeCollection& volumes, Camera::EType camera_type)
+void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, const GLVolumeCollection& volumes, Camera::EType camera_type, int plate_idx)
 {
-    auto is_visible = [](const GLVolume& v) {
+    //BBS modify visible calc function
+    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+    BoundingBoxf3 bb = plate->get_bounding_box(false);
+    if (m_config != nullptr) {
+        double h = m_config->opt_float("max_print_height");
+        bb.min(2) = std::min(bb.min(2), -h);
+        bb.max(2) = std::max(bb.max(2), h);
+    }
+
+    auto is_visible = [plate_idx, bb](const GLVolume& v) {
         bool ret = v.printable;
-        ret &= (!v.shader_outside_printer_detection_enabled || !v.is_outside);
+        if (plate_idx >= 0) {
+            ret &= bb.contains(v.transformed_bounding_box());
+        }
+        else {
+            ret &= (!v.shader_outside_printer_detection_enabled || !v.is_outside);
+        }
         return ret;
     };
 
@@ -4193,7 +4221,8 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const
 
     Camera camera;
     camera.set_type(camera_type);
-    camera.set_scene_box(scene_bounding_box());
+    //BBS modify scene box to plate scene bounding box
+    camera.set_scene_box(plate_scene_bounding_box(plate_idx));
     camera.apply_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
     camera.zoom_to_box(volumes_box);
     camera.apply_view_matrix();
@@ -4201,13 +4230,15 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const
     double near_z = -1.0;
     double far_z = -1.0;
 
-    if (thumbnail_params.show_bed) {
-        // extends the near and far z of the frustrum to avoid the bed being clipped
+    if (plate_idx < 0) {
+        if (thumbnail_params.show_bed) {
+            // extends the near and far z of the frustrum to avoid the bed being clipped
 
-        // box in eye space
-        BoundingBoxf3 t_bed_box = m_bed.extended_bounding_box().transformed(camera.get_view_matrix());
-        near_z = -t_bed_box.max.z();
-        far_z = -t_bed_box.min.z();
+            // box in eye space
+            BoundingBoxf3 t_bed_box = m_bed.extended_bounding_box().transformed(camera.get_view_matrix());
+            near_z = -t_bed_box.max.z();
+            far_z = -t_bed_box.min.z();
+        }
     }
 
     camera.apply_projection(volumes_box, near_z, far_z);
@@ -4241,12 +4272,16 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const
     if (thumbnail_params.show_bed)
         _render_bed(!camera.is_looking_downward(), false);
 
+    if (plate_idx >= 0) {
+        plate->render(const_cast<GLCanvas3D&>(*this), false, false);
+    }
+
     // restore background color
     if (thumbnail_params.transparent_background)
         glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
-void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, const GLVolumeCollection& volumes, Camera::EType camera_type)
+void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, const GLVolumeCollection& volumes, Camera::EType camera_type, int plate_id)
 {
     thumbnail_data.set(w, h);
     if (!thumbnail_data.is_valid())
@@ -4296,7 +4331,7 @@ void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, un
     glsafe(::glDrawBuffers(1, drawBufs));
 
     if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
-        _render_thumbnail_internal(thumbnail_data, thumbnail_params, volumes, camera_type);
+        _render_thumbnail_internal(thumbnail_data, thumbnail_params, volumes, camera_type, plate_id);
 
         if (multisample) {
             GLuint resolve_fbo;

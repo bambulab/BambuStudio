@@ -131,7 +131,6 @@ public:
     //set position and size
     void set_pos_and_size(Vec3d& origin, int width, int depth, int height, bool with_instance_move);
 
-
     /* instance related operations*/
     //judge whether instance is bound in plate or not
     bool contain_instance(int obj_id, int instance_id);
@@ -164,8 +163,9 @@ public:
     const Pointfs& get_shape() const { return m_shape; }
     bool set_shape(const Pointfs& shape, Vec2d position);
     bool contains(const Point& point) const;
+    bool contains(const GLVolume& v) const;
     Point point_projection(const Point& point) const;
-    void render(GLCanvas3D& canvas, bool bottom);
+    void render(GLCanvas3D& canvas, bool bottom, bool with_label = true);
     void render_for_picking() const { on_render_for_picking(); }
     void set_selected();
     void set_unselected();

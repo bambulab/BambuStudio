@@ -749,12 +749,17 @@ bool PartPlate::contains(const Point& point) const
 	return m_polygon.contains(point);
 }
 
+bool PartPlate::contains(const GLVolume& v) const
+{
+	return m_bounding_box.contains(v.bounding_box());
+}
+
 Point PartPlate::point_projection(const Point& point) const
 {
 	return m_polygon.point_projection(point);
 }
 
-void PartPlate::render(GLCanvas3D& canvas, bool bottom) {
+void PartPlate::render(GLCanvas3D& canvas, bool bottom, bool with_label) {
 
 	glsafe(::glEnable(GL_DEPTH_TEST));
 	render_default(bottom);
@@ -782,7 +787,9 @@ void PartPlate::render(GLCanvas3D& canvas, bool bottom) {
 	else
 		render_right_arrow(render_color, true);
 
-	render_label(canvas);
+	if (with_label) {
+		render_label(canvas);
+	}
 	glsafe(::glDisable(GL_DEPTH_TEST));
 }
 
