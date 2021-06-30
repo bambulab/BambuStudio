@@ -84,6 +84,7 @@ public:
     void init_filament_combo(PlaterPresetComboBox **combo, const int extr_idx);
     void remove_unused_filament_combos(const size_t current_extruder_count);
     void update_all_preset_comboboxes();
+    void update_partplate(PartPlateList& list);
     void update_presets(Slic3r::Preset::Type preset_type);
     void update_mode_sizer() const;
     void change_top_border_for_mode_sizer(bool increase_border);
@@ -368,6 +369,8 @@ public:
     void update_preview_bottom_toolbar();
     void update_preview_moves_slider();
     void enable_preview_moves_slider(bool enable);
+
+    void update_partplate();
 
     void reset_gcode_toolpaths();
     void reset_last_loaded_gcode() { m_last_loaded_gcode = ""; }

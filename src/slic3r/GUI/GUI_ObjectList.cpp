@@ -39,6 +39,7 @@ namespace GUI
 {
 
 wxDEFINE_EVENT(EVT_OBJ_LIST_OBJECT_SELECT, SimpleEvent);
+wxDEFINE_EVENT(EVT_PARTPLATE_LIST_PLATE_SELECT, IntEvent);
 
 static PrinterTechnology printer_technology()
 {
@@ -79,6 +80,9 @@ ObjectList::ObjectList(wxWindow* parent) :
 
     // create control
     create_objects_ctrl();
+
+    //BBS: add part plate related event
+    Bind(EVT_PARTPLATE_LIST_PLATE_SELECT, &ObjectList::on_select_plate, this);
 
     // describe control behavior 
     Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxDataViewEvent& event) {
@@ -555,6 +559,36 @@ void ObjectList::update_extruder_values_for_items(const size_t max_extruder)
             }
         }
     }
+}
+
+void ObjectList::update_by_plate(int plate_idx)
+{
+    //wxPostEvent(this, IntEvent(EVT_PARTPLATE_LIST_PLATE_SELECT, plate_idx));
+    m_objects_model->UpdateEnableByPlate(plate_idx);
+}
+
+void ObjectList::update_plate_values_for_items()
+{
+    PartPlateList& list = wxGetApp().plater()->get_partplate_list();
+    for (size_t i = 0; i < m_objects->size(); ++i)
+    {
+        wxDataViewItem item = m_objects_model->GetItemById(i);
+        if (!item) continue;
+
+        auto object = (*m_objects)[i];
+        int plate_idx = list.find_instance(i, 0);
+        m_objects_model->SetPlateIdx(plate_idx, item);
+
+        for (size_t j = 0; j < object->instances.size(); j++) {
+            plate_idx = list.find_instance(i, j);
+            m_objects_model->SetPlateIdx(plate_idx, item);
+        }
+    }
+}
+
+void ObjectList::on_select_plate(IntEvent& evt)
+{
+    m_objects_model->UpdateEnableByPlate(evt.get_data());
 }
 
 void ObjectList::update_objects_list_extruder_column(size_t extruders_count)
@@ -2661,10 +2695,17 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selectio
 void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
 {
     auto model_object = (*m_objects)[obj_idx];
+    //BBS start add obj_idx for debug
+    PartPlateList& list = wxGetApp().plater()->get_partplate_list();
+    list.notify_instance_update(obj_idx, 0);
+    int plate_idx = list.find_instance(obj_idx, 0);
+    //std::string item_name_str = (boost::format("[P%1%][O%2%]%3%") % plate_idx % std::to_string(obj_idx) % model_object->name).str();
+    //std::string item_name_str = (boost::format("[P%1%]%2%") % plate_idx  % model_object->name).str();
+    //const wxString& item_name = from_u8(item_name_str);
     const wxString& item_name = from_u8(model_object->name);
     const auto item = m_objects_model->Add(item_name,
                       model_object->config.has("extruder") ? model_object->config.extruder() : 0,
-                      get_warning_icon_name(model_object->mesh().stats()));
+                      get_warning_icon_name(model_object->mesh().stats()), plate_idx);
 
     update_info_items(obj_idx, nullptr, call_selection_changed);
 
@@ -2686,11 +2727,14 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
     if (model_object->instances.size()>1)
     {
         std::vector<bool> print_idicator(model_object->instances.size());
-        for (size_t i = 0; i < model_object->instances.size(); ++i)
+        std::vector<int> plate_idicator(model_object->instances.size());
+        for (size_t i = 0; i < model_object->instances.size(); ++i) {
             print_idicator[i] = model_object->instances[i]->printable;
+            plate_idicator[i] = list.find_instance(obj_idx, i);
+        }
 
         const wxDataViewItem object_item = m_objects_model->GetItemById(obj_idx);
-        m_objects_model->AddInstanceChild(object_item, print_idicator);
+        m_objects_model->AddInstanceChild(object_item, print_idicator, plate_idicator);
         Expand(m_objects_model->GetInstanceRootItem(object_item));
     }
     else

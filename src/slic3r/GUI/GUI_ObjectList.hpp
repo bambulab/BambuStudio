@@ -42,6 +42,7 @@ typedef std::map<t_layer_height_range, ModelConfig> t_layer_config_ranges;
 namespace GUI {
 
 wxDECLARE_EVENT(EVT_OBJ_LIST_OBJECT_SELECT, SimpleEvent);
+wxDECLARE_EVENT(EVT_PARTPLATE_LIST_PLATE_SELECT, IntEvent);
 class BitmapComboBox;
 
 struct ItemForDelete
@@ -213,6 +214,10 @@ public:
     void                update_name_in_model(const wxDataViewItem& item) const;
     void                update_name_in_list(int obj_idx, int vol_idx) const;
     void                update_extruder_values_for_items(const size_t max_extruder);
+
+    //BBS: update plate
+    void                update_by_plate(int plate_id);
+    void                update_plate_values_for_items();
 
     // Get obj_idx and vol_idx values for the selected (by default) or an adjusted item
     void                get_selected_item_indexes(int& obj_idx, int& vol_idx, const wxDataViewItem& item = wxDataViewItem(0));
@@ -403,6 +408,7 @@ private:
     void OnDropPossible(wxDataViewEvent &event);
     void OnDrop(wxDataViewEvent &event);
     bool can_drop(const wxDataViewItem& item) const ;
+    void on_select_plate(IntEvent& evt);
 
     void ItemValueChanged(wxDataViewEvent &event);
 #ifdef __WXMSW__

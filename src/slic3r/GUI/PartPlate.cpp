@@ -920,7 +920,6 @@ void PartPlateList::init()
 {
 	m_intialized = false;
 	PartPlate* first_plate = NULL;
-
 	first_plate = new PartPlate(Vec3d(0.0, 0.0, 0.0), m_plate_width, m_plate_depth, m_plate_height, m_plater, m_model, true, printer_technology);
 	assert(first_plate != NULL);
 	first_plate->set_index(0);
@@ -939,7 +938,8 @@ void PartPlateList::init()
 
 	m_plate_count = 1;
 	m_current_plate = 0;
-	select_plate(m_current_plate);
+
+	select_plate(0);
 	unprintable_plate.set_index(1);
 	m_intialized = true;
 }
@@ -1089,6 +1089,9 @@ int PartPlateList::create_plate()
 	//update bounding_boxes
 	calc_bounding_boexes();
 
+	//update related UI
+	m_plater->update_partplate();
+
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":created a new plate %1%") % new_index;
 	return new_index;
 }
@@ -1204,6 +1207,8 @@ int PartPlateList::delete_plate(int index)
 	//update bounding_boxes
 	calc_bounding_boexes();
 
+	//update related UI
+	m_plater->update_partplate();
 	return ret;
 }
 

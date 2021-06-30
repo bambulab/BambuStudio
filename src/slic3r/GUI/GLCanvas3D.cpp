@@ -3479,6 +3479,9 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
                 //TODO, judge whether this instance is moved or not, and only send the one selected to partplatelist
                 PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
                 plate_list.notify_instance_update(object_idx, instance_idx);
+
+                //BBS: nofity object list to update
+                wxGetApp().plater()->sidebar().obj_list()->update_plate_values_for_items();
             }
         }
         else if (object_idx == 1000)
@@ -3572,6 +3575,9 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
             //BBS: notify instance updates to part plater list
             PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
             plate_list.notify_instance_update(object_idx, instance_idx);
+
+            //BBS: nofity object list to update
+            wxGetApp().plater()->sidebar().obj_list()->update_plate_values_for_items();
         }
     }
 
@@ -3645,6 +3651,9 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
             //BBS: notify instance updates to part plater list
             PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
             plate_list.notify_instance_update(object_idx, instance_idx);
+
+            //BBS: nofity object list to update
+            wxGetApp().plater()->sidebar().obj_list()->update_plate_values_for_items();
         }
     }
 
@@ -3736,6 +3745,9 @@ void GLCanvas3D::do_mirror(const std::string& snapshot_type)
         //BBS: notify instance updates to part plater list
         PartPlateList &plate_list = wxGetApp().plater()->get_partplate_list();
         plate_list.notify_instance_update(i.first, i.second);
+
+        //BBS: nofity object list to update
+        wxGetApp().plater()->sidebar().obj_list()->update_plate_values_for_items();
     }
 
     post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));

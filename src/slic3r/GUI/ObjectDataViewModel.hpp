@@ -72,6 +72,7 @@ class ObjectDataViewModelNode
     wxBitmap&                       m_bmp = m_empty_bmp;
     ItemType				        m_type;
     int                             m_idx = -1;
+    int                             m_plate_idx = -1;
     bool					        m_container = false;
     wxString				        m_extruder = "default";
     wxBitmap                        m_extruder_bmp;
@@ -86,11 +87,13 @@ class ObjectDataViewModelNode
 
 public:
     ObjectDataViewModelNode(const wxString& name,
-                            const wxString& extruder):
+                            const wxString& extruder,
+                            const int plate_idx):
         m_parent(NULL),
         m_name(name),
         m_type(itObject),
-        m_extruder(extruder)
+        m_extruder(extruder),
+        m_plate_idx(plate_idx)
     {
         set_action_and_extruder_icons();
         init_container();
@@ -109,7 +112,9 @@ public:
                             const int idx = -1,
                             const wxString& extruder = wxEmptyString );
 
-    ObjectDataViewModelNode(ObjectDataViewModelNode* parent, const ItemType type);
+    //BBS: add part plate related logic
+    ObjectDataViewModelNode(ObjectDataViewModelNode* parent, const ItemType type, const int plate_idx = -1);
+    // BBS: to be checked. Whether need to add plate_idx for the following constructor ?
     ObjectDataViewModelNode(ObjectDataViewModelNode* parent, const InfoItemType type);
 
     ~ObjectDataViewModelNode()
@@ -188,6 +193,9 @@ public:
     InfoItemType    GetInfoItemType() const         { return m_info_item_type; }
 	void			SetIdx(const int& idx);
 	int             GetIdx() const                  { return m_idx; }
+    //BBS: add part plate related logic
+    void            SetPlateIdx(const int& idx);
+    int             GetPlateIdx() const { return m_plate_idx; }
     ModelVolumeType GetVolumeType()                 { return m_volume_type; }
 	t_layer_height_range    GetLayerRange() const   { return m_layer_range; }
     wxString        GetExtruder()                   { return m_extruder; }
@@ -264,6 +272,7 @@ class ObjectDataViewModel :public wxDataViewModel
     wxBitmap                                    m_warning_manifold_bmp;
 
     wxDataViewCtrl*                             m_ctrl { nullptr };
+    int                                         m_selected_plate_id;
 
 public:
     ObjectDataViewModel();
@@ -271,7 +280,8 @@ public:
 
     wxDataViewItem Add( const wxString &name,
                         const int extruder,
-                        const std::string& warning_icon_name = std::string());
+                        const std::string& warning_icon_name = std::string(),
+                        const int plate_idx = -1);
     wxDataViewItem AddVolumeChild(  const wxDataViewItem &parent_item,
                                     const wxString &name,
                                     const Slic3r::ModelVolumeType volume_type,
@@ -281,7 +291,7 @@ public:
     wxDataViewItem AddSettingsChild(const wxDataViewItem &parent_item);
     wxDataViewItem AddInfoChild(const wxDataViewItem &parent_item, InfoItemType info_type);
     wxDataViewItem AddInstanceChild(const wxDataViewItem &parent_item, size_t num);
-    wxDataViewItem AddInstanceChild(const wxDataViewItem &parent_item, const std::vector<bool>& print_indicator);
+    wxDataViewItem AddInstanceChild(const wxDataViewItem &parent_item, const std::vector<bool>& print_indicator, , const std::vector<int>& plate_indicator);
     wxDataViewItem AddLayersRoot(const wxDataViewItem &parent_item);
     wxDataViewItem AddLayersChild(  const wxDataViewItem &parent_item,
                                     const t_layer_height_range& layer_range,
@@ -335,6 +345,7 @@ public:
                     unsigned int col);
 
     void SetExtruder(const wxString& extruder, wxDataViewItem item);
+    void SetPlateIdx(const int plate_idx, wxDataViewItem item);
     bool SetName    (const wxString& new_name, wxDataViewItem item);
 
     // For parent move child from cur_volume_id place to new_volume_id
@@ -373,6 +384,9 @@ public:
     bool    IsPrintable(const wxDataViewItem &item) const;
     void    UpdateObjectPrintable(wxDataViewItem parent_item);
     void    UpdateInstancesPrintable(wxDataViewItem parent_item);
+
+    //BBS: add part plate related logic
+    void    UpdateEnableByPlate(int plate_idx);
 
     void    SetVolumeType(const wxDataViewItem &item, const Slic3r::ModelVolumeType type);
     ModelVolumeType GetVolumeType(const wxDataViewItem &item);

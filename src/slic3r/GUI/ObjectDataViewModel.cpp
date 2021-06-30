@@ -83,10 +83,11 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
 }
 
 
-ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent, const ItemType type) :
+ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent, const ItemType type, const int plate_idx) :
     m_parent(parent),
     m_type(type),
-    m_extruder(wxEmptyString)
+    m_extruder(wxEmptyString),
+    m_plate_idx(plate_idx)
 {
     if (type == itSettings)
         m_name = "Settings to modified";
@@ -262,8 +263,22 @@ void ObjectDataViewModelNode::SetIdx(const int& idx)
 {
     m_idx = idx;
     // update name if this node is instance
-    if (m_type == itInstance)
-        m_name = wxString::Format(_(L("Instance %d")), m_idx + 1);
+    if (m_type == itInstance) {
+        if (m_plate_idx > 0) {
+            m_name = wxString::Format(_(L("[P%d]Instance %d")), m_plate_idx, m_idx + 1);
+        }
+        else {
+            m_name = wxString::Format(_(L("Instance %d")), m_idx + 1);
+        }
+    }
+}
+
+void ObjectDataViewModelNode::SetPlateIdx(const int& idx)
+{
+    m_plate_idx = idx;
+    if (m_type == itInstance) {
+        m_name = wxString::Format(_L("[P%d]Instance %d"), m_plate_idx, m_idx + 1);
+    }
 }
 
 void ObjectDataViewModelNode::UpdateExtruderAndColorIcon(wxString extruder /*= ""*/)
@@ -324,6 +339,9 @@ ObjectDataViewModel::ObjectDataViewModel()
 {
     m_bitmap_cache = new Slic3r::GUI::BitmapCache;
 
+    //BBS: add part plate related logic
+    m_selected_plate_id = -1;
+
     m_volume_bmps = MenuFactory::get_volume_bitmaps();
     m_warning_bmp = create_scaled_bitmap(WarningIcon);
     m_warning_manifold_bmp = create_scaled_bitmap(WarningManifoldIcon);
@@ -347,10 +365,11 @@ wxBitmap& ObjectDataViewModel::GetWarningBitmap(const std::string& warning_icon_
 
 wxDataViewItem ObjectDataViewModel::Add(const wxString &name, 
                                         const int extruder,
-                                        const std::string& warning_icon_name/* = std::string()*/ )
+                                        const std::string& warning_icon_name/* = std::string()*/,
+                                        const int plate_idx)
 {
     const wxString extruder_str = extruder == 0 ? _L("default") : wxString::Format("%d", extruder);
-	auto root = new ObjectDataViewModelNode(name, extruder_str);
+	auto root = new ObjectDataViewModelNode(name, extruder_str, (int)plate_idx);
     // Add warning icon if detected auto-repaire
     root->SetWarningBitmap(GetWarningBitmap(warning_icon_name), warning_icon_name);
 
@@ -501,17 +520,19 @@ wxDataViewItem ObjectDataViewModel::AddInstanceRoot(const wxDataViewItem &parent
 wxDataViewItem ObjectDataViewModel::AddInstanceChild(const wxDataViewItem &parent_item, size_t num)
 {
     std::vector<bool> print_indicator(num, true);
+    std::vector<int> plate_indicator(num, -1);
 
     // if InstanceRoot item isn't created for this moment
     if (!GetInstanceRootItem(parent_item).IsOk())
         // use object's printable state to first instance
         print_indicator[0] = IsPrintable(parent_item);
     
-    return wxDataViewItem((void*)AddInstanceChild(parent_item, print_indicator));
+    return wxDataViewItem((void*)AddInstanceChild(parent_item, print_indicator, plate_indicator));
 }
 
 wxDataViewItem ObjectDataViewModel::AddInstanceChild(const wxDataViewItem& parent_item,
-                                                     const std::vector<bool>& print_indicator)
+                                                     const std::vector<bool>& print_indicator,
+                                                     const std::vector<int>& plate_indicator)
 {
     const wxDataViewItem inst_root_item = AddInstanceRoot(parent_item);
     if (!inst_root_item) return wxDataViewItem(0);
@@ -522,7 +543,7 @@ wxDataViewItem ObjectDataViewModel::AddInstanceChild(const wxDataViewItem& paren
     ObjectDataViewModelNode *instance_node = nullptr;    
     size_t counter = 0;
     while (counter < print_indicator.size()) {
-        instance_node = new ObjectDataViewModelNode(inst_root_node, itInstance);
+        instance_node = new ObjectDataViewModelNode(inst_root_node, itInstance, plate_indicator[counter]);
 
         instance_node->set_printable_icon(print_indicator[counter] ? piPrintable : piUnprintable);
 
@@ -579,6 +600,14 @@ void ObjectDataViewModel::UpdateInstancesPrintable(wxDataViewItem parent_item)
         // and set printable state for object_node to piUndef
         inst_node->set_printable_icon(obj_pi);
         ItemChanged(wxDataViewItem((void*)inst_node));
+    }
+}
+
+void ObjectDataViewModel::UpdateEnableByPlate(int plate_idx)
+{
+    m_selected_plate_id = plate_idx;
+    for (int i = 0; i < m_objects.size(); i++) {
+        ItemChanged(GetItemById(i));
     }
 }
 
@@ -1344,6 +1373,12 @@ bool ObjectDataViewModel::SetName(const wxString& new_name, wxDataViewItem item)
     return false;
 }
 
+void ObjectDataViewModel::SetPlateIdx(const int plate_idx, wxDataViewItem item)
+{
+    ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(item.GetID());
+    node->SetPlateIdx(plate_idx);
+}
+
 void ObjectDataViewModel::AddAllChildren(const wxDataViewItem& parent)
 {
     ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(parent.GetID());
@@ -1419,11 +1454,22 @@ wxDataViewItem ObjectDataViewModel::ReorganizeObjects(  const int current_id, co
 
 bool ObjectDataViewModel::IsEnabled(const wxDataViewItem &item, unsigned int col) const
 {
+    bool ret;
+
     wxASSERT(item.IsOk());
     ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode*>(item.GetID());
 
     // disable extruder selection for the non "itObject|itVolume" item
-    return !(col == colExtruder && node->m_extruder.IsEmpty());
+    ret = !(col == colExtruder && node->m_extruder.IsEmpty());
+
+    if (m_selected_plate_id < 0) {
+        return ret;
+    }
+    if (node->GetType() == ItemType::itInstance || node->GetType() == ItemType::itObject) {
+        ret &= (node->GetPlateIdx() == m_selected_plate_id);
+    }
+
+    return ret;
 }
 
 wxDataViewItem ObjectDataViewModel::GetParent(const wxDataViewItem &item) const

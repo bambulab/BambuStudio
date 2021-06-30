@@ -319,6 +319,78 @@ void SlicedInfo::SetTextAndShow(SlicedInfoIdx idx, const wxString& text, const w
     info_vec[idx].second->Show(show);
 }
 
+class PartPlateSettings
+{
+private:
+    double                   m_brim_width = 0.0;
+    wxSizer* m_sizer{ nullptr };
+    std::vector<std::string> enum_labels;
+    wxComboBox* m_cb_partplates;
+    wxStaticText* m_label_partplates;
+    int m_last_selected;
+
+public:
+    PartPlateSettings(wxWindow* parent);
+    ~PartPlateSettings() {}
+    wxSizer* get_sizer();
+    void update(PartPlateList& list);
+    void OnSelect(wxCommandEvent& evt);
+    void invalidate_selection() { m_last_selected = INT_MAX; }
+};
+
+PartPlateSettings::PartPlateSettings(wxWindow* parent)
+    :m_last_selected(wxNOT_FOUND)
+{
+    wxArrayString platesArray;
+    platesArray.Add(_L("All"));
+    m_label_partplates = new wxStaticText(parent, wxID_ANY, _L("Plate: "), wxDefaultPosition, wxDefaultSize);
+    m_cb_partplates = new wxComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, platesArray);
+    m_cb_partplates->SetEditable(false);
+    m_cb_partplates->Bind(wxEVT_COMBOBOX, &PartPlateSettings::OnSelect, this);
+    m_cb_partplates->SetValue(_L("All"));
+
+    auto m_plate_filter_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_plate_filter_sizer->Add(m_label_partplates, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 5);
+    m_plate_filter_sizer->Add(m_cb_partplates, 1, wxALL | wxEXPAND, 5);
+
+    m_sizer = new wxBoxSizer(wxVERTICAL);
+    m_sizer->Add(m_plate_filter_sizer, 0, wxEXPAND);
+}
+
+void PartPlateSettings::OnSelect(wxCommandEvent& evt)
+{
+    auto selected_item = evt.GetSelection();
+    if (selected_item == wxGetApp().plater()->get_partplate_list().get_plate_count()) {
+        selected_item = -1;
+    }
+    wxGetApp().plater()->sidebar().obj_list()->update_by_plate(selected_item);
+}
+
+void PartPlateSettings::update(PartPlateList& list)
+{
+    m_cb_partplates->Freeze();
+    m_last_selected = m_cb_partplates->GetSelection();
+    m_cb_partplates->Clear();
+    wxArrayString platesArray;
+    for (int i = 0; i < list.get_plate_count(); i++) {
+        platesArray.Add((boost::format("Plate %1%") % i).str());
+    }
+    platesArray.Add(_L("All"));
+    m_cb_partplates->Set(platesArray);
+    if (m_last_selected < m_cb_partplates->GetCount()) {
+        m_cb_partplates->Select(m_last_selected);
+    }
+    else {
+        m_cb_partplates->SetValue("");
+    }
+    m_cb_partplates->Thaw();
+}
+
+wxSizer* PartPlateSettings::get_sizer()
+{
+    return m_sizer;
+}
+
 // Frequently changed parameters
 
 class FreqChangedParams : public OG_Settings
@@ -645,6 +717,7 @@ struct Sidebar::priv
     PlaterPresetComboBox *combo_sla_print;
     PlaterPresetComboBox *combo_sla_material;
     PlaterPresetComboBox *combo_printer;
+    PartPlateSettings* combo_partplate_filter;
 
     wxBoxSizer *sizer_params;
     FreqChangedParams   *frequently_changed_parameters{ nullptr };
@@ -831,6 +904,11 @@ Sidebar::Sidebar(Plater *parent)
     p->frequently_changed_parameters = new FreqChangedParams(p->scrolled);
     p->sizer_params->Add(p->frequently_changed_parameters->get_sizer(), 0, wxEXPAND | wxTOP | wxBOTTOM, wxOSX ? 1 : margin_5);
 
+    // PartPlater Filter
+    p->combo_partplate_filter = new PartPlateSettings(p->scrolled);
+    p->sizer_params->Add(p->combo_partplate_filter->get_sizer(), 0, wxEXPAND | wxTOP | wxBOTTOM, margin_5);
+
+
     // Object List
     p->object_list = new ObjectList(p->scrolled);
     p->sizer_params->Add(p->object_list->get_sizer(), 1, wxEXPAND);
@@ -1016,6 +1094,11 @@ void Sidebar::update_all_preset_comboboxes()
         for (PlaterPresetComboBox* cb : p->combos_filament)
             cb->update();
     }
+}
+
+void Sidebar::update_partplate(PartPlateList& list)
+{
+    p->combo_partplate_filter->update(list);
 }
 
 void Sidebar::update_presets(Preset::Type preset_type)
@@ -4347,6 +4430,8 @@ void Plater::priv::on_3dcanvas_mouse_dragging_finished(SimpleEvent&)
         delayed_scene_refresh = false;
         update_sla_scene();
     }
+
+    partplate_list.reload_all_objects();
 }
 
 void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type)
@@ -4553,6 +4638,11 @@ void Plater::priv::update_preview_moves_slider()
 void Plater::priv::enable_preview_moves_slider(bool enable)
 {
     preview->enable_moves_slider(enable);
+}
+
+void Plater::update_partplate()
+{
+    sidebar().update_partplate(p->partplate_list);
 }
 
 void Plater::priv::reset_gcode_toolpaths()
