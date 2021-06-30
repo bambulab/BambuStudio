@@ -39,6 +39,8 @@ struct Camera;
 
 static const constexpr double LOGICAL_PART_PLATE_GAP = 1. / 5.;
 
+using GCodeResult = GCodeProcessor::Result;
+
 class PartPlate : public ObjectBase
 {
     Plater* m_plater; //Plater reference, not own it
@@ -56,8 +58,9 @@ class PartPlate : public ObjectBase
     bool m_ready_for_slice;
     bool m_slice_result_valid;
 
-    Print m_print;
-    GCodeProcessor::Result m_gcode_result;
+    Print *m_print; //Print reference, not own it, no need to serialize
+    GCodeProcessor::Result *m_gcode_result;
+    int m_print_index;
 
     std::string m_thumbnail_path; //use a temp path to store the thumbnail
 
@@ -122,8 +125,11 @@ public:
     //get the plate's index
     int get_index() { return m_plate_index; }
 
-    //get the plate's current print
-    Print& get_print();
+    //get the print's object, result and index
+    void get_print(PrintBase **print, GCodeResult **result, int *index);
+
+    //set the print object, result and it's index
+    void set_print(PrintBase *print, GCodeResult* result = nullptr, int index = -1);
 
     //get the plate's center point origin
     Vec3d get_center_origin();
@@ -190,13 +196,16 @@ public:
     //is slice result valid or not
     bool is_slice_result_valid() const { return m_slice_result_valid; }
 
+    //invalid sliced result
+    void update_slice_result_valid_state(bool valid = false) { m_slice_result_valid = valid; }
+
     /*slice related functions*/
     //update current slice context into backgroud slicing process
-    void update_slice_context(BackgroundSlicingProcess& process, const DynamicPrintConfig& config);
+    void update_slice_context(BackgroundSlicingProcess& process);
     //return the fff print object
-    Print& fff_print() { return m_print; }
+    Print* fff_print() { return m_print; }
     //return the slice result
-    GCodeProcessor::Result* get_slice_result() { return &m_gcode_result; }
+    GCodeProcessor::Result* get_slice_result() { return m_gcode_result; }
     //load gcode from file
     int load_gcode_from_file(const std::string& filename);
 
@@ -208,7 +217,7 @@ public:
     template<class Archive> void load(Archive& ar) {
         std::vector<std::pair<int, int>>	objects_and_instances;
 
-        ar(m_plate_index, m_origin, m_width, m_depth, m_height, m_locked, m_ready_for_slice, m_printable, objects_and_instances);
+        ar(m_plate_index, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_printable, m_thumbnail_path, objects_and_instances);
 
         for (std::vector<std::pair<int, int>>::iterator it = objects_and_instances.begin(); it != objects_and_instances.end(); ++it)
             obj_to_instance_set.insert(std::pair(it->first, it->second));
@@ -219,7 +228,7 @@ public:
         for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
             objects_and_instances.emplace_back(it->first, it->second);
 
-        ar(m_plate_index, m_origin, m_width, m_depth, m_height, m_locked, m_ready_for_slice, m_printable, objects_and_instances);
+        ar(m_plate_index, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_printable, m_thumbnail_path, objects_and_instances);
     }
     /*template<class Archive> void serialize(Archive& ar)
     {
@@ -236,10 +245,13 @@ class PartPlateList : public ObjectBase
     Model* m_model; //Model reference, not own it
     PrinterTechnology  printer_technology;
 
-    std::vector <PartPlate*> m_plate_list;
+    std::vector<PartPlate*> m_plate_list;
+    std::map<int, PrintBase*> m_print_list;
+    std::map<int, GCodeResult*> m_gcode_result_list;
     std::mutex m_plates_mutex;
     int m_plate_count;
     int m_current_plate;
+    int m_print_index;
 
     int m_plate_width;
     int m_plate_depth;
@@ -269,7 +281,7 @@ public:
     //this may be happened after machine changed
     void reset_size(int width, int depth, int height);
     //clear all the instances in the plate, but keep the plates
-    void clear();
+    void clear(bool delete_plates = false, bool release_print_list = false);
     //clear all the instances in the plate, and delete the plates, only keep the first default plate
     void reset(bool do_init);
 
@@ -277,8 +289,11 @@ public:
     double plate_stride();
 
     /*basic plate operations*/
-   //create an empty plate and return its index
+    //create an empty plate and return its index
     int create_plate();
+
+    //destroy print which has the index of print_index
+    int destroy_print(int print_index);
 
     //delete a plate by index
     int delete_plate(int index);
@@ -307,6 +322,8 @@ public:
     //lock plate
     int lock_plate(int index, bool state);
 
+    //find plate by print index, return -1 if not found
+    int find_plate_by_print_index(int index);
 
     /*instance related operations*/
     //find instance in which plate, return -1 when not found
@@ -332,7 +349,7 @@ public:
     void postprocess_arrange_polygon(arrangement::ArrangePolygon& arrange_polygon, bool create_new_plate, bool unprintable);
 
     /*rendering related functions*/
-    void render(GLCanvas3D& canvas, bool bottom, float scale_factor);
+    void render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool only_current = false);
     void render_for_picking_pass();
     BoundingBoxf3& get_bounding_box() { return m_bounding_box; }
     int select_plate_by_hover_id(int hover_id);
@@ -344,7 +361,7 @@ public:
 
     /*slice related functions*/
     //update current slice context into backgroud slicing process
-    void update_slice_context_to_current_plate(BackgroundSlicingProcess& process, const DynamicPrintConfig& config);
+    void update_slice_context_to_current_plate(BackgroundSlicingProcess& process);
     //return the current fff print object
     Print& get_current_fff_print() const;
     //return the slice result
@@ -363,7 +380,7 @@ public:
     template<class Archive> void serialize(Archive& ar)
     {
         //ar(cereal::base_class<ObjectBase>(this));
-        ar(m_plate_width, m_plate_depth, m_plate_height, m_plate_count, m_current_plate, m_plate_list, unprintable_plate);
+        ar(m_shape, m_plate_width, m_plate_depth, m_plate_height, m_plate_count, m_current_plate, m_plate_list, unprintable_plate);
         //ar(m_plate_width, m_plate_depth, m_plate_height, m_plate_count, m_current_plate);
     }
 };

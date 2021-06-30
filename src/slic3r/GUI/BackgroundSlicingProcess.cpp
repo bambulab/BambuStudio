@@ -109,18 +109,53 @@ BackgroundSlicingProcess::~BackgroundSlicingProcess()
 	boost::nowide::remove(m_temp_output_path.c_str());
 }
 
+//BBS: switch the print in background slicing process
+bool BackgroundSlicingProcess::switch_print_preprocess()
+{
+	bool result = true;
+
+	/*switch (m_printer_tech) {
+	case ptFFF: m_print = m_fff_print; break;
+	case ptSLA: m_print = m_sla_print; break;
+	default: assert(false); break;
+	}*/
+	return result;
+}
+
+//BBS: judge whether can switch the print
+bool BackgroundSlicingProcess::can_switch_print()
+{
+	bool result = true;
+
+	if (m_state == STATE_RUNNING)
+	{
+		//currently it is on slicing, judge whether the slice result is valid or not
+		//if (m_current_plate->is_slice_result_valid())
+		{
+			result = false;
+			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": slicing plate's plate_id %1%, on slicing, can not switch print") % m_current_plate->get_index();
+		}
+	}
+
+	return result;
+}
+
+//BBS: select the printer technology
 bool BackgroundSlicingProcess::select_technology(PrinterTechnology tech)
 {
 	bool changed = false;
-	if (m_print == nullptr || m_print->technology() != tech) {
+	if (m_printer_tech != tech) {
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": change the printer technology from %1% to %2%") % m_printer_tech % tech;
+		m_printer_tech = tech;
 		if (m_print != nullptr)
 			this->reset();
-		switch (tech) {
-		case ptFFF: m_print = m_fff_print; break;
-		case ptSLA: m_print = m_sla_print; break;
-        default: assert(false); break;
-		}
 		changed = true;
+	}
+
+	switch (tech) {
+	case ptFFF: m_print = m_fff_print; break;
+	case ptSLA: m_print = m_sla_print; break;
+	default: assert(false); break;
 	}
 	assert(m_print != nullptr);
 	return changed;
@@ -128,7 +163,9 @@ bool BackgroundSlicingProcess::select_technology(PrinterTechnology tech)
 
 PrinterTechnology BackgroundSlicingProcess::current_printer_technology() const
 {
-	return m_print->technology();
+	//BBS: as the m_printer is changed frequently when switch plates, use m_printer_tech directly
+	return m_printer_tech;
+	//return m_print->technology();
 }
 
 std::string BackgroundSlicingProcess::output_filepath_for_project(const boost::filesystem::path &project_path)
@@ -461,7 +498,9 @@ bool BackgroundSlicingProcess::reset()
 {
 	bool stopped = this->stop();
 	this->reset_export();
-	m_print->clear();
+	//BBS: don't clear print for print is not owned by background slicing process anymore
+	//do it in the part_plate
+	//m_print->clear();
 	this->invalidate_all_steps();
 	return stopped;
 }

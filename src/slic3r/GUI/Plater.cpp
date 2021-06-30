@@ -1855,7 +1855,7 @@ struct Plater::priv
         UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT = 16,
     };
     // returns bit mask of UpdateBackgroundProcessReturnState
-    unsigned int update_background_process(bool force_validation = false, bool postpone_error_messages = false);
+    unsigned int update_background_process(bool force_validation = false, bool postpone_error_messages = false, bool switch_print = true);
     // Restart background processing thread based on a bitmask of UpdateBackgroundProcessReturnState.
     bool restart_background_process(unsigned int state);
     // returns bit mask of UpdateBackgroundProcessReturnState
@@ -2018,6 +2018,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 {
     this->q->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
+    //BBS: use the first partplate's print for background process
+    partplate_list.update_slice_context_to_current_plate(background_process);
+    /*
     background_process.set_fff_print(&fff_print);
     background_process.set_sla_print(&sla_print);
     background_process.set_gcode_result(&gcode_result);
@@ -2033,7 +2036,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         wxQueueEvent(this->q, new Slic3r::SlicingStatusEvent(EVT_SLICING_UPDATE, 0, status));
     };
     fff_print.set_status_callback(statuscb);
-    sla_print.set_status_callback(statuscb);
+    sla_print.set_status_callback(statuscb); */
+
+    background_process.set_thumbnail_cb([this](const ThumbnailsParams& params) { return this->generate_thumbnails(params); });
+    background_process.set_slicing_completed_event(EVT_SLICING_COMPLETED);
+    background_process.set_finished_event(EVT_PROCESS_COMPLETED);
+    background_process.set_export_began_event(EVT_EXPORT_BEGAN);
     this->q->Bind(EVT_SLICING_UPDATE, &priv::on_slicing_update, this);
 
     view3D = new View3D(q, bed, &model, config, &background_process);
@@ -3137,7 +3145,10 @@ void Plater::priv::schedule_background_process()
 
 void Plater::priv::update_print_volume_state()
 {
-    this->q->model().update_print_volume_state(this->bed.build_volume());
+    //BBS: use the plate's bounding box instead of the bed's
+    PartPlate* pp = partplate_list.get_curr_plate();
+    BuildVolume build_volume(pp->get_shape(), this->bed.build_volume().max_print_height());
+    this->q->model().update_print_volume_state(build_volume);
 }
 
 void Plater::priv::process_validation_warning(const std::string& warning) const
@@ -3176,7 +3187,7 @@ void Plater::priv::process_validation_warning(const std::string& warning) const
 
 // Update background processing thread from the current config and Model.
 // Returns a bitmask of UpdateBackgroundProcessReturnState.
-unsigned int Plater::priv::update_background_process(bool force_validation, bool postpone_error_messages)
+unsigned int Plater::priv::update_background_process(bool force_validation, bool postpone_error_messages, bool switch_print)
 {
     // bitmap of enum UpdateBackgroundProcessReturnState
     unsigned int return_state = 0;
@@ -3188,6 +3199,12 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     update_print_volume_state();
     // Apply new config to the possibly running background task.
     bool               was_running = background_process.running();
+    //BBS: add the switch print logic before Print::Apply
+    if (switch_print)
+    {
+        //BBS: update the current print to the current plate
+        this->partplate_list.update_slice_context_to_current_plate(background_process);
+    }
     Print::ApplyStatus invalidated = background_process.apply(q->model(), wxGetApp().preset_bundle->full_config());
 
     // Just redraw the 3D canvas without reloading the scene to consume the update of the layer height profile.
@@ -3378,8 +3395,16 @@ void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_remova
 
 unsigned int Plater::priv::update_restart_background_process(bool force_update_scene, bool force_update_preview)
 {
+    bool switch_print = true;
+    //BBS: judge whether can switch print or not
+    if ((partplate_list.get_plate_count() > 1) && !this->background_process.can_switch_print())
+    {
+        //can not switch print currently
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": plate count %1%, can not switch") % partplate_list.get_plate_count();
+        switch_print = false;
+    }
     // bitmask of UpdateBackgroundProcessReturnState
-    unsigned int state = this->update_background_process(false);
+    unsigned int state = this->update_background_process(false, false, switch_print);
     if (force_update_scene || (state & UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE) != 0)
         view3D->reload_scene(false);
 
@@ -3946,6 +3971,8 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 
 void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
 {
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": event_type %1%, percent %2%, text %3%") % evt.GetEventType() % evt.status.percent % evt.status.text;
+
     if (evt.status.percent >= -1) {
         if (m_ui_jobs.is_any_running()) {
             // Avoid a race condition
@@ -4005,6 +4032,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
 
 void Plater::priv::on_slicing_completed(wxCommandEvent & evt)
 {
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": event_type %1%, string %2%") % evt.GetEventType() % evt.GetString();
     if (view3D->is_dragging()) // updating scene now would interfere with the gizmo dragging
         delayed_scene_refresh = true;
     else {
@@ -4184,7 +4212,8 @@ void Plater::priv::on_action_add(SimpleEvent&)
 void Plater::priv::on_action_add_plate(SimpleEvent&)
 {
     if (q != nullptr) {
-        q->get_partplate_list().create_plate();
+        take_snapshot(_L("add partplate"));
+        this->partplate_list.create_plate();
     }
 }
 
@@ -4192,8 +4221,13 @@ void Plater::priv::on_action_add_plate(SimpleEvent&)
 void Plater::priv::on_action_del_plate(SimpleEvent&)
 {
     if (q != nullptr) {
-        int index = q->get_partplate_list().get_curr_plate_index();
-        q->get_partplate_list().delete_plate(index);
+        int index = this->partplate_list.get_curr_plate_index();
+
+        take_snapshot(_L("delete partplate"));
+        this->partplate_list.delete_plate(index);
+
+        //BBS: update the current print to the current plate
+        this->partplate_list.update_slice_context_to_current_plate(this->background_process);
 
         //need to call update
         update();

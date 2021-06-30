@@ -919,7 +919,8 @@ private:
     void _render_background() const;
     void _render_bed(bool bottom, bool show_axes);
     void _render_bed_for_picking(bool bottom);
-    void _render_platelist(bool bottom) const;
+    //BBS: add part plate related logic
+    void _render_platelist(bool bottom, bool only_current) const;
     void _render_plates_for_picking() const;
     void _render_objects(GLVolumeCollection::ERenderType type);
     void _render_gcode();

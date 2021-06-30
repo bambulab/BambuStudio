@@ -76,6 +76,9 @@ void PartPlate::init()
 	m_quadric = ::gluNewQuadric();
 	if (m_quadric != nullptr)
 		::gluQuadricDrawStyle(m_quadric, GLU_FILL);
+
+	m_print_index = -1;
+	m_print = nullptr;
 }
 
 bool PartPlate::valid_instance(int obj_id, int instance_id)
@@ -532,13 +535,33 @@ Vec3d PartPlate::get_center_origin()
 	return origin;
 }
 
-Print& PartPlate::get_print()
+//get the print's object, result and index
+void PartPlate::get_print(PrintBase** print, GCodeResult** result, int* index)
+{
+	if (print && (printer_technology == PrinterTechnology::ptFFF))
+		*print = m_print;
+
+	if (result)
+		*result = m_gcode_result;
+
+	if (index)
+		*index = m_print_index;
+
+	return;
+}
+
+//set the print object, result and it's index
+void PartPlate::set_print(PrintBase* print, GCodeResult* result, int index)
 {
 	if (printer_technology == PrinterTechnology::ptFFF)
-		return m_print;
+		m_print = static_cast<Print*>(print);
+	//todo, for other printers
 
-	//todo, use fff print currently
-	return m_print;
+	m_gcode_result = result;
+	if (index >= 0)
+		m_print_index = index;
+
+	return;
 }
 
 /* instance related operations*/
@@ -829,13 +852,21 @@ void PartPlate::update_states()
 	return;
 }
 
-
 /*slice related functions*/
 //update current slice context into backgroud slicing process
-void PartPlate::update_slice_context(BackgroundSlicingProcess & process, const DynamicPrintConfig& config)
+void PartPlate::update_slice_context(BackgroundSlicingProcess & process)
 {
-	process.set_fff_print(&m_print);
-	process.set_gcode_result(&m_gcode_result);
+	auto statuscb = [this](const Slic3r::PrintBase::SlicingStatus& status) {
+		wxQueueEvent(m_plater, new Slic3r::SlicingStatusEvent(EVT_SLICING_UPDATE, 0, status));
+	};
+	process.set_fff_print(m_print);
+	process.set_gcode_result(m_gcode_result);
+	process.select_technology(this->printer_technology);
+	process.set_current_plate(this);
+	m_print->set_status_callback(statuscb);
+	process.switch_print_preprocess();
+
+	return;
 }
 
 //load gcode from file
@@ -850,7 +881,7 @@ void PartPlate::print() const
 {
 	unsigned int count=0;
 
-	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plate index %1%, pointer %2%") % m_plate_index % this;
+	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plate index %1%, pointer %2%, print_index %3% print pointer %4%") % m_plate_index % this % m_print_index % m_print;
 	BOOST_LOG_TRIVIAL(debug) << boost::format("\t origin {%1%,%2%,%3%}, width %4%,  depth %5%, height %6%") % m_origin.x() % m_origin.y() % m_origin.z() % m_width % m_depth % m_height;
 	BOOST_LOG_TRIVIAL(debug) << boost::format("\t m_printable %1%, m_locked %2%, m_ready_for_slice %3%, m_slice_result_valid %4%,  m_thumbnail_path %5%, set size %6%")\
 		% m_printable % m_locked % m_ready_for_slice % m_slice_result_valid % m_thumbnail_path % obj_to_instance_set.size();
@@ -882,7 +913,7 @@ PartPlateList::PartPlateList(Plater* platerObj, Model* modelObj, PrinterTechnolo
 
 PartPlateList::~PartPlateList()
 {
-	clear();
+	clear(true, true);
 }
 
 void PartPlateList::init()
@@ -893,8 +924,19 @@ void PartPlateList::init()
 	first_plate = new PartPlate(Vec3d(0.0, 0.0, 0.0), m_plate_width, m_plate_depth, m_plate_height, m_plater, m_model, true, printer_technology);
 	assert(first_plate != NULL);
 	first_plate->set_index(0);
-
 	m_plate_list.push_back(first_plate);
+
+	m_print_index = 0;
+	if (printer_technology == ptFFF)
+	{
+		Print* print = new Print();
+		GCodeResult* gcode = new GCodeResult();
+		m_print_list.emplace(m_print_index, print);
+		m_gcode_result_list.emplace(m_print_index, gcode);
+		first_plate->set_print(print, gcode, m_print_index);
+		m_print_index++;
+	}
+
 	m_plate_count = 1;
 	m_current_plate = 0;
 	select_plate(m_current_plate);
@@ -954,7 +996,7 @@ void PartPlateList::reset_size(int width, int depth, int height)
 }
 
 //clear all the instances in the plate, but keep the plates
-void PartPlateList::clear()
+void PartPlateList::clear(bool delete_plates, bool release_print_list)
 {
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
@@ -962,6 +1004,34 @@ void PartPlateList::clear()
 		assert(plate != NULL);
 
 		plate->clear();
+		if (delete_plates)
+			delete plate;
+	}
+
+	if (delete_plates)
+	{
+		//also delete print related to the plate
+		m_plate_list.clear();
+	}
+
+	if (release_print_list)
+	{
+		for (std::map<int, PrintBase*>::iterator it = m_print_list.begin(); it != m_print_list.end(); ++it)
+		{
+			PrintBase* print = it->second;
+			assert(print != NULL);
+
+			delete print;
+		}
+		m_print_list.clear();
+		for (std::map<int, GCodeResult*>::iterator it = m_gcode_result_list.begin(); it != m_gcode_result_list.end(); ++it)
+		{
+			GCodeResult* gcode = it->second;
+			assert(gcode != NULL);
+
+			delete gcode;
+		}
+		m_gcode_result_list.clear();
 	}
 
 	unprintable_plate.clear();
@@ -970,9 +1040,9 @@ void PartPlateList::clear()
 //clear all the instances in the plate, and delete the plates, only keep the first default plate
 void PartPlateList::reset(bool do_init)
 {
-	clear();
+	clear(true, false);
 
-	m_plate_list.clear();
+	//m_plate_list.clear();
 
 	if (do_init)
 		init();
@@ -996,6 +1066,16 @@ int PartPlateList::create_plate()
 	plate = new PartPlate(origin, m_plate_width, m_plate_depth, m_plate_height, m_plater, m_model, true, printer_technology);
 	assert(plate != NULL);
 
+	if (printer_technology == ptFFF)
+	{
+		Print* print = new Print();
+		GCodeResult* gcode = new GCodeResult();
+		m_print_list.emplace(m_print_index, print);
+		m_gcode_result_list.emplace(m_print_index, gcode);
+		plate->set_print(print, gcode, m_print_index);
+		m_print_index++;
+	}
+
 	double stride = plate_stride();
 	Vec2d pos = { stride * new_index, 0 };
 	plate->set_shape(m_shape, pos);
@@ -1011,6 +1091,42 @@ int PartPlateList::create_plate()
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":created a new plate %1%") % new_index;
 	return new_index;
+}
+
+//destroy print's objects and results
+int PartPlateList::destroy_print(int print_index)
+{
+	int result = 0;
+
+	if (print_index >= 0)
+	{
+		std::map<int, PrintBase*>::iterator it = m_print_list.find(print_index);
+		if (it != m_print_list.end())
+		{
+			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":delete Print %1% for print_index %2%") % it->second % print_index;
+			delete it->second;
+			m_print_list.erase(it);
+		}
+		else
+		{
+			BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":can not find Print for print_index %1%") % print_index;
+			result = -1;
+		}
+		std::map<int, GCodeResult*>::iterator it2 = m_gcode_result_list.find(print_index);
+		if (it2 != m_gcode_result_list.end())
+		{
+			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":delete GCodeResult %1% for print_index %2%") % it2->second % print_index;
+			delete it2->second;
+			m_gcode_result_list.erase(it2);
+		}
+		else
+		{
+			BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":can not find GCodeResult for print_index %1%") % print_index;
+			result = -1;
+		}
+	}
+
+	return result;
 }
 
 //delete a plate by index
@@ -1047,6 +1163,7 @@ int PartPlateList::delete_plate(int index)
 	m_plate_list.erase(m_plate_list.begin() + index);
 
 	//update the plates after it
+	double stride = plate_stride();
 	for (unsigned int i = index; i < (unsigned int)m_plate_list.size(); ++i)
 	{
 		PartPlate* plate = m_plate_list[i];
@@ -1055,19 +1172,19 @@ int PartPlateList::delete_plate(int index)
 		Vec3d origin = compute_origin(i);
 		plate->set_pos_and_size(origin, m_plate_width, m_plate_depth, m_plate_height, true);
 		plate->set_index(i);
+
+		//update render shapes
+		Vec2d pos = { stride * i, 0.0 };
+		plate->set_shape(m_shape, pos);
 	}
 
-	//update render shapes
-	set_shapes(m_shape);
-
 	//update current_plate if delete current
-	if (m_current_plate == index) {
-		if (index == 0) {
-			select_plate(index + 1);
-		}
-		else {
-			select_plate(index - 1);
-		}
+	if (m_current_plate > index) {
+		select_plate(m_current_plate - 1);
+	}
+	else if (m_current_plate == index) {
+		if (m_current_plate == m_plate_list.size())
+			select_plate(m_current_plate - 1);
 	}
 
 	unprintable_plate.set_index(m_plate_list.size());
@@ -1077,6 +1194,11 @@ int PartPlateList::delete_plate(int index)
 	unprintable_plate.set_pos_and_size(origin2, m_plate_width, m_plate_depth, m_plate_height, true);
 
 	plate->move_instances_to(*(m_plate_list[m_plate_list.size()-1]), unprintable_plate);
+	//destroy the print object
+	int print_index;
+	plate->get_print(nullptr, nullptr, &print_index);
+	destroy_print(print_index);
+
 	delete plate;
 
 	//update bounding_boxes
@@ -1235,6 +1357,25 @@ int PartPlateList::lock_plate(int index, bool state)
 	plate->lock(state);
 
 	return ret;
+}
+
+//find plate by print index, return -1 if not found
+int PartPlateList::find_plate_by_print_index(int print_index)
+{
+	int plate_index = -1;
+
+	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+	{
+		PartPlate* plate = m_plate_list[i];
+
+		if (plate->m_print_index == print_index)
+		{
+			plate_index = i;
+			break;
+		}
+	}
+
+	return plate_index;
 }
 
 /*instance related operations*/
@@ -1556,11 +1697,13 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 
 /*rendering related functions*/
 //render
-void PartPlateList::render(GLCanvas3D& canvas, bool bottom, float scale_factor)
+void PartPlateList::render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool only_current)
 {
 	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
 	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
 	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
+		if (only_current && ((*it)->get_index() != m_current_plate))
+			continue;
 		(*it)->render(canvas, bottom);
 	}
 }
@@ -1630,22 +1773,25 @@ bool PartPlateList::set_shapes(const Pointfs& shape)
 	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
 		Vec2d pos = { stride * std::distance(m_plate_list.begin(), it), 0.0 };
 		(*it)->set_shape(shape, pos);
-		(*it)->set_index(std::distance(m_plate_list.begin(), it));
+		//(*it)->set_index(std::distance(m_plate_list.begin(), it));
 	}
+
+	calc_bounding_boexes();
+
 	return true;
 }
 
 
 /*slice related functions*/
 //update current slice context into backgroud slicing process
-void PartPlateList::update_slice_context_to_current_plate(BackgroundSlicingProcess& process, const DynamicPrintConfig& config)
+void PartPlateList::update_slice_context_to_current_plate(BackgroundSlicingProcess& process)
 {
 	PartPlate* current_plate;
 
 	current_plate = m_plate_list[m_current_plate];
 	assert(current_plate != NULL);
 
-	current_plate->update_slice_context(process, config);
+	current_plate->update_slice_context(process);
 
 	return;
 }
@@ -1654,12 +1800,15 @@ void PartPlateList::update_slice_context_to_current_plate(BackgroundSlicingProce
 Print& PartPlateList::get_current_fff_print() const
 {
 	PartPlate* current_plate;
+	Print* print;
 
 	current_plate = m_plate_list[m_current_plate];
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":m_current_plate %1%, current_plate %2%") % m_current_plate % current_plate;
 	assert(current_plate != NULL);
 
-	return current_plate->get_print();
+	current_plate->get_print((PrintBase **)&print, nullptr, nullptr);
+
+	return *print;
 }
 
 //return the slice result
@@ -1688,20 +1837,68 @@ int PartPlateList::rebuild_plates_after_deserialize()
 	int ret = 0;
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plates count %1%") % m_plate_list.size();
+	set_shapes(m_shape);
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
 		m_plate_list[i]->m_plater = this->m_plater;
 		m_plate_list[i]->m_model = this->m_model;
+		m_plate_list[i]->printer_technology = this->printer_technology;
+
+		std::map<int, PrintBase*>::iterator it = m_print_list.find(m_plate_list[i]->m_print_index);
+		std::map<int, GCodeResult*>::iterator it2 = m_gcode_result_list.find(m_plate_list[i]->m_print_index);
+		if (it != m_print_list.end())
+		{
+			//find it
+			if (it2 == m_gcode_result_list.end())
+			{
+				//should not happen
+				assert(0);
+				BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":can not find gcode result for plate %1%, print index %2%") % i % m_plate_list[i]->m_print_index;
+				m_print_list.erase(it);
+			}
+			else
+			{
+				m_plate_list[i]->set_print(it->second, it2->second, m_plate_list[i]->m_print_index);
+				continue;
+			}
+		}
+
+		//can not find, create a new one
+		Print* print = new Print();
+		GCodeResult* gcode = new GCodeResult();
+		m_print_list.emplace(m_print_index, print);
+		m_gcode_result_list.emplace(m_print_index, gcode);
+		m_plate_list[i]->set_print(print, gcode, m_print_index);
+		m_print_index++;
 	}
 
-	if (m_plate_width == 0)
+	//go through the print list, and delete the one not used by plate
+	std::map<int, PrintBase*>::iterator it = m_print_list.begin();
+	int print_index;
+	while (it != m_print_list.end())
+	{
+		print_index = it->first;
+
+		int plate_index = find_plate_by_print_index(print_index);
+		if (plate_index < 0)
+		{
+			//delete this
+			it = m_print_list.erase(it);
+			m_gcode_result_list.erase(print_index);
+		}
+		else
+			it++;
+	}
+
+	//not used
+	/*if (m_plate_width == 0)
 	{
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": jump to the first init state, need to re-set size!");
 		Vec3d max = m_plater->get_bed().get_bounding_box(false).max;
 		Vec3d min = m_plater->get_bed().get_bounding_box(false).min;
 		double z = m_plater->config()->opt_float("max_print_height");
 		reset_size(max.x() - min.x(), max.y() - min.y(), z);
-	}
+	}*/
 	return ret;
 }
 
@@ -1734,7 +1931,7 @@ int PartPlateList::rebuild_plates_after_arrangement()
 
 void PartPlateList::print() const
 {
-	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format("PartPlateList %1%, m_plate_count %2%, current_plate %3%") % this % m_plate_count % m_current_plate;
+	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format("PartPlateList %1%, m_plate_count %2%, current_plate %3%, print_count %4%, current print index %5%") % this % m_plate_count % m_current_plate % m_print_list.size() % m_print_index;
 	BOOST_LOG_TRIVIAL(debug) << boost::format("m_plate_width %1%, m_plate_depth %2%, m_plate_height %3%, plate count %4%\nplate list:") % m_plate_width % m_plate_depth % m_plate_height % m_plate_list.size();
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{

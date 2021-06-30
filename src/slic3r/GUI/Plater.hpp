@@ -32,7 +32,9 @@ using ModelObjectCutAttributes = enum_bitmask<ModelObjectCutAttribute>;
 class ModelInstance;
 class Print;
 class SLAPrint;
+//BBS: add partplatelist and SlicingStatusEvent
 class PartPlateList;
+class SlicingStatusEvent;
 enum SLAPrintObjectStep : unsigned int;
 enum class ConversionType : int;
 
@@ -64,6 +66,9 @@ using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
 class Plater;
 enum class ActionButtonType : int;
+
+//BBS: add EVT_SLICING_UPDATE declare here
+wxDECLARE_EVENT(EVT_SLICING_UPDATE, Slic3r::SlicingStatusEvent);
 
 class Sidebar : public wxPanel
 {

@@ -14,7 +14,7 @@
 #include "libslic3r/Format/SL1.hpp"
 #include "slic3r/Utils/PrintHost.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
-
+#include "PartPlate.hpp"
 
 namespace boost { namespace filesystem { class path; } }
 
@@ -67,7 +67,8 @@ private:
 	std::exception_ptr 	m_exception;
 };
 
-wxDEFINE_EVENT(EVT_SLICING_UPDATE, SlicingStatusEvent);
+//BBS: move it to plater.hpp
+//wxDEFINE_EVENT(EVT_SLICING_UPDATE, SlicingStatusEvent);
 
 // Print step IDs for keeping track of the print state.
 enum BackgroundSlicingProcessStep {
@@ -87,6 +88,10 @@ public:
     void set_sla_print(SLAPrint *print) { m_sla_print = print; m_sla_print->set_printer(&m_sla_archive); }
 	void set_thumbnail_cb(ThumbnailsGeneratorCallback cb) { m_thumbnail_cb = cb; }
 	void set_gcode_result(GCodeProcessorResult* result) { m_gcode_result = result; }
+
+	bool switch_print_preprocess();
+	bool can_switch_print();
+	void set_current_plate(GUI::PartPlate* plate) { m_current_plate = plate; }
 
 	// The following wxCommandEvent will be sent to the UI thread / Plater window, when the slicing is finished
 	// and the background processing will transition into G-code export.
@@ -253,6 +258,10 @@ private:
     // Only one UI task may be planned by the background thread to be executed on the UI thread, as the background
     // thread is blocking until the UI thread calculation finishes.
     std::shared_ptr<UITask> 	m_ui_task;
+
+	//BBS: partplate related
+	GUI::PartPlate* m_current_plate;
+	PrinterTechnology m_printer_tech = ptUnknown;
 
     PrintState<BackgroundSlicingProcessStep, bspsCount>   	m_step_state;
 	bool                set_step_started(BackgroundSlicingProcessStep step);
