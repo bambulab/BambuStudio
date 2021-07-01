@@ -153,7 +153,12 @@ void PartPlate::render_default(bool bottom) const {
 	if (!bottom) {
 		// draw background
 		glsafe(::glDepthMask(GL_FALSE));
-		glsafe(::glColor4fv(m_model_color.data()));
+		if (m_selected) {
+			glsafe(::glColor4fv(m_model_color.data()));
+		}
+		else {
+			glsafe(::glColor4f(0.235f, 0.235f, 0.235f, 0.8f));
+		}
 		glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
 		glsafe(::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_vertices_data()));
 		glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount));
@@ -777,15 +782,17 @@ void PartPlate::render(GLCanvas3D& canvas, bool bottom, bool with_label) {
 	else
 		render_grabber(render_color, true);
 
-	if (m_hover_id == 1)
-		render_left_arrow(m_grabber_color, true);
-	else
-		render_left_arrow(render_color, true);
+	if (m_selected) {
+		if (m_hover_id == 1)
+			render_left_arrow(m_grabber_color, true);
+		else
+			render_left_arrow(render_color, true);
 
-	if (m_hover_id == 2)
-		render_right_arrow(m_grabber_color, true);
-	else
-		render_right_arrow(render_color, true);
+		if (m_hover_id == 2)
+			render_right_arrow(m_grabber_color, true);
+		else
+			render_right_arrow(render_color, true);
+	}
 
 	if (with_label) {
 		render_label(canvas);
