@@ -793,6 +793,9 @@ static bool reload_configs_update_gui()
 
 PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3r_version, UpdateParams params) const
 {
+	//BBS disable PresetUpdater
+	return R_NOOP;
+
  	if (! p->enabled_config_update) { return R_NOOP; }
 
 	auto updates = p->get_config_updates(old_slic3r_version);
