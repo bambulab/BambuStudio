@@ -448,6 +448,12 @@ public:
         bool  enable_rotation    = false;
     };
 
+    struct OrientSettings
+    {
+        float overhang_angle = 60.f;
+        bool  enable_rotation = false;
+    };
+
 private:
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
@@ -526,6 +532,8 @@ private:
     bool m_tooltip_enabled{ true };
     Slope m_slope;
 
+    OrientSettings m_orient_settings_fff, m_orient_settings_sla;
+
     ArrangeSettings m_arrange_settings_fff, m_arrange_settings_sla,
         m_arrange_settings_fff_seq_print;
 
@@ -551,6 +559,19 @@ private:
     }
 
     ArrangeSettings &get_arrange_settings() { return get_arrange_settings(this); }
+
+    OrientSettings& get_orient_settings()
+    {
+        PrinterTechnology ptech = this->current_printer_technology();
+
+        auto* ptr = &this->m_orient_settings_fff;
+
+        if (ptech == ptSLA) {
+            ptr = &this->m_orient_settings_sla;
+        }
+
+        return *ptr;
+    }
 
     void load_arrange_settings();
 
@@ -945,6 +966,7 @@ private:
     void _render_selection_sidebar_hints() const;
     bool _render_undo_redo_stack(const bool is_undo, float pos_x);
     bool _render_search_list(float pos_x);
+    bool _render_orient_menu(float pos_x);
     bool _render_arrange_menu(float pos_x);
     void _render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, const GLVolumeCollection& volumes, Camera::EType camera_type, int plate_id = -1);
     // render thumbnail using an off-screen framebuffer

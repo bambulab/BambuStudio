@@ -234,7 +234,7 @@ void ArrangeJob::prepare_partplate() {
                 {
                     cont.emplace_back(std::move(ap));
                 }
-                {
+                else{
                     //skip this object due to be locked in plate
                     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%") % oidx % inst_idx;
                 }

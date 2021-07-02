@@ -4102,6 +4102,72 @@ bool GLCanvas3D::_render_search_list(float pos_x)
     return action_taken;
 }
 
+bool GLCanvas3D::_render_orient_menu(float pos_x)
+{
+    ImGuiWrapper* imgui = wxGetApp().imgui();
+
+    auto canvas_w = float(get_canvas_size().get_width());
+    const float x = pos_x * float(wxGetApp().plater()->get_camera().get_zoom()) + 0.5f * canvas_w;
+    imgui->set_next_window_pos(x, m_main_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
+
+    imgui->begin(_L("Auto Orientation options"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+
+    OrientSettings settings = get_orient_settings();
+    OrientSettings& settings_out = get_orient_settings();
+
+    auto& appcfg = wxGetApp().app_config;
+    PrinterTechnology ptech = current_printer_technology();
+
+    bool settings_changed = false;
+    float angle_min = 45.f;
+    std::string angle_key = "overhang_angle", rot_key = "enable_rotation";
+    std::string postfix = "_fff";
+
+    if (ptech == ptSLA) {
+        angle_min = 45.f;
+        postfix = "_sla";
+    }
+    
+
+    angle_key += postfix;
+    rot_key += postfix;
+
+    imgui->text(GUI::format_wxstr(_L("Press %1%left mouse button to enter the exact value"), shortkey_ctrl_prefix()));
+
+    if (imgui->slider_float(_L("Overhang Angle"), &settings.overhang_angle, angle_min, 90.0f, "%5.2f") || angle_min > settings.overhang_angle) {
+        settings.overhang_angle = std::max(angle_min, settings.overhang_angle);
+        settings_out.overhang_angle = settings.overhang_angle;
+        appcfg->set("orient", angle_key, std::to_string(settings_out.overhang_angle));
+        settings_changed = true;
+    }
+
+    if (imgui->checkbox(_L("Enable rotation"), settings.enable_rotation)) {
+        settings_out.enable_rotation = settings.enable_rotation;
+        appcfg->set("orient", rot_key, settings_out.enable_rotation ? "1" : "0");
+        settings_changed = true;
+    }
+
+    ImGui::Separator();
+
+    if (imgui->button(_L("Reset"))) {
+        settings_out = OrientSettings{};
+        settings_out.overhang_angle = 60.f;
+        appcfg->set("orient", angle_key, std::to_string(settings_out.overhang_angle));
+        appcfg->set("orient", rot_key, settings_out.enable_rotation ? "1" : "0");
+        settings_changed = true;
+    }
+
+    ImGui::SameLine();
+
+    if (imgui->button(_L("orient"))) {
+        wxGetApp().plater()->orient();
+    }
+
+    imgui->end();
+
+    return settings_changed;
+}
+
 bool GLCanvas3D::_render_arrange_menu(float pos_x)
 {
     ImGuiWrapper *imgui = wxGetApp().imgui();
@@ -4654,10 +4720,19 @@ bool GLCanvas3D::_init_main_toolbar()
 
     item.name = "orient";
     item.icon_filename = "orient.svg";
-    item.tooltip = _utf8(L("Orient")) + " [O]\n" + _utf8(L("Orient selection")) + " [Shift+O]\n" + _utf8(L("Click right mouse button to show auto-orientation options"));
+    item.tooltip = _utf8(L("Orient")) + " [O]\n"
+        + _utf8(L("Orient selection")) + " [Shift+O]\n"
+        + _utf8(L("Click right mouse button to show auto-orientation options"));
     item.sprite_id++;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ORIENT)); };
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };
+    item.right.toggable = true;  // allow right mouse click
+    item.right.render_callback = [this](float left, float right, float, float) {
+        if (m_canvas != nullptr)
+        {
+            _render_orient_menu(0.5f * (left + right));
+        }
+    };
     if (!m_main_toolbar.add_item(item))
         return false;
 
