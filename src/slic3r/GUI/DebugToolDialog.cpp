@@ -92,6 +92,14 @@ namespace GUI {
                 upgrade_file_list.push_back(firmware);
             }
         }
+        else if (upgrade_module == MODULE_OTA) {
+            if (firmware._Starts_with("ota")) {
+                upgrade_file_list.push_back(firmware);
+            }
+        }
+        else {
+            upgrade_file_list.push_back(firmware);
+        }
     }
 
     DebugToolDialog::DebugToolDialog(wxWindow* parent)
