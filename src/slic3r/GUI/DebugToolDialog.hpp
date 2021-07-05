@@ -69,7 +69,8 @@ namespace Slic3r {
             void add_firmware(std::string firmware);
             void on_device_report_msg(SimpleEvent& evt);
             void on_select_device(wxCommandEvent& evt);
-
+            void on_dropdown_devicelist(wxCommandEvent& evt);
+            void on_select_host(wxCommandEvent& evt);
         protected:
             void on_dpi_changed(const wxRect& suggested_rect) override;
 
@@ -92,6 +93,8 @@ namespace Slic3r {
 
             std::string UPGRADE_URL = "http://upgrade.bbl.com/";
             std::string CURL_FILE = resources_dir() + "/bbl/curl";
+            std::string iot_host_item[2] = { "http://iot.qa.bbl", "http://192.168.0.10:9000" };
+            std::string mqtt_host_item[2] = { "47.100.225.51:1883", "192.168.0.10:1883" };
 
             wxButton* btn_select_device;
             wxButton* btn_refresh_upgrade_list;
@@ -200,6 +203,7 @@ namespace Slic3r {
             wxComboBox* cb_publish_mode;
             wxComboBox* cb_upgrade_firmware;
             wxComboBox* cb_upgrade_mode;
+            wxComboBox* cb_select_host;
 
             std::vector<wxString> upgrade_file_list;
             wxFileDialog* selectGcodeDialog;

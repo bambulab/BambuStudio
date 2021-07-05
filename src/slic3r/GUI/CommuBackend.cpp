@@ -222,11 +222,15 @@ namespace Slic3r {
     }
 
     CommuBackend::CommuBackend()
-        :conn_opt(mqtt::connect_options_builder().clean_session().finalize())
+        :conn_opt(mqtt::connect_options_builder().clean_session().finalize()),
+         MQTT_USERNAME("bbl_mqtt"),
+         MQTT_PASSWORD("emqx@204")
     {
         m_broadcast_client = new DdsClient(BROADCAST_DOMAIN);
         m_broadcast_client->add_sub_topic(TOPIC_BROADCAST_ALIVE, on_alive_msg);
-        m_mqtt_client = NULL;
+        conn_opt.set_user_name(MQTT_USERNAME);
+        conn_opt.set_password(MQTT_PASSWORD);
+        m_mqtt_client = nullptr;
     } 
 
     int CommuBackend::start()

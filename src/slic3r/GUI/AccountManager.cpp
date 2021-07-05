@@ -66,7 +66,7 @@ namespace Slic3r {
             Slic3r::GUI::wxGetApp().show_message_box("Login Failed! msg = " + body);
             }).on_error([&, account](std::string body, std::string error, unsigned status) {
                 BOOST_LOG_TRIVIAL(trace) << "Account = " << account << " Login Failed! error = " << body;
-                Slic3r::GUI::wxGetApp().show_message_box("Login Failed " + body);
+                Slic3r::GUI::wxGetApp().show_message_box("Login Failed " + error);
             }).perform();
         
         return 0;
@@ -170,6 +170,9 @@ namespace Slic3r {
                     BOOST_LOG_TRIVIAL(trace) << "Bind Device " << device_id << "  Conflict!";
                     Slic3r::GUI::wxGetApp().show_message_box("Bind device=" + device_id + " conflict!");
                 }
+                else {
+                    BOOST_LOG_TRIVIAL(trace) << "Bind Device " << device_id << "  Failed! error=" << body;
+                }
             }
             else {
                 BOOST_LOG_TRIVIAL(trace) << "Bind Device " << device_id << "  Failed! error=" << body;
@@ -268,6 +271,12 @@ namespace Slic3r {
                 Slic3r::GUI::wxGetApp().show_message_box("Get bind list failed");
                 }).perform();
                 return 0;
+    }
+
+    void AccountManager::set_host(std::string host_url)
+    {
+        BOOST_LOG_TRIVIAL(trace) << "set host to " << host_url;
+        host = host_url;
     }
 
     std::string AccountManager::_get_query_url()

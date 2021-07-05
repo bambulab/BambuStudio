@@ -109,6 +109,7 @@ public:
     int start();
     int stop();
 
+    void set_mqtt_server(std::string host) { MQTT_SERVER_ADDRESS = host; }
     int connect_mqtt_server(std::string user_id);
     int disconnect_mqtt_server();
     int connect_dds_device(std::string device_id);
@@ -120,6 +121,7 @@ public:
     int subscribe_device_topic(std::string device_id);
     int subscribe_connect_topic(std::string device_id);
     int subscribe_disconnect_topic(std::string device_id);
+   
 
     static std::string get_request_topic(std::string dev_id);
     static std::string get_report_topic(std::string dev_id);
@@ -131,9 +133,12 @@ private:
     const std::string QOS_FILE = resources_dir() + "/bbl/default_qos.xml";
     const std::string TOPIC_BROADCAST_ALIVE = "device/alive";
 
-    const std::string MQTT_SERVER_ADDRESS = "192.168.0.10:1883";
+    //const std::string MQTT_SERVER_ADDRESS = "192.168.0.10:1883";
+    std::string MQTT_SERVER_ADDRESS = "47.100.225.51:1883";
     const int MQTT_QOS = 0;
     const int MQTT_TIMEOUT = 10;
+    mqtt::string_ref MQTT_USERNAME;
+    mqtt::binary_ref MQTT_PASSWORD;
 
     DdsClient *m_broadcast_client;
     std::map<std::string, DdsClient*> m_dds_client;         /* key: device_id */
