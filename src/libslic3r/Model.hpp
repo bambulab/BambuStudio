@@ -14,6 +14,8 @@
 #include "Arrange.hpp"
 #include "CustomGCode.hpp"
 #include "enum_bitmask.hpp"
+//BBS: add bbs 3mf
+#include "format/bbs_3mf.hpp"
 
 #include <map>
 #include <memory>
@@ -1076,14 +1078,15 @@ public:
     };
     using LoadAttributes = enum_bitmask<LoadAttribute>;
 
+    //BBS: add part plate related logic
     static Model read_from_file(
         const std::string& input_file, 
         DynamicPrintConfig* config = nullptr, ConfigSubstitutionContext* config_substitutions = nullptr,
-        LoadAttributes options = LoadAttribute::AddDefaultInstances);
+        LoadAttributes options = LoadAttribute::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr);
     static Model read_from_archive(
         const std::string& input_file, 
         DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions,
-        LoadAttributes options = LoadAttribute::AddDefaultInstances);
+        LoadAttributes options = LoadAttribute::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr);
 
     // Add a new ModelObject to this Model, generate a new ID for this ModelObject.
     ModelObject* add_object();

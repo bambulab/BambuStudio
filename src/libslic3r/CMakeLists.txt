@@ -84,6 +84,8 @@ set(lisbslic3r_sources
     format.hpp
     Format/3mf.cpp
     Format/3mf.hpp
+    Format/bbs_3mf.cpp
+    Format/bbs_3mf.hpp
     Format/AMF.cpp
     Format/AMF.hpp
     Format/OBJ.cpp

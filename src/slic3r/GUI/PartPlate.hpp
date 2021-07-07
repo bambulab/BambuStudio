@@ -9,6 +9,7 @@
 
 #include "libslic3r/ObjectID.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
+#include "libslic3r/Format/bbs_3mf.hpp"
 #include "libslic3r/Slicing.hpp"
 #include "libslic3r/Arrange.hpp"
 #include "Plater.hpp"
@@ -376,6 +377,10 @@ public:
 
     //retruct plates structures after auto-arrangement
     int rebuild_plates_after_arrangement();
+
+    /*load/store releted functions*/
+    int store_to_3mf_structure(PlateDataPtrs& plate_data_list);
+    int load_from_3mf_structure(PlateDataPtrs& plate_data_list);
 
     template<class Archive> void serialize(Archive& ar)
     {

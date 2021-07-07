@@ -1938,6 +1938,59 @@ int PartPlateList::rebuild_plates_after_arrangement()
 	return ret;
 }
 
+int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list)
+{
+	int ret = 0;
+
+	plate_data_list.clear();
+	plate_data_list.reserve(m_plate_list.size());
+	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+	{
+		PlateData* plate_data_item = new PlateData();
+		plate_data_item->locked = m_plate_list[i]->m_locked;
+		plate_data_item->plate_index = m_plate_list[i]->m_plate_index;
+		if (m_plate_list[i]->obj_to_instance_set.size() > 0)
+		{
+			for (std::set<std::pair<int, int>>::iterator it = m_plate_list[i]->obj_to_instance_set.begin(); it != m_plate_list[i]->obj_to_instance_set.end(); ++it)
+				plate_data_item->objects_and_instances.emplace_back(it->first, it->second);
+		}
+		plate_data_list.push_back(plate_data_item);
+	}
+	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":stored %1% plates!") % m_plate_list.size();
+
+	return ret;
+}
+
+int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
+{
+	int ret = 0;
+
+	if (plate_data_list.size() <= 0)
+	{
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":no plates, should not happen!");
+		return -1;
+	}
+	clear(true, true);
+	for (unsigned int i = 0; i < (unsigned int)plate_data_list.size(); ++i)
+	{
+		int index = create_plate();
+		m_plate_list[index]->m_locked = plate_data_list[i]->locked;
+		if (plate_data_list[i]->plate_index != index)
+		{
+			BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":plate index %1% seems invalid, skip it")% plate_data_list[i]->plate_index;
+		}
+		//load object and instance from 3mf
+		//just test for file correct or not, we will rebuild later
+		for (std::vector<std::pair<int, int>>::iterator it = plate_data_list[i]->objects_and_instances.begin(); it != plate_data_list[i]->objects_and_instances.end(); ++it)
+			m_plate_list[index]->obj_to_instance_set.insert(std::pair(it->first, it->second));
+	}
+	print();
+	ret = reload_all_objects();
+	print();
+
+	return ret;
+}
+
 void PartPlateList::print() const
 {
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format("PartPlateList %1%, m_plate_count %2%, current_plate %3%, print_count %4%, current print index %5%") % this % m_plate_count % m_current_plate % m_print_list.size() % m_print_index;

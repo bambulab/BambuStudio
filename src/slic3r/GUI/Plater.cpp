@@ -38,6 +38,7 @@
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Format/AMF.hpp"
 #include "libslic3r/Format/3mf.hpp"
+#include "libslic3r/Format/bbs_3mf.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/SLA/Hollowing.hpp"
@@ -2508,8 +2509,18 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 DynamicPrintConfig config;
                 {
                     DynamicPrintConfig config_loaded;
+
+                    //BBS: add part plate related logic
+                    PlateDataPtrs plate_data;
                     ConfigSubstitutionContext config_substitutions{ ForwardCompatibilitySubstitutionRule::Enable };
-                    model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, only_if(load_config, Model::LoadAttribute::CheckVersion));
+                    model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, only_if(load_config, Model::LoadAttribute::CheckVersion), &plate_data);
+                    if (plate_data.size() > 0)
+                    {
+                        partplate_list.load_from_3mf_structure(plate_data);
+                        partplate_list.update_slice_context_to_current_plate(background_process);
+                        release_PlateData_list(plate_data);
+                    }
+
                     if (load_config && !config_loaded.empty()) {
                         // Based on the printer technology field found in the loaded config, select the base for the config,
                         PrinterTechnology printer_technology = Preset::printer_technology(config_loaded);
@@ -2604,10 +2615,20 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 }
             }
             else {
-                model = Slic3r::Model::read_from_file(path.string(), nullptr, nullptr, only_if(load_config, Model::LoadAttribute::CheckVersion));
+                //BBS: add plate data related logic
+                PlateDataPtrs plate_data;
+
+                model = Slic3r::Model::read_from_file(path.string(), nullptr, nullptr, only_if(load_config, Model::LoadAttribute::CheckVersion), &plate_data);
                 for (auto obj : model.objects)
                     if (obj->name.empty())
                         obj->name = fs::path(obj->input_file).filename().string();
+
+                if (plate_data.size() > 0)
+                {
+                    partplate_list.load_from_3mf_structure(plate_data);
+                    partplate_list.update_slice_context_to_current_plate(background_process);
+                    release_PlateData_list(plate_data);
+                }
             }
         } catch (const ConfigurationError &e) {
             std::string message = GUI::format(_L("Failed loading file \"%1%\" due to an invalid configuration."), filename.string()) + "\n\n" + e.what();
@@ -3764,10 +3785,20 @@ void Plater::priv::reload_from_disk()
         Model new_model;
         try
         {
-            new_model = Model::read_from_file(path, nullptr, nullptr, Model::LoadAttribute::AddDefaultInstances);
+            //BBS: add plate data related logic
+            PlateDataPtrs plate_data;
+
+            new_model = Model::read_from_file(path, nullptr, nullptr, Model::LoadAttribute::AddDefaultInstances, &plate_data);
             for (ModelObject* model_object : new_model.objects) {
                 model_object->center_around_origin();
                 model_object->ensure_on_bed();
+            }
+
+            if (plate_data.size() > 0)
+            {
+                partplate_list.load_from_3mf_structure(plate_data);
+                partplate_list.update_slice_context_to_current_plate(background_process);
+                release_PlateData_list(plate_data);
             }
         }
         catch (std::exception&)
@@ -4438,7 +4469,7 @@ void Plater::priv::on_3dcanvas_mouse_dragging_finished(SimpleEvent&)
 
 void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type)
 {
-    view3D->get_canvas3d()->render_thumbnail(data, w, h, thumbnail_params, camera_type);
+    view3D->get_canvas3d()->render_thumbnail(data, w, h, thumbnail_params, camera_type, 0);
 }
 
 ThumbnailsList Plater::priv::generate_thumbnails(const ThumbnailsParams& params, Camera::EType camera_type)
@@ -6092,7 +6123,11 @@ bool Plater::export_3mf(const boost::filesystem::path& output_path)
     ThumbnailData thumbnail_data;
     ThumbnailsParams thumbnail_params = { {}, false, true, true, true };
     p->generate_thumbnail(thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, thumbnail_params, Camera::EType::Ortho);
-    bool ret = Slic3r::store_3mf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, full_pathnames, &thumbnail_data);
+
+    //BBS: add bbs 3mf logic
+    PlateDataPtrs plate_data_list;
+    p->partplate_list.store_to_3mf_structure(plate_data_list);
+    bool ret = Slic3r::store_bbs_3mf(path_u8.c_str(), &p->model, plate_data_list, export_config ? &cfg : nullptr, full_pathnames, &thumbnail_data);
     if (ret) {
         // Success
 //        p->statusbar()->set_status_text(format_wxstr(_L("3MF file exported to %s"), path));
@@ -6102,6 +6137,8 @@ bool Plater::export_3mf(const boost::filesystem::path& output_path)
         // Failure
 //        p->statusbar()->set_status_text(format_wxstr(_L("Error exporting 3MF file %s"), path));
     }
+
+    release_PlateData_list(plate_data_list);
     return ret;
 }
 
