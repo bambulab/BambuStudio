@@ -38,6 +38,9 @@
 #include <boost/log/sinks/text_file_backend.hpp>
 #include <boost/log/utility/setup/file.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/log/sources/severity_logger.hpp>
+#include <boost/log/sources/record_ostream.hpp>
+#include <boost/log/support/date_time.hpp>
 
 #include <boost/locale.hpp>
 
@@ -240,11 +243,25 @@ std::string debug_out_path(const char *name, ...)
 	return std::string(SLIC3R_DEBUG_OUT_PATH_PREFIX) + std::string(buffer);
 }
 
+namespace logging = boost::log;
+namespace src = boost::log::sources;
+namespace expr = boost::log::expressions;
+namespace keywords = boost::log::keywords;
 void set_log_path_and_level(const std::string& file, unsigned int level)
 {
+	//BBS log file at C:\\Users\\[yourname]\\AppData\\Roaming\\PrusaSlicer-alpha\\[log_filename].log
 	auto full_path = (boost::filesystem::path(g_data_dir) / file).make_preferred();
-	//boost::log::add_file_log("C:\\Users\\86189\\AppData\\Roaming\\PrusaSlicer-alpha\\test.log");
-	g_log_sink = boost::log::add_file_log(full_path.string());
+	g_log_sink = boost::log::add_file_log(
+		keywords::file_name = full_path.string(),
+		keywords::format =
+		(
+			expr::stream
+			<< expr::format_date_time< boost::posix_time::ptime >("TimeStamp", "%Y-%m-%d %H:%M:%S.%f")
+			<< ":" << expr::smessage
+			)
+	);
+	logging::add_common_attributes();
+
 	set_logging_level(level);
 
 	return;
