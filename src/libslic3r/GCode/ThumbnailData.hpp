@@ -19,6 +19,7 @@ struct ThumbnailData
     bool is_valid() const;
 };
 
+//BBS: add plate id into thumbnail render logic
 using ThumbnailsList = std::vector<ThumbnailData>;
 
 struct ThumbnailsParams
@@ -28,6 +29,7 @@ struct ThumbnailsParams
 	bool 			parts_only;
 	bool 			show_bed;
 	bool 			transparent_background;
+    int             plate_id;
 };
 
 typedef std::function<ThumbnailsList(const ThumbnailsParams&)> ThumbnailsGeneratorCallback;

@@ -467,6 +467,10 @@ public:
     // If filename_set is empty, than the path may be a file or directory. If it is a file, then the macro will not be processed.
     std::string                output_filepath(const std::string &path, const std::string &filename_base = std::string()) const;
 
+    //BBS: get/set plate id
+    int get_plate_index() { return m_plate_index; }
+    void set_plate_index(int index) { m_plate_index = index; }
+
 protected:
 	friend class PrintObjectBase;
     friend class BackgroundSlicingProcess;
@@ -493,6 +497,9 @@ protected:
 	Model                                   m_model;
 	DynamicPrintConfig						m_full_print_config;
     PlaceholderParser                       m_placeholder_parser;
+
+    //BBS: add plate id into print base
+    int m_plate_index{ 0 };
 
     // Callback to be evoked regularly to update state of the UI thread.
     status_callback_type                    m_status_callback;

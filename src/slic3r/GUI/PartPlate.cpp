@@ -453,6 +453,8 @@ void PartPlate::set_index(int index)
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plate_id update from %1% to %2%") % m_plate_index % index;
 
 	m_plate_index = index;
+	if (m_print != nullptr)
+		m_print->set_plate_index(index);
 }
 
 void PartPlate::clear()
@@ -926,7 +928,6 @@ void PartPlateList::init()
 	PartPlate* first_plate = NULL;
 	first_plate = new PartPlate(Vec3d(0.0, 0.0, 0.0), m_plate_width, m_plate_depth, m_plate_height, m_plater, m_model, true, printer_technology);
 	assert(first_plate != NULL);
-	first_plate->set_index(0);
 	m_plate_list.push_back(first_plate);
 
 	m_print_index = 0;
@@ -939,6 +940,7 @@ void PartPlateList::init()
 		first_plate->set_print(print, gcode, m_print_index);
 		m_print_index++;
 	}
+	first_plate->set_index(0);
 
 	m_plate_count = 1;
 	m_current_plate = 0;
@@ -1863,11 +1865,13 @@ int PartPlateList::rebuild_plates_after_deserialize()
 				//should not happen
 				assert(0);
 				BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":can not find gcode result for plate %1%, print index %2%") % i % m_plate_list[i]->m_print_index;
+				delete it->second;
 				m_print_list.erase(it);
 			}
 			else
 			{
 				m_plate_list[i]->set_print(it->second, it2->second, m_plate_list[i]->m_print_index);
+				it->second->set_plate_index(i);
 				continue;
 			}
 		}
@@ -1878,12 +1882,14 @@ int PartPlateList::rebuild_plates_after_deserialize()
 		m_print_list.emplace(m_print_index, print);
 		m_gcode_result_list.emplace(m_print_index, gcode);
 		m_plate_list[i]->set_print(print, gcode, m_print_index);
+		print->set_plate_index(i);
 		m_print_index++;
 	}
 
 	//go through the print list, and delete the one not used by plate
 	std::map<int, PrintBase*>::iterator it = m_print_list.begin();
 	int print_index;
+	std::vector<int> delete_list;
 	while (it != m_print_list.end())
 	{
 		print_index = it->first;
@@ -1891,12 +1897,14 @@ int PartPlateList::rebuild_plates_after_deserialize()
 		int plate_index = find_plate_by_print_index(print_index);
 		if (plate_index < 0)
 		{
-			//delete this
-			it = m_print_list.erase(it);
-			m_gcode_result_list.erase(print_index);
+			delete_list.push_back(print_index);
 		}
-		else
-			it++;
+		it++;
+	}
+
+	for (unsigned int index = 0; index < delete_list.size(); index++)
+	{
+		destroy_print(delete_list[index]);
 	}
 
 	//not used

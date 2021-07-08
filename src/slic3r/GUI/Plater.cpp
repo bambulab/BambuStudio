@@ -2022,8 +2022,9 @@ struct Plater::priv
     bool can_scale_to_print_volume() const;
 #endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
 
-    void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type);
-    ThumbnailsList generate_thumbnails(const ThumbnailsParams& params, Camera::EType camera_type);
+    //BBS: add plate_id for thumbnail
+    void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type, int plate_id);
+    ThumbnailsList generate_thumbnails(const ThumbnailsParams& params, Camera::EType camera_type, int plate_id);
 
     void bring_instance_forward() const;
 
@@ -4467,18 +4468,20 @@ void Plater::priv::on_3dcanvas_mouse_dragging_finished(SimpleEvent&)
     partplate_list.reload_all_objects();
 }
 
-void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type)
+//BBS: add plate id for thumbnail generate param
+void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type, int plate_id)
 {
-    view3D->get_canvas3d()->render_thumbnail(data, w, h, thumbnail_params, camera_type, 0);
+    view3D->get_canvas3d()->render_thumbnail(data, w, h, thumbnail_params, camera_type, plate_id);
 }
 
-ThumbnailsList Plater::priv::generate_thumbnails(const ThumbnailsParams& params, Camera::EType camera_type)
+//BBS: add plate id for thumbnail generate param
+ThumbnailsList Plater::priv::generate_thumbnails(const ThumbnailsParams& params, Camera::EType camera_type, int plate_id)
 {
     ThumbnailsList thumbnails;
     for (const Vec2d& size : params.sizes) {
         thumbnails.push_back(ThumbnailData());
         Point isize(size); // round to ints
-        generate_thumbnail(thumbnails.back(), isize.x(), isize.y(), params, camera_type);
+        generate_thumbnail(thumbnails.back(), isize.x(), isize.y(), params, camera_type, plate_id);
         if (!thumbnails.back().is_valid())
             thumbnails.pop_back();
     }
@@ -6120,14 +6123,20 @@ bool Plater::export_3mf(const boost::filesystem::path& output_path)
     const std::string path_u8 = into_u8(path);
     wxBusyCursor wait;
     bool full_pathnames = wxGetApp().app_config->get("export_sources_full_pathnames") == "1";
-    ThumbnailData thumbnail_data;
-    ThumbnailsParams thumbnail_params = { {}, false, true, true, true };
-    p->generate_thumbnail(thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, thumbnail_params, Camera::EType::Ortho);
+
+    //BBS: add plate logic for thumbnail generate
+    std::vector<ThumbnailData*> thumbnails;
+    for (unsigned int i = 0; i < p->partplate_list.get_plate_count(); i++) {
+        ThumbnailData* thumbnail_data = new ThumbnailData();
+        ThumbnailsParams thumbnail_params = { {}, false, true, true, true };
+        p->generate_thumbnail(*thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, thumbnail_params, Camera::EType::Ortho, i);
+        thumbnails.push_back(thumbnail_data);
+    }
 
     //BBS: add bbs 3mf logic
     PlateDataPtrs plate_data_list;
     p->partplate_list.store_to_3mf_structure(plate_data_list);
-    bool ret = Slic3r::store_bbs_3mf(path_u8.c_str(), &p->model, plate_data_list, export_config ? &cfg : nullptr, full_pathnames, &thumbnail_data);
+    bool ret = Slic3r::store_bbs_3mf(path_u8.c_str(), &p->model, plate_data_list, export_config ? &cfg : nullptr, full_pathnames, thumbnails);
     if (ret) {
         // Success
 //        p->statusbar()->set_status_text(format_wxstr(_L("3MF file exported to %s"), path));
@@ -6139,6 +6148,11 @@ bool Plater::export_3mf(const boost::filesystem::path& output_path)
     }
 
     release_PlateData_list(plate_data_list);
+    for (unsigned int i = 0; i < thumbnails.size(); i++)
+    {
+        delete thumbnails[i];
+    }
+    thumbnails.clear();
     return ret;
 }
 

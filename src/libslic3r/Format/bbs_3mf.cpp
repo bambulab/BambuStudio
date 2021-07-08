@@ -56,7 +56,7 @@ const std::string MODEL_EXTENSION = ".model";
 const std::string MODEL_FILE = "3D/3dmodel.model"; // << this is the only format of the string which works with CURA
 const std::string CONTENT_TYPES_FILE = "[Content_Types].xml";
 const std::string RELATIONSHIPS_FILE = "_rels/.rels";
-const std::string THUMBNAIL_FILE = "Metadata/thumbnail.png";
+const std::string THUMBNAIL_FILE = "Metadata/thumbnail";
 const std::string PRINT_CONFIG_FILE = "Metadata/Slic3r_PE.config";
 const std::string MODEL_CONFIG_FILE = "Metadata/Slic3r_PE_model.config";
 const std::string LAYER_HEIGHTS_PROFILE_FILE = "Metadata/Slic3r_PE_layer_heights_profile.txt";
@@ -2179,13 +2179,13 @@ namespace Slic3r {
 
     public:
         //BBS: add plate data related logic
-        bool save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const ThumbnailData* thumbnail_data, bool zip64);
+        bool save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64);
 
     private:
         //BBS: add plate data related logic
-        bool _save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, const ThumbnailData* thumbnail_data);
+        bool _save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, const std::vector<ThumbnailData*>& thumbnail_data);
         bool _add_content_types_file_to_archive(mz_zip_archive& archive);
-        bool _add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data);
+        bool _add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data, int index);
         bool _add_relationships_file_to_archive(mz_zip_archive& archive);
         bool _add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data);
         bool _add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int& object_id, ModelObject& object, BuildItemsList& build_items, VolumeToOffsetsMap& volumes_offsets);
@@ -2215,7 +2215,7 @@ namespace Slic3r {
     };
 
     //BBS: add plate data related logic
-    bool _BBS_3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const ThumbnailData* thumbnail_data, bool zip64)
+    bool _BBS_3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64)
     {
         clear_errors();
         m_fullpath_sources = fullpath_sources;
@@ -2224,7 +2224,7 @@ namespace Slic3r {
     }
 
     //BBS: add plate data related logic
-    bool _BBS_3MF_Exporter::_save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, const ThumbnailData* thumbnail_data)
+    bool _BBS_3MF_Exporter::_save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, const std::vector<ThumbnailData*>& thumbnail_data)
     {
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
@@ -2242,12 +2242,19 @@ namespace Slic3r {
             return false;
         }
 
-        if (thumbnail_data != nullptr && thumbnail_data->is_valid()) {
+        //BBS: add thumbnail for each plate
+        if (thumbnail_data.size()>0) {
             // Adds the file Metadata/thumbnail.png.
-            if (!_add_thumbnail_file_to_archive(archive, *thumbnail_data)) {
-                close_zip_writer(&archive);
-                boost::filesystem::remove(filename);
-                return false;
+            for (unsigned int index = 0; index < thumbnail_data.size(); index++)
+            {
+                if (thumbnail_data[index]->is_valid())
+                {
+                    if (!_add_thumbnail_file_to_archive(archive, *thumbnail_data[index], index)) {
+                        close_zip_writer(&archive);
+                        boost::filesystem::remove(filename);
+                        return false;
+                    }
+                }
             }
         }
 
@@ -2363,14 +2370,16 @@ namespace Slic3r {
         return true;
     }
 
-    bool _BBS_3MF_Exporter::_add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data)
+    bool _BBS_3MF_Exporter::_add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data, int index)
     {
         bool res = false;
 
         size_t png_size = 0;
         void* png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)thumbnail_data.pixels.data(), thumbnail_data.width, thumbnail_data.height, 4, &png_size, MZ_DEFAULT_LEVEL, 1);
         if (png_data != nullptr) {
-            res = mz_zip_writer_add_mem(&archive, THUMBNAIL_FILE.c_str(), (const void*)png_data, png_size, MZ_DEFAULT_COMPRESSION);
+            std::string thumbnail_name = THUMBNAIL_FILE;
+            thumbnail_name  = thumbnail_name + std::to_string(index) + ".png";
+            res = mz_zip_writer_add_mem(&archive, thumbnail_name.c_str(), (const void*)png_data, png_size, MZ_DEFAULT_COMPRESSION);
             mz_free(png_data);
         }
 
@@ -3161,7 +3170,7 @@ bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstituti
 }
 
 //BBS: add plate data list related logic
-bool store_bbs_3mf(const char* path, Model* model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const ThumbnailData* thumbnail_data, bool zip64)
+bool store_bbs_3mf(const char* path, Model* model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64)
 {
     if (path == nullptr || model == nullptr)
         return false;
