@@ -1094,16 +1094,36 @@ wxMenu* MenuFactory::plate_menu()
 
     wxMenuItem* menu_item_locked = append_menu_check_item(menu, wxID_ANY, _L("Locked"), "",
         [](wxCommandEvent&) {
-            //TODO
+            PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
+            assert(plate);
+            bool lock = plate->is_locked();
+            plate->lock(!lock);
         }, menu);
 
     m_parent->Bind(wxEVT_UPDATE_UI, [](wxUpdateUIEvent& evt) {
-        //TODO
-        bool check = false;
+        PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
+        assert(plate);
+        bool check = plate->is_locked();
         evt.Check(check);
         plater()->set_current_canvas_as_dirty();
 
         }, menu_item_locked->GetId());
+
+    menu->AppendSeparator();
+
+    append_menu_item(menu, wxID_ANY, _L("Arrange"), _L("arrange current plate"),
+        [](wxCommandEvent&) {
+            PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
+            assert(plate);
+            //BBS TODO call arrange for current plate
+        }, "", nullptr, [this]() {return true; }, q);
+
+    append_menu_item(menu, wxID_ANY, _L("Auto Rotate"), _L("auto rorate current plate"),
+        [](wxCommandEvent&) {
+            PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
+            assert(plate);
+            //BBS TODO call auto rotate for current plate
+        }, "", nullptr, [this]() {return true; }, q);
     return menu;
 }
 

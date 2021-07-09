@@ -1188,12 +1188,11 @@ int PartPlateList::delete_plate(int index)
 	}
 
 	//update current_plate if delete current
-	if (m_current_plate > index) {
-		select_plate(m_current_plate - 1);
+	if (m_current_plate == index && index == 0) {
+		select_plate(0);
 	}
-	else if (m_current_plate == index) {
-		if (m_current_plate == m_plate_list.size())
-			select_plate(m_current_plate - 1);
+	else if (m_current_plate >= index) {
+		select_plate(m_current_plate - 1);
 	}
 
 	unprintable_plate.set_index(m_plate_list.size());

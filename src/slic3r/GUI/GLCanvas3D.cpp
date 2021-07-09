@@ -885,6 +885,7 @@ void GLCanvas3D::SequentialPrintClearance::render()
 
 wxDEFINE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_PLATE_SELECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, RBtnEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_PLATE_RIGHT_CLICK, RBtnPlateEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
@@ -3125,7 +3126,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
         }
         else {
-            // Select plate in this 3D canvas.
+            //BBS Select plate in this 3D canvas.
             if (m_picking_enabled && !m_hover_plate_idxs.empty() && evt.LeftDown()) {
                 int hover_idx = m_hover_plate_idxs.front();
                 wxGetApp().plater()->get_partplate_list().select_plate_by_hover_id(hover_idx);
@@ -3342,12 +3343,23 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     render();
                 }
             }
+
+            //BBS change plate selection
+            if (!m_hover_plate_idxs.empty()) {
+                int hover_idx = m_hover_plate_idxs.front();
+                wxGetApp().plater()->get_partplate_list().select_plate_by_hover_id(hover_idx);
+                post_event(SimpleEvent(EVT_GLCANVAS_PLATE_SELECT));
+                render();
+            }
+
             Vec2d logical_pos = pos.cast<double>();
 #if ENABLE_RETINA_GL
             const float factor = m_retina_helper->get_scale_factor();
             logical_pos = logical_pos.cwiseQuotient(Vec2d(factor, factor));
 #endif // ENABLE_RETINA_GL
+
             if (!m_mouse.dragging) {
+                //BBS post right click event
                 if (!m_hover_plate_idxs.empty()) {
                     post_event(RBtnPlateEvent(EVT_GLCANVAS_PLATE_RIGHT_CLICK, { logical_pos, m_hover_plate_idxs.front() }));
                 }
@@ -4292,10 +4304,11 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const
 
     glsafe(::glDisable(GL_DEPTH_TEST));
 
-    if (thumbnail_params.show_bed)
-        _render_bed(!camera.is_looking_downward(), false);
-
-    if (plate_idx >= 0) {
+    if (plate_idx < 0) {
+        if (thumbnail_params.show_bed)
+            _render_bed(!camera.is_looking_downward(), false);
+    }
+    else {
         plate->render(const_cast<GLCanvas3D&>(*this), false, false);
     }
 
