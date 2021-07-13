@@ -1441,10 +1441,22 @@ void MainFrame::init_menubar_as_editor()
 #endif // __APPLE__
     }
 
+    /* BBS add menu */
     // Debug menu
     auto debugMenu = new wxMenu();
     append_menu_item(debugMenu, wxID_ANY, _L("Debug Tool"), _L("Display the Debug Tool"),
         [this](wxCommandEvent&) { m_debug_tool_dlg->Show(); }, "upload_queue", nullptr, []() {return true; }, this);
+
+    // Model Website
+    auto modelWebSiteMenu = new wxMenu();
+    append_menu_item(modelWebSiteMenu, wxID_ANY, _L("Model WebSite"), _L("Browser Models in BBL WebSite"),
+        [](wxCommandEvent&) { wxLaunchDefaultBrowser("https://www.thingiverse.com/"); });
+
+    auto accountMenu = new wxMenu();
+    append_menu_item(accountMenu, wxID_ANY, _L("Account"), _L("Login with your Account"),
+        [](wxCommandEvent&) {
+            // show login dialog
+            ; });
 
 
     // Help menu
@@ -1458,9 +1470,12 @@ void MainFrame::init_menubar_as_editor()
     if (editMenu) m_menubar->Append(editMenu, _L("&Edit"));
     m_menubar->Append(windowMenu, _L("&Window"));
     if (viewMenu) m_menubar->Append(viewMenu, _L("&View"));
+    wxGetApp().add_config_menu(m_menubar);
+
     // Add additional menus from C++
     if (debugMenu) m_menubar->Append(debugMenu, _L("&Debug"));
-    wxGetApp().add_config_menu(m_menubar);
+    if (modelWebSiteMenu) m_menubar->Append(modelWebSiteMenu, _L("&Model's Site"));
+    if (accountMenu) m_menubar->Append(accountMenu, _L("&Account"));
     m_menubar->Append(helpMenu, _L("&Help"));
 
 #ifdef _MSW_DARK_MODE
@@ -2050,6 +2065,7 @@ void MainFrame::on_presets_changed(SimpleEvent &event)
         }
 
         m_plater->on_config_change(*tab->get_config());
+
         m_plater->sidebar().update_presets(preset_type);
     }
 }
