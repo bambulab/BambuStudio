@@ -134,6 +134,9 @@ public:
         GCodeProcessorResult* gcode_result, std::function<void()> schedule_background_process = []() {});
     virtual ~Preview();
 
+    //BBS: update gcode_result
+    void update_gcode_result(GCodeProcessor::Result* gcode_result);
+
     wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }
     GLCanvas3D* get_canvas3d() { return m_canvas; }
 
