@@ -1443,7 +1443,9 @@ void Sidebar::update_sliced_info_sizer()
         }
         else
         {
-            const PrintStatistics& ps = p->plater->fff_print().print_statistics();
+            //BBS: use current plater's print statistics
+            //const PrintStatistics& ps = p->plater->fff_print().print_statistics();
+            const PrintStatistics& ps = p->plater->get_partplate_list().get_current_fff_print().print_statistics();
             const bool is_wipe_tower = ps.total_wipe_tower_filament > 0;
 
             bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
@@ -1721,6 +1723,9 @@ struct Plater::priv
     Camera camera;
     //BBS: partplate related structure
     PartPlateList partplate_list;
+    //BBS: add a flag to ignore cancel event
+    bool m_ignore_event{ false };
+
 #if ENABLE_ENVIRONMENT_MAP
     GLTexture environment_texture;
 #endif // ENABLE_ENVIRONMENT_MAP
@@ -3331,6 +3336,8 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     //BBS: add the switch print logic before Print::Apply
     if (switch_print)
     {
+        // Update the "out of print bed" state of ModelInstances.
+        this->update_print_volume_state();
         //BBS: update the current print to the current plate
         this->partplate_list.update_slice_context_to_current_plate(background_process);
         this->preview->update_gcode_result(partplate_list.get_current_slice_result());
@@ -3348,6 +3355,8 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         // Some previously calculated data on the Print was invalidated.
         // Hide the slicing results, as the current slicing status is no more valid.
         sidebar->show_sliced_info_sizer(false);
+        //BBS: update current plater's slicer result to invalid
+        this->background_process.get_current_plate()->update_slice_result_valid_state(false);
         // Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
         // Otherwise they will be just refreshed.
         if (preview != nullptr) {
@@ -4255,6 +4264,14 @@ bool Plater::priv::warnings_dialog()
 }
 void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
 {
+    //BBS:ignore cancel event for some special case
+    if (m_ignore_event)
+    {
+        m_ignore_event = false;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":ignore this event %1%") % evt.status();
+        return;
+    }
+
     // Stop the background task, wait until the thread goes into the "Idle" state.
     // At this point of time the thread should be either finished or canceled,
     // so the following call just confirms, that the produced data were consumed.
@@ -4295,6 +4312,15 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         this->notification_manager->set_slicing_progress_canceled(_utf8("Slicing Cancelled."));
     }
 
+    //BBS: update the action button according to the current plate's status
+    bool ready_to_slice = !this->partplate_list.get_curr_plate()->is_slice_result_valid();
+
+    if (!ready_to_slice)
+        this->sidebar->show_sliced_info_sizer(evt.success());
+
+    //BBS: set the current plater's slice result to valid
+    this->background_process.get_current_plate()->update_slice_result_valid_state(evt.success());
+
     this->sidebar->show_sliced_info_sizer(evt.success());
 
     // This updates the "Slice now", "Export G-code", "Arrange" buttons status.
@@ -4317,8 +4343,9 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
             sidebar->set_btn_label(ActionButtonType::abReslice, "Slice now");
         show_action_buttons(true);
     } else {
-        if(wxGetApp().get_mode() == comSimple) {
-            show_action_buttons(false);
+        if((ready_to_slice) || (wxGetApp().get_mode() == comSimple)) {
+            //this means the current plate is not the slicing plate
+            show_action_buttons(ready_to_slice);
         }
         if (exporting_status != ExportingStatus::NOT_EXPORTING && !has_error) {
             notification_manager->stop_delayed_notifications_of_type(NotificationType::ExportOngoing);
@@ -4326,7 +4353,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         }
         // If writing to removable drive was scheduled, show notification with eject button
         if (exporting_status == ExportingStatus::EXPORTING_TO_REMOVABLE && !has_error) {
-            show_action_buttons(false);
+            show_action_buttons(ready_to_slice);
             notification_manager->push_exporting_finished_notification(last_output_path, last_output_dir_path,
                 // Don't offer the "Eject" button on ChromeOS, the Linux side has no control over it.
                 platform_flavor() != PlatformFlavor::LinuxOnChromium);
@@ -6246,6 +6273,19 @@ void Plater::reslice()
                 object->sla_points_status = sla::PointsStatus::Generating;
     }
 
+    //BBS: stop the slicing on previous plate and restart the slicing on current plate
+    if ((p->partplate_list.get_plate_count() > 1) && !p->background_process.can_switch_print())
+    {
+        //on slicing currently, need to judge whether it is the current plater or not
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": plate count %1%, current plate %2%, slicing plate %3%") % p->partplate_list.get_plate_count() % p->partplate_list.get_curr_plate_index() % p->background_process.get_current_plate()->get_index();
+        if (p->partplate_list.get_curr_plate_index() != p->background_process.get_current_plate()->get_index())
+        {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": stop slicing for plate %1%") % p->background_process.get_current_plate()->get_index();
+            p->background_process.stop();
+            p->m_ignore_event = true;
+        }
+    }
+
     //FIXME Don't reslice if export of G-code or sending to OctoPrint is running.
     // bitmask of UpdateBackgroundProcessReturnState
     unsigned int state = this->p->update_background_process(true);
@@ -6510,6 +6550,8 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             p->sidebar->show_sliced_info_sizer(false);
             p->reset_gcode_toolpaths();
             p->view3D->get_canvas3d()->reset_sequential_print_clearance();
+            //BBS: invalid all the slice results
+            p->partplate_list.invalid_all_slice_result();
         }
         else if (opt_key == "bed_shape" || opt_key == "bed_custom_texture" || opt_key == "bed_custom_model") {
             bed_shape_changed = true;
@@ -6981,6 +7023,104 @@ Camera& Plater::get_camera()
 PartPlateList& Plater::get_partplate_list()
 {
     return p->partplate_list;
+}
+
+//BBS: select Plate
+int Plater::select_plate(int plate_index)
+{
+    int ret;
+
+    ret = p->partplate_list.select_plate(plate_index);
+
+    if ((!ret) && (p->background_process.can_switch_print()))
+    {
+        //select successfully
+        p->partplate_list.update_slice_context_to_current_plate(p->background_process);
+        p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
+        p->update_print_volume_state();
+
+        refresh_print();
+
+        PartPlate* part_plate = p->partplate_list.get_curr_plate();
+        bool result_valid = part_plate->is_slice_result_valid();
+
+        if (result_valid)
+        {
+            PrintBase* print;
+
+            part_plate->get_print(&print, NULL, NULL);
+            //apply the current plate's print
+            Print::ApplyStatus invalidated = print->apply(this->model(), wxGetApp().preset_bundle->full_config());
+
+            if (invalidated & PrintBase::APPLY_STATUS_INVALIDATED)
+            {
+                part_plate->update_slice_result_valid_state(false);
+                p->sidebar->show_sliced_info_sizer(false);
+                p->show_action_buttons(true);
+            }
+            else
+            {
+                p->sidebar->show_sliced_info_sizer(true);
+                p->show_action_buttons(false);
+            }
+        }
+        else
+        {
+            p->sidebar->show_sliced_info_sizer(false);
+            p->show_action_buttons(true);
+        }
+    }
+
+    return ret;
+}
+
+//BBS: select Plate by hover_id
+int Plater::select_plate_by_hover_id(int hover_id)
+{
+    int ret;
+
+    ret = p->partplate_list.select_plate_by_hover_id(hover_id);
+
+    if ((!ret) && (p->background_process.can_switch_print()))
+    {
+        //select successfully
+        p->partplate_list.update_slice_context_to_current_plate(p->background_process);
+        p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
+        p->update_print_volume_state();
+
+        refresh_print();
+
+        PartPlate* part_plate = p->partplate_list.get_curr_plate();
+        bool result_valid = part_plate->is_slice_result_valid();
+
+        if (result_valid)
+        {
+            PrintBase* print;
+
+            part_plate->get_print(&print, NULL, NULL);
+            //apply the current plate's print
+            Print::ApplyStatus invalidated = print->apply(this->model(), wxGetApp().preset_bundle->full_config());
+
+            if (invalidated & PrintBase::APPLY_STATUS_INVALIDATED)
+            {
+                part_plate->update_slice_result_valid_state(false);
+                p->sidebar->show_sliced_info_sizer(false);
+                p->show_action_buttons(true);
+            }
+            else
+            {
+                p->sidebar->show_sliced_info_sizer(true);
+                p->show_action_buttons(false);
+            }
+        }
+        else
+        {
+            p->sidebar->show_sliced_info_sizer(false);
+            p->show_action_buttons(true);
+        }
+    }
+
+    return ret;
 }
 
 #if ENABLE_ENVIRONMENT_MAP

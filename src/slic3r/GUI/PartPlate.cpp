@@ -39,6 +39,7 @@ static const float GROUND_Z = -0.01f;
 static const float GRABBER_X_FACTOR = 0.20f;
 static const float GRABBER_Y_FACTOR = 0.03f;
 static const float GRABBER_Z_VALUE = 0.5f;
+static unsigned int GLOBAL_PLATE_INDEX = 0;
 
 namespace Slic3r {
 namespace GUI {
@@ -64,6 +65,8 @@ PartPlate::~PartPlate()
 	if (m_quadric != nullptr)
 		::gluDeleteQuadric(m_quadric);
 	release_opengl_resource();
+
+	boost::nowide::remove(m_tmp_gcode_path.c_str());
 }
 
 void PartPlate::init()
@@ -79,6 +82,12 @@ void PartPlate::init()
 
 	m_print_index = -1;
 	m_print = nullptr;
+
+	boost::filesystem::path temp_path(wxStandardPaths::Get().GetTempDir().utf8_str().data());
+	temp_path /= (boost::format(".%1%.%2%.gcode") % get_current_pid() % GLOBAL_PLATE_INDEX).str() ;
+	m_tmp_gcode_path = temp_path.string();
+
+	GLOBAL_PLATE_INDEX++;
 }
 
 bool PartPlate::valid_instance(int obj_id, int instance_id)
@@ -890,7 +899,7 @@ void PartPlate::print() const
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plate index %1%, pointer %2%, print_index %3% print pointer %4%") % m_plate_index % this % m_print_index % m_print;
 	BOOST_LOG_TRIVIAL(debug) << boost::format("\t origin {%1%,%2%,%3%}, width %4%,  depth %5%, height %6%") % m_origin.x() % m_origin.y() % m_origin.z() % m_width % m_depth % m_height;
 	BOOST_LOG_TRIVIAL(debug) << boost::format("\t m_printable %1%, m_locked %2%, m_ready_for_slice %3%, m_slice_result_valid %4%,  m_thumbnail_path %5%, set size %6%")\
-		% m_printable % m_locked % m_ready_for_slice % m_slice_result_valid % m_thumbnail_path % obj_to_instance_set.size();
+		% m_printable % m_locked % m_ready_for_slice % m_slice_result_valid % m_tmp_gcode_path % obj_to_instance_set.size();
 	for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it) {
 		int obj_id = it->first;
 		int instance_id = it->second;
@@ -1831,6 +1840,18 @@ GCodeProcessor::Result* PartPlateList::get_current_slice_result() const
 	assert(current_plate != NULL);
 
 	return current_plate->get_slice_result();
+}
+
+//invalid all the plater's slice result
+void PartPlateList::invalid_all_slice_result()
+{
+	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plates count %1%") % m_plate_list.size();
+	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+	{
+		m_plate_list[i]->update_slice_result_valid_state(false);
+	}
+
+	return;
 }
 
 //will create a plate and load gcode, return the plate index

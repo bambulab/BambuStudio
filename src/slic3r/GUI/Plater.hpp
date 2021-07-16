@@ -353,8 +353,12 @@ public:
     const Camera& get_camera() const;
     Camera& get_camera();
 
-    //partplate list related functions
+    //BBS: partplate list related functions
     PartPlateList& get_partplate_list();
+    //BBS: select the plate by index
+    int select_plate(int plate_index);
+    //BBS: select the plate by hover_id
+    int select_plate_by_hover_id(int hover_id);
 
 #if ENABLE_ENVIRONMENT_MAP
     void init_environment_texture();

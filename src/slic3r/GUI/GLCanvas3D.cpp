@@ -3129,7 +3129,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             //BBS Select plate in this 3D canvas.
             if (m_picking_enabled && !m_hover_plate_idxs.empty() && evt.LeftDown()) {
                 int hover_idx = m_hover_plate_idxs.front();
-                wxGetApp().plater()->get_partplate_list().select_plate_by_hover_id(hover_idx);
+                wxGetApp().plater()->select_plate_by_hover_id(hover_idx);
                 wxGetApp().plater()->get_partplate_list().select_plate_view();
             }
 

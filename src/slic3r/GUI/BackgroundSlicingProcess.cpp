@@ -97,16 +97,20 @@ std::pair<std::string, bool> SlicingProcessCompletedEvent::format_error_message(
 
 BackgroundSlicingProcess::BackgroundSlicingProcess()
 {
+	//BBS: move this logic to part plate
+#if 0
     boost::filesystem::path temp_path(wxStandardPaths::Get().GetTempDir().utf8_str().data());
     temp_path /= (boost::format(".%1%.gcode") % get_current_pid()).str();
 	m_temp_output_path = temp_path.string();
+#endif
 }
 
 BackgroundSlicingProcess::~BackgroundSlicingProcess() 
 { 
 	this->stop();
 	this->join_background_thread();
-	boost::nowide::remove(m_temp_output_path.c_str());
+	//BBS: move this logic to part plate
+	//boost::nowide::remove(m_temp_output_path.c_str());
 }
 
 //BBS: switch the print in background slicing process
@@ -187,6 +191,9 @@ void BackgroundSlicingProcess::process_fff()
 	// Passing the timestamp 
 	evt.SetInt((int)(m_fff_print->step_state_with_timestamp(PrintStep::psSlicingFinished).timestamp));
 	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
+	//BBS: add plate index into render params
+	m_temp_output_path = this->get_current_plate()->get_tmp_gcode_path();
+
 	m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
 	if (this->set_step_started(bspsGCodeFinalize)) {
 	    if (! m_export_path.empty()) {

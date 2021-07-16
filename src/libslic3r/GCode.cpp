@@ -822,12 +822,16 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
         // set the filename to the correct value
         result->filename = path;
     }
-    BOOST_LOG_TRIVIAL(debug) << "Finished processing gcode, " << log_memory_info();
+    
+    //BBS: add some log for error output
+    BOOST_LOG_TRIVIAL(debug) << boost::format("Finished processing gcode to %1% ") % path_tmp;
 
-    if (rename_file(path_tmp, path))
+    std::error_code ret = rename_file(path_tmp, path);
+    if (ret) {
         throw Slic3r::RuntimeError(
-            std::string("Failed to rename the output G-code file from ") + path_tmp + " to " + path + '\n' +
+            std::string("Failed to rename the output G-code file from ") + path_tmp + " to " + path + '\n' + "error code " + ret.message() + '\n' +
             "Is " + path_tmp + " locked?" + '\n');
+    }
 
     BOOST_LOG_TRIVIAL(info) << "Exporting G-code finished" << log_memory_info();
     print->set_done(psGCodeExport);

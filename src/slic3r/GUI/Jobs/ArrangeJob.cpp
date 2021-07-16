@@ -259,7 +259,7 @@ void ArrangeJob::prepare_partplate() {
 
 void ArrangeJob::prepare()
 {
-    int state = wxGetApp().plater()->get_prepare_state();
+    int state = m_plater->get_prepare_state();
     if (state == Job::JobPrepareState::PREPARE_STATE_DEFAULT) {
         wxGetKeyState(WXK_SHIFT) ? prepare_selected() : prepare_all();
     }

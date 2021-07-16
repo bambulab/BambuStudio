@@ -92,6 +92,7 @@ public:
 	bool switch_print_preprocess();
 	bool can_switch_print();
 	void set_current_plate(GUI::PartPlate* plate) { m_current_plate = plate; }
+	GUI::PartPlate* get_current_plate() { return m_current_plate; }
 
 	// The following wxCommandEvent will be sent to the UI thread / Plater window, when the slicing is finished
 	// and the background processing will transition into G-code export.
@@ -176,6 +177,10 @@ public:
     // This "finished" flag does not account for the final export of the output file (.gcode or zipped PNGs),
     // and it does not account for the OctoPrint scheduling.
     bool    finished() const { return m_print->finished(); }
+
+    //BBS: add Plater to friend class
+    //need to call stop_internal in ui thread
+    friend class GUI::Plater;
     
 private:
 	void 	thread_proc();
