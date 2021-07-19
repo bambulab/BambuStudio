@@ -530,6 +530,10 @@ void PartPlate::set_pos_and_size(Vec3d& origin, int width, int depth, int height
 	{
 		clear();
 	}
+
+    if (m_print)
+        m_print->set_plate_origin(origin);
+
 	m_origin = origin;
 	m_width = width;
 	m_depth = depth;
@@ -575,6 +579,8 @@ void PartPlate::set_print(PrintBase* print, GCodeResult* result, int index)
 	m_gcode_result = result;
 	if (index >= 0)
 		m_print_index = index;
+
+	m_print->set_plate_origin(m_origin);
 
 	return;
 }

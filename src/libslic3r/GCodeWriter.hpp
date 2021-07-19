@@ -69,6 +69,9 @@ public:
     std::string unlift();
     Vec3d       get_position() const { return m_pos; }
 
+    //BBS: set offset for gcode writer
+    void set_xy_offset(double x, double y) { m_x_offset = x; m_y_offset = y; }
+
     // To be called by the CoolingBuffer from another thread.
     static std::string set_fan(const GCodeFlavor gcode_flavor, bool gcode_comments, unsigned int speed);
     // To be called by the main thread. It always emits the G-code, it does not remember the previous state.
@@ -89,6 +92,9 @@ private:
     bool            m_last_bed_temperature_reached;
     double          m_lifted;
     Vec3d           m_pos = Vec3d::Zero();
+    //BBS: x, y offset for gcode generated
+    double          m_x_offset{ 0 };
+    double          m_y_offset{ 0 };
 
     std::string _travel_to_z(double z, const std::string &comment);
     std::string _retract(double length, double restart_extra, const std::string &comment);

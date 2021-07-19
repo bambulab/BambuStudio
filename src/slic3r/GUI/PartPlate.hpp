@@ -315,6 +315,8 @@ public:
 
     PartPlate* get_selected_plate();
 
+    Vec3d get_current_plate_origin() { return compute_origin(m_current_plate); }
+
     //select plate
     int select_plate(int index);
 

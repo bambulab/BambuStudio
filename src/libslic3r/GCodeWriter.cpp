@@ -269,9 +269,12 @@ std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &com
 {
     m_pos(0) = point(0);
     m_pos(1) = point(1);
+
+    //BBS: take plate offset into consider
+    Vec2d point_on_plate = { point(0) - m_x_offset, point(1) - m_y_offset };
     
     GCodeG1Formatter w;
-    w.emit_xy(point);
+    w.emit_xy(point_on_plate);
     w.emit_f(this->config.travel_speed.value * 60.0);
     w.emit_comment(this->config.gcode_comments, comment);
     return w.string();
@@ -303,8 +306,11 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
     m_lifted = 0;
     m_pos = point;
     
+    //BBS: take plate offset into consider
+    Vec3d point_on_plate = { point(0) - m_x_offset, point(1) - m_y_offset, point(2) };
+
     GCodeG1Formatter w;
-    w.emit_xyz(point);
+    w.emit_xyz(point_on_plate);
     w.emit_f(this->config.travel_speed.value * 60.0);
     w.emit_comment(this->config.gcode_comments, comment);
     return w.string();
@@ -362,8 +368,11 @@ std::string GCodeWriter::extrude_to_xy(const Vec2d &point, double dE, const std:
     m_pos(1) = point(1);
     m_extruder->extrude(dE);
 
+    //BBS: take plate offset into consider
+    Vec2d point_on_plate = { point(0) - m_x_offset, point(1) - m_y_offset };
+
     GCodeG1Formatter w;
-    w.emit_xy(point);
+    w.emit_xy(point_on_plate);
     w.emit_e(m_extrusion_axis, m_extruder->E());
     w.emit_comment(this->config.gcode_comments, comment);
     return w.string();
@@ -375,8 +384,11 @@ std::string GCodeWriter::extrude_to_xyz(const Vec3d &point, double dE, const std
     m_lifted = 0;
     m_extruder->extrude(dE);
     
+    //BBS: take plate offset into consider
+    Vec3d point_on_plate = { point(0) - m_x_offset, point(1) - m_y_offset, point(2) };
+
     GCodeG1Formatter w;
-    w.emit_xyz(point);
+    w.emit_xyz(point_on_plate);
     w.emit_e(m_extrusion_axis, m_extruder->E());
     w.emit_comment(this->config.gcode_comments, comment);
     return w.string();

@@ -509,6 +509,10 @@ namespace Slic3r {
         CachedPosition m_cached_position;
         bool m_wiping;
 
+        //BBS: x, y offset for gcode generated
+        double          m_x_offset{ 0 };
+        double          m_y_offset{ 0 };
+
         unsigned int m_line_id;
         unsigned int m_last_line_id;
         float m_feedrate; // mm/s
@@ -595,6 +599,9 @@ namespace Slic3r {
         std::vector<std::pair<EMoveType, float>> get_moves_time(PrintEstimatedStatistics::ETimeMode mode) const;
         std::vector<std::pair<ExtrusionRole, float>> get_roles_time(PrintEstimatedStatistics::ETimeMode mode) const;
         std::vector<float> get_layers_time(PrintEstimatedStatistics::ETimeMode mode) const;
+
+        //BBS: set offset for gcode writer
+        void set_xy_offset(double x, double y) { m_x_offset = x; m_y_offset = y; }
 
     private:
         void apply_config(const DynamicPrintConfig& config);
