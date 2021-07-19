@@ -4621,6 +4621,8 @@ bool GLCanvas3D::_init_main_toolbar()
     if (!m_main_toolbar.add_item(item))
         return false;
 
+    //BBS
+    /*
     item.name = "deleteall";
     item.icon_filename = "delete_all.svg";
     item.tooltip = _utf8(L("Delete all")) + " [" + GUI::shortkey_ctrl_prefix() + "Del]";
@@ -4629,6 +4631,7 @@ bool GLCanvas3D::_init_main_toolbar()
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_delete_all(); };
     if (!m_main_toolbar.add_item(item))
         return false;
+    */
 
     item.name = "addplate";
     item.icon_filename = "add_plate.svg";
@@ -4680,6 +4683,7 @@ bool GLCanvas3D::_init_main_toolbar()
     if (!m_main_toolbar.add_separator())
         return false;
 
+    /*
     item.name = "copy";
     item.icon_filename = "copy.svg";
     item.tooltip = _utf8(L("Copy")) + " [" + GUI::shortkey_ctrl_prefix() + "C]";
@@ -4724,6 +4728,7 @@ bool GLCanvas3D::_init_main_toolbar()
 
     if (!m_main_toolbar.add_separator())
         return false;
+    */
 
     item.name = "splitobjects";
     item.icon_filename = "split_objects.svg";
