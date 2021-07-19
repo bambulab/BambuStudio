@@ -107,6 +107,7 @@ public:
         bool force_as_custom = false, const Vec2d position = Vec2d::Zero(), bool with_reset = true);
 
     void set_position(Vec2d& position);
+    void set_axes_mode(bool origin);
     const Vec2d& get_position() const { return m_position; }
 
     // Build volume geometry for various collision detection tasks.

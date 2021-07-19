@@ -5326,7 +5326,8 @@ void GLCanvas3D::_render_bed(bool bottom, bool show_axes)
           && m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation);
     */
     bool show_texture = false;
-
+    //BBS set axes mode
+    m_bed.set_axes_mode(m_main_toolbar.is_enabled());
     m_bed.render(*this, bottom, scale_factor, show_axes, show_texture);
 }
 

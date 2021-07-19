@@ -228,6 +228,16 @@ void Bed3D::set_position(Vec2d& position)
     set_shape(m_build_volume.bed_shape(), m_texture_filename, m_model_filename, false, position, false);
 }
 
+void Bed3D::set_axes_mode(bool origin)
+{
+    if (origin) {
+        m_axes.set_origin({ 0.0, 0.0, static_cast<double>(GROUND_Z) });
+    }
+    else {
+        m_axes.set_origin({ m_position.x(), m_position.y(), static_cast<double>(GROUND_Z) });
+    }
+}
+
 bool Bed3D::contains(const Point& point) const
 {
     return m_polygon.contains(point);
