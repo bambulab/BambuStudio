@@ -845,7 +845,7 @@ Sidebar::Sidebar(Plater *parent)
     p->scrolled->SetSizer(scrolled_sizer);
 
     // Sizer with buttons for mode changing
-    p->mode_sizer = new ModeSizer(p->scrolled, int(0.5 * wxGetApp().em_unit()));
+    //p->mode_sizer = new ModeSizer(p->scrolled, int(0.5 * wxGetApp().em_unit()));
 
     // The preset chooser
     p->sizer_presets = new wxFlexGridSizer(10, 1, 1, 2);
@@ -891,11 +891,11 @@ Sidebar::Sidebar(Plater *parent)
     };
 
     p->combos_filament.push_back(nullptr);
-    init_combo(&p->combo_print,         _L("Print settings"),     Preset::TYPE_PRINT,         false);
+    //init_combo(&p->combo_print,         _L("Print settings"),     Preset::TYPE_PRINT,         false);
     init_combo(&p->combos_filament[0],  _L("Filament"),           Preset::TYPE_FILAMENT,      true);
-    init_combo(&p->combo_sla_print,     _L("SLA print settings"), Preset::TYPE_SLA_PRINT,     false);
-    init_combo(&p->combo_sla_material,  _L("SLA material"),       Preset::TYPE_SLA_MATERIAL,  false);
-    init_combo(&p->combo_printer,       _L("Printer"),            Preset::TYPE_PRINTER,       false);
+    //init_combo(&p->combo_sla_print,     _L("SLA print settings"), Preset::TYPE_SLA_PRINT,     false);
+    //init_combo(&p->combo_sla_material,  _L("SLA material"),       Preset::TYPE_SLA_MATERIAL,  false);
+    //init_combo(&p->combo_printer,       _L("Printer"),            Preset::TYPE_PRINTER,       false);
 
     const int margin_5  = int(0.5*wxGetApp().em_unit());// 5;
 
@@ -934,8 +934,9 @@ Sidebar::Sidebar(Plater *parent)
     p->sliced_info = new SlicedInfo(p->scrolled);
 
     // Sizer in the scrolled area
-    if (p->mode_sizer)
-        scrolled_sizer->Add(p->mode_sizer, 0, wxALIGN_CENTER_HORIZONTAL);
+    //BBS remove mode
+    //if (p->mode_sizer)
+    //    scrolled_sizer->Add(p->mode_sizer, 0, wxALIGN_CENTER_HORIZONTAL);
     is_msw ?
         scrolled_sizer->Add(p->presets_panel, 0, wxEXPAND | wxLEFT, margin_5) :
         scrolled_sizer->Add(p->sizer_presets, 0, wxEXPAND | wxLEFT, margin_5);
@@ -1081,14 +1082,10 @@ void Sidebar::update_all_preset_comboboxes()
     const auto print_tech = preset_bundle.printers.get_edited_preset().printer_technology();
 
     // Update the print choosers to only contain the compatible presets, update the dirty flags.
-    if (print_tech == ptFFF)
-        p->combo_print->update();
-    else {
-        p->combo_sla_print->update();
-        p->combo_sla_material->update();
-    }
+    //BBS
+
     // Update the printer choosers, update the dirty flags.
-    p->combo_printer->update();
+    //p->combo_printer->update();
     // Update the filament choosers to only contain the compatible presets, update the color preview,
     // update the dirty flags.
     if (print_tech == ptFFF) {
@@ -1127,15 +1124,15 @@ void Sidebar::update_presets(Preset::Type preset_type)
     }
 
     case Preset::TYPE_PRINT:
-        p->combo_print->update();
+        ;// p->combo_print->update();
         break;
 
     case Preset::TYPE_SLA_PRINT:
-        p->combo_sla_print->update();
+        ;// p->combo_sla_print->update();
         break;
 
     case Preset::TYPE_SLA_MATERIAL:
-        p->combo_sla_material->update();
+        ;// p->combo_sla_material->update();
         break;
 
     case Preset::TYPE_PRINTER:
@@ -1160,10 +1157,13 @@ void Sidebar::update_mode_sizer() const
 
 void Sidebar::change_top_border_for_mode_sizer(bool increase_border)
 {
+    // BBS
+#if 0
     if (p->mode_sizer) {
         p->mode_sizer->set_items_flag(increase_border ? wxTOP : 0);
         p->mode_sizer->set_items_border(increase_border ? int(0.5 * wxGetApp().em_unit()) : 0);
     }
+#endif
 }
 
 void Sidebar::update_reslice_btn_tooltip() const
@@ -1181,7 +1181,8 @@ void Sidebar::update_reslice_btn_tooltip() const
 void Sidebar::msw_rescale()
 {
     SetMinSize(wxSize(40 * wxGetApp().em_unit(), -1));
-
+    //BBS
+#if 0
     if (p->mode_sizer)
         p->mode_sizer->msw_rescale();
 
@@ -1190,6 +1191,7 @@ void Sidebar::msw_rescale()
                                                                 p->combo_sla_material,
                                                                 p->combo_printer } )
         combo->msw_rescale();
+#endif
     for (PlaterPresetComboBox* combo : p->combos_filament)
         combo->msw_rescale();
 
@@ -1230,17 +1232,23 @@ void Sidebar::sys_color_changed()
     for (wxWindow* btn : std::vector<wxWindow*>{ p->btn_reslice, p->btn_export_gcode })
         wxGetApp().UpdateDarkUI(btn, true);
 
+    // BBS
+#if 0
     if (p->mode_sizer)
         p->mode_sizer->msw_rescale();
+#endif
     p->frequently_changed_parameters->sys_color_changed();
     p->object_settings->sys_color_changed();
 #endif
 
+    //BBS: remove print related combos
+#if 0
     for (PlaterPresetComboBox* combo : std::vector<PlaterPresetComboBox*>{  p->combo_print,
                                                                 p->combo_sla_print,
                                                                 p->combo_sla_material,
                                                                 p->combo_printer })
         combo->sys_color_changed();
+#endif
     for (PlaterPresetComboBox* combo : p->combos_filament)
         combo->sys_color_changed();
 
@@ -1592,7 +1600,8 @@ void Sidebar::update_mode()
     m_mode = wxGetApp().get_mode();
 
     update_reslice_btn_tooltip();
-    update_mode_sizer();
+    //BBS: remove print related combos
+    //update_mode_sizer();
     update_searcher();
 
     wxWindowUpdateLocker noUpdates(this);
