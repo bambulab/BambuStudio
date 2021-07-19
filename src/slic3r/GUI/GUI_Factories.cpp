@@ -1115,15 +1115,16 @@ wxMenu* MenuFactory::plate_menu()
         [](wxCommandEvent&) {
             PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
             assert(plate);
-            //BBS TODO call arrange for current plate
-        }, "", nullptr, [this]() {return true; }, q);
+            plater()->set_prepare_state(Job::PREPARE_STATE_MENU);
+            plater()->arrange();
+        }, "", nullptr, [this]() {return true; }, plater());
 
     append_menu_item(menu, wxID_ANY, _L("Auto Rotate"), _L("auto rorate current plate"),
         [](wxCommandEvent&) {
             PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
             assert(plate);
             //BBS TODO call auto rotate for current plate
-        }, "", nullptr, [this]() {return true; }, q);
+        }, "", nullptr, [this]() {return true; }, plater());
     return menu;
 }
 

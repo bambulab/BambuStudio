@@ -297,6 +297,9 @@ public:
     void arrange();
     void orient();
     void find_new_position(const ModelInstancePtrs  &instances);
+    //BBS: add job state related functions
+    void set_prepare_state(int state);
+    int get_prepare_state();
 
     void set_current_canvas_as_dirty();
     void unbind_canvas_event_handlers();

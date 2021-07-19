@@ -65,6 +65,11 @@ protected:
     }
    
 public:
+    enum JobPrepareState {
+        PREPARE_STATE_DEFAULT = 0,
+        PREPARE_STATE_MENU = 1,
+    };
+
     Job(std::shared_ptr<ProgressIndicator> pri);
     
     bool is_finalized() const { return m_finalized; }

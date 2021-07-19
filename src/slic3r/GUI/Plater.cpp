@@ -1792,6 +1792,8 @@ struct Plater::priv
         
     } m_ui_jobs;
 
+    int                         m_job_prepare_state;
+
     bool                        delayed_scene_refresh;
     std::string                 delayed_error_message;
 
@@ -2103,6 +2105,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , sidebar(new Sidebar(q))
     , notification_manager(std::make_unique<NotificationManager>(q))
     , m_ui_jobs(this)
+    , m_job_prepare_state(Job::JobPrepareState::PREPARE_STATE_DEFAULT)
     , delayed_scene_refresh(false)
     , view_toolbar(GLToolbar::Radio, "View")
     , collapse_toolbar(GLToolbar::Normal, "Collapse")
@@ -2192,7 +2195,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         //BBS: add part plate related logic
         view3D_canvas->Bind(EVT_GLCANVAS_PLATE_RIGHT_CLICK, &priv::on_plate_right_click, this);
         view3D_canvas->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
-        view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { this->q->arrange(); });
+        view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) {
+            //BBS arrage from EVT set default state.
+            this->q->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
+            this->q->arrange(); });
         view3D_canvas->Bind(EVT_GLCANVAS_SELECT_ALL, [this](SimpleEvent&) { this->q->select_all(); });
         view3D_canvas->Bind(EVT_GLCANVAS_QUESTION_MARK, [](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
         view3D_canvas->Bind(EVT_GLCANVAS_INCREASE_INSTANCES, [this](Event<int>& evt)
@@ -2226,7 +2232,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         view3D_canvas->Bind(EVT_GLTOOLBAR_ADD_PLATE, &priv::on_action_add_plate, this);
         view3D_canvas->Bind(EVT_GLTOOLBAR_DEL_PLATE, &priv::on_action_del_plate, this);
         view3D_canvas->Bind(EVT_GLTOOLBAR_ORIENT, [this](SimpleEvent&) { this->q->orient(); });
-        view3D_canvas->Bind(EVT_GLTOOLBAR_ARRANGE, [this](SimpleEvent&) { this->q->arrange(); });
+        view3D_canvas->Bind(EVT_GLTOOLBAR_ARRANGE, [this](SimpleEvent&) {
+            //BBS arrage from EVT set default state.
+            this->q->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
+            this->q->arrange();
+            });
         view3D_canvas->Bind(EVT_GLTOOLBAR_COPY, [q](SimpleEvent&) { q->copy_selection_to_clipboard(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_PASTE, [q](SimpleEvent&) { q->paste_from_clipboard(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_MORE, [q](SimpleEvent&) { q->increase_instances(); });
@@ -4552,6 +4562,18 @@ void Plater::orient()
 {
     p->m_ui_jobs.orient();
 }
+
+//BBS: add job state related functions
+void Plater::set_prepare_state(int state)
+{
+    p->m_job_prepare_state = state;
+}
+
+int Plater::get_prepare_state()
+{
+    return p->m_job_prepare_state;
+}
+
 
 void Plater::priv::set_current_canvas_as_dirty()
 {
