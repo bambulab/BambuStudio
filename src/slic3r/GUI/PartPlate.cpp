@@ -802,34 +802,37 @@ Point PartPlate::point_projection(const Point& point) const
 	return m_polygon.point_projection(point);
 }
 
-void PartPlate::render(GLCanvas3D& canvas, bool bottom, bool with_label) {
+void PartPlate::render(GLCanvas3D& canvas, bool bottom, bool with_label, bool only_body) {
 
 	glsafe(::glEnable(GL_DEPTH_TEST));
 	render_default(bottom);
 
-	float render_color[4];
-	::memcpy((void*)m_grabber_color, (const void*)DEFAULT_HIGHLIGHT_COLOR, 4 * sizeof(float));
+	if (!only_body) {
+		float render_color[4];
+		::memcpy((void*)m_grabber_color, (const void*)DEFAULT_HIGHLIGHT_COLOR, 4 * sizeof(float));
 
-	render_color[0] = 1.0f - m_grabber_color[0];
-	render_color[1] = 1.0f - m_grabber_color[1];
-	render_color[2] = 1.0f - m_grabber_color[2];
-	render_color[3] = m_grabber_color[3];
+		render_color[0] = 1.0f - m_grabber_color[0];
+		render_color[1] = 1.0f - m_grabber_color[1];
+		render_color[2] = 1.0f - m_grabber_color[2];
+		render_color[3] = m_grabber_color[3];
 
-	if (m_hover_id == 0)
-		render_grabber(m_grabber_color, true);
-	else
-		render_grabber(render_color, true);
 
-	if (m_selected) {
-		if (m_hover_id == 1)
-			render_left_arrow(m_grabber_color, true);
+		if (m_hover_id == 0)
+			render_grabber(m_grabber_color, true);
 		else
-			render_left_arrow(render_color, true);
+			render_grabber(render_color, true);
 
-		if (m_hover_id == 2)
-			render_right_arrow(m_grabber_color, true);
-		else
-			render_right_arrow(render_color, true);
+		if (m_selected) {
+			if (m_hover_id == 1)
+				render_left_arrow(m_grabber_color, true);
+			else
+				render_left_arrow(render_color, true);
+
+			if (m_hover_id == 2)
+				render_right_arrow(m_grabber_color, true);
+			else
+				render_right_arrow(render_color, true);
+		}
 	}
 
 	if (with_label) {
@@ -1716,14 +1719,14 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 
 /*rendering related functions*/
 //render
-void PartPlateList::render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool only_current)
+void PartPlateList::render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool only_current, bool only_body)
 {
 	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
 	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
 	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
 		if (only_current && ((*it)->get_index() != m_current_plate))
 			continue;
-		(*it)->render(canvas, bottom);
+		(*it)->render(canvas, bottom, true, only_body);
 	}
 }
 

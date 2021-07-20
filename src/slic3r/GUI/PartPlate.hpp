@@ -172,7 +172,7 @@ public:
     bool contains(const Point& point) const;
     bool contains(const GLVolume& v) const;
     Point point_projection(const Point& point) const;
-    void render(GLCanvas3D& canvas, bool bottom, bool with_label = true);
+    void render(GLCanvas3D& canvas, bool bottom, bool with_label = true, bool only_body = false);
     void render_for_picking() const { on_render_for_picking(); }
     void set_selected();
     void set_unselected();
@@ -351,7 +351,7 @@ public:
     void postprocess_arrange_polygon(arrangement::ArrangePolygon& arrange_polygon, bool create_new_plate, bool unprintable);
 
     /*rendering related functions*/
-    void render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool only_current = false);
+    void render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool only_current = false, bool only_body = false);
     void render_for_picking_pass();
     BoundingBoxf3& get_bounding_box() { return m_bounding_box; }
     int select_plate_by_hover_id(int hover_id);

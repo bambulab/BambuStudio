@@ -1511,7 +1511,7 @@ void GLCanvas3D::render()
     _render_selection();
     _render_bed(!camera.is_looking_downward(), true);
     _render_objects(GLVolumeCollection::ERenderType::Transparent);
-    _render_platelist(!camera.is_looking_downward(), !m_main_toolbar.is_enabled());
+    _render_platelist(!camera.is_looking_downward(), !m_main_toolbar.is_enabled(), !m_main_toolbar.is_enabled());
 
     _render_sequential_clearance();
 #if ENABLE_RENDER_SELECTION_CENTER
@@ -5341,14 +5341,14 @@ void GLCanvas3D::_render_bed_for_picking(bool bottom)
     m_bed.render_for_picking(*this, bottom, scale_factor);
 }
 
-void GLCanvas3D::_render_platelist(bool bottom, bool only_current) const
+void GLCanvas3D::_render_platelist(bool bottom, bool only_current, bool only_body) const
 {
     float scale_factor = 1.0;
 #if ENABLE_RETINA_GL
     scale_factor = m_retina_helper->get_scale_factor();
 #endif // ENABLE_RETINA_GL
 
-    wxGetApp().plater()->get_partplate_list().render(const_cast<GLCanvas3D&>(*this), bottom, scale_factor, only_current);
+    wxGetApp().plater()->get_partplate_list().render(const_cast<GLCanvas3D&>(*this), bottom, scale_factor, only_current, only_body);
 }
 
 void GLCanvas3D::_render_plates_for_picking() const
