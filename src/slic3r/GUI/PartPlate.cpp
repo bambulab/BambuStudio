@@ -797,6 +797,30 @@ bool PartPlate::contains(const GLVolume& v) const
 	return m_bounding_box.contains(v.bounding_box());
 }
 
+bool PartPlate::contains(const BoundingBoxf3& bb) const
+{
+	// Allow the objects to protrude below the print bed
+	BoundingBoxf3 print_volume(Vec3d(m_bounding_box.min(0), m_bounding_box.min(1), 0.0), Vec3d(m_bounding_box.max(0), m_bounding_box.max(1), 1e3));
+	print_volume.min(2) = -1e10;
+	print_volume.min(0) -= BedEpsilon;
+	print_volume.min(1) -= BedEpsilon;
+	print_volume.max(0) += BedEpsilon;
+	print_volume.max(1) += BedEpsilon;
+	return print_volume.contains(bb);
+}
+
+bool PartPlate::intersects(const BoundingBoxf3& bb) const
+{
+	// Allow the objects to protrude below the print bed
+	BoundingBoxf3 print_volume(Vec3d(m_bounding_box.min(0), m_bounding_box.min(1), 0.0), Vec3d(m_bounding_box.max(0), m_bounding_box.max(1), 1e3));
+	print_volume.min(2) = -1e10;
+	print_volume.min(0) -= BedEpsilon;
+	print_volume.min(1) -= BedEpsilon;
+	print_volume.max(0) += BedEpsilon;
+	print_volume.max(1) += BedEpsilon;
+	return print_volume.intersects(bb);
+}
+
 Point PartPlate::point_projection(const Point& point) const
 {
 	return m_polygon.point_projection(point);
@@ -1300,6 +1324,30 @@ void PartPlateList::reset_hover_id()
 	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
 		(*it)->set_hover_id(-1);
 	}
+}
+
+bool PartPlateList::intersects(const BoundingBoxf3& bb)
+{
+	bool result = false;
+	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
+	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
+		if ((*it)->intersects(bb)) {
+			result = true;
+		}
+	}
+	return result;
+}
+
+bool PartPlateList::contains(const BoundingBoxf3& bb)
+{
+	bool result = false;
+	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
+	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
+		if ((*it)->contains(bb)) {
+			result = true;
+		}
+	}
+	return result;
 }
 
 double PartPlateList::plate_stride()

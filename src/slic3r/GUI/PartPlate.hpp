@@ -171,6 +171,9 @@ public:
     bool set_shape(const Pointfs& shape, Vec2d position);
     bool contains(const Point& point) const;
     bool contains(const GLVolume& v) const;
+    bool contains(const BoundingBoxf3& bb) const;
+    bool intersects(const BoundingBoxf3& bb) const;
+    
     Point point_projection(const Point& point) const;
     void render(GLCanvas3D& canvas, bool bottom, bool with_label = true, bool only_body = false);
     void render_for_picking() const { on_render_for_picking(); }
@@ -360,6 +363,8 @@ public:
     bool set_shapes(const Pointfs& shape);
     void set_hover_id(int id);
     void reset_hover_id();
+    bool intersects(const BoundingBoxf3 &bb);
+    bool contains(const BoundingBoxf3 &bb);
 
     /*slice related functions*/
     //update current slice context into backgroud slicing process
