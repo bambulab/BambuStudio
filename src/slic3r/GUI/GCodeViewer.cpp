@@ -2064,9 +2064,14 @@ void GCodeViewer::load_shells(const Print& print, bool initialized)
         const ModelObject* model_obj = obj->model_object();
 
         std::vector<int> instance_ids(model_obj->instances.size());
+        //BBS: only add the printable instance
+        int instance_index = 0;
         for (int i = 0; i < (int)model_obj->instances.size(); ++i) {
-            instance_ids[i] = i;
+            //BBS: only add the printable instance
+            if (model_obj->instances[i]->is_printable())
+                instance_ids[instance_index++] = i;
         }
+        instance_ids.resize(instance_index);
 
         size_t current_volumes_count = m_shells.volumes.volumes.size();
         m_shells.volumes.load_object(model_obj, object_id, instance_ids, "object", initialized);
