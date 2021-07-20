@@ -133,8 +133,7 @@ private:
     const std::string QOS_FILE = resources_dir() + "/bbl/default_qos.xml";
     const std::string TOPIC_BROADCAST_ALIVE = "device/alive";
 
-    //const std::string MQTT_SERVER_ADDRESS = "192.168.0.10:1883";
-    std::string MQTT_SERVER_ADDRESS = "47.100.225.51:1883";
+    std::string MQTT_SERVER_ADDRESS = "emqx.bambooolab.com:1883";
     const int MQTT_QOS = 0;
     const int MQTT_TIMEOUT = 10;
     mqtt::string_ref MQTT_USERNAME;

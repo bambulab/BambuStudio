@@ -28,7 +28,6 @@ class AccountManager
 {
 private:
     AccountInfo* m_curr_user;
-    //std::string host = "http://192.168.0.10:9000";
     std::string host = "http://iot.qa.bbl";
 
     std::string _get_query_url();

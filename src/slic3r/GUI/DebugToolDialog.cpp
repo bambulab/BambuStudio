@@ -299,27 +299,8 @@ void DebugToolDialog::on_device_report_msg(SimpleEvent& evt)
     ;
 }
 
-void DebugToolDialog::on_select_host(wxCommandEvent& evt)
-{
-    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-    Slic3r::CommuBackend* backend = Slic3r::GUI::wxGetApp().getCommuBackend();
-    int selected_idx = cb_select_host->GetSelection();
-    if (selected_idx < 0 || selected_idx >= 2) {
-        backend->set_mqtt_server(mqtt_host_item[cb_select_host->GetSelection()]);
-        account_manager->set_host(iot_host_item[cb_select_host->GetSelection()]);
-    }
-}
-
 void DebugToolDialog::init_account()
 {
-    auto* label_host = new wxStaticText(this, wxID_ANY, _L("Host: "), wxDefaultPosition, wxDefaultSize);
-    wxArrayString module_items;
-    module_items.Add(_L("NEW(iot.qa.bbl)"));
-    module_items.Add(_L("OLD(192.168.0.10)"));
-    cb_select_host = new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, module_items);
-    cb_select_host->Select(0);
-    cb_select_host->Bind(wxEVT_COMBOBOX, &DebugToolDialog::on_select_host, this);
-
     btn_login = new wxButton(this, wxID_ANY, _L("Login"), wxDefaultPosition, wxDefaultSize);
     btn_login->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
@@ -330,8 +311,6 @@ void DebugToolDialog::init_account()
     txt_user = new wxTextCtrl(this, wxID_ANY, _L(""), wxDefaultPosition, wxDefaultSize);
     txt_password = new wxTextCtrl(this, wxID_ANY, _L(""), wxDefaultPosition, wxDefaultSize);
     user_sizer = new wxBoxSizer(wxHORIZONTAL);
-    user_sizer->Add(label_host, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
-    user_sizer->Add(cb_select_host, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
     user_sizer->Add(label_user, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
     user_sizer->Add(txt_user, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
     user_sizer->Add(label_password, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);

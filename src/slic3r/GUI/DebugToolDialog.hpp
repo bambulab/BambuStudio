@@ -91,7 +91,7 @@ namespace Slic3r {
             std::string upgrade_module_name[MODULE_MAX] = { "rk1126", "mc", "th", "ams", "ota"};
             std::string upgrade_mode_name[MODE_MAX] = { "dailybuild/", "release/" };
 
-            std::string UPGRADE_URL = "http://upgrade.bbl.com/";
+            std::string UPGRADE_URL = "http://upgrade.bambooolab.com/";
             std::string CURL_FILE = resources_dir() + "/bbl/curl";
             std::string iot_host_item[2] = { "http://iot.qa.bbl", "http://192.168.0.10:9000" };
             std::string mqtt_host_item[2] = { "47.100.225.51:1883", "192.168.0.10:1883" };
