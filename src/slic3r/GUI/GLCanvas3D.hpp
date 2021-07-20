@@ -461,6 +461,7 @@ private:
 #if ENABLE_RETINA_GL
     std::unique_ptr<RetinaHelper> m_retina_helper;
 #endif
+    unsigned int m_last_w, m_last_h;
     bool m_in_render;
     wxTimer m_timer;
     LayersEditing m_layers_editing;

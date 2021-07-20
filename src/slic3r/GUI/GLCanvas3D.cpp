@@ -5038,6 +5038,14 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 
     m_old_size = new_size;
 
+    //BBS reduce render
+    if (m_last_w == w && m_last_h == h) {
+        return;
+    }
+
+    m_last_w = w;
+    m_last_h = h;
+
     auto *imgui = wxGetApp().imgui();
     imgui->set_display_size(static_cast<float>(w), static_cast<float>(h));
     const float font_size = 1.5f * wxGetApp().em_unit();
