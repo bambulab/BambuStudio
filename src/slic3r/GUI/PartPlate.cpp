@@ -1781,6 +1781,7 @@ void PartPlateList::select_plate_view()
 	Vec3d target = m_plate_list[m_current_plate]->get_bounding_box(false).center();
 	Vec3d position(target.x(), target.y(), m_plater->get_camera().get_distance());
 	m_plater->get_camera().look_at(position, target, Vec3d::UnitY());
+	m_plater->get_camera().select_view("iso");
 }
 
 bool PartPlateList::set_shapes(const Pointfs& shape)
