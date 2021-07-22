@@ -563,6 +563,16 @@ function(prusaslicer_copy_dlls target config postfix output_dlls)
         set(_out_dir "${CMAKE_CURRENT_BINARY_DIR}")
     endif ()
 
+    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+        set (_in_file "${LIBDIR_BIN}/dds_fdal/Release/dds_fdal.dll")
+    else()
+        set (_in_file "${LIBDIR_BIN}/dds_fdal/Debug/dds_fdal.dll")
+    endif()
+    add_custom_command(TARGET ${target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
+        COMMENT "Copy dds_fdal runtime to build tree"
+        VERBATIM)
+
     file(COPY ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/win${_bits}/libgmp-10.dll
             ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/win${_bits}/libmpfr-4.dll
             "${CMAKE_PREFIX_PATH}/bin/libcrypto-1_1-x64.dll"
