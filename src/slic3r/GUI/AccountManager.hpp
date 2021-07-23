@@ -11,16 +11,40 @@ namespace Slic3r {
 
 class AccountInfo {
 public:
+    enum LoginStatus
+    {
+        STATUS_LOGIN,
+        STATUS_LOGOUT,
+    };
+
     AccountInfo(std::string account, std::string user_id);
 
     std::string user_id() { return m_user_id; }
     void set_token(std::string token) { m_token = token; }
     std::string get_token() { return m_token; }
+    LoginStatus login_status() { return m_login_status; }
+
+    template<typename Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        //ar(m_account, m_user_id, m_token, m_login_status);
+        ar &m_account;
+        ar &m_user_id;
+        ar &m_token;
+        ar &m_login_status;
+        /*ar(m_account);
+        ar(m_user_id);
+        ar(m_token);
+        ar(m_login_status);*/
+    }
+
 private:
+    friend class boost::serialization::access;
     std::string m_account;
     std::string m_password;
     std::string m_user_id;
     std::string m_token;
+    LoginStatus m_login_status;
 };
 
 
@@ -28,6 +52,7 @@ class AccountManager
 {
 private:
     AccountInfo* m_curr_user;
+    boost::filesystem::path m_user_info_path;
     std::string host = "http://iot.dev.bbl";
     //std::string host = "http://iot.qa.bbl";
     //std::string host = "192.168.0.146";
@@ -53,12 +78,19 @@ private:
     void _handle_error_code(int status, std::string error, std::string body);
 
 public:
+    
+    typedef std::function<void(int retcode, std::string info)> LoginFn;
+
     AccountManager();
     ~AccountManager() {}
 
+    // Check user last login status
+    int load_user_info();
+    int save_user_info();
+
     bool is_user_login();
-    int user_login(std::string account, std::string password);
-    int user_logout(std::string account);
+    int user_login(std::string account, std::string password, LoginFn fn);
+    int user_logout();
     int user_register(std::string account, std::string passoword);
     int user_get_info();
     int query_bind_status(std::string device_id);
@@ -67,6 +99,7 @@ public:
     int request_unbind(std::string device_id);
     int request_bind_list(std::string user_id);
     void set_host(std::string host_url);
+    void set_user_info_path(boost::filesystem::path path) { m_user_info_path = path; }
     std::string get_user_id() { return m_curr_user->user_id(); }
 };
 

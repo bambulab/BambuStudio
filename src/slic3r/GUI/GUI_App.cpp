@@ -813,6 +813,11 @@ GUI_App::GUI_App(EAppMode mode)
 {
 	//app config initializes early becasuse it is used in instance checking in PrusaSlicer.cpp
 	this->init_app_config();
+
+    //init account_manager
+    std::string account_info_file = data_dir() + "acc.data";
+    m_account_manager->set_user_info_path(account_info_file);
+    m_account_manager->load_user_info();
 }
 
 GUI_App::~GUI_App()

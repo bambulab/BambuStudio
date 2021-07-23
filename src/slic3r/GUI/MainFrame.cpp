@@ -1457,11 +1457,20 @@ void MainFrame::init_menubar_as_editor()
         [](wxCommandEvent&) { wxLaunchDefaultBrowser("https://www.thingiverse.com/"); });
 
     auto accountMenu = new wxMenu();
-    append_menu_item(accountMenu, wxID_ANY, _L("Account"), _L("Login with your Account"),
-        [](wxCommandEvent&) {
-            // show login dialog
-            ; });
 
+    append_menu_item(accountMenu, wxID_ANY, _L("Login"), _L("Login with your Account"),
+        [](wxCommandEvent&) { Slic3r::GUI::login(); }, "upload_queue", nullptr, [this]() {
+            Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+            return !account_manager->is_user_login();
+        }, this);
+    append_menu_item(accountMenu, wxID_ANY, _L("Logout"), _L(""),
+        [](wxCommandEvent&) {
+            Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+            account_manager->user_logout();
+        }, "upload_queue", nullptr, [this]() {
+            Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+            return account_manager->is_user_login();
+        }, this);
 
     // Help menu
     auto helpMenu = generate_help_menu();

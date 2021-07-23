@@ -222,6 +222,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/DebugToolDialog.hpp
     GUI/AccountManager.hpp
     GUI/AccountManager.cpp
+    GUI/LoginDialog.hpp
+    GUI/LoginDialog.cpp
     Utils/Http.cpp
     Utils/Http.hpp
     Utils/Sftp.cpp

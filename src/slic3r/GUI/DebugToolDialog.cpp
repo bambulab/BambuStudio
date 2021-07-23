@@ -279,7 +279,6 @@ namespace GUI {
         ctrl_custom_sizer->Add(control_sizer, 0, wxLEFT | wxALIGN_LEFT, 0);
         ctrl_custom_sizer->Add(custom_gcode_sizer, 1, wxLEFT | wxRIGHT | wxEXPAND, 5);
 
-        init_account();
         init_device();
         init_upgrade();
         init_gcode_run_file();
@@ -292,8 +291,6 @@ namespace GUI {
         run_gcode_sizer->Add(btn_abort_print, 0, wxALIGN_RIGHT | wxRIGHT, SPACING);
         run_gcode_sizer->Add(label_progress, 0, wxALIGN_CENTRE_HORIZONTAL | wxLEFT, SPACING);
 
-        top_sizer->Add(-1, 8);
-        top_sizer->Add(user_sizer, 0, wxLEFT | wxRIGHT | wxEXPAND, 0);
         top_sizer->Add(-1, 8);
         top_sizer->Add(conn_device_sizer, 0, wxLEFT | wxRIGHT | wxEXPAND, 0);
         top_sizer->Add(-1, 8);
@@ -314,30 +311,6 @@ namespace GUI {
 void DebugToolDialog::on_device_report_msg(SimpleEvent& evt)
 {
     ;
-}
-
-void DebugToolDialog::init_account()
-{
-    btn_login = new wxButton(this, wxID_ANY, _L("Login"), wxDefaultPosition, wxDefaultSize);
-    btn_login->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-        Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-        std::string user = txt_user->GetValue().ToStdString();
-        std::string pwd = txt_password->GetValue().ToStdString();
-
-        if (account_manager->user_login(user, pwd) < 0) {
-            wxMessageBox("Invalid User or Password!");
-        }
-        });
-    auto* label_user = new wxStaticText(this, wxID_ANY, _L("User: "), wxDefaultPosition, wxDefaultSize);
-    auto* label_password = new wxStaticText(this, wxID_ANY, _L("Password: "), wxDefaultPosition, wxDefaultSize);
-    txt_user = new wxTextCtrl(this, wxID_ANY, _L(""), wxDefaultPosition, wxDefaultSize);
-    txt_password = new wxTextCtrl(this, wxID_ANY, _L(""), wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD);
-    user_sizer = new wxBoxSizer(wxHORIZONTAL);
-    user_sizer->Add(label_user, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
-    user_sizer->Add(txt_user, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
-    user_sizer->Add(label_password, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
-    user_sizer->Add(txt_password, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
-    user_sizer->Add(btn_login, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
 }
 
 void DebugToolDialog::init_device()

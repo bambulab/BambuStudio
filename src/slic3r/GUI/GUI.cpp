@@ -21,6 +21,7 @@
 #endif
 
 #include "AboutDialog.hpp"
+#include "LoginDialog.hpp"
 #include "MsgDialog.hpp"
 #include "format.hpp"
 
@@ -472,6 +473,12 @@ void about()
 {
     AboutDialog dlg;
     dlg.ShowModal();
+}
+
+void login()
+{
+	LoginDialog dlg;
+	dlg.ShowModal();
 }
 
 void desktop_open_datadir_folder()

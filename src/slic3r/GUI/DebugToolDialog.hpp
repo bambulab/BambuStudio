@@ -108,9 +108,6 @@ namespace Slic3r {
             wxButton* btn_save_file;
             wxButton* btn_bind;
             wxButton* btn_unbind;
-            wxButton* btn_login;
-            wxButton* btn_logout;
-            wxButton* btn_register;
 
             wxButton* btn_set_x_pos_0_1;
             wxButton* btn_set_x_pos_1_0;
@@ -173,8 +170,6 @@ namespace Slic3r {
             wxTextCtrl* txt_custom_gcode5;
             wxTextCtrl* txt_custom_gcode6;
             wxTextCtrl* txt_custom_gcode7;
-            wxTextCtrl* txt_user;
-            wxTextCtrl* txt_password;
 
             wxStaticText* label_upgrade_filename;
             wxStaticText* label_gcode_filename;
@@ -216,14 +211,12 @@ namespace Slic3r {
 
             wxBoxSizer* top_sizer;
             wxGridSizer* pos_btns_sizer;
-            wxBoxSizer* user_sizer;
             wxBoxSizer* conn_device_sizer;
             wxBoxSizer* upgrade_sizer;
             wxBoxSizer* run_gcode_sizer;
             wxFlexGridSizer* custom_gcode_sizer;
 
             /* GUI init control */
-            void init_account();
             void init_device();
             void init_upgrade();
             void init_gcode_run_file();

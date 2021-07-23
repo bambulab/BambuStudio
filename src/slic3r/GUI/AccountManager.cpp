@@ -41,6 +41,38 @@ namespace Slic3r {
     AccountManager::AccountManager()
     {
         m_curr_user = NULL;
+        boost::filesystem::fstream fstream();
+        
+    }
+
+    int AccountManager::load_user_info()
+    {
+        /* TODO
+        boost::filesystem::ifstream loadFile(m_user_info_path, std::ios::in|std::ios::binary);
+        if (loadFile.is_open()) {
+            loadFile.close();
+        }
+        else {
+            BOOST_LOG_TRIVIAL(info) << "load_user_info failed!";
+            return -1;
+        }*/
+
+        return 0;
+    }
+
+    int AccountManager::save_user_info()
+    {
+        /* TODO
+        boost::filesystem::ofstream saveFile(m_user_info_path, std::ios::binary);
+        if (saveFile.is_open()) {
+            saveFile.close();
+        }
+        else {
+            BOOST_LOG_TRIVIAL(info) << "save_user_info failed!";
+            return -1;
+        }
+        */
+        return 0;
     }
 
     bool AccountManager::is_user_login()
@@ -51,7 +83,7 @@ namespace Slic3r {
             return false;
     }
 
-    int AccountManager::user_login(std::string account, std::string password)
+    int AccountManager::user_login(std::string account, std::string password, LoginFn fn)
     {
         // check valid account
         if (!_check_valid(account, password)) {
@@ -63,7 +95,7 @@ namespace Slic3r {
 
         http.set_post_body(json_str)
             .set_header("")
-            .on_complete([&, this, account](std::string body, unsigned) {
+            .on_complete([&, this, account, fn](std::string body, unsigned) {
             std::stringstream ss(body);
             pt::ptree root;
             pt::read_json(ss, root);
@@ -72,8 +104,10 @@ namespace Slic3r {
             boost::optional<std::string> token = root.get_optional<std::string>("token");
             if (ack_status.has_value()) {
                 if (ack_status.value().compare("success") == 0) {
-                    wxMessageBox("Login ok");
                     BOOST_LOG_TRIVIAL(trace) << "User = " << account << " Login Success!";
+                    if (fn) {
+                        fn(0, "");
+                    }
                     if (user_id.has_value() && token.has_value()) {
                         m_curr_user = new AccountInfo(account, user_id.value());
                         m_curr_user->set_token(token.value());
@@ -82,19 +116,24 @@ namespace Slic3r {
                     }
                 }
             }
-            std::string error_tips = "Login Failed! body=" + body;
-            wxMessageBox(error_tips);
+
+            BOOST_LOG_TRIVIAL(trace) << "Account = " << account << " Login Failed! error = " << body;
+            if (fn) {
+                fn(-1, body);
+            }
             }).on_error([&, this, account](std::string body, std::string error, unsigned status) {
                 BOOST_LOG_TRIVIAL(trace) << "Account=" << account << " Login Failed!" << body;
                 std::string error_tips = "Login Failed! status=" + std::to_string(status) + ", error=" + error + ", body=" + body;
-                wxMessageBox(error_tips);
+                if (fn) {
+                    fn(status, error);
+                }
                 this->_handle_error_code(status, error, body);
             }).perform();
         
         return 0;
     }
 
-    int AccountManager::user_logout(std::string account)
+    int AccountManager::user_logout()
     {
         if (m_curr_user) {
             delete m_curr_user;
@@ -295,12 +334,12 @@ namespace Slic3r {
                         }
                         Slic3r::CommuBackend* backend = Slic3r::GUI::wxGetApp().getCommuBackend();
                         int result = backend->connect_mqtt_server(user_id);
-                        if (result == 0) {
+                        /*if (result == 0) {
                             Slic3r::GUI::wxGetApp().show_message_box("Connect ok!");
                         }
                         else {
                             Slic3r::GUI::wxGetApp().show_message_box("Connect failed!");
-                        }
+                        }*/
                     }
                     else if (ack_message.value().compare("nodev") == 0) {
                         BOOST_LOG_TRIVIAL(trace) << "Get bind list failed! body=" << body;
