@@ -913,6 +913,8 @@ class ModelInstance final : public ObjectBase
 {
 private:
     Geometry::Transformation m_transformation;
+    Geometry::Transformation m_assemble_transformation;
+    bool m_assemble_initialized;
 
 public:
     // flag showing the position of this instance with respect to the print volume (set by Print::validate() using ModelObject::check_instances_print_volume_state())
@@ -924,6 +926,20 @@ public:
 
     const Geometry::Transformation& get_transformation() const { return m_transformation; }
     void set_transformation(const Geometry::Transformation& transformation) { m_transformation = transformation; }
+
+    const Geometry::Transformation& get_assemble_transformation() const { return m_assemble_transformation; }
+    void set_assemble_transformation(const Geometry::Transformation& transformation) {
+        m_assemble_initialized = true;
+        m_assemble_transformation = transformation;
+    }
+    void set_assemble_from_transform(Transform3d& transform) {
+        m_assemble_initialized = true;
+        m_assemble_transformation.set_from_transform(transform);
+    }
+    void set_assemble_offset(const Vec3d& offset) { m_assemble_transformation.set_offset(offset); }
+    void rotate_assemble(double angle, const Vec3d& axis) {
+        m_assemble_transformation.set_rotation(m_assemble_transformation.get_rotation() + Geometry::extract_euler_angles(Eigen::Quaterniond(Eigen::AngleAxisd(angle, axis)).toRotationMatrix()));
+    }
 
     const Vec3d& get_offset() const { return m_transformation.get_offset(); }
     double get_offset(Axis axis) const { return m_transformation.get_offset(axis); }
@@ -964,6 +980,7 @@ public:
     const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
 
     bool is_printable() const { return object->printable && printable && (print_volume_state == ModelInstancePVS_Inside); }
+    bool is_assemble_initialized() { return m_assemble_initialized; }
 
     // Getting the input polygon for arrange
     arrangement::ArrangePolygon get_arrange_polygon() const;
@@ -992,10 +1009,15 @@ private:
     ModelObject* object;
 
     // Constructor, which assigns a new unique ID.
-    explicit ModelInstance(ModelObject* object) : print_volume_state(ModelInstancePVS_Inside), printable(true), object(object) { assert(this->id().valid()); }
+    explicit ModelInstance(ModelObject* object) : print_volume_state(ModelInstancePVS_Inside), printable(true), object(object), m_assemble_initialized(false) { assert(this->id().valid()); }
     // Constructor, which assigns a new unique ID.
     explicit ModelInstance(ModelObject *object, const ModelInstance &other) :
-        m_transformation(other.m_transformation), print_volume_state(ModelInstancePVS_Inside), printable(other.printable), object(object) { assert(this->id().valid() && this->id() != other.id()); }
+        m_transformation(other.m_transformation)
+        , m_assemble_transformation(other.m_assemble_transformation)
+        , print_volume_state(ModelInstancePVS_Inside)
+        , printable(other.printable)
+        , object(object)
+        , m_assemble_initialized(false) { assert(this->id().valid() && this->id() != other.id()); }
 
     explicit ModelInstance(ModelInstance &&rhs) = delete;
     ModelInstance& operator=(const ModelInstance &rhs) = delete;
@@ -1147,7 +1169,10 @@ public:
     bool          is_mm_painted() const;
 
 private:
-    explicit Model(int) : ObjectBase(-1) { assert(this->id().invalid()); }
+    explicit Model(int) : ObjectBase(-1)
+        {
+        assert(this->id().invalid());
+    }
 	void assign_new_unique_ids_recursive();
 	void update_links_bottom_up_recursive();
 
@@ -1157,6 +1182,7 @@ private:
 		Internal::StaticSerializationWrapper<ModelWipeTower> wipe_tower_wrapper(wipe_tower);
 		ar(materials, objects, wipe_tower_wrapper);
     }
+
 };
 
 ENABLE_ENUM_BITMASK_OPERATORS(Model::LoadAttribute)

@@ -193,6 +193,29 @@ private:
     wxString get_option_type_string(OptionType type) const;
 };
 
+
+class AssembleView : public wxPanel
+{
+    wxGLCanvas* m_canvas_widget{ nullptr };
+    GLCanvas3D* m_canvas{ nullptr };
+public:
+    AssembleView(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
+    ~AssembleView();
+
+    wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }
+    GLCanvas3D* get_canvas3d() { return m_canvas; }
+
+    void set_as_dirty();
+    void render();
+
+    bool is_reload_delayed() const;
+    void reload_scene(bool refresh_immediately, bool force_full_scene_refresh = false);
+    void select_view(const std::string& direction);
+
+private:
+    bool init(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
+};
+
 } // namespace GUI
 } // namespace Slic3r
 

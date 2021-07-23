@@ -26,6 +26,7 @@
 #include "slic3r/GUI/MainFrame.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoPainterBase.hpp"
+#include "slic3r/GUI/BitmapCache.hpp"
 
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
@@ -976,6 +977,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
     , m_in_render(false)
     , m_main_toolbar(GLToolbar::Normal, "Main")
     , m_undoredo_toolbar(GLToolbar::Normal, "Undo_Redo")
+    , m_canvas_type(ECanvasType::CanvasView3D)
     , m_gizmos(*this)
     , m_use_clipping_planes(false)
     , m_sidebar_field("")
@@ -1504,14 +1506,30 @@ void GLCanvas3D::render()
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     _render_background();
 
-    _render_objects(GLVolumeCollection::ERenderType::Opaque);
-    if (!m_main_toolbar.is_enabled())
+    /* view3D render*/
+    if (m_canvas_type == ECanvasType::CanvasView3D) {
+        _render_objects(GLVolumeCollection::ERenderType::Opaque);
+        _render_sla_slices();
+        _render_selection();
+        _render_bed(!camera.is_looking_downward(), true);
+        _render_objects(GLVolumeCollection::ERenderType::Transparent);
+        _render_platelist(!camera.is_looking_downward(), !m_main_toolbar.is_enabled(), !m_main_toolbar.is_enabled());
+    }
+    /* preview render */
+    else if (m_canvas_type == ECanvasType::CanvasPreview) {
+        _render_objects(GLVolumeCollection::ERenderType::Opaque);
         _render_gcode();
-    _render_sla_slices();
-    _render_selection();
-    _render_bed(!camera.is_looking_downward(), true);
-    _render_objects(GLVolumeCollection::ERenderType::Transparent);
-    _render_platelist(!camera.is_looking_downward(), !m_main_toolbar.is_enabled(), !m_main_toolbar.is_enabled());
+        _render_sla_slices();
+        _render_selection();
+        _render_bed(!camera.is_looking_downward(), true);
+        _render_platelist(!camera.is_looking_downward(), !m_main_toolbar.is_enabled(), !m_main_toolbar.is_enabled());
+    }
+    /* assemble render*/
+    else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
+        _render_objects(GLVolumeCollection::ERenderType::Opaque);
+        _render_bed(!camera.is_looking_downward(), true);
+        _render_selection();
+    }
 
     _render_sequential_clearance();
 #if ENABLE_RENDER_SELECTION_CENTER
@@ -1643,6 +1661,11 @@ void GLCanvas3D::delete_selected()
 
 void GLCanvas3D::ensure_on_bed(unsigned int object_idx, bool allow_negative_z)
 {
+    //BBS if asseble view canvas
+    if (m_canvas_type == ECanvasType::CanvasAssembleView) {
+        return;
+    }
+
     if (allow_negative_z)
         return;
 
@@ -1813,7 +1836,13 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             const ModelInstance* model_instance = model_object->instances[instance_idx];
             for (int volume_idx = 0; volume_idx < (int)model_object->volumes.size(); ++volume_idx) {
                 const ModelVolume* model_volume = model_object->volumes[volume_idx];
-                model_volume_state.emplace_back(model_volume, model_instance->id(), GLVolume::CompositeID(object_idx, volume_idx, instance_idx));
+                if (m_canvas_type == ECanvasType::CanvasAssembleView) {
+                    if (model_volume->is_model_part())
+                        model_volume_state.emplace_back(model_volume, model_instance->id(), GLVolume::CompositeID(object_idx, volume_idx, instance_idx));
+                }
+                else {
+                    model_volume_state.emplace_back(model_volume, model_instance->id(), GLVolume::CompositeID(object_idx, volume_idx, instance_idx));
+                }
             }
         }
     }
@@ -1866,8 +1895,15 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         }
         // Emplace instance ID of the volume. Both the aux volumes and model volumes share the same instance ID.
         // The wipe tower has its own wipe_tower_instance_id().
-        if (m_selection.contains_volume(volume_id))
-            instance_ids_selected.emplace_back(volume->geometry_id.second);
+        if (m_selection.contains_volume(volume_id)) {
+            if (m_canvas_type == ECanvasType::CanvasAssembleView) {
+                if (!volume->is_modifier)
+                    instance_ids_selected.emplace_back(volume->geometry_id.second);
+            }
+            else {
+                instance_ids_selected.emplace_back(volume->geometry_id.second);
+            }
+        }
         if (mvs == nullptr || force_full_scene_refresh) {
             // This GLVolume will be released.
             if (volume->is_wipe_tower) {
@@ -1896,8 +1932,14 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 volume->set_color(color_from_model_volume(*mvs->model_volume));
 
                 // updates volumes transformations
-                volume->set_instance_transformation(mvs->model_volume->get_object()->instances[mvs->composite_id.instance_id]->get_transformation());
-                volume->set_volume_transformation(mvs->model_volume->get_transformation());
+                if (m_canvas_type != ECanvasType::CanvasAssembleView) {
+                    volume->set_instance_transformation(mvs->model_volume->get_object()->instances[mvs->composite_id.instance_id]->get_transformation());
+                    volume->set_volume_transformation(mvs->model_volume->get_transformation());
+                }
+                else {
+                    volume->set_instance_transformation(mvs->model_volume->get_object()->instances[mvs->composite_id.instance_id]->get_assemble_transformation());
+                    volume->set_volume_transformation(mvs->model_volume->get_transformation());
+                }
             }
         }
     }
@@ -1916,6 +1958,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         const ModelObject &model_object = *m_model->objects[obj_idx];
         for (int volume_idx = 0; volume_idx < (int)model_object.volumes.size(); ++ volume_idx) {
 			const ModelVolume &model_volume = *model_object.volumes[volume_idx];
+            if (m_canvas_type == ECanvasType::CanvasAssembleView)
+                continue;
             for (int instance_idx = 0; instance_idx < (int)model_object.instances.size(); ++ instance_idx) {
 				const ModelInstance &model_instance = *model_object.instances[instance_idx];
 				ModelVolumeState key(model_volume.id(), model_instance.id());
@@ -2091,26 +2135,29 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         plate_list.reload_all_objects();
     }
 
-    // checks for geometry outside the print volume to render it accordingly
-    if (!m_volumes.empty()) {
-        ModelInstanceEPrintVolumeState state;
-        const bool contained_min_one = m_volumes.check_outside_state(m_bed.build_volume(), &state);
-        const bool partlyOut = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Partly_Outside);
-        const bool fullyOut = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Fully_Outside);
+    //BBS:exclude the assmble view
+    if (m_canvas_type != ECanvasType::CanvasAssembleView) {
+        // checks for geometry outside the print volume to render it accordingly
+        if (!m_volumes.empty()) {
+            ModelInstanceEPrintVolumeState state;
+            const bool contained_min_one = m_volumes.check_outside_state(m_bed.build_volume(), &state);
+            const bool partlyOut = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Partly_Outside);
+            const bool fullyOut = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Fully_Outside);
 
-        _set_warning_notification(EWarning::ObjectClashed, partlyOut);
-        _set_warning_notification(EWarning::ObjectOutside, fullyOut);
-        if (printer_technology != ptSLA || !contained_min_one)
+            _set_warning_notification(EWarning::ObjectClashed, partlyOut);
+            _set_warning_notification(EWarning::ObjectOutside, fullyOut);
+            if (printer_technology != ptSLA || !contained_min_one)
+                _set_warning_notification(EWarning::SlaSupportsOutside, false);
+
+            post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS,
+                contained_min_one && !m_model->objects.empty() && !partlyOut));
+        }
+        else {
+            _set_warning_notification(EWarning::ObjectOutside, false);
+            _set_warning_notification(EWarning::ObjectClashed, false);
             _set_warning_notification(EWarning::SlaSupportsOutside, false);
-
-        post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, 
-                               contained_min_one && !m_model->objects.empty() && !partlyOut));
-    }
-    else {
-        _set_warning_notification(EWarning::ObjectOutside, false);
-        _set_warning_notification(EWarning::ObjectClashed, false);
-        _set_warning_notification(EWarning::SlaSupportsOutside, false);
-        post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
+            post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
+        }
     }
 
     refresh_camera_scene_box();
@@ -3190,53 +3237,58 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
     }
     else if (evt.Dragging() && evt.LeftIsDown() && m_layers_editing.state == LayersEditing::Unknown && m_mouse.drag.move_volume_idx != -1) {
-        if (!m_mouse.drag.move_requires_threshold) {
-            m_mouse.dragging = true;
-            Vec3d cur_pos = m_mouse.drag.start_position_3D;
-            // we do not want to translate objects if the user just clicked on an object while pressing shift to remove it from the selection and then drag
-            if (m_selection.contains_volume(get_first_hover_volume_idx())) {
-                const Camera& camera = wxGetApp().plater()->get_camera();
-                if (std::abs(camera.get_dir_forward()(2)) < EPSILON) {
-                    // side view -> move selected volumes orthogonally to camera view direction
-                    Linef3 ray = mouse_ray(pos);
-                    Vec3d dir = ray.unit_vector();
-                    // finds the intersection of the mouse ray with the plane parallel to the camera viewport and passing throught the starting position
-                    // use ray-plane intersection see i.e. https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection algebric form
-                    // in our case plane normal and ray direction are the same (orthogonal view)
-                    // when moving to perspective camera the negative z unit axis of the camera needs to be transformed in world space and used as plane normal
-                    Vec3d inters = ray.a + (m_mouse.drag.start_position_3D - ray.a).dot(dir) / dir.squaredNorm() * dir;
-                    // vector from the starting position to the found intersection
-                    Vec3d inters_vec = inters - m_mouse.drag.start_position_3D;
+        if (m_canvas_type != ECanvasType::CanvasAssembleView) {
+            if (!m_mouse.drag.move_requires_threshold) {
+                m_mouse.dragging = true;
+                Vec3d cur_pos = m_mouse.drag.start_position_3D;
+                // we do not want to translate objects if the user just clicked on an object while pressing shift to remove it from the selection and then drag
+                if (m_selection.contains_volume(get_first_hover_volume_idx())) {
+                    const Camera& camera = wxGetApp().plater()->get_camera();
+                    if (std::abs(camera.get_dir_forward()(2)) < EPSILON) {
+                        // side view -> move selected volumes orthogonally to camera view direction
+                        Linef3 ray = mouse_ray(pos);
+                        Vec3d dir = ray.unit_vector();
+                        // finds the intersection of the mouse ray with the plane parallel to the camera viewport and passing throught the starting position
+                        // use ray-plane intersection see i.e. https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection algebric form
+                        // in our case plane normal and ray direction are the same (orthogonal view)
+                        // when moving to perspective camera the negative z unit axis of the camera needs to be transformed in world space and used as plane normal
+                        Vec3d inters = ray.a + (m_mouse.drag.start_position_3D - ray.a).dot(dir) / dir.squaredNorm() * dir;
+                        // vector from the starting position to the found intersection
+                        Vec3d inters_vec = inters - m_mouse.drag.start_position_3D;
 
-                    Vec3d camera_right = camera.get_dir_right();
-                    Vec3d camera_up = camera.get_dir_up();
+                        Vec3d camera_right = camera.get_dir_right();
+                        Vec3d camera_up = camera.get_dir_up();
 
-                    // finds projection of the vector along the camera axes
-                    double projection_x = inters_vec.dot(camera_right);
-                    double projection_z = inters_vec.dot(camera_up);
+                        // finds projection of the vector along the camera axes
+                        double projection_x = inters_vec.dot(camera_right);
+                        double projection_z = inters_vec.dot(camera_up);
 
-                    // apply offset
-                    cur_pos = m_mouse.drag.start_position_3D + projection_x * camera_right + projection_z * camera_up;
+                        // apply offset
+                        cur_pos = m_mouse.drag.start_position_3D + projection_x * camera_right + projection_z * camera_up;
+                    }
+                    else {
+                        // Generic view
+                        // Get new position at the same Z of the initial click point.
+                        float z0 = 0.0f;
+                        float z1 = 1.0f;
+                        cur_pos = Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_mouse.drag.start_position_3D(2));
+                    }
                 }
-                else {
-                    // Generic view
-                    // Get new position at the same Z of the initial click point.
-                    float z0 = 0.0f;
-                    float z1 = 1.0f;
-                    cur_pos = Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_mouse.drag.start_position_3D(2));
-                }
+
+                m_selection.translate(cur_pos - m_mouse.drag.start_position_3D);
+                if (current_printer_technology() == ptFFF && fff_print()->config().complete_objects)
+                    update_sequential_clearance();
+                wxGetApp().obj_manipul()->set_dirty();
+                m_dirty = true;
             }
-
-            m_selection.translate(cur_pos - m_mouse.drag.start_position_3D);
-            if (current_printer_technology() == ptFFF && fff_print()->config().complete_objects)
-                update_sequential_clearance();
-            wxGetApp().obj_manipul()->set_dirty();
-            m_dirty = true;
         }
     }
     else if (evt.Dragging() && evt.LeftIsDown() && m_picking_enabled && m_rectangle_selection.is_dragging()) {
-        m_rectangle_selection.dragging(pos.cast<double>());
-        m_dirty = true;
+        //BBS not in assemble view
+        if (m_canvas_type != ECanvasType::CanvasAssembleView) {
+            m_rectangle_selection.dragging(pos.cast<double>());
+            m_dirty = true;
+        }
     }
     else if (evt.Dragging()) {
         m_mouse.dragging = true;
@@ -5417,6 +5469,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
     m_volumes.set_show_sinking_contours(! m_gizmos.is_hiding_instances());
 
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud");
+    ECanvasType canvas_type = this->m_canvas_type;
     if (shader != nullptr) {
         shader->start_using();
 
@@ -5427,17 +5480,29 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
         {
             if (m_picking_enabled && !m_gizmos.is_dragging() && m_layers_editing.is_enabled() && (m_layers_editing.last_object_id != -1) && (m_layers_editing.object_max_z() > 0.0f)) {
                 int object_id = m_layers_editing.last_object_id;
-                m_volumes.render(type, false, wxGetApp().plater()->get_camera().get_view_matrix(), [object_id](const GLVolume& volume) {
+                //BBS:add assemble view related logic
+                m_volumes.render(type, false, wxGetApp().plater()->get_camera().get_view_matrix(), [object_id, canvas_type](const GLVolume& volume) {
                     // Which volume to paint without the layer height profile shader?
-                    return volume.is_active && (volume.is_modifier || volume.composite_id.object_id != object_id);
+                    if (canvas_type == ECanvasType::CanvasAssembleView) {
+                        return volume.is_active && !volume.is_modifier;
+                    }
+                    else {
+                        return volume.is_active && (volume.is_modifier || volume.composite_id.object_id != object_id);
+                    }
                     });
                 // Let LayersEditing handle rendering of the active object using the layer height profile shader.
                 m_layers_editing.render_volumes(*this, m_volumes);
             }
             else {
+                //BBS:add assemble view related logic
                 // do not cull backfaces to show broken geometry, if any
-                m_volumes.render(type, m_picking_enabled, wxGetApp().plater()->get_camera().get_view_matrix(), [this](const GLVolume& volume) {
-                    return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
+                m_volumes.render(type, m_picking_enabled, wxGetApp().plater()->get_camera().get_view_matrix(), [this, canvas_type](const GLVolume& volume) {
+                    if (canvas_type == ECanvasType::CanvasAssembleView) {
+                        return !volume.is_modifier;
+                    }
+                    else {
+                        return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
+                    }
                     });
             }
 
@@ -5457,10 +5522,19 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
         }
         case GLVolumeCollection::ERenderType::Transparent:
         {
-            m_volumes.render(type, false, wxGetApp().plater()->get_camera().get_view_matrix());
+            //BBS:add assemble view related logic
+            m_volumes.render(type, false, wxGetApp().plater()->get_camera().get_view_matrix(), [this, canvas_type](const GLVolume& volume) {
+                if (canvas_type == ECanvasType::CanvasAssembleView) {
+                    return !volume.is_modifier;
+                }
+                else {
+                    return true;
+                }
+                });
             break;
         }
         }
+
         shader->stop_using();
     }
 
@@ -5589,6 +5663,7 @@ void GLCanvas3D::_render_overlays()
     _render_undoredo_toolbar();
     _render_collapse_toolbar();
     _render_view_toolbar();
+    _render_paint_toolbar();
 
     if (m_layers_editing.last_object_id >= 0 && m_layers_editing.object_max_z() > 0.0f)
         m_layers_editing.render_overlay(*this);
@@ -5750,6 +5825,47 @@ void GLCanvas3D::_render_view_toolbar() const
     float left = -0.5f * (float)cnv_size.get_width() * inv_zoom;
     view_toolbar.set_position(top, left);
     view_toolbar.render(*this);
+}
+
+void GLCanvas3D::_render_paint_toolbar() const
+{
+    if (m_canvas_type != ECanvasType::CanvasAssembleView)
+        return;
+
+    std::vector<std::string> colors = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    auto canvas_w = float(get_canvas_size().get_width());
+    int button_size = 48;
+    int extruder_num = colors.size();
+    int item_spacing = 8;
+    imgui.set_next_window_pos(0.5f * (canvas_w + (button_size + item_spacing) * extruder_num), button_size + item_spacing * 2, ImGuiCond_Always, 1.0f, 1.0f);
+    imgui.begin(_L("Paint Toolbar"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar);
+    bool disabled = !wxGetApp().plater()->can_fillcolor();
+    unsigned char rgb[3];
+
+    for (int i = 0; i < extruder_num; i++) {
+        if (i > 0)
+            ImGui::SameLine();
+        ImGui::PushID(i);
+        Slic3r::GUI::BitmapCache::parse_color(colors[i], rgb);
+        ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::ImColor(rgb[0], rgb[1], rgb[2]));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::ImColor(rgb[0], rgb[1], rgb[2]));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::ImColor(rgb[0], rgb[1], rgb[2]));
+        if (disabled)
+            ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+
+        if (ImGui::Button(std::to_string(i + 1).c_str(), ImVec2(button_size, button_size))) {
+            wxPostEvent(m_canvas, IntEvent(EVT_GLTOOLBAR_FILLCOLOR, i + 1));
+        }
+        if (disabled)
+            ImGui::PopItemFlag();
+
+        ImGui::PopStyleColor(3);
+        ImGui::PopID();
+    }
+    ImGui::AlignTextToFramePadding();
+    imgui.end();
+
 }
 
 #if ENABLE_SHOW_CAMERA_TARGET

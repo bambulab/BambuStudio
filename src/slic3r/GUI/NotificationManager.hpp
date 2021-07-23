@@ -734,6 +734,7 @@ private:
 	std::unordered_set<int>      m_used_timestamps;
 	// True if G-code preview is active. False if the Plater is active.
 	bool                         m_in_preview { false };
+	int                          m_in_view{ 0 };
 	// True if the layer editing is enabled in Plater, so that the notifications are shifted left of it.
 	bool                         m_move_from_overlay { false };
 	// Timestamp of last rendering

@@ -1734,6 +1734,7 @@ struct Plater::priv
     GLToolbar view_toolbar;
     GLToolbar collapse_toolbar;
     Preview *preview;
+    AssembleView* assemble_view;
     std::unique_ptr<NotificationManager> notification_manager;
 
     ProjectDirtyStateManager dirty_state;
@@ -1861,6 +1862,7 @@ struct Plater::priv
     bool is_preview_shown() const { return current_panel == preview; }
     bool is_preview_loaded() const { return preview->is_loaded(); }
     bool is_view3D_shown() const { return current_panel == view3D; }
+    bool is_assemble_view_show() const { return current_panel == assemble_view; }
 
     bool are_view3D_labels_shown() const { return (current_panel == view3D) && view3D->get_canvas3d()->are_labels_shown(); }
     void show_view3D_labels(bool show) { if (current_panel == view3D) view3D->get_canvas3d()->show_labels(show); }
@@ -2032,6 +2034,8 @@ struct Plater::priv
     bool can_set_instance_to_object() const;
     bool can_mirror() const;
     bool can_reload_from_disk() const;
+    //BBS:
+    bool can_fillcolor() const;
     bool can_replace_with_stl() const;
     bool can_split(bool to_objects) const;
 #if ENABLE_ENHANCED_PRINT_VOLUME_FIT
@@ -2152,6 +2156,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     //BBS: use partplater's gcode
     preview = new Preview(q, bed, &model, config, &background_process, partplate_list.get_current_slice_result(), [this]() { schedule_background_process(); });
 
+    assemble_view = new AssembleView(q, &model, config, &background_process);
+
 #ifdef __APPLE__
     // set default view_toolbar icons size equal to GLGizmosManager::Default_Icons_Size
     view_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size);
@@ -2159,6 +2165,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     panels.push_back(view3D);
     panels.push_back(preview);
+    panels.push_back(assemble_view);
 
     this->background_process_timer.SetOwner(this->q, 0);
     this->q->Bind(wxEVT_TIMER, [this](wxTimerEvent &evt)
@@ -2173,6 +2180,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     panel_sizer = new wxBoxSizer(wxHORIZONTAL);
     panel_sizer->Add(view3D, 1, wxEXPAND | wxALL, 0);
     panel_sizer->Add(preview, 1, wxEXPAND | wxALL, 0);
+    panel_sizer->Add(assemble_view, 1, wxEXPAND | wxALL, 0);
     hsizer->Add(panel_sizer, 1, wxEXPAND | wxALL, 0);
     hsizer->Add(sidebar, 0, wxEXPAND | wxLEFT | wxRIGHT, 0);
     q->SetSizer(hsizer);
@@ -2268,12 +2276,20 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     if (wxGetApp().is_gcode_viewer())
         preview->Bind(EVT_GLCANVAS_RELOAD_FROM_DISK, [this](SimpleEvent&) { this->q->reload_gcode_from_disk(); });
 
+    //BBS
+    wxGLCanvas* assemble_canvas = assemble_view->get_wxglcanvas();
+    if (wxGetApp().is_editor()) {
+        assemble_canvas->Bind(EVT_GLTOOLBAR_FILLCOLOR, [q](IntEvent& evt) { q->fill_color(evt.get_data()); });
+        assemble_canvas->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
+    }
+
     if (wxGetApp().is_editor()) {
         q->Bind(EVT_SLICING_COMPLETED, &priv::on_slicing_completed, this);
         q->Bind(EVT_PROCESS_COMPLETED, &priv::on_process_completed, this);
         q->Bind(EVT_EXPORT_BEGAN, &priv::on_export_began, this);
         q->Bind(EVT_GLVIEWTOOLBAR_3D, [q](SimpleEvent&) { q->select_view_3D("3D"); });
         q->Bind(EVT_GLVIEWTOOLBAR_PREVIEW, [q](SimpleEvent&) { q->select_view_3D("Preview"); });
+        q->Bind(EVT_GLVIEWTOOLBAR_ASSEMBLE, [q](SimpleEvent&) { q->select_view_3D("Assemble"); });
     }
 
     // Drop target:
@@ -2391,6 +2407,8 @@ void Plater::priv::update(unsigned int flags)
     //BBS TODO reload_scene
     this->view3D->reload_scene(false, flags & (unsigned int)UpdateParams::FORCE_FULL_SCREEN_REFRESH);
     this->preview->reload_print();
+    //BBS assemble view
+    this->assemble_view->reload_scene(false, flags);
     if (force_background_processing_restart)
         this->restart_background_process(update_status);
     else
@@ -2402,10 +2420,20 @@ void Plater::priv::update(unsigned int flags)
 
 void Plater::priv::select_view(const std::string& direction)
 {
-    if (current_panel == view3D)
+    if (current_panel == view3D) {
+        BOOST_LOG_TRIVIAL(info) << "select view3D";
         view3D->select_view(direction);
-    else if (current_panel == preview)
+        wxGetApp().update_ui_from_settings();
+    }
+    else if (current_panel == preview) {
+        BOOST_LOG_TRIVIAL(info) << "select preview";
         preview->select_view(direction);
+        wxGetApp().update_ui_from_settings();
+    }
+    else if (current_panel == assemble_view) {
+        BOOST_LOG_TRIVIAL(info) << "select assemble view";
+        assemble_view->select_view(direction);
+    }
 }
 
 void Plater::priv::apply_free_camera_correction(bool apply/* = true*/)
@@ -2430,6 +2458,8 @@ void Plater::priv::select_next_view_3D()
     if (current_panel == view3D)
         set_current_panel(preview);
     else if (current_panel == preview)
+        set_current_panel(assemble_view);
+    else if (current_panel == assemble_view)
         set_current_panel(view3D);
 }
 
@@ -2761,6 +2791,13 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 if (!type_3mf && !type_zip_amf)
                     model_object->center_around_origin(false);
                 model_object->ensure_on_bed(is_project_file);
+
+                //BBS initialize assemble transformation
+                for (int i = 0; i < model_object->instances.size(); i++) {
+                    if (!model_object->instances[i]->is_assemble_initialized()) {
+                        model_object->instances[i]->set_assemble_transformation(model_object->instances[i]->get_transformation());
+                    }
+                }
             }
 
             // check multi-part object adding for the SLA-printing
@@ -2863,7 +2900,14 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
              // add a default instance and center object around origin
             object->center_around_origin();  // also aligns object to Z = 0
             ModelInstance* instance = object->add_instance();
+
+            //BBS calc transformation
+            Geometry::Transformation t = instance->get_transformation();
             instance->set_offset(Slic3r::to_3d(this->bed.build_volume().bed_center(), -object->origin_translation(2)));
+
+            //BBS calc assemble transformation on load
+            t.set_offset(Vec3d(this->bed.build_volume().bed_center().x(), this->bed.build_volume().bed_center().y(), -object->origin_translation(2)));
+            instance->set_assemble_transformation(t);
 #endif /* AUTOPLACEMENT_ON_LOAD */
         }
 
@@ -3559,6 +3603,8 @@ void Plater::priv::update_fff_scene()
         this->preview->reload_print();
     // In case this was MM print, wipe tower bounding box on 3D tab might need redrawing with exact depth:
     view3D->reload_scene(true);	
+    //BBS: add assemble view related logic
+    assemble_view->reload_scene(true);
 }
 
 void Plater::priv::update_sla_scene()
@@ -4003,6 +4049,8 @@ void Plater::priv::set_current_panel(wxPanel* panel)
     if (current_panel == view3D) {
         if (old_panel == preview)
             preview->get_canvas3d()->unbind_event_handlers();
+        else if (old_panel == assemble_view)
+            assemble_view->get_canvas3d()->unbind_event_handlers();
 
         view3D->get_canvas3d()->bind_event_handlers();
 
@@ -4027,6 +4075,8 @@ void Plater::priv::set_current_panel(wxPanel* panel)
     else if (current_panel == preview) {
         if (old_panel == view3D)
             view3D->get_canvas3d()->unbind_event_handlers();
+        else if (old_panel == assemble_view)
+            assemble_view->get_canvas3d()->unbind_event_handlers();
 
         preview->get_canvas3d()->bind_event_handlers();
 
@@ -4049,6 +4099,18 @@ void Plater::priv::set_current_panel(wxPanel* panel)
         view_toolbar.select_item("Preview");
         if (notification_manager != nullptr)
             notification_manager->set_in_preview(true);
+    }
+    else if (current_panel == assemble_view) {
+        if (old_panel == view3D) {
+            view3D->get_canvas3d()->unbind_event_handlers();
+        }
+        else if (old_panel == preview)
+            preview->get_canvas3d()->unbind_event_handlers();
+
+        assemble_view->get_canvas3d()->bind_event_handlers();
+        assemble_view->reload_scene(true);
+        assemble_view->set_as_dirty();
+        view_toolbar.select_item("Assemble");
     }
 
     current_panel->SetFocusFromKbd();
@@ -4608,11 +4670,21 @@ void Plater::priv::set_current_canvas_as_dirty()
         view3D->set_as_dirty();
     else if (current_panel == preview)
         preview->set_as_dirty();
+    else if (current_panel == assemble_view)
+        assemble_view->set_as_dirty();
 }
 
 GLCanvas3D* Plater::priv::get_current_canvas3D()
 {
-    return (current_panel == view3D) ? view3D->get_canvas3d() : ((current_panel == preview) ? preview->get_canvas3d() : nullptr);
+    if (current_panel == view3D)
+        return view3D->get_canvas3d();
+    else if (current_panel == preview)
+        return preview->get_canvas3d();
+    else if (current_panel == assemble_view)
+        return assemble_view->get_canvas3d();
+    else
+        return nullptr;
+    //return (current_panel == view3D) ? view3D->get_canvas3d() : ((current_panel == preview) ? preview->get_canvas3d() : nullptr);
 }
 
 void Plater::priv::unbind_canvas_event_handlers()
@@ -4622,6 +4694,9 @@ void Plater::priv::unbind_canvas_event_handlers()
 
     if (preview != nullptr)
         preview->get_canvas3d()->unbind_event_handlers();
+
+    if (assemble_view != nullptr)
+        assemble_view->get_canvas3d()->unbind_event_handlers();
 }
 
 void Plater::priv::reset_canvas_volumes()
@@ -4672,6 +4747,14 @@ bool Plater::priv::init_view_toolbar()
     item.tooltip = _utf8(L("Preview")) + " [" + GUI::shortkey_ctrl_prefix() + "6]";
     item.sprite_id = 1;
     item.left.action_callback = [this]() { if (this->q != nullptr) wxPostEvent(this->q, SimpleEvent(EVT_GLVIEWTOOLBAR_PREVIEW)); };
+    if (!view_toolbar.add_item(item))
+        return false;
+
+    item.name = "Assemble";
+    item.icon_filename = "assemble.svg";
+    item.tooltip = _utf8(L("Assemble")) + " [" + GUI::shortkey_ctrl_prefix() + "7]";
+    item.sprite_id = 2;
+    item.left.action_callback = [this]() { if (this->q != nullptr) wxPostEvent(this->q, SimpleEvent(EVT_GLVIEWTOOLBAR_ASSEMBLE)); };
     if (!view_toolbar.add_item(item))
         return false;
 
@@ -4759,6 +4842,12 @@ bool Plater::priv::can_set_instance_to_object() const
 bool Plater::priv::can_split(bool to_objects) const
 {
     return sidebar->obj_list()->is_splittable(to_objects);
+}
+
+bool Plater::priv::can_fillcolor() const
+{
+    //BBS TODO
+    return true;
 }
 
 #if ENABLE_ENHANCED_PRINT_VOLUME_FIT
@@ -6729,7 +6818,8 @@ bool Plater::is_single_full_object_selection() const
 
 GLCanvas3D* Plater::canvas3D()
 {
-    return p->view3D->get_canvas3d();
+    return p->get_current_canvas3D();
+    //return p->view3D->get_canvas3d();
 }
 
 const GLCanvas3D* Plater::canvas3D() const
@@ -6919,6 +7009,13 @@ void Plater::split_volume()         { p->split_volume(); }
 void Plater::optimize_rotation()    { if (!p->m_ui_jobs.is_any_running()) p->m_ui_jobs.optimize_rotation(); }
 void Plater::update_menus()         { p->menus.update(); }
 void Plater::show_action_buttons(const bool ready_to_slice) const   { p->show_action_buttons(ready_to_slice); }
+
+void Plater::fill_color(int extruder_id)
+{
+    if (can_fillcolor()) {
+        p->assemble_view->get_canvas3d()->get_selection().fill_color(extruder_id);
+    }
+}
 
 void Plater::copy_selection_to_clipboard()
 {
@@ -7255,6 +7352,8 @@ bool Plater::can_copy_to_clipboard() const
 bool Plater::can_undo() const { return p->undo_redo_stack().has_undo_snapshot(); }
 bool Plater::can_redo() const { return p->undo_redo_stack().has_redo_snapshot(); }
 bool Plater::can_reload_from_disk() const { return p->can_reload_from_disk(); }
+//BBS
+bool Plater::can_fillcolor() const { return p->can_fillcolor(); }
 bool Plater::can_replace_with_stl() const { return p->can_replace_with_stl(); }
 bool Plater::can_mirror() const { return p->can_mirror(); }
 bool Plater::can_split(bool to_objects) const { return p->can_split(to_objects); }

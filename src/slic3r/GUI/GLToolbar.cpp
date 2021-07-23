@@ -31,9 +31,11 @@ wxDEFINE_EVENT(EVT_GLTOOLBAR_FEWER, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLTOOLBAR_SPLIT_OBJECTS, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLTOOLBAR_SPLIT_VOLUMES, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLTOOLBAR_LAYERSEDITING, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLTOOLBAR_FILLCOLOR, IntEvent);
 
 wxDEFINE_EVENT(EVT_GLVIEWTOOLBAR_3D, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLVIEWTOOLBAR_PREVIEW, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLVIEWTOOLBAR_ASSEMBLE, SimpleEvent);
 
 const GLToolbarItem::ActionCallback GLToolbarItem::Default_Action_Callback = [](){};
 const GLToolbarItem::VisibilityCallback GLToolbarItem::Default_Visibility_Callback = []()->bool { return true; };
@@ -1393,6 +1395,7 @@ bool GLToolbar::update_items_enabled_state()
 
     return ret;
 }
+
 
 } // namespace GUI
 } // namespace Slic3r

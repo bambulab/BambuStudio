@@ -84,6 +84,8 @@ static constexpr const char* VOLUME_TAG = "volume";
 static constexpr const char* PART_TAG = "part";
 static constexpr const char* PLATE_TAG = "plate";
 static constexpr const char* INSTANCE_TAG = "model_instance";
+static constexpr const char* ASSEMBLE_TAG = "assemble";
+static constexpr const char* ASSEMBLE_ITEM_TAG = "assemble_item";
 
 static constexpr const char* UNIT_ATTR = "unit";
 static constexpr const char* NAME_ATTR = "name";
@@ -538,6 +540,12 @@ namespace Slic3r {
 
         bool _handle_start_config_plater_instance(const char** attributes, unsigned int num_attributes);
         bool _handle_end_config_plater_instance();
+
+        bool _handle_start_assemble(const char** attributes, unsigned int num_attributes);
+        bool _handle_end_assemble();
+
+        bool _handle_start_assemble_item(const char** attributes, unsigned int num_attributes);
+        bool _handle_end_assemble_item();
 
         bool _generate_volumes(ModelObject& object, const Geometry& geometry, const ObjectMetadata::VolumeMetadataList& volumes, ConfigSubstitutionContext& config_substitutions);
 
@@ -1437,6 +1445,10 @@ namespace Slic3r {
             res = _handle_start_config_plater(attributes, num_attributes);
         else if (::strcmp(INSTANCE_TAG, name) == 0)
             res = _handle_start_config_plater_instance(attributes, num_attributes);
+        else if (::strcmp(ASSEMBLE_TAG, name) == 0)
+            res = _handle_start_assemble(attributes, num_attributes);
+        else if (::strcmp(ASSEMBLE_ITEM_TAG, name) == 0)
+            res = _handle_start_assemble_item(attributes, num_attributes);
 
         if (!res)
             _stop_xml_parser();
@@ -1463,6 +1475,10 @@ namespace Slic3r {
             res = _handle_end_config_plater();
         else if (::strcmp(INSTANCE_TAG, name) == 0)
             res = _handle_end_config_plater_instance();
+        else if (::strcmp(ASSEMBLE_TAG, name) == 0)
+            res = _handle_end_assemble();
+        else if (::strcmp(ASSEMBLE_ITEM_TAG, name) == 0)
+            res = _handle_end_assemble_item();
 
         if (!res)
             _stop_xml_parser();
@@ -1977,6 +1993,39 @@ namespace Slic3r {
 
         m_curr_plater->objects_and_instances.emplace_back(m_curr_instance.object_id, m_curr_instance.instance_id);
         m_curr_instance.object_id = m_curr_instance.instance_id = -1;
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_start_assemble(const char** attributes, unsigned int num_attributes)
+    {
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_end_assemble()
+    {
+        //do nothing
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_start_assemble_item(const char** attributes, unsigned int num_attributes)
+    {
+        int object_id = bbs_get_attribute_value_int(attributes, num_attributes, OBJECT_ID_ATTR);
+        int instance_id = bbs_get_attribute_value_int(attributes, num_attributes, INSTANCEID_ATTR) - object_id;
+
+        IdToModelObjectMap::iterator object_item = m_objects.find(object_id);
+        if (object_item != m_objects.end())
+            object_id = object_item->second;
+        Transform3d transform = bbs_get_transform_from_3mf_specs_string(bbs_get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR));
+        if (object_id < m_model->objects.size()) {
+            if (instance_id < m_model->objects[object_id]->instances.size()) {
+                m_model->objects[object_id]->instances[instance_id]->set_assemble_from_transform(transform);
+            }
+        }
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_end_assemble_item()
+    {
         return true;
     }
 
@@ -3093,6 +3142,29 @@ namespace Slic3r {
                 stream << "  </" << PLATE_TAG << ">\n"; 
             }
         }
+
+        //BBS: store assemble related info
+        stream << "  <" << ASSEMBLE_TAG << ">\n";
+        for (const IdToObjectDataMap::value_type& obj_metadata : objects_data) {
+            const ModelObject* obj = obj_metadata.second.object;
+            if (obj != nullptr) {
+                for (int instance_idx = 0; instance_idx < obj->instances.size(); ++instance_idx) {
+                    stream << "   <" << ASSEMBLE_ITEM_TAG << " " << OBJECT_ID_ATTR << "=\"" << obj_metadata.first << "\" ";
+                    stream << INSTANCEID_ATTR << "=\"" << obj_metadata.first + instance_idx << "\" " << TRANSFORM_ATTR << "=\"";
+                        for (unsigned c = 0; c < 4; ++c) {
+                            for (unsigned r = 0; r < 3; ++r) {
+                                const Transform3d assemble_trans = obj->instances[instance_idx]->get_assemble_transformation().get_matrix();
+                                stream << assemble_trans(r, c);
+                                if (r != 2 || c != 3)
+                                    stream << " ";
+                            }
+                        }
+                    stream << "\" />\n";
+                }
+            }
+        }
+        stream << "  </" << ASSEMBLE_TAG << ">\n";
+
         stream << "</" << CONFIG_TAG << ">\n";
 
         std::string out = stream.str();

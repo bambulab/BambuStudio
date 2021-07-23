@@ -317,6 +317,9 @@ public:
     void split_volume();
     void optimize_rotation();
 
+    //BBS:
+    void fill_color(int extruder_id);
+
     bool can_delete() const;
     bool can_delete_all() const;
     bool can_add_plate() const;
@@ -341,6 +344,9 @@ public:
 #if ENABLE_ENHANCED_PRINT_VOLUME_FIT
     bool can_scale_to_print_volume() const;
 #endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
+
+    //BBS:
+    bool can_fillcolor() const;
 
     void msw_rescale();
     void sys_color_changed();

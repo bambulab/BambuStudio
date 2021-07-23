@@ -1067,6 +1067,12 @@ void ModelObject::rotate(double angle, const Vec3d& axis)
     for (ModelVolume *v : this->volumes) {
         v->rotate(angle, axis);
     }
+
+    //BBS update assemble transformation when modify volume rotation
+    for (int i = 0; i < instances.size(); i++) {
+        instances[i]->rotate_assemble(-angle, axis);
+    }
+
     center_around_origin();
     this->invalidate_bounding_box();
 }
@@ -1376,6 +1382,8 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
             {
                 Vec3d shift = model_instance->get_transformation().get_matrix(true) * new_vol->get_offset();
                 model_instance->set_offset(model_instance->get_offset() + shift);
+                //BBS: add assemble_view related logic
+                model_instance->set_assemble_transformation(model_instance->get_transformation());
             }
 
             new_vol->set_offset(Vec3d::Zero());

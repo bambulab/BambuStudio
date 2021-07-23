@@ -454,6 +454,14 @@ public:
         bool  enable_rotation = false;
     };
 
+    //BBS: add canvas type for assemble view usage
+    enum ECanvasType
+    {
+        CanvasView3D = 0,
+        CanvasPreview = 1,
+        CanvasAssembleView = 2,
+    };
+
 private:
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
@@ -469,6 +477,8 @@ private:
     GLGizmosManager m_gizmos;
     GLToolbar m_main_toolbar;
     GLToolbar m_undoredo_toolbar;
+    //BBS: add canvas type for assemble view usage
+    ECanvasType m_canvas_type;
     std::array<ClippingPlane, 2> m_clipping_planes;
     ClippingPlane m_camera_clipping_plane;
     bool m_use_clipping_planes;
@@ -636,6 +646,7 @@ public:
     bool is_initialized() const { return m_initialized; }
 
     void set_context(wxGLContext* context) { m_context = context; }
+    void set_type(ECanvasType type) { m_canvas_type = type; }
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
 	const wxGLCanvas* get_wxglcanvas() const { return m_canvas; }
@@ -960,6 +971,7 @@ private:
     void _render_undoredo_toolbar();
     void _render_collapse_toolbar() const;
     void _render_view_toolbar() const;
+    void _render_paint_toolbar() const;
 #if ENABLE_SHOW_CAMERA_TARGET
     void _render_camera_target() const;
 #endif // ENABLE_SHOW_CAMERA_TARGET

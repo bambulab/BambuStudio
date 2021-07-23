@@ -1480,6 +1480,11 @@ void Selection::paste_from_clipboard()
     }
 }
 
+void Selection::fill_color(int extruder_id)
+{
+    wxGetApp().obj_list()->set_extruder_for_selected_items(extruder_id);
+}
+
 std::vector<unsigned int> Selection::get_volume_idxs_from_object(unsigned int object_idx) const
 {
     std::vector<unsigned int> idxs;

@@ -348,6 +348,8 @@ public:
 
     const Clipboard& get_clipboard() const { return m_clipboard; }
 
+    void fill_color(int  extruder_id);
+
     // returns the list of idxs of the volumes contained into the object with the given idx
     std::vector<unsigned int> get_volume_idxs_from_object(unsigned int object_idx) const;
     // returns the list of idxs of the volumes contained into the instance with the given idxs
