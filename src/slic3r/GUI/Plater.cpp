@@ -4312,14 +4312,14 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         this->notification_manager->set_slicing_progress_canceled(_utf8("Slicing Cancelled."));
     }
 
+    //BBS: set the current plater's slice result to valid
+    this->background_process.get_current_plate()->update_slice_result_valid_state(evt.success());
+
     //BBS: update the action button according to the current plate's status
     bool ready_to_slice = !this->partplate_list.get_curr_plate()->is_slice_result_valid();
 
     if (!ready_to_slice)
         this->sidebar->show_sliced_info_sizer(evt.success());
-
-    //BBS: set the current plater's slice result to valid
-    this->background_process.get_current_plate()->update_slice_result_valid_state(evt.success());
 
     this->sidebar->show_sliced_info_sizer(evt.success());
 
