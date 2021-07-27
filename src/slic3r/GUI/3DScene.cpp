@@ -418,6 +418,7 @@ void GLVolume::set_render_color()
         }
     }
     else {
+        /* BBS
         if (hover == HS_Select)
             set_render_color(HOVER_SELECT_COLOR);
         else if (hover == HS_Deselect)
@@ -425,6 +426,8 @@ void GLVolume::set_render_color()
         else if (selected)
             set_render_color(outside ? SELECTED_OUTSIDE_COLOR : SELECTED_COLOR);
         else if (disabled)
+        */
+        if (disabled)
             set_render_color(DISABLED_COLOR);
         else if (outside && shader_outside_printer_detection_enabled)
             set_render_color(OUTSIDE_COLOR);
