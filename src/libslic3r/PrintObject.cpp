@@ -15,6 +15,7 @@
 #include "Utils.hpp"
 #include "Fill/FillAdaptive.hpp"
 #include "Format/STL.hpp"
+#include "InternalBridgeDetector.hpp"
 
 #include <float.h>
 #include <string_view>
@@ -1483,8 +1484,14 @@ void PrintObject::bridge_over_infill()
             to_bridge = intersection_ex(to_bridge, internal_solid, ApplySafetyOffset::Yes);
             // build the new collection of fill_surfaces
             layerm->fill_surfaces.remove_type(stInternalSolid);
-            for (ExPolygon &ex : to_bridge)
+            for (ExPolygon &ex : to_bridge) {
                 layerm->fill_surfaces.surfaces.push_back(Surface(stInternalBridge, ex));
+                // BBS: detect angle for internal bridge infill
+                InternalBridgeDetector ibd(ex, layerm->fill_no_overlap_expolygons, bridge_flow.scaled_spacing());
+                if (ibd.detect_angle()) {
+                    (layerm->fill_surfaces.surfaces.end() - 1)->bridge_angle = ibd.angle;
+                }
+            }
             for (ExPolygon &ex : not_to_bridge)
                 layerm->fill_surfaces.surfaces.push_back(Surface(stInternalSolid, ex));            
             /*

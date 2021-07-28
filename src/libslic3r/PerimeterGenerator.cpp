@@ -833,21 +833,40 @@ void PerimeterGenerator::process()
                 // two or more loops?
                 perimeter_spacing / 2;
         // only apply infill overlap if we actually have one perimeter
-        if (inset > 0)
-            inset -= coord_t(scale_(this->config->get_abs_value("infill_overlap", unscale<double>(inset + solid_infill_spacing / 2))));
+        coord_t infill_peri_overlap = 0;
+        if (inset > 0) {
+            infill_peri_overlap = coord_t(scale_(this->config->get_abs_value("infill_overlap", unscale<double>(inset + solid_infill_spacing / 2))));
+            inset -= infill_peri_overlap;
+        }
         // simplify infill contours according to resolution
         Polygons pp;
         for (ExPolygon &ex : last)
             ex.simplify_p(m_scaled_resolution, &pp);
+        ExPolygons not_filled_exp = union_ex(pp);
         // collapse too narrow infill areas
         coord_t min_perimeter_infill_spacing = coord_t(solid_infill_spacing * (1. - INSET_OVERLAP_TOLERANCE));
         // append infill areas to fill_surfaces
         this->fill_surfaces->append(
             offset2_ex(
-                union_ex(pp),
+                not_filled_exp,
                 float(- inset - min_perimeter_infill_spacing / 2.),
                 float(min_perimeter_infill_spacing / 2.)),
             stInternal);
+        // BBS: get the no-overlap infill expolygons
+        {
+            ExPolygons polyWithoutOverlap;
+            if (min_perimeter_infill_spacing / 2 > infill_peri_overlap)
+                polyWithoutOverlap = offset2_ex(
+                    not_filled_exp,
+                    float(-inset - min_perimeter_infill_spacing / 2.),
+                    float(min_perimeter_infill_spacing / 2 - infill_peri_overlap));
+            else
+                polyWithoutOverlap = offset_ex(
+                    not_filled_exp,
+                    double(-inset + infill_peri_overlap));
+            this->fill_no_overlap.insert(this->fill_no_overlap.end(), polyWithoutOverlap.begin(), polyWithoutOverlap.end());
+        }
+
     } // for each island
 }
 

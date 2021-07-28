@@ -30,6 +30,7 @@ public:
     SurfaceCollection           *fill_surfaces;
 
     std::map<float, Polygons> m_lower_polygons_series;
+    ExPolygons fill_no_overlap;
     
     PerimeterGenerator(
         // Input:

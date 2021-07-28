@@ -45,6 +45,8 @@ public:
     ExPolygons                  fill_expolygons;
     // collection of surfaces for infill generation
     SurfaceCollection           fill_surfaces;
+    // BBS: Unspecified fill polygons, used for interecting when we don't want the infill/perimeter overlap
+    ExPolygons                  fill_no_overlap_expolygons;
 
     // collection of expolygons representing the bridged areas (thus not
     // needing support material)
