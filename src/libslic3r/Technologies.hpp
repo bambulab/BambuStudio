@@ -5,13 +5,13 @@
 // debug techs
 //=============
 // Shows camera target in the 3D scene
-#define ENABLE_SHOW_CAMERA_TARGET 0
+#define ENABLE_SHOW_CAMERA_TARGET 1
 // Log debug messages to console when changing selection
-#define ENABLE_SELECTION_DEBUG_OUTPUT 0
+#define ENABLE_SELECTION_DEBUG_OUTPUT 1
 // Renders a small sphere in the center of the bounding box of the current selection when no gizmo is active
 #define ENABLE_RENDER_SELECTION_CENTER 0
 // Shows an imgui dialog with camera related data
-#define ENABLE_CAMERA_STATISTICS 0
+#define ENABLE_CAMERA_STATISTICS 1
 // Render the picking pass instead of the main scene (use [T] key to toggle between regular rendering and picking pass only rendering)
 #define ENABLE_RENDER_PICKING_PASS 0
 // Enable extracting thumbnails from selected gcode and save them as png files

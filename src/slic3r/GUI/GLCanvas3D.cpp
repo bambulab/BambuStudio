@@ -5760,7 +5760,7 @@ void GLCanvas3D::_render_camera_target() const
 
     glsafe(::glLineWidth(2.0f));
     ::glBegin(GL_LINES);
-    const Vec3d& target = m_camera.get_target();
+    const Vec3d& target = wxGetApp().plater()->get_camera().get_target();
     // draw line for x axis
     ::glColor3f(1.0f, 0.0f, 0.0f);
     ::glVertex3d(target(0) - half_length, target(1), target(2));
