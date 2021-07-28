@@ -763,6 +763,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloats,             wiping_volumes_matrix))
     ((ConfigOptionFloats,             wiping_volumes_extruders))
     ((ConfigOptionFloat,              z_offset))
+    ((ConfigOptionBool,               auto_slow_down_for_overhang_and_curva))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Full.

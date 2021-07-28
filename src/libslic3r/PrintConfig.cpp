@@ -3060,6 +3060,13 @@ void PrintConfigDef::init_fff_params()
         default: assert(false);
         }
     }
+
+    def = this->add("auto_slow_down_for_overhang_and_curva", coBool);
+    def->label = L("Auto slow down for overhang and curva");
+    def->category = L("Speed");
+    def->tooltip = L("Auto slow down the print speed of perimeters arrording to the degree of overhang and curva");
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionBool(false));
 }
 
 void PrintConfigDef::init_extruder_option_keys()
