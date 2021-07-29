@@ -805,8 +805,13 @@ std::string CoolingBuffer::apply_layer_cooldown(
                     const char *f = fpos;
                     // Roll the pointer before the 'F' word.
                     for (f -= 2; f > line_start && (*f == ' ' || *f == '\t'); -- f);
-                    // Append up to the F word, without the trailing whitespace.
-                    new_gcode.append(line_start, f - line_start + 1);
+
+                    if ((f - line_start == 1) && *line_start == 'G' && (*f == '1' || *f == '0')) {
+                        // BBS: only remain "G1" or "G0" of this line after remove 'F' part, don't save
+                    } else {
+                        // Append up to the F word, without the trailing whitespace.
+                        new_gcode.append(line_start, f - line_start + 1);
+                    }
                 }
                 // Skip the non-whitespaces of the F parameter up the comment or end of line.
                 for (; fpos != end && *fpos != ' ' && *fpos != ';' && *fpos != '\n'; ++ fpos);
