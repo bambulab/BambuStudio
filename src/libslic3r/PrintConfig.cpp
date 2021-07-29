@@ -3066,7 +3066,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Speed");
     def->tooltip = L("Auto slow down the print speed of perimeters arrording to the degree of overhang and curva");
     def->mode = comExpert;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBool(true));
 }
 
 void PrintConfigDef::init_extruder_option_keys()
