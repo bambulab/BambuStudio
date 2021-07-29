@@ -5038,6 +5038,9 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 
     m_old_size = new_size;
 
+    auto* imgui = wxGetApp().imgui();
+    imgui->set_display_size(static_cast<float>(w), static_cast<float>(h));
+
     //BBS reduce render
     if (m_last_w == w && m_last_h == h) {
         return;
@@ -5046,8 +5049,6 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     m_last_w = w;
     m_last_h = h;
 
-    auto *imgui = wxGetApp().imgui();
-    imgui->set_display_size(static_cast<float>(w), static_cast<float>(h));
     const float font_size = 1.5f * wxGetApp().em_unit();
 #if ENABLE_RETINA_GL
     imgui->set_scaling(font_size, 1.0f, m_retina_helper->get_scale_factor());
