@@ -196,7 +196,7 @@ void PartPlate::render_default(bool bottom) const {
 }
 
 void PartPlate::render_label(GLCanvas3D& canvas) const {
-	std::string label = (boost::format("Plate %1%") % m_plate_index).str();
+	std::string label = (boost::format("Plate %1%") % (m_plate_index + 1)).str();
 	const Camera& camera = wxGetApp().plater()->get_camera();
 	Transform3d world_to_eye = camera.get_view_matrix();
 	Transform3d world_to_screen = camera.get_projection_matrix() * world_to_eye;
