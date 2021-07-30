@@ -927,6 +927,13 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
 
 bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, ModelInstanceEPrintVolumeState *out_state) const
 {
+    if (GUI::wxGetApp().plater() == NULL)
+    {
+        if (out_state != nullptr)
+            *out_state = ModelInstancePVS_Inside;
+        return false;
+    }
+
     const Model&        model              = GUI::wxGetApp().plater()->model();
     auto                volume_below       = [](GLVolume& volume) -> bool
         { return volume.object_idx() != -1 && volume.volume_idx() != -1 && volume.is_below_printbed(); };

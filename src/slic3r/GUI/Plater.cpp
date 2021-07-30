@@ -5517,7 +5517,11 @@ void Plater::load_gcode(const wxString& filename)
     m_last_loaded_gcode = filename;
 
     // cleanup view before to start loading/processing
-    p->gcode_result.reset();
+    // cleanup view before to start loading/processing
+    //BBS: update gcode to current partplate's
+    GCodeProcessorResult* current_result = p->partplate_list.get_current_slice_result();
+    current_result->reset();
+    //p->gcode_result.reset();
     reset_gcode_toolpaths();
     p->preview->reload_print(false);
     p->get_current_canvas3D()->render();
@@ -5535,7 +5539,8 @@ void Plater::load_gcode(const wxString& filename)
         show_error(this, ex.what());
         return;
     }
-    p->gcode_result = std::move(processor.extract_result());
+    //p->gcode_result = std::move(processor.extract_result());
+    *current_result = std::move(processor.extract_result());
 
     // show results
     p->preview->reload_print(false);
