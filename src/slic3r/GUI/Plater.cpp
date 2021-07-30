@@ -1894,7 +1894,7 @@ struct Plater::priv
     std::string get_config(const std::string &key) const;
 
     std::vector<size_t> load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool used_inches = false);
-    std::vector<size_t> load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z = false);
+    std::vector<size_t> load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z = false, bool split_object = false);
 
     fs::path get_export_file_path(GUI::FileType file_type);
     wxString get_export_file(GUI::FileType file_type);
@@ -2791,13 +2791,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 if (!type_3mf && !type_zip_amf)
                     model_object->center_around_origin(false);
                 model_object->ensure_on_bed(is_project_file);
-
-                //BBS initialize assemble transformation
-                for (int i = 0; i < model_object->instances.size(); i++) {
-                    if (!model_object->instances[i]->is_assemble_initialized()) {
-                        model_object->instances[i]->set_assemble_transformation(model_object->instances[i]->get_transformation());
-                    }
-                }
             }
 
             // check multi-part object adding for the SLA-printing
@@ -2870,7 +2863,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
 // #define AUTOPLACEMENT_ON_LOAD
 
-std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z)
+std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z, bool split_object)
 {
     const Vec3d bed_size = Slic3r::to_3d(this->bed.build_volume().bounding_volume2d().size(), 1.0) - 2.0 * Vec3d::Ones();
 
@@ -2904,10 +2897,6 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
             //BBS calc transformation
             Geometry::Transformation t = instance->get_transformation();
             instance->set_offset(Slic3r::to_3d(this->bed.build_volume().bed_center(), -object->origin_translation(2)));
-
-            //BBS calc assemble transformation on load
-            t.set_offset(Vec3d(this->bed.build_volume().bed_center().x(), this->bed.build_volume().bed_center().y(), -object->origin_translation(2)));
-            instance->set_assemble_transformation(t);
 #endif /* AUTOPLACEMENT_ON_LOAD */
         }
 
@@ -2932,6 +2921,17 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
         }
 
         object->ensure_on_bed(allow_negative_z);
+        if (!split_object) {
+            //BBS initial assemble transformation
+            for (ModelObject* model_object : model.objects) {
+                //BBS initialize assemble transformation
+                for (int i = 0; i < model_object->instances.size(); i++) {
+                    if (!model_object->instances[i]->is_assemble_initialized()) {
+                        model_object->instances[i]->set_assemble_transformation(model_object->instances[i]->get_transformation());
+                    }
+                }
+            }
+        }
     }
 
 #ifdef AUTOPLACEMENT_ON_LOAD
@@ -3288,7 +3288,8 @@ void Plater::priv::split_object()
 
         // load all model objects at once, otherwise the plate would be rearranged after each one
         // causing original positions not to be kept
-        std::vector<size_t> idxs = load_model_objects(new_objects);
+        //BBS: set split_object to true to avoid re-compute assemble matrix
+        std::vector<size_t> idxs = load_model_objects(new_objects, true);
 
         // select newly added objects
         for (size_t idx : idxs)
