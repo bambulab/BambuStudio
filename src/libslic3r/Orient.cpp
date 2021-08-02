@@ -434,7 +434,7 @@ void orient(ModelObject* obj)
     auto axisd = -axis.cast<double>();
     double angled = angle;
     obj->rotate(angled, axisd);
-    obj->ensure_on_bed(false);
+    obj->ensure_on_bed();
 }
 
 

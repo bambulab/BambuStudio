@@ -2121,7 +2121,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     fff_print.set_status_callback(statuscb);
     sla_print.set_status_callback(statuscb); */
 
-    background_process.set_thumbnail_cb([this](const ThumbnailsParams& params) { return this->generate_thumbnails(params); });
+    // BBS: to be checked. Not follow patch.
+    // https://gerrit.bambooolab.com/c/bbl/bamboo_slicer/+/121/7/src/slic3r/GUI/Plater.cpp#2080
+    background_process.set_thumbnail_cb([this](const ThumbnailsParams& params) { return this->generate_thumbnails(params, Camera::EType::Ortho); });
     background_process.set_slicing_completed_event(EVT_SLICING_COMPLETED);
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
     background_process.set_export_began_event(EVT_EXPORT_BEGAN);

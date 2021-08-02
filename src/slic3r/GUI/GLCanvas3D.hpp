@@ -500,7 +500,7 @@ private:
     std::vector<int> m_hover_volume_idxs;
 
     //BBS:add plate related logic
-    std::vector<int> m_hover_volume_idxs;
+    mutable std::vector<int> m_hover_volume_idxs;
     std::vector<int> m_hover_plate_idxs;
 
     // Following variable is obsolete and it should be safe to remove it.

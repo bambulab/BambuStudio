@@ -53,7 +53,7 @@ public:
             auto axis = -p.axis.cast<double>();
             double angle = p.angle;
             obj->rotate(angle, axis);
-            obj->ensure_on_bed(false);
+            obj->ensure_on_bed();
         };
         return om;
     }

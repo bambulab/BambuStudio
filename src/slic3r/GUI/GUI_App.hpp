@@ -96,7 +96,7 @@ enum ConfigMenuIDs {
 class Tab;
 class ConfigWizard;
 
-static wxString dots("…", wxConvUTF8);
+static wxString dots("...", wxConvUTF8);
 
 // Does our wxWidgets version support markup?
 // https://github.com/prusa3d/PrusaSlicer/issues/4282#issuecomment-634676371

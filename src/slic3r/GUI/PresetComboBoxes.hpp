@@ -115,8 +115,8 @@ protected:
     static const char* separator_head() { return "------- "; }
     static const char* separator_tail() { return " -------"; }
 #else // __linux__ 
-    static const char* separator_head() { return "————— "; }
-    static const char* separator_tail() { return " —————"; }
+    static const char* separator_head() { return "------ "; }
+    static const char* separator_tail() { return " ------"; }
 #endif // __linux__
     static wxString    separator(const std::string& label);
 

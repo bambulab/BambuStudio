@@ -114,7 +114,11 @@ void PartPlate::calc_bounding_boexes() const {
 }
 
 void PartPlate::calc_triangles(const ExPolygon& poly) {
-	m_triangles.set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z);
+    Polygons triangles;
+    poly.triangulate_p2t(&triangles);
+
+    if (!m_triangles.set_from_triangles(triangles, GROUND_Z, true))
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed triangles\n";
 }
 
 void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox) {
@@ -140,7 +144,7 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 	std::copy(contour_lines.begin(), contour_lines.end(), std::back_inserter(gridlines));
 
 	if (!m_gridlines.set_from_lines(gridlines, GROUND_Z))
-		BOOST_LOG_TRIVIAL(error) << "Unable to create bed grid lines\n";
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed grid lines\n";
 }
 
 void PartPlate::render_default(bool bottom) const {

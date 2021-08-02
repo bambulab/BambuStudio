@@ -216,7 +216,7 @@ void ArrangeJob::prepare_partplate() {
         for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
         {
             bool in_plate = plate->contain_instance(oidx, inst_idx);
-            ArrangePolygon&& ap = get_arrange_poly(mo->instances[inst_idx], m_plater);
+            ArrangePolygon&& ap = get_arrange_poly(PtrWrapper{mo->instances[inst_idx]}, m_plater);
             ArrangePolygons& cont = mo->instances[inst_idx]->printable ?
                 (in_plate ? m_selected :
                     m_unselected) :

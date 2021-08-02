@@ -32,6 +32,7 @@
 #include "NotificationManager.hpp"
 #include "libslic3r/Time.hpp"
 #include "slic3r/Utils/Http.hpp"
+#include "wxExtensions.hpp"
 #include <expat.h>
 
 typedef pt::ptree JSON;
