@@ -863,7 +863,7 @@ void PerimeterGenerator::process()
             else
                 polyWithoutOverlap = offset_ex(
                     not_filled_exp,
-                    double(-inset + infill_peri_overlap));
+                    double(-inset - infill_peri_overlap));
             this->fill_no_overlap.insert(this->fill_no_overlap.end(), polyWithoutOverlap.begin(), polyWithoutOverlap.end());
         }
 

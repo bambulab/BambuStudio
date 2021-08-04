@@ -14,10 +14,31 @@ InternalBridgeDetector::InternalBridgeDetector(
     initialize();
 }
 
+//#define INTERNAL_BRIDGE_DETECTOR_DEBUG_TO_SVG
+
 void InternalBridgeDetector::initialize()
 {
     Polygons grown = offset(this->internal_bridge_infill, float(this->spacing));
     this->m_anchor_regions = diff_ex(grown, offset(this->fill_no_overlap, 10.f));
+
+#ifdef INTERNAL_BRIDGE_DETECTOR_DEBUG_TO_SVG
+    static int irun = 0;
+    BoundingBox bbox_svg;
+
+    bbox_svg.merge(get_extents(this->internal_bridge_infill));
+    bbox_svg.merge(get_extents(this->fill_no_overlap));
+    bbox_svg.merge(get_extents(this->m_anchor_regions));
+    {
+        std::stringstream stri;
+        stri << "InternalBridgeDetector_" << irun << ".svg";
+        SVG svg(stri.str(), bbox_svg);
+        svg.draw(to_polylines(this->internal_bridge_infill), "blue");
+        svg.draw(to_polylines(this->fill_no_overlap), "yellow");
+        svg.draw(to_polylines(m_anchor_regions), "red");
+        svg.Close();
+    }
+    ++ irun;
+#endif
 }
 
 bool InternalBridgeDetector::detect_angle()
