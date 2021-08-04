@@ -86,10 +86,10 @@ namespace Slic3r {
             };
 
             enum UPGRADE_MODULE { MODULE_RK = 0, MODULE_MC = 1, MODULE_TH = 2, MODULE_AMS = 3, MODULE_OTA = 4, MODULE_MAX };
-            enum UPGRADE_MODE { MODE_DAILYBUILD = 0, MODE_RELEASE = 1, MODE_MAX};
+            enum UPGRADE_MODE { MODE_DAILYBUILD = 0, MODE_RELEASE = 1, DEBUG = 2, MODE_MAX};
             std::string upgrade_post_url[MODULE_MAX] = { "rk/", "mc/", "th/", "ams/", "ota/"};
             std::string upgrade_module_name[MODULE_MAX] = { "rk1126", "mc", "th", "ams", "ota"};
-            std::string upgrade_mode_name[MODE_MAX] = { "dailybuild/", "release/" };
+            std::string upgrade_mode_name[MODE_MAX] = { "dailybuild/", "release/", "debug/"};
 
             std::string UPGRADE_URL = "http://upgrade.bambooolab.com/";
             std::string CURL_FILE = resources_dir() + "/bbl/curl";

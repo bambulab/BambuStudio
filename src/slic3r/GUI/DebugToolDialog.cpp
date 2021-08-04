@@ -420,6 +420,8 @@ void DebugToolDialog::init_upgrade()
     wxArrayString mode_items;
     mode_items.Add(_L("DailyBuild"));
     mode_items.Add(_L("Release"));
+    mode_items.Add(_L("Debug"));
+
     cb_upgrade_mode = new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, mode_items);
     cb_upgrade_mode->SetEditable(false);
     cb_upgrade_mode->SetSelection(0);
