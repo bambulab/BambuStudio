@@ -6785,6 +6785,9 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         error = ErrorType::PLATER_ERROR;
         break;
     }
+    //BBS: this may happened when exit the app, plater is null
+    if (!wxGetApp().plater())
+        return;
     auto& notification_manager = *wxGetApp().plater()->get_notification_manager();
     switch (error)
     {
