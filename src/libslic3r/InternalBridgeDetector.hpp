@@ -29,8 +29,16 @@ private:
 
     struct InternalBridgeDirection {
         InternalBridgeDirection(double a = -1.) : angle(a), coverage(0.), max_length(0.) {}
+        // the best direction is the one causing most lines to be bridged and the span is short
         bool operator<(const InternalBridgeDirection &other) const {
-            return this->coverage > other.coverage;
+            double delta = this->coverage - other.coverage;
+            if (delta > 0.001)
+                return true;
+            else if (delta < -0.001)
+                return false;
+            else
+                // coverage is almost same, then compare span
+                return this->max_length < other.max_length;
         };
         double angle;
         double coverage;
