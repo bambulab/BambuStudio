@@ -34,7 +34,17 @@ SpeedGenerator::SpeedGenerator() {
 }
 
 double SpeedGenerator::calculate_speed(const ExtrusionPath& path, double max_speed, double min_speed) {
-	assert(max_speed > min_speed);
+	// limit the speed in case of F0 generated in gcode when user set 0 speed in UI
+	// which cause printer stopped. 1mm/s is slow enough and can make printer not really stopped.
+	max_speed = max_speed < 1 ? 1 : max_speed;
+	min_speed = min_speed < 1 ? 1 : min_speed;
+	// switch min and max speed if user set the max speed to be slower than min_speed
+	if (max_speed < min_speed) {
+		double temp = max_speed;
+		max_speed = min_speed;
+		min_speed = temp;
+	}
+
 	int overhang_degree = path.get_overhang_degree();
 	int curva_degree = path.get_curve_degree();
 	assert(overhang_degree >= 0 && overhang_degree <= 10);
