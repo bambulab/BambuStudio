@@ -61,7 +61,7 @@ enum class FuzzySkinType {
 
 enum InfillPattern : int {
     ipRectilinear, ipMonotonic, ipAlignedRectilinear, ipGrid, ipTriangles, ipStars, ipCubic, ipLine, ipConcentric, ipHoneycomb, ip3DHoneycomb,
-    ipGyroid, ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipAdaptiveCubic, ipSupportCubic, ipSupportBase, 
+    ipGyroid, ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipAdaptiveCubic, ipSupportCubic, ipSupportBase, ipConcentricGapFill,
 #if HAS_LIGHTNING_INFILL
     ipLightning, 
 #endif // HAS_LIGHTNING_INFILL
@@ -530,6 +530,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,              tree_support_branch_diameter_angle))
     ((ConfigOptionFloat,              tree_support_collision_resolution))
     ((ConfigOptionInt,                tree_support_wall_count))
+    ((ConfigOptionBool,               detect_narrow_internal_solid_infill))
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.

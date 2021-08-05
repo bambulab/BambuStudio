@@ -20,6 +20,8 @@
 #include "FillRectilinear.hpp"
 #include "FillAdaptive.hpp"
 #include "FillLightning.hpp"
+// BBS: new infill pattern header
+#include "FillConcentricWGapFill.hpp"
 
 // #define INFILL_DEBUG_OUTPUT
 
@@ -49,6 +51,8 @@ Fill* Fill::new_from_type(const InfillPattern type)
 #if HAS_LIGHTNING_INFILL
     case ipLightning:           return new FillLightning::Filler();
 #endif // HAS_LIGHTNING_INFILL
+    // BBS: for internal solid infill only
+    case ipConcentricGapFill:   return new FillConcentricWGapFill();
     default: throw Slic3r::InvalidArgument("unknown type");
     }
 }
@@ -92,6 +96,42 @@ Polylines Fill::fill_surface(const Surface *surface, const FillParams &params)
             std::move(expp[i]),
             polylines_out);
     return polylines_out;
+}
+
+// BBS: this method is used to fill the ExtrusionEntityCollection. It call fill_surface by default
+void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& params, ExtrusionEntitiesPtr& out)
+{
+    Polylines polylines;
+    try {
+        polylines = this->fill_surface(surface, params);
+    }
+    catch (InfillFailedException&) {}
+
+    if (!polylines.empty()) {
+        // calculate actual flow from spacing (which might have been adjusted by the infill
+        // pattern generator)
+        double flow_mm3_per_mm = params.flow.mm3_per_mm();
+        double flow_width = params.flow.width;
+        if (params.using_internal_flow) {
+            // if we used the internal flow we're not doing a solid infill
+            // so we can safely ignore the slight variation that might have
+            // been applied to f->spacing
+        }
+        else {
+            Flow new_flow = Flow::new_from_spacing(float(this->spacing), params.flow.nozzle_diameter, params.flow.height, params.flow.bridge);
+            flow_mm3_per_mm = new_flow.mm3_per_mm();
+            flow_width = new_flow.width;
+        }
+        // Save into layer.
+        ExtrusionEntityCollection* eec = nullptr;
+        out.push_back(eec = new ExtrusionEntityCollection());
+        // Only concentric fills are not sorted.
+        eec->no_sort = this->no_sort();
+        extrusion_entities_append_paths(
+            eec->entities, std::move(polylines),
+            params.extrusion_role,
+            flow_mm3_per_mm, float(flow_width), params.flow.height);
+    }
 }
 
 // Calculate a new spacing to fill width with possibly integer number of lines,

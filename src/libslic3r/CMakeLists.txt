@@ -59,6 +59,8 @@ set(lisbslic3r_sources
     Fill/FillBase.hpp
     Fill/FillConcentric.cpp
     Fill/FillConcentric.hpp
+    Fill/FillConcentricWGapFill.cpp
+    Fill/FillConcentricWGapFill.hpp
     Fill/FillHoneycomb.cpp
     Fill/FillHoneycomb.hpp
     Fill/FillGyroid.cpp
@@ -251,6 +253,8 @@ set(lisbslic3r_sources
     TriangleSelector.cpp
     TriangleSelector.hpp
     MTUtils.hpp
+    VariableWidth.cpp
+    VariableWidth.hpp
     Zipper.hpp
     Zipper.cpp
     MinAreaBoundingBox.hpp

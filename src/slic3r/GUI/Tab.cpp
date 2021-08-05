@@ -1530,6 +1530,8 @@ void TabPrint::build()
         category_path = "infill_42#";
         optgroup->append_single_option_line("infill_every_layers", category_path + "combine-infill-every-x-layers");
         optgroup->append_single_option_line("infill_only_where_needed", category_path + "only-infill-where-needed");
+        // BBS: new option
+        optgroup->append_single_option_line("detect_narrow_internal_solid_infill", category_path + "detect-narrow-internal-solid-infill");
 
         optgroup = page->new_optgroup(L("Advanced"));
         optgroup->append_single_option_line("solid_infill_every_layers", category_path + "solid-infill-every-x-layers");
@@ -1630,6 +1632,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Autospeed (advanced)"));
         optgroup->append_single_option_line("max_print_speed", "max-volumetric-speed_127176");
         optgroup->append_single_option_line("max_volumetric_speed", "max-volumetric-speed_127176");
+        // BBS: new option
         optgroup->append_single_option_line("auto_slow_down_for_overhang_and_curva", category_path + "auto-slow-down-for-overhang-and-curva");
 #ifdef HAS_PRESSURE_EQUALIZER
         optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_positive");

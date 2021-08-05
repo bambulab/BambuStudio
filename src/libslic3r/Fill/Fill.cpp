@@ -12,6 +12,8 @@
 #include "FillBase.hpp"
 #include "FillRectilinear.hpp"
 
+#define NARROW_INFILL_AREA_THRESHOLD 3
+
 namespace Slic3r {
 
 struct SurfaceFillParams
@@ -105,6 +107,16 @@ struct SurfaceFill {
 	ExPolygons       	expolygons;
 	SurfaceFillParams	params;
 };
+
+// BBS: used to judge whether the internal solid infill area is narrow
+static bool is_narrow_infill_area(const ExPolygon& expolygon)
+{
+	ExPolygons offsets = offset_ex(expolygon, -scale_(NARROW_INFILL_AREA_THRESHOLD));
+	if (offsets.empty())
+		return true;
+
+	return false;
+}
 
 std::vector<SurfaceFill> group_fills(const Layer &layer)
 {
@@ -293,6 +305,49 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		}
     }
 
+	// BBS: detect narrow internal solid infill area and use ipConcentricGapFill pattern instead
+	if (layer.object()->config().detect_narrow_internal_solid_infill) {
+		size_t surface_fills_size = surface_fills.size();
+		for (size_t i = 0; i < surface_fills_size; i++) {
+			if (surface_fills[i].surface.surface_type != stInternalSolid)
+				continue;
+
+			size_t expolygons_size = surface_fills[i].expolygons.size();
+			std::vector<size_t> narrow_expolygons_index;
+			narrow_expolygons_index.reserve(expolygons_size);
+			// BBS: get the index list of narrow expolygon
+			for (size_t j = 0; j < expolygons_size; j++)
+				if (is_narrow_infill_area(surface_fills[i].expolygons[j]))
+					narrow_expolygons_index.push_back(j);
+
+			if (narrow_expolygons_index.size() == 0) {
+				// BBS: has no narrow expolygon
+				continue;
+			}
+			else if (narrow_expolygons_index.size() == expolygons_size) {
+				// BBS: all expolygons are narrow, directly change the fill pattern
+				surface_fills[i].params.pattern = ipConcentricGapFill;
+			}
+			else {
+				// BBS: some expolygons are narrow, spilit surface_fills[i] and rearrange the expolygons
+				params = surface_fills[i].params;
+				params.pattern = ipConcentricGapFill;
+				surface_fills.emplace_back(params);
+				surface_fills.back().region_id = surface_fills[i].region_id;
+				surface_fills.back().surface.surface_type = stInternalSolid;
+				surface_fills.back().surface.thickness = surface_fills[i].surface.thickness;
+				for (size_t j = 0; j < narrow_expolygons_index.size(); j++) {
+					// BBS: move the narrow expolygons to new surface_fills.back();
+					surface_fills.back().expolygons.emplace_back(std::move(surface_fills[i].expolygons[narrow_expolygons_index[j]]));
+				}
+				for (int j = narrow_expolygons_index.size() - 1; j >= 0; j--) {
+					// BBS: delete the narrow expolygons from old surface_fills
+					surface_fills[i].expolygons.erase(surface_fills[i].expolygons.begin() + narrow_expolygons_index[j]);
+				}
+			}
+		}
+	}
+
 	return surface_fills;
 }
 
@@ -374,39 +429,22 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		params.anchor_length_max = surface_fill.params.anchor_length_max;
 		params.resolution        = resolution;
 
-        for (ExPolygon &expoly : surface_fill.expolygons) {
+		// BBS
+		params.flow = surface_fill.params.flow;
+		// BBS: add support part logic
+		params.extrusion_role = is_support_part ? erSupportMaterial : surface_fill.params.extrusion_role;
+		params.using_internal_flow = using_internal_flow;
+
+		LayerRegion* layerm = this->m_regions[surface_fill.region_id];
+		for (ExPolygon& expoly : surface_fill.expolygons) {
+			f->no_overlap_expolygons = intersection_ex(layerm->fill_no_overlap_expolygons, ExPolygons() = { expoly });
 			// Spacing is modified by the filler to indicate adjustments. Reset it for each expolygon.
 			f->spacing = surface_fill.params.spacing;
 			surface_fill.surface.expolygon = std::move(expoly);
-			Polylines polylines;
-			try {
-				polylines = f->fill_surface(&surface_fill.surface, params);
-			} catch (InfillFailedException &) {
-			}
-	        if (! polylines.empty()) {
-		        // calculate actual flow from spacing (which might have been adjusted by the infill
-		        // pattern generator)
-		        double flow_mm3_per_mm = surface_fill.params.flow.mm3_per_mm();
-		        double flow_width      = surface_fill.params.flow.width();
-		        if (using_internal_flow) {
-		            // if we used the internal flow we're not doing a solid infill
-		            // so we can safely ignore the slight variation that might have
-		            // been applied to f->spacing
-		        } else {
-		            Flow new_flow   = surface_fill.params.flow.with_spacing(float(f->spacing));
-		        	flow_mm3_per_mm = new_flow.mm3_per_mm();
-		        	flow_width      = new_flow.width();
-		        }
-		        // Save into layer.
-				ExtrusionEntityCollection* eec = nullptr;
-		        m_regions[surface_fill.region_id]->fills.entities.push_back(eec = new ExtrusionEntityCollection());
-		        // Only concentric fills are not sorted.
-		        eec->no_sort = f->no_sort();
-		        extrusion_entities_append_paths(
-		            eec->entities, std::move(polylines),
-		            surface_fill.params.extrusion_role,
-		            flow_mm3_per_mm, float(flow_width), surface_fill.params.flow.height());
-		    }
+			// BBS: make fill
+			f->fill_surface_extrusion(&surface_fill.surface,
+				params,
+				m_regions[surface_fill.region_id]->fills.entities);
 		}
     }
 

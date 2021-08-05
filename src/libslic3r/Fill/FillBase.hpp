@@ -14,6 +14,11 @@
 #include "../Exception.hpp"
 #include "../Utils.hpp"
 #include "../ExPolygon.hpp"
+//BBS: necessary header for new function
+#include "../PrintConfig.hpp"
+#include "../Flow.hpp"
+#include "../ExtrusionEntity.hpp"
+#include "../ExtrusionEntityCollection.hpp"
 
 namespace Slic3r {
 
@@ -57,6 +62,11 @@ struct FillParams
     // we were requested to complete each loop;
     // in this case we don't try to make more continuous paths
     bool        complete 		{ false };
+
+    // BBS
+    Flow            flow{ 0, 0, 0 };
+    ExtrusionRole   extrusion_role{ ExtrusionRole(0) };
+    bool            using_internal_flow{ false };
 };
 static_assert(IsTriviallyCopyable<FillParams>::value, "FillParams class is not POD (and it should be - see constructor).");
 
@@ -85,6 +95,9 @@ public:
     // Octree builds on mesh for usage in the adaptive cubic infill
     FillAdaptive::Octree* adapt_fill_octree = nullptr;
 
+    // BBS: all no overlap expolygons in same layer
+    ExPolygons  no_overlap_expolygons;
+
 public:
     virtual ~Fill() {}
     virtual Fill* clone() const = 0;
@@ -103,6 +116,10 @@ public:
 
     // Perform the fill.
     virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
+
+    // BBS: this method is used to fill the ExtrusionEntityCollection.
+    // It call fill_surface by default
+    virtual void fill_surface_extrusion(const Surface* surface, const FillParams& params, ExtrusionEntitiesPtr& out);
 
 protected:
     Fill() :
