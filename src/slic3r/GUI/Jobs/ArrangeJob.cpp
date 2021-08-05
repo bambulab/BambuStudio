@@ -93,7 +93,7 @@ void ArrangeJob::prepare_all() {
             ArrangePolygon&& ap = get_arrange_poly(PtrWrapper{mi}, m_plater);
             //BBS: partplate_list preprocess
             //remove the locked plate's instances, neither in selected, nor in un-selected
-            bool locked = plate_list.preprocess_arrange_polygon(oidx, inst_idx, ap);
+            bool locked = plate_list.preprocess_arrange_polygon(oidx, inst_idx, ap, true);
             if (!locked)
             {
                 cont.emplace_back(ap);
@@ -142,7 +142,7 @@ void ArrangeJob::prepare_selected() {
 
             //BBS: partplate_list preprocess
             //remove the locked plate's instances, neither in selected, nor in un-selected
-            bool locked = plate_list.preprocess_arrange_polygon(oidx, i, ap);
+            bool locked = plate_list.preprocess_arrange_polygon(oidx, i, ap, inst_sel[i]);
             if (!locked)
             {
                 ArrangePolygons& cont = mo->instances[i]->printable ?
@@ -191,6 +191,7 @@ arrangement::ArrangePolygon ArrangeJob::get_arrange_poly_(ModelInstance *mi)
     return ap;
 }
 
+//BBS: prepare current part plate for arranging
 void ArrangeJob::prepare_partplate() {
     clear_input();
 
@@ -221,23 +222,15 @@ void ArrangeJob::prepare_partplate() {
                 (in_plate ? m_selected :
                     m_unselected) :
                 m_unprintable;
-            if (in_plate)
+            bool locked = plate_list.preprocess_arrange_polygon_other_locked(ap, in_plate);
+            if (!locked)
             {
                 cont.emplace_back(std::move(ap));
             }
             else
             {
-                //BBS: partplate_list preprocess
-                //remove the locked plate's instances, neither in selected, nor in un-selected
-                bool locked = plate_list.preprocess_arrange_polygon(oidx, inst_idx, ap);
-                if (!locked)
-                {
-                    cont.emplace_back(std::move(ap));
-                }
-                else{
-                    //skip this object due to be locked in plate
-                    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%") % oidx % inst_idx;
-                }
+                //skip this object due to be not in current plate, treated as locked
+                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%") % oidx % inst_idx;
             }
         }
     }
@@ -257,13 +250,16 @@ void ArrangeJob::prepare_partplate() {
     for (auto& p : m_unselected) p.translation(X) -= p.bed_idx * stride;
 }
 
+//BBS: add partplate logic
 void ArrangeJob::prepare()
 {
     int state = m_plater->get_prepare_state();
     if (state == Job::JobPrepareState::PREPARE_STATE_DEFAULT) {
+        only_on_partplate = false;
         wxGetKeyState(WXK_SHIFT) ? prepare_selected() : prepare_all();
     }
     else if (state == Job::JobPrepareState::PREPARE_STATE_MENU) {
+        only_on_partplate = true;
         prepare_partplate();
     }
 }
@@ -333,9 +329,15 @@ void ArrangeJob::finalize() {
     
     // Apply the arrange result to all selected objects
     for (ArrangePolygon &ap : m_selected) {
-        beds = std::max(ap.bed_idx, beds);
         //BBS: partplate postprocess
-        plate_list.postprocess_arrange_polygon(ap, true, false);
+        //BBS: partplate postprocess
+        if (only_on_partplate)
+            plate_list.postprocess_arrange_polygon_other_locked(ap);
+        else
+            plate_list.postprocess_arrange_polygon(ap, true);
+
+        beds = std::max(ap.bed_idx, beds);
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y));
 
         ap.apply();
     }
@@ -343,10 +345,11 @@ void ArrangeJob::finalize() {
     // Get the virtual beds from the unselected items
     for (ArrangePolygon& ap : m_unselected)
     {
-        beds = std::max(ap.bed_idx, beds);
-
         //BBS: partplate postprocess
-        plate_list.postprocess_arrange_polygon(ap, false, false);
+        if (!only_on_partplate)
+            plate_list.postprocess_arrange_polygon(ap, false);
+
+        beds = std::max(ap.bed_idx, beds);
     }
     
     // Move the unprintable items to the last virtual bed.

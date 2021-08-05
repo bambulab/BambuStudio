@@ -350,10 +350,12 @@ public:
 
     /* arrangement related functions */
     //preprocess an arrangement::ArrangePolygon, return true if it is in a locked plate
-    bool preprocess_arrange_polygon(int obj_index, int instance_index, arrangement::ArrangePolygon& arrange_polygon);
+    bool preprocess_arrange_polygon(int obj_index, int instance_index, arrangement::ArrangePolygon& arrange_polygon, bool selected);
+    bool preprocess_arrange_polygon_other_locked(arrangement::ArrangePolygon& arrange_polygon, bool selected);
 
     //postprocess an arrangement:;ArrangePolygon
-    void postprocess_arrange_polygon(arrangement::ArrangePolygon& arrange_polygon, bool create_new_plate, bool unprintable);
+    void postprocess_arrange_polygon(arrangement::ArrangePolygon& arrange_polygon, bool create_new_plate);
+    void postprocess_arrange_polygon_other_locked(arrangement::ArrangePolygon& arrange_polygon);
 
     /*rendering related functions*/
     void render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool only_current = false, bool only_body = false);

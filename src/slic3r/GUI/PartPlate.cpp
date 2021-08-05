@@ -522,6 +522,9 @@ void PartPlate::set_pos_and_size(Vec3d& origin, int width, int depth, int height
 			offset.x() = offset.x() + off_x;
 			offset.y() = offset.y() + off_y;
 
+			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": object %1%, instance %2%, moved {%3%,%4%} to {%5%, %6%}")\
+				% obj_id % instance_id % off_x % off_y % offset.x() % offset.y();
+
 			instance->set_offset(offset);
 			object->invalidate_bounding_box();
 		}
@@ -1662,14 +1665,16 @@ int PartPlateList::reload_all_objects()
 }
 
 //preprocess a arrangement::ArrangePolygon, return true if it is in a locked plate
-bool PartPlateList::preprocess_arrange_polygon(int obj_index, int instance_index, arrangement::ArrangePolygon& arrange_polygon)
+bool PartPlateList::preprocess_arrange_polygon(int obj_index, int instance_index, arrangement::ArrangePolygon& arrange_polygon, bool selected)
 {
 	bool locked = false;
+	int lockplate_cnt = 0;
 
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
 		if (m_plate_list[i]->is_locked())
 		{
+			lockplate_cnt++;
 			if (m_plate_list[i]->contain_instance(obj_index, instance_index))
 			{
 				//it is in locked plate
@@ -1682,14 +1687,21 @@ bool PartPlateList::preprocess_arrange_polygon(int obj_index, int instance_index
 			{
 				if (unscale<double>(arrange_polygon.translation(X)) > ((i + 1) * plate_stride()))
 				{
+					BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% instance_id %2% at right of locked plate %3%, translation(x) %4%") % obj_index % instance_index % i% unscale<double>(arrange_polygon.translation(X));
 					arrange_polygon.translation(X) -= scaled<double>(plate_stride());
 					arrange_polygon.bed_idx -= 1;
-					BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% instance_id %2% at right of locked plate %3%") % obj_index % instance_index % i;
 				}
 				else
 				{
-					arrange_polygon.locked_plate = i;
-					BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% instance_id %2% around locked plate %3%") % obj_index % instance_index % i;
+					if (!selected) {
+						//unselected instance around the locked_plate also is treated as locked object
+						locked = true;
+						arrange_polygon.locked_plate = i;
+						BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% instance_id %2% around locked plate %3%, unselected treat as locked") % obj_index % instance_index % i;
+					}
+					else
+						BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% instance_id %2% around locked plate %3%, selected") % obj_index % instance_index % i;
+
 					break;
 				}
 			}
@@ -1697,7 +1709,7 @@ bool PartPlateList::preprocess_arrange_polygon(int obj_index, int instance_index
 		else
 		{
 			//judge whether it is at the left side of the plate border
-			if (unscale<double>(arrange_polygon.translation(X)) <= ((i+1) * plate_stride()))
+			if (unscale<double>(arrange_polygon.translation(X)) <= ((i+1-lockplate_cnt) * plate_stride()))
 			{
 				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% instance_id %2% found at left of plate %3%, translation(x) %4%, ") % obj_index % instance_index % i % unscale<double>(arrange_polygon.translation(X));
 				break;
@@ -1709,8 +1721,24 @@ bool PartPlateList::preprocess_arrange_polygon(int obj_index, int instance_index
 	return locked;
 }
 
-//postprocess an arrangement:;ArrangePolygon
-void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arrange_polygon, bool create_new_plate, bool unprintable)
+//preprocess a arrangement::ArrangePolygon, return true if it is not in current plate
+bool PartPlateList::preprocess_arrange_polygon_other_locked(arrangement::ArrangePolygon& arrange_polygon, bool selected)
+{
+    bool locked = false;
+
+    if (selected)
+    {
+        arrange_polygon.translation(X) -= scaled<double>(plate_stride() * m_current_plate);
+    }
+    else
+    {
+        locked = true;
+    }
+    return locked;
+}
+
+//postprocess an arrangement::ArrangePolygon
+void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arrange_polygon, bool create_new_plate)
 {
 	double offset_x = arrange_polygon.translation(X);
 
@@ -1725,6 +1753,7 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 			if (arrange_polygon.locked_plate == i)
 			{
 				//it is in current locked plate, keep the same
+				//should not be here
 				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": in locked_plate %1%") % i;
 				return;
 			}
@@ -1741,7 +1770,7 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 			//judge whether it is at the left side of the plate border
 			if (unscale<double>(offset_x) <= ((i + 1) * plate_stride()))
 			{
-				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":existing plate_index %1%, stride %2%, translation(x) %3%") % i % plate_stride() % offset_x;
+				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":found in plate_index %1%, stride %2%, translation(x) %3%") % i % plate_stride() % unscale<double>(offset_x);
 				return;
 			}
 		}
@@ -1765,7 +1794,46 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 	}
 	else
 	{
-		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":unselect instance, no need to create new plate, translation(x) %1%, unprintable %2%") % unscale<double>(offset_x) % unprintable;
+		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":unselect instance, no need to create new plate, translation(x) %1%") % unscale<double>(offset_x);
+	}
+
+	return;
+}
+
+//postprocess an arrangement::ArrangePolygon, other instances are under locked states
+void PartPlateList::postprocess_arrange_polygon_other_locked(arrangement::ArrangePolygon& arrange_polygon)
+{
+	double offset_x = arrange_polygon.translation(X);
+
+	offset_x += arrange_polygon.bed_idx * scaled<double>(plate_stride());
+
+	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": bed_idx %1%, locked_plate %2%, translation(x) %3%, (y) %4%") % arrange_polygon.bed_idx % arrange_polygon.locked_plate % unscale<double>(arrange_polygon.translation(X)) % unscale<double>(arrange_polygon.translation(Y));
+
+	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+	{
+		if (i != m_current_plate)
+		{
+			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": add plate %1%'s stride") % i;
+			//arrange_polygon.translation(X) += scaled<double>(plate_stride());
+			arrange_polygon.bed_idx += 1;
+			offset_x += scaled<double>(plate_stride());
+		}
+		else
+		{
+			//judge whether it is at the left side of the plate border
+			if (unscale<double>(offset_x) <= ((i + 1) * plate_stride()))
+			{
+				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":still in current plate %1%, stride %2%, translation(x) %3%") % i % plate_stride() % unscale<double>(offset_x);
+				return;
+			}
+			else
+			{
+				//put all the instances at the end, in the same box
+				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":beyond the current plate %1%, stride %2%, translation(x) %3%") % i % plate_stride() % unscale<double>(offset_x);
+				arrange_polygon.bed_idx = m_plate_list.size();
+				return;
+			}
+		}
 	}
 
 	return;

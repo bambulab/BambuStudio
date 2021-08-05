@@ -10,6 +10,8 @@ class Plater;
 class PlaterJob : public Job {
 protected:
     Plater *m_plater;
+    //BBS: add flag for whether on current part plate
+    bool only_on_partplate{false};
 
     void on_exception(const std::exception_ptr &) override;
 
