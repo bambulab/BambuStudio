@@ -4452,17 +4452,7 @@ void Plater::priv::on_action_add_plate(SimpleEvent&)
 void Plater::priv::on_action_del_plate(SimpleEvent&)
 {
     if (q != nullptr) {
-        int index = this->partplate_list.get_curr_plate_index();
-
-        take_snapshot(_L("delete partplate"));
-        this->partplate_list.delete_plate(index);
-
-        //BBS: update the current print to the current plate
-        this->partplate_list.update_slice_context_to_current_plate(this->background_process);
-        this->preview->update_gcode_result(partplate_list.get_current_slice_result());
-
-        //need to call update
-        update();
+        q->delete_plate();
     }
 }
 
@@ -7133,6 +7123,7 @@ int Plater::select_plate(int plate_index)
 {
     int ret;
 
+    take_snapshot(_L("select partplate"));
     ret = p->partplate_list.select_plate(plate_index);
 
     if ((!ret) && (p->background_process.can_switch_print()))
@@ -7182,6 +7173,7 @@ int Plater::select_plate_by_hover_id(int hover_id)
 {
     int ret;
 
+    take_snapshot(_L("select partplate"));
     ret = p->partplate_list.select_plate_by_hover_id(hover_id);
 
     if ((!ret) && (p->background_process.can_switch_print()))
@@ -7223,6 +7215,26 @@ int Plater::select_plate_by_hover_id(int hover_id)
         }
     }
 
+    return ret;
+}
+
+//BBS: delete the plate, index= -1 means the current plate
+int Plater::delete_plate(int plate_index)
+{
+    int index = plate_index, ret;
+
+    if (plate_index == -1)
+        index = p->partplate_list.get_curr_plate_index();
+
+    take_snapshot(_L("delete partplate"));
+    ret = p->partplate_list.delete_plate(index);
+
+    //BBS: update the current print to the current plate
+    p->partplate_list.update_slice_context_to_current_plate(p->background_process);
+    p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
+
+    //need to call update
+    update();
     return ret;
 }
 

@@ -326,6 +326,8 @@ void ArrangeJob::finalize() {
 
     //BBS: partplate
     PartPlateList& plate_list = m_plater->get_partplate_list();
+    //clear all the relations before apply the arrangement results
+    plate_list.clear();
     
     // Apply the arrange result to all selected objects
     for (ArrangePolygon &ap : m_selected) {

@@ -1087,7 +1087,7 @@ wxMenu* MenuFactory::plate_menu()
 {
     wxMenu* menu = new MenuWithSeparators();
     append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDel", _L("Remove the selected plate"),
-        [](wxCommandEvent&) { plater()->get_partplate_list().delete_selected_plate(); }, "delete", nullptr,
+        [](wxCommandEvent&) { plater()->delete_plate(); }, "delete", nullptr,
         []() { return plater()->can_delete_plate(); }, m_parent);
 
     menu->AppendSeparator();

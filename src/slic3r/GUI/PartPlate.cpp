@@ -1063,6 +1063,7 @@ void PartPlateList::clear(bool delete_plates, bool release_print_list)
 	{
 		//also delete print related to the plate
 		m_plate_list.clear();
+		m_current_plate = 0;
 	}
 
 	if (release_print_list)

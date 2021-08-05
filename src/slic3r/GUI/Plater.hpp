@@ -365,6 +365,8 @@ public:
     int select_plate(int plate_index);
     //BBS: select the plate by hover_id
     int select_plate_by_hover_id(int hover_id);
+    //BBS: delete the plate, index= -1 means the current plate
+    int delete_plate(int plate_index = -1);
 
 #if ENABLE_ENVIRONMENT_MAP
     void init_environment_texture();
