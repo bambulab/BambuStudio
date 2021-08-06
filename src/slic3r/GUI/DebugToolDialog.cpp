@@ -402,7 +402,7 @@ void DebugToolDialog::init_upgrade()
         std::string json_str = oss.str();
         json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());
         if (this->publish_json(json_str) == 0) {
-            wxMessageBox("Start Upgrading (About 2 Minutes)...");
+            wxMessageBox("Start Upgrading (Please wait several minutes)...");
         }
         });
     wxArrayString module_items;
