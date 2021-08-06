@@ -97,6 +97,11 @@ enum SupportMaterialInterfacePattern {
     smipAuto, smipRectilinear, smipConcentric,
 };
 
+// BBS
+enum AutoSupportType {
+    astNormal, astTree, astNone
+};
+
 enum SeamPosition {
     spRandom, spNearest, spAligned, spRear
 };
@@ -147,6 +152,8 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SlicingMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialPattern)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialStyle)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialInterfacePattern)
+// BBS
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(AutoSupportType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SeamPosition)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SLADisplayOrientation)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SLAPillarConnectionMode)
@@ -483,7 +490,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<SlicingMode>,   slicing_mode))
     ((ConfigOptionBool,                support_material))
     // Automatic supports (generated based on support_material_threshold).
-    ((ConfigOptionBool,                support_material_auto))
+    // BBS
+    ((ConfigOptionEnum<AutoSupportType>, auto_support_type))
     // Direction of the support pattern (in XY plane).`
     ((ConfigOptionFloat,               support_material_angle))
     ((ConfigOptionBool,                support_material_buildplate_only))
@@ -515,6 +523,13 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                thick_bridges))
     ((ConfigOptionFloat,               xy_size_compensation))
     ((ConfigOptionBool,                wipe_into_objects))
+    // BBS
+    ((ConfigOptionFloat,              tree_support_branch_angle))
+    ((ConfigOptionFloat,              tree_support_branch_distance))
+    ((ConfigOptionFloat,              tree_support_branch_diameter))
+    ((ConfigOptionFloat,              tree_support_branch_diameter_angle))
+    ((ConfigOptionFloat,              tree_support_collision_resolution))
+    ((ConfigOptionInt,                tree_support_wall_count))
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.

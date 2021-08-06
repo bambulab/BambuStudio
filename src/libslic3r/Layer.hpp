@@ -8,7 +8,6 @@
 #include "ExPolygonCollection.hpp"
 
 namespace Slic3r {
-
 class Layer;
 using LayerPtrs = std::vector<Layer*>;
 class LayerRegion;
@@ -127,6 +126,9 @@ public:
     ExPolygons 				 lslices;
     std::vector<BoundingBox> lslices_bboxes;
 
+    // BBS
+    ExPolygons              overhang_areas;
+
     size_t                  region_count() const { return m_regions.size(); }
     const LayerRegion*      get_region(int idx) const { return m_regions[idx]; }
     LayerRegion*            get_region(int idx) { return m_regions[idx]; }
@@ -210,6 +212,23 @@ protected:
     virtual ~SupportLayer() = default;
 
     size_t m_interface_id;
+};
+
+class TreeSupportLayer : public Layer
+{
+public:
+    ExtrusionEntityCollection support_fills;
+    ExPolygons roof_areas;
+    ExPolygons floor_areas;
+    ExPolygons base_areas;
+
+    virtual bool has_extrusions() const { return !support_fills.empty(); }
+
+protected:
+    friend class PrintObject;
+    TreeSupportLayer(size_t id, PrintObject* object, coordf_t height, coordf_t print_z, coordf_t slice_z) :
+        Layer(id, object, height, print_z, slice_z) {}
+    virtual ~TreeSupportLayer() = default;
 };
 
 template<typename LayerContainer>

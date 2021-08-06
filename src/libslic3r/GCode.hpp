@@ -179,12 +179,42 @@ public:
     // public, so that it could be accessed by free helper functions from GCode.cpp
     struct LayerToPrint
     {
-        LayerToPrint() : object_layer(nullptr), support_layer(nullptr) {}
+        LayerToPrint() : object_layer(nullptr), support_layer(nullptr), tree_support_layer(nullptr) {}
         const Layer* 		object_layer;
         const SupportLayer* support_layer;
-        const Layer* 		layer()   const { return (object_layer != nullptr) ? object_layer : support_layer; }
+        const TreeSupportLayer* tree_support_layer;
+        const Layer* 		layer()   const
+        {
+            if (object_layer != nullptr)
+                return object_layer;
+
+            if (support_layer != nullptr)
+                return support_layer;
+
+            if (tree_support_layer != nullptr)
+                return tree_support_layer;
+        }
         const PrintObject* 	object()  const { return (this->layer() != nullptr) ? this->layer()->object() : nullptr; }
-        coordf_t            print_z() const { return (object_layer != nullptr && support_layer != nullptr) ? 0.5 * (object_layer->print_z + support_layer->print_z) : this->layer()->print_z; }
+        coordf_t            print_z() const
+        {
+            coordf_t sum_z = 0.;
+            size_t count = 0;
+            if (object_layer != nullptr) {
+                sum_z += object_layer->print_z;
+                count++;
+            }
+
+            if (support_layer != nullptr) {
+                sum_z += support_layer->print_z;
+                count++;
+            }
+
+            if (tree_support_layer != nullptr) {
+                sum_z += tree_support_layer->print_z;
+                count++;
+            }
+            return sum_z / count;
+        }
     };
 
 private:

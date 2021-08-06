@@ -16,6 +16,7 @@
 #include "Fill/FillAdaptive.hpp"
 #include "Format/STL.hpp"
 #include "InternalBridgeDetector.hpp"
+#include "TreeSupport.hpp"
 
 #include <float.h>
 #include <string_view>
@@ -398,6 +399,8 @@ void PrintObject::generate_support_material()
 {
     if (this->set_started(posSupportMaterial)) {
         this->clear_support_layers();
+        this->clear_tree_support_layers();
+
         if ((this->has_support() && m_layers.size() > 1) || (this->has_raft() && ! m_layers.empty())) {
             m_print->set_status(85, L("Generating support material"));    
             this->_generate_support_material();
@@ -465,6 +468,19 @@ Layer* PrintObject::add_layer(int id, coordf_t height, coordf_t print_z, coordf_
 {
     m_layers.emplace_back(new Layer(id, this, height, print_z, slice_z));
     return m_layers.back();
+}
+
+void PrintObject::clear_tree_support_layers()
+{
+    for (TreeSupportLayer* l : m_tree_support_layers)
+        delete l;
+    m_tree_support_layers.clear();
+}
+
+TreeSupportLayer* PrintObject::add_tree_support_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z)
+{
+    m_tree_support_layers.emplace_back(new TreeSupportLayer(id, this, height, print_z, slice_z));
+    return m_tree_support_layers.back();
 }
 
 void PrintObject::clear_support_layers()
@@ -554,7 +570,7 @@ bool PrintObject::invalidate_state_by_config_options(
 	            steps.emplace_back(posSlice);
 	        }
         } else if (
-        	   opt_key == "support_material_auto"
+        	   opt_key == "auto_support_type"
             || opt_key == "support_material_angle"
             || opt_key == "support_material_buildplate_only"
             || opt_key == "support_material_enforce_layers"
@@ -579,7 +595,13 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "raft_first_layer_density"
             || opt_key == "raft_first_layer_expansion"
             || opt_key == "dont_support_bridges"
-            || opt_key == "first_layer_extrusion_width") {
+            || opt_key == "first_layer_extrusion_width"
+            || opt_key == "tree_support_branch_angle"
+            || opt_key == "tree_support_branch_distance"
+            || opt_key == "tree_support_branch_diameter"
+            || opt_key == "tree_support_branch_diameter_angle"
+            || opt_key == "tree_support_collision_resolution"
+            || opt_key == "tree_support_wall_count") {
             steps.emplace_back(posSupportMaterial);
         } else if (opt_key == "bottom_solid_layers") {
             steps.emplace_back(posPrepareInfill);
@@ -2105,6 +2127,9 @@ void PrintObject::_generate_support_material()
 {
     PrintObjectSupportMaterial support_material(this, m_slicing_params);
     support_material.generate(*this);
+
+    TreeSupport tree_support(*this);
+    tree_support.generate_support_areas();
 }
 
 static void project_triangles_to_slabs(ConstLayerPtrsAdaptor layers, const indexed_triangle_set &custom_facets, const Transform3f &tr, bool seam, std::vector<Polygons> &out)

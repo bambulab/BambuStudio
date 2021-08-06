@@ -481,16 +481,25 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
 
                 if (selection == _("Everywhere")) {
                     new_conf.set_key_value("support_material_buildplate_only", new ConfigOptionBool(false));
+                    // BBS
+#if 0
                     if (printer_technology == ptFFF)
                         new_conf.set_key_value("support_material_auto", new ConfigOptionBool(true));
+#endif
                 } else if (selection == _("Support on build plate only")) {
                     new_conf.set_key_value("support_material_buildplate_only", new ConfigOptionBool(true));
+                    // BBS
+#if 0
                     if (printer_technology == ptFFF)
                         new_conf.set_key_value("support_material_auto", new ConfigOptionBool(true));
+#endif
                 } else if (selection == _("For support enforcers only")) {
                     assert(printer_technology == ptFFF);
                     new_conf.set_key_value("support_material_buildplate_only", new ConfigOptionBool(false));
+                    // BBS
+#if 0
                     new_conf.set_key_value("support_material_auto", new ConfigOptionBool(false));
+#endif
                 }
             }
             tab_print->load_config(new_conf);
@@ -3348,7 +3357,7 @@ void Plater::priv::process_validation_warning(const std::string& warning) const
                 assert(print_tab);
                 DynamicPrintConfig& config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
                 config.set_key_value("support_material", new ConfigOptionBool(true));
-                config.set_key_value("support_material_auto", new ConfigOptionBool(false));
+                config.set_key_value("auto_support_type", new ConfigOptionEnum<AutoSupportType>(astNormal));
                 print_tab->on_value_change("support_material", config.opt_bool("support_material"));
                 print_tab->on_value_change("support_material_auto", config.opt_bool("support_material_auto"));
                 return true;

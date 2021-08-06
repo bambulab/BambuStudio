@@ -222,6 +222,10 @@ set(lisbslic3r_sources
     SlicingAdaptive.hpp
     SupportMaterial.cpp
     SupportMaterial.hpp
+    TreeSupport.hpp
+    TreeSupport.cpp
+    MinimumSpanningTree.hpp
+    MinimumSpanningTree.cpp
     Surface.cpp
     Surface.hpp
     SurfaceCollection.cpp

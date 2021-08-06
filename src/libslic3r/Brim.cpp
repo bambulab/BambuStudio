@@ -144,6 +144,17 @@ static Polygons top_level_outer_brim_islands(const ConstPrintObjectPtrs &top_lev
             polygons_append(islands_object, std::move(contour_offset));
         }
 
+        // BBS
+        if (!object->tree_support_layers().empty()) {
+            for (const ExPolygon& ex_poly : object->tree_support_layers().front()->lslices) {
+                Polygons contour_offset = offset(ex_poly.contour, brim_offset);
+                for (Polygon& poly : contour_offset)
+                    poly.douglas_peucker(SCALED_RESOLUTION);
+
+                polygons_append(islands_object, std::move(contour_offset));
+            }
+        }
+
         for (const PrintInstance &instance : object->instances())
             append_and_translate(islands, islands_object, instance);
     }
@@ -189,6 +200,22 @@ static ExPolygons top_level_outer_brim_area(const Print                   &print
                 append(no_brim_area_object, offset_ex(ExPolygon(ex_poly.contour), brim_separation, ClipperLib::jtSquare));
 
             no_brim_area_object.emplace_back(ex_poly.contour);
+        }
+
+        // BBS
+        if (!object->tree_support_layers().empty()) {
+            for (const ExPolygon& ex_poly : object->tree_support_layers().front()->lslices) {
+                if ((brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner) && is_top_outer_brim)
+                    append(brim_area_object, diff_ex(offset(ex_poly.contour, brim_width + brim_offset), offset(ex_poly.contour, brim_offset)));
+
+                if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btNoBrim)
+                    append(no_brim_area_object, offset_ex(ex_poly.holes, -no_brim_offset));
+
+                if (brim_type != BrimType::btNoBrim)
+                    append(no_brim_area_object, offset_ex(ex_poly.contour, brim_offset));
+
+                no_brim_area_object.emplace_back(ex_poly.contour);
+            }
         }
 
         for (const PrintInstance &instance : object->instances()) {

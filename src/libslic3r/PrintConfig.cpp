@@ -148,6 +148,13 @@ static t_config_enum_values s_keys_map_SupportMaterialInterfacePattern {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialInterfacePattern)
 
+static t_config_enum_values s_keys_map_AutoSupportType{
+    { "normal",         astNormal },
+    { "tree",           astTree },
+    {"none",            astNone}
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(AutoSupportType)
+
 static t_config_enum_values s_keys_map_SeamPosition {
     { "random",         spRandom },
     { "nearest",        spNearest },
@@ -2499,13 +2506,19 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Enable support material generation.");
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("support_material_auto", coBool);
-    def->label = L("Auto generated supports");
+    def = this->add("auto_support_type", coEnum);
+    def->label = L("Auto support type");
     def->category = L("Support material");
-    def->tooltip = L("If checked, supports will be generated automatically based on the overhang threshold value."\
-                     " If unchecked, supports will be generated inside the \"Support Enforcer\" volumes only.");
+    def->tooltip = L("This is the structure of auto generated support. If \"none\" is selected, no support other than Support Enforcer will be generated.");
+    def->enum_keys_map = &ConfigOptionEnum<AutoSupportType>::get_enum_values();
+    def->enum_values.push_back("normal");
+    def->enum_values.push_back("tree");
+    def->enum_values.push_back("none");
+    def->enum_labels.push_back(L("normal"));
+    def->enum_labels.push_back(L("tree"));
+    def->enum_labels.push_back(L("none"));
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionBool(true));
+    def->set_default_value(new ConfigOptionEnum<AutoSupportType>(astNormal));
 
     def = this->add("support_material_xy_spacing", coFloatOrPercent);
     def->label = L("XY separation between an object and its support");
@@ -2778,6 +2791,71 @@ void PrintConfigDef::init_fff_params()
                    "the support more reliable, but also more difficult to remove.");
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionBool(true));
+
+    // BBS
+    def = this->add("tree_support_branch_angle", coFloat);
+    def->label = L("Tree support branch angle");
+    def->category = L("Support material");
+    def->tooltip = L("This setting determines the maximum overhang angle that t he branches of tree support allowed to make."
+                     "If the angle is increased, the branches can be printed more horizontally, allowing them to reach farther.");
+    def->sidetext = L("°");
+    def->min = 0;
+    def->max = 89;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(40.));
+
+    def = this->add("tree_support_branch_distance", coFloat);
+    def->label = L("Tree support branch distance");
+    def->category = L("Support material");
+    def->tooltip = L("This setting determines the distance between two adjacent branches where the branches touch the build plate.\n");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1.));
+
+    def = this->add("tree_support_branch_diameter", coFloat);
+    def->label = L("Tree support branch diameter");
+    def->category = L("Support material");
+    def->tooltip = L("This setting allows you to adjust the width of tree support's branches. The width specified here will be"
+                     "the width at the top of the tree's branches. The very tip of branch will be thinner and towards the bottom"
+                     "it gradually becomes wider as per the Tree Support Branch Diameter Angle Setting.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(2.));
+
+    def = this->add("tree_support_branch_diameter_angle", coFloat);
+    def->label = L("Tree support branch diameter angle");
+    def->category = L("Support material");
+    def->tooltip = L("The branches of tree support are wider towards the bottom than they are at the top. This ensures that"
+                     "the branches remain stable no matter how tall the support gets. With this setting, you can control the"
+                     "rate at which the support gets wider.");
+    def->sidetext = L("°");
+    def->min = 0;
+    def->max = 89;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(5.));
+
+    def = this->add("tree_support_collision_resolution", coFloat);
+    def->label = L("Tree support collision resolution");
+    def->category = L("Support material");
+    def->tooltip = L("A major disadvantage of tree support is that it takes a long time to slice when it is activated. Most of the"
+                     "calculations necessary for tree support are for the branches of the tree to avoid colliding with mesh."
+                     "This setting determines the accuracy of these collision avoidance calculations. Increasing this resolution"
+                     "(lower accuracy) will save a lot of time calculating, but will also make the support appear jagged when it's"
+                     "near the mesh.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.2));
+
+    def = this->add("tree_support_wall_count", coInt);
+    def->label = L("Tree support wall count");
+    def->category = L("Support material");
+    def->tooltip = L("This setting specify the count of walls around support.");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(1));
 
     def = this->add("temperature", coInts);
     def->label = L("Other layers");

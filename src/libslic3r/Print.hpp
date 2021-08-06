@@ -30,6 +30,8 @@ class ModelObject;
 class Print;
 class PrintObject;
 class SupportLayer;
+// BBS
+class TreeSupportLayer;
 
 namespace FillAdaptive {
     struct Octree;
@@ -142,6 +144,14 @@ typedef std::vector<const SupportLayer*>  ConstSupportLayerPtrs;
 class ConstSupportLayerPtrsAdaptor : public ConstVectorOfPtrsAdaptor<SupportLayer> {
     friend PrintObject;
     ConstSupportLayerPtrsAdaptor(const SupportLayerPtrs *data) : ConstVectorOfPtrsAdaptor<SupportLayer>(data) {}
+};
+
+// BBS
+typedef std::vector<TreeSupportLayer*>        TreeSupportLayerPtrs;
+typedef std::vector<const TreeSupportLayer*>  ConstTreeSupportLayerPtrs;
+class ConstTreeSupportLayerPtrsAdaptor : public ConstVectorOfPtrsAdaptor<TreeSupportLayer> {
+    friend PrintObject;
+    ConstTreeSupportLayerPtrsAdaptor(const TreeSupportLayerPtrs* data) : ConstVectorOfPtrsAdaptor<TreeSupportLayer>(data) {}
 };
 
 class BoundingBoxf3;        // TODO: for temporary constructor parameter
@@ -257,10 +267,14 @@ public:
     Transform3d                  trafo_centered() const 
         { Transform3d t = this->trafo(); t.pretranslate(Vec3d(- unscale<double>(m_center_offset.x()), - unscale<double>(m_center_offset.y()), 0)); return t; }
     const PrintInstances&        instances() const      { return m_instances; }
+    // BBS
+    ConstTreeSupportLayerPtrsAdaptor tree_support_layers() const { return ConstTreeSupportLayerPtrsAdaptor(&m_tree_support_layers); }
 
     // Whoever will get a non-const pointer to PrintObject will be able to modify its layers.
     LayerPtrs&                   layers()               { return m_layers; }
     SupportLayerPtrs&            support_layers()       { return m_support_layers; }
+    // BBS
+    TreeSupportLayerPtrs&        tree_support_layers() { return m_tree_support_layers; }
 
     // Bounding box is used to align the object infill patterns, and to calculate attractor for the rear seam.
     // The bounding box may not be quite snug.
@@ -296,6 +310,12 @@ public:
 
     // print_z: top of the layer; slice_z: center of the layer.
     Layer*          add_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
+
+    // BBS
+    TreeSupportLayer* get_tree_support_layer(int idx) { return m_tree_support_layers[idx]; }
+    TreeSupportLayer* add_tree_support_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
+    void  clear_tree_support_layers();
+    size_t tree_support_layer_count() const { return m_tree_support_layers.size(); }
 
     size_t          support_layer_count() const { return m_support_layers.size(); }
     void            clear_support_layers();
@@ -401,6 +421,8 @@ private:
     SlicingParameters                       m_slicing_params;
     LayerPtrs                               m_layers;
     SupportLayerPtrs                        m_support_layers;
+    // BBS
+    TreeSupportLayerPtrs                    m_tree_support_layers;
 
     // this is set to true when LayerRegion->slices is split in top/internal/bottom
     // so that next call to make_perimeters() performs a union() before computing loops

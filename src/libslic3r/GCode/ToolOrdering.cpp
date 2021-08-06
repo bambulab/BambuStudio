@@ -206,6 +206,22 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
             layer_tools.has_support = true;
     }
 
+    // BBS
+    for (auto tree_support_layer : object.tree_support_layers()) {
+        LayerTools   &layer_tools = this->tools_for_layer(tree_support_layer->print_z);
+        ExtrusionRole role = tree_support_layer->support_fills.role();
+        bool         has_support        = role == erMixed || role == erSupportMaterial;
+        bool         has_interface      = role == erMixed || role == erSupportMaterialInterface;
+        unsigned int extruder_support   = object.config().support_material_extruder.value;
+        unsigned int extruder_interface = object.config().support_material_interface_extruder.value;
+        if (has_support)
+            layer_tools.extruders.push_back(extruder_support);
+        if (has_interface)
+            layer_tools.extruders.push_back(extruder_interface);
+        if (has_support || has_interface)
+            layer_tools.has_support = true;
+    }
+
     // Extruder overrides are ordered by print_z.
     std::vector<std::pair<double, unsigned int>>::const_iterator it_per_layer_extruder_override;
 	it_per_layer_extruder_override = per_layer_extruder_switches.begin();

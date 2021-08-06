@@ -913,6 +913,14 @@ void Print::_make_skirt()
                 break;
             layer->support_fills.collect_points(object_points);
         }
+        // BBS
+        for (const Layer* layer : object->m_tree_support_layers) {
+            if (layer->print_z > skirt_height_z)
+                break;
+            for (const ExPolygon& expoly : layer->lslices)
+                // Collect the outer contour points only, ignore holes for the calculation of the convex hull.
+                append(object_points, expoly.contour.points);
+        }
         // Repeat points for each object copy.
         for (const PrintInstance &instance : object->instances()) {
             Points copy_points = object_points;

@@ -511,23 +511,42 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
     // Pair the object layers with the support layers by z.
     size_t idx_object_layer = 0;
     size_t idx_support_layer = 0;
+    size_t idx_tree_support_layer = 0;
     const LayerToPrint* last_extrusion_layer = nullptr;
-    while (idx_object_layer < object.layers().size() || idx_support_layer < object.support_layers().size()) {
+    while (idx_object_layer < object.layers().size() || idx_support_layer < object.support_layers().size() || idx_tree_support_layer < object.tree_support_layers().size()) {
         LayerToPrint layer_to_print;
-        layer_to_print.object_layer = (idx_object_layer < object.layers().size()) ? object.layers()[idx_object_layer++] : nullptr;
-        layer_to_print.support_layer = (idx_support_layer < object.support_layers().size()) ? object.support_layers()[idx_support_layer++] : nullptr;
-        if (layer_to_print.object_layer && layer_to_print.support_layer) {
-            if (layer_to_print.object_layer->print_z < layer_to_print.support_layer->print_z - EPSILON) {
-                layer_to_print.support_layer = nullptr;
-                --idx_support_layer;
-            }
-            else if (layer_to_print.support_layer->print_z < layer_to_print.object_layer->print_z - EPSILON) {
-                layer_to_print.object_layer = nullptr;
-                --idx_object_layer;
-            }
+        double print_z_min = std::numeric_limits<double>::max();
+        if (idx_object_layer < object.layers().size()) {
+            layer_to_print.object_layer = object.layers()[idx_object_layer++];
+            print_z_min = std::min(print_z_min, layer_to_print.object_layer->print_z);
         }
 
-        layers_to_print.emplace_back(layer_to_print);
+        if (idx_support_layer < object.support_layers().size()) {
+            layer_to_print.support_layer = object.support_layers()[idx_support_layer++];
+            print_z_min = std::min(print_z_min, layer_to_print.support_layer->print_z);
+        }
+
+        if (idx_tree_support_layer < object.tree_support_layers().size()) {
+            layer_to_print.tree_support_layer = object.tree_support_layers()[idx_tree_support_layer++];
+            print_z_min = std::min(print_z_min, layer_to_print.tree_support_layer->print_z);
+        }
+
+        if (layer_to_print.object_layer && layer_to_print.object_layer->print_z > print_z_min + EPSILON) {
+            layer_to_print.object_layer = nullptr;
+            --idx_object_layer;
+        }
+
+        if (layer_to_print.support_layer && layer_to_print.support_layer->print_z > print_z_min + EPSILON) {
+            layer_to_print.support_layer = nullptr;
+            --idx_support_layer;
+        }
+
+        if (layer_to_print.tree_support_layer && layer_to_print.tree_support_layer->print_z > print_z_min + EPSILON) {
+            layer_to_print.tree_support_layer = nullptr;
+            --idx_tree_support_layer;
+        }
+
+        layers_to_print.push_back(layer_to_print);
 
         bool has_extrusions = (layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
             || (layer_to_print.support_layer && layer_to_print.support_layer->has_extrusions());
@@ -2188,6 +2207,57 @@ GCode::LayerResult GCode::process_layer(
                 }
             }
         }
+
+        // BBS
+        if (layer_to_print.tree_support_layer != nullptr) {
+            const TreeSupportLayer& tree_support_layer = *layer_to_print.tree_support_layer;
+            const PrintObject& object = *tree_support_layer.object();
+            if (!tree_support_layer.support_fills.entities.empty()) {
+                ExtrusionRole   role = tree_support_layer.support_fills.role();
+                bool            has_support = role == erMixed || role == erSupportMaterial;
+                bool            has_interface = role == erMixed || role == erSupportMaterialInterface;
+                // Extruder ID of the support base. -1 if "don't care".
+                unsigned int    support_extruder = object.config().support_material_extruder.value - 1;
+                // Shall the support be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
+                bool            support_dontcare = object.config().support_material_extruder.value == 0;
+                // Extruder ID of the support interface. -1 if "don't care".
+                unsigned int    interface_extruder = object.config().support_material_interface_extruder.value - 1;
+                // Shall the support interface be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
+                bool            interface_dontcare = object.config().support_material_interface_extruder.value == 0;
+                if (support_dontcare || interface_dontcare) {
+                    // Some support will be printed with "don't care" material, preferably non-soluble.
+                    // Is the current extruder assigned a soluble filament?
+                    unsigned int dontcare_extruder = first_extruder_id;
+                    if (print.config().filament_soluble.get_at(dontcare_extruder)) {
+                        // The last extruder printed on the previous layer extrudes soluble filament.
+                        // Try to find a non-soluble extruder on the same layer.
+                        for (unsigned int extruder_id : layer_tools.extruders)
+                            if (!print.config().filament_soluble.get_at(extruder_id)) {
+                                dontcare_extruder = extruder_id;
+                                break;
+                            }
+                    }
+                    if (support_dontcare)
+                        support_extruder = dontcare_extruder;
+                    if (interface_dontcare)
+                        interface_extruder = dontcare_extruder;
+                }
+                // Both the support and the support interface are printed with the same extruder, therefore
+                // the interface may be interleaved with the support base.
+                bool single_extruder = !has_support || support_extruder == interface_extruder;
+
+                // Assign an extruder to the base.
+                ObjectByExtruder& obj = object_by_extruder(by_extruder, has_support ? support_extruder : interface_extruder, &layer_to_print - layers.data(), layers.size());
+                obj.support = &tree_support_layer.support_fills;
+                obj.support_extrusion_role = single_extruder ? erMixed : erSupportMaterial;
+                if (!single_extruder && has_interface) {
+                    ObjectByExtruder& obj_interface = object_by_extruder(by_extruder, interface_extruder, &layer_to_print - layers.data(), layers.size());
+                    obj_interface.support = &tree_support_layer.support_fills;
+                    obj_interface.support_extrusion_role = erSupportMaterialInterface;
+                }
+            }
+        }
+
         if (layer_to_print.object_layer != nullptr) {
             const Layer &layer = *layer_to_print.object_layer;
             // We now define a strategy for building perimeters and fills. The separation

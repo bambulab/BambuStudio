@@ -1099,6 +1099,9 @@ static wxString support_combo_value_for_config(const DynamicPrintConfig &config,
 {
     const std::string support         = is_fff ? "support_material"                 : "supports_enable";
     const std::string buildplate_only = is_fff ? "support_material_buildplate_only" : "support_buildplate_only";
+
+    // BBS
+#if 0
     return
         ! config.opt_bool(support) ?
             _("None") :
@@ -1106,6 +1109,13 @@ static wxString support_combo_value_for_config(const DynamicPrintConfig &config,
                 _("For support enforcers only") :
                 (config.opt_bool(buildplate_only) ? _("Support on build plate only") :
                                                     _("Everywhere"));
+#else
+    if (config.opt_bool(support)) {
+         return (config.opt_bool(buildplate_only) ? _("Support on build plate only") : _("Everywhere"));
+    } else {
+        return _("For support enforcers only");
+    }
+#endif
 }
 
 static wxString pad_combo_value_for_config(const DynamicPrintConfig &config)
@@ -1135,7 +1145,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     }
 
     if (is_fff ?
-            (opt_key == "support_material" || opt_key == "support_material_auto" || opt_key == "support_material_buildplate_only") :
+            (opt_key == "support_material" || opt_key == "auto_support_type" || opt_key == "support_material_buildplate_only") :
             (opt_key == "supports_enable"  || opt_key == "support_buildplate_only"))
         og_freq_chng_params->set_value("support", support_combo_value_for_config(*m_config, is_fff));
 
@@ -1547,11 +1557,21 @@ void TabPrint::build()
         category_path = "support-material_1698#";
         optgroup = page->new_optgroup(L("Support material"));
         optgroup->append_single_option_line("support_material", category_path + "generate-support-material");
-        optgroup->append_single_option_line("support_material_auto", category_path + "auto-generated-supports");
+        // BBS
+        optgroup->append_single_option_line("auto_support_type");
         optgroup->append_single_option_line("support_material_threshold", category_path + "overhang-threshold");
         optgroup->append_single_option_line("support_material_enforce_layers", category_path + "enforce-support-for-the-first");
         optgroup->append_single_option_line("raft_first_layer_density", category_path + "raft-first-layer-density");
         optgroup->append_single_option_line("raft_first_layer_expansion", category_path + "raft-first-layer-expansion");
+
+        // BBS
+        optgroup = page->new_optgroup(L("Tree Support"));
+        optgroup->append_single_option_line("tree_support_branch_angle");
+        optgroup->append_single_option_line("tree_support_branch_distance");
+        optgroup->append_single_option_line("tree_support_branch_diameter");
+        optgroup->append_single_option_line("tree_support_branch_diameter_angle");
+        optgroup->append_single_option_line("tree_support_collision_resolution");
+        optgroup->append_single_option_line("tree_support_wall_count");
 
         optgroup = page->new_optgroup(L("Raft"));
         optgroup->append_single_option_line("raft_layers", category_path + "raft-layers");
