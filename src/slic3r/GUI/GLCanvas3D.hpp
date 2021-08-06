@@ -446,6 +446,10 @@ public:
 //        float distance_sla       = 6.;
         float accuracy           = 0.65f; // Unused currently
         bool  enable_rotation    = false;
+        //BBS: add more arrangeSettings
+        bool is_seq_print        = false;
+        float bed_shrink_x       = 0.f;
+        float bed_shrink_y       = 0.f;
     };
 
     struct OrientSettings

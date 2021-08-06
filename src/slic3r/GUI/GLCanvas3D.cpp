@@ -960,6 +960,9 @@ void GLCanvas3D::load_arrange_settings()
 
     if (!en_rot_sla_str.empty())
         m_arrange_settings_sla.enable_rotation = (en_rot_sla_str == "1" || en_rot_sla_str == "yes");
+
+    //BBS: add specific arrange settings
+    m_arrange_settings_fff_seq_print.is_seq_print = true;
 }
 
 PrinterTechnology GLCanvas3D::current_printer_technology() const
@@ -4240,6 +4243,8 @@ bool GLCanvas3D::_render_arrange_menu(float pos_x)
     float dist_min = 0.f;
     std::string dist_key = "min_object_distance", rot_key = "enable_rotation";
     std::string postfix;
+    //BBS:
+    bool seq_print = false;
 
     if (ptech == ptSLA) {
         dist_min     = 0.f;
@@ -4249,6 +4254,8 @@ bool GLCanvas3D::_render_arrange_menu(float pos_x)
         if (co_opt && co_opt->value) {
             dist_min     = float(min_object_distance(*m_config));
             postfix      = "_fff_seq_print";
+            //BBS:
+            seq_print = true;
         } else {
             dist_min     = 0.f;
             postfix     = "_fff";
@@ -4278,6 +4285,8 @@ bool GLCanvas3D::_render_arrange_menu(float pos_x)
     if (imgui->button(_L("Reset"))) {
         settings_out = ArrangeSettings{};
         settings_out.distance = std::max(dist_min, settings_out.distance);
+        //BBS: add specific arrange settings
+        if (seq_print) settings_out.is_seq_print = true;
         appcfg->set("arrange", dist_key.c_str(), float_to_string_decimal_point(settings_out.distance));
         appcfg->set("arrange", rot_key.c_str(), settings_out.enable_rotation? "1" : "0");
         settings_changed = true;

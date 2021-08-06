@@ -2018,6 +2018,25 @@ arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
     ret.translation  = Vec2crd{scaled(get_offset(X)), scaled(get_offset(Y))};
     ret.rotation     = get_rotation(Z);
 
+    //BBS: add materials related information
+    ModelObject *object = this->get_object();
+    ModelVolume *volume = NULL;
+    for (size_t i = 0; i < object->volumes.size(); ++ i) {
+        if (object->volumes[i]->is_model_part())
+        {
+            volume = object->volumes[i];
+            break;
+        }
+    }
+    if (!volume)
+    {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid object, should not happen";
+        return ret;
+    }
+    ret.extrude_id = volume->extruder_id();
+    if (ret.extrude_id == 0) //the default extruder
+        ret.extrude_id = 1;
+
     return ret;
 }
 

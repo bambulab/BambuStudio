@@ -51,6 +51,11 @@ struct ArrangePolygon {
     int       priority{0};
     //BBS: add locked_plate to indicate whether it is in the locked plate
     int       locked_plate{ -1 };
+    int       extrude_id{1};        ///extruder_id for least extruder switch
+    int       bed_temp{0};         ///bed temperature for different material judge
+    int       print_temp{0};      ///print temperature for different material judge
+    int       first_bed_temp{ 0 };      ///first layer bed temperature for different material judge
+    int       first_print_temp{ 0 };      ///first layer print temperature for different material judge
     
     // If empty, any rotation is allowed (currently unsupported)
     // If only a zero is there, no rotation is allowed
@@ -91,6 +96,11 @@ struct ArrangeParams {
     bool parallel = true;
 
     bool allow_rotations = false;
+
+    //BBS: add specific arrange params
+    bool is_seq_print;
+    float bed_shrink_x;
+    float bed_shrink_y;
     
     /// Progress indicator callback called when an object gets packed. 
     /// The unsigned argument is the number of items remaining to pack.
