@@ -154,8 +154,6 @@ namespace GUI {
             std::string gcode_str = "M104 S" + txt_set_hot_end_temp->GetValue().ToStdString() + " \n";
             this->publishGcode(gcode_str);
             });
-        btn_cancel_print = new wxButton(this, wxID_ANY, _L("Cancel Print"), wxDefaultPosition, wxDefaultSize);
-        btn_cancel_print->Disable();
         btn_clear_output_string = new wxButton(this, wxID_ANY, _L("Clear"), wxDefaultPosition, wxDefaultSize);
         btn_clear_output_string->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
             wxString content = txt_string_info->GetValue();
@@ -273,7 +271,7 @@ namespace GUI {
         run_gcode_sizer->Add(label_gcode_filename, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
         run_gcode_sizer->Add(txt_gcode_filename, 1, wxLEFT | wxRIGHT | wxEXPAND, SPACING);
         run_gcode_sizer->Add(btn_select_gcode_file, 0, wxALIGN_CENTRE_HORIZONTAL | wxLEFT, SPACING);
-        run_gcode_sizer->Add(btn_cancel_print, 0, wxALIGN_RIGHT | wxRIGHT, SPACING);
+        run_gcode_sizer->Add(btn_abort_print, 0, wxALIGN_RIGHT | wxRIGHT, SPACING);
 
         top_sizer->Add(-1, 8);
         top_sizer->Add(user_sizer, 0, wxLEFT | wxRIGHT | wxEXPAND, 0);
@@ -479,6 +477,10 @@ void DebugToolDialog::init_gcode_run_file()
         txt_gcode_filename->SetValue(selectGcodeDialog->GetPath());
         txt_gcode_filename->SetFocus();
         this->SetFocus();
+        });
+    btn_abort_print = new  wxButton(this, wxID_ANY, _L("Abort"), wxDefaultPosition, wxDefaultSize);
+    btn_abort_print->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        this->publishGcode("M0\n");
         });
 }
 

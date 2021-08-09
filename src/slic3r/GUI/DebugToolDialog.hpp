@@ -101,8 +101,8 @@ namespace Slic3r {
             wxButton* btn_disconnect_via_name;
             wxButton* btn_upgrade_firmware;
             wxButton* btn_run_gcode;
+            wxButton* btn_abort_print;
             wxButton* btn_select_gcode_file;
-            wxButton* btn_cancel_print;
             wxButton* btn_clear_output_string;
             wxButton* btn_save_file;
             wxButton* btn_bind;
