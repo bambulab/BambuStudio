@@ -307,7 +307,7 @@ void DebugToolDialog::init_account()
     auto* label_user = new wxStaticText(this, wxID_ANY, _L("User: "), wxDefaultPosition, wxDefaultSize);
     auto* label_password = new wxStaticText(this, wxID_ANY, _L("Password: "), wxDefaultPosition, wxDefaultSize);
     txt_user = new wxTextCtrl(this, wxID_ANY, _L(""), wxDefaultPosition, wxDefaultSize);
-    txt_password = new wxTextCtrl(this, wxID_ANY, _L(""), wxDefaultPosition, wxDefaultSize);
+    txt_password = new wxTextCtrl(this, wxID_ANY, _L(""), wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD);
     user_sizer = new wxBoxSizer(wxHORIZONTAL);
     user_sizer->Add(label_user, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
     user_sizer->Add(txt_user, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);

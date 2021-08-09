@@ -52,7 +52,7 @@ namespace Slic3r {
             boost::optional<std::string> token = root.get_optional<std::string>("token");
             if (ack_status.has_value()) {
                 if (ack_status.value().compare("success") == 0) {
-                    Slic3r::GUI::wxGetApp().show_message_box("Login ok");
+                    wxMessageBox("Login ok");
                     BOOST_LOG_TRIVIAL(trace) << "User = " << account << " Login Success!";
                     if (user_id.has_value() && token.has_value()) {
                         m_curr_user = new AccountInfo(account, user_id.value());
@@ -63,10 +63,10 @@ namespace Slic3r {
                 }
             }
             BOOST_LOG_TRIVIAL(trace) << "Account = " << account << " Login Failed! error = " << body;
-            Slic3r::GUI::wxGetApp().show_message_box("Login Failed! msg = " + body);
+            wxMessageBox("Login Failed! msg = " + body);
             }).on_error([&, account](std::string body, std::string error, unsigned status) {
                 BOOST_LOG_TRIVIAL(trace) << "Account = " << account << " Login Failed! error = " << body;
-                Slic3r::GUI::wxGetApp().show_message_box("Login Failed " + error);
+                wxMessageBox("Login Failed " + error);
             }).perform();
         
         return 0;
