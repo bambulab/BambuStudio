@@ -1489,7 +1489,9 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
     {
         // Generate overhang / contact_polygons for non-raft layers.
         const Layer &lower_layer  = *layer.lower_layer;
-        const bool   has_enforcer = ! annotations.enforcers_layers.empty() && ! annotations.enforcers_layers[layer_id].empty();
+        // BBS. Tree support will handle enforcers/blockers, so skip handle them here.
+        const bool   has_enforcer = !annotations.enforcers_layers.empty() && !annotations.enforcers_layers[layer_id].empty()
+            && object_config.auto_support_type.value != astTree;
 
         // Cache support trimming polygons derived from lower layer polygons, possible merged with "on build plate only" trimming polygons.
         auto slices_margin_update = 
@@ -1578,14 +1580,17 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
             if (diff_polygons.empty())
                 continue;
 
-            // Apply the "support blockers".
-            if (! annotations.blockers_layers.empty() && ! annotations.blockers_layers[layer_id].empty()) {
-                // Expand the blocker a bit. Custom blockers produce strips
-                // spanning just the projection between the two slices.
-                // Subtracting them as they are may leave unwanted narrow
-                // residues of diff_polygons that would then be supported.
-                diff_polygons = diff(diff_polygons,
-                    expand(union_(annotations.blockers_layers[layer_id]), float(1000.*SCALED_EPSILON)));
+            // BBS. Tree support will handle enforcers/blockers, so skip handle them here.
+            if (object_config.auto_support_type.value != astTree) {
+                // Apply the "support blockers".
+                if (!annotations.blockers_layers.empty() && !annotations.blockers_layers[layer_id].empty()) {
+                    // Expand the blocker a bit. Custom blockers produce strips
+                    // spanning just the projection between the two slices.
+                    // Subtracting them as they are may leave unwanted narrow
+                    // residues of diff_polygons that would then be supported.
+                    diff_polygons = diff(diff_polygons,
+                        expand(union_(annotations.blockers_layers[layer_id]), float(1000. * SCALED_EPSILON)));
+                }
             }
 
             #ifdef SLIC3R_DEBUG

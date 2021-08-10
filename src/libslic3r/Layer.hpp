@@ -126,9 +126,6 @@ public:
     ExPolygons 				 lslices;
     std::vector<BoundingBox> lslices_bboxes;
 
-    // BBS
-    ExPolygons              overhang_areas;
-
     size_t                  region_count() const { return m_regions.size(); }
     const LayerRegion*      get_region(int idx) const { return m_regions[idx]; }
     LayerRegion*            get_region(int idx) { return m_regions[idx]; }
@@ -218,6 +215,7 @@ class TreeSupportLayer : public Layer
 {
 public:
     ExtrusionEntityCollection support_fills;
+    ExPolygons overhang_areas;
     ExPolygons roof_areas;
     ExPolygons floor_areas;
     ExPolygons base_areas;

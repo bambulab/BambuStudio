@@ -82,17 +82,17 @@ std::string get_svg_filename(int layer_nr, std::string tag = "")
     return prefix + tag + "_" + buf1 + "_" + buf2 + suffix;
 }
 
-void draw_layer_to_svg
+void draw_contact_points_to_svg
 (
     int layer_nr,
-    const ExPolygons &avoidance_polys,
+    const ExPolygons &overhang_polys,
     const std::vector<TreeSupport::Node*> &layer_nodes,
     const std::vector<TreeSupport::Node*> &lower_layer_nodes,
     BoundingBox bbox
 )
 {
-    SVG svg(get_svg_filename(layer_nr, "avoidance").c_str(), bbox);
-    svg.draw(union_ex(avoidance_polys), "blue");
+    SVG svg(get_svg_filename(layer_nr, "contact_points").c_str(), bbox);
+    svg.draw(union_ex(overhang_polys), "blue");
 
     Points layer_pts;
     for (TreeSupport::Node *node : layer_nodes) {
@@ -456,21 +456,41 @@ void TreeSupport::detect_object_overhangs()
         Layer *lower_layer = layer->lower_layer;
         coordf_t lower_layer_offset = (float)lower_layer->height / tan(threshold_rad);
         ExPolygons overhang_areas = std::move(diff_ex(layer->lslices, offset_ex(lower_layer->lslices, scale_(lower_layer_offset))));
+
+        TreeSupportLayer* ts_layer = m_object.get_tree_support_layer(layer->id());
         for (ExPolygon& poly : overhang_areas) {
-            poly.simplify(scale_(radius_sample_resolution), &layer->overhang_areas);
+            poly.simplify(scale_(radius_sample_resolution), &ts_layer->overhang_areas);
+        }
+    }
+
+    std::vector<ExPolygons> enforcers = m_object.slice_support_enforcers();
+    std::vector<ExPolygons> blockers  = m_object.slice_support_blockers();
+    m_object.project_and_append_custom_facets(false, EnforcerBlockerType::ENFORCER, enforcers);
+    m_object.project_and_append_custom_facets(false, EnforcerBlockerType::BLOCKER, blockers);
+    for (int layer_id = 0; layer_id < m_object.tree_support_layer_count(); layer_id++) {
+        TreeSupportLayer* layer = m_object.get_tree_support_layer(layer_id);
+
+        if (layer_id < enforcers.size()) {
+            ExPolygons& enforcer = enforcers[layer_id];
+            layer->overhang_areas.insert(layer->overhang_areas.end(), enforcer.begin(), enforcer.end());
+        }
+
+        if (layer_id < blockers.size()) {
+            ExPolygons& blocker = blockers[layer_id];
+            layer->overhang_areas = diff_ex(layer->overhang_areas, blocker);
         }
     }
 }
 
 void TreeSupport::create_tree_support_layers()
 {
-    for (TreeSupportLayer *ts_layer : m_object.tree_support_layers()) {
-        //delete ts_layer;
-    }
-    m_object.tree_support_layers().clear();
-
     for (Layer *layer : m_object.layers()) {
-        m_object.add_tree_support_layer(layer->id(), layer->height, layer->print_z, layer->slice_z);
+        TreeSupportLayer* ts_layer = m_object.add_tree_support_layer(layer->id(), layer->height, layer->print_z, layer->slice_z);
+        if (ts_layer->id() > 0) {
+            TreeSupportLayer* lower_layer = m_object.get_tree_support_layer(ts_layer->id() - 1);
+            lower_layer->upper_layer = ts_layer;
+            ts_layer->lower_layer = lower_layer;
+        }
     }
 }
 
@@ -569,11 +589,11 @@ void TreeSupport::generate_support_areas()
 
     std::vector<std::vector<Node*>> contact_nodes(m_object.layers().size()); //Generate empty layers to store the points in.
 
-    // Generate overhang areas
-    detect_object_overhangs();
-
     // Create Tree Support Layers
     create_tree_support_layers();
+
+    // Generate overhang areas
+    detect_object_overhangs();
 
     // Generate contact points of tree support
     generate_contact_points(contact_nodes);
@@ -1005,7 +1025,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
 
     for (size_t layer_nr = 1; layer_nr < m_object.layers().size() - z_distance_top_layers; layer_nr++)
     {
-        const ExPolygons &overhang = m_object.get_layer(layer_nr + z_distance_top_layers)->overhang_areas;
+        const ExPolygons &overhang = m_object.get_tree_support_layer(layer_nr + z_distance_top_layers)->overhang_areas;
         if (overhang.empty())
             continue;
 
@@ -1033,10 +1053,11 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
                     }
                 }
             }
+
             if (!added) //If we didn't add any points due to bad luck, we want to add one anyway such that loose parts are also supported.
             {
                 Point candidate = bounding_box_middle(bounding_box);
-                //move_inside_ex(overhang_part, candidate);
+                move_inside_ex(overhang_part, candidate);
                 constexpr size_t distance_to_top = 0;
                 constexpr bool to_buildplate = true;
                 Node* contact_node = new Node(candidate, distance_to_top, layer_nr % 2, support_roof_layers, to_buildplate, Node::NO_PARENT);
