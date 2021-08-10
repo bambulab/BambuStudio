@@ -95,7 +95,7 @@ void ArrangeJob::prepare_all() {
             ArrangePolygon&& ap = get_arrange_poly(PtrWrapper{mi}, m_plater);
 
             //BBS: add temperature information
-            Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
+            const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
             if (config.has("bed_temperature")) //get the bed temperature
                 ap.bed_temp = config.opt_int("bed_temperature", ap.extrude_id - 1);
             if (config.has("temperature")) //get the print temperature
@@ -155,7 +155,7 @@ void ArrangeJob::prepare_selected() {
             ArrangePolygon &&ap = get_arrange_poly_(mi);
 
             //BBS: add temperature information
-            Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
+            const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
             if (config.has("bed_temperature")) //get the bed temperature
                 ap.bed_temp = config.opt_int("bed_temperature", ap.extrude_id - 1);
             if (config.has("temperature")) //get the print temperature
@@ -244,7 +244,7 @@ void ArrangeJob::prepare_partplate() {
             ArrangePolygon&& ap = get_arrange_poly(PtrWrapper{mo->instances[inst_idx]}, m_plater);
 
             //BBS: add temperature information
-            Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
+            const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
             if (config.has("bed_temperature")) //get the bed temperature
                 ap.bed_temp = config.opt_int("bed_temperature", ap.extrude_id - 1);
             if (config.has("temperature")) //get the print temperature

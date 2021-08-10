@@ -7,6 +7,8 @@
 #include <wx/string.h>
 #include <wx/event.h>
 #include <boost/optional.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/log/trivial.hpp>
 #include "fdal/fdal_wrapper.hpp"
 #include "fdal/types.h"
 #include "topic_device.h"

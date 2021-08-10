@@ -16,6 +16,7 @@
 #include <wx/font.h>
 #include <wx/string.h>
 #include <wx/snglinst.h>
+#include <wx/msgdlg.h>
 
 #include <mutex>
 #include <stack>

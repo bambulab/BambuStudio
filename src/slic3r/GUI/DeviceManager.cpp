@@ -35,6 +35,8 @@ int DeviceInfo::set_bind_status(std::string status)
         m_bind_status = BIND_UNKOWN;
         return -1;
     }
+
+    return 0;
 }
 
 std::string DeviceInfo::get_bind_status_str()

@@ -5857,9 +5857,9 @@ void GLCanvas3D::_render_paint_toolbar() const
             ImGui::SameLine();
         ImGui::PushID(i);
         Slic3r::GUI::BitmapCache::parse_color(colors[i], rgb);
-        ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::ImColor(rgb[0], rgb[1], rgb[2]));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::ImColor(rgb[0], rgb[1], rgb[2]));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::ImColor(rgb[0], rgb[1], rgb[2]));
+        ImGui::PushStyleColor(ImGuiCol_Button, ImColor(rgb[0], rgb[1], rgb[2]).Value);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImColor(rgb[0], rgb[1], rgb[2]).Value);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImColor(rgb[0], rgb[1], rgb[2]).Value);
         if (disabled)
             ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 

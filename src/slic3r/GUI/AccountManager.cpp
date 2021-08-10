@@ -10,8 +10,8 @@
 
 #include <thread>
 #include <mutex>
-#include <boost-1_75/boost/foreach.hpp>
-#include <boost-1_75/boost/typeof/typeof.hpp>
+#include <boost/foreach.hpp>
+#include <boost/typeof/typeof.hpp>
 
 namespace pt = boost::property_tree;
 

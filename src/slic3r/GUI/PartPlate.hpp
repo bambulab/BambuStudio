@@ -107,7 +107,7 @@ public:
     static const unsigned int GRABBER_COUNT = 3;
 
     PartPlate();
-    PartPlate(Vec3d &origin, int width, int depth, int height, Plater* platerObj, Model* modelObj, bool printable=true, PrinterTechnology tech = ptFFF);
+    PartPlate(Vec3d origin, int width, int depth, int height, Plater* platerObj, Model* modelObj, bool printable=true, PrinterTechnology tech = ptFFF);
     ~PartPlate();
 
     bool operator<(PartPlate&) const;

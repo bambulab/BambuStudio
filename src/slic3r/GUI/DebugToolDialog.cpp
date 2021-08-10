@@ -73,27 +73,27 @@ namespace GUI {
     {
         UPGRADE_MODULE upgrade_module = (UPGRADE_MODULE)cb_upgrade_module->GetCurrentSelection();
         if (upgrade_module == MODULE_RK) {
-            if (firmware._Starts_with("update") && firmware.find("img") > 0) {
+            if ((firmware.find("update") == 0) && firmware.find("img") > 0) {
                 upgrade_file_list.push_back(firmware);
             }
         }
         else if (upgrade_module == MODULE_MC) {
-            if (firmware._Starts_with("mc")) {
+            if (firmware.find("mc") == 0) {
                 upgrade_file_list.push_back(firmware);
             }
         }
         else if (upgrade_module == MODULE_TH) {
-            if (firmware._Starts_with("th")) {
+            if (firmware.find("th") == 0) {
                 upgrade_file_list.push_back(firmware);
             }
         }
         else if (upgrade_module == MODULE_AMS) {
-            if (firmware._Starts_with("ams")) {
+            if (firmware.find("ams") == 0) {
                 upgrade_file_list.push_back(firmware);
             }
         }
         else if (upgrade_module == MODULE_OTA) {
-            if (firmware._Starts_with("ota")) {
+            if (firmware.find("ota") == 0) {
                 upgrade_file_list.push_back(firmware);
             }
         }
@@ -939,7 +939,11 @@ int DebugToolDialog::callSystem(std::string cmd, std::string& output)
 {
     FILE* f;
     char out[2048] = { 0 };
+#ifdef WIN32
     f = _popen(cmd.c_str(), "r");
+#else
+    f = popen(cmd.c_str(), "r");
+#endif
     if (f == NULL) {
         wxMessageBox("Popen cmd=" + cmd + "Failed!");
         return -1;
@@ -947,7 +951,11 @@ int DebugToolDialog::callSystem(std::string cmd, std::string& output)
     fgets(out, 2048, f);
 
     output = std::string(out);
+#ifdef WIN32
     _pclose(f);
+#else
+    pclose(f);
+#endif
 
     return 0;
 }

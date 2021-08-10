@@ -53,7 +53,7 @@ PartPlate::PartPlate()
 	init();
 }
 
-PartPlate::PartPlate(Vec3d& origin, int width, int depth, int height, Plater* platerObj, Model* modelObj, bool printable, PrinterTechnology tech)
+PartPlate::PartPlate(Vec3d origin, int width, int depth, int height, Plater* platerObj, Model* modelObj, bool printable, PrinterTechnology tech)
 	:m_plater(platerObj), m_model(modelObj), printer_technology(tech), m_origin(origin), m_width(width), m_depth(depth), m_height(height),  m_printable(printable)
 {
 	init();
