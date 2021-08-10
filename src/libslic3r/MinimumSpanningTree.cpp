@@ -14,7 +14,7 @@ inline double dot_with_unscale(const Point a, const Point b)
     return unscale_(a(0)) * unscale_(b(0)) + unscale_(a(1)) * unscale_(b(1));
 }
 
-inline double vSize2_with_unscale(const Point pt)
+inline double vsize2_with_unscale(const Point pt)
 {
     return dot_with_unscale(pt, pt);
 }
@@ -50,7 +50,7 @@ auto MinimumSpanningTree::prim(std::vector<Point> vertices) const -> AdjacencyGr
     for (size_t vertex_index = 1; vertex_index < vertices_list.size(); vertex_index++)
     {
         const auto& vert = vertices_list[vertex_index];
-        smallest_distance[&vert] = vSize2_with_unscale(vert - vertices_list[0]);
+        smallest_distance[&vert] = vsize2_with_unscale(vert - vertices_list[0]);
         smallest_distance_to[&vert] = &vertices_list[0];
     }
 
@@ -85,7 +85,7 @@ auto MinimumSpanningTree::prim(std::vector<Point> vertices) const -> AdjacencyGr
         //Update the distances of all points that are not in the graph.
         for (std::pair<const Point*, coordf_t> point_and_distance : smallest_distance)
         {
-            const coordf_t new_distance = vSize2_with_unscale(*closest_point - *point_and_distance.first);
+            const coordf_t new_distance = vsize2_with_unscale(*closest_point - *point_and_distance.first);
             const coordf_t old_distance = point_and_distance.second;
             if (new_distance < old_distance) //New point is closer.
             {

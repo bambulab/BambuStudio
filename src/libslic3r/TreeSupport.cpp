@@ -38,12 +38,12 @@ inline double dot_with_unscale(const Point a, const Point b)
     return unscale_(a(0)) * unscale_(b(0)) + unscale_(a(1)) * unscale_(b(1));
 }
 
-inline double vSize2_with_unscale(const Point pt)
+inline double vsize2_with_unscale(const Point pt)
 {
     return dot_with_unscale(pt, pt);
 }
 
-inline Point turn90CCW(const Point pt)
+inline Point turn90_ccw(const Point pt)
 {
     Point ret;
 
@@ -54,7 +54,7 @@ inline Point turn90CCW(const Point pt)
 
 Point normal(Point pt, double scale)
 {
-    double length = scale_(sqrt(vSize2_with_unscale(pt)));
+    double length = scale_(sqrt(vsize2_with_unscale(pt)));
 
     return pt * (scale / length);
 }
@@ -161,9 +161,9 @@ unsigned int move_inside_ex(const ExPolygon &polygon, Point& from, double distan
     }
     Point p0 = contour.points[polygon.contour.size() - 2];
     Point p1 = contour.points.back();
-    // because we compare with vSize2_with_unscale here (no division by zero), we also need to compare by vSize2_with_unscale inside the loop
+    // because we compare with vsize2_with_unscale here (no division by zero), we also need to compare by vsize2_with_unscale inside the loop
     // to avoid integer rounding edge cases
-    bool projected_p_beyond_prev_segment = dot_with_unscale(p1 - p0, from - p0) >= vSize2_with_unscale(p1 - p0);
+    bool projected_p_beyond_prev_segment = dot_with_unscale(p1 - p0, from - p0) >= vsize2_with_unscale(p1 - p0);
     for(const Point& p2 : polygon.contour.points)
     {
         // X = A + Normal(B-A) * (((B-A) dot_with_unscale (P-A)) / VSize(B-A));
@@ -174,7 +174,7 @@ unsigned int move_inside_ex(const ExPolygon &polygon, Point& from, double distan
         const Point& p = from;
         Point ab = b - a;
         Point ap = p - a;
-        double ab_length2 = vSize2_with_unscale(ab);
+        double ab_length2 = vsize2_with_unscale(ab);
         if(ab_length2 <= 0) //A = B, i.e. the input polygon had two adjacent points on top of each other.
         {
             p1 = p2; //Skip only one of the points.
@@ -188,7 +188,7 @@ unsigned int move_inside_ex(const ExPolygon &polygon, Point& from, double distan
                 projected_p_beyond_prev_segment = false;
                 Point& x = p1;
 
-                double dist2 = vSize2_with_unscale(x - p);
+                double dist2 = vsize2_with_unscale(x - p);
                 if (dist2 < bestDist2)
                 {
                     bestDist2 = dist2;
@@ -199,7 +199,7 @@ unsigned int move_inside_ex(const ExPolygon &polygon, Point& from, double distan
                     else
                     {
                         // TODO: check whether it needs scale_()
-                        Point inward_dir = turn90CCW(normal(ab, 10.0) + normal(p1 - p0, 10.0)); // inward direction irrespective of sign of [distance]
+                        Point inward_dir = turn90_ccw(normal(ab, 10.0) + normal(p1 - p0, 10.0)); // inward direction irrespective of sign of [distance]
                         // MM2INT(10.0) to retain precision for the eventual normalization
                         ret = x + normal(inward_dir, scale_(distance));
                         is_already_on_correct_side_of_boundary = dot_with_unscale(inward_dir, p - x) * distance >= 0;
@@ -226,7 +226,7 @@ unsigned int move_inside_ex(const ExPolygon &polygon, Point& from, double distan
             projected_p_beyond_prev_segment = false;
             Point x = a + ab * (dot_prod / ab_length2);
 
-            double dist2 = vSize2_with_unscale(p - x);
+            double dist2 = vsize2_with_unscale(p - x);
             if (dist2 < bestDist2)
             {
                 bestDist2 = dist2;
@@ -236,7 +236,7 @@ unsigned int move_inside_ex(const ExPolygon &polygon, Point& from, double distan
                 }
                 else
                 {
-                    Point inward_dir = turn90CCW(normal(ab, scale_(distance))); // inward or outward depending on the sign of [distance]
+                    Point inward_dir = turn90_ccw(normal(ab, scale_(distance))); // inward or outward depending on the sign of [distance]
                     ret = x + inward_dir;
                     is_already_on_correct_side_of_boundary = dot_with_unscale(inward_dir, p - x) >= 0;
                 }
@@ -278,9 +278,9 @@ unsigned int move_inside_ex(const ExPolygons& polygons, Point& from, double dist
             continue;
         Point p0 = poly.contour[poly.contour.size()-2];
         Point p1 = poly.contour.points.back();
-        // because we compare with vSize2_with_unscale here (no division by zero), we also need to compare by vSize2_with_unscale inside the loop
+        // because we compare with vsize2_with_unscale here (no division by zero), we also need to compare by vsize2_with_unscale inside the loop
         // to avoid integer rounding edge cases
-        bool projected_p_beyond_prev_segment = dot_with_unscale(p1 - p0, from - p0) >= vSize2_with_unscale(p1 - p0);
+        bool projected_p_beyond_prev_segment = dot_with_unscale(p1 - p0, from - p0) >= vsize2_with_unscale(p1 - p0);
         for(const Point& p2 : poly.contour.points)
         {
             // X = A + Normal(B-A) * (((B-A) dot_with_unscale (P-A)) / VSize(B-A));
@@ -291,7 +291,7 @@ unsigned int move_inside_ex(const ExPolygons& polygons, Point& from, double dist
             const Point& p = from;
             Point ab = b - a;
             Point ap = p - a;
-            double ab_length2 = vSize2_with_unscale(ab);
+            double ab_length2 = vsize2_with_unscale(ab);
             if(ab_length2 <= 0) //A = B, i.e. the input polygon had two adjacent points on top of each other.
             {
                 p1 = p2; //Skip only one of the points.
@@ -305,7 +305,7 @@ unsigned int move_inside_ex(const ExPolygons& polygons, Point& from, double dist
                     projected_p_beyond_prev_segment = false;
                     Point& x = p1;
 
-                    double dist2 = vSize2_with_unscale(x - p);
+                    double dist2 = vsize2_with_unscale(x - p);
                     if (dist2 < bestDist2)
                     {
                         bestDist2 = dist2;
@@ -313,7 +313,7 @@ unsigned int move_inside_ex(const ExPolygons& polygons, Point& from, double dist
                         if (distance == 0) { ret = x; }
                         else
                         {
-                            Point inward_dir = turn90CCW(normal(ab, 10.0) + normal(p1 - p0, 10.0)); // inward direction irrespective of sign of [distance]
+                            Point inward_dir = turn90_ccw(normal(ab, 10.0) + normal(p1 - p0, 10.0)); // inward direction irrespective of sign of [distance]
                             // MM2INT(10.0) to retain precision for the eventual normalization
                             ret = x + normal(inward_dir, scale_(distance));
                             is_already_on_correct_side_of_boundary = dot_with_unscale(inward_dir, p - x) * distance >= 0;
@@ -340,7 +340,7 @@ unsigned int move_inside_ex(const ExPolygons& polygons, Point& from, double dist
                 projected_p_beyond_prev_segment = false;
                 Point x = a + ab * (dot_prod / ab_length2);
 
-                double dist2 = vSize2_with_unscale(p - x);
+                double dist2 = vsize2_with_unscale(p - x);
                 if (dist2 < bestDist2)
                 {
                     bestDist2 = dist2;
@@ -348,7 +348,7 @@ unsigned int move_inside_ex(const ExPolygons& polygons, Point& from, double dist
                     if (distance == 0) { ret = x; }
                     else
                     {
-                        Point inward_dir = turn90CCW(normal(ab, scale_(distance))); // inward or outward depending on the sign of [distance]
+                        Point inward_dir = turn90_ccw(normal(ab, scale_(distance))); // inward or outward depending on the sign of [distance]
                         ret = x + inward_dir;
                         is_already_on_correct_side_of_boundary = dot_with_unscale(inward_dir, p - x) >= 0;
                     }
@@ -381,7 +381,7 @@ Point find_closest_ex(Point from, const ExPolygons& polygons)
 
     for (const ExPolygon &poly : polygons) {
         const Point* candidate = poly.contour.closest_point(from);
-        double dist2 = vSize2_with_unscale(*candidate - from);
+        double dist2 = vsize2_with_unscale(*candidate - from);
         if (dist2 < min_dist2) {
             closest_pt = *candidate;
             min_dist2 = dist2;
@@ -494,13 +494,13 @@ static inline void fill_expolygon_generate_paths(
 }
 
 static inline void fill_expolygons_generate_paths(
-    ExtrusionEntitiesPtr& dst,
-    ExPolygons&& expolygons,
-    Fill* filler,
-    const FillParams& fill_params,
-    float                    density,
-    ExtrusionRole            role,
-    const Flow& flow)
+    ExtrusionEntitiesPtr   &dst,
+    ExPolygons            &&expolygons,
+    Fill                   *filler,
+    const FillParams       &fill_params,
+    float                   density,
+    ExtrusionRole           role,
+    const Flow             &flow)
 {
     for (ExPolygon& expoly : expolygons)
         fill_expolygon_generate_paths(dst, std::move(expoly), filler, fill_params, density, role, flow);
@@ -512,26 +512,22 @@ void TreeSupport::generate_fills()
     const PrintObjectConfig &object_config = m_object.config();
     coordf_t support_extrusion_width = object_config.support_material_extrusion_width.value > 0 ? object_config.support_material_extrusion_width : object_config.extrusion_width;
     coordf_t nozzle_diameter = print_config.nozzle_diameter.get_at(object_config.support_material_extruder - 1);
-    coordf_t support_spacing = std::max(0.1, object_config.support_material_spacing.value);
-    coordf_t interface_spacing = std::max(0.1, object_config.support_material_interface_spacing.value);
+    coordf_t support_spacing = object_config.support_material_spacing.value;
+    coordf_t interface_spacing = object_config.support_material_interface_spacing.value;
     double support_density = support_extrusion_width / (support_spacing + support_extrusion_width);
     double interface_density = support_extrusion_width / (interface_spacing + support_extrusion_width);
-    FillParams fill_params;
-
-    fill_params.density = interface_density;
-    fill_params.dont_adjust = true;
 
     for (TreeSupportLayer *layer : m_object.tree_support_layers()) {
         Flow support_flow(support_extrusion_width, layer->height, nozzle_diameter);
-        Fill* filler_interface = Fill::new_from_type(ipGrid);
-        Fill* filler_support = Fill::new_from_type(ipGrid);
+        Fill* filler_interface = Fill::new_from_type(ipRectilinear);
+        Fill* filler_support = Fill::new_from_type(ipRectilinear);
         //filler_interface->set_bounding_box(bbox_object);
         //filler_support->set_bounding_box(bbox_object);
 
-        filler_interface->angle = 90.;
-        filler_interface->spacing = interface_spacing;
+        filler_interface->angle = layer->id() % 2 ? 0 : 90;
+        filler_interface->spacing = support_extrusion_width;
         filler_support->angle = 0.;
-        filler_support->spacing = support_spacing;
+        filler_support->spacing = support_extrusion_width;
 
         // bool stands for is_support_interface
         std::vector<std::pair<ExPolygons *, bool>> area_groups;
@@ -550,6 +546,9 @@ void TreeSupport::generate_fills()
                 }
 
                 if (area_group.second) {
+                    FillParams fill_params;
+                    fill_params.density = interface_density;
+                    fill_params.dont_adjust = true;
                     fill_expolygons_generate_paths(layer->support_fills.entities, offset_ex(poly, float(-0.4 * interface_spacing)),
                         filler_interface, fill_params, interface_density, erSupportMaterialInterface, support_flow);
                 } else {
@@ -636,9 +635,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 Point corner = *iter;
                 if (node.distance_to_top < tip_layers) //We're in the tip.
                 {
-                    const int mul = node.skin_direction ? 1 : -1;
-                    corner = Point(corner(0) * (0.5 + scale / 2) + mul * corner(1) * (0.5 - scale / 2),
-                                   mul * corner(0) * (0.5 - scale / 2) + corner(1) * (0.5 + scale / 2));
+                    corner = corner * (0.5 + scale / 2);
                 }
                 else
                 {
@@ -663,6 +660,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
         const size_t z_collision_layer = static_cast<size_t>(std::max(0, static_cast<int>(layer_nr) - static_cast<int>(bottom_interface_layers) + 1)); //Layer to test against to create a Z-distance.
         base_areas = diff_ex(base_areas, m_ts_data->get_collision(0, z_collision_layer)); //Subtract the model itself (sample 0 is with 0 diameter but proper X/Y offset).
         roof_areas = diff_ex(roof_areas, m_ts_data->get_collision(0, z_collision_layer));
+        roof_areas = offset2_ex(roof_areas, scale_(branch_radius), -scale_(branch_radius));
         base_areas = diff_ex(base_areas, roof_areas);
 
         // TODO: simplify base_areas
@@ -687,6 +685,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
             }
 
             floor_areas = std::move(union_ex(floor_areas));
+            floor_areas = offset2_ex(floor_areas, scale_(branch_radius), -scale_(branch_radius));
             base_areas = diff_ex(base_areas, offset_ex(floor_areas, 10));
         }
 
@@ -762,7 +761,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                 }
 
                 Point closest_point = *parts[part_index].contour.closest_point(node.position);
-                const coordf_t distance2 = vSize2_with_unscale(node.position - closest_point);
+                const coordf_t distance2 = vsize2_with_unscale(node.position - closest_point);
                 if (distance2 < closest_part_distance2)
                 {
                     closest_part_distance2 = distance2;
@@ -799,7 +798,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                     continue; //Delete this node (don't create a new node for it on the next layer).
                 }
                 const std::vector<Point>& neighbours = mst.adjacent_nodes(node.position);
-                if (neighbours.size() == 1 && vSize2_with_unscale(neighbours[0] - node.position) < max_move_distance2 && mst.adjacent_nodes(neighbours[0]).size() == 1) //We have just two nodes left, and they're very close!
+                if (neighbours.size() == 1 && vsize2_with_unscale(neighbours[0] - node.position) < max_move_distance2 && mst.adjacent_nodes(neighbours[0]).size() == 1) //We have just two nodes left, and they're very close!
                 {
                     //Insert a completely new node and let both original nodes fade.
                     Point next_position = (node.position + neighbours[0]) / 2; //Average position of the two nodes.
@@ -840,7 +839,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                     //Remove all neighbours that are too close and merge them into this node.
                     for (const Point& neighbour : neighbours)
                     {
-                        if (vSize2_with_unscale(neighbour - node.position) < max_move_distance2)
+                        if (vsize2_with_unscale(neighbour - node.position) < max_move_distance2)
                         {
                             Node* neighbour_node = nodes_per_part[group_index][neighbour];
                             node.distance_to_top = std::max(node.distance_to_top, neighbour_node->distance_to_top);
@@ -878,7 +877,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                     }();
 
                     Point to_outside = find_closest_ex(node.position, m_ts_data->get_collision(0, layer_nr));
-                    if (vSize2_with_unscale(node.position - to_outside) >=  scale_(branch_radius_node) * scale_(branch_radius_node)) //Too far inside.
+                    if (vsize2_with_unscale(node.position - to_outside) >=  scale_(branch_radius_node) * scale_(branch_radius_node)) //Too far inside.
                     {
                         if (! support_rests_on_model)
                         {
@@ -889,7 +888,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                 }
                 Point next_layer_vertex = node.position;
                 const std::vector<Point> neighbours = mst.adjacent_nodes(node.position);
-                if (neighbours.size() > 1 || (neighbours.size() == 1 && vSize2_with_unscale(neighbours[0] - node.position) >= max_move_distance2)) //Only nodes that aren't about to collapse.
+                if (neighbours.size() > 1 || (neighbours.size() == 1 && vsize2_with_unscale(neighbours[0] - node.position) >= max_move_distance2)) //Only nodes that aren't about to collapse.
                 {
                     //Move towards the average position of all neighbours.
                     Point sum_direction(0, 0);
@@ -897,7 +896,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                     {
                         sum_direction += neighbour - node.position;
                     }
-                    if(vSize2_with_unscale(sum_direction) <= max_move_distance2)
+                    if(vsize2_with_unscale(sum_direction) <= max_move_distance2)
                     {
                         next_layer_vertex += sum_direction;
                     }
