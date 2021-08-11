@@ -380,6 +380,80 @@ static Polylines connect_brim_lines(Polylines &&polylines, const Polygons &brim_
     return std::move(polylines);
 }
 
+// BBS: this function is used to generate brim for inner island
+static void make_inner_island_brim(const Print& print,
+    const ConstPrintObjectPtrs& top_level_objects_with_brim,
+    const Polygons& inner_holes_area,
+    ExtrusionEntityCollection& brim) {
+    // BBS: return directly if has no holes area(no holes, so no inner islands too)
+    if (inner_holes_area.empty())
+        return;
+
+    Flow flow = print.brim_flow();
+    for (const PrintObject* object : top_level_objects_with_brim) {
+        const BrimType brim_type = object->config().brim_type.value;
+        // BBS: don't need to handle this object if hasn't enabled inner_brim
+        if (brim_type != BrimType::btOuterAndInner && brim_type != BrimType::btInnerOnly)
+            continue;
+        std::map<size_t, Polygons> hole_island_pair;
+        for (const ExPolygon& ex_poly : object->layers().front()->lslices) {
+            for (const PrintInstance& instance : object->instances()) {
+                Polygon counter = ex_poly.contour;
+                counter.translate(instance.shift.x(), instance.shift.y());
+                for (size_t i = 0; i < inner_holes_area.size(); i++) {
+                    // BBS: this is an inner island
+                    if (diff_ex({ counter }, { inner_holes_area[i] }).empty()) {
+                        hole_island_pair[i].push_back(counter);
+                        break;
+                    }
+                }
+            }
+        }
+
+        const float    brim_offset = scale_(object->config().brim_offset.value);
+        const float    brim_width = scale_(object->config().brim_width.value);
+        size_t         num_loops = size_t(floor(brim_width / float(flow.scaled_spacing())));
+        for (auto it = hole_island_pair.begin(); it != hole_island_pair.end(); it++) {
+            Polygons        loops;
+            Polygons inner_islands = offset(it->second, brim_offset);
+            Polygons contour = inner_islands;
+            for (size_t i = 0; i < num_loops; ++i) {
+                contour = offset(contour, float(flow.scaled_spacing()), jtSquare);
+                for (Polygon& poly : contour)
+                    poly.douglas_peucker(SCALED_RESOLUTION);
+                polygons_append(loops, offset(contour, -0.5f * float(flow.scaled_spacing())));
+            }
+            loops = union_pt_chained_outside_in(loops, false);
+
+            Polygons brimable_area = { inner_holes_area[it->first] };
+            std::vector<Polylines> loops_pl_by_levels;
+            {
+                Polylines              loops_pl = to_polylines(loops);
+                loops_pl_by_levels.assign(loops_pl.size(), Polylines());
+                tbb::parallel_for(tbb::blocked_range<size_t>(0, loops_pl.size()),
+                    [&loops_pl_by_levels, &loops_pl, &brimable_area](const tbb::blocked_range<size_t>& range) {
+                        for (size_t i = range.begin(); i < range.end(); ++i) {
+                            loops_pl_by_levels[i] = chain_polylines(intersection_pl({ std::move(loops_pl[i]) }, brimable_area));
+                        }
+                    });
+            }
+
+            // BBS: Reduce down to the ordered list of polylines.
+            Polylines all_loops;
+            for (Polylines& polylines : loops_pl_by_levels)
+                append(all_loops, std::move(polylines));
+            loops_pl_by_levels.clear();
+
+            optimize_polylines_by_reversing(&all_loops);
+            all_loops = connect_brim_lines(std::move(all_loops), offset(inner_islands, float(SCALED_EPSILON)), float(flow.scaled_spacing()) * 2.f);
+
+            extrusion_entities_append_loops_and_paths(brim.entities, std::move(all_loops),
+                erSkirt, float(flow.mm3_per_mm()), float(flow.width),
+                float(print.skirt_first_layer_height()));
+        }
+    }
+}
+
 static void make_inner_brim(const Print                   &print,
                             const ConstPrintObjectPtrs    &top_level_objects_with_brim,
                             const std::vector<ExPolygons> &bottom_layers_expolygons,
@@ -389,6 +463,17 @@ static void make_inner_brim(const Print                   &print,
     const auto scaled_resolution = scaled<double>(print.config().gcode_resolution.value);
     Flow       flow = print.brim_flow();
     ExPolygons islands_ex = inner_brim_area(print, top_level_objects_with_brim, bottom_layers_expolygons, float(flow.scaled_spacing()));
+
+    // BBS: get remain area inside holes after generating brim of holes
+    Polygons inner_holes_area;
+    for (ExPolygon& poly_ex : islands_ex) {
+        for (size_t i = 0; i < poly_ex.holes.size(); i++) {
+            inner_holes_area.push_back(poly_ex.holes[i]);
+            inner_holes_area.back().douglas_peucker(SCALED_RESOLUTION);
+            inner_holes_area.back().make_counter_clockwise();
+        }
+    }
+
     Polygons   loops;
     islands_ex      = offset_ex(islands_ex, -0.5f * float(flow.scaled_spacing()), ClipperLib::jtSquare);
     for (size_t i = 0; !islands_ex.empty(); ++i) {
@@ -402,6 +487,9 @@ static void make_inner_brim(const Print                   &print,
     std::reverse(loops.begin(), loops.end());
     extrusion_entities_append_loops(brim.entities, std::move(loops), erSkirt, float(flow.mm3_per_mm()),
                                     float(flow.width()), float(print.skirt_first_layer_height()));
+
+    // BBS: make brim for inner island which in holes
+    make_inner_island_brim(print, top_level_objects_with_brim, inner_holes_area, brim);
 }
 
 // Produce brim lines around those objects, that have the brim enabled.
