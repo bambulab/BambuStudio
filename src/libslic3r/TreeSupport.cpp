@@ -477,7 +477,7 @@ void TreeSupport::detect_object_overhangs()
 
         if (layer_id < blockers.size()) {
             ExPolygons& blocker = blockers[layer_id];
-            layer->overhang_areas = diff_ex(layer->overhang_areas, blocker);
+            layer->overhang_areas = diff_ex(layer->overhang_areas, offset_ex(blocker, scale_(radius_sample_resolution)));
         }
     }
 }
