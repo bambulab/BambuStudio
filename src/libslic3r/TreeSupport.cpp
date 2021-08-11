@@ -918,7 +918,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                     }();
 
                     Point to_outside = find_closest_ex(node.position, m_ts_data->get_collision(0, layer_nr));
-                    if (vsize2_with_unscale(node.position - to_outside) >=  scale_(branch_radius_node) * scale_(branch_radius_node)) //Too far inside.
+                    if (vsize2_with_unscale(node.position - to_outside) >= branch_radius_node * branch_radius_node) //Too far inside.
                     {
                         if (! support_rests_on_model)
                         {
