@@ -621,14 +621,31 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 {
     const PrintObjectConfig &config = m_object.config();
     const coordf_t branch_radius = config.tree_support_branch_diameter.value / 2;
+    const coordf_t branch_radius_scaled = scale_(branch_radius);
     const size_t wall_count = config.tree_support_wall_count.value;
     Polygon branch_circle; //Pre-generate a circle with correct diameter so that we don't have to recompute those (co)sines every time.
     for (unsigned int i = 0; i < CIRCLE_RESOLUTION; i++)
     {
         double angle = (double)i / CIRCLE_RESOLUTION * TAU;
-        branch_circle.append(Point(cos(angle) * scale_(branch_radius), sin(angle) * scale_(branch_radius)));
+        branch_circle.append(Point(cos(angle) * branch_radius_scaled, sin(angle) * branch_radius_scaled));
     }
 
+    // Performance optimization. Only generate lslices for brim and skirt.
+    size_t brim_skirt_layers = 0;
+    if (config.brim_width.value > EPSILON)
+    {
+        brim_skirt_layers = 1;
+    }
+
+    const Print* print = m_object.print();
+    const PrintConfig& print_config = print->config();
+    for (const PrintObject* object : print->objects())
+    {
+        size_t skirt_layers = print->has_infinite_skirt() ? object->layer_count() : std::min(size_t(print_config.skirt_height.value), object->layer_count());
+        brim_skirt_layers = std::max(brim_skirt_layers, skirt_layers);
+    }
+
+    // generate areas
     const coordf_t circle_side_length = 2 * branch_radius * sin(M_PI / CIRCLE_RESOLUTION); //Side length of a regular polygon.
     const coordf_t layer_height = config.layer_height.value;
     const size_t bottom_interface_layers = config.support_material_interface_layers.value;
@@ -636,81 +653,85 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     const double diameter_angle_scale_factor = sin(config.tree_support_branch_diameter_angle.value * M_PI / 180.) * layer_height / branch_radius; //Scale factor per layer to produce the desired angle.
     const coordf_t line_width = config.support_material_extrusion_width.get_abs_value(layer_height);
     const coordf_t resolution = config.tree_support_collision_resolution.value;
-    for (int layer_nr = 0; layer_nr < static_cast<int>(contact_nodes.size()); layer_nr++)
-    {
-        TreeSupportLayer *ts_layer = m_object.get_tree_support_layer(layer_nr);
-        assert(ts_layer != nullptr);
 
-        ExPolygons &base_areas = ts_layer->base_areas;
-        ExPolygons &roof_areas = ts_layer->roof_areas;
-
-        //Draw the support areas and add the roofs appropriately to the support roof instead of normal areas.
-        for (const Node* p_node : contact_nodes[layer_nr])
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, contact_nodes.size()),
+        [this, contact_nodes, branch_circle, tip_layers, diameter_angle_scale_factor, brim_skirt_layers, bottom_interface_layers, branch_radius_scaled]
+        (const tbb::blocked_range<size_t>& range)
         {
-            const Node& node = *p_node;
-            Polygon circle;
-            const double scale = static_cast<double>(node.distance_to_top + 1) / tip_layers;
-            for (auto iter = branch_circle.points.begin(); iter != branch_circle.points.end(); iter++)
+            for (size_t layer_nr = range.begin(); layer_nr < range.end(); layer_nr++)
             {
-                Point corner = *iter;
-                if (node.distance_to_top < tip_layers) //We're in the tip.
+                TreeSupportLayer* ts_layer = m_object.get_tree_support_layer(layer_nr);
+                assert(ts_layer != nullptr);
+
+                ExPolygons& base_areas = ts_layer->base_areas;
+                ExPolygons& roof_areas = ts_layer->roof_areas;
+
+                //Draw the support areas and add the roofs appropriately to the support roof instead of normal areas.
+                if (!contact_nodes[layer_nr].empty())
                 {
-                    corner = corner * (0.5 + scale / 2);
+                    ts_layer->lslices.reserve(contact_nodes[layer_nr].size());
                 }
-                else
+
+                for (const Node* p_node : contact_nodes[layer_nr])
                 {
-                    corner = corner * (1 + static_cast<double>(node.distance_to_top - tip_layers) * diameter_angle_scale_factor);
+                    const Node& node = *p_node;
+                    Polygon circle;
+                    const double scale = static_cast<double>(node.distance_to_top + 1) / tip_layers;
+                    for (auto iter = branch_circle.points.begin(); iter != branch_circle.points.end(); iter++)
+                    {
+                        Point corner = *iter;
+                        if (node.distance_to_top < tip_layers) //We're in the tip.
+                        {
+                            corner = corner * (0.5 + scale / 2);
+                        }
+                        else
+                        {
+                            corner = corner * (1 + static_cast<double>(node.distance_to_top - tip_layers) * diameter_angle_scale_factor);
+                        }
+                        circle.append(node.position + corner);
+                    }
+                    if (node.support_roof_layers_below > 0)
+                    {
+                        roof_areas.emplace_back(circle);
+                    }
+                    else
+                    {
+                        base_areas.emplace_back(circle);
+                    }
+
+                    // only collect lslices for brim/skirt
+                    if (layer_nr < brim_skirt_layers)
+                        ts_layer->lslices.emplace_back(circle);
                 }
-                circle.append(node.position + corner);
-            }
-            if (node.support_roof_layers_below > 0)
-            {
-                roof_areas.push_back(ExPolygon(circle));
-            }
-            else
-            {
-                base_areas.push_back(ExPolygon(circle));
-            }
+                ts_layer->lslices = std::move(union_ex(ts_layer->lslices));
 
-            ts_layer->lslices.push_back(ExPolygon(circle));
+                const size_t z_collision_layer = static_cast<size_t>(std::max(0, static_cast<int>(layer_nr) - static_cast<int>(bottom_interface_layers) + 1));
+                base_areas = std::move(diff_ex(base_areas, m_ts_data->get_collision(0, z_collision_layer)));
+                roof_areas = std::move(diff_ex(roof_areas, m_ts_data->get_collision(0, z_collision_layer)));
+                roof_areas = std::move(offset2_ex(roof_areas, branch_radius_scaled, -branch_radius_scaled));
+                base_areas = std::move(diff_ex(base_areas, roof_areas));
+
+                //Subtract support floors.
+                ExPolygons& floor_areas = ts_layer->floor_areas;
+                if (bottom_interface_layers > 0)
+                {
+                    for (size_t layers_below = 0; layers_below <= bottom_interface_layers; layers_below++)
+                    {
+                        if (layer_nr < layers_below + bottom_interface_layers)
+                            break;
+
+                        const Layer* below_layer = m_object.get_layer(layer_nr - layers_below - bottom_interface_layers);
+                        ExPolygons bottom_interface = std::move(intersection_ex(base_areas, below_layer->lslices));
+                        floor_areas.insert(floor_areas.end(), bottom_interface.begin(), bottom_interface.end());
+                    }
+
+                    floor_areas = std::move(offset2_ex(floor_areas, branch_radius_scaled, -branch_radius_scaled));
+                    base_areas = std::move(diff_ex(base_areas, offset_ex(floor_areas, 10)));
+                }
+            }
         }
-        base_areas = union_ex(base_areas);
-        roof_areas = union_ex(roof_areas);
-
-        const size_t z_collision_layer = static_cast<size_t>(std::max(0, static_cast<int>(layer_nr) - static_cast<int>(bottom_interface_layers) + 1)); //Layer to test against to create a Z-distance.
-        base_areas = diff_ex(base_areas, m_ts_data->get_collision(0, z_collision_layer)); //Subtract the model itself (sample 0 is with 0 diameter but proper X/Y offset).
-        roof_areas = diff_ex(roof_areas, m_ts_data->get_collision(0, z_collision_layer));
-        roof_areas = offset2_ex(roof_areas, scale_(branch_radius), -scale_(branch_radius));
-        base_areas = diff_ex(base_areas, roof_areas);
-
-        // TODO: simplify base_areas
-
-#if 0
-        //We smooth this support as much as possible without altering single circles. So we remove any line less than the side length of those circles.
-        const double diameter_angle_scale_factor_this_layer = static_cast<double>(storage.support.supportLayers.size() - layer_nr - tip_layers) * diameter_angle_scale_factor; //Maximum scale factor.
-        base_areas.simplify(circle_side_length * (1 + diameter_angle_scale_factor_this_layer), resolution); //Don't deviate more than the collision resolution so that the lines still stack properly.
-#endif
-        //Subtract support floors.
-        ExPolygons &floor_areas = ts_layer->floor_areas;
-        if (bottom_interface_layers > 0)
-        {
-            for(size_t layers_below = 0; layers_below <= bottom_interface_layers; layers_below++)
-            {
-                if (layer_nr < layers_below + bottom_interface_layers)
-                    break;
-
-                const Layer *below_layer = m_object.get_layer(layer_nr - layers_below - bottom_interface_layers);
-                ExPolygons bottom_interface = std::move(intersection_ex(base_areas, below_layer->lslices));
-                floor_areas.insert(floor_areas.end(), bottom_interface.begin(), bottom_interface.end());
-            }
-
-            floor_areas = std::move(union_ex(floor_areas));
-            floor_areas = offset2_ex(floor_areas, scale_(branch_radius), -scale_(branch_radius));
-            base_areas = diff_ex(base_areas, offset_ex(floor_areas, 10));
-        }
-
-        ts_layer->lslices = std::move(union_ex(ts_layer->lslices));
-    }
+    );
 }
 
 void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
@@ -1084,19 +1105,14 @@ void TreeSupport::insert_dropped_node(std::vector<Node*>& nodes_layer, Node* p_n
 TreeSupportData::TreeSupportData(const PrintObject &object, coordf_t xy_distance, coordf_t max_move, coordf_t radius_sample_resolution)
     : m_xy_distance(xy_distance), m_max_move(max_move), m_radius_sample_resolution(radius_sample_resolution)
 {
-#if 0
-    const PrintConfig& print_config = object.print()->config();
-    const std::vector<Vec2d>& bed_points = print_config.bed_shape.values;
-
-    for (const Vec2d& bed_point : bed_points) {
-        m_machine_border.contour.append(Point(bed_point));
-    }
-#endif
-
     for (std::size_t layer_idx  = 0; layer_idx < object.layers().size(); ++layer_idx)
     {
         const Layer* layer = object.get_layer(layer_idx);
-        m_layer_outlines.push_back(layer->lslices);
+        m_layer_outlines.push_back(ExPolygons());
+        ExPolygons& outline = m_layer_outlines.back();
+        for (const ExPolygon& poly : layer->lslices) {
+            poly.simplify(scale_(m_radius_sample_resolution), &outline);
+        }
     }
 }
 
@@ -1147,17 +1163,10 @@ const ExPolygons& TreeSupportData::calculate_collision(const RadiusLayerPair& ke
     const auto& radius = key.first;
     const auto& layer_idx = key.second;
 
-    ExPolygons collision_areas;
-    ExPolygons collision_areas_simple;
-    //collision_areas.push_back(m_machine_border);
-    if (layer_idx < static_cast<int>(m_layer_outlines.size()))
-    {
-        collision_areas.insert(collision_areas.end(), m_layer_outlines[layer_idx].begin(), m_layer_outlines[layer_idx].end());
-        for (ExPolygon& poly : collision_areas)
-            poly.simplify(scale_(m_radius_sample_resolution), &collision_areas_simple);
-    }
-    collision_areas_simple = offset_ex(collision_areas_simple, scale_(m_xy_distance + radius));
-    const auto ret = m_collision_cache.insert({ key, collision_areas_simple });
+    assert(layer_idx < m_layer_outlines.size());
+
+    ExPolygons collision_areas = std::move(offset_ex(m_layer_outlines[layer_idx], scale_(m_xy_distance + radius)));
+    const auto ret = m_collision_cache.insert({ key, std::move(collision_areas) });
     return ret.first->second;
 }
 
@@ -1186,8 +1195,8 @@ const ExPolygons& TreeSupportData::calculate_avoidance(const RadiusLayerPair& ke
         get_avoidance(radius, layer_idx - max_recursion_depth);
     }
 
-    ExPolygons avoidance_areas = offset_ex(get_avoidance(radius, layer_idx - 1), scale_(-m_max_move));
-    ExPolygons collision = std::move(get_collision(radius, layer_idx));
+    ExPolygons avoidance_areas = std::move(offset_ex(get_avoidance(radius, layer_idx - 1), scale_(-m_max_move)));
+    const ExPolygons& collision = get_collision(radius, layer_idx);
     avoidance_areas.insert(avoidance_areas.end(), collision.begin(), collision.end());
     avoidance_areas = std::move(union_ex(avoidance_areas));
     const auto ret = m_avoidance_cache.insert({key, std::move(avoidance_areas)});

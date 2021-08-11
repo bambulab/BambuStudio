@@ -72,8 +72,8 @@ private:
     using RadiusLayerPair = std::pair<coordf_t, size_t>;
 
     struct RadiusLayerPairHash {
-        size_t operator()(const RadiusLayerPair& pt) const {
-            return std::hash<coord_t>()(pt.first * 102);
+        size_t operator()(const RadiusLayerPair& elem) const {
+            return std::hash<coord_t>()(elem.first * 102 + elem.second * 10222);
         }
     };
 
@@ -142,7 +142,6 @@ private:
      */
     mutable std::unordered_map<RadiusLayerPair, ExPolygons, RadiusLayerPairHash> m_collision_cache;
     mutable std::unordered_map<RadiusLayerPair, ExPolygons, RadiusLayerPairHash> m_avoidance_cache;
-    mutable std::unordered_map<RadiusLayerPair, ExPolygons, RadiusLayerPairHash> m_internal_model_cache;
 };
 
 /*!
