@@ -33,6 +33,7 @@ int DeviceInfo::set_bind_status(std::string status)
     }
     else {
         m_bind_status = BIND_UNKOWN;
+        m_bind_status_str = status;
         return -1;
     }
 
@@ -51,7 +52,12 @@ std::string DeviceInfo::get_bind_status_str()
         return "bind:other";
     }
     else {
-        return "bind:unkown";
+        if (m_bind_status_str.empty()) {
+            return "bind:unknown";
+        }
+        else {
+            return "bind:" + m_bind_status_str;
+        }
     }
 }
 

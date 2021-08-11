@@ -52,6 +52,7 @@ public:
     std::string m_ip_addr;
     std::string get_bind_status_str();
     BindStatus m_bind_status;
+    std::string m_bind_status_str;
 
     int m_conn_flag;
 
