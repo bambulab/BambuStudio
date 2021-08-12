@@ -65,6 +65,8 @@ public:
      */
     const ExPolygons& get_avoidance(coordf_t radius, size_t layer_idx) const;
 
+    Polygons get_contours(size_t layer_nr) const;
+
 private:
     /*!
      * \brief Convenience typedef for the keys to the caches

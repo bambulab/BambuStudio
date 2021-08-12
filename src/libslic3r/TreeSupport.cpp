@@ -265,7 +265,7 @@ unsigned int move_inside_ex(const ExPolygon &polygon, Point& from, double distan
 /*
  * Implementation assumes moving inside, but moving outside should just as well be possible.
  */
-unsigned int move_inside_ex(const ExPolygons& polygons, Point& from, double distance, double maxDist2)
+bool move_inside_ex(const ExPolygons& polygons, Point& from, double distance, double maxDist2)
 {
     Point ret = from;
     double bestDist2 = std::numeric_limits<double>::max();
@@ -364,14 +364,14 @@ unsigned int move_inside_ex(const ExPolygons& polygons, Point& from, double dist
         {
             from = ret;
         }
-        return bestPoly;
+        return true;
     }
     else if (bestDist2 < maxDist2)
     {
         from = ret;
-        return bestPoly;
+        return true;
     }
-    return NO_INDEX;
+    return false;
 }
 
 Point find_closest_ex(Point from, const ExPolygons& polygons)
@@ -392,7 +392,7 @@ Point find_closest_ex(Point from, const ExPolygons& polygons)
 }
 
 
-unsigned int move_outside_ex(const ExPolygons& polygons, Point& from, double distance, double maxDist2)
+bool move_outside_ex(const ExPolygons& polygons, Point& from, double distance, double maxDist2)
 {
     return move_inside_ex(polygons, from, -distance, maxDist2);
 }
@@ -734,13 +734,33 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     );
 }
 
+inline coordf_t calc_branch_radius(coordf_t base_radius, size_t layers_to_top, size_t tip_layers, double diameter_angle_scale_factor)
+{
+    if ((layers_to_top + 1) > tip_layers)
+    {
+        return base_radius + base_radius * (layers_to_top + 1) * diameter_angle_scale_factor;
+    }
+    else
+    {
+        return base_radius * (layers_to_top + 1) / tip_layers;
+    }
+}
+
+struct LineHash {
+    size_t operator()(const Line &line) const {
+        return (std::hash<coord_t>()(line.a(0)) ^ std::hash<coord_t>()(line.b(1))) * 102 +
+            (std::hash<coord_t>()(line.a(0)) ^ std::hash<coord_t>()(line.b(1))) * 10222;
+    }
+};
+
 void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
 {
     const PrintObjectConfig &config = m_object.config();
     //Use Minimum Spanning Tree to connect the points on each layer and move them while dropping them down.
     const coordf_t layer_height = config.layer_height.value;
     const double angle = config.tree_support_branch_angle.value * M_PI / 180.;
-    const coordf_t max_move_distance = (angle < M_PI / 2) ? (coordf_t)(tan(angle) * layer_height) : std::numeric_limits<coordf_t>::max();
+    const double tan_angle = tan(angle);
+    const coordf_t max_move_distance = (angle < M_PI / 2) ? (coordf_t)(tan_angle * layer_height) : std::numeric_limits<coordf_t>::max();
     const double max_move_distance2 = max_move_distance * max_move_distance;
     const coordf_t branch_radius = config.tree_support_branch_diameter.value / 2;
     const size_t tip_layers = branch_radius / layer_height; //The number of layers to be shrinking the circle to create a tip. This produces a 45 degree angle.
@@ -749,14 +769,16 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
     const bool support_rests_on_model = !config.support_material_buildplate_only.value;
 
     std::unordered_set<Node*> to_free_node_set;
-
     for (size_t layer_nr = contact_nodes.size() - 1; layer_nr > 0; layer_nr--) //Skip layer 0, since we can't drop down the vertices there.
     {
         auto& layer_contact_nodes = contact_nodes[layer_nr];
         std::deque<std::pair<size_t, Node*>> unsupported_branch_leaves; // All nodes that are leaves on this layer that would result in unsupported ('mid-air') branches.
-
+        const Layer* ts_layer = m_object.get_tree_support_layer(layer_nr);
         if (layer_contact_nodes.empty())
             continue;
+
+        Polygons layer_contours = std::move(m_ts_data->get_contours(layer_nr));
+        std::unordered_map<Line, bool, LineHash> mst_line_x_layer_contour_cache;
 
         //Group together all nodes for each part.
         const ExPolygons& parts = m_ts_data->get_avoidance(0, layer_nr);
@@ -811,8 +833,8 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
             }
             //Put it in the best one.
             nodes_per_part[closest_part + 1][node.position] = p_node; //Index + 1 because the 0th index is the outside part.
-
         }
+
         //Create a MST for every part.
         std::vector<MinimumSpanningTree> spanning_trees;
         for (const std::unordered_map<Point, Node*, PointHash>& group : nodes_per_part)
@@ -909,7 +931,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                     {
                         if (node.distance_to_top > tip_layers)
                         {
-                            return branch_radius + branch_radius * node.distance_to_top * diameter_angle_scale_factor;
+                            return branch_radius + branch_radius * (node.distance_to_top + 1) * diameter_angle_scale_factor;
                         }
                         else
                         {
@@ -935,8 +957,32 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                     Point sum_direction(0, 0);
                     for (const Point& neighbour : neighbours)
                     {
-                        sum_direction += neighbour - node.position;
+                        Point direction = neighbour - node.position;
+                        Node *neighbour_node = nodes_per_part[group_index][neighbour];
+                        coordf_t branch_bottom_radius = calc_branch_radius(branch_radius, node.distance_to_top + layer_nr, tip_layers, diameter_angle_scale_factor);
+                        coordf_t neighbour_bottom_radius = calc_branch_radius(branch_radius, neighbour_node->distance_to_top + layer_nr, tip_layers, diameter_angle_scale_factor);
+                        const coordf_t min_overlap = branch_radius;
+                        double max_converge_distance = tan_angle * ts_layer->print_z + branch_bottom_radius + neighbour_bottom_radius - min_overlap;
+                        if (vsize2_with_unscale(direction) > max_converge_distance * max_converge_distance)
+                            continue;
+
+                        auto iter = mst_line_x_layer_contour_cache.find({ node.position, neighbour });
+                        if (iter != mst_line_x_layer_contour_cache.end()) {
+                            if (iter->second)
+                                continue;
+                        }
+                        else {
+                            Polylines pls;
+                            pls.emplace_back(neighbour, node.position);
+                            Polylines pls_intersect = intersection_pl(pls, layer_contours);
+                            mst_line_x_layer_contour_cache.insert({ {node.position, neighbour}, !pls_intersect.empty() });
+                            mst_line_x_layer_contour_cache.insert({ {neighbour, node.position}, !pls_intersect.empty() });
+                            if (!pls_intersect.empty())
+                                continue;
+                        }
+                        sum_direction += direction;
                     }
+
                     if(vsize2_with_unscale(sum_direction) <= max_move_distance2)
                     {
                         next_layer_vertex += sum_direction;
@@ -948,24 +994,20 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                     }
                 }
 
-                const coordf_t branch_radius_node = [&]() -> coordf_t
-                {
-                    if ((node.distance_to_top + 1) > tip_layers)
-                    {
-                        return branch_radius + branch_radius * (node.distance_to_top + 1) * diameter_angle_scale_factor;
-                    }
-                    else
-                    {
-                        return branch_radius * (node.distance_to_top + 1) / tip_layers;
-                    }
-                }();
-
+                const coordf_t branch_radius_node = calc_branch_radius(branch_radius, node.distance_to_top, tip_layers, diameter_angle_scale_factor);
                 if (group_index == 0)
                 {
                     //Avoid collisions.
                     const coordf_t max_move_between_samples = max_move_distance + radius_sample_resolution + EPSILON; //100 micron extra for rounding errors.
-                    double scaled_max_move_between_samples2 = max_move_between_samples * max_move_between_samples;
-                    move_outside_ex(m_ts_data->get_avoidance(branch_radius_node, layer_nr - 1), next_layer_vertex, radius_sample_resolution + EPSILON, scaled_max_move_between_samples2); //Some extra offset to prevent rounding errors with the sample resolution.
+                    double max_move_between_samples2 = max_move_between_samples * max_move_between_samples;
+                    bool is_outside = move_outside_ex(m_ts_data->get_avoidance(branch_radius_node, layer_nr - 1), next_layer_vertex, radius_sample_resolution + EPSILON, max_move_between_samples2); //Some extra offset to prevent rounding errors with the sample resolution.
+                    if (!is_outside) {
+                        Point candidate_vertex = node.position;
+                        is_outside = move_outside_ex(m_ts_data->get_avoidance(branch_radius_node, layer_nr - 1), candidate_vertex, radius_sample_resolution + EPSILON, max_move_between_samples2);
+                        if (is_outside) {
+                            next_layer_vertex = candidate_vertex;
+                        }
+                    }
                 }
 
                 const bool to_buildplate = !is_inside_ex(m_ts_data->get_avoidance(branch_radius_node, layer_nr - 1), next_layer_vertex);
@@ -1144,6 +1186,16 @@ const ExPolygons& TreeSupportData::get_avoidance(coordf_t radius, size_t layer_i
     {
         return calculate_avoidance(key);
     }
+}
+
+Polygons TreeSupportData::get_contours(size_t layer_id) const
+{
+    Polygons contours;
+    for (const ExPolygon expoly : m_layer_outlines[layer_id]) {
+        contours.push_back(expoly.contour);
+    }
+
+    return contours;
 }
 
 coordf_t TreeSupportData::ceil_radius(coordf_t radius) const
