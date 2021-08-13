@@ -273,7 +273,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     bool have_raft = config->opt_int("raft_layers") > 0;
     bool have_support_material = config->opt_bool("support_material") || have_raft;
     // BBS
-    AutoSupportType auto_support_type = config->opt_enum<AutoSupportType>("auto_support_type");
+    SupportType support_type = config->opt_enum<SupportType>("support_type");
     bool have_support_interface = config->opt_int("support_material_interface_layers") > 0;
     bool have_support_soluble = have_support_material && config->opt_float("support_material_contact_distance") == 0;
     auto support_material_style = config->opt_enum<SupportMaterialStyle>("support_material_style");
@@ -283,13 +283,13 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
                     "dont_support_bridges", "support_material_extrusion_width", "support_material_contact_distance",
                     "support_material_xy_spacing" })
         toggle_field(el, have_support_material);
-    toggle_field("support_material_threshold", have_support_material && auto_support_type != astNone);
+    toggle_field("support_material_threshold", have_support_material && (support_type == stNormalAuto || support_type == stTreeAuto));
     toggle_field("support_material_bottom_contact_distance", have_support_material && ! have_support_soluble);
     toggle_field("support_material_closing_radius", have_support_material && support_material_style == smsSnug);
 
     for (auto el : { "tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter",
                     "tree_support_branch_diameter_angle", "tree_support_collision_resolution", "tree_support_wall_count" })
-        toggle_field(el, config->opt_bool("support_material") && auto_support_type == astTree);
+        toggle_field(el, config->opt_bool("support_material") && (support_type == stTreeAuto || support_type == stTree));
 
     for (auto el : { "support_material_bottom_interface_layers", "support_material_interface_spacing", "support_material_interface_extruder",
                     "support_material_interface_speed", "support_material_interface_contact_loops" })

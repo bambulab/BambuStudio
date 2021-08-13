@@ -148,12 +148,13 @@ static t_config_enum_values s_keys_map_SupportMaterialInterfacePattern {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialInterfacePattern)
 
-static t_config_enum_values s_keys_map_AutoSupportType{
-    { "normal",         astNormal },
-    { "tree",           astTree },
-    {"none",            astNone}
+static t_config_enum_values s_keys_map_SupportType{
+    { "normal(auto)",   stNormalAuto },
+    { "tree(auto)", stTreeAuto },
+    { "normal", stNormal },
+    { "tree", stTree }
 };
-CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(AutoSupportType)
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportType)
 
 static t_config_enum_values s_keys_map_SeamPosition {
     { "random",         spRandom },
@@ -2506,19 +2507,22 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Enable support material generation.");
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("auto_support_type", coEnum);
-    def->label = L("Auto support type");
+    def = this->add("support_type", coEnum);
+    def->label = L("Support type");
     def->category = L("Support material");
-    def->tooltip = L("This is the structure of auto generated support. If \"none\" is selected, no support other than Support Enforcer will be generated.");
-    def->enum_keys_map = &ConfigOptionEnum<AutoSupportType>::get_enum_values();
+    def->tooltip = L("normal(auto) and tree(auto) will generate support material automatically. "
+                     "If normal or tree is selected, only support enforcers are generated.");
+    def->enum_keys_map = &ConfigOptionEnum<SupportType>::get_enum_values();
+    def->enum_values.push_back("normal(auto)");
+    def->enum_values.push_back("tree(auto)");
     def->enum_values.push_back("normal");
     def->enum_values.push_back("tree");
-    def->enum_values.push_back("none");
+    def->enum_labels.push_back(L("normal(auto)"));
+    def->enum_labels.push_back(L("tree(auto)"));
     def->enum_labels.push_back(L("normal"));
     def->enum_labels.push_back(L("tree"));
-    def->enum_labels.push_back(L("none"));
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionEnum<AutoSupportType>(astNormal));
+    def->set_default_value(new ConfigOptionEnum<SupportType>(stNormalAuto));
 
     def = this->add("support_material_xy_spacing", coFloatOrPercent);
     def->label = L("XY separation between an object and its support");

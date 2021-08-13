@@ -1145,7 +1145,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     }
 
     if (is_fff ?
-            (opt_key == "support_material" || opt_key == "auto_support_type" || opt_key == "support_material_buildplate_only") :
+            (opt_key == "support_material" || opt_key == "support_type" || opt_key == "support_material_buildplate_only") :
             (opt_key == "supports_enable"  || opt_key == "support_buildplate_only"))
         og_freq_chng_params->set_value("support", support_combo_value_for_config(*m_config, is_fff));
 
@@ -1560,7 +1560,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Support material"));
         optgroup->append_single_option_line("support_material", category_path + "generate-support-material");
         // BBS
-        optgroup->append_single_option_line("auto_support_type");
+        optgroup->append_single_option_line("support_type");
         optgroup->append_single_option_line("support_material_threshold", category_path + "overhang-threshold");
         optgroup->append_single_option_line("support_material_enforce_layers", category_path + "enforce-support-for-the-first");
         optgroup->append_single_option_line("raft_first_layer_density", category_path + "raft-first-layer-density");

@@ -439,27 +439,30 @@ TreeSupport::TreeSupport(PrintObject& object)
 
 void TreeSupport::detect_object_overhangs()
 {
-    const PrintObjectConfig& object_config = m_object.config();
-    const coordf_t radius_sample_resolution = object_config.tree_support_collision_resolution.value;
-    double threshold_rad = 0.;
-    if (object_config.support_material_threshold.value < EPSILON) {
-        threshold_rad = 45. * M_PI / 180.;
-    }
-    else {
-        threshold_rad = object_config.support_material_threshold.value * M_PI / 180.;
-    }
+    const PrintObjectConfig& config = m_object.config();
+    const coordf_t radius_sample_resolution = config.tree_support_collision_resolution.value;
 
-    for (Layer *layer : m_object.layers()) {
-        if (layer->lower_layer == nullptr)
-            continue;
+    if (config.support_type.value == stTreeAuto) {
+        double threshold_rad = 0.;
+        if (config.support_material_threshold.value < EPSILON) {
+            threshold_rad = 45. * M_PI / 180.;
+        }
+        else {
+            threshold_rad = config.support_material_threshold.value * M_PI / 180.;
+        }
 
-        Layer *lower_layer = layer->lower_layer;
-        coordf_t lower_layer_offset = (float)lower_layer->height / tan(threshold_rad);
-        ExPolygons overhang_areas = std::move(diff_ex(layer->lslices, offset_ex(lower_layer->lslices, scale_(lower_layer_offset))));
+        for (Layer *layer : m_object.layers()) {
+            if (layer->lower_layer == nullptr)
+                continue;
 
-        TreeSupportLayer* ts_layer = m_object.get_tree_support_layer(layer->id());
-        for (ExPolygon& poly : overhang_areas) {
-            poly.simplify(scale_(radius_sample_resolution), &ts_layer->overhang_areas);
+            Layer *lower_layer = layer->lower_layer;
+            coordf_t lower_layer_offset = (float)lower_layer->height / tan(threshold_rad);
+            ExPolygons overhang_areas = std::move(diff_ex(layer->lslices, offset_ex(lower_layer->lslices, scale_(lower_layer_offset))));
+
+            TreeSupportLayer* ts_layer = m_object.get_tree_support_layer(layer->id());
+            for (ExPolygon& poly : overhang_areas) {
+                poly.simplify(scale_(radius_sample_resolution), &ts_layer->overhang_areas);
+            }
         }
     }
 
@@ -583,7 +586,8 @@ void TreeSupport::generate_fills()
 void TreeSupport::generate_support_areas()
 {
     const PrintObjectConfig &config = m_object.config();
-    bool tree_support_enable = config.support_material.value && config.auto_support_type.value == astTree;
+    bool tree_support_enable = config.support_material.value &&
+        (config.support_type.value == stTreeAuto || config.support_type.value == stTree);
     if (!tree_support_enable)
         return;
 

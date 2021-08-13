@@ -98,8 +98,8 @@ enum SupportMaterialInterfacePattern {
 };
 
 // BBS
-enum AutoSupportType {
-    astNormal, astTree, astNone
+enum SupportType {
+    stNormalAuto, stTreeAuto, stNormal, stTree
 };
 
 enum SeamPosition {
@@ -153,7 +153,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialPattern)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialStyle)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialInterfacePattern)
 // BBS
-CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(AutoSupportType)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SeamPosition)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SLADisplayOrientation)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SLAPillarConnectionMode)
@@ -491,7 +491,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                support_material))
     // Automatic supports (generated based on support_material_threshold).
     // BBS
-    ((ConfigOptionEnum<AutoSupportType>, auto_support_type))
+    ((ConfigOptionEnum<SupportType>,   support_type))
     // Direction of the support pattern (in XY plane).`
     ((ConfigOptionFloat,               support_material_angle))
     ((ConfigOptionBool,                support_material_buildplate_only))

@@ -1462,7 +1462,8 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
     // Enforcers projected to overhangs, trimmed
     Polygons enforcer_polygons;
 
-    const bool   support_structure_normal = object_config.auto_support_type.value == astNormal;
+    // BBS.
+    const bool   auto_normal_support = object_config.support_type.value == stNormalAuto;
     const bool   buildplate_only = ! annotations.buildplate_covered.empty();
     // If user specified a custom angle threshold, convert it to radians.
     // Zero means automatic overhang detection.
@@ -1489,9 +1490,7 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
     {
         // Generate overhang / contact_polygons for non-raft layers.
         const Layer &lower_layer  = *layer.lower_layer;
-        // BBS. Tree support will handle enforcers/blockers, so skip handle them here.
-        const bool   has_enforcer = !annotations.enforcers_layers.empty() && !annotations.enforcers_layers[layer_id].empty()
-            && object_config.auto_support_type.value != astTree;
+        const bool   has_enforcer = !annotations.enforcers_layers.empty() && !annotations.enforcers_layers[layer_id].empty()£»
 
         // Cache support trimming polygons derived from lower layer polygons, possible merged with "on build plate only" trimming polygons.
         auto slices_margin_update = 
@@ -1541,7 +1540,7 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
                     // This step is done before the contact surface is calculated by growing the overhang region.
                     diff_polygons = diff(diff_polygons, annotations.buildplate_covered[layer_id]);
                 }
-            } else if (support_structure_normal) {
+            } else if (auto_normal_support) {
                 // Get the regions needing a suport, collapse very tiny spots.
                 //FIXME cache the lower layer offset if this layer has multiple regions.
 #if 0
@@ -1580,17 +1579,14 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
             if (diff_polygons.empty())
                 continue;
 
-            // BBS. Tree support will handle enforcers/blockers, so skip handle them here.
-            if (object_config.auto_support_type.value != astTree) {
-                // Apply the "support blockers".
-                if (!annotations.blockers_layers.empty() && !annotations.blockers_layers[layer_id].empty()) {
-                    // Expand the blocker a bit. Custom blockers produce strips
-                    // spanning just the projection between the two slices.
-                    // Subtracting them as they are may leave unwanted narrow
-                    // residues of diff_polygons that would then be supported.
-                    diff_polygons = diff(diff_polygons,
-                        expand(union_(annotations.blockers_layers[layer_id]), float(1000. * SCALED_EPSILON)));
-                }
+            // Apply the "support blockers".
+            if (!annotations.blockers_layers.empty() && !annotations.blockers_layers[layer_id].empty()) {
+                // Expand the blocker a bit. Custom blockers produce strips
+                // spanning just the projection between the two slices.
+                // Subtracting them as they are may leave unwanted narrow
+                // residues of diff_polygons that would then be supported.
+                diff_polygons = diff(diff_polygons,
+                    expand(union_(annotations.blockers_layers[layer_id]), float(1000. * SCALED_EPSILON)));
             }
 
             #ifdef SLIC3R_DEBUG
@@ -1982,6 +1978,11 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
     ++ iRun; 
     #define SLIC3R_IRUN , iRun
 #endif /* SLIC3R_DEBUG */
+
+    // BBS
+    if (m_object_config->support_type.value != stNormalAuto && m_object_config->support_type.value != stNormal) {
+        return MyLayersPtr();
+    }
 
     // Slice support enforcers / support blockers.
     SupportAnnotations annotations(object, buildplate_covered);
