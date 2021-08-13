@@ -529,6 +529,25 @@ static inline void fill_expolygons_generate_paths(
         fill_expolygon_generate_paths(dst, std::move(expoly), filler, fill_params, density, role, flow);
 }
 
+static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print &print, const ExPolygon &support_area, bool no_brim)
+{
+    Flow       flow = print.brim_flow();
+    Polygons   loops;
+    ExPolygons support_area_new = offset_ex(support_area, -0.5f * float(flow.scaled_spacing()), jtSquare);
+    for (size_t i = 0; !support_area_new.empty(); ++i) {
+        polygons_append(loops, to_polygons(support_area_new));
+        support_area_new = offset_ex(support_area_new, -float(flow.scaled_spacing()), jtSquare);
+
+        if (no_brim)
+            break;
+    }
+
+    loops = union_pt_chained_outside_in(loops, false);
+    std::reverse(loops.begin(), loops.end());
+    extrusion_entities_append_loops(dst, std::move(loops), erSupportMaterial, float(flow.mm3_per_mm()),
+                                    float(flow.width), float(print.skirt_first_layer_height()));
+}
+
 void TreeSupport::generate_fills()
 {
     const PrintConfig &print_config = m_object.print()->config();
@@ -559,15 +578,6 @@ void TreeSupport::generate_fills()
         area_groups.emplace_back(&layer->base_areas, false);
         for (std::pair<ExPolygons*, bool>& area_group : area_groups) {
             for (ExPolygon& poly : *area_group.first) {
-                Polylines polylines;
-                polylines.reserve(poly.holes.size() + 1);
-                for (size_t i = 0; i <= poly.holes.size(); ++i) {
-                    Polyline pl(i == 0 ? poly.contour.points : poly.holes[i - 1].points);
-                    pl.points.emplace_back(pl.points.front());
-                    //pl.clip_end(clip_length);
-                    polylines.emplace_back(std::move(pl));
-                }
-
                 if (area_group.second) {
                     FillParams fill_params;
                     fill_params.density = interface_density;
@@ -575,8 +585,7 @@ void TreeSupport::generate_fills()
                     fill_expolygons_generate_paths(layer->support_fills.entities, offset_ex(poly, float(-0.4 * interface_spacing)),
                         filler_interface, fill_params, interface_density, erSupportMaterialInterface, support_flow);
                 } else {
-                    extrusion_entities_append_paths(layer->support_fills.entities, polylines, erSupportMaterial,
-                        support_flow.mm3_per_mm(), support_flow.width, support_flow.height);
+                    make_perimeter_and_inner_brim(layer->support_fills.entities, *m_object.print(), poly, layer->id() > 0);
                 }
             }
         }

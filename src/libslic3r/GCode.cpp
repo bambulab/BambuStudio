@@ -2445,7 +2445,12 @@ GCode::LayerResult GCode::process_layer(
                 m_last_obj_copy = this_object_copy;
                 this->set_origin(unscale(offset));
                 if (instance_to_print.object_by_extruder.support != nullptr && !print_wipe_extrusions) {
-                    m_layer = layer_to_print.support_layer;
+                    if (layers[instance_to_print.layer_id].support_layer) {
+                        m_layer = layers[instance_to_print.layer_id].support_layer;
+                    }
+                    else {
+                        m_layer = layers[instance_to_print.layer_id].tree_support_layer;
+                    }
                     m_object_layer_over_raft = false;
                     gcode += this->extrude_support(
                         // support_extrusion_role is erSupportMaterial, erSupportMaterialInterface or erMixed for all extrusion paths.
