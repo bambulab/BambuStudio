@@ -847,10 +847,15 @@ void DebugToolDialog::refresh_device_list()
     Slic3r::DeviceManager* manager = Slic3r::GUI::wxGetApp().getDeviceManager();
     wxArrayString new_items;
     std::vector<DeviceInfo*> list = manager->get_connected_device_info();
+    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
     std::vector<DeviceInfo*>::iterator it;
     for (it = list.begin(); it != list.end(); it++) {
         new_items.Add(get_device_list_item(*it));
         cb_device_list->Set(new_items);
+        
+        if (account_manager->is_user_login()) {
+            account_manager->query_bind_status((*it)->get_dev_id());
+        }
     }
 }
 

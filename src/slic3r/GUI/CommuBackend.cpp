@@ -18,6 +18,7 @@
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
 #include "DebugToolDialog.hpp"
+#include "libslic3r/Utils.hpp"
 
 #include <curl/curl.h>
 
@@ -36,7 +37,6 @@ namespace Slic3r {
     {
         memset(&m_options, 0, sizeof(m_options));
         m_options.qos_file_path = DDS_QOS_FILE.c_str();
-
         m_node = create_node(domain, &m_options);
         assert(m_node != NULL);
     }
@@ -193,10 +193,7 @@ namespace Slic3r {
                 device_manager->add_new_device(new_device);
             }
             device_manager->update_alive_time(dev_id.value());
-            Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-            if (account_manager->is_user_login()) {
-                account_manager->query_bind_status(dev_id.value());
-            }
+            BOOST_LOG_TRIVIAL(trace) << "on_alive_msg end";
             return;
         }
         catch (std::exception &e) {
