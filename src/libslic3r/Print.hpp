@@ -120,7 +120,8 @@ public:
     T * const *             begin() const { return m_data->data(); }
     T * const *             end()   const { return m_data->data() + m_data->size(); }
     const T*                front() const { return m_data->front(); }
-    const T*                back()  const { return m_data->front(); }
+    // BBS
+    const T*                back()  const { return m_data->back(); }
     size_t                  size()  const { return m_data->size(); }
     bool                    empty() const { return m_data->empty(); }
     const T*                operator[](size_t i) const { return (*m_data)[i]; }
