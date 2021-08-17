@@ -28,10 +28,11 @@ class AccountManager
 {
 private:
     AccountInfo* m_curr_user;
-    std::string host = "http://iot.qa.bbl";
-    //std::string host = "192.168.0.145";
+    std::string host = "http://iot.dev.bbl";
+    //std::string host = "http://iot.qa.bbl";
+    //std::string host = "192.168.0.146";
 
-    std::string _get_query_url();
+    std::string _get_query_url(std::string device_id);
     std::string _get_bind_url();
     std::string _get_unbind_url();
     std::string _get_login_url();
@@ -59,6 +60,7 @@ public:
     int request_unbind(std::string device_id);
     int request_bind_list(std::string user_id);
     void set_host(std::string host_url);
+    std::string get_user_id() { return m_curr_user->user_id(); }
 };
 
 } // namespace Slic3r

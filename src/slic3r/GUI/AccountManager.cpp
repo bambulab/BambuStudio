@@ -124,11 +124,10 @@ namespace Slic3r {
 
     int AccountManager::query_bind_status(std::string device_id)
     {
-        Http http = Http::post(_get_query_url());
+        Http http = Http::get(_get_query_url(device_id));
         std::string json_str = _get_query_bind_request(device_id);
         try {
-            http.set_post_body(json_str)
-                .set_header(m_curr_user->get_token())
+             http.set_header(m_curr_user->get_token())
                 .on_complete([&, device_id](std::string body, unsigned) {
                 std::stringstream ss(body);
                 pt::ptree root;
@@ -150,7 +149,7 @@ namespace Slic3r {
 
     int AccountManager::request_bind(std::string device_id)
     {
-        Http http = Http::post(std::move(_get_bind_url()));
+        Http http = Http::put2(std::move(_get_bind_url()));
         std::string json_str = _get_query_bind_request(device_id);
         http.set_post_body(json_str)
             .set_header(m_curr_user->get_token())
@@ -187,7 +186,7 @@ namespace Slic3r {
 
     int AccountManager::request_unbind(std::string device_id)
     {
-        Http http = Http::post(_get_unbind_url());
+        Http http = Http::del(_get_unbind_url());
         std::string json_str = _get_unbind_request(device_id);
         http.set_post_body(json_str)
             .set_header(m_curr_user->get_token())
@@ -219,10 +218,8 @@ namespace Slic3r {
 
     int AccountManager::request_bind_list(std::string user_id)
     {
-        Http http = Http::post(_get_bind_list_url());
-        std::string json_str = _get_bind_list_request();
-        http.set_post_body(json_str)
-            .set_header(m_curr_user->get_token())
+        Http http = Http::get(_get_bind_list_url());
+        http.set_header(m_curr_user->get_token())
             .on_complete([&, user_id](std::string body, unsigned) {
             try {
                 std::stringstream ss(body);
@@ -279,10 +276,10 @@ namespace Slic3r {
         host = host_url;
     }
 
-    std::string AccountManager::_get_query_url()
+    std::string AccountManager::_get_query_url(std::string device_id)
     {
         if (m_curr_user) {
-            return (boost::format("%1%/api/iot/user/%2%/bind_status") % host % m_curr_user->user_id()).str();
+            return (boost::format("%1%/api/iot/user/%2%/bind?dev_id=%3%") % host % m_curr_user->user_id() % device_id).str();
         }
         else {
             return "";
@@ -302,7 +299,7 @@ namespace Slic3r {
     std::string AccountManager::_get_unbind_url()
     {
         if (m_curr_user) {
-            return (boost::format("%1%/api/iot/user/%2%/unbind") % host % m_curr_user->user_id()).str();
+            return (boost::format("%1%/api/iot/user/%2%/bind") % host % m_curr_user->user_id()).str();
         }
         else {
             return "";

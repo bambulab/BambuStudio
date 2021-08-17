@@ -52,6 +52,9 @@ public:
 	static Http get(std::string url);
 	static Http post(std::string url);
 	static Http put(std::string url);
+	static Http del(std::string url);
+	static Http put2(std::string url);
+
 	~Http();
 
 	Http(const Http &) = delete;

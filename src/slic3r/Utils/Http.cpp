@@ -627,6 +627,20 @@ Http Http::put(std::string url)
 	return http;
 }
 
+Http Http::put2(std::string url)
+{
+	Http http{ std::move(url) };
+	curl_easy_setopt(http.p->curl, CURLOPT_CUSTOMREQUEST, "PUT");
+	return http;
+}
+
+Http Http::del(std::string url)
+{
+	Http http{ std::move(url) };
+	curl_easy_setopt(http.p->curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+	return http;
+}
+
 bool Http::ca_file_supported()
 {
 	::CURL *curl = ::curl_easy_init();
