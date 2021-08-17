@@ -2672,7 +2672,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Same as top"));
     append(def->enum_labels, support_material_interface_layers->enum_labels);
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionInt(-1));
+    def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("support_material_closing_radius", coFloat);
     def->label = L("Closing radius");

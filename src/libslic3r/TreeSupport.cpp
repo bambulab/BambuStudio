@@ -686,7 +686,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     // generate areas
     const coordf_t circle_side_length = 2 * branch_radius * sin(M_PI / CIRCLE_RESOLUTION); //Side length of a regular polygon.
     const coordf_t layer_height = config.layer_height.value;
-    const size_t bottom_interface_layers = config.support_material_interface_layers.value;
+    const size_t bottom_interface_layers = config.support_material_bottom_interface_layers.value;
     const size_t tip_layers = branch_radius / layer_height; //The number of layers to be shrinking the circle to create a tip. This produces a 45 degree angle.
     const double diameter_angle_scale_factor = sin(config.tree_support_branch_diameter_angle.value * M_PI / 180.) * layer_height / branch_radius; //Scale factor per layer to produce the desired angle.
     const coordf_t line_width = config.support_material_extrusion_width.get_abs_value(layer_height);

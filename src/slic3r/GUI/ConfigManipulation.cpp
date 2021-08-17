@@ -274,12 +274,12 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     bool have_support_material = config->opt_bool("support_material") || have_raft;
     // BBS
     SupportType support_type = config->opt_enum<SupportType>("support_type");
-    bool have_support_interface = config->opt_int("support_material_interface_layers") > 0;
+    bool have_support_interface = config->opt_int("support_material_interface_layers") > 0 || config->opt_int("support_material_bottom_interface_layers") > 0;
     bool have_support_soluble = have_support_material && config->opt_float("support_material_contact_distance") == 0;
     auto support_material_style = config->opt_enum<SupportMaterialStyle>("support_material_style");
     for (auto el : { "support_material_style", "support_material_pattern", "support_material_with_sheath",
                     "support_material_spacing", "support_material_angle", 
-                    "support_material_interface_pattern", "support_material_interface_layers",
+                    "support_material_interface_pattern", "support_material_interface_layers", "support_material_bottom_interface_layers",
                     "dont_support_bridges", "support_material_extrusion_width", "support_material_contact_distance",
                     "support_material_xy_spacing" })
         toggle_field(el, have_support_material);
@@ -291,7 +291,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
                     "tree_support_branch_diameter_angle", "tree_support_collision_resolution", "tree_support_wall_count" })
         toggle_field(el, config->opt_bool("support_material") && (support_type == stTreeAuto || support_type == stTree));
 
-    for (auto el : { "support_material_bottom_interface_layers", "support_material_interface_spacing", "support_material_interface_extruder",
+    for (auto el : { "support_material_interface_spacing", "support_material_interface_extruder",
                     "support_material_interface_speed", "support_material_interface_contact_loops" })
         toggle_field(el, have_support_material && have_support_interface);
     toggle_field("support_material_synchronize_layers", have_support_soluble);
