@@ -467,6 +467,7 @@ void TreeSupport::detect_object_overhangs()
 {
     const PrintObjectConfig& config = m_object.config();
     const coordf_t radius_sample_resolution = config.tree_support_collision_resolution.value;
+    const coordf_t extrusion_width = config.extrusion_width.value;
 
     if (config.support_type.value == stTreeAuto) {
         double threshold_rad = 0.;
@@ -483,11 +484,17 @@ void TreeSupport::detect_object_overhangs()
 
             Layer *lower_layer = layer->lower_layer;
             coordf_t lower_layer_offset = (float)lower_layer->height / tan(threshold_rad);
-            ExPolygons overhang_areas = std::move(diff_ex(layer->lslices, offset_ex(lower_layer->lslices, scale_(lower_layer_offset))));
+            ExPolygons overhang_areas = diff_ex(layer->lslices, offset2_ex(lower_layer->lslices, -scale_(extrusion_width / 2), scale_(extrusion_width / 2)));
 
             TreeSupportLayer* ts_layer = m_object.get_tree_support_layer(layer->id());
+            overhang_areas = offset2_ex(overhang_areas, -scale_(extrusion_width / 2), scale_(extrusion_width / 2));
             for (ExPolygon& poly : overhang_areas) {
-                poly.simplify(scale_(radius_sample_resolution), &ts_layer->overhang_areas);
+                ExPolygons simple_polys;
+                poly.simplify(scale_(radius_sample_resolution), &simple_polys);
+                if (simple_polys.empty()) {
+                    simple_polys.push_back(poly);
+                }
+                ts_layer->overhang_areas.insert(ts_layer->overhang_areas.end(), simple_polys.begin(), simple_polys.end());
             }
         }
     }
@@ -509,6 +516,16 @@ void TreeSupport::detect_object_overhangs()
             layer->overhang_areas = diff_ex(layer->overhang_areas, offset_ex(blocker, scale_(radius_sample_resolution)));
         }
     }
+
+#ifdef SUPPORT_TREE_DEBUG_TO_SVG
+    for (const TreeSupportLayer* layer : m_object.tree_support_layers()) {
+        if (layer->overhang_areas.empty())
+            continue;
+
+        SVG svg(get_svg_filename(layer->id(), "overhang_areas"), m_object.bounding_box());
+        svg.draw(layer->overhang_areas, "red");
+    }
+#endif
 }
 
 void TreeSupport::create_tree_support_layers()
@@ -1179,8 +1196,9 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
 
             if (!added) //If we didn't add any points due to bad luck, we want to add one anyway such that loose parts are also supported.
             {
-                Point candidate = bounding_box_middle(bounding_box);
-                move_inside_expoly(overhang_part, candidate);
+                Point candidate = bounding_box_middle(overhang_part.contour.bounding_box());
+                if (!overhang_part.contains(candidate))
+                    move_inside_expoly(overhang_part, candidate);
                 constexpr size_t distance_to_top = 0;
                 constexpr bool to_buildplate = true;
                 Node* contact_node = new Node(candidate, distance_to_top, layer_nr % 2, support_roof_layers, to_buildplate, Node::NO_PARENT);
