@@ -23,6 +23,7 @@
 namespace Slic3r
 {
 #define unscale_(val) ((val) * SCALING_FACTOR)
+#define FIRST_LAYER_EXPANSION 1.2
 
 inline unsigned int round_divide(unsigned int dividend, unsigned int divisor) //!< Return dividend divided by divisor rounded to the nearest integer
 {
@@ -729,6 +730,11 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                         }
                         circle.append(node.position + corner);
                     }
+
+                    if (layer_nr == 0) {
+                        circle = offset(circle, scale_(FIRST_LAYER_EXPANSION))[0];
+                    }
+
                     if (node.support_roof_layers_below > 0)
                     {
                         roof_areas.emplace_back(circle);
@@ -744,7 +750,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 }
                 ts_layer->lslices = std::move(union_ex(ts_layer->lslices));
 
-                const size_t z_collision_layer = static_cast<size_t>(std::max(0, static_cast<int>(layer_nr) - static_cast<int>(bottom_interface_layers) + 1));
+                const size_t z_collision_layer = static_cast<size_t>(std::max(0, static_cast<int>(layer_nr) - static_cast<int>(bottom_interface_layers)));
                 base_areas = std::move(diff_ex(base_areas, m_ts_data->get_collision(0, z_collision_layer)));
                 roof_areas = std::move(diff_ex(roof_areas, m_ts_data->get_collision(0, z_collision_layer)));
                 roof_areas = std::move(offset2_ex(roof_areas, branch_radius_scaled, -branch_radius_scaled));
