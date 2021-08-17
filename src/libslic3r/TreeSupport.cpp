@@ -568,7 +568,7 @@ static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print
             break;
     }
 
-    loops = union_pt_chained_outside_in(loops, false);
+    //loops = union_pt_chained_outside_in(loops, false);
     std::reverse(loops.begin(), loops.end());
     extrusion_entities_append_loops(dst, std::move(loops), erSupportMaterial, float(flow.mm3_per_mm()),
                                     float(flow.width), float(print.skirt_first_layer_height()));
