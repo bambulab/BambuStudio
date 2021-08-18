@@ -2452,9 +2452,18 @@ GCode::LayerResult GCode::process_layer(
                         m_layer = layers[instance_to_print.layer_id].tree_support_layer;
                     }
                     m_object_layer_over_raft = false;
+                    // BBS. Keep paths order
+#if 0
                     gcode += this->extrude_support(
                         // support_extrusion_role is erSupportMaterial, erSupportMaterialInterface or erMixed for all extrusion paths.
                         instance_to_print.object_by_extruder.support->chained_path_from(m_last_pos, instance_to_print.object_by_extruder.support_extrusion_role));
+#else
+                    ExtrusionEntityCollection support_eec;
+                    support_eec.entities = filter_by_extrusion_role(instance_to_print.object_by_extruder.support->entities, instance_to_print.object_by_extruder.support_extrusion_role);
+                    for (auto& ptr : support_eec.entities)
+                        ptr = ptr->clone();
+                    gcode += this->extrude_support(support_eec);
+#endif
                     m_layer = layer_to_print.layer();
                     m_object_layer_over_raft = object_layer_over_raft;
                 }
