@@ -283,6 +283,8 @@ message(STATUS "LIBDIR_BIN: ${LIBDIR_BIN}")
 include_directories(${LIBDIR})
 # For generated header files
 include_directories(${LIBDIR_BIN}/platform)
+# For ligigl
+include_directories(${LIBDIR}/libigl)
 
 if(WIN32)
     add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)

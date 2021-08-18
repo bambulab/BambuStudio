@@ -2815,7 +2815,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(1.));
+    def->set_default_value(new ConfigOptionFloat(2.));
 
     def = this->add("tree_support_branch_diameter", coFloat);
     def->label = L("Tree support branch diameter");
