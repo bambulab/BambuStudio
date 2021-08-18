@@ -218,6 +218,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/HintNotification.hpp
     GUI/CommuBackend.cpp
     GUI/CommuBackend.hpp
+    GUI/Ssdp.cpp
+    GUI/Ssdp.hpp
     GUI/DebugToolDialog.cpp
     GUI/DebugToolDialog.hpp
     GUI/AccountManager.hpp

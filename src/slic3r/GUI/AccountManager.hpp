@@ -17,26 +17,17 @@ public:
         STATUS_LOGOUT,
     };
 
-    AccountInfo(std::string account, std::string user_id);
+    AccountInfo(std::string account, std::string user_id, AccountInfo::LoginStatus status = STATUS_LOGOUT);
 
     std::string user_id() { return m_user_id; }
     void set_token(std::string token) { m_token = token; }
+    void set_login_status(LoginStatus status) { m_login_status = status; }
     std::string get_token() { return m_token; }
+    std::string get_account() { return m_account; }
+    std::string get_user_id() { return m_user_id; }
     LoginStatus login_status() { return m_login_status; }
-
-    template<typename Archive>
-    void serialize(Archive& ar, const unsigned int version)
-    {
-        //ar(m_account, m_user_id, m_token, m_login_status);
-        ar &m_account;
-        ar &m_user_id;
-        ar &m_token;
-        ar &m_login_status;
-        /*ar(m_account);
-        ar(m_user_id);
-        ar(m_token);
-        ar(m_login_status);*/
-    }
+    int save_to_json(std::string filename);
+    static AccountInfo* load_from_json(std::string filename);
 
 private:
     friend class boost::serialization::access;
@@ -54,8 +45,10 @@ private:
     AccountInfo* m_curr_user;
     boost::filesystem::path m_user_info_path;
     std::string host = "http://iot.dev.bbl";
+    const std::string account_json = "UserInfo.json";
+
     //std::string host = "http://iot.qa.bbl";
-    //std::string host = "192.168.0.146";
+    
 
     std::string _get_query_url(std::string device_id);
     std::string _get_bind_url();
@@ -80,6 +73,8 @@ private:
 public:
     
     typedef std::function<void(int retcode, std::string info)> LoginFn;
+    typedef std::function<void()> CompletedFn;
+    typedef std::function<void(int retcode, std::string error, std::string body)> ErrorFn;
 
     AccountManager();
     ~AccountManager() {}
@@ -94,9 +89,9 @@ public:
     int user_register(std::string account, std::string passoword);
     int user_get_info();
     int query_bind_status(std::string device_id);
-    int query_bind_status(std::vector<std::string> device_list);
-    int request_bind(std::string device_id);
-    int request_unbind(std::string device_id);
+    int query_bind_status(std::vector<std::string> device_list, CompletedFn fn, ErrorFn errFn);
+    int request_bind(std::string device_id, CompletedFn fn);
+    int request_unbind(std::string device_id, CompletedFn fn);
     int request_bind_list(std::string user_id);
     void set_host(std::string host_url);
     void set_user_info_path(boost::filesystem::path path) { m_user_info_path = path; }

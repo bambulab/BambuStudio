@@ -46,9 +46,6 @@ namespace Slic3r {
     struct PrintHostJob;
 
     namespace GUI {
-
-        wxDECLARE_EVENT(EVT_DEVICE_REPORT_MSG, SimpleEvent);
-
         class DebugToolDialog : public GUI::DPIDialog
         {
         public:
@@ -57,20 +54,23 @@ namespace Slic3r {
             virtual bool Show(bool show = true) override;
 
             int publish_json(std::string json_str);
-            int publish_json_to_device(std::string dev_id, std::string json_str);
             int handle_report_print_msg(std::string topic, std::string json_str);
             int handle_device_report_msg(std::string json_str);
             int handle_alive_msg(std::string dev_id);
-            int append_output_string_info(std::string str);
+            int log_info(std::string str);
             int handle_offline_event(std::string dev_id);
 
             void refresh_device_list();
             void refresh_firmware_list(bool show_error=false);
             void add_firmware(std::string firmware);
-            void on_device_report_msg(SimpleEvent& evt);
+            void on_update_list(SimpleEvent& evt);
+            void on_refresh_list(SimpleEvent& evt);
             void on_select_device(wxCommandEvent& evt);
-            void on_dropdown_devicelist(wxCommandEvent& evt);
-            void on_select_host(wxCommandEvent& evt);
+            //void on_dropdown_devicelist(wxCommandEvent& evt);
+            void on_error_msg(wxCommandEvent& evt);
+            void on_mqtt_success(wxCommandEvent& evt);
+            void on_mqtt_failed(wxCommandEvent& evt);
+            void on_mqtt_lost(wxCommandEvent& evt);
         protected:
             void on_dpi_changed(const wxRect& suggested_rect) override;
 
@@ -93,8 +93,6 @@ namespace Slic3r {
 
             std::string UPGRADE_URL = "http://upgrade.bambooolab.com/";
             std::string CURL_FILE = resources_dir() + "/bbl/curl";
-            std::string iot_host_item[2] = { "http://iot.qa.bbl", "http://192.168.0.10:9000" };
-            std::string mqtt_host_item[2] = { "47.100.225.51:1883", "192.168.0.10:1883" };
 
             wxButton* btn_select_device;
             wxButton* btn_refresh_upgrade_list;
@@ -108,6 +106,7 @@ namespace Slic3r {
             wxButton* btn_save_file;
             wxButton* btn_bind;
             wxButton* btn_unbind;
+            wxButton* btn_connect;
 
             wxButton* btn_set_x_pos_0_1;
             wxButton* btn_set_x_pos_1_0;
@@ -203,6 +202,17 @@ namespace Slic3r {
             wxComboBox* cb_upgrade_mode;
             wxComboBox* cb_select_host;
 
+            wxCheckBox* chk_enable_direct;
+            wxStaticText* label_device_ip;
+            wxTextCtrl* txt_device_ip;
+            wxStaticText* label_domain_id;
+            wxTextCtrl* txt_domain_id;
+            wxStaticText* label_client_id;
+            wxTextCtrl* txt_client_id;
+            wxRadioBox* rb_conn;
+            wxButton* btn_mqtt_connect;
+            wxSizer* domain_sizer;
+
             std::vector<wxString> upgrade_file_list;
             wxFileDialog* selectGcodeDialog;
             FILE* logFile;
@@ -226,7 +236,6 @@ namespace Slic3r {
 
             int m_sequence_id = 2000;
             int publishGcode(std::string gcode);
-            int callSystem(std::string cmd, std::string& output);
             int set_current_device_id();
             int get_current_device_id(std::string &dev_id);
             std::string get_device_list_item(DeviceInfo* info);

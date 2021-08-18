@@ -4,67 +4,27 @@
 #include <string>
 #include <vector>
 #include <ctime>
+#include <memory>
 #include <wx/string.h>
 #include <wx/event.h>
 #include <boost/optional.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/log/trivial.hpp>
-#include "fdal/fdal_wrapper.hpp"
-#include "fdal/types.h"
-#include "topic_device.h"
-#include "topic_devicePubSubTypes.h"
 #include "slic3r/GUI/Event.hpp"
 #include "libslic3r/Utils.hpp"
 #include "mqtt/async_client.h"
-
-//#define USE_MQTT_CONTROL
-
-namespace pt = boost::property_tree;
+#include "slic3r/GUI/Ssdp.hpp"
 
 namespace Slic3r {
 
-class JsonMsg
-{
-public:
-    JsonMsg() {}
-    JsonMsg(std::string json) { json_str = json; }
-    ~JsonMsg() {}
 
-    std::string json() {return json_str;}
-    void set_sequence_id(int seq_id);
-private:
-    pt::ptree m_root;
-    int m_sequence_id;
-    std::string json_str;
-};
-
-class DdsClient
-{
-public:
-    typedef std::function<void(JsonMsg)> JsonMsgHandlerFn;
-    const std::string DDS_QOS_FILE = resources_dir() + "/bbl/default_qos.xml";
-    DdsClient(int domain);
-
-    int add_pub_topic(std::string topic, data_callback callback);
-    int add_sub_topic(std::string topic, data_callback callback);
-
-    int start();
-    int stop();
-
-    int publish_msg(std::string topic, JsonMsg msg);
-    int wait_for_client(std::string topic);
-
-private:
-    fdal_init_options_t m_options;
-    NodeHandle* m_node;
-    std::map<std::string, data_event_callback_t> m_cb_map;
-    std::map<std::string, SubscriberHandle*> m_sub_map;
-    std::map<std::string, PublisherHandle*> m_pub_map;
-    static inline int m_sequence_id = 20001;
-};
+typedef std::function<void(std::string name)> SuccessFn;
+typedef std::function<void(std::string name)> FailedFn;
+typedef std::function<void(std::string name)> LostFn;
 
 class action_listener : public virtual mqtt::iaction_listener
 {
+private:
     std::string name_;
 
     void on_failure(const mqtt::token& tok) override {
@@ -77,11 +37,13 @@ public:
     action_listener(const std::string& name) : name_(name) {}
 };
 
-class conn_callback : public virtual mqtt::callback, public virtual mqtt::iaction_listener
+class cloud_conn_callback : public virtual mqtt::callback, public virtual mqtt::iaction_listener
 {
+private:
     int nretry_;
     mqtt::async_client& cli_;
     mqtt::connect_options& connOpts_;
+    std::vector<std::string> sub_topics;
 
     void reconnect();
 
@@ -95,15 +57,64 @@ class conn_callback : public virtual mqtt::callback, public virtual mqtt::iactio
 
     void message_arrived(mqtt::const_message_ptr msg) override;
 public:
-    conn_callback(mqtt::async_client& cli, mqtt::connect_options& connOpts)
+    cloud_conn_callback(mqtt::async_client& cli, mqtt::connect_options& connOpts)
         : nretry_(0), cli_(cli), connOpts_(connOpts) {}
+
+    void add_topics(std::string topic) { sub_topics.push_back(topic); }
 };
 
+class client_conn_callback : public virtual mqtt::callback, public virtual mqtt::iaction_listener
+{
+public:
+    
+private:
+    int nretry_;
+    mqtt::async_client& cli_;
+    mqtt::connect_options& connOpts_;
+    std::vector<std::string> sub_topics;
+    SuccessFn  succussFn;
+    FailedFn failedFn;
+    LostFn lostFn;
+
+    void reconnect();
+
+    void connected(const std::string& cause) override;
+
+    void on_failure(const mqtt::token& tok) override;
+
+    void on_success(const mqtt::token& tok) override;
+
+    void connection_lost(const std::string& cause) override;
+
+    void message_arrived(mqtt::const_message_ptr msg) override;
+
+    void delivery_complete(mqtt::delivery_token_ptr tok) override;
+    
+public:
+    client_conn_callback(mqtt::async_client& cli, mqtt::connect_options& connOpts)
+        : nretry_(0), cli_(cli), connOpts_(connOpts) {}
+
+    void add_topics(std::string topic) { sub_topics.push_back(topic); }
+    void set_connect_fns(SuccessFn cFn, FailedFn fFn, LostFn lfn);
+};
+
+class SsdpDiscovery
+{
+private:
+    bool sdp_quit = false;
+public:
+    SsdpDiscovery();
+    void start_discover();
+    void stop_discover();
+    void on_sdp_alive(std::string dev_id, std::string dev_ip);
+    void recv_sdp_msg(int card_no);
+};
 
 class CommuBackend
 {
 public:
-    enum ConnectionType { DDS_CONNECTION = 0, MQTT_CONNECTION = 1 };
+    typedef std::function<void(std::string loginfo)> LogFn;
+    typedef std::function<void(std::string topic, std::string payload)> MsgFn;
 
     CommuBackend();
     ~CommuBackend();
@@ -111,42 +122,56 @@ public:
     int start();
     int stop();
 
-    void set_mqtt_server(std::string host) { MQTT_SERVER_ADDRESS = host; }
-    int connect_mqtt_server(std::string user_id);
-    int disconnect_mqtt_server();
-    int connect_dds_device(std::string device_id);
-    int send_async(std::string device_id, JsonMsg msg, DdsClient::JsonMsgHandlerFn fn);
-    int publish_json_to_device(std::string device_id, std::string json_str);
-    void on_report_msg(std::string &topic, std::string &payload);
-    void print_info(std::string info);
-    mqtt::async_client* get_mqtt() { return m_mqtt_client; }
-    int subscribe_device_topic(std::string device_id);
-    int subscribe_connect_topic(std::string device_id);
-    int subscribe_disconnect_topic(std::string device_id);
-   
+    /* cloud mqtt apis */
+    int connect_to_cloud(std::string user_id);
+    int disconnect_to_cloud();
+    void handle_cloud_msg(std::string topic, std::string payload);
+    int publish_json_to_cloud(std::string device_id, std::string json_str);
 
-    static std::string get_request_topic(std::string dev_id);
-    static std::string get_report_topic(std::string dev_id);
+    /* client mqtt apis*/
+    int connect_to_client(std::string host, std::string user_id, std::string device_id, SuccessFn cFn, FailedFn fFn, LostFn lFn);
+    int disconnect_to_client();
+    void handle_client_msg(std::string topic, std::string payload);
+    int publish_json_to_client(std::string device_id, std::string json_str);
+
+    void set_log_fn(LogFn fn) { m_log_fn = std::move(fn); }
+    void set_msg_send_fn(MsgFn fn) { m_msg_send_fn = std::move(fn); }
+    void set_msg_recv_fn(MsgFn fn) { m_msg_recv_fn = std::move(fn); }
+
+    std::string get_request_topic(std::string device_id);
+    //std::string get_report_topic(std::string device_id);
+    std::string get_connect_topic(std::string device_id);
+
+    static std::string get_report_topic(std::string device_id);
 protected:
 
 private:
-    enum { BROADCAST_DOMAIN = 1};
-
-    const std::string QOS_FILE = resources_dir() + "/bbl/default_qos.xml";
-    const std::string TOPIC_BROADCAST_ALIVE = "device/alive";
-
     std::string MQTT_SERVER_ADDRESS = "emqx.bambooolab.com:1883";
     const int MQTT_QOS = 0;
     const int MQTT_TIMEOUT = 10;
-    mqtt::string_ref MQTT_USERNAME;
-    mqtt::binary_ref MQTT_PASSWORD;
+    mqtt::string_ref mqtt_cloud_user;
+    mqtt::binary_ref mqtt_cloud_pwd;
 
-    DdsClient *m_broadcast_client;
-    std::map<std::string, DdsClient*> m_dds_client;         /* key: device_id */
-    mqtt::async_client* m_mqtt_client;
-    conn_callback* m_mqtt_cb;
-    mqtt::connect_options conn_opt;
+    /* client for mqtt connect to local */
+    mqtt::async_client* m_mqtt_cli;
+    client_conn_callback* m_mqtt_cli_cb;
+    mqtt::connect_options conn_cli_opt;
+
+    /* client form mqtt connect to cloud*/
+    mqtt::async_client* m_mqtt_cloud;
+    cloud_conn_callback* m_mqtt_cloud_cb;
+    mqtt::connect_options conn_cloud_opt;
     std::string m_mqtt_uuid;
+
+    /* Log for display LogFn */
+    LogFn m_log_fn;
+
+    /* Msg for display MsgFn */
+    MsgFn m_msg_send_fn;
+    MsgFn m_msg_recv_fn;
+
+    /* Ssdp */
+    SsdpDiscovery* ssdp;
 };
 
 }

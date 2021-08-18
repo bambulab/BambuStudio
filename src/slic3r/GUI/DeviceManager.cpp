@@ -112,13 +112,6 @@ bool DeviceManager::is_bind_self(std::string dev_id)
     }
 }
 
-bool DeviceManager::is_dds_online(std::string dev_id)
-{
-    if (!isExist(dev_id))
-        return false;
-    return m_devicelist[dev_id]->is_dds_online();
-}
-
 int DeviceManager::get_domain_id(std::string dev_id)
 {
     if (isExist(dev_id))

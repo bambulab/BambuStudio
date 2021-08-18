@@ -41,15 +41,28 @@
 #include "libslic3r/PrintConfig.hpp"
 #include <expat.h>
 
+namespace pt = boost::property_tree;
 typedef pt::ptree JSON;
+
 
 namespace Slic3r {
 namespace GUI {
 
     wxDECLARE_EVENT(EVT_PROGRESS, wxCommandEvent);
+    wxDECLARE_EVENT(EVT_UPDATE_LIST, SimpleEvent);
+    wxDECLARE_EVENT(EVT_REFRESH_LIST, SimpleEvent);
+    wxDECLARE_EVENT(EVT_ERROR_MSG, wxCommandEvent);
+    wxDECLARE_EVENT(EVT_MQTT_SUCCESS, wxCommandEvent);
+    wxDECLARE_EVENT(EVT_MQTT_FAILED, wxCommandEvent);
+    wxDECLARE_EVENT(EVT_MQTT_LOST, wxCommandEvent);
 
-    wxDEFINE_EVENT(EVT_DEVICE_REPORT_MSG, SimpleEvent);
     wxDEFINE_EVENT(EVT_PROGRESS, wxCommandEvent);
+    wxDEFINE_EVENT(EVT_UPDATE_LIST, SimpleEvent);
+    wxDEFINE_EVENT(EVT_REFRESH_LIST, SimpleEvent);
+    wxDEFINE_EVENT(EVT_ERROR_MSG, wxCommandEvent);
+    wxDEFINE_EVENT(EVT_MQTT_SUCCESS, wxCommandEvent);
+    wxDEFINE_EVENT(EVT_MQTT_FAILED, wxCommandEvent);
+    wxDEFINE_EVENT(EVT_MQTT_LOST, wxCommandEvent);
 
     std::string DebugToolDialog::_getNewLogFilename()
     {
@@ -217,9 +230,9 @@ namespace GUI {
         // Layout Sizer
         top_sizer = new wxBoxSizer(wxVERTICAL);
         auto* conn_sizer = new wxBoxSizer(wxHORIZONTAL);
-        
+
         auto* control_sizer = new wxBoxSizer(wxVERTICAL);
-        
+
         auto* temp_btns_sizer = new wxGridSizer(5, 2, 5, 5);
         auto* ctrl_custom_sizer = new wxBoxSizer(wxHORIZONTAL);
         auto* output_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -241,15 +254,15 @@ namespace GUI {
         temp_btns_sizer->Add(label_pos_x, 0, wxRIGHT | wxALIGN_RIGHT); 
         temp_btns_sizer->Add(label_pos_x_val, 0, wxLEFT | wxALIGN_LEFT);
         temp_btns_sizer->Add(label_pos_y, 0, wxRIGHT | wxALIGN_RIGHT);
-        temp_btns_sizer->Add(label_pos_y_val, 0, wxLEFT | wxALIGN_LEFT); 
+        temp_btns_sizer->Add(label_pos_y_val, 0, wxLEFT | wxALIGN_LEFT);
         temp_btns_sizer->Add(label_pos_z, 0, wxRIGHT | wxALIGN_RIGHT);
         temp_btns_sizer->Add(label_pos_z_val, 0, wxLEFT | wxALIGN_LEFT);
         temp_btns_sizer->Add(label_pos_e, 0, wxRIGHT | wxALIGN_RIGHT);
-        temp_btns_sizer->Add(label_pos_e_val, 0, wxLEFT | wxALIGN_LEFT); 
+        temp_btns_sizer->Add(label_pos_e_val, 0, wxLEFT | wxALIGN_LEFT);
         temp_btns_sizer->Add(label_hot_end_temp, 0, wxRIGHT | wxALIGN_RIGHT);
-        temp_btns_sizer->Add(label_hot_end_temp_val, 0, wxLEFT | wxALIGN_LEFT); 
+        temp_btns_sizer->Add(label_hot_end_temp_val, 0, wxLEFT | wxALIGN_LEFT);
         temp_btns_sizer->Add(label_bed_end_temp, 0, wxRIGHT | wxALIGN_RIGHT);
-        temp_btns_sizer->Add(label_bed_end_temp_val, 0, wxLEFT | wxALIGN_LEFT); 
+        temp_btns_sizer->Add(label_bed_end_temp_val, 0, wxLEFT | wxALIGN_LEFT);
         temp_btns_sizer->Add(label_print_progress, 0, wxRIGHT | wxALIGN_RIGHT);
         temp_btns_sizer->Add(label_print_progress_val, 0, wxLEFT | wxALIGN_LEFT);
         temp_btns_sizer->Add(label_wifi_signal, 0, wxRIGHT | wxALIGN_RIGHT);
@@ -305,12 +318,54 @@ namespace GUI {
         SetSizer(top_sizer);
 
         Bind(wxEVT_TIMER, &DebugToolDialog::on_timer, this);
-        Bind(EVT_DEVICE_REPORT_MSG, &DebugToolDialog::on_device_report_msg, this);
+        Bind(EVT_UPDATE_LIST, &DebugToolDialog::on_update_list, this);
+        Bind(EVT_REFRESH_LIST, &DebugToolDialog::on_refresh_list, this);
+        Bind(EVT_ERROR_MSG, &DebugToolDialog::on_error_msg, this);
+        Bind(EVT_MQTT_SUCCESS, &DebugToolDialog::on_mqtt_success, this);
+        Bind(EVT_MQTT_FAILED, &DebugToolDialog::on_mqtt_failed, this);
+        Bind(EVT_MQTT_LOST, &DebugToolDialog::on_mqtt_lost, this);
 }
 
-void DebugToolDialog::on_device_report_msg(SimpleEvent& evt)
+void DebugToolDialog::on_update_list(SimpleEvent& evt)
 {
-    ;
+    Slic3r::DeviceManager* manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!manager) return;
+
+    wxArrayString new_items;
+    std::vector<DeviceInfo*> list = manager->get_connected_device_info();
+
+    std::vector<DeviceInfo*>::iterator it;
+    for (it = list.begin(); it != list.end(); it++) {
+        new_items.Add(get_device_list_item(*it));
+        cb_device_list->Set(new_items);
+    }
+}
+
+void DebugToolDialog::on_error_msg(wxCommandEvent& evt)
+{
+    wxMessageBox(evt.GetString());
+}
+
+
+void DebugToolDialog::on_mqtt_success(wxCommandEvent& evt)
+{
+    this->log_info("MQTT Connected! client=" + evt.GetString().ToStdString());
+    btn_connect->SetLabelText("Disconnect");
+    cb_device_list->Disable();
+}
+
+void DebugToolDialog::on_mqtt_failed(wxCommandEvent& evt)
+{
+    this->log_info("MQTT Connect Failed! client=" + evt.GetString().ToStdString());
+    btn_connect->SetLabelText("Connect");
+    cb_device_list->Enable();
+}
+
+void DebugToolDialog::on_mqtt_lost(wxCommandEvent& evt)
+{
+    this->log_info("MQTT Lost... client=" + evt.GetString().ToStdString());
+    btn_connect->SetLabelText("Connect");
+    cb_device_list->Enable();
 }
 
 void DebugToolDialog::init_device()
@@ -333,7 +388,10 @@ void DebugToolDialog::init_device()
                 wxMessageBox("Please login first!");
                 return;
             }
-            account_manager->request_bind(device_id);
+            account_manager->request_bind(device_id,
+                [this]() {
+                    wxQueueEvent(this, new SimpleEvent(EVT_REFRESH_LIST));
+                });
         });
     btn_unbind = new wxButton(this, wxID_ANY, _L("Unbind"), wxDefaultPosition, wxDefaultSize);
     btn_unbind->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
@@ -344,8 +402,51 @@ void DebugToolDialog::init_device()
                 wxMessageBox("Please login first!");
                 return;
             }
-            account_manager->request_unbind(device_id);
+            account_manager->request_unbind(device_id,
+                [this]() {
+                    wxQueueEvent(this, new SimpleEvent(EVT_REFRESH_LIST));
+                });
         });
+    btn_connect = new wxButton(this, wxID_ANY, _L("Connect"), wxDefaultPosition, wxDefaultSize);
+    btn_connect->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        if (btn_connect->GetLabelText().ToStdString().compare("Connect") == 0) {
+            Slic3r::CommuBackend* backend = Slic3r::GUI::wxGetApp().getCommuBackend();
+            std::string device = cb_device_list->GetValue().ToStdString();
+            std::string ip_str;
+            ip_str = device.substr(0, device.find_first_of("("));
+            std::string content = cb_device_list->GetValue().ToStdString();
+            size_t start = content.find_last_of("(") + 1;
+            std::string device_id = content.substr(start, content.find_last_of(")") - start);
+            Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+            std::string user_id = account_manager->get_user_id();
+            backend->connect_to_client(ip_str, user_id, device_id,
+                //success
+                [this](std::string name) {
+                    auto evt = new wxCommandEvent(EVT_MQTT_SUCCESS, this->GetId());
+                    evt->SetString(name);
+                    wxQueueEvent(this, evt);
+                },
+                //failed
+                    [this](std::string name) {
+                    auto evt = new wxCommandEvent(EVT_MQTT_FAILED, this->GetId());
+                    evt->SetString(name);
+                    wxQueueEvent(this, evt);
+                },
+                    //lost
+                    [this](std::string name) {
+                    auto evt = new wxCommandEvent(EVT_MQTT_LOST, this->GetId());
+                    evt->SetString(name);
+                    wxQueueEvent(this, evt);
+                });
+        }
+        else {
+            Slic3r::CommuBackend* backend = Slic3r::GUI::wxGetApp().getCommuBackend();
+            backend->disconnect_to_client();
+            btn_connect->SetLabelText("Connect");
+            cb_device_list->Enable();
+        }
+    });
+
     label_device_list = new wxStaticText(this, wxID_ANY, _L("Device List:"), wxDefaultPosition, wxDefaultSize);
 
     conn_device_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -354,6 +455,7 @@ void DebugToolDialog::init_device()
     conn_device_sizer->Add(btn_refresh_device_list, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
     conn_device_sizer->Add(btn_bind, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
     conn_device_sizer->Add(btn_unbind, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
+    conn_device_sizer->Add(btn_connect, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
     //conn_device_sizer->Add(label_device_status, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
 }
 
@@ -773,6 +875,22 @@ bool DebugToolDialog::Show(bool show)
         m_timer->Stop();
         m_timer->SetOwner(this);
         m_timer->Start(10000);
+
+        Slic3r::CommuBackend* backend = Slic3r::GUI::wxGetApp().getCommuBackend();
+        backend->set_msg_recv_fn([this](std::string topic, std::string payload) {
+                //TODO wxPostEvent
+                handle_report_print_msg(topic, payload);
+            });
+        backend->set_msg_send_fn([this](std::string topic, std::string payload) {
+                //TODO wxPostEvent
+                std::string send_msg = "send topic=" + topic + ", msg=" + payload;
+                this->log_info(send_msg);
+            });
+        
+        Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+        if (account_manager && account_manager->is_user_login()) {
+            account_manager->request_bind_list(account_manager->get_user_id());
+        }
     }
     else {
         m_timer->Stop();
@@ -797,8 +915,9 @@ int DebugToolDialog::publish_json(std::string json_str)
 {
     /* Check device is online */
     Slic3r::DeviceManager *manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+    Slic3r::CommuBackend* backend = Slic3r::GUI::wxGetApp().getCommuBackend();
     try
-    {
+{
         std::string content = cb_device_list->GetValue().ToStdString();
         size_t start = content.find_last_of("(") + 1;
         std::string device_id = content.substr(start, content.find_last_of(")") - start);
@@ -806,27 +925,22 @@ int DebugToolDialog::publish_json(std::string json_str)
             wxMessageBox("Please select a device!");
             return -1;
         }
-        if (!manager->is_dds_online(device_id)) {
-            wxMessageBox("Device is Offline!");
+        if (btn_connect->GetLabelText().ToStdString().compare("Connect") == 0) {
+            wxMessageBox("Please Connect first!");
             return -1;
         }
-        return publish_json_to_device(device_id, json_str);
+        
+        if (!manager->is_bind_self(device_id))
+        {
+            wxMessageBox("Please Bind first!");
+            return -1;
+        }
+        
+        return backend->publish_json_to_client(device_id, json_str);
     }
     catch (std::exception& e) {
         return -1;
     }
-}
-
-int DebugToolDialog::publish_json_to_device(std::string dev_id, std::string json_str)
-{
-    Slic3r::CommuBackend* backend = Slic3r::GUI::wxGetApp().getCommuBackend();
-    return backend->publish_json_to_device(dev_id, json_str);
-}
-
-int DebugToolDialog::handle_device_report_msg(std::string json_str)
-{
-    wxPostEvent(this, SimpleEvent(EVT_DEVICE_REPORT_MSG));
-    return 0;
 }
 
 int DebugToolDialog::handle_report_print_msg(std::string topic, std::string json_str)
@@ -888,13 +1002,13 @@ int DebugToolDialog::handle_report_print_msg(std::string topic, std::string json
             else if (command.has_value() && command.value_or("").compare("gcode_file") == 0) {
                 boost::optional<std::string> sequence_id = print.get_optional<std::string>("sequence_id");
             }
-            this->append_output_string_info("received ack msg = " + json_str + "\n");
+            this->log_info("received ack msg = " + json_str);
             return 0;
         }
-        this->append_output_string_info("received msg = " + json_str + "\n");
+        this->log_info("topic=" + topic + ", json=" + json_str);
     }
     catch (std::exception& e) {
-        this->append_output_string_info("received report print msg json error.\n");
+        this->log_info("received report print msg json error.");
     }
 
     return 0;
@@ -906,28 +1020,45 @@ int DebugToolDialog::handle_alive_msg(std::string dev_id)
     size_t start = content.find_last_of("(") + 1;
     std::string device_id = content.substr(start, content.find_last_of(")") - start);
     if (device_id.compare(dev_id) == 0) {
-        this->append_output_string_info("dev_id=" + dev_id + " is alive!\n");
+        this->log_info("dev_id=" + dev_id + " is alive!");
     }
     return 0;
 }
 
+void DebugToolDialog::on_refresh_list(SimpleEvent&evt)
+{
+    this->refresh_device_list();
+}
+
+
 void DebugToolDialog::refresh_device_list()
 {
+    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
     Slic3r::DeviceManager* manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-    wxArrayString new_items;
+    if (!manager) return;
+
     std::vector<DeviceInfo*> list = manager->get_connected_device_info();
     std::vector<std::string> device_id_list;
-    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
 
     std::vector<DeviceInfo*>::iterator it;
     for (it = list.begin(); it != list.end(); it++) {
-        new_items.Add(get_device_list_item(*it));
-        cb_device_list->Set(new_items);
         device_id_list.push_back((*it)->get_dev_id());
     }
 
+    if (!account_manager) return;
+
     if (account_manager->is_user_login()) {
-        account_manager->query_bind_status(device_id_list);
+        account_manager->query_bind_status(device_id_list, [this]() {
+                wxQueueEvent(this, new SimpleEvent(EVT_UPDATE_LIST));
+            }, [this](int status, std::string error, std::string body) {
+                auto evt = new wxCommandEvent(EVT_ERROR_MSG, this->GetId());
+                std::string error_str = (boost::format("Query Status Error, status=%1%, error=%2%, body=%3%") % status % error % body).str();
+                evt->SetString(error_str);
+                wxQueueEvent(this, evt);
+            });
+    }
+    else {
+        wxQueueEvent(this, new SimpleEvent(EVT_UPDATE_LIST));
     }
 }
 
@@ -948,7 +1079,7 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
     UPGRADE_MODE upgrade_mode = (UPGRADE_MODE)cb_upgrade_mode->GetCurrentSelection();
     Http http = Http::get(UPGRADE_URL + upgrade_post_url[upgrade_module] + upgrade_mode_name[upgrade_mode]);
     http.on_complete([&](std::string body, unsigned) {
-        this->append_output_string_info(body);
+        BOOST_LOG_TRIVIAL(trace) << "get firmware request: body=" << body;
         XML_Parser parser = XML_ParserCreate(nullptr);
         XML_SetUserData(parser, this);
         XML_SetElementHandler(parser, XML_StartElementHandler, XML_EndElementHandler);
@@ -964,18 +1095,15 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
             }).perform();
 }
 
-int DebugToolDialog::append_output_string_info(std::string line)
+int DebugToolDialog::log_info(std::string line)
 {
     std::time_t t = std::time(0);
     std::tm* now_time = std::localtime(&t);
     std::stringstream buf;
     buf << std::put_time(now_time, "%a %b %d %H:%M:%S");
-    std::string info = buf.str() + ":" + line;
+    std::string info = buf.str() + ":" + line + "\n";
  
     try {
-
-        //if (logFile)
-        //    fwrite(line.c_str(), line.size(), 1, logFile);
         log_mutex.lock();
         log_lines.push_back(info);
         log_mutex.unlock();
@@ -1003,34 +1131,13 @@ int DebugToolDialog::publishGcode(std::string gcode)
     return this->publish_json(json_str);
 }
 
-int DebugToolDialog::callSystem(std::string cmd, std::string& output)
-{
-    FILE* f;
-    char out[2048] = { 0 };
-#ifdef WIN32
-    f = _popen(cmd.c_str(), "r");
-#else
-    f = popen(cmd.c_str(), "r");
-#endif
-    if (f == NULL) {
-        wxMessageBox("Popen cmd=" + cmd + "Failed!");
-        return -1;
-    }
-    fgets(out, 2048, f);
-
-    output = std::string(out);
-#ifdef WIN32
-    _pclose(f);
-#else
-    pclose(f);
-#endif
-
-    return 0;
-}
-
 int DebugToolDialog::set_current_device_id()
 {
     std::string content = cb_device_list->GetValue().ToStdString();
+    if (content.empty()) {
+        m_curr_dev_id = "";
+        return 0;
+    }
     size_t start = content.find_last_of("(") + 1;
     std::string device_id = content.substr(start, content.find_last_of(")") - start);
     if (device_id.compare("") == 0) {
@@ -1086,7 +1193,3 @@ void DebugToolDialog::on_select_device(wxCommandEvent& evt)
 
 }
 }
-
-//BEGIN_EVENT_TABLE(Slic3r::GUI::DebugToolDialog, Slic3r::GUI::DPIDialog)
-//EVT_COMBOBOX(COMBOBOX_ID, Slic3r::GUI::DebugToolDialog::on_select_device)
-//END_EVENT_TABLE()

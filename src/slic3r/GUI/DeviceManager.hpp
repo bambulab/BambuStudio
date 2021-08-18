@@ -38,13 +38,11 @@ public:
         BIND_OHTER = 3,
         BIND_ERROR = 4};
     DeviceInfo(std::string dev_id, std::string dev_name, int conn_flag);
-    void set_domain_id(std::string domain_id) { m_domain_id = domain_id; }
     void set_ip_addr(std::string ip) { m_ip_addr = ip; }
     int set_bind_status(std::string status);
     void set_mqtt_conn_status(bool status) { m_mqtt_conn_status; }
     bool is_bind_self() { return m_bind_status == BindStatus::BIND_SELF; }
     bool is_bind_free() { return m_bind_status == BindStatus::BIND_FREE; }
-    bool is_dds_online() { return m_dds_conn_status; }
     std::string get_dev_id() { return m_dev_id; }
 
     std::string m_dev_name;
