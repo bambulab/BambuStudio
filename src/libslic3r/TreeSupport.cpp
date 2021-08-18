@@ -572,7 +572,7 @@ static inline void fill_expolygons_generate_paths(
         fill_expolygon_generate_paths(dst, std::move(expoly), filler, fill_params, density, role, flow);
 }
 
-static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print &print, const ExPolygon &support_area, bool no_brim)
+static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print &print, const ExPolygon &support_area, bool no_brim, bool is_interface)
 {
     Flow       flow = print.brim_flow();
     Polygons   loops;
@@ -587,11 +587,11 @@ static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print
 
     //loops = union_pt_chained_outside_in(loops, false);
     std::reverse(loops.begin(), loops.end());
-    extrusion_entities_append_loops(dst, std::move(loops), erSupportMaterial, float(flow.mm3_per_mm()),
-                                    float(flow.width), float(print.skirt_first_layer_height()));
+    extrusion_entities_append_loops(dst, std::move(loops), is_interface ? erSupportMaterialInterface : erSupportMaterial,
+            float(flow.mm3_per_mm()), float(flow.width), float(print.skirt_first_layer_height()));
 }
 
-void TreeSupport::generate_fills()
+void TreeSupport::generate_toolpaths()
 {
     const PrintConfig &print_config = m_object.print()->config();
     const PrintObjectConfig &object_config = m_object.config();
@@ -622,13 +622,22 @@ void TreeSupport::generate_fills()
         for (std::pair<ExPolygons*, bool>& area_group : area_groups) {
             for (ExPolygon& poly : *area_group.first) {
                 if (area_group.second) {
+                    ExPolygons polys;
+                    if (layer->id() == 0) {
+                        Flow flow = m_object.print()->brim_flow();
+                        make_perimeter_and_inner_brim(layer->support_fills.entities, *m_object.print(), poly, true, true);
+                        polys = std::move(offset_ex(poly, -flow.scaled_spacing()));
+                    } else {
+                        polys.push_back(poly);
+                    }
+
                     FillParams fill_params;
                     fill_params.density = interface_density;
                     fill_params.dont_adjust = true;
-                    fill_expolygons_generate_paths(layer->support_fills.entities, offset_ex(poly, float(-0.4 * interface_spacing)),
+                    fill_expolygons_generate_paths(layer->support_fills.entities, std::move(polys),
                         filler_interface, fill_params, interface_density, erSupportMaterialInterface, support_flow);
                 } else {
-                    make_perimeter_and_inner_brim(layer->support_fills.entities, *m_object.print(), poly, layer->id() > 0);
+                    make_perimeter_and_inner_brim(layer->support_fills.entities, *m_object.print(), poly, layer->id() > 0, false);
                 }
             }
         }
@@ -670,7 +679,7 @@ void TreeSupport::generate_support_areas()
     }
     contact_nodes.clear();
 
-    generate_fills();
+    generate_toolpaths();
 }
 
 void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_nodes)

@@ -322,7 +322,7 @@ private:
 
     void detect_object_overhangs();
     void create_tree_support_layers();
-    void generate_fills();
+    void generate_toolpaths();
 };
 
 }
