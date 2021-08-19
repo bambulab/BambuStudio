@@ -564,7 +564,7 @@ function(prusaslicer_copy_dlls target config postfix output_dlls)
         set(_out_dir "${CMAKE_CURRENT_BINARY_DIR}")
     endif ()
 
-    if ("${config}" STREQUAL "Release")
+    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
         set (_in_file "${LIBDIR_BIN}/dds_fdal/Release/dds_fdal.dll")
     else()
         set (_in_file "${LIBDIR_BIN}/dds_fdal/Debug/dds_fdal.dll")
