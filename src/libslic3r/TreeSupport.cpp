@@ -484,17 +484,13 @@ void TreeSupport::detect_object_overhangs()
 
             Layer *lower_layer = layer->lower_layer;
             coordf_t lower_layer_offset = (float)lower_layer->height / tan(threshold_rad);
-            ExPolygons overhang_areas = diff_ex(layer->lslices, offset2_ex(lower_layer->lslices, -scale_(extrusion_width / 2), scale_(extrusion_width / 2)));
-
+            // Filter out areas whose diameter that is smaller than extrusion_width
+            ExPolygons lower_polys = std::move(offset2_ex(lower_layer->lslices, -scale_(extrusion_width / 2), scale_(extrusion_width / 2)));
+            ExPolygons overhang_areas = std::move(diff_ex(layer->lslices, offset_ex(lower_polys, scale_(lower_layer_offset))));
+            overhang_areas = offset2_ex(overhang_areas, -0.1 * scale_(extrusion_width), 0.1 * scale_(extrusion_width));
             TreeSupportLayer* ts_layer = m_object.get_tree_support_layer(layer->id());
-            overhang_areas = offset2_ex(overhang_areas, -scale_(extrusion_width / 2), scale_(extrusion_width / 2));
             for (ExPolygon& poly : overhang_areas) {
-                ExPolygons simple_polys;
-                poly.simplify(scale_(radius_sample_resolution), &simple_polys);
-                if (simple_polys.empty()) {
-                    simple_polys.push_back(poly);
-                }
-                ts_layer->overhang_areas.insert(ts_layer->overhang_areas.end(), simple_polys.begin(), simple_polys.end());
+                poly.simplify(scale_(radius_sample_resolution), &ts_layer->overhang_areas);
             }
         }
     }
