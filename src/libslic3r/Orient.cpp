@@ -3,6 +3,8 @@
 #include <numeric>
 #include <ClipperUtils.hpp>
 #include <boost/geometry/index/rtree.hpp>
+#include <tbb/parallel_for.h>
+#include <tbb/atomic.h>
 
 #if defined(_MSC_VER) && defined(__clang__)
 #define BOOST_NO_CXX17_HDR_STRING_VIEW
@@ -374,13 +376,15 @@ public:
 
 void get_axis_angle_from_two_vectors(Vec3f bestside, Vec3f& rotation_axis, float& phi)
 {
+    float epsilon = 1e-5;
     Vec3f z_axis(0, 0, 1);
-    if ((bestside + z_axis).isMuchSmallerThan(0.001))
+    // note: a.isMuchSmallerThan(b,prec) compares a.abs().sum()<b*prec, so previously we set b=0 && prec=dummpy_prec() is wrong
+    if ((bestside + z_axis).isMuchSmallerThan(1, epsilon))
     {
         rotation_axis << 1, 0, 0;
         phi = M_PI;
     }
-    else if ((bestside - z_axis).isMuchSmallerThan(0.001)) {
+    else if ((bestside - z_axis).isMuchSmallerThan(1, epsilon)) {
         rotation_axis << 1, 0, 0;
         phi = 0;
     }
@@ -397,6 +401,7 @@ void _orient(OrientMeshs& meshs_,
         std::function<void(unsigned, std::string)> progressfn,
         std::function<bool()>         stopfn)
 {
+#ifndef __TBB_parallel_for_H
     for (auto& mesh_ : meshs_) {
         auto progressfn_i = [&](unsigned cnt) {progressfn(cnt, "Orienting " + mesh_.name); };
         AutoOrienter orienter(&mesh_.mesh, params, progressfn_i, stopfn);
@@ -408,6 +413,17 @@ void _orient(OrientMeshs& meshs_,
         BOOST_LOG_TRIVIAL(error) << std::fixed << std::setprecision(3) << "v,phi: " << mesh_.axis.transpose() <<", "<<mesh_.angle;
         flush_logs();
     }
+#else
+     tbb::parallel_for(tbb::blocked_range<size_t>(0, meshs_.size()), [&meshs_,&params, progressfn,stopfn](const tbb::blocked_range<size_t>& range) {
+         for (size_t i = range.begin(); i != range.end(); ++i) {
+             auto& mesh_ = meshs_[i];
+             auto progressfn_i = [&](unsigned cnt) {progressfn(cnt, "Orienting " + std::to_string(i) + "-th item: " + mesh_.name); };
+             AutoOrienter orienter(&mesh_.mesh, params, progressfn_i, stopfn);
+             mesh_.orientation = orienter.process();
+             get_axis_angle_from_two_vectors(mesh_.orientation, mesh_.axis, mesh_.angle);
+             BOOST_LOG_TRIVIAL(debug) << "get_axis_angle_from_two_vectors: " << mesh_.orientation << "; " << mesh_.axis << "; " << mesh_.angle;
+         }});
+#endif
 }
 
 void orient(OrientMeshs &      arrangables,

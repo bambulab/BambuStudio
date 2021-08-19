@@ -77,6 +77,7 @@ void OrientJob::on_exception(const std::exception_ptr &eptr)
 
 void OrientJob::process()
 {
+    auto start = std::chrono::steady_clock::now();
     static const auto arrangestr = _(L("Orienting"));
 
     orientation::OrientParams params;
@@ -91,8 +92,10 @@ void OrientJob::process()
 
     orientation::orient(m_selected, m_unselected, params);
 
+    auto time_elapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - start);
+
     std::stringstream ss;
-    ss<< std::fixed << std::setprecision(3) << "Orienting done. "<< m_selected.back().name <<"'s orientation: "<<m_selected.back().orientation.transpose()<<"; v,phi: " << m_selected.back().axis.transpose() << ", " << m_selected.back().angle;
+    ss<< std::fixed << std::setprecision(3) << "Orienting done in "<<time_elapsed.count()<<" seconds." << m_selected.back().name << "'s orientation: " << m_selected.back().orientation.transpose() << "; v,phi: " << m_selected.back().axis.transpose() << ", " << m_selected.back().angle;
 
     // finalize just here.
     update_status(int(count),
