@@ -771,7 +771,9 @@ void GUI_App::post_init()
         this->check_updates(false);
         CallAfter([this] {
             bool cw_showed = this->config_wizard_startup();
-            this->preset_updater->sync(preset_bundle);
+            //BBS: TODO: workaround solution currently, move it before load_preset
+            //need to move back to here later
+            //this->preset_updater->sync(preset_bundle);
             if (! cw_showed) {
                 // The CallAfter is needed as well, without it, GL extensions did not show.
                 // Also, we only want to show this when the wizard does not, so the new user
@@ -880,7 +882,11 @@ void GUI_App::init_app_config()
 
     if (data_dir().empty()) {
         #ifndef __linux__
-            set_data_dir(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data());
+            std::string data_dir = wxStandardPaths::Get().GetUserDataDir().ToUTF8().data();
+            std::string::size_type pos = data_dir.find(SLIC3R_APP_KEY);
+            if (pos != std::string::npos)
+                data_dir.replace(pos, strlen(SLIC3R_APP_KEY), "BambooSlicer");
+            set_data_dir(data_dir);
         #else
             // Since version 2.3, config dir on Linux is in ${XDG_CONFIG_HOME}.
             // https://github.com/prusa3d/PrusaSlicer/issues/2911
@@ -1210,6 +1216,9 @@ bool GUI_App::on_init_inner()
                 }
             }
             });
+        //BBS: TODO: workaround solution currently, always update bbl.ini from resource to vendor to make sure the modification valid after software upgrade
+        //currently do it before preset_bundle->load_presets, need to move back later
+        preset_updater->sync(preset_bundle);
     }
     else {
 #ifdef __WXMSW__ 

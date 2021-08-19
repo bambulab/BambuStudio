@@ -148,7 +148,8 @@ public:
     // Unselected option would be reverted to the beginning values
     void                        save_changes_for_preset(const std::string& new_name, Preset::Type type, const std::vector<std::string>& unselected_options);
 
-    static const char *PRUSA_BUNDLE;
+    //BBS: add BBL as default
+    static const char *BBL_BUNDLE;
 private:
     std::pair<PresetsConfigSubstitutions, std::string> load_system_presets(ForwardCompatibilitySubstitutionRule compatibility_rule);
     // Merge one vendor's presets with the other vendor's presets, report duplicates.

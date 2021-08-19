@@ -63,12 +63,12 @@ using Config::SnapshotDB;
 
 
 // Configuration data structures extensions needed for the wizard
-
-bool Bundle::load(fs::path source_path, bool ais_in_resources, bool ais_prusa_bundle)
+//BBS: set BBL as default
+bool Bundle::load(fs::path source_path, bool ais_in_resources, bool ais_bbl_bundle)
 {
     this->preset_bundle = std::make_unique<PresetBundle>();
     this->is_in_resources = ais_in_resources;
-    this->is_prusa_bundle = ais_prusa_bundle;
+    this->is_bbl_bundle = ais_bbl_bundle;
 
     std::string path_string = source_path.string();
     // Throw when parsing invalid configuration. Only valid configuration is supposed to be provided over the air.
@@ -92,11 +92,12 @@ bool Bundle::load(fs::path source_path, bool ais_in_resources, bool ais_prusa_bu
     return true;
 }
 
+//BBS: set BBL as default
 Bundle::Bundle(Bundle &&other)
     : preset_bundle(std::move(other.preset_bundle))
     , vendor_profile(other.vendor_profile)
     , is_in_resources(other.is_in_resources)
-    , is_prusa_bundle(other.is_prusa_bundle)
+    , is_bbl_bundle(other.is_bbl_bundle)
 {
     other.vendor_profile = nullptr;
 }
@@ -108,16 +109,17 @@ BundleMap BundleMap::load()
     const auto vendor_dir = (boost::filesystem::path(Slic3r::data_dir()) / "vendor").make_preferred();
     const auto rsrc_vendor_dir = (boost::filesystem::path(resources_dir()) / "profiles").make_preferred();
 
-    auto prusa_bundle_path = (vendor_dir / PresetBundle::PRUSA_BUNDLE).replace_extension(".ini");
-    auto prusa_bundle_rsrc = false;
-    if (! boost::filesystem::exists(prusa_bundle_path)) {
-        prusa_bundle_path = (rsrc_vendor_dir / PresetBundle::PRUSA_BUNDLE).replace_extension(".ini");
-        prusa_bundle_rsrc = true;
+    //BBS: add BBL as default
+    auto bbl_bundle_path = (vendor_dir / PresetBundle::BBL_BUNDLE).replace_extension(".ini");
+    auto bbl_bundle_rsrc = false;
+    if (!boost::filesystem::exists(bbl_bundle_path)) {
+        bbl_bundle_path = (rsrc_vendor_dir / PresetBundle::BBL_BUNDLE).replace_extension(".ini");
+        bbl_bundle_rsrc = true;
     }
     {
-        Bundle prusa_bundle;
-        if (prusa_bundle.load(std::move(prusa_bundle_path), prusa_bundle_rsrc, true))
-            res.emplace(PresetBundle::PRUSA_BUNDLE, std::move(prusa_bundle)); 
+        Bundle bbl_bundle;
+        if (bbl_bundle.load(std::move(bbl_bundle_path), bbl_bundle_rsrc, true))
+            res.emplace(PresetBundle::BBL_BUNDLE, std::move(bbl_bundle));
     }
 
     // Load the other bundles in the datadir/vendor directory
@@ -143,19 +145,20 @@ BundleMap BundleMap::load()
     return res;
 }
 
-Bundle& BundleMap::prusa_bundle()
+Bundle& BundleMap::bbl_bundle()
 {
-    auto it = find(PresetBundle::PRUSA_BUNDLE);
+    //BBS: add BBL as default
+    auto it = find(PresetBundle::BBL_BUNDLE);
     if (it == end()) {
-        throw Slic3r::RuntimeError("ConfigWizard: Internal error in BundleMap: PRUSA_BUNDLE not loaded");
+        throw Slic3r::RuntimeError("ConfigWizard: Internal error in BundleMap: BBL_BUNDLE not loaded");
     }
 
     return it->second;
 }
 
-const Bundle& BundleMap::prusa_bundle() const
+const Bundle& BundleMap::bbl_bundle() const
 {
-    return const_cast<BundleMap*>(this)->prusa_bundle();
+    return const_cast<BundleMap*>(this)->bbl_bundle();
 }
 
 
@@ -601,10 +604,11 @@ std::set<std::string> PagePrinters::get_selected_models()
 
 void PagePrinters::set_run_reason(ConfigWizard::RunReason run_reason)
 {
+    //BBS: add BBL as default
     if (is_primary_printer_page
         && (run_reason == ConfigWizard::RR_DATA_EMPTY || run_reason == ConfigWizard::RR_DATA_LEGACY)
         && printer_pickers.size() > 0 
-        && printer_pickers[0]->vendor_id == PresetBundle::PRUSA_BUNDLE) {
+        && printer_pickers[0]->vendor_id == PresetBundle::BBL_BUNDLE) {
         printer_pickers[0]->select_one(0, true);
     }
 }
@@ -1330,7 +1334,8 @@ PageVendors::PageVendors(ConfigWizard *parent)
 
     for (const auto &pair : wizard_p()->bundles) {
         const VendorProfile *vendor = pair.second.vendor_profile;
-        if (vendor->id == PresetBundle::PRUSA_BUNDLE) { continue; }
+        //BBS: add BBL as default
+        if (vendor->id == PresetBundle::BBL_BUNDLE) { continue; }
 
         auto *cbox = new wxCheckBox(this, wxID_ANY, vendor->name);
         cbox->Bind(wxEVT_CHECKBOX, [=](wxCommandEvent &event) {
@@ -2077,7 +2082,8 @@ void ConfigWizard::priv::create_3rdparty_pages()
 {
     for (const auto &pair : bundles) {
         const VendorProfile *vendor = pair.second.vendor_profile;
-        if (vendor->id == PresetBundle::PRUSA_BUNDLE) { continue; }
+        //BBS: add BBL as default
+        if (vendor->id == PresetBundle::BBL_BUNDLE) { continue; }
 
         bool is_fff_technology = false;
         bool is_sla_technology = false;
@@ -2545,10 +2551,11 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
         return pt;
     };
     // Prusa printers are considered first, then 3rd party.
-    if (preferred_pt = get_preferred_printer_technology("PrusaResearch", bundles.prusa_bundle());
+    if (preferred_pt = get_preferred_printer_technology("BBL", bundles.bbl_bundle());
         preferred_pt == ptAny || (preferred_pt == ptSLA && suppress_sla_printer)) {
         for (const auto& bundle : bundles) {
-            if (bundle.second.is_prusa_bundle) { continue; }
+            //BBS: set BBL as default
+            if (bundle.second.is_bbl_bundle) { continue; }
             if (PrinterTechnology pt = get_preferred_printer_technology(bundle.first, bundle.second); pt == ptAny)
                 continue;
             else if (preferred_pt == ptAny)
@@ -2573,7 +2580,8 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
     for (const auto &pair : bundles) {
         if (! pair.second.is_in_resources) { continue; }
 
-        if (pair.second.is_prusa_bundle) {
+        //BBS: set BBL as default
+        if (pair.second.is_bbl_bundle) {
             // Always install Prusa bundle, because it has a lot of filaments/materials
             // likely to be referenced by other profiles.
             install_bundles.emplace_back(pair.first);
@@ -2675,10 +2683,10 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
         return std::string();
     };
     // Prusa printers are considered first, then 3rd party.
-    if (preferred_model = get_preferred_printer_model("PrusaResearch", bundles.prusa_bundle(), preferred_variant);
+    if (preferred_model = get_preferred_printer_model("BBL", bundles.bbl_bundle(), preferred_variant);
         preferred_model.empty()) {
         for (const auto& bundle : bundles) {
-            if (bundle.second.is_prusa_bundle) { continue; }
+            if (bundle.second.is_bbl_bundle) { continue; }
             if (preferred_model = get_preferred_printer_model(bundle.first, bundle.second, preferred_variant);
                 !preferred_model.empty())
                     break;
@@ -2871,14 +2879,15 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     wxGetApp().UpdateDarkUI(p->btn_finish);
     wxGetApp().UpdateDarkUI(p->btn_cancel);
 
-    const auto prusa_it = p->bundles.find("PrusaResearch");
-    wxCHECK_RET(prusa_it != p->bundles.cend(), "Vendor PrusaResearch not found");
-    const VendorProfile *vendor_prusa = prusa_it->second.vendor_profile;
+    //BBS: add BBL as default
+    const auto bbl_it = p->bundles.find("BBL");
+    wxCHECK_RET(bbl_it != p->bundles.cend(), "Vendor BambooLab not found");
+    const VendorProfile * vendor_bbl = bbl_it->second.vendor_profile;
 
     p->add_page(p->page_welcome = new PageWelcome(this));
 
     
-    p->page_fff = new PagePrinters(this, _L("Prusa FFF Technology Printers"), "Prusa FFF", *vendor_prusa, 0, T_FFF);
+    p->page_fff = new PagePrinters(this, _L("BBL FFF Technology Printers"), "BBL FFF", *vendor_bbl, 0, T_FFF);
     p->only_sla_mode = !p->page_fff->has_printers;
     if (!p->only_sla_mode) {
         p->add_page(p->page_fff);
@@ -2886,7 +2895,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     }
   
 
-    p->page_msla = new PagePrinters(this, _L("Prusa MSLA Technology Printers"), "Prusa MSLA", *vendor_prusa, 0, T_SLA);
+    p->page_msla = new PagePrinters(this, _L("BBL MSLA Technology Printers"), "BBL MSLA", *vendor_bbl, 0, T_SLA);
     p->add_page(p->page_msla);
     if (p->only_sla_mode) {
         p->page_msla->is_primary_printer_page = true;

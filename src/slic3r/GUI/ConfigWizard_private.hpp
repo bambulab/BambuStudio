@@ -64,13 +64,15 @@ struct Bundle
 	std::unique_ptr<PresetBundle> preset_bundle;
 	VendorProfile* vendor_profile{ nullptr };
 	bool is_in_resources{ false };
-	bool is_prusa_bundle{ false };
+	//BBS: set BBL as default
+	bool is_bbl_bundle{ false };
 
 	Bundle() = default;
 	Bundle(Bundle&& other);
 
 	// Returns false if not loaded. Reason for that is logged as boost::log error.
-	bool load(fs::path source_path, bool is_in_resources, bool is_prusa_bundle = false);
+	//BBS: set BBL as default
+	bool load(fs::path source_path, bool is_in_resources, bool is_bbl_bundle = false);
 
 	const std::string& vendor_id() const { return vendor_profile->id; }
 };
@@ -79,8 +81,9 @@ struct BundleMap : std::unordered_map<std::string /* = vendor ID */, Bundle>
 {
 	static BundleMap load();
 
-	Bundle& prusa_bundle();
-	const Bundle& prusa_bundle() const;
+	//BBS: add BBL as default
+	Bundle& bbl_bundle();
+	const Bundle& bbl_bundle() const;
 };
 
 struct Materials

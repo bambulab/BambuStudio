@@ -71,8 +71,9 @@ void AppConfig::set_defaults()
         if (get("drop_project_action").empty())
             set("drop_project_action", "1");
 
+        //BBS: disable preset update currently
         if (get("preset_update").empty())
-            set("preset_update", "1");
+            set("preset_update", "0");
 
         if (get("export_sources_full_pathnames").empty())
             set("export_sources_full_pathnames", "0");

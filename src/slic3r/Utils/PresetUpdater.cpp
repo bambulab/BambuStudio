@@ -733,6 +733,8 @@ PresetUpdater::~PresetUpdater()
 
 void PresetUpdater::sync(PresetBundle *preset_bundle)
 {
+	//BBS: disable online update currently
+#if 0
 	p->set_download_prefs(GUI::wxGetApp().app_config);
 	if (!p->enabled_version_check && !p->enabled_config_update) { return; }
 
@@ -746,12 +748,24 @@ void PresetUpdater::sync(PresetBundle *preset_bundle)
 		this->p->sync_version();
 		this->p->sync_config(std::move(vendors));
     });
+#else
+	const auto vendor_dir = (boost::filesystem::path(Slic3r::data_dir()) / "vendor").make_preferred();
+	const auto rsrc_vendor_dir = (boost::filesystem::path(resources_dir()) / "profiles").make_preferred();
+	auto vendor_file = (vendor_dir / PresetBundle::BBL_BUNDLE).replace_extension(".ini");
+	auto rsrc_vendor_file = (rsrc_vendor_dir / PresetBundle::BBL_BUNDLE).replace_extension(".ini");
+	if (boost::filesystem::exists(rsrc_vendor_dir)) {
+		copy_file_fix(rsrc_vendor_file, vendor_file);
+	}
+#endif
 }
 
 void PresetUpdater::slic3r_update_notify()
 {
 	if (! p->enabled_version_check)
 		return;
+
+	//BBS: disable online update currently
+#if 0
 	auto* app_config = GUI::wxGetApp().app_config;
 	const auto ver_online_str = app_config->get("version_online");
 	const auto ver_online = Semver::parse(ver_online_str);
@@ -770,6 +784,7 @@ void PresetUpdater::slic3r_update_notify()
 
 		app_config->set("version_online_seen", ver_online_str);
 	}
+#endif
 }
 
 static bool reload_configs_update_gui()
