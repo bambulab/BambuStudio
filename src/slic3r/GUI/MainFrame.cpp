@@ -636,6 +636,8 @@ void MainFrame::update_title()
     }
 
     std::string build_id = wxGetApp().is_editor() ? SLIC3R_BUILD_ID : GCODEVIEWER_BUILD_ID;
+    std::string rc_version = SLIC3R_RC_VERSION;
+
     size_t 		idx_plus = build_id.find('+');
     if (idx_plus != build_id.npos) {
     	// Parse what is behind the '+'. If there is a number, then it is a build number after the label, and full build ID is shown.
@@ -652,8 +654,10 @@ void MainFrame::update_title()
     }
 
     title += wxString(build_id);
-    if (wxGetApp().is_editor())
+    if (wxGetApp().is_editor()) {
+        title += (wxString("-[ver" + rc_version + "]"));
         title += (" " + _L("based on Slic3r"));
+    }
 
     SetTitle(title);
 }
