@@ -2534,8 +2534,8 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max_literal = 10;
     def->mode = comAdvanced;
-    // Default is half the external perimeter width.
-    def->set_default_value(new ConfigOptionFloatOrPercent(50, true));
+    // Default is 1mm. Support with too small spacing may touch the object and difficult to remove.
+    def->set_default_value(new ConfigOptionFloatOrPercent(1, false));
 
     def = this->add("support_material_angle", coFloat);
     def->label = L("Pattern angle");

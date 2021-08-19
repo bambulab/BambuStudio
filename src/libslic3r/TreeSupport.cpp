@@ -14,7 +14,12 @@
 #ifndef M_PI
 #define M_PI 3.1415926535897932384626433832795
 #endif
-
+#ifndef SIGN
+#define SIGN(x) (x>=0?1:-1)
+#endif
+#ifndef SQ
+#define SQ(x) ((x)*(x))
+#endif
 #define TAU (2.0 * M_PI)
 #define NO_INDEX (std::numeric_limits<unsigned int>::max())
 
@@ -115,16 +120,10 @@ static  std::string get_svg_filename(int layer_nr, std::string tag = "")
     }
 
     int rand_num = rand() % 1000000;
+    makedir("./SVG");
     std::string prefix = "./SVG/bbl_ts_";
     std::string suffix = ".svg";
-    char buf1[256];
-    char buf2[256];
-
-    memset(buf1, sizeof(buf1), 0);
-    memset(buf2, sizeof(buf2), 0);
-    itoa(layer_nr, buf1, 10);
-    itoa(rand_num, buf2, 10);
-    return prefix + tag + "_" + buf1 + "_" + buf2 + suffix;
+    return prefix + tag + "_" + std::to_string(layer_nr) /*+ "_" + std::to_string(rand_num)*/ + suffix;
 }
 
 static void draw_avoidance_and_nodes_to_svg
@@ -132,6 +131,7 @@ static void draw_avoidance_and_nodes_to_svg
     int layer_nr,
     const ExPolygons &overhangs,
     const ExPolygons &overhangs_after_offset,
+    const ExPolygons &outlines_below,
     const std::vector<TreeSupport::Node*> &layer_nodes,
     const std::vector<TreeSupport::Node*> &lower_layer_nodes,
     BoundingBox bbox
@@ -164,6 +164,7 @@ static void draw_avoidance_and_nodes_to_svg
     // draw overhang areas
     svg.draw(union_ex(overhangs), "blue");
     svg.draw_outline(union_ex(overhangs_after_offset), "red");
+    svg.draw_outline(outlines_below, "yellow");
 
     // draw layer nodes
     Points layer_pts;
@@ -338,10 +339,13 @@ static unsigned int move_inside_expoly(const ExPolygon &polygon, Point& from, do
  */
 static bool move_inside_expolys(const ExPolygons& polygons, Point& from, double distance, double max_move_distance)
 {
+    Point from0 = from;
     Point ret = from;
+    std::vector<Point> valid_pts;
     double bestDist2 = std::numeric_limits<double>::max();
     unsigned int bestPoly = NO_INDEX;
     bool is_already_on_correct_side_of_boundary = false; // whether [from] is already on the right side of the boundary
+    Point inward_dir;
     for (unsigned int poly_idx = 0; poly_idx < polygons.size(); poly_idx++)
     {
         const ExPolygon poly = polygons[poly_idx];
@@ -352,14 +356,14 @@ static bool move_inside_expolys(const ExPolygons& polygons, Point& from, double 
         // because we compare with vsize2_with_unscale here (no division by zero), we also need to compare by vsize2_with_unscale inside the loop
         // to avoid integer rounding edge cases
         bool projected_p_beyond_prev_segment = dot_with_unscale(p1 - p0, from - p0) >= vsize2_with_unscale(p1 - p0);
-        for(const Point& p2 : poly.contour.points)
+        for(const Point p2 : poly.contour.points)
         {
             // X = A + Normal(B-A) * (((B-A) dot_with_unscale (P-A)) / VSize(B-A));
             //   = A +       (B-A) *  ((B-A) dot_with_unscale (P-A)) / VSize2(B-A);
             // X = P projected on AB
-            const Point& a = p1;
-            const Point& b = p2;
-            const Point& p = from;
+            Point a = p1;
+            Point b = p2;
+            Point p = from;
             Point ab = b - a;
             Point ap = p - a;
             double ab_length2 = vsize2_with_unscale(ab);
@@ -384,10 +388,12 @@ static bool move_inside_expolys(const ExPolygons& polygons, Point& from, double 
                         if (distance == 0) { ret = x; }
                         else
                         {
-                            Point inward_dir = turn90_ccw(normal(ab, 10.0) + normal(p1 - p0, 10.0)); // inward direction irrespective of sign of [distance]
+                            inward_dir = turn90_ccw(normal(ab, 10.0) + normal(p1 - p0, 10.0)); // inward direction irrespective of sign of [distance]
                             // MM2INT(10.0) to retain precision for the eventual normalization
                             ret = x + normal(inward_dir, scale_(distance));
                             is_already_on_correct_side_of_boundary = dot_with_unscale(inward_dir, p - x) * distance >= 0;
+                            if (is_already_on_correct_side_of_boundary && dist2 < distance * distance)
+                                valid_pts.push_back(ret-from0);
                         }
                     }
                 }
@@ -419,9 +425,11 @@ static bool move_inside_expolys(const ExPolygons& polygons, Point& from, double 
                     if (distance == 0) { ret = x; }
                     else
                     {
-                        Point inward_dir = turn90_ccw(normal(ab, scale_(distance))); // inward or outward depending on the sign of [distance]
+                        inward_dir = turn90_ccw(normal(ab, scale_(distance))); // inward or outward depending on the sign of [distance]
                         ret = x + inward_dir;
                         is_already_on_correct_side_of_boundary = dot_with_unscale(inward_dir, p - x) >= 0;
+                        if (is_already_on_correct_side_of_boundary && dist2<distance*distance)
+                            valid_pts.push_back(ret-from0);
                     }
                 }
             }
@@ -429,6 +437,15 @@ static bool move_inside_expolys(const ExPolygons& polygons, Point& from, double 
             p1 = p2;
         }
     }
+    
+    //if (valid_pts.size() > 1) {
+    //    std::sort(valid_pts.begin(), valid_pts.end());
+    //    Point v_combine = valid_pts[0] + valid_pts[1];
+    //    if(vsize2_with_unscale(v_combine)<distance*distance)
+    //        v_combine = normal(v_combine, scale_(distance));
+    //    ret = v_combine + from0;
+    //}
+
     if (is_already_on_correct_side_of_boundary) // when the best point is already inside and we're moving inside, or when the best point is already outside and we're moving outside
     {
         if (bestDist2 < distance * distance)
@@ -483,6 +500,51 @@ static bool is_inside_ex(const ExPolygons &polygons, const Point &pt)
     }
 
     return false;
+}
+
+Point projection_onto_ex(const ExPolygons& polygons, Point from)
+{
+    Point projected_pt;
+    double min_dist = std::numeric_limits<double>::max();
+    for (auto poly : polygons) {
+        Point p = from.projection_onto(poly.contour);
+        double dist = (from - p).cast<double>().squaredNorm();
+        if (dist < min_dist) {
+            projected_pt = p;
+            min_dist = dist;
+        }
+    }
+    return projected_pt;
+}
+
+static bool move_out_expolys(const ExPolygons& polygons, Point& from, double distance, double max_move_distance)
+{
+    Point from0 = from;
+    ExPolygons polys_dilated = union_ex(offset_ex(polygons, scale_(distance)));
+    Point pt = projection_onto_ex(polys_dilated, from);// find_closest_ex(from, polys_dilated);
+    Point outward_dir = pt - from;
+    Point pt_max = from + normal(outward_dir, scale_(max_move_distance));
+    double dist2 = vsize2_with_unscale(outward_dir);
+    if (dist2 > SQ(max_move_distance))
+        pt = pt_max;
+    // case 5: already outside and far enough, no need to move
+    if (!is_inside_ex(polys_dilated, from))
+        return true;
+    else if (!is_inside_ex(polygons, from)) {
+        // case 4: already outside but not far enough
+        from = pt;
+        return true;
+    }
+    else {
+        bool pt_max_in_poly = is_inside_ex(polygons, pt_max);
+        if (!pt_max_in_poly) {
+            from = pt_max;
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 }
 
 static Point bounding_box_middle(const BoundingBox &bbox)
@@ -885,7 +947,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
     const size_t tip_layers = branch_radius / layer_height; //The number of layers to be shrinking the circle to create a tip. This produces a 45 degree angle.
     const double diameter_angle_scale_factor = sin(config.tree_support_branch_diameter_angle.value * M_PI / 180.) * layer_height / branch_radius; //Scale factor per layer to produce the desired angle.
     const coordf_t radius_sample_resolution = m_ts_data->m_radius_sample_resolution;
-    const bool support_rests_on_model = !config.support_material_buildplate_only.value;
+    const bool support_on_buildplate_only = config.support_material_buildplate_only.value;
 
     std::unordered_set<Node*> to_free_node_set;
     for (size_t layer_nr = contact_nodes.size() - 1; layer_nr > 0; layer_nr--) //Skip layer 0, since we can't drop down the vertices there.
@@ -911,7 +973,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
         {
             const Node& node = *p_node;
 
-            if (!support_rests_on_model && !node.to_buildplate) //Can't rest on model and unable to reach the build plate. Then we must drop the node and leave parts unsupported.
+            if (support_on_buildplate_only && !node.to_buildplate) //Can't rest on model and unable to reach the build plate. Then we must drop the node and leave parts unsupported.
             {
                 unsupported_branch_leaves.push_front({ layer_nr, p_node });
                 continue;
@@ -969,6 +1031,10 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
         coordf_t branch_radius_temp = 0;
         coordf_t max_y = std::numeric_limits<coordf_t>::min();
+
+        BoundingBox bbox = m_object.bounding_box();
+        bbox.offset(branch_radius * 5);
+        draw_layer_mst(layer_nr, spanning_trees, bbox);
 #endif
         for (size_t group_index = 0; group_index < nodes_per_part.size(); group_index++)
         {
@@ -1000,18 +1066,20 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                              return branch_radius * (node.distance_to_top + 1) / tip_layers;
                         }
                     }();
+
+                    auto avoid_layer = m_ts_data->get_avoidance(branch_radius_node, layer_nr - 1);
                     if (group_index == 0)
                     {
                         //Avoid collisions.
                         const coordf_t max_move_between_samples = max_move_distance + radius_sample_resolution + EPSILON; //100 micron extra for rounding errors.
-                        move_outside_expolys(m_ts_data->get_avoidance(branch_radius_node, layer_nr - 1), next_position, radius_sample_resolution + EPSILON, max_move_between_samples);
+                        move_outside_expolys(avoid_layer, next_position, radius_sample_resolution + EPSILON, max_move_between_samples);
                     }
 
                     Node* neighbour = nodes_per_part[group_index][neighbours[0]];
                     size_t new_distance_to_top = std::max(node.distance_to_top, neighbour->distance_to_top) + 1;
                     size_t new_support_roof_layers_below = std::max(node.support_roof_layers_below, neighbour->support_roof_layers_below) - 1;
 
-                    const bool to_buildplate = !is_inside_ex(m_ts_data->get_avoidance(branch_radius_node, layer_nr - 1), next_position);
+                    const bool to_buildplate = !is_inside_ex(avoid_layer, next_position);
                     Node* next_node = new Node(next_position, new_distance_to_top, node.skin_direction, new_support_roof_layers_below, to_buildplate, p_node);
                     insert_dropped_node(contact_nodes[layer_nr - 1], next_node); //Insert the node, resolving conflicts of the two colliding nodes.
 
@@ -1065,7 +1133,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                     Point to_outside = find_closest_ex(node.position, m_ts_data->get_collision(0, layer_nr));
                     if (vsize2_with_unscale(node.position - to_outside) >= branch_radius_node * branch_radius_node) //Too far inside.
                     {
-                        if (! support_rests_on_model)
+                        if (support_on_buildplate_only)
                         {
                             unsupported_branch_leaves.push_front({ layer_nr, p_node });
                         }
@@ -1073,6 +1141,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                     }
                 }
                 Point next_layer_vertex = node.position;
+                Point move_to_neighbor_center;
                 const std::vector<Point> neighbours = mst.adjacent_nodes(node.position);
                 if (neighbours.size() > 1 || (neighbours.size() == 1 && vsize2_with_unscale(neighbours[0] - node.position) >= max_move_distance2)) //Only nodes that aren't about to collapse.
                 {
@@ -1108,14 +1177,28 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
 
                     if(vsize2_with_unscale(sum_direction) <= max_move_distance2)
                     {
-                        next_layer_vertex += sum_direction;
+                        move_to_neighbor_center = sum_direction;
                     }
                     else
                     {
-                        Point movement = normal(sum_direction, scale_(max_move_distance));
-                        next_layer_vertex += movement;
+                        move_to_neighbor_center = normal(sum_direction, scale_(max_move_distance));
                     }
                 }
+
+                Point to_outside = find_closest_ex(node.position, m_ts_data->m_layer_outlines_below[layer_nr]);
+                Point movement = to_outside - node.position;
+                double movelength2 = vsize2_with_unscale(movement);
+                if (movelength2 > max_move_distance2) {
+                    if (is_inside_ex(m_ts_data->m_layer_outlines_below[layer_nr], node.position))
+                        movement = normal(movement, scale_(max_move_distance));
+                    else
+                        movement = Point(0, 0);  // point is already outside contour, no need to move
+                }
+                // move to the averaged direction of neighbor center and contour edge
+                movement = movement*0.5 + move_to_neighbor_center*0.5;
+                if(vsize2_with_unscale(movement)>max_move_distance2)
+                    movement = normal(movement, scale_(max_move_distance));
+                next_layer_vertex += movement;
 
                 const coordf_t branch_radius_node = calc_branch_radius(branch_radius, node.distance_to_top, tip_layers, diameter_angle_scale_factor);
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
@@ -1124,21 +1207,22 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                     branch_radius_temp = branch_radius_node;
                 }
 #endif
+                auto avoid_layer = m_ts_data->get_avoidance(branch_radius_node, layer_nr - 1);
                 if (group_index == 0)
                 {
                     //Avoid collisions.
                     const coordf_t max_move_between_samples = max_move_distance + radius_sample_resolution + EPSILON; //100 micron extra for rounding errors.
-                    bool is_outside = move_outside_expolys(m_ts_data->get_avoidance(branch_radius_node, layer_nr - 1), next_layer_vertex, radius_sample_resolution + EPSILON, max_move_between_samples);
+                    bool is_outside = move_out_expolys(avoid_layer, next_layer_vertex, radius_sample_resolution + EPSILON, max_move_between_samples);
                     if (!is_outside) {
                         Point candidate_vertex = node.position;
-                        is_outside = move_outside_expolys(m_ts_data->get_avoidance(branch_radius_node, layer_nr - 1), candidate_vertex, radius_sample_resolution + EPSILON, max_move_between_samples);
+                        is_outside = move_out_expolys(avoid_layer, candidate_vertex, radius_sample_resolution + EPSILON, max_move_between_samples);
                         if (is_outside) {
                             next_layer_vertex = candidate_vertex;
                         }
                     }
                 }
 
-                const bool to_buildplate = !is_inside_ex(m_ts_data->get_avoidance(branch_radius_node, layer_nr - 1), next_layer_vertex);
+                const bool to_buildplate = !is_inside_ex(avoid_layer, next_layer_vertex);
                 Node* next_node = new Node(next_layer_vertex, node.distance_to_top + 1, node.skin_direction, node.support_roof_layers_below - 1, to_buildplate, p_node);
                 insert_dropped_node(contact_nodes[layer_nr - 1], next_node);
             }
@@ -1147,7 +1231,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
         BoundingBox bbox_temp = m_object.bounding_box();
         bbox_temp.offset(branch_radius * 5);
-        draw_avoidance_and_nodes_to_svg(layer_nr, m_ts_data->get_avoidance(0, layer_nr - 1), m_ts_data->get_avoidance(branch_radius_temp, layer_nr - 1),
+        draw_avoidance_and_nodes_to_svg(layer_nr, m_ts_data->get_avoidance(0, layer_nr - 1), m_ts_data->get_avoidance(branch_radius_temp, layer_nr - 1), m_ts_data->m_layer_outlines_below[layer_nr-1],
             contact_nodes[layer_nr], contact_nodes[layer_nr - 1], bbox_temp);
 #endif
 
@@ -1201,7 +1285,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
     for (auto x = -rotated_dims(0); x < rotated_dims(0); x += point_spread) {
         for (auto y = -rotated_dims(1); y < rotated_dims(1); y += point_spread) {
             Point pt(x, y);
-            pt.rotate(rotate_angle);
+            pt.rotate(cos_angle, sin_angle);
             pt += center;
             if (bounding_box.contains(pt)) {
                 grid_points.push_back(pt);
@@ -1291,6 +1375,11 @@ TreeSupportData::TreeSupportData(const PrintObject &object, coordf_t xy_distance
         for (const ExPolygon& poly : layer->lslices) {
             poly.simplify(scale_(m_radius_sample_resolution), &outline);
         }
+
+        if (layer_idx == 0)
+            m_layer_outlines_below.push_back(outline);
+        else
+            m_layer_outlines_below.push_back(union_ex(m_layer_outlines_below.end()[-1], outline));
     }
 }
 
@@ -1370,7 +1459,7 @@ const ExPolygons& TreeSupportData::calculate_avoidance(const RadiusLayerPair& ke
     }
 
     // Avoidance for a given layer depends on all layers beneath it so could have very deep recursion depths if
-    // called at high layer heights. We can limit the reqursion depth to N by checking if the if the layer N
+    // called at high layer heights. We can limit the reqursion depth to N by checking if the layer N
     // below the current one exists and if not, forcing the calculation of that layer. This may cause another recursion
     // if the layer at 2N below the current one but we won't exceed our limit unless there are N*N uncalculated layers
     // below our current one.
@@ -1392,4 +1481,4 @@ const ExPolygons& TreeSupportData::calculate_avoidance(const RadiusLayerPair& ke
     return ret.first->second;
 }
 
-} //namespace cura
+} //namespace Slic3r

@@ -14,6 +14,8 @@
 #ifdef WIN32
 	#include <windows.h>
 	#include <psapi.h>
+	#include <direct.h>  // for mkdir
+	#include <io.h>  // for _access
 #else
 	#include <unistd.h>
 	#include <sys/types.h>
@@ -1150,6 +1152,20 @@ size_t total_physical_memory()
 #else
 	return 0L;			// Unknown OS.
 #endif
+}
+
+bool makedir(const std::string path) {
+	// if dir doesn't exist, make it
+#ifdef WIN32		
+	if (_access(path.c_str(), 0) != 0)
+		return _mkdir(path.c_str()) == 0;
+#elif __linux__
+	if (opendir(path.c_str()) == NULL) {
+		return mkdir(path.c_str(), 0777) == 0;
+	}
+#else  // I don't know how to make dir on Mac...
+#endif
+	return true;  // dir already exists
 }
 
 }; // namespace Slic3r

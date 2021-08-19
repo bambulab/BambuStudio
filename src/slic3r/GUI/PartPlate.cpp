@@ -115,7 +115,7 @@ void PartPlate::calc_bounding_boexes() const {
 	double half_x = bounding_box->size().x() * GRABBER_X_FACTOR;
 	double half_y = bounding_box->size().y() * 1.0f * GRABBER_Y_FACTOR;
 	double half_z = GRABBER_Z_VALUE;
-	Vec3d center(bounding_box->center().x(), -half_y, GROUND_Z);
+	Vec3d center(bounding_box->center().x(), bounding_box->min(1) -half_y, GROUND_Z);
 	m_grabber_box.min = Vec3d(center.x() - half_x, center.y() - half_y, center.z() - half_z);
 	m_grabber_box.max = Vec3d(center.x() + half_x, center.y() + half_y, center.z() + half_z);
 	m_grabber_box.defined = true;
@@ -550,8 +550,8 @@ Vec3d PartPlate::get_center_origin()
 {
 	Vec3d origin;
 
-	origin(0) = m_origin.x() + m_width / 2;
-	origin(1) = m_origin.y() + m_depth / 2;
+	origin(0) = (m_bounding_box.min(0) + m_bounding_box.max(0)) / 2;//m_origin.x() + m_width / 2;
+	origin(1) = (m_bounding_box.min(0) + m_bounding_box.max(0)) / 2; //m_origin.y() + m_depth / 2;
 	origin(2) = m_origin.z();
 
 	return origin;

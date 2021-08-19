@@ -639,6 +639,7 @@ int GLVolumeCollection::load_object_volume(
     this->volumes.emplace_back(new GLVolume(color));
     GLVolume& v = *this->volumes.back();
     v.set_color(color_from_model_volume(*model_volume));
+    v.name = model_volume->name;
 #if ENABLE_SMOOTH_NORMALS
     v.indexed_vertex_array.load_mesh(mesh, true);
 #else
@@ -978,10 +979,18 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
             }
             volume->is_outside = state != BuildVolume::ObjectState::Inside;
             if (volume->printable) {
-                if (overall_state == ModelInstancePVS_Inside && volume->is_outside)
+                if (overall_state == ModelInstancePVS_Inside && volume->is_outside) {
                     overall_state = ModelInstancePVS_Fully_Outside;
+                    BoundingBox bbox = plate_build_volume.bounding_box();
+                    BOOST_LOG_TRIVIAL(debug) << "model " << volume->name << " is fully outside of bed. bbox min: " << bb.min(0) << ", " << bb.min(1) << ", " << bb.min(2) << "; max: " << bb.max(0) << ", " << bb.max(1) << ", " << bb.max(2)
+                        << " print_volume limit: " << bbox.min(0) << ", " << bbox.min(1) << ", " << bbox.min(2) << "; max: " << bbox.max(0) << ", " << bbox.max(1) << ", " << bbox.max(2);
+                }
+
                 if (overall_state == ModelInstancePVS_Fully_Outside && volume->is_outside && state == BuildVolume::ObjectState::Colliding)
+                {
                     overall_state = ModelInstancePVS_Partly_Outside;
+                    BOOST_LOG_TRIVIAL(debug) << "model " << volume->name << " is partially outside of bed";
+                }
                 contained_min_one |= !volume->is_outside;
             }
         }

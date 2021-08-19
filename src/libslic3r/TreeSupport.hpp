@@ -134,6 +134,9 @@ private:
      */
     std::vector<ExPolygons> m_layer_outlines;
 
+    // union contours of all layers below
+    std::vector<ExPolygons> m_layer_outlines_below;
+
     /*!
      * \brief Caches for the collision, avoidance and internal model polygons
      * at given radius and layer indices.

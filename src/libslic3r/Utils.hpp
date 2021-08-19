@@ -58,6 +58,9 @@ void set_data_dir(const std::string &path);
 // Return a full path to the GUI resource files.
 const std::string& data_dir();
 
+// BBL: true: succeed create or dir exists; false: fail to create
+bool makedir(const std::string path);
+
 // Format an output path for debugging purposes.
 // Writes out the output path prefix to the console for the first time the function is called,
 // so the user knows where to search for the debugging output.

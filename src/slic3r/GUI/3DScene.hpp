@@ -248,6 +248,7 @@ private:
 
 class GLVolume {
 public:
+    std::string name;
     static const std::array<float, 4> SELECTED_COLOR;
     static const std::array<float, 4> HOVER_SELECT_COLOR;
     static const std::array<float, 4> HOVER_DESELECT_COLOR;
