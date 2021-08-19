@@ -224,6 +224,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/AccountManager.cpp
     Utils/Http.cpp
     Utils/Http.hpp
+    Utils/Sftp.cpp
+    Utils/Sftp.hpp
     Utils/FixModelByWin10.cpp
     Utils/FixModelByWin10.hpp
     Utils/OctoPrint.cpp

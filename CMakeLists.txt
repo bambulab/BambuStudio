@@ -396,6 +396,7 @@ find_package(TBB REQUIRED)
 # The Intel TBB library will use the std::exception_ptr feature of C++11.
 # add_definitions(-DTBB_USE_CAPTURED_EXCEPTION=0)
 
+
 find_package(CURL REQUIRED)
 
 add_library(libcurl INTERFACE)
@@ -589,6 +590,8 @@ function(prusaslicer_copy_dlls target config postfix output_dlls)
             "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqtt3c.dll"
             "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqtt3cs.dll"
             "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqttpp3.dll"
+            "${CMAKE_PREFIX_PATH}/bin/zlibd.dll"
+            "${CMAKE_PREFIX_PATH}/bin/libcurl-d.dll"
             DESTINATION ${_out_dir})
     elseif(${config} STREQUAL "Release")
         file(COPY
@@ -597,6 +600,8 @@ function(prusaslicer_copy_dlls target config postfix output_dlls)
             "${CMAKE_PREFIX_PATH}/bin/paho-mqtt3c.dll"
             "${CMAKE_PREFIX_PATH}/bin/paho-mqtt3cs.dll"
             "${CMAKE_PREFIX_PATH}/bin/paho-mqttpp3.dll"
+            "${CMAKE_PREFIX_PATH}/bin/zlib.dll"
+            "${CMAKE_PREFIX_PATH}/bin/libcurl.dll"
             DESTINATION ${_out_dir})
     endif()
      
@@ -615,6 +620,8 @@ function(prusaslicer_copy_dlls target config postfix output_dlls)
         ${_out_dir}/paho-mqtt3c.dll
         ${_out_dir}/paho-mqtt3cs.dll
         ${_out_dir}/paho-mqttpp3.dll
+        ${_out_dir}/libcurl.dll
+        ${_out_dir}/zlib.dll
         PARENT_SCOPE
     )
     
