@@ -102,6 +102,7 @@ namespace Slic3r {
             wxButton* btn_upgrade_firmware;
             wxButton* btn_run_gcode;
             wxButton* btn_abort_print;
+            wxStaticText* label_progress;
             wxButton* btn_select_gcode_file;
             wxButton* btn_clear_output_string;
             wxButton* btn_save_file;
@@ -229,7 +230,6 @@ namespace Slic3r {
             void init_push_info();
 
             int m_sequence_id = 2000;
-            int curl_upload(std::string srcFile, std::string dstFile, std::string ip);
             int publishGcode(std::string gcode);
             int callSystem(std::string cmd, std::string& output);
             int set_current_device_id();

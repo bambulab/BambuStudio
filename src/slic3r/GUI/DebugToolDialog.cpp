@@ -22,6 +22,7 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/array.hpp>
+#include <boost/format.hpp>
 
 #include "GUI.hpp"
 #include "GUI_App.hpp"
@@ -32,6 +33,7 @@
 #include "NotificationManager.hpp"
 #include "libslic3r/Time.hpp"
 #include "slic3r/Utils/Http.hpp"
+#include "slic3r/Utils/Sftp.hpp"
 #include "wxExtensions.hpp"
 #include <expat.h>
 
@@ -40,7 +42,10 @@ typedef pt::ptree JSON;
 namespace Slic3r {
 namespace GUI {
 
+    wxDECLARE_EVENT(EVT_PROGRESS, wxCommandEvent);
+
     wxDEFINE_EVENT(EVT_DEVICE_REPORT_MSG, SimpleEvent);
+    wxDEFINE_EVENT(EVT_PROGRESS, wxCommandEvent);
 
     std::string DebugToolDialog::_getNewLogFilename()
     {
@@ -272,6 +277,7 @@ namespace GUI {
         run_gcode_sizer->Add(txt_gcode_filename, 1, wxLEFT | wxRIGHT | wxEXPAND, SPACING);
         run_gcode_sizer->Add(btn_select_gcode_file, 0, wxALIGN_CENTRE_HORIZONTAL | wxLEFT, SPACING);
         run_gcode_sizer->Add(btn_abort_print, 0, wxALIGN_RIGHT | wxRIGHT, SPACING);
+        run_gcode_sizer->Add(label_progress, 0, wxALIGN_CENTRE_HORIZONTAL | wxLEFT, SPACING);
 
         top_sizer->Add(-1, 8);
         top_sizer->Add(user_sizer, 0, wxLEFT | wxRIGHT | wxEXPAND, 0);
@@ -437,6 +443,12 @@ void DebugToolDialog::init_upgrade()
 
 void DebugToolDialog::init_gcode_run_file()
 {
+    Bind(EVT_PROGRESS, [this](wxCommandEvent& evt) {
+        std::string text = "upload:";
+        text += std::to_string(evt.GetInt()) + "%";
+        this->label_progress->SetLabelText(text);
+        });
+
     btn_run_gcode = new wxButton(this, wxID_ANY, _L("Run Gcode"), wxDefaultPosition, wxSize(180, -1));
     btn_run_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         std::string filepath = txt_gcode_filename->GetValue().ToStdString();
@@ -452,23 +464,45 @@ void DebugToolDialog::init_gcode_run_file()
         std::string device = cb_device_list->GetValue().ToStdString();
         std::string ip_str = device.substr(0, device.find_first_of("("));
 
-        int result = this->curl_upload(filepath, filename, ip_str);
-        if (result < 0) {
-            wxMessageBox("Push Gcode Failed!");
-            return;
-        }
-        pt::ptree root, print;
-        print.put("sequence_id", m_sequence_id++);
-        print.put("command", "gcode_file");
-        print.put<std::string>("param", dstname);
-        root.put_child("print", print);
-        std::stringstream oss;
-        pt::write_json(oss, root);
-        std::string json_str = oss.str();
-        json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());
-        this->publish_json(json_str);
-        wxMessageBox("Run Gcode ...");
+        Sftp sftp = Sftp::upload(ip_str, dstname, filepath, "root", "root");
+        sftp.on_complete([this, filename, dstname](std::string body) {
+                /* boost::filesystem::file_size not right*/
+                std::string text = "upload:100%";
+                this->label_progress->SetLabelText(text);
+                BOOST_LOG_TRIVIAL(trace) << "transform gcode=" << filename << " ok!";
+                /* send json command */
+                pt::ptree root, print;
+                print.put("sequence_id", m_sequence_id++);
+                print.put("command", "gcode_file");
+                print.put<std::string>("param", dstname);
+                root.put_child("print", print);
+                std::stringstream oss;
+                pt::write_json(oss, root);
+                std::string json_str = oss.str();
+                json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());
+                int res = this->publish_json(json_str);
+                if (res == 0) {
+                    wxMessageBox("Run Gcode ...");
+                }
+            })
+            .on_error([this, filename](std::string error) {
+                BOOST_LOG_TRIVIAL(trace) << "transform gcode=" << filename << " error, error=" << error;
+                wxMessageBox("error:" + error);
+                })
+                .on_progress([this](Slic3r::Sftp::Progress progress, bool& cancel) {
+                    BOOST_LOG_TRIVIAL(trace) << " progress:" << progress.ulnow << "/" << progress.ultotal;
+                    int percent = 0;
+                    if (progress.ultotal != 0) {
+                        percent = progress.ulnow * 100 / progress.ultotal;
+                    }
+
+                    auto evt = new wxCommandEvent(EVT_PROGRESS, this->GetId());
+                    evt->SetInt(percent);
+                    wxQueueEvent(this, evt);
+            })
+            .perform();
         });
+    label_progress = new wxStaticText(this, wxID_ANY, _L("upload: 0/0"), wxDefaultPosition, wxSize(160, -1));
 
     btn_select_gcode_file = new wxButton(this, wxID_ANY, _L("Select File"), wxDefaultPosition, wxDefaultSize);
     btn_select_gcode_file->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
@@ -915,16 +949,6 @@ int DebugToolDialog::append_output_string_info(std::string line)
     catch (std::exception& e) {
         ;
     }
-    return 0;
-}
-
-int DebugToolDialog::curl_upload(std::string srcFile, std::string dstFile, std::string ip)
-{
-    std::string cmd = CURL_FILE + " -k " + "sftp://" + ip + ":/userdata/" + dstFile + " --user \"root:root\" " +
-        " -T \"" + srcFile + "\"";
-    std::string out;
-    int result = callSystem(cmd, out);
-    BOOST_LOG_TRIVIAL(trace) << "cmd = " << cmd << out;
     return 0;
 }
 
