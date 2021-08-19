@@ -27,8 +27,10 @@ protected:
 private:
     bool on_init() override;
 
-    void update_model_object() const override;
-    void update_from_model_object() override;
+    //BBS:remove const
+    void update_model_object() override;
+    //BBS: add logic to distinguish the first_time_update and later_update
+    void update_from_model_object(bool first_update = false) override;
 
     void on_opening() override {}
     void on_shutdown() override;

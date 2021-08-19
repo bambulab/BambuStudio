@@ -210,8 +210,8 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
 }
 
 
-
-void GLGizmoSeam::update_model_object() const
+//BBS: remove const
+void GLGizmoSeam::update_model_object()
 {
     bool updated = false;
     ModelObject* mo = m_c->selection_info()->model_object();
@@ -232,8 +232,8 @@ void GLGizmoSeam::update_model_object() const
 }
 
 
-
-void GLGizmoSeam::update_from_model_object()
+//BBS: add logic to distinguish the first_time_update and later_update
+void GLGizmoSeam::update_from_model_object(bool first_update)
 {
     wxBusyCursor wait;
 

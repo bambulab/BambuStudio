@@ -131,8 +131,9 @@ protected:
     void render_cursor() const;
     void render_cursor_circle() const;
     void render_cursor_sphere(const Transform3d& trafo) const;
-    virtual void update_model_object() const = 0;
-    virtual void update_from_model_object() = 0;
+    //BBS: add logic to distinguish the first_time_update and later_update
+    virtual void update_model_object() = 0;
+    virtual void update_from_model_object(bool first_update) = 0;
 
     virtual std::array<float, 4> get_cursor_sphere_left_button_color() const { return {0.f, 0.f, 1.f, 0.25f}; }
     virtual std::array<float, 4> get_cursor_sphere_right_button_color() const { return {1.f, 0.f, 0.f, 0.25f}; }

@@ -1,6 +1,9 @@
 #include "GLGizmoFdmSupports.hpp"
 
 #include "libslic3r/Model.hpp"
+//BBS
+#include "libslic3r/Layer.hpp"
+#include "libslic3r/Thread.hpp"
 
 //#include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
@@ -21,11 +24,43 @@ namespace Slic3r::GUI {
 
 void GLGizmoFdmSupports::on_shutdown()
 {
+    //BBS
+    //wait the thread
+    if (m_thread.joinable()) {
+        Print *print = m_print_instance.print_object->print();
+        if (print) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "cancel the print";
+            print->cancel();
+        }
+        //join the thread
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "try to join thread for 2000 ms";
+        auto ret = m_thread.try_join_for(boost::chrono::milliseconds(2000));
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "join thread returns "<<ret;
+    }
+
+    m_print_instance.print_object = NULL;
+    m_print_instance.model_instance = NULL;
+
     m_highlight_by_angle_threshold_deg = 0.f;
     m_parent.use_slope(false);
     m_parent.toggle_model_objects_visibility(true);
 }
 
+//BBS: add on_open
+void GLGizmoFdmSupports::on_opening()
+{
+    /*m_parent.set_slope_normal_angle(90.f - m_angle_threshold_deg);
+    if (! m_parent.is_using_slope()) {
+        m_parent.use_slope(true);
+        m_parent.set_as_dirty();
+    }*/
+    m_print_instance.print_object = NULL;
+    m_print_instance.model_instance = NULL;
+    m_edit_state = state_idle;
+
+    m_volume_ready = false;
+    m_volume_valid = false;
+}
 
 
 std::string GLGizmoFdmSupports::on_get_name() const
@@ -65,6 +100,9 @@ bool GLGizmoFdmSupports::on_init()
 
     m_desc["split_triangles"]   = _L("Split triangles");
     m_desc["on_overhangs_only"] = _L("On overhangs only");
+    //BBS: use overhang_threashold in the same view
+    m_desc["overhang_threshold"] = _L("Overhang Threshold Angle") + ": ";
+    memset(&m_print_instance, sizeof(m_print_instance), 0);
 
     return true;
 }
@@ -79,6 +117,14 @@ void GLGizmoFdmSupports::render_painter_gizmo() const
     glsafe(::glEnable(GL_DEPTH_TEST));
 
     render_triangles(selection);
+    //BBS: draw support volumes
+    if (m_volume_ready && m_support_volume && (m_edit_state != state_generating))
+    {
+        //m_support_volume->set_render_color();
+        ::glColor4f(0.f, 0.7f, 0.f, 0.7f);
+        m_support_volume->render();
+    }
+
     m_c->object_clipper()->render_cut();
     m_c->instances_hider()->render_cut();
     render_cursor();
@@ -90,6 +136,7 @@ void GLGizmoFdmSupports::render_painter_gizmo() const
 
 void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_limit)
 {
+    init_print_instance();
     if (! m_c->selection_info()->model_object())
         return;
 
@@ -100,6 +147,8 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     m_imgui->begin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
+    //BBS: add overhang slider
+    //const float overhang_slider_left = m_imgui->calc_text_size(m_desc.at("overhang_threshold")).x + m_imgui->scaled(1.5f);
     const float clipping_slider_left           = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x,
                                                           m_imgui->calc_text_size(m_desc.at("reset_direction")).x) + m_imgui->scaled(1.5f);
     const float cursor_slider_left             = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.f);
@@ -133,6 +182,8 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     total_text_max += caption_max + m_imgui->scaled(1.f);
     caption_max    += m_imgui->scaled(1.f);
 
+    //BBS: consider overhang 
+    //const float sliders_left_width = std::max(std::max(autoset_slider_left, smart_fill_slider_left), std::max(std::max(cursor_slider_left, clipping_slider_left), overhang_slider_left));
     const float sliders_left_width = std::max(std::max(autoset_slider_left, smart_fill_slider_left), std::max(cursor_slider_left, clipping_slider_left));
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     const float slider_icon_width  = m_imgui->get_slider_icon_size().x;
@@ -215,7 +266,6 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     }
     m_imgui->disabled_end();
 
-
     ImGui::Separator();
 
     ImGui::AlignTextToFramePadding();
@@ -226,6 +276,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     ImGui::PushItemWidth(tool_type_radio_brush);
     if (m_imgui->radio_button(m_desc["tool_brush"], m_tool_type == ToolType::BRUSH))
         m_tool_type = ToolType::BRUSH;
+
 
     if (ImGui::IsItemHovered())
         m_imgui->tooltip(_L("Paints facets according to the chosen painting brush."), max_tooltip_width);
@@ -364,12 +415,43 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         m_parent.set_as_dirty();
     }
 
+    //BBS: add support preview button logic
+    ImGui::SameLine(window_width - button_width);
+    if (m_edit_state == state_idle)
+    {
+        if (m_imgui->button(_L("Support Preview"))) {
+            std::unique_lock<std::mutex> lck(m_mutex);
+            m_edit_state = state_generating;
+            lck.unlock();
+
+            update_support_volumes();    
+            m_generate_count = 0;                
+        }
+    }
+    else if (m_edit_state == state_generating)
+    {
+        if (m_imgui->button(_L(" Generating ... "))) {
+            m_generate_count++;
+        }
+    }
+    else
+    {
+        if (!m_volume_ready)
+            generate_support_volume();
+        if (m_imgui->button(_L(" Close Preview  "))) {
+            std::unique_lock<std::mutex> lck(m_mutex);
+            m_edit_state = state_idle;
+            m_volume_ready = false;
+            lck.unlock();
+        }
+    }
+
     m_imgui->end();
 }
 
 
-
-void GLGizmoFdmSupports::select_facets_by_angle(float threshold_deg, bool block)
+//BBS: remove the select facets by angle
+/*void GLGizmoFdmSupports::select_facets_by_angle(float threshold_deg, bool block)
 {
     float threshold = (float(M_PI)/180.f)*threshold_deg;
     const Selection& selection = m_parent.get_selection();
@@ -405,11 +487,10 @@ void GLGizmoFdmSupports::select_facets_by_angle(float threshold_deg, bool block)
                                                     : _L("Add supports by angle"));
     update_model_object();
     m_parent.set_as_dirty();
-}
+}*/
 
-
-
-void GLGizmoFdmSupports::update_model_object() const
+//BBS: remove const
+void GLGizmoFdmSupports::update_model_object()
 {
     bool updated = false;
     ModelObject* mo = m_c->selection_info()->model_object();
@@ -427,16 +508,20 @@ void GLGizmoFdmSupports::update_model_object() const
 
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
     }
+
+    //BBS: invalid volume_support status
+    invalid_support_volumes(true);
 }
 
-
-
-void GLGizmoFdmSupports::update_from_model_object()
+//BBS
+void GLGizmoFdmSupports::update_from_model_object(bool first_update)
 {
     wxBusyCursor wait;
 
     const ModelObject* mo = m_c->selection_info()->model_object();
     m_triangle_selectors.clear();
+    //BBS: add timestamp logic
+    m_volume_timestamps.clear();
 
     int volume_id = -1;
     for (const ModelVolume* mv : mo->volumes) {
@@ -452,10 +537,14 @@ void GLGizmoFdmSupports::update_from_model_object()
         // Reset of TriangleSelector is done inside TriangleSelectorGUI's constructor, so we don't need it to perform it again in deserialize().
         m_triangle_selectors.back()->deserialize(mv->supported_facets.get_data(), false);
         m_triangle_selectors.back()->request_update_render_data();
+
+        //BBS: add timestamp logic
+        m_volume_timestamps.emplace_back(mv->supported_facets.timestamp());
     }
+
+    //BBS: invalid volume_support status
+    invalid_support_volumes(true);
 }
-
-
 
 PainterGizmoType GLGizmoFdmSupports::get_painter_type() const
 {
@@ -474,6 +563,272 @@ wxString GLGizmoFdmSupports::handle_snapshot_action_name(bool shift_down, GLGizm
             action_name = _L("Block supports");
     }
     return action_name;
+}
+
+//BBS
+void GLGizmoFdmSupports::init_print_instance()
+{
+    const PrintObject* print_object = NULL;
+    PrintInstance print_instance = { 0 };
+    const Print *print = m_parent.fff_print();
+
+    if (!m_c->selection_info() || (m_print_instance.print_object))
+    {
+        //no selection or already got a print instance before
+        return;
+    }
+    const ModelObject* model_object = m_c->selection_info()->model_object();
+    int instance_index = m_c->selection_info()->get_active_instance();
+    const ModelInstance* model_instance = model_object->instances[instance_index];
+
+    //check the print
+    if (!print)
+    {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",print invalid\n";
+        return;
+    }
+
+    for (const PrintObject* object : print->objects())
+    {
+        if (object->model_object()->id() == model_object->id())
+        {
+            BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ",found a PrintObject, id is" << model_object->id().id;
+            print_object = object;
+            break;
+        }
+    }
+
+    //check the pring object
+    if (!print_object)
+    {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",can not find a PrintObject\n";
+        return;
+    }
+
+    //find the print instance
+    for (const PrintInstance &instance : print_object->instances())
+    {
+        if (instance.model_instance->id() == model_instance->id())
+        {
+            BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ",found a PrintInstance, id is" << model_instance->id().id;
+            m_print_instance = instance;
+            break;
+        }
+    }
+
+    //check the pring object
+    if (!m_print_instance.print_object)
+    {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",can not find a PrintInstance\n";
+        return;
+    }
+
+    const PrintObjectConfig& config = m_print_instance.print_object->config();
+    m_angle_threshold_deg = config.support_material_angle;
+    m_is_tree_support = config.support_material.value &&
+        (config.support_type.value == stTreeAuto || config.support_type.value == stTree);
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",get support_material_angle "<< m_angle_threshold_deg<<", is_tree "<<m_is_tree_support;
+
+    return;
+}
+
+void GLGizmoFdmSupports::invalid_support_volumes(bool invalid_step)
+{
+    std::unique_lock<std::mutex> lck(m_mutex);
+    m_volume_valid = false;
+
+    if ((invalid_step) && (m_edit_state == state_generating) && m_print_instance.print_object)
+    {
+        Print *print = m_print_instance.print_object->print();
+        if (print) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "cancel the print";
+            print->cancel();
+        }
+    }
+    m_edit_state = state_idle;
+    lck.unlock();
+
+    return;
+}
+
+bool GLGizmoFdmSupports::need_regenerate_support_volumes()
+{
+    if (!m_support_volume)
+        return true;
+
+    const ModelObject* mo = m_c->selection_info()->model_object();
+
+    int volume_id = -1;
+    for (const ModelVolume* mv : mo->volumes) {
+        if (! mv->is_model_part())
+            continue;
+
+        ++volume_id;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",volume_id "<<volume_id<<", record_timestamp "<< m_volume_timestamps[volume_id]
+                <<", current_timestamp "<<mv->supported_facets.timestamp();
+        if (m_volume_timestamps[volume_id] != mv->supported_facets.timestamp())
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void GLGizmoFdmSupports::update_support_volumes()
+{
+    //PrintInstance m_print_instance = get_current_print_instance();
+
+    if ((!m_print_instance.print_object))
+    {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",invalid param, m_volume_ready="<< m_volume_ready;
+        return;
+    }
+
+    if (m_volume_valid || !need_regenerate_support_volumes())
+    {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",no need to regenerate support volume, return directly";
+
+        std::unique_lock<std::mutex> lck(m_mutex);
+        m_volume_ready = true;
+        m_volume_valid = true;
+        m_edit_state = state_ready;
+        lck.unlock();
+        return;
+    }
+
+    //generate_support_preview in async mode
+    std::unique_lock<std::mutex> lck(m_mutex);
+    m_volume_ready = false;
+    //destroy previous support volume
+    if (m_support_volume)
+    {
+        delete m_support_volume;
+        m_support_volume = NULL;
+    }
+    lck.unlock();
+
+    if (m_thread.joinable()) {
+        //join the thread in ui thread
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "try to join thread for 100 ms";
+        auto ret = m_thread.try_join_for(boost::chrono::milliseconds(100));
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "join thread returns "<<ret;
+    }
+    m_cancel = false;
+    m_thread = create_thread([this]{this->run_thread();});    
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",created thread to generate support volumes";
+    return;
+}
+
+void GLGizmoFdmSupports::run_thread()
+{
+    try {
+        Print *print = m_print_instance.print_object->print();
+
+        print->restart();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",before generate_support_preview";
+        m_print_instance.print_object->generate_support_preview();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",after generate_support_preview";
+
+        if (m_cancel)
+        {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", cancelled";
+            goto _finished;
+        }
+
+        std::unique_lock<std::mutex> lck(m_mutex);
+        m_support_volume = new GLVolume(0.5f, 0.5f, 0.5f, 0.5f);
+        //m_support_volume->is_support_part = true;
+        m_support_volume->force_native_color = true;
+        m_support_volume->set_render_color();
+        lck.unlock();
+
+        auto record_timestamp = [this]()
+        {
+            const ModelObject* mo = m_c->selection_info()->model_object();
+
+            int volume_id = -1;
+            for (const ModelVolume* mv : mo->volumes) {
+                if (!mv->is_model_part())
+                    continue;
+
+                ++volume_id;
+                m_volume_timestamps[volume_id] = mv->supported_facets.timestamp();
+            }
+        };
+
+        if (m_cancel)
+        {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", cancelled";
+            goto _finished;
+        }
+
+        if (m_is_tree_support)
+        {
+            if (!m_print_instance.print_object->tree_support_layers().size())
+            {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",no tree support layer found, update status to 100%\n";
+                print->set_status(100, L("Support material Generated"));
+                goto _finished;
+            }
+            for (const TreeSupportLayer *support_layer : m_print_instance.print_object->tree_support_layers())
+            {
+                for (const ExtrusionEntity *extrusion_entity : support_layer->support_fills.entities)
+                {
+                    _3DScene::extrusionentity_to_verts(extrusion_entity, float(support_layer->print_z), m_print_instance.shift, *m_support_volume);
+                }
+            }
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished extrusionentity_to_verts, update status to 100%";
+            print->set_status(100, L("Support material Generated"));
+        }
+        else
+        {
+            if (!m_print_instance.print_object->support_layers().size())
+            {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",no support layer found, update status to 100%\n";
+                print->set_status(100, L("Support material Generated"));
+                goto _finished;
+            }
+            for (const SupportLayer *support_layer : m_print_instance.print_object->support_layers())
+            {
+                for (const ExtrusionEntity *extrusion_entity : support_layer->support_fills.entities)
+                {
+                    _3DScene::extrusionentity_to_verts(extrusion_entity, float(support_layer->print_z), m_print_instance.shift, *m_support_volume);
+                }
+            }
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished extrusionentity_to_verts, update status to 100%";
+            print->set_status(100, L("Support material Generated"));
+        }
+        record_timestamp();
+    }
+    catch (...) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ",exception catched, mostly cancelling from gui!";
+        //wxTheApp->OnUnhandledException();
+    }
+
+_finished:
+    std::unique_lock<std::mutex> lck(m_mutex);
+    if (m_edit_state == state_generating)
+        m_edit_state = state_ready;
+
+    lck.unlock();
+    m_parent.set_as_dirty();
+    m_parent.post_event(SimpleEvent(wxEVT_PAINT));
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished all";
+    return;
+}
+
+void GLGizmoFdmSupports::generate_support_volume()
+{
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",before finalize_geometry";
+    m_support_volume->indexed_vertex_array.finalize_geometry(m_parent.is_initialized());
+
+    std::unique_lock<std::mutex> lck(m_mutex);
+    m_volume_ready = true;
+    m_volume_valid = true;
+    lck.unlock();
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",finished finalize_geometry";
 }
 
 } // namespace Slic3r::GUI

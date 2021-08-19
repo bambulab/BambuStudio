@@ -37,7 +37,9 @@ void GLGizmoPainterBase::set_painter_gizmo_data(const Selection& selection)
     if (mo && selection.is_from_single_instance()
      && (m_schedule_update || mo->id() != m_old_mo_id || mo->volumes.size() != m_old_volumes_size))
     {
-        update_from_model_object();
+        //BBS: add logic to distinguish the first_time_update and later_update
+        update_from_model_object(!m_schedule_update);
+
         m_old_mo_id = mo->id();
         m_old_volumes_size = mo->volumes.size();
         m_schedule_update = false;
