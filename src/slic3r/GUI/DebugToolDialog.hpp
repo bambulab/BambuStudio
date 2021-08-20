@@ -150,6 +150,8 @@ namespace Slic3r {
             wxButton* btn_get_curr_temp;
             wxButton* btn_get_curr_pos;
             wxButton* btn_get_version;
+            wxButton* btn_switch_t;
+            wxTextCtrl* txt_switch_val;
 
             wxButton* btn_send_gcode_1;
             wxButton* btn_send_gcode_2;
@@ -235,7 +237,7 @@ namespace Slic3r {
             int set_current_device_id();
             int get_current_device_id(std::string &dev_id);
             std::string get_device_list_item(DeviceInfo* info);
-
+            std::string switch_ams_gcode(std::string t);
             std::unique_ptr<wxTimer> m_timer;
             void on_timer(wxTimerEvent&);
             std::string _getNewLogFilename();

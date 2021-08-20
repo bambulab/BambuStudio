@@ -26,6 +26,7 @@
 
 #include "GUI.hpp"
 #include "GUI_App.hpp"
+#include "Plater.hpp"
 #include "MsgDialog.hpp"
 #include "I18N.hpp"
 #include "MainFrame.hpp"
@@ -35,6 +36,9 @@
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/Sftp.hpp"
 #include "wxExtensions.hpp"
+#include "libslic3r/PlaceholderParser.hpp"
+#include "libslic3r/Print.hpp"
+#include "libslic3r/PrintConfig.hpp"
 #include <expat.h>
 
 typedef pt::ptree JSON;
@@ -179,6 +183,13 @@ namespace GUI {
         btn_get_curr_pos = new wxButton(this, wxID_ANY, _L("Get Now Pos"), wxDefaultPosition, wxDefaultSize);
         btn_get_curr_pos->Disable();
 
+        btn_switch_t = new wxButton(this, wxID_ANY, _L("Swtich AMS:"), wxDefaultPosition, wxDefaultSize);
+        btn_switch_t->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+                std::string gcode = this->switch_ams_gcode(txt_switch_val->GetValue().ToStdString());
+                this->publishGcode(gcode);
+            });
+        txt_switch_val = new wxTextCtrl(this, wxID_ANY, _L("1"), wxDefaultPosition, wxDefaultSize);
+
         txt_gcode_filename = new wxTextCtrl(this, wxID_ANY, _L(""), wxDefaultPosition, wxDefaultSize);
         txt_set_hot_bed_temp = new wxTextCtrl(this, wxID_ANY, _L("60"), wxDefaultPosition, wxDefaultSize);
         txt_set_hot_end_temp = new wxTextCtrl(this, wxID_ANY, _L("200"), wxDefaultPosition, wxDefaultSize);
@@ -225,6 +236,8 @@ namespace GUI {
         temp_btns_sizer->Add(btn_xyz_abs_mode, 0, wxLEFT | wxALIGN_LEFT);
         temp_btns_sizer->Add(btn_return_home, 0, wxRIGHT | wxALIGN_RIGHT);
         temp_btns_sizer->Add(btn_get_version, 0, wxLEFT | wxALIGN_LEFT);
+        temp_btns_sizer->Add(btn_switch_t, 0, wxRIGHT | wxALIGN_RIGHT);
+        temp_btns_sizer->Add(txt_switch_val, 0, wxLEFT | wxALIGN_LEFT);
         temp_btns_sizer->Add(label_pos_x, 0, wxRIGHT | wxALIGN_RIGHT); 
         temp_btns_sizer->Add(label_pos_x_val, 0, wxLEFT | wxALIGN_LEFT);
         temp_btns_sizer->Add(label_pos_y, 0, wxRIGHT | wxALIGN_RIGHT);
@@ -516,6 +529,28 @@ void DebugToolDialog::init_gcode_run_file()
     btn_abort_print->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("M0\n");
         });
+}
+
+std::string DebugToolDialog::switch_ams_gcode(std::string t)
+{
+    Slic3r::Print& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
+    PlaceholderParser m_placeholder_parser;
+    m_placeholder_parser = print.placeholder_parser();
+    PlaceholderParser::ContextData      m_placeholder_parser_context;
+
+    const PrintConfig& print_config = print.config();
+    DynamicConfig dyn_config;
+    try {
+        const std::string gcode_before = m_placeholder_parser.process(print_config.toolchange_gcode.value, std::stoi(t.c_str()), &dyn_config, &m_placeholder_parser_context);
+        std::string t_gcode = "\nT" + t + "\n";
+        const std::string gcode_after = m_placeholder_parser.process(print_config.post_toolchange_gcode.value, std::stoi(t.c_str()), &dyn_config, &m_placeholder_parser_context);
+        std::string gcode = gcode_before + t_gcode + gcode_after + "\n";
+        return gcode;
+    }
+    catch (Exception& e) {
+        wxMessageBox(e.what());
+        return "";
+    }
 }
 
 void DebugToolDialog::init_gcode_control()
