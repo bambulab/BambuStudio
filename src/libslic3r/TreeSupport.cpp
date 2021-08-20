@@ -60,6 +60,50 @@ inline Point normal(Point pt, double scale)
     return pt * (scale / length);
 }
 
+enum TreeSupportStage {
+    STAGE_DETECT_OVERHANGS,
+    STAGE_GENERATE_CONTACT_NODES,
+    STAGE_DROP_DOWN_NODES,
+    STAGE_DRAW_CIRCLES,
+    STAGE_GENERATE_TOOLPATHS,
+    NUM_STAGES
+};
+
+class TreeSupportProfiler
+{
+public:
+    uint32_t stage_durations[NUM_STAGES];
+    
+
+    TreeSupportProfiler()
+    {
+        for (uint32_t& item : stage_durations) {
+            item = 0;
+        }
+    }
+
+    void stage_start(TreeSupportStage stage)
+    {
+        if (stage > NUM_STAGES)
+            return;
+
+        m_stage_start_times[stage] = boost::posix_time::microsec_clock::local_time();
+    }
+
+    void stage_finish(TreeSupportStage stage)
+    {
+        if (stage > NUM_STAGES)
+            return;
+
+        boost::posix_time::ptime time = boost::posix_time::microsec_clock::local_time();
+        stage_durations[stage] = (time - m_stage_start_times[stage]).total_milliseconds();
+    }
+
+private:
+    boost::posix_time::ptime m_stage_start_times[NUM_STAGES];
+};
+
+
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
 static  std::string get_svg_filename(int layer_nr, std::string tag = "")
 {
@@ -449,24 +493,12 @@ static Point bounding_box_middle(const BoundingBox &bbox)
 TreeSupport::TreeSupport(PrintObject& object)
     : m_object(object)
 {
-    const PrintObjectConfig &config = m_object.config();
-
-    const coordf_t layer_height = config.layer_height.value;
-    const coordf_t line_width = config.support_material_extrusion_width.get_abs_value(layer_height);
-    // FIXME: currently use support_material_extrusion_width to replace support_material_external_perimeter_width
-    const coordf_t xy_distance = config.support_material_xy_spacing.get_abs_value(line_width);
-    const double angle = config.tree_support_branch_angle.value * M_PI / 180.;
-    const coordf_t max_move_distance
-        = (angle < TAU / 4) ? (coordf_t)(tan(angle) * layer_height) : std::numeric_limits<coordf_t>::max();
-    const coordf_t radius_sample_resolution = config.tree_support_collision_resolution.value;
-
-    m_ts_data = new TreeSupportData(m_object, xy_distance, max_move_distance, radius_sample_resolution);
 }
 
 void TreeSupport::detect_object_overhangs()
 {
     const PrintObjectConfig& config = m_object.config();
-    const coordf_t radius_sample_resolution = config.tree_support_collision_resolution.value;
+    const coordf_t radius_sample_resolution = m_ts_data->m_radius_sample_resolution;
     const coordf_t extrusion_width = config.extrusion_width.value;
 
     if (config.support_type.value == stTreeAuto) {
@@ -478,21 +510,30 @@ void TreeSupport::detect_object_overhangs()
             threshold_rad = config.support_material_threshold.value * M_PI / 180.;
         }
 
-        for (Layer *layer : m_object.layers()) {
-            if (layer->lower_layer == nullptr)
-                continue;
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(0, m_object.layer_count()),
+            [this, threshold_rad, radius_sample_resolution, extrusion_width]
+            (const tbb::blocked_range<size_t>& range)
+            {
+                for (size_t layer_nr = range.begin(); layer_nr < range.end(); layer_nr++)
+                {
+                    Layer *layer = m_object.get_layer(layer_nr);
+                    if (layer->lower_layer == nullptr)
+                        continue;
 
-            Layer *lower_layer = layer->lower_layer;
-            coordf_t lower_layer_offset = (float)lower_layer->height / tan(threshold_rad);
-            // Filter out areas whose diameter that is smaller than extrusion_width
-            ExPolygons lower_polys = std::move(offset2_ex(lower_layer->lslices, -scale_(extrusion_width / 2), scale_(extrusion_width / 2)));
-            ExPolygons overhang_areas = std::move(diff_ex(layer->lslices, offset_ex(lower_polys, scale_(lower_layer_offset))));
-            overhang_areas = offset2_ex(overhang_areas, -0.1 * scale_(extrusion_width), 0.1 * scale_(extrusion_width));
-            TreeSupportLayer* ts_layer = m_object.get_tree_support_layer(layer->id());
-            for (ExPolygon& poly : overhang_areas) {
-                poly.simplify(scale_(radius_sample_resolution), &ts_layer->overhang_areas);
+                    Layer *lower_layer = layer->lower_layer;
+                    coordf_t lower_layer_offset = (float)lower_layer->height / tan(threshold_rad);
+                    // Filter out areas whose diameter that is smaller than extrusion_width
+                    ExPolygons lower_polys = std::move(offset2_ex(lower_layer->lslices, -scale_(extrusion_width / 2), scale_(extrusion_width / 2)));
+                    ExPolygons overhang_areas = std::move(diff_ex(layer->lslices, offset_ex(lower_polys, scale_(lower_layer_offset))));
+                    overhang_areas = std::move(offset2_ex(overhang_areas, -0.1 * scale_(extrusion_width), 0.1 * scale_(extrusion_width)));
+                    TreeSupportLayer* ts_layer = m_object.get_tree_support_layer(layer->id());
+                    for (ExPolygon& poly : overhang_areas) {
+                        poly.simplify(scale_(radius_sample_resolution), &ts_layer->overhang_areas);
+                    }
+                }
             }
-        }
+        );
     }
 
     std::vector<ExPolygons> enforcers = m_object.slice_support_enforcers();
@@ -596,46 +637,54 @@ void TreeSupport::generate_toolpaths()
     double support_density = support_extrusion_width / (support_spacing + support_extrusion_width);
     double interface_density = support_extrusion_width / (interface_spacing + support_extrusion_width);
 
-    for (TreeSupportLayer *layer : m_object.tree_support_layers()) {
-        Flow support_flow(support_extrusion_width, layer->height, nozzle_diameter);
-        Fill* filler_interface = Fill::new_from_type(ipRectilinear);
-        Fill* filler_support = Fill::new_from_type(ipRectilinear);
-        //filler_interface->set_bounding_box(bbox_object);
-        //filler_support->set_bounding_box(bbox_object);
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, m_object.tree_support_layer_count()),
+        [this, support_extrusion_width, nozzle_diameter, interface_density]
+        (const tbb::blocked_range<size_t>& range)
+        {
+            for (size_t layer_nr = range.begin(); layer_nr < range.end(); layer_nr++) {
+                TreeSupportLayer *layer = m_object.get_tree_support_layer(layer_nr);
+                Flow support_flow(support_extrusion_width, layer->height, nozzle_diameter);
+                Fill* filler_interface = Fill::new_from_type(ipRectilinear);
+                Fill* filler_support = Fill::new_from_type(ipRectilinear);
+                //filler_interface->set_bounding_box(bbox_object);
+                //filler_support->set_bounding_box(bbox_object);
 
-        filler_interface->angle = layer->id() % 2 ? 0 : 90;
-        filler_interface->spacing = support_extrusion_width;
-        filler_support->angle = 0.;
-        filler_support->spacing = support_extrusion_width;
+                filler_interface->angle = layer->id() % 2 ? 0 : 90;
+                filler_interface->spacing = support_extrusion_width;
+                filler_support->angle = 0.;
+                filler_support->spacing = support_extrusion_width;
 
-        // bool stands for is_support_interface
-        std::vector<std::pair<ExPolygons *, bool>> area_groups;
-        area_groups.emplace_back(&layer->roof_areas, true);
-        area_groups.emplace_back(&layer->floor_areas, true);
-        area_groups.emplace_back(&layer->base_areas, false);
-        for (std::pair<ExPolygons*, bool>& area_group : area_groups) {
-            for (ExPolygon& poly : *area_group.first) {
-                if (area_group.second) {
-                    ExPolygons polys;
-                    if (layer->id() == 0) {
-                        Flow flow = m_object.print()->brim_flow();
-                        make_perimeter_and_inner_brim(layer->support_fills.entities, *m_object.print(), poly, true, true);
-                        polys = std::move(offset_ex(poly, -flow.scaled_spacing()));
-                    } else {
-                        polys.push_back(poly);
+                // bool stands for is_support_interface
+                std::vector<std::pair<ExPolygons *, bool>> area_groups;
+                area_groups.emplace_back(&layer->roof_areas, true);
+                area_groups.emplace_back(&layer->floor_areas, true);
+                area_groups.emplace_back(&layer->base_areas, false);
+                for (std::pair<ExPolygons*, bool>& area_group : area_groups) {
+                    for (ExPolygon& poly : *area_group.first) {
+                        if (area_group.second) {
+                            ExPolygons polys;
+                            if (layer->id() == 0) {
+                                Flow flow = m_object.print()->brim_flow();
+                                make_perimeter_and_inner_brim(layer->support_fills.entities, *m_object.print(), poly, true, true);
+                                polys = std::move(offset_ex(poly, -flow.scaled_spacing()));
+                            } else {
+                                polys.push_back(poly);
+                            }
+
+                            FillParams fill_params;
+                            fill_params.density = interface_density;
+                            fill_params.dont_adjust = true;
+                            fill_expolygons_generate_paths(layer->support_fills.entities, std::move(polys),
+                                filler_interface, fill_params, interface_density, erSupportMaterialInterface, support_flow);
+                        } else {
+                            make_perimeter_and_inner_brim(layer->support_fills.entities, *m_object.print(), poly, layer->id() > 0, false);
+                        }
                     }
-
-                    FillParams fill_params;
-                    fill_params.density = interface_density;
-                    fill_params.dont_adjust = true;
-                    fill_expolygons_generate_paths(layer->support_fills.entities, std::move(polys),
-                        filler_interface, fill_params, interface_density, erSupportMaterialInterface, support_flow);
-                } else {
-                    make_perimeter_and_inner_brim(layer->support_fills.entities, *m_object.print(), poly, layer->id() > 0, false);
                 }
             }
         }
-    }
+    );
 }
 
 void TreeSupport::generate_support_areas()
@@ -646,22 +695,32 @@ void TreeSupport::generate_support_areas()
     if (!tree_support_enable)
         return;
 
+    TreeSupportProfiler profiler;
     std::vector<std::vector<Node*>> contact_nodes(m_object.layers().size()); //Generate empty layers to store the points in.
+    m_ts_data = m_object.alloc_tree_support_preview_cache();
 
     // Create Tree Support Layers
     create_tree_support_layers();
 
     // Generate overhang areas
+    profiler.stage_start(STAGE_DETECT_OVERHANGS);
     detect_object_overhangs();
+    profiler.stage_finish(STAGE_DETECT_OVERHANGS);
 
     // Generate contact points of tree support
+    profiler.stage_start(STAGE_GENERATE_CONTACT_NODES);
     generate_contact_points(contact_nodes);
+    profiler.stage_finish(STAGE_GENERATE_CONTACT_NODES);
 
     //Drop nodes to lower layers.
+    profiler.stage_start(STAGE_DROP_DOWN_NODES);
     drop_nodes(contact_nodes);
+    profiler.stage_finish(STAGE_DROP_DOWN_NODES);
 
     //Generate support areas.
+    profiler.stage_start(STAGE_DRAW_CIRCLES);
     draw_circles(contact_nodes);
+    profiler.stage_finish(STAGE_DRAW_CIRCLES);
 
     for (auto& layer : contact_nodes)
     {
@@ -673,7 +732,9 @@ void TreeSupport::generate_support_areas()
     }
     contact_nodes.clear();
 
+    profiler.stage_start(STAGE_GENERATE_TOOLPATHS);
     generate_toolpaths();
+    profiler.stage_finish(STAGE_GENERATE_TOOLPATHS);
 }
 
 void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_nodes)
@@ -823,7 +884,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
     const coordf_t branch_radius = config.tree_support_branch_diameter.value / 2;
     const size_t tip_layers = branch_radius / layer_height; //The number of layers to be shrinking the circle to create a tip. This produces a 45 degree angle.
     const double diameter_angle_scale_factor = sin(config.tree_support_branch_diameter_angle.value * M_PI / 180.) * layer_height / branch_radius; //Scale factor per layer to produce the desired angle.
-    const coordf_t radius_sample_resolution = config.tree_support_collision_resolution.value;
+    const coordf_t radius_sample_resolution = m_ts_data->m_radius_sample_resolution;
     const bool support_rests_on_model = !config.support_material_buildplate_only.value;
 
     std::unordered_set<Node*> to_free_node_set;

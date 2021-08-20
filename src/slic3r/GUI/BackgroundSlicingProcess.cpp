@@ -186,6 +186,7 @@ void BackgroundSlicingProcess::process_fff()
 {
 	assert(m_print == m_fff_print);
     m_print->process();
+
 	wxCommandEvent evt(m_event_slicing_completed_id);
 	// Post the Slicing Finished message for the G-code viewer to update.
 	// Passing the timestamp 

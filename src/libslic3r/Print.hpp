@@ -32,6 +32,7 @@ class PrintObject;
 class SupportLayer;
 // BBS
 class TreeSupportLayer;
+class TreeSupportData;
 
 namespace FillAdaptive {
     struct Octree;
@@ -286,6 +287,9 @@ public:
     // Centering offset of the sliced mesh from the scaled and rotated mesh of the model.
     const Point& 			     center_offset() const  { return m_center_offset; }
 
+    // BBS
+    void generate_support_preview();
+
     bool                         has_brim() const       {
         return this->config().brim_type != btNoBrim
             && this->config().brim_width.value > 0.
@@ -317,6 +321,8 @@ public:
     TreeSupportLayer* add_tree_support_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
     void  clear_tree_support_layers();
     size_t tree_support_layer_count() const { return m_tree_support_layers.size(); }
+    TreeSupportData* alloc_tree_support_preview_cache();
+    void free_tree_support_preview_cache();
 
     size_t          support_layer_count() const { return m_support_layers.size(); }
     void            clear_support_layers();
@@ -424,6 +430,7 @@ private:
     SupportLayerPtrs                        m_support_layers;
     // BBS
     TreeSupportLayerPtrs                    m_tree_support_layers;
+    TreeSupportData* m_tree_support_preview_cache;
 
     // this is set to true when LayerRegion->slices is split in top/internal/bottom
     // so that next call to make_perimeters() performs a union() before computing loops

@@ -9,6 +9,7 @@
 namespace Slic3r
 {
 class PrintObject;
+class TreeSupport;
 
 /*!
  * \brief Lazily generates tree guidance volumes.
@@ -144,6 +145,8 @@ private:
      */
     mutable std::unordered_map<RadiusLayerPair, ExPolygons, RadiusLayerPairHash> m_collision_cache;
     mutable std::unordered_map<RadiusLayerPair, ExPolygons, RadiusLayerPairHash> m_avoidance_cache;
+
+    friend TreeSupport;
 };
 
 /*!

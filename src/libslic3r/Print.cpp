@@ -844,6 +844,7 @@ void Print::process()
         this->finalize_first_layer_convex_hull();
         this->set_done(psSkirtBrim);
     }
+
     BOOST_LOG_TRIVIAL(info) << "Slicing process finished." << log_memory_info();
 }
 

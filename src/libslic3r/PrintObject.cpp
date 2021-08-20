@@ -55,7 +55,9 @@ namespace Slic3r {
 // Constructor is called from the main thread, therefore all Model / ModelObject / ModelIntance data are valid.
 PrintObject::PrintObject(Print* print, ModelObject* model_object, const Transform3d& trafo, PrintInstances&& instances) :
     PrintObjectBaseWithState(print, model_object),
-    m_trafo(trafo)
+    m_trafo(trafo),
+    // BBS
+    m_tree_support_preview_cache(nullptr)
 {
     // Compute centering offet to be applied to our meshes so that we work with smaller coordinates
     // requiring less bits to represent Clipper coordinates.
@@ -475,6 +477,32 @@ void PrintObject::clear_tree_support_layers()
     for (TreeSupportLayer* l : m_tree_support_layers)
         delete l;
     m_tree_support_layers.clear();
+}
+
+TreeSupportData* PrintObject::alloc_tree_support_preview_cache()
+{
+    if (m_tree_support_preview_cache == nullptr) {
+        const coordf_t layer_height = m_config.layer_height.value;
+        const coordf_t line_width = m_config.support_material_extrusion_width.get_abs_value(layer_height);
+        // FIXME: currently use support_material_extrusion_width to replace support_material_external_perimeter_width
+        const coordf_t xy_distance = m_config.support_material_xy_spacing.get_abs_value(line_width);
+        const double angle = m_config.tree_support_branch_angle.value * M_PI / 180.;
+        const coordf_t max_move_distance
+            = (angle < M_PI / 2) ? (coordf_t)(tan(angle) * layer_height) : std::numeric_limits<coordf_t>::max();
+        const coordf_t radius_sample_resolution = m_config.tree_support_collision_resolution.value;
+
+        m_tree_support_preview_cache = new TreeSupportData(*this, xy_distance, max_move_distance, radius_sample_resolution);
+    }
+
+    return m_tree_support_preview_cache;
+}
+
+void PrintObject::free_tree_support_preview_cache()
+{
+    if (m_tree_support_preview_cache) {
+        delete m_tree_support_preview_cache;
+        m_tree_support_preview_cache = nullptr;
+    }
 }
 
 TreeSupportLayer* PrintObject::add_tree_support_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z)
@@ -1639,6 +1667,26 @@ PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &defau
     if (config.fuzzy_skin.value != FuzzySkinType::None && (config.fuzzy_skin_point_dist.value < 0.01 || config.fuzzy_skin_thickness.value < 0.001))
         config.fuzzy_skin.value = FuzzySkinType::None;
     return config;
+}
+
+struct POProfiler
+{
+    uint32_t duration1;
+    uint32_t duration2;
+};
+
+void PrintObject::generate_support_preview()
+{
+    POProfiler profiler;
+
+    boost::posix_time::ptime ts1 = boost::posix_time::microsec_clock::local_time();
+    this->slice();
+    boost::posix_time::ptime ts2 = boost::posix_time::microsec_clock::local_time();
+    profiler.duration1 = (ts2 - ts1).total_milliseconds();
+
+    this->generate_support_material();
+    boost::posix_time::ptime ts3 = boost::posix_time::microsec_clock::local_time();
+    profiler.duration2 = (ts3 - ts2).total_milliseconds();
 }
 
 void PrintObject::update_slicing_parameters()

@@ -530,6 +530,9 @@ void PrintObject::slice()
         });
     if (m_layers.empty())
         throw Slic3r::SlicingError("No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n");    
+    
+    // BBS
+    this->free_tree_support_preview_cache();
     this->set_done(posSlice);
 }
 
