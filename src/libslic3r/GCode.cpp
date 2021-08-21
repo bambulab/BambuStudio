@@ -2678,7 +2678,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     for (ExtrusionPaths::iterator path = paths.begin(); path != paths.end(); ++path) {
 //    description += ExtrusionLoop::role_to_string(loop.loop_role());
 //    description += ExtrusionEntity::role_to_string(path->role);
-        path->simplify(m_scaled_resolution);
+        if (!is_perimeter(paths.front().role()))
+            path->simplify(m_scaled_resolution);
         gcode += this->_extrude(*path, description, speed);
     }
 

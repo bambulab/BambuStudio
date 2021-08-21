@@ -528,7 +528,10 @@ void PerimeterGenerator::process()
     for (const Surface &surface : this->slices->surfaces) {
         // detect how many perimeters must be generated for this island
         int        loop_number = this->config->perimeters + surface.extra_perimeters - 1;  // 0-indexed loops
-        ExPolygons last        = union_ex(surface.expolygon.simplify_p(m_scaled_resolution));
+        // BBS: simplify has already done in slicing according to user resulution setting.
+        // SCALED_RESOLUTION is a default value with low resolution and should not be used.
+        //ExPolygons last        = union_ex(surface.expolygon.simplify_p(m_scaled_resolution));
+        ExPolygons last        = union_ex(surface.expolygon);
         ExPolygons gaps;
         if (loop_number >= 0) {
             // In case no perimeters are to be generated, loop_number will equal to -1.
