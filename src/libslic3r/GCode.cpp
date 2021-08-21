@@ -1375,7 +1375,15 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 // This happens before Z goes down to layer 0 again, so that no collision happens hopefully.
                 m_enable_cooling_markers = false; // we're not filtering these moves through CoolingBuffer
                 m_avoid_crossing_perimeters.use_external_mp_once();
-                file.write(this->retract());
+                // BBS. change tool before moving to origin point.
+                if (m_writer.need_toolchange(initial_extruder_id)) {
+                    const PrintObjectConfig& object_config = object.config();
+                    coordf_t first_layer_height = object_config.first_layer_height.get_abs_value(object_config.layer_height.value);
+                    file.write(this->set_extruder(initial_extruder_id, first_layer_height));
+                }
+                else {
+                    file.write(this->retract());
+                }
                 file.write(this->travel_to(Point(0, 0), erNone, "move to origin position for next object"));
                 m_enable_cooling_markers = true;
                 // Disable motion planner when traveling to first object point.
@@ -3256,21 +3264,48 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     if (m_ooze_prevention.enable && m_writer.extruder() != nullptr)
         gcode += m_ooze_prevention.pre_toolchange(*this);
 
+    // BBS
+    unsigned int fan_speed = m_writer.get_fan();
+    float old_retract_length = m_writer.extruder() != nullptr ? m_config.retract_length.get_at(m_writer.extruder()->id()) : 0;
+    float new_retract_length = m_config.retract_length.get_at(extruder_id);
+    float old_retract_length_toolchange = m_writer.extruder() != nullptr ? m_config.retract_length_toolchange.get_at(m_writer.extruder()->id()) : 0;
+    float new_retract_length_toolchange = m_config.retract_length_toolchange.get_at(extruder_id);
+    int old_filament_temp = m_writer.extruder() != nullptr ? m_config.temperature.get_at(m_writer.extruder()->id()) : 210;
+    int new_filament_temp = m_config.temperature.get_at(extruder_id);
+    Vec3d nozzle_pos = m_writer.get_position();
+
+    DynamicConfig dyn_config;
+    dyn_config.set_key_value("previous_extruder", new ConfigOptionInt((int)(m_writer.extruder() != nullptr ? m_writer.extruder()->id() : -1)));
+    dyn_config.set_key_value("next_extruder", new ConfigOptionInt((int)extruder_id));
+    dyn_config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
+    dyn_config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
+    dyn_config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
+    dyn_config.set_key_value("use_relative_e_distances", new ConfigOptionBool(m_config.use_relative_e_distances.value));
+    dyn_config.set_key_value("toolchange_count", new ConfigOptionInt((int)m_toolchange_count));
+    dyn_config.set_key_value("fan_speed", new ConfigOptionInt((int)fan_speed));
+    dyn_config.set_key_value("old_retract_length", new ConfigOptionFloat(old_retract_length));
+    dyn_config.set_key_value("new_retract_length", new ConfigOptionFloat(new_retract_length));
+    dyn_config.set_key_value("old_retract_length_toolchange", new ConfigOptionFloat(old_retract_length_toolchange));
+    dyn_config.set_key_value("new_retract_length_toolchange", new ConfigOptionFloat(new_retract_length_toolchange));
+    dyn_config.set_key_value("old_filament_temp", new ConfigOptionInt(old_filament_temp));
+    dyn_config.set_key_value("new_filament_temp", new ConfigOptionInt(new_filament_temp));
+    dyn_config.set_key_value("x_after_toolchange", new ConfigOptionFloat(nozzle_pos(0)));
+    dyn_config.set_key_value("y_after_toolchange", new ConfigOptionFloat(nozzle_pos(1)));
+    dyn_config.set_key_value("z_after_toolchange", new ConfigOptionFloat(nozzle_pos(2)));
+
+    // Process the custom toolchange_gcode.
     const std::string& toolchange_gcode = m_config.toolchange_gcode.value;
     std::string toolchange_gcode_parsed;
-
-    // Process the custom toolchange_gcode. If it is empty, insert just a Tn command.
     if (!toolchange_gcode.empty()) {
-        DynamicConfig config;
-        config.set_key_value("previous_extruder", new ConfigOptionInt((int)(m_writer.extruder() != nullptr ? m_writer.extruder()->id() : -1 )));
-        config.set_key_value("next_extruder",     new ConfigOptionInt((int)extruder_id));
-        config.set_key_value("layer_num",         new ConfigOptionInt(m_layer_index));
-        config.set_key_value("layer_z",           new ConfigOptionFloat(print_z));
-        config.set_key_value("toolchange_z",      new ConfigOptionFloat(print_z));
-        config.set_key_value("max_layer_z",       new ConfigOptionFloat(m_max_layer_z));
-        toolchange_gcode_parsed = placeholder_parser_process("toolchange_gcode", toolchange_gcode, extruder_id, &config);
+        toolchange_gcode_parsed = placeholder_parser_process("toolchange_gcode", toolchange_gcode, extruder_id, &dyn_config);
         gcode += toolchange_gcode_parsed;
         check_add_eol(gcode);
+    }
+
+    // BBS. Reset old extruder E-value.
+    if (m_config.single_extruder_multi_material) {
+        m_writer.reset_e();
+        m_writer.reset_retract();
     }
 
     // We inform the writer about what is happening, but we may not use the resulting gcode.
@@ -3302,6 +3337,8 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     if (m_ooze_prevention.enable)
         gcode += m_ooze_prevention.post_toolchange(*this);
 
+    // BBS
+    m_toolchange_count++;
     return gcode;
 }
 

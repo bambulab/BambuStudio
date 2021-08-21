@@ -2947,8 +2947,11 @@ void TabPrinter::toggle_options()
         return;
 
     bool have_multiple_extruders = m_extruders_count > 1;
-    if (m_active_page->title() == "Custom G-code")
+    if (m_active_page->title() == "Custom G-code") {
         toggle_option("toolchange_gcode", have_multiple_extruders);
+        // BBS
+        toggle_option("post_toolchange_gcode", have_multiple_extruders);
+    }
     if (m_active_page->title() == "General") {
         toggle_option("single_extruder_multi_material", have_multiple_extruders);
 

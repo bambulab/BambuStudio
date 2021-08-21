@@ -138,7 +138,9 @@ public:
         m_brim_done(false),
         m_second_layer_things_done(false),
         m_silent_time_estimator_enabled(false),
-        m_last_obj_copy(nullptr, Point(std::numeric_limits<coord_t>::max(), std::numeric_limits<coord_t>::max()))
+        m_last_obj_copy(nullptr, Point(std::numeric_limits<coord_t>::max(), std::numeric_limits<coord_t>::max())),
+        // BBS
+        m_toolchange_count(0)
         {}
     ~GCode() = default;
 
@@ -447,6 +449,9 @@ private:
 
     // Processor
     GCodeProcessor m_processor;
+
+    // BBS
+    unsigned int m_toolchange_count;
 
     std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1);
     void print_machine_envelope(GCodeOutputStream &file, Print &print);

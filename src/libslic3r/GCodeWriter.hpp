@@ -71,6 +71,12 @@ public:
 
     //BBS: set offset for gcode writer
     void set_xy_offset(double x, double y) { m_x_offset = x; m_y_offset = y; }
+    unsigned int get_fan() { return m_last_fan_speed; }
+    void reset_retract()
+    {
+        if (m_extruder != nullptr)
+            m_extruder->reset_retract();
+    }
 
     // To be called by the CoolingBuffer from another thread.
     static std::string set_fan(const GCodeFlavor gcode_flavor, bool gcode_comments, unsigned int speed);
