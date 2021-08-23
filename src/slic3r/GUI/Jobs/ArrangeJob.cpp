@@ -18,10 +18,10 @@
 #include "libnest2d/common.hpp"
 
 namespace Slic3r { namespace GUI {
+    using ArrangePolygon = arrangement::ArrangePolygon;
 
 // Cache the wti info
 class WipeTower: public GLCanvas3D::WipeTowerInfo {
-    using ArrangePolygon = arrangement::ArrangePolygon;
 public:
     explicit WipeTower(const GLCanvas3D::WipeTowerInfo &wti)
         : GLCanvas3D::WipeTowerInfo(wti)
@@ -80,6 +80,30 @@ void ArrangeJob::clear_input()
     current_plate_index = 0;
 }
 
+ArrangePolygon ArrangeJob::prepare_arrange_polygon(void* model_instance)
+{
+    ModelInstance* instance = (ModelInstance*)model_instance;
+    const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
+    double skirt_distance = wxGetApp().plater()->get_partplate_list().get_current_fff_print().config().skirt_distance.value;
+    double brim_width = wxGetApp().plater()->get_partplate_list().get_current_fff_print().default_object_config().brim_width;
+    params.brim_skirt_distance = std::max(skirt_distance, brim_width);
+
+    ArrangePolygon ap = get_arrange_poly(PtrWrapper{ instance }, m_plater);
+    //BBS: add temperature information
+    if (config.has("bed_temperature")) //get the bed temperature
+        ap.bed_temp = config.opt_int("bed_temperature", ap.extrude_id - 1);
+    if (config.has("temperature")) //get the print temperature
+        ap.print_temp = config.opt_int("temperature", ap.extrude_id - 1);
+    if (config.has("first_layer_bed_temperature")) //get the first_layer_bed_temperature
+        ap.first_bed_temp = config.opt_int("first_layer_bed_temperature", ap.extrude_id - 1);
+    if (config.has("first_layer_temperature")) //get the first_layer_temperature
+        ap.first_print_temp = config.opt_int("first_layer_temperature", ap.extrude_id - 1);
+
+    ap.height = instance->get_object()->bounding_box().size().z();
+    ap.name = instance->get_object()->name;
+    return ap;
+}
+
 void ArrangeJob::prepare_all() {
     Model& model = m_plater->model();
     PartPlateList& plate_list = m_plater->get_partplate_list();
@@ -93,18 +117,7 @@ void ArrangeJob::prepare_all() {
         {
             ModelInstance* mi = mo->instances[inst_idx];
             ArrangePolygons& cont = mi->printable ? m_selected : m_unprintable;
-            ArrangePolygon&& ap = get_arrange_poly(PtrWrapper{mi}, m_plater);
-
-            //BBS: add temperature information
-            const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
-            if (config.has("bed_temperature")) //get the bed temperature
-                ap.bed_temp = config.opt_int("bed_temperature", ap.extrude_id - 1);
-            if (config.has("temperature")) //get the print temperature
-                ap.print_temp = config.opt_int("temperature", ap.extrude_id - 1);
-            if (config.has("first_layer_bed_temperature")) //get the first_layer_bed_temperature
-                ap.first_bed_temp = config.opt_int("first_layer_bed_temperature", ap.extrude_id - 1);
-            if (config.has("first_layer_temperature")) //get the first_layer_temperature
-                ap.first_print_temp = config.opt_int("first_layer_temperature", ap.extrude_id - 1);
+            ArrangePolygon&& ap = prepare_arrange_polygon(mi);
 
             //BBS: partplate_list preprocess
             //remove the locked plate's instances, neither in selected, nor in un-selected
@@ -112,8 +125,6 @@ void ArrangeJob::prepare_all() {
             if (!locked)
             {
                 ap.itemid = cont.size();
-                ap.height = mo->bounding_box().size().z();
-                ap.name = mo->name;
                 cont.emplace_back(ap);
             }
             else
@@ -156,18 +167,7 @@ void ArrangeJob::prepare_selected() {
         
         for (size_t i = 0; i < inst_sel.size(); ++i) {
             ModelInstance * mi = mo->instances[i];
-            ArrangePolygon &&ap = get_arrange_poly_(mi);
-
-            //BBS: add temperature information
-            const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
-            if (config.has("bed_temperature")) //get the bed temperature
-                ap.bed_temp = config.opt_int("bed_temperature", ap.extrude_id - 1);
-            if (config.has("temperature")) //get the print temperature
-                ap.print_temp = config.opt_int("temperature", ap.extrude_id - 1);
-            if (config.has("first_layer_bed_temperature")) //get the first_layer_bed_temperature
-                ap.first_bed_temp = config.opt_int("first_layer_bed_temperature", ap.extrude_id - 1);
-            if (config.has("first_layer_temperature")) //get the first_layer_temperature
-                ap.first_print_temp = config.opt_int("first_layer_temperature", ap.extrude_id - 1);
+            ArrangePolygon&& ap = prepare_arrange_polygon(mo->instances[i]);
             //BBS: partplate_list preprocess
             //remove the locked plate's instances, neither in selected, nor in un-selected
             bool locked = plate_list.preprocess_arrange_polygon(oidx, i, ap, inst_sel[i]);
@@ -179,8 +179,6 @@ void ArrangeJob::prepare_selected() {
                     m_unprintable;
 
                 ap.itemid = cont.size();
-                ap.height = mo->bounding_box().size().z();
-                ap.name = mo->name;
                 cont.emplace_back(std::move(ap));
             }
             else
@@ -249,25 +247,12 @@ void ArrangeJob::prepare_partplate() {
         for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
         {
             bool in_plate = plate->contain_instance(oidx, inst_idx);
-            ArrangePolygon&& ap = get_arrange_poly(PtrWrapper{mo->instances[inst_idx]}, m_plater);
-
-            //BBS: add temperature information
-            const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
-            if (config.has("bed_temperature")) //get the bed temperature
-                ap.bed_temp = config.opt_int("bed_temperature", ap.extrude_id - 1);
-            if (config.has("temperature")) //get the print temperature
-                ap.print_temp = config.opt_int("temperature", ap.extrude_id - 1);
-            if (config.has("first_layer_bed_temperature")) //get the first_layer_bed_temperature
-                ap.first_bed_temp = config.opt_int("first_layer_bed_temperature", ap.extrude_id - 1);
-            if (config.has("first_layer_temperature")) //get the first_layer_temperature
-                ap.first_print_temp = config.opt_int("first_layer_temperature", ap.extrude_id - 1);
+            ArrangePolygon&& ap = prepare_arrange_polygon(mo->instances[inst_idx]);
 
             ArrangePolygons& cont = mo->instances[inst_idx]->printable ?
                 (in_plate ? m_selected : m_unselected) :
                 m_unprintable;
             ap.itemid = cont.size();
-            ap.height = mo->bounding_box().size().z();
-            ap.name = mo->name;
             bool locked = plate_list.preprocess_arrange_polygon_other_locked(ap, in_plate);
             if (!locked)
             {
@@ -332,14 +317,12 @@ void ArrangeJob::process()
     params.allow_rotations  = settings.enable_rotation;
     params.min_obj_distance = scaled(settings.distance);
     //BBS: add specific params
-    params.is_seq_print  = settings.is_seq_print;
-    params.bed_shrink_x  = settings.bed_shrink_x;
-    params.bed_shrink_y  = settings.bed_shrink_y;
+    params.is_seq_print = settings.is_seq_print;
+    params.bed_shrink_x = settings.bed_shrink_x + params.brim_skirt_distance;
+    params.bed_shrink_y = settings.bed_shrink_y + params.brim_skirt_distance;
 
     Points bedpts = get_bed_shape(*m_plater->config());
-
     // shrink bed
-    // TODO: shrink on y is not working yet!
     params.bed_shrink_y = 0;
     bedpts[0] += Point(scaled(params.bed_shrink_x), scaled(params.bed_shrink_y));
     bedpts[1] += Point(-scaled(params.bed_shrink_x), scaled(params.bed_shrink_y));

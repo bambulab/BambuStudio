@@ -107,9 +107,10 @@ struct ArrangeParams {
     bool allow_rotations = false;
 
     //BBS: add specific arrange params
-    bool is_seq_print;
-    float bed_shrink_x;
-    float bed_shrink_y;
+    bool is_seq_print = false;
+    float bed_shrink_x = 0;
+    float bed_shrink_y = 0;
+    float brim_skirt_distance = 0;
     
     /// Progress indicator callback called when an object gets packed. 
     /// The unsigned argument is the number of items remaining to pack.
