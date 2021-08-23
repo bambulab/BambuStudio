@@ -321,7 +321,12 @@ void DebugToolDialog::init_account()
     btn_login = new wxButton(this, wxID_ANY, _L("Login"), wxDefaultPosition, wxDefaultSize);
     btn_login->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-        account_manager->user_login(txt_user->GetValue().ToStdString(), txt_password->GetValue().ToStdString());
+        std::string user = txt_user->GetValue().ToStdString();
+        std::string pwd = txt_password->GetValue().ToStdString();
+
+        if (account_manager->user_login(user, pwd) < 0) {
+            wxMessageBox("Invalid User or Password!");
+        }
         });
     auto* label_user = new wxStaticText(this, wxID_ANY, _L("User: "), wxDefaultPosition, wxDefaultSize);
     auto* label_password = new wxStaticText(this, wxID_ANY, _L("Password: "), wxDefaultPosition, wxDefaultSize);

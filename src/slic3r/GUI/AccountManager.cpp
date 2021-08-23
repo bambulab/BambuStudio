@@ -53,6 +53,11 @@ namespace Slic3r {
 
     int AccountManager::user_login(std::string account, std::string password)
     {
+        // check valid account
+        if (!_check_valid(account, password)) {
+            return -1;
+        }
+
         Http http = Http::post(std::move(_get_login_url()));
         std::string json_str = _get_login_request(account, password);
 
@@ -444,6 +449,14 @@ namespace Slic3r {
         std::stringstream oss;
         pt::write_json(oss, root);
         return oss.str();
+    }
+
+    bool AccountManager::_check_valid(std::string user, std::string password)
+    {
+        if (user.empty() || password.empty()) {
+            return false;
+        }
+        return true;
     }
 
     void AccountManager::_handle_error_code(int status, std::string error, std::string body)
