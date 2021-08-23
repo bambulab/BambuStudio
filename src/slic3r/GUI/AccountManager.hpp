@@ -41,10 +41,14 @@ private:
     std::string _get_bind_list_request();
     std::string _get_device_json(std::string device_id);
     std::string _get_query_bind_request(std::string device_id);
+    std::string _get_qeury_bind_list_url(std::vector<std::string> device_id_list);
+    
     std::string _get_bind_request(std::string device_id);
     std::string _get_unbind_request(std::string device_id);
     std::string _get_login_request(std::string account, std::string password);
     std::string _get_register_request(std::string account, std::string password);
+    /* common error code handler */
+    void _handle_error_code(int status, std::string error, std::string body);
 
 public:
     AccountManager();
@@ -56,6 +60,7 @@ public:
     int user_register(std::string account, std::string passoword);
     int user_get_info();
     int query_bind_status(std::string device_id);
+    int query_bind_status(std::vector<std::string> device_list);
     int request_bind(std::string device_id);
     int request_unbind(std::string device_id);
     int request_bind_list(std::string user_id);

@@ -916,21 +916,23 @@ void DebugToolDialog::refresh_device_list()
     Slic3r::DeviceManager* manager = Slic3r::GUI::wxGetApp().getDeviceManager();
     wxArrayString new_items;
     std::vector<DeviceInfo*> list = manager->get_connected_device_info();
+    std::vector<std::string> device_id_list;
     Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+
     std::vector<DeviceInfo*>::iterator it;
     for (it = list.begin(); it != list.end(); it++) {
         new_items.Add(get_device_list_item(*it));
         cb_device_list->Set(new_items);
-        
-        if (account_manager->is_user_login()) {
-            account_manager->query_bind_status((*it)->get_dev_id());
-        }
+        device_id_list.push_back((*it)->get_dev_id());
+    }
+
+    if (account_manager->is_user_login()) {
+        account_manager->query_bind_status(device_id_list);
     }
 }
 
 std::string DebugToolDialog::get_device_list_item(DeviceInfo* info)
 {
-    //devices.Add(it->second->m_deviceName + "(" + it->first + ")");
     return (boost::format("%1%(%2%)[%3%]") % info->m_dev_name % info->m_dev_id % info->get_bind_status_str()).str();
 }
 

@@ -15,6 +15,21 @@
 
 namespace pt = boost::property_tree;
 
+void split_string(std::string s, std::vector<std::string>& v) {
+
+    std::string t = "";
+    for (int i = 0; i < s.length(); ++i) {
+        if (s[i] == ',') {
+            v.push_back(t);
+            t = "";
+        }
+        else {
+            t.push_back(s[i]);
+        }
+    }
+    v.push_back(t);
+}
+
 namespace Slic3r {
 
     AccountInfo::AccountInfo(std::string account, std::string user_id)
@@ -62,11 +77,13 @@ namespace Slic3r {
                     }
                 }
             }
-            BOOST_LOG_TRIVIAL(trace) << "Account = " << account << " Login Failed! error = " << body;
-            wxMessageBox("Login Failed! msg = " + body);
-            }).on_error([&, account](std::string body, std::string error, unsigned status) {
-                BOOST_LOG_TRIVIAL(trace) << "Account = " << account << " Login Failed! error = " << body;
-                wxMessageBox("Login Failed " + error);
+            std::string error_tips = "Login Failed! body=" + body;
+            wxMessageBox(error_tips);
+            }).on_error([&, this, account](std::string body, std::string error, unsigned status) {
+                BOOST_LOG_TRIVIAL(trace) << "Account=" << account << " Login Failed!" << body;
+                std::string error_tips = "Login Failed! status=" + std::to_string(status) + ", error=" + error + ", body=" + body;
+                wxMessageBox(error_tips);
+                this->_handle_error_code(status, error, body);
             }).perform();
         
         return 0;
@@ -139,6 +156,37 @@ namespace Slic3r {
                 }
                 }).on_error([&, device_id](std::string body, std::string error, unsigned status) {
                     BOOST_LOG_TRIVIAL(trace) << "Query bind device = " << device_id << " Error! error = " << body;
+                }).perform();
+        }
+        catch (std::exception& e) {
+            ;
+        }
+        return 0;
+    }
+
+    int AccountManager::query_bind_status(std::vector<std::string> device_list)
+    {
+        Http http = Http::get(_get_qeury_bind_list_url(device_list));
+        try {
+            http.set_header(m_curr_user->get_token())
+                .on_complete([&, device_list](std::string body, unsigned) {
+                /* eg: {"message": "free, user1, user2, user3, self"} */
+                std::stringstream ss(body);
+                pt::ptree root;
+                pt::read_json(ss, root);
+                boost::optional<std::string> bind_status = root.get_optional<std::string>("message");
+                if (bind_status.has_value()) {
+                    Slic3r::DeviceManager* manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+                    std::vector<std::string> status_list;
+                    split_string(bind_status.value(), status_list);
+                    // update device bind status list
+                    for (int i = 0; i < status_list.size() && i < device_list.size(); i++) {
+                        manager->update_bind_status(device_list[i], status_list[i]);
+                    }
+                }
+                }).on_error([&, device_list](std::string body, std::string error, unsigned status) {
+                    BOOST_LOG_TRIVIAL(trace) << "Query bind device list Error! error = " << body;
+                    void _handle_error_code(int status, std::string error, std::string body);
                 }).perform();
         }
         catch (std::exception& e) {
@@ -286,6 +334,26 @@ namespace Slic3r {
         }
     }
 
+    std::string AccountManager::_get_qeury_bind_list_url(std::vector<std::string> device_id_list)
+    {
+        std::string dev_id = "";
+        std::vector<std::string>::iterator it;
+        for (it = device_id_list.begin(); it != device_id_list.end(); it++) {
+            if (it == device_id_list.begin())
+                dev_id += *it;
+            else {
+                dev_id += "," +  *it;
+            }
+        }
+
+        if (m_curr_user) {
+            return (boost::format("%1%/api/iot/user/%2%/bind?dev_id=%3%") % host % m_curr_user->user_id() % dev_id).str();
+        }
+        else {
+            return "";
+        }
+    }
+
     std::string AccountManager::_get_bind_url()
     {
         if (m_curr_user) {
@@ -376,6 +444,18 @@ namespace Slic3r {
         std::stringstream oss;
         pt::write_json(oss, root);
         return oss.str();
+    }
+
+    void AccountManager::_handle_error_code(int status, std::string error, std::string body)
+    {
+        switch (status) {
+        case 400:
+        case 401:
+            /* TODO need login */
+            break;
+        default:
+            return;
+        }
     }
 
 } // namespace Slic3r
