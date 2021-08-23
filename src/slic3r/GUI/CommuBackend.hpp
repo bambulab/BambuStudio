@@ -146,6 +146,7 @@ private:
     mqtt::async_client* m_mqtt_client;
     conn_callback* m_mqtt_cb;
     mqtt::connect_options conn_opt;
+    std::string m_mqtt_uuid;
 };
 
 }

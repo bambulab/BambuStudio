@@ -5,6 +5,9 @@
 #include <exception>
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -229,6 +232,8 @@ namespace Slic3r {
         conn_opt.set_user_name(MQTT_USERNAME);
         conn_opt.set_password(MQTT_PASSWORD);
         m_mqtt_client = nullptr;
+        boost::uuids::uuid uuid = boost::uuids::random_generator()();
+        m_mqtt_uuid = to_string(uuid);
     } 
 
     int CommuBackend::start()
@@ -251,8 +256,8 @@ namespace Slic3r {
             if (m_mqtt_client) {
                 return 0;
             }
-
-            m_mqtt_client = new mqtt::async_client(MQTT_SERVER_ADDRESS, user_id);
+            std::string client_id = user_id + ":" + m_mqtt_uuid;
+            m_mqtt_client = new mqtt::async_client(MQTT_SERVER_ADDRESS, client_id);
             m_mqtt_cb = new conn_callback(*m_mqtt_client, conn_opt);
             m_mqtt_client->set_callback(*m_mqtt_cb);
             mqtt::token_ptr token = m_mqtt_client->connect(conn_opt, nullptr, *m_mqtt_cb);

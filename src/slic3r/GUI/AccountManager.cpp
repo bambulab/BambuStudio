@@ -464,7 +464,7 @@ namespace Slic3r {
         switch (status) {
         case 400:
         case 401:
-            /* TODO need login */
+            wxMessageBox("Token is invalid! Please login again!");
             break;
         default:
             return;

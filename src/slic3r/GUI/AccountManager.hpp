@@ -47,6 +47,8 @@ private:
     std::string _get_unbind_request(std::string device_id);
     std::string _get_login_request(std::string account, std::string password);
     std::string _get_register_request(std::string account, std::string password);
+    /* check valid of user or pwd */
+    bool _check_valid(std::string user, std::string password);
     /* common error code handler */
     void _handle_error_code(int status, std::string error, std::string body);
 
