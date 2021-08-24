@@ -518,12 +518,26 @@ std::string DebugToolDialog::switch_ams_gcode(std::string t)
 
     const PrintConfig& print_config = print.config();
     DynamicConfig dyn_config;
+    dyn_config.set_key_value("previous_extruder", new ConfigOptionInt(-1));
+    dyn_config.set_key_value("next_extruder",     new ConfigOptionInt(atoi(t.c_str())));
+    dyn_config.set_key_value("layer_num",         new ConfigOptionInt(0));
+    dyn_config.set_key_value("layer_z",           new ConfigOptionFloat(0.3));
+    dyn_config.set_key_value("max_layer_z",       new ConfigOptionFloat(10.));
+    dyn_config.set_key_value("use_relative_e_distances", new ConfigOptionBool(1));
+    dyn_config.set_key_value("toolchange_count", new ConfigOptionInt(1));
+    dyn_config.set_key_value("fan_speed", new ConfigOptionInt(0));
+    dyn_config.set_key_value("old_retract_length", new ConfigOptionFloat(2.));
+    dyn_config.set_key_value("new_retract_length", new ConfigOptionFloat(2.));
+    dyn_config.set_key_value("old_retract_length_toolchange", new ConfigOptionFloat(3.0));
+    dyn_config.set_key_value("new_retract_length_toolchange", new ConfigOptionFloat(3.0));
+    dyn_config.set_key_value("old_filament_temp", new ConfigOptionInt(210));
+    dyn_config.set_key_value("new_filament_temp", new ConfigOptionInt(210));
+    dyn_config.set_key_value("x_after_toolchange", new ConfigOptionFloat(50.));
+    dyn_config.set_key_value("y_after_toolchange", new ConfigOptionFloat(50.));
+    dyn_config.set_key_value("z_after_toolchange", new ConfigOptionFloat(10.));
+
     try {
-        const std::string gcode_before = m_placeholder_parser.process(print_config.toolchange_gcode.value, std::stoi(t.c_str()), &dyn_config, &m_placeholder_parser_context);
-        std::string t_gcode = "\nT" + t + "\n";
-        const std::string gcode_after = m_placeholder_parser.process(print_config.post_toolchange_gcode.value, std::stoi(t.c_str()), &dyn_config, &m_placeholder_parser_context);
-        std::string gcode = gcode_before + t_gcode + gcode_after + "\n";
-        return gcode;
+        return m_placeholder_parser.process(print_config.toolchange_gcode.value, std::stoi(t.c_str()), &dyn_config, &m_placeholder_parser_context);
     }
     catch (Exception& e) {
         wxMessageBox(e.what());

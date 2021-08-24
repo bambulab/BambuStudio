@@ -128,8 +128,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "start_gcode",
         "start_filament_gcode",
         "toolchange_gcode",
-        // BBS.
-        "post_toolchange_gcode",
         "threads",
         "use_firmware_retraction",
         "use_relative_e_distances",
