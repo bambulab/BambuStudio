@@ -537,7 +537,13 @@ std::string DebugToolDialog::switch_ams_gcode(std::string t)
     dyn_config.set_key_value("z_after_toolchange", new ConfigOptionFloat(10.));
 
     try {
-        return m_placeholder_parser.process(print_config.toolchange_gcode.value, std::stoi(t.c_str()), &dyn_config, &m_placeholder_parser_context);
+        std::string parsed_command = m_placeholder_parser.process(print_config.toolchange_gcode.value, std::stoi(t.c_str()), &dyn_config, &m_placeholder_parser_context);
+        std::regex match_pattern(";.*\n");
+        std::string replace_pattern = "\n";
+        char result[1024] = { 0 };
+        std::regex_replace(result, parsed_command.begin(), parsed_command.end(), match_pattern, replace_pattern);
+        result[1023] = 0;
+        return result;
     }
     catch (Exception& e) {
         wxMessageBox(e.what());
