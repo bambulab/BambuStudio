@@ -713,89 +713,83 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     const coordf_t line_width = config.support_material_extrusion_width.get_abs_value(layer_height);
     const coordf_t resolution = config.tree_support_collision_resolution.value;
 
-    tbb::parallel_for(
-        tbb::blocked_range<size_t>(0, contact_nodes.size()),
-        [this, contact_nodes, branch_circle, tip_layers, diameter_angle_scale_factor, brim_skirt_layers, bottom_interface_layers, branch_radius_scaled]
-        (const tbb::blocked_range<size_t>& range)
+    // TODO: std::unordered_map is not multi-thread safe. Add mutex protection and draw circles in paralell in the future.
+    for (size_t layer_nr = 0; layer_nr < contact_nodes.size(); layer_nr++)
+    {
+        TreeSupportLayer* ts_layer = m_object.get_tree_support_layer(layer_nr);
+        assert(ts_layer != nullptr);
+
+        ExPolygons& base_areas = ts_layer->base_areas;
+        ExPolygons& roof_areas = ts_layer->roof_areas;
+
+        //Draw the support areas and add the roofs appropriately to the support roof instead of normal areas.
+        if (!contact_nodes[layer_nr].empty())
         {
-            for (size_t layer_nr = range.begin(); layer_nr < range.end(); layer_nr++)
-            {
-                TreeSupportLayer* ts_layer = m_object.get_tree_support_layer(layer_nr);
-                assert(ts_layer != nullptr);
-
-                ExPolygons& base_areas = ts_layer->base_areas;
-                ExPolygons& roof_areas = ts_layer->roof_areas;
-
-                //Draw the support areas and add the roofs appropriately to the support roof instead of normal areas.
-                if (!contact_nodes[layer_nr].empty())
-                {
-                    ts_layer->lslices.reserve(contact_nodes[layer_nr].size());
-                }
-
-                for (const Node* p_node : contact_nodes[layer_nr])
-                {
-                    const Node& node = *p_node;
-                    Polygon circle;
-                    const double scale = static_cast<double>(node.distance_to_top + 1) / tip_layers;
-                    for (auto iter = branch_circle.points.begin(); iter != branch_circle.points.end(); iter++)
-                    {
-                        Point corner = *iter;
-                        if (node.distance_to_top < tip_layers) //We're in the tip.
-                        {
-                            corner = corner * (0.5 + scale / 2);
-                        }
-                        else
-                        {
-                            corner = corner * (1 + static_cast<double>(node.distance_to_top - tip_layers) * diameter_angle_scale_factor);
-                        }
-                        circle.append(node.position + corner);
-                    }
-
-                    if (layer_nr == 0) {
-                        circle = offset(circle, scale_(FIRST_LAYER_EXPANSION))[0];
-                    }
-
-                    if (node.support_roof_layers_below > 0)
-                    {
-                        roof_areas.emplace_back(circle);
-                    }
-                    else
-                    {
-                        base_areas.emplace_back(circle);
-                    }
-
-                    // only collect lslices for brim/skirt
-                    if (layer_nr < brim_skirt_layers)
-                        ts_layer->lslices.emplace_back(circle);
-                }
-                ts_layer->lslices = std::move(union_ex(ts_layer->lslices));
-
-                const size_t z_collision_layer = static_cast<size_t>(std::max(0, static_cast<int>(layer_nr) - static_cast<int>(bottom_interface_layers)));
-                base_areas = std::move(diff_ex(base_areas, m_ts_data->get_collision(0, z_collision_layer)));
-                roof_areas = std::move(diff_ex(roof_areas, m_ts_data->get_collision(0, z_collision_layer)));
-                roof_areas = std::move(offset2_ex(roof_areas, branch_radius_scaled, -branch_radius_scaled));
-                base_areas = std::move(diff_ex(base_areas, roof_areas));
-
-                //Subtract support floors.
-                ExPolygons& floor_areas = ts_layer->floor_areas;
-                if (bottom_interface_layers > 0)
-                {
-                    for (size_t layers_below = 0; layers_below <= bottom_interface_layers; layers_below++)
-                    {
-                        if (layer_nr < layers_below + bottom_interface_layers)
-                            break;
-
-                        const Layer* below_layer = m_object.get_layer(layer_nr - layers_below - bottom_interface_layers);
-                        ExPolygons bottom_interface = std::move(intersection_ex(base_areas, below_layer->lslices));
-                        floor_areas.insert(floor_areas.end(), bottom_interface.begin(), bottom_interface.end());
-                    }
-
-                    floor_areas = std::move(offset2_ex(floor_areas, branch_radius_scaled, -branch_radius_scaled));
-                    base_areas = std::move(diff_ex(base_areas, offset_ex(floor_areas, 10)));
-                }
-            }
+            ts_layer->lslices.reserve(contact_nodes[layer_nr].size());
         }
-    );
+
+        for (const Node* p_node : contact_nodes[layer_nr])
+        {
+            const Node& node = *p_node;
+            Polygon circle;
+            const double scale = static_cast<double>(node.distance_to_top + 1) / tip_layers;
+            for (auto iter = branch_circle.points.begin(); iter != branch_circle.points.end(); iter++)
+            {
+                Point corner = *iter;
+                if (node.distance_to_top < tip_layers) //We're in the tip.
+                {
+                    corner = corner * (0.5 + scale / 2);
+                }
+                else
+                {
+                    corner = corner * (1 + static_cast<double>(node.distance_to_top - tip_layers) * diameter_angle_scale_factor);
+                }
+                circle.append(node.position + corner);
+            }
+
+            if (layer_nr == 0) {
+                circle = offset(circle, scale_(FIRST_LAYER_EXPANSION))[0];
+            }
+
+            if (node.support_roof_layers_below > 0)
+            {
+                roof_areas.emplace_back(circle);
+            }
+            else
+            {
+                base_areas.emplace_back(circle);
+            }
+
+            // only collect lslices for brim/skirt
+            if (layer_nr < brim_skirt_layers)
+                ts_layer->lslices.emplace_back(circle);
+        }
+        ts_layer->lslices = std::move(union_ex(ts_layer->lslices));
+
+        const size_t z_collision_layer = static_cast<size_t>(std::max(0, static_cast<int>(layer_nr) - static_cast<int>(bottom_interface_layers)));
+        base_areas = std::move(diff_ex(base_areas, m_ts_data->get_collision(0, z_collision_layer)));
+        roof_areas = std::move(diff_ex(roof_areas, m_ts_data->get_collision(0, z_collision_layer)));
+        roof_areas = std::move(offset2_ex(roof_areas, branch_radius_scaled, -branch_radius_scaled));
+        base_areas = std::move(diff_ex(base_areas, roof_areas));
+
+        //Subtract support floors.
+        ExPolygons& floor_areas = ts_layer->floor_areas;
+        if (bottom_interface_layers > 0)
+        {
+            for (size_t layers_below = 0; layers_below <= bottom_interface_layers; layers_below++)
+            {
+                if (layer_nr < layers_below + bottom_interface_layers)
+                    break;
+
+                const Layer* below_layer = m_object.get_layer(layer_nr - layers_below - bottom_interface_layers);
+                ExPolygons bottom_interface = std::move(intersection_ex(base_areas, below_layer->lslices));
+                floor_areas.insert(floor_areas.end(), bottom_interface.begin(), bottom_interface.end());
+            }
+
+            floor_areas = std::move(offset2_ex(floor_areas, branch_radius_scaled, -branch_radius_scaled));
+            base_areas = std::move(diff_ex(base_areas, offset_ex(floor_areas, 10)));
+        }
+    }
 }
 
 inline coordf_t calc_branch_radius(coordf_t base_radius, size_t layers_to_top, size_t tip_layers, double diameter_angle_scale_factor)

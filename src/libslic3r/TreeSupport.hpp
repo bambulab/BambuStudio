@@ -75,7 +75,7 @@ private:
 
     struct RadiusLayerPairHash {
         size_t operator()(const RadiusLayerPair& elem) const {
-            return std::hash<coord_t>()(elem.first * 102 + elem.second * 10222);
+            return std::hash<coord_t>()(elem.first) ^ std::hash<coord_t>()(elem.second * 7919);
         }
     };
 
