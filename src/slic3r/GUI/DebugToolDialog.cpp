@@ -538,6 +538,8 @@ std::string DebugToolDialog::switch_ams_gcode(std::string t)
 
     try {
         std::string parsed_command = m_placeholder_parser.process(print_config.toolchange_gcode.value, std::stoi(t.c_str()), &dyn_config, &m_placeholder_parser_context);
+        // config xyz coordinate mode
+        parsed_command = "G90\n" + parsed_command;
         std::regex match_pattern(";.*\n");
         std::string replace_pattern = "\n";
         char result[1024] = { 0 };
