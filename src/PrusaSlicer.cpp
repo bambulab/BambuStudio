@@ -54,6 +54,10 @@
 #include "libslic3r/Orient.hpp"
 
 #include "PrusaSlicer.hpp"
+//BBS: add exception handler for win32
+#ifdef WIN32
+#include "BaseException.h"
+#endif
 
 #ifdef SLIC3R_GUI
     #include "slic3r/GUI/GUI_Init.hpp"
@@ -844,6 +848,10 @@ extern "C" {
             argv_narrow.emplace_back(boost::nowide::narrow(argv[i]));
         for (size_t i = 0; i < argc; ++ i)
             argv_ptrs[i] = argv_narrow[i].data();
+
+        //BBS: register default exception handler
+        SET_DEFULTER_HANDLER();
+
         // Call the UTF8 main.
         return CLI().run(argc, argv_ptrs.data());
     }

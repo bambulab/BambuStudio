@@ -110,7 +110,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/msw/PrusaSlicer-gcodeviewer.
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/msw/PrusaSlicer.manifest.in ${CMAKE_CURRENT_BINARY_DIR}/PrusaSlicer.manifest @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/osx/Info.plist.in ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
 if (WIN32)
-    add_library(PrusaSlicer SHARED PrusaSlicer.cpp PrusaSlicer.hpp)
+    add_library(PrusaSlicer SHARED PrusaSlicer.cpp PrusaSlicer.hpp BaseException.cpp BaseException.h StackWalker.cpp StackWalker.h)
 else ()
     add_executable(PrusaSlicer PrusaSlicer.cpp PrusaSlicer.hpp)
 endif ()
