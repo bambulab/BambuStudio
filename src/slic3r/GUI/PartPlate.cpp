@@ -932,15 +932,15 @@ void PartPlate::print() const
 {
 	unsigned int count=0;
 
-	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plate index %1%, pointer %2%, print_index %3% print pointer %4%") % m_plate_index % this % m_print_index % m_print;
-	BOOST_LOG_TRIVIAL(debug) << boost::format("\t origin {%1%,%2%,%3%}, width %4%,  depth %5%, height %6%") % m_origin.x() % m_origin.y() % m_origin.z() % m_width % m_depth % m_height;
-	BOOST_LOG_TRIVIAL(debug) << boost::format("\t m_printable %1%, m_locked %2%, m_ready_for_slice %3%, m_slice_result_valid %4%,  m_thumbnail_path %5%, set size %6%")\
+	BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << boost::format(": plate index %1%, pointer %2%, print_index %3% print pointer %4%") % m_plate_index % this % m_print_index % m_print;
+	BOOST_LOG_TRIVIAL(trace) << boost::format("\t origin {%1%,%2%,%3%}, width %4%,  depth %5%, height %6%") % m_origin.x() % m_origin.y() % m_origin.z() % m_width % m_depth % m_height;
+	BOOST_LOG_TRIVIAL(trace) << boost::format("\t m_printable %1%, m_locked %2%, m_ready_for_slice %3%, m_slice_result_valid %4%,  m_thumbnail_path %5%, set size %6%")\
 		% m_printable % m_locked % m_ready_for_slice % m_slice_result_valid % m_tmp_gcode_path % obj_to_instance_set.size();
 	for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it) {
 		int obj_id = it->first;
 		int instance_id = it->second;
 
-		BOOST_LOG_TRIVIAL(debug) << boost::format("\t the %1%th instance, obj_id %2%, instance id %3%") % count++ % obj_id % instance_id;
+		BOOST_LOG_TRIVIAL(trace) << boost::format("\t the %1%th instance, obj_id %2%, instance id %3%") % count++ % obj_id % instance_id;
 	}
 
 	return;
@@ -2148,14 +2148,14 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 
 void PartPlateList::print() const
 {
-	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format("PartPlateList %1%, m_plate_count %2%, current_plate %3%, print_count %4%, current print index %5%") % this % m_plate_count % m_current_plate % m_print_list.size() % m_print_index;
-	BOOST_LOG_TRIVIAL(debug) << boost::format("m_plate_width %1%, m_plate_depth %2%, m_plate_height %3%, plate count %4%\nplate list:") % m_plate_width % m_plate_depth % m_plate_height % m_plate_list.size();
+	BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << boost::format("PartPlateList %1%, m_plate_count %2%, current_plate %3%, print_count %4%, current print index %5%") % this % m_plate_count % m_current_plate % m_print_list.size() % m_print_index;
+	BOOST_LOG_TRIVIAL(trace) << boost::format("m_plate_width %1%, m_plate_depth %2%, m_plate_height %3%, plate count %4%\nplate list:") % m_plate_width % m_plate_depth % m_plate_height % m_plate_list.size();
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
-		BOOST_LOG_TRIVIAL(debug) << boost::format("the %1%th plate") % i;
+		BOOST_LOG_TRIVIAL(trace) << boost::format("the %1%th plate") % i;
 		m_plate_list[i]->print();
 	}
-	BOOST_LOG_TRIVIAL(debug) << boost::format("the unprintable plate:");
+	BOOST_LOG_TRIVIAL(trace) << boost::format("the unprintable plate:");
 	unprintable_plate.print();
 
 	flush_logs();
