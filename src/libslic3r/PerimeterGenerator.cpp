@@ -363,36 +363,23 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             && ! ((perimeter_generator.object_config->support_material || perimeter_generator.object_config->support_material_enforce_layers > 0) && 
                   perimeter_generator.object_config->support_material_contact_distance.value == 0)) {
             // get non 100% overhang paths by intersecting this loop with the grown lower slices
-            Polylines remain_polines;
+            Polygons polygons;
+            polygons.push_back(polygon);
+            Polylines remain_polines = to_polylines(polygons);
             for (auto it = perimeter_generator.m_lower_polygons_series.begin();
                 it != perimeter_generator.m_lower_polygons_series.end(); it++)
             {
-                if (it == perimeter_generator.m_lower_polygons_series.begin()) {
-                    extrusion_paths_append(
-                        paths,
-                        intersection_pl({ polygon }, it->second),
-                        (float)(0),
-                        int(0),
-                        role,
-                        is_external ? perimeter_generator.ext_mm3_per_mm() : perimeter_generator.mm3_per_mm(),
-                        is_external ? perimeter_generator.ext_perimeter_flow.width() : perimeter_generator.perimeter_flow.width(),
-                        (float)perimeter_generator.layer_height);
+                extrusion_paths_append(
+                    paths,
+                    intersection_pl({ remain_polines }, it->second),
+                    (int)(it->first * 10),
+                    int(0),
+                    role,
+                    is_external ? perimeter_generator.ext_mm3_per_mm() : perimeter_generator.mm3_per_mm(),
+                    is_external ? perimeter_generator.ext_perimeter_flow.width() : perimeter_generator.perimeter_flow.width(),
+                    (float)perimeter_generator.layer_height);
 
-                    remain_polines = diff_pl({ polygon }, it->second);
-                }
-                else {
-                    extrusion_paths_append(
-                        paths,
-                        intersection_pl({ remain_polines }, it->second),
-                        (int)(it->first * 10),
-                        int(0),
-                        role,
-                        is_external ? perimeter_generator.ext_mm3_per_mm() : perimeter_generator.mm3_per_mm(),
-                        is_external ? perimeter_generator.ext_perimeter_flow.width() : perimeter_generator.perimeter_flow.width(),
-                        (float)perimeter_generator.layer_height);
-
-                    remain_polines = diff_pl({ remain_polines }, it->second);
-                }
+                remain_polines = diff_pl({ remain_polines }, it->second);
 
                 if (remain_polines.size() == 0)
                     break;
