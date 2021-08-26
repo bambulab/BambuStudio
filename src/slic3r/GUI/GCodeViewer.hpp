@@ -691,6 +691,10 @@ private:
     bool m_gl_data_initialized{ false };
     unsigned int m_last_result_id{ 0 };
     size_t m_moves_count{ 0 };
+    //BBS: save m_gcode_result as well
+    const GCodeProcessorResult* m_gcode_result;
+    std::vector<size_t> m_seams_ids;
+
     std::vector<TBuffer> m_buffers{ static_cast<size_t>(EMoveType::Extrude) };
     // bounding box of toolpaths
     BoundingBoxf3 m_paths_bounding_box;

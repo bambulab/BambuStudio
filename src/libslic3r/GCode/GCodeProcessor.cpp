@@ -1135,6 +1135,9 @@ void GCodeProcessor::reset()
     m_origin = { 0.0f, 0.0f, 0.0f, 0.0f };
     m_cached_position.reset();
     m_wiping = false;
+    // BBS: arc move related data
+    m_move_path_type = EMovePathType::Noop_move;
+    m_arc_center = Vec3f::Zero();
 
     m_line_id = 0;
     m_last_line_id = 0;
@@ -1519,6 +1522,8 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line, bool
                 switch (cmd[1]) {
                 case '0': { process_G0(line); break; }  // Move
                 case '1': { process_G1(line); break; }  // Move
+                case '2':
+                case '3': { process_G2_G3(line); break; }  // Move
                 default: break;
                 }
                 break;
@@ -2674,6 +2679,246 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
     store_move_vertex(type);
 }
 
+// BBS: new function to calculate arc radian in X-Y plane
+static float calc_arc_radian(Vec3f start_pos, Vec3f end_pos, Vec3f center_pos, bool is_ccw)
+{
+    Vec3f delta1 = center_pos - start_pos;
+    Vec3f delta2 = center_pos - end_pos;
+    // only consider arc in x-y plane, so clean z distance
+    delta1(2,0) = 0;
+    delta2(2,0) = 0;
+
+    float radian;
+    if ((delta1 - delta2).norm() < EPSILON) {
+        // start_pos is same with end_pos, we think it's a full circle
+        radian = 2 * M_PI;
+    } else {
+        double dot = delta1.dot(delta2);
+        double cross = double(delta1.x() * delta2.y() - delta1.y() * delta2.x());
+        radian = atan2(cross, dot);
+        if (is_ccw)
+            radian = (radian < 0) ? 2 * M_PI + radian : radian;
+        else
+            radian = (radian < 0) ? abs(radian) : 2 * M_PI - radian;
+    }
+    return radian;
+}
+
+static float calc_arc_radius(Vec3f start_pos, Vec3f center_pos)
+{
+    Vec3f delta1 = center_pos - start_pos;
+    delta1(2,0) = 0;
+    return delta1.norm();
+}
+
+// BBS: new function to calculate arc length in X-Y plane
+static float calc_arc_length(Vec3f start_pos, Vec3f end_pos, Vec3f center_pos, bool is_ccw)
+{
+    return calc_arc_radius(start_pos, center_pos) * calc_arc_radian(start_pos, end_pos, center_pos, is_ccw);
+}
+
+// BBS: this function is absolutely new for G2 and G3 gcode
+void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
+{
+    float filament_diameter = (static_cast<size_t>(m_extruder_id) < m_result.filament_diameters.size()) ? m_result.filament_diameters[m_extruder_id] : m_result.filament_diameters.back();
+    float filament_radius = 0.5f * filament_diameter;
+    float area_filament_cross_section = static_cast<float>(M_PI) * sqr(filament_radius);
+    auto absolute_position = [this, area_filament_cross_section](Axis axis, const GCodeReader::GCodeLine& lineG2_3) {
+        bool is_relative = (m_global_positioning_type == EPositioningType::Relative);
+        if (axis == E)
+            is_relative |= (m_e_local_positioning_type == EPositioningType::Relative);
+
+        if (lineG2_3.has(Slic3r::Axis(axis))) {
+            float lengthsScaleFactor = (m_units == EUnits::Inches) ? INCHES_TO_MM : 1.0f;
+            float ret = lineG2_3.value(Slic3r::Axis(axis)) * lengthsScaleFactor;
+            if (axis == E && m_use_volumetric_e)
+                ret /= area_filament_cross_section;
+            if (axis == I)
+                return m_start_position[X] + ret;
+            else if (axis == J)
+                return m_start_position[Y] + ret;
+            else
+                return is_relative ? m_start_position[axis] + ret : m_origin[axis] + ret;
+        }
+        else {
+            if (axis == I)
+                return m_start_position[X];
+            else if (axis == J)
+                return m_start_position[Y];
+            else
+                return m_start_position[axis];
+        }
+    };
+
+    auto move_type = [this](const float& delta_E) {
+        //BBS: currently arc move is only used for extrusion
+        return EMoveType::Extrude;
+    };
+
+     auto arc_interpolation = [this](const Vec3f& start_pos, const Vec3f& end_pos, const Vec3f& center_pos, const bool is_ccw) {
+         float radius = calc_arc_radius(start_pos, center_pos);
+         float radian_step = 2 * acos((radius - 0.01) / radius);  // 0.01mm is arc height tolerance
+         float num = calc_arc_radian(start_pos, end_pos, center_pos, is_ccw) / radian_step;
+         float z_step = (end_pos.z() - start_pos.z())/num;
+         radian_step = is_ccw ? radian_step : -radian_step;
+         int interpolation_num = floor(num);
+
+         m_interpolation_points.resize(interpolation_num, Vec3f::Zero());
+         Vec3f delta = start_pos - center_pos;
+         for (auto i = 0; i < interpolation_num; i++) {
+             float cos_val = cos((i+1) * radian_step);
+             float sin_val = sin((i+1) * radian_step);
+             m_interpolation_points[i] = Vec3f(center_pos.x() + delta.x() * cos_val - delta.y() * sin_val,
+                                               center_pos.y() + delta.x() * sin_val + delta.y() * cos_val,
+                                               start_pos.z() + i * z_step);
+         }
+     };
+
+    ++m_g1_line_id;
+
+    //BBS: enable processing of lines M201/M203/M204/M205
+    m_time_processor.machine_envelope_processing_enabled = true;
+
+    //BBS: get axes positions from line
+    for (unsigned char a = X; a <= E; ++a) {
+        m_end_position[a] = absolute_position((Axis)a, line);
+    }
+    //BBS: G2 G3 line but has no I and J axis, invalid G code format
+    if (!line.has(I) && !line.has(J))
+        return;
+    m_arc_center = Vec3f(absolute_position(I, line),absolute_position(J, line),m_start_position[Z]);
+    //BBS: G2 is CW direction, G3 is CCW direction
+    const std::string_view cmd = line.cmd();
+    m_move_path_type = (::atoi(&cmd[1]) == 2) ? EMovePathType::Arc_move_cw : EMovePathType::Arc_move_ccw;
+    //BBS: get arc length,interpolation points and radian in X-Y plane
+    Vec3f start_point = Vec3f(m_start_position[X], m_start_position[Y], m_start_position[Z]);
+    Vec3f end_point = Vec3f(m_end_position[X], m_end_position[Y], m_end_position[Z]);
+    float arc_length = calc_arc_length(start_point, end_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
+    arc_interpolation(start_point, end_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
+    float radian = calc_arc_radian(start_point, end_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
+
+    //BBS: updates feedrate from line, if present
+    if (line.has_f())
+        m_feedrate = line.f() * MMMIN_TO_MMSEC;
+
+    //BBS: calculates movement deltas
+    AxisCoords delta_pos;
+    for (unsigned char a = X; a <= E; ++a) {
+        delta_pos[a] = m_end_position[a] - m_start_position[a];
+    }
+
+    //BBS: no displacement, return
+    if (arc_length == 0.0f && delta_pos[Z] == 0.0f && delta_pos[E] == 0.0f)
+        return;
+
+    EMoveType type = move_type(delta_pos[E]);
+
+    if (type == EMoveType::Extrude) {
+        float delta_xyz = std::sqrt(sqr(arc_length) + sqr(delta_pos[Z]));
+        float volume_extruded_filament = area_filament_cross_section * delta_pos[E];
+        float area_toolpath_cross_section = volume_extruded_filament / delta_xyz;
+
+        //BBS: save extruded volume to the cache
+        m_used_filaments.increase_caches(volume_extruded_filament);
+
+        //BBS: volume extruded filament / tool displacement = area toolpath cross section
+        m_mm3_per_mm = area_toolpath_cross_section;
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+        m_mm3_per_mm_compare.update(area_toolpath_cross_section, m_extrusion_role);
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+
+        if (m_forced_height > 0.0f)
+            m_height = m_forced_height;
+        else {
+            if (m_end_position[Z] > m_extruded_last_z + EPSILON)
+                m_height = m_end_position[Z] - m_extruded_last_z;
+        }
+
+        if (m_height == 0.0f)
+            m_height = DEFAULT_TOOLPATH_HEIGHT;
+
+        if (m_end_position[Z] == 0.0f)
+            m_end_position[Z] = m_height;
+
+        m_extruded_last_z = m_end_position[Z];
+        m_options_z_corrector.update(m_height);
+
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+        m_height_compare.update(m_height, m_extrusion_role);
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+
+        if (m_forced_width > 0.0f)
+            m_width = m_forced_width;
+        else if (m_extrusion_role == erExternalPerimeter)
+            //BBS: cross section: rectangle
+            m_width = delta_pos[E] * static_cast<float>(M_PI * sqr(1.05f * filament_radius)) / (delta_xyz * m_height);
+        else if (m_extrusion_role == erBridgeInfill || m_extrusion_role == erNone)
+            //BBS: cross section: circle
+            m_width = static_cast<float>(m_result.filament_diameters[m_extruder_id]) * std::sqrt(delta_pos[E] / delta_xyz);
+        else
+            //BBS: cross section: rectangle + 2 semicircles
+            m_width = delta_pos[E] * static_cast<float>(M_PI * sqr(filament_radius)) / (delta_xyz * m_height) + static_cast<float>(1.0 - 0.25 * M_PI) * m_height;
+
+        if (m_width == 0.0f)
+            m_width = DEFAULT_TOOLPATH_WIDTH;
+
+        //BBS: clamp width to avoid artifacts which may arise from wrong values of m_height
+        m_width = std::min(m_width, std::max(2.0f, 4.0f * m_height));
+
+#if ENABLE_GCODE_VIEWER_DATA_CHECKING
+        m_width_compare.update(m_width, m_extrusion_role);
+#endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+    }
+
+    //BBS: time estimate section
+    auto move_length = [](const float& arc_length, const AxisCoords& delta_pos) {
+        float sq_xyz_length = sqr(arc_length) + sqr(delta_pos[Z]);
+        return (sq_xyz_length > 0.0f) ? std::sqrt(sq_xyz_length) : std::abs(delta_pos[E]);
+    };
+
+    auto is_extrusion_only_move = [](const float& arc_length, const AxisCoords& delta_pos) {
+        return arc_length == 0.0f && delta_pos[Z] == 0.0f && delta_pos[E] != 0.0f;
+    };
+
+    float distance = move_length(arc_length, delta_pos);
+    assert(distance != 0.0f);
+    float inv_distance = 1.0f / distance;
+
+    //BBS: todo time estimate
+
+    //BBS: seam detector
+    if (m_seams_detector.is_active()) {
+        //BBS: check for seam starting vertex
+        if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter && !m_seams_detector.has_first_vertex())
+            m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id]);
+        //BBS: check for seam ending vertex and store the resulting move
+        else if ((type != EMoveType::Extrude || (m_extrusion_role != erExternalPerimeter && m_extrusion_role != erOverhangPerimeter)) && m_seams_detector.has_first_vertex()) {
+            auto set_end_position = [this](const Vec3f& pos) {
+                m_end_position[X] = pos.x(); m_end_position[Y] = pos.y(); m_end_position[Z] = pos.z();
+            };
+
+            const Vec3f curr_pos(m_end_position[X], m_end_position[Y], m_end_position[Z]);
+            const Vec3f new_pos = m_result.moves.back().position - m_extruder_offsets[m_extruder_id];
+            const std::optional<Vec3f> first_vertex = m_seams_detector.get_first_vertex();
+            //BBS: the threshold value = 0.0625f == 0.25 * 0.25 is arbitrary, we may find some smarter condition later
+
+            if ((new_pos - *first_vertex).squaredNorm() < 0.0625f) {
+                set_end_position(0.5f * (new_pos + *first_vertex));
+                store_move_vertex(EMoveType::Seam);
+                set_end_position(curr_pos);
+            }
+
+            m_seams_detector.activate(false);
+        }
+    }
+    else if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter) {
+        m_seams_detector.activate(true);
+        m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id]);
+    }
+    //BBS: store move
+    store_move_vertex(type, m_move_path_type);
+}
+
 void GCodeProcessor::process_G10(const GCodeReader::GCodeLine& line)
 {
     // stores retract move
@@ -3123,11 +3368,22 @@ void GCodeProcessor::process_T(const std::string_view command)
     }
 }
 
-void GCodeProcessor::store_move_vertex(EMoveType type)
+void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
 {
     m_last_line_id = (type == EMoveType::Color_change || type == EMoveType::Pause_Print || type == EMoveType::Custom_GCode) ?
         m_line_id + 1 :
         ((type == EMoveType::Seam) ? m_last_line_id : m_line_id);
+
+    //BBS: apply plate's and extruder's offset to arc interpolation points
+    if (path_type == EMovePathType::Arc_move_cw ||
+        path_type == EMovePathType::Arc_move_ccw) {
+        for (size_t i = 0; i < m_interpolation_points.size(); i++)
+            m_interpolation_points[i] =
+                Vec3f(m_interpolation_points[i].x() + m_x_offset,
+                      m_interpolation_points[i].y() + m_y_offset,
+                      m_end_position[Z]) +
+                m_extruder_offsets[m_extruder_id];
+    }
 
     m_result.moves.push_back({
         m_last_line_id,
@@ -3144,7 +3400,11 @@ void GCodeProcessor::store_move_vertex(EMoveType type)
         m_mm3_per_mm,
         m_fan_speed,
         m_extruder_temps[m_extruder_id],
-        static_cast<float>(m_result.moves.size())
+        static_cast<float>(m_result.moves.size()),
+        //BBS: add arc move related data
+        path_type,
+        Vec3f(m_arc_center(0, 0) + m_x_offset, m_arc_center(1, 0) + m_y_offset, m_arc_center(2, 0)) + m_extruder_offsets[m_extruder_id],
+        m_interpolation_points,
     });
 
     // stores stop time placeholders for later use

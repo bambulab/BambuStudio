@@ -32,6 +32,15 @@ namespace Slic3r {
         Count
     };
 
+    //BBS: linear move(G0 and G1) or arc move(G2 and G3).
+    enum class EMovePathType : unsigned char
+    {
+        Noop_move,
+        Linear_move,
+        Arc_move_cw,
+        Arc_move_ccw
+    };
+
     struct PrintEstimatedStatistics
     {
         enum class ETimeMode : unsigned char
@@ -108,7 +117,19 @@ namespace Slic3r {
             float temperature{ 0.0f }; // Celsius degrees
             float time{ 0.0f }; // s
 
+            //BBS: arc move related data
+            EMovePathType move_path_type{ EMovePathType::Noop_move };
+            Vec3f arc_center_position{ Vec3f::Zero() };      // mm
+            std::vector<Vec3f> interpolation_points;     // interpolation points of arc for drawing
+
             float volumetric_rate() const { return feedrate * mm3_per_mm; }
+            //BBS: new function to support arc move
+            bool is_arc_move_with_interpolation_points() const {
+                return (move_path_type == EMovePathType::Arc_move_ccw || move_path_type == EMovePathType::Arc_move_cw) && interpolation_points.size();
+            }
+            bool is_arc_move() const {
+                return move_path_type == EMovePathType::Arc_move_ccw || move_path_type == EMovePathType::Arc_move_cw;
+            }
         };
 
         std::string filename;
@@ -512,6 +533,10 @@ namespace Slic3r {
         //BBS: x, y offset for gcode generated
         double          m_x_offset{ 0 };
         double          m_y_offset{ 0 };
+        //BBS: arc move related data
+        EMovePathType m_move_path_type{ EMovePathType::Noop_move };
+        Vec3f m_arc_center{ Vec3f::Zero() };    // mm
+        std::vector<Vec3f> m_interpolation_points;
 
         unsigned int m_line_id;
         unsigned int m_last_line_id;
@@ -624,6 +649,7 @@ namespace Slic3r {
         // Move
         void process_G0(const GCodeReader::GCodeLine& line);
         void process_G1(const GCodeReader::GCodeLine& line);
+        void process_G2_G3(const GCodeReader::GCodeLine& line);
 
         // Retract
         void process_G10(const GCodeReader::GCodeLine& line);
@@ -716,7 +742,8 @@ namespace Slic3r {
         void process_T(const GCodeReader::GCodeLine& line);
         void process_T(const std::string_view command);
 
-        void store_move_vertex(EMoveType type);
+        //BBS: different path_type is only used for arc move
+        void store_move_vertex(EMoveType type, EMovePathType path_type = EMovePathType::Noop_move);
 
         void set_extrusion_role(ExtrusionRole role);
 

@@ -635,6 +635,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
         return;
 
     m_last_result_id = gcode_result.id;
+    m_gcode_result = &gcode_result;
 
     // release gpu memory, if used
     reset(); 
@@ -788,10 +789,10 @@ void GCodeViewer::update_shells_color_by_extruder(const DynamicPrintConfig* conf
 void GCodeViewer::reset()
 {
     m_moves_count = 0;
+    m_seams_ids.clear();
     for (TBuffer& buffer : m_buffers) {
         buffer.reset();
     }
-
     m_paths_bounding_box = BoundingBoxf3();
     m_max_bounding_box = BoundingBoxf3();
     m_max_print_height = 0.0f;
@@ -1180,7 +1181,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
             last_path.sub_paths.back().last = { ibuffer_id, indices.size() - 1, move_id, curr.position };
     };
 
-    // format data into the buffers to be rendered as solid
+    // format data into the buffers to be rendered as solid.
     auto add_vertices_as_solid = [](const GCodeProcessorResult::MoveVertex& prev, const GCodeProcessorResult::MoveVertex& curr, TBuffer& buffer, unsigned int vbuffer_id, VertexBuffer& vertices, size_t move_id) {
         auto store_vertex = [](VertexBuffer& vertices, const Vec3f& position, const Vec3f& normal) {
             // append position
@@ -1199,42 +1200,41 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
         }
 
         Path& last_path = buffer.paths.back();
+        //BBS: Has modified a lot for this function to support arc move
+        size_t loop_num = curr.is_arc_move_with_interpolation_points() ? curr.interpolation_points.size() : 0;
+        for (size_t i = 0; i < loop_num + 1; i++) {
+            const Vec3f &prev_position = (i == 0? prev.position : curr.interpolation_points[i-1]);
+            const Vec3f &curr_position = (i == loop_num? curr.position : curr.interpolation_points[i]);
 
-        const Vec3f dir = (curr.position - prev.position).normalized();
-        const Vec3f right = Vec3f(dir.y(), -dir.x(), 0.0f).normalized();
-        const Vec3f left = -right;
-        const Vec3f up = right.cross(dir);
-        const Vec3f down = -up;
-        const float half_width = 0.5f * last_path.width;
-        const float half_height = 0.5f * last_path.height;
-        const Vec3f prev_pos = prev.position - half_height * up;
-        const Vec3f curr_pos = curr.position - half_height * up;
-        const Vec3f d_up = half_height * up;
-        const Vec3f d_down = -half_height * up;
-        const Vec3f d_right = half_width * right;
-        const Vec3f d_left = -half_width * right;
+            const Vec3f dir = (curr_position - prev_position).normalized();
+            const Vec3f right = Vec3f(dir.y(), -dir.x(), 0.0f).normalized();
+            const Vec3f left = -right;
+            const Vec3f up = right.cross(dir);
+            const Vec3f down = -up;
+            const float half_width = 0.5f * last_path.width;
+            const float half_height = 0.5f * last_path.height;
+            const Vec3f prev_pos = prev_position - half_height * up;
+            const Vec3f curr_pos = curr_position - half_height * up;
+            const Vec3f d_up = half_height * up;
+            const Vec3f d_down = -half_height * up;
+            const Vec3f d_right = half_width * right;
+            const Vec3f d_left = -half_width * right;
 
-        // vertices 1st endpoint
-        if (last_path.vertices_count() == 1 || vertices.empty()) {
-            // 1st segment or restart into a new vertex buffer
-            // ===============================================
-            store_vertex(vertices, prev_pos + d_up, up);
-            store_vertex(vertices, prev_pos + d_right, right);
-            store_vertex(vertices, prev_pos + d_down, down);
-            store_vertex(vertices, prev_pos + d_left, left);
+            if ((last_path.vertices_count() == 1 || vertices.empty()) && i == 0) {
+                store_vertex(vertices, prev_pos + d_up, up);
+                store_vertex(vertices, prev_pos + d_right, right);
+                store_vertex(vertices, prev_pos + d_down, down);
+                store_vertex(vertices, prev_pos + d_left, left);
+            } else {
+                store_vertex(vertices, prev_pos + d_right, right);
+                store_vertex(vertices, prev_pos + d_left, left);
+            }
+
+            store_vertex(vertices, curr_pos + d_up, up);
+            store_vertex(vertices, curr_pos + d_right, right);
+            store_vertex(vertices, curr_pos + d_down, down);
+            store_vertex(vertices, curr_pos + d_left, left);
         }
-        else {
-            // any other segment
-            // =================
-            store_vertex(vertices, prev_pos + d_right, right);
-            store_vertex(vertices, prev_pos + d_left, left);
-        }
-
-        // vertices 2nd endpoint
-        store_vertex(vertices, curr_pos + d_up, up);
-        store_vertex(vertices, curr_pos + d_right, right);
-        store_vertex(vertices, curr_pos + d_down, down);
-        store_vertex(vertices, curr_pos + d_left, left);
 
         last_path.sub_paths.back().last = { vbuffer_id, vertices.size(), move_id, curr.position };
     };
@@ -1290,92 +1290,92 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
             }
 
             Path& last_path = buffer.paths.back();
+            bool is_first_segment = (last_path.vertices_count() == 1);
+            //BBS: has modified a lot for this function to support arc move
+            std::array<IBufferType, 8> first_seg_v_offsets = convert_vertices_offset(vbuffer_size, { 0, 1, 2, 3, 4, 5, 6, 7 });
+            std::array<IBufferType, 8> non_first_seg_v_offsets = convert_vertices_offset(vbuffer_size, { -4, 0, -2, 1, 2, 3, 4, 5 });
 
-            const Vec3f dir = (curr.position - prev.position).normalized();
-            const Vec3f right = Vec3f(dir.y(), -dir.x(), 0.0f).normalized();
-            const Vec3f up = right.cross(dir);
-            const float sq_length = (curr.position - prev.position).squaredNorm();
+            size_t loop_num = curr.is_arc_move_with_interpolation_points() ? curr.interpolation_points.size() : 0;
+            for (size_t i = 0; i < loop_num + 1; i++) {
+                const Vec3f &prev_position = (i == 0? prev.position : curr.interpolation_points[i-1]);
+                const Vec3f &curr_position = (i == loop_num? curr.position : curr.interpolation_points[i]);
 
-            const std::array<IBufferType, 8> first_seg_v_offsets = convert_vertices_offset(vbuffer_size, { 0, 1, 2, 3, 4, 5, 6, 7 });
-            const std::array<IBufferType, 8> non_first_seg_v_offsets = convert_vertices_offset(vbuffer_size, { -4, 0, -2, 1, 2, 3, 4, 5 });
-            const bool is_first_segment = (last_path.vertices_count() == 1);
-            if (is_first_segment || vbuffer_size == 0) {
-                // 1st segment or restart into a new vertex buffer
-                // ===============================================
-                if (is_first_segment)
-                    // starting cap triangles
-                    append_starting_cap_triangles(indices, first_seg_v_offsets);
-                // dummy triangles outer corner cap
-                append_dummy_cap(indices, vbuffer_size);
+                const Vec3f dir = (curr_position - prev_position).normalized();
+                const Vec3f right = Vec3f(dir.y(), -dir.x(), 0.0f).normalized();
+                const Vec3f up = right.cross(dir);
+                const float sq_length = (curr_position - prev_position).squaredNorm();
 
-                // stem triangles
-                append_stem_triangles(indices, first_seg_v_offsets);
+                if ((is_first_segment || vbuffer_size == 0) && i == 0) {
+                    if (is_first_segment && i == 0)
+                        // starting cap triangles
+                        append_starting_cap_triangles(indices, first_seg_v_offsets);
+                    // dummy triangles outer corner cap
+                    append_dummy_cap(indices, vbuffer_size);
+                    // stem triangles
+                    append_stem_triangles(indices, first_seg_v_offsets);
 
-                vbuffer_size += 8;
-            }
-            else {
-                // any other segment
-                // =================
-                float displacement = 0.0f;
-                const float cos_dir = prev_dir.dot(dir);
-                if (cos_dir > -0.9998477f) {
-                    // if the angle between adjacent segments is smaller than 179 degrees
-                    const Vec3f med_dir = (prev_dir + dir).normalized();
-                    const float half_width = 0.5f * last_path.width;
-                    displacement = half_width * ::tan(::acos(std::clamp(dir.dot(med_dir), -1.0f, 1.0f)));
-                }
-
-                const float sq_displacement = sqr(displacement);
-                const bool can_displace = displacement > 0.0f && sq_displacement < sq_prev_length && sq_displacement < sq_length;
-
-                const bool is_right_turn = prev_up.dot(prev_dir.cross(dir)) <= 0.0f;
-                // whether the angle between adjacent segments is greater than 45 degrees
-                const bool is_sharp = cos_dir < 0.7071068f;
-
-                bool right_displaced = false;
-                bool left_displaced = false;
-
-                if (!is_sharp && can_displace) {
-                    if (is_right_turn)
-                        left_displaced = true;
-                    else
-                        right_displaced = true;
-                }
-
-                // triangles outer corner cap
-                if (is_right_turn) {
-                    if (left_displaced)
-                        // dummy triangles
-                        append_dummy_cap(indices, vbuffer_size);
-                    else {
-                        store_triangle(indices, vbuffer_size - 4, vbuffer_size + 1, vbuffer_size - 1);
-                        store_triangle(indices, vbuffer_size + 1, vbuffer_size - 2, vbuffer_size - 1);
+                    vbuffer_size += 8;
+                } else {
+                    float displacement = 0.0f;
+                    float cos_dir = prev_dir.dot(dir);
+                    if (cos_dir > -0.9998477f) {
+                        // if the angle between adjacent segments is smaller than 179 degrees
+                        const Vec3f med_dir = (prev_dir + dir).normalized();
+                        const float half_width = 0.5f * last_path.width;
+                        displacement = half_width * ::tan(::acos(std::clamp(dir.dot(med_dir), -1.0f, 1.0f)));
                     }
-                }
-                else {
-                    if (right_displaced)
-                        // dummy triangles
-                        append_dummy_cap(indices, vbuffer_size);
-                    else {
-                        store_triangle(indices, vbuffer_size - 4, vbuffer_size - 3, vbuffer_size + 0);
-                        store_triangle(indices, vbuffer_size - 3, vbuffer_size - 2, vbuffer_size + 0);
+
+                    float sq_displacement = sqr(displacement);
+                    bool can_displace = displacement > 0.0f && sq_displacement < sq_prev_length&& sq_displacement < sq_length;
+
+                    bool is_right_turn = prev_up.dot(prev_dir.cross(dir)) <= 0.0f;
+                    // whether the angle between adjacent segments is greater than 45 degrees
+                    bool is_sharp = cos_dir < 0.7071068f;
+
+                    bool right_displaced = false;
+                    bool left_displaced = false;
+
+                    if (!is_sharp && can_displace) {
+                        if (is_right_turn)
+                            left_displaced = true;
+                        else
+                            right_displaced = true;
                     }
+
+                    // triangles outer corner cap
+                    if (is_right_turn) {
+                        if (left_displaced)
+                            // dummy triangles
+                            append_dummy_cap(indices, vbuffer_size);
+                        else {
+                            store_triangle(indices, vbuffer_size - 4, vbuffer_size + 1, vbuffer_size - 1);
+                            store_triangle(indices, vbuffer_size + 1, vbuffer_size - 2, vbuffer_size - 1);
+                        }
+                    }
+                    else {
+                        if (right_displaced)
+                            // dummy triangles
+                            append_dummy_cap(indices, vbuffer_size);
+                        else {
+                            store_triangle(indices, vbuffer_size - 4, vbuffer_size - 3, vbuffer_size + 0);
+                            store_triangle(indices, vbuffer_size - 3, vbuffer_size - 2, vbuffer_size + 0);
+                        }
+                    }
+                    // stem triangles
+                    non_first_seg_v_offsets = convert_vertices_offset(vbuffer_size, { -4, 0, -2, 1, 2, 3, 4, 5 });
+                    append_stem_triangles(indices, non_first_seg_v_offsets);
+                    vbuffer_size += 6;
                 }
-
-                // stem triangles
-                append_stem_triangles(indices, non_first_seg_v_offsets);
-
-                vbuffer_size += 6;
+                prev_dir = dir;
+                prev_up = up;
+                sq_prev_length = sq_length;
             }
 
             if (next != nullptr && (curr.type != next->type || !last_path.matches(*next)))
                 // ending cap triangles
-                append_ending_cap_triangles(indices, is_first_segment ? first_seg_v_offsets : non_first_seg_v_offsets);
+                append_ending_cap_triangles(indices, (is_first_segment && !curr.is_arc_move_with_interpolation_points()) ? first_seg_v_offsets : non_first_seg_v_offsets);
 
             last_path.sub_paths.back().last = { ibuffer_id, indices.size() - 1, move_id, curr.position };
-            prev_dir = dir;
-            prev_up = up;
-            sq_prev_length = sq_length;
     };
 
     // format data into the buffers to be rendered as instanced model
@@ -1465,6 +1465,22 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
         }
     }
 
+    // BBS: also merge the point on arc to bounding box
+    for (const GCodeProcessorResult::MoveVertex& move : gcode_result.moves) {
+        // continue if not arc path
+        if (!move.is_arc_move_with_interpolation_points())
+            continue;
+
+        if (wxGetApp().is_gcode_viewer())
+            for (int i = 0; i < move.interpolation_points.size(); i++)
+                m_paths_bounding_box.merge(move.interpolation_points[i].cast<double>());
+        else {
+            if (move.type == EMoveType::Extrude && move.width != 0.0f && move.height != 0.0f)
+                for (int i = 0; i < move.interpolation_points.size(); i++)
+                    m_paths_bounding_box.merge(move.interpolation_points[i].cast<double>());
+        }
+    }
+
     // set approximate max bounding box (take in account also the tool marker)
     m_max_bounding_box = m_paths_bounding_box;
     m_max_bounding_box.merge(m_paths_bounding_box.max + m_sequential_view.marker.get_bounding_box().size().z() * Vec3d::UnitZ());
@@ -1527,7 +1543,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
 
         // if adding the vertices for the current segment exceeds the threshold size of the current vertex buffer
         // add another vertex buffer
-        size_t vertices_size_to_add = (t_buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::BatchedModel) ? t_buffer.model.data.vertices_size_bytes() : t_buffer.max_vertices_per_segment_size_bytes();
+        // BBS: get the point number and then judge whether the remaining buffer is enough
+        size_t points_num = curr.is_arc_move_with_interpolation_points() ? curr.interpolation_points.size() + 1 : 1;
+        size_t vertices_size_to_add = (t_buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::BatchedModel) ? t_buffer.model.data.vertices_size_bytes() : points_num * t_buffer.max_vertices_per_segment_size_bytes();
         if (v_multibuffer.back().size() * sizeof(float) > t_buffer.vertices.max_size_bytes() - vertices_size_to_add) {
             v_multibuffer.push_back(VertexBuffer());
             if (t_buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle) {
@@ -1572,7 +1590,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
         }
     }
 
-    // smooth toolpaths corners for the given TBuffer using triangles
+    m_seams_ids = seams_ids;
+
+    //BBS: smooth toolpaths corners for the given TBuffer using triangles
     auto smooth_triangle_toolpaths_corners = [&gcode_result, &seams_ids](const TBuffer& t_buffer, MultiVertexBuffer& v_multibuffer) {
         auto extract_position_at = [](const VertexBuffer& vertices, size_t offset) {
             return Vec3f(vertices[offset + 0], vertices[offset + 1], vertices[offset + 2]);
@@ -1582,71 +1602,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
             vertices[offset + 1] = position.y();
             vertices[offset + 2] = position.z();
         };
-        auto match_right_vertices = [&](const Path::Sub_Path& prev_sub_path, const Path::Sub_Path& next_sub_path,
-            size_t curr_s_id, size_t vertex_size_floats, const Vec3f& displacement_vec) {
-                if (&prev_sub_path == &next_sub_path) { // previous and next segment are both contained into to the same vertex buffer
-                    VertexBuffer& vbuffer = v_multibuffer[prev_sub_path.first.b_id];
-                    // offset into the vertex buffer of the next segment 1st vertex
-                    const size_t next_1st_offset = (prev_sub_path.last.s_id - curr_s_id) * 6 * vertex_size_floats;
-                    // offset into the vertex buffer of the right vertex of the previous segment 
-                    const size_t prev_right_offset = prev_sub_path.last.i_id - next_1st_offset - 3 * vertex_size_floats;
-                    // new position of the right vertices
-                    const Vec3f shared_vertex = extract_position_at(vbuffer, prev_right_offset) + displacement_vec;
-                    // update previous segment
-                    update_position_at(vbuffer, prev_right_offset, shared_vertex);
-                    // offset into the vertex buffer of the right vertex of the next segment
-                    const size_t next_right_offset = next_sub_path.last.i_id - next_1st_offset;
-                    // update next segment
-                    update_position_at(vbuffer, next_right_offset, shared_vertex);
-                }
-                else { // previous and next segment are contained into different vertex buffers
-                    VertexBuffer& prev_vbuffer = v_multibuffer[prev_sub_path.first.b_id];
-                    VertexBuffer& next_vbuffer = v_multibuffer[next_sub_path.first.b_id];
-                    // offset into the previous vertex buffer of the right vertex of the previous segment 
-                    const size_t prev_right_offset = prev_sub_path.last.i_id - 3 * vertex_size_floats;
-                    // new position of the right vertices
-                    const Vec3f shared_vertex = extract_position_at(prev_vbuffer, prev_right_offset) + displacement_vec;
-                    // update previous segment
-                    update_position_at(prev_vbuffer, prev_right_offset, shared_vertex);
-                    // offset into the next vertex buffer of the right vertex of the next segment
-                    const size_t next_right_offset = next_sub_path.first.i_id + 1 * vertex_size_floats;
-                    // update next segment
-                    update_position_at(next_vbuffer, next_right_offset, shared_vertex);
-                }
-        };
-        auto match_left_vertices = [&](const Path::Sub_Path& prev_sub_path, const Path::Sub_Path& next_sub_path,
-            size_t curr_s_id, size_t vertex_size_floats, const Vec3f& displacement_vec) {
-                if (&prev_sub_path == &next_sub_path) { // previous and next segment are both contained into to the same vertex buffer
-                    VertexBuffer& vbuffer = v_multibuffer[prev_sub_path.first.b_id];
-                    // offset into the vertex buffer of the next segment 1st vertex
-                    const size_t next_1st_offset = (prev_sub_path.last.s_id - curr_s_id) * 6 * vertex_size_floats;
-                    // offset into the vertex buffer of the left vertex of the previous segment 
-                    const size_t prev_left_offset = prev_sub_path.last.i_id - next_1st_offset - 1 * vertex_size_floats;
-                    // new position of the left vertices
-                    const Vec3f shared_vertex = extract_position_at(vbuffer, prev_left_offset) + displacement_vec;
-                    // update previous segment
-                    update_position_at(vbuffer, prev_left_offset, shared_vertex);
-                    // offset into the vertex buffer of the left vertex of the next segment
-                    const size_t next_left_offset = next_sub_path.last.i_id - next_1st_offset + 1 * vertex_size_floats;
-                    // update next segment
-                    update_position_at(vbuffer, next_left_offset, shared_vertex);
-                }
-                else { // previous and next segment are contained into different vertex buffers
-                    VertexBuffer& prev_vbuffer = v_multibuffer[prev_sub_path.first.b_id];
-                    VertexBuffer& next_vbuffer = v_multibuffer[next_sub_path.first.b_id];
-                    // offset into the previous vertex buffer of the left vertex of the previous segment 
-                    const size_t prev_left_offset = prev_sub_path.last.i_id - 1 * vertex_size_floats;
-                    // new position of the left vertices
-                    const Vec3f shared_vertex = extract_position_at(prev_vbuffer, prev_left_offset) + displacement_vec;
-                    // update previous segment
-                    update_position_at(prev_vbuffer, prev_left_offset, shared_vertex);
-                    // offset into the next vertex buffer of the left vertex of the next segment
-                    const size_t next_left_offset = next_sub_path.first.i_id + 3 * vertex_size_floats;
-                    // update next segment
-                    update_position_at(next_vbuffer, next_left_offset, shared_vertex);
-                }
-        };
-
         auto extract_move_id = [&seams_ids](size_t id) {
             for (int i = seams_ids.size() - 1; i >= 0; --i) {
                 if (seams_ids[i] < id + i + 1)
@@ -1654,68 +1609,175 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
             }
             return id;
         };
+        auto match_right_vertices_with_internal_point = [&](const Path::Sub_Path& prev_sub_path, const Path::Sub_Path& next_sub_path,
+            size_t curr_s_id, bool is_internal_point, size_t interpolation_point_id, size_t vertex_size_floats, const Vec3f& displacement_vec) {
+            if (&prev_sub_path == &next_sub_path || is_internal_point) { // previous and next segment are both contained into to the same vertex buffer
+                VertexBuffer& vbuffer = v_multibuffer[prev_sub_path.first.b_id];
+                // offset into the vertex buffer of the next segment 1st vertex
+                size_t temp_offset = prev_sub_path.last.s_id - curr_s_id;
+                for (size_t i = prev_sub_path.last.s_id; i > curr_s_id; i--) {
+                    size_t move_id = extract_move_id(i);
+                    temp_offset += (gcode_result.moves[move_id].is_arc_move() ? gcode_result.moves[move_id].interpolation_points.size() : 0);
+                }
+                if (is_internal_point) {
+                    size_t move_id = extract_move_id(curr_s_id);
+                    temp_offset += (gcode_result.moves[move_id].interpolation_points.size() - interpolation_point_id);
+                }
+                const size_t next_1st_offset = temp_offset * 6 * vertex_size_floats;
+                // offset into the vertex buffer of the right vertex of the previous segment 
+                const size_t prev_right_offset = prev_sub_path.last.i_id - next_1st_offset - 3 * vertex_size_floats;
+                // new position of the right vertices
+                const Vec3f shared_vertex = extract_position_at(vbuffer, prev_right_offset) + displacement_vec;
+                // update previous segment
+                update_position_at(vbuffer, prev_right_offset, shared_vertex);
+                // offset into the vertex buffer of the right vertex of the next segment
+                const size_t next_right_offset = prev_sub_path.last.i_id - next_1st_offset;
+                // update next segment
+                update_position_at(vbuffer, next_right_offset, shared_vertex);
+            }
+            else { // previous and next segment are contained into different vertex buffers
+                VertexBuffer& prev_vbuffer = v_multibuffer[prev_sub_path.first.b_id];
+                VertexBuffer& next_vbuffer = v_multibuffer[next_sub_path.first.b_id];
+                // offset into the previous vertex buffer of the right vertex of the previous segment 
+                const size_t prev_right_offset = prev_sub_path.last.i_id - 3 * vertex_size_floats;
+                // new position of the right vertices
+                const Vec3f shared_vertex = extract_position_at(prev_vbuffer, prev_right_offset) + displacement_vec;
+                // update previous segment
+                update_position_at(prev_vbuffer, prev_right_offset, shared_vertex);
+                // offset into the next vertex buffer of the right vertex of the next segment
+                const size_t next_right_offset = next_sub_path.first.i_id + 1 * vertex_size_floats;
+                // update next segment
+                update_position_at(next_vbuffer, next_right_offset, shared_vertex);
+            }
+        };
+        //BBS: modify a lot of this function to support arc move
+        auto match_left_vertices_with_internal_point = [&](const Path::Sub_Path& prev_sub_path, const Path::Sub_Path& next_sub_path,
+            size_t curr_s_id, bool is_internal_point, size_t interpolation_point_id, size_t vertex_size_floats, const Vec3f& displacement_vec) {
+            if (&prev_sub_path == &next_sub_path || is_internal_point) { // previous and next segment are both contained into to the same vertex buffer
+                VertexBuffer& vbuffer = v_multibuffer[prev_sub_path.first.b_id];
+                // offset into the vertex buffer of the next segment 1st vertex
+                size_t temp_offset = prev_sub_path.last.s_id - curr_s_id;
+                for (size_t i = prev_sub_path.last.s_id; i > curr_s_id; i--) {
+                    size_t move_id = extract_move_id(i);
+                    temp_offset += (gcode_result.moves[move_id].is_arc_move() ? gcode_result.moves[move_id].interpolation_points.size() : 0);
+                }
+                if (is_internal_point) {
+                    size_t move_id = extract_move_id(curr_s_id);
+                    temp_offset += (gcode_result.moves[move_id].interpolation_points.size() - interpolation_point_id);
+                }
+                const size_t next_1st_offset = temp_offset * 6 * vertex_size_floats;
+                // offset into the vertex buffer of the left vertex of the previous segment 
+                const size_t prev_left_offset = prev_sub_path.last.i_id - next_1st_offset - 1 * vertex_size_floats;
+                // new position of the left vertices
+                const Vec3f shared_vertex = extract_position_at(vbuffer, prev_left_offset) + displacement_vec;
+                // update previous segment
+                update_position_at(vbuffer, prev_left_offset, shared_vertex);
+                // offset into the vertex buffer of the left vertex of the next segment
+                const size_t next_left_offset = prev_sub_path.last.i_id - next_1st_offset + 1 * vertex_size_floats;
+                // update next segment
+                update_position_at(vbuffer, next_left_offset, shared_vertex);
+            }
+            else { // previous and next segment are contained into different vertex buffers
+                VertexBuffer& prev_vbuffer = v_multibuffer[prev_sub_path.first.b_id];
+                VertexBuffer& next_vbuffer = v_multibuffer[next_sub_path.first.b_id];
+                // offset into the previous vertex buffer of the left vertex of the previous segment 
+                const size_t prev_left_offset = prev_sub_path.last.i_id - 1 * vertex_size_floats;
+                // new position of the left vertices
+                const Vec3f shared_vertex = extract_position_at(prev_vbuffer, prev_left_offset) + displacement_vec;
+                // update previous segment
+                update_position_at(prev_vbuffer, prev_left_offset, shared_vertex);
+                // offset into the next vertex buffer of the left vertex of the next segment
+                const size_t next_left_offset = next_sub_path.first.i_id + 3 * vertex_size_floats;
+                // update next segment
+                update_position_at(next_vbuffer, next_left_offset, shared_vertex);
+            }
+        };
 
         size_t vertex_size_floats = t_buffer.vertices.vertex_size_floats();
         for (const Path& path : t_buffer.paths) {
-            // the two segments of the path sharing the current vertex may belong
-            // to two different vertex buffers
+            //BBS: the two segments of the path sharing the current vertex may belong
+            //to two different vertex buffers
             size_t prev_sub_path_id = 0;
             size_t next_sub_path_id = 0;
             const size_t path_vertices_count = path.vertices_count();
             const float half_width = 0.5f * path.width;
-            for (size_t j = 1; j < path_vertices_count - 1; ++j) {
+            // BBS: modify a lot to support arc move which has internal points
+            for (size_t j = 1; j < path_vertices_count; ++j) {
                 size_t curr_s_id = path.sub_paths.front().first.s_id + j;
                 size_t move_id = extract_move_id(curr_s_id);
-                const Vec3f& prev = gcode_result.moves[move_id - 1].position;
-                const Vec3f& curr = gcode_result.moves[move_id].position;
-                const Vec3f& next = gcode_result.moves[move_id + 1].position;
-
-                // select the subpaths which contains the previous/next segments
+                int interpolation_points_num = gcode_result.moves[move_id].is_arc_move_with_interpolation_points()?
+                                                    gcode_result.moves[move_id].interpolation_points.size() : 0;
+                int loop_num = interpolation_points_num;
+                //BBS: select the subpaths which contains the previous/next segments
                 if (!path.sub_paths[prev_sub_path_id].contains(curr_s_id))
                     ++prev_sub_path_id;
-                if (!path.sub_paths[next_sub_path_id].contains(curr_s_id + 1))
-                    ++next_sub_path_id;
+                if (j == path_vertices_count - 1) {
+                    if (!gcode_result.moves[curr_s_id].is_arc_move_with_interpolation_points())
+                        break;   // BBS: the last move has no internal point.
+                    loop_num--;  //BBS: don't need to handle the endpoint of the last arc move of path
+                    next_sub_path_id = prev_sub_path_id;
+                } else {
+                    if (!path.sub_paths[next_sub_path_id].contains(curr_s_id + 1))
+                        ++next_sub_path_id;
+                }
                 const Path::Sub_Path& prev_sub_path = path.sub_paths[prev_sub_path_id];
                 const Path::Sub_Path& next_sub_path = path.sub_paths[next_sub_path_id];
 
-                const Vec3f prev_dir = (curr - prev).normalized();
-                const Vec3f prev_right = Vec3f(prev_dir.y(), -prev_dir.x(), 0.0f).normalized();
-                const Vec3f prev_up = prev_right.cross(prev_dir);
+                // BBS: smooth triangle toolpaths corners including arc move which has internal interpolation point
+                for (int k = 0; k <= loop_num; k++) {
+                    const Vec3f& prev = k==0? 
+                                        gcode_result.moves[move_id - 1].position : 
+                                        gcode_result.moves[move_id].interpolation_points[k-1];
+                    const Vec3f& curr = k==interpolation_points_num? 
+                                        gcode_result.moves[move_id].position :
+                                        gcode_result.moves[move_id].interpolation_points[k];
+                    const Vec3f& next = k < interpolation_points_num - 1?
+                                        gcode_result.moves[move_id].interpolation_points[k+1]:
+                                        (k == interpolation_points_num - 1? gcode_result.moves[curr_s_id].position :
+                                        (gcode_result.moves[move_id + 1].is_arc_move_with_interpolation_points()?
+                                        gcode_result.moves[move_id + 1].interpolation_points[0] :
+                                        gcode_result.moves[move_id + 1].position));
 
-                const Vec3f next_dir = (next - curr).normalized();
+                    const Vec3f prev_dir = (curr - prev).normalized();
+                    const Vec3f prev_right = Vec3f(prev_dir.y(), -prev_dir.x(), 0.0f).normalized();
+                    const Vec3f prev_up = prev_right.cross(prev_dir);
 
-                const bool is_right_turn = prev_up.dot(prev_dir.cross(next_dir)) <= 0.0f;
-                const float cos_dir = prev_dir.dot(next_dir);
-                // whether the angle between adjacent segments is greater than 45 degrees
-                const bool is_sharp = cos_dir < 0.7071068f;
+                    const Vec3f next_dir = (next - curr).normalized();
 
-                float displacement = 0.0f;
-                if (cos_dir > -0.9998477f) {
-                    // if the angle between adjacent segments is smaller than 179 degrees
-                    Vec3f med_dir = (prev_dir + next_dir).normalized();
-                    displacement = half_width * ::tan(::acos(std::clamp(next_dir.dot(med_dir), -1.0f, 1.0f)));
-                }
+                    const bool is_right_turn = prev_up.dot(prev_dir.cross(next_dir)) <= 0.0f;
+                    const float cos_dir = prev_dir.dot(next_dir);
+                    // whether the angle between adjacent segments is greater than 45 degrees
+                    const bool is_sharp = cos_dir < 0.7071068f;
 
-                const float sq_prev_length = (curr - prev).squaredNorm();
-                const float sq_next_length = (next - curr).squaredNorm();
-                const float sq_displacement = sqr(displacement);
-                const bool can_displace = displacement > 0.0f && sq_displacement < sq_prev_length && sq_displacement < sq_next_length;
+                    float displacement = 0.0f;
+                    if (cos_dir > -0.9998477f) {
+                        // if the angle between adjacent segments is smaller than 179 degrees
+                        Vec3f med_dir = (prev_dir + next_dir).normalized();
+                        displacement = half_width * ::tan(::acos(std::clamp(next_dir.dot(med_dir), -1.0f, 1.0f)));
+                    }
 
-                if (can_displace) {
-                    // displacement to apply to the vertices to match
-                    Vec3f displacement_vec = displacement * prev_dir;
-                    // matches inner corner vertices
-                    if (is_right_turn)
-                        match_right_vertices(prev_sub_path, next_sub_path, curr_s_id, vertex_size_floats, -displacement_vec);
-                    else
-                        match_left_vertices(prev_sub_path, next_sub_path, curr_s_id, vertex_size_floats, -displacement_vec);
+                    const float sq_prev_length = (curr - prev).squaredNorm();
+                    const float sq_next_length = (next - curr).squaredNorm();
+                    const float sq_displacement = sqr(displacement);
+                    const bool can_displace = displacement > 0.0f && sq_displacement < sq_prev_length&& sq_displacement < sq_next_length;
+                    bool is_internal_point = interpolation_points_num > k;
 
-                    if (!is_sharp) {
-                        // matches outer corner vertices
+                    if (can_displace) {
+                        // displacement to apply to the vertices to match
+                        Vec3f displacement_vec = displacement * prev_dir;
+                        // matches inner corner vertices
                         if (is_right_turn)
-                            match_left_vertices(prev_sub_path, next_sub_path, curr_s_id, vertex_size_floats, displacement_vec);
+                            match_right_vertices_with_internal_point(prev_sub_path, next_sub_path, curr_s_id, is_internal_point, k, vertex_size_floats, -displacement_vec);
                         else
-                            match_right_vertices(prev_sub_path, next_sub_path, curr_s_id, vertex_size_floats, displacement_vec);
+                            match_left_vertices_with_internal_point(prev_sub_path, next_sub_path, curr_s_id, is_internal_point, k, vertex_size_floats, -displacement_vec);
+
+                        if (!is_sharp) {
+                            //BBS: matches outer corner vertices
+                            if (is_right_turn)
+                                match_left_vertices_with_internal_point(prev_sub_path, next_sub_path, curr_s_id, is_internal_point, k, vertex_size_floats, displacement_vec);
+                            else
+                                match_right_vertices_with_internal_point(prev_sub_path, next_sub_path, curr_s_id, is_internal_point, k, vertex_size_floats, displacement_vec);
+                        }
                     }
                 }
             }
@@ -1864,7 +1926,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
 
         // if adding the indices for the current segment exceeds the threshold size of the current index buffer
         // create another index buffer
-        size_t indiced_size_to_add = (t_buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::BatchedModel) ? t_buffer.model.data.indices_size_bytes() : t_buffer.max_indices_per_segment_size_bytes();
+        // BBS: get the point number and then judge whether the remaining buffer is enough
+        size_t points_num = curr.is_arc_move_with_interpolation_points() ? curr.interpolation_points.size() + 1 : 1;
+        size_t indiced_size_to_add = (t_buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::BatchedModel) ? t_buffer.model.data.indices_size_bytes() : points_num * t_buffer.max_indices_per_segment_size_bytes();
         if (i_multibuffer.back().size() * sizeof(IBufferType) >= IBUFFER_THRESHOLD_BYTES - indiced_size_to_add) {
             i_multibuffer.push_back(IndexBuffer());
             vbo_index_list.push_back(t_buffer.vertices.vbos[curr_vertex_buffer.first]);
@@ -1877,7 +1941,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
 
         // if adding the vertices for the current segment exceeds the threshold size of the current vertex buffer
         // create another index buffer
-        size_t vertices_size_to_add = (t_buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::BatchedModel) ? t_buffer.model.data.vertices_size_bytes() : t_buffer.max_vertices_per_segment_size_bytes();
+        // BBS: support multi points in one MoveVertice, should multiply point number
+        size_t vertices_size_to_add = (t_buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::BatchedModel) ? t_buffer.model.data.vertices_size_bytes() : points_num * t_buffer.max_vertices_per_segment_size_bytes();
         if (curr_vertex_buffer.second * t_buffer.vertices.vertex_size_bytes() > t_buffer.vertices.max_size_bytes() - vertices_size_to_add) {
             i_multibuffer.push_back(IndexBuffer());
 
@@ -2194,6 +2259,15 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             (min_s_id <= path.sub_paths.back().last.s_id && path.sub_paths.back().last.s_id <= max_s_id);
     };
 
+    //BBS
+    auto extract_move_id = [this](size_t id) {
+        for (int i = m_seams_ids.size() - 1; i >= 0; --i) {
+            if (m_seams_ids[i] < id + i + 1)
+                return id + (size_t)i + 1;
+        }
+        return id;
+    };
+
 #if ENABLE_GCODE_VIEWER_STATISTICS
     Statistics* statistics = const_cast<Statistics*>(&m_statistics);
     statistics->render_paths_size = 0;
@@ -2307,6 +2381,13 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
                                 offset = 2 * offset - 1;
                             else if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle) {
                                 unsigned int indices_count = buffer.indices_per_segment();
+                                // BBS: modify to support moves which has internal point
+                                for (size_t i = sub_path.first.s_id + 1; i < m_sequential_view.current.last + 1; i++) {
+                                    const GCodeProcessorResult::MoveVertex& curr = m_gcode_result->moves[extract_move_id(i)];
+                                    if (curr.is_arc_move()) {
+                                        offset += curr.interpolation_points.size();
+                                    }
+                                }
                                 offset = indices_count * (offset - 1) + (indices_count - 2);
                                 if (sub_path_id == 0)
                                     offset += 6; // add 2 triangles for starting cap 
@@ -2398,7 +2479,16 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         }
         case TBuffer::ERenderPrimitiveType::Line:
         case TBuffer::ERenderPrimitiveType::Triangle: {
-            unsigned int segments_count = std::min(m_sequential_view.current.last, sub_path.last.s_id) - std::max(m_sequential_view.current.first, sub_path.first.s_id);
+            // BBS: modify to support moves which has internal point
+            size_t max_s_id = std::min(m_sequential_view.current.last, sub_path.last.s_id);
+            size_t min_s_id = std::max(m_sequential_view.current.first, sub_path.first.s_id);
+            unsigned int segments_count = max_s_id - min_s_id;
+            for (size_t i = min_s_id + 1; i < max_s_id + 1; i++) {
+                const GCodeProcessorResult::MoveVertex& curr = m_gcode_result->moves[extract_move_id(i)];
+                if (curr.is_arc_move()) {
+                    segments_count += curr.interpolation_points.size();
+                }
+            }
             size_in_indices = buffer.indices_per_segment() * segments_count;
             break;
         }

@@ -45,9 +45,10 @@ public:
             return sqrt(x*x + y*y);
         }
         bool cmd_is(const char *cmd_test)          const { return cmd_is(m_raw, cmd_test); }
-        bool extruding(const GCodeReader &reader)  const { return this->cmd_is("G1") && this->dist_E(reader) > 0; }
-        bool retracting(const GCodeReader &reader) const { return this->cmd_is("G1") && this->dist_E(reader) < 0; }
-        bool travel()     const { return this->cmd_is("G1") && ! this->has(E); }
+        //BBS: modify to support G2 and G3
+        bool extruding(const GCodeReader &reader)  const { return (this->cmd_is("G1") || this->cmd_is("G2") || this->cmd_is("G3")) && this->dist_E(reader) > 0; }
+        bool retracting(const GCodeReader &reader) const { return (this->cmd_is("G1") || this->cmd_is("G2") || this->cmd_is("G3")) && this->dist_E(reader) < 0; }
+        bool travel()     const { return (this->cmd_is("G1") || this->cmd_is("G2") || this->cmd_is("G3")) && ! this->has(E); }
         void set(const GCodeReader &reader, const Axis axis, const float new_value, const int decimal_digits = 3);
 
         bool  has_x() const { return this->has(X); }
@@ -55,12 +56,19 @@ public:
         bool  has_z() const { return this->has(Z); }
         bool  has_e() const { return this->has(E); }
         bool  has_f() const { return this->has(F); }
+        // BBS: add I J axis
+        bool  has_i() const { return this->has(I); }
+        bool  has_j() const { return this->has(J); }
+
         bool  has_unknown_axis() const { return this->has(UNKNOWN_AXIS); }
         float x() const { return m_axis[X]; }
         float y() const { return m_axis[Y]; }
         float z() const { return m_axis[Z]; }
         float e() const { return m_axis[E]; }
         float f() const { return m_axis[F]; }
+        // BBS: add I J axis
+        float i() const { return m_axis[I]; }
+        float j() const { return m_axis[J]; }
 
         static bool cmd_is(const std::string &gcode_line, const char *cmd_test) {
             const char *cmd = GCodeReader::skip_whitespaces(gcode_line.c_str());
@@ -134,6 +142,11 @@ public:
     float  e() const { return m_position[E]; }
     float& f()       { return m_position[F]; }
     float  f() const { return m_position[F]; }
+    // BBS: add I J axis
+    float& i()       { return m_position[I]; }
+    float  i() const { return m_position[I]; }
+    float& j()       { return m_position[J]; }
+    float  j() const { return m_position[J]; }
 
     // Returns 0 for gcfNoExtrusion.
     char   extrusion_axis() const { return m_extrusion_axis; }

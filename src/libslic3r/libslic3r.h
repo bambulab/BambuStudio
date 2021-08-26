@@ -82,6 +82,9 @@ enum Axis {
 	Z,
 	E,
 	F,
+    //BBS: add I and J axis
+    I,
+    J,
 	NUM_AXES,
 	// For the GCodeReader to mark a parsed axis, which is not in "XYZEF", it was parsed correctly.
 	UNKNOWN_AXIS = NUM_AXES,
