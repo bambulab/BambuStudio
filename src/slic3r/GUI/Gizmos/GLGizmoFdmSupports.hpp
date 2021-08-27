@@ -64,6 +64,7 @@ private:
     mutable bool m_volume_ready = false;
     bool m_is_tree_support = false;
     bool m_cancel = false;
+    size_t m_object_id;
     std::vector<ObjectBase::Timestamp> m_volume_timestamps;
     PrintInstance m_print_instance;
     mutable EditState m_edit_state;

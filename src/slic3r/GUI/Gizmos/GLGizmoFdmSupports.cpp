@@ -424,8 +424,8 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
             m_edit_state = state_generating;
             lck.unlock();
 
-            update_support_volumes();    
-            m_generate_count = 0;                
+            update_support_volumes();
+            m_generate_count = 0;
         }
     }
     else if (m_edit_state == state_generating)
@@ -658,6 +658,12 @@ bool GLGizmoFdmSupports::need_regenerate_support_volumes()
 
     const ModelObject* mo = m_c->selection_info()->model_object();
 
+    if (m_object_id != m_print_instance.print_object->id().id)
+    {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",object_id changed from " << m_object_id << " to " << m_print_instance.print_object->id().id << ", need to regenerate";
+        return true;
+    }
+
     int volume_id = -1;
     for (const ModelVolume* mv : mo->volumes) {
         if (! mv->is_model_part())
@@ -826,6 +832,7 @@ void GLGizmoFdmSupports::generate_support_volume()
     std::unique_lock<std::mutex> lck(m_mutex);
     m_volume_ready = true;
     m_volume_valid = true;
+    m_object_id = m_print_instance.print_object->id().id;
     lck.unlock();
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",finished finalize_geometry";

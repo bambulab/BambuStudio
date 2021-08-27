@@ -57,7 +57,7 @@ void main()
 
     if (slope.actived && world_normal_z < slope.normal_z - EPSILON) {
         //color = vec3(0.7, 0.7, 1.0);
-		color = ORANGE;
+        color = ORANGE;
         alpha = 1.0;
     }
 	
