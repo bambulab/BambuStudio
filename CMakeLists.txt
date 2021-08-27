@@ -409,6 +409,8 @@ if (NOT WIN32)
     # Required by libcurl
     find_package(ZLIB REQUIRED)
     target_link_libraries(libcurl INTERFACE ZLIB::ZLIB)
+    find_package(Libssh2 REQUIRED)
+    target_link_libraries(libcurl INTERFACE Libssh2::libssh2)
 else()
     target_link_libraries(libcurl INTERFACE crypt32)
 endif()
@@ -560,16 +562,21 @@ function(prusaslicer_copy_dlls target config postfix output_dlls)
 
     if (_alt_out_dir)
         set (_out_dir "${_alt_out_dir}")
+        message ("set out_dir to _alt_out_dir: ${_out_dir}")
     elseif (_is_multi)
         set(_out_dir "${CMAKE_CURRENT_BINARY_DIR}/${config}")
+        message ("set out_dir to CMAKE_CURRENT_BINARY_DIR/config: ${_out_dir}")
     else ()
         set(_out_dir "${CMAKE_CURRENT_BINARY_DIR}")
+        message ("set out_dir to CMAKE_CURRENT_BINARY_DIR: ${_out_dir}")
     endif ()
 
-    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
         set (_in_file "${LIBDIR_BIN}/dds_fdal/Release/dds_fdal.dll")
-    else()
-        set (_in_file "${LIBDIR_BIN}/dds_fdal/Debug/dds_fdal.dll")
+    elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
+        set (_in_file "${LIBDIR_BIN}/dds_fdal/RelWithDebInfo/dds_fdal.dll")
+    else ()
+        set (_in_file "${LIBDIR_BIN}/dds_fdal/Release/dds_fdal.dll")
     endif()
     add_custom_command(TARGET ${target} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
@@ -578,52 +585,18 @@ function(prusaslicer_copy_dlls target config postfix output_dlls)
 
     file(COPY ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/win${_bits}/libgmp-10.dll
             ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/win${_bits}/libmpfr-4.dll
-            "${CMAKE_PREFIX_PATH}/bin/libcrypto-1_1-x64.dll"
-            "${CMAKE_PREFIX_PATH}/bin/libssl-1_1-x64.dll"
             "${CMAKE_PREFIX_PATH}/bin/tinyxml2${postfix}.dll"
             "${CMAKE_PREFIX_PATH}/bin/fastrtps${postfix}-2.2.dll"
             "${CMAKE_PREFIX_PATH}/bin/fastcdr${postfix}-1.0.dll"
         DESTINATION ${_out_dir})
-   
-    if(${config} STREQUAL "Debug")
-        file(COPY
-            "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqtt3a.dll"
-            "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqtt3as.dll"
-            "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqtt3c.dll"
-            "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqtt3cs.dll"
-            "${CMAKE_PREFIX_PATH}/bin/Debug/paho-mqttpp3.dll"
-            "${CMAKE_PREFIX_PATH}/bin/zlibd.dll"
-            "${CMAKE_PREFIX_PATH}/bin/libcurl-d.dll"
-            DESTINATION ${_out_dir})
-    elseif(${config} STREQUAL "Release")
-        file(COPY
-            "${CMAKE_PREFIX_PATH}/bin/paho-mqtt3a.dll"
-            "${CMAKE_PREFIX_PATH}/bin/paho-mqtt3as.dll"
-            "${CMAKE_PREFIX_PATH}/bin/paho-mqtt3c.dll"
-            "${CMAKE_PREFIX_PATH}/bin/paho-mqtt3cs.dll"
-            "${CMAKE_PREFIX_PATH}/bin/paho-mqttpp3.dll"
-            "${CMAKE_PREFIX_PATH}/bin/zlib.dll"
-            "${CMAKE_PREFIX_PATH}/bin/libcurl.dll"
-            DESTINATION ${_out_dir})
-    endif()
-     
+
     set(${output_dlls}
         ${_out_dir}/libgmp-10.dll
         ${_out_dir}/libmpfr-4.dll
-        ${_out_dir}/libcrypto-1_1-x64.dll
-        ${_out_dir}/libssl-1_1-x64.dll
-        ${_out_dir}/libssl-1_1-x64.dll
         ${_out_dir}/tinyxml2${postfix}.dll
         ${_out_dir}/fastrtps${postfix}-2.2.dll
         ${_out_dir}/fastcdr${postfix}-1.0.dll
         ${_out_dir}/dds_fdal.dll
-        ${_out_dir}/paho-mqtt3a.dll
-        ${_out_dir}/paho-mqtt3as.dll
-        ${_out_dir}/paho-mqtt3c.dll
-        ${_out_dir}/paho-mqtt3cs.dll
-        ${_out_dir}/paho-mqttpp3.dll
-        ${_out_dir}/libcurl.dll
-        ${_out_dir}/zlib.dll
         PARENT_SCOPE
     )
     

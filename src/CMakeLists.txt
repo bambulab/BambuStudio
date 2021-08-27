@@ -201,6 +201,7 @@ endif ()
 # Link the resources dir to where Slic3r GUI expects it
 set(output_dlls_Release "")
 set(output_dlls_Debug "")
+set(output_dlls_RelWithDebInfo "")
 if (WIN32)
     # This has to be a separate target due to the windows command line lenght limits
     add_custom_target(PrusaSlicerDllsCopy ALL DEPENDS PrusaSlicer)
@@ -218,13 +219,15 @@ if (WIN32)
                 COMMENT "Symlinking the resources directory into the build tree"
                 VERBATIM
             )
-
-            if(${CONF} STREQUAL "Release")
-                prusaslicer_copy_dlls(PrusaSlicerDllsCopy "Release" "" output_dlls_Release)
-            elseif(${CONF} STREQUAL "Debug")
-                prusaslicer_copy_dlls(PrusaSlicerDllsCopy "Debug" "d" output_dlls_Debug)
-            endif()
         endforeach ()
+
+        if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+            prusaslicer_copy_dlls(PrusaSlicerDllsCopy "Debug" "d" output_dlls_Debug)
+        elseif("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
+            prusaslicer_copy_dlls(PrusaSlicerDllsCopy "RelWithDebInfo" "" output_dlls_RelWithDebInfo)
+        else()
+            prusaslicer_copy_dlls(PrusaSlicerDllsCopy "Release" "" output_dlls_Release)
+        endif()
     else ()
         file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/resources" WIN_RESOURCES_SYMLINK)
         add_custom_command(TARGET PrusaSlicer POST_BUILD
@@ -267,6 +270,9 @@ endif ()
 # Slic3r binary install target. Default build type is release in case no CMAKE_BUILD_TYPE is provided.
 if( ("${CMAKE_BUILD_TYPE}" STREQUAL "Release") OR ("${CMAKE_BUILD_TYPE}" STREQUAL "") )
     set (build_type "Release")
+    set(CMAKE_BUILD_POSTFIX "")
+elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
+    set (build_type "RelWithDebInfo")
     set(CMAKE_BUILD_POSTFIX "")
 else()
     set (build_type "Debug")
