@@ -44,6 +44,7 @@ public:
     bool is_bind_self() { return m_bind_status == BindStatus::BIND_SELF; }
     bool is_bind_free() { return m_bind_status == BindStatus::BIND_FREE; }
     std::string get_dev_id() { return m_dev_id; }
+    std::string get_dev_ip() { return m_ip_addr; }
 
     std::string m_dev_name;
     std::string m_dev_id;
@@ -81,6 +82,7 @@ public:
     bool is_bind_self(std::string dev_id);
     bool is_dds_online(std::string dev_id);
     int get_domain_id(std::string dev_id);
+    std::string get_ip(std::string dev_id);
     std::string getRequestTopic(std::string dev_id);
     std::string getReportTopic(std::string dev_id);
     int add_new_device(DeviceInfo* device);

@@ -75,6 +75,7 @@ public:
     typedef std::function<void(int retcode, std::string info)> LoginFn;
     typedef std::function<void()> CompletedFn;
     typedef std::function<void(int retcode, std::string error, std::string body)> ErrorFn;
+    typedef std::function<void(int result, std::string info)> ResultFn;
 
     AccountManager();
     ~AccountManager() {}
@@ -87,12 +88,13 @@ public:
     int user_login(std::string account, std::string password, LoginFn fn);
     int user_logout();
     int user_register(std::string account, std::string passoword);
-    int user_get_info();
+    AccountInfo* get_curr_user();
     int query_bind_status(std::string device_id);
     int query_bind_status(std::vector<std::string> device_list, CompletedFn fn, ErrorFn errFn);
     int request_bind(std::string device_id, CompletedFn fn);
     int request_unbind(std::string device_id, CompletedFn fn);
     int request_bind_list(std::string user_id);
+    int submit_print_result(std::string device_id, std::string json_str, ResultFn fn);
     void set_host(std::string host_url);
     void set_user_info_path(boost::filesystem::path path) { m_user_info_path = path; }
     std::string get_user_id() { return m_curr_user->user_id(); }

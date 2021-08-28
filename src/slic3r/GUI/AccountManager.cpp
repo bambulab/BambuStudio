@@ -202,9 +202,9 @@ namespace Slic3r {
         return 0;
     }
 
-    int AccountManager::user_get_info()
+    AccountInfo* AccountManager::get_curr_user()
     {
-        return 0;
+        return m_curr_user;
     }
 
     int AccountManager::query_bind_status(std::string device_id)
@@ -339,6 +339,28 @@ namespace Slic3r {
             Slic3r::GUI::wxGetApp().show_message_box("Unbind device=" + device_id + " failed! error=" + body);
             ;
         }).perform();
+        return 0;
+    }
+
+    int AccountManager::submit_print_result(std::string device_id, std::string json_str, ResultFn fn)
+    {
+        std::string url = (boost::format("%1%/api/device/%2%/report") % "iot.qa-1.bbl" % device_id).str();
+        Http http = Http::post(url);
+        http.set_post_body(json_str)
+            .set_header(m_curr_user->get_token())
+            .on_complete([&, fn](std::string body, unsigned) {
+            BOOST_LOG_TRIVIAL(trace) << "AccountManager::submit_print_result complete, body=" << body;
+            if (fn) {
+                fn(0, body);
+            }
+            })
+            .on_error([&, fn](std::string body, std::string error, unsigned status) {
+                std::string result_info = "status=" + std::to_string(status) + ",error=" + error + ",body=" + body;
+                BOOST_LOG_TRIVIAL(trace) << "AccountManager::submit_print_result error, info=" << result_info;
+                if (fn) {
+                    fn(-1, result_info);
+                }
+            }).perform();
         return 0;
     }
 

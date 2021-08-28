@@ -120,6 +120,14 @@ int DeviceManager::get_domain_id(std::string dev_id)
         return -1;
 }
 
+std::string DeviceManager::get_ip(std::string dev_id)
+{
+    if (isExist(dev_id))
+        return m_devicelist[dev_id]->get_dev_ip();
+    else
+        return "";
+}
+
 std::string DeviceManager::getRequestTopic(std::string dev_id)
 {
     std::map<std::string, DeviceInfo*>::iterator it = m_devicelist.find(dev_id);

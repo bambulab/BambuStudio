@@ -14,6 +14,7 @@
 #include "MsgDialog.hpp"
 #include "libslic3r/Utils.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
+#include "slic3r/GUI/PrintResultDialog.hpp"
 
 
 class wxTimer;
@@ -71,6 +72,8 @@ namespace Slic3r {
             void on_mqtt_success(wxCommandEvent& evt);
             void on_mqtt_failed(wxCommandEvent& evt);
             void on_mqtt_lost(wxCommandEvent& evt);
+            void on_print_end(wxCommandEvent& evt);
+            void get_version();
         protected:
             void on_dpi_changed(const wxRect& suggested_rect) override;
 
@@ -248,6 +251,10 @@ namespace Slic3r {
 
             bool m_test_alive = false;
             std::string m_curr_dev_id;
+            int last_progress;
+
+            /* print summery */
+            PrintSummary *summary;
         };
     }
 }

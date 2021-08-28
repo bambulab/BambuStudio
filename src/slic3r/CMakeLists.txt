@@ -30,7 +30,7 @@ set(SLIC3R_GUI_SOURCES
     GUI/OpenGLManager.hpp
     GUI/OpenGLManager.cpp
     GUI/Selection.hpp
-    GUI/Selection.cpp    
+    GUI/Selection.cpp
     GUI/Gizmos/GLGizmosManager.cpp
     GUI/Gizmos/GLGizmosManager.hpp
     GUI/Gizmos/GLGizmosCommon.cpp
@@ -226,6 +226,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/AccountManager.cpp
     GUI/LoginDialog.hpp
     GUI/LoginDialog.cpp
+    GUI/PrintResultDialog.hpp
+    GUI/PrintResultDialog.cpp
     Utils/Http.cpp
     Utils/Http.hpp
     Utils/Sftp.cpp

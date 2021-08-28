@@ -55,6 +55,8 @@ namespace GUI {
     wxDECLARE_EVENT(EVT_MQTT_SUCCESS, wxCommandEvent);
     wxDECLARE_EVENT(EVT_MQTT_FAILED, wxCommandEvent);
     wxDECLARE_EVENT(EVT_MQTT_LOST, wxCommandEvent);
+    wxDECLARE_EVENT(EVT_PRINT_FINISH, wxCommandEvent);
+
 
     wxDEFINE_EVENT(EVT_PROGRESS, wxCommandEvent);
     wxDEFINE_EVENT(EVT_UPDATE_LIST, SimpleEvent);
@@ -63,6 +65,7 @@ namespace GUI {
     wxDEFINE_EVENT(EVT_MQTT_SUCCESS, wxCommandEvent);
     wxDEFINE_EVENT(EVT_MQTT_FAILED, wxCommandEvent);
     wxDEFINE_EVENT(EVT_MQTT_LOST, wxCommandEvent);
+    wxDEFINE_EVENT(EVT_PRINT_FINISH, wxCommandEvent);
 
     std::string DebugToolDialog::_getNewLogFilename()
     {
@@ -129,20 +132,13 @@ namespace GUI {
         m_deviceListTimer(new wxTimer(this, TIMER_ID)),
         m_timer(new wxTimer)
     {
+        summary = new PrintSummary();
+
         selectGcodeDialog = new wxFileDialog(parent, "Open Gcode File", "", "", "Gcode files(*.gcode)|*.gcode", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
         btn_get_version = new wxButton(this, wxID_ANY, _L("Get Version"));
         btn_get_version->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            pt::ptree root, info;
-            info.put<int>("sequence_id", this->m_sequence_id++);
-            info.put("command", "get_version");
-            root.put_child("info", info);
-
-            std::stringstream oss;
-            pt::write_json(oss, root);
-            std::string json_str = oss.str();
-            json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());
-            this->publish_json(json_str);
+            this->get_version();
             });
 
         btn_return_home = new wxButton(this, wxID_ANY, _L("Return Home:G28"));
@@ -324,6 +320,7 @@ namespace GUI {
         Bind(EVT_MQTT_SUCCESS, &DebugToolDialog::on_mqtt_success, this);
         Bind(EVT_MQTT_FAILED, &DebugToolDialog::on_mqtt_failed, this);
         Bind(EVT_MQTT_LOST, &DebugToolDialog::on_mqtt_lost, this);
+        Bind(EVT_PRINT_FINISH, &DebugToolDialog::on_print_end, this);
 }
 
 void DebugToolDialog::on_update_list(SimpleEvent& evt)
@@ -366,6 +363,60 @@ void DebugToolDialog::on_mqtt_lost(wxCommandEvent& evt)
     this->log_info("MQTT Lost... client=" + evt.GetString().ToStdString());
     btn_connect->SetLabelText("Connect");
     cb_device_list->Enable();
+}
+
+void DebugToolDialog::on_print_end(wxCommandEvent& evt)
+{
+    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    Slic3r::DeviceManager* device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (account_manager && account_manager->is_user_login()) {
+        AccountInfo* user_info = account_manager->get_curr_user();
+        if (user_info) {
+            summary->username = user_info->get_account();
+            summary->user_id = user_info->get_user_id();
+        }
+        /* request to get version*/
+        this->get_version();
+    }
+    
+    /* get slicer version */
+    summary->slicer_version = SLIC3R_RC_VERSION;
+
+    /* get device_id */
+    std::string device_id;
+    if (get_current_device_id(device_id) < 0) {
+        wxMessageBox("Get current device id failed!");
+        return;
+    }
+    summary->device_id = device_id;
+
+    /* get device_ip */
+    summary->device_ip = device_manager->get_ip(device_id);
+
+    /* get host ip */
+    summary->host_ip = "192.168.0.1";
+
+    /* get duration */
+    if (summary->has_time_start) {
+        std::time_t t = std::time(0);
+        summary->duration = std::difftime(t, summary->time_start);
+    }
+    
+    PrintResultDialog dlg(summary);
+    dlg.ShowModal();
+}
+
+void DebugToolDialog::get_version() {
+    pt::ptree root, info;
+    info.put<int>("sequence_id", this->m_sequence_id++);
+    info.put("command", "get_version");
+    root.put_child("info", info);
+
+    std::stringstream oss;
+    pt::write_json(oss, root);
+    std::string json_str = oss.str();
+    json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());
+    this->publish_json(json_str);
 }
 
 void DebugToolDialog::init_device()
@@ -456,7 +507,6 @@ void DebugToolDialog::init_device()
     conn_device_sizer->Add(btn_bind, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
     conn_device_sizer->Add(btn_unbind, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
     conn_device_sizer->Add(btn_connect, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
-    //conn_device_sizer->Add(label_device_status, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
 }
 
 void DebugToolDialog::init_upgrade()
@@ -557,6 +607,18 @@ void DebugToolDialog::init_gcode_run_file()
         std::string device = cb_device_list->GetValue().ToStdString();
         std::string ip_str = device.substr(0, device.find_first_of("("));
 
+        /* record filename */
+        summary->print_filename = dstname;
+
+        /* record current time */
+        summary->time_start = std::time(0);
+        std::tm* now_time = std::localtime(&summary->time_start);
+        std::stringstream buf;
+        buf << std::put_time(now_time, "%a %b %d %H:%M:%S");
+        summary->start_time = buf.str();
+        summary->has_time_start = true;
+
+
         Sftp sftp = Sftp::upload(ip_str, dstname, filepath, "root", "root");
         sftp.on_complete([this, filename, dstname](std::string body) {
                 /* boost::filesystem::file_size not right*/
@@ -608,6 +670,9 @@ void DebugToolDialog::init_gcode_run_file()
     btn_abort_print = new  wxButton(this, wxID_ANY, _L("Abort"), wxDefaultPosition, wxDefaultSize);
     btn_abort_print->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("M0\n");
+        auto et = new wxCommandEvent(EVT_PRINT_FINISH, this->GetId());
+        et->SetInt(0);
+        wxQueueEvent(this, et);
         });
 }
 
@@ -987,6 +1052,37 @@ int DebugToolDialog::handle_report_print_msg(std::string topic, std::string json
                 boost::optional<std::string> progress = print.get_optional<std::string>("progress");
                 if (progress.has_value()) {
                     label_print_progress_val->SetLabelText(progress.value());
+                    /* parse progress*/
+                    int progress_int = 0;
+                    int before_progress = progress.value().find_last_of(' ');
+                    int after_progress = progress.value().find_last_of('%');
+                    if (after_progress > before_progress) {
+                        std::string prog_str = progress.value().substr(before_progress, after_progress - before_progress);
+                        try {
+                            progress_int = stoi(prog_str);
+                        }
+                        catch (std::exception& e) {
+                            ;
+                        }
+                    }
+
+                    if ((last_progress != progress_int) && (last_progress < progress_int) && progress_int == 100) {
+                        auto et = new wxCommandEvent(EVT_PRINT_FINISH, this->GetId());
+                        et->SetInt(0);
+                        wxQueueEvent(this, et);
+                    }
+                    last_progress = progress_int;
+
+                    /*parse filename, update summary */
+                    try {
+                        if (before_progress > 0) {
+                            std::string filename = progress.value().substr(0, before_progress);
+                            summary->print_filename = filename;
+                        }
+                    }
+                    catch (std::exception& e) {
+                        ;
+                    }
                 }
 
                 boost::optional<std::string> wifi_signal = print.get_optional<std::string>("wifi_signal");
@@ -996,19 +1092,56 @@ int DebugToolDialog::handle_report_print_msg(std::string topic, std::string json
 
                 return 0;
             }
-            else if (command.has_value() && command.value_or("").compare("gcode_line") == 0) {
+            else if (command.has_value() && command.value().compare("gcode_line") == 0) {
                 boost::optional<std::string> sequence_id = print.get_optional<std::string>("sequence_id");
             }
-            else if (command.has_value() && command.value_or("").compare("gcode_file") == 0) {
+            else if (command.has_value() && command.value().compare("gcode_file") == 0) {
                 boost::optional<std::string> sequence_id = print.get_optional<std::string>("sequence_id");
+            }
+            else if (command.has_value() && command.value().compare("get_version") == 0) {
+                if (root.get_child_optional("sw_ver") != boost::none) {
+                    pt::ptree version = root.get_child("sw_ver");
+                    try {
+                        std::stringstream oss;
+                        pt::write_json(oss, version);
+                        std::string json_str = oss.str();
+                        summary->device_version = json_str;
+                    }
+                    catch (std::exception& e) {
+                        ;
+                    }
+                }
             }
             this->log_info("received ack msg = " + json_str);
             return 0;
         }
+        else if (root.get_child_optional("info") != boost::none) {
+            pt::ptree info = root.get_child("info");
+            /* Update labels */
+            boost::optional<std::string> command = info.get_optional<std::string>("command");
+            if (command.has_value() && command.value().compare("get_version") == 0) {
+                if (info.get_child_optional("sw_ver") != boost::none) {
+                    pt::ptree version = info.get_child("sw_ver");
+                    try {
+                        std::stringstream oss;
+                        pt::write_json(oss, version);
+                        std::string version_str = oss.str();
+                        summary->device_version = version_str;
+                    }
+                    catch (std::exception& e) {
+                        ;
+                    }
+                }
+            }
+            this->log_info("received ack msg = " + json_str);
+            return 0;
+        }
+
         this->log_info("topic=" + topic + ", json=" + json_str);
     }
     catch (std::exception& e) {
-        this->log_info("received report print msg json error.");
+        std::string info = "parsing report msg error, topic=" + topic + ", json_str=" + json_str;
+        this->log_info(info);
     }
 
     return 0;
@@ -1149,13 +1282,6 @@ int DebugToolDialog::set_current_device_id()
 
 int DebugToolDialog::get_current_device_id(std::string& dev_id)
 {
-    std::string content = cb_device_list->GetValue().ToStdString();
-    size_t start = content.find_last_of("(") + 1;
-    std::string device_id = content.substr(start, content.find_last_of(")") - start);
-    if (device_id.compare("") == 0) {
-        return -1;
-    }
-    m_curr_dev_id = device_id;
     dev_id = std::string(m_curr_dev_id);
     return 0;
 }

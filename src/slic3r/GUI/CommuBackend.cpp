@@ -233,7 +233,7 @@ namespace Slic3r {
             else {
                 BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery::recv_sdp_msg, parser failed!";
             }
-            boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(200));
         }
     }
 
@@ -378,19 +378,30 @@ namespace Slic3r {
 
     int CommuBackend::publish_json_to_client(std::string device_id, std::string json_str)
     {
+        BOOST_LOG_TRIVIAL(trace) << "CommuBackend::publish_json_to_client start";
         if (m_mqtt_cli) {
-            if (m_mqtt_cli->is_connected()) {
+            // !!!blocking in is_connected() !!!
+            //if (m_mqtt_cli->is_connected()) {
                 std::string topic = get_request_topic(device_id);
                 mqtt::message_ptr pubmsg = mqtt::make_message(topic, json_str);
                 pubmsg->set_qos(0);
+                BOOST_LOG_TRIVIAL(trace) << "CommuBackend::publish_json_to_client start 1";
                 mqtt::delivery_token_ptr token = m_mqtt_cli->publish(pubmsg);
+                BOOST_LOG_TRIVIAL(trace) << "CommuBackend::publish_json_to_client start 2";
                 if (m_msg_send_fn) {
                     m_msg_send_fn(topic, json_str);
                 }
-                BOOST_LOG_TRIVIAL(trace) << "CommuBackend::publish_json_to_client, mqtt publish topic = " << topic << ", msg = " << json_str;
+                BOOST_LOG_TRIVIAL(trace) << "CommuBackend::publish_json_to_client finished, mqtt publish topic = " << topic << ", msg = " << json_str;
                 return 0;
-            }
-            return 0;
+            /*}
+            else {
+                BOOST_LOG_TRIVIAL(trace) << "CommuBackend::publish_json_to_client finished";
+                return -1;
+            }*/
+        }
+        else {
+            BOOST_LOG_TRIVIAL(trace) << "CommuBackend::publish_json_to_client finished";
+            return -1;
         }
     }
 
