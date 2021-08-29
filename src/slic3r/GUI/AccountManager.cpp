@@ -275,7 +275,7 @@ namespace Slic3r {
         std::string json_str = _get_query_bind_request(device_id);
         http.set_post_body(json_str)
             .set_header(m_curr_user->get_token())
-            .on_complete([&, device_id](std::string body, unsigned) {
+            .on_complete([&, device_id, fn](std::string body, unsigned) {
             std::stringstream ss(body);
             pt::ptree root;
             pt::read_json(ss, root);
@@ -294,10 +294,10 @@ namespace Slic3r {
                 else {
                     BOOST_LOG_TRIVIAL(trace) << "Bind Device " << device_id << "  Failed! error=" << body;
                 }
-                //refresh bind status 
-                /*if (fn) {
+                // call complete function
+                if (fn) {
                     fn();
-                }*/
+                }
             }
             else {
                 BOOST_LOG_TRIVIAL(trace) << "Bind Device " << device_id << "  Failed! error=" << body;
@@ -316,7 +316,7 @@ namespace Slic3r {
         std::string json_str = _get_unbind_request(device_id);
         http.set_post_body(json_str)
             .set_header(m_curr_user->get_token())
-        .on_complete([&, device_id](std::string body, unsigned) {
+        .on_complete([&, device_id, fn](std::string body, unsigned) {
             std::stringstream ss(body);
             pt::ptree root;
             pt::read_json(ss, root);
@@ -326,6 +326,9 @@ namespace Slic3r {
             if (bind_status.has_value()) {
                 if (bind_status.value().compare("success") == 0) {
                     BOOST_LOG_TRIVIAL(trace) << "Unind Device " << device_id << " OK!";
+                    if (fn) {
+                        fn();
+                    }
                     Slic3r::GUI::wxGetApp().show_message_box("Unbind device=" + device_id + " ok!");
                 }
                 else {
