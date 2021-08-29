@@ -16,10 +16,14 @@
 #include <ws2tcpip.h>
 #endif
 
+#if defined(_WIN32)
 #if(_WIN32_WINNT < 0x0600)
 typedef short sa_family_t;
 #else
 typedef ADDRESS_FAMILY sa_family_t;
+#endif
+#else
+typedef int SOCKET;
 #endif
 
 #define BUFSIZE   (size_t)2500
@@ -55,8 +59,6 @@ struct SDP_CONST {
 
     const char* ADDR_LOCALHOST;
     const char* ADDR_MULTICAST;
-
-    void (*log_callback)(const char* file, const char* tag, int level, int line, const char* func, const char* message);
 };
 
 int bbl_init_socket();

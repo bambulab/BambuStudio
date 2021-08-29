@@ -15,8 +15,6 @@
 #include "DebugToolDialog.hpp"
 #include "libslic3r/Utils.hpp"
 
-//SOCKET ssdp_sock_list[MAX_SOCKET_NUM];
-
 
 static struct SDP_CONST Global = {
 	// SSDP Method
@@ -31,9 +29,7 @@ static struct SDP_CONST Global = {
 
 	// IP Address
 	"127.0.0.1",
-	"239.255.255.250",
-	// Log Callback
-	 NULL
+	"239.255.255.250"
 };
 
 int bbl_init_socket()
