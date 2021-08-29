@@ -286,6 +286,10 @@ namespace Slic3r {
                 if (bind_status.value().compare("success") == 0) {
                     BOOST_LOG_TRIVIAL(trace) << "Bind Device " << device_id << " OK!";
                     Slic3r::GUI::wxGetApp().show_message_box("Bind device=" + device_id + " success!");
+                    // call complete function
+                    if (fn) {
+                        fn();
+                    }
                 }
                 else if (bind_status.value().compare("conflict") == 0) {
                     BOOST_LOG_TRIVIAL(trace) << "Bind Device " << device_id << "  Conflict!";
@@ -293,10 +297,6 @@ namespace Slic3r {
                 }
                 else {
                     BOOST_LOG_TRIVIAL(trace) << "Bind Device " << device_id << "  Failed! error=" << body;
-                }
-                // call complete function
-                if (fn) {
-                    fn();
                 }
             }
             else {

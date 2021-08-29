@@ -439,9 +439,10 @@ void DebugToolDialog::init_device()
                 wxMessageBox("Please login first!");
                 return;
             }
+
             account_manager->request_bind(device_id,
                 [this]() {
-                    wxQueueEvent(this, new SimpleEvent(EVT_REFRESH_LIST));
+                    this->refresh_device_list();
                 });
         });
     btn_unbind = new wxButton(this, wxID_ANY, _L("Unbind"), wxDefaultPosition, wxDefaultSize);
@@ -453,10 +454,13 @@ void DebugToolDialog::init_device()
                 wxMessageBox("Please login first!");
                 return;
             }
+
             account_manager->request_unbind(device_id,
                 [this]() {
-                    wxQueueEvent(this, new SimpleEvent(EVT_REFRESH_LIST));
+                    this->refresh_device_list();
                 });
+
+            
         });
     btn_connect = new wxButton(this, wxID_ANY, _L("Connect"), wxDefaultPosition, wxDefaultSize);
     btn_connect->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
@@ -1160,9 +1164,19 @@ int DebugToolDialog::handle_alive_msg(std::string dev_id)
 
 void DebugToolDialog::on_refresh_list(SimpleEvent&evt)
 {
-    this->refresh_device_list();
-}
+    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    Slic3r::DeviceManager* manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+    wxArrayString new_items;
+    if (!manager) return;
+    std::vector<DeviceInfo*> list = manager->get_connected_device_info();
 
+    std::vector<DeviceInfo*>::iterator it;
+    for (it = list.begin(); it != list.end(); it++) {
+        new_items.Add(get_device_list_item(*it));
+    }
+
+    cb_device_list->Set(new_items);
+}
 
 void DebugToolDialog::refresh_device_list()
 {
