@@ -881,7 +881,9 @@ namespace DoExport {
 	            for (auto layer : object->layers()) {
 	                const LayerRegion* layerm = layer->regions()[region_id];
 	                if (region.config().get_abs_value("perimeter_speed") == 0 ||
-	                    region.config().get_abs_value("small_perimeter_speed") == 0 ||
+                        // BBS: remove small small_perimeter_speed config, and will absolutely
+                        // remove related code if no other issue in the coming release.
+	                    //region.config().get_abs_value("small_perimeter_speed") == 0 ||
 	                    region.config().get_abs_value("external_perimeter_speed") == 0 ||
 	                    region.config().get_abs_value("bridge_speed") == 0)
 	                    mm3_per_mm.push_back(layerm->perimeters.min_mm3_per_mm());
@@ -2678,9 +2680,11 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     loop.clip_end(clip_length, &paths);
     if (paths.empty()) return "";
 
+    // BBS: remove small small_perimeter_speed config, and will absolutely
+    // remove related code if no other issue in the coming release.
     // apply the small perimeter speed
-    if (is_perimeter(paths.front().role()) && loop.length() <= SMALL_PERIMETER_LENGTH && speed == -1)
-        speed = m_config.small_perimeter_speed.get_abs_value(m_config.perimeter_speed);
+    //if (is_perimeter(paths.front().role()) && loop.length() <= SMALL_PERIMETER_LENGTH && speed == -1)
+    //    speed = m_config.small_perimeter_speed.get_abs_value(m_config.perimeter_speed);
 
     // extrude along the path
     std::string gcode;

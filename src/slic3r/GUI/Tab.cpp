@@ -1602,7 +1602,9 @@ void TabPrint::build()
     page = add_options_page(L("Speed"), "time");
         optgroup = page->new_optgroup(L("Speed for print moves"));
         optgroup->append_single_option_line("perimeter_speed");
-        optgroup->append_single_option_line("small_perimeter_speed");
+        // BBS: remove small small_perimeter_speed config, and will absolutely
+        // remove related code if no other issue in the coming release.
+        //optgroup->append_single_option_line("small_perimeter_speed");
         optgroup->append_single_option_line("external_perimeter_speed");
         optgroup->append_single_option_line("infill_speed");
         optgroup->append_single_option_line("solid_infill_speed");
