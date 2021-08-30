@@ -341,7 +341,12 @@ namespace Slic3r {
 
     int CommuBackend::connect_to_client(std::string host, std::string user_id, std::string device_id, SuccessFn cFn, FailedFn fFn, LostFn lFn)
     {
+        BOOST_LOG_TRIVIAL(trace) << "connect_to_client host=" << host << ", device_id=" << device_id;
         try {
+            if (m_mqtt_cli) {
+                m_mqtt_cli->disable_callbacks();
+                m_mqtt_cli->disconnect();
+            }
             std::string client_id = user_id;
             m_mqtt_cli = new mqtt::async_client(host, client_id);
             m_mqtt_cli_cb = new client_conn_callback(*m_mqtt_cli, conn_cli_opt);

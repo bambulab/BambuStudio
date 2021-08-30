@@ -474,6 +474,10 @@ void DebugToolDialog::init_device()
             std::string device_id = content.substr(start, content.find_last_of(")") - start);
             Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
             std::string user_id = account_manager->get_user_id();
+            if (ip_str.empty()) {
+                wxMessageBox("Invalid ip string");
+                return;
+            }
             backend->connect_to_client(ip_str, user_id, device_id,
                 //success
                 [this](std::string name) {
