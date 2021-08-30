@@ -1765,6 +1765,89 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
     }
 }
 
+//BBS: add a API to dump current configbundle as default configbundle
+void PresetBundle::export_current_configbundle(const std::string &path)
+{
+    boost::nowide::ofstream c;
+    c.open(path, std::ios::out | std::ios::trunc);
+
+    c << "# generate the configbundle for BBL" << std::endl;
+
+    const Preset& print_selected_preset = this->prints.get_selected_preset();
+    const Preset* system_print = NULL;
+    const Preset& filament_selected_preset = this->filaments.get_selected_preset();
+    const Preset* system_filament = NULL;
+    const Preset& printer_selected_preset = this->printers.get_selected_preset();
+    const Preset* system_printer = NULL;
+
+    // Export the print
+    std::string print_bbl = "@BBL-3DP";
+    size_t pos = print_selected_preset.name.find(print_bbl);
+    if (std::string::npos != pos)
+    {
+        std::string system_print_name = print_selected_preset.name.substr(0, pos + print_bbl.size());
+        system_print = this->prints.find_preset(system_print_name);
+        if (system_print)
+        {
+            c << std::endl << "[" << this->prints.section_name() << ":" << system_print->name << "]" << std::endl;
+            for (const std::string &opt_key : print_selected_preset.config.keys())
+            {
+                if (!opt_key.compare("inherits"))
+                    continue;
+                const ConfigOption *option1 = system_print->config.option(opt_key);
+                const ConfigOption *option2 = print_selected_preset.config.option(opt_key);
+                if (option1 && option2 && (*option1 != *option2))
+                    c << opt_key << " = " << print_selected_preset.config.opt_serialize(opt_key) << std::endl;
+            }
+            c << std::endl;
+        }
+    }
+
+    // Export the filament
+    std::string filament_bbl = "@BBL-3DP";
+    pos = filament_selected_preset.name.find(filament_bbl);
+    if (std::string::npos != pos)
+    {
+        std::string system_filamant_name = filament_selected_preset.name.substr(0, pos + filament_bbl.size());
+        system_filament = this->filaments.find_preset(system_filamant_name);
+        if (system_filament)
+        {
+            c << std::endl << "[" << this->filaments.section_name() << ":" << system_filament->name << "]" << std::endl;
+            for (const std::string &opt_key : filament_selected_preset.config.keys())
+            {
+                if (!opt_key.compare("inherits"))
+                    continue;
+                const ConfigOption *option1 = system_filament->config.option(opt_key);
+                const ConfigOption *option2 = filament_selected_preset.config.option(opt_key);
+                if (option1 && option2 && (*option1 != *option2))
+                    c << opt_key << " = " << filament_selected_preset.config.opt_serialize(opt_key) << std::endl;
+            }
+            c << std::endl;
+        }
+    }
+
+	// Export the printer
+    std::string printer_bbl = "BBL-3DP-001";
+    pos = printer_selected_preset.name.find(printer_bbl);
+    if (std::string::npos != pos)
+    {
+        std::string system_printer_name = printer_selected_preset.name.substr(0, pos + printer_bbl.size());
+        system_printer = this->printers.find_preset(system_printer_name);
+        if (system_printer)
+        {
+            c << std::endl << "[" << this->printers.section_name() << ":" << system_printer->name << "]" << std::endl;
+            for (const std::string &opt_key : printer_selected_preset.config.keys())
+            {
+                c << opt_key << " = " << printer_selected_preset.config.opt_serialize(opt_key) << std::endl;
+            }
+            c << std::endl;
+        }
+    }
+
+    c.close();
+}
+
+
 void PresetBundle::export_configbundle(const std::string &path, bool export_system_settings, bool export_physical_printers/* = false*/)
 {
     boost::nowide::ofstream c;

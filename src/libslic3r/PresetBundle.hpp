@@ -117,6 +117,8 @@ public:
 
     // Export a config bundle file containing all the presets and the names of the active presets.
     void                        export_configbundle(const std::string &path, bool export_system_settings = false, bool export_physical_printers = false);
+    //BBS: add a function to export current configbundle as default
+    void export_current_configbundle(const std::string &path);
 
     // Enable / disable the "- default -" preset.
     void                        set_default_suppressed(bool default_suppressed);

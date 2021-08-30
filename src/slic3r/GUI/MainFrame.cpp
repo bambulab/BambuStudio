@@ -1265,6 +1265,10 @@ void MainFrame::init_menubar_as_editor()
         append_menu_item(export_menu, wxID_ANY, _L("Export Config Bundle With Physical Printers") + dots, _L("Export all presets including physical printers to file"),
             [this](wxCommandEvent&) { export_configbundle(true); }, "export_config_bundle", nullptr,
             []() {return true; }, this);
+        //BBS: add a menu to dump bbl default config bundle
+        append_menu_item(export_menu, wxID_ANY, _L("Export BBL Config Bundle reference file") + dots, _L("Export current selected BBL presets to file"),
+            [this](wxCommandEvent&) { export_current_configbundle(); }, "export_current_config_bundle", nullptr,
+            []() {return true; }, this);
         append_submenu(fileMenu, export_menu, wxID_ANY, _L("&Export"), "");
 
 		append_menu_item(fileMenu, wxID_ANY, _L("Ejec&t SD Card / Flash Drive") + dots + "\tCtrl+T", _L("Eject SD card / Flash drive after the G-code was exported to it."),
@@ -1839,6 +1843,38 @@ bool MainFrame::load_config_file(const std::string &path)
     wxGetApp().load_current_presets();
     return true;
 }
+
+//BBS: export current config bundle as BBL default reference
+void MainFrame::export_current_configbundle()
+{
+    if (!wxGetApp().check_unsaved_changes())
+        return;
+
+    // validate current configuration in case it's dirty
+    auto err = wxGetApp().preset_bundle->full_config().validate();
+    if (! err.empty()) {
+        show_error(this, err);
+        return;
+    }
+    // Ask user for a file name.
+    wxFileDialog dlg(this, _L("Save BBL Default bundle as:"),
+        !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
+        "BBL_config_bundle.ini",
+        file_wildcards(FT_INI), wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxString file;
+    if (dlg.ShowModal() == wxID_OK)
+        file = dlg.GetPath();
+    if (!file.IsEmpty()) {
+        // Export the config bundle.
+        wxGetApp().app_config->update_config_dir(get_dir_name(file));
+        try {
+            wxGetApp().preset_bundle->export_current_configbundle(file.ToUTF8().data());
+        } catch (const std::exception &ex) {
+			show_error(this, ex.what());
+        }
+    }
+}
+
 
 void MainFrame::export_configbundle(bool export_physical_printers /*= false*/)
 {
