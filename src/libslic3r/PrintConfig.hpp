@@ -655,6 +655,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,              filament_cooling_final_speed))
     ((ConfigOptionStrings,             filament_ramming_parameters))
     ((ConfigOptionBool,                gcode_comments))
+    // BBS
+    ((ConfigOptionBool,                gcode_add_line_number))
     ((ConfigOptionEnum<GCodeFlavor>,   gcode_flavor))
     ((ConfigOptionBool,                gcode_label_objects))
     ((ConfigOptionString,              layer_gcode))

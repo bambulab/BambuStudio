@@ -92,6 +92,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "first_layer_bed_temperature",
         "first_layer_speed_over_raft",
         "gcode_comments",
+        // BBS
+        "gcode_add_line_number",
         "gcode_label_objects",
         "infill_acceleration",
         "layer_gcode",

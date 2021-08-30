@@ -12,6 +12,10 @@
 #include <boost/nowide/cenv.hpp>
 #include <boost/nowide/fstream.hpp>
 
+// BBS
+#include <iostream>
+#include <fstream>
+
 #ifdef WIN32
 
 // The standard Windows includes.
@@ -189,6 +193,44 @@ namespace Slic3r {
 //! return same string
 #define L(s) (s)
 #define _(s) Slic3r::I18N::translate(s)
+
+// BBS
+void gcode_add_line_number(const std::string& path, const DynamicPrintConfig& config)
+{
+    const ConfigOptionBool* opt = config.opt<ConfigOptionBool>("gcode_add_line_number");
+    if (!opt->getBool())
+        return;
+
+    auto gcode_file = boost::filesystem::path(path);
+    if (!boost::filesystem::exists(gcode_file))
+        return;
+
+    std::fstream fs;
+    std::string new_gcode;
+    char line_buf[512];
+    fs.open(path, std::fstream::in | std::fstream::out);
+
+    size_t line_number = 1;
+    while (fs) {
+        memset(line_buf, 0, sizeof(line_buf));
+
+        char num_buf[128];
+        memset(line_buf, 0, sizeof(num_buf));
+        _itoa_s(line_number, num_buf, 10);
+        std::string num_str = std::string("N") + num_buf + " ";
+        strncpy_s(line_buf, num_str.c_str(), sizeof(line_buf));
+        fs.getline(line_buf + num_str.length(), sizeof(line_buf) - num_str.length());
+        new_gcode += line_buf;
+        new_gcode += "\n";
+        line_number++;
+    }
+
+    fs.clear();
+    fs.seekp(0, std::ios_base::beg);
+    fs.write(new_gcode.c_str(), new_gcode.length());
+
+    fs.close();
+}
 
 // Run post processing script / scripts if defined.
 // Returns true if a post-processing script was executed.

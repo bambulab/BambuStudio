@@ -1324,6 +1324,13 @@ void PrintConfigDef::init_fff_params()
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionBool(0));
 
+    // BBS
+    def = this->add("gcode_add_line_number", coBool);
+    def->label = L("Add line number");
+    def->tooltip = L("Enable this to add line number(Nx) at the beginning of each G-Code line.");
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionBool(0));
+
     def = this->add("gcode_flavor", coEnum);
     def->label = L("G-code flavor");
     def->tooltip = L("Some G/M-code commands, including temperature control and others, are not universal. "

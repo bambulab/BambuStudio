@@ -709,6 +709,10 @@ void BackgroundSlicingProcess::finalize_gcode()
 	// Perform the final post-processing of the export path by applying the print statistics over the file name.
 	std::string export_path = m_fff_print->print_statistics().finalize_output_path(m_export_path);
 	std::string output_path = m_temp_output_path;
+
+	// BBS: to be checked. Whether use export_path or output_path.
+	gcode_add_line_number(output_path, m_fff_print->full_print_config());
+
 	// Both output_path and export_path ar in-out parameters.
 	// If post processed, output_path will differ from m_temp_output_path as run_post_process_scripts() will make a copy of the G-code to not
 	// collide with the G-code viewer memory mapping of the unprocessed G-code. G-code viewer maps unprocessed G-code, because m_gcode_result 
