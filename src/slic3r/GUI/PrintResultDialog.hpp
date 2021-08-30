@@ -24,6 +24,7 @@ public:
     std::string slicer_version;
     std::string device_version;
     std::string start_time;
+    int start;
     std::string end_time;
     std::string print_filename;
     bool has_time_start;
@@ -42,6 +43,7 @@ public:
         host_ip = "192.168.0.1";
         duration = 0;
         has_time_start = false;
+        start = 0;
     }
 };
 
@@ -60,6 +62,7 @@ private:
     };
 
     void fit_no_shrink();
+    void on_close(SimpleEvent& evt);
 
     wxStaticText* m_label_title;
     wxRadioButton* m_radio_single;

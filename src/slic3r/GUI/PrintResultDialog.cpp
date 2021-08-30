@@ -16,6 +16,10 @@ typedef pt::ptree JSON;
 namespace Slic3r { 
 namespace GUI {
 
+	wxDECLARE_EVENT(EVT_CLOSE_DIALOG, SimpleEvent);
+	wxDEFINE_EVENT(EVT_CLOSE_DIALOG, SimpleEvent);
+
+
 PrintResultDialog::PrintResultDialog(PrintSummary* s)
 	: DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("Print Summery"), wxDefaultPosition,
 	wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
@@ -177,6 +181,8 @@ PrintResultDialog::PrintResultDialog(PrintSummary* s)
 	SetSize(std::max(size.GetWidth(), static_cast<int>(min_width)), std::max(size.GetHeight(), static_cast<int>(min_height)));
 	Layout();
 	Center();
+
+	Bind(EVT_CLOSE_DIALOG, &PrintResultDialog::on_close, this);
 }
 
 void PrintResultDialog::submit()
@@ -228,15 +234,18 @@ void PrintResultDialog::submit()
 		root.put("dev_ip", summary->device_ip);
 		root.put("host_ip", summary->host_ip);
 		root.put("type", "print");
+		root.put("dev_id", summary->device_id);
 
 		info.put("account", summary->username);
 		info.put("user_id", summary->user_id);
 		info.put("dev_ip", summary->device_ip);
 		info.put("host_ip", summary->host_ip);
 		info.put("type", "print");
+		info.put("dev_id", summary->device_id);
 		info.put("model_name", summary->print_filename);
 		info.put("model_url", summary->print_filename);
 		info.put("start_time", summary->start_time);
+		info.put<int>("start", summary->start);
 		info.put<int>("duration", summary->duration);
 		info.put<bool>("colorful", ams_on);
 		info.put("hardware", "");
@@ -264,7 +273,7 @@ void PrintResultDialog::submit()
 		manager->submit_print_result(summary->device_id, json_str,
 			[this](int result, std::string info) {
 				if (result == 0) {
-					this->EndModal(wxID_OK);
+					wxQueueEvent(this, new SimpleEvent(EVT_CLOSE_DIALOG));
 				}
 				else {
 					wxMessageBox(info);
@@ -274,6 +283,11 @@ void PrintResultDialog::submit()
 	catch (std::exception& e) {
 		wxMessageBox(e.what());
 	}
+}
+
+void PrintResultDialog::on_close(SimpleEvent& evt)
+{
+	this->EndModal(wxID_OK);
 }
 
 void PrintResultDialog::fit_no_shrink()
