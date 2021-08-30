@@ -383,7 +383,7 @@ namespace Slic3r {
             // !!!blocking in is_connected() !!!
             //if (m_mqtt_cli->is_connected()) {
                 std::string topic = get_request_topic(device_id);
-                mqtt::message_ptr pubmsg = mqtt::make_message(topic, json_str);
+                mqtt::message_ptr pubmsg = mqtt::make_message(topic, json_str.c_str());
                 pubmsg->set_qos(0);
                 BOOST_LOG_TRIVIAL(trace) << "CommuBackend::publish_json_to_client start 1";
                 mqtt::delivery_token_ptr token = m_mqtt_cli->publish(pubmsg);
