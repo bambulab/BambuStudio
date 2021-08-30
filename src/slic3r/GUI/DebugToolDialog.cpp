@@ -172,7 +172,8 @@ namespace GUI {
             std::string gcode_str = "M104 S" + txt_set_hot_end_temp->GetValue().ToStdString() + " \n";
             this->publishGcode(gcode_str);
             });
-        btn_clear_output_string = new wxButton(this, wxID_ANY, _L("Clear"), wxDefaultPosition, wxDefaultSize);
+
+        /*btn_clear_output_string = new wxButton(this, wxID_ANY, _L("Clear"), wxDefaultPosition, wxDefaultSize);
         btn_clear_output_string->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
             wxString content = txt_string_info->GetValue();
             txt_string_info->Clear();
@@ -181,16 +182,16 @@ namespace GUI {
         btn_save_file->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
             wxString content = txt_string_info->GetValue();
             txt_string_info->Clear();
-            });
+            });*/
 
-        btn_start_temp_push = new wxButton(this, wxID_ANY, _L("Start Temp Push"), wxDefaultPosition, wxDefaultSize);
+        /*btn_start_temp_push = new wxButton(this, wxID_ANY, _L("Start Temp Push"), wxDefaultPosition, wxDefaultSize);
         btn_start_temp_push->Disable();
         btn_stop_temp_push = new wxButton(this, wxID_ANY, _L("Stop Temp Push"), wxDefaultPosition, wxDefaultSize);
         btn_stop_temp_push->Disable();
         btn_get_curr_temp = new wxButton(this, wxID_ANY, _L("Get Now Temp"), wxDefaultPosition, wxDefaultSize);
         btn_get_curr_temp->Disable();
         btn_get_curr_pos = new wxButton(this, wxID_ANY, _L("Get Now Pos"), wxDefaultPosition, wxDefaultSize);
-        btn_get_curr_pos->Disable();
+        btn_get_curr_pos->Disable();*/
 
         btn_switch_t = new wxButton(this, wxID_ANY, _L("Swtich AMS:"), wxDefaultPosition, wxDefaultSize);
         btn_switch_t->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
@@ -202,7 +203,7 @@ namespace GUI {
         txt_gcode_filename = new wxTextCtrl(this, wxID_ANY, _L(""), wxDefaultPosition, wxDefaultSize);
         txt_set_hot_bed_temp = new wxTextCtrl(this, wxID_ANY, _L("60"), wxDefaultPosition, wxDefaultSize);
         txt_set_hot_end_temp = new wxTextCtrl(this, wxID_ANY, _L("200"), wxDefaultPosition, wxDefaultSize);
-        txt_string_info = new wxTextCtrl(this, wxID_ANY, _L(""), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
+        txt_string_info = new wxTextCtrl(this, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, -1), wxTE_MULTILINE);
 
         label_pos_x = new wxStaticText(this, wxID_ANY, _L("Pos X: "), wxDefaultPosition, wxDefaultSize);
         label_pos_x_val = new wxStaticText(this, wxID_ANY, _L("0.00"), wxDefaultPosition, wxDefaultSize);
@@ -273,20 +274,22 @@ namespace GUI {
 
         output_content_sizer->Add(label_output_string, 0);
         output_content_sizer->Add(txt_string_info, 1, wxALL | wxEXPAND, SPACING);
-        output_btns_sizer->Add(-1, 20);
+        
+        /*output_btns_sizer->Add(-1, 20);
         output_btns_sizer->Add(btn_start_temp_push, 0, wxLEFT | wxRIGHT | wxEXPAND);
         output_btns_sizer->Add(btn_stop_temp_push, 0, wxLEFT | wxRIGHT | wxEXPAND);
         output_btns_sizer->Add(btn_get_curr_temp, 0, wxLEFT | wxRIGHT | wxEXPAND);
         output_btns_sizer->Add(btn_get_curr_pos, 0, wxLEFT | wxRIGHT | wxEXPAND);
         output_btns_sizer->Add(-1, 25);
         output_btns_sizer->Add(btn_clear_output_string, 0, wxLEFT | wxRIGHT | wxEXPAND);
-        output_btns_sizer->Add(btn_save_file, 0, wxLEFT | wxRIGHT | wxEXPAND);
+        output_btns_sizer->Add(btn_save_file, 0, wxLEFT | wxRIGHT | wxEXPAND);*/
 
-        output_sizer->Add(output_content_sizer, 1, wxALL | wxEXPAND);
-        output_sizer->Add(output_btns_sizer, 0, wxTOP | wxALL | wxEXPAND, SPACING);
+        //output_sizer->Add(output_content_sizer, 1, wxALL | wxEXPAND);
+        //output_sizer->Add(output_btns_sizer, 0, wxTOP | wxALL | wxEXPAND, SPACING);
 
         ctrl_custom_sizer->Add(control_sizer, 0, wxLEFT | wxALIGN_LEFT, 0);
-        ctrl_custom_sizer->Add(custom_gcode_sizer, 1, wxLEFT | wxRIGHT | wxEXPAND, 5);
+        ctrl_custom_sizer->Add(custom_gcode_sizer, 0, wxLEFT | wxRIGHT, 5);
+        ctrl_custom_sizer->Add(output_content_sizer, 1, wxEXPAND | wxALL, 5);
 
         init_device();
         init_upgrade();
@@ -307,11 +310,13 @@ namespace GUI {
         top_sizer->Add(-1, 8);
         top_sizer->Add(run_gcode_sizer, 0, wxLEFT | wxRIGHT | wxEXPAND, 0);
         top_sizer->Add(-1, 20);
-        top_sizer->Add(ctrl_custom_sizer, 0, wxLEFT | wxRIGHT | wxEXPAND, 0);
-        top_sizer->Add(-1, 8);
-        top_sizer->Add(output_sizer, 1, wxALL | wxEXPAND, 0);
+        top_sizer->Add(ctrl_custom_sizer, 1, wxALL | wxEXPAND, 0);
 
-        SetSizer(top_sizer);
+        SetSizerAndFit(top_sizer);
+        Refresh();
+
+        SetMinSize(wxSize(600, 400));
+        Layout();
 
         Bind(wxEVT_TIMER, &DebugToolDialog::on_timer, this);
         Bind(EVT_UPDATE_LIST, &DebugToolDialog::on_update_list, this);

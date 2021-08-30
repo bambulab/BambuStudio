@@ -227,14 +227,18 @@ void Sftp::priv::set_timeout_connect(long timeout)
 void Sftp::priv::set_src_path(const std::string src_path)
 {
     src_fullpath = src_path;
-
-    boost::filesystem::path path(src_path);
-    boost::system::error_code ec;
-    boost::uintmax_t filesize = file_size(path, ec);
-    if (!ec) {
-        uploadFile = std::make_unique<fs::ifstream>(path);
-        ::curl_easy_setopt(curl, CURLOPT_READDATA, (void*)(uploadFile.get()));
-        ::curl_easy_setopt(curl, CURLOPT_INFILESIZE, filesize);
+    try {
+        boost::filesystem::path path(src_path);
+        boost::system::error_code ec;
+        boost::uintmax_t filesize = file_size(path, ec);
+        if (!ec) {
+            uploadFile = std::make_unique<fs::ifstream>(path);
+            ::curl_easy_setopt(curl, CURLOPT_READDATA, (void*)(uploadFile.get()));
+            ::curl_easy_setopt(curl, CURLOPT_INFILESIZE, filesize);
+        }
+    }
+    catch (...) {
+        BOOST_LOG_TRIVIAL(trace) << "Sftp::set_src_path failed!";
     }
 }
 
