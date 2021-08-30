@@ -87,6 +87,7 @@ public:
     std::string getReportTopic(std::string dev_id);
     int add_new_device(DeviceInfo* device);
     int update_alive_time(std::string dev_id);
+    int update_ip_address(std::string dev_id, std::string dev_ip);
     int update_bind_status(std::string device_id, std::string status);
     wxArrayString get_connected_devicelist();
     std::vector<DeviceInfo*> get_connected_device_info();

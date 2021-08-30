@@ -45,7 +45,7 @@ int bbl_init_socket()
 	return 0;
 }
 
-int bbl_create_ssdp_sock(SOCKET* ssdpSock, const char* ipv4_addr)
+int bbl_create_ssdp_multi_sock(SOCKET* ssdpSock, const char* ipv4_addr)
 {
 	int ret = 0;
 #if defined(_WIN32)
@@ -75,7 +75,7 @@ int bbl_create_ssdp_sock(SOCKET* ssdpSock, const char* ipv4_addr)
 	memset(&__ss, 0, sizeof(__ss));
 	ssdpAddr4->sin_family = (sa_family_t)AF_INET;
 	ssdpAddr4->sin_addr.s_addr = htonl(INADDR_ANY);
-	ssdpAddr4->sin_port = htons(BBL_SSDP_PORT);
+	ssdpAddr4->sin_port = htons(BBL_SSDP_MULTI_PORT);
 	ret = bind(*ssdpSock, (struct sockaddr*)ssdpAddr4, sizeof(*ssdpAddr4));
 	if (ret == -1) {
 		return -3;
@@ -83,7 +83,7 @@ int bbl_create_ssdp_sock(SOCKET* ssdpSock, const char* ipv4_addr)
 	}
 	memset((void*)&ssdpMcastAddr, 0, sizeof(struct ip_mreq));
 	ssdpMcastAddr.imr_interface.s_addr = inet_addr(ipv4_addr);
-	ssdpMcastAddr.imr_multiaddr.s_addr = inet_addr(BBL_SDP_IP);
+	ssdpMcastAddr.imr_multiaddr.s_addr = inet_addr(BBL_SDP_MULTI_IP);
 	ret = setsockopt(*ssdpSock,
 		IPPROTO_IP,
 		IP_ADD_MEMBERSHIP,
@@ -126,7 +126,65 @@ error_handler:
 	return ret;
 }
 
-int bbl_get_network_card_list(SOCKET* sock, int max_size)
+
+int bbl_create_ssdp_broadcast_sock(SOCKET* ssdpSock, const char* ipv4_addr)
+{
+	int ret = 0;
+#if defined(_WIN32)
+	char errorBuffer[ERROR_BUFFER_LEN];
+	int onOff;
+	u_char ttl = (u_char)4;
+	struct ip_mreq ssdpMcastAddr;
+	struct sockaddr_storage __ss;
+	struct sockaddr_in* ssdpAddr4 = (struct sockaddr_in*)&__ss;
+	struct in_addr addr;
+
+	*ssdpSock = socket(AF_INET, SOCK_DGRAM, 0);
+
+	if (*ssdpSock == INVALID_SOCKET) {
+		return -1;
+	}
+	onOff = 1;
+	ret = setsockopt(*ssdpSock,
+		SOL_SOCKET,
+		SO_REUSEADDR,
+		(char*)&onOff,
+		sizeof(onOff));
+	if (ret == -1) {
+		return -2;
+		goto error_handler;
+	}
+	memset(&__ss, 0, sizeof(__ss));
+	ssdpAddr4->sin_family = (sa_family_t)AF_INET;
+	ssdpAddr4->sin_addr.s_addr = inet_addr(ipv4_addr);
+	ssdpAddr4->sin_port = htons(BBL_SSDP_BROADCAST_PORT);
+	ret = bind(*ssdpSock, (struct sockaddr*)ssdpAddr4, sizeof(*ssdpAddr4));
+	if (ret == -1) {
+		return -3;
+		goto error_handler;
+	}
+
+	onOff = 1;
+	ret = setsockopt(*ssdpSock,
+		SOL_SOCKET,
+		SO_BROADCAST,
+		(char*)&onOff,
+		sizeof(onOff));
+	if (ret == -1) {
+		return -5;
+		goto error_handler;
+	}
+	return 0;
+
+error_handler:
+	if (ret != 0) {
+		closesocket(*ssdpSock);
+	}
+#endif
+	return ret;
+}
+
+int bbl_init_multi_socket(SOCKET* sock, int max_size)
 {
 	int found_number = 0;
 #if defined(_WIN32)
@@ -215,9 +273,9 @@ int bbl_get_network_card_list(SOCKET* sock, int max_size)
 			char ipv4_addr[INET_ADDRSTRLEN] = { '\0' };
 			inet_ntop(AF_INET, &v4_addr, ipv4_addr, sizeof(ipv4_addr));
 			if (strstr(ipv4_addr, "192.168") != NULL) {
-				int res = bbl_create_ssdp_sock(&sock[found_number], ipv4_addr);
+				int res = bbl_create_ssdp_multi_sock(&sock[found_number], ipv4_addr);
 				printf("card = %d, ip addr = %s\n", (int)found_number, ipv4_addr);
-				BOOST_LOG_TRIVIAL(trace) << "card = " << found_number << ", ip addr = %d" << ipv4_addr;
+				BOOST_LOG_TRIVIAL(trace) << "card = " << found_number << ", ip addr=" << ipv4_addr;
 				found_number++;
 			}
 		}
@@ -225,6 +283,132 @@ int bbl_get_network_card_list(SOCKET* sock, int max_size)
 	free(adapts);
 #endif
 	return found_number;
+}
+
+
+int bbl_init_broadcast_socket(SOCKET* sock, int max_size)
+{
+	int found_number = 0;
+#if defined(_WIN32)
+	PIP_ADAPTER_ADDRESSES adapts = NULL;
+	PIP_ADAPTER_ADDRESSES adapts_item;
+	PIP_ADAPTER_UNICAST_ADDRESS uni_addr;
+	SOCKADDR* ip_addr;
+	struct in_addr v4_addr;
+	struct in6_addr v6_addr;
+	ULONG adapts_sz = 0;
+	ULONG ret;
+	int ifname_found = 0;
+	int valid_addr_found = 0;
+
+	/* Get Adapters addresses required size. */
+	ret = GetAdaptersAddresses(AF_UNSPEC,
+		GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_DNS_SERVER,
+		NULL,
+		adapts,
+		&adapts_sz);
+	if (ret != ERROR_BUFFER_OVERFLOW) {
+		printf("GetAdaptersAddresses failed to find list of "
+			"adapters\n");
+		return -1;
+	}
+	/* Allocate enough memory. */
+	adapts = (PIP_ADAPTER_ADDRESSES)malloc(adapts_sz);
+	if (adapts == NULL) {
+		return -2;
+	}
+	/* Do the call that will actually return the info. */
+	ret = GetAdaptersAddresses(AF_UNSPEC,
+		GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_DNS_SERVER,
+		NULL,
+		adapts,
+		&adapts_sz);
+	if (ret != ERROR_SUCCESS) {
+		free(adapts);
+		printf("GetAdaptersAddresses failed to find list of "
+			"adapters\n");
+		return -3;
+	}
+	/* Copy interface name, if it was provided. */
+	for (adapts_item = adapts; adapts_item != NULL;
+		adapts_item = adapts_item->Next) {
+		if (adapts_item->Flags & IP_ADAPTER_NO_MULTICAST ||
+			adapts_item->OperStatus != IfOperStatusUp) {
+			continue;
+		}
+		valid_addr_found = 0;
+		/* Loop thru this adapter's unicast IP addresses. */
+		uni_addr = adapts_item->FirstUnicastAddress;
+		while (uni_addr) {
+			ip_addr = uni_addr->Address.lpSockaddr;
+			switch (ip_addr->sa_family) {
+			case AF_INET:
+				memcpy(&v4_addr,
+					&((struct sockaddr_in*)ip_addr)
+					->sin_addr,
+					sizeof(v4_addr));
+				/* TODO: Retrieve IPv4 netmask */
+				valid_addr_found = 1;
+				break;
+			case AF_INET6:
+				if (IN6_IS_ADDR_LINKLOCAL(
+					&((struct sockaddr_in6*)ip_addr)
+					->sin6_addr)) {
+					memcpy(&v6_addr,
+						&((struct sockaddr_in6*)
+							ip_addr)
+						->sin6_addr,
+						sizeof(v6_addr));
+					valid_addr_found = 1;
+				}
+				break;
+			default:
+				if (valid_addr_found == 0) {
+					ifname_found = 0;
+				}
+				break;
+			}
+			/* Next address. */
+			uni_addr = uni_addr->Next;
+		}
+		if (valid_addr_found == 1) {
+			char ipv4_addr[INET_ADDRSTRLEN] = { '\0' };
+			inet_ntop(AF_INET, &v4_addr, ipv4_addr, sizeof(ipv4_addr));
+			if (strstr(ipv4_addr, "192.168") != NULL) {
+				int res = bbl_create_ssdp_broadcast_sock(&sock[found_number], ipv4_addr);
+				printf("card = %d, ip addr = %s\n", (int)found_number, ipv4_addr);
+				BOOST_LOG_TRIVIAL(trace) << "card = " << found_number << ", ip addr=" << ipv4_addr;
+				found_number++;
+			}
+		}
+	}
+	free(adapts);
+#endif
+	return found_number;
+}
+
+int bbl_send_ssdp_msg(SOCKET socket)
+{
+	char msearch[4096] = {};
+	snprintf(msearch, sizeof(msearch),
+		"%s"
+		"HOST:%s:%d\r\n"
+		"MAN:\"ssdp:discover\"\r\n"
+		"MX:1\r\n"
+		"ST:%s\r\n"
+		"USER-AGENT:OS/version product/version\r\n"
+		"\r\n",
+		Global.HEADER_MSEARCH,
+		BBL_SDP_BROADCAST_IP, BBL_SSDP_BROADCAST_PORT,
+		"urn:bambulab-com:device:3dprinter:1"
+	);
+	int buf_size = strlen(msearch) + 1;
+	struct sockaddr_in si_other;
+	si_other.sin_family = AF_INET;
+	si_other.sin_addr.s_addr = htonl(INADDR_BROADCAST);
+	si_other.sin_port = htons(BBL_SSDP_BROADCAST_PORT);
+	int slen = sizeof(si_other);
+	return sendto(socket, msearch, buf_size, MSG_DONTROUTE, (struct sockaddr*)&si_other, slen);
 }
 
 int bbl_read_from_ssdp(SOCKET socket, char* buf, int *buf_size, int max_buf_size)
@@ -235,6 +419,8 @@ int bbl_read_from_ssdp(SOCKET socket, char* buf, int *buf_size, int max_buf_size
 	socklen_t socklen = sizeof(__ss);
 	size_t byteReceived = 0;
 	char ntop_buf[INET6_ADDRSTRLEN];
+
+	memset(staticBuf, 0, sizeof(staticBuf));
 
 	requestBuf = staticBuf;
 	/* in case memory can't be allocated, still drain the socket using a
@@ -257,6 +443,40 @@ int bbl_read_from_ssdp(SOCKET socket, char* buf, int *buf_size, int max_buf_size
 	}
 	return 0;
 }
+
+int bbl_read_from_broadcast(SOCKET socket, char* buf, int* buf_size, int max_buf_size)
+{
+	char* requestBuf = NULL;
+	char staticBuf[BUFSIZE];
+	struct sockaddr_storage __ss;
+	socklen_t socklen = sizeof(__ss);
+	size_t byteReceived = 0;
+	char ntop_buf[INET6_ADDRSTRLEN];
+
+	memset(staticBuf, 0, sizeof(staticBuf));
+
+	requestBuf = staticBuf;
+	/* in case memory can't be allocated, still drain the socket using a
+	 * static buffer. */
+
+	byteReceived = recvfrom(socket,
+		requestBuf,
+		BUFSIZE - (size_t)1,
+		0,
+		(struct sockaddr*)&__ss,
+		&socklen);
+	if (byteReceived > 0) {
+		requestBuf[byteReceived] = '\0';
+		/* clang-format off */
+		printf("byte %d, received str: %s\n", byteReceived, requestBuf);
+		memset(buf, 0, max_buf_size);
+		strncpy(buf, requestBuf, byteReceived);
+		buf[byteReceived] = '\0';
+		*buf_size = byteReceived;
+	}
+	return 0;
+}
+
 
 int lssdp_packet_parser(const char* data, size_t data_len, lssdp_packet* packet) {
 	if (data == NULL) {

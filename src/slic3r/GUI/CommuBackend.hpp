@@ -106,8 +106,10 @@ public:
     SsdpDiscovery();
     void start_discover();
     void stop_discover();
+    int send_msg(int card_no);
     void on_sdp_alive(std::string dev_id, std::string dev_ip);
     void recv_sdp_msg(int card_no);
+    void recv_broadcast_msg(int card_no);
 };
 
 class CommuBackend

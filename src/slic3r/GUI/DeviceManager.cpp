@@ -171,6 +171,17 @@ int DeviceManager::update_alive_time(std::string dev_id)
     return -1;
 }
 
+int DeviceManager::update_ip_address(std::string dev_id, std::string dev_ip)
+{
+    std::map<std::string, DeviceInfo*>::iterator it = m_devicelist.find(dev_id);
+    if (it != m_devicelist.end()) {
+        DeviceInfo* deviceInfo = it->second;
+        deviceInfo->set_ip_addr(dev_ip);
+        return 0;
+    }
+    return 0;
+}
+
 int DeviceManager::update_bind_status(std::string device_id, std::string status)
 {
     std::map<std::string, DeviceInfo*>::iterator it = m_devicelist.find(device_id);
