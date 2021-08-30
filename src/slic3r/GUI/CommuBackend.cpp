@@ -95,6 +95,8 @@ namespace Slic3r {
 
     void cloud_conn_callback::connection_lost(const std::string& cause) {
         BOOST_LOG_TRIVIAL(trace) << "cloud_conn_callback::connection_lost!, cause =" << cause;
+        ++nretry_;
+        reconnect();
     }
 
     void cloud_conn_callback::message_arrived(mqtt::const_message_ptr msg)
@@ -148,7 +150,9 @@ namespace Slic3r {
             failedFn(cli_.get_client_id());
         }
         ++nretry_;
-        reconnect();
+        if (nretry_ < 5) {
+            reconnect();
+        }
     }
 
     void client_conn_callback::on_success(const mqtt::token& tok)
@@ -158,10 +162,12 @@ namespace Slic3r {
     }
 
     void client_conn_callback::connection_lost(const std::string& cause) {
-        BOOST_LOG_TRIVIAL(trace) << "cloud_conn_callback::connection_lost!, cause =" << cause;
+        BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::connection_lost!, cause =" << cause;
         if (lostFn) {
             lostFn(cli_.get_client_id());
         }
+        ++nretry_;
+        reconnect();
     }
 
     void client_conn_callback::message_arrived(mqtt::const_message_ptr msg)
