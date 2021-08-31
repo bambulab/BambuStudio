@@ -70,7 +70,7 @@ private:
     std::map<std::string, DeviceInfo*> m_devicelist;
 	std::mutex m_devicelist_mutex;
     bool m_check_alive_quit = false;
-    const double ALIVE_TIMEOUT = 6.0;
+    const double ALIVE_TIMEOUT = 30.0;
     boost::thread m_device_check_alive;
 
 public:
