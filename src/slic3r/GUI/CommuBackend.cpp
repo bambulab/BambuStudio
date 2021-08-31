@@ -349,10 +349,7 @@ namespace Slic3r {
     {
         BOOST_LOG_TRIVIAL(trace) << "connect_to_client host=" << host << ", device_id=" << device_id;
         try {
-            if (m_mqtt_cli) {
-                m_mqtt_cli->disable_callbacks();
-                m_mqtt_cli->disconnect();
-            }
+            disconnect_to_client();
             std::string client_id = user_id;
             m_mqtt_cli = new mqtt::async_client(host, client_id);
             m_mqtt_cli_cb = new client_conn_callback(*m_mqtt_cli, conn_cli_opt);
@@ -374,7 +371,10 @@ namespace Slic3r {
     int CommuBackend::disconnect_to_client()
     {
         if (m_mqtt_cli) {
+            m_mqtt_cli->disable_callbacks();
             m_mqtt_cli->disconnect();
+            delete m_mqtt_cli;
+            m_mqtt_cli = NULL;
         }
         return 0;
     }
