@@ -195,6 +195,10 @@ void CBaseException::ShowExceptionResoult(DWORD dwExceptionCode)
 
 LONG WINAPI CBaseException::UnhandledExceptionFilter(PEXCEPTION_POINTERS pExceptionInfo )
 {
+	if (pExceptionInfo->ExceptionRecord->ExceptionCode < 0x80000000)
+	{
+		return EXCEPTION_CONTINUE_SEARCH;
+	}
 	CBaseException base(GetCurrentProcess(), GetCurrentProcessId(), NULL, pExceptionInfo);
 	base.ShowExceptionInformation();
 	

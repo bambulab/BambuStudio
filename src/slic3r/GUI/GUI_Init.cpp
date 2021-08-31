@@ -36,7 +36,8 @@ int GUI_Run(GUI_InitParams &params)
     signal(SIGCHLD, SIG_DFL);
 #endif // __APPLE__
 
-    try {
+    //BBS: remove the try-catch and let exception goto above
+    //try {
         GUI::GUI_App* gui = new GUI::GUI_App(params.start_as_gcodeviewer ? GUI::GUI_App::EAppMode::GCodeViewer : GUI::GUI_App::EAppMode::Editor);
         if (gui->get_app_mode() != GUI::GUI_App::EAppMode::GCodeViewer) {
             // G-code viewer is currently not performing instance check, a new G-code viewer is started every time.
@@ -52,13 +53,15 @@ int GUI_Run(GUI_InitParams &params)
         gui->init_params = &params;
 
         return wxEntry(params.argc, params.argv);
-    } catch (const Slic3r::Exception &ex) {
+    /*} catch (const Slic3r::Exception &ex) {
         boost::nowide::cerr << ex.what() << std::endl;
         wxMessageBox(boost::nowide::widen(ex.what()), _L("PrusaSlicer GUI initialization failed"), wxICON_STOP);
+        throw;
     } catch (const std::exception &ex) {
         boost::nowide::cerr << "PrusaSlicer GUI initialization failed: " << ex.what() << std::endl;
         wxMessageBox(format_wxstr(_L("Fatal error, exception catched: %1%"), ex.what()), _L("PrusaSlicer GUI initialization failed"), wxICON_STOP);
-    }
+        throw;
+    }*/
 
     // error
     return 1;

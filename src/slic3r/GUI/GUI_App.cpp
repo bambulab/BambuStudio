@@ -1047,12 +1047,13 @@ void GUI_App::init_single_instance_checker(const std::string &name, const std::s
 
 bool GUI_App::OnInit()
 {
-    try {
+    //BBS: remove the try-catch and let exception goto above
+    //try {
         return on_init_inner();
-    } catch (const std::exception&) {
-        generic_exception_handle();
-        return false;
-    }
+    //} catch (const std::exception&) {
+    //    generic_exception_handle();
+    //    return false;
+    //}
 }
 
 bool GUI_App::on_init_inner()
