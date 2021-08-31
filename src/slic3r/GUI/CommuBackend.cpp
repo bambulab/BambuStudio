@@ -216,6 +216,9 @@ namespace Slic3r {
         catch (std::exception& e) {
             BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery::on_sdp_alive, exception=" << e.what();
         }
+        catch (...) {
+            BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery::on_sdp_alive, exception!";
+        }
     }
 
     int SsdpDiscovery::send_msg(int card_no)

@@ -44,8 +44,6 @@ private:
 
 namespace Slic3r {
 
-    struct PrintHostJob;
-
     namespace GUI {
         class DebugToolDialog : public GUI::DPIDialog
         {
@@ -56,10 +54,7 @@ namespace Slic3r {
 
             int publish_json(std::string json_str);
             int handle_report_print_msg(std::string topic, std::string json_str);
-            int handle_device_report_msg(std::string json_str);
-            int handle_alive_msg(std::string dev_id);
             int log_info(std::string str);
-            int handle_offline_event(std::string dev_id);
 
             void refresh_device_list();
             void refresh_firmware_list(bool show_error=false);
@@ -67,7 +62,6 @@ namespace Slic3r {
             void on_update_list(SimpleEvent& evt);
             void on_refresh_list(SimpleEvent& evt);
             void on_select_device(wxCommandEvent& evt);
-            //void on_dropdown_devicelist(wxCommandEvent& evt);
             void on_error_msg(wxCommandEvent& evt);
             void on_mqtt_success(wxCommandEvent& evt);
             void on_mqtt_failed(wxCommandEvent& evt);
@@ -218,7 +212,6 @@ namespace Slic3r {
 
             std::vector<wxString> upgrade_file_list;
             wxFileDialog* selectGcodeDialog;
-            FILE* logFile;
             std::fstream customGcodeCacheFile;
             wxTimer* m_deviceListTimer;
 
@@ -246,8 +239,6 @@ namespace Slic3r {
             std::unique_ptr<wxTimer> m_timer;
             void on_timer(wxTimerEvent&);
             std::string _getNewLogFilename();
-            std::vector<std::string> log_lines;
-            std::mutex log_mutex;
 
             bool m_test_alive = false;
             std::string m_curr_dev_id;

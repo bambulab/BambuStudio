@@ -1017,6 +1017,11 @@ int DebugToolDialog::publish_json(std::string json_str)
         return backend->publish_json_to_client(device_id, json_str);
     }
     catch (std::exception& e) {
+        BOOST_LOG_TRIVIAL(trace) << "Exception in publish json, std::exception=" << e.what() << ", json = " << json_str;
+        return -1;
+    }
+    catch (...) {
+        BOOST_LOG_TRIVIAL(trace) << "Unknown Exception in publish json, json=" << json_str;
         return -1;
     }
 }
@@ -1029,6 +1034,8 @@ int DebugToolDialog::handle_report_print_msg(std::string topic, std::string json
             BOOST_LOG_TRIVIAL(trace) << "omit this msg, curr_dev_id is " << m_curr_dev_id;
             return -1;
         }
+
+        BOOST_LOG_TRIVIAL(trace) << "handle_report_print: json_str=" << json_str;
 
         std::stringstream ss(json_str);
         pt::ptree root;
@@ -1078,6 +1085,16 @@ int DebugToolDialog::handle_report_print_msg(std::string topic, std::string json
                             ;
                         }
                     }
+
+                    if (after_progress < 0) {
+                        try {
+                            progress_int = stoi(progress.value());
+                        }
+                        catch (std::exception& e) {
+                            ;
+                        }
+                    }
+
 
                     if ((last_progress != progress_int) && (last_progress < progress_int) && progress_int == 100) {
                         auto et = new wxCommandEvent(EVT_PRINT_FINISH, this->GetId());
@@ -1156,18 +1173,10 @@ int DebugToolDialog::handle_report_print_msg(std::string topic, std::string json
         std::string info = "parsing report msg error, topic=" + topic + ", json_str=" + json_str;
         this->log_info(info);
     }
-
-    return 0;
-}
-
-int DebugToolDialog::handle_alive_msg(std::string dev_id)
-{
-    std::string content = cb_device_list->GetValue().ToStdString();
-    size_t start = content.find_last_of("(") + 1;
-    std::string device_id = content.substr(start, content.find_last_of(")") - start);
-    if (device_id.compare(dev_id) == 0) {
-        this->log_info("dev_id=" + dev_id + " is alive!");
+    catch (...) {
+        BOOST_LOG_TRIVIAL(trace) << "Uknown Exception, topic=" << topic << ", json_str=" << json_str;
     }
+
     return 0;
 }
 
@@ -1260,15 +1269,16 @@ int DebugToolDialog::log_info(std::string line)
     std::string info = buf.str() + ":" + line + "\n";
  
     try {
-        log_mutex.lock();
-        log_lines.push_back(info);
-        log_mutex.unlock();
-
         // display
         txt_string_info->AppendText(wxString(info));
     }
     catch (std::exception& e) {
-        ;
+        BOOST_LOG_TRIVIAL(error) << "Unkown Exception in log_info, exception=" << e.what();
+        return -1;
+    }
+    catch (...) {
+        BOOST_LOG_TRIVIAL(error) << "Unkown Exception in log_info";
+        return -1;
     }
     return 0;
 }
@@ -1306,18 +1316,6 @@ int DebugToolDialog::set_current_device_id()
 int DebugToolDialog::get_current_device_id(std::string& dev_id)
 {
     dev_id = std::string(m_curr_dev_id);
-    return 0;
-}
-
-int DebugToolDialog::handle_offline_event(std::string dev_id)
-{
-    std::string content = cb_device_list->GetValue().ToStdString();
-    size_t start = content.find_last_of("(") + 1;
-    std::string device_id = content.substr(start, content.find_last_of(")") - start);
-
-    if (device_id.compare(device_id) == 0) {
-        wxMessageBox(_L("Current Device " + device_id + " is offline!"));
-    }
     return 0;
 }
 
