@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
+#include <fstream>
 #include <regex>
 #include <wx/frame.h>
 #include <wx/progdlg.h>
@@ -902,23 +903,28 @@ void DebugToolDialog::init_gcode_custom()
     // Init custom_gcode
     pt::ptree custom_gocde_root;
     try {
-        pt::read_json("CustomGcode.json", custom_gocde_root);
-        std::string gcode1 = custom_gocde_root.get<std::string>("custom_gcode_1");
-        txt_custom_gcode1->SetValue(wxString(gcode1));
-        std::string gcode2 = custom_gocde_root.get<std::string>("custom_gcode_2");
-        txt_custom_gcode2->SetValue(wxString(gcode2));
-        std::string gcode3 = custom_gocde_root.get<std::string>("custom_gcode_3");
-        txt_custom_gcode3->SetValue(wxString(gcode3));
-        std::string gcode4 = custom_gocde_root.get<std::string>("custom_gcode_4");
-        txt_custom_gcode4->SetValue(wxString(gcode4));
-        std::string gcode5 = custom_gocde_root.get<std::string>("custom_gcode_5");
-        txt_custom_gcode5->SetValue(wxString(gcode5));
-        std::string gcode6 = custom_gocde_root.get<std::string>("custom_gcode_6");
-        txt_custom_gcode6->SetValue(wxString(gcode6));
-        std::string gcode7 = custom_gocde_root.get<std::string>("custom_gcode_7");
-        txt_custom_gcode7->SetValue(wxString(gcode7));
+        std::string name = "CustomGcode.json";
+        std::ifstream f(name.c_str());
+        if (f.good())
+        {
+            pt::read_json(name, custom_gocde_root);
+            std::string gcode1 = custom_gocde_root.get<std::string>("custom_gcode_1");
+            txt_custom_gcode1->SetValue(wxString(gcode1));
+            std::string gcode2 = custom_gocde_root.get<std::string>("custom_gcode_2");
+            txt_custom_gcode2->SetValue(wxString(gcode2));
+            std::string gcode3 = custom_gocde_root.get<std::string>("custom_gcode_3");
+            txt_custom_gcode3->SetValue(wxString(gcode3));
+            std::string gcode4 = custom_gocde_root.get<std::string>("custom_gcode_4");
+            txt_custom_gcode4->SetValue(wxString(gcode4));
+            std::string gcode5 = custom_gocde_root.get<std::string>("custom_gcode_5");
+            txt_custom_gcode5->SetValue(wxString(gcode5));
+            std::string gcode6 = custom_gocde_root.get<std::string>("custom_gcode_6");
+            txt_custom_gcode6->SetValue(wxString(gcode6));
+            std::string gcode7 = custom_gocde_root.get<std::string>("custom_gcode_7");
+            txt_custom_gcode7->SetValue(wxString(gcode7));
+        }
     }
-    catch (std::exception const& e) {
+    catch (...) {
         ;
     }
 
