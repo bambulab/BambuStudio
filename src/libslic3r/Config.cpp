@@ -745,10 +745,20 @@ size_t ConfigBase::load_from_gcode_string_legacy(ConfigBase& config, const char*
     if (str == nullptr)
         return 0;
 
+    // BBS. Remove line numbers.
+    std::regex match_pattern("\nN[0-9]* *");
+    std::string replace_pattern = "\n";
+    char* result = (char*)calloc(strlen(str) + 1, 1);
+    std::regex_replace(result, str, str + strlen(str), match_pattern, replace_pattern);
+
     // Walk line by line in reverse until a non-configuration key appears.
-    const char *data_start = str;
+    const char *data_start = result;
+    data_start = skip_whitespaces(data_start);
+    if (std::toupper(*data_start) == 'N')
+        data_start = skip_word(data_start);
+
     // boost::nowide::ifstream seems to cook the text data somehow, so less then the 64k of characters may be retrieved.
-    const char *end = data_start + strlen(str);
+    const char *end = data_start + strlen(data_start);
     size_t num_key_value_pairs = 0;
     for (;;) {
         // Extract next line.
@@ -794,6 +804,8 @@ size_t ConfigBase::load_from_gcode_string_legacy(ConfigBase& config, const char*
         end = start;
     }
 
+    // BBS
+    free(result);
     return num_key_value_pairs;
 }
 
@@ -862,6 +874,24 @@ private:
     pos_type                 m_file_pos   = 0;
 };
 
+// BBS
+static bool         is_whitespace(char c) { return c == ' ' || c == '\t'; }
+static bool         is_end_of_line(char c) { return c == '\r' || c == '\n' || c == 0; }
+static bool         is_end_of_gcode_line(char c) { return c == ';' || is_end_of_line(c); }
+static bool         is_end_of_word(char c) { return is_whitespace(c) || is_end_of_gcode_line(c); }
+
+static const char* skip_word(const char* c) {
+    for (; !is_end_of_word(*c); ++c)
+        ; // silence -Wempty-body
+    return c;
+}
+
+static const char* skip_whitespaces(const char* c) {
+    for (; is_whitespace(*c); ++c)
+        ; // silence -Wempty-body
+    return c;
+}
+
 // Load the config keys from the tail of a G-code file.
 ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule)
 {
@@ -876,6 +906,12 @@ ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, Fo
         std::string header;
         bool        header_found = false;
         while (std::getline(ifs, header)) {
+            // BBS
+            const char* line_c = skip_whitespaces(header.c_str());
+            if (std::toupper(*line_c) == 'N')
+                line_c = skip_word(line_c);
+            line_c = skip_whitespaces(line_c);
+
             if (strncmp(slic3r_gcode_header, header.c_str(), strlen(slic3r_gcode_header)) == 0) {
                 header_found = true;
                 break;

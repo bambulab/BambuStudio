@@ -191,7 +191,13 @@ bool GCodeReader::parse_file_internal(const std::string &filename, ParseLineCall
     return this->parse_file_raw_internal(filename, 
         [this, &gline, parse_line_callback](const char *begin, const char *end) {
             gline.reset();
-            this->parse_line(begin, end, gline, parse_line_callback);
+
+            const char* begin_new = begin;
+            begin_new = skip_whitespaces(begin_new);
+            if (std::toupper(*begin_new) == 'N')
+                begin_new = skip_word(begin_new);
+            begin_new = skip_whitespaces(begin_new);
+            this->parse_line(begin_new, end, gline, parse_line_callback);
         }, 
         line_end_callback);
 }

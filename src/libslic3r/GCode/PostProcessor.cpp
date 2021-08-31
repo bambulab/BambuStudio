@@ -207,28 +207,21 @@ void gcode_add_line_number(const std::string& path, const DynamicPrintConfig& co
 
     std::fstream fs;
     std::string new_gcode;
-    char line_buf[512];
     fs.open(path, std::fstream::in | std::fstream::out);
 
     size_t line_number = 1;
-    while (fs) {
-        memset(line_buf, 0, sizeof(line_buf));
-
-        char num_buf[128];
-        memset(num_buf, 0, sizeof(num_buf));
-        snprintf(num_buf, sizeof(num_buf), "%d", line_number);
-        std::string num_str = std::string("N") + num_buf + " ";
-        strncpy(line_buf, num_str.c_str(), sizeof(line_buf));
-        fs.getline(line_buf + num_str.length(), sizeof(line_buf) - num_str.length());
-        new_gcode += line_buf;
-        new_gcode += "\n";
+    std::string gcode_line;
+    while (std::getline(fs, gcode_line)) {
+        char num_str[128];
+        memset(num_str, 0, sizeof(num_str));
+        snprintf(num_str, sizeof(num_str), "%d", line_number);
+        new_gcode += std::string("N") + num_str + " " + gcode_line + "\n";
         line_number++;
     }
 
     fs.clear();
     fs.seekp(0, std::ios_base::beg);
     fs.write(new_gcode.c_str(), new_gcode.length());
-
     fs.close();
 }
 
