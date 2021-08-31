@@ -2857,7 +2857,9 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
             ExtrusionRole role = ee->role();
             assert(role == erSupportMaterial || role == erSupportMaterialInterface);
             const char  *label = (role == erSupportMaterial) ? support_label : support_interface_label;
-            const double speed = (role == erSupportMaterial) ? support_speed : support_interface_speed;
+            // BBS
+            //const double speed = (role == erSupportMaterial) ? support_speed : support_interface_speed;
+            const double speed = -1.0;
             const ExtrusionPath *path = dynamic_cast<const ExtrusionPath*>(ee);
             if (path)
                 gcode += this->extrude_path(*path, label, speed);
@@ -3011,6 +3013,15 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             speed = m_config.get_abs_value("ironing_speed");
         } else if (path.role() == erGapFill) {
             speed = m_config.get_abs_value("gap_fill_speed");
+        // BBS: enable slow down option for support. Because only tree speed calculate the curvature, so this
+        // only slow down tree support and normal support still use speed in config directly.
+        }
+        else if (path.role() == erSupportMaterial || path.role() == erSupportMaterialInterface) {
+            const double  support_speed = m_config.support_material_speed.value;
+            const double  support_interface_speed = m_config.support_material_interface_speed.get_abs_value(support_speed);
+            speed = (path.role() == erSupportMaterial) ? support_speed : support_interface_speed;
+            if (m_config.auto_slow_down_for_overhang_and_curva)
+                speed = m_speed_generator.calculate_speed(path, speed, min_speed);
         } else {
             throw Slic3r::InvalidArgument("Invalid speed");
         }

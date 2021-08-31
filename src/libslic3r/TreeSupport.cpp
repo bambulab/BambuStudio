@@ -5,6 +5,7 @@
 #include "Print.hpp"
 #include "Layer.hpp"
 #include "Fill/FillBase.hpp"
+#include "CurveAnalyzer.hpp"
 
 #include "SVG.hpp"
 
@@ -749,8 +750,29 @@ static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print
             break;
     }
 
-    extrusion_entities_append_loops(dst, std::move(loops), is_interface ? erSupportMaterialInterface : erSupportMaterial,
+    ExtrusionRole role = is_interface ? erSupportMaterialInterface : erSupportMaterial;
+    if (print.config().auto_slow_down_for_overhang_and_curva) {
+        CurveAnalyzer curve_analyzer;
+        for (size_t i = 0; i < loops.size(); i++) {
+            // BBS: check polygon valid
+            if (!loops[i].is_valid())
+                continue;
+            // BBS: calculate curvatures for the loop of polygon and generate ExtrusionPaths
+            // by order which has different curve degree.
+            ExtrusionPaths paths;
+            ExtrusionPath path(0, 0, role, flow.mm3_per_mm(), flow.width, print.skirt_first_layer_height());
+            path.polyline = loops[i].split_at_first_point();
+            paths.emplace_back(std::move(path));
+            curve_analyzer.calculate_curvatures(paths);
+            // BBS: save result
+            dst.reserve(dst.size() + 1);
+            dst.emplace_back(new ExtrusionLoop(std::move(paths)));
+            paths.clear();
+        }
+    } else {
+        extrusion_entities_append_loops(dst, std::move(loops), role,
             float(flow.mm3_per_mm()), float(flow.width), float(print.skirt_first_layer_height()));
+    }
 }
 
 void TreeSupport::generate_toolpaths()
