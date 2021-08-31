@@ -671,7 +671,7 @@ static inline void fill_expolygons_generate_paths(
         fill_expolygon_generate_paths(dst, std::move(expoly), filler, fill_params, density, role, flow);
 }
 
-static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print &print, const ExPolygon &support_area, bool no_brim, bool is_interface)
+static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print &print, const ExPolygon &support_area, size_t wall_count, bool is_interface)
 {
     Flow       flow = print.brim_flow();
     Polygons   loops;
@@ -680,7 +680,7 @@ static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print
         polygons_append(loops, to_polygons(support_area_new));
         support_area_new = offset_ex(support_area_new, -float(flow.scaled_spacing()), jtSquare);
 
-        if (no_brim)
+        if (--wall_count == 0)
             break;
     }
 
@@ -698,10 +698,11 @@ void TreeSupport::generate_toolpaths()
     coordf_t interface_spacing = object_config.support_material_interface_spacing.value;
     double support_density = support_extrusion_width / (support_spacing + support_extrusion_width);
     double interface_density = support_extrusion_width / (interface_spacing + support_extrusion_width);
+    const size_t wall_count = object_config.tree_support_wall_count.value;
 
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, m_object.tree_support_layer_count()),
-        [this, support_extrusion_width, nozzle_diameter, interface_density]
+        [this, support_extrusion_width, nozzle_diameter, interface_density, wall_count]
         (const tbb::blocked_range<size_t>& range)
         {
             for (size_t layer_nr = range.begin(); layer_nr < range.end(); layer_nr++) {
@@ -728,7 +729,8 @@ void TreeSupport::generate_toolpaths()
                             ExPolygons polys;
                             if (layer->id() == 0) {
                                 Flow flow = m_object.print()->brim_flow();
-                                make_perimeter_and_inner_brim(layer->support_fills.entities, *m_object.print(), poly, true, true);
+                                make_perimeter_and_inner_brim(layer->support_fills.entities, *m_object.print(),
+                                    poly, wall_count, true);
                                 polys = std::move(offset_ex(poly, -flow.scaled_spacing()));
                             } else {
                                 polys.push_back(poly);
@@ -740,7 +742,8 @@ void TreeSupport::generate_toolpaths()
                             fill_expolygons_generate_paths(layer->support_fills.entities, std::move(polys),
                                 filler_interface, fill_params, interface_density, erSupportMaterialInterface, support_flow);
                         } else {
-                            make_perimeter_and_inner_brim(layer->support_fills.entities, *m_object.print(), poly, layer->id() > 0, false);
+                            make_perimeter_and_inner_brim(layer->support_fills.entities, *m_object.print(), poly,
+                                layer->id() > 0 ? wall_count : std::numeric_limits<size_t>::max(), false);
                         }
                     }
                 }
@@ -804,7 +807,6 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     const PrintObjectConfig &config = m_object.config();
     const coordf_t branch_radius = config.tree_support_branch_diameter.value / 2;
     const coordf_t branch_radius_scaled = scale_(branch_radius);
-    const size_t wall_count = config.tree_support_wall_count.value;
     Polygon branch_circle; //Pre-generate a circle with correct diameter so that we don't have to recompute those (co)sines every time.
     for (unsigned int i = 0; i < CIRCLE_RESOLUTION; i++)
     {
