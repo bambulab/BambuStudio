@@ -215,10 +215,10 @@ void gcode_add_line_number(const std::string& path, const DynamicPrintConfig& co
         memset(line_buf, 0, sizeof(line_buf));
 
         char num_buf[128];
-        memset(line_buf, 0, sizeof(num_buf));
-        _itoa_s(line_number, num_buf, 10);
+        memset(num_buf, 0, sizeof(num_buf));
+        snprintf(num_buf, sizeof(num_buf), "%d", line_number);
         std::string num_str = std::string("N") + num_buf + " ";
-        strncpy_s(line_buf, num_str.c_str(), sizeof(line_buf));
+        strncpy(line_buf, num_str.c_str(), sizeof(line_buf));
         fs.getline(line_buf + num_str.length(), sizeof(line_buf) - num_str.length());
         new_gcode += line_buf;
         new_gcode += "\n";
