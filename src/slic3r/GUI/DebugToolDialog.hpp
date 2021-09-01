@@ -228,7 +228,6 @@ namespace Slic3r {
             void init_gcode_run_file();
             void init_gcode_control();
             void init_gcode_custom();
-            void init_push_info();
 
             int m_sequence_id = 2000;
             int publishGcode(std::string gcode);

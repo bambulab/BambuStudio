@@ -947,12 +947,6 @@ void DebugToolDialog::init_gcode_custom()
     custom_gcode_sizer->Add(txt_custom_gcode7, 1, wxLEFT | wxALIGN_LEFT | wxEXPAND, SPACING);
 }
 
-void DebugToolDialog::init_push_info()
-{
-
-}
-
-
 bool DebugToolDialog::Show(bool show)
 {
     bool result = DPIDialog::Show(show);
@@ -1083,25 +1077,30 @@ int DebugToolDialog::handle_report_print_msg(std::string topic, std::string json
                     int progress_int = 0;
                     int before_progress = progress.value().find_last_of(' ');
                     int after_progress = progress.value().find_last_of('%');
-                    if (after_progress > before_progress) {
-                        std::string prog_str = progress.value().substr(before_progress, after_progress - before_progress);
-                        try {
-                            progress_int = stoi(prog_str);
+                    if (after_progress >= 0) {
+                        if (after_progress > before_progress) {
+                            std::string prog_str = progress.value().substr(before_progress, after_progress - before_progress);
+                            try {
+                                progress_int = stoi(prog_str);
+                            }
+                            catch (std::exception& e) {
+                                ;
+                            }
+                            catch (...) {
+                                ;
+                            }
                         }
-                        catch (std::exception& e) {
-                            ;
-                        }
-                    }
-
-                    if (after_progress < 0) {
+                    } else {
                         try {
                             progress_int = stoi(progress.value());
                         }
                         catch (std::exception& e) {
                             ;
                         }
+                        catch (...) {
+                            ;
+                        }
                     }
-
 
                     if ((last_progress != progress_int) && (last_progress < progress_int) && progress_int == 100) {
                         auto et = new wxCommandEvent(EVT_PRINT_FINISH, this->GetId());
