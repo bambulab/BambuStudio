@@ -907,7 +907,8 @@ void DebugToolDialog::init_gcode_custom()
         std::ifstream f(name.c_str());
         if (f.good())
         {
-            pt::read_json(name, custom_gocde_root);
+            pt::read_json(f, custom_gocde_root);
+            f.close();
             std::string gcode1 = custom_gocde_root.get<std::string>("custom_gcode_1");
             txt_custom_gcode1->SetValue(wxString(gcode1));
             std::string gcode2 = custom_gocde_root.get<std::string>("custom_gcode_2");

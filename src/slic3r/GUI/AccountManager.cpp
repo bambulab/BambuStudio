@@ -59,15 +59,23 @@ namespace Slic3r {
     AccountInfo* AccountInfo::load_from_json(std::string filename)
     {
         try {
-            pt::ptree root;
-            pt::read_json(filename, root);
-            std::string account = root.get<std::string>("account");
-            std::string token = root.get<std::string>("token");
-            std::string user_id = root.get<std::string>("user_id");
-            AccountInfo::LoginStatus status = (AccountInfo::LoginStatus)root.get<int>("login_status");
-            AccountInfo* info = new AccountInfo(account, user_id, status);
-            info->set_token(token);
-            return info;
+            std::ifstream f(filename.c_str());
+            if (f.good()) {
+                pt::ptree root;
+                pt::read_json(f, root);
+                f.close();
+                std::string account = root.get<std::string>("account");
+                std::string token = root.get<std::string>("token");
+                std::string user_id = root.get<std::string>("user_id");
+                AccountInfo::LoginStatus status = (AccountInfo::LoginStatus)root.get<int>("login_status");
+                AccountInfo* info = new AccountInfo(account, user_id, status);
+                info->set_token(token);
+                return info;
+            }
+            else {
+                BOOST_LOG_TRIVIAL(trace) << "load json failed! filename=" << filename;
+                return nullptr;
+            }
         }
         catch (std::exception& e)
         {
