@@ -1548,7 +1548,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("skirt_distance", category_path + "skirt");
         optgroup->append_single_option_line("skirt_height", category_path + "skirt");
         optgroup->append_single_option_line("draft_shield", category_path + "skirt");
-        optgroup->append_single_option_line("min_skirt_length", category_path + "skirt");
+        // BBS. Remove min_skirt_length option.
+        //optgroup->append_single_option_line("min_skirt_length", category_path + "skirt");
 
         optgroup = page->new_optgroup(L("Brim"));
         optgroup->append_single_option_line("brim_type", category_path + "brim");
