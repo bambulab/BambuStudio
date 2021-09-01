@@ -6086,7 +6086,41 @@ void Plater::export_gcode(bool prefer_removable)
         // is_path_on_removable_drive() is called with the "true" parameter to update its internal database as the user may have shuffled the external drives
         // while the dialog was open.
         appconfig.update_last_output_dir(output_path.parent_path().string(), path_on_removable_media);
-		
+
+        //BBS: TODO, also export 3mf to the same directory for debugging
+        DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
+        bool full_pathnames = wxGetApp().app_config->get("export_sources_full_pathnames") == "1";
+        std::string gcode_file_path = output_path.string();
+        std::size_t found = gcode_file_path.find(".gcode");
+        std::string project_file_path = gcode_file_path.substr(0,found)+".3mf";
+
+        //add plate logic for thumbnail generate
+        std::vector<ThumbnailData*> thumbnails;
+        for (unsigned int i = 0; i < p->partplate_list.get_plate_count(); i++)
+        {
+            ThumbnailData* thumbnail_data = new ThumbnailData();
+            p->generate_thumbnail(*thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, false, true, true, true, i);
+            thumbnails.push_back(thumbnail_data);
+        }
+
+        //add bbs 3mf logic
+        PlateDataPtrs plate_data_list;
+        p->partplate_list.store_to_3mf_structure(plate_data_list);
+        if (Slic3r::store_bbs_3mf(project_file_path.c_str(), &p->model, plate_data_list,  &cfg, full_pathnames, thumbnails)) {
+            // Success
+            p->statusbar()->set_status_text(format_wxstr(_L("3MF file exported to %s"), project_file_path));
+        }
+        else {
+            // Failure
+            p->statusbar()->set_status_text(format_wxstr(_L("Error exporting 3MF file %s"), project_file_path));
+        }
+
+        release_PlateData_list(plate_data_list);
+        for (unsigned int i = 0; i < thumbnails.size(); i++)
+        {
+            delete thumbnails[i];
+        }
+        thumbnails.clear();
 	}
 }
 
