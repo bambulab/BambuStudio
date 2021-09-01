@@ -626,7 +626,8 @@ public:
     void set_plate_origin(Vec3d origin) { m_origin = origin; }
     Vec3d get_plate_origin() { return m_origin; }
 
-    static bool sequential_print_horizontal_clearance_valid(const Print& print, Polygons* polygons = nullptr);
+    //BBS
+    static int sequential_print_clearance_valid(const Print& print, Polygons* polygons = nullptr);
 
 protected:
     // Invalidates the step, and its depending steps in Print.
