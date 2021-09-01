@@ -1119,6 +1119,9 @@ int DebugToolDialog::handle_report_print_msg(std::string topic, std::string json
                     catch (std::exception& e) {
                         ;
                     }
+                    catch (...) {
+                        ;
+                    }
                 }
 
                 boost::optional<std::string> wifi_signal = print.get_optional<std::string>("wifi_signal");
@@ -1146,6 +1149,9 @@ int DebugToolDialog::handle_report_print_msg(std::string topic, std::string json
                     catch (std::exception& e) {
                         ;
                     }
+                    catch (...) {
+                        ;
+                    }
                 }
             }
             this->log_info("received ack msg = " + json_str);
@@ -1165,6 +1171,9 @@ int DebugToolDialog::handle_report_print_msg(std::string topic, std::string json
                         summary->device_version = version_str;
                     }
                     catch (std::exception& e) {
+                        ;
+                    }
+                    catch (...) {
                         ;
                     }
                 }

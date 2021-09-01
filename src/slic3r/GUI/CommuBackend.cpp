@@ -398,7 +398,7 @@ namespace Slic3r {
         BOOST_LOG_TRIVIAL(trace) << "connect_to_client host=" << host << ", device_id=" << device_id;
         try {
             disconnect_to_client();
-            std::string client_id = user_id;
+            std::string client_id = (boost::format("%1%:%2%") % user_id % m_mqtt_uuid).str();
             m_mqtt_cli = new mqtt::async_client(host, client_id);
             m_mqtt_cli_cb = new client_conn_callback(*m_mqtt_cli, conn_cli_opt);
             m_mqtt_cli_cb->set_connect_fns(cFn, fFn, lFn);
