@@ -23,7 +23,7 @@
 #define TAU (2.0 * M_PI)
 #define NO_INDEX (std::numeric_limits<unsigned int>::max())
 
-#define SUPPORT_TREE_DEBUG_TO_SVG
+//#define SUPPORT_TREE_DEBUG_TO_SVG
 
 namespace Slic3r
 {
@@ -765,6 +765,7 @@ void TreeSupport::generate_toolpaths()
         (const tbb::blocked_range<size_t>& range)
         {
             for (size_t layer_nr = range.begin(); layer_nr < range.end(); layer_nr++) {
+    //for (size_t layer_nr = 0; layer_nr < m_object.tree_support_layer_count(); layer_nr++) {  // coconut: for debug only
                 TreeSupportLayer *layer = m_object.get_tree_support_layer(layer_nr);
                 Flow support_flow(support_extrusion_width, layer->height, nozzle_diameter);
                 Fill* filler_interface = Fill::new_from_type(ipRectilinear);
