@@ -642,7 +642,6 @@ void TreeSupport::detect_object_overhangs()
                     ExPolygons lower_polys = std::move(offset2_ex(lower_layer->lslices, -scale_(extrusion_width / 2), scale_(extrusion_width / 2)));
                     ExPolygons overhang_areas = std::move(diff_ex(layer->lslices, offset_ex(lower_polys, scale_(lower_layer_offset))));
                     overhang_areas = std::move(offset2_ex(overhang_areas, -0.1 * scale_(extrusion_width), 0.1 * scale_(extrusion_width)));
-
                     if (dont_support_bridges && overhang_areas.size()>0) {
                         remove_bridges_from_contacts(lower_layer, layer, scale_(extrusion_width), scale_(5), overhang_areas);
                     }
@@ -665,6 +664,8 @@ void TreeSupport::detect_object_overhangs()
 
         if (layer_id < enforcers.size()) {
             ExPolygons& enforcer = enforcers[layer_id];
+            enforcer = std::move(diff_ex(enforcer, layer->lslices));
+            enforcer = std::move(offset2_ex(enforcer, -0.1 * scale_(extrusion_width), 0.1 * scale_(extrusion_width)));
             layer->overhang_areas.insert(layer->overhang_areas.end(), enforcer.begin(), enforcer.end());
         }
 
