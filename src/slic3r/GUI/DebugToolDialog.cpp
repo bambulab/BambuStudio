@@ -1468,6 +1468,7 @@ int DebugToolDialog::log_info(std::string line)
 
 int DebugToolDialog::publishGcode(std::string gcode)
 {
+    int result = 0;
     pt::ptree root, print;
     print.put("command", "gcode_line");
     print.put("param", gcode);
@@ -1477,9 +1478,12 @@ int DebugToolDialog::publishGcode(std::string gcode)
     pt::write_json(oss, root);
     std::string json_str = oss.str();
 
-    if (this->publish_json(json_str) != 0) {
+    result = this->publish_json(json_str);
+    if (result != 0) {
         this->log_info("publish_json failed");
     }
+
+    return result;
 }
 
 int DebugToolDialog::set_current_device_id()
