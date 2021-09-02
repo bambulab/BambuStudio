@@ -57,6 +57,8 @@ namespace GUI {
     wxDECLARE_EVENT(EVT_MQTT_FAILED, wxCommandEvent);
     wxDECLARE_EVENT(EVT_MQTT_LOST, wxCommandEvent);
     wxDECLARE_EVENT(EVT_PRINT_FINISH, wxCommandEvent);
+    wxDECLARE_EVENT(EVT_MESSAGE_ARRIVED, wxCommandEvent);
+    wxDECLARE_EVENT(EVT_MESSAGE_SENT, wxCommandEvent);
 
 
     wxDEFINE_EVENT(EVT_PROGRESS, wxCommandEvent);
@@ -67,6 +69,9 @@ namespace GUI {
     wxDEFINE_EVENT(EVT_MQTT_FAILED, wxCommandEvent);
     wxDEFINE_EVENT(EVT_MQTT_LOST, wxCommandEvent);
     wxDEFINE_EVENT(EVT_PRINT_FINISH, wxCommandEvent);
+    wxDEFINE_EVENT(EVT_MESSAGE_ARRIVED, wxCommandEvent);
+    wxDEFINE_EVENT(EVT_MESSAGE_SENT, wxCommandEvent);
+    
 
     std::string DebugToolDialog::_getNewLogFilename()
     {
@@ -222,6 +227,10 @@ namespace GUI {
         label_print_progress_val = new wxStaticText(this, wxID_ANY, _L("0%"), wxDefaultPosition, wxDefaultSize);
         label_wifi_signal = new wxStaticText(this, wxID_ANY, _L("WiFi Signal:"), wxDefaultPosition, wxDefaultSize);
         label_wifi_signal_val = new wxStaticText(this, wxID_ANY, _L("0"), wxDefaultPosition, wxDefaultSize);
+        label_wifi_link_th = new wxStaticText(this, wxID_ANY, _L("Link TH State:"), wxDefaultPosition, wxDefaultSize);
+        label_wifi_link_th_val = new wxStaticText(this, wxID_ANY, _L("NA"), wxDefaultPosition, wxDefaultSize);
+        label_wifi_link_ams = new wxStaticText(this, wxID_ANY, _L("Link AMS State:"), wxDefaultPosition, wxDefaultSize);
+        label_wifi_link_ams_val = new wxStaticText(this, wxID_ANY, _L("NA"), wxDefaultPosition, wxDefaultSize);
         label_gcode_filename = new wxStaticText(this, wxID_ANY, _L("File Path:"), wxDefaultPosition, wxDefaultSize);
         label_output_string = new wxStaticText(this, wxID_ANY, _L("MC String Info:"), wxDefaultPosition, wxDefaultSize);
 
@@ -265,7 +274,10 @@ namespace GUI {
         temp_btns_sizer->Add(label_print_progress_val, 0, wxLEFT | wxALIGN_LEFT);
         temp_btns_sizer->Add(label_wifi_signal, 0, wxRIGHT | wxALIGN_RIGHT);
         temp_btns_sizer->Add(label_wifi_signal_val, 0, wxLEFT | wxALIGN_LEFT);
-
+        temp_btns_sizer->Add(label_wifi_link_th, 0, wxRIGHT | wxALIGN_RIGHT);
+        temp_btns_sizer->Add(label_wifi_link_th_val, 0, wxLEFT | wxALIGN_LEFT);
+        temp_btns_sizer->Add(label_wifi_link_ams, 0, wxRIGHT | wxALIGN_RIGHT);
+        temp_btns_sizer->Add(label_wifi_link_ams_val, 0, wxLEFT | wxALIGN_LEFT);
 
         init_gcode_control();
         control_sizer->Add(pos_btns_sizer, 0, wxTOP | wxALIGN_CENTER_VERTICAL | wxALIGN_CENTER_HORIZONTAL, SPACING);
@@ -327,6 +339,8 @@ namespace GUI {
         Bind(EVT_MQTT_FAILED, &DebugToolDialog::on_mqtt_failed, this);
         Bind(EVT_MQTT_LOST, &DebugToolDialog::on_mqtt_lost, this);
         Bind(EVT_PRINT_FINISH, &DebugToolDialog::on_print_end, this);
+        Bind(EVT_MESSAGE_ARRIVED, &DebugToolDialog::on_message_arrived, this);
+        Bind(EVT_MESSAGE_SENT, &DebugToolDialog::on_message_sent, this);
 }
 
 void DebugToolDialog::on_update_list(SimpleEvent& evt)
@@ -355,6 +369,7 @@ void DebugToolDialog::on_mqtt_success(wxCommandEvent& evt)
     this->log_info("MQTT Connected! client=" + evt.GetString().ToStdString());
     btn_connect->SetLabelText("Disconnect");
     cb_device_list->Disable();
+    btn_refresh_device_list->Disable();
 }
 
 void DebugToolDialog::on_mqtt_failed(wxCommandEvent& evt)
@@ -362,6 +377,7 @@ void DebugToolDialog::on_mqtt_failed(wxCommandEvent& evt)
     this->log_info("MQTT Connect Failed! client=" + evt.GetString().ToStdString());
     btn_connect->SetLabelText("Connect");
     cb_device_list->Enable();
+    btn_refresh_device_list->Enable();
 }
 
 void DebugToolDialog::on_mqtt_lost(wxCommandEvent& evt)
@@ -369,6 +385,7 @@ void DebugToolDialog::on_mqtt_lost(wxCommandEvent& evt)
     this->log_info("MQTT Lost... client=" + evt.GetString().ToStdString());
     btn_connect->SetLabelText("Connect");
     cb_device_list->Enable();
+    btn_refresh_device_list->Enable();
 }
 
 void DebugToolDialog::on_print_end(wxCommandEvent& evt)
@@ -430,7 +447,7 @@ void DebugToolDialog::init_device()
     cb_device_list = new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize);
     cb_device_list->SetEditable(false);
     cb_device_list->Bind(wxEVT_COMBOBOX, &DebugToolDialog::on_select_device, this);
-    wxButton* btn_refresh_device_list = new wxButton(this, wxID_ANY, _L("Refresh"), wxDefaultPosition, wxDefaultSize);
+    btn_refresh_device_list = new wxButton(this, wxID_ANY, _L("Refresh"), wxDefaultPosition, wxDefaultSize);
     btn_refresh_device_list->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
         this->refresh_device_list();
         });
@@ -472,12 +489,14 @@ void DebugToolDialog::init_device()
     btn_connect->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         if (btn_connect->GetLabelText().ToStdString().compare("Connect") == 0) {
             Slic3r::CommuBackend* backend = Slic3r::GUI::wxGetApp().getCommuBackend();
+            Slic3r::DeviceManager* manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+
             std::string device = cb_device_list->GetValue().ToStdString();
-            std::string ip_str;
-            ip_str = device.substr(0, device.find_first_of("("));
             std::string content = cb_device_list->GetValue().ToStdString();
             size_t start = content.find_last_of("(") + 1;
             std::string device_id = content.substr(start, content.find_last_of(")") - start);
+
+            std::string ip_str = manager->get_ip(device_id);
             Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
             std::string user_id = account_manager->get_user_id();
             if (ip_str.empty()) {
@@ -509,6 +528,7 @@ void DebugToolDialog::init_device()
             backend->disconnect_to_client();
             btn_connect->SetLabelText("Connect");
             cb_device_list->Enable();
+            btn_refresh_device_list->Enable();
         }
     });
 
@@ -608,6 +628,8 @@ void DebugToolDialog::init_gcode_run_file()
 
     btn_run_gcode = new wxButton(this, wxID_ANY, _L("Run Gcode"), wxDefaultPosition, wxSize(180, -1));
     btn_run_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        Slic3r::DeviceManager* manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+
         std::string filepath = txt_gcode_filename->GetValue().ToStdString();
         int name_start = filepath.find_last_of("\\");
         if (name_start <= 0) {
@@ -618,8 +640,11 @@ void DebugToolDialog::init_gcode_run_file()
 
         std::string filename = filepath.substr(name_start + 1, filepath.size());
         std::string dstname = "/data/" + filename;
+
         std::string device = cb_device_list->GetValue().ToStdString();
-        std::string ip_str = device.substr(0, device.find_first_of("("));
+        size_t start = device.find_last_of("(") + 1;
+        std::string device_id = device.substr(start, device.find_last_of(")") - start);
+        std::string ip_str = manager->get_ip(device_id);
 
         /* record filename */
         summary->print_filename = dstname;
@@ -907,8 +932,7 @@ void DebugToolDialog::init_gcode_custom()
         std::ifstream f(name.c_str());
         if (f.good())
         {
-            pt::read_json(f, custom_gocde_root);
-            f.close();
+            pt::read_json(name, custom_gocde_root);
             std::string gcode1 = custom_gocde_root.get<std::string>("custom_gcode_1");
             txt_custom_gcode1->SetValue(wxString(gcode1));
             std::string gcode2 = custom_gocde_root.get<std::string>("custom_gcode_2");
@@ -957,13 +981,15 @@ bool DebugToolDialog::Show(bool show)
 
         Slic3r::CommuBackend* backend = Slic3r::GUI::wxGetApp().getCommuBackend();
         backend->set_msg_recv_fn([this](std::string topic, std::string payload) {
-                //TODO wxPostEvent
-                handle_report_print_msg(topic, payload);
+                auto evt = new wxCommandEvent(EVT_MESSAGE_ARRIVED, this->GetId());
+                evt->SetString(payload);
+                wxQueueEvent(this, evt);
             });
         backend->set_msg_send_fn([this](std::string topic, std::string payload) {
-                //TODO wxPostEvent
+                auto evt = new wxCommandEvent(EVT_MESSAGE_SENT, this->GetId());
                 std::string send_msg = "send topic=" + topic + ", msg=" + payload;
-                this->log_info(send_msg);
+                evt->SetString(send_msg);
+                wxQueueEvent(this, evt);
             });
         
         Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
@@ -1004,10 +1030,6 @@ int DebugToolDialog::publish_json(std::string json_str)
             wxMessageBox("Please select a device!");
             return -1;
         }
-        if (btn_connect->GetLabelText().ToStdString().compare("Connect") == 0) {
-            wxMessageBox("Please Connect first!");
-            return -1;
-        }
         
         if (!manager->is_bind_self(device_id))
         {
@@ -1015,7 +1037,11 @@ int DebugToolDialog::publish_json(std::string json_str)
             return -1;
         }
         
-        return backend->publish_json_to_client(device_id, json_str);
+        if (backend->publish_json_to_client(device_id, json_str) == 1) {
+            wxMessageBox("Disconnect with device, Connect First!");
+            return -1;
+        }
+        return 0;
     }
     catch (std::exception& e) {
         BOOST_LOG_TRIVIAL(trace) << "Exception in publish json, std::exception=" << e.what() << ", json = " << json_str;
@@ -1027,17 +1053,23 @@ int DebugToolDialog::publish_json(std::string json_str)
     }
 }
 
-int DebugToolDialog::handle_report_print_msg(std::string topic, std::string json_str)
+
+void DebugToolDialog::on_message_sent(wxCommandEvent& evt)
 {
+    this->log_info(evt.GetString().ToStdString());
+}
+
+
+void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
+{
+    std::string json_str = evt.GetString().ToStdString();
     try {
-        int found = topic.find(m_curr_dev_id);
+        /*int found = topic.find(m_curr_dev_id);
         if (found < 0) {
             BOOST_LOG_TRIVIAL(trace) << "omit this msg, curr_dev_id is " << m_curr_dev_id;
             return -1;
-        }
-
+        }*/
         BOOST_LOG_TRIVIAL(trace) << "handle_report_print: json_str=" << json_str;
-
         std::stringstream ss(json_str);
         pt::ptree root;
         pt::read_json(ss, root);
@@ -1052,13 +1084,6 @@ int DebugToolDialog::handle_report_print_msg(std::string topic, std::string json
                 boost::optional<std::string> bed_temp = print.get_optional<std::string>("bed_temp");
                 boost::optional<std::string> bed_temp_target = print.get_optional<std::string>("bed_target_temp");
 
-                if (nozzle_temp.has_value() && nozzle_temp_target.has_value()) {
-                    label_hot_end_temp_val->SetLabelText(nozzle_temp.value() + "/" + nozzle_temp_target.value());
-                }
-
-                if (bed_temp.has_value() && bed_temp_target.has_value()) {
-                    label_bed_end_temp_val->SetLabelText(bed_temp.value() + "/" + bed_temp_target.value());
-                }
 
                 boost::optional<std::string> pos_x = print.get_optional<std::string>("pos_x");
                 boost::optional<std::string> pos_y = print.get_optional<std::string>("pos_y");
@@ -1069,6 +1094,118 @@ int DebugToolDialog::handle_report_print_msg(std::string topic, std::string json
                 if (pos_y.has_value()) label_pos_y_val->SetLabelText(pos_y.value());
                 if (pos_z.has_value()) label_pos_z_val->SetLabelText(pos_z.value());
                 if (pos_e.has_value()) label_pos_e_val->SetLabelText(pos_e.value());
+
+
+                boost::optional<std::string> gcode_start_time = print.get_optional<std::string>("gcode_start_time");
+                boost::optional<std::string> gcode_duration = print.get_optional<std::string>("gcode_duration");
+                boost::optional<std::string> gcode_file = print.get_optional<std::string>("gcode_file");
+
+                if (gcode_start_time.has_value()) {
+                    summary->start_time = gcode_start_time.value();
+                    BOOST_LOG_TRIVIAL(trace) << "summary start_time=" << summary->start_time;
+                }
+                if (gcode_duration.has_value()) {
+                    try {
+                        summary->duration = std::stoi(gcode_duration.value());
+                        BOOST_LOG_TRIVIAL(trace) << "summary duration=" << summary->duration;
+                    }
+                    catch (...) {
+                        ;
+                    }
+                }
+                if (gcode_file.has_value()) {
+                    summary->print_filename = gcode_file.value();
+                }
+
+
+                boost::optional<std::string> nozzle_temp_raw = print.get_optional<std::string>("nozzle_temp_raw");
+                boost::optional<std::string> nozzle_temp_target_raw = print.get_optional<std::string>("nozzle_target_temp_raw");
+                boost::optional<std::string> bed_temp_raw = print.get_optional<std::string>("bed_temp_raw");
+                boost::optional<std::string> bed_temp_target_raw = print.get_optional<std::string>("bed_target_temp_raw");
+                std::string nozzle_temp_str = "na";
+                std::string nozzle_target_temp_str = "na";
+                std::string bed_temp_str = "na";
+                std::string bed_temp_target_str = "na";
+                if (nozzle_temp_raw.has_value()) {
+                    try {
+                        int nozzle_temp_int = std::stoi(nozzle_temp_raw.value());
+                        float temp_float = (float)nozzle_temp_int;
+                        temp_float = temp_float / 32.0f;
+                        std::stringstream tempBuf;
+                        tempBuf.precision(2);
+                        tempBuf.setf(std::ios::fixed);
+                        tempBuf << temp_float;
+                        nozzle_temp_str = tempBuf.str();
+                    }
+                    catch (std::exception& e) {
+                        ;
+                    }
+                }
+                if (nozzle_temp_target_raw.has_value()) {
+                    try {
+                        int temp_int = std::stoi(nozzle_temp_target_raw.value());
+                        float temp_float = (float)temp_int;
+                        temp_float = temp_float / 32.0f;
+                        std::stringstream tempBuf;
+                        tempBuf.precision(2);
+                        tempBuf.setf(std::ios::fixed);
+                        tempBuf << temp_float;
+                        nozzle_target_temp_str = tempBuf.str();
+                    }
+                    catch (std::exception& e) {
+                        ;
+                    }
+                }
+
+                if (bed_temp_raw.has_value()) {
+                    try {
+                        int temp_int = std::stoi(bed_temp_raw.value());
+                        float temp_float = (float)temp_int;
+                        temp_float = temp_float / 32.0f;
+                        std::stringstream tempBuf;
+                        tempBuf.precision(2);
+                        tempBuf.setf(std::ios::fixed);
+                        tempBuf << temp_float;
+                        bed_temp_str = tempBuf.str();
+                    }
+                    catch (...) {
+                        ;
+                    }
+                }
+
+                if (bed_temp_target_raw.has_value()) {
+                    try {
+                        int temp_int = std::stoi(bed_temp_target_raw.value());
+                        float temp_float = (float)temp_int;
+                        temp_float = temp_float / 32.0f;
+                        std::stringstream tempBuf;
+                        tempBuf.precision(2);
+                        tempBuf.setf(std::ios::fixed);
+                        tempBuf << temp_float;
+                        bed_temp_target_str = tempBuf.str();
+                    }
+                    catch (...) {
+                        ;
+                    }
+                }
+
+                if (nozzle_temp_raw.has_value() && nozzle_temp_target_raw.has_value()) {
+                    label_hot_end_temp_val->SetLabelText(nozzle_temp_str + "/" + nozzle_target_temp_str);
+                }
+                else {
+                    if (nozzle_temp.has_value() && nozzle_temp_target.has_value()) {
+                        label_hot_end_temp_val->SetLabelText(nozzle_temp.value() + "/" + nozzle_temp_target.value());
+                    }
+                }
+
+                if (bed_temp_raw.has_value() && bed_temp_target_raw.has_value()) {
+                    label_bed_end_temp_val->SetLabelText(bed_temp_str + "/" + bed_temp_target_str);
+                }
+                else {
+                    if (bed_temp.has_value() && bed_temp_target.has_value()) {
+                        label_bed_end_temp_val->SetLabelText(bed_temp.value() + "/" + bed_temp_target.value());
+                    }
+                }
 
                 boost::optional<std::string> progress = print.get_optional<std::string>("progress");
                 if (progress.has_value()) {
@@ -1124,12 +1261,46 @@ int DebugToolDialog::handle_report_print_msg(std::string topic, std::string json
                     }
                 }
 
-                boost::optional<std::string> wifi_signal = print.get_optional<std::string>("wifi_signal");
-                if (wifi_signal.has_value()) {
-                    label_wifi_signal_val->SetLabelText(wifi_signal.value());
+                boost::optional<std::string> link_th = print.get_optional<std::string>("link_th_state");
+                std::string link_th_str = "na";
+                if (link_th.has_value()) {
+                    try {
+                        int temp_int = std::stoi(link_th.value());
+                        float temp_float = (float)temp_int;
+                        temp_float = temp_float / 100.0f;
+                        std::stringstream tempBuf;
+                        tempBuf.precision(2);
+                        tempBuf.setf(std::ios::fixed);
+                        tempBuf << temp_float;
+                        link_th_str = tempBuf.str();
+                    }
+                    catch (...) {
+                        ;
+                    }
+
+                    label_wifi_link_th_val->SetLabelText(link_th_str);
                 }
 
-                return 0;
+                boost::optional<std::string> link_ams = print.get_optional<std::string>("link_ams_state");
+                std::string link_ams_str = "na";
+                if (link_ams.has_value()) {
+                    try {
+                        int temp_int = std::stoi(link_ams.value());
+                        float temp_float = (float)temp_int;
+                        temp_float = temp_float / 100.0f;
+                        std::stringstream tempBuf;
+                        tempBuf.precision(2);
+                        tempBuf.setf(std::ios::fixed);
+                        tempBuf << temp_float;
+                        link_ams_str = tempBuf.str();
+                    }
+                    catch (...) {
+                        ;
+                    }
+
+                    label_wifi_link_ams_val->SetLabelText(link_ams_str);
+                }
+                return;
             }
             else if (command.has_value() && command.value().compare("gcode_line") == 0) {
                 boost::optional<std::string> sequence_id = print.get_optional<std::string>("sequence_id");
@@ -1155,7 +1326,7 @@ int DebugToolDialog::handle_report_print_msg(std::string topic, std::string json
                 }
             }
             this->log_info("received ack msg = " + json_str);
-            return 0;
+            return;
         }
         else if (root.get_child_optional("info") != boost::none) {
             pt::ptree info = root.get_child("info");
@@ -1179,25 +1350,22 @@ int DebugToolDialog::handle_report_print_msg(std::string topic, std::string json
                 }
             }
             this->log_info("received ack msg = " + json_str);
-            return 0;
+            return;
         }
 
-        this->log_info("topic=" + topic + ", json=" + json_str);
+        this->log_info("json=" + json_str);
     }
     catch (std::exception& e) {
-        std::string info = "parsing report msg error, topic=" + topic + ", json_str=" + json_str;
+        std::string info = "parsing report msg error, json_str=" + json_str;
         this->log_info(info);
     }
     catch (...) {
-        BOOST_LOG_TRIVIAL(trace) << "Uknown Exception, topic=" << topic << ", json_str=" << json_str;
+        BOOST_LOG_TRIVIAL(trace) << "Uknown Exception,  json_str=" << json_str;
     }
-
-    return 0;
 }
 
 void DebugToolDialog::on_refresh_list(SimpleEvent&evt)
 {
-    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
     Slic3r::DeviceManager* manager = Slic3r::GUI::wxGetApp().getDeviceManager();
     wxArrayString new_items;
     if (!manager) return;
@@ -1244,7 +1412,7 @@ void DebugToolDialog::refresh_device_list()
 
 std::string DebugToolDialog::get_device_list_item(DeviceInfo* info)
 {
-    return (boost::format("%1%(%2%)[%3%]") % info->m_dev_name % info->m_dev_id % info->get_bind_status_str()).str();
+    return (boost::format("[%1%]%2%(%3%)") % info->get_bind_status_str() % info->m_dev_name % info->m_dev_id).str();
 }
 
 void DebugToolDialog::refresh_firmware_list(bool show_error)
@@ -1309,7 +1477,9 @@ int DebugToolDialog::publishGcode(std::string gcode)
     pt::write_json(oss, root);
     std::string json_str = oss.str();
 
-    return this->publish_json(json_str);
+    if (this->publish_json(json_str) != 0) {
+        this->log_info("publish_json failed");
+    }
 }
 
 int DebugToolDialog::set_current_device_id()

@@ -420,7 +420,7 @@ namespace Slic3r {
     {
         if (m_mqtt_cli) {
             m_mqtt_cli->disable_callbacks();
-            m_mqtt_cli->disconnect();
+            //m_mqtt_cli->disconnect()->wait();
             delete m_mqtt_cli;
             m_mqtt_cli = NULL;
         }
@@ -439,8 +439,7 @@ namespace Slic3r {
     {
         BOOST_LOG_TRIVIAL(trace) << "CommuBackend::publish_json_to_client start";
         if (m_mqtt_cli) {
-            // !!!blocking in is_connected() !!!
-            //if (m_mqtt_cli->is_connected()) {
+            if (m_mqtt_cli->is_connected()) {
                 std::string topic = get_request_topic(device_id);
                 json_str += '\0';
                 mqtt::message_ptr pubmsg = mqtt::make_message(topic, json_str.c_str(), json_str.size());
@@ -453,15 +452,15 @@ namespace Slic3r {
                 }
                 BOOST_LOG_TRIVIAL(trace) << "CommuBackend::publish_json_to_client finished, mqtt publish topic = " << topic << ", msg = " << json_str;
                 return 0;
-            /*}
+            }
             else {
                 BOOST_LOG_TRIVIAL(trace) << "CommuBackend::publish_json_to_client finished";
-                return -1;
-            }*/
+                return 1;
+            }
         }
         else {
             BOOST_LOG_TRIVIAL(trace) << "CommuBackend::publish_json_to_client finished";
-            return -1;
+            return 1;
         }
     }
 

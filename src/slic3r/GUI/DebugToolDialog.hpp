@@ -53,7 +53,7 @@ namespace Slic3r {
             virtual bool Show(bool show = true) override;
 
             int publish_json(std::string json_str);
-            int handle_report_print_msg(std::string topic, std::string json_str);
+            
             int log_info(std::string str);
 
             void refresh_device_list();
@@ -67,6 +67,8 @@ namespace Slic3r {
             void on_mqtt_failed(wxCommandEvent& evt);
             void on_mqtt_lost(wxCommandEvent& evt);
             void on_print_end(wxCommandEvent& evt);
+            void on_message_arrived(wxCommandEvent& evt);
+            void on_message_sent(wxCommandEvent& evt);
             void get_version();
         protected:
             void on_dpi_changed(const wxRect& suggested_rect) override;
@@ -104,6 +106,7 @@ namespace Slic3r {
             wxButton* btn_bind;
             wxButton* btn_unbind;
             wxButton* btn_connect;
+            wxButton* btn_refresh_device_list;
 
             wxButton* btn_set_x_pos_0_1;
             wxButton* btn_set_x_pos_1_0;
@@ -189,6 +192,11 @@ namespace Slic3r {
             wxStaticText* label_print_progress_val;
             wxStaticText* label_wifi_signal;
             wxStaticText* label_wifi_signal_val;
+            wxStaticText* label_wifi_link_th;
+            wxStaticText* label_wifi_link_th_val;
+            wxStaticText* label_wifi_link_ams;
+            wxStaticText* label_wifi_link_ams_val;
+
 
 
             wxComboBox* cb_upgrade_module;
