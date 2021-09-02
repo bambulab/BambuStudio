@@ -638,8 +638,14 @@ void TreeSupport::detect_object_overhangs()
 
                     Layer *lower_layer = layer->lower_layer;
                     coordf_t lower_layer_offset = (float)lower_layer->height / tan(threshold_rad);
-                    // Filter out areas whose diameter that is smaller than extrusion_width
-                    ExPolygons lower_polys = std::move(offset2_ex(lower_layer->lslices, -scale_(extrusion_width / 2), scale_(extrusion_width / 2)));
+                    // Filter out areas whose diameter that is smaller than extrusion_width. Do not use offset2() for this purpose!
+                    ExPolygons lower_polys;
+                    for (const ExPolygon &expoly : lower_layer->lslices) {
+                        if (!offset_ex(expoly, -scale_(extrusion_width / 2)).empty()) {
+                            lower_polys.emplace_back(expoly);
+                        }
+                    }
+
                     ExPolygons overhang_areas = std::move(diff_ex(layer->lslices, offset_ex(lower_polys, scale_(lower_layer_offset))));
                     overhang_areas = std::move(offset2_ex(overhang_areas, -0.1 * scale_(extrusion_width), 0.1 * scale_(extrusion_width)));
                     if (dont_support_bridges && overhang_areas.size()>0) {
