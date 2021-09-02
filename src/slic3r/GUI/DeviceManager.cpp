@@ -235,6 +235,16 @@ std::vector<DeviceInfo*> DeviceManager::get_connected_device_info()
             list.emplace_back(it->second);
         }
     }
+
+    // sort device list so self is first, then is free, then the others
+    std::sort(list.begin(), list.end(), [&](auto l, auto r) {
+        if (l->m_bind_status == DeviceInfo::BindStatus::BIND_SELF)
+            return true;
+        else if (l->m_bind_status == DeviceInfo::BindStatus::BIND_FREE && r->m_bind_status != DeviceInfo::BindStatus::BIND_SELF)
+            return true;
+        return false;
+        });
+
     return list;
 }
 

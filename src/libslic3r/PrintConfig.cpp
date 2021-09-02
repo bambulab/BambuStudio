@@ -2536,7 +2536,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("normal"));
     def->enum_labels.push_back(L("tree"));
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionEnum<SupportType>(stNormalAuto));
+    def->set_default_value(new ConfigOptionEnum<SupportType>(stTreeAuto));
 
     def = this->add("support_material_xy_spacing", coFloatOrPercent);
     def->label = L("XY separation between an object and its support");

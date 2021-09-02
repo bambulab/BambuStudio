@@ -72,7 +72,7 @@ public:
     void draw(const ClipperLib::Path  &polygon, double scale, std::string fill = "grey", coordf_t stroke_width = 0);
     void draw(const ClipperLib::Paths &polygons, double scale, std::string fill = "grey", coordf_t stroke_width = 0);
 
-    void draw_text(const Point &pt, const char *text, const char *color);
+    void draw_text(const Point &pt, const char *text, const char *color, int font_size = 20);
     void draw_legend(const Point &pt, const char *text, const char *color);
 
     void Close();

@@ -620,7 +620,7 @@ void TreeSupport::detect_object_overhangs()
     if (config.support_type.value == stTreeAuto) {
         double threshold_rad = 0.;
         if (config.support_material_threshold.value < EPSILON) {
-            threshold_rad = 45. * M_PI / 180.;
+            threshold_rad = 30. * M_PI / 180.;
         }
         else {
             threshold_rad = config.support_material_threshold.value * M_PI / 180.;
@@ -671,7 +671,6 @@ void TreeSupport::detect_object_overhangs()
 
         if (layer_id < enforcers.size()) {
             ExPolygons& enforcer = enforcers[layer_id];
-            enforcer = std::move(diff_ex(enforcer, layer->lslices));
             enforcer = std::move(offset2_ex(enforcer, -0.1 * scale_(extrusion_width), 0.1 * scale_(extrusion_width)));
             layer->overhang_areas.insert(layer->overhang_areas.end(), enforcer.begin(), enforcer.end());
         }
@@ -689,6 +688,7 @@ void TreeSupport::detect_object_overhangs()
 
         SVG svg(get_svg_filename(layer->id(), "overhang_areas"), m_object.bounding_box());
         svg.draw(layer->overhang_areas, "red");
+        svg.draw_outline(m_object.get_layer(layer->id())->lslices, "yellow");
     }
 #endif
 }

@@ -274,7 +274,7 @@ std::string SVG::get_path_d(const ClipperLib::Path &path, double scale, bool clo
     return d.str();
 }
 
-void SVG::draw_text(const Point &pt, const char *text, const char *color)
+void SVG::draw_text(const Point &pt, const char *text, const char *color, int font_size)
 {
     fprintf(this->f,
         "<text x=\"%f\" y=\"%f\" font-family=\"sans-serif\" font-size=\"20px\" fill=\"%s\">%s</text>",
