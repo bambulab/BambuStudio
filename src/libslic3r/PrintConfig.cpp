@@ -2167,11 +2167,11 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloats { 0. });
 
     // BBS
-    def = this->add("dont_lift_for_single_material", coBool);
+    def = this->add("dont_lift_for_single_material", coBools);
     def->label = L("Dont lift for single material");
     def->tooltip = L("If enabled, retract lift will not perform when only one material is used in the project.");
     def->mode = comExpert;
-    def->set_default_value(new ConfigOptionBool(true));
+    def->set_default_value(new ConfigOptionBools{ true });
 
     def = this->add("retract_lift_above", coFloats);
     def->label = L("Above Z");
@@ -3191,13 +3191,13 @@ void PrintConfigDef::init_extruder_option_keys()
 
     m_extruder_retract_keys = {
         "deretract_speed",
+        // BBS
+        "dont_lift_for_single_material",
         "retract_before_travel",
         "retract_before_wipe",
         "retract_layer_change",
         "retract_length",
         "retract_lift",
-        // BBS
-        "dont_lift_for_single_material",
         "retract_lift_above",
         "retract_lift_below",
         "retract_restart_extra",

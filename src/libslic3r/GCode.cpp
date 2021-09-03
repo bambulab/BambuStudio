@@ -3239,7 +3239,8 @@ std::string GCode::retract(bool toolchange)
     gcode += m_writer.reset_e();
     if (m_writer.extruder()->retract_length() > 0 || m_config.use_firmware_retraction) {
         // BBS
-        if (! m_config.dont_lift_for_single_material || m_toolchange_count > 0)
+        size_t extruder_id = m_writer.extruder()->id();
+        if (! m_config.dont_lift_for_single_material.get_at(extruder_id) || m_toolchange_count > 0)
             gcode += m_writer.lift();
     }
 

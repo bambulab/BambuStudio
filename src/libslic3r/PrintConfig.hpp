@@ -671,7 +671,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,              retract_length_toolchange))
     ((ConfigOptionFloats,              retract_lift))
     // BBS
-    ((ConfigOptionBool,                dont_lift_for_single_material))
+    ((ConfigOptionBools,                dont_lift_for_single_material))
     ((ConfigOptionFloats,              retract_lift_above))
     ((ConfigOptionFloats,              retract_lift_below))
     ((ConfigOptionFloats,              retract_restart_extra))
