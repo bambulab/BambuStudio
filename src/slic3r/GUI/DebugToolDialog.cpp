@@ -59,6 +59,7 @@ namespace GUI {
     wxDECLARE_EVENT(EVT_PRINT_FINISH, wxCommandEvent);
     wxDECLARE_EVENT(EVT_MESSAGE_ARRIVED, wxCommandEvent);
     wxDECLARE_EVENT(EVT_MESSAGE_SENT, wxCommandEvent);
+    wxDECLARE_EVENT(EVT_LOG_INFO, wxCommandEvent);
 
 
     wxDEFINE_EVENT(EVT_PROGRESS, wxCommandEvent);
@@ -71,7 +72,8 @@ namespace GUI {
     wxDEFINE_EVENT(EVT_PRINT_FINISH, wxCommandEvent);
     wxDEFINE_EVENT(EVT_MESSAGE_ARRIVED, wxCommandEvent);
     wxDEFINE_EVENT(EVT_MESSAGE_SENT, wxCommandEvent);
-    
+    wxDEFINE_EVENT(EVT_LOG_INFO, wxCommandEvent);
+
 
     std::string DebugToolDialog::_getNewLogFilename()
     {
@@ -98,7 +100,7 @@ namespace GUI {
     };
     void XML_CharacterDataHandler(void* userData, const XML_Char* s, int len) {
         ;
-    };
+    };      
 
     void DebugToolDialog::add_firmware(std::string firmware)
     {
@@ -140,190 +142,39 @@ namespace GUI {
     {
         summary = new PrintSummary();
 
-        selectGcodeDialog = new wxFileDialog(parent, "Open Gcode File", "", "", "Gcode files(*.gcode)|*.gcode", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-
-        btn_get_version = new wxButton(this, wxID_ANY, _L("Get Version"));
-        btn_get_version->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            this->get_version();
-            });
-
-        btn_return_home = new wxButton(this, wxID_ANY, _L("Return Home:G28"));
-        btn_return_home->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            this->publishGcode("G28 \n");
-            });
-        btn_auto_leveling = new wxButton(this, wxID_ANY, _L("Auto Leveling:G29"));
-        btn_auto_leveling->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            this->publishGcode("G29 \n");
-            });
-        btn_xyz_abs_mode = new wxButton(this, wxID_ANY, _L("XYZ - abs mode:G90"));
-        btn_xyz_abs_mode->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            this->publishGcode("G90 \n");
-            });
-
-        btn_fan_on = new wxButton(this, wxID_ANY, _L("Cooling Fan ON"));
-        btn_fan_on->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            this->publishGcode("M106 S255 \n");
-            });
-        btn_fan_off = new wxButton(this, wxID_ANY, _L("Cooling Fan OFF"));
-        btn_fan_off->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            this->publishGcode("M106 S0 \n");
-            });
-        btn_set_hot_bed_temp = new wxButton(this, wxID_ANY, _L("Set Bed Temp"));
-        btn_set_hot_bed_temp->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            std::string gcode_str = "M140 S" + txt_set_hot_bed_temp->GetValue().ToStdString() + " \n";
-            this->publishGcode(gcode_str);
-            });
-        btn_set_hot_end_temp = new wxButton(this, wxID_ANY, _L("Set Hot End Temp"), wxDefaultPosition, wxDefaultSize);
-        btn_set_hot_end_temp->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            std::string gcode_str = "M104 S" + txt_set_hot_end_temp->GetValue().ToStdString() + " \n";
-            this->publishGcode(gcode_str);
-            });
-
-        /*btn_clear_output_string = new wxButton(this, wxID_ANY, _L("Clear"), wxDefaultPosition, wxDefaultSize);
-        btn_clear_output_string->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            wxString content = txt_string_info->GetValue();
-            txt_string_info->Clear();
-            });
-        btn_save_file = new wxButton(this, wxID_ANY, _L("New Save File"), wxDefaultPosition, wxDefaultSize);
-        btn_save_file->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            wxString content = txt_string_info->GetValue();
-            txt_string_info->Clear();
-            });*/
-
-        /*btn_start_temp_push = new wxButton(this, wxID_ANY, _L("Start Temp Push"), wxDefaultPosition, wxDefaultSize);
-        btn_start_temp_push->Disable();
-        btn_stop_temp_push = new wxButton(this, wxID_ANY, _L("Stop Temp Push"), wxDefaultPosition, wxDefaultSize);
-        btn_stop_temp_push->Disable();
-        btn_get_curr_temp = new wxButton(this, wxID_ANY, _L("Get Now Temp"), wxDefaultPosition, wxDefaultSize);
-        btn_get_curr_temp->Disable();
-        btn_get_curr_pos = new wxButton(this, wxID_ANY, _L("Get Now Pos"), wxDefaultPosition, wxDefaultSize);
-        btn_get_curr_pos->Disable();*/
-
-        btn_switch_t = new wxButton(this, wxID_ANY, _L("Swtich AMS:"), wxDefaultPosition, wxDefaultSize);
-        btn_switch_t->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-                std::string gcode = this->switch_ams_gcode(txt_switch_val->GetValue().ToStdString());
-                this->publishGcode(gcode);
-            });
-        txt_switch_val = new wxTextCtrl(this, wxID_ANY, _L("1"), wxDefaultPosition, wxDefaultSize);
-
-        txt_gcode_filename = new wxTextCtrl(this, wxID_ANY, _L(""), wxDefaultPosition, wxDefaultSize);
-        txt_set_hot_bed_temp = new wxTextCtrl(this, wxID_ANY, _L("60"), wxDefaultPosition, wxDefaultSize);
-        txt_set_hot_end_temp = new wxTextCtrl(this, wxID_ANY, _L("200"), wxDefaultPosition, wxDefaultSize);
-        txt_string_info = new wxTextCtrl(this, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, -1), wxTE_MULTILINE);
-
-        label_pos_x = new wxStaticText(this, wxID_ANY, _L("Pos X: "), wxDefaultPosition, wxDefaultSize);
-        label_pos_x_val = new wxStaticText(this, wxID_ANY, _L("0.00"), wxDefaultPosition, wxDefaultSize);
-        label_pos_y = new wxStaticText(this, wxID_ANY, _L("Pos Y: "), wxDefaultPosition, wxDefaultSize);
-        label_pos_y_val = new wxStaticText(this, wxID_ANY, _L("0.00"), wxDefaultPosition, wxDefaultSize);
-        label_pos_z = new wxStaticText(this, wxID_ANY, _L("Pos Z: "), wxDefaultPosition, wxDefaultSize);
-        label_pos_z_val = new wxStaticText(this, wxID_ANY, _L("0.00"), wxDefaultPosition, wxDefaultSize);
-        label_pos_e = new wxStaticText(this, wxID_ANY, _L("Pos E: "), wxDefaultPosition, wxDefaultSize);
-        label_pos_e_val = new wxStaticText(this, wxID_ANY, _L("0.00"), wxDefaultPosition, wxDefaultSize);
-        label_hot_end_temp = new wxStaticText(this, wxID_ANY, _L("Nozzle Temp: "), wxDefaultPosition, wxDefaultSize);
-        label_hot_end_temp_val = new wxStaticText(this, wxID_ANY, _L("0/0"), wxDefaultPosition, wxDefaultSize);
-        label_bed_end_temp = new wxStaticText(this, wxID_ANY, _L("Bed Temp: "), wxDefaultPosition, wxDefaultSize);
-        label_bed_end_temp_val = new wxStaticText(this, wxID_ANY, _L("0/0"), wxDefaultPosition, wxDefaultSize);
-        label_print_progress = new wxStaticText(this, wxID_ANY, _L("Print Progress: "), wxDefaultPosition, wxDefaultSize);
-        label_print_progress_val = new wxStaticText(this, wxID_ANY, _L("0%"), wxDefaultPosition, wxDefaultSize);
-        label_wifi_signal = new wxStaticText(this, wxID_ANY, _L("WiFi Signal:"), wxDefaultPosition, wxDefaultSize);
-        label_wifi_signal_val = new wxStaticText(this, wxID_ANY, _L("0"), wxDefaultPosition, wxDefaultSize);
-        label_wifi_link_th = new wxStaticText(this, wxID_ANY, _L("Link TH State:"), wxDefaultPosition, wxDefaultSize);
-        label_wifi_link_th_val = new wxStaticText(this, wxID_ANY, _L("NA"), wxDefaultPosition, wxDefaultSize);
-        label_wifi_link_ams = new wxStaticText(this, wxID_ANY, _L("Link AMS State:"), wxDefaultPosition, wxDefaultSize);
-        label_wifi_link_ams_val = new wxStaticText(this, wxID_ANY, _L("NA"), wxDefaultPosition, wxDefaultSize);
-        label_gcode_filename = new wxStaticText(this, wxID_ANY, _L("File Path:"), wxDefaultPosition, wxDefaultSize);
-        label_output_string = new wxStaticText(this, wxID_ANY, _L("MC String Info:"), wxDefaultPosition, wxDefaultSize);
-
         // Layout Sizer
         top_sizer = new wxBoxSizer(wxVERTICAL);
         auto* conn_sizer = new wxBoxSizer(wxHORIZONTAL);
+        auto* h_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-        auto* control_sizer = new wxBoxSizer(wxVERTICAL);
+        nb_main = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP);
+        common_panel = new wxPanel(nb_main, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+        upgrade_panel = new wxPanel(nb_main, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+        run_gcode_panel = new wxPanel(nb_main, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+        ctrl_panel = new wxPanel(nb_main, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+        auto log_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
 
-        auto* temp_btns_sizer = new wxGridSizer(5, 2, 5, 5);
-        auto* ctrl_custom_sizer = new wxBoxSizer(wxHORIZONTAL);
-        auto* output_sizer = new wxBoxSizer(wxHORIZONTAL);
-        auto* output_content_sizer = new wxBoxSizer(wxVERTICAL);
-        auto* output_btns_sizer = new wxBoxSizer(wxVERTICAL);
-
-        temp_btns_sizer->Add(btn_set_hot_bed_temp, 0, wxRIGHT | wxALIGN_RIGHT);
-        temp_btns_sizer->Add(txt_set_hot_bed_temp, 0, wxLEFT | wxALIGN_LEFT);
-        temp_btns_sizer->Add(btn_set_hot_end_temp, 0, wxRIGHT | wxALIGN_RIGHT);
-        temp_btns_sizer->Add(txt_set_hot_end_temp, 0, wxLEFT | wxALIGN_LEFT);
-        temp_btns_sizer->Add(btn_fan_on, 0, wxRIGHT | wxALIGN_RIGHT);
-        temp_btns_sizer->Add(btn_fan_off, 0, wxLEFT | wxALIGN_LEFT);
-        temp_btns_sizer->Add(btn_auto_leveling, 0, wxRIGHT | wxALIGN_RIGHT);
-        temp_btns_sizer->Add(btn_xyz_abs_mode, 0, wxLEFT | wxALIGN_LEFT);
-        temp_btns_sizer->Add(btn_return_home, 0, wxRIGHT | wxALIGN_RIGHT);
-        temp_btns_sizer->Add(btn_get_version, 0, wxLEFT | wxALIGN_LEFT);
-        temp_btns_sizer->Add(btn_switch_t, 0, wxRIGHT | wxALIGN_RIGHT);
-        temp_btns_sizer->Add(txt_switch_val, 0, wxLEFT | wxALIGN_LEFT);
-        temp_btns_sizer->Add(label_pos_x, 0, wxRIGHT | wxALIGN_RIGHT); 
-        temp_btns_sizer->Add(label_pos_x_val, 0, wxLEFT | wxALIGN_LEFT);
-        temp_btns_sizer->Add(label_pos_y, 0, wxRIGHT | wxALIGN_RIGHT);
-        temp_btns_sizer->Add(label_pos_y_val, 0, wxLEFT | wxALIGN_LEFT);
-        temp_btns_sizer->Add(label_pos_z, 0, wxRIGHT | wxALIGN_RIGHT);
-        temp_btns_sizer->Add(label_pos_z_val, 0, wxLEFT | wxALIGN_LEFT);
-        temp_btns_sizer->Add(label_pos_e, 0, wxRIGHT | wxALIGN_RIGHT);
-        temp_btns_sizer->Add(label_pos_e_val, 0, wxLEFT | wxALIGN_LEFT);
-        temp_btns_sizer->Add(label_hot_end_temp, 0, wxRIGHT | wxALIGN_RIGHT);
-        temp_btns_sizer->Add(label_hot_end_temp_val, 0, wxLEFT | wxALIGN_LEFT);
-        temp_btns_sizer->Add(label_bed_end_temp, 0, wxRIGHT | wxALIGN_RIGHT);
-        temp_btns_sizer->Add(label_bed_end_temp_val, 0, wxLEFT | wxALIGN_LEFT);
-        temp_btns_sizer->Add(label_print_progress, 0, wxRIGHT | wxALIGN_RIGHT);
-        temp_btns_sizer->Add(label_print_progress_val, 0, wxLEFT | wxALIGN_LEFT);
-        temp_btns_sizer->Add(label_wifi_signal, 0, wxRIGHT | wxALIGN_RIGHT);
-        temp_btns_sizer->Add(label_wifi_signal_val, 0, wxLEFT | wxALIGN_LEFT);
-        temp_btns_sizer->Add(label_wifi_link_th, 0, wxRIGHT | wxALIGN_RIGHT);
-        temp_btns_sizer->Add(label_wifi_link_th_val, 0, wxLEFT | wxALIGN_LEFT);
-        temp_btns_sizer->Add(label_wifi_link_ams, 0, wxRIGHT | wxALIGN_RIGHT);
-        temp_btns_sizer->Add(label_wifi_link_ams_val, 0, wxLEFT | wxALIGN_LEFT);
-
-        init_gcode_control();
-        control_sizer->Add(pos_btns_sizer, 0, wxTOP | wxALIGN_CENTER_VERTICAL | wxALIGN_CENTER_HORIZONTAL, SPACING);
-        control_sizer->Add(temp_btns_sizer, 1, wxTOP | wxLEFT);
-
-        init_gcode_custom();
-
-        output_content_sizer->Add(label_output_string, 0);
-        output_content_sizer->Add(txt_string_info, 1, wxALL | wxEXPAND, SPACING);
-        
-        /*output_btns_sizer->Add(-1, 20);
-        output_btns_sizer->Add(btn_start_temp_push, 0, wxLEFT | wxRIGHT | wxEXPAND);
-        output_btns_sizer->Add(btn_stop_temp_push, 0, wxLEFT | wxRIGHT | wxEXPAND);
-        output_btns_sizer->Add(btn_get_curr_temp, 0, wxLEFT | wxRIGHT | wxEXPAND);
-        output_btns_sizer->Add(btn_get_curr_pos, 0, wxLEFT | wxRIGHT | wxEXPAND);
-        output_btns_sizer->Add(-1, 25);
-        output_btns_sizer->Add(btn_clear_output_string, 0, wxLEFT | wxRIGHT | wxEXPAND);
-        output_btns_sizer->Add(btn_save_file, 0, wxLEFT | wxRIGHT | wxEXPAND);*/
-
-        //output_sizer->Add(output_content_sizer, 1, wxALL | wxEXPAND);
-        //output_sizer->Add(output_btns_sizer, 0, wxTOP | wxALL | wxEXPAND, SPACING);
-
-        ctrl_custom_sizer->Add(control_sizer, 0, wxLEFT | wxALIGN_LEFT, 0);
-        ctrl_custom_sizer->Add(custom_gcode_sizer, 0, wxLEFT | wxRIGHT, 5);
-        ctrl_custom_sizer->Add(output_content_sizer, 1, wxEXPAND | wxALL, 5);
+        nb_main->AddPage(common_panel, "Common");
+        nb_main->AddPage(run_gcode_panel, "Run Gcode");
+        nb_main->AddPage(ctrl_panel, "Custom Ctrl");
+        nb_main->AddPage(upgrade_panel, "Upgrade");
 
         init_device();
-        init_upgrade();
-        init_gcode_run_file();
+        init_common(common_panel);
+        init_upgrade(upgrade_panel);
+        init_gcode_run_file(run_gcode_panel);
+        init_custom_ctrl(ctrl_panel);
+        init_log_panel(log_panel);
 
-        run_gcode_sizer = new wxBoxSizer(wxHORIZONTAL);
-        run_gcode_sizer->Add(btn_run_gcode, 0, wxLEFT, SPACING);
-        run_gcode_sizer->Add(label_gcode_filename, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
-        run_gcode_sizer->Add(txt_gcode_filename, 1, wxLEFT | wxRIGHT | wxEXPAND, SPACING);
-        run_gcode_sizer->Add(btn_select_gcode_file, 0, wxALIGN_CENTRE_HORIZONTAL | wxLEFT, SPACING);
-        run_gcode_sizer->Add(btn_abort_print, 0, wxALIGN_RIGHT | wxRIGHT, SPACING);
-        run_gcode_sizer->Add(label_progress, 0, wxALIGN_CENTRE_HORIZONTAL | wxLEFT, SPACING);
-
+        h_sizer->Add(nb_main);
+        h_sizer->Add(log_panel, 1, wxALL | wxEXPAND, 0);
+        
+        init_layout();
+        //top sizer
         top_sizer->Add(-1, 8);
         top_sizer->Add(conn_device_sizer, 0, wxLEFT | wxRIGHT | wxEXPAND, 0);
         top_sizer->Add(-1, 8);
-        top_sizer->Add(upgrade_sizer, 0, wxLEFT | wxRIGHT | wxEXPAND, 0);
-        top_sizer->Add(-1, 8);
-        top_sizer->Add(run_gcode_sizer, 0, wxLEFT | wxRIGHT | wxEXPAND, 0);
-        top_sizer->Add(-1, 20);
-        top_sizer->Add(ctrl_custom_sizer, 1, wxALL | wxEXPAND, 0);
+        top_sizer->Add(h_sizer, 1, wxALL | wxEXPAND, 0);
 
         SetSizerAndFit(top_sizer);
         Refresh();
@@ -331,16 +182,27 @@ namespace GUI {
         SetMinSize(wxSize(600, 400));
         Layout();
 
-        Bind(wxEVT_TIMER, &DebugToolDialog::on_timer, this);
-        Bind(EVT_UPDATE_LIST, &DebugToolDialog::on_update_list, this);
-        Bind(EVT_REFRESH_LIST, &DebugToolDialog::on_refresh_list, this);
-        Bind(EVT_ERROR_MSG, &DebugToolDialog::on_error_msg, this);
-        Bind(EVT_MQTT_SUCCESS, &DebugToolDialog::on_mqtt_success, this);
-        Bind(EVT_MQTT_FAILED, &DebugToolDialog::on_mqtt_failed, this);
-        Bind(EVT_MQTT_LOST, &DebugToolDialog::on_mqtt_lost, this);
-        Bind(EVT_PRINT_FINISH, &DebugToolDialog::on_print_end, this);
-        Bind(EVT_MESSAGE_ARRIVED, &DebugToolDialog::on_message_arrived, this);
-        Bind(EVT_MESSAGE_SENT, &DebugToolDialog::on_message_sent, this);
+        init_bind_handler();
+}
+
+void DebugToolDialog::init_layout()
+{
+    ;
+}
+
+void DebugToolDialog::init_bind_handler()
+{
+    Bind(wxEVT_TIMER, &DebugToolDialog::on_timer, this);
+    Bind(EVT_UPDATE_LIST, &DebugToolDialog::on_update_list, this);
+    Bind(EVT_REFRESH_LIST, &DebugToolDialog::on_refresh_list, this);
+    Bind(EVT_ERROR_MSG, &DebugToolDialog::on_error_msg, this);
+    Bind(EVT_MQTT_SUCCESS, &DebugToolDialog::on_mqtt_success, this);
+    Bind(EVT_MQTT_FAILED, &DebugToolDialog::on_mqtt_failed, this);
+    Bind(EVT_MQTT_LOST, &DebugToolDialog::on_mqtt_lost, this);
+    Bind(EVT_PRINT_FINISH, &DebugToolDialog::on_print_end, this);
+    Bind(EVT_MESSAGE_ARRIVED, &DebugToolDialog::on_message_arrived, this);
+    Bind(EVT_MESSAGE_SENT, &DebugToolDialog::on_message_sent, this);
+    Bind(EVT_LOG_INFO, &DebugToolDialog::on_log_info, this);
 }
 
 void DebugToolDialog::on_update_list(SimpleEvent& evt)
@@ -464,7 +326,12 @@ void DebugToolDialog::init_device()
             }
 
             account_manager->request_bind(device_id,
-                [this]() {
+                [this, device_id]() {
+                    std::string log = "Bind device=" + device_id + " success!";
+                    auto evt = new wxCommandEvent(EVT_LOG_INFO, this->GetId());
+                    evt->SetString(log);
+                    wxQueueEvent(this, evt);
+
                     this->refresh_device_list();
                 });
         });
@@ -474,12 +341,20 @@ void DebugToolDialog::init_device()
             std::string device_id;
             if (get_current_device_id(device_id) < 0) return;
             if (!account_manager->is_user_login()) {
-                wxMessageBox("Please login first!");
+                std::string log = "Please login first!";
+                auto evt = new wxCommandEvent(EVT_LOG_INFO, this->GetId());
+                evt->SetString(log);
+                wxQueueEvent(this, evt);
                 return;
             }
 
             account_manager->request_unbind(device_id,
-                [this]() {
+                [this, device_id]() {
+                    std::string log = "Unbind device=" + device_id + " ok!";
+                    auto evt = new wxCommandEvent(EVT_LOG_INFO, this->GetId());
+                    evt->SetString(log);
+                    wxQueueEvent(this, evt);
+
                     this->refresh_device_list();
                 });
 
@@ -543,14 +418,26 @@ void DebugToolDialog::init_device()
     conn_device_sizer->Add(btn_connect, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
 }
 
-void DebugToolDialog::init_upgrade()
+void DebugToolDialog::init_common(wxWindow* parent)
 {
-    btn_refresh_upgrade_list = new wxButton(this, wxID_ANY, _L("Refresh"), wxDefaultPosition, wxDefaultSize);
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+    btn_get_version = new wxButton(parent, wxID_ANY, _L("Get Version"));
+    btn_get_version->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        this->get_version();
+        });
+    sizer->Add(-1, 8);
+    sizer->Add(btn_get_version, 0, wxLEFT | wxALIGN_LEFT);
+    parent->SetSizer(sizer);
+}
+
+void DebugToolDialog::init_upgrade(wxWindow* parent)
+{
+    btn_refresh_upgrade_list = new wxButton(parent, wxID_ANY, _L("Refresh"), wxDefaultPosition, wxDefaultSize);
     btn_refresh_upgrade_list->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->refresh_firmware_list(true);
         });
 
-    btn_upgrade_firmware = new wxButton(this, wxID_ANY, _L("Upgrade Firmware"), wxDefaultPosition, wxSize(180, -1));
+    btn_upgrade_firmware = new wxButton(parent, wxID_ANY, _L("Upgrade Firmware"), wxDefaultPosition, wxSize(180, -1));
     btn_upgrade_firmware->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         std::string firmware_name = cb_upgrade_firmware->GetValue().ToStdString();
 
@@ -592,10 +479,10 @@ void DebugToolDialog::init_upgrade()
     module_items.Add(_L("TH"));
     module_items.Add(_L("AMS"));
     module_items.Add(_L("OTA"));
-    cb_upgrade_module = new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, module_items);
+    cb_upgrade_module = new wxComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, module_items);
     cb_upgrade_module->SetEditable(false);
     cb_upgrade_module->SetSelection(0);
-    cb_upgrade_firmware = new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize);
+    cb_upgrade_firmware = new wxComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(300, -1));
     cb_upgrade_firmware->SetEditable(false);
 
     wxArrayString mode_items;
@@ -603,30 +490,59 @@ void DebugToolDialog::init_upgrade()
     mode_items.Add(_L("Release"));
     mode_items.Add(_L("Debug"));
 
-    cb_upgrade_mode = new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, mode_items);
+    cb_upgrade_mode = new wxComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, mode_items);
     cb_upgrade_mode->SetEditable(false);
     cb_upgrade_mode->SetSelection(0);
 
-    label_upgrade_filename = new wxStaticText(this, wxID_ANY, _L("File Path:"), wxDefaultPosition, wxDefaultSize);
+    label_upgrade_filename = new wxStaticText(parent, wxID_ANY, _L("File Path:"), wxDefaultPosition, wxDefaultSize);
+    auto label_upgrade_status = new wxStaticText(parent, wxID_ANY, _L("Status:"), wxDefaultPosition, wxDefaultSize);
+    label_upgrade_status_val = new wxStaticText(parent, wxID_ANY, _L("NA"), wxDefaultPosition, wxDefaultSize);
+    auto label_upgrade_progress = new wxStaticText(parent, wxID_ANY, _L("Progress:"), wxDefaultPosition, wxDefaultSize);
+    label_upgrade_progress_val = new wxStaticText(parent, wxID_ANY, _L("NA"), wxDefaultPosition, wxDefaultSize);
+    auto label_upgrade_module = new wxStaticText(parent, wxID_ANY, _L("Module:"), wxDefaultPosition, wxDefaultSize);
+    label_upgrade_module_val = new wxStaticText(parent, wxID_ANY, _L("NA"), wxDefaultPosition, wxDefaultSize);
+    auto label_upgrade_message = new wxStaticText(parent, wxID_ANY, _L("Info:"), wxDefaultPosition, wxDefaultSize);
+    label_upgrade_message_val = new wxStaticText(parent, wxID_ANY, _L("NA"), wxDefaultPosition, wxDefaultSize);
 
-    upgrade_sizer = new wxBoxSizer(wxHORIZONTAL);
-    upgrade_sizer->Add(btn_upgrade_firmware, 0, wxLEFT, SPACING);
-    upgrade_sizer->Add(label_upgrade_filename, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
-    upgrade_sizer->Add(cb_upgrade_firmware, 1, wxLEFT | wxRIGHT | wxEXPAND);
-    upgrade_sizer->Add(cb_upgrade_module, 0);
-    upgrade_sizer->Add(cb_upgrade_mode, 0);
-    upgrade_sizer->Add(btn_refresh_upgrade_list, 0, wxRIGHT | wxALIGN_RIGHT, SPACING);
+    /* select upgrade file*/
+    auto line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    line_sizer->Add(btn_upgrade_firmware, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+    line_sizer->Add(label_upgrade_filename, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+    line_sizer->Add(cb_upgrade_firmware, 1, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
+    line_sizer->Add(cb_upgrade_module, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
+    line_sizer->Add(cb_upgrade_mode, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
+    line_sizer->Add(btn_refresh_upgrade_list, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
+
+    /* upgrade status */
+    auto grid_sizer = new wxGridSizer(4, 2, 5, 5);
+    grid_sizer->Add(label_upgrade_status, 0, wxRIGHT | wxALIGN_RIGHT);
+    grid_sizer->Add(label_upgrade_status_val, 0, wxLEFT | wxALIGN_LEFT);
+    grid_sizer->Add(label_upgrade_progress, 0, wxRIGHT | wxALIGN_RIGHT);
+    grid_sizer->Add(label_upgrade_progress_val, 0, wxLEFT | wxALIGN_LEFT);
+    grid_sizer->Add(label_upgrade_module, 0, wxRIGHT | wxALIGN_RIGHT);
+    grid_sizer->Add(label_upgrade_module_val, 0, wxLEFT | wxALIGN_LEFT);
+    grid_sizer->Add(label_upgrade_message, 0, wxRIGHT | wxALIGN_RIGHT);
+    grid_sizer->Add(label_upgrade_message_val, 0, wxLEFT | wxALIGN_LEFT);
+
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(-1, 8);
+    sizer->Add(line_sizer, 0, wxLEFT | wxTOP, SPACING);
+    sizer->Add(grid_sizer, 0, wxLEFT | wxTOP, SPACING);
+
+    parent->SetSizer(sizer);
 }
 
-void DebugToolDialog::init_gcode_run_file()
+void DebugToolDialog::init_gcode_run_file(wxWindow *parent)
 {
+    selectGcodeDialog = new wxFileDialog(parent, "Open Gcode File", "", "", "Gcode files(*.gcode)|*.gcode", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
     Bind(EVT_PROGRESS, [this](wxCommandEvent& evt) {
         std::string text = "upload:";
         text += std::to_string(evt.GetInt()) + "%";
         this->label_progress->SetLabelText(text);
         });
 
-    btn_run_gcode = new wxButton(this, wxID_ANY, _L("Run Gcode"), wxDefaultPosition, wxSize(180, -1));
+    btn_run_gcode = new wxButton(parent, wxID_ANY, _L("Run Gcode"), wxDefaultPosition, wxSize(180, -1));
     btn_run_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         Slic3r::DeviceManager* manager = Slic3r::GUI::wxGetApp().getDeviceManager();
 
@@ -696,23 +612,64 @@ void DebugToolDialog::init_gcode_run_file()
             })
             .perform();
         });
-    label_progress = new wxStaticText(this, wxID_ANY, _L("upload: 0/0"), wxDefaultPosition, wxSize(160, -1));
 
-    btn_select_gcode_file = new wxButton(this, wxID_ANY, _L("Select File"), wxDefaultPosition, wxDefaultSize);
+    label_gcode_filename = new wxStaticText(parent, wxID_ANY, _L("File Path:"), wxDefaultPosition, wxDefaultSize);
+    label_progress = new wxStaticText(parent, wxID_ANY, _L("upload: 0%"), wxDefaultPosition, wxSize(160, -1));
+
+    btn_select_gcode_file = new wxButton(parent, wxID_ANY, _L("Select File"), wxDefaultPosition, wxDefaultSize);
     btn_select_gcode_file->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-        if (selectGcodeDialog->ShowModal() == wxID_CANCEL) return;
+        if (this->selectGcodeDialog->ShowModal() == wxID_CANCEL) return;
 
-        txt_gcode_filename->SetValue(selectGcodeDialog->GetPath());
+        txt_gcode_filename->SetValue(this->selectGcodeDialog->GetPath());
         txt_gcode_filename->SetFocus();
         this->SetFocus();
         });
-    btn_abort_print = new  wxButton(this, wxID_ANY, _L("Abort"), wxDefaultPosition, wxDefaultSize);
+
+    txt_gcode_filename = new wxTextCtrl(parent, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, -1));
+
+    btn_abort_print = new  wxButton(parent, wxID_ANY, _L("Abort"), wxDefaultPosition, wxDefaultSize);
     btn_abort_print->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("M0\n");
         auto et = new wxCommandEvent(EVT_PRINT_FINISH, this->GetId());
         et->SetInt(0);
         wxQueueEvent(this, et);
         });
+
+    auto run_gcode_sizer = new wxBoxSizer(wxHORIZONTAL);
+    run_gcode_sizer->Add(btn_run_gcode, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+    run_gcode_sizer->Add(label_gcode_filename, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+    run_gcode_sizer->Add(txt_gcode_filename, 1, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
+    run_gcode_sizer->Add(btn_select_gcode_file, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+    run_gcode_sizer->Add(btn_abort_print, 0, wxALIGN_RIGHT | wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
+    run_gcode_sizer->Add(label_progress, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(-1, 8);
+    sizer->Add(run_gcode_sizer, 0, wxLEFT, 0);
+    parent->SetSizer(sizer);
+}
+
+void DebugToolDialog::init_custom_ctrl(wxWindow* parent)
+{
+    auto sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto control_sizer = new wxBoxSizer(wxVERTICAL);
+
+    init_gcode_control(parent, control_sizer);
+    sizer->Add(-1, 8);
+    sizer->Add(control_sizer, 0, wxLEFT | wxALIGN_LEFT, 0);
+
+    init_gcode_custom(parent, sizer);
+    
+    parent->SetSizer(sizer);
+}
+
+void DebugToolDialog::init_log_panel(wxWindow* parent)
+{
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+    label_output_string = new wxStaticText(parent, wxID_ANY, _L("Log Info:"), wxDefaultPosition, wxDefaultSize);
+    txt_string_info = new wxTextCtrl(parent, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, -1), wxTE_MULTILINE);
+    sizer->Add(label_output_string, 0);
+    sizer->Add(txt_string_info, 1, wxALL | wxEXPAND);
+    parent->SetSizer(sizer);
 }
 
 std::string DebugToolDialog::switch_ams_gcode(std::string t)
@@ -759,101 +716,101 @@ std::string DebugToolDialog::switch_ams_gcode(std::string t)
     }
 }
 
-void DebugToolDialog::init_gcode_control()
+void DebugToolDialog::init_gcode_control(wxWindow* parent, wxBoxSizer* sizer)
 {
-    btn_set_x_pos_0_1 = new wxButton(this, wxID_ANY, _L("X+0.1"), wxDefaultPosition, wxDefaultSize);
+    btn_set_x_pos_0_1 = new wxButton(parent, wxID_ANY, _L("X+0.1"), wxDefaultPosition, wxDefaultSize);
     btn_set_x_pos_0_1->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 X0.1 F3000 \n");
         });
-    btn_set_x_pos_1_0 = new wxButton(this, wxID_ANY, _L("X+1.0"), wxDefaultPosition, wxDefaultSize);
+    btn_set_x_pos_1_0 = new wxButton(parent, wxID_ANY, _L("X+1.0"), wxDefaultPosition, wxDefaultSize);
     btn_set_x_pos_1_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 X1.0 F3000 \n");
         });
-    btn_set_x_pos_10_0 = new wxButton(this, wxID_ANY, _L("X+10.0"), wxDefaultPosition, wxDefaultSize);
+    btn_set_x_pos_10_0 = new wxButton(parent, wxID_ANY, _L("X+10.0"), wxDefaultPosition, wxDefaultSize);
     btn_set_x_pos_10_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 X10.0 F3000 \n");
         });
-    btn_set_x_neg_0_1 = new wxButton(this, wxID_ANY, _L("X-0.1"), wxDefaultPosition, wxDefaultSize);
+    btn_set_x_neg_0_1 = new wxButton(parent, wxID_ANY, _L("X-0.1"), wxDefaultPosition, wxDefaultSize);
     btn_set_x_neg_0_1->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 X-0.1 F3000 \n");
         });
-    btn_set_x_neg_1_0 = new wxButton(this, wxID_ANY, _L("X-1.0"), wxDefaultPosition, wxDefaultSize);
+    btn_set_x_neg_1_0 = new wxButton(parent, wxID_ANY, _L("X-1.0"), wxDefaultPosition, wxDefaultSize);
     btn_set_x_neg_1_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 X-1.0 F3000 \n");
         });
-    btn_set_x_neg_10_0 = new wxButton(this, wxID_ANY, _L("X-10.0"), wxDefaultPosition, wxDefaultSize);
+    btn_set_x_neg_10_0 = new wxButton(parent, wxID_ANY, _L("X-10.0"), wxDefaultPosition, wxDefaultSize);
     btn_set_x_neg_10_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 X-10.0 F3000 \n");
         });
-    btn_set_y_pos_0_1 = new wxButton(this, wxID_ANY, _L("Y+0.1"), wxDefaultPosition, wxDefaultSize);
+    btn_set_y_pos_0_1 = new wxButton(parent, wxID_ANY, _L("Y+0.1"), wxDefaultPosition, wxDefaultSize);
     btn_set_y_pos_0_1->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Y0.1 F3000 \n");
         });
-    btn_set_y_pos_1_0 = new wxButton(this, wxID_ANY, _L("Y+1.0"), wxDefaultPosition, wxDefaultSize);
+    btn_set_y_pos_1_0 = new wxButton(parent, wxID_ANY, _L("Y+1.0"), wxDefaultPosition, wxDefaultSize);
     btn_set_y_pos_1_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Y1.0 F3000 \n");
         });
-    btn_set_y_pos_10_0 = new wxButton(this, wxID_ANY, _L("Y+10.0"), wxDefaultPosition, wxDefaultSize);
+    btn_set_y_pos_10_0 = new wxButton(parent, wxID_ANY, _L("Y+10.0"), wxDefaultPosition, wxDefaultSize);
     btn_set_y_pos_10_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Y10.0 F3000 \n");
         });
-    btn_set_y_neg_0_1 = new wxButton(this, wxID_ANY, _L("Y-0.1"), wxDefaultPosition, wxDefaultSize);
+    btn_set_y_neg_0_1 = new wxButton(parent, wxID_ANY, _L("Y-0.1"), wxDefaultPosition, wxDefaultSize);
     btn_set_y_neg_0_1->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Y-0.1 F3000 \n");
         });
-    btn_set_y_neg_1_0 = new wxButton(this, wxID_ANY, _L("Y-1.0"), wxDefaultPosition, wxDefaultSize);
+    btn_set_y_neg_1_0 = new wxButton(parent, wxID_ANY, _L("Y-1.0"), wxDefaultPosition, wxDefaultSize);
     btn_set_y_neg_1_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Y-1.0 F3000 \n");
         });
-    btn_set_y_neg_10_0 = new wxButton(this, wxID_ANY, _L("Y-10.0"), wxDefaultPosition, wxDefaultSize);
+    btn_set_y_neg_10_0 = new wxButton(parent, wxID_ANY, _L("Y-10.0"), wxDefaultPosition, wxDefaultSize);
     btn_set_y_neg_10_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Y-10.0 F3000 \n");
         });
-    btn_set_z_pos_0_1 = new wxButton(this, wxID_ANY, _L("Z+0.1"), wxDefaultPosition, wxDefaultSize);
+    btn_set_z_pos_0_1 = new wxButton(parent, wxID_ANY, _L("Z+0.1"), wxDefaultPosition, wxDefaultSize);
     btn_set_z_pos_0_1->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Z0.1 F900 \n");
         });
-    btn_set_z_pos_1_0 = new wxButton(this, wxID_ANY, _L("Z+1.0"), wxDefaultPosition, wxDefaultSize);
+    btn_set_z_pos_1_0 = new wxButton(parent, wxID_ANY, _L("Z+1.0"), wxDefaultPosition, wxDefaultSize);
     btn_set_z_pos_1_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Z1.0 F900 \n");
         });
-    btn_set_z_pos_10_0 = new wxButton(this, wxID_ANY, _L("Z+10.0"), wxDefaultPosition, wxDefaultSize);
+    btn_set_z_pos_10_0 = new wxButton(parent, wxID_ANY, _L("Z+10.0"), wxDefaultPosition, wxDefaultSize);
     btn_set_z_pos_10_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Z10.0 F900 \n");
         });
-    btn_set_z_neg_0_1 = new wxButton(this, wxID_ANY, _L("Z-0.1"), wxDefaultPosition, wxDefaultSize);
+    btn_set_z_neg_0_1 = new wxButton(parent, wxID_ANY, _L("Z-0.1"), wxDefaultPosition, wxDefaultSize);
     btn_set_z_neg_0_1->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Z-0.1 F900 \n");
         });
-    btn_set_z_neg_1_0 = new wxButton(this, wxID_ANY, _L("Z-1.0"), wxDefaultPosition, wxDefaultSize);
+    btn_set_z_neg_1_0 = new wxButton(parent, wxID_ANY, _L("Z-1.0"), wxDefaultPosition, wxDefaultSize);
     btn_set_z_neg_1_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Z-1.0 F900 \n");
         });
-    btn_set_z_neg_10_0 = new wxButton(this, wxID_ANY, _L("Z-10.0"), wxDefaultPosition, wxDefaultSize);
+    btn_set_z_neg_10_0 = new wxButton(parent, wxID_ANY, _L("Z-10.0"), wxDefaultPosition, wxDefaultSize);
     btn_set_z_neg_10_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G91 \nG0 Z-10.0 F900 \n");
         });
-    btn_set_e_pos_0_1 = new wxButton(this, wxID_ANY, _L("E+0.1"), wxDefaultPosition, wxDefaultSize);
+    btn_set_e_pos_0_1 = new wxButton(parent, wxID_ANY, _L("E+0.1"), wxDefaultPosition, wxDefaultSize);
     btn_set_e_pos_0_1->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("M83 \nG0 E0.1 F300 \n");
         });
-    btn_set_e_pos_1_0 = new wxButton(this, wxID_ANY, _L("E+1.0"), wxDefaultPosition, wxDefaultSize);
+    btn_set_e_pos_1_0 = new wxButton(parent, wxID_ANY, _L("E+1.0"), wxDefaultPosition, wxDefaultSize);
     btn_set_e_pos_1_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("M83 \nG0 E1.0 F300 \n");
         });
-    btn_set_e_pos_10_0 = new wxButton(this, wxID_ANY, _L("E+10.0"), wxDefaultPosition, wxDefaultSize);
+    btn_set_e_pos_10_0 = new wxButton(parent, wxID_ANY, _L("E+10.0"), wxDefaultPosition, wxDefaultSize);
     btn_set_e_pos_10_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("M83 \nG0 E10.0 F300 \n");
         });
-    btn_set_e_neg_0_1 = new wxButton(this, wxID_ANY, _L("E-0.1"), wxDefaultPosition, wxDefaultSize);
+    btn_set_e_neg_0_1 = new wxButton(parent, wxID_ANY, _L("E-0.1"), wxDefaultPosition, wxDefaultSize);
     btn_set_e_neg_0_1->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("M83 \nG0 E-0.1 F300 \n");
         });
-    btn_set_e_neg_1_0 = new wxButton(this, wxID_ANY, _L("E-1.0"), wxDefaultPosition, wxDefaultSize);
+    btn_set_e_neg_1_0 = new wxButton(parent, wxID_ANY, _L("E-1.0"), wxDefaultPosition, wxDefaultSize);
     btn_set_e_neg_1_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("M83 \nG0 E-1.0 F300 \n");
         });
-    btn_set_e_neg_10_0 = new wxButton(this, wxID_ANY, _L("E-10.0"), wxDefaultPosition, wxDefaultSize);
+    btn_set_e_neg_10_0 = new wxButton(parent, wxID_ANY, _L("E-10.0"), wxDefaultPosition, wxDefaultSize);
     btn_set_e_neg_10_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("M83 \nG0 E-10.0 F300 \n");
         });
@@ -884,46 +841,147 @@ void DebugToolDialog::init_gcode_control()
     pos_btns_sizer->Add(btn_set_e_neg_0_1);
     pos_btns_sizer->Add(btn_set_e_neg_1_0);
     pos_btns_sizer->Add(btn_set_e_neg_10_0);
+
+
+    btn_return_home = new wxButton(parent, wxID_ANY, _L("Return Home:G28"));
+    btn_return_home->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        this->publishGcode("G28 \n");
+        });
+    btn_auto_leveling = new wxButton(parent, wxID_ANY, _L("Auto Leveling:G29"));
+    btn_auto_leveling->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        this->publishGcode("G29 \n");
+        });
+    btn_xyz_abs_mode = new wxButton(parent, wxID_ANY, _L("XYZ - abs mode:G90"));
+    btn_xyz_abs_mode->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        this->publishGcode("G90 \n");
+        });
+
+    btn_fan_on = new wxButton(parent, wxID_ANY, _L("Cooling Fan ON"));
+    btn_fan_on->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        this->publishGcode("M106 S255 \n");
+        });
+    btn_fan_off = new wxButton(parent, wxID_ANY, _L("Cooling Fan OFF"));
+    btn_fan_off->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        this->publishGcode("M106 S0 \n");
+        });
+    btn_set_hot_bed_temp = new wxButton(parent, wxID_ANY, _L("Set Bed Temp"));
+    btn_set_hot_bed_temp->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        std::string gcode_str = "M140 S" + txt_set_hot_bed_temp->GetValue().ToStdString() + " \n";
+        this->publishGcode(gcode_str);
+        });
+    btn_set_hot_end_temp = new wxButton(parent, wxID_ANY, _L("Set Hot End Temp"), wxDefaultPosition, wxDefaultSize);
+    btn_set_hot_end_temp->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        std::string gcode_str = "M104 S" + txt_set_hot_end_temp->GetValue().ToStdString() + " \n";
+        this->publishGcode(gcode_str);
+        });
+
+    btn_switch_t = new wxButton(parent, wxID_ANY, _L("Swtich AMS:"), wxDefaultPosition, wxDefaultSize);
+    btn_switch_t->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        std::string gcode = this->switch_ams_gcode(txt_switch_val->GetValue().ToStdString());
+        this->publishGcode(gcode);
+        });
+    txt_switch_val = new wxTextCtrl(parent, wxID_ANY, _L("1"), wxDefaultPosition, wxDefaultSize);
+    txt_set_hot_bed_temp = new wxTextCtrl(parent, wxID_ANY, _L("60"), wxDefaultPosition, wxDefaultSize);
+    txt_set_hot_end_temp = new wxTextCtrl(parent, wxID_ANY, _L("200"), wxDefaultPosition, wxDefaultSize);
+
+    label_pos_x = new wxStaticText(parent, wxID_ANY, _L("Pos X: "), wxDefaultPosition, wxDefaultSize);
+    label_pos_x_val = new wxStaticText(parent, wxID_ANY, _L("0.00"), wxDefaultPosition, wxDefaultSize);
+    label_pos_y = new wxStaticText(parent, wxID_ANY, _L("Pos Y: "), wxDefaultPosition, wxDefaultSize);
+    label_pos_y_val = new wxStaticText(parent, wxID_ANY, _L("0.00"), wxDefaultPosition, wxDefaultSize);
+    label_pos_z = new wxStaticText(parent, wxID_ANY, _L("Pos Z: "), wxDefaultPosition, wxDefaultSize);
+    label_pos_z_val = new wxStaticText(parent, wxID_ANY, _L("0.00"), wxDefaultPosition, wxDefaultSize);
+    label_pos_e = new wxStaticText(parent, wxID_ANY, _L("Pos E: "), wxDefaultPosition, wxDefaultSize);
+    label_pos_e_val = new wxStaticText(parent, wxID_ANY, _L("0.00"), wxDefaultPosition, wxDefaultSize);
+    label_hot_end_temp = new wxStaticText(parent, wxID_ANY, _L("Nozzle Temp: "), wxDefaultPosition, wxDefaultSize);
+    label_hot_end_temp_val = new wxStaticText(parent, wxID_ANY, _L("0/0"), wxDefaultPosition, wxDefaultSize);
+    label_bed_end_temp = new wxStaticText(parent, wxID_ANY, _L("Bed Temp: "), wxDefaultPosition, wxDefaultSize);
+    label_bed_end_temp_val = new wxStaticText(parent, wxID_ANY, _L("0/0"), wxDefaultPosition, wxDefaultSize);
+    label_print_progress = new wxStaticText(parent, wxID_ANY, _L("Print Progress: "), wxDefaultPosition, wxDefaultSize);
+    label_print_progress_val = new wxStaticText(parent, wxID_ANY, _L("0%"), wxDefaultPosition, wxDefaultSize);
+    label_wifi_signal = new wxStaticText(parent, wxID_ANY, _L("WiFi Signal:"), wxDefaultPosition, wxDefaultSize);
+    label_wifi_signal_val = new wxStaticText(parent, wxID_ANY, _L("0"), wxDefaultPosition, wxDefaultSize);
+    label_wifi_link_th = new wxStaticText(parent, wxID_ANY, _L("Link TH State:"), wxDefaultPosition, wxDefaultSize);
+    label_wifi_link_th_val = new wxStaticText(parent, wxID_ANY, _L("NA"), wxDefaultPosition, wxDefaultSize);
+    label_wifi_link_ams = new wxStaticText(parent, wxID_ANY, _L("Link AMS State:"), wxDefaultPosition, wxDefaultSize);
+    label_wifi_link_ams_val = new wxStaticText(parent, wxID_ANY, _L("NA"), wxDefaultPosition, wxDefaultSize);
+    auto label = new wxStaticText(parent, wxID_ANY, _L(""), wxDefaultPosition, wxDefaultSize);
+
+    auto temp_btns_sizer = new wxGridSizer(5, 2, 5, 5);
+    temp_btns_sizer->Add(btn_set_hot_bed_temp, 0, wxRIGHT | wxALIGN_RIGHT);
+    temp_btns_sizer->Add(txt_set_hot_bed_temp, 0, wxLEFT | wxALIGN_LEFT);
+    temp_btns_sizer->Add(btn_set_hot_end_temp, 0, wxRIGHT | wxALIGN_RIGHT);
+    temp_btns_sizer->Add(txt_set_hot_end_temp, 0, wxLEFT | wxALIGN_LEFT);
+    temp_btns_sizer->Add(btn_fan_on, 0, wxRIGHT | wxALIGN_RIGHT);
+    temp_btns_sizer->Add(btn_fan_off, 0, wxLEFT | wxALIGN_LEFT);
+    temp_btns_sizer->Add(btn_auto_leveling, 0, wxRIGHT | wxALIGN_RIGHT);
+    temp_btns_sizer->Add(btn_xyz_abs_mode, 0, wxLEFT | wxALIGN_LEFT);
+    temp_btns_sizer->Add(btn_return_home, 0, wxRIGHT | wxALIGN_RIGHT);
+    temp_btns_sizer->Add(label, 0, wxLEFT | wxALIGN_LEFT);
+    temp_btns_sizer->Add(btn_switch_t, 0, wxRIGHT | wxALIGN_RIGHT);
+    temp_btns_sizer->Add(txt_switch_val, 0, wxLEFT | wxALIGN_LEFT);
+    temp_btns_sizer->Add(label_pos_x, 0, wxRIGHT | wxALIGN_RIGHT);
+    temp_btns_sizer->Add(label_pos_x_val, 0, wxLEFT | wxALIGN_LEFT);
+    temp_btns_sizer->Add(label_pos_y, 0, wxRIGHT | wxALIGN_RIGHT);
+    temp_btns_sizer->Add(label_pos_y_val, 0, wxLEFT | wxALIGN_LEFT);
+    temp_btns_sizer->Add(label_pos_z, 0, wxRIGHT | wxALIGN_RIGHT);
+    temp_btns_sizer->Add(label_pos_z_val, 0, wxLEFT | wxALIGN_LEFT);
+    temp_btns_sizer->Add(label_pos_e, 0, wxRIGHT | wxALIGN_RIGHT);
+    temp_btns_sizer->Add(label_pos_e_val, 0, wxLEFT | wxALIGN_LEFT);
+    temp_btns_sizer->Add(label_hot_end_temp, 0, wxRIGHT | wxALIGN_RIGHT);
+    temp_btns_sizer->Add(label_hot_end_temp_val, 0, wxLEFT | wxALIGN_LEFT);
+    temp_btns_sizer->Add(label_bed_end_temp, 0, wxRIGHT | wxALIGN_RIGHT);
+    temp_btns_sizer->Add(label_bed_end_temp_val, 0, wxLEFT | wxALIGN_LEFT);
+    temp_btns_sizer->Add(label_print_progress, 0, wxRIGHT | wxALIGN_RIGHT);
+    temp_btns_sizer->Add(label_print_progress_val, 0, wxLEFT | wxALIGN_LEFT);
+    temp_btns_sizer->Add(label_wifi_signal, 0, wxRIGHT | wxALIGN_RIGHT);
+    temp_btns_sizer->Add(label_wifi_signal_val, 0, wxLEFT | wxALIGN_LEFT);
+    temp_btns_sizer->Add(label_wifi_link_th, 0, wxRIGHT | wxALIGN_RIGHT);
+    temp_btns_sizer->Add(label_wifi_link_th_val, 0, wxLEFT | wxALIGN_LEFT);
+    temp_btns_sizer->Add(label_wifi_link_ams, 0, wxRIGHT | wxALIGN_RIGHT);
+    temp_btns_sizer->Add(label_wifi_link_ams_val, 0, wxLEFT | wxALIGN_LEFT);
+
+    sizer->Add(pos_btns_sizer, 0, wxTOP | wxALIGN_CENTER_VERTICAL | wxALIGN_CENTER_HORIZONTAL, SPACING);
+    sizer->Add(temp_btns_sizer, 1, wxTOP | wxLEFT);
 }
 
-void DebugToolDialog::init_gcode_custom()
+void DebugToolDialog::init_gcode_custom(wxWindow *parent, wxBoxSizer* sizer)
 {
-    btn_send_gcode_1 = new wxButton(this, wxID_ANY, _L("Send Custom\nGcode 1"), wxDefaultPosition, wxSize(BTN_SEND_WIDTH, TXT_GCODE_HEIGHT));
+    btn_send_gcode_1 = new wxButton(parent, wxID_ANY, _L("Send Custom\nGcode 1"), wxDefaultPosition, wxSize(BTN_SEND_WIDTH, TXT_GCODE_HEIGHT));
     btn_send_gcode_1->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         std::string gcode1 = txt_custom_gcode1->GetValue().ToStdString() + "\n";
         this->publishGcode(txt_custom_gcode1->GetValue().ToStdString());
         });
-    btn_send_gcode_2 = new wxButton(this, wxID_ANY, _L("Send Custom\nGcode 2"), wxDefaultPosition, wxSize(BTN_SEND_WIDTH, TXT_GCODE_HEIGHT));
+    btn_send_gcode_2 = new wxButton(parent, wxID_ANY, _L("Send Custom\nGcode 2"), wxDefaultPosition, wxSize(BTN_SEND_WIDTH, TXT_GCODE_HEIGHT));
     btn_send_gcode_2->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode(txt_custom_gcode2->GetValue().ToStdString());
         });
-    btn_send_gcode_3 = new wxButton(this, wxID_ANY, _L("Send Custom\nGcode 3"), wxDefaultPosition, wxSize(BTN_SEND_WIDTH, TXT_GCODE_HEIGHT));
+    btn_send_gcode_3 = new wxButton(parent, wxID_ANY, _L("Send Custom\nGcode 3"), wxDefaultPosition, wxSize(BTN_SEND_WIDTH, TXT_GCODE_HEIGHT));
     btn_send_gcode_3->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode(txt_custom_gcode3->GetValue().ToStdString());
         });
-    btn_send_gcode_4 = new wxButton(this, wxID_ANY, _L("Send Custom\nGcode 4"), wxDefaultPosition, wxSize(BTN_SEND_WIDTH, TXT_GCODE_HEIGHT));
+    btn_send_gcode_4 = new wxButton(parent, wxID_ANY, _L("Send Custom\nGcode 4"), wxDefaultPosition, wxSize(BTN_SEND_WIDTH, TXT_GCODE_HEIGHT));
     btn_send_gcode_4->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode(txt_custom_gcode4->GetValue().ToStdString());
         });
-    btn_send_gcode_5 = new wxButton(this, wxID_ANY, _L("Send Custom\nGcode 5"), wxDefaultPosition, wxSize(BTN_SEND_WIDTH, TXT_GCODE_HEIGHT));
+    btn_send_gcode_5 = new wxButton(parent, wxID_ANY, _L("Send Custom\nGcode 5"), wxDefaultPosition, wxSize(BTN_SEND_WIDTH, TXT_GCODE_HEIGHT));
     btn_send_gcode_5->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode(txt_custom_gcode5->GetValue().ToStdString());
         });
-    btn_send_gcode_6 = new wxButton(this, wxID_ANY, _L("Send Custom\nGcode 6"), wxDefaultPosition, wxSize(BTN_SEND_WIDTH, TXT_GCODE_HEIGHT));
+    btn_send_gcode_6 = new wxButton(parent, wxID_ANY, _L("Send Custom\nGcode 6"), wxDefaultPosition, wxSize(BTN_SEND_WIDTH, TXT_GCODE_HEIGHT));
     btn_send_gcode_6->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode(txt_custom_gcode6->GetValue().ToStdString());
         });
-    btn_send_gcode_7 = new wxButton(this, wxID_ANY, _L("Send Custom\nGcode 7"), wxDefaultPosition, wxSize(BTN_SEND_WIDTH, TXT_GCODE_HEIGHT));
+    btn_send_gcode_7 = new wxButton(parent, wxID_ANY, _L("Send Custom\nGcode 7"), wxDefaultPosition, wxSize(BTN_SEND_WIDTH, TXT_GCODE_HEIGHT));
     btn_send_gcode_7->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode(txt_custom_gcode7->GetValue().ToStdString());
         });
-    txt_custom_gcode1 = new wxTextCtrl(this, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, TXT_GCODE_HEIGHT), wxTE_MULTILINE);
-    txt_custom_gcode2 = new wxTextCtrl(this, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, TXT_GCODE_HEIGHT), wxTE_MULTILINE);
-    txt_custom_gcode3 = new wxTextCtrl(this, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, TXT_GCODE_HEIGHT), wxTE_MULTILINE);
-    txt_custom_gcode4 = new wxTextCtrl(this, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, TXT_GCODE_HEIGHT), wxTE_MULTILINE);
-    txt_custom_gcode5 = new wxTextCtrl(this, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, TXT_GCODE_HEIGHT), wxTE_MULTILINE);
-    txt_custom_gcode6 = new wxTextCtrl(this, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, TXT_GCODE_HEIGHT), wxTE_MULTILINE);
-    txt_custom_gcode7 = new wxTextCtrl(this, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, TXT_GCODE_HEIGHT), wxTE_MULTILINE);
+    txt_custom_gcode1 = new wxTextCtrl(parent, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, TXT_GCODE_HEIGHT), wxTE_MULTILINE);
+    txt_custom_gcode2 = new wxTextCtrl(parent, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, TXT_GCODE_HEIGHT), wxTE_MULTILINE);
+    txt_custom_gcode3 = new wxTextCtrl(parent, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, TXT_GCODE_HEIGHT), wxTE_MULTILINE);
+    txt_custom_gcode4 = new wxTextCtrl(parent, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, TXT_GCODE_HEIGHT), wxTE_MULTILINE);
+    txt_custom_gcode5 = new wxTextCtrl(parent, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, TXT_GCODE_HEIGHT), wxTE_MULTILINE);
+    txt_custom_gcode6 = new wxTextCtrl(parent, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, TXT_GCODE_HEIGHT), wxTE_MULTILINE);
+    txt_custom_gcode7 = new wxTextCtrl(parent, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, TXT_GCODE_HEIGHT), wxTE_MULTILINE);
 
     // Init custom_gcode
     pt::ptree custom_gocde_root;
@@ -953,7 +1011,7 @@ void DebugToolDialog::init_gcode_custom()
         ;
     }
 
-    custom_gcode_sizer = new wxFlexGridSizer(7, 2, 0, 5);
+    auto custom_gcode_sizer = new wxFlexGridSizer(7, 2, 0, 5);
     custom_gcode_sizer->AddGrowableCol(1, 1);
     custom_gcode_sizer->Add(btn_send_gcode_1, 0, wxRIGHT | wxALIGN_RIGHT, SPACING);
     custom_gcode_sizer->Add(txt_custom_gcode1, 1, wxLEFT | wxALIGN_LEFT | wxEXPAND, SPACING);
@@ -969,6 +1027,8 @@ void DebugToolDialog::init_gcode_custom()
     custom_gcode_sizer->Add(txt_custom_gcode6, 1, wxLEFT | wxALIGN_LEFT | wxEXPAND, SPACING);
     custom_gcode_sizer->Add(btn_send_gcode_7, 0, wxRIGHT | wxALIGN_RIGHT, SPACING);
     custom_gcode_sizer->Add(txt_custom_gcode7, 1, wxLEFT | wxALIGN_LEFT | wxEXPAND, SPACING);
+
+    sizer->Add(custom_gcode_sizer, 0, wxLEFT | wxRIGHT, 5);
 }
 
 bool DebugToolDialog::Show(bool show)
@@ -1059,16 +1119,16 @@ void DebugToolDialog::on_message_sent(wxCommandEvent& evt)
     this->log_info(evt.GetString().ToStdString());
 }
 
+void DebugToolDialog::on_log_info(wxCommandEvent& evt)
+{
+    this->log_info(evt.GetString().ToStdString());
+}
+
 
 void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
 {
     std::string json_str = evt.GetString().ToStdString();
     try {
-        /*int found = topic.find(m_curr_dev_id);
-        if (found < 0) {
-            BOOST_LOG_TRIVIAL(trace) << "omit this msg, curr_dev_id is " << m_curr_dev_id;
-            return -1;
-        }*/
         BOOST_LOG_TRIVIAL(trace) << "handle_report_print: json_str=" << json_str;
         std::stringstream ss(json_str);
         pt::ptree root;
@@ -1352,7 +1412,26 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
             this->log_info("received ack msg = " + json_str);
             return;
         }
+        else if (root.get_child_optional("upgrade") != boost::none) {
+            pt::ptree upgrade = root.get_child("upgrade");
+            boost::optional<std::string> upgrade_module = upgrade.get_optional<std::string>("module");
+            if (upgrade_module.has_value()) {
+                label_upgrade_module_val->SetLabelText(upgrade_module.value());
+            }
+            boost::optional<std::string> upgrade_status = upgrade.get_optional<std::string>("status");
+            if (upgrade_status.has_value()) {
+                label_upgrade_status_val->SetLabelText(upgrade_status.value());
+            }
+            boost::optional<std::string> upgrade_progress = upgrade.get_optional<std::string>("progress");
+            if (upgrade_progress.has_value()) {
+                label_upgrade_progress_val->SetLabelText(upgrade_progress.value());
 
+            }
+            boost::optional<std::string> upgrade_message = upgrade.get_optional<std::string>("message");
+            if (upgrade_message.has_value()) {
+                label_upgrade_message_val->SetLabelText(upgrade_message.value());
+            }
+        }
         this->log_info("json=" + json_str);
     }
     catch (std::exception& e) {

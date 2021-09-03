@@ -9,6 +9,8 @@
 #include <wx/event.h>
 #include <wx/dialog.h>
 #include <wx/timer.h>
+#include <wx/panel.h>
+#include <wx/notebook.h>
 
 #include "GUI_Utils.hpp"
 #include "MsgDialog.hpp"
@@ -69,6 +71,7 @@ namespace Slic3r {
             void on_print_end(wxCommandEvent& evt);
             void on_message_arrived(wxCommandEvent& evt);
             void on_message_sent(wxCommandEvent& evt);
+            void on_log_info(wxCommandEvent& evt);
             void get_version();
         protected:
             void on_dpi_changed(const wxRect& suggested_rect) override;
@@ -92,6 +95,8 @@ namespace Slic3r {
 
             std::string UPGRADE_URL = "http://upgrade.bambooolab.com/";
             std::string CURL_FILE = resources_dir() + "/bbl/curl";
+
+            wxNotebook* nb_main;
 
             wxButton* btn_select_device;
             wxButton* btn_refresh_upgrade_list;
@@ -197,6 +202,10 @@ namespace Slic3r {
             wxStaticText* label_wifi_link_ams;
             wxStaticText* label_wifi_link_ams_val;
 
+            wxStaticText* label_upgrade_status_val;
+            wxStaticText* label_upgrade_progress_val;
+            wxStaticText* label_upgrade_module_val;
+            wxStaticText* label_upgrade_message_val;
 
 
             wxComboBox* cb_upgrade_module;
@@ -217,6 +226,10 @@ namespace Slic3r {
             wxRadioBox* rb_conn;
             wxButton* btn_mqtt_connect;
             wxSizer* domain_sizer;
+            wxPanel* upgrade_panel;
+            wxPanel* common_panel;
+            wxPanel* run_gcode_panel;
+            wxPanel* ctrl_panel;
 
             std::vector<wxString> upgrade_file_list;
             wxFileDialog* selectGcodeDialog;
@@ -226,16 +239,19 @@ namespace Slic3r {
             wxBoxSizer* top_sizer;
             wxGridSizer* pos_btns_sizer;
             wxBoxSizer* conn_device_sizer;
-            wxBoxSizer* upgrade_sizer;
-            wxBoxSizer* run_gcode_sizer;
-            wxFlexGridSizer* custom_gcode_sizer;
+
 
             /* GUI init control */
             void init_device();
-            void init_upgrade();
-            void init_gcode_run_file();
-            void init_gcode_control();
-            void init_gcode_custom();
+            void init_common(wxWindow* parent);
+            void init_upgrade(wxWindow* parent);
+            void init_gcode_run_file(wxWindow* parent);
+            void init_custom_ctrl(wxWindow* parent);
+            void init_gcode_control(wxWindow* parent, wxBoxSizer* sizer);
+            void init_gcode_custom(wxWindow* parent, wxBoxSizer* sizer);
+            void init_log_panel(wxWindow* parent);
+            void init_layout();
+            void init_bind_handler();
 
             int m_sequence_id = 2000;
             int publishGcode(std::string gcode);

@@ -293,7 +293,6 @@ namespace Slic3r {
             if (bind_status.has_value()) {
                 if (bind_status.value().compare("success") == 0) {
                     BOOST_LOG_TRIVIAL(trace) << "Bind Device " << device_id << " OK!";
-                    Slic3r::GUI::wxGetApp().show_message_box("Bind device=" + device_id + " success!");
                     // call complete function
                     if (fn) {
                         fn();
@@ -337,7 +336,6 @@ namespace Slic3r {
                     if (fn) {
                         fn();
                     }
-                    Slic3r::GUI::wxGetApp().show_message_box("Unbind device=" + device_id + " ok!");
                 }
                 else {
                     BOOST_LOG_TRIVIAL(trace) << "Unind Device " << device_id << " Failed! status = " << bind_status.value();
