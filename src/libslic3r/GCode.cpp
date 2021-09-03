@@ -3226,8 +3226,11 @@ std::string GCode::retract(bool toolchange)
     gcode += toolchange ? m_writer.retract_for_toolchange() : m_writer.retract();
 
     gcode += m_writer.reset_e();
-    if (m_writer.extruder()->retract_length() > 0 || m_config.use_firmware_retraction)
-        gcode += m_writer.lift();
+    if (m_writer.extruder()->retract_length() > 0 || m_config.use_firmware_retraction) {
+        // BBS
+        if (! m_config.dont_lift_for_single_material || m_toolchange_count > 0)
+            gcode += m_writer.lift();
+    }
 
     return gcode;
 }
@@ -3252,6 +3255,9 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
         gcode += m_writer.toolchange(extruder_id);
         return gcode;
     }
+
+    // BBS. Should be placed before retract.
+    m_toolchange_count++;
 
     // prepend retraction on the current extruder
     std::string gcode = this->retract(true);
@@ -3349,8 +3355,6 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     if (m_ooze_prevention.enable)
         gcode += m_ooze_prevention.post_toolchange(*this);
 
-    // BBS
-    m_toolchange_count++;
     return gcode;
 }
 

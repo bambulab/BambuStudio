@@ -2807,6 +2807,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
                 line.append_option(optgroup->get_option("retract_lift_above", extruder_idx));
                 line.append_option(optgroup->get_option("retract_lift_below", extruder_idx));
                 optgroup->append_line(line);
+            optgroup->append_single_option_line("dont_lift_for_single_material", wxEmptyString, extruder_idx);
 
             optgroup->append_single_option_line("retract_speed", "", extruder_idx);
             optgroup->append_single_option_line("deretract_speed", "", extruder_idx);
@@ -2988,7 +2989,8 @@ void TabPrinter::toggle_options()
 
         // retract lift above / below only applies if using retract lift
         vec.resize(0);
-        vec = { "retract_lift_above", "retract_lift_below" };
+        // BBS
+        vec = { "retract_lift_above", "retract_lift_below", "dont_lift_for_single_material" };
         for (auto el : vec)
             toggle_option(el, retraction && (m_config->opt_float("retract_lift", i) > 0), i);
 

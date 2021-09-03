@@ -2166,6 +2166,13 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->set_default_value(new ConfigOptionFloats { 0. });
 
+    // BBS
+    def = this->add("dont_lift_for_single_material", coBool);
+    def->label = L("Dont lift for single material");
+    def->tooltip = L("If enabled, retract lift will not perform when only one material is used in the project.");
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionBool(true));
+
     def = this->add("retract_lift_above", coFloats);
     def->label = L("Above Z");
     def->full_label = L("Only lift Z above");
@@ -3130,6 +3137,8 @@ void PrintConfigDef::init_fff_params()
     for (const char *opt_key : {
         // floats
         "retract_length", "retract_lift", "retract_lift_above", "retract_lift_below", "retract_speed", "deretract_speed", "retract_restart_extra", "retract_before_travel",
+        // BBS
+        "dont_lift_for_single_material",
         // bools
         "retract_layer_change", "wipe",
         // percents
@@ -3173,6 +3182,8 @@ void PrintConfigDef::init_extruder_option_keys()
     m_extruder_option_keys = {
         "nozzle_diameter", "min_layer_height", "max_layer_height", "extruder_offset",
         "retract_length", "retract_lift", "retract_lift_above", "retract_lift_below", "retract_speed", "deretract_speed",
+        // BBS
+        "dont_lift_for_single_material",
         "retract_before_wipe", "retract_restart_extra", "retract_before_travel", "wipe",
         "retract_layer_change", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
         "default_filament_profile"
@@ -3185,6 +3196,8 @@ void PrintConfigDef::init_extruder_option_keys()
         "retract_layer_change",
         "retract_length",
         "retract_lift",
+        // BBS
+        "dont_lift_for_single_material",
         "retract_lift_above",
         "retract_lift_below",
         "retract_restart_extra",

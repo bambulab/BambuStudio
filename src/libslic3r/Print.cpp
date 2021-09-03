@@ -119,6 +119,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "retract_length",
         "retract_length_toolchange",
         "retract_lift",
+        // BBS
+        "dont_lift_for_single_material",
         "retract_lift_above",
         "retract_lift_below",
         "retract_restart_extra",
