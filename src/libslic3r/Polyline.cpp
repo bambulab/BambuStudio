@@ -106,6 +106,12 @@ void Polyline::simplify(double tolerance)
     this->points = MultiPoint::_douglas_peucker(this->points, tolerance);
 }
 
+void Polyline::simplify_by_fitting_arc(double tolerance)
+{
+    //BBS: do arc fit first, then use DP simplify to handle the straight part to reduce point.
+    ArcFitter::do_arc_fitting_and_simplify(this->points, fitting_result, tolerance);
+}
+
 #if 0
 // This method simplifies all *lines* contained in the supplied area
 template <class T>

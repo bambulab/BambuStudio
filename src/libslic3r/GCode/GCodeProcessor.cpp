@@ -27,6 +27,9 @@ static const float DEFAULT_TOOLPATH_HEIGHT = 0.2f;
 
 static const float INCHES_TO_MM = 25.4f;
 static const float MMMIN_TO_MMSEC = 1.0f / 60.0f;
+
+static const float DRAW_ARC_TOLERANCE = 0.02f;            //0.02mm tolerance for drawing arc
+
 static const float DEFAULT_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
 static const float DEFAULT_RETRACT_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
 static const float DEFAULT_TRAVEL_ACCELERATION = 1250.0f;
@@ -2679,44 +2682,6 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
     store_move_vertex(type);
 }
 
-// BBS: new function to calculate arc radian in X-Y plane
-static float calc_arc_radian(Vec3f start_pos, Vec3f end_pos, Vec3f center_pos, bool is_ccw)
-{
-    Vec3f delta1 = center_pos - start_pos;
-    Vec3f delta2 = center_pos - end_pos;
-    // only consider arc in x-y plane, so clean z distance
-    delta1(2,0) = 0;
-    delta2(2,0) = 0;
-
-    float radian;
-    if ((delta1 - delta2).norm() < EPSILON) {
-        // start_pos is same with end_pos, we think it's a full circle
-        radian = 2 * M_PI;
-    } else {
-        double dot = delta1.dot(delta2);
-        double cross = double(delta1.x() * delta2.y() - delta1.y() * delta2.x());
-        radian = atan2(cross, dot);
-        if (is_ccw)
-            radian = (radian < 0) ? 2 * M_PI + radian : radian;
-        else
-            radian = (radian < 0) ? abs(radian) : 2 * M_PI - radian;
-    }
-    return radian;
-}
-
-static float calc_arc_radius(Vec3f start_pos, Vec3f center_pos)
-{
-    Vec3f delta1 = center_pos - start_pos;
-    delta1(2,0) = 0;
-    return delta1.norm();
-}
-
-// BBS: new function to calculate arc length in X-Y plane
-static float calc_arc_length(Vec3f start_pos, Vec3f end_pos, Vec3f center_pos, bool is_ccw)
-{
-    return calc_arc_radius(start_pos, center_pos) * calc_arc_radian(start_pos, end_pos, center_pos, is_ccw);
-}
-
 // BBS: this function is absolutely new for G2 and G3 gcode
 void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
 {
@@ -2756,10 +2721,15 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
     };
 
      auto arc_interpolation = [this](const Vec3f& start_pos, const Vec3f& end_pos, const Vec3f& center_pos, const bool is_ccw) {
-         float radius = calc_arc_radius(start_pos, center_pos);
-         float radian_step = 2 * acos((radius - 0.01) / radius);  // 0.01mm is arc height tolerance
-         float num = calc_arc_radian(start_pos, end_pos, center_pos, is_ccw) / radian_step;
-         float z_step = (end_pos.z() - start_pos.z())/num;
+         float radius = ArcSegment::calc_arc_radius(start_pos, center_pos);
+         //BBS: radius is too small to draw
+         if (radius <= DRAW_ARC_TOLERANCE) {
+             m_interpolation_points.resize(0);
+             return;
+         }
+         float radian_step = 2 * acos((radius - DRAW_ARC_TOLERANCE) / radius);
+         float num = ArcSegment::calc_arc_radian(start_pos, end_pos, center_pos, is_ccw) / radian_step;
+         float z_step = (num < 1)? end_pos.z() - start_pos.z() : (end_pos.z() - start_pos.z()) / num;
          radian_step = is_ccw ? radian_step : -radian_step;
          int interpolation_num = floor(num);
 
@@ -2770,7 +2740,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
              float sin_val = sin((i+1) * radian_step);
              m_interpolation_points[i] = Vec3f(center_pos.x() + delta.x() * cos_val - delta.y() * sin_val,
                                                center_pos.y() + delta.x() * sin_val + delta.y() * cos_val,
-                                               start_pos.z() + i * z_step);
+                                               start_pos.z() + (i + 1) * z_step);
          }
      };
 
@@ -2793,9 +2763,9 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
     //BBS: get arc length,interpolation points and radian in X-Y plane
     Vec3f start_point = Vec3f(m_start_position[X], m_start_position[Y], m_start_position[Z]);
     Vec3f end_point = Vec3f(m_end_position[X], m_end_position[Y], m_end_position[Z]);
-    float arc_length = calc_arc_length(start_point, end_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
+    float arc_length = ArcSegment::calc_arc_length(start_point, end_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
     arc_interpolation(start_point, end_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
-    float radian = calc_arc_radian(start_point, end_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
+    float radian = ArcSegment::calc_arc_radian(start_point, end_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
 
     //BBS: updates feedrate from line, if present
     if (line.has_f())

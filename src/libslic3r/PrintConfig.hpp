@@ -634,6 +634,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionString,              before_layer_gcode))
     ((ConfigOptionString,              between_objects_gcode))
     ((ConfigOptionFloats,              deretract_speed))
+    //BBS
+    ((ConfigOptionBool,                enable_arc_fitting))
     ((ConfigOptionString,              end_gcode))
     ((ConfigOptionStrings,             end_filament_gcode))
     ((ConfigOptionString,              extrusion_axis))

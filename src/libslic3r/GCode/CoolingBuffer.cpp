@@ -30,7 +30,8 @@ CoolingBuffer::CoolingBuffer(GCode &gcodegen) : m_config(gcodegen.config()), m_t
 
 void CoolingBuffer::reset(const Vec3d &position)
 {
-    m_current_pos.assign(5, 0.f);
+    // BBS: add I and J axis to store center of arc
+    m_current_pos.assign(7, 0.f);
     m_current_pos[0] = float(position.x());
     m_current_pos[1] = float(position.y());
     m_current_pos[2] = float(position.z());
@@ -54,6 +55,9 @@ struct CoolingLine
         TYPE_WIPE               = 1 << 9,
         TYPE_G4                 = 1 << 10,
         TYPE_G92                = 1 << 11,
+        //BBS: add G2 G3 type
+        TYPE_G2                 = 1 << 12,
+        TYPE_G3                 = 1 << 13,
     };
 
     CoolingLine(unsigned int type, size_t  line_start, size_t  line_end) :
@@ -347,6 +351,10 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
             line.type = CoolingLine::TYPE_G1;
         else if (boost::starts_with(sline, "G92 "))
             line.type = CoolingLine::TYPE_G92;
+        else if (boost::starts_with(sline, "G2 "))
+            line.type = CoolingLine::TYPE_G2;
+        else if (boost::starts_with(sline, "G3 "))
+            line.type = CoolingLine::TYPE_G3;
         if (line.type) {
             // G0, G1 or G92
             // Parse the G-code line.
@@ -359,9 +367,10 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
                     break;
 
                 assert(is_decimal_separator_point()); // for atof
-                // Parse the axis.
+                //BBS: Parse the axis.
                 size_t axis = (*c >= 'X' && *c <= 'Z') ? (*c - 'X') :
-                              (*c == extrusion_axis) ? 3 : (*c == 'F') ? 4 : size_t(-1);
+                              (*c == extrusion_axis) ? 3 : (*c == 'F') ? 4 :
+                              (*c == 'I') ? 5 : (*c == 'J') ? 6 : size_t(-1);
                 if (axis != size_t(-1)) {
                     new_pos[axis] = float(atof(++c));
                     if (axis == 4) {
@@ -370,6 +379,9 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
                         if ((line.type & CoolingLine::TYPE_G92) == 0)
                             // This is G0 or G1 line and it sets the feedrate. This mark is used for reducing the duplicate F calls.
                             line.type |= CoolingLine::TYPE_HAS_F;
+                    } else if (axis == 5 || axis == 6) {
+                        // BBS: get position of arc center
+                        new_pos[axis] += current_pos[axis - 5];
                     }
                 }
                 // Skip this word.
@@ -386,14 +398,25 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
                 active_speed_modifier = adjustment->lines.size();
             }
             if ((line.type & CoolingLine::TYPE_G92) == 0) {
-                // G0 or G1. Calculate the duration.
+                //BBS: G0, G1, G2, G3. Calculate the duration.
                 if (m_config.use_relative_e_distances.value)
                     // Reset extruder accumulator.
                     current_pos[3] = 0.f;
                 float dif[4];
                 for (size_t i = 0; i < 4; ++ i)
                     dif[i] = new_pos[i] - current_pos[i];
-                float dxy2 = dif[0] * dif[0] + dif[1] * dif[1];
+                float dxy2 = 0;
+                //BBS: support to calculate length of arc
+                if (line.type & CoolingLine::TYPE_G2 || line.type & CoolingLine::TYPE_G3) {
+                    Vec3f start(current_pos[0], current_pos[1], 0);
+                    Vec3f end(new_pos[0], new_pos[1], 0);
+                    Vec3f center(new_pos[5], new_pos[6], 0);
+                    bool is_ccw = line.type & CoolingLine::TYPE_G3;
+                    float dxy = ArcSegment::calc_arc_length(start, end, center, is_ccw);
+                    dxy2 = dxy * dxy;
+                } else {
+                    dxy2 = dif[0] * dif[0] + dif[1] * dif[1];
+                }
                 float dxyz2 = dxy2 + dif[2] * dif[2];
                 if (dxyz2 > 0.f) {
                     // Movement in xyz, calculate time from the xyz Euclidian distance.
@@ -409,7 +432,10 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
                 line.time_max = line.time;
                 if ((line.type & CoolingLine::TYPE_ADJUSTABLE) || active_speed_modifier != size_t(-1))
                     line.time_max = (adjustment->min_print_speed == 0.f) ? FLT_MAX : std::max(line.time, line.length / adjustment->min_print_speed);
-                if (active_speed_modifier < adjustment->lines.size() && (line.type & CoolingLine::TYPE_G1)) {
+                // BBS: add G2 and G3 support
+                if (active_speed_modifier < adjustment->lines.size() && ((line.type & CoolingLine::TYPE_G1) ||
+                                                                         (line.type & CoolingLine::TYPE_G2) ||
+                                                                         (line.type & CoolingLine::TYPE_G3))) {
                     // Inside the ";_EXTRUDE_SET_SPEED" blocks, there must not be a G1 Fxx entry.
                     assert((line.type & CoolingLine::TYPE_HAS_F) == 0);
                     CoolingLine &sm = adjustment->lines[active_speed_modifier];

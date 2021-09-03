@@ -209,6 +209,8 @@ public:
     int get_curve_degree() const {
         return curve_degree;
     };
+    //BBS: add new simplifing method by fitting arc
+    void simplify_by_fitting_arc(double tolerance);
 
 private:
     void _inflate_collection(const Polylines &polylines, ExtrusionEntityCollection* collection) const;

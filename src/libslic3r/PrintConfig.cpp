@@ -1330,6 +1330,13 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(0));
 
     // BBS
+    def = this->add("enable_arc_fitting", coBool);
+    def->label = L("Arc fitting");
+    def->tooltip = L("Enable this to get a G-code file which has G2 and G3 moves. "
+                     "And the fitting tolerance is same with resolution. ");
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionBool(0));
+    // BBS
     def = this->add("gcode_add_line_number", coBool);
     def->label = L("Add line number");
     def->tooltip = L("Enable this to add line number(Nx) at the beginning of each G-Code line.");

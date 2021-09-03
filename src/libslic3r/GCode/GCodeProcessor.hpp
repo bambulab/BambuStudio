@@ -32,15 +32,6 @@ namespace Slic3r {
         Count
     };
 
-    //BBS: linear move(G0 and G1) or arc move(G2 and G3).
-    enum class EMovePathType : unsigned char
-    {
-        Noop_move,
-        Linear_move,
-        Arc_move_cw,
-        Arc_move_ccw
-    };
-
     struct PrintEstimatedStatistics
     {
         enum class ETimeMode : unsigned char

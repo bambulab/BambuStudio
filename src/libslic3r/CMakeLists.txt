@@ -15,6 +15,8 @@ if (TARGET OpenVDB::openvdb)
 endif()
 
 set(lisbslic3r_sources
+    ArcFitter.cpp
+    ArcFitter.hpp
     pchheader.cpp
     pchheader.hpp
     BoundingBox.cpp
@@ -25,6 +27,8 @@ set(lisbslic3r_sources
     Brim.hpp
     BuildVolume.cpp
     BuildVolume.hpp
+    Circle.cpp
+    Circle.hpp
     clipper.cpp
     clipper.hpp
     ClipperUtils.cpp

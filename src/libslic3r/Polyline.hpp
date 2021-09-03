@@ -6,6 +6,8 @@
 #include "MultiPoint.hpp"
 #include <string>
 #include <vector>
+//BBS: new necessary header file
+#include "ArcFitter.hpp"
 
 namespace Slic3r {
 
@@ -74,6 +76,11 @@ public:
     void split_at(const Point &point, Polyline* p1, Polyline* p2) const;
     bool is_straight() const;
     bool is_closed() const { return this->points.front() == this->points.back(); }
+
+    //BBS: store arc fitting result
+    std::vector<PathFittingData> fitting_result;
+    //BBS: simplify points by arc fitting
+    void simplify_by_fitting_arc(double tolerance);
 };
 
 inline bool operator==(const Polyline &lhs, const Polyline &rhs) { return lhs.points == rhs.points; }

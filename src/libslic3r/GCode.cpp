@@ -2733,8 +2733,15 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     for (ExtrusionPaths::iterator path = paths.begin(); path != paths.end(); ++path) {
 //    description += ExtrusionLoop::role_to_string(loop.loop_role());
 //    description += ExtrusionEntity::role_to_string(path->role);
-        if (!is_perimeter(paths.front().role()))
+        // BBS: perimeter must not use this default low resolution
+        if (m_config.enable_arc_fitting &&
+            path->polyline.fitting_result.empty() &&
+            !m_config.spiral_vase) {
+            double tolerance = is_perimeter(paths.front().role()) ? scale_(m_config.resolution): m_scaled_resolution;
+            path->simplify_by_fitting_arc(tolerance);
+        } else if (!is_perimeter(paths.front().role())) {
             path->simplify(m_scaled_resolution);
+        }
         gcode += this->_extrude(*path, description, speed);
     }
 
@@ -2793,7 +2800,14 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
     for (ExtrusionPath path : multipath.paths) {
 //    description += ExtrusionLoop::role_to_string(loop.loop_role());
 //    description += ExtrusionEntity::role_to_string(path->role);
-        path.simplify(m_scaled_resolution);
+        // BBS: add arc fitting simplify
+        if (m_config.enable_arc_fitting &&
+            path.polyline.fitting_result.empty() &&
+            !m_config.spiral_vase) {
+            path.simplify_by_fitting_arc(m_scaled_resolution);
+        } else {
+            path.simplify(m_scaled_resolution);
+        }
         gcode += this->_extrude(path, description, speed);
     }
 
@@ -2826,7 +2840,15 @@ std::string GCode::extrude_entity(const ExtrusionEntity &entity, std::string des
 std::string GCode::extrude_path(ExtrusionPath path, std::string description, double speed)
 {
 //    description += ExtrusionEntity::role_to_string(path.role());
-    path.simplify(m_scaled_resolution);
+    //BBS: do arc fitting simplify or common simplify before extrude path
+    // Arc move is not supported in spiral_vase mode.
+    if (m_config.enable_arc_fitting &&
+        path.polyline.fitting_result.empty() &&
+        !m_config.spiral_vase) {
+        path.simplify_by_fitting_arc(m_scaled_resolution);
+    } else {
+        path.simplify(m_scaled_resolution);
+    }
     std::string gcode = this->_extrude(path, description, speed);
     if (m_wipe.enable) {
         m_wipe.path = std::move(path.polyline);
@@ -3156,13 +3178,58 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     double path_length = 0.;
     {
         std::string comment = m_config.gcode_comments ? description : "";
-        for (const Line &line : path.polyline.lines()) {
-            const double line_length = line.length() * SCALING_FACTOR;
-            path_length += line_length;
-            gcode += m_writer.extrude_to_xy(
-                this->point_to_gcode(line.b),
-                e_per_mm * line_length,
-                comment);
+        //BBS: use G1 if not enable arc fitting or has no arc fitting result or in spiral_vase mode
+        //Attention: G2 and G3 is not supported in spiral_vase mode
+        if (!m_config.enable_arc_fitting ||
+            path.polyline.fitting_result.empty() ||
+            m_config.spiral_vase) {
+            for (const Line& line : path.polyline.lines()) {
+                const double line_length = line.length() * SCALING_FACTOR;
+                path_length += line_length;
+                gcode += m_writer.extrude_to_xy(
+                    this->point_to_gcode(line.b),
+                    e_per_mm * line_length,
+                    comment);
+            }
+        } else {
+            // BBS: start to generate gcode from arc fitting data which includes line and arc
+            const std::vector<PathFittingData>& fitting_result = path.polyline.fitting_result;
+            for (size_t fitting_index = 0; fitting_index < fitting_result.size(); fitting_index++) {
+                switch (fitting_result[fitting_index].path_type) {
+                case EMovePathType::Linear_move: {
+                    size_t start_index = fitting_result[fitting_index].start_point_index;
+                    size_t end_index = fitting_result[fitting_index].end_point_index;
+                    for (size_t point_index = start_index + 1; point_index < end_index + 1; point_index++) {
+                        const Line line = Line(path.polyline.points[point_index - 1], path.polyline.points[point_index]);
+                        const double line_length = line.length() * SCALING_FACTOR;
+                        path_length += line_length;
+                        gcode += m_writer.extrude_to_xy(
+                            this->point_to_gcode(line.b),
+                            e_per_mm * line_length,
+                            comment);
+                    }
+                    break;
+                }
+                case EMovePathType::Arc_move_cw:
+                case EMovePathType::Arc_move_ccw: {
+                    const ArcSegment& arc = fitting_result[fitting_index].arc_data;
+                    const double arc_length = fitting_result[fitting_index].arc_data.length * SCALING_FACTOR;
+                    const Vec2d center_offset = this->point_to_gcode(arc.center) - this->point_to_gcode(arc.start_point);
+                    path_length += arc_length;
+                    gcode += m_writer.extrude_arc_to_xy(
+                            this->point_to_gcode(arc.end_point),
+                            center_offset,
+                            e_per_mm * arc_length,
+                            arc.direction == ArcDirection::Arc_Dir_CCW,
+                            comment);
+                    break;
+                }
+                default:
+                    //BBS: should never happen that a empty path_type has been stored
+                    assert(0);
+                    break;
+                }
+            }
         }
     }
     if (m_enable_cooling_markers)

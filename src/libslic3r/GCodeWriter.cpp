@@ -395,6 +395,25 @@ std::string GCodeWriter::extrude_to_xy(const Vec2d &point, double dE, const std:
     return w.string();
 }
 
+//BBS: generate G2 or G3 extrude which moves by arc
+//point is end point which means X and Y axis
+//center_offset is I and J axis
+std::string GCodeWriter::extrude_arc_to_xy(const Vec2d& point, const Vec2d& center_offset, double dE, const bool is_ccw, const std::string& comment)
+{
+    m_pos(0) = point(0);
+    m_pos(1) = point(1);
+    m_extruder->extrude(dE);
+
+    Vec2d point_on_plate = { point(0) - m_x_offset, point(1) - m_y_offset };
+
+    GCodeG2G3Formatter w(is_ccw);
+    w.emit_xy(point_on_plate);
+    w.emit_ij(center_offset);
+    w.emit_e(m_extrusion_axis, m_extruder->E());
+    w.emit_comment(this->config.gcode_comments, comment);
+    return w.string();
+}
+
 std::string GCodeWriter::extrude_to_xyz(const Vec3d &point, double dE, const std::string &comment)
 {
     m_pos = point;

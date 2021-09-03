@@ -38,7 +38,7 @@ private:
     // G-code snippet cached for the support layers preceding an object layer.
     std::string                 m_gcode;
     // Internal data.
-    // X,Y,Z,E,F
+    // BBS: X,Y,Z,E,F,I,J
     std::vector<char>           m_axis;
     std::vector<float>          m_current_pos;
     // Current known fan speed or -1 if not known yet.

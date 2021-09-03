@@ -452,7 +452,7 @@ static std::vector<std::string> s_Preset_print_options {
     "tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter", "tree_support_with_infill",
     "tree_support_branch_diameter_angle", "tree_support_collision_resolution", "tree_support_wall_count",
      "detect_narrow_internal_solid_infill",
-     "gcode_add_line_number", "infill_combination",
+     "gcode_add_line_number", "enable_arc_fitting", "infill_combination",
 };
 
 static std::vector<std::string> s_Preset_filament_options {

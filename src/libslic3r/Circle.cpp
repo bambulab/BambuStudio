@@ -1,0 +1,388 @@
+#include "Circle.hpp"
+
+#include <cmath>
+#include <cassert>
+
+namespace Slic3r {
+
+bool Circle::try_create_circle(const Point& p1, const Point& p2, const Point& p3, const double max_radius, Circle& new_circle)
+{
+    // BBS: return false directly if three points on one line
+    double dir = Line(p1, p3).direction();
+    Line line(p1, p2);
+    if (line.parallel_to(dir))
+        return false;
+
+    double x1 = p1.x();
+    double y1 = p1.y();
+    double x2 = p2.x();
+    double y2 = p2.y();
+    double x3 = p3.x();
+    double y3 = p3.y();
+
+    double a = x1 * (y2 - y3) - y1 * (x2 - x3) + x2 * y3 - x3 * y2;
+    //BBS: take out to figure out how we handle very small values
+    if (a < SCALED_EPSILON)
+        return false;
+
+    double b = (x1 * x1 + y1 * y1) * (y3 - y2)
+        + (x2 * x2 + y2 * y2) * (y1 - y3)
+        + (x3 * x3 + y3 * y3) * (y2 - y1);
+
+    double c = (x1 * x1 + y1 * y1) * (x2 - x3)
+        + (x2 * x2 + y2 * y2) * (x3 - x1)
+        + (x3 * x3 + y3 * y3) * (x1 - x2);
+
+    Point temp_center = Point(-b / (2.0 * a), -c / (2.0 * a));
+
+    Point temp = temp_center - p1;
+    double radius = sqrt((double)temp.x() * (double)temp.x() + (double)temp.y() * (double)temp.y());
+    if (radius > max_radius)
+        return false;
+
+    new_circle.center = temp_center;
+    new_circle.radius = radius;
+
+    return true;
+}
+
+bool Circle::try_create_circle(const Points& points, const double max_radius, const double tolerance, Circle& new_circle)
+{
+    size_t count = points.size();
+    int middle_index = count / 2;
+    // BBS: the middle point will almost always produce the best arcs with high possibility.
+    if (Circle::try_create_circle(points[0], points[middle_index], points[count - 1], max_radius, new_circle) && !new_circle.is_over_deviation(points, tolerance))
+        return true;
+
+    // BBS: Find the circle with the least deviation, if one exists.
+    Circle test_circle;
+    double least_deviation;
+    bool found_circle = false;
+    for (int index = 1; index < count - 1; index++)
+    {
+        if (index == middle_index)
+            // BBS: We already checked this one, and it failed. don't need to do again
+            continue;
+
+        double current_deviation;
+        if (Circle::try_create_circle(points[0], points[index], points[count - 1], max_radius, test_circle) && test_circle.get_deviation_sum_squared(points, tolerance, current_deviation))
+        {
+            if (!found_circle || current_deviation < least_deviation)
+            {
+                found_circle = true;
+                least_deviation = current_deviation;
+                new_circle = test_circle;
+            }
+        }
+    }
+    return found_circle;
+}
+
+double Circle::get_polar_radians(const Point& p1) const
+{
+    double polar_radians = atan2(p1.y() - center.y(), p1.x() - center.x());
+    if (polar_radians < 0)
+        polar_radians = (2.0 * PI) + polar_radians;
+    return polar_radians;
+}
+
+bool Circle::is_over_deviation(const Points& points, const double tolerance)
+{
+    int max_index = points.size() - 1;
+    // BBS: skip the first and last points since they has fit perfectly.
+    for (int index = 0; index < max_index; index++)
+    {
+        if (index != 0)
+        {
+            //BBS: check fitting tolerance
+            Point temp = points[index] - center;
+            double distance_from_center = sqrt((double)temp.x() * (double)temp.x() + (double)temp.y() * (double)temp.y());
+            if (std::fabs(distance_from_center - radius) > tolerance)
+                return true;
+        }
+
+        //BBS: Check the point perpendicular from the segment to the circle's center
+        Line line = Line(points[index], points[(size_t)index + 1]);
+        double distance = line.distance_to(center);
+        if (std::fabs(distance - radius) > tolerance)
+            return true;
+    }
+    return false;
+}
+
+bool Circle::get_deviation_sum_squared(const Points& points, const double tolerance, double& total_deviation)
+{
+    total_deviation = 0;
+    // BBS: skip the first and last points since they are on the circle
+    for (int index = 1; index < points.size() - 1; index++)
+    {
+        //BBS: make sure the length from the center of our circle to the test point is 
+        // at or below our max distance.
+        Point temp = points[index] - center;
+        double distance_from_center = sqrt((double)temp.x() * (double)temp.x() + (double)temp.y() * (double)temp.y());
+        double deviation = std::fabs(distance_from_center - radius);
+        total_deviation += deviation * deviation;
+        if (deviation > tolerance)
+            return false;
+
+    }
+    //BBS: check the point perpendicular from the segment to the circle's center
+    for (int index = 0; index < points.size() - 1; index++)
+    {
+        Line line = Line(points[index], points[(size_t)index + 1]);
+        double distance = line.distance_to(center);
+        double deviation = std::fabs(distance - radius);
+        total_deviation += deviation * deviation;
+        if (deviation > tolerance)
+            return false;
+    }
+    return true;
+}
+
+bool ArcSegment::try_create_arc(
+    const Points& points,
+    ArcSegment& target_arc,
+    double approximate_length,
+    double max_radius,
+    double tolerance,
+    double path_tolerance_percent)
+{
+    Circle test_circle = (Circle)target_arc;
+    if (!Circle::try_create_circle(points, max_radius, tolerance, test_circle))
+        return false;
+
+    int mid_point_index = ((points.size() - 2) / 2) + 1;
+    ArcSegment test_arc;
+    if (!ArcSegment::try_create_arc(test_circle, points[0], points[mid_point_index], points[points.size() - 1], test_arc, approximate_length, path_tolerance_percent))
+        return false;
+
+    if (ArcSegment::are_points_within_slice(test_arc, points))
+    {
+        target_arc = test_arc;
+        return true;
+    }
+    return false;
+}
+
+bool ArcSegment::try_create_arc(
+    const Circle& c,
+    const Point& start_point,
+    const Point& mid_point,
+    const Point& end_point,
+    ArcSegment& target_arc,
+    double approximate_length,
+    double path_tolerance_percent)
+{
+    double polar_start_theta = c.get_polar_radians(start_point);
+    double polar_mid_theta = c.get_polar_radians(mid_point);
+    double polar_end_theta = c.get_polar_radians(end_point);
+
+    double angle_radians = 0;
+    ArcDirection direction = ArcDirection::Arc_Dir_unknow;
+    //BBS: calculate the direction of the arc
+    if (polar_end_theta > polar_start_theta) {
+        if (polar_start_theta < polar_mid_theta && polar_mid_theta < polar_end_theta) {
+            direction = ArcDirection::Arc_Dir_CCW;
+            angle_radians = polar_end_theta - polar_start_theta;
+        } else if ((0.0 <= polar_mid_theta && polar_mid_theta < polar_start_theta) ||
+                   (polar_end_theta < polar_mid_theta && polar_mid_theta < (2.0 * PI))) {
+            direction = ArcDirection::Arc_Dir_CW;
+            angle_radians = polar_start_theta + ((2.0 * PI) - polar_end_theta);
+        }
+    } else if (polar_start_theta > polar_end_theta) {
+        if ((polar_start_theta < polar_mid_theta && polar_mid_theta < (2.0 * PI)) ||
+            (0.0 < polar_mid_theta && polar_mid_theta < polar_end_theta)) {
+            direction = ArcDirection::Arc_Dir_CCW;
+            angle_radians = polar_end_theta + ((2.0 * PI) - polar_start_theta);
+        } else if (polar_end_theta < polar_mid_theta && polar_mid_theta < polar_start_theta) {
+            direction = ArcDirection::Arc_Dir_CW;
+            angle_radians = polar_start_theta - polar_end_theta;
+        }
+    }
+
+    // BBS: this doesn't always work.. in rare situations, the angle may be backward
+    if (direction == ArcDirection::Arc_Dir_unknow || std::fabs(angle_radians) < EPSILON)
+        return false;
+
+    // BBS: Check the length against the original length.
+    // This can trigger simply due to the differing path lengths
+    // but also could indicate that the vector calculation above
+    // got wrong direction
+    double arc_length = c.radius * angle_radians;
+    double difference = (arc_length - approximate_length) / approximate_length;
+    if (std::fabs(difference) >= path_tolerance_percent)
+    {
+        // BBS: So it's possible that vector calculation above got wrong direction.
+        // This can happen if there is a crazy arrangement of points
+        // extremely close to eachother. They have to be close enough to
+        // break our other checks.  However, we may be able to salvage this.
+        // see if an arc moving in the opposite direction had the correct length.
+
+        //BBS: Find the rest of the angle across the circle
+        double test_radians = std::fabs(angle_radians - 2 * PI);
+        // Calculate the length of that arc
+        double test_arc_length = c.radius * test_radians;
+        difference = (test_arc_length - approximate_length) / approximate_length;
+        if (std::fabs(difference) >= path_tolerance_percent)
+            return false;
+        //BBS: Set the new length and flip the direction (but not the angle)!
+        arc_length = test_arc_length;
+        direction = direction == ArcDirection::Arc_Dir_CCW ? ArcDirection::Arc_Dir_CW : ArcDirection::Arc_Dir_CCW;
+    }
+
+    if (direction == ArcDirection::Arc_Dir_CW)
+        angle_radians *= -1.0;
+
+    target_arc.direction = direction;
+    target_arc.center = c.center;
+    target_arc.radius = c.radius;
+    target_arc.start_point = start_point;
+    target_arc.end_point = end_point;
+    target_arc.length = arc_length;
+    target_arc.angle_radians = angle_radians;
+    target_arc.polar_start_theta = polar_start_theta;
+    target_arc.polar_end_theta = polar_end_theta;
+
+    return true;
+}
+
+bool ArcSegment::are_points_within_slice(const ArcSegment& test_arc, const Points& points)
+{
+    //BBS: Check all the points and see if they fit inside of the angles
+    double previous_polar = test_arc.polar_start_theta;
+    bool will_cross_zero = false;
+    bool crossed_zero = false;
+    const int point_count = points.size();
+
+    Point start_norm(((double)test_arc.start_point.x() - (double)test_arc.center.x()) / test_arc.radius,
+                     ((double)test_arc.start_point.y() - (double)test_arc.center.y()) / test_arc.radius);
+    Point end_norm(((double)test_arc.end_point.x() - (double)test_arc.center.x()) / test_arc.radius,
+                   ((double)test_arc.end_point.y() - (double)test_arc.center.y()) / test_arc.radius);
+
+    if (test_arc.direction == ArcDirection::Arc_Dir_CCW)
+        will_cross_zero = test_arc.polar_start_theta > test_arc.polar_end_theta;
+    else
+        will_cross_zero = test_arc.polar_start_theta < test_arc.polar_end_theta;
+
+    //BBS: check if point 1 to point 2 cross zero
+    for (int index = point_count - 2; index < point_count; index++)
+    {
+        double polar_test;
+        if (index < point_count - 1)
+          polar_test = test_arc.get_polar_radians(points[index]);
+        else
+          polar_test = test_arc.polar_end_theta;
+
+        //BBS: First ensure the test point is within the arc
+        if (test_arc.direction == ArcDirection::Arc_Dir_CCW)
+        {
+            //BBS: Only check to see if we are within the arc if this isn't the endpoint
+            if (index < point_count - 1) {
+                if (will_cross_zero) {
+                    if (!(polar_test > test_arc.polar_start_theta || polar_test < test_arc.polar_end_theta))
+                        return false;
+                } else if (!(test_arc.polar_start_theta < polar_test && polar_test < test_arc.polar_end_theta))
+                    return false;
+            }
+            //BBS: check the angles are increasing
+            if (previous_polar > polar_test) {
+                if (!will_cross_zero)
+                    return false;
+
+                //BBS: Allow the angle to cross zero once
+                if (crossed_zero)
+                    return false;
+                crossed_zero = true;
+            }
+        } else {
+            if (index < point_count - 1) {
+                if (will_cross_zero) {
+                    if (!(polar_test < test_arc.polar_start_theta || polar_test > test_arc.polar_end_theta))
+                        return false;
+                } else if (!(test_arc.polar_start_theta > polar_test && polar_test > test_arc.polar_end_theta))
+                    return false;
+            }
+            //BBS: Now make sure the angles are decreasing
+            if (previous_polar < polar_test)
+            {
+                if (!will_cross_zero)
+                    return false;
+                //BBS: Allow the angle to cross zero once
+                if (crossed_zero)
+                    return false;
+                crossed_zero = true;
+            }
+        }
+
+        // BBS: check if the segment intersects either of the vector from the center of the circle to the endpoints of the arc
+        Line segmemt(points[index - 1], points[index]);
+        if ((index != 1 && ray_intersects_segment(test_arc.center, start_norm, segmemt)) ||
+            (index != point_count - 1 && ray_intersects_segment(test_arc.center, end_norm, segmemt)))
+            return false;
+        previous_polar = polar_test;
+    }
+    //BBS: Ensure that all arcs that cross zero do, and that all arcs that should not did not.
+    if (will_cross_zero != crossed_zero)
+        return false;
+    return true;
+}
+
+// BBS: this function is used to detect whether a ray cross the segment
+bool ArcSegment::ray_intersects_segment(const Point &rayOrigin, const Point &rayDirection, const Line& segment)
+{
+    Point v1 = rayOrigin - segment.a;
+    Point v2 = segment.b - segment.a;
+    Point v3 = Point(-rayDirection.y(), rayDirection.x());
+
+    int64_t dot = int64_t(v2(0)) * int64_t(v3(0)) + int64_t(v2(1)) * int64_t(v3(1));
+    if (std::fabs(dot) < SCALED_EPSILON)
+        return false;
+
+    double t1 = ((double)v2(0) * (double)v1(1) - (double)v2(1) * (double)v1(0)) / (double)dot;
+    double t2 = ((double)v1(0) * (double)v3(0) + (double)v1(1) * (double)v3(1))/ (double)dot;
+
+    if (t1 >= 0.0 && (t2 >= 0.0 && t2 <= 1.0))
+        return true;
+
+    return false;
+}
+
+// BBS: new function to calculate arc radian in X-Y plane
+float ArcSegment::calc_arc_radian(Vec3f start_pos, Vec3f end_pos, Vec3f center_pos, bool is_ccw)
+{
+    Vec3f delta1 = center_pos - start_pos;
+    Vec3f delta2 = center_pos - end_pos;
+    // only consider arc in x-y plane, so clean z distance
+    delta1(2,0) = 0;
+    delta2(2,0) = 0;
+
+    float radian;
+    if ((delta1 - delta2).norm() < 1e-6) {
+        // start_pos is same with end_pos, we think it's a full circle
+        radian = 2 * M_PI;
+    } else {
+        double dot = delta1.dot(delta2);
+        double cross = (double)delta1(0, 0) * (double)delta2(1, 0) - (double)delta1(1, 0) * (double)delta2(0, 0);
+        radian = atan2(cross, dot);
+        if (is_ccw)
+            radian = (radian < 0) ? 2 * M_PI + radian : radian;
+        else
+            radian = (radian < 0) ? abs(radian) : 2 * M_PI - radian;
+    }
+    return radian;
+}
+
+float ArcSegment::calc_arc_radius(Vec3f start_pos, Vec3f center_pos)
+{
+    Vec3f delta1 = center_pos - start_pos;
+    delta1(2,0) = 0;
+    return delta1.norm();
+}
+
+// BBS: new function to calculate arc length in X-Y plane
+float ArcSegment::calc_arc_length(Vec3f start_pos, Vec3f end_pos, Vec3f center_pos, bool is_ccw)
+{
+    return calc_arc_radius(start_pos, center_pos) * calc_arc_radian(start_pos, end_pos, center_pos, is_ccw);
+}
+
+}

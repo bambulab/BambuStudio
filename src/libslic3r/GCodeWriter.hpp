@@ -62,6 +62,8 @@ public:
     std::string travel_to_z(double z, const std::string &comment = std::string());
     bool        will_move_z(double z) const;
     std::string extrude_to_xy(const Vec2d &point, double dE, const std::string &comment = std::string());
+    //BBS: generate G2 or G3 extrude which moves by arc
+    std::string extrude_arc_to_xy(const Vec2d &point, const Vec2d &center_offset, double dE, const bool is_ccw, const std::string &comment = std::string());
     std::string extrude_to_xyz(const Vec3d &point, double dE, const std::string &comment = std::string());
     std::string retract(bool before_wipe = false);
     std::string retract_for_toolchange(bool before_wipe = false);
@@ -160,6 +162,11 @@ public:
     void emit_f(double speed) {
         this->emit_axis('F', speed, XYZF_EXPORT_DIGITS);
     }
+    //BBS
+    void emit_ij(const Vec2d &point) {
+        this->emit_axis('I', point.x(), XYZF_EXPORT_DIGITS);
+        this->emit_axis('J', point.y(), XYZF_EXPORT_DIGITS);
+    }
 
     void emit_string(const std::string &s) {
         strncpy(ptr_err.ptr, s.c_str(), s.size());
@@ -196,6 +203,19 @@ public:
 
     GCodeG1Formatter(const GCodeG1Formatter&) = delete;
     GCodeG1Formatter& operator=(const GCodeG1Formatter&) = delete;
+};
+
+class GCodeG2G3Formatter : public GCodeFormatter {
+public:
+    GCodeG2G3Formatter(bool is_ccw) {
+        this->buf[0] = 'G';
+        this->buf[1] = is_ccw ? '3' : '2';
+        this->buf_end = buf + buflen;
+        this->ptr_err.ptr = this->buf + 2;
+    }
+
+    GCodeG2G3Formatter(const GCodeG2G3Formatter&) = delete;
+    GCodeG2G3Formatter& operator=(const GCodeG2G3Formatter&) = delete;
 };
 
 } /* namespace Slic3r */

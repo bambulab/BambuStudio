@@ -32,6 +32,11 @@ void ExtrusionPath::simplify(double tolerance)
     this->polyline.simplify(tolerance);
 }
 
+void ExtrusionPath::simplify_by_fitting_arc(double tolerance)
+{
+    this->polyline.simplify_by_fitting_arc(tolerance);
+}
+
 double ExtrusionPath::length() const
 {
     return this->polyline.length();
