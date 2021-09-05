@@ -763,7 +763,8 @@ static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print
             ExtrusionPath path(0, 0, role, flow.mm3_per_mm(), flow.width, print.skirt_first_layer_height());
             path.polyline = loops[i].split_at_first_point();
             paths.emplace_back(std::move(path));
-            curve_analyzer.calculate_curvatures(paths);
+            // BBS: use absolute mode for tree support because we don't care about the surface quality of support
+            curve_analyzer.calculate_curvatures(paths, ECurveAnalyseMode::AbsoluteMode);
             // BBS: save result
             dst.reserve(dst.size() + 1);
             dst.emplace_back(new ExtrusionLoop(std::move(paths)));

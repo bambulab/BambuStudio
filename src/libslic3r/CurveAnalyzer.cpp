@@ -16,7 +16,7 @@ namespace Slic3r {
 // Paths must be generated from a closed polygon.
 // Data in paths may be modify, and paths will be spilited and regenerated
 // arrording to different curve degree.
-void CurveAnalyzer::calculate_curvatures(ExtrusionPaths& paths)
+void CurveAnalyzer::calculate_curvatures(ExtrusionPaths& paths, ECurveAnalyseMode mode)
 {
     Polygon polygon;
     std::vector<float> paths_length(paths.size(), 0.0);
@@ -44,7 +44,9 @@ void CurveAnalyzer::calculate_curvatures(ExtrusionPaths& paths)
         const Point  v2 = polygon.points[next] - polygon.points[curr];
         int64_t dot = int64_t(v1(0)) * int64_t(v2(0)) + int64_t(v1(1)) * int64_t(v2(1));
         int64_t cross = int64_t(v1(0)) * int64_t(v2(1)) - int64_t(v1(1)) * int64_t(v2(0));
-        angles[curr] = float(atan2(double(abs(cross)), double(dot)));
+        if (mode == ECurveAnalyseMode::RelativeMode)
+            cross = abs(cross);
+        angles[curr] = float(atan2(double(cross), double(dot)));
     }
 
     // 3 generate sum of angle and length of the adjacent segment for eveny point, range is approximately curvatures_sampling_width.
@@ -53,7 +55,7 @@ void CurveAnalyzer::calculate_curvatures(ExtrusionPaths& paths)
     std::vector<double> average_curvatures(point_num, 0.f);
     if (paths_length.back() < scale_(curvatures_sampling_width)) {
         // loop is too short, so the curvatures is max
-        double temp = sqrt(1000 * 2 * PI / (double)curvatures_sampling_width);
+        double temp = 1000.0 * 2.0 * PI / ((double)(paths_length.back()) * SCALING_FACTOR);
         for (size_t i = 0; i < point_num; i++) {
             average_curvatures[i] = temp;
         }
@@ -79,7 +81,7 @@ void CurveAnalyzer::calculate_curvatures(ExtrusionPaths& paths)
                 k = next_k;
             }
             sum_angles[i] = sum_angles[i] - angles[i];
-            average_curvatures[i] = (1000 * (double)sum_angles[i] / (double)curvatures_sampling_width);
+            average_curvatures[i] = (1000.0 * (double)abs(sum_angles[i]) / (double)curvatures_sampling_width);
         }
     }
 

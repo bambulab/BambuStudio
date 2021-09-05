@@ -252,7 +252,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
         // this step will modify the segment of paths as well
         if (perimeter_generator.print_config->auto_slow_down_for_overhang_and_curva) {
             CurveAnalyzer curve_analyzer;
-            curve_analyzer.calculate_curvatures(paths);
+            curve_analyzer.calculate_curvatures(paths, ECurveAnalyseMode::RelativeMode);
         }
 
         coll.append(ExtrusionLoop(std::move(paths), loop_role));
