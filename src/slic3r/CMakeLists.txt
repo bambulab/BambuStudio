@@ -153,6 +153,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ImGuiWrapper.cpp
     GUI/DeviceManager.hpp
     GUI/DeviceManager.cpp
+    GUI/ProjectTask.hpp
+    GUI/ProjectTask.cpp
     Config/Snapshot.cpp
     Config/Snapshot.hpp
     Config/Version.cpp

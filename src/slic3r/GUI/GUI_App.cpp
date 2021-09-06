@@ -794,7 +794,7 @@ void GUI_App::post_init()
     OtherInstanceMessageHandler::init_windows_properties(mainframe, m_instance_hash_int);
 #endif //WIN32
 
-    // start dds mode
+    // start ssdp and connect mqtt
     m_backend->start();
 }
 
@@ -807,10 +807,11 @@ GUI_App::GUI_App(EAppMode mode)
     , m_imgui(new ImGuiWrapper())
 	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
 	, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
-    , m_backend(new Slic3r::CommuBackend())
-    , m_device_manager(new Slic3r::DeviceManager())
     , m_account_manager(new Slic3r::AccountManager())
 {
+    m_backend = new Slic3r::CommuBackend();
+    m_device_manager = new Slic3r::DeviceManager(*m_account_manager, *m_backend);
+    
 	//app config initializes early becasuse it is used in instance checking in PrusaSlicer.cpp
 	this->init_app_config();
 
@@ -1769,6 +1770,7 @@ void GUI_App::persist_window_geometry(wxTopLevelWindow *window, bool default_max
     const std::string name = into_u8(window->GetName());
 
     window->Bind(wxEVT_CLOSE_WINDOW, [=](wxCloseEvent &event) {
+        m_device_manager->disconnect_all();
         m_backend->stop();
         window_pos_save(window, name);
         event.Skip();

@@ -480,32 +480,29 @@ int bbl_read_from_broadcast(SOCKET socket, char* buf, int* buf_size, int max_buf
 
 int lssdp_packet_parser(const char* data, size_t data_len, lssdp_packet* packet) {
 	if (data == NULL) {
-		printf("data should not be NULL\n");
-		return -1;
+		return LSSDP_PARSE_INVALID;
 	}
 
 	if (data_len != strlen(data)) {
-		printf("data_len (%zu) is not match to the data length (%zu)\n", data_len, strlen(data));
-		return -1;
+		return LSSDP_PARSE_INVALID;
 	}
 
 	if (packet == NULL) {
-		printf("packet should not be NULL\n");
-		return -1;
+		return LSSDP_PARSE_INVALID;
 	}
 
 	// 1. compare SSDP Method Header: M-SEARCH, NOTIFY, RESPONSE
 	size_t i;
 	if ((i = strlen(Global.HEADER_MSEARCH)) < data_len && memcmp(data, Global.HEADER_MSEARCH, i) == 0) {
 		strcpy(packet->method, Global.MSEARCH);
-		return -1;
+		return LSSDP_PARSE_COMMAND;
 	}
 	else if ((i = strlen(Global.HEADER_NOTIFY)) < data_len && memcmp(data, Global.HEADER_NOTIFY, i) == 0) {
 		strcpy(packet->method, Global.NOTIFY);
 	}
 	else if ((i = strlen(Global.HEADER_RESPONSE)) < data_len && memcmp(data, Global.HEADER_RESPONSE, i) == 0) {
 		strcpy(packet->method, Global.RESPONSE);
-		return -1;
+		return LSSDP_PARSE_COMMAND;
 	}
 	else {
 		printf("received unknown SSDP packet\n");

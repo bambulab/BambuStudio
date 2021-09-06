@@ -80,11 +80,17 @@ public:
 	// specifically, this is supported with OpenSSL and NOT supported with Windows and OS X native certificate store.
 	// See also ca_file_supported().
 	Http& ca_file(const std::string &filename);
-	Http& set_header(const std::string token);
+	
 	// Add a HTTP multipart form field
 	Http& form_add(const std::string &name, const std::string &contents);
 	// Add a HTTP multipart form file data contents, `name` is the name of the part
 	Http& form_add_file(const std::string &name, const boost::filesystem::path &path);
+	// Add a HTTP mime form field
+	Http& mime_form_add_text(std::string& name, std::string& value);
+	// Add a HTTP mime form file
+	Http& mime_form_add_file(std::string& name, const boost::filesystem::path& path);
+	// Same as above except also override the file's filename with a wstring type
+	Http& form_add_file(const std::wstring& name, const boost::filesystem::path& path);
 	// Same as above except also override the file's filename with a custom one
 	Http& form_add_file(const std::string &name, const boost::filesystem::path &path, const std::string &filename);
 
@@ -108,6 +114,11 @@ public:
 	// The data is used verbatim, it is not additionally encoded in any way.
 	// This can be used for hosts which do not support multipart requests.
 	Http& set_put_body(const boost::filesystem::path &path);
+
+	// Set the file contents as a DELETE request body.
+	// The data is used verbatim, it is not additionally encoded in any way.
+	// This can be used for hosts which do not support multipart requests.
+	Http& set_del_body(const std::string& body);
 
 	// Callback called on HTTP request complete
 	Http& on_complete(CompleteFn fn);

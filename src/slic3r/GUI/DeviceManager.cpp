@@ -3,65 +3,482 @@
 #include "libslic3r/Time.hpp"
 #include "libslic3r/Thread.hpp"
 #include "slic3r/Utils/Http.hpp"
+#include "slic3r/Utils/Sftp.hpp"
 
 #include <thread>
 #include <mutex>
+#include <codecvt>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 
 namespace Slic3r {
 
-DeviceInfo::DeviceInfo(std::string dev_id, std::string dev_name, int conn_flag):
-    m_dev_id(dev_id),
-    m_dev_name(dev_name),
-    m_conn_flag(conn_flag),
-    m_bind_status(BIND_UNKOWN)
-{
-    m_dds_conn_status = false;
-    m_mqtt_conn_status = false;
+/* Common Functions */
+void split_string(std::string s, std::vector<std::string>& v) {
+
+    std::string t = "";
+    for (int i = 0; i < s.length(); ++i) {
+        if (s[i] == ',') {
+            v.push_back(t);
+            t = "";
+        }
+        else {
+            t.push_back(s[i]);
+        }
+    }
+    v.push_back(t);
 }
 
-int DeviceInfo::set_bind_status(std::string status)
+
+/* mqtt client connection callbacks */
+void machine_conn_callback::reconnect()
 {
-    if (status.compare("free") == 0) {
-        m_bind_status = BIND_FREE;
+    /* sleep ? */
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+    try {
+        BOOST_LOG_TRIVIAL(trace) << "machine_conn_callback::reconnect()  connecting...";
+        MachineObject* obj = (MachineObject*)context_;
+        if (obj) {
+            obj->conn_state = MachineObject::CONNECTION_STATE::STATE_CONNECTING;
+        }
+        cli_.connect(connOpts_, context_, *this);
     }
-    else if (status.compare("self") == 0) {
-        m_bind_status = BIND_SELF;
+    catch (const mqtt::exception& exc) {
+        BOOST_LOG_TRIVIAL(trace) << "machine_conn_callback::reconnect() exception:" << exc.get_message();
     }
-    else if (status.compare("other") == 0) {
-        m_bind_status = BIND_OHTER;
+    catch (std::exception& e) {
+        BOOST_LOG_TRIVIAL(trace) << "machine_conn_callback::reconnect() exception:" << e.what();
     }
-    else {
-        m_bind_status = BIND_UNKOWN;
-        m_bind_status_str = status;
+}
+
+void machine_conn_callback::connected(const std::string& cause)
+{
+    BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::connected!";
+    /* subscribe current device reqeust and report */
+    try {
+        if (succussFn) {
+            succussFn(cli_.get_client_id());
+        }
+        for (int i = 0; i < sub_topics.size(); i++) {
+            sub_action_listener* sub_listener = new sub_action_listener("LanSubscriber_" + sub_topics[i]);
+            cli_.subscribe(sub_topics[i], 0, nullptr, *sub_listener);
+        }
+        MachineObject* obj = (MachineObject*)context_;
+        if (obj) {
+            obj->conn_state = MachineObject::CONNECTION_STATE::STATE_CONNECTED;
+        }
+    }
+    catch (mqtt::exception& e) {
+        BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::connected, exception=" << e.what();
+    }
+}
+
+void machine_conn_callback::on_failure(const mqtt::token& tok)
+{
+    BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::on_failure, Connection(mqtt) failed! retry=" << nretry_;
+    /* mqtt connect failed tips */
+    if (failedFn) {
+        failedFn(cli_.get_client_id());
+    }
+    MachineObject* obj = (MachineObject*)context_;
+    if (obj) {
+        obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_DISCONNECTED);
+    }
+    ++nretry_;
+    reconnect();
+}
+
+void machine_conn_callback::on_success(const mqtt::token& tok)
+{
+    BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::on_success, Connection(mqtt) OK!";
+    MachineObject* obj = (MachineObject*)context_;
+    if (obj) {
+        obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_CONNECTED);
+    }
+}
+
+void machine_conn_callback::connection_lost(const std::string& cause) {
+    BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::connection_lost!, cause =" << cause;
+    if (lostFn) {
+        lostFn(cli_.get_client_id());
+    }
+    MachineObject* obj = (MachineObject*)context_;
+    if (obj) {
+        obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_DISCONNECTED);
+    }
+    ++nretry_;
+    reconnect();
+}
+
+void machine_conn_callback::message_arrived(mqtt::const_message_ptr msg)
+{
+    MachineObject* obj = (MachineObject*)context_;
+    if (obj->msg_recv_fn) {
+        obj->msg_recv_fn(msg->get_topic(), msg->get_payload_str());
+    }
+}
+
+void machine_conn_callback::set_connect_fns(SuccessFn sFn, FailedFn fFn, LostFn lFn)
+{
+    succussFn = sFn;
+    failedFn = fFn;
+    lostFn = lFn;
+}
+
+
+MachineObject::MachineObject(AccountManager& acc, CommuBackend& backend, std::string name, std::string id, std::string ip)
+    :acc_(acc),
+    mqtt_cb(nullptr),
+    mqtt_cli(nullptr),
+    msg_send_fn(nullptr),
+    msg_recv_fn(nullptr),
+    backend_(backend),
+    dev_name(name),
+    dev_id(id),
+    dev_ip(ip),
+    dev_bind_status(MACHINE_BIND_UNKOWN),
+    conn_type(CONNECTION_LAN),
+    is_alive(false),
+    is_online(false),
+    mqtt_uuid_bytes(4),
+    mqtt_opt(mqtt::connect_options_builder()
+        .clean_session()
+        //.automatic_reconnect(std::chrono::seconds(2), std::chrono::seconds(30))
+        .finalize())
+{
+    boost::uuids::uuid uuid = boost::uuids::random_generator()();
+    mqtt_uuid = to_string(uuid).substr(0, mqtt_uuid_bytes);
+}
+
+bool MachineObject::check_valid_ip()
+{
+    if (dev_ip.empty()) {
+        return false;
+    }
+
+    return true;
+}
+
+int MachineObject::connect(SuccessFn sFn, FailedFn fFn, LostFn lFn)
+{
+    if (!check_valid_ip()) {
         return -1;
     }
+
+    try {
+        if (acc_.is_user_login()) {
+            if (is_connected()) return 0;
+
+            /* lan mqtt connection */
+            std::string client_id = (boost::format("%1%:%2%") % acc_.get_user_id() % mqtt_uuid).str();
+            std::string report_topic = build_report_topic(dev_id);
+            mqtt_cli = new mqtt::async_client(dev_ip, client_id);
+            mqtt_cb = new machine_conn_callback(*mqtt_cli, mqtt_opt, this);
+            mqtt_cb->set_connect_fns(sFn, fFn, lFn);
+            mqtt_cb->add_topics(report_topic);
+            mqtt_cli->set_callback(*mqtt_cb);
+            mqtt_cli->connect(mqtt_opt, this, *mqtt_cb);
+
+            /* wan mqtt connenction */
+            /* TODO
+            sub_action_listener* sub_listener = new sub_action_listener("WanSubscriber_" + report_topic);
+            mqtt_cloud.subscribe(report_topic, 0, this, *sub_listener);
+            */
+            return 0;
+        }
+    }
+    catch (std::exception& e) {
+        return -1;
+    }
+    return 0;
+}
+
+int MachineObject::disconnect()
+{
+    if (mqtt_cli) {
+        try {
+            mqtt_cli->disable_callbacks();
+            mqtt_cli->disconnect()->wait_for(100);
+        }
+        catch (std::exception& e) {
+
+        }
+        catch (...) {
+            ;
+        }
+        delete mqtt_cli;
+        mqtt_cli = NULL;
+    }
+    return 0;
+}
+
+bool MachineObject::is_connected()
+{
+    if (mqtt_cli) {
+        return mqtt_cli->is_connected();
+    }
+    else {
+        return false;
+    }
+    return false;
+}
+
+int MachineObject::publish_json(std::string json_str, ResultFn resFn)
+{
+    mqtt::async_client* client = nullptr;
+    if (conn_type == CONNECTION_LAN) {
+        client = mqtt_cli;
+    }
+    else if (conn_type == CONNECTION_WAN) {
+        //mqtt_cli = &mqtt_cloud;
+        mqtt_cli = nullptr;
+    }
+    else {
+        ;
+    }
+
+    if (client) {
+        if (client->is_connected()) {
+            std::string topic = (boost::format("device/%1%/request") % dev_id).str();
+            json_str += '\0';
+            client->publish(topic, json_str);
+            if (msg_send_fn) {
+                msg_send_fn(topic, json_str);
+            }
+        }
+        else {
+            if (resFn) {
+                resFn(-1, "Please Connect First!");
+            }
+        }
+    }
+    return 0;
+}
+
+std::wstring get_printer_dest_file(std::wstring file)
+{
+    std::wstring result;
+
+    result = L"/data/";
+
+    int name_start = file.find_last_of(L"\\");
+    if (name_start <= 0) {
+        return result;
+    }
+    result = result + file.substr(name_start + 1, file.size());
+
+    return result;
+}
+
+int MachineObject::send_print_task(BBLTask* task)
+{
+    if (conn_type == CONNECTION_WAN) {
+        send_wan_print_task(task);
+    }
+    else {
+        ;
+    }
+    return 0;
+}
+
+int MachineObject::send_wan_print_task(BBLTask* task)
+{
+    /* send json command */
+    pt::ptree root, print;
+    print.put("sequence_id", MachineObject::m_sequence_id++);
+    print.put("command", "gcode_file");
+    print.put("project_id", task->task_project_id);
+    print.put("profile_id", task->task_profile_id);
+    print.put("url", task->task_url);
+    print.put("md5", task->task_url_md5);
+    print.put<int>("task_id", task->task_id);
+    root.put_child("print", print);
+    std::stringstream oss;
+    pt::write_json(oss, root);
+    std::string json_str = oss.str();
+    /* !!! remove '\' !!!! */
+    json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());
+    this->publish_json(json_str);
+    return 0;
+}
+
+
+int MachineObject::send_print_subtask(BBLSubTask *task, UploadedFn uploadedFn, UploadProgressFn proFn, ErrorFn errFn)
+{
+    if (conn_type == CONNECTION_LAN) {
+        send_lan_print_subtask(task, uploadedFn, proFn, errFn);
+    }
+    else if (conn_type == CONNECTION_WAN) {
+        send_wan_print_subtask(task, uploadedFn, proFn, errFn);
+    }
+    else {
+        ;
+    }
+    return 0;
+}
+
+int MachineObject::send_lan_print_subtask(BBLSubTask* task, UploadedFn uploadedFn, UploadProgressFn proFn, ErrorFn errFn)
+{
+    std::wstring src_file = task->task_file;
+    std::wstring dst_file = get_printer_dest_file(src_file);
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+    std::string dst_file_str = converter.to_bytes(dst_file);
+
+    Sftp sftp = Sftp::upload(dev_ip, src_file, dst_file, "root", "root");
+    
+    sftp.on_complete(
+        [this, src_file, dst_file_str, uploadedFn](std::string body) {
+            /* boost::filesystem::file_size not right */
+            if (uploadedFn) {
+                uploadedFn();
+            }
+
+            BOOST_LOG_TRIVIAL(trace) << "transform gcode ok!";
+
+
+            /* send json command */
+            pt::ptree root, print;
+            print.put("sequence_id", MachineObject::m_sequence_id++);
+            print.put("command", "gcode_file");
+            print.put<std::string>("param", dst_file_str);
+            root.put_child("print", print);
+            std::stringstream oss;
+            pt::write_json(oss, root);
+            std::string json_str = oss.str();
+            /* !!! remove '\' !!!! */
+            json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());
+            this->publish_json(json_str);
+        })
+        .on_error([errFn, src_file](std::string error) {
+            if (errFn) {
+                errFn(error);
+            }
+            BOOST_LOG_TRIVIAL(trace) << boost::format("transform gcode %1% failed, error = %2%")
+                % src_file.c_str()
+                % error;
+        })
+        .on_progress([proFn](Slic3r::Sftp::Progress progress, bool& cancel) {
+            BOOST_LOG_TRIVIAL(trace) << " progress:" << progress.ulnow << "/" << progress.ultotal;
+            int percent = 0;
+            if (progress.ultotal != 0) {
+                percent = progress.ulnow * 100 / progress.ultotal;
+            }
+            if (proFn) {
+                proFn(percent);
+            }
+        })
+        .perform();
 
     return 0;
 }
 
-std::string DeviceInfo::get_bind_status_str()
+int MachineObject::send_wan_print_subtask(BBLSubTask* task, UploadedFn uploadedFn, UploadProgressFn proFn, ErrorFn errFn)
 {
-    if (m_bind_status == BIND_FREE) {
-        return "bind:free";
-    }
-    else if (m_bind_status == BIND_SELF) {
-        return "bind:self";
-    }
-    else if (m_bind_status == BIND_OHTER) {
-        return "bind:other";
+    /* TODO */
+    return 0;
+}
+
+void MachineObject::request_bind(ResultFn resFn, bool force_bind)
+{
+    if (force_bind) {
+        acc_.request_bind(dev_id, resFn);
     }
     else {
-        if (m_bind_status_str.empty()) {
-            return "bind:unknown";
-        }
-        else {
-            return "bind:" + m_bind_status_str;
-        }
+        /* send json command */
+        pt::ptree root, bind;
+        bind.put("sequence_id", MachineObject::m_sequence_id++);
+        bind.put<std::string>("dev_id", this->dev_id);
+        bind.put<std::string>("user_id", acc_.get_user_id());
+        root.put_child("bind", bind);
+        std::stringstream oss;
+        pt::write_json(oss, root);
+        std::string json_str = oss.str();
+        this->publish_json(json_str, resFn);
     }
 }
 
-DeviceManager::DeviceManager()
+void MachineObject::request_unbind(ResultFn fn)
+{
+    acc_.request_user_unbind(this->dev_id, fn);
+}
+
+void MachineObject::set_bind_status(std::string status)
+{
+    if (status.compare("free") == 0) {
+        dev_bind_status = MACHINE_BIND_FREE;
+        owner = "";
+    }
+    else if (status.compare("self") == 0) {
+        dev_bind_status = MACHINE_BIND_SELF;
+        owner = "";
+    }
+    else if (status.compare("other") == 0) {
+        dev_bind_status = MACHINE_BIND_OHTER;
+        owner = "";
+    }
+    else {
+        dev_bind_status = MACHINE_BIND_OHTER;
+        owner = status;
+    }
+}
+
+void MachineObject::set_connect_state(CONNECTION_STATE state)
+{
+    conn_state = state;
+    if (state == STATE_DISCONNECTED) {
+        /* unsubscribe topics in account manager */
+        AccountInfo* info = acc_.get_curr_user();
+        if (info) {
+            info->remove_topics(build_report_topic(this->dev_id));
+        }
+    }
+    else if (state == STATE_CONNECTED) {
+        /* subscribe topics in account manager */
+        AccountInfo* info = acc_.get_curr_user();
+        if (info) {
+            info->add_topics(build_report_topic(this->dev_id));
+        }
+    }
+    else
+    {
+        ;
+    }
+}
+
+std::string MachineObject::get_bind_str()
+{
+    if (dev_bind_status == MACHINE_BIND_FREE) {
+        return "free";
+    }
+    else if (dev_bind_status == MACHINE_BIND_SELF) {
+        return "self";
+    }
+    else if (dev_bind_status == MACHINE_BIND_OHTER) {
+        if (!owner.empty()) {
+            return owner;
+        }
+        else {
+            return "other";
+        }
+    }
+    else if (dev_bind_status == MACHINE_BIND_UNKOWN) {
+        return "unknown";
+    }
+    else {
+        return "unknown";
+    }
+}
+
+std::string MachineObject::build_report_topic(std::string dev_id)
+{
+    return (boost::format("device/%1%/report") % dev_id).str();
+}
+
+DeviceManager::DeviceManager(AccountManager& acc, CommuBackend& backend)
+    : acc_(acc),
+    backend_(backend)
 {
     try {
         m_device_check_alive = Slic3r::create_thread([this] { this->check_alive(); });
@@ -79,212 +496,136 @@ DeviceManager::~DeviceManager()
     m_device_check_alive.try_join_for(boost::chrono::milliseconds(200));
 }
 
-bool DeviceManager::isExist(std::string dev_id)
+void DeviceManager::on_machine_alive(std::string dev_name, std::string dev_id, std::string dev_ip)
 {
-    std::map<std::string, DeviceInfo*>::iterator it = m_devicelist.find(dev_id);
-    if (it == m_devicelist.end()) {
-        return false;
-    }
-    return true;
-}
-
-bool DeviceManager::has_bind_status(std::string dev_id)
-{
-    std::lock_guard<std::mutex> lock(m_devicelist_mutex);
-    std::map<std::string, DeviceInfo*>::iterator it = m_devicelist.find(dev_id);
-    if (it == m_devicelist.end()) {
-        return false;
-    }
-    if (it->second->m_bind_status == DeviceInfo::BIND_UNKOWN) {
-        return false;
-    }
-    return true;
-}
-
-bool DeviceManager::is_bind_self(std::string dev_id)
-{
-    std::map<std::string, DeviceInfo*>::iterator it = m_devicelist.find(dev_id);
-    if (it == m_devicelist.end()) {
-        return false;
+    std::lock_guard<std::mutex> lock(listMutex);
+    MachineObject* machine;
+    std::map<std::string, MachineObject*>::iterator it = localMachineList.find(dev_id);
+    if (it != localMachineList.end()) {
+        // update properties
+        /* ip changed */
+        machine = it->second;
+        if (machine->dev_ip.compare(dev_ip) != 0) {
+            machine->dev_ip = dev_ip;
+            /* TODO if ip changed reconnect mqtt */
+        }
+        machine->last_alive = Slic3r::Utils::get_current_time_utc();
+        machine->is_alive = true;
     }
     else {
-        return it->second->is_bind_self();
-    }
-}
+        // add new machine
+        machine = new MachineObject(acc_, backend_, dev_name, dev_id, dev_ip);
+        localMachineList.insert(std::make_pair(dev_id, machine));
 
-int DeviceManager::get_domain_id(std::string dev_id)
-{
-    if (isExist(dev_id))
-        return std::stoi(m_devicelist[dev_id]->m_domain_id);
-    else
-        return -1;
-}
-
-std::string DeviceManager::get_ip(std::string dev_id)
-{
-    if (isExist(dev_id))
-        return m_devicelist[dev_id]->get_dev_ip();
-    else
-        return "";
-}
-
-std::string DeviceManager::getRequestTopic(std::string dev_id)
-{
-    std::map<std::string, DeviceInfo*>::iterator it = m_devicelist.find(dev_id);
-    if (it == m_devicelist.end())
-        return "";
-
-    std::string topic_request = "device/" + dev_id + "/request";
-    return topic_request;
-}
-
-std::string DeviceManager::getReportTopic(std::string dev_id)
-{
-    std::map<std::string, DeviceInfo*>::iterator it = m_devicelist.find(dev_id);
-    if (it == m_devicelist.end())
-        return "";
-    std::string topic_report = "device/" + dev_id + "/report";
-    return topic_report;
-}
-
-int DeviceManager::add_new_device(DeviceInfo* device)
-{
-    std::lock_guard<std::mutex> lock(m_devicelist_mutex);
-    m_devicelist.insert(std::make_pair(device->get_dev_id(), device));
-    return 0;
-}
-
-int DeviceManager::update_alive_time(std::string dev_id)
-{
-    std::lock_guard<std::mutex> lock(m_devicelist_mutex);
-    std::map<std::string, DeviceInfo*>::iterator it = m_devicelist.find(dev_id);
-    if (it != m_devicelist.end()) {
-        DeviceInfo* deviceInfo = it->second;
-        deviceInfo->m_last_alive = Slic3r::Utils::get_current_time_utc();
-        if (!it->second->m_dds_conn_status) {
-            it->second->m_dds_conn_status = true;
-            BOOST_LOG_TRIVIAL(trace) << "device id = " << dev_id << " is online!";
+        /* TODO
+        if (machine && !machine->is_connected()) {
+            machine->connect(nullptr, nullptr, nullptr);
         }
-        BOOST_LOG_TRIVIAL(trace) << "update device id = " << dev_id << " alive time!";
-        return 0;
+        */
     }
-    return -1;
 }
 
-int DeviceManager::update_ip_address(std::string dev_id, std::string dev_ip)
+void DeviceManager::disconnect_all()
 {
-    std::map<std::string, DeviceInfo*>::iterator it = m_devicelist.find(dev_id);
-    if (it != m_devicelist.end()) {
-        DeviceInfo* deviceInfo = it->second;
-        deviceInfo->set_ip_addr(dev_ip);
-        return 0;
+    std::map<std::string, MachineObject*>::iterator it;
+    for (it = localMachineList.begin(); it != localMachineList.end(); it++) {
+        it->second->disconnect();
     }
-    return 0;
 }
 
-int DeviceManager::update_bind_status(std::string device_id, std::string status)
+void DeviceManager::query_bind_status(AccountManager::CompletedFn cFn, AccountManager::ErrorFn errFn)
 {
-    std::map<std::string, DeviceInfo*>::iterator it = m_devicelist.find(device_id);
-    if (it != m_devicelist.end()) {
-        DeviceInfo* deviceInfo = it->second;
-        deviceInfo->set_bind_status(status);
-        return 0;
+    std::lock_guard<std::mutex> lock(listMutex);
+    std::map<std::string, MachineObject*>::iterator it;
+    std::vector<std::string> query_list;
+    for (it = localMachineList.begin(); it != localMachineList.end(); it++) {
+        query_list.push_back(it->first);
     }
-    return 0;
+
+    acc_.query_bind_status(query_list,
+        [this, query_list, cFn](std::string message) {
+            std::vector<std::string> status_list;
+            split_string(message, status_list);
+
+            if (status_list.size() != query_list.size()) {
+                BOOST_LOG_TRIVIAL(trace) << "query_bind_status, size is not matched, error.";
+                return;
+            }
+
+            // update device bind status list
+            for (int i = 0; i < query_list.size() && i < query_list.size(); i++) {
+                std::map<std::string, MachineObject*>::iterator it = localMachineList.find(query_list[i]);
+                if (it != localMachineList.end()) {
+                    it->second->set_bind_status(status_list[i]);
+                }
+            }
+            if (cFn) {
+                cFn(message);
+            }
+        },
+        [this, errFn](int status, std::string error, std::string body) {
+            BOOST_LOG_TRIVIAL(trace) << "query_bind_status error=" << error << ", body=" << body << ", status=" << status;
+            if (errFn) {
+                errFn(status, error, body);
+            }
+        }
+    );
 }
+
+MachineObject* DeviceManager::get_default()
+{
+    if (default_machine.empty())
+        return nullptr;
+
+    /* find in local list */
+    std::map<std::string, MachineObject*>::iterator it = localMachineList.find(default_machine);
+    if (it != localMachineList.end()) {
+        return it->second;
+    }
+
+    return nullptr;
+}
+
+std::map<std::string ,MachineObject*> DeviceManager::get_all_machine_list()
+{
+    std::map<std::string, MachineObject*> result;
+    std::map<std::string, MachineObject*>::iterator it;
+
+    for (it = localMachineList.begin(); it != localMachineList.end(); it++) {
+        if (it->second->is_alive) {
+            result.insert(std::make_pair(it->first, it->second));
+        }
+    }
+
+    for (it = myBindMachineList.begin(); it != myBindMachineList.end(); it++) {
+        if (it->second->is_online) {
+            if (result.find(it->first) != result.end()) {
+                result.insert(std::make_pair(it->first, it->second));
+            }
+        }
+    }
+    
+    return result;
+}
+
 
 void DeviceManager::check_alive()
 {
     while (!m_check_alive_quit) {
         time_t curr = Slic3r::Utils::get_current_time_utc();
         double seconds;
-        std::map<std::string, DeviceInfo*>::iterator it;
-        m_devicelist_mutex.lock();
-        for (it = m_devicelist.begin(); it != m_devicelist.end(); it++) {
-            seconds = difftime(curr, it->second->m_last_alive);
+        std::map<std::string, MachineObject*>::iterator it;
+        for (it = localMachineList.begin(); it != localMachineList.end(); it++) {
+            seconds = difftime(curr, it->second->last_alive);
             if (seconds > ALIVE_TIMEOUT) {
-                it->second->m_dds_conn_status = false;
-                BOOST_LOG_TRIVIAL(trace) << "device id = " << it->first << " is offline! difftime=" <<seconds;
+                if (it->second->conn_state != MachineObject::CONNECTION_STATE::STATE_DISCONNECTED) {
+                    it->second->conn_state = MachineObject::CONNECTION_STATE::STATE_DISCONNECTED;
+                    BOOST_LOG_TRIVIAL(trace) << "device id = " << it->first << " is offline!";
+                }
             }
         }
-        m_devicelist_mutex.unlock();
-        BOOST_LOG_TRIVIAL(trace) << "check alive";
         boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
     }
-}
-
-wxArrayString DeviceManager::get_connected_devicelist()
-{
-    wxArrayString devices;
-    std::map<std::string, DeviceInfo*>::iterator it;
-    for (it = m_devicelist.begin(); it != m_devicelist.end(); it++) {
-        if (it->second->m_dds_conn_status) {
-            devices.Add(it->second->m_dev_name + "(" + it->first + ")");
-        }
-    }
-    return devices;
-}
-
-std::vector<DeviceInfo*> DeviceManager::get_connected_device_info()
-{
-    std::lock_guard<std::mutex> lock(m_devicelist_mutex);
-    std::vector<DeviceInfo*> list;
-    std::map<std::string, DeviceInfo*>::iterator it;
-    for (it = m_devicelist.begin(); it != m_devicelist.end(); it++) {
-        if (it->second->m_dds_conn_status) {
-            list.emplace_back(it->second);
-        }
-    }
-
-    // sort device list so self is first, then is free, then the others
-    std::sort(list.begin(), list.end(), [&](auto l, auto r) {
-        if (l->m_bind_status == DeviceInfo::BindStatus::BIND_SELF)
-            return true;
-        else if (l->m_bind_status == DeviceInfo::BindStatus::BIND_FREE && r->m_bind_status != DeviceInfo::BindStatus::BIND_SELF)
-            return true;
-        return false;
-        });
-
-    return list;
-}
-
-std::vector<std::string> DeviceManager::get_connected_device_list()
-{
-    std::lock_guard<std::mutex> lock(m_devicelist_mutex);
-    std::vector<std::string> list;
-    std::map<std::string, DeviceInfo*>::iterator it;
-    for (it = m_devicelist.begin(); it != m_devicelist.end(); it++) {
-        if (it->second->m_dds_conn_status) {
-            list.emplace_back(it->first);
-        }
-    }
-    return list;
-}
-
-std::vector<std::string> DeviceManager::get_bind_self_device_list()
-{
-    std::lock_guard<std::mutex> lock(m_devicelist_mutex);
-    std::vector<std::string> list;
-    std::map<std::string, DeviceInfo*>::iterator it;
-    for (it = m_devicelist.begin(); it != m_devicelist.end(); it++) {
-        if (it->second->is_bind_self()) {
-            list.emplace_back(it->first);
-        }
-    }
-    return list;
-}
-
-std::vector<std::string> DeviceManager::get_free_and_self_device_list()
-{
-    std::lock_guard<std::mutex> lock(m_devicelist_mutex);
-    std::vector<std::string> list;
-    std::map<std::string, DeviceInfo*>::iterator it;
-    for (it = m_devicelist.begin(); it != m_devicelist.end(); it++) {
-        if (it->second->is_bind_self() || it->second->is_bind_free()) {
-            list.emplace_back(it->first);
-        }
-    }
-    return list;
 }
 
 } // namespace Slic3r

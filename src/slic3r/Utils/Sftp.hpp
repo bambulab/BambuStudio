@@ -37,7 +37,7 @@ public:
 	Sftp(Sftp&& other);
 
 	// for example, url is iot.qa.bbl or ip address
-	static Sftp upload(std::string url, std::string dst_path, std::string src_path, std::string user, std::string password);
+	static Sftp upload(std::string url, std::wstring src_path, std::wstring dst_path, std::string user, std::string password);
 
 	~Sftp();
 
@@ -68,7 +68,7 @@ public:
 	static std::string tls_global_init();
 	static std::string tls_system_cert_store();
 private:
-	Sftp(const std::string& url);
+	Sftp(const std::wstring& url);
 
 	std::unique_ptr<priv> p;
 };

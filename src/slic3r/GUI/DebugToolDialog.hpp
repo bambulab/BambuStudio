@@ -55,19 +55,20 @@ namespace Slic3r {
             virtual bool Show(bool show = true) override;
 
             int publish_json(std::string json_str);
-            
+
+            /* log */
+            void send_log_evt(std::string info);
             int log_info(std::string str);
 
             void refresh_device_list();
             void refresh_firmware_list(bool show_error=false);
             void add_firmware(std::string firmware);
             void on_update_list(SimpleEvent& evt);
-            void on_refresh_list(SimpleEvent& evt);
             void on_select_device(wxCommandEvent& evt);
-            void on_error_msg(wxCommandEvent& evt);
-            void on_mqtt_success(wxCommandEvent& evt);
             void on_mqtt_failed(wxCommandEvent& evt);
             void on_mqtt_lost(wxCommandEvent& evt);
+            void on_mqtt_connected(wxCommandEvent& evt);
+            void on_mqtt_disconnected(wxCommandEvent& evt);
             void on_print_end(wxCommandEvent& evt);
             void on_message_arrived(wxCommandEvent& evt);
             void on_message_sent(wxCommandEvent& evt);
@@ -96,23 +97,56 @@ namespace Slic3r {
             std::string UPGRADE_URL = "http://upgrade.bambooolab.com/";
             std::string CURL_FILE = resources_dir() + "/bbl/curl";
 
-            wxNotebook* nb_main;
+            DeviceManager& dev_manager_;
+            std::vector<std::string> machine_list_items;
+            int last_device_selection;
 
-            wxButton* btn_select_device;
-            wxButton* btn_refresh_upgrade_list;
-            wxButton* btn_disconnect_via_name;
-            wxButton* btn_upgrade_firmware;
-            wxButton* btn_run_gcode;
-            wxButton* btn_abort_print;
-            wxStaticText* label_progress;
-            wxButton* btn_select_gcode_file;
-            wxButton* btn_clear_output_string;
-            wxButton* btn_save_file;
-            wxButton* btn_bind;
-            wxButton* btn_unbind;
-            wxButton* btn_connect;
+            /* GUI widgets */
+            /* switch host servers */
+            wxComboBox* cb_server_host;
+
+            /* Connections widgets */
             wxButton* btn_refresh_device_list;
+            wxButton* btn_connect;
+            wxButton* btn_disconnect;
 
+            wxNotebook* nb_main;
+            wxPanel* upgrade_panel;
+            wxPanel* common_panel;
+            wxPanel* run_gcode_panel;
+            wxPanel* ctrl_panel;
+
+
+            /* Upgrade widgets */
+            wxButton* btn_refresh_upgrade_list;
+            wxButton* btn_upgrade_firmware;
+            std::vector<wxString> upgrade_file_list;
+
+            /* Gcode widgets*/
+            wxButton*       btn_run_gcode;
+            wxTextCtrl*     txt_gcode_filename;
+            wxButton*       btn_abort_print;
+            wxStaticText*   label_gcode_progress;
+            wxButton*       btn_select_gcode_file;
+            wxFileDialog*   selectGcodeDialog;
+            bool            gcode_uploading;
+
+            wxButton*       btn_upload_3mf;
+            wxTextCtrl*     txt_3mf_filename;
+            wxTextCtrl*     txt_3mf_plate_idx;
+            wxButton*       btn_run_3mf;
+            wxButton*       btn_abort_3mf;
+            wxStaticText*   label_3mf_progress;
+            wxButton*       btn_select_3mf_file;
+            wxFileDialog*   select3mfDialog;
+
+            /* display plate and send task */
+            wxButton*       btn_print_plate;
+            wxTextCtrl*     txt_plate_idx;
+            wxComboBox*     cb_profiles;
+
+
+            /* machine control */
             wxButton* btn_set_x_pos_0_1;
             wxButton* btn_set_x_pos_1_0;
             wxButton* btn_set_x_pos_10_0;
@@ -132,14 +166,6 @@ namespace Slic3r {
             wxButton* btn_set_z_neg_1_0;
             wxButton* btn_set_z_neg_10_0;
 
-            wxButton* btn_set_e_pos_0_1;
-            wxButton* btn_set_e_pos_1_0;
-            wxButton* btn_set_e_pos_10_0;
-            wxButton* btn_set_e_neg_0_1;
-            wxButton* btn_set_e_neg_1_0;
-            wxButton* btn_set_e_neg_10_0;
-
-            wxButton* btn_return_home;
             wxButton* btn_auto_leveling;
             wxButton* btn_xyz_abs_mode;
             wxButton* btn_fan_on;
@@ -150,20 +176,10 @@ namespace Slic3r {
             wxButton* btn_stop_temp_push;
             wxButton* btn_get_curr_temp;
             wxButton* btn_get_curr_pos;
-            wxButton* btn_get_version;
             wxButton* btn_switch_t;
             wxTextCtrl* txt_switch_val;
 
-            wxButton* btn_send_gcode_1;
-            wxButton* btn_send_gcode_2;
-            wxButton* btn_send_gcode_3;
-            wxButton* btn_send_gcode_4;
-            wxButton* btn_send_gcode_5;
-            wxButton* btn_send_gcode_6;
-            wxButton* btn_send_gcode_7;
-
             wxTextCtrl* txt_printer_name;
-            wxTextCtrl* txt_gcode_filename;
             wxTextCtrl* txt_set_hot_bed_temp;
             wxTextCtrl* txt_set_hot_end_temp;
             wxTextCtrl* txt_string_info;
@@ -175,31 +191,19 @@ namespace Slic3r {
             wxTextCtrl* txt_custom_gcode6;
             wxTextCtrl* txt_custom_gcode7;
 
-            wxStaticText* label_upgrade_filename;
-            wxStaticText* label_gcode_filename;
             wxStaticText* label_output_string;
             wxStaticText* label_device_list;
             wxStaticText* label_device_status;
 
-            wxStaticText* label_pos_x;
             wxStaticText* label_pos_x_val;
-            wxStaticText* label_pos_y;
             wxStaticText* label_pos_y_val;
-            wxStaticText* label_pos_z;
             wxStaticText* label_pos_z_val;
-            wxStaticText* label_pos_e;
             wxStaticText* label_pos_e_val;
-            wxStaticText* label_hot_end_temp;
             wxStaticText* label_hot_end_temp_val;
-            wxStaticText* label_bed_end_temp;
             wxStaticText* label_bed_end_temp_val;
-            wxStaticText* label_print_progress;
             wxStaticText* label_print_progress_val;
-            wxStaticText* label_wifi_signal;
             wxStaticText* label_wifi_signal_val;
-            wxStaticText* label_wifi_link_th;
             wxStaticText* label_wifi_link_th_val;
-            wxStaticText* label_wifi_link_ams;
             wxStaticText* label_wifi_link_ams_val;
 
             wxStaticText* label_upgrade_status_val;
@@ -223,16 +227,8 @@ namespace Slic3r {
             wxTextCtrl* txt_domain_id;
             wxStaticText* label_client_id;
             wxTextCtrl* txt_client_id;
-            wxRadioBox* rb_conn;
             wxButton* btn_mqtt_connect;
-            wxSizer* domain_sizer;
-            wxPanel* upgrade_panel;
-            wxPanel* common_panel;
-            wxPanel* run_gcode_panel;
-            wxPanel* ctrl_panel;
-
-            std::vector<wxString> upgrade_file_list;
-            wxFileDialog* selectGcodeDialog;
+            
             std::fstream customGcodeCacheFile;
             wxTimer* m_deviceListTimer;
 
@@ -242,7 +238,8 @@ namespace Slic3r {
 
 
             /* GUI init control */
-            void init_device();
+            void init_host_server_widgets();
+            void init_connection_widgets();
             void init_common(wxWindow* parent);
             void init_upgrade(wxWindow* parent);
             void init_gcode_run_file(wxWindow* parent);
@@ -255,9 +252,7 @@ namespace Slic3r {
 
             int m_sequence_id = 2000;
             int publishGcode(std::string gcode);
-            int set_current_device_id();
-            int get_current_device_id(std::string &dev_id);
-            std::string get_device_list_item(DeviceInfo* info);
+            wxString get_machine_display_item(MachineObject* obj);
             std::string switch_ams_gcode(std::string t);
             std::unique_ptr<wxTimer> m_timer;
             void on_timer(wxTimerEvent&);

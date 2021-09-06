@@ -111,6 +111,7 @@ struct Http::priv
 	::CURL *curl;
 	::curl_httppost *form;
 	::curl_httppost *form_end;
+	::curl_mime* mime;
 	::curl_slist *headerlist;
 	// Used for reading the body
 	std::string buffer;
@@ -141,9 +142,13 @@ struct Http::priv
 	void set_timeout_connect(long timeout);
     void set_timeout_max(long timeout);
 	void form_add_file(const char *name, const fs::path &path, const char* filename);
+	/* mime */
+	void mime_form_add_text(const char* name, const char* value);
+	void mime_form_add_file(const char* name, const fs::path& path);
 	void set_post_body(const fs::path &path);
 	void set_post_body(const std::string &body);
 	void set_put_body(const fs::path &path);
+	void set_del_body(const std::string& body);
 
 	std::string curl_error(CURLcode curlcode);
 	std::string body_size_error();
@@ -154,6 +159,7 @@ Http::priv::priv(const std::string &url)
 	: curl(::curl_easy_init())
 	, form(nullptr)
 	, form_end(nullptr)
+	, mime(nullptr)
 	, headerlist(nullptr)
 	, error_buffer(CURL_ERROR_SIZE + 1, '\0')
 	, limit(0)
@@ -176,6 +182,7 @@ Http::priv::~priv()
 {
 	::curl_easy_cleanup(curl);
 	::curl_formfree(form);
+	::curl_mime_free(mime);
 	::curl_slist_free_all(headerlist);
 }
 
@@ -289,6 +296,32 @@ void Http::priv::form_add_file(const char *name, const fs::path &path, const cha
 	}
 }
 
+void Http::priv::mime_form_add_text(const char* name, const char* value)
+{
+	if (!mime) {
+		mime = curl_mime_init(curl);
+	}
+
+	curl_mimepart *part;
+	part = curl_mime_addpart(mime);
+	curl_mime_name(part, name);
+	curl_mime_type(part, "multipart/form-data");
+	curl_mime_data(part, value, CURL_ZERO_TERMINATED);
+}
+
+void Http::priv::mime_form_add_file(const char* name, const fs::path& path)
+{
+	if (!mime) {
+		mime = curl_mime_init(curl);
+	}
+
+	curl_mimepart* part;
+	part = curl_mime_addpart(mime);
+	curl_mime_name(part, "file");
+	curl_mime_type(part, "multipart/form-data");
+	curl_mime_filedata(part, path.string().c_str());
+}
+
 //FIXME may throw! Is the caller aware of it?
 void Http::priv::set_post_body(const fs::path &path)
 {
@@ -311,6 +344,11 @@ void Http::priv::set_put_body(const fs::path &path)
         ::curl_easy_setopt(curl, CURLOPT_READDATA, (void *) (putFile.get()));
 		::curl_easy_setopt(curl, CURLOPT_INFILESIZE, filesize);
 	}
+}
+
+void Http::priv::set_del_body(const std::string& body)
+{
+	postfields = body;
 }
 
 std::string Http::priv::curl_error(CURLcode curlcode)
@@ -355,6 +393,10 @@ void Http::priv::http_perform()
 
 	if (form != nullptr) {
 		::curl_easy_setopt(curl, CURLOPT_HTTPPOST, form);
+	}
+
+	if (mime != nullptr) {
+		::curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);
 	}
 
 	if (!postfields.empty()) {
@@ -489,18 +531,6 @@ Http& Http::ca_file(const std::string &name)
 	return *this;
 }
 
-Http& Http::set_header(const std::string token)
-{
-	struct curl_slist* chunk = NULL;
-	chunk = curl_slist_append(chunk, "Content-Type: application/json");
-	if (!token.empty()) {
-		std::string token_str = "token:" + token;
-		chunk = curl_slist_append(chunk, token_str.c_str());
-	}
-	curl_easy_setopt(p->curl, CURLOPT_HTTPHEADER, chunk);
-
-	return *this;
-}
 
 Http& Http::form_add(const std::string &name, const std::string &contents)
 {
@@ -518,6 +548,27 @@ Http& Http::form_add(const std::string &name, const std::string &contents)
 Http& Http::form_add_file(const std::string &name, const fs::path &path)
 {
 	if (p) { p->form_add_file(name.c_str(), path.c_str(), nullptr); }
+	return *this;
+}
+
+
+Http& Http::mime_form_add_text(std::string &name, std::string &value)
+{
+	if (p) { p->mime_form_add_text(name.c_str(), value.c_str()); }
+	return *this;
+}
+
+Http& Http::mime_form_add_file(std::string &name, const fs::path& path)
+{
+	if (p) { p->mime_form_add_file(name.c_str(), path); }
+	return *this;
+}
+
+
+
+Http& Http::form_add_file(const std::wstring& name, const fs::path& path)
+{
+	if (p) { p->form_add_file((char*)name.c_str(), path.c_str(), nullptr); }
 	return *this;
 }
 
@@ -557,6 +608,12 @@ Http& Http::set_post_body(const std::string &body)
 Http& Http::set_put_body(const fs::path &path)
 {
 	if (p) { p->set_put_body(path);}
+	return *this;
+}
+
+Http& Http::set_del_body(const std::string &body)
+{
+	if (p) { p->set_del_body(body); }
 	return *this;
 }
 
