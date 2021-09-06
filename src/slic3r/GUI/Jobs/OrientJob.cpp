@@ -31,8 +31,12 @@ void OrientJob::prepare_all() {
     
     for (ModelObject* obj : m_plater->model().objects)
     {
-        auto& cont = obj->printable ? m_selected : m_unprintable;
-        cont.emplace_back(get_orient_mesh(obj, m_plater));
+        for (size_t inst_idx = 0; inst_idx < obj->instances.size(); ++inst_idx)
+        {
+            ModelInstance* mi = obj->instances[inst_idx];
+            auto& cont = mi->printable ? m_selected : m_unprintable;
+            cont.emplace_back(get_orient_mesh(mi, m_plater));
+        }
     }
 }
 
@@ -53,9 +57,13 @@ void OrientJob::prepare_selected() {
         const Selection::InstanceIdxsList * instlist = obj_sel[oidx];
         ModelObject *mo = model.objects[oidx];
 
-        auto& cont = mo->printable ? (instlist?m_selected:m_unselected) : m_unprintable;
-        OrientMesh&& om = get_orient_mesh(mo, m_plater);
-        cont.emplace_back(std::move(om));
+        for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
+        {
+            ModelInstance* mi = mo->instances[inst_idx];
+            auto& cont = mo->printable ? (instlist ? m_selected : m_unselected) : m_unprintable;
+            OrientMesh&& om = get_orient_mesh(mi, m_plater);
+            cont.emplace_back(std::move(om));
+        }
     }
     
 }
@@ -80,7 +88,17 @@ void OrientJob::process()
     auto start = std::chrono::steady_clock::now();
     static const auto arrangestr = _(L("Orienting"));
 
+    const GLCanvas3D::OrientSettings& settings = m_plater->canvas3D()->get_orient_settings();
+
     orientation::OrientParams params;
+    orientation::OrientParamsArea params_area;
+    if (settings.min_area) {
+        memcpy(&params, &params_area, sizeof(params));
+        params.min_volume = false;
+    }
+    else {
+        params.min_volume = true;
+    }
   
     auto count = unsigned(m_selected.size() + m_unprintable.size());
     params.stopcondition = [this]() { return was_canceled(); };
@@ -95,7 +113,8 @@ void OrientJob::process()
     auto time_elapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - start);
 
     std::stringstream ss;
-    ss<< std::fixed << std::setprecision(3) << "Orienting done in "<<time_elapsed.count()<<" seconds." << m_selected.back().name << "'s orientation: " << m_selected.back().orientation.transpose() << "; v,phi: " << m_selected.back().axis.transpose() << ", " << m_selected.back().angle;
+    ss << std::fixed << std::setprecision(3) << "Orient " << m_selected.back().name << " in " << time_elapsed.count() << " seconds. "
+        << "Orientation: " << m_selected.back().orientation.transpose() << "; v,phi: " << m_selected.back().axis.transpose() << ", " << m_selected.back().angle << "; euler: " << m_selected.back().euler_angles.transpose();
 
     // finalize just here.
     update_status(int(count),

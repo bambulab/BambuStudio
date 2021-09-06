@@ -1,5 +1,5 @@
 #include "Orient.hpp"
-
+#include "Geometry.hpp"
 #include <numeric>
 #include <ClipperUtils.hpp>
 #include <boost/geometry/index/rtree.hpp>
@@ -93,7 +93,7 @@ public:
         }
     };
 
-    Vec3f process()
+    Vec3d process()
     {
         orientations = { { 0,0,-1 } }; // original orientation
 
@@ -112,7 +112,7 @@ public:
             progressind(30);
 
         std::map<Vec3f, CostItems, cmp_vec3f> results;
-        BOOST_LOG_TRIVIAL(error) << CostItems::field_names();
+        BOOST_LOG_TRIVIAL(info) << CostItems::field_names();
         for (int i = 0; i < orientations.size();i++) {
             auto orientation = -orientations[i];
 
@@ -124,7 +124,7 @@ public:
 
             results[orientation] = cost_items;
 
-            BOOST_LOG_TRIVIAL(error) << std::fixed << std::setprecision(4) << "orientation:" << orientation.transpose() << ", cost:" << cost_items.field_values();
+            BOOST_LOG_TRIVIAL(info) << std::fixed << std::setprecision(4) << "orientation:" << orientation.transpose() << ", cost:" << cost_items.field_values();
         }
         if (progressind)
             progressind(60);
@@ -138,10 +138,10 @@ public:
 
         auto best_orientation = results_vector[0].first;
 
-        BOOST_LOG_TRIVIAL(error) << std::fixed << std::setprecision(4) << "best:" << best_orientation.transpose() << ", costs:" << results_vector[0].second.field_values();
+        BOOST_LOG_TRIVIAL(info) << std::fixed << std::setprecision(4) << "best:" << best_orientation.transpose() << ", costs:" << results_vector[0].second.field_values();
         flush_logs();
 
-        return best_orientation;
+        return best_orientation.cast<double>();
     }
      
     void preprocess()
@@ -244,8 +244,7 @@ public:
 
     void project_vertices(Vec3f orientation)
     {
-        auto& facets = mesh->stl.facet_start;
-        int face_count = facets.size();
+        int face_count = mesh->stl.facet_start.size();
         z_projected.resize(face_count, 3);
         z_max.resize(face_count, 1);
         z_median.resize(face_count, 1);
@@ -361,7 +360,7 @@ public:
         }
         else {
             float overhang = costs.overhang;
-            cost = params.TAR_A * (overhang + params.TAR_B) + params.RELATIVE_F * (costs.overhang + params.TAR_C) / (params.TAR_D + params.CONTOUR_F * costs.contour + params.BOTTOM_F * costs.bottom + params.BOTTOM_HULL_F * costs.bottom_hull + params.TAR_PROJ_AREA * costs.area_projected);
+            cost = params.TAR_A * (overhang + params.TAR_B) + params.RELATIVE_F * (costs.overhang*params.TAR_C+params.TAR_D) / (params.TAR_D + params.CONTOUR_F * costs.contour + params.BOTTOM_F * costs.bottom + params.BOTTOM_HULL_F * costs.bottom_hull + params.TAR_PROJ_AREA * costs.area_projected);
         }
 
         if (params.use_low_angle_face) {
@@ -374,24 +373,35 @@ public:
     }
 };
 
-void get_axis_angle_from_two_vectors(Vec3f bestside, Vec3f& rotation_axis, float& phi)
+void rotation_from_two_vectors(Vec3d bestside, Vec3d& rotation_axis, double& phi, Matrix3d& rotation_matrix)
 {
-    float epsilon = 1e-5;
-    Vec3f z_axis(0, 0, 1);
+    double epsilon = 1e-5;
+    Vec3d z_axis(0, 0, 1);
     // note: a.isMuchSmallerThan(b,prec) compares a.abs().sum()<b*prec, so previously we set b=0 && prec=dummpy_prec() is wrong
     if ((bestside + z_axis).isMuchSmallerThan(1, epsilon))
     {
         rotation_axis << 1, 0, 0;
         phi = M_PI;
+        rotation_matrix = -Matrix3d::Identity();
     }
     else if ((bestside - z_axis).isMuchSmallerThan(1, epsilon)) {
         rotation_axis << 1, 0, 0;
         phi = 0;
+        rotation_matrix = Matrix3d::Identity();
     }
     else {
-        rotation_axis = z_axis.cross(bestside);
+        rotation_axis = bestside.cross(z_axis);
+        double s = rotation_axis.norm(); // sin(phi)
+        double c = bestside.dot(z_axis); // cos(phi)
+        auto& v = rotation_axis;
+        Matrix3d kmat;
+        kmat << 0, -v[2], v[1],
+            v[2], 0, -v[0],
+            -v[1], v[0], 0;
+
         rotation_axis.normalize();
-        phi = acos(std::min(z_axis.dot(bestside), 1.f));
+        phi = acos(std::min(bestside.dot(z_axis), 1.0));
+        rotation_matrix = Matrix3d::Identity() + kmat + kmat * kmat * ((1 - c) / (s * s));
     }
 }
 
@@ -408,9 +418,9 @@ void _orient(OrientMeshs& meshs_,
 
         mesh_.orientation = orienter.process();
 
-        get_axis_angle_from_two_vectors(mesh_.orientation, mesh_.axis, mesh_.angle);
+        rotation_from_two_vectors(mesh_.orientation, mesh_.axis, mesh_.angle);
 
-        BOOST_LOG_TRIVIAL(error) << std::fixed << std::setprecision(3) << "v,phi: " << mesh_.axis.transpose() <<", "<<mesh_.angle;
+        BOOST_LOG_TRIVIAL(info) << std::fixed << std::setprecision(3) << "v,phi: " << mesh_.axis.transpose() <<", "<<mesh_.angle;
         flush_logs();
     }
 #else
@@ -420,8 +430,9 @@ void _orient(OrientMeshs& meshs_,
              auto progressfn_i = [&](unsigned cnt) {progressfn(cnt, "Orienting " + std::to_string(i) + "-th item: " + mesh_.name); };
              AutoOrienter orienter(&mesh_.mesh, params, progressfn_i, stopfn);
              mesh_.orientation = orienter.process();
-             get_axis_angle_from_two_vectors(mesh_.orientation, mesh_.axis, mesh_.angle);
-             BOOST_LOG_TRIVIAL(debug) << "get_axis_angle_from_two_vectors: " << mesh_.orientation << "; " << mesh_.axis << "; " << mesh_.angle;
+             rotation_from_two_vectors(mesh_.orientation, mesh_.axis, mesh_.angle, mesh_.rotation_matrix);
+             //mesh_.euler_angles = Geometry::extract_euler_angles(mesh_.rotation_matrix);
+             BOOST_LOG_TRIVIAL(debug) << "rotation_from_two_vectors: " << mesh_.orientation << "; " << mesh_.axis << "; " << mesh_.angle << "; euler: " << mesh_.euler_angles.transpose();
          }});
 #endif
 }
@@ -442,15 +453,28 @@ void orient(ModelObject* obj)
 {
     auto m = obj->mesh();
     AutoOrienter orienter(&m);
-    Vec3f orientation = orienter.process();
-    Vec3f axis;
-    float angle;
-    get_axis_angle_from_two_vectors(orientation, axis, angle);
+    Vec3d orientation = orienter.process();
+    Vec3d axis;
+    double angle;
+    Matrix3d rotation_matrix;
+    rotation_from_two_vectors(orientation, axis, angle, rotation_matrix);
+    //Vec3d euler_angles = Geometry::extract_euler_angles(rotation_matrix);
 
-    auto axisd = -axis.cast<double>();
-    double angled = angle;
-    obj->rotate(angled, axisd);
+    obj->rotate(angle, axis);
     obj->ensure_on_bed();
+}
+
+void orient(ModelInstance* instance)
+{
+    auto m = instance->get_object()->mesh();
+    AutoOrienter orienter(&m);
+    Vec3d orientation = orienter.process();
+    Vec3d axis;
+    double angle;
+    Matrix3d rotation_matrix;
+    rotation_from_two_vectors(orientation, axis, angle, rotation_matrix);
+    //Vec3d euler_angles = Geometry::extract_euler_angles(rotation_matrix);
+    instance->rotate(rotation_matrix);
 }
 
 

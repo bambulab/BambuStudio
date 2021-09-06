@@ -4176,6 +4176,7 @@ bool GLCanvas3D::_render_orient_menu(float pos_x)
     bool settings_changed = false;
     float angle_min = 45.f;
     std::string angle_key = "overhang_angle", rot_key = "enable_rotation";
+    std::string key_min_area = "min_area";
     std::string postfix = "_fff";
 
     if (ptech == ptSLA) {
@@ -4202,6 +4203,12 @@ bool GLCanvas3D::_render_orient_menu(float pos_x)
         settings_changed = true;
     }
 
+    if (imgui->checkbox(_L("Optimize support interface area"), settings.min_area)) {
+        settings_out.min_area = settings.min_area;
+        appcfg->set("orient", key_min_area, settings_out.min_area ? "1" : "0");
+        settings_changed = true;
+    }
+
     ImGui::Separator();
 
     if (imgui->button(_L("Reset"))) {
@@ -4209,6 +4216,7 @@ bool GLCanvas3D::_render_orient_menu(float pos_x)
         settings_out.overhang_angle = 60.f;
         appcfg->set("orient", angle_key, std::to_string(settings_out.overhang_angle));
         appcfg->set("orient", rot_key, settings_out.enable_rotation ? "1" : "0");
+        appcfg->set("orient", key_min_area, settings_out.min_area? "1" : "0");
         settings_changed = true;
     }
 

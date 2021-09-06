@@ -285,9 +285,10 @@ int CLI::run(int argc, char **argv)
         else if (opt_key == "orient") {
             for (auto& model : m_models)
                 for (ModelObject* o : model.objects)
-                {
-                    orientation::orient(o);
-                }
+                    for(ModelInstance* mi: o->instances)
+                    {
+                        orientation::orient(mi);
+                    }
         }
         else if (opt_key == "duplicate") {
             for (auto &model : m_models) {

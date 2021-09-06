@@ -50,10 +50,22 @@ public:
         om.name = obj->name;
         om.mesh = obj->mesh(); // don't know the difference to obj->raw_mesh(). Both seem OK
         om.setter = [obj, plater](const OrientMesh& p) {
-            auto axis = -p.axis.cast<double>();
-            double angle = p.angle;
-            obj->rotate(angle, axis);
+            obj->rotate(p.angle, p.axis);
             obj->ensure_on_bed();
+        };
+        return om;
+    }
+
+    static
+    orientation::OrientMesh get_orient_mesh(ModelInstance* instance, const Plater* plater)
+    {
+        using OrientMesh = orientation::OrientMesh;
+        OrientMesh om;
+        om.name = instance->get_object()->name;
+        om.mesh = instance->get_object()->mesh(); // don't know the difference to obj->raw_mesh(). Both seem OK
+        om.setter = [instance, plater](const OrientMesh& p) {
+            instance->rotate(p.rotation_matrix);
+            instance->get_object()->ensure_on_bed();
         };
         return om;
     }

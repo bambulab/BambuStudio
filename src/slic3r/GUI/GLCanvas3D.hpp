@@ -456,6 +456,7 @@ public:
     {
         float overhang_angle = 60.f;
         bool  enable_rotation = false;
+        bool  min_area = true;
     };
 
     //BBS: add canvas type for assemble view usage
@@ -575,6 +576,7 @@ private:
 
     ArrangeSettings &get_arrange_settings() { return get_arrange_settings(this); }
 
+public:
     OrientSettings& get_orient_settings()
     {
         PrinterTechnology ptech = this->current_printer_technology();

@@ -24,9 +24,11 @@ static const constexpr int UNORIENTD = -1;
 /// Zero is the physical bed, larger than zero means a virtual bed.
 struct OrientMesh { 
     TriangleMesh mesh;              /// The real mesh data
-    float angle{ 0 };
-    Vec3f axis{ 0,0,1 };
-    Vec3f orientation{ 0,0,1 };
+    double angle{ 0 };
+    Vec3d axis{ 0,0,1 };
+    Vec3d orientation{ 0,0,1 };
+    Matrix3d rotation_matrix;
+    Vec3d euler_angles;
     std::string name;
         
     /// Optional setter function which can store arbitrary data in its closure
@@ -37,10 +39,51 @@ struct OrientMesh {
 
 };
 
+// params for minimizing support area
+struct OrientParamsArea {
+    float TAR_A = 0.015;
+    float TAR_B = 0.177f;
+    float RELATIVE_F = 20;
+    float CONTOUR_F = 0.5;
+    float BOTTOM_F = 2.5;
+    float BOTTOM_HULL_F = 0.1;
+    float TAR_C = 10;
+    float TAR_D = 1;
+    float TAR_E = 0.0115;
+    float FIRST_LAY_H = 0.1;// 0.0475;
+    float VECTOR_TOL = -0.00083;
+    float NEGL_FACE_SIZE = 0;
+    float ASCENT = -0.5;
+    float PLAFOND_ADV = 0.0599;
+    float CONTOUR_AMOUNT = 0.0182427;
+    float OV_H = 2.574;
+    float height_offset = 2.3728;
+    float height_log = 0.041375;
+    float height_log_k = 1.9325457;
+    float LAF_MAX = 0.9997; // cos(1.4\degree) for low angle face
+    float LAF_MIN = 0.9703;  // cos(14\degree)
+    float TAR_LAF = 0.001;
+    float TAR_PROJ_AREA = 0.1;
 
-struct OrientParams {
-    
     float overhang_angle = 60.f;
+    bool use_low_angle_face = true;
+    bool min_volume = false;
+    Eigen::Vector3f fun_dir;
+
+    /// Allow parallel execution.
+    bool parallel = true;
+
+    /// Progress indicator callback called when an object gets packed. 
+    /// The unsigned argument is the number of items remaining to pack.
+    std::function<void(unsigned, std::string)> progressind = {};
+
+    /// A predicate returning true if abort is needed.
+    std::function<bool(void)>     stopcondition = {};
+
+    OrientParamsArea() = default;
+};
+
+struct OrientParams {    
     float TAR_A = 0.01;//0.128f;
     float TAR_B = 0.177f;
     float RELATIVE_F= 6.610621027964314;
@@ -50,7 +93,7 @@ struct OrientParams {
     float TAR_C = 0.24308070476924726;
     float TAR_D = 0.6284515508160871;
     float TAR_E = 0;//0.032157292647062234;
-    float FIRST_LAY_H = 0.029227991916155015;
+    float FIRST_LAY_H = 0.029;
     float VECTOR_TOL = -0.0011163303070972383;
     float NEGL_FACE_SIZE = 0;
     float ASCENT= -0.5;
@@ -65,8 +108,9 @@ struct OrientParams {
     float TAR_LAF= 0.001;
     float TAR_PROJ_AREA = 0.1;
 
+    float overhang_angle = 60.f;
     bool use_low_angle_face = true;
-    bool min_volume = true;
+    bool min_volume = false;
     Eigen::Vector3f fun_dir;
 
     
@@ -94,7 +138,10 @@ using OrientMeshs = std::vector<OrientMesh>;
  */
 void orient(OrientMeshs &items, const OrientMeshs &excludes, const OrientParams &params = {});
 
+// this function should be deleted, since rotating objects are so complicated that its inherited transformation may be a trouble
 void orient(ModelObject* obj);
+
+void orient(ModelInstance* instance);
 
 }} // namespace Slic3r::orientment
 

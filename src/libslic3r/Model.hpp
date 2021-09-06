@@ -952,6 +952,13 @@ public:
     void set_rotation(const Vec3d& rotation) { m_transformation.set_rotation(rotation); }
     void set_rotation(Axis axis, double rotation) { m_transformation.set_rotation(axis, rotation); }
 
+    void rotate(Matrix3d rotation_matrix) {
+        auto R = get_transformation().get_matrix().matrix().block<3, 3>(0, 0);
+        auto R_new = rotation_matrix * R;
+        auto euler_angles = Geometry::extract_euler_angles(R_new);
+        set_rotation(euler_angles);
+    }
+
     const Vec3d& get_scaling_factor() const { return m_transformation.get_scaling_factor(); }
     double get_scaling_factor(Axis axis) const { return m_transformation.get_scaling_factor(axis); }
 
