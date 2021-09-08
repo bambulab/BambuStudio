@@ -63,7 +63,7 @@ PrintResultDialog::PrintResultDialog(PrintSummary* s)
 	m_radio_ams = new wxRadioButton(panel, wxID_ANY, _L("AMS, multi meterials"), wxDefaultPosition, wxDefaultSize);
 	m_radio_other = new wxRadioButton(panel, wxID_ANY, _L("Other verifications"), wxDefaultPosition, wxDefaultSize);
 	m_btn_submit = new wxButton(panel, wxID_ANY, _L("Submit"), wxDefaultPosition, wxDefaultSize);
-	m_btn_open_link = new wxButton(panel, wxID_ANY, _L("Open Link"), wxDefaultPosition, wxDefaultSize);
+	//m_btn_open_link = new wxButton(panel, wxID_ANY, _L("Open Link"), wxDefaultPosition, wxDefaultSize);
 	
 
 	user_info_sizer->Add(m_label_title, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 0);
@@ -83,11 +83,11 @@ PrintResultDialog::PrintResultDialog(PrintSummary* s)
 
 	user_info_sizer->Add(-1, 10);
 
-	m_btn_open_link->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-			/* submit summary to cloud */
-			wxString url = wxString("https://wenjuan.feishu.cn/m?t=sTOWz7rzrwvi-edku");
-			wxLaunchDefaultBrowser(url);
-		});
+	//m_btn_open_link->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+	//		/* submit summary to cloud */
+	//		wxString url = wxString("https://wenjuan.feishu.cn/m?t=sTOWz7rzrwvi-edku");
+	//		wxLaunchDefaultBrowser(url);
+	//	});
 
 	m_btn_submit->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
 			this->submit();
@@ -98,7 +98,7 @@ PrintResultDialog::PrintResultDialog(PrintSummary* s)
 	user_info_sizer->Add(-1, 10);
 	auto h_sizer = new wxBoxSizer(wxHORIZONTAL);
 	h_sizer->Add(m_btn_submit, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 20);
-	h_sizer->Add(m_btn_open_link, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 20);
+	//h_sizer->Add(m_btn_open_link, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 20);
 	user_info_sizer->Add(h_sizer);
 	topsizer->Add(-1, 5);
 
@@ -186,9 +186,13 @@ void PrintResultDialog::submit()
 			[this](int result, std::string info) {
 				if (result == 0) {
 					wxQueueEvent(this, new SimpleEvent(EVT_CLOSE_DIALOG));
+					wxString url = wxString("https://wenjuan.feishu.cn/m?t=sTOWz7rzrwvi-edku");
+					wxLaunchDefaultBrowser(url);
 				}
 				else {
 					wxMessageBox(info);
+					wxString url = wxString("https://wenjuan.feishu.cn/m?t=sTOWz7rzrwvi-edku");
+					wxLaunchDefaultBrowser(url);
 				}
 			});
 	}
