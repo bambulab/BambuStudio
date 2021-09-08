@@ -947,12 +947,11 @@ void Print::_make_skirt()
             layer->support_fills.collect_points(object_points);
         }
         // BBS
-        for (const Layer* layer : object->m_tree_support_layers) {
+        for (const TreeSupportLayer* layer : object->m_tree_support_layers) {
             if (layer->print_z > skirt_height_z)
                 break;
-            for (const ExPolygon& expoly : layer->lslices)
-                // Collect the outer contour points only, ignore holes for the calculation of the convex hull.
-                append(object_points, expoly.contour.points);
+
+            layer->support_fills.collect_points(object_points);
         }
 
         // Get brim width
@@ -1076,6 +1075,8 @@ Polygons Print::first_layer_islands() const
             object_islands.push_back(expoly.contour);
         if (! object->support_layers().empty())
             object->support_layers().front()->support_fills.polygons_covered_by_spacing(object_islands, float(SCALED_EPSILON));
+        if (! object->tree_support_layers().empty())
+            object->tree_support_layers().front()->support_fills.polygons_covered_by_spacing(object_islands, float(SCALED_EPSILON));
         islands.reserve(islands.size() + object_islands.size() * object->instances().size());
         for (const PrintInstance &instance : object->instances())
             for (Polygon &poly : object_islands) {

@@ -489,7 +489,7 @@ namespace Slic3r {
 std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObject& object)
 {
     std::vector<GCode::LayerToPrint> layers_to_print;
-    layers_to_print.reserve(object.layers().size() + object.support_layers().size());
+    layers_to_print.reserve(object.layers().size() + object.support_layers().size() + object.tree_support_layers().size());
 
     /*
     // Calculate a minimum support layer height as a minimum over all extruders, but not smaller than 10um.
@@ -550,7 +550,8 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
         layers_to_print.push_back(layer_to_print);
 
         bool has_extrusions = (layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
-            || (layer_to_print.support_layer && layer_to_print.support_layer->has_extrusions());
+            || (layer_to_print.support_layer && layer_to_print.support_layer->has_extrusions()
+            || (layer_to_print.tree_support_layer && layer_to_print.tree_support_layer->has_extrusions()));
 
         // Check that there are extrusions on the very first layer. The case with empty
         // first layer may result in skirt/brim in the air and maybe other issues.
@@ -563,11 +564,12 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
         // In case there are extrusions on this layer, check there is a layer to lay it on.
         if ((layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
             // Allow empty support layers, as the support generator may produce no extrusions for non-empty support regions.
-            || (layer_to_print.support_layer /* && layer_to_print.support_layer->has_extrusions() */)) {
+            || (layer_to_print.support_layer /* && layer_to_print.support_layer->has_extrusions() */)
+            || (layer_to_print.tree_support_layer)) {
             double top_cd = object.config().support_material_contact_distance;
             double bottom_cd = object.config().support_material_bottom_contact_distance == 0. ? top_cd : object.config().support_material_bottom_contact_distance;
 
-            double extra_gap = (layer_to_print.support_layer ? bottom_cd : top_cd);
+            double extra_gap = ((layer_to_print.support_layer || layer_to_print.tree_support_layer) ? bottom_cd : top_cd);
 
             double maximal_print_z = (last_extrusion_layer ? last_extrusion_layer->print_z() : 0.)
                 + layer_to_print.layer()->height
@@ -2061,6 +2063,7 @@ GCode::LayerResult GCode::process_layer(
     // First object, support and raft layer, if available.
     const Layer         *object_layer  = nullptr;
     const SupportLayer  *support_layer = nullptr;
+    const TreeSupportLayer* tree_support_layer = nullptr;
     const SupportLayer  *raft_layer    = nullptr;
     for (const LayerToPrint &l : layers) {
         if (l.object_layer && ! object_layer)
@@ -2071,8 +2074,26 @@ GCode::LayerResult GCode::process_layer(
             if (! raft_layer && support_layer->id() < support_layer->object()->slicing_parameters().raft_layers())
                 raft_layer = support_layer;
         }
+
+        if (l.tree_support_layer) {
+            if (!tree_support_layer)
+                tree_support_layer = l.tree_support_layer;
+            // BBS: to be checked.
+#if 0
+            if (!raft_layer && tree_support_layer->id() < tree_support_layer->object()->slicing_parameters().raft_layers())
+                raft_layer = tree_support_layer;
+#endif
+        }
     }
-    const Layer         &layer         = (object_layer != nullptr) ? *object_layer : *support_layer;
+
+    const Layer* layer_ptr = nullptr;
+    if (object_layer != nullptr)
+        layer_ptr = object_layer;
+    else if (support_layer != nullptr)
+        layer_ptr = support_layer;
+    else
+        layer_ptr = tree_support_layer;
+    const Layer& layer = *layer_ptr;
     GCode::LayerResult   result { {}, layer.id(), false, last_layer };
     if (layer_tools.extruders.empty())
         // Nothing to extrude.
@@ -2089,7 +2110,7 @@ GCode::LayerResult GCode::process_layer(
     // Check whether it is possible to apply the spiral vase logic for this layer.
     // Just a reminder: A spiral vase mode is allowed for a single object, single material print only.
     m_enable_loop_clipping = true;
-    if (m_spiral_vase && layers.size() == 1 && support_layer == nullptr) {
+    if (m_spiral_vase && layers.size() == 1 && support_layer == nullptr && tree_support_layer == nullptr) {
         bool enable = (layer.id() > 0 || !print.has_brim()) && (layer.id() >= (size_t)print.config().skirt_height.value && ! print.has_infinite_skirt());
         if (enable) {
             for (const LayerRegion *layer_region : layer.regions())

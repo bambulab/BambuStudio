@@ -2176,7 +2176,7 @@ void PrintObject::_generate_support_material()
     PrintObjectSupportMaterial support_material(this, m_slicing_params);
     support_material.generate(*this);
 
-    TreeSupport tree_support(*this);
+    TreeSupport tree_support(*this, m_slicing_params);
     tree_support.generate_support_areas();
 }
 

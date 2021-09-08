@@ -134,6 +134,10 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
             for (auto layer : object->support_layers())
                 zs.emplace_back(layer->print_z);
 
+            // BBS
+            for (auto layer : object->tree_support_layers())
+                zs.emplace_back(layer->print_z);
+
             // Find first object layer that is not empty and save its print_z
             for (const Layer* layer : object->layers())
                 if (layer->has_extrusions()) {

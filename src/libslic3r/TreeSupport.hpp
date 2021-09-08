@@ -5,6 +5,7 @@
 #include <unordered_set>
 #include "ExPolygon.hpp"
 #include "Point.hpp"
+#include "Slicing.hpp"
 
 namespace Slic3r
 {
@@ -163,7 +164,7 @@ public:
      *
      * \param storage The data storage to get global settings from.
      */
-    TreeSupport(PrintObject& object);
+    TreeSupport(PrintObject& object, const SlicingParameters &slicing_params);
 
     /*!
      * \brief Create the areas that need support.
@@ -277,6 +278,8 @@ private:
      */
     TreeSupportData* m_ts_data;
     PrintObject&    m_object;
+    SlicingParameters m_slicing_params;
+    size_t          m_raft_layers;
 
     /*!
      * \brief Draws circles around each node of the tree into the final support.

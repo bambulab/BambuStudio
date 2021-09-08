@@ -531,7 +531,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0.f));
+    def->set_default_value(new ConfigOptionFloat(0.1));
 
     def = this->add("clip_multipart_objects", coBool);
     def->label = L("Clip multi-part objects");
@@ -1578,7 +1578,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comExpert;
-    def->set_default_value(new ConfigOptionFloat(0.1));
+    def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("ironing_speed", coFloat);
     def->label = L("Ironing");
