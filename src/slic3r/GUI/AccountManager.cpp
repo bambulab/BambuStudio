@@ -153,7 +153,7 @@ namespace Slic3r {
             if (fn) {
                 fn(-1, body);
             }
-            }).on_error([&, this, account](std::string body, std::string error, unsigned status) {
+            }).on_error([&, this, account, fn](std::string body, std::string error, unsigned status) {
                 BOOST_LOG_TRIVIAL(trace) << "Account=" << account << " Login Failed! status=" << status << ",error=" << error << ",body=" << body;
                 std::string error_tips = "Login Failed! status=" + std::to_string(status) + ", error=" + error + ", body=" + body;
                 if (fn) {
