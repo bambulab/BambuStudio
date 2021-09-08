@@ -363,7 +363,7 @@ namespace Slic3r {
                 fn(0, body);
             }
             })
-            .on_error([&, fn](std::string body, std::string error, unsigned status) {
+            .on_error([&, json_str, fn](std::string body, std::string error, unsigned status) {
                 BOOST_LOG_TRIVIAL(trace) << "AccountManager::submit_print_result error, json=" << json_str;
                 std::string result_info = "status=" + std::to_string(status) + ",error=" + error + ",body=" + body;
                 BOOST_LOG_TRIVIAL(trace) << "AccountManager::submit_print_result error, info=" << result_info;

@@ -63,6 +63,7 @@ PrintResultDialog::PrintResultDialog(PrintSummary* s)
 	m_radio_ams = new wxRadioButton(panel, wxID_ANY, _L("AMS, multi meterials"), wxDefaultPosition, wxDefaultSize);
 	m_radio_other = new wxRadioButton(panel, wxID_ANY, _L("Other verifications"), wxDefaultPosition, wxDefaultSize);
 	m_btn_submit = new wxButton(panel, wxID_ANY, _L("Submit"), wxDefaultPosition, wxDefaultSize);
+	m_btn_open_link = new wxButton(panel, wxID_ANY, _L("Open Link"), wxDefaultPosition, wxDefaultSize);
 	
 
 	user_info_sizer->Add(m_label_title, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 0);
@@ -82,96 +83,23 @@ PrintResultDialog::PrintResultDialog(PrintSummary* s)
 
 	user_info_sizer->Add(-1, 10);
 
-	wxStaticText* m_label_reasons = new wxStaticText(panel, wxID_ANY, _L("3. What are your problems? Please select reasons."), wxDefaultPosition, wxDefaultSize);
-	user_info_sizer->Add(m_label_reasons, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 0);
-
-	std::string title[FAIL_REASON_NUM] = {
-		"The hot bed not sticky(record special material)",
-		"The hot bed too sticky(record special material)",
-		"The first layer is not flat, warped or the nozzle is too far away, lead to printing failed?",
-		"XY lost step, lead to printing failed?",
-		"Hot end plug",
-		"The hot end falls off",
-		"Extrusion shortage, lead to printing failed?",
-		"The thread slips",
-		"Printing on a staggered level, lead to printing failed?",
-		"Break material",
-		"Slicer crash",
-		"ams-refueling stuck or failed, lead to printing failed?",
-		"other"
-	};
-
-	std::string comment[FAIL_REASON_NUM] = {
-		"PLA+PC",
-		"PLA+PC",
-		"yes",
-		"yes",
-		"",
-		"",
-		"yes",
-		"",
-		"yes",
-		"",
-		"",
-		"yes",
-		""
-	};
-
-	for (int i = 0; i < FAIL_REASON_NUM; i++) {
-		m_cb_fail_reason[i] = new wxCheckBox(panel, wxID_ANY, _L(title[i]), wxDefaultPosition, wxDefaultSize);
-		txt_fail_reason[i] = new wxTextCtrl(panel, wxID_ANY, _L(comment[i]), wxDefaultPosition, wxSize(250, -1));
-	}
-
-	for (int i = 0; i < FAIL_REASON_NUM; i++)
-	{
-		user_info_sizer->Add(-1, 4);
-		user_info_sizer->Add(m_cb_fail_reason[i], 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 0);
-		user_info_sizer->Add(txt_fail_reason[i], 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 30);
-	}
-	
-	wxString ams_reason[AMS_FAIL_REASON_NUM] = {
-		"AMS five-way part block",
-		"AMS cutting material failed",
-		"AMS meterial expand lead to block",
-		"AMS understrength with ams",
-		"AMS structure is loose",
-		"other"
-	};
-
-	wxString ams_comment[AMS_FAIL_REASON_NUM] = {
-		"",
-		"1",
-		"1",
-		"",
-		"",
-		""
-	};
-
-	for (int i = 0; i < AMS_FAIL_REASON_NUM; i++) {
-		m_ams_fail_reason[i] = new wxCheckBox(panel, wxID_ANY, _L(ams_reason[i]), wxDefaultPosition, wxDefaultSize);
-		txt_ams_fail_reason[i] = new wxTextCtrl(panel, wxID_ANY, _L(ams_comment[i]), wxDefaultPosition, wxSize(250, -1));
-		
-	}
-
-	user_info_sizer->Add(-1, 8);
-	wxStaticText* m_label_ams_fail_reason = new wxStaticText(panel, wxID_ANY, _L("4. Any Issues met with AMS?"), wxDefaultPosition, wxDefaultSize);
-	user_info_sizer->Add(m_label_ams_fail_reason, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 0);
-
-	for (int i = 0; i < AMS_FAIL_REASON_NUM; i++) {
-		user_info_sizer->Add(-1, 4);
-		user_info_sizer->Add(m_ams_fail_reason[i], 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 0);
-		user_info_sizer->Add(txt_ams_fail_reason[i], 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 30);
-	}
+	m_btn_open_link->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+			/* submit summary to cloud */
+			wxString url = wxString("https://wenjuan.feishu.cn/m?t=sTOWz7rzrwvi-edku");
+			wxLaunchDefaultBrowser(url);
+		});
 
 	m_btn_submit->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-			/* submit summary to cloud */
 			this->submit();
 		});
 
 	auto* topsizer = new wxBoxSizer(wxVERTICAL);
 	topsizer->Add(panel, 1, wxALL | wxALIGN_LEFT | wxGROW, 5, NULL);
 	user_info_sizer->Add(-1, 10);
-	user_info_sizer->Add(m_btn_submit, 0, wxBOTTOM | wxALIGN_LEFT, 20);
+	auto h_sizer = new wxBoxSizer(wxHORIZONTAL);
+	h_sizer->Add(m_btn_submit, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 20);
+	h_sizer->Add(m_btn_open_link, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 20);
+	user_info_sizer->Add(h_sizer);
 	topsizer->Add(-1, 5);
 
 	SetSizerAndFit(topsizer);
@@ -211,22 +139,6 @@ void PrintResultDialog::submit()
 		else if (m_radio_result4->GetValue()) {
 			action_str = "stopped";
 			result_str = "fail";
-		}
-
-		for (int i = 0; i < FAIL_REASON_NUM; i++) {
-			if (m_cb_fail_reason[i]->IsChecked()) {
-				reason_item[i].put("reason", m_cb_fail_reason[i]->GetLabelText().ToStdString());
-				reason_item[i].put("comments", txt_fail_reason[i]->GetValue().ToStdString());
-				reason_array.push_back(std::make_pair("", reason_item[i]));
-			}
-		}
-
-		for (int i = 0; i < AMS_FAIL_REASON_NUM; i++) {
-			if (m_ams_fail_reason[i]->IsChecked()) {
-				ams_reason_items[i].put("reason", m_ams_fail_reason[i]->GetLabelText().ToStdString());
-				ams_reason_items[i].put("comments", txt_ams_fail_reason[i]->GetValue().ToStdString());
-				ams_reason_array.push_back(std::make_pair("", ams_reason_items[i]));
-			}
 		}
 
 		root.put("account", summary->username);

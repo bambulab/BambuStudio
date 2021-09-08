@@ -85,6 +85,7 @@ private:
     
     wxTextCtrl* m_other_reason;
     wxButton* m_btn_submit;
+    wxButton* m_btn_open_link;
 
     void submit();
 public:
