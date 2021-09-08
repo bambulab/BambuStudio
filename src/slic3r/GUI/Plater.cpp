@@ -2577,8 +2577,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                     //BBS: add part plate related logic
                     PlateDataPtrs plate_data;
+                    bool is_bbs_3mf;
                     ConfigSubstitutionContext config_substitutions{ ForwardCompatibilitySubstitutionRule::Enable };
-                    model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, only_if(load_config, Model::LoadAttribute::CheckVersion), &plate_data);
+                    model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, only_if(load_config, Model::LoadAttribute::CheckVersion), &plate_data, &is_bbs_3mf);
                     if (plate_data.size() > 0)
                     {
                         partplate_list.load_from_3mf_structure(plate_data);

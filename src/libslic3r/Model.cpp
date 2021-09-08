@@ -100,7 +100,7 @@ void Model::update_links_bottom_up_recursive()
 
 //BBS: add part plate related logic
 // Loading model from a file, it may be a simple geometry file as STL or OBJ, however it may be a project file as well.
-Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, LoadAttributes options, PlateDataPtrs* plate_data)
+Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, LoadAttributes options, PlateDataPtrs* plate_data, bool *is_bbl_3mf)
 {
     Model model;
 
@@ -110,6 +110,13 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
         config = &temp_config;
     if (config_substitutions == nullptr)
         config_substitutions = &temp_config_substitutions_context;
+    //BBS: plate_data
+    PlateDataPtrs temp_plate_data;
+    bool temp_is_bbl_3mf;
+    if (plate_data == nullptr)
+        plate_data = &temp_plate_data;
+    if (is_bbl_3mf == nullptr)
+        is_bbl_3mf = &temp_is_bbl_3mf;
 
     bool result = false;
     if (boost::algorithm::iends_with(input_file, ".stl"))
@@ -121,7 +128,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     else if (boost::algorithm::iends_with(input_file, ".3mf"))
         //BBS: add part plate related logic
         //FIXME options & LoadAttribute::CheckVersion ? 
-        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, options & LoadAttribute::CheckVersion);
+        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, options & LoadAttribute::CheckVersion, is_bbl_3mf);
     else
         throw Slic3r::RuntimeError("Unknown file format. Input file must have .stl, .obj, .amf(.xml) or .prusa extension.");
 
@@ -146,7 +153,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
 
 //BBS: add part plate related logic
 // Loading model from a file (3MF or AMF), not from a simple geometry file (STL or OBJ).
-Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, LoadAttributes options, PlateDataPtrs* plate_data)
+Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, LoadAttributes options, PlateDataPtrs* plate_data, bool *is_bbl_3mf)
 {
     assert(config != nullptr);
     assert(config_substitutions != nullptr);
@@ -156,7 +163,7 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
     bool result = false;
     if (boost::algorithm::iends_with(input_file, ".3mf"))
         //BBS: add part plate related logic
-        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, options & LoadAttribute::CheckVersion);
+        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, options & LoadAttribute::CheckVersion, is_bbl_3mf);
     else if (boost::algorithm::iends_with(input_file, ".zip.amf"))
         result = load_amf(input_file.c_str(), config, config_substitutions, &model, options & LoadAttribute::CheckVersion);
     else

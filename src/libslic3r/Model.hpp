@@ -1111,11 +1111,11 @@ public:
     static Model read_from_file(
         const std::string& input_file, 
         DynamicPrintConfig* config = nullptr, ConfigSubstitutionContext* config_substitutions = nullptr,
-        LoadAttributes options = LoadAttribute::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr);
+        LoadAttributes options = LoadAttribute::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr, bool* is_bbl_3mf = nullptr);
     static Model read_from_archive(
         const std::string& input_file, 
         DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions,
-        LoadAttributes options = LoadAttribute::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr);
+        LoadAttributes options = LoadAttribute::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr, bool* is_bbl_3mf = nullptr);
 
     // Add a new ModelObject to this Model, generate a new ID for this ModelObject.
     ModelObject* add_object();

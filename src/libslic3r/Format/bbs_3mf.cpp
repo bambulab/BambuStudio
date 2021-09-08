@@ -433,6 +433,7 @@ namespace Slic3r {
         std::string m_name;
 
         //BBS: plater related structures
+        bool m_is_bbl_3mf { false };
         PlateDataMaps m_plater_data;
         PlateData* m_curr_plater;
         CurrentInstance m_curr_instance;
@@ -442,7 +443,7 @@ namespace Slic3r {
         ~_BBS_3MF_Importer();
 
         //BBS: add plate data related logic
-        bool load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version);
+        bool load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version, bool& is_bbl_3mf);
 
     private:
         void _destroy_xml_parser();
@@ -586,7 +587,7 @@ namespace Slic3r {
     }
 
     //BBS: add plate data related logic
-    bool _BBS_3MF_Importer::load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version)
+    bool _BBS_3MF_Importer::load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version, bool& is_bbl_3mf)
     {
         m_version = 0;
         m_check_version = check_version;
@@ -611,7 +612,9 @@ namespace Slic3r {
         m_curr_instance.instance_id = -1;
         clear_errors();
 
-        return _load_model_from_file(filename, model, plate_data_list, config, config_substitutions);
+        bool result = _load_model_from_file(filename, model, plate_data_list, config, config_substitutions);
+        is_bbl_3mf = m_is_bbl_3mf;
+        return result;
     }
 
     void _BBS_3MF_Importer::_destroy_xml_parser()
@@ -1758,6 +1761,8 @@ namespace Slic3r {
     bool _BBS_3MF_Importer::_handle_end_metadata()
     {
         if ((m_curr_metadata_name == BBS_3MF_VERSION)||(m_curr_metadata_name == BBS_PRUSA_VERSION)) {
+            if (m_curr_metadata_name == BBS_3MF_VERSION)
+                m_is_bbl_3mf = true;
             m_version = (unsigned int)atoi(m_curr_characters.c_str());
             if (m_check_version && (m_version > VERSION_BBS_3MF_COMPATIBLE)) {
                 // std::string msg = _(L("The selected 3mf file has been saved with a newer version of " + std::string(SLIC3R_APP_NAME) + " and is not compatible."));
@@ -3230,13 +3235,13 @@ bool _BBS_3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_ar
 }
 
 //BBS: add plate data list related logic
-bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, bool check_version)
+bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, bool check_version, bool* is_bbl_3mf)
 {
     if (path == nullptr || config == nullptr || model == nullptr)
         return false;
 
     _BBS_3MF_Importer importer;
-    bool res = importer.load_model_from_file(path, *model, *plate_data_list, *config, *config_substitutions, check_version);
+    bool res = importer.load_model_from_file(path, *model, *plate_data_list, *config, *config_substitutions, check_version, *is_bbl_3mf);
     importer.log_errors();
     return res;
 }

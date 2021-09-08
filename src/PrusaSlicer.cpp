@@ -58,6 +58,7 @@
 #ifdef WIN32
 #include "BaseException.h"
 #endif
+#include "slic3r/GUI/PartPlate.hpp"
 
 #ifdef SLIC3R_GUI
     #include "slic3r/GUI/GUI_Init.hpp"
@@ -70,6 +71,12 @@ static PrinterTechnology get_printer_technology(const DynamicConfig &config)
     const ConfigOptionEnum<PrinterTechnology> *opt = config.option<ConfigOptionEnum<PrinterTechnology>>("printer_technology");
     return (opt == nullptr) ? ptUnknown : opt->value;
 }
+
+//BBS: add flush and exit
+#define flush_and_exit(ret)     { boost::nowide::cout << __FUNCTION__ << " found error, exit" << std::endl;\
+    boost::nowide::cout.flush();\
+    boost::nowide::cerr.flush();\
+    exit(ret);}
 
 int CLI::run(int argc, char **argv)
 {
@@ -103,8 +110,13 @@ int CLI::run(int argc, char **argv)
         return 1;
     }
 
+    boost::nowide::cout << "begin to setup params, argc="<< argc << std::endl;
 	if (! this->setup(argc, argv))
+    {
+        boost::nowide::cerr << "setup params error" << std::endl;
 		return 1;
+    }
+    boost::nowide::cout << "finished setup params, argc="<< argc << std::endl;
 
     m_extra_config.apply(m_config, true);
     m_extra_config.normalize_fdm();
@@ -127,6 +139,7 @@ int CLI::run(int argc, char **argv)
     const std::vector<std::string>              &load_configs		      = m_config.option<ConfigOptionStrings>("load", true)->values;
     const ForwardCompatibilitySubstitutionRule   config_substitution_rule = m_config.option<ConfigOptionEnum<ForwardCompatibilitySubstitutionRule>>("config_compatibility", true)->value;
 
+    boost::nowide::cout << "before load configs, file count="<< load_configs.size() << std::endl;
     // load config files supplied via --load
     for (auto const &file : load_configs) {
         if (! boost::filesystem::exists(file)) {
@@ -134,16 +147,18 @@ int CLI::run(int argc, char **argv)
                 continue;
             } else {
                 boost::nowide::cerr << "No such file: " << file << std::endl;
-                return 1;
+                flush_and_exit(1);
             }
         }
         DynamicPrintConfig  config;
         ConfigSubstitutions config_substitutions;
         try {
+            boost::nowide::cout << "load config file "<< file << ", with rule "<< config_substitution_rule << std::endl;
             config_substitutions = config.load(file, config_substitution_rule);
+            //boost::nowide::cout << "got bed_shape "<< config.option("bed_shape")->serialize() << std::endl;
         } catch (std::exception &ex) {
             boost::nowide::cerr << "Error while reading config file \"" << file << "\": " << ex.what() << std::endl;
-            return 1;
+            flush_and_exit(1);
         }
         if (! config_substitutions.empty()) {
             boost::nowide::cout << "The following configuration values were substituted when loading \" << file << \":\n";
@@ -156,7 +171,7 @@ int CLI::run(int argc, char **argv)
             printer_technology = other_printer_technology;
         } else if (printer_technology != other_printer_technology && other_printer_technology != ptUnknown) {
             boost::nowide::cerr << "Mixing configurations for FFF and SLA technologies" << std::endl;
-            return 1;
+            flush_and_exit(1);
         }
         m_print_config.apply(config);
     }
@@ -171,45 +186,86 @@ int CLI::run(int argc, char **argv)
         }
     }
 
+    boost::nowide::cout << "start_gui="<< start_gui << ", start_as_gcodeviewer="<< start_as_gcodeviewer << std::endl;
+
+    //BBS: add plate data related logic
+    PlateDataPtrs plate_data;
+    bool first_file = true, is_bbl_3mf = false, need_arrange = true;
+    std::map<size_t, bool> orients_requirement;
+
     // Read input file(s) if any.
+    boost::nowide::cout << "Will start to read model file now, file count :" << m_input_files.size() << "\n";
     for (const std::string& file : m_input_files)
         if (is_gcode_file(file) && boost::filesystem::exists(file)) {
             start_as_gcodeviewer = true;
+            boost::nowide::cout << "found a gcode file:" << file << ", will start as gcode viewer\n";
             break;
         }
     if (!start_as_gcodeviewer) {
         for (const std::string& file : m_input_files) {
             if (!boost::filesystem::exists(file)) {
                 boost::nowide::cerr << "No such file: " << file << std::endl;
-                exit(1);
+                flush_and_exit(1);
             }
             Model model;
+            //BBS: add plate related logic
+            boost::nowide::cout << "read model file:" << file << "\n";
             try {
                 // When loading an AMF or 3MF, config is imported as well, including the printer technology.
                 DynamicPrintConfig config;
                 ConfigSubstitutionContext config_substitutions(config_substitution_rule);
+
                 //FIXME should we check the version here? // | Model::LoadAttribute::CheckVersion ?
-                model = Model::read_from_file(file, &config, &config_substitutions, Model::LoadAttribute::AddDefaultInstances);
-                PrinterTechnology other_printer_technology = get_printer_technology(config);
+                is_bbl_3mf = false;
+                model = Model::read_from_file(file, &config, &config_substitutions, Model::LoadAttribute::AddDefaultInstances, &plate_data, &is_bbl_3mf);
+                if (is_bbl_3mf)
+                {
+                    if (!first_file)
+                    {
+                        boost::nowide::cout << "The BBL 3mf file should be placed at the first position, filename=" << file << "\n";
+                        flush_and_exit(1);
+                    }
+                    boost::nowide::cout << "the first file is a 3mf, got plate count:" << plate_data.size() << "\n";
+                    need_arrange = false;
+                    for (ModelObject* o : model.objects)
+                    {
+                        orients_requirement.insert(std::pair<size_t, bool>(o->id().id, false));
+                        boost::nowide::cout << "object "<<o->name <<", id :" << o->id().id << ", from bbl 3mf\n";
+                    }
+                }
+                else
+                {
+                    need_arrange = true;
+                    for (ModelObject* o : model.objects)
+                    {
+                        orients_requirement.insert(std::pair<size_t, bool>(o->id().id, true));
+                        boost::nowide::cout << "object "<<o->name <<", id :"  << o->id().id << ", from stl or other 3mf\n";
+                        o->ensure_on_bed();
+                    }
+                }
+                first_file = false;
+
+                PrinterTechnology other_printer_technology = Slic3r::printer_technology(config);
                 if (printer_technology == ptUnknown) {
                     printer_technology = other_printer_technology;
                 }
                 else if (printer_technology != other_printer_technology && other_printer_technology != ptUnknown) {
                     boost::nowide::cerr << "Mixing configurations for FFF and SLA technologies" << std::endl;
-                    return 1;
+                    flush_and_exit(1);
                 }
                 if (! config_substitutions.substitutions.empty()) {
                     boost::nowide::cout << "The following configuration values were substituted when loading \" << file << \":\n";
                     for (const ConfigSubstitution& subst : config_substitutions.substitutions)
                         boost::nowide::cout << "\tkey = \"" << subst.opt_def->opt_key << "\"\t loaded = \"" << subst.old_value << "\tsubstituted = \"" << subst.new_value->serialize() << "\"\n";
                 }
+
                 // config is applied to m_print_config before the current m_config values.
                 config += std::move(m_print_config);
                 m_print_config = std::move(config);
             }
             catch (std::exception& e) {
                 boost::nowide::cerr << file << ": " << e.what() << std::endl;
-                return 1;
+                flush_and_exit(1);
             }
             if (model.objects.empty()) {
                 boost::nowide::cerr << "Error: file is empty: " << file << std::endl;
@@ -217,6 +273,29 @@ int CLI::run(int argc, char **argv)
             }
             m_models.push_back(model);
         }
+    }
+
+    //BBS: set default to ptFFF
+    if (printer_technology == ptUnknown)
+        printer_technology = ptFFF;
+
+    //BBS: merge these models into one
+    boost::nowide::cout << "total " << m_models.size() << " models, "<<orients_requirement.size()<<" objects"<<std::endl;
+    if (m_models.size() > 1)
+    {
+        boost::nowide::cout << "merge all the models into one\n";
+        Model m;
+        for (auto& model : m_models)
+            for (ModelObject* o : model.objects)
+            {
+                ModelObject* new_object = m.add_object(*o);
+                //boost::nowide::cout << "object "<<o->name <<", id :" << o->id().id << "\n";
+                orients_requirement.emplace(new_object->id().id, orients_requirement[o->id().id]);
+                orients_requirement.erase(o->id().id);
+            }
+        m.add_default_instances();
+        m_models.clear();
+        m_models.emplace_back(std::move(m));
     }
 
     // Apply command line options to a more specific DynamicPrintConfig which provides normalize()
@@ -232,7 +311,7 @@ int CLI::run(int argc, char **argv)
     // Initialize full print configs for both the FFF and SLA technologies.
     FullPrintConfig    fff_print_config;
     SLAFullPrintConfig sla_print_config;
-    
+
     // Synchronize the default parameters and the ones received on the command line.
     if (printer_technology == ptFFF) {
         fff_print_config.apply(m_print_config, true);
@@ -250,24 +329,45 @@ int CLI::run(int argc, char **argv)
         sla_print_config.apply(m_print_config, true);
         m_print_config.apply(sla_print_config, true);
     }
-    
+
+    std::string validity = m_print_config.validate();
+    if (!validity.empty()) {
+        boost::nowide::cerr <<"Error: The composite configation is not valid: " << validity << std::endl;
+        flush_and_exit(1);
+    }
+
+    //BBS: partplate list
+    Slic3r::GUI::PartPlateList partplate_list(NULL, &m_models[0], printer_technology);
+    //use Pointfs insteadof Points
+    Pointfs bedfs = m_print_config.opt<ConfigOptionPoints>("bed_shape")->values;
+    //update part plate's size
+    double z = m_print_config.opt_float("max_print_height");
+    double plate_stride;
+    if (m_models.size() > 0)
     {
-        std::string validity = m_print_config.validate();
-        if (! validity.empty()) {
-            boost::nowide::cerr << "Error: The composite configation is not valid: " << validity << std::endl;
-            return 1;
-        }
+        partplate_list.reset_size(bedfs[2].x() - bedfs[0].x(), bedfs[2].y() - bedfs[0].y(), z);
+        partplate_list.set_shapes(bedfs);
+        plate_stride = partplate_list.plate_stride();
+        boost::nowide::cout << "bed size, x="<<bedfs[2].x() - bedfs[0].x()<<",y="<<bedfs[2].y() - bedfs[0].y()<<",z="<< z <<"\n";
+    }
+    if (plate_data.size() > 0)
+    {
+        partplate_list.load_from_3mf_structure(plate_data);
+        release_PlateData_list(plate_data);
     }
     
     // Loop through transform options.
-    bool user_center_specified = false;
-    Points bed = get_bed_shape(m_print_config);
+    bool user_center_specified = false;    
+    Points beds = get_bed_shape(m_print_config);
     ArrangeParams arrange_cfg;
     arrange_cfg.min_obj_distance = scaled(min_object_distance(m_print_config));
-    
+
+    boost::nowide::cout << "will start transforms, commands count " << m_transforms.size() << "\n";
     for (auto const &opt_key : m_transforms) {
+        boost::nowide::cout << "process transform " << opt_key << "\n";
         if (opt_key == "merge") {
-            Model m;
+            //BBS: always merge, do nothing here
+            /*Model m;
             for (auto& model : m_models)
                 for (ModelObject* o : model.objects)
                     m.add_object(*o);
@@ -280,15 +380,17 @@ int CLI::run(int argc, char **argv)
                     arrange_objects(m, InfiniteBed{}, arrange_cfg);
             }
             m_models.clear();
-            m_models.emplace_back(std::move(m));
+            m_models.emplace_back(std::move(m));*/
         }
         else if (opt_key == "orient") {
             for (auto& model : m_models)
                 for (ModelObject* o : model.objects)
-                    for(ModelInstance* mi: o->instances)
-                    {
-                        orientation::orient(mi);
-                    }
+                {
+                    boost::nowide::cout << "orient object, name=" << o->name <<",id="<<o->id().id<<std::endl;
+                    orientation::orient(o);
+                    //BBS: clear the orient objects lists
+                    orients_requirement[o->id().id] = false;
+                }
         }
         else if (opt_key == "duplicate") {
             for (auto &model : m_models) {
@@ -303,9 +405,9 @@ int CLI::run(int argc, char **argv)
                 try {
                     if (dups > 1) {
                         // if all input objects have defined position(s) apply duplication to the whole model
-                        duplicate(model, size_t(dups), bed, arrange_cfg);
+                        duplicate(model, size_t(dups), beds, arrange_cfg);
                     } else {
-                        arrange_objects(model, bed, arrange_cfg);
+                        arrange_objects(model, beds, arrange_cfg);
                     }
                 } catch (std::exception &ex) {
                     boost::nowide::cerr << "error: " << ex.what() << std::endl;
@@ -345,6 +447,8 @@ int CLI::run(int argc, char **argv)
             }
         } else if (opt_key == "dont_arrange") {
             // do nothing - this option alters other transform options
+            //BBS: set arrange to false
+            need_arrange = false;
         } else if (opt_key == "ensure_on_bed") {
             // do nothing, the value is used later
         } else if (opt_key == "rotate") {
@@ -445,7 +549,133 @@ int CLI::run(int argc, char **argv)
             //    model.repair();
         } else {
             boost::nowide::cerr << "error: option not implemented yet: " << opt_key << std::endl;
-            return 1;
+            flush_and_exit(1);
+        }
+    }
+
+    boost::nowide::cout << "finished transform commands\n";
+    //BBS: add orient and arrange logic here
+    for (auto& model : m_models)
+    {
+        for (ModelObject* o : model.objects)
+        {
+            if (orients_requirement[o->id().id])
+            {
+                boost::nowide::cout << "Before Actions, Orient object, name=" << o->name <<",id="<<o->id().id<<std::endl;
+                orientation::orient(o);
+            }
+            else
+            {
+                boost::nowide::cout << "Before Actions, no need to orient, object id :" << o->id().id<<std::endl;
+            }
+        }
+    }
+    //BBS: clear the orient objects lists
+    orients_requirement.clear();
+
+    if (need_arrange)
+    {
+        ArrangePolygons selected, unprintable;
+        boost::nowide::cout << "Will arrange now, need_arrange="<<need_arrange<<"\n";
+
+        for (Model &model : m_models)
+        {
+            //Step-1: prepare arrange polygons
+            for (size_t oidx = 0; oidx < model.objects.size(); ++oidx)
+            {
+                ModelObject* mo = model.objects[oidx];
+                for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
+                {
+                    ModelInstance* minst = mo->instances[inst_idx];
+                    ArrangePolygon ap;
+
+                    minst->get_arrange_polygon((void *)&ap);
+
+                    ap.bed_idx        = ap.translation.x() / plate_stride;
+                    ap.setter         = [minst, plate_stride](const ArrangePolygon &p) {
+                        if (p.is_arranged()) {
+                            Vec2d t = p.translation.cast<double>();
+                            t.x() += p.bed_idx * scaled(plate_stride);
+                            minst->apply_arrange_result(t, p.rotation);
+                            boost::nowide::cout << "instance id=" << minst->id().id <<", after apply_arrange_result, trans-x= "<<minst->get_transformation().get_offset().x()
+                                <<",t.x()="<<t.x()<<", bed_idx="<< p.bed_idx <<", plate_stride="<< plate_stride<<"\n";
+                        }
+                    };
+                    ap.bed_temp = m_print_config.opt_int("bed_temperature", ap.extrude_id - 1);
+                    ap.print_temp = m_print_config.opt_int("temperature", ap.extrude_id - 1);
+                    ap.first_bed_temp = m_print_config.opt_int("first_layer_bed_temperature", ap.extrude_id - 1);
+                    ap.first_print_temp = m_print_config.opt_int("first_layer_temperature", ap.extrude_id - 1);
+                    //ap.height = minst->get_object()->bounding_box().size().z();
+                    ap.height = 1;
+                    ap.name = minst->get_object()->name;
+                    boost::nowide::cout << "arrange object "<<ap.name<<",bed_temp="<<ap.bed_temp<<",print_temp="<< ap.print_temp <<",first_bed_temp=" << ap.first_bed_temp <<",first_print_temp="<< ap.first_print_temp  <<"\n";
+                    boost::nowide::cout << "extrude_id=" << ap.extrude_id <<",trans_x "<<ap.translation.x()<<",trans_y="<<ap.translation.y()<<"\n";
+                    boost::nowide::cout << "instance z=" << minst->get_transformation().get_offset().z()<< ",object min_z=" <<mo->get_min_z()<<"\n";
+                
+                    //preprocess by partplate list
+                    //remove the locked plate's instances, neither in selected, nor in un-selected
+                    bool locked = partplate_list.preprocess_arrange_polygon(oidx, inst_idx, ap, true);
+                    if (!locked)
+                    {
+                        ap.itemid = selected.size();
+                        if (minst->printable)
+                            selected.emplace_back(ap);
+                        else
+                            unprintable.emplace_back(ap);
+                    }
+                    else
+                    {
+                        //skip this object due to be locked in plate
+                        boost::nowide::cout <<__FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%") % oidx % inst_idx;
+                    }
+                }
+            }
+
+            //Step-2:prepare the arrange params
+            arrange_cfg.allow_rotations  = false;
+            arrange_cfg.min_obj_distance = scaled(12.0);
+            //BBS: add specific params
+            arrange_cfg.is_seq_print = false;
+            arrange_cfg.bed_shrink_x = 0;
+            arrange_cfg.bed_shrink_y = 0;
+            // shrink bed
+            beds[0] += Point(scaled(arrange_cfg.bed_shrink_x), scaled(arrange_cfg.bed_shrink_y));
+            beds[1] += Point(-scaled(arrange_cfg.bed_shrink_x), scaled(arrange_cfg.bed_shrink_y));
+            beds[2] += Point(-scaled(arrange_cfg.bed_shrink_x), -scaled(arrange_cfg.bed_shrink_y));
+            beds[3] += Point(scaled(arrange_cfg.bed_shrink_x), -scaled(arrange_cfg.bed_shrink_y)); 
+            double skirt_distance = m_print_config.opt_float("skirt_distance");
+            double brim_width = m_print_config.opt_float("brim_width");
+            arrange_cfg.brim_skirt_distance = std::max(skirt_distance, brim_width);
+            boost::nowide::cout << boost::format("Arrange Params: brim_skirt_distance=%1%, min_obj_distance=%2%, is_seq_print=%3%\n") %  arrange_cfg.brim_skirt_distance % arrange_cfg.min_obj_distance % arrange_cfg.is_seq_print;
+
+            //Step-3:do the arrange
+            arrangement::arrange(selected, {}, beds, arrange_cfg);
+            arrangement::arrange(unprintable, {}, beds, arrange_cfg);
+
+            //Step-4:postprocess by partplate list&&apply the result
+            int beds = 0;
+            //clear all the relations before apply the arrangement results
+            partplate_list.clear();
+            
+            // Apply the arrange result to all selected objects
+            for (ArrangePolygon &ap : selected) {
+                //BBS: partplate postprocess
+                partplate_list.postprocess_arrange_polygon(ap, true);
+
+                beds = std::max(ap.bed_idx, beds);
+                boost::nowide::cout<< "after arrange: name=" << ap.name << boost::format(",bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) << "\n";
+                ap.apply();
+            }
+
+            // Move the unprintable items to the last virtual bed.
+            for (ArrangePolygon &ap : unprintable) {
+                ap.bed_idx += beds + 1;
+
+                ap.apply();
+            }
+
+            //BBS: reload all objects due to arrange
+            partplate_list.rebuild_plates_after_arrangement();
         }
     }
 
@@ -488,16 +718,24 @@ int CLI::run(int argc, char **argv)
             if (! this->export_models(IO::AMF))
                 return 1;
         } else if (opt_key == "export_3mf") {
-            if (! this->export_models(IO::TMF))
-                return 1;
+            //BBS: export as bbl 3mf
+            PlateDataPtrs plate_data_list;
+            partplate_list.store_to_3mf_structure(plate_data_list);
+            if (! this->export_project(&m_models[0], plate_data_list, &m_print_config))
+            {
+                release_PlateData_list(plate_data_list);
+                flush_and_exit(1);
+            }
+            release_PlateData_list(plate_data_list);
         } else if (opt_key == "export_gcode" || opt_key == "export_sla" || opt_key == "slice") {
             if (opt_key == "export_gcode" && printer_technology == ptSLA) {
                 boost::nowide::cerr << "error: cannot export G-code for an FFF configuration" << std::endl;
-                return 1;
+                flush_and_exit(1);
             } else if (opt_key == "export_sla" && printer_technology == ptFFF) {
                 boost::nowide::cerr << "error: cannot export SLA slices for a SLA configuration" << std::endl;
-                return 1;
+                flush_and_exit(1);
             }
+            boost::nowide::cout << "Need to slice for "<<partplate_list.get_plate_count()<<" partplates!" << std::endl;
             // Make a copy of the model if the current action is not the last action, as the model may be
             // modified by the centering and such.
             Model model_copy;
@@ -510,7 +748,8 @@ int CLI::run(int argc, char **argv)
                 // honored when printing (they will be only centered, unless --dont-arrange
                 // is supplied); if any object has no instances, it will get a default one
                 // and all instances will be rearranged (unless --dont-arrange is supplied).
-                std::string outfile = m_config.opt_string("output");
+                std::string outfile_config = m_config.opt_string("output");
+                std::string outfile;
                 Print       fff_print;
                 SLAPrint    sla_print;
                 SL1Archive  sla_archive(sla_print.printer_config());
@@ -522,54 +761,91 @@ int CLI::run(int argc, char **argv)
                         printf("%3d%s %s\n", s.percent, "% =>", s.text.c_str());
                 });
 
-                PrintBase  *print = (printer_technology == ptFFF) ? static_cast<PrintBase*>(&fff_print) : static_cast<PrintBase*>(&sla_print);
-                if (! m_config.opt_bool("dont_arrange")) {
-                    if (user_center_specified) {
-                        Vec2d c = m_config.option<ConfigOptionPoint>("center")->value;
-                        arrange_objects(model, InfiniteBed{scaled(c)}, arrange_cfg);
-                    } else
-                        arrange_objects(model, bed, arrange_cfg);
-                }
-                if (printer_technology == ptFFF) {
-                    for (auto* mo : model.objects)
-                        fff_print.auto_assign_extruders(mo);
-                }
-                print->apply(model, m_print_config);
-                std::string err = print->validate();
-                if (! err.empty()) {
-                    boost::nowide::cerr << err << std::endl;
-                    return 1;
-                }
-                if (print->empty())
-                    boost::nowide::cout << "Nothing to print for " << outfile << " . Either the print is empty or no object is fully inside the print volume." << std::endl;
-                else
-                    try {
-                        std::string outfile_final;
-                        print->process();
-                        if (printer_technology == ptFFF) {
-                            // The outfile is processed by a PlaceholderParser.
-                            outfile = fff_print.export_gcode(outfile, nullptr, nullptr);
-                            outfile_final = fff_print.print_statistics().finalize_output_path(outfile);
-                        } else {
-                            outfile = sla_print.output_filepath(outfile);
-                            // We need to finalize the filename beforehand because the export function sets the filename inside the zip metadata
-                            outfile_final = sla_print.print_statistics().finalize_output_path(outfile);
-                            sla_archive.export_print(outfile_final, sla_print);
-                        }
-                        if (outfile != outfile_final) {
-                            if (Slic3r::rename_file(outfile, outfile_final)) {
-                                boost::nowide::cerr << "Renaming file " << outfile << " to " << outfile_final << " failed" << std::endl;
-                                return 1;
-                            }
-                            outfile = outfile_final;
-                        }
-                        // Run the post-processing scripts if defined.
-                        run_post_process_scripts(outfile, fff_print.full_print_config());
-                        boost::nowide::cout << "Slicing result exported to " << outfile << std::endl;
-                    } catch (const std::exception &ex) {
-                        boost::nowide::cerr << ex.what() << std::endl;
-                        return 1;
+                //BBS: slice every partplate one by one
+                PrintBase  *print=NULL;
+                Slic3r::GUI::GCodeResult *gcode_result = NULL;
+                int print_index;
+                for (int index = 0; index < partplate_list.get_plate_count(); index ++)
+                {
+                    //get the current partplate
+                    Slic3r::GUI::PartPlate* part_plate = partplate_list.get_plate(index);
+                    part_plate->get_print(&print, &gcode_result, &print_index);
+                    if (outfile_config.empty())
+                    {
+                        outfile = "plate_" + std::to_string(index + 1) + ".gcode";
                     }
+                    else
+                    {
+                        outfile = "plate_" + std::to_string(index + 1) + "_" + outfile_config + ".gcode";
+                    }
+
+                    //update plate's bounding box to model
+                    BoundingBoxf3   print_volume = part_plate->get_bounding_box(false);
+                    print_volume.max(2) = z;
+                    print_volume.min(2) = -1e10;
+                    model.update_print_volume_state(print_volume);
+                    boost::nowide::cout << boost::format("print_volume {%1%,%2%,%3%}->{%4%, %5%, %6%}") % print_volume.min(0) % print_volume.min(1)
+                        % print_volume.min(2) % print_volume.max(0) % print_volume.max(1) % print_volume.max(2)<< std::endl;
+
+                    //PrintBase  *print = (printer_technology == ptFFF) ? static_cast<PrintBase*>(&fff_print) : static_cast<PrintBase*>(&sla_print);
+                    /*if (! m_config.opt_bool("dont_arrange")) {
+                        if (user_center_specified) {
+                            Vec2d c = m_config.option<ConfigOptionPoint>("center")->value;
+                            arrange_objects(model, InfiniteBed{scaled(c)}, arrange_cfg);
+                        } else
+                            arrange_objects(model, bed, arrange_cfg);
+                    }*/
+                    if (printer_technology == ptFFF) {
+                        for (auto* mo : model.objects)
+                            (dynamic_cast<Print*>(print))->auto_assign_extruders(mo);
+                    } else {
+                        // The default for "output_filename_format" is good for FDM: "[input_filename_base].gcode"
+                        // Replace it with a reasonable SLA default.
+                        std::string &format = m_print_config.opt_string("output_filename_format", true);
+                        if (format == static_cast<const ConfigOptionString*>(m_print_config.def()->get("output_filename_format")->default_value.get())->value)
+                            format = "[input_filename_base].SL1";
+                    }
+                    print->apply(model, m_print_config);
+                    std::string err = print->validate();
+                    if (! err.empty()) {
+                        boost::nowide::cerr << err << std::endl;
+                        //BBS: continue for other plates
+                        continue;
+                        //return 1;
+                    }
+                    if (print->empty())
+                        boost::nowide::cout << "Nothing to print for " << outfile << " . Either the print is empty or no object is fully inside the print volume." << std::endl;
+                    else
+                        try {
+                            std::string outfile_final;
+                            boost::nowide::cout << "start Print::process for partplate "<<index << std::endl;
+                            print->process();
+                            if (printer_technology == ptFFF) {
+                                // The outfile is processed by a PlaceholderParser.
+                                outfile = (dynamic_cast<Print*>(print))->export_gcode(outfile, nullptr, nullptr);
+                                outfile_final = (dynamic_cast<Print*>(print))->print_statistics().finalize_output_path(outfile);
+                            } else {
+                                outfile = sla_print.output_filepath(outfile);
+                                // We need to finalize the filename beforehand because the export function sets the filename inside the zip metadata
+                                outfile_final = sla_print.print_statistics().finalize_output_path(outfile);
+                                sla_archive.export_print(outfile_final, sla_print);
+                            }
+                            if (outfile != outfile_final) {
+                                if (Slic3r::rename_file(outfile, outfile_final)) {
+                                    boost::nowide::cerr << "Renaming file " << outfile << " to " << outfile_final << " failed" << std::endl;
+                                    return 1;
+                                }
+                                outfile = outfile_final;
+                            }
+                            // Run the post-processing scripts if defined.
+                            run_post_process_scripts(outfile, print->full_print_config());
+                            boost::nowide::cout << "Slicing result exported to " << outfile << std::endl;
+                        } catch (const std::exception &ex) {
+                            boost::nowide::cout << "found slicing or export error for partplate "<<index << std::endl;
+                            boost::nowide::cerr << ex.what() << std::endl;
+                            continue;
+                        }
+                }//end for partplate
 /*
                 print.center = ! m_config.has("center")
                     && ! m_config.has("align_xy")
@@ -603,7 +879,7 @@ int CLI::run(int argc, char **argv)
             }
         } else {
             boost::nowide::cerr << "error: option not supported yet: " << opt_key << std::endl;
-            return 1;
+            flush_and_exit(1);
         }
     }
 
@@ -638,6 +914,11 @@ int CLI::run(int argc, char **argv)
         return (argc == 0) ? 0 : 1;
 #endif // SLIC3R_GUI
     }
+
+    //BBS: flush logs
+    boost::nowide::cout << __FUNCTION__ << ", Finished" << std::endl;
+    boost::nowide::cout.flush();
+    boost::nowide::cerr.flush();
 
     return 0;
 }
@@ -801,15 +1082,34 @@ bool CLI::export_models(IO::ExportFormat format)
             case IO::AMF: success = Slic3r::store_amf(path.c_str(), &model, nullptr, false); break;
             case IO::OBJ: success = Slic3r::store_obj(path.c_str(), &model);          break;
             case IO::STL: success = Slic3r::store_stl(path.c_str(), &model, true);    break;
-            case IO::TMF: success = Slic3r::store_3mf(path.c_str(), &model, nullptr, false); break;
+            //BBS: use bbs 3mf instead of original
+            //case IO::TMF: success = Slic3r::store_bbs_3mf(path.c_str(), &model, nullptr, false); break;
             default: assert(false); break;
         }
         if (success)
-            std::cout << "File exported to " << path << std::endl;
+            boost::nowide::cout << "File exported to " << path << std::endl;
         else {
-            std::cerr << "File export to " << path << " failed" << std::endl;
+            boost::nowide::cerr << "File export to " << path << " failed" << std::endl;
             return false;
         }
+    }
+    return true;
+}
+
+//BBS: add export_project function
+bool CLI::export_project(Model *model, PlateDataPtrs &partplate_data, const DynamicPrintConfig* config)
+{
+    const std::string path = this->output_filepath(*model, IO::TMF);
+    bool success = false;
+    std::vector<ThumbnailData*> thumbnails;
+
+    success = Slic3r::store_bbs_3mf(path.c_str(), model, partplate_data, config, false, thumbnails); 
+
+    if (success)
+        boost::nowide::cout << "File exported to " << path << std::endl;
+    else {
+        boost::nowide::cerr << "File export to " << path << " failed" << std::endl;
+        return false;
     }
     return true;
 }
@@ -833,7 +1133,7 @@ std::string CLI::output_filepath(const Model &model, IO::ExportFormat format) co
         if (boost::filesystem::is_directory(cmdline_path))
             proposed_path = cmdline_path / proposed_path.filename();
         else
-            proposed_path = cmdline_path;
+            proposed_path = cmdline_param + ext;
     }
     return proposed_path.string();
 }

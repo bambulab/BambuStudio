@@ -37,6 +37,8 @@ private:
     
     /// Exports loaded models to a file of the specified format, according to the options affecting output filename.
     bool export_models(IO::ExportFormat format);
+    //BBS: add export_project function
+    bool export_project(Model *model, PlateDataPtrs &partplate_data, const DynamicPrintConfig* config);
     
     bool has_print_action() const { return m_config.opt_bool("export_gcode") || m_config.opt_bool("export_sla"); }
     

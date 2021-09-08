@@ -1142,7 +1142,8 @@ int PartPlateList::create_plate()
 	calc_bounding_boexes();
 
 	//update related UI
-	m_plater->update_partplate();
+	if (m_plater)
+		m_plater->update_partplate();
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":created a new plate %1%") % new_index;
 	return new_index;
@@ -1259,7 +1260,8 @@ int PartPlateList::delete_plate(int index)
 	calc_bounding_boexes();
 
 	//update related UI
-	m_plater->update_partplate();
+	if (m_plater)
+		m_plater->update_partplate();
 	return ret;
 }
 
@@ -1311,7 +1313,7 @@ int PartPlateList::select_plate(int index)
 	m_plate_list[m_current_plate]->set_selected();
 
 	//BBS update bed origin
-	if (m_intialized) {
+	if (m_intialized && m_plater) {
 		double stride = plate_stride();
 		Vec2d pos = { stride * index, 0.0 };
 		m_plater->get_bed().set_position(pos);
