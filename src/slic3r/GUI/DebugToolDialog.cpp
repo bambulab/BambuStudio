@@ -1288,13 +1288,11 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
                             }
                         }
                     } else {
-                        try {
-                            if (progress.value().compare("100") == 0) {
-                                progress_int = 100;
-                            }
-                            else {
-                                progress_int = 99;
-                            }
+                        if (progress.value().compare("100") == 0) {
+                            progress_int = 100;
+                        }
+                        else {
+                            progress_int = 99;
                         }
                     }
 
