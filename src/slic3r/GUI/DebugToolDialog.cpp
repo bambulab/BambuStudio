@@ -1357,6 +1357,12 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
 
                     label_wifi_link_ams_val->SetLabelText(link_ams_str);
                 }
+
+                boost::optional<std::string> wifi_signal = print.get_optional<std::string>("wifi_signal");
+                if (wifi_signal.has_value()) {
+                    label_wifi_signal_val->SetLabelText(wifi_signal.value());
+                }
+
                 return;
             }
             else if (command.has_value() && command.value().compare("gcode_line") == 0) {
