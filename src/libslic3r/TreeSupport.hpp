@@ -68,6 +68,7 @@ public:
     const ExPolygons& get_avoidance(coordf_t radius, size_t layer_idx) const;
 
     Polygons get_contours(size_t layer_nr) const;
+    Polygons get_contours_with_holes(size_t layer_nr) const;
 
 private:
     /*!
@@ -328,7 +329,7 @@ private:
      * If a node is already at that position in the layer, the nodes are merged.
      */
     void insert_dropped_node(std::vector<Node*>& nodes_layer, Node* node);
-
+    void add_tail_overhangs(int layer_nr);
     void detect_object_overhangs();
     void create_tree_support_layers();
     void generate_toolpaths();
