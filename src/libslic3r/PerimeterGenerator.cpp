@@ -8,7 +8,7 @@
 #include <cmath>
 #include <cassert>
 
-static const int sampling_number = 11;
+static const int overhang_sampling_number = 11;
 
 namespace Slic3r {
 
@@ -201,7 +201,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                 extrusion_paths_append(
                     paths,
                     intersection_pl({ remain_polines }, it->second),
-                    (int)(it->first * 10),
+                    it->first,
                     int(0),
                     role,
                     is_external ? perimeter_generator.ext_mm3_per_mm() : perimeter_generator.mm3_per_mm(),
@@ -221,7 +221,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                 extrusion_paths_append(
                     paths,
                     remain_polines,
-                    (int)10,
+                    overhang_sampling_number - 1,
                     int(0),
                     erOverhangPerimeter,
                     perimeter_generator.mm3_per_mm_overhang(),
@@ -611,24 +611,24 @@ void PerimeterGenerator::generate_lower_polygons_series()
     float start_offset = -0.5 * width;
     float end_offset = 0.5 * nozzle_diameter;
 
+    assert(overhang_sampling_number >= 3);
     // generate offsets
     std::vector<float> offset_series;
-    offset_series.reserve(sampling_number - 1);
-    for (int i = 0; i < sampling_number - 1; i++) {
-        // 5% 15% 25% ... 95%
-        offset_series.push_back(start_offset + (i + 0.5) * (end_offset - start_offset) / 10);
+    offset_series.reserve(overhang_sampling_number - 1);
+    for (int i = 0; i < overhang_sampling_number - 1; i++) {
+        offset_series.push_back(start_offset + (i + 0.5) * (end_offset - start_offset) / (overhang_sampling_number - 1));
     }
+    // BBS: increase start_offset a little to avoid to calculate 90 degree as overhang
+    offset_series[0] = start_offset + 0.02 * (end_offset - start_offset) / (overhang_sampling_number - 1);
+    offset_series[overhang_sampling_number - 2] = end_offset;
 
     if (this->lower_slices == NULL) {
         return;
     }
 
     // offset expolygon to generate series of polygons
-    float delta = 1.0 / (offset_series.size() - 1);
-
-    for (int i = 1; i < offset_series.size(); i++) {
-        m_lower_polygons_series.insert(std::pair<float, Polygons>((i - 0.5) * delta, offset(*this->lower_slices, float(scale_(offset_series[i])))));
-    }
+    for (int i = 0; i < offset_series.size(); i++) {
+        m_lower_polygons_series.insert(std::pair<int, Polygons>(i, offset(*this->lower_slices, float(scale_(offset_series[i])))));
 }
 
 }

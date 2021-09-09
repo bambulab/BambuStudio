@@ -12,8 +12,8 @@ namespace Slic3r {
 
 SpeedGenerator::SpeedGenerator() {
 	// default is max speed
-	for (int i = 0; i < 11; i++) {
-		for (int j = 0; j < 11; j++) {
+	for (int i = 0; i < 6; i++) {
+		for (int j = 0; j < 6; j++) {
 			speed_ratio_table[i][j] = 100;
 		}
 	}

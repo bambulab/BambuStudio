@@ -14,7 +14,7 @@ public:
 
 private:
 	boost::property_tree::ptree root;
-	int speed_ratio_table[11][11];
+	int speed_ratio_table[6][6];
 };
 
 }

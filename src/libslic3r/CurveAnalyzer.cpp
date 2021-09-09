@@ -3,6 +3,8 @@
 #include <cmath>
 #include <cassert>
 
+static const int curvatures_sampling_number = 6;
+static const double curvatures_densify_width = 1;           // mm
 static const double curvatures_sampling_width = 6;         // mm
 static const double curvatures_angle_best = PI/6;
 static const double curvatures_angle_worst = 5*PI/6;
@@ -30,7 +32,7 @@ void CurveAnalyzer::calculate_curvatures(ExtrusionPaths& paths, ECurveAnalyseMod
         polygon.points.insert(polygon.points.end(), paths[i].polyline.points.begin(), paths[i].polyline.points.end() - 1);
     }
     // 1 generate point series which is on the line of polygon, point distance along the polygon is smaller than 1mm
-    polygon.densify(scale_(1));
+    polygon.densify(scale_(curvatures_densify_width));
     std::vector<float> polygon_length = polygon.parameter_by_length();
 
     // 2 calculate angle of every segment
@@ -88,11 +90,25 @@ void CurveAnalyzer::calculate_curvatures(ExtrusionPaths& paths, ECurveAnalyseMod
     // 4 calculate the degree of curve
     //   For angle >= curvatures_angle_worst, we think it's enough to be worst. Should make the speed to be slowest.
     //   For angle <= curvatures_angle_best, we thins it's enough to be best. Should make the speed to be fastest.
-    //   Use 11 steps [0 1 2...9 10] to describe the degree of curve. 0 is the flatest. 1 is the sharpest
+    //   Use several steps [0 1 2...curvatures_sampling_number - 1] to describe the degree of curve. 0 is the flatest. curvatures_sampling_number - 1 is the sharpest
     std::vector<int> curvatures_norm(point_num, 0.f);
+    std::vector<int> sampling_step(curvatures_sampling_number - 1, 0);
+    for (size_t i = 0; i < curvatures_sampling_number - 1; i++) {
+        sampling_step[i] = (2 * i + 1) * 50 / (curvatures_sampling_number - 1);
+    }
+    sampling_step[0] = 0;
+    sampling_step[curvatures_sampling_number - 2] = 100;
     for (size_t i = 0; i < point_num; i++) {
         curvatures_norm[i] = (int)(100 * (average_curvatures[i] - curvatures_best) / (curvatures_worst - curvatures_best));
-        curvatures_norm[i] = (curvatures_norm[i] < 5) ? 0 : ((curvatures_norm[i] > 95) ? 10 : (curvatures_norm[i] + 5) / 10);
+        if (curvatures_norm[i] >= 100)
+            curvatures_norm[i] = curvatures_sampling_number - 1;
+        else
+            for (size_t j = 0; j < curvatures_sampling_number - 1; j++) {
+                if (curvatures_norm[i] < sampling_step[j]) {
+                    curvatures_norm[i] = j;
+                    break;
+                }
+            }
     }
     std::vector<std::pair<std::pair<Point, int>, int>> curvature_list;   // point, index, curve_degree
     int last_curvature_norm = -1;
