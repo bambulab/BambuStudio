@@ -49,7 +49,7 @@ private:
 
     //BBS: remove the select facets by angle
     //void select_facets_by_angle(float threshold, bool block);
-    float m_angle_threshold_deg = 45.f;
+    float m_angle_threshold_deg = 40.f;
     bool m_volume_valid = false;
 
     //BBS: add support preview logic

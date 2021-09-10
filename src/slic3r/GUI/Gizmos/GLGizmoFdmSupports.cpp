@@ -49,11 +49,12 @@ void GLGizmoFdmSupports::on_shutdown()
 //BBS: add on_open
 void GLGizmoFdmSupports::on_opening()
 {
-    /*m_parent.set_slope_normal_angle(90.f - m_angle_threshold_deg);
+    m_angle_threshold_deg = 40;
+    m_parent.set_slope_normal_angle(90.f - m_angle_threshold_deg);
     if (! m_parent.is_using_slope()) {
         m_parent.use_slope(true);
         m_parent.set_as_dirty();
-    }*/
+    }
     m_print_instance.print_object = NULL;
     m_print_instance.model_instance = NULL;
     m_edit_state = state_idle;
@@ -624,7 +625,7 @@ void GLGizmoFdmSupports::init_print_instance()
     }
 
     const PrintObjectConfig& config = m_print_instance.print_object->config();
-    m_angle_threshold_deg = config.support_material_angle;
+    //m_angle_threshold_deg = config.support_material_angle;
     m_is_tree_support = config.support_material.value &&
         (config.support_type.value == stTreeAuto || config.support_type.value == stTree);
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",get support_material_angle "<< m_angle_threshold_deg<<", is_tree "<<m_is_tree_support;
