@@ -254,9 +254,9 @@ bool ArcSegment::are_points_within_slice(const ArcSegment& test_arc, const Point
     bool crossed_zero = false;
     const int point_count = points.size();
 
-    Point start_norm(((double)test_arc.start_point.x() - (double)test_arc.center.x()) / test_arc.radius,
+    Vec2d start_norm(((double)test_arc.start_point.x() - (double)test_arc.center.x()) / test_arc.radius,
                      ((double)test_arc.start_point.y() - (double)test_arc.center.y()) / test_arc.radius);
-    Point end_norm(((double)test_arc.end_point.x() - (double)test_arc.center.x()) / test_arc.radius,
+    Vec2d end_norm(((double)test_arc.end_point.x() - (double)test_arc.center.x()) / test_arc.radius,
                    ((double)test_arc.end_point.y() - (double)test_arc.center.y()) / test_arc.radius);
 
     if (test_arc.direction == ArcDirection::Arc_Dir_CCW)
@@ -321,25 +321,25 @@ bool ArcSegment::are_points_within_slice(const ArcSegment& test_arc, const Point
             return false;
         previous_polar = polar_test;
     }
-    //BBS: Ensure that all arcs that cross zero do, and that all arcs that should not did not.
+    //BBS: Ensure that all arcs that cross zero
     if (will_cross_zero != crossed_zero)
         return false;
     return true;
 }
 
 // BBS: this function is used to detect whether a ray cross the segment
-bool ArcSegment::ray_intersects_segment(const Point &rayOrigin, const Point &rayDirection, const Line& segment)
+bool ArcSegment::ray_intersects_segment(const Point &rayOrigin, const Vec2d &rayDirection, const Line& segment)
 {
-    Point v1 = rayOrigin - segment.a;
-    Point v2 = segment.b - segment.a;
-    Point v3 = Point(-rayDirection.y(), rayDirection.x());
+    Vec2d v1 = Vec2d(rayOrigin.x() - segment.a.x(), rayOrigin.y() - segment.a.y());
+    Vec2d v2 = Vec2d(segment.b.x() - segment.a.x(), segment.b.y() - segment.a.y());
+    Vec2d v3 = Vec2d(-rayDirection(1), rayDirection(0));
 
-    int64_t dot = int64_t(v2(0)) * int64_t(v3(0)) + int64_t(v2(1)) * int64_t(v3(1));
+    double dot = v2(0) * v3(0) + v2(1) * v3(1);
     if (std::fabs(dot) < SCALED_EPSILON)
         return false;
 
-    double t1 = ((double)v2(0) * (double)v1(1) - (double)v2(1) * (double)v1(0)) / (double)dot;
-    double t2 = ((double)v1(0) * (double)v3(0) + (double)v1(1) * (double)v3(1))/ (double)dot;
+    double t1 = (v2(0) * v1(1) - v2(1) * v1(0)) / dot;
+    double t2 = (v1(0) * v3(0) + v1(1) * v3(1)) / dot;
 
     if (t1 >= 0.0 && (t2 >= 0.0 && t2 <= 1.0))
         return true;

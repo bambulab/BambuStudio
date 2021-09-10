@@ -61,7 +61,7 @@ public:
 
     static bool are_points_within_slice(const ArcSegment& test_arc, const Points &points);
     // BBS: this function is used to detect whether a ray cross the segment
-    static bool ray_intersects_segment(const Point& rayOrigin, const Point& rayDirection, const Line& segment);
+    static bool ray_intersects_segment(const Point& rayOrigin, const Vec2d& rayDirection, const Line& segment);
     // BBS: these three functions are used to calculate related arguments of arc in unscale_field.
     static float calc_arc_radian(Vec3f start_pos, Vec3f end_pos, Vec3f center_pos, bool is_ccw);
     static float calc_arc_radius(Vec3f start_pos, Vec3f center_pos);
