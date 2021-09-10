@@ -21,17 +21,16 @@ void ArcFitter::do_arc_fitting(const Points& points, std::vector<PathFittingData
     size_t back_index = 0;
     ArcSegment last_arc;
     bool can_fit = false;
+    Points current_segment;
+    current_segment.reserve(points.size());
     for (size_t i = 0; i < points.size(); i++) {
         //BBS: point in stack is not enough, build stack first
         back_index = i;
+        current_segment.push_back(points[i]);
         if (back_index - front_index < 2)
             continue;
 
         ArcSegment target_arc;
-        Points current_segment;
-        for (size_t j = front_index; j <= back_index; j++)
-                current_segment.push_back(points[j]);
-
         double length = Polyline(current_segment).length();
         can_fit = ArcSegment::try_create_arc(current_segment, target_arc, length,
                                              DEFAULT_SCALED_MAX_RADIUS,
@@ -68,6 +67,8 @@ void ArcFitter::do_arc_fitting(const Points& points, std::vector<PathFittingData
                 }
             }
             front_index = back_index - 1;
+            current_segment.clear();
+            current_segment.push_back(points[front_index]);
         }
     }
 	//BBS: handle the remain data
