@@ -2815,6 +2815,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             optgroup->append_single_option_line("retract_before_travel", "", extruder_idx);
             optgroup->append_single_option_line("retract_layer_change", "", extruder_idx);
             optgroup->append_single_option_line("wipe", "", extruder_idx);
+            optgroup->append_single_option_line("wipe_distance", wxEmptyString, extruder_idx);
             optgroup->append_single_option_line("retract_before_wipe", "", extruder_idx);
 
             optgroup = page->new_optgroup(L("Retraction when tool is disabled (advanced settings for multi-extruder setups)"));
@@ -2996,12 +2997,14 @@ void TabPrinter::toggle_options()
 
         // some options only apply when not using firmware retraction
         vec.resize(0);
-        vec = { "retract_speed", "deretract_speed", "retract_before_wipe", "retract_restart_extra", "wipe" };
+        vec = { "retract_speed", "deretract_speed", "retract_before_wipe", "retract_restart_extra", "wipe", "wipe_distance" };
         for (auto el : vec)
             toggle_option(el, retraction && !use_firmware_retraction, i);
 
         bool wipe = m_config->opt_bool("wipe", i);
         toggle_option("retract_before_wipe", wipe, i);
+        // BBS
+        toggle_option("wipe_distance", i);
 
         if (use_firmware_retraction && wipe) {
             //wxMessageDialog dialog(parent(),

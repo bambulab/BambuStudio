@@ -772,6 +772,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInts,               temperature))
     ((ConfigOptionInt,                threads))
     ((ConfigOptionBools,              wipe))
+    // BBS
+    ((ConfigOptionFloats,             wipe_distance))
     ((ConfigOptionBool,               wipe_tower))
     ((ConfigOptionFloat,              wipe_tower_x))
     ((ConfigOptionFloat,              wipe_tower_y))

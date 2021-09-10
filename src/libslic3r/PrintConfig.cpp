@@ -3030,6 +3030,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBools { false });
 
+    // BBS
+    def = this->add("wipe_distance", coFloats);
+    def->label = L("Wipe Distance");
+    def->tooltip = L("Discribe how long the nozzle will move while retracting to minimize blob.");
+    def->sidetext = L("mm");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats { 5. });
+
     def = this->add("wipe_tower", coBool);
     def->label = L("Enable");
     def->tooltip = L("Multi material printers may need to prime or purge extruders on tool changes. "
@@ -3138,7 +3146,7 @@ void PrintConfigDef::init_fff_params()
         // floats
         "retract_length", "retract_lift", "retract_lift_above", "retract_lift_below", "retract_speed", "deretract_speed", "retract_restart_extra", "retract_before_travel",
         // BBS
-        "dont_lift_for_single_material",
+        "dont_lift_for_single_material", "wipe_distance",
         // bools
         "retract_layer_change", "wipe",
         // percents
@@ -3184,7 +3192,7 @@ void PrintConfigDef::init_extruder_option_keys()
         "retract_length", "retract_lift", "retract_lift_above", "retract_lift_below", "retract_speed", "deretract_speed",
         // BBS
         "dont_lift_for_single_material",
-        "retract_before_wipe", "retract_restart_extra", "retract_before_travel", "wipe",
+        "retract_before_wipe", "retract_restart_extra", "retract_before_travel", "wipe", "wipe_distance",
         "retract_layer_change", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
         "default_filament_profile"
     };
@@ -3202,7 +3210,8 @@ void PrintConfigDef::init_extruder_option_keys()
         "retract_lift_below",
         "retract_restart_extra",
         "retract_speed",
-        "wipe"
+        "wipe",
+        "wipe_distance"
     };
     assert(std::is_sorted(m_extruder_retract_keys.begin(), m_extruder_retract_keys.end()));
 }
