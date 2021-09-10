@@ -47,9 +47,8 @@ protected:
             p.configure(pcfg);
             if (itm.area() <= 0 || !p.pack(cpy)) {
                 static_cast<Item&>(*it).binId(BIN_ID_UNSET);
-                it = c.erase(it);
             }
-            else it++;
+            it++;
         }
     }
 

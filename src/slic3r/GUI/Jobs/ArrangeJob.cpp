@@ -315,7 +315,7 @@ void ArrangeJob::process()
         static_cast<const GLCanvas3D*>(m_plater->canvas3D())->get_arrange_settings();
 
     params.allow_rotations  = settings.enable_rotation;
-    params.min_obj_distance = scaled(settings.distance);
+    params.min_obj_distance = scaled(std::max(settings.distance, params.brim_skirt_distance / 2.f));
     //BBS: add specific params
     params.is_seq_print = settings.is_seq_print;
     params.bed_shrink_x = settings.bed_shrink_x + params.brim_skirt_distance;
@@ -394,10 +394,19 @@ void ArrangeJob::process()
 
     arrangement::arrange(m_unprintable, {}, bedpts, params);
 
+    // put unpackable items to m_unprintable so they goes to last virtual bed
+    bool we_have_unpackable_items = false;
+    for (auto item : m_selected) {
+        if (item.bed_idx < 0) {
+            m_unprintable.push_back(std::move(item));
+            we_have_unpackable_items = true;
+        }
+    }
+
     // finalize just here.
     update_status(int(count),
-                  was_canceled() ? _(L("Arranging canceled."))
-                                   : _(L("Arranging done.")));
+                  was_canceled() ? _(L("Arranging canceled.")):
+        we_have_unpackable_items? _(L("Arranging done but we have unpacked items "+m_unprintable.back().name+"! Reduce spacing or bed_shrink and try again!")) : _(L("Arranging done.")));
 }
 
 static std::string concat_strings(const std::set<std::string> &strings,
@@ -449,9 +458,7 @@ void ArrangeJob::finalize() {
     
     // Move the unprintable items to the last virtual bed.
     for (ArrangePolygon &ap : m_unprintable) {
-        ap.bed_idx += beds + 1;
-        //BBS: partplate postprocess
-        plate_list.postprocess_arrange_polygon(ap, false, true);
+        ap.bed_idx = beds + 1;
 
         ap.apply();
     }

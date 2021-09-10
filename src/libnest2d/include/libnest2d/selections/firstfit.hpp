@@ -85,9 +85,10 @@ public:
         
         this->template remove_unpackable_items<Placer>(store_, bin, pconfig);
 
-        auto it = store_.begin();
-
-        while(it != store_.end() && !cancelled()) {
+        for (auto it = store_.begin(); it != store_.end() && !cancelled(); ++it) {
+            // skip unpackable item
+            if (it->get().binId() == BIN_ID_UNSET)
+                continue;
             bool was_packed = false;
             size_t j = 0;
             while(!was_packed && !cancelled()) {
@@ -105,7 +106,6 @@ public:
                     j = placers.size() - 1;
                 }
             }
-            ++it;
         }
     }
 
