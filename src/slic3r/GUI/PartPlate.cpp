@@ -2056,6 +2056,11 @@ int PartPlateList::rebuild_plates_after_deserialize()
 		destroy_print(delete_list[index]);
 	}
 
+	//update the bed's position
+	double stride = plate_stride();
+	Vec2d pos = { stride * m_current_plate, 0.0 };
+	m_plater->get_bed().set_position(pos);
+
 	//not used
 	/*if (m_plate_width == 0)
 	{
