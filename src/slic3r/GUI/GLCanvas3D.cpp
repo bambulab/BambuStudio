@@ -2390,7 +2390,9 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         return;
     }
 
-    if (keyCode == WXK_ESCAPE && (_deactivate_undo_redo_toolbar_items() || _deactivate_search_toolbar_item() || _deactivate_arrange_menu()))
+    //BBS: add orient deactivate logic
+    if (keyCode == WXK_ESCAPE
+        && (_deactivate_undo_redo_toolbar_items() || _deactivate_search_toolbar_item() || _deactivate_arrange_menu() || _deactivate_orient_menu()))
         return;
 
     if (m_gizmos.on_char(evt))
@@ -3165,7 +3167,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_dirty = true;
     }
     else if (evt.LeftDown() || evt.RightDown() || evt.MiddleDown()) {
-        if (_deactivate_undo_redo_toolbar_items() || _deactivate_search_toolbar_item() || _deactivate_arrange_menu())
+        //BBS: add orient deactivate logic
+        if (_deactivate_undo_redo_toolbar_items() || _deactivate_search_toolbar_item()
+            || _deactivate_arrange_menu() || _deactivate_orient_menu())
             return;
 
         // If user pressed left or right button we first check whether this happened
@@ -6974,6 +6978,17 @@ bool GLCanvas3D::_deactivate_arrange_menu()
 {
     if (m_main_toolbar.is_item_pressed("arrange")) {
         m_main_toolbar.force_right_action(m_main_toolbar.get_item_id("arrange"), *this);
+        return true;
+    }
+
+    return false;
+}
+
+//BBS: add deactivate orient menu
+bool GLCanvas3D::_deactivate_orient_menu()
+{
+    if (m_main_toolbar.is_item_pressed("orient")) {
+        m_main_toolbar.force_right_action(m_main_toolbar.get_item_id("orient"), *this);
         return true;
     }
 

@@ -1038,6 +1038,8 @@ private:
     bool _activate_search_toolbar_item();
     bool _deactivate_collapse_toolbar_items();
     bool _deactivate_arrange_menu();
+    //BBS: add deactivate_orient_menu
+    bool _deactivate_orient_menu();
 
     float get_overlay_window_width() { return LayersEditing::get_overlay_window_width(); }
 
