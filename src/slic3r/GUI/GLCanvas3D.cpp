@@ -1509,6 +1509,17 @@ void GLCanvas3D::render()
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     _render_background();
 
+    //BBS add partplater rendering logic
+    bool only_current = false, only_body = false;
+    GLGizmosManager::EType gizmo_type = m_gizmos.get_current_type();
+    if (!m_main_toolbar.is_enabled()
+        || gizmo_type == GLGizmosManager::FdmSupports
+        || gizmo_type == GLGizmosManager::Seam)
+    {
+        only_current = true;
+        only_body = true;
+    }
+
     /* view3D render*/
     if (m_canvas_type == ECanvasType::CanvasView3D) {
         _render_objects(GLVolumeCollection::ERenderType::Opaque);
@@ -1516,7 +1527,7 @@ void GLCanvas3D::render()
         _render_selection();
         _render_bed(!camera.is_looking_downward(), true);
         _render_objects(GLVolumeCollection::ERenderType::Transparent);
-        _render_platelist(!camera.is_looking_downward(), !m_main_toolbar.is_enabled(), !m_main_toolbar.is_enabled());
+        _render_platelist(!camera.is_looking_downward(), only_current, only_body);
     }
     /* preview render */
     else if (m_canvas_type == ECanvasType::CanvasPreview) {
@@ -1525,7 +1536,7 @@ void GLCanvas3D::render()
         _render_sla_slices();
         _render_selection();
         _render_bed(!camera.is_looking_downward(), true);
-        _render_platelist(!camera.is_looking_downward(), !m_main_toolbar.is_enabled(), !m_main_toolbar.is_enabled());
+        _render_platelist(!camera.is_looking_downward(), only_current, only_body);
     }
     /* assemble render*/
     else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
