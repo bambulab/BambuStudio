@@ -30,10 +30,10 @@ CBaseException::~CBaseException(void)
 
 void CBaseException::OutputString(LPCTSTR lpszFormat, ...)
 {
-	TCHAR szBuf[1024] = _T("");
+	TCHAR szBuf[2048] = _T("");
 	va_list args;
 	va_start(args, lpszFormat);
-	_vsntprintf_s(szBuf, 1024, lpszFormat, args);
+	_vsntprintf_s(szBuf, 2048, lpszFormat, args);
 	va_end(args);
 
 	//WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), szBuf, _tcslen(szBuf), NULL, NULL);
