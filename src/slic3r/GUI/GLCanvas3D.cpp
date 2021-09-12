@@ -2159,7 +2159,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             const bool fullyOut = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Fully_Outside);
 
             _set_warning_notification(EWarning::ObjectClashed, partlyOut);
-            _set_warning_notification(EWarning::ObjectOutside, fullyOut);
+            //BBS: turn off the warning when fully outside
+            //_set_warning_notification(EWarning::ObjectOutside, fullyOut);
             if (printer_technology != ptSLA || !contained_min_one)
                 _set_warning_notification(EWarning::SlaSupportsOutside, false);
 

@@ -3128,9 +3128,13 @@ void Plater::priv::object_list_changed()
 {
     const bool export_in_progress = this->background_process.is_export_scheduled(); // || ! send_gcode_file.empty());
     // XXX: is this right?
-    const bool model_fits = view3D->get_canvas3d()->check_volumes_outside_state() == ModelInstancePVS_Inside;
+    //const bool model_fits = view3D->get_canvas3d()->check_volumes_outside_state() == ModelInstancePVS_Inside;
+    const bool model_fits = view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
 
     sidebar->enable_buttons(!model.objects.empty() && !export_in_progress && model_fits);
+    PartPlate* part_plate = partplate_list.get_curr_plate();
+
+    sidebar->enable_buttons(!model.objects.empty() && !export_in_progress && model_fits && part_plate->has_printable_instances());
 }
 
 void Plater::priv::select_all()
@@ -4097,7 +4101,9 @@ void Plater::priv::set_current_panel(wxPanel* panel)
             // FIXME: it may be better to have a single function making this check and let it be called wherever needed
             bool export_in_progress = this->background_process.is_export_scheduled();
             bool model_fits = view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
-            if (!model.objects.empty() && !export_in_progress && model_fits) {
+            //BBS: add partplate logic
+            PartPlate* current_plate = partplate_list.get_curr_plate();
+            if (!model.objects.empty() && !export_in_progress && model_fits && current_plate->has_printable_instances()) {
                 preview->get_canvas3d()->init_gcode_viewer();
                 q->reslice();
             }
@@ -7206,7 +7212,19 @@ int Plater::select_plate(int plate_index)
         else
         {
             p->sidebar->show_sliced_info_sizer(false);
+            //check inside status
+            bool model_fits = p->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
+            //BBS: add partplate logic
+            PartPlate* part_plate = p->partplate_list.get_curr_plate();
             p->show_action_buttons(true);
+            if (model_fits && part_plate->has_printable_instances())
+            {
+                p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, true));
+            }
+            else
+            {
+                p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
+            }
         }
     }
 
@@ -7256,7 +7274,19 @@ int Plater::select_plate_by_hover_id(int hover_id)
         else
         {
             p->sidebar->show_sliced_info_sizer(false);
+            //check inside status
+            bool model_fits = p->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
+            //BBS: add partplate logic
+            PartPlate* part_plate = p->partplate_list.get_curr_plate();
             p->show_action_buttons(true);
+            if (model_fits && part_plate->has_printable_instances())
+            {
+                p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, true));
+            }
+            else
+            {
+                p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
+            }
         }
     }
 

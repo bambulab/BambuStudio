@@ -951,6 +951,9 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
     ModelInstanceEPrintVolumeState overall_state = ModelInstancePVS_Inside;
     bool contained_min_one = false;
 
+    //BBS: add instance judge logic, besides to original volume judge logic
+    std::map<int64_t, ModelInstanceEPrintVolumeState> model_state;
+
     const Pointfs& pp_bed_shape = GUI::wxGetApp().plater()->get_partplate_list().get_selected_plate()->get_shape();
     BuildVolume plate_build_volume(pp_bed_shape, build_volume.max_print_height());
     for (GLVolume* volume : this->volumes)
@@ -977,6 +980,8 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
                 }
                 assert(state != BuildVolume::ObjectState::Below);
             }
+
+            int64_t comp_id = ((int64_t)volume->composite_id.object_id << 32) | ((int64_t)volume->composite_id.instance_id);
             volume->is_outside = state != BuildVolume::ObjectState::Inside;
             if (volume->printable) {
                 if (overall_state == ModelInstancePVS_Inside && volume->is_outside) {
@@ -993,7 +998,39 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
                 }
                 contained_min_one |= !volume->is_outside;
             }
+
+            ModelInstanceEPrintVolumeState volume_state;
+            if (volume->is_outside && plate_build_volume.bounding_volume().intersects(volume->bounding_box()))
+                volume_state = ModelInstancePVS_Partly_Outside;
+            else if (volume->is_outside)
+                volume_state = ModelInstancePVS_Fully_Outside;
+            else
+                volume_state = ModelInstancePVS_Inside;
+
+            if (model_state.find(comp_id) != model_state.end())
+            {
+                if (model_state[comp_id] != ModelInstancePVS_Partly_Outside)
+                {
+                    if (volume_state == ModelInstancePVS_Partly_Outside)
+                        model_state[comp_id] = ModelInstancePVS_Partly_Outside;
+                    else if (model_state[comp_id] != volume_state)
+                    {
+                        model_state[comp_id] = ModelInstancePVS_Partly_Outside;
+                    }
+                }
+            }
+            else
+            {
+                model_state[comp_id] = volume_state;
+            }
+
+            if (model_state[comp_id] == ModelInstancePVS_Partly_Outside) {
+                overall_state = ModelInstancePVS_Partly_Outside;
+                BOOST_LOG_TRIVIAL(debug) << "instance includes " << volume->name << " is partially outside of bed";
+            }
         }
+
+    
 
     if (out_state != nullptr)
         *out_state = overall_state;
