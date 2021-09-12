@@ -1073,7 +1073,11 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
             {
                 base_areas.emplace_back(circle);
             }
+
+            if (layer_nr < brim_skirt_layers)
+                ts_layer->lslices.emplace_back(circle);
         }
+        ts_layer->lslices = std::move(union_ex(ts_layer->lslices));
 
         const size_t z_collision_layer = static_cast<size_t>(std::max(0, static_cast<int>(layer_nr) - static_cast<int>(bottom_interface_layers)));
         base_areas = std::move(diff_ex(base_areas, m_ts_data->get_collision(0, z_collision_layer)));
