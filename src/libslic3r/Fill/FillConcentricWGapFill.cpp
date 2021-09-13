@@ -48,7 +48,7 @@ void FillConcentricWGapFill::fill_surface_extrusion(const Surface* surface, cons
             params.flow.width,
             params.flow.height);
 
-        //add gapfills
+        //BBS: add internal gapfills between infill loops
         if (!gaps.empty() && params.density >= 1) {
             double min = 0.2 * distance * (1 - INSET_OVERLAP_TOLERANCE);
             double max = 2. * distance;
@@ -58,9 +58,7 @@ void FillConcentricWGapFill::fill_surface_extrusion(const Surface* surface, cons
                 true);
             ThickPolylines polylines;
             for (const ExPolygon& ex : gaps_ex) {
-                // ignore too small gap
-                if (ex.area() > min * max)
-                    ex.medial_axis(max, min, &polylines);
+                ex.medial_axis(max, min, &polylines);
             }
 
             if (!polylines.empty() && !is_bridge(good_role)) {
@@ -74,6 +72,38 @@ void FillConcentricWGapFill::fill_surface_extrusion(const Surface* surface, cons
             out.push_back(coll_nosort);
         else
             delete coll_nosort;
+    }
+
+    //BBS: add external gapfill between perimeter and infill
+    ExPolygons external_gaps = diff_ex({ surface->expolygon }, offset_ex(expp, double(scale_(0.5 * this->spacing))));
+    external_gaps = union_ex(external_gaps, true);
+    if (!this->no_overlap_expolygons.empty())
+            external_gaps = intersection_ex(external_gaps, this->no_overlap_expolygons);
+
+    if (!external_gaps.empty()) {
+        double min = 0.4 * scale_(params.flow.nozzle_diameter) * (1 - INSET_OVERLAP_TOLERANCE);
+        double max = 2. * params.flow.scaled_width();
+        //BBS: collapse, be sure we don't gapfill where the perimeters are already touching each other (negative spacing).
+        min = std::max(min, double(Flow::new_from_spacing((float)EPSILON,
+                                   (float)params.flow.nozzle_diameter,
+                                   (float)params.flow.height, false).scaled_width()));
+        ExPolygons external_gaps_collapsed = offset2_ex(external_gaps, double(-min / 2), double(+min / 2));
+        ThickPolylines polylines;
+        for (const ExPolygon& ex : external_gaps_collapsed) {
+            ex.medial_axis(max, min, &polylines);
+        }
+
+        ExtrusionEntityCollection* coll_external_gapfill = new ExtrusionEntityCollection();
+        coll_external_gapfill->no_sort = this->no_sort();
+        if (!polylines.empty() && !is_bridge(params.extrusion_role)) {
+            ExtrusionEntityCollection gap_fill;
+            variable_width(polylines, erGapFill, params.flow, gap_fill.entities);
+            coll_external_gapfill->append(std::move(gap_fill.entities));
+        }
+        if (!coll_external_gapfill->entities.empty())
+            out.push_back(coll_external_gapfill);
+        else
+            delete coll_external_gapfill;
     }
 }
 
