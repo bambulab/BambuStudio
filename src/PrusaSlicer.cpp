@@ -337,7 +337,7 @@ int CLI::run(int argc, char **argv)
     }
 
     //BBS: partplate list
-    Slic3r::GUI::PartPlateList partplate_list(NULL, &m_models[0], printer_technology);
+    Slic3r::GUI::PartPlateList partplate_list(NULL, m_models.data(), printer_technology);
     //use Pointfs insteadof Points
     Pointfs bedfs = m_print_config.opt<ConfigOptionPoints>("bed_shape")->values;
     //update part plate's size
@@ -386,8 +386,12 @@ int CLI::run(int argc, char **argv)
             for (auto& model : m_models)
                 for (ModelObject* o : model.objects)
                 {
+                    // coconut: always orient instance instead of object
+                    for (ModelInstance* mi : o->instances)
+                    {
+                        orientation::orient(mi);
+                    }
                     boost::nowide::cout << "orient object, name=" << o->name <<",id="<<o->id().id<<std::endl;
-                    orientation::orient(o);
                     //BBS: clear the orient objects lists
                     orients_requirement[o->id().id] = false;
                 }
