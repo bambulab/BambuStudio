@@ -439,11 +439,7 @@ void DebugToolDialog::init_connection_widgets()
         }
         std::string info = "MQTT connecting dev_id=" + obj->dev_id;
         this->send_log_evt(info);
-        if (obj->conn_state == MachineObject::CONNECTION_STATE::STATE_CONNECTING) {
-            return;
-        }
 
-        obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_CONNECTING);
         obj->connect(
             //success
             [this, obj](std::string name) {

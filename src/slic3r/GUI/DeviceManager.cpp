@@ -164,12 +164,26 @@ bool MachineObject::check_valid_ip()
 int MachineObject::connect(SuccessFn sFn, FailedFn fFn, LostFn lFn)
 {
     if (!check_valid_ip()) {
+        if (fFn) {
+            fFn("Invalid IP!");
+        }
         return -1;
     }
 
     try {
         if (acc_.is_user_login()) {
-            if (is_connected()) return 0;
+            if (is_connected()) {
+                if (sFn) {
+                    sFn("Already Connected!");
+                }
+                return 0;
+            }
+            if (mqtt_cli != nullptr) {
+                if (fFn) {
+                    fFn("Connecting state!");
+                    return -1;
+                }
+            }
 
             /* lan mqtt connection */
             std::string client_id = (boost::format("%1%:%2%") % acc_.get_user_id() % mqtt_uuid).str();
