@@ -1251,17 +1251,19 @@ bool DebugToolDialog::Show(bool show)
         Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
         if (account_manager) {
             AccountInfo* info = account_manager->get_curr_user();
-            info->set_msg_recv_fn([this](std::string topic, std::string payload) {
-                auto evt = new wxCommandEvent(EVT_MESSAGE_ARRIVED, this->GetId());
-                evt->SetString(payload);
-                wxQueueEvent(this, evt);
-                });
-            info->set_msg_send_fn([this](std::string topic, std::string payload) {
-                auto evt = new wxCommandEvent(EVT_MESSAGE_SENT, this->GetId());
-                std::string send_msg = "send topic=" + topic + ", msg=" + payload;
-                evt->SetString(send_msg);
-                wxQueueEvent(this, evt);
-                });
+            if (info) {
+                info->set_msg_recv_fn([this](std::string topic, std::string payload) {
+                    auto evt = new wxCommandEvent(EVT_MESSAGE_ARRIVED, this->GetId());
+                    evt->SetString(payload);
+                    wxQueueEvent(this, evt);
+                    });
+                info->set_msg_send_fn([this](std::string topic, std::string payload) {
+                    auto evt = new wxCommandEvent(EVT_MESSAGE_SENT, this->GetId());
+                    std::string send_msg = "send topic=" + topic + ", msg=" + payload;
+                    evt->SetString(send_msg);
+                    wxQueueEvent(this, evt);
+                    });
+            }
         }
     }
     else {
@@ -1269,8 +1271,10 @@ bool DebugToolDialog::Show(bool show)
         Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
         if (account_manager) {
             AccountInfo* info = account_manager->get_curr_user();
-            info->set_msg_recv_fn(nullptr);
-            info->set_msg_send_fn(nullptr);
+            if (info) {
+                info->set_msg_recv_fn(nullptr);
+                info->set_msg_send_fn(nullptr);
+            }
         }
     }
 
