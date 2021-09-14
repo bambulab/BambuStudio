@@ -530,7 +530,7 @@ namespace Slic3r {
 
     int AccountManager::submit_print_result(std::string device_id, std::string json_str, ResultFn fn)
     {
-        std::string url = (boost::format("%1%/iot/device/%2%/report") % "iot.qa.bbl" % device_id).str();
+        std::string url = (boost::format("%1%/iot/user/report") % host).str();
         Http http = Http::post(url);
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
