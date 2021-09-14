@@ -28,6 +28,39 @@ namespace Slic3r {
         task_id = distribution(generator);
     }
 
+    std::string BBLTask::build_content_json()
+    {
+        std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+
+        pt::ptree js_task, js_subtasks;
+        std::string task_name_str = converter.to_bytes(task_name);
+        std::string task_create_time_str = converter.to_bytes(task_create_time);
+
+        js_task.put("id", task_id);
+        js_task.put("name", task_name_str);
+        js_task.put("create_time", task_create_time_str);
+        js_task.put("status", task_status_str());
+
+        for (int k = 0; k < subtasks.size(); k++) {
+            pt::ptree js_subtask;
+            BBLSubTask* subtask = subtasks[k];
+            std::string subtask_name_str = converter.to_bytes(subtask->task_name);
+
+            js_subtask.put("id", subtask->task_id);
+            js_subtask.put("name", subtask_name_str);
+            js_subtask.put("create_time", subtask->task_create_time);
+            js_subtask.put("plane", subtask->task_partplate_idx);
+            js_subtask.put("printer", subtask->task_printer_dev_id);
+            /* status, progress updated by printer */
+            js_subtasks.push_back(std::make_pair("", js_subtask));
+        }
+        js_task.put_child("subtasks", js_subtasks);
+
+        std::stringstream oss;
+        pt::write_json(oss, js_task);
+        return oss.str();
+    }
+
     std::string BBLProject::build_content_json()
     {
         std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
@@ -49,11 +82,10 @@ namespace Slic3r {
                     pt::ptree js_subtask;
                     BBLSubTask* subtask = task->subtasks[k];
                     std::string task_name_str = converter.to_bytes(subtask->task_name);
-                    std::string task_create_time_str = converter.to_bytes(subtask->task_create_time);
 
                     js_subtask.put("id", subtask->task_id);
                     js_subtask.put("name", task_name_str);
-                    js_subtask.put("create_time", task_create_time_str);
+                    js_subtask.put("create_time", subtask->task_create_time);
                     js_subtask.put("plane", subtask->task_partplate_idx);
                     js_subtask.put("printer", subtask->task_printer_dev_id);
                     /* status, progress updated by printer */

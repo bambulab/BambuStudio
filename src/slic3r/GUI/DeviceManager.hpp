@@ -65,7 +65,6 @@ class MachineObject
 {
 private:
     AccountManager& acc_;
-    CommuBackend& backend_;
 
     bool check_valid_ip();
 public:
@@ -85,8 +84,9 @@ public:
     };
 
     enum CONNECTION_TYPE {
-        CONNECTION_LAN = 0,
-        CONNECTION_WAN = 1,
+        CONNECTION_DEFAULT = 0,
+        CONNECTION_LAN = 1,
+        CONNECTION_WAN = 2,
     };
 
     enum CONNECTION_STATE {
@@ -97,7 +97,7 @@ public:
 
     static inline int m_sequence_id = 20000;
 
-    MachineObject(AccountManager& acc, CommuBackend& backend, std::string name, std::string id, std::string ip);
+    MachineObject(AccountManager& acc, std::string name, std::string id, std::string ip);
     /* properties */
     std::string dev_name;
     std::string dev_ip;
@@ -131,7 +131,7 @@ public:
     bool is_connected();
     void set_msg_send_fn(MsgFn fn) { msg_send_fn = std::move(fn); }
     void set_msg_recv_fn(MsgFn fn) { msg_recv_fn = std::move(fn); }
-    int publish_json(std::string json_str, ResultFn resFn = nullptr);
+    int publish_json(std::string json_str, ResultFn resFn = nullptr, CONNECTION_TYPE conn_type = CONNECTION_TYPE::CONNECTION_DEFAULT);
 
     int send_print_task(BBLTask* task);
     int send_wan_print_task(BBLTask* task);
@@ -169,11 +169,9 @@ public:
 
     std::mutex listMutex;
     std::map<std::string, MachineObject*> localMachineList;     /* dev_id -> MachineObject* */
-    std::map<std::string, MachineObject*>  myBindMachineList;   /* dev_id -> MachineObject* */
-    std::map<std::string, MachineObject*>  allMachineList;      /* dev_id -> MachineObject* */
     std::string default_machine;    /* dev_id */
 
-    /* create amchine or update machine properties */
+    /* create machine or update machine properties */
     void on_machine_alive(std::string dev_name, std::string dev_id, std::string dev_ip);
     /* disconnect all machine connections */
     void disconnect_all();

@@ -8,6 +8,8 @@
 #include <thread>
 #include <mutex>
 #include <codecvt>
+#include <boost/foreach.hpp>
+#include <boost/typeof/typeof.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -128,13 +130,12 @@ void machine_conn_callback::set_connect_fns(SuccessFn sFn, FailedFn fFn, LostFn 
 }
 
 
-MachineObject::MachineObject(AccountManager& acc, CommuBackend& backend, std::string name, std::string id, std::string ip)
+MachineObject::MachineObject(AccountManager& acc, std::string name, std::string id, std::string ip)
     :acc_(acc),
     mqtt_cb(nullptr),
     mqtt_cli(nullptr),
     msg_send_fn(nullptr),
     msg_recv_fn(nullptr),
-    backend_(backend),
     dev_name(name),
     dev_id(id),
     dev_ip(ip),
@@ -145,7 +146,6 @@ MachineObject::MachineObject(AccountManager& acc, CommuBackend& backend, std::st
     mqtt_uuid_bytes(4),
     mqtt_opt(mqtt::connect_options_builder()
         .clean_session()
-        //.automatic_reconnect(std::chrono::seconds(2), std::chrono::seconds(30))
         .finalize())
 {
     boost::uuids::uuid uuid = boost::uuids::random_generator()();
@@ -239,15 +239,18 @@ bool MachineObject::is_connected()
     return false;
 }
 
-int MachineObject::publish_json(std::string json_str, ResultFn resFn)
+int MachineObject::publish_json(std::string json_str, ResultFn resFn, CONNECTION_TYPE conn_type)
 {
+    if (conn_type == CONNECTION_TYPE::CONNECTION_DEFAULT) {
+        conn_type = CONNECTION_TYPE::CONNECTION_LAN;
+    }
+
     mqtt::async_client* client = nullptr;
     if (conn_type == CONNECTION_LAN) {
         client = mqtt_cli;
     }
     else if (conn_type == CONNECTION_WAN) {
-        //mqtt_cli = &mqtt_cloud;
-        mqtt_cli = nullptr;
+        client = acc_.get_client();
     }
     else {
         ;
@@ -307,7 +310,8 @@ int MachineObject::send_wan_print_task(BBLTask* task)
     print.put("profile_id", task->task_profile_id);
     print.put("url", task->task_url);
     print.put("md5", task->task_url_md5);
-    print.put<int>("task_id", task->task_id);
+    print.put("task_id", task->task_id);
+    print.put("subtask", "0");
     root.put_child("print", print);
     std::stringstream oss;
     pt::write_json(oss, root);
@@ -390,7 +394,43 @@ int MachineObject::send_lan_print_subtask(BBLSubTask* task, UploadedFn uploadedF
 
 int MachineObject::send_wan_print_subtask(BBLSubTask* task, UploadedFn uploadedFn, UploadProgressFn proFn, ErrorFn errFn)
 {
-    /* TODO */
+    acc_.post_task(task,
+        [this, task, uploadedFn, errFn](int result, std::string info) {
+            if (result == 0) {
+                if (uploadedFn) {
+                    uploadedFn();
+                }
+
+                std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+                std::string task_file_str = converter.to_bytes(task->task_name);
+
+                pt::ptree root, print;
+                print.put("sequence_id", MachineObject::m_sequence_id++);
+                print.put("command", "project_file");
+                print.put("param", task_file_str);
+                print.put("url", task->task_url);   /* 3mf or gcode */
+                print.put("md5", task->task_url_md5);
+                /* project */
+                print.put("project_id", task->task_project_id);
+                print.put("task_id", task->parent_task_id);
+                print.put("subtask_id", task->task_id);
+                root.put_child("print", print);
+                std::stringstream oss;
+                pt::write_json(oss, root);
+                std::string json_str = oss.str();
+                this->publish_json(json_str);
+            }
+            else {
+                errFn(info);
+            }
+        }
+        ,
+        [this, proFn](int percent) {
+            if (proFn) {
+                proFn(percent);
+            }
+        }
+        );
     return 0;
 }
 
@@ -443,17 +483,12 @@ void MachineObject::set_connect_state(CONNECTION_STATE state)
     conn_state = state;
     if (state == STATE_DISCONNECTED) {
         /* unsubscribe topics in account manager */
-        AccountInfo* info = acc_.get_curr_user();
-        if (info) {
-            info->remove_topics(build_report_topic(this->dev_id));
-        }
+        //TODO
+        acc_.add_subscribe(this);
     }
     else if (state == STATE_CONNECTED) {
         /* subscribe topics in account manager */
-        AccountInfo* info = acc_.get_curr_user();
-        if (info) {
-            info->add_topics(build_report_topic(this->dev_id));
-        }
+        acc_.del_subscribe(this);
     }
     else
     {
@@ -513,29 +548,25 @@ DeviceManager::~DeviceManager()
 void DeviceManager::on_machine_alive(std::string dev_name, std::string dev_id, std::string dev_ip)
 {
     std::lock_guard<std::mutex> lock(listMutex);
-    MachineObject* machine;
+    MachineObject* obj;
     std::map<std::string, MachineObject*>::iterator it = localMachineList.find(dev_id);
     if (it != localMachineList.end()) {
         // update properties
         /* ip changed */
-        machine = it->second;
-        if (machine->dev_ip.compare(dev_ip) != 0) {
-            machine->dev_ip = dev_ip;
+        obj = it->second;
+        if (obj->dev_ip.compare(dev_ip) != 0) {
+            obj->dev_ip = dev_ip;
             /* TODO if ip changed reconnect mqtt */
         }
-        machine->last_alive = Slic3r::Utils::get_current_time_utc();
-        machine->is_alive = true;
+        obj->last_alive = Slic3r::Utils::get_current_time_utc();
+        obj->is_alive = true;
     }
     else {
         // add new machine
-        machine = new MachineObject(acc_, backend_, dev_name, dev_id, dev_ip);
-        localMachineList.insert(std::make_pair(dev_id, machine));
+        obj = new MachineObject(acc_, dev_name, dev_id, dev_ip);
+        localMachineList.insert(std::make_pair(dev_id, obj));
 
-        /* TODO
-        if (machine && !machine->is_connected()) {
-            machine->connect(nullptr, nullptr, nullptr);
-        }
-        */
+        /* insert a new machine */
     }
 }
 
@@ -608,14 +639,6 @@ std::map<std::string ,MachineObject*> DeviceManager::get_all_machine_list()
     for (it = localMachineList.begin(); it != localMachineList.end(); it++) {
         if (it->second->is_alive) {
             result.insert(std::make_pair(it->first, it->second));
-        }
-    }
-
-    for (it = myBindMachineList.begin(); it != myBindMachineList.end(); it++) {
-        if (it->second->is_online) {
-            if (result.find(it->first) != result.end()) {
-                result.insert(std::make_pair(it->first, it->second));
-            }
         }
     }
     

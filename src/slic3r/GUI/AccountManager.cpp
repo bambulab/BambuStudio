@@ -36,15 +36,16 @@ void split_string(std::string s, std::vector<std::string>& v) {
 }
 
 namespace Slic3r {
-
-
     /* mqtt cloud connection callbacks */
     void cloud_conn_callback::reconnect()
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(2500));
         try {
             BOOST_LOG_TRIVIAL(trace) << "cloud_conn_callback::reconnect()  connecting...";
-            //TODO cli_.connect(connOpts_, context_, *this);
+            AccountManager* manager = (AccountManager*)context_;
+            if (manager) {
+                manager->connect_mqtt();
+            }
         }
         catch (const mqtt::exception& exc) {
             BOOST_LOG_TRIVIAL(trace) << "cloud_conn_callback::reconnect() exception:" << exc.get_message();
@@ -64,7 +65,7 @@ namespace Slic3r {
         /* update sub_topics */
         BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::connected!";
         /* subscribe current device reqeust and report */
-        try {
+        /*try {
             for (int i = 0; i < sub_topics.size(); i++) {
                 action_listener* sub_listener = new action_listener("Subscriber_" + sub_topics[i]);
                 cli_.subscribe(sub_topics[i], 0, nullptr, *sub_listener);
@@ -72,7 +73,7 @@ namespace Slic3r {
         }
         catch (mqtt::exception& e) {
             BOOST_LOG_TRIVIAL(trace) << "cloud_conn_callback::connected, exception=" << e.what();
-        }
+        }*/
     }
 
     void cloud_conn_callback::on_failure(const mqtt::token& tok)
@@ -97,24 +98,23 @@ namespace Slic3r {
 
     void cloud_conn_callback::message_arrived(mqtt::const_message_ptr msg)
     {
-        AccountInfo* info = (AccountInfo*)context_;
-        if (info) {
-            info->msg_recv_fn(msg->get_topic(), msg->get_payload_str());
+        AccountManager* manager = (AccountManager*)context_;
+        if (manager) {
+            std::string topic = msg->get_topic();
+            int start = topic.find_first_of('/') + 1;
+            int end = topic.find_last_of('/');
+            std::string dev_id = topic.substr(start, end - start);
+            std::map<std::string, MachineObject*>::iterator it = manager->myBindMachineList.find(dev_id);
+            if (it != manager->myBindMachineList.end()) {
+                if (it->second && it->second->msg_recv_fn) {
+                    it->second->msg_recv_fn(msg->get_topic(), msg->get_payload_str());
+                }
+            }
         }
     }
 
     AccountInfo::AccountInfo(std::string account, std::string user_id, AccountInfo::LoginStatus status)
-        :mqtt_opt(mqtt::connect_options_builder().clean_session().finalize()),
-        mqtt_cli(nullptr),
-        mqtt_cb(nullptr),
-        mqtt_uuid_bytes(4)
     {
-        mqtt_opt.set_user_name(mqtt_user);
-        mqtt_opt.set_password(mqtt_pwd);
-
-        boost::uuids::uuid uuid = boost::uuids::random_generator()();
-        mqtt_uuid = to_string(uuid).substr(0, mqtt_uuid_bytes);
-
         m_account = account;
         m_user_id = user_id;
         m_login_status = status;
@@ -151,8 +151,6 @@ namespace Slic3r {
                 AccountInfo::LoginStatus status = (AccountInfo::LoginStatus)root.get<int>("login_status");
                 AccountInfo* info = new AccountInfo(account, user_id, status);
                 info->set_token(token);
-                /* connect mqtt server */
-                info->connect_mqtt();
                 return info;
             }
             else {
@@ -168,15 +166,55 @@ namespace Slic3r {
     }
 
 
-    int AccountInfo::connect_mqtt()
+    AccountManager::AccountManager()
+        :mqtt_opt(mqtt::connect_options_builder().clean_session().finalize()),
+        mqtt_cli(nullptr),
+        mqtt_cb(nullptr),
+        mqtt_uuid_bytes(4)
     {
+        mqtt_opt.set_user_name(mqtt_user);
+        mqtt_opt.set_password(mqtt_pwd);
+
+        boost::uuids::uuid uuid = boost::uuids::random_generator()();
+        mqtt_uuid = to_string(uuid).substr(0, mqtt_uuid_bytes);
+
+        host = "http://api.qa.bbl";
+        m_curr_user = nullptr;
+        boost::filesystem::fstream fstream();
+    }
+
+    int AccountManager::load_user_info()
+    {
+        m_curr_user = AccountInfo::load_from_json(account_json);
+        if (this->is_user_login()) {
+            this->connect_mqtt();
+        }
+        return 0;
+    }
+
+    int AccountManager::save_user_info()
+    {
+        if (m_curr_user) {
+            return m_curr_user->save_to_json(account_json);
+        }
+        return 0;
+    }
+
+
+    int AccountManager::connect_mqtt()
+    {
+        if (m_curr_user == nullptr) {
+            return -1;
+        }
+
         try {
-            std::string client_id = (boost::format("%1%:%2%") % m_user_id % mqtt_uuid).str();
+            std::string client_id = (boost::format("%1%:%2%") % m_curr_user->m_user_id % mqtt_uuid).str();
             mqtt_cli = new mqtt::async_client(MQTT_HOST, client_id);
             mqtt_cb = new cloud_conn_callback(*mqtt_cli, mqtt_opt, this);
-            /* TODO add topics */
-            mqtt_cli->set_callback(*mqtt_cb);
-            mqtt_cli->connect(mqtt_opt, this, *mqtt_cb);
+            if (mqtt_cli) {
+                mqtt_cli->set_callback(*mqtt_cb);
+                mqtt_cli->connect(mqtt_opt, this, *mqtt_cb);
+            }
             return 0;
         }
         catch (mqtt::exception& e) {
@@ -188,7 +226,7 @@ namespace Slic3r {
         return 0;
     }
 
-    int AccountInfo::disconnect_mqtt()
+    int AccountManager::disconnect_mqtt()
     {
         if (mqtt_cli) {
             mqtt_cli->disconnect()->wait();
@@ -198,47 +236,33 @@ namespace Slic3r {
         return 0;
     }
 
-    void AccountInfo::add_topics(std::string topic)
+    void AccountManager::add_subscribe(MachineObject* obj)
     {
-        /*try {
-            action_listener* sub_listener = new action_listener("Subscriber_" + topic);
-            mqtt_cli->subscribe(topic, 0, nullptr, *sub_listener);
+        std::string report_topic = (boost::format("device/%1%/report") % obj->dev_id).str();
+        try {
+            action_listener* sub_listener = new action_listener("Subscriber_" + report_topic);
+            if (mqtt_cli) {
+                mqtt_cli->subscribe(report_topic, 0, nullptr, *sub_listener);
+            }
         }
         catch (...) {
-
-        }*/
-    }
-
-    void AccountInfo::remove_topics(std::string topic)
-    {
-        if (mqtt_cli) {
-            mqtt_cli->unsubscribe(topic);
+            BOOST_LOG_TRIVIAL(trace) << "add_topics exception";
         }
     }
 
-
-    AccountManager::AccountManager()
+    void AccountManager::del_subscribe(MachineObject* obj)
     {
-        //host = "http://iot.dev.bbl";
-        //host = "192.168.0.146";
-        host = "http://api.qa.bbl";
-        m_curr_user = NULL;
-        boost::filesystem::fstream fstream();
-    }
-
-    int AccountManager::load_user_info()
-    {
-        m_curr_user = AccountInfo::load_from_json(account_json);
-        return 0;
-    }
-
-    int AccountManager::save_user_info()
-    {
-        if (m_curr_user) {
-            return m_curr_user->save_to_json(account_json);
+        std::string report_topic = (boost::format("device/%1%/report") % obj->dev_id).str();
+        try {
+            if (mqtt_cli) {
+                mqtt_cli->unsubscribe(report_topic);
+            }
         }
-        return 0;
+        catch (...) {
+            BOOST_LOG_TRIVIAL(trace) << "remove_topics exception";
+        }
     }
+
 
     bool AccountManager::is_user_login()
     {
@@ -272,17 +296,17 @@ namespace Slic3r {
             if (ack_status.has_value()) {
                 if (ack_status.value().compare(MSG_SUCCESS) == 0) {
                     BOOST_LOG_TRIVIAL(trace) << "User = " << account << " Login Success!";
-                    if (fn) {
-                        fn(0, "");
-                    }
                     if (user_id.has_value() && token.has_value()) {
                         if (m_curr_user) delete m_curr_user;
                         m_curr_user = new AccountInfo(account, user_id.value(), AccountInfo::LoginStatus::STATUS_LOGIN);
                         m_curr_user->set_token(token.value());
                         save_user_info();
                         /* connect mqtt */
-                        m_curr_user->connect_mqtt();
-                        this->request_bind_list(user_id.value());
+                        this->connect_mqtt();
+                        this->request_bind_list(nullptr);
+                        if (fn) {
+                            fn(0, "");
+                        }
                         return;
                     }
                 }
@@ -292,16 +316,16 @@ namespace Slic3r {
             if (fn) {
                 fn(-1, body);
             }
-                }).on_error([&, this, account, fn](std::string body, std::string error, unsigned status) {
-                    BOOST_LOG_TRIVIAL(trace) << "Account=" << account << " Login Failed! status=" << status << ",error=" << error << ",body=" << body;
-                    std::string error_tips = "Login Failed! status=" + std::to_string(status) + ", error=" + error + ", body=" + body;
-                    if (fn) {
-                        fn(-1, error);
-                    }
-                    this->_handle_error_code(status, error, body);
-                    }).perform();
+        }).on_error([&, this, account, fn](std::string body, std::string error, unsigned status) {
+            BOOST_LOG_TRIVIAL(trace) << "Account=" << account << " Login Failed! status=" << status << ",error=" << error << ",body=" << body;
+            std::string error_tips = "Login Failed! status=" + std::to_string(status) + ", error=" + error + ", body=" + body;
+            if (fn) {
+                fn(-1, error);
+            }
+            this->_handle_error_code(status, error, body);
+        }).perform();
 
-                    return 0;
+        return 0;
     }
 
     int AccountManager::user_logout()
@@ -349,6 +373,51 @@ namespace Slic3r {
         }
         return 0;
     }
+
+    MachineObject* AccountManager::get_default_machine()
+    {
+        if (default_machine.empty())
+            return nullptr;
+
+        /* find in local list */
+        std::map<std::string, MachineObject*>::iterator it = myBindMachineList.find(default_machine);
+        if (it != myBindMachineList.end()) {
+            return it->second;
+        }
+
+        return nullptr;
+    }
+
+    void AccountManager::update_my_bind_list(std::string body)
+    {
+        std::lock_guard<std::mutex> lock(listMutex);
+        myBindMachineList.clear();
+        try {
+            pt::ptree root;
+            std::stringstream ss(body);
+            pt::read_json(ss, root);
+            pt::ptree bind_list = root.get_child("devices");
+            pt::ptree::iterator it = bind_list.begin();
+
+            for (BOOST_AUTO(pos, bind_list.begin()); pos != bind_list.end(); ++pos)
+            {
+                std::string dev_id = pos->second.get_optional<std::string>("dev_id").value();
+                std::string dev_name = pos->second.get_optional<std::string>("name").value();
+                std::string online = pos->second.get_optional<std::string>("online").value();
+
+                MachineObject* obj = new MachineObject(*this, dev_name, dev_id, "");
+                obj->is_online = online.compare("true") == 0 ? true : false;
+                myBindMachineList.insert(std::make_pair(dev_id, obj));
+
+                /* insert a new machine event */
+                this->add_subscribe(obj);
+            }
+        }
+        catch (std::exception& e) {
+            ;
+        }
+    }
+
 
     int AccountManager::query_bind_status(std::vector<std::string> device_list, CompletedFn fn, ErrorFn errFn)
     {
@@ -556,56 +625,58 @@ namespace Slic3r {
                 return 0;
     }
 
-    int AccountManager::request_bind_list(std::string user_id)
+    int AccountManager::request_bind_list(ResultFn fn)
     {
-        if (!is_user_login()) return -1;
+        if (!is_user_login()) {
+            if (fn) {
+                fn(-1, "User is not login");
+            }
+            return -1;
+        }
 
         Http http = Http::get(_get_bind_list_url());
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
-            .on_complete([&](std::string body, unsigned) {
-            try {
-                std::stringstream ss(body);
-                pt::ptree root;
-                pt::read_json(ss, root);
-                boost::optional<std::string> message = root.get_optional<std::string>("message");
-                DeviceManager* manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-                if (message.has_value()) {
-                    if (message.value().compare(MSG_SUCCESS) == 0) {
-                        pt::ptree bind_list = root.get_child("devices");
-                        for (BOOST_AUTO(pos, bind_list.begin()); pos != bind_list.end(); ++pos)
-                        {
-                            std::string dev_id = pos->second.get_value<std::string>("dev_id");
-                            std::string dev_name = pos->second.get_value<std::string>("name");
-                            std::string online = pos->second.get_value<std::string>("online");
-                            //TODO add new machine object
-                            /*DeviceInfo* info = new DeviceInfo(dev_id, dev_name, MQTT_CONNECTION);
-                            info->set_mqtt_conn_status(online.compare("online") == 0);
-                            manager->add_new_device(info);
-                            */
+            .on_complete([this, fn](std::string body, unsigned) {
+                try {
+                    std::stringstream ss(body);
+                    pt::ptree root;
+                    pt::read_json(ss, root);
+                    boost::optional<std::string> message = root.get_optional<std::string>("message");
+                    if (message.has_value()) {
+                        if (message.value().compare(MSG_SUCCESS) == 0) {
+                            /* clear my bind machine list */
+                            this->update_my_bind_list(body);
+                            if (fn) {
+                                fn(0, "get bind list ok");
+                            }
+                            return;
+                        }
+                        else if (message.value().compare("nodev") == 0) {
+                            this->update_my_bind_list(body);
+                            if (fn) {
+                                fn(0, "get bind list ok");
+                            }
+                            return;
                         }
                     }
-                    else if (message.value().compare("nodev") == 0) {
-                        BOOST_LOG_TRIVIAL(trace) << "Get bind list failed! body=" << body;
-                    }
-                    else {
-                        BOOST_LOG_TRIVIAL(trace) << "Get bind list failed! body=" << body;
+
+                    if (fn) {
+                        fn(-1, "Get bind list failed! body=" + body);
                     }
                 }
-                else {
-                    BOOST_LOG_TRIVIAL(trace) << "Get bind list failed! body=" << body;
+                catch (std::exception& e) {
+                    BOOST_LOG_TRIVIAL(trace) << "request_bind_list, on_complete exception" << std::string(e.what());
+                    if (fn) {
+                        fn(-1, "Get bind list failed! body=" + body);
+                    }
                 }
-            }
-            catch (std::exception& e) {
-                BOOST_LOG_TRIVIAL(trace) << "request_bind_list, on_complete exception" << std::string(e.what());
-            }
-                })
-            .on_error([&](std::string body, std::string error, unsigned status) {
+            }).on_error([&, fn](std::string body, std::string error, unsigned status) {
                 BOOST_LOG_TRIVIAL(trace) << "Get bind list failed!, status=" << status << ", body=" << body << ", error=" << error;
-                //TODO
-                //Slic3r::GUI::wxGetApp().show_message_box("Get bind list failed");
-            })
-            .perform();
+                if (fn) {
+                    fn(-1, "Get bind list failed! body=" + body);
+                }
+            }).perform();
         return 0;
     }
 
@@ -616,6 +687,11 @@ namespace Slic3r {
 
         pt::ptree root;
         root.put("name", project_name_str);
+        /* optional model_id */
+        /* root.put("model_id", model_id_str); */
+        /* optional content */
+        /* root.put("content", project_content); */
+
         std::stringstream oss;
         pt::write_json(oss, root);
         return oss.str();
@@ -628,6 +704,18 @@ namespace Slic3r {
         pt::ptree root;
         root.put("name", profile_name_str);
         root.put("content", profile->profile_content);
+        std::stringstream oss;
+        pt::write_json(oss, root);
+        return oss.str();
+    }
+
+    std::string AccountManager::json_request_body_post_task(BBLTask* task) {
+        std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+        std::string task_name_str = converter.to_bytes(task->task_name);
+        pt::ptree root;
+        root.put("profile_id", task->task_profile_id);
+        root.put("name", task_name_str);
+        root.put("content", task->build_content_json());
         std::stringstream oss;
         pt::write_json(oss, root);
         return oss.str();
@@ -784,11 +872,25 @@ namespace Slic3r {
                     }
                 }
             )
+            .on_progress(
+                [this, proFn](Http::Progress progress, bool& cancel) {
+                    BOOST_LOG_TRIVIAL(trace) << "progress:" << progress.ulnow << "/" << progress.ultotal;
+                    int percent = 0;
+                    if (progress.ultotal != 0) {
+                        percent = progress.ulnow * 100 / progress.ultotal;
+                    }
+                    if (proFn) {
+                        proFn(percent);
+                    }
+                }
+            )
             .on_error(
                 [this, project, resFn](std::string body, std::string error, unsigned status) {
                     BOOST_LOG_TRIVIAL(info) << "create_project, upload project failed!";
                     if (resFn) {
-                        resFn(-1, "upload project failed!");
+                        std::string info("upload project failed!");
+                        info += " body=" + body;
+                        resFn(-1, info);
                     }
                 }
             ).perform_sync();
@@ -904,10 +1006,112 @@ namespace Slic3r {
         }
     }
 
-    void AccountManager::create_task(BBLProject* project, BBLTask* task, ResultFn resFn) {
-        std::string task_url = (boost::format("%1%/iot/user/project/%1%/task") % host % project->project_id).str();
+    void AccountManager::create_task(BBLProject* project, BBLTask* task, ResultFn resFn)
+    {
 
-        std::string json_str = json_request_body_post_project(project);
+        if (!project || !task) {
+            return;
+        }
+
+        std::string task_url = (boost::format("%1%/iot/user/project/%1%/task") % host % project->project_id).str();
+        std::string json_str = json_request_body_post_task(task);
+
+        Http http = Http::post(task_url);
+        http.header("accept", "application/json")
+            .header("Authorization", get_token_str())
+            .header("Content-Type", "application/json")
+            .set_post_body(json_str)
+            .on_complete(
+                [this, task, resFn](std::string body, unsigned) {
+                    std::stringstream ss(body);
+                    pt::ptree root;
+                    pt::read_json(ss, root);
+                    boost::optional<std::string> message = root.get_optional<std::string>("message");
+                    boost::optional<std::string> task_id = root.get_optional<std::string>("task_id");
+                    if (message.has_value()) {
+                        if (message.value().compare(MSG_SUCCESS) == 0) {
+                            BOOST_LOG_TRIVIAL(info) << "create_profile ok!";
+                            if (task_id.has_value()) {
+                                task->task_id = task_id.value();
+                            }
+                        }
+                    }
+                }
+            )
+            .on_error(
+                [this, task, resFn](std::string body, std::string error, unsigned status) {
+                    BOOST_LOG_TRIVIAL(info) << "create_profile failed! body=" << body << ", status=" << status;
+                    if (resFn) {
+                        resFn(-2, "create task id failed!");
+                    }
+                }).perform_sync();
+    }
+
+    void AccountManager::post_task(BBLSubTask* task, ResultFn resFn, ProgressFn proFn)
+    {
+        if (!task) return;
+
+        std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+        std::string url = (boost::format("%1%/iot/user/storage") % host).str();
+
+        std::string file_str = "file";
+        std::string name_str = "name";
+        std::string expires_str = "expires";
+        std::string name_value = "name";
+        std::string expires_value = "86400";
+        std::string filename_str = task->task_path.filename().generic_string();
+        
+        Http http = Http::post(url);
+        http.header("accept", "application/json")
+            .header("Authorization", get_token_str())
+            .header("Content-Type", "multipart/form-data")
+            .mime_form_add_file(file_str, task->task_path)
+            .mime_form_add_text(name_str, filename_str)
+            .mime_form_add_text(expires_str, expires_value)
+            .on_complete(
+                [this, task, resFn](std::string body, unsigned) {
+                    std::stringstream ss(body);
+                    pt::ptree root;
+                    pt::read_json(ss, root);
+                    boost::optional<std::string> message = root.get_optional<std::string>("message");
+                    boost::optional<std::string> url = root.get_optional<std::string>("url");
+                    boost::optional<std::string> md5 = root.get_optional<std::string>("md5");
+                    if (message.has_value()) {
+                        if (message.value().compare(MSG_SUCCESS) == 0) {
+                            if (url.has_value() && md5.has_value()) {
+                                task->task_url = url.value();
+                                task->task_url_md5 = md5.value();
+                                if (resFn) {
+                                    resFn(0, "get task url=" + url.value());
+                                }
+                                return;
+                            }
+                        }
+                    }
+                    if (resFn) {
+                        resFn(-1, "error=" + body);
+                    }
+                }
+            )
+            .on_progress(
+                [this, proFn](Http::Progress progress, bool &cancel) {
+                    BOOST_LOG_TRIVIAL(trace) << "progress:" << progress.ulnow << "/" << progress.ultotal;
+                    int percent = 0;
+                    if (progress.ultotal != 0) {
+                        percent = progress.ulnow * 100 / progress.ultotal;
+                    }
+                    if (proFn) {
+                        proFn(percent);
+                    }
+                }
+            )
+            .on_error(
+                [this, resFn](std::string body, std::string error, unsigned status) {
+                    BOOST_LOG_TRIVIAL(info) << "upload subtask failed! body=" << body << ", status=" << status;
+                    if (resFn) {
+                        resFn(-2, "create task id failed!");
+                    }
+            }).perform();
     }
 
     std::string AccountManager::get_token_str()
@@ -955,7 +1159,7 @@ namespace Slic3r {
         }
 
         if (m_curr_user) {
-            return (boost::format("%1%/iot/device/bind_list?dev_ids=%2%") % host % dev_id).str();
+            return (boost::format("%1%/iot/user/bind_list?dev_ids=%2%") % host % dev_id).str();
         }
         else {
             return "";

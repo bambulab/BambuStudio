@@ -64,7 +64,9 @@ namespace Slic3r {
             void refresh_firmware_list(bool show_error=false);
             void add_firmware(std::string firmware);
             void on_update_list(SimpleEvent& evt);
+            void on_update_mybind_list(SimpleEvent& evt);
             void on_select_device(wxCommandEvent& evt);
+            void on_select_mybind_device(wxCommandEvent& evt);
             void on_mqtt_failed(wxCommandEvent& evt);
             void on_mqtt_lost(wxCommandEvent& evt);
             void on_mqtt_connected(wxCommandEvent& evt);
@@ -99,22 +101,24 @@ namespace Slic3r {
 
             DeviceManager& dev_manager_;
             std::vector<std::string> machine_list_items;
+            std::vector<std::string> mybind_machine_list_items;
             int last_device_selection;
+            int last_wlan_device_selection;
 
             /* GUI widgets */
+            wxNotebook* nb_main;
+
             /* switch host servers */
             wxComboBox* cb_server_host;
 
             /* Connections widgets */
-            wxButton* btn_refresh_device_list;
-            wxButton* btn_connect;
-            wxButton* btn_disconnect;
-
-            wxNotebook* nb_main;
-            wxPanel* upgrade_panel;
-            wxPanel* common_panel;
-            wxPanel* run_gcode_panel;
-            wxPanel* ctrl_panel;
+            wxButton*       btn_refresh_device_list;
+            wxButton*       btn_connect;
+            wxButton*       btn_disconnect;
+            wxComboBox*     cb_device_list;
+            wxComboBox*     cb_my_device_list;
+            wxRadioButton* radio_btn_lan;
+            wxRadioButton* radio_btn_wan;
 
 
             /* Upgrade widgets */
@@ -125,7 +129,6 @@ namespace Slic3r {
             /* Gcode widgets*/
             wxButton*       btn_run_gcode;
             wxTextCtrl*     txt_gcode_filename;
-            wxButton*       btn_abort_print;
             wxStaticText*   label_gcode_progress;
             wxButton*       btn_select_gcode_file;
             wxFileDialog*   selectGcodeDialog;
@@ -134,14 +137,15 @@ namespace Slic3r {
             wxButton*       btn_upload_3mf;
             wxTextCtrl*     txt_3mf_filename;
             wxTextCtrl*     txt_3mf_plate_idx;
+            wxTextCtrl*     txt_wlan_gcode_filename;
             wxButton*       btn_run_3mf;
             wxButton*       btn_abort_3mf;
             wxStaticText*   label_3mf_progress;
             wxButton*       btn_select_3mf_file;
             wxFileDialog*   select3mfDialog;
+            wxStaticText*   label_upload_gcode_progress_val;
 
             /* display plate and send task */
-            wxButton*       btn_print_plate;
             wxTextCtrl*     txt_plate_idx;
             wxComboBox*     cb_profiles;
 
@@ -191,10 +195,6 @@ namespace Slic3r {
             wxTextCtrl* txt_custom_gcode6;
             wxTextCtrl* txt_custom_gcode7;
 
-            wxStaticText* label_output_string;
-            wxStaticText* label_device_list;
-            wxStaticText* label_device_status;
-
             wxStaticText* label_pos_x_val;
             wxStaticText* label_pos_y_val;
             wxStaticText* label_pos_z_val;
@@ -214,7 +214,6 @@ namespace Slic3r {
 
             wxComboBox* cb_upgrade_module;
             wxArrayString module_items;
-            wxComboBox* cb_device_list;
             wxComboBox* cb_publish_mode;
             wxComboBox* cb_upgrade_firmware;
             wxComboBox* cb_upgrade_mode;
@@ -234,16 +233,16 @@ namespace Slic3r {
 
             wxBoxSizer* top_sizer;
             wxGridSizer* pos_btns_sizer;
-            wxBoxSizer* conn_device_sizer;
+            wxBoxSizer* conn_sizer;
 
 
             /* GUI init control */
-            void init_host_server_widgets();
             void init_connection_widgets();
             void init_common(wxWindow* parent);
             void init_upgrade(wxWindow* parent);
             void init_gcode_run_file(wxWindow* parent);
             void init_custom_ctrl(wxWindow* parent);
+            void init_task_widgets(wxWindow* parent);
             void init_gcode_control(wxWindow* parent, wxBoxSizer* sizer);
             void init_gcode_custom(wxWindow* parent, wxBoxSizer* sizer);
             void init_log_panel(wxWindow* parent);

@@ -27,16 +27,18 @@ public:
 
     BBLSubTask() {}
 
-    int             parent_task_id;
-    int             task_id;
-    std::wstring    task_name;
-    std::wstring    task_file;
-    std::wstring    task_create_time;
-    int             task_partplate_idx;
+    std::string     parent_task_id;
+    std::string     task_id;            /* created by cloud */
+    std::wstring    task_name;          /* task name, generally filename as task name */
+    std::wstring    task_file;          /* local full file path of 3mf or gcode */
+    fs::path        task_path;          /* local path of 3mf or gcode */
+    std::string     task_create_time;   /* time created by slicer */
+    int             task_partplate_idx; 
     SubTaskStatus   task_status;
-    std::string     task_printer_dev_id;
-    int             task_progress;
-    std::wstring    task_url;
+    std::string     task_printer_dev_id;/* dev_id of machine */
+    int             task_progress;      /* task running progress */
+    std::string     task_url;           /* post task to this url */
+    std::string     task_url_md5;       /* md5 of task file */
     std::string     task_project_id;
     std::string     task_profile_id;
 };
@@ -51,14 +53,14 @@ public:
     BBLTask();
 
     /* properties */
-    int                         task_id;
+    std::string                 task_id;
     std::wstring                task_name;
     std::wstring                task_create_time;
     TaskStatus                  task_status;
-    std::wstring                task_file;      /* local task file */
-    std::string                 task_url;       /* cloud task url */
-    std::string                 task_url_md5;   /* md5 of cloud task url file */
-    std::wstring                task_dst_url;   /* put task to dest url in machine */
+    std::wstring                task_file;          /* local task file */
+    std::string                 task_url;           /* cloud task url */
+    std::string                 task_url_md5;       /* md5 of cloud task url file */
+    std::wstring                task_dst_url;       /* put task to dest url in machine */
     std::string                 task_project_id;
     std::string                 task_profile_id;
     std::vector<BBLSubTask*>    subtasks;
@@ -74,6 +76,8 @@ public:
             return "inactive";
         }
     }
+
+    std::string build_content_json();
 };
 
 class BBLProfile {
@@ -109,8 +113,8 @@ public:
 
     std::vector<BBLProfile*>   profiles;
 
+    /* deprecated apis */
     std::string build_content_json();
-    
 };
 
 } // namespace Slic3r

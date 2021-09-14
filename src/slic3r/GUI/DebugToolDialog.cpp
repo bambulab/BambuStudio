@@ -25,6 +25,9 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/format.hpp>
+#include <expat.h>
+#include <miniz.h>
+#include <codecvt>
 
 #include "GUI.hpp"
 #include "GUI_App.hpp"
@@ -42,7 +45,8 @@
 #include "libslic3r/Print.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "slic3r/GUI/ProjectTask.hpp"
-#include <expat.h>
+#include "libslic3r/miniz_extension.hpp"
+
 
 namespace pt = boost::property_tree;
 typedef pt::ptree JSON;
@@ -53,8 +57,10 @@ namespace GUI {
 
     wxDECLARE_EVENT(EVT_PROGRESS, wxCommandEvent);
     wxDECLARE_EVENT(EVT_3MF_PROGRESS, wxCommandEvent);
+    wxDECLARE_EVENT(EVT_WLAN_GCODE_PROGRESS, wxCommandEvent);
     wxDECLARE_EVENT(EVT_UPDATE_LIST, SimpleEvent);
     wxDECLARE_EVENT(EVT_REFRESH_LIST, SimpleEvent);
+    wxDECLARE_EVENT(EVT_UPDATE_MYBIND_LIST, SimpleEvent);
     wxDECLARE_EVENT(EVT_MQTT_SUCCESS, wxCommandEvent);
     wxDECLARE_EVENT(EVT_MQTT_FAILED, wxCommandEvent);
     wxDECLARE_EVENT(EVT_MQTT_LOST, wxCommandEvent);
@@ -69,8 +75,10 @@ namespace GUI {
 
     wxDEFINE_EVENT(EVT_PROGRESS, wxCommandEvent);
     wxDEFINE_EVENT(EVT_3MF_PROGRESS, wxCommandEvent);
+    wxDEFINE_EVENT(EVT_WLAN_GCODE_PROGRESS, wxCommandEvent);
     wxDEFINE_EVENT(EVT_UPDATE_LIST, SimpleEvent);
     wxDEFINE_EVENT(EVT_REFRESH_LIST, SimpleEvent);
+    wxDEFINE_EVENT(EVT_UPDATE_MYBIND_LIST, SimpleEvent);
     wxDEFINE_EVENT(EVT_MQTT_SUCCESS, wxCommandEvent);
     wxDEFINE_EVENT(EVT_MQTT_FAILED, wxCommandEvent);
     wxDEFINE_EVENT(EVT_MQTT_LOST, wxCommandEvent);
@@ -156,10 +164,10 @@ namespace GUI {
         auto* h_sizer = new wxBoxSizer(wxHORIZONTAL);
 
         nb_main = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP);
-        common_panel = new wxPanel(nb_main, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-        upgrade_panel = new wxPanel(nb_main, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-        run_gcode_panel = new wxPanel(nb_main, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-        ctrl_panel = new wxPanel(nb_main, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+        auto common_panel = new wxPanel(nb_main, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+        auto upgrade_panel = new wxPanel(nb_main, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+        auto run_gcode_panel = new wxPanel(nb_main, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+        auto ctrl_panel = new wxPanel(nb_main, wxID_ANY, wxDefaultPosition, wxDefaultSize);
         auto log_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
 
         nb_main->AddPage(common_panel, "Common");
@@ -167,7 +175,6 @@ namespace GUI {
         nb_main->AddPage(ctrl_panel, "Custom Ctrl");
         nb_main->AddPage(upgrade_panel, "Upgrade");
 
-        init_host_server_widgets();
         init_connection_widgets();
         init_common(common_panel);
         init_upgrade(upgrade_panel);
@@ -181,7 +188,7 @@ namespace GUI {
         init_layout();
         //top sizer
         top_sizer->Add(-1, 8);
-        top_sizer->Add(conn_device_sizer, 0, wxLEFT | wxRIGHT | wxEXPAND, 0);
+        top_sizer->Add(conn_sizer, 0, wxALL | wxEXPAND, 0);
         top_sizer->Add(-1, 8);
         top_sizer->Add(h_sizer, 1, wxALL | wxEXPAND, 0);
 
@@ -204,6 +211,7 @@ void DebugToolDialog::init_bind_handler()
     Bind(wxEVT_TIMER, &DebugToolDialog::on_timer, this);
     Bind(EVT_UPDATE_LIST, &DebugToolDialog::on_update_list, this);
     Bind(EVT_REFRESH_LIST, &DebugToolDialog::on_update_list, this);
+    Bind(EVT_UPDATE_MYBIND_LIST, &DebugToolDialog::on_update_mybind_list, this);
     Bind(EVT_MQTT_CONNECTED, &DebugToolDialog::on_mqtt_connected, this);
     Bind(EVT_MQTT_DISCONNECTED, &DebugToolDialog::on_mqtt_disconnected, this);
     Bind(EVT_MQTT_FAILED, &DebugToolDialog::on_mqtt_failed, this);
@@ -275,14 +283,44 @@ void DebugToolDialog::on_update_list(SimpleEvent& evt)
     }
 }
 
+void DebugToolDialog::on_update_mybind_list(SimpleEvent& evt)
+{
+    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    int select = -1;
+    std::string last_my_bind_dev_id;
+    if (last_wlan_device_selection < mybind_machine_list_items.size()) {
+        last_my_bind_dev_id = mybind_machine_list_items[last_wlan_device_selection];
+    }
+    
+    std::map<std::string, MachineObject*> list = account_manager->myBindMachineList;
+    std::map<std::string, MachineObject*>::iterator iter;
+    mybind_machine_list_items.clear();
+    wxArrayString new_items;
+    for (iter = list.begin(); iter != list.end(); iter++) {
+        wxString online_status = iter->second->is_online ? "Online" : "Offline";
+        wxString text = wxString::Format("%s(%s)[%s]", iter->second->dev_name, iter->second->dev_id, online_status);
+        if (!last_my_bind_dev_id.empty() && iter->second->dev_id.compare(last_my_bind_dev_id) == 0) {
+            select = new_items.size();
+        }
+        mybind_machine_list_items.push_back(iter->second->dev_id);
+        new_items.Add(text);
+    }
+
+    cb_my_device_list->Set(new_items);
+    if (select >= 0) {
+        cb_my_device_list->Select(select);
+        last_wlan_device_selection = select;
+    }
+}
+
 void DebugToolDialog::on_mqtt_failed(wxCommandEvent& evt)
 {
     this->log_info("MQTT Connect Failed! client=" + evt.GetString().ToStdString());
     btn_disconnect->Disable();
-
     btn_connect->Enable();
     btn_refresh_device_list->Enable();
     cb_device_list->Enable();
+    radio_btn_lan->SetValue(true);
 }
 
 void DebugToolDialog::on_mqtt_lost(wxCommandEvent& evt)
@@ -293,6 +331,7 @@ void DebugToolDialog::on_mqtt_lost(wxCommandEvent& evt)
     btn_connect->Enable();
     btn_refresh_device_list->Enable();
     cb_device_list->Enable();
+    radio_btn_lan->SetValue(true);
 }
 
 void DebugToolDialog::on_mqtt_connected(wxCommandEvent& evt)
@@ -301,6 +340,7 @@ void DebugToolDialog::on_mqtt_connected(wxCommandEvent& evt)
     btn_connect->Disable();
     btn_refresh_device_list->Disable();
     cb_device_list->Disable();
+    radio_btn_lan->SetValue(true);
 }
 
 void DebugToolDialog::on_mqtt_disconnected(wxCommandEvent& evt)
@@ -309,6 +349,7 @@ void DebugToolDialog::on_mqtt_disconnected(wxCommandEvent& evt)
     btn_connect->Enable();
     btn_refresh_device_list->Enable();
     cb_device_list->Enable();
+    radio_btn_lan->SetValue(true);
 }
 
 
@@ -363,17 +404,20 @@ void DebugToolDialog::get_version() {
     this->publish_json(json_str);
 }
 
-void DebugToolDialog::init_host_server_widgets()
-{
-    wxArrayString module_items;
-    module_items.Add(_L("http://iot.qa.bbl"));
-    module_items.Add(_L("http://iot.dev.bbl"));
-}
-
 void DebugToolDialog::init_connection_widgets()
 {
+    /* lan sizer */
+    auto lan_sizer = new wxBoxSizer(wxHORIZONTAL);
+    radio_btn_lan = new wxRadioButton(this, wxID_ANY, wxT("Lan Connection"), wxDefaultPosition, wxSize(120, -1), 0);
+    radio_btn_lan->SetValue(true);
+    radio_btn_lan->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent&) {
+            this->send_log_evt("checked! lan!");
+        });
+
+    auto label_device_list = new wxStaticText(this, wxID_ANY, _L("Device List:"), wxDefaultPosition, wxSize(70, -1));
     cb_device_list = new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize);
     cb_device_list->SetEditable(false);
+    cb_device_list->SetMaxSize(wxSize(350, -1));
     cb_device_list->Bind(wxEVT_COMBOBOX, &DebugToolDialog::on_select_device, this);
     btn_refresh_device_list = new wxButton(this, wxID_ANY, _L("Refresh"), wxDefaultPosition, wxDefaultSize);
     btn_refresh_device_list->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
@@ -480,16 +524,49 @@ void DebugToolDialog::init_connection_widgets()
         });
     btn_disconnect->Disable();
 
-    label_device_list = new wxStaticText(this, wxID_ANY, _L("Device List:"), wxDefaultPosition, wxDefaultSize);
+    lan_sizer->Add(radio_btn_lan,           0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
+    lan_sizer->Add(label_device_list,       0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
+    lan_sizer->Add(cb_device_list,          1, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
+    lan_sizer->Add(btn_refresh_device_list, 0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
+    lan_sizer->Add(btn_force_bind,          0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
+    lan_sizer->Add(btn_unbind,              0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
+    lan_sizer->Add(btn_connect,             0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
+    lan_sizer->Add(btn_disconnect,          0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
 
-    conn_device_sizer = new wxBoxSizer(wxHORIZONTAL);
-    conn_device_sizer->Add(label_device_list, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
-    conn_device_sizer->Add(cb_device_list, 1, wxALL | wxEXPAND, SPACING);
-    conn_device_sizer->Add(btn_refresh_device_list, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
-    conn_device_sizer->Add(btn_force_bind, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
-    conn_device_sizer->Add(btn_unbind, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
-    conn_device_sizer->Add(btn_connect, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
-    conn_device_sizer->Add(btn_disconnect, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
+    /* wan sizer */
+    auto wan_sizer  = new wxBoxSizer(wxHORIZONTAL);
+    radio_btn_wan   = new wxRadioButton(this, wxID_ANY, wxT("Wan Connection"), wxDefaultPosition, wxSize(120, -1), 0);
+    radio_btn_wan->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent&) {
+        this->send_log_evt("checked! wlan!");
+        });
+    auto label_my_device_list = new wxStaticText(this, wxID_ANY, _L("My Device:"), wxDefaultPosition, wxSize(70, -1));
+    cb_my_device_list = new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize);
+    cb_my_device_list->SetEditable(false);
+    cb_my_device_list->SetMaxSize(wxSize(350, -1));
+    cb_my_device_list->Bind(wxEVT_COMBOBOX, &DebugToolDialog::on_select_mybind_device, this);
+
+    auto btn_refresh_my_device = new wxButton(this, wxID_ANY, _L("Refresh"), wxDefaultPosition, wxDefaultSize);
+    btn_refresh_my_device->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+            Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+            account_manager->request_bind_list(
+                [this](int result, std::string info) {
+                    if (result == 0) {
+                        wxQueueEvent(this, new SimpleEvent(EVT_UPDATE_MYBIND_LIST));
+                    }
+                }
+            );
+
+        });
+
+    wan_sizer->Add(radio_btn_wan,           0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
+    wan_sizer->Add(label_my_device_list,    0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
+    wan_sizer->Add(cb_my_device_list,       1, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
+    wan_sizer->Add(btn_refresh_my_device,   0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
+
+    /* top sizer */
+    conn_sizer = new wxStaticBoxSizer(wxVERTICAL, this, "Connections ");
+    conn_sizer->Add(lan_sizer, 0, wxEXPAND, SPACING);
+    conn_sizer->Add(wan_sizer, 0, wxEXPAND, SPACING);
 }
 
 void DebugToolDialog::init_common(wxWindow* parent)
@@ -640,74 +717,145 @@ void DebugToolDialog::init_gcode_run_file(wxWindow *parent)
     selectGcodeDialog = new wxFileDialog(parent, "Open Gcode File", "", "", "Gcode files(*.gcode)|*.gcode", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
     Bind(EVT_PROGRESS, [this](wxCommandEvent& evt) {
-        std::string text = "upload:";
-        text += std::to_string(evt.GetInt()) + "%";
+        std::string text;
+        text = std::to_string(evt.GetInt()) + "%";
         this->label_gcode_progress->SetLabelText(text);
         });
 
-    btn_run_gcode = new wxButton(parent, wxID_ANY, _L("Run Gcode"), wxDefaultPosition, wxSize(180, -1));
-    btn_run_gcode->Bind(wxEVT_BUTTON,
-        [this](wxCommandEvent& evt) {
-            if (gcode_uploading) {
-                this->send_log_evt("Gcode is uploading...");
-                return;
-            }
-            this->gcode_uploading = true;
-            /* collection summary info */
-            summary->time_start = std::time(0);
-            std::tm* now_time = std::localtime(&summary->time_start);
-            std::stringstream buf;
-            buf << std::put_time(now_time, "%a %b %d %H:%M:%S");
-            summary->start_time = buf.str();
-            summary->has_time_start = true;
-            wxString path = txt_gcode_filename->GetValue();
-            std::wstring print_file = path.ToStdWstring();
-
-
-            /* create a subtask */
-            BBLSubTask* task = new BBLSubTask();
-            task->task_file = txt_gcode_filename->GetValue().ToStdWstring();
-
-            /* send print task */
-            MachineObject* obj = dev_manager_.get_default();
-            if (!obj) {
-                this->send_log_evt("Invalid Printer! Please Select a Printer!");
-                return;
-            }
-
-            obj->send_print_subtask(task,
-                [this]() {
-                    auto evt = new wxCommandEvent(EVT_PROGRESS, this->GetId());
-                    evt->SetInt(100);
-                    gcode_uploading = false;
-                },
-                [this](int progress) {
-                    auto evt = new wxCommandEvent(EVT_PROGRESS, this->GetId());
-                    evt->SetInt(progress);
-                    wxQueueEvent(this, evt);
-                },
-                    [this, print_file](std::string error) {
-                    gcode_uploading = false;
-                    BOOST_LOG_TRIVIAL(trace) << "transform gcode=" << print_file << " error, error=" << error;
-                    send_log_evt("trasform gcode failed, error=" +error);
-                });
+    Bind(EVT_WLAN_GCODE_PROGRESS, [this](wxCommandEvent& evt) {
+        std::string text;
+        text = std::to_string(evt.GetInt()) + "%";
+        this->label_gcode_progress->SetLabelText(text);
         });
 
-    auto label_gcode_filename = new wxStaticText(parent, wxID_ANY, _L("Gcode File:"), wxDefaultPosition, wxDefaultSize);
-    label_gcode_progress = new wxStaticText(parent, wxID_ANY, _L("upload: 0%"), wxDefaultPosition, wxSize(160, -1));
+    btn_run_gcode = new wxButton(parent, wxID_ANY, _L("Run Gcode"), wxDefaultPosition, wxSize(100, -1));
+    btn_run_gcode->Bind(wxEVT_BUTTON,
+        [this](wxCommandEvent& evt) {
+            if (radio_btn_lan->GetValue()) {
 
-    btn_select_gcode_file = new wxButton(parent, wxID_ANY, _L("Select File"), wxDefaultPosition, wxDefaultSize);
+                if (gcode_uploading) {
+                    this->send_log_evt("Gcode is uploading...");
+                    return;
+                }
+                this->gcode_uploading = true;
+                /* collection summary info */
+                summary->time_start = std::time(0);
+                std::tm* now_time = std::localtime(&summary->time_start);
+                std::stringstream buf;
+                buf << std::put_time(now_time, "%a %b %d %H:%M:%S");
+                summary->start_time = buf.str();
+                summary->has_time_start = true;
+                wxString path = txt_gcode_filename->GetValue();
+                std::wstring print_file = path.ToStdWstring();
+
+
+                /* create a subtask */
+                BBLSubTask* task = new BBLSubTask();
+                task->task_file = txt_gcode_filename->GetValue().ToStdWstring();
+
+                /* send print task */
+                MachineObject* obj = dev_manager_.get_default();
+                if (!obj) {
+                    this->send_log_evt("Invalid Printer! Please Select a Printer!");
+                    return;
+                }
+
+                obj->send_print_subtask(task,
+                    [this]() {
+                        auto evt = new wxCommandEvent(EVT_PROGRESS, this->GetId());
+                        evt->SetInt(100);
+                        gcode_uploading = false;
+                        wxQueueEvent(this, evt);
+                    },
+                    [this](int progress) {
+                        auto evt = new wxCommandEvent(EVT_PROGRESS, this->GetId());
+                        evt->SetInt(progress);
+                        wxQueueEvent(this, evt);
+                    },
+                        [this, print_file](std::string error) {
+                        gcode_uploading = false;
+                        BOOST_LOG_TRIVIAL(trace) << "transform gcode=" << print_file << " error, error=" << error;
+                        send_log_evt("trasform gcode failed, error=" + error);
+                    });
+            }
+            else {
+                std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+
+                /* print current 3mf */
+                Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+
+                wxStdWideString gcode_file = txt_wlan_gcode_filename->GetValue().ToStdWstring();
+                std::string gcode_file_str = converter.to_bytes(gcode_file);
+                fs::path gcode_path(gcode_file.c_str());
+                std::wstring gcode_filename = gcode_path.filename().generic_wstring();
+                std::string dst_gcode_file_str = converter.to_bytes(gcode_path.filename().generic_wstring());
+
+                /* zip gcode to 3mf */
+                std::string _3mf_file_str = gcode_path.replace_extension("3mf").generic_string();
+                mz_zip_archive archive;
+                mz_zip_zero_struct(&archive);
+                if (!open_zip_writer(&archive, _3mf_file_str)) {
+                    BOOST_LOG_TRIVIAL(trace) << "Unable to open the file";
+                    return;
+                }
+                mz_zip_writer_add_file(&archive, dst_gcode_file_str.c_str(), gcode_file_str.c_str(), "", 0, MZ_DEFAULT_COMPRESSION);
+                mz_zip_writer_finalize_archive(&archive);
+                close_zip_writer(&archive);
+
+                /* get create time */
+                std::time_t t = std::time(0);
+                std::tm* now_time = std::localtime(&t);
+                std::stringstream buf;
+                buf << std::put_time(now_time, "%a %b %d %H:%M:%S");
+
+                /* create subtask info */
+                BBLSubTask* subtask = new BBLSubTask();
+                subtask->task_create_time = buf.str();
+                subtask->task_project_id = "55";
+                subtask->parent_task_id = "12";
+                subtask->task_id = "0";
+                subtask->task_path = fs::path(_3mf_file_str.c_str());
+                subtask->task_name = gcode_filename;
+
+                /* send task */
+                MachineObject* obj = dev_manager_.get_default();
+                if (obj) {
+                    obj->send_wan_print_subtask(subtask,
+                        [this, _3mf_file_str]() {
+                            auto evt = new wxCommandEvent(EVT_WLAN_GCODE_PROGRESS, this->GetId());
+                            evt->SetInt(100);
+                            wxQueueEvent(this, evt);
+                            boost::filesystem::remove(_3mf_file_str);
+                        },
+                        [this](int progress) {
+                            auto evt = new wxCommandEvent(EVT_WLAN_GCODE_PROGRESS, this->GetId());
+                            evt->SetInt(progress);
+                            wxQueueEvent(this, evt);
+                        },
+                            [this, _3mf_file_str](std::string info) {
+                            boost::filesystem::remove(_3mf_file_str);
+                            this->send_log_evt(info);
+                        }
+                        );
+                }
+            }
+        });
+
+    auto label_gcode_filename = new wxStaticText(parent, wxID_ANY, _L("Gcode File:"), wxDefaultPosition, wxSize(100, -1));
+    auto label_upload_progress = new wxStaticText(parent, wxID_ANY, _L("Gcode Upload:"), wxDefaultPosition, wxSize(100, -1));
+    label_gcode_progress = new wxStaticText(parent, wxID_ANY, _L("0%"), wxDefaultPosition, wxSize(300, -1));
+
+    btn_select_gcode_file = new wxButton(parent, wxID_ANY, _L("Select File"), wxDefaultPosition, wxSize(100, -1));
     btn_select_gcode_file->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         if (this->selectGcodeDialog->ShowModal() == wxID_CANCEL) return;
 
         txt_gcode_filename->SetValue(this->selectGcodeDialog->GetPath());
-        txt_gcode_filename->SetFocus();
         this->SetFocus();
         });
 
     txt_gcode_filename = new wxTextCtrl(parent, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, -1));
 
-    btn_abort_print = new  wxButton(parent, wxID_ANY, _L("Abort"), wxDefaultPosition, wxDefaultSize);
+    auto btn_abort_print = new wxButton(parent, wxID_ANY, _L("Abort"), wxDefaultPosition, wxSize(100, -1));
     btn_abort_print->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("M0\n");
 
@@ -715,84 +863,61 @@ void DebugToolDialog::init_gcode_run_file(wxWindow *parent)
         et->SetInt(0);
         wxQueueEvent(this, et);
         });
+    auto btn_pause = new wxButton(parent, wxID_ANY, _L("Pause"), wxDefaultPosition, wxSize(100, -1));
+    btn_pause->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+            this->publishGcode("M400 P1\n");
+            this->send_log_evt("Pause Printing...");
+        });
+    auto btn_resume = new wxButton(parent, wxID_ANY, _L("Resume"), wxDefaultPosition, wxSize(100, -1));
+    btn_resume->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+            this->publishGcode("M400 P0\n");
+            this->send_log_evt("Resume Printing...");
+        });
 
-    auto gcode_sizer = new wxBoxSizer(wxHORIZONTAL);
-    gcode_sizer->Add(btn_run_gcode, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
-    gcode_sizer->Add(label_gcode_filename, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
-    gcode_sizer->Add(txt_gcode_filename, 1, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
-    gcode_sizer->Add(btn_select_gcode_file, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
-    gcode_sizer->Add(btn_abort_print, 0, wxALIGN_RIGHT | wxRIGHT | wxALIGN_CENTER_VERTICAL, SPACING);
-    gcode_sizer->Add(label_gcode_progress, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+    select3mfDialog = new wxFileDialog(parent, "Open 3mf File", "", "", "3mf files(*.3mf)|*.3mf", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
-    //select3mfDialog = new wxFileDialog(parent, "Open 3mf File", "", "", "3mf files(*.3mf)|*.3mf", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    /*
+    Bind(EVT_3MF_PROGRESS, [this](wxCommandEvent& evt) {
+        std::string text = "upload:";
+        text += std::to_string(evt.GetInt()) + "%";
+        this->label_3mf_progress->SetLabelText(text);
+        });
 
-    //Bind(EVT_3MF_PROGRESS, [this](wxCommandEvent& evt) {
-    //    std::string text = "upload:";
-    //    text += std::to_string(evt.GetInt()) + "%";
-    //    this->label_3mf_progress->SetLabelText(text);
-    //    });
+    auto label_3mf_filename = new wxStaticText(parent, wxID_ANY, _L("Print 3mf File:"), wxDefaultPosition, wxSize(100, -1));
+    txt_3mf_filename = new wxTextCtrl(parent, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, -1));
+    btn_select_3mf_file = new wxButton(parent, wxID_ANY, _L("Select File"), wxDefaultPosition, wxSize(100, -1));
+    btn_select_3mf_file->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        if (this->select3mfDialog->ShowModal() == wxID_CANCEL) return;
 
-    //btn_upload_3mf = new wxButton(parent, wxID_ANY, _L("Upload 3mf"), wxDefaultPosition, wxSize(180, -1));
-    //btn_upload_3mf->Bind(wxEVT_BUTTON,
-    //    [this](wxCommandEvent& evt) {
-    //        wxStdWideString file = txt_3mf_filename->GetValue().ToStdWstring();
+        txt_3mf_filename->SetValue(this->select3mfDialog->GetPath());
+        txt_3mf_filename->SetFocus();
+        this->SetFocus();
+        });
 
-    //        Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-    //        account_manager->create_project(BBLProject::ProjectType::PROJECT_3MF, file,
-    //            [this](int result, std::string info) {
-    //                ;
-    //            }
-    //            ,
-    //            [this](int progress) {
-    //                ;
-    //            }
-    //            );
-    //    });
+    auto label_3mf_upload = new wxStaticText(parent, wxID_ANY, _L("3mf Upload:"), wxDefaultPosition, wxSize(100, -1));
+    auto label_3mf_upload_val = new wxStaticText(parent, wxID_ANY, _L("0%"), wxDefaultPosition, wxSize(300, -1));
+    btn_upload_3mf = new wxButton(parent, wxID_ANY, _L("Upload 3mf"), wxDefaultPosition, wxSize(100, -1));
+    btn_upload_3mf->Bind(wxEVT_BUTTON,
+        [this](wxCommandEvent& evt) {
+            wxStdWideString file = txt_3mf_filename->GetValue().ToStdWstring();
 
-    //btn_run_3mf = new wxButton(parent, wxID_ANY, _L("Run 3mf"), wxDefaultPosition, wxSize(180, -1));
-    //btn_run_3mf->Bind(wxEVT_BUTTON,
-    //    [this](wxCommandEvent& evt) {
-    //        /* create a subtask */
-    //        BBLSubTask* task = new BBLSubTask();
-    //        //task->task_file = txt_gcode_filename->GetValue().ToStdWstring();
-
-    //        /* send print task */
-    //        MachineObject* obj = dev_manager_.get_default();
-    //        if (!obj) {
-    //            this->send_log_evt("Invalid Printer! Please Select a Printer!");
-    //            return;
-    //        }
-
-    //        obj->send_print_subtask(task,
-    //            [this]() {
-    //                auto evt = new wxCommandEvent(EVT_3MF_PROGRESS, this->GetId());
-    //                evt->SetInt(100);
-    //            },
-    //            [this](int progress) {
-    //                auto evt = new wxCommandEvent(EVT_3MF_PROGRESS, this->GetId());
-    //                evt->SetInt(progress);
-    //                wxQueueEvent(this, evt);
-    //            },
-    //            [this](std::string error) {
-    //                send_log_evt("error=" + error);
-    //            });
-    //    });
-
-    //auto label_3mf_filename = new wxStaticText(parent, wxID_ANY, _L("3mf File:"), wxDefaultPosition, wxDefaultSize);
-    //txt_3mf_filename = new wxTextCtrl(parent, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, -1));
-    //btn_select_3mf_file = new wxButton(parent, wxID_ANY, _L("Select File"), wxDefaultPosition, wxDefaultSize);
-    //btn_select_3mf_file->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-    //    if (this->select3mfDialog->ShowModal() == wxID_CANCEL) return;
-
-    //    txt_3mf_filename->SetValue(this->select3mfDialog->GetPath());
-    //    txt_3mf_filename->SetFocus();
-    //    this->SetFocus();
-    //    });
-
-    //auto label_print_task = new wxStaticText(parent, wxID_ANY, _L("Print Task:"), wxDefaultPosition, wxDefaultSize);
+            Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+            account_manager->create_project(BBLProject::ProjectType::PROJECT_3MF, file,
+                [this](int result, std::string info) {
+                    this->send_log_evt(info);
+                },
+                [this](int progress) {
+                    auto evt = new wxCommandEvent(EVT_3MF_PROGRESS, this->GetId());
+                    evt->SetInt(progress);
+                    wxQueueEvent(this, evt);
+                }
+                );
+        });
+    */
+    //auto label_print_task = new wxStaticText(parent, wxID_ANY, _L("Print Task:"), wxDefaultPosition, wxSize(100, -1));
     //txt_plate_idx = new wxTextCtrl(parent, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, -1));
-    //btn_print_plate = new wxButton(parent, wxID_ANY, _L("Print"), wxDefaultPosition, wxDefaultSize);
-    //btn_print_plate->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+    //auto btn_print = new wxButton(parent, wxID_ANY, _L("Print"), wxDefaultPosition, wxSize(100, -1));
+    //btn_print->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
     //        /* print current 3mf */
     //        Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
 
@@ -810,8 +935,6 @@ void DebugToolDialog::init_gcode_run_file(wxWindow *parent)
     //        }
     //        account_manager->get_profile_info(project, profile);
 
-    //        /* get task id */
-
     //        /* add task to current profile */
     //        /* create task and sub task */
     //        BBLTask* task = new BBLTask();
@@ -821,34 +944,81 @@ void DebugToolDialog::init_gcode_run_file(wxWindow *parent)
     //        task->task_url = project->project_url;
     //        task->task_url_md5 = project->project_url_md5;
 
+    //        /* get task id */
+    //        account_manager->create_task(project, task,
+    //            [this](int result, std::string info) {
+    //                this->send_log_evt(info);
+    //            });
+
+    //        /* get create time */
+    //        std::time_t t = std::time(0);
+    //        std::tm* now_time = std::localtime(&t);
+    //        std::stringstream buf;
+    //        buf << std::put_time(now_time, "%a %b %d %H:%M:%S");
+
+    //        /* create subtask info */
+    //        BBLSubTask* subtask = new BBLSubTask();
+    //        subtask->parent_task_id = task->task_id;
+    //        subtask->task_create_time = buf.str();
+    //        subtask->task_url = project->project_url;
+    //        subtask->task_url_md5 = project->project_url_md5;
+    //        task->subtasks.push_back(subtask);
+
     //        /* send task */
     //        MachineObject* obj = dev_manager_.get_default();
     //        if (obj)
     //            obj->send_print_task(task);
     //    });
 
-    //auto label_profiles_select = new wxStaticText(parent, wxID_ANY, _L("Select Profile:"), wxDefaultPosition, wxDefaultSize);
-    //cb_profiles = new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize);
-
-    /*auto _3mf_sizer = new wxBoxSizer(wxHORIZONTAL);
-    _3mf_sizer->Add(label_3mf_filename, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
-    _3mf_sizer->Add(txt_3mf_filename, 1, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
-    _3mf_sizer->Add(btn_select_3mf_file, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
-    _3mf_sizer->Add(btn_upload_3mf, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);*/
-
-    /*auto _3mf_print_sizer = new wxBoxSizer(wxHORIZONTAL);
-    _3mf_print_sizer->Add(label_print_task, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
-    _3mf_print_sizer->Add(txt_plate_idx, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
-    _3mf_print_sizer->Add(btn_print_plate, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
-    _3mf_print_sizer->Add(btn_run_3mf, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);*/
-
+    /* Layout  */
     auto sizer = new wxBoxSizer(wxVERTICAL);
+    
+    auto gcode_sizer = new wxStaticBoxSizer(wxVERTICAL, parent, "Run Gcode");
     sizer->Add(-1, 8);
-    sizer->Add(gcode_sizer, 0, wxLEFT, 0);
-    sizer->Add(-1, 8);
-    //sizer->Add(_3mf_sizer, 0, wxLEFT, 0);
-    //sizer->Add(-1, 8);
-    //sizer->Add(_3mf_print_sizer, 0, wxLEFT, 0);
+    sizer->Add(gcode_sizer, 0, wxALL | wxEXPAND);
+
+    auto h_sizer = new wxBoxSizer(wxHORIZONTAL);
+    gcode_sizer->Add(h_sizer, 0, wxLEFT, 0);
+    
+    h_sizer->Add(label_gcode_filename, 0, wxLEFT | wxTEXT_ALIGNMENT_LEFT, SPACING);
+    h_sizer->Add(txt_gcode_filename, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+    h_sizer->Add(btn_select_gcode_file, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+
+    h_sizer = new wxBoxSizer(wxHORIZONTAL);
+    gcode_sizer->Add(-1, 8);
+    gcode_sizer->Add(h_sizer, 0, wxLEFT, 0);
+    h_sizer->Add(label_upload_progress, 0, wxLEFT | wxTEXT_ALIGNMENT_LEFT, SPACING);
+    h_sizer->Add(label_gcode_progress, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+
+    h_sizer = new wxBoxSizer(wxHORIZONTAL);
+    gcode_sizer->Add(-1, 8);
+    gcode_sizer->Add(h_sizer, 0, wxLEFT, 0);
+    h_sizer->Add(btn_run_gcode, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+    h_sizer->Add(btn_pause, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+    h_sizer->Add(btn_resume, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+    h_sizer->Add(btn_abort_print, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+
+    /*
+    auto _3mf_sizer = new wxStaticBoxSizer(wxVERTICAL, parent, "3MF Upload");
+    h_sizer = new wxBoxSizer(wxHORIZONTAL);
+    _3mf_sizer->Add(h_sizer, 0, wxLEFT, 0);
+    h_sizer->Add(label_3mf_filename, 0, wxLEFT | wxTEXT_ALIGNMENT_LEFT, SPACING);
+    h_sizer->Add(txt_3mf_filename, 1, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+    h_sizer->Add(btn_select_3mf_file, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+    
+    h_sizer = new wxBoxSizer(wxHORIZONTAL);
+    _3mf_sizer->Add(-1, 8);
+    _3mf_sizer->Add(h_sizer, 0, wxLEFT, 0);
+    h_sizer->Add(label_3mf_upload, 0, wxLEFT | wxTEXT_ALIGNMENT_LEFT, SPACING);
+    h_sizer->Add(label_3mf_upload_val, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+    h_sizer->Add(btn_upload_3mf, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
+
+    sizer->Add(-1, 20);
+    sizer->Add(_3mf_sizer);
+    */
+    
+    h_sizer = new wxBoxSizer(wxHORIZONTAL);
+
     parent->SetSizer(sizer);
 }
 
@@ -869,7 +1039,7 @@ void DebugToolDialog::init_custom_ctrl(wxWindow* parent)
 void DebugToolDialog::init_log_panel(wxWindow* parent)
 {
     auto sizer = new wxBoxSizer(wxVERTICAL);
-    label_output_string = new wxStaticText(parent, wxID_ANY, _L("Log Info:"), wxDefaultPosition, wxDefaultSize);
+    auto label_output_string = new wxStaticText(parent, wxID_ANY, _L("Log Info:"), wxDefaultPosition, wxDefaultSize);
     txt_string_info = new wxTextCtrl(parent, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, -1), wxTE_MULTILINE);
     sizer->Add(label_output_string, 0);
     sizer->Add(txt_string_info, 1, wxALL | wxEXPAND);
@@ -1144,9 +1314,7 @@ void DebugToolDialog::init_gcode_control(wxWindow* parent, wxBoxSizer* sizer)
     temp_btns_sizer->Add(label_wifi_link_ams, 0, wxRIGHT | wxALIGN_RIGHT);
     temp_btns_sizer->Add(label_wifi_link_ams_val, 0, wxLEFT | wxALIGN_LEFT);
 
-    //sizer->Add(-1, 8);
     sizer->Add(pos_btns_sizer, 0, wxTOP | wxALIGN_CENTER_VERTICAL | wxALIGN_CENTER_HORIZONTAL, SPACING);
-    //sizer->Add(-1, 8);
     sizer->Add(temp_btns_sizer, 1, wxTOP | wxLEFT);
 }
 
@@ -1244,35 +1412,9 @@ bool DebugToolDialog::Show(bool show)
         m_timer->Stop();
         m_timer->SetOwner(this);
         m_timer->Start(10000);
-
-        Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-        if (account_manager) {
-            AccountInfo* info = account_manager->get_curr_user();
-            if (info) {
-                info->set_msg_recv_fn([this](std::string topic, std::string payload) {
-                    auto evt = new wxCommandEvent(EVT_MESSAGE_ARRIVED, this->GetId());
-                    evt->SetString(payload);
-                    wxQueueEvent(this, evt);
-                    });
-                info->set_msg_send_fn([this](std::string topic, std::string payload) {
-                    auto evt = new wxCommandEvent(EVT_MESSAGE_SENT, this->GetId());
-                    std::string send_msg = "send topic=" + topic + ", msg=" + payload;
-                    evt->SetString(send_msg);
-                    wxQueueEvent(this, evt);
-                    });
-            }
-        }
     }
     else {
         m_timer->Stop();
-        Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-        if (account_manager) {
-            AccountInfo* info = account_manager->get_curr_user();
-            if (info) {
-                info->set_msg_recv_fn(nullptr);
-                info->set_msg_send_fn(nullptr);
-            }
-        }
     }
 
     return result;
@@ -1294,29 +1436,47 @@ void DebugToolDialog::on_dpi_changed(const wxRect& suggested_rect)
 int DebugToolDialog::publish_json(std::string json_str)
 {
     Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-    std::string user_name = account_manager->get_user_name();
-    std::transform(user_name.begin(), user_name.end(), user_name.begin(),
-        [](unsigned char c) { return std::tolower(c); });
+    /* lan send json */
+    if (radio_btn_lan->GetValue()) {
+        std::string user_name = account_manager->get_user_name();
+        std::transform(user_name.begin(), user_name.end(), user_name.begin(),
+            [](unsigned char c) { return std::tolower(c); });
 
-    MachineObject* obj = dev_manager_.get_default();
-    if (!obj) {
-        this->send_log_evt("Invalid Printer! Please Select a Printer!");
-        return -1;
-    }
-    
-    if (obj->get_bind_str().compare(user_name) != 0 || user_name.empty()) {
-        std::string log = "Please Bind dev=" + obj->dev_id + " first!";
-        this->send_log_evt(log);
-        return -1;
-    }
-        
-    obj->publish_json(json_str, 
-        [this](int result, std::string info) {
-            if (result < 0) {
-                this->send_log_evt(info);
-            }
+        MachineObject* obj = dev_manager_.get_default();
+        if (!obj) {
+            this->send_log_evt("Invalid Printer! Please Select a Printer!");
+            return -1;
         }
+
+        if (obj->get_bind_str().compare(user_name) != 0 || user_name.empty()) {
+            std::string log = "Please Bind dev=" + obj->dev_id + " first!";
+            this->send_log_evt(log);
+            return -1;
+        }
+
+        obj->publish_json(json_str,
+            [this](int result, std::string info) {
+                if (result < 0) {
+                    this->send_log_evt(info);
+                }
+            }
         );
+    }
+    else {
+        MachineObject* obj = account_manager->get_default_machine();
+        if (!obj) {
+            this->send_log_evt("Invalid Printer! Please Select a Printer!");
+            return -1;
+        }
+
+        obj->publish_json(json_str,
+            [this](int result, std::string info) {
+                if (result < 0) {
+                    this->send_log_evt(info);
+                }
+            }
+        , MachineObject::CONNECTION_TYPE::CONNECTION_WAN);
+    }
 
     return 0;
 }
@@ -1351,7 +1511,6 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
                 boost::optional<std::string> nozzle_temp_target = print.get_optional<std::string>("nozzle_target_temp");
                 boost::optional<std::string> bed_temp = print.get_optional<std::string>("bed_temp");
                 boost::optional<std::string> bed_temp_target = print.get_optional<std::string>("bed_target_temp");
-
 
                 boost::optional<std::string> pos_x = print.get_optional<std::string>("pos_x");
                 boost::optional<std::string> pos_y = print.get_optional<std::string>("pos_y");
@@ -1788,14 +1947,6 @@ void DebugToolDialog::on_timer(wxTimerEvent& event)
     custom_gcode_root.put("custom_gcode_6", txt_custom_gcode6->GetValue().ToStdString());
     custom_gcode_root.put("custom_gcode_7", txt_custom_gcode7->GetValue().ToStdString());
     pt::write_json("CustomGcode.json", custom_gcode_root);
-
-    //refresh device list
-    /*
-    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-    if (account_manager && account_manager->is_user_login()) {
-        account_manager->request_bind_list(account_manager->get_user_id());
-    }
-    */
 }
 
 void DebugToolDialog::on_select_device(wxCommandEvent& evt)
@@ -1834,6 +1985,46 @@ void DebugToolDialog::on_select_device(wxCommandEvent& evt)
         wxQueueEvent(this, evt);
         });
 }
+
+void DebugToolDialog::on_select_mybind_device(wxCommandEvent& evt)
+{
+    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    MachineObject* last_obj = account_manager->get_default_machine();
+    if (last_obj) {
+        last_obj->set_msg_recv_fn(nullptr);
+        last_obj->set_msg_send_fn(nullptr);
+    }
+
+    //machine_list_items
+    int selection = evt.GetSelection();
+    if (selection < mybind_machine_list_items.size()) {
+        account_manager->default_machine = mybind_machine_list_items[selection];
+        send_log_evt("Select Printer=" + account_manager->default_machine);
+
+        /* update widget values */
+        last_wlan_device_selection = selection;
+    }
+    else {
+        BOOST_LOG_TRIVIAL(error) << "selection=" << selection << ", list items size=" << mybind_machine_list_items.size();
+    }
+
+    MachineObject* obj = account_manager->get_default_machine();
+    if (!obj) return;
+
+    obj->set_msg_recv_fn([this](std::string topic, std::string payload) {
+        auto evt = new wxCommandEvent(EVT_MESSAGE_ARRIVED, this->GetId());
+        evt->SetString(payload);
+        wxQueueEvent(this, evt);
+        });
+
+    obj->set_msg_send_fn([this](std::string topic, std::string payload) {
+        auto evt = new wxCommandEvent(EVT_MESSAGE_SENT, this->GetId());
+        std::string send_msg = "send topic=" + topic + ", msg=" + payload;
+        evt->SetString(send_msg);
+        wxQueueEvent(this, evt);
+        });
+}
+
 
 }
 }
