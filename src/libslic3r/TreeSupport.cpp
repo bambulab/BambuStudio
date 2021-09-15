@@ -799,9 +799,8 @@ static inline void fill_expolygons_generate_paths(
         fill_expolygon_generate_paths(dst, std::move(expoly), filler, fill_params, density, role, flow);
 }
 
-static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print &print, const ExPolygon &support_area, size_t wall_count, bool is_interface)
+static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print &print, const ExPolygon &support_area, size_t wall_count, const Flow &flow, bool is_interface)
 {
-    Flow       flow = print.brim_flow();
     Polygons   loops;
     ExPolygons support_area_new = offset_ex(support_area, -0.5f * float(flow.scaled_spacing()), jtSquare);
     for (size_t i = 0; !support_area_new.empty(); ++i) {
@@ -896,7 +895,7 @@ void TreeSupport::generate_toolpaths()
         TreeSupportLayer *ts_layer = m_object.get_tree_support_layer(layer_nr);
         coordf_t expand_offset = (layer_nr == 0 ? 0. : -1.);
 
-        Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
+        Flow support_flow = layer_nr == 0 ? m_object.print()->brim_flow() : Flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
         Fill* filler_interface = Fill::new_from_type(ipRectilinear);
         filler_interface->angle = layer_nr == 0 ? 90 : 0;
         filler_interface->spacing = support_extrusion_width;
@@ -956,9 +955,9 @@ void TreeSupport::generate_toolpaths()
                         if (area_group.second) {
                             ExPolygons polys;
                             if (layer_id == 0) {
-                                Flow flow = m_object.print()->brim_flow();
+                                Flow flow = m_raft_layers == 0 ? m_object.print()->brim_flow() : support_flow;
                                 make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object.print(),
-                                    poly, wall_count, true);
+                                    poly, wall_count, flow, true);
                                 polys = std::move(offset_ex(poly, -flow.scaled_spacing()));
                             } else {
                                 polys.push_back(poly);
@@ -970,6 +969,7 @@ void TreeSupport::generate_toolpaths()
                             fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(polys),
                                 filler_interface, fill_params, interface_density, erSupportMaterialInterface, support_flow);
                         } else {
+                            Flow flow = (layer_id == 0 && m_raft_layers == 0)? m_object.print()->brim_flow() : support_flow;
                             auto bbox = poly.contour.bounding_box();
                             auto circularity = poly.area() / (double(bbox.size().x())*bbox.size().y());
                             //if (std::min(bbox.size().x(), bbox.size().y()) > scale_(10) && circularity>0.5)
@@ -987,7 +987,7 @@ void TreeSupport::generate_toolpaths()
                             else
                             {
                                 make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object.print(), poly,
-                                    layer_id > 0 ? wall_count : std::numeric_limits<size_t>::max(), false);
+                                    layer_id > 0 ? wall_count : std::numeric_limits<size_t>::max(), flow, false);
                             }
                         }
                     }
