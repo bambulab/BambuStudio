@@ -44,7 +44,7 @@ namespace Slic3r {
         std::this_thread::sleep_for(std::chrono::milliseconds(2500));
         try {
             BOOST_LOG_TRIVIAL(trace) << "cloud_conn_callback::reconnect()  connecting...";
-            cli_.connect(connOpts_, context_, *this);
+            //TODO cli_.connect(connOpts_, context_, *this);
         }
         catch (const mqtt::exception& exc) {
             BOOST_LOG_TRIVIAL(trace) << "cloud_conn_callback::reconnect() exception:" << exc.get_message();
@@ -192,6 +192,8 @@ namespace Slic3r {
     {
         if (mqtt_cli) {
             mqtt_cli->disconnect()->wait();
+            delete mqtt_cli;
+            mqtt_cli = nullptr;
         }
         return 0;
     }
@@ -209,7 +211,9 @@ namespace Slic3r {
 
     void AccountInfo::remove_topics(std::string topic)
     {
-        mqtt_cli->unsubscribe(topic);
+        if (mqtt_cli) {
+            mqtt_cli->unsubscribe(topic);
+        }
     }
 
 

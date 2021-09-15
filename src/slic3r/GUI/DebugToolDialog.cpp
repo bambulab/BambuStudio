@@ -16,6 +16,7 @@
 #include <wx/wupdlock.h>
 #include <wx/debug.h>
 #include <wx/msgdlg.h>
+#include <cctype>
 #include <boost/log/trivial.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/nowide/convert.hpp>
@@ -1294,13 +1295,15 @@ int DebugToolDialog::publish_json(std::string json_str)
 {
     Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
     std::string user_name = account_manager->get_user_name();
+    std::transform(user_name.begin(), user_name.end(), user_name.begin(),
+        [](unsigned char c) { return std::tolower(c); });
 
     MachineObject* obj = dev_manager_.get_default();
     if (!obj) {
         this->send_log_evt("Invalid Printer! Please Select a Printer!");
         return -1;
     }
-
+    
     if (obj->get_bind_str().compare(user_name) != 0 || user_name.empty()) {
         std::string log = "Please Bind dev=" + obj->dev_id + " first!";
         this->send_log_evt(log);
