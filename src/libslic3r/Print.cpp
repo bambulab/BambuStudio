@@ -1077,7 +1077,9 @@ Polygons Print::first_layer_islands() const
             object->support_layers().front()->support_fills.polygons_covered_by_spacing(object_islands, float(SCALED_EPSILON));
         if (! object->tree_support_layers().empty()) {
             ExPolygons& expolys_first_layer = object->m_tree_support_layers.front()->lslices;
-            object_islands.insert(object_islands.end(), expolys_first_layer.begin(), expolys_first_layer.end());
+            for (ExPolygon &expoly : expolys_first_layer) {
+                object_islands.push_back(expoly.contour);
+            }
         }
         islands.reserve(islands.size() + object_islands.size() * object->instances().size());
         for (const PrintInstance &instance : object->instances())
