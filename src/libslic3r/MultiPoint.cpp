@@ -234,7 +234,7 @@ struct vis_node{
     // other node if it's area is less than the other node's area
     bool operator<(const vis_node& other) { return (this->area < other.area); }
 };
-Points MultiPoint::visivalingam(const Points& pts, const double& tolerance)
+Points MultiPoint::visivalingam(const Points& pts, const double tolerance)
 {
     // Make sure there's enough points in "pts" to bother with simplification.
     assert(pts.size() >= 2);
@@ -331,6 +331,27 @@ Points MultiPoint::visivalingam(const Points& pts, const double& tolerance)
      // Return simplified vector of points
     return results;
 }
+
+// Calculate 2D concave hull of polygono within tolerence
+Points MultiPoint::concave_hull_2d(const Points& pts, const double tolerence)
+{
+    Points hull;
+    int n = (int)pts.size();
+    if (n >= 3) {
+        int k = 0;
+        hull.resize(n);
+        for (int i = 0; i < n; ++i) {
+            while (k >= 2 && pts[i].ccw(hull[k - 2], hull[k - 1]) <= 0 && -pts[i].ccw(hull[k - 2], hull[k - 1]) / (pts[i] - hull[k - 1]).norm() < tolerence)
+                --k;
+            hull[k++] = pts[i];
+        }
+        hull.resize(k);
+        if (hull.front() == hull.back())
+            hull.pop_back();
+    }
+    return hull;
+}
+
 
 void MultiPoint3::translate(double x, double y)
 {

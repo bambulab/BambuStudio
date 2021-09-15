@@ -11,6 +11,12 @@ namespace Slic3r {
 class ExPolygon;
 typedef std::vector<ExPolygon> ExPolygons;
 
+typedef enum SimplifyMethod_ {
+    SimplifyMethodDP=0,
+    SimplifyMethodVisvalingam,
+    SimplifyMethodConcave
+}SimplifyMethod;
+
 class ExPolygon
 {
 public:
@@ -61,10 +67,10 @@ public:
     // and it is not inside a hole of the other expolygon.
     bool overlaps(const ExPolygon &other) const;
 
-    void simplify_p(double tolerance, Polygons* polygons) const;
-    Polygons simplify_p(double tolerance) const;
-    ExPolygons simplify(double tolerance) const;
-    void simplify(double tolerance, ExPolygons* expolygons) const;
+    void simplify_p(double tolerance, Polygons* polygons, SimplifyMethod method = SimplifyMethodDP) const;
+    Polygons simplify_p(double tolerance, SimplifyMethod method = SimplifyMethodDP) const;
+    ExPolygons simplify(double tolerance, SimplifyMethod method = SimplifyMethodDP) const;
+    void simplify(double tolerance, ExPolygons* expolygons, SimplifyMethod method = SimplifyMethodDP) const;
     void medial_axis(double max_width, double min_width, ThickPolylines* polylines) const;
     void medial_axis(double max_width, double min_width, Polylines* polylines) const;
     Lines lines() const;

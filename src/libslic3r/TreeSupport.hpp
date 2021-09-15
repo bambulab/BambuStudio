@@ -6,6 +6,7 @@
 #include "ExPolygon.hpp"
 #include "Point.hpp"
 #include "Slicing.hpp"
+#include "MinimumSpanningTree.hpp"
 
 namespace Slic3r
 {
@@ -154,6 +155,13 @@ private:
     friend TreeSupport;
 };
 
+struct LineHash {
+    size_t operator()(const Line& line) const {
+        return (std::hash<coord_t>()(line.a(0)) ^ std::hash<coord_t>()(line.b(1))) * 102 +
+            (std::hash<coord_t>()(line.a(0)) ^ std::hash<coord_t>()(line.b(1))) * 10222;
+    }
+};
+
 /*!
  * \brief Generates a tree structure to support your models.
  */
@@ -219,6 +227,8 @@ public:
          */
         Point position;
 
+        Point movement;  // movement towards neighbor center or outline
+
         /*!
          * \brief The direction of the skin lines above the tip of the branch.
          *
@@ -281,6 +291,8 @@ private:
     PrintObject&    m_object;
     SlicingParameters m_slicing_params;
     size_t          m_raft_layers;
+    std::vector<std::vector<MinimumSpanningTree>> m_spanning_trees;
+    std::vector< std::unordered_map<Line, bool, LineHash>> m_mst_line_x_layer_contour_caches;
 
     /*!
      * \brief Draws circles around each node of the tree into the final support.
@@ -333,6 +345,7 @@ private:
     void detect_object_overhangs();
     void create_tree_support_layers();
     void generate_toolpaths();
+    Polygons spanning_tree_to_polygon(const std::vector<MinimumSpanningTree>& spanning_trees, Polygons layer_contours, int layer_nr);
 };
 
 }

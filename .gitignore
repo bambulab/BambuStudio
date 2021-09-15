@@ -7,6 +7,7 @@ _build
 blib
 xs/buildtmp
 *.o
+*.log
 MANIFEST.bak
 xs/MANIFEST.bak
 xs/assertlib*
@@ -20,3 +21,4 @@ deps/build-linux/*
 **/.DS_Store
 install_dir
 install_release
+SVG

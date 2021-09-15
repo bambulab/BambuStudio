@@ -159,42 +159,43 @@ bool ExPolygon::overlaps(const ExPolygon &other) const
     return ! other.contour.points.empty() && this->contains_b(other.contour.points.front());
 }
 
-void ExPolygon::simplify_p(double tolerance, Polygons* polygons) const
+void ExPolygon::simplify_p(double tolerance, Polygons* polygons, SimplifyMethod method) const
 {
-    Polygons pp = this->simplify_p(tolerance);
+    Polygons pp = this->simplify_p(tolerance, method);
     polygons->insert(polygons->end(), pp.begin(), pp.end());
 }
 
-Polygons ExPolygon::simplify_p(double tolerance) const
+Polygons ExPolygon::simplify_p(double tolerance, SimplifyMethod method) const
 {
     Polygons pp;
     pp.reserve(this->holes.size() + 1);
+    std::map<int, std::function<Points(const Points&, const double)>> method_list = { {SimplifyMethodDP, MultiPoint::_douglas_peucker}, {SimplifyMethodVisvalingam, MultiPoint::visivalingam},{SimplifyMethodConcave, MultiPoint::concave_hull_2d} };
     // contour
     {
         Polygon p = this->contour;
         p.points.push_back(p.points.front());
-        p.points = MultiPoint::_douglas_peucker(p.points, tolerance);
+        p.points = method_list[method](p.points, tolerance);
         p.points.pop_back();
         pp.emplace_back(std::move(p));
     }
     // holes
     for (Polygon p : this->holes) {
         p.points.push_back(p.points.front());
-        p.points = MultiPoint::_douglas_peucker(p.points, tolerance);
+        p.points = method_list[method](p.points, tolerance);
         p.points.pop_back();
         pp.emplace_back(std::move(p));
     }
     return simplify_polygons(pp);
 }
 
-ExPolygons ExPolygon::simplify(double tolerance) const
+ExPolygons ExPolygon::simplify(double tolerance, SimplifyMethod method) const
 {
-    return union_ex(this->simplify_p(tolerance));
+    return union_ex(this->simplify_p(tolerance, method));
 }
 
-void ExPolygon::simplify(double tolerance, ExPolygons* expolygons) const
+void ExPolygon::simplify(double tolerance, ExPolygons* expolygons, SimplifyMethod method) const
 {
-    append(*expolygons, this->simplify(tolerance));
+    append(*expolygons, this->simplify(tolerance, method));
 }
 
 void

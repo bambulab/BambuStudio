@@ -86,6 +86,7 @@ public:
 
     static Points _douglas_peucker(const Points &points, const double tolerance);
     static Points visivalingam(const Points& pts, const double& tolerance);
+    static Points concave_hull_2d(const Points& pts, const double tolerence);
 
     inline auto begin()        { return points.begin(); }
     inline auto begin()  const { return points.begin(); }
