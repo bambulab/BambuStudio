@@ -821,7 +821,7 @@ static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print
             // BBS: calculate curvatures for the loop of polygon and generate ExtrusionPaths
             // by order which has different curve degree.
             ExtrusionPaths paths;
-            ExtrusionPath path(0, 0, role, flow.mm3_per_mm(), flow.width, print.skirt_first_layer_height());
+            ExtrusionPath path(0, 0, role, flow.mm3_per_mm(), flow.width, flow.height);
             path.polyline = loops[i].split_at_first_point();
             paths.emplace_back(std::move(path));
             // BBS: use absolute mode for tree support because we don't care about the surface quality of support
@@ -833,7 +833,7 @@ static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print
         }
     } else {
         extrusion_entities_append_loops(dst, std::move(loops), role,
-            float(flow.mm3_per_mm()), float(flow.width), float(print.skirt_first_layer_height()));
+            float(flow.mm3_per_mm()), float(flow.width), float(flow.height));
     }
 }
 
@@ -887,7 +887,7 @@ void TreeSupport::generate_toolpaths()
             loops.insert(loops.end(), expoly.holes.begin(), expoly.holes.end());
         }
         extrusion_entities_append_loops(ts_layer->support_fills.entities, std::move(loops), raft_contour_er,
-            float(flow.mm3_per_mm()), float(flow.width), float(m_object.print()->skirt_first_layer_height()));
+            float(flow.mm3_per_mm()), float(flow.width), float(flow.height));
         raft_areas = offset_ex(raft_areas, -flow.scaled_spacing() / 2.);
     }
 
