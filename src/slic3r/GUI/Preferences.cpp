@@ -288,6 +288,14 @@ void PreferencesDialog::build(size_t selected_tab)
 	m_optgroup_general->append_single_option_line(option);
 #endif // _WIN32 || __APPLE__
 
+	// BBS
+	def.label = L("Export 3mf include gcode");
+	def.type = coBool;
+	def.tooltip = L("Export 3mf include gcode");
+	def.set_default_value(new ConfigOptionBool{ app_config->get("3mf_include_gcode") == "1" });
+	option = Option(def, "3mf_include_gcode");
+	m_optgroup_general->append_single_option_line(option);
+
 	activate_options_tab(m_optgroup_general);
 
 	// Add "Camera" tab

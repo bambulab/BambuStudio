@@ -122,6 +122,8 @@ wxDEFINE_EVENT(EVT_SLICING_UPDATE,                  SlicingStatusEvent);
 wxDEFINE_EVENT(EVT_SLICING_COMPLETED,               wxCommandEvent);
 wxDEFINE_EVENT(EVT_PROCESS_COMPLETED,               SlicingProcessCompletedEvent);
 wxDEFINE_EVENT(EVT_EXPORT_BEGAN,                    wxCommandEvent);
+wxDEFINE_EVENT(EVT_EXPORT_FINISHED,                 wxCommandEvent);
+
 
 
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
@@ -1990,6 +1992,7 @@ struct Plater::priv
     void on_slicing_completed(wxCommandEvent&);
     void on_process_completed(SlicingProcessCompletedEvent&);
 	void on_export_began(wxCommandEvent&);
+    void on_export_finished(wxCommandEvent&);
     void on_layer_editing_toggled(bool enable);
 	void on_slicing_began();
 
@@ -2159,6 +2162,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     background_process.set_slicing_completed_event(EVT_SLICING_COMPLETED);
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
     background_process.set_export_began_event(EVT_EXPORT_BEGAN);
+    background_process.set_export_finished_event(EVT_EXPORT_FINISHED);
     this->q->Bind(EVT_SLICING_UPDATE, &priv::on_slicing_update, this);
 
     view3D = new View3D(q, bed, &model, config, &background_process);
@@ -2296,6 +2300,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_SLICING_COMPLETED, &priv::on_slicing_completed, this);
         q->Bind(EVT_PROCESS_COMPLETED, &priv::on_process_completed, this);
         q->Bind(EVT_EXPORT_BEGAN, &priv::on_export_began, this);
+        q->Bind(EVT_EXPORT_FINISHED, &priv::on_export_finished, this);
         q->Bind(EVT_GLVIEWTOOLBAR_3D, [q](SimpleEvent&) { q->select_view_3D("3D"); });
         q->Bind(EVT_GLVIEWTOOLBAR_PREVIEW, [q](SimpleEvent&) { q->select_view_3D("Preview"); });
         q->Bind(EVT_GLVIEWTOOLBAR_ASSEMBLE, [q](SimpleEvent&) { q->select_view_3D("Assemble"); });
@@ -4278,6 +4283,48 @@ void Plater::priv::on_export_began(wxCommandEvent& evt)
 	if (show_warning_dialog)
 		warnings_dialog();  
 }
+
+void Plater::priv::on_export_finished(wxCommandEvent& evt)
+{
+    std::string output_path = evt.GetString().ToStdString();
+    //BBS: TODO, also export 3mf to the same directory for debugging
+    DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
+    bool full_pathnames = wxGetApp().app_config->get("export_sources_full_pathnames") == "1";
+    std::string gcode_file_path = output_path;
+    std::size_t found = gcode_file_path.find(".gcode");
+    std::string project_file_path = gcode_file_path.substr(0, found) + ".3mf";
+
+    //add plate logic for thumbnail generate
+    std::vector<ThumbnailData*> thumbnails;
+    for (unsigned int i = 0; i < partplate_list.get_plate_count(); i++)
+    {
+        ThumbnailData* thumbnail_data = new ThumbnailData();
+        generate_thumbnail(*thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, false, true, true, true, i);
+        thumbnails.push_back(thumbnail_data);
+    }
+
+    //add bbs 3mf logic
+    PlateDataPtrs plate_data_list;
+    partplate_list.store_to_3mf_structure(plate_data_list);
+
+
+    if (Slic3r::store_bbs_3mf(project_file_path.c_str(), &model, plate_data_list, &cfg, full_pathnames, thumbnails)) {
+        // Success
+        statusbar()->set_status_text(format_wxstr(_L("3MF file exported to %s"), project_file_path));
+    }
+    else {
+        // Failure
+        statusbar()->set_status_text(format_wxstr(_L("Error exporting 3MF file %s"), project_file_path));
+    }
+
+    release_PlateData_list(plate_data_list);
+    for (unsigned int i = 0; i < thumbnails.size(); i++)
+    {
+        delete thumbnails[i];
+    }
+    thumbnails.clear();
+}
+
 void Plater::priv::on_slicing_began()
 {
 	clear_warnings();
@@ -5055,7 +5102,10 @@ void Plater::priv::show_action_buttons(const bool ready_to_slice) const
 
     DynamicPrintConfig* selected_printer_config = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config();
     const auto print_host_opt = selected_printer_config ? selected_printer_config->option<ConfigOptionString>("print_host") : nullptr;
-    const bool send_gcode_shown = print_host_opt != nullptr && !print_host_opt->value.empty();
+
+    //BBS always show send_gcode button
+    //const bool send_gcode_shown = print_host_opt != nullptr && !print_host_opt->value.empty();
+    const bool send_gcode_shown = true;
     
     // when a background processing is ON, export_btn and/or send_btn are showing
     if (wxGetApp().app_config->get("background_processing") == "1")
@@ -6093,41 +6143,6 @@ void Plater::export_gcode(bool prefer_removable)
         // is_path_on_removable_drive() is called with the "true" parameter to update its internal database as the user may have shuffled the external drives
         // while the dialog was open.
         appconfig.update_last_output_dir(output_path.parent_path().string(), path_on_removable_media);
-
-        //BBS: TODO, also export 3mf to the same directory for debugging
-        DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
-        bool full_pathnames = wxGetApp().app_config->get("export_sources_full_pathnames") == "1";
-        std::string gcode_file_path = output_path.string();
-        std::size_t found = gcode_file_path.find(".gcode");
-        std::string project_file_path = gcode_file_path.substr(0,found)+".3mf";
-
-        //add plate logic for thumbnail generate
-        std::vector<ThumbnailData*> thumbnails;
-        for (unsigned int i = 0; i < p->partplate_list.get_plate_count(); i++)
-        {
-            ThumbnailData* thumbnail_data = new ThumbnailData();
-            p->generate_thumbnail(*thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, false, true, true, true, i);
-            thumbnails.push_back(thumbnail_data);
-        }
-
-        //add bbs 3mf logic
-        PlateDataPtrs plate_data_list;
-        p->partplate_list.store_to_3mf_structure(plate_data_list);
-        if (Slic3r::store_bbs_3mf(project_file_path.c_str(), &p->model, plate_data_list,  &cfg, full_pathnames, thumbnails)) {
-            // Success
-            p->statusbar()->set_status_text(format_wxstr(_L("3MF file exported to %s"), project_file_path));
-        }
-        else {
-            // Failure
-            p->statusbar()->set_status_text(format_wxstr(_L("Error exporting 3MF file %s"), project_file_path));
-        }
-
-        release_PlateData_list(plate_data_list);
-        for (unsigned int i = 0; i < thumbnails.size(); i++)
-        {
-            delete thumbnails[i];
-        }
-        thumbnails.clear();
 	}
 }
 

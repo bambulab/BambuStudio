@@ -189,6 +189,10 @@ void AppConfig::set_defaults()
         set("sys_menu_enabled", "1");
 #endif // _WIN32
 
+    // BBS
+    if (get("3mf_include_gcode").empty())
+        set("3mf_include_gcode", "1");
+
     // Remove legacy window positions/sizes
     erase("", "main_frame_maximized");
     erase("", "main_frame_pos");

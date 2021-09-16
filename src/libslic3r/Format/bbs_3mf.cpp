@@ -2251,6 +2251,7 @@ namespace Slic3r {
         bool _add_sla_drain_holes_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_print_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config);
         bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const IdToObjectDataMap &objects_data);
+        bool _add_gcode_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list);
         bool _add_custom_gcode_per_print_z_file_to_archive(mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config);
 
         static int convert_instance_id_to_resource_id(const Model& model, int obj_id, int instance_id)
@@ -2392,6 +2393,14 @@ namespace Slic3r {
             return false;
         }
 
+
+        // Adds gcode files ("Metadata/plate_1.gcode, plate_2.gcode, ...)
+        if (!_add_gcode_file_to_archive(archive, model, plate_data_list)) {
+            close_zip_writer(&archive);
+            boost::filesystem::remove(filename);
+            return false;
+        }
+
         if (!mz_zip_writer_finalize_archive(&archive)) {
             close_zip_writer(&archive);
             boost::filesystem::remove(filename);
@@ -2431,8 +2440,7 @@ namespace Slic3r {
         size_t png_size = 0;
         void* png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)thumbnail_data.pixels.data(), thumbnail_data.width, thumbnail_data.height, 4, &png_size, MZ_DEFAULT_LEVEL, 1);
         if (png_data != nullptr) {
-            std::string thumbnail_name = THUMBNAIL_FILE;
-            thumbnail_name  = thumbnail_name + std::to_string(index) + ".png";
+            std::string thumbnail_name = (boost::format("Metadata/plate_%1%_thumbnail.png") % (index + 1)).str();
             res = mz_zip_writer_add_mem(&archive, thumbnail_name.c_str(), (const void*)png_data, png_size, MZ_DEFAULT_COMPRESSION);
             mz_free(png_data);
         }
@@ -3181,6 +3189,21 @@ namespace Slic3r {
 
         return true;
     }
+
+bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list)
+{
+    int result = true;
+    for (unsigned int i = 0; i < (unsigned int)plate_data_list.size(); ++i)
+    {
+        PlateData* plate_data = plate_data_list[i];
+        if (!plate_data->gcode_file.empty()) {
+            std::string output_file = (boost::format("Metadata/plate_%1%.gcode") % (i + 1)).str();
+            result = result & mz_zip_writer_add_file(&archive, output_file.c_str(), plate_data->gcode_file.c_str(), "", 0, MZ_DEFAULT_COMPRESSION);
+        }
+
+    }
+    return result;
+}
 
 bool _BBS_3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config)
 {

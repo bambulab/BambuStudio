@@ -710,9 +710,6 @@ void BackgroundSlicingProcess::finalize_gcode()
 	std::string export_path = m_fff_print->print_statistics().finalize_output_path(m_export_path);
 	std::string output_path = m_temp_output_path;
 
-	// BBS: to be checked. Whether use export_path or output_path.
-	gcode_add_line_number(output_path, m_fff_print->full_print_config());
-
 	// Both output_path and export_path ar in-out parameters.
 	// If post processed, output_path will differ from m_temp_output_path as run_post_process_scripts() will make a copy of the G-code to not
 	// collide with the G-code viewer memory mapping of the unprocessed G-code. G-code viewer maps unprocessed G-code, because m_gcode_result 
@@ -763,6 +760,14 @@ void BackgroundSlicingProcess::finalize_gcode()
 		BOOST_LOG_TRIVIAL(error) << "Unexpected fail code(" << (int)copy_ret_val << ") durring copy_file() to " << export_path << ".";
 		break;
 	}
+
+	// BBS
+	auto evt = new wxCommandEvent(m_event_export_finished_id, GUI::wxGetApp().mainframe->m_plater->GetId());
+	evt->SetString(export_path);
+	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt);
+
+	// BBS: to be checked. Whether use export_path or output_path.
+	gcode_add_line_number(export_path, m_fff_print->full_print_config());
 
 	m_print->set_status(100, (boost::format(_utf8(L("G-code file exported to %1%"))) % export_path).str());
 }

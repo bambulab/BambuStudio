@@ -25,6 +25,8 @@ struct PlateData
     }
     int plate_index;
     std::vector<std::pair<int, int>> objects_and_instances;
+    std::string     gcode_file;
+    std::string     thumbnail_file;
     bool locked;
 };
 

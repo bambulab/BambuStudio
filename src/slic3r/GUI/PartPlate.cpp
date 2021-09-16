@@ -26,6 +26,7 @@
 #include "libslic3r/Utils.hpp"
 
 #include "GUI_App.hpp"
+#include "libslic3r/AppConfig.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "3DBed.hpp"
 #include "PartPlate.hpp"
@@ -2115,6 +2116,13 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list)
 		{
 			for (std::set<std::pair<int, int>>::iterator it = m_plate_list[i]->obj_to_instance_set.begin(); it != m_plate_list[i]->obj_to_instance_set.end(); ++it)
 				plate_data_item->objects_and_instances.emplace_back(it->first, it->second);
+		}
+
+		//BBS: add gcode to 3mf logic
+		if (wxGetApp().app_config->get("3mf_include_gcode") == "1") {
+			if (m_plate_list[i]->m_gcode_result) {
+				plate_data_item->gcode_file = m_plate_list[i]->m_gcode_result->filename;
+			}
 		}
 		plate_data_list.push_back(plate_data_item);
 	}
