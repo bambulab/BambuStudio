@@ -1130,6 +1130,28 @@ void GLCanvas3D::reset_volumes()
     _set_warning_notification(EWarning::ObjectOutside, false);
 }
 
+//BBS: get current plater's bounding box
+BoundingBoxf3 GLCanvas3D::_get_current_partplate_print_volume()
+{
+    BoundingBoxf3 test_volume;
+    if (m_process && m_config)
+    {
+        BoundingBoxf3 plate_bb = m_process->get_current_plate()->get_bounding_box(false);
+        BoundingBoxf3 print_volume({ plate_bb.min(0), plate_bb.min(1), 0.0 }, { plate_bb.max(0), plate_bb.max(1), m_config->opt_float("max_print_height") });
+        // Allow the objects to protrude below the print bed
+        print_volume.min(2) = -1e10;
+        print_volume.min(0) -= BedEpsilon;
+        print_volume.min(1) -= BedEpsilon;
+        print_volume.max(0) += BedEpsilon;
+        print_volume.max(1) += BedEpsilon;
+        test_volume = print_volume;
+    }
+    else
+        test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
+
+    return test_volume;
+}
+
 ModelInstanceEPrintVolumeState GLCanvas3D::check_volumes_outside_state() const
 {
     assert(m_initialized);

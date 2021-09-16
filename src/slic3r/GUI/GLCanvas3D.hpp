@@ -1025,6 +1025,9 @@ private:
     void _update_sla_shells_outside_state();
     void _set_warning_notification_if_needed(EWarning warning);
 
+    //BBS: add partplate print volume get function
+    BoundingBoxf3 _get_current_partplate_print_volume();
+
     // generates a warning notification containing the given message
     void _set_warning_notification(EWarning warning, bool state);
 
