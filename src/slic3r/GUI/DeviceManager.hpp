@@ -37,7 +37,7 @@ private:
     mqtt::connect_options& connOpts_;
     void* context_;
     std::vector<std::string> sub_topics;
-    SuccessFn  succussFn;
+    SuccessFn  successFn;
     FailedFn failedFn;
     LostFn lostFn;
 

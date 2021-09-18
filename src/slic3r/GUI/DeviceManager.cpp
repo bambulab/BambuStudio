@@ -60,8 +60,8 @@ void machine_conn_callback::connected(const std::string& cause)
     BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::connected!";
     /* subscribe current device reqeust and report */
     try {
-        if (succussFn) {
-            succussFn(cli_.get_client_id());
+        if (successFn) {
+            successFn(cli_.get_client_id());
         }
         for (int i = 0; i < sub_topics.size(); i++) {
             sub_action_listener* sub_listener = new sub_action_listener("LanSubscriber_" + sub_topics[i]);
@@ -124,7 +124,7 @@ void machine_conn_callback::message_arrived(mqtt::const_message_ptr msg)
 
 void machine_conn_callback::set_connect_fns(SuccessFn sFn, FailedFn fFn, LostFn lFn)
 {
-    succussFn = sFn;
+    successFn = sFn;
     failedFn = fFn;
     lostFn = lFn;
 }

@@ -8,10 +8,14 @@
 #include <boost/thread.hpp>
 #include "mqtt/async_client.h"
 
+
 #include "ProjectTask.hpp"
 
 namespace Slic3r {
 
+typedef std::function<void(std::string name)> SuccessFn;
+typedef std::function<void(std::string name)> FailedFn;
+typedef std::function<void(std::string name)> LostFn;
 
 class action_listener : public virtual mqtt::iaction_listener
 {
@@ -36,6 +40,9 @@ private:
     mqtt::connect_options& connOpts_;
     std::vector<std::string> sub_topics;
     void* context_;
+    SuccessFn  successFn;
+    FailedFn failedFn;
+    LostFn lostFn;
 
     void reconnect();
 
@@ -53,6 +60,7 @@ public:
         : nretry_(0), cli_(cli), connOpts_(connOpts), context_(context) {}
 
     void add_topics(std::string topic) { sub_topics.push_back(topic); }
+    void set_connect_fns(SuccessFn sFn, FailedFn fFn, LostFn lFn);
 };
 
 class AccountInfo {

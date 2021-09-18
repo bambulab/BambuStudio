@@ -18,11 +18,6 @@ namespace pt = boost::property_tree;
 
 namespace Slic3r {
 
-typedef std::function<void(std::string name)> SuccessFn;
-typedef std::function<void(std::string name)> FailedFn;
-typedef std::function<void(std::string name)> LostFn;
-
-
 class SsdpDiscovery
 {
 private:

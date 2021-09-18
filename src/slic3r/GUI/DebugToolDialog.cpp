@@ -812,11 +812,12 @@ void DebugToolDialog::init_gcode_run_file(wxWindow *parent)
                 /* create subtask info */
                 BBLSubTask* subtask = new BBLSubTask();
                 subtask->task_create_time = buf.str();
-                subtask->task_project_id = "55";
-                subtask->parent_task_id = "12";
+                subtask->task_project_id = "0";
+                subtask->parent_task_id = "0";
                 subtask->task_id = "0";
                 subtask->task_path = fs::path(_3mf_file_str.c_str());
                 subtask->task_name = gcode_filename;
+
 
                 /* send task */
                 MachineObject* obj = dev_manager_.get_default();

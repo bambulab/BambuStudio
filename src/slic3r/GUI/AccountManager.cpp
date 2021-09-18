@@ -64,6 +64,9 @@ namespace Slic3r {
         /* subscribe connected */
         /* update sub_topics */
         BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::connected!";
+        if (successFn) {
+            successFn(cli_.get_client_id());
+        }
         /* subscribe current device reqeust and report */
         /*try {
             for (int i = 0; i < sub_topics.size(); i++) {
@@ -80,6 +83,9 @@ namespace Slic3r {
     {
         BOOST_LOG_TRIVIAL(trace) << "cloud_conn_callback::on_failure, Connection(mqtt) failed! retry=" << nretry_;
         /* TODO mqtt connect failed tips */
+        if (failedFn) {
+            failedFn(cli_.get_client_id());
+        }
         ++nretry_;
         reconnect();
     }
@@ -92,6 +98,9 @@ namespace Slic3r {
 
     void cloud_conn_callback::connection_lost(const std::string& cause) {
         BOOST_LOG_TRIVIAL(trace) << "cloud_conn_callback::connection_lost!, cause =" << cause;
+        if (lostFn) {
+            lostFn(cli_.get_client_id());
+        }
         ++nretry_;
         reconnect();
     }
@@ -100,6 +109,8 @@ namespace Slic3r {
     {
         AccountManager* manager = (AccountManager*)context_;
         if (manager) {
+            //BOOST_LOG_TRIVIAL(trace) << "message arrived";
+            BOOST_LOG_TRIVIAL(trace) << "message topic:" << msg->get_topic() << ", payload=" << msg->get_payload_str();
             std::string topic = msg->get_topic();
             int start = topic.find_first_of('/') + 1;
             int end = topic.find_last_of('/');
@@ -107,10 +118,19 @@ namespace Slic3r {
             std::map<std::string, MachineObject*>::iterator it = manager->myBindMachineList.find(dev_id);
             if (it != manager->myBindMachineList.end()) {
                 if (it->second && it->second->msg_recv_fn) {
+                    BOOST_LOG_TRIVIAL(trace) << "start";
                     it->second->msg_recv_fn(msg->get_topic(), msg->get_payload_str());
+                    BOOST_LOG_TRIVIAL(trace) << "end";
                 }
             }
         }
+    }
+
+    void cloud_conn_callback::set_connect_fns(SuccessFn sFn, FailedFn fFn, LostFn lFn)
+    {
+        successFn = sFn;
+        failedFn = fFn;
+        lostFn = lFn;
     }
 
     AccountInfo::AccountInfo(std::string account, std::string user_id, AccountInfo::LoginStatus status)
@@ -165,6 +185,10 @@ namespace Slic3r {
         }
     }
 
+    /*void print_log(enum LOG_LEVELS level, const char* message)
+    {
+        BOOST_LOG_TRIVIAL(trace) << "mqtt_log:" << message;
+    }*/
 
     AccountManager::AccountManager()
         :mqtt_opt(mqtt::connect_options_builder().clean_session().finalize()),
@@ -174,6 +198,13 @@ namespace Slic3r {
     {
         mqtt_opt.set_user_name(mqtt_user);
         mqtt_opt.set_password(mqtt_pwd);
+
+        /*Log_nameValue log;
+        log.name = "mqtt";
+        log.value = "mqtt_value";
+        Log_initialize(&log);
+        Log_setTraceCallback(print_log);
+        */
 
         boost::uuids::uuid uuid = boost::uuids::random_generator()();
         mqtt_uuid = to_string(uuid).substr(0, mqtt_uuid_bytes);
@@ -332,6 +363,7 @@ namespace Slic3r {
     {
         if (m_curr_user) {
             m_curr_user->set_login_status(AccountInfo::LoginStatus::STATUS_LOGOUT);
+            this->disconnect_mqtt();
             save_user_info();
         }
         return 0;
@@ -399,6 +431,7 @@ namespace Slic3r {
             pt::ptree bind_list = root.get_child("devices");
             pt::ptree::iterator it = bind_list.begin();
 
+            int count = 0;
             for (BOOST_AUTO(pos, bind_list.begin()); pos != bind_list.end(); ++pos)
             {
                 std::string dev_id = pos->second.get_optional<std::string>("dev_id").value();
@@ -411,6 +444,10 @@ namespace Slic3r {
 
                 /* insert a new machine event */
                 this->add_subscribe(obj);
+                /*count++;
+                if (count >= 4)
+                    break;*/
+                    
             }
         }
         catch (std::exception& e) {
@@ -1013,7 +1050,7 @@ namespace Slic3r {
             return;
         }
 
-        std::string task_url = (boost::format("%1%/iot/user/project/%1%/task") % host % project->project_id).str();
+        std::string task_url = (boost::format("%1%/iot/user/task") % host % project->project_id).str();
         std::string json_str = json_request_body_post_task(task);
 
         Http http = Http::post(task_url);
