@@ -525,6 +525,18 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     const Preset *preferred_printer = printers.find_system_preset_by_model_and_variant(preferred_selection.printer_model_id, preferred_selection.printer_variant);
     printers.select_preset_by_name(preferred_printer ? preferred_printer->name : initial_printer_profile_name, true);
 
+    //BBS: set default print/filament profiles to BBL's default setting
+    if (preferred_printer)
+    {
+        const std::string& prefered_print_profile = preferred_printer->config.opt_string("default_print_profile");
+        if ((!initial_print_profile_name.compare("- default -")) && (prefered_print_profile.size() > 0))
+            initial_print_profile_name = prefered_print_profile;
+
+        const std::vector<std::string>& prefered_filament_profiles = preferred_printer->config.option<ConfigOptionStrings>("default_filament_profile")->values;
+        if ((!initial_filament_profile_name.compare("- default -")) && (prefered_filament_profiles.size() > 0))
+            initial_filament_profile_name = prefered_filament_profiles[0];
+    }
+
     // Selects the profile, leaves it to -1 if the initial profile name is empty or if it was not found.
     prints.select_preset_by_name_strict(initial_print_profile_name);
     filaments.select_preset_by_name_strict(initial_filament_profile_name);
