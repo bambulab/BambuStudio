@@ -757,6 +757,7 @@ void DebugToolDialog::init_gcode_run_file(wxWindow *parent)
                 MachineObject* obj = dev_manager_.get_default();
                 if (!obj) {
                     this->send_log_evt("Invalid Printer! Please Select a Printer!");
+                    gcode_uploading = false;
                     return;
                 }
 
