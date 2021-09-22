@@ -1497,8 +1497,11 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
     BOOST_LOG_TRIVIAL(trace) << "ModelObject::cut - start";
 
     // Clone the object to duplicate instances, materials etc.
-    ModelObject* upper = attributes.has(ModelObjectCutAttribute::KeepUpper) ? ModelObject::new_clone(*this) : nullptr;
-    ModelObject* lower = attributes.has(ModelObjectCutAttribute::KeepLower) ? ModelObject::new_clone(*this) : nullptr;
+    bool keep_upper = attributes.has(ModelObjectCutAttribute::KeepUpper);
+    bool keep_lower = attributes.has(ModelObjectCutAttribute::KeepLower);
+    bool cut_to_parts = attributes.has(ModelObjectCutAttribute::CutToParts);
+    ModelObject* upper = keep_upper ? ModelObject::new_clone(*this) : nullptr;
+    ModelObject* lower = cut_to_parts ? upper : (keep_lower ? ModelObject::new_clone(*this) : nullptr);
 
     if (attributes.has(ModelObjectCutAttribute::KeepUpper)) {
         upper->set_model(nullptr);
@@ -1509,7 +1512,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
         upper->input_file.clear();
     }
 
-    if (attributes.has(ModelObjectCutAttribute::KeepLower)) {
+    if (keep_lower && lower != upper) {
         lower->set_model(nullptr);
         lower->sla_support_points.clear();
         lower->sla_drain_holes.clear();
@@ -1610,9 +1613,12 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
 
     if (attributes.has(ModelObjectCutAttribute::KeepUpper) && upper->volumes.size() > 0) {
         if (!upper->origin_translation.isApprox(Vec3d::Zero()) && instances[instance]->get_offset().isApprox(Vec3d::Zero())) {
-            upper->center_around_origin();
-            upper->translate_instances(-upper->origin_translation);
-            upper->origin_translation = Vec3d::Zero();
+            // BBS: do not move the parts if cut_to_parts
+            if (!cut_to_parts) {
+                upper->center_around_origin();
+                upper->translate_instances(-upper->origin_translation);
+                upper->origin_translation = Vec3d::Zero();
+            }
         }
 
         // Reset instance transformation except offset and Z-rotation
@@ -1621,7 +1627,10 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
             const Vec3d offset = instance->get_offset();
             // BBS
             //const double rot_z = instance->get_rotation().z();
-            const Vec3d displace = Geometry::assemble_transform(Vec3d::Zero(), instance->get_rotation()) * local_displace;
+            // BBS: do not move the parts if cut_to_parts
+            Vec3d displace(0, 0, 0);
+            if (!cut_to_parts)
+                displace = Geometry::assemble_transform(Vec3d::Zero(), instance->get_rotation()) * local_displace;
 
             instance->set_transformation(Geometry::Transformation());
             instance->set_offset(offset + displace);
@@ -1633,9 +1642,11 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
     }
     if (attributes.has(ModelObjectCutAttribute::KeepLower) && lower->volumes.size() > 0) {
         if (!lower->origin_translation.isApprox(Vec3d::Zero()) && instances[instance]->get_offset().isApprox(Vec3d::Zero())) {
-            lower->center_around_origin();
-            lower->translate_instances(-lower->origin_translation);
-            lower->origin_translation = Vec3d::Zero();
+            if (!cut_to_parts) {
+                lower->center_around_origin();
+                lower->translate_instances(-lower->origin_translation);
+                lower->origin_translation = Vec3d::Zero();
+            }
         }
 
         // Reset instance transformation except offset and Z-rotation
@@ -1649,7 +1660,8 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
             //instance->set_rotation(Vec3d(attributes.has(ModelObjectCutAttribute::FlipLower) ? Geometry::deg2rad(180.0) : 0.0, 0.0, rot_z));
         }
 
-        res.push_back(lower);
+        if(lower!=res.back())
+            res.push_back(lower);
     }
 
     BOOST_LOG_TRIVIAL(trace) << "ModelObject::cut - end";

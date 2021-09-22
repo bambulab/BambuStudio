@@ -64,6 +64,7 @@ GLGizmoAdvancedCut::GLGizmoAdvancedCut(GLCanvas3D& parent, const std::string& ic
     , m_keep_upper(true)
     , m_keep_lower(true)
     , m_rotate_lower(false)
+    , m_cut_to_parts(false)
     , m_do_segment(false)
     , m_segment_smoothing_alpha(0.5)
     , m_segment_number(5)
@@ -165,6 +166,7 @@ void GLGizmoAdvancedCut::reset_all()
 
     m_keep_upper = true;
     m_keep_lower = true;
+    m_cut_to_parts = false;
 }
 
 bool GLGizmoAdvancedCut::on_init()
@@ -503,6 +505,7 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
     // Part selection
     m_imgui->bbl_checkbox(_L("Keep upper part"), m_keep_upper);
     m_imgui->bbl_checkbox(_L("Keep lower part"), m_keep_lower);
+    m_imgui->bbl_checkbox(_L("Cut to parts"), m_cut_to_parts);
 
 #if 0
     // Auto segment input
@@ -519,7 +522,7 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
 #endif
 
     // Cut button
-    m_imgui->disabled_begin((!m_keep_upper && !m_keep_lower && !m_do_segment));
+    m_imgui->disabled_begin((!m_keep_upper && !m_keep_lower && !m_cut_to_parts && !m_do_segment));
     const bool cut_clicked = m_imgui->button(_L("Perform cut"));
     m_imgui->disabled_end();
     ImGui::SameLine();
@@ -529,7 +532,7 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
     ImGuiWrapper::pop_toolbar_style();
 
     // Perform cut
-    if (cut_clicked && (m_keep_upper || m_keep_lower || m_do_segment))
+    if (cut_clicked && (m_keep_upper || m_keep_lower || m_cut_to_parts || m_do_segment))
         perform_cut(m_parent.get_selection());
 
     m_last_active_id = current_active_id;
@@ -558,7 +561,8 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
     else {
         wxGetApp().plater()->cut(object_idx, instance_idx, get_plane_points_world_coord(),
             only_if(m_keep_upper, ModelObjectCutAttribute::KeepUpper) |
-            only_if(m_keep_lower, ModelObjectCutAttribute::KeepLower));
+            only_if(m_keep_lower, ModelObjectCutAttribute::KeepLower) |
+            only_if(m_cut_to_parts, ModelObjectCutAttribute::CutToParts));
     }
 }
 

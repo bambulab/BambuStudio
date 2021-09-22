@@ -42,6 +42,7 @@ private:
 
     bool m_keep_upper;
     bool m_keep_lower;
+    bool m_cut_to_parts;
     bool m_rotate_lower;
     bool m_do_segment;
     double m_segment_smoothing_alpha;

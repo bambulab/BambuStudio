@@ -207,6 +207,7 @@ void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit)
 
     m_imgui->checkbox(_L("Keep upper part"), m_keep_upper);
     m_imgui->checkbox(_L("Keep lower part"), m_keep_lower);
+    m_imgui->checkbox(_L("Cut to parts"), m_cut_to_parts); // BBS
     m_imgui->checkbox(_L("Rotate lower part upwards"), m_rotate_lower);
 
     // BBS
