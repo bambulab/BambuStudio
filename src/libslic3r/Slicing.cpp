@@ -23,6 +23,7 @@ namespace Slic3r
 
 static const coordf_t MIN_LAYER_HEIGHT = 0.01;
 static const coordf_t MIN_LAYER_HEIGHT_DEFAULT = 0.07;
+static const double LAYER_HEIGHT_CHANGE_STEP = 0.04;
 
 // Minimum layer height for the variable layer height algorithm.
 inline coordf_t min_layer_height_from_nozzle(const PrintConfig &print_config, int idx_nozzle)
@@ -288,7 +289,12 @@ std::vector<double> layer_height_profile_adaptive(const SlicingParameters& slici
             }
         }
         */
-        
+        //BBS: avoid the layer height change to be too steep
+        if (layer_height_profile.back() < height && height - layer_height_profile.back() > LAYER_HEIGHT_CHANGE_STEP)
+            height = layer_height_profile.back() + LAYER_HEIGHT_CHANGE_STEP;
+        else if (layer_height_profile.back() > height && layer_height_profile.back() - height > LAYER_HEIGHT_CHANGE_STEP)
+            height = layer_height_profile.back() - LAYER_HEIGHT_CHANGE_STEP;
+
         layer_height_profile.push_back(print_z);
         layer_height_profile.push_back(height);
         print_z += height;
@@ -384,7 +390,32 @@ std::vector<double> smooth_height_profile(const std::vector<double>& profile, co
         return ret;
     };
 
-    return gauss_blur(profile, smoothing_params);
+    //BBS: avoid the layer height change to be too steep
+    auto has_steep_height_change = [&slicing_params](const std::vector<double>& profile, const double height_step) {
+        //BBS: skip first layer
+        size_t skip_count = slicing_params.first_object_layer_height_fixed() ? 4 : 0;
+        size_t size = profile.size();
+        //BBS: not enough data to smmoth, return false directly
+        if ((int)size - (int)skip_count < 6)
+            return false;
+
+        //BBS: Don't need to check the difference between top layer and the last 2th layer
+        for (size_t i = skip_count; i < size - 6; i += 2) {
+            if (abs(profile[i + 1] - profile[i + 3]) > height_step)
+                return true;
+        }
+        return false;
+    };
+
+    int count = 0;
+    std::vector<double> ret = profile;
+    bool has_steep_change = has_steep_height_change(ret, LAYER_HEIGHT_CHANGE_STEP);
+    while (has_steep_change && count < 6) {
+        ret = gauss_blur(ret, smoothing_params);
+        has_steep_change = has_steep_height_change(ret, LAYER_HEIGHT_CHANGE_STEP);
+        count++;
+    }
+    return ret;
 }
 
 void adjust_layer_height_profile(
