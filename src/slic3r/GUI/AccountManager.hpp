@@ -8,7 +8,6 @@
 #include <boost/thread.hpp>
 #include "mqtt/async_client.h"
 
-
 #include "ProjectTask.hpp"
 
 namespace Slic3r {

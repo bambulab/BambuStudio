@@ -92,7 +92,7 @@ namespace Slic3r {
 
     void cloud_conn_callback::on_success(const mqtt::token& tok)
     {
-        BOOST_LOG_TRIVIAL(trace) << "cloud_conn_callback::on_success, Connection(mqtt) OK!";
+        BOOST_LOG_TRIVIAL(trace) << "cloud_conn_callback::on_success, Connection(mqtt) OK! cli id=" << cli_.get_client_id();
         /* mqtt connect on success tips, same as connected */
     }
 
@@ -185,11 +185,6 @@ namespace Slic3r {
         }
     }
 
-    /*void print_log(enum LOG_LEVELS level, const char* message)
-    {
-        BOOST_LOG_TRIVIAL(trace) << "mqtt_log:" << message;
-    }*/
-
     AccountManager::AccountManager()
         :mqtt_opt(mqtt::connect_options_builder().clean_session().finalize()),
         mqtt_cli(nullptr),
@@ -198,13 +193,7 @@ namespace Slic3r {
     {
         mqtt_opt.set_user_name(mqtt_user);
         mqtt_opt.set_password(mqtt_pwd);
-
-        /*Log_nameValue log;
-        log.name = "mqtt";
-        log.value = "mqtt_value";
-        Log_initialize(&log);
-        Log_setTraceCallback(print_log);
-        */
+        mqtt_opt.set_max_inflight(100);
 
         boost::uuids::uuid uuid = boost::uuids::random_generator()();
         mqtt_uuid = to_string(uuid).substr(0, mqtt_uuid_bytes);
@@ -234,11 +223,17 @@ namespace Slic3r {
 
     int AccountManager::connect_mqtt()
     {
+        BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt";
         if (m_curr_user == nullptr) {
             return -1;
         }
 
         try {
+            if (mqtt_cli) {
+                BOOST_LOG_TRIVIAL(trace) << "mqtt_cli is exists!";
+                return -1;
+            }
+
             std::string client_id = (boost::format("%1%:%2%") % m_curr_user->m_user_id % mqtt_uuid).str();
             mqtt_cli = new mqtt::async_client(MQTT_HOST, client_id);
             mqtt_cb = new cloud_conn_callback(*mqtt_cli, mqtt_opt, this);
