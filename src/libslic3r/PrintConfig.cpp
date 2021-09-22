@@ -2875,6 +2875,13 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(1));
 
+    def = this->add("tree_support_with_infill", coBool);
+    def->label = L("Tree support with infill");
+    def->category = L("Support material");
+    def->tooltip = L("This setting specifies whether to add infill inside large hollows of tree support.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
     def = this->add("temperature", coInts);
     def->label = L("Other layers");
     def->tooltip = L("Nozzle temperature for layers after the first one. Set this to zero to disable "

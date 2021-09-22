@@ -1575,6 +1575,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("tree_support_branch_diameter_angle");
         optgroup->append_single_option_line("tree_support_collision_resolution");
         optgroup->append_single_option_line("tree_support_wall_count");
+        optgroup->append_single_option_line("tree_support_with_infill");
 
         optgroup = page->new_optgroup(L("Raft"));
         optgroup->append_single_option_line("raft_layers", category_path + "raft-layers");

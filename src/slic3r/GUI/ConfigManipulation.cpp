@@ -288,7 +288,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     toggle_field("support_material_closing_radius", have_support_material && support_material_style == smsSnug);
 
     for (auto el : { "tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter",
-                    "tree_support_branch_diameter_angle", "tree_support_collision_resolution", "tree_support_wall_count" })
+                    "tree_support_branch_diameter_angle", "tree_support_collision_resolution", "tree_support_wall_count", "tree_support_with_infill" })
         toggle_field(el, config->opt_bool("support_material") && (support_type == stTreeAuto || support_type == stTree));
 
     for (auto el : { "support_material_interface_spacing", "support_material_interface_extruder",

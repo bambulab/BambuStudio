@@ -749,8 +749,8 @@ void TreeSupport::detect_object_overhangs()
 
         SVG svg(get_svg_filename(layer->id(), "overhang_areas"), m_object.bounding_box());
         if (svg.is_opened()) {
-            svg.draw(layer->overhang_areas, "red");
             svg.draw_outline(m_object.get_layer(layer->id())->lslices, "yellow");
+            svg.draw(layer->overhang_areas, "red");
         }
     }
 #endif
@@ -853,6 +853,46 @@ static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print
     }
 }
 
+static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& print, const ExPolygon& support_area, size_t wall_count, const Flow& flow, bool is_interface, Fill* filler_support, double support_density)
+{
+    Polygons   loops;
+    ExPolygons support_area_new = offset_ex(support_area, -0.5f * float(flow.scaled_spacing()), jtSquare);
+    polygons_append(loops, to_polygons(support_area_new));
+
+    ExtrusionRole role = is_interface ? erSupportMaterialInterface : erSupportMaterial;
+    if (print.config().auto_slow_down_for_overhang_and_curva) {
+        CurveAnalyzer curve_analyzer;
+        for (size_t i = 0; i < loops.size(); i++) {
+            // BBS: check polygon valid
+            if (!loops[i].is_valid())
+                continue;
+            // BBS: calculate curvatures for the loop of polygon and generate ExtrusionPaths
+            // by order which has different curve degree.
+            ExtrusionPaths paths;
+            ExtrusionPath path(0, 0, role, flow.mm3_per_mm(), flow.width, flow.height);
+            path.polyline = loops[i].split_at_first_point();
+            paths.emplace_back(std::move(path));
+            // BBS: use absolute mode for tree support because we don't care about the surface quality of support
+            curve_analyzer.calculate_curvatures(paths, ECurveAnalyseMode::AbsoluteMode);
+            // BBS: save result
+            dst.reserve(dst.size() + 1);
+            dst.emplace_back(new ExtrusionLoop(std::move(paths)));
+            paths.clear();
+        }
+    }
+    else {
+        extrusion_entities_append_loops(dst, std::move(loops), role,
+            float(flow.mm3_per_mm()), float(flow.width), float(flow.height));
+    }
+
+    // draw infill (remember to adjust to align infill between layers)
+    FillParams fill_params;
+    fill_params.density = support_density;
+    fill_params.dont_adjust = false;
+    ExPolygons to_infill = offset2_ex(support_area, float(SCALED_EPSILON), float(-SCALED_EPSILON - 0.5 * flow.scaled_width()));
+    fill_expolygons_generate_paths(dst, std::move(to_infill), filler_support, fill_params, support_density, erSupportMaterial, flow);
+}
+
 void TreeSupport::generate_toolpaths()
 {
     const PrintConfig &print_config = m_object.print()->config();
@@ -864,6 +904,7 @@ void TreeSupport::generate_toolpaths()
     double support_density = support_extrusion_width / (support_spacing + support_extrusion_width);
     double interface_density = support_extrusion_width / (interface_spacing + support_extrusion_width);
     const size_t wall_count = object_config.tree_support_wall_count.value;
+    const bool with_infill = object_config.tree_support_with_infill.value;
     auto m_support_material_flow = support_material_flow(&m_object, float(m_slicing_params.layer_height));
 
     if (m_object.tree_support_layers().empty())
@@ -950,8 +991,7 @@ void TreeSupport::generate_toolpaths()
     // generate tree support tool paths
     tbb::parallel_for(
         tbb::blocked_range<size_t>(m_raft_layers, m_object.tree_support_layer_count()),
-        [this, support_extrusion_width, nozzle_diameter, interface_spacing, interface_density, wall_count, filler_support]
-        (const tbb::blocked_range<size_t>& range)
+        [&](const tbb::blocked_range<size_t>& range)
         {
             for (size_t layer_id = range.begin(); layer_id < range.end(); layer_id++) {
                 TreeSupportLayer* ts_layer = m_object.get_tree_support_layer(layer_id);
@@ -986,19 +1026,9 @@ void TreeSupport::generate_toolpaths()
                                 filler_interface, fill_params, interface_density, erSupportMaterialInterface, support_flow);
                         } else {
                             Flow flow = (layer_id == 0 && m_raft_layers == 0)? m_object.print()->brim_flow() : support_flow;
-                            auto bbox = poly.contour.bounding_box();
-                            auto circularity = poly.area() / (double(bbox.size().x())*bbox.size().y());
-                            //if (std::min(bbox.size().x(), bbox.size().y()) > scale_(10) && circularity>0.5)
-                            if(0)
+                            if(with_infill && layer_id > 0 && offset(poly, -scale_(5)).empty()==false)
                             {
-                                FillParams fill_params;
-                                fill_params.density = 0.07;
-                                fill_params.dont_adjust = true;
-
-                                ExPolygons polys = { poly };
-                                ExPolygons to_infill = offset2_ex(polys, float(SCALED_EPSILON), float(-SCALED_EPSILON - 0.5 * support_flow.scaled_width()));
-                                fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(to_infill),
-                                    filler_support, fill_params, 0.07, erSupportMaterial, support_flow);
+                                make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object.print(), poly, wall_count, flow, false, filler_support, support_density);
                             }
                             else
                             {
@@ -1261,12 +1291,14 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 base_areas = std::move(diff_ex(base_areas, roof_areas));
 
 #if 1
-                // simplify support contours
-                ExPolygons base_areas_simplified;
-                for (auto& area : base_areas) {
-                    area.simplify(scale_(line_width / 2), &base_areas_simplified, SimplifyMethodDP);
+                if (m_object.print()->config().enable_arc_fitting.value == false) {
+                    // simplify support contours if arc fitting is disabled
+                    ExPolygons base_areas_simplified;
+                    for (auto& area : base_areas) {
+                        area.simplify(scale_(line_width / 2), &base_areas_simplified, SimplifyMethodDP);
+                    }
+                    base_areas = std::move(base_areas_simplified);
                 }
-                base_areas = std::move(base_areas_simplified);
 #endif
                 //Subtract support floors.
                 ExPolygons& floor_areas = ts_layer->floor_areas;
@@ -1594,7 +1626,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
         BoundingBox bbox_temp = m_object.bounding_box();
         bbox_temp.offset(branch_radius * 5);
-        draw_avoidance_and_nodes_to_svg(layer_nr, m_ts_data->get_avoidance(0, layer_nr), m_ts_data->m_layer_outlines[layer_nr], m_ts_data->m_layer_outlines_below[layer_nr],
+        draw_avoidance_and_nodes_to_svg(layer_nr, m_ts_data->get_avoidance(0, layer_nr), m_ts_data->get_avoidance(branch_radius_temp, layer_nr), m_ts_data->m_layer_outlines_below[layer_nr],
             contact_nodes[layer_nr], contact_nodes[layer_nr - 1], bbox_temp);
 #endif
 

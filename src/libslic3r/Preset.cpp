@@ -449,7 +449,7 @@ static std::vector<std::string> s_Preset_print_options {
     "wipe_tower_no_sparse_layers", "compatible_printers", "compatible_printers_condition", "inherits",
     // BBS
     "auto_slow_down_for_overhang_and_curva",
-    "tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter",
+    "tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter", "tree_support_with_infill",
     "tree_support_branch_diameter_angle", "tree_support_collision_resolution", "tree_support_wall_count",
      "detect_narrow_internal_solid_infill",
      "gcode_add_line_number"
