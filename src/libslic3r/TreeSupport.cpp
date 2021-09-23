@@ -1234,7 +1234,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 // skip if current layer has no points. This fixes potential crash in get_collision (see jira BBL001-355)
                 if (contact_nodes[layer_nr].empty())
                     continue;
-                
+
                 //Draw the support areas and add the roofs appropriately to the support roof instead of normal areas.
                 ts_layer->lslices.reserve(contact_nodes[layer_nr].size());
 
@@ -1288,9 +1288,9 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 
 
                 const size_t z_collision_layer = static_cast<size_t>(std::max(0, static_cast<int>(layer_nr) - static_cast<int>(bottom_interface_layers)));
-                auto avoid_region = m_ts_data->get_collision(0, z_collision_layer);
+                auto avoid_region = m_ts_data->get_collision(m_ts_data->m_xy_distance, z_collision_layer);
                 base_areas = std::move(diff_ex(base_areas, avoid_region));
-                roof_areas = std::move(diff_ex(roof_areas, avoid_region));
+                roof_areas = std::move(diff_ex(roof_areas, m_ts_data->get_collision(config.support_material_contact_distance, z_collision_layer)));
                 roof_areas = std::move(offset2_ex(roof_areas, branch_radius_scaled, -branch_radius_scaled));
                 base_areas = std::move(diff_ex(base_areas, roof_areas));
 
@@ -1512,10 +1512,10 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                     continue;
                 }
                 //If the branch falls completely inside a collision area (the entire branch would be removed by the X/Y offset), delete it.
-                if (group_index > 0 && is_inside_ex(m_ts_data->get_collision(0, layer_nr), node.position))
+                if (group_index > 0 && is_inside_ex(m_ts_data->get_collision(m_ts_data->m_xy_distance, layer_nr), node.position))
                 {
                     const coordf_t branch_radius_node = calc_branch_radius(branch_radius, node.distance_to_top, tip_layers, diameter_angle_scale_factor);
-                    Point to_outside = projection_onto_ex(m_ts_data->get_collision(0, layer_nr), node.position);
+                    Point to_outside = projection_onto_ex(m_ts_data->get_collision(m_ts_data->m_xy_distance, layer_nr), node.position);
                     if (vsize2_with_unscale(node.position - to_outside) >= branch_radius_node * branch_radius_node) //Too far inside.
                     {
                         if (support_on_buildplate_only)
@@ -1724,7 +1724,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
                     constexpr bool border_is_inside = true;
                     if (is_inside_ex(overhang_part, candidate))
                     {
-                        if (!is_inside_ex(m_ts_data->get_collision(0, layer_nr), candidate)) {
+                        if (!is_inside_ex(m_ts_data->get_collision(m_ts_data->m_xy_distance, layer_nr), candidate)) {
                             constexpr size_t distance_to_top = 0;
                             constexpr bool to_buildplate = true;
                             Node* contact_node = new Node(candidate, distance_to_top, (layer_nr + z_distance_top_layers) % 2, support_roof_layers, to_buildplate, Node::NO_PARENT);
@@ -1851,7 +1851,7 @@ const ExPolygons& TreeSupportData::calculate_collision(const RadiusLayerPair& ke
 
     assert(layer_nr < m_layer_outlines.size());
 
-    ExPolygons collision_areas = std::move(offset_ex(m_layer_outlines[layer_nr], scale_(m_xy_distance + radius)));
+    ExPolygons collision_areas = std::move(offset_ex(m_layer_outlines[layer_nr], scale_(radius)));
     const auto ret = m_collision_cache.insert({ key, std::move(collision_areas) });
     return ret.first->second;
 }

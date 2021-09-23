@@ -113,6 +113,7 @@ private:
      */
     ExPolygon m_machine_border;
 
+public:
     /*!
      * \brief The required clearance between the model and the tree branches
      */
