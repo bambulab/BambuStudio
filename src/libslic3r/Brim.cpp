@@ -194,7 +194,7 @@ static ExPolygons top_level_outer_brim_area(const Print                   &print
         ExPolygons brim_area_object;
         ExPolygons no_brim_area_object;
         for (const ExPolygon &ex_poly : bottom_layers_expolygons[print_object_idx]) {
-            if ((brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner) && is_top_outer_brim)
+            if ((brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner || brim_type == BrimType::btAutoBrim) && is_top_outer_brim)
                 append(brim_area_object, diff_ex(offset(ex_poly.contour, brim_width + brim_separation, ClipperLib::jtSquare), offset(ex_poly.contour, brim_separation, ClipperLib::jtSquare)));
 
             // After 7ff76d07684858fd937ef2f5d863f105a10f798e offset and shrink don't work with CW polygons (holes), so let's make it CCW.
@@ -214,7 +214,7 @@ static ExPolygons top_level_outer_brim_area(const Print                   &print
 
         if (!object->support_layers().empty()) {
             for (const Polygon& support_contour : object->support_layers().front()->support_fills.polygons_covered_by_spacing()) {
-                if ((brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner) && is_top_outer_brim)
+                if ((brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner || brim_type == BrimType::btAutoBrim) && is_top_outer_brim)
                     append(brim_area_object, diff_ex(offset(support_contour, brim_width + brim_separation), offset(support_contour, brim_separation)));
 
                 if (brim_type != BrimType::btNoBrim)
@@ -227,7 +227,7 @@ static ExPolygons top_level_outer_brim_area(const Print                   &print
         // BBS
         if (!object->tree_support_layers().empty()) {
             for (const ExPolygon& ex_poly : object->tree_support_layers().front()->lslices) {
-                if ((brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner) && is_top_outer_brim)
+                if ((brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner || brim_type == BrimType::btAutoBrim) && is_top_outer_brim)
                     append(brim_area_object, diff_ex(offset(ex_poly.contour, brim_width + brim_separation), offset(ex_poly.contour, brim_separation)));
 
                 if (brim_type != BrimType::btNoBrim)
@@ -271,7 +271,7 @@ static ExPolygons inner_brim_area(const Print                   &print,
         ExPolygons no_brim_area_object;
         Polygons   holes_object;
         for (const ExPolygon &ex_poly : bottom_layers_expolygons[print_object_idx]) {
-            if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner) {
+            if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner || brim_type == BrimType::btAutoBrim) {
                 if (top_outer_brim)
                     no_brim_area_object.emplace_back(ex_poly);
                 else
@@ -281,7 +281,7 @@ static ExPolygons inner_brim_area(const Print                   &print,
             // After 7ff76d07684858fd937ef2f5d863f105a10f798e offset and shrink don't work with CW polygons (holes), so let's make it CCW.
             Polygons ex_poly_holes_reversed = ex_poly.holes;
             polygons_reverse(ex_poly_holes_reversed);
-            if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btOuterAndInner)
+            if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btOuterAndInner || brim_type == BrimType::btAutoBrim)
                 append(brim_area_object, diff_ex(shrink_ex(ex_poly_holes_reversed, brim_separation, ClipperLib::jtSquare), shrink_ex(ex_poly_holes_reversed, brim_width + brim_separation, ClipperLib::jtSquare)));
 
             if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btNoBrim)
@@ -565,8 +565,42 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
     ExPolygons              islands_area_ex             = top_level_outer_brim_area(print, top_level_objects_with_brim, bottom_layers_expolygons, float(flow.scaled_spacing()));
     islands_area                                        = to_polygons(islands_area_ex);
 
+    // auto brim
+    double brim_width_max = 0;
+    std::map<ObjectID, double> brim_width_map;
+    auto m_objects = print.objects();
+    bool has_brim_auto = std::any_of(m_objects.begin(), m_objects.end(), [](PrintObject* object) { return object->config().brim_type == btAutoBrim; });
+    if (has_brim_auto)
+    {
+        // Get features from object mesh.
+        // Here I only show an example of getting the height_to_area ratio and estimate the brim width using a very
+        // simple equation.
+        for (auto object : print.objects())
+        {
+            auto insts = object->instances();
+            for (auto inst : insts) {
+                auto model = inst.model_instance->get_object()->get_model();
+                auto mesh = model->mesh();
+                auto bbox_size = model->bounding_box().size();
+                double height_to_area = bbox_size(2) / std::max(bbox_size(0), bbox_size(1));
+                double brim_width = height_to_area * 4;
+                brim_width_map.insert(std::make_pair(object->id(), brim_width));
+                brim_width_max = std::max(brim_width_max, brim_width);
+                BOOST_LOG_TRIVIAL(debug) << "brim_width_map: " << object->id().id << ", " << brim_width;
+            }
+        }
+    }
+    else {
+        brim_width_max = max_brim_width(print.objects());
+        for (auto object : print.objects())
+        {
+            brim_width_map.insert(std::make_pair(object->id(), object->config().brim_width));
+        }
+    }
+
     Polygons        loops;
-    size_t          num_loops = size_t(floor(max_brim_width(print.objects()) / flow.spacing()));
+    size_t          num_loops = size_t(floor(brim_width_max / flow.spacing()));
+    BOOST_LOG_TRIVIAL(debug) << "brim_width_max, num_loops: " << brim_width_max << ", " << num_loops;
     for (size_t i = 0; i < num_loops; ++i) {
         try_cancel();
         islands = expand(islands, float(flow.scaled_spacing()), ClipperLib::jtSquare);
@@ -623,9 +657,9 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
     }
 #endif // BRIM_DEBUG_TO_SVG
 
-    const bool could_brim_intersects_skirt = std::any_of(print.objects().begin(), print.objects().end(), [&print](PrintObject *object) {
+    const bool could_brim_intersects_skirt = std::any_of(print.objects().begin(), print.objects().end(), [&print, &brim_width_map, brim_width_max](PrintObject *object) {
         const BrimType &bt = object->config().brim_type;
-        return (bt == btOuterOnly || bt == btOuterAndInner) && print.config().skirt_distance.value < object->config().brim_width;
+        return (bt == btOuterOnly || bt == btOuterAndInner || bt == btAutoBrim) && print.config().skirt_distance.value < brim_width_map[object->id()];
     });
 
     const bool draft_shield = print.config().draft_shield != dsDisabled;

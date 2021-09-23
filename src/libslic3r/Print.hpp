@@ -291,8 +291,7 @@ public:
     void generate_support_preview();
 
     bool                         has_brim() const       {
-        return this->config().brim_type != btNoBrim
-            && this->config().brim_width.value > 0.
+        return ((this->config().brim_type != btNoBrim && this->config().brim_width.value > 0.) || this->config().brim_type == btAutoBrim)
             && ! this->has_raft();
     }
 

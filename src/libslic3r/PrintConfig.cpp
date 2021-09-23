@@ -513,10 +513,12 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Skirt and brim");
     def->tooltip = L("The places where the brim will be printed around each object on the first layer.");
     def->enum_keys_map = &ConfigOptionEnum<BrimType>::get_enum_values();
+    def->enum_values.emplace_back("auto_brim");  // BBS
     def->enum_values.emplace_back("no_brim");
     def->enum_values.emplace_back("outer_only");
     def->enum_values.emplace_back("inner_only");
     def->enum_values.emplace_back("outer_and_inner");
+    def->enum_labels.emplace_back(L("Auto brim"));
     def->enum_labels.emplace_back(L("No brim"));
     def->enum_labels.emplace_back(L("Outer brim only"));
     def->enum_labels.emplace_back(L("Inner brim only"));
