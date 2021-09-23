@@ -485,7 +485,7 @@ void DebugToolDialog::init_connection_widgets()
         std::string info = "MQTT connecting dev_id=" + obj->dev_id;
         this->send_log_evt(info);
 
-        obj->connect(
+        obj->set_callbacks(
             //success
             [this, obj](std::string name) {
                 this->send_log_evt("Connected to Printer=" + obj->dev_id);
@@ -505,6 +505,7 @@ void DebugToolDialog::init_connection_widgets()
                 evt->SetString(name);
                 wxQueueEvent(this, evt);
             });
+        obj->connect();
     });
 
     btn_disconnect = new wxButton(this, wxID_ANY, _L("Disconnect"), wxDefaultPosition, wxDefaultSize);

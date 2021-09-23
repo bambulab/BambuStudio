@@ -37,9 +37,6 @@ private:
     mqtt::connect_options& connOpts_;
     void* context_;
     std::vector<std::string> sub_topics;
-    SuccessFn  successFn;
-    FailedFn failedFn;
-    LostFn lostFn;
 
     void reconnect();
 
@@ -57,7 +54,6 @@ public:
         : nretry_(0), cli_(cli), connOpts_(connOpts), context_(context) {}
 
     void add_topics(std::string topic) { sub_topics.push_back(topic); }
-    void set_connect_fns(SuccessFn sFn, FailedFn fFn, LostFn lFn);
 };
 
    
@@ -117,6 +113,9 @@ public:
     mqtt::async_client* mqtt_cli;
     mqtt::connect_options mqtt_opt;
     machine_conn_callback* mqtt_cb;
+    SuccessFn  successFn;
+    FailedFn failedFn;
+    LostFn lostFn;
 
     /* Msg for display MsgFn */
     MsgFn msg_send_fn;
@@ -126,7 +125,8 @@ public:
     //mqtt::async_client& mqtt_cloud;
 
     /* machine mqtt apis */
-    int connect(SuccessFn sFn, FailedFn fFn, LostFn lFn);
+    void set_callbacks(SuccessFn sFn, FailedFn fFn, LostFn lFn);
+    int connect();
     int disconnect();
     bool is_connected();
     void set_msg_send_fn(MsgFn fn) { msg_send_fn = std::move(fn); }

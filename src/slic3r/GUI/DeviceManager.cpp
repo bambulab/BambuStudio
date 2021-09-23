@@ -60,14 +60,15 @@ void machine_conn_callback::connected(const std::string& cause)
     BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::connected!";
     /* subscribe current device reqeust and report */
     try {
-        if (successFn) {
-            successFn(cli_.get_client_id());
+        MachineObject* obj = (MachineObject*)context_;
+        if (obj && obj->successFn) {
+            obj->successFn(cli_.get_client_id());
         }
         for (int i = 0; i < sub_topics.size(); i++) {
             sub_action_listener* sub_listener = new sub_action_listener("LanSubscriber_" + sub_topics[i]);
             cli_.subscribe(sub_topics[i], 0, nullptr, *sub_listener);
         }
-        MachineObject* obj = (MachineObject*)context_;
+        
         if (obj) {
             obj->conn_state = MachineObject::CONNECTION_STATE::STATE_CONNECTED;
         }
@@ -80,12 +81,12 @@ void machine_conn_callback::connected(const std::string& cause)
 void machine_conn_callback::on_failure(const mqtt::token& tok)
 {
     BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::on_failure, Connection(mqtt) failed! retry=" << nretry_;
-    /* mqtt connect failed tips */
-    if (failedFn) {
-        failedFn(cli_.get_client_id());
-    }
     MachineObject* obj = (MachineObject*)context_;
     if (obj) {
+        /* mqtt connect failed tips */
+        if (obj->failedFn) {
+            obj->failedFn(cli_.get_client_id());
+        }
         obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_DISCONNECTED);
     }
     ++nretry_;
@@ -103,11 +104,11 @@ void machine_conn_callback::on_success(const mqtt::token& tok)
 
 void machine_conn_callback::connection_lost(const std::string& cause) {
     BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::connection_lost!, cause =" << cause;
-    if (lostFn) {
-        lostFn(cli_.get_client_id());
-    }
     MachineObject* obj = (MachineObject*)context_;
     if (obj) {
+        if (obj->lostFn) {
+            obj->lostFn(cli_.get_client_id());
+        }
         obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_DISCONNECTED);
     }
     ++nretry_;
@@ -117,16 +118,9 @@ void machine_conn_callback::connection_lost(const std::string& cause) {
 void machine_conn_callback::message_arrived(mqtt::const_message_ptr msg)
 {
     MachineObject* obj = (MachineObject*)context_;
-    if (obj->msg_recv_fn) {
+    if (obj && obj->msg_recv_fn) {
         obj->msg_recv_fn(msg->get_topic(), msg->get_payload_str());
     }
-}
-
-void machine_conn_callback::set_connect_fns(SuccessFn sFn, FailedFn fFn, LostFn lFn)
-{
-    successFn = sFn;
-    failedFn = fFn;
-    lostFn = lFn;
 }
 
 
@@ -143,6 +137,9 @@ MachineObject::MachineObject(AccountManager& acc, std::string name, std::string 
     conn_type(CONNECTION_LAN),
     is_alive(false),
     is_online(false),
+    successFn(nullptr),
+    failedFn(nullptr),
+    lostFn(nullptr),
     mqtt_uuid_bytes(4),
     mqtt_opt(mqtt::connect_options_builder()
         .clean_session()
@@ -161,11 +158,18 @@ bool MachineObject::check_valid_ip()
     return true;
 }
 
-int MachineObject::connect(SuccessFn sFn, FailedFn fFn, LostFn lFn)
+void MachineObject::set_callbacks(SuccessFn sFn, FailedFn fFn, LostFn lFn)
+{
+    successFn = sFn;
+    failedFn = fFn;
+    lostFn = lFn;
+}
+
+int MachineObject::connect()
 {
     if (!check_valid_ip()) {
-        if (fFn) {
-            fFn("Invalid IP!");
+        if (failedFn) {
+            failedFn("Invalid IP!");
         }
         return -1;
     }
@@ -173,14 +177,14 @@ int MachineObject::connect(SuccessFn sFn, FailedFn fFn, LostFn lFn)
     try {
         if (acc_.is_user_login()) {
             if (is_connected()) {
-                if (sFn) {
-                    sFn("Already Connected!");
+                if (successFn) {
+                    successFn("Already Connected!");
                 }
                 return 0;
             }
             if (mqtt_cli != nullptr) {
-                if (fFn) {
-                    fFn("Connecting state!");
+                if (failedFn) {
+                    failedFn("Connecting state!");
                     return -1;
                 }
             }
@@ -190,7 +194,6 @@ int MachineObject::connect(SuccessFn sFn, FailedFn fFn, LostFn lFn)
             std::string report_topic = build_report_topic(dev_id);
             mqtt_cli = new mqtt::async_client(dev_ip, client_id);
             mqtt_cb = new machine_conn_callback(*mqtt_cli, mqtt_opt, this);
-            mqtt_cb->set_connect_fns(sFn, fFn, lFn);
             mqtt_cb->add_topics(report_topic);
             mqtt_cli->set_callback(*mqtt_cb);
             mqtt_cli->connect(mqtt_opt, this, *mqtt_cb);
@@ -215,6 +218,8 @@ int MachineObject::disconnect()
         try {
             mqtt_cli->disable_callbacks();
             mqtt_cli->disconnect()->wait_for(100);
+            delete mqtt_cb;
+            mqtt_cb = nullptr;
         }
         catch (std::exception& e) {
 
@@ -554,9 +559,12 @@ void DeviceManager::on_machine_alive(std::string dev_name, std::string dev_id, s
         // update properties
         /* ip changed */
         obj = it->second;
-        if (obj->dev_ip.compare(dev_ip) != 0) {
+        if (obj->dev_ip.compare(dev_ip) != 0 && !obj->dev_ip.empty()) {
+            BOOST_LOG_TRIVIAL(info) << "MachineObject IP changed from " << obj->dev_ip << " to " << dev_ip;
             obj->dev_ip = dev_ip;
-            /* TODO if ip changed reconnect mqtt */
+            /* ip changed reconnect mqtt, TODO callbacks */
+            obj->disconnect();
+            obj->connect();
         }
         obj->last_alive = Slic3r::Utils::get_current_time_utc();
         obj->is_alive = true;
