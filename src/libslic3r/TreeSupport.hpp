@@ -7,6 +7,7 @@
 #include "Point.hpp"
 #include "Slicing.hpp"
 #include "MinimumSpanningTree.hpp"
+#include "tbb/concurrent_unordered_map.h"
 
 namespace Slic3r
 {
@@ -148,9 +149,12 @@ private:
      * generally considered OK as the functions are still logically const
      * (ie there is no difference in behaviour for the user betweeen
      * calculating the values each time vs caching the results).
+     * 
+     * coconut: previously stl::unordered_map is used which seems problematic with tbb::parallel_for.
+     * So we change to tbb::concurrent_unordered_map
      */
-    mutable std::unordered_map<RadiusLayerPair, ExPolygons, RadiusLayerPairHash> m_collision_cache;
-    mutable std::unordered_map<RadiusLayerPair, ExPolygons, RadiusLayerPairHash> m_avoidance_cache;
+    mutable tbb::concurrent_unordered_map<RadiusLayerPair, ExPolygons, RadiusLayerPairHash> m_collision_cache;
+    mutable tbb::concurrent_unordered_map<RadiusLayerPair, ExPolygons, RadiusLayerPairHash> m_avoidance_cache;
 
     friend TreeSupport;
 };

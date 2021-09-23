@@ -899,13 +899,17 @@ void TreeSupport::generate_toolpaths()
     const PrintObjectConfig &object_config = m_object.config();
     coordf_t support_extrusion_width = object_config.support_material_extrusion_width.value > 0 ? object_config.support_material_extrusion_width : object_config.extrusion_width;
     coordf_t nozzle_diameter = print_config.nozzle_diameter.get_at(object_config.support_material_extruder - 1);
-    coordf_t support_spacing = object_config.support_material_spacing.value;
-    coordf_t interface_spacing = object_config.support_material_interface_spacing.value;
-    double support_density = support_extrusion_width / (support_spacing + support_extrusion_width);
-    double interface_density = support_extrusion_width / (interface_spacing + support_extrusion_width);
+
     const size_t wall_count = object_config.tree_support_wall_count.value;
     const bool with_infill = object_config.tree_support_with_infill.value;
     auto m_support_material_flow = support_material_flow(&m_object, float(m_slicing_params.layer_height));
+
+    // coconut: use same intensity settings as SupportMaterial.cpp
+    auto m_support_material_interface_flow = support_material_interface_flow(&m_object, float(m_slicing_params.layer_height));
+    coordf_t interface_spacing = object_config.support_material_interface_spacing.value + m_support_material_interface_flow.spacing();
+    coordf_t interface_density = std::min(1., m_support_material_interface_flow.spacing() / interface_spacing);
+    coordf_t support_spacing = object_config.support_material_spacing.value + m_support_material_flow.spacing();
+    coordf_t support_density = std::min(1., m_support_material_flow.spacing() / support_spacing);
 
     if (m_object.tree_support_layers().empty())
         return;
@@ -1026,7 +1030,7 @@ void TreeSupport::generate_toolpaths()
                                 filler_interface, fill_params, interface_density, erSupportMaterialInterface, support_flow);
                         } else {
                             Flow flow = (layer_id == 0 && m_raft_layers == 0)? m_object.print()->brim_flow() : support_flow;
-                            if(with_infill && layer_id > 0 && offset(poly, -scale_(5)).empty()==false)
+                            if(with_infill && layer_id > 0 && offset(poly, -scale_(support_spacing)).empty()==false)
                             {
                                 make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object.print(), poly, wall_count, flow, false, filler_support, support_density);
                             }
@@ -1214,7 +1218,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     const double diameter_angle_scale_factor = sin(config.tree_support_branch_diameter_angle.value * M_PI / 180.) * layer_height / branch_radius; //Scale factor per layer to produce the desired angle.
     const coordf_t line_width = config.support_material_extrusion_width.get_abs_value(layer_height);
 
-    // coconut: although std::unordered_map is not multi-thread safe, here we only read, so we still can use it safely
+    // coconut: previously std::unordered_map in m_collision_cache is not multi-thread safe which may cause programs stuck, here we change to tbb::concurrent_unordered_map
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, m_object.layer_count()),
         [&](const tbb::blocked_range<size_t>& range)
@@ -1227,12 +1231,12 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 ExPolygons& base_areas = ts_layer->base_areas;
                 ExPolygons& roof_areas = ts_layer->roof_areas;
 
+                // skip if current layer has no points. This fixes potential crash in get_collision (see jira BBL001-355)
+                if (contact_nodes[layer_nr].empty())
+                    continue;
+                
                 //Draw the support areas and add the roofs appropriately to the support roof instead of normal areas.
-                if (!contact_nodes[layer_nr].empty())
-                {
-                    ts_layer->lslices.reserve(contact_nodes[layer_nr].size());
-                }
-
+                ts_layer->lslices.reserve(contact_nodes[layer_nr].size());
 
                 for (const Node* p_node : contact_nodes[layer_nr])
                 {
