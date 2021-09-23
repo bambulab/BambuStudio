@@ -179,6 +179,9 @@ public:
 
     MachineObject* get_default();   /* return default machine */
     std::map<std::string ,MachineObject*> get_all_machine_list();
+    std::map<std::string, MachineObject*> get_free_machine_list();
+    std::map<std::string, MachineObject*> get_user_machine_list();
+
 
     void check_alive();
 };

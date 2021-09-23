@@ -435,14 +435,11 @@ namespace Slic3r {
 
                 MachineObject* obj = new MachineObject(*this, dev_name, dev_id, "");
                 obj->is_online = online.compare("true") == 0 ? true : false;
+                obj->set_bind_status(this->get_user_name());
                 myBindMachineList.insert(std::make_pair(dev_id, obj));
 
                 /* insert a new machine event */
-                this->add_subscribe(obj);
-                /*count++;
-                if (count >= 4)
-                    break;*/
-                    
+                this->add_subscribe(obj);    
             }
         }
         catch (std::exception& e) {

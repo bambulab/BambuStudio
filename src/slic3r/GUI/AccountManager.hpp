@@ -194,7 +194,7 @@ public:
     int query_bind_status(std::vector<std::string> device_list, CompletedFn fn, ErrorFn errFn);
     int request_bind(std::string device_id, ResultFn fn);
     int request_unbind(std::string device_id, ResultFn fn);
-    int request_bind_list(ResultFn fn);
+    int request_bind_list(ResultFn fn = nullptr);
 
     /* project apis */
     BBLProject* get_default_project() { return default_project; }

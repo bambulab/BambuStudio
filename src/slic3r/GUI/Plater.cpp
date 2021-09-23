@@ -80,6 +80,7 @@
 #include "Jobs/NotificationProgressIndicator.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "PrintHostDialogs.hpp"
+#include "SelectMachine.hpp"
 #include "ConfigWizard.hpp"
 #include "../Utils/ASCIIFolding.hpp"
 #include "../Utils/PrintHost.hpp"
@@ -6510,14 +6511,17 @@ void Plater::reslice_SLA_until_step(SLAPrintObjectStep step, const ModelObject &
 
 void Plater::send_gcode()
 {
+    // BBS
+    /*PrintHostJob upload_job(physical_printer_config);
+    if (upload_job.empty())
+        return;
+
     // if physical_printer is selected, send gcode for this printer
     DynamicPrintConfig* physical_printer_config = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config();
     if (! physical_printer_config || p->model.objects.empty())
         return;
-
-    PrintHostJob upload_job(physical_printer_config);
-    if (upload_job.empty())
-        return;
+    */
+    
 
     // Obtain default output path
     fs::path default_output_file;
@@ -6538,7 +6542,14 @@ void Plater::send_gcode()
     }
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
 
+    //BBS send gcode to printer
+    SelectMachineDialog dlg;
+    if (dlg.ShowModal() == wxID_OK) {
+        BOOST_LOG_TRIVIAL(trace) << "MachineDialog";
+    }
+
     // Repetier specific: Query the server for the list of file groups.
+    /* BBS
     wxArrayString groups;
     {
         wxBusyCursor wait;
@@ -6553,6 +6564,7 @@ void Plater::send_gcode()
 
         p->export_gcode(fs::path(), false, std::move(upload_job));
     }
+    */
 }
 
 // Called when the Eject button is pressed.

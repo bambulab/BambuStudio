@@ -54,7 +54,8 @@ namespace Slic3r {
             // Insert a new device or not
             Slic3r::DeviceManager* device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
             if (device_manager) {
-                device_manager->on_machine_alive("", dev_id, dev_ip);
+                //TODO get dev_name, use dev_ip instead
+                device_manager->on_machine_alive(dev_ip, dev_id, dev_ip);
             }
             return;
         }

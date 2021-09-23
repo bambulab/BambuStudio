@@ -653,6 +653,34 @@ std::map<std::string ,MachineObject*> DeviceManager::get_all_machine_list()
     return result;
 }
 
+std::map<std::string, MachineObject*> DeviceManager::get_free_machine_list()
+{
+    std::map<std::string, MachineObject*> result;
+    std::map<std::string, MachineObject*>::iterator it;
+
+    for (it = localMachineList.begin(); it != localMachineList.end(); it++) {
+        if (it->second->is_alive && it->second->dev_bind_status == MachineObject::MACHINE_BIND_FREE) {
+            result.insert(std::make_pair(it->first, it->second));
+        }
+    }
+
+    return result;
+}
+
+std::map<std::string, MachineObject*> DeviceManager::get_user_machine_list()
+{
+    std::map<std::string, MachineObject*> result;
+    std::map<std::string, MachineObject*>::iterator it;
+
+    for (it = localMachineList.begin(); it != localMachineList.end(); it++) {
+        if (it->second->is_alive && it->second->owner.compare(acc_.get_user_name()) == 0 && !it->second->owner.empty()) {
+            result.insert(std::make_pair(it->first, it->second));
+        }
+    }
+
+    return result;
+}
+
 
 void DeviceManager::check_alive()
 {

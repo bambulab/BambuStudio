@@ -230,6 +230,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/LoginDialog.cpp
     GUI/PrintResultDialog.hpp
     GUI/PrintResultDialog.cpp
+    GUI/SelectMachine.hpp
+    GUI/SelectMachine.cpp
     Utils/Http.cpp
     Utils/Http.hpp
     Utils/Sftp.cpp
