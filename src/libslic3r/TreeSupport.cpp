@@ -1269,6 +1269,13 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 }
                 ts_layer->lslices = std::move(union_ex(ts_layer->lslices));
 
+                //Must update bounding box which is used in avoid crossing perimeter
+                ts_layer->lslices_bboxes.clear();
+                ts_layer->lslices_bboxes.reserve(ts_layer->lslices.size());
+                for (const ExPolygon &expoly : ts_layer->lslices)
+                    ts_layer->lslices_bboxes.emplace_back(get_extents(expoly));
+                ts_layer->backup_untyped_slices();
+
                 if (/*m_spanning_trees[layer_nr].size() > */0) {
                     // now this method is extremely slow. Need to optimize the speed before we can use it.
                     Polygons layer_contours = std::move(m_ts_data->get_contours_with_holes(layer_nr));
