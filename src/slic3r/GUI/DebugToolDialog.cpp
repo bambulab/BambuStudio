@@ -751,7 +751,7 @@ void DebugToolDialog::init_gcode_run_file(wxWindow *parent)
 
                 /* create a subtask */
                 BBLSubTask* task = new BBLSubTask();
-                task->task_file = txt_gcode_filename->GetValue().ToStdWstring();
+                task->task_file = txt_gcode_filename->GetValue().ToUTF8().data();
 
                 /* send print task */
                 MachineObject* obj = dev_manager_.get_default();
@@ -785,14 +785,14 @@ void DebugToolDialog::init_gcode_run_file(wxWindow *parent)
                 /* print current 3mf */
                 Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
 
-                wxStdWideString gcode_file = txt_wlan_gcode_filename->GetValue().ToStdWstring();
-                std::string gcode_file_str = converter.to_bytes(gcode_file);
-                fs::path gcode_path(gcode_file.c_str());
-                std::wstring gcode_filename = gcode_path.filename().generic_wstring();
-                std::string dst_gcode_file_str = converter.to_bytes(gcode_path.filename().generic_wstring());
+                std::string gcode_file_str = txt_gcode_filename->GetValue().ToUTF8().data();
+                fs::path gcode_path(gcode_file_str);
+                fs::path _3mf_path(gcode_path);
+
+                std::string dst_gcode_file_str = gcode_path.filename().string();
 
                 /* zip gcode to 3mf */
-                std::string _3mf_file_str = gcode_path.replace_extension("3mf").generic_string();
+                std::string _3mf_file_str = _3mf_path.replace_extension("3mf").string();
                 mz_zip_archive archive;
                 mz_zip_zero_struct(&archive);
                 if (!open_zip_writer(&archive, _3mf_file_str)) {
@@ -803,24 +803,16 @@ void DebugToolDialog::init_gcode_run_file(wxWindow *parent)
                 mz_zip_writer_finalize_archive(&archive);
                 close_zip_writer(&archive);
 
-                /* get create time */
-                std::time_t t = std::time(0);
-                std::tm* now_time = std::localtime(&t);
-                std::stringstream buf;
-                buf << std::put_time(now_time, "%a %b %d %H:%M:%S");
-
                 /* create subtask info */
                 BBLSubTask* subtask = new BBLSubTask();
-                subtask->task_create_time = buf.str();
-                subtask->task_project_id = "0";
-                subtask->parent_task_id = "0";
                 subtask->task_id = "0";
-                subtask->task_path = fs::path(_3mf_file_str.c_str());
-                subtask->task_name = gcode_filename;
+                subtask->task_path = _3mf_path;
+                subtask->task_name = gcode_path.filename().string();
+                subtask->task_gcode_in_3mf = gcode_path.filename().string();
 
 
                 /* send task */
-                MachineObject* obj = dev_manager_.get_default();
+                MachineObject* obj = account_manager->get_default_machine();
                 if (obj) {
                     obj->send_wan_print_subtask(subtask,
                         [this, _3mf_file_str]() {
@@ -878,100 +870,6 @@ void DebugToolDialog::init_gcode_run_file(wxWindow *parent)
 
     select3mfDialog = new wxFileDialog(parent, "Open 3mf File", "", "", "3mf files(*.3mf)|*.3mf", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
-    /*
-    Bind(EVT_3MF_PROGRESS, [this](wxCommandEvent& evt) {
-        std::string text = "upload:";
-        text += std::to_string(evt.GetInt()) + "%";
-        this->label_3mf_progress->SetLabelText(text);
-        });
-
-    auto label_3mf_filename = new wxStaticText(parent, wxID_ANY, _L("Print 3mf File:"), wxDefaultPosition, wxSize(100, -1));
-    txt_3mf_filename = new wxTextCtrl(parent, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, -1));
-    btn_select_3mf_file = new wxButton(parent, wxID_ANY, _L("Select File"), wxDefaultPosition, wxSize(100, -1));
-    btn_select_3mf_file->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-        if (this->select3mfDialog->ShowModal() == wxID_CANCEL) return;
-
-        txt_3mf_filename->SetValue(this->select3mfDialog->GetPath());
-        txt_3mf_filename->SetFocus();
-        this->SetFocus();
-        });
-
-    auto label_3mf_upload = new wxStaticText(parent, wxID_ANY, _L("3mf Upload:"), wxDefaultPosition, wxSize(100, -1));
-    auto label_3mf_upload_val = new wxStaticText(parent, wxID_ANY, _L("0%"), wxDefaultPosition, wxSize(300, -1));
-    btn_upload_3mf = new wxButton(parent, wxID_ANY, _L("Upload 3mf"), wxDefaultPosition, wxSize(100, -1));
-    btn_upload_3mf->Bind(wxEVT_BUTTON,
-        [this](wxCommandEvent& evt) {
-            wxStdWideString file = txt_3mf_filename->GetValue().ToStdWstring();
-
-            Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-            account_manager->create_project(BBLProject::ProjectType::PROJECT_3MF, file,
-                [this](int result, std::string info) {
-                    this->send_log_evt(info);
-                },
-                [this](int progress) {
-                    auto evt = new wxCommandEvent(EVT_3MF_PROGRESS, this->GetId());
-                    evt->SetInt(progress);
-                    wxQueueEvent(this, evt);
-                }
-                );
-        });
-    */
-    //auto label_print_task = new wxStaticText(parent, wxID_ANY, _L("Print Task:"), wxDefaultPosition, wxSize(100, -1));
-    //txt_plate_idx = new wxTextCtrl(parent, wxID_ANY, _L(""), wxDefaultPosition, wxSize(300, -1));
-    //auto btn_print = new wxButton(parent, wxID_ANY, _L("Print"), wxDefaultPosition, wxSize(100, -1));
-    //btn_print->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-    //        /* print current 3mf */
-    //        Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-
-    //        /* get project info */
-    //        BBLProject* project = account_manager->get_default_project();
-
-    //        /* get profile info, user select a profiles */
-    //        BBLProfile* profile = nullptr;
-    //        if (project->profiles.size() == 1) {
-    //            profile = project->profiles[0];
-    //        }
-    //        else {
-    //            // select a profiles
-    //            return;
-    //        }
-    //        account_manager->get_profile_info(project, profile);
-
-    //        /* add task to current profile */
-    //        /* create task and sub task */
-    //        BBLTask* task = new BBLTask();
-    //        task->task_project_id = project->project_id;
-    //        task->task_profile_id = profile->profile_id;
-
-    //        task->task_url = project->project_url;
-    //        task->task_url_md5 = project->project_url_md5;
-
-    //        /* get task id */
-    //        account_manager->create_task(project, task,
-    //            [this](int result, std::string info) {
-    //                this->send_log_evt(info);
-    //            });
-
-    //        /* get create time */
-    //        std::time_t t = std::time(0);
-    //        std::tm* now_time = std::localtime(&t);
-    //        std::stringstream buf;
-    //        buf << std::put_time(now_time, "%a %b %d %H:%M:%S");
-
-    //        /* create subtask info */
-    //        BBLSubTask* subtask = new BBLSubTask();
-    //        subtask->parent_task_id = task->task_id;
-    //        subtask->task_create_time = buf.str();
-    //        subtask->task_url = project->project_url;
-    //        subtask->task_url_md5 = project->project_url_md5;
-    //        task->subtasks.push_back(subtask);
-
-    //        /* send task */
-    //        MachineObject* obj = dev_manager_.get_default();
-    //        if (obj)
-    //            obj->send_print_task(task);
-    //    });
-
     /* Layout  */
     auto sizer = new wxBoxSizer(wxVERTICAL);
     
@@ -999,25 +897,6 @@ void DebugToolDialog::init_gcode_run_file(wxWindow *parent)
     h_sizer->Add(btn_pause, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
     h_sizer->Add(btn_resume, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
     h_sizer->Add(btn_abort_print, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
-
-    /*
-    auto _3mf_sizer = new wxStaticBoxSizer(wxVERTICAL, parent, "3MF Upload");
-    h_sizer = new wxBoxSizer(wxHORIZONTAL);
-    _3mf_sizer->Add(h_sizer, 0, wxLEFT, 0);
-    h_sizer->Add(label_3mf_filename, 0, wxLEFT | wxTEXT_ALIGNMENT_LEFT, SPACING);
-    h_sizer->Add(txt_3mf_filename, 1, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
-    h_sizer->Add(btn_select_3mf_file, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
-    
-    h_sizer = new wxBoxSizer(wxHORIZONTAL);
-    _3mf_sizer->Add(-1, 8);
-    _3mf_sizer->Add(h_sizer, 0, wxLEFT, 0);
-    h_sizer->Add(label_3mf_upload, 0, wxLEFT | wxTEXT_ALIGNMENT_LEFT, SPACING);
-    h_sizer->Add(label_3mf_upload_val, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
-    h_sizer->Add(btn_upload_3mf, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, SPACING);
-
-    sizer->Add(-1, 20);
-    sizer->Add(_3mf_sizer);
-    */
     
     h_sizer = new wxBoxSizer(wxHORIZONTAL);
 

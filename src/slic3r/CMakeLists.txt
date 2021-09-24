@@ -117,6 +117,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/MeshUtils.hpp
     GUI/Tab.cpp
     GUI/Tab.hpp
+    GUI/Monitor.cpp
+    GUI/Monitor.hpp
     GUI/ConfigManipulation.cpp
     GUI/ConfigManipulation.hpp
     GUI/Field.cpp
@@ -189,6 +191,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Jobs/SLAImportJob.hpp
     GUI/Jobs/SLAImportJob.cpp
     GUI/Jobs/ProgressIndicator.hpp
+    GUI/Jobs/PrintJob.hpp
+    GUI/Jobs/PrintJob.cpp
     GUI/Jobs/NotificationProgressIndicator.hpp
     GUI/Jobs/NotificationProgressIndicator.cpp
     GUI/ProgressStatusBar.hpp

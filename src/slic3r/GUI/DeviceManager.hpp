@@ -9,6 +9,7 @@
 #include "mqtt/async_client.h"
 #include "CommuBackend.hpp"
 #include "AccountManager.hpp"
+#include "ProjectTask.hpp"
 
 namespace Slic3r {
 
@@ -52,6 +53,36 @@ public:
         : nretry_(0), cli_(cli), connOpts_(connOpts), context_(context) {}
 
     void add_topics(std::string topic) { sub_topics.push_back(topic); }
+};
+
+
+class AmsTray {
+public:
+    AmsTray(std::string tray_id) {
+        is_bbl = false;
+        id = tray_id;
+    }
+
+    std::string     id;
+    std::string     color;      //TODO use color struct instead
+    std::string     sn;
+    bool            is_bbl;
+    std::string     meterial;
+    std::string     saturability;
+    std::string     smooth;
+    std::string     time;
+    std::string     transmittance;
+    std::string     weight;
+};
+
+
+class Ams {
+public:
+    Ams(std::string ams_id) {
+        id = ams_id;
+    }
+    std::string                     id;
+    std::map<std::string, AmsTray*> trayList;
 };
 
    
@@ -103,6 +134,21 @@ public:
     time_t last_alive;
     bool is_online;     /* wan online */
 
+    /* Ams Properties */
+    std::map<std::string, Ams*> amsList;
+    int     ams_exist_bits;
+    int     tray_exist_bits;
+    int     tray_is_bbl_bits;
+
+    /* temperature */
+    double  nozzle_temp;
+    double  nozzle_temp_target;
+    double  bed_temp;
+    double  bed_temp_target;
+
+    /* signals */
+    std::string wifi_signal;
+
     /* mqtt connections */
     CONNECTION_TYPE conn_type;
     CONNECTION_STATE conn_state;
@@ -119,6 +165,10 @@ public:
     MsgFn msg_send_fn;
     MsgFn msg_recv_fn;
 
+    /* Project Task and Sub Task */
+    BBLSubTask* subtask_;
+    BBLSubTask* temptask_;
+
     /* cloud mqtt cli */
     //mqtt::async_client& mqtt_cloud;
 
@@ -131,6 +181,8 @@ public:
     void set_msg_send_fn(MsgFn fn) { msg_send_fn = std::move(fn); }
     void set_msg_recv_fn(MsgFn fn) { msg_recv_fn = std::move(fn); }
     int publish_json(std::string json_str, ResultFn resFn = nullptr, CONNECTION_TYPE conn_type = CONNECTION_TYPE::CONNECTION_DEFAULT);
+    int parse_json(std::string topic, std::string payload);
+    int publish_gcode(std::string gcode_str);
 
     int send_print_task(BBLTask* task);
     int send_wan_print_task(BBLTask* task);
@@ -142,6 +194,7 @@ public:
     /* iot operation apis */
     void request_bind(ResultFn fn, bool force_bind = false);
     void request_unbind(ResultFn fn);
+    void get_subtask(std::string project_id, std::string profile_id, std::string task_id, std::string subtask_id);
 
     /* common apis */
     void set_bind_status(std::string status);
@@ -177,7 +230,7 @@ public:
     void query_bind_status(AccountManager::CompletedFn cFn, AccountManager::ErrorFn errFn);
 
     MachineObject* get_default();   /* return default machine */
-    std::map<std::string ,MachineObject*> get_all_machine_list();
+    std::map<std::string, MachineObject*> get_all_machine_list();
     std::map<std::string, MachineObject*> get_free_machine_list();
     std::map<std::string, MachineObject*> get_user_machine_list();
 

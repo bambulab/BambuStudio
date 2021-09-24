@@ -77,6 +77,7 @@
 #include "Jobs/FillBedJob.hpp"
 #include "Jobs/RotoptimizeJob.hpp"
 #include "Jobs/SLAImportJob.hpp"
+#include "Jobs/PrintJob.hpp"
 #include "Jobs/NotificationProgressIndicator.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "PrintHostDialogs.hpp"
@@ -1763,6 +1764,8 @@ struct Plater::priv
         priv *m;
         size_t m_arrange_id, m_fill_bed_id, m_rotoptimize_id, m_sla_import_id, m_orient_id;
         std::shared_ptr<NotificationProgressIndicator> m_pri;
+        //BBS
+        size_t m_print_id;
         
         void before_start() override { m->background_process.stop(); }
         
@@ -1776,6 +1779,8 @@ struct Plater::priv
             m_fill_bed_id = add_job(std::make_unique<FillBedJob>(m_pri, m->q));
             m_rotoptimize_id = add_job(std::make_unique<RotoptimizeJob>(m_pri, m->q));
             m_sla_import_id = add_job(std::make_unique<SLAImportJob>(m_pri, m->q));
+            //BBS add print id
+            m_print_id = add_job(std::make_unique<PrintJob>(m_pri, m->q));
         }
         
         void arrange()
@@ -1807,7 +1812,12 @@ struct Plater::priv
             m->take_snapshot(_L("Import SLA archive"));
             start(m_sla_import_id);
         }
-        
+
+        //BBS bbl printing job
+        void print()
+        {
+            start(m_print_id);
+        }
     } m_ui_jobs;
 
     int                         m_job_prepare_state;
@@ -2074,6 +2084,9 @@ struct Plater::priv
     ExportingStatus             exporting_status { NOT_EXPORTING };
     std::string                 last_output_path;
     std::string                 last_output_dir_path;
+    //BBS store machine_sn and 3mf_path for PrintJob
+    std::string                 m_job_machine_sn;
+    fs::path                    m_job_3mf_path;
     bool                        inside_snapshot_capture() { return m_prevent_snapshots != 0; }
 	bool                        process_completed_with_error { false };
    
@@ -4287,42 +4300,12 @@ void Plater::priv::on_export_began(wxCommandEvent& evt)
 void Plater::priv::on_export_finished(wxCommandEvent& evt)
 {
     //BBS: also export 3mf to the same directory for debugging
-    std::string output_path_str(evt.GetString().ToUTF8().data());
-    boost::filesystem::path target(output_path_str);
-    std::string project_file_path = target.replace_extension(".3mf").string();
+    std::string gcode_path_str(evt.GetString().ToUTF8().data());
+    fs::path gcode_path(gcode_path_str);
 
-    DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
-    bool full_pathnames = wxGetApp().app_config->get("export_sources_full_pathnames") == "1";
-    //add plate logic for thumbnail generate
-    std::vector<ThumbnailData*> thumbnails;
-    for (unsigned int i = 0; i < partplate_list.get_plate_count(); i++)
-    {
-        ThumbnailData* thumbnail_data = new ThumbnailData();
-        ThumbnailsParams thumbnail_params = { {}, false, true, true, true };
-        generate_thumbnail(*thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, thumbnail_params, Camera::EType::Ortho, i);
-        thumbnails.push_back(thumbnail_data);
+    if (q) {
+        q->export_3mf(gcode_path.replace_extension(".3mf"));
     }
-
-    //add bbs 3mf logic
-    PlateDataPtrs plate_data_list;
-    partplate_list.store_to_3mf_structure(plate_data_list);
-
-
-    if (Slic3r::store_bbs_3mf(project_file_path.c_str(), &model, plate_data_list, &cfg, full_pathnames, thumbnails)) {
-        // Success
-        //statusbar()->set_status_text(format_wxstr(_L("3MF file exported to %s"), project_file_path));
-    }
-    else {
-        // Failure
-        //statusbar()->set_status_text(format_wxstr(_L("Error exporting 3MF file %s"), project_file_path));
-    }
-
-    release_PlateData_list(plate_data_list);
-    for (unsigned int i = 0; i < thumbnails.size(); i++)
-    {
-        delete thumbnails[i];
-    }
-    thumbnails.clear();
 }
 
 void Plater::priv::on_slicing_began()
@@ -4718,6 +4701,16 @@ int Plater::get_prepare_state()
     return p->m_job_prepare_state;
 }
 
+//BBS: add print job releated functions
+std::string Plater::get_prepared_machine_sn()
+{
+    return p->m_job_machine_sn;
+}
+
+fs::path Plater::get_prepared_3mf_path()
+{
+    return p->m_job_3mf_path;
+}
 
 void Plater::priv::set_current_canvas_as_dirty()
 {
@@ -6314,7 +6307,7 @@ void Plater::export_amf()
     }
 }
 
-bool Plater::export_3mf(const boost::filesystem::path& output_path)
+bool Plater::export_3mf(const boost::filesystem::path& output_path, bool silence)
 {
     if (p->model.objects.empty()) {
         MessageDialog dialog(nullptr, _L("The plater is empty.\nDo you want to save the project?"), _L("Save project"), wxYES_NO);
@@ -6350,16 +6343,25 @@ bool Plater::export_3mf(const boost::filesystem::path& output_path)
 
     //BBS: add bbs 3mf logic
     PlateDataPtrs plate_data_list;
-    p->partplate_list.store_to_3mf_structure(plate_data_list);
-    bool ret = Slic3r::store_bbs_3mf(path_u8.c_str(), &p->model, plate_data_list, export_config ? &cfg : nullptr, full_pathnames, thumbnails);
-    if (ret) {
-        // Success
-//        p->statusbar()->set_status_text(format_wxstr(_L("3MF file exported to %s"), path));
-        p->set_project_filename(path);
+    //BBS: add gcode to 3mf logic
+    if (wxGetApp().app_config->get("3mf_include_gcode") == "1") {
+        p->partplate_list.store_to_3mf_structure(plate_data_list, true);
     }
     else {
-        // Failure
-//        p->statusbar()->set_status_text(format_wxstr(_L("Error exporting 3MF file %s"), path));
+        p->partplate_list.store_to_3mf_structure(plate_data_list, false);
+    }
+    if (Slic3r::store_bbs_3mf(path_u8.c_str(), &p->model, plate_data_list, export_config ? &cfg : nullptr, full_pathnames, thumbnails)) {
+        if (!silence) {
+            // Success
+            //p->statusbar()->set_status_text(format_wxstr(_L("3MF file exported to %s"), path));
+            p->set_project_filename(path);
+        }
+    }
+    else {
+        if (!silence) {
+            // Failure
+            //p->statusbar()->set_status_text(format_wxstr(_L("Error exporting 3MF file %s"), path));
+        }
     }
 
     release_PlateData_list(plate_data_list);
@@ -6539,12 +6541,27 @@ void Plater::send_gcode()
         show_error(this, ex.what(), false);
         return;
     }
-    default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
+
+    PartPlate* plate = p->background_process.get_current_plate();
+    try {
+        p->m_job_3mf_path = fs::path(plate->get_tmp_gcode_path());
+        p->m_job_3mf_path.replace_extension("3mf");
+    }
+    catch (std::exception& e) {
+        BOOST_LOG_TRIVIAL(trace) << "generate 3mf path failed";
+    }
+
+    /* generate 3mf */
+    export_3mf(p->m_job_3mf_path, true);
 
     //BBS send gcode to printer
     SelectMachineDialog dlg;
     if (dlg.ShowModal() == wxID_OK) {
         BOOST_LOG_TRIVIAL(trace) << "MachineDialog";
+        if (!dlg.machine_sn.empty()) {
+            p->m_job_machine_sn = dlg.machine_sn.ToStdString();
+            p->m_ui_jobs.print();
+        }
     }
 
     // Repetier specific: Query the server for the list of file groups.

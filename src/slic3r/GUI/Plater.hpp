@@ -228,7 +228,8 @@ public:
     void export_gcode(bool prefer_removable);
     void export_stl(bool extended = false, bool selection_only = false);
     void export_amf();
-    bool export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path());
+    //BBS add extra param for exporting 3mf silence
+    bool export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path(), bool silence = false);
     void reload_from_disk();
     void replace_with_stl();
     void reload_all_from_disk();
@@ -300,6 +301,9 @@ public:
     //BBS: add job state related functions
     void set_prepare_state(int state);
     int get_prepare_state();
+    //BBS: add print job releated functions
+    std::string get_prepared_machine_sn();
+    boost::filesystem::path get_prepared_3mf_path();
 
     void set_current_canvas_as_dirty();
     void unbind_canvas_event_handlers();

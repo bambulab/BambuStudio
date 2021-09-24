@@ -94,8 +94,8 @@ void machine_conn_callback::connection_lost(const std::string& cause) {
 void machine_conn_callback::message_arrived(mqtt::const_message_ptr msg)
 {
     MachineObject* obj = (MachineObject*)context_;
-    if (obj && obj->msg_recv_fn) {
-        obj->msg_recv_fn(msg->get_topic(), msg->get_payload_str());
+    if (obj) {
+        obj->parse_json(msg->get_topic(), msg->get_payload_str());
     }
 }
 
@@ -111,6 +111,8 @@ MachineObject::MachineObject(AccountManager& acc, std::string name, std::string 
     dev_ip(ip),
     dev_bind_status(MACHINE_BIND_UNKOWN),
     conn_type(CONNECTION_LAN),
+    subtask_(nullptr),
+    temptask_(nullptr),
     is_alive(false),
     is_online(false),
     successFn(nullptr),
@@ -124,6 +126,21 @@ MachineObject::MachineObject(AccountManager& acc, std::string name, std::string 
     boost::uuids::uuid uuid = boost::uuids::random_generator()();
     mqtt_uuid = to_string(uuid).substr(0, mqtt_uuid_bytes);
     mqtt_opt.set_automatic_reconnect(3, 10);
+    mqtt_opt.set_max_inflight(1000);
+
+    /* create a dummy task to store info */
+    temptask_ = new BBLSubTask(nullptr);
+
+    /* init field */
+    nozzle_temp = 0.0f;
+    nozzle_temp_target = 0.0f;
+    bed_temp = 0.0f;
+    bed_temp_target = 0.0f;
+
+    ams_exist_bits = 0;
+    tray_exist_bits = 0;
+    tray_is_bbl_bits = 0;
+    wifi_signal = "";
 }
 
 bool MachineObject::check_valid_ip()
@@ -232,9 +249,11 @@ bool MachineObject::is_connected()
 
 int MachineObject::publish_json(std::string json_str, ResultFn resFn, CONNECTION_TYPE conn_type)
 {
-    if (conn_type == CONNECTION_TYPE::CONNECTION_DEFAULT) {
+    if (mqtt_cli == nullptr)
+        conn_type = CONNECTION_WAN;
+    else
         conn_type = CONNECTION_TYPE::CONNECTION_LAN;
-    }
+
 
     mqtt::async_client* client = nullptr;
     if (conn_type == CONNECTION_LAN) {
@@ -244,7 +263,7 @@ int MachineObject::publish_json(std::string json_str, ResultFn resFn, CONNECTION
         client = acc_.get_client();
     }
     else {
-        ;
+        client = nullptr;
     }
 
     if (client) {
@@ -265,13 +284,295 @@ int MachineObject::publish_json(std::string json_str, ResultFn resFn, CONNECTION
     return 0;
 }
 
-std::wstring get_printer_dest_file(std::wstring file)
+int MachineObject::parse_json(std::string topic, std::string payload)
 {
-    std::wstring result;
+    try {
+        std::stringstream ss(payload);
+        pt::ptree root;
+        pt::read_json(ss, root);
+        if (root.empty()) {
+            BOOST_LOG_TRIVIAL(trace) << "parse_json failed! topic=" << topic << ", payload = " << payload;
+            return -1;
+        }
+        // print command
+        if (root.get_child_optional("print") != boost::none) {
+            pt::ptree print = root.get_child("print");
+            boost::optional<std::string> command = print.get_optional<std::string>("command");
+            if (!command.has_value()) return 0;
+            // push_status
+            if (command.value().compare("push_status") == 0) {
+                /* gcode */
+                boost::optional<std::string> gcode_start_time   = print.get_optional<std::string>("gcode_start_time");
+                boost::optional<std::string> gcode_duration     = print.get_optional<std::string>("gcode_duration");
+                boost::optional<std::string> gcode_file         = print.get_optional<std::string>("gcode_file");
+                boost::optional<std::string> progress           = print.get_optional<std::string>("progress");
+                boost::optional<std::string> gcode_state        = print.get_optional<std::string>("gcode_state");
 
-    result = L"/data/";
+                /* task */
+                boost::optional<std::string> project_id         = print.get_optional<std::string>("project_id");
+                boost::optional<std::string> profile_id         = print.get_optional<std::string>("profile_id");
+                boost::optional<std::string> task_id            = print.get_optional<std::string>("task_id");
+                boost::optional<std::string> subtask_id         = print.get_optional<std::string>("subtask_id");
 
-    int name_start = file.find_last_of(L"\\");
+                BBLSubTask* curr_task = temptask_;
+
+                /* valid subtask */
+                if (subtask_id.has_value() && task_id.has_value()
+                    && !task_id.value().empty()
+                    && (task_id.value().compare("0") != 0)) {
+                    /* create a new subtask */
+                    if (!subtask_) {
+                        if (task_id.has_value() && subtask_id.has_value()) {
+                            // reqeust task
+                            // TODO modify to async
+                            BBLTask* task = acc_.get_task(task_id.value());
+                            if (task) {
+                                for (int i = 0; i < task->subtasks.size(); i++) {
+                                    if (task->subtasks[i]->task_id.compare(subtask_id.value()) == 0) {
+                                        this->subtask_ = task->subtasks[i];
+                                        curr_task = subtask_;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        // get project and profile_id info
+                        if (project_id.has_value() && profile_id.has_value()) {
+                            ;
+                        }
+                    }
+                    else {
+                        /* same task with obj */
+                        if (subtask_id.value().compare(subtask_->task_id) == 0
+                            && task_id.value().compare(subtask_->parent_task_->task_id) == 0) {
+                            curr_task = subtask_;
+                        }
+                        /* update to a new subtask */
+                        else {
+                            //TODO
+                        }
+                    }
+                }
+                /* invalid subtask, use temptask */
+                else {
+                    ;
+                }
+
+                if (curr_task) {
+                    if (progress.has_value())
+                        curr_task->task_progress = stoi(progress.value());
+                    if (gcode_start_time.has_value())
+                        curr_task->task_start_time = gcode_start_time.value();
+                    if (gcode_duration.has_value())
+                        curr_task->task_duration = gcode_duration.value();
+
+                    if (gcode_state.has_value())
+                        curr_task->printing_status = gcode_state.value();
+
+                    // update default subtask fields
+                    if (subtask_id.has_value()) {
+                        curr_task->task_id = subtask_id.value();
+                    }
+                    if (gcode_file.has_value()) {
+                        curr_task->task_name = gcode_file.value();
+                    }
+                }
+
+
+                /* temperature */
+                boost::optional<std::string> nozzle_temp_raw        = print.get_optional<std::string>("nozzle_temp_raw");
+                boost::optional<std::string> nozzle_temp_target_raw = print.get_optional<std::string>("nozzle_target_temp_raw");
+                boost::optional<std::string> bed_temp_raw           = print.get_optional<std::string>("bed_temp_raw");
+                boost::optional<std::string> bed_temp_target_raw    = print.get_optional<std::string>("bed_target_temp_raw");
+                double temp_scale = 32.0f;
+                if (nozzle_temp_raw.has_value())
+                    nozzle_temp = (float)std::stoi(nozzle_temp_raw.value()) / temp_scale;
+
+                if (nozzle_temp_target_raw.has_value())
+                    nozzle_temp_target = (float)std::stoi(nozzle_temp_target_raw.value()) / temp_scale;
+
+                if (bed_temp_raw.has_value())
+                    bed_temp = (float)std::stoi(bed_temp_raw.value()) / temp_scale;
+
+                if (bed_temp_target_raw.has_value())
+                    bed_temp_target = (float)std::stoi(bed_temp_target_raw.value()) / temp_scale;
+
+                /* deprecated protocol field
+                boost::optional<std::string> nozzle_temp = print.get_optional<std::string>("nozzle_temp");
+                boost::optional<std::string> nozzle_temp_target = print.get_optional<std::string>("nozzle_target_temp");
+                boost::optional<std::string> bed_temp = print.get_optional<std::string>("bed_temp");
+                boost::optional<std::string> bed_temp_target = print.get_optional<std::string>("bed_target_temp");
+                */
+
+                /* positions */
+                boost::optional<std::string> pos_x = print.get_optional<std::string>("pos_x");
+                boost::optional<std::string> pos_y = print.get_optional<std::string>("pos_y");
+                boost::optional<std::string> pos_z = print.get_optional<std::string>("pos_z");
+                boost::optional<std::string> pos_e = print.get_optional<std::string>("pos_e");
+
+                /* signals */
+                boost::optional<std::string> link_th        = print.get_optional<std::string>("link_th_state");
+                boost::optional<std::string> link_ams       = print.get_optional<std::string>("link_ams_state");
+                boost::optional<std::string> signal         = print.get_optional<std::string>("wifi_signal");
+                if (signal.has_value()) {
+                    wifi_signal = signal.value();
+                }
+
+                /* ams */
+                try {
+                    if (print.get_child_optional("ams") != boost::none) {
+                        // reconnect amsList.clear();
+
+                        // for ams changed event
+                        boost::optional<std::string> ams_exist_bits_str     = print.get_optional<std::string>("ams_exist_bits");
+                        boost::optional<std::string> tray_exist_bits_str    = print.get_optional<std::string>("tray_exist_bits");
+                        boost::optional<std::string> tray_is_bbl_bits_str   = print.get_optional<std::string>("tray_is_bbl_bits");
+                        if (ams_exist_bits_str.has_value())
+                            ams_exist_bits = stoi(ams_exist_bits_str.value());
+                        if (tray_exist_bits_str.has_value())
+                            tray_exist_bits = stoi(tray_exist_bits_str.value());
+                        if (tray_is_bbl_bits_str.has_value())
+                            tray_is_bbl_bits = stoi(tray_is_bbl_bits_str.value());
+
+                        pt::ptree ams_list = print.get_child("ams");
+                        // compare ams_list
+                        for (auto ams = ams_list.begin(); ams != ams_list.end(); ++ams) {
+                            std::string ams_id = ams->second.get_optional<std::string>("id").value();
+                            pt::ptree tray_list = ams->second.get_child("tray");
+
+                            if (ams_id.empty()) continue;
+
+                            Ams* curr_ams = nullptr;
+                            std::map<std::string, Ams*>::iterator it = amsList.find(ams_id);
+                            if (it == amsList.end()) {
+                                // check valid id
+                                Ams* new_ams = new Ams(ams_id);
+                                amsList.insert(std::make_pair(ams_id, new_ams));
+                                // new ams added event
+                                curr_ams = new_ams;
+                            }
+                            else {
+                                curr_ams = it->second;
+                            }
+
+                            if (!curr_ams) continue;
+
+                            for (auto tray = tray_list.begin(); tray != tray_list.end(); ++tray) {
+                                std::string tray_id     = tray->second.get_optional<std::string>("id").value();
+                                std::string color       = tray->second.get_optional<std::string>("color").value();
+                                bool is_bbl             = tray->second.get_optional<std::string>("is_bbl").value().compare("true") ? true : false;
+
+                                boost::optional<std::string> rfid_id            = tray->second.get_optional<std::string>("rfid_id");
+                                boost::optional<std::string> tray_diameter      = tray->second.get_optional<std::string>("tray_diameter");
+                                boost::optional<std::string> tray_manufacturer  = tray->second.get_optional<std::string>("tray_manufacturer");
+                                boost::optional<std::string> tray_meterial      = tray->second.get_optional<std::string>("tray_meterial");
+                                boost::optional<std::string> tray_saturability  = tray->second.get_optional<std::string>("tray_saturability");
+                                boost::optional<std::string> tray_smooth        = tray->second.get_optional<std::string>("tray_smooth");
+                                boost::optional<std::string> tray_sn            = tray->second.get_optional<std::string>("tray_sn");
+                                boost::optional<std::string> tray_time          = tray->second.get_optional<std::string>("tray_time");
+                                boost::optional<std::string> tray_transmittance = tray->second.get_optional<std::string>("tray_transmittance");
+                                boost::optional<std::string> tray_weight        = tray->second.get_optional<std::string>("tray_weight");
+
+                                if (tray_id.empty()) continue;
+
+                                // compare tray_list
+                                AmsTray* curr_tray = nullptr;
+                                std::map<std::string, AmsTray*>::iterator tray_it = curr_ams->trayList.find(tray_id);
+                                if (tray_it == curr_ams->trayList.end()) {
+                                    AmsTray* new_tray = new AmsTray(tray_id);
+                                    curr_ams->trayList.insert(std::make_pair(tray_id, new_tray));
+                                    curr_tray = new_tray;
+                                }
+                                else {
+                                    curr_tray = tray_it->second;
+                                }
+
+                                // update properties
+                                if (curr_tray) {
+                                    curr_tray->color        = color;
+                                    curr_tray->sn           = tray_sn.has_value() ? tray_sn.value() : "";
+                                    curr_tray->is_bbl       = is_bbl;
+                                    curr_tray->meterial     = tray_meterial.has_value() ? tray_meterial.value() : "";
+                                    curr_tray->saturability = tray_saturability.has_value() ? tray_saturability.value() : "";
+                                    curr_tray->smooth       = tray_smooth.has_value() ? tray_smooth.value() : "";
+                                    curr_tray->time         = tray_time.has_value() ? tray_time.value() : "";
+                                    curr_tray->transmittance= tray_transmittance.has_value() ? tray_transmittance.value() : "";
+                                    curr_tray->weight       = tray_weight.has_value() ? tray_weight.value() : "";
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (...) {
+                    ;
+                }
+            }
+            // ack of gcode_line
+            else if (command.value().compare("gcode_line") == 0) {
+                boost::optional<std::string> sequence_id = print.get_optional<std::string>("sequence_id");
+            }
+            else if (command.value().compare("project_file") == 0) {
+                boost::optional<std::string> sequence_id = print.get_optional<std::string>("sequence_id");
+                BOOST_LOG_TRIVIAL(trace) << "ack of project_file " << payload;
+            }
+            // ack of get_version
+            else if (command.value().compare("get_version") == 0) {
+                pt::ptree version = root.get_child("sw_ver");
+                BOOST_LOG_TRIVIAL(trace) << "parse_json, get_version topic=" << topic << ", payload = " << payload;
+            }
+        }
+        // info command
+        else if (root.get_child_optional("info") != boost::none) {
+            pt::ptree info = root.get_child("info");
+        }
+        // upgrade push info
+        else if (root.get_child_optional("upgrade") != boost::none) {
+            pt::ptree upgrade = root.get_child("upgrade");
+            boost::optional<std::string> upgrade_module = upgrade.get_optional<std::string>("module");
+            boost::optional<std::string> upgrade_status = upgrade.get_optional<std::string>("status");
+            boost::optional<std::string> upgrade_progress = upgrade.get_optional<std::string>("progress");
+            boost::optional<std::string> upgrade_message = upgrade.get_optional<std::string>("message");
+        }
+        // event info
+        else if (root.get_child_optional("event") != boost::none) {
+            pt::ptree event_node = root.get_child("event");
+            boost::optional<std::string> event_str = event_node.get_optional<std::string>("event");
+            /* fields: client_id, username, peername, proto_name, proto_ver, connected_at, timestamp, etc */
+            BOOST_LOG_TRIVIAL(trace) << "parse_json, event topic=" << topic << ", payload = " << payload;
+        }
+    }
+    catch (...) {
+        BOOST_LOG_TRIVIAL(trace) << "parse_json failed! topic=" << topic <<", payload = " << payload;
+    }
+
+
+    if (msg_recv_fn) {
+        msg_recv_fn(topic, payload);
+    }
+    return 0;
+}
+
+int MachineObject::publish_gcode(std::string gcode_str)
+{
+    pt::ptree root, print;
+    print.put("command", "gcode_line");
+    print.put("param", gcode_str);
+    print.put("sequence_id", MachineObject::m_sequence_id++);
+    root.put_child("print", print);
+    std::stringstream oss;
+    pt::write_json(oss, root);
+    std::string json_str = oss.str();
+
+    return this->publish_json(json_str);
+}
+
+std::string get_printer_dest_file(std::string file)
+{
+    std::string result;
+
+    result = "/data/";
+
+    int name_start = file.find_last_of("\\");
     if (name_start <= 0) {
         return result;
     }
@@ -309,6 +610,7 @@ int MachineObject::send_wan_print_task(BBLTask* task)
     std::string json_str = oss.str();
     /* !!! remove '\' !!!! */
     json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());
+    
     this->publish_json(json_str);
     return 0;
 }
@@ -330,10 +632,9 @@ int MachineObject::send_print_subtask(BBLSubTask *task, UploadedFn uploadedFn, U
 
 int MachineObject::send_lan_print_subtask(BBLSubTask* task, UploadedFn uploadedFn, UploadProgressFn proFn, ErrorFn errFn)
 {
-    std::wstring src_file = task->task_file;
-    std::wstring dst_file = get_printer_dest_file(src_file);
-    std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-    std::string dst_file_str = converter.to_bytes(dst_file);
+    std::string src_file = task->task_file;
+    std::string dst_file = get_printer_dest_file(task->task_file);
+    std::string dst_file_str = dst_file;
 
     Sftp sftp = Sftp::upload(dev_ip, src_file, dst_file, "root", "root");
     
@@ -345,7 +646,6 @@ int MachineObject::send_lan_print_subtask(BBLSubTask* task, UploadedFn uploadedF
             }
 
             BOOST_LOG_TRIVIAL(trace) << "transform gcode ok!";
-
 
             /* send json command */
             pt::ptree root, print;
@@ -385,6 +685,33 @@ int MachineObject::send_lan_print_subtask(BBLSubTask* task, UploadedFn uploadedF
 
 int MachineObject::send_wan_print_subtask(BBLSubTask* task, UploadedFn uploadedFn, UploadProgressFn proFn, ErrorFn errFn)
 {
+    /* update subtask */
+    subtask_ = task;
+
+    // url is ready
+    if (!task->task_url.empty()) {
+        if (!task->parent_task_) return -1;
+        pt::ptree root, print;
+        print.put("sequence_id", MachineObject::m_sequence_id++);
+        print.put("command", "project_file");
+        print.put("param", task->task_gcode_in_3mf);
+        print.put("url", task->task_url);   /* 3mf or gcode */
+        print.put("md5", task->task_url_md5);
+        /* project */
+        print.put("project_id", task->parent_task_->task_project_id);
+        print.put("task_id", task->parent_task_->task_id);
+        print.put("subtask_id", task->task_id);
+        root.put_child("print", print);
+        std::stringstream oss;
+        pt::write_json(oss, root);
+        std::string json_str = oss.str();
+        /* !!! remove '\' !!!! */
+        json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());
+        this->publish_json(json_str, nullptr, CONNECTION_WAN);
+        return 0;
+    }
+
+    /* upload local gcode file */
     acc_.post_task(task,
         [this, task, uploadedFn, errFn](int result, std::string info) {
             if (result == 0) {
@@ -392,18 +719,15 @@ int MachineObject::send_wan_print_subtask(BBLSubTask* task, UploadedFn uploadedF
                     uploadedFn();
                 }
 
-                std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-                std::string task_file_str = converter.to_bytes(task->task_name);
-
                 pt::ptree root, print;
                 print.put("sequence_id", MachineObject::m_sequence_id++);
                 print.put("command", "project_file");
-                print.put("param", task_file_str);
-                print.put("url", task->task_url);   /* 3mf or gcode */
+                print.put("param", task->task_gcode_in_3mf);
+                print.put("url", task->task_url);       /* 3mf or gcode */
                 print.put("md5", task->task_url_md5);
-                /* project */
-                print.put("project_id", task->task_project_id);
-                print.put("task_id", task->parent_task_id);
+                print.put("project_id", "0");
+                print.put("profile_id", "0");
+                print.put("task_id", "0");
                 print.put("subtask_id", task->task_id);
                 root.put_child("print", print);
                 std::stringstream oss;
@@ -412,7 +736,9 @@ int MachineObject::send_wan_print_subtask(BBLSubTask* task, UploadedFn uploadedF
                 this->publish_json(json_str);
             }
             else {
-                errFn(info);
+                if (errFn) {
+                    errFn(info);
+                }
             }
         }
         ,

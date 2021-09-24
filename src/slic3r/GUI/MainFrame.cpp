@@ -688,6 +688,8 @@ void MainFrame::init_tabpanel()
 #else
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, [this](wxBookCtrlEvent& e) {
 #endif
+        //BBS do not select auto
+#if 0
         if (int old_selection = e.GetOldSelection();
             old_selection != wxNOT_FOUND && old_selection < static_cast<int>(m_tabpanel->GetPageCount())) {
             Tab* old_tab = dynamic_cast<Tab*>(m_tabpanel->GetPage(old_selection));
@@ -711,6 +713,7 @@ void MainFrame::init_tabpanel()
         }
         else
             select_tab(size_t(0)); // select Plater
+#endif
     });
 
     m_plater = new Plater(this, this);
@@ -718,8 +721,14 @@ void MainFrame::init_tabpanel()
 
     wxGetApp().plater_ = m_plater;
 
-    if (wxGetApp().is_editor())
+    if (wxGetApp().is_editor()) {
         create_preset_tabs();
+
+        //BBS add monitor page
+        //MonitorPanel(wxWindow * parent, wxWindowID id = wxID_ANY, const wxPoint & pos = wxDefaultPosition, const wxSize & size = wxSize(800, 600), long style = wxTAB_TRAVERSAL);
+        m_monitor = new MonitorPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+        m_tabpanel->AddPage(m_monitor, "Monitor");
+    }
 
     if (m_plater) {
         // load initial config

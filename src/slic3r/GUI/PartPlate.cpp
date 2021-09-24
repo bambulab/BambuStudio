@@ -2100,7 +2100,7 @@ int PartPlateList::rebuild_plates_after_arrangement()
 	return ret;
 }
 
-int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list)
+int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool with_gcode)
 {
 	int ret = 0;
 
@@ -2117,8 +2117,7 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list)
 				plate_data_item->objects_and_instances.emplace_back(it->first, it->second);
 		}
 
-		//BBS: add gcode to 3mf logic
-		if (wxGetApp().app_config->get("3mf_include_gcode") == "1") {
+		if (with_gcode) {
 			if (m_plate_list[i]->m_gcode_result) {
 				plate_data_item->gcode_file = m_plate_list[i]->m_gcode_result->filename;
 			}

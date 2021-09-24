@@ -283,7 +283,12 @@ void SelectMachineDialog::on_timer(wxTimerEvent& event)
     }
     
     // same machine only appear once
-    list.merge(c->myBindMachineList);
+    std::map<std::string, MachineObject*>::iterator it;
+    for (it = c->myBindMachineList.begin(); it != c->myBindMachineList.end(); it++) {
+        if (it->second->is_online) {
+            list.insert(std::make_pair(it->first, it->second));
+        }
+    }
     list.merge(d->get_user_machine_list());
     list.merge(d->get_free_machine_list());
 

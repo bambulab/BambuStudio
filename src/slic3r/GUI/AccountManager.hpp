@@ -22,6 +22,7 @@ class action_listener : public virtual mqtt::iaction_listener
 {
 private:
     std::string name_;
+    void* context_;
 
     void on_failure(const mqtt::token& tok) override {
         BOOST_LOG_TRIVIAL(trace) << "subscribe failed";
@@ -30,7 +31,7 @@ private:
         BOOST_LOG_TRIVIAL(trace) << "subscribe success";
     }
 public:
-    action_listener(const std::string& name) : name_(name) {}
+    action_listener(const std::string& name, void* context) : name_(name), context_(context) {}
 };
 
 class cloud_conn_callback : public virtual mqtt::callback, public virtual mqtt::iaction_listener
@@ -131,6 +132,7 @@ private:
     std::string json_request_body_post_project(BBLProject* project);
     std::string json_request_body_post_profile(BBLProfile* profile);
     std::string json_request_body_post_task(BBLTask* task);
+    std::string json_request_poll_3mf_gather(BBLSubTask* task);
 
     /* project */
     BBLProject* default_project;
@@ -168,11 +170,10 @@ public:
 
     /* mqtt */
     std::map<std::string, MachineObject*> mqtt_topics;
-    action_listener* sub_listener;
 
     /* mqtt apis */
     mqtt::async_client* get_client() { return mqtt_cli; }
-    int connect_mqtt();
+    int connect_mqtt(bool sync = false);
     int disconnect_mqtt();
     void add_subscribe(MachineObject* obj);
     void del_subscribe(MachineObject* obj);
@@ -191,6 +192,10 @@ public:
     /* create bind machine or update machine properties */
     void update_my_bind_list(std::string body);
     MachineObject* get_default_machine();
+    MachineObject* find_machine(std::string dev_id);
+
+    /* project struct */
+    std::map<std::string, BBLProject*> myProjectList;
 
     /* bind apis */
     int query_bind_status(std::vector<std::string> device_list, CompletedFn fn, ErrorFn errFn);
@@ -200,6 +205,21 @@ public:
 
     /* project apis */
     BBLProject* get_default_project() { return default_project; }
+    // request a project id, project_name -> project_id, sync
+    int request_project_id(BBLProject* project, ResultFn resFn = nullptr);
+    // request a profile id, profile_name -> profile_id, sync
+    int request_profile_id(BBLProfile* profile, ResultFn resFn = nullptr);
+    // request a task id, project_id, profile_id -> task_id, sync
+    int request_task_id(BBLTask* task, ResultFn resFn = nullptr);
+    // upload 3mf for project and profile, aync
+    int upload_3mf(BBLProfile* profile, ResultFn resFn = nullptr, ProgressFn proFn = nullptr, bool sync = false);
+    // poll_3mf for project and profile, sync
+    int poll_3mf(BBLProfile* profile);
+    // poll_3mf for task, sync
+    int poll_3mf(BBLSubTask* task);
+    // get task info
+    BBLTask* get_task(std::string task_id);
+
     // create a project 
     void get_project_info(BBLProject* project);
     void get_profile_info(BBLProject* project, BBLProfile* profile);

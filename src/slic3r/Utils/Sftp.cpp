@@ -114,7 +114,7 @@ struct Sftp::priv
     // Using a deque here because unlike vector it doesn't ivalidate pointers on insertion
     std::deque<fs::ifstream> form_files;
     std::string postfields;
-    std::wstring src_fullpath;
+    std::string src_fullpath;
     std::string error_buffer;    // Used for CURLOPT_ERRORBUFFER
     size_t limit;
     bool cancel;
@@ -126,7 +126,7 @@ struct Sftp::priv
     Sftp::ErrorFn errorfn;
     Sftp::ProgressFn progressfn;
 
-    priv(const std::wstring& url);
+    priv(const std::string& url);
     ~priv();
 
     void set_timeout_connect(long timeout);
@@ -134,13 +134,13 @@ struct Sftp::priv
     static size_t file_read_cb(char* buffer, size_t size, size_t nitems, void* userp);
     static int xfercb(void* userp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow);
 
-    void set_src_path(const std::wstring src_path);
+    void set_src_path(const std::string src_path);
     std::string curl_error(CURLcode curlcode);
     std::string body_size_error();
     void sftp_perform();
 };
 
-Sftp::priv::priv(const std::wstring& url)
+Sftp::priv::priv(const std::string& url)
     :curl(::curl_easy_init())
     , error_buffer(CURL_ERROR_SIZE + 1, '\0')
     , cancel(false)
@@ -151,8 +151,7 @@ Sftp::priv::priv(const std::wstring& url)
         throw Slic3r::RuntimeError(std::string("Could not construct Curl object"));
     }
 
-    std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-    std::string full_url = converter.to_bytes(url);
+    std::string full_url = url;
 
     set_timeout_connect(DEFAULT_TIMEOUT_CONNECT);
     ::curl_easy_setopt(curl, CURLOPT_URL, full_url.c_str());   // curl makes a copy internally
@@ -228,7 +227,7 @@ void Sftp::priv::set_timeout_connect(long timeout)
     ::curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, timeout);
 }
 
-void Sftp::priv::set_src_path(const std::wstring src_path)
+void Sftp::priv::set_src_path(const std::string src_path)
 {
     src_fullpath = src_path;
     try {
@@ -321,11 +320,10 @@ Sftp& Sftp::on_progress(ProgressFn fn)
     return *this;
 }
 
-Sftp Sftp::upload(std::string url, std::wstring src_path, std::wstring dst_path, std::string user, std::string password)
+Sftp Sftp::upload(std::string url, std::string src_path, std::string dst_path, std::string user, std::string password)
 {
-    std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
     std::string url_str = (boost::format("sftp://%1%:%2%@%3%") % user % password % url).str();
-    std::wstring full_url = converter.from_bytes(url_str) + dst_path;
+    std::string full_url = url_str + dst_path;
     
     Sftp sftp(std::move(full_url));
     if (sftp.p) { sftp.p->set_src_path(src_path); }
@@ -379,6 +377,6 @@ std::string Sftp::tls_system_cert_store()
 }
 
 
-Sftp::Sftp(const std::wstring& url) : p(new priv(url)) {}
+Sftp::Sftp(const std::string& url) : p(new priv(url)) {}
 
 }

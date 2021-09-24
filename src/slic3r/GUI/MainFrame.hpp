@@ -16,6 +16,7 @@
 
 #include "GUI_Utils.hpp"
 #include "Event.hpp"
+#include "Monitor.hpp"
 #include "UnsavedChangesDialog.hpp"
 #include "DebugToolDialog.hpp"
 
@@ -154,6 +155,7 @@ public:
     void        create_preset_tabs();
     void        add_created_tab(Tab* panel, const std::string& bmp_name = "");
     bool        is_active_and_shown_tab(Tab* tab);
+
     // Register Win32 RawInput callbacks (3DConnexion) and removable media insert / remove callbacks.
     // Called from wxEVT_ACTIVATE, as wxEVT_CREATE was not reliable (bug in wxWidgets?).
     void        register_win32_callbacks();
@@ -204,6 +206,7 @@ public:
     DebugToolDialog* debug_tool_dlg() { return m_debug_tool_dlg; }
 
     Plater*               m_plater { nullptr };
+    wxPanel* m_monitor{ nullptr };
     wxBookCtrlBase*       m_tabpanel { nullptr };
     SettingsDialog        m_settings_dialog;
     DiffPresetDialog      diff_dialog;

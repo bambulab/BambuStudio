@@ -394,7 +394,7 @@ public:
     int rebuild_plates_after_arrangement();
 
     /*load/store releted functions*/
-    int store_to_3mf_structure(PlateDataPtrs& plate_data_list);
+    int store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool with_gcode = true);
     int load_from_3mf_structure(PlateDataPtrs& plate_data_list);
 
     template<class Archive> void serialize(Archive& ar)

@@ -21,38 +21,69 @@ namespace pt = boost::property_tree;
 
 namespace Slic3r {
 
-    BBLTask::BBLTask()
+    BBLProfile::BBLProfile(BBLProject* project)
     {
-        std::default_random_engine generator;
-        std::uniform_int_distribution<int> distribution(1e5, 1e6);
-        task_id = distribution(generator);
+        project_ = nullptr;
+        if (project) {
+            project_ = project;
+            project_id = project_->project_id;
+        }
+
     }
+
+    BBLTask::BBLTask(BBLProfile* profile)
+    {
+        profile_ = nullptr;
+        if (profile) {
+            profile_ = profile;
+            task_profile_id = profile->profile_id;
+            task_project_id = profile->project_id;
+        }
+
+        /* get create time */
+        std::time_t t = std::time(0);
+        std::tm* now_time = std::localtime(&t);
+        std::stringstream buf;
+        buf << std::put_time(now_time, "%a %b %d %H:%M:%S");
+        task_create_time = buf.str();
+    }
+
+    BBLSubTask::BBLSubTask(BBLTask* task) {
+        parent_task_ = task;
+
+        /* get create time */
+        std::time_t t = std::time(0);
+        std::tm* now_time = std::localtime(&t);
+        std::stringstream buf;
+        buf << std::put_time(now_time, "%a %b %d %H:%M:%S");
+        task_create_time = buf.str();
+    }
+
 
     std::string BBLTask::build_content_json()
     {
-        std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-
         pt::ptree js_task, js_subtasks;
-        std::string task_name_str = converter.to_bytes(task_name);
-        std::string task_create_time_str = converter.to_bytes(task_create_time);
+        std::string task_create_time_str = task_create_time;
 
         js_task.put("id", task_id);
-        js_task.put("name", task_name_str);
+        js_task.put("name", task_name);
         js_task.put("create_time", task_create_time_str);
         js_task.put("status", task_status_str());
 
         for (int k = 0; k < subtasks.size(); k++) {
             pt::ptree js_subtask;
             BBLSubTask* subtask = subtasks[k];
-            std::string subtask_name_str = converter.to_bytes(subtask->task_name);
 
             js_subtask.put("id", subtask->task_id);
-            js_subtask.put("name", subtask_name_str);
+            js_subtask.put("name", subtask->task_name);
             js_subtask.put("create_time", subtask->task_create_time);
-            js_subtask.put("plane", subtask->task_partplate_idx);
+            js_subtask.put("plate_idx", subtask->task_partplate_idx);
             js_subtask.put("printer", subtask->task_printer_dev_id);
+            js_subtask.put("prediction", subtask->task_prediction);
+            js_subtask.put("weight", subtask->task_weight);
             /* status, progress updated by printer */
             js_subtasks.push_back(std::make_pair("", js_subtask));
+            
         }
         js_task.put_child("subtasks", js_subtasks);
 
@@ -61,30 +92,71 @@ namespace Slic3r {
         return oss.str();
     }
 
+    int BBLTask::parse_content_json(std::string json)
+    {
+        try {
+            std::stringstream ss(json);
+            pt::ptree root;
+            pt::read_json(ss, root);
+
+            for (int i = 0; i < subtasks.size(); i++) {
+                delete subtasks[i];
+            }
+            subtasks.clear();
+
+            pt::ptree subtask_list = root.get_child("subtasks");
+            for (auto subtask = subtask_list.begin(); subtask != subtask_list.end(); ++subtask) {
+                BBLSubTask* new_subtask = new BBLSubTask(this);
+                /* create subtasks */
+                boost::optional<std::string> subtask_id = subtask->second.get_optional<std::string>("id");
+                if (subtask_id.has_value()) new_subtask->task_id = subtask_id.value();
+
+                boost::optional<std::string> subtask_name = subtask->second.get_optional<std::string>("name");
+                if (subtask_name.has_value()) new_subtask->task_name = subtask_name.value();
+
+                boost::optional<std::string> subtask_create_time = subtask->second.get_optional<std::string>("create_time");
+                if (subtask_create_time.has_value()) new_subtask->task_create_time = subtask_create_time.value();
+
+                boost::optional<std::string> subtask_plate_idx = subtask->second.get_optional<std::string>("plate_idx");
+                if (subtask_plate_idx.has_value()) new_subtask->task_partplate_idx = std::stoi(subtask_plate_idx.value());
+
+                boost::optional<std::string> subtask_printer = subtask->second.get_optional<std::string>("printer");
+                if (subtask_printer.has_value()) new_subtask->task_printer_dev_id = subtask_printer.value();
+
+                boost::optional<std::string> subtask_prediction = subtask->second.get_optional<std::string>("prediction");
+                if (subtask_prediction.has_value()) new_subtask->task_prediction = subtask_prediction.value();
+
+                boost::optional<std::string> subtask_weight = subtask->second.get_optional<std::string>("weight");
+                if (subtask_weight.has_value()) new_subtask->task_weight = subtask_weight.value();
+                subtasks.push_back(new_subtask);
+            }
+        }
+        catch (...) {
+            BOOST_LOG_TRIVIAL(trace) << "parse_content_json failed! json=" << json;
+        }
+        return 0;
+    }
+
     std::string BBLProject::build_content_json()
     {
-        std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-
         pt::ptree root, js_tasks;
         for (int i = 0; i < profiles.size(); i++) {
             for (int j = 0; j < profiles[i]->tasks.size(); j++) {
                 pt::ptree js_task, js_subtasks;
                 BBLTask* task = profiles[i]->tasks[j];
-                std::string task_name_str = converter.to_bytes(task->task_name);
-                std::string task_create_time_str = converter.to_bytes(task->task_create_time);
+                std::string task_create_time_str = task->task_create_time;
 
                 js_task.put("id", task->task_id);
-                js_task.put("name", task_name_str);
+                js_task.put("name", task->task_name);
                 js_task.put("create_time", task_create_time_str);
                 js_task.put("status", task->task_status_str());
 
                 for (int k = 0; k < task->subtasks.size(); k++) {
                     pt::ptree js_subtask;
                     BBLSubTask* subtask = task->subtasks[k];
-                    std::string task_name_str = converter.to_bytes(subtask->task_name);
 
                     js_subtask.put("id", subtask->task_id);
-                    js_subtask.put("name", task_name_str);
+                    js_subtask.put("name", subtask->task_name);
                     js_subtask.put("create_time", subtask->task_create_time);
                     js_subtask.put("plane", subtask->task_partplate_idx);
                     js_subtask.put("printer", subtask->task_printer_dev_id);
