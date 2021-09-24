@@ -34,27 +34,6 @@ void split_string(std::string s, std::vector<std::string>& v) {
 }
 
 
-/* mqtt client connection callbacks */
-void machine_conn_callback::reconnect()
-{
-    /* sleep ? */
-    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
-    try {
-        BOOST_LOG_TRIVIAL(trace) << "machine_conn_callback::reconnect()  connecting...";
-        MachineObject* obj = (MachineObject*)context_;
-        if (obj) {
-            obj->conn_state = MachineObject::CONNECTION_STATE::STATE_CONNECTING;
-        }
-        cli_.connect(connOpts_, context_, *this);
-    }
-    catch (const mqtt::exception& exc) {
-        BOOST_LOG_TRIVIAL(trace) << "machine_conn_callback::reconnect() exception:" << exc.get_message();
-    }
-    catch (std::exception& e) {
-        BOOST_LOG_TRIVIAL(trace) << "machine_conn_callback::reconnect() exception:" << e.what();
-    }
-}
-
 void machine_conn_callback::connected(const std::string& cause)
 {
     BOOST_LOG_TRIVIAL(trace) << "client_conn_callback::connected!";
@@ -70,7 +49,7 @@ void machine_conn_callback::connected(const std::string& cause)
         }
         
         if (obj) {
-            obj->conn_state = MachineObject::CONNECTION_STATE::STATE_CONNECTED;
+            obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_CONNECTED);
         }
     }
     catch (mqtt::exception& e) {
@@ -89,8 +68,6 @@ void machine_conn_callback::on_failure(const mqtt::token& tok)
         }
         obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_DISCONNECTED);
     }
-    ++nretry_;
-    reconnect();
 }
 
 void machine_conn_callback::on_success(const mqtt::token& tok)
@@ -112,7 +89,6 @@ void machine_conn_callback::connection_lost(const std::string& cause) {
         obj->set_connect_state(MachineObject::CONNECTION_STATE::STATE_DISCONNECTED);
     }
     ++nretry_;
-    reconnect();
 }
 
 void machine_conn_callback::message_arrived(mqtt::const_message_ptr msg)
@@ -147,6 +123,7 @@ MachineObject::MachineObject(AccountManager& acc, std::string name, std::string 
 {
     boost::uuids::uuid uuid = boost::uuids::random_generator()();
     mqtt_uuid = to_string(uuid).substr(0, mqtt_uuid_bytes);
+    mqtt_opt.set_automatic_reconnect(3, 10);
 }
 
 bool MachineObject::check_valid_ip()
@@ -231,6 +208,14 @@ int MachineObject::disconnect()
         mqtt_cli = NULL;
     }
     return 0;
+}
+
+int MachineObject::reconnect()
+{
+    if (conn_state == MachineObject::CONNECTION_STATE::STATE_CONNECTING)
+        return 0;
+    disconnect();
+    connect();
 }
 
 bool MachineObject::is_connected()
@@ -562,9 +547,10 @@ void DeviceManager::on_machine_alive(std::string dev_name, std::string dev_id, s
         if (obj->dev_ip.compare(dev_ip) != 0 && !obj->dev_ip.empty()) {
             BOOST_LOG_TRIVIAL(info) << "MachineObject IP changed from " << obj->dev_ip << " to " << dev_ip;
             obj->dev_ip = dev_ip;
-            /* ip changed reconnect mqtt, TODO callbacks */
-            obj->disconnect();
-            obj->connect();
+            /* ip changed reconnect mqtt */
+            if (obj->mqtt_cli) {
+                obj->reconnect();
+            }
         }
         obj->last_alive = Slic3r::Utils::get_current_time_utc();
         obj->is_alive = true;

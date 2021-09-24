@@ -16,6 +16,8 @@ typedef std::function<void(std::string name)> SuccessFn;
 typedef std::function<void(std::string name)> FailedFn;
 typedef std::function<void(std::string name)> LostFn;
 
+class AccountManager;
+
 class action_listener : public virtual mqtt::iaction_listener
 {
 private:
@@ -42,8 +44,6 @@ private:
     SuccessFn  successFn;
     FailedFn failedFn;
     LostFn lostFn;
-
-    void reconnect();
 
     void connected(const std::string& cause) override;
 
@@ -167,9 +167,11 @@ public:
     int save_user_info();
 
     /* mqtt */
+    std::map<std::string, MachineObject*> mqtt_topics;
+    action_listener* sub_listener;
+
     /* mqtt apis */
     mqtt::async_client* get_client() { return mqtt_cli; }
-    /* mqtt apis */
     int connect_mqtt();
     int disconnect_mqtt();
     void add_subscribe(MachineObject* obj);

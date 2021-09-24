@@ -38,8 +38,6 @@ private:
     void* context_;
     std::vector<std::string> sub_topics;
 
-    void reconnect();
-
     void connected(const std::string& cause) override;
 
     void on_failure(const mqtt::token& tok) override;
@@ -128,6 +126,7 @@ public:
     void set_callbacks(SuccessFn sFn, FailedFn fFn, LostFn lFn);
     int connect();
     int disconnect();
+    int reconnect();
     bool is_connected();
     void set_msg_send_fn(MsgFn fn) { msg_send_fn = std::move(fn); }
     void set_msg_recv_fn(MsgFn fn) { msg_recv_fn = std::move(fn); }

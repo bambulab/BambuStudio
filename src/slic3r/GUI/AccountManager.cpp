@@ -36,25 +36,6 @@ void split_string(std::string s, std::vector<std::string>& v) {
 }
 
 namespace Slic3r {
-    /* mqtt cloud connection callbacks */
-    void cloud_conn_callback::reconnect()
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(2500));
-        try {
-            BOOST_LOG_TRIVIAL(trace) << "cloud_conn_callback::reconnect()  connecting...";
-            AccountManager* manager = (AccountManager*)context_;
-            if (manager) {
-                manager->connect_mqtt();
-            }
-        }
-        catch (const mqtt::exception& exc) {
-            BOOST_LOG_TRIVIAL(trace) << "cloud_conn_callback::reconnect() exception:" << exc.get_message();
-        }
-        catch (std::exception& e) {
-            BOOST_LOG_TRIVIAL(trace) << "cloud_conn_callback::reconnect() exception:" << e.what();
-        }
-    }
-
     void cloud_conn_callback::connected(const std::string& cause)
     {
         BOOST_LOG_TRIVIAL(trace) << "cloud_conn_callback::connected!";
@@ -67,16 +48,6 @@ namespace Slic3r {
         if (successFn) {
             successFn(cli_.get_client_id());
         }
-        /* subscribe current device reqeust and report */
-        /*try {
-            for (int i = 0; i < sub_topics.size(); i++) {
-                action_listener* sub_listener = new action_listener("Subscriber_" + sub_topics[i]);
-                cli_.subscribe(sub_topics[i], 0, nullptr, *sub_listener);
-            }
-        }
-        catch (mqtt::exception& e) {
-            BOOST_LOG_TRIVIAL(trace) << "cloud_conn_callback::connected, exception=" << e.what();
-        }*/
     }
 
     void cloud_conn_callback::on_failure(const mqtt::token& tok)
@@ -86,8 +57,6 @@ namespace Slic3r {
         if (failedFn) {
             failedFn(cli_.get_client_id());
         }
-        ++nretry_;
-        reconnect();
     }
 
     void cloud_conn_callback::on_success(const mqtt::token& tok)
@@ -101,22 +70,16 @@ namespace Slic3r {
         if (lostFn) {
             lostFn(cli_.get_client_id());
         }
-        ++nretry_;
-        reconnect();
     }
 
     void cloud_conn_callback::message_arrived(mqtt::const_message_ptr msg)
     {
         AccountManager* manager = (AccountManager*)context_;
         if (manager) {
-            //BOOST_LOG_TRIVIAL(trace) << "message arrived";
             BOOST_LOG_TRIVIAL(trace) << "message topic:" << msg->get_topic() << ", payload=" << msg->get_payload_str();
             std::string topic = msg->get_topic();
-            int start = topic.find_first_of('/') + 1;
-            int end = topic.find_last_of('/');
-            std::string dev_id = topic.substr(start, end - start);
-            std::map<std::string, MachineObject*>::iterator it = manager->myBindMachineList.find(dev_id);
-            if (it != manager->myBindMachineList.end()) {
+            std::map<std::string, MachineObject*>::iterator it = manager->mqtt_topics.find(topic);
+            if (it != manager->mqtt_topics.end()) {
                 if (it->second && it->second->msg_recv_fn) {
                     BOOST_LOG_TRIVIAL(trace) << "start";
                     it->second->msg_recv_fn(msg->get_topic(), msg->get_payload_str());
@@ -194,6 +157,9 @@ namespace Slic3r {
         mqtt_opt.set_user_name(mqtt_user);
         mqtt_opt.set_password(mqtt_pwd);
         mqtt_opt.set_max_inflight(100);
+        mqtt_opt.set_automatic_reconnect(3, 10);
+
+        sub_listener = new action_listener("MQTT_Subscriber");
 
         boost::uuids::uuid uuid = boost::uuids::random_generator()();
         mqtt_uuid = to_string(uuid).substr(0, mqtt_uuid_bytes);
@@ -265,27 +231,38 @@ namespace Slic3r {
     void AccountManager::add_subscribe(MachineObject* obj)
     {
         std::string report_topic = (boost::format("device/%1%/report") % obj->dev_id).str();
+        std::map<std::string, MachineObject*>::iterator it = mqtt_topics.find(report_topic);
+        if (it != mqtt_topics.end()) {
+            return;
+        }
+
         try {
-            action_listener* sub_listener = new action_listener("Subscriber_" + report_topic);
             if (mqtt_cli) {
-                mqtt_cli->subscribe(report_topic, 0, nullptr, *sub_listener);
+                mqtt_topics.insert(std::make_pair(report_topic, obj));
+                mqtt_cli->subscribe(report_topic, 0, this, *sub_listener);
             }
         }
         catch (...) {
-            BOOST_LOG_TRIVIAL(trace) << "add_topics exception";
+            BOOST_LOG_TRIVIAL(trace) << "add_topics exception, topic=" << report_topic;
         }
     }
 
     void AccountManager::del_subscribe(MachineObject* obj)
     {
         std::string report_topic = (boost::format("device/%1%/report") % obj->dev_id).str();
+        std::map<std::string, MachineObject*>::iterator it = mqtt_topics.find(report_topic);
+        if (it == mqtt_topics.end()) {
+            return;
+        }
+
         try {
             if (mqtt_cli) {
+                mqtt_topics.erase(report_topic);
                 mqtt_cli->unsubscribe(report_topic);
             }
         }
         catch (...) {
-            BOOST_LOG_TRIVIAL(trace) << "remove_topics exception";
+            BOOST_LOG_TRIVIAL(trace) << "remove_topics exception, topic=" << report_topic;
         }
     }
 
