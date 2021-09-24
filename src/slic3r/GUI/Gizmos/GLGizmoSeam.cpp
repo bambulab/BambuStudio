@@ -79,7 +79,9 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
 
     const float approx_height = m_imgui->scaled(12.5f);
     y = std::min(y, bottom_limit - approx_height);
-    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
+    //BBS: GUI refactor: move gizmo to the right
+    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always, 1.0f, 0.0f);
+    //m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
     m_imgui->begin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:

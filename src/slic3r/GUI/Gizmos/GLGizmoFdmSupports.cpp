@@ -143,7 +143,8 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     const float approx_height = m_imgui->scaled(23.f);
     y = std::min(y, bottom_limit - approx_height);
-    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
+    //BBS: GUI refactor: move gizmo to the right
+    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always, 1.0f, 0.0f);
 
     m_imgui->begin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 

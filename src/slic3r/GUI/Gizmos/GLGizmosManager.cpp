@@ -52,6 +52,8 @@ std::vector<size_t> GLGizmosManager::get_selectable_idxs() const
     return out;
 }
 
+//BBS: GUI refactor: GLToolbar&&Gizmo adjust
+//when judge the mouse position, {0, 0} is at the left-up corner, and no need to multiply camera_zoom
 size_t GLGizmosManager::get_gizmo_idx_from_mouse(const Vec2d& mouse_pos) const
 {
     if (! m_enabled)
@@ -62,12 +64,21 @@ size_t GLGizmosManager::get_gizmo_idx_from_mouse(const Vec2d& mouse_pos) const
     float icons_size = m_layout.scaled_icons_size();
     float border = m_layout.scaled_border();
     float stride_y = m_layout.scaled_stride_y();
-    float top_y = 0.5f * (cnv_h - height) + border;
+    //BBS: GUI refactor: GLToolbar&&Gizmo adjust
+    //float top_y = 0.5f * (cnv_h - height) + border;
+    float cnv_w = (float)m_parent.get_canvas_size().get_width();
+    float width = get_scaled_total_width();
+    float top_x = cnv_w - width;
+    float top_y = 0.5f * (cnv_h - height + m_parent.get_main_toolbar_height() + GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale()) + border;
 
+    //BBS: GUI refactor: GLToolbar&&Gizmo adjust
     // is mouse horizontally in the area?
-    if ((border <= (float)mouse_pos(0) && ((float)mouse_pos(0) <= border + icons_size))) {
+    //if ((border <= (float)mouse_pos(0) && ((float)mouse_pos(0) <= border + icons_size))) {
+    if (((top_x + border) <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= (top_x + border + icons_size))) {
         // which icon is it on?
         size_t from_top = (size_t)((float)mouse_pos(1) - top_y) / stride_y;
+        if (from_top < 0)
+            return Undefined;
         // is it really on the icon or already past the border?
         if ((float)mouse_pos(1) <= top_y + from_top * stride_y + icons_size) {
             std::vector<size_t> selectable = get_selectable_idxs();
@@ -1046,6 +1057,8 @@ void GLGizmosManager::render_arrow(const GLCanvas3D& parent, EType highlighted_t
     }
 }
 
+//BBS: GUI refactor: GLToolbar&&Gizmo adjust
+//when rendering, {0, 0} is at the center
 void GLGizmosManager::do_render_overlay() const
 {
     std::vector<size_t> selectable_idxs = get_selectable_idxs();
@@ -1061,8 +1074,15 @@ void GLGizmosManager::do_render_overlay() const
     float width = get_scaled_total_width();
     float zoomed_border = m_layout.scaled_border() * inv_zoom;
 
-    float zoomed_top_x = (-0.5f * cnv_w) * inv_zoom;
-    float zoomed_top_y = (0.5f * height) * inv_zoom;
+    //BBS: GUI refactor: GLToolbar&&Gizmo adjust
+    //float zoomed_top_x = (-0.5f * cnv_w) * inv_zoom;
+    //float zoomed_top_y = (0.5f * height) * inv_zoom;
+    float zoomed_top_x = (0.5f * cnv_w - width) * inv_zoom;
+    float main_toolbar_height = (float)m_parent.get_main_toolbar_height();
+    float space_height = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
+    float zoomed_top_y = 0.5f * (height - main_toolbar_height - space_height) * inv_zoom;
+
+    //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": zoomed_top_y %1%, space_height %2%, main_toolbar_height %3% zoomed_top_x %4%") % zoomed_top_y % space_height % main_toolbar_height % zoomed_top_x;
 
     float zoomed_left = zoomed_top_x;
     float zoomed_top = zoomed_top_y;
@@ -1115,8 +1135,12 @@ void GLGizmosManager::do_render_overlay() const
     }
 
     if (m_current != Undefined) {
+        //BBS: GUI refactor: GLToolbar&&Gizmo adjust
+        //render_input_window uses a different coordination(imgui)
+        //1. no need to scale by camera zoom, set {0,0} at left-up corner for imgui
         float toolbar_top = cnv_h - wxGetApp().plater()->get_view_toolbar().get_height();
-        m_gizmos[m_current]->render_input_window(width, current_y, toolbar_top);
+        //m_gizmos[m_current]->render_input_window(width, current_y, toolbar_top);
+        m_gizmos[m_current]->render_input_window(cnv_w - width, current_y, toolbar_top);
     }
 }
 

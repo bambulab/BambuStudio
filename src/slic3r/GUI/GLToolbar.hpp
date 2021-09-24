@@ -17,6 +17,15 @@ namespace GUI {
 class GLCanvas3D;
 
 
+//BBS: GUI refactor: GLToolbar
+wxDECLARE_EVENT(EVT_GLTOOLBAR_OPEN_PROJECT, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_SLICE_ALL, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_SLICE_PLATE, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_PRINT_ALL, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_PRINT_PLATE, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_EXPORT_GCODE, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_PRINT_SELECT, SimpleEvent);
+
 wxDECLARE_EVENT(EVT_GLTOOLBAR_ADD, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLTOOLBAR_DELETE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLTOOLBAR_DELETE_ALL, SimpleEvent);
@@ -51,6 +60,8 @@ public:
     {
         Action,
         Separator,
+        //BBS: GUI refactor: GLToolbar
+        ActionWithText,
         Num_Types
     };
 
@@ -98,6 +109,13 @@ public:
         std::string icon_filename;
         std::string tooltip;
         std::string additional_tooltip;
+        //BBS: GUI refactor: GLToolbar
+        std::string button_text;
+        float extra_size_ratio;
+        GLTexture text_texture;
+        //std::vector<unsigned char> pixel_data;
+        //mutable bool texture_dirty;
+
         unsigned int sprite_id;
         // mouse left click
         Option left;
@@ -108,6 +126,22 @@ public:
         EnablingCallback enabling_callback;
 
         Data();
+        //BBS: GUI refactor: GLToolbar
+        Data(const GLToolbarItem::Data& data)
+        {
+            name = data.name;
+            icon_filename = data.icon_filename;
+            tooltip = data.tooltip;
+            additional_tooltip = data.additional_tooltip;
+            button_text = data.button_text;
+            extra_size_ratio = data.extra_size_ratio;
+            sprite_id = data.sprite_id;
+            left = data.left;
+            right = data.right;
+            visible = data.visible;
+            visibility_callback = data.visibility_callback;
+            enabling_callback = data.enabling_callback;
+        }
     };
 
     static const ActionCallback Default_Action_Callback;
@@ -160,6 +194,16 @@ public:
     bool update_visibility();
     // returns true if the state changes
     bool update_enabled_state();
+
+    //BBS: GUI refactor: GLToolbar
+    bool is_action() const { return m_type == Action; }
+    bool is_action_with_text() const { return m_type == ActionWithText; }
+    const std::string& get_button_text() const { return m_data.button_text; }
+    void set_button_text(const std::string& text) { m_data.button_text = text; }
+    float get_extra_size_ratio() const { return m_data.extra_size_ratio; }
+    void set_extra_size_ratio(const float ratio) { m_data.extra_size_ratio = ratio; }
+    void render_text(float left, float right, float bottom, float top) const;
+    int generate_texture(wxFont& font);
 
     void render(unsigned int tex_id, float left, float right, float bottom, float top, unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const;
 private:
@@ -300,7 +344,8 @@ public:
     bool is_enabled() const { return m_enabled; }
     void set_enabled(bool enable) { m_enabled = enable; }
 
-    bool add_item(const GLToolbarItem::Data& data);
+    //BBS: GUI refactor: GLToolbar
+    bool add_item(const GLToolbarItem::Data& data, GLToolbarItem::EType type = GLToolbarItem::Action);
     bool add_separator();
 
     float get_width();
@@ -336,6 +381,11 @@ public:
     bool on_mouse(wxMouseEvent& evt, GLCanvas3D& parent);
     // get item pointer for highlighter timer
     GLToolbarItem* get_item(const std::string& item_name);
+
+    //BBS: GUI refactor: GLToolbar
+    int generate_button_text_textures(wxFont& font);
+    float get_scaled_icon_size();
+
 private:
     void calc_layout();
     float get_width_horizontal() const;

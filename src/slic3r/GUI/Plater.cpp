@@ -2028,6 +2028,14 @@ struct Plater::priv
     void on_right_click(RBtnEvent&);
     //BBS: add part plate related logic
     void on_plate_right_click(RBtnPlateEvent&);
+    //BBS: GUI refactor: GLToolbar
+    void on_action_open_project(SimpleEvent&);
+    void on_action_slice_plate(SimpleEvent&);
+    void on_action_slice_all(SimpleEvent&);
+    void on_action_print_plate(SimpleEvent&);
+    void on_action_print_all(SimpleEvent&);
+    void on_action_export_gcode(SimpleEvent&);
+
     void on_wipetower_moved(Vec3dEvent&);
     void on_wipetower_rotated(Vec3dEvent&);
     void on_update_geometry(Vec3dsEvent<2>&);
@@ -2227,6 +2235,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     }
 
     wxGLCanvas* view3D_canvas = view3D->get_wxglcanvas();
+    //BBS: GUI refactor
+    wxGLCanvas* preview_canvas = preview->get_wxglcanvas();
 
     if (wxGetApp().is_editor()) {
         // 3DScene events:
@@ -2285,6 +2295,18 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_OBJECTS, &priv::on_action_split_objects, this);
         view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_VOLUMES, &priv::on_action_split_volumes, this);
         view3D_canvas->Bind(EVT_GLTOOLBAR_LAYERSEDITING, &priv::on_action_layersediting, this);
+        //BBS: GUI refactor: GLToolbar
+        view3D_canvas->Bind(EVT_GLTOOLBAR_OPEN_PROJECT, &priv::on_action_open_project, this);
+        view3D_canvas->Bind(EVT_GLTOOLBAR_SLICE_PLATE, &priv::on_action_slice_plate, this);
+        view3D_canvas->Bind(EVT_GLTOOLBAR_SLICE_ALL, &priv::on_action_slice_all, this);
+        view3D_canvas->Bind(EVT_GLTOOLBAR_PRINT_PLATE, &priv::on_action_print_plate, this);
+        view3D_canvas->Bind(EVT_GLTOOLBAR_PRINT_ALL, &priv::on_action_print_all, this);
+        view3D_canvas->Bind(EVT_GLTOOLBAR_EXPORT_GCODE, &priv::on_action_export_gcode, this);
+        //preview also send these events
+        preview_canvas->Bind(EVT_GLTOOLBAR_SLICE_PLATE, &priv::on_action_slice_plate, this);
+        preview_canvas->Bind(EVT_GLTOOLBAR_PRINT_PLATE, &priv::on_action_print_plate, this);
+        preview_canvas->Bind(EVT_GLTOOLBAR_PRINT_ALL, &priv::on_action_print_all, this);
+        preview_canvas->Bind(EVT_GLTOOLBAR_EXPORT_GCODE, &priv::on_action_export_gcode, this);
     }
     view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_BED_SHAPE, [q](SimpleEvent&) { q->set_bed_shape(); });
 
@@ -4518,6 +4540,55 @@ void Plater::priv::on_action_del_plate(SimpleEvent&)
 {
     if (q != nullptr) {
         q->delete_plate();
+    }
+}
+
+//BBS: GUI refactor: GLToolbar
+void Plater::priv::on_action_open_project(SimpleEvent&)
+{
+    if (q != nullptr) {
+        q->load_project();
+    }
+}
+
+void Plater::priv::on_action_slice_plate(SimpleEvent&)
+{
+    if (q != nullptr) {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice plate event\n" ;
+        q->reslice();
+        q->select_view_3D("Preview");
+    }
+}
+
+void Plater::priv::on_action_slice_all(SimpleEvent&)
+{
+    if (q != nullptr) {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice project event\n" ;
+        //TODO, currently use slice plate
+        q->reslice();
+        q->select_view_3D("Preview");
+    }
+}
+
+void Plater::priv::on_action_print_plate(SimpleEvent&)
+{
+    if (q != nullptr) {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received print plate event\n" ;
+    }
+}
+
+void Plater::priv::on_action_print_all(SimpleEvent&)
+{
+    if (q != nullptr) {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received print all event\n" ;
+    }
+}
+
+void Plater::priv::on_action_export_gcode(SimpleEvent&)
+{
+    if (q != nullptr) {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received print plate event\n" ;
+        q->export_gcode(false);
     }
 }
 

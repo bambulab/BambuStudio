@@ -101,6 +101,10 @@ namespace GUI {
         // true -> add background color
         bool load_from_svg_files_as_sprites_array(const std::vector<std::string>& filenames, const std::vector<std::pair<int, bool>>& states, unsigned int sprite_size_px, bool compress);
         void reset();
+        //BBS: add generate logic for text strings
+        int m_original_width;
+        int m_original_height;
+        bool generate_from_text_string(const std::string &text_str,             wxFont &font);
 
         unsigned int get_id() const { return m_id; }
         int get_width() const { return m_width; }

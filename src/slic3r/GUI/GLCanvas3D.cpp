@@ -979,6 +979,9 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
 #endif
     , m_in_render(false)
     , m_main_toolbar(GLToolbar::Normal, "Main")
+    //BBS: GUI refactor: GLToolbar
+    , m_print_flow_toolbar(GLToolbar::Normal, "Print_Flow")
+    , m_print_select_toolbar(GLToolbar::Normal, "Print_Select")
     , m_undoredo_toolbar(GLToolbar::Normal, "Undo_Redo")
     , m_canvas_type(ECanvasType::CanvasView3D)
     , m_gizmos(*this)
@@ -1394,6 +1397,17 @@ void GLCanvas3D::enable_main_toolbar(bool enable)
     m_main_toolbar.set_enabled(enable);
 }
 
+//BBS: GUI refactor: GLToolbar
+void GLCanvas3D::enable_print_flow_toolbar(bool enable)
+{
+    m_print_flow_toolbar.set_enabled(enable);
+}
+
+void GLCanvas3D::enable_print_select_toolbar(bool enable)
+{
+    m_print_select_toolbar.set_enabled(enable);
+}
+
 void GLCanvas3D::enable_undoredo_toolbar(bool enable)
 {
     m_undoredo_toolbar.set_enabled(enable);
@@ -1639,6 +1653,13 @@ void GLCanvas3D::render()
 
 	    if (tooltip.empty())
 	        tooltip = m_main_toolbar.get_tooltip();
+
+        //BBS: GUI refactor: GLToolbar
+        if (tooltip.empty())
+            tooltip = m_print_flow_toolbar.get_tooltip();
+
+        if (tooltip.empty())
+            tooltip = m_print_select_toolbar.get_tooltip();
 
 	    if (tooltip.empty())
 	        tooltip = m_undoredo_toolbar.get_tooltip();
@@ -2364,6 +2385,9 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
         return;
 
     m_dirty |= m_main_toolbar.update_items_state();
+    //BBS: GUI refactor: GLToolbar
+    m_dirty |= m_print_flow_toolbar.update_items_state();
+    m_dirty |= m_print_select_toolbar.update_items_state();
     m_dirty |= m_undoredo_toolbar.update_items_state();
     m_dirty |= wxGetApp().plater()->get_view_toolbar().update_items_state();
     m_dirty |= wxGetApp().plater()->get_collapse_toolbar().update_items_state();
@@ -3067,6 +3091,21 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 	}
 
     if (m_main_toolbar.on_mouse(evt, *this)) {
+        if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
+            mouse_up_cleanup();
+        m_mouse.set_start_position_3D_as_invalid();
+        return;
+    }
+
+    //BBS: GUI refactor: GLToolbar
+    if (m_print_flow_toolbar.on_mouse(evt, *this)) {
+        if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
+            mouse_up_cleanup();
+        m_mouse.set_start_position_3D_as_invalid();
+        return;
+    }
+
+    if (m_print_select_toolbar.on_mouse(evt, *this)) {
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
         m_mouse.set_start_position_3D_as_invalid();
@@ -4202,13 +4241,21 @@ bool GLCanvas3D::_render_search_list(float pos_x)
     return action_taken;
 }
 
-bool GLCanvas3D::_render_orient_menu(float pos_x)
+//BBS: GUI refactor: adjust main toolbar position
+bool GLCanvas3D::_render_orient_menu(float left, float right, float bottom, float top)
 {
     ImGuiWrapper* imgui = wxGetApp().imgui();
 
     auto canvas_w = float(get_canvas_size().get_width());
-    const float x = pos_x * float(wxGetApp().plater()->get_camera().get_zoom()) + 0.5f * canvas_w;
-    imgui->set_next_window_pos(x, m_main_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
+    auto canvas_h = float(get_canvas_size().get_height());
+    //BBS: GUI refactor: move main toolbar to the right
+    //original use center as {0.0}, and top is (canvas_h/2), bottom is (-canvas_h/2), also plus inv_camera
+    //now change to left_up as {0,0}, and top is 0, bottom is canvas_h
+    //const float x = left * float(wxGetApp().plater()->get_camera().get_zoom()) + 0.5f * canvas_w;    
+    const float x = canvas_w - m_main_toolbar.get_width();
+    const float y = 0.5f * canvas_h - top * float(wxGetApp().plater()->get_camera().get_zoom());
+    imgui->set_next_window_pos(x, y, ImGuiCond_Always, 1.0f, 0.0f);
+    //imgui->set_next_window_pos(x, m_main_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
 
     imgui->begin(_L("Auto Orientation options"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
@@ -4276,13 +4323,21 @@ bool GLCanvas3D::_render_orient_menu(float pos_x)
     return settings_changed;
 }
 
-bool GLCanvas3D::_render_arrange_menu(float pos_x)
+//BBS: GUI refactor: adjust main toolbar position
+bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, float top)
 {
     ImGuiWrapper *imgui = wxGetApp().imgui();
 
     auto canvas_w = float(get_canvas_size().get_width());
-    const float x = pos_x * float(wxGetApp().plater()->get_camera().get_zoom()) + 0.5f * canvas_w;
-    imgui->set_next_window_pos(x, m_main_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
+    auto canvas_h = float(get_canvas_size().get_height());
+    //BBS: GUI refactor: move main toolbar to the right
+    //original use center as {0.0}, and top is (canvas_h/2), bottom is (-canvas_h/2), also plus inv_camera
+    //now change to left_up as {0,0}, and top is 0, bottom is canvas_h
+    //const float x = left * float(wxGetApp().plater()->get_camera().get_zoom()) + 0.5f * canvas_w;    
+    const float x = canvas_w - m_main_toolbar.get_width();
+    const float y = 0.5f * canvas_h - top * float(wxGetApp().plater()->get_camera().get_zoom());
+    imgui->set_next_window_pos(x, y, ImGuiCond_Always, 1.0f, 0.0f);
+    //imgui->set_next_window_pos(x, m_main_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
 
     imgui->begin(_L("Arrange options"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
@@ -4367,6 +4422,86 @@ bool GLCanvas3D::_render_arrange_menu(float pos_x)
     }
 
     imgui->end();
+
+    return settings_changed;
+}
+
+//BBS:GUI refactor: GLToolbar
+bool GLCanvas3D::_render_slice_select(float left, float right, float bottom, float top, float text_scale_ratio, GLToolbar& print_toolbar)
+{
+    bool settings_changed = false;
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+    auto canvas_w = float(get_canvas_size().get_width());
+    float zoom = wxGetApp().plater()->get_camera().get_zoom();
+    float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
+    const float x = left * zoom + 0.5f * canvas_w - print_toolbar.get_scaled_icon_size() * text_scale_ratio;
+    const float w = (right - left) * zoom + print_toolbar.get_scaled_icon_size() * text_scale_ratio;
+    const float h = 0;
+
+    ImGui::SetNextWindowPos(ImVec2(x, print_toolbar.get_height()), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
+    ImGui::SetNextWindowSize(ImVec2(w, h));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.75);
+    if (ImGui::Begin("slice select:", NULL, window_flags))
+    {
+        //imgui->text(GUI::format_wxstr(_L("Press %1%left mouse button to enter the exact value"), shortkey_ctrl_prefix()));
+        if (ImGui::MenuItem("Slice All", NULL, m_slice_select == eSliceAll))
+        {
+            m_slice_select = eSliceAll;
+            settings_changed = true;
+            print_toolbar.force_left_action(print_toolbar.get_item_id("slice_select"), *this);
+        }
+        if (ImGui::MenuItem("Slice Plate", NULL, m_slice_select == eSlicePlate))
+        {
+            m_slice_select = eSlicePlate;
+            settings_changed = true;
+            print_toolbar.force_left_action(print_toolbar.get_item_id("slice_select"), *this);
+        }
+        //if (ImGui::MenuItem("Export G-code", NULL, m_slice_select == eExportGcode)) m_slice_select = eExportGcode;
+    }
+
+    ImGui::End();
+    ImGui::PopStyleVar(2);
+
+    return settings_changed;
+}
+
+bool GLCanvas3D::_render_print_select(float left, float right, float bottom, float top, float text_scale_ratio, GLToolbar& print_toolbar)
+{
+    bool settings_changed = false;
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+    auto canvas_w = float(get_canvas_size().get_width());
+    float zoom = wxGetApp().plater()->get_camera().get_zoom();
+    float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
+    const float x = left * zoom + 0.5f * canvas_w - print_toolbar.get_scaled_icon_size() * text_scale_ratio;
+    const float w = (right - left) * zoom + print_toolbar.get_scaled_icon_size() * text_scale_ratio;
+    const float h = 0;
+
+    ImGui::SetNextWindowPos(ImVec2(x, print_toolbar.get_height()), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
+    ImGui::SetNextWindowSize(ImVec2(w, h));
+    if (ImGui::Begin("print select:", NULL, window_flags))
+    {
+        //imgui->text(GUI::format_wxstr(_L("Press %1%left mouse button to enter the exact value"), shortkey_ctrl_prefix()));
+        if (ImGui::MenuItem("Print All", NULL, m_print_select == ePrintAll))
+        {
+            m_print_select = ePrintAll;
+            settings_changed = true;
+            print_toolbar.force_left_action(print_toolbar.get_item_id("print_select"), *this);
+        }
+        if (ImGui::MenuItem("Print Plate", NULL, m_print_select == ePrintPlate))
+        {
+            m_print_select = ePrintPlate;
+            settings_changed = true;
+            print_toolbar.force_left_action(print_toolbar.get_item_id("print_select"), *this);
+        }
+        if (ImGui::MenuItem("Export G-code", NULL, m_print_select == eExportGcode))
+        {
+            m_print_select = eExportGcode;
+            settings_changed = true;
+            print_toolbar.force_left_action(print_toolbar.get_item_id("print_select"), *this);
+        }
+        //if (ImGui::MenuItem("Export G-code",    NULL, m_print_select == eExportGcode)) m_slice_select = eExportGcode;
+    }
 
     return settings_changed;
 }
@@ -4737,9 +4872,17 @@ void GLCanvas3D::_render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigne
     wxGetApp().plater()->get_camera().apply_viewport(0, 0, cnv_size.get_width(), cnv_size.get_height());
 }
 
+//BBS: GUI refractor
 bool GLCanvas3D::_init_toolbars()
 {
     if (!_init_main_toolbar())
+        return false;
+
+    //BBS: GUI refractor
+    if (!_init_print_flow_toolbar())
+        return false;
+
+    if (!_init_print_select_toolbar())
         return false;
 
     if (!_init_undoredo_toolbar())
@@ -4754,6 +4897,7 @@ bool GLCanvas3D::_init_toolbars()
     return true;
 }
 
+//BBS: GUI refactor: GLToolbar
 bool GLCanvas3D::_init_main_toolbar()
 {
     if (!m_main_toolbar.is_enabled())
@@ -4789,8 +4933,7 @@ bool GLCanvas3D::_init_main_toolbar()
         BOOST_LOG_TRIVIAL(error) << "Gizmos manager failed to load arrow texture.";
     }
 
-//    m_main_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
-    m_main_toolbar.set_layout_type(GLToolbar::Layout::Horizontal);
+    m_main_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
     m_main_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Right);
     m_main_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
     m_main_toolbar.set_border(5.0f);
@@ -4807,6 +4950,8 @@ bool GLCanvas3D::_init_main_toolbar()
     if (!m_main_toolbar.add_item(item))
         return false;
 
+    //BBS: GUI refactor
+    /*
     item.name = "delete";
     item.icon_filename = "remove.svg";
     item.tooltip = _utf8(L("Delete")) + " [Del]";
@@ -4816,8 +4961,6 @@ bool GLCanvas3D::_init_main_toolbar()
     if (!m_main_toolbar.add_item(item))
         return false;
 
-    //BBS
-    /*
     item.name = "deleteall";
     item.icon_filename = "delete_all.svg";
     item.tooltip = _utf8(L("Delete all")) + " [" + GUI::shortkey_ctrl_prefix() + "Del]";
@@ -4856,10 +4999,12 @@ bool GLCanvas3D::_init_main_toolbar()
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ORIENT)); };
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };
     item.right.toggable = true;  // allow right mouse click
-    item.right.render_callback = [this](float left, float right, float, float) {
+    //BBS: GUI refactor: adjust the main toolbar position
+    item.right.render_callback = [this](float left, float right, float bottom, float top) {
         if (m_canvas != nullptr)
         {
-            _render_orient_menu(0.5f * (left + right));
+            _render_orient_menu(left, right, bottom, top);
+            //_render_orient_menu(0.5f * (left + right));
         }
     };
     if (!m_main_toolbar.add_item(item))
@@ -4872,10 +5017,12 @@ bool GLCanvas3D::_init_main_toolbar()
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ARRANGE)); };
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };
     item.right.toggable = true;
-    item.right.render_callback = [this](float left, float right, float, float) {
+    //BBS: GUI refactor: adjust the main toolbar position
+    item.right.render_callback = [this](float left, float right, float bottom, float top) {
         if (m_canvas != nullptr)
         {
-            _render_arrange_menu(0.5f * (left + right));
+            _render_arrange_menu(left, right, bottom, top);
+            //_render_arrange_menu(0.5f * (left + right));
         }
     };
     if (!m_main_toolbar.add_item(item))
@@ -4957,7 +5104,7 @@ bool GLCanvas3D::_init_main_toolbar()
     if (!m_main_toolbar.add_separator())
         return false;
 
-    item.name = "settings";
+    /*item.name = "settings";
     item.icon_filename = "settings.svg";
     item.tooltip = _u8L("Switch to Settings") + "\n" + "[" + GUI::shortkey_ctrl_prefix() + "2] - " + _u8L("Print Settings Tab")    + 
                                                 "\n" + "[" + GUI::shortkey_ctrl_prefix() + "3] - " + (current_printer_technology() == ptFFF ? _u8L("Filament Settings Tab") : _u8L("Material Settings Tab")) +
@@ -4968,14 +5115,14 @@ bool GLCanvas3D::_init_main_toolbar()
                                                wxGetApp().app_config->get("dlg_settings_layout_mode") == "1"); };
     item.left.action_callback = []() { wxGetApp().mainframe->select_tab(); };
     if (!m_main_toolbar.add_item(item))
-        return false;
+        return false;*/
 
     /*
     if (!m_main_toolbar.add_separator())
         return false;
         */
 
-    item.name = "search";
+    /*item.name = "search";
     item.icon_filename = "search_.svg";
     item.tooltip = _utf8(L("Search")) + " [" + GUI::shortkey_ctrl_prefix() + "F]";
     item.sprite_id++;
@@ -5012,10 +5159,340 @@ bool GLCanvas3D::_init_main_toolbar()
     item.enabling_callback      = []()->bool { return wxGetApp().plater()->can_layers_editing(); };
     item.left.render_callback   = GLToolbarItem::Default_Render_Callback;
     if (!m_main_toolbar.add_item(item))
-        return false;
+        return false;*/
 
     return true;
 }
+
+//BBS: GUI refactor: GLToolbar
+static float print_flow_text_ratio = 3.0f;
+bool GLCanvas3D::_init_print_flow_toolbar()
+{
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": enter,  m_print_flow_toolbar.is_enabled=" << m_print_flow_toolbar.is_enabled() << "\n";
+    if (!m_print_flow_toolbar.is_enabled())
+        return true;
+
+    BackgroundTexture::Metadata background_data;
+    background_data.filename = "toolbar_background.png";
+    background_data.left = 16;
+    background_data.top = 16;
+    background_data.right = 16;
+    background_data.bottom = 16;
+
+    if (!m_print_flow_toolbar.init(background_data))
+    {
+        // unable to init the toolbar texture, disable it
+        m_print_flow_toolbar.set_enabled(false);
+        return true;
+    }
+
+    //    m_undoredo_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
+    m_print_flow_toolbar.set_layout_type(GLToolbar::Layout::Horizontal);
+    m_print_flow_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Right);
+    m_print_flow_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
+    m_print_flow_toolbar.set_border(5.0f);
+    m_print_flow_toolbar.set_separator_size(10);
+    m_print_flow_toolbar.set_gap_size(4);
+
+    GLToolbarItem::Data item;
+
+    item.name = "open_project";
+    item.icon_filename = "open_project.svg";
+    item.tooltip = _utf8(L("Open project")) + " [" + GUI::shortkey_ctrl_prefix() + "O]";
+    item.sprite_id = 0;
+    item.visible = true;
+    item.left.toggable = false;
+    item.left.action_callback = [this]() {
+        if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_OPEN_PROJECT));
+    };
+    item.visibility_callback = [this]()->bool { return (m_canvas_type == CanvasView3D); };
+    item.left.render_callback = GLToolbarItem::Default_Render_Callback;
+    item.extra_size_ratio = print_flow_text_ratio;
+    item.button_text = "Open Project";
+    if (!m_print_flow_toolbar.add_item(item, GLToolbarItem::ActionWithText))
+        return false;
+
+    if (!m_print_flow_toolbar.add_separator())
+        return false;
+
+    item.name = "slice_all";
+    item.icon_filename = "slice_all.svg";
+    item.tooltip = _utf8(L("Slice project")) + " [Slice Project]";
+    item.sprite_id++;
+    item.visible = true;
+    item.left.action_callback = [this]() {
+        if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
+    };
+    item.left.render_callback = GLToolbarItem::Default_Render_Callback;
+    //item.enabling_callback = []()->bool {return wxGetApp().plater()->can_slice_all(); };
+    item.visibility_callback = [this]()->bool {
+        return (m_canvas_type == CanvasView3D) && (m_slice_select == eSliceAll);
+    };
+    item.extra_size_ratio = print_flow_text_ratio;
+    item.button_text = "Slice Project";
+    if (!m_print_flow_toolbar.add_item(item, GLToolbarItem::ActionWithText))
+        return false;
+
+    item.name = "slice_plate";
+    item.icon_filename = "slice_plate.svg";
+    item.tooltip = _utf8(L("Slice plate")) + " [Slice Plate]";
+    item.sprite_id++;
+    item.visible = false;
+    item.left.action_callback = [this]() {
+        if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
+    };
+    item.visibility_callback = [this]()->bool {
+        return ((m_canvas_type == CanvasView3D) && (m_slice_select == eSlicePlate)) || (m_canvas_type == CanvasPreview);
+    };
+    item.left.render_callback = GLToolbarItem::Default_Render_Callback;
+    //item.enabling_callback = []()->bool { return wxGetApp().plater()->can_slice_plate(); };
+    item.extra_size_ratio = print_flow_text_ratio;
+    item.button_text = "Slice Plate";
+    if (!m_print_flow_toolbar.add_item(item, GLToolbarItem::ActionWithText))
+        return false;
+
+    item.name = "slice_select";
+    item.icon_filename = "slice_select.svg";
+    item.tooltip = _utf8(L("Slice Select")) + " [" + GUI::shortkey_alt_prefix() + "S]\n";
+    item.sprite_id++;
+    item.extra_size_ratio = 0.0f;
+    item.button_text = "";
+    item.visible = true;
+    item.visibility_callback = [this]()->bool {
+        return (m_canvas_type == CanvasView3D);
+    };
+    item.left.toggable = true;
+    item.left.render_callback = [this](float left, float right, float bottom, float top) {
+        if (m_canvas != nullptr)
+        {
+            _render_slice_select(left, right, bottom, top, print_flow_text_ratio, m_print_flow_toolbar);
+        }
+    };
+    item.enabling_callback = [this]()->bool {
+        return true;
+    };
+    item.left.action_callback = GLToolbarItem::Default_Action_Callback;
+
+    if (!m_print_flow_toolbar.add_item(item))
+        return false;
+
+    item.name = "print_project";
+    item.icon_filename = "print_project.svg";
+    item.tooltip = _utf8(L("Print whole project"));
+    item.sprite_id++;
+    item.left.toggable = false;
+    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_PRINT_ALL)); };
+    item.left.render_callback = GLToolbarItem::Default_Render_Callback;
+    item.visible = true;
+    item.visibility_callback = [this]()->bool { return (m_print_select == ePrintAll) && ((m_canvas_type == CanvasView3D) || (m_canvas_type == CanvasPreview)); };
+    //item.enabling_callback = []()->bool { return wxGetApp().plater()->can_split_to_objects(); };
+    item.extra_size_ratio = print_flow_text_ratio;
+    item.button_text = "Print Project";
+    if (!m_print_flow_toolbar.add_item(item, GLToolbarItem::ActionWithText))
+        return false;
+
+    item.name = "print_plate";
+    item.icon_filename = "print_plate.svg";
+    item.tooltip = _utf8(L("print one plate"));
+    item.sprite_id++;
+    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE)); };
+    item.left.render_callback = GLToolbarItem::Default_Render_Callback;
+    item.visible = false;
+    item.visibility_callback = [this]()->bool { return (m_print_select == ePrintPlate) && ((m_canvas_type == CanvasView3D) || (m_canvas_type == CanvasPreview)); };
+    //item.enabling_callback = []()->bool { return wxGetApp().plater()->can_split_to_volumes(); };
+    item.extra_size_ratio = print_flow_text_ratio;
+    item.button_text = "Print Plate";
+    if (!m_print_flow_toolbar.add_item(item, GLToolbarItem::ActionWithText))
+        return false;
+
+    item.name = "export_gcode";
+    item.icon_filename = "export_gcode.svg";
+    item.tooltip = _utf8(L("Export G-code"));
+    item.sprite_id++;
+    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_EXPORT_GCODE)); };
+    item.left.render_callback = GLToolbarItem::Default_Render_Callback;
+    item.visible = false;
+    item.visibility_callback = [this]()->bool { return (m_print_select == eExportGcode) && ((m_canvas_type == CanvasView3D) || (m_canvas_type == CanvasPreview)); };
+    //item.visibility_callback = []()->bool { return wxGetApp().get_mode() != comSimple; };
+    //item.enabling_callback = []()->bool { return wxGetApp().plater()->can_split_to_volumes(); };
+    item.extra_size_ratio = print_flow_text_ratio;
+    item.button_text = "Export G-Code";
+    if (!m_print_flow_toolbar.add_item(item, GLToolbarItem::ActionWithText))
+        return false;
+
+    item.name = "print_select";
+    item.icon_filename = "print_select.svg";
+    item.tooltip = _utf8(L("Print Select")) + " [" + GUI::shortkey_alt_prefix() + "S]\n";
+    item.sprite_id++;
+    item.visible = true;
+    item.visibility_callback = [this]()->bool { return ((m_canvas_type == CanvasView3D) || (m_canvas_type == CanvasPreview)); };
+    item.left.toggable = true;
+    item.left.render_callback = [this](float left, float right, float bottom, float top) {
+        if (m_canvas != nullptr)
+        {
+            _render_print_select(left, right, bottom, top, print_flow_text_ratio, m_print_flow_toolbar);
+        }
+    };
+    item.enabling_callback = [this]()->bool {
+        return true;
+    };
+    item.left.action_callback = GLToolbarItem::Default_Action_Callback;
+
+    if (!m_print_flow_toolbar.add_item(item))
+        return false;
+
+    //if (!m_print_flow_toolbar.add_separator())
+    //    return false;
+
+#ifdef __WXMSW__
+    // set scaled application normal font as default font 
+    wxFont font = wxGetApp().normal_font();
+#else
+    // select default font
+    float scale = this->get_canvas_size().get_scale_factor();
+#if ENABLE_RETINA_GL
+    // For non-visible or non-created window getBackingScaleFactor function return 0.0 value.
+    // And using of the zero scale causes a crash, when we trying to draw text to the (0,0) rectangle
+    // https://github.com/prusa3d/PrusaSlicer/issues/3916
+    if (scale <= 0.0f)
+        scale = 1.0;
+#endif
+    wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Scale(scale);
+#endif
+
+    if (m_print_flow_toolbar.generate_button_text_textures(font))
+    {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": generate texture failed\n";
+        return false;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Finished Successfully\n";
+    return true;
+}
+
+bool GLCanvas3D::_init_print_select_toolbar()
+{
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": enter,  m_print_select_toolbar.is_enabled=" << m_print_select_toolbar.is_enabled() << "\n";
+    if (!m_print_select_toolbar.is_enabled())
+        return true;
+
+    BackgroundTexture::Metadata background_data;
+    background_data.filename = "toolbar_background.png";
+    background_data.left = 16;
+    background_data.top = 16;
+    background_data.right = 16;
+    background_data.bottom = 16;
+
+    if (!m_print_select_toolbar.init(background_data))
+    {
+        // unable to init the toolbar texture, disable it
+        m_print_select_toolbar.set_enabled(false);
+        return true;
+    }
+
+    m_print_select_toolbar.set_layout_type(GLToolbar::Layout::Horizontal);
+    m_print_select_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Right);
+    m_print_select_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
+    m_print_select_toolbar.set_border(5.0f);
+    m_print_select_toolbar.set_separator_size(10);
+    m_print_select_toolbar.set_gap_size(4);
+
+    GLToolbarItem::Data item;
+
+    item.name = "print_project";
+    item.icon_filename = "print_project.svg";
+    item.tooltip = _utf8(L("Print whole project"));
+    item.sprite_id = 0;
+    item.left.toggable = false;
+    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_PRINT_ALL)); };
+    item.left.render_callback = GLToolbarItem::Default_Render_Callback;
+    item.visible = true;
+    item.visibility_callback = [this]()->bool { return (m_print_select == ePrintAll); };
+    //item.enabling_callback = []()->bool { return wxGetApp().plater()->can_split_to_objects(); };
+    item.extra_size_ratio = print_flow_text_ratio;
+    item.button_text = "Print Project";
+    if (!m_print_select_toolbar.add_item(item, GLToolbarItem::ActionWithText))
+        return false;
+
+    item.name = "print_plate";
+    item.icon_filename = "print_plate.svg";
+    item.tooltip = _utf8(L("print one plate"));
+    item.sprite_id++;
+    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE)); };
+    item.left.render_callback = GLToolbarItem::Default_Render_Callback;
+    item.visible = false;
+    item.visibility_callback = [this]()->bool { return (m_print_select == ePrintPlate); };
+    //item.enabling_callback = []()->bool { return wxGetApp().plater()->can_split_to_volumes(); };
+    item.extra_size_ratio = print_flow_text_ratio;
+    item.button_text = "Print Plate";
+    if (!m_print_select_toolbar.add_item(item, GLToolbarItem::ActionWithText))
+        return false;
+
+    item.name = "export_gcode";
+    item.icon_filename = "export_gcode.svg";
+    item.tooltip = _utf8(L("Export G-code"));
+    item.sprite_id++;
+    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_EXPORT_GCODE)); };
+    item.left.render_callback = GLToolbarItem::Default_Render_Callback;
+    item.visible = false;
+    item.visibility_callback = [this]()->bool { return (m_print_select == eExportGcode); };
+    //item.visibility_callback = []()->bool { return wxGetApp().get_mode() != comSimple; };
+    //item.enabling_callback = []()->bool { return wxGetApp().plater()->can_split_to_volumes(); };
+    item.extra_size_ratio = print_flow_text_ratio;
+    item.button_text = "Export G-Code";
+    if (!m_print_select_toolbar.add_item(item, GLToolbarItem::ActionWithText))
+        return false;
+
+    item.name = "print_select";
+    item.icon_filename = "print_select.svg";
+    item.tooltip = _utf8(L("Print Select")) + " [" + GUI::shortkey_alt_prefix() + "S]\n";
+    item.sprite_id++;
+    item.visible = true;
+    item.visibility_callback = [this]()->bool { return true; };
+    item.left.toggable = true;
+    item.left.render_callback = [this](float left, float right, float bottom, float top) {
+        if (m_canvas != nullptr)
+        {
+            _render_print_select(left, right, bottom, top, print_flow_text_ratio, m_print_select_toolbar);
+        }
+    };
+    item.enabling_callback = [this]()->bool {
+        return true;
+    };
+    item.left.action_callback = GLToolbarItem::Default_Action_Callback;
+
+    if (!m_print_select_toolbar.add_item(item))
+        return false;
+
+    //if (!m_print_flow_toolbar.add_separator())
+    //    return false;
+
+#ifdef __WXMSW__
+    // set scaled application normal font as default font 
+    wxFont font = wxGetApp().normal_font();
+#else
+    // select default font
+    float scale = this->get_canvas_size().get_scale_factor();
+#if ENABLE_RETINA_GL
+    // For non-visible or non-created window getBackingScaleFactor function return 0.0 value.
+    // And using of the zero scale causes a crash, when we trying to draw text to the (0,0) rectangle
+    // https://github.com/prusa3d/PrusaSlicer/issues/3916
+    if (scale <= 0.0f)
+        scale = 1.0;
+#endif
+    wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Scale(scale);
+#endif
+
+    if (m_print_select_toolbar.generate_button_text_textures(font))
+    {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": generate texture failed\n";
+        return false;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Finished Successfully\n";
+    return true;
+}
+
 
 bool GLCanvas3D::_init_undoredo_toolbar()
 {
@@ -5677,30 +6154,42 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     float scale = wxGetApp().toolbar_icon_scale();
     Size cnv_size = get_canvas_size();
 
+    //BBS: GUI refactor: GLToolbar
     float size = GLToolbar::Default_Icons_Size * scale;
+    //float main_size = GLGizmosManager::Default_Icons_Size * scale;
 
     // Set current size for all top toolbars. It will be used for next calculations
     GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
 #if ENABLE_RETINA_GL
     const float sc = m_retina_helper->get_scale_factor() * scale;
+    //BBS: GUI refactor: GLToolbar
     m_main_toolbar.set_scale(sc);
+    m_print_flow_toolbar.set_scale(sc);
+    m_print_select_toolbar.set_scale(sc);
     m_undoredo_toolbar.set_scale(sc);
     collapse_toolbar.set_scale(sc);
     size *= m_retina_helper->get_scale_factor();
 #else
-    m_main_toolbar.set_icons_size(size);
+    //BBS: GUI refactor: GLToolbar
+    m_main_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size * scale);
+    m_print_flow_toolbar.set_icons_size(size);
+    m_print_select_toolbar.set_icons_size(size);
     m_undoredo_toolbar.set_icons_size(size);
     collapse_toolbar.set_icons_size(size);
 #endif // ENABLE_RETINA_GL
 
-    float top_tb_width = m_main_toolbar.get_width() + m_undoredo_toolbar.get_width() + collapse_toolbar.get_width();
-    int   items_cnt = m_main_toolbar.get_visible_items_cnt() + m_undoredo_toolbar.get_visible_items_cnt() + collapse_toolbar.get_visible_items_cnt();
+    //BBS: GUI refactor: GLToolbar
+
+    float top_tb_width = m_print_flow_toolbar.get_width() + m_print_select_toolbar.get_width() + collapse_toolbar.get_width();
+    int   items_cnt = m_print_flow_toolbar.get_visible_items_cnt() + m_print_select_toolbar.get_visible_items_cnt() + collapse_toolbar.get_visible_items_cnt();
+    //float top_tb_width = m_main_toolbar.get_width() + m_undoredo_toolbar.get_width() + collapse_toolbar.get_width();
+    //int   items_cnt = m_main_toolbar.get_visible_items_cnt() + m_undoredo_toolbar.get_visible_items_cnt() + collapse_toolbar.get_visible_items_cnt();
     float noitems_width = top_tb_width - size * items_cnt; // width of separators and borders in top toolbars 
 
     // calculate scale needed for items in all top toolbars
     float new_h_scale = (cnv_size.get_width() - noitems_width) / (items_cnt * GLToolbar::Default_Icons_Size);
 
-    items_cnt = m_gizmos.get_selectable_icons_cnt() + 3; // +3 means a place for top and view toolbars and separators in gizmos toolbar
+    items_cnt = m_main_toolbar.get_visible_items_cnt() + m_gizmos.get_selectable_icons_cnt() + 3; // +3 means a place for top and view toolbars and separators in gizmos toolbar
 
     // calculate scale needed for items in the gizmos toolbar
     float new_v_scale = cnv_size.get_height() / (items_cnt * GLGizmosManager::Default_Icons_Size);
@@ -5728,27 +6217,44 @@ void GLCanvas3D::_render_overlays()
 
     _check_and_update_toolbar_icon_scale();
 
-    _render_gizmos_overlay();
+    //BBS: GUI refactor: GLToolbar
+    //move gizmos behind of main
+    //_render_gizmos_overlay();
 
     // main toolbar and undoredo toolbar need to be both updated before rendering because both their sizes are needed
     // to correctly place them
 #if ENABLE_RETINA_GL
     const float scale = m_retina_helper->get_scale_factor() * wxGetApp().toolbar_icon_scale(/*true*/);
+    //BBS: GUI refactor: GLToolbar
     m_main_toolbar.set_scale(scale);
+    m_print_flow_toolbar.set_scale(scale);
+    m_print_select_toolbar.set_scale(scale);
     m_undoredo_toolbar.set_scale(scale);
     wxGetApp().plater()->get_collapse_toolbar().set_scale(scale);
+    m_gizmos.set_overlay_scale(scale);
 #else
     const float size = int(GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale(/*true*/));
-    m_main_toolbar.set_icons_size(size);
+    const float gizmo_size = int(GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale());
+    //BBS: GUI refactor: GLToolbar
+    m_main_toolbar.set_icons_size(gizmo_size);
+    m_print_flow_toolbar.set_icons_size(size);
+    m_print_select_toolbar.set_icons_size(size);
     m_undoredo_toolbar.set_icons_size(size);
     wxGetApp().plater()->get_collapse_toolbar().set_icons_size(size);
+    m_gizmos.set_overlay_icon_size(gizmo_size);
 #endif // ENABLE_RETINA_GL
 
     _render_main_toolbar();
+    //BBS: GUI refactor: GLToolbar
+    _render_print_toolbar();
     _render_undoredo_toolbar();
     _render_collapse_toolbar();
     _render_view_toolbar();
     _render_paint_toolbar();
+
+    //BBS: GUI refactor: GLToolbar
+    //move gizmos behind of main
+    _render_gizmos_overlay();
 
     if (m_layers_editing.last_object_id >= 0 && m_layers_editing.object_max_z() > 0.0f)
         m_layers_editing.render_overlay(*this);
@@ -5808,9 +6314,11 @@ void GLCanvas3D::_render_current_gizmo() const
     m_gizmos.render_current_gizmo();
 }
 
+//BBS: GUI refactor: GLToolbar adjust
+//move the size calc to GLCanvas
 void GLCanvas3D::_render_gizmos_overlay()
 {
-#if ENABLE_RETINA_GL
+/*#if ENABLE_RETINA_GL
 //     m_gizmos.set_overlay_scale(m_retina_helper->get_scale_factor());
     const float scale = m_retina_helper->get_scale_factor()*wxGetApp().toolbar_icon_scale();
     m_gizmos.set_overlay_scale(scale); //! #ys_FIXME_experiment
@@ -5829,6 +6337,8 @@ void GLCanvas3D::_render_gizmos_overlay()
     }
 }
 
+//BBS: GUI refactor: GLToolbar adjust
+//when rendering, {0, 0} is at the center
 void GLCanvas3D::_render_main_toolbar()
 {
     if (!m_main_toolbar.is_enabled())
@@ -5837,16 +6347,51 @@ void GLCanvas3D::_render_main_toolbar()
     Size cnv_size = get_canvas_size();
     float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
 
-    float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
-    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
-    float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
-    float left = -0.5f * (m_main_toolbar.get_width() + m_undoredo_toolbar.get_width() + collapse_toolbar_width) * inv_zoom;
+    float gizmo_height = m_gizmos.get_scaled_total_height();
+    float space_height = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
+    float main_toolbar_height = (float)m_main_toolbar.get_height();
+    float top = 0.5f * (main_toolbar_height + space_height + gizmo_height) * inv_zoom;
+    float left = (0.5f * (float)cnv_size.get_width() - m_main_toolbar.get_width()) * inv_zoom;
+    //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": top %1%, main_toolbar_height %2%, space_height %3% gizmo_height %4%") % top % main_toolbar_height % space_height % gizmo_height;
 
     m_main_toolbar.set_position(top, left);
     m_main_toolbar.render(*this);
     if (m_toolbar_highlighter.m_render_arrow)
     {
         m_main_toolbar.render_arrow(*this, m_toolbar_highlighter.m_toolbar_item);
+    }
+}
+
+//BBS: GUI refactor: GLToolbar adjust
+//when rendering, {0, 0} is at the center
+void GLCanvas3D::_render_print_toolbar() const
+{
+    if (m_print_flow_toolbar.is_enabled())
+    {
+        Size cnv_size = get_canvas_size();
+        float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
+
+        float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
+        GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
+        float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
+        float left = -0.5f * (m_print_flow_toolbar.get_width() + collapse_toolbar_width) * inv_zoom;
+
+        m_print_flow_toolbar.set_position(top, left);
+        m_print_flow_toolbar.render(*this);
+    }
+
+    if (m_print_select_toolbar.is_enabled())
+    {
+        Size cnv_size = get_canvas_size();
+        float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
+
+        float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
+        GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
+        float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
+        float left = -0.5f * (m_print_select_toolbar.get_width() + collapse_toolbar_width) * inv_zoom;
+
+        m_print_select_toolbar.set_position(top, left);
+        m_print_select_toolbar.render(*this);
     }
 }
 

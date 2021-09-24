@@ -154,15 +154,17 @@ void GLGizmoCut::on_render_for_picking()
 
 void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit)
 {
-    static float last_y = 0.0f;
-    static float last_h = 0.0f;
+    //static float last_y = 0.0f;
+    //static float last_h = 0.0f;
 
+    //BBS: GUI refactor: move gizmo to the right
+    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always, 1.0f, 0.0f);
     m_imgui->begin(_L("Cut"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
     const bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
 
     // adjust window position to avoid overlap the view toolbar
-    const float win_h = ImGui::GetWindowHeight();
+    /*const float win_h = ImGui::GetWindowHeight();
     y = std::min(y, bottom_limit - win_h);
     ImGui::SetWindowPos(ImVec2(x, y), ImGuiCond_Always);
     if (last_h != win_h || last_y != y) {
@@ -176,7 +178,7 @@ void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit)
             last_h = win_h;
         if (last_y != y)
             last_y = y;
-    }
+    }*/
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text("Z");
