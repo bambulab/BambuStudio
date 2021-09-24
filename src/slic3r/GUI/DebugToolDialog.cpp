@@ -47,7 +47,6 @@
 #include "slic3r/GUI/ProjectTask.hpp"
 #include "libslic3r/miniz_extension.hpp"
 
-
 namespace pt = boost::property_tree;
 typedef pt::ptree JSON;
 
@@ -1058,6 +1057,12 @@ std::string DebugToolDialog::switch_ams_gcode(std::string t)
 
     const PrintConfig& print_config = print.config();
     DynamicConfig dyn_config;
+    int old_filament_temp = atoi(txt_ams_flush_temp1->GetValue().ToStdString().c_str());
+    int new_filament_temp = atoi(txt_ams_flush_temp2->GetValue().ToStdString().c_str());
+    old_filament_temp = std::min(old_filament_temp, 300);
+    old_filament_temp = std::max(old_filament_temp, 120);
+    new_filament_temp = std::min(new_filament_temp, 300);
+    new_filament_temp = std::max(new_filament_temp, 120);
     dyn_config.set_key_value("previous_extruder", new ConfigOptionInt(-1));
     dyn_config.set_key_value("next_extruder",     new ConfigOptionInt(atoi(t.c_str())));
     dyn_config.set_key_value("layer_num",         new ConfigOptionInt(0));
@@ -1070,8 +1075,8 @@ std::string DebugToolDialog::switch_ams_gcode(std::string t)
     dyn_config.set_key_value("new_retract_length", new ConfigOptionFloat(2.));
     dyn_config.set_key_value("old_retract_length_toolchange", new ConfigOptionFloat(3.0));
     dyn_config.set_key_value("new_retract_length_toolchange", new ConfigOptionFloat(3.0));
-    dyn_config.set_key_value("old_filament_temp", new ConfigOptionInt(210));
-    dyn_config.set_key_value("new_filament_temp", new ConfigOptionInt(210));
+    dyn_config.set_key_value("old_filament_temp", new ConfigOptionInt(old_filament_temp));
+    dyn_config.set_key_value("new_filament_temp", new ConfigOptionInt(new_filament_temp));
     dyn_config.set_key_value("x_after_toolchange", new ConfigOptionFloat(50.));
     dyn_config.set_key_value("y_after_toolchange", new ConfigOptionFloat(50.));
     dyn_config.set_key_value("z_after_toolchange", new ConfigOptionFloat(10.));
@@ -1079,7 +1084,8 @@ std::string DebugToolDialog::switch_ams_gcode(std::string t)
     try {
         std::string parsed_command = m_placeholder_parser.process(print_config.toolchange_gcode.value, std::stoi(t.c_str()), &dyn_config, &m_placeholder_parser_context);
         // config xyz coordinate mode
-        parsed_command = "G90\n" + parsed_command;
+        std::string auto_home_command = cbox_ams_auto_home->GetValue() ? "G28\n" : "";
+        parsed_command = "G90\n" + auto_home_command + parsed_command;
         std::regex match_pattern(";.*\n");
         std::string replace_pattern = "\n";
         char result[1024] = { 0 };
@@ -1252,7 +1258,7 @@ void DebugToolDialog::init_gcode_control(wxWindow* parent, wxBoxSizer* sizer)
         this->publishGcode(gcode_str);
         });
 
-    btn_switch_t = new wxButton(parent, wxID_ANY, _L("Swtich AMS:"), wxDefaultPosition, wxDefaultSize);
+    btn_switch_t = new wxButton(parent, wxID_ANY, _L("Switch AMS:"), wxDefaultPosition, wxDefaultSize);
     btn_switch_t->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         std::string gcode = this->switch_ams_gcode(txt_switch_val->GetValue().ToStdString());
         this->publishGcode(gcode);
@@ -1260,6 +1266,10 @@ void DebugToolDialog::init_gcode_control(wxWindow* parent, wxBoxSizer* sizer)
     txt_switch_val = new wxTextCtrl(parent, wxID_ANY, _L("1"), wxDefaultPosition, wxDefaultSize);
     txt_set_hot_bed_temp = new wxTextCtrl(parent, wxID_ANY, _L("60"), wxDefaultPosition, wxDefaultSize);
     txt_set_hot_end_temp = new wxTextCtrl(parent, wxID_ANY, _L("200"), wxDefaultPosition, wxDefaultSize);
+
+    txt_ams_flush_temp1 = new wxTextCtrl(parent, wxID_ANY, _L("220"), wxDefaultPosition, wxDefaultSize);
+    txt_ams_flush_temp2 = new wxTextCtrl(parent, wxID_ANY, _L("220"), wxDefaultPosition, wxDefaultSize);
+    cbox_ams_auto_home = new wxCheckBox(parent, wxID_ANY, _L("AMS Auto Home"));
 
     auto label_pos_x = new wxStaticText(parent, wxID_ANY, _L("Pos X: "), wxDefaultPosition, wxDefaultSize);
     label_pos_x_val = new wxStaticText(parent, wxID_ANY, _L("0.00"), wxDefaultPosition, wxDefaultSize);
@@ -1282,6 +1292,10 @@ void DebugToolDialog::init_gcode_control(wxWindow* parent, wxBoxSizer* sizer)
     auto label_wifi_link_ams = new wxStaticText(parent, wxID_ANY, _L("Link AMS State:"), wxDefaultPosition, wxDefaultSize);
     label_wifi_link_ams_val = new wxStaticText(parent, wxID_ANY, _L("NA"), wxDefaultPosition, wxDefaultSize);
     auto label = new wxStaticText(parent, wxID_ANY, _L(""), wxDefaultPosition, wxDefaultSize);
+    auto label_ams_flush_temp1 = new wxStaticText(parent, wxID_ANY, _L("AMS Flush Temp 1"), wxDefaultPosition, wxDefaultSize);
+    auto label_ams_flush_temp2 = new wxStaticText(parent, wxID_ANY, _L("AMS Flush Temp 2"), wxDefaultPosition, wxDefaultSize);
+
+    auto label_spacer = new wxStaticText(parent, wxID_ANY, _L(""));
 
     auto temp_btns_sizer = new wxGridSizer(5, 2, 5, 5);
     temp_btns_sizer->Add(btn_set_hot_bed_temp, 0, wxRIGHT | wxALIGN_RIGHT);
@@ -1296,6 +1310,12 @@ void DebugToolDialog::init_gcode_control(wxWindow* parent, wxBoxSizer* sizer)
     temp_btns_sizer->Add(label, 0, wxLEFT | wxALIGN_LEFT);
     temp_btns_sizer->Add(btn_switch_t, 0, wxRIGHT | wxALIGN_RIGHT);
     temp_btns_sizer->Add(txt_switch_val, 0, wxLEFT | wxALIGN_LEFT);
+    temp_btns_sizer->Add(label_ams_flush_temp1, 0, wxRIGHT | wxALIGN_RIGHT);
+    temp_btns_sizer->Add(txt_ams_flush_temp1, 0, wxLEFT | wxALIGN_LEFT);
+    temp_btns_sizer->Add(label_ams_flush_temp2, 0, wxRIGHT | wxALIGN_RIGHT);
+    temp_btns_sizer->Add(txt_ams_flush_temp2, 0, wxLEFT | wxALIGN_LEFT);
+    temp_btns_sizer->Add(cbox_ams_auto_home, 0, wxRIGHT | wxALIGN_RIGHT);
+    temp_btns_sizer->Add(label_spacer, 0, wxRight | wxALIGN_RIGHT);
     temp_btns_sizer->Add(label_pos_x, 0, wxRIGHT | wxALIGN_RIGHT);
     temp_btns_sizer->Add(label_pos_x_val, 0, wxLEFT | wxALIGN_LEFT);
     temp_btns_sizer->Add(label_pos_y, 0, wxRIGHT | wxALIGN_RIGHT);

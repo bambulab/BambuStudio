@@ -194,6 +194,9 @@ namespace Slic3r {
             wxTextCtrl* txt_custom_gcode5;
             wxTextCtrl* txt_custom_gcode6;
             wxTextCtrl* txt_custom_gcode7;
+            wxTextCtrl* txt_ams_flush_temp1;
+            wxTextCtrl* txt_ams_flush_temp2;
+            wxCheckBox* cbox_ams_auto_home;
 
             wxStaticText* label_pos_x_val;
             wxStaticText* label_pos_y_val;
@@ -205,6 +208,8 @@ namespace Slic3r {
             wxStaticText* label_wifi_signal_val;
             wxStaticText* label_wifi_link_th_val;
             wxStaticText* label_wifi_link_ams_val;
+            wxStaticText* label_ams_flush_temp1;
+            wxStaticText* label_ams_flush_temp2;
 
             wxStaticText* label_upgrade_status_val;
             wxStaticText* label_upgrade_progress_val;
