@@ -189,6 +189,10 @@ namespace Slic3r {
 
             // subdivide the retraction in segments
             if (!wipe_path.empty()) {
+                // BBS. Handle short path case.
+                if (wipe_path.length() < wipe_dist)
+                    wipe_dist = wipe_path.length();
+
                 // add tag for processor
                 gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Start) + "\n";
                 for (const Line& line : wipe_path.lines()) {
@@ -2154,7 +2158,9 @@ GCode::LayerResult GCode::process_layer(
             print.config().before_layer_gcode.value, m_writer.extruder()->id(), &config)
             + "\n";
     }
-    gcode += this->change_layer(print_z);  // this will increase m_layer_index
+
+    // BBS
+    gcode += this->change_layer(print_z, true);  // this will increase m_layer_index
     m_layer = &layer;
     m_object_layer_over_raft = false;
     if (! print.config().layer_gcode.value.empty()) {
@@ -2629,7 +2635,7 @@ std::string GCode::preamble()
 }
 
 // called by GCode::process_layer()
-std::string GCode::change_layer(coordf_t print_z)
+std::string GCode::change_layer(coordf_t print_z, bool lazy_raise)
 {
     std::string gcode;
     if (m_layer_count > 0)
@@ -2639,11 +2645,14 @@ std::string GCode::change_layer(coordf_t print_z)
     if (EXTRUDER_CONFIG(retract_layer_change) && m_writer.will_move_z(z))
         gcode += this->retract();
 
-    {
+    if (!lazy_raise) {
         std::ostringstream comment;
         comment << "move to next layer (" << m_layer_index << ")";
         gcode += m_writer.travel_to_z(z, comment.str());
     }
+
+    // BBS
+    m_nominal_z = print_z;
 
     // forget last wiping path as wiping after raising Z is pointless
     m_wipe.reset_path();
@@ -3204,8 +3213,17 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
 
     // use G1 because we rely on paths being straight (G0 may make round paths)
     if (travel.size() >= 2) {
-        for (size_t i = 1; i < travel.size(); ++ i)
-            gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment);
+        for (size_t i = 1; i < travel.size(); ++ i) {
+            // BBS. Process lazy layer change.
+            Vec3d curr_pos = m_writer.get_position();
+            if (i == travel.size() - 1) {
+                Vec2d dest2d = this->point_to_gcode(travel.points[i]);
+                Vec3d dest3d(dest2d(0), dest2d(1), m_nominal_z);
+                gcode += m_writer.travel_to_xyz(dest3d, comment);
+            } else {
+                gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment);
+            }
+        }
         this->set_last_pos(travel.points.back());
     }
     return gcode;

@@ -291,7 +291,17 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
         don't perform the Z move but we only move in the XY plane and
         adjust the nominal Z by reducing the lift amount that will be 
         used for unlift. */
-    if (!this->will_move_z(point(2))) {
+        // BBS
+    Vec3d dest_point = point;
+    if (std::abs(m_to_lift) > EPSILON) {
+        assert(std::abs(m_lifted) < EPSILON);
+        if (m_to_lift + m_pos(2) > point(2)) {
+            m_lifted = m_to_lift + m_pos(2) - point(2);
+            dest_point(2) = m_to_lift + m_pos(2);
+        }
+        m_to_lift = 0.;
+    }
+    else if (!this->will_move_z(point(2))) {
         double nominal_z = m_pos(2) - m_lifted;
         m_lifted -= (point(2) - nominal_z);
         // In case that retract_lift == layer_height we could end up with almost zero in_m_lifted
@@ -300,20 +310,30 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
             m_lifted = 0.;
         return this->travel_to_xy(to_2d(point));
     }
-    
-    /*  In all the other cases, we perform an actual XYZ move and cancel
-        the lift. */
-    m_lifted = 0;
-    m_pos = point;
+    else {
+        /*  In all the other cases, we perform an actual XYZ move and cancel
+            the lift. */
+        m_lifted = 0;
+        m_pos = point;
+    }
     
     //BBS: take plate offset into consider
-    Vec3d point_on_plate = { point(0) - m_x_offset, point(1) - m_y_offset, point(2) };
+    Vec3d point_on_plate = { dest_point(0) - m_x_offset, dest_point(1) - m_y_offset, dest_point(2) };
+
+    //BBS: two step movement
+    GCodeG1Formatter w1;
+    Vec2d mid_pnt((dest_point(0) + m_pos(0)) / 2, (dest_point(1) + m_pos(1)) / 2);
+    m_pos = dest_point;
+
+    w1.emit_xy(mid_pnt);
+    w1.emit_f(this->config.travel_speed.value * 60.0);
+    w1.emit_comment(this->config.gcode_comments, std::string("travel middle point"));
 
     GCodeG1Formatter w;
     w.emit_xyz(point_on_plate);
     w.emit_f(this->config.travel_speed.value * 60.0);
     w.emit_comment(this->config.gcode_comments, comment);
-    return w.string();
+    return w1.string() + "\n" + w.string();
 }
 
 std::string GCodeWriter::travel_to_z(double z, const std::string &comment)
@@ -358,6 +378,11 @@ bool GCodeWriter::will_move_z(double z) const
         double nominal_z = m_pos(2) - m_lifted;
         if (z >= nominal_z && z <= m_pos(2))
             return false;
+    }
+    // BBS.
+    // Dont move z if it is the same as target z
+    else if (std::abs(m_pos(2) - z) < EPSILON) {
+        return false;
     }
     return true;
 }
@@ -479,7 +504,7 @@ std::string GCodeWriter::unretract()
 /*  If this method is called more than once before calling unlift(),
     it will not perform subsequent lifts, even if Z was raised manually
     (i.e. with travel_to_z()) and thus _lifted was reduced. */
-std::string GCodeWriter::lift()
+std::string GCodeWriter::lift(bool lazy_lift)
 {
     // check whether the above/below conditions are met
     double target_lift = 0;
@@ -489,9 +514,15 @@ std::string GCodeWriter::lift()
         if (m_pos(2) >= above && (below == 0 || m_pos(2) <= below))
             target_lift = this->config.retract_lift.get_at(m_extruder->id());
     }
-    if (m_lifted == 0 && target_lift > 0) {
-        m_lifted = target_lift;
-        return this->_travel_to_z(m_pos(2) + target_lift, "lift Z");
+    // BBS
+    if (m_lifted == 0 && m_to_lift == 0 && target_lift > 0) {
+        if (!lazy_lift) {
+            m_lifted = target_lift;
+            return this->_travel_to_z(m_pos(2) + target_lift, "lift Z");
+        }
+        else {
+            m_to_lift = target_lift;
+        }
     }
     return "";
 }
@@ -503,6 +534,7 @@ std::string GCodeWriter::unlift()
         gcode += this->_travel_to_z(m_pos(2) - m_lifted, "restore layer Z");
         m_lifted = 0;
     }
+    m_to_lift = 0.;
     return gcode;
 }
 

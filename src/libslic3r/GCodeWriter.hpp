@@ -21,7 +21,8 @@ public:
         m_single_extruder_multi_material(false),
         m_last_acceleration(0), m_max_acceleration(0), m_last_fan_speed(0),
         m_last_bed_temperature(0), m_last_bed_temperature_reached(true), 
-        m_lifted(0)
+        m_lifted(0),
+        m_to_lift(0)
         {}
     Extruder*            extruder()             { return m_extruder; }
     const Extruder*      extruder()     const   { return m_extruder; }
@@ -65,7 +66,7 @@ public:
     std::string retract(bool before_wipe = false);
     std::string retract_for_toolchange(bool before_wipe = false);
     std::string unretract();
-    std::string lift();
+    std::string lift(bool lazy_lift = true);
     std::string unlift();
     Vec3d       get_position() const { return m_pos; }
 
@@ -98,6 +99,9 @@ private:
     unsigned int    m_last_bed_temperature;
     bool            m_last_bed_temperature_reached;
     double          m_lifted;
+
+    // BBS
+    double          m_to_lift;
     Vec3d           m_pos = Vec3d::Zero();
     //BBS: x, y offset for gcode generated
     double          m_x_offset{ 0 };
