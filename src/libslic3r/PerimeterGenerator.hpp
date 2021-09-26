@@ -30,6 +30,7 @@ public:
     SurfaceCollection           *fill_surfaces;
 
     std::map<int, Polygons> m_lower_polygons_series;
+    std::map<int, Polygons> m_external_lower_polygons_series;
     ExPolygons fill_no_overlap;
     
     PerimeterGenerator(
@@ -63,10 +64,9 @@ public:
     double      ext_mm3_per_mm()        const { return m_ext_mm3_per_mm; }
     double      mm3_per_mm()            const { return m_mm3_per_mm; }
     double      mm3_per_mm_overhang()   const { return m_mm3_per_mm_overhang; }
-    Polygons    lower_slices_polygons() const { return m_lower_slices_polygons; }
 
 private:
-    void generate_lower_polygons_series();
+    std::map<int, Polygons> generate_lower_polygons_series(float width);
 
 private:
     bool        m_spiral_vase;
@@ -74,7 +74,6 @@ private:
     double      m_ext_mm3_per_mm;
     double      m_mm3_per_mm;
     double      m_mm3_per_mm_overhang;
-    Polygons    m_lower_slices_polygons;
 };
 
 }

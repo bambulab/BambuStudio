@@ -195,8 +195,9 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             Polygons polygons;
             polygons.push_back(polygon);
             Polylines remain_polines = to_polylines(polygons);
-            for (auto it = perimeter_generator.m_lower_polygons_series.begin();
-                it != perimeter_generator.m_lower_polygons_series.end(); it++)
+            std::map<int, Polygons> lower_polygons_series = is_external ? perimeter_generator.m_external_lower_polygons_series : perimeter_generator.m_lower_polygons_series;
+            for (auto it = lower_polygons_series.begin();
+                it != lower_polygons_series.end(); it++)
             {
                 extrusion_paths_append(
                     paths,
@@ -332,15 +333,11 @@ void PerimeterGenerator::process()
     bool    has_gap_fill 		= this->config->gap_fill_enabled.value && this->config->gap_fill_speed.value > 0;
 
     // prepare grown lower layer slices for overhang detection
-    if (this->lower_slices != NULL && this->config->overhangs) {
-        // We consider overhang any part where the entire nozzle diameter is not supported by the
-        // lower layer, so we take lower slices and offset them by half the nozzle diameter used 
-        // in the current layer
-        double nozzle_diameter = this->print_config->nozzle_diameter.get_at(this->config->perimeter_extruder-1);
-        m_lower_slices_polygons = offset(*this->lower_slices, float(scale_(+nozzle_diameter/2)));
-    }
-
-    generate_lower_polygons_series();
+    m_lower_polygons_series = generate_lower_polygons_series(this->perimeter_flow.width());
+    if (ext_perimeter_width == perimeter_width)
+        m_external_lower_polygons_series = m_lower_polygons_series;
+    else
+        m_external_lower_polygons_series = generate_lower_polygons_series(this->ext_perimeter_flow.width());
 
     // we need to process each island separately because we might have different
     // extra perimeters for each one
@@ -604,9 +601,8 @@ bool PerimeterGeneratorLoop::is_internal_contour() const
     return true;
 }
 
-void PerimeterGenerator::generate_lower_polygons_series()
+std::map<int, Polygons> PerimeterGenerator::generate_lower_polygons_series(float width)
 {
-    float width = perimeter_flow.width();
     float nozzle_diameter = print_config->nozzle_diameter.get_at(config->perimeter_extruder - 1);
     float start_offset = -0.5 * width;
     float end_offset = 0.5 * nozzle_diameter;
@@ -622,13 +618,16 @@ void PerimeterGenerator::generate_lower_polygons_series()
     offset_series[0] = start_offset + 0.02 * (end_offset - start_offset) / (overhang_sampling_number - 1);
     offset_series[overhang_sampling_number - 2] = end_offset;
 
+    std::map<int, Polygons> lower_polygons_series;
     if (this->lower_slices == NULL) {
-        return;
+        return lower_polygons_series;
     }
 
     // offset expolygon to generate series of polygons
     for (int i = 0; i < offset_series.size(); i++) {
-        m_lower_polygons_series.insert(std::pair<int, Polygons>(i, offset(*this->lower_slices, float(scale_(offset_series[i])))));
+        lower_polygons_series.insert(std::pair<int, Polygons>(i, offset(*this->lower_slices, float(scale_(offset_series[i])))));
+    }
+    return lower_polygons_series;
 }
 
 }
