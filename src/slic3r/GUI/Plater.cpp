@@ -4287,14 +4287,13 @@ void Plater::priv::on_export_began(wxCommandEvent& evt)
 
 void Plater::priv::on_export_finished(wxCommandEvent& evt)
 {
-    std::string output_path = evt.GetString().ToStdString();
-    //BBS: TODO, also export 3mf to the same directory for debugging
+    //BBS: also export 3mf to the same directory for debugging
+    std::string output_path_str(evt.GetString().ToUTF8().data());
+    boost::filesystem::path target(output_path_str);
+    std::string project_file_path = target.replace_extension(".3mf").string();
+
     DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
     bool full_pathnames = wxGetApp().app_config->get("export_sources_full_pathnames") == "1";
-    std::string gcode_file_path = output_path;
-    std::size_t found = gcode_file_path.find(".gcode");
-    std::string project_file_path = gcode_file_path.substr(0, found) + ".3mf";
-
     //add plate logic for thumbnail generate
     std::vector<ThumbnailData*> thumbnails;
     for (unsigned int i = 0; i < partplate_list.get_plate_count(); i++)

@@ -763,7 +763,8 @@ void BackgroundSlicingProcess::finalize_gcode()
 
 	// BBS
 	auto evt = new wxCommandEvent(m_event_export_finished_id, GUI::wxGetApp().mainframe->m_plater->GetId());
-	evt->SetString(export_path);
+	wxString output_gcode_str = wxString::FromUTF8(export_path.c_str(), export_path.length());
+	evt->SetString(output_gcode_str);
 	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt);
 
 	// BBS: to be checked. Whether use export_path or output_path.
