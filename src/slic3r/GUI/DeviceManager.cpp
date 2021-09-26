@@ -216,6 +216,7 @@ int MachineObject::reconnect()
         return 0;
     disconnect();
     connect();
+    return 0;
 }
 
 bool MachineObject::is_connected()
