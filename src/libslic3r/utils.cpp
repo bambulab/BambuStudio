@@ -25,12 +25,13 @@
 		#include <sys/sysctl.h>
 	#endif
 	#ifdef __APPLE__
-        #include <mach/mach.h>
-    #endif
-    #ifdef __linux__
-       	#include <sys/stat.h>
-       	#include <fcntl.h>
+		#include <mach/mach.h>
+	#endif
+	#ifdef __linux__
+		#include <sys/stat.h>
+		#include <fcntl.h>
 		#include <sys/sendfile.h>
+		#include <dirent.h>
 	#endif
 #endif
 

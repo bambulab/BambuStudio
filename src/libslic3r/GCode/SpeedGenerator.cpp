@@ -1,6 +1,6 @@
 #include "SpeedGenerator.hpp"
 #include "libslic3r/ExtrusionEntity.hpp"
-#include "libslic3r/utils.hpp"
+#include "libslic3r/Utils.hpp"
 
 #define BOOST_SPIRIT_THREADSAFE
 #include <boost/property_tree/ptree.hpp>
