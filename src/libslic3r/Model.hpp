@@ -13,8 +13,9 @@
 #include "TriangleMesh.hpp"
 #include "CustomGCode.hpp"
 #include "enum_bitmask.hpp"
+
 //BBS: add bbs 3mf
-#include "format/bbs_3mf.hpp"
+#include "Format/bbs_3mf.hpp"
 
 #include <map>
 #include <memory>
