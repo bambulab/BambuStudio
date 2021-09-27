@@ -84,8 +84,9 @@ ArrangePolygon ArrangeJob::prepare_arrange_polygon(void* model_instance)
 {
     ModelInstance* instance = (ModelInstance*)model_instance;
     const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
-    double skirt_distance = wxGetApp().plater()->get_partplate_list().get_current_fff_print().config().skirt_distance.value;
-    double brim_width = wxGetApp().plater()->get_partplate_list().get_current_fff_print().default_object_config().brim_width;
+    auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
+    double skirt_distance = print.has_skirt() ? print.config().skirt_distance.value : 0;
+    double brim_width = print.has_brim() ? print.default_object_config().brim_width : 0;
     params.brim_skirt_distance = std::max(skirt_distance, brim_width);
 
     ArrangePolygon ap = get_arrange_poly(PtrWrapper{ instance }, m_plater);
@@ -329,8 +330,8 @@ void ArrangeJob::process()
     bedpts[2] += Point(-scaled(params.bed_shrink_x), -scaled(params.bed_shrink_y));
     bedpts[3] += Point(scaled(params.bed_shrink_x), -scaled(params.bed_shrink_y));
 
-    BOOST_LOG_TRIVIAL(debug) << "bed_shrink_x,y=" << params.bed_shrink_x << ", " << params.bed_shrink_y << "; bedpts:";
-    for (auto p : bedpts) BOOST_LOG_TRIVIAL(debug) << unscaled(p);
+    BOOST_LOG_TRIVIAL(debug) << "bed_shrink_x,y=" << params.bed_shrink_x << ", " << params.bed_shrink_y << "; bedpts:"
+        << bedpts[0].transpose() << ", " << bedpts[1].transpose() << ", " << bedpts[2].transpose() << ", " << bedpts[3].transpose();
     
     params.stopcondition = [this]() { return was_canceled(); };
     
@@ -433,7 +434,7 @@ void ArrangeJob::finalize() {
     
     // Apply the arrange result to all selected objects
     for (ArrangePolygon &ap : m_selected) {
-        //BBS: partplate postprocess
+        if (ap.bed_idx < 0) continue;  // bed_idx<0 means unarrangable
         //BBS: partplate postprocess
         if (only_on_partplate)
             plate_list.postprocess_arrange_polygon_other_locked(ap);
@@ -441,7 +442,7 @@ void ArrangeJob::finalize() {
             plate_list.postprocess_arrange_polygon(ap, true);
 
         beds = std::max(ap.bed_idx, beds);
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y));
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":selected: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y));
 
         ap.apply();
     }
@@ -454,13 +455,15 @@ void ArrangeJob::finalize() {
             plate_list.postprocess_arrange_polygon(ap, false);
 
         beds = std::max(ap.bed_idx, beds);
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":unselected: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y));
     }
     
     // Move the unprintable items to the last virtual bed.
+    // Note ap.apply() moves relatively according to bed_idx, so we need to subtract the orignal bed_idx
     for (ArrangePolygon &ap : m_unprintable) {
-        ap.bed_idx = beds + 1;
-
+        ap.bed_idx = beds + 1 - (int)(ap.translation.x() / bed_stride(m_plater));
         ap.apply();
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":m_unprintable: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y));
     }
 
     m_plater->update();
