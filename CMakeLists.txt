@@ -546,9 +546,6 @@ else ()
                    "OpenVDB installation with the OPENVDB_FIND_MODULE_PATH cache variable.")
 endif ()
 
-#add dds_fdal
-add_subdirectory(${FDAL_PATH} src/dds_fdal)
-
 
 set(TOP_LEVEL_PROJECT_DIR ${PROJECT_SOURCE_DIR})
 function(prusaslicer_copy_dlls target config postfix output_dlls)
@@ -572,32 +569,13 @@ function(prusaslicer_copy_dlls target config postfix output_dlls)
         message ("set out_dir to CMAKE_CURRENT_BINARY_DIR: ${_out_dir}")
     endif ()
 
-    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-        set (_in_file "${LIBDIR_BIN}/dds_fdal/Release/dds_fdal.dll")
-    elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
-        set (_in_file "${LIBDIR_BIN}/dds_fdal/RelWithDebInfo/dds_fdal.dll")
-    else ()
-        set (_in_file "${LIBDIR_BIN}/dds_fdal/Release/dds_fdal.dll")
-    endif()
-    add_custom_command(TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${_in_file} ${_out_dir}
-        COMMENT "Copy dds_fdal runtime to build tree"
-        VERBATIM)
-
     file(COPY ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/win${_bits}/libgmp-10.dll
             ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/win${_bits}/libmpfr-4.dll
-            "${CMAKE_PREFIX_PATH}/bin/tinyxml2${postfix}.dll"
-            "${CMAKE_PREFIX_PATH}/bin/fastrtps${postfix}-2.2.dll"
-            "${CMAKE_PREFIX_PATH}/bin/fastcdr${postfix}-1.0.dll"
         DESTINATION ${_out_dir})
 
     set(${output_dlls}
         ${_out_dir}/libgmp-10.dll
         ${_out_dir}/libmpfr-4.dll
-        ${_out_dir}/tinyxml2${postfix}.dll
-        ${_out_dir}/fastrtps${postfix}-2.2.dll
-        ${_out_dir}/fastcdr${postfix}-1.0.dll
-        ${_out_dir}/dds_fdal.dll
         PARENT_SCOPE
     )
     
