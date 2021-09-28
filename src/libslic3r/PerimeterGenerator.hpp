@@ -29,9 +29,12 @@ public:
     ExtrusionEntityCollection   *gap_fill;
     SurfaceCollection           *fill_surfaces;
 
-    std::map<int, Polygons> m_lower_polygons_series;
-    std::map<int, Polygons> m_external_lower_polygons_series;
-    ExPolygons fill_no_overlap;
+    //BBS
+    Flow                        smaller_ext_perimeter_flow = Flow(0, 0, 0);
+    std::map<int, Polygons>     m_lower_polygons_series;
+    std::map<int, Polygons>     m_external_lower_polygons_series;
+    std::map<int, Polygons>     m_smaller_external_lower_polygons_series;
+    ExPolygons                  fill_no_overlap;
     
     PerimeterGenerator(
         // Input:
@@ -56,7 +59,7 @@ public:
             m_spiral_vase(spiral_vase),
             m_scaled_resolution(scaled<double>(print_config->gcode_resolution.value)),
             loops(loops), gap_fill(gap_fill), fill_surfaces(fill_surfaces),
-            m_ext_mm3_per_mm(-1), m_mm3_per_mm(-1), m_mm3_per_mm_overhang(-1)
+            m_ext_mm3_per_mm(-1), m_mm3_per_mm(-1), m_mm3_per_mm_overhang(-1), m_ext_mm3_per_mm_smaller_width(-1)
         {}
 
     void        process();
@@ -64,6 +67,8 @@ public:
     double      ext_mm3_per_mm()        const { return m_ext_mm3_per_mm; }
     double      mm3_per_mm()            const { return m_mm3_per_mm; }
     double      mm3_per_mm_overhang()   const { return m_mm3_per_mm_overhang; }
+    //BBS
+    double      smaller_width_ext_mm3_per_mm()   const { return m_ext_mm3_per_mm_smaller_width; }
 
 private:
     std::map<int, Polygons> generate_lower_polygons_series(float width);
@@ -74,6 +79,8 @@ private:
     double      m_ext_mm3_per_mm;
     double      m_mm3_per_mm;
     double      m_mm3_per_mm_overhang;
+    //BBS
+    double      m_ext_mm3_per_mm_smaller_width;
 };
 
 }

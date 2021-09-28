@@ -9,6 +9,11 @@
 #include <cassert>
 
 static const int overhang_sampling_number = 11;
+static const double narrow_loop_length_threshold = 10;
+//BBS: when the width of expolygon is smaller than
+//ext_perimeter_width + ext_perimeter_spacing  * (1 - SMALLER_EXT_INSET_OVERLAP_TOLERANCE),
+//we think it's small detail area and will generate smaller line width for it
+static constexpr double SMALLER_EXT_INSET_OVERLAP_TOLERANCE = 0.22;
 
 namespace Slic3r {
 
@@ -20,6 +25,8 @@ public:
     // Is it a contour or a hole?
     // Contours are CCW oriented, holes are CW oriented.
     bool                                is_contour;
+    // BBS: is perimeter using smaller width
+    bool is_smaller_width_perimeter;
     // Depth in the hierarchy. External perimeter has depth = 0. An external perimeter could be both a contour and a hole.
     unsigned short                      depth;
     // Should this contur be fuzzyfied on path generation?
@@ -27,8 +34,8 @@ public:
     // Children contour, may be both CCW and CW oriented (outer contours or holes).
     std::vector<PerimeterGeneratorLoop> children;
     
-    PerimeterGeneratorLoop(const Polygon &polygon, unsigned short depth, bool is_contour, bool fuzzify) : 
-        polygon(polygon), is_contour(is_contour), depth(depth), fuzzify(fuzzify) {}
+    PerimeterGeneratorLoop(const Polygon &polygon, unsigned short depth, bool is_contour, bool fuzzify, bool is_small_width_perimeter = false) :
+        polygon(polygon), is_contour(is_contour), is_smaller_width_perimeter(is_small_width_perimeter), depth(depth), fuzzify(fuzzify) {}
     // External perimeter. It may be CCW or CW oriented (outer contour or hole contour).
     bool is_external() const { return this->depth == 0; }
     // An island, which may have holes, but it does not have another internal island.
@@ -168,6 +175,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
     Polygon                     fuzzified;
     for (const PerimeterGeneratorLoop &loop : loops) {
         bool is_external = loop.is_external();
+        bool is_small_width = loop.is_smaller_width_perimeter;
         
         ExtrusionRole role;
         ExtrusionLoopRole loop_role;
@@ -183,6 +191,31 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
         
         // detect overhanging/bridging perimeters
         ExtrusionPaths paths;
+
+        // BBS: get lower polygons series, width, mm3_per_mm
+        std::map<int, Polygons> lower_polygons_series;
+        double extrusion_mm3_per_mm;
+        double extrusion_width;
+        if (is_external) {
+            if (is_small_width) {
+                //BBS: smaller width external perimeter
+                lower_polygons_series = perimeter_generator.m_smaller_external_lower_polygons_series;
+                extrusion_mm3_per_mm = perimeter_generator.smaller_width_ext_mm3_per_mm();
+                extrusion_width = perimeter_generator.smaller_ext_perimeter_flow.width();
+            } else {
+                //BBS: normal external perimeter
+                lower_polygons_series = perimeter_generator.m_external_lower_polygons_series;
+                extrusion_mm3_per_mm = perimeter_generator.ext_mm3_per_mm();
+                extrusion_width = perimeter_generator.ext_perimeter_flow.width();
+            }
+        } else {
+            //BBS: normal perimeter
+            lower_polygons_series = perimeter_generator.m_lower_polygons_series;
+            extrusion_mm3_per_mm = extrusion_mm3_per_mm;
+            extrusion_width = extrusion_width;
+        }
+
+
         const Polygon &polygon = loop.fuzzify ? fuzzified : loop.polygon;
         if (loop.fuzzify) {
             fuzzified = loop.polygon;
@@ -195,7 +228,6 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             Polygons polygons;
             polygons.push_back(polygon);
             Polylines remain_polines = to_polylines(polygons);
-            std::map<int, Polygons> lower_polygons_series = is_external ? perimeter_generator.m_external_lower_polygons_series : perimeter_generator.m_lower_polygons_series;
             for (auto it = lower_polygons_series.begin();
                 it != lower_polygons_series.end(); it++)
             {
@@ -205,8 +237,8 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                     it->first,
                     int(0),
                     role,
-                    is_external ? perimeter_generator.ext_mm3_per_mm() : perimeter_generator.mm3_per_mm(),
-                    is_external ? perimeter_generator.ext_perimeter_flow.width() : perimeter_generator.perimeter_flow.width(),
+                    extrusion_mm3_per_mm,
+                    extrusion_width,
                     (float)perimeter_generator.layer_height);
 
                 remain_polines = diff_pl({ remain_polines }, it->second);
@@ -242,9 +274,8 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             path.polyline = polygon.split_at_first_point();
             path.overhang_degree = 0;
             path.curve_degree = 0;
-            path.mm3_per_mm = is_external ? perimeter_generator.ext_mm3_per_mm() : perimeter_generator.mm3_per_mm();
-            path.width = is_external ? perimeter_generator.ext_perimeter_flow.width() : perimeter_generator.perimeter_flow.width();
-
+            path.mm3_per_mm = extrusion_mm3_per_mm;
+            path.width = extrusion_width;
             path.height     = (float)perimeter_generator.layer_height;
             paths.push_back(path);
         }
@@ -332,12 +363,21 @@ void PerimeterGenerator::process()
     coord_t ext_min_spacing     = coord_t(ext_perimeter_spacing  * (1 - INSET_OVERLAP_TOLERANCE));
     bool    has_gap_fill 		= this->config->gap_fill_enabled.value && this->config->gap_fill_speed.value > 0;
 
+    // BBS: this flow is for smaller external perimeter for small area
+    coord_t ext_min_spacing_smaller = coord_t(ext_perimeter_spacing * (1 - SMALLER_EXT_INSET_OVERLAP_TOLERANCE));
+    this->smaller_ext_perimeter_flow = this->ext_perimeter_flow;
+    // BBS: to be checked
+    this->smaller_ext_perimeter_flow = this->smaller_ext_perimeter_flow.with_width(SCALING_FACTOR *
+        (ext_perimeter_width - 0.5 * SMALLER_EXT_INSET_OVERLAP_TOLERANCE * ext_perimeter_spacing));
+    m_ext_mm3_per_mm_smaller_width = this->smaller_ext_perimeter_flow.mm3_per_mm();
+
     // prepare grown lower layer slices for overhang detection
     m_lower_polygons_series = generate_lower_polygons_series(this->perimeter_flow.width());
     if (ext_perimeter_width == perimeter_width)
         m_external_lower_polygons_series = m_lower_polygons_series;
     else
         m_external_lower_polygons_series = generate_lower_polygons_series(this->ext_perimeter_flow.width());
+    m_smaller_external_lower_polygons_series = generate_lower_polygons_series(this->smaller_ext_perimeter_flow.width());
 
     // we need to process each island separately because we might have different
     // extra perimeters for each one
@@ -358,17 +398,15 @@ void PerimeterGenerator::process()
             for (int i = 0;; ++ i) {  // outer loop is 0
                 // Calculate next onion shell of perimeters.
                 ExPolygons offsets;
+                ExPolygons offsets_with_smaller_width;
                 if (i == 0) {
-                    // the minimum thickness of a single loop is:
-                    // ext_width/2 + ext_spacing/2 + spacing/2 + width/2
-                    offsets = this->config->thin_walls ? 
-                        offset2_ex(
-                            last,
-                            - float(ext_perimeter_width / 2. + ext_min_spacing / 2. - 1),
-                            + float(ext_min_spacing / 2. - 1)) :
-                        offset_ex(last, - float(ext_perimeter_width / 2.));
                     // look for thin walls
                     if (this->config->thin_walls) {
+                        // the minimum thickness of a single loop is:
+                        // ext_width/2 + ext_spacing/2 + spacing/2 + width/2
+                        offsets = offset2_ex(last,
+                            -float(ext_perimeter_width / 2. + ext_min_spacing / 2. - 1),
+                            +float(ext_min_spacing / 2. - 1));
                         // the following offset2 ensures almost nothing in @thin_walls is narrower than $min_width
                         // (actually, something larger than that still may exist due to mitering or other causes)
                         coord_t min_width = coord_t(scale_(this->ext_perimeter_flow.nozzle_diameter() / 3));
@@ -379,10 +417,38 @@ void PerimeterGenerator::process()
                         // the maximum thickness of our thin wall area is equal to the minimum thickness of a single loop
                         for (ExPolygon &ex : expp)
                             ex.medial_axis(ext_perimeter_width + ext_perimeter_spacing2, min_width, &thin_walls);
+                    } else {
+                        coord_t ext_perimeter_smaller_width = this->smaller_ext_perimeter_flow.scaled_width();
+                        for (const ExPolygon& expolygon : last) {
+                            // BBS: judge whether it's narrow but not too long island which is hard to place two line
+                            ExPolygons expolys;
+                            expolys.push_back(expolygon);
+                            ExPolygons offset_result = offset2_ex(expolys,
+                                -float(ext_perimeter_width / 2. + ext_min_spacing_smaller / 2.),
+                                +float(ext_min_spacing_smaller / 2.));
+                            if (offset_result.empty() &&
+                                expolygon.area() < (double)(ext_perimeter_width + ext_min_spacing_smaller) * scale_(narrow_loop_length_threshold)) {
+                                // BBS: for narrow external loop, use smaller line width
+                                ExPolygons temp_result = offset_ex(expolygon, -float(ext_perimeter_smaller_width / 2.));
+                                offsets_with_smaller_width.insert(offsets_with_smaller_width.end(), temp_result.begin(), temp_result.end());
+                            }
+                            else {
+                                //BBS: for not narrow loop, use normal external perimeter line width
+                                ExPolygons temp_result = offset_ex(expolygon, -float(ext_perimeter_width / 2.));
+                                offsets.insert(offsets.end(), temp_result.begin(), temp_result.end());
+                            }
+                        }
                     }
-                    if (m_spiral_vase && offsets.size() > 1) {
-                    	// Remove all but the largest area polygon.
-                    	keep_largest_contour_only(offsets);
+                    if (m_spiral_vase && (offsets.size() > 1 || offsets_with_smaller_width.size() > 1)) {
+                        // Remove all but the largest area polygon.
+                        keep_largest_contour_only(offsets);
+                        //BBS
+                        if (offsets.empty())
+                            //BBS: only have small width loop, then keep the largest in spiral vase mode
+                            keep_largest_contour_only(offsets_with_smaller_width);
+                        else
+                            //BBS: have large area, clean the small width loop
+                            offsets_with_smaller_width.clear();
                     }
                 } else {
                     //FIXME Is this offset correct if the line width of the inner perimeters differs
@@ -410,7 +476,7 @@ void PerimeterGenerator::process()
                             offset(last,    - float(0.5 * distance)),
                             offset(offsets,   float(0.5 * distance + 10))));  // safety offset
                 }
-                if (offsets.empty()) {
+                if (offsets.empty() && offsets_with_smaller_width.empty()) {
                     // Store the number of loops actually generated.
                     loop_number = i - 1;
                     // No region left to be filled in.
@@ -438,6 +504,19 @@ void PerimeterGenerator::process()
                         }
                     }
                 }
+
+                //BBS: save perimeter loop which use smaller width
+                if (i == 0) {
+                    for (const ExPolygon& expolygon : offsets_with_smaller_width) {
+                        contours[i].emplace_back(PerimeterGeneratorLoop(expolygon.contour, i, true, true));
+                        if (!expolygon.holes.empty()) {
+                            holes[i].reserve(holes[i].size() + expolygon.holes.size());
+                            for (const Polygon& hole : expolygon.holes)
+                                holes[i].emplace_back(PerimeterGeneratorLoop(hole, i, false, true));
+                        }
+                    }
+                }
+
                 last = std::move(offsets);
                 if (i == loop_number && (! has_gap_fill || this->config->fill_density.value == 0)) {
                 	// The last run of this loop is executed to collect gaps for gap fill.
