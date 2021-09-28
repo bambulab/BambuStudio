@@ -819,12 +819,30 @@ static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print
 {
     Polygons   loops;
     ExPolygons support_area_new = offset_ex(support_area, -0.5f * float(flow.scaled_spacing()), jtSquare);
-    for (size_t i = 0; !support_area_new.empty(); ++i) {
-        polygons_append(loops, to_polygons(support_area_new));
-        support_area_new = offset_ex(support_area_new, -float(flow.scaled_spacing()), jtSquare);
 
-        if (--wall_count == 0)
-            break;
+    std::map<ExPolygon *, int> depth_per_expoly;
+    std::list<ExPolygon> expoly_list;
+
+    for (ExPolygon &expoly : support_area_new) {
+        expoly_list.emplace_back(std::move(expoly));
+        depth_per_expoly.insert({&expoly_list.back(), 0});
+    }
+
+    while (!expoly_list.empty()) {
+        polygons_append(loops, to_polygons(expoly_list.front()));
+
+        auto first_iter = expoly_list.begin();
+        auto depth_iter = depth_per_expoly.find(&expoly_list.front());
+        if (depth_iter->second + 1 < wall_count) {
+            ExPolygons expolys_new = offset_ex(expoly_list.front(), -float(flow.scaled_spacing()), jtSquare);
+
+            for (ExPolygon &expoly : expolys_new) {
+                auto new_iter = expoly_list.insert(expoly_list.begin(), expoly);
+                depth_per_expoly.insert({ &*new_iter, depth_iter->second + 1 });
+            }
+        }
+        depth_per_expoly.erase(depth_iter);
+        expoly_list.erase(first_iter);
     }
 
     ExtrusionRole role = is_interface ? erSupportMaterialInterface : erSupportMaterial;
