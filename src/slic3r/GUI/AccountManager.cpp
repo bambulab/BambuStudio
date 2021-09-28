@@ -727,186 +727,6 @@ namespace Slic3r {
         return oss.str();
     }
 
-    BBLProject* AccountManager::create_project(BBLProject::ProjectType type, std::wstring file, ResultFn resFn, ProgressFn proFn)
-    {
-        BBLProject* project = new BBLProject(file, type);
-        
-        std::string json_str = json_request_body_post_project(project);
-
-        /* get a project id and model id */
-        Http http_post = Http::post(_get_project_url());
-        http_post.header("accept", "application/json")
-            .header("Authorization", get_token_str())
-            .header("Content-Type", "application/json")
-            .set_post_body(json_str)
-            .on_complete(
-                [this, project, resFn](std::string body, unsigned) {
-                    try {
-                        std::stringstream ss(body);
-                        pt::ptree root;
-                        pt::read_json(ss, root);
-                        boost::optional<std::string> message = root.get_optional<std::string>("message");
-                        boost::optional<std::string> project_id = root.get_optional<std::string>("project_id");
-                        boost::optional<std::string> model_id = root.get_optional<std::string>("model_id");
-                        if (message.has_value()) {
-                            if (message.value().compare(MSG_SUCCESS) == 0) {
-                                if (project_id.has_value() && model_id.has_value()) {
-                                    project->project_id = project_id.value();
-                                    project->project_model_id = model_id.value();
-
-                                    if (resFn) {
-                                        resFn(0, "get project id ok!");
-                                    }
-                                }    
-                            }
-                            else {
-                                BOOST_LOG_TRIVIAL(trace) << "AccountManager::create_project on_complete, body=" << body;
-                            }
-                        }
-                    }
-                    catch (std::exception& e) {
-                        BOOST_LOG_TRIVIAL(trace) << (boost::format("AccountManager::create_project on_complete parsing failed, exception=%1% body=%2%")
-                            % e.what()
-                            % body).str();
-                        if (resFn) {
-                            resFn(-1, "get project id failed!");
-                        }
-                    }
-                    catch (...) {
-                        BOOST_LOG_TRIVIAL(trace) << "AccountManager::create_project on_complete parsing failed, body=" << body;
-                        if (resFn) {
-                            resFn(-1, "create project id failed!");
-                        }
-                    }
-                }
-            )
-            .on_error(
-                [&, resFn](std::string body, std::string error, unsigned status) {
-                    BOOST_LOG_TRIVIAL(trace) << boost::format("status=%1%, error=%2%, body=%3%")
-                        % status
-                        % error
-                        % body;
-                    delete project;
-                    project = nullptr;
-                    if (resFn) {
-                        resFn(-1, "create project id failed!");
-                    }
-                }
-            )
-            .perform_sync();
-
-        if (!project) {
-            delete project;
-            project = nullptr;
-            return nullptr;
-        }
-
-        /* init project name and path */
-        project->project_name = file;
-        project->project_path = fs::path(file.c_str());
-
-
-        /* use default profile in 3mf, create a profile */
-        BBLProfile* profile = new BBLProfile();
-        profile->profile_name = L"default_profile";    // get profile name from 3mf
-        project->profiles.push_back(profile);
-
-        std::string project_url = (boost::format("%1%/iot/user/project/%2%") % host % project->project_id).str();
-
-        std::vector<std::string> params;
-        std::string request_str = json_request_body_post_profile(profile);
-
-        Http http_create_profile = Http::post(project_url);
-        http_create_profile.header("accept", "application/json")
-            .header("Authorization", get_token_str())
-            .header("Content-Type","application/json")
-            .set_post_body(request_str)
-            .on_complete(
-                [this, profile, resFn](std::string body, unsigned) {
-                    std::stringstream ss(body);
-                    pt::ptree root;
-                    pt::read_json(ss, root);
-                    boost::optional<std::string> message = root.get_optional<std::string>("message");
-                    boost::optional<std::string> profile_id = root.get_optional<std::string>("profile_id");
-                    if (message.has_value()) {
-                        if (message.value().compare(MSG_SUCCESS) == 0) {
-                            BOOST_LOG_TRIVIAL(info) << "create_profile ok!";
-                            if (profile_id.has_value()) {
-                                profile->profile_id = profile_id.value();
-                            }
-                        }
-                    }
-                }
-            )
-            .on_error(
-                [this, profile, resFn](std::string body, std::string error, unsigned status) {
-                    BOOST_LOG_TRIVIAL(info) << "create_profile failed! body=" << body << ", status=" << status;
-                    if (resFn) {
-                        resFn(-2, "create profile id failed!");
-                    }
-                }
-            )
-            .perform_sync();
-
-        if (profile->profile_id.empty()) {
-            return project;
-        }
-
-        std::string file_str("file");
-        std::string profile_id_str("profile_id");
-
-        /* upload 3mf or gcode to cloud */
-        Http http_put = Http::put2(project_url);   
-        http_put.header("accept", "application/json")
-            .header("Authorization", get_token_str())
-            .header("Content-Type", "multipart/form-data")
-            .mime_form_add_file(file_str, project->project_path)
-            .mime_form_add_text(profile_id_str, profile->profile_id)
-            .on_complete(
-                [this, project, resFn](std::string body, unsigned) {
-                    std::stringstream ss(body);
-                    pt::ptree root;
-                    pt::read_json(ss, root);
-                    boost::optional<std::string> message = root.get_optional<std::string>("message");
-                    if (message.has_value()) {
-                        if (message.value().compare(MSG_SUCCESS) == 0) {
-                            BOOST_LOG_TRIVIAL(info) << "create_project, upload project ok!";
-                            if (resFn) {
-                                resFn(0, "upload project ok!");
-                            }
-                        }
-                    }
-                }
-            )
-            .on_progress(
-                [this, proFn](Http::Progress progress, bool& cancel) {
-                    BOOST_LOG_TRIVIAL(trace) << "progress:" << progress.ulnow << "/" << progress.ultotal;
-                    int percent = 0;
-                    if (progress.ultotal != 0) {
-                        percent = progress.ulnow * 100 / progress.ultotal;
-                    }
-                    if (proFn) {
-                        proFn(percent);
-                    }
-                }
-            )
-            .on_error(
-                [this, project, resFn](std::string body, std::string error, unsigned status) {
-                    BOOST_LOG_TRIVIAL(info) << "create_project, upload project failed!";
-                    if (resFn) {
-                        std::string info("upload project failed!");
-                        info += " body=" + body;
-                        resFn(-1, info);
-                    }
-                }
-            ).perform_sync();
-        
-        if (project) {
-            default_project = project;
-        }
-        return project;
-    }
-
     void AccountManager::get_project_info(BBLProject* project)
     {
         std::string query_params("?gather=all");
@@ -1066,12 +886,13 @@ namespace Slic3r {
         std::string name_value = "name";
         std::string expires_value = "86400";
         std::string filename_str = task->task_path.filename().generic_string();
+        std::string task_file = encode_path(task->task_path.generic_string().c_str());
         
         Http http = Http::post(url);
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
             .header("Content-Type", "multipart/form-data")
-            .mime_form_add_file(file_str, task->task_path)
+            .mime_form_add_file(file_str, task_file.c_str())
             .mime_form_add_text(name_str, filename_str)
             .mime_form_add_text(expires_str, expires_value)
             .on_complete(

@@ -201,7 +201,6 @@ public:
     /* project apis */
     BBLProject* get_default_project() { return default_project; }
     // create a project 
-    BBLProject* create_project(BBLProject::ProjectType type, std::wstring file, ResultFn resFn, ProgressFn proFn);
     void get_project_info(BBLProject* project);
     void get_profile_info(BBLProject* project, BBLProfile* profile);
     void create_task(BBLProject* project, BBLTask* task, ResultFn resFn);

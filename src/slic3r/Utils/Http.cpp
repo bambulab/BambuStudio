@@ -144,7 +144,7 @@ struct Http::priv
 	void form_add_file(const char *name, const fs::path &path, const char* filename);
 	/* mime */
 	void mime_form_add_text(const char* name, const char* value);
-	void mime_form_add_file(const char* name, const fs::path& path);
+	void mime_form_add_file(const char* name, const char* path);
 	void set_post_body(const fs::path &path);
 	void set_post_body(const std::string &body);
 	void set_put_body(const fs::path &path);
@@ -309,7 +309,7 @@ void Http::priv::mime_form_add_text(const char* name, const char* value)
 	curl_mime_data(part, value, CURL_ZERO_TERMINATED);
 }
 
-void Http::priv::mime_form_add_file(const char* name, const fs::path& path)
+void Http::priv::mime_form_add_file(const char* name, const char* path)
 {
 	if (!mime) {
 		mime = curl_mime_init(curl);
@@ -319,7 +319,7 @@ void Http::priv::mime_form_add_file(const char* name, const fs::path& path)
 	part = curl_mime_addpart(mime);
 	curl_mime_name(part, "file");
 	curl_mime_type(part, "multipart/form-data");
-	curl_mime_filedata(part, path.string().c_str());
+	curl_mime_filedata(part, path);
 }
 
 //FIXME may throw! Is the caller aware of it?
@@ -558,12 +558,11 @@ Http& Http::mime_form_add_text(std::string &name, std::string &value)
 	return *this;
 }
 
-Http& Http::mime_form_add_file(std::string &name, const fs::path& path)
+Http& Http::mime_form_add_file(std::string &name, const char* path)
 {
 	if (p) { p->mime_form_add_file(name.c_str(), path); }
 	return *this;
 }
-
 
 
 Http& Http::form_add_file(const std::wstring& name, const fs::path& path)

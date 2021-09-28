@@ -3197,8 +3197,9 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
     {
         PlateData* plate_data = plate_data_list[i];
         if (!plate_data->gcode_file.empty()) {
-            std::string gcode_in_3mf = (boost::format("Metadata/plate_%1%.gcode") % (i + 1)).str();
+
             std::string src_gcode_file = encode_path(plate_data->gcode_file.c_str());
+            std::string gcode_in_3mf = (boost::format(GCODE_FILE_FORMAT) % (i + 1)).str();
             result = result & mz_zip_writer_add_file(&archive, gcode_in_3mf.c_str(), src_gcode_file.c_str(), "", 0, MZ_DEFAULT_COMPRESSION);
         }
 

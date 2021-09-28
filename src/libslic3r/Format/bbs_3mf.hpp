@@ -6,6 +6,8 @@ class Model;
 class DynamicPrintConfig;
 struct ThumbnailData;
 
+#define GCODE_FILE_FORMAT     "Metadata/plate_%1%.gcode"
+
 //BBS: define plate data list related structures
 struct PlateData
 {

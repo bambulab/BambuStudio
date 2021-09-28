@@ -88,7 +88,7 @@ public:
 	// Add a HTTP mime form field
 	Http& mime_form_add_text(std::string& name, std::string& value);
 	// Add a HTTP mime form file
-	Http& mime_form_add_file(std::string& name, const boost::filesystem::path& path);
+	Http& mime_form_add_file(std::string& name, const char* path);
 	// Same as above except also override the file's filename with a wstring type
 	Http& form_add_file(const std::wstring& name, const boost::filesystem::path& path);
 	// Same as above except also override the file's filename with a custom one
