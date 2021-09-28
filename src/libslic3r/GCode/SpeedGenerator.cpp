@@ -18,7 +18,8 @@ SpeedGenerator::SpeedGenerator() {
 		}
 	}
 	std::string config_file = resources_dir() + "/PerimeterSpeedConfig.json";
-	boost::property_tree::read_json<boost::property_tree::ptree>(config_file, root);
+	std::string encoded_path = encode_path(config_file.c_str());
+	boost::property_tree::read_json<boost::property_tree::ptree>(encoded_path, root);
 	if (root.count("speed_ratio_table")) {
 		int i = 0;
 		for (auto& array11 : root.get_child("speed_ratio_table")) {
@@ -29,7 +30,6 @@ SpeedGenerator::SpeedGenerator() {
 			}
 			i++;
 		}
-
 	}
 }
 
