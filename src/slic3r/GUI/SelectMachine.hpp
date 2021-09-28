@@ -82,6 +82,7 @@ public:
 
     /* model */
     wxObjectDataPtr<MachineListModel> machine_model;
+    wxString machine_sn;
 
 protected:
     wxDataViewCtrl* m_dataViewListCtrl_machines;
@@ -91,7 +92,6 @@ protected:
     wxButton* m_button_ensure;
 
     wxTimer* m_refresh_timer;
-    wxString machine_sn;
 
     // Virtual event handlers, overide them in your derived class
     void on_cancel(wxCommandEvent& event);

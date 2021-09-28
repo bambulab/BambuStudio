@@ -207,6 +207,9 @@ SelectMachineDialog::SelectMachineDialog()
     init_model();
     init_bind();
     init_timer();
+
+    Fit();
+    CenterOnParent();
 }
 
 void SelectMachineDialog::init_model()
@@ -264,13 +267,12 @@ void SelectMachineDialog::on_cancel(wxCommandEvent& event)
 
 void SelectMachineDialog::on_ok(wxCommandEvent& event)
 {
-    //TODO jump to monitor page
     this->EndModal(wxID_OK);
 }
 
 void SelectMachineDialog::on_timer(wxTimerEvent& event)
 {
-    //Update Machine List
+    // update machine list, collections of bind list and local free
     Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
     Slic3r::DeviceManager* d = Slic3r::GUI::wxGetApp().getDeviceManager();
     std::map<std::string, MachineObject*> list;
@@ -287,7 +289,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent& event)
 
     machine_model->display_machines(list);
 
-    //TODO set old selections
+    // select old items
     wxVariant val;
     int row = machine_model->find_row_by_sn(machine_sn);
     if (row >= 0) {
