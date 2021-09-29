@@ -319,21 +319,13 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
     
     //BBS: take plate offset into consider
     Vec3d point_on_plate = { dest_point(0) - m_x_offset, dest_point(1) - m_y_offset, dest_point(2) };
-
-    //BBS: two step movement
-    GCodeG1Formatter w1;
-    Vec2d mid_pnt((dest_point(0) + m_pos(0)) / 2, (dest_point(1) + m_pos(1)) / 2);
     m_pos = dest_point;
-
-    w1.emit_xy(mid_pnt);
-    w1.emit_f(this->config.travel_speed.value * 60.0);
-    w1.emit_comment(this->config.gcode_comments, std::string("travel middle point"));
 
     GCodeG1Formatter w;
     w.emit_xyz(point_on_plate);
     w.emit_f(this->config.travel_speed.value * 60.0);
     w.emit_comment(this->config.gcode_comments, comment);
-    return w1.string() + "\n" + w.string();
+    return w.string();
 }
 
 std::string GCodeWriter::travel_to_z(double z, const std::string &comment)
