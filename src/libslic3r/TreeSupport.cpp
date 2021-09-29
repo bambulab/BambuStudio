@@ -9,7 +9,7 @@
 #include "SVG.hpp"
 
 #define SQRT_2 1.4142135623730950488 //Square root of 2.
-#define CIRCLE_RESOLUTION 40 //The number of vertices in each circle.
+#define CIRCLE_RESOLUTION 100 //The number of vertices in each circle.
 
 #ifndef M_PI
 #define M_PI 3.1415926535897932384626433832795
@@ -1052,7 +1052,8 @@ void TreeSupport::generate_toolpaths()
                             Flow flow = (layer_id == 0 && m_raft_layers == 0)? m_object.print()->brim_flow() : support_flow;
                             if(with_infill && layer_id > 0 && offset(poly, -scale_(support_spacing)).empty()==false)
                             {
-                                make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object.print(), poly, wall_count, flow, false, filler_support, support_density);
+                                // with infill we only need half the extrusion width
+                                make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object.print(), poly, wall_count, Flow(support_extrusion_width/2, ts_layer->height, nozzle_diameter), false, filler_support, support_density);
                             }
                             else
                             {
@@ -1321,7 +1322,6 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 roof_areas = std::move(offset2_ex(roof_areas, branch_radius_scaled, -branch_radius_scaled));
                 base_areas = std::move(diff_ex(base_areas, roof_areas));
 
-                // BBS: to be checked. Enable arc fitting
 #if 0
                 if (m_object.print()->config().enable_arc_fitting.value == false) {
                     // simplify support contours if arc fitting is disabled
