@@ -11,14 +11,21 @@ class GCodeConfig;
 class Extruder
 {
 public:
-    Extruder(unsigned int id, GCodeConfig *config);
+    Extruder(unsigned int id, GCodeConfig *config, bool share_extruder);
     virtual ~Extruder() {}
 
     void   reset() {
-        m_E             = 0;
+        // BBS
+        if (m_share_extruder) {
+            m_share_E = 0.;
+            m_share_retracted = 0.;
+        } else {
+            m_E             = 0;
+            m_retracted     = 0;
+            m_restart_extra = 0;
+        }
+
         m_absolute_E    = 0;
-        m_retracted     = 0;
-        m_restart_extra = 0;
     }
 
     unsigned int id() const { return m_id; }
@@ -26,7 +33,7 @@ public:
     double extrude(double dE);
     double retract(double length, double restart_extra);
     double unretract();
-    double E() const { return m_E; }
+    double E() const { return m_share_extruder ? m_share_E : m_E; }
     void   reset_E() { m_E = 0.; }
     double e_per_mm(double mm3_per_mm) const { return mm3_per_mm * m_e_per_mm3; }
     double e_per_mm3() const { return m_e_per_mm3; }
@@ -49,9 +56,6 @@ public:
     double retract_length_toolchange() const;
     double retract_restart_extra_toolchange() const;
 
-    // BBS.
-    void reset_retract() { m_retracted = 0.; }
-
 private:
     // Private constructor to create a key for a search in std::set.
     Extruder(unsigned int id) : m_id(id) {}
@@ -69,6 +73,12 @@ private:
     // When retracted, this value stores the extra amount of priming on deretraction.
     double       m_restart_extra;
     double       m_e_per_mm3;
+
+    // BBS.
+    // Create shared E and retraction data for single extruder multi-material machine
+    bool          m_share_extruder;
+    static double m_share_E;
+    static double m_share_retracted;
 };
 
 // Sort Extruder objects by the extruder id by default.

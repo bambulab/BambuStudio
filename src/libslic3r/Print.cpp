@@ -999,7 +999,7 @@ void Print::_make_skirt()
         extruders_e_per_mm.reserve(set_extruders.size());
         for (auto &extruder_id : set_extruders) {
             extruders.push_back(extruder_id);
-            extruders_e_per_mm.push_back(Extruder((unsigned int)extruder_id, &m_config).e_per_mm(mm3_per_mm));
+            extruders_e_per_mm.push_back(Extruder((unsigned int)extruder_id, &m_config, m_config.single_extruder_multi_material).e_per_mm(mm3_per_mm));
         }
     }
 

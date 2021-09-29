@@ -3384,9 +3384,9 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     }
 
     // BBS. Reset old extruder E-value.
+    // Keep retract length because Custom GCode will guarantee retract length be the same as toolchange
     if (m_config.single_extruder_multi_material) {
         m_writer.reset_e();
-        m_writer.reset_retract();
     }
 
     // We inform the writer about what is happening, but we may not use the resulting gcode.
