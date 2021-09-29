@@ -12,8 +12,12 @@
 namespace Slic3r {
 namespace GUI {
 
+//BBS: add partplate related logic
 void FillBedJob::prepare()
 {
+    PartPlateList& plate_list = m_plater->get_partplate_list();
+
+    m_locked.clear();
     m_selected.clear();
     m_unselected.clear();
     m_bedpts.clear();
@@ -22,25 +26,100 @@ void FillBedJob::prepare()
     if (m_object_idx == -1)
         return;
 
+    //select current plate at first
+    int sel_id = m_plater->get_selection().get_instance_idx();
+    sel_id = std::max(sel_id, 0);
+
+    int sel_ret = plate_list.select_plate_by_obj(m_object_idx, sel_id);
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":select plate obj_id %1%, ins_id %2%, ret %3%}") % m_object_idx % sel_id % sel_ret;
+
+    PartPlate* plate = plate_list.get_curr_plate();
+    Model &model = m_plater->model();
+    BoundingBox plate_bb = plate->get_bounding_box_crd();
+    int plate_cols = plate_list.get_plate_cols();
+    int cur_plate_index = plate->get_index();
+
     ModelObject *model_object = m_plater->model().objects[m_object_idx];
     if (model_object->instances.empty()) return;
 
     m_selected.reserve(model_object->instances.size());
-    for (ModelInstance *inst : model_object->instances)
+
+    for (size_t oidx = 0; oidx < model.objects.size(); ++oidx) 
+    {
+        ModelObject* mo = model.objects[oidx];
+        for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
+        {
+            bool selected = (oidx == m_object_idx);
+
+            ArrangePolygon ap = get_arrange_poly(PtrWrapper{mo->instances[inst_idx]}, m_plater);
+            BoundingBox ap_bb = ap.transformed_poly().contour.bounding_box();
+            ap.height = 1;
+            ap.name = mo->name;
+
+            if (selected)
+            {
+                if (mo->instances[inst_idx]->printable)
+                {
+                    ++ap.priority;
+                    ap.itemid = m_selected.size();
+                    m_selected.emplace_back(ap);
+                }
+                else
+                {
+                    if (plate_bb.contains(ap_bb))
+                    {
+                        ap.bed_idx = 0;
+                        ap.itemid = m_unselected.size();
+                        ap.row = cur_plate_index / plate_cols;
+                        ap.col = cur_plate_index % plate_cols;
+                        ap.translation(X) -= bed_stride_x(m_plater) * ap.col;
+                        ap.translation(Y) += bed_stride_y(m_plater) * ap.row;
+                        m_unselected.emplace_back(ap);
+                    }
+                    else
+                    {
+                        ap.bed_idx = PartPlateList::MAX_PLATES_COUNT;
+                        ap.itemid = m_locked.size();
+                        m_locked.emplace_back(ap);
+                    }
+                }
+            }
+            else
+            {
+                if (plate_bb.contains(ap_bb))
+                {
+                    ap.bed_idx = 0;
+                    ap.itemid = m_unselected.size();
+                    ap.row = cur_plate_index / plate_cols;
+                    ap.col = cur_plate_index % plate_cols;
+                    ap.translation(X) -= bed_stride_x(m_plater) * ap.col;
+                    ap.translation(Y) += bed_stride_y(m_plater) * ap.row;
+                    m_unselected.emplace_back(ap);
+                }
+                else
+                {
+                    ap.bed_idx = PartPlateList::MAX_PLATES_COUNT;
+                    ap.itemid = m_locked.size();
+                    m_locked.emplace_back(ap);
+                }
+            }
+        }
+    }
+    /*for (ModelInstance *inst : model_object->instances)
         if (inst->printable) {
             ArrangePolygon ap = get_arrange_poly(PtrWrapper{inst}, m_plater);
             // Existing objects need to be included in the result. Only
             // the needed amount of object will be added, no more.
             ++ap.priority;
             m_selected.emplace_back(ap);
-        }
+        }*/
 
     if (m_selected.empty()) return;
 
     m_bedpts = get_bed_shape(*m_plater->config());
 
     auto &objects = m_plater->model().objects;
-    BoundingBox bedbb = get_extents(m_bedpts);
+    /*BoundingBox bedbb = get_extents(m_bedpts);
 
     for (size_t idx = 0; idx < objects.size(); ++idx)
         if (int(idx) != m_object_idx)
@@ -55,7 +134,7 @@ void FillBedJob::prepare()
             }
 
     if (auto wt = get_wipe_tower_arrangepoly(*m_plater))
-        m_unselected.emplace_back(std::move(*wt));
+        m_unselected.emplace_back(std::move(*wt));*/
 
     double sc = scaled<double>(1.) * scaled(1.);
 
@@ -64,7 +143,9 @@ void FillBedJob::prepare()
     double unsel_area = std::accumulate(m_unselected.begin(),
                                         m_unselected.end(), 0.,
                                         [](double s, const auto &ap) {
-                                            return s + (ap.bed_idx == 0) * ap.poly.area();
+                                            //BBS: m_unselected instance is in the same partplate
+                                            return s + ap.poly.area();
+                                            //return s + (ap.bed_idx == 0) * ap.poly.area();
                                         }) / sc;
 
     double fixed_area = unsel_area + m_selected.size() * poly_area;
@@ -73,16 +154,17 @@ void FillBedJob::prepare()
     // This is the maximum number of items, the real number will always be close but less.
     int needed_items = (bed_area - fixed_area) / poly_area;
 
-    int sel_id = m_plater->get_selection().get_instance_idx();
+    //int sel_id = m_plater->get_selection().get_instance_idx();
     // if the selection is not a single instance, choose the first as template
-    sel_id = std::max(sel_id, 0);
+    //sel_id = std::max(sel_id, 0);
     ModelInstance *mi = model_object->instances[sel_id];
     ArrangePolygon template_ap = get_arrange_poly(PtrWrapper{mi}, m_plater);
 
     for (int i = 0; i < needed_items; ++i) {
         ArrangePolygon ap = template_ap;
         ap.poly = m_selected.front().poly;
-        ap.bed_idx = arrangement::UNARRANGED;
+        ap.bed_idx = PartPlateList::MAX_PLATES_COUNT;
+        ap.height = 1;
         ap.setter = [this, mi](const ArrangePolygon &p) {
             ModelObject *mo = m_plater->model().objects[m_object_idx];
             ModelInstance *inst = mo->add_instance(*mi);
@@ -96,10 +178,11 @@ void FillBedJob::prepare()
     // The strides have to be removed from the fixed items. For the
     // arrangeable (selected) items bed_idx is ignored and the
     // translation is irrelevant.
-    double stride = bed_stride(m_plater);
+    //BBS: remove logic for unselected object
+    /*double stride = bed_stride_x(m_plater);
     for (auto &p : m_unselected)
         if (p.bed_idx > 0)
-            p.translation(X) -= p.bed_idx * stride;
+            p.translation(X) -= p.bed_idx * stride;*/
 }
 
 void FillBedJob::process()
@@ -145,11 +228,42 @@ void FillBedJob::finalize()
     ModelObject *model_object = m_plater->model().objects[m_object_idx];
     if (model_object->instances.empty()) return;
 
+    //BBS: partplate
+    PartPlateList& plate_list = m_plater->get_partplate_list();
+    int plate_cols = plate_list.get_plate_cols();
+    int cur_plate = plate_list.get_curr_plate_index();
+
     size_t inst_cnt = model_object->instances.size();
 
+<<<<<<< HEAD   (f0d9b0 ENH: use the contour of brim of inner island)
     int added_cnt = std::accumulate(m_selected.begin(), m_selected.end(), 0, [](int s, auto &ap) {
         return s + int(ap.priority == 0 && ap.bed_idx == 0);
     });
+=======
+    //BBS: adjust the selected instances
+    for (ArrangePolygon &ap : m_selected) {
+        if (ap.bed_idx != 0) continue;  // bed_idx != 0 means unarrangable
+        ap.bed_idx = cur_plate;
+
+        ap.row = ap.bed_idx / plate_cols;
+        ap.col = ap.bed_idx % plate_cols;
+        ap.translation(X) += bed_stride_x(m_plater) * ap.col;
+        ap.translation(Y) -= bed_stride_y(m_plater) * ap.row;
+
+        ap.apply();
+
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":selected: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y));
+    }
+    for (size_t inst_idx = 0; inst_idx < model_object->instances.size(); ++inst_idx)
+    {
+        plate_list.notify_instance_update(m_object_idx, inst_idx);
+    }
+
+    /*for (ArrangePolygon &ap : m_selected) {
+        if (ap.bed_idx != arrangement::UNARRANGED && (ap.priority != 0 || ap.bed_idx == 0))
+            ap.apply();
+    }*/
+>>>>>>> CHANGE (995119 ENH: adjust the plates layout to sudoku-style)
 
     if (added_cnt > 0) {
         for (ArrangePolygon &ap : m_selected) {
@@ -159,7 +273,16 @@ void FillBedJob::finalize()
 
         model_object->ensure_on_bed();
 
+<<<<<<< HEAD   (f0d9b0 ENH: use the contour of brim of inner island)
         m_plater->update();
+=======
+    //BBS: add partplate related logic
+    int added_cnt = std::accumulate(m_selected.begin(), m_selected.end(), 0,
+                                     [cur_plate](int s, auto &ap) {
+                                         return s + int(ap.priority == 0 && ap.bed_idx == cur_plate);
+                                         //return s + int(ap.priority == 0 && ap.bed_idx == 0);
+                                     });
+>>>>>>> CHANGE (995119 ENH: adjust the plates layout to sudoku-style)
 
         // FIXME: somebody explain why this is needed for increase_object_instances
         if (inst_cnt == 1) added_cnt++;

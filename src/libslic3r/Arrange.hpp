@@ -51,6 +51,9 @@ struct ArrangePolygon {
     int       priority{0};
     //BBS: add locked_plate to indicate whether it is in the locked plate
     int       locked_plate{ -1 };
+    //BBS: add row/col for sudoku-style layout
+    int       row{0};
+    int       col{0};
     int       extrude_id{1};        ///extruder_id for least extruder switch
     int       bed_temp{0};         ///bed temperature for different material judge
     int       print_temp{0};      ///print temperature for different material judge

@@ -73,10 +73,15 @@ void ArrangeJob::clear_input()
     m_selected.clear();
     m_unselected.clear();
     m_unprintable.clear();
+<<<<<<< HEAD   (f0d9b0 ENH: use the contour of brim of inner island)
     m_unarranged.clear();
+=======
+    m_locked.clear();
+>>>>>>> CHANGE (995119 ENH: adjust the plates layout to sudoku-style)
     m_selected.reserve(count + 1 /* for optional wti */);
     m_unselected.reserve(count + 1 /* for optional wti */);
     m_unprintable.reserve(cunprint /* for optional wti */);
+    m_locked.reserve(count + 1 /* for optional wti */);
     current_plate_index = 0;
 }
 
@@ -131,6 +136,8 @@ void ArrangeJob::prepare_all() {
             else
             {
                 //skip this object due to be locked in plate
+                ap.itemid = m_locked.size();
+                m_locked.emplace_back(ap);
                 BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%") % oidx % inst_idx;
             }
         }
@@ -146,7 +153,8 @@ void ArrangeJob::prepare_selected() {
     clear_input();
     
     Model &model = m_plater->model();
-    double stride = bed_stride(m_plater);
+    //BBS: remove logic for unselected object
+    //double stride = bed_stride_x(m_plater);
     
     std::vector<const Selection::InstanceIdxsList *>
             obj_sel(model.objects.size(), nullptr);
@@ -185,6 +193,8 @@ void ArrangeJob::prepare_selected() {
             else
             {
                 //skip this object due to be locked in plate
+                ap.itemid = m_locked.size();
+                m_locked.emplace_back(std::move(ap));
                 BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%") % oidx % i;
             }            
         }
@@ -204,7 +214,8 @@ void ArrangeJob::prepare_selected() {
     // The strides have to be removed from the fixed items. For the
     // arrangeable (selected) items bed_idx is ignored and the
     // translation is irrelevant.
-    for (auto &p : m_unselected) p.translation(X) -= p.bed_idx * stride;
+    //BBS: remove logic for unselected object
+    //for (auto &p : m_unselected) p.translation(X) -= p.bed_idx * stride;
 }
 
 arrangement::ArrangePolygon ArrangeJob::get_arrange_poly_(ModelInstance *mi)
@@ -239,7 +250,8 @@ void ArrangeJob::prepare_partplate() {
     }
 
     Model& model = m_plater->model();
-    double stride = bed_stride(m_plater);
+    //BBS: remove logic for unselected object
+    //double stride = bed_stride_x(m_plater);
 
     // Go through the objects and check if inside the selection
     for (size_t oidx = 0; oidx < model.objects.size(); ++oidx) 
@@ -254,7 +266,7 @@ void ArrangeJob::prepare_partplate() {
                 (in_plate ? m_selected : m_unselected) :
                 m_unprintable;
             ap.itemid = cont.size();
-            bool locked = plate_list.preprocess_arrange_polygon_other_locked(ap, in_plate);
+            bool locked = plate_list.preprocess_arrange_polygon_other_locked(oidx, inst_idx, ap, in_plate);
             if (!locked)
             {
                 cont.emplace_back(std::move(ap));
@@ -262,6 +274,7 @@ void ArrangeJob::prepare_partplate() {
             else
             {
                 //skip this object due to be not in current plate, treated as locked
+                m_locked.emplace_back(std::move(ap));
                 BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%") % oidx % inst_idx;
             }
         }
@@ -279,7 +292,8 @@ void ArrangeJob::prepare_partplate() {
     // The strides have to be removed from the fixed items. For the
     // arrangeable (selected) items bed_idx is ignored and the
     // translation is irrelevant.
-    for (auto& p : m_unselected) p.translation(X) -= p.bed_idx * stride;
+    //BBS: remove logic for unselected object
+    //for (auto& p : m_unselected) p.translation(X) -= p.bed_idx * stride;
 }
 
 //BBS: add partplate logic
@@ -360,11 +374,12 @@ void ArrangeJob::process()
             beds++;  // new group will start from next plate
             for (auto& ap : it->second) {
                 ap.bed_idx += beds;
-                ap.bed_idx = std::max(ap.bed_idx, current_plate_index);
+                //BBS: only update bed_idx here
+                //ap.bed_idx = std::max(ap.bed_idx, current_plate_index);
                 for (auto& item : m_selected) {
                     if (item.itemid == ap.itemid) {
                         item = ap;
-                        item.apply();
+                        //item.apply();
                         break;
                     }
                 }
@@ -399,15 +414,17 @@ void ArrangeJob::process()
     bool we_have_unpackable_items = false;
     for (auto item : m_selected) {
         if (item.bed_idx < 0) {
-            m_unprintable.push_back(std::move(item));
+            //BBS: already processed in m_selected
+            //m_unprintable.push_back(std::move(item));
             we_have_unpackable_items = true;
         }
     }
 
+    //BBS: already processed in m_selected
     // finalize just here.
     update_status(int(count),
                   was_canceled() ? _(L("Arranging canceled.")):
-        we_have_unpackable_items? _(L("Arranging done but we have unpacked items "+m_unprintable.back().name+"! Reduce spacing or bed_shrink and try again!")) : _(L("Arranging done.")));
+        we_have_unpackable_items? _(L("Arranging done but we have unpacked items! Reduce spacing or bed_shrink and try again!")) : _(L("Arranging done.")));
 }
 
 static std::string concat_strings(const std::set<std::string> &strings,
@@ -423,7 +440,7 @@ static std::string concat_strings(const std::set<std::string> &strings,
 void ArrangeJob::finalize() {
     // Ignore the arrange result if aborted.
     if (was_canceled()) return;
-    
+
     // Unprintable items go to the last virtual bed
     int beds = 0;
 
@@ -431,41 +448,73 @@ void ArrangeJob::finalize() {
     PartPlateList& plate_list = m_plater->get_partplate_list();
     //clear all the relations before apply the arrangement results
     plate_list.clear();
-    
-    // Apply the arrange result to all selected objects
+
+    //BBS: adjust the bed_index, create new plates, get the max bed_index
     for (ArrangePolygon &ap : m_selected) {
-        if (ap.bed_idx < 0) continue;  // bed_idx<0 means unarrangable
+        //if (ap.bed_idx < 0) continue;  // bed_idx<0 means unarrangable
         //BBS: partplate postprocess
         if (only_on_partplate)
-            plate_list.postprocess_arrange_polygon_other_locked(ap);
+            plate_list.postprocess_bed_index_for_current_plate(ap);
         else
-            plate_list.postprocess_arrange_polygon(ap, true);
+            plate_list.postprocess_bed_index_for_selected(ap);
 
         beds = std::max(ap.bed_idx, beds);
+
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":selected: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y));
+<<<<<<< HEAD   (f0d9b0 ENH: use the contour of brim of inner island)
 
         ap.apply();
+=======
+>>>>>>> CHANGE (995119 ENH: adjust the plates layout to sudoku-style)
     }
-    
-    // Get the virtual beds from the unselected items
+
+    //BBS: adjust the bed_index, create new plates, get the max bed_index
     for (ArrangePolygon& ap : m_unselected)
     {
         //BBS: partplate postprocess
         if (!only_on_partplate)
-            plate_list.postprocess_arrange_polygon(ap, false);
+            plate_list.postprocess_bed_index_for_unselected(ap);
 
         beds = std::max(ap.bed_idx, beds);
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":unselected: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y));
     }
-    
+
+    for (ArrangePolygon &ap : m_locked) {
+        beds = std::max(ap.bed_idx, beds);
+
+        plate_list.postprocess_arrange_polygon(ap, false);
+
+        ap.apply();
+    }
+
+    // Apply the arrange result to all selected objects
+    for (ArrangePolygon &ap : m_selected) {
+        //BBS: partplate postprocess
+        plate_list.postprocess_arrange_polygon(ap, true);
+
+        ap.apply();
+    }
+
+    // Apply the arrange result to unselected objects(due to the sukodu-style column changes, the position of unselected may also be modified)
+    for (ArrangePolygon& ap : m_unselected)
+    {
+        //BBS: partplate postprocess
+        plate_list.postprocess_arrange_polygon(ap, false);
+
+        ap.apply();
+    }
+
     // Move the unprintable items to the last virtual bed.
     // Note ap.apply() moves relatively according to bed_idx, so we need to subtract the orignal bed_idx
     for (ArrangePolygon &ap : m_unprintable) {
-        ap.bed_idx = beds + 1 - (int)(ap.translation.x() / bed_stride(m_plater));
+        ap.bed_idx = beds + 1;
+        plate_list.postprocess_arrange_polygon(ap, true);
+
         ap.apply();
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":m_unprintable: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y));
     }
 
+<<<<<<< HEAD   (f0d9b0 ENH: use the contour of brim of inner island)
     m_plater->update();
     wxGetApp().obj_manipul()->set_dirty();
 
@@ -479,6 +528,8 @@ void ArrangeJob::finalize() {
             concat_strings(names, "\n")));
     }
     
+=======
+>>>>>>> CHANGE (995119 ENH: adjust the plates layout to sudoku-style)
     //BBS: reload all objects due to arrange
     plate_list.rebuild_plates_after_arrangement();
 
@@ -496,11 +547,18 @@ get_wipe_tower_arrangepoly(const Plater &plater)
     return {};
 }
 
+<<<<<<< HEAD   (f0d9b0 ENH: use the contour of brim of inner island)
 double bed_stride(const Plater *plater) {
     double bedwidth = plater->build_volume().bounding_volume().size().x();
+=======
+//BBS: add sudoku-style stride
+double bed_stride_x(const Plater *plater) {
+    double bedwidth = plater->bed_shape_bb().size().x();
+>>>>>>> CHANGE (995119 ENH: adjust the plates layout to sudoku-style)
     return scaled<double>((1. + LOGICAL_BED_GAP) * bedwidth);
 }
 
+<<<<<<< HEAD   (f0d9b0 ENH: use the contour of brim of inner island)
 template<>
 arrangement::ArrangePolygon get_arrange_poly(ModelInstance *inst,
                                              const Plater * plater)
@@ -523,5 +581,12 @@ arrangement::ArrangeParams get_arrange_params(Plater *p)
 
     return params;
 }
+=======
+double bed_stride_y(const Plater *plater) {
+    double beddepth = plater->bed_shape_bb().size().y();
+    return scaled<double>((1. + LOGICAL_BED_GAP) * beddepth);
+}
+
+>>>>>>> CHANGE (995119 ENH: adjust the plates layout to sudoku-style)
 
 }} // namespace Slic3r::GUI

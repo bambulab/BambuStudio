@@ -103,7 +103,7 @@ bool PartPlate::valid_instance(int obj_id, int instance_id)
 	return false;
 }
 
-void PartPlate::calc_bounding_boexes() const {
+void PartPlate::calc_bounding_boxes() const {
 	BoundingBoxf3* bounding_box = const_cast<BoundingBoxf3*>(&m_bounding_box);
 	*bounding_box = BoundingBoxf3();
 	for (const Vec2d& p : m_shape) {
@@ -642,14 +642,14 @@ bool PartPlate::intersect_instance(int obj_id, int instance_id)
 	}
 	else
 	{
-		result = is_left_of(obj_id, instance_id);
+		result = is_left_top_of(obj_id, instance_id);
 	}
 
 	return result;
 }
 
 //judge whether the plate's origin is at the left of instance or not
-bool PartPlate::is_left_of(int obj_id, int instance_id)
+bool PartPlate::is_left_top_of(int obj_id, int instance_id)
 {
 	bool result = false;
 
@@ -664,7 +664,7 @@ bool PartPlate::is_left_of(int obj_id, int instance_id)
 	std::pair<int, int> pair(obj_id, instance_id);
 	BoundingBoxf3 instance_box = object->instance_bounding_box(instance_id);
 
-	result = m_origin.x() <= instance_box.max.x();
+	result = (m_origin.x() <= instance_box.min.x())&&(m_origin.y() >= instance_box.min.y());
 	return result;
 }
 
@@ -777,7 +777,7 @@ bool PartPlate::set_shape(const Pointfs& shape, Vec2d position)
 		m_shape.push_back(Vec2d(p.x() + position.x(), p.y() + position.y()));
 	}
 
-	calc_bounding_boexes();
+	calc_bounding_boxes();
 
 	ExPolygon poly;
 	for (const Vec2d& p : m_shape) {
@@ -792,6 +792,13 @@ bool PartPlate::set_shape(const Pointfs& shape, Vec2d position)
 	release_opengl_resource();
 
 	return true;
+}
+
+const BoundingBox PartPlate::get_bounding_box_crd()
+{
+	const auto plate_shape = Slic3r::Polygon::new_scale(m_shape);
+
+	return plate_shape.bounding_box();
 }
 
 bool PartPlate::contains(const Point& point) const
@@ -988,6 +995,7 @@ void PartPlateList::init()
 	first_plate->set_index(0);
 
 	m_plate_count = 1;
+	m_plate_cols = 1;
 	m_current_plate = 0;
 
 	select_plate(0);
@@ -996,12 +1004,16 @@ void PartPlateList::init()
 }
 
 //compute the origin for printable plate with index i
-Vec3d PartPlateList::compute_origin(int i)
+Vec3d PartPlateList::compute_origin(int i, int cols)
 {
 	Vec3d origin;
+	int row, col;
 
-	origin(0) = i * (m_plate_width * (1. + LOGICAL_PART_PLATE_GAP));
-	origin(1) = 0;
+	row = i / cols;
+	col = i % cols;
+
+	origin(0) = col * (m_plate_width * (1. + LOGICAL_PART_PLATE_GAP));
+	origin(1) = -row * (m_plate_depth * (1. + LOGICAL_PART_PLATE_GAP));
 	origin(2) = 0;
 
 	return origin;
@@ -1010,13 +1022,26 @@ Vec3d PartPlateList::compute_origin(int i)
 //compute the origin for printable plate with index i
 Vec3d PartPlateList::compute_origin_for_unprintable()
 {
-	Vec3d origin;
+	int max_count = m_plate_cols * m_plate_cols;
+	if (m_plate_count == max_count)
+		return compute_origin(max_count + m_plate_cols - 1 , m_plate_cols + 1);
+	else
+		return compute_origin(m_plate_count, m_plate_cols);
+}
 
-	origin(0) = m_plate_list.size() * (m_plate_width * (1. + LOGICAL_PART_PLATE_GAP));
-	origin(1) = 0;
-	origin(2) = 0;
+//compute shape position
+Vec2d PartPlateList::compute_shape_position(int index, int cols)
+{
+	Vec2d pos;
+	int row, col;
 
-	return origin;
+	row = index / cols;
+	col = index % cols;
+
+	pos(0) = col * plate_stride_x();
+	pos(1) = -row * plate_stride_y();
+
+	return pos;
 }
 
 //this may be happened after machine changed
@@ -1030,18 +1055,7 @@ void PartPlateList::reset_size(int width, int depth, int height)
 	m_plate_depth = depth;
 	m_plate_height = height;
 
-	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
-	{
-		PartPlate* plate = m_plate_list[i];
-		assert(plate != NULL);
-
-		//compute origin1 for PartPlate
-		origin1 = compute_origin(i);
-		plate->set_pos_and_size(origin1, width, depth, height, true);
-	}
-
-	origin2 = compute_origin_for_unprintable();
-	unprintable_plate.set_pos_and_size(origin2, width, depth, height, true);
+	update_all_plates_pos_and_size();
 
 	return;
 }
@@ -1114,7 +1128,10 @@ int PartPlateList::create_plate()
 	new_index = m_plate_list.size();
 	if (new_index >= MAX_PLATES_COUNT)
 		return -1;
-	origin = compute_origin(new_index);
+	int cols = compute_colum_count(new_index + 1);
+	int old_cols = compute_colum_count(new_index);
+
+	origin = compute_origin(new_index, cols);
 	plate = new PartPlate(origin, m_plate_width, m_plate_depth, m_plate_height, m_plater, m_model, true, printer_technology);
 	assert(plate != NULL);
 
@@ -1128,18 +1145,27 @@ int PartPlateList::create_plate()
 		m_print_index++;
 	}
 
-	double stride = plate_stride();
-	Vec2d pos = { stride * new_index, 0 };
+	Vec2d pos = compute_shape_position(new_index, cols);
 	plate->set_shape(m_shape, pos);
 	plate->set_index(new_index);
 	m_plate_list.emplace_back(plate);
+	update_plate_cols();
+	if (old_cols != cols)
+	{
+		//update the origin of each plate
+		update_all_plates_pos_and_size();
+		set_shapes(m_shape);
+	}
+	else
+	{
+		Vec3d origin2 = compute_origin_for_unprintable();
+		unprintable_plate.set_pos_and_size(origin2, m_plate_width, m_plate_depth, m_plate_height, true);
+
+		//update bounding_boxes
+		calc_bounding_boxes();
+	}
 
 	unprintable_plate.set_index(new_index+1);
-	Vec3d origin2 = compute_origin_for_unprintable();
-	unprintable_plate.set_pos_and_size(origin2, m_plate_width, m_plate_depth, m_plate_height, true);
-
-	//update bounding_boxes
-	calc_bounding_boexes();
 
 	//update related UI
 	if (m_plater)
@@ -1212,25 +1238,29 @@ int PartPlateList::delete_plate(int index)
 		return -1;
 	}
 
+	int cols = compute_colum_count(m_plate_list.size() - 1);
+	int old_cols = compute_colum_count(m_plate_list.size());
+
+	m_plate_list.erase(m_plate_list.begin() + index);
+	update_plate_cols();
 	//update this plate
 	//move this plate's instance to the end
-	Vec3d current_origin = compute_origin(m_plate_list.size()-1);
+	Vec3d current_origin;
+	current_origin = compute_origin_for_unprintable();
 	plate->set_pos_and_size(current_origin, m_plate_width, m_plate_depth, m_plate_height, true);
-	m_plate_list.erase(m_plate_list.begin() + index);
 
 	//update the plates after it
-	double stride = plate_stride();
 	for (unsigned int i = index; i < (unsigned int)m_plate_list.size(); ++i)
 	{
 		PartPlate* plate = m_plate_list[i];
 		assert(plate != NULL);
 
-		Vec3d origin = compute_origin(i);
+		Vec3d origin = compute_origin(i, m_plate_cols);
 		plate->set_pos_and_size(origin, m_plate_width, m_plate_depth, m_plate_height, true);
 		plate->set_index(i);
 
 		//update render shapes
-		Vec2d pos = { stride * i, 0.0 };
+		Vec2d pos = compute_shape_position(i, m_plate_cols);
 		plate->set_shape(m_shape, pos);
 	}
 
@@ -1244,9 +1274,21 @@ int PartPlateList::delete_plate(int index)
 
 	unprintable_plate.set_index(m_plate_list.size());
 
-	//update the position of the unprintable plate
-	Vec3d origin2 = compute_origin_for_unprintable();
-	unprintable_plate.set_pos_and_size(origin2, m_plate_width, m_plate_depth, m_plate_height, true);
+	if (old_cols != cols)
+	{
+		//update the origin of each plate
+		update_all_plates_pos_and_size();
+		set_shapes(m_shape);
+	}
+	else
+	{
+		//update the position of the unprintable plate
+		Vec3d origin2 = compute_origin_for_unprintable();
+		unprintable_plate.set_pos_and_size(origin2, m_plate_width, m_plate_depth, m_plate_height, true);
+
+		//update bounding_boxes
+		calc_bounding_boxes();
+	}
 
 	plate->move_instances_to(*(m_plate_list[m_plate_list.size()-1]), unprintable_plate);
 	//destroy the print object
@@ -1255,9 +1297,6 @@ int PartPlateList::delete_plate(int index)
 	destroy_print(print_index);
 
 	delete plate;
-
-	//update bounding_boxes
-	calc_bounding_boexes();
 
 	//update related UI
 	if (m_plater)
@@ -1314,9 +1353,15 @@ int PartPlateList::select_plate(int index)
 
 	//BBS update bed origin
 	if (m_intialized && m_plater) {
+<<<<<<< HEAD   (f0d9b0 ENH: use the contour of brim of inner island)
 		double stride = plate_stride();
 		Vec2d pos = { stride * index, 0.0 };
         m_plater->set_bed_position(pos);
+=======
+        Vec2d pos = compute_shape_position(index, m_plate_cols);
+
+		m_plater->get_bed().set_position(pos);
+>>>>>>> CHANGE (995119 ENH: adjust the plates layout to sudoku-style)
 	}
 
 	return 0;
@@ -1362,12 +1407,20 @@ bool PartPlateList::contains(const BoundingBoxf3& bb)
 	return result;
 }
 
-double PartPlateList::plate_stride()
+double PartPlateList::plate_stride_x()
 {
 	const auto plate_shape = Slic3r::Polygon::new_scale(m_shape);
 	double plate_width = plate_shape.bounding_box().size().x();
 	return unscaled<double>((1. + LOGICAL_PART_PLATE_GAP) * plate_width);
 }
+
+double PartPlateList::plate_stride_y()
+{
+	const auto plate_shape = Slic3r::Polygon::new_scale(m_shape);
+	double plate_depth = plate_shape.bounding_box().size().y();
+	return unscaled<double>((1. + LOGICAL_PART_PLATE_GAP) * plate_depth);
+}
+
 
 //get the plate counts, not including the invalid plate
 int PartPlateList::get_plate_count()
@@ -1377,6 +1430,33 @@ int PartPlateList::get_plate_count()
 	ret = m_plate_list.size();
 
 	return ret;
+}
+
+//update the plate cols due to plate count change
+void PartPlateList::update_plate_cols()
+{
+    m_plate_count = m_plate_list.size();
+
+    m_plate_cols = compute_colum_count(m_plate_count);
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":m_plate_count %1%, m_plate_cols change to %2%") % m_plate_count % m_plate_cols;
+    return;
+}
+
+void PartPlateList::update_all_plates_pos_and_size()
+{
+    Vec3d origin1, origin2;
+    for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+	{
+		PartPlate* plate = m_plate_list[i];
+		assert(plate != NULL);
+
+		//compute origin1 for PartPlate
+		origin1 = compute_origin(i, m_plate_cols);
+		plate->set_pos_and_size(origin1, m_plate_width, m_plate_depth, m_plate_height, true);
+	}
+
+	origin2 = compute_origin_for_unprintable();
+	unprintable_plate.set_pos_and_size(origin2, m_plate_width, m_plate_depth, m_plate_height, true);
 }
 
 //move the plate to position index
@@ -1408,10 +1488,10 @@ int PartPlateList::move_plate_to_index(int old_index, int new_index)
 		m_plate_list[i] = m_plate_list[i + delta];
 		m_plate_list[i]->set_index(i);
 
-		origin = compute_origin(i);
+		origin = compute_origin(i, m_plate_cols);
 		m_plate_list[i]->set_pos_and_size(origin, m_plate_width, m_plate_depth, m_plate_height, true);
 	}
-	origin = compute_origin(new_index);
+	origin = compute_origin(new_index, m_plate_cols);
 	m_plate_list[new_index] = plate;
 	plate->set_index(new_index);
 	plate->set_pos_and_size(origin, m_plate_width, m_plate_depth, m_plate_height, true);
@@ -1667,6 +1747,20 @@ int PartPlateList::reload_all_objects()
 	return ret;
 }
 
+//compute the plate index
+int PartPlateList::compute_plate_index(arrangement::ArrangePolygon& arrange_polygon)
+{
+	int row, col;
+
+	float col_value = (unscale<double>(arrange_polygon.translation(X))) / plate_stride_x();
+	float row_value = (plate_stride_y() - unscale<double>(arrange_polygon.translation(Y)))  / plate_stride_y();
+
+	row = round(row_value);
+	col = round(col_value);
+
+	return row * m_plate_cols + col;
+}
+
 //preprocess a arrangement::ArrangePolygon, return true if it is in a locked plate
 bool PartPlateList::preprocess_arrange_polygon(int obj_index, int instance_index, arrangement::ArrangePolygon& arrange_polygon, bool selected)
 {
@@ -1675,172 +1769,196 @@ bool PartPlateList::preprocess_arrange_polygon(int obj_index, int instance_index
 
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
-		if (m_plate_list[i]->is_locked())
+		if (m_plate_list[i]->contain_instance(obj_index, instance_index))
 		{
-			lockplate_cnt++;
-			if (m_plate_list[i]->contain_instance(obj_index, instance_index))
+			if (m_plate_list[i]->is_locked())
 			{
-				//it is in locked plate
 				locked = true;
-				arrange_polygon.locked_plate = i;
-				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% instance_id %2% already in locked plate %3%") % obj_index % instance_index % i;
-				break;
+				arrange_polygon.bed_idx = i;
+				arrange_polygon.row = i / m_plate_cols;
+				arrange_polygon.col = i % m_plate_cols;
+				arrange_polygon.translation(X) -= scaled<double>(plate_stride_x() * arrange_polygon.col);
+				arrange_polygon.translation(Y) += scaled<double>(plate_stride_y() * arrange_polygon.row);
 			}
 			else
 			{
-				if (unscale<double>(arrange_polygon.translation(X)) > ((i + 1) * plate_stride()))
+				if (!selected)
 				{
-					BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% instance_id %2% at right of locked plate %3%, translation(x) %4%") % obj_index % instance_index % i% unscale<double>(arrange_polygon.translation(X));
-					arrange_polygon.translation(X) -= scaled<double>(plate_stride());
-					arrange_polygon.bed_idx -= 1;
-				}
-				else
-				{
-					if (!selected) {
-						//unselected instance around the locked_plate also is treated as locked object
-						locked = true;
-						arrange_polygon.locked_plate = i;
-						BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% instance_id %2% around locked plate %3%, unselected treat as locked") % obj_index % instance_index % i;
-					}
-					else
-						BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% instance_id %2% around locked plate %3%, selected") % obj_index % instance_index % i;
-
-					break;
+					//will be treated as fixeditem later
+					arrange_polygon.bed_idx = i - lockplate_cnt;
+					arrange_polygon.row = i / m_plate_cols;
+					arrange_polygon.col = i % m_plate_cols;
+					arrange_polygon.translation(X) -= scaled<double>(plate_stride_x() * arrange_polygon.col);
+					arrange_polygon.translation(Y) += scaled<double>(plate_stride_y() * arrange_polygon.row);
 				}
 			}
+			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% instance_id %2% already in plate %3%, locked %4%, row %5%, col %6%\n") % obj_index % instance_index % i % locked % arrange_polygon.row % arrange_polygon.col;
+			return locked;
 		}
-		else
-		{
-			//judge whether it is at the left side of the plate border
-			if (unscale<double>(arrange_polygon.translation(X)) <= ((i+1-lockplate_cnt) * plate_stride()))
-			{
-				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% instance_id %2% found at left of plate %3%, translation(x) %4%, ") % obj_index % instance_index % i % unscale<double>(arrange_polygon.translation(X));
-				break;
-			}
-		}
+		if (m_plate_list[i]->is_locked())
+			lockplate_cnt++;
 	}
-	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": bed_idx %1%, locked_plate %2%, translation(x) %3%, (y) %4%") % arrange_polygon.bed_idx % arrange_polygon.locked_plate % unscale<double>(arrange_polygon.translation(X)) % unscale<double>(arrange_polygon.translation(Y));
+	//not be contained by any plates
+	if (!selected)
+		arrange_polygon.bed_idx = PartPlateList::MAX_PLATES_COUNT;
+
+	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": not in any plates, bed_idx %1%, translation(x) %2%, (y) %3%") % arrange_polygon.bed_idx %  unscale<double>(arrange_polygon.translation(X)) % unscale<double>(arrange_polygon.translation(Y));
 
 	return locked;
 }
 
 //preprocess a arrangement::ArrangePolygon, return true if it is not in current plate
-bool PartPlateList::preprocess_arrange_polygon_other_locked(arrangement::ArrangePolygon& arrange_polygon, bool selected)
+bool PartPlateList::preprocess_arrange_polygon_other_locked(int obj_index, int instance_index, arrangement::ArrangePolygon& arrange_polygon, bool selected)
 {
-    bool locked = false;
+	bool locked = false;
 
-    if (selected)
-    {
-        arrange_polygon.translation(X) -= scaled<double>(plate_stride() * m_current_plate);
-    }
-    else
-    {
-        locked = true;
-    }
-    return locked;
+	if (selected)
+	{
+		//arrange_polygon.translation(X) -= scaled<double>(plate_stride_x() * m_current_plate);
+	}
+	else
+	{
+		locked = true;
+		for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+		{
+			if (m_plate_list[i]->contain_instance(obj_index, instance_index))
+			{
+				arrange_polygon.bed_idx = i;
+				arrange_polygon.row = i / m_plate_cols;
+				arrange_polygon.col = i % m_plate_cols;
+				arrange_polygon.translation(X) -= scaled<double>(plate_stride_x() * arrange_polygon.col);
+				arrange_polygon.translation(Y) += scaled<double>(plate_stride_y() * arrange_polygon.row);
+				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% instance_id %2% in plate %3%, locked %4%, row %5%, col %6%\n") % obj_index % instance_index % i % locked % arrange_polygon.row % arrange_polygon.col;
+				return locked;
+			}
+		}
+		arrange_polygon.bed_idx = PartPlateList::MAX_PLATES_COUNT;
+	}
+	return locked;
 }
 
-//postprocess an arrangement::ArrangePolygon
-void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arrange_polygon, bool create_new_plate)
+//postprocess an arrangement::ArrangePolygon's bed index
+void PartPlateList::postprocess_bed_index_for_selected(arrangement::ArrangePolygon& arrange_polygon)
 {
-	double offset_x = arrange_polygon.translation(X);
-
-	offset_x += arrange_polygon.bed_idx * scaled<double>(plate_stride());
-
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": bed_idx %1%, locked_plate %2%, translation(x) %3%, (y) %4%") % arrange_polygon.bed_idx % arrange_polygon.locked_plate % unscale<double>(arrange_polygon.translation(X)) % unscale<double>(arrange_polygon.translation(Y));
+
+	if (arrange_polygon.bed_idx == -1)
+	{
+		//outarea for large object, can not process here for the plate number maybe increased later
+		BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": can not be arranged inside plate!");
+		return;
+	}
 
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
 		if (m_plate_list[i]->is_locked())
 		{
-			if (arrange_polygon.locked_plate == i)
-			{
-				//it is in current locked plate, keep the same
-				//should not be here
-				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": in locked_plate %1%") % i;
-				return;
-			}
-			else
-			{
-				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": add locked_plate %1%'s stride") % i;
-				//arrange_polygon.translation(X) += scaled<double>(plate_stride());
-				arrange_polygon.bed_idx += 1;
-				offset_x += scaled<double>(plate_stride());
-			}
+			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": found locked_plate %1%, increate index by 1") % i;
+			//arrange_polygon.translation(X) += scaled<double>(plate_stride_x());
+			arrange_polygon.bed_idx += 1;
+			//offset_x += scaled<double>(plate_stride_x());
 		}
 		else
 		{
 			//judge whether it is at the left side of the plate border
-			if (unscale<double>(offset_x) <= ((i + 1) * plate_stride()))
+			if (arrange_polygon.bed_idx <= i)
 			{
-				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":found in plate_index %1%, stride %2%, translation(x) %3%") % i % plate_stride() % unscale<double>(offset_x);
+				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":found in plate_index %1%, bed_idx %2%") % i %arrange_polygon.bed_idx;
 				return;
 			}
 		}
 	}
 
-	if (create_new_plate)
-	{
-		//create a new plate which can hold this arrange_polygon
-		int plate_index = create_plate();
+	//create a new plate which can hold this arrange_polygon
+	int plate_index = create_plate();
 
-		while (plate_index != -1)
+	while (plate_index != -1)
+	{
+		if (arrange_polygon.bed_idx <= plate_index)
 		{
-			if (unscale<double>(offset_x) <= ((plate_index+1) * plate_stride()))
-			{
-				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":new plate_index %1%, stride %2%, translation(x) %3%") % plate_index % plate_stride() % unscale<double>(offset_x);
-				break;
-			}
-
-			plate_index = create_plate();
+			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":new plate_index %1%, matches bed_idx %2%") % plate_index %arrange_polygon.bed_idx;
+			break;
 		}
+
+		plate_index = create_plate();
 	}
-	else
+
+	return;
+}
+
+//postprocess an arrangement::ArrangePolygon's bed index
+void PartPlateList::postprocess_bed_index_for_unselected(arrangement::ArrangePolygon& arrange_polygon)
+{
+	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": bed_idx %1%, locked_plate %2%, translation(x) %3%, (y) %4%") % arrange_polygon.bed_idx % arrange_polygon.locked_plate % unscale<double>(arrange_polygon.translation(X)) % unscale<double>(arrange_polygon.translation(Y));
+
+	if (arrange_polygon.bed_idx == PartPlateList::MAX_PLATES_COUNT)
+		return;
+
+	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
-		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":unselect instance, no need to create new plate, translation(x) %1%") % unscale<double>(offset_x);
+		if (m_plate_list[i]->is_locked())
+		{
+			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": found locked_plate %1%, increate index by 1") % i;
+			//arrange_polygon.translation(X) += scaled<double>(plate_stride_x());
+			arrange_polygon.bed_idx += 1;
+			//offset_x += scaled<double>(plate_stride_x());
+		}
+		else
+		{
+			//judge whether it is at the left side of the plate border
+			if (arrange_polygon.bed_idx <= i)
+			{
+				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":found in plate_index %1%, bed_idx %2%") % i %arrange_polygon.bed_idx;
+				return;
+			}
+		}
 	}
 
 	return;
 }
 
 //postprocess an arrangement::ArrangePolygon, other instances are under locked states
-void PartPlateList::postprocess_arrange_polygon_other_locked(arrangement::ArrangePolygon& arrange_polygon)
+void PartPlateList::postprocess_bed_index_for_current_plate(arrangement::ArrangePolygon& arrange_polygon)
 {
-	double offset_x = arrange_polygon.translation(X);
-
-	offset_x += arrange_polygon.bed_idx * scaled<double>(plate_stride());
-
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": bed_idx %1%, locked_plate %2%, translation(x) %3%, (y) %4%") % arrange_polygon.bed_idx % arrange_polygon.locked_plate % unscale<double>(arrange_polygon.translation(X)) % unscale<double>(arrange_polygon.translation(Y));
 
-	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+	if (arrange_polygon.bed_idx == -1)
 	{
-		if (i != m_current_plate)
+		//outarea for large object
+		BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": can not be arranged inside plate!");
+	}
+	else if (arrange_polygon.bed_idx == 0)
+		arrange_polygon.bed_idx += m_current_plate;
+	else
+		arrange_polygon.bed_idx = m_plate_list.size();
+
+	return;
+}
+
+//postprocess an arrangement::ArrangePolygon
+void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arrange_polygon, bool selected)
+{
+	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": bed_idx %1%, selected %2%, translation(x) %3%, (y) %4%") % arrange_polygon.bed_idx % selected % unscale<double>(arrange_polygon.translation(X)) % unscale<double>(arrange_polygon.translation(Y));
+
+	if ((selected) || (arrange_polygon.bed_idx != PartPlateList::MAX_PLATES_COUNT))
+	{
+		if (arrange_polygon.bed_idx == -1)
 		{
-			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": add plate %1%'s stride") % i;
-			//arrange_polygon.translation(X) += scaled<double>(plate_stride());
-			arrange_polygon.bed_idx += 1;
-			offset_x += scaled<double>(plate_stride());
+			//outarea for large object
+			arrange_polygon.bed_idx = m_plate_list.size();
+			arrange_polygon.translation(X) = scaled<double>(0.5 * plate_stride_x());
+			arrange_polygon.translation(Y) = scaled<double>(0.5 * plate_stride_y());
 		}
-		else
-		{
-			//judge whether it is at the left side of the plate border
-			if (unscale<double>(offset_x) <= ((i + 1) * plate_stride()))
-			{
-				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":still in current plate %1%, stride %2%, translation(x) %3%") % i % plate_stride() % unscale<double>(offset_x);
-				return;
-			}
-			else
-			{
-				//put all the instances at the end, in the same box
-				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":beyond the current plate %1%, stride %2%, translation(x) %3%") % i % plate_stride() % unscale<double>(offset_x);
-				arrange_polygon.bed_idx = m_plate_list.size();
-				return;
-			}
-		}
+
+		arrange_polygon.row = arrange_polygon.bed_idx / m_plate_cols;
+		arrange_polygon.col = arrange_polygon.bed_idx % m_plate_cols;
+		arrange_polygon.translation(X) += scaled<double>(plate_stride_x() * arrange_polygon.col);
+		arrange_polygon.translation(Y) -= scaled<double>(plate_stride_y() * arrange_polygon.row);
 	}
 
 	return;
 }
+
 
 /*rendering related functions*/
 //render
@@ -1893,7 +2011,25 @@ int PartPlateList::select_plate_by_hover_id(int hover_id)
 	return 0;
 }
 
-void PartPlateList::calc_bounding_boexes()
+int PartPlateList::select_plate_by_obj(int obj_index, int instance_index)
+{
+	int ret = 0, index;
+	PartPlate* plate = NULL;
+
+	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1%, instance_id %2%") % obj_index % instance_index;
+	index = find_instance(obj_index, instance_index);
+	if (index != -1)
+	{
+		//found it in plate
+		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": found it in plate %1%") % index;
+		select_plate(index);
+		return 0;
+	}
+	return -1;
+}
+
+
+void PartPlateList::calc_bounding_boxes()
 {
 	m_bounding_box.reset();
 	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
@@ -1905,7 +2041,7 @@ void PartPlateList::calc_bounding_boexes()
 void PartPlateList::select_plate_view()
 {
 	if (m_current_plate < 0 || m_current_plate >= m_plate_list.size()) return;
-	double stride = plate_stride();
+
 	Vec3d target = m_plate_list[m_current_plate]->get_bounding_box(false).center();
 	Vec3d position(target.x(), target.y(), m_plater->get_camera().get_distance());
 	m_plater->get_camera().look_at(position, target, Vec3d::UnitY());
@@ -1914,17 +2050,23 @@ void PartPlateList::select_plate_view()
 
 bool PartPlateList::set_shapes(const Pointfs& shape)
 {
-	m_shape = shape;
-	double stride = plate_stride();
 	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
-	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
-	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
-		Vec2d pos = { stride * std::distance(m_plate_list.begin(), it), 0.0 };
-		(*it)->set_shape(shape, pos);
-		//(*it)->set_index(std::distance(m_plate_list.begin(), it));
+	m_shape = shape;
+
+	double stride_x = plate_stride_x();
+	double stride_y = plate_stride_y();
+	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+	{
+		PartPlate* plate = m_plate_list[i];
+		assert(plate != NULL);
+
+		Vec2d pos;
+
+		pos = compute_shape_position(i, m_plate_cols);
+		plate->set_shape(shape, pos);
 	}
 
-	calc_bounding_boexes();
+	calc_bounding_boxes();
 
 	return true;
 }
@@ -1997,6 +2139,7 @@ int PartPlateList::rebuild_plates_after_deserialize()
 	int ret = 0;
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plates count %1%") % m_plate_list.size();
+	update_plate_cols();
 	set_shapes(m_shape);
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
@@ -2057,9 +2200,14 @@ int PartPlateList::rebuild_plates_after_deserialize()
 	}
 
 	//update the bed's position
+<<<<<<< HEAD   (f0d9b0 ENH: use the contour of brim of inner island)
 	double stride = plate_stride();
 	Vec2d pos = { stride * m_current_plate, 0.0 };
 	m_plater->set_bed_position(pos);
+=======
+	Vec2d pos = compute_shape_position(m_current_plate, m_plate_cols);
+	m_plater->get_bed().set_position(pos);
+>>>>>>> CHANGE (995119 ENH: adjust the plates layout to sudoku-style)
 
 	//not used
 	/*if (m_plate_width == 0)
@@ -2149,8 +2297,8 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 		}
 		//load object and instance from 3mf
 		//just test for file correct or not, we will rebuild later
-		for (std::vector<std::pair<int, int>>::iterator it = plate_data_list[i]->objects_and_instances.begin(); it != plate_data_list[i]->objects_and_instances.end(); ++it)
-			m_plate_list[index]->obj_to_instance_set.insert(std::pair(it->first, it->second));
+		/*for (std::vector<std::pair<int, int>>::iterator it = plate_data_list[i]->objects_and_instances.begin(); it != plate_data_list[i]->objects_and_instances.end(); ++it)
+			m_plate_list[index]->obj_to_instance_set.insert(std::pair(it->first, it->second));*/
 	}
 	print();
 	ret = reload_all_objects();
@@ -2161,7 +2309,7 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 
 void PartPlateList::print() const
 {
-	BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << boost::format("PartPlateList %1%, m_plate_count %2%, current_plate %3%, print_count %4%, current print index %5%") % this % m_plate_count % m_current_plate % m_print_list.size() % m_print_index;
+	BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << boost::format("PartPlateList %1%, m_plate_count %2%, current_plate %3%, print_count %4%, current print index %5%, plate cols %6%") % this % m_plate_count % m_current_plate % m_print_list.size() % m_print_index % m_plate_cols;
 	BOOST_LOG_TRIVIAL(trace) << boost::format("m_plate_width %1%, m_plate_depth %2%, m_plate_height %3%, plate count %4%\nplate list:") % m_plate_width % m_plate_depth % m_plate_height % m_plate_list.size();
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{

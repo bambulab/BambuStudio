@@ -16,6 +16,8 @@ class FillBedJob : public PlaterJob
 
     ArrangePolygons m_selected;
     ArrangePolygons m_unselected;
+    //BBS: add partplate related logic
+    ArrangePolygons m_locked;;
 
     Points m_bedpts;
 

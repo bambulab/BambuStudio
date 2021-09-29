@@ -347,7 +347,7 @@ int CLI::run(int argc, char **argv)
     {
         partplate_list.reset_size(bedfs[2].x() - bedfs[0].x(), bedfs[2].y() - bedfs[0].y(), z);
         partplate_list.set_shapes(bedfs);
-        plate_stride = partplate_list.plate_stride();
+        plate_stride = partplate_list.plate_stride_x();
         boost::nowide::cout << "bed size, x="<<bedfs[2].x() - bedfs[0].x()<<",y="<<bedfs[2].y() - bedfs[0].y()<<",z="<< z <<"\n";
     }
     if (plate_data.size() > 0)
@@ -579,7 +579,7 @@ int CLI::run(int argc, char **argv)
 
     if (need_arrange)
     {
-        ArrangePolygons selected, unprintable;
+        ArrangePolygons selected, unprintable, locked_aps;
         boost::nowide::cout << "Will arrange now, need_arrange="<<need_arrange<<"\n";
 
         for (Model &model : m_models)
@@ -595,11 +595,14 @@ int CLI::run(int argc, char **argv)
 
                     minst->get_arrange_polygon((void *)&ap);
 
-                    ap.bed_idx        = ap.translation.x() / plate_stride;
+                    ap.bed_idx        = 0;
                     ap.setter         = [minst, plate_stride](const ArrangePolygon &p) {
                         if (p.is_arranged()) {
                             Vec2d t = p.translation.cast<double>();
-                            t.x() += p.bed_idx * scaled(plate_stride);
+                            //BBS: change to sudoku-style computation, do it in partplate list
+                            //t.x() += p.bed_idx * bed_stride(plater);
+                            //t.x() += col * bed_stride_x(plater);
+                            //t.y() -= row * bed_stride_y(plater);
                             minst->apply_arrange_result(t, p.rotation);
                             boost::nowide::cout << "instance id=" << minst->id().id <<", after apply_arrange_result, trans-x= "<<minst->get_transformation().get_offset().x()
                                 <<",t.x()="<<t.x()<<", bed_idx="<< p.bed_idx <<", plate_stride="<< plate_stride<<"\n";
@@ -630,6 +633,8 @@ int CLI::run(int argc, char **argv)
                     else
                     {
                         //skip this object due to be locked in plate
+                        ap.itemid = locked_aps.size();
+                        locked_aps.emplace_back(ap);
                         boost::nowide::cout <<__FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%") % oidx % inst_idx;
                     }
                 }
@@ -664,16 +669,31 @@ int CLI::run(int argc, char **argv)
             // Apply the arrange result to all selected objects
             for (ArrangePolygon &ap : selected) {
                 //BBS: partplate postprocess
-                partplate_list.postprocess_arrange_polygon(ap, true);
+                partplate_list.postprocess_bed_index_for_selected(ap);
 
                 beds = std::max(ap.bed_idx, beds);
                 boost::nowide::cout<< "after arrange: name=" << ap.name << boost::format(",bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) << "\n";
+            }
+            for (ArrangePolygon &ap : locked_aps) {
+                beds = std::max(ap.bed_idx, beds);
+
+                partplate_list.postprocess_arrange_polygon(ap, false);
+
+                ap.apply();
+            }
+
+            // Apply the arrange result to all selected objects
+            for (ArrangePolygon &ap : selected) {
+                //BBS: partplate postprocess
+                partplate_list.postprocess_arrange_polygon(ap, true);
+
                 ap.apply();
             }
 
             // Move the unprintable items to the last virtual bed.
             for (ArrangePolygon &ap : unprintable) {
                 ap.bed_idx += beds + 1;
+                partplate_list.postprocess_arrange_polygon(ap, true);
 
                 ap.apply();
             }

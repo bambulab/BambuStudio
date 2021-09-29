@@ -4492,6 +4492,7 @@ void Plater::priv::on_action_add_plate(SimpleEvent&)
     if (q != nullptr) {
         take_snapshot(_L("add partplate"));
         this->partplate_list.create_plate();
+        update();
     }
 }
 
@@ -4986,7 +4987,6 @@ void Plater::priv::set_bed_shape(const Pointfs& shape, const double max_print_he
         double z = config->opt_float("max_print_height");
         partplate_list.reset_size(max.x() - min.x(), max.y() - min.y(), z);
     }
-
     partplate_list.set_shapes(shape);
 }
 

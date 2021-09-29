@@ -25,6 +25,20 @@
 class GLUquadric;
 typedef class GLUquadric GLUquadricObject;
 
+inline int compute_colum_count(int count)
+{
+    float value = sqrt((float)count);
+    float round_value = round(value);
+    int cols;
+
+    if (value > round_value)
+        cols = round_value +1;
+    else
+        cols = round_value;
+
+    return cols;
+}
+
 namespace Slic3r {
 
 class Model;
@@ -88,7 +102,7 @@ class PartPlate : public ObjectBase
 
     void init();
     bool valid_instance(int obj_id, int instance_id);
-    void calc_bounding_boexes() const;
+    void calc_bounding_boxes() const;
     void calc_triangles(const ExPolygon& poly);
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox);
     void render_default(bool bottom) const;
@@ -143,7 +157,7 @@ public:
     bool contain_instance(int obj_id, int instance_id);
 
     //judge whether the plate's origin is at the left of instance or not
-    bool is_left_of(int obj_id, int instance_id);
+    bool is_left_top_of(int obj_id, int instance_id);
 
     //check whether instance is outside the plate or not
     bool check_outside(int obj_id, int instance_id);
@@ -181,6 +195,7 @@ public:
     void set_unselected();
     void set_hover_id(int id) { m_hover_id = id; }
     const BoundingBoxf3& get_bounding_box(bool extended) { return extended ? m_extended_bounding_box : m_bounding_box; }
+    const BoundingBox get_bounding_box_crd();
 
 
     /*status related functions*/
@@ -255,6 +270,7 @@ class PartPlateList : public ObjectBase
     std::map<int, GCodeResult*> m_gcode_result_list;
     std::mutex m_plates_mutex;
     int m_plate_count;
+    int m_plate_cols;
     int m_current_plate;
     int m_print_index;
 
@@ -269,9 +285,11 @@ class PartPlateList : public ObjectBase
 
     void init();
     //compute the origin for printable plate with index i
-    Vec3d compute_origin(int index);
+    Vec3d compute_origin(int index, int column_count);
     //compute the origin for unprintable plate
     Vec3d compute_origin_for_unprintable();
+    //compute shape position
+    Vec2d compute_shape_position(int index, int cols);
 
     friend class cereal::access;
     friend class UndoRedo::StackImpl;
@@ -291,7 +309,8 @@ public:
     void reset(bool do_init);
 
     //get the plate stride
-    double plate_stride();
+    double plate_stride_x();
+    double plate_stride_y();
 
     /*basic plate operations*/
     //create an empty plate and return its index
@@ -315,13 +334,21 @@ public:
 
     PartPlate* get_selected_plate();
 
-    Vec3d get_current_plate_origin() { return compute_origin(m_current_plate); }
+    Vec3d get_current_plate_origin() { return compute_origin(m_current_plate, m_plate_cols); }
 
     //select plate
     int select_plate(int index);
 
     //get the plate counts, not including the invalid plate
     int get_plate_count();
+
+    //update the plate cols due to plate count change
+    void update_plate_cols();
+
+    void update_all_plates_pos_and_size();
+
+    //get the plate cols
+    int get_plate_cols() { return m_plate_cols; }
 
     //move the plate to position index
     int move_plate_to_index(int old_index, int new_index);
@@ -349,20 +376,26 @@ public:
     int reload_all_objects();
 
     /* arrangement related functions */
+    //compute the plate index
+    int compute_plate_index(arrangement::ArrangePolygon& arrange_polygon);
     //preprocess an arrangement::ArrangePolygon, return true if it is in a locked plate
     bool preprocess_arrange_polygon(int obj_index, int instance_index, arrangement::ArrangePolygon& arrange_polygon, bool selected);
-    bool preprocess_arrange_polygon_other_locked(arrangement::ArrangePolygon& arrange_polygon, bool selected);
+    bool preprocess_arrange_polygon_other_locked(int obj_index, int instance_index, arrangement::ArrangePolygon& arrange_polygon, bool selected);
+
+    void postprocess_bed_index_for_selected(arrangement::ArrangePolygon& arrange_polygon);
+    void postprocess_bed_index_for_unselected(arrangement::ArrangePolygon& arrange_polygon);
+    void postprocess_bed_index_for_current_plate(arrangement::ArrangePolygon& arrange_polygon);
 
     //postprocess an arrangement:;ArrangePolygon
-    void postprocess_arrange_polygon(arrangement::ArrangePolygon& arrange_polygon, bool create_new_plate);
-    void postprocess_arrange_polygon_other_locked(arrangement::ArrangePolygon& arrange_polygon);
+    void postprocess_arrange_polygon(arrangement::ArrangePolygon& arrange_polygon, bool selected);
 
     /*rendering related functions*/
     void render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool only_current = false, bool only_body = false);
     void render_for_picking_pass();
     BoundingBoxf3& get_bounding_box() { return m_bounding_box; }
     int select_plate_by_hover_id(int hover_id);
-    void calc_bounding_boexes();
+    int select_plate_by_obj(int obj_index, int instance_index);
+    void calc_bounding_boxes();
     void select_plate_view();
     bool set_shapes(const Pointfs& shape);
     void set_hover_id(int id);

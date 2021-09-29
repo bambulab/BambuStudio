@@ -15,8 +15,13 @@ class ArrangeJob : public PlaterJob
     using ArrangePolygon = arrangement::ArrangePolygon;
     using ArrangePolygons = arrangement::ArrangePolygons;
 
+<<<<<<< HEAD   (f0d9b0 ENH: use the contour of brim of inner island)
     ArrangePolygons m_selected, m_unselected, m_unprintable;
     std::vector<ModelInstance*> m_unarranged;
+=======
+    //BBS: add locked logic
+    ArrangePolygons m_selected, m_unselected, m_unprintable, m_locked;
+>>>>>>> CHANGE (995119 ENH: adjust the plates layout to sudoku-style)
     std::map<int, ArrangePolygons> m_selected_groups;   // groups of selected items for sequential printing
     arrangement::ArrangeParams params;
     int current_plate_index = 0;
@@ -65,8 +70,10 @@ std::optional<arrangement::ArrangePolygon> get_wipe_tower_arrangepoly(const Plat
 // the current bed width.
 static const constexpr double LOGICAL_BED_GAP = 1. / 5.;
 
+//BBS: add sudoku-style strides for x and y
 // Stride between logical beds
-double bed_stride(const Plater *plater);
+double bed_stride_x(const Plater *plater);
+double bed_stride_y(const Plater *plater);
 
 template<class T> struct PtrWrapper
 {
@@ -94,11 +101,17 @@ arrangement::ArrangePolygon get_arrange_poly(T obj, const Plater *plater)
     using ArrangePolygon = arrangement::ArrangePolygon;
 
     ArrangePolygon ap = obj.get_arrange_polygon();
-    ap.bed_idx        = ap.translation.x() / bed_stride(plater);
+    //BBS: always set bed_idx to 0 to use original transforms with no bed_idx
+    //if this object is not arranged, it can keep the original transforms
+    //ap.bed_idx        = ap.translation.x() / bed_stride_x(plater);
+    ap.bed_idx        = 0;
     ap.setter         = [obj, plater](const ArrangePolygon &p) {
         if (p.is_arranged()) {
             Vec2d t = p.translation.cast<double>();
-            t.x() += p.bed_idx * bed_stride(plater);
+            //BBS: change to sudoku-style computation, do it in partplate list
+            //t.x() += p.bed_idx * bed_stride(plater);
+            //t.x() += col * bed_stride_x(plater);
+            //t.y() -= row * bed_stride_y(plater);
             T{obj}.apply_arrange_result(t, p.rotation);
         }
     };
