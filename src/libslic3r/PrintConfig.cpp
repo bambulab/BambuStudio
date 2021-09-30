@@ -463,6 +463,7 @@ void PrintConfigDef::init_fff_params()
                    "Use 180° for zero angle.");
     def->sidetext = L("°");
     def->min = 0;
+    def->max = 180;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
 
@@ -504,7 +505,7 @@ void PrintConfigDef::init_fff_params()
                      "When raft is used, no brim is generated (use raft_first_layer_expansion).");
     def->sidetext = L("mm");
     def->min = 0;
-    def->max = 200;
+    def->max = 100;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(0));
 
@@ -532,6 +533,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Offset of brim from the printed object. The offset is applied after the elephant foot compensation.");
     def->sidetext = L("mm");
     def->min = 0;
+    def->max = 2;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.1));
 
@@ -1399,6 +1401,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("layers");
     def->full_label = L("Combine infill every n layers");
     def->min = 1;
+    def->max = 100;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(1));
 
@@ -1570,6 +1573,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("%");
     def->ratio_over = "layer_height";
     def->min = 0;
+    def->max = 100;
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionPercent(15));
 
@@ -1579,6 +1583,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Distance between ironing lines");
     def->sidetext = L("mm");
     def->min = 0;
+    def->max = 2;
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionFloat(0));
 
@@ -1995,8 +2000,8 @@ void PrintConfigDef::init_fff_params()
                    "if the Extra Perimeters option is enabled.");
     def->sidetext = L("(minimum)");
     def->aliases = { "perimeter_offsets" };
-    def->min = 0;
-    def->max = 10000;
+    def->min = 1;
+    def->max = 100;
     def->set_default_value(new ConfigOptionInt(3));
 
     def = this->add("post_process", coStrings);
@@ -2095,6 +2100,7 @@ void PrintConfigDef::init_fff_params()
                    "will be generated under it.");
     def->sidetext = L("layers");
     def->min = 0;
+    def->max = 100;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(0));
 
@@ -2270,6 +2276,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Distance between skirt and brim (when draft shield is not used) or objects.");
     def->sidetext = L("mm");
     def->min = 0;
+    def->max = 50;
     def->set_default_value(new ConfigOptionFloat(6));
 
     def = this->add("skirt_height", coInt);
@@ -2277,6 +2284,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Height of skirt expressed in layers.");
     def->sidetext = L("layers");
     def->mode = comAdvanced;
+    def->max = 100;
     def->set_default_value(new ConfigOptionInt(1));
 
     def = this->add("draft_shield", coEnum);
@@ -2302,6 +2310,7 @@ void PrintConfigDef::init_fff_params()
                    "the number of loops might be greater than the one configured here. Set this to zero "
                    "to disable skirt completely.");
     def->min = 0;
+    def->max = 50;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(1));
 
@@ -2616,6 +2625,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("layers");
     def->full_label = L("Enforce support for the first n layers");
     def->min = 0;
+    def->max = 5000;
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionInt(0));
 
@@ -2819,8 +2829,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("This setting determines the maximum overhang angle that t he branches of tree support allowed to make."
                      "If the angle is increased, the branches can be printed more horizontally, allowing them to reach farther.");
     def->sidetext = L("°");
-    def->min = 0;
-    def->max = 60;
+    def->min = 10;
+    def->max = 40;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(40.));
 
@@ -2830,6 +2840,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("This setting determines the distance between two adjacent branches where the branches touch the build plate.\n");
     def->sidetext = L("mm");
     def->min = 0;
+    def->max = 10;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(2.));
 
@@ -2841,6 +2852,7 @@ void PrintConfigDef::init_fff_params()
                      "it gradually becomes wider as per the Tree Support Branch Diameter Angle Setting.");
     def->sidetext = L("mm");
     def->min = 0;
+    def->max = 10;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(2.));
 
@@ -2851,7 +2863,7 @@ void PrintConfigDef::init_fff_params()
                      "the branches remain stable no matter how tall the support gets. With this setting, you can control the"
                      "rate at which the support gets wider.");
     def->sidetext = L("°");
-    def->min = 0;
+    def->min = 1;
     def->max = 10;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5.));
@@ -2865,7 +2877,8 @@ void PrintConfigDef::init_fff_params()
                      "(lower accuracy) will save a lot of time calculating, but will also make the support appear jagged when it's"
                      "near the mesh.");
     def->sidetext = L("mm");
-    def->min = 0;
+    def->min = 1;
+    def->max = 10;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.2));
 

@@ -56,6 +56,71 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         is_msg_dlg_already_exist = false;
     }
 
+    //BBS: limite the max layer_herght
+    if (config->opt_float("layer_height") > 0.3 + EPSILON)
+    {
+        const wxString msg_text = _(L("Too large layer height is not valid.\n\nThe layer height will be reset to 0.2."));
+        wxMessageDialog dialog(nullptr, msg_text, _(L("Layer height")), wxICON_WARNING | wxOK);
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist = true;
+        dialog.ShowModal();
+        new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.2));
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
+
+    //BBS: ironing_spacing shouldn't be equal to zero
+    if (config->opt_float("ironing_spacing") < EPSILON)
+    {
+        const wxString msg_text = _(L("Zero ironing spacing is not valid.\n\nThe ironing spacing will be reset to 0.1."));
+        wxMessageDialog dialog(nullptr, msg_text, _(L("Ironing spacing")), wxICON_WARNING | wxOK);
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist = true;
+        dialog.ShowModal();
+        new_conf.set_key_value("ironing_spacing", new ConfigOptionFloat(0.1));
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
+
+    //BBS: tree_support_branch_distance shouldn't be equal to zero
+    if (config->opt_float("tree_support_branch_distance") < EPSILON)
+    {
+        const wxString msg_text = _(L("Zero tree support branch distance is not valid.\n\nThe tree support branch distance will be reset to 1."));
+        wxMessageDialog dialog(nullptr, msg_text, _(L("Tree support branch distance")), wxICON_WARNING | wxOK);
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist = true;
+        dialog.ShowModal();
+        new_conf.set_key_value("tree_support_branch_distance", new ConfigOptionFloat(1));
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
+
+    //BBS: tree_support_branch_diameter shouldn't be equal to zero
+    if (config->opt_float("tree_support_branch_diameter") < EPSILON)
+    {
+        const wxString msg_text = _(L("Zero tree support branch diameter is not valid.\n\nThe tree support branch diameter will be reset to 2."));
+        wxMessageDialog dialog(nullptr, msg_text, _(L("Tree support branch diameter")), wxICON_WARNING | wxOK);
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist = true;
+        dialog.ShowModal();
+        new_conf.set_key_value("tree_support_branch_diameter", new ConfigOptionFloat(2));
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
+
+    //BBS: tree_support_collision_resolution shouldn't be equal to zero
+    if (config->opt_float("tree_support_collision_resolution") < EPSILON)
+    {
+        const wxString msg_text = _(L("Zero tree support collision resolution is not valid.\n\nThe tree support collision resolution will be reset to 0.2"));
+        wxMessageDialog dialog(nullptr, msg_text, _(L("Tree support collision resolution")), wxICON_WARNING | wxOK);
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist = true;
+        dialog.ShowModal();
+        new_conf.set_key_value("tree_support_collision_resolution", new ConfigOptionFloat(0.2));
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
+
     if (config->option<ConfigOptionFloatOrPercent>("first_layer_height")->value < EPSILON)
     {
         const wxString msg_text = _(L("First layer height is not valid.\n\nThe first layer height will be reset to 0.01."));
