@@ -2284,7 +2284,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Height of skirt expressed in layers.");
     def->sidetext = L("layers");
     def->mode = comAdvanced;
-    def->max = 100;
+    def->max = 10000;
     def->set_default_value(new ConfigOptionInt(1));
 
     def = this->add("draft_shield", coEnum);
@@ -2829,7 +2829,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("This setting determines the maximum overhang angle that t he branches of tree support allowed to make."
                      "If the angle is increased, the branches can be printed more horizontally, allowing them to reach farther.");
     def->sidetext = L("°");
-    def->min = 10;
+    def->min = 0;
     def->max = 40;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(40.));
