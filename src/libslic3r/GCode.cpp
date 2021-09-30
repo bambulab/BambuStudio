@@ -2655,7 +2655,8 @@ std::string GCode::change_layer(coordf_t print_z, bool lazy_raise)
     m_nominal_z = print_z;
 
     // forget last wiping path as wiping after raising Z is pointless
-    m_wipe.reset_path();
+    // BBS. Dont forget wiping path to reduce stringing.
+    //m_wipe.reset_path();
 
     return gcode;
 }
@@ -2737,8 +2738,13 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     // reset acceleration
     gcode += m_writer.set_acceleration((unsigned int)(m_config.default_acceleration.value + 0.5));
 
-    if (m_wipe.enable)
-        m_wipe.path = paths.front().polyline;  // TODO: don't limit wipe to last path
+    // BBS
+    if (m_wipe.enable) {
+        m_wipe.path = Polyline();
+        for (ExtrusionPath &path : paths) {
+            m_wipe.path.append(path.polyline);  // TODO: don't limit wipe to last path
+        }
+    }
 
     // make a little move inwards before leaving loop
     if (paths.back().role() == erExternalPerimeter && m_layer != NULL && m_config.perimeters.value > 1 && paths.front().size() >= 2 && paths.back().polyline.points.size() >= 3) {
@@ -2787,8 +2793,13 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
         path.simplify(m_scaled_resolution);
         gcode += this->_extrude(path, description, speed);
     }
+
+    // BBS
     if (m_wipe.enable) {
-        m_wipe.path = std::move(multipath.paths.back().polyline);  // TODO: don't limit wipe to last path
+        m_wipe.path = Polyline();
+        for (ExtrusionPath &path : multipath.paths) {
+            m_wipe.path.append(path.polyline); // TODO: don't limit wipe to last path
+        }
         m_wipe.path.reverse();
     }
     // reset acceleration
