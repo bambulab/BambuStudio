@@ -190,8 +190,11 @@ namespace Slic3r {
             // subdivide the retraction in segments
             if (!wipe_path.empty()) {
                 // BBS. Handle short path case.
-                if (wipe_path.length() < wipe_dist)
+                if (wipe_path.length() < wipe_dist) {
                     wipe_dist = wipe_path.length();
+                    //BBS: avoid to divide 0
+                    wipe_dist = wipe_dist < EPSILON ? EPSILON : wipe_dist;
+                }
 
                 // add tag for processor
                 gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Start) + "\n";
