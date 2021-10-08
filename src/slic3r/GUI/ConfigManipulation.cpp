@@ -59,12 +59,12 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     //BBS: limite the max layer_herght
     if (config->opt_float("layer_height") > 0.3 + EPSILON)
     {
-        const wxString msg_text = _(L("Too large layer height is not valid.\n\nThe layer height will be reset to 0.2."));
+        const wxString msg_text = _(L("Too large layer height is not valid.\n\nThe layer height will be reset to 0.3."));
         wxMessageDialog dialog(nullptr, msg_text, _(L("Layer height")), wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist = true;
         dialog.ShowModal();
-        new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.2));
+        new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.3));
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
