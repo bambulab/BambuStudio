@@ -140,6 +140,9 @@ MachineObject::MachineObject(AccountManager& acc, std::string name, std::string 
     ams_exist_bits = 0;
     tray_exist_bits = 0;
     tray_is_bbl_bits = 0;
+    is_ams_need_update = false;
+
+    /* signals */
     wifi_signal = "";
 }
 
@@ -470,12 +473,23 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                         boost::optional<std::string> ams_exist_bits_str     = print.get_optional<std::string>("ams_exist_bits");
                         boost::optional<std::string> tray_exist_bits_str    = print.get_optional<std::string>("tray_exist_bits");
                         boost::optional<std::string> tray_is_bbl_bits_str   = print.get_optional<std::string>("tray_is_bbl_bits");
+
+                        int last_ams_exist_bits = ams_exist_bits;
+                        int last_tray_exist_bits = tray_exist_bits;
                         if (ams_exist_bits_str.has_value())
                             ams_exist_bits = stoi(ams_exist_bits_str.value());
                         if (tray_exist_bits_str.has_value())
                             tray_exist_bits = stoi(tray_exist_bits_str.value());
                         if (tray_is_bbl_bits_str.has_value())
                             tray_is_bbl_bits = stoi(tray_is_bbl_bits_str.value());
+
+                        if (ams_exist_bits != last_ams_exist_bits
+                            || last_tray_exist_bits != last_tray_exist_bits) {
+                            is_ams_need_update = true;
+                        }
+                        else {
+                            is_ams_need_update = false;
+                        }
 
                         pt::ptree ams_list = print.get_child("ams");
                         // compare ams_list
@@ -541,6 +555,7 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                                     curr_tray->time         = tray_time.has_value() ? tray_time.value() : "";
                                     curr_tray->transmittance= tray_transmittance.has_value() ? tray_transmittance.value() : "";
                                     curr_tray->weight       = tray_weight.has_value() ? tray_weight.value() : "";
+                                    curr_tray->manufacturer = tray_manufacturer.has_value() ? tray_manufacturer.value() : "";
                                 }
                             }
                         }

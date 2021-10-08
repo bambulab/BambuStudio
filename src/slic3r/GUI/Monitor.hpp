@@ -45,10 +45,55 @@ class TrayListModel : public wxDataViewVirtualListModel
 public:
 	enum
 	{
-		Col_trayIndex,
+		Col_TrayTitle,
 		Col_TrayColor,
+		Col_TrayMeterial,
+		Col_TrayWeight,
+		Col_TrayDiameter,
+		Col_TrayTime,
+		Col_TraySN,
+		Col_TrayManufacturer,
+		Col_TraySaturability,
+		Col_TrayTransmittance,
+		Col_TraySmooth,
 		Col_Max,
 	};
+
+	TrayListModel();
+
+	virtual unsigned int GetColumnCount() const wxOVERRIDE
+	{
+		return Col_Max;
+	}
+
+	virtual wxString GetColumnType(unsigned int col) const wxOVERRIDE
+	{
+		return "string";
+	}
+
+	virtual void GetValueByRow(wxVariant& variant,
+		unsigned int row, unsigned int col) const wxOVERRIDE;
+	virtual bool GetAttrByRow(unsigned int row, unsigned int col,
+		wxDataViewItemAttr& attr) const wxOVERRIDE;
+	virtual bool SetValueByRow(const wxVariant& variant,
+		unsigned int row, unsigned int col) wxOVERRIDE;
+
+	void update(MachineObject* obj);
+	void clear_data();
+
+private:
+	wxArrayString m_titleColValues;
+	wxArrayString m_colorColValues;
+	wxArrayString m_meterialColValues;
+	wxArrayString m_weightColValues;
+	wxArrayString m_diameterColValues;
+	wxArrayString m_timeColValues;
+	wxArrayString m_snColValues;
+	wxArrayString m_manufacturerColValues;
+	wxArrayString m_saturabilityColValues;
+	wxArrayString m_transmittanceColValues;
+	wxArrayString m_smoothColValues;
+
 };
 
 class SubTaskListModel : public wxDataViewVirtualListModel
@@ -81,6 +126,7 @@ public:
         unsigned int row, unsigned int col) wxOVERRIDE;
 
     void update_task(BBLTask* task);
+	void clear_data();
 
 private:
     BBLTask* task;
@@ -164,6 +210,7 @@ protected:
 
     void on_select(wxCommandEvent& event);
     void on_subtask_update(BBLSubTask* curr_subtask, bool update_all = true);
+    void on_machine_list_changed();
 
     void on_subtask_start(wxCommandEvent& event);
     void on_subtask_pause_resume(wxCommandEvent& event);
@@ -183,12 +230,19 @@ protected:
     void init_timer();
     void init_bind();
 
+    /* update apis */
+    void update_status(MachineObject* obj);
+    void update_ams(MachineObject* obj);
+    void update_task(MachineObject* obj);
+    void update_all();
+
 public:
 
     MonitorPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(800, 600), long style = wxTAB_TRAVERSAL);
     ~MonitorPanel();
 
-    wxObjectDataPtr<SubTaskListModel> subtask_model;
+    wxObjectDataPtr<SubTaskListModel>   subtask_model;
+    wxObjectDataPtr<TrayListModel>      tray_model;
     wxString    machine_sn;
     MachineObject* obj;
     int last_wlan_device_selection;
@@ -197,6 +251,8 @@ public:
 
     void set_machine(std::string machine_sn);
     void select_machine(std::string machine_sn);
+
+    bool Show(bool show);
 };
 
 } // GUI

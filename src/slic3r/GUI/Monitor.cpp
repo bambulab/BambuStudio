@@ -29,6 +29,188 @@ namespace GUI {
 
 #define REFRESH_INTERVAL       1000
 
+
+TrayListModel::TrayListModel() :
+    wxDataViewVirtualListModel(0)
+{
+    ;
+}
+
+void TrayListModel::GetValueByRow(wxVariant& variant,
+    unsigned int row, unsigned int col) const
+{
+    switch (col) {
+    case Col_TrayTitle:
+        if (row >= m_titleColValues.GetCount())
+            variant = wxString::Format("N/A", row);
+        else
+            variant = m_titleColValues[row];
+        break;
+    case Col_TrayColor:
+        if (row >= m_colorColValues.GetCount())
+            variant = wxString::Format("N/A", row);
+        else
+            variant = m_colorColValues[row];
+        break;
+    case Col_TrayMeterial:
+        if (row >= m_meterialColValues.GetCount())
+            variant = wxString::Format("N/A", row);
+        else
+            variant = m_meterialColValues[row];
+        break;
+    case Col_TrayWeight:
+        if (row >= m_weightColValues.GetCount())
+            variant = wxString::Format("N/A", row);
+        else
+            variant = m_weightColValues[row];
+        break;
+    case Col_TrayDiameter:
+        if (row >= m_diameterColValues.GetCount())
+            variant = wxString::Format("N/A", row);
+        else
+            variant = m_diameterColValues[row];
+        break;
+    case Col_TrayTime:
+        if (row >= m_timeColValues.GetCount())
+            variant = wxString::Format("N/A", row);
+        else
+            variant = m_timeColValues[row];
+        break;
+    case Col_TraySN:
+        if (row >= m_snColValues.GetCount())
+            variant = wxString::Format("N/A", row);
+        else
+            variant = m_snColValues[row];
+        break;
+    case Col_TrayManufacturer:
+        if (row >= m_manufacturerColValues.GetCount())
+            variant = wxString::Format("N/A", row);
+        else
+            variant = m_manufacturerColValues[row];
+        break;
+    case Col_TraySaturability:
+        if (row >= m_saturabilityColValues.GetCount())
+            variant = wxString::Format("N/A", row);
+        else
+            variant = m_saturabilityColValues[row];
+        break;
+    case Col_TrayTransmittance:
+        if (row >= m_transmittanceColValues.GetCount())
+            variant = wxString::Format("N/A", row);
+        else
+            variant = m_transmittanceColValues[row];
+        break;
+    case Col_TraySmooth:
+        if (row >= m_smoothColValues.GetCount())
+            variant = wxString::Format("N/A", row);
+        else
+            variant = m_smoothColValues[row];
+        break;
+    default:
+        break;
+    }
+}
+
+bool TrayListModel::GetAttrByRow(unsigned int row, unsigned int col,
+    wxDataViewItemAttr& attr) const
+{
+    return true;
+}
+
+bool TrayListModel::SetValueByRow(const wxVariant& variant,
+    unsigned int row, unsigned int col)
+{
+    switch (col)
+    {
+    case Col_TrayTitle:
+    case Col_TrayColor:
+    case Col_TrayMeterial:
+    case Col_TrayWeight:
+    case Col_TrayDiameter:
+    case Col_TrayTime:
+    case Col_TraySN:
+    case Col_TrayManufacturer:
+    case Col_TraySaturability:
+    case Col_TrayTransmittance:
+    case Col_TraySmooth:
+        return true;
+    default:
+        break;
+    }
+    return false;
+}
+
+void TrayListModel::update(MachineObject* obj)
+{
+    if (!obj) return;
+
+    m_titleColValues.clear();
+    m_colorColValues.clear();
+    m_meterialColValues.clear();
+    m_weightColValues.clear();
+    m_diameterColValues.clear();
+    m_timeColValues.clear();
+    m_snColValues.clear();
+    m_manufacturerColValues.clear();
+    m_saturabilityColValues.clear();
+    m_transmittanceColValues.clear();
+    m_smoothColValues.clear();
+
+    std::map<std::string, Ams*>::iterator ams_it;
+    std::map<std::string, AmsTray*>::iterator tray_it;
+    int tray_index = 0;
+    for (ams_it = obj->amsList.begin(); ams_it != obj->amsList.end(); ams_it++) {
+        if (ams_it->second) {
+            for (tray_it = ams_it->second->trayList.begin(); tray_it != ams_it->second->trayList.end(); tray_it++) {
+                AmsTray* tray = tray_it->second;
+                if (tray) {
+                    tray_index++;
+                    wxString title_text = wxString::Format("tray %d", tray_index);
+                    m_titleColValues.push_back(title_text);
+                    wxString color_text = wxString::Format("%s", tray->color);
+                    m_colorColValues.push_back(color_text);
+                    wxString meterial_text = wxString::Format("%s", tray->meterial);
+                    m_meterialColValues.push_back(meterial_text);
+                    wxString weight_text = wxString::Format("%s", tray->weight);
+                    m_weightColValues.push_back(weight_text);
+                    //m_diameterColValues.push_back();
+                    wxString time_text = wxString::Format("%s", tray->time);
+                    m_timeColValues.push_back(time_text);
+                    wxString sn_text = wxString::Format("%s", tray->sn);
+                    m_snColValues.push_back(sn_text);
+                    wxString manufacturer_text = wxString::Format("%s", tray->manufacturer);
+                    m_manufacturerColValues.push_back(manufacturer_text);
+                    wxString saturability_text = wxString::Format("%s", tray->saturability);
+                    m_saturabilityColValues.push_back(saturability_text);
+                    wxString transmittance_text = wxString::Format("%s", tray->transmittance);
+                    m_transmittanceColValues.push_back(transmittance_text);
+                    wxString smooth_text = wxString::Format("%s", tray->smooth);
+                    m_smoothColValues.push_back(smooth_text);
+                }
+            }
+        }
+    }
+
+    Reset(m_titleColValues.GetCount());
+}
+void TrayListModel::clear_data()
+{
+    m_titleColValues.clear();
+    m_colorColValues.clear();
+    m_meterialColValues.clear();
+    m_weightColValues.clear();
+    m_diameterColValues.clear();
+    m_timeColValues.clear();
+    m_snColValues.clear();
+    m_manufacturerColValues.clear();
+    m_saturabilityColValues.clear();
+    m_transmittanceColValues.clear();
+    m_smoothColValues.clear();
+
+    Reset(0);
+}
+
+
 SubTaskListModel::SubTaskListModel() :
     wxDataViewVirtualListModel(0)
 {
@@ -114,6 +296,14 @@ void SubTaskListModel::update_task(BBLTask* task)
     Reset(m_nameColValues.GetCount());
 }
 
+void SubTaskListModel::clear_data()
+{
+    m_nameColValues.clear();
+    m_durationColValues.clear();
+    m_WeightColValues.clear();
+    Reset(0);
+}
+
 
 MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style) : wxPanel(parent, id, pos, size, style)
 {
@@ -145,8 +335,8 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
 	wxStaticBoxSizer* sbSizer_status;
 	sbSizer_status = new wxStaticBoxSizer(new wxStaticBox(m_panel_left, wxID_ANY, wxT("Status")), wxVERTICAL);
 
-	wxBoxSizer* bSizer14;
-	bSizer14 = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer* bSizer_left_up;
+	bSizer_left_up = new wxBoxSizer(wxVERTICAL);
 
 	wxBoxSizer* bSizer_device;
 	bSizer_device = new wxBoxSizer(wxHORIZONTAL);
@@ -164,7 +354,7 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
 	bSizer_device->Add(m_staticText_wifi_signal, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxRIGHT, 5);
 
 
-	bSizer14->Add(bSizer_device, 0, wxALL | wxEXPAND, 0);
+	bSizer_left_up->Add(bSizer_device, 0, wxALL | wxEXPAND, 0);
 
 	wxGridSizer* gSizer_status;
 	gSizer_status = new wxGridSizer(3, 2, 0, 0);
@@ -210,18 +400,18 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
 	gSizer_status->Add(m_staticText_sn_value, 0, wxALL | wxEXPAND, 0);
 
 
-	bSizer14->Add(gSizer_status, 0, wxALL | wxEXPAND, 0);
+	bSizer_left_up->Add(gSizer_status, 0, wxALL | wxEXPAND, 0);
 
 	m_dataViewCtrl_ams = new wxDataViewCtrl(sbSizer_status->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 | wxSIMPLE_BORDER);
-	m_dataViewCtrl_ams->SetMinSize(wxSize(-1, 26));
+	m_dataViewCtrl_ams->SetMinSize(wxSize(-1, 60));
 
-	bSizer14->Add(m_dataViewCtrl_ams, 0, wxALL | wxEXPAND, 0);
-
-
-	sbSizer_status->Add(bSizer14, 0, wxEXPAND, 0);
+	bSizer_left_up->Add(m_dataViewCtrl_ams, 1, wxALL | wxEXPAND, 0);
 
 
-	bSizer_left->Add(sbSizer_status, 0, wxEXPAND, 0);
+	sbSizer_status->Add(bSizer_left_up, 1, wxEXPAND, 0);
+
+
+	bSizer_left->Add(sbSizer_status, 1, wxEXPAND, 0);
 
 	m_staticline1 = new wxStaticLine(m_panel_left, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
 	bSizer_left->Add(m_staticline1, 0, wxEXPAND | wxALL, 5);
@@ -566,6 +756,57 @@ void MonitorPanel::init_model()
         wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_NOT,
         wxDATAVIEW_COL_SORTABLE);
+
+    tray_model = new TrayListModel();
+    m_dataViewCtrl_ams->AssociateModel(tray_model.get());
+    m_dataViewCtrl_ams->AppendTextColumn("Name",
+        TrayListModel::Col_TrayTitle,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
+    m_dataViewCtrl_ams->AppendTextColumn("Color",
+        TrayListModel::Col_TrayColor,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
+    m_dataViewCtrl_ams->AppendTextColumn("Meterial",
+        TrayListModel::Col_TrayMeterial,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
+    m_dataViewCtrl_ams->AppendTextColumn("SN",
+        TrayListModel::Col_TraySN,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
+    m_dataViewCtrl_ams->AppendTextColumn("Weight",
+        TrayListModel::Col_TrayWeight,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
+    m_dataViewCtrl_ams->AppendTextColumn("Diameter",
+        TrayListModel::Col_TrayDiameter,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
+    m_dataViewCtrl_ams->AppendTextColumn("Time",
+        TrayListModel::Col_TrayTime,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
+    m_dataViewCtrl_ams->AppendTextColumn("Smooth",
+        TrayListModel::Col_TraySmooth,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
 }
 
 void MonitorPanel::init_timer()
@@ -582,9 +823,8 @@ void MonitorPanel::init_bind()
     Bind(wxEVT_TIMER, &MonitorPanel::on_timer, this);
 }
 
-void MonitorPanel::on_timer(wxTimerEvent& event)
+void MonitorPanel::on_machine_list_changed()
 {
-    Slic3r::DeviceManager* device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
     Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
 
     /* update list */
@@ -599,13 +839,14 @@ void MonitorPanel::on_timer(wxTimerEvent& event)
     mybind_machine_list_items.clear();
     wxArrayString new_items;
     for (iter = list.begin(); iter != list.end(); iter++) {
-        wxString online_status = iter->second->is_online ? "Online" : "Offline";
-        wxString text = wxString::Format("%s(%s)[%s]", iter->second->dev_name, iter->second->dev_id, online_status);
-        if (!last_my_bind_dev_id.empty() && iter->second->dev_id.compare(last_my_bind_dev_id) == 0) {
-            select = new_items.size();
+        if (iter->second->is_online) {
+            wxString text = wxString::Format("%s", iter->second->dev_name);
+            if (!last_my_bind_dev_id.empty() && iter->second->dev_id.compare(last_my_bind_dev_id) == 0) {
+                select = new_items.size();
+            }
+            mybind_machine_list_items.push_back(iter->second->dev_id);
+            new_items.Add(text);
         }
-        mybind_machine_list_items.push_back(iter->second->dev_id);
-        new_items.Add(text);
     }
 
     m_choice_machine->Set(new_items);
@@ -613,35 +854,81 @@ void MonitorPanel::on_timer(wxTimerEvent& event)
         m_choice_machine->Select(select);
         last_wlan_device_selection = select;
     }
+}
 
+bool MonitorPanel::Show(bool show)
+{
+    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
     obj = account_manager->get_default_machine();
 
-    if (obj) {
-        /* Update Device Info */
-        m_staticText_machine_name->SetLabelText(wxString::Format("%s", obj->dev_name));
-        m_staticText_sn_value->SetLabelText(wxString::Format("%s", obj->dev_id));
-
-        // update wifi signal 
-        m_staticText_wifi_signal->SetLabelText(wxString::Format("%s", obj->wifi_signal));
-        // update temprature
-        wxString nozzle_temp_text = wxString::Format("%0.2f/%0.2f", obj->nozzle_temp, obj->nozzle_temp_target);
-        m_staticText_nozzle_value->SetLabelText(nozzle_temp_text);
-        wxString bed_temp_text = wxString::Format("%0.2f/%0.2f", obj->bed_temp, obj->bed_temp_target);
-        m_staticText_bed_value->SetLabelText(bed_temp_text);
-        
-        BBLSubTask* curr_subtask = obj->get_subtask();
-
-        if (last_subtask != curr_subtask) {
-            on_subtask_update(curr_subtask, true);
-        }
-        else {
-            on_subtask_update(curr_subtask, false);
-        }
-        last_subtask = curr_subtask;
+    if (obj && show) {
+        update_ams(obj);
     }
+
+    return wxPanel::Show(show);
+}
+
+void MonitorPanel::update_ams(MachineObject* obj)
+{
+    if (!obj) return;
+    tray_model->update(obj);
+}
+
+void MonitorPanel::update_task(MachineObject* obj)
+{
+    if (!obj) return;
+
+    BBLSubTask* curr_subtask = obj->get_subtask();
+    if (last_subtask != curr_subtask) {
+        on_subtask_update(curr_subtask, true);
+    }
+    else {
+        on_subtask_update(curr_subtask, false);
+    }
+    last_subtask = curr_subtask;
+}
+
+void MonitorPanel::update_status(MachineObject* obj)
+{
+    if (!obj) return;
+
+    /* Update Device Info */
+    m_staticText_machine_name->SetLabelText(wxString::Format("%s", obj->dev_name));
+    m_staticText_sn_value->SetLabelText(wxString::Format("%s", obj->dev_id));
+
+    // update wifi signal
+    m_staticText_wifi_signal->SetLabelText(wxString::Format("%s", obj->wifi_signal));
+    // update temprature
+    wxString nozzle_temp_text = wxString::Format("%0.2f/%0.2f", obj->nozzle_temp, obj->nozzle_temp_target);
+    m_staticText_nozzle_value->SetLabelText(nozzle_temp_text);
+    wxString bed_temp_text = wxString::Format("%0.2f/%0.2f", obj->bed_temp, obj->bed_temp_target);
+    m_staticText_bed_value->SetLabelText(bed_temp_text);
+}
+
+void MonitorPanel::on_timer(wxTimerEvent& event)
+{
+    on_machine_list_changed();
+
+    update_all();
 
     Layout();
     Refresh();
+}
+
+void MonitorPanel::update_all()
+{
+    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    obj = account_manager->get_default_machine();
+    if (!obj) return;
+
+    update_status(obj);
+
+    // update ams fields
+    if (obj->is_ams_need_update) {
+        update_ams(obj);
+    }
+
+    update_task(obj);
 }
 
 void MonitorPanel::on_select(wxCommandEvent& event)
@@ -651,11 +938,19 @@ void MonitorPanel::on_select(wxCommandEvent& event)
     int selection = event.GetSelection();
     if (selection < mybind_machine_list_items.size()) {
         account_manager->default_machine = mybind_machine_list_items[selection];
+        m_choice_machine->SetSelection(selection);
 
+        if (last_wlan_device_selection != selection) {
+            subtask_model->clear_data();
+            tray_model->clear_data();
+
+            update_all();
+
+            Layout();
+            Refresh();
+        }
         /* update widget values */
         last_wlan_device_selection = selection;
-
-        m_choice_machine->SetSelection(selection);
     }
 }
 
@@ -792,6 +1087,7 @@ void MonitorPanel::set_machine(std::string machine_sn)
 {
     this->machine_sn = machine_sn;
 }
+
 
 } // GUI
 } // Slic3r

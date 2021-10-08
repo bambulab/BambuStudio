@@ -184,6 +184,7 @@ public:
     int user_logout();
     int user_register(std::string account, std::string passoword);
     int request_user_unbind(std::string device_id, ResultFn fn);
+    void clean_user_data();
 
     /* myBindList */
     std::mutex listMutex;

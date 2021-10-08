@@ -64,7 +64,7 @@ public:
     }
 
     std::string     id;
-    std::string     color;      //TODO use color struct instead
+    std::string     color;      //0xRRGGBBAA
     std::string     sn;
     bool            is_bbl;
     std::string     meterial;
@@ -73,6 +73,7 @@ public:
     std::string     time;
     std::string     transmittance;
     std::string     weight;
+    std::string     manufacturer;
 };
 
 
@@ -139,6 +140,7 @@ public:
     int     ams_exist_bits;
     int     tray_exist_bits;
     int     tray_is_bbl_bits;
+    bool    is_ams_need_update;
 
     /* temperature */
     double  nozzle_temp;

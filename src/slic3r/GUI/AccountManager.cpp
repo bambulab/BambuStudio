@@ -90,7 +90,7 @@ namespace Slic3r {
                 if (iter != manager->myBindMachineList.end()) {
                     iter->second->parse_json(msg->get_topic(), msg->get_payload_str());
                 }
-            }   
+            }
         }
     }
 
@@ -165,9 +165,6 @@ namespace Slic3r {
         mqtt_opt.set_connect_timeout(10);
         mqtt_opt.set_automatic_reconnect(3, 10);
 
-        boost::uuids::uuid uuid = boost::uuids::random_generator()();
-        mqtt_uuid = to_string(uuid).substr(0, mqtt_uuid_bytes);
-
         host = "http://api.qa.bbl";
         m_curr_user = nullptr;
         boost::filesystem::fstream fstream();
@@ -204,7 +201,8 @@ namespace Slic3r {
                 BOOST_LOG_TRIVIAL(trace) << "mqtt_cli is exists!";
                 return -1;
             }
-
+            boost::uuids::uuid uuid = boost::uuids::random_generator()();
+            mqtt_uuid = to_string(uuid).substr(0, mqtt_uuid_bytes);
             std::string client_id = (boost::format("%1%:%2%") % m_curr_user->m_user_id % mqtt_uuid).str();
             mqtt_cli = new mqtt::async_client(MQTT_HOST, client_id);
             mqtt_cb = new cloud_conn_callback(*mqtt_cli, mqtt_opt, this);
@@ -218,9 +216,11 @@ namespace Slic3r {
             return 0;
         }
         catch (mqtt::exception& e) {
+            BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt, exception=" << e.get_error_str();
             return -1;
         }
         catch (...) {
+            BOOST_LOG_TRIVIAL(trace) << "connect_cloud_mqtt, exception";
             return -1;
         }
         return 0;
@@ -361,9 +361,26 @@ namespace Slic3r {
         if (m_curr_user) {
             m_curr_user->set_login_status(AccountInfo::LoginStatus::STATUS_LOGOUT);
             this->disconnect_mqtt();
+            clean_user_data();
             save_user_info();
         }
         return 0;
+    }
+
+    void AccountManager::clean_user_data()
+    {
+        default_machine = "";
+        default_project = nullptr;
+        std::lock_guard<std::mutex> lock(listMutex);
+        std::map<std::string, MachineObject*>::iterator it;
+        for (it = myBindMachineList.begin(); it != myBindMachineList.end(); it++) {
+            delete it->second;
+            it->second = nullptr;
+        }
+        myBindMachineList.clear();
+        mqtt_topics.clear();
+
+        myProjectList.clear();
     }
 
     int AccountManager::user_register(std::string account, std::string password)
