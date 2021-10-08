@@ -173,7 +173,9 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             // Spiral Vase forces different kind of slicing than the normal model:
             // In Spiral Vase mode, holes are closed and only the largest area contour is kept at each layer.
             // Therefore toggling the Spiral Vase on / off requires complete reslicing.
-            || opt_key == "spiral_vase") {
+            || opt_key == "spiral_vase"
+            //BBS: when enable arc fitting, we must re-slicing the model
+            || opt_key == "enable_arc_fitting") {
             osteps.emplace_back(posSlice);
         } else if (
                opt_key == "complete_objects"
@@ -222,6 +224,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "min_layer_height"
             || opt_key == "max_layer_height"
             || opt_key == "gcode_resolution") {
+            //BBS: must re-generated perimeter when enable/disable auto-slow-down
+            || opt_key == "auto_slow_down_for_overhang_and_curva") {
             osteps.emplace_back(posPerimeters);
             osteps.emplace_back(posInfill);
             osteps.emplace_back(posSupportMaterial);
