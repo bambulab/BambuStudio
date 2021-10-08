@@ -69,6 +69,7 @@ void ArcFitter::do_arc_fitting(const Points& points, std::vector<PathFittingData
             front_index = back_index - 1;
             current_segment.clear();
             current_segment.push_back(points[front_index]);
+            current_segment.push_back(points[front_index + 1]);
         }
     }
 	//BBS: handle the remain data
