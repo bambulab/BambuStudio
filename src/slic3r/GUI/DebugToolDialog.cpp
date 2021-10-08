@@ -599,12 +599,21 @@ void DebugToolDialog::init_common(wxWindow* parent)
         );
         });
 
+    auto label_force_upgrade = new wxStaticText(parent, wxID_ANY, _L("Force Upgrading:"), wxDefaultPosition, wxDefaultSize);
+    label_force_upgrade_val = new wxStaticText(parent, wxID_ANY, _L("false"), wxDefaultPosition, wxDefaultSize);
+
+    auto line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    line_sizer->Add(label_force_upgrade, 0, wxLEFT | wxALIGN_LEFT);
+    line_sizer->Add(label_force_upgrade_val, 0, wxLEFT | wxALIGN_LEFT);
 
     auto sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(-1, 8);
     sizer->Add(btn_get_version, 0, wxLEFT | wxALIGN_LEFT);
     sizer->Add(-1, 8);
     sizer->Add(btn_bind, 0, wxLEFT | wxALIGN_LEFT);
+    sizer->Add(-1, 8);
+    sizer->Add(line_sizer, 0, wxLEFT | wxALIGN_LEFT);
+
     parent->SetSizer(sizer);
 }
 
@@ -1422,6 +1431,11 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
                 if (pos_z.has_value()) label_pos_z_val->SetLabelText(pos_z.value());
                 if (pos_e.has_value()) label_pos_e_val->SetLabelText(pos_e.value());
 
+
+                boost::optional<std::string> force_upgrade = print.get_optional<std::string>("force_upgrade");
+                if (force_upgrade.has_value()) {
+                    label_force_upgrade_val->SetLabelText(force_upgrade.value());
+                }
 
                 boost::optional<std::string> gcode_start_time = print.get_optional<std::string>("gcode_start_time");
                 boost::optional<std::string> gcode_duration = print.get_optional<std::string>("gcode_duration");

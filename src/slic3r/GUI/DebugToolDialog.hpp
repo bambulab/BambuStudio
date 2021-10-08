@@ -215,6 +215,7 @@ namespace Slic3r {
             wxStaticText* label_upgrade_progress_val;
             wxStaticText* label_upgrade_module_val;
             wxStaticText* label_upgrade_message_val;
+            wxStaticText* label_force_upgrade_val;
 
 
             wxComboBox* cb_upgrade_module;

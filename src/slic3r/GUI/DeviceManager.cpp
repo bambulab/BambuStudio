@@ -131,12 +131,13 @@ MachineObject::MachineObject(AccountManager& acc, std::string name, std::string 
     /* create a dummy task to store info */
     temptask_ = new BBLSubTask(nullptr);
 
-    /* init field */
+    /* temprature fields */
     nozzle_temp = 0.0f;
     nozzle_temp_target = 0.0f;
     bed_temp = 0.0f;
     bed_temp_target = 0.0f;
 
+    /* ams fileds */
     ams_exist_bits = 0;
     tray_exist_bits = 0;
     tray_is_bbl_bits = 0;
@@ -144,6 +145,9 @@ MachineObject::MachineObject(AccountManager& acc, std::string name, std::string 
 
     /* signals */
     wifi_signal = "";
+
+    /* upgrade */
+    force_upgrade = false;
 }
 
 bool MachineObject::check_valid_ip()
@@ -363,6 +367,12 @@ int MachineObject::parse_json(std::string topic, std::string payload)
             if (!command.has_value()) return 0;
             // push_status
             if (command.value().compare("push_status") == 0) {
+                /* upgrade */
+                boost::optional<std::string> force_upgrade      = print.get_optional<std::string>("force_upgrade");
+                if (force_upgrade.has_value()) {
+                    this->force_upgrade = force_upgrade.value().compare("true") == 0 ? true : false;
+                    // TODO push notification
+                }
                 /* gcode */
                 boost::optional<std::string> gcode_start_time   = print.get_optional<std::string>("gcode_start_time");
                 boost::optional<std::string> gcode_duration     = print.get_optional<std::string>("gcode_duration");

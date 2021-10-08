@@ -151,6 +151,9 @@ public:
     /* signals */
     std::string wifi_signal;
 
+    /* upgrade */
+    bool force_upgrade;
+
     /* mqtt connections */
     CONNECTION_TYPE conn_type;
     CONNECTION_STATE conn_state;
