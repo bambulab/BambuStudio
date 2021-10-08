@@ -1053,7 +1053,7 @@ void TreeSupport::generate_toolpaths()
                             if(with_infill && layer_id > 0 && offset(poly, -scale_(support_spacing)).empty()==false)
                             {
                                 // with infill we only need half the extrusion width
-                                make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object.print(), poly, wall_count, Flow(support_extrusion_width/2, ts_layer->height, nozzle_diameter), false, filler_support, support_density);
+                                make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object.print(), poly, wall_count, Flow(support_extrusion_width*0.65, ts_layer->height, nozzle_diameter), false, filler_support, support_density);
                             }
                             else
                             {
