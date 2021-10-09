@@ -516,7 +516,7 @@ static void make_inner_island_brim(const Print& print, const ConstPrintObjectPtr
 
                 //BBS: save all inner island and inner island brim area here, which is necesary if generate inner brim for holes
                 //Inner brim of holes must not occupy this area
-                ExPolygons islands_area_ex_object = intersection_ex(offset(inner_islands, brim_width), brimable_area);
+                ExPolygons islands_area_ex_object = intersection_ex(contour, brimable_area);
                 for (const PrintInstance& instance : object->instances())
                     append_and_translate(islands_area_ex, islands_area_ex_object, instance);
             }
@@ -535,6 +535,20 @@ static void make_inner_brim(const Print                   &print,
     //BBS: generate brim for inner island first
     ExPolygons inner_islands_ex;
     make_inner_island_brim(print, top_level_objects_with_brim, brim, inner_islands_ex);
+
+#ifdef INNER_ISLAND_BRIM_DEBUG_TO_SVG
+    static int irun = 0;
+    BoundingBox bbox_svg;
+    bbox_svg.merge(get_extents(inner_islands_ex));
+    {
+        std::stringstream stri;
+        stri << "inner_island_and_brim_area_" << irun << ".svg";
+        SVG svg(stri.str(), bbox_svg);
+        svg.draw(to_polylines(inner_islands_ex), "blue");
+        svg.Close();
+    }
+    ++ irun;
+#endif
 
     Flow       flow = print.brim_flow();
     ExPolygons islands_ex = inner_brim_area(print, top_level_objects_with_brim, bottom_layers_expolygons, float(flow.scaled_spacing()));
