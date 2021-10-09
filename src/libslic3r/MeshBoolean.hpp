@@ -54,6 +54,8 @@ void intersect(CGALMesh &A, CGALMesh &B);
 bool does_self_intersect(const TriangleMesh &mesh);
 bool does_self_intersect(const CGALMesh &mesh);
 
+std::vector<TriangleMesh> segment(const TriangleMesh& src, double smoothing_alpha = 0.5, int segment_number = 5);
+
 bool does_bound_a_volume(const CGALMesh &mesh);
 bool empty(const CGALMesh &mesh);
 

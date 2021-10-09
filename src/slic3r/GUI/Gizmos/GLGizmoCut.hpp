@@ -23,6 +23,10 @@ class GLGizmoCut : public GLGizmoBase
     bool m_keep_upper{ true };
     bool m_keep_lower{ true };
     bool m_rotate_lower{ false };
+    // BBS: m_do_segment
+    bool m_do_segment{ false };
+    double m_segment_smoothing_alpha{ 0.5 };
+    int m_segment_number{ 5 };
 
     struct CutContours
     {

@@ -6070,6 +6070,36 @@ void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, ModelObjectCut
         selection.add_object((unsigned int)(last_id - i), i == 0);
 }
 
+// BBS
+void Plater::segment(size_t obj_idx, size_t instance_idx, double smoothing_alpha, int segment_number)
+{
+    wxCHECK_RET(obj_idx < p->model.objects.size(), "obj_idx out of bounds");
+    auto* object = p->model.objects[obj_idx];
+
+    wxCHECK_RET(instance_idx < object->instances.size(), "instance_idx out of bounds");
+
+    Plater::TakeSnapshot snapshot(this, _L("Segment"));
+
+    wxBusyCursor wait;
+    // real process
+    PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
+    const auto print_tech = preset_bundle.printers.get_edited_preset().printer_technology();
+    const size_t extruder_cnt = print_tech != ptFFF ? 1 :
+        dynamic_cast<ConfigOptionFloats*>(preset_bundle.printers.get_edited_preset().config.option("nozzle_diameter"))->values.size();
+
+    const auto new_objects = object->segment(instance_idx, extruder_cnt, smoothing_alpha, segment_number);
+
+    remove(obj_idx);
+    p->load_model_objects(new_objects);
+
+    Selection& selection = p->get_selection();
+    size_t last_id = p->model.objects.size() - 1;
+    for (size_t i = 0; i < new_objects.size(); ++i)
+    {
+        selection.add_object((unsigned int)(last_id - i), i == 0);
+    }
+}
+
 void Plater::export_gcode(bool prefer_removable)
 {
     if (p->model.objects.empty())

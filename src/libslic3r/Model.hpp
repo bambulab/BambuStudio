@@ -356,6 +356,8 @@ public:
     size_t facets_count() const;
     size_t parts_count() const;
     ModelObjectPtrs cut(size_t instance, coordf_t z, ModelObjectCutAttributes attributes);
+    // BBS
+    ModelObjectPtrs segment(size_t instance, unsigned int max_extruders, double smoothing_alpha = 0.5, int segment_number = 5);
     void split(ModelObjectPtrs* new_objects);
     void merge();
     // Support for non-uniform scaling of instances. If an instance is rotated by angles, which are not multiples of ninety degrees,

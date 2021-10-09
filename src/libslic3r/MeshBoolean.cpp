@@ -13,6 +13,11 @@
 #include <CGAL/Exact_integer.h>
 #include <CGAL/Surface_mesh.h>
 #include <CGAL/Cartesian_converter.h>
+// BBS: for segment
+#include <CGAL/mesh_segmentation.h>
+#include <CGAL/property_map.h>
+#include <CGAL/boost/graph/copy_face_graph.h>
+#include <CGAL/boost/graph/Face_filtered_graph.h>
 
 namespace Slic3r {
 namespace MeshBoolean {
@@ -231,6 +236,78 @@ void minus(CGALMesh &A, CGALMesh &B) { _cgal_do(_cgal_diff, A, B); }
 void plus(CGALMesh &A, CGALMesh &B) { _cgal_do(_cgal_union, A, B); }
 void intersect(CGALMesh &A, CGALMesh &B) { _cgal_do(_cgal_intersection, A, B); }
 bool does_self_intersect(const CGALMesh &mesh) { return CGALProc::does_self_intersect(mesh.m); }
+// BBS
+void segment(CGALMesh& src, std::vector<CGALMesh>& dst, double smoothing_alpha = 0.5, int segment_number=5)
+{
+    typedef boost::graph_traits<_EpicMesh>::face_descriptor face_descriptor;
+    typedef _EpicMesh::Property_map<face_descriptor, double> Facet_double_map;
+    typedef CGAL::Face_filtered_graph<_EpicMesh> Filtered_graph;
+
+    _EpicMesh mesh = src.m;
+    Facet_double_map sdf_property_map;
+
+    sdf_property_map = mesh.add_property_map<face_descriptor, double>("f:sdf").first;
+
+    CGAL::sdf_values(mesh, sdf_property_map);
+
+    // create a property-map for segment-ids
+    typedef _EpicMesh::Property_map<face_descriptor, std::size_t> Facet_int_map;
+    Facet_int_map segment_property_map = mesh.add_property_map<face_descriptor, std::size_t>("f:sid").first;;
+    // segment the mesh using default parameters for number of levels, and smoothing lambda
+    // Any other scalar values can be used instead of using SDF values computed using the CGAL function
+    std::size_t number_of_segments = CGAL::segmentation_from_sdf_values(mesh, sdf_property_map, segment_property_map, segment_number, smoothing_alpha);
+    //print area of each segment and then put it in a Mesh and print it in an OFF file
+    Filtered_graph segment_mesh(mesh);
+    for (std::size_t id = 0; id < number_of_segments; ++id)
+    {
+        segment_mesh.set_selected_faces(id, segment_property_map);
+        //std::cout << "Segment " << id << "'s area is : " << CGAL::Polygon_mesh_processing::area(segment_mesh) << std::endl;
+        _EpicMesh out;
+        CGAL::copy_face_graph(segment_mesh, out);
+
+        //std::ostringstream oss;
+        //oss << "Segment_" << id << ".off";
+        //std::ofstream os(oss.str().data());
+        //os << out;
+
+        // fill holes
+        typedef boost::graph_traits<_EpicMesh>::halfedge_descriptor      halfedge_descriptor;
+        typedef boost::graph_traits<_EpicMesh>::vertex_descriptor        vertex_descriptor;
+        std::vector<halfedge_descriptor> border_cycles;
+        CGAL::Polygon_mesh_processing::extract_boundary_cycles(out, std::back_inserter(border_cycles));
+        for (halfedge_descriptor h : border_cycles)
+        {
+            std::vector<face_descriptor>  patch_facets;
+#if 0
+            std::vector<vertex_descriptor> patch_vertices;
+            CGAL::Polygon_mesh_processing::triangulate_and_refine_hole(out, h, std::back_inserter(patch_facets),
+                std::back_inserter(patch_vertices));
+            std::cout << "* Number of facets in constructed patch: " << patch_facets.size() << std::endl;
+            std::cout << "  Number of vertices in constructed patch: " << patch_vertices.size() << std::endl;
+#else
+            CGAL::Polygon_mesh_processing::triangulate_hole(out, h, std::back_inserter(patch_facets));
+#endif
+        }
+
+        CGALMesh out_mesh;
+        out_mesh.m = out;
+        dst.emplace_back(std::move(out_mesh));
+    }
+}
+std::vector<TriangleMesh> segment(const TriangleMesh& src, double smoothing_alpha, int segment_number)
+{
+    CGALMesh in_cgal_mesh;
+    MeshBoolean::cgal::triangle_mesh_to_cgal(src, in_cgal_mesh.m);
+    std::vector<CGALMesh> out_cgal_meshes;
+    segment(in_cgal_mesh, out_cgal_meshes, smoothing_alpha, segment_number);
+
+    std::vector<TriangleMesh> out_meshes;
+    for (auto& outf_cgal_mesh: out_cgal_meshes)
+    {
+        out_meshes.emplace_back(std::move(cgal_to_triangle_mesh(outf_cgal_mesh.m)));
+    }
+    return out_meshes;
+}
 
 // /////////////////////////////////////////////////////////////////////////////
 // Now the public functions for TriangleMesh input:

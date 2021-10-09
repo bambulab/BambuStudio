@@ -29,6 +29,9 @@
 #include <Eigen/Dense>
 #include "GCodeWriter.hpp"
 
+// BBS: for segment
+#include "MeshBoolean.hpp"
+
 namespace Slic3r {
 
 Model& Model::assign_copy(const Model &rhs)
@@ -1285,7 +1288,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, ModelObjectCutAttr
 
             if (attributes.has(ModelObjectCutAttribute::KeepUpper) && ! upper_mesh.empty()) {
                 ModelVolume* vol = upper->add_volume(upper_mesh);
-                vol->name	= volume->name;
+                vol->name	= volume->name.substr(0, volume->name.find_last_of('.')) + "_upper"; // BBS
                 // Don't copy the config's ID.
                 vol->config.assign_config(volume->config);
     			assert(vol->config.id().valid());
@@ -1294,7 +1297,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, ModelObjectCutAttr
             }
             if (attributes.has(ModelObjectCutAttribute::KeepLower) && ! lower_mesh.empty()) {
                 ModelVolume* vol = lower->add_volume(lower_mesh);
-                vol->name	= volume->name;
+                vol->name = volume->name.substr(0, volume->name.find_last_of('.')) + "_lower"; // BBS
                 // Don't copy the config's ID.
                 vol->config.assign_config(volume->config);
                 assert(vol->config.id().valid());
@@ -1352,6 +1355,110 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, ModelObjectCutAttr
     }
 
     BOOST_LOG_TRIVIAL(trace) << "ModelObject::cut - end";
+
+    return res;
+}
+
+// BBS
+ModelObjectPtrs ModelObject::segment(size_t instance, unsigned int max_extruders, double smoothing_alpha, int segment_number)
+{
+    BOOST_LOG_TRIVIAL(trace) << "ModelObject::segment - start";
+
+    // Clone the object to duplicate instances, materials etc.
+    ModelObject* upper = ModelObject::new_clone(*this);
+
+    upper->set_model(nullptr);
+    upper->sla_support_points.clear();
+    upper->sla_drain_holes.clear();
+    upper->sla_points_status = sla::PointsStatus::NoPoints;
+    upper->clear_volumes();
+    upper->input_file.clear();
+
+    // Because transformations are going to be applied to meshes directly,
+    // we reset transformation of all instances and volumes,
+    // except for translation and Z-rotation on instances, which are preserved
+    // in the transformation matrix and not applied to the mesh transform.
+
+    // const auto instance_matrix = instances[instance]->get_matrix(true);
+    const auto instance_matrix = Geometry::assemble_transform(
+        Vec3d::Zero(),  // don't apply offset
+        instances[instance]->get_rotation().cwiseProduct(Vec3d(1.0, 1.0, 0.0)),   // don't apply Z-rotation
+        instances[instance]->get_scaling_factor(),
+        instances[instance]->get_mirror()
+    );
+
+    for (ModelVolume* volume : volumes) {
+        const auto volume_matrix = volume->get_matrix();
+
+        volume->supported_facets.clear();
+        volume->seam_facets.clear();
+
+        if (!volume->is_model_part()) {
+            // Modifiers are not cut, but we still need to add the instance transformation
+            // to the modifier volume transformation to preserve their shape properly.
+            volume->set_transformation(Geometry::Transformation(instance_matrix * volume_matrix));
+            upper->add_volume(*volume); 
+        }
+        else if (!volume->mesh().empty()) {
+            // Transform the mesh by the combined transformation matrix.
+            // Flip the triangles in case the composite transformation is left handed.
+            TriangleMesh mesh(volume->mesh());
+            mesh.transform(instance_matrix * volume_matrix, true);
+            volume->reset_mesh();
+            mesh.require_shared_vertices();
+
+            auto mesh_segments = MeshBoolean::cgal::segment(mesh, smoothing_alpha, segment_number);
+
+
+            // Reset volume transformation except for offset
+            const Vec3d offset = volume->get_offset();
+            volume->set_transformation(Geometry::Transformation());
+            volume->set_offset(offset);
+
+            unsigned int extruder_counter = 0;
+            for (int idx=0;idx<mesh_segments.size();idx++)
+            {
+                auto& mesh_segment = mesh_segments[idx];
+                mesh_segment.repair();
+                mesh_segment.reset_repair_stats();
+
+                if (mesh_segment.facets_count() > 0) {
+                    ModelVolume* vol = upper->add_volume(mesh_segment);
+                    vol->name = volume->name.substr(0, volume->name.find_last_of('.')) + "_" + std::to_string(idx);
+                    // Don't copy the config's ID.
+                    vol->config.assign_config(volume->config);
+#if 0
+                    assert(vol->config.id().valid());
+                    assert(vol->config.id() != volume->config.id());
+                    vol->set_material(volume->material_id(), *volume->material());
+#else
+                    vol->config.set("extruder", auto_extruder_id(max_extruders, extruder_counter));
+#endif
+                }
+            }
+        }
+    }
+
+    ModelObjectPtrs res;
+
+    if (upper->volumes.size() > 0) {
+        upper->invalidate_bounding_box();
+
+        // Reset instance transformation except offset and Z-rotation
+        for (size_t i = 0; i < instances.size(); i++) {
+            auto& instance = upper->instances[i];
+            const Vec3d offset = instance->get_offset();
+            const double rot_z = instance->get_rotation()(2);
+
+            instance->set_transformation(Geometry::Transformation());
+            instance->set_offset(offset);
+            instance->set_rotation(Vec3d(0.0, 0.0, rot_z));
+        }
+
+        res.push_back(upper);
+    }
+
+    BOOST_LOG_TRIVIAL(trace) << "ModelObject::segment - end";
 
     return res;
 }

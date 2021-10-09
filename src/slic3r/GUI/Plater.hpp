@@ -225,6 +225,9 @@ public:
 
     void cut(size_t obj_idx, size_t instance_idx, coordf_t z, ModelObjectCutAttributes attributes);
 
+    // BBS: segment model with CGAL
+    void segment(size_t obj_idx, size_t instance_idx, double smoothing_alpha=0.5, int segment_number=5);
+
     void export_gcode(bool prefer_removable);
     void export_stl(bool extended = false, bool selection_only = false);
     void export_amf();
