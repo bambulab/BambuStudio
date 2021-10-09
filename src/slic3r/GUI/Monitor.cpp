@@ -501,6 +501,7 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
     init_bind();
 
     obj = nullptr;
+    is_pausing = false;
 
     // Connect Events
 
@@ -628,42 +629,15 @@ void MonitorPanel::on_timer(wxTimerEvent& event)
         wxString bed_temp_text = wxString::Format("%0.2f/%0.2f", obj->bed_temp, obj->bed_temp_target);
         m_staticText_bed_value->SetLabelText(bed_temp_text);
         
-        BBLSubTask* curr_subtask = obj->temptask_;
-        
-        if (obj->subtask_) {
-            curr_subtask = obj->subtask_;
-        }
+        BBLSubTask* curr_subtask = obj->get_subtask();
 
         if (last_subtask != curr_subtask) {
-            on_subtask_update(curr_subtask);
+            on_subtask_update(curr_subtask, true);
         }
-
-        // update task info
-        if (curr_subtask) {
-            // update gcode_duration
-            std::string duration = "NA";
-            try {
-                if (!curr_subtask->task_duration.empty())
-                    duration = get_time_dhms(stoi(curr_subtask->task_duration));
-            }
-            catch (...) {
-                ;
-            }
-
-            std::string total_time = "NA";
-            if (!curr_subtask->task_prediction.empty()) {
-                total_time = curr_subtask->task_prediction;
-            }
-            wxString progress_text = wxString::Format("%s/%s", duration, total_time);
-            m_staticText_progress->SetLabelText(progress_text);
-
-            // update current subtask progress
-            m_gauge_progress->SetValue(curr_subtask->task_progress);
-
-            // update printing status 
-            wxString printing_status_text = wxString::Format("%s", curr_subtask->printing_status);
-            m_staticText_printing_val->SetLabelText(printing_status_text);
+        else {
+            on_subtask_update(curr_subtask, false);
         }
+        last_subtask = curr_subtask;
     }
 
     Layout();
@@ -673,7 +647,6 @@ void MonitorPanel::on_timer(wxTimerEvent& event)
 void MonitorPanel::on_select(wxCommandEvent& event)
 {
     Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-
     //machine_list_items
     int selection = event.GetSelection();
     if (selection < mybind_machine_list_items.size()) {
@@ -681,13 +654,31 @@ void MonitorPanel::on_select(wxCommandEvent& event)
 
         /* update widget values */
         last_wlan_device_selection = selection;
+
+        m_choice_machine->SetSelection(selection);
     }
 }
 
-void MonitorPanel::on_subtask_update(BBLSubTask* curr_subtask)
+void MonitorPanel::select_machine(std::string machine_sn)
 {
+    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    machine_sn = account_manager->get_default_machine()->dev_id;
+    for (int i = 0; i < mybind_machine_list_items.size(); i++) {
+        if (mybind_machine_list_items[i].compare(machine_sn) == 0) {
+            wxCommandEvent* event = new wxCommandEvent(wxEVT_CHOICE);
+            event->SetInt(i);
+            wxQueueEvent(this, event);
+            return;
+        }
+    }
+}
+
+void MonitorPanel::on_subtask_update(BBLSubTask* curr_subtask, bool update_all)
+{
+    if (!curr_subtask) return;
     // update task info
-    if (curr_subtask) {
+
+    if (update_all) {
         if (curr_subtask->parent_task_) {
             BBLTask* task = curr_subtask->parent_task_;
             if (task->profile_ && task->profile_->project_) {
@@ -707,53 +698,64 @@ void MonitorPanel::on_subtask_update(BBLSubTask* curr_subtask)
                 subtask_model->update_task(task);
             }
         }
-
         // update subtask name
         m_staticText_subtask_value->SetLabelText(wxString::Format("%s", curr_subtask->task_name));
-
-        // update gcode_duration
-        std::string duration = "NA";
-        try {
-            if (!curr_subtask->task_duration.empty())
-                duration = get_time_dhms(stoi(curr_subtask->task_duration));
-        }
-        catch (...) {
-            ;
-        }
-
-        std::string total_time = "NA";
-        if (!curr_subtask->task_prediction.empty()) {
-            total_time = curr_subtask->task_prediction;
-        }
-        wxString progress_text = wxString::Format("%s/%s", duration, total_time);
-
-        m_staticText_progress->SetLabelText(progress_text);
-
-        // update current subtask progress
-        m_gauge_progress->SetValue(curr_subtask->task_progress);
-
-        // update printing status 
-        wxString printing_status_text = wxString::Format("%s", curr_subtask->printing_status);
-        m_staticText_printing_val->SetLabelText(printing_status_text);
     }
+    
+
+    // update gcode progress
+    std::string duration = "NA";
+    try {
+        if (!curr_subtask->task_duration.empty())
+            duration = get_time_dhms(stoi(curr_subtask->task_duration));
+    }
+    catch (...) {
+        ;
+    }
+
+    std::string total_time = "NA";
+    if (!curr_subtask->task_prediction.empty()) {
+        total_time = curr_subtask->task_prediction;
+    }
+    wxString progress_text = wxString::Format("%s/%s", duration, total_time);
+
+    m_staticText_progress->SetLabelText(progress_text);
+
+    // update current subtask progress
+    m_gauge_progress->SetValue(curr_subtask->task_progress);
+
+    // update printing status
+    wxString printing_status_text = wxString::Format("%s", curr_subtask->printing_status);
+    m_staticText_printing_val->SetLabelText(printing_status_text);
 }
 
+void MonitorPanel::on_subtask_status_changed(std::string old_status, std::string new_status)
+{
+    ;//TODO
+}
 
 void MonitorPanel::on_subtask_start(wxCommandEvent& event)
 {
-    ;
+    ;//TODO
 }
 
 void MonitorPanel::on_subtask_pause_resume(wxCommandEvent& event)
 {
-    if (obj)
-        obj->publish_gcode("M400 P1\n");
+    if (obj) {
+        if (is_pausing) {
+            obj->command_task_pause();
+        }
+        else {
+            obj->command_task_resume();
+        }
+        is_pausing = !is_pausing;
+    }
 }
 
 void MonitorPanel::on_subtask_abort(wxCommandEvent& event)
 {
     if (obj)
-        obj->publish_gcode("M0\n");
+        obj->command_task_abort();
 }
 
 void MonitorPanel::on_fan_on(wxCommandEvent& event)
@@ -765,25 +767,25 @@ void MonitorPanel::on_fan_on(wxCommandEvent& event)
 void MonitorPanel::on_fan_off(wxCommandEvent& event)
 {
     if (obj)
-        obj->publish_gcode("M106 S0 \n");
+        obj->command_fan_off();
 }
 
 void MonitorPanel::on_go_home(wxCommandEvent& event)
 {
     if (obj)
-        obj->publish_gcode("G28 \n");
+        obj->command_go_home();
 }
 
 void MonitorPanel::on_auto_leveling(wxCommandEvent& event)
 {
     if (obj)
-        obj->publish_gcode("G28 \n");
+        obj->command_auto_leveling();
 }
 
 void MonitorPanel::on_xyz_abs(wxCommandEvent& event)
 {
     if (obj)
-        obj->publish_gcode("G29 \n");
+        obj->command_xyz_abs();
 }
 
 void MonitorPanel::set_machine(std::string machine_sn)

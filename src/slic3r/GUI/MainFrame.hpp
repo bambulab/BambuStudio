@@ -186,6 +186,8 @@ public:
     void        export_configbundle(bool export_physical_printers = false);
     void        load_configbundle(wxString file = wxEmptyString);
     void        load_config(const DynamicPrintConfig& config);
+    //BBS: jump to monitor
+    void        jump_to_monitor();
     // Select tab in m_tabpanel
     // When tab == -1, will be selected last selected tab
     void        select_tab(Tab* tab);

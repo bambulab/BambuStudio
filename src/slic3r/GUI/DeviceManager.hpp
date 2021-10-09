@@ -169,8 +169,15 @@ public:
     BBLSubTask* subtask_;
     BBLSubTask* temptask_;
 
-    /* cloud mqtt cli */
-    //mqtt::async_client& mqtt_cloud;
+    /* control apis */
+    int command_xyz_abs();
+    int command_auto_leveling();
+    int command_go_home();
+    int command_fan_on();
+    int command_fan_off();
+    int command_task_abort();
+    int command_task_pause();
+    int command_task_resume();
 
     /* machine mqtt apis */
     void set_callbacks(SuccessFn sFn, FailedFn fFn, LostFn lFn);
@@ -190,11 +197,11 @@ public:
     int send_print_subtask(BBLSubTask* task, UploadedFn cFn, UploadProgressFn proFn, ErrorFn errFn);
     int send_lan_print_subtask(BBLSubTask* task, UploadedFn cFn, UploadProgressFn proFn, ErrorFn errFn);
     int send_wan_print_subtask(BBLSubTask* task, UploadedFn cFn, UploadProgressFn proFn, ErrorFn errFn);
+    BBLSubTask* get_subtask();
 
     /* iot operation apis */
     void request_bind(ResultFn fn, bool force_bind = false);
     void request_unbind(ResultFn fn);
-    void get_subtask(std::string project_id, std::string profile_id, std::string task_id, std::string subtask_id);
 
     /* common apis */
     void set_bind_status(std::string status);

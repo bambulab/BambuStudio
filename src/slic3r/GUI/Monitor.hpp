@@ -160,13 +160,16 @@ protected:
 	wxButton* m_button_xyz_abs;
 
     wxTimer* m_refresh_timer;
+    bool is_pausing;
 
     void on_select(wxCommandEvent& event);
-    void on_subtask_update(BBLSubTask* curr_subtask);
+    void on_subtask_update(BBLSubTask* curr_subtask, bool update_all = true);
 
     void on_subtask_start(wxCommandEvent& event);
     void on_subtask_pause_resume(wxCommandEvent& event);
     void on_subtask_abort(wxCommandEvent& event);
+    /* change button status when subtask status changed */
+    void on_subtask_status_changed(std::string old_status, std::string new_status);
 
     void on_fan_on(wxCommandEvent& event);
     void on_fan_off(wxCommandEvent& event);
@@ -193,6 +196,7 @@ public:
     BBLSubTask* last_subtask;
 
     void set_machine(std::string machine_sn);
+    void select_machine(std::string machine_sn);
 };
 
 } // GUI

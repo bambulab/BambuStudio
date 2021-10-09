@@ -2004,6 +2004,13 @@ void MainFrame::select_tab(Tab* tab)
     select_tab(size_t(page_idx));
 }
 
+//BBS
+void MainFrame::jump_to_monitor()
+{
+    m_tabpanel->SetSelection(4);
+    ((MonitorPanel*)m_monitor)->select_machine("");
+}
+
 void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
 {
     bool tabpanel_was_hidden = false;

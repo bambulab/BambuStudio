@@ -140,7 +140,7 @@ void PrintJob::process()
             subTask->task_weight = wxString::Format("%.2f", ps.total_weight).ToStdString();
         }
     }
-    subTask->task_name = (boost::format("%s_%s_%s") % project->project_name % profile->profile_name % subTask->task_gcode_in_3mf).str();
+    subTask->task_name = subTask->task_gcode_in_3mf;
 
     /*
     subTask->task_url = project->project_url;
@@ -187,6 +187,9 @@ void PrintJob::process()
 
         // add to user project
         c->myProjectList.insert(std::make_pair(project->project_id, project));
+
+        m_plater->print_job_finished();
+        finalize();
         return;
     }
 }

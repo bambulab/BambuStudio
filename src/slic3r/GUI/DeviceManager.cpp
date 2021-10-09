@@ -152,6 +152,47 @@ bool MachineObject::check_valid_ip()
     return true;
 }
 
+int MachineObject::command_xyz_abs()
+{
+    return this->publish_gcode("G90 \n");
+}
+
+int MachineObject::command_auto_leveling()
+{
+    return this->publish_gcode("G29 \n");
+}
+
+int MachineObject::command_go_home()
+{
+    return this->publish_gcode("G28 \n");
+}
+
+int MachineObject::command_fan_on()
+{
+    return this->publish_gcode("M106 S255 \n");
+}
+
+int MachineObject::command_fan_off()
+{
+    return this->publish_gcode("M106 S0 \n");
+}
+
+int MachineObject::command_task_abort()
+{
+    return this->publish_gcode("M0\n");
+}
+
+int MachineObject::command_task_pause()
+{
+    return this->publish_gcode("M400 P1\n");
+}
+
+int MachineObject::command_task_resume()
+{
+    return this->publish_gcode("M400 P0\n");
+}
+
+
 void MachineObject::set_callbacks(SuccessFn sFn, FailedFn fFn, LostFn lFn)
 {
     successFn = sFn;
@@ -374,7 +415,9 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                         curr_task->task_id = subtask_id.value();
                     }
                     if (gcode_file.has_value()) {
-                        curr_task->task_name = gcode_file.value();
+                        if (curr_task == temptask_) {
+                            curr_task->task_name = gcode_file.value();
+                        }
                     }
                 }
 
@@ -537,6 +580,17 @@ int MachineObject::parse_json(std::string topic, std::string payload)
         else if (root.get_child_optional("event") != boost::none) {
             pt::ptree event_node = root.get_child("event");
             boost::optional<std::string> event_str = event_node.get_optional<std::string>("event");
+            if (event_str.has_value()) {
+                if (event_str.value().compare("client.disconnected") == 0) {
+                    acc_.request_bind_list();
+                }
+                else if (event_str.value().compare("client.connected") == 0) {
+                    acc_.request_bind_list();
+                }
+                else {
+                    ;
+                }
+            }
             /* fields: client_id, username, peername, proto_name, proto_ver, connected_at, timestamp, etc */
             BOOST_LOG_TRIVIAL(trace) << "parse_json, event topic=" << topic << ", payload = " << payload;
         }
@@ -749,6 +803,16 @@ int MachineObject::send_wan_print_subtask(BBLSubTask* task, UploadedFn uploadedF
         }
         );
     return 0;
+}
+
+BBLSubTask* MachineObject::get_subtask()
+{
+    if (subtask_) {
+        return subtask_;
+    }
+    else {
+        return temptask_;
+    }
 }
 
 void MachineObject::request_bind(ResultFn resFn, bool force_bind)

@@ -6583,6 +6583,13 @@ void Plater::send_gcode()
     */
 }
 
+
+//BBS
+void Plater::print_job_finished()
+{
+    p->main_frame->jump_to_monitor();
+}
+
 // Called when the Eject button is pressed.
 void Plater::eject_drive()
 {

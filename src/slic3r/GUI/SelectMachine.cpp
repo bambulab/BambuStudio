@@ -305,10 +305,12 @@ void SelectMachineDialog::on_timer(wxTimerEvent& event)
 
 void SelectMachineDialog::on_selection_changed(wxDataViewEvent& event)
 {
+    Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
     wxDataViewItem item = event.GetItem();
     wxVariant val;
     machine_model->GetValue(val, item, MachineListModel::Col_MachineSN);
     machine_sn = val.GetString();
+    c->default_machine = machine_sn.ToStdString();
 }
 
 void SelectMachineDialog::on_dpi_changed(const wxRect& suggested_rect)

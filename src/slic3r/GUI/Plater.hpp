@@ -249,6 +249,8 @@ public:
     bool is_background_process_update_scheduled() const;
     void suppress_background_process(const bool stop_background_process) ;
     void send_gcode();
+    //BBS jump to nonitor after print job finished
+    void print_job_finished();
 	void eject_drive();
 
     void take_snapshot(const std::string &snapshot_name);

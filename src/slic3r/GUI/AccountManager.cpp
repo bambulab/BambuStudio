@@ -90,8 +90,7 @@ namespace Slic3r {
                 if (iter != manager->myBindMachineList.end()) {
                     iter->second->parse_json(msg->get_topic(), msg->get_payload_str());
                 }
-            }
-            
+            }   
         }
     }
 
@@ -179,6 +178,7 @@ namespace Slic3r {
         m_curr_user = AccountInfo::load_from_json(account_json);
         if (this->is_user_login()) {
             this->connect_mqtt();
+            this->request_bind_list();
         }
         return 0;
     }
