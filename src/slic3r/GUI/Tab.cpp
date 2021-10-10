@@ -2947,6 +2947,8 @@ void TabPrinter::clear_pages()
 {
     Tab::clear_pages();
     m_reset_to_filament_color = nullptr;
+    //BBS: free the subwindow pointers
+    m_machine_limits_description_line = nullptr;
 }
 
 void TabPrinter::toggle_options()
