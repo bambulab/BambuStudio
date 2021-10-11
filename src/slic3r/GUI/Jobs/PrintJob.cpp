@@ -134,7 +134,7 @@ void PrintJob::process()
     subTask->task_partplate_idx = plate->get_index();
     subTask->task_printer_dev_id = machine_sn;
     if (plate->get_slice_result()) {
-        subTask->task_prediction = get_time_dhms(plate->get_slice_result()->time_statistics.modes[static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Normal)].time);
+        subTask->task_prediction = std::to_string((int)plate->get_slice_result()->time_statistics.modes[static_cast<size_t>(PrintEstimatedTimeStatistics::ETimeMode::Normal)].time);
         const PrintStatistics& ps = m_plater->get_partplate_list().get_current_fff_print().print_statistics();
         if (ps.total_weight != 0.0) {
             subTask->task_weight = wxString::Format("%.2f", ps.total_weight).ToStdString();

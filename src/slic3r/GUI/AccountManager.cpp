@@ -521,7 +521,7 @@ namespace Slic3r {
         pt::ptree root;
         root.put("user_id", m_curr_user->get_user_id());
         std::stringstream oss;
-        pt::write_json(oss, root);
+        pt::write_json(oss, root, false);
         json_str = oss.str();
 
         http.header("accept", "application/json")
@@ -572,7 +572,7 @@ namespace Slic3r {
         root.put("dev_id", device_id);
         //root.put("force", "false");
         std::stringstream oss;
-        pt::write_json(oss, root);
+        pt::write_json(oss, root, false);
         json_str = oss.str();
 
         Http http = Http::del(url);
@@ -751,7 +751,7 @@ namespace Slic3r {
         /* root.put("content", project_content); */
 
         std::stringstream oss;
-        pt::write_json(oss, root);
+        pt::write_json(oss, root, false);
         return oss.str();
     }
 
@@ -763,7 +763,7 @@ namespace Slic3r {
         root.put("name", profile_name_str);
         root.put("content", profile->profile_content);
         std::stringstream oss;
-        pt::write_json(oss, root);
+        pt::write_json(oss, root, false);
         return oss.str();
     }
 
@@ -778,7 +778,7 @@ namespace Slic3r {
         root.put("name", task_name_str);
         root.put("content", task->build_content_json());
         std::stringstream oss;
-        pt::write_json(oss, root);
+        pt::write_json(oss, root, false);
         return oss.str();
     }
 
@@ -795,7 +795,7 @@ namespace Slic3r {
         profile_files.push_back(std::make_pair("", files));
         root.add_child("profile_files", profile_files);
         std::stringstream oss;
-        pt::write_json(oss, root);
+        pt::write_json(oss, root, false);
         return oss.str();
     }
 
@@ -1060,9 +1060,11 @@ namespace Slic3r {
 
         std::string ticket = (boost::format("%1%_%2%") % task->parent_task_->task_id % task->task_id).str();
         std::string gather = json_request_poll_3mf_gather(task);
-        std::string query_params = (boost::format("?profile_id=%1%&&ticket=%2%") % profile->profile_id % ticket).str();
+        gather.erase(std::remove(gather.begin(), gather.end(), '\\'), gather.end());
+        gather = Http::url_encode(gather);
+        std::string query_params = (boost::format("?profile_id=%1%&&ticket=%2%&&gather=%3%") % profile->profile_id % ticket % gather).str();
         std::string url = (boost::format("%1%/iot/user/project/%2%%3%") % host % profile->project_id % query_params).str();
-
+        
         int retry_ = 0;
         int retry_max = 5;
         
@@ -1555,7 +1557,7 @@ namespace Slic3r {
     {
         pt::ptree root;
         std::stringstream oss;
-        pt::write_json(oss, root);
+        pt::write_json(oss, root, false);
         return oss.str();
     }
 
@@ -1564,7 +1566,7 @@ namespace Slic3r {
         pt::ptree root;
         root.put("dev_id", device_id);
         std::stringstream oss;
-        pt::write_json(oss, root);
+        pt::write_json(oss, root, false);
         return oss.str();
     }
 
@@ -1589,7 +1591,7 @@ namespace Slic3r {
         root.put("account", account);
         root.put("password", password);
         std::stringstream oss;
-        pt::write_json(oss, root);
+        pt::write_json(oss, root, false);
         return oss.str();
     }
 
@@ -1599,7 +1601,7 @@ namespace Slic3r {
         root.put("account", account);
         root.put("password", password);
         std::stringstream oss;
-        pt::write_json(oss, root);
+        pt::write_json(oss, root, false);
         return oss.str();
     }
 

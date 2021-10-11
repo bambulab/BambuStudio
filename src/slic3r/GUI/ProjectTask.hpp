@@ -41,7 +41,7 @@ public:
     std::string     task_duration;      /* duration created by machine, unit seconds */
 
     // task of plate info
-    std::string     task_prediction;    /* prediction printing time of plate */
+    std::string     task_prediction;    /* prediction printing time of plate, unit seconds */
     std::string     task_weight;        /* weight create by slicer */
     int             task_partplate_idx; 
 

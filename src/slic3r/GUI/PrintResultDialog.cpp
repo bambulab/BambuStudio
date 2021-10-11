@@ -172,14 +172,14 @@ void PrintResultDialog::submit()
 			info.add_child("ams", ams_reason_array);
 		}
 		std::stringstream info_oss;
-		pt::write_json(info_oss, info);
+		pt::write_json(info_oss, info, false);
 		std::string info_json_str = info_oss.str();
 		root.put("detail", info_json_str);
 
 		AccountManager* manager = wxGetApp().getAccountManager();
 
 		std::stringstream oss;
-		pt::write_json(oss, root);
+		pt::write_json(oss, root, false);
 		std::string json_str = oss.str();
 
 		manager->submit_print_result(summary->device_id, json_str,

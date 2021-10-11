@@ -331,6 +331,7 @@ int MachineObject::publish_json(std::string json_str, ResultFn resFn, CONNECTION
         if (client->is_connected()) {
             std::string topic = (boost::format("device/%1%/request") % dev_id).str();
             json_str += '\0';
+            BOOST_LOG_TRIVIAL(trace) << "publish_json topic=" << topic << ", payload=" << json_str;
             client->publish(topic, json_str);
             if (msg_send_fn) {
                 msg_send_fn(topic, json_str);
@@ -646,7 +647,7 @@ int MachineObject::publish_gcode(std::string gcode_str)
     print.put("sequence_id", MachineObject::m_sequence_id++);
     root.put_child("print", print);
     std::stringstream oss;
-    pt::write_json(oss, root);
+    pt::write_json(oss, root, false);
     std::string json_str = oss.str();
 
     return this->publish_json(json_str);
@@ -692,7 +693,7 @@ int MachineObject::send_wan_print_task(BBLTask* task)
     print.put("subtask", "0");
     root.put_child("print", print);
     std::stringstream oss;
-    pt::write_json(oss, root);
+    pt::write_json(oss, root, false);
     std::string json_str = oss.str();
     /* !!! remove '\' !!!! */
     json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());
@@ -740,7 +741,7 @@ int MachineObject::send_lan_print_subtask(BBLSubTask* task, UploadedFn uploadedF
             print.put<std::string>("param", dst_file_str);
             root.put_child("print", print);
             std::stringstream oss;
-            pt::write_json(oss, root);
+            pt::write_json(oss, root, false);
             std::string json_str = oss.str();
             /* !!! remove '\' !!!! */
             json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());
@@ -789,7 +790,7 @@ int MachineObject::send_wan_print_subtask(BBLSubTask* task, UploadedFn uploadedF
         print.put("subtask_id", task->task_id);
         root.put_child("print", print);
         std::stringstream oss;
-        pt::write_json(oss, root);
+        pt::write_json(oss, root, false);
         std::string json_str = oss.str();
         /* !!! remove '\' !!!! */
         json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());
@@ -817,7 +818,7 @@ int MachineObject::send_wan_print_subtask(BBLSubTask* task, UploadedFn uploadedF
                 print.put("subtask_id", task->task_id);
                 root.put_child("print", print);
                 std::stringstream oss;
-                pt::write_json(oss, root);
+                pt::write_json(oss, root, false);
                 std::string json_str = oss.str();
                 this->publish_json(json_str);
             }
@@ -860,7 +861,7 @@ void MachineObject::request_bind(ResultFn resFn, bool force_bind)
         bind.put<std::string>("user_id", acc_.get_user_id());
         root.put_child("bind", bind);
         std::stringstream oss;
-        pt::write_json(oss, root);
+        pt::write_json(oss, root, false);
         std::string json_str = oss.str();
         this->publish_json(json_str, resFn);
     }

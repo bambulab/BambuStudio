@@ -285,8 +285,15 @@ void SubTaskListModel::update_task(BBLTask* task)
         m_nameColValues.push_back(task_name_text);
 
         wxString duration_text = "N/A";
-        if (!(*it)->task_prediction.empty())
-            duration_text = wxString::Format("%s", (*it)->task_prediction);
+        if (!(*it)->task_prediction.empty()) {
+            try {
+                std::string duration = get_time_dhms(stoi((*it)->task_prediction));
+                duration_text = wxString::Format("%s", duration);
+            }
+            catch (...) {
+                ;
+            }
+        }
         m_durationColValues.push_back(duration_text);
         wxString weight_text = "N/A";
         if (!(*it)->task_weight.empty())
@@ -1128,7 +1135,12 @@ void MonitorPanel::on_subtask_update(BBLSubTask* curr_subtask, bool update_all)
 
     std::string total_time = "NA";
     if (!curr_subtask->task_prediction.empty()) {
-        total_time = curr_subtask->task_prediction;
+        try {
+            total_time = get_time_dhms(stoi(curr_subtask->task_prediction));
+        }
+        catch (...) {
+            ;
+        }
     }
     wxString progress_text = wxString::Format("%s/%s", duration, total_time);
 

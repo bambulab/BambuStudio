@@ -41,22 +41,18 @@ namespace Slic3r {
         }
 
         /* get create time */
-        std::time_t t = std::time(0);
-        std::tm* now_time = std::localtime(&t);
-        std::stringstream buf;
-        buf << std::put_time(now_time, "%a %b %d %H:%M:%S");
-        task_create_time = buf.str();
+        long t = wxGetUTCTime();
+        wxDateTime now = wxDateTime::Now().MakeUTC();
+        task_create_time = now.FormatISOCombined(' ').ToStdString();
     }
 
     BBLSubTask::BBLSubTask(BBLTask* task) {
         parent_task_ = task;
 
         /* get create time */
-        std::time_t t = std::time(0);
-        std::tm* now_time = std::localtime(&t);
-        std::stringstream buf;
-        buf << std::put_time(now_time, "%a %b %d %H:%M:%S");
-        task_create_time = buf.str();
+        long t = wxGetUTCTime();
+        wxDateTime now = wxDateTime::Now().MakeUTC();
+        task_create_time = now.FormatISOCombined(' ').ToStdString();
     }
 
 
@@ -88,7 +84,7 @@ namespace Slic3r {
         js_task.put_child("subtasks", js_subtasks);
 
         std::stringstream oss;
-        pt::write_json(oss, js_task);
+        pt::write_json(oss, js_task, false);
         return oss.str();
     }
 
@@ -170,7 +166,7 @@ namespace Slic3r {
         root.put_child("tasks", js_tasks);
         
         std::stringstream oss;
-        pt::write_json(oss, root);
+        pt::write_json(oss, root, false);
         return oss.str();
     }
 

@@ -397,7 +397,7 @@ void DebugToolDialog::get_version() {
     root.put_child("info", info);
 
     std::stringstream oss;
-    pt::write_json(oss, root);
+    pt::write_json(oss, root, false);
     std::string json_str = oss.str();
     json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());
     this->publish_json(json_str);
@@ -646,7 +646,7 @@ void DebugToolDialog::init_upgrade(wxWindow* parent)
         root.put_child("upgrade", upgrade);
 
         std::stringstream oss;
-        pt::write_json(oss, root);
+        pt::write_json(oss, root, false);
         std::string json_str = oss.str();
         json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());
         if (this->publish_json(json_str) == 0) {
@@ -746,8 +746,6 @@ void DebugToolDialog::init_gcode_run_file(wxWindow *parent)
                 summary->start_time = buf.str();
                 summary->has_time_start = true;
                 wxString path = txt_gcode_filename->GetValue();
-                std::wstring print_file = path.ToStdWstring();
-
 
                 /* create a subtask */
                 BBLSubTask* task = new BBLSubTask();
@@ -773,10 +771,10 @@ void DebugToolDialog::init_gcode_run_file(wxWindow *parent)
                         evt->SetInt(progress);
                         wxQueueEvent(this, evt);
                     },
-                        [this, print_file](std::string error) {
-                        gcode_uploading = false;
-                        BOOST_LOG_TRIVIAL(trace) << "transform gcode=" << print_file << " error, error=" << error;
-                        send_log_evt("trasform gcode failed, error=" + error);
+                    [this](std::string error) {
+                    gcode_uploading = false;
+                    BOOST_LOG_TRIVIAL(trace) << "transform gcode error=" << error;
+                    send_log_evt("trasform gcode failed, error=" + error);
                     });
             }
             else {
@@ -1645,7 +1643,7 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
                 pt::ptree version = root.get_child("sw_ver");
                 try {
                     std::stringstream oss;
-                    pt::write_json(oss, version);
+                    pt::write_json(oss, version, false);
                     std::string json_str = oss.str();
                     summary->device_version = json_str;
                 }
@@ -1669,7 +1667,7 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
                     pt::ptree version = info.get_child("sw_ver");
                     try {
                         std::stringstream oss;
-                        pt::write_json(oss, version);
+                        pt::write_json(oss, version, false);
                         std::string version_str = oss.str();
                         summary->device_version = version_str;
                     }
@@ -1826,7 +1824,7 @@ int DebugToolDialog::publishGcode(std::string gcode)
     print.put("sequence_id", this->m_sequence_id++);
     root.put_child("print", print);
     std::stringstream oss;
-    pt::write_json(oss, root);
+    pt::write_json(oss, root, false);
     std::string json_str = oss.str();
 
     result = this->publish_json(json_str);
