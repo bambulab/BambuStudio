@@ -69,15 +69,15 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         is_msg_dlg_already_exist = false;
     }
 
-    //BBS: ironing_spacing shouldn't be equal to zero
-    if (config->opt_float("ironing_spacing") < EPSILON)
+    //BBS: ironing_spacing shouldn't be too small or equal to zero
+    if (config->opt_float("ironing_spacing") < 0.05)
     {
-        const wxString msg_text = _(L("Zero ironing spacing is not valid.\n\nThe ironing spacing will be reset to 0.1."));
+        const wxString msg_text = _(L("Too small ironing spacing is not valid.\n\nThe ironing spacing will be reset to 0.05."));
         wxMessageDialog dialog(nullptr, msg_text, _(L("Ironing spacing")), wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist = true;
         dialog.ShowModal();
-        new_conf.set_key_value("ironing_spacing", new ConfigOptionFloat(0.1));
+        new_conf.set_key_value("ironing_spacing", new ConfigOptionFloat(0.05));
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
