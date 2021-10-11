@@ -116,6 +116,34 @@ private:
     boost::posix_time::ptime m_stage_start_times[NUM_STAGES];
 };
 
+Lines spanning_tree_to_lines(const std::vector<MinimumSpanningTree>& spanning_trees)
+{
+    Lines polylines;
+    for (const MinimumSpanningTree& mst : spanning_trees) {
+        std::vector<Point> points = mst.vertices();
+        std::unordered_set<Point, PointHash> to_ignore;
+        for (Point pt1 : points) {
+            if (to_ignore.find(pt1) != to_ignore.end())
+                continue;
+
+            const std::vector<Point>& neighbours = mst.adjacent_nodes(pt1);
+            if (neighbours.empty())
+                continue;
+
+            for (Point pt2 : neighbours) {
+                if (to_ignore.find(pt2) != to_ignore.end())
+                    continue;
+
+                Line line(pt1, pt2);
+                polylines.push_back(line);
+            }
+
+            to_ignore.insert(pt1);
+        }
+    }
+    return polylines;
+}
+
 
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
 static  std::string get_svg_filename(int layer_nr, std::string tag = "bbl_ts")
@@ -142,10 +170,20 @@ static void draw_avoidance_and_nodes_to_svg
     const ExPolygons &outlines_below,
     const std::vector<TreeSupport::Node*> &layer_nodes,
     const std::vector<TreeSupport::Node*> &lower_layer_nodes,
-    BoundingBox bbox
+    std::string name_prefix,
+    std::vector<std::string> legends = { "overhang","avoid","outlines" }
 )
 {
-    SVG svg(get_svg_filename(layer_nr, "contact_points").c_str(), bbox);
+    BoundingBox bbox = get_extents(overhangs_after_offset);
+    bbox.merge(get_extents(outlines_below));
+    Points layer_pts;
+    for (TreeSupport::Node* node : layer_nodes) {
+        layer_pts.push_back(node->position);
+    }
+    bbox.merge(get_extents(layer_pts));
+    bbox.inflated(scale_(1));
+
+    SVG svg(get_svg_filename(layer_nr, name_prefix), bbox);
     if (!svg.is_opened())        return;
 
     // draw grid
@@ -177,15 +215,11 @@ static void draw_avoidance_and_nodes_to_svg
 
     // draw legend
     svg.draw_text(bbox.min + Point(scale_(0), scale_(0)), ("nPoints: "+std::to_string(layer_nodes.size())).c_str(), "blue", 4);
-    svg.draw_text(bbox.min + Point(scale_(0),scale_(1)), "overhang", "blue",4);
-    svg.draw_text(bbox.min + Point(scale_(0), scale_(2)), "avoid", "red",4);
-    svg.draw_text(bbox.min + Point(scale_(0), scale_(3)), "outlines", "yellow", 4);
+    svg.draw_text(bbox.min + Point(scale_(0), scale_(1)), legends[0].c_str(), "blue", 4);
+    svg.draw_text(bbox.min + Point(scale_(0), scale_(2)), legends[1].c_str(), "red", 4);
+    svg.draw_text(bbox.min + Point(scale_(0), scale_(3)), legends[2].c_str(), "yellow", 4);
 
-    // draw layer nodes
-    Points layer_pts;
-    for (TreeSupport::Node *node : layer_nodes) {
-        layer_pts.push_back(node->position);
-    }
+    // draw layer nodes    
     svg.draw(layer_pts, "green", coord_t(scale_(0.1)));
 
     // lower layer points
@@ -211,58 +245,18 @@ static void draw_layer_mst
     const ExPolygons& outline
 )
 {
-    BoundingBox bbox;
+    auto lines = spanning_tree_to_lines(spanning_trees);
+    BoundingBox bbox = get_extents(lines);
+    for (auto& poly : outline)
     {
-        coord_t x_min = std::numeric_limits<coord_t>::max(), y_min = std::numeric_limits<coord_t>::max();
-        coord_t x_max = std::numeric_limits<coord_t>::min(), y_max = std::numeric_limits<coord_t>::min();
-        for (const MinimumSpanningTree& mst : spanning_trees) {
-            std::vector<Point> points = mst.vertices();
-            for (Point pt1 : points) {
-                x_min = std::min(x_min, pt1.x());
-                x_max = std::max(x_max, pt1.x());
-                y_min = std::min(y_min, pt1.y());
-                y_max = std::max(y_max, pt1.y());
-            }
-        }
-        for (auto& poly : outline)
-        {
-            BoundingBox bb = poly.contour.bounding_box();
-
-            x_min = std::min(x_min, bb.min.x());
-            x_max = std::max(x_max, bb.max.x());
-            y_min = std::min(y_min, bb.min.y());
-            y_max = std::max(y_max, bb.max.y());
-        }
-        bbox.min = Point(x_min, y_min);
-        bbox.max = Point(x_max, y_max);
+        BoundingBox bb = poly.contour.bounding_box();
+        bbox.merge(bb);
     }
 
     SVG svg(get_svg_filename(layer_nr, "mstree").c_str(), bbox);
     if (!svg.is_opened())        return;
-
-    for (const MinimumSpanningTree& mst : spanning_trees) {
-        std::vector<Point> points = mst.vertices();
-        std::unordered_set<Point, PointHash> to_ignore;
-        for (Point pt1 : points) {
-            if (to_ignore.find(pt1) != to_ignore.end())
-                continue;
-
-            const std::vector<Point>& neighbours = mst.adjacent_nodes(pt1);
-            if (neighbours.empty())
-                continue;
-
-            for (Point pt2 : neighbours) {
-                if (to_ignore.find(pt2) != to_ignore.end())
-                    continue;
-
-                Polyline line(pt1, pt2);
-                svg.draw(line, "blue", coord_t(scale_(0.05)));
-            }
-
-            to_ignore.insert(pt1);
-        }
-    }
-
+    
+    svg.draw(lines, "blue", coord_t(scale_(0.05)));
     svg.draw_outline(outline, "yellow");
 }
 #endif
@@ -561,11 +555,13 @@ Point projection_onto_ex(const ExPolygons& polygons, Point from)
     Point projected_pt;
     double min_dist = std::numeric_limits<double>::max();
     for (auto poly : polygons) {
-        Point p = from.projection_onto(poly.contour);
-        double dist = (from - p).cast<double>().squaredNorm();
-        if (dist < min_dist) {
-            projected_pt = p;
-            min_dist = dist;
+        for (int i = 0; i < poly.num_contours(); i++) {
+            Point p = from.projection_onto(poly.contour_or_hole(i));
+            double dist = (from - p).cast<double>().squaredNorm();
+            if (dist < min_dist) {
+                projected_pt = p;
+                min_dist = dist;
+            }
         }
     }
     return projected_pt;
@@ -1311,8 +1307,8 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                         auto line_expanded = offset_ex(line, branch_radius_scaled * scale, jtRound);
                         base_areas = union_ex(base_areas, line_expanded);
                     }
-                    m_object.print()->set_status(95, "Support: draw_circles at layer " + std::to_string(layer_nr));
                 }
+                m_object.print()->set_status(95, "Support: draw_circles at layer " + std::to_string(layer_nr));
 
 
                 const size_t z_collision_layer = static_cast<size_t>(std::max(0, static_cast<int>(layer_nr) - static_cast<int>(bottom_interface_layers)));
@@ -1503,7 +1499,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                     size_t new_distance_to_top = std::max(node.distance_to_top, neighbour->distance_to_top) + 1;
                     size_t new_support_roof_layers_below = std::max(node.support_roof_layers_below, neighbour->support_roof_layers_below) - 1;
 
-                    const bool to_buildplate = !is_inside_ex(avoid_layer, next_position);
+                    const bool to_buildplate = !is_inside_ex(m_ts_data->get_avoidance(0, layer_nr - 1), next_position);
                     Node* next_node = new Node(next_position, new_distance_to_top, node.skin_direction, new_support_roof_layers_below, to_buildplate, p_node);
                     contact_nodes[layer_nr - 1].push_back(next_node);
 
@@ -1552,14 +1548,20 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                         }
                         continue;
                     }
+                    // if the link between parent and current is cut by contours, delete this branch
+                    if (intersection_ln({p_node->position, p_node->parent->position}, layer_contours).empty()==false)
+                    {
+                        unsupported_branch_leaves.push_front({ layer_nr, p_node });
+                        continue;
+                    }
                 }
                 Point next_layer_vertex = node.position;
                 Point move_to_neighbor_center;
                 const std::vector<Point> neighbours = mst.adjacent_nodes(node.position);
                 // 1. do not merge neighbors under 5mm
-                // 2. Only merge node with single neighbor in distance between [max_move_distance, 10/layer_height]
+                // 2. Only merge node with single neighbor in distance between [max_move_distance, 10mm/layer_height]
                 if (layer_nr>5/layer_height && 
-                    (neighbours.size() > 1 || (neighbours.size() == 1 && vsize2_with_unscale(neighbours[0] - node.position) >= max_move_distance2 && vsize2_with_unscale(neighbours[0] - node.position) < 10/layer_height*max_move_distance2))) //Only nodes that aren't about to collapse.
+                    (neighbours.size() > 1 || (neighbours.size() == 1 && vsize2_with_unscale(neighbours[0] - node.position) >= max_move_distance2 && vsize2_with_unscale(neighbours[0] - node.position) < SQ(10/layer_height)*max_move_distance2))) //Only nodes that aren't about to collapse.
                 {
                     //Move towards the average position of all neighbours.
                     Point sum_direction(0, 0);
@@ -1580,11 +1582,10 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                                 continue;
                         }
                         else {
-                            Polylines pls;
-                            pls.emplace_back(neighbour, node.position);
-                            Polylines pls_intersect = intersection_pl(pls, layer_contours);
+                            Line ln(neighbour, node.position);
+                            Lines pls_intersect = intersection_ln(ln, layer_contours);
                             mst_line_x_layer_contour_cache.insert({ {node.position, neighbour}, !pls_intersect.empty() });
-                            mst_line_x_layer_contour_cache.insert({ {neighbour, node.position}, !pls_intersect.empty() });
+                            mst_line_x_layer_contour_cache.insert({ ln, !pls_intersect.empty() });
                             if (!pls_intersect.empty())
                                 continue;
                         }
@@ -1616,7 +1617,10 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                 Point to_outside = projection_onto_ex(avoid_layer, node.position);
                 Point movement = to_outside - node.position;
                 double movelength2 = vsize2_with_unscale(movement);
-                if (movelength2 > max_move_distance2) {
+                // don't move if it's impossible to move to build plate
+                if (movelength2 > max_move_distance2 * SQ(layer_nr))
+                    movement = Point(0, 0);
+                else if (movelength2 > max_move_distance2) {
                     if (is_inside_ex(avoid_layer, node.position))
                         movement = normal(movement, scale_(max_move_distance));
                     else
@@ -1656,10 +1660,8 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
         }
 
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
-        BoundingBox bbox_temp = m_object.bounding_box();
-        bbox_temp.offset(branch_radius * 5);
         draw_avoidance_and_nodes_to_svg(layer_nr, m_ts_data->get_avoidance(0, layer_nr), m_ts_data->get_avoidance(branch_radius_temp, layer_nr), m_ts_data->m_layer_outlines_below[layer_nr],
-            contact_nodes[layer_nr], contact_nodes[layer_nr - 1], bbox_temp);
+            contact_nodes[layer_nr], contact_nodes[layer_nr - 1], "contact_points");
 #endif
 
         // Prune all branches that couldn't find support on either the model or the buildplate (resulting in 'mid-air' branches).
