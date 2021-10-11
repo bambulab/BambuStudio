@@ -180,6 +180,8 @@ public:
     int command_task_abort();
     int command_task_pause();
     int command_task_resume();
+    // axis string is X, Y, Z, E
+    int command_axis_control(std::string axis, double unit = 1.0f, double value = 1.0f, int speed = 3000);
 
     /* machine mqtt apis */
     void set_callbacks(SuccessFn sFn, FailedFn fFn, LostFn lFn);

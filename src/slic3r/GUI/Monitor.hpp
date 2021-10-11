@@ -29,6 +29,7 @@
 #include <wx/button.h>
 #include <wx/gbsizer.h>
 #include <wx/statbox.h>
+#include <wx/tglbtn.h>
 
 #include <map>
 #include <vector>
@@ -193,20 +194,32 @@ protected:
 	wxStaticText* m_staticText_X;
 	wxStaticText* m_staticText_Y;
 	wxStaticText* m_staticText_Z;
-	wxButton* m_button_0_1;
-	wxButton* m_button_1_0;
-	wxButton* m_button_10_0;
-	wxButton* m_button_100_0;
+	wxToggleButton* m_button_0_1;
+	wxToggleButton* m_button_1_0;
+	wxToggleButton* m_button_10_0;
+	wxToggleButton* m_button_100_0;
+	wxComboBox* m_comboBox_trays;
+	wxButton* m_button_extreder_feed;
+	wxButton* m_button_extruder_back;
+	wxTextCtrl* m_textCtrl_extrude;
+	wxStaticText* m_staticText_unit_extrude;
 	wxButton* m_button_extruder_in;
+	wxTextCtrl* m_textCtrl_retraction;
+	wxStaticText* m_staticText_unit_retraction;
 	wxButton* m_button_extruder_out;
 	wxButton* m_button_fan_on;
 	wxButton* m_button_fan_off;
-	wxButton* m_button_go_home;
 	wxButton* m_button_auto_leveling;
 	wxButton* m_button_xyz_abs;
 
     wxTimer* m_refresh_timer;
     bool is_pausing;
+	wxBitmap m_ctrl_up;
+	wxBitmap m_ctrl_down;
+	wxBitmap m_ctrl_left;
+	wxBitmap m_ctrl_right;
+	wxBitmap m_ctrl_home;
+	double m_ctrl_unit;
 
     void on_select(wxCommandEvent& event);
     void on_subtask_update(BBLSubTask* curr_subtask, bool update_all = true);
@@ -218,14 +231,36 @@ protected:
     /* change button status when subtask status changed */
     void on_subtask_status_changed(std::string old_status, std::string new_status);
 
+	/* axis control */
+	void on_axis_ctrl_y_up(wxCommandEvent& event);
+	void on_axis_ctrl_y_down(wxCommandEvent& event);
+	void on_axis_ctrl_xy_home(wxCommandEvent& event);
+	void on_axis_ctrl_x_left(wxCommandEvent& event);
+	void on_axis_ctrl_x_right(wxCommandEvent& event);
+	void on_axis_ctrl_z_up(wxCommandEvent& event);
+	void on_axis_ctrl_z_home(wxCommandEvent& event);
+	void on_axis_ctrl_z_down(wxCommandEvent& event);
+	void on_axis_ctrl_unit_0_1(wxCommandEvent& event);
+	void on_axis_ctrl_unit_1_0(wxCommandEvent& event);
+	void on_axis_ctrl_unit_10_0(wxCommandEvent& event);
+	void on_axis_ctrl_unit_100_0(wxCommandEvent& event);
+	double get_control_unit();
+	void set_toggle_widget_on(wxToggleButton* btn);
+
+	/* extruder apis */
+	void on_extruder_feed(wxCommandEvent& event);
+	void on_extruder_back(wxCommandEvent& event);
+	void on_extruder_extrude(wxCommandEvent& event);
+	void on_extruder_retraction(wxCommandEvent& event);
+
     void on_fan_on(wxCommandEvent& event);
     void on_fan_off(wxCommandEvent& event);
-    void on_go_home(wxCommandEvent& event);
     void on_auto_leveling(wxCommandEvent& event);
     void on_xyz_abs(wxCommandEvent& event);
     void on_timer(wxTimerEvent& event);
     void on_size(wxSizeEvent& event);
 
+    void init_bitmap();
     void init_model();
     void init_timer();
     void init_bind();

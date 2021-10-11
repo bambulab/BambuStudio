@@ -195,6 +195,23 @@ int MachineObject::command_task_resume()
     return this->publish_gcode("M400 P0\n");
 }
 
+int MachineObject::command_axis_control(std::string axis, double unit, double value, int speed)
+{
+    char cmd[64];
+    if (axis.compare("X") == 0
+        || axis.compare("Y") == 0
+        || axis.compare("Z") == 0) {
+        sprintf(cmd, "G91 \nG0 %s%0.1f F%d\n", axis.c_str(), value * unit, speed);
+    }
+    else if (axis.compare("E") == 0) {
+        sprintf(cmd, "M83 \nG0 %s%0.1f F%d\n", axis.c_str(), value * unit, speed);
+    }
+    else {
+        return -1;
+    }
+    return this->publish_gcode(cmd);
+}
+
 
 void MachineObject::set_callbacks(SuccessFn sFn, FailedFn fFn, LostFn lFn)
 {
