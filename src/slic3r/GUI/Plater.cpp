@@ -4570,7 +4570,11 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
         // (even though the position is sane).
         q->PopupMenu(menu);
 #else
-        q->PopupMenu(menu, (int)evt.data.first.x(), (int)evt.data.first.y());
+        //BBS: GUI refactor: move sidebar to the left
+        int x, y;
+        current_panel->GetPosition(&x, &y);
+        q->PopupMenu(menu, (int)evt.data.first.x() + x, (int)evt.data.first.y());
+        //q->PopupMenu(menu);
 #endif
     }
 }
@@ -4579,7 +4583,16 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
 void Plater::priv::on_plate_right_click(RBtnPlateEvent& evt)
 {
     wxMenu* menu = menus.plate_menu();
-    q->PopupMenu(menu, (int)evt.data.first.x(), (int)evt.data.first.y());
+
+#ifdef __linux__
+    q->PopupMenu(menu);
+#else
+    //BBS: GUI refactor: move sidebar to the left
+    int x, y;
+    current_panel->GetPosition(&x, &y);
+    q->PopupMenu(menu, (int)evt.data.first.x() + x, (int)evt.data.first.y());
+    //q->PopupMenu(menu);
+#endif
 }
 
 void Plater::priv::on_wipetower_moved(Vec3dEvent &evt)
@@ -7282,62 +7295,96 @@ int Plater::select_plate(int plate_index)
 }
 
 //BBS: select Plate by hover_id
-int Plater::select_plate_by_hover_id(int hover_id)
+int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
 {
     int ret;
+    int action, plate_index;
 
-    take_snapshot(_L("select partplate"));
-    ret = p->partplate_list.select_plate_by_hover_id(hover_id);
+    plate_index = hover_id / PartPlate::GRABBER_COUNT;
+    action = hover_id % PartPlate::GRABBER_COUNT;
 
-    if ((!ret) && (p->background_process.can_switch_print()))
+    if (action == 0)
     {
-        //select successfully
-        p->partplate_list.update_slice_context_to_current_plate(p->background_process);
-        p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
-        p->update_print_volume_state();
+        //select plate
+        take_snapshot(_L("select partplate"));
+        ret = p->partplate_list.select_plate(plate_index);
 
-        refresh_print();
-
-        PartPlate* part_plate = p->partplate_list.get_curr_plate();
-        bool result_valid = part_plate->is_slice_result_valid();
-
-        if (result_valid)
+        if ((!ret)&&(p->background_process.can_switch_print()))
         {
-            PrintBase* print;
+            //select successfully
+            p->partplate_list.update_slice_context_to_current_plate(p->background_process);
+            p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
+            p->update_print_volume_state();
 
-            part_plate->get_print(&print, NULL, NULL);
-            //apply the current plate's print
-            Print::ApplyStatus invalidated = print->apply(this->model(), wxGetApp().preset_bundle->full_config());
+            refresh_print();
 
-            if (invalidated & PrintBase::APPLY_STATUS_INVALIDATED)
+            PartPlate* part_plate = p->partplate_list.get_curr_plate();
+            bool result_valid = part_plate->is_slice_result_valid();
+
+            if (result_valid)
             {
-                part_plate->update_slice_result_valid_state(false);
-                p->sidebar->show_sliced_info_sizer(false);
-                p->show_action_buttons(true);
+                PrintBase* print;
+
+                part_plate->get_print(&print, NULL, NULL);
+                //apply the current plate's print
+                Print::ApplyStatus invalidated = print->apply(this->model(), wxGetApp().preset_bundle->full_config());
+
+                if (invalidated & PrintBase::APPLY_STATUS_INVALIDATED)
+                {
+                    part_plate->update_slice_result_valid_state(false);
+                    p->sidebar->show_sliced_info_sizer(false);
+                    p->show_action_buttons(true);
+                }
+                else
+                {
+                    p->sidebar->show_sliced_info_sizer(true);
+                    p->show_action_buttons(false);
+                }
             }
             else
             {
-                p->sidebar->show_sliced_info_sizer(true);
-                p->show_action_buttons(false);
+                p->sidebar->show_sliced_info_sizer(false);
+                //check inside status
+                bool model_fits = p->view3D->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
+                //BBS: add partplate logic
+                PartPlate* part_plate = p->partplate_list.get_curr_plate();
+                p->show_action_buttons(true);
+                if (model_fits && part_plate->has_printable_instances())
+                {
+                    p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, true));
+                }
+                else
+                {
+                    p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
+                }
             }
+        }
+    }
+    else if ((action == 1)&&(!right_click))
+    {
+        //delete plate
+        ret = delete_plate(plate_index);
+    }
+    else if ((action == 2)&&(!right_click))
+    {
+        //arrange the plate
+        take_snapshot(_L("select_arrange partplate"));
+        ret = select_plate(plate_index);
+        if (!ret)
+        {
+            set_prepare_state(Job::PREPARE_STATE_MENU);
+            arrange();
         }
         else
         {
-            p->sidebar->show_sliced_info_sizer(false);
-            //check inside status
-            bool model_fits = p->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
-            //BBS: add partplate logic
-            PartPlate* part_plate = p->partplate_list.get_curr_plate();
-            p->show_action_buttons(true);
-            if (model_fits && part_plate->has_printable_instances())
-            {
-                p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, true));
-            }
-            else
-            {
-                p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
-            }
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "can not select plate %1%" << plate_index;
+            ret = -1;
         }
+    }
+    else
+    {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid action %1%, with right_click=%2%" << action << right_click;
+        ret = -1;
     }
 
     return ret;

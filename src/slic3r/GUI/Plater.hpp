@@ -370,7 +370,7 @@ public:
     //BBS: select the plate by index
     int select_plate(int plate_index);
     //BBS: select the plate by hover_id
-    int select_plate_by_hover_id(int hover_id);
+    int select_plate_by_hover_id(int hover_id, bool right_click = false);
     //BBS: delete the plate, index= -1 means the current plate
     int delete_plate(int plate_index = -1);
     //BBS: set bed positions

@@ -51,13 +51,18 @@ namespace GUI {
 class Plater;
 class GLCanvas3D;
 struct Camera;
+class PartPlateList;
 
 static const constexpr double LOGICAL_PART_PLATE_GAP = 1. / 5.;
+static const constexpr int PARTPLATE_ICON_SIZE = 10;
+static const constexpr int PARTPLATE_ICON_GAP = 2;
+
 
 using GCodeResult = GCodeProcessorResult;
 
 class PartPlate : public ObjectBase
 {
+    PartPlateList* m_partplate_list;
     Plater* m_plater; //Plater reference, not own it
     Model* m_model; //Model reference, not own it
     PrinterTechnology  printer_technology;
@@ -92,6 +97,10 @@ class PartPlate : public ObjectBase
     unsigned int m_vbo_id{ 0 };
     GeometryBuffer m_triangles;
     GeometryBuffer m_gridlines;
+    GeometryBuffer m_del_icon;
+    mutable unsigned int m_del_vbo_id{ 0 };
+    GeometryBuffer m_arrange_icon;
+    mutable unsigned int m_arrange_vbo_id{ 0 };
     GLTexture m_texture;
     std::array<float, 4> m_model_color{ 0.235f, 0.235f, 0.235f, 1.0f };
     mutable float m_grabber_color[4];
@@ -105,6 +114,10 @@ class PartPlate : public ObjectBase
     void calc_bounding_boxes() const;
     void calc_triangles(const ExPolygon& poly);
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox);
+    void calc_vertex_for_icons(int index, GeometryBuffer &buffer);
+    void render_background() const;
+    //void render_background_for_picking(const float* render_color) const;
+    void render_grid(bool bottom) const;
     void render_default(bool bottom) const;
     void render_label(GLCanvas3D& canvas) const;
     void render_grabber(const float* render_color, bool use_lighting) const;
@@ -112,6 +125,9 @@ class PartPlate : public ObjectBase
     void render_arrows(const float* render_color, bool use_lighting) const;
     void render_left_arrow(const float* render_color, bool use_lighting) const;
     void render_right_arrow(const float* render_color, bool use_lighting) const;
+    void render_icon_texture(int position_id, int tex_coords_id, const GeometryBuffer &buffer, GLTexture &texture, unsigned int &vbo_id) const;
+    void render_icons(bool bottom) const;
+    void render_rectangle_for_picking(const GeometryBuffer &buffer, const float* render_color) const;
     void on_render_for_picking() const;
     std::array<float, 4> picking_color_component(int idx) const;
     void release_opengl_resource();
@@ -121,7 +137,7 @@ public:
     static const unsigned int GRABBER_COUNT = 3;
 
     PartPlate();
-    PartPlate(Vec3d origin, int width, int depth, int height, Plater* platerObj, Model* modelObj, bool printable=true, PrinterTechnology tech = ptFFF);
+    PartPlate(PartPlateList *partplate_list, Vec3d origin, int width, int depth, int height, Plater* platerObj, Model* modelObj, bool printable=true, PrinterTechnology tech = ptFFF);
     ~PartPlate();
 
     bool operator<(PartPlate&) const;
@@ -282,6 +298,8 @@ class PartPlateList : public ObjectBase
     Pointfs m_shape;
     BoundingBoxf3 m_bounding_box;
     bool m_intialized;
+    GLTexture m_del_texture;
+    GLTexture m_arrange_texture;
 
     void init();
     //compute the origin for printable plate with index i
@@ -290,9 +308,13 @@ class PartPlateList : public ObjectBase
     Vec3d compute_origin_for_unprintable();
     //compute shape position
     Vec2d compute_shape_position(int index, int cols);
+    //generate icon textures
+    void generate_icon_textures();
+    void release_icon_textures();
 
     friend class cereal::access;
     friend class UndoRedo::StackImpl;
+    friend class PartPlate;
 
 public:
     static const unsigned int MAX_PLATES_COUNT = 50;
@@ -345,7 +367,7 @@ public:
     //update the plate cols due to plate count change
     void update_plate_cols();
 
-    void update_all_plates_pos_and_size();
+    void update_all_plates_pos_and_size(bool with_unprintable_move = true);
 
     //get the plate cols
     int get_plate_cols() { return m_plate_cols; }
@@ -393,7 +415,7 @@ public:
     void render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool only_current = false, bool only_body = false);
     void render_for_picking_pass();
     BoundingBoxf3& get_bounding_box() { return m_bounding_box; }
-    int select_plate_by_hover_id(int hover_id);
+    //int select_plate_by_hover_id(int hover_id);
     int select_plate_by_obj(int obj_index, int instance_index);
     void calc_bounding_boxes();
     void select_plate_view();
@@ -424,7 +446,7 @@ public:
     int rebuild_plates_after_deserialize();
 
     //retruct plates structures after auto-arrangement
-    int rebuild_plates_after_arrangement();
+    int rebuild_plates_after_arrangement(bool recycle_plates = true);
 
     /*load/store releted functions*/
     int store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool with_gcode = true);

@@ -531,7 +531,7 @@ void ArrangeJob::finalize() {
 =======
 >>>>>>> CHANGE (995119 ENH: adjust the plates layout to sudoku-style)
     //BBS: reload all objects due to arrange
-    plate_list.rebuild_plates_after_arrangement();
+    plate_list.rebuild_plates_after_arrangement(!only_on_partplate);
 
     m_plater->update();
 

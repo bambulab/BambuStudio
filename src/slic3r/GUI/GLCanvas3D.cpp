@@ -1532,7 +1532,7 @@ void GLCanvas3D::render()
     _render_background();
 
     //BBS add partplater rendering logic
-    bool only_current = false, only_body = false;
+    bool only_current = false, only_body = false, show_axes = true;
     GLGizmosManager::EType gizmo_type = m_gizmos.get_current_type();
     if (!m_main_toolbar.is_enabled()
         || gizmo_type == GLGizmosManager::FdmSupports
@@ -1540,6 +1540,9 @@ void GLCanvas3D::render()
     {
         only_current = true;
         only_body = true;
+        //don't show axes in z-seam and support
+        if ((gizmo_type == GLGizmosManager::FdmSupports) || (gizmo_type == GLGizmosManager::Seam))
+            show_axes = false;
     }
 
     /* view3D render*/
@@ -1547,7 +1550,7 @@ void GLCanvas3D::render()
         _render_objects(GLVolumeCollection::ERenderType::Opaque);
         _render_sla_slices();
         _render_selection();
-        _render_bed(!camera.is_looking_downward(), true);
+        _render_bed(!camera.is_looking_downward(), show_axes);
         _render_objects(GLVolumeCollection::ERenderType::Transparent);
         _render_platelist(!camera.is_looking_downward(), only_current, only_body);
     }
@@ -1557,13 +1560,13 @@ void GLCanvas3D::render()
         _render_gcode();
         _render_sla_slices();
         _render_selection();
-        _render_bed(!camera.is_looking_downward(), true);
+        _render_bed(!camera.is_looking_downward(), show_axes);
         _render_platelist(!camera.is_looking_downward(), only_current, only_body);
     }
     /* assemble render*/
     else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
         _render_objects(GLVolumeCollection::ERenderType::Opaque);
-        _render_bed(!camera.is_looking_downward(), true);
+        _render_bed(!camera.is_looking_downward(), show_axes);
         _render_selection();
     }
 
@@ -3218,7 +3221,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (m_picking_enabled && !m_hover_plate_idxs.empty() && evt.LeftDown()) {
                 int hover_idx = m_hover_plate_idxs.front();
                 wxGetApp().plater()->select_plate_by_hover_id(hover_idx);
-                wxGetApp().plater()->get_partplate_list().select_plate_view();
+                //wxGetApp().plater()->get_partplate_list().select_plate_view();
             }
 
             // Select volume in this 3D canvas.
@@ -3440,7 +3443,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             //BBS change plate selection
             if (!m_hover_plate_idxs.empty()) {
                 int hover_idx = m_hover_plate_idxs.front();
-                wxGetApp().plater()->get_partplate_list().select_plate_by_hover_id(hover_idx);
+                wxGetApp().plater()->select_plate_by_hover_id(hover_idx, true);
+                if (m_hover_volume_idxs.empty())
+                    deselect_all();
                 post_event(SimpleEvent(EVT_GLCANVAS_PLATE_SELECT));
                 render();
             }
@@ -5255,6 +5260,9 @@ void GLCanvas3D::_picking_pass()
 
         glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
+        //BBS: add plates related logic
+        _render_plates_for_picking();
+
         m_camera_clipping_plane = m_gizmos.get_clipping_plane();
         if (m_camera_clipping_plane.is_active()) {
             ::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)m_camera_clipping_plane.get_data());
@@ -5267,9 +5275,6 @@ void GLCanvas3D::_picking_pass()
         _render_bed_for_picking(!wxGetApp().plater()->get_camera().is_looking_downward());
 
         m_gizmos.render_current_gizmo_for_picking_pass();
-
-        //BBS: add plates related logic
-        _render_plates_for_picking();
 
         if (m_multisample_allowed)
             glsafe(::glEnable(GL_MULTISAMPLE));

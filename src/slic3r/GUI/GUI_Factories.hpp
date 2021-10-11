@@ -72,6 +72,8 @@ private:
     MenuWithSeparators m_sla_object_menu;
     MenuWithSeparators m_default_menu;
     MenuWithSeparators m_instance_menu;
+    //BBS: add part plate related logic
+    MenuWithSeparators m_plate_menu;
 
     // Removed/Prepended Items according to the view mode
     std::array<wxMenuItem*, mtCount> items_increase;
@@ -84,6 +86,8 @@ private:
     void        create_sla_object_menu();
     void        create_part_menu();
     void        create_instance_menu();
+    //BBS: add part plate related logic
+    void        create_plate_menu();
 
     wxMenu*     append_submenu_add_generic(wxMenu* menu, ModelVolumeType type);
     void        append_menu_items_add_volume(wxMenu* menu);
