@@ -2179,7 +2179,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Dont lift for single material");
     def->tooltip = L("If enabled, retract lift will not perform when only one material is used in the project.");
     def->mode = comExpert;
-    def->set_default_value(new ConfigOptionBools{ true });
+    def->set_default_value(new ConfigOptionBools{ false });
 
     def = this->add("retract_lift_above", coFloats);
     def->label = L("Above Z");
