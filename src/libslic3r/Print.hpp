@@ -261,7 +261,9 @@ private: // Prevents erroneous use by other classes.
 public:
     // Size of an object: XYZ in scaled coordinates. The size might not be quite snug in XY plane.
     const Vec3crd&               size() const			{ return m_size; }
-    const PrintObjectConfig&     config() const         { return m_config; }    
+    const PrintObjectConfig&     config() const         { return m_config; }
+    void                         configBrimWidth(double m)      {m_config.brim_width.value=m;m_config.brim_offset.value=0.1; }
+    void                         autoBrimConfigWidth(double);
     ConstLayerPtrsAdaptor        layers() const         { return ConstLayerPtrsAdaptor(&m_layers); }
     ConstSupportLayerPtrsAdaptor support_layers() const { return ConstSupportLayerPtrsAdaptor(&m_support_layers); }
     const Transform3d&           trafo() const          { return m_trafo; }

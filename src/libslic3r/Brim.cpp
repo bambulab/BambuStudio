@@ -174,8 +174,14 @@ static Polygons top_level_outer_brim_islands(const ConstPrintObjectPtrs &top_lev
 static ExPolygons top_level_outer_brim_area(const Print                   &print,
                                             const ConstPrintObjectPtrs    &top_level_objects_with_brim,
                                             const std::vector<ExPolygons> &bottom_layers_expolygons,
-                                            const float                    no_brim_offset)
+                                            const float                    no_brim_offset,
+                                            // BBS
+                                            double& brim_width_max,
+                                            std::map<ObjectID,
+                                            double>& brim_width_map)
 {
+    const auto scaled_resolution = scaled<double>(print.config().gcode_resolution.value);
+
     assert(print.objects().size() == bottom_layers_expolygons.size());
     std::unordered_set<size_t> top_level_objects_idx;
     top_level_objects_idx.reserve(top_level_objects_with_brim.size());
@@ -184,18 +190,23 @@ static ExPolygons top_level_outer_brim_area(const Print                   &print
 
     ExPolygons brim_area;
     ExPolygons no_brim_area;
+    brim_width_max = 0;
     for(size_t print_object_idx = 0; print_object_idx < print.objects().size(); ++print_object_idx) {
         const PrintObject *object            = print.objects()[print_object_idx];
         const BrimType     brim_type         = object->config().brim_type.value;
         const float        brim_separation   = scale_(object->config().brim_separation.value);
-        const float        brim_width        = scale_(object->config().brim_width.value);
+        // recording the autoAssigned brimWidth and corresponding objs
+        double brimWidthAuto = object->config().brim_width.value;
+        brim_width_map.insert(std::make_pair(object->id(), brimWidthAuto));
+        brim_width_max = std::max(brim_width_max, brimWidthAuto);
+        const float    brim_width        = scale_(brimWidthAuto);
         const bool         is_top_outer_brim = top_level_objects_idx.find(object->id().id) != top_level_objects_idx.end();
 
         ExPolygons brim_area_object;
         ExPolygons no_brim_area_object;
         for (const ExPolygon &ex_poly : bottom_layers_expolygons[print_object_idx]) {
             if ((brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner || brim_type == BrimType::btAutoBrim) && is_top_outer_brim)
-                append(brim_area_object, diff_ex(offset(ex_poly.contour, brim_width + brim_separation, ClipperLib::jtSquare), offset(ex_poly.contour, brim_separation, ClipperLib::jtSquare)));
+                append(brim_area_object, diff_ex(offset(ex_poly.contour, brim_width + brim_separation, ClipperLib::jtRound, scaled_resolution), offset(ex_poly.contour, brim_separation, ClipperLib::jtSquare)));
 
             // After 7ff76d07684858fd937ef2f5d863f105a10f798e offset and shrink don't work with CW polygons (holes), so let's make it CCW.
             Polygons ex_poly_holes_reversed = ex_poly.holes;
@@ -215,7 +226,7 @@ static ExPolygons top_level_outer_brim_area(const Print                   &print
         if (!object->support_layers().empty()) {
             for (const Polygon& support_contour : object->support_layers().front()->support_fills.polygons_covered_by_spacing()) {
                 if ((brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner || brim_type == BrimType::btAutoBrim) && is_top_outer_brim)
-                    append(brim_area_object, diff_ex(offset(support_contour, brim_width + brim_separation), offset(support_contour, brim_separation)));
+                    append(brim_area_object, diff_ex(offset(support_contour, brim_width + brim_separation, ClipperLib::jtRound, scaled_resolution), offset(support_contour, brim_separation)));
 
                 if (brim_type != BrimType::btNoBrim)
                     append(no_brim_area_object, offset_ex(ExPolygon(support_contour), brim_separation));
@@ -228,7 +239,7 @@ static ExPolygons top_level_outer_brim_area(const Print                   &print
         if (!object->tree_support_layers().empty()) {
             for (const ExPolygon& ex_poly : object->tree_support_layers().front()->lslices) {
                 if ((brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner || brim_type == BrimType::btAutoBrim) && is_top_outer_brim)
-                    append(brim_area_object, diff_ex(offset(ex_poly.contour, brim_width + brim_separation), offset(ex_poly.contour, brim_separation)));
+                    append(brim_area_object, diff_ex(offset(ex_poly.contour, brim_width + brim_separation, jtRound, scaled_resolution), offset(ex_poly.contour, brim_separation)));
 
                 if (brim_type != BrimType::btNoBrim)
                     append(no_brim_area_object, offset_ex(ExPolygon(ex_poly.contour), brim_separation));
@@ -552,19 +563,19 @@ static void make_inner_brim(const Print                   &print,
 
     Flow       flow = print.brim_flow();
     ExPolygons islands_ex = inner_brim_area(print, top_level_objects_with_brim, bottom_layers_expolygons, float(flow.scaled_spacing()));
-
     //BBS: brim of hole must not overlap with inner island and inner island brim
     if (!inner_islands_ex.empty()) {
         islands_ex = diff_ex(islands_ex, inner_islands_ex);
     }
 
     Polygons   loops;
-    islands_ex      = offset_ex(islands_ex, -0.5f * float(flow.scaled_spacing()), ClipperLib::jtSquare);
+    islands_ex      = offset_ex(islands_ex, -0.5f * float(flow.scaled_spacing()));// jtSquare seems not working when expandign the holes
     for (size_t i = 0; !islands_ex.empty(); ++i) {
         for (ExPolygon &poly_ex : islands_ex)
             poly_ex.douglas_peucker(scaled_resolution);
-        polygons_append(loops, to_polygons(islands_ex));
-        islands_ex = offset_ex(islands_ex, -float(flow.scaled_spacing()), ClipperLib::jtSquare);
+        polygons_append(loops, to_polygons(islands_ex));// jtSquare seems not working when expandign the holes
+        islands_ex = offset_ex(islands_ex, -1.3f * float(flow.scaled_spacing()));
+        islands_ex = offset_ex(islands_ex, .3f * float(flow.scaled_spacing()));
     }
 
     loops = union_pt_chained_outside_in(loops);
@@ -573,18 +584,40 @@ static void make_inner_brim(const Print                   &print,
                                     float(flow.width()), float(print.skirt_first_layer_height()));
 }
 
+// generate out brim by offseting ExPolygons 'islands_area_ex'
+Polygons tryExPolygonOffset(const ExPolygons islandAreaEx, const Print& print)
+{
+    const auto scaled_resolution = scaled<double>(print.config().gcode_resolution.value);
+    Polygons   loops;
+    ExPolygons islands_ex;
+    Flow       flow = print.brim_flow();
+
+    islands_ex = offset_ex(islandAreaEx, -0.5f * float(flow.scaled_spacing()), jtSquare);
+    for (size_t i = 0; !islands_ex.empty(); ++i) {
+        for (ExPolygon& poly_ex : islands_ex)
+            poly_ex.douglas_peucker(scaled_resolution);
+        polygons_append(loops, to_polygons(islands_ex));
+        islands_ex = offset_ex(islands_ex, -1.3f * float(flow.scaled_spacing()), jtSquare);
+        islands_ex = offset_ex(islands_ex, 0.3f * float(flow.scaled_spacing()), jtSquare);
+    }
+    return loops;
+}
+
 // Produce brim lines around those objects, that have the brim enabled.
 // Collect islands_area to be merged into the final 1st layer convex hull.
 ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cancel, Polygons &islands_area)
 {
+    double brim_width_max = 0;
+    std::map<ObjectID, double> brim_width_map;
     const auto              scaled_resolution           = scaled<double>(print.config().gcode_resolution.value);
     Flow                    flow                        = print.brim_flow();
     std::vector<ExPolygons> bottom_layers_expolygons    = get_print_bottom_layers_expolygons(print);
     ConstPrintObjectPtrs    top_level_objects_with_brim = get_top_level_objects_with_brim(print, bottom_layers_expolygons);
     Polygons                islands                     = top_level_outer_brim_islands(top_level_objects_with_brim, scaled_resolution);
-    ExPolygons              islands_area_ex             = top_level_outer_brim_area(print, top_level_objects_with_brim, bottom_layers_expolygons, float(flow.scaled_spacing()));
+    ExPolygons              islands_area_ex             = top_level_outer_brim_area(print, top_level_objects_with_brim, bottom_layers_expolygons, float(flow.scaled_spacing()), brim_width_max, brim_width_map);
     islands_area                                        = to_polygons(islands_area_ex);
 
+    /*
     // auto brim
     double brim_width_max = 0;
     std::map<ObjectID, double> brim_width_map;
@@ -617,17 +650,12 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
             brim_width_map.insert(std::make_pair(object->id(), object->config().brim_width));
         }
     }
+    */
 
-    Polygons        loops;
+    Polygons        loops = tryExPolygonOffset(islands_area_ex, print);
     size_t          num_loops = size_t(floor(brim_width_max / flow.spacing()));
     BOOST_LOG_TRIVIAL(debug) << "brim_width_max, num_loops: " << brim_width_max << ", " << num_loops;
-    for (size_t i = 0; i < num_loops; ++i) {
-        try_cancel();
-        islands = expand(islands, float(flow.scaled_spacing()), ClipperLib::jtSquare);
-        for (Polygon &poly : islands) 
-            poly.douglas_peucker(scaled_resolution);
-        polygons_append(loops, shrink(islands, 0.5f * float(flow.scaled_spacing())));
-    }
+
     loops = union_pt_chained_outside_in(loops);
 
     std::vector<Polylines> loops_pl_by_levels;

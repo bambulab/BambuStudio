@@ -525,7 +525,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.emplace_back(L("Inner brim only"));
     def->enum_labels.emplace_back(L("Outer and inner brim"));
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionEnum<BrimType>(btOuterOnly));
+    def->set_default_value(new ConfigOptionEnum<BrimType>(btAutoBrim));
 
     def = this->add("brim_separation", coFloat);
     def->label = L("Brim separation gap");

@@ -329,7 +329,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     for (auto el : { "skirt_distance", "draft_shield", "min_skirt_length" })
         toggle_field(el, have_skirt);
 
-    bool have_brim = config->opt_enum<BrimType>("brim_type") != btNoBrim;
+    bool have_brim = (config->opt_enum<BrimType>("brim_type") != btNoBrim) && config->opt_enum<BrimType>("brim_type") != btAutoBrim;
     for (auto el : { "brim_width", "brim_separation" })
         toggle_field(el, have_brim);
     // perimeter_extruder uses the same logic as in Print::extruders()
