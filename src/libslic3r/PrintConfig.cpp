@@ -1393,17 +1393,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionFloat(0));
 
-    def = this->add("infill_every_layers", coInt);
-    def->label = L("Combine infill every");
+    //BBS
+    def = this->add("infill_combination", coBool);
+    def->label = L("Enable infill combination");
     def->category = L("Infill");
-    def->tooltip = L("This feature allows to combine infill and speed up your print by extruding thicker "
-                   "infill layers while preserving thin perimeters, thus accuracy.");
-    def->sidetext = L("layers");
-    def->full_label = L("Combine infill every n layers");
-    def->min = 1;
-    def->max = 100;
+    def->tooltip = L("This feature allows to combine infill automatically, and speed up your print by extruding thicker "
+        "infill layers while preserving thin perimeters, thus accuracy.");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionInt(1));
+    def->set_default_value(new ConfigOptionBool(false));
 
     auto def_infill_anchor_min = def = this->add("infill_anchor", coFloatOrPercent);
     def->label = L("Length of the infill anchor");
@@ -4244,10 +4241,6 @@ std::string validate(const FullPrintConfig &cfg)
     if (fabs(cfg.fill_density.value - 100.) < EPSILON &&
         ! print_config_def.get("top_fill_pattern")->has_enum_value(cfg.fill_pattern.serialize()))
         return "The selected fill pattern is not supposed to work at 100% density";
-
-    // --infill-every-layers
-    if (cfg.infill_every_layers < 1)
-        return "Invalid value for --infill-every-layers";
 
     // --skirt-height
     if (cfg.skirt_height < 0)

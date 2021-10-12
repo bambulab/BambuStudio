@@ -1528,7 +1528,8 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Reducing printing time"));
         category_path = "infill_42#";
-        optgroup->append_single_option_line("infill_every_layers", category_path + "combine-infill-every-x-layers");
+        //BBS: option is modified
+        optgroup->append_single_option_line("infill_combination", category_path + "infill-combination");
         optgroup->append_single_option_line("infill_only_where_needed", category_path + "only-infill-where-needed");
         // BBS: new option
         optgroup->append_single_option_line("detect_narrow_internal_solid_infill", category_path + "detect-narrow-internal-solid-infill");

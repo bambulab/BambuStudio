@@ -642,7 +642,8 @@ bool PrintObject::invalidate_state_by_config_options(
         } else if (
                opt_key == "interface_shells"
             || opt_key == "infill_only_where_needed"
-            || opt_key == "infill_every_layers"
+            //BBS
+            || opt_key == "infill_combination"
             || opt_key == "solid_infill_every_layers"
             || opt_key == "bottom_solid_min_thickness"
             || opt_key == "top_solid_layers"
@@ -2070,8 +2071,9 @@ void PrintObject::combine_infill()
     // Work on each region separately.
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         const PrintRegion &region = this->printing_region(region_id);
-        const size_t every = region.config().infill_every_layers.value;
-        if (every < 2 || region.config().fill_density == 0.)
+        //BBS
+        const bool enable_combine_infill = region.config().infill_combination.value;
+        if (enable_combine_infill == false || region.config().fill_density == 0.)
             continue;
         // Limit the number of combined layers to the maximum height allowed by this regions' nozzle.
         //FIXME limit the layer height to max_layer_height
@@ -2091,7 +2093,8 @@ void PrintObject::combine_infill()
                     continue;
                 // Check whether the combination of this layer with the lower layers' buffer
                 // would exceed max layer height or max combined layer count.
-                if (current_height + layer->height >= nozzle_diameter + EPSILON || num_layers >= every) {
+                // BBS: automatically calculate how many layers should be combined
+                if (current_height + layer->height >= nozzle_diameter + EPSILON) {
                     // Append combination to lower layer.
                     combine[layer_idx - 1] = num_layers;
                     current_height = 0.;
