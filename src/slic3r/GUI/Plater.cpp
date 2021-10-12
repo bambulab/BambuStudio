@@ -2213,12 +2213,17 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     update();
 
     auto *hsizer = new wxBoxSizer(wxHORIZONTAL);
+
+    // BBS: move sidebar to left side
+    hsizer->Add(sidebar, 0, wxEXPAND | wxLEFT | wxRIGHT, 0);
     panel_sizer = new wxBoxSizer(wxHORIZONTAL);
     panel_sizer->Add(view3D, 1, wxEXPAND | wxALL, 0);
     panel_sizer->Add(preview, 1, wxEXPAND | wxALL, 0);
     panel_sizer->Add(assemble_view, 1, wxEXPAND | wxALL, 0);
     hsizer->Add(panel_sizer, 1, wxEXPAND | wxALL, 0);
-    hsizer->Add(sidebar, 0, wxEXPAND | wxLEFT | wxRIGHT, 0);
+
+    
+    //hsizer->Add(sidebar, 0, wxEXPAND | wxLEFT | wxRIGHT, 0);
     q->SetSizer(hsizer);
 
     menus.init(q);
