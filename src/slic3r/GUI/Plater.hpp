@@ -227,6 +227,7 @@ public:
 
     // BBS: segment model with CGAL
     void segment(size_t obj_idx, size_t instance_idx, double smoothing_alpha=0.5, int segment_number=5);
+    void merge(size_t obj_idx, std::vector<int>& vol_indeces);
 
     void export_gcode(bool prefer_removable);
     void export_stl(bool extended = false, bool selection_only = false);

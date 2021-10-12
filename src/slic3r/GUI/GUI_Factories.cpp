@@ -750,7 +750,7 @@ void MenuFactory::append_menu_item_merge_to_multipart_object(wxMenu* menu)
         [](wxCommandEvent&) { obj_list()->merge(true); }, "", menu,
         []() { return obj_list()->can_merge_to_multipart_object(); }, m_parent);
 }
-/*
+
 void MenuFactory::append_menu_item_merge_to_single_object(wxMenu* menu)
 {
     menu->AppendSeparator();
@@ -758,7 +758,15 @@ void MenuFactory::append_menu_item_merge_to_single_object(wxMenu* menu)
         [](wxCommandEvent&) { obj_list()->merge(false); }, "", menu,
         []() { return obj_list()->can_merge_to_single_object(); }, m_parent);
 }
-*/
+
+void MenuFactory::append_menu_item_merge_parts_to_single_part(wxMenu* menu)
+{
+    menu->AppendSeparator();
+    append_menu_item(menu, wxID_ANY, _L("Merge"), _L("Merge parts to the one single part"),
+        [](wxCommandEvent&) { obj_list()->merge_volumes(); }, "", menu,
+        []() { return true; }, m_parent);
+}
+
 void MenuFactory::append_menu_items_mirror(wxMenu* menu)
 {
     wxMenu* mirror_menu = new wxMenu();
@@ -875,6 +883,7 @@ void MenuFactory::create_part_menu()
     append_menu_item_export_stl(menu);
     append_menu_item_fix_through_netfabb(menu);
     append_menu_items_mirror(menu);
+    append_menu_item_merge_parts_to_single_part(menu);
 
     append_menu_item(menu, wxID_ANY, _L("Split"), _L("Split the selected object into individual parts"),
         [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts_SMALL", nullptr, 

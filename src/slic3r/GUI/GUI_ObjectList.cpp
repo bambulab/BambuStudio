@@ -2275,6 +2275,40 @@ void ObjectList::merge(bool to_multipart_object)
     }
 }
 
+void ObjectList::merge_volumes()
+{
+    std::vector<int> obj_idxs, vol_idxs;
+    get_selection_indexes(obj_idxs, vol_idxs);
+    if (obj_idxs.empty() && vol_idxs.empty())
+        return;
+
+    wxBusyCursor wait;
+#if 0
+    ModelObjectPtrs objects;
+    for (int obj_idx : obj_idxs) {
+        ModelObject* object = (*m_objects)[obj_idx];
+        object->merge_volumes(vol_idxs);
+        //changed_object(obj_idx);
+        //remove();
+    }
+   /* wxGetApp().plater()->load_model_objects(objects);
+
+    Selection& selection = p->view3D->get_canvas3d()->get_selection();
+    size_t last_obj_idx = p->model.objects.size() - 1;
+
+    if (vol_idxs.empty()) {
+        for (size_t i = 0; i < objects.size(); ++i)
+            selection.add_object((unsigned int)(last_obj_idx - i), i == 0);
+    }
+    else {
+        for (int vol_idx : vol_idxs)
+            selection.add_volume(last_obj_idx, vol_idx, 0, false);
+    }*/
+#else
+    wxGetApp().plater()->merge(obj_idxs[0], vol_idxs);
+#endif
+}
+
 void ObjectList::layers_editing()
 {
     const Selection& selection = scene_selection();

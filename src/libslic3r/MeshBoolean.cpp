@@ -104,7 +104,11 @@ using EpicKernel = CGAL::Exact_predicates_inexact_constructions_kernel;
 using _EpicMesh = CGAL::Surface_mesh<EpicKernel::Point_3>;
 using _EpecMesh = CGAL::Surface_mesh<EpecKernel::Point_3>;
 
-struct CGALMesh { _EpicMesh m; };
+struct CGALMesh {
+    _EpicMesh m;
+    CGALMesh() = default;
+    CGALMesh(const _EpicMesh& _m) :m(_m) {}
+};
 
 // /////////////////////////////////////////////////////////////////////////////
 // Converions from and to CGAL mesh
@@ -258,6 +262,7 @@ void segment(CGALMesh& src, std::vector<CGALMesh>& dst, double smoothing_alpha =
     std::size_t number_of_segments = CGAL::segmentation_from_sdf_values(mesh, sdf_property_map, segment_property_map, segment_number, smoothing_alpha);
     //print area of each segment and then put it in a Mesh and print it in an OFF file
     Filtered_graph segment_mesh(mesh);
+    _EpicMesh mesh_merged;
     for (std::size_t id = 0; id < number_of_segments; ++id)
     {
         segment_mesh.set_selected_faces(id, segment_property_map);
@@ -289,11 +294,20 @@ void segment(CGALMesh& src, std::vector<CGALMesh>& dst, double smoothing_alpha =
 #endif
         }
 
-        CGALMesh out_mesh;
-        out_mesh.m = out;
-        dst.emplace_back(std::move(out_mesh));
+        //if (id > 2) {
+        //    mesh_merged.join(out);
+        //}
+        //else 
+        {
+            dst.emplace_back(std::move(CGALMesh(out)));
+        }
     }
+    //if (mesh_merged.is_empty() == false) {
+    //    CGAL::Polygon_mesh_processing::stitch_borders(mesh_merged);
+    //    dst.emplace_back(std::move(CGALMesh(mesh_merged)));
+    //}
 }
+
 std::vector<TriangleMesh> segment(const TriangleMesh& src, double smoothing_alpha, int segment_number)
 {
     CGALMesh in_cgal_mesh;
@@ -306,7 +320,33 @@ std::vector<TriangleMesh> segment(const TriangleMesh& src, double smoothing_alph
     {
         out_meshes.emplace_back(std::move(cgal_to_triangle_mesh(outf_cgal_mesh.m)));
     }
+
     return out_meshes;
+}
+
+void merge(std::vector<_EpicMesh>& srcs, _EpicMesh& dst)
+{
+    _EpicMesh mesh_merged;
+    for (size_t i = 0; i < srcs.size(); i++)
+    {
+        mesh_merged.join(srcs[i]);
+    }
+    if (mesh_merged.is_empty() == false) {
+        CGAL::Polygon_mesh_processing::stitch_borders(mesh_merged);
+        dst = std::move(mesh_merged);
+    }
+}
+
+TriangleMesh merge(std::vector<TriangleMesh> meshes)
+{
+    std::vector<_EpicMesh> srcs(meshes.size());
+    for (size_t i = 0; i < meshes.size(); i++)
+    {
+        MeshBoolean::cgal::triangle_mesh_to_cgal(meshes[i], srcs[i]);
+    }
+    _EpicMesh dst;
+    merge(srcs, dst);
+    return cgal_to_triangle_mesh(dst);
 }
 
 // /////////////////////////////////////////////////////////////////////////////

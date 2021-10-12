@@ -360,6 +360,7 @@ public:
     ModelObjectPtrs segment(size_t instance, unsigned int max_extruders, double smoothing_alpha = 0.5, int segment_number = 5);
     void split(ModelObjectPtrs* new_objects);
     void merge();
+    ModelObjectPtrs merge_volumes(std::vector<int>& vol_indeces);//BBS
     // Support for non-uniform scaling of instances. If an instance is rotated by angles, which are not multiples of ninety degrees,
     // then the scaling in world coordinate system is not representable by the Geometry::Transformation structure.
     // This situation is solved by baking in the instance transformation into the mesh vertices.

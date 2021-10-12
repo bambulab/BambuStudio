@@ -1532,6 +1532,61 @@ void ModelObject::merge()
         return;
 }
 
+ModelObjectPtrs ModelObject::merge_volumes(std::vector<int>& vol_indeces)
+{
+    ModelObjectPtrs res;
+    if (this->volumes.size() == 1) {
+        // We can't merge meshes if there's just one volume
+        return res;
+    }
+
+    ModelObject* upper = ModelObject::new_clone(*this);
+    upper->set_model(nullptr);
+    upper->sla_support_points.clear();
+    upper->sla_drain_holes.clear();
+    upper->sla_points_status = sla::PointsStatus::NoPoints;
+    upper->clear_volumes();
+    upper->input_file.clear();
+
+#if 1
+    TriangleMesh mesh;
+    for (int i : vol_indeces) {
+        auto volume = volumes[i];
+        if (!volume->mesh().empty()) {
+            const auto volume_matrix = volume->get_matrix();
+            TriangleMesh mesh_(volume->mesh());
+            mesh_.transform(volume_matrix, true);
+            volume->reset_mesh();
+            mesh_.require_shared_vertices();
+
+            mesh.merge(mesh_);
+        }
+    }
+    mesh.repair();
+#else
+    std::vector<TriangleMesh> meshes;
+    for (int i : vol_indeces) {
+        auto volume = volumes[i];
+        if (!volume->mesh().empty())
+            meshes.emplace_back(volume->mesh());
+    }
+    TriangleMesh mesh = MeshBoolean::cgal::merge(meshes);
+#endif
+
+    ModelVolume* vol = upper->add_volume(mesh);
+    for (int i = 0; i < volumes.size();i++) {
+        if (std::find(vol_indeces.begin(), vol_indeces.end(), i) != vol_indeces.end()) {
+            vol->name = volumes[i]->name + "_merged";
+            vol->config.assign_config(volumes[i]->config);
+        }
+        else
+            upper->add_volume(*volumes[i]);
+    }
+    upper->invalidate_bounding_box();
+    res.push_back(upper);
+    return res;
+}
+
 // Support for non-uniform scaling of instances. If an instance is rotated by angles, which are not multiples of ninety degrees,
 // then the scaling in world coordinate system is not representable by the Geometry::Transformation structure.
 // This situation is solved by baking in the instance transformation into the mesh vertices.
