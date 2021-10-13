@@ -158,7 +158,11 @@ void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit)
     //static float last_h = 0.0f;
 
     //BBS: GUI refactor: move gizmo to the right
+#if BBS_TOOLBAR_ON_TOP
+    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always, 0.5f, 0.0f);
+#else
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always, 1.0f, 0.0f);
+#endif
     m_imgui->begin(_L("Cut"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
     const bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";

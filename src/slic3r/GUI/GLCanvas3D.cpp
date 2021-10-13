@@ -70,6 +70,7 @@
 
 #include <imgui/imgui_internal.h>
 
+
 static constexpr const float TRACKBALLSIZE = 0.8f;
 
 static constexpr const float DEFAULT_BG_DARK_COLOR[3] = { 0.478f, 0.478f, 0.478f };
@@ -4251,11 +4252,14 @@ bool GLCanvas3D::_render_orient_menu(float left, float right, float bottom, floa
     //BBS: GUI refactor: move main toolbar to the right
     //original use center as {0.0}, and top is (canvas_h/2), bottom is (-canvas_h/2), also plus inv_camera
     //now change to left_up as {0,0}, and top is 0, bottom is canvas_h
-    //const float x = left * float(wxGetApp().plater()->get_camera().get_zoom()) + 0.5f * canvas_w;    
+#if BBS_TOOLBAR_ON_TOP
+    const float x = left * float(wxGetApp().plater()->get_camera().get_zoom()) + 0.5f * canvas_w;
+    imgui->set_next_window_pos(x, m_main_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
+#else
     const float x = canvas_w - m_main_toolbar.get_width();
     const float y = 0.5f * canvas_h - top * float(wxGetApp().plater()->get_camera().get_zoom());
     imgui->set_next_window_pos(x, y, ImGuiCond_Always, 1.0f, 0.0f);
-    //imgui->set_next_window_pos(x, m_main_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
+#endif
 
     imgui->begin(_L("Auto Orientation options"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
@@ -4333,11 +4337,14 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     //BBS: GUI refactor: move main toolbar to the right
     //original use center as {0.0}, and top is (canvas_h/2), bottom is (-canvas_h/2), also plus inv_camera
     //now change to left_up as {0,0}, and top is 0, bottom is canvas_h
-    //const float x = left * float(wxGetApp().plater()->get_camera().get_zoom()) + 0.5f * canvas_w;    
+#if BBS_TOOLBAR_ON_TOP
+    const float x = left * float(wxGetApp().plater()->get_camera().get_zoom()) + 0.5f * canvas_w;
+    imgui->set_next_window_pos(x, m_main_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
+#else
     const float x = canvas_w - m_main_toolbar.get_width();
     const float y = 0.5f * canvas_h - top * float(wxGetApp().plater()->get_camera().get_zoom());
     imgui->set_next_window_pos(x, y, ImGuiCond_Always, 1.0f, 0.0f);
-    //imgui->set_next_window_pos(x, m_main_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
+#endif
 
     imgui->begin(_L("Arrange options"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
@@ -4933,7 +4940,7 @@ bool GLCanvas3D::_init_main_toolbar()
         BOOST_LOG_TRIVIAL(error) << "Gizmos manager failed to load arrow texture.";
     }
 
-    m_main_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
+    m_main_toolbar.set_layout_type(GLToolbar::Layout::Horizontal);
     m_main_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Right);
     m_main_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
     m_main_toolbar.set_border(5.0f);
@@ -5195,11 +5202,12 @@ bool GLCanvas3D::_init_print_flow_toolbar()
     m_print_flow_toolbar.set_gap_size(4);
 
     GLToolbarItem::Data item;
+    item.sprite_id = -1;
 
-    item.name = "open_project";
+    /*item.name = "open_project";
     item.icon_filename = "open_project.svg";
     item.tooltip = _utf8(L("Open project")) + " [" + GUI::shortkey_ctrl_prefix() + "O]";
-    item.sprite_id = 0;
+    item.sprite_id++;
     item.visible = true;
     item.left.toggable = false;
     item.left.action_callback = [this]() {
@@ -5213,13 +5221,14 @@ bool GLCanvas3D::_init_print_flow_toolbar()
         return false;
 
     if (!m_print_flow_toolbar.add_separator())
-        return false;
+        return false;*/
 
     item.name = "slice_all";
     item.icon_filename = "slice_all.svg";
     item.tooltip = _utf8(L("Slice project")) + " [Slice Project]";
     item.sprite_id++;
     item.visible = true;
+    item.left.toggable = false;
     item.left.action_callback = [this]() {
         if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
     };
@@ -5238,6 +5247,7 @@ bool GLCanvas3D::_init_print_flow_toolbar()
     item.tooltip = _utf8(L("Slice plate")) + " [Slice Plate]";
     item.sprite_id++;
     item.visible = false;
+    item.left.toggable = false;
     item.left.action_callback = [this]() {
         if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
     };
@@ -5295,6 +5305,7 @@ bool GLCanvas3D::_init_print_flow_toolbar()
     item.icon_filename = "print_plate.svg";
     item.tooltip = _utf8(L("print one plate"));
     item.sprite_id++;
+    item.left.toggable = false;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE)); };
     item.left.render_callback = GLToolbarItem::Default_Render_Callback;
     item.visible = false;
@@ -5309,6 +5320,7 @@ bool GLCanvas3D::_init_print_flow_toolbar()
     item.icon_filename = "export_gcode.svg";
     item.tooltip = _utf8(L("Export G-code"));
     item.sprite_id++;
+    item.left.toggable = false;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_EXPORT_GCODE)); };
     item.left.render_callback = GLToolbarItem::Default_Render_Callback;
     item.visible = false;
@@ -6338,7 +6350,7 @@ void GLCanvas3D::_render_gizmos_overlay()
 }
 
 //BBS: GUI refactor: GLToolbar adjust
-//when rendering, {0, 0} is at the center
+//when rendering, {0, 0} is at the center, left-up is -0.5, 0.5, right-up is 0.5, -0.5
 void GLCanvas3D::_render_main_toolbar()
 {
     if (!m_main_toolbar.is_enabled())
@@ -6347,13 +6359,20 @@ void GLCanvas3D::_render_main_toolbar()
     Size cnv_size = get_canvas_size();
     float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
 
+#if BBS_TOOLBAR_ON_TOP
+    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
+    float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
+    float gizmo_width = m_gizmos.get_scaled_total_width();
+    float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
+    float left = -0.5f * (m_main_toolbar.get_width() + gizmo_width + collapse_toolbar_width) * inv_zoom;
+#else
     float gizmo_height = m_gizmos.get_scaled_total_height();
     float space_height = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
     float main_toolbar_height = (float)m_main_toolbar.get_height();
     float top = 0.5f * (main_toolbar_height + space_height + gizmo_height) * inv_zoom;
     float left = (0.5f * (float)cnv_size.get_width() - m_main_toolbar.get_width()) * inv_zoom;
     //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": top %1%, main_toolbar_height %2%, space_height %3% gizmo_height %4%") % top % main_toolbar_height % space_height % gizmo_height;
-
+#endif
     m_main_toolbar.set_position(top, left);
     m_main_toolbar.render(*this);
     if (m_toolbar_highlighter.m_render_arrow)
@@ -6371,11 +6390,16 @@ void GLCanvas3D::_render_print_toolbar() const
         Size cnv_size = get_canvas_size();
         float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
 
+#if BBS_TOOLBAR_ON_TOP
+        float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
+        float right_space = GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
+        float left = (0.5f * cnv_size.get_width() - m_print_flow_toolbar.get_width() - m_print_select_toolbar.get_width() - right_space) * inv_zoom;
+#else
         float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
         GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
         float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
-        float left = -0.5f * (m_print_flow_toolbar.get_width() + collapse_toolbar_width) * inv_zoom;
-
+        float left = -0.5f * (m_print_flow_toolbar.get_width()  + collapse_toolbar_width) * inv_zoom;
+#endif
         m_print_flow_toolbar.set_position(top, left);
         m_print_flow_toolbar.render(*this);
     }
@@ -6385,11 +6409,16 @@ void GLCanvas3D::_render_print_toolbar() const
         Size cnv_size = get_canvas_size();
         float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
 
+#if BBS_TOOLBAR_ON_TOP
+        float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
+        float right_space = GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
+        float left = (0.5f * cnv_size.get_width() - m_print_select_toolbar.get_width() - right_space) * inv_zoom;
+#else
         float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
         GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
         float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
         float left = -0.5f * (m_print_select_toolbar.get_width() + collapse_toolbar_width) * inv_zoom;
-
+#endif
         m_print_select_toolbar.set_position(top, left);
         m_print_select_toolbar.render(*this);
     }

@@ -30,8 +30,12 @@
 
 namespace Slic3r {
 namespace GUI {
-
+//BBS: GUI refactor: to support top layout
+#if BBS_TOOLBAR_ON_TOP
+const float GLGizmosManager::Default_Icons_Size = 40;
+#else
 const float GLGizmosManager::Default_Icons_Size = 64;
+#endif
 
 GLGizmosManager::GLGizmosManager(GLCanvas3D& parent)
     : m_parent(parent)
@@ -63,15 +67,36 @@ size_t GLGizmosManager::get_gizmo_idx_from_mouse(const Vec2d& mouse_pos) const
     float height = get_scaled_total_height();
     float icons_size = m_layout.scaled_icons_size();
     float border = m_layout.scaled_border();
-    float stride_y = m_layout.scaled_stride_y();
-    //BBS: GUI refactor: GLToolbar&&Gizmo adjust
-    //float top_y = 0.5f * (cnv_h - height) + border;
-    float cnv_w = (float)m_parent.get_canvas_size().get_width();
-    float width = get_scaled_total_width();
-    float top_x = cnv_w - width;
-    float top_y = 0.5f * (cnv_h - height + m_parent.get_main_toolbar_height() + GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale()) + border;
 
     //BBS: GUI refactor: GLToolbar&&Gizmo adjust
+    float cnv_w = (float)m_parent.get_canvas_size().get_width();
+    float width = get_scaled_total_width();
+#if BBS_TOOLBAR_ON_TOP
+    float space_width = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();;
+    float top_x = 0.5f * (cnv_w - width + m_parent.get_main_toolbar_width() + space_width) + border;
+    float top_y = 0;
+    float stride_x = m_layout.scaled_stride_x();
+
+    // is mouse vertically in the area?
+    //if ((border <= (float)mouse_pos(0) && ((float)mouse_pos(0) <= border + icons_size))) {
+    if (((top_y + border) <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= (top_y + border + icons_size))) {
+        // which icon is it on?
+        size_t from_left = (size_t)((float)mouse_pos(0) - top_x) / stride_x;
+        if (from_left < 0)
+            return Undefined;
+        // is it really on the icon or already past the border?
+        if ((float)mouse_pos(0) <= top_x + from_left * stride_x + icons_size) {
+            std::vector<size_t> selectable = get_selectable_idxs();
+            if (from_left < selectable.size())
+                return selectable[from_left];
+        }
+    }
+#else
+    //float top_y = 0.5f * (cnv_h - height) + border;
+    float top_x = cnv_w - width;
+    float top_y = 0.5f * (cnv_h - height + m_parent.get_main_toolbar_height() + GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale()) + border;
+    float stride_y = m_layout.scaled_stride_y();
+
     // is mouse horizontally in the area?
     //if ((border <= (float)mouse_pos(0) && ((float)mouse_pos(0) <= border + icons_size))) {
     if (((top_x + border) <= (float)mouse_pos(0)) && ((float)mouse_pos(0) <= (top_x + border + icons_size))) {
@@ -86,6 +111,8 @@ size_t GLGizmosManager::get_gizmo_idx_from_mouse(const Vec2d& mouse_pos) const
                 return selectable[from_top];
         }
     }
+#endif
+
     return Undefined;
 }
 
@@ -1075,13 +1102,20 @@ void GLGizmosManager::do_render_overlay() const
     float zoomed_border = m_layout.scaled_border() * inv_zoom;
 
     //BBS: GUI refactor: GLToolbar&&Gizmo adjust
+#if BBS_TOOLBAR_ON_TOP
+    float main_toolbar_width =  (float)m_parent.get_main_toolbar_width();
+    float space_width = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
+    //float zoomed_top_x = 0.5f *(cnv_w + main_toolbar_width - 2 * space_width - width) * inv_zoom;
+    float zoomed_top_x = 0.5f *(main_toolbar_width - width + space_width) * inv_zoom;
+    float zoomed_top_y = 0.5f * cnv_h * inv_zoom;
+#else
     //float zoomed_top_x = (-0.5f * cnv_w) * inv_zoom;
     //float zoomed_top_y = (0.5f * height) * inv_zoom;
     float zoomed_top_x = (0.5f * cnv_w - width) * inv_zoom;
     float main_toolbar_height = (float)m_parent.get_main_toolbar_height();
     float space_height = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
     float zoomed_top_y = 0.5f * (height - main_toolbar_height - space_height) * inv_zoom;
-
+#endif
     //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": zoomed_top_y %1%, space_height %2%, main_toolbar_height %3% zoomed_top_x %4%") % zoomed_top_y % space_height % main_toolbar_height % zoomed_top_x;
 
     float zoomed_left = zoomed_top_x;
@@ -1097,6 +1131,8 @@ void GLGizmosManager::do_render_overlay() const
     float icons_size = m_layout.scaled_icons_size();
     float zoomed_icons_size = icons_size * inv_zoom;
     float zoomed_stride_y = m_layout.scaled_stride_y() * inv_zoom;
+    //BBS: GUI refactor: GLToolbar&&Gizmo adjust
+    float zoomed_stride_x = m_layout.scaled_stride_x() * inv_zoom;
 
     unsigned int icons_texture_id = m_icons_texture.get_id();
     int tex_width = m_icons_texture.get_width();
@@ -1131,27 +1167,46 @@ void GLGizmosManager::do_render_overlay() const
             // gizmos are passed some meaningful value.
             current_y = 0.5f * cnv_h - zoomed_top_y * zoom;
         }
+#if BBS_TOOLBAR_ON_TOP
+        zoomed_top_x += zoomed_stride_x;
+#else
         zoomed_top_y -= zoomed_stride_y;
+#endif
     }
 
     if (m_current != Undefined) {
         //BBS: GUI refactor: GLToolbar&&Gizmo adjust
         //render_input_window uses a different coordination(imgui)
         //1. no need to scale by camera zoom, set {0,0} at left-up corner for imgui
+#if BBS_TOOLBAR_ON_TOP
+        //gizmo->render_input_window(width, 0.5f * cnv_h - zoomed_top_y * zoom, toolbar_top);
+        m_gizmos[m_current]->render_input_window(0.5 * cnv_w + zoomed_top_x * zoom, height, cnv_h);
+#else
         float toolbar_top = cnv_h - wxGetApp().plater()->get_view_toolbar().get_height();
         //m_gizmos[m_current]->render_input_window(width, current_y, toolbar_top);
         m_gizmos[m_current]->render_input_window(cnv_w - width, current_y, toolbar_top);
+#endif
     }
 }
 
 float GLGizmosManager::get_scaled_total_height() const
 {
+//BBS: GUI refactor: to support top layout
+#if BBS_TOOLBAR_ON_TOP
+    return 2.0f * m_layout.scaled_border() + m_layout.scaled_icons_size();
+#else
     return m_layout.scale * (2.0f * m_layout.border + (float)get_selectable_idxs().size() * m_layout.stride_y() - m_layout.gap_y);
+#endif
 }
 
 float GLGizmosManager::get_scaled_total_width() const
 {
+//BBS: GUI refactor: to support top layout
+#if BBS_TOOLBAR_ON_TOP
+    return m_layout.scale * (2.0f * m_layout.border + (float)get_selectable_idxs().size() * m_layout.stride_x() - m_layout.gap_x);
+#else
     return 2.0f * m_layout.scaled_border() + m_layout.scaled_icons_size();
+#endif
 }
 
 GLGizmoBase* GLGizmosManager::get_current() const

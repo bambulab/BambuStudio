@@ -766,6 +766,9 @@ public:
     void select_view(const std::string& direction);
     //BBS: add part plate related logic
     void select_plate();
+    //BBS: GUI refactor: GLToolbar&&gizmo
+    float get_main_toolbar_height() { return m_main_toolbar.get_height();}
+    float get_main_toolbar_width() { return m_main_toolbar.get_width();}
 
     void update_volumes_colors_by_extruder();
 
@@ -883,7 +886,6 @@ public:
     
     void schedule_extra_frame(int miliseconds);
 
-    float get_main_toolbar_height() { return m_main_toolbar.get_height(); }
     int get_main_toolbar_item_id(const std::string& name) const { return m_main_toolbar.get_item_id(name); }
     void force_main_toolbar_left_action(int item_id) { m_main_toolbar.force_left_action(item_id, *this); }
     void force_main_toolbar_right_action(int item_id) { m_main_toolbar.force_right_action(item_id, *this); }

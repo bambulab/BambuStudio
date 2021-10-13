@@ -10,6 +10,9 @@
 
 #include <map>
 
+//BBS: GUI refactor: to support top layout
+#define BBS_TOOLBAR_ON_TOP 1
+
 namespace Slic3r {
 
 namespace UndoRedo {
@@ -80,6 +83,11 @@ private:
         float icons_size{ Default_Icons_Size };
         float border{ 5.0f };
         float gap_y{ 5.0f };
+        //BBS: GUI refactor: to support top layout
+        float gap_x{ 5.0f };
+        float stride_x() const { return icons_size + gap_x;}
+        float scaled_gap_x() const { return scale * gap_x; }
+        float scaled_stride_x() const { return scale * stride_x(); }
 
         float stride_y() const { return icons_size + gap_y;}
 
