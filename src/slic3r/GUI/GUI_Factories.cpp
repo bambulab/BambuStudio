@@ -840,8 +840,11 @@ void MenuFactory::create_common_object_menu(wxMenu* menu)
     append_menu_item_instance_to_object(menu);
     menu->AppendSeparator();
 
+    // BBS
+#if 0
     wxMenuItem* menu_item_printable = append_menu_item_printable(menu);
     menu->AppendSeparator();
+#endif
 
     append_menu_item_reload_from_disk(menu);
     append_menu_item_export_stl(menu);
@@ -851,6 +854,8 @@ void MenuFactory::create_common_object_menu(wxMenu* menu)
     append_menu_item_fix_through_netfabb(menu);
     append_menu_items_mirror(menu);
 
+    // BBS
+#if 0
     m_parent->Bind(wxEVT_UPDATE_UI, [](wxUpdateUIEvent& evt) {
         const Selection& selection = get_selection();
         int instance_idx = selection.get_instance_idx();
@@ -860,6 +865,7 @@ void MenuFactory::create_common_object_menu(wxMenu* menu)
             plater()->set_current_canvas_as_dirty();//view3D->set_as_dirty();
         }
     }, menu_item_printable->GetId());
+#endif
 }
 
 void MenuFactory::create_object_menu()

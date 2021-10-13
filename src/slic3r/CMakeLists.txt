@@ -89,6 +89,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/I18N.hpp
     GUI/MainFrame.cpp
     GUI/MainFrame.hpp
+    GUI/BBLTopbar.cpp
+    GUI/BBLTopbar.hpp
     GUI/Plater.cpp
     GUI/Plater.hpp
     GUI/PartPlate.cpp

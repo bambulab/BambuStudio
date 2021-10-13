@@ -1342,9 +1342,11 @@ int PartPlateList::create_plate()
 	//reload all objects here
 	reload_all_objects();
 
+#if 0
 	//update related UI
 	if (m_plater)
 		m_plater->update_partplate();
+#endif
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":created a new plate %1%") % new_index;
 	return new_index;
@@ -1473,9 +1475,11 @@ int PartPlateList::delete_plate(int index)
 
 	delete plate;
 
+#if 0
 	//update related UI
 	if (m_plater)
 		m_plater->update_partplate();
+#endif
 	return ret;
 }
 

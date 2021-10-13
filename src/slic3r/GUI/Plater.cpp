@@ -33,6 +33,7 @@
 #include <wx/custombgwin.h>
 #include <wx/popupwin.h>
 #endif
+#include <wx/clrpicker.h>
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Format/STL.hpp"
@@ -96,6 +97,9 @@
 #include "MsgDialog.hpp"
 #include "ProjectDirtyStateManager.hpp"
 #include "Gizmos/GLGizmoSimplify.hpp" // create suggestion notification
+
+// BBS
+#include "BitmapCache.hpp"
 
 #ifdef __APPLE__
 #include "Gizmos/GLGizmosManager.hpp"
@@ -324,6 +328,7 @@ void SlicedInfo::SetTextAndShow(SlicedInfoIdx idx, const wxString& text, const w
     info_vec[idx].second->Show(show);
 }
 
+#if 0
 class PartPlateSettings
 {
 private:
@@ -395,6 +400,7 @@ wxSizer* PartPlateSettings::get_sizer()
 {
     return m_sizer;
 }
+#endif
 
 // Frequently changed parameters
 
@@ -731,10 +737,12 @@ struct Sidebar::priv
     PlaterPresetComboBox *combo_sla_print;
     PlaterPresetComboBox *combo_sla_material;
     PlaterPresetComboBox *combo_printer;
-    PartPlateSettings* combo_partplate_filter;
+    //PartPlateSettings* combo_partplate_filter;
 
     wxBoxSizer *sizer_params;
-    FreqChangedParams   *frequently_changed_parameters{ nullptr };
+
+    // BBS. Remove frequent changed params.
+    //FreqChangedParams   *frequently_changed_parameters{ nullptr };
     ObjectList          *object_list{ nullptr };
     ObjectManipulation  *object_manipulation{ nullptr };
     ObjectSettings      *object_settings{ nullptr };
@@ -767,7 +775,10 @@ Sidebar::priv::~priv()
 {
     delete object_manipulation;
     delete object_settings;
+    // BBS
+#if 0
     delete frequently_changed_parameters;
+#endif
     delete object_layers;
 }
 
@@ -783,7 +794,10 @@ void Sidebar::priv::show_preset_comboboxes()
             sizer_presets->Show(i, showSLA);
     }
 
+    // BBS
+#if 0
     frequently_changed_parameters->Show(!showSLA);
+#endif
 
     scrolled->GetParent()->Layout();
     scrolled->Refresh();
@@ -887,9 +901,27 @@ Sidebar::Sidebar(Plater *parent)
 
         auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
         combo_and_btn_sizer->Add(*combo, 1, wxEXPAND);
-        if ((*combo)->edit_btn)
-            combo_and_btn_sizer->Add((*combo)->edit_btn, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT,
-                                    int(0.3*wxGetApp().em_unit()));
+        // BBS
+        if (filament) {
+            if ((*combo)->clr_picker) {
+                Slic3r::DynamicPrintConfig* config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({ "extruder_colour" }));
+                const std::string& txt_color = config->opt_string("extruder_colour", (unsigned int)0);
+                wxColor color;
+                unsigned char rgb[3];
+                if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb))
+                {
+                    color.Set(rgb[0], rgb[1], rgb[2]);
+                    (*combo)->clr_picker->SetColour(color);
+                }
+                combo_and_btn_sizer->Add((*combo)->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT,
+                    int(0.3 * wxGetApp().em_unit()));
+            }
+        }
+        else {
+            if ((*combo)->edit_btn)
+                combo_and_btn_sizer->Add((*combo)->edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT,
+                    int(0.3 * wxGetApp().em_unit()));
+        }
 
         auto *sizer_presets = this->p->sizer_presets;
         auto *sizer_filaments = this->p->sizer_filaments;
@@ -904,8 +936,9 @@ Sidebar::Sidebar(Plater *parent)
     };
 
     p->combos_filament.push_back(nullptr);
-    //init_combo(&p->combo_print,         _L("Print settings"),     Preset::TYPE_PRINT,         false);
-    init_combo(&p->combos_filament[0],  _L("Filament"),           Preset::TYPE_FILAMENT,      true);
+    init_combo(&p->combo_print,         _L("Print settings"),     Preset::TYPE_PRINT,         false);
+    // BBS
+    init_combo(&p->combos_filament[0],  _L("AMS"),                Preset::TYPE_FILAMENT,      true);
     //init_combo(&p->combo_sla_print,     _L("SLA print settings"), Preset::TYPE_SLA_PRINT,     false);
     //init_combo(&p->combo_sla_material,  _L("SLA material"),       Preset::TYPE_SLA_MATERIAL,  false);
     //init_combo(&p->combo_printer,       _L("Printer"),            Preset::TYPE_PRINTER,       false);
@@ -914,14 +947,18 @@ Sidebar::Sidebar(Plater *parent)
 
     p->sizer_params = new wxBoxSizer(wxVERTICAL);
 
+    // BBS
+#if 0
     // Frequently changed parameters
     p->frequently_changed_parameters = new FreqChangedParams(p->scrolled);
     p->sizer_params->Add(p->frequently_changed_parameters->get_sizer(), 0, wxEXPAND | wxTOP | wxBOTTOM, wxOSX ? 1 : margin_5);
+#endif
 
+#if 0
     // PartPlater Filter
     p->combo_partplate_filter = new PartPlateSettings(p->scrolled);
     p->sizer_params->Add(p->combo_partplate_filter->get_sizer(), 0, wxEXPAND | wxTOP | wxBOTTOM, margin_5);
-
+#endif
 
     // Object List
     p->object_list = new ObjectList(p->scrolled);
@@ -957,6 +994,7 @@ Sidebar::Sidebar(Plater *parent)
     scrolled_sizer->Add(p->object_info, 0, wxEXPAND | wxTOP | wxLEFT, margin_5);
     scrolled_sizer->Add(p->sliced_info, 0, wxEXPAND | wxTOP | wxLEFT, margin_5);
 
+#if 0
     // Buttons underneath the scrolled area
 
     // rescalable bitmap buttons "Send to printer" and "Remove device" 
@@ -1021,12 +1059,14 @@ Sidebar::Sidebar(Plater *parent)
 
     btns_sizer->Add(p->btn_reslice, 0, wxEXPAND | wxTOP, margin_5);
     btns_sizer->Add(complect_btns_sizer, 0, wxEXPAND | wxTOP, margin_5);
+#endif
 
     auto *sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(p->scrolled, 1, wxEXPAND);
-    sizer->Add(btns_sizer, 0, wxEXPAND | wxLEFT, margin_5);
+    //sizer->Add(btns_sizer, 0, wxEXPAND | wxLEFT, margin_5);
     SetSizer(sizer);
 
+#if 0
     // Events
     p->btn_export_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->export_gcode(false); });
     p->btn_reslice->Bind(wxEVT_BUTTON, [this](wxCommandEvent&)
@@ -1056,6 +1096,7 @@ Sidebar::Sidebar(Plater *parent)
     p->btn_send_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->send_gcode(); });
 //    p->btn_eject_device->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->eject_drive(); });
 	p->btn_export_gcode_removable->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->export_gcode(true); });
+#endif
 }
 
 Sidebar::~Sidebar() {}
@@ -1069,8 +1110,23 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int extr_i
 
     auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
     combo_and_btn_sizer->Add(*combo, 1, wxEXPAND);
+    // BBS
+#if 0
     combo_and_btn_sizer->Add((*combo)->edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT,
                             int(0.3*wxGetApp().em_unit()));
+#else
+    const std::string& txt_color = p->plater->config()->opt_string("extruder_colour", extr_idx);
+    wxColor color;
+    unsigned char rgb[3];
+    if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb))
+    {
+        color.Set(rgb[0], rgb[1], rgb[2]);
+        (*combo)->clr_picker->SetColour(color);
+    }
+
+    combo_and_btn_sizer->Add((*combo)->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT,
+        int(0.3 * wxGetApp().em_unit()));
+#endif
 
     auto /***/sizer_filaments = this->p->sizer_filaments;
     sizer_filaments->Add(combo_and_btn_sizer, 1, wxEXPAND | wxBOTTOM, 1);
@@ -1107,10 +1163,12 @@ void Sidebar::update_all_preset_comboboxes()
     }
 }
 
+#if 0
 void Sidebar::update_partplate(PartPlateList& list)
 {
     p->combo_partplate_filter->update(list);
 }
+#endif
 
 void Sidebar::update_presets(Preset::Type preset_type)
 {
@@ -1123,7 +1181,6 @@ void Sidebar::update_presets(Preset::Type preset_type)
         const size_t extruder_cnt = print_tech != ptFFF ? 1 :
                                 dynamic_cast<ConfigOptionFloats*>(preset_bundle.printers.get_edited_preset().config.option("nozzle_diameter"))->values.size();
         const size_t filament_cnt = p->combos_filament.size() > extruder_cnt ? extruder_cnt : p->combos_filament.size();
-
         if (filament_cnt == 1) {
             // Single filament printer, synchronize the filament presets.
             const std::string &name = preset_bundle.filaments.get_selected_preset_name();
@@ -1137,7 +1194,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
     }
 
     case Preset::TYPE_PRINT:
-        ;// p->combo_print->update();
+        p->combo_print->update();
         break;
 
     case Preset::TYPE_SLA_PRINT:
@@ -1198,17 +1255,20 @@ void Sidebar::msw_rescale()
 #if 0
     if (p->mode_sizer)
         p->mode_sizer->msw_rescale();
+#endif
 
     for (PlaterPresetComboBox* combo : std::vector<PlaterPresetComboBox*> { p->combo_print,
-                                                                p->combo_sla_print,
-                                                                p->combo_sla_material,
-                                                                p->combo_printer } )
+                                                                //p->combo_sla_print,
+                                                                //p->combo_sla_material,
+                                                                //p->combo_printer
+                                                                } )
         combo->msw_rescale();
-#endif
+
     for (PlaterPresetComboBox* combo : p->combos_filament)
         combo->msw_rescale();
 
-    p->frequently_changed_parameters->msw_rescale();
+    // BBS
+    //p->frequently_changed_parameters->msw_rescale();
     p->object_list->msw_rescale();
     p->object_manipulation->msw_rescale();
     p->object_settings->msw_rescale();
@@ -1249,8 +1309,8 @@ void Sidebar::sys_color_changed()
 #if 0
     if (p->mode_sizer)
         p->mode_sizer->msw_rescale();
-#endif
     p->frequently_changed_parameters->sys_color_changed();
+#endif
     p->object_settings->sys_color_changed();
 #endif
 
@@ -1331,12 +1391,19 @@ wxPanel* Sidebar::presets_panel()
 
 ConfigOptionsGroup* Sidebar::og_freq_chng_params(const bool is_fff)
 {
+    // BBS
+#if 0
     return p->frequently_changed_parameters->get_og(is_fff);
+#endif
+    return NULL;
 }
 
 wxButton* Sidebar::get_wiping_dialog_button()
 {
+#if 0
     return p->frequently_changed_parameters->get_wiping_dialog_button();
+#endif
+    return NULL;
 }
 
 void Sidebar::update_objects_list_extruder_column(size_t extruders_count)
@@ -1614,8 +1681,8 @@ void Sidebar::update_mode()
 {
     m_mode = wxGetApp().get_mode();
 
-    update_reslice_btn_tooltip();
     //BBS: remove print related combos
+    //update_reslice_btn_tooltip();
     //update_mode_sizer();
     update_searcher();
 
@@ -2042,7 +2109,7 @@ struct Plater::priv
     void on_3dcanvas_mouse_dragging_started(SimpleEvent&);
     void on_3dcanvas_mouse_dragging_finished(SimpleEvent&);
 
-    void show_action_buttons(const bool is_ready_to_slice) const;
+    //void show_action_buttons(const bool is_ready_to_slice) const;
 
     // Set the bed shape to a single closed 2D polygon(array of two element arrays),
     // triangulate the bed and store the triangles into m_bed.m_triangles,
@@ -2265,7 +2332,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         view3D_canvas->Bind(EVT_GLCANVAS_WIPETOWER_ROTATED, &priv::on_wipetower_rotated, this);
         view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_ROTATED, [this](SimpleEvent&) { update(); });
         view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_SCALED, [this](SimpleEvent&) { update(); });
-        view3D_canvas->Bind(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, [this](Event<bool>& evt) { this->sidebar->enable_buttons(evt.data); });
+        // BBS
+        //view3D_canvas->Bind(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, [this](Event<bool>& evt) { this->sidebar->enable_buttons(evt.data); });
         view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_GEOMETRY, &priv::on_update_geometry, this);
         view3D_canvas->Bind(EVT_GLCANVAS_MOUSE_DRAGGING_STARTED, &priv::on_3dcanvas_mouse_dragging_started, this);
         view3D_canvas->Bind(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, &priv::on_3dcanvas_mouse_dragging_finished, this);
@@ -2385,7 +2453,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         this->q->Bind(EVT_PRESET_UPDATE_AVAILABLE_CLICKED, [](PresetUpdateAvailableClickedEvent&) {  wxGetApp().get_preset_updater()->on_update_notification_confirm(); });
         this->q->Bind(EVT_REMOVABLE_DRIVE_EJECTED, [this](RemovableDriveEjectEvent &evt) {
 		    if (evt.data.second) {
-			    this->show_action_buttons(this->ready_to_slice);
+                // BBS
+			    //this->show_action_buttons(this->ready_to_slice);
                 notification_manager->close_notification_of_type(NotificationType::ExportFinished);
                 notification_manager->push_notification(NotificationType::CustomNotification,
                                                         NotificationManager::NotificationLevel::RegularNotificationLevel,
@@ -2399,7 +2468,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
             }
 	    });
         this->q->Bind(EVT_REMOVABLE_DRIVES_CHANGED, [this](RemovableDrivesChangedEvent &) {
-		    this->show_action_buttons(this->ready_to_slice); 
+            // BBS
+            //this->show_action_buttons(this->ready_to_slice); 
 		    // Close notification ExportingFinished but only if last export was to removable
 		    notification_manager->device_ejected();
 	    });
@@ -3196,7 +3266,8 @@ void Plater::priv::object_list_changed()
     sidebar->enable_buttons(!model.objects.empty() && !export_in_progress && model_fits);
     PartPlate* part_plate = partplate_list.get_curr_plate();
 
-    sidebar->enable_buttons(!model.objects.empty() && !export_in_progress && model_fits && part_plate->has_printable_instances());
+    // BBS
+    //sidebar->enable_buttons(!model.objects.empty() && !export_in_progress && model_fits && part_plate->has_printable_instances());
 }
 
 void Plater::priv::select_all()
@@ -3574,6 +3645,8 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
             (return_state & UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE) != 0 )
             notification_manager->set_slicing_progress_hidden();
 
+        // BBS
+#if 0
         sidebar->set_btn_label(ActionButtonType::abExport, _(label_btn_export));
         sidebar->set_btn_label(ActionButtonType::abSendGCode, _(label_btn_send));
 
@@ -3589,6 +3662,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
                                                  * when this function is called several times during calculations
                                                  * */
             show_action_buttons(true);
+#endif
     }
 
     return return_state;
@@ -4454,9 +4528,12 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
 //        this->statusbar()->set_status_text(from_u8(message.first));
         if (evt.invalidate_plater())
         {
+            // BBS
+#if 0
             const wxString invalid_str = _L("Invalid data");
             for (auto btn : { ActionButtonType::abReslice, ActionButtonType::abSendGCode, ActionButtonType::abExport })
                 sidebar->set_btn_label(btn, invalid_str);
+#endif
             process_completed_with_error = true;
         }
         has_error = true;
@@ -4492,6 +4569,8 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
             this->update_sla_scene();
     }
 	
+    // BBS
+#if 0
     if (evt.cancelled()) {
         if (wxGetApp().get_mode() == comSimple)
             sidebar->set_btn_label(ActionButtonType::abReslice, "Slice now");
@@ -4515,6 +4594,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         }else if (exporting_status == ExportingStatus::EXPORTING_TO_LOCAL && !has_error)
             notification_manager->push_exporting_finished_notification(last_output_path, last_output_dir_path, false);
     }
+#endif
     exporting_status = ExportingStatus::NOT_EXPORTING;
 }
 
@@ -4978,10 +5058,12 @@ void Plater::priv::enable_preview_moves_slider(bool enable)
     preview->enable_moves_slider(enable);
 }
 
+#if 0
 void Plater::update_partplate()
 {
     sidebar().update_partplate(p->partplate_list);
 }
+#endif
 
 void Plater::priv::reset_gcode_toolpaths()
 {
@@ -5195,6 +5277,8 @@ bool Plater::priv::can_layers_editing() const
     return layers_height_allowed();
 }
 
+// BBS
+#if 0
 void Plater::priv::show_action_buttons(const bool ready_to_slice) const
 {
 	// Cache this value, so that the callbacks from the RemovableDriveManager may repeat that value when calling show_action_buttons().
@@ -5233,6 +5317,7 @@ void Plater::priv::show_action_buttons(const bool ready_to_slice) const
             sidebar->Layout();
     }
 }
+#endif
 
 void Plater::priv::enter_gizmos_stack()
 {
@@ -6620,20 +6705,25 @@ void Plater::reslice()
         return;
 
     bool clean_gcode_toolpaths = true;
+    // BBS
     if (p->background_process.running())
     {
-        if (wxGetApp().get_mode() == comSimple)
+#if 0
+        if (wxGetApp().get_mode() == comSimple) {
             p->sidebar->set_btn_label(ActionButtonType::abReslice, _L("Slicing") + dots);
-        else
-        {
+        }
+        else {
             p->sidebar->set_btn_label(ActionButtonType::abReslice, _L("Slice now"));
             p->show_action_buttons(false);
         }
+#endif
     }
-    else if (!p->background_process.empty() && !p->background_process.idle())
-        p->show_action_buttons(true);
-    else
+    else if (!p->background_process.empty() && !p->background_process.idle()) {
+        //p->show_action_buttons(true);
+    }
+    else {
         clean_gcode_toolpaths = false;
+    }
 
     if (clean_gcode_toolpaths)
         reset_gcode_toolpaths();
@@ -7276,7 +7366,8 @@ void Plater::split_object()         { p->split_object(); }
 void Plater::split_volume()         { p->split_volume(); }
 void Plater::optimize_rotation()    { if (!p->m_ui_jobs.is_any_running()) p->m_ui_jobs.optimize_rotation(); }
 void Plater::update_menus()         { p->menus.update(); }
-void Plater::show_action_buttons(const bool ready_to_slice) const   { p->show_action_buttons(ready_to_slice); }
+// BBS
+//void Plater::show_action_buttons(const bool ready_to_slice) const   { p->show_action_buttons(ready_to_slice); }
 
 void Plater::fill_color(int extruder_id)
 {
@@ -7422,12 +7513,14 @@ int Plater::select_plate(int plate_index)
             {
                 part_plate->update_slice_result_valid_state(false);
                 p->sidebar->show_sliced_info_sizer(false);
-                p->show_action_buttons(true);
+                // BBS
+                //p->show_action_buttons(true);
             }
             else
             {
                 p->sidebar->show_sliced_info_sizer(true);
-                p->show_action_buttons(false);
+                // BBS
+                //p->show_action_buttons(false);
             }
         }
         else
@@ -7437,7 +7530,9 @@ int Plater::select_plate(int plate_index)
             bool model_fits = p->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
             //BBS: add partplate logic
             PartPlate* part_plate = p->partplate_list.get_curr_plate();
-            p->show_action_buttons(true);
+            
+            // BBS: don't show action buttons
+            //p->show_action_buttons(true);
             if (model_fits && part_plate->has_printable_instances())
             {
                 p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, true));
@@ -7491,12 +7586,14 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
                 {
                     part_plate->update_slice_result_valid_state(false);
                     p->sidebar->show_sliced_info_sizer(false);
-                    p->show_action_buttons(true);
+                    // BBS
+                    //p->show_action_buttons(true);
                 }
                 else
                 {
                     p->sidebar->show_sliced_info_sizer(true);
-                    p->show_action_buttons(false);
+                    // BBS
+                    //p->show_action_buttons(false);
                 }
             }
             else
@@ -7506,7 +7603,8 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
                 bool model_fits = p->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
                 //BBS: add partplate logic
                 PartPlate* part_plate = p->partplate_list.get_curr_plate();
-                p->show_action_buttons(true);
+                // BBS
+                //p->show_action_buttons(true);
                 if (model_fits && part_plate->has_printable_instances())
                 {
                     p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, true));

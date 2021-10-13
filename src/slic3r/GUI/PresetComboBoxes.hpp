@@ -3,6 +3,7 @@
 
 //#include <wx/bmpcbox.h>
 #include <wx/gdicmn.h>
+#include <wx/clrpicker.h>
 
 #include "libslic3r/Preset.hpp"
 #include "wxExtensions.hpp"
@@ -144,6 +145,10 @@ public:
 
     ScalableButton* edit_btn { nullptr };
 
+    // BBS
+    wxColourPickerCtrl* clr_picker { nullptr };
+    wxColor get_color() { return m_color; }
+
     void set_extruder_idx(const int extr_idx)   { m_extruder_idx = extr_idx; }
     int  get_extruder_idx() const               { return m_extruder_idx; }
 
@@ -159,6 +164,9 @@ public:
 
 private:
     int     m_extruder_idx = -1;
+
+    // BBS
+    wxColor m_color;
 };
 
 

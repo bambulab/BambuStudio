@@ -443,6 +443,8 @@ wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, bool wide_icons, con
 
         if (m_type == Preset::TYPE_FILAMENT && !filament_rgb.empty())
         {
+            // BBS
+#if 0
             unsigned char rgb[3];
             // Paint the color bars.
             bitmap_cache().parse_color(filament_rgb, rgb);
@@ -451,17 +453,21 @@ wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, bool wide_icons, con
                 bitmap_cache().parse_color(extruder_rgb, rgb);
                 bmps.emplace_back(bitmap_cache().mksolid(thin_icon_width, icon_height, rgb, false, 1, dark_mode));
             }
+#endif
             // Paint a lock at the system presets.
             bmps.emplace_back(bitmap_cache().mkclear(space_icon_width, icon_height));
         }
         else
         {
+            // BBS
+#if 0
             // Paint the color bars.
             bmps.emplace_back(bitmap_cache().mkclear(thin_space_icon_width, icon_height));
             if (m_type == Preset::TYPE_SLA_MATERIAL)
                 bmps.emplace_back(create_scaled_bitmap(main_icon_name, this, 16, false, material_rgb));
             else
                 bmps.emplace_back(create_scaled_bitmap(main_icon_name));
+#endif
             // Paint a lock at the system presets.
             bmps.emplace_back(bitmap_cache().mkclear(wide_space_icon_width, icon_height));
         }
@@ -572,27 +578,53 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
                 return;
             }
 
+            // BBS
             // Swallow the mouse click and open the color picker.
-            change_extruder_color();
+            //change_extruder_color();
         });
     }
 
-    edit_btn = new ScalableButton(parent, wxID_ANY, "cog");
-    edit_btn->SetToolTip(_L("Click to edit preset"));
+    // BBS
+    if (m_type == Preset::TYPE_FILAMENT) {
+        clr_picker = new wxColourPickerCtrl(parent, wxID_ANY);
+        clr_picker->SetToolTip(_L("Click to  pick filament color"));
+        clr_picker->Bind(wxEVT_COLOURPICKER_CHANGED, [this](wxColourPickerEvent& event)
+            {
+                // Swallow the mouse click and open the color picker.
+                // get current color
+                DynamicPrintConfig* cfg = wxGetApp().get_tab(Preset::TYPE_PRINTER)->get_config();
+                auto colors = static_cast<ConfigOptionStrings*>(cfg->option("extruder_colour")->clone());
+                wxColour clr(colors->values[m_extruder_idx]);
+                if (!clr.IsOk())
+                    clr = wxColour(0, 0, 0); // Don't set alfa to transparence
 
-    edit_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent)
-    {
-        // In a case of a physical printer, for its editing open PhysicalPrinterDialog
-        if (m_type == Preset::TYPE_PRINTER
+                colors->values[m_extruder_idx] = event.GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+                DynamicPrintConfig cfg_new = *cfg;
+                cfg_new.set_key_value("extruder_colour", colors);
+
+                wxGetApp().get_tab(Preset::TYPE_PRINTER)->load_config(cfg_new);
+                this->update();
+                wxGetApp().plater()->on_config_change(cfg_new);
+            });
+    }
+    else {
+        edit_btn = new ScalableButton(parent, wxID_ANY, "cog");
+        edit_btn->SetToolTip(_L("Click to edit preset"));
+
+        edit_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent)
+            {
+                // In a case of a physical printer, for its editing open PhysicalPrinterDialog
+                if (m_type == Preset::TYPE_PRINTER
 #ifdef __linux__
-            // To edit extruder color from the sidebar
-            || m_type == Preset::TYPE_FILAMENT
+                    // To edit extruder color from the sidebar
+                    || m_type == Preset::TYPE_FILAMENT
 #endif //__linux__
-            )
-            show_edit_menu();
-        else
-            switch_to_tab();
-    });
+                    )
+                    show_edit_menu();
+                else
+                    switch_to_tab();
+            });
+    }
 }
 
 PlaterPresetComboBox::~PlaterPresetComboBox()
@@ -774,6 +806,8 @@ void PlaterPresetComboBox::update()
         if (!bitmap_cache().parse_color(extruder_color, rgb))
             // Extruder color is not defined.
             extruder_color.clear();
+        // BBS
+        clr_picker->SetColour(wxColor(extruder_color));
         selected_filament_preset = m_collection->find_preset(m_preset_bundle->filament_presets[m_extruder_idx]);
         assert(selected_filament_preset);
     }

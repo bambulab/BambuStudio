@@ -69,6 +69,9 @@ static void take_snapshot(const wxString& snapshot_name)
         plater->take_snapshot(snapshot_name);
 }
 
+#define ID_OBJECT_ORG_MENU_ITEM_MODULE 11000
+#define ID_OBJECT_ORG_MENU_ITEM_PLATE 11001
+
 ObjectList::ObjectList(wxWindow* parent) :
     wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 
 #ifdef _WIN32
@@ -82,7 +85,18 @@ ObjectList::ObjectList(wxWindow* parent) :
     create_objects_ctrl();
 
     //BBS: add part plate related event
-    Bind(EVT_PARTPLATE_LIST_PLATE_SELECT, &ObjectList::on_select_plate, this);
+    //Bind(EVT_PARTPLATE_LIST_PLATE_SELECT, &ObjectList::on_select_plate, this);
+
+    // BBS
+    wxMenuItem* org_by_plate = new wxMenuItem(&m_object_org_menu, ID_OBJECT_ORG_MENU_ITEM_PLATE, "Organize By Plate");
+    m_object_org_menu.Append(org_by_plate);
+
+    wxMenuItem* org_by_module = new wxMenuItem(&m_object_org_menu, ID_OBJECT_ORG_MENU_ITEM_MODULE, "Organize By Module");
+    m_object_org_menu.Append(org_by_module);
+
+    Bind(wxEVT_DATAVIEW_COLUMN_HEADER_CLICK, &ObjectList::OnColumnHeadClicked, this);
+    Bind(wxEVT_MENU, [this](wxCommandEvent& evt) { this->organize_objects(ortByPlate); }, ID_OBJECT_ORG_MENU_ITEM_PLATE);
+    Bind(wxEVT_MENU, [this](wxCommandEvent& evt) { this->organize_objects(ortByModule); }, ID_OBJECT_ORG_MENU_ITEM_MODULE);
 
     // describe control behavior 
     Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxDataViewEvent& event) {
@@ -298,12 +312,18 @@ void ObjectList::create_objects_ctrl()
     bmp_text_renderer->set_can_create_editor_ctrl_function([this]() {
         return m_objects_model->GetItemType(GetSelection()) & (itVolume | itObject);
     });
-    AppendColumn(new wxDataViewColumn(_L("Name"), bmp_text_renderer,
-        colName, 20*em, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
 
+    wxDataViewColumn* name_col = new wxDataViewColumn(_L("Name"), bmp_text_renderer,
+        colName, 20 * em, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
+    name_col->SetBitmap(create_scaled_bitmap("organize", nullptr, FromDIP(18)));
+    AppendColumn(name_col);
+
+    // BBS
+#if 0
     // column PrintableProperty (Icon) of the view control:
     AppendBitmapColumn(" ", colPrint, wxDATAVIEW_CELL_INERT, 3*em,
         wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
+#endif
 
     // column Extruder of the view control:
     BitmapChoiceRenderer* bmp_choice_renderer = new BitmapChoiceRenderer();
@@ -325,7 +345,8 @@ void ObjectList::create_objects_ctrl()
     if (wxOSX)
     {
         GetColumn(colName)->SetWidth(20*em);
-        GetColumn(colPrint)->SetWidth(3*em);
+        // BBS
+        //GetColumn(colPrint)->SetWidth(3*em);
         GetColumn(colExtruder)->SetWidth(8*em);
         GetColumn(colEditing) ->SetWidth(7*em);
     }
@@ -589,6 +610,20 @@ void ObjectList::update_plate_values_for_items()
 void ObjectList::on_select_plate(IntEvent& evt)
 {
     m_objects_model->UpdateEnableByPlate(evt.get_data());
+}
+
+// BBS
+void ObjectList::OnColumnHeadClicked(wxDataViewEvent& event)
+{
+    int col = event.GetColumn();
+    if (col == 0) {
+        this->PopupMenu(&m_object_org_menu, 0, FromDIP(20));
+    }
+}
+
+void ObjectList::organize_objects(OBJECT_ORGANIZE_TYPE type)
+{
+    printf("%d\n", type);
 }
 
 void ObjectList::update_objects_list_extruder_column(size_t extruders_count)
@@ -1007,7 +1042,11 @@ void ObjectList::extruder_editing()
 
     wxPoint pos = this->get_mouse_position_in_control();
     wxSize size = wxSize(column_width, -1);
+#if 0
     pos.x = GetColumn(colName)->GetWidth() + GetColumn(colPrint)->GetWidth() + 5;
+#else
+    pos.x = GetColumn(colName)->GetWidth() + 5;
+#endif
     pos.y -= GetTextExtent("m").y;
 
     apply_extruder_selector(&m_extruder_editor, this, L("default"), pos, size);
@@ -4280,7 +4319,8 @@ void ObjectList::msw_rescale()
     const int em = wxGetApp().em_unit();
 
     GetColumn(colName    )->SetWidth(20 * em);
-    GetColumn(colPrint   )->SetWidth( 3 * em);
+    // BBS
+    //GetColumn(colPrint   )->SetWidth( 3 * em);
     GetColumn(colExtruder)->SetWidth( 8 * em);
     GetColumn(colEditing )->SetWidth( 3 * em);
 

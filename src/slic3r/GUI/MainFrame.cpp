@@ -121,16 +121,23 @@ static wxIcon main_frame_icon(GUI_App::EAppMode app_mode)
 #endif // _WIN32
 }
 
+// BBS
+#define BORDERLESS_FRAME_STYLE (wxRESIZE_BORDER | wxMINIMIZE_BOX |wxMAXIMIZE_BOX | wxCLOSE_BOX)
+
 MainFrame::MainFrame() :
-DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "mainframe"),
+DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_STYLE, "mainframe"),
     m_printhost_queue_dlg(new PrintHostQueueDialog(this))
-    , m_debug_tool_dlg(new DebugToolDialog(this))
+    // BBS
+    , m_topbar(new BBLTopbar(this))
     , m_recent_projects(9)
     , m_settings_dialog(this)
     , diff_dialog(this)
 {
     // Fonts were created by the DPIFrame constructor for the monitor, on which the window opened.
     wxGetApp().update_fonts(this);
+
+    wxAuiToolBar* toolbar = new wxAuiToolBar();
+
 /*
 #ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList 
     this->SetFont(this->normal_font());
@@ -195,6 +202,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
     // initialize layout
     m_main_sizer = new wxBoxSizer(wxVERTICAL);
     wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(m_topbar, 0, wxEXPAND);
     sizer->Add(m_main_sizer, 1, wxEXPAND);
     SetSizer(sizer);
     // initialize layout from config
@@ -273,7 +281,8 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 
     if (m_plater != nullptr) {
         m_plater->get_collapse_toolbar().set_enabled(wxGetApp().app_config->get("show_collapse_button") == "1");
-        m_plater->show_action_buttons(true);
+        // BBS
+        //m_plater->show_action_buttons(true);
     }
 }
 
@@ -1455,12 +1464,6 @@ void MainFrame::init_menubar_as_editor()
 #endif // __APPLE__
     }
 
-    /* BBS add menu */
-    // Debug menu
-    auto debugMenu = new wxMenu();
-    append_menu_item(debugMenu, wxID_ANY, _L("Debug Tool"), _L("Display the Debug Tool"),
-        [this](wxCommandEvent&) { m_debug_tool_dlg->Show(); }, "upload_queue", nullptr, []() {return true; }, this);
-
     // Model Website
     auto modelWebSiteMenu = new wxMenu();
     append_menu_item(modelWebSiteMenu, wxID_ANY, _L("Model WebSite"), _L("Browser Models in BBL WebSite"),
@@ -1469,25 +1472,11 @@ void MainFrame::init_menubar_as_editor()
             frame->Show();
         });
 
-    auto accountMenu = new wxMenu();
-
-    append_menu_item(accountMenu, wxID_ANY, _L("Login"), _L("Login with your Account"),
-        [](wxCommandEvent&) { Slic3r::GUI::login(); }, "upload_queue", nullptr, [this]() {
-            Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-            return !account_manager->is_user_login();
-        }, this);
-    append_menu_item(accountMenu, wxID_ANY, _L("Logout"), _L(""),
-        [](wxCommandEvent&) {
-            Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-            account_manager->user_logout();
-        }, "upload_queue", nullptr, [this]() {
-            Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-            return account_manager->is_user_login();
-        }, this);
-
     // Help menu
     auto helpMenu = generate_help_menu();
 
+    // BBS
+#if 0
     // menubar
     // assign menubar to frame after appending items, otherwise special items
     // will not be handled correctly
@@ -1499,9 +1488,7 @@ void MainFrame::init_menubar_as_editor()
     wxGetApp().add_config_menu(m_menubar);
 
     // Add additional menus from C++
-    if (debugMenu) m_menubar->Append(debugMenu, _L("&Debug"));
     if (modelWebSiteMenu) m_menubar->Append(modelWebSiteMenu, _L("&Model's Site"));
-    if (accountMenu) m_menubar->Append(accountMenu, _L("&Account"));
     m_menubar->Append(helpMenu, _L("&Help"));
 
 #ifdef _MSW_DARK_MODE
@@ -1512,6 +1499,17 @@ void MainFrame::init_menubar_as_editor()
     }
 #endif
     SetMenuBar(m_menubar);
+#endif
+    m_topbar->SetFileMenu(fileMenu);
+    if (editMenu)
+        m_topbar->AddDropDownSubMenu(editMenu, _L("&Edit"));
+    m_topbar->AddDropDownSubMenu(windowMenu, _L("&Window"));
+    if (viewMenu)
+        m_topbar->AddDropDownSubMenu(viewMenu, _L("&View"));
+    wxGetApp().add_config_menu(m_topbar->GetTopMenu());
+    if (modelWebSiteMenu)
+        m_topbar->AddDropDownSubMenu(modelWebSiteMenu, _L("&Model Store"));
+    m_topbar->AddDropDownSubMenu(helpMenu, _L("&Help"));
 
 #ifdef _MSW_DARK_MODE
     if (wxGetApp().tabs_as_menu())
@@ -1598,6 +1596,8 @@ void MainFrame::init_menubar_as_gcodeviewer()
     // helpmenu
     auto helpMenu = generate_help_menu();
 
+    // BBS
+#if 0
     m_menubar = new wxMenuBar();
     m_menubar->Append(fileMenu, _L("&File"));
     if (viewMenu != nullptr) m_menubar->Append(viewMenu, _L("&View"));
@@ -1605,6 +1605,12 @@ void MainFrame::init_menubar_as_gcodeviewer()
     wxGetApp().add_config_menu(m_menubar);
     m_menubar->Append(helpMenu, _L("&Help"));
     SetMenuBar(m_menubar);
+#endif
+    m_topbar->SetFileMenu(fileMenu);
+    if (viewMenu != nullptr)
+        m_topbar->AddDropDownSubMenu(viewMenu, _L("&View"));
+    wxGetApp().add_config_menu(m_topbar->GetTopMenu());
+    m_topbar->AddDropDownSubMenu(viewMenu, _L("&Help"));
 
 #ifdef __APPLE__
     // This fixes a bug on Mac OS where the quit command doesn't emit window close events

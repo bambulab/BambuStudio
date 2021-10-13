@@ -261,7 +261,9 @@ public:
     void            save_mode(const /*ConfigOptionMode*/int mode) ;
     void            update_mode();
 
-    void            add_config_menu(wxMenuBar *menu);
+    // BBS
+    //void            add_config_menu(wxMenuBar *menu);
+    void            add_config_menu(wxMenu* menu);
     bool            has_unsaved_preset_changes() const;
     bool            has_current_preset_changes() const;
     void            update_saved_preset_from_current_preset();

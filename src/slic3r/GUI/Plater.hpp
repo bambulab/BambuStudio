@@ -84,7 +84,7 @@ public:
     void init_filament_combo(PlaterPresetComboBox **combo, const int extr_idx);
     void remove_unused_filament_combos(const size_t current_extruder_count);
     void update_all_preset_comboboxes();
-    void update_partplate(PartPlateList& list);
+    //void update_partplate(PartPlateList& list);
     void update_presets(Slic3r::Preset::Type preset_type);
     void update_mode_sizer() const;
     void change_top_border_for_mode_sizer(bool increase_border);
@@ -287,7 +287,8 @@ public:
     std::vector<std::string> get_colors_for_color_print(const GCodeProcessorResult* const result = nullptr) const;
 
     void update_menus();
-    void show_action_buttons(const bool is_ready_to_slice) const;
+    // BBS
+    //void show_action_buttons(const bool is_ready_to_slice) const;
 
     wxString get_project_filename(const wxString& extension = wxEmptyString) const;
     void set_project_filename(const wxString& filename);
@@ -397,7 +398,9 @@ public:
     void update_preview_moves_slider();
     void enable_preview_moves_slider(bool enable);
 
+#if 0
     void update_partplate();
+#endif
 
     void reset_gcode_toolpaths();
     void reset_last_loaded_gcode() { m_last_loaded_gcode = ""; }

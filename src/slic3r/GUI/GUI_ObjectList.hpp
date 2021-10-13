@@ -87,6 +87,12 @@ public:
         smLayerRoot = 16, // used for undo/redo
     };
 
+    enum OBJECT_ORGANIZE_TYPE
+    {
+        ortByPlate = 0,
+        ortByModule = 1,
+    };
+
     struct Clipboard
     {
         void reset() {
@@ -417,6 +423,11 @@ private:
 	void OnEditingStarted(wxDataViewEvent &event);
 #endif /* __WXMSW__ */
     void OnEditingDone(wxDataViewEvent &event);
+
+    // BBS
+    void OnColumnHeadClicked(wxDataViewEvent& event);
+    void organize_objects(OBJECT_ORGANIZE_TYPE type);
+    wxMenu m_object_org_menu;
 };
 
 
