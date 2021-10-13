@@ -953,8 +953,10 @@ public:
     void set_rotation(const Vec3d& rotation) { m_transformation.set_rotation(rotation); }
     void set_rotation(Axis axis, double rotation) { m_transformation.set_rotation(axis, rotation); }
 
+    // BBS
     void rotate(Matrix3d rotation_matrix) {
-        auto R = get_transformation().get_matrix().matrix().block<3, 3>(0, 0);
+        // note: must remove scaling from transformation, otherwise auto-orientation with scaled objects will have problem 
+        auto R = get_matrix(true,false,true).matrix().block<3, 3>(0, 0);
         auto R_new = rotation_matrix * R;
         auto euler_angles = Geometry::extract_euler_angles(R_new);
         set_rotation(euler_angles);

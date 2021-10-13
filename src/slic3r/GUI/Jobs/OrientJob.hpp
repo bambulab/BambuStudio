@@ -41,7 +41,7 @@ public:
     void process() override;
     
     void finalize() override;
-
+#if 0
     static
     orientation::OrientMesh get_orient_mesh(ModelObject* obj, const Plater* plater)
     {
@@ -55,7 +55,7 @@ public:
         };
         return om;
     }
-
+#endif
     static
     orientation::OrientMesh get_orient_mesh(ModelInstance* instance, const Plater* plater)
     {

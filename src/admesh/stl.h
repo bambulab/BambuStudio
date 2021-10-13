@@ -45,6 +45,14 @@ typedef Eigen::Matrix<int,   3, 1, Eigen::DontAlign> stl_triangle_vertex_indices
 static_assert(sizeof(stl_vertex) == 12, "size of stl_vertex incorrect");
 static_assert(sizeof(stl_normal) == 12, "size of stl_normal incorrect");
 
+typedef enum {
+    eNormal,  // normal face
+    eSmallOverhang,  // small overhang
+    eSmallHole,      // face with small hole
+    eExteriorAppearance,  // exterior appearance
+    eMaxNumFaceTypes
+}EnumFaceTypes;
+
 struct stl_facet {
 	stl_normal normal;
 	stl_vertex vertex[3];

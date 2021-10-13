@@ -53,7 +53,6 @@ class AutoOrienter {
 public:
     TriangleMesh* mesh;
     TriangleMesh mesh_convex_hull;
-    std::vector<int> face_index;
     Eigen::MatrixXf normals, normals_hull;
     Eigen::VectorXf areas, areas_hull;
     Eigen::MatrixXf z_projected;
@@ -160,7 +159,6 @@ public:
                     continue;
                 normals.row(i) = face_normals[i];
                 areas(i) = area;
-                face_index[i] = i;
             }
         }
 
@@ -431,7 +429,7 @@ void _orient(OrientMeshs& meshs_,
              AutoOrienter orienter(&mesh_.mesh, params, progressfn_i, stopfn);
              mesh_.orientation = orienter.process();
              rotation_from_two_vectors(mesh_.orientation, mesh_.axis, mesh_.angle, mesh_.rotation_matrix);
-             //mesh_.euler_angles = Geometry::extract_euler_angles(mesh_.rotation_matrix);
+             mesh_.euler_angles = Geometry::extract_euler_angles(mesh_.rotation_matrix);
              BOOST_LOG_TRIVIAL(debug) << "rotation_from_two_vectors: " << mesh_.orientation << "; " << mesh_.axis << "; " << mesh_.angle << "; euler: " << mesh_.euler_angles.transpose();
          }});
 #endif
