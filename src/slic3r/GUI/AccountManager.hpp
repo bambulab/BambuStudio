@@ -254,6 +254,9 @@ public:
         }
         return "";
     }
+
+    /* handle webpage command */
+    std::string handle_web_request(std::string cmd);
 };
 
 } // namespace Slic3r

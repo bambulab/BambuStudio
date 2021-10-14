@@ -4,6 +4,8 @@
 
 #include "I18N.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/AccountManager.hpp"
 #include "libslic3r_version.h"
 
 #include <wx/sizer.h>
@@ -645,8 +647,16 @@ void WebFrame::OnFullScreenChanged(wxWebViewEvent& evt)
 void WebFrame::OnScriptMessage(wxWebViewEvent& evt)
 {
     wxLogMessage("Script message received; value = %s, handler = %s", evt.GetString(), evt.GetMessageHandler());
-    //TODO
-    //BBL push message, event to 
+    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    std::string response = account_manager->handle_web_request(evt.GetString().ToStdString());
+    if (response.empty()) return;
+
+    /* remove \n in response string */
+    response.erase(std::remove(response.begin(), response.end(), '\n'), response.end());
+    if (!response.empty()) {
+        m_response_js = wxString::Format("window.postMessage('%s')", response);
+        RunScript(m_response_js);
+    }
 }
 
 void WebFrame::OnSetPage(wxCommandEvent& WXUNUSED(evt))
@@ -827,13 +837,18 @@ void WebFrame::RunScript(const wxString& javascript)
     wxLogMessage("Running JavaScript:\n%s\n", javascript);
 
     wxString result;
-    if (m_browser->RunScript(javascript, &result))
-    {
-        wxLogMessage("RunScript() returned \"%s\"", result);
+    try {
+        if (m_browser->RunScript(javascript, &result))
+        {
+            wxLogMessage("RunScript() returned \"%s\"", result);
+        }
+        else
+        {
+            wxLogWarning("RunScript() failed");
+        }
     }
-    else
-    {
-        wxLogWarning("RunScript() failed");
+    catch (std::exception& e) {
+        ;
     }
 }
 

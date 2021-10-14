@@ -1803,4 +1803,38 @@ namespace Slic3r {
         }
     }
 
+    std::string AccountManager::handle_web_request(std::string cmd)
+    {
+        try {
+            std::stringstream ss(cmd), oss;
+            pt::ptree root, response;
+            pt::read_json(ss, root);
+            if (root.empty())
+                return "";
+
+            boost::optional<std::string> sequence_id    = root.get_optional<std::string>("sequence_id");
+            boost::optional<std::string> command        = root.get_optional<std::string>("command");
+            if (command.has_value()) {
+                std::string command_str = command.value();
+                if (command_str.compare("request_user_token") == 0) {
+                    AccountInfo* info = get_curr_user();
+                    if (info && is_user_login()) {
+                        response.put("token", info->get_token());
+                        root.put_child("response", response);
+                        pt::write_json(oss, root, false);
+                        return oss.str();
+                    }
+                    else {
+                        return "";
+                    }
+                }
+            }
+        }
+        catch (...) {
+            BOOST_LOG_TRIVIAL(trace) << "parse json cmd failed " << cmd;
+            return "";
+        }
+        return "";
+    }
+
 } // namespace Slic3r

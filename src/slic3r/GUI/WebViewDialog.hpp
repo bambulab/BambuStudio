@@ -187,6 +187,7 @@ private:
 
     // Last executed JavaScript snippet, for convenience.
     wxString m_javascript;
+    wxString m_response_js;
 
     wxString m_bbl_user_agent;
 };
