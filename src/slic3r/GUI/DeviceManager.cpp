@@ -386,49 +386,23 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 boost::optional<std::string> task_id            = print.get_optional<std::string>("task_id");
                 boost::optional<std::string> subtask_id         = print.get_optional<std::string>("subtask_id");
 
-                BBLSubTask* curr_task = temptask_;
-
                 /* valid subtask */
                 if (subtask_id.has_value() && task_id.has_value()
                     && !task_id.value().empty()
                     && (task_id.value().compare("0") != 0)) {
                     /* create a new subtask */
                     if (!subtask_) {
-                        if (task_id.has_value() && subtask_id.has_value()) {
-                            // reqeust task
-                            // TODO modify to async
-                            BBLTask* task = acc_.get_task(task_id.value());
-                            if (task) {
-                                for (int i = 0; i < task->subtasks.size(); i++) {
-                                    if (task->subtasks[i]->task_id.compare(subtask_id.value()) == 0) {
-                                        this->subtask_ = task->subtasks[i];
-                                        curr_task = subtask_;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        // get project and profile_id info
-                        if (project_id.has_value() && profile_id.has_value()) {
-                            ;
-                        }
+                        subtask_ = acc_.get_subtask(subtask_id.value());
                     }
                     else {
-                        /* same task with obj */
-                        if (subtask_id.value().compare(subtask_->task_id) == 0
-                            && task_id.value().compare(subtask_->parent_task_->task_id) == 0) {
-                            curr_task = subtask_;
-                        }
-                        /* update to a new subtask */
-                        else {
-                            //TODO
+                        // update to new subtask
+                        if (subtask_->task_id.compare(subtask_id.value()) != 0) {
+                            subtask_ = acc_.get_subtask(subtask_id.value());
                         }
                     }
                 }
-                /* invalid subtask, use temptask */
-                else {
-                    ;
-                }
+
+                BBLSubTask* curr_task = get_subtask();
 
                 if (curr_task) {
                     if (progress.has_value())

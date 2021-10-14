@@ -165,7 +165,6 @@ namespace Slic3r {
         mqtt_opt.set_connect_timeout(10);
         mqtt_opt.set_automatic_reconnect(3, 10);
 
-        host = "http://api.qa.bbl";
         m_curr_user = nullptr;
         boost::filesystem::fstream fstream();
     }
@@ -773,6 +772,7 @@ namespace Slic3r {
 
         std::string task_name_str = task->task_name;
         pt::ptree root;
+        root.put<int>("parent", 0);
         root.put("project_id", task->task_project_id);
         root.put("profile_id", task->task_profile_id);
         root.put("name", task_name_str);
@@ -781,6 +781,26 @@ namespace Slic3r {
         pt::write_json(oss, root, false);
         return oss.str();
     }
+
+    std::string AccountManager::json_request_body_post_task(BBLSubTask* task)
+    {
+        if (!task) return "";
+
+        std::string task_name_str = task->task_name;
+        pt::ptree root;
+        
+        if (task->parent_task_) {
+            root.put("parent", task->parent_task_->task_id);
+            root.put("project_id", task->parent_task_->task_project_id);
+            root.put("profile_id", task->parent_task_->task_profile_id);
+        }
+        root.put("name", task_name_str);
+        root.put("content", task->build_content_json());
+        std::stringstream oss;
+        pt::write_json(oss, root, false);
+        return oss.str();
+    }
+
 
     std::string AccountManager::json_request_poll_3mf_gather(BBLSubTask* task)
     {
@@ -933,6 +953,57 @@ namespace Slic3r {
     }
 
     int AccountManager::request_task_id(BBLTask* task, ResultFn resFn)
+    {
+        if (!task) return -1;
+        std::string json_str = json_request_body_post_task(task);
+        std::string url = (boost::format("%1%/iot/user/task") % host).str();
+        task->task_id.clear();
+
+        Http http = Http::post(url);
+        http.header("accept", "application/json")
+            .header("Authorization", get_token_str())
+            .header("Content-Type", "application/json")
+            .set_post_body(json_str)
+            .on_complete(
+                [this, task, resFn](std::string body, unsigned) {
+                    BOOST_LOG_TRIVIAL(trace) << "request task id, body=" << body;
+                    std::stringstream ss(body);
+                    pt::ptree root;
+                    pt::read_json(ss, root);
+                    boost::optional<std::string> message = root.get_optional<std::string>("message");
+                    boost::optional<std::string> task_id = root.get_optional<std::string>("task_id");
+                    if (message.has_value()) {
+                        if (message.value().compare(MSG_SUCCESS) == 0) {
+                            if (task_id.has_value()) {
+                                task->task_id = task_id.value();
+                                if (resFn) {
+                                    resFn(0, "");
+                                }
+                                // success return
+                                return;
+                            }
+                        }
+                    }
+
+                    if (resFn) {
+                        resFn(-1, "get task id failed! body=" + body);
+                    }
+                    return;
+                }
+            )
+            .on_error(
+                [this, resFn](std::string body, std::string error, unsigned status) {
+                    BOOST_LOG_TRIVIAL(trace) << "create_profile failed! body=" << body << ", status=" << status;
+                    if (resFn) {
+                        resFn(-1, "get task id failed! body=" + body);
+                    }
+                }
+            )
+            .perform_sync();
+        return 0;
+    }
+
+    int AccountManager::request_subtask_id(BBLSubTask* task, ResultFn resFn)
     {
         if (!task) return -1;
         std::string json_str = json_request_body_post_task(task);
@@ -1224,6 +1295,62 @@ namespace Slic3r {
                             if (create_time.has_value())
                                 task->task_create_time = create_time.value();
                             boost::optional<std::string> update_time = root.get_optional<std::string>("update_time");
+                            if (update_time.has_value())
+                                task->task_update_time = update_time.value();
+                            boost::optional<std::string> parent_id = root.get_optional<std::string>("parent");
+                            if (root.get_child_optional("sub_task") != boost::none) {
+                                pt::ptree subtask_ids = root.get_child("sub_task");
+                                for (auto sub_id = subtask_ids.begin(); sub_id != subtask_ids.end(); ++sub_id) {
+                                    std::string subtask_id = sub_id->first;
+                                }
+                            }
+                        }
+                    }
+                }
+            )
+            .on_error(
+                [this](std::string body, std::string error, unsigned status) {
+                    BOOST_LOG_TRIVIAL(info) << "get_task info failed! body=" << body;
+                }
+            )
+        .perform_sync();
+        return task;
+    }
+
+    BBLSubTask* AccountManager::get_subtask(std::string subtask_id)
+    {
+        BBLSubTask* task = new BBLSubTask();
+        task->task_id = subtask_id;
+        std::string url = (boost::format("%1%/iot/user/task/%2%") % host % subtask_id).str();
+        Http http = Http::get(url);
+        http.header("accept", "application/json")
+            .header("Authorization", get_token_str())
+            .on_complete(
+                [this, task](std::string body, unsigned) {
+                    std::stringstream ss(body);
+                    pt::ptree root;
+                    pt::read_json(ss, root);
+                    boost::optional<std::string> message = root.get_optional<std::string>("message");
+                    if (message.has_value()) {
+                        if (message.value().compare(MSG_SUCCESS) == 0) {
+                            boost::optional<std::string> name = root.get_optional<std::string>("name");
+                            if (name.has_value())
+                                task->task_name = name.value();
+                            boost::optional<std::string> status = root.get_optional<std::string>("status");
+                            if (status.has_value())
+                                task->task_status = BBLSubTask::parse_status(status.value());
+                            boost::optional<std::string> content = root.get_optional<std::string>("content");
+                            if (content.has_value())
+                                task->parse_content_json(content.value());
+                            boost::optional<std::string> create_time = root.get_optional<std::string>("create_time");
+                            if (create_time.has_value())
+                                task->task_create_time = create_time.value();
+                            boost::optional<std::string> update_time = root.get_optional<std::string>("update_time");
+                            if (update_time.has_value())
+                                task->task_update_time = update_time.value();
+                            boost::optional<std::string> parent_id = root.get_optional<std::string>("parent");
+                            if (parent_id.has_value())
+                                task->parent_id = parent_id.value();
                         }
                     }
                 }

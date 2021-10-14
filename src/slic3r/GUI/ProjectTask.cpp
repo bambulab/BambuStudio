@@ -55,36 +55,102 @@ namespace Slic3r {
         task_create_time = now.FormatISOCombined(' ').ToStdString();
     }
 
+    std::string BBLSubTask::build_content_json()
+    {
+        pt::ptree root, info;
+
+        info.put("id", task_id);
+        info.put("name", task_name);
+        info.put("create_time", task_create_time);
+        info.put("plate_idx", task_partplate_idx);
+        info.put("printer", task_printer_dev_id);
+        info.put("prediction", task_prediction);
+        info.put("weight", task_weight);
+        root.put_child("info", info);
+
+        std::stringstream oss;
+        pt::write_json(oss, root, false);
+        return oss.str();
+    }
+
+    int BBLSubTask::parse_content_json(std::string json)
+    {
+        try {
+            std::stringstream ss(json);
+            pt::ptree root, info;
+            pt::read_json(ss, root);
+
+            info = root.get_child("info");
+
+            /* create subtasks */
+            boost::optional<std::string> subtask_name = info.get_optional<std::string>("name");
+            if (subtask_name.has_value()) task_name = subtask_name.value();
+
+            boost::optional<std::string> subtask_create_time = info.get_optional<std::string>("create_time");
+            if (subtask_create_time.has_value()) task_create_time = subtask_create_time.value();
+
+            boost::optional<std::string> subtask_plate_idx = info.get_optional<std::string>("plate_idx");
+            if (subtask_plate_idx.has_value()) task_partplate_idx = std::stoi(subtask_plate_idx.value());
+
+            boost::optional<std::string> subtask_printer = info.get_optional<std::string>("printer");
+            if (subtask_printer.has_value()) task_printer_dev_id = subtask_printer.value();
+
+            boost::optional<std::string> subtask_prediction = info.get_optional<std::string>("prediction");
+            if (subtask_prediction.has_value()) task_prediction = subtask_prediction.value();
+
+            boost::optional<std::string> subtask_weight = info.get_optional<std::string>("weight");
+            if (subtask_weight.has_value()) task_weight = subtask_weight.value();
+        }
+        catch (...) {
+            BOOST_LOG_TRIVIAL(trace) << "parse_content_json failed! json=" << json;
+            return -1;
+        }
+        return 0;
+    }
+
+    BBLSubTask::SubTaskStatus BBLSubTask::parse_status(std::string status)
+    {
+        if (status.compare("CREATED") == 0) {
+            return BBLSubTask::SubTaskStatus::TASK_CREATED;
+        }
+        else if (status.compare("READY") == 0) {
+            return BBLSubTask::SubTaskStatus::TASK_READY;
+        }
+        else if (status.compare("RUNNING") == 0) {
+            return BBLSubTask::SubTaskStatus::TASK_RUNNING;
+        }
+        else if (status.compare("PAUSE") == 0) {
+            return BBLSubTask::SubTaskStatus::TASK_PAUSE;
+        }
+        else if (status.compare("FAILED") == 0) {
+            return BBLSubTask::SubTaskStatus::TASK_FAILED;
+        }
+        else if (status.compare("FINISHED") == 0) {
+            return BBLSubTask::SubTaskStatus::TASK_FINISHED;
+        }
+        else {
+            return BBLSubTask::SubTaskStatus::TASK_CREATED;
+        }
+    }
 
     std::string BBLTask::build_content_json()
     {
-        pt::ptree js_task, js_subtasks;
-        std::string task_create_time_str = task_create_time;
-
-        js_task.put("id", task_id);
-        js_task.put("name", task_name);
-        js_task.put("create_time", task_create_time_str);
-        js_task.put("status", task_status_str());
-
-        for (int k = 0; k < subtasks.size(); k++) {
-            pt::ptree js_subtask;
-            BBLSubTask* subtask = subtasks[k];
-
-            js_subtask.put("id", subtask->task_id);
-            js_subtask.put("name", subtask->task_name);
-            js_subtask.put("create_time", subtask->task_create_time);
-            js_subtask.put("plate_idx", subtask->task_partplate_idx);
-            js_subtask.put("printer", subtask->task_printer_dev_id);
-            js_subtask.put("prediction", subtask->task_prediction);
-            js_subtask.put("weight", subtask->task_weight);
-            /* status, progress updated by printer */
-            js_subtasks.push_back(std::make_pair("", js_subtask));
-            
+        /*
+        { 
+            # Only for task
+            "config": {
+                "key1" : "value1",
+                "key2" : "value2",
+                "key3" : "value3"
+                ...
+                }
+            }
         }
-        js_task.put_child("subtasks", js_subtasks);
-
+        */
+        pt::ptree root, config;
+        root.put_child("config", config);
         std::stringstream oss;
-        pt::write_json(oss, js_task, false);
+        pt::write_json(oss, root, false);
         return oss.str();
     }
 

@@ -36,7 +36,8 @@ public:
     std::string     task_file;          /* local full file path of 3mf or gcode */
     fs::path        task_path;          /* local path of 3mf or gcode */
     std::string     task_gcode_in_3mf;  /* gcode in 3mf */
-    std::string     task_create_time;   /* time created by slicer */
+    std::string     task_create_time;   /* time created by cloud */
+    std::string     task_update_time;   /* time updated by cloud */
     std::string     task_start_time;    /* time created by machine, seconds from 1970-01-01 */
     std::string     task_duration;      /* duration created by machine, unit seconds */
 
@@ -52,6 +53,11 @@ public:
     std::string     task_url;           /* post task to this url */
     std::string     task_url_md5;       /* md5 of task file */
     BBLTask*        parent_task_;
+    std::string     parent_id;
+
+    std::string build_content_json();
+    int parse_content_json(std::string json);
+    static BBLSubTask::SubTaskStatus parse_status(std::string status);
 };
 
 class BBLTask {
@@ -67,6 +73,7 @@ public:
     std::string                 task_id;
     std::string                 task_name;
     std::string                 task_create_time;
+    std::string                 task_update_time;
     TaskStatus                  task_status;
     std::wstring                task_file;          /* local task file */
     std::string                 task_url;           /* cloud task url */

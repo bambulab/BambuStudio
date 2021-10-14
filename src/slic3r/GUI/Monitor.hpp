@@ -127,6 +127,8 @@ public:
         unsigned int row, unsigned int col) wxOVERRIDE;
 
     void update_task(BBLTask* task);
+	void update_subtask(BBLSubTask* subtask);
+	void add_subtask(BBLSubTask* subtask);
 	void clear_data();
 
 private:

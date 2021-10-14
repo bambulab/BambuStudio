@@ -107,7 +107,7 @@ private:
 
     boost::filesystem::path m_user_info_path;
     const std::string account_json = "UserInfo.json";
-    std::string host = "http://iot.dev.bbl";
+    std::string host = "api-qa.bambu-lab.com";
     std::string MSG_SUCCESS = "success";
 
 
@@ -132,6 +132,7 @@ private:
     std::string json_request_body_post_project(BBLProject* project);
     std::string json_request_body_post_profile(BBLProfile* profile);
     std::string json_request_body_post_task(BBLTask* task);
+    std::string json_request_body_post_task(BBLSubTask* task);
     std::string json_request_poll_3mf_gather(BBLSubTask* task);
 
     /* project */
@@ -212,6 +213,8 @@ public:
     int request_profile_id(BBLProfile* profile, ResultFn resFn = nullptr);
     // request a task id, project_id, profile_id -> task_id, sync
     int request_task_id(BBLTask* task, ResultFn resFn = nullptr);
+    // request a sub task id, project_id, profile_id -> subtask_id, sync
+    int request_subtask_id(BBLSubTask* task, ResultFn resFn = nullptr);
     // upload 3mf for project and profile, aync
     int upload_3mf(BBLProfile* profile, ResultFn resFn = nullptr, ProgressFn proFn = nullptr, bool sync = false);
     // poll_3mf for project and profile, sync
@@ -220,6 +223,7 @@ public:
     int poll_3mf(BBLSubTask* task);
     // get task info
     BBLTask* get_task(std::string task_id);
+    BBLSubTask* get_subtask(std::string subtask_id);
 
     // create a project 
     void get_project_info(BBLProject* project);

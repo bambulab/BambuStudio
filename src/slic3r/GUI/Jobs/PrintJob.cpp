@@ -74,6 +74,7 @@ void PrintJob::process()
     /* TODO select a profile, use default now */
     BBLProfile* profile = new BBLProfile(project);
     profile->profile_name = "bbl_profile_name";
+
     res = c->request_profile_id(profile,
         [this](int result, std::string info) {
             if (result == 0) {
@@ -111,26 +112,17 @@ void PrintJob::process()
         },
         true);
 
-    /* poll project 3mf
-    res = c->poll_3mf(profile);
-    if (!project->project_url.empty() && !project->project_url_md5.empty()) {
-        update_status(80, "poll 3mf ok!");
-    }
-    else {
-        update_status(80, "poll 3mf failed!");
-        return;
-    }
-     */
-
     /* create Task */
     BBLTask* task = new BBLTask(profile);
     task->task_name = "bbl_task_name";
+
+    /* rqeust task id */
 
     /* create subTask from current plate */
     plate->get_index();
     BBLSubTask* subTask = new BBLSubTask(task);
     subTask->task_gcode_in_3mf = (boost::format(GCODE_FILE_FORMAT) % (plate->get_index() + 1)).str();
-    subTask->task_id = std::to_string(plate->get_index());
+
     subTask->task_partplate_idx = plate->get_index();
     subTask->task_printer_dev_id = machine_sn;
     if (plate->get_slice_result()) {
@@ -142,39 +134,36 @@ void PrintJob::process()
     }
     subTask->task_name = subTask->task_gcode_in_3mf;
 
-    /*
-    subTask->task_url = project->project_url;
-    subTask->task_url_md5 = project->project_url_md5;
-    */
-
-    res = c->poll_3mf(subTask);
-    if (!subTask->task_url.empty() && !subTask->task_url_md5.empty()) {
-        update_status(80, "poll 3mf of task ok!");
-        BOOST_LOG_TRIVIAL(trace) << "get subtask url =" << subTask->task_url;
-    }
-    else {
-        update_status(80, "poll 3mf of task failed!");
-        return;
-    }
-
     task->subtasks.push_back(subTask);
-    c->request_task_id(task,
-        [this](int result, std::string info) {
-            if (result == 0) {
-                update_status(90, "request task id ok!");
-            }
-            else {
-                update_status(80, "request task id failed!");
-            }
-        }
-        );
 
+    c->request_task_id(task);
 
     if (!task->task_id.empty()) {
-        update_status(90, "request task id ok!");
+        update_status(85, "request task id ok!");
     }
     else {
         update_status(80, "request task id failed!");
+        return;
+    }
+
+
+    c->request_subtask_id(subTask);
+
+    if (!subTask->task_id.empty()) {
+        update_status(90, "request subtask id ok!");
+    }
+    else {
+        update_status(80, "request subtask id failed!");
+        return;
+    }
+
+    res = c->poll_3mf(subTask);
+    if (!subTask->task_url.empty() && !subTask->task_url_md5.empty()) {
+        update_status(95, "poll 3mf of task ok!");
+        BOOST_LOG_TRIVIAL(trace) << "get subtask url =" << subTask->task_url;
+    }
+    else {
+        update_status(90, "poll 3mf of task failed!");
         return;
     }
 

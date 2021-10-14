@@ -268,6 +268,40 @@ bool SubTaskListModel::SetValueByRow(const wxVariant& variant,
     return false;
 }
 
+void SubTaskListModel::add_subtask(BBLSubTask* subtask)
+{
+    wxString task_name_text = "N/A";
+    if (!subtask->task_name.empty()) {
+        task_name_text = wxString::Format("%s", subtask->task_name);
+    }
+    m_nameColValues.push_back(task_name_text);
+
+    wxString duration_text = "N/A";
+    if (!subtask->task_prediction.empty()) {
+        try {
+            std::string duration = get_time_dhms(stoi(subtask->task_prediction));
+            duration_text = wxString::Format("%s", duration);
+        }
+        catch (...) {
+            ;
+        }
+    }
+    m_durationColValues.push_back(duration_text);
+    wxString weight_text = "N/A";
+    if (!subtask->task_weight.empty())
+        weight_text = wxString::Format("%sg", subtask->task_weight);
+    m_WeightColValues.push_back(weight_text);
+}
+
+void SubTaskListModel::update_subtask(BBLSubTask* subtask)
+{
+    m_nameColValues.clear();
+    m_durationColValues.clear();
+    m_WeightColValues.clear();
+    add_subtask(subtask);
+    Reset(m_nameColValues.Count());
+}
+
 void SubTaskListModel::update_task(BBLTask* task)
 {
     if (!task) return;
@@ -278,27 +312,7 @@ void SubTaskListModel::update_task(BBLTask* task)
 
     std::vector<BBLSubTask*>::iterator it;
     for (it = task->subtasks.begin(); it != task->subtasks.end(); it++) {
-        wxString task_name_text = "N/A";
-        if (!(*it)->task_name.empty()) {
-            task_name_text = wxString::Format("%s", (*it)->task_name);
-        }
-        m_nameColValues.push_back(task_name_text);
-
-        wxString duration_text = "N/A";
-        if (!(*it)->task_prediction.empty()) {
-            try {
-                std::string duration = get_time_dhms(stoi((*it)->task_prediction));
-                duration_text = wxString::Format("%s", duration);
-            }
-            catch (...) {
-                ;
-            }
-        }
-        m_durationColValues.push_back(duration_text);
-        wxString weight_text = "N/A";
-        if (!(*it)->task_weight.empty())
-            weight_text = wxString::Format("%s g", (*it)->task_weight);
-        m_WeightColValues.push_back(weight_text);
+        add_subtask((*it));
     }
 
     Reset(m_nameColValues.GetCount());
@@ -311,7 +325,6 @@ void SubTaskListModel::clear_data()
     m_WeightColValues.clear();
     Reset(0);
 }
-
 
 MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style) : wxPanel(parent, id, pos, size, style)
 {
@@ -1101,22 +1114,26 @@ void MonitorPanel::on_subtask_update(BBLSubTask* curr_subtask, bool update_all)
     if (update_all) {
         if (curr_subtask->parent_task_) {
             BBLTask* task = curr_subtask->parent_task_;
-            if (task->profile_ && task->profile_->project_) {
-                // update project name
-                wxString project_name_text = wxString::Format("%s", task->profile_->project_->project_name);
-                m_staticText_project_name->SetLabelText(project_name_text);
-
-                // update profile name
-                m_staticText_profile_value->SetLabelText(wxString::Format("%s", task->profile_->profile_name));
-            }
-
             if (task) {
+                if (task->profile_ && task->profile_->project_) {
+                    // update project name
+                    wxString project_name_text = wxString::Format("%s", task->profile_->project_->project_name);
+                    m_staticText_project_name->SetLabelText(project_name_text);
+
+                    // update profile name
+                    m_staticText_profile_value->SetLabelText(wxString::Format("%s", task->profile_->profile_name));
+                }
+
                 // update task name
                 m_staticText_task_value->SetLabelText(wxString::Format("%s", task->task_name));
 
                 // update task model
                 subtask_model->update_task(task);
             }
+        }
+        else {
+            // update task model
+            subtask_model->update_subtask(curr_subtask);
         }
         // update subtask name
         m_staticText_subtask_value->SetLabelText(wxString::Format("%s", curr_subtask->task_name));
