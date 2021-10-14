@@ -720,7 +720,7 @@ void MainFrame::init_tabpanel()
 
         //BBS add monitor page
         //MonitorPanel(wxWindow * parent, wxWindowID id = wxID_ANY, const wxPoint & pos = wxDefaultPosition, const wxSize & size = wxSize(800, 600), long style = wxTAB_TRAVERSAL);
-        m_monitor = new MonitorPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+        m_monitor = new MonitorPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
         m_tabpanel->AddPage(m_monitor, "Monitor");
     }
 
@@ -798,8 +798,9 @@ void MainFrame::create_preset_tabs()
     wxGetApp().update_label_colours_from_appconfig();
     add_created_tab(new TabPrint(m_tabpanel), "cog");
     add_created_tab(new TabFilament(m_tabpanel), "spool");
-    add_created_tab(new TabSLAPrint(m_tabpanel), "cog");
-    add_created_tab(new TabSLAMaterial(m_tabpanel), "resin");
+    /* BBS work around to avoid appearance bug */
+    //add_created_tab(new TabSLAPrint(m_tabpanel), "cog");
+    //add_created_tab(new TabSLAMaterial(m_tabpanel), "resin");
     add_created_tab(new TabPrinter(m_tabpanel), wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF ? "printer" : "sla_printer");
 }
 
