@@ -36,7 +36,9 @@
 #include "ConfigManipulation.hpp"
 #include "OptionsGroup.hpp"
 #include "libslic3r/Preset.hpp"
+//BBS: GUI refactor
 #include "Notebook.hpp"
+#include "ParamsPanel.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -49,13 +51,16 @@ class OG_CustomCtrl;
 using ConfigOptionsGroupShp = std::shared_ptr<ConfigOptionsGroup>;
 class Page// : public wxScrolledWindow
 {
+	//BBS: GUI refactor
+	wxPanel*		m_tab_owner;
 	wxWindow*		m_parent;
 	wxString		m_title;
 	size_t			m_iconID;
 	wxBoxSizer*		m_vsizer;
     bool            m_show = true;
 public:
-    Page(wxWindow* parent, const wxString& title, int iconID);
+	//BBS: GUI refactor
+    Page(wxWindow* parent, const wxString& title, int iconID, wxPanel* tab_owner);
 	~Page() {}
 
 	bool				m_is_modified_values{ false };
@@ -104,32 +109,42 @@ protected:
 using PageShp = std::shared_ptr<Page>;
 class Tab: public wxPanel
 {
-	// BBS
-	Notebook* m_parent;
-#ifdef __WXOSX__
+	//BBS: GUI refactor
+protected:
+	ParamsPanel*		m_parent;
+/*#ifdef __WXOSX__
 	wxPanel*			m_tmp_panel;
 	int					m_size_move = -1;
-#endif // __WXOSX__
-protected:
+#endif // __WXOSX__*/
+
     Preset::Type        m_type;
 	std::string			m_name;
 	const wxString		m_title;
 	TabPresetComboBox*	m_presets_choice;
-	ScalableButton*		m_search_btn;
+	
+	//BBS: GUI refactor
+	wxStaticText* m_static_title;
+	wxBoxSizer* m_main_sizer;
+	wxBoxSizer* m_top_sizer;
+	wxBoxSizer* m_top_left_sizer;
+	wxGridSizer* m_top_right_sizer;
+	wxBoxSizer* m_select_sizer;
+	wxBoxSizer* m_tree_sizer;
+
 	ScalableButton*		m_btn_compare_preset;
 	ScalableButton*		m_btn_save_preset;
 	ScalableButton*		m_btn_delete_preset;
-	ScalableButton*		m_btn_edit_ph_printer {nullptr};
-	ScalableButton*		m_btn_hide_incompatible_presets;
-	wxBoxSizer*			m_hsizer;
-	wxBoxSizer*			m_left_sizer;
+	//ScalableButton*		m_btn_edit_ph_printer {nullptr};
+	//ScalableButton*		m_btn_hide_incompatible_presets;
+	//wxBoxSizer*			m_hsizer;
+	//wxBoxSizer*			m_left_sizer;
 	wxTreeCtrl*			m_treectrl;
 	wxImageList*		m_icons;
 
 	wxScrolledWindow*	m_page_view {nullptr};
-	wxBoxSizer*			m_page_sizer {nullptr};
+	//wxBoxSizer*			m_page_sizer {nullptr};
 
-    ModeSizer*			m_mode_sizer {nullptr};
+    //ModeSizer*			m_mode_sizer {nullptr};
 
    	struct PresetDependencies {
 		Preset::Type type	  = Preset::TYPE_INVALID;
@@ -151,7 +166,7 @@ protected:
 
 	ScalableButton*			m_undo_btn;
 	ScalableButton*			m_undo_to_sys_btn;
-	ScalableButton*			m_question_btn;
+	//ScalableButton*			m_question_btn;
 
 	// Cached bitmaps.
 	// A "flag" icon to be displayned next to the preset name in the Tab's combo box.
@@ -261,7 +276,8 @@ public:
 
 public:
 	// BBS
-    Tab(Notebook* parent, const wxString& title, Preset::Type type);
+	Tab(ParamsPanel* parent, const wxString& title, Preset::Type type);
+
     ~Tab() {}
 
 	wxWindow*	parent() const { return m_parent; }
@@ -350,6 +366,8 @@ public:
 	void			apply_config_from_cache();
 
 	const std::map<wxString, std::string>& get_category_icon_map() { return m_category_icon; }
+	//BBS: GUI refactor
+	bool update_current_page_in_background(wxTreeItemId& item);
 
 	static bool validate_custom_gcode(const wxString& title, const std::string& gcode);
 	bool        validate_custom_gcodes();
@@ -361,8 +379,9 @@ protected:
 	void 			compatible_widget_reload(PresetDependencies &deps);
 	void			load_key_value(const std::string& opt_key, const boost::any& value, bool saved_value = false);
 
+	//BBS: GUI refactor
 	// return true if cancelled
-	bool			tree_sel_change_delayed();
+	bool			tree_sel_change_delayed(wxTreeEvent& event);
 	void			on_presets_changed();
 	void			build_preset_description_line(ConfigOptionsGroup* optgroup);
 	void			update_preset_description_line();
@@ -377,8 +396,8 @@ protected:
 class TabPrint : public Tab
 {
 public:
-	// BBS
-	TabPrint(Notebook* parent) :
+	//BBS: GUI refactor
+	TabPrint(ParamsPanel* parent) :
         Tab(parent, _(L("Print Settings")), Slic3r::Preset::TYPE_PRINT) {}
 	~TabPrint() {}
 
@@ -408,7 +427,8 @@ private:
 
     std::map<std::string, wxCheckBox*> m_overrides_options;
 public:
-	TabFilament(Notebook* parent) :
+	//BBS: GUI refactor
+	TabFilament(ParamsPanel* parent) :
 		Tab(parent, _(L("Filament Settings")), Slic3r::Preset::TYPE_FILAMENT) {}
 	~TabFilament() {}
 
@@ -449,7 +469,8 @@ public:
 
     PrinterTechnology               m_printer_technology = ptFFF;
 
-    TabPrinter(Notebook* parent) :
+	//BBS: GUI refactor
+    TabPrinter(ParamsPanel* parent) :
         Tab(parent, _L("Printer Settings"), Slic3r::Preset::TYPE_PRINTER) {}
 	~TabPrinter() {}
 
@@ -481,8 +502,8 @@ public:
 class TabSLAMaterial : public Tab
 {
 public:
-	// BBS
-    TabSLAMaterial(Notebook* parent) :
+	//BBS: GUI refactor
+    TabSLAMaterial(ParamsPanel* parent) :
 		Tab(parent, _(L("Material Settings")), Slic3r::Preset::TYPE_SLA_MATERIAL) {}
     ~TabSLAMaterial() {}
 
@@ -497,8 +518,8 @@ public:
 class TabSLAPrint : public Tab
 {
 public:
-	// BBS
-    TabSLAPrint(Notebook* parent) :
+	//BBS: GUI refactor
+    TabSLAPrint(ParamsPanel* parent) :
         Tab(parent, _(L("Print Settings")), Slic3r::Preset::TYPE_SLA_PRINT) {}
     ~TabSLAPrint() {}
 

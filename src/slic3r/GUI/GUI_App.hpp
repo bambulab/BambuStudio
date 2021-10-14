@@ -89,7 +89,8 @@ enum ConfigMenuIDs {
     ConfigMenuDesktopIntegration,
     ConfigMenuPreferences,
     ConfigMenuModeSimple,
-    ConfigMenuModeAdvanced,
+    //BBS: GUI refactor, remove advanced mode
+    //ConfigMenuModeAdvanced,
     ConfigMenuModeExpert,
     ConfigMenuLanguage,
     ConfigMenuFlashFirmware,

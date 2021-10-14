@@ -119,6 +119,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/MeshUtils.hpp
     GUI/Tab.cpp
     GUI/Tab.hpp
+    GUI/ParamsPanel.cpp
+    GUI/ParamsPanel.hpp
     GUI/Monitor.cpp
     GUI/Monitor.hpp
     GUI/WebViewDialog.cpp

@@ -16,6 +16,8 @@
 
 #include "GUI_Utils.hpp"
 #include "Event.hpp"
+//BBS: GUI refactor
+#include "ParamsPanel.hpp"
 #include "Monitor.hpp"
 #include "UnsavedChangesDialog.hpp"
 #include "DebugToolDialog.hpp"
@@ -135,10 +137,11 @@ class MainFrame : public DPIFrame
 
     enum class ESettingsLayout
     {
+        //BBS GUI refactor: remove unused layout
         Unknown,
         Old,
-        New,
-        Dlg,
+        //New,
+        //Dlg,
         GCodeViewer
     };
     
@@ -171,8 +174,9 @@ public:
 
     void        init_tabpanel();
     void        create_preset_tabs();
+    //BBS: GUI refactor
     void        add_created_tab(Tab* panel, const std::string& bmp_name = "");
-    bool        is_active_and_shown_tab(Tab* tab);
+    bool        is_active_and_shown_tab(wxPanel* panel);
 
     // Register Win32 RawInput callbacks (3DConnexion) and removable media insert / remove callbacks.
     // Called from wxEVT_ACTIVATE, as wxEVT_CREATE was not reliable (bug in wxWidgets?).
@@ -188,7 +192,8 @@ public:
     void        update_ui_from_settings();
     bool        is_loaded() const { return m_loaded; }
     bool        is_last_input_file() const  { return !m_qs_last_input_file.IsEmpty(); }
-    bool        is_dlg_layout() const { return m_layout == ESettingsLayout::Dlg; }
+    //BBS GUI refactor: remove unused layout new/dlg
+    //bool        is_dlg_layout() const { return m_layout == ESettingsLayout::Dlg; }
 
 //    void        quick_slice(const int qs = qsUndef);
     void        reslice_now();
@@ -210,7 +215,8 @@ public:
     void        jump_to_monitor();
     // Select tab in m_tabpanel
     // When tab == -1, will be selected last selected tab
-    void        select_tab(Tab* tab);
+    //BBS: GUI refactor
+    void        select_tab(wxPanel* panel);
     void        select_tab(size_t tab = size_t(-1));
     void        select_view(const std::string& direction);
     // Propagate changed configuration from the Tab to the Plater and save changes to the AppConfig
@@ -229,11 +235,13 @@ public:
     // BBS. Replace title bar and menu bar with top bar.
     BBLTopbar*            m_topbar{ nullptr };
     Plater*               m_plater { nullptr };
-    wxPanel* m_monitor{ nullptr };
+    //BBS: GUI refactor
+    wxPanel*              m_monitor{ nullptr };
     // BBS
     //wxBookCtrlBase*       m_tabpanel { nullptr };
-    Notebook* m_tabpanel{ nullptr };
-    wxBoxSizer* m_side_tools{ nullptr };
+    Notebook*             m_tabpanel{ nullptr };
+    wxBoxSizer*           m_side_tools{ nullptr };
+    ParamsPanel*          m_param_panel{ nullptr };
     SettingsDialog        m_settings_dialog;
     DiffPresetDialog      diff_dialog;
     wxWindow*             m_plater_page{ nullptr };

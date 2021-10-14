@@ -100,7 +100,8 @@ void Tab::Highlighter::blink()
         invalidate();
 }
 
-Tab::Tab(Notebook* parent, const wxString& title, Preset::Type type) :
+//BBS: GUI refactor
+Tab::Tab(ParamsPanel* parent, const wxString& title, Preset::Type type) :
     m_parent(parent), m_title(title), m_type(type)
 {
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL/*, name*/);
@@ -151,16 +152,19 @@ void Tab::set_type()
 }
 
 // sub new
+//BBS: GUI refactor, change tab to fit into ParamsPanel
 void Tab::create_preset_tab()
 {
-#ifdef __WINDOWS__
+//move to ParamsPanel
+/*#ifdef __WINDOWS__
     SetDoubleBuffered(true);
-#endif //__WINDOWS__
+#endif //__WINDOWS__*/
+    auto panel = this;
 
     m_preset_bundle = wxGetApp().preset_bundle;
 
     // Vertical sizer to hold the choice menu and the rest of the page.
-#ifdef __WXOSX__
+/*#ifdef __WXOSX__
     auto  *main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->SetSizeHints(this);
     this->SetSizer(main_sizer);
@@ -179,7 +183,7 @@ void Tab::create_preset_tab()
     auto  *sizer = new wxBoxSizer(wxVERTICAL);
     sizer->SetSizeHints(panel);
     panel->SetSizer(sizer);
-#endif //__WXOSX__
+#endif //__WXOSX__*/
 
     // preset chooser
     m_presets_choice = new TabPresetComboBox(panel, m_type);
@@ -199,19 +203,19 @@ void Tab::create_preset_tab()
 
     //buttons
     m_scaled_buttons.reserve(6);
-    m_scaled_buttons.reserve(2);
+    m_scaled_bitmaps.reserve(4);
 
     add_scaled_button(panel, &m_btn_compare_preset, "compare");
     add_scaled_button(panel, &m_btn_save_preset, "save");
     add_scaled_button(panel, &m_btn_delete_preset, "cross");
-    if (m_type == Preset::Type::TYPE_PRINTER)
-        add_scaled_button(panel, &m_btn_edit_ph_printer, "cog");
+    //if (m_type == Preset::Type::TYPE_PRINTER)
+    //    add_scaled_button(panel, &m_btn_edit_ph_printer, "cog");
 
     m_show_incompatible_presets = false;
     add_scaled_bitmap(this, m_bmp_show_incompatible_presets, "flag_red");
     add_scaled_bitmap(this, m_bmp_hide_incompatible_presets, "flag_green");
 
-    add_scaled_button(panel, &m_btn_hide_incompatible_presets, m_bmp_hide_incompatible_presets.name());
+    //add_scaled_button(panel, &m_btn_hide_incompatible_presets, m_bmp_hide_incompatible_presets.name());
 
     m_btn_compare_preset->SetToolTip(_L("Compare this preset with some another"));
     // TRN "Save current Settings"
@@ -219,12 +223,12 @@ void Tab::create_preset_tab()
     m_btn_delete_preset->SetToolTip(_(L("Delete this preset")));
     m_btn_delete_preset->Hide();
 
-    add_scaled_button(panel, &m_question_btn, "question");
+    /*add_scaled_button(panel, &m_question_btn, "question");
     m_question_btn->SetToolTip(_(L("Hover the cursor over buttons to find more information \n"
                                    "or click this button.")));
 
     add_scaled_button(panel, &m_search_btn, "search");
-    m_search_btn->SetToolTip(format_wxstr(_L("Search in settings [%1%]"), "Ctrl+F"));
+    m_search_btn->SetToolTip(format_wxstr(_L("Search in settings [%1%]"), "Ctrl+F"));*/
 
     // Bitmaps to be shown on the "Revert to system" aka "Lock to system" button next to each input field.
     add_scaled_bitmap(this, m_bmp_value_lock  , "lock_closed");
@@ -242,18 +246,47 @@ void Tab::create_preset_tab()
 
     m_undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_roll_back_value(); }));
     m_undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_roll_back_value(true); }));
-    m_question_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent) {
+    /*m_question_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent) {
         ButtonsDescription dlg(this, m_icon_descriptions);
         if (dlg.ShowModal() == wxID_OK)
             wxGetApp().update_label_colours();
     });
-    m_search_btn->Bind(wxEVT_BUTTON, [](wxCommandEvent) { wxGetApp().plater()->search(false); });
+    m_search_btn->Bind(wxEVT_BUTTON, [](wxCommandEvent) { wxGetApp().plater()->search(false); });*/
 
     // Colors for ui "decoration"
     m_sys_label_clr			= wxGetApp().get_label_clr_sys();
     m_modified_label_clr	= wxGetApp().get_label_clr_modified();
     m_default_text_clr		= wxGetApp().get_label_clr_default();
 
+    m_main_sizer = new wxBoxSizer(wxVERTICAL);
+    m_top_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_top_left_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    m_static_title = new wxStaticText(this, wxID_ANY, m_title, wxDefaultPosition, wxDefaultSize, 0);
+    m_static_title->Wrap(-1);
+    m_top_left_sizer->Add(m_static_title, 0, wxALL, 5);
+    m_top_sizer->Add(m_top_left_sizer, 0, wxEXPAND, 5);
+
+    m_top_right_sizer = new wxGridSizer(1, 0, 0, 0);
+
+    const float scale_factor = /*wxGetApp().*/em_unit(this) * 0.1;// GetContentScaleFactor();
+    m_top_right_sizer->Add(m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    m_top_right_sizer->Add(m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
+    m_top_right_sizer->Add(m_undo_btn, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    //m_top_right_sizer->AddSpacer(int(4*scale_factor));
+    m_top_right_sizer->Add(m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    //m_top_right_sizer->AddSpacer(int(4*scale_factor));
+
+    m_top_sizer->Add(m_top_right_sizer, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND, 5);
+
+    m_main_sizer->Add(m_top_sizer, 0, wxEXPAND, 5);
+
+    m_select_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_select_sizer->Add(m_presets_choice, 0, wxALL, 5);
+
+    m_main_sizer->Add(m_select_sizer, 0, wxEXPAND, 5);
+
+#if 0
 #ifdef _MSW_DARK_MODE
     // Sizer with buttons for mode changing
     if (wxGetApp().tabs_as_menu())
@@ -302,11 +335,11 @@ void Tab::create_preset_tab()
     //left vertical sizer
     m_left_sizer = new wxBoxSizer(wxVERTICAL);
     m_hsizer->Add(m_left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
-
+#endif
     // tree
     m_treectrl = new wxTreeCtrl(panel, wxID_ANY, wxDefaultPosition, wxSize(20 * m_em_unit, -1),
         wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_SUNKEN | wxWANTS_CHARS);
-    m_left_sizer->Add(m_treectrl, 1, wxEXPAND);
+    //m_left_sizer->Add(m_treectrl, 1, wxEXPAND);
     const int img_sz = int(16 * scale_factor + 0.5f);
     m_icons = new wxImageList(img_sz, img_sz, true, 1);
     // Index of the last icon inserted into $self->{icons}.
@@ -319,7 +352,7 @@ void Tab::create_preset_tab()
     // Delay processing of the following handler until the message queue is flushed.
     // This helps to process all the cursor key events on Windows in the tree control,
     // so that the cursor jumps to the last item.
-    m_treectrl->Bind(wxEVT_TREE_SEL_CHANGED, [this](wxTreeEvent&) {
+    m_treectrl->Bind(wxEVT_TREE_SEL_CHANGED, [this](wxTreeEvent& event) {
 #ifdef __linux__
         // Events queue is opposite On Linux. wxEVT_SET_FOCUS invokes after wxEVT_TREE_SEL_CHANGED,
         // and a result wxEVT_KILL_FOCUS doesn't invoke for the TextCtrls.
@@ -335,7 +368,7 @@ void Tab::create_preset_tab()
                     do {
                         m_page_switch_planned = false;
                         m_treectrl->Update();
-                    } while (this->tree_sel_change_delayed());
+                    } while (this->tree_sel_change_delayed(event));
                     m_page_switch_running = false;
                 }
             }
@@ -343,8 +376,16 @@ void Tab::create_preset_tab()
 
     m_treectrl->Bind(wxEVT_KEY_DOWN, &Tab::OnKeyDown, this);
 
+    m_tree_sizer = new wxBoxSizer(wxVERTICAL);
+    m_tree_sizer->Add(m_treectrl, 1, wxALL | wxEXPAND, 5);
+    m_main_sizer->Add(m_tree_sizer, 1, wxEXPAND, 5);
+
+    this->SetSizer(m_main_sizer);
+    //this->Layout();
+    m_page_view = m_parent->get_paged_view();
+
     // Initialize the page.
-#ifdef __WXOSX__
+/*#ifdef __WXOSX__
     auto page_parent = m_tmp_panel;
 #else
     auto page_parent = this;
@@ -354,12 +395,12 @@ void Tab::create_preset_tab()
     m_page_sizer = new wxBoxSizer(wxVERTICAL);
     m_page_view->SetSizer(m_page_sizer);
     m_page_view->SetScrollbars(1, 20, 1, 2);
-    m_hsizer->Add(m_page_view, 1, wxEXPAND | wxLEFT, 5);
+    m_hsizer->Add(m_page_view, 1, wxEXPAND | wxLEFT, 5);*/
 
     m_btn_compare_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { compare_preset(); }));
     m_btn_save_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { save_preset(); }));
     m_btn_delete_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { delete_preset(); }));
-    m_btn_hide_incompatible_presets->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) {
+    /*m_btn_hide_incompatible_presets->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) {
         toggle_show_hide_incompatible();
     }));
 
@@ -369,7 +410,7 @@ void Tab::create_preset_tab()
                 m_presets_choice->edit_physical_printer();
             else
                 m_presets_choice->add_physical_printer();
-        });
+        });*/
 
     // Initialize the DynamicPrintConfig by default keys/values.
     build();
@@ -430,7 +471,8 @@ Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::str
         }
     }
     // Initialize the page.
-    PageShp page(new Page(m_page_view, title, icon_idx));
+    //BBS: GUI refactor
+    PageShp page(new Page(m_page_view, title, icon_idx, this));
 //	page->SetBackgroundStyle(wxBG_STYLE_SYSTEM);
 #ifdef __WINDOWS__
 //	page->SetDoubleBuffered(true);
@@ -456,14 +498,16 @@ wxString Tab::translate_category(const wxString& title, Preset::Type preset_type
 
 void Tab::OnActivate()
 {
-    wxWindowUpdateLocker noUpdates(this);
-#ifdef __WXOSX__
+    //BBS: GUI refactor
+    //noUpdates seems not working
+    //wxWindowUpdateLocker noUpdates(this);
+/*#ifdef __WXOSX__
 //    wxWindowUpdateLocker noUpdates(this);
     auto size = GetSizer()->GetSize();
     m_tmp_panel->GetSizer()->SetMinSize(size.x + m_size_move, size.y);
     Fit();
     m_size_move *= -1;
-#endif // __WXOSX__
+#endif // __WXOSX__*/
 
 #ifdef __WXMSW__
     // Workaround for tooltips over Tree Controls displayed over excessively long
@@ -490,9 +534,14 @@ void Tab::OnActivate()
     }
 #endif
 
+    //BBS: GUI refactor
+    m_page_view->Freeze();
+
     // create controls on active page
     activate_selected_page([](){});
-    m_hsizer->Layout();
+    //BBS: GUI refactor
+    //m_main_sizer->Layout();
+    m_parent->Layout();
 
 #ifdef _MSW_DARK_MODE
     // Because of DarkMode we use our own Notebook (inherited from wxSiplebook) instead of wxNotebook
@@ -508,6 +557,9 @@ void Tab::OnActivate()
     }
 #endif // _MSW_DARK_MODE
     Refresh();
+
+    //BBS: GUI refactor
+    m_page_view->Thaw();
 }
 
 void Tab::update_label_colours()
@@ -621,6 +673,7 @@ void Tab::decorate()
         field->m_is_nonsys_value = is_nonsys_value;
         field->m_is_modified_value = is_modified_value;
         field->set_undo_bitmap(icon);
+        //BBS: GUI refactor
         field->set_undo_to_sys_bitmap(sys_icon);
         field->set_undo_tooltip(tt);
         field->set_undo_to_sys_tooltip(sys_tt);
@@ -712,7 +765,9 @@ void TabPrinter::msw_rescale()
     if (m_reset_to_filament_color)
         m_reset_to_filament_color->msw_rescale();
 
-    Layout();
+    //BBS: GUI refactor
+    //Layout();
+    m_parent->Layout();
 }
 
 void TabSLAMaterial::init_options_list()
@@ -936,9 +991,10 @@ void Tab::update_mode()
 {
     m_mode = wxGetApp().get_mode();
 
+    //BBS: GUI refactor
     // update mode for ModeSizer
-    if (m_mode_sizer)
-        m_mode_sizer->SetMode(m_mode);
+    //if (m_mode_sizer)
+    //    m_mode_sizer->SetMode(m_mode);
 
     update_visibility();
 
@@ -956,7 +1012,9 @@ void Tab::update_visibility()
     if (m_type == Preset::TYPE_SLA_PRINT)
         update_description_lines();
 
-    Layout();
+    //BBS: GUI refactor
+    //Layout();
+    m_parent->Layout();
     Thaw();
 }
 
@@ -964,8 +1022,9 @@ void Tab::msw_rescale()
 {
     m_em_unit = em_unit(m_parent);
 
-    if (m_mode_sizer)
-        m_mode_sizer->msw_rescale();
+    //BBS: GUI refactor
+    //if (m_mode_sizer)
+    //    m_mode_sizer->msw_rescale();
     m_presets_choice->msw_rescale();
 
     m_treectrl->SetMinSize(wxSize(20 * m_em_unit, -1));
@@ -993,7 +1052,9 @@ void Tab::msw_rescale()
     if (m_active_page)
         m_active_page->msw_rescale();
 
-    Layout();
+    //BBS: GUI refactor
+    //Layout();
+    m_parent->Layout();
 }
 
 void Tab::sys_color_changed()
@@ -1033,7 +1094,9 @@ void Tab::sys_color_changed()
     if (m_active_page)
         m_active_page->sys_color_changed();
 
-    Layout();
+    //BBS: GUI refactor
+    //Layout();
+    m_parent->Layout();
 }
 
 Field* Tab::get_field(const t_config_option_key& opt_key, int opt_index/* = -1*/) const
@@ -1131,31 +1194,34 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 
     const bool is_fff = supports_printer_technology(ptFFF);
     ConfigOptionsGroup* og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params(is_fff);
-    if (opt_key == "fill_density" || opt_key == "pad_enable")
-    {
-        boost::any val = og_freq_chng_params->get_config_value(*m_config, opt_key);
-        og_freq_chng_params->set_value(opt_key, val);
-    }
-    
-    if (opt_key == "pad_around_object") {
-        for (PageShp &pg : m_pages) {
-            Field * fld = pg->get_field(opt_key); /// !!! ysFIXME ????
-            if (fld) fld->set_value(value, false);
+    //BBS: GUI refactor
+    if (og_freq_chng_params) {
+        if (opt_key == "fill_density" || opt_key == "pad_enable")
+        {
+            boost::any val = og_freq_chng_params->get_config_value(*m_config, opt_key);
+            og_freq_chng_params->set_value(opt_key, val);
         }
-    }
 
-    if (is_fff ?
+        if (opt_key == "pad_around_object") {
+            for (PageShp& pg : m_pages) {
+                Field* fld = pg->get_field(opt_key); /// !!! ysFIXME ????
+                if (fld) fld->set_value(value, false);
+            }
+        }
+
+        if (is_fff ?
             (opt_key == "support_material" || opt_key == "support_type" || opt_key == "support_material_buildplate_only") :
-            (opt_key == "supports_enable"  || opt_key == "support_buildplate_only"))
-        og_freq_chng_params->set_value("support", support_combo_value_for_config(*m_config, is_fff));
+            (opt_key == "supports_enable" || opt_key == "support_buildplate_only"))
+            og_freq_chng_params->set_value("support", support_combo_value_for_config(*m_config, is_fff));
 
-    if (! is_fff && (opt_key == "pad_enable" || opt_key == "pad_around_object"))
-        og_freq_chng_params->set_value("pad", pad_combo_value_for_config(*m_config));
+        if (!is_fff && (opt_key == "pad_enable" || opt_key == "pad_around_object"))
+            og_freq_chng_params->set_value("pad", pad_combo_value_for_config(*m_config));
 
-    if (opt_key == "brim_width")
-    {
-        bool val = m_config->opt_float("brim_width") > 0.0 ? true : false;
-        og_freq_chng_params->set_value("brim", val);
+        if (opt_key == "brim_width")
+        {
+            bool val = m_config->opt_float("brim_width") > 0.0 ? true : false;
+            og_freq_chng_params->set_value("brim", val);
+        }
     }
 
     if (opt_key == "wipe_tower" || opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
@@ -1198,7 +1264,9 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
 
     // We should to activate a tab with searched option, if it doesn't.
     // And do it before finding of the cur_item to avoid a case when Tab isn't activated jet and all treeItems are invisible
-    wxGetApp().mainframe->select_tab(this);
+    //BBS: GUI refactor
+    //wxGetApp().mainframe->select_tab(this);
+    wxGetApp().mainframe->select_tab((wxPanel*)m_parent);
 
     while (cur_item) {
         auto title = m_treectrl->GetItemText(cur_item);
@@ -1424,7 +1492,9 @@ void Tab::update_preset_description_line()
 
     if (m_detach_preset_btn)
         m_detach_preset_btn->Show(parent && parent->is_system && !preset.is_default);
-    Layout();
+    //BBS: GUI refactor
+    //Layout();
+    m_parent->Layout();
 }
 
 void Tab::update_frequently_changed_parameters()
@@ -1815,7 +1885,9 @@ void TabPrint::update()
     m_config_manipulation.update_print_fff_config(m_config, true);
 
     update_description_lines();
-    Layout();
+    //BBS: GUI refactor
+    //Layout();
+    m_parent->Layout();
 
     m_update_cnt--;
 
@@ -1925,6 +1997,11 @@ void TabFilament::update_filament_overrides_page()
 {
     if (!m_active_page || m_active_page->title() != "Filament Overrides")
         return;
+
+    //BBS: GUI refactor
+    if (m_overrides_options.size() <= 0)
+        return;
+
     Page* page = m_active_page;
 
     const auto og_it = std::find_if(page->m_optgroups.begin(), page->m_optgroups.end(), [](const ConfigOptionsGroupShp og) { return og->title == "Retraction"; });
@@ -2199,7 +2276,9 @@ void TabFilament::update()
     m_update_cnt++;
 
     update_description_lines();
-    Layout();
+    //BBS: GUI refactor
+    //Layout();
+    m_parent->Layout();
 
     toggle_options();
 
@@ -2215,6 +2294,9 @@ void TabFilament::clear_pages()
 
     m_volumetric_speed_description_line = nullptr;
 	m_cooling_description_line = nullptr;
+
+    //BBS: GUI refactor
+    m_overrides_options.clear();
 }
 
 wxSizer* Tab::description_line_widget(wxWindow* parent, ogStaticText* *StaticText, wxString text /*= wxEmptyString*/)
@@ -3061,7 +3143,9 @@ void TabPrinter::update()
     m_update_cnt--;
 
     update_description_lines();
-    Layout();
+    //BBS: GUI refactor
+    //Layout();
+    m_parent->Layout();
 
     if (m_update_cnt == 0)
         wxGetApp().mainframe->on_config_changed(m_config);
@@ -3243,8 +3327,15 @@ void Tab::rebuild_page_tree()
 
     // allow activate page before selection of a page_tree item
     m_disable_tree_sel_changed_event = false;
+    //BBS: GUI refactor
     if (item)
-        m_treectrl->SelectItem(item);
+    {
+        bool ret = update_current_page_in_background(item);
+        //if m_active_page is changed in update_current_page_in_background
+        //will just update the selected item of the treectrl
+        if (ret)
+            m_treectrl->SelectItem(item);
+    }
 }
 
 void Tab::update_btns_enabling()
@@ -3255,9 +3346,9 @@ void Tab::update_btns_enabling()
     m_btn_delete_preset->Show((m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection())
                               || (!preset.is_default && !preset.is_system));
 
-    if (m_btn_edit_ph_printer)
-        m_btn_edit_ph_printer->SetToolTip( m_preset_bundle->physical_printers.has_selection() ?
-                                           _L("Edit physical printer") : _L("Add physical printer"));
+    //if (m_btn_edit_ph_printer)
+    //    m_btn_edit_ph_printer->SetToolTip( m_preset_bundle->physical_printers.has_selection() ?
+    //                                       _L("Edit physical printer") : _L("Add physical printer"));
 }
 
 void Tab::update_preset_choice()
@@ -3505,7 +3596,9 @@ void Tab::clear_pages()
 {
     // invalidated highlighter, if any exists
     m_highlighter.invalidate();
-    m_page_sizer->Clear(true);
+    //BBS: clear page in Parent
+    //m_page_sizer->Clear(true);
+    m_parent->clear_page();
     // clear pages from the controlls
     for (auto p : m_pages)
         p->clear();
@@ -3538,7 +3631,53 @@ void Tab::activate_selected_page(std::function<void()> throw_if_canceled)
     toggle_options();
 }
 
-bool Tab::tree_sel_change_delayed()
+//BBS: GUI refactor
+bool Tab::update_current_page_in_background(wxTreeItemId& item)
+{
+    Page* page = nullptr;
+
+    const auto selection = item ? m_treectrl->GetItemText(item) : "";
+    for (auto p : m_pages)
+        if (translate_category(p->title(), m_type) == selection)
+        {
+            page = p.get();
+            break;
+        }
+
+    if (page == nullptr || m_active_page == page)
+        return false;
+
+    bool active_tab = false;
+    if (wxGetApp().mainframe != nullptr && wxGetApp().mainframe->is_active_and_shown_tab(m_parent))
+        active_tab = true;
+
+    if (!active_tab || (!m_parent->is_active_and_shown_tab((wxPanel*)this)))
+    {
+        m_is_nonsys_values = page->m_is_nonsys_values;
+        m_is_modified_values = page->m_is_modified_values;
+        m_active_page = page;
+
+        // invalidated highlighter, if any exists
+        m_highlighter.invalidate();
+
+        // clear pages from the controlls
+        for (auto p : m_pages)
+            p->clear();
+
+        update_undo_buttons();
+
+        //todo: update selected item of tree_ctrl
+        wxTreeItemData item_data;
+        m_treectrl->SetItemData(item, &item_data);
+
+        //return false;
+    }
+
+    return true;
+}
+
+//BBS: GUI refactor
+bool Tab::tree_sel_change_delayed(wxTreeEvent& event)
 {
     // There is a bug related to Ubuntu overlay scrollbars, see https://github.com/prusa3d/PrusaSlicer/issues/898 and https://github.com/prusa3d/PrusaSlicer/issues/952.
     // The issue apparently manifests when Show()ing a window with overlay scrollbars while the UI is frozen. For this reason,
@@ -3551,10 +3690,11 @@ bool Tab::tree_sel_change_delayed()
      * But under OSX (builds compiled with MacOSX10.14.sdk) wxStaticBitmap rendering is broken without Freeze/Thaw call.
      */
 //#ifdef __WXOSX__  // Use Freeze/Thaw to avoid flickering during clear/activate new page
-    wxWindowUpdateLocker noUpdates(this);
+//    wxWindowUpdateLocker noUpdates(this);
 //#endif
 #endif
 
+    //BBS: GUI refactor
     Page* page = nullptr;
     const auto sel_item = m_treectrl->GetSelection();
     const auto selection = sel_item ? m_treectrl->GetItemText(sel_item) : "";
@@ -3566,15 +3706,52 @@ bool Tab::tree_sel_change_delayed()
             m_is_modified_values = page->m_is_modified_values;
             break;
         }
-    if (page == nullptr || m_active_page == page)
+    
+    //BBS: GUI refactor
+    if (page == nullptr)
+    {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("can not find page with current selection %1%\n") % selection;
+        return false;
+    }
+    wxTreeItemData* item_data = m_treectrl->GetItemData(sel_item);
+    if (item_data)
+    {
+        //from update_current_page_in_background in not active tab
+        m_treectrl->SetItemData(sel_item, NULL);
+        return false;
+    }
+
+    if (!m_parent->is_active_and_shown_tab((wxPanel*)this))
+    {
+        Tab* current_tab = dynamic_cast<Tab*>(m_parent->get_current_tab());
+
+        m_page_view->Freeze();
+
+        if (current_tab)
+        {
+            current_tab->clear_pages();
+        }
+        m_active_page = page;
+        update_undo_buttons();
+        this->OnActivate();
+        m_parent->set_active_tab(this);
+
+        m_page_view->Thaw();
+        return false;
+    }
+
+    //process logic in the same tab when select treeCtrlItem
+    if (m_active_page == page)
         return false;
 
-    // clear pages from the controls
     m_active_page = page;
     
     auto throw_if_canceled = std::function<void()>([this](){
 #ifdef WIN32
-            wxCheckForInterrupt(m_treectrl);
+            //BBS: GUI refactor
+            //TODO: remove this call currently, after refactor, there is Paint event in the queue
+            //this call will cause OnPaint immediately, which will cause crash
+            //wxCheckForInterrupt(m_treectrl);
             if (m_page_switch_planned)
                 throw UIBuildCanceled();
 #else // WIN32
@@ -3583,10 +3760,13 @@ bool Tab::tree_sel_change_delayed()
         });
 
     try {
+        m_page_view->Freeze();
+        // clear pages from the controls
         clear_pages();
         throw_if_canceled();
 
-        if (wxGetApp().mainframe!=nullptr && wxGetApp().mainframe->is_active_and_shown_tab(this))
+        //BBS: GUI refactor
+        if (wxGetApp().mainframe!=nullptr && wxGetApp().mainframe->is_active_and_shown_tab(m_parent))
             activate_selected_page(throw_if_canceled);
 
         #ifdef __linux__
@@ -3596,12 +3776,17 @@ bool Tab::tree_sel_change_delayed()
         update_undo_buttons();
         throw_if_canceled();
 
-        m_hsizer->Layout();
+        //BBS: GUI refactor
+        //m_hsizer->Layout();
+        m_parent->Layout();
         throw_if_canceled();
         Refresh();
+
+        m_page_view->Thaw();
     } catch (const UIBuildCanceled&) {
 	    if (m_active_page)
 		    m_active_page->clear();
+        m_page_view->Thaw();
         return true;
     }
 
@@ -3790,11 +3975,12 @@ void Tab::toggle_show_hide_incompatible()
 
 void Tab::update_show_hide_incompatible_button()
 {
-    m_btn_hide_incompatible_presets->SetBitmap_(m_show_incompatible_presets ?
+    //BBS: GUI refactor
+    /*m_btn_hide_incompatible_presets->SetBitmap_(m_show_incompatible_presets ?
         m_bmp_show_incompatible_presets : m_bmp_hide_incompatible_presets);
     m_btn_hide_incompatible_presets->SetToolTip(m_show_incompatible_presets ?
         "Both compatible an incompatible presets are shown. Click to hide presets not compatible with the current printer." :
-        "Only compatible presets are shown. Click to show both the presets compatible and not compatible with the current printer.");
+        "Only compatible presets are shown. Click to show both the presets compatible and not compatible with the current printer.");*/
 }
 
 void Tab::update_ui_from_settings()
@@ -3803,8 +3989,10 @@ void Tab::update_ui_from_settings()
     // in application preferences.
     m_show_btn_incompatible_presets = wxGetApp().app_config->get("show_incompatible_presets")[0] == '1' ? true : false;
     bool show = m_show_btn_incompatible_presets && m_type != Slic3r::Preset::TYPE_PRINTER;
-    Layout();
-    show ? m_btn_hide_incompatible_presets->Show() :  m_btn_hide_incompatible_presets->Hide();
+    //BBS: GUI refactor
+    //Layout();
+    m_parent->Layout();
+    //show ? m_btn_hide_incompatible_presets->Show() :  m_btn_hide_incompatible_presets->Hide();
     // If the 'show / hide presets' button is hidden, hide the incompatible presets.
     if (show) {
         update_show_hide_incompatible_button();
@@ -4087,7 +4275,9 @@ void Tab::set_tooltips_text()
                                 "Click to reset current value to the last saved preset."));
 }
 
-Page::Page(wxWindow* parent, const wxString& title, int iconID) :
+//BBS: GUI refactor
+Page::Page(wxWindow* parent, const wxString& title, int iconID, wxPanel* tab_owner) :
+        m_tab_owner(tab_owner),
         m_parent(parent),
         m_title(title),
         m_iconID(iconID)
@@ -4179,11 +4369,13 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
     if (noncommon_label_width >= 0)
         optgroup->label_width = noncommon_label_width;
 
-#ifdef __WXOSX__
+//BBS: GUI refactor
+/*#ifdef __WXOSX__
     auto tab = parent()->GetParent()->GetParent();// GetParent()->GetParent();
 #else
     auto tab = parent()->GetParent();// GetParent();
-#endif
+#endif*/
+    auto tab = m_tab_owner;
     optgroup->set_config_category_and_type(m_title, static_cast<Tab*>(tab)->type());
     optgroup->m_on_change = [tab](t_config_option_key opt_key, boost::any value) {
         //! This function will be called from OptionGroup.
@@ -4510,7 +4702,9 @@ void TabSLAPrint::update()
     m_config_manipulation.update_print_sla_config(m_config, true);
 
     update_description_lines();
-    Layout();
+    //BBS: GUI refactor
+    //Layout();
+    m_parent->Layout();
 
     m_update_cnt--;
 

@@ -1,0 +1,104 @@
+#ifndef slic3r_params_panel_hpp_
+#define slic3r_params_panel_hpp_
+
+
+#include <map>
+#include <vector>
+#include <memory>
+
+
+#include <wx/artprov.h>
+#include <wx/xrc/xmlres.h>
+#include <wx/string.h>
+#include <wx/stattext.h>
+#include <wx/gdicmn.h>
+#include <wx/font.h>
+#include <wx/colour.h>
+#include <wx/settings.h>
+#include <wx/tglbtn.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
+#include <wx/icon.h>
+#include <wx/button.h>
+#include <wx/sizer.h>
+#include <wx/statline.h>
+#include <wx/scrolwin.h>
+#include <wx/panel.h>
+
+#include "wxExtensions.hpp"
+
+namespace Slic3r {
+namespace GUI {
+
+///////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class ParamsPanel
+///////////////////////////////////////////////////////////////////////////////
+class ParamsPanel : public wxPanel
+{
+#ifdef __WXOSX__
+    wxPanel*            m_tmp_panel;
+    int                 m_size_move = -1;
+#endif // __WXOSX__
+
+	private:
+        void free_sizers();
+        void delete_subwindows();
+        void refresh_tabs();
+
+	protected:
+        wxBoxSizer* m_top_sizer { nullptr };
+        wxBoxSizer* m_left_sizer { nullptr };
+        wxBoxSizer* m_mode_sizer { nullptr };
+        wxStaticText* m_mode_text { nullptr };
+        wxBitmapToggleButton* m_mode_status { nullptr };
+        //wxBitmapButton* m_search_button { nullptr };
+        wxStaticLine* m_staticline_print { nullptr };
+        wxBoxSizer* m_print_sizer { nullptr };
+        wxPanel* m_tab_print { nullptr };
+        wxStaticLine* m_staticline_filament { nullptr };
+        wxBoxSizer* m_filament_sizer { nullptr };
+        wxPanel* m_tab_filament { nullptr };
+        wxStaticLine* m_staticline_printer { nullptr };
+        wxBoxSizer* m_printer_sizer { nullptr };
+        wxPanel* m_tab_printer { nullptr };
+        wxBoxSizer* m_button_sizer { nullptr };
+        wxButton* m_export_to_file { nullptr };
+        wxButton* m_import_from_file { nullptr };
+        wxBoxSizer* m_right_sizer { nullptr };
+        wxScrolledWindow* m_page_view { nullptr };
+        wxBoxSizer* m_page_sizer { nullptr };
+
+        ScalableButton*		m_search_btn { nullptr };
+
+        wxBitmap m_toggle_on_icon;
+        wxBitmap m_toggle_off_icon;
+
+        wxPanel* m_current_tab { nullptr };
+
+        void OnToggled(wxCommandEvent& event);
+
+	public:
+		ParamsPanel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1800,1080 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
+		~ParamsPanel();
+
+        void rebuild_panels();
+        void create_layout();
+        //clear the right page
+        void clear_page();
+        void OnActivate();
+        void set_active_tab(wxPanel*tab);
+        bool is_active_and_shown_tab(wxPanel*tab);
+        void update_mode();
+
+        wxScrolledWindow* get_paged_view() { return m_page_view;}
+        wxPanel*    get_current_tab() { return m_current_tab; }
+
+};
+
+} // GUI
+} // Slic3r
+
+#endif //slic3r_params_panel_hpp_

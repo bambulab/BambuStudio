@@ -371,6 +371,7 @@ void MainFrame::show_tabs_menu(bool show)
 }
 #endif // _MSW_DARK_MODE
 
+//BBS GUI refactor: remove unused layout new/dlg
 void MainFrame::update_layout()
 {
     auto restore_to_creation = [this]() {
@@ -409,10 +410,8 @@ void MainFrame::update_layout()
         Layout();
     };
 
-    ESettingsLayout layout = wxGetApp().is_gcode_viewer() ? ESettingsLayout::GCodeViewer :
-        (wxGetApp().app_config->get("old_settings_layout_mode") == "1" ? ESettingsLayout::Old :
-            wxGetApp().app_config->get("new_settings_layout_mode") == "1" ? ( wxGetApp().tabs_as_menu() ? ESettingsLayout::Old : ESettingsLayout::New) :
-            wxGetApp().app_config->get("dlg_settings_layout_mode") == "1" ? ESettingsLayout::Dlg : ESettingsLayout::Old);
+    //BBS GUI refactor: remove unused layout new/dlg
+    ESettingsLayout layout = wxGetApp().is_gcode_viewer() ? ESettingsLayout::GCodeViewer : ESettingsLayout::Old;
 
     if (m_layout == layout)
         return;
@@ -425,7 +424,8 @@ void MainFrame::update_layout()
     if (m_layout != ESettingsLayout::Unknown)
         restore_to_creation();
 
-#ifdef __WXMSW__
+//BBS GUI refactor: remove unused layout new/dlg
+/*#ifdef __WXMSW__
     enum class State {
         noUpdate,
         fromDlg,
@@ -434,13 +434,14 @@ void MainFrame::update_layout()
     State update_scaling_state = //m_layout == ESettingsLayout::Unknown   ? State::noUpdate   : // don't scale settings dialog from the application start
                                  m_layout == ESettingsLayout::Dlg       ? State::fromDlg    :
                                  layout   == ESettingsLayout::Dlg       ? State::toDlg      : State::noUpdate;
-#endif //__WXMSW__
+#endif //__WXMSW__*/
 
     ESettingsLayout old_layout = m_layout;
     m_layout = layout;
 
     // From the very beginning the Print settings should be selected
-    m_last_selected_tab = m_layout == ESettingsLayout::Dlg ? 0 : 1;
+    //m_last_selected_tab = m_layout == ESettingsLayout::Dlg ? 0 : 1;
+    m_last_selected_tab = 1;
 
     // Set new settings
     switch (m_layout)
@@ -473,7 +474,8 @@ void MainFrame::update_layout()
 #endif
         break;
     }
-    case ESettingsLayout::New:
+    //BBS GUI refactor: remove unused layout new/dlg
+    /*case ESettingsLayout::New:
     {
         m_main_sizer->Add(m_plater, 1, wxEXPAND);
         m_tabpanel->Hide();
@@ -484,7 +486,7 @@ void MainFrame::update_layout()
             dynamic_cast<Notebook*>(m_tabpanel)->InsertPage(0, m_plater_page, _L("Plater"), std::string("plater"), true);
         else
 #endif
-        m_tabpanel->InsertPage(0, m_plater_page, _L("Plater"), "plater"); // empty panel just for Plater tab */
+        m_tabpanel->InsertPage(0, m_plater_page, _L("Plater"), "plater"); // empty panel just for Plater tab
         m_tabpanel->InsertPage(1, m_plater_page, _L("Preview"), "preview");
         m_plater->Show();
         break;
@@ -502,7 +504,7 @@ void MainFrame::update_layout()
             show_tabs_menu(false);
 #endif
         break;
-    }
+    }*/
     case ESettingsLayout::GCodeViewer:
     {
         m_main_sizer->Add(m_plater, 1, wxEXPAND);
@@ -520,7 +522,8 @@ void MainFrame::update_layout()
     m_plater->sidebar().show_mode_sizer(wxGetApp().tabs_as_menu() || m_layout != ESettingsLayout::Old);
 #endif
 
-#ifdef __WXMSW__
+    //BBS GUI refactor: remove unused layout new/dlg
+/*#ifdef __WXMSW__
     if (update_scaling_state != State::noUpdate)
     {
         int mainframe_dpi   = get_dpi_for_window(this);
@@ -548,7 +551,7 @@ void MainFrame::update_layout()
 #endif // wxVERSION_EQUAL_OR_GREATER_THAN
         }
     }
-#endif //__WXMSW__
+#endif //__WXMSW__*/
 
 //#ifdef __APPLE__
 //    // Using SetMinSize() on Mac messes up the window position in some cases
@@ -709,6 +712,7 @@ void MainFrame::init_tabpanel()
         wxWindow* panel = m_tabpanel->GetCurrentPage();
         int sel = m_tabpanel->GetSelection();
         wxString page_text = m_tabpanel->GetPageText(sel);
+        m_last_selected_tab = m_tabpanel->GetSelection();
         if (panel == m_plater) {
             if (page_text == "Plater") {
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
@@ -718,10 +722,11 @@ void MainFrame::init_tabpanel()
             }
         }
         else if (panel != m_monitor) {
-            Tab* tab = dynamic_cast<Tab*>(panel);
+            //BBS: GUI refactor
+            //Tab* tab = dynamic_cast<Tab*>(panel);
 
             // There shouldn't be a case, when we try to select a tab, which doesn't support a printer technology
-            if (panel == nullptr || (tab != nullptr && !tab->supports_printer_technology(m_plater->printer_technology())))
+            /*if (panel == nullptr || (tab != nullptr && !tab->supports_printer_technology(m_plater->printer_technology())))
                 return;
 
             auto& tabs_list = wxGetApp().tabs_list;
@@ -730,7 +735,9 @@ void MainFrame::init_tabpanel()
                 // before the MainFrame is fully set up.
                 tab->OnActivate();
                 m_last_selected_tab = m_tabpanel->GetSelection();
-            }
+            }*/
+            if (panel == m_param_panel)
+                m_param_panel->OnActivate();
             else
                 select_tab(size_t(0)); // select Plater
         }
@@ -822,41 +829,50 @@ void MainFrame::register_win32_callbacks()
 void MainFrame::create_preset_tabs()
 {
     wxGetApp().update_label_colours_from_appconfig();
-    add_created_tab(new TabPrint(m_tabpanel), "cog");
-    add_created_tab(new TabFilament(m_tabpanel), "spool");
+
+    //BBS: GUI refactor
+    m_param_panel = new ParamsPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
+
+    add_created_tab(new TabPrint(m_param_panel), "cog");
+    add_created_tab(new TabFilament(m_param_panel), "spool");
     /* BBS work around to avoid appearance bug */
-    //add_created_tab(new TabSLAPrint(m_tabpanel), "cog");
-    //add_created_tab(new TabSLAMaterial(m_tabpanel), "resin");
-    add_created_tab(new TabPrinter(m_tabpanel), wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF ? "printer" : "sla_printer");
+    //add_created_tab(new TabSLAPrint(m_param_panel));
+    //add_created_tab(new TabSLAMaterial(m_param_panel));
+    add_created_tab(new TabPrinter(m_param_panel), "printer");
+
+    m_param_panel->rebuild_panels();
+    m_tabpanel->AddPage(m_param_panel, "Parameters", "cog");
 }
 
 void MainFrame::add_created_tab(Tab* panel,  const std::string& bmp_name /*= ""*/)
 {
     panel->create_preset_tab();
 
-    const auto printer_tech = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
-
-    if (panel->supports_printer_technology(printer_tech))
-#ifdef _MSW_DARK_MODE
-        if (!wxGetApp().tabs_as_menu())
-            dynamic_cast<Notebook*>(m_tabpanel)->AddPage(panel, panel->title(), bmp_name);
-        else
-#endif
-        m_tabpanel->AddPage(panel, panel->title(), bmp_name);
+    //BBS: GUI refactor
+//    const auto printer_tech = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
+//
+//    if (panel->supports_printer_technology(printer_tech))
+//#ifdef _MSW_DARK_MODE
+//        if (!wxGetApp().tabs_as_menu())
+//            dynamic_cast<Notebook*>(m_tabpanel)->AddPage(panel, panel->title(), bmp_name);
+//        else
+//#endif
+//        m_tabpanel->AddPage(panel, panel->title(), bmp_name);
 }
 
-bool MainFrame::is_active_and_shown_tab(Tab* tab)
+bool MainFrame::is_active_and_shown_tab(wxPanel* panel)
 {
-    int page_id = m_tabpanel->FindPage(tab);
+    int page_id = m_tabpanel->FindPage(panel);
 
     if (m_tabpanel->GetSelection() != page_id)
         return false;
 
-    if (m_layout == ESettingsLayout::Dlg)
+//BBS GUI refactor: remove unused layout new/dlg
+/*    if (m_layout == ESettingsLayout::Dlg)
         return m_settings_dialog.IsShown();
 
     if (m_layout == ESettingsLayout::New)
-        return m_main_sizer->IsShown(m_tabpanel);
+        return m_main_sizer->IsShown(m_tabpanel);*/
     
     return true;
 }
@@ -982,8 +998,9 @@ bool MainFrame::can_change_view() const
     switch (m_layout)
     {
     default:                   { return false; }
-    case ESettingsLayout::New: { return m_plater->IsShown(); }
-    case ESettingsLayout::Dlg: { return true; }
+    //BBS GUI refactor: remove unused layout new/dlg
+    //case ESettingsLayout::New: { return m_plater->IsShown(); }
+    //case ESettingsLayout::Dlg: { return true; }
     case ESettingsLayout::Old: { 
         int page_id = m_tabpanel->GetSelection();
         return page_id != wxNOT_FOUND && dynamic_cast<const Slic3r::GUI::Plater*>(m_tabpanel->GetPage((size_t)page_id)) != nullptr;
@@ -1106,7 +1123,8 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     wxGetApp().plater()->msw_rescale();
 
     // update Tabs
-    if (m_layout != ESettingsLayout::Dlg) // Do not update tabs if the Settings are in the separated dialog
+    //BBS GUI refactor: remove unused layout new/dlg
+    //if (m_layout != ESettingsLayout::Dlg) // Do not update tabs if the Settings are in the separated dialog
         for (auto tab : wxGetApp().tabs_list)
             tab->msw_rescale();
 
@@ -2112,32 +2130,37 @@ void MainFrame::load_config(const DynamicPrintConfig& config)
 #endif
 }
 
-void MainFrame::select_tab(Tab* tab)
+//BBS: GUI refactor
+void MainFrame::select_tab(wxPanel* panel)
 {
-    if (!tab)
+    if (!panel)
         return;
-    int page_idx = m_tabpanel->FindPage(tab);
-    if (page_idx != wxNOT_FOUND && m_layout == ESettingsLayout::Dlg)
-        page_idx++;
+    int page_idx = m_tabpanel->FindPage(panel);
+    //BBS GUI refactor: remove unused layout new/dlg
+    /*if (page_idx != wxNOT_FOUND && m_layout == ESettingsLayout::Dlg)
+        page_idx++;*/
     select_tab(size_t(page_idx));
 }
 
 //BBS
 void MainFrame::jump_to_monitor()
 {
-    m_tabpanel->SetSelection(4);
+    m_tabpanel->SetSelection(tpMonitor);
     ((MonitorPanel*)m_monitor)->select_machine("");
 }
 
+//BBS GUI refactor: remove unused layout new/dlg
 void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
 {
-    bool tabpanel_was_hidden = false;
+    //bool tabpanel_was_hidden = false;
 
     // Controls on page are created on active page of active tab now.
     // We should select/activate tab before its showing to avoid an UI-flickering
     auto select = [this, tab](bool was_hidden) {
         // when tab == -1, it means we should show the last selected tab
-        size_t new_selection = tab == (size_t)(-1) ? m_last_selected_tab : (m_layout == ESettingsLayout::Dlg && tab != 0) ? tab - 1 : tab;
+        //BBS GUI refactor: remove unused layout new/dlg
+        //size_t new_selection = tab == (size_t)(-1) ? m_last_selected_tab : (m_layout == ESettingsLayout::Dlg && tab != 0) ? tab - 1 : tab;
+        size_t new_selection = tab == (size_t)(-1) ? m_last_selected_tab : tab;
 
         if (m_tabpanel->GetSelection() != (int)new_selection)
             m_tabpanel->SetSelection(new_selection);
@@ -2158,7 +2181,8 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
         }
     };
 
-    if (m_layout == ESettingsLayout::Dlg) {
+    //BBS GUI refactor: remove unused layout new/dlg
+    /*if (m_layout == ESettingsLayout::Dlg) {
         if (tab==0) {
             if (m_settings_dialog.IsShown())
                 this->SetFocus();
@@ -2203,16 +2227,16 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
             m_plater->SetFocus();
         Layout();
     }
-    else
+    else*/
         select(false);
 
     // When we run application in ESettingsLayout::New or ESettingsLayout::Dlg mode, tabpanel is hidden from the very beginning
     // and as a result Tab::update_changed_tree_ui() function couldn't update m_is_nonsys_values values,
     // which are used for update TreeCtrl and "revert_buttons".
     // So, force the call of this function for Tabs, if tab panel was hidden
-    if (tabpanel_was_hidden)
-        for (auto cur_tab : wxGetApp().tabs_list)
-            cur_tab->update_changed_tree_ui();
+    //if (tabpanel_was_hidden)
+    //    for (auto cur_tab : wxGetApp().tabs_list)
+    //        cur_tab->update_changed_tree_ui();
 
     //// when tab == -1, it means we should show the last selected tab
     //size_t new_selection = tab == (size_t)(-1) ? m_last_selected_tab : (m_layout == ESettingsLayout::Dlg && tab != 0) ? tab - 1 : tab;

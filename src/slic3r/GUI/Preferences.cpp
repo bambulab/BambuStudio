@@ -451,7 +451,8 @@ void PreferencesDialog::build(size_t selected_tab)
 		create_icon_size_slider();
 		m_icon_size_sizer->ShowItems(app_config->get("use_custom_toolbar_size") == "1");
 
-		create_settings_mode_widget();
+		//BBS GUI refactor, remove the unused layout setting
+		//create_settings_mode_widget();
 		create_settings_text_color_widget();
 	}
 

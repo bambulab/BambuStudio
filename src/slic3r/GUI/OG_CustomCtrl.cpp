@@ -549,7 +549,9 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
 
     bool suppress_hyperlinks = get_app_config()->get("suppress_hyperlinks") == "1";
     if (draw_just_act_buttons) {
-        if (field)
+        //BBS: GUI refactor
+        if (field && field->undo_bitmap())
+        //if (field)
             draw_act_bmps(dc, wxPoint(0, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink());
         return;
     }
@@ -587,7 +589,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
         else if (field && !field->undo_to_sys_bitmap() && field->blink()) 
             draw_blinking_bmp(dc, wxPoint(h_pos, v_pos), field->blink());
         // update width for full_width fields
-        if (option_set.front().opt.full_width && field->getWindow())
+        if (option_set.front().opt.full_width && field && field->getWindow())
             field->getWindow()->SetSize(ctrl->GetSize().x - h_pos, -1);
         return;
     }
@@ -736,6 +738,7 @@ wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBi
     wxCoord h_pos = pos.x;
     wxCoord v_pos = pos.y;
 
+    //BBS: GUI refactor
     dc.DrawBitmap(bmp_undo_to_sys, h_pos, v_pos);
 
     int bmp_dim = get_bitmap_size(bmp_undo_to_sys).GetWidth();
