@@ -119,6 +119,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Tab.hpp
     GUI/Monitor.cpp
     GUI/Monitor.hpp
+    GUI/WebViewDialog.cpp
+    GUI/WebViewDialog.hpp
     GUI/ConfigManipulation.cpp
     GUI/ConfigManipulation.hpp
     GUI/Field.cpp

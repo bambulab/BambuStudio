@@ -33,6 +33,7 @@
 #include "I18N.hpp"
 #include "GLCanvas3D.hpp"
 #include "Plater.hpp"
+#include "WebViewDialog.hpp"
 #include "../Utils/Process.hpp"
 #include "format.hpp"
 
@@ -1462,7 +1463,10 @@ void MainFrame::init_menubar_as_editor()
     // Model Website
     auto modelWebSiteMenu = new wxMenu();
     append_menu_item(modelWebSiteMenu, wxID_ANY, _L("Model WebSite"), _L("Browser Models in BBL WebSite"),
-        [](wxCommandEvent&) { wxLaunchDefaultBrowser("https://www.thingiverse.com/"); });
+        [](wxCommandEvent&) {
+            WebFrame *frame = new WebFrame("https://www.bing.com");
+            frame->Show();
+        });
 
     auto accountMenu = new wxMenu();
 
