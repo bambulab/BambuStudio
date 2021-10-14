@@ -64,7 +64,8 @@ public:
     }
 
     std::string     id;
-    std::string     color;      //0xRRGGBBAA
+    std::string     last_color;
+    wxColour        wx_color;
     std::string     sn;
     bool            is_bbl;
     std::string     meterial;
@@ -74,6 +75,9 @@ public:
     std::string     transmittance;
     std::string     weight;
     std::string     manufacturer;
+    double          diameter;
+
+    void update_color_from_str(std::string color);
 };
 
 

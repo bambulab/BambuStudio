@@ -99,6 +99,22 @@ void machine_conn_callback::message_arrived(mqtt::const_message_ptr msg)
     }
 }
 
+void AmsTray::update_color_from_str(std::string color)
+{
+    if (last_color.compare(color) == 0)
+        return;
+    
+    wxUint32 rgba;
+    try {
+        rgba = stoi(color);
+    }
+    catch (...) {
+        return;
+    }
+
+    wx_color.SetRGBA(rgba);
+    last_color = color;
+}
 
 MachineObject::MachineObject(AccountManager& acc, std::string name, std::string id, std::string ip)
     :acc_(acc),
@@ -548,7 +564,7 @@ int MachineObject::parse_json(std::string topic, std::string payload)
 
                                 // update properties
                                 if (curr_tray) {
-                                    curr_tray->color        = color;
+                                    curr_tray->update_color_from_str(color);
                                     curr_tray->sn           = tray_sn.has_value() ? tray_sn.value() : "";
                                     curr_tray->is_bbl       = is_bbl;
                                     curr_tray->meterial     = tray_meterial.has_value() ? tray_meterial.value() : "";
@@ -558,6 +574,12 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                                     curr_tray->transmittance= tray_transmittance.has_value() ? tray_transmittance.value() : "";
                                     curr_tray->weight       = tray_weight.has_value() ? tray_weight.value() : "";
                                     curr_tray->manufacturer = tray_manufacturer.has_value() ? tray_manufacturer.value() : "";
+                                    try {
+                                        curr_tray->diameter = std::stod(tray_diameter.has_value() ? tray_diameter.value() : "0.0");
+                                    }
+                                    catch (...) {
+                                        ;
+                                    }
                                 }
                             }
                         }

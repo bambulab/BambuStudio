@@ -168,13 +168,14 @@ void TrayListModel::update(MachineObject* obj)
                     tray_index++;
                     wxString title_text = wxString::Format("tray %d", tray_index);
                     m_titleColValues.push_back(title_text);
-                    wxString color_text = wxString::Format("%s", tray->color);
+                    wxString color_text = wxString::Format("%s", tray->wx_color.GetAsString());
                     m_colorColValues.push_back(color_text);
                     wxString meterial_text = wxString::Format("%s", tray->meterial);
                     m_meterialColValues.push_back(meterial_text);
-                    wxString weight_text = wxString::Format("%s", tray->weight);
+                    wxString weight_text = wxString::Format("%sg", tray->weight);
                     m_weightColValues.push_back(weight_text);
-                    //m_diameterColValues.push_back();
+                    wxString diameter_text = wxString::Format("%0.2f", tray->diameter);
+                    m_diameterColValues.push_back(diameter_text);
                     wxString time_text = wxString::Format("%s", tray->time);
                     m_timeColValues.push_back(time_text);
                     wxString sn_text = wxString::Format("%s", tray->sn);
@@ -1061,10 +1062,9 @@ void MonitorPanel::update_all()
 
     update_status(obj);
 
-    // update ams fields
-    if (obj->is_ams_need_update) {
-        update_ams(obj);
-    }
+    // always update ams fields
+    //if (obj->is_ams_need_update) {}
+    update_ams(obj);
 
     update_task(obj);
 }
