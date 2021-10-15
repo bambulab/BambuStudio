@@ -201,6 +201,7 @@ public:
          , position(Point(0, 0))
          , skin_direction(false)
          , support_roof_layers_below(0)
+         , support_floor_layers_above(0)
          , to_buildplate(true)
          , parent(nullptr)
         {}
@@ -210,6 +211,7 @@ public:
          , position(position)
          , skin_direction(skin_direction)
          , support_roof_layers_below(support_roof_layers_below)
+         , support_floor_layers_above(0)
          , to_buildplate(to_buildplate)
          , parent(parent)
         {}
@@ -233,6 +235,7 @@ public:
         Point position;
 
         Point movement;  // movement towards neighbor center or outline
+        double radius;
 
         /*!
          * \brief The direction of the skin lines above the tip of the branch.
@@ -251,6 +254,7 @@ public:
          * how far we need to extend that support roof downwards.
          */
         int support_roof_layers_below;
+        int support_floor_layers_above;
 
         /*!
          * \brief Whether to try to go towards the build plate.
@@ -351,6 +355,7 @@ private:
     void create_tree_support_layers();
     void generate_toolpaths();
     Polygons spanning_tree_to_polygon(const std::vector<MinimumSpanningTree>& spanning_trees, Polygons layer_contours, int layer_nr);
+    Polygons contact_nodes_to_polygon(const std::vector<Node*>& contact_nodes, Polygons layer_contours, int layer_nr, std::vector<double>& radiis, std::vector<bool>& is_interface);
 };
 
 }
