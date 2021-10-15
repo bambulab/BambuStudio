@@ -36,6 +36,8 @@
 #include "WebViewDialog.hpp"
 #include "../Utils/Process.hpp"
 #include "format.hpp"
+// BBS
+#include "Notebook.hpp"
 
 #include <fstream>
 #include <string_view>
@@ -456,7 +458,8 @@ void MainFrame::update_layout()
             dynamic_cast<Notebook*>(m_tabpanel)->InsertPage(0, m_plater, _L("Plater"), std::string("plater"), true);
         else
 #endif
-        m_tabpanel->InsertPage(0, m_plater, _L("Plater"));
+        m_tabpanel->InsertPage(tp3DEditor, m_plater, _L("Plater"), std::string("plater"));
+        m_tabpanel->InsertPage(tpPreview, m_plater, _L("Preview"), std::string("preview"));
         m_main_sizer->Add(m_tabpanel, 1, wxEXPAND | wxTOP, 1);
         m_plater->Show();
         m_tabpanel->Show();
@@ -481,7 +484,8 @@ void MainFrame::update_layout()
             dynamic_cast<Notebook*>(m_tabpanel)->InsertPage(0, m_plater_page, _L("Plater"), std::string("plater"), true);
         else
 #endif
-        m_tabpanel->InsertPage(0, m_plater_page, _L("Plater")); // empty panel just for Plater tab */
+        m_tabpanel->InsertPage(0, m_plater_page, _L("Plater"), "plater"); // empty panel just for Plater tab */
+        m_tabpanel->InsertPage(1, m_plater_page, _L("Preview"), "preview");
         m_plater->Show();
         break;
     }
@@ -685,7 +689,9 @@ void MainFrame::init_tabpanel()
     else
         m_tabpanel = new Notebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME, true);
 #else
-    m_tabpanel = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
+   // BBS
+    wxBoxSizer* side_tools = create_side_tools();
+    m_tabpanel = new Notebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, side_tools, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
 #endif
 
 #ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList
@@ -699,9 +705,19 @@ void MainFrame::init_tabpanel()
 #else
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, [this](wxBookCtrlEvent& e) {
 #endif
-        //BBS if panel is not monitor panel
+        //BBS
         wxWindow* panel = m_tabpanel->GetCurrentPage();
-        if (panel != m_monitor) {
+        int sel = m_tabpanel->GetSelection();
+        wxString page_text = m_tabpanel->GetPageText(sel);
+        if (panel == m_plater) {
+            if (page_text == "Plater") {
+                wxPostEvent(m_plater, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
+            }
+            else if (page_text == "Preview") {
+                wxPostEvent(m_plater, SimpleEvent(EVT_GLVIEWTOOLBAR_PREVIEW));
+            }
+        }
+        else if (panel != m_monitor) {
             Tab* tab = dynamic_cast<Tab*>(panel);
 
             // There shouldn't be a case, when we try to select a tab, which doesn't support a printer technology
@@ -731,7 +747,7 @@ void MainFrame::init_tabpanel()
         //BBS add monitor page
         //MonitorPanel(wxWindow * parent, wxWindowID id = wxID_ANY, const wxPoint & pos = wxDefaultPosition, const wxSize & size = wxSize(800, 600), long style = wxTAB_TRAVERSAL);
         m_monitor = new MonitorPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-        m_tabpanel->AddPage(m_monitor, "Monitor");
+        m_tabpanel->AddPage(m_monitor, "Monitor", "monitor");
     }
 
     if (m_plater) {
@@ -826,7 +842,7 @@ void MainFrame::add_created_tab(Tab* panel,  const std::string& bmp_name /*= ""*
             dynamic_cast<Notebook*>(m_tabpanel)->AddPage(panel, panel->title(), bmp_name);
         else
 #endif
-        m_tabpanel->AddPage(panel, panel->title());
+        m_tabpanel->AddPage(panel, panel->title(), bmp_name);
 }
 
 bool MainFrame::is_active_and_shown_tab(Tab* tab)
@@ -1001,6 +1017,24 @@ bool MainFrame::can_reslice() const
     return (m_plater != nullptr) && !m_plater->model().objects.empty();
 }
 
+wxBoxSizer* MainFrame::create_side_tools()
+{
+    wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    ScalableButton* slice_btn = new ScalableButton(this, wxID_ANY, "slice_all", _L("Slice"));
+    ScalableButton* print_btn = new ScalableButton(this, wxID_ANY, "print_project", _L("Print"));
+    sizer->Add(slice_btn, 0, wxLEFT | wxRIGHT, 5);
+    sizer->Add(print_btn, 0, wxLEFT | wxRIGHT, 5);
+    slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+        {
+            this->m_plater->reslice();
+            this->m_plater->select_view_3D("Preview");
+
+            this->m_tabpanel->SetSelection(tpPreview);
+        });
+    return sizer;
+}
+
 void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
 {
     wxGetApp().update_fonts(this);
@@ -1011,6 +1045,9 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     if (!wxGetApp().tabs_as_menu())
         dynamic_cast<Notebook*>(m_tabpanel)->Rescale();
 #endif
+
+    // BBS
+    m_tabpanel->Rescale();
 
     // update Plater
     wxGetApp().plater()->msw_rescale();
@@ -1060,6 +1097,9 @@ void MainFrame::on_sys_color_changed()
         dynamic_cast<Notebook*>(m_tabpanel)->Rescale();
 #endif
 #endif
+
+    // BBS
+    m_tabpanel->Rescale();
 
     // update Plater
     wxGetApp().plater()->sys_color_changed();
@@ -2355,6 +2395,9 @@ void SettingsDialog::on_dpi_changed(const wxRect& suggested_rect)
     if (!wxGetApp().tabs_as_menu())
         dynamic_cast<Notebook*>(m_tabpanel)->Rescale();
 #endif
+
+    // BBS
+    m_tabpanel->Rescale();
 
     // update Tabs
     for (auto tab : wxGetApp().tabs_list)

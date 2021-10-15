@@ -744,7 +744,8 @@ struct Sidebar::priv
     // BBS. Remove frequent changed params.
     //FreqChangedParams   *frequently_changed_parameters{ nullptr };
     ObjectList          *object_list{ nullptr };
-    ObjectManipulation  *object_manipulation{ nullptr };
+    // BBS. Remove object manipulation.
+    //ObjectManipulation  *object_manipulation{ nullptr };
     ObjectSettings      *object_settings{ nullptr };
     ObjectLayers        *object_layers{ nullptr };
     ObjectInfo *object_info;
@@ -773,7 +774,8 @@ struct Sidebar::priv
 
 Sidebar::priv::~priv()
 {
-    delete object_manipulation;
+    // BBS
+    //delete object_manipulation;
     delete object_settings;
     // BBS
 #if 0
@@ -964,10 +966,13 @@ Sidebar::Sidebar(Plater *parent)
     p->object_list = new ObjectList(p->scrolled);
     p->sizer_params->Add(p->object_list->get_sizer(), 1, wxEXPAND);
 
+    // BBS
+#if 0
     // Object Manipulations
     p->object_manipulation = new ObjectManipulation(p->scrolled);
     p->object_manipulation->Hide();
     p->sizer_params->Add(p->object_manipulation->get_sizer(), 0, wxEXPAND | wxTOP, margin_5);
+#endif
 
     // Frequently Object Settings
     p->object_settings = new ObjectSettings(p->scrolled);
@@ -1270,7 +1275,8 @@ void Sidebar::msw_rescale()
     // BBS
     //p->frequently_changed_parameters->msw_rescale();
     p->object_list->msw_rescale();
-    p->object_manipulation->msw_rescale();
+    // BBS
+    //p->object_manipulation->msw_rescale();
     p->object_settings->msw_rescale();
     p->object_layers->msw_rescale();
 
@@ -1326,7 +1332,8 @@ void Sidebar::sys_color_changed()
         combo->sys_color_changed();
 
     p->object_list->sys_color_changed();
-    p->object_manipulation->sys_color_changed();
+    // BBS
+    //p->object_manipulation->sys_color_changed();
     p->object_layers->sys_color_changed();
 
     // btn...->msw_rescale() updates icon on button, so use it
@@ -1359,10 +1366,13 @@ void Sidebar::jump_to_option(size_t selected)
 //    wxGetApp().mainframe->select_tab();
 }
 
+// BBS
+#if 0
 ObjectManipulation* Sidebar::obj_manipul()
 {
     return p->object_manipulation;
 }
+#endif
 
 ObjectList* Sidebar::obj_list()
 {
@@ -1720,7 +1730,8 @@ void Sidebar::show_mode_sizer(bool show)
 
 void Sidebar::update_ui_from_settings()
 {
-    p->object_manipulation->update_ui_from_settings();
+    // BBS
+    //p->object_manipulation->update_ui_from_settings();
     show_info_sizer();
     update_sliced_info_sizer();
     // update Cut gizmo, if it's open
@@ -1811,7 +1822,8 @@ struct Plater::priv
 #endif // ENABLE_ENVIRONMENT_MAP
     Mouse3DController mouse3d_controller;
     View3D* view3D;
-    GLToolbar view_toolbar;
+    // BBS
+    //GLToolbar view_toolbar;
     GLToolbar collapse_toolbar;
     Preview *preview;
     AssembleView* assemble_view;
@@ -1966,7 +1978,8 @@ struct Plater::priv
     void unbind_canvas_event_handlers();
     void reset_canvas_volumes();
 
-    bool init_view_toolbar();
+    // BBS
+    //bool init_view_toolbar();
     bool init_collapse_toolbar();
 
     void update_preview_bottom_toolbar();
@@ -2219,7 +2232,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , m_ui_jobs(this)
     , m_job_prepare_state(Job::JobPrepareState::PREPARE_STATE_DEFAULT)
     , delayed_scene_refresh(false)
-    , view_toolbar(GLToolbar::Radio, "View")
+    // BBS
+    //, view_toolbar(GLToolbar::Radio, "View")
     , collapse_toolbar(GLToolbar::Normal, "Collapse")
     , m_project_filename(wxEmptyString)
     //BBS :partplatelist construction
@@ -2262,8 +2276,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     assemble_view = new AssembleView(q, bed, &model, config, &background_process);
 
 #ifdef __APPLE__
+    // BBS
     // set default view_toolbar icons size equal to GLGizmosManager::Default_Icons_Size
-    view_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size);
+    //view_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size);
 #endif // __APPLE__
 
     panels.push_back(view3D);
@@ -2540,8 +2555,11 @@ void Plater::priv::update(unsigned int flags)
     else
         this->schedule_background_process();
 
+    // BBS
+#if 0
     if (get_config("autocenter") == "1" && this->sidebar->obj_manipul()->IsShown())
         this->sidebar->obj_manipul()->UpdateAndShow(true);
+#endif
 }
 
 void Plater::priv::select_view(const std::string& direction)
@@ -4220,7 +4238,8 @@ void Plater::priv::set_current_panel(wxPanel* panel)
         view3D->set_as_dirty();
         // reset cached size to force a resize on next call to render() to keep imgui in synch with canvas size
         view3D->get_canvas3d()->reset_old_size();
-        view_toolbar.select_item("3D");
+        // BBS
+        //view_toolbar.select_item("3D");
         if (notification_manager != nullptr)
             notification_manager->set_in_preview(false);
     }
@@ -4250,7 +4269,8 @@ void Plater::priv::set_current_panel(wxPanel* panel)
         preview->set_as_dirty();
         // reset cached size to force a resize on next call to render() to keep imgui in synch with canvas size
         preview->get_canvas3d()->reset_old_size();
-        view_toolbar.select_item("Preview");
+        // BBS
+        //view_toolbar.select_item("Preview");
         if (notification_manager != nullptr)
             notification_manager->set_in_preview(true);
     }
@@ -4264,7 +4284,8 @@ void Plater::priv::set_current_panel(wxPanel* panel)
         assemble_view->get_canvas3d()->bind_event_handlers();
         assemble_view->reload_scene(true);
         assemble_view->set_as_dirty();
-        view_toolbar.select_item("Assemble");
+        // BBS
+        //view_toolbar.select_item("Assemble");
     }
 
     current_panel->SetFocusFromKbd();
@@ -4943,6 +4964,7 @@ void Plater::priv::reset_canvas_volumes()
         preview->get_canvas3d()->reset_volumes();
 }
 
+#if 0
 bool Plater::priv::init_view_toolbar()
 {
     if (wxGetApp().is_gcode_viewer())
@@ -4998,6 +5020,7 @@ bool Plater::priv::init_view_toolbar()
 
     return true;
 }
+#endif
 
 bool Plater::priv::init_collapse_toolbar()
 {
@@ -7445,6 +7468,8 @@ void Plater::sys_color_changed()
     GetParent()->Layout();
 }
 
+// BBS
+#if 0
 bool Plater::init_view_toolbar()
 {
     return p->init_view_toolbar();
@@ -7454,6 +7479,7 @@ void Plater::enable_view_toolbar(bool enable)
 {
     p->view_toolbar.set_enabled(enable);
 }
+#endif
 
 bool Plater::init_collapse_toolbar()
 {
@@ -7690,6 +7716,8 @@ const BuildVolume& Plater::build_volume() const
     return p->bed.build_volume();
 }
 
+// BBS
+#if 0
 const GLToolbar& Plater::get_view_toolbar() const
 {
     return p->view_toolbar;
@@ -7699,6 +7727,7 @@ GLToolbar& Plater::get_view_toolbar()
 {
     return p->view_toolbar;
 }
+#endif
 
 const GLToolbar& Plater::get_collapse_toolbar() const
 {

@@ -759,9 +759,12 @@ void GUI_App::post_init()
             this->mainframe->load_config(this->init_params->extra_config);
     }
 
+    // BBS: to be checked
+#if 0
     // show "Did you know" notification
     if (app_config->get("show_hints") == "1" && ! is_gcode_viewer())
         plater_->get_notification_manager()->push_hint_notification(true);
+#endif
 
     // The extra CallAfter() is needed because of Mac, where this is the only way
     // to popup a modal dialog on start without screwing combo boxes.
@@ -1311,7 +1314,8 @@ bool GUI_App::on_init_inner()
         if (app_config->dirty() && app_config->get("autosave") == "1")
             app_config->save();
 
-        this->obj_manipul()->update_if_dirty();
+        // BBS
+        //this->obj_manipul()->update_if_dirty();
 
         static bool update_gui_after_init = true;
 
@@ -2711,11 +2715,13 @@ Sidebar& GUI_App::sidebar()
     return plater_->sidebar();
 }
 
+#if 0
 ObjectManipulation* GUI_App::obj_manipul()
 {
     // If this method is called before plater_ has been initialized, return nullptr (to avoid a crash)
     return (plater_ != nullptr) ? sidebar().obj_manipul() : nullptr;
 }
+#endif
 
 ObjectSettings* GUI_App::obj_settings()
 {
@@ -2746,7 +2752,7 @@ Model& GUI_App::model()
 {
     return plater_->model();
 }
-wxBookCtrlBase* GUI_App::tab_panel() const
+Notebook* GUI_App::tab_panel() const
 {
     return mainframe->m_tabpanel;
 }

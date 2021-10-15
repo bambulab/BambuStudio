@@ -36,6 +36,7 @@
 #include "ConfigManipulation.hpp"
 #include "OptionsGroup.hpp"
 #include "libslic3r/Preset.hpp"
+#include "Notebook.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -103,7 +104,8 @@ protected:
 using PageShp = std::shared_ptr<Page>;
 class Tab: public wxPanel
 {
-	wxBookCtrlBase*			m_parent;
+	// BBS
+	Notebook* m_parent;
 #ifdef __WXOSX__
 	wxPanel*			m_tmp_panel;
 	int					m_size_move = -1;
@@ -258,7 +260,8 @@ public:
     int                 m_update_cnt = 0;
 
 public:
-    Tab(wxBookCtrlBase* parent, const wxString& title, Preset::Type type);
+	// BBS
+    Tab(Notebook* parent, const wxString& title, Preset::Type type);
     ~Tab() {}
 
 	wxWindow*	parent() const { return m_parent; }
@@ -374,7 +377,8 @@ protected:
 class TabPrint : public Tab
 {
 public:
-	TabPrint(wxBookCtrlBase* parent) :
+	// BBS
+	TabPrint(Notebook* parent) :
         Tab(parent, _(L("Print Settings")), Slic3r::Preset::TYPE_PRINT) {}
 	~TabPrint() {}
 
@@ -404,7 +408,7 @@ private:
 
     std::map<std::string, wxCheckBox*> m_overrides_options;
 public:
-	TabFilament(wxBookCtrlBase* parent) :
+	TabFilament(Notebook* parent) :
 		Tab(parent, _(L("Filament Settings")), Slic3r::Preset::TYPE_FILAMENT) {}
 	~TabFilament() {}
 
@@ -445,7 +449,7 @@ public:
 
     PrinterTechnology               m_printer_technology = ptFFF;
 
-    TabPrinter(wxBookCtrlBase* parent) :
+    TabPrinter(Notebook* parent) :
         Tab(parent, _L("Printer Settings"), Slic3r::Preset::TYPE_PRINTER) {}
 	~TabPrinter() {}
 
@@ -477,7 +481,8 @@ public:
 class TabSLAMaterial : public Tab
 {
 public:
-    TabSLAMaterial(wxBookCtrlBase* parent) :
+	// BBS
+    TabSLAMaterial(Notebook* parent) :
 		Tab(parent, _(L("Material Settings")), Slic3r::Preset::TYPE_SLA_MATERIAL) {}
     ~TabSLAMaterial() {}
 
@@ -492,7 +497,8 @@ public:
 class TabSLAPrint : public Tab
 {
 public:
-    TabSLAPrint(wxBookCtrlBase* parent) :
+	// BBS
+    TabSLAPrint(Notebook* parent) :
         Tab(parent, _(L("Print Settings")), Slic3r::Preset::TYPE_SLA_PRINT) {}
     ~TabSLAPrint() {}
 

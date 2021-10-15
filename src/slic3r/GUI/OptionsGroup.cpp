@@ -980,8 +980,9 @@ bool OptionsGroup::launch_browser(const std::string& path_end)
     bool launch = true;
 
     if (get_app_config()->get("suppress_hyperlinks").empty()) {
-        wxWindow* parent = wxGetApp().mainframe->m_tabpanel;
-        RichMessageDialog dialog(parent, _L("Open hyperlink in default browser?"), _L("PrusaSlicer: Open hyperlink"), wxYES_NO);
+        //wxWindow* parent = wxGetApp().mainframe->m_tabpanel;
+        wxWindow* parent = wxGetApp().mainframe;
+        RichMessageDialog dialog(nullptr, _L("Open hyperlink in default browser?"), _L("PrusaSlicer: Open hyperlink"), wxYES_NO);
         dialog.ShowCheckBox(_L("Remember my choice"));
         int answer = dialog.ShowModal();
         if (answer == wxID_CANCEL)

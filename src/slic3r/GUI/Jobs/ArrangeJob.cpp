@@ -522,7 +522,8 @@ void ArrangeJob::finalize() {
     }
 
     m_plater->update();
-    wxGetApp().obj_manipul()->set_dirty();
+    // BBS
+    //wxGetApp().obj_manipul()->set_dirty();
 
     if (!m_unarranged.empty()) {
         std::set<std::string> names;

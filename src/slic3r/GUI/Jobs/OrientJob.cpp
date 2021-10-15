@@ -133,7 +133,9 @@ void OrientJob::finalize() {
     
     
     m_plater->update();
-    wxGetApp().obj_manipul()->set_dirty();
+
+    // BBS
+    //wxGetApp().obj_manipul()->set_dirty();
 
     Job::finalize();
 }

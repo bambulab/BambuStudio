@@ -14,7 +14,8 @@ wxDECLARE_EVENT(wxCUSTOMEVT_NOTEBOOK_SEL_CHANGED, wxCommandEvent);
 class ButtonsListCtrl : public wxControl
 {
 public:
-    ButtonsListCtrl(wxWindow* parent, bool add_mode_buttons = false);
+    // BBS
+    ButtonsListCtrl(wxWindow* parent, wxBoxSizer* side_tools = NULL);
     ~ButtonsListCtrl() {}
 
     void OnPaint(wxPaintEvent&);
@@ -45,24 +46,26 @@ public:
                  wxWindowID winid = wxID_ANY,
                  const wxPoint & pos = wxDefaultPosition,
                  const wxSize & size = wxDefaultSize,
-                 long style = 0,
-                 bool add_mode_buttons = false)
+                // BBS
+                 wxBoxSizer* side_tools = NULL,
+                 long style = 0)
     {
         Init();
-        Create(parent, winid, pos, size, style, add_mode_buttons);
+        Create(parent, winid, pos, size, side_tools, style);
     }
 
     bool Create(wxWindow * parent,
                 wxWindowID winid = wxID_ANY,
                 const wxPoint & pos = wxDefaultPosition,
                 const wxSize & size = wxDefaultSize,
-                long style = 0,
-                bool add_mode_buttons = false)
+                // BBS
+                wxBoxSizer* side_tools = NULL,
+                long style = 0)
     {
         if (!wxBookCtrlBase::Create(parent, winid, pos, size, style | wxBK_TOP))
             return false;
 
-        m_bookctrl = new ButtonsListCtrl(this, add_mode_buttons);
+        m_bookctrl = new ButtonsListCtrl(this, side_tools);
 
         wxSizer* mainSizer = new wxBoxSizer(IsVertical() ? wxVERTICAL : wxHORIZONTAL);
 
@@ -180,9 +183,13 @@ public:
         int ret = DoSetSelection(n, SetSelection_SendEvent);
 
         // check that only the selected page is visible and others are hidden:
-        for (size_t page = 0; page < m_pages.size(); page++)
-            if (page != n)
+        for (size_t page = 0; page < m_pages.size(); page++) {
+            wxWindow* win_a = GetPage(page);
+            wxWindow* win_b = GetPage(n);
+            if (page != n && GetPage(page) != GetPage(n)) {
                 m_pages[page]->Hide();
+            }
+        }
 
         return ret;
     }

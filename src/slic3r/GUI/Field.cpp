@@ -20,6 +20,9 @@
 #include "MsgDialog.hpp"
 #include "BitmapComboBox.hpp"
 
+// BBS
+#include "Notebook.hpp"
+
 #ifdef __WXOSX__
 #define wxOSX true
 #else

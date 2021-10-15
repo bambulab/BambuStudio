@@ -10,7 +10,7 @@
 
 wxDEFINE_EVENT(wxCUSTOMEVT_NOTEBOOK_SEL_CHANGED, wxCommandEvent);
 
-ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, bool add_mode_buttons/* = false*/) :
+ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, wxBoxSizer* side_tools) :
     wxControl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE | wxTAB_TRAVERSAL)
 {
 #ifdef __WINDOWS__
@@ -27,11 +27,18 @@ ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, bool add_mode_buttons/* = fal
     m_buttons_sizer = new wxFlexGridSizer(1, m_btn_margin, m_btn_margin);
     m_sizer->Add(m_buttons_sizer, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxBOTTOM, m_btn_margin);
 
-    if (add_mode_buttons) {
-        m_mode_sizer = new ModeSizer(this, m_btn_margin);
-        m_sizer->AddStretchSpacer(20);
-        m_sizer->Add(m_mode_sizer, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxBOTTOM, m_btn_margin);
+    if (side_tools != NULL) {
+        m_sizer->AddStretchSpacer(1);
+        for (size_t idx = 0; idx < side_tools->GetItemCount(); idx++) {
+            wxSizerItem* item = side_tools->GetItem(idx);
+            wxWindow* item_win = item->GetWindow();
+            if (item_win) {
+                item_win->Reparent(this);
+            }
+        }
+        m_sizer->Add(side_tools, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxBOTTOM, m_btn_margin);
     }
+
 
     this->Bind(wxEVT_PAINT, &ButtonsListCtrl::OnPaint, this);
 }

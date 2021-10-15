@@ -95,7 +95,8 @@ public:
     void jump_to_option(size_t selected);
     void jump_to_option(const std::string& opt_key, Preset::Type type, const std::wstring& category);
 
-    ObjectManipulation*     obj_manipul();
+    // BBS
+    //ObjectManipulation*     obj_manipul();
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();
     ObjectLayers*           obj_layers();
@@ -362,8 +363,12 @@ public:
     void msw_rescale();
     void sys_color_changed();
 
+    // BBS
+#if 0
     bool init_view_toolbar();
     void enable_view_toolbar(bool enable);
+#endif
+
     bool init_collapse_toolbar();
     void enable_collapse_toolbar(bool enable);
 
@@ -388,8 +393,9 @@ public:
 
     const BuildVolume& build_volume() const;
 
-    const GLToolbar& get_view_toolbar() const;
-    GLToolbar& get_view_toolbar();
+    // BBS
+    //const GLToolbar& get_view_toolbar() const;
+    //GLToolbar& get_view_toolbar();
 
     const GLToolbar& get_collapse_toolbar() const;
     GLToolbar& get_collapse_toolbar();

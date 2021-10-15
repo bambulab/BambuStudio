@@ -23,6 +23,7 @@
 // BBS
 #include "BBLTopbar.hpp"
 
+class Notebook;
 class wxBookCtrlBase;
 class wxProgressDialog;
 
@@ -60,13 +61,15 @@ struct PresetTab {
 
 class SettingsDialog : public DPIFrame//DPIDialog
 {
-    wxBookCtrlBase* m_tabpanel { nullptr };
+    //wxNotebook* m_tabpanel { nullptr };
+    Notebook* m_tabpanel{ nullptr };
     MainFrame*      m_main_frame { nullptr };
     wxMenuBar*      m_menubar{ nullptr };
 public:
     SettingsDialog(MainFrame* mainframe);
     ~SettingsDialog() = default;
-    void set_tabpanel(wxBookCtrlBase* tabpanel) { m_tabpanel = tabpanel; }
+    //void set_tabpanel(wxNotebook* tabpanel) { m_tabpanel = tabpanel; }
+    void set_tabpanel(Notebook* tabpanel) { m_tabpanel = tabpanel; }
     wxMenuBar* menubar() { return m_menubar; }
 
 protected:
@@ -112,6 +115,9 @@ class MainFrame : public DPIFrame
     bool can_delete_all() const;
     bool can_reslice() const;
 
+    // BBS
+    wxBoxSizer* create_side_tools();
+
     // MenuBar items changeable in respect to printer technology 
     enum MenuItems
     {                   //   FFF                  SLA
@@ -136,6 +142,14 @@ class MainFrame : public DPIFrame
     };
     
     ESettingsLayout m_layout{ ESettingsLayout::Unknown };
+
+    enum TabPosition
+    {
+        tp3DEditor = 0,
+        tpPreview = 1,
+        tpMonitor = 2,
+        tpSettings = 3,
+    };
 
 protected:
     virtual void on_dpi_changed(const wxRect &suggested_rect) override;
@@ -215,7 +229,10 @@ public:
     BBLTopbar*            m_topbar{ nullptr };
     Plater*               m_plater { nullptr };
     wxPanel* m_monitor{ nullptr };
-    wxBookCtrlBase*       m_tabpanel { nullptr };
+    // BBS
+    //wxBookCtrlBase*       m_tabpanel { nullptr };
+    Notebook* m_tabpanel{ nullptr };
+    wxBoxSizer* m_side_tools{ nullptr };
     SettingsDialog        m_settings_dialog;
     DiffPresetDialog      diff_dialog;
     wxWindow*             m_plater_page{ nullptr };

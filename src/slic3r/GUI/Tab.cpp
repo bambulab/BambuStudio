@@ -100,7 +100,7 @@ void Tab::Highlighter::blink()
         invalidate();
 }
 
-Tab::Tab(wxBookCtrlBase* parent, const wxString& title, Preset::Type type) :
+Tab::Tab(Notebook* parent, const wxString& title, Preset::Type type) :
     m_parent(parent), m_title(title), m_type(type)
 {
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL/*, name*/);
@@ -3168,7 +3168,7 @@ void Tab::load_current_preset()
                         }
                         else
 #endif
-                            wxGetApp().tab_panel()->InsertPage(wxGetApp().tab_panel()->FindPage(this), tab, tab->title());
+                            wxGetApp().tab_panel()->InsertPage(wxGetApp().tab_panel()->FindPage(this), tab, tab->title(), "");
                         #ifdef __linux__ // the tabs apparently need to be explicitly shown on Linux (pull request #1563)
                             int page_id = wxGetApp().tab_panel()->FindPage(tab);
                             wxGetApp().tab_panel()->GetPage(page_id)->Show(true);

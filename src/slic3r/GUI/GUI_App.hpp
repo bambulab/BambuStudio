@@ -26,6 +26,8 @@ class wxMenuBar;
 class wxTopLevelWindow;
 class wxDataViewCtrl;
 class wxBookCtrlBase;
+// BBS
+class Notebook;
 struct wxLanguageInfo;
 
 namespace Slic3r {
@@ -294,7 +296,8 @@ public:
 #endif /* __APPLE */
 
     Sidebar&             sidebar();
-    ObjectManipulation*  obj_manipul();
+    // BBS
+    //ObjectManipulation*  obj_manipul();
     ObjectSettings*      obj_settings();
     ObjectList*          obj_list();
     ObjectLayers*        obj_layers();
@@ -314,7 +317,7 @@ public:
 
 	PresetUpdater*  get_preset_updater() { return preset_updater; }
 
-    wxBookCtrlBase* tab_panel() const ;
+    Notebook*       tab_panel() const ;
     int             extruders_cnt() const;
     int             extruders_edited_cnt() const;
 

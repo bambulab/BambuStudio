@@ -964,7 +964,8 @@ private:
     bool _init_print_flow_toolbar();
     bool _init_print_select_toolbar();
     bool _init_undoredo_toolbar();
-    bool _init_view_toolbar();
+    // BBS
+    //bool _init_view_toolbar();
     bool _init_collapse_toolbar();
 
     bool _set_current();
@@ -1003,7 +1004,8 @@ private:
     void _render_print_toolbar() const;
     void _render_undoredo_toolbar();
     void _render_collapse_toolbar() const;
-    void _render_view_toolbar() const;
+    // BBS
+    //void _render_view_toolbar() const;
     void _render_paint_toolbar() const;
 #if ENABLE_SHOW_CAMERA_TARGET
     void _render_camera_target() const;

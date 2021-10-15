@@ -2627,12 +2627,14 @@ void ObjectList::part_selection_changed()
     m_selected_object_id = obj_idx;
 
     if (update_and_show_manipulations) {
-        wxGetApp().obj_manipul()->get_og()->set_name(" " + og_name + " ");
+        // BBS
+        //wxGetApp().obj_manipul()->get_og()->set_name(" " + og_name + " ");
 
         if (item) {
             // wxGetApp().obj_manipul()->get_og()->set_value("object_name", m_objects_model->GetName(item));
-            wxGetApp().obj_manipul()->update_item_name(m_objects_model->GetName(item));
-            wxGetApp().obj_manipul()->update_warning_icon_state(get_mesh_errors_info(obj_idx, volume_id));
+            // BBS
+            //wxGetApp().obj_manipul()->update_item_name(m_objects_model->GetName(item));
+            //wxGetApp().obj_manipul()->update_warning_icon_state(get_mesh_errors_info(obj_idx, volume_id));
         }
     }
 
@@ -2650,7 +2652,8 @@ void ObjectList::part_selection_changed()
     panel.Freeze();
 
     wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event("", false);
-    wxGetApp().obj_manipul() ->UpdateAndShow(update_and_show_manipulations);
+    // BBS
+    //wxGetApp().obj_manipul() ->UpdateAndShow(update_and_show_manipulations);
     wxGetApp().obj_settings()->UpdateAndShow(update_and_show_settings);
     wxGetApp().obj_layers()  ->UpdateAndShow(update_and_show_layers);
     wxGetApp().sidebar().show_info_sizer();

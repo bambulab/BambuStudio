@@ -473,12 +473,15 @@ void Selection::clear()
     update_type();
     set_bounding_boxes_dirty();
 
+    // BBS
+#if 0
     // this happens while the application is closing
     if (wxGetApp().obj_manipul() == nullptr)
         return;
 
     // resets the cache in the sidebar
     wxGetApp().obj_manipul()->reset_cache();
+#endif
 
     // #et_FIXME fake KillFocus from sidebar
     wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event("", false);
@@ -979,7 +982,8 @@ void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
         translate(offset);
         wxGetApp().plater()->canvas3D()->do_move(""); // avoid storing another snapshot
 
-        wxGetApp().obj_manipul()->set_dirty();
+        // BBS
+        //wxGetApp().obj_manipul()->set_dirty();
     };
 
     auto fit_rectangle = [this, fit](const BuildVolume& volume) {
@@ -1080,7 +1084,8 @@ void Selection::scale_to_fit_print_volume(const DynamicPrintConfig& config)
                 translate(print_volume.center() - get_bounding_box().center());
                 wxGetApp().plater()->canvas3D()->do_move(""); // avoid storing another snapshot
 
-                wxGetApp().obj_manipul()->set_dirty();
+                // BBS
+                //wxGetApp().obj_manipul()->set_dirty();
             }
         }
     }
@@ -1352,7 +1357,8 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field) const
     if (!boost::starts_with(sidebar_field, "layer")) {
         const Vec3d& center = get_bounding_box().center();
 
-        if (is_single_full_instance() && !wxGetApp().obj_manipul()->get_world_coordinates()) {
+        // BBS
+        if (is_single_full_instance()/* && !wxGetApp().obj_manipul()->get_world_coordinates()*/) {
             glsafe(::glTranslated(center(0), center(1), center(2)));
             if (!boost::starts_with(sidebar_field, "position")) {
                 Transform3d orient_matrix = Transform3d::Identity();
@@ -1976,7 +1982,9 @@ void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) 
 
 void Selection::render_sidebar_scale_hints(const std::string& sidebar_field) const
 {
-    bool uniform_scale = requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling();
+    // BBS
+    //bool uniform_scale = requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling();
+    bool uniform_scale = requires_uniform_scale();
 
     auto render_sidebar_scale_hint = [this, uniform_scale](Axis axis) {
         const_cast<GLModel*>(&m_arrow)->set_color(-1, uniform_scale ? UNIFORM_SCALE_COLOR : get_color(axis));

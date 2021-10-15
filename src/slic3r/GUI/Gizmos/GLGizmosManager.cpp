@@ -604,7 +604,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             stop_dragging();
             update_data();
 
-            wxGetApp().obj_manipul()->set_dirty();
+            // BBS
+            //wxGetApp().obj_manipul()->set_dirty();
             // Let the plater know that the dragging finished, so a delayed refresh
             // of the scene with the background processing data should be performed.
             m_parent.post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
@@ -656,7 +657,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         {
             // Apply new temporary offset
             selection.translate(get_displacement());
-            wxGetApp().obj_manipul()->set_dirty();
+            // BBS
+            //wxGetApp().obj_manipul()->set_dirty();
             break;
         }
         case Scale:
@@ -668,7 +670,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             selection.scale(get_scale(), transformation_type);
             if (control_down)
                 selection.translate(get_scale_offset(), true);
-            wxGetApp().obj_manipul()->set_dirty();
+            // BBS
+            //wxGetApp().obj_manipul()->set_dirty();
             break;
         }
         case Rotate:
@@ -678,7 +681,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             if (evt.AltDown())
                 transformation_type.set_independent();
             selection.rotate(get_rotation(), transformation_type);
-            wxGetApp().obj_manipul()->set_dirty();
+            // BBS
+            //wxGetApp().obj_manipul()->set_dirty();
             break;
         }
         default:
@@ -709,7 +713,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
                 if (m_current == Flatten) {
                     // Rotate the object so the normal points downward:
                     m_parent.do_flatten(get_flattening_normal(), L("Gizmo-Place on Face"));
-                    wxGetApp().obj_manipul()->set_dirty();
+                    // BBS
+                    //wxGetApp().obj_manipul()->set_dirty();
                 }
 
                 m_parent.set_as_dirty();
@@ -754,7 +759,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         else if (evt.LeftUp() && m_current == Flatten && m_gizmos[m_current]->get_hover_id() != -1) {
             // to avoid to loose the selection when user clicks an the white faces of a different object while the Flatten gizmo is active
             selection.stop_dragging();
-            wxGetApp().obj_manipul()->set_dirty();
+            // BBS
+            //wxGetApp().obj_manipul()->set_dirty();
             processed = true;
         }
         else if (evt.RightUp() && (m_current == FdmSupports || m_current == Seam || m_current == MmuSegmentation) && !m_parent.is_mouse_dragging()) {
@@ -763,7 +769,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         }
         else if (evt.LeftUp()) {
             selection.stop_dragging();
-            wxGetApp().obj_manipul()->set_dirty();
+            // BBS
+            //wxGetApp().obj_manipul()->set_dirty();
         }
     }
     else {

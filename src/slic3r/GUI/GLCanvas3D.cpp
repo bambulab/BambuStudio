@@ -1668,8 +1668,11 @@ void GLCanvas3D::render()
 	    if (tooltip.empty())
             tooltip = wxGetApp().plater()->get_collapse_toolbar().get_tooltip();
 
+        // BBS
+#if 0
 	    if (tooltip.empty())
             tooltip = wxGetApp().plater()->get_view_toolbar().get_tooltip();
+#endif
     }
 
     set_tooltip(tooltip);
@@ -1711,7 +1714,8 @@ void GLCanvas3D::select_all()
 void GLCanvas3D::deselect_all()
 {
     m_selection.remove_all();
-    wxGetApp().obj_manipul()->set_dirty();
+    // BBS
+    //wxGetApp().obj_manipul()->set_dirty();
     m_gizmos.reset_all_states();
     m_gizmos.update_data();
     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
@@ -1817,7 +1821,8 @@ void GLCanvas3D::mirror_selection(Axis axis)
 {
     m_selection.mirror(axis);
     do_mirror(L("Mirror Object"));
-    wxGetApp().obj_manipul()->set_dirty();
+    // BBS
+    //wxGetApp().obj_manipul()->set_dirty();
 }
 
 // Reload the 3D scene of 
@@ -2231,11 +2236,14 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         // Otherwise it may be shown after cleaning the scene (if it was active while the objects were deleted)
         m_gizmos.reset_all_states();
 
+        // BBS
+#if 0
         // If no object is selected, reset the objects manipulator on the sidebar
         // to force a reset of its cache
         auto manip = wxGetApp().obj_manipul();
         if (manip != nullptr)
             manip->set_dirty();
+#endif
     }
 
     // and force this canvas to be redrawn.
@@ -2390,7 +2398,8 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     m_dirty |= m_print_flow_toolbar.update_items_state();
     m_dirty |= m_print_select_toolbar.update_items_state();
     m_dirty |= m_undoredo_toolbar.update_items_state();
-    m_dirty |= wxGetApp().plater()->get_view_toolbar().update_items_state();
+    // BBS
+    //m_dirty |= wxGetApp().plater()->get_view_toolbar().update_items_state();
     m_dirty |= wxGetApp().plater()->get_collapse_toolbar().update_items_state();
     bool mouse3d_controller_applied = wxGetApp().plater()->get_mouse3d_controller().apply(wxGetApp().plater()->get_camera());
     m_dirty |= mouse3d_controller_applied;
@@ -2725,7 +2734,8 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
             do_move(L("Gizmo-Move"));
             m_gizmos.update_data();
 
-            wxGetApp().obj_manipul()->set_dirty();
+            // BBS
+            //wxGetApp().obj_manipul()->set_dirty();
             // Let the plater know that the dragging finished, so a delayed refresh
             // of the scene with the background processing data should be performed.
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
@@ -2808,7 +2818,8 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                         do_rotate(L("Gizmo-Rotate"));
                         m_gizmos.update_data();
 
-                        wxGetApp().obj_manipul()->set_dirty();
+                        // BBS
+                        //wxGetApp().obj_manipul()->set_dirty();
                         // Let the plater know that the dragging finished, so a delayed refresh
                         // of the scene with the background processing data should be performed.
                         post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
@@ -3127,12 +3138,15 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         return;
     }
 
+    // BBS
+#if 0
     if (wxGetApp().plater()->get_view_toolbar().on_mouse(evt, *this)) {
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
         m_mouse.set_start_position_3D_as_invalid();
         return;
     }
+#endif
 
     for (GLVolume* volume : m_volumes.volumes) {
         volume->force_sinking_contours = false;
@@ -3364,7 +3378,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_selection.translate(cur_pos - m_mouse.drag.start_position_3D);
                 if (current_printer_technology() == ptFFF && fff_print()->config().complete_objects)
                     update_sequential_clearance();
-                wxGetApp().obj_manipul()->set_dirty();
+                // BBS
+                //wxGetApp().obj_manipul()->set_dirty();
                 m_dirty = true;
             }
         }
@@ -3440,7 +3455,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
         else if (m_mouse.drag.move_volume_idx != -1 && m_mouse.dragging) {
             do_move(L("Move Object"));
-            wxGetApp().obj_manipul()->set_dirty();
+            // BBS
+            //wxGetApp().obj_manipul()->set_dirty();
             // Let the plater know that the dragging finished, so a delayed refresh
             // of the scene with the background processing data should be performed.
             post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
@@ -3476,7 +3492,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     m_gizmos.refresh_on_off_state();
                     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                     m_gizmos.update_data();
-                    wxGetApp().obj_manipul()->set_dirty();
+                    // BBS
+                    //wxGetApp().obj_manipul()->set_dirty();
                     // forces a frame render to update the view before the context menu is shown
                     render();
                 }
@@ -4895,8 +4912,10 @@ bool GLCanvas3D::_init_toolbars()
     if (!_init_undoredo_toolbar())
         return false;
 
+#if 0
     if (!_init_view_toolbar())
         return false;
+#endif
 
     if (!_init_collapse_toolbar())
         return false;
@@ -5630,10 +5649,13 @@ bool GLCanvas3D::_init_undoredo_toolbar()
     return true;
 }
 
+// BBS
+#if 0
 bool GLCanvas3D::_init_view_toolbar()
 {
     return wxGetApp().plater()->init_view_toolbar();
 }
+#endif
 
 bool GLCanvas3D::_init_collapse_toolbar()
 {
@@ -6261,7 +6283,8 @@ void GLCanvas3D::_render_overlays()
     _render_print_toolbar();
     _render_undoredo_toolbar();
     _render_collapse_toolbar();
-    _render_view_toolbar();
+    // BBS
+    //_render_view_toolbar();
     _render_paint_toolbar();
 
     //BBS: GUI refactor: GLToolbar
@@ -6461,6 +6484,7 @@ void GLCanvas3D::_render_collapse_toolbar() const
     collapse_toolbar.render(*this);
 }
 
+#if 0
 void GLCanvas3D::_render_view_toolbar() const
 {
     GLToolbar& view_toolbar = wxGetApp().plater()->get_view_toolbar();
@@ -6487,6 +6511,7 @@ void GLCanvas3D::_render_view_toolbar() const
     view_toolbar.set_position(top, left);
     view_toolbar.render(*this);
 }
+#endif
 
 void GLCanvas3D::_render_paint_toolbar() const
 {
