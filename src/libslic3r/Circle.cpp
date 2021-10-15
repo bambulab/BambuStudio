@@ -139,6 +139,20 @@ bool Circle::get_deviation_sum_squared(const Points& points, const double tolera
     return true;
 }
 
+//BBS: only support calculate on X-Y plane, Z is useless
+Vec3f Circle::calc_tangential_vector(const Vec3f& pos, const Vec3f& center_pos, const bool is_ccw)
+{
+    Vec3f dir = center_pos - pos;
+    dir(2,0) = 0;
+    dir.normalize();
+    Vec3f res;
+    if (is_ccw)
+        res = { dir(1, 0), -dir(0, 0), 0.0f };
+    else
+        res = { -dir(1, 0), dir(0, 0), 0.0f };
+    return res;
+}
+
 bool ArcSegment::try_create_arc(
     const Points& points,
     ArcSegment& target_arc,

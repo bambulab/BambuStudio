@@ -266,8 +266,15 @@ namespace Slic3r {
             {
                 float feedrate; // mm/s
                 float safe_feedrate; // mm/s
+                //BBS: feedrate of X-Y-Z-E axis. But when the move is G2 and G3, X-Y will be
+                //same value which means feedrate in X-Y plane.
                 AxisCoords axis_feedrate; // mm/s
                 AxisCoords abs_axis_feedrate; // mm/s
+
+                //BBS: unit vector of enter speed and exit speed in x-y-z space. 
+                //For line move, there are same. For arc move, there are different.
+                Vec3f enter_direction;
+                Vec3f exit_direction;
 
                 void reset();
             };

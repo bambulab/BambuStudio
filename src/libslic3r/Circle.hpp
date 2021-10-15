@@ -24,6 +24,9 @@ public:
     double get_polar_radians(const Point& p1) const;
     bool is_over_deviation(const Points& points, const double tolerance);
     bool get_deviation_sum_squared(const Points& points, const double tolerance, double& sum_deviation);
+
+    //BBS: only support calculate on X-Y plane, Z is useless
+    static Vec3f calc_tangential_vector(const Vec3f& pos, const Vec3f& center_pos, const bool is_ccw);
 };
 
 enum class ArcDirection : unsigned char {
