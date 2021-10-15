@@ -9,6 +9,9 @@
 #include <wx/menu.h>
 #include <wx/bmpcbox.h>
 #include <wx/statbmp.h>
+#include <wx/popupwin.h>
+#include <wx/spinctrl.h>
+#include <wx/artprov.h>
 
 #include <vector>
 #include <functional>
@@ -374,6 +377,41 @@ private:
     bool            show {false};
 };
 
+
+// BBS add new custom widget
+// ----------------------------------------------------------------------------
+// ImageTransientPopup
+// ----------------------------------------------------------------------------
+
+class ImageTransientPopup : public wxPopupTransientWindow
+{
+    public:
+    ImageTransientPopup( wxWindow *parent, bool scrolled, wxBitmap bmp);
+    virtual ~ImageTransientPopup();
+
+    void SetImage(wxBitmap bmp);
+
+    // wxPopupTransientWindow virtual methods are all overridden to log them
+    virtual void Popup(wxWindow *focus = NULL) wxOVERRIDE;
+    virtual void OnDismiss() wxOVERRIDE;
+    virtual bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;
+    virtual bool Show( bool show = true ) wxOVERRIDE;
+
+private:
+
+    wxScrolledWindow *m_panel;
+    wxStaticBitmap* m_image;
+
+private:
+    void OnMouse( wxMouseEvent &event );
+    void OnSize( wxSizeEvent &event );
+    void OnSetFocus( wxFocusEvent &event );
+    void OnKillFocus( wxFocusEvent &event );
+
+private:
+    wxDECLARE_ABSTRACT_CLASS(ImageTransientPopup);
+    wxDECLARE_EVENT_TABLE();
+};
 
 
 #endif // slic3r_GUI_wxExtensions_hpp_

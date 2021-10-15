@@ -980,5 +980,109 @@ void BlinkingBitmap::blink()
 }
 
 
+wxIMPLEMENT_CLASS(ImageTransientPopup,wxPopupTransientWindow);
+
+wxBEGIN_EVENT_TABLE(ImageTransientPopup,wxPopupTransientWindow)
+    EVT_MOUSE_EVENTS( ImageTransientPopup::OnMouse )
+    EVT_SIZE( ImageTransientPopup::OnSize )
+    EVT_SET_FOCUS( ImageTransientPopup::OnSetFocus )
+    EVT_KILL_FOCUS( ImageTransientPopup::OnKillFocus )
+wxEND_EVENT_TABLE()
+
+ImageTransientPopup::ImageTransientPopup( wxWindow *parent, bool scrolled, wxBitmap bmp)
+                     :wxPopupTransientWindow( parent,
+                                              wxBORDER_NONE |
+                                              wxPU_CONTAINS_CONTROLS )
+{
+    m_panel = new wxScrolledWindow( this, wxID_ANY );
+    m_panel->SetBackgroundColour( *wxLIGHT_GREY );
+
+    // Keep this code to verify if mouse events work, they're required if
+    // you're making a control like a combobox where the items are highlighted
+    // under the cursor, the m_panel is set focus in the Popup() function
+    m_panel->Bind(wxEVT_MOTION, &ImageTransientPopup::OnMouse, this);
+
+    m_image = new wxStaticBitmap(m_panel,
+        wxID_ANY, bmp);
+
+    wxBoxSizer *topSizer = new wxBoxSizer( wxVERTICAL );
+    topSizer->Add(m_image, 1, wxCENTRE | wxALL | wxEXPAND, 0);
+    topSizer->SetMinSize(300, 300);
+
+    if ( scrolled )
+    {
+        // Add a big window to ensure that scrollbars are shown when we set the
+        // panel size to a lesser size below.
+        topSizer->Add(new wxPanel(m_panel, wxID_ANY, wxDefaultPosition,
+                                  wxSize(600, 600)));
+    }
+
+    m_panel->SetSizer( topSizer );
+    if ( scrolled )
+    {
+        // Set the fixed size to ensure that the scrollbars are shown.
+        m_panel->SetSize(300, 300);
+
+        // And also actually enable them.
+        m_panel->SetScrollRate(10, 10);
+    }
+    else
+    {
+        // Use the fitting size for the panel if we don't need scrollbars.
+        topSizer->Fit(m_panel);
+    }
+
+    SetClientSize(m_panel->GetSize());
+}
+
+ImageTransientPopup::~ImageTransientPopup()
+{
+}
+
+void ImageTransientPopup::SetImage(wxBitmap bmp)
+{
+    m_image->SetBitmap(bmp);
+}
+
+void ImageTransientPopup::Popup(wxWindow* WXUNUSED(focus))
+{
+    wxPopupTransientWindow::Popup();
+}
+
+void ImageTransientPopup::OnDismiss()
+{
+    wxPopupTransientWindow::OnDismiss();
+}
+
+bool ImageTransientPopup::ProcessLeftDown(wxMouseEvent& event)
+{
+    return wxPopupTransientWindow::ProcessLeftDown(event);
+}
+bool ImageTransientPopup::Show( bool show )
+{
+    return wxPopupTransientWindow::Show(show);
+}
+
+void ImageTransientPopup::OnSize(wxSizeEvent &event)
+{
+    event.Skip();
+}
+
+void ImageTransientPopup::OnSetFocus(wxFocusEvent &event)
+{
+    event.Skip();
+}
+
+void ImageTransientPopup::OnKillFocus(wxFocusEvent &event)
+{
+    event.Skip();
+}
+
+void ImageTransientPopup::OnMouse(wxMouseEvent &event)
+{
+    event.Skip();
+}
+
+
 
 

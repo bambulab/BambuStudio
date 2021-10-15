@@ -30,12 +30,16 @@
 #include <wx/gbsizer.h>
 #include <wx/statbox.h>
 #include <wx/tglbtn.h>
+#include <wx/popupwin.h>
+#include <wx/spinctrl.h>
+#include <wx/artprov.h>
 
 #include <map>
 #include <vector>
 #include <memory>
 #include "Event.hpp"
 #include "ProjectTask.hpp"
+#include "wxExtensions.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
 
 namespace Slic3r {
@@ -214,6 +218,7 @@ protected:
 	wxButton* m_button_auto_leveling;
 	wxButton* m_button_xyz_abs;
 
+	ImageTransientPopup* m_plate_thumbnail;
     wxTimer* m_refresh_timer;
     bool is_pausing;
 	wxBitmap m_ctrl_up;

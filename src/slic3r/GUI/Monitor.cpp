@@ -327,6 +327,7 @@ void SubTaskListModel::clear_data()
     Reset(0);
 }
 
+
 MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style) : wxPanel(parent, id, pos, size, style)
 {
     init_bitmap();
@@ -960,6 +961,24 @@ void MonitorPanel::init_timer()
 void MonitorPanel::init_bind()
 {
     Bind(wxEVT_TIMER, &MonitorPanel::on_timer, this);
+
+    m_staticText_subtask_value->Bind(wxEVT_ENTER_WINDOW,
+        [this](wxMouseEvent& evt) {
+            m_plate_thumbnail = new ImageTransientPopup( this, false, create_scaled_bitmap("revert_all_", nullptr, 80));
+            wxWindow *ctrl = (wxWindow*) evt.GetEventObject();
+            wxPoint pos = ctrl->ClientToScreen( wxPoint(0,0) );
+            wxSize sz = ctrl->GetSize();
+            m_plate_thumbnail->Position( pos, sz );
+            m_plate_thumbnail->Popup();
+        }
+        );
+    m_staticText_subtask_value->Bind(wxEVT_LEAVE_WINDOW,
+        [this](wxMouseEvent& evt) {
+            if (m_plate_thumbnail) {
+                m_plate_thumbnail->Hide();
+            }
+        }
+        );
 }
 
 void MonitorPanel::on_machine_list_changed()
