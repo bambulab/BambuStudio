@@ -714,6 +714,21 @@ ConfigOptionsGroup* FreqChangedParams::get_og(const bool is_fff)
     return is_fff ? m_og.get() : m_og_sla.get();
 }
 
+// BBS. ProjectResource methods.
+ProjectResource::ProjectResource(wxWindow *parent)
+    : wxNotebook(parent, wxID_ANY)
+{
+    m_object_panel = new wxPanel(this);
+    m_object_list = new ObjectList(m_object_panel);
+    wxBoxSizer* object_sizer = new wxBoxSizer(wxVERTICAL);
+    object_sizer->Add(m_object_list, 1, wxEXPAND);
+    m_object_panel->SetSizer(object_sizer);
+    this->AddPage(m_object_panel, _L("Object List"));
+
+    m_accessory_panel = new wxPanel(this);
+    this->AddPage(m_accessory_panel, _L("Accessory"));
+}
+
 // Sidebar / private
 
 enum class ActionButtonType : int {
@@ -743,7 +758,9 @@ struct Sidebar::priv
 
     // BBS. Remove frequent changed params.
     //FreqChangedParams   *frequently_changed_parameters{ nullptr };
-    ObjectList          *object_list{ nullptr };
+    // BBS. Move object list inside project resource
+    //ObjectList          *object_list{ nullptr };
+    ProjectResource     *project_resource{ nullptr };
     // BBS. Remove object manipulation.
     //ObjectManipulation  *object_manipulation{ nullptr };
     ObjectSettings      *object_settings{ nullptr };
@@ -962,9 +979,14 @@ Sidebar::Sidebar(Plater *parent)
     p->sizer_params->Add(p->combo_partplate_filter->get_sizer(), 0, wxEXPAND | wxTOP | wxBOTTOM, margin_5);
 #endif
 
+    // BBS
+#if 0
     // Object List
-    p->object_list = new ObjectList(p->scrolled);
-    p->sizer_params->Add(p->object_list->get_sizer(), 1, wxEXPAND);
+    obj_list() = new ObjectList(p->scrolled);
+    p->sizer_params->Add(obj_list()->get_sizer(), 1, wxEXPAND);
+#endif
+    p->project_resource = new ProjectResource(p->scrolled);
+    p->sizer_params->Add(p->project_resource, 1, wxEXPAND);
 
     // BBS
 #if 0
@@ -1274,7 +1296,8 @@ void Sidebar::msw_rescale()
 
     // BBS
     //p->frequently_changed_parameters->msw_rescale();
-    p->object_list->msw_rescale();
+    //obj_list()->msw_rescale();
+    // BBS TODO: add msw_rescale for newly added windows
     // BBS
     //p->object_manipulation->msw_rescale();
     p->object_settings->msw_rescale();
@@ -1331,7 +1354,8 @@ void Sidebar::sys_color_changed()
     for (PlaterPresetComboBox* combo : p->combos_filament)
         combo->sys_color_changed();
 
-    p->object_list->sys_color_changed();
+    // BBS
+    //obj_list()->sys_color_changed();
     // BBS
     //p->object_manipulation->sys_color_changed();
     p->object_layers->sys_color_changed();
@@ -1376,7 +1400,9 @@ ObjectManipulation* Sidebar::obj_manipul()
 
 ObjectList* Sidebar::obj_list()
 {
-    return p->object_list;
+    // BBS
+    //return obj_list();
+    return p->project_resource->get_object_list();
 }
 
 ObjectSettings* Sidebar::obj_settings()
@@ -1418,7 +1444,7 @@ wxButton* Sidebar::get_wiping_dialog_button()
 
 void Sidebar::update_objects_list_extruder_column(size_t extruders_count)
 {
-    p->object_list->update_objects_list_extruder_column(extruders_count);
+    obj_list()->update_objects_list_extruder_column(extruders_count);
 }
 
 void Sidebar::show_info_sizer()
@@ -1698,11 +1724,11 @@ void Sidebar::update_mode()
 
     wxWindowUpdateLocker noUpdates(this);
 
-    p->object_list->get_sizer()->Show(m_mode > comSimple);
+    obj_list()->get_sizer()->Show(m_mode > comSimple);
 
-    p->object_list->unselect_objects();
-    p->object_list->update_selections();
-//    p->object_list->update_object_menu();
+    obj_list()->unselect_objects();
+    obj_list()->update_selections();
+//    obj_list()->update_object_menu();
 
     Layout();
 }

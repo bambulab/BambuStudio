@@ -6,6 +6,8 @@
 #include <boost/filesystem/path.hpp>
 
 #include <wx/panel.h>
+// BBS
+#include <wx/notebook.h>
 
 #include "Selection.hpp"
 
@@ -69,6 +71,30 @@ enum class ActionButtonType : int;
 
 //BBS: add EVT_SLICING_UPDATE declare here
 wxDECLARE_EVENT(EVT_SLICING_UPDATE, Slic3r::SlicingStatusEvent);
+
+#if 0
+class AccessoryTable : public wxGrid
+{
+public:
+    AccessoryTable(wxWindow *parent);
+private:
+    wxString m_name;
+};
+#endif
+
+
+class ProjectResource : public wxNotebook
+{
+public:
+    ProjectResource(wxWindow *parent);
+    ObjectList *get_object_list() { return m_object_list; }
+
+private:
+    ObjectList *m_object_list{ nullptr };
+    //AccessoryTable *m_accessory_table{ nullptr };
+    wxPanel *m_object_panel;
+    wxPanel *m_accessory_panel;
+};
 
 class Sidebar : public wxPanel
 {
