@@ -209,6 +209,7 @@ public:
     int send_lan_print_subtask(BBLSubTask* task, UploadedFn cFn, UploadProgressFn proFn, ErrorFn errFn);
     int send_wan_print_subtask(BBLSubTask* task, UploadedFn cFn, UploadProgressFn proFn, ErrorFn errFn);
     BBLSubTask* get_subtask();
+    void update_subtask(std::string subtask_id);
 
     /* iot operation apis */
     void request_bind(ResultFn fn, bool force_bind = false);
@@ -218,6 +219,7 @@ public:
     void set_bind_status(std::string status);
     void set_connect_state(CONNECTION_STATE state);
     std::string get_bind_str();
+   
     
     /* static apis */
     static std::string build_report_topic(std::string dev_id);

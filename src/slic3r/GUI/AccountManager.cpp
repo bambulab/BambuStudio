@@ -317,6 +317,19 @@ namespace Slic3r {
             std::stringstream ss(body);
             pt::ptree root;
             pt::read_json(ss, root);
+
+            boost::optional<std::string> acceptToken = root.get_optional<std::string>("accessToken");
+            if (acceptToken.has_value()) {
+                BOOST_LOG_TRIVIAL(trace) << "User = " << account << " Login Success!";
+                if (m_curr_user) delete m_curr_user;
+                m_curr_user = new AccountInfo(account, "", AccountInfo::LoginStatus::STATUS_LOGIN);
+                m_curr_user->set_token(acceptToken.value());
+                this->request_bind_list();
+                //get user id
+                this->user_get_profile(account, fn);
+                return;
+            }
+
             boost::optional<std::string> ack_status = root.get_optional<std::string>("message");
             boost::optional<std::string> user_id = root.get_optional<std::string>("user_id");
             boost::optional<std::string> token = root.get_optional<std::string>("token");
@@ -353,6 +366,55 @@ namespace Slic3r {
                     }).perform();
 
                     return 0;
+    }
+
+    int AccountManager::user_get_profile(std::string account, LoginFn fn)
+    {
+        Http http = Http::get(_get_user_profile_url(account));
+        try {
+            http.header("accept", "application/json")
+                .header("Authorization", get_token_str())
+                .header("Content-Type", "application/json")
+                .on_complete([&, fn](std::string body, unsigned code) {
+                    std::stringstream ss(body);
+                    pt::ptree root;
+                    pt::read_json(ss, root);
+                    boost::optional<std::string> uid = root.get_optional<std::string>("uid");
+                    boost::optional<std::string> account = root.get_optional<std::string>("account");
+                    boost::optional<std::string> name = root.get_optional<std::string>("name");
+                    boost::optional<std::string> avatar = root.get_optional<std::string>("avatar");
+                    if (uid.has_value()) {
+                        // update user info
+                        AccountInfo* info = this->get_curr_user();
+                        if (info) {
+                            info->m_name = name.has_value() ? name.value() : "";
+                            info->m_user_id = uid.value();
+                            info->m_avatar = avatar.has_value() ? avatar.value() : "";
+                            save_user_info();
+                            /* connect mqtt */
+                            this->connect_mqtt();
+                            if (fn) {
+                                fn(0, "Login Ok!");
+                            }
+                            return;
+                        }
+                    }
+                    if (fn) {
+                        fn(-1, "Login Failed! body=" + body);
+                    }
+                })
+                .on_error([fn](std::string body, std::string error, unsigned status) {
+                    BOOST_LOG_TRIVIAL(trace) << "Get user profile failed! status=" << status << ", error = " << body;
+                    if (fn) {
+                        fn(-1, "get user profile failed");
+                    }
+                })
+                .perform_sync();
+        }
+        catch (std::exception& e) {
+            ;
+        }
+        return 0;
     }
 
     int AccountManager::user_logout()
@@ -1317,16 +1379,16 @@ namespace Slic3r {
         return task;
     }
 
-    BBLSubTask* AccountManager::get_subtask(std::string subtask_id)
+    void AccountManager::get_subtask(std::string subtask_id, BBLSubTask* &subtask)
     {
-        BBLSubTask* task = new BBLSubTask();
-        task->task_id = subtask_id;
+        subtask = new BBLSubTask();
+        subtask->task_id = subtask_id;
         std::string url = (boost::format("%1%/iot/user/task/%2%") % host % subtask_id).str();
         Http http = Http::get(url);
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
             .on_complete(
-                [this, task](std::string body, unsigned) {
+                [this, subtask](std::string body, unsigned) {
                     std::stringstream ss(body);
                     pt::ptree root;
                     pt::read_json(ss, root);
@@ -1335,22 +1397,22 @@ namespace Slic3r {
                         if (message.value().compare(MSG_SUCCESS) == 0) {
                             boost::optional<std::string> name = root.get_optional<std::string>("name");
                             if (name.has_value())
-                                task->task_name = name.value();
+                                subtask->task_name = name.value();
                             boost::optional<std::string> status = root.get_optional<std::string>("status");
                             if (status.has_value())
-                                task->task_status = BBLSubTask::parse_status(status.value());
+                                subtask->task_status = BBLSubTask::parse_status(status.value());
                             boost::optional<std::string> content = root.get_optional<std::string>("content");
                             if (content.has_value())
-                                task->parse_content_json(content.value());
+                                subtask->parse_content_json(content.value());
                             boost::optional<std::string> create_time = root.get_optional<std::string>("create_time");
                             if (create_time.has_value())
-                                task->task_create_time = create_time.value();
+                                subtask->task_create_time = create_time.value();
                             boost::optional<std::string> update_time = root.get_optional<std::string>("update_time");
                             if (update_time.has_value())
-                                task->task_update_time = update_time.value();
+                                subtask->task_update_time = update_time.value();
                             boost::optional<std::string> parent_id = root.get_optional<std::string>("parent");
                             if (parent_id.has_value())
-                                task->parent_id = parent_id.value();
+                                subtask->parent_id = parent_id.value();
                         }
                     }
                 }
@@ -1360,8 +1422,7 @@ namespace Slic3r {
                     BOOST_LOG_TRIVIAL(info) << "get_task info failed! body=" << body;
                 }
             )
-        .perform_sync();
-        return task;
+            .perform();
     }
 
     void AccountManager::get_project_info(BBLProject* project)
@@ -1665,6 +1726,11 @@ namespace Slic3r {
         return (boost::format("%1%/user/login") % host).str();
     }
 
+    std::string AccountManager::_get_user_profile_url(std::string account)
+    {
+        return (boost::format("%1%/my/profile") % host).str();
+    }
+
     std::string AccountManager::_get_register_url()
     {
         return (boost::format("%1%/user/register") % host).str();
@@ -1714,6 +1780,7 @@ namespace Slic3r {
 
     std::string AccountManager::_get_login_request(std::string account, std::string password)
     {
+        account = (boost::format("%1%@bambulab.com") % account).str();
         pt::ptree root;
         root.put("account", account);
         root.put("password", password);
@@ -1725,6 +1792,7 @@ namespace Slic3r {
     std::string AccountManager::_get_register_request(std::string account, std::string password)
     {
         pt::ptree root;
+        account = (boost::format("%1%@bambulab.com") % account).str();
         root.put("account", account);
         root.put("password", password);
         std::stringstream oss;

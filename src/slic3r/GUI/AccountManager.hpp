@@ -91,8 +91,10 @@ public:
 
     friend class boost::serialization::access;
     std::string m_account;
+    std::string m_name;
     std::string m_password;
     std::string m_user_id;
+    std::string m_avatar;
     std::string m_token;
     LoginStatus m_login_status;
 };
@@ -115,6 +117,7 @@ private:
     std::string _get_login_request(std::string account, std::string password);
     std::string _get_register_request(std::string account, std::string password);
     std::string _get_login_url();
+    std::string _get_user_profile_url(std::string account);
     std::string _get_register_url();
 
     /* bind */
@@ -182,6 +185,7 @@ public:
     /* user login register apis */
     bool is_user_login();
     int user_login(std::string account, std::string password, LoginFn fn);
+    int user_get_profile(std::string account, LoginFn fn);
     int user_logout();
     int user_register(std::string account, std::string passoword);
     int request_user_unbind(std::string device_id, ResultFn fn);
@@ -223,7 +227,7 @@ public:
     int poll_3mf(BBLSubTask* task);
     // get task info
     BBLTask* get_task(std::string task_id);
-    BBLSubTask* get_subtask(std::string subtask_id);
+    void get_subtask(std::string subtask_id, BBLSubTask* &subtask);
 
     // create a project 
     void get_project_info(BBLProject* project);

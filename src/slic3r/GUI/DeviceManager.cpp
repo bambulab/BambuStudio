@@ -406,16 +406,7 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 if (subtask_id.has_value() && task_id.has_value()
                     && !task_id.value().empty()
                     && (task_id.value().compare("0") != 0)) {
-                    /* create a new subtask */
-                    if (!subtask_) {
-                        subtask_ = acc_.get_subtask(subtask_id.value());
-                    }
-                    else {
-                        // update to new subtask
-                        if (subtask_->task_id.compare(subtask_id.value()) != 0) {
-                            subtask_ = acc_.get_subtask(subtask_id.value());
-                        }
-                    }
+                    update_subtask(subtask_id.value());
                 }
 
                 BBLSubTask* curr_task = get_subtask();
@@ -851,6 +842,20 @@ BBLSubTask* MachineObject::get_subtask()
     }
     else {
         return temptask_;
+    }
+}
+
+void MachineObject::update_subtask(std::string subtask_id)
+{
+    /* create a new subtask */
+    if (!subtask_) {
+        acc_.get_subtask(subtask_id, subtask_);
+    }
+    else {
+        // update to new subtask
+        if (subtask_->task_id.compare(subtask_id) != 0) {
+            acc_.get_subtask(subtask_id, subtask_);
+        }
     }
 }
 

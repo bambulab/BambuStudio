@@ -37,6 +37,9 @@ class PreferencesDialog : public DPIDialog
 	std::shared_ptr<ConfigOptionsGroup>	m_optgroup_render;
 #endif // ENABLE_ENVIRONMENT_MAP
 	wxSizer*                            m_icon_size_sizer;
+	//BBS
+	wxRadioBox*							m_select_domain_box;
+	bool								m_domain_changed{ false };
 	wxColourPickerCtrl*					m_sys_colour {nullptr};
 	wxColourPickerCtrl*					m_mod_colour {nullptr};
     bool                                isOSX {false};
@@ -63,6 +66,8 @@ protected:
     void create_settings_text_color_widget();
 	void init_highlighter(const t_config_option_key& opt_key);
 	std::vector<ConfigOptionsGroup*> optgroups();
+	// BBS
+	void create_select_domain_widget();
 
 	struct PreferencesHighlighter
 	{

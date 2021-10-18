@@ -298,6 +298,9 @@ void PreferencesDialog::build(size_t selected_tab)
 
 	activate_options_tab(m_optgroup_general);
 
+	// BBS
+	create_select_domain_widget();
+
 	// Add "Camera" tab
 	m_optgroup_camera = create_options_tab(_L("Camera"), tabs);
 	m_optgroup_camera->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
@@ -585,6 +588,32 @@ void PreferencesDialog::accept(wxEvent&)
 	m_seq_top_layer_only_changed = false;
 	if (auto it = m_values.find("seq_top_layer_only"); it != m_values.end())
 		m_seq_top_layer_only_changed = app_config->get("seq_top_layer_only") != it->second;
+
+	//BBS domain changed
+	m_domain_changed = false;
+	for (const std::string& key : { "api_cur_domain",
+									"api_dev_domain",
+									"api_rel_domain" })
+	{
+		auto it = m_values.find(key);
+		if (it != m_values.end() && app_config->get(key) != it->second) {
+			m_domain_changed = true;
+			break;
+		}
+	}
+
+	if (m_domain_changed) {
+		AccountManager* manager = wxGetApp().getAccountManager();
+		if (m_values["api_cur_domain"].compare("1") == 0) {
+			manager->set_host("api-qa.bambu-lab.com");
+		}
+		else if (m_values["api_dev_domain"].compare("1") == 0) {
+			manager->set_host("api-qa.bambu-lab.com/v2");
+		}
+		else if (m_values["api_rel_domain"].compare("1") == 0) {
+			manager->set_host("api.bambulab.com");
+		}
+	}
 
 	m_settings_layout_changed = false;
 	for (const std::string& key : { "old_settings_layout_mode",
