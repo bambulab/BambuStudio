@@ -2442,7 +2442,7 @@ namespace Slic3r {
         size_t png_size = 0;
         void* png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)thumbnail_data.pixels.data(), thumbnail_data.width, thumbnail_data.height, 4, &png_size, MZ_DEFAULT_LEVEL, 1);
         if (png_data != nullptr) {
-            std::string thumbnail_name = (boost::format("Metadata/plate_%1%_thumbnail.png") % (index + 1)).str();
+            std::string thumbnail_name = (boost::format("Metadata/plate_%1%.png") % (index + 1)).str();
             res = mz_zip_writer_add_mem(&archive, thumbnail_name.c_str(), (const void*)png_data, png_size, MZ_DEFAULT_COMPRESSION);
             mz_free(png_data);
         }
