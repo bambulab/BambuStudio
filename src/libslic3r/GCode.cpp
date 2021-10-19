@@ -2162,8 +2162,8 @@ GCode::LayerResult GCode::process_layer(
             + "\n";
     }
 
-    // BBS
-    gcode += this->change_layer(print_z, true);  // this will increase m_layer_index
+    // BBS: don't use lazy_raise when enable spiral vase
+    gcode += this->change_layer(print_z, !m_spiral_vase);  // this will increase m_layer_index
     m_layer = &layer;
     m_object_layer_over_raft = false;
     if (! print.config().layer_gcode.value.empty()) {
@@ -3228,9 +3228,9 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     // use G1 because we rely on paths being straight (G0 may make round paths)
     if (travel.size() >= 2) {
         for (size_t i = 1; i < travel.size(); ++ i) {
-            // BBS. Process lazy layer change.
+            // BBS. Process lazy layer change, but don't do lazy layer change when enable spiral vase
             Vec3d curr_pos = m_writer.get_position();
-            if (i == travel.size() - 1) {
+            if (i == travel.size() - 1 && !m_spiral_vase) {
                 Vec2d dest2d = this->point_to_gcode(travel.points[i]);
                 Vec3d dest3d(dest2d(0), dest2d(1), m_nominal_z);
                 gcode += m_writer.travel_to_xyz(dest3d, comment);
