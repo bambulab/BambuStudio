@@ -1444,7 +1444,7 @@ struct SlicesMarginCache
 static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
     const Layer             &layer,
     const size_t             layer_id,
-    const Polygons          &lower_layer_polygons,
+    Polygons                &lower_layer_polygons,
     const PrintConfig       &print_config, 
     const PrintObjectConfig &object_config,
     SupportAnnotations      &annotations, 
@@ -1543,6 +1543,16 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
             } else if (auto_normal_support) {
                 // Get the regions needing a suport, collapse very tiny spots.
                 //FIXME cache the lower layer offset if this layer has multiple regions.
+
+                // BBS: Filter out polygons that will not be extruded.
+                for (Polygon& poly : lower_layer_polygons) {
+                    if (offset(poly, -0.5f * fw).empty())
+                        poly = Polygon();
+                }
+                for (Polygon& poly : layerm_polygons) {
+                    if (offset(poly, -0.5f * fw).empty())
+                        poly = Polygon();
+                }
 #if 0
                 //FIXME this solution will trigger stupid supports for sharp corners, see GH #4874
                 diff_polygons = opening(
@@ -1979,8 +1989,9 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
     #define SLIC3R_IRUN , iRun
 #endif /* SLIC3R_DEBUG */
 
-    // BBS
-    if (m_object_config->support_type.value != stNormalAuto && m_object_config->support_type.value != stNormal) {
+    // BBS: tree support is selected so normal supports need not be generated.
+    // Note we still need to go through the following steps if support is disabled but raft is enabled.
+    if (m_object_config->support_material.value && (m_object_config->support_type.value == stTreeAuto || m_object_config->support_type.value == stTree)) {
         return MyLayersPtr();
     }
 
@@ -2006,7 +2017,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
         (const tbb::blocked_range<size_t>& range) {
             for (size_t layer_id = range.begin(); layer_id < range.end(); ++ layer_id) 
             {
-                const Layer        &layer                = *object.layers()[layer_id];
+                const Layer &layer = *object.layers()[layer_id];
                 Polygons            lower_layer_polygons = (layer_id == 0) ? Polygons() : to_polygons(object.layers()[layer_id - 1]->lslices);
                 SlicesMarginCache   slices_margin;
 
