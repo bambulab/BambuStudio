@@ -710,17 +710,9 @@ int MachineObject::publish_gcode(std::string gcode_str)
 
 std::string get_printer_dest_file(std::string file)
 {
-    std::string result;
-
-    result = "/data/";
-
-    int name_start = file.find_last_of("\\");
-    if (name_start <= 0) {
-        return result;
-    }
-    result = result + file.substr(name_start + 1, file.size());
-
-    return result;
+    std::string result = "/data/";
+    boost::filesystem::path path(file);
+    return result + path.filename().string();
 }
 
 int MachineObject::send_print_task(BBLTask* task)
@@ -778,6 +770,7 @@ int MachineObject::send_lan_print_subtask(BBLSubTask* task, UploadedFn uploadedF
     std::string dst_file = get_printer_dest_file(task->task_file);
     std::string dst_file_str = dst_file;
 
+    BOOST_LOG_TRIVIAL(trace) << "sftp upload dep_ip = " << dev_ip << ", src_file:" << src_file << ", dst_file:" << dst_file;
     Sftp sftp = Sftp::upload(dev_ip, src_file, dst_file, "root", "root");
     
     sftp.on_complete(

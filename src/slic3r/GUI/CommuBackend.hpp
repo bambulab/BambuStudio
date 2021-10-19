@@ -22,14 +22,22 @@ class SsdpDiscovery
 {
 private:
     bool sdp_quit = false;
+
+#if defined(__WINDOWS__)
+    int send_msg(int card_no);
+    void recv_sdp_msg(int card_no);
+    void recv_broadcast_msg(int card_no);
+#elif defined(__APPLE__)
+    lssdp_ctx lssdp;
+    long long last_time;
+    long long current_time;
+    void ssdp_thread();
+#endif
 public:
     SsdpDiscovery();
     void start_discover();
     void stop_discover();
-    int send_msg(int card_no);
     void on_sdp_alive(std::string dev_id, std::string dev_ip);
-    void recv_sdp_msg(int card_no);
-    void recv_broadcast_msg(int card_no);
 };
 
 class CommuBackend

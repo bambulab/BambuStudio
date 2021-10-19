@@ -1,7 +1,7 @@
 #ifndef slic3r_WebViewDialog_hpp_
 #define slic3r_WebViewDialog_hpp_
 
-#ifdef __WINDOWS__ || __APPLE__
+#if defined(__WINDOWS__) || defined(__APPLE__)
 
 #include "wx/artprov.h"
 #include "wx/cmdline.h"
@@ -26,12 +26,8 @@
 #include "wx/stdpaths.h"
 #include <wx/frame.h>
 #include <wx/tbarbase.h>
-
-#if wxUSE_STC
-#include "wx/stc/stc.h"
-#else
 #include "wx/textctrl.h"
-#endif
+
 
 namespace Slic3r {
 namespace GUI {
@@ -210,7 +206,7 @@ namespace GUI {
     class WebFrame : public wxFrame
     {
     public:
-        WebFrame(const wxString& url) {}
+        WebFrame(const wxString& url) { BOOST_LOG_TRIVIAL(trace) << "Create dummy WebFrame"; }
         bool Show() { return true; }
     };
 }

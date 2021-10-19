@@ -1,6 +1,6 @@
 #include "WebViewDialog.hpp"
 
-#ifdef __WINDOWS__ || __APPLE__
+#if defined(__WINDOWS__) || defined(__APPLE__)
 
 #include "I18N.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
@@ -19,7 +19,6 @@ WebFrame::WebFrame(const wxString& url) :
     m_bbl_user_agent = wxString::Format("BBL-Slicer/v%s", SLIC3R_RC_VERSION);
 
     // set the frame icon
-    SetIcon(wxICON(sample));
     SetTitle("BBL WebView");
 
     wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
@@ -677,16 +676,13 @@ void WebFrame::OnViewTextRequest(wxCommandEvent& WXUNUSED(evt))
     wxDialog textViewDialog(this, wxID_ANY, "Page Text",
         wxDefaultPosition, wxSize(700, 500),
         wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
-#if wxUSE_STC
-    wxStyledTextCtrl* text = new wxStyledTextCtrl(&textViewDialog, wxID_ANY);
-    text->SetText(m_browser->GetPageText());
-#else // !wxUSE_STC
+
     wxTextCtrl* text = new wxTextCtrl(this, wxID_ANY, m_browser->GetPageText(),
         wxDefaultPosition, wxDefaultSize,
         wxTE_MULTILINE |
         wxTE_RICH |
         wxTE_READONLY);
-#endif // wxUSE_STC/!wxUSE_STC
+
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(text, 1, wxEXPAND);
     SetSizer(sizer);
@@ -1024,7 +1020,7 @@ case type: \
     UpdateState();
 }
 
-/**
+   /**
     * Invoked when user selects "Print" from the menu
     */
 void WebFrame::OnPrint(wxCommandEvent& WXUNUSED(evt))
@@ -1037,29 +1033,11 @@ SourceViewDialog::SourceViewDialog(wxWindow* parent, wxString source) :
                            wxDefaultPosition, wxSize(700,500),
                            wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-#if wxUSE_STC
-    wxStyledTextCtrl* text = new wxStyledTextCtrl(this, wxID_ANY);
-    text->SetMarginWidth(1, 30);
-    text->SetMarginType(1, wxSTC_MARGIN_NUMBER);
-    text->SetText(source);
-
-    text->StyleClearAll();
-    text->SetLexer(wxSTC_LEX_HTML);
-    text->StyleSetForeground(wxSTC_H_DOUBLESTRING, wxColour(255,0,0));
-    text->StyleSetForeground(wxSTC_H_SINGLESTRING, wxColour(255,0,0));
-    text->StyleSetForeground(wxSTC_H_ENTITY, wxColour(255,0,0));
-    text->StyleSetForeground(wxSTC_H_TAG, wxColour(0,150,0));
-    text->StyleSetForeground(wxSTC_H_TAGUNKNOWN, wxColour(0,150,0));
-    text->StyleSetForeground(wxSTC_H_ATTRIBUTE, wxColour(0,0,150));
-    text->StyleSetForeground(wxSTC_H_ATTRIBUTEUNKNOWN, wxColour(0,0,150));
-    text->StyleSetForeground(wxSTC_H_COMMENT, wxColour(150,150,150));
-#else // !wxUSE_STC
     wxTextCtrl* text = new wxTextCtrl(this, wxID_ANY, source,
                                       wxDefaultPosition, wxDefaultSize,
                                       wxTE_MULTILINE |
                                       wxTE_RICH |
                                       wxTE_READONLY);
-#endif // wxUSE_STC/!wxUSE_STC
 
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(text, 1, wxEXPAND);
