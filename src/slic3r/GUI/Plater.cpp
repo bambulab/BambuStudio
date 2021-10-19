@@ -5824,54 +5824,56 @@ void Plater::priv::show_object_info()
 void Plater::priv::update_sliced_info()
 {
     // BBS
-    wxString sliced_info;
-    if (q->printer_technology() == ptSLA)
-    {
-        // TODO:
-    }
-    else
-    {
-        //BBS: use current plater's print statistics
-        //const PrintStatistics& ps = p->plater->fff_print().print_statistics();
-        const PrintStatistics& ps = q->get_partplate_list().get_current_fff_print().print_statistics();
-        const bool is_wipe_tower = ps.total_wipe_tower_filament > 0;
-
-        bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
-        double koef = imperial_units ? ObjectManipulation::in_to_mm : 1000.0;
-        sliced_info += _L("Used Filament: ");
-        sliced_info += wxString::Format("%.2f", ps.total_used_filament / /*1000*/koef);
-        sliced_info += imperial_units ? _L("(in)") : _L("(m)");
-        sliced_info += "   ";
-
-#if 0
-        koef = imperial_units ? pow(ObjectManipulation::mm_to_in, 3) : 1.0f;
-        sliced_info += wxString::Format("%.2f", imperial_units ? ps.total_extruded_volume * koef : ps.total_extruded_volume);
-        sliced_info += imperial_units ? _L("(in³)") : _L("(mm³)");
-        sliced_info += "   ";
-#endif
-
-        if (ps.total_weight != 0.0)
+    if (m_statusbar->is_slice_info_shown()) {
+        wxString sliced_info;
+        if (q->printer_technology() == ptSLA)
         {
-            sliced_info += wxString::Format("%.2f", ps.total_weight);
-            sliced_info += _L("(g)");
-            sliced_info += "   ";
-            // TODO: add multiple extruder filament costs
+            // TODO:
         }
+        else
+        {
+            //BBS: use current plater's print statistics
+            //const PrintStatistics& ps = p->plater->fff_print().print_statistics();
+            const PrintStatistics& ps = q->get_partplate_list().get_current_fff_print().print_statistics();
+            const bool is_wipe_tower = ps.total_wipe_tower_filament > 0;
+
+            bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
+            double koef = imperial_units ? ObjectManipulation::in_to_mm : 1000.0;
+            sliced_info += _L("Used Filament: ");
+            sliced_info += wxString::Format("%.2f", ps.total_used_filament / /*1000*/koef);
+            sliced_info += imperial_units ? _L("(in)") : _L("(m)");
+            sliced_info += "   ";
 
 #if 0
-        sliced_info += _L("Cost:");
-        sliced_info += ps.total_cost == 0.0 ? "N/A" : wxString::Format("%.2f", ps.total_cost);
-        sliced_info += "   ";
+            koef = imperial_units ? pow(ObjectManipulation::mm_to_in, 3) : 1.0f;
+            sliced_info += wxString::Format("%.2f", imperial_units ? ps.total_extruded_volume * koef : ps.total_extruded_volume);
+            sliced_info += imperial_units ? _L("(in³)") : _L("(mm³)");
+            sliced_info += "   ";
 #endif
-        sliced_info += _L("Print time:");
-        if (ps.estimated_normal_print_time == "N/A") {
-            sliced_info += "N/A";
+
+            if (ps.total_weight != 0.0)
+            {
+                sliced_info += wxString::Format("%.2f", ps.total_weight);
+                sliced_info += _L("(g)");
+                sliced_info += "   ";
+                // TODO: add multiple extruder filament costs
+            }
+
+#if 0
+            sliced_info += _L("Cost:");
+            sliced_info += ps.total_cost == 0.0 ? "N/A" : wxString::Format("%.2f", ps.total_cost);
+            sliced_info += "   ";
+#endif
+            sliced_info += _L("Print time:");
+            if (ps.estimated_normal_print_time == "N/A") {
+                sliced_info += "N/A";
+            }
+            else {
+                sliced_info += format_wxstr("%1%", short_time(ps.estimated_normal_print_time));
+            }
         }
-        else {
-            sliced_info += format_wxstr("%1%", short_time(ps.estimated_normal_print_time));
-        }
+        m_statusbar->set_slice_info(sliced_info);
     }
-    m_statusbar->set_slice_info(sliced_info);
 }
 
 void Plater::priv::show_sliced_info(const bool show)
@@ -5880,9 +5882,10 @@ void Plater::priv::show_sliced_info(const bool show)
 
     // BBS
     if (!show) {
-        m_statusbar->set_slice_info("");
+        m_statusbar->show_slice_info(false);
     }
     else {
+        m_statusbar->show_slice_info(true);
         update_sliced_info();
     }
 }

@@ -196,17 +196,30 @@ void BBLStatusBar::set_object_info(const wxString& txt)
 
 void BBLStatusBar::set_slice_info(const wxString& txt)
 {
-    if (txt == "") {
-        m_slice_info->SetLabelText("");
-        m_sizer.Hide(&m_slice_info_sizer);
-    }
-    else {
+    if (!txt.empty()) {
         if (!m_sizer.IsShown(&m_slice_info_sizer)) {
             m_sizer.Show(&m_slice_info_sizer);
         }
         m_slice_info->SetLabelText(txt);
+        m_sizer.Layout();
     }
-    m_sizer.Layout();
+}
+
+void BBLStatusBar::show_slice_info(bool show)
+{
+    if (show) {
+        m_sizer.Show(&m_slice_info_sizer);
+        m_sizer.Layout();
+    }
+    else {
+        m_sizer.Hide(&m_slice_info_sizer);
+        m_sizer.Layout();
+    }
+}
+
+bool BBLStatusBar::is_slice_info_shown()
+{
+    return m_sizer.IsShown(&m_slice_info_sizer);
 }
 
 void BBLStatusBar::set_font(const wxFont &font)

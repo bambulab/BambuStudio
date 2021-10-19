@@ -58,6 +58,8 @@ public:
     void        set_font(const wxFont &font);
     void        set_object_info(const wxString& txt);
     void        set_slice_info(const wxString& txt);
+    void        show_slice_info(bool show);
+    bool        is_slice_info_shown();
 
     // Temporary methods to satisfy Perl side
     void        show_cancel_button();
