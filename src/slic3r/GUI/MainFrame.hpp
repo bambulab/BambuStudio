@@ -29,7 +29,8 @@ class wxProgressDialog;
 
 namespace Slic3r {
 
-class ProgressStatusBar;
+// BBS
+//class ProgressStatusBar;
 
 namespace GUI
 {

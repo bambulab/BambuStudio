@@ -201,6 +201,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Jobs/NotificationProgressIndicator.cpp
     GUI/ProgressStatusBar.hpp
     GUI/ProgressStatusBar.cpp
+    GUI/BBLStatusBar.hpp
+    GUI/BBLStatusBar.cpp
     GUI/Mouse3DController.cpp
     GUI/Mouse3DController.hpp
     GUI/DoubleSlider.cpp

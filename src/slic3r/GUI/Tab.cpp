@@ -1982,9 +1982,9 @@ void TabFilament::build()
         {
             update_dirty();
             if (opt_key == "filament_spool_weight") {
+                // BBS
                 // Change of this option influences for an update of "Sliced Info"
-                wxGetApp().sidebar().update_sliced_info_sizer();
-                wxGetApp().sidebar().Layout();
+                wxGetApp().plater()->update_sliced_info();
             }
             else
                 on_value_change(opt_key, value);
@@ -4273,9 +4273,10 @@ void TabSLAMaterial::build()
 
         update_dirty();
 
+        // BBS
         // Change of any from those options influences for an update of "Sliced Info"
-        wxGetApp().sidebar().update_sliced_info_sizer();
-        wxGetApp().sidebar().Layout();
+        wxGetApp().plater()->update_sliced_info();
+        //wxGetApp().sidebar().Layout();
     };
 
     optgroup = page->new_optgroup(L("Layers"));

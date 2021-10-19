@@ -132,9 +132,10 @@ public:
     ConfigOptionsGroup*     og_freq_chng_params(const bool is_fff);
     wxButton*               get_wiping_dialog_button();
     void                    update_objects_list_extruder_column(size_t extruders_count);
-    void                    show_info_sizer();
-    void                    show_sliced_info_sizer(const bool show);
-    void                    update_sliced_info_sizer();
+    // BBS
+    //void                    show_object_info();
+    //void                    show_sliced_info(const bool show);
+    //void                    update_sliced_info();
     void                    enable_buttons(bool enable);
     void                    set_btn_label(const ActionButtonType btn_type, const wxString& label) const;
     bool                    show_reslice(bool show) const;
@@ -203,6 +204,11 @@ public:
     void load_gcode(const wxString& filename);
     void reload_gcode_from_disk();
     void refresh_print();
+
+    // BBS
+    void show_object_info();
+    void show_sliced_info(const bool show);
+    void update_sliced_info();
 
     std::vector<size_t> load_files(const std::vector<boost::filesystem::path>& input_files, bool load_model = true, bool load_config = true, bool imperial_units = false);
     // To be called when providing a list of files to the GUI slic3r on command line.

@@ -2656,7 +2656,7 @@ void ObjectList::part_selection_changed()
     //wxGetApp().obj_manipul() ->UpdateAndShow(update_and_show_manipulations);
     wxGetApp().obj_settings()->UpdateAndShow(update_and_show_settings);
     wxGetApp().obj_layers()  ->UpdateAndShow(update_and_show_layers);
-    wxGetApp().sidebar().show_info_sizer();
+    wxGetApp().plater()->show_object_info();
 
     panel.Layout();
     panel.Thaw();

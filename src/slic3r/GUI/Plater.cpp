@@ -99,6 +99,7 @@
 #include "Gizmos/GLGizmoSimplify.hpp" // create suggestion notification
 
 // BBS
+#include "BBLStatusBar.hpp"
 #include "BitmapCache.hpp"
 
 #ifdef __APPLE__
@@ -765,8 +766,9 @@ struct Sidebar::priv
     //ObjectManipulation  *object_manipulation{ nullptr };
     ObjectSettings      *object_settings{ nullptr };
     ObjectLayers        *object_layers{ nullptr };
-    ObjectInfo *object_info;
-    SlicedInfo *sliced_info;
+    // BBS
+    //ObjectInfo *object_info;
+    //SlicedInfo *sliced_info;
 
     wxButton *btn_export_gcode;
     wxButton *btn_reslice;
@@ -1006,9 +1008,12 @@ Sidebar::Sidebar(Plater *parent)
     p->object_layers->Hide();
     p->sizer_params->Add(p->object_layers->get_sizer(), 0, wxEXPAND | wxTOP, margin_5);
 
+    // BBS
+#if 0
     // Info boxes
     p->object_info = new ObjectInfo(p->scrolled);
     p->sliced_info = new SlicedInfo(p->scrolled);
+#endif
 
     // Sizer in the scrolled area
     //BBS remove mode
@@ -1018,8 +1023,12 @@ Sidebar::Sidebar(Plater *parent)
         scrolled_sizer->Add(p->presets_panel, 0, wxEXPAND | wxLEFT, margin_5) :
         scrolled_sizer->Add(p->sizer_presets, 0, wxEXPAND | wxLEFT, margin_5);
     scrolled_sizer->Add(p->sizer_params, 1, wxEXPAND | wxLEFT, margin_5);
+
+    // BBS
+#if 0
     scrolled_sizer->Add(p->object_info, 0, wxEXPAND | wxTOP | wxLEFT, margin_5);
     scrolled_sizer->Add(p->sliced_info, 0, wxEXPAND | wxTOP | wxLEFT, margin_5);
+#endif
 
 #if 0
     // Buttons underneath the scrolled area
@@ -1303,7 +1312,8 @@ void Sidebar::msw_rescale()
     p->object_settings->msw_rescale();
     p->object_layers->msw_rescale();
 
-    p->object_info->msw_rescale();
+    // BBS
+    /p->object_info->msw_rescale();
 
     p->btn_send_gcode->msw_rescale();
 //    p->btn_eject_device->msw_rescale();
@@ -1447,233 +1457,6 @@ void Sidebar::update_objects_list_extruder_column(size_t extruders_count)
     obj_list()->update_objects_list_extruder_column(extruders_count);
 }
 
-void Sidebar::show_info_sizer()
-{
-    Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
-    ModelObjectPtrs objects = p->plater->model().objects;
-    int obj_idx = selection.get_object_idx();
-
-    if (m_mode < comExpert || objects.empty() || obj_idx < 0 || obj_idx == 1000 ||
-        objects[obj_idx]->volumes.empty() ||                                            // hack to avoid crash when deleting the last object on the bed
-        (selection.is_single_full_object() && objects[obj_idx]->instances.size()> 1) ||
-        !(selection.is_single_full_instance() || selection.is_single_volume())) {
-        p->object_info->Show(false);
-        return;
-    }
-
-    const ModelObject* model_object = objects[obj_idx];
-
-    int inst_idx = selection.get_instance_idx();
-    assert(inst_idx >= 0);
-
-    bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
-    double koef = imperial_units ? ObjectManipulation::mm_to_in : 1.0f;
-
-    ModelVolume* vol = nullptr;
-    Transform3d t;
-    if (selection.is_single_volume()) {
-        std::vector<int> obj_idxs, vol_idxs;
-        wxGetApp().obj_list()->get_selection_indexes(obj_idxs, vol_idxs);
-        if (vol_idxs.size() != 1)
-            // Case when this fuction is called between update selection in ObjectList and on Canvas
-            // Like after try to delete last solid part in object, the object is selected in ObjectLIst when just a part is still selected on Canvas
-            // see https://github.com/prusa3d/PrusaSlicer/issues/7408
-            return;
-        vol = model_object->volumes[vol_idxs[0]];
-        t = model_object->instances[inst_idx]->get_matrix() * vol->get_matrix();
-    }
-
-    Vec3d size = vol ? vol->mesh().transformed_bounding_box(t).size() : model_object->instance_bounding_box(inst_idx).size();
-    p->object_info->info_size->SetLabel(wxString::Format("%.2f x %.2f x %.2f", size(0)*koef, size(1)*koef, size(2)*koef));
-//    p->object_info->info_materials->SetLabel(wxString::Format("%d", static_cast<int>(model_object->materials_count())));
-
-    const TriangleMeshStats& stats = vol ? vol->mesh().stats() : model_object->get_object_stl_stats();
-
-    double volume_val = stats.volume;
-    if (vol)
-        volume_val *= std::fabs(t.matrix().block(0, 0, 3, 3).determinant());
-
-    p->object_info->info_volume->SetLabel(wxString::Format("%.2f", volume_val * pow(koef,3)));
-    p->object_info->info_facets->SetLabel(format_wxstr(_L_PLURAL("%1% (%2$d shell)", "%1% (%2$d shells)", stats.number_of_parts),
-                                                       static_cast<int>(model_object->facets_count()), stats.number_of_parts));
-
-    wxString info_manifold_label;
-    auto mesh_errors = obj_list()->get_mesh_errors_info(&info_manifold_label);
-    wxString tooltip = mesh_errors.tooltip;
-    p->object_info->update_warning_icon(mesh_errors.warning_icon_name);
-    p->object_info->info_manifold->SetLabel(info_manifold_label);
-    p->object_info->info_manifold->SetToolTip(tooltip);
-    p->object_info->manifold_warning_icon->SetToolTip(tooltip);
-
-    p->object_info->show_sizer(true);
-    if (vol || model_object->volumes.size() == 1)
-        p->object_info->info_icon->Hide();
-
-    if (p->plater->printer_technology() == ptSLA) {
-        for (auto item: p->object_info->sla_hidden_items)
-            item->Show(false);
-    }
-}
-
-void Sidebar::update_sliced_info_sizer()
-{
-    if (p->sliced_info->IsShown(size_t(0)))
-    {
-        if (p->plater->printer_technology() == ptSLA)
-        {
-            const SLAPrintStatistics& ps = p->plater->sla_print().print_statistics();
-            wxString new_label = _L("Used Material (ml)") + ":";
-            const bool is_supports = ps.support_used_material > 0.0;
-            if (is_supports)
-                new_label += format_wxstr("\n    - %s\n    - %s", _L_PLURAL("object", "objects", p->plater->model().objects.size()), _L("supports and pad"));
-
-            wxString info_text = is_supports ?
-                wxString::Format("%.2f \n%.2f \n%.2f", (ps.objects_used_material + ps.support_used_material) / 1000,
-                                                       ps.objects_used_material / 1000,
-                                                       ps.support_used_material / 1000) :
-                wxString::Format("%.2f", (ps.objects_used_material + ps.support_used_material) / 1000);
-            p->sliced_info->SetTextAndShow(siMateril_unit, info_text, new_label);
-
-            wxString str_total_cost = "N/A";
-
-            DynamicPrintConfig* cfg = wxGetApp().get_tab(Preset::TYPE_SLA_MATERIAL)->get_config();
-            if (cfg->option("bottle_cost")->getFloat() > 0.0 &&
-                cfg->option("bottle_volume")->getFloat() > 0.0)
-            {
-                double material_cost = cfg->option("bottle_cost")->getFloat() / 
-                                       cfg->option("bottle_volume")->getFloat();
-                str_total_cost = wxString::Format("%.3f", material_cost*(ps.objects_used_material + ps.support_used_material) / 1000);                
-            }
-            p->sliced_info->SetTextAndShow(siCost, str_total_cost, "Cost");
-
-            wxString t_est = std::isnan(ps.estimated_print_time) ? "N/A" : get_time_dhms(float(ps.estimated_print_time));
-            p->sliced_info->SetTextAndShow(siEstimatedTime, t_est, _L("Estimated printing time") + ":");
-
-            p->plater->get_notification_manager()->set_slicing_complete_print_time(_utf8("Estimated printing time: ") + boost::nowide::narrow(t_est), p->plater->is_sidebar_collapsed());
-
-            // Hide non-SLA sliced info parameters
-            p->sliced_info->SetTextAndShow(siFilament_m, "N/A");
-            p->sliced_info->SetTextAndShow(siFilament_mm3, "N/A");
-            p->sliced_info->SetTextAndShow(siFilament_g, "N/A");
-            p->sliced_info->SetTextAndShow(siWTNumbetOfToolchanges, "N/A");
-        }
-        else
-        {
-            //BBS: use current plater's print statistics
-            //const PrintStatistics& ps = p->plater->fff_print().print_statistics();
-            const PrintStatistics& ps = p->plater->get_partplate_list().get_current_fff_print().print_statistics();
-            const bool is_wipe_tower = ps.total_wipe_tower_filament > 0;
-
-            bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
-            double koef = imperial_units ? ObjectManipulation::in_to_mm : 1000.0;
-
-            wxString new_label = imperial_units ? _L("Used Filament (in)") : _L("Used Filament (m)");
-            if (is_wipe_tower)
-                new_label += format_wxstr(":\n    - %1%\n    - %2%", _L("objects"), _L("wipe tower"));
-
-            wxString info_text = is_wipe_tower ?
-                                wxString::Format("%.2f \n%.2f \n%.2f", ps.total_used_filament / koef,
-                                                (ps.total_used_filament - ps.total_wipe_tower_filament) / koef,
-                                                ps.total_wipe_tower_filament / koef) :
-                                wxString::Format("%.2f", ps.total_used_filament / koef);
-            p->sliced_info->SetTextAndShow(siFilament_m,    info_text,      new_label);
-
-            koef = imperial_units ? pow(ObjectManipulation::mm_to_in, 3) : 1.0f;
-            new_label = imperial_units ? _L("Used Filament (in³)") : _L("Used Filament (mm³)");
-            info_text = wxString::Format("%.2f", imperial_units ? ps.total_extruded_volume * koef : ps.total_extruded_volume);
-            p->sliced_info->SetTextAndShow(siFilament_mm3,  info_text,      new_label);
-
-            if (ps.total_weight == 0.0)
-                p->sliced_info->SetTextAndShow(siFilament_g, "N/A");
-            else {
-                new_label = _L("Used Filament (g)");
-                info_text = wxString::Format("%.2f", ps.total_weight);
-
-                const std::vector<std::string>& filament_presets = wxGetApp().preset_bundle->filament_presets;
-                const PresetCollection& filaments = wxGetApp().preset_bundle->filaments;
-
-                if (ps.filament_stats.size() > 1)
-                    new_label += ":";
-
-                for (auto filament : ps.filament_stats) {
-                    const Preset* filament_preset = filaments.find_preset(filament_presets[filament.first], false);
-                    if (filament_preset) {
-                        double filament_weight;
-                        if (ps.filament_stats.size() == 1)
-                            filament_weight = ps.total_weight;
-                        else {
-                            double filament_density = filament_preset->config.opt_float("filament_density", 0);
-                            filament_weight = filament.second * filament_density/* *2.4052f*/ * 0.001; // assumes 1.75mm filament diameter;
-
-                            new_label += "\n    - " + format_wxstr(_L("Filament at extruder %1%"), filament.first + 1);
-                            info_text += wxString::Format("\n%.2f", filament_weight);
-                        }
-
-                        double spool_weight = filament_preset->config.opt_float("filament_spool_weight", 0);
-                        if (spool_weight != 0.0) {
-                            new_label += "\n      " + _L("(including spool)");
-                            info_text += wxString::Format(" (%.2f)\n", filament_weight + spool_weight);
-                        }
-                    }
-                }
-
-                p->sliced_info->SetTextAndShow(siFilament_g, info_text, new_label);
-            }
-
-            new_label = _L("Cost");
-            if (is_wipe_tower)
-                new_label += format_wxstr(":\n    - %1%\n    - %2%", _L("objects"), _L("wipe tower"));
-
-            info_text = ps.total_cost == 0.0 ? "N/A" :
-                        is_wipe_tower ?
-                        wxString::Format("%.2f \n%.2f \n%.2f", ps.total_cost,
-                                            (ps.total_cost - ps.total_wipe_tower_cost),
-                                            ps.total_wipe_tower_cost) :
-                        wxString::Format("%.2f", ps.total_cost);
-            p->sliced_info->SetTextAndShow(siCost, info_text,      new_label);
-
-            if (ps.estimated_normal_print_time == "N/A" && ps.estimated_silent_print_time == "N/A")
-                p->sliced_info->SetTextAndShow(siEstimatedTime, "N/A");
-            else {
-                info_text = "";
-                new_label = _L("Estimated printing time") + ":";
-                if (ps.estimated_normal_print_time != "N/A") {
-                    new_label += format_wxstr("\n   - %1%", _L("normal mode"));
-                    info_text += format_wxstr("\n%1%", short_time(ps.estimated_normal_print_time));
-
-                    p->plater->get_notification_manager()->set_slicing_complete_print_time(_utf8("Estimated printing time: ") + ps.estimated_normal_print_time, p->plater->is_sidebar_collapsed());
-
-                }
-                if (ps.estimated_silent_print_time != "N/A") {
-                    new_label += format_wxstr("\n   - %1%", _L("stealth mode"));
-                    info_text += format_wxstr("\n%1%", short_time(ps.estimated_silent_print_time));
-                }
-                p->sliced_info->SetTextAndShow(siEstimatedTime, info_text, new_label);
-            }
-
-            // if there is a wipe tower, insert number of toolchanges info into the array:
-            p->sliced_info->SetTextAndShow(siWTNumbetOfToolchanges, is_wipe_tower ? wxString::Format("%.d", ps.total_toolchanges) : "N/A");
-
-            // Hide non-FFF sliced info parameters
-            p->sliced_info->SetTextAndShow(siMateril_unit, "N/A");
-        }
-    }
-
-    Layout();
-}
-
-void Sidebar::show_sliced_info_sizer(const bool show)
-{
-    wxWindowUpdateLocker freeze_guard(this);
-
-    p->sliced_info->Show(show);
-    if (show)
-        update_sliced_info_sizer();
-
-    Layout();
-    p->scrolled->Refresh();
-}
-
 void Sidebar::enable_buttons(bool enable)
 {
     p->btn_reslice->Enable(enable);
@@ -1758,8 +1541,8 @@ void Sidebar::update_ui_from_settings()
 {
     // BBS
     //p->object_manipulation->update_ui_from_settings();
-    show_info_sizer();
-    update_sliced_info_sizer();
+    p->plater->show_object_info();
+    p->plater->update_sliced_info();
     // update Cut gizmo, if it's open
     p->plater->canvas3D()->update_gizmos_on_off_state();
     p->plater->set_current_canvas_as_dirty();
@@ -1822,6 +1605,9 @@ struct Plater::priv
     MainFrame *main_frame;
 
     MenuFactory menus;
+
+    // BBS
+    std::shared_ptr<BBLStatusBar> m_statusbar;
 
     // Data
     Slic3r::DynamicPrintConfig *config;        // FIXME: leak?
@@ -2008,6 +1794,11 @@ struct Plater::priv
     //bool init_view_toolbar();
     bool init_collapse_toolbar();
 
+    // BBS
+    void show_object_info();
+    void show_sliced_info(const bool show);
+    void update_sliced_info();
+
     void update_preview_bottom_toolbar();
     void update_preview_moves_slider();
     void enable_preview_moves_slider(bool enable);
@@ -2018,7 +1809,9 @@ struct Plater::priv
     void apply_free_camera_correction(bool apply = true);
     void update_ui_from_settings();
     void update_main_toolbar_tooltips();
-//   std::shared_ptr<ProgressStatusBar> statusbar();
+    // BBS
+    //std::shared_ptr<ProgressStatusBar> statusbar();
+    std::shared_ptr<BBLStatusBar> statusbar();
     std::string get_config(const std::string &key) const;
 
     std::vector<size_t> load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool used_inches = false);
@@ -2264,6 +2057,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , m_project_filename(wxEmptyString)
     //BBS :partplatelist construction
     , partplate_list(this->q, &model)
+    // BBS
+    , m_statusbar(nullptr)
 {
     this->q->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
@@ -2320,7 +2115,19 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     update();
 
-    auto *hsizer = new wxBoxSizer(wxHORIZONTAL);
+    // BBS
+    wxPanel* statusbar_panel = nullptr;
+    m_statusbar = std::make_shared<BBLStatusBar>(q);
+    m_statusbar->set_font(GUI::wxGetApp().normal_font());
+    if (wxGetApp().is_editor()) {
+        statusbar_panel = m_statusbar->get_panel();
+    }
+    m_statusbar->set_status_text(_L("Version") + " " +
+        SLIC3R_VERSION + " - " +
+        _L("Remember to check for updates at https://github.com/prusa3d/PrusaSlicer/releases"));
+
+    auto* hsizer = new wxBoxSizer(wxHORIZONTAL);
+    auto* vsizer = new wxBoxSizer(wxVERTICAL);
 
     // BBS: move sidebar to left side
     hsizer->Add(sidebar, 0, wxEXPAND | wxLEFT | wxRIGHT, 0);
@@ -2328,7 +2135,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     panel_sizer->Add(view3D, 1, wxEXPAND | wxALL, 0);
     panel_sizer->Add(preview, 1, wxEXPAND | wxALL, 0);
     panel_sizer->Add(assemble_view, 1, wxEXPAND | wxALL, 0);
-    hsizer->Add(panel_sizer, 1, wxEXPAND | wxALL, 0);
+    vsizer->Add(panel_sizer, 1, wxEXPAND | wxALL, 0);
+    vsizer->Add(statusbar_panel, 0, wxEXPAND | wxALL, 0);
+    hsizer->Add(vsizer, 1, wxEXPAND | wxALL, 0);
 
     
     //hsizer->Add(sidebar, 0, wxEXPAND | wxLEFT | wxRIGHT, 0);
@@ -2675,11 +2484,11 @@ void Plater::priv::update_main_toolbar_tooltips()
     view3D->get_canvas3d()->update_tooltip_for_settings_item_in_main_toolbar();
 }
 
-//std::shared_ptr<ProgressStatusBar> Plater::priv::statusbar()
-//{
-//      return nullptr;
-//    return main_frame->m_statusbar;
-//}
+// BBS
+std::shared_ptr<BBLStatusBar> Plater::priv::statusbar()
+{
+    return m_statusbar;
+}
 
 std::string Plater::priv::get_config(const std::string &key) const
 {
@@ -3372,8 +3181,9 @@ void Plater::priv::delete_all_objects_from_model()
     sidebar->obj_list()->delete_all_objects_from_list();
     object_list_changed();
 
+    // BBS
     // The hiding of the slicing results, if shown, is not taken care by the background process, so we do it here
-    sidebar->show_sliced_info_sizer(false);
+    show_sliced_info(false);
 
     model.custom_gcode_per_print_z.gcodes.clear();
 }
@@ -3588,9 +3398,10 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         view3D->get_canvas3d()->reset_sequential_print_clearance();
 
     if (invalidated == Print::APPLY_STATUS_INVALIDATED) {
+        // BBS
         // Some previously calculated data on the Print was invalidated.
         // Hide the slicing results, as the current slicing status is no more valid.
-        sidebar->show_sliced_info_sizer(false);
+        this->show_sliced_info(false);
         //BBS: update current plater's slicer result to invalid
         this->background_process.get_current_plate()->update_slice_result_valid_state(false);
         // Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
@@ -4596,9 +4407,13 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     bool ready_to_slice = !this->partplate_list.get_curr_plate()->is_slice_result_valid();
 
     if (!ready_to_slice)
-        this->sidebar->show_sliced_info_sizer(evt.success());
+        // BBS
+        this->show_sliced_info(evt.success());
 
+    // BBS
+#if 0
     this->sidebar->show_sliced_info_sizer(evt.success());
+#endif
 
     // This updates the "Slice now", "Export G-code", "Arrange" buttons status.
     // Namely, it refreshes the "Out of print bed" property of all the ModelObjects, and it enables
@@ -5860,6 +5675,22 @@ void Plater::refresh_print()
     p->preview->refresh_print();
 }
 
+// BBS
+void Plater::show_object_info()
+{
+    p->show_object_info();
+}
+
+void Plater::show_sliced_info(const bool show)
+{
+    p->show_sliced_info(show);
+}
+
+void Plater::update_sliced_info()
+{
+    p->update_sliced_info();
+}
+
 std::vector<size_t> Plater::load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool imperial_units /*= false*/) { return p->load_files(input_files, load_model, load_config, imperial_units); }
 
 // To be called when providing a list of files to the GUI slic3r on command line.
@@ -5950,6 +5781,112 @@ void ProjectDropDialog::on_dpi_changed(const wxRect& suggested_rect)
     Fit();
     Refresh();
 }
+
+// BBS
+void Plater::priv::show_object_info()
+{
+    // BBS
+    if (!q->is_single_full_object_selection() ||
+        q->model().objects.empty()) {
+        m_statusbar->set_object_info("");
+        return;
+    }
+
+    int obj_idx = q->get_selected_object_idx();
+
+    const ModelObject* model_object = q->model().objects[obj_idx];
+    // hack to avoid crash when deleting the last object on the bed
+    if (model_object->volumes.empty())
+    {
+        m_statusbar->set_object_info("");
+        return;
+    }
+
+    wxString object_info;
+    bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
+    double koef = imperial_units ? ObjectManipulation::mm_to_in : 1.0f;
+
+    auto size = model_object->bounding_box().size();
+    object_info += wxString::Format("Size: %.2f x %.2f x %.2f   ", size(0) * koef, size(1) * koef, size(2) * koef);
+    //object_info += wxString::Format("Material: %d   ", static_cast<int>(model_object->materials_count()));
+    const auto& stats = model_object->get_object_stl_stats();//model_object->volumes.front()->mesh.stl.stats;
+    object_info += wxString::Format("Volume: %.2f", stats.volume * pow(koef, 3));
+    //object_info += wxString::Format(_L("%d (%d shells)"), static_cast<int>(model_object->facets_count()), stats.number_of_parts);
+
+    //int errors = stats.degenerate_facets + stats.edges_fixed + stats.facets_removed +
+    //    stats.facets_added + stats.facets_reversed + stats.backwards_edges;
+
+    //object_info += errors > 0 ? _L("No") : _L("Yes");
+
+    m_statusbar->set_object_info(object_info);
+}
+
+void Plater::priv::update_sliced_info()
+{
+    // BBS
+    wxString sliced_info;
+    if (q->printer_technology() == ptSLA)
+    {
+        // TODO:
+    }
+    else
+    {
+        //BBS: use current plater's print statistics
+        //const PrintStatistics& ps = p->plater->fff_print().print_statistics();
+        const PrintStatistics& ps = q->get_partplate_list().get_current_fff_print().print_statistics();
+        const bool is_wipe_tower = ps.total_wipe_tower_filament > 0;
+
+        bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
+        double koef = imperial_units ? ObjectManipulation::in_to_mm : 1000.0;
+        sliced_info += _L("Used Filament: ");
+        sliced_info += wxString::Format("%.2f", ps.total_used_filament / /*1000*/koef);
+        sliced_info += imperial_units ? _L("(in)") : _L("(m)");
+        sliced_info += "   ";
+
+#if 0
+        koef = imperial_units ? pow(ObjectManipulation::mm_to_in, 3) : 1.0f;
+        sliced_info += wxString::Format("%.2f", imperial_units ? ps.total_extruded_volume * koef : ps.total_extruded_volume);
+        sliced_info += imperial_units ? _L("(in³)") : _L("(mm³)");
+        sliced_info += "   ";
+#endif
+
+        if (ps.total_weight != 0.0)
+        {
+            sliced_info += wxString::Format("%.2f", ps.total_weight);
+            sliced_info += _L("(g)");
+            sliced_info += "   ";
+            // TODO: add multiple extruder filament costs
+        }
+
+#if 0
+        sliced_info += _L("Cost:");
+        sliced_info += ps.total_cost == 0.0 ? "N/A" : wxString::Format("%.2f", ps.total_cost);
+        sliced_info += "   ";
+#endif
+        sliced_info += _L("Print time:");
+        if (ps.estimated_normal_print_time == "N/A") {
+            sliced_info += "N/A";
+        }
+        else {
+            sliced_info += format_wxstr("%1%", short_time(ps.estimated_normal_print_time));
+        }
+    }
+    m_statusbar->set_slice_info(sliced_info);
+}
+
+void Plater::priv::show_sliced_info(const bool show)
+{
+    //wxWindowUpdateLocker freeze_guard(this);
+
+    // BBS
+    if (!show) {
+        m_statusbar->set_slice_info("");
+    }
+    else {
+        update_sliced_info();
+    }
+}
+
 
 bool Plater::load_files(const wxArrayString& filenames)
 {
@@ -6777,6 +6714,9 @@ void Plater::reslice()
         reset_gcode_toolpaths();
 
     p->preview->reload_print(!clean_gcode_toolpaths);
+
+    // BBS
+    //p->statusbar()->start_busy();
 }
 
 void Plater::reslice_SLA_supports(const ModelObject &object, bool postpone_error_messages)
@@ -7038,7 +6978,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             this->set_printer_technology(config.opt_enum<PrinterTechnology>(opt_key));
             // print technology is changed, so we should to update a search list
             p->sidebar->update_searcher();
-            p->sidebar->show_sliced_info_sizer(false);
+            p->show_sliced_info(false);
             p->reset_gcode_toolpaths();
             p->view3D->get_canvas3d()->reset_sequential_print_clearance();
             //BBS: invalid all the slice results
@@ -7563,20 +7503,21 @@ int Plater::select_plate(int plate_index)
             if (invalidated & PrintBase::APPLY_STATUS_INVALIDATED)
             {
                 part_plate->update_slice_result_valid_state(false);
-                p->sidebar->show_sliced_info_sizer(false);
+                p->show_sliced_info(false);
                 // BBS
                 //p->show_action_buttons(true);
             }
             else
             {
-                p->sidebar->show_sliced_info_sizer(true);
+                p->show_sliced_info(true);
                 // BBS
                 //p->show_action_buttons(false);
             }
         }
         else
         {
-            p->sidebar->show_sliced_info_sizer(false);
+            // BBS
+            p->show_sliced_info(false);
             //check inside status
             bool model_fits = p->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
             //BBS: add partplate logic
@@ -7636,20 +7577,21 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
                 if (invalidated & PrintBase::APPLY_STATUS_INVALIDATED)
                 {
                     part_plate->update_slice_result_valid_state(false);
-                    p->sidebar->show_sliced_info_sizer(false);
+
                     // BBS
+                    p->show_sliced_info(false);
                     //p->show_action_buttons(true);
                 }
                 else
                 {
-                    p->sidebar->show_sliced_info_sizer(true);
                     // BBS
+                    p->show_sliced_info(true);
                     //p->show_action_buttons(false);
                 }
             }
             else
             {
-                p->sidebar->show_sliced_info_sizer(false);
+                p->show_sliced_info(false);
                 //check inside status
                 bool model_fits = p->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
                 //BBS: add partplate logic
