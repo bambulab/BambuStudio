@@ -300,6 +300,7 @@ private:
     PrintObject&    m_object;
     SlicingParameters m_slicing_params;
     size_t          m_raft_layers;
+    size_t          m_highest_overhang_layer;
     std::vector<std::vector<MinimumSpanningTree>> m_spanning_trees;
     std::vector< std::unordered_map<Line, bool, LineHash>> m_mst_line_x_layer_contour_caches;
 

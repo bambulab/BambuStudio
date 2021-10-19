@@ -1028,6 +1028,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("PET");
     def->enum_values.push_back("ABS");
     def->enum_values.push_back("ASA");
+    def->enum_values.push_back("TPU");//BBS
     def->enum_values.push_back("FLEX");
     def->enum_values.push_back("HIPS");
     def->enum_values.push_back("EDGE");

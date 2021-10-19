@@ -71,6 +71,11 @@ enum TreeSupportStage {
     STAGE_DROP_DOWN_NODES,
     STAGE_DRAW_CIRCLES,
     STAGE_GENERATE_TOOLPATHS,
+    STAGE_MinimumSpanningTree,
+    STAGE_GET_AVOIDANCE,
+    STAGE_projection_onto_ex,
+    STAGE_get_collision,
+    STAGE_intersection_ln,
     NUM_STAGES
 };
 
@@ -78,7 +83,9 @@ class TreeSupportProfiler
 {
 public:
     uint32_t stage_durations[NUM_STAGES];
-    
+    uint32_t stage_index = 0;
+    boost::posix_time::ptime tic_time;
+    boost::posix_time::ptime toc_time;
 
     TreeSupportProfiler()
     {
@@ -103,18 +110,36 @@ public:
         boost::posix_time::ptime time = boost::posix_time::microsec_clock::local_time();
         stage_durations[stage] = (time - m_stage_start_times[stage]).total_milliseconds();
     }
+
+    void tic() { tic_time = boost::posix_time::microsec_clock::local_time(); }
+    void toc() { toc_time = boost::posix_time::microsec_clock::local_time(); }
+    void stage_add(TreeSupportStage stage, bool do_toc = false)
+    {
+        if (stage > NUM_STAGES)
+            return;
+        if(do_toc)
+            toc_time = boost::posix_time::microsec_clock::local_time();
+        stage_durations[stage] += (toc_time - tic_time).total_milliseconds();
+    }
     
     std::string report()
     {
         std::stringstream ss;
         ss << "STAGE_DETECT_OVERHANGS: " << stage_durations[STAGE_DETECT_OVERHANGS] << "; STAGE_GENERATE_CONTACT_NODES: " << stage_durations[STAGE_GENERATE_CONTACT_NODES]
             << "; STAGE_DROP_DOWN_NODES: " << stage_durations[STAGE_DROP_DOWN_NODES] << "; STAGE_DRAW_CIRCLES: " << stage_durations[STAGE_DRAW_CIRCLES]
-            << "; STAGE_GENERATE_TOOLPATHS: " << stage_durations[STAGE_GENERATE_TOOLPATHS];
+            << "; STAGE_GENERATE_TOOLPATHS: " << stage_durations[STAGE_GENERATE_TOOLPATHS]
+            << "; STAGE_MinimumSpanningTree: " << stage_durations[STAGE_MinimumSpanningTree]
+            << "; STAGE_GET_AVOIDANCE: " << stage_durations[STAGE_GET_AVOIDANCE]
+            << "; STAGE_projection_onto_ex: " << stage_durations[STAGE_projection_onto_ex]
+            << "; STAGE_get_collision: " << stage_durations[STAGE_get_collision]
+            << "; STAGE_intersection_ln: " << stage_durations[STAGE_intersection_ln];
+
         return ss.str();
     }
 private:
     boost::posix_time::ptime m_stage_start_times[NUM_STAGES];
 };
+TreeSupportProfiler profiler;
 
 Lines spanning_tree_to_lines(const std::vector<MinimumSpanningTree>& spanning_trees)
 {
@@ -516,11 +541,13 @@ static Point find_closest_ex(Point from, const ExPolygons& polygons)
     double min_dist2 = std::numeric_limits<double>::max();
 
     for (const ExPolygon &poly : polygons) {
-        const Point* candidate = poly.contour.closest_point(from);
-        double dist2 = vsize2_with_unscale(*candidate - from);
-        if (dist2 < min_dist2) {
-            closest_pt = *candidate;
-            min_dist2 = dist2;
+        for (int i = 0; i < poly.num_contours(); i++) {
+            const Point* candidate = poly.contour_or_hole(i).closest_point(from);
+            double dist2 = vsize2_with_unscale(*candidate - from);
+            if (dist2 < min_dist2) {
+                closest_pt = *candidate;
+                min_dist2 = dist2;
+            }
         }
     }
 
@@ -552,8 +579,10 @@ static bool is_inside_ex(const ExPolygons &polygons, const Point &pt)
 
 Point projection_onto_ex(const ExPolygons& polygons, Point from)
 {
+    profiler.tic();
     Point projected_pt;
     double min_dist = std::numeric_limits<double>::max();
+#if 0
     for (auto poly : polygons) {
         for (int i = 0; i < poly.num_contours(); i++) {
             Point p = from.projection_onto(poly.contour_or_hole(i));
@@ -564,6 +593,33 @@ Point projection_onto_ex(const ExPolygons& polygons, Point from)
             }
         }
     }
+#else
+    // simplified method: first find the nearest vertex, then project onto the 2 lines of the vertex
+    Point nearest = find_closest_ex(from, polygons);
+    for (auto poly : polygons) {
+        for (int i = 0; i < poly.num_contours(); i++) {
+            auto& points = poly.contour_or_hole(i).points;
+            int nPoints = points.size();
+            for (int i = 0; i < nPoints;i++) {
+                if (points[i] == nearest) {
+                    Point p = from.projection_onto(Line(nearest, points[(i - 1 + nPoints) % nPoints]));
+                    double dist = (from - p).cast<double>().squaredNorm();
+                    if (dist < min_dist) {
+                        projected_pt = p;
+                        min_dist = dist;
+                    }
+                    p = from.projection_onto(Line(nearest, points[(i + 1 + nPoints) % nPoints]));
+                    dist = (from - p).cast<double>().squaredNorm();
+                    if (dist < min_dist) {
+                        projected_pt = p;
+                        min_dist = dist;
+                    }
+                }
+            }            
+        }
+    }
+#endif
+    profiler.stage_add(STAGE_projection_onto_ex, true);
     return projected_pt;
 }
 
@@ -704,6 +760,7 @@ void TreeSupport::detect_object_overhangs()
                         }
                     }
 
+                    // detect sharp tail and add more supports around
                     auto lower_layer_offseted = offset_ex(lower_polys, scale_(lower_layer_offset));
                     if (layer_nr > 1) {
                         TreeSupportLayer* ts_layer_lower = m_object.get_tree_support_layer(layer_nr + m_raft_layers - 1);
@@ -736,7 +793,7 @@ void TreeSupport::detect_object_overhangs()
                         poly.simplify(scale_(radius_sample_resolution), &ts_layer->overhang_areas);
                     }
 
-                    {
+                    {  // update well supported regions
                         ExPolygons regions_well_supported2;
                         // regions intersects with lower regions_well_supported are also well supported
                         for (auto region : layer->lslices) {
@@ -1318,7 +1375,6 @@ void TreeSupport::generate_support_areas()
     if (!tree_support_enable)
         return;
 
-    TreeSupportProfiler profiler;
     std::vector<std::vector<Node*>> contact_nodes(m_object.layers().size()); //Generate empty layers to store the points in.
     m_ts_data = m_object.alloc_tree_support_preview_cache();
 
@@ -1365,6 +1421,21 @@ void TreeSupport::generate_support_areas()
     profiler.stage_finish(STAGE_GENERATE_TOOLPATHS);
 
     BOOST_LOG_TRIVIAL(debug) << "tree support time " << profiler.report();
+}
+
+inline coordf_t calc_branch_radius(coordf_t base_radius, size_t layers_to_top, size_t tip_layers, double diameter_angle_scale_factor)
+{
+    double radius;
+    if ((layers_to_top + 1) > tip_layers)
+    {
+        radius = base_radius + base_radius * (layers_to_top + 1) * diameter_angle_scale_factor;
+    }
+    else
+    {
+        radius = base_radius * (layers_to_top + 1) / tip_layers;
+    }
+    radius = std::min(radius, 10.0);
+    return radius;
 }
 
 void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_nodes)
@@ -1427,9 +1498,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 {
                     const Node& node = *p_node;
                     Polygon circle;
-                    size_t layers_to_top = node.distance_to_top;// std::min(node.distance_to_top, (size_t)300);
-                    double scale = static_cast<double>(layers_to_top + 1) / tip_layers;
-                    scale = layers_to_top < tip_layers ? (0.5 + scale / 2) : (1 + static_cast<double>(layers_to_top - tip_layers) * diameter_angle_scale_factor);
+                    double scale = calc_branch_radius(branch_radius, node.distance_to_top, tip_layers, diameter_angle_scale_factor) / branch_radius / 2;
                     for (auto iter = branch_circle.points.begin(); iter != branch_circle.points.end(); iter++)
                     {
                         Point corner = (*iter) * scale;
@@ -1557,19 +1626,6 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
         });
 }
 
-inline coordf_t calc_branch_radius(coordf_t base_radius, size_t layers_to_top, size_t tip_layers, double diameter_angle_scale_factor)
-{
-    //layers_to_top = std::min(layers_to_top, (size_t)300);
-    if ((layers_to_top + 1) > tip_layers)
-    {
-        return base_radius + base_radius * (layers_to_top + 1) * diameter_angle_scale_factor;
-    }
-    else
-    {
-        return base_radius * (layers_to_top + 1) / tip_layers;
-    }
-}
-
 void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
 {
     const PrintObjectConfig &config = m_object.config();
@@ -1589,6 +1645,44 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
     std::unordered_set<Node*> to_free_node_set;
     m_spanning_trees.resize(contact_nodes.size());
     //m_mst_line_x_layer_contour_caches.resize(contact_nodes.size());
+
+    {// get outlines below and avoidance area using tbb
+        // get all the possible radiis
+        std::vector<std::set<coordf_t> > all_layer_radiis(m_highest_overhang_layer+1);
+        std::vector<std::set<size_t> > all_layer_node_dist(m_highest_overhang_layer+1);
+        for (size_t layer_nr = m_highest_overhang_layer; layer_nr > 0; layer_nr--)
+        {
+            auto& layer_contact_nodes = contact_nodes[layer_nr];
+            auto& layer_radiis = all_layer_radiis[layer_nr];
+            auto& layer_node_dist = all_layer_node_dist[layer_nr];
+            if (layer_contact_nodes.empty() == false) {
+                for (Node* p_node : layer_contact_nodes) {
+                    layer_node_dist.emplace(p_node->distance_to_top);
+                }
+            }
+            if (layer_nr < m_highest_overhang_layer) {
+                for (auto node_dist : all_layer_node_dist[layer_nr + 1])
+                    layer_node_dist.emplace(node_dist+1);
+            }
+            for (auto node_dist : layer_node_dist) {
+                layer_radiis.emplace(calc_branch_radius(branch_radius, node_dist, tip_layers, diameter_angle_scale_factor));
+            }
+        }
+        // parallel pre-compute avoidance
+        tbb::parallel_for(tbb::blocked_range<size_t>(1, m_highest_overhang_layer),
+            [&](const tbb::blocked_range<size_t>& range) {
+                for (size_t layer_nr = range.begin(); layer_nr < range.end(); layer_nr++) {
+                    for (auto node_dist : all_layer_node_dist[layer_nr])
+                    {
+                        m_ts_data->get_avoidance(0, layer_nr - 1);
+                        m_ts_data->get_avoidance(calc_branch_radius(branch_radius, node_dist, tip_layers, diameter_angle_scale_factor), layer_nr - 1);
+                    }
+                }
+            });
+
+        BOOST_LOG_TRIVIAL(debug) << "before m_avoidance_cache.size()=" << m_ts_data->m_avoidance_cache.size();
+    }
+
     for (size_t layer_nr = contact_nodes.size() - 1; layer_nr > 0; layer_nr--) //Skip layer 0, since we can't drop down the vertices there.
     {
         auto& layer_contact_nodes = contact_nodes[layer_nr];
@@ -1653,6 +1747,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
         }
 
         //Create a MST for every part.
+        profiler.tic();
         //std::vector<MinimumSpanningTree>& spanning_trees = m_spanning_trees[layer_nr];
         std::vector<MinimumSpanningTree> spanning_trees;
         for (const std::unordered_map<Point, Node*, PointHash>& group : nodes_per_part)
@@ -1664,11 +1759,11 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
             }
             spanning_trees.emplace_back(points_to_buildplate);
         }
+        profiler.stage_add(STAGE_MinimumSpanningTree,true);
 
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
         coordf_t branch_radius_temp = 0;
         coordf_t max_y = std::numeric_limits<coordf_t>::min();
-
         draw_layer_mst(layer_nr, spanning_trees, m_object.get_layer(layer_nr)->lslices);
 #endif
         for (size_t group_index = 0; group_index < nodes_per_part.size(); group_index++)
@@ -1795,10 +1890,12 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                                 continue;
                         }
                         else {
+                            profiler.tic();
                             Line ln(neighbour, node.position);
                             Lines pls_intersect = intersection_ln(ln, layer_contours);
                             mst_line_x_layer_contour_cache.insert({ {node.position, neighbour}, !pls_intersect.empty() });
                             mst_line_x_layer_contour_cache.insert({ ln, !pls_intersect.empty() });
+                            profiler.stage_add(STAGE_intersection_ln, true);
                             if (!pls_intersect.empty())
                                 continue;
                         }
@@ -1900,6 +1997,8 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
         }
     }
 
+    BOOST_LOG_TRIVIAL(debug) << "after m_avoidance_cache.size()=" << m_ts_data->m_avoidance_cache.size();
+
     for (Node *node : to_free_node_set)
     {
         delete node;
@@ -1947,11 +2046,14 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
         half_overhang_distance = tan((double)config.support_material_threshold.value * M_PI / 180.0) * layer_height / 2;
     }
 
+    m_highest_overhang_layer = 0;
     for (size_t layer_nr = 1; layer_nr < m_object.layers().size() - z_distance_top_layers; layer_nr++)
     {
         const ExPolygons &overhang = m_object.get_tree_support_layer(layer_nr + m_raft_layers + z_distance_top_layers)->overhang_areas;
         if (overhang.empty())
             continue;
+        
+        m_highest_overhang_layer = std::max(m_highest_overhang_layer, layer_nr);
 
         for (const ExPolygon &overhang_part : overhang)
         {
@@ -2027,32 +2129,25 @@ TreeSupportData::TreeSupportData(const PrintObject &object, coordf_t xy_distance
 
 const ExPolygons& TreeSupportData::get_collision(coordf_t radius, size_t layer_nr) const
 {
+    profiler.tic();
     radius = ceil_radius(radius);
     RadiusLayerPair key{radius, layer_nr};
     const auto it = m_collision_cache.find(key);
-    if (it != m_collision_cache.end())
-    {
-        return it->second;
-    }
-    else
-    {
-        return calculate_collision(key);
-    }
+    const ExPolygons& collision = it != m_collision_cache.end() ? it->second : calculate_collision(key);
+    profiler.stage_add(STAGE_get_collision, true);
+    return collision;
 }
 
 const ExPolygons& TreeSupportData::get_avoidance(coordf_t radius, size_t layer_nr) const
 {
+    profiler.tic();
     radius = ceil_radius(radius);
     RadiusLayerPair key{radius, layer_nr};
     const auto it = m_avoidance_cache.find(key);
-    if (it != m_avoidance_cache.end())
-    {
-        return it->second;
-    }
-    else
-    {
-        return calculate_avoidance(key);
-    }
+    const ExPolygons& avoidance = it != m_avoidance_cache.end() ? it->second : calculate_avoidance(key);
+    
+    profiler.stage_add(STAGE_GET_AVOIDANCE, true);
+    return avoidance;
 }
 
 Polygons TreeSupportData::get_contours(size_t layer_nr) const
@@ -2077,6 +2172,7 @@ Polygons TreeSupportData::get_contours_with_holes(size_t layer_nr) const
 
 coordf_t TreeSupportData::ceil_radius(coordf_t radius) const
 {
+#if 0
     size_t factor = (size_t)(radius / m_radius_sample_resolution);
     coordf_t remains = radius - m_radius_sample_resolution * factor;
     if (remains > EPSILON) {
@@ -2085,6 +2181,10 @@ coordf_t TreeSupportData::ceil_radius(coordf_t radius) const
     else {
         return radius;
     }
+#else
+    coordf_t resolution = m_radius_sample_resolution;
+    return ceil(radius / resolution) * resolution;
+#endif
 }
 
 const ExPolygons& TreeSupportData::calculate_collision(const RadiusLayerPair& key) const
