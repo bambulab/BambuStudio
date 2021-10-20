@@ -75,8 +75,9 @@ bool View3D::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig
     m_canvas->enable_selection(true);
     m_canvas->enable_main_toolbar(true);
     //BBS: GUI refactor: GLToolbar
-    m_canvas->enable_print_flow_toolbar(true);
+    m_canvas->enable_print_flow_toolbar(false);
     m_canvas->enable_print_select_toolbar(false);
+    m_canvas->enable_assemble_view_toolbar(true);
     m_canvas->enable_undoredo_toolbar(false);
     m_canvas->enable_labels(true);
     m_canvas->enable_slope(true);
@@ -224,7 +225,8 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Model* model)
     m_canvas->enable_dynamic_background(true);
     //BBS: GUI refactor: GLToolbar
     m_canvas->enable_print_flow_toolbar(false);
-    m_canvas->enable_print_select_toolbar(true);
+    m_canvas->enable_print_select_toolbar(false);
+    m_canvas->enable_assemble_view_toolbar(false);
 
     m_layers_slider_sizer = create_layers_slider_sizer();
 
@@ -1126,6 +1128,7 @@ bool AssembleView::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrint
     //BBS: GUI refactor: GLToolbar
     m_canvas->enable_print_flow_toolbar(false);
     m_canvas->enable_print_select_toolbar(false);
+    m_canvas->enable_assemble_view_toolbar(false);
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);

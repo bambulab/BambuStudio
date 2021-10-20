@@ -2283,14 +2283,16 @@ void GUI_App::add_config_menu(wxMenu *menu)
             break;
         case ConfigMenuPreferences:
         {
-            bool app_layout_changed = false;
+            //BBS GUI refactor: remove unuse layout logic
+            //bool app_layout_changed = false;
             {
                 // the dialog needs to be destroyed before the call to recreate_GUI()
                 // or sometimes the application crashes into wxDialogBase() destructor
                 // so we put it into an inner scope
                 PreferencesDialog dlg(mainframe);
                 dlg.ShowModal();
-                app_layout_changed = dlg.settings_layout_changed();
+                //BBS GUI refactor: remove unuse layout logic
+                //app_layout_changed = dlg.settings_layout_changed();
                 if (dlg.seq_top_layer_only_changed())
                     this->plater_->refresh_print();
 
@@ -2311,12 +2313,13 @@ void GUI_App::add_config_menu(wxMenu *menu)
                 }
 #endif // _WIN32
             }
-            if (app_layout_changed) {
+            //BBS GUI refactor: remove unuse layout logic
+            /*if (app_layout_changed) {
                 // hide full main_sizer for mainFrame
                 mainframe->GetSizer()->Show(false);
                 mainframe->update_layout();
                 mainframe->select_tab(size_t(0));
-            }
+            }*/
             break;
         }
         case ConfigMenuLanguage:

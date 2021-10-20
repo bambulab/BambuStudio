@@ -494,10 +494,11 @@ private:
     Mouse m_mouse;
     GLGizmosManager m_gizmos;
     //BBS: GUI refactor: GLToolbar
-    GLToolbar m_main_toolbar;
+    mutable GLToolbar m_main_toolbar;
     GLToolbar m_undoredo_toolbar;
     mutable GLToolbar m_print_flow_toolbar;
     mutable GLToolbar m_print_select_toolbar;
+    mutable GLToolbar m_assemble_view_toolbar;
     mutable int m_print_select{ ePrintAll };
     mutable int m_slice_select{ eSliceAll };
     //BBS: add canvas type for assemble view usage
@@ -753,6 +754,7 @@ public:
     //BBS: GUI refactor: GLToolbar
     void enable_print_flow_toolbar(bool enable);
     void enable_print_select_toolbar(bool enable);
+    void enable_assemble_view_toolbar(bool enable);
     void enable_undoredo_toolbar(bool enable);
     void enable_dynamic_background(bool enable);
     void enable_labels(bool enable) { m_labels.enable(enable); }
@@ -769,6 +771,8 @@ public:
     //BBS: GUI refactor: GLToolbar&&gizmo
     float get_main_toolbar_height() { return m_main_toolbar.get_height();}
     float get_main_toolbar_width() { return m_main_toolbar.get_width();}
+    float get_assemble_view_toolbar_width() { return m_assemble_view_toolbar.get_width(); }
+    float get_assemble_view_toolbar_height() { return m_assemble_view_toolbar.get_height(); }
 
     void update_volumes_colors_by_extruder();
 
@@ -963,6 +967,7 @@ private:
     //BBS: GUI refactor: GLToolbar
     bool _init_print_flow_toolbar();
     bool _init_print_select_toolbar();
+    bool _init_assemble_view_toolbar();
     bool _init_undoredo_toolbar();
     // BBS
     //bool _init_view_toolbar();
@@ -1002,6 +1007,7 @@ private:
     void _render_main_toolbar();
     //BBS: GUI refactor: GLToolbar
     void _render_print_toolbar() const;
+    void _render_assemble_view_toolbar() const;
     void _render_undoredo_toolbar();
     void _render_collapse_toolbar() const;
     // BBS

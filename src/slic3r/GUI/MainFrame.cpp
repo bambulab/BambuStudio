@@ -711,17 +711,24 @@ void MainFrame::init_tabpanel()
         //BBS
         wxWindow* panel = m_tabpanel->GetCurrentPage();
         int sel = m_tabpanel->GetSelection();
-        wxString page_text = m_tabpanel->GetPageText(sel);
+        //wxString page_text = m_tabpanel->GetPageText(sel);
         m_last_selected_tab = m_tabpanel->GetSelection();
         if (panel == m_plater) {
-            if (page_text == "Plater") {
+            if (sel == tp3DEditor) {
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
             }
-            else if (page_text == "Preview") {
+            else if (sel == tpPreview) {
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLVIEWTOOLBAR_PREVIEW));
             }
         }
-        else if (panel != m_monitor) {
+        else if (panel == m_param_panel)
+            m_param_panel->OnActivate();
+        else if (panel == m_monitor) {
+            //monitor
+        }
+        else {
+        }
+        /*if (panel != m_monitor) {
             //BBS: GUI refactor
             //Tab* tab = dynamic_cast<Tab*>(panel);
 
@@ -735,12 +742,12 @@ void MainFrame::init_tabpanel()
                 // before the MainFrame is fully set up.
                 tab->OnActivate();
                 m_last_selected_tab = m_tabpanel->GetSelection();
-            }*/
+            }
             if (panel == m_param_panel)
                 m_param_panel->OnActivate();
             else
                 select_tab(size_t(0)); // select Plater
-        }
+        }*/
     });
 
     m_plater = new Plater(this, this);
@@ -754,7 +761,7 @@ void MainFrame::init_tabpanel()
         //BBS add monitor page
         //MonitorPanel(wxWindow * parent, wxWindowID id = wxID_ANY, const wxPoint & pos = wxDefaultPosition, const wxSize & size = wxSize(800, 600), long style = wxTAB_TRAVERSAL);
         m_monitor = new MonitorPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-        m_tabpanel->AddPage(m_monitor, "Monitor", "monitor");
+        //m_tabpanel->AddPage(m_monitor, "Monitor", "monitor");
     }
 
     if (m_plater) {
@@ -842,6 +849,7 @@ void MainFrame::create_preset_tabs()
 
     m_param_panel->rebuild_panels();
     m_tabpanel->AddPage(m_param_panel, "Parameters", "cog");
+    //m_tabpanel->InsertPage(tpSettings, m_param_panel, _L("Parameters"), std::string("cog"));
 }
 
 void MainFrame::add_created_tab(Tab* panel,  const std::string& bmp_name /*= ""*/)

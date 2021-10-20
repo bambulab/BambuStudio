@@ -983,6 +983,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
     //BBS: GUI refactor: GLToolbar
     , m_print_flow_toolbar(GLToolbar::Normal, "Print_Flow")
     , m_print_select_toolbar(GLToolbar::Normal, "Print_Select")
+    , m_assemble_view_toolbar(GLToolbar::Normal, "Assemble_View")
     , m_undoredo_toolbar(GLToolbar::Normal, "Undo_Redo")
     , m_canvas_type(ECanvasType::CanvasView3D)
     , m_gizmos(*this)
@@ -1409,6 +1410,11 @@ void GLCanvas3D::enable_print_select_toolbar(bool enable)
     m_print_select_toolbar.set_enabled(enable);
 }
 
+void GLCanvas3D::enable_assemble_view_toolbar(bool enable)
+{
+    m_assemble_view_toolbar.set_enabled(enable);
+}
+
 void GLCanvas3D::enable_undoredo_toolbar(bool enable)
 {
     m_undoredo_toolbar.set_enabled(enable);
@@ -1661,6 +1667,9 @@ void GLCanvas3D::render()
 
         if (tooltip.empty())
             tooltip = m_print_select_toolbar.get_tooltip();
+
+        if (tooltip.empty())
+            tooltip = m_assemble_view_toolbar.get_tooltip();
 
 	    if (tooltip.empty())
 	        tooltip = m_undoredo_toolbar.get_tooltip();
@@ -2397,6 +2406,7 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     //BBS: GUI refactor: GLToolbar
     m_dirty |= m_print_flow_toolbar.update_items_state();
     m_dirty |= m_print_select_toolbar.update_items_state();
+    m_dirty |= m_assemble_view_toolbar.update_items_state();
     m_dirty |= m_undoredo_toolbar.update_items_state();
     // BBS
     //m_dirty |= wxGetApp().plater()->get_view_toolbar().update_items_state();
@@ -3118,6 +3128,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
 
     if (m_print_select_toolbar.on_mouse(evt, *this)) {
+        if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
+            mouse_up_cleanup();
+        m_mouse.set_start_position_3D_as_invalid();
+        return;
+    }
+
+    if (m_assemble_view_toolbar.on_mouse(evt, *this)) {
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
         m_mouse.set_start_position_3D_as_invalid();
@@ -4909,6 +4926,9 @@ bool GLCanvas3D::_init_toolbars()
     if (!_init_print_select_toolbar())
         return false;
 
+    if (!_init_assemble_view_toolbar())
+        return false;
+
     if (!_init_undoredo_toolbar())
         return false;
 
@@ -4960,6 +4980,7 @@ bool GLCanvas3D::_init_main_toolbar()
     }
 
     m_main_toolbar.set_layout_type(GLToolbar::Layout::Horizontal);
+    //BBS: main toolbar is at the top and left, we don't need the rounded-corner effect at the right side and the top side
     m_main_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Right);
     m_main_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
     m_main_toolbar.set_border(5.0f);
@@ -5127,8 +5148,18 @@ bool GLCanvas3D::_init_main_toolbar()
     if (!m_main_toolbar.add_item(item))
         return false;
 
-    if (!m_main_toolbar.add_separator())
+    GLToolbarItem::Data sperate_item;
+    sperate_item.name = "seperatetag";
+    sperate_item.icon_filename = "seperator.svg";
+    sperate_item.sprite_id = ++item.sprite_id;
+    sperate_item.left.action_callback = [this]() {};
+    sperate_item.visibility_callback = []()->bool { return true; };
+    sperate_item.enabling_callback = []()->bool { return false; };
+    if (!m_main_toolbar.add_item(sperate_item))
         return false;
+
+    //if (!m_main_toolbar.add_separator())
+    //    return false;
 
     /*item.name = "settings";
     item.icon_filename = "settings.svg";
@@ -5524,6 +5555,62 @@ bool GLCanvas3D::_init_print_select_toolbar()
     return true;
 }
 
+//BBS: GUI refactor
+//init the assemble view toolbar on the top
+bool GLCanvas3D::_init_assemble_view_toolbar()
+{
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": enter,  m_assemble_view_toolbar.is_enabled=" << m_assemble_view_toolbar.is_enabled() << "\n";
+    if (!m_assemble_view_toolbar.is_enabled())
+        return true;
+
+    BackgroundTexture::Metadata background_data;
+    background_data.filename = "toolbar_background.png";
+    background_data.left = 16;
+    background_data.top = 16;
+    background_data.right = 16;
+    background_data.bottom = 16;
+
+    if (!m_assemble_view_toolbar.init(background_data))
+    {
+        // unable to init the toolbar texture, disable it
+        m_assemble_view_toolbar.set_enabled(false);
+        return true;
+    }
+
+    m_assemble_view_toolbar.set_layout_type(GLToolbar::Layout::Horizontal);
+    //BBS: assemble toolbar is at the top and right, we don't need the rounded-corner effect at the left side and the top side
+    m_assemble_view_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Left);
+    m_assemble_view_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
+    m_assemble_view_toolbar.set_border(5.0f);
+    m_assemble_view_toolbar.set_separator_size(10);
+    m_assemble_view_toolbar.set_gap_size(4);
+
+    GLToolbarItem::Data sperate_item;
+    sperate_item.name = "start_seperator";
+    sperate_item.icon_filename = "seperator.svg";
+    sperate_item.sprite_id = 0;
+    sperate_item.left.action_callback = [this]() {};
+    sperate_item.visibility_callback = []()->bool { return true; };
+    sperate_item.enabling_callback = []()->bool { return false; };
+    if (!m_assemble_view_toolbar.add_item(sperate_item))
+        return false;
+
+    GLToolbarItem::Data item;
+    item.name = "assemble_view";
+    item.icon_filename = "assemble.svg";
+    item.tooltip = _utf8(L("Assemble View"));
+    item.sprite_id = 1;
+    item.left.toggable = false;
+    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_ASSEMBLE)); };
+    item.left.render_callback = GLToolbarItem::Default_Render_Callback;
+    item.visible = true;
+    item.visibility_callback = [this]()->bool { return true; };
+    if (!m_assemble_view_toolbar.add_item(item))
+        return false;
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Finished Successfully\n";
+    return true;
+}
 
 bool GLCanvas3D::_init_undoredo_toolbar()
 {
@@ -6200,6 +6287,7 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     m_main_toolbar.set_scale(sc);
     m_print_flow_toolbar.set_scale(sc);
     m_print_select_toolbar.set_scale(sc);
+    m_assemble_view_toolbar.set_scale(sc);
     m_undoredo_toolbar.set_scale(sc);
     collapse_toolbar.set_scale(sc);
     size *= m_retina_helper->get_scale_factor();
@@ -6208,12 +6296,27 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     m_main_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size * scale);
     m_print_flow_toolbar.set_icons_size(size);
     m_print_select_toolbar.set_icons_size(size);
+    m_assemble_view_toolbar.set_icons_size(size);
     m_undoredo_toolbar.set_icons_size(size);
     collapse_toolbar.set_icons_size(size);
 #endif // ENABLE_RETINA_GL
 
     //BBS: GUI refactor: GLToolbar
+#if BBS_TOOLBAR_ON_TOP
+    float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
 
+    float top_tb_width = m_main_toolbar.get_width() + m_gizmos.get_scaled_total_width() + m_assemble_view_toolbar.get_width() + collapse_toolbar_width;
+    int   items_cnt = m_main_toolbar.get_visible_items_cnt() + m_gizmos.get_selectable_icons_cnt() + m_assemble_view_toolbar.get_visible_items_cnt() + collapse_toolbar.get_visible_items_cnt();
+    //float top_tb_width = m_main_toolbar.get_width() + m_undoredo_toolbar.get_width() + collapse_toolbar.get_width();
+    //int   items_cnt = m_main_toolbar.get_visible_items_cnt() + m_undoredo_toolbar.get_visible_items_cnt() + collapse_toolbar.get_visible_items_cnt();
+    float noitems_width = top_tb_width - size * items_cnt; // width of separators and borders in top toolbars 
+
+    // calculate scale needed for items in all top toolbars
+    float new_h_scale = (cnv_size.get_width() - noitems_width) / (items_cnt * GLToolbar::Default_Icons_Size);
+
+    //use the same value as horizon
+    float new_v_scale = new_h_scale;
+#else
     float top_tb_width = m_print_flow_toolbar.get_width() + m_print_select_toolbar.get_width() + collapse_toolbar.get_width();
     int   items_cnt = m_print_flow_toolbar.get_visible_items_cnt() + m_print_select_toolbar.get_visible_items_cnt() + collapse_toolbar.get_visible_items_cnt();
     //float top_tb_width = m_main_toolbar.get_width() + m_undoredo_toolbar.get_width() + collapse_toolbar.get_width();
@@ -6223,10 +6326,12 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     // calculate scale needed for items in all top toolbars
     float new_h_scale = (cnv_size.get_width() - noitems_width) / (items_cnt * GLToolbar::Default_Icons_Size);
 
-    items_cnt = m_main_toolbar.get_visible_items_cnt() + m_gizmos.get_selectable_icons_cnt() + 3; // +3 means a place for top and view toolbars and separators in gizmos toolbar
+    //items_cnt = m_main_toolbar.get_visible_items_cnt() + m_gizmos.get_selectable_icons_cnt() + 3; // +3 means a place for top and view toolbars and separators in gizmos toolbar
 
     // calculate scale needed for items in the gizmos toolbar
+    items_cnt = m_main_toolbar.get_visible_items_cnt() + m_gizmos.get_selectable_icons_cnt() + m_assemble_view_toolbar.get_visible_items_cnt();
     float new_v_scale = cnv_size.get_height() / (items_cnt * GLGizmosManager::Default_Icons_Size);
+#endif
 
     // set minimum scale as a auto scale for the toolbars
     float new_scale = std::min(new_h_scale, new_v_scale);
@@ -6263,6 +6368,7 @@ void GLCanvas3D::_render_overlays()
     m_main_toolbar.set_scale(scale);
     m_print_flow_toolbar.set_scale(scale);
     m_print_select_toolbar.set_scale(scale);
+    m_assemble_view_toolbar.set_scale(scale);
     m_undoredo_toolbar.set_scale(scale);
     wxGetApp().plater()->get_collapse_toolbar().set_scale(scale);
     m_gizmos.set_overlay_scale(scale);
@@ -6273,6 +6379,7 @@ void GLCanvas3D::_render_overlays()
     m_main_toolbar.set_icons_size(gizmo_size);
     m_print_flow_toolbar.set_icons_size(size);
     m_print_select_toolbar.set_icons_size(size);
+    m_assemble_view_toolbar.set_icons_size(gizmo_size);
     m_undoredo_toolbar.set_icons_size(size);
     wxGetApp().plater()->get_collapse_toolbar().set_icons_size(size);
     m_gizmos.set_overlay_icon_size(gizmo_size);
@@ -6283,6 +6390,7 @@ void GLCanvas3D::_render_overlays()
     _render_print_toolbar();
     _render_undoredo_toolbar();
     _render_collapse_toolbar();
+    _render_assemble_view_toolbar();
     // BBS
     //_render_view_toolbar();
     _render_paint_toolbar();
@@ -6386,13 +6494,15 @@ void GLCanvas3D::_render_main_toolbar()
     GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
     float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
     float gizmo_width = m_gizmos.get_scaled_total_width();
+    float assemble_width = m_assemble_view_toolbar.get_width();
     float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
-    float left = -0.5f * (m_main_toolbar.get_width() + gizmo_width + collapse_toolbar_width) * inv_zoom;
+    float left = -0.5f * (m_main_toolbar.get_width() + gizmo_width + assemble_width + collapse_toolbar_width) * inv_zoom;
 #else
     float gizmo_height = m_gizmos.get_scaled_total_height();
     float space_height = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
     float main_toolbar_height = (float)m_main_toolbar.get_height();
-    float top = 0.5f * (main_toolbar_height + space_height + gizmo_height) * inv_zoom;
+    float assemble_height = m_assemble_view_toolbar.get_height();
+    float top = 0.5f * (main_toolbar_height + gizmo_height + assemble_height) * inv_zoom;
     float left = (0.5f * (float)cnv_size.get_width() - m_main_toolbar.get_width()) * inv_zoom;
     //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": top %1%, main_toolbar_height %2%, space_height %3% gizmo_height %4%") % top % main_toolbar_height % space_height % gizmo_height;
 #endif
@@ -6405,7 +6515,7 @@ void GLCanvas3D::_render_main_toolbar()
 }
 
 //BBS: GUI refactor: GLToolbar adjust
-//when rendering, {0, 0} is at the center
+//when rendering, {0, 0} is at the center, {-0.5, 0.5} at the left-up
 void GLCanvas3D::_render_print_toolbar() const
 {
     if (m_print_flow_toolbar.is_enabled())
@@ -6445,6 +6555,35 @@ void GLCanvas3D::_render_print_toolbar() const
         m_print_select_toolbar.set_position(top, left);
         m_print_select_toolbar.render(*this);
     }
+}
+
+//BBS: GUI refactor: GLToolbar adjust
+//when rendering, {0, 0} is at the center, {-0.5, 0.5} at the left-up
+void GLCanvas3D::_render_assemble_view_toolbar() const
+{
+    if (!m_assemble_view_toolbar.is_enabled())
+        return;
+
+    Size cnv_size = get_canvas_size();
+    float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
+
+#if BBS_TOOLBAR_ON_TOP
+    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
+    float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
+    float gizmo_width = m_gizmos.get_scaled_total_width();
+    float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
+    float left = 0.5f * (m_main_toolbar.get_width() + gizmo_width - m_assemble_view_toolbar.get_width() + collapse_toolbar_width) * inv_zoom;
+#else
+    float gizmo_height = m_gizmos.get_scaled_total_height();
+    //float space_height = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
+    float main_toolbar_height = (float)m_main_toolbar.get_height();
+    float assemble_height = (float)m_assemble_view_toolbar.get_height();
+    float top = 0.5f * (assemble_height - main_toolbar_height - gizmo_height) * inv_zoom;
+    float left = (0.5f * (float)cnv_size.get_width() - m_assemble_view_toolbar.get_width()) * inv_zoom;
+    //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": top %1%, main_toolbar_height %2%, space_height %3% gizmo_height %4%") % top % main_toolbar_height % space_height % gizmo_height;
+#endif
+    m_assemble_view_toolbar.set_position(top, left);
+    m_assemble_view_toolbar.render(*this);
 }
 
 void GLCanvas3D::_render_undoredo_toolbar()

@@ -72,8 +72,8 @@ size_t GLGizmosManager::get_gizmo_idx_from_mouse(const Vec2d& mouse_pos) const
     float cnv_w = (float)m_parent.get_canvas_size().get_width();
     float width = get_scaled_total_width();
 #if BBS_TOOLBAR_ON_TOP
-    float space_width = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();;
-    float top_x = 0.5f * (cnv_w - width + m_parent.get_main_toolbar_width() + space_width) + border;
+    //float space_width = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();;
+    float top_x = 0.5f * (cnv_w - width + m_parent.get_main_toolbar_width() - m_parent.get_assemble_view_toolbar_width()) + border;
     float top_y = 0;
     float stride_x = m_layout.scaled_stride_x();
 
@@ -94,7 +94,7 @@ size_t GLGizmosManager::get_gizmo_idx_from_mouse(const Vec2d& mouse_pos) const
 #else
     //float top_y = 0.5f * (cnv_h - height) + border;
     float top_x = cnv_w - width;
-    float top_y = 0.5f * (cnv_h - height + m_parent.get_main_toolbar_height() + GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale()) + border;
+    float top_y = 0.5f * (cnv_h - height + m_parent.get_main_toolbar_height() - m_parent.get_assemble_view_toolbar_width()) + border;
     float stride_y = m_layout.scaled_stride_y();
 
     // is mouse horizontally in the area?
@@ -1004,6 +1004,18 @@ void GLGizmosManager::render_background(float left, float top, float right, floa
     float tex_height = (float)m_background_texture.texture.get_height();
     if ((tex_id != 0) && (tex_width > 0) && (tex_height > 0))
     {
+        //BBS: GUI refactor: remove the corners of gizmo
+        float inv_tex_width = (tex_width != 0.0f) ? 1.0f / tex_width : 0.0f;
+        float inv_tex_height = (tex_height != 0.0f) ? 1.0f / tex_height : 0.0f;
+
+        float internal_left_uv = (float)m_background_texture.metadata.left * inv_tex_width;
+        float internal_right_uv = 1.0f - (float)m_background_texture.metadata.right * inv_tex_width;
+        float internal_top_uv = 1.0f - (float)m_background_texture.metadata.top * inv_tex_height;
+        float internal_bottom_uv = (float)m_background_texture.metadata.bottom * inv_tex_height;
+
+        GLTexture::render_sub_texture(tex_id, left, right, bottom, top, { { internal_left_uv, internal_bottom_uv }, { internal_right_uv, internal_bottom_uv }, { internal_right_uv, internal_top_uv }, { internal_left_uv, internal_top_uv } });
+
+        /*
         float inv_tex_width = (tex_width != 0.0f) ? 1.0f / tex_width : 0.0f;
         float inv_tex_height = (tex_height != 0.0f) ? 1.0f / tex_height : 0.0f;
 
@@ -1048,6 +1060,7 @@ void GLGizmosManager::render_background(float left, float top, float right, floa
 
         // bottom-right corner
         GLTexture::render_sub_texture(tex_id, internal_right, right, bottom, internal_bottom, { { internal_right_uv, bottom_uv }, { right_uv, bottom_uv }, { right_uv, internal_bottom_uv }, { internal_right_uv, internal_bottom_uv } });
+        */
     }
 }
 
@@ -1092,7 +1105,7 @@ void GLGizmosManager::render_arrow(const GLCanvas3D& parent, EType highlighted_t
 }
 
 //BBS: GUI refactor: GLToolbar&&Gizmo adjust
-//when rendering, {0, 0} is at the center
+//when rendering, {0, 0} is at the center, {-0.5, 0.5} at the left-top
 void GLGizmosManager::do_render_overlay() const
 {
     std::vector<size_t> selectable_idxs = get_selectable_idxs();
@@ -1111,17 +1124,19 @@ void GLGizmosManager::do_render_overlay() const
     //BBS: GUI refactor: GLToolbar&&Gizmo adjust
 #if BBS_TOOLBAR_ON_TOP
     float main_toolbar_width =  (float)m_parent.get_main_toolbar_width();
-    float space_width = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
+    float assemble_view_width = (float)m_parent.get_assemble_view_toolbar_width();
+    //float space_width = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
     //float zoomed_top_x = 0.5f *(cnv_w + main_toolbar_width - 2 * space_width - width) * inv_zoom;
-    float zoomed_top_x = 0.5f *(main_toolbar_width - width + space_width) * inv_zoom;
+    float zoomed_top_x = 0.5f *(main_toolbar_width - width - assemble_view_width) * inv_zoom;
     float zoomed_top_y = 0.5f * cnv_h * inv_zoom;
 #else
     //float zoomed_top_x = (-0.5f * cnv_w) * inv_zoom;
     //float zoomed_top_y = (0.5f * height) * inv_zoom;
     float zoomed_top_x = (0.5f * cnv_w - width) * inv_zoom;
     float main_toolbar_height = (float)m_parent.get_main_toolbar_height();
-    float space_height = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
-    float zoomed_top_y = 0.5f * (height - main_toolbar_height - space_height) * inv_zoom;
+    float assemble_view_height = (float)m_parent.get_assemble_view_toolbar_height();
+    //float space_height = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
+    float zoomed_top_y = 0.5f * (height + assemble_view_height - main_toolbar_height) * inv_zoom;
 #endif
     //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": zoomed_top_y %1%, space_height %2%, main_toolbar_height %3% zoomed_top_x %4%") % zoomed_top_y % space_height % main_toolbar_height % zoomed_top_x;
 

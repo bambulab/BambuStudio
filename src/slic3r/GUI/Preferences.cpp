@@ -613,7 +613,8 @@ void PreferencesDialog::accept(wxEvent&)
 		}
 	}
 
-	m_settings_layout_changed = false;
+	//BBS GUI refactor: remove unuse layout logic
+	/*m_settings_layout_changed = false;
 	for (const std::string& key : { "old_settings_layout_mode",
 								    "new_settings_layout_mode",
 								    "dlg_settings_layout_mode" })
@@ -623,7 +624,7 @@ void PreferencesDialog::accept(wxEvent&)
 			m_settings_layout_changed = true;
 			break;
 	    }
-	}
+	}*/
 
 	for (const std::string& key : {"default_action_on_close_application", "default_action_on_select_preset"}) {
 	    auto it = m_values.find(key);
@@ -647,6 +648,7 @@ void PreferencesDialog::accept(wxEvent&)
 
 	EndModal(wxID_OK);
 
+	//BBS GUI refactor: remove unuse layout logic
 #ifdef _WIN32
 	if (m_values.find("dark_color_mode") != m_values.end())
 		wxGetApp().force_colors_update();
@@ -655,9 +657,9 @@ void PreferencesDialog::accept(wxEvent&)
 		wxGetApp().force_menu_update();
 #endif //_MSW_DARK_MODE
 #endif // _WIN32
-	if (m_settings_layout_changed)
-		;// application will be recreated after Preference dialog will be destroyed
-	else
+	//if (m_settings_layout_changed)
+	//	;// application will be recreated after Preference dialog will be destroyed
+	//else
 	    // Nothify the UI to update itself from the ini file.
         wxGetApp().update_ui_from_settings();
 }
