@@ -157,8 +157,16 @@ static void lowpass_filter_by_paths_overhang_degree(ExtrusionPaths& paths) {
     int last_overhang = -1;
     for (auto it = out.begin(); it != out.end(); it++) {
         if (last_overhang == it->get_overhang_degree()) {
-            assert(paths.size() != 0);
-            (paths.end() - 1)->polyline.append(it->polyline);
+            if (paths.size() > 0) {
+                //BBS: don't need to append duplicated points, remove the last point
+                if ((paths.end() - 1)->polyline.last_point() == it->polyline.first_point())
+                    (paths.end() - 1)->polyline.points.pop_back();
+                (paths.end() - 1)->polyline.append(it->polyline);
+            }
+            else {
+                //BBS: should never happen
+                assert(0);
+            }
         }
         else {
             paths.push_back(*it);
@@ -694,7 +702,7 @@ std::map<int, Polygons> PerimeterGenerator::generate_lower_polygons_series(float
         offset_series.push_back(start_offset + (i + 0.5) * (end_offset - start_offset) / (overhang_sampling_number - 1));
     }
     // BBS: increase start_offset a little to avoid to calculate 90 degree as overhang
-    offset_series[0] = start_offset + 0.02 * (end_offset - start_offset) / (overhang_sampling_number - 1);
+    offset_series[0] = start_offset + 0.05 * (end_offset - start_offset) / (overhang_sampling_number - 1);
     offset_series[overhang_sampling_number - 2] = end_offset;
 
     std::map<int, Polygons> lower_polygons_series;

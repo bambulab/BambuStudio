@@ -161,12 +161,17 @@ void Polyline::split_at(const Point &point, Polyline* p1, Polyline* p2) const
             p1->points.push_back(line->a);
     // we add point instead of p because they might differ because of numerical issues
     // and caller might want to rely on point belonging to result polylines
-    p1->points.push_back(point);
+    // BBS: check whether the last point is same. Don't need to save duplicated point
+    if (p1->points.empty() || point != p1->points.back())
+        p1->points.push_back(point);
     
     // create second half
     p2->points.clear();
     p2->points.push_back(point);
     for (Lines::const_iterator line = lines.begin() + line_idx; line != lines.end(); ++line) {
+        // BBS: check whether the first point is same. Don't need to save duplicated point
+        if (line == lines.begin() + line_idx && line->b == point)
+            continue;
         p2->points.push_back(line->b);
     }
 }
