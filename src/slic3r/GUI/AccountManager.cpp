@@ -330,28 +330,6 @@ namespace Slic3r {
                 return;
             }
 
-            boost::optional<std::string> ack_status = root.get_optional<std::string>("message");
-            boost::optional<std::string> user_id = root.get_optional<std::string>("user_id");
-            boost::optional<std::string> token = root.get_optional<std::string>("token");
-            if (ack_status.has_value()) {
-                if (ack_status.value().compare(MSG_SUCCESS) == 0) {
-                    BOOST_LOG_TRIVIAL(trace) << "User = " << account << " Login Success!";
-                    if (user_id.has_value() && token.has_value()) {
-                        if (m_curr_user) delete m_curr_user;
-                        m_curr_user = new AccountInfo(account, user_id.value(), AccountInfo::LoginStatus::STATUS_LOGIN);
-                        m_curr_user->set_token(token.value());
-                        save_user_info();
-                        /* connect mqtt */
-                        this->connect_mqtt();
-                        this->request_bind_list();
-                        if (fn) {
-                            fn(0, "");
-                        }
-                        return;
-                    }
-                }
-            }
-
             BOOST_LOG_TRIVIAL(trace) << "Account = " << account << " Login Failed! error = " << body;
             if (fn) {
                 fn(-1, body);
@@ -1780,7 +1758,6 @@ namespace Slic3r {
 
     std::string AccountManager::_get_login_request(std::string account, std::string password)
     {
-        account = (boost::format("%1%@bambulab.com") % account).str();
         pt::ptree root;
         root.put("account", account);
         root.put("password", password);
@@ -1792,7 +1769,6 @@ namespace Slic3r {
     std::string AccountManager::_get_register_request(std::string account, std::string password)
     {
         pt::ptree root;
-        account = (boost::format("%1%@bambulab.com") % account).str();
         root.put("account", account);
         root.put("password", password);
         std::stringstream oss;
@@ -1817,7 +1793,7 @@ namespace Slic3r {
         switch (status) {
         case 400:
         case 401:
-            wxMessageBox("Token is invalid! Please login again!");
+            wxMessageBox("Token is invalid! Tips: input username@email.com, like: bbl@bambulab.com");
             break;
         default:
             return;

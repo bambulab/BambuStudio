@@ -591,8 +591,7 @@ void PreferencesDialog::accept(wxEvent&)
 
 	//BBS domain changed
 	m_domain_changed = false;
-	for (const std::string& key : { "api_cur_domain",
-									"api_dev_domain",
+	for (const std::string& key : { "api_dev_domain",
 									"api_rel_domain" })
 	{
 		auto it = m_values.find(key);
@@ -604,10 +603,8 @@ void PreferencesDialog::accept(wxEvent&)
 
 	if (m_domain_changed) {
 		AccountManager* manager = wxGetApp().getAccountManager();
-		if (m_values["api_cur_domain"].compare("1") == 0) {
-			manager->set_host("api-qa.bambu-lab.com");
-		}
-		else if (m_values["api_dev_domain"].compare("1") == 0) {
+		manager->user_logout();
+		if (m_values["api_dev_domain"].compare("1") == 0) {
 			manager->set_host("api-qa.bambu-lab.com/v2");
 		}
 		else if (m_values["api_rel_domain"].compare("1") == 0) {
@@ -886,6 +883,34 @@ void PreferencesDialog::PreferencesHighlighter::blink()
 
 	if ((++m_blink_counter) == 11)
 		invalidate();
+}
+
+//BBS
+void PreferencesDialog::create_select_domain_widget()
+{
+	wxString choices[] = { _L("host: api-qa.bambu-lab.com/v2(develop)"),
+						   _L("host: api.bambulab.com(release)") };
+
+	auto app_config = get_app_config();
+	int selection = app_config->get("api_dev_domain") == "1" ? 0 :
+		app_config->get("api_rel_domain") == "1" ? 1 : 0;
+
+	wxWindow* parent = m_optgroup_general->parent();
+
+	m_select_domain_box = new wxRadioBox(parent, wxID_ANY, _L("Select Domain"), wxDefaultPosition, wxDefaultSize,
+		WXSIZEOF(choices), choices, 2, wxRA_SPECIFY_ROWS);
+	m_select_domain_box->SetFont(wxGetApp().normal_font());
+	m_select_domain_box->SetSelection(selection);
+
+	m_select_domain_box->Bind(wxEVT_RADIOBOX, [this](wxCommandEvent& e) {
+		int selection = e.GetSelection();
+		m_values["api_dev_domain"] = boost::any_cast<bool>(selection == 0) ? "1" : "0";
+		m_values["api_rel_domain"] = boost::any_cast<bool>(selection == 1) ? "1" : "0";
+		});
+
+	auto sizer = new wxBoxSizer(wxHORIZONTAL);
+	sizer->Add(m_select_domain_box, 1, wxALIGN_CENTER_VERTICAL);
+	m_optgroup_general->sizer->Add(sizer, 0, wxEXPAND);
 }
 
 } // GUI

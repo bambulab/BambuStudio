@@ -819,9 +819,8 @@ GUI_App::GUI_App(EAppMode mode)
     std::string account_info_file = data_dir() + "acc.data";
     m_account_manager->set_user_info_path(account_info_file);
     m_account_manager->load_user_info();
-    std::string domain = wxGetApp().app_config->get("api_cur_domain") == "1" ? "api-qa.bambu-lab.com" :
-            wxGetApp().app_config->get("api_dev_domain") == "1" ? "api-qa.bambu-lab.com/v2" :
-            wxGetApp().app_config->get("api_rel_domain") == "1" ? "api.bambulab.com" : "api.bambu-lab.com";
+    std::string domain = wxGetApp().app_config->get("api_dev_domain") == "1" ? "api-qa.bambu-lab.com/v2" :
+            wxGetApp().app_config->get("api_rel_domain") == "1" ? "api.bambulab.com" : "api-qa.bambu-lab.com/v2";
     m_account_manager->set_host(domain);
 }
 

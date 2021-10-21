@@ -50,6 +50,7 @@ LoginDialog::LoginDialog()
 	vsizer->Add(user_info_sizer, 0, wxEXPAND | wxALL, SPACING);
 	m_label_user = new wxStaticText(panel, wxID_ANY, _L("User"), wxDefaultPosition, wxDefaultSize);
 	m_txt_user = new wxTextCtrl(panel, wxID_ANY, _L(""), wxDefaultPosition, wxDefaultSize);
+	m_txt_user->SetHint("username@email.com");
 	user_info_sizer->Add(m_label_user, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 0);
 	user_info_sizer->Add(m_txt_user, 0, wxEXPAND | wxALIGN_CENTER_VERTICAL, 0);
 
