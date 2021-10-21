@@ -207,12 +207,12 @@ int MachineObject::command_task_abort()
 
 int MachineObject::command_task_pause()
 {
-    return this->publish_gcode("M400 P1\n");
+    return this->publish_gcode("M400 W1\n");
 }
 
 int MachineObject::command_task_resume()
 {
-    return this->publish_gcode("M400 P0\n");
+    return this->publish_gcode("M400 W0\n");
 }
 
 int MachineObject::command_axis_control(std::string axis, double unit, double value, int speed)

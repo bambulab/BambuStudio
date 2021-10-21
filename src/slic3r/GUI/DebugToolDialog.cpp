@@ -866,12 +866,12 @@ void DebugToolDialog::init_gcode_run_file(wxWindow *parent)
         });
     auto btn_pause = new wxButton(parent, wxID_ANY, _L("Pause"), wxDefaultPosition, wxSize(100, -1));
     btn_pause->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            this->publishGcode("M400 P1\n");
+            this->publishGcode("M400 W1\n");
             this->send_log_evt("Pause Printing...");
         });
     auto btn_resume = new wxButton(parent, wxID_ANY, _L("Resume"), wxDefaultPosition, wxSize(100, -1));
     btn_resume->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            this->publishGcode("M400 P0\n");
+            this->publishGcode("M400 W0\n");
             this->send_log_evt("Resume Printing...");
         });
 
