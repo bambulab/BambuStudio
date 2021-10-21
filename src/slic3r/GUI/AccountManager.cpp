@@ -44,12 +44,7 @@ namespace Slic3r {
             successFn(cli_.get_client_id());
         }
         AccountManager* manager = (AccountManager*)context_;
-        if (manager) {
-            std::map<std::string, MachineObject*>::iterator it;
-            for (it = manager->myBindMachineList.begin(); it != manager->myBindMachineList.end(); it++) {
-                manager->add_subscribe(it->second);
-            }
-        }
+        boost::thread update_thread = Slic3r::create_thread([manager] { manager->update_subscription(); });
     }
 
     void cloud_conn_callback::on_failure(const mqtt::token& tok)
@@ -244,7 +239,8 @@ namespace Slic3r {
         }
 
         try {
-            if (mqtt_cli && mqtt_cli->is_connected()) {
+            //blocked here if (mqtt_cli && mqtt_cli->is_connected()) {
+            if (mqtt_cli) {
                 if (mqtt_topics.find(report_topic) == mqtt_topics.end()) {
                     BOOST_LOG_TRIVIAL(trace) << "add_subscribe topic=" << report_topic;
                     mqtt_topics.insert(std::make_pair(report_topic, obj));
@@ -290,6 +286,13 @@ namespace Slic3r {
         }
     }
 
+    void AccountManager::update_subscription()
+    {
+        std::map<std::string, MachineObject*>::iterator it;
+        for (it = myBindMachineList.begin(); it != myBindMachineList.end(); it++) {
+            add_subscribe(it->second);
+        }
+    }
 
     bool AccountManager::is_user_login()
     {

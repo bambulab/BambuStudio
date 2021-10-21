@@ -181,6 +181,7 @@ public:
     int disconnect_mqtt();
     void add_subscribe(MachineObject* obj);
     void del_subscribe(MachineObject* obj);
+    void update_subscription();
 
     /* user login register apis */
     bool is_user_login();
@@ -247,7 +248,12 @@ public:
 
     void set_host(std::string host_url);
     void set_user_info_path(boost::filesystem::path path) { m_user_info_path = path; }
-    std::string get_user_id() { return m_curr_user->user_id(); }  
+    std::string get_user_id() {
+        if (m_curr_user) {
+            m_curr_user->user_id();
+        }
+        return "";
+    }
 };
 
 } // namespace Slic3r
