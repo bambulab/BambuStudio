@@ -351,7 +351,6 @@ private:
      * If a node is already at that position in the layer, the nodes are merged.
      */
     void insert_dropped_node(std::vector<Node*>& nodes_layer, Node* node);
-    void add_tail_overhangs(int layer_nr);
     void detect_object_overhangs();
     void create_tree_support_layers();
     void generate_toolpaths();

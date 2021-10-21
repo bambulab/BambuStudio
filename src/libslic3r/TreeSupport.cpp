@@ -716,11 +716,6 @@ static void remove_bridges_from_contacts(
     }
 }
 
-void TreeSupport::add_tail_overhangs(int layer_nr)
-{
-
-}
-
 void TreeSupport::detect_object_overhangs()
 {
     const PrintObjectConfig& config = m_object.config();
@@ -783,7 +778,7 @@ void TreeSupport::detect_object_overhangs()
                         }
                     }
                     ExPolygons overhang_areas = std::move(diff_ex(layer->lslices, lower_layer_offseted));
-                    //overhang_areas = std::move(offset2_ex(overhang_areas, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
+                    overhang_areas = std::move(offset2_ex(overhang_areas, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
                     if (dont_support_bridges && overhang_areas.size()>0) {
                         remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, scale_(5), overhang_areas);
                     }
@@ -1498,7 +1493,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 {
                     const Node& node = *p_node;
                     Polygon circle;
-                    double scale = calc_branch_radius(branch_radius, node.distance_to_top, tip_layers, diameter_angle_scale_factor) / branch_radius / 2;
+                    double scale = calc_branch_radius(branch_radius, node.distance_to_top, tip_layers, diameter_angle_scale_factor) / branch_radius;
                     for (auto iter = branch_circle.points.begin(); iter != branch_circle.points.end(); iter++)
                     {
                         Point corner = (*iter) * scale;
