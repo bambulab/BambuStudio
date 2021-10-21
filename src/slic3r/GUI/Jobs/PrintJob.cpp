@@ -47,9 +47,7 @@ void PrintJob::process()
         /* create a subtask */
         BBLSubTask* task = new BBLSubTask();
         task->task_file = encode_path(plate->get_tmp_gcode_path().c_str());
-
-        it->second->send_print_subtask(task, nullptr, nullptr, nullptr);
-        //TODO send sync and update progress
+        it->second->send_print_subtask(task);
         return;
     }
 
@@ -171,7 +169,7 @@ void PrintJob::process()
     MachineObject* obj = c->find_machine(machine_sn);
     if (obj) {
         // upload and send to machine
-        obj->send_wan_print_subtask(subTask, nullptr, nullptr, nullptr);
+        obj->send_wan_print_subtask(subTask);
         update_status(100, "send task ok!");
 
         // add to user project

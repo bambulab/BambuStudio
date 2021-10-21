@@ -239,8 +239,7 @@ namespace Slic3r {
         }
 
         try {
-            //blocked here if (mqtt_cli && mqtt_cli->is_connected()) {
-            if (mqtt_cli) {
+            if (mqtt_cli && mqtt_cli->is_connected()) {
                 if (mqtt_topics.find(report_topic) == mqtt_topics.end()) {
                     BOOST_LOG_TRIVIAL(trace) << "add_subscribe topic=" << report_topic;
                     mqtt_topics.insert(std::make_pair(report_topic, obj));
@@ -1309,11 +1308,9 @@ namespace Slic3r {
         return 0;
     }
 
-    BBLTask* AccountManager::get_task(std::string task_id)
+    void AccountManager::get_task(BBLTask* &task)
     {
-        BBLTask* task = new BBLTask();
-        task->task_id = task_id;
-        std::string url = (boost::format("%1%/iot/user/task/%2%") % host % task_id).str();
+        std::string url = (boost::format("%1%/iot/user/task/%2%") % host % task->task_id).str();
         Http http = Http::get(url);
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
@@ -1328,6 +1325,12 @@ namespace Slic3r {
                             boost::optional<std::string> name = root.get_optional<std::string>("name");
                             if (name.has_value())
                                 task->task_name = name.value();
+                            boost::optional<std::string> project_id = root.get_optional<std::string>("project_id");
+                            if (project_id.has_value())
+                                task->task_project_id = project_id.value();
+                            boost::optional<std::string> profile_id = root.get_optional<std::string>("profile_id");
+                            if (profile_id.has_value())
+                                task->task_profile_id = profile_id.value();
                             boost::optional<std::string> status = root.get_optional<std::string>("status");
                             if (status.has_value())
                                 task->task_status = status.value().compare("active") ? BBLTask::TaskStatus::TASK_ACTIVE : BBLTask::TaskStatus::TASK_INACTIVE;
@@ -1343,8 +1346,13 @@ namespace Slic3r {
                             boost::optional<std::string> parent_id = root.get_optional<std::string>("parent");
                             if (root.get_child_optional("sub_task") != boost::none) {
                                 pt::ptree subtask_ids = root.get_child("sub_task");
+                                task->subtasks.clear();
                                 for (auto sub_id = subtask_ids.begin(); sub_id != subtask_ids.end(); ++sub_id) {
                                     std::string subtask_id = sub_id->first;
+                                    BBLSubTask* subtask = new BBLSubTask();
+                                    task->subtasks.push_back(subtask);
+                                    subtask->task_id = subtask_id;
+                                    this->get_subtask(subtask);
                                 }
                             }
                         }
@@ -1356,15 +1364,12 @@ namespace Slic3r {
                     BOOST_LOG_TRIVIAL(info) << "get_task info failed! body=" << body;
                 }
             )
-        .perform_sync();
-        return task;
+            .perform();
     }
 
-    void AccountManager::get_subtask(std::string subtask_id, BBLSubTask* &subtask)
+    void AccountManager::get_subtask(BBLSubTask* &subtask)
     {
-        subtask = new BBLSubTask();
-        subtask->task_id = subtask_id;
-        std::string url = (boost::format("%1%/iot/user/task/%2%") % host % subtask_id).str();
+        std::string url = (boost::format("%1%/iot/user/task/%2%") % host % subtask->task_id).str();
         Http http = Http::get(url);
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
@@ -1404,6 +1409,89 @@ namespace Slic3r {
                 }
             )
             .perform();
+    }
+
+    void AccountManager::get_profile(BBLProject*& project, BBLProfile*& profile)
+    {
+        if (!profile || !project) return;
+
+        std::string query_params = (boost::format("?profile_id=%1%") % profile->profile_id).str();
+        std::string url = (boost::format("%1%/iot/user/project/%2%%3%") % host % profile->project_id % query_params).str();
+
+        int retry_ = 0;
+        int retry_max = 10;
+        Http http = Http::get(url);
+
+        http.header("accept", "application/json")
+            .header("Authorization", get_token_str())
+            .on_complete(
+                [this, project, profile](std::string body, unsigned) {
+                    std::stringstream ss(body);
+                    pt::ptree root;
+                    pt::read_json(ss, root);
+                    boost::optional<std::string> message = root.get_optional<std::string>("message");
+                    if (message.has_value()) {
+                        if (message.value().compare(MSG_SUCCESS) == 0) {
+                            BOOST_LOG_TRIVIAL(info) << "get_project_info ok!";
+                            boost::optional<std::string> status = root.get_optional<std::string>("status");
+                            boost::optional<std::string> model_id = root.get_optional<std::string>("model_id");
+                            if (model_id.has_value()) { project->project_model_id = model_id.value(); }
+                            boost::optional<std::string> name = root.get_optional<std::string>("name");
+                            if (name.has_value()) {
+                                project->project_name = name.value();
+                            }
+                            boost::optional<std::string> create_time = root.get_optional<std::string>("create_time");
+                            boost::optional<std::string> content = root.get_optional<std::string>("content");
+
+                            // parse profiles list
+                            boost::optional<std::string> profiles = root.get_optional<std::string>("profiles");
+                            if (root.get_child_optional("profiles") != boost::none) {
+                                pt::ptree profiles = root.get_child("profiles");
+                                for (auto prof = profiles.begin(); prof != profiles.end(); ++prof) {
+                                    boost::optional<std::string> profile_id = prof->second.get_optional<std::string>("profile_id");
+
+                                    // if find current profile, get infos
+                                    if (profile_id.has_value() && profile_id.value().compare(profile->profile_id) == 0) {
+                                        if (prof->second.get_child_optional("context") != boost::none) {
+                                            profile->slice_info.clear();
+                                            pt::ptree context = prof->second.get_child("context");
+                                            if (context.get_child_optional("thumbnail_files") != boost::none) {
+                                                pt::ptree thumbnails = context.get_child("thumbnail_files");
+                                                for (auto thumbnail = thumbnails.begin(); thumbnail != thumbnails.end(); ++thumbnail) {
+                                                    std::string index = thumbnail->second.get_optional<std::string>("index").value();
+                                                    std::string  name = thumbnail->second.get_optional<std::string>("name").value();
+                                                    std::string   dir = thumbnail->second.get_optional<std::string>("dir").value_or("");
+                                                    std::string   url = thumbnail->second.get_optional<std::string>("url").value();
+                                                    BBLSliceInfo* info = nullptr;
+                                                    if (profile->slice_info.find(index) != profile->slice_info.end()) {
+                                                        info = profile->slice_info.find(index)->second;
+                                                    }
+                                                    else {
+                                                        info = new BBLSliceInfo(profile);
+                                                        info->index = index;
+                                                        info->thumbnail_name = name;
+                                                        info->thumbnail_dir = dir;
+                                                        info->thumbnail_url = url;
+                                                        profile->slice_info.insert(std::make_pair(index, info));
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            )
+            .on_error(
+                [this, project, profile](std::string body, std::string error, unsigned status) {
+                    BOOST_LOG_TRIVIAL(info) << "get_project_info failed! body=" << body;
+                }
+            )
+            .perform();
+  
+
     }
 
     void AccountManager::get_project_info(BBLProject* project)
@@ -1467,7 +1555,7 @@ namespace Slic3r {
             .perform();
     }
 
-    void AccountManager::get_profile_info(BBLProject* project, BBLProfile* profile)
+    void AccountManager::get_profile_info(BBLProject* &project, BBLProfile* &profile)
     {
         if (!profile || !project) return;
 
@@ -1480,10 +1568,9 @@ namespace Slic3r {
         Http http = Http::get(url);
         while (project->project_url.empty() && retry_ < retry_max) {
             http.header("accept", "application/json")
-                .header("accept", "application/json")
                 .header("Authorization", get_token_str())
                 .on_complete(
-                    [this, project](std::string body, unsigned) {
+                    [this, project, profile](std::string body, unsigned) {
                         std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
                         std::stringstream ss(body);
                         pt::ptree root;
@@ -1514,14 +1601,37 @@ namespace Slic3r {
                                     if (md5.value().compare("null") != 0) {
                                         project->project_url_md5 = md5.value();
                                     }
-                                    
+                                }
+                                if (root.get_child_optional("context") != boost::none) {
+                                    profile->slice_info.clear();
+                                    pt::ptree context = root.get_child("context");
+                                    if (context.get_child_optional("thumbnail_files") != boost::none) {
+                                        pt::ptree thumbnails = context.get_child("thumbnail_files");
+                                        for (auto thumbnail = thumbnails.begin(); thumbnail != thumbnails.end(); ++thumbnail) {
+                                            std::string index = thumbnail->second.get_optional<std::string>("index").value();
+                                            std::string  name = thumbnail->second.get_optional<std::string>("name").value();
+                                            std::string   dir = thumbnail->second.get_optional<std::string>("dir").value_or("");
+                                            std::string   url = thumbnail->second.get_optional<std::string>("url").value();
+                                            BBLSliceInfo* info = nullptr;
+                                            if (profile->slice_info.find(index) != profile->slice_info.end()) {
+                                                info = profile->slice_info.find(index)->second;
+                                            }
+                                            else {
+                                                info = new BBLSliceInfo(profile);
+                                                info->index = index;
+                                            }
+                                            info->thumbnail_name = name;
+                                            info->thumbnail_dir = dir;
+                                            info->thumbnail_url = url;
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 )
                 .on_error(
-                    [this](std::string body, std::string error, unsigned status) {
+                    [this, project, profile](std::string body, std::string error, unsigned status) {
                         BOOST_LOG_TRIVIAL(info) << "get_project_info failed! body=" << body;
                     }
                 )

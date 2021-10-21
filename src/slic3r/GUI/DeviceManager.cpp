@@ -127,6 +127,9 @@ MachineObject::MachineObject(AccountManager& acc, std::string name, std::string 
     dev_ip(ip),
     dev_bind_status(MACHINE_BIND_UNKOWN),
     conn_type(CONNECTION_LAN),
+    project_(nullptr),
+    profile_(nullptr),
+    task_(nullptr),
     subtask_(nullptr),
     temptask_(nullptr),
     is_alive(false),
@@ -213,6 +216,18 @@ int MachineObject::command_task_pause()
 int MachineObject::command_task_resume()
 {
     return this->publish_gcode("M400 W0\n");
+}
+
+int MachineObject::command_set_bed(int temp)
+{
+    std::string gcode_str = (boost::format("M140 S%1%\n") % temp).str();
+    return this->publish_gcode(gcode_str);
+}
+
+int MachineObject::command_set_nozzle(int temp)
+{
+    std::string gcode_str = (boost::format("M104 S%1%\n") % temp).str();
+    return this->publish_gcode(gcode_str);
 }
 
 int MachineObject::command_axis_control(std::string axis, double unit, double value, int speed)
@@ -441,10 +456,25 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 boost::optional<std::string> task_id            = print.get_optional<std::string>("task_id");
                 boost::optional<std::string> subtask_id         = print.get_optional<std::string>("subtask_id");
 
+                /* sync project and profile info */
+                /* /* sync profile and project from task now
+                if (project_id.has_value() && !project_id.value().empty() && (project_id.value().compare("0") != 0)
+                    && profile_id.has_value() && !profile_id.value().empty() && (profile_id.value().compare("0") != 0)
+                    )
+                {
+                    update_profile(project_id.value(), profile_id.value());
+                }
+                */
+
+                /* sync task info */
+                if (task_id.has_value() && !task_id.value().empty() && (task_id.value().compare("0") != 0))
+                {
+                    update_task(task_id.value());
+                }
+
                 /* valid subtask */
-                if (subtask_id.has_value() && task_id.has_value()
-                    && !task_id.value().empty()
-                    && (task_id.value().compare("0") != 0)) {
+                if (subtask_id.has_value() && !subtask_id.value().empty() && subtask_id.value().compare("0") != 0)
+                {
                     update_subtask(subtask_id.value());
                 }
 
@@ -812,10 +842,10 @@ int MachineObject::send_lan_print_subtask(BBLSubTask* task, UploadedFn uploadedF
             if (proFn) {
                 proFn(percent);
             }
-        })
-        .perform();
+            })
+            .perform();
 
-    return 0;
+            return 0;
 }
 
 int MachineObject::send_wan_print_subtask(BBLSubTask* task, UploadedFn uploadedFn, UploadProgressFn proFn, ErrorFn errFn)
@@ -877,7 +907,7 @@ int MachineObject::send_wan_print_subtask(BBLSubTask* task, UploadedFn uploadedF
             }
         }
         ,
-        [this, proFn](int percent) {
+            [this, proFn](int percent) {
             if (proFn) {
                 proFn(percent);
             }
@@ -896,18 +926,53 @@ BBLSubTask* MachineObject::get_subtask()
     }
 }
 
+void MachineObject::update_profile(std::string project_id, std::string profile_id)
+{
+    if (project_id.empty() || profile_id.empty()) return;
+
+    if (project_ && profile_) {
+        if (project_->project_id.compare(project_id) == 0 && 
+            profile_->profile_id.compare(profile_id) == 0) {
+            return;
+        }
+        return;
+    }
+
+    /* create new project and profile */
+    project_ = new BBLProject();
+    project_->project_id = project_id;
+    profile_ = new BBLProfile(project_);
+    profile_->profile_id = profile_id;
+    acc_.get_profile(project_, profile_);
+}
+
+void MachineObject::update_task(std::string task_id)
+{
+    if (task_id.empty()) return;
+
+    if (task_ && task_->task_id.compare(task_id) == 0) {
+        update_profile(task_->task_project_id, task_->task_profile_id);
+        return;
+    }
+
+    /* create new task */
+    task_ = new BBLTask();
+    task_->task_id = task_id;
+    acc_.get_task(task_);
+}
+
 void MachineObject::update_subtask(std::string subtask_id)
 {
+    if (subtask_id.empty()) return;
+
+    if (subtask_ && subtask_->task_id.compare(subtask_id) == 0) {
+        return;
+    }
+
     /* create a new subtask */
-    if (!subtask_) {
-        acc_.get_subtask(subtask_id, subtask_);
-    }
-    else {
-        // update to new subtask
-        if (subtask_->task_id.compare(subtask_id) != 0) {
-            acc_.get_subtask(subtask_id, subtask_);
-        }
-    }
+    subtask_ = new BBLSubTask();
+    subtask_->task_id = subtask_id;
+    acc_.get_subtask(subtask_);
 }
 
 void MachineObject::request_bind(ResultFn resFn, bool force_bind)

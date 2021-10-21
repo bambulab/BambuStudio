@@ -7,7 +7,6 @@
 #include <memory>
 #include <boost/thread.hpp>
 #include "mqtt/async_client.h"
-
 #include "ProjectTask.hpp"
 
 namespace Slic3r {
@@ -227,12 +226,13 @@ public:
     // poll_3mf for task, sync
     int poll_3mf(BBLSubTask* task);
     // get task info
-    BBLTask* get_task(std::string task_id);
-    void get_subtask(std::string subtask_id, BBLSubTask* &subtask);
+    void get_task(BBLTask* &task);
+    void get_subtask(BBLSubTask* &subtask);
+    void get_profile(BBLProject*& project, BBLProfile*& profile);
 
     // create a project 
     void get_project_info(BBLProject* project);
-    void get_profile_info(BBLProject* project, BBLProfile* profile);
+    void get_profile_info(BBLProject* &project, BBLProfile* &profile);
     void create_task(BBLProject* project, BBLTask* task, ResultFn resFn);
     void post_task(BBLSubTask* task, ResultFn resFn, ProgressFn proFn);
     

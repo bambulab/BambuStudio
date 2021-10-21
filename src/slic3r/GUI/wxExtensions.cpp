@@ -1042,6 +1042,7 @@ ImageTransientPopup::~ImageTransientPopup()
 void ImageTransientPopup::SetImage(wxBitmap bmp)
 {
     m_image->SetBitmap(bmp);
+    m_panel->Layout();
 }
 
 void ImageTransientPopup::Popup(wxWindow* WXUNUSED(focus))

@@ -331,460 +331,640 @@ void SubTaskListModel::clear_data()
 MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style) : wxPanel(parent, id, pos, size, style)
 {
     init_bitmap();
+    /* modify to wxToggleButton, set bitmap image, set font */
 
     wxBoxSizer* bSizer_top;
-    bSizer_top = new wxBoxSizer(wxHORIZONTAL);
-
-    m_panel_left = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    m_panel_left->SetMinSize(wxSize(420, -1));
-    m_panel_left->SetMaxSize(wxSize(420, -1));
-
-    wxBoxSizer* bSizer_left;
-    bSizer_left = new wxBoxSizer(wxVERTICAL);
-
-    wxBoxSizer* bSizer_select_printer;
-    bSizer_select_printer = new wxBoxSizer(wxHORIZONTAL);
-
-    m_staticText_machine_title = new wxStaticText(m_panel_left, wxID_ANY, wxT("Printer"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
-    m_staticText_machine_title->Wrap(-1);
-    bSizer_select_printer->Add(m_staticText_machine_title, 0, wxALIGN_CENTER | wxALL, 5);
-
-    wxArrayString m_choice_machineChoices;
-    m_choice_machine = new wxChoice(m_panel_left, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_choice_machineChoices, 0);
-    m_choice_machine->SetSelection(0);
-    bSizer_select_printer->Add(m_choice_machine, 1, wxALL | wxEXPAND, 5);
-
-
-    bSizer_left->Add(bSizer_select_printer, 0, wxEXPAND, 5);
-
-    wxStaticBoxSizer* sbSizer_status;
-    sbSizer_status = new wxStaticBoxSizer(new wxStaticBox(m_panel_left, wxID_ANY, wxT("Status")), wxVERTICAL);
-
-    wxBoxSizer* bSizer_left_up;
-    bSizer_left_up = new wxBoxSizer(wxVERTICAL);
-
-    wxBoxSizer* bSizer_device;
-    bSizer_device = new wxBoxSizer(wxHORIZONTAL);
-
-    m_staticText_machine_status = new wxStaticText(sbSizer_status->GetStaticBox(), wxID_ANY, wxT("Printer"), wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_machine_status->Wrap(-1);
-    bSizer_device->Add(m_staticText_machine_status, 0, wxALL, 5);
-
-    m_staticText_machine_name = new wxStaticText(sbSizer_status->GetStaticBox(), wxID_ANY, wxT("BBL_3D_Printer"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
-    m_staticText_machine_name->Wrap(-1);
-    bSizer_device->Add(m_staticText_machine_name, 1, wxALIGN_CENTER | wxALL, 5);
-
-    m_staticText_wifi_signal = new wxStaticText(sbSizer_status->GetStaticBox(), wxID_ANY, wxT("0"), wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_wifi_signal->Wrap(-1);
-    bSizer_device->Add(m_staticText_wifi_signal, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxRIGHT, 5);
-
-
-    bSizer_left_up->Add(bSizer_device, 0, wxALL | wxEXPAND, 0);
-
-    wxGridSizer* gSizer_status;
-    gSizer_status = new wxGridSizer(3, 2, 0, 0);
-
-    m_staticText_printing_title = new wxStaticText(sbSizer_status->GetStaticBox(), wxID_ANY, wxT("Status"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE | wxSIMPLE_BORDER);
-    m_staticText_printing_title->Wrap(-1);
-    gSizer_status->Add(m_staticText_printing_title, 0, wxALL | wxEXPAND, 0);
-
-    m_staticText_printing_val = new wxStaticText(sbSizer_status->GetStaticBox(), wxID_ANY, wxT("Ready"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE | wxSIMPLE_BORDER);
-    m_staticText_printing_val->Wrap(-1);
-    gSizer_status->Add(m_staticText_printing_val, 1, wxALL | wxEXPAND, 0);
-
-    m_staticText_capacity_title = new wxStaticText(sbSizer_status->GetStaticBox(), wxID_ANY, wxT("Capacity"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE | wxSIMPLE_BORDER);
-    m_staticText_capacity_title->Wrap(-1);
-    gSizer_status->Add(m_staticText_capacity_title, 0, wxALL | wxEXPAND, 0);
-
-    m_staticText_capacity_val = new wxStaticText(sbSizer_status->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE | wxSIMPLE_BORDER);
-    m_staticText_capacity_val->Wrap(-1);
-    gSizer_status->Add(m_staticText_capacity_val, 1, wxALL | wxEXPAND, 0);
-
-    m_staticText_bed_title = new wxStaticText(sbSizer_status->GetStaticBox(), wxID_ANY, wxT("Bed"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE | wxSIMPLE_BORDER);
-    m_staticText_bed_title->Wrap(-1);
-    gSizer_status->Add(m_staticText_bed_title, 0, wxALL | wxEXPAND, 0);
-
-    m_staticText_bed_value = new wxStaticText(sbSizer_status->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE | wxSIMPLE_BORDER);
-    m_staticText_bed_value->Wrap(-1);
-    gSizer_status->Add(m_staticText_bed_value, 0, wxALL | wxEXPAND, 0);
-
-    m_staticText_nozzle_title = new wxStaticText(sbSizer_status->GetStaticBox(), wxID_ANY, wxT("Nozzle"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE | wxSIMPLE_BORDER);
-    m_staticText_nozzle_title->Wrap(-1);
-    gSizer_status->Add(m_staticText_nozzle_title, 0, wxALL | wxEXPAND, 0);
-
-    m_staticText_nozzle_value = new wxStaticText(sbSizer_status->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE | wxSIMPLE_BORDER);
-    m_staticText_nozzle_value->Wrap(-1);
-    gSizer_status->Add(m_staticText_nozzle_value, 0, wxALL | wxEXPAND, 0);
-
-    m_staticText_sn_title = new wxStaticText(sbSizer_status->GetStaticBox(), wxID_ANY, wxT("SN"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE | wxSIMPLE_BORDER);
-    m_staticText_sn_title->Wrap(-1);
-    gSizer_status->Add(m_staticText_sn_title, 0, wxALL | wxEXPAND, 0);
-
-    m_staticText_sn_value = new wxStaticText(sbSizer_status->GetStaticBox(), wxID_ANY, wxT("XXXX-XXXX"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE | wxSIMPLE_BORDER);
-    m_staticText_sn_value->Wrap(-1);
-    gSizer_status->Add(m_staticText_sn_value, 0, wxALL | wxEXPAND, 0);
-
-
-    bSizer_left_up->Add(gSizer_status, 0, wxALL | wxEXPAND, 0);
-
-    m_dataViewCtrl_ams = new wxDataViewCtrl(sbSizer_status->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 | wxSIMPLE_BORDER);
-    m_dataViewCtrl_ams->SetMinSize(wxSize(-1, 60));
-
-    bSizer_left_up->Add(m_dataViewCtrl_ams, 1, wxALL | wxEXPAND, 0);
-
-
-    sbSizer_status->Add(bSizer_left_up, 1, wxEXPAND, 0);
-
-
-    bSizer_left->Add(sbSizer_status, 1, wxEXPAND, 0);
-
-    m_staticline1 = new wxStaticLine(m_panel_left, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
-    bSizer_left->Add(m_staticline1, 0, wxEXPAND | wxALL, 5);
-
-    wxStaticBoxSizer* sbSizer_task;
-    sbSizer_task = new wxStaticBoxSizer(new wxStaticBox(m_panel_left, wxID_ANY, wxT("Task")), wxVERTICAL);
-
-    wxBoxSizer* bSizer__task_caption;
-    bSizer__task_caption = new wxBoxSizer(wxHORIZONTAL);
-
-
-    sbSizer_task->Add(bSizer__task_caption, 0, wxALL | wxEXPAND, 0);
-
-    wxFlexGridSizer* fgSizer_task_info;
-    fgSizer_task_info = new wxFlexGridSizer(0, 2, 0, 0);
-    fgSizer_task_info->AddGrowableCol(1);
-    fgSizer_task_info->SetFlexibleDirection(wxBOTH);
-    fgSizer_task_info->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
-
-    m_staticText_project_title = new wxStaticText(sbSizer_task->GetStaticBox(), wxID_ANY, wxT("Project Name"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxSIMPLE_BORDER);
-    m_staticText_project_title->Wrap(-1);
-    m_staticText_project_title->Hide();
-    m_staticText_project_title->SetMinSize(wxSize(100, -1));
-    m_staticText_project_title->SetMaxSize(wxSize(100, -1));
-
-    fgSizer_task_info->Add(m_staticText_project_title, 0, wxALL | wxEXPAND, 0);
-
-    m_staticText_project_name = new wxStaticText(sbSizer_task->GetStaticBox(), wxID_ANY, wxT("BBL_Project"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE | wxSIMPLE_BORDER);
-    m_staticText_project_name->Wrap(-1);
-    m_staticText_project_name->Hide();
-
-    fgSizer_task_info->Add(m_staticText_project_name, 1, wxALL | wxEXPAND, 0);
-
-    m_staticText_profile_title = new wxStaticText(sbSizer_task->GetStaticBox(), wxID_ANY, wxT("Profile Name"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxSIMPLE_BORDER);
-    m_staticText_profile_title->Wrap(-1);
-    m_staticText_profile_title->Hide();
-    m_staticText_profile_title->SetMinSize(wxSize(100, -1));
-    m_staticText_profile_title->SetMaxSize(wxSize(100, -1));
-
-    fgSizer_task_info->Add(m_staticText_profile_title, 0, wxALL | wxEXPAND, 0);
-
-    m_staticText_profile_value = new wxStaticText(sbSizer_task->GetStaticBox(), wxID_ANY, wxT("BBL_Profile"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE | wxSIMPLE_BORDER);
-    m_staticText_profile_value->Wrap(-1);
-    m_staticText_profile_value->Hide();
-
-    fgSizer_task_info->Add(m_staticText_profile_value, 1, wxALL | wxEXPAND, 0);
-
-    m_staticText_task_title = new wxStaticText(sbSizer_task->GetStaticBox(), wxID_ANY, wxT("Task"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxSIMPLE_BORDER);
-    m_staticText_task_title->Wrap(-1);
-    m_staticText_task_title->SetMinSize(wxSize(100, -1));
-    m_staticText_task_title->SetMaxSize(wxSize(100, -1));
-
-    fgSizer_task_info->Add(m_staticText_task_title, 0, wxALL | wxEXPAND, 0);
-
-    m_staticText_task_value = new wxStaticText(sbSizer_task->GetStaticBox(), wxID_ANY, wxT("BBL_Task"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE | wxSIMPLE_BORDER);
-    m_staticText_task_value->Wrap(-1);
-    fgSizer_task_info->Add(m_staticText_task_value, 1, wxALL | wxEXPAND, 0);
-
-    m_staticText_subtask_title = new wxStaticText(sbSizer_task->GetStaticBox(), wxID_ANY, wxT("SubTask"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxSIMPLE_BORDER);
-    m_staticText_subtask_title->Wrap(-1);
-    m_staticText_subtask_title->SetMinSize(wxSize(100, -1));
-    m_staticText_subtask_title->SetMaxSize(wxSize(100, -1));
-
-    fgSizer_task_info->Add(m_staticText_subtask_title, 0, wxALL | wxEXPAND, 0);
-
-    m_staticText_subtask_value = new wxStaticText(sbSizer_task->GetStaticBox(), wxID_ANY, wxT("BBL_SubTask"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE | wxSIMPLE_BORDER);
-    m_staticText_subtask_value->Wrap(-1);
-    fgSizer_task_info->Add(m_staticText_subtask_value, 0, wxALL | wxEXPAND, 0);
-
-    m_staticText_progress_title = new wxStaticText(sbSizer_task->GetStaticBox(), wxID_ANY, wxT("Progress"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxSIMPLE_BORDER);
-    m_staticText_progress_title->Wrap(-1);
-    m_staticText_progress_title->SetMinSize(wxSize(100, -1));
-    m_staticText_progress_title->SetMaxSize(wxSize(100, -1));
-
-    fgSizer_task_info->Add(m_staticText_progress_title, 0, wxALL | wxEXPAND, 0);
-
-    wxBoxSizer* bSizer_progress;
-    bSizer_progress = new wxBoxSizer(wxVERTICAL);
-
-    m_staticText_progress = new wxStaticText(sbSizer_task->GetStaticBox(), wxID_ANY, wxT("0/0"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
-    m_staticText_progress->Wrap(-1);
-    bSizer_progress->Add(m_staticText_progress, 0, wxALL | wxEXPAND, 0);
-
-    m_gauge_progress = new wxGauge(sbSizer_task->GetStaticBox(), wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_HORIZONTAL);
-    m_gauge_progress->SetValue(0);
-    bSizer_progress->Add(m_gauge_progress, 0, wxALL | wxEXPAND, 0);
-
-
-    fgSizer_task_info->Add(bSizer_progress, 1, wxALL | wxEXPAND, 0);
-
-
-    sbSizer_task->Add(fgSizer_task_info, 0, wxALL | wxEXPAND, 0);
-
-    m_dataViewCtrl_subtask = new wxDataViewCtrl(sbSizer_task->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 | wxSIMPLE_BORDER);
-    m_dataViewCtrl_subtask->SetMinSize(wxSize(-1, 60));
-
-    sbSizer_task->Add(m_dataViewCtrl_subtask, 1, wxALL | wxEXPAND, 0);
-
-    wxBoxSizer* bSizer_task_btn;
-    bSizer_task_btn = new wxBoxSizer(wxHORIZONTAL);
-
-    m_button_start = new wxButton(sbSizer_task->GetStaticBox(), wxID_ANY, wxT("Start"), wxDefaultPosition, wxDefaultSize, 0);
-    bSizer_task_btn->Add(m_button_start, 0, wxALIGN_CENTER | wxALL, 5);
-
-    m_button_pause_resume = new wxButton(sbSizer_task->GetStaticBox(), wxID_ANY, wxT("Pause"), wxDefaultPosition, wxDefaultSize, 0);
-    bSizer_task_btn->Add(m_button_pause_resume, 0, wxALIGN_CENTER | wxALL, 5);
-
-    m_button_abort = new wxButton(sbSizer_task->GetStaticBox(), wxID_ANY, wxT("Abort"), wxDefaultPosition, wxDefaultSize, 0);
-    bSizer_task_btn->Add(m_button_abort, 0, wxALIGN_CENTER | wxALL, 5);
-
-
-    sbSizer_task->Add(bSizer_task_btn, 0, wxEXPAND, 5);
-
-
-    bSizer_left->Add(sbSizer_task, 1, wxEXPAND, 0);
-
-    wxBoxSizer* bSizer_task;
-    bSizer_task = new wxBoxSizer(wxVERTICAL);
-
-
-    bSizer_left->Add(bSizer_task, 0, wxEXPAND, 0);
-
-    m_staticline2 = new wxStaticLine(m_panel_left, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
-    bSizer_left->Add(m_staticline2, 0, wxEXPAND | wxALL, 5);
-
-    wxStaticBoxSizer* sbSizer_hms;
-    sbSizer_hms = new wxStaticBoxSizer(new wxStaticBox(m_panel_left, wxID_ANY, wxT("Notifacation")), wxVERTICAL);
-
-    m_dataViewListCtrl_hms = new wxDataViewListCtrl(sbSizer_hms->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
-    m_dataViewListCtrl_hms->SetMinSize(wxSize(-1, 60));
-
-    sbSizer_hms->Add(m_dataViewListCtrl_hms, 1, wxALL | wxEXPAND, 0);
-
-
-    bSizer_left->Add(sbSizer_hms, 1, wxALL | wxEXPAND, 0);
-
-
-    m_panel_left->SetSizer(bSizer_left);
-    m_panel_left->Layout();
-    bSizer_left->Fit(m_panel_left);
-    bSizer_top->Add(m_panel_left, 0, wxEXPAND | wxALL, 0);
-
-    wxBoxSizer* bSizer_right;
-    bSizer_right = new wxBoxSizer(wxVERTICAL);
-
-    wxStaticBoxSizer* sbSizer_info;
-    sbSizer_info = new wxStaticBoxSizer(new wxStaticBox(this, wxID_ANY, wxT("info")), wxVERTICAL);
-
-    m_dataViewListCtrl_info = new wxDataViewListCtrl(sbSizer_info->GetStaticBox(), wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
-    m_dataViewListColumn_title = m_dataViewListCtrl_info->AppendTextColumn(wxT("Title"));
-    m_dataViewListColumn_value = m_dataViewListCtrl_info->AppendTextColumn(wxT("Value"));
-    sbSizer_info->Add(m_dataViewListCtrl_info, 1, wxALL | wxEXPAND, 5);
-
-
-    bSizer_right->Add(sbSizer_info, 1, wxALL | wxEXPAND, 0);
-
-    wxBoxSizer* bSizer_control;
-    bSizer_control = new wxBoxSizer(wxHORIZONTAL);
-
-    wxStaticBoxSizer* sbSizer_axis_ctrl;
-    sbSizer_axis_ctrl = new wxStaticBoxSizer(new wxStaticBox(this, wxID_ANY, wxT("axis control")), wxVERTICAL);
-
-    wxGridBagSizer* gbSizer_control;
-    gbSizer_control = new wxGridBagSizer(0, 0);
-    gbSizer_control->SetFlexibleDirection(wxBOTH);
-    gbSizer_control->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
-
-    m_bpButton_y_up = new wxBitmapButton(sbSizer_axis_ctrl->GetStaticBox(), wxID_ANY, m_ctrl_up, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW);
-    m_bpButton_y_up->SetMinSize(wxSize(32, 32));
-
-    gbSizer_control->Add(m_bpButton_y_up, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALL, 0);
-
-    m_bpButton_y_down = new wxBitmapButton(sbSizer_axis_ctrl->GetStaticBox(), wxID_ANY, m_ctrl_down, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW);
-    m_bpButton_y_down->SetMinSize(wxSize(32, 32));
-
-    gbSizer_control->Add(m_bpButton_y_down, wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 0);
-
-    m_bpButton_xy_home = new wxBitmapButton(sbSizer_axis_ctrl->GetStaticBox(), wxID_ANY, m_ctrl_home, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW);
-    m_bpButton_xy_home->SetMinSize(wxSize(32, 32));
-
-    gbSizer_control->Add(m_bpButton_xy_home, wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL, 0);
-
-    m_bpButton_x_left = new wxBitmapButton(sbSizer_axis_ctrl->GetStaticBox(), wxID_ANY, m_ctrl_left, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW);
-    m_bpButton_x_left->SetMinSize(wxSize(32, 32));
-
-    gbSizer_control->Add(m_bpButton_x_left, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 0);
-
-    m_bpButton_x_right = new wxBitmapButton(sbSizer_axis_ctrl->GetStaticBox(), wxID_ANY, m_ctrl_right, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW);
-    m_bpButton_x_right->SetMinSize(wxSize(32, 32));
-
-    gbSizer_control->Add(m_bpButton_x_right, wxGBPosition(2, 2), wxGBSpan(1, 1), wxALL, 0);
-
-    m_bpButton_z_up = new wxBitmapButton(sbSizer_axis_ctrl->GetStaticBox(), wxID_ANY, m_ctrl_up, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW);
-    m_bpButton_z_up->SetMinSize(wxSize(32, 32));
-
-    gbSizer_control->Add(m_bpButton_z_up, wxGBPosition(1, 6), wxGBSpan(1, 1), wxALL, 0);
-
-    m_bpButton_z_home = new wxBitmapButton(sbSizer_axis_ctrl->GetStaticBox(), wxID_ANY, m_ctrl_home, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW);
-    m_bpButton_z_home->SetMinSize(wxSize(32, 32));
-
-    gbSizer_control->Add(m_bpButton_z_home, wxGBPosition(2, 6), wxGBSpan(1, 1), wxALL, 0);
-
-    m_bpButton_z_down = new wxBitmapButton(sbSizer_axis_ctrl->GetStaticBox(), wxID_ANY, m_ctrl_down, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW);
-    m_bpButton_z_down->SetMinSize(wxSize(32, 32));
-
-    gbSizer_control->Add(m_bpButton_z_down, wxGBPosition(3, 6), wxGBSpan(1, 1), wxALL, 0);
-
-    m_staticText_X = new wxStaticText(sbSizer_axis_ctrl->GetStaticBox(), wxID_ANY, wxT("X          "), wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_X->Wrap(-1);
-    gbSizer_control->Add(m_staticText_X, wxGBPosition(2, 4), wxGBSpan(1, 1), wxALIGN_CENTER | wxALL, 0);
-
-    m_staticText_Y = new wxStaticText(sbSizer_axis_ctrl->GetStaticBox(), wxID_ANY, wxT("Y"), wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_Y->Wrap(-1);
-    gbSizer_control->Add(m_staticText_Y, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALIGN_CENTER | wxALL, 5);
-
-    m_staticText_Z = new wxStaticText(sbSizer_axis_ctrl->GetStaticBox(), wxID_ANY, wxT("Z"), wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_Z->Wrap(-1);
-    gbSizer_control->Add(m_staticText_Z, wxGBPosition(0, 6), wxGBSpan(1, 1), wxALIGN_CENTER | wxALL, 5);
-
-
-    sbSizer_axis_ctrl->Add(gbSizer_control, 0, wxEXPAND, 5);
-
-    wxBoxSizer* bSizer_unit;
-    bSizer_unit = new wxBoxSizer(wxHORIZONTAL);
-
-    m_button_0_1 = new wxToggleButton(sbSizer_axis_ctrl->GetStaticBox(), wxID_ANY, wxT("0.1"), wxDefaultPosition, wxSize(50, -1), 0);
-    bSizer_unit->Add(m_button_0_1, 1, wxALIGN_CENTER | wxALL, 0);
-
-    m_button_1_0 = new wxToggleButton(sbSizer_axis_ctrl->GetStaticBox(), wxID_ANY, wxT("1"), wxDefaultPosition, wxSize(50, -1), 0);
-    bSizer_unit->Add(m_button_1_0, 1, wxALL, 0);
-
-    m_button_10_0 = new wxToggleButton(sbSizer_axis_ctrl->GetStaticBox(), wxID_ANY, wxT("10"), wxDefaultPosition, wxSize(50, -1), 0);
-    bSizer_unit->Add(m_button_10_0, 1, wxALL, 0);
-
-    m_button_100_0 = new wxToggleButton(sbSizer_axis_ctrl->GetStaticBox(), wxID_ANY, wxT("100"), wxDefaultPosition, wxSize(50, -1), 0);
-    bSizer_unit->Add(m_button_100_0, 1, wxALL, 0);
-
-
-    sbSizer_axis_ctrl->Add(bSizer_unit, 0, wxALL | wxEXPAND, 1);
-
-
-    bSizer_control->Add(sbSizer_axis_ctrl, 0, wxEXPAND, 5);
-
-    wxStaticBoxSizer* sbSizer_extruder;
-    sbSizer_extruder = new wxStaticBoxSizer(new wxStaticBox(this, wxID_ANY, wxT("extruder control")), wxVERTICAL);
-
-    wxBoxSizer* bSizer_select_tray;
-    bSizer_select_tray = new wxBoxSizer(wxHORIZONTAL);
-
-    m_comboBox_trays = new wxComboBox(sbSizer_extruder->GetStaticBox(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, NULL, 0);
-    bSizer_select_tray->Add(m_comboBox_trays, 1, wxALIGN_CENTER | wxALL, 5);
-
-    m_button_extreder_feed = new wxButton(sbSizer_extruder->GetStaticBox(), wxID_ANY, wxT("Feed"), wxDefaultPosition, wxDefaultSize, 0);
-    m_button_extreder_feed->SetMinSize(wxSize(60, 30));
-
-    bSizer_select_tray->Add(m_button_extreder_feed, 0, wxALIGN_CENTER | wxALL, 5);
-
-
-    sbSizer_extruder->Add(bSizer_select_tray, 0, wxEXPAND, 5);
-
-    wxBoxSizer* bSizer_extruder_back;
-    bSizer_extruder_back = new wxBoxSizer(wxHORIZONTAL);
-
-    m_button_extruder_back = new wxButton(sbSizer_extruder->GetStaticBox(), wxID_ANY, wxT("Back"), wxDefaultPosition, wxDefaultSize, 0);
-    m_button_extruder_back->SetMinSize(wxSize(-1, 30));
-    m_button_extruder_back->SetMaxSize(wxSize(-1, 30));
-
-    bSizer_extruder_back->Add(m_button_extruder_back, 1, wxALL | wxEXPAND, 5);
-
-
-    sbSizer_extruder->Add(bSizer_extruder_back, 0, wxEXPAND, 5);
-
-    wxBoxSizer* bSizer_extrude;
-    bSizer_extrude = new wxBoxSizer(wxHORIZONTAL);
-
-    m_textCtrl_extrude = new wxTextCtrl(sbSizer_extruder->GetStaticBox(), wxID_ANY, wxT("20"), wxDefaultPosition, wxDefaultSize, 0);
-    m_textCtrl_extrude->SetMinSize(wxSize(80, -1));
-
-    bSizer_extrude->Add(m_textCtrl_extrude, 1, wxALIGN_CENTER | wxALL, 5);
-
-    m_staticText_unit_extrude = new wxStaticText(sbSizer_extruder->GetStaticBox(), wxID_ANY, wxT("mm"), wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_unit_extrude->Wrap(-1);
-    bSizer_extrude->Add(m_staticText_unit_extrude, 0, wxALIGN_CENTER | wxALL, 5);
-
-    m_button_extruder_in = new wxButton(sbSizer_extruder->GetStaticBox(), wxID_ANY, wxT("Extrude"), wxDefaultPosition, wxSize(110, -1), 0);
-    m_button_extruder_in->SetMinSize(wxSize(80, -1));
-
-    bSizer_extrude->Add(m_button_extruder_in, 0, wxALIGN_CENTER | wxALL, 5);
-
-
-    sbSizer_extruder->Add(bSizer_extrude, 0, wxEXPAND, 5);
-
-    wxBoxSizer* bSizer_rectraction;
-    bSizer_rectraction = new wxBoxSizer(wxHORIZONTAL);
-
-    m_textCtrl_retraction = new wxTextCtrl(sbSizer_extruder->GetStaticBox(), wxID_ANY, wxT("20"), wxDefaultPosition, wxDefaultSize, 0);
-    m_textCtrl_retraction->SetMinSize(wxSize(80, -1));
-
-    bSizer_rectraction->Add(m_textCtrl_retraction, 1, wxALIGN_CENTER | wxALL, 5);
-
-    m_staticText_unit_retraction = new wxStaticText(sbSizer_extruder->GetStaticBox(), wxID_ANY, wxT("mm"), wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_unit_retraction->Wrap(-1);
-    bSizer_rectraction->Add(m_staticText_unit_retraction, 0, wxALIGN_CENTER | wxALL, 5);
-
-    m_button_extruder_out = new wxButton(sbSizer_extruder->GetStaticBox(), wxID_ANY, wxT("Retraction"), wxDefaultPosition, wxSize(110, -1), 0);
-    m_button_extruder_out->SetMinSize(wxSize(80, -1));
-
-    bSizer_rectraction->Add(m_button_extruder_out, 0, wxALIGN_CENTER | wxALL, 5);
-
-
-    sbSizer_extruder->Add(bSizer_rectraction, 0, wxALIGN_BOTTOM | wxEXPAND, 5);
-
-
-    sbSizer_extruder->Add(0, 0, 1, wxALL | wxEXPAND, 5);
-
-
-    bSizer_control->Add(sbSizer_extruder, 0, wxEXPAND, 5);
-
-    wxStaticBoxSizer* sbSizer_others;
-    sbSizer_others = new wxStaticBoxSizer(new wxStaticBox(this, wxID_ANY, wxT("others")), wxVERTICAL);
-
-    m_button_fan_on = new wxButton(sbSizer_others->GetStaticBox(), wxID_ANY, wxT("Fan On"), wxDefaultPosition, wxSize(110, -1), 0);
-    sbSizer_others->Add(m_button_fan_on, 0, wxALL, 5);
-
-    m_button_fan_off = new wxButton(sbSizer_others->GetStaticBox(), wxID_ANY, wxT("Fan Off"), wxDefaultPosition, wxSize(110, -1), 0);
-    sbSizer_others->Add(m_button_fan_off, 0, wxALL, 5);
-
-    m_button_auto_leveling = new wxButton(sbSizer_others->GetStaticBox(), wxID_ANY, wxT("Auto Leveling"), wxDefaultPosition, wxSize(110, -1), 0);
-    sbSizer_others->Add(m_button_auto_leveling, 0, wxALL, 5);
-
-    m_button_xyz_abs = new wxButton(sbSizer_others->GetStaticBox(), wxID_ANY, wxT("XYZ abs"), wxDefaultPosition, wxSize(110, -1), 0);
-    sbSizer_others->Add(m_button_xyz_abs, 0, wxALL, 5);
-
-
-    bSizer_control->Add(sbSizer_others, 0, wxEXPAND, 5);
-
-
-    bSizer_control->Add(0, 0, 1, wxEXPAND, 5);
-
-
-    bSizer_right->Add(bSizer_control, 0, wxEXPAND, 5);
-
-
-    bSizer_top->Add(bSizer_right, 1, wxALL | wxEXPAND, 5);
-
-
-    this->SetSizer(bSizer_top);
-    this->Layout();
+	bSizer_top = new wxBoxSizer( wxHORIZONTAL );
+	
+	m_panel_left = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panel_left->SetMinSize( wxSize( 420,-1 ) );
+	m_panel_left->SetMaxSize( wxSize( 420,-1 ) );
+	
+	wxBoxSizer* bSizer_left;
+	bSizer_left = new wxBoxSizer( wxVERTICAL );
+	
+	wxBoxSizer* bSizer_select_printer;
+	bSizer_select_printer = new wxBoxSizer( wxHORIZONTAL );
+	
+	m_staticText_machine_title = new wxStaticText( m_panel_left, wxID_ANY, wxT("Printer"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	m_staticText_machine_title->Wrap( -1 );
+	bSizer_select_printer->Add( m_staticText_machine_title, 0, wxALIGN_CENTER|wxALL, 5 );
+	
+	wxArrayString m_choice_machineChoices;
+	m_choice_machine = new wxChoice( m_panel_left, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_choice_machineChoices, 0 );
+	m_choice_machine->SetSelection( 0 );
+	bSizer_select_printer->Add( m_choice_machine, 1, wxALL|wxEXPAND, 5 );
+	
+	
+	bSizer_left->Add( bSizer_select_printer, 0, wxEXPAND, 5 );
+	
+	wxBoxSizer* bSizer_status;
+	bSizer_status = new wxBoxSizer( wxVERTICAL );
+	
+	wxBoxSizer* bSizer_status_caption;
+	bSizer_status_caption = new wxBoxSizer( wxHORIZONTAL );
+	
+	m_staticText_status = new wxStaticText( m_panel_left, wxID_ANY, wxT("Status Info"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_status->Wrap( -1 );
+	bSizer_status_caption->Add( m_staticText_status, 0, wxALL, 5 );
+	
+	
+	bSizer_status->Add( bSizer_status_caption, 0, wxEXPAND, 5 );
+	
+	wxBoxSizer* bSizer_left_up;
+	bSizer_left_up = new wxBoxSizer( wxVERTICAL );
+	
+	wxBoxSizer* bSizer_device;
+	bSizer_device = new wxBoxSizer( wxHORIZONTAL );
+	
+	
+	bSizer_left_up->Add( bSizer_device, 0, wxALL|wxEXPAND, 0 );
+	
+	wxFlexGridSizer* fgSizer_status;
+	fgSizer_status = new wxFlexGridSizer( 1, 2, 0, 0 );
+	fgSizer_status->AddGrowableCol( 1 );
+	fgSizer_status->SetFlexibleDirection( wxHORIZONTAL );
+	fgSizer_status->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+	
+	m_staticText_machine_status = new wxStaticText( m_panel_left, wxID_ANY, wxT("Printer"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+	m_staticText_machine_status->Wrap( -1 );
+	m_staticText_machine_status->SetMinSize( wxSize( 100,-1 ) );
+	
+	fgSizer_status->Add( m_staticText_machine_status, 0, wxALL, 5 );
+	
+	m_staticText_machine_name = new wxStaticText( m_panel_left, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	m_staticText_machine_name->Wrap( -1 );
+	fgSizer_status->Add( m_staticText_machine_name, 1, wxALL, 5 );
+	
+	m_staticText_printing_title = new wxStaticText( m_panel_left, wxID_ANY, wxT("Status"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+	m_staticText_printing_title->Wrap( -1 );
+	m_staticText_printing_title->SetMinSize( wxSize( 100,-1 ) );
+	
+	fgSizer_status->Add( m_staticText_printing_title, 0, wxALL|wxEXPAND, 5 );
+	
+	m_staticText_printing_val = new wxStaticText( m_panel_left, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	m_staticText_printing_val->Wrap( -1 );
+	fgSizer_status->Add( m_staticText_printing_val, 1, wxALL|wxEXPAND, 5 );
+	
+	m_staticText_capacity_title = new wxStaticText( m_panel_left, wxID_ANY, wxT("Capacity"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+	m_staticText_capacity_title->Wrap( -1 );
+	fgSizer_status->Add( m_staticText_capacity_title, 0, wxALL|wxEXPAND, 5 );
+	
+	m_staticText_capacity_val = new wxStaticText( m_panel_left, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	m_staticText_capacity_val->Wrap( -1 );
+	fgSizer_status->Add( m_staticText_capacity_val, 1, wxALL|wxEXPAND, 5 );
+	
+	m_staticText_sn_title = new wxStaticText( m_panel_left, wxID_ANY, wxT("SN"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+	m_staticText_sn_title->Wrap( -1 );
+	m_staticText_sn_title->SetMinSize( wxSize( 80,-1 ) );
+	
+	fgSizer_status->Add( m_staticText_sn_title, 0, wxALL|wxEXPAND, 5 );
+	
+	m_staticText_sn_value = new wxStaticText( m_panel_left, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	m_staticText_sn_value->Wrap( -1 );
+	fgSizer_status->Add( m_staticText_sn_value, 1, wxALL|wxEXPAND, 5 );
+	
+	m_staticText_wifi_title = new wxStaticText( m_panel_left, wxID_ANY, wxT("Signal"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+	m_staticText_wifi_title->Wrap( -1 );
+	fgSizer_status->Add( m_staticText_wifi_title, 0, wxALL|wxEXPAND, 5 );
+	
+	m_staticText_wifi_signal = new wxStaticText( m_panel_left, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	m_staticText_wifi_signal->Wrap( -1 );
+	fgSizer_status->Add( m_staticText_wifi_signal, 1, wxALL|wxEXPAND, 5 );
+	
+	
+	bSizer_left_up->Add( fgSizer_status, 0, wxEXPAND, 5 );
+	
+	m_dataViewCtrl_ams = new wxDataViewCtrl( m_panel_left, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0|wxSIMPLE_BORDER );
+	m_dataViewCtrl_ams->SetMinSize( wxSize( -1,60 ) );
+	
+	bSizer_left_up->Add( m_dataViewCtrl_ams, 1, wxALL|wxEXPAND, 0 );
+	
+	
+	bSizer_status->Add( bSizer_left_up, 1, wxEXPAND, 0 );
+	
+	
+	bSizer_left->Add( bSizer_status, 1, wxEXPAND, 5 );
+	
+	m_staticline1 = new wxStaticLine( m_panel_left, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+	bSizer_left->Add( m_staticline1, 0, wxEXPAND | wxALL, 5 );
+	
+	wxBoxSizer* bSizer_task;
+	bSizer_task = new wxBoxSizer( wxVERTICAL );
+	
+	wxBoxSizer* bSizer__task_caption;
+	bSizer__task_caption = new wxBoxSizer( wxHORIZONTAL );
+	
+	m_staticText_task_caption = new wxStaticText( m_panel_left, wxID_ANY, wxT("Printing"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_task_caption->Wrap( -1 );
+	bSizer__task_caption->Add( m_staticText_task_caption, 0, wxALIGN_CENTER|wxALL, 5 );
+	
+	
+	bSizer__task_caption->Add( 0, 0, 1, wxEXPAND, 5 );
+	
+	m_bpButton_open_project = new wxBitmapButton( m_panel_left, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
+	bSizer__task_caption->Add( m_bpButton_open_project, 0, wxALL, 5 );
+	
+	
+	bSizer_task->Add( bSizer__task_caption, 0, wxALL|wxEXPAND, 0 );
+	
+	wxFlexGridSizer* fgSizer_task_info;
+	fgSizer_task_info = new wxFlexGridSizer( 0, 2, 0, 0 );
+	fgSizer_task_info->AddGrowableCol( 1 );
+	fgSizer_task_info->SetFlexibleDirection( wxBOTH );
+	fgSizer_task_info->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+	
+	m_staticText_project_title = new wxStaticText( m_panel_left, wxID_ANY, wxT("Project Name"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT|wxSIMPLE_BORDER );
+	m_staticText_project_title->Wrap( -1 );
+	m_staticText_project_title->Hide();
+	m_staticText_project_title->SetMinSize( wxSize( 100,-1 ) );
+	m_staticText_project_title->SetMaxSize( wxSize( 100,-1 ) );
+	
+	fgSizer_task_info->Add( m_staticText_project_title, 0, wxALL|wxEXPAND, 0 );
+	
+	m_staticText_project_name = new wxStaticText( m_panel_left, wxID_ANY, wxT("BBL_Project"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxSIMPLE_BORDER );
+	m_staticText_project_name->Wrap( -1 );
+	m_staticText_project_name->Hide();
+	
+	fgSizer_task_info->Add( m_staticText_project_name, 1, wxALL|wxEXPAND, 0 );
+	
+	m_staticText_profile_title = new wxStaticText( m_panel_left, wxID_ANY, wxT("Profile Name"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT|wxSIMPLE_BORDER );
+	m_staticText_profile_title->Wrap( -1 );
+	m_staticText_profile_title->Hide();
+	m_staticText_profile_title->SetMinSize( wxSize( 100,-1 ) );
+	m_staticText_profile_title->SetMaxSize( wxSize( 100,-1 ) );
+	
+	fgSizer_task_info->Add( m_staticText_profile_title, 0, wxALL|wxEXPAND, 0 );
+	
+	m_staticText_profile_value = new wxStaticText( m_panel_left, wxID_ANY, wxT("BBL_Profile"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE|wxSIMPLE_BORDER );
+	m_staticText_profile_value->Wrap( -1 );
+	m_staticText_profile_value->Hide();
+	
+	fgSizer_task_info->Add( m_staticText_profile_value, 1, wxALL|wxEXPAND, 0 );
+	
+	m_staticText_task_title = new wxStaticText( m_panel_left, wxID_ANY, wxT("Task"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+	m_staticText_task_title->Wrap( -1 );
+	m_staticText_task_title->Hide();
+	m_staticText_task_title->SetMinSize( wxSize( 100,-1 ) );
+	m_staticText_task_title->SetMaxSize( wxSize( 100,-1 ) );
+	
+	fgSizer_task_info->Add( m_staticText_task_title, 0, wxALL|wxEXPAND, 5 );
+	
+	m_staticText_task_value = new wxStaticText( m_panel_left, wxID_ANY, wxT("BBL_Task"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	m_staticText_task_value->Wrap( -1 );
+	m_staticText_task_value->Hide();
+	
+	fgSizer_task_info->Add( m_staticText_task_value, 1, wxALL|wxEXPAND, 5 );
+	
+	m_staticText_subtask_title = new wxStaticText( m_panel_left, wxID_ANY, wxT("SubTask"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+	m_staticText_subtask_title->Wrap( -1 );
+	m_staticText_subtask_title->SetMinSize( wxSize( 100,-1 ) );
+	m_staticText_subtask_title->SetMaxSize( wxSize( 100,-1 ) );
+	
+	fgSizer_task_info->Add( m_staticText_subtask_title, 0, wxALL|wxEXPAND, 5 );
+	
+	m_staticText_subtask_value = new wxStaticText( m_panel_left, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	m_staticText_subtask_value->Wrap( -1 );
+	fgSizer_task_info->Add( m_staticText_subtask_value, 0, wxALL|wxEXPAND, 5 );
+	
+	
+	fgSizer_task_info->Add( 0, 0, 1, wxEXPAND, 5 );
+	
+	m_bitmap_thumbnail = new wxStaticBitmap( m_panel_left, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0 );
+	m_bitmap_thumbnail->SetMinSize( wxSize( 80,80 ) );
+	
+	fgSizer_task_info->Add( m_bitmap_thumbnail, 0, wxALL, 5 );
+	
+	m_staticText_progress_title = new wxStaticText( m_panel_left, wxID_ANY, wxT("Progress"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+	m_staticText_progress_title->Wrap( -1 );
+	m_staticText_progress_title->SetMinSize( wxSize( 100,-1 ) );
+	m_staticText_progress_title->SetMaxSize( wxSize( 100,-1 ) );
+	
+	fgSizer_task_info->Add( m_staticText_progress_title, 0, wxALL|wxEXPAND, 5 );
+	
+	wxBoxSizer* bSizer_progress;
+	bSizer_progress = new wxBoxSizer( wxVERTICAL );
+	
+	m_gauge_progress = new wxGauge( m_panel_left, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_HORIZONTAL );
+	m_gauge_progress->SetValue( 0 ); 
+	bSizer_progress->Add( m_gauge_progress, 0, wxALL|wxEXPAND, 0 );
+	
+	m_staticText_progress = new wxStaticText( m_panel_left, wxID_ANY, wxT("0/0"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	m_staticText_progress->Wrap( -1 );
+	bSizer_progress->Add( m_staticText_progress, 0, wxALL|wxEXPAND, 0 );
+	
+	
+	fgSizer_task_info->Add( bSizer_progress, 1, wxALL|wxEXPAND, 3 );
+	
+	
+	bSizer_task->Add( fgSizer_task_info, 0, wxALL|wxEXPAND, 0 );
+	
+	m_dataViewCtrl_subtask = new wxDataViewCtrl( m_panel_left, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0|wxSIMPLE_BORDER );
+	m_dataViewCtrl_subtask->SetMinSize( wxSize( -1,60 ) );
+	
+	bSizer_task->Add( m_dataViewCtrl_subtask, 1, wxALL|wxEXPAND, 0 );
+	
+	
+	bSizer_left->Add( bSizer_task, 1, wxEXPAND, 5 );
+	
+	m_staticline2 = new wxStaticLine( m_panel_left, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+	bSizer_left->Add( m_staticline2, 0, wxEXPAND | wxALL, 5 );
+	
+	wxBoxSizer* bSizer_hms;
+	bSizer_hms = new wxBoxSizer( wxVERTICAL );
+	
+	wxBoxSizer* bSizer_hms_caption;
+	bSizer_hms_caption = new wxBoxSizer( wxVERTICAL );
+	
+	m_staticText_hms_caption = new wxStaticText( m_panel_left, wxID_ANY, wxT("Notification"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_hms_caption->Wrap( -1 );
+	bSizer_hms_caption->Add( m_staticText_hms_caption, 0, wxALL, 5 );
+	
+	
+	bSizer_hms->Add( bSizer_hms_caption, 0, wxEXPAND, 5 );
+	
+	m_dataViewListCtrl_hms = new wxDataViewListCtrl( m_panel_left, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
+	m_dataViewListCtrl_hms->SetMinSize( wxSize( -1,60 ) );
+	
+	bSizer_hms->Add( m_dataViewListCtrl_hms, 1, wxALL|wxEXPAND, 0 );
+	
+	
+	bSizer_left->Add( bSizer_hms, 1, wxEXPAND, 5 );
+	
+	
+	m_panel_left->SetSizer( bSizer_left );
+	m_panel_left->Layout();
+	bSizer_left->Fit( m_panel_left );
+	bSizer_top->Add( m_panel_left, 0, wxEXPAND | wxALL, 0 );
+	
+	wxBoxSizer* bSizer_middle;
+	bSizer_middle = new wxBoxSizer( wxVERTICAL );
+    bSizer_middle->SetMinSize(wxSize(300, -1));
+	
+	m_notebook = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
+	m_panel_monitor = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* bSizer_tab_monitor;
+	bSizer_tab_monitor = new wxBoxSizer( wxVERTICAL );
+	
+	wxBoxSizer* bSizer_live;
+	bSizer_live = new wxBoxSizer( wxVERTICAL );
+	
+	m_panel_live = new wxPanel( m_panel_monitor, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	bSizer_live->Add( m_panel_live, 1, wxEXPAND | wxALL, 5 );
+	
+	
+	bSizer_tab_monitor->Add( bSizer_live, 1, wxEXPAND, 5 );
+	
+	wxBoxSizer* bSizer_caption;
+	bSizer_caption = new wxBoxSizer( wxVERTICAL );
+	
+	m_staticText_caption = new wxStaticText( m_panel_monitor, wxID_ANY, wxT("Printing Control"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_caption->Wrap( -1 );
+	bSizer_caption->Add( m_staticText_caption, 0, wxALL, 5 );
+	
+	
+	bSizer_tab_monitor->Add( bSizer_caption, 0, wxEXPAND, 5 );
+	
+	wxBoxSizer* bSizer_task_btn;
+	bSizer_task_btn = new wxBoxSizer( wxHORIZONTAL );
+	
+	
+	bSizer_task_btn->Add( 0, 0, 1, wxEXPAND, 5 );
+	
+	m_button_pause_resume = new wxButton( m_panel_monitor, wxID_ANY, wxT("Pause"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_button_pause_resume->SetMinSize( wxSize( 150,40 ) );
+	
+	bSizer_task_btn->Add( m_button_pause_resume, 0, wxALIGN_CENTER|wxALL, 5 );
+	
+	m_button_abort = new wxButton( m_panel_monitor, wxID_ANY, wxT("Abort"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_button_abort->SetMinSize( wxSize( 150,40 ) );
+	
+	bSizer_task_btn->Add( m_button_abort, 0, wxALIGN_CENTER|wxALL, 5 );
+	
+	
+	bSizer_task_btn->Add( 0, 0, 1, wxEXPAND, 5 );
+	
+	
+	bSizer_tab_monitor->Add( bSizer_task_btn, 0, wxALIGN_BOTTOM|wxEXPAND, 5 );
+	
+	
+	bSizer_tab_monitor->Add( 0, 60, 0, wxEXPAND, 5 );
+	
+	
+	m_panel_monitor->SetSizer( bSizer_tab_monitor );
+	m_panel_monitor->Layout();
+	bSizer_tab_monitor->Fit( m_panel_monitor );
+	m_notebook->AddPage( m_panel_monitor, wxT("Monitor"), true );
+	m_panel_timelapse = new wxPanel( m_notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_notebook->AddPage( m_panel_timelapse, wxT("Timelapse"), false );
+	
+	bSizer_middle->Add( m_notebook, 1, wxEXPAND | wxALL, 5 );
+	
+	
+	bSizer_top->Add( bSizer_middle, 1, wxEXPAND, 5 );
+	
+	wxBoxSizer* bSizer_control;
+	bSizer_control = new wxBoxSizer( wxVERTICAL );
+	
+	bSizer_control->SetMinSize( wxSize( 260,-1 ) ); 
+	wxBoxSizer* bSizer_axis_ctrl;
+	bSizer_axis_ctrl = new wxBoxSizer( wxVERTICAL );
+	
+	wxBoxSizer* bSizer_axis_ctrl_caption;
+	bSizer_axis_ctrl_caption = new wxBoxSizer( wxVERTICAL );
+	
+	m_staticText_ctrl_caption = new wxStaticText( this, wxID_ANY, wxT("Axis Control"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_ctrl_caption->Wrap( -1 );
+	bSizer_axis_ctrl_caption->Add( m_staticText_ctrl_caption, 0, wxALL, 5 );
+	
+	
+	bSizer_axis_ctrl->Add( bSizer_axis_ctrl_caption, 1, wxEXPAND, 5 );
+	
+	wxGridBagSizer* gbSizer_control;
+	gbSizer_control = new wxGridBagSizer( 0, 0 );
+	gbSizer_control->SetFlexibleDirection( wxBOTH );
+	gbSizer_control->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+	
+	m_bpButton_y_up = new wxBitmapButton( this, wxID_ANY, m_ctrl_up, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
+	m_bpButton_y_up->SetMinSize( wxSize( 32,32 ) );
+	
+	gbSizer_control->Add( m_bpButton_y_up, wxGBPosition( 1, 1 ), wxGBSpan( 1, 1 ), wxALL, 0 );
+	
+	m_bpButton_y_down = new wxBitmapButton( this, wxID_ANY, m_ctrl_down, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
+	m_bpButton_y_down->SetMinSize( wxSize( 32,32 ) );
+	
+	gbSizer_control->Add( m_bpButton_y_down, wxGBPosition( 3, 1 ), wxGBSpan( 1, 1 ), wxALL, 0 );
+	
+	m_bpButton_xy_home = new wxBitmapButton( this, wxID_ANY, m_ctrl_home, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
+	m_bpButton_xy_home->SetMinSize( wxSize( 32,32 ) );
+	
+	gbSizer_control->Add( m_bpButton_xy_home, wxGBPosition( 2, 1 ), wxGBSpan( 1, 1 ), wxALL, 0 );
+	
+	m_bpButton_x_left = new wxBitmapButton( this, wxID_ANY, m_ctrl_left, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
+	m_bpButton_x_left->SetMinSize( wxSize( 32,32 ) );
+	
+	gbSizer_control->Add( m_bpButton_x_left, wxGBPosition( 2, 0 ), wxGBSpan( 1, 1 ), wxALL, 0 );
+	
+	m_bpButton_x_right = new wxBitmapButton( this, wxID_ANY, m_ctrl_right, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
+	m_bpButton_x_right->SetMinSize( wxSize( 32,32 ) );
+	
+	gbSizer_control->Add( m_bpButton_x_right, wxGBPosition( 2, 2 ), wxGBSpan( 1, 1 ), wxALL, 0 );
+	
+	m_bpButton_z_up = new wxBitmapButton( this, wxID_ANY, m_ctrl_up, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
+	m_bpButton_z_up->SetMinSize( wxSize( 32,32 ) );
+	
+	gbSizer_control->Add( m_bpButton_z_up, wxGBPosition( 1, 6 ), wxGBSpan( 1, 1 ), wxALL, 0 );
+	
+	m_bpButton_z_home = new wxBitmapButton( this, wxID_ANY, m_ctrl_home, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
+	m_bpButton_z_home->SetMinSize( wxSize( 32,32 ) );
+	
+	gbSizer_control->Add( m_bpButton_z_home, wxGBPosition( 2, 6 ), wxGBSpan( 1, 1 ), wxALL, 0 );
+	
+	m_bpButton_z_down = new wxBitmapButton( this, wxID_ANY, m_ctrl_down, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
+	m_bpButton_z_down->SetMinSize( wxSize( 32,32 ) );
+	
+	gbSizer_control->Add( m_bpButton_z_down, wxGBPosition( 3, 6 ), wxGBSpan( 1, 1 ), wxALL, 0 );
+	
+	m_staticText_X = new wxStaticText( this, wxID_ANY, wxT("X          "), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_X->Wrap( -1 );
+	gbSizer_control->Add( m_staticText_X, wxGBPosition( 2, 4 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER|wxALL, 0 );
+	
+	m_staticText_Y = new wxStaticText( this, wxID_ANY, wxT("Y"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_Y->Wrap( -1 );
+	gbSizer_control->Add( m_staticText_Y, wxGBPosition( 0, 1 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER|wxALL, 5 );
+	
+	m_staticText_Z = new wxStaticText( this, wxID_ANY, wxT("Z"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_Z->Wrap( -1 );
+	gbSizer_control->Add( m_staticText_Z, wxGBPosition( 0, 6 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER|wxALL, 5 );
+	
+	
+	bSizer_axis_ctrl->Add( gbSizer_control, 0, wxEXPAND, 5 );
+	
+	wxBoxSizer* bSizer_unit;
+	bSizer_unit = new wxBoxSizer( wxHORIZONTAL );
+	
+	m_button_0_1 = new wxToggleButton( this, wxID_ANY, wxT("0.1"), wxDefaultPosition, wxSize( 50,-1 ), 0 );
+	bSizer_unit->Add( m_button_0_1, 1, wxALIGN_CENTER|wxALL, 0 );
+	
+	m_button_1_0 = new wxToggleButton( this, wxID_ANY, wxT("1"), wxDefaultPosition, wxSize( 50,-1 ), 0 );
+	bSizer_unit->Add( m_button_1_0, 1, wxALL, 0 );
+	
+	m_button_10_0 = new wxToggleButton( this, wxID_ANY, wxT("10"), wxDefaultPosition, wxSize( 50,-1 ), 0 );
+	bSizer_unit->Add( m_button_10_0, 1, wxALL, 0 );
+	
+	m_button_100_0 = new wxToggleButton( this, wxID_ANY, wxT("100"), wxDefaultPosition, wxSize( 50,-1 ), 0 );
+	bSizer_unit->Add( m_button_100_0, 1, wxALL, 0 );
+	
+	
+	bSizer_axis_ctrl->Add( bSizer_unit, 0, wxALL|wxEXPAND, 1 );
+	
+	
+	bSizer_control->Add( bSizer_axis_ctrl, 1, wxEXPAND, 5 );
+	
+	m_staticline3 = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+	bSizer_control->Add( m_staticline3, 0, wxEXPAND | wxALL, 5 );
+	
+	wxBoxSizer* bSizer_temp_ctrl;
+	bSizer_temp_ctrl = new wxBoxSizer( wxVERTICAL );
+	
+	wxBoxSizer* bSizer_temp_caption;
+	bSizer_temp_caption = new wxBoxSizer( wxVERTICAL );
+	
+	m_staticText_temp_caption = new wxStaticText( this, wxID_ANY, wxT("Temperature Control"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_temp_caption->Wrap( -1 );
+	bSizer_temp_caption->Add( m_staticText_temp_caption, 0, wxALL, 5 );
+	
+	
+	bSizer_temp_ctrl->Add( bSizer_temp_caption, 0, wxEXPAND, 5 );
+	
+	wxFlexGridSizer* fgSizer_temp;
+	fgSizer_temp = new wxFlexGridSizer( 0, 5, 0, 0 );
+	fgSizer_temp->SetFlexibleDirection( wxBOTH );
+	fgSizer_temp->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+	
+	
+	fgSizer_temp->Add( 80, 0, 1, wxEXPAND, 5 );
+	
+	m_staticText_current = new wxStaticText( this, wxID_ANY, wxT("Current"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	m_staticText_current->Wrap( -1 );
+	m_staticText_current->SetMinSize( wxSize( 70,-1 ) );
+	
+	fgSizer_temp->Add( m_staticText_current, 0, wxALL, 5 );
+	
+	m_staticText_target = new wxStaticText( this, wxID_ANY, wxT("Target"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	m_staticText_target->Wrap( -1 );
+	m_staticText_target->SetMinSize( wxSize( 70,-1 ) );
+	
+	fgSizer_temp->Add( m_staticText_target, 0, wxALL, 5 );
+	
+	
+	fgSizer_temp->Add( 0, 0, 1, wxEXPAND, 5 );
+	
+	
+	fgSizer_temp->Add( 0, 0, 1, wxEXPAND, 5 );
+	
+	m_bitmap_bed = new wxStaticBitmap( this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0 );
+	fgSizer_temp->Add( m_bitmap_bed, 0, wxALIGN_RIGHT|wxALL, 5 );
+	
+	m_staticText_bed_current = new wxStaticText( this, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	m_staticText_bed_current->Wrap( -1 );
+	fgSizer_temp->Add( m_staticText_bed_current, 1, wxALL|wxEXPAND, 0 );
+	
+	m_staticText_bed_target = new wxStaticText( this, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	m_staticText_bed_target->Wrap( -1 );
+	fgSizer_temp->Add( m_staticText_bed_target, 1, wxALL|wxEXPAND, 0 );
+	
+	m_textCtrl_bed = new wxTextCtrl( this, wxID_ANY, wxT("50"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_textCtrl_bed->SetMinSize( wxSize( 50,-1 ) );
+	
+	fgSizer_temp->Add( m_textCtrl_bed, 0, wxALIGN_CENTER|wxALL, 5 );
+	
+	m_button_set_bed = new wxButton( this, wxID_ANY, wxT("Set"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_button_set_bed->SetMinSize( wxSize( 50,-1 ) );
+	
+	fgSizer_temp->Add( m_button_set_bed, 0, wxALL, 5 );
+	
+	m_bitmap_nozzle = new wxStaticBitmap( this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0 );
+	fgSizer_temp->Add( m_bitmap_nozzle, 0, wxALIGN_RIGHT|wxALL, 5 );
+	
+	m_staticText_nozzle_current = new wxStaticText( this, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	m_staticText_nozzle_current->Wrap( -1 );
+	fgSizer_temp->Add( m_staticText_nozzle_current, 1, wxALL|wxEXPAND, 0 );
+	
+	m_staticText_nozzle_target = new wxStaticText( this, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+	m_staticText_nozzle_target->Wrap( -1 );
+	fgSizer_temp->Add( m_staticText_nozzle_target, 1, wxALL|wxEXPAND, 0 );
+	
+	m_textCtrl_nozzle = new wxTextCtrl( this, wxID_ANY, wxT("200"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_textCtrl_nozzle->SetMinSize( wxSize( 50,-1 ) );
+	
+	fgSizer_temp->Add( m_textCtrl_nozzle, 0, wxALIGN_CENTER|wxALL, 5 );
+	
+	m_button_set_nozzle = new wxButton( this, wxID_ANY, wxT("Set"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_button_set_nozzle->SetMinSize( wxSize( 50,-1 ) );
+	
+	fgSizer_temp->Add( m_button_set_nozzle, 0, wxALL, 5 );
+	
+	
+	bSizer_temp_ctrl->Add( fgSizer_temp, 1, wxEXPAND, 5 );
+	
+	
+	bSizer_control->Add( bSizer_temp_ctrl, 1, wxEXPAND, 5 );
+	
+	m_staticline4 = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+	bSizer_control->Add( m_staticline4, 0, wxEXPAND | wxALL, 5 );
+	
+	wxBoxSizer* bSizer_extruder_ctrl;
+	bSizer_extruder_ctrl = new wxBoxSizer( wxVERTICAL );
+	
+	wxBoxSizer* bSizer_extruder_ctrl_caption;
+	bSizer_extruder_ctrl_caption = new wxBoxSizer( wxVERTICAL );
+	
+	m_staticText_extruder_ctrl_caption = new wxStaticText( this, wxID_ANY, wxT("Extruder Control"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_extruder_ctrl_caption->Wrap( -1 );
+	bSizer_extruder_ctrl_caption->Add( m_staticText_extruder_ctrl_caption, 0, wxALL, 5 );
+	
+	
+	bSizer_extruder_ctrl->Add( bSizer_extruder_ctrl_caption, 0, wxEXPAND, 5 );
+	
+	wxFlexGridSizer* fgSizer_extruder;
+	fgSizer_extruder = new wxFlexGridSizer( 2, 3, 0, 0 );
+	fgSizer_extruder->SetFlexibleDirection( wxBOTH );
+	fgSizer_extruder->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+	
+	m_comboBox_trays = new wxComboBox( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, NULL, 0 ); 
+	fgSizer_extruder->Add( m_comboBox_trays, 1, wxALIGN_CENTER|wxALL, 5 );
+	
+	m_button_extreder_feed = new wxButton( this, wxID_ANY, wxT("Feed"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_button_extreder_feed->SetMinSize( wxSize( 80,-1 ) );
+	
+	fgSizer_extruder->Add( m_button_extreder_feed, 0, wxALIGN_CENTER|wxALL, 5 );
+	
+	m_button_extruder_back = new wxButton( this, wxID_ANY, wxT("Back"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_button_extruder_back->SetMinSize( wxSize( 80,-1 ) );
+	m_button_extruder_back->SetMaxSize( wxSize( -1,30 ) );
+	
+	fgSizer_extruder->Add( m_button_extruder_back, 1, wxALL|wxEXPAND, 5 );
+	
+	wxBoxSizer* bSizer30;
+	bSizer30 = new wxBoxSizer( wxHORIZONTAL );
+	
+	m_textCtrl_extrude = new wxTextCtrl( this, wxID_ANY, wxT("20"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_textCtrl_extrude->SetMinSize( wxSize( 80,-1 ) );
+	
+	bSizer30->Add( m_textCtrl_extrude, 1, wxALIGN_CENTER|wxALL, 5 );
+	
+	m_staticText_unit_extrude = new wxStaticText( this, wxID_ANY, wxT("mm"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_unit_extrude->Wrap( -1 );
+	bSizer30->Add( m_staticText_unit_extrude, 0, wxALIGN_CENTER|wxALL, 5 );
+	
+	
+	fgSizer_extruder->Add( bSizer30, 1, wxEXPAND, 5 );
+	
+	m_button_extruder_in = new wxButton( this, wxID_ANY, wxT("Extrude"), wxDefaultPosition, wxSize( 110,-1 ), 0 );
+	m_button_extruder_in->SetMinSize( wxSize( 80,-1 ) );
+	
+	fgSizer_extruder->Add( m_button_extruder_in, 0, wxALIGN_CENTER|wxALL, 5 );
+	
+	m_button_extruder_out = new wxButton( this, wxID_ANY, wxT("Retraction"), wxDefaultPosition, wxSize( 110,-1 ), 0 );
+	m_button_extruder_out->SetMinSize( wxSize( 80,-1 ) );
+	
+	fgSizer_extruder->Add( m_button_extruder_out, 0, wxALIGN_CENTER|wxALL, 5 );
+	
+	
+	bSizer_extruder_ctrl->Add( fgSizer_extruder, 1, wxEXPAND, 5 );
+	
+	
+	bSizer_control->Add( bSizer_extruder_ctrl, 1, wxEXPAND, 5 );
+	
+	m_staticline5 = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+	bSizer_control->Add( m_staticline5, 0, wxEXPAND | wxALL, 5 );
+	
+	wxBoxSizer* bSizer_other_ctrl;
+	bSizer_other_ctrl = new wxBoxSizer( wxVERTICAL );
+	
+	wxBoxSizer* bSizer_other_ctrl_caption;
+	bSizer_other_ctrl_caption = new wxBoxSizer( wxVERTICAL );
+	
+	m_staticText_other_caption = new wxStaticText( this, wxID_ANY, wxT("Other Control"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_other_caption->Wrap( -1 );
+	bSizer_other_ctrl_caption->Add( m_staticText_other_caption, 0, wxALL, 5 );
+	
+	
+	bSizer_other_ctrl->Add( bSizer_other_ctrl_caption, 0, wxEXPAND, 5 );
+	
+	wxFlexGridSizer* fgSizer_others;
+	fgSizer_others = new wxFlexGridSizer( 0, 2, 0, 0 );
+	fgSizer_others->SetFlexibleDirection( wxBOTH );
+	fgSizer_others->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+	
+	m_button_fan_on = new wxButton( this, wxID_ANY, wxT("Fan On"), wxDefaultPosition, wxSize( 110,-1 ), 0 );
+	fgSizer_others->Add( m_button_fan_on, 0, wxALL, 5 );
+	
+	m_button_fan_off = new wxButton( this, wxID_ANY, wxT("Fan Off"), wxDefaultPosition, wxSize( 110,-1 ), 0 );
+	fgSizer_others->Add( m_button_fan_off, 0, wxALL, 5 );
+	
+	m_button_auto_leveling = new wxButton( this, wxID_ANY, wxT("Auto Leveling"), wxDefaultPosition, wxSize( 110,-1 ), 0 );
+	fgSizer_others->Add( m_button_auto_leveling, 0, wxALL, 5 );
+	
+	m_button_xyz_abs = new wxButton( this, wxID_ANY, wxT("XYZ abs"), wxDefaultPosition, wxSize( 110,-1 ), 0 );
+	fgSizer_others->Add( m_button_xyz_abs, 0, wxALL, 5 );
+	
+	
+	bSizer_other_ctrl->Add( fgSizer_others, 1, wxEXPAND, 5 );
+	
+	
+	bSizer_control->Add( bSizer_other_ctrl, 1, wxEXPAND, 5 );
+	
+	
+	bSizer_control->Add( 0, 0, 1, wxEXPAND, 5 );
+	
+	
+	bSizer_top->Add( bSizer_control, 0, wxEXPAND, 5 );
+	
+	
+	this->SetSizer( bSizer_top );
+	this->Layout();
 
     set_toggle_widget_on(m_button_0_1);
 
@@ -799,8 +979,6 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
     // Connect Events
 
     m_choice_machine->Connect(wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler(MonitorPanel::on_select), NULL, this);
-
-    m_button_start->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_subtask_start), NULL, this);
     m_button_pause_resume->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_subtask_pause_resume), NULL, this);
     m_button_abort->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_subtask_abort), NULL, this);
     m_bpButton_y_up->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_axis_ctrl_y_up), NULL, this);
@@ -815,6 +993,8 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
     m_button_1_0->Connect(wxEVT_TOGGLEBUTTON, wxCommandEventHandler(MonitorPanel::on_axis_ctrl_unit_1_0), NULL, this);
     m_button_10_0->Connect(wxEVT_TOGGLEBUTTON, wxCommandEventHandler(MonitorPanel::on_axis_ctrl_unit_10_0), NULL, this);
     m_button_100_0->Connect(wxEVT_TOGGLEBUTTON, wxCommandEventHandler(MonitorPanel::on_axis_ctrl_unit_100_0), NULL, this);
+    m_button_set_bed->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MonitorPanel::on_set_bed_temp ), NULL, this );
+	m_button_set_nozzle->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MonitorPanel::on_set_nozzle_temp ), NULL, this );
     m_button_extreder_feed->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_extruder_feed), NULL, this);
     m_button_extruder_back->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_extruder_back), NULL, this);
     m_button_extruder_in->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_extruder_extrude), NULL, this);
@@ -837,8 +1017,6 @@ MonitorPanel::~MonitorPanel()
 {
     // Disconnect Events
     m_choice_machine->Disconnect(wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler(MonitorPanel::on_select), NULL, this);
-
-    m_button_start->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_subtask_start), NULL, this);
     m_button_pause_resume->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_subtask_pause_resume), NULL, this);
     m_button_abort->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_subtask_abort), NULL, this);
     m_bpButton_y_up->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_axis_ctrl_y_up), NULL, this);
@@ -853,6 +1031,8 @@ MonitorPanel::~MonitorPanel()
     m_button_1_0->Disconnect(wxEVT_TOGGLEBUTTON, wxCommandEventHandler(MonitorPanel::on_axis_ctrl_unit_1_0), NULL, this);
     m_button_10_0->Disconnect(wxEVT_TOGGLEBUTTON, wxCommandEventHandler(MonitorPanel::on_axis_ctrl_unit_10_0), NULL, this);
     m_button_100_0->Disconnect(wxEVT_TOGGLEBUTTON, wxCommandEventHandler(MonitorPanel::on_axis_ctrl_unit_100_0), NULL, this);
+    m_button_set_bed->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MonitorPanel::on_set_bed_temp ), NULL, this );
+	m_button_set_nozzle->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MonitorPanel::on_set_nozzle_temp ), NULL, this );
     m_button_extreder_feed->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_extruder_feed), NULL, this);
     m_button_extruder_back->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_extruder_back), NULL, this);
     m_button_extruder_in->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_extruder_extrude), NULL, this);
@@ -962,9 +1142,45 @@ void MonitorPanel::init_bind()
 {
     Bind(wxEVT_TIMER, &MonitorPanel::on_timer, this);
 
+#if defined(__WINDOWS__) || defined(__APPLE__)
+    Bind(wxEVT_WEBREQUEST_STATE, &MonitorPanel::on_webrequest_state, this);
+#endif
+    
+
     m_staticText_subtask_value->Bind(wxEVT_ENTER_WINDOW,
         [this](wxMouseEvent& evt) {
-            m_plate_thumbnail = new ImageTransientPopup( this, false, create_scaled_bitmap("revert_all_", nullptr, 80));
+            /* show image and loading */
+            Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+            obj = account_manager->get_default_machine();
+            if (!obj) return;
+
+            BBLSubTask* subtask = obj->get_subtask();
+            if (!subtask) return;
+
+            BBLProfile* profile = obj->profile_;
+            if (!profile) return;
+
+            int slice_plate_idx = subtask->task_partplate_idx + 1;
+            std::map<std::string, BBLSliceInfo*>::iterator iter = profile->slice_info.find(std::to_string(slice_plate_idx));
+            if (iter == profile->slice_info.end()) {
+                return;
+            }
+    
+            request_url = wxString(iter->second->thumbnail_url);
+
+            wxBitmap image = create_scaled_bitmap("revert_all_");
+            std::map<wxString, wxBitmap>::iterator it = img_list.find(request_url);
+            if (it != img_list.end()) {
+                image = it->second;
+            }
+            else {
+#if defined(__WINDOWS__) || defined(__APPLE__)
+                web_request = wxWebSession::GetDefault().CreateRequest(this, request_url);
+                web_request.Start();
+#endif
+            }
+
+            m_plate_thumbnail = std::make_shared<ImageTransientPopup>(this, false, image);
             wxWindow *ctrl = (wxWindow*) evt.GetEventObject();
             wxPoint pos = ctrl->ClientToScreen( wxPoint(0,0) );
             wxSize sz = ctrl->GetSize();
@@ -980,6 +1196,31 @@ void MonitorPanel::init_bind()
         }
         );
 }
+
+#if defined(__WINDOWS__) || defined(__APPLE__)
+/* web state */
+void MonitorPanel::on_webrequest_state(wxWebRequestEvent& evt)
+{
+    switch (evt.GetState())
+    {
+    case wxWebRequest::State_Completed:
+        if (m_plate_thumbnail) {
+            wxImage img(*evt.GetResponse().GetStream());
+            img_list.insert(std::make_pair(request_url, img));
+            m_plate_thumbnail->SetImage(img);
+        }
+        break;
+    case wxWebRequest::State_Failed:
+    case wxWebRequest::State_Cancelled:
+    case wxWebRequest::State_Unauthorized:
+    case wxWebRequest::State_Active:
+    case wxWebRequest::State_Idle:
+        break;
+    default:
+        break;
+    }
+}
+#endif
 
 void MonitorPanel::on_machine_list_changed()
 {
@@ -1056,11 +1297,19 @@ void MonitorPanel::update_status(MachineObject* obj)
 
     // update wifi signal
     m_staticText_wifi_signal->SetLabelText(wxString::Format("%s", obj->wifi_signal));
+
     // update temprature
-    wxString nozzle_temp_text = wxString::Format("%0.2f/%0.2f", obj->nozzle_temp, obj->nozzle_temp_target);
-    m_staticText_nozzle_value->SetLabelText(nozzle_temp_text);
-    wxString bed_temp_text = wxString::Format("%0.2f/%0.2f", obj->bed_temp, obj->bed_temp_target);
-    m_staticText_bed_value->SetLabelText(bed_temp_text);
+    wxString nozzle_temp_curr_text = wxString::Format("%0.2f", obj->nozzle_temp);
+    m_staticText_nozzle_current->SetLabelText(nozzle_temp_curr_text);
+
+    wxString nozzle_temp_target_text = wxString::Format("%0.2f", obj->nozzle_temp_target);
+    m_staticText_nozzle_target->SetLabelText(nozzle_temp_target_text);
+    
+    wxString bed_temp_curr_text = wxString::Format("%0.2f", obj->bed_temp);
+    m_staticText_bed_current->SetLabelText(bed_temp_curr_text);
+
+    wxString bed_temp_target_text = wxString::Format("%0.2f", obj->bed_temp_target);
+    m_staticText_bed_target->SetLabelText(bed_temp_target_text);
 }
 
 void MonitorPanel::on_timer(wxTimerEvent& event)
@@ -1310,6 +1559,31 @@ void MonitorPanel::on_axis_ctrl_unit_100_0(wxCommandEvent& event)
         event.Skip();
     }
 }
+
+void MonitorPanel::on_set_bed_temp(wxCommandEvent& event)
+{
+    try {
+        int temp = wxAtoi(m_textCtrl_bed->GetValue());
+        if (obj)
+            obj->command_set_bed(temp);
+    }
+    catch(...) {
+        ;
+    }
+}
+
+void MonitorPanel::on_set_nozzle_temp(wxCommandEvent& event)
+{
+    try {
+        int temp = wxAtoi(m_textCtrl_nozzle->GetValue());
+        if (obj)
+            obj->command_set_nozzle(temp);
+    }
+    catch(...) {
+        ;
+    }
+}
+
 
 double MonitorPanel::get_control_unit()
 {

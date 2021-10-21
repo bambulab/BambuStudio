@@ -175,8 +175,12 @@ public:
     MsgFn msg_recv_fn;
 
     /* Project Task and Sub Task */
+    BBLProject* project_;
+    BBLProfile* profile_;
+    BBLTask* task_;
     BBLSubTask* subtask_;
     BBLSubTask* temptask_;
+    
 
     /* control apis */
     int command_xyz_abs();
@@ -187,6 +191,8 @@ public:
     int command_task_abort();
     int command_task_pause();
     int command_task_resume();
+    int command_set_bed(int temp);
+    int command_set_nozzle(int temp);
 
     // axis string is X, Y, Z, E
     int command_axis_control(std::string axis, double unit = 1.0f, double value = 1.0f, int speed = 3000);
@@ -210,11 +216,13 @@ public:
     int send_print_task(BBLTask* task);
     int send_wan_print_task(BBLTask* task);
 
-    int send_print_subtask(BBLSubTask* task, UploadedFn cFn, UploadProgressFn proFn, ErrorFn errFn);
-    int send_lan_print_subtask(BBLSubTask* task, UploadedFn cFn, UploadProgressFn proFn, ErrorFn errFn);
-    int send_wan_print_subtask(BBLSubTask* task, UploadedFn cFn, UploadProgressFn proFn, ErrorFn errFn);
+    int send_print_subtask(BBLSubTask* task, UploadedFn cFn = nullptr, UploadProgressFn proFn = nullptr, ErrorFn errFn = nullptr);
+    int send_lan_print_subtask(BBLSubTask* task, UploadedFn cFn = nullptr, UploadProgressFn proFn = nullptr, ErrorFn errFn = nullptr);
+    int send_wan_print_subtask(BBLSubTask* task, UploadedFn cFn = nullptr, UploadProgressFn proFn = nullptr, ErrorFn errFn = nullptr);
     BBLSubTask* get_subtask();
     void update_subtask(std::string subtask_id);
+    void update_task(std::string task_id);
+    void update_profile(std::string project_id, std::string profile_id);
 
     /* iot operation apis */
     void request_bind(ResultFn fn, bool force_bind = false);

@@ -34,6 +34,10 @@
 #include <wx/spinctrl.h>
 #include <wx/artprov.h>
 
+#if defined(__WINDOWS__) || defined(__APPLE__)
+#include <wx/webrequest.h>
+#endif
+
 #include <map>
 #include <vector>
 #include <memory>
@@ -152,73 +156,93 @@ private:
 
 protected:
 	wxPanel* m_panel_left;
-	wxStaticText* m_staticText_machine_title;
-	wxChoice* m_choice_machine;
-	wxStaticText* m_staticText_machine_status;
-	wxStaticText* m_staticText_machine_name;
-	wxStaticText* m_staticText_wifi_signal;
-	wxStaticText* m_staticText_printing_title;
-	wxStaticText* m_staticText_printing_val;
-	wxStaticText* m_staticText_capacity_title;
-	wxStaticText* m_staticText_capacity_val;
-	wxStaticText* m_staticText_bed_title;
-	wxStaticText* m_staticText_bed_value;
-	wxStaticText* m_staticText_nozzle_title;
-	wxStaticText* m_staticText_nozzle_value;
-	wxStaticText* m_staticText_sn_title;
-	wxStaticText* m_staticText_sn_value;
-	wxDataViewCtrl* m_dataViewCtrl_ams;
-	wxStaticLine* m_staticline1;
-	wxStaticText* m_staticText_project_title;
-	wxStaticText* m_staticText_project_name;
-	wxStaticText* m_staticText_profile_title;
-	wxStaticText* m_staticText_profile_value;
-	wxStaticText* m_staticText_task_title;
-	wxStaticText* m_staticText_task_value;
-	wxStaticText* m_staticText_subtask_title;
-	wxStaticText* m_staticText_subtask_value;
-	wxStaticText* m_staticText_progress_title;
-	wxStaticText* m_staticText_progress;
-	wxGauge* m_gauge_progress;
-	wxDataViewCtrl* m_dataViewCtrl_subtask;
-	wxButton* m_button_start;
-	wxButton* m_button_pause_resume;
-	wxButton* m_button_abort;
-	wxStaticLine* m_staticline2;
-	wxDataViewListCtrl* m_dataViewListCtrl_hms;
-	wxDataViewListCtrl* m_dataViewListCtrl_info;
-	wxDataViewColumn* m_dataViewListColumn_title;
-	wxDataViewColumn* m_dataViewListColumn_value;
-	wxBitmapButton* m_bpButton_y_up;
-	wxBitmapButton* m_bpButton_y_down;
-	wxBitmapButton* m_bpButton_xy_home;
-	wxBitmapButton* m_bpButton_x_left;
-	wxBitmapButton* m_bpButton_x_right;
-	wxBitmapButton* m_bpButton_z_up;
-	wxBitmapButton* m_bpButton_z_home;
-	wxBitmapButton* m_bpButton_z_down;
-	wxStaticText* m_staticText_X;
-	wxStaticText* m_staticText_Y;
-	wxStaticText* m_staticText_Z;
-	wxToggleButton* m_button_0_1;
-	wxToggleButton* m_button_1_0;
-	wxToggleButton* m_button_10_0;
-	wxToggleButton* m_button_100_0;
-	wxComboBox* m_comboBox_trays;
-	wxButton* m_button_extreder_feed;
-	wxButton* m_button_extruder_back;
-	wxTextCtrl* m_textCtrl_extrude;
-	wxStaticText* m_staticText_unit_extrude;
-	wxButton* m_button_extruder_in;
-	wxTextCtrl* m_textCtrl_retraction;
-	wxStaticText* m_staticText_unit_retraction;
-	wxButton* m_button_extruder_out;
-	wxButton* m_button_fan_on;
-	wxButton* m_button_fan_off;
-	wxButton* m_button_auto_leveling;
-	wxButton* m_button_xyz_abs;
+		wxStaticText* m_staticText_machine_title;
+		wxChoice* m_choice_machine;
+		wxStaticText* m_staticText_status;
+		wxStaticText* m_staticText_machine_status;
+		wxStaticText* m_staticText_machine_name;
+		wxStaticText* m_staticText_printing_title;
+		wxStaticText* m_staticText_printing_val;
+		wxStaticText* m_staticText_capacity_title;
+		wxStaticText* m_staticText_capacity_val;
+		wxStaticText* m_staticText_sn_title;
+		wxStaticText* m_staticText_sn_value;
+		wxStaticText* m_staticText_wifi_title;
+		wxStaticText* m_staticText_wifi_signal;
+		wxDataViewCtrl* m_dataViewCtrl_ams;
+		wxStaticLine* m_staticline1;
+		wxStaticText* m_staticText_task_caption;
+		wxBitmapButton* m_bpButton_open_project;
+		wxStaticText* m_staticText_project_title;
+		wxStaticText* m_staticText_project_name;
+		wxStaticText* m_staticText_profile_title;
+		wxStaticText* m_staticText_profile_value;
+		wxStaticText* m_staticText_task_title;
+		wxStaticText* m_staticText_task_value;
+		wxStaticText* m_staticText_subtask_title;
+		wxStaticText* m_staticText_subtask_value;
+		wxStaticBitmap* m_bitmap_thumbnail;
+		wxStaticText* m_staticText_progress_title;
+		wxGauge* m_gauge_progress;
+		wxStaticText* m_staticText_progress;
+		wxDataViewCtrl* m_dataViewCtrl_subtask;
+		wxStaticLine* m_staticline2;
+		wxStaticText* m_staticText_hms_caption;
+		wxDataViewListCtrl* m_dataViewListCtrl_hms;
+		wxNotebook* m_notebook;
+		wxPanel* m_panel_monitor;
+		wxPanel* m_panel_live;
+		wxStaticText* m_staticText_caption;
+		wxButton* m_button_pause_resume;
+		wxButton* m_button_abort;
+		wxPanel* m_panel_timelapse;
+		wxStaticText* m_staticText_ctrl_caption;
+		wxBitmapButton* m_bpButton_y_up;
+		wxBitmapButton* m_bpButton_y_down;
+		wxBitmapButton* m_bpButton_xy_home;
+		wxBitmapButton* m_bpButton_x_left;
+		wxBitmapButton* m_bpButton_x_right;
+		wxBitmapButton* m_bpButton_z_up;
+		wxBitmapButton* m_bpButton_z_home;
+		wxBitmapButton* m_bpButton_z_down;
+		wxStaticText* m_staticText_X;
+		wxStaticText* m_staticText_Y;
+		wxStaticText* m_staticText_Z;
+		wxToggleButton* m_button_0_1;
+		wxToggleButton* m_button_1_0;
+		wxToggleButton* m_button_10_0;
+		wxToggleButton* m_button_100_0;
+		wxStaticLine* m_staticline3;
+		wxStaticText* m_staticText_temp_caption;
+		wxStaticText* m_staticText_current;
+		wxStaticText* m_staticText_target;
+		wxStaticBitmap* m_bitmap_bed;
+		wxStaticText* m_staticText_bed_current;
+		wxStaticText* m_staticText_bed_target;
+		wxTextCtrl* m_textCtrl_bed;
+		wxButton* m_button_set_bed;
+		wxStaticBitmap* m_bitmap_nozzle;
+		wxStaticText* m_staticText_nozzle_current;
+		wxStaticText* m_staticText_nozzle_target;
+		wxTextCtrl* m_textCtrl_nozzle;
+		wxButton* m_button_set_nozzle;
+		wxStaticLine* m_staticline4;
+		wxStaticText* m_staticText_extruder_ctrl_caption;
+		wxComboBox* m_comboBox_trays;
+		wxButton* m_button_extreder_feed;
+		wxButton* m_button_extruder_back;
+		wxTextCtrl* m_textCtrl_extrude;
+		wxStaticText* m_staticText_unit_extrude;
+		wxButton* m_button_extruder_in;
+		wxButton* m_button_extruder_out;
+		wxStaticLine* m_staticline5;
+		wxStaticText* m_staticText_other_caption;
+		wxButton* m_button_fan_on;
+		wxButton* m_button_fan_off;
+		wxButton* m_button_auto_leveling;
+		wxButton* m_button_xyz_abs;
 
-	ImageTransientPopup* m_plate_thumbnail;
+	std::shared_ptr<ImageTransientPopup> m_plate_thumbnail;
     wxTimer* m_refresh_timer;
     bool is_pausing;
 	wxBitmap m_ctrl_up;
@@ -227,6 +251,14 @@ protected:
 	wxBitmap m_ctrl_right;
 	wxBitmap m_ctrl_home;
 	double m_ctrl_unit;
+
+	wxString	 request_url;
+#if defined(__WINDOWS__) || defined(__APPLE__)
+	wxWebRequest web_request;
+#endif
+	
+
+	std::map<wxString, wxBitmap> img_list;	// key: url, value: wxBitmap png Image
 
     void on_select(wxCommandEvent& event);
     void on_subtask_update(BBLSubTask* curr_subtask, bool update_all = true);
@@ -254,6 +286,10 @@ protected:
 	double get_control_unit();
 	void set_toggle_widget_on(wxToggleButton* btn);
 
+	/* temp control */
+	void on_set_bed_temp(wxCommandEvent& event);
+	void on_set_nozzle_temp(wxCommandEvent& event);
+
 	/* extruder apis */
 	void on_extruder_feed(wxCommandEvent& event);
 	void on_extruder_back(wxCommandEvent& event);
@@ -266,6 +302,11 @@ protected:
     void on_xyz_abs(wxCommandEvent& event);
     void on_timer(wxTimerEvent& event);
     void on_size(wxSizeEvent& event);
+
+#if defined(__WINDOWS__) || defined(__APPLE__)
+	/* web state */
+	void on_webrequest_state(wxWebRequestEvent& evt);
+#endif
 
     void init_bitmap();
     void init_model();

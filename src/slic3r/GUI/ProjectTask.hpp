@@ -44,7 +44,7 @@ public:
     // task of plate info
     std::string     task_prediction;    /* prediction printing time of plate, unit seconds */
     std::string     task_weight;        /* weight create by slicer */
-    int             task_partplate_idx; 
+    int             task_partplate_idx; /* partplate_idx, start at 0, 1, 2, etc. */
 
     SubTaskStatus   task_status;
     std::string     task_printer_dev_id;/* dev_id of machine */
@@ -100,6 +100,23 @@ public:
     int parse_content_json(std::string json);
 };
 
+class BBLSliceInfo {
+public:
+    BBLSliceInfo(BBLProfile* profile = nullptr)
+    {
+        profile_ = profile;
+    }
+
+    std::string     index;
+    std::string     thumbnail_dir;
+    std::string     thumbnail_name;
+    std::string     thumbnail_url;
+    std::string     gcode_name;
+    std::string     gcode_url;
+    std::string     config_url;
+    BBLProfile*     profile_;
+};
+
 class BBLProfile {
 public:
     BBLProfile(BBLProject* project = nullptr);
@@ -110,6 +127,7 @@ public:
     std::string             profile_content;
     std::string             project_id;         /* parent project_id */
     BBLProject*             project_;
+    std::map<std::string, BBLSliceInfo*>    slice_info;
 };
 
 class BBLProject {
@@ -118,7 +136,7 @@ public:
         PROJECT_3MF = 0,
         PROJECT_GCODE = 1,
     };
-
+    BBLProject() {}
     BBLProject(std::string name, ProjectType type = PROJECT_3MF) {
         project_type = type;
         project_name = name;
