@@ -2058,7 +2058,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     //BBS :partplatelist construction
     , partplate_list(this->q, &model)
     // BBS
-    , m_statusbar(nullptr)
+    , m_statusbar(std::make_shared<BBLStatusBar>(q))
 {
     this->q->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
@@ -2117,7 +2117,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     // BBS
     wxPanel* statusbar_panel = nullptr;
-    m_statusbar = std::make_shared<BBLStatusBar>(q);
+    //m_statusbar = std::make_shared<BBLStatusBar>(q);
     m_statusbar->set_font(GUI::wxGetApp().normal_font());
     if (wxGetApp().is_editor()) {
         statusbar_panel = m_statusbar->get_panel();

@@ -77,27 +77,35 @@ void BBLStatusBar::set_progress(int val)
         return;
 
     bool need_layout = false;
-    if (m_sizer.IsShown(&m_object_info_sizer)) {
-        m_sizer.Hide(&m_object_info_sizer);
+    //add the logic for arrange/orient jobs, which don't call stop_busy
+    if(val == m_prog->GetRange()) {
+        m_prog->SetValue(0);
+        m_sizer.Hide(m_prog);
         need_layout = true;
     }
-    
-    if (m_sizer.IsShown(&m_slice_info_sizer)) {
-        m_sizer.Hide(&m_slice_info_sizer);
-        need_layout = true;
-    }
+    else
+    {
+        if (m_sizer.IsShown(&m_object_info_sizer)) {
+            m_sizer.Hide(&m_object_info_sizer);
+            need_layout = true;
+        }
 
-    if (!m_sizer.IsShown(m_prog)) {
-        m_sizer.Show(m_prog);
-        m_sizer.Show(m_cancelbutton);
-        need_layout = true;
+        if (m_sizer.IsShown(&m_slice_info_sizer)) {
+            m_sizer.Hide(&m_slice_info_sizer);
+            need_layout = true;
+        }
+
+        if (!m_sizer.IsShown(m_prog)) {
+            m_sizer.Show(m_prog);
+            m_sizer.Show(m_cancelbutton);
+            need_layout = true;
+        }
+        m_prog->SetValue(val);
     }
 
     if (need_layout) {
         m_sizer.Layout();
     }
-
-    m_prog->SetValue(val);
 }
 
 int BBLStatusBar::get_range() const
