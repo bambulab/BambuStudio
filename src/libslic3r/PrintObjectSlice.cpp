@@ -411,9 +411,28 @@ std::string fix_slicing_errors(LayerPtrs &layers, const std::function<void()> &t
     // These layers will be fixed in parallel.
     std::vector<size_t> buggy_layers;
     buggy_layers.reserve(layers.size());
-    for (size_t idx_layer = 0; idx_layer < layers.size(); ++ idx_layer)
+    // BBS: get largest external perimenter width of all layers
+    auto get_ext_peri_width = [](Layer* layer) {return layer->m_regions.empty() ? 0 : layer->m_regions[0]->flow(frExternalPerimeter).scaled_width(); };
+    auto it = std::max_element(layers.begin(), layers.end(), [get_ext_peri_width](auto& a, auto& b) {return get_ext_peri_width(a) < get_ext_peri_width(b); });
+    coord_t thresh = get_ext_peri_width(*it) * 0.5;// half of external perimeter width  // 0.5 * scale_(this->config().extrusion_width);
+    for (size_t idx_layer = 0; idx_layer < layers.size(); ++idx_layer) {
+        // BBS: detect empty layers (layers with very small regions) and mark them as problematic, then these layers will copy the nearest good layer
+        auto layer = layers[idx_layer];
+        ExPolygons lslices;
+        for (size_t region_id = 0; region_id < layer->m_regions.size(); ++region_id) {
+            LayerRegion* layerm = layer->m_regions[region_id];
+            for (auto& surface : layerm->slices.surfaces) {
+                auto expoly = offset_ex(surface.expolygon, -thresh);
+                lslices.insert(lslices.begin(), expoly.begin(), expoly.end());
+            }
+        }
+        if (lslices.empty()) {
+            layer->slicing_errors = true;
+        }
+
         if (layers[idx_layer]->slicing_errors)
             buggy_layers.push_back(idx_layer);
+    }
 
     BOOST_LOG_TRIVIAL(debug) << "Slicing objects - fixing slicing errors in parallel - begin";
     tbb::parallel_for(
