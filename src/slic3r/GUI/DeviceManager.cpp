@@ -232,6 +232,44 @@ int MachineObject::command_axis_control(std::string axis, double unit, double va
     return this->publish_gcode(cmd);
 }
 
+int MachineObject::command_bind()
+{
+    std::string user_id = acc_.get_user_id();
+    if (user_id.empty()) {
+        return -1;
+    }
+    pt::ptree root, bind;
+    bind.put("command", "bind");
+    bind.put("dev_id", dev_id);
+    bind.put("user_id", user_id);
+    bind.put("sequence_id", MachineObject::m_sequence_id++);
+    root.put_child("bind", bind);
+    std::stringstream oss;
+    pt::write_json(oss, root, false);
+    std::string json_str = oss.str();
+
+    return this->publish_json(json_str);
+}
+
+int MachineObject::command_unbind()
+{
+    std::string user_id = acc_.get_user_id();
+    if (user_id.empty()) {
+        return -1;
+    }
+    pt::ptree root, bind;
+    bind.put("command", "unbind");
+    bind.put("dev_id", dev_id);
+    bind.put("user_id", user_id);
+    bind.put("sequence_id", MachineObject::m_sequence_id++);
+    root.put_child("bind", bind);
+    std::stringstream oss;
+    pt::write_json(oss, root, false);
+    std::string json_str = oss.str();
+
+    return this->publish_json(json_str);
+}
+
 
 void MachineObject::set_callbacks(SuccessFn sFn, FailedFn fFn, LostFn lFn)
 {
@@ -335,7 +373,6 @@ int MachineObject::publish_json(std::string json_str, ResultFn resFn, CONNECTION
     else
         conn_type = CONNECTION_TYPE::CONNECTION_LAN;
 
-
     mqtt::async_client* client = nullptr;
     if (conn_type == CONNECTION_LAN) {
         client = mqtt_cli;
@@ -345,24 +382,26 @@ int MachineObject::publish_json(std::string json_str, ResultFn resFn, CONNECTION
     }
     else {
         client = nullptr;
+        return -1;
     }
 
-    if (client) {
-        if (client->is_connected()) {
-            std::string topic = (boost::format("device/%1%/request") % dev_id).str();
-            json_str += '\0';
-            BOOST_LOG_TRIVIAL(trace) << "publish_json topic=" << topic << ", payload=" << json_str;
-            client->publish(topic, json_str);
-            if (msg_send_fn) {
-                msg_send_fn(topic, json_str);
-            }
+    if (!client) return -1;
+
+    if (!client->is_connected()) {
+        if (resFn) {
+            resFn(-1, "Please Connect First!");
         }
-        else {
-            if (resFn) {
-                resFn(-1, "Please Connect First!");
-            }
-        }
+        return -1;
     }
+
+    std::string topic = (boost::format("device/%1%/request") % dev_id).str();
+    json_str += '\0';
+    BOOST_LOG_TRIVIAL(trace) << "publish_json topic=" << topic << ", payload=" << json_str;
+    client->publish(topic, json_str);
+    if (msg_send_fn) {
+        msg_send_fn(topic, json_str);
+    }
+
     return 0;
 }
 
@@ -623,6 +662,25 @@ int MachineObject::parse_json(std::string topic, std::string payload)
             }
             /* fields: client_id, username, peername, proto_name, proto_ver, connected_at, timestamp, etc */
             BOOST_LOG_TRIVIAL(trace) << "parse_json, event topic=" << topic << ", payload = " << payload;
+        }
+        else if (root.get_child_optional("bind") != boost::none) {
+            pt::ptree bind = root.get_child("bind");
+            boost::optional<std::string> command = bind.get_optional<std::string>("command");
+            boost::optional<std::string> result = bind.get_optional<std::string>("result");
+            boost::optional<std::string> reason = bind.get_optional<std::string>("reason");
+            boost::optional<std::string> dev_id = bind.get_optional<std::string>("dev_id");
+            boost::optional<std::string> user_id = bind.get_optional<std::string>("user_id");
+            if (command.has_value())
+            {
+                if (command.value().compare("bind") == 0) {
+                    ;
+                }
+                else if (command.value().compare("unbind") == 0) {
+                    ;
+                }
+            }
+
+            BOOST_LOG_TRIVIAL(trace) << "parse_json, bind topic=" << topic << ", payload = " << payload;
         }
     }
     catch (...) {

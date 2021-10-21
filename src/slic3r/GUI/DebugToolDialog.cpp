@@ -459,20 +459,15 @@ void DebugToolDialog::init_connection_widgets()
             return;
         }
 
-        obj->request_bind(
-            [this, obj](int result, std::string body) {
-                if (result == 0) {
-                    std::string log = "Bind device=" + obj->dev_id + " ok!";
-                    this->send_log_evt(log);
-                    this->refresh_device_list();
-                }
-                else {
-                    std::string log = "Bind device=" + obj->dev_id + " failed! info=" + body;
-                    this->send_log_evt(log);
-                }
-            }
-        , true);
-        });
+        if (obj->command_bind() == 0) {
+            std::string log = "Bind device=" + obj->dev_id + " ok!";
+            this->send_log_evt(log);
+            this->refresh_device_list();
+        }
+        else {
+            send_log_evt("Please login or connect first!");
+        }
+    });
     
     btn_connect = new wxButton(this, wxID_ANY, _L("Connect"), wxDefaultPosition, wxDefaultSize);
     btn_connect->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
@@ -528,10 +523,10 @@ void DebugToolDialog::init_connection_widgets()
     lan_sizer->Add(label_device_list,       0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
     lan_sizer->Add(cb_device_list,          1, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
     lan_sizer->Add(btn_refresh_device_list, 0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
-    lan_sizer->Add(btn_force_bind,          0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
-    lan_sizer->Add(btn_unbind,              0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
     lan_sizer->Add(btn_connect,             0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
     lan_sizer->Add(btn_disconnect,          0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
+    lan_sizer->Add(btn_force_bind,          0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
+    lan_sizer->Add(btn_unbind,              0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
 
     /* wan sizer */
     auto wan_sizer  = new wxBoxSizer(wxHORIZONTAL);
@@ -1718,20 +1713,33 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
         }
         else if (root.get_child_optional("bind") != boost::none) {
             pt::ptree bind = root.get_child("bind");
+            boost::optional<std::string> command = bind.get_optional<std::string>("command");
             boost::optional<std::string> result = bind.get_optional<std::string>("result");
             boost::optional<std::string> reason = bind.get_optional<std::string>("reason");
             boost::optional<std::string> user_id = bind.get_optional<std::string>("user_id");
-            if (result.has_value()) {
-                if (result.value().compare("success") == 0) {
-                    this->log_info("Bind device OK!");
+
+            if (command.has_value())
+            {
+                if (command.value().compare("bind") == 0) {
+                    if (result.has_value()) {
+                        if (result.value().compare("success") == 0) {
+                            this->log_info("Bind device ok!");
+                        }
+                        else if (result.value().compare("fail") == 0) {
+                            this->log_info("Bind device failed!");
+                        }
+                    }
                 }
-                else if (result.value().compare("fail") == 0) {
-                    this->log_info("Bind device failed!");
+                else if (command.value().compare("unbind") == 0) {
+                    if (result.has_value()) {
+                        if (result.value().compare("success") == 0) {
+                            this->log_info("unbind device ok!");
+                        }
+                        else if (result.value().compare("fail") == 0) {
+                            this->log_info("unbind device failed!");
+                        }
+                    }
                 }
-            }
-            if (user_id.has_value()) {
-                this->log_info("Bind device OK!");
-                return;
             }
         }
         this->log_info("json=" + json_str);
