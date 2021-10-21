@@ -59,6 +59,7 @@ const std::string RELATIONSHIPS_FILE = "_rels/.rels";
 const std::string THUMBNAIL_FILE = "Metadata/thumbnail";
 const std::string PRINT_CONFIG_FILE = "Metadata/Slic3r_PE.config";
 const std::string MODEL_CONFIG_FILE = "Metadata/Slic3r_PE_model.config";
+const std::string SLICE_INFO_CONFIG_FILE = "Metadata/slice_info.config";
 const std::string LAYER_HEIGHTS_PROFILE_FILE = "Metadata/Slic3r_PE_layer_heights_profile.txt";
 const std::string LAYER_CONFIG_RANGES_FILE = "Metadata/Prusa_Slicer_layer_config_ranges.xml";
 const std::string SLA_SUPPORT_POINTS_FILE = "Metadata/Slic3r_PE_sla_support_points.txt";
@@ -113,6 +114,8 @@ static constexpr const char* LOCK_ATTR = "locked";
 static constexpr const char* OBJECT_ID_ATTR = "object_id";
 static constexpr const char* INSTANCEID_ATTR = "instance_id";
 static constexpr const char* PLATERID_ATTR = "plater_id";
+static constexpr const char* SLICE_PREDICTION_ATTR = "prediction";
+static constexpr const char* SLICE_WEIGHT_ATTR = "weight";
 
 static constexpr const char* OBJECT_TYPE = "object";
 static constexpr const char* VOLUME_TYPE = "volume";
@@ -2253,6 +2256,7 @@ namespace Slic3r {
         bool _add_sla_drain_holes_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_print_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config);
         bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const IdToObjectDataMap &objects_data);
+        bool _add_slice_info_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list);
         bool _add_gcode_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list);
         bool _add_custom_gcode_per_print_z_file_to_archive(mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config);
 
@@ -2395,6 +2399,13 @@ namespace Slic3r {
             return false;
         }
 
+        // Adds sliced info of plate file ("Metadata/slice_info.config")
+        // This file contains all sliced info of all plates
+        if (!_add_slice_info_config_file_to_archive(archive, model, plate_data_list)) {
+            close_zip_writer(&archive);
+            boost::filesystem::remove(filename);
+            return false;
+        }
 
         // Adds gcode files ("Metadata/plate_1.gcode, plate_2.gcode, ...)
         if (!_add_gcode_file_to_archive(archive, model, plate_data_list)) {
@@ -3190,6 +3201,40 @@ namespace Slic3r {
         return true;
     }
 
+    bool _BBS_3MF_Exporter::_add_slice_info_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list)
+    {
+        std::stringstream stream;
+        // Store mesh transformation in full precision, as the volumes are stored transformed and they need to be transformed back
+        // when loaded as accurately as possible.
+		stream << std::setprecision(std::numeric_limits<double>::max_digits10);
+        stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+        stream << "<" << CONFIG_TAG << ">\n";
+
+        for (unsigned int i = 0; i < (unsigned int)plate_data_list.size(); ++i)
+        {
+            PlateData* plate_data = plate_data_list[i];
+            int instance_size = plate_data->objects_and_instances.size();
+
+            if (plate_data != nullptr) {
+                stream << "  <" << PLATE_TAG << ">\n";
+                //plate index
+                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PLATERID_ATTR         << "\" " << VALUE_ATTR << "=\"" << i + 1 << "\"/>\n";
+                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SLICE_PREDICTION_ATTR << "\" " << VALUE_ATTR << "=\"" << plate_data->get_gcode_prediction_str() << "\"/>\n";
+                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SLICE_WEIGHT_ATTR      << "\" " << VALUE_ATTR << "=\"" <<  plate_data->get_gcode_weight_str() << "\"/>\n";
+                stream << "  </" << PLATE_TAG << ">\n";
+            }
+        }
+        stream << "</" << CONFIG_TAG << ">\n";
+
+        std::string out = stream.str();
+
+        if (!mz_zip_writer_add_mem(&archive, SLICE_INFO_CONFIG_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
+            add_error("Unable to add model config file to archive");
+            return false;
+        }
+
+        return true;
+    }
 bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list)
 {
     bool result = true;

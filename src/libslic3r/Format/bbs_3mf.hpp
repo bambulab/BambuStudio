@@ -29,6 +29,16 @@ struct PlateData
     std::vector<std::pair<int, int>> objects_and_instances;
     std::string     gcode_file;
     std::string     thumbnail_file;
+    std::string     gcode_prediction;
+    std::string     gcode_weight;
+
+    std::string get_gcode_prediction_str() {
+        return gcode_prediction;
+    }
+
+    std::string get_gcode_weight_str() {
+        return gcode_weight;
+    }
     bool locked;
 };
 
