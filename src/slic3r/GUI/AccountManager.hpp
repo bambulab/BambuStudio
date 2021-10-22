@@ -250,7 +250,7 @@ public:
     void set_user_info_path(boost::filesystem::path path) { m_user_info_path = path; }
     std::string get_user_id() {
         if (m_curr_user) {
-            m_curr_user->user_id();
+            return m_curr_user->user_id();
         }
         return "";
     }

@@ -425,46 +425,32 @@ void DebugToolDialog::init_connection_widgets()
 
     auto btn_unbind = new wxButton(this, wxID_ANY, _L("Unbind"), wxDefaultPosition, wxDefaultSize);
     btn_unbind->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-        Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-        if (!account_manager->is_user_login()) {
-            std::string log = "Please login first!";
-            this->send_log_evt(log);
-        }
+            Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+            if (!account_manager->is_user_login()) {
+                std::string log = "Please login first!";
+                this->send_log_evt(log);
+            }
 
-        MachineObject* obj = dev_manager_.get_default();
-        if (!obj) {
-            this->send_log_evt("Invalid Printer! Please Select a Printer!");
-            return;
-        }
+            MachineObject* obj = dev_manager_.get_default();
+            if (!obj) {
+                this->send_log_evt("Invalid Printer! Please Select a Printer!");
+                return;
+            }
 
-        obj->request_unbind(
-            [this, obj](int result, std::string body) {
-                if (result == 0) {
-                    std::string log = "Unbind device=" + obj->dev_id + " ok!";
-                    send_log_evt(log);
-                    this->refresh_device_list();
-                }
-                else {
-                    std::string log = "Unbind device=" + obj->dev_id + " failed!";
-                    send_log_evt(log);
-                }
-            });
+            if (obj->command_unbind() < 0) {
+                send_log_evt("Please login or connect first!");
+            }
         });
 
-    auto btn_force_bind = new wxButton(this, wxID_ANY, _L("Force Bind"), wxDefaultPosition, wxDefaultSize);
-    btn_force_bind->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+    auto btn_bind = new wxButton(this, wxID_ANY, _L("Bind"), wxDefaultPosition, wxDefaultSize);
+    btn_bind->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         MachineObject* obj = dev_manager_.get_default();
         if (!obj) {
             this->send_log_evt("Invalid Printer! Please Select a Printer!");
             return;
         }
 
-        if (obj->command_bind() == 0) {
-            std::string log = "Bind device=" + obj->dev_id + " ok!";
-            this->send_log_evt(log);
-            this->refresh_device_list();
-        }
-        else {
+        if (obj->command_bind() < 0) {
             send_log_evt("Please login or connect first!");
         }
     });
@@ -525,7 +511,7 @@ void DebugToolDialog::init_connection_widgets()
     lan_sizer->Add(btn_refresh_device_list, 0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
     lan_sizer->Add(btn_connect,             0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
     lan_sizer->Add(btn_disconnect,          0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
-    lan_sizer->Add(btn_force_bind,          0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
+    lan_sizer->Add(btn_bind,                0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
     lan_sizer->Add(btn_unbind,              0, wxALIGN_CENTER_VERTICAL | wxALL, SPACING);
 
     /* wan sizer */
@@ -571,29 +557,6 @@ void DebugToolDialog::init_common(wxWindow* parent)
         this->get_version();
         });
 
-    auto btn_bind = new wxButton(parent, wxID_ANY, _L("Device Bind"), wxDefaultPosition, wxDefaultSize);
-    btn_bind->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-        MachineObject* obj = dev_manager_.get_default();
-        if (!obj) {
-            this->send_log_evt("Invalid Printer! Please Select a Printer!");
-            return;
-        }
-
-        obj->request_bind(
-            [this, obj](int result, std::string body) {
-                if (result == 0) {
-                    std::string log = "Bind device=" + obj->dev_id + " ok!";
-                    this->send_log_evt(log);
-                    this->refresh_device_list();
-                }
-                else {
-                    std::string log = "Bind device=" + obj->dev_id + " failed! Please Connect First!";
-                    this->send_log_evt(log);
-                }
-            }
-        );
-        });
-
     auto label_force_upgrade = new wxStaticText(parent, wxID_ANY, _L("Force Upgrading:"), wxDefaultPosition, wxDefaultSize);
     label_force_upgrade_val = new wxStaticText(parent, wxID_ANY, _L("false"), wxDefaultPosition, wxDefaultSize);
 
@@ -604,8 +567,6 @@ void DebugToolDialog::init_common(wxWindow* parent)
     auto sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(-1, 8);
     sizer->Add(btn_get_version, 0, wxLEFT | wxALIGN_LEFT);
-    sizer->Add(-1, 8);
-    sizer->Add(btn_bind, 0, wxLEFT | wxALIGN_LEFT);
     sizer->Add(-1, 8);
     sizer->Add(line_sizer, 0, wxLEFT | wxALIGN_LEFT);
 
@@ -1351,12 +1312,14 @@ int DebugToolDialog::publish_json(std::string json_str)
             this->send_log_evt("Invalid Printer! Please Select a Printer!");
             return -1;
         }
-
+#ifdef __CHECK_BIND_USER__
+        /* compare with bind user */
         if (obj->get_bind_str().compare(user_name) != 0 || user_name.empty()) {
             std::string log = "Please Bind dev=" + obj->dev_id + " first!";
             this->send_log_evt(log);
             return -1;
         }
+#endif
 
         obj->publish_json(json_str,
             [this](int result, std::string info) {
@@ -1723,10 +1686,10 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
                 if (command.value().compare("bind") == 0) {
                     if (result.has_value()) {
                         if (result.value().compare("success") == 0) {
-                            this->log_info("Bind device ok!");
+                            this->log_info("bind device ok!");
                         }
                         else if (result.value().compare("fail") == 0) {
-                            this->log_info("Bind device failed!");
+                            this->log_info("bind device failed!");
                         }
                     }
                 }
@@ -1740,6 +1703,8 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
                         }
                     }
                 }
+                /* refresh after bind */
+                this->refresh_device_list();
             }
         }
         this->log_info("json=" + json_str);

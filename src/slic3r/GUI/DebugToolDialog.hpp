@@ -18,6 +18,7 @@
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/PrintResultDialog.hpp"
 
+//#define __CHECK_BIND_USER__
 
 class wxTimer;
 class wxTimerEvent;

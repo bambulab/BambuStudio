@@ -58,8 +58,6 @@ namespace Slic3r {
     std::string BBLSubTask::build_content_json()
     {
         pt::ptree root, info;
-
-        info.put("id", task_id);
         info.put("name", task_name);
         info.put("create_time", task_create_time);
         info.put("plate_idx", task_partplate_idx);
@@ -165,32 +163,33 @@ namespace Slic3r {
                 delete subtasks[i];
             }
             subtasks.clear();
+            if (root.get_child_optional("subtasks")!= boost::none) {
+                pt::ptree subtask_list = root.get_child("subtasks");
+                for (auto subtask = subtask_list.begin(); subtask != subtask_list.end(); ++subtask) {
+                    BBLSubTask* new_subtask = new BBLSubTask(this);
+                    /* create subtasks */
+                    boost::optional<std::string> subtask_id = subtask->second.get_optional<std::string>("id");
+                    if (subtask_id.has_value()) new_subtask->task_id = subtask_id.value();
 
-            pt::ptree subtask_list = root.get_child("subtasks");
-            for (auto subtask = subtask_list.begin(); subtask != subtask_list.end(); ++subtask) {
-                BBLSubTask* new_subtask = new BBLSubTask(this);
-                /* create subtasks */
-                boost::optional<std::string> subtask_id = subtask->second.get_optional<std::string>("id");
-                if (subtask_id.has_value()) new_subtask->task_id = subtask_id.value();
+                    boost::optional<std::string> subtask_name = subtask->second.get_optional<std::string>("name");
+                    if (subtask_name.has_value()) new_subtask->task_name = subtask_name.value();
 
-                boost::optional<std::string> subtask_name = subtask->second.get_optional<std::string>("name");
-                if (subtask_name.has_value()) new_subtask->task_name = subtask_name.value();
+                    boost::optional<std::string> subtask_create_time = subtask->second.get_optional<std::string>("create_time");
+                    if (subtask_create_time.has_value()) new_subtask->task_create_time = subtask_create_time.value();
 
-                boost::optional<std::string> subtask_create_time = subtask->second.get_optional<std::string>("create_time");
-                if (subtask_create_time.has_value()) new_subtask->task_create_time = subtask_create_time.value();
+                    boost::optional<std::string> subtask_plate_idx = subtask->second.get_optional<std::string>("plate_idx");
+                    if (subtask_plate_idx.has_value()) new_subtask->task_partplate_idx = std::stoi(subtask_plate_idx.value());
 
-                boost::optional<std::string> subtask_plate_idx = subtask->second.get_optional<std::string>("plate_idx");
-                if (subtask_plate_idx.has_value()) new_subtask->task_partplate_idx = std::stoi(subtask_plate_idx.value());
+                    boost::optional<std::string> subtask_printer = subtask->second.get_optional<std::string>("printer");
+                    if (subtask_printer.has_value()) new_subtask->task_printer_dev_id = subtask_printer.value();
 
-                boost::optional<std::string> subtask_printer = subtask->second.get_optional<std::string>("printer");
-                if (subtask_printer.has_value()) new_subtask->task_printer_dev_id = subtask_printer.value();
+                    boost::optional<std::string> subtask_prediction = subtask->second.get_optional<std::string>("prediction");
+                    if (subtask_prediction.has_value()) new_subtask->task_prediction = subtask_prediction.value();
 
-                boost::optional<std::string> subtask_prediction = subtask->second.get_optional<std::string>("prediction");
-                if (subtask_prediction.has_value()) new_subtask->task_prediction = subtask_prediction.value();
-
-                boost::optional<std::string> subtask_weight = subtask->second.get_optional<std::string>("weight");
-                if (subtask_weight.has_value()) new_subtask->task_weight = subtask_weight.value();
-                subtasks.push_back(new_subtask);
+                    boost::optional<std::string> subtask_weight = subtask->second.get_optional<std::string>("weight");
+                    if (subtask_weight.has_value()) new_subtask->task_weight = subtask_weight.value();
+                    subtasks.push_back(new_subtask);
+                }
             }
         }
         catch (...) {
@@ -216,7 +215,6 @@ namespace Slic3r {
                 for (int k = 0; k < task->subtasks.size(); k++) {
                     pt::ptree js_subtask;
                     BBLSubTask* subtask = task->subtasks[k];
-
                     js_subtask.put("id", subtask->task_id);
                     js_subtask.put("name", subtask->task_name);
                     js_subtask.put("create_time", subtask->task_create_time);
