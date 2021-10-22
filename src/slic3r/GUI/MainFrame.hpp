@@ -147,12 +147,27 @@ class MainFrame : public DPIFrame
     
     ESettingsLayout m_layout{ ESettingsLayout::Unknown };
 
+    //BBS GUI refactor
     enum TabPosition
     {
         tp3DEditor = 0,
         tpPreview = 1,
-        tpMonitor = 2,
-        tpSettings = 3,
+        tpSettings = 2,
+        tpMonitor = 3,
+    };
+
+    //BBS GUI refactor
+    enum PrintSelectType
+    {
+        ePrintAll = 0,
+        ePrintPlate = 1,
+        eExportGcode = 2,
+    };
+
+    enum SliceSelectType
+    {
+        eSliceAll = 0,
+        eSlicePlate = 1,
     };
 
 protected:
@@ -247,7 +262,11 @@ public:
     wxWindow*             m_plater_page{ nullptr };
 //    wxProgressDialog*     m_progress_dialog { nullptr };
     PrintHostQueueDialog* m_printhost_queue_dlg;
-//    std::shared_ptr<ProgressStatusBar>  m_statusbar;
+
+    // BBS
+    //std::shared_ptr<ProgressStatusBar>  m_statusbar;
+    mutable int m_print_select{ ePrintAll };
+    mutable int m_slice_select{ eSliceAll };
 
 #ifdef __APPLE__
     std::unique_ptr<wxTaskBarIcon> m_taskbar_icon;

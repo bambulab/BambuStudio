@@ -1050,7 +1050,10 @@ wxBoxSizer* MainFrame::create_side_tools()
     wxBitmap slice_plate_bitmap = create_scaled_bitmap("slice_plate");
     wxBitmap print_all_bitmap = create_scaled_bitmap("print_all");
     wxBitmap print_plate_bitmap = create_scaled_bitmap("print_plate");
+    wxBitmap export_gcode_bitmap = create_scaled_bitmap("export_gcode");
 
+    m_slice_select = eSlicePlate;
+    m_print_select = ePrintPlate;
     ScalableButton* slice_btn = new ScalableButton(this, wxID_ANY, "slice_plate", _L("Slice plate"));
     ScalableButton* slice_option_btn = new ScalableButton(this, wxID_ANY, "dropdown", "");
     ScalableButton* print_btn = new ScalableButton(this, wxID_ANY, "print_plate", _L("Print plate"));
@@ -1061,28 +1064,54 @@ wxBoxSizer* MainFrame::create_side_tools()
     sizer->Add(print_option_btn, 0, wxRIGHT, 5);
     sizer->Layout();
     slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-        {
-            this->m_plater->reslice();
-            this->m_plater->select_view_3D("Preview");
+    {
+        //this->m_plater->reslice();
+        //this->m_plater->select_view_3D("Preview");
+        if (m_slice_select == eSliceAll)
+            wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
+        else
+            wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
 
             this->m_tabpanel->SetSelection(tpPreview);
         });
+
+    print_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
+    {
+        //this->m_plater->reslice();
+        //this->m_plater->select_view_3D("Preview");
+        if (m_print_select == ePrintAll)
+        {
+            wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_ALL));
+            this->m_tabpanel->SetSelection(tpMonitor);
+        }
+        else if (m_print_select == ePrintPlate)
+        {
+            wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE));
+            this->m_tabpanel->SetSelection(tpMonitor);
+        }
+        else if (m_print_select == eExportGcode)
+            wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_GCODE));
+    });
 
     slice_option_btn->Bind(wxEVT_BUTTON, [this, slice_btn, slice_all_bitmap, slice_plate_bitmap](wxCommandEvent& event)
         {
             wxMenu* menu = new wxMenu();
 
             append_menu_item(menu, wxID_ANY, _L("Slice all"), _L("Slice all plates"),
-                [slice_btn, slice_all_bitmap](wxCommandEvent&)
+                [this, slice_btn, slice_all_bitmap](wxCommandEvent&)
                 {
                     slice_btn->SetLabelText(_L("Slice all"));
                     slice_btn->SetBitmap(slice_all_bitmap);
+                    slice_btn->SetBitmapCurrent (slice_all_bitmap);
+                    m_slice_select = eSliceAll;
                 });
             append_menu_item(menu, wxID_ANY, _L("Slice plate"), _L("Slice selected plate"),
-                [slice_btn, slice_plate_bitmap](wxCommandEvent&)
+                [this, slice_btn, slice_plate_bitmap](wxCommandEvent&)
                 {
                     slice_btn->SetLabelText(_L("Slice plate"));
                     slice_btn->SetBitmap(slice_plate_bitmap);
+                    slice_btn->SetBitmapCurrent (slice_plate_bitmap);
+                    m_slice_select = eSlicePlate;
                 });
             wxPoint parent_pos = slice_btn->GetParent()->GetPosition();
             wxPoint btn_pos = slice_btn->GetPosition() + parent_pos;
@@ -1090,21 +1119,33 @@ wxBoxSizer* MainFrame::create_side_tools()
         }
     );
 
-    print_option_btn->Bind(wxEVT_BUTTON, [this, print_btn, print_all_bitmap, print_plate_bitmap](wxCommandEvent& event)
+    print_option_btn->Bind(wxEVT_BUTTON, [this, print_btn, print_all_bitmap, print_plate_bitmap, export_gcode_bitmap](wxCommandEvent& event)
         {
             wxMenu* menu = new wxMenu();
 
             append_menu_item(menu, wxID_ANY, _L("Print all"), _L("Print all plates"),
-                [print_btn, print_all_bitmap](wxCommandEvent&)
+                [this, print_btn, print_all_bitmap](wxCommandEvent&)
                 {
                     print_btn->SetLabelText(_L("Print all"));
                     print_btn->SetBitmap(print_all_bitmap);
+                    print_btn->SetBitmapCurrent (print_all_bitmap);
+                    m_print_select = ePrintAll;
                 });
             append_menu_item(menu, wxID_ANY, _L("Print plate"), _L("Print selected plate"),
-                [print_btn, print_plate_bitmap](wxCommandEvent&)
+                [this, print_btn, print_plate_bitmap](wxCommandEvent&)
                 {
                     print_btn->SetLabelText(_L("Print plate"));
                     print_btn->SetBitmap(print_plate_bitmap);
+                    print_btn->SetBitmapCurrent (print_plate_bitmap);
+                    m_print_select = ePrintPlate;
+                });
+            append_menu_item(menu, wxID_ANY, _L("Export G-Code"), _L("Export gcode"),
+                [this, print_btn, export_gcode_bitmap](wxCommandEvent&)
+                {
+                    print_btn->SetLabelText(_L("Export G-Code"));
+                    print_btn->SetBitmap(export_gcode_bitmap);
+                    print_btn->SetBitmapCurrent (export_gcode_bitmap);
+                    m_print_select = eExportGcode;
                 });
             wxPoint btn_pos = print_btn->GetPosition();
             this->PopupMenu(menu, btn_pos.x, btn_pos.y + print_btn->GetSize().GetHeight() + m_topbar->GetSize().GetHeight());
