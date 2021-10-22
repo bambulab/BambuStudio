@@ -196,7 +196,7 @@ static void draw_avoidance_and_nodes_to_svg
     const std::vector<TreeSupport::Node*> &layer_nodes,
     const std::vector<TreeSupport::Node*> &lower_layer_nodes,
     std::string name_prefix,
-    std::vector<std::string> legends = { "overhang","avoid","outlines" }
+    std::vector<std::string> legends = { "overhang","avoid","outlines" }, std::vector<std::string> colors = { "blue","red","green" }
 )
 {
     BoundingBox bbox = get_extents(overhangs_after_offset);
@@ -207,6 +207,8 @@ static void draw_avoidance_and_nodes_to_svg
     }
     bbox.merge(get_extents(layer_pts));
     bbox.inflated(scale_(1));
+    bbox.max.x() = std::max(bbox.max.x(), (coord_t)scale_(10));
+    bbox.max.y() = std::max(bbox.max.y(), (coord_t)scale_(10));
 
     SVG svg(get_svg_filename(layer_nr, name_prefix), bbox);
     if (!svg.is_opened())        return;
@@ -239,10 +241,11 @@ static void draw_avoidance_and_nodes_to_svg
     svg.draw_outline(outlines_below, "yellow");
 
     // draw legend
-    svg.draw_text(bbox.min + Point(scale_(0), scale_(0)), ("nPoints: "+std::to_string(layer_nodes.size())+"->"+std::to_string(lower_layer_nodes.size())).c_str(), "blue", 4);
-    svg.draw_text(bbox.min + Point(scale_(0), scale_(1)), legends[0].c_str(), "blue", 4);
-    svg.draw_text(bbox.min + Point(scale_(0), scale_(2)), legends[1].c_str(), "red", 4);
-    svg.draw_text(bbox.min + Point(scale_(0), scale_(3)), legends[2].c_str(), "yellow", 4);
+    svg.draw_text(bbox.min + Point(scale_(0), scale_(0)), ("nPoints: "+std::to_string(layer_nodes.size())+"->").c_str(), "green", 4);
+    svg.draw_text(bbox.min + Point(scale_(15), scale_(0)), std::to_string(lower_layer_nodes.size()).c_str(), "black", 4);
+    svg.draw_text(bbox.min + Point(scale_(0), scale_(1)), legends[0].c_str(), colors[0].c_str(), 4);
+    svg.draw_text(bbox.min + Point(scale_(0), scale_(2)), legends[1].c_str(), colors[1].c_str(), 4);
+    svg.draw_text(bbox.min + Point(scale_(0), scale_(3)), legends[2].c_str(), colors[2].c_str(), 4);
 
     // draw layer nodes    
     svg.draw(layer_pts, "green", coord_t(scale_(0.1)));
@@ -723,7 +726,7 @@ void TreeSupport::detect_object_overhangs()
     const coordf_t extrusion_width = config.extrusion_width.value;
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     const bool dont_support_bridges = config.dont_support_bridges.value;
-    const double thresh_well_supported = SQ(scale_(5));  // min: 4x4=16mm^2
+    const double thresh_well_supported = SQ(scale_(4));  // min: 4x4=16mm^2
 
     if (config.support_type.value == stTreeAuto) {
         double threshold_rad = (config.support_material_threshold.value < EPSILON ? 30 : config.support_material_threshold.value) * M_PI / 180.;
@@ -736,7 +739,7 @@ void TreeSupport::detect_object_overhangs()
             {
                 for (size_t layer_nr = range.begin(); layer_nr < range.end(); layer_nr++)
                 {
-                    Layer *layer = m_object.get_layer(layer_nr);
+                    Layer* layer = m_object.get_layer(layer_nr);
                     if (layer->lower_layer == nullptr) {
                         for (auto& slice : layer->lslices) {
                             if (slice.area() > thresh_well_supported)
@@ -745,38 +748,35 @@ void TreeSupport::detect_object_overhangs()
                         continue;
                     }
 
-                    Layer *lower_layer = layer->lower_layer;
+                    Layer* lower_layer = layer->lower_layer;
                     coordf_t lower_layer_offset = (float)lower_layer->height / tan(threshold_rad);
+                    coordf_t support_offset_scaled = scale_(lower_layer_offset);
                     // Filter out areas whose diameter that is smaller than extrusion_width. Do not use offset2() for this purpose!
                     ExPolygons lower_polys;
-                    for (const ExPolygon &expoly : lower_layer->lslices) {
+                    for (const ExPolygon& expoly : lower_layer->lslices) {
                         if (!offset_ex(expoly, -extrusion_width_scaled / 2).empty()) {
                             lower_polys.emplace_back(expoly);
                         }
                     }
 
                     // detect sharp tail and add more supports around
-                    auto lower_layer_offseted = offset_ex(lower_polys, scale_(lower_layer_offset));
-                    if (layer_nr > 1) {
-                        TreeSupportLayer* ts_layer_lower = m_object.get_tree_support_layer(layer_nr + m_raft_layers - 1);
-                        auto lower_overhang_dilated = offset_ex(ts_layer_lower->overhang_areas, 0.5 * extrusion_width_scaled);
-                        for (auto lower_overhang : lower_overhang_dilated) {
-                            double aarea = lower_overhang.area();
-                            if (regions_well_supported.empty() || (aarea < thresh_well_supported && intersection_ex({ lower_overhang }, regions_well_supported).empty())) {
-                                for(auto& lslice:lower_polys)
-                                {
-                                    if (intersection_ex(lslice, lower_overhang).empty() == false)
-                                    {
-                                        // remove old wide lower_layer_offseted
-                                        auto it = std::find_if(lower_layer_offseted.begin(), lower_layer_offseted.end(), [&](ExPolygon& p) {return intersection_ex(p, lslice).empty() == false; });
-                                        if (it != lower_layer_offseted.end()) lower_layer_offseted.erase(it);
-                                        // insert new narrow region
-                                        lower_layer_offseted.push_back(lslice);
-                                    }
-                                }
+#if 1
+                    ExPolygons lower_layer_offseted;
+                    if (regions_well_supported.empty())
+                        lower_layer_offseted = offset_ex(lower_polys, -0.1 * extrusion_width_scaled);
+                    else {
+                        for (auto lower_region : lower_polys) {
+                            if (area(intersection_ex({ lower_region }, regions_well_supported)) < thresh_well_supported) {
+                                lower_layer_offseted.push_back(offset_ex(lower_region, -0.1 * extrusion_width_scaled)[0]);
+                            }
+                            else {
+                                lower_layer_offseted.push_back(offset_ex(lower_region,support_offset_scaled)[0]);
                             }
                         }
                     }
+#else
+                    ExPolygons lower_layer_offseted = offset_ex(lower_polys, support_offset_scaled);
+#endif               
                     ExPolygons overhang_areas = std::move(diff_ex(layer->lslices, lower_layer_offseted));
                     overhang_areas = std::move(offset2_ex(overhang_areas, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
                     if (dont_support_bridges && overhang_areas.size()>0) {
@@ -790,21 +790,18 @@ void TreeSupport::detect_object_overhangs()
 
                     {  // update well supported regions
                         ExPolygons regions_well_supported2;
-                        // regions intersects with lower regions_well_supported are also well supported
-                        for (auto region : layer->lslices) {
-                            if (area(intersection_ex({ region }, regions_well_supported)) >= thresh_well_supported)
-                                regions_well_supported2.emplace_back(region);
-                        }
-                        // regions intersects with large support are also well supported
-                        for (auto region : layer->lslices) {
-                            for(auto& supp:ts_layer->overhang_areas)
-                            if (!intersection_ex(region, supp).empty()) {
-                                auto region_union_supp = union_ex({ region }, { supp });
-                                if (area(region_union_supp) >= thresh_well_supported)
-                                    regions_well_supported2.emplace_back(region_union_supp[0]);
+                        // regions intersects with lower regions_well_supported or large support are also well supported
+                        auto inters = intersection_ex(layer->lslices, regions_well_supported);
+                        auto inters2 = intersection_ex(layer->lslices, ts_layer->overhang_areas);
+                        inters.insert(inters.end(), inters2.begin(), inters2.end());
+                        for (auto inter : inters) {
+                            if (inter.area() >= thresh_well_supported)
+                            {
+                                inter = offset_ex(inter, support_offset_scaled)[0];
+                                regions_well_supported2.emplace_back(inter);
                             }
-                        }
-                        regions_well_supported = regions_well_supported2;
+                        }                        
+                        regions_well_supported = union_ex(regions_well_supported2);
                     }
                 }
             }
@@ -841,6 +838,12 @@ void TreeSupport::detect_object_overhangs()
         if (svg.is_opened()) {
             svg.draw_outline(m_object.get_layer(layer->id())->lslices, "yellow");
             svg.draw(layer->overhang_areas, "red");
+            for (auto& overhang : layer->overhang_areas) {
+                double aarea = overhang.area()/ thresh_well_supported;
+                auto pt = get_extents(overhang).center();
+                char x[20]; sprintf(x, "%.2f", aarea);
+                svg.draw_text(pt, x, "red");
+            }
         }
     }
 #endif
@@ -1493,7 +1496,11 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 {
                     const Node& node = *p_node;
                     Polygon circle;
-                    double scale = calc_branch_radius(branch_radius, node.distance_to_top, tip_layers, diameter_angle_scale_factor) / branch_radius;
+                    //double scale = calc_branch_radius(branch_radius, node.distance_to_top, tip_layers, diameter_angle_scale_factor) / branch_radius;
+                    size_t layers_to_top = node.distance_to_top;// std::min(node.distance_to_top, (size_t)300);
+                    double scale = static_cast<double>(layers_to_top + 1) / tip_layers;
+                    scale = layers_to_top < tip_layers ? (0.5 + scale / 2) : (1 + static_cast<double>(layers_to_top - tip_layers) * diameter_angle_scale_factor);
+                    scale = std::min(scale, 10 / branch_radius);
                     for (auto iter = branch_circle.points.begin(); iter != branch_circle.points.end(); iter++)
                     {
                         Point corner = (*iter) * scale;
@@ -1931,9 +1938,11 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                     else
                         movement = Point(0, 0);  // point is already outside contour, no need to move
                 }
-                // move to the averaged direction of neighbor center and contour edge
+                // move to the averaged direction of neighbor center and contour edge if they are roughly same direction
                 if (movement.dot(move_to_neighbor_center) >= 0)
                     movement = movement + move_to_neighbor_center;
+                else
+                    movement = move_to_neighbor_center;  // otherwise move to neighbor center first
 
                 if (vsize2_with_unscale(movement) > max_move_distance2)
                     movement = normal(movement, scale_(max_move_distance));
@@ -2086,6 +2095,11 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
                 contact_nodes[layer_nr].emplace_back(contact_node);
             }
         }
+
+#ifdef SUPPORT_TREE_DEBUG_TO_SVG
+        draw_avoidance_and_nodes_to_svg(layer_nr, overhang, m_ts_data->m_layer_outlines_below[layer_nr], {},
+            contact_nodes[layer_nr], {}, "init_contact_points", { "overhang","outlines","" });
+#endif
     }
 }
 
