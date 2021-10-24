@@ -661,6 +661,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionStrings,             filament_ramming_parameters))
     ((ConfigOptionBool,                gcode_comments))
     // BBS
+    ((ConfigOptionBool,                scan_first_layer))
     ((ConfigOptionBool,                gcode_add_line_number))
     ((ConfigOptionEnum<GCodeFlavor>,   gcode_flavor))
     ((ConfigOptionBool,                gcode_label_objects))

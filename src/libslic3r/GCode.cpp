@@ -1333,6 +1333,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // adds tag for processor
     file.write_format(";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
 
+    //BBS
+    if (print.config().scan_first_layer.value)
+        file.writeln("M977 S1 P60");
+
     // Write the custom start G-code
     file.writeln(start_gcode);
 
@@ -2176,6 +2180,12 @@ GCode::LayerResult GCode::process_layer(
         config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
     }
 
+    //BBS
+    if (print.config().scan_first_layer.value) {
+        if (first_layer)
+            gcode += "M976 S2 P1 ;scan bed before print first layer\n";
+    }
+
     if (! first_layer && ! m_second_layer_things_done) {
         // Transition from 1st to 2nd layer. Adjust nozzle temperatures as prescribed by the nozzle dependent
         // first_layer_temperature vs. temperature settings.
@@ -2562,6 +2572,16 @@ GCode::LayerResult GCode::process_layer(
 
     file.write(gcode);
 #endif
+
+    // BBS: scan bed after print first layer
+    if (print.config().scan_first_layer.value) {
+        if (first_layer) {
+            //BBS: retract first to avoid droping when scan bed
+            gcode += this->retract();
+            gcode += "M976 S1 P1 ;scan bed after print first layer\n";
+            gcode += this->unretract();
+        }
+    }
 
     BOOST_LOG_TRIVIAL(trace) << "Exported layer " << layer.id() << " print_z " << print_z <<
     log_memory_info();

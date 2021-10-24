@@ -1342,6 +1342,12 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Enable this to add line number(Nx) at the beginning of each G-Code line.");
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionBool(0));
+    // BBS
+    def = this->add("scan_first_layer", coBool);
+    def->label = L("Scan first layer");
+    def->tooltip = L("Enable this to enable the camera on printer to check the quality of first layer.");
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("gcode_flavor", coEnum);
     def->label = L("G-code flavor");
