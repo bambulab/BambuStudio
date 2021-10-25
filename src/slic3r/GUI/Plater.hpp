@@ -18,6 +18,7 @@
 #include "Jobs/Job.hpp"
 #include "Search.hpp"
 #include "PartPlate.hpp"
+#include "GUI_AuxiliaryList.hpp"
 
 class wxButton;
 class ScalableButton;
@@ -72,17 +73,6 @@ enum class ActionButtonType : int;
 //BBS: add EVT_SLICING_UPDATE declare here
 wxDECLARE_EVENT(EVT_SLICING_UPDATE, Slic3r::SlicingStatusEvent);
 
-#if 0
-class AccessoryTable : public wxGrid
-{
-public:
-    AccessoryTable(wxWindow *parent);
-private:
-    wxString m_name;
-};
-#endif
-
-
 class ProjectResource : public wxNotebook
 {
 public:
@@ -91,9 +81,9 @@ public:
 
 private:
     ObjectList *m_object_list{ nullptr };
-    //AccessoryTable *m_accessory_table{ nullptr };
+    AuxiliaryList *m_auxiliary_list{ nullptr };
     wxPanel *m_object_panel;
-    wxPanel *m_accessory_panel;
+    wxPanel *m_auxiliary_panel;
 };
 
 class Sidebar : public wxPanel

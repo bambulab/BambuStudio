@@ -107,6 +107,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/GUI_Factories.hpp
     GUI/GUI_ObjectList.cpp
     GUI/GUI_ObjectList.hpp
+    GUI/GUI_AuxiliaryList.cpp
+    GUI/GUI_AuxiliaryList.hpp
     GUI/GalleryDialog.cpp
     GUI/GalleryDialog.hpp
     GUI/GUI_ObjectManipulation.cpp
@@ -214,6 +216,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Notebook.hpp
     GUI/ObjectDataViewModel.cpp
     GUI/ObjectDataViewModel.hpp
+    GUI/AuxiliaryDataViewModel.cpp
+    GUI/AuxiliaryDataViewModel.hpp
     GUI/InstanceCheck.cpp
     GUI/InstanceCheck.hpp
     GUI/Search.cpp

@@ -652,8 +652,11 @@ ProjectResource::ProjectResource(wxWindow *parent)
     m_object_panel->SetSizer(object_sizer);
     this->AddPage(m_object_panel, _L("Object List"));
 
-    m_accessory_panel = new wxPanel(this);
-    this->AddPage(m_accessory_panel, _L("Accessory"));
+    m_auxiliary_panel = new wxPanel(this);
+	m_auxiliary_list = new AuxiliaryList(m_auxiliary_panel);
+	m_auxiliary_panel->SetSizer(m_auxiliary_list->get_top_sizer());
+    this->AddPage(m_auxiliary_panel, _L("Auxiliary List"));
+    m_auxiliary_list->create_default_folders();
 }
 
 // Sidebar / private
