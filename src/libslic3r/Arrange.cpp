@@ -97,10 +97,9 @@ void fill_config(PConf& pcfg, const ArrangeParams &params) {
         pcfg.starting_point = PConf::Alignment::CENTER;
     }
 
-    // TODO cannot use rotations until multiple objects of same geometry can
-    // handle different rotations.
+    // Try 4 angles (45 degree step) and find the one with min cost
     if (params.allow_rotations)
-        pcfg.rotations = {0., PI / 2., PI, 3. * PI / 2. };
+        pcfg.rotations = {0., PI / 4., PI/2, 3. * PI / 4. };
     else
         pcfg.rotations = {0.};
 
