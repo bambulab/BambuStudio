@@ -1476,6 +1476,21 @@ void GLCanvas3D::update_volumes_colors_by_extruder()
         m_volumes.update_colors_by_extruder(m_config);
 }
 
+float GLCanvas3D::get_collapse_toolbar_width()
+{
+    const GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
+
+    return collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0;
+}
+
+float GLCanvas3D::get_collapse_toolbar_height()
+{
+    const GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
+
+    return collapse_toolbar.is_enabled() ? collapse_toolbar.get_height() : 0;
+}
+
+
 void GLCanvas3D::render()
 {
     if (m_in_render) {
@@ -6496,7 +6511,7 @@ void GLCanvas3D::_render_main_toolbar()
     float gizmo_width = m_gizmos.get_scaled_total_width();
     float assemble_width = m_assemble_view_toolbar.get_width();
     float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
-    float left = -0.5f * (m_main_toolbar.get_width() + gizmo_width + assemble_width + collapse_toolbar_width) * inv_zoom;
+    float left = -0.5f * (m_main_toolbar.get_width() + gizmo_width + assemble_width - collapse_toolbar_width) * inv_zoom;
 #else
     float gizmo_height = m_gizmos.get_scaled_total_height();
     float space_height = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
@@ -6614,10 +6629,12 @@ void GLCanvas3D::_render_collapse_toolbar() const
     Size cnv_size = get_canvas_size();
     float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
 
-    float band = m_layers_editing.is_enabled() ? (wxGetApp().imgui()->get_style_scaling() * LayersEditing::THICKNESS_BAR_WIDTH) : 0.0;
+    //BBS: GUI refactor
+    //float band = m_layers_editing.is_enabled() ? (wxGetApp().imgui()->get_style_scaling() * LayersEditing::THICKNESS_BAR_WIDTH) : 0.0;
 
     float top  = 0.5f * (float)cnv_size.get_height() * inv_zoom;
-    float left = (0.5f * (float)cnv_size.get_width() - (float)collapse_toolbar.get_width() - band) * inv_zoom;
+    //float left = (0.5f * (float)cnv_size.get_width() - (float)collapse_toolbar.get_width() - band) * inv_zoom;
+    float left = -0.5f * (float)cnv_size.get_width() * inv_zoom;
 
     collapse_toolbar.set_position(top, left);
     collapse_toolbar.render(*this);

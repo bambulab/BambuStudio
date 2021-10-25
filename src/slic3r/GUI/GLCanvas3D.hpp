@@ -773,6 +773,8 @@ public:
     float get_main_toolbar_width() { return m_main_toolbar.get_width();}
     float get_assemble_view_toolbar_width() { return m_assemble_view_toolbar.get_width(); }
     float get_assemble_view_toolbar_height() { return m_assemble_view_toolbar.get_height(); }
+    float get_collapse_toolbar_width();
+    float get_collapse_toolbar_height();
 
     void update_volumes_colors_by_extruder();
 
