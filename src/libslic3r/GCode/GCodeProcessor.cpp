@@ -724,6 +724,8 @@ void GCodeProcessor::UsedFilaments::process_caches(GCodeProcessor* processor)
 void GCodeProcessorResult::reset() {
     moves = std::vector<GCodeProcessorResult::MoveVertex>();
     bed_shape = Pointfs();
+    //BBS: add bed exclude area
+    bed_exclude_area = Pointfs();
     max_print_height = 0.0f;
     settings_ids.reset();
     extruders_count = 0;
@@ -739,6 +741,8 @@ void GCodeProcessorResult::reset() {
     moves.clear();
     lines_ends.clear();
     bed_shape = Pointfs();
+    //BBS: add bed exclude area
+    bed_exclude_area = Pointfs();
     max_print_height = 0.0f;
     settings_ids.reset();
     extruders_count = 0;
@@ -900,6 +904,11 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     const ConfigOptionPoints* bed_shape = config.option<ConfigOptionPoints>("bed_shape");
     if (bed_shape != nullptr)
         m_result.bed_shape = bed_shape->values;
+
+    //BBS: add bed_exclude_area
+    const ConfigOptionPoints* bed_exclude_area = config.option<ConfigOptionPoints>("bed_exclude_area");
+    if (bed_exclude_area != nullptr)
+        m_result.bed_exclude_area = bed_exclude_area->values;
 
     const ConfigOptionString* print_settings_id = config.option<ConfigOptionString>("print_settings_id");
     if (print_settings_id != nullptr)

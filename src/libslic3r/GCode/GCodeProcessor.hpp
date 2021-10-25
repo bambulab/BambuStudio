@@ -129,6 +129,8 @@ namespace Slic3r {
         // Positions of ends of lines of the final G-code this->filename after TimeProcessor::post_process() finalizes the G-code.
         std::vector<size_t> lines_ends;
         Pointfs bed_shape;
+        //BBS: add bed exclude area
+        Pointfs bed_exclude_area;
         float max_print_height;
         SettingsIds settings_ids;
         size_t extruders_count;

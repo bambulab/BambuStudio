@@ -143,6 +143,9 @@ void ArrangeJob::prepare_all() {
         }
     }
 
+    //add the virtual object into unselect list if has
+    plate_list.preprocess_exclude_areas(m_unselected);
+
     if (auto wti = get_wipe_tower_arrangepoly(*m_plater))
         m_selected.emplace_back(std::move(*wti));
 }
@@ -199,7 +202,10 @@ void ArrangeJob::prepare_selected() {
             }            
         }
     }
-    
+
+    //add the virtual object into unselect list if has
+    plate_list.preprocess_exclude_areas(m_unselected);
+
     if (auto wti = get_wipe_tower(*m_plater)) {
         ArrangePolygon &&ap = get_arrange_poly(wti, m_plater);
 
@@ -279,6 +285,9 @@ void ArrangeJob::prepare_partplate() {
             }
         }
     }
+
+    //add the virtual object into unselect list if has
+    plate_list.preprocess_exclude_areas(m_unselected);
 
     //don't consider wipe_tower currently
     /*if (auto wti = get_wipe_tower(*m_plater)) {
@@ -369,7 +378,7 @@ void ArrangeJob::process()
         int beds = -1;
         for (auto it=m_selected_groups.begin();it!=m_selected_groups.end();it++)
         {
-            arrangement::arrange(it->second, {}, bedpts, params);
+            arrangement::arrange(it->second, m_unselected, bedpts, params);
 
             beds++;  // new group will start from next plate
             for (auto& ap : it->second) {
@@ -471,6 +480,9 @@ void ArrangeJob::finalize() {
     //BBS: adjust the bed_index, create new plates, get the max bed_index
     for (ArrangePolygon& ap : m_unselected)
     {
+        if (ap.is_virt_object)
+            continue;
+
         //BBS: partplate postprocess
         if (!only_on_partplate)
             plate_list.postprocess_bed_index_for_unselected(ap);
@@ -498,6 +510,9 @@ void ArrangeJob::finalize() {
     // Apply the arrange result to unselected objects(due to the sukodu-style column changes, the position of unselected may also be modified)
     for (ArrangePolygon& ap : m_unselected)
     {
+        if (ap.is_virt_object)
+            continue;
+
         //BBS: partplate postprocess
         plate_list.postprocess_arrange_polygon(ap, false);
 

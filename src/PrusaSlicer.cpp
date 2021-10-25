@@ -340,13 +340,14 @@ int CLI::run(int argc, char **argv)
     Slic3r::GUI::PartPlateList partplate_list(NULL, m_models.data(), printer_technology);
     //use Pointfs insteadof Points
     Pointfs bedfs = m_print_config.opt<ConfigOptionPoints>("bed_shape")->values;
+    Pointfs excluse_areas = m_print_config.opt<ConfigOptionPoints>("bed_exclude_area")->values;
     //update part plate's size
     double z = m_print_config.opt_float("max_print_height");
     double plate_stride;
     if (m_models.size() > 0)
     {
         partplate_list.reset_size(bedfs[2].x() - bedfs[0].x(), bedfs[2].y() - bedfs[0].y(), z);
-        partplate_list.set_shapes(bedfs);
+        partplate_list.set_shapes(bedfs, excluse_areas);
         plate_stride = partplate_list.plate_stride_x();
         boost::nowide::cout << "bed size, x="<<bedfs[2].x() - bedfs[0].x()<<",y="<<bedfs[2].y() - bedfs[0].y()<<",z="<< z <<"\n";
     }
@@ -579,7 +580,7 @@ int CLI::run(int argc, char **argv)
 
     if (need_arrange)
     {
-        ArrangePolygons selected, unprintable, locked_aps;
+        ArrangePolygons selected, unselected, unprintable, locked_aps;
         boost::nowide::cout << "Will arrange now, need_arrange="<<need_arrange<<"\n";
 
         for (Model &model : m_models)
@@ -640,6 +641,9 @@ int CLI::run(int argc, char **argv)
                 }
             }
 
+            //add the virtual object into unselect list if has
+            partplate_list.preprocess_exclude_areas(unselected);
+
             //Step-2:prepare the arrange params
             arrange_cfg.allow_rotations  = false;
             arrange_cfg.min_obj_distance = scaled(12.0);
@@ -658,7 +662,7 @@ int CLI::run(int argc, char **argv)
             boost::nowide::cout << boost::format("Arrange Params: brim_skirt_distance=%1%, min_obj_distance=%2%, is_seq_print=%3%\n") %  arrange_cfg.brim_skirt_distance % arrange_cfg.min_obj_distance % arrange_cfg.is_seq_print;
 
             //Step-3:do the arrange
-            arrangement::arrange(selected, {}, beds, arrange_cfg);
+            arrangement::arrange(selected, unselected, beds, arrange_cfg);
             arrangement::arrange(unprintable, {}, beds, arrange_cfg);
 
             //Step-4:postprocess by partplate list&&apply the result

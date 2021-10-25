@@ -532,7 +532,15 @@ void Bed3D::update_model_offset() const
     // move the model so that its origin (0.0, 0.0, 0.0) goes into the bed shape center and a bit down to avoid z-fighting with the texture quad
     Vec3d shift = m_extended_bounding_box.center();
     shift(2) = -0.03;
-    *const_cast<Vec3d*>(&m_model_offset) = shift;
+    Vec3d* model_offset_ptr = const_cast<Vec3d*>(&m_model_offset);
+    *model_offset_ptr = shift;
+    //BBS: TODO: hack for current stl for v4
+    if (std::string::npos != m_model_filename.find("bbl-3dp-004_bed"))
+    {
+        (*model_offset_ptr)(0) -= 128.f;
+        (*model_offset_ptr)(1) -= 128.f;
+        (*model_offset_ptr)(2) = -3.03;
+    }
 
     // update extended bounding box
     const_cast<BoundingBoxf3&>(m_extended_bounding_box) = calc_extended_bounding_box();

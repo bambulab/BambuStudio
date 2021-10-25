@@ -76,6 +76,8 @@ public:
     int extrude_id{ 1 };
     double height{ 0 };
     std::string name;
+    //BBS: add vierual object support
+    bool is_virt_object{ false };
 
     /// The type of the shape which was handed over as the template argument.
     using ShapeType = RawShape;

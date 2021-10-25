@@ -662,6 +662,8 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
         load_shells(print, initialized);
     else {
         Pointfs bed_shape;
+        //BBS: add bed exclude area
+        Pointfs bed_exclude_area = Pointfs();
         std::string texture;
         std::string model;
 
@@ -699,7 +701,10 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
                 { min.x(), max.y() } };
         }
 
-        wxGetApp().plater()->set_bed_shape(bed_shape, gcode_result.max_print_height, texture, model, gcode_result.bed_shape.empty());
+        //BBS: add bed exclude area
+        if (!gcode_result.bed_exclude_area.empty())
+            bed_exclude_area = gcode_result.bed_exclude_area;
+        wxGetApp().plater()->set_bed_shape(bed_shape, bed_exclude_area, gcode_result.max_print_height, texture, model, gcode_result.bed_shape.empty());
     }
 
     m_print_statistics = gcode_result.print_statistics;

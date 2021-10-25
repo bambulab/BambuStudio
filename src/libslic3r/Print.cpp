@@ -59,6 +59,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "avoid_crossing_perimeters",
         "avoid_crossing_perimeters_max_detour",
         "bed_shape",
+        //BBS: add bed_exclude_area
+        "bed_exclude_area",
         "bed_temperature",
         "before_layer_gcode",
         "between_objects_gcode",

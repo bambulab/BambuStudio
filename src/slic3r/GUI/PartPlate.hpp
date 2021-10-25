@@ -87,8 +87,10 @@ class PartPlate : public ObjectBase
     friend class PartPlateList;
 
     Pointfs m_shape;
+    Pointfs m_exclude_area;
     BoundingBoxf3 m_bounding_box;
     BoundingBoxf3 m_extended_bounding_box;
+    mutable std::vector<BoundingBoxf3> m_exclude_bounding_box;
     mutable BoundingBoxf3 m_grabber_box;
     Transform3d m_grabber_trans_matrix;
     Slic3r::Geometry::Transformation position;
@@ -198,7 +200,7 @@ public:
 
     /*rendering related functions*/
     const Pointfs& get_shape() const { return m_shape; }
-    bool set_shape(const Pointfs& shape, Vec2d position);
+    bool set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Vec2d position);
     bool contains(const Point& point) const;
     bool contains(const GLVolume& v) const;
     bool contains(const BoundingBoxf3& bb) const;
@@ -212,6 +214,8 @@ public:
     void set_hover_id(int id) { m_hover_id = id; }
     const BoundingBoxf3& get_bounding_box(bool extended) { return extended ? m_extended_bounding_box : m_bounding_box; }
     const BoundingBox get_bounding_box_crd();
+
+    const std::vector<BoundingBoxf3>& get_exclude_areas() { return m_exclude_bounding_box; }
 
 
     /*status related functions*/
@@ -296,6 +300,7 @@ class PartPlateList : public ObjectBase
 
     PartPlate unprintable_plate;
     Pointfs m_shape;
+    Pointfs m_exclude_areas;
     BoundingBoxf3 m_bounding_box;
     bool m_intialized;
     GLTexture m_del_texture;
@@ -403,6 +408,7 @@ public:
     //preprocess an arrangement::ArrangePolygon, return true if it is in a locked plate
     bool preprocess_arrange_polygon(int obj_index, int instance_index, arrangement::ArrangePolygon& arrange_polygon, bool selected);
     bool preprocess_arrange_polygon_other_locked(int obj_index, int instance_index, arrangement::ArrangePolygon& arrange_polygon, bool selected);
+    bool preprocess_exclude_areas(arrangement::ArrangePolygons& unselected);
 
     void postprocess_bed_index_for_selected(arrangement::ArrangePolygon& arrange_polygon);
     void postprocess_bed_index_for_unselected(arrangement::ArrangePolygon& arrange_polygon);
@@ -419,7 +425,7 @@ public:
     int select_plate_by_obj(int obj_index, int instance_index);
     void calc_bounding_boxes();
     void select_plate_view();
-    bool set_shapes(const Pointfs& shape);
+    bool set_shapes(const Pointfs& shape, const Pointfs& exclude_areas);
     void set_hover_id(int id);
     void reset_hover_id();
     bool intersects(const BoundingBoxf3 &bb);

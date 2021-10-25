@@ -2040,7 +2040,8 @@ struct Plater::priv
     // triangulate the bed and store the triangles into m_bed.m_triangles,
     // fills the m_bed.m_grid_lines and sets m_bed.m_origin.
     // Sets m_bed.m_polygon to limit the object placement.
-    void set_bed_shape(const Pointfs& shape, const double max_print_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom = false);
+    //BBS: add bed exclude area
+    void set_bed_shape(const Pointfs& shape, const Pointfs& exclude_areas, const double max_print_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom = false);
 
     bool can_delete() const;
     bool can_delete_all() const;
@@ -2126,8 +2127,9 @@ const std::regex Plater::priv::pattern_prusa(".*prusa", std::regex::icase);
 Plater::priv::priv(Plater *q, MainFrame *main_frame)
     : q(q)
     , main_frame(main_frame)
+    //BBS: add bed_exclude_area
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
-        "bed_shape", "bed_custom_texture", "bed_custom_model", "complete_objects", "duplicate_distance", "extruder_clearance_radius", "skirts", "skirt_distance",
+        "bed_shape", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "complete_objects", "duplicate_distance", "extruder_clearance_radius", "skirts", "skirt_distance",
         "brim_width", "brim_separation", "brim_type", "variable_layer_height", "nozzle_diameter", "single_extruder_multi_material",
         "wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_brim_width",
         "extruder_colour", "filament_colour", "material_colour", "max_print_height", "printer_model", "printer_technology",
@@ -4986,7 +4988,8 @@ bool Plater::priv::can_reload_from_disk() const
     return !paths.empty();
 }
 
-void Plater::priv::set_bed_shape(const Pointfs& shape, const double max_print_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom)
+//BBS: add bed exclude area
+void Plater::priv::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_areas, const double max_print_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom)
 {
     bool new_shape = bed.set_shape(shape, max_print_height, custom_texture, custom_model, force_as_custom);
     if (new_shape) {
@@ -4998,9 +5001,11 @@ void Plater::priv::set_bed_shape(const Pointfs& shape, const double max_print_he
         Vec3d max = bed.extended_bounding_box().max;
         Vec3d min = bed.extended_bounding_box().min;
         double z = config->opt_float("max_print_height");
+        //Pointfs& exclude_areas = config->option<ConfigOptionPoints>("bed_exclude_area")->values;
         partplate_list.reset_size(max.x() - min.x(), max.y() - min.y(), z);
+
+        partplate_list.set_shapes(shape);
     }
-    partplate_list.set_shapes(shape);
 }
 
 bool Plater::priv::can_delete() const
@@ -6810,7 +6815,8 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             //BBS: invalid all the slice results
             p->partplate_list.invalid_all_slice_result();
         }
-        else if (opt_key == "bed_shape" || opt_key == "bed_custom_texture" || opt_key == "bed_custom_model") {
+        //BBS: add bed_exclude_area
+        else if (opt_key == "bed_shape" || opt_key == "bed_exclude_area" || opt_key == "bed_custom_texture" || opt_key == "bed_custom_model") {
             bed_shape_changed = true;
             update_scheduled = true;
         }
@@ -6854,14 +6860,17 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 void Plater::set_bed_shape() const
 {
     set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values,
+        //BBS: add bed exclude areas
+        p->config->option<ConfigOptionPoints>("bed_exclude_area")->values,
         p->config->option<ConfigOptionFloat>("max_print_height")->value,
         p->config->option<ConfigOptionString>("bed_custom_texture")->value,
         p->config->option<ConfigOptionString>("bed_custom_model")->value);
 }
 
-void Plater::set_bed_shape(const Pointfs& shape, const double max_print_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom) const
+//BBS: add bed exclude area
+void Plater::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_area, const double max_print_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom) const
 {
-    p->set_bed_shape(shape, max_print_height, custom_texture, custom_model, force_as_custom);
+    p->set_bed_shape(shape, exclude_area, max_print_height, custom_texture, custom_model, force_as_custom);
 }
 
 void Plater::force_filament_colors_update()

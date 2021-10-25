@@ -485,8 +485,13 @@ template<class Bin> void remove_large_items(std::vector<Item> &items, Bin &&bin)
 {
     auto it = items.begin();
     while (it != items.end())
+    {
+        //BBS: add logic for virtual object
+        if (it->is_virt_object)
+            ++it;
         sl::isInside(it->transformedShape(), bin) ?
             ++it : it = items.erase(it);
+    }
 }
 
 template<class S> Radians min_area_boundingbox_rotation(const S &sh)
@@ -618,6 +623,8 @@ static void process_arrangeable(const ArrangePolygon &arrpoly,
     outp.back().extrude_id = arrpoly.extrude_id;
     outp.back().height = arrpoly.height;
     outp.back().name = arrpoly.name;
+    //BBS: add virtual object logic
+    outp.back().is_virt_object = arrpoly.is_virt_object;
 }
 
 template<class Fn> auto call_with_bed(const Points &bed, Fn &&fn)

@@ -121,6 +121,21 @@ void PartPlate::calc_bounding_boxes() const {
 	m_grabber_box.max = Vec3d(center.x() + half_x, center.y() + half_y, center.z() + half_z);
 	m_grabber_box.defined = true;
 	extended_bounding_box->merge(m_grabber_box);
+
+    //calc exclude area bounding box
+    m_exclude_bounding_box.clear();
+    BoundingBoxf3 exclude_bb;
+    for (int index = 0; index < m_exclude_area.size(); index ++) {
+        const Vec2d& p = m_exclude_area[index];
+
+        if (index % 4 == 0)
+            exclude_bb = BoundingBoxf3();
+
+        exclude_bb.merge({ p(0), p(1), 0.0 });
+
+        if (index % 4 == 3)
+            m_exclude_bounding_box.emplace_back(exclude_bb);
+	}
 }
 
 void PartPlate::calc_triangles(const ExPolygon& poly) {
@@ -878,9 +893,9 @@ void PartPlate::move_instances_to(PartPlate& left_plate, PartPlate& right_plate)
 	return;
 }
 
-bool PartPlate::set_shape(const Pointfs& shape, Vec2d position)
+bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Vec2d position)
 {
-	if (m_shape == shape) {
+	if ((m_shape == shape)&&(m_exclude_area == exclude_areas)) {
 		BOOST_LOG_TRIVIAL(trace) << "PartPlate same shape";
 		return false;
 	}
@@ -888,6 +903,11 @@ bool PartPlate::set_shape(const Pointfs& shape, Vec2d position)
 	m_shape.clear();
 	for (const Vec2d& p : shape) {
 		m_shape.push_back(Vec2d(p.x() + position.x(), p.y() + position.y()));
+	}
+
+    m_exclude_area.clear();
+	for (const Vec2d& p : exclude_areas) {
+		m_exclude_area.push_back(Vec2d(p.x() + position.x(), p.y() + position.y()));
 	}
 
 	calc_bounding_boxes();
@@ -1299,7 +1319,7 @@ int PartPlateList::create_plate()
 	}
 
 	Vec2d pos = compute_shape_position(new_index, cols);
-	plate->set_shape(m_shape, pos);
+	plate->set_shape(m_shape, m_exclude_areas, pos);
 	plate->set_index(new_index);
 	m_plate_list.emplace_back(plate);
 	update_plate_cols();
@@ -1307,7 +1327,7 @@ int PartPlateList::create_plate()
 	{
 		//update the origin of each plate
 		update_all_plates_pos_and_size(false);
-		set_shapes(m_shape);
+		set_shapes(m_shape, m_exclude_areas);
 	}
 	else
 	{
@@ -1417,7 +1437,7 @@ int PartPlateList::delete_plate(int index)
 
 		//update render shapes
 		Vec2d pos = compute_shape_position(i, m_plate_cols);
-		plate->set_shape(m_shape, pos);
+		plate->set_shape(m_shape, m_exclude_areas, pos);
 	}
 
 	//update current_plate if delete current
@@ -1434,7 +1454,7 @@ int PartPlateList::delete_plate(int index)
 	{
 		//update the origin of each plate
 		update_all_plates_pos_and_size();
-		set_shapes(m_shape);
+		set_shapes(m_shape, m_exclude_areas);
 	}
 	else
 	{
@@ -1987,6 +2007,41 @@ bool PartPlateList::preprocess_arrange_polygon_other_locked(int obj_index, int i
 	return locked;
 }
 
+bool PartPlateList::preprocess_exclude_areas(arrangement::ArrangePolygons& unselected)
+{
+	bool added = false;
+
+	if (m_exclude_areas.size() > 0)
+	{
+		//has exclude areas
+		PartPlate *plate = m_plate_list[0];
+
+		for (int index = 0; index < plate->m_exclude_bounding_box.size(); index ++)
+		{
+			Polygon ap({
+				{scaled(plate->m_exclude_bounding_box[index].min.x()), scaled(plate->m_exclude_bounding_box[index].min.y())},
+				{scaled(plate->m_exclude_bounding_box[index].max.x()), scaled(plate->m_exclude_bounding_box[index].min.y())},
+				{scaled(plate->m_exclude_bounding_box[index].max.x()), scaled(plate->m_exclude_bounding_box[index].max.y())},
+				{scaled(plate->m_exclude_bounding_box[index].min.x()), scaled(plate->m_exclude_bounding_box[index].max.y())}
+				});
+
+			arrangement::ArrangePolygon ret;
+			ret.poly.contour = std::move(ap);
+			ret.translation  = Vec2crd(0, 0);
+			ret.rotation     = 0.0f;
+			ret.is_virt_object = true;
+			ret.bed_idx      = 0;
+			ret.height      = 1;
+
+			unselected.emplace_back(std::move(ret));
+            added = true;
+		}
+	}
+
+	return added;
+}
+
+
 //postprocess an arrangement::ArrangePolygon's bed index
 void PartPlateList::postprocess_bed_index_for_selected(arrangement::ArrangePolygon& arrange_polygon)
 {
@@ -2201,10 +2256,11 @@ void PartPlateList::select_plate_view()
 	m_plater->get_camera().select_view("topfront");
 }
 
-bool PartPlateList::set_shapes(const Pointfs& shape)
+bool PartPlateList::set_shapes(const Pointfs& shape, const Pointfs& exclude_areas)
 {
 	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
 	m_shape = shape;
+    m_exclude_areas = exclude_areas;
 
 	double stride_x = plate_stride_x();
 	double stride_y = plate_stride_y();
@@ -2216,7 +2272,7 @@ bool PartPlateList::set_shapes(const Pointfs& shape)
 		Vec2d pos;
 
 		pos = compute_shape_position(i, m_plate_cols);
-		plate->set_shape(shape, pos);
+		plate->set_shape(shape, exclude_areas, pos);
 	}
 
 	calc_bounding_boxes();
@@ -2293,7 +2349,7 @@ int PartPlateList::rebuild_plates_after_deserialize()
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plates count %1%") % m_plate_list.size();
 	update_plate_cols();
-	set_shapes(m_shape);
+	set_shapes(m_shape, m_exclude_areas);
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
 		m_plate_list[i]->m_plater = this->m_plater;

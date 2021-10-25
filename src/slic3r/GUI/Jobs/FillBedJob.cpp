@@ -116,6 +116,9 @@ void FillBedJob::prepare()
 
     if (m_selected.empty()) return;
 
+    //add the virtual object into unselect list if has
+    plate_list.preprocess_exclude_areas(m_unselected);
+
     m_bedpts = get_bed_shape(*m_plater->config());
 
     auto &objects = m_plater->model().objects;
