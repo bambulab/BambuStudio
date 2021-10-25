@@ -156,8 +156,6 @@ private:
 
 protected:
 	wxPanel* m_panel_left;
-		wxStaticText* m_staticText_machine_title;
-		wxChoice* m_choice_machine;
 		wxStaticText* m_staticText_status;
 		wxStaticText* m_staticText_machine_status;
 		wxStaticText* m_staticText_machine_name;
@@ -192,10 +190,12 @@ protected:
 		wxNotebook* m_notebook;
 		wxPanel* m_panel_monitor;
 		wxPanel* m_panel_live;
+		wxStaticBitmap* m_bitmap_live_default;
 		wxStaticText* m_staticText_caption;
 		wxButton* m_button_pause_resume;
 		wxButton* m_button_abort;
 		wxPanel* m_panel_timelapse;
+		wxStaticLine* m_staticline6;
 		wxStaticText* m_staticText_ctrl_caption;
 		wxBitmapButton* m_bpButton_y_up;
 		wxBitmapButton* m_bpButton_y_down;
@@ -251,6 +251,8 @@ protected:
 	wxBitmap m_ctrl_left;
 	wxBitmap m_ctrl_right;
 	wxBitmap m_ctrl_home;
+	wxBitmap m_bed_img;
+	wxBitmap m_nozzle_img;
 	double m_ctrl_unit;
 
 	wxString	 request_url;
