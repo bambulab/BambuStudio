@@ -272,8 +272,6 @@ class ObjectDataViewModel :public wxDataViewModel
     wxBitmap                                    m_warning_manifold_bmp;
 
     wxDataViewCtrl*                             m_ctrl { nullptr };
-    int                                         m_selected_plate_id;
-
 public:
     ObjectDataViewModel();
     ~ObjectDataViewModel();
@@ -384,10 +382,6 @@ public:
     bool    IsPrintable(const wxDataViewItem &item) const;
     void    UpdateObjectPrintable(wxDataViewItem parent_item);
     void    UpdateInstancesPrintable(wxDataViewItem parent_item);
-
-    //BBS: add part plate related logic
-    void    UpdateEnableByPlate(int plate_idx);
-
     void    SetVolumeType(const wxDataViewItem &item, const Slic3r::ModelVolumeType type);
     ModelVolumeType GetVolumeType(const wxDataViewItem &item);
     wxDataViewItem SetPrintableState( PrintIndicator printable, int obj_idx,

@@ -222,7 +222,6 @@ public:
     void                update_extruder_values_for_items(const size_t max_extruder);
 
     //BBS: update plate
-    void                update_by_plate(int plate_id);
     void                update_plate_values_for_items();
 
     // Get obj_idx and vol_idx values for the selected (by default) or an adjusted item
@@ -415,7 +414,6 @@ private:
     void OnDropPossible(wxDataViewEvent &event);
     void OnDrop(wxDataViewEvent &event);
     bool can_drop(const wxDataViewItem& item) const ;
-    void on_select_plate(IntEvent& evt);
 
     void ItemValueChanged(wxDataViewEvent &event);
 #ifdef __WXMSW__

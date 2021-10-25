@@ -582,12 +582,6 @@ void ObjectList::update_extruder_values_for_items(const size_t max_extruder)
     }
 }
 
-void ObjectList::update_by_plate(int plate_idx)
-{
-    //wxPostEvent(this, IntEvent(EVT_PARTPLATE_LIST_PLATE_SELECT, plate_idx));
-    m_objects_model->UpdateEnableByPlate(plate_idx);
-}
-
 void ObjectList::update_plate_values_for_items()
 {
     PartPlateList& list = wxGetApp().plater()->get_partplate_list();
@@ -605,11 +599,6 @@ void ObjectList::update_plate_values_for_items()
             m_objects_model->SetPlateIdx(plate_idx, item);
         }
     }
-}
-
-void ObjectList::on_select_plate(IntEvent& evt)
-{
-    m_objects_model->UpdateEnableByPlate(evt.get_data());
 }
 
 // BBS

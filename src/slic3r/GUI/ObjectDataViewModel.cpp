@@ -342,9 +342,6 @@ ObjectDataViewModel::ObjectDataViewModel()
 {
     m_bitmap_cache = new Slic3r::GUI::BitmapCache;
 
-    //BBS: add part plate related logic
-    m_selected_plate_id = -1;
-
     m_volume_bmps = MenuFactory::get_volume_bitmaps();
     m_warning_bmp = create_scaled_bitmap(WarningIcon);
     m_warning_manifold_bmp = create_scaled_bitmap(WarningManifoldIcon);
@@ -603,14 +600,6 @@ void ObjectDataViewModel::UpdateInstancesPrintable(wxDataViewItem parent_item)
         // and set printable state for object_node to piUndef
         inst_node->set_printable_icon(obj_pi);
         ItemChanged(wxDataViewItem((void*)inst_node));
-    }
-}
-
-void ObjectDataViewModel::UpdateEnableByPlate(int plate_idx)
-{
-    m_selected_plate_id = plate_idx;
-    for (int i = 0; i < m_objects.size(); i++) {
-        ItemChanged(GetItemById(i));
     }
 }
 
@@ -1469,14 +1458,6 @@ bool ObjectDataViewModel::IsEnabled(const wxDataViewItem &item, unsigned int col
 
     // disable extruder selection for the non "itObject|itVolume" item
     ret = !(col == colExtruder && node->m_extruder.IsEmpty());
-
-    if (m_selected_plate_id < 0) {
-        return ret;
-    }
-    if (node->GetType() == ItemType::itInstance || node->GetType() == ItemType::itObject) {
-        ret &= (node->GetPlateIdx() == m_selected_plate_id);
-    }
-
     return ret;
 }
 
