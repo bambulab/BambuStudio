@@ -437,9 +437,18 @@ void DebugToolDialog::init_connection_widgets()
                 return;
             }
 
-            if (obj->command_unbind() < 0) {
-                send_log_evt("Please login or connect first!");
-            }
+            obj->request_unbind(
+            [this, obj](int result, std::string body) {
+                if (result == 0) {
+                    std::string log = "Unbind device=" + obj->dev_id + " ok!";
+                    send_log_evt(log);
+                    this->refresh_device_list();
+                }
+                else {
+                    std::string log = "Unbind device=" + obj->dev_id + " failed!";
+                    send_log_evt(log);
+                }
+            });
         });
 
     auto btn_bind = new wxButton(this, wxID_ANY, _L("Bind"), wxDefaultPosition, wxDefaultSize);
@@ -447,6 +456,11 @@ void DebugToolDialog::init_connection_widgets()
         MachineObject* obj = dev_manager_.get_default();
         if (!obj) {
             this->send_log_evt("Invalid Printer! Please Select a Printer!");
+            return;
+        }
+
+        if (!obj->mqtt_cli || !obj->mqtt_cli->is_connected()) {
+            send_log_evt("Please login or connect first!");
             return;
         }
 
