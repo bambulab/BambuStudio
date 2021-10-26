@@ -243,6 +243,7 @@ protected:
 		wxButton* m_button_xyz_abs;
 
 	std::shared_ptr<ImageTransientPopup> m_plate_thumbnail;
+
     wxTimer* m_refresh_timer;
     bool is_pausing;
 	wxBitmap m_ctrl_up;
@@ -256,13 +257,11 @@ protected:
 #if defined(__WINDOWS__) || defined(__APPLE__)
 	wxWebRequest web_request;
 #endif
-	
 
 	std::map<wxString, wxBitmap> img_list;	// key: url, value: wxBitmap png Image
 
     void on_select(wxCommandEvent& event);
     void on_subtask_update(BBLSubTask* curr_subtask, bool update_all = true);
-    void on_machine_list_changed();
 
     void on_subtask_start(wxCommandEvent& event);
     void on_subtask_pause_resume(wxCommandEvent& event);

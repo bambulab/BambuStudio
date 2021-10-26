@@ -18,10 +18,14 @@
 #include <wx/hyperlink.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
+#include <wx/popupwin.h>
+#include <wx/spinctrl.h>
+#include <wx/artprov.h>
 
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
 #include "DeviceManager.hpp"
+
 
 namespace Slic3r { 
 namespace GUI {
@@ -67,6 +71,77 @@ private:
     wxArrayString    m_snColValues;
     wxArrayString    m_bindColValues;
     wxArrayString    m_connectionColValues;
+};
+
+
+class MachineObjectPanel : public wxPanel
+{
+	private:
+        wxColour m_bg_colour;
+        wxColour m_hover_colour;
+
+        MachineObject* obj_;
+        wxBitmap ams_placeholder_img;
+        wxBitmap printing_img;
+        wxBitmap owner_img;
+        void init_bitmap();
+
+	protected:
+		wxStaticBitmap* m_bitmap_type;
+		wxStaticText* m_staticText_printer;
+		wxStaticBitmap* m_bitmap_info;
+		wxStaticText* m_staticText_printing;
+		wxStaticBitmap* m_bitmap_bind;
+		wxStaticText* m_staticText_bind_info;
+		wxStaticBitmap* m_bitmap_ams;
+
+	public:
+		MachineObjectPanel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 240,100 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
+
+		~MachineObjectPanel();
+
+        void update_machine_info(MachineObject* obj);
+        void on_mouse_enter(wxMouseEvent& evt);
+        void on_mouse_leave(wxMouseEvent& evt);
+        void on_mouse_left_up(wxMouseEvent& evt);
+};
+
+class SelectMachinePopup : public wxPopupTransientWindow
+{
+public:
+    SelectMachinePopup(wxWindow* parent, bool scrolled);
+    ~SelectMachinePopup() {}
+
+    // wxPopupTransientWindow virtual methods are all overridden to log them
+    virtual void Popup(wxWindow *focus = NULL) wxOVERRIDE;
+    virtual void OnDismiss() wxOVERRIDE;
+    virtual bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;
+    virtual bool Show( bool show = true ) wxOVERRIDE;
+
+    void update_machine_list(std::vector<MachineObject*> obj_list);
+
+private:
+    const int POPUP_WIDTH   = 211;
+    const int POPUP_HEIGHT  = 326;
+    wxColour m_bg_colour;
+    wxColour m_hover_colour;
+
+    wxScrolledWindow*    m_panel;
+    wxBoxSizer*          topSizer;
+    wxStaticText*        m_staticText_select;
+    std::vector<MachineObjectPanel*> obj_panels;
+    std::vector<MachineObject*>     m_obj_list;
+
+private:
+    void OnMouse( wxMouseEvent &event );
+    void OnSize( wxSizeEvent &event );
+    void OnSetFocus( wxFocusEvent &event );
+    void OnKillFocus( wxFocusEvent &event );
+    void OnButton(wxCommandEvent& event);
+
+private:
+    wxDECLARE_ABSTRACT_CLASS(SelectMachinePopup);
+    wxDECLARE_EVENT_TABLE();
 };
 
 

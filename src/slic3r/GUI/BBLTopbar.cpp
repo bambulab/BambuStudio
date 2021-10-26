@@ -8,6 +8,8 @@
 #include "Plater.hpp"
 #include "MainFrame.hpp"
 
+using namespace Slic3r;
+
 enum CUSTOM_ID
 {
     ID_TOP_MENU_TOOL = 3100,
@@ -153,7 +155,19 @@ void BBLTopbar::OnAccountClicked(wxCommandEvent& event)
 
 void BBLTopbar::OnPrinterClicked(wxCommandEvent& event)
 {
-    m_debug_tool->Show();
+    m_select_machine = std::make_shared<SelectMachinePopup>(this, true);
+    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    std::vector<MachineObject*> show_list;
+    for (std::map<std::string, MachineObject*>::iterator it = account_manager->myBindMachineList.begin();
+        it != account_manager->myBindMachineList.end(); it++) {
+        show_list.push_back(it->second);
+    }
+    m_select_machine->update_machine_list(show_list);
+    wxWindow* ctrl = (wxWindow*)event.GetEventObject();
+    wxPoint pos = ctrl->ClientToScreen(wxPoint(0, 0));
+    wxSize sz = ctrl->GetSize();
+    m_select_machine->Position(pos, sz);
+    m_select_machine->Popup();
 }
 
 void BBLTopbar::SetFileMenu(wxMenu* file_menu)

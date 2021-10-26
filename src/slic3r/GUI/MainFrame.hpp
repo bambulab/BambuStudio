@@ -227,7 +227,7 @@ public:
     void        load_configbundle(wxString file = wxEmptyString);
     void        load_config(const DynamicPrintConfig& config);
     //BBS: jump to monitor
-    void        jump_to_monitor();
+    void        jump_to_monitor(std::string dev_id = "");
     // Select tab in m_tabpanel
     // When tab == -1, will be selected last selected tab
     //BBS: GUI refactor
@@ -252,6 +252,7 @@ public:
     Plater*               m_plater { nullptr };
     //BBS: GUI refactor
     wxPanel*              m_monitor{ nullptr };
+    DebugToolDialog*      m_debug_tool_dlg;
     // BBS
     //wxBookCtrlBase*       m_tabpanel { nullptr };
     Notebook*             m_tabpanel{ nullptr };

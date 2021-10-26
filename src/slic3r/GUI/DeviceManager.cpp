@@ -1040,24 +1040,24 @@ void MachineObject::set_connect_state(CONNECTION_STATE state)
 std::string MachineObject::get_bind_str()
 {
     if (dev_bind_status == MACHINE_BIND_FREE) {
-        return "free";
+        return "Free";
     }
     else if (dev_bind_status == MACHINE_BIND_SELF) {
-        return "self";
+        return "Self";
     }
     else if (dev_bind_status == MACHINE_BIND_OHTER) {
         if (!owner.empty()) {
             return owner;
         }
         else {
-            return "other";
+            return "Other";
         }
     }
     else if (dev_bind_status == MACHINE_BIND_UNKOWN) {
-        return "unknown";
+        return "N/A";
     }
     else {
-        return "unknown";
+        return "N/A";
     }
 }
 

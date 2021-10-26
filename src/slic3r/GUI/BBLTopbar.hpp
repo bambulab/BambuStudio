@@ -4,6 +4,8 @@
 #include "wx/aui/auibar.h"
 
 #include "DebugToolDialog.hpp"
+#include "SelectMachine.hpp"
+#include "DeviceManager.hpp"
 
 using namespace Slic3r::GUI;
 
@@ -45,4 +47,5 @@ private:
     int m_toolbar_h;
     bool m_skip_popup_file_menu;
     DebugToolDialog *m_debug_tool;
+    std::shared_ptr<SelectMachinePopup> m_select_machine;
 };

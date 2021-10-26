@@ -343,21 +343,6 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
 	wxBoxSizer* bSizer_left;
 	bSizer_left = new wxBoxSizer( wxVERTICAL );
 	
-	wxBoxSizer* bSizer_select_printer;
-	bSizer_select_printer = new wxBoxSizer( wxHORIZONTAL );
-	
-	m_staticText_machine_title = new wxStaticText( m_panel_left, wxID_ANY, wxT("Printer"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
-	m_staticText_machine_title->Wrap( -1 );
-	bSizer_select_printer->Add( m_staticText_machine_title, 0, wxALIGN_CENTER|wxALL, 5 );
-	
-	wxArrayString m_choice_machineChoices;
-	m_choice_machine = new wxChoice( m_panel_left, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_choice_machineChoices, 0 );
-	m_choice_machine->SetSelection( 0 );
-	bSizer_select_printer->Add( m_choice_machine, 1, wxALL|wxEXPAND, 5 );
-	
-	
-	bSizer_left->Add( bSizer_select_printer, 0, wxEXPAND, 5 );
-	
 	wxBoxSizer* bSizer_status;
 	bSizer_status = new wxBoxSizer( wxVERTICAL );
 	
@@ -978,7 +963,6 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
 
     // Connect Events
 
-    m_choice_machine->Connect(wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler(MonitorPanel::on_select), NULL, this);
     m_button_pause_resume->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_subtask_pause_resume), NULL, this);
     m_button_abort->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_subtask_abort), NULL, this);
     m_bpButton_y_up->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_axis_ctrl_y_up), NULL, this);
@@ -1016,7 +1000,6 @@ void MonitorPanel::on_size(wxSizeEvent& event)
 MonitorPanel::~MonitorPanel()
 {
     // Disconnect Events
-    m_choice_machine->Disconnect(wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler(MonitorPanel::on_select), NULL, this);
     m_button_pause_resume->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_subtask_pause_resume), NULL, this);
     m_button_abort->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_subtask_abort), NULL, this);
     m_bpButton_y_up->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_axis_ctrl_y_up), NULL, this);
@@ -1145,7 +1128,6 @@ void MonitorPanel::init_bind()
 #if defined(__WINDOWS__) || defined(__APPLE__)
     Bind(wxEVT_WEBREQUEST_STATE, &MonitorPanel::on_webrequest_state, this);
 #endif
-    
 
     m_staticText_subtask_value->Bind(wxEVT_ENTER_WINDOW,
         [this](wxMouseEvent& evt) {
@@ -1222,39 +1204,6 @@ void MonitorPanel::on_webrequest_state(wxWebRequestEvent& evt)
 }
 #endif
 
-void MonitorPanel::on_machine_list_changed()
-{
-    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-
-    /* update list */
-    int select = -1;
-    std::string last_my_bind_dev_id;
-    if (last_wlan_device_selection < mybind_machine_list_items.size()) {
-        last_my_bind_dev_id = mybind_machine_list_items[last_wlan_device_selection];
-    }
-
-    std::map<std::string, MachineObject*> list = account_manager->myBindMachineList;
-    std::map<std::string, MachineObject*>::iterator iter;
-    mybind_machine_list_items.clear();
-    wxArrayString new_items;
-    for (iter = list.begin(); iter != list.end(); iter++) {
-        if (iter->second->is_online) {
-            wxString text = wxString::Format("%s", iter->second->dev_name);
-            if (!last_my_bind_dev_id.empty() && iter->second->dev_id.compare(last_my_bind_dev_id) == 0) {
-                select = new_items.size();
-            }
-            mybind_machine_list_items.push_back(iter->second->dev_id);
-            new_items.Add(text);
-        }
-    }
-
-    m_choice_machine->Set(new_items);
-    if (select >= 0) {
-        m_choice_machine->Select(select);
-        last_wlan_device_selection = select;
-    }
-}
-
 bool MonitorPanel::Show(bool show)
 {
     Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
@@ -1314,8 +1263,6 @@ void MonitorPanel::update_status(MachineObject* obj)
 
 void MonitorPanel::on_timer(wxTimerEvent& event)
 {
-    on_machine_list_changed();
-
     update_all();
 
     Layout();
@@ -1339,39 +1286,20 @@ void MonitorPanel::update_all()
 
 void MonitorPanel::on_select(wxCommandEvent& event)
 {
-    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-    //machine_list_items
-    int selection = event.GetSelection();
-    if (selection < mybind_machine_list_items.size()) {
-        account_manager->default_machine = mybind_machine_list_items[selection];
-        m_choice_machine->SetSelection(selection);
+    subtask_model->clear_data();
+    tray_model->clear_data();
 
-        if (last_wlan_device_selection != selection) {
-            subtask_model->clear_data();
-            tray_model->clear_data();
+    update_all();
 
-            update_all();
-
-            Layout();
-            Refresh();
-        }
-        /* update widget values */
-        last_wlan_device_selection = selection;
-    }
+    Layout();
+    Refresh();
 }
 
 void MonitorPanel::select_machine(std::string machine_sn)
 {
-    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-    machine_sn = account_manager->get_default_machine()->dev_id;
-    for (int i = 0; i < mybind_machine_list_items.size(); i++) {
-        if (mybind_machine_list_items[i].compare(machine_sn) == 0) {
-            wxCommandEvent* event = new wxCommandEvent(wxEVT_CHOICE);
-            event->SetInt(i);
-            wxQueueEvent(this, event);
-            return;
-        }
-    }
+    wxCommandEvent* event = new wxCommandEvent(wxEVT_COMMAND_CHOICE_SELECTED);
+    event->SetString(machine_sn);
+    wxQueueEvent(this, event);
 }
 
 void MonitorPanel::on_subtask_update(BBLSubTask* curr_subtask, bool update_all)

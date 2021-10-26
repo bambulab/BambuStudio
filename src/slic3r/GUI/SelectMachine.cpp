@@ -140,6 +140,315 @@ bool MachineListModel::SetValueByRow(const wxVariant& variant,
 }
 
 
+MachineObjectPanel::MachineObjectPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name ) : wxPanel( parent, id, pos, size, style, name )
+{
+    m_bg_colour = wxColour(43, 52, 54);
+    m_hover_colour = wxColour(61, 70, 72);
+
+    init_bitmap();
+
+	wxBoxSizer* bSizer_top;
+	bSizer_top = new wxBoxSizer( wxHORIZONTAL );
+
+	m_bitmap_type = new wxStaticBitmap( this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize( 27,27 ), 0 );
+	bSizer_top->Add( m_bitmap_type, 0, wxALL, 5 );
+
+	wxBoxSizer* bSizer_middle;
+	bSizer_middle = new wxBoxSizer( wxVERTICAL );
+
+	m_staticText_printer = new wxStaticText( this, wxID_ANY, wxT("BBL_Printer"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_printer->Wrap( -1 );
+	bSizer_middle->Add( m_staticText_printer, 0, wxALL|wxEXPAND, 5 );
+
+	wxBoxSizer* bSizer_bottom;
+	bSizer_bottom = new wxBoxSizer( wxHORIZONTAL );
+
+	bSizer_bottom->SetMinSize( wxSize( 60,-1 ) );
+	wxBoxSizer* bSizer_info;
+	bSizer_info = new wxBoxSizer( wxVERTICAL );
+
+	wxBoxSizer* bSizer_printing_info;
+	bSizer_printing_info = new wxBoxSizer( wxHORIZONTAL );
+
+	m_bitmap_info = new wxStaticBitmap( this, wxID_ANY, printing_img, wxDefaultPosition, wxSize( 8,8 ), 0 );
+	bSizer_printing_info->Add( m_bitmap_info, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	m_staticText_printing = new wxStaticText( this, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_printing->Wrap( -1 );
+	bSizer_printing_info->Add( m_staticText_printing, 1, wxALIGN_CENTER|wxALL|wxEXPAND, 5 );
+
+
+	bSizer_info->Add( bSizer_printing_info, 1, wxEXPAND, 5 );
+
+	wxBoxSizer* bSizer_bind_info;
+	bSizer_bind_info = new wxBoxSizer( wxHORIZONTAL );
+
+	m_bitmap_bind = new wxStaticBitmap( this, wxID_ANY, owner_img, wxDefaultPosition, wxSize( 8,8 ), 0 );
+	bSizer_bind_info->Add( m_bitmap_bind, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	m_staticText_bind_info = new wxStaticText( this, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_bind_info->Wrap( -1 );
+	bSizer_bind_info->Add( m_staticText_bind_info, 1, wxALIGN_CENTER|wxALL|wxEXPAND, 5 );
+
+
+	bSizer_info->Add( bSizer_bind_info, 1, wxEXPAND, 5 );
+
+
+	bSizer_bottom->Add( bSizer_info, 1, wxEXPAND, 5 );
+
+	wxBoxSizer* bSizer_ams;
+	bSizer_ams = new wxBoxSizer( wxVERTICAL );
+
+	m_bitmap_ams = new wxStaticBitmap( this, wxID_ANY, ams_placeholder_img, wxDefaultPosition, wxSize( 32,32 ), 0 );
+	m_bitmap_ams->SetMinSize( wxSize( 32,32 ) );
+
+	bSizer_ams->Add( m_bitmap_ams, 0, wxALIGN_CENTER|wxALL, 5 );
+
+
+	bSizer_bottom->Add( bSizer_ams, 0, wxALL, 5 );
+
+
+	bSizer_middle->Add( bSizer_bottom, 0, wxALL|wxEXPAND, 0 );
+
+
+	bSizer_top->Add( bSizer_middle, 1, wxEXPAND, 5 );
+
+
+	this->SetSizer( bSizer_top );
+	this->Layout();
+
+    m_staticText_printer->Bind(wxEVT_ENTER_WINDOW,  &MachineObjectPanel::on_mouse_enter, this);
+    m_bitmap_type->Bind(wxEVT_ENTER_WINDOW,         &MachineObjectPanel::on_mouse_enter, this);
+    m_bitmap_info->Bind(wxEVT_ENTER_WINDOW,         &MachineObjectPanel::on_mouse_enter, this);
+    m_bitmap_bind->Bind(wxEVT_ENTER_WINDOW,         &MachineObjectPanel::on_mouse_enter, this);
+    m_bitmap_ams->Bind(wxEVT_ENTER_WINDOW,         &MachineObjectPanel::on_mouse_enter, this);
+    m_staticText_printing->Bind(wxEVT_ENTER_WINDOW, &MachineObjectPanel::on_mouse_enter, this);
+	m_staticText_bind_info->Bind(wxEVT_ENTER_WINDOW,&MachineObjectPanel::on_mouse_enter, this);
+    this->Bind(wxEVT_ENTER_WINDOW,                  &MachineObjectPanel::on_mouse_enter, this);
+
+    m_staticText_printer->Bind(wxEVT_LEFT_UP,       &MachineObjectPanel::on_mouse_left_up, this);
+    m_bitmap_type->Bind(wxEVT_LEFT_UP,              &MachineObjectPanel::on_mouse_left_up, this);
+    m_bitmap_info->Bind(wxEVT_LEFT_UP,              &MachineObjectPanel::on_mouse_left_up, this);
+    m_bitmap_bind->Bind(wxEVT_LEFT_UP,              &MachineObjectPanel::on_mouse_left_up, this);
+    m_bitmap_ams->Bind(wxEVT_LEFT_UP,              &MachineObjectPanel::on_mouse_left_up, this);
+    m_staticText_printing->Bind(wxEVT_LEFT_UP,      &MachineObjectPanel::on_mouse_left_up, this);
+	m_staticText_bind_info->Bind(wxEVT_LEFT_UP,     &MachineObjectPanel::on_mouse_left_up, this);
+    this->Bind(wxEVT_LEFT_UP,                       &MachineObjectPanel::on_mouse_left_up, this);
+}
+
+void MachineObjectPanel::init_bitmap()
+{
+    ams_placeholder_img = create_scaled_bitmap("machine_object_ams", nullptr, 27);
+    printing_img = create_scaled_bitmap("machine_object_printing", nullptr, 8);
+    owner_img = create_scaled_bitmap("machine_object_owner", nullptr, 8);
+}
+
+MachineObjectPanel::~MachineObjectPanel()
+{
+}
+
+void MachineObjectPanel::update_machine_info(MachineObject* obj)
+{
+    if (!obj) return;
+
+    obj_ = obj;
+
+    wxString machine_name_text = wxString::Format("%s", obj->dev_name);
+    m_staticText_printer->SetLabelText(machine_name_text);
+
+    BBLSubTask* subtask = obj->get_subtask();
+    if (subtask) {
+        int left_progress = std::max(100 - subtask->task_progress, 0);
+        int left_second = 0;
+        if (!subtask->task_prediction.empty()) {
+            left_second = stoi(subtask->task_prediction) * left_progress / 100;
+        }
+        std::string left_str = left_second == 0 ? "N/A" : get_time_dhms(left_second);
+        wxString printing_text = wxString::Format("%s Left, %d%%", left_str, subtask->task_progress);
+        m_staticText_printing->SetLabelText(printing_text);
+    }
+
+    wxString bind_text = wxString::Format("%s", obj->get_bind_str());
+    m_staticText_bind_info->SetLabelText(bind_text);
+
+    wxBitmap machine_type_img = create_scaled_bitmap("machine_obejct_type", nullptr, 21);
+    m_bitmap_type->SetBitmap(machine_type_img);
+
+    wxBitmap machine_ams = create_scaled_bitmap("machine_object_ams", nullptr, 32);
+    m_bitmap_ams->SetBitmap(machine_ams);
+
+    this->Fit();
+    this->Layout();
+}
+
+void MachineObjectPanel::on_mouse_enter(wxMouseEvent& evt)
+{
+    this->SetBackgroundColour(m_hover_colour);
+    Refresh();
+}
+
+void MachineObjectPanel::on_mouse_leave(wxMouseEvent& evt)
+{
+    this->SetBackgroundColour(m_bg_colour);
+    Refresh();
+}
+
+void MachineObjectPanel::on_mouse_left_up(wxMouseEvent& evt)
+{
+    Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
+    c->default_machine = obj_->dev_id;
+    wxGetApp().mainframe->jump_to_monitor(obj_->dev_id);       
+}
+
+
+wxIMPLEMENT_CLASS(SelectMachinePopup,wxPopupTransientWindow);
+
+wxBEGIN_EVENT_TABLE(SelectMachinePopup,wxPopupTransientWindow)
+    EVT_MOUSE_EVENTS( SelectMachinePopup::OnMouse )
+    EVT_SIZE( SelectMachinePopup::OnSize )
+    EVT_SET_FOCUS( SelectMachinePopup::OnSetFocus )
+    EVT_KILL_FOCUS( SelectMachinePopup::OnKillFocus )
+wxEND_EVENT_TABLE()
+
+SelectMachinePopup::SelectMachinePopup( wxWindow *parent, bool scrolled)
+                     :wxPopupTransientWindow( parent,
+                                              wxBORDER_NONE |
+                                              wxPU_CONTAINS_CONTROLS )
+{
+    m_bg_colour = wxColour(43, 52, 54);
+    m_hover_colour = wxColour(61, 70, 72);
+
+    m_panel = new wxScrolledWindow( this, wxID_ANY );
+    m_panel->SetBackgroundColour(m_bg_colour);
+    topSizer = new wxBoxSizer( wxVERTICAL );
+    topSizer->SetMinSize(POPUP_WIDTH, POPUP_HEIGHT);
+
+    m_staticText_select = new wxStaticText( m_panel, wxID_ANY, wxT("Select Your Printer"), wxDefaultPosition, wxDefaultSize, 0 );
+    m_staticText_select->Wrap( -1 );
+    topSizer->Add(m_staticText_select, 0, wxALL | wxEXPAND, 5);
+
+    m_panel->Bind(wxEVT_MOTION, &SelectMachinePopup::OnMouse, this);
+
+    m_panel->SetSizer( topSizer );
+    if ( scrolled )
+    {
+        // Set the fixed size to ensure that the scrollbars are shown.
+        m_panel->SetSize(POPUP_WIDTH, POPUP_HEIGHT);
+
+        // And also actually enable them.
+        m_panel->SetScrollRate(10, 10);
+    }
+    else
+    {
+        // Use the fitting size for the panel if we don't need scrollbars.
+        topSizer->Fit(m_panel);
+    }
+
+    SetClientSize(m_panel->GetSize());
+}
+
+void SelectMachinePopup::Popup(wxWindow* WXUNUSED(focus))
+{
+    wxPopupTransientWindow::Popup();
+}
+
+void SelectMachinePopup::OnDismiss()
+{
+    wxPopupTransientWindow::OnDismiss();
+}
+
+bool SelectMachinePopup::ProcessLeftDown(wxMouseEvent& event)
+{
+    return wxPopupTransientWindow::ProcessLeftDown(event);
+}
+bool SelectMachinePopup::Show( bool show )
+{
+    return wxPopupTransientWindow::Show(show);
+}
+
+void SelectMachinePopup::update_machine_list(std::vector<MachineObject*> obj_list)
+{
+    m_obj_list = obj_list;
+    if (obj_panels.size() < obj_list.size()) {
+        int added_panels = obj_list.size() - obj_panels.size();
+        for (int i = 0; i < added_panels; i++) {
+            MachineObjectPanel* new_panel = new MachineObjectPanel(m_panel, wxID_ANY);
+            obj_panels.push_back(new_panel);
+        }
+    }
+
+    topSizer->Clear();
+    topSizer->Add(m_staticText_select, 0, wxALL | wxEXPAND, 5);
+
+    int height = 0;
+    // empty list
+    if (obj_list.empty()) {
+        ;
+    } else {
+        for (int i = 0; i < obj_list.size(); i++) {
+            MachineObjectPanel* obj_panel = obj_panels[i];
+            obj_panel->update_machine_info(obj_list[i]);
+            wxStaticLine* m_staticline = new wxStaticLine(m_panel, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxLI_HORIZONTAL);
+            m_staticline->SetBackgroundColour(wxColour(115, 115, 115));
+            topSizer->Add(m_staticline, 0, wxEXPAND | wxALL, 5);
+            topSizer->Add(obj_panel, 0, wxEXPAND | wxALL, 5);
+            height += m_staticline->GetSize().GetHeight();
+            height += obj_panel->GetSize().GetHeight();
+        }
+    }
+
+    m_panel->SetSizer(topSizer);
+    m_panel->SetSize(POPUP_WIDTH, POPUP_HEIGHT);
+    m_panel->SetScrollRate(10, 10);
+    m_panel->Layout();
+    topSizer->Fit(m_panel);
+    topSizer->Add(m_panel, 1, wxEXPAND | wxALL, 5);
+    this->Fit();
+    this->Layout();
+
+    //SetClientSize(m_panel->GetSize());
+}
+
+
+void SelectMachinePopup::OnSize(wxSizeEvent &event)
+{
+    event.Skip();
+}
+
+void SelectMachinePopup::OnSetFocus(wxFocusEvent &event)
+{
+    event.Skip();
+}
+
+void SelectMachinePopup::OnKillFocus(wxFocusEvent &event)
+{
+    event.Skip();
+}
+
+void SelectMachinePopup::OnMouse(wxMouseEvent &event)
+{
+    for (int i = 0; i < m_obj_list.size(); i++) {
+        wxRect rect(obj_panels[i]->GetRect());
+        rect.SetX(-100000);
+        rect.SetWidth(2000000);
+        wxColour colour = m_bg_colour;
+
+        if (rect.Contains(event.GetPosition())) {
+            colour = m_hover_colour;
+        }
+
+        obj_panels[i]->SetBackgroundColour(colour);
+        obj_panels[i]->Refresh();
+    }
+    event.Skip();
+}
+
+void SelectMachinePopup::OnButton(wxCommandEvent& event)
+{
+
+
+}
+
 
 SelectMachineDialog::SelectMachineDialog()
 	: DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("Select Printer"), wxDefaultPosition,

@@ -130,11 +130,13 @@ MainFrame::MainFrame() :
 DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_STYLE, "mainframe"),
     m_printhost_queue_dlg(new PrintHostQueueDialog(this))
     // BBS
+    , m_debug_tool_dlg(new DebugToolDialog(this))
     , m_topbar(new BBLTopbar(this))
     , m_recent_projects(9)
     , m_settings_dialog(this)
     , diff_dialog(this)
 {
+    
     // Fonts were created by the DPIFrame constructor for the monitor, on which the window opened.
     wxGetApp().update_fonts(this);
 
@@ -1624,6 +1626,11 @@ void MainFrame::init_menubar_as_editor()
 #endif // __APPLE__
     }
 
+    // Debug menu
+    auto debugMenu = new wxMenu();
+    append_menu_item(debugMenu, wxID_ANY, _L("Debug Tool"), _L("Display the Debug Tool"),
+        [this](wxCommandEvent&) { m_debug_tool_dlg->Show(); }, "upload_queue", nullptr, []() {return true; }, this);
+
     // Model Website
     auto modelWebSiteMenu = new wxMenu();
     append_menu_item(modelWebSiteMenu, wxID_ANY, _L("Model WebSite"), _L("Browser Models in BBL WebSite"),
@@ -1667,6 +1674,8 @@ void MainFrame::init_menubar_as_editor()
     if (viewMenu)
         m_topbar->AddDropDownSubMenu(viewMenu, _L("&View"));
     wxGetApp().add_config_menu(m_topbar->GetTopMenu());
+    if (debugMenu)
+        m_topbar->AddDropDownSubMenu(debugMenu, _L("&Debug Tool"));
     if (modelWebSiteMenu)
         m_topbar->AddDropDownSubMenu(modelWebSiteMenu, _L("&Model Store"));
     m_topbar->AddDropDownSubMenu(helpMenu, _L("&Help"));
@@ -2192,10 +2201,10 @@ void MainFrame::select_tab(wxPanel* panel)
 }
 
 //BBS
-void MainFrame::jump_to_monitor()
+void MainFrame::jump_to_monitor(std::string dev_id)
 {
     m_tabpanel->SetSelection(tpMonitor);
-    ((MonitorPanel*)m_monitor)->select_machine("");
+    ((MonitorPanel*)m_monitor)->select_machine(dev_id);
 }
 
 //BBS GUI refactor: remove unused layout new/dlg
