@@ -234,34 +234,20 @@ void DebugToolDialog::on_update_list(SimpleEvent& evt)
     std::string username = account_manager->get_user_name();
 
     std::map<std::string, MachineObject*> list = dev_manager_.get_all_machine_list();
-    std::map<std::string, MachineObject*>::iterator it;
     std::vector<MachineObject*> display_list;
-    /* add user machine */
-    it = list.begin();
-    while (it != list.end()) {
-        if (it->second->get_bind_str().compare(username) == 0) {
-            display_list.push_back(it->second);
-            it = list.erase(it);
-        }
-        else {
-            it++;
-        }
-    }
 
-    it = list.begin();
-    while (it != list.end()) {
-        if (it->second->dev_bind_status == MachineObject::MachineBindStatus::MACHINE_BIND_FREE) {
-            display_list.push_back(it->second);
-            it = list.erase(it);
-        }
-        else {
-            it++;
-        }
-    }
-
-    for (it = list.begin(); it != list.end(); it++) {
-        display_list.push_back(it->second);
-    }
+    // coconut: sort the device list by: 1) own device first, then free, then others; 2) small dev_id (MAC address) (or may be dev_ip?)
+    std::transform(list.begin(), list.end(), std::back_inserter(display_list), [](auto& a) {return a.second; });
+    username = username.substr(0, username.find_first_of("@"));
+    std::sort(display_list.begin(), display_list.end(), [&](auto a, auto b)
+        {
+            auto priority = [&](auto a, auto b) {
+                return (a->get_bind_str().compare(username) == 0) * 100
+                    + (a->dev_bind_status == MachineObject::MachineBindStatus::MACHINE_BIND_FREE) * 10
+                    + (a->dev_id < b->dev_id) * 1;
+            };
+            return priority(a, b) > priority(b, a);
+        });
 
     std::vector<MachineObject*>::iterator iter;
     machine_list_items.clear();
@@ -1755,7 +1741,7 @@ void DebugToolDialog::refresh_device_list()
 
 wxString DebugToolDialog::get_machine_display_item(MachineObject* obj)
 {
-    return wxString::Format("%s(%s)[bind:%s]", obj->dev_ip, obj->dev_id, obj->get_bind_str());
+    return wxString::Format("%-16s(%s)[bind:%s]", obj->dev_ip, obj->dev_id, obj->get_bind_str());
 }
 
 void DebugToolDialog::refresh_firmware_list(bool show_error)
