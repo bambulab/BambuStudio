@@ -1268,8 +1268,9 @@ void MainFrame::init_menubar_as_editor()
         append_menu_item(export_menu, wxID_ANY, _L("Export Config &Bundle") + dots, _L("Export all presets to file"),
             [this](wxCommandEvent&) { export_configbundle(); }, "export_config_bundle", nullptr,
             []() {return true; }, this);
-        append_menu_item(export_menu, wxID_ANY, _L("Export Config Bundle With Physical Printers") + dots, _L("Export all presets including physical printers to file"),
-            [this](wxCommandEvent&) { export_configbundle(true); }, "export_config_bundle", nullptr,
+        //BBS: add a menu to dump bbl system configs
+        append_menu_item(export_menu, wxID_ANY, _L("Export All System configs") + dots, _L("Export All the System configs as seperate files into a directory"),
+            [this](wxCommandEvent&) { export_system_configs(); }, "export_config_bundle", nullptr,
             []() {return true; }, this);
         //BBS: add a menu to dump bbl default config bundle
         append_menu_item(export_menu, wxID_ANY, _L("Export BBL Config Bundle reference file") + dots, _L("Export current selected BBL presets to file"),
@@ -1885,6 +1886,25 @@ void MainFrame::export_current_configbundle()
     }
 }
 
+//BBS: export all the system preset configs to seperate files
+void MainFrame::export_system_configs()
+{
+    // Ask user for a file name.
+    wxDirDialog dlg(this, _L("choose directory for export"),
+        !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(), wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+    wxString path;
+    if (dlg.ShowModal() == wxID_OK)
+        path = dlg.GetPath();
+    if (!path.IsEmpty()) {
+        // Export the config bundle.
+        wxGetApp().app_config->update_config_dir(path.ToStdString());
+        try {
+            wxGetApp().preset_bundle->export_system_configs(path.ToUTF8().data());
+        } catch (const std::exception &ex) {
+            show_error(this, ex.what());
+        }
+    }
+}
 
 void MainFrame::export_configbundle(bool export_physical_printers /*= false*/)
 {

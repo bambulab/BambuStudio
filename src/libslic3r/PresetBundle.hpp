@@ -119,6 +119,8 @@ public:
     void                        export_configbundle(const std::string &path, bool export_system_settings = false, bool export_physical_printers = false);
     //BBS: add a function to export current configbundle as default
     void export_current_configbundle(const std::string &path);
+    //BBS: add a function to export system presets for cloud-slicer
+    void export_system_configs(const std::string &path);
 
     // Enable / disable the "- default -" preset.
     void                        set_default_suppressed(bool default_suppressed);

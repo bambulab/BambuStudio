@@ -1080,7 +1080,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_settings_id", coStrings);
     def->set_default_value(new ConfigOptionStrings { "" });
-    def->cli = ConfigOptionDef::nocli;
+    //BBS: open this option to command line
+    //def->cli = ConfigOptionDef::nocli;
 
     def = this->add("filament_vendor", coString);
     def->set_default_value(new ConfigOptionString(L("(Unknown)")));
@@ -2064,11 +2065,13 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("print_settings_id", coString);
     def->set_default_value(new ConfigOptionString(""));
-    def->cli = ConfigOptionDef::nocli;
+    //BBS: open this option to command line
+    //def->cli = ConfigOptionDef::nocli;
 
     def = this->add("printer_settings_id", coString);
     def->set_default_value(new ConfigOptionString(""));
-    def->cli = ConfigOptionDef::nocli;
+    //BBS: open this option to command line
+    //def->cli = ConfigOptionDef::nocli;
 
     def = this->add("physical_printer_settings_id", coString);
     def->set_default_value(new ConfigOptionString(""));

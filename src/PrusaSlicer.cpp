@@ -111,7 +111,20 @@ int CLI::run(int argc, char **argv)
     }
 
     boost::nowide::cout << "begin to setup params, argc="<< argc << std::endl;
-	if (! this->setup(argc, argv))
+    for (int index=0; index < argc; index++)
+        boost::nowide::cout << "index="<< index <<", arg is "<< argv[index] <<std::endl;
+    /*int debug_argc = 7;
+    char *debug_argv[] = {
+        "D:\work\Projects\prusa_git_test\bamboo_slicer\build\src\RelWithDebInfo\prusa-slicer.exe",
+        "--slice",
+        "--output=test_linux",
+        "--export-3mf",
+        "e699867b0f86c91908b93333872e4d4f_123.3mf",
+        "--load",
+        "0.08mm SUPERDETAIL @BBL-3DP.ini"
+        };
+	if (! this->setup(debug_argc, debug_argv))*/
+    if (!this->setup(argc, argv))
     {
         boost::nowide::cerr << "setup params error" << std::endl;
 		return 1;
@@ -161,9 +174,12 @@ int CLI::run(int argc, char **argv)
             flush_and_exit(1);
         }
         if (! config_substitutions.empty()) {
-            boost::nowide::cout << "The following configuration values were substituted when loading \" << file << \":\n";
+            boost::nowide::cout << "The following configuration values were substituted when loading " << file << ":\n";
             for (const ConfigSubstitution &subst : config_substitutions)
                 boost::nowide::cout << "\tkey = \"" << subst.opt_def->opt_key << "\"\t loaded = \"" << subst.old_value << "\tsubstituted = \"" << subst.new_value->serialize() << "\"\n";
+        }
+        else {
+            boost::nowide::cout << "no substitutions performed from file " << file << "\n";
         }
         config.normalize_fdm();
         PrinterTechnology other_printer_technology = get_printer_technology(config);
@@ -855,7 +871,7 @@ int CLI::run(int argc, char **argv)
                             print->process();
                             if (printer_technology == ptFFF) {
                                 // The outfile is processed by a PlaceholderParser.
-                                outfile = (dynamic_cast<Print*>(print))->export_gcode(outfile, nullptr, nullptr);
+                                outfile = (dynamic_cast<Print*>(print))->export_gcode(outfile, gcode_result, nullptr);
                                 outfile_final = (dynamic_cast<Print*>(print))->print_statistics().finalize_output_path(outfile);
                             } else {
                                 outfile = sla_print.output_filepath(outfile);

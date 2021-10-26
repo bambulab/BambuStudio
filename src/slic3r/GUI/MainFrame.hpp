@@ -183,6 +183,8 @@ public:
 
     //BBS: export current config bundle as BBL default reference
     void        export_current_configbundle();
+    //BBS: export all the system preset configs to seperate files
+    void        export_system_configs();
     void        export_configbundle(bool export_physical_printers = false);
     void        load_configbundle(wxString file = wxEmptyString);
     void        load_config(const DynamicPrintConfig& config);

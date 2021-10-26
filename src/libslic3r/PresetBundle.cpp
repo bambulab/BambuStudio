@@ -1920,6 +1920,35 @@ void PresetBundle::export_configbundle(const std::string &path, bool export_syst
     c.close();
 }
 
+//BBS: add export system preset functions
+void PresetBundle::export_system_configs(const std::string &path)
+{
+    // Export the print, filament and printer profiles.
+    for (const PresetCollection *presets : {
+        (const PresetCollection*)&this->prints, (const PresetCollection*)&this->filaments, 
+        (const PresetCollection*)&this->sla_prints, (const PresetCollection*)&this->sla_materials, 
+        (const PresetCollection*)&this->printers }) {
+        for (const Preset &preset : (*presets)()) {
+            if (preset.is_system)
+            {
+                // Only export the system presets
+                boost::nowide::ofstream c;
+                std::string file_path = path + std::string("\\") + preset.name;
+
+                c.open(file_path, std::ios::out | std::ios::trunc);
+
+                // Put a comment at the first line including the time stamp and Slic3r version.
+                c << "# " << Slic3r::header_slic3r_generated() << std::endl;
+                //c << std::endl << "[" << presets->section_name() << ":" << preset.name << "]" << std::endl;
+                for (const std::string &opt_key : preset.config.keys())
+                    c << opt_key << " = " << preset.config.opt_serialize(opt_key) << std::endl;
+
+                c.close();
+            }
+        }
+    }
+}
+
 // Set the filament preset name. As the name could come from the UI selection box, 
 // an optional "(modified)" suffix will be removed from the filament name.
 void PresetBundle::set_filament_preset(size_t idx, const std::string &name)
