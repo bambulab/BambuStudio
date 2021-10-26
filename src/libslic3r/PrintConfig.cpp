@@ -797,8 +797,8 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back("4");
     def->enum_labels.push_back("5");
 
-    def = this->add("extruder_clearance_height", coFloat);
-    def->label = L("Height");
+    def = this->add("extruder_clearance_height_to_rod", coFloat);
+    def->label = L("Height to rod");
     def->tooltip = L("Set this to the vertical distance between your nozzle tip and (usually) the X carriage rods. "
                    "In other words, this is the height of the clearance cylinder around your extruder, "
                    "and it represents the maximum depth the extruder can peek before colliding with "
@@ -807,6 +807,18 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionFloat(20));
+
+    // BBS
+    def = this->add("extruder_clearance_height_to_lid", coFloat);
+    def->label = L("Height to lid");
+    def->tooltip = L("Set this to the vertical distance between your nozzle tip and (usually) the lid. "
+        "In other words, this is the height of the clearance cylinder around your extruder, "
+        "and it represents the maximum depth the extruder can peek before colliding with "
+        "other printed objects.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(120));
 
     def = this->add("extruder_clearance_radius", coFloat);
     def->label = L("Radius");
@@ -1060,6 +1072,13 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Soluble material is most likely used for a soluble support.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBools { false });
+
+    // BBS
+    def = this->add("temperature_vitrification", coInts);
+    def->label = L("Temperature of vitrificaiton");
+    def->tooltip = L("Material becomes soft at this temperature. Thus the heatbed cannot be hotter than this tempature.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInts{ 100 });
 
     def = this->add("filament_cost", coFloats);
     def->label = L("Cost");
@@ -4285,8 +4304,10 @@ std::string validate(const FullPrintConfig &cfg)
     // extruder clearance
     if (cfg.extruder_clearance_radius <= 0)
         return "Invalid value for --extruder-clearance-radius";
-    if (cfg.extruder_clearance_height <= 0)
-        return "Invalid value for --extruder-clearance-height";
+    if (cfg.extruder_clearance_height_to_rod <= 0)
+        return "Invalid value for --extruder-clearance-height-to-rod";
+    if (cfg.extruder_clearance_height_to_lid <= 0)
+        return "Invalid value for --extruder-clearance-height-to-lid";
 
     // --extrusion-multiplier
     for (double em : cfg.extrusion_multiplier.values)
@@ -4677,7 +4698,7 @@ Points get_bed_shape(const DynamicPrintConfig &config)
         
         return {};
     }
-    
+
     return to_points(bed_shape_opt->values);
 }
 

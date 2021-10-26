@@ -439,7 +439,7 @@ static std::vector<std::string> s_Preset_print_options {
     "support_material_interface_pattern", "support_material_interface_spacing", "support_material_interface_contact_loops", 
     "support_material_contact_distance", "support_material_bottom_contact_distance",
     "support_material_buildplate_only", "dont_support_bridges", "thick_bridges", "notes", "complete_objects", "extruder_clearance_radius",
-    "extruder_clearance_height", "gcode_comments", "gcode_label_objects", "output_filename_format", "post_process", "perimeter_extruder",
+    "gcode_comments", "gcode_label_objects", "output_filename_format", "post_process", "perimeter_extruder",
     "infill_extruder", "solid_infill_extruder", "support_material_extruder", "support_material_interface_extruder",
     "ooze_prevention", "standby_temperature_delta", "interface_shells", "extrusion_width", "first_layer_extrusion_width",
     "perimeter_extrusion_width", "external_perimeter_extrusion_width", "infill_extrusion_width", "solid_infill_extrusion_width",
@@ -453,6 +453,7 @@ static std::vector<std::string> s_Preset_print_options {
     "tree_support_branch_diameter_angle", "tree_support_collision_resolution", "tree_support_wall_count",
      "detect_narrow_internal_solid_infill",
      "gcode_add_line_number", "enable_arc_fitting", "infill_combination", "adaptive_layer_height",
+     "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod",
 };
 
 static std::vector<std::string> s_Preset_filament_options {
@@ -460,7 +461,9 @@ static std::vector<std::string> s_Preset_filament_options {
     "extrusion_multiplier", "filament_density", "filament_cost", "filament_spool_weight", "filament_loading_speed", "filament_loading_speed_start", "filament_load_time",
     "filament_unloading_speed", "filament_unloading_speed_start", "filament_unload_time", "filament_toolchange_delay", "filament_cooling_moves",
     "filament_cooling_initial_speed", "filament_cooling_final_speed", "filament_ramming_parameters", "filament_minimal_purge_on_wipe_tower",
-    "temperature", "first_layer_temperature", "bed_temperature", "first_layer_bed_temperature", "fan_always_on", "cooling", "min_fan_speed",
+    "temperature", "first_layer_temperature", "bed_temperature", "first_layer_bed_temperature",
+    //BBS:temperature_vitrification
+    "temperature_vitrification", "fan_always_on", "cooling", "min_fan_speed",
     "max_fan_speed", "bridge_fan_speed", "disable_fan_first_layers", "full_fan_speed_layer", "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed",
     "start_filament_gcode", "end_filament_gcode",
     // Retract overrides

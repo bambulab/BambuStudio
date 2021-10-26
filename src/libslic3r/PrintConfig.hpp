@@ -646,6 +646,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionStrings,             filament_type))
     ((ConfigOptionBools,               filament_soluble))
     ((ConfigOptionFloats,              filament_cost))
+    ((ConfigOptionFloats,              temperature_vitrification))  //BBS
     ((ConfigOptionFloats,              filament_spool_weight))
     ((ConfigOptionFloats,              filament_max_volumetric_speed))
     ((ConfigOptionFloats,              filament_loading_speed))
@@ -735,7 +736,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInts,               disable_fan_first_layers))
     ((ConfigOptionEnum<DraftShield>,  draft_shield))
     ((ConfigOptionFloat,              duplicate_distance))
-    ((ConfigOptionFloat,              extruder_clearance_height))
+    ((ConfigOptionFloat,              extruder_clearance_height_to_rod))//BBs
+    ((ConfigOptionFloat,              extruder_clearance_height_to_lid))//BBS
     ((ConfigOptionFloat,              extruder_clearance_radius))
     ((ConfigOptionStrings,            extruder_colour))
     ((ConfigOptionPoints,             extruder_offset))

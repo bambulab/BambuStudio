@@ -86,7 +86,7 @@ void fill_config(PConf& pcfg, const ArrangeParams &params) {
 
     if (params.is_seq_print) {
         // Align the arranged pile into the center of the bin
-        pcfg.alignment = PConf::Alignment::BOTTOM_LEFT;
+        pcfg.alignment = PConf::Alignment::CENTER;
         // Start placing the items from the center of the print bed
         pcfg.starting_point = PConf::Alignment::BOTTOM_LEFT;
     }
@@ -189,12 +189,6 @@ protected:
         
         // Calculate the full bounding box of the pile with the candidate item
         auto fullbb = sl::boundingBox(m_pilebb, ibb);
-
-        int max_height = 0;  // max height of existing items
-        for (int i = 0; i < m_items.size();i++) {
-            Item& p = m_items[i];
-            max_height = max_height > p.height ? max_height : p.height;
-        }
         
         // The bounding box of the big items (they will accumulate in the center
         // of the pile
@@ -225,7 +219,7 @@ protected:
         } compute_case;
         
         bool bigitems = isBig(item.area()) || spatindex.empty();
-        if(bigitems && !m_remaining.empty()) compute_case = BIG_ITEM;
+        if(!params.is_seq_print && bigitems && !m_remaining.empty()) compute_case = BIG_ITEM;  // do not use so complicated logic for sequential printing
         else if (bigitems && m_remaining.empty()) compute_case = LAST_BIG_ITEM;
         else compute_case = SMALL_ITEM;
         
@@ -250,12 +244,14 @@ protected:
 
             // The smalles distance from the arranged pile center:
             double dist = norm(*(std::min_element(dists.begin(), dists.end())));
-            double bindist = norm(pl::distance(ibb.center(), origin_pack));
-            if (m_pconf.alignment == PConfig::Alignment::BOTTOM_LEFT)
-                bindist = std::abs(ibb.minCorner().y() - origin_pack.y()) + 0.1 * std::abs(ibb.minCorner().x() - origin_pack.x());
-
-            dist = 0.8 * dist + 0.2 * bindist;
-
+            if (m_pconf.starting_point == PConfig::Alignment::BOTTOM_LEFT) {
+                double bindist = norm(std::abs(ibb.minCorner().y() - origin_pack.y()) + 0.1 * std::abs(ibb.minCorner().x() - origin_pack.x()));
+                dist = 0.5 * dist + 0.5 * bindist;
+            }
+            else {
+                double bindist = norm(pl::distance(ibb.center(), origin_pack));
+                dist = 0.8 * dist + 0.2 * bindist;
+            }
 
             // Prepare a variable for the alignment score.
             // This will indicate: how well is the candidate item
@@ -313,15 +309,49 @@ protected:
             // No need to play around with the anchor points, the center will be
             // just fine for small items
             score = norm(pl::distance(ibb.center(), bigbb.center()));
-            if (m_pconf.alignment == PConfig::Alignment::BOTTOM_LEFT)
-                score += std::abs(ibb.minCorner().y() - origin_pack.y()) + 0.1 * std::abs(ibb.minCorner().x() - origin_pack.x());
+            if (m_pconf.starting_point == PConfig::Alignment::BOTTOM_LEFT)
+                score = norm(std::abs(ibb.minCorner().y() - origin_pack.y()) + 0.1 * std::abs(ibb.minCorner().x() - origin_pack.x()));
             break;
         }            
         }
 
-        if(!spatindex.empty())
-            score += 10 * (max_height > item.height) * (ibb.minCorner().y() < m_pilebb.maxCorner().y());  // current item can't be shorter than existing items below
-        
+#if 1
+        double hc1 = params.clearance_height_to_lid;
+        double hc2 = params.clearance_height_to_rod;
+        bool isLastOfAll = m_remaining.empty();
+        bool hasRowHeightConflict = false;// item.height < hc1;
+        auto iy1 = item.boundingBox().minCorner().y();
+        auto iy2 = item.boundingBox().maxCorner().y();
+        for (int i = 0; i < m_items.size(); i++) {
+            Item& p = m_items[i];
+            if (p.is_virt_object) continue;
+            auto py1 = p.boundingBox().minCorner().y();
+            auto py2 = p.boundingBox().maxCorner().y();
+            auto inter_min = std::max(iy1, py1); // min y of intersection
+            auto inter_max = std::min(iy2, py2); // max y of intersection. length=max_y-min_y>0 means intersection exists
+            if (inter_max - inter_min > 0)
+                hasRowHeightConflict |= (p.height > hc2);
+        }
+
+        double lambda3 = LARGE_COST_TO_REJECT;
+        double lambda4 = LARGE_COST_TO_REJECT;
+        if (params.is_seq_print) {
+            for (int i = 0; i < m_items.size(); i++) {
+                Item& p = m_items[i];
+                if (p.is_virt_object) continue;
+                score += lambda3 * (item.bed_temp - p.vitrify_temp > 0);
+            }
+            score += lambda4 * hasRowHeightConflict
+                + lambda4 * (item.height > hc1) * (1 - isLastOfAll); // only last of all can be heigher than hc1
+        }
+        else {
+            for (int i = 0; i < m_items.size(); i++) {
+                Item& p = m_items[i];
+                if (p.is_virt_object) continue;
+                score += lambda3 * (item.bed_temp - p.bed_temp != 0);
+            }
+        }
+#endif
         return std::make_tuple(score, fullbb);
     }
     
@@ -334,9 +364,9 @@ public:
                  std::function<bool(void)>     stopcond)
         : m_pck(bin, params.min_obj_distance)
         , m_bin(bin)
-        , m_bin_area(sl::area(bin))
-        , m_norm(std::sqrt(m_bin_area))
     {
+        m_bin_area = abs(sl::area(bin));  // due to clockwise or anti-clockwise, the result of sl::area may be negative
+        m_norm = std::sqrt(m_bin_area);
         fill_config(m_pconf, params);
         this->params = params;
 
@@ -426,7 +456,7 @@ public:
 
 template<> std::function<double(const Item&)> AutoArranger<Box>::get_objfn()
 {
-    auto origin_pack = m_pconf.alignment == PConfig::Alignment::CENTER ? m_bin.center() : m_bin.minCorner();
+    auto origin_pack = m_pconf.starting_point == PConfig::Alignment::CENTER ? m_bin.center() : m_bin.minCorner();
 
     return [this, origin_pack](const Item &itm) {
         auto result = objfunc(itm, origin_pack);
@@ -434,10 +464,18 @@ template<> std::function<double(const Item&)> AutoArranger<Box>::get_objfn()
         double score = std::get<0>(result);
         auto& fullbb = std::get<1>(result);
 
-        double miss = Placer::overfit(fullbb, m_bin);
-        miss = miss > 0? miss : 0;
-        score += miss * miss;
-        
+        if (m_pconf.starting_point == PConfig::Alignment::BOTTOM_LEFT)
+        {
+            if (!sl::isInside(fullbb, m_bin))
+                score += LARGE_COST_TO_REJECT;
+        }
+        else
+        {
+            double miss = Placer::overfit(fullbb, m_bin);
+            miss = miss > 0 ? miss : 0;
+            score += miss * miss;
+        }
+
         return score;
     };
 }
@@ -445,7 +483,7 @@ template<> std::function<double(const Item&)> AutoArranger<Box>::get_objfn()
 template<> std::function<double(const Item&)> AutoArranger<Circle>::get_objfn()
 {
     auto bb = sl::boundingBox(m_bin);
-    auto origin_pack = m_pconf.alignment == PConfig::Alignment::CENTER ? bb.center() : bb.minCorner();
+    auto origin_pack = m_pconf.starting_point == PConfig::Alignment::CENTER ? bb.center() : bb.minCorner();
     return [this, origin_pack](const Item &item) {
         
         auto result = objfunc(item, origin_pack);
@@ -475,7 +513,7 @@ template<>
 std::function<double(const Item &)> AutoArranger<ExPolygon>::get_objfn()
 {
     auto bb = sl::boundingBox(m_bin);
-    auto origin_pack = m_pconf.alignment == PConfig::Alignment::CENTER ? bb.center() : bb.minCorner();
+    auto origin_pack = m_pconf.starting_point == PConfig::Alignment::CENTER ? bb.center() : bb.minCorner();
     return [this, origin_pack](const Item &item) {
         return std::get<0>(objfunc(item, origin_pack));
     };
@@ -486,18 +524,20 @@ template<class Bin> void remove_large_items(std::vector<Item> &items, Bin &&bin)
     auto it = items.begin();
     while (it != items.end())
     {
-        //BBS: add logic for virtual object
-        if (it->is_virt_object)
-            ++it;
-        sl::isInside(it->transformedShape(), bin) ?
-            ++it : it = items.erase(it);
+        //BBS: skip virtual object
+        if (!it->is_virt_object && !sl::isInside(it->transformedShape(), bin))
+            it = items.erase(it);
+        else
+            it++;
     }
 }
 
 template<class S> Radians min_area_boundingbox_rotation(const S &sh)
 {
-    return minAreaBoundingBox<S, TCompute<S>, boost::rational<LargeInt>>(sh)
-        .angleToX();
+    // coconut: minAreaBoundingBox has divide 0 error for some objects, need to investigate
+    //return minAreaBoundingBox<S, TCompute<S>, boost::rational<LargeInt>>(sh)
+    //    .angleToX();
+    return Radians();
 }
 
 template<class S>
@@ -528,7 +568,9 @@ void _arrange(
     
     auto infl = coord_t(std::ceil(params.min_obj_distance / 2.0));
     for (Item& itm : shapes) itm.inflate(infl);
-    for (Item& itm : excludes) itm.inflate(infl);
+    for (Item& itm : excludes)
+        if(!itm.is_virt_object)
+            itm.inflate(infl);
     
     remove_large_items(excludes, corrected_bin);
 
@@ -625,6 +667,9 @@ static void process_arrangeable(const ArrangePolygon &arrpoly,
     outp.back().name = arrpoly.name;
     //BBS: add virtual object logic
     outp.back().is_virt_object = arrpoly.is_virt_object;
+    outp.back().bed_temp = arrpoly.bed_temp;
+    outp.back().print_temp = arrpoly.print_temp;
+    outp.back().vitrify_temp = arrpoly.vitrify_temp;
 }
 
 template<class Fn> auto call_with_bed(const Points &bed, Fn &&fn)
@@ -684,6 +729,7 @@ void arrange(ArrangePolygons &      arrangables,
         arrangables[i].translation = {coord_t(tr.x()), coord_t(tr.y())};
         arrangables[i].rotation    = items[i].rotation();
         arrangables[i].bed_idx     = items[i].binId();
+        arrangables[i].itemid      = items[i].itemId();  // arrange order is useful for sequential printing
     }
 }
 

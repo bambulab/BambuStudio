@@ -924,6 +924,7 @@ public:
     ModelInstanceEPrintVolumeState print_volume_state;
     // Whether or not this instance is printable
     bool printable;
+    int arrange_order = 0; // BBS
 
     ModelObject* get_object() const { return this->object; }
 

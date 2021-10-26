@@ -60,6 +60,7 @@ struct ArrangePolygon {
     int       print_temp{0};      ///print temperature for different material judge
     int       first_bed_temp{ 0 };      ///first layer bed temperature for different material judge
     int       first_print_temp{ 0 };      ///first layer print temperature for different material judge
+    int       vitrify_temp{ 0 };   // max bed temperature for material compatibility, which is usually the filament vitrification temp
     int       itemid{ 0 };         // item id in the vector, used for accessing all possible params like extrude_id
     int       is_applied{ 0 };     // transform has been applied
     double    height{ 0 };         // item height 
@@ -115,6 +116,9 @@ struct ArrangeParams {
     float bed_shrink_x = 0;
     float bed_shrink_y = 0;
     float brim_skirt_distance = 0;
+    float clearance_height_to_rod = 0;
+    float clearance_height_to_lid = 0;
+    float cleareance_radius = 0;
     
     /// Progress indicator callback called when an object gets packed. 
     /// The unsigned argument is the number of items remaining to pack.

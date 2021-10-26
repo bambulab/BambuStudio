@@ -86,9 +86,10 @@ template<class T> struct PtrWrapper
         return ap;
     }
 
-    void apply_arrange_result(const Vec2d &t, double rot)
+    void apply_arrange_result(const Vec2d &t, double rot, int item_id)
     {
         ptr->apply_arrange_result(t, rot);
+        ptr->arrange_order = item_id;
     }
 };
 
@@ -110,7 +111,7 @@ arrangement::ArrangePolygon get_arrange_poly(T obj, const Plater *plater)
             //t.x() += p.bed_idx * bed_stride(plater);
             //t.x() += col * bed_stride_x(plater);
             //t.y() -= row * bed_stride_y(plater);
-            T{obj}.apply_arrange_result(t, p.rotation);
+            T{obj}.apply_arrange_result(t, p.rotation, p.itemid);
         }
     };
 

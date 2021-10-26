@@ -32,7 +32,7 @@ public:
         : GLCanvas3D::WipeTowerInfo(std::move(wti))
     {}
 
-    void apply_arrange_result(const Vec2d& tr, double rotation)
+    void apply_arrange_result(const Vec2d& tr, double rotation, int item_id)
     {
         m_pos = unscaled(tr); m_rotation = rotation;
         apply_wipe_tower();
@@ -87,10 +87,6 @@ ArrangePolygon ArrangeJob::prepare_arrange_polygon(void* model_instance)
 {
     ModelInstance* instance = (ModelInstance*)model_instance;
     const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
-    auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
-    double skirt_distance = print.has_skirt() ? print.config().skirt_distance.value : 0;
-    double brim_width = print.has_brim() ? print.default_object_config().brim_width : 0;
-    params.brim_skirt_distance = std::max(skirt_distance, brim_width);
 
     ArrangePolygon ap = get_arrange_poly(PtrWrapper{ instance }, m_plater);
     //BBS: add temperature information
@@ -102,7 +98,9 @@ ArrangePolygon ArrangeJob::prepare_arrange_polygon(void* model_instance)
         ap.first_bed_temp = config.opt_int("first_layer_bed_temperature", ap.extrude_id - 1);
     if (config.has("first_layer_temperature")) //get the first_layer_temperature
         ap.first_print_temp = config.opt_int("first_layer_temperature", ap.extrude_id - 1);
-
+    if (config.has("temperature_vitrification"))
+        ap.vitrify_temp = config.opt_int("temperature_vitrification", ap.extrude_id - 1);
+    
     ap.height = instance->get_object()->bounding_box().size().z();
     ap.name = instance->get_object()->name;
     return ap;
@@ -201,9 +199,6 @@ void ArrangeJob::prepare_selected() {
         }
     }
 
-    //add the virtual object into unselect list if has
-    plate_list.preprocess_exclude_areas(m_unselected);
-
     if (auto wti = get_wipe_tower(*m_plater)) {
         ArrangePolygon &&ap = get_arrange_poly(wti, m_plater);
 
@@ -214,7 +209,10 @@ void ArrangeJob::prepare_selected() {
     
     // If the selection was empty arrange everything
     if (m_selected.empty()) m_selected.swap(m_unselected);
-    
+
+    //add the virtual object into unselect list if has
+    plate_list.preprocess_exclude_areas(m_unselected);
+
     // The strides have to be removed from the fixed items. For the
     // arrangeable (selected) items bed_idx is ignored and the
     // translation is irrelevant.
@@ -352,21 +350,35 @@ void ArrangeJob::process()
     const GLCanvas3D::ArrangeSettings &settings =
         static_cast<const GLCanvas3D*>(m_plater->canvas3D())->get_arrange_settings();
 
+    auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
+    double skirt_distance = print.has_skirt() ? print.config().skirt_distance.value : 0;
+    double brim_width = print.has_brim() ? print.default_object_config().brim_width : 0;
+    params.brim_skirt_distance = std::max(skirt_distance, brim_width);
+    params.clearance_height_to_rod = print.config().extruder_clearance_height_to_rod.value;
+    params.clearance_height_to_lid = print.config().extruder_clearance_height_to_lid.value;
+    params.cleareance_radius = print.config().extruder_clearance_radius.value;
+
     params.allow_rotations  = settings.enable_rotation;
     params.min_obj_distance = scaled(std::max(settings.distance, params.brim_skirt_distance / 2.f));
     //BBS: add specific params
     params.is_seq_print = settings.is_seq_print;
     params.bed_shrink_x = settings.bed_shrink_x + params.brim_skirt_distance;
     params.bed_shrink_y = settings.bed_shrink_y + params.brim_skirt_distance;
+    if (params.is_seq_print)
+        params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius));
 
     Points bedpts = get_bed_shape(*m_plater->config());
-    // shrink bed
-    params.bed_shrink_y = 0;
-    bedpts[0] += Point(scaled(params.bed_shrink_x), scaled(params.bed_shrink_y));
-    bedpts[1] += Point(-scaled(params.bed_shrink_x), scaled(params.bed_shrink_y));
-    bedpts[2] += Point(-scaled(params.bed_shrink_x), -scaled(params.bed_shrink_y));
-    bedpts[3] += Point(scaled(params.bed_shrink_x), -scaled(params.bed_shrink_y));
-
+#if 1
+    // shrink bed by moving to center by dist
+    auto shrinkFun = [](Points& bedpts, double dist, int direction) {
+#define SGN(x) ((x)>=0?1:-1)
+        Point center = Polygon(bedpts).bounding_box().center();
+        for (auto& pt : bedpts)
+            pt[direction] += dist * SGN(center[direction] - pt[direction]);
+    };
+    shrinkFun(bedpts, scaled(params.bed_shrink_x), 0);
+    shrinkFun(bedpts, scaled(params.bed_shrink_y), 1);
+#endif
     BOOST_LOG_TRIVIAL(debug) << "bed_shrink_x,y=" << params.bed_shrink_x << ", " << params.bed_shrink_y << "; bedpts:"
         << bedpts[0].transpose() << ", " << bedpts[1].transpose() << ", " << bedpts[2].transpose() << ", " << bedpts[3].transpose();
     
@@ -378,53 +390,18 @@ void ArrangeJob::process()
         if (st > 0) update_status(int(count - st), arrangestr+str);
     };
 
-    // divide selected items into groups
-    if (params.is_seq_print)
+    if(!params.is_seq_print)
     {
-        m_selected_groups.clear();
-        for (auto& item : m_selected)
-        {
-            if (m_selected_groups.find(item.extrude_id) == m_selected_groups.end())
-                m_selected_groups[item.extrude_id] = ArrangePolygons();
-            m_selected_groups[item.extrude_id].push_back(item);
-        }
-
-        int beds = -1;
-        for (auto it=m_selected_groups.begin();it!=m_selected_groups.end();it++)
-        {
-            arrangement::arrange(it->second, m_unselected, bedpts, params);
-
-            beds++;  // new group will start from next plate
-            for (auto& ap : it->second) {
-                ap.bed_idx += beds;
-                //BBS: only update bed_idx here
-                //ap.bed_idx = std::max(ap.bed_idx, current_plate_index);
-                for (auto& item : m_selected) {
-                    if (item.itemid == ap.itemid) {
-                        item = ap;
-                        //item.apply();
-                        break;
-                    }
-                }
-            }
-            for (auto& ap : it->second)
-                beds = std::max(std::max(beds, ap.bed_idx), it->first - 1);
-
-        }
-
-        // merge plates with small coverage
-        //PartPlateList& plate_list = m_plater->get_partplate_list();
-        //plate_list.clear();
-        //for (int i = 0; i < beds; i++) plate_list.create_plate();
-        //plate_list.reload_all_objects();
-        //for (int i = 0; i < beds; i++) {
-        //}
-    }
-    else {
         // force all heights be the same, so items are sorted by area
         for (auto& ap : m_selected) ap.height = 1;
         for (auto& ap : m_unselected) ap.height = 1;
-        arrangement::arrange(m_selected, m_unselected, bedpts, params);
+    }
+    arrangement::arrange(m_selected, m_unselected, bedpts, params);
+
+    // sort by item id
+    std::sort(m_selected.begin(), m_selected.end(), [](auto a, auto b) {return a.itemid < b.itemid; });
+    for (auto selected : m_selected) {
+        BOOST_LOG_TRIVIAL(debug) << "items after arranging: " << selected.name << ", extruder: " << selected.extrude_id;
     }
 
     params.progressind = [this, count](unsigned st, std::string str="") {

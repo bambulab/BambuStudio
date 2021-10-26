@@ -628,7 +628,7 @@ public:
     Vec3d get_plate_origin() { return m_origin; }
 
     //BBS
-    static int sequential_print_clearance_valid(const Print& print, Polygons* polygons = nullptr);
+    static std::string sequential_print_clearance_valid(const Print& print, Polygons* polygons = nullptr);
 
 protected:
     // Invalidates the step, and its depending steps in Print.

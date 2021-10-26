@@ -65,11 +65,11 @@ public:
         
         auto sortfunc = [](Item& i1, Item& i2) {
             int p1 = i1.priority(), p2 = i2.priority();
-            if (i1.height == i2.height) {
-                return p1 == p2 ? i1.area() > i2.area() : p1 > p2;
-            }
-            else
-                return i1.height < i2.height;
+            if (p1 != p2)
+                return p1 > p2;
+
+            return i1.bed_temp != i2.bed_temp ? (i1.bed_temp > i2.bed_temp) :
+                (i1.height != i2.height ? (i1.height < i2.height) : (i1.area() > i2.area()));
         };
 
         std::sort(store_.begin(), store_.end(), sortfunc);
@@ -85,6 +85,7 @@ public:
         
         this->template remove_unpackable_items<Placer>(store_, bin, pconfig);
 
+        int item_id = 0;
         for (auto it = store_.begin(); it != store_.end() && !cancelled(); ++it) {
             // skip unpackable item
             if (it->get().binId() == BIN_ID_UNSET)
@@ -95,6 +96,7 @@ public:
                 for(; j < placers.size() && !was_packed && !cancelled(); j++) {
                     if((was_packed = placers[j].pack(*it, rem(it, store_) ))) {
                         it->get().binId(int(j));
+                        it->get().itemId(item_id++);
                         makeProgress(placers[j], j);
                     }
                 }

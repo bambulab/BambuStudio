@@ -8,8 +8,13 @@
 #include "CurveAnalyzer.hpp"
 #include "SVG.hpp"
 
-#define SQRT_2 1.4142135623730950488 //Square root of 2.
+#define SQUARE_SUPPORT 0
+#if SQUARE_SUPPORT
+#define CIRCLE_RESOLUTION 4 // 100 //The number of vertices in each circle.
+#else
 #define CIRCLE_RESOLUTION 100 //The number of vertices in each circle.
+#endif
+#define MAX_BRANCH_RADIUS 10.0
 
 #ifndef M_PI
 #define M_PI 3.1415926535897932384626433832795
@@ -829,7 +834,7 @@ void TreeSupport::detect_object_overhangs()
             for (auto& overhang : ts_layer->overhang_areas)
             {
                 //auto overhang_dilated = offset_ex({ overhang }, extrusion_width_scaled);
-                if (intersection_ex({overhang}, overhangs_dilated[layer_nr-1]).empty() && intersection_ex({overhang}, overhangs_dilated[layer_nr+1]).empty()
+                if (intersection_ex(ExPolygons{overhang}, overhangs_dilated[layer_nr-1]).empty() && intersection_ex(ExPolygons{overhang}, overhangs_dilated[layer_nr+1]).empty()
                     && offset_ex({ overhang }, -extrusion_width_scaled * 2).empty())
                     small_overhangs.push_back(overhang);
             }
@@ -925,6 +930,8 @@ static inline void fill_expolygons_generate_paths(
     ExtrusionRole           role,
     const Flow             &flow)
 {
+    BoundingBox bbox_object(Point(-scale_(1.), -scale_(1.0)), Point(scale_(1.), scale_(1.)));
+    filler->set_bounding_box(bbox_object);
     for (ExPolygon& expoly : expolygons)
         fill_expolygon_generate_paths(dst, std::move(expoly), filler, fill_params, density, role, flow);
 }
@@ -991,6 +998,7 @@ static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& pr
     ExPolygons support_area_new = offset_ex(support_area, -0.5f * float(flow.scaled_spacing()), jtSquare);
     polygons_append(loops, to_polygons(support_area_new));
 
+#if 1
     ExtrusionRole role = is_interface ? erSupportMaterialInterface : erSupportMaterial;
     if (print.config().auto_slow_down_for_overhang_and_curva) {
         CurveAnalyzer curve_analyzer;
@@ -1016,6 +1024,7 @@ static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& pr
         extrusion_entities_append_loops(dst, std::move(loops), role,
             float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
     }
+#endif
 
     // draw infill (remember to adjust to align infill between layers)
     FillParams fill_params;
@@ -1465,7 +1474,11 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     Polygon branch_circle; //Pre-generate a circle with correct diameter so that we don't have to recompute those (co)sines every time.
     for (unsigned int i = 0; i < CIRCLE_RESOLUTION; i++)
     {
+#if SQUARE_SUPPORT
+        double angle = (double)i / CIRCLE_RESOLUTION * TAU + TAU/8.0;
+#else
         double angle = (double)i / CIRCLE_RESOLUTION * TAU;
+#endif
         branch_circle.append(Point(cos(angle) * branch_radius_scaled, sin(angle) * branch_radius_scaled));
     }
 
@@ -1616,7 +1629,6 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 
                 m_object.print()->set_status(95, "Support: draw_circles at layer " + std::to_string(layer_nr));
 
-
                 const size_t z_collision_layer = static_cast<size_t>(std::max(0, static_cast<int>(layer_nr) - static_cast<int>(bottom_interface_layers)));
                 auto avoid_region = m_ts_data->get_collision(m_ts_data->m_xy_distance, z_collision_layer);
                 base_areas = std::move(diff_ex(base_areas, avoid_region));
@@ -1624,7 +1636,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 roof_areas = std::move(offset2_ex(roof_areas, branch_radius_scaled, -branch_radius_scaled));
                 base_areas = std::move(diff_ex(base_areas, roof_areas));
 
-#if 0
+#if SQUARE_SUPPORT
                 if (m_object.print()->config().enable_arc_fitting.value == false) {
                     // simplify support contours if arc fitting is disabled
                     ExPolygons base_areas_simplified;

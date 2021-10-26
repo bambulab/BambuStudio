@@ -627,7 +627,7 @@ wxMenuItem* MenuFactory::append_menu_item_printable(wxMenu* menu)
 #endif
 }
 
-void MenuFactory::append_menu_items_osx(wxMenu* menu)
+void MenuFactory::append_menu_item_rename(wxMenu* menu)
 {
     append_menu_item(menu, wxID_ANY, _L("Rename"), "",
         [](wxCommandEvent&) { obj_list()->rename_item(); }, "", menu);
@@ -832,10 +832,8 @@ void MenuFactory::create_default_menu()
 
 void MenuFactory::create_common_object_menu(wxMenu* menu)
 {
-#ifdef __WXOSX__  
-    append_menu_items_osx(menu);
-#endif // __WXOSX__
-    //append_menu_items_instance_manipulation(menu);
+    append_menu_item_rename(menu);
+    append_menu_items_instance_manipulation(menu);
     // Delete menu was moved to be after +/- instace to make it more difficult to be selected by mistake.
     append_menu_item_delete(menu);
     //append_menu_item_instance_to_object(menu);
@@ -911,9 +909,7 @@ void MenuFactory::create_sla_object_menu()
 void MenuFactory::create_part_menu()
 {
     wxMenu* menu = &m_part_menu;
-#ifdef __WXOSX__  
-    append_menu_items_osx(menu);
-#endif // __WXOSX__
+    append_menu_item_rename(menu);
     append_menu_item_delete(menu);
     append_menu_item_reload_from_disk(menu);
     append_menu_item_export_stl(menu);

@@ -445,7 +445,7 @@ public:
 
     inline explicit _NofitPolyPlacer(const BinType& bin):
         Base(bin),
-        norm_(std::sqrt(sl::area(bin)))
+        norm_(std::sqrt(abs(sl::area(bin))))
     {
         // In order to not have items out of bin, it will be shrinked by an
         // very little empiric offset value.
@@ -471,7 +471,7 @@ public:
     static inline double overfit(const RawShape& chull, const RawShape& bin) {
         auto bbch = sl::boundingBox(chull);
         auto bbin = sl::boundingBox(bin);
-        auto d =  bbch.center() - bbin.center();
+        auto d = bbin.center() - bbch.center(); // move to bin center
         auto chullcpy = chull;
         sl::translate(chullcpy, d);
         return sl::isInside(chullcpy, bin) ? -1.0 : 1.0;
@@ -878,7 +878,7 @@ private:
                     }
                 }
 
-                if( best_score < global_score ) {
+                if( best_score < global_score && best_score< LARGE_COST_TO_REJECT) {
                     auto d = (getNfpPoint(optimum) - iv) + startpos;
                     final_tr = d;
                     final_rot = initial_rot + rot;
@@ -900,9 +900,41 @@ private:
 
         return ret;
     }
-
+#if 0
+    Box inscribedBox(ClipperLib::Polygon bin_)
+    {
+        Box bbin = sl::boundingBox(bin_);
+        Vertex cb = bbin.center();
+        auto minx = getX(bbin.minCorner());
+        auto miny = getY(bbin.minCorner());
+        auto maxx = getX(bbin.maxCorner());
+        auto maxy = getY(bbin.maxCorner());
+        for (auto pt : bin_.Contour)
+        {
+            if (getX(pt) < getX(cb))
+                minx = std::max(minx, getX(pt));
+            if (getY(pt) < getY(cb))
+                miny = std::max(miny, getY(pt));
+            if (getX(pt) > getX(cb))
+                maxx = std::min(maxx, getX(pt));
+            if (getY(pt) > getY(cb))
+                maxy = std::min(maxy, getY(pt));
+        }
+        return Box(TPoint<RawShape>(minx, miny), TPoint<RawShape>(maxx, maxy));
+    }
+    Box inscribedBox(Box bin_)
+    {
+        Box bbin = sl::boundingBox(bin_);
+        return bbin;
+    }
+    Box inscribedBox(_Circle<TPoint<RawShape>> bin_)
+    { // TODO inscribed box of circle need to reconsider. Here it's just bounding box
+        Box bbin = sl::boundingBox(bin_);
+        return bbin;
+    }
+#endif
     inline void finalAlign(const RawShape& pbin) {
-        auto bbin = sl::boundingBox(pbin);
+        auto bbin = sl::boundingBox(pbin);// inscribedBox(pbin);
         finalAlign(bbin);
     }
 

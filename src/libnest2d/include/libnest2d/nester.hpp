@@ -9,6 +9,7 @@
 #include <functional>
 
 #include <libnest2d/geometry_traits.hpp>
+#define LARGE_COST_TO_REJECT 1e7
 
 namespace libnest2d {
 
@@ -75,8 +76,11 @@ public:
     int itemid_{ 0 };
     int extrude_id{ 1 };
     double height{ 0 };
+    double print_temp{ 0 };
+    double bed_temp{ 0 };
+    double vitrify_temp{ 0 };  // vitrify temperature
     std::string name;
-    //BBS: add vierual object support
+    //BBS: virtual object to mark unprintable region on heatbed
     bool is_virt_object{ false };
 
     /// The type of the shape which was handed over as the template argument.

@@ -1948,7 +1948,7 @@ int PartPlateList::reload_all_objects()
 	//try to find a new plate
 	for (i = 0; i < (unsigned int)m_model->objects.size(); ++i)
 	{
-		ModelObject* object = m_model->objects[i];
+		ModelObject* object = m_model->objects[i];		
 		for (j = 0; j < (unsigned int)object->instances.size(); ++j)
 		{
 			ModelInstance* instance = object->instances[j];
@@ -2524,6 +2524,11 @@ int PartPlateList::rebuild_plates_after_arrangement(bool recycle_plates)
 	int ret = 0;
 
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":before rebuild, plates count %1%, recycle_plates %2%") % m_plate_list.size() % recycle_plates;
+
+	// sort by arrange_order
+	std::sort(m_model->objects.begin(), m_model->objects.end(), [](auto a, auto b) {return a->instances[0]->arrange_order < b->instances[0]->arrange_order; });
+	for (auto object : m_model->objects)
+		std::sort(object->instances.begin(), object->instances.end(), [](auto a, auto b) {return a->arrange_order < b->arrange_order; });
 
 	ret = reload_all_objects();
 

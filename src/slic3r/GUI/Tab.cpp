@@ -1778,7 +1778,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("complete_objects", "sequential-printing_124589");
         line = { L("Extruder clearance"), "" };
         line.append_option(optgroup->get_option("extruder_clearance_radius"));
-        line.append_option(optgroup->get_option("extruder_clearance_height"));
+        line.append_option(optgroup->get_option("extruder_clearance_height_to_rod"));
+        line.append_option(optgroup->get_option("extruder_clearance_height_to_lid"));//BBS
         optgroup->append_line(line);
 
         optgroup = page->new_optgroup(L("Output file"));
@@ -2116,6 +2117,7 @@ void TabFilament::build()
         option.opt.width = Field::def_width();
         optgroup->append_single_option_line(option);
         optgroup->append_single_option_line("filament_soluble");
+        optgroup->append_single_option_line("temperature_vitrification");  //BBS
 
         optgroup = page->new_optgroup(L("Print speed override"));
         optgroup->append_single_option_line("filament_max_volumetric_speed", "max-volumetric-speed_127176");
