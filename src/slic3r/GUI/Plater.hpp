@@ -78,6 +78,7 @@ class ProjectResource : public wxNotebook
 public:
     ProjectResource(wxWindow *parent);
     ObjectList *get_object_list() { return m_object_list; }
+    AuxiliaryList* get_auxiliary_list() { return m_auxiliary_list; }
 
 private:
     ObjectList *m_object_list{ nullptr };
@@ -118,6 +119,9 @@ public:
     ObjectLayers*           obj_layers();
     wxScrolledWindow*       scrolled_panel();
     wxPanel*                presets_panel();
+
+    // BBS
+    AuxiliaryList*          aux_list();
 
     ConfigOptionsGroup*     og_freq_chng_params(const bool is_fff);
     wxButton*               get_wiping_dialog_button();

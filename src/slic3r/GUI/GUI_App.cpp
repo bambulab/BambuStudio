@@ -1275,6 +1275,9 @@ bool GUI_App::on_init_inner()
         mainframe->select_tab(size_t(0));
 
     sidebar().obj_list()->init_objects(); // propagate model objects to object list
+    // BBS
+    sidebar().aux_list()->init_auxiliary();
+
 //     update_mode(); // !!! do that later
     SetTopWindow(mainframe);
 

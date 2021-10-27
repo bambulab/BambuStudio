@@ -641,6 +641,8 @@ ConfigOptionsGroup* FreqChangedParams::get_og(const bool is_fff)
     return is_fff ? m_og.get() : m_og_sla.get();
 }
 
+static wxString temp_dir;
+
 // BBS. ProjectResource methods.
 ProjectResource::ProjectResource(wxWindow *parent)
     : wxNotebook(parent, wxID_ANY)
@@ -653,10 +655,9 @@ ProjectResource::ProjectResource(wxWindow *parent)
     this->AddPage(m_object_panel, _L("Object List"));
 
     m_auxiliary_panel = new wxPanel(this);
-	m_auxiliary_list = new AuxiliaryList(m_auxiliary_panel);
+    m_auxiliary_list = new AuxiliaryList(m_auxiliary_panel);
 	m_auxiliary_panel->SetSizer(m_auxiliary_list->get_top_sizer());
     this->AddPage(m_auxiliary_panel, _L("Auxiliary List"));
-    m_auxiliary_list->create_default_folders();
 }
 
 // Sidebar / private
@@ -1330,6 +1331,11 @@ ObjectList* Sidebar::obj_list()
     return p->project_resource->get_object_list();
 }
 
+AuxiliaryList* Sidebar::aux_list()
+{
+    return p->project_resource->get_auxiliary_list();
+}
+
 ObjectSettings* Sidebar::obj_settings()
 {
     return p->object_settings;
@@ -1734,6 +1740,9 @@ struct Plater::priv
 
     fs::path get_export_file_path(GUI::FileType file_type);
     wxString get_export_file(GUI::FileType file_type);
+
+    // BBS
+    void load_auxiliary_files();
 
     const Selection& get_selection() const;
     Selection& get_selection();
@@ -2724,6 +2733,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 if (load_aux)
                 {
                     q->model().set_auxiliary_file_temp_path(model.get_auxiliary_file_temp_path());
+                    load_auxiliary_files();
                 }
             } else {
                 // This must be an .stl or .obj file, which may contain a maximum of one volume.
@@ -2890,6 +2900,13 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
     this->schedule_background_process();
 
     return obj_idxs;
+}
+
+// BBS
+void Plater::priv::load_auxiliary_files()
+{
+    AuxiliaryModel* aux_model = dynamic_cast<AuxiliaryModel*>(sidebar->aux_list()->GetModel());
+    aux_model->Reload(model.get_auxiliary_file_temp_path());
 }
 
 fs::path Plater::priv::get_export_file_path(GUI::FileType file_type)

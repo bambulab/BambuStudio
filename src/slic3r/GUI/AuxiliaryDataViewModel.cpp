@@ -2,7 +2,67 @@
 
 AuxiliaryModel::AuxiliaryModel()
 {
+    m_root = nullptr;
+}
+
+void AuxiliaryModel::Init(wxString aux_path)
+{
     m_root = new AuxiliaryModelNode();
+    m_root_dir = aux_path;
+
+    if (wxDirExists(m_root_dir)) {
+        fs::path path_to_del(m_root_dir.c_str());
+        fs::remove_all(path_to_del);
+    }
+
+    fs::path top_dir_path(m_root_dir.ToStdWstring());
+    fs::create_directory(top_dir_path);
+
+    CreateFolder(_L("Model Pictures"));
+    CreateFolder(_L("Bill of Materials"));
+    CreateFolder(_L("Assembly Guide"));
+    CreateFolder(_L("Others"));
+}
+
+void AuxiliaryModel::Reload(wxString aux_path)
+{
+    fs::path new_aux_path(aux_path.ToStdWstring());
+
+    // Clean
+    fs::remove_all(fs::path(m_root_dir.ToStdWstring()));
+    if (m_root)
+        delete m_root;
+    Cleared();
+
+    // Load from new path
+    std::map<fs::path, AuxiliaryModelNode *> dir_cache;
+    m_root = new AuxiliaryModelNode();
+    m_root_dir = aux_path;
+    fs::directory_iterator iter_end;
+    wxDataViewItemArray items;
+    for (fs::directory_iterator iter(new_aux_path); iter != iter_end; iter++) {
+        wxString path = iter->path().generic_wstring();
+        AuxiliaryModelNode* node = new AuxiliaryModelNode(m_root, path, fs::is_directory(iter->path()));
+        items.Add(wxDataViewItem(node));
+
+        if (node->IsContainer()) {
+            dir_cache.insert({ iter->path(), node });
+        }
+    }
+    ItemsAdded(wxDataViewItem(nullptr), items);
+
+    items.Clear();
+    for (auto dir : dir_cache) {
+        for (fs::directory_iterator iter(dir.first); iter != iter_end; iter++) {
+            if (fs::is_directory(iter->path()))
+                continue;
+
+            wxString file_path = iter->path().generic_wstring();
+            AuxiliaryModelNode* file = new AuxiliaryModelNode(dir.second, file_path, false);
+            items.Add(wxDataViewItem(file));
+        }
+        ItemsAdded(wxDataViewItem(dir.second), items);
+    }
 }
 
 int AuxiliaryModel::Compare(const wxDataViewItem& item1, const wxDataViewItem& item2,
@@ -41,7 +101,7 @@ void AuxiliaryModel::GetValue(wxVariant& variant,
     switch (col)
     {
     case 0:
-        variant = node->title;
+        variant = node->name;
         break;
 
     default:
@@ -58,7 +118,7 @@ bool AuxiliaryModel::SetValue(const wxVariant& variant,
     switch (col)
     {
     case 0:
-        node->title = variant.GetString();
+        node->name = variant.GetString();
         return true;
 
     default:
@@ -77,10 +137,7 @@ wxDataViewItem AuxiliaryModel::GetParent(const wxDataViewItem& item) const
 {
     AuxiliaryModelNode* node = (AuxiliaryModelNode*)item.GetID();
 
-    if (node == m_root || node->GetParent() == m_root)
-        return wxDataViewItem(nullptr);
-
-    return wxDataViewItem((void*)node->GetParent());
+    return wxDataViewItem(GetParent(node));
 }
 
 bool AuxiliaryModel::IsContainer(const wxDataViewItem& item) const
@@ -99,6 +156,9 @@ static unsigned int count = 0;
 unsigned int AuxiliaryModel::GetChildren(const wxDataViewItem& parent,
     wxDataViewItemArray& array) const
 {
+    if (m_root == nullptr)
+        return 0;
+
     AuxiliaryModelNode* node = (AuxiliaryModelNode*)parent.GetID();
     if (!node)
     {
@@ -126,7 +186,7 @@ wxDataViewItem AuxiliaryModel::CreateFolder(wxString name)
                 if (!node->IsContainer())
                     continue;
 
-                if (node->title == folder_name) {
+                if (node->name == folder_name) {
                     exist = true;
                     break;
                 }
@@ -144,21 +204,31 @@ wxDataViewItem AuxiliaryModel::CreateFolder(wxString name)
             if (!node->IsContainer())
                 continue;
 
-            if (node->title == folder_name) {
+            if (node->name == folder_name) {
                 return wxDataViewItem(nullptr);
             }
         }
     }
 
-    AuxiliaryModelNode* folder = new AuxiliaryModelNode(m_root, folder_name, true);
-    m_root->Append(folder);
+    // Create folder in file system
+    fs::path bfs_path((m_root_dir + "\\" + folder_name).ToStdWstring());
+    if (fs::exists(bfs_path)) {
+        bool is_done = fs::remove_all(bfs_path);
+        if (!is_done)
+            return wxDataViewItem(nullptr);
+    }
+    fs::create_directory(bfs_path);
 
+    // Create model node
+    AuxiliaryModelNode* folder = new AuxiliaryModelNode(m_root, bfs_path.generic_wstring(), true);
+
+    // Notify wxDataViewCtrl to update ui
     wxDataViewItem folder_item(folder);
     ItemAdded(wxDataViewItem(NULL), folder_item);
     return folder_item;
 }
 
-wxDataViewItem AuxiliaryModel::ImportFile(AuxiliaryModelNode* sel, wxString& path)
+wxDataViewItem AuxiliaryModel::ImportFile(AuxiliaryModelNode* sel, wxString file_path)
 {
     if (sel == nullptr) {
         sel = m_root;
@@ -166,13 +236,26 @@ wxDataViewItem AuxiliaryModel::ImportFile(AuxiliaryModelNode* sel, wxString& pat
 
     AuxiliaryModelNode* parent = sel->IsContainer() ? sel : sel->GetParent();
     for (AuxiliaryModelNode* node : parent->GetChildren()) {
-        if (node->path == path)
+        if (node->path == file_path)
             return wxDataViewItem(nullptr);
     }
 
-    AuxiliaryModelNode* file = new AuxiliaryModelNode(parent, path, false);
-    parent->Append(file);
+    // Copy imported file to project temp directory
+    fs::path src_bfs_path(file_path.ToStdWstring());
+    wxString dir_path = m_root_dir;
+    if (sel != m_root)
+        dir_path += "\\" + sel->name;
+    dir_path += "\\" + src_bfs_path.filename().generic_wstring();
 
+    fs::copy_file(
+        src_bfs_path,
+        fs::path(dir_path.ToStdWstring()),
+        fs::copy_option::overwrite_if_exists);
+
+    // Update model data
+    AuxiliaryModelNode* file = new AuxiliaryModelNode(parent, dir_path, false);
+
+    // Notify wxDataViewCtrl to update ui
     wxDataViewItem file_item(file);
     if (parent == m_root)
         parent = nullptr;
@@ -187,12 +270,23 @@ void AuxiliaryModel::Delete(const wxDataViewItem& item)
     if (!node)      // happens if item.IsOk()==false
         return;
 
+    bool is_done = false;
+    if (node->IsContainer()) {
+        fs::path bfs_path((m_root_dir + "\\" + node->name).ToStdWstring());
+        is_done = fs::remove_all(bfs_path);
+    }
+    else {
+        fs::path bfs_path(node->path.ToStdWstring());
+        is_done = fs::remove(bfs_path);
+    }
+
+    if (!is_done)
+        return;
+
     node->GetParent()->GetChildren().Remove(node);
 
-    // notify control
     wxDataViewItem parent_item = GetParent(item);
     ItemDeleted(parent_item, item);
-
     delete node;
 }
 
@@ -223,8 +317,26 @@ void AuxiliaryModel::MoveItem(const wxDataViewItem& dropped_item, const wxDataVi
             return;
     }
 
+    // Generate new path
+    wxString new_path = m_root_dir;
+    if (target_folder != m_root)
+        new_path += "\\" + target_folder->name;
+    new_path += "\\" + dragged->name;
+
+    // Perform file movement in file system
+    fs::path bfs_new_path(new_path.ToStdWstring());
+    fs::path bfs_old_path(dragged->path.ToStdWstring());
+    boost::system::error_code err;
+    fs::rename(bfs_old_path, bfs_new_path, err);
+    if (err.failed())
+        return;
+
+    // Reparent dragged node
     wxDataViewItem old_parent_item = this->GetParent(dragged_item);
-    dragged->Reparent(target_folder);
+    this->Reparent(dragged, target_folder);
+    dragged->path = new_path;
+
+    // Notify wxDataViewCtrl to update ui
     ItemDeleted(old_parent_item, wxDataViewItem(dragged));
     ItemAdded(wxDataViewItem(target_folder == m_root ? nullptr : target_folder), wxDataViewItem(dragged));
 }
@@ -244,10 +356,35 @@ bool AuxiliaryModel::Rename(const wxDataViewItem& item, const wxString& name)
         return false;
 
     for (AuxiliaryModelNode* cur_node : parent->GetChildren()) {
-        if (cur_node->title == name)
+        if (cur_node->name == name)
             return false;
     }
 
-    node->title = name;
+    boost::system::error_code err;
+    fs::path old_path((m_root_dir + "\\" + node->name).ToStdWstring());
+    fs::path new_path((m_root_dir + "\\" + name).ToStdWstring());
+    fs::rename(old_path, new_path, err);
+    if (err.failed())
+        return false;
+
+    node->name = name;
     return true;
+}
+
+AuxiliaryModelNode* AuxiliaryModel::GetParent(AuxiliaryModelNode* node) const
+{
+    if (node == m_root || node->GetParent() == m_root)
+        return nullptr;
+
+    return node->GetParent();
+}
+
+void AuxiliaryModel::Reparent(AuxiliaryModelNode* node, AuxiliaryModelNode* new_parent)
+{
+    if (node->IsContainer())
+        return;
+
+    node->GetParent()->GetChildren().Remove(node);
+    node->SetParent(new_parent);
+    new_parent->Append(node);
 }

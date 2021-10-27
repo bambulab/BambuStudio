@@ -3,6 +3,15 @@
 #include "I18N.hpp"
 #include "wxExtensions.hpp"
 
+#include <boost/filesystem.hpp>
+
+#include "GUI_App.hpp"
+#include "Plater.hpp"
+#include "libslic3r/Model.hpp"
+
+using namespace Slic3r::GUI;
+using namespace Slic3r;
+
 AuxiliaryList::AuxiliaryList(wxWindow* parent)
 	: wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_NO_HEADER)
 {
@@ -11,8 +20,8 @@ AuxiliaryList::AuxiliaryList(wxWindow* parent)
 		wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
 	this->AppendColumn(column0);
 
-	m_accessory_model = new AuxiliaryModel();
-	this->AssociateModel(m_accessory_model);
+	m_auxiliary_model = new AuxiliaryModel();
+	this->AssociateModel(m_auxiliary_model);
 	m_sizer = new wxBoxSizer(wxVERTICAL);
 	m_sizer->Add(this, 1, wxEXPAND | wxALL, 5);
 
@@ -46,30 +55,42 @@ AuxiliaryList::AuxiliaryList(wxWindow* parent)
 	EnableDragSource(wxDF_UNICODETEXT);
 	EnableDropTarget(wxDF_UNICODETEXT);
 
+	// Keyboard events
+	Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { this->handle_key_event(event); });
+
+	// Button events
 	nf_btn->Bind(wxEVT_BUTTON, &AuxiliaryList::on_create_folder, this, wxID_NEW);
 	if_btn->Bind(wxEVT_BUTTON, &AuxiliaryList::on_import_file, this, wxID_ADD);
-	of_btn->Bind(wxEVT_BUTTON, &AuxiliaryList::on_open_file, this, wxID_OPEN);
 	del_btn->Bind(wxEVT_BUTTON, &AuxiliaryList::on_delete, this, wxID_DELETE);
 
+	// Dataview events
 	this->Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, &AuxiliaryList::on_context_menu, this);
 	this->Bind(wxEVT_DATAVIEW_ITEM_BEGIN_DRAG, &AuxiliaryList::on_begin_drag, this);
 	this->Bind(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, &AuxiliaryList::on_drop_possible, this);
 	this->Bind(wxEVT_DATAVIEW_ITEM_DROP, &AuxiliaryList::on_drop, this);
 	this->Bind(wxEVT_DATAVIEW_ITEM_EDITING_STARTED, &AuxiliaryList::on_editing_started, this);
 	this->Bind(wxEVT_DATAVIEW_ITEM_EDITING_DONE, &AuxiliaryList::on_editing_done, this);
+
+	// Mouse events
+	wxWindow* win = this->GetMainWindow();
+	win->Bind(wxEVT_LEFT_DCLICK, &AuxiliaryList::on_left_dclick, this);
 }
 
-void AuxiliaryList::create_default_folders()
+void AuxiliaryList::init_auxiliary()
 {
-	m_accessory_model->CreateFolder(_L("Model Pictures"));
-	m_accessory_model->CreateFolder(_L("Bill of Materials"));
-	m_accessory_model->CreateFolder(_L("Assembly Guide"));
-	m_accessory_model->CreateFolder(_L("Others"));
+	Model& model = wxGetApp().plater()->model();
+	std::string temp_path = model.get_auxiliary_file_temp_path();
+
+	m_auxiliary_model->Init(temp_path);
 }
 
-void AuxiliaryList::do_create_folder()
+void AuxiliaryList::create_new_folder()
 {
-	wxDataViewItem folder_item = m_accessory_model->CreateFolder();
+	wxDataViewItem folder_item = m_auxiliary_model->CreateFolder(wxEmptyString);
+	AuxiliaryModelNode* folder = (AuxiliaryModelNode*)folder_item.GetID();
+	if (folder == nullptr)
+		return;
+
 	Select(folder_item);
 
 	wxDataViewColumn* col = GetColumn(0);
@@ -84,16 +105,15 @@ void AuxiliaryList::do_import_file(AuxiliaryModelNode* folder)
 	if (folder == nullptr || !folder->IsContainer())
 		return;
 
-	wxString path;
+	wxString src_path;
+	wxString dst_path;
 	wxFileDialog dialog(this, _L("Choose one file"), wxEmptyString, wxEmptyString,
 		wxFileSelectorDefaultWildcardStr, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 	if (dialog.ShowModal() == wxID_OK) {
-		path = dialog.GetPath();
-		wxDataViewItem file_item = m_accessory_model->ImportFile(folder, path);
+		wxDataViewItem file_item = m_auxiliary_model->ImportFile(folder, dialog.GetPath());
 		AuxiliaryModelNode* file_node = (AuxiliaryModelNode*)file_item.GetID();
-
 		if (file_node != nullptr) {
-			if (!m_accessory_model->IsOrphan(file_item)) {
+			if (!m_auxiliary_model->IsOrphan(file_item)) {
 				Expand(wxDataViewItem(file_node->GetParent()));
 			}
 			Select(file_item);
@@ -103,7 +123,7 @@ void AuxiliaryList::do_import_file(AuxiliaryModelNode* folder)
 
 void AuxiliaryList::on_create_folder(wxCommandEvent& evt)
 {
-	do_create_folder();
+	create_new_folder();
 }
 
 void AuxiliaryList::on_import_file(wxCommandEvent& evt)
@@ -115,7 +135,7 @@ void AuxiliaryList::on_import_file(wxCommandEvent& evt)
 
 	AuxiliaryModelNode* folder_node = sel_node;
 	if (!folder_node->IsContainer()) {
-		wxDataViewItem folder_item = m_accessory_model->GetParent(sel_item);
+		wxDataViewItem folder_item = m_auxiliary_model->GetParent(sel_item);
 		folder_node = (AuxiliaryModelNode*)folder_item.GetID();
 
 		if (folder_node == nullptr)
@@ -125,18 +145,9 @@ void AuxiliaryList::on_import_file(wxCommandEvent& evt)
 	do_import_file(folder_node);
 }
 
-void AuxiliaryList::on_open_file(wxCommandEvent& evt)
-{
-	wxDataViewItem sel_item = this->GetSelection();
-	AuxiliaryModelNode* sel = (AuxiliaryModelNode*)sel_item.GetID();
-	if (sel != nullptr && !sel->IsContainer()) {
-		wxLaunchDefaultApplication(sel->path, 0);
-	}
-}
-
 void AuxiliaryList::on_delete(wxCommandEvent& evt)
 {
-	m_accessory_model->Delete(this->GetSelection());
+	m_auxiliary_model->Delete(this->GetSelection());
 }
 
 void AuxiliaryList::on_context_menu(wxDataViewEvent& evt)
@@ -148,7 +159,7 @@ void AuxiliaryList::on_context_menu(wxDataViewEvent& evt)
 		append_menu_item(menu, wxID_ANY, _L("New Folder"), wxEmptyString,
 			[this](wxCommandEvent&)
 			{
-				do_create_folder();
+				create_new_folder();
 			});
 	}
 	else if (node->IsContainer()) {
@@ -169,7 +180,7 @@ void AuxiliaryList::on_context_menu(wxDataViewEvent& evt)
 		append_menu_item(menu, wxID_ANY, _L("Delete"), wxEmptyString,
 			[this, item](wxCommandEvent&)
 			{
-				m_accessory_model->Delete(item);
+				m_auxiliary_model->Delete(item);
 			});
 	}
 	else {
@@ -181,7 +192,7 @@ void AuxiliaryList::on_context_menu(wxDataViewEvent& evt)
 		append_menu_item(menu, wxID_ANY, _L("Delete"), wxEmptyString,
 			[this, item](wxCommandEvent&)
 			{
-				m_accessory_model->Delete(item);
+				m_auxiliary_model->Delete(item);
 			});
 	}
 
@@ -210,7 +221,7 @@ void AuxiliaryList::on_drop_possible(wxDataViewEvent& evt)
 
 void AuxiliaryList::on_drop(wxDataViewEvent& evt)
 {
-	m_accessory_model->MoveItem(evt.GetItem(), m_dragged_item);
+	m_auxiliary_model->MoveItem(evt.GetItem(), m_dragged_item);
 
 	Expand(evt.GetItem());
 	Select(m_dragged_item);
@@ -223,10 +234,25 @@ void AuxiliaryList::on_editing_started(wxDataViewEvent& evt)
 
 void AuxiliaryList::on_editing_done(wxDataViewEvent& evt)
 {
-	wxVariant value = evt.GetValue();
-	wxString name = value.GetString();
-
-	bool is_done = m_accessory_model->Rename(evt.GetItem(), name);
+	bool is_done = m_auxiliary_model->Rename(evt.GetItem(), evt.GetValue().GetString());
 	if (!is_done)
 		evt.Veto();
+}
+
+void AuxiliaryList::on_left_dclick(wxMouseEvent& evt)
+{
+	wxDataViewItem sel_item = this->GetSelection();
+	AuxiliaryModelNode* sel = (AuxiliaryModelNode*)sel_item.GetID();
+	if (sel != nullptr && !sel->IsContainer()) {
+		wxLaunchDefaultApplication(sel->path, 0);
+	}
+	else {
+		evt.Skip();
+	}
+}
+
+void AuxiliaryList::handle_key_event(wxKeyEvent& evt)
+{
+	if (evt.GetKeyCode() == WXK_DELETE || evt.GetKeyCode() == WXK_BACK)
+		m_auxiliary_model->Delete(this->GetSelection());
 }

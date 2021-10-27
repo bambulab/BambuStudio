@@ -13,30 +13,29 @@
 class AuxiliaryModelNode;
 WX_DEFINE_ARRAY_PTR(AuxiliaryModelNode*, AuxiliaryModelNodePtrArray);
 
+namespace fs = boost::filesystem;
+
 class AuxiliaryModelNode
 {
 public:
     AuxiliaryModelNode()
     {
         m_parent = NULL;
-        title = "";
+        name = "";
         m_container = true;
         m_root = true;
     }
 
-    AuxiliaryModelNode(AuxiliaryModelNode* parent, const wxString& txt, bool is_container)
+    AuxiliaryModelNode(AuxiliaryModelNode* parent, const wxString& abs_path, bool is_container)
     {
         m_parent = parent;
         m_container = is_container;
         m_root = false;
-        if (!m_container) {
-            path = txt;
-            boost::filesystem::path path_obj(path.ToStdWstring());
-            title = path_obj.filename().wstring();
-        }
-        else {
-            title = txt;
-        }
+        path = abs_path;
+        fs::path path_obj(path.ToStdWstring());
+        name = path_obj.filename().wstring();
+
+        parent->Append(this);
     }
 
     ~AuxiliaryModelNode()
@@ -59,12 +58,12 @@ public:
     {
         return m_parent;
     }
-    void Reparent(AuxiliaryModelNode* parent)
+
+    void SetParent(AuxiliaryModelNode* parent)
     {
-        m_parent->GetChildren().Remove(this);
-        this->m_parent = parent;
-        parent->Append(this);
+        m_parent = parent;
     }
+
     AuxiliaryModelNodePtrArray& GetChildren()
     {
         return m_children;
@@ -87,7 +86,7 @@ public:
     }
 
 public:
-    wxString    title;
+    wxString    name;
     wxString    path;
 
 private:
@@ -109,11 +108,16 @@ public:
 
     // helper methods to change the model
     wxDataViewItem CreateFolder(wxString name = wxEmptyString);
-    wxDataViewItem ImportFile(AuxiliaryModelNode* sel, wxString& path);
+    wxDataViewItem ImportFile(AuxiliaryModelNode* sel, wxString file_path);
     void Delete(const wxDataViewItem& item);
     void MoveItem(const wxDataViewItem& dropped_item, const wxDataViewItem& dragged_item);
     bool IsOrphan(const wxDataViewItem& item);
     bool Rename(const wxDataViewItem& item, const wxString& name);
+    AuxiliaryModelNode* GetParent(AuxiliaryModelNode* node) const;
+    void Reparent(AuxiliaryModelNode* node, AuxiliaryModelNode* new_parent);
+
+    void Init(wxString aux_path);
+    void Reload(wxString aux_path);
 
     // override sorting to always sort branches ascendingly
 
@@ -124,14 +128,11 @@ public:
 
     virtual unsigned int GetColumnCount() const wxOVERRIDE
     {
-        return 6;
+        return 1;
     }
 
     virtual wxString GetColumnType(unsigned int col) const wxOVERRIDE
     {
-        if (col == 2)
-            return "long";
-
         return "string";
     }
 
@@ -150,6 +151,7 @@ public:
 
 private:
     AuxiliaryModelNode* m_root;
+    wxString m_root_dir;
 };
 
 #endif // slic3r_GUI_AuxiliaryDataViewModel_hpp_
