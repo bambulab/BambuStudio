@@ -498,6 +498,7 @@ private:
     GLToolbar m_undoredo_toolbar;
     mutable GLToolbar m_print_flow_toolbar;
     mutable GLToolbar m_print_select_toolbar;
+    mutable GLToolbar m_select_plate_toolbar;
     mutable GLToolbar m_assemble_view_toolbar;
     mutable int m_print_select{ ePrintAll };
     mutable int m_slice_select{ eSliceAll };
@@ -754,6 +755,7 @@ public:
     //BBS: GUI refactor: GLToolbar
     void enable_print_flow_toolbar(bool enable);
     void enable_print_select_toolbar(bool enable);
+    void enable_select_plate_toolbar(bool enable);
     void enable_assemble_view_toolbar(bool enable);
     void enable_undoredo_toolbar(bool enable);
     void enable_dynamic_background(bool enable);
@@ -831,6 +833,7 @@ public:
     void on_mouse(wxMouseEvent& evt);
     void on_paint(wxPaintEvent& evt);
     void on_set_focus(wxFocusEvent& evt);
+    void on_kill_focus(wxFocusEvent& evt);
 
     Size get_canvas_size() const;
     Vec2d get_local_mouse_position() const;
@@ -969,6 +972,8 @@ private:
     //BBS: GUI refactor: GLToolbar
     bool _init_print_flow_toolbar();
     bool _init_print_select_toolbar();
+    bool _init_select_plate_toolbar();
+    bool _update_select_plate_toolbar();
     bool _init_assemble_view_toolbar();
     bool _init_undoredo_toolbar();
     // BBS
@@ -1010,6 +1015,7 @@ private:
     void _render_main_toolbar();
     //BBS: GUI refactor: GLToolbar
     void _render_print_toolbar() const;
+    void _render_select_plate_toolbar() const;
     void _render_assemble_view_toolbar() const;
     void _render_undoredo_toolbar();
     void _render_collapse_toolbar() const;

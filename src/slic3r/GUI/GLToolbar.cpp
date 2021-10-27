@@ -41,6 +41,7 @@ wxDEFINE_EVENT(EVT_GLTOOLBAR_SPLIT_OBJECTS, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLTOOLBAR_SPLIT_VOLUMES, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLTOOLBAR_LAYERSEDITING, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLTOOLBAR_FILLCOLOR, IntEvent);
+wxDEFINE_EVENT(EVT_GLTOOLBAR_SELECT_SLICED_PLATE, wxCommandEvent);
 
 wxDEFINE_EVENT(EVT_GLVIEWTOOLBAR_3D, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLVIEWTOOLBAR_PREVIEW, SimpleEvent);
@@ -80,6 +81,9 @@ GLToolbarItem::GLToolbarItem(GLToolbarItem::EType type, const GLToolbarItem::Dat
     , m_last_action_type(Undefined)
     , m_highlight_state(NotHighlighted)
 {
+    m_data.image_data = data.image_data;
+    m_data.image_width = data.image_width;
+    m_data.image_height = data.image_height;
 }
 
 bool GLToolbarItem::update_visibility()
@@ -124,7 +128,7 @@ int GLToolbarItem::generate_texture(wxFont& font)
     int ret = 0;
     bool result;
 
-    if (m_type != ActionWithText)
+    if (m_type != ActionWithText && m_type != ActionWithTextImage)
         return -1;
 
     result = m_data.text_texture.generate_from_text_string(m_data.button_text, font);
@@ -134,6 +138,19 @@ int GLToolbarItem::generate_texture(wxFont& font)
     return ret;
 }
 
+int GLToolbarItem::generate_image_texture()
+{
+    int ret = 0;
+    bool result = false;
+    if (m_type != ActionWithTextImage)
+        return -1;
+
+    result = m_data.image_texture.load_from_raw_data(m_data.image_data, m_data.image_width, m_data.image_height);
+    if (!result)
+        ret = -1;
+
+    return ret;
+}
 
 void GLToolbarItem::render(unsigned int tex_id, float left, float right, float bottom, float top, unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const
 {
@@ -166,6 +183,21 @@ void GLToolbarItem::render(unsigned int tex_id, float left, float right, float b
 
     if (is_pressed())
     {
+        if ((m_last_action_type == Left) && m_data.left.can_render())
+            m_data.left.render_callback(left, right, bottom, top);
+        else if ((m_last_action_type == Right) && m_data.right.can_render())
+            m_data.right.render_callback(left, right, bottom, top);
+    }
+}
+
+void GLToolbarItem::render_image(unsigned int tex_id, float left, float right, float bottom, float top, unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const
+{
+    GLTexture::Quad_UVs image_uvs = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
+    //GLTexture::Quad_UVs image_uvs = { { 0.0f, 1.0f }, { 1.0f, 1.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f } };
+
+    GLTexture::render_sub_texture(tex_id, left, right, bottom, top, image_uvs);
+
+    if (is_pressed()) {
         if ((m_last_action_type == Left) && m_data.left.can_render())
             m_data.left.render_callback(left, right, bottom, top);
         else if ((m_last_action_type == Right) && m_data.right.can_render())
@@ -297,6 +329,15 @@ void GLToolbar::set_icons_size(float size)
     }
 }
 
+void GLToolbar::set_text_size(float size)
+{
+    if (m_layout.text_size != size)
+    {
+        m_layout.text_size = size;
+        m_layout.dirty = true;
+    }
+}
+
 void GLToolbar::set_scale(float scale)
 {
     if (m_layout.scale != scale) {
@@ -315,6 +356,13 @@ bool GLToolbar::add_item(const GLToolbarItem::Data& data, GLToolbarItem::EType t
         return false;
 
     m_items.push_back(item);
+    m_layout.dirty = true;
+    return true;
+}
+
+bool GLToolbar::del_all_item()
+{
+    m_items.clear();
     m_layout.dirty = true;
     return true;
 }
@@ -617,6 +665,8 @@ float GLToolbar::get_width_horizontal() const
             size += (float)m_layout.icons_size;
             if (m_items[i]->is_action_with_text())
                 size += m_items[i]->get_extra_size_ratio() * m_layout.icons_size;
+            if (m_items[i]->is_action_with_text_image())
+                size += m_layout.text_size;
         }
     }
 
@@ -637,6 +687,11 @@ float GLToolbar::get_width_vertical() const
             float temp_size = m_items[i]->get_extra_size_ratio() * m_layout.icons_size;
 
             max_extra_text_size = (temp_size > max_extra_text_size) ? temp_size : max_extra_text_size;
+        }
+
+        if (m_items[i]->is_action_with_text_image())
+        {
+            max_extra_text_size = m_layout.text_size;
         }
     }
 
@@ -1311,10 +1366,6 @@ void GLToolbar::render_arrow(const GLCanvas3D& parent, GLToolbarItem* highlighte
 
 void GLToolbar::render_horizontal(const GLCanvas3D& parent)
 {
-    unsigned int tex_id = m_icons_texture.get_id();
-    int tex_width = m_icons_texture.get_width();
-    int tex_height = m_icons_texture.get_height();
-
     float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
     float factor = inv_zoom * m_layout.scale;
 
@@ -1338,9 +1389,6 @@ void GLToolbar::render_horizontal(const GLCanvas3D& parent)
     left += scaled_border;
     top -= scaled_border;
 
-    if ((tex_id == 0) || (tex_width <= 0) || (tex_height <= 0))
-        return;
-
     // renders icons
     for (const GLToolbarItem* item : m_items)
     {
@@ -1351,7 +1399,15 @@ void GLToolbar::render_horizontal(const GLCanvas3D& parent)
             left += separator_stride;
         else
         {
-            item->render(tex_id, left, left + scaled_icons_size, top - scaled_icons_size, top, (unsigned int)tex_width, (unsigned int)tex_height, (unsigned int)(m_layout.icons_size * m_layout.scale));
+            //BBS GUI refa
+            if (!item->is_action_with_text_image()) {
+                unsigned int tex_id = m_icons_texture.get_id();
+                int tex_width = m_icons_texture.get_width();
+                int tex_height = m_icons_texture.get_height();
+                if ((tex_id == 0) || (tex_width <= 0) || (tex_height <= 0))
+                    return;
+                item->render(tex_id, left, left + scaled_icons_size, top - scaled_icons_size, top, (unsigned int)tex_width, (unsigned int)tex_height, (unsigned int)(m_layout.icons_size * m_layout.scale));
+            }
             //BBS: GUI refactor: GLToolbar
             if (item->is_action_with_text())
             {
@@ -1366,10 +1422,6 @@ void GLToolbar::render_horizontal(const GLCanvas3D& parent)
 
 void GLToolbar::render_vertical(const GLCanvas3D& parent)
 {
-    unsigned int tex_id = m_icons_texture.get_id();
-    int tex_width = m_icons_texture.get_width();
-    int tex_height = m_icons_texture.get_height();
-
     float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
     float factor = inv_zoom * m_layout.scale;
 
@@ -1393,9 +1445,6 @@ void GLToolbar::render_vertical(const GLCanvas3D& parent)
     left += scaled_border;
     top -= scaled_border;
 
-    if (tex_id == 0 || tex_width <= 0 || tex_height <= 0)
-        return;
-
     // renders icons
     for (const GLToolbarItem* item : m_items) {
         if (!item->is_visible())
@@ -1404,12 +1453,37 @@ void GLToolbar::render_vertical(const GLCanvas3D& parent)
         if (item->is_separator())
             top -= separator_stride;
         else {
-            item->render(tex_id, left, left + scaled_icons_size, top - scaled_icons_size, top, (unsigned int)tex_width, (unsigned int)tex_height, (unsigned int)(m_layout.icons_size * m_layout.scale));
-            //BBS: GUI refactor: GLToolbar
+            unsigned int tex_id;
+            int tex_width, tex_height;
+            if (item->is_action_with_text_image()) {
+                float scaled_text_size = m_layout.text_size * factor;
+                float scaled_text_width = item->get_extra_size_ratio() * scaled_icons_size;
+                float scaled_text_border = 2.5;
+                float scaled_text_height = scaled_icons_size / 2.0f;
+                item->render_text(left, left + scaled_text_size, top - scaled_text_border - scaled_text_height, top - scaled_text_border);
+
+                float image_left = left + scaled_text_size;
+                tex_id = item->m_data.image_texture.get_id();
+                tex_width = item->m_data.image_texture.get_width();
+                tex_height = item->m_data.image_texture.get_height();
+                if ((tex_id == 0) || (tex_width <= 0) || (tex_height <= 0))
+                    return;
+                item->render_image(tex_id, image_left, image_left + scaled_icons_size, top - scaled_icons_size, top, (unsigned int)tex_width, (unsigned int)tex_height, (unsigned int)(m_layout.icons_size * m_layout.scale));
+            }
+            else {
+                tex_id = m_icons_texture.get_id();
+                tex_width = m_icons_texture.get_width();
+                tex_height = m_icons_texture.get_height();
+                if ((tex_id == 0) || (tex_width <= 0) || (tex_height <= 0))
+                    return;
+                item->render(tex_id, left, left + scaled_icons_size, top - scaled_icons_size, top, (unsigned int)tex_width, (unsigned int)tex_height, (unsigned int)(m_layout.icons_size * m_layout.scale));
+                //BBS: GUI refactor: GLToolbar
+            }
             if (item->is_action_with_text())
             {
-                float scaled_text_size = item->get_extra_size_ratio() * scaled_icons_size;
-                item->render_text(left + scaled_icons_size, left + scaled_icons_size + scaled_text_size, top - scaled_icons_size, top);
+                float scaled_text_width = item->get_extra_size_ratio() * scaled_icons_size;
+                float scaled_text_height = scaled_icons_size;
+                item->render_text(left + scaled_icons_size, left + scaled_icons_size + scaled_text_width, top - scaled_text_height, top);
             }
             top -= icon_stride;
         }
@@ -1521,8 +1595,26 @@ int GLToolbar::generate_button_text_textures(wxFont& font)
         {
             ret |= item->generate_texture(font);
         }
+
+        if (item->is_action_with_text_image())
+        {
+            ret |= item->generate_texture(font);
+        }
     }
 
+    return ret;
+}
+
+int GLToolbar::generate_image_textures()
+{
+    int ret = 0;
+    for (int i = 0; i < (int)m_items.size(); ++i)
+    {
+        GLToolbarItem* item = m_items[i];
+        if (item->is_action_with_text_image()) {
+            ret |= item->generate_image_texture();
+        }
+    }
     return ret;
 }
 

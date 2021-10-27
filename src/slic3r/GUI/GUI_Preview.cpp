@@ -77,6 +77,7 @@ bool View3D::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig
     //BBS: GUI refactor: GLToolbar
     m_canvas->enable_print_flow_toolbar(false);
     m_canvas->enable_print_select_toolbar(false);
+    m_canvas->enable_select_plate_toolbar(false);
     m_canvas->enable_assemble_view_toolbar(true);
     m_canvas->enable_undoredo_toolbar(false);
     m_canvas->enable_labels(true);
@@ -226,6 +227,7 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Model* model)
     //BBS: GUI refactor: GLToolbar
     m_canvas->enable_print_flow_toolbar(false);
     m_canvas->enable_print_select_toolbar(false);
+    m_canvas->enable_select_plate_toolbar(true);
     m_canvas->enable_assemble_view_toolbar(false);
 
     m_layers_slider_sizer = create_layers_slider_sizer();
@@ -586,6 +588,7 @@ wxBoxSizer* Preview::create_layers_slider_sizer()
             m_layers_slider->UseDefaultColors(true);
         event.Skip();
         });
+    
 
     m_layers_slider->Bind(wxEVT_SCROLL_CHANGED, &Preview::on_layers_slider_scroll_changed, this);
 

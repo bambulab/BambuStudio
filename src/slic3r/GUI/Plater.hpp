@@ -204,6 +204,7 @@ public:
     void show_object_info();
     void show_sliced_info(const bool show);
     void update_sliced_info();
+    void update_platplate_thumbnails();
 
     std::vector<size_t> load_files(const std::vector<boost::filesystem::path>& input_files, bool load_model = true, bool load_config = true, bool imperial_units = false);
     // To be called when providing a list of files to the GUI slic3r on command line.
@@ -410,6 +411,8 @@ public:
     int select_plate_by_hover_id(int hover_id, bool right_click = false);
     //BBS: delete the plate, index= -1 means the current plate
     int delete_plate(int plate_index = -1);
+    //BBS: select the sliced plate by index
+    int select_sliced_plate(int plate_index);
     //BBS: set bed positions
     void set_bed_position(Vec2d& pos);
 

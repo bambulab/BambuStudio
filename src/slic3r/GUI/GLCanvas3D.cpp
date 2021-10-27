@@ -983,6 +983,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
     //BBS: GUI refactor: GLToolbar
     , m_print_flow_toolbar(GLToolbar::Normal, "Print_Flow")
     , m_print_select_toolbar(GLToolbar::Normal, "Print_Select")
+    , m_select_plate_toolbar(GLToolbar::Normal, "Slect_Plate")
     , m_assemble_view_toolbar(GLToolbar::Normal, "Assemble_View")
     , m_undoredo_toolbar(GLToolbar::Normal, "Undo_Redo")
     , m_canvas_type(ECanvasType::CanvasView3D)
@@ -1410,6 +1411,11 @@ void GLCanvas3D::enable_print_select_toolbar(bool enable)
     m_print_select_toolbar.set_enabled(enable);
 }
 
+void GLCanvas3D::enable_select_plate_toolbar(bool enable)
+{
+    m_select_plate_toolbar.set_enabled(enable);
+}
+
 void GLCanvas3D::enable_assemble_view_toolbar(bool enable)
 {
     m_assemble_view_toolbar.set_enabled(enable);
@@ -1515,6 +1521,14 @@ void GLCanvas3D::render()
 
     if (!m_main_toolbar.is_enabled())
         m_gcode_viewer.init();
+
+    // BBS update plate number
+    if (m_select_plate_toolbar.is_enabled()) {
+        PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
+        if (plate_list.get_plate_count() != m_select_plate_toolbar.get_items_count()) {
+            _update_select_plate_toolbar();
+        }
+    }
 
     if (! m_bed.build_volume().valid()) {
         // this happens at startup when no data is still saved under <>\AppData\Roaming\Slic3rPE
@@ -1683,6 +1697,9 @@ void GLCanvas3D::render()
 
         if (tooltip.empty())
             tooltip = m_print_select_toolbar.get_tooltip();
+
+        if (tooltip.empty())
+            tooltip = m_select_plate_toolbar.get_tooltip();
 
         if (tooltip.empty())
             tooltip = m_assemble_view_toolbar.get_tooltip();
@@ -2373,7 +2390,7 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_RIGHT_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_PAINT, &GLCanvas3D::on_paint, this);
         m_canvas->Bind(wxEVT_SET_FOCUS, &GLCanvas3D::on_set_focus, this);
-
+        m_canvas->Bind(wxEVT_KILL_FOCUS, &GLCanvas3D::on_kill_focus, this);
         m_event_handlers_bound = true;
     }
 }
@@ -2403,6 +2420,7 @@ void GLCanvas3D::unbind_event_handlers()
         m_canvas->Unbind(wxEVT_RIGHT_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_PAINT, &GLCanvas3D::on_paint, this);
         m_canvas->Unbind(wxEVT_SET_FOCUS, &GLCanvas3D::on_set_focus, this);
+        m_canvas->Unbind(wxEVT_KILL_FOCUS, &GLCanvas3D::on_kill_focus, this);
 
         m_event_handlers_bound = false;
     }
@@ -2422,6 +2440,7 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     //BBS: GUI refactor: GLToolbar
     m_dirty |= m_print_flow_toolbar.update_items_state();
     m_dirty |= m_print_select_toolbar.update_items_state();
+    m_dirty |= m_select_plate_toolbar.update_items_state();
     m_dirty |= m_assemble_view_toolbar.update_items_state();
     m_dirty |= m_undoredo_toolbar.update_items_state();
     // BBS
@@ -3150,6 +3169,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         return;
     }
 
+    if (m_select_plate_toolbar.on_mouse(evt, *this)) {
+        if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
+            mouse_up_cleanup();
+        m_mouse.set_start_position_3D_as_invalid();
+        return;
+    }
+
     if (m_assemble_view_toolbar.on_mouse(evt, *this)) {
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
@@ -3598,8 +3624,18 @@ void GLCanvas3D::on_paint(wxPaintEvent& evt)
 void GLCanvas3D::on_set_focus(wxFocusEvent& evt)
 {
     m_tooltip_enabled = false;
+    if (m_canvas_type == ECanvasType::CanvasPreview) {
+        _update_select_plate_toolbar();
+    }
     _refresh_if_shown_on_screen();
     m_tooltip_enabled = true;
+}
+
+void GLCanvas3D::on_kill_focus(wxFocusEvent& evt)
+{
+    if (m_canvas_type == ECanvasType::CanvasView3D) {
+        wxGetApp().plater()->update_platplate_thumbnails();
+    }
 }
 
 Size GLCanvas3D::get_canvas_size() const
@@ -4942,6 +4978,9 @@ bool GLCanvas3D::_init_toolbars()
     if (!_init_print_select_toolbar())
         return false;
 
+    if (!_init_select_plate_toolbar())
+        return false;
+
     if (!_init_assemble_view_toolbar())
         return false;
 
@@ -5547,7 +5586,7 @@ bool GLCanvas3D::_init_print_select_toolbar()
 
 #ifdef __WXMSW__
     // set scaled application normal font as default font 
-    wxFont font = wxGetApp().normal_font();
+    wxFont font = wxGetApp().small_font();
 #else
     // select default font
     float scale = this->get_canvas_size().get_scale_factor();
@@ -5564,6 +5603,100 @@ bool GLCanvas3D::_init_print_select_toolbar()
     if (m_print_select_toolbar.generate_button_text_textures(font))
     {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": generate texture failed\n";
+        return false;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Finished Successfully\n";
+    return true;
+}
+
+bool GLCanvas3D::_init_select_plate_toolbar()
+{
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": enter,  m_select_plate_toolbar.is_enabled=" << m_select_plate_toolbar.is_enabled();
+    if (!m_select_plate_toolbar.is_enabled())
+        return true;
+
+    BackgroundTexture::Metadata background_data;
+    background_data.filename = "select_platertoolbar_background.png";
+    background_data.left = 16;
+    background_data.top = 16;
+    background_data.right = 16;
+    background_data.bottom = 16;
+
+    if (!m_select_plate_toolbar.init(background_data))
+    {
+        // unable to init the toolbar texture, disable it
+        m_select_plate_toolbar.set_enabled(false);
+        return true;
+    }
+
+    m_select_plate_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
+    m_select_plate_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Left);
+    m_select_plate_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
+    m_select_plate_toolbar.set_border(5.0f);
+    m_select_plate_toolbar.set_separator_size(10);
+    m_select_plate_toolbar.set_gap_size(4);
+    m_select_plate_toolbar.set_text_size(15);
+    
+
+    return _update_select_plate_toolbar();
+}
+
+bool GLCanvas3D::_update_select_plate_toolbar()
+{
+    m_select_plate_toolbar.del_all_item();
+
+    PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
+
+    for (int i = 0; i < plate_list.get_plate_count(); i++) {
+        GLToolbarItem::Data item;
+        item.name = (boost::format("plate %1%") % (i + 1)).str();
+        item.tooltip = (boost::format("plate %1%") % (i + 1)).str();
+        item.sprite_id = i;
+        item.left.toggable = false;
+        item.left.action_callback = [this, i]() {
+            wxCommandEvent* evt = new wxCommandEvent(EVT_GLTOOLBAR_SELECT_SLICED_PLATE);
+            evt->SetInt(i);
+            wxQueueEvent(wxGetApp().plater(), evt);
+        };
+        item.left.render_callback   = GLToolbarItem::Default_Render_Callback;
+        item.visible = true;
+        item.visibility_callback = [this]()->bool { return (m_print_select == ePrintAll); };
+        item.extra_size_ratio = 0.0f;
+        item.button_text = (boost::format("%1%") % (i + 1)).str();
+        item.image_data = plate_list.get_plate(i)->thumbnail_data.pixels;
+        item.image_width = m_select_plate_toolbar.get_icons_size();
+        item.image_height = m_select_plate_toolbar.get_icons_size();
+
+        if (!m_select_plate_toolbar.add_item(item, GLToolbarItem::ActionWithTextImage))
+            return false;
+    }
+
+#ifdef __WXMSW__
+    // set scaled application normal font as default font 
+    wxFont font = wxGetApp().small_font();
+#else
+    // select default font
+    float scale = this->get_canvas_size().get_scale_factor();
+#if ENABLE_RETINA_GL
+    // For non-visible or non-created window getBackingScaleFactor function return 0.0 value.
+    // And using of the zero scale causes a crash, when we trying to draw text to the (0,0) rectangle
+    // https://github.com/prusa3d/PrusaSlicer/issues/3916
+    if (scale <= 0.0f)
+        scale = 1.0;
+#endif
+    wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Scale(scale);
+#endif
+
+    if (m_select_plate_toolbar.generate_button_text_textures(font))
+    {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": generate texture failed\n";
+        return false;
+    }
+
+    if (m_select_plate_toolbar.generate_image_textures())
+    {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": generate image texture failed";
         return false;
     }
 
@@ -6405,6 +6538,7 @@ void GLCanvas3D::_render_overlays()
     _render_main_toolbar();
     //BBS: GUI refactor: GLToolbar
     _render_print_toolbar();
+    _render_select_plate_toolbar();
     _render_undoredo_toolbar();
     _render_collapse_toolbar();
     _render_assemble_view_toolbar();
@@ -6572,6 +6706,20 @@ void GLCanvas3D::_render_print_toolbar() const
         m_print_select_toolbar.set_position(top, left);
         m_print_select_toolbar.render(*this);
     }
+}
+
+void GLCanvas3D::_render_select_plate_toolbar() const
+{
+    if (!m_select_plate_toolbar.is_enabled())
+        return;
+
+    // places the toolbar on the top_left corner of the 3d scene
+    Size cnv_size = get_canvas_size();
+        float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
+    float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
+    float left = -0.5f * cnv_size.get_width() * inv_zoom;
+    m_select_plate_toolbar.set_position(top, left);
+    m_select_plate_toolbar.render(*this);
 }
 
 //BBS: GUI refactor: GLToolbar adjust

@@ -149,8 +149,9 @@ public:
 
     //static const int plate_x_offset = 20; //mm
     //static const double plate_x_gap = 0.2;
-    static const int plate_thumbnail_width = 1920; //pixels
-    static const int plate_thumbnail_height = 1080; //pixels
+    ThumbnailData thumbnail_data;
+    static const int plate_thumbnail_width = 40; //pixels
+    static const int plate_thumbnail_height = 40; //pixels
 
     //set the plate's index
     void set_index(int index);

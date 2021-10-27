@@ -41,6 +41,7 @@ wxDECLARE_EVENT(EVT_GLTOOLBAR_SPLIT_OBJECTS, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLTOOLBAR_SPLIT_VOLUMES, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLTOOLBAR_LAYERSEDITING, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLTOOLBAR_FILLCOLOR, IntEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_SELECT_SLICED_PLATE, wxCommandEvent);
 
 wxDECLARE_EVENT(EVT_GLVIEWTOOLBAR_3D, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLVIEWTOOLBAR_PREVIEW, SimpleEvent);
@@ -62,6 +63,7 @@ public:
         Separator,
         //BBS: GUI refactor: GLToolbar
         ActionWithText,
+        ActionWithTextImage,
         Num_Types
     };
 
@@ -113,6 +115,10 @@ public:
         std::string button_text;
         float extra_size_ratio;
         GLTexture text_texture;
+        GLTexture image_texture;
+        std::vector<unsigned char> image_data;
+        unsigned int image_width;
+        unsigned int image_height;
         //std::vector<unsigned char> pixel_data;
         //mutable bool texture_dirty;
 
@@ -198,14 +204,17 @@ public:
     //BBS: GUI refactor: GLToolbar
     bool is_action() const { return m_type == Action; }
     bool is_action_with_text() const { return m_type == ActionWithText; }
+    bool is_action_with_text_image() const { return m_type == ActionWithTextImage; }
     const std::string& get_button_text() const { return m_data.button_text; }
     void set_button_text(const std::string& text) { m_data.button_text = text; }
     float get_extra_size_ratio() const { return m_data.extra_size_ratio; }
     void set_extra_size_ratio(const float ratio) { m_data.extra_size_ratio = ratio; }
     void render_text(float left, float right, float bottom, float top) const;
     int generate_texture(wxFont& font);
+    int generate_image_texture();
 
     void render(unsigned int tex_id, float left, float right, float bottom, float top, unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const;
+    void render_image(unsigned int tex_id, float left, float right, float bottom, float top, unsigned int tex_width, unsigned int tex_height, unsigned int icon_size) const;
 private:
     void set_visible(bool visible) { m_data.visible = visible; }
 
@@ -280,6 +289,9 @@ public:
         float separator_size;
         float gap_size;
         float icons_size;
+        float text_size;
+        float image_width;
+        float image_height;
         float scale;
 
         float width;
@@ -297,6 +309,8 @@ private:
     bool m_enabled;
     GLTexture m_icons_texture;
     bool m_icons_texture_dirty;
+    mutable GLTexture m_images_texture;
+    mutable bool m_images_texture_dirty;
     BackgroundTexture m_background_texture;
     BackgroundTexture m_arrow_texture;
     Layout m_layout;
@@ -339,6 +353,7 @@ public:
     void set_separator_size(float size);
     void set_gap_size(float size);
     void set_icons_size(float size);
+    void set_text_size(float size);
     void set_scale(float scale);
 
     bool is_enabled() const { return m_enabled; }
@@ -347,7 +362,9 @@ public:
     //BBS: GUI refactor: GLToolbar
     bool add_item(const GLToolbarItem::Data& data, GLToolbarItem::EType type = GLToolbarItem::Action);
     bool add_separator();
+    bool del_all_item();
 
+    float get_icons_size() { return m_layout.icons_size; }
     float get_width();
     float get_height();
 
@@ -384,6 +401,7 @@ public:
 
     //BBS: GUI refactor: GLToolbar
     int generate_button_text_textures(wxFont& font);
+    int generate_image_textures();
     float get_scaled_icon_size();
 
 private:

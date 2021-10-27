@@ -1868,6 +1868,7 @@ struct Plater::priv
     void on_action_print_plate(SimpleEvent&);
     void on_action_print_all(SimpleEvent&);
     void on_action_export_gcode(SimpleEvent&);
+    void on_action_select_sliced_plate(wxCommandEvent& evt);
 
     void on_wipetower_moved(Vec3dEvent&);
     void on_wipetower_rotated(Vec3dEvent&);
@@ -2201,6 +2202,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLTOOLBAR_SLICE_PLATE, &priv::on_action_slice_plate, this);
         q->Bind(EVT_GLTOOLBAR_SLICE_ALL, &priv::on_action_slice_all, this);
         q->Bind(EVT_GLTOOLBAR_PRINT_PLATE, &priv::on_action_print_plate, this);
+        q->Bind(EVT_GLTOOLBAR_SELECT_SLICED_PLATE, &priv::on_action_select_sliced_plate, this);
         q->Bind(EVT_GLTOOLBAR_PRINT_ALL, &priv::on_action_print_all, this);
         q->Bind(EVT_GLTOOLBAR_EXPORT_GCODE, &priv::on_action_export_gcode, this);
         //q->Bind(EVT_GLVIEWTOOLBAR_ASSEMBLE, [q](SimpleEvent&) { q->select_view_3D("Assemble"); });
@@ -4472,6 +4474,14 @@ void Plater::priv::on_action_print_plate(SimpleEvent&)
     q->send_gcode();
 }
 
+void Plater::priv::on_action_select_sliced_plate(wxCommandEvent &evt)
+{
+    if (q != nullptr) {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received select sliced plate event\n" ;
+    }
+    q->select_sliced_plate(evt.GetInt());
+}
+
 void Plater::priv::on_action_print_all(SimpleEvent&)
 {
     if (q != nullptr) {
@@ -5641,6 +5651,17 @@ void Plater::show_sliced_info(const bool show)
 void Plater::update_sliced_info()
 {
     p->update_sliced_info();
+}
+
+void Plater::update_platplate_thumbnails()
+{
+    for (int i = 0; i < get_partplate_list().get_plate_count(); i++)
+    {
+        PartPlate* plate = get_partplate_list().get_plate(i);
+        if (!plate->empty()) {
+            get_current_canvas3D()->render_thumbnail(plate->thumbnail_data, plate->plate_thumbnail_width, plate->plate_thumbnail_height, false, false, true, true, i);
+        }
+    }
 }
 
 std::vector<size_t> Plater::load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool imperial_units /*= false*/) { return p->load_files(input_files, load_model, load_config, imperial_units); }
@@ -7431,7 +7452,6 @@ PartPlateList& Plater::get_partplate_list()
 int Plater::select_plate(int plate_index)
 {
     int ret;
-
     take_snapshot(_L("select partplate"));
     ret = p->partplate_list.select_plate(plate_index);
 
@@ -7489,6 +7509,32 @@ int Plater::select_plate(int plate_index)
                 p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
             }
         }
+    }
+    return ret;
+}
+
+int Plater::select_sliced_plate(int plate_index)
+{
+    int ret = 0;
+    BOOST_LOG_TRIVIAL(trace) << "select_sliced_plate plate_idx=" << plate_index;
+
+    ret = p->partplate_list.select_plate(plate_index);
+    GCodeProcessor::Result* result = p->partplate_list.get_current_slice_result();
+    // if result is valid
+    if (!result->moves.empty()) {
+        /* stop background process */
+        if (p->background_process.get_current_plate()->get_index() != plate_index) {
+            p->background_process.reset();
+        }
+        p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
+        p->preview->reload_print();
+        p->preview->set_as_dirty();
+        return ret;
+    }
+
+    if (p->background_process.get_current_plate()->get_index() != plate_index) {
+        reslice();
+        return ret;
     }
 
     return ret;
