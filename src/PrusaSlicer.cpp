@@ -55,6 +55,7 @@
 
 #include "PrusaSlicer.hpp"
 //BBS: add exception handler for win32
+#include <wx/stdpaths.h>
 #ifdef WIN32
 #include "BaseException.h"
 #endif
@@ -130,6 +131,8 @@ int CLI::run(int argc, char **argv)
 		return 1;
     }
     boost::nowide::cout << "finished setup params, argc="<< argc << std::endl;
+    std::string temp_path = wxStandardPaths::Get().GetTempDir().utf8_str().data(); 
+    set_temporary_dir(temp_path);
 
     m_extra_config.apply(m_config, true);
     m_extra_config.normalize_fdm();
@@ -225,6 +228,7 @@ int CLI::run(int argc, char **argv)
             }
             Model model;
             //BBS: add plate related logic
+            bool load_aux = false;
             boost::nowide::cout << "read model file:" << file << "\n";
             try {
                 // When loading an AMF or 3MF, config is imported as well, including the printer technology.
@@ -233,7 +237,9 @@ int CLI::run(int argc, char **argv)
 
                 //FIXME should we check the version here? // | Model::LoadAttribute::CheckVersion ?
                 is_bbl_3mf = false;
-                model = Model::read_from_file(file, &config, &config_substitutions, Model::LoadAttribute::AddDefaultInstances, &plate_data, &is_bbl_3mf);
+                if (boost::algorithm::iends_with(file, ".3mf") && first_file)
+                    load_aux = true;
+                model = Model::read_from_file(file, &config, &config_substitutions, Model::LoadAttribute::AddDefaultInstances, load_aux, &plate_data, &is_bbl_3mf);
                 if (is_bbl_3mf)
                 {
                     if (!first_file)
@@ -301,6 +307,7 @@ int CLI::run(int argc, char **argv)
     {
         boost::nowide::cout << "merge all the models into one\n";
         Model m;
+        m.set_auxiliary_file_temp_path(m_models[0].get_auxiliary_file_temp_path());
         for (auto& model : m_models)
             for (ModelObject* o : model.objects)
             {

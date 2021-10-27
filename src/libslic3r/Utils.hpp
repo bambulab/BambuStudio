@@ -40,6 +40,12 @@ void set_resources_dir(const std::string &path);
 // Return a full path to the resources directory.
 const std::string& resources_dir();
 
+//BBS: add temp dir
+void set_temporary_dir(const std::string &path);
+const std::string& temporary_dir();
+
+
+
 // Set a path with GUI localization files.
 void set_local_dir(const std::string &path);
 // Return a full path to the localization directory.

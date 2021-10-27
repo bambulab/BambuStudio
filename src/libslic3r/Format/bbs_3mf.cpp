@@ -67,6 +67,9 @@ const std::string LAYER_CONFIG_RANGES_FILE = "Metadata/Prusa_Slicer_layer_config
 const std::string SLA_SUPPORT_POINTS_FILE = "Metadata/Slic3r_PE_sla_support_points.txt";
 const std::string SLA_DRAIN_HOLES_FILE = "Metadata/Slic3r_PE_sla_drain_holes.txt";
 const std::string CUSTOM_GCODE_PER_PRINT_Z_FILE = "Metadata/Prusa_Slicer_custom_gcode_per_print_z.xml";
+const std::string AUXILIARY_DIR = "auxiliaries/";
+
+const unsigned int AUXILIARY_STR_LEN = 12;
 
 static constexpr const char* MODEL_TAG = "model";
 static constexpr const char* RESOURCES_TAG = "resources";
@@ -415,6 +418,7 @@ namespace Slic3r {
         // Version of the 3mf file
         unsigned int m_version;
         bool m_check_version;
+        bool m_load_aux;
 
         XML_Parser m_xml_parser;
         // Error code returned by the application side of the parser. In that case the expat may not reliably deliver the error state
@@ -449,7 +453,7 @@ namespace Slic3r {
         ~_BBS_3MF_Importer();
 
         //BBS: add plate data related logic
-        bool load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version, bool& is_bbl_3mf);
+        bool load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version, bool& is_bbl_3mf, bool load_aux);
 
     private:
         void _destroy_xml_parser();
@@ -476,6 +480,8 @@ namespace Slic3r {
 
         void _extract_print_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, DynamicPrintConfig& config, ConfigSubstitutionContext& subs_context, const std::string& archive_filename);
         bool _extract_model_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model);
+
+        void _extract_auxiliary_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model);
 
         // handlers to parse the .model file
         void _handle_start_model_xml_element(const char* name, const char** attributes);
@@ -593,10 +599,12 @@ namespace Slic3r {
     }
 
     //BBS: add plate data related logic
-    bool _BBS_3MF_Importer::load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version, bool& is_bbl_3mf)
+    bool _BBS_3MF_Importer::load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version, bool& is_bbl_3mf, bool load_aux)
     {
         m_version = 0;
         m_check_version = check_version;
+        //BBS: auxiliary data
+        m_load_aux = load_aux;
         m_model = &model;
         m_unit_factor = 1.0f;
         m_curr_object.reset();
@@ -722,6 +730,11 @@ namespace Slic3r {
                         add_error("Archive does not contain a valid model config");
                         return false;
                     }
+                }
+                else if (boost::algorithm::istarts_with(name, AUXILIARY_DIR)) {
+                    // extract auxiliary directory to temp directory
+                    if (m_load_aux)
+                        _extract_auxiliary_file_from_archive(archive, stat, model);
                 }
             }
         }
@@ -961,6 +974,42 @@ namespace Slic3r {
                 return;
             }
             ConfigBase::load_from_gcode_string_legacy(config, buffer.data(), config_substitutions);
+        }
+    }
+
+    void _BBS_3MF_Importer::_extract_auxiliary_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model)
+    {
+        if (stat.m_uncomp_size > 0) {
+            std::string dest_file;
+            std::string src_file = std::string(stat.m_filename);
+            //aux directory from model
+            boost::filesystem::path dir = boost::filesystem::path(model.get_auxiliary_file_temp_path());
+            if (!boost::filesystem::exists(dir))
+            {
+                boost::filesystem::create_directory(dir);
+            }
+            std::size_t found = src_file.find(AUXILIARY_DIR);
+            if (found != std::string::npos)
+                src_file = src_file.substr(found + AUXILIARY_STR_LEN);
+            else
+                return;
+            if (src_file.find('/') != std::string::npos)
+            {
+                boost::filesystem::path src_path = boost::filesystem::path(src_file);
+                boost::filesystem::path parent_path = src_path.parent_path();
+                std::string temp_path = dir.string() + std::string("/") + parent_path.string();
+                boost::filesystem::path parent_full_path =  boost::filesystem::path(temp_path);
+                if (!boost::filesystem::exists(parent_full_path))
+                    boost::filesystem::create_directory(parent_full_path);
+            }
+            dest_file = dir.string() + std::string("/") + src_file;
+            std::string dest_zip_file = encode_path(dest_file.c_str());
+            mz_bool res = mz_zip_reader_extract_file_to_file(&archive, stat.m_filename, dest_zip_file.c_str(), 0);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % dest_file % stat.m_filename % res;
+            if (res == 0) {
+                add_error("Error while extract auxiliary file to file");
+                return;
+            }
         }
     }
 
@@ -2262,6 +2311,7 @@ namespace Slic3r {
         bool _add_slice_info_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list);
         bool _add_gcode_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list);
         bool _add_custom_gcode_per_print_z_file_to_archive(mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config);
+        bool _add_auxiliary_dir_to_archive(mz_zip_archive& archive, const std::string& aux_dir);
 
         static int convert_instance_id_to_resource_id(const Model& model, int obj_id, int instance_id)
         {
@@ -2412,6 +2462,13 @@ namespace Slic3r {
 
         // Adds gcode files ("Metadata/plate_1.gcode, plate_2.gcode, ...)
         if (!_add_gcode_file_to_archive(archive, model, plate_data_list)) {
+            close_zip_writer(&archive);
+            boost::filesystem::remove(filename);
+            return false;
+        }
+
+        // Adds gcode files ("Metadata/plate_1.gcode, plate_2.gcode, ...)
+        if (!_add_auxiliary_dir_to_archive(archive, model.get_auxiliary_file_temp_path())) {
             close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
@@ -3307,14 +3364,67 @@ bool _BBS_3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_ar
     return true;
 }
 
+bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive& archive, const std::string& aux_dir)
+{
+    bool result = true;
+
+    if (aux_dir.empty()) {
+        //no accessory directories
+        return result;
+    }
+
+    boost::filesystem::path dir = boost::filesystem::path(aux_dir);
+    if (!boost::filesystem::exists(dir))
+    {
+        //no accessory directories
+        return result;
+    }
+
+    //boost file access
+    for (auto &dir_entry : boost::filesystem::directory_iterator(dir))
+    {
+        std::string src_file;
+        std::string dst_in_3mf;
+        if (boost::filesystem::is_directory(dir_entry.path()))
+        {
+            for (auto &subdir_entry : boost::filesystem::directory_iterator(dir_entry.path()))
+            {
+                if (boost::filesystem::is_regular_file(subdir_entry.path()))
+                {
+                    src_file = subdir_entry.path().string();
+                    dst_in_3mf = std::string(AUXILIARY_DIR) + dir_entry.path().filename().string() + std::string("/") + subdir_entry.path().filename().string();
+
+                    std::string dest_zip_file = encode_path(dst_in_3mf.c_str());
+                    std::string src_zip_file = encode_path(src_file.c_str());
+                    result = result & mz_zip_writer_add_file(&archive, dest_zip_file.c_str(), src_zip_file.c_str(), "", 0, MZ_DEFAULT_COMPRESSION);
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", store  %1% to 3mf %2%, result %3%\n") % src_file % dst_in_3mf % result;
+                }
+            }
+        }
+        else if (boost::filesystem::is_regular_file(dir_entry.path()))
+        {
+            src_file = dir_entry.path().string();
+            dst_in_3mf = std::string(AUXILIARY_DIR) + dir_entry.path().filename().string();
+
+            std::string dest_zip_file = encode_path(dst_in_3mf.c_str());
+            std::string src_zip_file = encode_path(src_file.c_str());
+            result = result & mz_zip_writer_add_file(&archive, dest_zip_file.c_str(), src_zip_file.c_str(), "", 0, MZ_DEFAULT_COMPRESSION);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", store  %1% to 3mf %2%, result %3%\n") % src_file % dst_in_3mf % result;
+        }
+    }
+
+    return result;
+}
+
+
 //BBS: add plate data list related logic
-bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, bool check_version, bool* is_bbl_3mf)
+bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, bool check_version, bool* is_bbl_3mf, bool load_aux)
 {
     if (path == nullptr || config == nullptr || model == nullptr)
         return false;
 
     _BBS_3MF_Importer importer;
-    bool res = importer.load_model_from_file(path, *model, *plate_data_list, *config, *config_substitutions, check_version, *is_bbl_3mf);
+    bool res = importer.load_model_from_file(path, *model, *plate_data_list, *config, *config_substitutions, check_version, *is_bbl_3mf, load_aux);
     importer.log_errors();
     return res;
 }

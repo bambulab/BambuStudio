@@ -2588,6 +2588,12 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         const bool type_prusa = std::regex_match(path.string(), pattern_prusa);
 
         Slic3r::Model model;
+        //BBS: add auxiliary files related logic
+        bool load_aux = false;
+        if (load_model && load_config && type_3mf)
+        {
+            load_aux = true;
+        }
         bool is_project_file = type_prusa;
         try {
             if (type_3mf || type_zip_amf) {
@@ -2599,7 +2605,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     PlateDataPtrs plate_data;
                     bool is_bbs_3mf;
                     ConfigSubstitutionContext config_substitutions{ ForwardCompatibilitySubstitutionRule::Enable };
-                    model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, only_if(load_config, Model::LoadAttribute::CheckVersion), &plate_data, &is_bbs_3mf);
+                    model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, only_if(load_config, Model::LoadAttribute::CheckVersion), load_aux, &plate_data, &is_bbs_3mf);
                     if (plate_data.size() > 0)
                     {
                         partplate_list.load_from_3mf_structure(plate_data);
@@ -2705,7 +2711,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 //BBS: add plate data related logic
                 PlateDataPtrs plate_data;
 
-                model = Slic3r::Model::read_from_file(path.string(), nullptr, nullptr, only_if(load_config, Model::LoadAttribute::CheckVersion), &plate_data);
+                model = Slic3r::Model::read_from_file(path.string(), nullptr, nullptr, only_if(load_config, Model::LoadAttribute::CheckVersion), false, &plate_data);
                 for (auto obj : model.objects)
                     if (obj->name.empty())
                         obj->name = fs::path(obj->input_file).filename().string();
@@ -2839,6 +2845,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     model.center_instances_around_point(this->bed.build_volume().bed_center());
                 auto loaded_idxs = load_model_objects(model.objects, is_project_file);
                 obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
+                //BBS: add auxiliary files logic
+                if (load_aux)
+                {
+                    q->model().set_auxiliary_file_temp_path(model.get_auxiliary_file_temp_path());
+                }
             } else {
                 // This must be an .stl or .obj file, which may contain a maximum of one volume.
                 for (const ModelObject* model_object : model.objects) {
@@ -3903,7 +3914,7 @@ void Plater::priv::reload_from_disk()
             //BBS: add plate data related logic
             PlateDataPtrs plate_data;
 
-            new_model = Model::read_from_file(path, nullptr, nullptr, Model::LoadAttribute::AddDefaultInstances, &plate_data);
+            new_model = Model::read_from_file(path, nullptr, nullptr, Model::LoadAttribute::AddDefaultInstances, false, &plate_data);
             for (ModelObject* model_object : new_model.objects) {
                 model_object->center_around_origin();
                 model_object->ensure_on_bed();
@@ -5836,7 +5847,7 @@ bool Plater::load_files(const wxArrayString& filenames)
         }
     }
     Plater::TakeSnapshot snapshot(this, snapshot_label);
-    load_files(paths);
+    load_files(paths, true, false);
 
     return true;
 }

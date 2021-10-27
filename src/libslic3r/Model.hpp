@@ -1117,11 +1117,11 @@ public:
     static Model read_from_file(
         const std::string& input_file, 
         DynamicPrintConfig* config = nullptr, ConfigSubstitutionContext* config_substitutions = nullptr,
-        LoadAttributes options = LoadAttribute::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr, bool* is_bbl_3mf = nullptr);
+        LoadAttributes options = LoadAttribute::AddDefaultInstances, bool load_aux = false, PlateDataPtrs* plate_data = nullptr, bool* is_bbl_3mf = nullptr);
     static Model read_from_archive(
         const std::string& input_file, 
         DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions,
-        LoadAttributes options = LoadAttribute::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr, bool* is_bbl_3mf = nullptr);
+        LoadAttributes options = LoadAttribute::AddDefaultInstances, bool load_aux = true, PlateDataPtrs* plate_data = nullptr, bool* is_bbl_3mf = nullptr);
 
     // Add a new ModelObject to this Model, generate a new ID for this ModelObject.
     ModelObject* add_object();
@@ -1173,6 +1173,9 @@ public:
     std::string   propose_export_file_name_and_path() const;
     // Propose an output path, replace extension. The new_extension shall contain the initial dot.
     std::string   propose_export_file_name_and_path(const std::string &new_extension) const;
+    //BBS: add auxiliary files temp path
+    std::string   get_auxiliary_file_temp_path();
+    void   set_auxiliary_file_temp_path(const std::string &aux_dir) { auxiliary_path = aux_dir; }
 
     // Checks if any of objects is painted using the fdm support painting gizmo.
     bool          is_fdm_support_painted() const;
@@ -1196,6 +1199,8 @@ private:
 		ar(materials, objects, wipe_tower_wrapper);
     }
 
+    //BBS: add aux temp directory
+    std::string auxiliary_path;
 };
 
 ENABLE_ENUM_BITMASK_OPERATORS(Model::LoadAttribute)

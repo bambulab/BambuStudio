@@ -48,7 +48,7 @@ typedef std::map<int, PlateData*> PlateDataMaps;
 
 //BBS: add plate data list related logic
 // Load the content of a 3mf file into the given model and preset bundle.
-extern bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, bool check_version, bool* is_bbl_3mf);
+extern bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, bool check_version, bool* is_bbl_3mf, bool load_aux);
 
 //BBS: add plate data list related logic
 // Save the given model and the config data contained in the given Print into a 3mf file.

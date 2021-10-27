@@ -57,6 +57,9 @@ Model& Model::assign_copy(const Model &rhs)
 
     // copy custom code per height
     this->custom_gcode_per_print_z = rhs.custom_gcode_per_print_z;
+
+    //BBS: add auxiliary path logic
+    this->auxiliary_path = rhs.auxiliary_path;
     return *this;
 }
 
@@ -78,6 +81,9 @@ Model& Model::assign_copy(Model &&rhs)
 
     // copy custom code per height
     this->custom_gcode_per_print_z = std::move(rhs.custom_gcode_per_print_z);
+
+    //BBS: add auxiliary path logic
+    this->auxiliary_path = rhs.auxiliary_path;
     return *this;
 }
 
@@ -105,7 +111,7 @@ void Model::update_links_bottom_up_recursive()
 
 //BBS: add part plate related logic
 // Loading model from a file, it may be a simple geometry file as STL or OBJ, however it may be a project file as well.
-Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, LoadAttributes options, PlateDataPtrs* plate_data, bool *is_bbl_3mf)
+Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, LoadAttributes options, bool load_aux, PlateDataPtrs* plate_data, bool *is_bbl_3mf)
 {
     Model model;
 
@@ -133,7 +139,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     else if (boost::algorithm::iends_with(input_file, ".3mf"))
         //BBS: add part plate related logic
         //FIXME options & LoadAttribute::CheckVersion ? 
-        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, options & LoadAttribute::CheckVersion, is_bbl_3mf);
+        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, options & LoadAttribute::CheckVersion, is_bbl_3mf, load_aux);
     else
         throw Slic3r::RuntimeError("Unknown file format. Input file must have .stl, .obj, .amf(.xml) or .prusa extension.");
 
@@ -158,7 +164,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
 
 //BBS: add part plate related logic
 // Loading model from a file (3MF or AMF), not from a simple geometry file (STL or OBJ).
-Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, LoadAttributes options, PlateDataPtrs* plate_data, bool *is_bbl_3mf)
+Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, LoadAttributes options, bool load_aux, PlateDataPtrs* plate_data, bool *is_bbl_3mf)
 {
     assert(config != nullptr);
     assert(config_substitutions != nullptr);
@@ -168,7 +174,7 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
     bool result = false;
     if (boost::algorithm::iends_with(input_file, ".3mf"))
         //BBS: add part plate related logic
-        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, options & LoadAttribute::CheckVersion, is_bbl_3mf);
+        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, options & LoadAttribute::CheckVersion, is_bbl_3mf, load_aux);
     else if (boost::algorithm::iends_with(input_file, ".zip.amf"))
         result = load_amf(input_file.c_str(), config, config_substitutions, &model, options & LoadAttribute::CheckVersion);
     else
@@ -580,6 +586,30 @@ std::string Model::propose_export_file_name_and_path() const
             }
 end:
     return input_file;
+}
+
+//BBS: add auxiliary files temp path
+std::string Model::get_auxiliary_file_temp_path()
+{
+    if (auxiliary_path.empty())
+    {
+        boost::filesystem::path parent_path(temporary_dir());
+        std::time_t t = std::time(0);
+        std::tm* now_time = std::localtime(&t);
+        std::stringstream buf;
+        buf << "/model_" << this->id().id;
+        buf << std::put_time(now_time, "_%a_%b_%d_%H_%M_%S_aux");
+
+        auxiliary_path = parent_path.string() + buf.str();
+        boost::filesystem::path temp_path(auxiliary_path);
+        if (boost::filesystem::exists(temp_path))
+        {
+            boost::filesystem::remove_all(temp_path);
+        }
+        //boost::filesystem::create_directory(temp_path);
+    }
+
+    return auxiliary_path;
 }
 
 std::string Model::propose_export_file_name_and_path(const std::string &new_extension) const

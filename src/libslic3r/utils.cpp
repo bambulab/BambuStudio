@@ -186,6 +186,18 @@ const std::string& resources_dir()
     return g_resources_dir;
 }
 
+//BBS: add temporary dir
+static std::string g_temporary_dir;
+void set_temporary_dir(const std::string &dir)
+{
+    g_temporary_dir = dir;
+}
+
+const std::string& temporary_dir()
+{
+    return g_temporary_dir;
+}
+
 static std::string g_local_dir;
 
 void set_local_dir(const std::string &dir)
