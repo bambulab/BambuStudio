@@ -59,6 +59,8 @@ const std::string RELATIONSHIPS_FILE = "_rels/.rels";
 const std::string THUMBNAIL_FILE = "Metadata/thumbnail";
 const std::string PRINT_CONFIG_FILE = "Metadata/Slic3r_PE.config";
 const std::string MODEL_CONFIG_FILE = "Metadata/Slic3r_PE_model.config";
+const std::string BBS_PRINT_CONFIG_FILE = "Metadata/print_profile.config";
+const std::string BBS_MODEL_CONFIG_FILE = "Metadata/model_settings.config";
 const std::string SLICE_INFO_CONFIG_FILE = "Metadata/slice_info.config";
 const std::string LAYER_HEIGHTS_PROFILE_FILE = "Metadata/Slic3r_PE_layer_heights_profile.txt";
 const std::string LAYER_CONFIG_RANGES_FILE = "Metadata/Prusa_Slicer_layer_config_ranges.xml";
@@ -705,7 +707,7 @@ namespace Slic3r {
                     // extract sla support points file
                     _extract_sla_drain_holes_from_archive(archive, stat);
                 }*/
-                else if (boost::algorithm::iequals(name, PRINT_CONFIG_FILE)) {
+                else if ((boost::algorithm::iequals(name, PRINT_CONFIG_FILE))||(boost::algorithm::iequals(name, BBS_PRINT_CONFIG_FILE))) {
                     // extract slic3r print config file
                     _extract_print_config_from_archive(archive, stat, config, config_substitutions, filename);
                 }
@@ -713,7 +715,7 @@ namespace Slic3r {
                     // extract slic3r layer config ranges file
                     _extract_custom_gcode_per_print_z_from_archive(archive, stat);
                 }
-                else if (boost::algorithm::iequals(name, MODEL_CONFIG_FILE)) {
+                else if ((boost::algorithm::iequals(name, MODEL_CONFIG_FILE))||(boost::algorithm::iequals(name, BBS_MODEL_CONFIG_FILE))) {
                     // extract slic3r model config file
                     if (!_extract_model_config_from_archive(archive, stat, model)) {
                         close_zip_reader(&archive);
@@ -3021,7 +3023,7 @@ namespace Slic3r {
                 out += "; " + key + " = " + config.opt_serialize(key) + "\n";
 
         if (!out.empty()) {
-            if (!mz_zip_writer_add_mem(&archive, PRINT_CONFIG_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
+            if (!mz_zip_writer_add_mem(&archive, BBS_PRINT_CONFIG_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
                 add_error("Unable to add print config file to archive");
                 return false;
             }
@@ -3194,7 +3196,7 @@ namespace Slic3r {
 
         std::string out = stream.str();
 
-        if (!mz_zip_writer_add_mem(&archive, MODEL_CONFIG_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
+        if (!mz_zip_writer_add_mem(&archive, BBS_MODEL_CONFIG_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
             add_error("Unable to add model config file to archive");
             return false;
         }
