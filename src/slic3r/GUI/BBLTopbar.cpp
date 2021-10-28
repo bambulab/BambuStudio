@@ -173,7 +173,6 @@ void BBLTopbar::OnPrinterClicked(wxCommandEvent& event)
 void BBLTopbar::SetFileMenu(wxMenu* file_menu)
 {
     m_file_menu = file_menu;
-    m_top_menu.AppendSubMenu(m_file_menu, _L("&File"));
 }
 
 void BBLTopbar::AddDropDownSubMenu(wxMenu* sub_menu, const wxString& title)
@@ -227,11 +226,11 @@ void BBLTopbar::OnMouseLeftDClock(wxMouseEvent& mouse)
 
 void BBLTopbar::OnFileToolItem(wxAuiToolBarEvent& evt)
 {
+    wxAuiToolBar* tb = static_cast<wxAuiToolBar*>(evt.GetEventObject());
+
+    tb->SetToolSticky(evt.GetId(), true);
+
     if (evt.IsDropDownClicked()) {
-        wxAuiToolBar* tb = static_cast<wxAuiToolBar*>(evt.GetEventObject());
-
-        tb->SetToolSticky(evt.GetId(), true);
-
         // line up our menu with the button
         wxRect rect = tb->GetToolRect(evt.GetId());
         wxPoint pt = tb->ClientToScreen(rect.GetBottomLeft());
@@ -243,9 +242,6 @@ void BBLTopbar::OnFileToolItem(wxAuiToolBarEvent& evt)
         else {
             m_skip_popup_file_menu = false;
         }
-
-        // make sure the button is "un-stuck"
-        tb->SetToolSticky(evt.GetId(), false);
     }
     else {
         if (!m_skip_popup_file_menu) {
@@ -255,6 +251,9 @@ void BBLTopbar::OnFileToolItem(wxAuiToolBarEvent& evt)
             m_skip_popup_file_menu = false;
         }
     }
+
+    // make sure the button is "un-stuck"
+    tb->SetToolSticky(evt.GetId(), false);
 }
 
 void BBLTopbar::OnMouseLeftDown(wxMouseEvent& event)
