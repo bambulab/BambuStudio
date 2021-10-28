@@ -605,6 +605,11 @@ if(SLIC3R_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
+option(BUILD_BBS_TEST_TOOLS          "Build bbs test tools" OFF)
+if(BUILD_BBS_TEST_TOOLS)
+    add_subdirectory(bbs_test_tools)
+endif()
+
 
 # Resources install target, configure fhs.hpp on UNIX
 if (WIN32)
