@@ -30,9 +30,15 @@ void AuxiliaryModel::Reload(wxString aux_path)
 
     // Clean
     fs::remove_all(fs::path(m_root_dir.ToStdWstring()));
-    if (m_root)
+    if (m_root) {
         delete m_root;
+        m_root = nullptr;
+    }
     Cleared();
+
+    // Check new path
+    if (!fs::exists(new_aux_path))
+        return;
 
     // Load from new path
     std::map<fs::path, AuxiliaryModelNode *> dir_cache;
