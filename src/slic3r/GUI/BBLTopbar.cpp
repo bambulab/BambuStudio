@@ -54,6 +54,13 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     wxBitmapButton* redo_btn = new wxBitmapButton(this, wxID_REDO, redo_bitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     this->AddControl(redo_btn);
 
+    this->AddSpacer(10);
+    this->AddStretchSpacer(1);
+
+    m_title_item = this->AddLabel(wxID_ANY, "", 300);
+    m_title_item->SetAlignment(wxALIGN_CENTER);
+
+    this->AddSpacer(10);
     this->AddStretchSpacer(1);
 
     wxBitmap account_bitmap = create_scaled_bitmap("account", nullptr, FromDIP(21));
@@ -185,6 +192,11 @@ wxMenu *BBLTopbar::GetTopMenu()
     return &m_top_menu;
 }
 
+void BBLTopbar::SetProjectName(wxString project_name)
+{
+    m_title_item->SetLabel(project_name);
+}
+
 void BBLTopbar::UpdateToolbarWidth(int width)
 {
     this->SetSize(width, m_toolbar_h);
@@ -213,7 +225,8 @@ void BBLTopbar::OnCloseFrame(wxCommandEvent& event)
 void BBLTopbar::OnMouseLeftDClock(wxMouseEvent& mouse)
 {
     // check whether mouse is not on any tool item
-    if (this->FindToolByCurrentPosition() != NULL)
+    if (this->FindToolByCurrentPosition() != NULL &&
+        this->FindToolByCurrentPosition() != m_title_item)
         return;
 
     if (m_frame->IsMaximized()) {
@@ -258,16 +271,13 @@ void BBLTopbar::OnFileToolItem(wxAuiToolBarEvent& evt)
 
 void BBLTopbar::OnMouseLeftDown(wxMouseEvent& event)
 {
+    wxPoint mouse_pos = ::wxGetMousePosition();
+    wxPoint frame_pos = m_frame->GetScreenPosition();
+    m_delta = mouse_pos - frame_pos;
+
     if (FindToolByCurrentPosition() == NULL)
     {
         CaptureMouse();
-
-        wxWindow* parent = GetParent();
-        wxPoint pos = ClientToScreen(event.GetPosition());
-        wxPoint origin = parent->GetPosition();
-        int dx = pos.x - origin.x;
-        int dy = pos.y - origin.y;
-        m_delta = wxPoint(dx, dy);
     }
 
     event.Skip();
@@ -293,11 +303,10 @@ void BBLTopbar::OnMouseMotion(wxMouseEvent& event)
         return;
     }
 
-    wxWindow* parent = this->GetParent();
     if (event.Dragging() && event.LeftIsDown())
     {
-        wxPoint pos = ClientToScreen(mouse_pos);
-        parent->Move(wxPoint(pos.x - m_delta.x, pos.y - m_delta.y));
+        wxPoint mouse_pos = ::wxGetMousePosition();
+        m_frame->Move(mouse_pos - m_delta);
     }
     event.Skip();
 }

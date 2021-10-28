@@ -35,6 +35,7 @@ public:
     void SetFileMenu(wxMenu* file_menu);
     void AddDropDownSubMenu(wxMenu* sub_menu, const wxString& title);
     wxMenu *GetTopMenu();
+    void SetProjectName(wxString project_name);
 
 private:
     wxFrame* m_frame;
@@ -42,6 +43,7 @@ private:
     wxPoint m_delta;
     wxMenu m_top_menu;
     wxMenu* m_file_menu;
+    wxAuiToolBarItem* m_title_item;
     wxButton* m_account_btn;
     wxButton* m_printer_btn;
     int m_toolbar_h;

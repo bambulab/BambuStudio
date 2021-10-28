@@ -5479,6 +5479,10 @@ void Plater::load_project()
     wxGetApp().load_project(this, input_file);
     // And finally load the new project.
     load_project(input_file);
+
+    // BBS
+    boost::filesystem::path fs_path(filename.ToStdWstring());
+    wxGetApp().mainframe->topbar()->SetProjectName(fs_path.filename().generic_wstring());
 }
 
 void Plater::load_project(const wxString& filename)

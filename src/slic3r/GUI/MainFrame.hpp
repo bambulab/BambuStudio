@@ -185,6 +185,9 @@ public:
 
     Plater*     plater() { return m_plater; }
 
+    // BBS
+    BBLTopbar* topbar() { return m_topbar; }
+
     void        update_title();
 
     void        init_tabpanel();
