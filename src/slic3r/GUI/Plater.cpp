@@ -4459,6 +4459,7 @@ void Plater::priv::on_action_print_plate(SimpleEvent&)
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received print plate event\n" ;
     }
+    q->send_gcode();
 }
 
 void Plater::priv::on_action_print_all(SimpleEvent&)

@@ -1089,7 +1089,6 @@ wxBoxSizer* MainFrame::create_side_tools()
         else if (m_print_select == ePrintPlate)
         {
             wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE));
-            this->m_tabpanel->SetSelection(tpMonitor);
         }
         else if (m_print_select == eExportGcode)
             wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_GCODE));
