@@ -152,11 +152,22 @@ public:
     double  bed_temp;
     double  bed_temp_target;
 
+    /* cooling */
+    int     heatbreak_fan_speed;
+    int     cooling_fan_speed;
+    int     big_fan1_speed;
+    int     big_fan2_speed;
+
     /* signals */
     std::string wifi_signal;
 
     /* upgrade */
     bool force_upgrade;
+
+    /* printing */
+    int     mc_print_stage;
+    int     mc_print_error_code;
+    int     mc_print_line_bumber;
 
     /* mqtt connections */
     CONNECTION_TYPE conn_type;

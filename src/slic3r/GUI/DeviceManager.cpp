@@ -94,8 +94,10 @@ void machine_conn_callback::connection_lost(const std::string& cause) {
 void machine_conn_callback::message_arrived(mqtt::const_message_ptr msg)
 {
     MachineObject* obj = (MachineObject*)context_;
+    std::string payload = msg->get_payload_str();
+
     if (obj) {
-        obj->parse_json(msg->get_topic(), msg->get_payload_str());
+        obj->parse_json(msg->get_topic(), payload);
     }
 }
 
@@ -167,6 +169,17 @@ MachineObject::MachineObject(AccountManager& acc, std::string name, std::string 
 
     /* upgrade */
     force_upgrade = false;
+
+    /* cooling */
+    heatbreak_fan_speed = 0;
+    cooling_fan_speed = 0;
+    big_fan1_speed = 0;
+    big_fan2_speed = 0;
+
+    /* printing */
+    mc_print_stage = 0;
+    mc_print_error_code = 0;
+    mc_print_line_bumber = 0;
 }
 
 bool MachineObject::check_valid_ip()
@@ -521,12 +534,41 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 if (bed_temp_target_raw.has_value())
                     bed_temp_target = (float)std::stoi(bed_temp_target_raw.value()) / temp_scale;
 
-                /* deprecated protocol field
-                boost::optional<std::string> nozzle_temp = print.get_optional<std::string>("nozzle_temp");
-                boost::optional<std::string> nozzle_temp_target = print.get_optional<std::string>("nozzle_target_temp");
-                boost::optional<std::string> bed_temp = print.get_optional<std::string>("bed_temp");
-                boost::optional<std::string> bed_temp_target = print.get_optional<std::string>("bed_target_temp");
-                */
+                /* cooling */
+                boost::optional<int> cooling_fan_speed_str      = print.get_optional<int>("cooling_fan_speed");
+                boost::optional<int> big_fan1_speed_str         = print.get_optional<int>("big_fan1_speed");
+                boost::optional<int> big_fan2_speed_str         = print.get_optional<int>("big_fan2_speed_str");
+                boost::optional<int> heatbreak_fan_speed_str    = print.get_optional<int>("heatbreak_fan_speed_str");
+                if (cooling_fan_speed_str.has_value()) {
+                    cooling_fan_speed = cooling_fan_speed_str.value();
+                }
+
+                if (big_fan1_speed_str.has_value()) {
+                    big_fan1_speed = big_fan1_speed_str.value();
+                }
+
+                if (big_fan2_speed_str.has_value()) {
+                    big_fan2_speed = big_fan2_speed_str.value();
+                }
+
+                if (heatbreak_fan_speed_str.has_value()) {
+                    heatbreak_fan_speed = heatbreak_fan_speed_str.value();
+                }
+
+
+                /* printing */
+                boost::optional<int> mc_print_stage_str        = print.get_optional<int>("mc_print_stage");
+                boost::optional<int> mc_print_error_code_str   = print.get_optional<int>("mc_print_error_code");
+                boost::optional<int> mc_print_line_bumber_str  = print.get_optional<int>("mc_print_line_bumber");
+                if (mc_print_stage_str.has_value()) {
+                    mc_print_stage = mc_print_stage_str.value();
+                }
+                if (mc_print_error_code_str.has_value()) {
+                    mc_print_error_code = mc_print_error_code_str.value();
+                }
+                if (mc_print_line_bumber_str.has_value()) {
+                    mc_print_line_bumber = mc_print_line_bumber_str.value();
+                }
 
                 /* positions */
                 boost::optional<std::string> pos_x = print.get_optional<std::string>("pos_x");

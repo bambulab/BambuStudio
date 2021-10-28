@@ -3,6 +3,7 @@
 
 #include <string>
 #include <fstream>
+#include <queue>
 #include <boost/filesystem/path.hpp>
 
 #include <wx/string.h>
@@ -106,154 +107,153 @@ namespace Slic3r {
             int last_device_selection;
             int last_wlan_device_selection;
 
-            /* GUI widgets */
-            wxNotebook* nb_main;
 
-            /* switch host servers */
-            wxComboBox* cb_server_host;
-
-            /* Connections widgets */
-            wxButton*       btn_refresh_device_list;
-            wxButton*       btn_connect;
-            wxButton*       btn_disconnect;
-            wxComboBox*     cb_device_list;
-            wxComboBox*     cb_my_device_list;
+            /* GUI Widgets */
             wxRadioButton* radio_btn_lan;
-            wxRadioButton* radio_btn_wan;
+			wxStaticText* m_staticText_lan;
+			wxComboBox* cb_device_list;
+			wxButton* btn_refresh_device_list;
+			wxButton* btn_connect;
+			wxButton* btn_disconnect;
+			wxButton* btn_bind;
+			wxButton* btn_unbind;
+			wxRadioButton* radio_btn_wan;
+			wxStaticText* m_staticText_wan;
+			wxComboBox* cb_my_device_list;
+			wxButton* btn_refresh_my_device;
+			wxNotebook* m_notebook1;
+			wxPanel* m_panel_guide;
+			wxStaticText* m_staticText_guide_title;
+			wxTextCtrl* m_textCtrl10;
+			wxPanel* m_panel_common;
+			wxButton* btn_get_version;
+			wxStaticText* m_staticText6;
+			wxStaticText* label_force_upgrade_val;
+			wxPanel* m_panel_run_gcode;
+			wxStaticText* label_gcode_filename;
+			wxTextCtrl* txt_gcode_filename;
+			wxButton* btn_select_gcode_file;
+			wxStaticText* label_upload_progress;
+			wxStaticText* label_gcode_progress;
+			wxButton* btn_run_gcode;
+			wxButton* btn_pause;
+			wxButton* btn_resume;
+			wxButton* btn_abort_print;
+			wxPanel* m_panel_info_control;
+			wxStaticText* m_staticText_nozzle_temp_title;
+			wxStaticText* label_hot_end_temp_val;
+			wxStaticText* m_staticText_bed_temp_title;
+			wxStaticText* label_bed_end_temp_val;
+			wxStaticText* m_staticText_progress;
+			wxStaticText* label_print_progress_val;
+			wxStaticText* m_staticText_wifi_signal;
+			wxStaticText* label_wifi_signal_val;
+			wxStaticText* m_staticText_th_link;
+			wxStaticText* label_wifi_link_th_val;
+			wxStaticText* m_staticText_ams_link;
+			wxStaticText* label_wifi_link_ams_val;
+			wxStaticText* m_staticText_big1_speed_title;
+			wxStaticText* m_staticText_big1_speed;
+			wxStaticText* m_staticText_big2_speed_title;
+			wxStaticText* m_staticText_big2_speed;
+			wxStaticText* m_staticText_cooling_speed_title;
+			wxStaticText* m_staticText_cooling_speed;
+			wxStaticText* m_staticText_heatbreak_speed_title;
+			wxStaticText* m_staticText_heatbreak_speed;
+			wxStaticText* m_staticText_print_stage;
+			wxStaticText* m_staticText_mc_print_stage;
+			wxStaticText* m_staticText_print_error_code;
+			wxStaticText* m_staticText_mc_print_error_code;
+			wxStaticText* m_staticText_gcode_line_number;
+			wxStaticText* m_staticText_mc_print_line_number;
+			wxNotebook* m_notebook_ctrl;
+			wxPanel* m_panel_settings;
+			wxButton* btn_set_hot_bed_temp;
+			wxTextCtrl* txt_set_hot_bed_temp;
+			wxButton* btn_set_hot_end_temp;
+			wxTextCtrl* txt_set_hot_end_temp;
+			wxButton* btn_fan_on;
+			wxButton* btn_fan_off;
+			wxButton* btn_auto_leveling;
+			wxButton* btn_xyz_abs_mode;
+			wxButton* btn_return_home;
+			wxButton* btn_switch_t;
+			wxTextCtrl* txt_switch_val;
+			wxStaticText* label_ams_flush_temp1;
+			wxTextCtrl* txt_ams_flush_temp1;
+			wxStaticText* label_ams_flush_temp2;
+			wxTextCtrl* txt_ams_flush_temp2;
+			wxCheckBox* cbox_ams_auto_home;
+			wxPanel* m_panel__control;
+			wxButton* btn_set_x_pos_0_1;
+			wxButton* btn_set_x_pos_1_0;
+			wxButton* btn_set_x_pos_10_0;
+			wxButton* btn_set_x_neg_0_1;
+			wxButton* btn_set_x_neg_1_0;
+			wxButton* btn_set_x_neg_10_0;
+			wxButton* btn_set_y_pos_0_1;
+			wxButton* btn_set_y_pos_1_0;
+			wxButton* btn_set_y_pos_10_0;
+			wxButton* btn_set_y_neg_0_1;
+			wxButton* btn_set_y_neg_1_0;
+			wxButton* btn_set_y_neg_10_0;
+			wxButton* btn_set_z_pos_0_1;
+			wxButton* btn_set_z_pos_1_0;
+			wxButton* btn_set_z_pos_10_0;
+			wxButton* btn_set_z_neg_0_1;
+			wxButton* btn_set_z_neg_1_0;
+			wxButton* btn_set_z_neg_10_0;
+			wxButton* btn_set_e_pos_0_1;
+			wxButton* btn_set_e_pos_1_0;
+			wxButton* btn_set_e_pos_10_0;
+			wxButton* btn_set_e_neg_0_1;
+			wxButton* btn_set_e_neg_1_0;
+			wxButton* btn_set_e_neg_10_0;
+			wxScrolledWindow* m_scrolledWindow_custom;
+			wxButton* btn_send_gcode_1;
+			wxTextCtrl* txt_custom_gcode1;
+			wxButton* btn_send_gcode_2;
+			wxTextCtrl* txt_custom_gcode2;
+			wxButton* btn_send_gcode_3;
+			wxTextCtrl* txt_custom_gcode3;
+			wxButton* btn_send_gcode_4;
+			wxTextCtrl* txt_custom_gcode4;
+			wxButton* btn_send_gcode_5;
+			wxTextCtrl* txt_custom_gcode5;
+			wxButton* btn_send_gcode_6;
+			wxTextCtrl* txt_custom_gcode6;
+			wxButton* btn_send_gcode_7;
+			wxTextCtrl* txt_custom_gcode7;
+			wxPanel* m_panel_upgrade;
+			wxStaticText* m_staticText66;
+			wxComboBox* cb_upgrade_module;
+			wxStaticText* m_staticText67;
+			wxComboBox* cb_upgrade_mode;
+			wxStaticText* m_staticText57;
+			wxComboBox* cb_upgrade_firmware;
+			wxButton* btn_refresh_upgrade_list;
+			wxButton* btn_upgrade_firmware;
+			wxStaticText* m_staticText_status_title;
+			wxStaticText* label_upgrade_status_val;
+			wxStaticText* m_staticText_upgrade_module;
+			wxStaticText* m_staticText_upgrade_module_value;
+			wxStaticText* m_staticText_upgrade_progress;
+			wxStaticText* label_upgrade_progress_val;
+			wxStaticText* m_staticText_upgrade_info;
+			wxStaticText* label_upgrade_message_val;
+			wxStaticText* m_staticText_log;
+			wxTextCtrl* txt_string_info;
 
 
-            /* Upgrade widgets */
-            wxButton* btn_refresh_upgrade_list;
-            wxButton* btn_upgrade_firmware;
-            std::vector<wxString> upgrade_file_list;
-
-            /* Gcode widgets*/
-            wxButton*       btn_run_gcode;
-            wxTextCtrl*     txt_gcode_filename;
-            wxStaticText*   label_gcode_progress;
-            wxButton*       btn_select_gcode_file;
             wxFileDialog*   selectGcodeDialog;
             bool            gcode_uploading;
-
-            wxButton*       btn_upload_3mf;
-            wxTextCtrl*     txt_3mf_filename;
-            wxTextCtrl*     txt_3mf_plate_idx;
-            wxTextCtrl*     txt_wlan_gcode_filename;
-            wxButton*       btn_run_3mf;
-            wxButton*       btn_abort_3mf;
-            wxStaticText*   label_3mf_progress;
-            wxButton*       btn_select_3mf_file;
-            wxFileDialog*   select3mfDialog;
-            wxStaticText*   label_upload_gcode_progress_val;
-
-            /* display plate and send task */
-            wxTextCtrl*     txt_plate_idx;
-            wxComboBox*     cb_profiles;
-
-
-            /* machine control */
-            wxButton* btn_set_x_pos_0_1;
-            wxButton* btn_set_x_pos_1_0;
-            wxButton* btn_set_x_pos_10_0;
-            wxButton* btn_set_x_neg_0_1;
-            wxButton* btn_set_x_neg_1_0;
-            wxButton* btn_set_x_neg_10_0;
-            wxButton* btn_set_y_pos_0_1;
-            wxButton* btn_set_y_pos_1_0;
-            wxButton* btn_set_y_pos_10_0;
-            wxButton* btn_set_y_neg_0_1;
-            wxButton* btn_set_y_neg_1_0;
-            wxButton* btn_set_y_neg_10_0;
-            wxButton* btn_set_z_pos_0_1;
-            wxButton* btn_set_z_pos_1_0;
-            wxButton* btn_set_z_pos_10_0;
-            wxButton* btn_set_z_neg_0_1;
-            wxButton* btn_set_z_neg_1_0;
-            wxButton* btn_set_z_neg_10_0;
-
-            wxButton* btn_auto_leveling;
-            wxButton* btn_xyz_abs_mode;
-            wxButton* btn_fan_on;
-            wxButton* btn_fan_off;
-            wxButton* btn_set_hot_bed_temp;
-            wxButton* btn_set_hot_end_temp;
-            wxButton* btn_start_temp_push;
-            wxButton* btn_stop_temp_push;
-            wxButton* btn_get_curr_temp;
-            wxButton* btn_get_curr_pos;
-            wxButton* btn_switch_t;
-            wxTextCtrl* txt_switch_val;
-
-            wxTextCtrl* txt_printer_name;
-            wxTextCtrl* txt_set_hot_bed_temp;
-            wxTextCtrl* txt_set_hot_end_temp;
-            wxTextCtrl* txt_string_info;
-            wxTextCtrl* txt_custom_gcode1;
-            wxTextCtrl* txt_custom_gcode2;
-            wxTextCtrl* txt_custom_gcode3;
-            wxTextCtrl* txt_custom_gcode4;
-            wxTextCtrl* txt_custom_gcode5;
-            wxTextCtrl* txt_custom_gcode6;
-            wxTextCtrl* txt_custom_gcode7;
-            wxTextCtrl* txt_ams_flush_temp1;
-            wxTextCtrl* txt_ams_flush_temp2;
-            wxCheckBox* cbox_ams_auto_home;
-
-            wxStaticText* label_pos_x_val;
-            wxStaticText* label_pos_y_val;
-            wxStaticText* label_pos_z_val;
-            wxStaticText* label_pos_e_val;
-            wxStaticText* label_hot_end_temp_val;
-            wxStaticText* label_bed_end_temp_val;
-            wxStaticText* label_print_progress_val;
-            wxStaticText* label_wifi_signal_val;
-            wxStaticText* label_wifi_link_th_val;
-            wxStaticText* label_wifi_link_ams_val;
-            wxStaticText* label_ams_flush_temp1;
-            wxStaticText* label_ams_flush_temp2;
-
-            wxStaticText* label_upgrade_status_val;
-            wxStaticText* label_upgrade_progress_val;
-            wxStaticText* label_upgrade_module_val;
-            wxStaticText* label_upgrade_message_val;
-            wxStaticText* label_force_upgrade_val;
-
-
-            wxComboBox* cb_upgrade_module;
-            wxArrayString module_items;
-            wxComboBox* cb_publish_mode;
-            wxComboBox* cb_upgrade_firmware;
-            wxComboBox* cb_upgrade_mode;
-            wxComboBox* cb_select_host;
-
-            wxCheckBox* chk_enable_direct;
-            wxStaticText* label_device_ip;
-            wxTextCtrl* txt_device_ip;
-            wxStaticText* label_domain_id;
-            wxTextCtrl* txt_domain_id;
-            wxStaticText* label_client_id;
-            wxTextCtrl* txt_client_id;
-            wxButton* btn_mqtt_connect;
-            
+			std::vector<wxString> upgrade_file_list;
             std::fstream customGcodeCacheFile;
             wxTimer* m_deviceListTimer;
+			std::queue<std::string> mqtt_msg_queue;
 
-            wxBoxSizer* top_sizer;
-            wxGridSizer* pos_btns_sizer;
-            wxBoxSizer* conn_sizer;
-
-
-            /* GUI init control */
-            void init_connection_widgets();
-            void init_common(wxWindow* parent);
-            void init_upgrade(wxWindow* parent);
-            void init_gcode_run_file(wxWindow* parent);
-            void init_custom_ctrl(wxWindow* parent);
-            void init_task_widgets(wxWindow* parent);
-            void init_gcode_control(wxWindow* parent, wxBoxSizer* sizer);
-            void init_gcode_custom(wxWindow* parent, wxBoxSizer* sizer);
-            void init_log_panel(wxWindow* parent);
-            void init_layout();
+			void init();
+            void init_bind();
             void init_bind_handler();
 
             int m_sequence_id = 2000;
