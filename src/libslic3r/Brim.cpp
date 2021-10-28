@@ -197,6 +197,8 @@ static ExPolygons top_level_outer_brim_area(const Print                   &print
         const float        brim_separation   = scale_(object->config().brim_separation.value);
         // recording the autoAssigned brimWidth and corresponding objs
         double brimWidthAuto = object->config().brim_width.value;
+        double flowWidth = print.brim_flow().scaled_spacing() * SCALING_FACTOR;
+        brimWidthAuto = floor(brimWidthAuto / flowWidth / 2) * flowWidth * 2;
         brim_width_map.insert(std::make_pair(object->id(), brimWidthAuto));
         brim_width_max = std::max(brim_width_max, brimWidthAuto);
         const float    brim_width        = scale_(brimWidthAuto);
@@ -275,7 +277,8 @@ static ExPolygons inner_brim_area(const Print                   &print,
         const PrintObject *object          = print.objects()[print_object_idx];
         const BrimType     brim_type       = object->config().brim_type.value;
         const float        brim_separation = scale_(object->config().brim_separation.value);
-        const float        brim_width      = scale_(object->config().brim_width.value);
+        double flowWidth = print.brim_flow().scaled_spacing() * SCALING_FACTOR;
+        const float    brim_width = scale_(floor(object->config().brim_width.value / flowWidth / 2) * flowWidth * 2);
         const bool         top_outer_brim  = top_level_objects_idx.find(object->id().id) != top_level_objects_idx.end();
 
         ExPolygons brim_area_object;
