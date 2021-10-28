@@ -272,7 +272,8 @@ public:
     bool            can_load_project();
     bool            check_print_host_queue();
     bool            checked_tab(Tab* tab);
-    void            load_current_presets(bool check_printer_presets = true);
+    //BBS: add preset combox re-active logic
+    void            load_current_presets(bool active_preset_combox = false, bool check_printer_presets = true);
 
     wxString        current_language_code() const { return m_wxLocale->GetCanonicalName(); }
 	// Translate the language code to a code, for which Prusa Research maintains translations. Defaults to "en_US".

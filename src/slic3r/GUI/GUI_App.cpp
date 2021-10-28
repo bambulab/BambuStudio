@@ -2615,7 +2615,8 @@ bool GUI_App::checked_tab(Tab* tab)
 }
 
 // Update UI / Tabs to reflect changes in the currently loaded presets
-void GUI_App::load_current_presets(bool check_printer_presets_ /*= true*/)
+//BBS: add preset combo box re-activate logic
+void GUI_App::load_current_presets(bool active_preset_combox/*= false*/, bool check_printer_presets_ /*= true*/)
 {
     // check printer_presets for the containing information about "Print Host upload"
     // and create physical printer from it, if any exists
@@ -2632,6 +2633,9 @@ void GUI_App::load_current_presets(bool check_printer_presets_ /*= true*/)
 				this->plater()->force_print_bed_update();
 			}
 			tab->load_current_preset();
+			//BBS: add preset combox re-active logic
+			if (active_preset_combox)
+				tab->reactive_preset_combo_box();
 		}
 }
 

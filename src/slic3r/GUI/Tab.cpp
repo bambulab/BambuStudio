@@ -3095,6 +3095,14 @@ void Tab::update_ui_items_related_on_parent_preset(const Preset* selected_preset
     m_tt_non_system  = selected_preset_parent ? &m_tt_value_unlock  : &m_ttg_white_bullet_ns;
 }
 
+//BBS: reactive the preset combo box
+void Tab::reactive_preset_combo_box()
+{
+    //BBS: add workaround to fix the issue caused by wxwidget 3.15 upgrading
+    m_presets_choice->Enable(false);
+    m_presets_choice->Enable(true);
+}
+
 // Initialize the UI from the current preset
 void Tab::load_current_preset()
 {

@@ -276,6 +276,8 @@ public:
     void        add_scaled_bitmap(wxWindow* parent, ScalableBitmap& btn, const std::string& icon_name);
 	void		update_ui_items_related_on_parent_preset(const Preset* selected_preset_parent);
     void		load_current_preset();
+    //BBS: reactive preset combo box
+    void        reactive_preset_combo_box();
 	void        rebuild_page_tree();
     void		update_btns_enabling();
     void		update_preset_choice();
