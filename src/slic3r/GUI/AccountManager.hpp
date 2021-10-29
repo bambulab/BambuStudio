@@ -199,6 +199,7 @@ public:
     void update_my_bind_list(std::string body);
     MachineObject* get_default_machine();
     MachineObject* find_machine(std::string dev_id);
+    std::vector<MachineObject*> get_select_machine_list();
 
     /* project struct */
     std::map<std::string, BBLProject*> myProjectList;

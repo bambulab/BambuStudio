@@ -330,8 +330,6 @@ namespace Slic3r {
                 m_curr_user = new AccountInfo(account, "", AccountInfo::LoginStatus::STATUS_LOGIN);
                 m_curr_user->set_token(acceptToken.value());
 
-                this->request_bind_list();
-
                 //get user id
                 this->user_get_profile(account, fn);
                 return;
@@ -488,6 +486,17 @@ namespace Slic3r {
         }
         return nullptr;
     }
+    std::vector<MachineObject*> AccountManager::get_select_machine_list()
+    {
+        std::vector<MachineObject*> show_list;
+        std::map<std::string, MachineObject*>::iterator it;
+        for (it = myBindMachineList.begin();it != myBindMachineList.end(); it++)
+        {
+            show_list.push_back(it->second);
+        }
+        return show_list;
+    }
+
 
     void AccountManager::update_my_bind_list(std::string body)
     {

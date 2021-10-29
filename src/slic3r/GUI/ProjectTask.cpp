@@ -53,6 +53,8 @@ namespace Slic3r {
         long t = wxGetUTCTime();
         wxDateTime now = wxDateTime::Now().MakeUTC();
         task_create_time = now.FormatISOCombined(' ').ToStdString();
+
+        task_progress = 0;
     }
 
     std::string BBLSubTask::build_content_json()

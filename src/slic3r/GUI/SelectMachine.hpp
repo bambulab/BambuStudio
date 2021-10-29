@@ -129,6 +129,7 @@ private:
     wxScrolledWindow*    m_panel;
     wxBoxSizer*          topSizer;
     wxStaticText*        m_staticText_select;
+    wxTimer*             m_refresh_timer;
     std::vector<MachineObjectPanel*> obj_panels;
     std::vector<MachineObject*>     m_obj_list;
 
@@ -138,6 +139,8 @@ private:
     void OnSetFocus( wxFocusEvent &event );
     void OnKillFocus( wxFocusEvent &event );
     void OnButton(wxCommandEvent& event);
+
+    void on_timer(wxTimerEvent& event);
 
 private:
     wxDECLARE_ABSTRACT_CLASS(SelectMachinePopup);
@@ -173,10 +176,7 @@ protected:
     void on_ok(wxCommandEvent& event);
     void on_timer(wxTimerEvent& event);
     void on_selection_changed(wxDataViewEvent& event);
-
     void on_dpi_changed(const wxRect& suggested_rect) override;
-
-    //TODO timer to update list
 };
 
 } // namespace GUI

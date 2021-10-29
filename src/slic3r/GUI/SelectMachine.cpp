@@ -12,8 +12,9 @@
 namespace Slic3r { 
 namespace GUI {
 
-#define INITIAL_NUMBER_OF_MACHINES  0
-#define LIST_REFRESH_INTERVAL       2000
+#define INITIAL_NUMBER_OF_MACHINES      0
+#define LIST_REFRESH_INTERVAL           2000
+#define MACHINE_LIST_REFRESH_INTERVAL   2000
 
 MachineListModel::MachineListModel() :
     wxDataViewVirtualListModel(INITIAL_NUMBER_OF_MACHINES)
@@ -315,6 +316,10 @@ SelectMachinePopup::SelectMachinePopup( wxWindow *parent, bool scrolled)
                                               wxBORDER_NONE |
                                               wxPU_CONTAINS_CONTROLS )
 {
+#ifdef __WINDOWS__
+    SetDoubleBuffered(true);
+#endif //__WINDOWS__
+
     m_bg_colour = wxColour(43, 52, 54);
     m_hover_colour = wxColour(61, 70, 72);
 
@@ -345,15 +350,24 @@ SelectMachinePopup::SelectMachinePopup( wxWindow *parent, bool scrolled)
     }
 
     SetClientSize(m_panel->GetSize());
+
+    Bind(wxEVT_TIMER, &SelectMachinePopup::on_timer, this);
 }
 
 void SelectMachinePopup::Popup(wxWindow* WXUNUSED(focus))
 {
+    m_refresh_timer = new wxTimer();
+    m_refresh_timer->SetOwner(this);
+    m_refresh_timer->Start(MACHINE_LIST_REFRESH_INTERVAL);
+    wxPostEvent(this, wxTimerEvent());
     wxPopupTransientWindow::Popup();
 }
 
 void SelectMachinePopup::OnDismiss()
 {
+    if (m_refresh_timer) {
+        m_refresh_timer->Stop();
+    }
     wxPopupTransientWindow::OnDismiss();
 }
 
@@ -368,12 +382,21 @@ bool SelectMachinePopup::Show( bool show )
 
 void SelectMachinePopup::update_machine_list(std::vector<MachineObject*> obj_list)
 {
+    Freeze();
     m_obj_list = obj_list;
     if (obj_panels.size() < obj_list.size()) {
         int added_panels = obj_list.size() - obj_panels.size();
         for (int i = 0; i < added_panels; i++) {
             MachineObjectPanel* new_panel = new MachineObjectPanel(m_panel, wxID_ANY);
             obj_panels.push_back(new_panel);
+        }
+    }
+    if (obj_panels.size() > obj_list.size()) {
+        int deled_panels = obj_panels.size() - obj_list.size();
+        for (int i = 0; i < deled_panels; i++) {
+            MachineObjectPanel* old_panel = obj_panels.back();
+            obj_panels.pop_back();
+            delete old_panel;
         }
     }
 
@@ -405,10 +428,8 @@ void SelectMachinePopup::update_machine_list(std::vector<MachineObject*> obj_lis
     topSizer->Add(m_panel, 1, wxEXPAND | wxALL, 5);
     this->Fit();
     this->Layout();
-
-    //SetClientSize(m_panel->GetSize());
+    Thaw();
 }
-
 
 void SelectMachinePopup::OnSize(wxSizeEvent &event)
 {
@@ -445,10 +466,16 @@ void SelectMachinePopup::OnMouse(wxMouseEvent &event)
 
 void SelectMachinePopup::OnButton(wxCommandEvent& event)
 {
-
-
+    ;
 }
 
+void SelectMachinePopup::on_timer(wxTimerEvent& event)
+{
+    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    std::vector<MachineObject*> show_list = account_manager->get_select_machine_list();
+    update_machine_list(show_list);
+    account_manager->request_bind_list();
+}
 
 SelectMachineDialog::SelectMachineDialog()
 	: DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("Select Printer"), wxDefaultPosition,
