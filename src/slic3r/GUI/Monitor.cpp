@@ -1433,13 +1433,13 @@ void MonitorPanel::on_subtask_abort(wxCommandEvent& event)
 void MonitorPanel::on_axis_ctrl_y_up(wxCommandEvent& event)
 {
     if (obj)
-        obj->command_axis_control("Y", get_control_unit(), 1.0f);
+        obj->command_axis_control("Y", get_control_unit(), 1.0f, 3000);
 }
 
 void MonitorPanel::on_axis_ctrl_y_down(wxCommandEvent& event)
 {
     if (obj)
-        obj->command_axis_control("Y", get_control_unit(), -1.0f);
+        obj->command_axis_control("Y", get_control_unit(), -1.0f, 3000);
 }
 
 void MonitorPanel::on_axis_ctrl_xy_home(wxCommandEvent& event)
@@ -1451,19 +1451,19 @@ void MonitorPanel::on_axis_ctrl_xy_home(wxCommandEvent& event)
 void MonitorPanel::on_axis_ctrl_x_left(wxCommandEvent& event)
 {
     if (obj)
-        obj->command_axis_control("X", get_control_unit(), -1.0f);
+        obj->command_axis_control("X", get_control_unit(), -1.0f, 3000);
 }
 
 void MonitorPanel::on_axis_ctrl_x_right(wxCommandEvent& event)
 {
     if (obj)
-        obj->command_axis_control("X", get_control_unit(), 1.0f);
+        obj->command_axis_control("X", get_control_unit(), 1.0f, 3000);
 }
 
 void MonitorPanel::on_axis_ctrl_z_up(wxCommandEvent& event)
 {
     if (obj)
-        obj->command_axis_control("Z", get_control_unit(), -1.0f);
+        obj->command_axis_control("Z", get_control_unit(), -1.0f, 900);
 }
 
 void MonitorPanel::on_axis_ctrl_z_home(wxCommandEvent& event)
@@ -1475,7 +1475,7 @@ void MonitorPanel::on_axis_ctrl_z_home(wxCommandEvent& event)
 void MonitorPanel::on_axis_ctrl_z_down(wxCommandEvent& event)
 {
     if (obj)
-        obj->command_axis_control("Z", get_control_unit(), 1.0f);
+        obj->command_axis_control("Z", get_control_unit(), 1.0f, 900);
 }
 
 void MonitorPanel::on_axis_ctrl_unit_0_1(wxCommandEvent& event)
