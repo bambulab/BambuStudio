@@ -2,15 +2,19 @@
 
 #include <cmath>
 #include <cassert>
+#include "Geometry.hpp"
 
 namespace Slic3r {
 
+//BBS: threshold used to judge collineation
+static const double Parallel_radian_threshold = 0.0001;
+
 bool Circle::try_create_circle(const Point& p1, const Point& p2, const Point& p3, const double max_radius, Circle& new_circle)
 {
-    // BBS: return false directly if three points on one line
-    double dir = Line(p1, p3).direction();
-    Line line(p1, p2);
-    if (line.parallel_to(dir))
+    // BBS: return false directly if three points are almostly on one line
+    double dir1 = Line(p1, p3).direction();
+    double dir2 = Line(p1, p2).direction();
+    if (Slic3r::Geometry::directions_parallel(dir1, dir2, Parallel_radian_threshold))
         return false;
 
     double x1 = p1.x();
@@ -33,14 +37,16 @@ bool Circle::try_create_circle(const Point& p1, const Point& p2, const Point& p3
         + (x2 * x2 + y2 * y2) * (x3 - x1)
         + (x3 * x3 + y3 * y3) * (x1 - x2);
 
-    Point temp_center = Point(-b / (2.0 * a), -c / (2.0 * a));
+    double center_x = -b / (2.0 * a);
+    double center_y = -c / (2.0 * a);
 
-    Point temp = temp_center - p1;
-    double radius = sqrt((double)temp.x() * (double)temp.x() + (double)temp.y() * (double)temp.y());
+    double delta_x = center_x - x1;
+    double delta_y = center_y - y1;
+    double radius = sqrt(delta_x * delta_x + delta_y * delta_y);
     if (radius > max_radius)
         return false;
 
-    new_circle.center = temp_center;
+    new_circle.center = Point(center_x, center_y);
     new_circle.radius = radius;
 
     return true;
