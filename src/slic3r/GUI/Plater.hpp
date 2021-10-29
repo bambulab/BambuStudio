@@ -77,6 +77,7 @@ class ProjectResource : public wxNotebook
 {
 public:
     ProjectResource(wxWindow *parent);
+    ~ProjectResource();
     ObjectList *get_object_list() { return m_object_list; }
     AuxiliaryList* get_auxiliary_list() { return m_auxiliary_list; }
 

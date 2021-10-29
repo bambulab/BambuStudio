@@ -183,7 +183,8 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     else
         init_menubar_as_editor();
 
-#if _WIN32
+    // BBS
+#if 0
     // This is needed on Windows to fake the CTRL+# of the window menu when using the numpad
     wxAcceleratorEntry entries[6];
     entries[0].Set(wxACCEL_CTRL, WXK_NUMPAD1, wxID_HIGHEST + 1);
@@ -195,6 +196,36 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     wxAcceleratorTable accel(6, entries);
     SetAcceleratorTable(accel);
 #endif // _WIN32
+
+    // BBS
+    wxAcceleratorEntry entries[12];
+    entries[0].Set(wxACCEL_CTRL, (int)'N', wxID_HIGHEST + wxID_NEW);
+    entries[1].Set(wxACCEL_CTRL, (int)'O', wxID_HIGHEST + wxID_OPEN);
+    entries[2].Set(wxACCEL_CTRL, (int)'S', wxID_HIGHEST + wxID_SAVE);
+    entries[3].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int)'S', wxID_HIGHEST + wxID_SAVEAS);
+    entries[4].Set(wxACCEL_CTRL, (int)'I', wxID_HIGHEST + wxID_ADD);
+    entries[5].Set(wxACCEL_NORMAL, (int)127, wxID_HIGHEST + wxID_DELETE);
+    entries[6].Set(wxACCEL_CTRL, (int)'A', wxID_HIGHEST + wxID_SELECTALL);
+    entries[7].Set(wxACCEL_NORMAL, (int)27 /* escape */, wxID_HIGHEST + wxID_CANCEL);
+    entries[8].Set(wxACCEL_CTRL, (int)'Z', wxID_HIGHEST + wxID_UNDO);
+    entries[9].Set(wxACCEL_CTRL, (int)'Y', wxID_HIGHEST + wxID_REDO);
+    entries[10].Set(wxACCEL_CTRL, (int)'C', wxID_HIGHEST + wxID_COPY);
+    entries[11].Set(wxACCEL_CTRL, (int)'V', wxID_HIGHEST + wxID_PASTE);
+    wxAcceleratorTable accel(sizeof(entries) / sizeof(entries[0]), entries);
+    SetAcceleratorTable(accel);
+
+    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->new_project(); }, wxID_HIGHEST + wxID_NEW);
+    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->load_project(); }, wxID_HIGHEST + wxID_OPEN);
+    Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(into_path(m_plater->get_project_filename(".3mf"))); }, wxID_HIGHEST + wxID_SAVE);
+    Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(); }, wxID_HIGHEST + wxID_SAVEAS);
+    Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(); }, wxID_HIGHEST + wxID_ADD);
+    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->remove_selected(); }, wxID_HIGHEST + wxID_DELETE);
+    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->select_all(); }, wxID_HIGHEST + wxID_SELECTALL);
+    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->deselect_all(); }, wxID_HIGHEST + wxID_CANCEL);
+    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->undo(); }, wxID_HIGHEST + wxID_UNDO);
+    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->redo(); }, wxID_HIGHEST + wxID_REDO);
+    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); }, wxID_HIGHEST + wxID_COPY);
+    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); }, wxID_HIGHEST + wxID_PASTE);
 
     // set default tooltip timer in msec
     // SetAutoPop supposedly accepts long integers but some bug doesn't allow for larger values
@@ -1178,8 +1209,11 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
         for (auto tab : wxGetApp().tabs_list)
             tab->msw_rescale();
 
+    // BBS
+#if 0
     for (size_t id = 0; id < m_menubar->GetMenuCount(); id++)
         msw_rescale_menu(m_menubar->GetMenu(id));
+#endif
 
     // Workarounds for correct Window rendering after rescale
 

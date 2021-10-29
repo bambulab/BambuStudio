@@ -660,6 +660,11 @@ ProjectResource::ProjectResource(wxWindow *parent)
     this->AddPage(m_auxiliary_panel, _L("Auxiliary List"));
 }
 
+ProjectResource::~ProjectResource()
+{
+    this->DeleteAllPages();
+}
+
 // Sidebar / private
 
 enum class ActionButtonType : int {
@@ -730,6 +735,10 @@ Sidebar::priv::~priv()
     delete frequently_changed_parameters;
 #endif
     delete object_layers;
+
+    // BBS
+    if (project_resource != nullptr)
+        delete project_resource;
 }
 
 void Sidebar::priv::show_preset_comboboxes()
@@ -1229,7 +1238,8 @@ void Sidebar::msw_rescale()
     p->object_layers->msw_rescale();
 
     // BBS
-    /p->object_info->msw_rescale();
+#if 0
+    p->object_info->msw_rescale();
 
     p->btn_send_gcode->msw_rescale();
 //    p->btn_eject_device->msw_rescale();
@@ -1241,7 +1251,7 @@ void Sidebar::msw_rescale()
 #endif
     p->btn_export_gcode->SetMinSize(wxSize(-1, scaled_height));
     p->btn_reslice     ->SetMinSize(wxSize(-1, scaled_height));
-
+#endif
     p->scrolled->Layout();
 
     p->searcher.dlg_msw_rescale();

@@ -952,7 +952,10 @@ void PlaterPresetComboBox::update()
 void PlaterPresetComboBox::msw_rescale()
 {
     PresetComboBox::msw_rescale();
-    edit_btn->msw_rescale();
+
+    // BBS
+    if (edit_btn != nullptr)
+        edit_btn->msw_rescale();
 }
 
 

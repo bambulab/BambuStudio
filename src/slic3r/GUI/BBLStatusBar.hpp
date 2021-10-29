@@ -31,12 +31,12 @@ class BBLStatusBar : public ProgressIndicator
     wxStaticText *m_status_text;
     wxStaticText* m_object_info;
     wxStaticText* m_slice_info;
-    wxBoxSizer m_slice_info_sizer;
-    wxBoxSizer m_object_info_sizer;
-    wxBoxSizer m_sizer;
+    wxBoxSizer *m_slice_info_sizer;
+    wxBoxSizer *m_object_info_sizer;
+    wxBoxSizer *m_sizer;
 public:
     BBLStatusBar(wxWindow *parent = nullptr, int id = -1);
-    ~BBLStatusBar() override;
+    ~BBLStatusBar() = default;
 
     int         get_progress() const;
     // if the argument is less than 0 it shows the last state or

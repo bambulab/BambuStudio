@@ -32,8 +32,8 @@ public:
         m_container = is_container;
         m_root = false;
         path = abs_path;
-        fs::path path_obj(path.ToStdWstring());
-        name = path_obj.filename().wstring();
+        fs::path path_obj(path.c_str());
+        name = path_obj.filename().string();
 
         parent->Append(this);
     }
@@ -101,10 +101,7 @@ class AuxiliaryModel : public wxDataViewModel
 {
 public:
     AuxiliaryModel();
-    ~AuxiliaryModel()
-    {
-        delete m_root;
-    }
+    ~AuxiliaryModel();
 
     // helper methods to change the model
     wxDataViewItem CreateFolder(wxString name = wxEmptyString);

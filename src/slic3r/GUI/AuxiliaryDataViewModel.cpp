@@ -15,7 +15,7 @@ void AuxiliaryModel::Init(wxString aux_path)
         fs::remove_all(path_to_del);
     }
 
-    fs::path top_dir_path(m_root_dir.ToStdWstring());
+    fs::path top_dir_path(m_root_dir.c_str());
     fs::create_directory(top_dir_path);
 
     CreateFolder(_L("Model Pictures"));
@@ -24,12 +24,23 @@ void AuxiliaryModel::Init(wxString aux_path)
     CreateFolder(_L("Others"));
 }
 
+AuxiliaryModel::~AuxiliaryModel()
+{
+    if (wxDirExists(m_root_dir)) {
+        fs::path path_to_del(m_root_dir.c_str());
+        fs::remove_all(path_to_del);
+        m_root_dir = "";
+    }
+    delete m_root;
+    m_root = nullptr;
+}
+
 void AuxiliaryModel::Reload(wxString aux_path)
 {
-    fs::path new_aux_path(aux_path.ToStdWstring());
+    fs::path new_aux_path(aux_path.c_str());
 
     // Clean
-    fs::remove_all(fs::path(m_root_dir.ToStdWstring()));
+    fs::remove_all(fs::path(m_root_dir.c_str()));
     if (m_root) {
         delete m_root;
         m_root = nullptr;
@@ -221,7 +232,7 @@ wxDataViewItem AuxiliaryModel::CreateFolder(wxString name)
     }
 
     // Create folder in file system
-    fs::path bfs_path((m_root_dir + "\\" + folder_name).ToStdWstring());
+    fs::path bfs_path((m_root_dir + "\\" + folder_name).c_str());
     if (fs::exists(bfs_path)) {
         bool is_done = fs::remove_all(bfs_path);
         if (!is_done)
@@ -251,7 +262,7 @@ wxDataViewItem AuxiliaryModel::ImportFile(AuxiliaryModelNode* sel, wxString file
     }
 
     // Copy imported file to project temp directory
-    fs::path src_bfs_path(file_path.ToStdWstring());
+    fs::path src_bfs_path(file_path.c_str());
     wxString dir_path = m_root_dir;
     if (sel != m_root)
         dir_path += "\\" + sel->name;
@@ -259,7 +270,7 @@ wxDataViewItem AuxiliaryModel::ImportFile(AuxiliaryModelNode* sel, wxString file
 
     fs::copy_file(
         src_bfs_path,
-        fs::path(dir_path.ToStdWstring()),
+        fs::path(dir_path.c_str()),
         fs::copy_option::overwrite_if_exists);
 
     // Update model data
@@ -282,11 +293,11 @@ void AuxiliaryModel::Delete(const wxDataViewItem& item)
 
     bool is_done = false;
     if (node->IsContainer()) {
-        fs::path bfs_path((m_root_dir + "\\" + node->name).ToStdWstring());
+        fs::path bfs_path((m_root_dir + "\\" + node->name).c_str());
         is_done = fs::remove_all(bfs_path);
     }
     else {
-        fs::path bfs_path(node->path.ToStdWstring());
+        fs::path bfs_path(node->path.c_str());
         is_done = fs::remove(bfs_path);
     }
 
@@ -334,8 +345,8 @@ void AuxiliaryModel::MoveItem(const wxDataViewItem& dropped_item, const wxDataVi
     new_path += "\\" + dragged->name;
 
     // Perform file movement in file system
-    fs::path bfs_new_path(new_path.ToStdWstring());
-    fs::path bfs_old_path(dragged->path.ToStdWstring());
+    fs::path bfs_new_path(new_path.c_str());
+    fs::path bfs_old_path(dragged->path.c_str());
     boost::system::error_code err;
     fs::rename(bfs_old_path, bfs_new_path, err);
     if (err.failed())
@@ -371,8 +382,8 @@ bool AuxiliaryModel::Rename(const wxDataViewItem& item, const wxString& name)
     }
 
     boost::system::error_code err;
-    fs::path old_path((m_root_dir + "\\" + node->name).ToStdWstring());
-    fs::path new_path((m_root_dir + "\\" + name).ToStdWstring());
+    fs::path old_path((m_root_dir + "\\" + node->name).c_str());
+    fs::path new_path((m_root_dir + "\\" + name).c_str());
     fs::rename(old_path, new_path, err);
     if (err.failed())
         return false;

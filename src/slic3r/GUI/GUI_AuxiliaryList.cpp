@@ -76,11 +76,16 @@ AuxiliaryList::AuxiliaryList(wxWindow* parent)
 	win->Bind(wxEVT_LEFT_DCLICK, &AuxiliaryList::on_left_dclick, this);
 }
 
+AuxiliaryList::~AuxiliaryList()
+{
+	this->AssociateModel(nullptr);
+	delete m_auxiliary_model;
+}
+
 void AuxiliaryList::init_auxiliary()
 {
 	Model& model = wxGetApp().plater()->model();
 	std::string temp_path = model.get_auxiliary_file_temp_path();
-	temp_path = encode_path(temp_path.c_str());
 	m_auxiliary_model->Init(temp_path);
 }
 

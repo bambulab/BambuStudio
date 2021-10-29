@@ -324,10 +324,12 @@ void ParamsPanel::delete_subwindows()
 
 ParamsPanel::~ParamsPanel()
 {
+#if 0
     free_sizers();
     delete m_top_sizer;
 
     delete_subwindows();
+#endif
 }
 
 } // GUI

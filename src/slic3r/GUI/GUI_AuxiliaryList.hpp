@@ -17,6 +17,7 @@ class AuxiliaryList : public wxDataViewCtrl
 {
 public:
 	AuxiliaryList(wxWindow* parent);
+	~AuxiliaryList();
 	wxSizer* get_top_sizer() { return m_sizer; }
 	void init_auxiliary();
 
