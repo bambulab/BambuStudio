@@ -226,7 +226,8 @@ void GCodeViewer::SequentialView::Marker::set_world_position(const Vec3f& positi
     m_world_transform = (Geometry::assemble_transform((position + m_z_offset * Vec3f::UnitZ()).cast<double>()) * Geometry::assemble_transform(m_model.get_bounding_box().size().z() * Vec3d::UnitZ(), { M_PI, 0.0, 0.0 })).cast<float>();
 }
 
-void GCodeViewer::SequentialView::Marker::render() const
+//BBS: GUI refactor: add canvas size from parameters
+void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_height) const
 {
     if (!m_visible)
         return;
@@ -256,8 +257,10 @@ void GCodeViewer::SequentialView::Marker::render() const
     static size_t last_text_length = 0;
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
-    Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
-    imgui.set_next_window_pos(0.5f * static_cast<float>(cnv_size.get_width()), static_cast<float>(cnv_size.get_height()), ImGuiCond_Always, 0.5f, 1.0f);
+    //BBS: GUI refactor: add canvas size from parameters
+    //Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
+    //imgui.set_next_window_pos(0.5f * static_cast<float>(cnv_size.get_width()), static_cast<float>(cnv_size.get_height()), ImGuiCond_Always, 0.5f, 1.0f);
+    imgui.set_next_window_pos(0.5f * static_cast<float>(canvas_width), static_cast<float>(canvas_height), ImGuiCond_Always, 0.5f, 1.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::SetNextWindowBgAlpha(0.25f);
     imgui.begin(std::string("ToolPosition"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
@@ -309,7 +312,9 @@ void GCodeViewer::SequentialView::GCodeWindow::load_gcode(const std::string& fil
     }
 }
 
-void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, uint64_t curr_line_id) const
+//BBS: GUI refactor: move to right
+void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, float right, uint64_t curr_line_id) const
+//void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, uint64_t curr_line_id) const
 {
     auto update_lines = [this](uint64_t start_id, uint64_t end_id) {
         std::vector<Line> ret;
@@ -395,7 +400,9 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
-    imgui.set_next_window_pos(0.0f, top, ImGuiCond_Always, 0.0f, 0.0f);
+    //BBS: GUI refactor: move to right
+    //imgui.set_next_window_pos(0.0f, top, ImGuiCond_Always, 0.0f, 0.0f);
+    imgui.set_next_window_pos(right, top, ImGuiCond_Always, 1.0f, 0.0f);
     imgui.set_next_window_size(0.0f, wnd_height, ImGuiCond_Always);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::SetNextWindowBgAlpha(0.6f);
@@ -411,11 +418,16 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, u
 
         // rect around the current selected line
         if (id == curr_line_id) {
+            //BBS: GUI refactor: move to right
             const float pos_y = ImGui::GetCursorScreenPos().y;
+            const float pos_x = ImGui::GetCursorScreenPos().x;
             const float half_ItemSpacing_y = 0.5f * style.ItemSpacing.y;
-            const float half_padding_x = 0.5f * style.WindowPadding.x;
-            ImGui::GetWindowDrawList()->AddRect({ half_padding_x, pos_y - half_ItemSpacing_y },
-                { ImGui::GetCurrentWindow()->Size.x - half_padding_x, pos_y + text_height + half_ItemSpacing_y },
+            const float half_ItemSpacing_x = 0.5f * style.ItemSpacing.x;
+            //ImGui::GetWindowDrawList()->AddRect({ half_padding_x, pos_y - half_ItemSpacing_y },
+            //    { ImGui::GetCurrentWindow()->Size.x - half_padding_x, pos_y + text_height + half_ItemSpacing_y },
+            //    ImGui::GetColorU32(SELECTION_RECT_COLOR));
+            ImGui::GetWindowDrawList()->AddRect({ pos_x - half_ItemSpacing_x, pos_y - half_ItemSpacing_y },
+                { right - half_ItemSpacing_x, pos_y + text_height + half_ItemSpacing_y },
                 ImGui::GetColorU32(SELECTION_RECT_COLOR));
         }
 
@@ -466,16 +478,18 @@ void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
         m_file.close();
 }
 
-void GCodeViewer::SequentialView::render(float legend_height) const
+//BBS: GUI refactor: move to the right
+void GCodeViewer::SequentialView::render(float legend_height, int canvas_width, int canvas_height) const
 {
-    marker.render();
-    float bottom = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_height();
+    marker.render(canvas_width, canvas_height);
+    //float bottom = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_height();
     // BBS
 #if 0
     if (wxGetApp().is_editor())
         bottom -= wxGetApp().plater()->get_view_toolbar().get_height();
 #endif
-    gcode_window.render(legend_height, bottom, static_cast<uint64_t>(gcode_ids[current.last]));
+    //gcode_window.render(legend_height, bottom, static_cast<uint64_t>(gcode_ids[current.last]));
+    gcode_window.render(legend_height, (float)canvas_height, (float)canvas_width, static_cast<uint64_t>(gcode_ids[current.last]));
 }
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
@@ -823,7 +837,8 @@ void GCodeViewer::reset()
     m_contained_in_bed = true;
 }
 
-void GCodeViewer::render()
+//BBS: GUI refactor: add canvas width and height
+void GCodeViewer::render(int canvas_width, int canvas_height)
 {
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.reset_opengl();
@@ -837,11 +852,11 @@ void GCodeViewer::render()
     render_toolpaths();
     render_shells();
     float legend_height = 0.0f;
-    render_legend(legend_height);
+    render_legend(legend_height, canvas_width, canvas_height);
     if (m_sequential_view.current.last != m_sequential_view.endpoints.last) {
         m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
         m_sequential_view.marker.set_world_offset(m_sequential_view.current_offset);
-        m_sequential_view.render(legend_height);
+        m_sequential_view.render(legend_height, canvas_width, canvas_height);
     }
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
@@ -3053,7 +3068,8 @@ void GCodeViewer::render_shells()
 //    glsafe(::glDepthMask(GL_TRUE));
 }
 
-void GCodeViewer::render_legend(float& legend_height)
+//BBS: GUI refactor: add canvas size
+void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canvas_height)
 {
     if (!m_legend_enabled)
         return;
@@ -3062,7 +3078,8 @@ void GCodeViewer::render_legend(float& legend_height)
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
-    imgui.set_next_window_pos(0.0f, 0.0f, ImGuiCond_Always);
+    //BBS: GUI refactor: move to the right
+    imgui.set_next_window_pos(float(canvas_width), 0.0f, ImGuiCond_Always, 1.0f, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::SetNextWindowBgAlpha(0.6f);
     const float max_height = 0.75f * static_cast<float>(cnv_size.get_height());

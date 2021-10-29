@@ -1595,7 +1595,8 @@ void GLCanvas3D::render()
     /* preview render */
     else if (m_canvas_type == ECanvasType::CanvasPreview) {
         _render_objects(GLVolumeCollection::ERenderType::Opaque);
-        _render_gcode();
+        //BBS: GUI refactor: add canvas size as parameters
+        _render_gcode(cnv_size.get_width(), cnv_size.get_height());
         _render_sla_slices();
         _render_selection();
         _render_bed(!camera.is_looking_downward(), show_axes);
@@ -6239,9 +6240,10 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
     m_camera_clipping_plane = ClippingPlane::ClipsNothing();
 }
 
-void GLCanvas3D::_render_gcode()
+//BBS: GUI refactor: add canvas size as parameters
+void GLCanvas3D::_render_gcode(int canvas_width, int canvas_height)
 {
-    m_gcode_viewer.render();
+    m_gcode_viewer.render(canvas_width, canvas_height);
 }
 
 void GLCanvas3D::_render_selection() const

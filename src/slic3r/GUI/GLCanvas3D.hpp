@@ -995,7 +995,8 @@ private:
     void _render_platelist(bool bottom, bool only_current, bool only_body = false) const;
     void _render_plates_for_picking() const;
     void _render_objects(GLVolumeCollection::ERenderType type);
-    void _render_gcode();
+    //BBS: GUI refactor: add canvas size as parameters
+    void _render_gcode(int canvas_width, int canvas_height);
     void _render_selection() const;
     void _render_sequential_clearance();
 #if ENABLE_RENDER_SELECTION_CENTER

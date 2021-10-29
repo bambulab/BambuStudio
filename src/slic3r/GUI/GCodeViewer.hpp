@@ -614,7 +614,8 @@ public:
             bool is_visible() const { return m_visible; }
             void set_visible(bool visible) { m_visible = visible; }
 
-            void render() const;
+            //BBS: GUI refactor: add canvas size
+            void render(int canvas_width, int canvas_height) const;
         };
 
         class GCodeWindow
@@ -648,7 +649,9 @@ public:
 
             void toggle_visibility() { m_visible = !m_visible; }
 
-            void render(float top, float bottom, uint64_t curr_line_id) const;
+            //BBS: GUI refactor: add canvas size
+            //void render(float top, float bottom, uint64_t curr_line_id) const;
+            void render(float top, float bottom, float right, uint64_t curr_line_id) const;
 
             void stop_mapping_file();
         };
@@ -670,7 +673,8 @@ public:
         GCodeWindow gcode_window;
         std::vector<unsigned int> gcode_ids;
 
-        void render(float legend_height) const;
+        //BBS: GUI refactor: add canvas size
+        void render(float legend_height, int canvas_width, int canvas_height) const;
     };
 
     enum class EViewType : unsigned char
@@ -741,7 +745,8 @@ public:
     void update_shells_color_by_extruder(const DynamicPrintConfig* config);
 
     void reset();
-    void render();
+    //BBS: GUI refactor: add canvas width and height
+    void render(int canvas_width, int canvas_height);
 
     bool has_data() const { return !m_roles.empty(); }
     bool can_export_toolpaths() const;
@@ -787,7 +792,10 @@ private:
     void refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const;
     void render_toolpaths();
     void render_shells();
-    void render_legend(float& legend_height);
+
+    //BBS: GUI refactor: add canvas size
+    void render_legend(float& legend_height, int canvas_width, int canvas_height);
+
 #if ENABLE_GCODE_VIEWER_STATISTICS
     void render_statistics();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
