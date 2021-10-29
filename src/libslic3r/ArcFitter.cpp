@@ -108,24 +108,21 @@ void ArcFitter::do_arc_fitting_and_simplify(Points& points, std::vector<PathFitt
         {
             size_t start_index = result[i].start_point_index;
             size_t end_index = result[i].end_point_index;
-            if (result[i].path_type == EMovePathType::Linear_move)
-            {
-                //BBS: get the straight part and do simplify
-                Points straight_part;
-                straight_part.reserve(end_index - start_index + 1);
-                for (size_t j = start_index; j <= end_index; j++)
-                    straight_part.push_back(points[j]);
-                straight_part = MultiPoint::_douglas_peucker(straight_part, tolerance);
-                //BBS: how many point has been reduced
-                reduce_count[i] = end_index - start_index + 1 - straight_part.size();
-                //BBS: save the simplified result
-                for (size_t j = 1; j < straight_part.size(); j++) {
-                    simplified_points.push_back(straight_part[j]);
-                }
-            } else {
-                //BBS: only save start and end point of arc part
-                reduce_count[i] = end_index - start_index - 1;
-                simplified_points.push_back(points[end_index]);
+            //BBS: get the straight and arc part, and do simplifing independently.
+            //Why: It's obvious that we need to use DP to simplify straight part to reduce point.
+            //For arc part, theoretically, we only need to keep the start and end point, and
+            //delete all other point. But when considering wipe operation, we must keep the original
+            //point data and shouldn't reduce too much by only saving start and end point.
+            Points straight_or_arc_part;
+            straight_or_arc_part.reserve(end_index - start_index + 1);
+            for (size_t j = start_index; j <= end_index; j++)
+                straight_or_arc_part.push_back(points[j]);
+            straight_or_arc_part = MultiPoint::_douglas_peucker(straight_or_arc_part, tolerance);
+            //BBS: how many point has been reduced
+            reduce_count[i] = end_index - start_index + 1 - straight_or_arc_part.size();
+            //BBS: save the simplified result
+            for (size_t j = 1; j < straight_or_arc_part.size(); j++) {
+                simplified_points.push_back(straight_or_arc_part[j]);
             }
         }
         //BBS: save and will return the simplified_points
