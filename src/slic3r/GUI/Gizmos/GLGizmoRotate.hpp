@@ -3,6 +3,8 @@
 
 #include "GLGizmoBase.hpp"
 #include "../Jobs/RotoptimizeJob.hpp"
+//BBS: add size adjust related
+#include "GizmoObjectManipulation.hpp"
 
 
 namespace Slic3r {
@@ -75,9 +77,14 @@ private:
 class GLGizmoRotate3D : public GLGizmoBase
 {
     std::vector<GLGizmoRotate> m_gizmos;
+ 
+    //BBS: add size adjust related
+    GizmoObjectManipulation* m_object_manipulation;
 
 public:
-    GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+    //BBS: add obj manipulation logic
+    //GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+    GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation);
 
     Vec3d get_rotation() const { return Vec3d(m_gizmos[X].get_angle(), m_gizmos[Y].get_angle(), m_gizmos[Z].get_angle()); }
     void set_rotation(const Vec3d& rotation) { m_gizmos[X].set_angle(rotation(0)); m_gizmos[Y].set_angle(rotation(1)); m_gizmos[Z].set_angle(rotation(2)); }

@@ -2,6 +2,10 @@
 #include "GLGizmoMove.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+//BBS: GUI refactor
+#include "slic3r/GUI/Plater.hpp"
+#include "libslic3r/AppConfig.hpp"
+
 
 #include <GL/glew.h>
 
@@ -12,13 +16,16 @@ namespace GUI {
 
 const double GLGizmoMove3D::Offset = 10.0;
 
-GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+//BBS: GUI refactor: add obj manipulation
+GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation)
     : GLGizmoBase(parent, icon_filename, sprite_id)
     , m_displacement(Vec3d::Zero())
     , m_snap_step(1.0)
     , m_starting_drag_position(Vec3d::Zero())
     , m_starting_box_center(Vec3d::Zero())
     , m_starting_box_bottom_center(Vec3d::Zero())
+    //BBS: GUI refactor: add obj manipulation
+    , m_object_manipulation(obj_manipulation)
 {
     m_vbo_cone.init_from(its_make_cone(1., 1., 2*PI/36));
 }
@@ -161,6 +168,14 @@ void GLGizmoMove3D::on_render_for_picking()
     render_grabber_extension(Y, box, true);
     render_grabber_extension(Z, box, true);
 }
+
+//BBS: add input window for move
+void GLGizmoMove3D::on_render_input_window(float x, float y, float bottom_limit)
+{
+    if (m_object_manipulation)
+        m_object_manipulation->do_render_input_window(m_imgui, x, y, bottom_limit);
+}
+
 
 double GLGizmoMove3D::calc_projection(const UpdateData& data) const
 {

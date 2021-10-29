@@ -2,11 +2,15 @@
 #define slic3r_GLGizmoMove_hpp_
 
 #include "GLGizmoBase.hpp"
+//BBS: add size adjust related
+#include "GizmoObjectManipulation.hpp"
 
 
 namespace Slic3r {
 namespace GUI {
 
+//BBS: GUI refactor: add object manipulation
+class GizmoObjectManipulation;
 class GLGizmoMove3D : public GLGizmoBase
 {
     static const double Offset;
@@ -21,8 +25,13 @@ class GLGizmoMove3D : public GLGizmoBase
 
     GLModel m_vbo_cone;
 
+    //BBS: add size adjust related
+    GizmoObjectManipulation* m_object_manipulation;
+
 public:
-    GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+    //BBS: add obj manipulation logic
+    //GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+    GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation);
     virtual ~GLGizmoMove3D() = default;
 
     double get_snap_step(double step) const { return m_snap_step; }
@@ -41,6 +50,8 @@ protected:
     virtual void on_update(const UpdateData& data) override;
     virtual void on_render() override;
     virtual void on_render_for_picking() override;
+    //BBS: GUI refactor: add object manipulation
+    virtual void on_render_input_window(float x, float y, float bottom_limit);
 
 private:
     double calc_projection(const UpdateData& data) const;

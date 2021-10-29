@@ -903,6 +903,9 @@ namespace ImGui
     IMGUI_API void*         MemAlloc(size_t size);
     IMGUI_API void          MemFree(void* ptr);
 
+    //BBS: add api to clear initial value for text
+    IMGUI_API void          ClearInputTextInitialData(const char* label, double new_value);
+
 } // namespace ImGui
 
 //-----------------------------------------------------------------------------

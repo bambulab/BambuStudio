@@ -186,12 +186,14 @@ void GLGizmoRotate::on_render_for_picking()
     glsafe(::glPopMatrix());
 }
 
+//BBS: add input window for move
 void GLGizmoRotate3D::on_render_input_window(float x, float y, float bottom_limit)
 {
-    if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
-        return;
-
-    RotoptimzeWindow popup{m_imgui, m_rotoptimizewin_state, {x, y, bottom_limit}};
+    //if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
+    //    return;
+    if (m_object_manipulation)
+        m_object_manipulation->do_render_input_window(m_imgui, x, y, bottom_limit);
+    //RotoptimzeWindow popup{m_imgui, m_rotoptimizewin_state, {x, y, bottom_limit}};
 }
 
 void GLGizmoRotate3D::load_rotoptimize_state()
@@ -431,8 +433,11 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, cons
     return transform(mouse_ray, m).intersect_plane(0.0);
 }
 
-GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+//BBS: GUI refactor: add obj manipulation
+GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation)
     : GLGizmoBase(parent, icon_filename, sprite_id)
+    //BBS: GUI refactor: add obj manipulation
+    , m_object_manipulation(obj_manipulation)
 {
     m_gizmos.emplace_back(parent, GLGizmoRotate::X);
     m_gizmos.emplace_back(parent, GLGizmoRotate::Y);

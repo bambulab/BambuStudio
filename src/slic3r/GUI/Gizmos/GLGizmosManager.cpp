@@ -44,6 +44,8 @@ GLGizmosManager::GLGizmosManager(GLCanvas3D& parent)
     , m_current(Undefined)
     , m_tooltip("")
     , m_serializing(false)
+    //BBS: GUI refactor: add object manipulation in gizmo
+    , m_object_manipulation(parent)
 {
 }
 
@@ -131,9 +133,10 @@ bool GLGizmosManager::init()
     }
 
     // Order of gizmos in the vector must match order in EType!
-    m_gizmos.emplace_back(new GLGizmoMove3D(m_parent, "move.svg", 0));
-    m_gizmos.emplace_back(new GLGizmoScale3D(m_parent, "scale.svg", 1));
-    m_gizmos.emplace_back(new GLGizmoRotate3D(m_parent, "rotate.svg", 2));
+    //BBS: GUI refactor: add obj manipulation
+    m_gizmos.emplace_back(new GLGizmoMove3D(m_parent, "move.svg", 0, &m_object_manipulation));
+    m_gizmos.emplace_back(new GLGizmoScale3D(m_parent, "scale.svg", 1, &m_object_manipulation));
+    m_gizmos.emplace_back(new GLGizmoRotate3D(m_parent, "rotate.svg", 2, &m_object_manipulation));
     m_gizmos.emplace_back(new GLGizmoFlatten(m_parent, "place.svg", 3));
     m_gizmos.emplace_back(new GLGizmoCut(m_parent, "cut.svg", 4));
     m_gizmos.emplace_back(new GLGizmoHollow(m_parent, "hollow.svg", 5));
@@ -327,6 +330,10 @@ void GLGizmosManager::update_data()
         set_sla_support_data(selection.is_from_single_instance() ? selection.get_model()->objects[selection.get_object_idx()] : nullptr);
         set_painter_gizmo_data();
     }
+
+    //BBS: GUI refactor: add object manipulation in gizmo
+    m_object_manipulation.update_ui_from_settings();
+    m_object_manipulation.UpdateAndShow(true);
 }
 
 bool GLGizmosManager::is_running() const

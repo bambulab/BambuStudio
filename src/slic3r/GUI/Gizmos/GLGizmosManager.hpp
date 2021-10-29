@@ -5,6 +5,8 @@
 #include "slic3r/GUI/GLToolbar.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoBase.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
+//BBS: GUI refactor: add object manipulation
+#include "slic3r/GUI/Gizmos/GizmoObjectManipulation.hpp"
 
 #include "libslic3r/ObjectID.hpp"
 
@@ -25,7 +27,8 @@ class GLCanvas3D;
 class ClippingPlane;
 enum class SLAGizmoEventType : unsigned char;
 class CommonGizmosDataPool;
-
+//BBS: GUI refactor: add object manipulation
+class GizmoObjectManipulation;
 class Rect
 {
     float m_left;
@@ -108,6 +111,9 @@ private:
     EType m_current;
     EType m_hover;
     std::pair<EType, bool> m_highlight; // bool true = higlightedShown, false = highlightedHidden
+
+    //BBS: GUI refactor: add object manipulation
+    GizmoObjectManipulation m_object_manipulation;
 
     std::vector<size_t> get_selectable_idxs() const;
     size_t get_gizmo_idx_from_mouse(const Vec2d& mouse_pos) const;
@@ -255,6 +261,7 @@ public:
     //BBS: GUI refactor: GLToolbar adjust
     float get_scaled_total_height() const;
     float get_scaled_total_width() const;
+    //GizmoObjectManipulation& get_object_manipulation() { return m_object_manipulation; }
 
 private:
     void render_background(float left, float top, float right, float bottom, float border) const;

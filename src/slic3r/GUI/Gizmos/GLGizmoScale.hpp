@@ -2,6 +2,8 @@
 #define slic3r_GLGizmoScale_hpp_
 
 #include "GLGizmoBase.hpp"
+//BBS: add size adjust related
+#include "GizmoObjectManipulation.hpp"
 
 #include "libslic3r/BoundingBox.hpp"
 
@@ -33,8 +35,13 @@ class GLGizmoScale3D : public GLGizmoBase
     double m_snap_step;
     StartingData m_starting;
 
+    //BBS: add size adjust related
+    GizmoObjectManipulation* m_object_manipulation;
+
 public:
-    GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+    //BBS: add obj manipulation logic
+    //GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+    GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation);
 
     double get_snap_step(double step) const { return m_snap_step; }
     void set_snap_step(double step) { m_snap_step = step; }
@@ -54,6 +61,8 @@ protected:
     virtual void on_update(const UpdateData& data) override;
     virtual void on_render() override;
     virtual void on_render_for_picking() override;
+    //BBS: GUI refactor: add object manipulation
+    virtual void on_render_input_window(float x, float y, float bottom_limit);
 
 private:
     void render_grabbers_connection(unsigned int id_1, unsigned int id_2) const;

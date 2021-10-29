@@ -13,11 +13,14 @@ namespace GUI {
 
 const float GLGizmoScale3D::Offset = 5.0f;
 
-GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+//BBS: GUI refactor: add obj manipulation
+GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation)
     : GLGizmoBase(parent, icon_filename, sprite_id)
     , m_scale(Vec3d::Ones())
     , m_offset(Vec3d::Zero())
     , m_snap_step(0.05)
+    //BBS: GUI refactor: add obj manipulation
+    , m_object_manipulation(obj_manipulation)
 {
 }
 
@@ -310,6 +313,13 @@ void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int 
         ::glVertex3dv(m_grabbers[id_2].center.data());
         glsafe(::glEnd());
     }
+}
+
+//BBS: add input window for move
+void GLGizmoScale3D::on_render_input_window(float x, float y, float bottom_limit)
+{
+    if (m_object_manipulation)
+        m_object_manipulation->do_render_input_window(m_imgui, x, y, bottom_limit);
 }
 
 void GLGizmoScale3D::do_scale_along_axis(Axis axis, const UpdateData& data)
