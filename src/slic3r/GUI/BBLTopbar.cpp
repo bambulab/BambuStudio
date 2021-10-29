@@ -27,8 +27,8 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
 
     wxInitAllImageHandlers();
     wxBitmap logo_bitmap = create_scaled_bitmap("logo", nullptr, FromDIP(21));
-    wxStaticBitmap* logo_bitmap_ctrl = new wxStaticBitmap(this, wxID_ANY, logo_bitmap);
-    this->AddControl(logo_bitmap_ctrl);
+    wxAuiToolBarItem* logo_item = this->AddTool(wxID_ANY, "", logo_bitmap);
+    logo_item->SetActive(false);
 
     wxAuiToolBarItem* file_tool = this->AddTool(ID_TOP_MENU_TOOL, "File",
         create_scaled_bitmap("top", nullptr, FromDIP(18)), wxEmptyString);
@@ -38,20 +38,16 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     this->AddSeparator();
 
     wxBitmap open_bitmap = wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_OTHER, FromDIP(wxSize(18, 18)));
-    wxBitmapButton* open_btn = new wxBitmapButton(this, wxID_OPEN, open_bitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    this->AddControl(open_btn);
+    wxAuiToolBarItem* tool_item = this->AddTool(wxID_OPEN, "", open_bitmap);
 
     wxBitmap save_bitmap = wxArtProvider::GetBitmap(wxART_FILE_SAVE, wxART_OTHER, FromDIP(wxSize(18, 18)));
-    wxBitmapButton* save_btn = new wxBitmapButton(this, wxID_SAVE, save_bitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    this->AddControl(save_btn);
+    wxAuiToolBarItem* save_btn = this->AddTool(wxID_SAVE, "", save_bitmap);
 
     wxBitmap undo_bitmap = wxArtProvider::GetBitmap(wxART_UNDO, wxART_OTHER, FromDIP(wxSize(18, 18)));
-    wxBitmapButton* undo_btn = new wxBitmapButton(this, wxID_UNDO, undo_bitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    this->AddControl(undo_btn);
+    wxAuiToolBarItem* undo_btn = this->AddTool(wxID_UNDO, "", undo_bitmap);
 
     wxBitmap redo_bitmap = wxArtProvider::GetBitmap(wxART_REDO, wxART_OTHER, FromDIP(wxSize(18, 18)));
-    wxBitmapButton* redo_btn = new wxBitmapButton(this, wxID_REDO, redo_bitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    this->AddControl(redo_btn);
+    wxAuiToolBarItem* redo_btn = this->AddTool(wxID_REDO, "", redo_bitmap);
 
     this->AddSpacer(10);
     this->AddStretchSpacer(1);
@@ -63,28 +59,23 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     this->AddStretchSpacer(1);
 
     wxBitmap account_bitmap = create_scaled_bitmap("account", nullptr, FromDIP(21));
-    m_account_btn = new wxBitmapButton(this, ID_ACCOUNT, account_bitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    this->AddControl(m_account_btn);
+    m_account_item = this->AddTool(ID_ACCOUNT, "", account_bitmap);
 
     this->AddSpacer(10);
 
     wxBitmap printer_bitmap = create_scaled_bitmap("fdm_printer", nullptr, FromDIP(21));
-    m_printer_btn = new wxBitmapButton(this, ID_PRINTER, printer_bitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    this->AddControl(m_printer_btn);
+    m_printer_item = this->AddTool(ID_PRINTER, "", printer_bitmap);
 
     this->AddSpacer(15);
 
     wxBitmap iconize_bitmap = wxArtProvider::GetBitmap(wxART_MINUS, wxART_OTHER, FromDIP(wxSize(18, 18)));
-    wxButton* iconize_btn = new wxBitmapButton(this, wxID_ICONIZE_FRAME, iconize_bitmap);
-    this->AddControl(iconize_btn);
+    wxAuiToolBarItem* iconize_btn = this->AddTool(wxID_ICONIZE_FRAME, "", iconize_bitmap);
 
     wxBitmap maximize_bitmap = wxArtProvider::GetBitmap(wxART_FULL_SCREEN, wxART_OTHER, FromDIP(wxSize(18, 18)));
-    wxButton* maximize_btn = new wxBitmapButton(this, wxID_MAXIMIZE_FRAME, maximize_bitmap);
-    this->AddControl(maximize_btn);
+    wxAuiToolBarItem* maximize_btn = this->AddTool(wxID_MAXIMIZE_FRAME, "", maximize_bitmap);
 
     wxBitmap close_bitmap = wxArtProvider::GetBitmap(wxART_CLOSE, wxART_OTHER, FromDIP(wxSize(18, 18)));
-    wxButton* close_btn = new wxBitmapButton(this, wxID_CLOSE_FRAME, close_bitmap);
-    this->AddControl(close_btn);
+    wxAuiToolBarItem* close_btn = this->AddTool(wxID_CLOSE_FRAME, "", close_bitmap);
 
     Realize();
     m_toolbar_h = this->GetSize().GetHeight();
@@ -96,49 +87,49 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     this->Bind(wxEVT_MOUSE_CAPTURE_LOST, &BBLTopbar::OnMouseCaptureLost, this);
     this->Bind(wxEVT_MENU_CLOSE, &BBLTopbar::OnMenuClose, this);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnFileToolItem, this, ID_TOP_MENU_TOOL);
-    this->Bind(wxEVT_BUTTON, &BBLTopbar::OnIconize, this, wxID_ICONIZE_FRAME);
-    this->Bind(wxEVT_BUTTON, &BBLTopbar::OnFullScreen, this, wxID_MAXIMIZE_FRAME);
-    this->Bind(wxEVT_BUTTON, &BBLTopbar::OnCloseFrame, this, wxID_CLOSE_FRAME);
+    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnIconize, this, wxID_ICONIZE_FRAME);
+    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnFullScreen, this, wxID_MAXIMIZE_FRAME);
+    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnCloseFrame, this, wxID_CLOSE_FRAME);
     this->Bind(wxEVT_LEFT_DCLICK, &BBLTopbar::OnMouseLeftDClock, this);
     this->Bind(wxEVT_LEFT_DOWN, &BBLTopbar::OnMouseLeftDown, this);
     this->Bind(wxEVT_LEFT_UP, &BBLTopbar::OnMouseLeftUp, this);
-    this->Bind(wxEVT_BUTTON, &BBLTopbar::OnOpenProject, this, wxID_OPEN);
-    this->Bind(wxEVT_BUTTON, &BBLTopbar::OnSaveProject, this, wxID_SAVE);
-    this->Bind(wxEVT_BUTTON, &BBLTopbar::OnRedo, this, wxID_REDO);
-    this->Bind(wxEVT_BUTTON, &BBLTopbar::OnUndo, this, wxID_UNDO);
-    this->Bind(wxEVT_BUTTON, &BBLTopbar::OnPrinterClicked, this, ID_PRINTER);
-    this->Bind(wxEVT_BUTTON, &BBLTopbar::OnAccountClicked, this, ID_ACCOUNT);
+    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnOpenProject, this, wxID_OPEN);
+    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnSaveProject, this, wxID_SAVE);
+    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnRedo, this, wxID_REDO);
+    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnUndo, this, wxID_UNDO);
+    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnPrinterClicked, this, ID_PRINTER);
+    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnAccountClicked, this, ID_ACCOUNT);
 }
 
-void BBLTopbar::OnOpenProject(wxCommandEvent& event)
+void BBLTopbar::OnOpenProject(wxAuiToolBarEvent& event)
 {
     MainFrame* main_frame = dynamic_cast<MainFrame*>(m_frame);
     Plater* plater = main_frame->plater();
     plater->load_project();
 }
 
-void BBLTopbar::OnSaveProject(wxCommandEvent& event)
+void BBLTopbar::OnSaveProject(wxAuiToolBarEvent& event)
 {
     MainFrame* main_frame = dynamic_cast<MainFrame*>(m_frame);
     Plater* plater = main_frame->plater();
     plater->export_3mf(into_path(plater->get_project_filename(".3mf")));
 }
 
-void BBLTopbar::OnUndo(wxCommandEvent& event)
+void BBLTopbar::OnUndo(wxAuiToolBarEvent& event)
 {
     MainFrame* main_frame = dynamic_cast<MainFrame*>(m_frame);
     Plater* plater = main_frame->plater();
     plater->undo();
 }
 
-void BBLTopbar::OnRedo(wxCommandEvent& event)
+void BBLTopbar::OnRedo(wxAuiToolBarEvent& event)
 {
     MainFrame* main_frame = dynamic_cast<MainFrame*>(m_frame);
     Plater* plater = main_frame->plater();
     plater->redo();
 }
 
-void BBLTopbar::OnAccountClicked(wxCommandEvent& event)
+void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
 {
     auto accountMenu = new wxMenu();
 
@@ -155,17 +146,20 @@ void BBLTopbar::OnAccountClicked(wxCommandEvent& event)
             Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
             return account_manager->is_user_login();
         }, this);
-    wxPoint btn_pos = m_account_btn->GetPosition();
-    this->PopupMenu(accountMenu, btn_pos.x, btn_pos.y + this->GetSize().GetHeight() - 5);
+
+    wxRect rect = this->GetToolRect(m_account_item->GetId());
+    this->PopupMenu(accountMenu, rect.x, rect.y + this->GetSize().GetHeight() - 5);
 }
 
-void BBLTopbar::OnPrinterClicked(wxCommandEvent& event)
+void BBLTopbar::OnPrinterClicked(wxAuiToolBarEvent& event)
 {
     m_select_machine = std::make_shared<SelectMachinePopup>(this, true);
-    wxWindow* ctrl = (wxWindow*)event.GetEventObject();
-    wxPoint pos = ctrl->ClientToScreen(wxPoint(0, 0));
-    wxSize sz = ctrl->GetSize();
-    m_select_machine->Position(pos, sz);
+
+    wxRect rect = this->GetToolRect(m_printer_item->GetId());
+    wxPoint pos = this->ClientToScreen(wxPoint(rect.x, rect.y));
+    pos.y += rect.height;
+
+    m_select_machine->Position(pos, wxSize(0, 0));
     m_select_machine->Popup();
 }
 
@@ -194,12 +188,12 @@ void BBLTopbar::UpdateToolbarWidth(int width)
     this->SetSize(width, m_toolbar_h);
 }
 
-void BBLTopbar::OnIconize(wxCommandEvent& event)
+void BBLTopbar::OnIconize(wxAuiToolBarEvent& event)
 {
     m_frame->Iconize();
 }
 
-void BBLTopbar::OnFullScreen(wxCommandEvent& event)
+void BBLTopbar::OnFullScreen(wxAuiToolBarEvent& event)
 {
     if (m_frame->IsMaximized()) {
         m_frame->Restore();
@@ -209,7 +203,7 @@ void BBLTopbar::OnFullScreen(wxCommandEvent& event)
     }
 }
 
-void BBLTopbar::OnCloseFrame(wxCommandEvent& event)
+void BBLTopbar::OnCloseFrame(wxAuiToolBarEvent& event)
 {
     m_frame->Close();
 }
