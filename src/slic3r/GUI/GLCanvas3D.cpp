@@ -5043,14 +5043,14 @@ bool GLCanvas3D::_init_main_toolbar()
     if (!m_main_toolbar.add_item(item))
         return false;
 
-    item.name = "delplate";
+    /*item.name = "delplate";
     item.icon_filename = "del_plate.svg";
     item.tooltip = _utf8(L("Delete plate")) + " [Del]";
     item.sprite_id++;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_DEL_PLATE)); };
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_delete_plate(); };
     if (!m_main_toolbar.add_item(item))
-        return false;
+        return false;*/
 
 
     item.name = "orient";
@@ -5164,16 +5164,6 @@ bool GLCanvas3D::_init_main_toolbar()
     if (!m_main_toolbar.add_item(item))
         return false;
 
-    GLToolbarItem::Data sperate_item;
-    sperate_item.name = "seperatetag";
-    sperate_item.icon_filename = "seperator.svg";
-    sperate_item.sprite_id = ++item.sprite_id;
-    sperate_item.left.action_callback = [this]() {};
-    sperate_item.visibility_callback = []()->bool { return true; };
-    sperate_item.enabling_callback = []()->bool { return false; };
-    if (!m_main_toolbar.add_item(sperate_item))
-        return false;
-
     //if (!m_main_toolbar.add_separator())
     //    return false;
 
@@ -5214,7 +5204,7 @@ bool GLCanvas3D::_init_main_toolbar()
         return false;
 
     if (!m_main_toolbar.add_separator())
-        return false;
+        return false;*/
 
     item.name = "layersediting";
     item.icon_filename = "layers_white.svg";
@@ -5232,7 +5222,17 @@ bool GLCanvas3D::_init_main_toolbar()
     item.enabling_callback      = []()->bool { return wxGetApp().plater()->can_layers_editing(); };
     item.left.render_callback   = GLToolbarItem::Default_Render_Callback;
     if (!m_main_toolbar.add_item(item))
-        return false;*/
+        return false;
+
+    GLToolbarItem::Data sperate_item;
+    sperate_item.name = "seperatetag";
+    sperate_item.icon_filename = "seperator.svg";
+    sperate_item.sprite_id = ++item.sprite_id;
+    sperate_item.left.action_callback = [this]() { };
+    sperate_item.visibility_callback = []()->bool { return true; };
+    sperate_item.enabling_callback = []()->bool { return false; };
+    if (!m_main_toolbar.add_item(sperate_item))
+        return false;
 
     return true;
 }
