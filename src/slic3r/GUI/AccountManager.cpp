@@ -223,7 +223,10 @@ namespace Slic3r {
     int AccountManager::disconnect_mqtt()
     {
         if (mqtt_cli) {
-            mqtt_cli->disconnect()->wait();
+            mqtt_cli->stop_consuming();
+            if (mqtt_cli->is_connected()) {
+                mqtt_cli->disconnect();
+            }
             delete mqtt_cli;
             mqtt_cli = nullptr;
         }
@@ -326,7 +329,9 @@ namespace Slic3r {
                 if (m_curr_user) delete m_curr_user;
                 m_curr_user = new AccountInfo(account, "", AccountInfo::LoginStatus::STATUS_LOGIN);
                 m_curr_user->set_token(acceptToken.value());
+
                 this->request_bind_list();
+
                 //get user id
                 this->user_get_profile(account, fn);
                 return;
@@ -733,9 +738,15 @@ namespace Slic3r {
             return -1;
         }
 
-        Http http = Http::get(_get_bind_list_url());
+        std::string url = _get_bind_list_url();
+        std::string token_str = get_token_str();
+        if (token_str.empty() || url.empty()) {
+            return -1;
+        }
+
+        Http http = Http::get(url);
         http.header("accept", "application/json")
-            .header("Authorization", get_token_str())
+            .header("Authorization", token_str)
             .on_complete([this, fn](std::string body, unsigned) {
             try {
                 std::stringstream ss(body);
@@ -1756,6 +1767,10 @@ namespace Slic3r {
 
     std::string AccountManager::get_token_str()
     {
+        if (m_curr_user->m_token.empty()) {
+            return "";
+        }
+
         if (m_curr_user) {
             return (boost::format("Bearer %1%") % m_curr_user->m_token).str();
         }
