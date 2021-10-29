@@ -253,6 +253,7 @@ protected:
 	wxBitmap m_ctrl_home;
 	wxBitmap m_bed_img;
 	wxBitmap m_nozzle_img;
+	wxBitmap m_live_default_img;
 	double m_ctrl_unit;
 
 	wxString	 request_url;

@@ -149,13 +149,14 @@ namespace GUI {
         }
     }
 
-    DebugToolDialog::DebugToolDialog(wxWindow* parent)
-        : DPIDialog(parent, wxID_ANY, _L("Debug Tool"), wxDefaultPosition, wxSize(950, 600), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
-        m_deviceListTimer(new wxTimer(this, TIMER_ID)),
-        m_timer(new wxTimer),
-        gcode_uploading(false),
-        dev_manager_(*wxGetApp().getDeviceManager())
+    DebugToolDialog::DebugToolDialog(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
+        : wxPanel(parent, id, pos, size, style)
+        ,dev_manager_(*wxGetApp().getDeviceManager())
+        , m_timer(new wxTimer)
+        , m_deviceListTimer(new wxTimer(this, TIMER_ID))
     {
+        gcode_uploading = false;
+        
         summary = new PrintSummary();
 
        wxBoxSizer* bSizer_top;
@@ -1599,7 +1600,6 @@ std::string DebugToolDialog::switch_ams_gcode(std::string t)
 
 bool DebugToolDialog::Show(bool show)
 {
-    bool result = DPIDialog::Show(show);
     if (show) {
         m_timer->Stop();
         m_timer->SetOwner(this);
@@ -1609,19 +1609,7 @@ bool DebugToolDialog::Show(bool show)
         m_timer->Stop();
     }
 
-    return result;
-}
-
-
-void DebugToolDialog::on_dpi_changed(const wxRect& suggested_rect)
-{
-    const int& em = em_unit();
-    msw_buttons_rescale(this, em, { wxID_DELETE, wxID_CANCEL, btn_run_gcode->GetId() });
-
-    SetMinSize(wxSize(HEIGHT * em, WIDTH * em));
-
-    Fit();
-    Refresh();
+    return wxPanel::Show(show);
 }
 
 

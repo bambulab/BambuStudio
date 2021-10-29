@@ -24,7 +24,6 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
 {
     m_frame = parent;
     m_skip_popup_file_menu = false;
-    m_debug_tool = new DebugToolDialog(parent);
 
     wxInitAllImageHandlers();
     wxBitmap logo_bitmap = create_scaled_bitmap("logo", nullptr, FromDIP(21));

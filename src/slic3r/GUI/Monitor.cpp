@@ -603,7 +603,7 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
 	wxBoxSizer* bSizer29;
 	bSizer29 = new wxBoxSizer( wxVERTICAL );
 
-	m_bitmap_live_default = new wxStaticBitmap( m_panel_live, wxID_ANY, wxBitmap( wxT("C:\\Users\\67469\\Downloads\\monitor_live_default.png"), wxBITMAP_TYPE_ANY ), wxDefaultPosition, wxDefaultSize, 0 );
+	m_bitmap_live_default = new wxStaticBitmap( m_panel_live, wxID_ANY, m_live_default_img, wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer29->Add( m_bitmap_live_default, 0, wxALL|wxEXPAND, 5 );
 
 
@@ -1066,6 +1066,7 @@ void MonitorPanel::init_bitmap()
 
     m_bed_img = create_scaled_bitmap("monitor_bed_temp", nullptr, 16);
     m_nozzle_img = create_scaled_bitmap("monitor_nozzle_temp", nullptr, 16);
+    m_live_default_img = create_scaled_bitmap("live_stream_default", nullptr, FromDIP(300));
 }
 
 void MonitorPanel::init_model()

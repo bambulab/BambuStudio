@@ -130,7 +130,6 @@ MainFrame::MainFrame() :
 DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_STYLE, "mainframe"),
     m_printhost_queue_dlg(new PrintHostQueueDialog(this))
     // BBS
-    , m_debug_tool_dlg(new DebugToolDialog(this))
     , m_topbar(new BBLTopbar(this))
     , m_recent_projects(9)
     , m_settings_dialog(this)
@@ -794,7 +793,10 @@ void MainFrame::init_tabpanel()
         //BBS add monitor page
         //MonitorPanel(wxWindow * parent, wxWindowID id = wxID_ANY, const wxPoint & pos = wxDefaultPosition, const wxSize & size = wxSize(800, 600), long style = wxTAB_TRAVERSAL);
         m_monitor = new MonitorPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-        //m_tabpanel->AddPage(m_monitor, "Monitor", "monitor");
+        m_tabpanel->AddPage(m_monitor, "Monitor", "monitor");
+        m_debug_tool_dlg = new DebugToolDialog(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+        m_tabpanel->AddPage(m_debug_tool_dlg, "DebugTool", "debugtool");
+        //m_tabpanel->InsertPage(tpMonitor, m_plater, _L("Monitor"), std::string("monitor"));
     }
 
     if (m_plater) {
@@ -1659,11 +1661,6 @@ void MainFrame::init_menubar_as_editor()
 #endif // __APPLE__
     }
 
-    // Debug menu
-    auto debugMenu = new wxMenu();
-    append_menu_item(debugMenu, wxID_ANY, _L("Debug Tool"), _L("Display the Debug Tool"),
-        [this](wxCommandEvent&) { m_debug_tool_dlg->Show(); }, "upload_queue", nullptr, []() {return true; }, this);
-
     // Model Website
     auto modelWebSiteMenu = new wxMenu();
     append_menu_item(modelWebSiteMenu, wxID_ANY, _L("Model WebSite"), _L("Browser Models in BBL WebSite"),
@@ -1707,8 +1704,6 @@ void MainFrame::init_menubar_as_editor()
     if (viewMenu)
         m_topbar->AddDropDownSubMenu(viewMenu, _L("&View"));
     wxGetApp().add_config_menu(m_topbar->GetTopMenu());
-    if (debugMenu)
-        m_topbar->AddDropDownSubMenu(debugMenu, _L("&Debug Tool"));
     if (modelWebSiteMenu)
         m_topbar->AddDropDownSubMenu(modelWebSiteMenu, _L("&Model Store"));
     m_topbar->AddDropDownSubMenu(helpMenu, _L("&Help"));

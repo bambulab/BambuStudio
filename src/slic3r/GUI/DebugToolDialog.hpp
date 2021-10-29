@@ -49,12 +49,12 @@ private:
 namespace Slic3r {
 
     namespace GUI {
-        class DebugToolDialog : public GUI::DPIDialog
+        class DebugToolDialog : public wxPanel
         {
         public:
-            DebugToolDialog(wxWindow *parent);
+            DebugToolDialog(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(800, 600), long style = wxTAB_TRAVERSAL);
 
-            virtual bool Show(bool show = true) override;
+            bool Show(bool show);
 
             int publish_json(std::string json_str);
 
@@ -78,10 +78,7 @@ namespace Slic3r {
             void on_message_sent(wxCommandEvent& evt);
             void on_log_info(wxCommandEvent& evt);
             void get_version();
-        protected:
-            void on_dpi_changed(const wxRect& suggested_rect) override;
 
-            void on_show(wxShowEvent& event);
         private:
             enum {
                 HEIGHT = 60, WIDTH = 30, SPACING = 5,
