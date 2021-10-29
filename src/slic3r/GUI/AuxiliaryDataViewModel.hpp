@@ -33,7 +33,7 @@ public:
         m_root = false;
         path = abs_path;
         fs::path path_obj(path.c_str());
-        name = path_obj.filename().string();
+        name = path_obj.filename().generic_wstring();
 
         parent->Append(this);
     }

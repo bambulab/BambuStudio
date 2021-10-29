@@ -609,7 +609,6 @@ std::string Model::get_auxiliary_file_temp_path()
         //boost::filesystem::create_directory(temp_path);
     }
 
-    auxiliary_path = encode_path(auxiliary_path.c_str());
     return auxiliary_path;
 }
 

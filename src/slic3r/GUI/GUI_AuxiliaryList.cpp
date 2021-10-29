@@ -85,8 +85,8 @@ AuxiliaryList::~AuxiliaryList()
 void AuxiliaryList::init_auxiliary()
 {
 	Model& model = wxGetApp().plater()->model();
-	std::string temp_path = model.get_auxiliary_file_temp_path();
-	m_auxiliary_model->Init(temp_path);
+	std::string aux_path = encode_path(model.get_auxiliary_file_temp_path().c_str());
+	m_auxiliary_model->Init(aux_path);
 }
 
 void AuxiliaryList::create_new_folder()
