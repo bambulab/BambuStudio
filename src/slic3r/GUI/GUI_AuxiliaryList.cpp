@@ -80,7 +80,7 @@ void AuxiliaryList::init_auxiliary()
 {
 	Model& model = wxGetApp().plater()->model();
 	std::string temp_path = model.get_auxiliary_file_temp_path();
-
+	temp_path = encode_path(temp_path.c_str());
 	m_auxiliary_model->Init(temp_path);
 }
 

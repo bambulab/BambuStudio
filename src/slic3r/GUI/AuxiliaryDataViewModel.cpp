@@ -36,14 +36,18 @@ void AuxiliaryModel::Reload(wxString aux_path)
     }
     Cleared();
 
-    // Check new path
-    if (!fs::exists(new_aux_path))
+    // Create new root.
+    m_root = new AuxiliaryModelNode();
+    m_root_dir = aux_path;
+
+    // Check new path. If not exist, create a new one.
+    if (!fs::exists(new_aux_path)) {
+        fs::create_directory(new_aux_path);
         return;
+    }
 
     // Load from new path
     std::map<fs::path, AuxiliaryModelNode *> dir_cache;
-    m_root = new AuxiliaryModelNode();
-    m_root_dir = aux_path;
     fs::directory_iterator iter_end;
     wxDataViewItemArray items;
     for (fs::directory_iterator iter(new_aux_path); iter != iter_end; iter++) {
