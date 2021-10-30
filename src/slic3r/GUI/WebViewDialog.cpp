@@ -14,6 +14,10 @@
 
 namespace Slic3r {
 namespace GUI {
+    wxDECLARE_EVENT(EVT_RESPONSE_MESSAGE, wxCommandEvent);
+
+    wxDEFINE_EVENT(EVT_RESPONSE_MESSAGE, wxCommandEvent);
+    
 
 WebFrame::WebFrame(const wxString& url) :
     wxFrame(NULL, wxID_ANY, "BBL WebView")
@@ -273,6 +277,7 @@ WebFrame::WebFrame(const wxString& url) :
     Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &WebFrame::OnTitleChanged, this, m_browser->GetId());
     Bind(wxEVT_WEBVIEW_FULLSCREEN_CHANGED, &WebFrame::OnFullScreenChanged, this, m_browser->GetId());
     Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &WebFrame::OnScriptMessage, this, m_browser->GetId());
+    Bind(EVT_RESPONSE_MESSAGE, &WebFrame::OnScriptResponseMessage, this);
 
     // Connect the menu events
     Bind(wxEVT_MENU, &WebFrame::OnSetPage, this, setPage->GetId());
@@ -655,6 +660,17 @@ void WebFrame::OnScriptMessage(wxWebViewEvent& evt)
     response.erase(std::remove(response.begin(), response.end(), '\n'), response.end());
     if (!response.empty()) {
         m_response_js = wxString::Format("window.postMessage('%s')", response);
+        wxCommandEvent* event = new wxCommandEvent(EVT_RESPONSE_MESSAGE, this->GetId());
+        wxQueueEvent(this, event);
+    }
+    else {
+        m_response_js.clear();
+    }
+}   
+
+void WebFrame::OnScriptResponseMessage(wxCommandEvent& WXUNUSED(evt))
+{
+    if (!m_response_js.empty()) {
         RunScript(m_response_js);
     }
 }

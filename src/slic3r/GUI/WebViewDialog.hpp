@@ -58,6 +58,7 @@ public:
     void OnTitleChanged(wxWebViewEvent& evt);
     void OnFullScreenChanged(wxWebViewEvent& evt);
     void OnScriptMessage(wxWebViewEvent& evt);
+    void OnScriptResponseMessage(wxCommandEvent& evt);
     void OnSetPage(wxCommandEvent& evt);
     void OnViewSourceRequest(wxCommandEvent& evt);
     void OnViewTextRequest(wxCommandEvent& evt);

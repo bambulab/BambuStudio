@@ -1663,9 +1663,9 @@ void MainFrame::init_menubar_as_editor()
 
     // Model Website
     auto modelWebSiteMenu = new wxMenu();
-    append_menu_item(modelWebSiteMenu, wxID_ANY, _L("Model WebSite"), _L("Browser Models in BBL WebSite"),
+    append_menu_item(modelWebSiteMenu, wxID_ANY, _L("My Project List"), _L("Browser Models in BBL WebSite"),
         [](wxCommandEvent&) {
-            WebFrame *frame = new WebFrame("https://www.bing.com");
+            WebFrame *frame = new WebFrame("https://portal-dev.bambu-lab.com/");
             frame->Show();
         });
 
