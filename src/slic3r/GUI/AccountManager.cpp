@@ -161,7 +161,18 @@ namespace Slic3r {
         mqtt_opt.set_automatic_reconnect(3, 10);
 
         m_curr_user = nullptr;
-        boost::filesystem::fstream fstream();
+
+        std::time_t t = std::time(0);
+        std::tm* now_time = std::localtime(&t);
+        std::stringstream buf;
+        buf << std::put_time(now_time, "debug_http_%a_%b_%d_%H_%M_%S.log");
+        std::string log_filename = buf.str();
+        Http::enable_log(log_filename.c_str());
+    }
+
+    AccountManager::~AccountManager()
+    {
+        Http::disable_log();
     }
 
     int AccountManager::load_user_info()

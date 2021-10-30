@@ -100,6 +100,105 @@ struct CurlGlobalInit
 
 std::unique_ptr<CurlGlobalInit> CurlGlobalInit::instance;
 
+
+FILE* g_http_log_file = nullptr;
+
+static void dump(const char *text,
+          FILE *stream, unsigned char *ptr, size_t size,
+          char nohex)
+{
+  size_t i;
+  size_t c;
+ 
+  unsigned int width = 0x10;
+ 
+  if(nohex)
+    /* without the hex output, we can fit more on screen */
+    width = 0x40;
+ 
+  fprintf(stream, "%s, %10.10lu bytes (0x%8.8lx)\n",
+          text, (unsigned long)size, (unsigned long)size);
+ 
+  for(i = 0; i<size; i += width) {
+ 
+    fprintf(stream, "%4.4lx: ", (unsigned long)i);
+ 
+    if(!nohex) {
+      /* hex not disabled, show it */
+      for(c = 0; c < width; c++)
+        if(i + c < size)
+          fprintf(stream, "%02x ", ptr[i + c]);
+        else
+          fputs("   ", stream);
+    }
+ 
+    for(c = 0; (c < width) && (i + c < size); c++) {
+      /* check for 0D0A; if found, skip past and start a new line of output */
+      if(nohex && (i + c + 1 < size) && ptr[i + c] == 0x0D &&
+         ptr[i + c + 1] == 0x0A) {
+        i += (c + 2 - width);
+        break;
+      }
+      fprintf(stream, "%c",
+              (ptr[i + c] >= 0x20) && (ptr[i + c]<0x80)?ptr[i + c]:'.');
+      /* check again for 0D0A, to avoid an extra \n if it's at width */
+      if(nohex && (i + c + 2 < size) && ptr[i + c + 1] == 0x0D &&
+         ptr[i + c + 2] == 0x0A) {
+        i += (c + 3 - width);
+        break;
+      }
+    }
+    fputc('\n', stream); /* newline */
+  }
+  fflush(stream);
+}
+
+static int log_trace(CURL *handle, curl_infotype type,
+             char *data, size_t size,
+             void *userp)
+{
+	if (!g_http_log_file) return 0;
+
+	const char *text;
+	(void)handle; /* prevent compiler warning */
+ 
+	switch(type) {
+		case CURLINFO_TEXT:
+		//fprintf(stderr, "== Info: %s", data);
+		/* FALLTHROUGH */
+		default: /* in case a new one is introduced to shock us */
+		return 0;
+		case CURLINFO_HEADER_OUT:
+		text = "=> Send header";
+		break;
+		case CURLINFO_DATA_OUT:
+		text = "=> Send data";
+		break;
+		case CURLINFO_SSL_DATA_OUT:
+		text = "=> Send SSL data";
+		break;
+		case CURLINFO_HEADER_IN:
+		text = "<= Recv header";
+		break;
+		case CURLINFO_DATA_IN:
+		text = "<= Recv data";
+		break;
+		case CURLINFO_SSL_DATA_IN:
+		text = "<= Recv SSL data";
+		break;
+	}
+
+#ifdef MAX_SIZE_TO_FILE
+	if (size > MAX_SIZE_TO_FILE) {
+		size = MAX_SIZE_TO_FILE;
+	}
+#endif 
+ 
+	dump(text, g_http_log_file, (unsigned char *)data, size, 1);
+	return 0;
+}
+
+
 struct Http::priv
 {
 	enum {
@@ -170,6 +269,8 @@ Http::priv::priv(const std::string &url)
 	if (curl == nullptr) {
 		throw Slic3r::RuntimeError(std::string("Could not construct Curl object"));
 	}
+
+	::curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, log_trace);
 
 	set_timeout_connect(DEFAULT_TIMEOUT_CONNECT);
     set_timeout_max(DEFAULT_TIMEOUT_MAX);
@@ -385,7 +486,7 @@ void Http::priv::http_perform()
 	::curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, static_cast<void*>(this));
 #endif
 
-	::curl_easy_setopt(curl, CURLOPT_VERBOSE, get_logging_level() >= 5);
+	::curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
 	if (headerlist != nullptr) {
 		::curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
@@ -695,6 +796,23 @@ Http Http::del(std::string url)
 	Http http{ std::move(url) };
 	curl_easy_setopt(http.p->curl, CURLOPT_CUSTOMREQUEST, "DELETE");
 	return http;
+}
+
+bool Http::enable_log(std::string filename)
+{
+	g_http_log_file = fopen(filename.c_str(), "w+");
+	if (g_http_log_file)
+		return true;
+	return false;
+}
+
+bool Http::disable_log()
+{
+	if (g_http_log_file) {
+		fclose(g_http_log_file);
+	}
+	g_http_log_file = nullptr;
+	return true;
 }
 
 bool Http::ca_file_supported()

@@ -6,6 +6,7 @@
 #include <functional>
 #include <boost/filesystem/path.hpp>
 
+#define MAX_SIZE_TO_FILE 10*1024
 
 namespace Slic3r {
 
@@ -54,6 +55,9 @@ public:
 	static Http put(std::string url);
 	static Http del(std::string url);
 	static Http put2(std::string url);
+
+	static bool enable_log(std::string filename);
+	static bool disable_log();
 
 	~Http();
 

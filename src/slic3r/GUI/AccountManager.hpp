@@ -165,7 +165,7 @@ public:
     typedef std::function<void(int result, std::string info)> ResultFn;
 
     AccountManager();
-    ~AccountManager() {}
+    ~AccountManager();
 
     // Check user last login status
     int load_user_info();
