@@ -13,27 +13,63 @@ using namespace Slic3r;
 enum CUSTOM_ID
 {
     ID_TOP_MENU_TOOL = 3100,
+    ID_TOP_FILE_MENU,
+    ID_TOP_DROPDOWN_MENU,
     ID_PRINTER,
     ID_ACCOUNT,
     ID_TOOL_BAR = 3200,
     ID_AMS_NOTEBOOK,
 };
 
+class BBLTopbarArt : public wxAuiDefaultToolBarArt
+{
+public:
+    virtual void DrawLabel(wxDC& dc, wxWindow* wnd, const wxAuiToolBarItem& item, const wxRect& rect) wxOVERRIDE;
+};
+
+void BBLTopbarArt::DrawLabel(wxDC& dc, wxWindow* wnd, const wxAuiToolBarItem& item, const wxRect& rect)
+{
+    dc.SetFont(m_font);
+    dc.SetTextForeground(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+
+    int textWidth = 0, textHeight = 0;
+    dc.GetTextExtent(item.GetLabel(), &textWidth, &textHeight);
+
+    wxRect clipRect = rect;
+    clipRect.width -= 1;
+    dc.SetClippingRegion(clipRect);
+
+    int textX, textY;
+    if (textWidth < rect.GetWidth()) {
+        textX = rect.x + 1 + (rect.width - textWidth) / 2;
+    }
+    else {
+        textX = rect.x + 1;
+    }
+    textY = rect.y + (rect.height - textHeight) / 2;
+    dc.DrawText(item.GetLabel(), textX, textY);
+    dc.DestroyClippingRegion();
+}
+
 BBLTopbar::BBLTopbar(wxFrame* parent)
     : wxAuiToolBar(parent, ID_TOOL_BAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_TEXT | wxAUI_TB_HORZ_TEXT)
 {
+    SetArtProvider(new BBLTopbarArt());
+
     m_frame = parent;
     m_skip_popup_file_menu = false;
+    m_skip_popup_dropdown_menu = false;
 
     wxInitAllImageHandlers();
     wxBitmap logo_bitmap = create_scaled_bitmap("logo", nullptr, FromDIP(21));
     wxAuiToolBarItem* logo_item = this->AddTool(wxID_ANY, "", logo_bitmap);
     logo_item->SetActive(false);
 
-    wxAuiToolBarItem* file_tool = this->AddTool(ID_TOP_MENU_TOOL, "File",
-        create_scaled_bitmap("top", nullptr, FromDIP(18)), wxEmptyString);
-    this->SetToolDropDown(ID_TOP_MENU_TOOL, true);
-    m_file_menu_item = file_tool;
+    m_file_menu_item = this->AddTool(ID_TOP_FILE_MENU, "File",
+        wxBitmap(), wxEmptyString);
+
+    m_dropdown_menu_item = this->AddTool(ID_TOP_DROPDOWN_MENU, "",
+        create_scaled_bitmap("expand", nullptr, FromDIP(18)), wxEmptyString);
 
     this->AddSeparator();
 
@@ -86,7 +122,8 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     this->Bind(wxEVT_MOTION, &BBLTopbar::OnMouseMotion, this);
     this->Bind(wxEVT_MOUSE_CAPTURE_LOST, &BBLTopbar::OnMouseCaptureLost, this);
     this->Bind(wxEVT_MENU_CLOSE, &BBLTopbar::OnMenuClose, this);
-    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnFileToolItem, this, ID_TOP_MENU_TOOL);
+    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnFileToolItem, this, ID_TOP_FILE_MENU);
+    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnDropdownToolItem, this, ID_TOP_DROPDOWN_MENU);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnIconize, this, wxID_ICONIZE_FRAME);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnFullScreen, this, wxID_MAXIMIZE_FRAME);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnCloseFrame, this, wxID_CLOSE_FRAME);
@@ -181,6 +218,8 @@ wxMenu *BBLTopbar::GetTopMenu()
 void BBLTopbar::SetProjectName(wxString project_name)
 {
     m_title_item->SetLabel(project_name);
+    m_title_item->SetAlignment(wxALIGN_CENTRE_HORIZONTAL);
+    this->Refresh();
 }
 
 void BBLTopbar::UpdateToolbarWidth(int width)
@@ -229,26 +268,28 @@ void BBLTopbar::OnFileToolItem(wxAuiToolBarEvent& evt)
 
     tb->SetToolSticky(evt.GetId(), true);
 
-    if (evt.IsDropDownClicked()) {
-        // line up our menu with the button
-        wxRect rect = tb->GetToolRect(evt.GetId());
-        wxPoint pt = tb->ClientToScreen(rect.GetBottomLeft());
-        pt = ScreenToClient(pt);
-
-        if (!m_skip_popup_file_menu) {
-            PopupMenu(&m_top_menu, pt);
-        }
-        else {
-            m_skip_popup_file_menu = false;
-        }
+    if (!m_skip_popup_file_menu) {
+        this->PopupMenu(m_file_menu, wxPoint(0, this->GetSize().GetHeight() - 2));
     }
     else {
-        if (!m_skip_popup_file_menu) {
-            this->PopupMenu(m_file_menu, wxPoint(0, this->GetSize().GetHeight() - 2));
-        }
-        else {
-            m_skip_popup_file_menu = false;
-        }
+        m_skip_popup_file_menu = false;
+    }
+
+    // make sure the button is "un-stuck"
+    tb->SetToolSticky(evt.GetId(), false);
+}
+
+void BBLTopbar::OnDropdownToolItem(wxAuiToolBarEvent& evt)
+{
+    wxAuiToolBar* tb = static_cast<wxAuiToolBar*>(evt.GetEventObject());
+
+    tb->SetToolSticky(evt.GetId(), true);
+
+    if (!m_skip_popup_dropdown_menu) {
+        PopupMenu(&m_top_menu, wxPoint(0, this->GetSize().GetHeight() - 2));
+    }
+    else {
+        m_skip_popup_dropdown_menu = false;
     }
 
     // make sure the button is "un-stuck"
@@ -306,6 +347,9 @@ void BBLTopbar::OnMenuClose(wxMenuEvent& event)
     wxAuiToolBarItem* item = this->FindToolByCurrentPosition();
     if (item == m_file_menu_item) {
         m_skip_popup_file_menu = true;
+    }
+    else if (item == m_dropdown_menu_item) {
+        m_skip_popup_dropdown_menu = true;
     }
 }
 

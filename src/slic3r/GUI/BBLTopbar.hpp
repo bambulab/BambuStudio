@@ -17,6 +17,7 @@ public:
     void OnFullScreen(wxAuiToolBarEvent& event);
     void OnCloseFrame(wxAuiToolBarEvent& event);
     void OnFileToolItem(wxAuiToolBarEvent& evt);
+    void OnDropdownToolItem(wxAuiToolBarEvent& evt);
     void OnMouseLeftDClock(wxMouseEvent& mouse);
     void OnMouseLeftDown(wxMouseEvent& event);
     void OnMouseLeftUp(wxMouseEvent& event);
@@ -40,6 +41,7 @@ public:
 private:
     wxFrame* m_frame;
     wxAuiToolBarItem* m_file_menu_item;
+    wxAuiToolBarItem* m_dropdown_menu_item;
     wxPoint m_delta;
     wxMenu m_top_menu;
     wxMenu* m_file_menu;
@@ -48,5 +50,6 @@ private:
     wxAuiToolBarItem* m_printer_item;
     int m_toolbar_h;
     bool m_skip_popup_file_menu;
+    bool m_skip_popup_dropdown_menu;
     std::shared_ptr<SelectMachinePopup> m_select_machine;
 };

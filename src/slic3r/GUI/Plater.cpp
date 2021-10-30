@@ -4663,6 +4663,9 @@ void Plater::priv::set_project_filename(const wxString& filename)
 
     if (!filename.empty())
         wxGetApp().mainframe->add_to_recent_projects(filename);
+
+    // BBS
+    wxGetApp().mainframe->topbar()->SetProjectName(full_path.filename().generic_wstring());
 }
 
 void Plater::priv::init_notification_manager()
@@ -5489,10 +5492,6 @@ void Plater::load_project()
     wxGetApp().load_project(this, input_file);
     // And finally load the new project.
     load_project(input_file);
-
-    // BBS
-    boost::filesystem::path fs_path(filename.ToStdWstring());
-    wxGetApp().mainframe->topbar()->SetProjectName(fs_path.filename().generic_wstring());
 }
 
 void Plater::load_project(const wxString& filename)
