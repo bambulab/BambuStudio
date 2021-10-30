@@ -512,7 +512,8 @@ namespace Slic3r {
     void AccountManager::update_my_bind_list(std::string body)
     {
         std::lock_guard<std::mutex> lock(listMutex);
-        myBindMachineList.clear();
+
+        std::set<std::string> new_list;
         try {
             pt::ptree root;
             std::stringstream ss(body);
@@ -526,14 +527,33 @@ namespace Slic3r {
                 std::string dev_id = pos->second.get_optional<std::string>("dev_id").value();
                 std::string dev_name = pos->second.get_optional<std::string>("name").value();
                 std::string online = pos->second.get_optional<std::string>("online").value();
+                new_list.insert(dev_id);
 
-                MachineObject* obj = new MachineObject(*this, dev_name, dev_id, "");
-                obj->is_online = online.compare("true") == 0 ? true : false;
-                obj->set_bind_status(this->get_user_name());
-                myBindMachineList.insert(std::make_pair(dev_id, obj));
+                std::map<std::string, MachineObject*>::iterator iter = myBindMachineList.find(dev_id);
+                if (iter != myBindMachineList.end()) {
+                    /* update field */
+                    MachineObject* obj = iter->second;
+                    if (obj) {
+                        obj->dev_name = dev_name;
+                        obj->is_online = online.compare("true") == 0 ? true : false;
+                    }
+                } else {
+                    MachineObject* obj = new MachineObject(*this, dev_name, dev_id, "");
+                    obj->is_online = online.compare("true") == 0 ? true : false;
+                    obj->set_bind_status(this->get_user_name());
+                    myBindMachineList.insert(std::make_pair(dev_id, obj));
 
-                /* insert a new machine event */
-                this->add_subscribe(obj);
+                    /* insert a new machine event */
+                    this->add_subscribe(obj);
+                }
+            }
+            std::map<std::string, MachineObject*>::iterator iterat;
+            for (iterat = myBindMachineList.begin(); iterat != myBindMachineList.end(); ) {
+                if (new_list.find(iterat->first) == new_list.end()) {
+                    iterat = myBindMachineList.erase(iterat);
+                } else {
+                    iterat++;
+                }
             }
         }
         catch (std::exception& e) {
