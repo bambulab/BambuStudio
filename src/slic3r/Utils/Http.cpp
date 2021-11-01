@@ -530,9 +530,7 @@ void Http::priv::http_perform()
 		long http_status = 0;
 		::curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_status);
 
-		if (http_status >= 400) {
-			if (errorfn) { errorfn(std::move(buffer), std::string(), http_status); }
-		} else {
+		if (http_status == 200) {
 			if (completefn) { completefn(std::move(buffer), http_status); }
 			if (ipresolvefn) {
 				char* ct;
@@ -541,6 +539,9 @@ void Http::priv::http_perform()
 					ipresolvefn(ct);
 				}
 			}
+		}
+		else {
+			if (errorfn) { errorfn(std::move(buffer), std::string(), http_status); }
 		}
 	}
 }
