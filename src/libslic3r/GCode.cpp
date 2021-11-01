@@ -2772,7 +2772,12 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     if (m_wipe.enable) {
         m_wipe.path = Polyline();
         for (ExtrusionPath &path : paths) {
-            m_wipe.path.append(path.polyline);  // TODO: don't limit wipe to last path
+            //BBS: Don't need to save duplicated point into wipe path
+            if (!m_wipe.path.empty() && !path.empty() &&
+                m_wipe.path.last_point() == path.first_point())
+                m_wipe.path.append(path.polyline.points.begin() + 1, path.polyline.points.end());
+            else
+                m_wipe.path.append(path.polyline);  // TODO: don't limit wipe to last path
         }
     }
 
@@ -2835,7 +2840,12 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
     if (m_wipe.enable) {
         m_wipe.path = Polyline();
         for (ExtrusionPath &path : multipath.paths) {
-            m_wipe.path.append(path.polyline); // TODO: don't limit wipe to last path
+            //BBS: Don't need to save duplicated point into wipe path
+            if (!m_wipe.path.empty() && !path.empty() &&
+                m_wipe.path.last_point() == path.first_point())
+                m_wipe.path.append(path.polyline.points.begin() + 1, path.polyline.points.end());
+            else
+                m_wipe.path.append(path.polyline); // TODO: don't limit wipe to last path
         }
         m_wipe.path.reverse();
     }
