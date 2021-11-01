@@ -576,6 +576,8 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posPerimeters);
         } else if (
                opt_key == "layer_height"
+            //BBS
+            || opt_key == "adaptive_layer_height"
             || opt_key == "mmu_segmented_region_max_width"
             || opt_key == "raft_layers"
             || opt_key == "raft_contact_distance"
@@ -1750,7 +1752,8 @@ bool PrintObject::update_layer_height_profile(const ModelObject &model_object, c
 {
     bool updated = false;
 
-    if (layer_height_profile.empty()) {
+    //BBS:annotate these part and will do adaptive layer height below
+    /*if (layer_height_profile.empty()) {
         // use the constructor because the assignement is crashing on ASAN OsX
         layer_height_profile = std::vector<coordf_t>(model_object.layer_height_profile.get());
 //        layer_height_profile = model_object.layer_height_profile;
@@ -1769,7 +1772,19 @@ bool PrintObject::update_layer_height_profile(const ModelObject &model_object, c
         //layer_height_profile = layer_height_profile_adaptive(slicing_parameters, model_object.layer_config_ranges, model_object.volumes);
         layer_height_profile = layer_height_profile_from_ranges(slicing_parameters, model_object.layer_config_ranges);
         updated = true;
+    }*/
+
+    //BBS
+    if (slicing_parameters.adaptive_layer_height) {
+        layer_height_profile = layer_height_profile_adaptive(slicing_parameters, model_object, 0.5);
+        HeightProfileSmoothingParams smoothing_params(5, true);
+        layer_height_profile = smooth_height_profile(layer_height_profile, slicing_parameters, smoothing_params);
     }
+    else {
+        layer_height_profile = layer_height_profile_from_ranges(slicing_parameters, model_object.layer_config_ranges);
+    }
+    updated = true;
+
     return updated;
 }
 

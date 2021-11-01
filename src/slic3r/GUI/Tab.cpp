@@ -1529,6 +1529,8 @@ void TabPrint::build()
         auto optgroup = page->new_optgroup(L("Layer height"));
         optgroup->append_single_option_line("layer_height", category_path + "layer-height");
         optgroup->append_single_option_line("first_layer_height", category_path + "first-layer-height");
+        //BBS
+        optgroup->append_single_option_line("adaptive_layer_height", category_path + "adaptive-layer-height");
 
         optgroup = page->new_optgroup(L("Vertical shells"));
         optgroup->append_single_option_line("perimeters", category_path + "perimeters");

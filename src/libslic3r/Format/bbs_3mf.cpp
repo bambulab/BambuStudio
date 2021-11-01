@@ -740,11 +740,13 @@ namespace Slic3r {
                 std::string name(stat.m_filename);
                 std::replace(name.begin(), name.end(), '\\', '/');
 
-                if (boost::algorithm::iequals(name, LAYER_HEIGHTS_PROFILE_FILE)) {
+                //BBS: disable adaptive layer height related file in 3MF
+                /* if (boost::algorithm::iequals(name, LAYER_HEIGHTS_PROFILE_FILE)) {
                     // extract slic3r layer heights profile file
                     _extract_layer_heights_profile_config_from_archive(archive, stat);
                 }
-                else if (boost::algorithm::iequals(name, LAYER_CONFIG_RANGES_FILE)) {
+                else */
+                if (boost::algorithm::iequals(name, LAYER_CONFIG_RANGES_FILE)) {
                     // extract slic3r layer config ranges file
                     _extract_layer_config_ranges_from_archive(archive, stat, config_substitutions);
                 }
@@ -2529,11 +2531,13 @@ namespace Slic3r {
         // Adds layer height profile file ("Metadata/Slic3r_PE_layer_heights_profile.txt").
         // All layer height profiles of all ModelObjects are stored here, indexed by 1 based index of the ModelObject in Model.
         // The index differes from the index of an object ID of an object instance of a 3MF file!
+        // BBS: don't need to save layer_height_profile because we calculate when slicing every time.
+        /*
         if (!_add_layer_height_profile_file_to_archive(archive, model)) {
             close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
-        }
+        }*/
 
         // Adds layer config ranges file ("Metadata/Slic3r_PE_layer_config_ranges.txt").
         // All layer height profiles of all ModelObjects are stored here, indexed by 1 based index of the ModelObject in Model.

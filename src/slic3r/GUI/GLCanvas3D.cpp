@@ -5245,7 +5245,7 @@ bool GLCanvas3D::_init_main_toolbar()
     if (!m_main_toolbar.add_separator())
         return false;*/
 
-    item.name = "layersediting";
+    /*item.name = "layersediting";
     item.icon_filename = "layers_white.svg";
     item.tooltip = _utf8(L("Variable layer height"));
     item.sprite_id++;
@@ -5261,7 +5261,7 @@ bool GLCanvas3D::_init_main_toolbar()
     item.enabling_callback      = []()->bool { return wxGetApp().plater()->can_layers_editing(); };
     item.left.render_callback   = GLToolbarItem::Default_Render_Callback;
     if (!m_main_toolbar.add_item(item))
-        return false;
+        return false;*/
 
     GLToolbarItem::Data sperate_item;
     sperate_item.name = "seperatetag";

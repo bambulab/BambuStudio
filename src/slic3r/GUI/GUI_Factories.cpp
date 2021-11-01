@@ -49,7 +49,8 @@ static bool is_improper_category(const std::string& category, const int extruder
 // pt_FFF
 static SettingsFactory::Bundle FREQ_SETTINGS_BUNDLE_FFF =
 {
-    { L("Layers and Perimeters"), { "layer_height" , "perimeters", "top_solid_layers", "bottom_solid_layers" } },
+    //BBS
+    { L("Layers and Perimeters"), { "layer_height" , "perimeters", "top_solid_layers", "bottom_solid_layers", "adaptive_layer_height" } },
     { L("Infill")               , { "fill_density", "fill_pattern" } },
     // BBS
     { L("Support material")     , { "support_material", "support_type", "support_material_threshold",

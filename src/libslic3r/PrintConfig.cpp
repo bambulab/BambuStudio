@@ -1235,6 +1235,14 @@ void PrintConfigDef::init_fff_params()
     def->ratio_over = "layer_height";
     def->set_default_value(new ConfigOptionFloatOrPercent(0.35, false));
 
+    //BBS
+    def = this->add("adaptive_layer_height", coBool);
+    def->label = L("Adaptive layer height");
+    def->category = L("Layers and Perimeters");
+    def->tooltip = L("Enable this option and height will be automatically determined when slicing "
+                   "according to the slope of surface. ");
+    def->set_default_value(new ConfigOptionBool(0));
+
     def = this->add("first_layer_speed", coFloatOrPercent);
     def->label = L("First layer speed");
     def->tooltip = L("If expressed as absolute value in mm/s, this speed will be applied to all the print moves "
