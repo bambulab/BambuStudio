@@ -135,9 +135,11 @@ public:
         unsigned int row, unsigned int col) wxOVERRIDE;
 
     void update_task(BBLTask* task);
-	void update_subtask(BBLSubTask* subtask);
-	void add_subtask(BBLSubTask* subtask);
-	void clear_data();
+    void update_subtask(BBLSubTask* subtask);
+    void add_subtask(BBLSubTask* subtask);
+    void update_profile(BBLProfile* profile);
+    void add_slice_info(BBLSliceInfo* slice_info);
+    void clear_data();
 
 private:
     BBLTask* task;
@@ -319,6 +321,7 @@ protected:
     void update_status(MachineObject* obj);
     void update_ams(MachineObject* obj);
     void update_task(MachineObject* obj);
+    void update_profile(MachineObject* obj);
     void update_all();
 
 public:
@@ -333,6 +336,7 @@ public:
     int last_wlan_device_selection;
     std::vector<std::string> mybind_machine_list_items;
     BBLSubTask* last_subtask;
+    BBLProfile* last_profile;
 
     void set_machine(std::string machine_sn);
     void select_machine(std::string machine_sn);

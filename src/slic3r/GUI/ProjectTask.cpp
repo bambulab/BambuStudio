@@ -29,6 +29,7 @@ namespace Slic3r {
             project_id = project_->project_id;
         }
 
+        profile_name = "N/A";
     }
 
     BBLTask::BBLTask(BBLProfile* profile)

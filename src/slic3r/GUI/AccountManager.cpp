@@ -1500,13 +1500,78 @@ namespace Slic3r {
                                 pt::ptree profiles = root.get_child("profiles");
                                 for (auto prof = profiles.begin(); prof != profiles.end(); ++prof) {
                                     boost::optional<std::string> profile_id = prof->second.get_optional<std::string>("profile_id");
-
+                                    boost::optional<std::string> profile_name = prof->second.get_optional<std::string>("name");
+                                    if (profile_name.has_value()) {
+                                        profile->profile_name = profile_name.value();
+                                    }
                                     // if find current profile, get infos
                                     if (profile_id.has_value() && profile_id.value().compare(profile->profile_id) == 0) {
                                         if (prof->second.get_child_optional("context") != boost::none) {
                                             profile->slice_info.clear();
+                                            /* to be deleted */
                                             pt::ptree context = prof->second.get_child("context");
-                                            if (context.get_child_optional("thumbnail_files") != boost::none) {
+                                            if (context.get_child_optional("plates") != boost::none) {
+                                                pt::ptree plates = context.get_child("plates");
+                                                for (auto plate = plates.begin(); plate != plates.end(); ++plate) {
+                                                    boost::optional<std::string> index = plate->second.get_optional<std::string>("index");
+                                                    if (!index.has_value()) {
+                                                        continue;
+                                                    }
+
+                                                    BBLSliceInfo* info = nullptr;
+                                                    /* do not update if info is initialized */
+                                                    if (profile->slice_info.find(index.value()) != profile->slice_info.end()) {
+                                                        info = profile->slice_info.find(index.value())->second;
+                                                    }
+                                                    else {
+                                                        info = new BBLSliceInfo(profile);
+                                                        info->index = index.value();
+                                                        // set a format to title
+                                                        info->title = (boost::format("%1%-(plate %2%)") % profile->profile_name % info->index).str();
+                                                        boost::optional<int> prediction = plate->second.get_optional<int>("prediction");
+                                                        if (prediction.has_value()) {
+                                                            info->prediction = prediction.value();
+                                                        }
+                                                        boost::optional<std::string> weight = plate->second.get_optional<std::string>("weight");
+                                                        if (weight.has_value()) {
+                                                            info->weight = weight.value();
+                                                        }
+                                                        if (plate->second.get_child_optional("thumbnail") != boost::none) {
+                                                            pt::ptree thumbnail_node = plate->second.get_child("thumbnail");
+                                                            boost::optional<std::string> thumbnail_name = thumbnail_node.get_optional<std::string>("name");
+                                                            if (thumbnail_name.has_value()) {
+                                                                info->thumbnail_name = thumbnail_name.value();
+                                                            }
+                                                            boost::optional<std::string> thumbnail_dir = thumbnail_node.get_optional<std::string>("dir");
+                                                            if (thumbnail_dir.has_value()) {
+                                                                info->thumbnail_dir = thumbnail_dir.value();
+                                                            }
+                                                            boost::optional<std::string> thumbnail_url = thumbnail_node.get_optional<std::string>("url");
+                                                            if (thumbnail_url.has_value()) {
+                                                                info->thumbnail_url = thumbnail_url.value();
+                                                            }            
+                                                        }
+                                                        if (plate->second.get_child_optional("gcode") != boost::none) {
+                                                            pt::ptree gcode_node = plate->second.get_child("gcode");
+                                                            boost::optional<std::string> gcode_name = gcode_node.get_optional<std::string>("name");
+                                                            if (gcode_name.has_value()) {
+                                                                info->gcode_name = gcode_name.value();
+                                                            }
+                                                            boost::optional<std::string> gcode_dir = gcode_node.get_optional<std::string>("dir");
+                                                            if (gcode_dir.has_value()) {
+                                                                info->gcode_dir = gcode_dir.value();
+                                                            }
+                                                            boost::optional<std::string> gcode_url = gcode_node.get_optional<std::string>("url");
+                                                            if (gcode_url.has_value()) {
+                                                                info->gcode_url = gcode_url.value();
+                                                            }
+                                                        }
+                                                        profile->slice_info.insert(std::make_pair(index.value(), info));
+                                                    }
+                                                }
+                                                continue;
+                                            }
+                                            else if (context.get_child_optional("thumbnail_files") != boost::none) {
                                                 pt::ptree thumbnails = context.get_child("thumbnail_files");
                                                 for (auto thumbnail = thumbnails.begin(); thumbnail != thumbnails.end(); ++thumbnail) {
                                                     std::string index = thumbnail->second.get_optional<std::string>("index").value();
@@ -1528,6 +1593,7 @@ namespace Slic3r {
                                                 }
                                             }
                                         }
+
                                     }
                                 }
                             }

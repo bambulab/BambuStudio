@@ -105,15 +105,20 @@ public:
     BBLSliceInfo(BBLProfile* profile = nullptr)
     {
         profile_ = profile;
+        prediction = 0;
     }
 
     std::string     index;
+    std::string     title;
     std::string     thumbnail_dir;
     std::string     thumbnail_name;
     std::string     thumbnail_url;
     std::string     gcode_name;
     std::string     gcode_url;
+    std::string     gcode_dir;
     std::string     config_url;
+    std::string     weight;
+    int             prediction;
     BBLProfile*     profile_;
 };
 
