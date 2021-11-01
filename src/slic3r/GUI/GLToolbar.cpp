@@ -138,6 +138,7 @@ int GLToolbarItem::generate_texture(wxFont& font)
     return ret;
 }
 
+
 int GLToolbarItem::generate_image_texture()
 {
     int ret = 0;
@@ -145,7 +146,13 @@ int GLToolbarItem::generate_image_texture()
     if (m_type != ActionWithTextImage)
         return -1;
 
-    result = m_data.image_texture.load_from_raw_data(m_data.image_data, m_data.image_width, m_data.image_height);
+    /* load default texture when image is empty */
+    if (m_data.image_data.empty()) {
+        std::string default_image = resources_dir() + "/icons/default_thumbnail.svg";
+        result = m_data.image_texture.load_from_svg_file(default_image, true, false, false, m_data.image_width);
+    }  else {
+        result = m_data.image_texture.load_from_raw_data(m_data.image_data, m_data.image_width, m_data.image_height);
+    }
     if (!result)
         ret = -1;
 
@@ -1458,7 +1465,7 @@ void GLToolbar::render_vertical(const GLCanvas3D& parent)
             if (item->is_action_with_text_image()) {
                 float scaled_text_size = m_layout.text_size * factor;
                 float scaled_text_width = item->get_extra_size_ratio() * scaled_icons_size;
-                float scaled_text_border = 2.5;
+                float scaled_text_border = 2.5 * factor;
                 float scaled_text_height = scaled_icons_size / 2.0f;
                 item->render_text(left, left + scaled_text_size, top - scaled_text_border - scaled_text_height, top - scaled_text_border);
 

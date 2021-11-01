@@ -5666,7 +5666,14 @@ bool GLCanvas3D::_update_select_plate_toolbar()
         item.visibility_callback = [this]()->bool { return (m_print_select == ePrintAll); };
         item.extra_size_ratio = 0.0f;
         item.button_text = (boost::format("%1%") % (i + 1)).str();
-        item.image_data = plate_list.get_plate(i)->thumbnail_data.pixels;
+        PartPlate* plate = plate_list.get_plate(i);
+        if (plate && plate->thumbnail_data.is_valid()) {
+            item.image_data = plate->thumbnail_data.pixels;
+        }
+        else {
+            item.image_data.clear();
+        }
+
         item.image_width = m_select_plate_toolbar.get_icons_size();
         item.image_height = m_select_plate_toolbar.get_icons_size();
 
