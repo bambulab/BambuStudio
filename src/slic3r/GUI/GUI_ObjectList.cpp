@@ -18,6 +18,7 @@
 #include "libslic3r/Model.hpp"
 #include "GLCanvas3D.hpp"
 #include "Selection.hpp"
+#include "PartPlate.hpp"
 #include "format.hpp"
 #include "NotificationManager.hpp"
 #include "MsgDialog.hpp"
@@ -365,7 +366,7 @@ void ObjectList::get_selected_item_indexes(int& obj_idx, int& vol_idx, const wxD
     const ItemType type = m_objects_model->GetItemType(item);
 
     obj_idx =   type & itObject ? m_objects_model->GetIdByItem(item) :
-                type & itVolume ? m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item)) : -1;
+                type & itVolume ? m_objects_model->GetIdByItem(m_objects_model->GetObject(item)) : -1;
 
     vol_idx =   type & itVolume ? m_objects_model->GetVolumeIdByItem(item) : -1;
 }
@@ -380,7 +381,7 @@ void ObjectList::get_selection_indexes(std::vector<int>& obj_idxs, std::vector<i
     if ( m_objects_model->GetItemType(sels[0]) & itVolume || 
         (sels.Count()==1 && m_objects_model->GetItemType(m_objects_model->GetParent(sels[0])) & itVolume) ) {
         for (wxDataViewItem item : sels) {
-            obj_idxs.emplace_back(m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item)));
+            obj_idxs.emplace_back(m_objects_model->GetIdByItem(m_objects_model->GetObject(item)));
 
             if (sels.Count() == 1 && m_objects_model->GetItemType(m_objects_model->GetParent(item)) & itVolume)
                 item = m_objects_model->GetParent(item);
@@ -393,7 +394,7 @@ void ObjectList::get_selection_indexes(std::vector<int>& obj_idxs, std::vector<i
         for (wxDataViewItem item : sels) {
             const ItemType type = m_objects_model->GetItemType(item);
             obj_idxs.emplace_back(type & itObject ? m_objects_model->GetIdByItem(item) :
-                                  m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item)));
+                                  m_objects_model->GetIdByItem(m_objects_model->GetObject(item)));
         }
     }
 
@@ -530,7 +531,7 @@ void ObjectList::set_tooltip_for_item(const wxPoint& pt)
 int ObjectList::get_selected_obj_idx() const
 {
     if (GetSelectedItemsCount() == 1)
-        return m_objects_model->GetIdByItem(m_objects_model->GetTopParent(GetSelection()));
+        return m_objects_model->GetIdByItem(m_objects_model->GetObject(GetSelection()));
 
     return -1;
 }
@@ -590,14 +591,21 @@ void ObjectList::update_plate_values_for_items()
         wxDataViewItem item = m_objects_model->GetItemById(i);
         if (!item) continue;
 
-        auto object = (*m_objects)[i];
         int plate_idx = list.find_instance(i, 0);
-        m_objects_model->SetPlateIdx(plate_idx, item);
+        wxDataViewItem old_parent = m_objects_model->GetParent(item);
+        ObjectDataViewModelNode* old_parent_node = (ObjectDataViewModelNode*)old_parent.GetID();
+        int old_plate_idx = old_parent_node->GetPlateIdx();
+        if (plate_idx == old_plate_idx)
+            continue;
 
-        for (size_t j = 0; j < object->instances.size(); j++) {
-            plate_idx = list.find_instance(i, j);
-            m_objects_model->SetPlateIdx(plate_idx, item);
-        }
+        bool is_old_parent_expanded = IsExpanded(old_parent);
+        bool is_expanded = IsExpanded(item);
+        m_objects_model->OnPlateChange(plate_idx, item);
+        if (is_old_parent_expanded)
+            Expand(old_parent);
+        ExpandAncestors(item);
+        Expand(item);
+        Select(item);
     }
 }
 
@@ -656,7 +664,7 @@ void ObjectList::update_extruder_in_config(const wxDataViewItem& item)
         m_config = &(*m_objects)[obj_idx]->config;
     }
     else {
-        const int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
+        const int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetObject(item));
         if (item_type & itVolume)
         {
         const int volume_id = m_objects_model->GetVolumeIdByItem(item);
@@ -1383,8 +1391,8 @@ void ObjectList::add_category_to_settings_from_selection(const std::vector< std:
     }
 
     // Add settings item for object/sub-object and show them 
-    if (!(item_type & (itObject | itVolume | itLayer)))
-        item = m_objects_model->GetTopParent(item);
+    if (!(item_type & (itPlate | itObject | itVolume | itLayer)))
+        item = m_objects_model->GetObject(item);
     show_settings(add_settings_item(item, &m_config->get()));
 }
 
@@ -1418,8 +1426,8 @@ void ObjectList::add_category_to_settings_from_frequent(const std::vector<std::s
     }
 
     // Add settings item for object/sub-object and show them 
-    if (!(item_type & (itObject | itVolume | itLayer)))
-        item = m_objects_model->GetTopParent(item);
+    if (!(item_type & (itPlate | itObject | itVolume | itLayer)))
+        item = m_objects_model->GetObject(item);
     show_settings(add_settings_item(item, &m_config->get()));
 }
 
@@ -2525,8 +2533,11 @@ void ObjectList::part_selection_changed()
     bool update_and_show_layers = false;
 
     const auto item = GetSelection();
-
-    if ( multiple_selection() || (item && m_objects_model->GetItemType(item) == itInstanceRoot )) {
+    // BBS
+    if (item && (m_objects_model->GetItemType(item) & itPlate)) {
+        // TODO: og for plate
+    }
+    else if ( multiple_selection() || (item && m_objects_model->GetItemType(item) == itInstanceRoot )) {
         og_name = _L("Group manipulation");
 
         const Selection& selection = scene_selection();
@@ -2535,13 +2546,13 @@ void ObjectList::part_selection_changed()
     }
     else {
         if (item) {
+            // BBS
             const ItemType type = m_objects_model->GetItemType(item);
             const wxDataViewItem parent = m_objects_model->GetParent(item);
             const ItemType parent_type = m_objects_model->GetItemType(parent);
             obj_idx = m_objects_model->GetObjectIdByItem(item);
 
-            if (parent == wxDataViewItem(nullptr)
-             || type == itInfo) {
+            if ((type & itObject) || type == itInfo) {
                 og_name = _L("Object manipulation");
                 m_config = &(*m_objects)[obj_idx]->config;
                 update_and_show_manipulations = true;
@@ -2772,9 +2783,8 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
     //std::string item_name_str = (boost::format("[P%1%]%2%") % plate_idx  % model_object->name).str();
     //const wxString& item_name = from_u8(item_name_str);
     const wxString& item_name = from_u8(model_object->name);
-    const auto item = m_objects_model->Add(item_name,
-                      model_object->config.has("extruder") ? model_object->config.extruder() : 0,
-                      get_warning_icon_name(model_object->mesh().stats()), plate_idx);
+    const auto item = m_objects_model->AddObject(model_object);
+    Expand(m_objects_model->GetParent(item));
 
     update_info_items(obj_idx, nullptr, call_selection_changed);
 
@@ -3319,8 +3329,9 @@ bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_lay
     return true;
 }
 
-void ObjectList::init_objects()
+void ObjectList::init()
 {
+    m_objects_model->Init();
     m_objects = &wxGetApp().model().objects;
 }
 
@@ -4412,6 +4423,33 @@ void ObjectList::set_extruder_for_selected_items(const int extruder) const
 
     // update scene
     wxGetApp().plater()->update();
+}
+
+void ObjectList::on_plate_added(PartPlate* part_plate)
+{
+    wxDataViewItem plate_item = m_objects_model->AddPlate(part_plate);
+}
+
+void ObjectList::on_plate_deleted(int plate_idx)
+{
+    m_objects_model->DeletePlate(plate_idx);
+
+    wxDataViewItemArray top_list;
+    m_objects_model->GetChildren(wxDataViewItem(nullptr), top_list);
+    for (wxDataViewItem item : top_list) {
+        Expand(item);
+    }
+}
+
+void ObjectList::reload_all_plates()
+{
+    m_objects_model->ReloadAllPlates();
+
+    wxDataViewItemArray top_list;
+    m_objects_model->GetChildren(wxDataViewItem(nullptr), top_list);
+    for (wxDataViewItem item : top_list) {
+        Expand(item);
+    }
 }
 
 wxDataViewItemArray ObjectList::reorder_volumes_and_get_selection(int obj_idx, std::function<bool(const ModelVolume*)> add_to_selection/* = nullptr*/)

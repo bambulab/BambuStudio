@@ -40,6 +40,7 @@ typedef std::map<t_layer_height_range, ModelConfig> t_layer_config_ranges;
 #define FIX_THROUGH_NETFABB_ALWAYS 1
 
 namespace GUI {
+class PartPlate;
 
 wxDECLARE_EVENT(EVT_OBJ_LIST_OBJECT_SELECT, SimpleEvent);
 wxDECLARE_EVENT(EVT_PARTPLATE_LIST_PLATE_SELECT, IntEvent);
@@ -347,7 +348,7 @@ public:
                           // Don't destroy the panel with the "add layer" or "remove layer" buttons.
                           bool suppress_ui_update = false);
 
-    void init_objects();
+    void init();
     bool multiple_selection() const ;
     bool is_selected(const ItemType type) const;
     int  get_selected_layers_range_idx() const;
@@ -402,6 +403,11 @@ public:
     wxDataViewItemArray reorder_volumes_and_get_selection(int obj_idx, std::function<bool(const ModelVolume*)> add_to_selection = nullptr);
     void apply_volumes_order();
     bool has_paint_on_segmentation();
+
+    // BBS
+    void on_plate_added(PartPlate* part_plate);
+    void on_plate_deleted(int plate_index);
+    void reload_all_plates();
 
 private:
 #ifdef __WXOSX__

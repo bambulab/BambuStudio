@@ -174,6 +174,7 @@ public:
     /* instance related operations*/
     //judge whether instance is bound in plate or not
     bool contain_instance(int obj_id, int instance_id);
+    bool contain_instance(ModelObject* object, int instance_id);
 
     //judge whether the plate's origin is at the left of instance or not
     bool is_left_top_of(int obj_id, int instance_id);

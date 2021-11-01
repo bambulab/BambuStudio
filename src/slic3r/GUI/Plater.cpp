@@ -7520,7 +7520,7 @@ int Plater::select_sliced_plate(int plate_index)
     BOOST_LOG_TRIVIAL(trace) << "select_sliced_plate plate_idx=" << plate_index;
 
     ret = p->partplate_list.select_plate(plate_index);
-    GCodeProcessor::Result* result = p->partplate_list.get_current_slice_result();
+    GCodeProcessorResult* result = p->partplate_list.get_current_slice_result();
     // if result is valid
     if (!result->moves.empty()) {
         /* stop background process */

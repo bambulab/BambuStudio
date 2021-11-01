@@ -31,6 +31,7 @@
 #include "3DBed.hpp"
 #include "PartPlate.hpp"
 #include "Camera.hpp"
+#include "GUI_ObjectList.hpp"
 #include <imgui/imgui_internal.h>
 
 using boost::optional;
@@ -728,6 +729,28 @@ bool PartPlate::contain_instance(int obj_id, int instance_id)
 	return result;
 }
 
+//judge whether instance is bound in plate or not
+bool PartPlate::contain_instance(ModelObject* object, int instance_id)
+{
+	bool result = false;
+	int obj_id = -1;
+
+	for (int index = 0; index < m_model->objects.size(); index ++)
+	{
+		if (m_model->objects[index] == object)
+		{
+			obj_id = index;
+			break;
+		}
+	}
+
+	if ((obj_id >= 0 ) && (obj_id < m_model->objects.size()))
+		result = contain_instance(obj_id, instance_id);
+
+	return result;
+}
+
+
 //check whether instance is outside the plate or not
 bool PartPlate::check_outside(int obj_id, int instance_id)
 {
@@ -1342,11 +1365,10 @@ int PartPlateList::create_plate()
 	//reload all objects here
 	reload_all_objects();
 
-#if 0
-	//update related UI
-	if (m_plater)
-		m_plater->update_partplate();
-#endif
+	if (m_plater) {
+		// In GUI mode
+		wxGetApp().obj_list()->on_plate_added(plate);
+	}
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":created a new plate %1%") % new_index;
 	return new_index;
@@ -1475,11 +1497,10 @@ int PartPlateList::delete_plate(int index)
 
 	delete plate;
 
-#if 0
-	//update related UI
-	if (m_plater)
-		m_plater->update_partplate();
-#endif
+	if (m_plater != nullptr) {
+		// In GUI mode
+		wxGetApp().obj_list()->reload_all_plates();
+	}
 	return ret;
 }
 
@@ -2451,6 +2472,12 @@ int PartPlateList::rebuild_plates_after_arrangement(bool recycle_plates)
 			}
 		}
 	}
+
+	if (m_plater != nullptr) {
+		// In GUI mode
+		wxGetApp().obj_list()->reload_all_plates();
+	}
+
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":after rebuild, plates count %1%") % m_plate_list.size();
 	return ret;
 }
@@ -2518,6 +2545,10 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 	ret = reload_all_objects();
 	print();
 
+	if (m_plater != nullptr) {
+		// In GUI mode
+		wxGetApp().obj_list()->reload_all_plates();
+	}
 	return ret;
 }
 

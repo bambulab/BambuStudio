@@ -1274,8 +1274,7 @@ bool GUI_App::on_init_inner()
     if (is_editor())
         mainframe->select_tab(size_t(0));
 
-    sidebar().obj_list()->init_objects(); // propagate model objects to object list
-    // BBS
+    sidebar().obj_list()->init();
     sidebar().aux_list()->init_auxiliary();
 
 //     update_mode(); // !!! do that later
@@ -1655,7 +1654,8 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
         // hide settings tabs after first Layout
         mainframe->select_tab(size_t(0));
     // Propagate model objects to object list.
-    sidebar().obj_list()->init_objects();
+    sidebar().obj_list()->init();
+    sidebar().aux_list()->init_auxiliary();
     SetTopWindow(mainframe);
 
     dlg.Update(30, _L("Recreating") + dots);

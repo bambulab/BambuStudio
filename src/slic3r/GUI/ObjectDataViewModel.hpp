@@ -8,10 +8,11 @@
 #include "ExtraRenderers.hpp"
 
 namespace Slic3r {
-
+class ModelObject;
 enum class ModelVolumeType : int;
 
 namespace GUI {
+class PartPlate;
 
 typedef double                          coordf_t;
 typedef std::pair<coordf_t, coordf_t>   t_layer_height_range;
@@ -21,14 +22,15 @@ typedef std::pair<coordf_t, coordf_t>   t_layer_height_range;
 // ----------------------------------------------------------------------------
 enum ItemType {
     itUndef         = 0,
-    itObject        = 1,
-    itVolume        = 2,
-    itInstanceRoot  = 4,
-    itInstance      = 8,
-    itSettings      = 16,
-    itLayerRoot     = 32,
-    itLayer         = 64,
-    itInfo          = 128
+    itPlate         = 1,
+    itObject        = 2,
+    itVolume        = 4,
+    itInstanceRoot  = 8,
+    itInstance      = 16,
+    itSettings      = 32,
+    itLayerRoot     = 64,
+    itLayer         = 128,
+    itInfo          = 256,
 };
 
 enum ColumnNumber
@@ -84,16 +86,20 @@ class ObjectDataViewModelNode
     std::string                     m_action_icon_name = "";
     ModelVolumeType                 m_volume_type;
     InfoItemType                    m_info_item_type {InfoItemType::Undef};
+    PartPlate*                      m_part_plate;
+    ModelObject*                    m_model_object;
 
 public:
     ObjectDataViewModelNode(const wxString& name,
                             const wxString& extruder,
-                            const int plate_idx):
+                            const int plate_idx,
+                            ModelObject *model_object):
         m_parent(NULL),
         m_name(name),
         m_type(itObject),
         m_extruder(extruder),
-        m_plate_idx(plate_idx)
+        m_plate_idx(plate_idx),
+        m_model_object(model_object)
     {
         set_action_and_extruder_icons();
         init_container();
@@ -111,6 +117,8 @@ public:
                             const t_layer_height_range& layer_range,
                             const int idx = -1,
                             const wxString& extruder = wxEmptyString );
+
+    ObjectDataViewModelNode(PartPlate* part_plate, wxString name);
 
     //BBS: add part plate related logic
     ObjectDataViewModelNode(ObjectDataViewModelNode* parent, const ItemType type, const int plate_idx = -1);
@@ -264,6 +272,7 @@ wxDECLARE_EVENT(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, wxCommandEvent);
 
 class ObjectDataViewModel :public wxDataViewModel
 {
+    std::vector<ObjectDataViewModelNode*>       m_plates;
     std::vector<ObjectDataViewModelNode*>       m_objects;
     std::vector<wxBitmap>                       m_volume_bmps;
     std::map<InfoItemType, wxBitmap>            m_info_bmps;
@@ -271,15 +280,17 @@ class ObjectDataViewModel :public wxDataViewModel
     wxBitmap                                    m_warning_bmp;
     wxBitmap                                    m_warning_manifold_bmp;
 
+    ObjectDataViewModelNode*                    m_plate_none;
+
     wxDataViewCtrl*                             m_ctrl { nullptr };
 public:
     ObjectDataViewModel();
     ~ObjectDataViewModel();
 
-    wxDataViewItem Add( const wxString &name,
-                        const int extruder,
-                        const std::string& warning_icon_name = std::string(),
-                        const int plate_idx = -1);
+    void Init();
+
+    wxDataViewItem AddPlate(PartPlate* part_plate, wxString name = wxEmptyString, bool refresh = true);
+    wxDataViewItem AddObject(ModelObject* model_object, bool refresh = true);
     wxDataViewItem AddVolumeChild(  const wxDataViewItem &parent_item,
                                     const wxString &name,
                                     const Slic3r::ModelVolumeType volume_type,
@@ -296,6 +307,7 @@ public:
                                     const int extruder = 0,
                                     const int index = -1);
     size_t         GetItemIndexForFirstVolume(ObjectDataViewModelNode* node_parent);
+    wxDataViewItem DeletePlate(const int plate_idx);
     wxDataViewItem Delete(const wxDataViewItem &item);
     wxDataViewItem DeleteLastInstance(const wxDataViewItem &parent_item, size_t num);
     void DeleteAll();
@@ -319,6 +331,7 @@ public:
     int  GetRowByItem(const wxDataViewItem& item) const;
     bool IsEmpty() { return m_objects.empty(); }
     bool InvalidItem(const wxDataViewItem& item);
+    void ReloadAllPlates();
 
     // helper method for wxLog
 
@@ -343,6 +356,7 @@ public:
                     unsigned int col);
 
     void SetExtruder(const wxString& extruder, wxDataViewItem item);
+    void OnPlateChange(const int plate_idx, wxDataViewItem item);
     void SetPlateIdx(const int plate_idx, wxDataViewItem item);
     bool SetName    (const wxString& new_name, wxDataViewItem item);
 
@@ -357,6 +371,7 @@ public:
 
     wxDataViewItem  GetParent(const wxDataViewItem &item) const override;
     // get object item
+    wxDataViewItem          GetObject(const wxDataViewItem& item) const;
     wxDataViewItem          GetTopParent(const wxDataViewItem &item) const;
     bool            IsContainer(const wxDataViewItem &item) const override;
     unsigned int    GetChildren(const wxDataViewItem &parent, wxDataViewItemArray &array) const override;
@@ -412,6 +427,7 @@ private:
     void            AddAllChildren(const wxDataViewItem& parent);
 
     wxBitmap&       GetWarningBitmap(const std::string& warning_icon_name);
+    void            ReparentObject(ObjectDataViewModelNode* plate, ObjectDataViewModelNode* object);
 };
 
 
