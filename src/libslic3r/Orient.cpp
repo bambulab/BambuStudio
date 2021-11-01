@@ -424,8 +424,8 @@ void _orient(OrientMeshs& meshs_,
      tbb::parallel_for(tbb::blocked_range<size_t>(0, meshs_.size()), [&meshs_,&params, progressfn,stopfn](const tbb::blocked_range<size_t>& range) {
          for (size_t i = range.begin(); i != range.end(); ++i) {
              auto& mesh_ = meshs_[i];
-             auto progressfn_i = [&](unsigned cnt) {progressfn(cnt, "Orienting " + std::to_string(i) + "-th item: " + mesh_.name); };
-             AutoOrienter orienter(&mesh_.mesh, params, progressfn_i, stopfn);
+             progressfn(range.size() - i, "Orienting " + std::to_string(i) + "-th item: " + mesh_.name);
+             AutoOrienter orienter(&mesh_.mesh, params, {}, stopfn);
              mesh_.orientation = orienter.process();
              rotation_from_two_vectors(mesh_.orientation, mesh_.axis, mesh_.angle, mesh_.rotation_matrix);
              mesh_.euler_angles = Geometry::extract_euler_angles(mesh_.rotation_matrix);
