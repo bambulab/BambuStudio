@@ -5644,6 +5644,8 @@ bool GLCanvas3D::_init_select_plate_toolbar()
 
 bool GLCanvas3D::_update_select_plate_toolbar()
 {
+    if (!m_select_plate_toolbar.is_enabled()) return false;
+
     m_select_plate_toolbar.del_all_item();
 
     PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
