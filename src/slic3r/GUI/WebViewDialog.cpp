@@ -852,6 +852,8 @@ void WebFrame::RunScript(const wxString& javascript)
 
     wxLogMessage("Running JavaScript:\n%s\n", javascript);
 
+    if (!m_browser) return;
+
     wxString result;
     try {
         if (m_browser->RunScript(javascript, &result))

@@ -242,6 +242,8 @@ public:
 
     bool can_save() const;
     bool can_save_as() const;
+    //BBS
+    bool can_upload() const;
     void save_project();
     bool save_project_as(const wxString& filename = wxString());
 

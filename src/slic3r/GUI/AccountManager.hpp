@@ -9,6 +9,11 @@
 #include "mqtt/async_client.h"
 #include "ProjectTask.hpp"
 
+#define MY_MODEL_PUBLISH_URL_FORMAT    "https://portal-dev.bambu-lab.com/my/models/%d/publish"
+#define MY_COLLECTIONS_URL              "https://portal-dev.bambu-lab.com/my/collections"
+#define MY_PROJECT_LIST_URL             "https://portal-dev.bambu-lab.com/"
+#define MODEL_STORE_URL                 "https://portal-dev.bambu-lab.com/"
+
 namespace Slic3r {
 
 typedef std::function<void(std::string name)> SuccessFn;
@@ -222,6 +227,8 @@ public:
     int request_subtask_id(BBLSubTask* task, ResultFn resFn = nullptr);
     // upload 3mf for project and profile, aync
     int upload_3mf(BBLProfile* profile, ResultFn resFn = nullptr, ProgressFn proFn = nullptr, bool sync = false);
+    // poll_3mf for project model only, sync
+    int poll_3mf(BBLProject* project);
     // poll_3mf for project and profile, sync
     int poll_3mf(BBLProfile* profile);
     // poll_3mf for task, sync
@@ -236,7 +243,7 @@ public:
     void get_profile_info(BBLProject* &project, BBLProfile* &profile);
     void create_task(BBLProject* project, BBLTask* task, ResultFn resFn);
     void post_task(BBLSubTask* task, ResultFn resFn, ProgressFn proFn);
-    
+
 
     /* submit */
     int submit_print_result(std::string device_id, std::string json_str, ResultFn fn);
@@ -258,6 +265,9 @@ public:
 
     /* handle webpage command */
     std::string handle_web_request(std::string cmd);
+
+    void reqeust_model_download(std::string model_id);
+    void reqeust_open_project(std::string project_id);
 };
 
 } // namespace Slic3r

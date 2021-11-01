@@ -7,6 +7,8 @@
 #include "AccountManager.hpp"
 #include "Plater.hpp"
 #include "MainFrame.hpp"
+#include "WebViewDialog.hpp"
+
 
 using namespace Slic3r;
 
@@ -17,6 +19,7 @@ enum CUSTOM_ID
     ID_TOP_DROPDOWN_MENU,
     ID_PRINTER,
     ID_ACCOUNT,
+    ID_MODEL_STORE,
     ID_TOOL_BAR = 3200,
     ID_AMS_NOTEBOOK,
 };
@@ -94,6 +97,10 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     this->AddSpacer(10);
     this->AddStretchSpacer(1);
 
+    wxBitmap model_store_bitmap = create_scaled_bitmap("model_store", nullptr, FromDIP(21));
+    m_model_store_item = this->AddTool(ID_MODEL_STORE, "", model_store_bitmap);
+    this->AddSpacer(10);
+
     wxBitmap account_bitmap = create_scaled_bitmap("account", nullptr, FromDIP(21));
     m_account_item = this->AddTool(ID_ACCOUNT, "", account_bitmap);
 
@@ -136,6 +143,7 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnUndo, this, wxID_UNDO);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnPrinterClicked, this, ID_PRINTER);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnAccountClicked, this, ID_ACCOUNT);
+    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnModelStoreClicked, this, ID_MODEL_STORE);
 }
 
 void BBLTopbar::OnOpenProject(wxAuiToolBarEvent& event)
@@ -183,6 +191,34 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
             Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
             return account_manager->is_user_login();
         }, this);
+    append_menu_item(accountMenu, wxID_ANY, _L("My Project List"), _L(""),
+        [this](wxCommandEvent&) {
+            WebFrame* m_my_projects_webframe = new WebFrame(MY_PROJECT_LIST_URL);
+            m_my_projects_webframe->Show();
+        }, "upload_queue", nullptr,
+        [this] (){
+            return true;
+            },
+        this);
+    append_menu_item(accountMenu, wxID_ANY, _L("My Collections"), _L(""),
+        [this](wxCommandEvent&) {
+            WebFrame* m_my_collections_webframe = new WebFrame(MY_COLLECTIONS_URL);
+            m_my_collections_webframe->Show();
+        }, "upload_queue", nullptr,
+        [this] (){
+            return true;
+            },
+        this);
+    append_menu_item(accountMenu, wxID_ANY, _L("Upload/Publish Model"), _L(""),
+        [this](wxCommandEvent&) {
+            wxString url = wxString::Format(MY_MODEL_PUBLISH_URL_FORMAT, 1);
+            WebFrame* m_publish_webframe = new WebFrame(url);
+            m_publish_webframe->Show();
+        }, "upload_queue", nullptr,
+        [this] (){
+            return true;
+            },
+        this);
 
     wxRect rect = this->GetToolRect(m_account_item->GetId());
     this->PopupMenu(accountMenu, rect.x, rect.y + this->GetSize().GetHeight() - 5);
@@ -198,6 +234,12 @@ void BBLTopbar::OnPrinterClicked(wxAuiToolBarEvent& event)
 
     m_select_machine->Position(pos, wxSize(0, 0));
     m_select_machine->Popup();
+}
+
+void BBLTopbar::OnModelStoreClicked(wxAuiToolBarEvent& event)
+{
+    WebFrame* m_model_store_webframe = new WebFrame(MODEL_STORE_URL);
+    m_model_store_webframe->Show();
 }
 
 void BBLTopbar::SetFileMenu(wxMenu* file_menu)

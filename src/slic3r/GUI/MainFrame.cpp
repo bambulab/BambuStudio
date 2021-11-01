@@ -956,6 +956,11 @@ bool MainFrame::save_project_as(const wxString& filename)
     return ret;
 }
 
+bool MainFrame::can_upload() const
+{
+    return true;
+}
+
 bool MainFrame::can_export_model() const
 {
     return (m_plater != nullptr) && !m_plater->model().objects.empty();
@@ -1403,6 +1408,12 @@ void MainFrame::init_menubar_as_editor()
         append_menu_item(fileMenu, wxID_ANY, _L("&Save Project") + "\tCtrl+S", _L("Save current project file"),
             [this](wxCommandEvent&) { save_project(); }, "save", nullptr,
             [this](){return m_plater != nullptr && can_save(); }, this);
+
+        //BBS upload project
+        append_menu_item(fileMenu, wxID_ANY, _L("Upload Project") + "\tCtrl+U", _L("Upload current project file"),
+            [this](wxCommandEvent&) { if (m_plater) { m_plater->upload_3mf(); } }, "save", nullptr,
+            [this]() {return m_plater != nullptr && can_upload(); }, this);
+
 #ifdef __APPLE__
         append_menu_item(fileMenu, wxID_ANY, _L("Save Project &as") + dots + "\tCtrl+Shift+S", _L("Save current project file as"),
 #else

@@ -59,7 +59,7 @@ void PrintJob::process()
     project->project_3mf_file = _3mf_path.string();
     project->project_path = fs::path(project->project_3mf_file);
 
-    res = c->request_project_id(project, nullptr);
+    res = c->request_project_id(project);
 
     if (res == 0 && !project->project_id.empty()) {
         update_status(5, "request project id ok!");

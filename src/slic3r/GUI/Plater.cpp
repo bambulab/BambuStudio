@@ -6597,6 +6597,74 @@ bool Plater::export_3mf(const boost::filesystem::path& output_path, bool silence
     return 0;
 }
 
+//BBS upload current 3mf project
+void Plater::upload_3mf()
+{
+    int res = 0;
+    wxString msg;
+    wxGenericProgressDialog* progress_dlg = new wxProgressDialog("Upload Model",
+                            wxString(' ', 100) + "\n\n\n\n",
+                            100,    // range
+                            this,   // parent
+                            wxPD_CAN_ABORT |
+                            wxPD_CAN_SKIP |
+                            wxPD_APP_MODAL |
+                            wxPD_ELAPSED_TIME |
+                            wxPD_SMOOTH);
+    msg = "exporting 3mf to local temp folder";
+    progress_dlg->Pulse(msg);
+
+    boost::filesystem::path temp_path(wxStandardPaths::Get().GetTempDir().utf8_str().data());
+    temp_path /= (boost::format(".%1%.3mf") % get_current_pid()).str();
+    export_3mf(temp_path, true);
+
+    msg = "reqeust project id";
+    progress_dlg->Pulse(msg);
+
+    Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
+    std::string project_name = boost::format("bbl_project_name").str();
+
+    //TODO get current project
+    BBLProject* project = new BBLProject(project_name, BBLProject::ProjectType::PROJECT_3MF);
+    project->project_3mf_file = temp_path.string();
+    project->project_path = temp_path;
+    res = c->request_project_id(project);
+
+    if (res != 0 || project->project_id.empty()) {
+        msg = "reqeust project id failed";
+        progress_dlg->Pulse(msg);
+        progress_dlg->Close();
+        return;
+    }
+
+    //TODO get current profile
+    BBLProfile* profile = new BBLProfile(project);
+    profile->profile_name = "bbl_profile_name";
+
+    msg = "reqeust profile id";
+    progress_dlg->Pulse(msg);
+
+    c->request_profile_id(profile);
+
+    if (res != 0 || profile->profile_id.empty())
+    {
+        msg = "reqeust profile id failed";
+        progress_dlg->Pulse(msg);
+        progress_dlg->Close();
+        return;
+    }
+
+    msg = "start to upload";
+    progress_dlg->Pulse(msg);
+
+    c->upload_3mf(profile, nullptr, 
+        [this, progress_dlg](int percent) {
+            bool skip = false;
+            wxString msg = wxString::Format("uploaded %d", percent);
+            progress_dlg->Update(percent, msg, &skip);
+        }, true);
+}
+
 void Plater::reload_from_disk()
 {
     p->reload_from_disk();

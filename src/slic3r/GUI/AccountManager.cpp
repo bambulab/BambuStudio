@@ -839,9 +839,13 @@ namespace Slic3r {
         pt::ptree root;
         root.put("name", project_name_str);
         /* optional model_id */
-        /* root.put("model_id", model_id_str); */
+        if (!project->project_model_id.empty()) {
+            root.put("model_id", project->project_model_id);
+        }
         /* optional content */
-        /* root.put("content", project_content); */
+        if (!project->project_content.empty()) {
+            root.put("content", project->project_content);
+        }
 
         std::stringstream oss;
         pt::write_json(oss, root, false);
@@ -915,12 +919,12 @@ namespace Slic3r {
 
     int AccountManager::request_project_id(BBLProject* project, ResultFn resFn)
     {
-        int result = -1;
+        int result = 0;
         if (!project) {
             if (resFn) {
                 resFn(-1, "Invalid Project");
             }
-            return result;
+            return -1;
         }
 
         /* get a project id and model id */
@@ -1283,6 +1287,78 @@ namespace Slic3r {
         return 0;
     }
 
+    int AccountManager::poll_3mf(BBLProject* project)
+    {
+        if (!project) return -1;
+        int retry_ = 0;
+        int retry_max = 5;
+
+        std::string url = (boost::format("%1%/iot/user/project/%2%") % host % project->project_id).str();
+        Http http = Http::get(url);
+
+        http.header("accept", "application/json")
+            .header("Authorization", get_token_str())
+            .on_complete(
+                [this, project](std::string body, unsigned) {
+                    std::stringstream ss(body);
+                    pt::ptree root;
+                    pt::read_json(ss, root);
+                    if (root.empty()) return;
+                    boost::optional<std::string> message = root.get_optional<std::string>("message");
+                    if (message.has_value()) {
+                        if (message.value().compare("ready") == 0) {
+                            BOOST_LOG_TRIVIAL(info) << "get_project_info ok!";
+                            boost::optional<std::string> status = root.get_optional<std::string>("status");
+                            boost::optional<std::string> model_id = root.get_optional<std::string>("model_id");
+                            if (model_id.has_value()) {
+                                project->project_model_id = model_id.value();
+                            }
+                            boost::optional<std::string> name = root.get_optional<std::string>("name");
+                            if (name.has_value()) {
+                                project->project_name = name.value();
+                            }
+                            boost::optional<std::string> url = root.get_optional<std::string>("url");
+                            if (url.has_value()) {
+                                // check valid url
+                                if (url.value().compare("null") != 0) {
+                                    project->project_url = url.value();
+                                }
+                            }
+                            boost::optional<std::string> md5 = root.get_optional<std::string>("md5");
+                            if (md5.has_value()) {
+                                if (md5.value().compare("null") != 0) {
+                                    project->project_url_md5 = md5.value();
+                                }
+                            }
+                            boost::optional<std::string> create_time = root.get_optional<std::string>("create_time");
+                            if (create_time.has_value()) {
+                                project->project_create_time = create_time.value();
+                            }
+                            boost::optional<std::string> content = root.get_optional<std::string>("content");
+                            if (content.has_value()) {
+                                project->project_content = content.value();
+                            }
+
+                            //success
+                            return;
+                        }
+                    }
+                }
+        );
+
+        while (project->project_url.empty() && retry_ < retry_max) {
+                http.perform_sync();
+                retry_++;
+                BOOST_LOG_TRIVIAL(trace) << "download project failed, retry=" << retry_;
+                boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
+        }
+        if (retry_ == retry_max) {
+            BOOST_LOG_TRIVIAL(trace) << "download project failed, retry_max";
+            return -1;
+        }
+        return 0;
+    }
+
     int AccountManager::poll_3mf(BBLProfile* profile)
     {
         if (!profile) return -1;
@@ -1302,7 +1378,6 @@ namespace Slic3r {
             .header("Authorization", get_token_str())
             .on_complete(
                 [this, project](std::string body, unsigned) {
-                    std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
                     std::stringstream ss(body);
                     pt::ptree root;
                     pt::read_json(ss, root);
@@ -1874,10 +1949,6 @@ namespace Slic3r {
 
     std::string AccountManager::get_token_str()
     {
-        if (m_curr_user->m_token.empty()) {
-            return "";
-        }
-
         if (m_curr_user) {
             return (boost::format("Bearer %1%") % m_curr_user->m_token).str();
         }
@@ -2060,6 +2131,24 @@ namespace Slic3r {
                         return "";
                     }
                 }
+                else if (command_str.compare("reqeust_model_download") == 0) {
+                    if (root.get_child_optional("data") != boost::none) {
+                        pt::ptree data_node = root.get_child("data");
+                        boost::optional<std::string> model_id = data_node.get_optional<std::string>("model_id");
+                        if (model_id.has_value()) {
+                            this->reqeust_model_download(model_id.value());
+                        }
+                    }
+                }
+                else if (command_str.compare("open_project") == 0) {
+                    if (root.get_child_optional("data") != boost::none) {
+                        pt::ptree data_node = root.get_child("data");
+                        boost::optional<std::string> project_id = data_node.get_optional<std::string>("project_id");
+                        if (project_id.has_value()) {
+                            this->reqeust_open_project(project_id.value());
+                        }
+                    }
+                }
             }
         }
         catch (...) {
@@ -2067,6 +2156,16 @@ namespace Slic3r {
             return "";
         }
         return "";
+    }
+
+    void AccountManager::reqeust_model_download(std::string model_id)
+    {
+        ;
+    }
+
+    void AccountManager::reqeust_open_project(std::string project_id)
+    {
+        ;
     }
 
 } // namespace Slic3r

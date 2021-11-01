@@ -6,6 +6,7 @@
 #include "SelectMachine.hpp"
 #include "DeviceManager.hpp"
 
+
 using namespace Slic3r::GUI;
 
 class BBLTopbar : public wxAuiToolBar
@@ -30,6 +31,7 @@ public:
     void OnRedo(wxAuiToolBarEvent& event);
     void OnAccountClicked(wxAuiToolBarEvent& event);
     void OnPrinterClicked(wxAuiToolBarEvent& event);
+    void OnModelStoreClicked(wxAuiToolBarEvent& event);
 
     wxAuiToolBarItem* FindToolByCurrentPosition();
 
@@ -48,6 +50,8 @@ private:
     wxAuiToolBarItem* m_title_item;
     wxAuiToolBarItem* m_account_item;
     wxAuiToolBarItem* m_printer_item;
+    wxAuiToolBarItem* m_model_store_item;
+
     int m_toolbar_h;
     bool m_skip_popup_file_menu;
     bool m_skip_popup_dropdown_menu;

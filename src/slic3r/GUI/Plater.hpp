@@ -263,6 +263,7 @@ public:
     void export_amf();
     //BBS add extra param for exporting 3mf silence
     bool export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path(), bool silence = false);
+    void upload_3mf();
     void reload_from_disk();
     void replace_with_stl();
     void reload_all_from_disk();
