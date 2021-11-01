@@ -911,6 +911,7 @@ int MachineObject::send_wan_print_subtask(BBLSubTask* task, UploadedFn uploadedF
         print.put("md5", task->task_url_md5);
         /* project */
         print.put("project_id", task->parent_task_->task_project_id);
+        print.put("profile_id", task->parent_task_->task_profile_id);
         print.put("task_id", task->parent_task_->task_id);
         print.put("subtask_id", task->task_id);
         root.put_child("print", print);
