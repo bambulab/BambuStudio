@@ -842,6 +842,11 @@ int MachineObject::send_lan_print_subtask(BBLSubTask* task, UploadedFn uploadedF
     std::string dst_file = get_printer_dest_file(task->task_file);
     std::string dst_file_str = dst_file;
 
+    if (!boost::filesystem::exists(src_file)) {
+        BOOST_LOG_TRIVIAL(trace) << "src_file=" << src_file << "is not exist";
+        return -1;
+    }
+
     BOOST_LOG_TRIVIAL(trace) << "sftp upload dep_ip = " << dev_ip << ", src_file:" << src_file << ", dst_file:" << dst_file;
     Sftp sftp = Sftp::upload(dev_ip, src_file, dst_file, "root", "root");
     
