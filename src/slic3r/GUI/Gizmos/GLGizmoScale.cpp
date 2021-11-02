@@ -319,7 +319,7 @@ void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int 
 void GLGizmoScale3D::on_render_input_window(float x, float y, float bottom_limit)
 {
     if (m_object_manipulation)
-        m_object_manipulation->do_render_input_window(m_imgui, x, y, bottom_limit);
+        m_object_manipulation->do_render_input_window(m_imgui, "Scale", x, y, bottom_limit);
 }
 
 void GLGizmoScale3D::do_scale_along_axis(Axis axis, const UpdateData& data)

@@ -385,6 +385,64 @@ void GizmoObjectManipulation::on_change(const std::string& opt_key, int axis, do
         change_size_value(axis, new_value);
 }
 
+void GizmoObjectManipulation::reset_position_value()
+{
+    Selection& selection = m_glcanvas.get_selection();
+
+    if (selection.is_single_volume() || selection.is_single_modifier()) {
+        GLVolume* volume = const_cast<GLVolume*>(selection.get_volume(*selection.get_volume_idxs().begin()));
+        volume->set_volume_offset(Vec3d::Zero());
+    }
+    else if (selection.is_single_full_instance()) {
+        for (unsigned int idx : selection.get_volume_idxs()) {
+            GLVolume* volume = const_cast<GLVolume*>(selection.get_volume(idx));
+            volume->set_instance_offset(Vec3d::Zero());
+        }
+    }
+    else
+        return;
+
+    // Copy position values from GLVolumes into Model (ModelInstance / ModelVolume), trigger background processing.
+    m_glcanvas.do_move(L("Reset Position"));
+
+    UpdateAndShow(true);
+}
+
+void GizmoObjectManipulation::reset_rotation_value()
+{
+    Selection& selection = m_glcanvas.get_selection();
+
+    if (selection.is_single_volume() || selection.is_single_modifier()) {
+        GLVolume* volume = const_cast<GLVolume*>(selection.get_volume(*selection.get_volume_idxs().begin()));
+        volume->set_volume_rotation(Vec3d::Zero());
+    }
+    else if (selection.is_single_full_instance()) {
+        for (unsigned int idx : selection.get_volume_idxs()) {
+            GLVolume* volume = const_cast<GLVolume*>(selection.get_volume(idx));
+            volume->set_instance_rotation(Vec3d::Zero());
+        }
+    }
+    else
+        return;
+
+    // Update rotation at the GLVolumes.
+    selection.synchronize_unselected_instances(Selection::SYNC_ROTATION_GENERAL);
+    selection.synchronize_unselected_volumes();
+    // Copy rotation values from GLVolumes into Model (ModelInstance / ModelVolume), trigger background processing.
+    m_glcanvas.do_rotate(L("Reset Rotation"));
+
+    UpdateAndShow(true);
+}
+
+void GizmoObjectManipulation::reset_scale_value()
+{
+    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Reset scale"));
+
+    change_scale_value(0, 100.);
+    change_scale_value(1, 100.);
+    change_scale_value(2, 100.);
+}
+
 void GizmoObjectManipulation::set_uniform_scaling(const bool new_value)
 { 
     const Selection &selection = m_glcanvas.get_selection();
@@ -420,7 +478,7 @@ void GizmoObjectManipulation::set_uniform_scaling(const bool new_value)
     m_uniform_scale = new_value;
 }
 
-void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper, float x, float y, float bottom_limit)
+void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper, std::string window_name, float x, float y, float bottom_limit)
 {
     //static float last_y = 0.0f;
     //static float last_h = 0.0f;
@@ -431,7 +489,8 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
 #else
     imgui_wrapper->set_next_window_pos(x, y, ImGuiCond_Always, 1.0f, 0.0f);
 #endif
-    imgui_wrapper->begin(_L(this->m_new_title_string), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    std::string name = this->m_new_title_string + "##" + window_name;
+    imgui_wrapper->begin(_L(name), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
     auto update = [this](unsigned int active_id, std::string opt_key, Vec3d original_value,  Vec3d new_value)->int {
         for (int i = 0; i < 3; i++)
@@ -448,7 +507,9 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
         return -1;
     };
     float unit_size = imgui_wrapper->get_style_scaling() * 48.0f;
-    float caption_max = unit_size*1.2;
+    float space_size = imgui_wrapper->get_style_scaling()*8;
+    float caption_max = imgui_wrapper->calc_text_size(_L("Position:")).x + space_size;
+    float end_text_size = imgui_wrapper->calc_text_size(this->m_new_unit_string).x;
     ImGui::AlignTextToFramePadding();
     unsigned int current_active_id = ImGui::GetActiveID();
 
@@ -479,10 +540,10 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
     ImGui::SameLine(caption_max + 0.5 * unit_size);
     //ImGui::PushItemWidth(unit_size);
     imgui_wrapper->text(_L("X:"));
-    ImGui::SameLine(caption_max + 1.5 * unit_size);
+    ImGui::SameLine(caption_max + 1.5 * unit_size + space_size);
     //ImGui::PushItemWidth(unit_size);
     imgui_wrapper->text(_L("Y:"));
-    ImGui::SameLine(caption_max + 2.5 * unit_size);
+    ImGui::SameLine(caption_max + 2.5 * unit_size + 2 * space_size);
     //ImGui::PushItemWidth(unit_size);
     imgui_wrapper->text(_L("Z:"));
 
@@ -497,54 +558,62 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
     Vec3d display_position = m_buffered_position;
     //ImGui::PushItemWidth(unit_size * 2);
     imgui_wrapper->text(_L("Position:"));
-    ImGui::SameLine(caption_max);
+    ImGui::SameLine(caption_max + space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::InputDouble("##POS_X", &display_position[0], 0.0f, 0.0f, "%.2f");
-    ImGui::SameLine();
+    ImGui::SameLine(caption_max + unit_size + 2 * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::InputDouble("##POS_y", &display_position[1], 0.0f, 0.0f, "%.2f");
-    ImGui::SameLine();
+    ImGui::SameLine(caption_max + 2 * unit_size + 3 * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::InputDouble("##POS_z", &display_position[2], 0.0f, 0.0f, "%.2f");
-    ImGui::SameLine();
+    ImGui::SameLine(caption_max + 3 * unit_size + 4 * space_size);
     imgui_wrapper->text(this->m_new_unit_string);
     m_buffered_position = display_position;
     update(current_active_id, "position", original_position, m_buffered_position);
-    //if the value is chaged, need reset button
+    //the init position values are not zero, won't add reset button
 
     //Rotation
     Vec3d rotation = this->m_buffered_rotation;
     //ImGui::PushItemWidth(unit_size * 2);
     imgui_wrapper->text(_L("Rotation:"));
-    ImGui::SameLine(caption_max);
+    ImGui::SameLine(caption_max + space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::InputDouble("##ROT_x", &rotation[0], 0.0f, 0.0f, "%.2f");
-    ImGui::SameLine();
+    ImGui::SameLine(caption_max + unit_size + 2 * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::InputDouble("##ROT_y", &rotation[1], 0.0f, 0.0f, "%.2f");
-    ImGui::SameLine();
+    ImGui::SameLine(caption_max + 2 * unit_size + 3 * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::InputDouble("##ROT_z", &rotation[2], 0.0f, 0.0f, "%.2f");
-    ImGui::SameLine();
+    ImGui::SameLine(caption_max + 3 * unit_size + 4 * space_size);
     imgui_wrapper->text(_L("°"));
     m_buffered_rotation = rotation;
     update(current_active_id, "rotation", this->m_new_rotation, m_buffered_rotation);
     //if the value is chaged, need reset button
+    imgui_wrapper->disabled_begin(!m_show_clear_rotation);
+    ImGui::SameLine(caption_max + 3 * unit_size + 5 * space_size + end_text_size);
+    const bool reset_rotation = imgui_wrapper->button(_L("reset##rotation"));
+    imgui_wrapper->disabled_end();
+    if (reset_rotation)
+    {
+        reset_rotation_value();
+    }
 
     //Scale
     Vec3d scale = m_buffered_scale;
     //ImGui::PushItemWidth(unit_size * 2);
     imgui_wrapper->text(_L("Scale:"));
-    ImGui::SameLine(caption_max);
+    ImGui::SameLine(caption_max + space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::InputDouble("##Scale_x", &scale[0], 0.0f, 0.0f, "%.2f");
-    ImGui::SameLine();
+    ImGui::SameLine(caption_max + unit_size + 2 * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::InputDouble("##Scale_y", &scale[1], 0.0f, 0.0f, "%.2f");
-    ImGui::SameLine();
+    ImGui::SameLine(caption_max + 2 * unit_size + 3 * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::InputDouble("##Scale_z", &scale[2], 0.0f, 0.0f, "%.2f");
-    ImGui::SameLine();
+    ImGui::SameLine(caption_max + 3 * unit_size + 4 * space_size);
     imgui_wrapper->text(_L("%"));
     m_buffered_scale = scale;
     //for (int index = 0; index < 3; index++)
@@ -558,19 +627,36 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
         {
             ImGui::ClearInputTextInitialData("##Scale_y", m_buffered_scale[0]);
             ImGui::ClearInputTextInitialData("##Scale_z", m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData("##Size_x", m_buffered_size[0]);
+            ImGui::ClearInputTextInitialData("##Size_y", m_buffered_size[0]);
+            ImGui::ClearInputTextInitialData("##Size_z", m_buffered_size[0]);
         }
         else if (scale_sel == 1)
         {
             ImGui::ClearInputTextInitialData("##Scale_x", m_buffered_scale[0]);
             ImGui::ClearInputTextInitialData("##Scale_z", m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData("##Size_x", m_buffered_size[0]);
+            ImGui::ClearInputTextInitialData("##Size_y", m_buffered_size[0]);
+            ImGui::ClearInputTextInitialData("##Size_z", m_buffered_size[0]);
         }
         else if (scale_sel == 2)
         {
             ImGui::ClearInputTextInitialData("##Scale_x", m_buffered_scale[0]);
             ImGui::ClearInputTextInitialData("##Scale_y", m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData("##Size_x", m_buffered_size[0]);
+            ImGui::ClearInputTextInitialData("##Size_y", m_buffered_size[0]);
+            ImGui::ClearInputTextInitialData("##Size_z", m_buffered_size[0]);
         }
     }
     //if the value is chaged, need reset button
+    imgui_wrapper->disabled_begin(!m_show_clear_scale);
+    ImGui::SameLine(caption_max + 3 * unit_size + 5 * space_size + end_text_size);
+    const bool reset_scale = imgui_wrapper->button(_L("reset##scale"));
+    imgui_wrapper->disabled_end();
+    if (reset_scale)
+    {
+        reset_scale_value();
+    }
 
     //Size
     Vec3d original_size;
@@ -581,16 +667,16 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
     Vec3d display_size = m_buffered_size;
     //ImGui::PushItemWidth(unit_size * 2);
     imgui_wrapper->text(_L("Size:"));
-    ImGui::SameLine(caption_max);
+    ImGui::SameLine(caption_max + space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::InputDouble("##Size_x", &display_size[0], 0.0f, 0.0f, "%.2f");
-    ImGui::SameLine();
+    ImGui::SameLine(caption_max + unit_size + 2 * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::InputDouble("##Size_y", &display_size[1], 0.0f, 0.0f, "%.2f");
-    ImGui::SameLine();
+    ImGui::SameLine(caption_max + 2 * unit_size + 3 * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::InputDouble("##Size_z", &display_size[2], 0.0f, 0.0f, "%.2f");
-    ImGui::SameLine();
+    ImGui::SameLine(caption_max + 3 * unit_size + 4 * space_size);
     imgui_wrapper->text(this->m_new_unit_string);
     m_buffered_size = display_size;
     int size_sel = update(current_active_id, "size", original_size, m_buffered_size);
@@ -600,21 +686,38 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
         //    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ",after_index="<<index <<boost::format(",scale %1%, buffered %2%, original_id %3%, new_id %4%\n") % this->m_new_scale[index] % m_buffered_scale[index] % m_last_active_item % current_active_id;
         if (size_sel == 0)
         {
+            ImGui::ClearInputTextInitialData("##Scale_x", m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData("##Scale_y", m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData("##Scale_z", m_buffered_scale[0]);
             ImGui::ClearInputTextInitialData("##Size_y", m_buffered_size[0]);
             ImGui::ClearInputTextInitialData("##Size_z", m_buffered_size[0]);
         }
         else if (size_sel == 1)
         {
+            ImGui::ClearInputTextInitialData("##Scale_x", m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData("##Scale_y", m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData("##Scale_z", m_buffered_scale[0]);
             ImGui::ClearInputTextInitialData("##Size_x", m_buffered_size[0]);
             ImGui::ClearInputTextInitialData("##Size_z", m_buffered_size[0]);
         }
         else if (size_sel == 2)
         {
+            ImGui::ClearInputTextInitialData("##Scale_x", m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData("##Scale_y", m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData("##Scale_z", m_buffered_scale[0]);
             ImGui::ClearInputTextInitialData("##Size_x", m_buffered_size[0]);
             ImGui::ClearInputTextInitialData("##Size_y", m_buffered_size[0]);
         }
     }
     //if the value is chaged, need reset button
+    imgui_wrapper->disabled_begin(!m_show_clear_scale);
+    ImGui::SameLine(caption_max + 3 * unit_size + 5 * space_size + end_text_size);
+    const bool reset_size = imgui_wrapper->button(_L("reset##size"));
+    imgui_wrapper->disabled_end();
+    if (reset_size)
+    {
+        reset_scale_value();
+    }
 
     m_last_active_item = current_active_id;
 

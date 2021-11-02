@@ -4468,7 +4468,7 @@ void ImGui::ClearInputTextInitialData(const char* label, double new_value)
     const ImGuiID id = window->GetID(label);
     if (id == g.InputTextState.ID)
     {
-        /*char buf[64];
+        char buf[64];
         DataTypeFormatString(buf, IM_ARRAYSIZE(buf), ImGuiDataType_Double, &new_value, "%.2f");
 
         const int buf_len = (int)strlen(buf);
@@ -4483,8 +4483,8 @@ void ImGui::ClearInputTextInitialData(const char* label, double new_value)
         g.InputTextState.TextAIsValid = false;                // TextA is not valid yet (we will display buf until then)
         g.InputTextState.CurLenW = ImTextStrFromUtf8(g.InputTextState.TextW.Data, buf_size, buf, NULL, &buf_end);
         g.InputTextState.CurLenA = (int)(buf_end - buf);      // We can't get the result from ImStrncpy() above because it is not UTF-8 aware. Here we'll cut off malformed UTF-8.
-        */
-        g.InputTextState.ClearText();
+        //*/
+        //g.InputTextState.ClearText();
     }
 }
 

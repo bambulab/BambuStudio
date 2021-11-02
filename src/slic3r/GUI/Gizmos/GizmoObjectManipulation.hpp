@@ -107,7 +107,7 @@ public:
     void reset_cache() { m_cache.reset(); }
 
     void on_change(const std::string& opt_key, int axis, double new_value);
-    void do_render_input_window(ImGuiWrapper* imgui_wrapper, float x, float y, float bottom_limit);
+    void do_render_input_window(ImGuiWrapper* imgui_wrapper, std::string window_name, float x, float y, float bottom_limit);
 
 
 private:
@@ -126,6 +126,9 @@ private:
     void change_scale_value(int axis, double value);
     void change_size_value(int axis, double value);
     void do_scale(int axis, const Vec3d &scale) const;
+    void reset_position_value();
+    void reset_rotation_value();
+    void reset_scale_value();
 
     GLCanvas3D& m_glcanvas;
     unsigned int m_last_active_item { 0 };
