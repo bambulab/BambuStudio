@@ -221,6 +221,10 @@ public:
     void        show_tabs_menu(bool show);
 #endif
     void        update_ui_from_settings();
+    //BBS
+    void        update_presets_ui();
+    void        on_select_default_preset(SimpleEvent& evt);
+
     bool        is_loaded() const { return m_loaded; }
     bool        is_last_input_file() const  { return !m_qs_last_input_file.IsEmpty(); }
     //BBS GUI refactor: remove unused layout new/dlg

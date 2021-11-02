@@ -42,7 +42,7 @@
 #include <vector>
 #include <memory>
 #include "Event.hpp"
-#include "ProjectTask.hpp"
+#include "libslic3r/ProjectTask.hpp"
 #include "wxExtensions.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
 

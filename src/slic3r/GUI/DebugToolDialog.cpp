@@ -44,7 +44,7 @@
 #include "libslic3r/PlaceholderParser.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/PrintConfig.hpp"
-#include "slic3r/GUI/ProjectTask.hpp"
+#include "libslic3r/ProjectTask.hpp"
 #include "libslic3r/miniz_extension.hpp"
 
 #define __CHECK_BIND_USER__

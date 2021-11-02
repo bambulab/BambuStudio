@@ -659,6 +659,23 @@ void ConfigBase::setenv_() const
     }
 }
 
+//BBS
+ConfigSubstitutions ConfigBase::load_string_map(std::map<std::string, std::string>& key_values, ForwardCompatibilitySubstitutionRule compatibility_rule)
+{
+    ConfigSubstitutionContext substitutions_ctxt(compatibility_rule);
+    std::map<std::string, std::string>::iterator it;
+    for (it = key_values.begin(); it != key_values.end(); it++) {
+        try {
+            t_config_option_key opt_key = it->first;
+            this->set_deserialize(opt_key, it->second, substitutions_ctxt);
+        }
+        catch (UnknownOptionException& /* e */) {
+            // ignore
+        }
+    }
+    return std::move(substitutions_ctxt.substitutions);
+}
+
 ConfigSubstitutions ConfigBase::load(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule)
 {
     return is_gcode_file(file) ? 

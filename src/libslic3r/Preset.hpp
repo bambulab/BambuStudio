@@ -4,12 +4,13 @@
 #include <deque>
 #include <set>
 #include <unordered_map>
-
+#include <functional>
 #include <boost/filesystem/path.hpp>
 #include <boost/property_tree/ptree_fwd.hpp>
 
 #include "PrintConfig.hpp"
 #include "Semver.hpp"
+#include "ProjectTask.hpp"
 
 namespace Slic3r {
 
@@ -161,6 +162,21 @@ public:
     // and to match the "inherits" field of user profiles with updated system profiles.
     std::vector<std::string> renamed_from;
 
+    //BBS
+    std::string         version;         // version of preset
+    std::string         ini_str;         // ini string of preset
+    std::string         setting_id;      // setting id in cloud database
+    std::string         user_id;         // preset user_id
+    std::string         base_id;         // base id of preset
+    std::string         sync_info;       // enum: "delete", "create", "update", ""
+    std::map<std::string, std::string> key_values;
+
+    static std::string  get_type_string(Preset::Type type);
+    static Preset::Type get_type_from_string(std::string type_str);
+    void                load_info(const std::string& file);
+    void                save_info(std::string file = "");
+    void                remove_files();
+
     void                save();
 
     // Return a label of this preset, consisting of a name and a "(modified)" suffix, if this preset is dirty.
@@ -263,6 +279,7 @@ struct PresetConfigSubstitutions {
     enum class Source {
         UserFile,
         ConfigBundle,
+        UserCloud,
     };
     Source                                  preset_source;
     // Source of the preset. It may be empty in case of a ConfigBundle being loaded.
@@ -284,12 +301,19 @@ public:
 
     typedef std::deque<Preset>::iterator Iterator;
     typedef std::deque<Preset>::const_iterator ConstIterator;
+    typedef std::function<void(Preset* preset, std::string sync_info)> SyncFunc;
+
     Iterator        begin() { return m_presets.begin() + m_num_default_presets; }
     ConstIterator   begin() const { return m_presets.cbegin() + m_num_default_presets; }
     ConstIterator   cbegin() const { return m_presets.cbegin() + m_num_default_presets; }
     Iterator        end() { return m_presets.end(); }
     ConstIterator   end() const { return m_presets.cend(); }
     ConstIterator   cend() const { return m_presets.cend(); }
+
+    //BBS
+    Iterator        erase(Iterator it) { return m_presets.erase(it); }
+    SyncFunc        sync_func{ nullptr };
+    void            set_sync_func(SyncFunc func) { sync_func = func; }
 
     void            reset(bool delete_files);
 
@@ -305,6 +329,10 @@ public:
 
     // Load ini files of the particular type from the provided directory path.
     void            load_presets(const std::string &dir_path, const std::string &subdir, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule);
+
+    //BBS Load user presets
+    void            save_user_presets(std::map<std::string, Preset*> my_presets, const std::string& dir_path, const std::string& type);
+    void            load_user_presets(std::map<std::string, Preset*> my_presets, const std::string& type, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule);
 
     // Load a preset from an already parsed config file, insert it into the sorted sequence of presets
     // and select it, losing previous modifications.
@@ -353,7 +381,13 @@ public:
     // Select a preset. If an invalid index is provided, the first visible preset is selected.
     Preset&         select_preset(size_t idx);
     // Return the selected preset, without the user modifications applied.
-    Preset&         get_selected_preset()       { return m_presets[m_idx_selected]; }
+    Preset&         get_selected_preset() { 
+        //BBS fix crash when m_idx_selected == -1, give a default value
+        if (m_idx_selected == size_t(-1))
+            return m_presets[0];
+        else
+            return m_presets[m_idx_selected];
+    }
     const Preset&   get_selected_preset() const { return m_presets[m_idx_selected]; }
     size_t          get_selected_idx()    const { return m_idx_selected; }
     // Returns the name of the selected preset, or an empty string if no preset is selected.
@@ -390,7 +424,10 @@ public:
 	const Preset&   default_preset(size_t idx = 0) const { assert(idx < m_num_default_presets); return m_presets[idx]; }
 	virtual const Preset& default_preset_for(const DynamicPrintConfig & /* config */) const { return this->default_preset(); }
     // Return a preset by an index. If the preset is active, a temporary copy is returned.
-    Preset&         preset(size_t idx)          { return (idx == m_idx_selected) ? m_edited_preset : m_presets[idx]; }
+    Preset&         preset(size_t idx, bool real = false) { 
+        if (real) return m_presets[idx];
+        return (idx == m_idx_selected) ? m_edited_preset : m_presets[idx];
+    }
     const Preset&   preset(size_t idx) const    { return const_cast<PresetCollection*>(this)->preset(idx); }
     void            discard_current_changes() {
         m_presets[m_idx_selected].reset_dirty();
@@ -400,7 +437,8 @@ public:
 
     // Return a preset by its name. If the preset is active, a temporary copy is returned.
     // If a preset is not found by its name, null is returned.
-    Preset*         find_preset(const std::string &name, bool first_visible_if_not_found = false);
+    // BBS return real pointer if set real = true
+    Preset*         find_preset(const std::string &name, bool first_visible_if_not_found = false, bool real = false);
     const Preset*   find_preset(const std::string &name, bool first_visible_if_not_found = false) const 
         { return const_cast<PresetCollection*>(this)->find_preset(name, first_visible_if_not_found); }
 

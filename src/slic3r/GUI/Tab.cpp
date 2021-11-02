@@ -3413,8 +3413,16 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
                 for (idx_new = idx_current - 1; idx_new > 0 && ! presets[idx_new].is_visible; -- idx_new);
             preset_name = presets[idx_new].name;
         } else {
-            // If no name is provided, select the "-- default --" preset.
-            preset_name = m_presets->default_preset().name;
+            //BBS select first visible item first
+            const std::deque<Preset> &presets 		= this->m_presets->get_presets();
+            size_t 				      idx_new = 0;
+            if (idx_new < presets.size())
+                for (; idx_new < presets.size() && ! presets[idx_new].is_visible; ++ idx_new) ;
+            preset_name = presets[idx_new].name;
+            if (idx_new == presets.size()) {
+                // If no name is provided, select the "-- default --" preset.
+                preset_name = m_presets->default_preset().name;
+            }
         }
     }
     assert(! delete_current || (m_presets->get_edited_preset().name != preset_name && m_presets->get_edited_preset().is_user()));
@@ -3498,6 +3506,14 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
         // It does not matter which preset will be made active as the preset will be re-selected from the preset_name variable.
         // The 'external' presets will only be removed from the preset list, their files will not be deleted.
         try {
+            //BBS delete preset
+            Preset &current_preset = m_presets->get_selected_preset();
+            current_preset.sync_info = "delete";
+            AccountManager* acc = wxGetApp().getAccountManager();
+            if (!current_preset.setting_id.empty()) {
+                BOOST_LOG_TRIVIAL(info) << "delete preset = " << current_preset.name << ", setting_id = " << current_preset.setting_id;
+                acc->need_delete_presets.push_back(current_preset.setting_id);
+            }
             m_presets->delete_current_preset();
         } catch (const std::exception & /* e */) {
             //FIXME add some error reporting!
@@ -3898,8 +3914,37 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach)
         name = dlg.get_name();
     }
 
+    bool exist_preset = false;
+    Preset* new_preset = m_presets->find_preset(name, false);
+    if (new_preset) {
+        exist_preset = true;
+    }
+
     // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
     m_presets->save_current_preset(name, detach);
+
+    //BBS create new settings
+    new_preset = m_presets->find_preset(name, false, true);
+    //Preset* preset = &m_presets.preset(it - m_presets.begin(), true);
+    if (!new_preset) {
+        BOOST_LOG_TRIVIAL(info) << "create new preset failed";
+        return;
+    }
+
+    AccountManager* acc = wxGetApp().getAccountManager();
+    // set sync_info for sync service
+    if (exist_preset) {
+        new_preset->sync_info = "update";
+        BOOST_LOG_TRIVIAL(info) << "sync_preset: update preset = " << new_preset->name;
+    }
+    else {
+        new_preset->sync_info = "create";
+        new_preset->user_id = acc->get_curr_user()->get_user_id();
+        BOOST_LOG_TRIVIAL(info) << "sync_preset: create preset = " << new_preset->name;
+    }
+    new_preset->version = DEFAULT_BBL_SETTING_VERSION;
+    new_preset->save_info();
+
     // Mark the print & filament enabled if they are compatible with the currently selected preset.
     // If saving the preset changes compatibility with other presets, keep the now incompatible dependent presets selected, however with a "red flag" icon showing that they are no more compatible.
     m_preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
@@ -4032,6 +4077,14 @@ void Tab::delete_preset()
     // delete selected preset from printers and printer, if it's needed
     if (m_type == Preset::TYPE_PRINTER && !physical_printers.empty())
         physical_printers.delete_preset_from_printers(current_preset.name);
+
+    //BBS delete preset
+    AccountManager* acc = wxGetApp().getAccountManager();
+    current_preset.sync_info = "delete";
+    if (!current_preset.setting_id.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "delete preset = " << current_preset.name << ", setting_id = " << current_preset.setting_id;
+        acc->need_delete_presets.push_back(current_preset.setting_id);
+    }
 
     // Select will handle of the preset dependencies, of saving & closing the depending profiles, and
     // finally of deleting the preset.

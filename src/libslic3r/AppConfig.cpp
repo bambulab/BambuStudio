@@ -196,6 +196,10 @@ void AppConfig::set_defaults()
     if (get("developer_mode").empty())
         set("developer_mode", "0");
 
+    // BBS
+    if (get("preset_folder").empty())
+        set("preset_folder", "presets");
+
     // Remove legacy window positions/sizes
     erase("", "main_frame_maximized");
     erase("", "main_frame_pos");

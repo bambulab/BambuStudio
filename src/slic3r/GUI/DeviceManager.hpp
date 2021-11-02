@@ -9,7 +9,7 @@
 #include "mqtt/async_client.h"
 #include "CommuBackend.hpp"
 #include "AccountManager.hpp"
-#include "ProjectTask.hpp"
+#include "libslic3r/ProjectTask.hpp"
 
 namespace Slic3r {
 

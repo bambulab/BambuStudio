@@ -199,6 +199,8 @@ set(lisbslic3r_sources
     Preset.hpp
     PresetBundle.cpp
     PresetBundle.hpp
+    ProjectTask.cpp
+    ProjectTask.hpp
     AppConfig.cpp
     AppConfig.hpp
     Print.cpp

@@ -178,8 +178,18 @@ void SavePresetDialog::Item::update_valid_bmp()
 
 void SavePresetDialog::Item::accept()
 {
-    if (m_valid_type == Warning)
+    if (m_valid_type == Warning) {
+        // BBS add sync info
+        auto it = m_presets->find_preset(m_preset_name, false);
+        Preset& current_preset = *it;
+        current_preset.sync_info = "delete";
+        AccountManager* acc = wxGetApp().getAccountManager();
+        if (!current_preset.setting_id.empty()) {
+            BOOST_LOG_TRIVIAL(info) << "delete preset = " << current_preset.name << ", setting_id = " << current_preset.setting_id;
+            acc->need_delete_presets.push_back(current_preset.setting_id);
+        }
         m_presets->delete_preset(m_preset_name);
+    }
 }
 
 

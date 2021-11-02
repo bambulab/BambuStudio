@@ -129,6 +129,8 @@ static wxIcon main_frame_icon(GUI_App::EAppMode app_mode)
 // BBS
 #define BORDERLESS_FRAME_STYLE (wxRESIZE_BORDER | wxMINIMIZE_BOX |wxMAXIMIZE_BOX | wxCLOSE_BOX)
 
+wxDEFINE_EVENT(EVT_SELECT_DEFAULT_PRESET,     SimpleEvent);
+
 MainFrame::MainFrame() :
 DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_STYLE, "mainframe"),
     m_printhost_queue_dlg(new PrintHostQueueDialog(this))
@@ -233,6 +235,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         TabPosition pos = (TabPosition)evt.GetInt();
         m_tabpanel->SetSelection(pos);
     });
+    Bind(EVT_SELECT_DEFAULT_PRESET, &MainFrame::on_select_default_preset, this);
 
     // set default tooltip timer in msec
     // SetAutoPop supposedly accepts long integers but some bug doesn't allow for larger values
@@ -2653,6 +2656,46 @@ void MainFrame::update_ui_from_settings()
         m_plater->update_ui_from_settings();
     for (auto tab: wxGetApp().tabs_list)
         tab->update_ui_from_settings();
+}
+
+
+void MainFrame::update_presets_ui()
+{
+    SimpleEvent* evt = new SimpleEvent(EVT_SELECT_DEFAULT_PRESET);
+    wxQueueEvent(this, evt);
+}
+
+void MainFrame::on_select_default_preset(SimpleEvent& evt)
+{
+    wxMessageDialog dialog(this,
+                           "Whether to synchronize cloud user data?\n",
+                           "Ensure",
+                           wxCENTER |
+                           wxYES_DEFAULT | wxYES_NO |
+                           wxICON_INFORMATION);
+
+    wxString extmsg;
+    dialog.SetYesNoLabels(
+         "&Yes",
+         "&No"
+         );
+
+    /* get setting list */
+    Slic3r::AccountManager* acc = wxGetApp().getAccountManager();
+    switch ( dialog.ShowModal() )
+    {
+        case wxID_YES: {
+            acc->get_setting_list();
+            break;
+        }
+        case wxID_NO:
+            break;
+        default:
+            break;
+    }
+    for (auto tab : wxGetApp().tabs_list) {
+        tab->select_preset("", false);
+    }
 }
 
 std::string MainFrame::get_base_name(const wxString &full_name, const char *extension) const 

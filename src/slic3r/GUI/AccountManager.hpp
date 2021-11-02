@@ -9,7 +9,8 @@
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string.hpp>
 #include "mqtt/async_client.h"
-#include "ProjectTask.hpp"
+#include "libslic3r/ProjectTask.hpp"
+#include "libslic3r/Preset.hpp"
 #include "slic3r/Utils/Http.hpp"
 
 
@@ -19,6 +20,9 @@
 #define MODEL_STORE_URL                 "https://portal-dev.bambu-lab.com/designs"
 
 #define POLL_3MF_TIMEOUT    60
+#define DEFAULT_BBL_SETTING_VERSION     "00.00.00.01"
+
+namespace pt = boost::property_tree;
 
 namespace Slic3r {
 
@@ -106,6 +110,13 @@ public:
     }
     static std::string convert_full_version(std::string short_version);
     static std::string convert_short_version(std::string full_version);
+    static std::string get_full_version() {
+        return convert_full_version(SLIC3R_RC_VERSION);
+    }
+
+    static std::string get_preset_version() {
+        return DEFAULT_BBL_SETTING_VERSION;
+    }
 
     /* return > 0, need update */
     int compare(std::string ver_str) {
@@ -208,6 +219,8 @@ private:
     std::string json_request_body_post_profile(BBLProfile* profile);
     std::string json_request_body_post_task(BBLTask* task);
     std::string json_request_body_post_task(BBLSubTask* task);
+    std::string json_request_body_post_setting(Preset* preset);
+    std::string json_request_body_put_setting(Preset* preset);
     std::string json_request_poll_3mf_gather(BBLSubTask* task);
     std::string json_request_poll_3mf_gather_model_only();
 
@@ -260,6 +273,7 @@ public:
 
     /* user login register apis */
     bool is_user_login();
+    void on_user_login(bool online_login = false);
     int user_login(std::string account, std::string password, LoginFn fn);
     int user_get_profile(std::string account, LoginFn fn);
     int user_logout();
@@ -279,6 +293,8 @@ public:
 
     /* project struct */
     std::map<std::string, BBLProject*> myProjectList;
+    std::map<std::string, Preset*> my_presets;      // key is setting_id
+    std::vector<std::string> need_delete_presets;   // store setting ids of preset
 
     /* bind apis */
     int query_bind_status(std::vector<std::string> device_list, AccountManager::CompletedFn cFn, ErrorFn errFn);
@@ -321,6 +337,16 @@ public:
     void post_task(BBLSubTask* task, ResultFn resFn, ProgressFn proFn);
 
     bool can_publish();
+    
+    /* preset settings api */
+    int get_setting_list(Http::ErrorFn errFn = nullptr);
+    void get_setting(Preset* &preset, bool sync = false);
+    int request_setting_id(Preset* &preset);
+    int put_setting(Preset* preset);
+    int del_setting(std::string setting_id);
+
+    void parse_setting(pt::ptree node, std::string type, std::string attr);
+    void _parse_preset_internal(std::map<std::string, Preset*>& presets, pt::ptree node, std::string type, std::string attr);
 
     /* submit */
     int submit_print_result(std::string device_id, std::string json_str, ResultFn fn);

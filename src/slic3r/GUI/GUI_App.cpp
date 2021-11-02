@@ -12,6 +12,7 @@
 #include <exception>
 #include <cstdlib>
 #include <regex>
+#include <thread>
 #include <string_view>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string.hpp>
@@ -44,6 +45,7 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/I18N.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/Thread.hpp"
 
 #include "GUI.hpp"
 #include "GUI_Utils.hpp"
@@ -775,6 +777,7 @@ void GUI_App::post_init()
         this->check_updates(false);
         CallAfter([this] {
             bool cw_showed = this->config_wizard_startup();
+
             //BBS: TODO: workaround solution currently, move it before load_preset
             //need to move back to here later
             //this->preset_updater->sync(preset_bundle);
@@ -834,6 +837,8 @@ GUI_App::GUI_App(EAppMode mode)
 
 GUI_App::~GUI_App()
 {
+    enable_sync = false;
+
     if (app_config != nullptr)
         delete app_config;
 
@@ -1267,14 +1272,32 @@ bool GUI_App::on_init_inner()
 
     // Suppress the '- default -' presets.
     preset_bundle->set_default_suppressed(app_config->get("no_defaults") == "1");
-    try {
-        // Enable all substitutions (in both user and system profiles), but log the substitutions in user profiles only.
-        // If there are substitutions in system profiles, then a "reconfigure" event shall be triggered, which will force
-        // installation of a compatible system preset, thus nullifying the system preset substitutions.
-        init_params->preset_substitutions = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSystemSilent);
-    } catch (const std::exception &ex) {
-        show_error(nullptr, ex.what());
-    }
+    
+    //BBS loading user preset
+    scrn->SetText(_L("Loading user presets..."));
+    int loaded_preset_result = -1;
+    if (m_account_manager->is_user_login()) {
+        loaded_preset_result = m_account_manager->get_setting_list(
+            [this](std::string body, std::string error, unsigned http_status) {
+                BOOST_LOG_TRIVIAL(trace) << "load my settings failed! body = " << body;
+            }
+        );
+        }
+
+    //BBS if load user preset failed
+    //if (loaded_preset_result != 0) {
+        try {
+            // Enable all substitutions (in both user and system profiles), but log the substitutions in user profiles only.
+            // If there are substitutions in system profiles, then a "reconfigure" event shall be triggered, which will force
+            // installation of a compatible system preset, thus nullifying the system preset substitutions.
+            init_params->preset_substitutions = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSystemSilent);
+        }
+        catch (const std::exception& ex) {
+            show_error(nullptr, ex.what());
+        }
+    //}
+    //BBS
+    start_sync_service();
 
 #ifdef WIN32
 #if !wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
@@ -1872,6 +1895,7 @@ void GUI_App::handle_http_error(unsigned int status, std::string body)
     }
 }
 
+
 //BBS pop up a dialog and download files
 void GUI_App::request_new_version()
 {
@@ -1880,6 +1904,102 @@ void GUI_App::request_new_version()
         evt->SetString(GUI::from_u8(m_account_manager->version_info.version_str));
         GUI::wxGetApp().QueueEvent(evt);
     }
+}
+
+void GUI_App::reload_settings()
+{
+    if (preset_bundle && m_account_manager) {
+        preset_bundle->load_user_presets(*app_config, m_account_manager->my_presets, ForwardCompatibilitySubstitutionRule::Enable);
+        preset_bundle->save_user_presets(*app_config, m_account_manager->my_presets);
+    }
+}
+
+//BBS reload when login
+void GUI_App::reload_user_presets()
+{
+    if (preset_bundle && m_account_manager) {
+        preset_bundle->remove_users_preset(*app_config);
+        mainframe->update_presets_ui();
+    }
+}
+
+void GUI_App::sync_preset(Preset*& preset)
+{
+    int result = -1;
+    // only sync user's preset
+    if (!preset->is_user()) return;
+
+    if (preset->setting_id.empty() && preset->sync_info.empty()) {
+        m_account_manager->request_setting_id(preset);
+        if (!preset->setting_id.empty()) {
+            result = m_account_manager->put_setting(preset);
+        }
+        else {
+            BOOST_LOG_TRIVIAL(trace) << "sync_preset: request setting id failed";
+        }
+    }
+    else if (preset->sync_info.compare("create") == 0) {
+        m_account_manager->request_setting_id(preset);
+        if (!preset->setting_id.empty()) {
+            result = m_account_manager->put_setting(preset);
+        }
+        else {
+            BOOST_LOG_TRIVIAL(trace) << "sync_preset: request setting id failed";
+        }
+    }
+    else if (preset->sync_info.compare("update") == 0) {
+        if (!preset->setting_id.empty()) {
+            result = m_account_manager->put_setting(preset);
+        }
+    }
+    if (result == 0) {
+        BOOST_LOG_TRIVIAL(trace) << "sync_preset: sync operation: " << preset->sync_info << " success! preset = " << preset->name;
+        preset->sync_info.clear();
+        //update preset info in file
+        preset->save_info();
+    }
+}
+
+void GUI_App::start_sync_service()
+{
+    boost::thread update_thread = Slic3r::create_thread(
+        [this] {
+            int count = 0;
+            while (enable_sync) {
+                count++;
+                boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
+                if (!m_account_manager->is_user_login()) {
+                    continue;
+                }
+                //sync preset
+                if (!preset_bundle) continue;
+
+                for (auto it = preset_bundle->prints.begin(); it != preset_bundle->prints.end(); it++) {
+                    Preset* preset = &preset_bundle->prints.preset(it - preset_bundle->prints.begin(), true);
+                    sync_preset(preset);
+                }
+                for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
+                    Preset* preset = &preset_bundle->filaments.preset(it - preset_bundle->filaments.begin(), true);
+                    sync_preset(preset);
+                }
+                for (auto it = preset_bundle->printers.begin(); it != preset_bundle->printers.end(); it++) {
+                    Preset* preset = &preset_bundle->printers.preset(it - preset_bundle->printers.begin(), true);
+                    sync_preset(preset);
+                }
+
+                for (auto it = m_account_manager->need_delete_presets.begin(); it != m_account_manager->need_delete_presets.end();) {
+                    if ((*it).empty()) continue;
+                    std::string del_setting_id = *it;
+                    int result = m_account_manager->del_setting(del_setting_id);
+                    if (result == 0) {
+                        it = m_account_manager->need_delete_presets.erase(it);
+                        BOOST_LOG_TRIVIAL(trace) << "sync_preset: sync operation: delete success! setting id = " << del_setting_id;
+                    }
+                    else
+                        it++;
+                }
+            }
+        });
 }
 
 bool GUI_App::switch_language()

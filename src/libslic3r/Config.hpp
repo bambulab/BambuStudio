@@ -2006,6 +2006,9 @@ public:
     double get_abs_value(const t_config_option_key &opt_key, double ratio_over) const;
     void setenv_() const;
     ConfigSubstitutions load(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule);
+    //BBS support load from ini string
+    ConfigSubstitutions load_string_map(std::map<std::string, std::string> &key_values, ForwardCompatibilitySubstitutionRule compatibility_rule);
+
     ConfigSubstitutions load_from_ini(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule);
     ConfigSubstitutions load_from_ini_string(const std::string &data, ForwardCompatibilitySubstitutionRule compatibility_rule);
     // Loading a "will be one day a legacy format" of configuration stored into 3MF or AMF.

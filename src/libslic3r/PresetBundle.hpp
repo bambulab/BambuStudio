@@ -39,6 +39,11 @@ public:
     PresetsConfigSubstitutions load_presets(AppConfig &config, ForwardCompatibilitySubstitutionRule rule,
                                             const PresetPreferences& preferred_selection = PresetPreferences());
 
+    // BBS Load user presets
+    PresetsConfigSubstitutions load_user_presets(AppConfig &config, std::map<std::string, Preset*> my_presets, ForwardCompatibilitySubstitutionRule rule);
+    void save_user_presets(AppConfig& config, std::map<std::string, Preset*> my_presets);
+    void remove_users_preset(AppConfig &config);
+
     // Export selections (current print, current filaments, current printer) into config.ini
     void            export_selections(AppConfig &config);
 
