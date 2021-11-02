@@ -2029,6 +2029,7 @@ bool PartPlateList::preprocess_arrange_polygon_other_locked(int obj_index, int i
 	return locked;
 }
 
+#define MAX_LAYOUT_BEDS_COUNT 16
 bool PartPlateList::preprocess_exclude_areas(arrangement::ArrangePolygons& unselected)
 {
 	bool added = false;
@@ -2047,16 +2048,19 @@ bool PartPlateList::preprocess_exclude_areas(arrangement::ArrangePolygons& unsel
 				{scaled(plate->m_exclude_bounding_box[index].min.x()), scaled(plate->m_exclude_bounding_box[index].max.y())}
 				});
 
-			arrangement::ArrangePolygon ret;
-			ret.poly.contour = std::move(ap);
-			ret.translation  = Vec2crd(0, 0);
-			ret.rotation     = 0.0f;
-			ret.is_virt_object = true;
-			ret.bed_idx      = 0;
-			ret.height      = 1;
+			for (int j = 0; j < MAX_LAYOUT_BEDS_COUNT; j++)
+			{
+				arrangement::ArrangePolygon ret;
+				ret.poly.contour = ap;
+				ret.translation  = Vec2crd(0, 0);
+				ret.rotation     = 0.0f;
+				ret.is_virt_object = true;
+				ret.bed_idx      = j;
+				ret.height      = 1;
 
-			unselected.emplace_back(std::move(ret));
-            added = true;
+				unselected.emplace_back(std::move(ret));
+			}
+			added = true;
 		}
 	}
 

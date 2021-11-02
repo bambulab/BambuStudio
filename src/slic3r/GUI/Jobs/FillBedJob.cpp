@@ -145,9 +145,9 @@ void FillBedJob::prepare()
     double poly_area = poly.area() / sc;
     double unsel_area = std::accumulate(m_unselected.begin(),
                                         m_unselected.end(), 0.,
-                                        [](double s, const auto &ap) {
+                                        [cur_plate_index](double s, const auto &ap) {
                                             //BBS: m_unselected instance is in the same partplate
-                                            return s + ap.poly.area();
+                                            return s + (ap.bed_idx == cur_plate_index) * ap.poly.area();
                                             //return s + (ap.bed_idx == 0) * ap.poly.area();
                                         }) / sc;
 
@@ -168,6 +168,7 @@ void FillBedJob::prepare()
         ap.poly = m_selected.front().poly;
         ap.bed_idx = PartPlateList::MAX_PLATES_COUNT;
         ap.height = 1;
+        ap.itemid = -1;
         ap.setter = [this, mi](const ArrangePolygon &p) {
             ModelObject *mo = m_plater->model().objects[m_object_idx];
             ModelInstance *inst = mo->add_instance(*mi);
@@ -245,8 +246,13 @@ void FillBedJob::finalize()
     if (added_cnt > 0) {
         //BBS: adjust the selected instances
         for (ArrangePolygon& ap : m_selected) {
-            if (ap.bed_idx != 0) continue;  // bed_idx != 0 means unarrangable
-            ap.bed_idx = cur_plate;
+            if (ap.bed_idx != 0) {
+                if (ap.itemid == -1)
+                    continue;
+                ap.bed_idx = plate_list.get_plate_count();
+            }
+            else
+                ap.bed_idx = cur_plate;
 
             ap.row = ap.bed_idx / plate_cols;
             ap.col = ap.bed_idx % plate_cols;

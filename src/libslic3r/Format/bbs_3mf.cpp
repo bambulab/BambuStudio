@@ -1021,9 +1021,10 @@ namespace Slic3r {
     {
         if (stat.m_uncomp_size > 0) {
             std::string dest_file;
-            std::string src_file = std::string(stat.m_filename);
+            std::string src_file = decode_path(stat.m_filename);
+            std::string temp_path = model.get_auxiliary_file_temp_path();
             //aux directory from model
-            boost::filesystem::path dir = boost::filesystem::path(model.get_auxiliary_file_temp_path());
+            boost::filesystem::path dir = boost::filesystem::path(temp_path);
             if (!boost::filesystem::exists(dir))
             {
                 boost::filesystem::create_directory(dir);
@@ -1044,6 +1045,7 @@ namespace Slic3r {
             }
             dest_file = dir.string() + std::string("/") + src_file;
             std::string dest_zip_file = encode_path(dest_file.c_str());
+            //std::string src_zip_file = encode_path(stat.m_filename);
             mz_bool res = mz_zip_reader_extract_file_to_file(&archive, stat.m_filename, dest_zip_file.c_str(), 0);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % dest_file % stat.m_filename % res;
             if (res == 0) {
