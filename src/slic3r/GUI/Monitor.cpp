@@ -155,7 +155,6 @@ void TrayListModel::update(MachineObject* obj)
     m_manufacturerColValues.clear();
     m_saturabilityColValues.clear();
     m_transmittanceColValues.clear();
-    m_smoothColValues.clear();
 
     std::map<std::string, Ams*>::iterator ams_it;
     std::map<std::string, AmsTray*>::iterator tray_it;
@@ -166,7 +165,7 @@ void TrayListModel::update(MachineObject* obj)
                 AmsTray* tray = tray_it->second;
                 if (tray) {
                     tray_index++;
-                    wxString title_text = wxString::Format("tray %d", tray_index);
+                    wxString title_text = wxString::Format("tray %s(ams %s)", tray->id, ams_it->second->id);
                     m_titleColValues.push_back(title_text);
                     wxString color_text = wxString::Format("%s", tray->wx_color.GetAsString());
                     m_colorColValues.push_back(color_text);
@@ -424,7 +423,7 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
 
 	bSizer_left_up->Add( fgSizer_status, 0, wxEXPAND, 5 );
 
-	m_dataViewCtrl_ams = new wxDataViewCtrl( m_panel_left, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0|wxBORDER_SIMPLE );
+	m_dataViewCtrl_ams = new wxDataViewCtrl( m_panel_left, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0|wxBORDER_SIMPLE);
 	m_dataViewCtrl_ams->SetMinSize( wxSize( -1,60 ) );
 
 	bSizer_left_up->Add( m_dataViewCtrl_ams, 1, wxALL|wxEXPAND, 0 );
@@ -1078,21 +1077,21 @@ void MonitorPanel::init_model()
         wxDATAVIEW_CELL_INERT,
         wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_NOT,
-        wxDATAVIEW_COL_SORTABLE);
+        wxDATAVIEW_COL_RESIZABLE);
 
     m_dataViewCtrl_subtask->AppendTextColumn("Duration",
         SubTaskListModel::Col_SubTaskDuration,
         wxDATAVIEW_CELL_INERT,
         wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_NOT,
-        wxDATAVIEW_COL_SORTABLE);
+        wxDATAVIEW_COL_RESIZABLE);
 
     m_dataViewCtrl_subtask->AppendTextColumn("Weight",
         SubTaskListModel::Col_SubTaskWeight,
         wxDATAVIEW_CELL_INERT,
         wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_NOT,
-        wxDATAVIEW_COL_SORTABLE);
+        wxDATAVIEW_COL_RESIZABLE);
 
     tray_model = new TrayListModel();
     m_dataViewCtrl_ams->AssociateModel(tray_model.get());
@@ -1101,49 +1100,49 @@ void MonitorPanel::init_model()
         wxDATAVIEW_CELL_INERT,
         wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_NOT,
-        wxDATAVIEW_COL_SORTABLE);
+        wxDATAVIEW_COL_RESIZABLE);
     m_dataViewCtrl_ams->AppendTextColumn("Color",
         TrayListModel::Col_TrayColor,
         wxDATAVIEW_CELL_INERT,
         wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_NOT,
-        wxDATAVIEW_COL_SORTABLE);
+        wxDATAVIEW_COL_RESIZABLE);
     m_dataViewCtrl_ams->AppendTextColumn("Meterial",
         TrayListModel::Col_TrayMeterial,
         wxDATAVIEW_CELL_INERT,
         wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_NOT,
-        wxDATAVIEW_COL_SORTABLE);
+        wxDATAVIEW_COL_RESIZABLE);
     m_dataViewCtrl_ams->AppendTextColumn("SN",
         TrayListModel::Col_TraySN,
         wxDATAVIEW_CELL_INERT,
         wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_NOT,
-        wxDATAVIEW_COL_SORTABLE);
+        wxDATAVIEW_COL_RESIZABLE);
     m_dataViewCtrl_ams->AppendTextColumn("Weight",
         TrayListModel::Col_TrayWeight,
         wxDATAVIEW_CELL_INERT,
         wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_NOT,
-        wxDATAVIEW_COL_SORTABLE);
+        wxDATAVIEW_COL_RESIZABLE);
     m_dataViewCtrl_ams->AppendTextColumn("Diameter",
         TrayListModel::Col_TrayDiameter,
         wxDATAVIEW_CELL_INERT,
         wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_NOT,
-        wxDATAVIEW_COL_SORTABLE);
+        wxDATAVIEW_COL_RESIZABLE);
     m_dataViewCtrl_ams->AppendTextColumn("Time",
         TrayListModel::Col_TrayTime,
         wxDATAVIEW_CELL_INERT,
         wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_NOT,
-        wxDATAVIEW_COL_SORTABLE);
+        wxDATAVIEW_COL_RESIZABLE);
     m_dataViewCtrl_ams->AppendTextColumn("Smooth",
         TrayListModel::Col_TraySmooth,
         wxDATAVIEW_CELL_INERT,
         wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_NOT,
-        wxDATAVIEW_COL_SORTABLE);
+        wxDATAVIEW_COL_RESIZABLE);
 }
 
 void MonitorPanel::init_timer()
