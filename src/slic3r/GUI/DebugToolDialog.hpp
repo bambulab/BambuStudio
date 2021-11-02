@@ -12,6 +12,7 @@
 #include <wx/timer.h>
 #include <wx/panel.h>
 #include <wx/notebook.h>
+#include <wx/splitter.h>
 
 #include "GUI_Utils.hpp"
 #include "MsgDialog.hpp"
@@ -118,6 +119,8 @@ namespace Slic3r {
 			wxStaticText* m_staticText_wan;
 			wxComboBox* cb_my_device_list;
 			wxButton* btn_refresh_my_device;
+			wxSplitterWindow* m_splitter1;
+			wxPanel* m_panel11;
 			wxNotebook* m_notebook1;
 			wxPanel* m_panel_guide;
 			wxStaticText* m_staticText_guide_title;
@@ -238,6 +241,7 @@ namespace Slic3r {
 			wxStaticText* label_upgrade_progress_val;
 			wxStaticText* m_staticText_upgrade_info;
 			wxStaticText* label_upgrade_message_val;
+			wxPanel* m_panel12;
 			wxStaticText* m_staticText_log;
 			wxTextCtrl* txt_string_info;
 

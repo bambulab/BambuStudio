@@ -232,7 +232,13 @@ namespace GUI {
 	wxBoxSizer* bSizer_main;
 	bSizer_main = new wxBoxSizer( wxHORIZONTAL );
 
-	m_notebook1 = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
+	m_splitter1 = new wxSplitterWindow( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_3D );
+
+    m_panel11 = new wxPanel(m_splitter1, wxID_ANY, wxDefaultPosition, wxSize(400, -1), wxTAB_TRAVERSAL);
+	wxBoxSizer* bSizer26;
+	bSizer26 = new wxBoxSizer( wxVERTICAL );
+
+	m_notebook1 = new wxNotebook( m_panel11, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
 	m_panel_guide = new wxPanel( m_notebook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer18;
 	bSizer18 = new wxBoxSizer( wxVERTICAL );
@@ -706,7 +712,7 @@ namespace GUI {
 	m_panel_info_control->SetSizer( bSizer17 );
 	m_panel_info_control->Layout();
 	bSizer17->Fit( m_panel_info_control );
-	m_notebook1->AddPage( m_panel_info_control, wxT("Info Control"), false );
+	m_notebook1->AddPage( m_panel_info_control, wxT("Info Control"), true );
 	m_panel_upgrade = new wxPanel( m_notebook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer28;
 	bSizer28 = new wxBoxSizer( wxVERTICAL );
@@ -847,24 +853,33 @@ namespace GUI {
 	m_panel_upgrade->SetSizer( bSizer28 );
 	m_panel_upgrade->Layout();
 	bSizer28->Fit( m_panel_upgrade );
-	m_notebook1->AddPage( m_panel_upgrade, wxT("Upgrade"), true );
+	m_notebook1->AddPage( m_panel_upgrade, wxT("Upgrade"), false );
 
-	bSizer_main->Add( m_notebook1, 1, wxEXPAND | wxALL, 5 );
+	bSizer26->Add( m_notebook1, 1, wxEXPAND | wxALL, 5 );
 
+
+	m_panel11->SetSizer( bSizer26 );
+	m_panel11->Layout();
+	bSizer26->Fit( m_panel11 );
+    m_panel12 = new wxPanel(m_splitter1, wxID_ANY, wxDefaultPosition, wxSize(300, -1), wxTAB_TRAVERSAL);
 	wxBoxSizer* bSizer_log;
 	bSizer_log = new wxBoxSizer( wxVERTICAL );
 
-	m_staticText_log = new wxStaticText( this, wxID_ANY, wxT("Log Info:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_log = new wxStaticText( m_panel12, wxID_ANY, wxT("Log Info:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_log->Wrap( -1 );
 	bSizer_log->Add( m_staticText_log, 0, wxALL, 5 );
 
-	txt_string_info = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE );
+	txt_string_info = new wxTextCtrl( m_panel12, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE );
 	txt_string_info->SetMinSize( wxSize( 300,-1 ) );
 
 	bSizer_log->Add( txt_string_info, 1, wxALL|wxEXPAND, 5 );
 
 
-	bSizer_main->Add( bSizer_log, 0, wxEXPAND, 5 );
+	m_panel12->SetSizer( bSizer_log );
+	m_panel12->Layout();
+	bSizer_log->Fit( m_panel12 );
+	m_splitter1->SplitVertically( m_panel11, m_panel12, 0 );
+	bSizer_main->Add( m_splitter1, 1, wxEXPAND, 5 );
 
 
 	bSizer_top->Add( bSizer_main, 1, wxEXPAND, 5 );

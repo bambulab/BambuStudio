@@ -550,6 +550,7 @@ namespace Slic3r {
             std::map<std::string, MachineObject*>::iterator iterat;
             for (iterat = myBindMachineList.begin(); iterat != myBindMachineList.end(); ) {
                 if (new_list.find(iterat->first) == new_list.end()) {
+                    this->del_subscribe(iterat->second);
                     iterat = myBindMachineList.erase(iterat);
                 } else {
                     iterat++;

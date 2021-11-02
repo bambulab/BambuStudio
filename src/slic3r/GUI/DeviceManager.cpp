@@ -1070,19 +1070,6 @@ void MachineObject::set_bind_status(std::string status)
 void MachineObject::set_connect_state(CONNECTION_STATE state)
 {
     conn_state = state;
-    if (state == STATE_DISCONNECTED) {
-        /* unsubscribe topics in account manager */
-        //TODO
-        acc_.add_subscribe(this);
-    }
-    else if (state == STATE_CONNECTED) {
-        /* subscribe topics in account manager */
-        acc_.del_subscribe(this);
-    }
-    else
-    {
-        ;
-    }
 }
 
 std::string MachineObject::get_bind_str()
