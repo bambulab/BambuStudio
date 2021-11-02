@@ -95,7 +95,7 @@ ObjectList::ObjectList(wxWindow* parent) :
     wxMenuItem* org_by_module = new wxMenuItem(&m_object_org_menu, ID_OBJECT_ORG_MENU_ITEM_MODULE, "Organize By Module");
     m_object_org_menu.Append(org_by_module);
 
-    Bind(wxEVT_DATAVIEW_COLUMN_HEADER_CLICK, &ObjectList::OnColumnHeadClicked, this);
+    //Bind(wxEVT_DATAVIEW_COLUMN_HEADER_CLICK, &ObjectList::OnColumnHeadClicked, this);
     Bind(wxEVT_MENU, [this](wxCommandEvent& evt) { this->organize_objects(ortByPlate); }, ID_OBJECT_ORG_MENU_ITEM_PLATE);
     Bind(wxEVT_MENU, [this](wxCommandEvent& evt) { this->organize_objects(ortByModule); }, ID_OBJECT_ORG_MENU_ITEM_MODULE);
 
@@ -159,7 +159,13 @@ ObjectList::ObjectList(wxWindow* parent) :
         m_last_selected_column = new_selected_column;
 #endif //__WXMSW__
 
-        selection_changed();
+        ObjectDataViewModelNode* sel_node = (ObjectDataViewModelNode*)event.GetItem().GetID();
+        if (sel_node && (sel_node->GetType() & ItemType::itPlate)) {
+            wxGetApp().plater()->select_plate(sel_node->GetPlateIdx());
+        }
+        else {
+            selection_changed();
+        }
 #ifndef __WXMSW__
         set_tooltip_for_item(this->get_mouse_position_in_control());
 #endif //__WXMSW__
@@ -316,7 +322,7 @@ void ObjectList::create_objects_ctrl()
 
     wxDataViewColumn* name_col = new wxDataViewColumn(_L("Name"), bmp_text_renderer,
         colName, 20 * em, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
-    name_col->SetBitmap(create_scaled_bitmap("organize", nullptr, FromDIP(18)));
+    //name_col->SetBitmap(create_scaled_bitmap("organize", nullptr, FromDIP(18)));
     AppendColumn(name_col);
 
     // BBS
@@ -1013,10 +1019,11 @@ void ObjectList::show_context_menu(const bool evt_context_menu)
         if (item)
         {
             const ItemType type = m_objects_model->GetItemType(item);
-            if (!(type & (itObject | itVolume | itLayer | itInstance)))
+            if (!(type & (itPlate | itObject | itVolume | itLayer | itInstance)))
                 return;
 
-            menu =  type & itInstance                                           ? plater->instance_menu() :
+            menu =  type & itPlate                                              ? plater->plate_menu();
+                    type & itInstance                                           ? plater->instance_menu() :
                     type & itLayer                                              ? plater->layer_menu() :
                     m_objects_model->GetParent(item) != wxDataViewItem(nullptr) ? plater->part_menu() :
                     printer_technology() == ptFFF                               ? plater->object_menu() : plater->sla_object_menu();
@@ -4489,6 +4496,14 @@ void ObjectList::apply_volumes_order()
 
     for (size_t obj_idx = 0; obj_idx < m_objects->size(); obj_idx++)
         reorder_volumes_and_get_selection(obj_idx);
+}
+
+void ObjectList::on_plate_selected(int plate_index)
+{
+    UnselectAll();
+
+    wxDataViewItem item = m_objects_model->GetItemByPlateId(plate_index);
+    Select(item);
 }
 
 void ObjectList::update_after_undo_redo()

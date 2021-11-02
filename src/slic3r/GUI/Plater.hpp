@@ -506,6 +506,7 @@ public:
     bool PopupMenu(wxMenu *menu, int x, int y) { return this->PopupMenu(menu, wxPoint(x, y)); }
 
     // get same Plater/ObjectList menus
+    wxMenu* plate_menu();
     wxMenu* object_menu();
     wxMenu* part_menu();
     wxMenu* sla_object_menu();

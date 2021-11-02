@@ -49,6 +49,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(PartPlate* part_plate, wxString
     m_container(true)
 {
     m_plate_idx = part_plate ? part_plate->get_index() : -1;
+    set_action_icon();
     init_container();
 }
 
@@ -163,9 +164,7 @@ bool ObjectDataViewModelNode::valid()
 
 void ObjectDataViewModelNode::set_action_and_extruder_icons()
 {
-    m_action_icon_name = m_type & itObject              ? "advanced_plus" : 
-                         m_type & (itVolume | itLayer)  ? "cog" : /*m_type & itInstance*/ "set_separate_obj";
-    m_action_icon = create_scaled_bitmap(m_action_icon_name);    // FIXME: pass window ptr
+    set_action_icon();
 
     // set extruder bitmap
     set_extruder_icon();
@@ -185,6 +184,12 @@ void ObjectDataViewModelNode::set_printable_icon(PrintIndicator printable)
     m_printable = printable;
     m_printable_icon = m_printable == piUndef ? m_empty_bmp :
                        create_scaled_bitmap(m_printable == piPrintable ? "eye_open.png" : "eye_closed.png");
+}
+
+void ObjectDataViewModelNode::set_action_icon()
+{
+    m_action_icon_name = "cog";
+    m_action_icon = create_scaled_bitmap(m_action_icon_name);    // FIXME: pass window ptr
 }
 
 void ObjectDataViewModelNode::set_warning_icon(const std::string& warning_icon_name)
@@ -1090,6 +1095,14 @@ wxDataViewItem ObjectDataViewModel::GetItemById(int obj_idx)
 	return wxDataViewItem(m_objects[obj_idx]);
 }
 
+wxDataViewItem ObjectDataViewModel::GetItemByPlateId(int plate_idx)
+{
+    for (auto plate : m_plates) {
+        if (plate->m_plate_idx == plate_idx)
+            return wxDataViewItem(plate);
+    }
+    return wxDataViewItem(nullptr);
+}
 
 wxDataViewItem ObjectDataViewModel::GetItemByVolumeId(int obj_idx, int volume_idx)
 {

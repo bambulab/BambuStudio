@@ -408,6 +408,7 @@ public:
     void on_plate_added(PartPlate* part_plate);
     void on_plate_deleted(int plate_index);
     void reload_all_plates();
+    void on_plate_selected(int plate_index);
 
 private:
 #ifdef __WXOSX__

@@ -7455,6 +7455,9 @@ int Plater::select_plate(int plate_index)
     int ret;
     take_snapshot(_L("select partplate"));
     ret = p->partplate_list.select_plate(plate_index);
+    if (!ret) {
+        wxGetApp().plater()->canvas3D()->render();
+    }
 
     if ((!ret) && (p->background_process.can_switch_print()))
     {
@@ -7555,7 +7558,6 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
         //select plate
         take_snapshot(_L("select partplate"));
         ret = p->partplate_list.select_plate(plate_index);
-
         if ((!ret)&&(p->background_process.can_switch_print()))
         {
             //select successfully
@@ -7610,6 +7612,8 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
                 }
             }
         }
+
+        p->sidebar->obj_list()->on_plate_selected(plate_index);
     }
     else if ((action == 1)&&(!right_click))
     {
@@ -7857,6 +7861,8 @@ void Plater::bring_instance_forward()
     p->bring_instance_forward();
 }
 
+// BBS
+wxMenu* Plater::plate_menu()            { return p->menus.plate_menu();             }
 wxMenu* Plater::object_menu()           { return p->menus.object_menu();            }
 wxMenu* Plater::part_menu()             { return p->menus.part_menu();              }
 wxMenu* Plater::sla_object_menu()       { return p->menus.sla_object_menu();        }

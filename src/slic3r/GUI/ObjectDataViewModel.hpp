@@ -244,6 +244,7 @@ public:
     void        set_extruder_icon();
 	// Set printable icon for node
     void        set_printable_icon(PrintIndicator printable);
+    void        set_action_icon();
     // Set warning icon for node
     void        set_warning_icon(const std::string& warning_icon);
 
@@ -314,6 +315,7 @@ public:
     void DeleteChildren(wxDataViewItem& parent);
     void DeleteVolumeChildren(wxDataViewItem& parent);
     void DeleteSettings(const wxDataViewItem& parent);
+    wxDataViewItem GetItemByPlateId(int plate_idx);
     wxDataViewItem GetItemById(int obj_idx);
     wxDataViewItem GetItemById(const int obj_idx, const int sub_obj_idx, const ItemType parent_type);
     wxDataViewItem GetItemByVolumeId(int obj_idx, int volume_idx);
