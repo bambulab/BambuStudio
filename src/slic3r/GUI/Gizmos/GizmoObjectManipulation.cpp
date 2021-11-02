@@ -478,6 +478,12 @@ void GizmoObjectManipulation::set_uniform_scaling(const bool new_value)
     m_uniform_scale = new_value;
 }
 
+static const char* label_values[4][3] = {
+{ "##position_x", "##position_y", "##position_z"},
+{ "##rotation_x", "##rotation_y", "##rotation_z"},
+{ "##scale_x", "##scale_y", "##scale_z"},
+{ "##size_x", "##size_y", "##size_z"}
+};
 void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper, std::string window_name, float x, float y, float bottom_limit)
 {
     //static float last_y = 0.0f;
@@ -506,6 +512,7 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
         }
         return -1;
     };
+
     float unit_size = imgui_wrapper->get_style_scaling() * 48.0f;
     float space_size = imgui_wrapper->get_style_scaling()*8;
     float caption_max = imgui_wrapper->calc_text_size(_L("Position:")).x + space_size;
@@ -560,13 +567,13 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
     imgui_wrapper->text(_L("Position:"));
     ImGui::SameLine(caption_max + space_size);
     ImGui::PushItemWidth(unit_size);
-    ImGui::InputDouble("##POS_X", &display_position[0], 0.0f, 0.0f, "%.2f");
+    ImGui::InputDouble(label_values[0][0], &display_position[0], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + unit_size + 2 * space_size);
     ImGui::PushItemWidth(unit_size);
-    ImGui::InputDouble("##POS_y", &display_position[1], 0.0f, 0.0f, "%.2f");
+    ImGui::InputDouble(label_values[0][1], &display_position[1], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + 2 * unit_size + 3 * space_size);
     ImGui::PushItemWidth(unit_size);
-    ImGui::InputDouble("##POS_z", &display_position[2], 0.0f, 0.0f, "%.2f");
+    ImGui::InputDouble(label_values[0][2], &display_position[2], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + 3 * unit_size + 4 * space_size);
     imgui_wrapper->text(this->m_new_unit_string);
     m_buffered_position = display_position;
@@ -579,13 +586,13 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
     imgui_wrapper->text(_L("Rotation:"));
     ImGui::SameLine(caption_max + space_size);
     ImGui::PushItemWidth(unit_size);
-    ImGui::InputDouble("##ROT_x", &rotation[0], 0.0f, 0.0f, "%.2f");
+    ImGui::InputDouble(label_values[1][0], &rotation[0], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + unit_size + 2 * space_size);
     ImGui::PushItemWidth(unit_size);
-    ImGui::InputDouble("##ROT_y", &rotation[1], 0.0f, 0.0f, "%.2f");
+    ImGui::InputDouble(label_values[1][1], &rotation[1], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + 2 * unit_size + 3 * space_size);
     ImGui::PushItemWidth(unit_size);
-    ImGui::InputDouble("##ROT_z", &rotation[2], 0.0f, 0.0f, "%.2f");
+    ImGui::InputDouble(label_values[1][2], &rotation[2], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + 3 * unit_size + 4 * space_size);
     imgui_wrapper->text(_L("°"));
     m_buffered_rotation = rotation;
@@ -606,13 +613,13 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
     imgui_wrapper->text(_L("Scale:"));
     ImGui::SameLine(caption_max + space_size);
     ImGui::PushItemWidth(unit_size);
-    ImGui::InputDouble("##Scale_x", &scale[0], 0.0f, 0.0f, "%.2f");
+    ImGui::InputDouble(label_values[2][0], &scale[0], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + unit_size + 2 * space_size);
     ImGui::PushItemWidth(unit_size);
-    ImGui::InputDouble("##Scale_y", &scale[1], 0.0f, 0.0f, "%.2f");
+    ImGui::InputDouble(label_values[2][1], &scale[1], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + 2 * unit_size + 3 * space_size);
     ImGui::PushItemWidth(unit_size);
-    ImGui::InputDouble("##Scale_z", &scale[2], 0.0f, 0.0f, "%.2f");
+    ImGui::InputDouble(label_values[2][2], &scale[2], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + 3 * unit_size + 4 * space_size);
     imgui_wrapper->text(_L("%"));
     m_buffered_scale = scale;
@@ -625,27 +632,27 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
         //    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ",after_index="<<index <<boost::format(",scale %1%, buffered %2%, original_id %3%, new_id %4%\n") % this->m_new_scale[index] % m_buffered_scale[index] % m_last_active_item % current_active_id;
         if (scale_sel == 0)
         {
-            ImGui::ClearInputTextInitialData("##Scale_y", m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData("##Scale_z", m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData("##Size_x", m_buffered_size[0]);
-            ImGui::ClearInputTextInitialData("##Size_y", m_buffered_size[0]);
-            ImGui::ClearInputTextInitialData("##Size_z", m_buffered_size[0]);
+            ImGui::ClearInputTextInitialData(label_values[2][1], m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData(label_values[2][2], m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData(label_values[3][0], m_buffered_size[0]);
+            ImGui::ClearInputTextInitialData(label_values[3][1], m_buffered_size[0]);
+            ImGui::ClearInputTextInitialData(label_values[3][2], m_buffered_size[0]);
         }
         else if (scale_sel == 1)
         {
-            ImGui::ClearInputTextInitialData("##Scale_x", m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData("##Scale_z", m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData("##Size_x", m_buffered_size[0]);
-            ImGui::ClearInputTextInitialData("##Size_y", m_buffered_size[0]);
-            ImGui::ClearInputTextInitialData("##Size_z", m_buffered_size[0]);
+            ImGui::ClearInputTextInitialData(label_values[2][0], m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData(label_values[2][2], m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData(label_values[3][0], m_buffered_size[0]);
+            ImGui::ClearInputTextInitialData(label_values[3][1], m_buffered_size[0]);
+            ImGui::ClearInputTextInitialData(label_values[3][2], m_buffered_size[0]);
         }
         else if (scale_sel == 2)
         {
-            ImGui::ClearInputTextInitialData("##Scale_x", m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData("##Scale_y", m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData("##Size_x", m_buffered_size[0]);
-            ImGui::ClearInputTextInitialData("##Size_y", m_buffered_size[0]);
-            ImGui::ClearInputTextInitialData("##Size_z", m_buffered_size[0]);
+            ImGui::ClearInputTextInitialData(label_values[2][0], m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData(label_values[2][1], m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData(label_values[3][0], m_buffered_size[0]);
+            ImGui::ClearInputTextInitialData(label_values[3][1], m_buffered_size[0]);
+            ImGui::ClearInputTextInitialData(label_values[3][2], m_buffered_size[0]);
         }
     }
     //if the value is chaged, need reset button
@@ -669,13 +676,13 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
     imgui_wrapper->text(_L("Size:"));
     ImGui::SameLine(caption_max + space_size);
     ImGui::PushItemWidth(unit_size);
-    ImGui::InputDouble("##Size_x", &display_size[0], 0.0f, 0.0f, "%.2f");
+    ImGui::InputDouble(label_values[3][0], &display_size[0], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + unit_size + 2 * space_size);
     ImGui::PushItemWidth(unit_size);
-    ImGui::InputDouble("##Size_y", &display_size[1], 0.0f, 0.0f, "%.2f");
+    ImGui::InputDouble(label_values[3][1], &display_size[1], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + 2 * unit_size + 3 * space_size);
     ImGui::PushItemWidth(unit_size);
-    ImGui::InputDouble("##Size_z", &display_size[2], 0.0f, 0.0f, "%.2f");
+    ImGui::InputDouble(label_values[3][2], &display_size[2], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + 3 * unit_size + 4 * space_size);
     imgui_wrapper->text(this->m_new_unit_string);
     m_buffered_size = display_size;
@@ -686,27 +693,27 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
         //    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ",after_index="<<index <<boost::format(",scale %1%, buffered %2%, original_id %3%, new_id %4%\n") % this->m_new_scale[index] % m_buffered_scale[index] % m_last_active_item % current_active_id;
         if (size_sel == 0)
         {
-            ImGui::ClearInputTextInitialData("##Scale_x", m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData("##Scale_y", m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData("##Scale_z", m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData("##Size_y", m_buffered_size[0]);
-            ImGui::ClearInputTextInitialData("##Size_z", m_buffered_size[0]);
+            ImGui::ClearInputTextInitialData(label_values[2][0], m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData(label_values[2][1], m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData(label_values[2][2], m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData(label_values[3][1], m_buffered_size[0]);
+            ImGui::ClearInputTextInitialData(label_values[3][2], m_buffered_size[0]);
         }
         else if (size_sel == 1)
         {
-            ImGui::ClearInputTextInitialData("##Scale_x", m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData("##Scale_y", m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData("##Scale_z", m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData("##Size_x", m_buffered_size[0]);
-            ImGui::ClearInputTextInitialData("##Size_z", m_buffered_size[0]);
+            ImGui::ClearInputTextInitialData(label_values[2][0], m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData(label_values[2][1], m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData(label_values[2][2], m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData(label_values[3][0], m_buffered_size[0]);
+            ImGui::ClearInputTextInitialData(label_values[3][2], m_buffered_size[0]);
         }
         else if (size_sel == 2)
         {
-            ImGui::ClearInputTextInitialData("##Scale_x", m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData("##Scale_y", m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData("##Scale_z", m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData("##Size_x", m_buffered_size[0]);
-            ImGui::ClearInputTextInitialData("##Size_y", m_buffered_size[0]);
+            ImGui::ClearInputTextInitialData(label_values[2][0], m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData(label_values[2][1], m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData(label_values[2][2], m_buffered_scale[0]);
+            ImGui::ClearInputTextInitialData(label_values[3][0], m_buffered_size[0]);
+            ImGui::ClearInputTextInitialData(label_values[3][1], m_buffered_size[0]);
         }
     }
     //if the value is chaged, need reset button
@@ -718,6 +725,22 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
     {
         reset_scale_value();
     }
+
+    //send focus to m_glcanvas
+    bool focued_on_text = false;
+    for (int i = 0; i < 4; i++)
+    for (int j = 0; j < 3; j++)
+    {
+        unsigned int id =  ImGui::GetID(label_values[i][j]);
+        if (current_active_id == id)
+        {
+            m_glcanvas.handle_sidebar_focus_event(label_values[i][j]+2, true);
+            focued_on_text = true;
+            break;
+        }
+    }
+    if (!focued_on_text)
+        m_glcanvas.handle_sidebar_focus_event("", false);
 
     m_last_active_item = current_active_id;
 

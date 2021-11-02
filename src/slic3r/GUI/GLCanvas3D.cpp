@@ -4005,8 +4005,9 @@ void GLCanvas3D::handle_sidebar_focus_event(const std::string& opt_key, bool foc
 {
     m_sidebar_field = focus_on ? opt_key : "";
 
-    if (!m_sidebar_field.empty())
-        m_gizmos.reset_all_states();
+    //BBS: this event was sent from gizmo now, no need to clear gizmo
+    //if (!m_sidebar_field.empty())
+    //    m_gizmos.reset_all_states();
 
     m_dirty = true;
 }
@@ -7021,7 +7022,7 @@ void GLCanvas3D::_render_sla_slices()
 
 void GLCanvas3D::_render_selection_sidebar_hints() const
 {
-    m_selection.render_sidebar_hints(m_sidebar_field);
+    m_selection.render_sidebar_hints(m_sidebar_field, m_gizmos.get_uniform_scaling());
 }
 
 void GLCanvas3D::_update_volumes_hover_state()

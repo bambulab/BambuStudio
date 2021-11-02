@@ -1334,7 +1334,9 @@ void Selection::render_center(bool gizmo_is_dragging) const
 }
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
-void Selection::render_sidebar_hints(const std::string& sidebar_field) const
+//BBS: GUI refactor, add uniform scale from gizmo
+void Selection::render_sidebar_hints(const std::string& sidebar_field, bool uniform_scale) const
+//void Selection::render_sidebar_hints(const std::string& sidebar_field) const
 {
     if (sidebar_field.empty())
         return;
@@ -1399,7 +1401,8 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field) const
     else if (boost::starts_with(sidebar_field, "rotation"))
         render_sidebar_rotation_hints(sidebar_field);
     else if (boost::starts_with(sidebar_field, "scale") || boost::starts_with(sidebar_field, "size"))
-        render_sidebar_scale_hints(sidebar_field);
+        //BBS: GUI refactor: add uniform_scale from gizmo
+        render_sidebar_scale_hints(sidebar_field, uniform_scale);
     else if (boost::starts_with(sidebar_field, "layer"))
         render_sidebar_layers_hints(sidebar_field);
 
@@ -1980,11 +1983,12 @@ void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) 
     }
 }
 
-void Selection::render_sidebar_scale_hints(const std::string& sidebar_field) const
+//BBS: GUI refactor: add gizmo uniform_scale
+void Selection::render_sidebar_scale_hints(const std::string& sidebar_field, bool gizmo_uniform_scale) const
 {
     // BBS
     //bool uniform_scale = requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling();
-    bool uniform_scale = requires_uniform_scale();
+    bool uniform_scale = requires_uniform_scale() || gizmo_uniform_scale;
 
     auto render_sidebar_scale_hint = [this, uniform_scale](Axis axis) {
         const_cast<GLModel*>(&m_arrow)->set_color(-1, uniform_scale ? UNIFORM_SCALE_COLOR : get_color(axis));

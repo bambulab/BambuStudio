@@ -339,7 +339,8 @@ public:
 #if ENABLE_RENDER_SELECTION_CENTER
     void render_center(bool gizmo_is_dragging) const;
 #endif // ENABLE_RENDER_SELECTION_CENTER
-    void render_sidebar_hints(const std::string& sidebar_field) const;
+    //BBS: GUI refactor: add uniform scale from gizmo
+    void render_sidebar_hints(const std::string& sidebar_field, bool uniform_scale) const;
 
     bool requires_local_axes() const;
 
@@ -376,7 +377,8 @@ private:
     void render_bounding_box(const BoundingBoxf3& box, float* color) const;
     void render_sidebar_position_hints(const std::string& sidebar_field) const;
     void render_sidebar_rotation_hints(const std::string& sidebar_field) const;
-    void render_sidebar_scale_hints(const std::string& sidebar_field) const;
+    //BBS: GUI refactor: add uniform_scale from gizmo
+    void render_sidebar_scale_hints(const std::string& sidebar_field, bool gizmo_uniform_scale) const;
     void render_sidebar_layers_hints(const std::string& sidebar_field) const;
 
 public:

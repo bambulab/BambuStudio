@@ -262,6 +262,7 @@ public:
     float get_scaled_total_height() const;
     float get_scaled_total_width() const;
     //GizmoObjectManipulation& get_object_manipulation() { return m_object_manipulation; }
+    bool get_uniform_scaling() { return m_object_manipulation.get_uniform_scaling();}
 
 private:
     void render_background(float left, float top, float right, float bottom, float border) const;

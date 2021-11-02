@@ -498,10 +498,13 @@ void OptionsGroup::clear(bool destroy_custom_ctrl)
             if (win)
                 win = nullptr;
         }
-        if (destroy_custom_ctrl)
-            custom_ctrl->Destroy();
-        else
-            custom_ctrl = nullptr;
+		//BBS: destroy custom ctrl
+		if (destroy_custom_ctrl)
+		{
+			custom_ctrl->Destroy();
+			delete custom_ctrl;
+		}
+        custom_ctrl = nullptr;
     }
 
 	m_extra_column_item_ptrs.clear();
