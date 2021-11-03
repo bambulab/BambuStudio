@@ -759,8 +759,8 @@ void TreeSupport::detect_object_overhangs()
                         }
                     }
 
-                    // detect sharp tail and add more supports around
 #if 1
+                    // detect sharp tail and add more supports around
                     ExPolygons lower_layer_offseted;
                     if (regions_well_supported.empty())
                         lower_layer_offseted = offset_ex(lower_polys, -0.1 * extrusion_width_scaled);
@@ -814,8 +814,27 @@ void TreeSupport::detect_object_overhangs()
     auto blockers  = m_object.slice_support_blockers();
     m_object.project_and_append_custom_facets(false, EnforcerBlockerType::ENFORCER, enforcers);
     m_object.project_and_append_custom_facets(false, EnforcerBlockerType::BLOCKER, blockers);
+    // small overhang removal
+    std::vector<ExPolygons> overhangs_dilated(m_object.layer_count());
+    for (int layer_nr = 0; layer_nr < m_object.layer_count(); layer_nr++) {
+        overhangs_dilated[layer_nr] = offset_ex(m_object.get_tree_support_layer(layer_nr + m_raft_layers)->overhang_areas, extrusion_width_scaled);
+    }
     for (int layer_nr = 0; layer_nr < m_object.layer_count(); layer_nr++) {
         TreeSupportLayer* ts_layer = m_object.get_tree_support_layer(layer_nr + m_raft_layers);
+
+        if (1)
+        {   // small overhang removal
+            if (layer_nr<1 || layer_nr>overhangs_dilated.size() - 2) continue;
+            ExPolygons small_overhangs;
+            for (auto& overhang : ts_layer->overhang_areas)
+            {
+                //auto overhang_dilated = offset_ex({ overhang }, extrusion_width_scaled);
+                if (intersection_ex({overhang}, overhangs_dilated[layer_nr-1]).empty() && intersection_ex({overhang}, overhangs_dilated[layer_nr+1]).empty()
+                    && offset_ex({ overhang }, -extrusion_width_scaled * 2).empty())
+                    small_overhangs.push_back(overhang);
+            }
+            ts_layer->overhang_areas = diff_ex(ts_layer->overhang_areas, small_overhangs);
+        }
 
         if (layer_nr < enforcers.size()) {
             Polygons& enforcer = enforcers[layer_nr];
@@ -1434,7 +1453,7 @@ inline coordf_t calc_branch_radius(coordf_t base_radius, size_t layers_to_top, s
     {
         radius = base_radius * (layers_to_top + 1) / tip_layers;
     }
-    radius = std::min(radius, 10.0);
+    radius = std::min(radius, MAX_BRANCH_RADIUS);
     return radius;
 }
 
@@ -1499,10 +1518,10 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                     const Node& node = *p_node;
                     Polygon circle;
                     //double scale = calc_branch_radius(branch_radius, node.distance_to_top, tip_layers, diameter_angle_scale_factor) / branch_radius;
-                    size_t layers_to_top = node.distance_to_top;// std::min(node.distance_to_top, (size_t)300);
+                    size_t layers_to_top = node.distance_to_top;
                     double scale = static_cast<double>(layers_to_top + 1) / tip_layers;
                     scale = layers_to_top < tip_layers ? (0.5 + scale / 2) : (1 + static_cast<double>(layers_to_top - tip_layers) * diameter_angle_scale_factor);
-                    scale = std::min(scale, 10 / branch_radius);
+                    scale = std::min(scale, MAX_BRANCH_RADIUS / branch_radius);
                     for (auto iter = branch_circle.points.begin(); iter != branch_circle.points.end(); iter++)
                     {
                         Point corner = (*iter) * scale;
