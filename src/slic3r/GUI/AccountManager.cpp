@@ -161,6 +161,7 @@ namespace Slic3r {
         mqtt_opt.set_automatic_reconnect(3, 10);
 
         m_curr_user = nullptr;
+        default_project = nullptr;
 
         std::time_t t = std::time(0);
         std::tm* now_time = std::localtime(&t);
@@ -2140,6 +2141,15 @@ namespace Slic3r {
                         }
                     }
                 }
+                else if (command_str.compare("request_project_download") == 0) {
+                    if (root.get_child_optional("data") != boost::none) {
+                        pt::ptree data_node = root.get_child("data");
+                        boost::optional<std::string> project_id = data_node.get_optional<std::string>("project_id");
+                        if (project_id.has_value()) {
+                            this->reqeust_project_download(project_id.value());
+                        }
+                    }
+                }
                 else if (command_str.compare("open_project") == 0) {
                     if (root.get_child_optional("data") != boost::none) {
                         pt::ptree data_node = root.get_child("data");
@@ -2159,6 +2169,11 @@ namespace Slic3r {
     }
 
     void AccountManager::reqeust_model_download(std::string model_id)
+    {
+        ;
+    }
+
+    void AccountManager::reqeust_project_download(std::string model_id)
     {
         ;
     }

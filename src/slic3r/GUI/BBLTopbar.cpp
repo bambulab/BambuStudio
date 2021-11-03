@@ -211,7 +211,20 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
         this);
     append_menu_item(accountMenu, wxID_ANY, _L("Upload/Publish Model"), _L(""),
         [this](wxCommandEvent&) {
-            wxString url = wxString::Format(MY_MODEL_PUBLISH_URL_FORMAT, 1);
+            /* upload project first and publish */
+            Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
+            BBLProject* project = c->get_default_project();
+            if (!project) {
+                //TODO check uploaded?
+                MainFrame* main_frame = dynamic_cast<MainFrame*>(m_frame);
+                Plater* plater = main_frame->plater();
+                plater->upload_3mf();
+                project = c->get_default_project();
+                if (!project) return;
+            }
+            if (project->project_id.empty()) return;
+
+            wxString url = wxString::Format(MY_MODEL_PUBLISH_URL_FORMAT, project->project_id);
             WebFrame* m_publish_webframe = new WebFrame(url);
             m_publish_webframe->Show();
         }, "upload_queue", nullptr,

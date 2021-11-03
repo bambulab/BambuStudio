@@ -6663,6 +6663,9 @@ void Plater::upload_3mf()
             wxString msg = wxString::Format("uploaded %d", percent);
             progress_dlg->Update(percent, msg, &skip);
         }, true);
+
+    //BBS update default project
+    c->set_default_project(project);
 }
 
 void Plater::reload_from_disk()

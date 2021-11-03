@@ -9,10 +9,10 @@
 #include "mqtt/async_client.h"
 #include "ProjectTask.hpp"
 
-#define MY_MODEL_PUBLISH_URL_FORMAT    "https://portal-dev.bambu-lab.com/my/models/%d/publish"
+#define MY_MODEL_PUBLISH_URL_FORMAT     "https://portal-dev.bambu-lab.com/my/models/%s/publish"
 #define MY_COLLECTIONS_URL              "https://portal-dev.bambu-lab.com/my/collections"
 #define MY_PROJECT_LIST_URL             "https://portal-dev.bambu-lab.com/"
-#define MODEL_STORE_URL                 "https://portal-dev.bambu-lab.com/"
+#define MODEL_STORE_URL                 "https://portal-dev.bambu-lab.com/designs"
 
 namespace Slic3r {
 
@@ -217,6 +217,7 @@ public:
 
     /* project apis */
     BBLProject* get_default_project() { return default_project; }
+    void set_default_project(BBLProject* project) { default_project = project; }
     // request a project id, project_name -> project_id, sync
     int request_project_id(BBLProject* project, ResultFn resFn = nullptr);
     // request a profile id, profile_name -> profile_id, sync
@@ -267,6 +268,7 @@ public:
     std::string handle_web_request(std::string cmd);
 
     void reqeust_model_download(std::string model_id);
+    void reqeust_project_download(std::string project_id);
     void reqeust_open_project(std::string project_id);
 };
 
