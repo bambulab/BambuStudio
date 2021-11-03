@@ -192,10 +192,10 @@ void PartPlate::render_background() const {
 	// draw background
 	glsafe(::glDepthMask(GL_FALSE));
 	if (m_selected) {
-		glsafe(::glColor4fv(m_model_color.data()));
+		glsafe(::glColor4fv(m_select_color.data()));
 	}
 	else {
-		glsafe(::glColor4f(0.235f, 0.235f, 0.235f, 0.8f));
+		glsafe(::glColor4fv(m_unselect_color.data()));
 	}
 	glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
 	glsafe(::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_vertices_data()));
@@ -219,10 +219,10 @@ void PartPlate::render_grid(bool bottom) const {
 	// draw grid
 	glsafe(::glLineWidth(1.5f * m_scale_factor));
 	if (bottom)
-		glsafe(::glColor4f(0.9f, 0.9f, 0.9f, 1.0f));
+		glsafe(::glColor4f(1.0f, 1.0f, 1.0f, 1.0f));
 	else
-		glsafe(::glColor4f(0.9f, 0.9f, 0.9f, 0.6f));
-	glsafe(::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_gridlines.get_vertices_data()));
+		glsafe(::glColor4f(0.6f, 0.6f, 0.6f, 0.6f));
+	glsafe(::glVertexPointer(3, GL_FLOAT, m_gridlines.get_vertex_data_size(), (GLvoid*)m_gridlines.get_vertices_data()));
 	glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_gridlines.get_vertices_count()));
 }
 

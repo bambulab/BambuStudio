@@ -408,14 +408,18 @@ void GLVolume::set_render_color()
     bool outside = is_outside || is_below_printbed();
 
     if (force_native_color || force_neutral_color) {
+#ifdef ENABBLE_OUTSIDE_COLOR
         if (outside && shader_outside_printer_detection_enabled)
             set_render_color(OUTSIDE_COLOR);
         else {
+#endif
             if (force_native_color)
                 set_render_color(color);
             else
                 set_render_color(NEUTRAL_COLOR);
+#ifdef ENABLE_OUTSIDE_COLOR
         }
+#endif
     }
     else {
         /* BBS
@@ -429,8 +433,10 @@ void GLVolume::set_render_color()
         */
         if (disabled)
             set_render_color(DISABLED_COLOR);
-        else if (outside && shader_outside_printer_detection_enabled)
+#ifdef ENABLE_OUTSIDE_COLOR
+        else if (is_outside && shader_outside_printer_detection_enabled)
             set_render_color(OUTSIDE_COLOR);
+#endif
         else
             set_render_color(color);
     }
@@ -874,9 +880,15 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         shader->set_uniform("uniform_color", volume.first->render_color);
         shader->set_uniform("z_range", m_z_range, 2);
         shader->set_uniform("clipping_plane", m_clipping_plane, 4);
-        shader->set_uniform("print_volume.type", static_cast<int>(m_print_volume.type));
+
+        //BBS set print_volume to render volume
+        shader->set_uniform("print_volume.type", static_cast<int>(m_render_volume.type));
+        shader->set_uniform("print_volume.xy_data", m_render_volume.data);
+        shader->set_uniform("print_volume.z_data", m_render_volume.zs);
+
+        /*shader->set_uniform("print_volume.type", static_cast<int>(m_print_volume.type));
         shader->set_uniform("print_volume.xy_data", m_print_volume.data);
-        shader->set_uniform("print_volume.z_data", m_print_volume.zs);
+        shader->set_uniform("print_volume.z_data", m_print_volume.zs);*/
         shader->set_uniform("volume_world_matrix", volume.first->world_matrix());
         shader->set_uniform("slope.actived", m_slope.active && !volume.first->is_modifier && !volume.first->is_wipe_tower);
         shader->set_uniform("slope.volume_world_normal_matrix", static_cast<Matrix3f>(volume.first->world_matrix().matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>()));

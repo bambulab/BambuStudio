@@ -544,6 +544,7 @@ public:
 
 private:
     PrintVolume m_print_volume;
+    PrintVolume m_render_volume;
 
     // z range for clipping in shaders
     float m_z_range[2];
@@ -564,7 +565,12 @@ private:
 public:
     GLVolumePtrs volumes;
 
-    GLVolumeCollection() { set_default_slope_normal_z(); }
+    GLVolumeCollection() { 
+        set_default_slope_normal_z();
+
+        //BBS init render volume
+        m_render_volume.type = -1;
+    }
     ~GLVolumeCollection() { clear(); }
 
     std::vector<int> load_object(

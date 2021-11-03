@@ -104,7 +104,8 @@ class PartPlate : public ObjectBase
     GeometryBuffer m_arrange_icon;
     mutable unsigned int m_arrange_vbo_id{ 0 };
     GLTexture m_texture;
-    std::array<float, 4> m_model_color{ 0.235f, 0.235f, 0.235f, 1.0f };
+    std::array<float, 4> m_select_color{ 0.367f, 0.367f, 0.367f, 1.0f };
+    std::array<float, 4> m_unselect_color{ 0.765f, 0.765f, 0.765f, 1.0f };
     mutable float m_grabber_color[4];
     float m_scale_factor{ 1.0f };
     GLUquadricObject* m_quadric;
