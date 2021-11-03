@@ -544,8 +544,13 @@ int ObjectList::get_selected_obj_idx() const
 
 ModelConfig& ObjectList::get_item_config(const wxDataViewItem& item) const 
 {
+    static ModelConfig s_empty_config;
+
     assert(item);
     const ItemType type = m_objects_model->GetItemType(item);
+
+    if (type & itPlate)
+        return s_empty_config;
 
     const int obj_idx = m_objects_model->GetObjectIdByItem(item);
     const int vol_idx = type & itVolume ? m_objects_model->GetVolumeIdByItem(item) : -1;
