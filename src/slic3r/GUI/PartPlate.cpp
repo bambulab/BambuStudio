@@ -25,6 +25,7 @@
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "libslic3r/Utils.hpp"
 
+#include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "BackgroundSlicingProcess.hpp"
@@ -846,9 +847,14 @@ int PartPlate::add_instance(int obj_id, int instance_id, bool move_position)
 	}
 
 	//need to judge whether this instance has an outer part
-	if (m_ready_for_slice&&check_outside(obj_id, instance_id))
+	bool contains_instance = contain_instance(obj_id, instance_id);
+	if (m_ready_for_slice &&!contains_instance)
 	{
 		m_ready_for_slice = false;
+	}
+	else if ((obj_to_instance_set.size() == 1) && (!m_ready_for_slice) && contains_instance)
+	{
+		m_ready_for_slice = true;
 	}
 
 	return 0;
@@ -1056,6 +1062,12 @@ void PartPlate::set_unselected() {
 //update status
 void PartPlate::update_states()
 {
+	//currently let judge outside partplate when plate is empty
+	/*if (obj_to_instance_set.size() == 0)
+	{
+		m_ready_for_slice = false;
+		return;
+	}*/
 	m_ready_for_slice = true;
 	for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it) {
 		int obj_id = it->first;
@@ -1077,7 +1089,10 @@ void PartPlate::update_states()
 void PartPlate::update_slice_context(BackgroundSlicingProcess & process)
 {
 	auto statuscb = [this](const Slic3r::PrintBase::SlicingStatus& status) {
-		wxQueueEvent(m_plater, new Slic3r::SlicingStatusEvent(EVT_SLICING_UPDATE, 0, status));
+		Slic3r::SlicingStatusEvent *event = new Slic3r::SlicingStatusEvent(EVT_SLICING_UPDATE, 0, status);
+		//BBS: GUI refactor: add plate info befor message
+		event->status.text = L("Plate ") + std::to_string(m_plate_index+1) + ": " + event->status.text;
+		wxQueueEvent(m_plater, event);
 	};
 	process.set_fff_print(m_print);
 	process.set_gcode_result(m_gcode_result);
@@ -2358,6 +2373,28 @@ void PartPlateList::invalid_all_slice_result()
 	}
 
 	return;
+}
+
+//check whether all plates's slice result valid
+bool PartPlateList::is_all_slice_results_valid() const
+{
+	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+	{
+		if (!m_plate_list[i]->is_slice_result_valid())
+			return false;
+	}
+	return true;
+}
+
+//check whether all plates ready for slice
+bool PartPlateList::is_all_plates_ready_for_slice() const
+{
+    for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+	{
+		if (!m_plate_list[i]->can_slice())
+			return false;
+	}
+	return true;
 }
 
 //will create a plate and load gcode, return the plate index

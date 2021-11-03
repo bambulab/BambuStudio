@@ -1862,6 +1862,7 @@ struct Plater::priv
     //BBS: add part plate related logic
     void on_plate_right_click(RBtnPlateEvent&);
     void on_plate_selected(SimpleEvent&);
+    void on_slice_button_status(bool enable);
     //BBS: GUI refactor: GLToolbar
     void on_action_open_project(SimpleEvent&);
     void on_action_slice_plate(SimpleEvent&);
@@ -2120,6 +2121,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         view3D_canvas->Bind(EVT_GLCANVAS_INSTANCE_SCALED, [this](SimpleEvent&) { update(); });
         // BBS
         //view3D_canvas->Bind(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, [this](Event<bool>& evt) { this->sidebar->enable_buttons(evt.data); });
+        view3D_canvas->Bind(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, [this](Event<bool>& evt) { on_slice_button_status(evt.data); });
         view3D_canvas->Bind(EVT_GLCANVAS_UPDATE_GEOMETRY, &priv::on_update_geometry, this);
         view3D_canvas->Bind(EVT_GLCANVAS_MOUSE_DRAGGING_STARTED, &priv::on_3dcanvas_mouse_dragging_started, this);
         view3D_canvas->Bind(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED, &priv::on_3dcanvas_mouse_dragging_finished, this);
@@ -3073,6 +3075,8 @@ void Plater::priv::object_list_changed()
 
     // BBS
     //sidebar->enable_buttons(!model.objects.empty() && !export_in_progress && model_fits && part_plate->has_printable_instances());
+    bool can_slice = !model.objects.empty() && !export_in_progress && model_fits && part_plate->has_printable_instances();
+    main_frame->update_slice_print_status(MainFrame::eEventObjectUpdate, can_slice);
 }
 
 void Plater::priv::select_all()
@@ -3437,9 +3441,12 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     if ((return_state & UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
     {
         // Validation of the background data failed.
-        const wxString invalid_str = _L("Invalid data");
-        for (auto btn : {ActionButtonType::abReslice, ActionButtonType::abSendGCode, ActionButtonType::abExport})
-            sidebar->set_btn_label(btn, invalid_str);
+        //BBS: add slice&&print status update logic
+        this->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, false);
+        //const wxString invalid_str = _L("Invalid data");
+        //for (auto btn : {ActionButtonType::abReslice, ActionButtonType::abSendGCode, ActionButtonType::abExport})
+        //    sidebar->set_btn_label(btn, invalid_str);
+
         process_completed_with_error = true;
     }
     else
@@ -3452,7 +3459,21 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
             (return_state & UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE) != 0 )
             notification_manager->set_slicing_progress_hidden();
 
-        // BBS
+        //BBS: add slice&&print status update logic        
+        if (background_process.finished())
+        {
+            ready_to_slice = false;
+            this->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, false);
+        }
+        else if (!background_process.empty() &&
+                 !background_process.running()) /* Do not update buttons if background process is running
+                                                 * This condition is important for SLA mode especially,
+                                                 * when this function is called several times during calculations
+                                                 * */
+        {
+            ready_to_slice = true;
+            this->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, true);
+        }
 #if 0
         sidebar->set_btn_label(ActionButtonType::abExport, _(label_btn_export));
         sidebar->set_btn_label(ActionButtonType::abSendGCode, _(label_btn_send));
@@ -4371,7 +4392,8 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     // This updates the "Slice now", "Export G-code", "Arrange" buttons status.
     // Namely, it refreshes the "Out of print bed" property of all the ModelObjects, and it enables
     // the "Slice now" and "Export G-code" buttons based on their "out of bed" status.
-    this->object_list_changed();
+    //BBS: remove this update here, will be updated in update_fff_scene later
+    //this->object_list_changed();
 
     // refresh preview
     if (view3D->is_dragging()) // updating scene now would interfere with the gizmo dragging
@@ -4383,16 +4405,18 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
             this->update_sla_scene();
     }
 	
-    // BBS
-#if 0
+    //BBS: add slice&&print status update logic
     if (evt.cancelled()) {
-        if (wxGetApp().get_mode() == comSimple)
+        /*if (wxGetApp().get_mode() == comSimple)
             sidebar->set_btn_label(ActionButtonType::abReslice, "Slice now");
-        show_action_buttons(true);
+        show_action_buttons(true);*/
+        ready_to_slice = true;
+        //this->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, true, true);
     } else {
         if((ready_to_slice) || (wxGetApp().get_mode() == comSimple)) {
             //this means the current plate is not the slicing plate
-            show_action_buttons(ready_to_slice);
+            //show_action_buttons(ready_to_slice);
+            //this->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, ready_to_slice, true);
         }
         if (exporting_status != ExportingStatus::NOT_EXPORTING && !has_error) {
             notification_manager->stop_delayed_notifications_of_type(NotificationType::ExportOngoing);
@@ -4400,7 +4424,8 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         }
         // If writing to removable drive was scheduled, show notification with eject button
         if (exporting_status == ExportingStatus::EXPORTING_TO_REMOVABLE && !has_error) {
-            show_action_buttons(ready_to_slice);
+            //show_action_buttons(ready_to_slice);
+            this->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, ready_to_slice, true);
             notification_manager->push_exporting_finished_notification(last_output_path, last_output_dir_path,
                 // Don't offer the "Eject" button on ChromeOS, the Linux side has no control over it.
                 platform_flavor() != PlatformFlavor::LinuxOnChromium);
@@ -4408,7 +4433,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         }else if (exporting_status == ExportingStatus::EXPORTING_TO_LOCAL && !has_error)
             notification_manager->push_exporting_finished_notification(last_output_path, last_output_dir_path, false);
     }
-#endif
+
     exporting_status = ExportingStatus::NOT_EXPORTING;
 }
 
@@ -4507,6 +4532,13 @@ void Plater::priv::on_plate_selected(SimpleEvent&)
     sidebar->obj_list()->on_plate_selected(partplate_list.get_curr_plate_index());
 }
 
+//BBS: add slice button status update logic
+void Plater::priv::on_slice_button_status(bool enable)
+{
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": enable = "<<enable<<"\n";
+    if (!background_process.running())
+        main_frame->update_slice_print_status(MainFrame::eEventObjectUpdate, enable);
+}
 
 void Plater::priv::on_action_split_objects(SimpleEvent&)
 {
@@ -6751,6 +6783,8 @@ void Plater::reslice()
     // BBS
     if (p->background_process.running())
     {
+        p->ready_to_slice = false;
+        p->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, false);
 #if 0
         if (wxGetApp().get_mode() == comSimple) {
             p->sidebar->set_btn_label(ActionButtonType::abReslice, _L("Slicing") + dots);
@@ -6763,6 +6797,8 @@ void Plater::reslice()
     }
     else if (!p->background_process.empty() && !p->background_process.idle()) {
         //p->show_action_buttons(true);
+        p->ready_to_slice = true;
+        p->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, true);
     }
     else {
         clean_gcode_toolpaths = false;
@@ -7566,12 +7602,16 @@ int Plater::select_plate(int plate_index)
                 p->show_sliced_info(false);
                 // BBS
                 //p->show_action_buttons(true);
+                p->ready_to_slice = true;
+                p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, true);
             }
             else
             {
                 p->show_sliced_info(true);
                 // BBS
                 //p->show_action_buttons(false);
+                p->ready_to_slice = false;
+                p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false);
             }
         }
         else
@@ -7582,16 +7622,20 @@ int Plater::select_plate(int plate_index)
             bool model_fits = p->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
             //BBS: add partplate logic
             PartPlate* part_plate = p->partplate_list.get_curr_plate();
-            
+            part_plate->update_slice_ready_status(model_fits);
+
             // BBS: don't show action buttons
             //p->show_action_buttons(true);
+            p->ready_to_slice = true;
             if (model_fits && part_plate->has_printable_instances())
             {
-                p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, true));
+                //p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, true));
+                p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, true);
             }
             else
             {
-                p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
+                //p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
+                p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false);
             }
         }
     }
@@ -7666,12 +7710,16 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
                     // BBS
                     p->show_sliced_info(false);
                     //p->show_action_buttons(true);
+                    p->ready_to_slice = true;
+                    p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, true);
                 }
                 else
                 {
                     // BBS
                     p->show_sliced_info(true);
                     //p->show_action_buttons(false);
+                    p->ready_to_slice = false;
+                    p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false);
                 }
             }
             else
@@ -7683,13 +7731,16 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
                 PartPlate* part_plate = p->partplate_list.get_curr_plate();
                 // BBS
                 //p->show_action_buttons(true);
+                p->ready_to_slice = true;
                 if (model_fits && part_plate->has_printable_instances())
                 {
-                    p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, true));
+                    //p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, true));
+                    p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, true);
                 }
                 else
                 {
-                    p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
+                    //p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
+                    p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false);
                 }
             }
         }

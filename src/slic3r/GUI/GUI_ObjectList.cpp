@@ -2790,7 +2790,7 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
     //BBS start add obj_idx for debug
     PartPlateList& list = wxGetApp().plater()->get_partplate_list();
     list.notify_instance_update(obj_idx, 0);
-    int plate_idx = list.find_instance(obj_idx, 0);
+    //int plate_idx = list.find_instance(obj_idx, 0);
     //std::string item_name_str = (boost::format("[P%1%][O%2%]%3%") % plate_idx % std::to_string(obj_idx) % model_object->name).str();
     //std::string item_name_str = (boost::format("[P%1%]%2%") % plate_idx  % model_object->name).str();
     //const wxString& item_name = from_u8(item_name_str);

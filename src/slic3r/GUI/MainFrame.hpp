@@ -178,6 +178,16 @@ public:
     MainFrame();
     ~MainFrame() = default;
 
+    //BBS: add slice&&print status update logic
+    enum SlicePrintEventType
+    {
+        eEventObjectUpdate = 0,
+        eEventPlateUpdate = 1,
+        eEventParamUpdate = 2,
+        eEventSliceUpdate = 3,
+        eEventPrintUpdate = 4
+    };
+
     void update_layout();
 
 	// Called when closing the application and when switching the application language.
@@ -273,6 +283,15 @@ public:
     //std::shared_ptr<ProgressStatusBar>  m_statusbar;
     mutable int m_print_select{ ePrintAll };
     mutable int m_slice_select{ eSliceAll };
+    ScalableButton* m_slice_btn{ nullptr };
+    ScalableButton* m_slice_option_btn{ nullptr };
+    ScalableButton* m_print_btn{ nullptr };
+    ScalableButton* m_print_option_btn{ nullptr };
+    mutable bool          m_slice_enable{ true };
+    mutable bool          m_print_enable{ true };
+    bool get_enable_slice_status();
+    bool get_enable_print_status();
+    void update_slice_print_status(SlicePrintEventType event, bool can_slice = true, bool can_print = true);
 
 #ifdef __APPLE__
     std::unique_ptr<wxTaskBarIcon> m_taskbar_icon;

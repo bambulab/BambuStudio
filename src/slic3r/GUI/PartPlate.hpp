@@ -233,6 +233,7 @@ public:
 
     //can be sliced or not
     bool can_slice() const { return m_ready_for_slice; }
+    void update_slice_ready_status(bool ready_slice) { m_ready_for_slice = ready_slice; }
 
     //is slice result valid or not
     bool is_slice_result_valid() const { return m_slice_result_valid; }
@@ -447,7 +448,9 @@ public:
     void invalid_all_slice_result();
     //set current plater's slice result to valid
     void update_current_slice_result_state(bool valid) { m_plate_list[m_current_plate]->update_slice_result_valid_state(valid); }
-
+    //is slice result valid or not
+    bool is_all_slice_results_valid() const;
+    bool is_all_plates_ready_for_slice() const;
     void print() const;
 
     //retruct plates structures after de-serialize
