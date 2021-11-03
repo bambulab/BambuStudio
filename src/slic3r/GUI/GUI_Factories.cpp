@@ -835,10 +835,10 @@ void MenuFactory::create_common_object_menu(wxMenu* menu)
 #ifdef __WXOSX__  
     append_menu_items_osx(menu);
 #endif // __WXOSX__
-    append_menu_items_instance_manipulation(menu);
+    //append_menu_items_instance_manipulation(menu);
     // Delete menu was moved to be after +/- instace to make it more difficult to be selected by mistake.
     append_menu_item_delete(menu);
-    append_menu_item_instance_to_object(menu);
+    //append_menu_item_instance_to_object(menu);
     menu->AppendSeparator();
 
     // BBS
@@ -1020,7 +1020,7 @@ wxMenu* MenuFactory::object_menu()
     append_menu_items_convert_unit(&m_object_menu, 11);
     append_menu_item_settings(&m_object_menu);
     append_menu_item_change_extruder(&m_object_menu);
-    update_menu_items_instance_manipulation(mtObjectFFF);
+    //update_menu_items_instance_manipulation(mtObjectFFF);
 
     return &m_object_menu;
 }
@@ -1029,7 +1029,7 @@ wxMenu* MenuFactory::sla_object_menu()
 {
     append_menu_items_convert_unit(&m_sla_object_menu, 11);
     append_menu_item_settings(&m_sla_object_menu);
-    update_menu_items_instance_manipulation(mtObjectSLA);
+    //update_menu_items_instance_manipulation(mtObjectSLA);
 
     return &m_sla_object_menu;
 }
@@ -1084,6 +1084,7 @@ wxMenu* MenuFactory::plate_menu()
     return &m_plate_menu;
 }
 
+#if 0
 void MenuFactory::append_menu_items_instance_manipulation(wxMenu* menu)
 {
     MenuType type = menu == &m_object_menu ? mtObjectFFF : mtObjectSLA;
@@ -1132,6 +1133,7 @@ void MenuFactory::update_menu_items_instance_manipulation(MenuType type)
         }
     }
 }
+#endif
 
 void MenuFactory::update_object_menu()
 {

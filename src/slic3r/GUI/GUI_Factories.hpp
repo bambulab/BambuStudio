@@ -110,8 +110,8 @@ private:
     void        append_menu_item_merge_to_single_object(wxMenu* menu);
     void        append_menu_item_merge_parts_to_single_part(wxMenu *menu);
     void        append_menu_items_mirror(wxMenu *menu);
-    void        append_menu_items_instance_manipulation(wxMenu *menu);
-    void        update_menu_items_instance_manipulation(MenuType type);
+    //void        append_menu_items_instance_manipulation(wxMenu *menu);
+    //void        update_menu_items_instance_manipulation(MenuType type);
 };
 
 }}
