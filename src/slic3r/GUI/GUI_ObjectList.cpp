@@ -3379,6 +3379,18 @@ void ObjectList::update_selections()
     const Selection& selection = scene_selection();
     wxDataViewItemArray sels;
 
+    if (m_selection_mode == smUndef) {
+        PartPlate* pp = wxGetApp().plater()->get_partplate_list().get_selected_plate();
+        assert(pp != nullptr);
+        wxDataViewItem sel_plate = m_objects_model->GetItemByPlateId(pp->get_index());
+        sels.Add(sel_plate);
+        select_items(sels);
+
+        // Scroll selected Item in the middle of an object list
+        ensure_current_item_visible();
+        return;
+    }
+
     if ( ( m_selection_mode & (smSettings|smLayer|smLayerRoot) ) == 0)
         m_selection_mode = smInstance;
 
@@ -4527,6 +4539,13 @@ void ObjectList::update_after_undo_redo()
     this->UnselectAll();
     m_objects_model->DeleteAll();
     m_prevent_list_events = false;
+
+	PartPlateList &ppl = wxGetApp().plater()->get_partplate_list();
+    for (int i = 0; i < ppl.get_plate_count(); i++) {
+        PartPlate* pp = ppl.get_plate(i);
+        m_objects_model->AddPlate(pp, wxEmptyString);
+    }
+    m_objects_model->AddOutsidePlate();
 
     size_t obj_idx = 0;
     std::vector<size_t> obj_idxs;

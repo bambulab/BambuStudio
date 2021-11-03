@@ -281,7 +281,7 @@ class ObjectDataViewModel :public wxDataViewModel
     wxBitmap                                    m_warning_bmp;
     wxBitmap                                    m_warning_manifold_bmp;
 
-    ObjectDataViewModelNode*                    m_plate_none;
+    ObjectDataViewModelNode*                    m_plate_outside;
 
     wxDataViewCtrl*                             m_ctrl { nullptr };
 public:
@@ -291,6 +291,7 @@ public:
     void Init();
 
     wxDataViewItem AddPlate(PartPlate* part_plate, wxString name = wxEmptyString, bool refresh = true);
+    wxDataViewItem AddOutsidePlate(bool refresh = true);
     wxDataViewItem AddObject(ModelObject* model_object, bool refresh = true);
     wxDataViewItem AddVolumeChild(  const wxDataViewItem &parent_item,
                                     const wxString &name,

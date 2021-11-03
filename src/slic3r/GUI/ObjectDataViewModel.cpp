@@ -365,7 +365,7 @@ ObjectDataViewModel::ObjectDataViewModel()
         m_info_bmps[item.first] = create_scaled_bitmap(item.second.bmp_name);
 
 
-    m_plate_none = (ObjectDataViewModelNode*)AddPlate(nullptr, _L("Outside")).GetID();
+    m_plate_outside = nullptr;
 }
 
 ObjectDataViewModel::~ObjectDataViewModel()
@@ -382,6 +382,8 @@ void ObjectDataViewModel::Init()
 
     if (list.get_plate_count() > 0)
         AddPlate(list.get_plate(0));
+
+    AddOutsidePlate();
 }
 
 wxBitmap& ObjectDataViewModel::GetWarningBitmap(const std::string& warning_icon_name)
@@ -429,6 +431,14 @@ wxDataViewItem ObjectDataViewModel::AddPlate(PartPlate* part_plate, wxString nam
     return plate_item;
 }
 
+wxDataViewItem ObjectDataViewModel::AddOutsidePlate(bool refresh)
+{
+    wxDataViewItem plate_item = AddPlate(nullptr, _L("Outside"));
+    m_plate_outside = (ObjectDataViewModelNode*)plate_item.GetID();
+
+    return plate_item;
+}
+
 wxDataViewItem ObjectDataViewModel::AddObject(ModelObject* model_object, bool refresh)
 {
     // get object node params
@@ -454,8 +464,8 @@ wxDataViewItem ObjectDataViewModel::AddObject(ModelObject* model_object, bool re
         obj_node->m_parent = plate_node;
     }
     else {
-        obj_node->m_parent = m_plate_none;
-        plate_node = m_plate_none;
+        obj_node->m_parent = m_plate_outside;
+        plate_node = m_plate_outside;
     }
 
     m_objects.push_back(obj_node);
@@ -783,7 +793,7 @@ wxDataViewItem ObjectDataViewModel::Delete(const wxDataViewItem &item)
             assert((child->GetType() & itObject) != 0);
 
             if (child->m_plate_idx == node->m_plate_idx)
-                ReparentObject(m_plate_none, child);
+                ReparentObject(m_plate_outside, child);
         }
 
         ItemDeleted(parent, wxDataViewItem(node));
@@ -996,12 +1006,13 @@ wxDataViewItem ObjectDataViewModel::DeleteLastInstance(const wxDataViewItem &par
 
 void ObjectDataViewModel::DeleteAll()
 {
-	while (!m_objects.empty())
-	{
-		auto object = m_objects.back();
-// 		object->RemoveAllChildren();
-		Delete(wxDataViewItem(object));	
-	}
+    // BBS
+    for (auto plate : m_plates) {
+        Delete(wxDataViewItem(plate));
+    }
+
+    m_plates.clear();
+    m_objects.clear();
 }
 
 void ObjectDataViewModel::DeleteChildren(wxDataViewItem& parent)
@@ -1388,7 +1399,7 @@ void ObjectDataViewModel::ReloadAllPlates()
         Delete(wxDataViewItem(plate));
     }
     m_plates.clear();
-    m_plate_none = nullptr;
+    m_plate_outside = nullptr;
 
     m_objects.clear();
 
@@ -1402,7 +1413,7 @@ void ObjectDataViewModel::ReloadAllPlates()
     std::sort(m_plates.begin(), m_plates.end(), [](ObjectDataViewModelNode* a, ObjectDataViewModelNode* b) -> bool {
         return a->GetPlateIdx() < b->GetPlateIdx();
         });
-    m_plate_none = (ObjectDataViewModelNode*)AddPlate(nullptr, _L("Outside")).GetID();
+    m_plate_outside = (ObjectDataViewModelNode*)AddPlate(nullptr, _L("Outside")).GetID();
 
     // reload objects from Model
     Model& model = wxGetApp().model();
@@ -1537,7 +1548,7 @@ void ObjectDataViewModel::OnPlateChange(const int plate_idx, wxDataViewItem item
 {
     ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(item.GetID());
 
-    ObjectDataViewModelNode* parent_plate = m_plate_none;
+    ObjectDataViewModelNode* parent_plate = m_plate_outside;
     for (auto plate : m_plates) {
         if (plate->m_plate_idx == plate_idx) {
             parent_plate = plate;
