@@ -4,6 +4,8 @@
 #include "MultiMaterialSegmentation.hpp"
 #include "Print.hpp"
 #include "ClipperUtils.hpp"
+//BBS
+#include "ShortestPath.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -821,7 +823,19 @@ void PrintObject::slice_volumes()
 	    	// The Elephant foot has been compensated, therefore the 1st layer's lslices are shrank with the Elephant foot compensation value.
 	    	// Store the uncompensated value there.
 	    	assert(m_layers.front()->id() == 0);
-			m_layers.front()->lslices = std::move(lslices_1st_layer);
+            //BBS: sort the lslices_1st_layer according to shortest path before saving
+            //Otherwise the travel of first layer would be mess.
+            Points ordering_points;
+            ordering_points.reserve(lslices_1st_layer.size());
+            for (const ExPolygon& ex : lslices_1st_layer)
+                ordering_points.push_back(ex.contour.first_point());
+            std::vector<Points::size_type> order = chain_points(ordering_points);
+            ExPolygons lslices_1st_layer_sorted;
+            lslices_1st_layer_sorted.reserve(lslices_1st_layer.size());
+            for (size_t i : order)
+                lslices_1st_layer_sorted.emplace_back(std::move(lslices_1st_layer[i]));
+
+            m_layers.front()->lslices = std::move(lslices_1st_layer_sorted);
 		}
 	}
 
