@@ -135,6 +135,8 @@ private:
 
 
 wxDECLARE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
+//BBS: declare EVT_GLCANVAS_PLATE_SELECT
+wxDECLARE_EVENT(EVT_GLCANVAS_PLATE_SELECT, SimpleEvent);
 
 using Vec2dEvent = Event<Vec2d>;
 // _bool_ value is used as a indicator of selection in the 3DScene

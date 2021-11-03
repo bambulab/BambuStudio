@@ -1555,6 +1555,7 @@ int PartPlateList::select_plate(int index)
 	if (m_intialized && m_plater) {
 		Vec2d pos = compute_shape_position(index, m_plate_cols);
         m_plater->set_bed_position(pos);
+		wxQueueEvent(m_plater, new SimpleEvent(EVT_GLCANVAS_PLATE_SELECT));
 	}
 
 	return 0;

@@ -3334,7 +3334,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
         else {
             //BBS Select plate in this 3D canvas.
-            if (m_picking_enabled && !m_hover_plate_idxs.empty() && evt.LeftDown()) {
+            if (m_picking_enabled && !m_hover_plate_idxs.empty() && evt.LeftDown() && (m_canvas_type == CanvasView3D)) {
                 int hover_idx = m_hover_plate_idxs.front();
                 wxGetApp().plater()->select_plate_by_hover_id(hover_idx);
                 //wxGetApp().plater()->get_partplate_list().select_plate_view();
@@ -3560,12 +3560,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
 
             //BBS change plate selection
-            if (!m_hover_plate_idxs.empty()) {
+            if (!m_hover_plate_idxs.empty() && (m_canvas_type == CanvasView3D)) {
                 int hover_idx = m_hover_plate_idxs.front();
                 wxGetApp().plater()->select_plate_by_hover_id(hover_idx, true);
                 if (m_hover_volume_idxs.empty())
                     deselect_all();
-                post_event(SimpleEvent(EVT_GLCANVAS_PLATE_SELECT));
                 render();
             }
 

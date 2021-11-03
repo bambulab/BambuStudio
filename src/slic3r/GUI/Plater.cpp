@@ -1861,6 +1861,7 @@ struct Plater::priv
     void on_right_click(RBtnEvent&);
     //BBS: add part plate related logic
     void on_plate_right_click(RBtnPlateEvent&);
+    void on_plate_selected(SimpleEvent&);
     //BBS: GUI refactor: GLToolbar
     void on_action_open_project(SimpleEvent&);
     void on_action_slice_plate(SimpleEvent&);
@@ -2205,6 +2206,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLTOOLBAR_SELECT_SLICED_PLATE, &priv::on_action_select_sliced_plate, this);
         q->Bind(EVT_GLTOOLBAR_PRINT_ALL, &priv::on_action_print_all, this);
         q->Bind(EVT_GLTOOLBAR_EXPORT_GCODE, &priv::on_action_export_gcode, this);
+        q->Bind(EVT_GLCANVAS_PLATE_SELECT, &priv::on_plate_selected, this);
         //q->Bind(EVT_GLVIEWTOOLBAR_ASSEMBLE, [q](SimpleEvent&) { q->select_view_3D("Assemble"); });
     }
 
@@ -4497,6 +4499,14 @@ void Plater::priv::on_action_export_gcode(SimpleEvent&)
         q->export_gcode(false);
     }
 }
+
+//BBS: add plate select logic
+void Plater::priv::on_plate_selected(SimpleEvent&)
+{
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received plate selected event\n" ;
+    sidebar->obj_list()->on_plate_selected(partplate_list.get_curr_plate_index());
+}
+
 
 void Plater::priv::on_action_split_objects(SimpleEvent&)
 {
@@ -7612,8 +7622,6 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
                 }
             }
         }
-
-        p->sidebar->obj_list()->on_plate_selected(plate_index);
     }
     else if ((action == 1)&&(!right_click))
     {
