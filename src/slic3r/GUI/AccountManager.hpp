@@ -114,7 +114,7 @@ private:
 
     boost::filesystem::path m_user_info_path;
     const std::string account_json = "UserInfo.json";
-    std::string host = "api-qa.bambu-lab.com";
+    std::string host = "https://api-qa.bambu-lab.com";
     std::string MSG_SUCCESS = "success";
 
 
@@ -142,6 +142,7 @@ private:
     std::string json_request_body_post_task(BBLTask* task);
     std::string json_request_body_post_task(BBLSubTask* task);
     std::string json_request_poll_3mf_gather(BBLSubTask* task);
+    std::string json_request_poll_3mf_gather_model_only();
 
     /* project */
     BBLProject* default_project;
@@ -231,6 +232,7 @@ public:
     int upload_3mf(BBLProfile* profile, ResultFn resFn = nullptr, Http::ProgressFn proFn = nullptr, bool sync = false);
     // poll_3mf for project model only, sync
     int poll_3mf(BBLProject* project);
+    int poll_3mf(BBLProject* project, std::string profile_id, Http::ErrorFn errFn = nullptr);
     // poll_3mf for project and profile, sync
     int poll_3mf(BBLProfile* profile);
     // poll_3mf for task, sync
@@ -269,9 +271,9 @@ public:
     /* handle webpage command */
     std::string handle_web_request(std::string cmd);
 
-    void reqeust_model_download(std::string model_id);
-    void reqeust_project_download(std::string project_id);
-    void reqeust_open_project(std::string project_id);
+    void request_model_download(std::string model_id);
+    void request_project_download(std::string project_id);
+    void request_open_project(std::string project_id);
 };
 
 } // namespace Slic3r

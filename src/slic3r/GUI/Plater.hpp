@@ -193,6 +193,10 @@ public:
     void new_project();
     void load_project();
     void load_project(const wxString& filename);
+    //BBS download project by project id
+    void download_project(const wxString& project_id);
+    void request_download_project(std::string project_id);
+
     void add_model(bool imperial_units = false);
     void import_sl1_archive();
     void extract_config_from_project();

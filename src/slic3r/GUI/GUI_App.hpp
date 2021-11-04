@@ -250,6 +250,8 @@ public:
     void            load_project(wxWindow *parent, wxString& input_file) const;
     void            import_model(wxWindow *parent, wxArrayString& input_files) const;
     void            load_gcode(wxWindow* parent, wxString& input_file) const;
+    //BBS
+    void            download_project(std::string project_id);
 
     static bool     catch_error(std::function<void()> cb, const std::string& err);
 

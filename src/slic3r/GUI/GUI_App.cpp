@@ -1831,6 +1831,14 @@ void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
         input_file = dialog.GetPath();
 }
 
+//BBS download project by project id
+void GUI_App::download_project(std::string project_id)
+{
+    if (plater_) {
+        plater_->request_download_project(project_id);
+    }
+}
+
 bool GUI_App::switch_language()
 {
     if (select_language()) {

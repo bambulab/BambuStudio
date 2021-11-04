@@ -289,11 +289,8 @@ Http::priv::~priv()
 
 bool Http::priv::ca_file_supported(::CURL *curl)
 {
-#ifdef _WIN32
-	bool res = false;
-#else
+	//BBS support set ca file by default
 	bool res = true;
-#endif
 
 	if (curl == nullptr) { return res; }
 

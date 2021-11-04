@@ -131,9 +131,7 @@ wxDEFINE_EVENT(EVT_SLICING_COMPLETED,               wxCommandEvent);
 wxDEFINE_EVENT(EVT_PROCESS_COMPLETED,               SlicingProcessCompletedEvent);
 wxDEFINE_EVENT(EVT_EXPORT_BEGAN,                    wxCommandEvent);
 wxDEFINE_EVENT(EVT_EXPORT_FINISHED,                 wxCommandEvent);
-wxDEFINE_EVENT(EVT_SELECT_MONITOR, wxCommandEvent);
-
-
+wxDEFINE_EVENT(EVT_DOWNLOAD_PROJECT,                wxCommandEvent);
 
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
 {
@@ -1879,8 +1877,8 @@ struct Plater::priv
     //BBS: add part plate related logic
     void on_plate_right_click(RBtnPlateEvent&);
     void on_plate_selected(SimpleEvent&);
+    void on_action_download_project(wxCommandEvent& evt);
     void on_slice_button_status(bool enable);
-    void on_action_select_monitor(wxCommandEvent&);
     //BBS: GUI refactor: GLToolbar
     void on_action_open_project(SimpleEvent&);
     void on_action_slice_plate(SimpleEvent&);
@@ -1965,6 +1963,7 @@ private:
 
     // path to project file stored with no extension
     wxString 					m_project_filename;
+    BBLProject*                 m_project;
     Slic3r::UndoRedo::Stack 	m_undo_redo_stack_main;
     Slic3r::UndoRedo::Stack 	m_undo_redo_stack_gizmos;
     Slic3r::UndoRedo::Stack    *m_undo_redo_stack_active = &m_undo_redo_stack_main;
@@ -2230,7 +2229,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLTOOLBAR_PRINT_ALL, &priv::on_action_print_all, this);
         q->Bind(EVT_GLTOOLBAR_EXPORT_GCODE, &priv::on_action_export_gcode, this);
         q->Bind(EVT_GLCANVAS_PLATE_SELECT, &priv::on_plate_selected, this);
-        q->Bind(EVT_SELECT_MONITOR, &priv::on_action_select_monitor, this);
+        q->Bind(EVT_DOWNLOAD_PROJECT, &priv::on_action_download_project, this);
         //q->Bind(EVT_GLVIEWTOOLBAR_ASSEMBLE, [q](SimpleEvent&) { q->select_view_3D("Assemble"); });
     }
 
@@ -4614,10 +4613,11 @@ void Plater::priv::on_plate_selected(SimpleEvent&)
     sidebar->obj_list()->on_plate_selected(partplate_list.get_curr_plate_index());
 }
 
-void Plater::priv::on_action_select_monitor(wxCommandEvent&)
+void Plater::priv::on_action_download_project(wxCommandEvent& evt)
 {
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received download project event\n" ;
     if (q != nullptr) {
-        wxGetApp().mainframe->jump_to_monitor();
+        q->download_project(evt.GetString());
     }
 }
 
@@ -5650,6 +5650,131 @@ void Plater::load_project(const wxString& filename)
         reset_project_dirty_initial_presets();
         update_project_dirty_from_presets();
     }
+
+    // BBS set default 3D view and direction after loading project
+    p->select_view_3D("3D");
+    p->select_view("topfront");
+}
+
+//BBS download project by project id
+void Plater::download_project(const wxString& project_id)
+{
+    BBLProject* project = new BBLProject();
+    project->project_id = project_id.ToStdString();
+    Slic3r::AccountManager* c = wxGetApp().getAccountManager();
+
+    BBLProfile* profile = new BBLProfile(project);
+    profile->profile_name = "bbl_profile_name";
+    c->request_profile_id(profile);
+
+    if (profile->profile_id.empty())
+    {
+        BOOST_LOG_TRIVIAL(error) << "download_project request profile id failed!";
+        return;
+    }
+
+    c->poll_3mf(project, profile->profile_id,
+        [this](std::string body, std::string error, unsigned int status)
+        {
+            wxString error_tip = wxString::Format("Download failed! body=%s, error=%s, status=%d", body, error, status);
+            //TODO download progress
+        });
+
+    if (project->project_url.empty()) {
+        ; //TODO open project failed!
+        BOOST_LOG_TRIVIAL(error) << "download_project " << project_id.ToStdString() << " failed!";
+        return;
+    }
+
+    bool cont = true;
+    bool* cont_ptr = &cont;
+    wxString msg;
+    wxString dlg_title = wxString::Format("Downloading Project %s", project->project_name);
+    wxGenericProgressDialog dlg(dlg_title,
+        wxString(' ', 100) + "\n\n\n\n",
+        100,    // range
+        this,   // parent
+        wxPD_CAN_ABORT |
+        wxPD_APP_MODAL |
+        wxPD_ELAPSED_TIME |
+        wxPD_SMOOTH);
+
+    msg = "downloading project ...";
+    cont = dlg.Pulse(msg);
+
+    wxGenericProgressDialog* progress_dlg = &dlg;
+
+    bool res = false;
+    boost::filesystem::path target_path(wxStandardPaths::Get().GetTempDir().utf8_str().data());
+    target_path /= (boost::format("import_project.%1%.3mf") % get_current_pid()).str();
+    fs::path tmp_path = target_path;
+    tmp_path += format(".%1%", ".download");
+    auto http = Http::get(project->project_url);
+    //BBS get default ca_file
+    std::string default_ca_file = resources_dir() + "/bbl/cacert.pem";
+    http.ca_file(default_ca_file);
+    http.on_progress([this, progress_dlg, cont_ptr](Http::Progress progress, bool& cancel) {
+        bool skip = false;
+        int percent = 0;
+        if (progress.dltotal != 0) {
+            percent = progress.dlnow * 100 / progress.dltotal;
+        }
+        wxString msg = wxString::Format("Project Downloaded %d%%", percent);
+        if (progress_dlg) {
+            *cont_ptr = progress_dlg->Update(percent, msg, &skip);
+        }
+
+        if (!*cont_ptr)
+        {
+            if (wxMessageBox("Do you really want to cancel?",
+                "Cancel to download project",  // caption
+                wxYES_NO | wxICON_QUESTION) == wxYES) {
+                cancel = true;
+                return;
+            }
+            else {
+                *cont_ptr = true;
+                progress_dlg->Resume();
+            }
+        }
+        })
+        .on_error([&](std::string body, std::string error, unsigned http_status) {
+            (void)body;
+            BOOST_LOG_TRIVIAL(error) << format("Error getting: `%1%`: HTTP %2%, %3%",
+                body,
+                http_status,
+                error);
+            wxString msg = wxString::Format("Download Failed! body=%s, error=%s, status=%d", body, error, http_status);
+            dlg.Update(dlg.GetValue(), msg);
+            *cont_ptr = false;
+            return;
+            })
+            .on_complete([&](std::string body, unsigned /* http_status */) {
+                fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
+                file.write(body.c_str(), body.size());
+                file.close();
+                fs::rename(tmp_path, target_path);
+                res = true;
+                })
+                .perform_sync();
+
+                if (!*cont_ptr) {
+                    return;
+                }
+                else {
+                    wxString msg = "Download completed! close to import project";
+                    *cont_ptr = dlg.Update(100, msg);
+                }
+
+                this->load_project(target_path.string());
+}
+
+
+void Plater::request_download_project(std::string project_id)
+{
+    wxCommandEvent* event = new wxCommandEvent(EVT_DOWNLOAD_PROJECT);
+    event->SetString(project_id);
+    wxQueueEvent(this, event);
 }
 
 void Plater::add_model(bool imperial_units/* = false*/)

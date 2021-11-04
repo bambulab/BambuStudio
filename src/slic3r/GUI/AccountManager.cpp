@@ -455,11 +455,9 @@ namespace Slic3r {
                 if (ack_status.has_value()) {
                     if (ack_status.value().compare(MSG_SUCCESS) == 0) {
                         BOOST_LOG_TRIVIAL(trace) << "Account = " << account << " Register Success!";
-                        Slic3r::GUI::wxGetApp().show_message_box("Register ok!");
                     }
                     else {
                         BOOST_LOG_TRIVIAL(trace) << "Account = " << account << " Register Failed! error = " << body;
-                        Slic3r::GUI::wxGetApp().show_message_box("Register failed! msg=" + body);
                     }
                 }
                 else {
@@ -467,7 +465,6 @@ namespace Slic3r {
                 }
                     }).on_error([&, account](std::string body, std::string error, unsigned status) {
                         BOOST_LOG_TRIVIAL(trace) << "Account = " << account << " Register Failed! error = " << body;
-                        Slic3r::GUI::wxGetApp().show_message_box("Register failed! msg=" + body);
                         }).perform();
         }
         catch (std::exception& e) {
@@ -900,6 +897,18 @@ namespace Slic3r {
         return oss.str();
     }
 
+    std::string AccountManager::json_request_poll_3mf_gather_model_only()
+    {
+        pt::ptree root, profile_files;
+        root.put<bool>("base_model", true);
+        root.put<bool>("profile_config", true);
+        root.put<bool>("profile_thumbnail", false);
+        root.put<bool>("profile_gcode", false);
+        root.add_child("profile_files", profile_files);
+        std::stringstream oss;
+        pt::write_json(oss, root, false);
+        return oss.str();
+    }
 
     std::string AccountManager::json_request_poll_3mf_gather(BBLSubTask* task)
     {
@@ -1277,13 +1286,23 @@ namespace Slic3r {
         return 0;
     }
 
-    int AccountManager::poll_3mf(BBLProject* project)
+    // poll 3mf must have a profile id
+    int AccountManager::poll_3mf(BBLProject* project, std::string profile_id, Http::ErrorFn errFn)
     {
-        if (!project) return -1;
+        if (!project || project->project_id.empty()) return -1;
+
         int retry_ = 0;
         int retry_max = 5;
 
-        std::string url = (boost::format("%1%/iot/user/project/%2%") % host % project->project_id).str();
+        std::string gather = json_request_poll_3mf_gather_model_only();
+        gather = boost::replace_all_copy(gather, "\"true\"", "true");
+        gather = boost::replace_all_copy(gather, "\"false\"", "false");
+
+        gather.erase(std::remove(gather.begin(), gather.end(), '\\'), gather.end());
+        gather = Http::url_encode(gather);
+        std::string ticket = "0";
+        std::string query_params = (boost::format("?profile_id=%1%&&gather=%2%&&ticket=%3%") % profile_id % gather % ticket).str();
+        std::string url = (boost::format("%1%/iot/user/project/%2%%3%") % host % project->project_id % query_params).str();
         Http http = Http::get(url);
 
         http.header("accept", "application/json")
@@ -1296,7 +1315,7 @@ namespace Slic3r {
                     if (root.empty()) return;
                     boost::optional<std::string> message = root.get_optional<std::string>("message");
                     if (message.has_value()) {
-                        if (message.value().compare("ready") == 0) {
+                        if (message.value().compare("ready") == 0 || message.value().compare(MSG_SUCCESS) == 0) {
                             BOOST_LOG_TRIVIAL(info) << "get_project_info ok!";
                             boost::optional<std::string> status = root.get_optional<std::string>("status");
                             boost::optional<std::string> model_id = root.get_optional<std::string>("model_id");
@@ -1334,7 +1353,7 @@ namespace Slic3r {
                         }
                     }
                 }
-        );
+        ).on_error(errFn);
 
         while (project->project_url.empty() && retry_ < retry_max) {
                 http.perform_sync();
@@ -1679,8 +1698,9 @@ namespace Slic3r {
 
     void AccountManager::get_project_info(BBLProject* project)
     {
-        std::string query_params("?gather=all");
+        if (!project || project->project_id.empty()) return;
 
+        std::string query_params("?gather=all");
         std::string url = (boost::format("%1%/iot/user/project/%2%?%3%") % host % project->project_id % query_params).str();
         Http http = Http::get(url);
         http.header("accept", "application/json")
@@ -2128,12 +2148,12 @@ namespace Slic3r {
                         return "";
                     }
                 }
-                else if (command_str.compare("reqeust_model_download") == 0) {
+                else if (command_str.compare("request_model_download") == 0) {
                     if (root.get_child_optional("data") != boost::none) {
                         pt::ptree data_node = root.get_child("data");
                         boost::optional<std::string> model_id = data_node.get_optional<std::string>("model_id");
                         if (model_id.has_value()) {
-                            this->reqeust_model_download(model_id.value());
+                            this->request_model_download(model_id.value());
                         }
                     }
                 }
@@ -2142,7 +2162,7 @@ namespace Slic3r {
                         pt::ptree data_node = root.get_child("data");
                         boost::optional<std::string> project_id = data_node.get_optional<std::string>("project_id");
                         if (project_id.has_value()) {
-                            this->reqeust_project_download(project_id.value());
+                            this->request_project_download(project_id.value());
                         }
                     }
                 }
@@ -2151,7 +2171,7 @@ namespace Slic3r {
                         pt::ptree data_node = root.get_child("data");
                         boost::optional<std::string> project_id = data_node.get_optional<std::string>("project_id");
                         if (project_id.has_value()) {
-                            this->reqeust_open_project(project_id.value());
+                            this->request_open_project(project_id.value());
                         }
                     }
                 }
@@ -2164,17 +2184,24 @@ namespace Slic3r {
         return "";
     }
 
-    void AccountManager::reqeust_model_download(std::string model_id)
+    void AccountManager::request_model_download(std::string model_id)
     {
-        ;
+        int result = 0;
+        BBLProject* project = new BBLProject();
+        project->project_model_id = model_id;
+        result = request_project_id(project,
+            [this, project](int result, std::string info) {
+                GUI::wxGetApp().download_project(project->project_id);
+            }
+        );
     }
 
-    void AccountManager::reqeust_project_download(std::string model_id)
+    void AccountManager::request_project_download(std::string project_id)
     {
-        ;
+        GUI::wxGetApp().download_project(project_id);
     }
 
-    void AccountManager::reqeust_open_project(std::string project_id)
+    void AccountManager::request_open_project(std::string project_id)
     {
         ;
     }
