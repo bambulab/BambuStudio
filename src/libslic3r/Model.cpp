@@ -2193,6 +2193,17 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
     polygon->scale(get_scaling_factor(X), get_scaling_factor(Y)); // scale around polygon origin
 }
 
+//BBS
+double ModelInstance::get_auto_brim_width() const
+{
+    BoundingBoxf3 raw_bbox = object->raw_mesh_bounding_box();
+    auto bbox_size = transform_bounding_box(raw_bbox).size();
+    double height_to_area = bbox_size(2) / (bbox_size(0) * bbox_size(1));
+    double thermalLength = std::max(bbox_size(0), bbox_size(1));
+    double brim_width = std::min(std::max(height_to_area * 40, thermalLength * 0.05), 20.);
+    return brim_width;
+}
+
 void ModelInstance::get_arrange_polygon(void* ap) const
 {
 //    static const double SIMPLIFY_TOLERANCE_MM = 0.1;
@@ -2216,7 +2227,6 @@ void ModelInstance::get_arrange_polygon(void* ap) const
     ret.rotation     = get_rotation(Z);
 
     //BBS: add materials related information
-    ModelObject *object = this->get_object();
     ModelVolume *volume = NULL;
     for (size_t i = 0; i < object->volumes.size(); ++ i) {
         if (object->volumes[i]->is_model_part())
@@ -2234,7 +2244,14 @@ void ModelInstance::get_arrange_polygon(void* ap) const
     if (ret.extrude_id == 0) //the default extruder
         ret.extrude_id = 1;
 
-    return;
+    // get user specified brim width per object
+    // Note: if global brim_type=btNoBrim or brAutoBrim, user can't set individual brim_width
+    if (object->config.has("brim_width"))
+        ret.brim_width = object->config.opt_float("brim_width");
+    else {
+        // get auto brim width
+        ret.brim_width = get_auto_brim_width();
+    }
 }
 
 indexed_triangle_set FacetsAnnotation::get_facets(const ModelVolume& mv, EnforcerBlockerType type) const

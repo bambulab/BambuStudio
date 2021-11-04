@@ -119,6 +119,8 @@ struct NfpPConfig {
 
     std::function<void(const ItemGroup &, NfpPConfig &config)> on_preload;
 
+    std::function<bool(_Item<RawShape>& i1, _Item<RawShape>& i2)> sortfunc;
+
     NfpPConfig(): rotations({0.0, Pi/2.0, Pi, 3*Pi/2}),
         alignment(Alignment::CENTER), starting_point(Alignment::CENTER) {}
 };

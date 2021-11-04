@@ -564,6 +564,10 @@ public:
     bool                has_infinite_skirt() const;
     bool                has_skirt() const;
     bool                has_brim() const;
+    //BBS
+    bool                has_auto_brim() const    {
+        return std::any_of(m_objects.begin(), m_objects.end(), [](PrintObject* object) { return object->config().brim_type == btAutoBrim; });
+    }
 
     // Returns an empty string if valid, otherwise returns an error message.
     std::string         validate(std::string* warning = nullptr) const override;

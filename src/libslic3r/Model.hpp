@@ -995,6 +995,9 @@ public:
     bool is_printable() const { return object->printable && printable && (print_volume_state == ModelInstancePVS_Inside); }
     bool is_assemble_initialized() { return m_assemble_initialized; }
 
+    //BBS
+    double get_auto_brim_width() const;
+
     // Getting the input polygon for arrange
     // We use void* as input type to avoid including Arrange.hpp in Model.hpp.
     void get_arrange_polygon(void* arrange_polygon) const;

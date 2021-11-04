@@ -352,6 +352,17 @@ protected:
             }
         }
 #endif
+
+        // for layered printing, we want extruder change as few as possible
+        if (!params.is_seq_print)
+        {
+            for (int i = 0; i < m_items.size(); i++) {
+                Item& p = m_items[i];
+                if (p.is_virt_object) continue;
+                score += 0.5 * LARGE_COST_TO_REJECT * (item.extrude_id != p.extrude_id);
+            }
+        }
+
         return std::make_tuple(score, fullbb);
     }
     
@@ -431,6 +442,20 @@ public:
 
         if (stopcond) m_pck.stopCondition(stopcond);
 
+        m_pconf.sortfunc= [&params](Item& i1, Item& i2) {
+            int p1 = i1.priority(), p2 = i2.priority();
+            if (p1 != p2)
+                return p1 > p2;
+            if (params.is_seq_print) {
+                return i1.bed_temp != i2.bed_temp ? (i1.bed_temp > i2.bed_temp) :
+                        (i1.height != i2.height ? (i1.height < i2.height) : (i1.area() > i2.area()));
+            }
+            else {
+                return i1.bed_temp != i2.bed_temp ? (i1.bed_temp > i2.bed_temp) :
+                    (i1.extrude_id != i2.extrude_id ? (i1.extrude_id < i2.extrude_id) : (i1.area() > i2.area()));
+            }
+        };
+        
         m_pck.configure(m_pconf);
     }
      
@@ -562,15 +587,9 @@ void _arrange(
     auto corrected_bin = bin;
     //sl::offset(corrected_bin, md);
     ArrangeParams mod_params = params;
-    mod_params.min_obj_distance = 0;
+    mod_params.min_obj_distance = 0;  // items are already inflated
 
     AutoArranger<BinT> arranger{corrected_bin, mod_params, progressfn, stopfn};
-    
-    auto infl = coord_t(std::ceil(params.min_obj_distance / 2.0));
-    for (Item& itm : shapes) itm.inflate(infl);
-    for (Item& itm : excludes)
-        if(!itm.is_virt_object)
-            itm.inflate(infl);
     
     remove_large_items(excludes, corrected_bin);
 
@@ -599,7 +618,7 @@ void _arrange(
     }
 
     arranger(inp.begin(), inp.end());
-    for (Item &itm : inp) itm.inflate(-infl);
+    for (Item &itm : inp) itm.inflation(0);
 }
 
 inline Box to_nestbin(const BoundingBox &bb) { return Box{{bb.min(X), bb.min(Y)}, {bb.max(X), bb.max(Y)}};}
@@ -651,25 +670,29 @@ static void process_arrangeable(const ArrangePolygon &arrpoly,
     const Vec2crd &offs     = arrpoly.translation;
     double         rotation = arrpoly.rotation;
 
+    if (p.is_counter_clockwise()) p.reverse();
+
     // This fixes:
     // https://github.com/prusa3d/PrusaSlicer/issues/2209
-    if (p.points.size() < 3)
+    if (p.size() < 3)
         return;
 
     outp.emplace_back(std::move(p));
-    outp.back().rotation(rotation);
-    outp.back().translation({offs.x(), offs.y()});
-    outp.back().binId(arrpoly.bed_idx);
-    outp.back().priority(arrpoly.priority);
-    outp.back().itemId(arrpoly.itemid);
-    outp.back().extrude_id = arrpoly.extrude_id;
-    outp.back().height = arrpoly.height;
-    outp.back().name = arrpoly.name;
+    Item& item = outp.back();
+    item.rotation(rotation);
+    item.translation({offs.x(), offs.y()});
+    item.binId(arrpoly.bed_idx);
+    item.priority(arrpoly.priority);
+    item.itemId(arrpoly.itemid);
+    item.extrude_id = arrpoly.extrude_id;
+    item.height = arrpoly.height;
+    item.name = arrpoly.name;
     //BBS: add virtual object logic
-    outp.back().is_virt_object = arrpoly.is_virt_object;
-    outp.back().bed_temp = arrpoly.bed_temp;
-    outp.back().print_temp = arrpoly.print_temp;
-    outp.back().vitrify_temp = arrpoly.vitrify_temp;
+    item.is_virt_object = arrpoly.is_virt_object;
+    item.bed_temp = arrpoly.bed_temp;
+    item.print_temp = arrpoly.print_temp;
+    item.vitrify_temp = arrpoly.vitrify_temp;
+    item.inflation(arrpoly.inflation);
 }
 
 template<class Fn> auto call_with_bed(const Points &bed, Fn &&fn)

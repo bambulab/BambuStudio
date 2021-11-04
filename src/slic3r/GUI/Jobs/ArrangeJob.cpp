@@ -100,7 +100,7 @@ ArrangePolygon ArrangeJob::prepare_arrange_polygon(void* model_instance)
         ap.first_print_temp = config.opt_int("first_layer_temperature", ap.extrude_id - 1);
     if (config.has("temperature_vitrification"))
         ap.vitrify_temp = config.opt_int("temperature_vitrification", ap.extrude_id - 1);
-    
+
     ap.height = instance->get_object()->bounding_box().size().z();
     ap.name = instance->get_object()->name;
     return ap;
@@ -349,23 +349,29 @@ void ArrangeJob::process()
     static const auto arrangestr = _(L("Arranging "));
     const GLCanvas3D::ArrangeSettings &settings =
         static_cast<const GLCanvas3D*>(m_plater->canvas3D())->get_arrange_settings();
-
     auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
-    double skirt_distance = print.has_skirt() ? print.config().skirt_distance.value : 0;
-    double brim_width = print.has_brim() ? print.default_object_config().brim_width : 0;
-    params.brim_skirt_distance = std::max(skirt_distance, brim_width);
+
     params.clearance_height_to_rod = print.config().extruder_clearance_height_to_rod.value;
     params.clearance_height_to_lid = print.config().extruder_clearance_height_to_lid.value;
     params.cleareance_radius = print.config().extruder_clearance_radius.value;
-
-    params.allow_rotations  = settings.enable_rotation;
-    params.min_obj_distance = scaled(std::max(settings.distance, params.brim_skirt_distance / 2.f));
-    //BBS: add specific params
+    params.allow_rotations = settings.enable_rotation;
     params.is_seq_print = settings.is_seq_print;
+    params.min_obj_distance = scaled(settings.distance);
+    if (params.is_seq_print) params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius));
+
+    double skirt_distance = print.has_skirt() ? print.config().skirt_distance.value : 0;
+    double brim_max = print.has_auto_brim() ? 0 : (print.has_brim() ? print.default_object_config().brim_width : 0);
+    std::for_each(m_selected.begin(), m_selected.end(), [&](ArrangePolygon ap) {  brim_max = std::max(brim_max, ap.brim_width); });
+
+    // Note: skirt_distance is now defined between outermost brim and skirt, not the object and skirt.
+    // So we can't do max but do adding instead.
+    params.brim_skirt_distance = skirt_distance + brim_max;
     params.bed_shrink_x = settings.bed_shrink_x + params.brim_skirt_distance;
     params.bed_shrink_y = settings.bed_shrink_y + params.brim_skirt_distance;
-    if (params.is_seq_print)
-        params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius));
+    
+    // do not inflate brim_width. Objects are allowed to have overlapped brim.
+    std::for_each(m_selected.begin(), m_selected.end(), [&](auto& ap) {ap.inflation = params.min_obj_distance / 2; });
+    std::for_each(m_unselected.begin(), m_unselected.end(), [&](auto& ap) {ap.inflation = ap.is_virt_object ? scaled(params.brim_skirt_distance) : params.min_obj_distance / 2; });
 
     Points bedpts = get_bed_shape(*m_plater->config());
 #if 1

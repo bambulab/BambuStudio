@@ -827,16 +827,11 @@ void Print::auto_assign_extruders(ModelObject* model_object) const
 void PrintObject::autoBrimConfigWidth(double flowWidth)
 {
     bool has_brim_auto = this->config().brim_type == btAutoBrim;
-    if (has_brim_auto) {
+    if (has_brim_auto){
         auto insts = this->instances();
-        auto obj = insts[0].model_instance->get_object();
-        BoundingBoxf3 raw_bbox = obj->raw_mesh_bounding_box();
-        auto bbox_size = (insts[0].model_instance->transform_bounding_box(raw_bbox)).size();
-        double height_to_area = bbox_size(2) / (bbox_size(0) * bbox_size(1));
-        double thermalLength = std::max(bbox_size(0), bbox_size(1));
-        double brim_width = std::min(std::max(height_to_area * 40, thermalLength * 0.05), 20.);
+        double brim_width = insts[0].model_instance->get_auto_brim_width();
         brim_width = floor(brim_width / flowWidth / 2) * flowWidth * 2;
-        (*this).configBrimWidth(brim_width);
+        this->configBrimWidth(brim_width);
         BOOST_LOG_TRIVIAL(debug) << "brim_width_map: " << this->id().id << ", " << brim_width;
     }
 }

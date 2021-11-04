@@ -26,6 +26,7 @@ struct BLConfig {
     Coord min_obj_distance = 0;
     Coord epsilon = DefaultEpsilon<Coord>::Value;
     bool allow_rotations = false;
+    std::function<bool(_Item<RawShape>& i1, _Item<RawShape>& i2)> sortfunc;
 };
 
 template<class RawShape>

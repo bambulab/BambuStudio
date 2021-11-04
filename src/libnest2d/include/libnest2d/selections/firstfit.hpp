@@ -63,14 +63,19 @@ public:
             placers.back().preload(ig);
         }
         
-        auto sortfunc = [](Item& i1, Item& i2) {
-            int p1 = i1.priority(), p2 = i2.priority();
-            if (p1 != p2)
-                return p1 > p2;
+        std::function<bool(Item& i1, Item& i2)> sortfunc;
+        if (pconfig.sortfunc)
+            sortfunc = pconfig.sortfunc;
+        else {
+            sortfunc = [](Item& i1, Item& i2) {
+                int p1 = i1.priority(), p2 = i2.priority();
+                if (p1 != p2)
+                    return p1 > p2;
 
-            return i1.bed_temp != i2.bed_temp ? (i1.bed_temp > i2.bed_temp) :
-                (i1.height != i2.height ? (i1.height < i2.height) : (i1.area() > i2.area()));
-        };
+                return i1.bed_temp != i2.bed_temp ? (i1.bed_temp > i2.bed_temp) :
+                        (i1.height != i2.height ? (i1.height < i2.height) : (i1.area() > i2.area()));
+            };
+        }
 
         std::sort(store_.begin(), store_.end(), sortfunc);
 
