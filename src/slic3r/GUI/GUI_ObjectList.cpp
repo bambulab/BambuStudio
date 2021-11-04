@@ -3379,6 +3379,7 @@ void ObjectList::update_selections()
     const Selection& selection = scene_selection();
     wxDataViewItemArray sels;
 
+#if 0
     if (m_selection_mode == smUndef) {
         PartPlate* pp = wxGetApp().plater()->get_partplate_list().get_selected_plate();
         assert(pp != nullptr);
@@ -3390,6 +3391,7 @@ void ObjectList::update_selections()
         ensure_current_item_visible();
         return;
     }
+#endif
 
     if ( ( m_selection_mode & (smSettings|smLayer|smLayerRoot) ) == 0)
         m_selection_mode = smInstance;
