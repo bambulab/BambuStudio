@@ -2317,12 +2317,23 @@ static void reserve_new_volume_finalize_old_volume(GLVolume& vol_new, GLVolume& 
 	vol_old.finalize_geometry(gl_initialized);
 }
 
+//BBS: always load shell at preview
+void GLCanvas3D::load_shells(const Print& print)
+{
+    if (m_initialized)
+    {
+        m_gcode_viewer.load_shells(print, m_initialized);
+        m_gcode_viewer.update_shells_color_by_extruder(m_config);
+    }
+}
+
 void GLCanvas3D::load_gcode_preview(const GCodeProcessorResult& gcode_result, const std::vector<std::string>& str_tool_colors)
 {
     m_gcode_viewer.load(gcode_result, *this->fff_print(), m_initialized);
 
     if (wxGetApp().is_editor()) {
-        m_gcode_viewer.update_shells_color_by_extruder(m_config);
+        //BBS: always load shell at preview, do this in load_shells
+        //m_gcode_viewer.update_shells_color_by_extruder(m_config);
         _set_warning_notification_if_needed(EWarning::ToolpathOutside);
     }
 
@@ -3355,6 +3366,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 int hover_idx = m_hover_plate_idxs.front();
                 wxGetApp().plater()->select_plate_by_hover_id(hover_idx);
                 //wxGetApp().plater()->get_partplate_list().select_plate_view();
+                //deselect all the objects
+                if (m_hover_volume_idxs.empty())
+                    deselect_all();
             }
 
             // Select volume in this 3D canvas.

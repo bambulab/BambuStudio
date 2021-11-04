@@ -645,6 +645,7 @@ void GCodeViewer::init()
     m_gl_data_initialized = true;
 }
 
+//BBS: always load shell at preview
 void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& print, bool initialized)
 {
     // avoid processing if called with the same gcode_result
@@ -675,8 +676,11 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     m_filament_diameters = gcode_result.filament_diameters;
     m_filament_densities = gcode_result.filament_densities;
 
+    //BBS: always load shell at preview
     if (wxGetApp().is_editor())
-        load_shells(print, initialized);
+    {
+        //load_shells(print, initialized);
+    }
     else {
         Pointfs bed_shape;
         //BBS: add bed exclude area
@@ -808,6 +812,13 @@ void GCodeViewer::update_shells_color_by_extruder(const DynamicPrintConfig* conf
         m_shells.volumes.update_colors_by_extruder(config);
 }
 
+//BBS: always load shell at preview
+void GCodeViewer::reset_shell()
+{
+    m_shells.volumes.clear();
+    m_shells.print_id = -1;
+}
+
 void GCodeViewer::reset()
 {
     m_moves_count = 0;
@@ -824,7 +835,8 @@ void GCodeViewer::reset()
     m_filament_diameters = std::vector<float>();
     m_filament_densities = std::vector<float>();
     m_extrusions.reset_ranges();
-    m_shells.volumes.clear();
+    //BBS: always load shell at preview
+    //m_shells.volumes.clear();
     m_layers.reset();
     m_layers_z_range = { 0, 0 };
     m_roles = std::vector<ExtrusionRole>();
@@ -848,9 +860,12 @@ void GCodeViewer::render(int canvas_width, int canvas_height)
     if (m_roles.empty())
         return;
 
+    //BBS: always render shells in preview window
+    render_shells();
+
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_toolpaths();
-    render_shells();
+    //render_shells();
     float legend_height = 0.0f;
     render_legend(legend_height, canvas_width, canvas_height);
     if (m_sequential_view.current.last != m_sequential_view.endpoints.last) {
@@ -2140,12 +2155,19 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
         progress_dialog->Destroy();
 }
 
+//BBS: always load shell when preview
 void GCodeViewer::load_shells(const Print& print, bool initialized)
 {
+    if (print.id().id == m_shells.print_id)
+        //already loaded
+        return;
+
     if (print.objects().empty())
         // no shells, return
         return;
 
+    //reset shell firstly
+    reset_shell();
     // adds objects' volumes 
     int object_id = 0;
     for (const PrintObject* obj : print.objects()) {
@@ -2208,6 +2230,10 @@ void GCodeViewer::load_shells(const Print& print, bool initialized)
         volume->force_native_color = true;
         volume->set_render_color();
     }
+
+    //BBS: always load shell when preview
+    m_shells.print_id = print.id().id;
+    //m_shells.visible = true;
 }
 
 void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const

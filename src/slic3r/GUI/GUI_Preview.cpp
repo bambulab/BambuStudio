@@ -423,6 +423,18 @@ void Preview::refresh_print()
     load_print(true);
 }
 
+//BBS: always load shell at preview
+void Preview::load_shells(const Print& print)
+{
+    m_canvas->load_shells(print);
+}
+
+//BBS: always load shell at preview
+void Preview::reset_shells()
+{
+    m_canvas->reset_shells();
+}
+
 void Preview::msw_rescale()
 {
 #ifdef _WIN32
@@ -906,6 +918,8 @@ void Preview::load_print_as_fff(bool keep_z_range)
     // populated and we know the number of layers)
     bool has_layers = false;
     const Print *print = m_process->fff_print();
+    //BBS: always load shell at preview
+    load_shells(*print);
     if (print->is_step_done(posSlice)) {
         for (const PrintObject* print_object : print->objects())
             if (! print_object->layers().empty()) {

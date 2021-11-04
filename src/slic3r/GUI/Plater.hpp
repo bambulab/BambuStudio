@@ -534,6 +534,8 @@ private:
 
     void suppress_snapshots();
     void allow_snapshots();
+    //BBS: add project slice related functions
+    void start_next_slice();
 
     friend class SuppressBackgroundProcessingUpdate;
 };

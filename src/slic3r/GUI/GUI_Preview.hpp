@@ -149,6 +149,9 @@ public:
     void load_print(bool keep_z_range = false);
     void reload_print(bool keep_volumes = false);
     void refresh_print();
+    //BBS: always load shell at preview
+    void load_shells(const Print& print);
+    void reset_shells();
 
     void msw_rescale();
     void sys_color_changed();

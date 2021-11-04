@@ -817,6 +817,9 @@ public:
     void mirror_selection(Axis axis);
 
     void reload_scene(bool refresh_immediately, bool force_full_scene_refresh = false);
+    //BBS: always load shell at preview
+    void load_shells(const Print& print);
+    void reset_shells() { m_gcode_viewer.reset_shell(); }
 
     void load_gcode_preview(const GCodeProcessorResult& gcode_result, const std::vector<std::string>& str_tool_colors);
     void refresh_gcode_preview_render_paths();

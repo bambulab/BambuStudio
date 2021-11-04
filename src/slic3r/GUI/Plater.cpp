@@ -1559,6 +1559,8 @@ struct Plater::priv
     PartPlateList partplate_list;
     //BBS: add a flag to ignore cancel event
     bool m_ignore_event{ false };
+    bool m_slice_all{ false };
+    int m_cur_slice_plate;
 
 #if ENABLE_ENVIRONMENT_MAP
     GLTexture environment_texture;
@@ -1935,11 +1937,14 @@ struct Plater::priv
     bool                        inside_snapshot_capture() { return m_prevent_snapshots != 0; }
 	bool                        process_completed_with_error { false };
    
+    //BBS: add print project related logic
+    void update_fff_scene_only_shells();
 private:
     bool layers_height_allowed() const;
 
     void update_fff_scene();
     void update_sla_scene();
+
     void undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator it_snapshot);
     void update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bool temp_snapshot_was_taken = false);
 
@@ -3588,6 +3593,20 @@ void Plater::priv::update_fff_scene()
     assemble_view->reload_scene(true);
 }
 
+//BBS: add print project related logic
+void Plater::priv::update_fff_scene_only_shells()
+{
+    if (this->preview != nullptr)
+    {
+        const Print* current_print = this->background_process.fff_print();
+        if (current_print)
+        {
+            //this->preview->reset_shells();
+            this->preview->load_shells(*current_print);
+        }
+    }
+}
+
 void Plater::priv::update_sla_scene()
 {
     // Update the SLAPrint from the current Model, so that the reload_scene()
@@ -4170,7 +4189,9 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
 {
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": event_type %1%, percent %2%, text %3%") % evt.GetEventType() % evt.status.percent % evt.status.text;
-
+    //BBS: add slice project logic
+    std::string title_text = m_slice_all ? ("Project Slicing: ") : ("Single Plate Slicing: ");
+    evt.status.text = title_text + evt.status.text;
     if (evt.status.percent >= -1) {
         if (m_ui_jobs.is_any_running()) {
             // Avoid a race condition
@@ -4181,10 +4202,13 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
 //        this->statusbar()->set_status_text(_(evt.status.text) + wxString::FromUTF8("…"));
         notification_manager->set_slicing_progress_percentage(evt.status.text, (float)evt.status.percent / 100.0f);
     }
+
     if (evt.status.flags & (PrintBase::SlicingStatus::RELOAD_SCENE | PrintBase::SlicingStatus::RELOAD_SLA_SUPPORT_POINTS)) {
         switch (this->printer_technology) {
         case ptFFF:
-            this->update_fff_scene();
+            //BBS: add slice project logic
+            if (!m_slice_all || (m_cur_slice_plate == (partplate_list.get_plate_count() - 1)))
+                this->update_fff_scene();
             break;
         case ptSLA:
             // If RELOAD_SLA_SUPPORT_POINTS, then the SLA gizmo is updated (reload_scene calls update_gizmos_data)
@@ -4231,6 +4255,10 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
 void Plater::priv::on_slicing_completed(wxCommandEvent & evt)
 {
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": event_type %1%, string %2%") % evt.GetEventType() % evt.GetString();
+    //BBS: add slice project logic
+    if (m_slice_all && (m_cur_slice_plate < (partplate_list.get_plate_count() - 1)))
+        return;
+    
     if (view3D->is_dragging()) // updating scene now would interfere with the gizmo dragging
         delayed_scene_refresh = true;
     else {
@@ -4322,6 +4350,8 @@ bool Plater::priv::warnings_dialog()
 	return res == wxID_OK;
 
 }
+
+//BBS: add project slice logic
 void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
 {
     //BBS:ignore cancel event for some special case
@@ -4331,13 +4361,16 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":ignore this event %1%") % evt.status();
         return;
     }
+    //BBS: add project slice logic
+    bool is_finished = !m_slice_all || (m_cur_slice_plate == (partplate_list.get_plate_count() - 1));
 
     // Stop the background task, wait until the thread goes into the "Idle" state.
     // At this point of time the thread should be either finished or canceled,
     // so the following call just confirms, that the produced data were consumed.
     this->background_process.stop();
-//    this->statusbar()->reset_cancel_callback();
-//    this->statusbar()->stop_busy();
+    //BBS: move to the end
+    //this->statusbar()->reset_cancel_callback();
+    //this->statusbar()->stop_busy();
     notification_manager->set_slicing_progress_export_possible();
 
     // Reset the "export G-code path" name, so that the automatic background processing will be enabled again.
@@ -4369,10 +4402,12 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
             process_completed_with_error = true;
         }
         has_error = true;
+        is_finished = true;
     }
     if (evt.cancelled()) {
 //        this->statusbar()->set_status_text(_L("Cancelled"));
         this->notification_manager->set_slicing_progress_canceled(_utf8("Slicing Cancelled."));
+        is_finished = true;
     }
 
     //BBS: set the current plater's slice result to valid
@@ -4381,7 +4416,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     //BBS: update the action button according to the current plate's status
     bool ready_to_slice = !this->partplate_list.get_curr_plate()->is_slice_result_valid();
 
-    if (!ready_to_slice)
+    if ((!ready_to_slice)&& is_finished)
         // BBS
         this->show_sliced_info(evt.success());
 
@@ -4400,8 +4435,10 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     if (view3D->is_dragging()) // updating scene now would interfere with the gizmo dragging
         delayed_scene_refresh = true;
     else {
-        if (this->printer_technology == ptFFF)
-            this->update_fff_scene();
+        if (this->printer_technology == ptFFF) {
+            if (is_finished)
+                this->update_fff_scene();
+        }
         else
             this->update_sla_scene();
     }
@@ -4436,6 +4473,22 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     }
 
     exporting_status = ExportingStatus::NOT_EXPORTING;
+
+    if (is_finished)
+    {
+        this->statusbar()->reset_cancel_callback();
+        this->statusbar()->stop_busy();
+    }
+    else
+    {
+        m_cur_slice_plate++;
+        q->select_plate(m_cur_slice_plate);
+        q->start_next_slice();
+        update_fff_scene_only_shells();
+        //not the last plate
+        if (m_cur_slice_plate == (partplate_list.get_plate_count() - 1))
+            this->preview->reload_print(false);
+    }
 }
 
 void Plater::priv::on_layer_editing_toggled(bool enable)
@@ -4476,20 +4529,26 @@ void Plater::priv::on_action_open_project(SimpleEvent&)
     }
 }
 
+//BBS: GUI refactor: slice plate
 void Plater::priv::on_action_slice_plate(SimpleEvent&)
 {
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice plate event\n" ;
+        m_slice_all = false;
         q->reslice();
         q->select_view_3D("Preview");
     }
 }
 
+//BBS: GUI refactor: slice all
 void Plater::priv::on_action_slice_all(SimpleEvent&)
 {
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice project event\n" ;
-        //TODO, currently use slice plate
+        m_slice_all = true;
+        m_cur_slice_plate = 0;
+        //select plate
+        q->select_plate(m_cur_slice_plate);
         q->reslice();
         q->select_view_3D("Preview");
     }
@@ -6814,6 +6873,23 @@ void Plater::reslice()
     //p->statusbar()->start_busy();
 }
 
+//BBS: add project slicing related logic
+void Plater::start_next_slice()
+{
+    // Stop arrange and (or) optimize rotation tasks.
+    //this->stop_jobs();
+
+    //FIXME Don't reslice if export of G-code or sending to OctoPrint is running.
+    // bitmask of UpdateBackgroundProcessReturnState
+    unsigned int state = this->p->update_background_process(true, false, false);
+    if (state & priv::UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE)
+        this->p->view3D->reload_scene(false);
+
+    // Only restarts if the state is valid.
+    this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
+}
+
+
 void Plater::reslice_SLA_supports(const ModelObject &object, bool postpone_error_messages)
 {
     reslice_SLA_until_step(slaposPad, object, postpone_error_messages);
@@ -7650,6 +7726,7 @@ int Plater::select_sliced_plate(int plate_index)
 
     ret = p->partplate_list.select_plate(plate_index);
     GCodeProcessorResult* result = p->partplate_list.get_current_slice_result();
+
     // if result is valid
     if (!result->moves.empty()) {
         /* stop background process */
@@ -7663,6 +7740,8 @@ int Plater::select_sliced_plate(int plate_index)
     }
 
     if (p->background_process.get_current_plate()->get_index() != plate_index) {
+        p->update_fff_scene_only_shells();
+
         reslice();
         return ret;
     }

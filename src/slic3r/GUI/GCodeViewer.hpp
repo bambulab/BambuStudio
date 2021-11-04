@@ -377,6 +377,8 @@ class GCodeViewer
     {
         GLVolumeCollection volumes;
         bool visible{ false };
+        //BBS: always load shell when preview
+        int print_id{ -1 };
     };
 
     // helper to render extrusion paths
@@ -745,6 +747,9 @@ public:
     void update_shells_color_by_extruder(const DynamicPrintConfig* config);
 
     void reset();
+    //BBS: always load shell at preview
+    void reset_shell();
+    void load_shells(const Print& print, bool initialized);
     //BBS: GUI refactor: add canvas width and height
     void render(int canvas_width, int canvas_height);
 
@@ -788,7 +793,8 @@ public:
 
 private:
     void load_toolpaths(const GCodeProcessorResult& gcode_result);
-    void load_shells(const Print& print, bool initialized);
+    //BBS: always load shell at preview
+    //void load_shells(const Print& print, bool initialized);
     void refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const;
     void render_toolpaths();
     void render_shells();
