@@ -1002,6 +1002,8 @@ private:
     void _render_objects(GLVolumeCollection::ERenderType type);
     //BBS: GUI refactor: add canvas size as parameters
     void _render_gcode(int canvas_width, int canvas_height);
+    //BBS: render a plane for assemble
+    void _render_plane() const;
     void _render_selection() const;
     void _render_sequential_clearance();
 #if ENABLE_RENDER_SELECTION_CENTER

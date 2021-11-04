@@ -1620,6 +1620,7 @@ void GLCanvas3D::render()
     else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
         _render_objects(GLVolumeCollection::ERenderType::Opaque);
         _render_bed(!camera.is_looking_downward(), show_axes);
+        _render_plane();
         _render_selection();
     }
 
@@ -6256,6 +6257,11 @@ void GLCanvas3D::_render_platelist(bool bottom, bool only_current, bool only_bod
 void GLCanvas3D::_render_plates_for_picking() const
 {
     wxGetApp().plater()->get_partplate_list().render_for_picking_pass();
+}
+
+void GLCanvas3D::_render_plane() const
+{
+    ;//TODO render assemble plane
 }
 
 void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
