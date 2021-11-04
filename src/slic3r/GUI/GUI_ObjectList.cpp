@@ -2939,7 +2939,7 @@ void ObjectList::delete_all_objects_from_list()
 {
     m_prevent_list_events = true;
     this->UnselectAll();
-    m_objects_model->DeleteAll();
+    m_objects_model->ReloadAllPlates();
     m_prevent_list_events = false;
     part_selection_changed();
 }
@@ -4537,7 +4537,7 @@ void ObjectList::update_after_undo_redo()
      * */
     m_prevent_list_events = true;
     this->UnselectAll();
-    m_objects_model->DeleteAll();
+    m_objects_model->ResetAll();
     m_prevent_list_events = false;
 
 	PartPlateList &ppl = wxGetApp().plater()->get_partplate_list();
@@ -4545,7 +4545,6 @@ void ObjectList::update_after_undo_redo()
         PartPlate* pp = ppl.get_plate(i);
         m_objects_model->AddPlate(pp, wxEmptyString);
     }
-    m_objects_model->AddOutsidePlate();
 
     size_t obj_idx = 0;
     std::vector<size_t> obj_idxs;

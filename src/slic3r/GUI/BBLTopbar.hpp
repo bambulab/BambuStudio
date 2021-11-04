@@ -40,6 +40,9 @@ public:
     wxMenu *GetTopMenu();
     void SetProjectName(wxString project_name);
 
+    void EnableUndoRedoItems();
+    void DisableUndoRedoItems();
+
 private:
     wxFrame* m_frame;
     wxAuiToolBarItem* m_file_menu_item;
@@ -51,6 +54,8 @@ private:
     wxAuiToolBarItem* m_account_item;
     wxAuiToolBarItem* m_printer_item;
     wxAuiToolBarItem* m_model_store_item;
+    wxAuiToolBarItem* m_undo_item;
+    wxAuiToolBarItem* m_redo_item;
 
     int m_toolbar_h;
     bool m_skip_popup_file_menu;

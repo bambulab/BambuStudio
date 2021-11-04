@@ -1002,7 +1002,7 @@ wxDataViewItem ObjectDataViewModel::DeleteLastInstance(const wxDataViewItem &par
     return ret_item;
 }
 
-void ObjectDataViewModel::DeleteAll()
+void ObjectDataViewModel::ResetAll()
 {
     // BBS
     for (auto plate : m_plates) {
@@ -1010,7 +1010,10 @@ void ObjectDataViewModel::DeleteAll()
     }
 
     m_plates.clear();
+    m_plate_outside = nullptr;
     m_objects.clear();
+
+    AddOutsidePlate();
 }
 
 void ObjectDataViewModel::DeleteChildren(wxDataViewItem& parent)
@@ -1512,6 +1515,13 @@ void ObjectDataViewModel::SetExtruder(const wxString& extruder, wxDataViewItem i
 {
     if (!item.IsOk())
         return;
+
+    // BBS. Don't support to set extruder for plate.
+    ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
+    if (node->GetType() & itPlate) {
+        return;
+    }
+
     ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(item.GetID());
     node->UpdateExtruderAndColorIcon(extruder);
     if (node->GetType() == itObject)

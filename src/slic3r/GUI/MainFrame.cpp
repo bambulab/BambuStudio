@@ -782,6 +782,13 @@ void MainFrame::init_tabpanel()
             else
                 select_tab(size_t(0)); // select Plater
         }*/
+
+        if (panel == m_plater) {
+            m_topbar->EnableUndoRedoItems();
+        }
+        else {
+            m_topbar->DisableUndoRedoItems();
+        }
     });
 
     m_plater = new Plater(this, this);
@@ -1084,6 +1091,11 @@ bool MainFrame::can_reslice() const
     return (m_plater != nullptr) && !m_plater->model().objects.empty();
 }
 
+const static wxColor s_button_active_bgcolor(0x0, 0x7A, 0xCC, 0xFF);
+const static wxColor s_button_active_fgcolor(*wxWHITE);
+static wxColor s_button_inactive_bgcolor;
+static wxColor s_button_inactive_fgcolor;
+
 wxBoxSizer* MainFrame::create_side_tools()
 {
     wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -1097,14 +1109,17 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_slice_select = eSlicePlate;
     m_print_select = ePrintPlate;
     m_slice_btn = new ScalableButton(this, wxID_ANY, "slice_plate", _L("Slice plate"));
-    m_slice_option_btn = new ScalableButton(this, wxID_ANY, "dropdown", "");
+    m_slice_option_btn = new ScalableButton(this, wxID_ANY, "dropdown_white", "");
     m_print_btn = new ScalableButton(this, wxID_ANY, "print_plate", _L("Print plate"));
-    m_print_option_btn = new ScalableButton(this, wxID_ANY, "dropdown", "");
+    m_print_option_btn = new ScalableButton(this, wxID_ANY, "dropdown_white", "");
     sizer->Add(m_slice_btn, 0, wxLEFT, 5);
     sizer->Add(m_slice_option_btn, 0, wxRIGHT, 5);
     sizer->Add(m_print_btn, 0, wxLEFT, 5);
     sizer->Add(m_print_option_btn, 0, wxRIGHT, 5);
     sizer->Layout();
+
+    s_button_inactive_bgcolor = m_slice_btn->GetBackgroundColour();
+    s_button_inactive_fgcolor = m_slice_btn->GetForegroundColour();
 
     m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
     {
@@ -1294,6 +1309,18 @@ void MainFrame::update_slice_print_status(SlicePrintEventType event, bool can_sl
     }
 
     //update the button status
+    m_print_btn->SetBackgroundColour(enable_print ? s_button_active_bgcolor : s_button_inactive_bgcolor);
+    m_print_btn->SetForegroundColour(enable_print ? s_button_active_fgcolor : s_button_inactive_fgcolor);
+
+    m_print_option_btn->SetBackgroundColour(enable_print ? s_button_active_bgcolor : s_button_inactive_bgcolor);
+    m_print_option_btn->SetForegroundColour(enable_print ? s_button_active_fgcolor : s_button_inactive_fgcolor);
+
+    m_slice_btn->SetBackgroundColour(enable_slice ? s_button_active_bgcolor : s_button_inactive_bgcolor);
+    m_slice_btn->SetForegroundColour(enable_slice ? s_button_active_fgcolor : s_button_inactive_fgcolor);
+
+    m_slice_option_btn->SetBackgroundColour(enable_slice ? s_button_active_bgcolor : s_button_inactive_bgcolor);
+    m_slice_option_btn->SetForegroundColour(enable_slice ? s_button_active_fgcolor : s_button_inactive_fgcolor);
+
     m_print_btn->Enable(enable_print);
     m_slice_btn->Enable(enable_slice);
     m_slice_enable = enable_slice;

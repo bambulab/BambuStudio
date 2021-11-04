@@ -291,7 +291,6 @@ public:
     void Init();
 
     wxDataViewItem AddPlate(PartPlate* part_plate, wxString name = wxEmptyString, bool refresh = true);
-    wxDataViewItem AddOutsidePlate(bool refresh = true);
     wxDataViewItem AddObject(ModelObject* model_object, bool refresh = true);
     wxDataViewItem AddVolumeChild(  const wxDataViewItem &parent_item,
                                     const wxString &name,
@@ -312,7 +311,7 @@ public:
     wxDataViewItem DeletePlate(const int plate_idx);
     wxDataViewItem Delete(const wxDataViewItem &item);
     wxDataViewItem DeleteLastInstance(const wxDataViewItem &parent_item, size_t num);
-    void DeleteAll();
+    void ResetAll();
     void DeleteChildren(wxDataViewItem& parent);
     void DeleteVolumeChildren(wxDataViewItem& parent);
     void DeleteSettings(const wxDataViewItem& parent);
@@ -431,6 +430,7 @@ private:
 
     wxBitmap&       GetWarningBitmap(const std::string& warning_icon_name);
     void            ReparentObject(ObjectDataViewModelNode* plate, ObjectDataViewModelNode* object);
+    wxDataViewItem  AddOutsidePlate(bool refresh = true);
 };
 
 

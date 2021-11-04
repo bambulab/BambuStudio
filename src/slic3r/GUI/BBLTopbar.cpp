@@ -83,10 +83,10 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     wxAuiToolBarItem* save_btn = this->AddTool(wxID_SAVE, "", save_bitmap);
 
     wxBitmap undo_bitmap = wxArtProvider::GetBitmap(wxART_UNDO, wxART_OTHER, FromDIP(wxSize(18, 18)));
-    wxAuiToolBarItem* undo_btn = this->AddTool(wxID_UNDO, "", undo_bitmap);
+    m_undo_item = this->AddTool(wxID_UNDO, "", undo_bitmap);
 
     wxBitmap redo_bitmap = wxArtProvider::GetBitmap(wxART_REDO, wxART_OTHER, FromDIP(wxSize(18, 18)));
-    wxAuiToolBarItem* redo_btn = this->AddTool(wxID_REDO, "", redo_bitmap);
+    m_redo_item = this->AddTool(wxID_REDO, "", redo_bitmap);
 
     this->AddSpacer(10);
     this->AddStretchSpacer(1);
@@ -172,6 +172,20 @@ void BBLTopbar::OnRedo(wxAuiToolBarEvent& event)
     MainFrame* main_frame = dynamic_cast<MainFrame*>(m_frame);
     Plater* plater = main_frame->plater();
     plater->redo();
+}
+
+void BBLTopbar::EnableUndoRedoItems()
+{
+    this->EnableTool(m_undo_item->GetId(), true);
+    this->EnableTool(m_redo_item->GetId(), true);
+    Refresh();
+}
+
+void BBLTopbar::DisableUndoRedoItems()
+{
+    this->EnableTool(m_undo_item->GetId(), false);
+    this->EnableTool(m_redo_item->GetId(), false);
+    Refresh();
 }
 
 void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
