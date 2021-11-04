@@ -8,6 +8,7 @@
 #include <boost/thread.hpp>
 #include "mqtt/async_client.h"
 #include "ProjectTask.hpp"
+#include "slic3r/Utils/Http.hpp"
 
 #define MY_MODEL_PUBLISH_URL_FORMAT     "https://portal-dev.bambu-lab.com/my/models/%s/publish"
 #define MY_COLLECTIONS_URL              "https://portal-dev.bambu-lab.com/my/collections"
@@ -227,7 +228,7 @@ public:
     // request a sub task id, project_id, profile_id -> subtask_id, sync
     int request_subtask_id(BBLSubTask* task, ResultFn resFn = nullptr);
     // upload 3mf for project and profile, aync
-    int upload_3mf(BBLProfile* profile, ResultFn resFn = nullptr, ProgressFn proFn = nullptr, bool sync = false);
+    int upload_3mf(BBLProfile* profile, ResultFn resFn = nullptr, Http::ProgressFn proFn = nullptr, bool sync = false);
     // poll_3mf for project model only, sync
     int poll_3mf(BBLProject* project);
     // poll_3mf for project and profile, sync
@@ -245,6 +246,7 @@ public:
     void create_task(BBLProject* project, BBLTask* task, ResultFn resFn);
     void post_task(BBLSubTask* task, ResultFn resFn, ProgressFn proFn);
 
+    bool can_publish();
 
     /* submit */
     int submit_print_result(std::string device_id, std::string json_str, ResultFn fn);

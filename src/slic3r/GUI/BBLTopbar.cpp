@@ -204,10 +204,10 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
         }, this);
     append_menu_item(accountMenu, wxID_ANY, _L("Logout"), _L(""),
         [](wxCommandEvent&) {
-            Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+            Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
             account_manager->user_logout();
         }, "upload_queue", nullptr, [this]() {
-            Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+            Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
             return account_manager->is_user_login();
         }, this);
     append_menu_item(accountMenu, wxID_ANY, _L("My Project List"), _L(""),
@@ -216,7 +216,8 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
             m_my_projects_webframe->Show();
         }, "upload_queue", nullptr,
         [this] (){
-            return true;
+            Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
+            return account_manager->is_user_login();
             },
         this);
     append_menu_item(accountMenu, wxID_ANY, _L("My Collections"), _L(""),
@@ -225,7 +226,8 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
             m_my_collections_webframe->Show();
         }, "upload_queue", nullptr,
         [this] (){
-            return true;
+            Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
+            return account_manager->is_user_login();
             },
         this);
     append_menu_item(accountMenu, wxID_ANY, _L("Upload/Publish Model"), _L(""),
@@ -248,7 +250,8 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
             m_publish_webframe->Show();
         }, "upload_queue", nullptr,
         [this] (){
-            return true;
+            Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
+            return account_manager->can_publish();
             },
         this);
 

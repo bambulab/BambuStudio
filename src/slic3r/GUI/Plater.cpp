@@ -53,6 +53,7 @@
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/ClipperUtils.hpp"
 
+
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
@@ -6719,39 +6720,41 @@ bool Plater::export_3mf(const boost::filesystem::path& output_path, bool silence
 void Plater::upload_3mf()
 {
     int res = 0;
+    bool cont = true;
+    bool* cont_ptr = &cont;
     wxString msg;
     wxGenericProgressDialog* progress_dlg = new wxProgressDialog("Upload Model",
                             wxString(' ', 100) + "\n\n\n\n",
                             100,    // range
                             this,   // parent
                             wxPD_CAN_ABORT |
-                            wxPD_CAN_SKIP |
                             wxPD_APP_MODAL |
                             wxPD_ELAPSED_TIME |
                             wxPD_SMOOTH);
-    msg = "exporting 3mf to local temp folder";
-    progress_dlg->Pulse(msg);
 
+    msg = "exporting 3mf to local temp folder";
+    cont = progress_dlg->Pulse(msg);
+
+    //save 3mf to temp folder
     boost::filesystem::path temp_path(wxStandardPaths::Get().GetTempDir().utf8_str().data());
     temp_path /= (boost::format(".%1%.3mf") % get_current_pid()).str();
     export_3mf(temp_path, true);
 
     msg = "reqeust project id";
-    progress_dlg->Pulse(msg);
+    cont = progress_dlg->Pulse(msg);
 
     Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
-    std::string project_name = boost::format("bbl_project_name").str();
 
     //TODO get current project
+    std::string project_name = boost::format("Untitled BBL Project").str();
     BBLProject* project = new BBLProject(project_name, BBLProject::ProjectType::PROJECT_3MF);
     project->project_3mf_file = temp_path.string();
     project->project_path = temp_path;
     res = c->request_project_id(project);
 
     if (res != 0 || project->project_id.empty()) {
-        msg = "reqeust project id failed";
-        progress_dlg->Pulse(msg);
-        progress_dlg->Close();
+        msg = "request project id failed";
+        cont = progress_dlg->Pulse(msg);
         return;
     }
 
@@ -6759,31 +6762,51 @@ void Plater::upload_3mf()
     BBLProfile* profile = new BBLProfile(project);
     profile->profile_name = "bbl_profile_name";
 
-    msg = "reqeust profile id";
+    msg = "request profile id";
     progress_dlg->Pulse(msg);
 
     c->request_profile_id(profile);
 
     if (res != 0 || profile->profile_id.empty())
     {
-        msg = "reqeust profile id failed";
-        progress_dlg->Pulse(msg);
-        progress_dlg->Close();
+        msg = "request profile id failed";
+        cont = progress_dlg->Pulse(msg);
         return;
     }
 
     msg = "start to upload";
-    progress_dlg->Pulse(msg);
+    cont = progress_dlg->Pulse(msg);
 
-    c->upload_3mf(profile, nullptr, 
-        [this, progress_dlg](int percent) {
+    c->upload_3mf(profile, nullptr,
+        [this, progress_dlg, cont_ptr](Http::Progress progress, bool &cancel) {
             bool skip = false;
+            int percent = 0;
+            if (progress.ultotal != 0) {
+                progress.ulnow / progress.ultotal;
+            }
             wxString msg = wxString::Format("uploaded %d", percent);
-            progress_dlg->Update(percent, msg, &skip);
+            *cont_ptr = progress_dlg->Update(percent, msg, &skip);
+            if (!*cont_ptr)
+            {
+                if (wxMessageBox("Do you really want to cancel?",
+                    "Progress dialog question",  // caption
+                    wxYES_NO | wxICON_QUESTION) == wxYES) {
+                    cancel = true;
+                    return;
+                }
+
+                *cont_ptr = true;
+                progress_dlg->Resume();
+            }
         }, true);
 
+    if (*cont_ptr) {
+        delete progress_dlg;
+        return;
+    }
     //BBS update default project
     c->set_default_project(project);
+    delete progress_dlg;
 }
 
 void Plater::reload_from_disk()

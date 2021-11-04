@@ -331,36 +331,36 @@ namespace Slic3r {
             .header("Content-Type", "application/json")
             .set_post_body(json_str)
             .on_complete([&, this, account, fn](std::string body, unsigned) {
-            std::stringstream ss(body);
-            pt::ptree root;
-            pt::read_json(ss, root);
+                std::stringstream ss(body);
+                pt::ptree root;
+                pt::read_json(ss, root);
 
-            boost::optional<std::string> acceptToken = root.get_optional<std::string>("accessToken");
-            if (acceptToken.has_value()) {
-                BOOST_LOG_TRIVIAL(trace) << "User = " << account << " Login Success!";
-                if (m_curr_user) delete m_curr_user;
-                m_curr_user = new AccountInfo(account, "", AccountInfo::LoginStatus::STATUS_LOGIN);
-                m_curr_user->set_token(acceptToken.value());
+                boost::optional<std::string> acceptToken = root.get_optional<std::string>("accessToken");
+                if (acceptToken.has_value()) {
+                    BOOST_LOG_TRIVIAL(trace) << "User = " << account << " Login Success!";
+                    if (m_curr_user) delete m_curr_user;
+                    m_curr_user = new AccountInfo(account, "", AccountInfo::LoginStatus::STATUS_LOGIN);
+                    m_curr_user->set_token(acceptToken.value());
 
-                //get user id
-                this->user_get_profile(account, fn);
-                return;
-            }
+                    //get user id
+                    this->user_get_profile(account, fn);
+                    return;
+                }
 
-            BOOST_LOG_TRIVIAL(trace) << "Account = " << account << " Login Failed! error = " << body;
-            if (fn) {
-                fn(-1, body);
-            }
-                }).on_error([&, this, account, fn](std::string body, std::string error, unsigned status) {
-                    BOOST_LOG_TRIVIAL(trace) << "Account=" << account << " Login Failed! status=" << status << ",error=" << error << ",body=" << body;
-                    std::string error_tips = "Login Failed! status=" + std::to_string(status) + ", error=" + error + ", body=" + body;
-                    if (fn) {
-                        fn(-1, error);
-                    }
-                    this->_handle_error_code(status, error, body);
-                    }).perform();
+                BOOST_LOG_TRIVIAL(trace) << "Account = " << account << " Login Failed! error = " << body;
+                if (fn) {
+                    fn(-1, body);
+                }
+            }).on_error([&, this, account, fn](std::string body, std::string error, unsigned status) {
+                std::string error_tips = (boost::format("Login Failed! status=%1%, error=%2%, body=%3%")
+                                         % status % error % body).str();
+                BOOST_LOG_TRIVIAL(trace) << "Account= " << account << " Login Failed! msg: " << error_tips;
+                if (fn) {
+                    fn(-1, error_tips);
+                }
+            }).perform();
 
-                    return 0;
+        return 0;
     }
 
     int AccountManager::user_get_profile(std::string account, LoginFn fn)
@@ -1153,7 +1153,7 @@ namespace Slic3r {
         return 0;
     }
 
-    int AccountManager::upload_3mf(BBLProfile* profile, ResultFn resFn, ProgressFn proFn, bool sync)
+    int AccountManager::upload_3mf(BBLProfile* profile, ResultFn resFn, Http::ProgressFn proFn, bool sync)
     {
         if (!profile || !profile->project_) return -1;
 
@@ -1189,27 +1189,16 @@ namespace Slic3r {
                     }
                 }
             )
-            .on_progress(
-                [this, proFn](Http::Progress progress, bool& cancel) {
-                    BOOST_LOG_TRIVIAL(trace) << "progress:" << progress.ulnow << "/" << progress.ultotal;
-                    int percent = 0;
-                    if (progress.ultotal != 0) {
-                        percent = progress.ulnow * 100 / progress.ultotal;
-                    }
-                    if (proFn) {
-                        proFn(percent);
+            .on_progress(proFn)
+            .on_error(
+                [this, resFn](std::string body, std::string error, unsigned status) {
+                    BOOST_LOG_TRIVIAL(info) << "create_project, upload project failed! body=" << body;
+                    if (resFn) {
+                        std::string info("upload project failed!");
+                        info += " body=" + body;
+                        resFn(-1, info);
                     }
                 }
-            )
-                .on_error(
-                    [this, resFn](std::string body, std::string error, unsigned status) {
-                        BOOST_LOG_TRIVIAL(info) << "create_project, upload project failed! body=" << body;
-                        if (resFn) {
-                            std::string info("upload project failed!");
-                            info += " body=" + body;
-                            resFn(-1, info);
-                        }
-                    }
             );
 
         if (sync) {
@@ -1945,7 +1934,14 @@ namespace Slic3r {
                     if (resFn) {
                         resFn(-2, "create task id failed!");
                     }
+                    return;
             }).perform();
+    }
+
+    bool AccountManager::can_publish()
+    {
+        if (!is_user_login()) return false;
+        return true;
     }
 
     std::string AccountManager::get_token_str()

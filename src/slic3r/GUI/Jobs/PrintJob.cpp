@@ -106,10 +106,13 @@ void PrintJob::process()
                 update_status(10, "upload 3mf failed!");
             }
         },
-        [this](int percent) {
-            // from 10 to 80
-            int curr_percent = 10 + percent * 70 / 100;
-            update_status(curr_percent, "3mf uploading...");
+        [this](Http::Progress progress, bool &cacel) {
+            int percent = 0;
+            if (progress.ultotal != 0) {
+                percent = progress.ulnow / progress.ultotal;
+            }
+            percent = 10 + percent * 70 / 100;
+            update_status(percent, "3mf uploading...");
         },
         true);
 
