@@ -1,5 +1,6 @@
 #include "OG_CustomCtrl.hpp"
 #include "OptionsGroup.hpp"
+#include "MarkdownTip.hpp"
 #include "Plater.hpp"
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
@@ -243,8 +244,13 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
 {
     const wxPoint pos = event.GetLogicalPosition(wxClientDC(this));
     wxString tooltip;
+    std::string markdowntip;
 
     wxString language = wxGetApp().app_config->get("translation_language");
+
+    // BBS: markdown tip
+    CtrlLine* focusedLine = nullptr;
+    // BBS
 
     bool suppress_hyperlinks = get_app_config()->get("suppress_hyperlinks") == "1";
 
@@ -252,8 +258,13 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
         line.is_focused = is_point_in_rect(pos, line.rect_label);
         if (line.is_focused) {
             if (!suppress_hyperlinks && !line.og_line.label_path.empty())
-                tooltip = OptionsGroup::get_url(line.og_line.label_path) +"\n\n";
+                tooltip = OptionsGroup::get_url(line.og_line.label_path) + "\n\n";
             tooltip += line.og_line.label_tooltip;
+            // BBS: markdown tip
+            focusedLine = &line;
+            markdowntip = line.og_line.label_path;
+            markdowntip.erase(0, markdowntip.find_last_of('#') + 1);
+            // BBS
             break;
         }
 
@@ -278,7 +289,22 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
     }
 
     // Set tooltips with information for each icon
-    this->SetToolTip(tooltip);
+    // BBS: markdown tip
+    if (!markdowntip.empty()) {
+        wxWindow* window = GetGrandParent();
+        assert(focusedLine);
+        wxPoint pos2 = { 150, focusedLine->rect_label.y };
+        pos2 = ClientToScreen(pos2);
+        if (MarkdownTip::ShowTip(markdowntip, pos2)) {
+            tooltip.clear();
+        }
+    }
+    else {
+        MarkdownTip::ShowTip(markdowntip, { tooltip.empty() ? 0 : 1, 0 });
+    }
+    if (GetToolTipText() != tooltip)
+        this->SetToolTip(tooltip);
+    // BBS
 
     Refresh();
     Update();
@@ -318,6 +344,9 @@ void OG_CustomCtrl::OnLeaveWin(wxMouseEvent& event)
 {
     for (CtrlLine& line : ctrl_lines)
         line.is_focused = false;
+
+    // BBS: markdown tip
+    MarkdownTip::ShowTip("", {});
 
     Refresh();
     Update();
