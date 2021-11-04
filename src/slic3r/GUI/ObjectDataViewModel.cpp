@@ -3,6 +3,7 @@
 #include "BitmapCache.hpp"
 #include "GUI_App.hpp"
 #include "GUI_Factories.hpp"
+#include "GUI.hpp"
 #include "I18N.hpp"
 #include "PartPlate.hpp"
 
@@ -11,11 +12,8 @@
 #include <wx/bmpcbox.h>
 #include <wx/dc.h>
 
-
 namespace Slic3r {
-
 namespace GUI {
-
 wxDEFINE_EVENT(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, wxCommandEvent);
 
 BitmapCache* m_bitmap_cache = nullptr;
@@ -442,7 +440,7 @@ wxDataViewItem ObjectDataViewModel::AddOutsidePlate(bool refresh)
 wxDataViewItem ObjectDataViewModel::AddObject(ModelObject* model_object, bool refresh)
 {
     // get object node params
-    wxString name = model_object->name;
+    wxString name = from_u8(model_object->name);
     int extruder = model_object->config.has("extruder") ? model_object->config.extruder() : 0;
     int plate_idx = -1;
     ObjectDataViewModelNode* plate_node = nullptr;
