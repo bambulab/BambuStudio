@@ -242,6 +242,20 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     // initialize layout from config
     update_layout();
     sizer->SetSizeHints(this);
+    // BBS: fix taskbar overlay on windows
+#ifdef WIN32
+    auto setMaxSize = [this]() {
+        wxDisplay display(wxDisplay::GetFromWindow(this));
+        auto size = display.GetClientArea().GetSize();
+        // 8 pixels shadow
+        SetMaxSize(size + wxSize{16, 16});
+    };
+    this->Bind(wxEVT_DPI_CHANGED, [setMaxSize](auto e) {
+        setMaxSize();
+        });
+    setMaxSize();
+#endif // WIN32
+    // BBS
     Fit();
 
     const wxSize min_size = wxGetApp().get_min_size(); //wxSize(76*wxGetApp().em_unit(), 49*wxGetApp().em_unit());

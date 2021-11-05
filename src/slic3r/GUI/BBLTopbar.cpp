@@ -188,6 +188,11 @@ void BBLTopbar::DisableUndoRedoItems()
     Refresh();
 }
 
+void BBLTopbar::SaveNormalRect()
+{
+    m_normalRect = m_frame->GetRect();
+}
+
 void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
 {
     auto accountMenu = new wxMenu();
@@ -307,6 +312,7 @@ void BBLTopbar::OnFullScreen(wxAuiToolBarEvent& event)
         m_frame->Restore();
     }
     else {
+        m_normalRect = m_frame->GetRect();
         m_frame->Maximize();
     }
 }
@@ -327,6 +333,7 @@ void BBLTopbar::OnMouseLeftDClock(wxMouseEvent& mouse)
         m_frame->Restore();
     }
     else {
+        m_normalRect = m_frame->GetRect();
         m_frame->Maximize();
     }
 }
@@ -402,6 +409,15 @@ void BBLTopbar::OnMouseMotion(wxMouseEvent& event)
     if (event.Dragging() && event.LeftIsDown())
     {
         wxPoint mouse_pos = ::wxGetMousePosition();
+        // leave max state and adjust position 
+        if (m_frame->IsMaximized()) {
+            wxPoint mouse_pos = ::wxGetMousePosition();
+            wxRect rect = m_frame->GetRect();
+            m_delta = mouse_pos - rect.GetLeftTop();
+            m_delta.x = m_delta.x * m_normalRect.width / rect.width;
+            m_delta.y = m_delta.y * m_normalRect.height / rect.height;
+            m_frame->Restore();
+        }
         m_frame->Move(mouse_pos - m_delta);
     }
     event.Skip();

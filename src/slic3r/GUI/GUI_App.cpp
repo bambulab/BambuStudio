@@ -1298,6 +1298,8 @@ bool GUI_App::on_init_inner()
         plater_->update_project_dirty_from_presets();
     }
 
+    // BBS:
+    mainframe->topbar()->SaveNormalRect();
     mainframe->Show(true);
 
     obj_list()->set_min_height();

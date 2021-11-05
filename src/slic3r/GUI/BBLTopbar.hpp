@@ -43,10 +43,13 @@ public:
     void EnableUndoRedoItems();
     void DisableUndoRedoItems();
 
+    void SaveNormalRect();
+
 private:
     wxFrame* m_frame;
     wxAuiToolBarItem* m_file_menu_item;
     wxAuiToolBarItem* m_dropdown_menu_item;
+    wxRect m_normalRect;
     wxPoint m_delta;
     wxMenu m_top_menu;
     wxMenu* m_file_menu;
