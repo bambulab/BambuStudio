@@ -120,7 +120,7 @@ namespace Slic3r {
 			wxComboBox* cb_my_device_list;
 			wxButton* btn_refresh_my_device;
 			wxSplitterWindow* m_splitter1;
-			wxPanel* m_panel11;
+			wxPanel* m_panel_left;
 			wxNotebook* m_notebook1;
 			wxPanel* m_panel_guide;
 			wxStaticText* m_staticText_guide_title;
@@ -166,7 +166,6 @@ namespace Slic3r {
 			wxStaticText* m_staticText_mc_print_error_code;
 			wxStaticText* m_staticText_gcode_line_number;
 			wxStaticText* m_staticText_mc_print_line_number;
-			wxNotebook* m_notebook_ctrl;
 			wxPanel* m_panel_settings;
 			wxButton* btn_set_hot_bed_temp;
 			wxTextCtrl* txt_set_hot_bed_temp;
@@ -241,7 +240,7 @@ namespace Slic3r {
 			wxStaticText* label_upgrade_progress_val;
 			wxStaticText* m_staticText_upgrade_info;
 			wxStaticText* label_upgrade_message_val;
-			wxPanel* m_panel12;
+			wxPanel* m_panel_log;
 			wxStaticText* m_staticText_log;
 			wxTextCtrl* txt_string_info;
 
