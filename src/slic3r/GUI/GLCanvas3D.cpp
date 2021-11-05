@@ -5672,6 +5672,7 @@ bool GLCanvas3D::_init_select_plate_toolbar()
     m_select_plate_toolbar.set_separator_size(10);
     m_select_plate_toolbar.set_gap_size(4);
     m_select_plate_toolbar.set_text_size(15);
+    m_select_plate_toolbar.set_icons_size(GLToolbar::Default_Icons_Size * 2.0f);
     
 
     return _update_select_plate_toolbar();
@@ -5699,7 +5700,7 @@ bool GLCanvas3D::_update_select_plate_toolbar()
         item.left.render_callback   = GLToolbarItem::Default_Render_Callback;
         item.visible = true;
         item.visibility_callback = [this]()->bool { return (m_print_select == ePrintAll); };
-        item.extra_size_ratio = 0.0f;
+        item.extra_size_ratio = 0.25f;
         item.button_text = (boost::format("%1%") % (i + 1)).str();
         PartPlate* plate = plate_list.get_plate(i);
         if (plate && plate->thumbnail_data.is_valid()) {
@@ -6607,12 +6608,14 @@ void GLCanvas3D::_render_overlays()
 #else
     const float size = int(GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale(/*true*/));
     const float gizmo_size = int(GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale());
+    const float select_plate_size = int(GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale(/*true*/) * 2.0f);
     //BBS: GUI refactor: GLToolbar
     m_main_toolbar.set_icons_size(gizmo_size);
     m_print_flow_toolbar.set_icons_size(size);
     m_print_select_toolbar.set_icons_size(size);
     m_assemble_view_toolbar.set_icons_size(gizmo_size);
     m_undoredo_toolbar.set_icons_size(size);
+    m_select_plate_toolbar.set_icons_size(select_plate_size);
     wxGetApp().plater()->get_collapse_toolbar().set_icons_size(size);
     m_gizmos.set_overlay_icon_size(gizmo_size);
 #endif // ENABLE_RETINA_GL

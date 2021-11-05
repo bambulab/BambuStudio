@@ -966,6 +966,9 @@ void GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos, GLCanvas3D& 
             float right = left + scaled_icons_size;
             float bottom = top - scaled_icons_size;
 
+            if (item->is_action_with_text_image())
+                right += m_layout.text_size * factor;
+
             //BBS: GUI refactor: GLToolbar
             if (item->is_action_with_text())
                 right += scaled_icons_size * item->get_extra_size_ratio();
@@ -1201,6 +1204,9 @@ int GLToolbar::contains_mouse_vertical(const Vec2d& mouse_pos, const GLCanvas3D&
         {
             float right = left + scaled_icons_size;
             float bottom = top - scaled_icons_size;
+
+            if (item->is_action_with_text_image())
+                right += m_layout.text_size * factor;
 
             //BBS: GUI refactor: GLToolbar
             if (item->is_action_with_text())
