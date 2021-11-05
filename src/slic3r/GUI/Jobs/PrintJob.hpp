@@ -4,18 +4,26 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include "PlaterJob.hpp"
-#include "slic3r/GUI/PartPlate.hpp"
-
 
 namespace fs = boost::filesystem;
 
 namespace Slic3r { namespace GUI {
 
+class PrintPrepareData
+{
+public:
+    std::string     machine_sn;
+    int             plate_idx;
+    fs::path        _3mf_path;
+    PrintPrepareData() {
+        plate_idx = 0;
+    }
+};
+
 class PrintJob : public PlaterJob
 {
-    std::string     machine_sn;
-    fs::path        _3mf_path;
-    PartPlate*      plate;
+    PrintPrepareData job_data;
+
 protected:
 
     void prepare() override;

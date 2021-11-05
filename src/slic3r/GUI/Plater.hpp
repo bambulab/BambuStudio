@@ -19,6 +19,7 @@
 #include "Search.hpp"
 #include "PartPlate.hpp"
 #include "GUI_AuxiliaryList.hpp"
+#include "Jobs/PrintJob.hpp"
 
 class wxButton;
 class ScalableButton;
@@ -282,7 +283,8 @@ public:
     void schedule_background_process(bool schedule = true);
     bool is_background_process_update_scheduled() const;
     void suppress_background_process(const bool stop_background_process) ;
-    void send_gcode();
+    // -1: send current gcode if not specified
+    void send_gcode(int plate_idx = -1);
     //BBS jump to nonitor after print job finished
     void print_job_finished();
 	void eject_drive();
@@ -339,8 +341,7 @@ public:
     void set_prepare_state(int state);
     int get_prepare_state();
     //BBS: add print job releated functions
-    std::string get_prepared_machine_sn();
-    boost::filesystem::path get_prepared_3mf_path();
+    void get_print_job_data(PrintPrepareData* data);
 
     void set_current_canvas_as_dirty();
     void unbind_canvas_event_handlers();

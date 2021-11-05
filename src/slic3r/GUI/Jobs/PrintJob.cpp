@@ -14,9 +14,7 @@ namespace Slic3r { namespace GUI {
 
 void PrintJob::prepare()
 {
-    machine_sn = m_plater->get_prepared_machine_sn();
-    _3mf_path = m_plater->get_prepared_3mf_path();
-    plate = m_plater->get_partplate_list().get_curr_plate();
+    m_plater->get_print_job_data(&job_data);
 }
 
 void PrintJob::on_exception(const std::exception_ptr &eptr)
@@ -35,12 +33,17 @@ void PrintJob::process()
     Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
     Slic3r::DeviceManager* d  = Slic3r::GUI::wxGetApp().getDeviceManager();
 
+    PartPlate* plate = m_plater->get_partplate_list().get_plate(job_data.plate_idx);
+    if (plate == nullptr) {
+        return;
+    }
+
     /* 1 - lan print task*/
-    std::map<std::string, MachineObject*>::iterator it = c->myBindMachineList.find(machine_sn);
+    std::map<std::string, MachineObject*>::iterator it = c->myBindMachineList.find(job_data.machine_sn);
     if (it == c->myBindMachineList.end()) {
-        it = d->localMachineList.find(machine_sn);
+        it = d->localMachineList.find(job_data.machine_sn);
         if (it == d->localMachineList.end()) {
-            update_status(0, "can not find machine =" + machine_sn);
+            update_status(0, "can not find machine =" + job_data.machine_sn);
             return;
         }
 
@@ -56,7 +59,7 @@ void PrintJob::process()
     // TODO set a 3mf name
     std::string project_name = boost::format("bbl_project_name").str();
     BBLProject* project = new BBLProject(project_name, BBLProject::ProjectType::PROJECT_3MF);
-    project->project_3mf_file = _3mf_path.string();
+    project->project_3mf_file = job_data._3mf_path.string();
     project->project_path = fs::path(project->project_3mf_file);
 
     res = c->request_project_id(project);
@@ -122,7 +125,7 @@ void PrintJob::process()
     subTask->task_gcode_in_3mf = (boost::format(GCODE_FILE_FORMAT) % (plate->get_index() + 1)).str();
 
     subTask->task_partplate_idx = plate->get_index();
-    subTask->task_printer_dev_id = machine_sn;
+    subTask->task_printer_dev_id = job_data.machine_sn;
     if (plate->get_slice_result()) {
         subTask->task_prediction = std::to_string((int)plate->get_slice_result()->print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time);
         const PrintStatistics& ps = m_plater->get_partplate_list().get_current_fff_print().print_statistics();
@@ -143,7 +146,6 @@ void PrintJob::process()
         update_status(80, "request task id failed!");
         return;
     }
-
 
     c->request_subtask_id(subTask);
 
@@ -166,7 +168,7 @@ void PrintJob::process()
     }
 
     //subTask url
-    MachineObject* obj = c->find_machine(machine_sn);
+    MachineObject* obj = c->find_machine(job_data.machine_sn);
     if (obj) {
         // upload and send to machine
         obj->send_wan_print_subtask(subTask);
@@ -176,8 +178,6 @@ void PrintJob::process()
         c->myProjectList.insert(std::make_pair(project->project_id, project));
 
         m_plater->print_job_finished();
-        finalize();
-        return;
     }
 }
 

@@ -130,6 +130,7 @@ wxDEFINE_EVENT(EVT_SLICING_COMPLETED,               wxCommandEvent);
 wxDEFINE_EVENT(EVT_PROCESS_COMPLETED,               SlicingProcessCompletedEvent);
 wxDEFINE_EVENT(EVT_EXPORT_BEGAN,                    wxCommandEvent);
 wxDEFINE_EVENT(EVT_EXPORT_FINISHED,                 wxCommandEvent);
+wxDEFINE_EVENT(EVT_SELECT_MONITOR, wxCommandEvent);
 
 
 
@@ -1865,6 +1866,7 @@ struct Plater::priv
     void on_plate_right_click(RBtnPlateEvent&);
     void on_plate_selected(SimpleEvent&);
     void on_slice_button_status(bool enable);
+    void on_action_select_monitor(wxCommandEvent&);
     //BBS: GUI refactor: GLToolbar
     void on_action_open_project(SimpleEvent&);
     void on_action_slice_plate(SimpleEvent&);
@@ -1932,8 +1934,7 @@ struct Plater::priv
     std::string                 last_output_path;
     std::string                 last_output_dir_path;
     //BBS store machine_sn and 3mf_path for PrintJob
-    std::string                 m_job_machine_sn;
-    fs::path                    m_job_3mf_path;
+    PrintPrepareData            m_print_job_data;
     bool                        inside_snapshot_capture() { return m_prevent_snapshots != 0; }
 	bool                        process_completed_with_error { false };
    
@@ -2215,6 +2216,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLTOOLBAR_PRINT_ALL, &priv::on_action_print_all, this);
         q->Bind(EVT_GLTOOLBAR_EXPORT_GCODE, &priv::on_action_export_gcode, this);
         q->Bind(EVT_GLCANVAS_PLATE_SELECT, &priv::on_plate_selected, this);
+        q->Bind(EVT_SELECT_MONITOR, &priv::on_action_select_monitor, this);
         //q->Bind(EVT_GLVIEWTOOLBAR_ASSEMBLE, [q](SimpleEvent&) { q->select_view_3D("Assemble"); });
     }
 
@@ -4575,6 +4577,8 @@ void Plater::priv::on_action_print_all(SimpleEvent&)
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received print all event\n" ;
     }
+    //send first plate gcode
+    q->send_gcode(0);
 }
 
 void Plater::priv::on_action_export_gcode(SimpleEvent&)
@@ -4590,6 +4594,13 @@ void Plater::priv::on_plate_selected(SimpleEvent&)
 {
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received plate selected event\n" ;
     sidebar->obj_list()->on_plate_selected(partplate_list.get_curr_plate_index());
+}
+
+void Plater::priv::on_action_select_monitor(wxCommandEvent&)
+{
+    if (q != nullptr) {
+        wxGetApp().mainframe->jump_to_monitor();
+    }
 }
 
 //BBS: add slice button status update logic
@@ -4814,15 +4825,13 @@ int Plater::get_prepare_state()
     return p->m_job_prepare_state;
 }
 
-//BBS: add print job releated functions
-std::string Plater::get_prepared_machine_sn()
+void Plater::get_print_job_data(PrintPrepareData* data)
 {
-    return p->m_job_machine_sn;
-}
-
-fs::path Plater::get_prepared_3mf_path()
-{
-    return p->m_job_3mf_path;
+    if (data) {
+        data->machine_sn = p->m_print_job_data.machine_sn;
+        data->plate_idx = p->m_print_job_data.plate_idx;
+        data->_3mf_path = p->m_print_job_data._3mf_path;
+    }
 }
 
 void Plater::priv::set_current_canvas_as_dirty()
@@ -6926,7 +6935,7 @@ void Plater::reslice_SLA_until_step(SLAPrintObjectStep step, const ModelObject &
     this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
 }
 
-void Plater::send_gcode()
+void Plater::send_gcode(int plate_idx)
 {
     // BBS
     /*PrintHostJob upload_job(physical_printer_config);
@@ -6958,24 +6967,25 @@ void Plater::send_gcode()
         return;
     }
 
+    /* generate 3mf */
+
     PartPlate* plate = p->background_process.get_current_plate();
     try {
-        p->m_job_3mf_path = fs::path(plate->get_tmp_gcode_path());
-        p->m_job_3mf_path.replace_extension("3mf");
+        p->m_print_job_data._3mf_path = fs::path(plate->get_tmp_gcode_path());
+        p->m_print_job_data._3mf_path.replace_extension("3mf");
     }
     catch (std::exception& e) {
         BOOST_LOG_TRIVIAL(trace) << "generate 3mf path failed";
     }
 
-    /* generate 3mf */
-    export_3mf(p->m_job_3mf_path, true);
+    export_3mf(p->m_print_job_data._3mf_path, true);
 
     //BBS send gcode to printer
     SelectMachineDialog dlg;
     if (dlg.ShowModal() == wxID_OK) {
         BOOST_LOG_TRIVIAL(trace) << "MachineDialog";
         if (!dlg.machine_sn.empty()) {
-            p->m_job_machine_sn = dlg.machine_sn.ToStdString();
+            p->m_print_job_data.machine_sn = dlg.machine_sn.ToStdString();
             p->m_ui_jobs.print();
         }
     }
@@ -7003,7 +7013,8 @@ void Plater::send_gcode()
 //BBS
 void Plater::print_job_finished()
 {
-    p->main_frame->jump_to_monitor();
+    wxCommandEvent* event = new wxCommandEvent(EVT_SELECT_MONITOR);
+    wxQueueEvent(p->main_frame, event);
 }
 
 // Called when the Eject button is pressed.
