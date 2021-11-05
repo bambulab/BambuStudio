@@ -1516,35 +1516,41 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 for (const Node* p_node : contact_nodes[layer_nr])
                 {
                     const Node& node = *p_node;
-                    Polygon circle;
-                    //double scale = calc_branch_radius(branch_radius, node.distance_to_top, tip_layers, diameter_angle_scale_factor) / branch_radius;
-                    size_t layers_to_top = node.distance_to_top;
-                    double scale = static_cast<double>(layers_to_top + 1) / tip_layers;
-                    scale = layers_to_top < tip_layers ? (0.5 + scale / 2) : (1 + static_cast<double>(layers_to_top - tip_layers) * diameter_angle_scale_factor);
-                    scale = std::min(scale, MAX_BRANCH_RADIUS / branch_radius);
-                    for (auto iter = branch_circle.points.begin(); iter != branch_circle.points.end(); iter++)
-                    {
-                        Point corner = (*iter) * scale;
-                        circle.append(node.position + corner);
+                    ExPolygon area;
+                    if (node.type == ePolygon) {
+                        area = *node.overhang;
                     }
+                    else {
+                        Polygon circle;
+                        size_t layers_to_top = node.distance_to_top;
+                        double scale = static_cast<double>(layers_to_top + 1) / tip_layers;
+                        scale = layers_to_top < tip_layers ? (0.5 + scale / 2) : (1 + static_cast<double>(layers_to_top - tip_layers) * diameter_angle_scale_factor);
+                        scale = std::min(scale, MAX_BRANCH_RADIUS / branch_radius);
+                        for (auto iter = branch_circle.points.begin(); iter != branch_circle.points.end(); iter++)
+                        {
+                            Point corner = (*iter) * scale;
+                            circle.append(node.position + corner);
+                        }
 
-                    if (layer_nr == 0 && m_raft_layers == 0) {
-                        circle = offset(circle, scale_(FIRST_LAYER_EXPANSION))[0];
+                        if (layer_nr == 0 && m_raft_layers == 0) {
+                            circle = offset(circle, scale_(FIRST_LAYER_EXPANSION))[0];
+                        }
+                        area = ExPolygon(circle);
                     }
 
                     if (node.support_roof_layers_below > 0)
                     {
-                        roof_areas.emplace_back(circle);
+                        roof_areas.emplace_back(area);
                     }
                     else if (node.support_floor_layers_above > 0)
-                        floor_areas.emplace_back(circle);
+                        floor_areas.emplace_back(area);
                     else
                     {
-                        base_areas.emplace_back(circle);
+                        base_areas.emplace_back(area);
                     }
 
                     if (layer_nr < brim_skirt_layers)
-                        ts_layer->lslices.emplace_back(circle);
+                        ts_layer->lslices.emplace_back(area);
                 }
 #else
                 // some nodes may not have radius set
@@ -1670,6 +1676,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
     //m_mst_line_x_layer_contour_caches.resize(contact_nodes.size());
 
     {// get outlines below and avoidance area using tbb
+        m_object.print()->set_status(90, "Support: preparing avoidance regions ");
         // get all the possible radiis
         std::vector<std::set<coordf_t> > all_layer_radiis(m_highest_overhang_layer+1);
         std::vector<std::set<size_t> > all_layer_node_dist(m_highest_overhang_layer+1);
@@ -1715,16 +1722,30 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
             continue;
         m_object.print()->set_status(90, "Support: drop_nodes at layer " + std::to_string(layer_nr));
 
+        for (Node* p_node : layer_contact_nodes)
+        {
+            if (p_node->type == ePolygon) {
+                Node* next_node = new Node(*p_node);
+                next_node->distance_to_top++;
+                next_node->support_roof_layers_below--;
+                contact_nodes[layer_nr - 1].emplace_back(next_node);
+            }
+        }
+
         Polygons layer_contours = std::move(m_ts_data->get_contours_with_holes(layer_nr));
         //std::unordered_map<Line, bool, LineHash>& mst_line_x_layer_contour_cache = m_mst_line_x_layer_contour_caches[layer_nr];
         std::unordered_map<Line, bool, LineHash> mst_line_x_layer_contour_cache;
 
         //Group together all nodes for each part.
         const ExPolygons& parts = m_ts_data->get_avoidance(0, layer_nr);
-        std::vector<std::unordered_map<Point, Node*, PointHash>> nodes_per_part(1+ parts.size()); //All nodes that aren't inside a part get grouped together in the 0th part.
+        std::vector<std::unordered_map<Point, Node*, PointHash>> nodes_per_part(1 + parts.size()); //All nodes that aren't inside a part get grouped together in the 0th part.
         for (Node* p_node : layer_contact_nodes)
         {
             const Node& node = *p_node;
+            if (node.type == ePolygon) {
+                // polygon node do not merge or move
+                continue;
+            }
 
             if (support_on_buildplate_only && !node.to_buildplate) //Can't rest on model and unable to reach the build plate. Then we must drop the node and leave parts unsupported.
             {
@@ -2040,6 +2061,8 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
     BoundingBox bounding_box = m_object.bounding_box();
     const Point bounding_box_size = bounding_box.max - bounding_box.min;
     constexpr double rotate_angle = 22.0 / 180.0 * M_PI;
+    constexpr double thresh_big_overhang = SQ(scale_(10));
+
     const auto center = bounding_box_middle(bounding_box);
     const auto sin_angle = std::sin(rotate_angle);
     const auto cos_angle = std::cos(rotate_angle);
@@ -2083,6 +2106,17 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
         for (const ExPolygon &overhang_part : overhang)
         {
             BoundingBox overhang_bounds = get_extents(overhang_part);
+            if (overhang_part.area() > thresh_big_overhang) {
+                Point candidate = overhang_bounds.center();
+                if (!overhang_part.contains(candidate))
+                    move_inside_expoly(overhang_part, candidate);
+                Node* contact_node = new Node(candidate, 0, (layer_nr + z_distance_top_layers) % 2, support_roof_layers, true, Node::NO_PARENT);
+                contact_node->type = ePolygon;
+                contact_node->overhang = &overhang_part;
+                contact_nodes[layer_nr].emplace_back(contact_node);
+                continue;
+            }
+
             overhang_bounds.inflated(scale_(half_overhang_distance));
             bool added = false; //Did we add a point this way?
             for (Point candidate : grid_points)

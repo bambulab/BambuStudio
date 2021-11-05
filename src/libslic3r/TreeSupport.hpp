@@ -189,6 +189,12 @@ public:
      */
     void generate_support_areas();
 
+    enum NodeType {
+        eCircle,
+        eSquare,
+        ePolygon
+    };
+
     /*!
      * \brief Represents the metadata of a node in the tree.
      */
@@ -236,6 +242,8 @@ public:
 
         Point movement;  // movement towards neighbor center or outline
         double radius;
+        NodeType type = eCircle;
+        const ExPolygon* overhang = nullptr;  // when type==ePolygon, set this value to get original overhang area
 
         /*!
          * \brief The direction of the skin lines above the tip of the branch.
