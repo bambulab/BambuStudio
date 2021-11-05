@@ -236,9 +236,9 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
                 project = c->get_default_project();
                 if (!project) return;
             }
-            if (project->project_id.empty()) return;
+            if (project->project_model_id.empty()) return;
 
-            wxString url = wxString::Format(MY_MODEL_PUBLISH_URL_FORMAT, project->project_id);
+            wxString url = wxString::Format(MY_MODEL_PUBLISH_URL_FORMAT, project->project_model_id);
             WebFrame* m_publish_webframe = new WebFrame(url);
             m_publish_webframe->Show();
         }, "upload_queue", nullptr,
