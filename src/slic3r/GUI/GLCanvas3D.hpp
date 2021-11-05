@@ -502,6 +502,7 @@ private:
     mutable GLToolbar m_print_select_toolbar;
     mutable GLToolbar m_select_plate_toolbar;
     mutable GLToolbar m_assemble_view_toolbar;
+    mutable GLToolbar m_return_toolbar;
     mutable int m_print_select{ ePrintAll };
     mutable int m_slice_select{ eSliceAll };
     //BBS: add canvas type for assemble view usage
@@ -760,6 +761,7 @@ public:
     void enable_select_plate_toolbar(bool enable);
     void enable_assemble_view_toolbar(bool enable);
     void enable_undoredo_toolbar(bool enable);
+    void enable_return_toolbar(bool enable);
     void enable_dynamic_background(bool enable);
     void enable_labels(bool enable) { m_labels.enable(enable); }
     void enable_slope(bool enable) { m_slope.enable(enable); }
@@ -977,6 +979,7 @@ private:
     bool _init_select_plate_toolbar();
     bool _update_select_plate_toolbar();
     bool _init_assemble_view_toolbar();
+    bool _init_return_toolbar();
     bool _init_undoredo_toolbar();
     // BBS
     //bool _init_view_toolbar();
@@ -1021,6 +1024,7 @@ private:
     void _render_print_toolbar() const;
     void _render_select_plate_toolbar() const;
     void _render_assemble_view_toolbar() const;
+    void _render_return_toolbar() const;
     void _render_undoredo_toolbar();
     void _render_collapse_toolbar() const;
     // BBS

@@ -1136,6 +1136,7 @@ bool AssembleView::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrint
     m_canvas->enable_print_flow_toolbar(false);
     m_canvas->enable_print_select_toolbar(false);
     m_canvas->enable_assemble_view_toolbar(false);
+    m_canvas->enable_return_toolbar(true);
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);

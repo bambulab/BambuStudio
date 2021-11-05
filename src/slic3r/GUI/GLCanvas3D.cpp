@@ -985,6 +985,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
     , m_print_select_toolbar(GLToolbar::Normal, "Print_Select")
     , m_select_plate_toolbar(GLToolbar::Normal, "Slect_Plate")
     , m_assemble_view_toolbar(GLToolbar::Normal, "Assemble_View")
+    , m_return_toolbar(GLToolbar::Normal, "Return")
     , m_undoredo_toolbar(GLToolbar::Normal, "Undo_Redo")
     , m_canvas_type(ECanvasType::CanvasView3D)
     , m_gizmos(*this)
@@ -1426,6 +1427,11 @@ void GLCanvas3D::enable_undoredo_toolbar(bool enable)
     m_undoredo_toolbar.set_enabled(enable);
 }
 
+void GLCanvas3D::enable_return_toolbar(bool enable)
+{
+    m_return_toolbar.set_enabled(enable);
+}
+
 void GLCanvas3D::enable_dynamic_background(bool enable)
 {
     m_dynamic_background_enabled = enable;
@@ -1707,6 +1713,9 @@ void GLCanvas3D::render()
 
 	    if (tooltip.empty())
 	        tooltip = m_undoredo_toolbar.get_tooltip();
+
+        if (tooltip.empty())
+            tooltip = m_return_toolbar.get_tooltip();
 
 	    if (tooltip.empty())
             tooltip = wxGetApp().plater()->get_collapse_toolbar().get_tooltip();
@@ -2444,6 +2453,7 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     m_dirty |= m_select_plate_toolbar.update_items_state();
     m_dirty |= m_assemble_view_toolbar.update_items_state();
     m_dirty |= m_undoredo_toolbar.update_items_state();
+    m_dirty |= m_return_toolbar.update_items_state();
     // BBS
     //m_dirty |= wxGetApp().plater()->get_view_toolbar().update_items_state();
     m_dirty |= wxGetApp().plater()->get_collapse_toolbar().update_items_state();
@@ -3185,6 +3195,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
 
     if (m_undoredo_toolbar.on_mouse(evt, *this)) {
+        if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
+            mouse_up_cleanup();
+        m_mouse.set_start_position_3D_as_invalid();
+        return;
+    }
+
+    if (m_return_toolbar.on_mouse(evt, *this)) {
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
         m_mouse.set_start_position_3D_as_invalid();
@@ -4988,6 +5005,9 @@ bool GLCanvas3D::_init_toolbars()
     if (!_init_undoredo_toolbar())
         return false;
 
+    if (!_init_return_toolbar())
+        return false;
+
 #if 0
     if (!_init_view_toolbar())
         return false;
@@ -5895,6 +5915,39 @@ bool GLCanvas3D::_init_undoredo_toolbar()
     return true;
 }
 
+bool GLCanvas3D::_init_return_toolbar()
+{
+    if (!m_return_toolbar.is_enabled())
+        return true;
+
+    BackgroundTexture::Metadata background_data;
+    background_data.filename = "toolbar_background.png";
+    background_data.left = 16;
+    background_data.top = 16;
+    background_data.right = 16;
+    background_data.bottom = 16;
+
+    if (!m_return_toolbar.init(background_data))
+        return false;
+
+    m_return_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Right);
+    m_return_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
+    m_return_toolbar.set_border(5.0f);
+    m_return_toolbar.set_gap_size(1.0f);
+
+    GLToolbarItem::Data item;
+
+    item.name = "Return";
+    item.icon_filename = "return.svg";
+    item.tooltip = _utf8(L("Return 3D View"));
+    item.sprite_id = 0;
+    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_3D)); };
+    if (!m_return_toolbar.add_item(item))
+        return false;
+    return true;
+}
+
+
 // BBS
 #if 0
 bool GLCanvas3D::_init_view_toolbar()
@@ -6557,6 +6610,7 @@ void GLCanvas3D::_render_overlays()
     _render_undoredo_toolbar();
     _render_collapse_toolbar();
     _render_assemble_view_toolbar();
+    _render_return_toolbar();
     // BBS
     //_render_view_toolbar();
     _render_paint_toolbar();
@@ -6764,6 +6818,34 @@ void GLCanvas3D::_render_assemble_view_toolbar() const
 #endif
     m_assemble_view_toolbar.set_position(top, left);
     m_assemble_view_toolbar.render(*this);
+}
+
+void GLCanvas3D::_render_return_toolbar() const
+{
+    if (!m_return_toolbar.is_enabled())
+        return;
+
+#if ENABLE_RETINA_GL
+    const float scale = m_retina_helper->get_scale_factor() * wxGetApp().toolbar_icon_scale();
+#if __APPLE__
+    m_return_toolbar.set_scale(scale);
+#else // if GTK3
+    const float size = int(GLGizmosManager::Default_Icons_Size * scale);
+    m_return_toolbar.set_icons_size(size);
+#endif // __APPLE__
+#else
+    const float size = int(GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale());
+    m_return_toolbar.set_icons_size(size);
+#endif // ENABLE_RETINA_GL
+
+    Size cnv_size = get_canvas_size();
+    float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
+
+    float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
+    float left = (0.5f * (float)cnv_size.get_width() - m_return_toolbar.get_width()) * inv_zoom;
+
+    m_return_toolbar.set_position(top, left);
+    m_return_toolbar.render(*this);
 }
 
 void GLCanvas3D::_render_undoredo_toolbar()
