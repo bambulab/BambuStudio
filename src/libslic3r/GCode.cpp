@@ -1335,7 +1335,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     //BBS
     if (print.config().scan_first_layer.value)
-        file.writeln("M977 S1 P60");
+        file.writeln("M977 S1 P60\nM400 S3\n");
 
     // Write the custom start G-code
     file.writeln(start_gcode);
@@ -2182,8 +2182,11 @@ GCode::LayerResult GCode::process_layer(
 
     //BBS
     if (print.config().scan_first_layer.value) {
-        if (first_layer)
-            gcode += "M976 S2 P1 ;scan bed before print first layer\n";
+        if (first_layer) {
+            gcode += ";scan bed before print first layer\n";
+            gcode += "M973 S3 P0\nM400 S5\nM973 S2 P5000\nM400 S3\n";
+            gcode += "M960 S0 P0\nM400 S3\nM960 S1 P1\nM400 S3\nM976 S2 P1\nM400 S10\n";
+        }
     }
 
     if (! first_layer && ! m_second_layer_things_done) {
@@ -2578,7 +2581,9 @@ GCode::LayerResult GCode::process_layer(
         if (first_layer) {
             //BBS: retract first to avoid droping when scan bed
             gcode += this->retract();
-            gcode += "M976 S1 P1 ;scan bed after print first layer\n";
+            gcode += ";scan bed after print first layer\n";
+            gcode += "M973 S3 P0\nM400 S5\nM973 S2 P5000\nM400 S5\n";
+            gcode += "M976 S1 P1\nM400 S5\nM960 S0\nM400 S5\nM973 S4 P0\nM400 S5\n";
             gcode += this->unretract();
         }
     }
