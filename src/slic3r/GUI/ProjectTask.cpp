@@ -32,6 +32,14 @@ namespace Slic3r {
         profile_name = "N/A";
     }
 
+    BBLSliceInfo* BBLProfile::get_slice_info(int plate_idx)
+    {
+        std::map<std::string, BBLSliceInfo*>::iterator it = slice_info.find(std::to_string(plate_idx));
+        if (it == slice_info.end())
+            return nullptr;
+        return it->second;
+    }
+
     BBLTask::BBLTask(BBLProfile* profile)
     {
         profile_ = nullptr;

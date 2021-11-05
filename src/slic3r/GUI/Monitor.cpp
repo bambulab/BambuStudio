@@ -1425,14 +1425,16 @@ void MonitorPanel::on_subtask_update(BBLSubTask* curr_subtask, bool update_all)
     }
 
     std::string total_time = "NA";
-    if (!curr_subtask->task_prediction.empty()) {
+    BBLSliceInfo* info = obj->get_slice_info(curr_subtask->task_partplate_idx);
+    if (info) {
         try {
-            total_time = get_time_dhms(stoi(curr_subtask->task_prediction));
+            total_time = get_time_dhms(info->prediction);
         }
         catch (...) {
             ;
         }
     }
+    
     wxString progress_text = wxString::Format("%s/%s", duration, total_time);
 
     m_staticText_progress->SetLabelText(progress_text);

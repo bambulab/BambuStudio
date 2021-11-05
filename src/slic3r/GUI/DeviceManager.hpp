@@ -231,6 +231,7 @@ public:
     int send_lan_print_subtask(BBLSubTask* task, UploadedFn cFn = nullptr, UploadProgressFn proFn = nullptr, ErrorFn errFn = nullptr);
     int send_wan_print_subtask(BBLSubTask* task, UploadedFn cFn = nullptr, UploadProgressFn proFn = nullptr, ErrorFn errFn = nullptr);
     BBLSubTask* get_subtask();
+    BBLSliceInfo* get_slice_info(int plate_idx);
     void update_subtask(std::string subtask_id);
     void update_task(std::string task_id);
     void update_profile(std::string project_id, std::string profile_id);

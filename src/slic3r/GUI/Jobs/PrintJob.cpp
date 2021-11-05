@@ -35,6 +35,8 @@ void PrintJob::process()
 
     PartPlate* plate = m_plater->get_partplate_list().get_plate(job_data.plate_idx);
     if (plate == nullptr) {
+        plate = m_plater->get_partplate_list().get_curr_plate();
+        if (plate == nullptr)
         return;
     }
 
@@ -123,19 +125,11 @@ void PrintJob::process()
     /* rqeust task id */
 
     /* create subTask from current plate */
-    plate->get_index();
     BBLSubTask* subTask = new BBLSubTask(task);
     subTask->task_gcode_in_3mf = (boost::format(GCODE_FILE_FORMAT) % (plate->get_index() + 1)).str();
 
-    subTask->task_partplate_idx = plate->get_index();
+    subTask->task_partplate_idx = plate->get_index() + 1;
     subTask->task_printer_dev_id = job_data.machine_sn;
-    if (plate->get_slice_result()) {
-        subTask->task_prediction = std::to_string((int)plate->get_slice_result()->print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time);
-        const PrintStatistics& ps = m_plater->get_partplate_list().get_current_fff_print().print_statistics();
-        if (ps.total_weight != 0.0) {
-            subTask->task_weight = wxString::Format("%.2f", ps.total_weight).ToStdString();
-        }
-    }
     subTask->task_name = subTask->task_gcode_in_3mf;
 
     task->subtasks.push_back(subTask);

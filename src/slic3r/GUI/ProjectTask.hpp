@@ -44,7 +44,7 @@ public:
     // task of plate info
     std::string     task_prediction;    /* prediction printing time of plate, unit seconds */
     std::string     task_weight;        /* weight create by slicer */
-    int             task_partplate_idx; /* partplate_idx, start at 0, 1, 2, etc. */
+    int             task_partplate_idx; /* partplate_idx, start at 1, 2, etc. */
 
     SubTaskStatus   task_status;
     std::string     task_printer_dev_id;/* dev_id of machine */
@@ -132,7 +132,8 @@ public:
     std::string             profile_content;
     std::string             project_id;         /* parent project_id */
     BBLProject*             project_;
-    std::map<std::string, BBLSliceInfo*>    slice_info;
+    std::map<std::string, BBLSliceInfo*>    slice_info; /* key: plate_idx */
+    BBLSliceInfo* get_slice_info(int plate_idx);
 };
 
 class BBLProject {

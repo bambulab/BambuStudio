@@ -982,6 +982,14 @@ BBLSubTask* MachineObject::get_subtask()
     }
 }
 
+BBLSliceInfo* MachineObject::get_slice_info(int plate_idx)
+{
+    if (!profile_)
+        return nullptr;
+
+    return profile_->get_slice_info(plate_idx);
+}
+
 void MachineObject::update_profile(std::string project_id, std::string profile_id)
 {
     if (project_id.empty() || profile_id.empty()) return;

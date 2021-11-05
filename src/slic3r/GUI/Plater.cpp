@@ -7141,8 +7141,14 @@ void Plater::send_gcode(int plate_idx)
     }
 
     /* generate 3mf */
+    if (plate_idx >= 0) {
+        p->m_print_job_data.plate_idx = plate_idx;
+    }
+    else {
+        p->m_print_job_data.plate_idx = get_partplate_list().get_curr_plate_index();
+    }
 
-    PartPlate* plate = p->background_process.get_current_plate();
+    PartPlate* plate = get_partplate_list().get_curr_plate();
     try {
         p->m_print_job_data._3mf_path = fs::path(plate->get_tmp_gcode_path());
         p->m_print_job_data._3mf_path.replace_extension("3mf");
@@ -7150,7 +7156,6 @@ void Plater::send_gcode(int plate_idx)
     catch (std::exception& e) {
         BOOST_LOG_TRIVIAL(trace) << "generate 3mf path failed";
     }
-
     export_3mf(p->m_print_job_data._3mf_path, true);
 
     //BBS send gcode to printer
