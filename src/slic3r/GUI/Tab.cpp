@@ -3616,6 +3616,12 @@ void Tab::clear_pages()
     m_compatible_prints.btn         = nullptr;
 }
 
+//BBS: GUI refactor: unselect current item
+void Tab::unselect_tree_item()
+{
+    m_treectrl->Unselect();
+}
+
 void Tab::update_description_lines()
 {
     if (m_active_page && m_active_page->title() == "Dependencies" && m_parent_preset_description_line)
@@ -3732,6 +3738,7 @@ bool Tab::tree_sel_change_delayed(wxTreeEvent& event)
         if (current_tab)
         {
             current_tab->clear_pages();
+            current_tab->unselect_tree_item();
         }
         m_active_page = page;
         update_undo_buttons();

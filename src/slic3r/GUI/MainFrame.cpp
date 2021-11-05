@@ -1290,7 +1290,15 @@ void MainFrame::update_slice_print_status(SlicePrintEventType event, bool can_sl
     bool enable_print = true, enable_slice = true;
 
     if (!can_slice)
-        enable_slice = false;
+    {
+        if (eEventPlateUpdate == event)
+        {
+            if (m_slice_select == eSlicePlate)
+                enable_slice = false;
+        }
+        else
+            enable_slice = false;
+    }
     if (!can_print)
         enable_print = false;
 

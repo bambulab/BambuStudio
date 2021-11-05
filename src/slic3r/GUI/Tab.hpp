@@ -368,6 +368,7 @@ public:
 	const std::map<wxString, std::string>& get_category_icon_map() { return m_category_icon; }
 	//BBS: GUI refactor
 	bool update_current_page_in_background(wxTreeItemId& item);
+	void unselect_tree_item();
 
 	static bool validate_custom_gcode(const wxString& title, const std::string& gcode);
 	bool        validate_custom_gcodes();

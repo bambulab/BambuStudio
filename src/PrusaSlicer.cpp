@@ -1264,8 +1264,8 @@ extern "C" {
             argv_ptrs[i] = argv_narrow[i].data();
 
         //BBS: register default exception handler
-        AddVectoredExceptionHandler(1, CBaseException::UnhandledExceptionFilter);
-        //SET_DEFULTER_HANDLER();
+        //AddVectoredExceptionHandler(1, CBaseException::UnhandledExceptionFilter);
+        SET_DEFULTER_HANDLER();
 
         // Call the UTF8 main.
         return CLI().run(argc, argv_ptrs.data());

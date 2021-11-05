@@ -596,6 +596,7 @@ void PartPlate::set_index(int index)
 void PartPlate::clear()
 {
 	obj_to_instance_set.clear();
+	m_ready_for_slice = true;
 
 	return;
 }
@@ -762,7 +763,8 @@ bool PartPlate::check_outside(int obj_id, int instance_id)
 
 	BoundingBoxf3 instance_box = object->instance_bounding_box(instance_id);
 	Vec3d up_point(m_origin.x() + m_width, m_origin.y() + m_depth, m_origin.z() + m_height);
-	BoundingBoxf3 plate_box(m_origin, up_point);
+	Vec3d low_point(m_origin.x(), m_origin.y(), m_origin.z() - 5.0f);
+	BoundingBoxf3 plate_box(low_point, up_point);
 
 	if (plate_box.contains(instance_box))
 		outside = false;
@@ -787,7 +789,8 @@ bool PartPlate::intersect_instance(int obj_id, int instance_id)
 		ModelInstance* instance = object->instances[instance_id];
 		BoundingBoxf3 instance_box = object->instance_bounding_box(instance_id);
 		Vec3d up_point(m_origin.x() + m_width, m_origin.y() + m_depth, m_origin.z() + m_height);
-		BoundingBoxf3 plate_box(m_origin, up_point);
+		Vec3d low_point(m_origin.x(), m_origin.y(), m_origin.z() - 5.0f);
+		BoundingBoxf3 plate_box(low_point, up_point);
 
 		result = plate_box.intersects(instance_box);
 	}
