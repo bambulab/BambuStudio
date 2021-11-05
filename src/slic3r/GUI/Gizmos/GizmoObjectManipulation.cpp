@@ -630,29 +630,10 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
     {
         //for (int index = 0; index < 3; index++)
         //    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ",after_index="<<index <<boost::format(",scale %1%, buffered %2%, original_id %3%, new_id %4%\n") % this->m_new_scale[index] % m_buffered_scale[index] % m_last_active_item % current_active_id;
-        if (scale_sel == 0)
-        {
-            ImGui::ClearInputTextInitialData(label_values[2][1], m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData(label_values[2][2], m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData(label_values[3][0], m_buffered_size[0]);
-            ImGui::ClearInputTextInitialData(label_values[3][1], m_buffered_size[0]);
-            ImGui::ClearInputTextInitialData(label_values[3][2], m_buffered_size[0]);
-        }
-        else if (scale_sel == 1)
-        {
-            ImGui::ClearInputTextInitialData(label_values[2][0], m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData(label_values[2][2], m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData(label_values[3][0], m_buffered_size[0]);
-            ImGui::ClearInputTextInitialData(label_values[3][1], m_buffered_size[0]);
-            ImGui::ClearInputTextInitialData(label_values[3][2], m_buffered_size[0]);
-        }
-        else if (scale_sel == 2)
-        {
-            ImGui::ClearInputTextInitialData(label_values[2][0], m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData(label_values[2][1], m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData(label_values[3][0], m_buffered_size[0]);
-            ImGui::ClearInputTextInitialData(label_values[3][1], m_buffered_size[0]);
-            ImGui::ClearInputTextInitialData(label_values[3][2], m_buffered_size[0]);
+        for (int i = 0; i < 3; ++i) {
+            if (i != scale_sel)
+                ImGui::ClearInputTextInitialData(label_values[2][i], m_buffered_scale[i]);
+            ImGui::ClearInputTextInitialData(label_values[3][i], m_buffered_size[i]);
         }
     }
     //if the value is chaged, need reset button
@@ -691,29 +672,10 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
     {
         //for (int index = 0; index < 3; index++)
         //    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ",after_index="<<index <<boost::format(",scale %1%, buffered %2%, original_id %3%, new_id %4%\n") % this->m_new_scale[index] % m_buffered_scale[index] % m_last_active_item % current_active_id;
-        if (size_sel == 0)
-        {
-            ImGui::ClearInputTextInitialData(label_values[2][0], m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData(label_values[2][1], m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData(label_values[2][2], m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData(label_values[3][1], m_buffered_size[0]);
-            ImGui::ClearInputTextInitialData(label_values[3][2], m_buffered_size[0]);
-        }
-        else if (size_sel == 1)
-        {
-            ImGui::ClearInputTextInitialData(label_values[2][0], m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData(label_values[2][1], m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData(label_values[2][2], m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData(label_values[3][0], m_buffered_size[0]);
-            ImGui::ClearInputTextInitialData(label_values[3][2], m_buffered_size[0]);
-        }
-        else if (size_sel == 2)
-        {
-            ImGui::ClearInputTextInitialData(label_values[2][0], m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData(label_values[2][1], m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData(label_values[2][2], m_buffered_scale[0]);
-            ImGui::ClearInputTextInitialData(label_values[3][0], m_buffered_size[0]);
-            ImGui::ClearInputTextInitialData(label_values[3][1], m_buffered_size[0]);
+        for (int i = 0; i < 3; ++i) {
+            ImGui::ClearInputTextInitialData(label_values[2][i], m_buffered_scale[i]);
+            if (i != size_sel)
+                ImGui::ClearInputTextInitialData(label_values[3][i], m_buffered_size[i]);
         }
     }
     //if the value is chaged, need reset button
