@@ -5699,7 +5699,8 @@ bool GLCanvas3D::_update_select_plate_toolbar()
         };
         item.left.render_callback   = GLToolbarItem::Default_Render_Callback;
         item.visible = true;
-        item.visibility_callback = [this]()->bool { return (m_print_select == ePrintAll); };
+        item.visibility_callback = []()->bool { return true; };
+        item.enabling_callback = [this]()->bool { return (m_process&&m_process->idle()); };
         item.extra_size_ratio = 0.25f;
         item.button_text = (boost::format("%1%") % (i + 1)).str();
         PartPlate* plate = plate_list.get_plate(i);

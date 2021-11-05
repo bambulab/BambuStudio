@@ -7674,7 +7674,8 @@ int Plater::select_plate(int plate_index)
     take_snapshot(_L("select partplate"));
     ret = p->partplate_list.select_plate(plate_index);
     if (!ret) {
-        wxGetApp().plater()->canvas3D()->render();
+        if (is_view3D_shown())
+            wxGetApp().plater()->canvas3D()->render();
     }
 
     if ((!ret) && (p->background_process.can_switch_print()))
@@ -7748,27 +7749,15 @@ int Plater::select_sliced_plate(int plate_index)
     int ret = 0;
     BOOST_LOG_TRIVIAL(trace) << "select_sliced_plate plate_idx=" << plate_index;
 
-    ret = p->partplate_list.select_plate(plate_index);
-    GCodeProcessorResult* result = p->partplate_list.get_current_slice_result();
-
-    // if result is valid
-    if (!result->moves.empty()) {
-        /* stop background process */
-        if (p->background_process.get_current_plate()->get_index() != plate_index) {
-            p->background_process.reset();
-        }
-        p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
-        p->preview->reload_print();
-        p->preview->set_as_dirty();
-        return ret;
+    Freeze();
+    ret = select_plate(plate_index);
+    if (ret)
+    {
+        BOOST_LOG_TRIVIAL(error) << "select_plate error for plate_idx=" << plate_index;
+        return -1;
     }
-
-    if (p->background_process.get_current_plate()->get_index() != plate_index) {
-        p->update_fff_scene_only_shells();
-
-        reslice();
-        return ret;
-    }
+    p->partplate_list.select_plate_view();
+    Thaw();
 
     return ret;
 }

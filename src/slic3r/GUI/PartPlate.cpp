@@ -597,6 +597,7 @@ void PartPlate::clear()
 {
 	obj_to_instance_set.clear();
 	m_ready_for_slice = true;
+	m_slice_result_valid = false;
 
 	return;
 }
@@ -1797,6 +1798,7 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 			plate->update_states();
 			return 0;
 		}
+		plate->update_slice_result_valid_state();
 	}
 	else if (unprintable_plate.contain_instance(obj_id, instance_id))
 	{
@@ -1825,6 +1827,7 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 		{
 			//found a new plate, add it to plate
 			plate->add_instance(obj_id, instance_id, false);
+			plate->update_slice_result_valid_state();
 			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": add it to new plate %1%") % i;
 			return 0;
 		}
@@ -1855,6 +1858,7 @@ int PartPlateList::notify_instance_removed(int obj_id, int instance_id)
 		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": found it in plate %1%, remove it") % index;
 		plate = m_plate_list[index];
 		plate->remove_instance(obj_id, instance_id);
+		plate->update_slice_result_valid_state();
 		return 0;
 	}
 
