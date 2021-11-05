@@ -860,9 +860,17 @@ Sidebar::Sidebar(Plater *parent)
         *combo = new PlaterPresetComboBox(p->presets_panel, preset_type);
 
         auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-        combo_and_btn_sizer->Add(*combo, 1, wxEXPAND);
+
         // BBS
         if (filament) {
+            // Add AMS slot
+            combo_and_btn_sizer->Add(new wxStaticText(p->presets_panel, wxID_ANY, "1"), 0,
+                wxALIGN_CENTER_VERTICAL | wxRIGHT, 15);
+
+            // Add filament material combo
+            combo_and_btn_sizer->Add(*combo, 1, wxEXPAND);
+
+            // Add color
             if ((*combo)->clr_picker) {
                 Slic3r::DynamicPrintConfig* config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({ "extruder_colour" }));
                 const std::string& txt_color = config->opt_string("extruder_colour", (unsigned int)0);
@@ -878,6 +886,7 @@ Sidebar::Sidebar(Plater *parent)
             }
         }
         else {
+            combo_and_btn_sizer->Add(*combo, 1, wxEXPAND);
             if ((*combo)->edit_btn)
                 combo_and_btn_sizer->Add((*combo)->edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT,
                     int(0.3 * wxGetApp().em_unit()));
@@ -885,7 +894,7 @@ Sidebar::Sidebar(Plater *parent)
 
         auto *sizer_presets = this->p->sizer_presets;
         auto *sizer_filaments = this->p->sizer_filaments;
-        sizer_presets->Add(text, 0, wxALIGN_LEFT | wxEXPAND | wxRIGHT, 4);
+        sizer_presets->Add(text, 0, wxALIGN_LEFT | wxEXPAND | wxTOP, 12);
         if (! filament) {
             sizer_presets->Add(combo_and_btn_sizer, 0, wxEXPAND | wxBOTTOM, 1);
         } else {
@@ -921,7 +930,7 @@ Sidebar::Sidebar(Plater *parent)
     p->sizer_params->Add(obj_list()->get_sizer(), 1, wxEXPAND);
 #endif
     p->project_resource = new ProjectResource(p->scrolled);
-    p->sizer_params->Add(p->project_resource, 1, wxEXPAND);
+    p->sizer_params->Add(p->project_resource, 1, wxEXPAND | wxTOP, 15);
 
     // BBS
 #if 0
@@ -1078,12 +1087,16 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int extr_i
     (*combo)->set_extruder_idx(extr_idx);
 
     auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-    combo_and_btn_sizer->Add(*combo, 1, wxEXPAND);
+
     // BBS
 #if 0
     combo_and_btn_sizer->Add((*combo)->edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT,
                             int(0.3*wxGetApp().em_unit()));
 #else
+    combo_and_btn_sizer->Add(new wxStaticText(p->presets_panel, wxID_ANY, wxString::Format("%d", extr_idx + 1)), 0,
+        wxALIGN_CENTER_HORIZONTAL | wxRIGHT, 15);
+    combo_and_btn_sizer->Add(*combo, 1, wxEXPAND);
+
     const std::string& txt_color = p->plater->config()->opt_string("extruder_colour", extr_idx);
     wxColor color;
     unsigned char rgb[3];

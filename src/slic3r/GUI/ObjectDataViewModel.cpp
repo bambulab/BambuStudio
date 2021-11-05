@@ -43,7 +43,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(PartPlate* part_plate, wxString
     m_name(name),
     m_type(itPlate),
     m_part_plate(part_plate),
-    m_extruder(""),
+    m_extruder(wxEmptyString),
     m_container(true)
 {
     m_plate_idx = part_plate ? part_plate->get_index() : -1;
@@ -101,15 +101,18 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
     m_extruder(wxEmptyString),
     m_plate_idx(plate_idx)
 {
-    if (type == itSettings)
+    if (type == itSettings) {
         m_name = "Settings to modified";
-    else if (type == itInstanceRoot)
+    }
+    else if (type == itInstanceRoot) {
         m_name = _(L("Instances"));
+        m_extruder = parent->m_extruder;
+    }
     else if (type == itInstance)
     {
         m_idx = parent->GetChildCount();
         m_name = wxString::Format(_(L("Instance %d")), m_idx + 1);
-
+        m_extruder = parent->GetParent()->m_extruder;
         set_action_and_extruder_icons();
     }
     else if (type == itLayerRoot)
@@ -127,7 +130,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
 ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent, 
                                                  const t_layer_height_range& layer_range,
                                                  const int idx /*= -1 */, 
-                                                 const wxString& extruder) :
+                                                 const wxString extruder) :
     m_parent(parent),
     m_type(itLayer),
     m_idx(idx),
@@ -443,7 +446,7 @@ wxDataViewItem ObjectDataViewModel::AddObject(ModelObject* model_object, bool re
 {
     // get object node params
     wxString name = from_u8(model_object->name);
-    int extruder = model_object->config.has("extruder") ? model_object->config.extruder() : 0;
+    int extruder = model_object->config.has("extruder") ? model_object->config.extruder() : 1;
     int plate_idx = -1;
     ObjectDataViewModelNode* plate_node = nullptr;
     for (auto plate : m_plates) {
@@ -457,7 +460,8 @@ wxDataViewItem ObjectDataViewModel::AddObject(ModelObject* model_object, bool re
     }
 
     // create object node
-    const wxString extruder_str = extruder == 0 ? _(L("default")) : wxString::Format("%d", extruder);
+    //const wxString extruder_str = extruder == 0 ? _(L("default")) : wxString::Format("%d", extruder);
+    const wxString extruder_str = wxString::Format("%d", extruder);
     auto obj_node = new ObjectDataViewModelNode(name, extruder_str, plate_idx, model_object);
 
     if (plate_node != nullptr) {
@@ -491,8 +495,6 @@ wxDataViewItem ObjectDataViewModel::AddVolumeChild( const wxDataViewItem &parent
 	ObjectDataViewModelNode *root = static_cast<ObjectDataViewModelNode*>(parent_item.GetID());
 	if (!root) return wxDataViewItem(0);
 
-    wxString extruder_str = extruder == 0 ? _(L("default")) : wxString::Format("%d", extruder);
-
     // get insertion position according to the existed Layers and/or Instances Items
     int insert_position = get_root_idx(root, itLayerRoot);
     if (insert_position < 0)
@@ -501,7 +503,7 @@ wxDataViewItem ObjectDataViewModel::AddVolumeChild( const wxDataViewItem &parent
     if (create_frst_child && root->m_volumes_cnt == 0)
     {
         const Slic3r::ModelVolumeType type = Slic3r::ModelVolumeType::MODEL_PART;
-        const auto node = new ObjectDataViewModelNode(root, root->m_name, type, GetVolumeIcon(type, root->m_warning_icon_name), extruder_str, 0, root->m_warning_icon_name);
+        const auto node = new ObjectDataViewModelNode(root, root->m_name, type, GetVolumeIcon(type, root->m_warning_icon_name), root->m_extruder, 0, root->m_warning_icon_name);
 
         insert_position < 0 ? root->Append(node) : root->Insert(node, insert_position);
 		// notify control
@@ -512,7 +514,10 @@ wxDataViewItem ObjectDataViewModel::AddVolumeChild( const wxDataViewItem &parent
         if (insert_position >= 0) insert_position++;
 	}
 
-    const auto node = new ObjectDataViewModelNode(root, name, volume_type, GetVolumeIcon(volume_type, warning_icon_name), extruder_str, root->m_volumes_cnt, warning_icon_name);
+    wxString extruder_str = extruder == 0 ? _(L("default")) : wxString::Format("%d", extruder);
+
+    const auto node = new ObjectDataViewModelNode(root, name, volume_type, GetVolumeIcon(volume_type, warning_icon_name),
+        volume_type == Slic3r::ModelVolumeType::MODEL_PART ? root->m_extruder : extruder_str, root->m_volumes_cnt, warning_icon_name);
     insert_position < 0 ? root->Append(node) : root->Insert(node, insert_position);
 
     // if part with errors is added, but object wasn't marked, then mark it
@@ -718,12 +723,13 @@ wxDataViewItem ObjectDataViewModel::AddLayersRoot(const wxDataViewItem &parent_i
 
 wxDataViewItem ObjectDataViewModel::AddLayersChild(const wxDataViewItem &parent_item, 
                                                    const t_layer_height_range& layer_range,
-                                                   const int extruder/* = 0*/, 
+                                                   const int extruder/* = 1*/, 
                                                    const int index /* = -1*/)
 {
     ObjectDataViewModelNode *parent_node = static_cast<ObjectDataViewModelNode*>(parent_item.GetID());
     if (!parent_node) return wxDataViewItem(0);
 
+    // BBS
     wxString extruder_str = extruder == 0 ? _(L("default")) : wxString::Format("%d", extruder);
 
     // get LayerRoot node
@@ -772,8 +778,6 @@ wxDataViewItem ObjectDataViewModel::DeletePlate(const int plate_idx)
             ret_item = Delete(wxDataViewItem(plate));
         }
     }
-
-
 
     return ret_item;
 }
@@ -1135,9 +1139,11 @@ wxDataViewItem ObjectDataViewModel::GetItemByVolumeId(int obj_idx, int volume_id
         return wxDataViewItem(0);
     }
 
-    for (size_t i = 0; i < parent->GetChildCount(); i++)
-        if (parent->GetNthChild(i)->m_idx == volume_idx && parent->GetNthChild(i)->GetType() & itVolume)
+    for (size_t i = 0; i < parent->GetChildCount(); i++) {
+        auto child = parent->GetNthChild(i);
+        if (child->m_idx == volume_idx && child->GetType() & itVolume)
             return wxDataViewItem(parent->GetNthChild(i));
+    }
 
     return wxDataViewItem(0);
 }

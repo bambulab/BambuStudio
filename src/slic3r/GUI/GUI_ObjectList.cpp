@@ -342,8 +342,8 @@ void ObjectList::create_objects_ctrl()
     bmp_choice_renderer->set_default_extruder_idx([this]() {
         return m_objects_model->GetDefaultExtruderIdx(GetSelection());
     });
-    AppendColumn(new wxDataViewColumn(_L("Extruder"), bmp_choice_renderer,
-        colExtruder, 8*em, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE));
+    AppendColumn(new wxDataViewColumn(_L("AMS"), bmp_choice_renderer,
+        colExtruder, 8 * em, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE));
 
     // column ItemEditing of the view control:
     AppendBitmapColumn(_L("Editing"), colEditing, wxDATAVIEW_CELL_INERT, 3*em,
@@ -574,7 +574,8 @@ void ObjectList::update_extruder_values_for_items(const size_t max_extruder)
         wxString extruder;
         if (!object->config.has("extruder") ||
             size_t(object->config.extruder()) > max_extruder)
-            extruder = _(L("default"));
+            //extruder = _(L("default"));
+            extruder = "1";
         else
             extruder = wxString::Format("%d", object->config.extruder());
 
@@ -586,7 +587,8 @@ void ObjectList::update_extruder_values_for_items(const size_t max_extruder)
                 if (!item) continue;
                 if (!object->volumes[id]->config.has("extruder") ||
                     size_t(object->volumes[id]->config.extruder()) > max_extruder)
-                    extruder = _(L("default"));
+                    //extruder = _(L("default"));
+                    extruder = "1";
                 else
                     extruder = wxString::Format("%d", object->volumes[id]->config.extruder()); 
 
@@ -1060,7 +1062,7 @@ void ObjectList::extruder_editing()
 #endif
     pos.y -= GetTextExtent("m").y;
 
-    apply_extruder_selector(&m_extruder_editor, this, L("default"), pos, size);
+    apply_extruder_selector(&m_extruder_editor, this, "1", pos, size);
 
     m_extruder_editor->SetSelection(m_objects_model->GetExtruderNumber(item));
     m_extruder_editor->Show();
@@ -2051,10 +2053,14 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
 
                 // update extruder color in ObjectList
                 wxDataViewItem obj_item = m_objects_model->GetItemById(obj_idx);
+                // BBS
+#if 0
                 if (obj_item) {
-                    wxString extruder = object->config.has("extruder") ? wxString::Format("%d", object->config.extruder()) : _L("default");
+                    // BBS
+                    wxString extruder = object->config.has("extruder") ? wxString::Format("%d", object->config.extruder()) : _L("1");
                     m_objects_model->SetExtruder(extruder, obj_item);
                 }
+#endif
                 // add settings to the object, if it has them
                 add_settings_item(obj_item, &object->config.get());
             }
@@ -2102,7 +2108,7 @@ void ObjectList::split()
 
     auto model_object = (*m_objects)[obj_idx];
 
-    auto parent = m_objects_model->GetObject(item);
+    auto parent = m_objects_model->GetTopParent(item);
     if (parent)
         m_objects_model->DeleteVolumeChildren(parent);
     else
@@ -2162,7 +2168,7 @@ void ObjectList::merge(bool to_multipart_object)
                             sel_map[obj_idx].emplace(i);
                     continue;
                 }
-                int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetObject(item));
+                int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
                 sel_map[obj_idx].emplace(m_objects_model->GetInstanceIdByItem(item));
             }
 
@@ -2370,7 +2376,7 @@ void ObjectList::layers_editing()
     if (!item)
         return;
 
-    const wxDataViewItem obj_item = m_objects_model->GetObject(item);
+    const wxDataViewItem obj_item = m_objects_model->GetTopParent(item);
     wxDataViewItem layers_item = m_objects_model->GetLayerRootItem(obj_item);
 
     // if it doesn't exist now
@@ -2701,7 +2707,7 @@ wxDataViewItem ObjectList::add_settings_item(wxDataViewItem parent_item, const D
         categories.push_back(cat.first);
 
     if (m_objects_model->GetItemType(parent_item) & itInstance)
-        parent_item = m_objects_model->GetObject(parent_item);
+        parent_item = m_objects_model->GetTopParent(parent_item);
 
     ret = m_objects_model->IsSettingsItem(parent_item) ? parent_item : m_objects_model->GetSettingsItem(parent_item);
 
@@ -2910,6 +2916,8 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
                 continue;
             if (item->type&itVolume) {
                 m_objects_model->Delete(m_objects_model->GetItemByVolumeId(item->obj_idx, item->sub_obj_idx));
+                // BBS
+#if 0
                 ModelObject* obj = object(item->obj_idx);
                 if (obj->volumes.size() == 1) {
                     wxDataViewItem parent = m_objects_model->GetItemById(item->obj_idx);
@@ -2920,6 +2928,7 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
                     // If last volume item with warning was deleted, unmark object item
                     m_objects_model->UpdateWarningIcon(parent, get_warning_icon_name(obj->get_object_stl_stats()));
                 }
+#endif
                 wxGetApp().plater()->canvas3D()->ensure_on_bed(item->obj_idx, printer_technology() != ptSLA);
             }
             else
@@ -3016,7 +3025,7 @@ static void update_selection(wxDataViewItemArray& sels, ObjectList::SELECTION_MO
 
                 if (selected_instances_cnt == instances.Count()) 
                 {
-                    wxDataViewItem obj_item = model->GetObject(item);
+                    wxDataViewItem obj_item = model->GetTopParent(item);
                     for (auto& inst : instances)
                         sels.Remove(inst);
                     sels.Add(obj_item);
@@ -3047,7 +3056,7 @@ void ObjectList::remove()
                 // also remove the parent item. Selection should therefore pass to the top parent (object).
                 wxDataViewItemArray children;
                 if (m_objects_model->GetChildren(parent, children) == (type & itLayer ? 1 : 2))
-                    parent = m_objects_model->GetObject(item);
+                    parent = m_objects_model->GetTopParent(item);
             }
 
             del_subobject_item(item);
@@ -3468,7 +3477,7 @@ void ObjectList::update_selections()
                 bool root_is_selected = false;
                 for (const auto& item:current_sels)
                     if (item == m_objects_model->GetParent(frst_inst_item) || 
-                        item == m_objects_model->GetObject(frst_inst_item)) {
+                        item == m_objects_model->GetTopParent(frst_inst_item)) {
                         root_is_selected = true;
                         sels.Add(item);
                         break;
@@ -3775,7 +3784,7 @@ bool ObjectList::check_last_selection(wxString& msg_str)
         GetSelections(sels);
         for (const auto& sel : sels)
             if (sel != m_last_selected_item &&
-                m_objects_model->GetObject(sel) != m_objects_model->GetObject(m_last_selected_item))
+                m_objects_model->GetTopParent(sel) != m_objects_model->GetTopParent(m_last_selected_item))
                 return true;
 
         return false;
@@ -4441,10 +4450,10 @@ void ObjectList::set_extruder_for_selected_items(const int extruder) const
         /* We can change extruder for Object/Volume only.
          * So, if Instance is selected, get its Object item and change it
          */
-        m_objects_model->SetExtruder(extruder_str, type & itInstance ? m_objects_model->GetObject(item) : item);
+        m_objects_model->SetExtruder(extruder_str, type & itInstance ? m_objects_model->GetTopParent(item) : item);
 
         const int obj_idx = type & itObject ? m_objects_model->GetIdByItem(item) :
-                            m_objects_model->GetIdByItem(m_objects_model->GetObject(item));
+                            m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
 
         wxGetApp().plater()->canvas3D()->ensure_on_bed(obj_idx, printer_technology() != ptSLA);
     }

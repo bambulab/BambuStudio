@@ -76,7 +76,8 @@ class ObjectDataViewModelNode
     int                             m_idx = -1;
     int                             m_plate_idx = -1;
     bool					        m_container = false;
-    wxString				        m_extruder = "default";
+    // BBS
+    wxString				        m_extruder = wxEmptyString;
     wxBitmap                        m_extruder_bmp;
     wxBitmap				        m_action_icon;
     PrintIndicator                  m_printable {piUndef};
@@ -116,7 +117,7 @@ public:
     ObjectDataViewModelNode(ObjectDataViewModelNode* parent,
                             const t_layer_height_range& layer_range,
                             const int idx = -1,
-                            const wxString& extruder = wxEmptyString );
+                            const wxString extruder = "" );
 
     ObjectDataViewModelNode(PartPlate* part_plate, wxString name);
 

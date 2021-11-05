@@ -312,12 +312,13 @@ wxWindow* BitmapChoiceRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelR
         labelRect.GetTopLeft(), wxSize(labelRect.GetWidth(), -1), 
         0, nullptr , wxCB_READONLY);
 
-    int def_id = get_default_extruder_idx ? get_default_extruder_idx() : 0;
-    c_editor->Append(_L("default"), def_id < 0 ? wxNullBitmap : *icons[def_id]);
+    // BBS
+    //int def_id = get_default_extruder_idx ? get_default_extruder_idx() : 0;
+    //c_editor->Append(_L("default"), def_id < 0 ? wxNullBitmap : *icons[def_id]);
     for (size_t i = 0; i < icons.size(); i++)
         c_editor->Append(wxString::Format("%d", i+1), *icons[i]);
 
-    c_editor->SetSelection(atoi(data.GetText().c_str()));
+    c_editor->SetSelection(atoi(data.GetText().c_str() - 1));
 
     
 #ifdef __linux__
