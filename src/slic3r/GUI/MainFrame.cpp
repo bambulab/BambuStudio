@@ -198,19 +198,18 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 #endif // _WIN32
 
     // BBS
-    wxAcceleratorEntry entries[12];
+    wxAcceleratorEntry entries[11];
     entries[0].Set(wxACCEL_CTRL, (int)'N', wxID_HIGHEST + wxID_NEW);
     entries[1].Set(wxACCEL_CTRL, (int)'O', wxID_HIGHEST + wxID_OPEN);
     entries[2].Set(wxACCEL_CTRL, (int)'S', wxID_HIGHEST + wxID_SAVE);
     entries[3].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int)'S', wxID_HIGHEST + wxID_SAVEAS);
     entries[4].Set(wxACCEL_CTRL, (int)'I', wxID_HIGHEST + wxID_ADD);
-    entries[5].Set(wxACCEL_NORMAL, (int)127, wxID_HIGHEST + wxID_DELETE);
-    entries[6].Set(wxACCEL_CTRL, (int)'A', wxID_HIGHEST + wxID_SELECTALL);
-    entries[7].Set(wxACCEL_NORMAL, (int)27 /* escape */, wxID_HIGHEST + wxID_CANCEL);
-    entries[8].Set(wxACCEL_CTRL, (int)'Z', wxID_HIGHEST + wxID_UNDO);
-    entries[9].Set(wxACCEL_CTRL, (int)'Y', wxID_HIGHEST + wxID_REDO);
-    entries[10].Set(wxACCEL_CTRL, (int)'C', wxID_HIGHEST + wxID_COPY);
-    entries[11].Set(wxACCEL_CTRL, (int)'V', wxID_HIGHEST + wxID_PASTE);
+    entries[5].Set(wxACCEL_CTRL, (int)'A', wxID_HIGHEST + wxID_SELECTALL);
+    entries[6].Set(wxACCEL_NORMAL, (int)27 /* escape */, wxID_HIGHEST + wxID_CANCEL);
+    entries[7].Set(wxACCEL_CTRL, (int)'Z', wxID_HIGHEST + wxID_UNDO);
+    entries[8].Set(wxACCEL_CTRL, (int)'Y', wxID_HIGHEST + wxID_REDO);
+    entries[9].Set(wxACCEL_CTRL, (int)'C', wxID_HIGHEST + wxID_COPY);
+    entries[10].Set(wxACCEL_CTRL, (int)'V', wxID_HIGHEST + wxID_PASTE);
     wxAcceleratorTable accel(sizeof(entries) / sizeof(entries[0]), entries);
     SetAcceleratorTable(accel);
 
@@ -219,7 +218,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(into_path(m_plater->get_project_filename(".3mf"))); }, wxID_HIGHEST + wxID_SAVE);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(); }, wxID_HIGHEST + wxID_SAVEAS);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(); }, wxID_HIGHEST + wxID_ADD);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->remove_selected(); }, wxID_HIGHEST + wxID_DELETE);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->remove_selected(); }, wxID_HIGHEST + wxID_DELETE);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->select_all(); }, wxID_HIGHEST + wxID_SELECTALL);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->deselect_all(); }, wxID_HIGHEST + wxID_CANCEL);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->undo(); }, wxID_HIGHEST + wxID_UNDO);

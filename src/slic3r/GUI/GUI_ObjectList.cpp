@@ -228,6 +228,8 @@ ObjectList::ObjectList(wxWindow* parent) :
 
 #ifdef __WXMSW__
     GetMainWindow()->Bind(wxEVT_MOTION, [this](wxMouseEvent& event) {
+        // BBS
+        this->SetFocus();
         set_tooltip_for_item(this->get_mouse_position_in_control());
         event.Skip();
     });
@@ -1030,7 +1032,7 @@ void ObjectList::show_context_menu(const bool evt_context_menu)
             menu =  type & itPlate                                              ? plater->plate_menu();
                     type & itInstance                                           ? plater->instance_menu() :
                     type & itLayer                                              ? plater->layer_menu() :
-                    m_objects_model->GetParent(item) != wxDataViewItem(nullptr) ? plater->part_menu() :
+                    type & itVolume                                             ? plater->part_menu() :
                     printer_technology() == ptFFF                               ? plater->object_menu() : plater->sla_object_menu();
         }
         else if (evt_context_menu)

@@ -186,7 +186,9 @@ void ObjectDataViewModelNode::set_printable_icon(PrintIndicator printable)
 
 void ObjectDataViewModelNode::set_action_icon()
 {
-    m_action_icon_name = "cog";
+    m_action_icon_name = m_type & itPlate ? "advanced_plus" :
+                         m_type & itObject ? "advanced_plus" :
+                         m_type & (itVolume | itLayer) ? "cog" : /*m_type & itInstance*/ "set_separate_obj";
     m_action_icon = create_scaled_bitmap(m_action_icon_name);    // FIXME: pass window ptr
 }
 
