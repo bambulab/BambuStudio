@@ -4105,7 +4105,10 @@ void Plater::priv::set_current_panel(wxPanel* panel)
             PartPlate* current_plate = partplate_list.get_curr_plate();
             if (!model.objects.empty() && !export_in_progress && model_fits && current_plate->has_printable_instances()) {
                 preview->get_canvas3d()->init_gcode_viewer();
-                q->reslice();
+                // BBS
+                //if already running in background, not relice here
+                if (!this->background_process.running())
+                    this->q->reslice();
             }
             // keeps current gcode preview, if any
             preview->reload_print(true);
@@ -4498,6 +4501,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     {
         m_cur_slice_plate++;
         q->select_plate(m_cur_slice_plate);
+        partplate_list.select_plate_view();
         q->start_next_slice();
         update_fff_scene_only_shells();
         //not the last plate
@@ -4751,7 +4755,7 @@ void Plater::priv::on_3dcanvas_mouse_dragging_finished(SimpleEvent&)
         update_sla_scene();
     }
 
-    partplate_list.reload_all_objects();
+    //partplate_list.reload_all_objects();
 }
 
 //BBS: add plate id for thumbnail generate param
@@ -6856,7 +6860,17 @@ void Plater::reslice()
     // If the SLA processing of just a single object's supports is running, restart slicing for the whole object.
     this->p->background_process.set_task(PrintBase::TaskParams());
     // Only restarts if the state is valid.
-    this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
+    //BBS: jusdge the result
+    bool result = this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
+    if ((!result) && p->m_slice_all && (p->m_cur_slice_plate < (p->partplate_list.get_plate_count() - 1)))
+    {
+        //slice next
+        SlicingProcessCompletedEvent evt(EVT_PROCESS_COMPLETED, 0,
+            SlicingProcessCompletedEvent::Finished, nullptr);
+        // Post the "complete" callback message, so that it will slice the next plate soon
+        wxQueueEvent(this, evt.Clone());
+        return;
+    }
 
     if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
         return;

@@ -1174,6 +1174,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                     m_slice_btn->SetBitmapCurrent (slice_all_bitmap);
                     m_slice_select = eSliceAll;
                     m_slice_enable = get_enable_slice_status();
+                    update_slice_button_color(m_slice_enable);
                     m_slice_btn->Enable(m_slice_enable);
                 });
             append_menu_item(menu, wxID_ANY, _L("Slice plate"), _L("Slice selected plate"),
@@ -1184,6 +1185,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                     m_slice_btn->SetBitmapCurrent (slice_plate_bitmap);
                     m_slice_select = eSlicePlate;
                     m_slice_enable = get_enable_slice_status();
+                    update_slice_button_color(m_slice_enable);
                     m_slice_btn->Enable(m_slice_enable);
                 });
             wxPoint parent_pos = m_slice_btn->GetParent()->GetPosition();
@@ -1205,6 +1207,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                     m_print_select = ePrintAll;
                     if (m_print_enable)
                         m_print_enable = get_enable_print_status();
+                    update_print_button_color(m_print_enable);
                     m_print_btn->Enable(m_print_enable);
                 });
             append_menu_item(menu, wxID_ANY, _L("Print plate"), _L("Print selected plate"),
@@ -1215,6 +1218,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                     m_print_btn->SetBitmapCurrent (print_plate_bitmap);
                     m_print_select = ePrintPlate;
                     m_print_enable = get_enable_print_status();
+                    update_print_button_color(m_print_enable);
                     m_print_btn->Enable(m_print_enable);
                 });
             append_menu_item(menu, wxID_ANY, _L("Export G-Code"), _L("Export gcode"),
@@ -1225,6 +1229,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                     m_print_btn->SetBitmapCurrent (export_gcode_bitmap);
                     m_print_select = eExportGcode;
                     m_print_enable = get_enable_print_status();
+                    update_print_button_color(m_print_enable);
                     m_print_btn->Enable(m_print_enable);
                 });
             wxPoint btn_pos = m_print_btn->GetPosition();
@@ -1232,6 +1237,24 @@ wxBoxSizer* MainFrame::create_side_tools()
         }
     );
     return sizer;
+}
+
+void MainFrame::update_slice_button_color(bool enable)
+{
+    m_slice_btn->SetBackgroundColour(enable ? s_button_active_bgcolor : s_button_inactive_bgcolor);
+    m_slice_btn->SetForegroundColour(enable ? s_button_active_fgcolor : s_button_inactive_fgcolor);
+
+    m_slice_option_btn->SetBackgroundColour(enable ? s_button_active_bgcolor : s_button_inactive_bgcolor);
+    m_slice_option_btn->SetForegroundColour(enable ? s_button_active_fgcolor : s_button_inactive_fgcolor);
+}
+
+void MainFrame::update_print_button_color(bool enable)
+{
+    m_print_btn->SetBackgroundColour(enable ? s_button_active_bgcolor : s_button_inactive_bgcolor);
+    m_print_btn->SetForegroundColour(enable ? s_button_active_fgcolor : s_button_inactive_fgcolor);
+
+    m_print_option_btn->SetBackgroundColour(enable ? s_button_active_bgcolor : s_button_inactive_bgcolor);
+    m_print_option_btn->SetForegroundColour(enable ? s_button_active_fgcolor : s_button_inactive_fgcolor);
 }
 
 bool MainFrame::get_enable_slice_status()
@@ -1325,17 +1348,8 @@ void MainFrame::update_slice_print_status(SlicePrintEventType event, bool can_sl
     }
 
     //update the button status
-    m_print_btn->SetBackgroundColour(enable_print ? s_button_active_bgcolor : s_button_inactive_bgcolor);
-    m_print_btn->SetForegroundColour(enable_print ? s_button_active_fgcolor : s_button_inactive_fgcolor);
-
-    m_print_option_btn->SetBackgroundColour(enable_print ? s_button_active_bgcolor : s_button_inactive_bgcolor);
-    m_print_option_btn->SetForegroundColour(enable_print ? s_button_active_fgcolor : s_button_inactive_fgcolor);
-
-    m_slice_btn->SetBackgroundColour(enable_slice ? s_button_active_bgcolor : s_button_inactive_bgcolor);
-    m_slice_btn->SetForegroundColour(enable_slice ? s_button_active_fgcolor : s_button_inactive_fgcolor);
-
-    m_slice_option_btn->SetBackgroundColour(enable_slice ? s_button_active_bgcolor : s_button_inactive_bgcolor);
-    m_slice_option_btn->SetForegroundColour(enable_slice ? s_button_active_fgcolor : s_button_inactive_fgcolor);
+    update_print_button_color(enable_print);
+    update_slice_button_color(enable_slice);
 
     m_print_btn->Enable(enable_print);
     m_slice_btn->Enable(enable_slice);

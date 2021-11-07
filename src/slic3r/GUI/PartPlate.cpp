@@ -1796,6 +1796,7 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 		{
 			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": still in original plate %1%, no need to be updated") % index;
 			plate->update_states();
+			plate->update_slice_result_valid_state();
 			return 0;
 		}
 		plate->update_slice_result_valid_state();
