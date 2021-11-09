@@ -68,7 +68,7 @@ public:
     std::string retract(bool before_wipe = false);
     std::string retract_for_toolchange(bool before_wipe = false);
     std::string unretract();
-    std::string lift(bool lazy_lift = true);
+    std::string lift(bool lazy_lift);
     std::string unlift();
     Vec3d       get_position() const { return m_pos; }
 
