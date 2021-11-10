@@ -6926,11 +6926,9 @@ void Plater::upload_3mf()
         }, true);
 
     if (*cont_ptr) {
-        delete progress_dlg;
-        return;
+        //BBS update default project
+        c->set_default_project(project);
     }
-    //BBS update default project
-    c->set_default_project(project);
     delete progress_dlg;
 }
 

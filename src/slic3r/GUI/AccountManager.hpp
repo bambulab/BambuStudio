@@ -10,7 +10,7 @@
 #include "ProjectTask.hpp"
 #include "slic3r/Utils/Http.hpp"
 
-#define MY_MODEL_PUBLISH_URL_FORMAT     "https://portal-dev.bambu-lab.com/my/models/%s/publish"
+#define MY_MODEL_PUBLISH_URL_FORMAT     "https://portal-dev.bambu-lab.com/my/models/%s/publish?project_id=%s"
 #define MY_COLLECTIONS_URL              "https://portal-dev.bambu-lab.com/my/collections"
 #define MY_PROJECT_LIST_URL             "https://portal-dev.bambu-lab.com/"
 #define MODEL_STORE_URL                 "https://portal-dev.bambu-lab.com/designs"
