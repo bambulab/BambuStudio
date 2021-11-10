@@ -226,7 +226,8 @@ public:
     void stop_jobs();
     bool is_any_job_running() const;
     void select_view(const std::string& direction);
-    void select_view_3D(const std::string& name);
+    //BBS: add no_slice logic
+    void select_view_3D(const std::string& name, bool no_slice = true);
 
     bool is_preview_shown() const;
     bool is_preview_loaded() const;
@@ -425,6 +426,8 @@ public:
     int select_sliced_plate(int plate_index);
     //BBS: set bed positions
     void set_bed_position(Vec2d& pos);
+    //BBS: is the background process slicing currently
+    bool is_background_process_slicing() const;
 
 #if ENABLE_ENVIRONMENT_MAP
     void init_environment_texture();

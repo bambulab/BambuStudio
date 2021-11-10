@@ -3743,14 +3743,6 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
 
                 object_moved = true;
                 model_object->invalidate_bounding_box();
-
-                //BBS: notify instance updates to part plater list
-                //TODO, judge whether this instance is moved or not, and only send the one selected to partplatelist
-                PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
-                plate_list.notify_instance_update(object_idx, instance_idx);
-
-                //BBS: nofity object list to update
-                wxGetApp().plater()->sidebar().obj_list()->update_plate_values_for_items();
             }
         }
         else if (object_idx == 1000)
@@ -3758,17 +3750,25 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
             wipe_tower_origin = v->get_volume_offset();
     }
 
+    //BBS: notify instance updates to part plater list
+    m_selection.notify_instance_update(-1, 0);
+
     // Fixes flying instances
     for (const std::pair<int, int>& i : done) {
         ModelObject* m = m_model->objects[i.first];
         const double shift_z = m->get_instance_min_z(i.second);
-        if (current_printer_technology() == ptSLA || shift_z > SINKING_Z_THRESHOLD) {
+        //BBS: don't call translate if the z is zero
+        if ((current_printer_technology() == ptSLA || shift_z > SINKING_Z_THRESHOLD) && (shift_z != 0.0f)) {
             const Vec3d shift(0.0, 0.0, -shift_z);
             m_selection.translate(i.first, i.second, shift);
             m->translate_instance(i.second, shift);
+            //BBS: notify instance updates to part plater list
+            m_selection.notify_instance_update(i.first, i.second);
         }
         wxGetApp().obj_list()->update_info_items(static_cast<size_t>(i.first));
     }
+    //BBS: nofity object list to update
+    wxGetApp().plater()->sidebar().obj_list()->update_plate_values_for_items();
 
     // if the selection is not valid to allow for layer editing after the move, we need to turn off the tool if it is running
     // similar to void Plater::priv::selection_changed()
@@ -3840,29 +3840,31 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
                 model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
             }
             model_object->invalidate_bounding_box();
-
-            //BBS: notify instance updates to part plater list
-            PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
-            plate_list.notify_instance_update(object_idx, instance_idx);
-
-            //BBS: nofity object list to update
-            wxGetApp().plater()->sidebar().obj_list()->update_plate_values_for_items();
         }
     }
+
+    //BBS: notify instance updates to part plater list
+    m_selection.notify_instance_update(-1, -1);
 
     // Fixes sinking/flying instances
     for (const std::pair<int, int>& i : done) {
         ModelObject* m = m_model->objects[i.first];
+
+        //BBS: don't call translate if the z is zero
         const double shift_z = m->get_instance_min_z(i.second);
         // leave sinking instances as sinking
-        if (min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD) {
+        if ((min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD)&&(shift_z != 0.0f)) {
             const Vec3d shift(0.0, 0.0, -shift_z);
             m_selection.translate(i.first, i.second, shift);
             m->translate_instance(i.second, shift);
+            //BBS: notify instance updates to part plater list
+            m_selection.notify_instance_update(i.first, i.second);
         }
 
         wxGetApp().obj_list()->update_info_items(static_cast<size_t>(i.first));
     }
+    //BBS: nofity object list to update
+    wxGetApp().plater()->sidebar().obj_list()->update_plate_values_for_items();
 
     if (!done.empty())
         post_event(SimpleEvent(EVT_GLCANVAS_INSTANCE_ROTATED));
@@ -3916,28 +3918,30 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
                 model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
             }
             model_object->invalidate_bounding_box();
-
-            //BBS: notify instance updates to part plater list
-            PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
-            plate_list.notify_instance_update(object_idx, instance_idx);
-
-            //BBS: nofity object list to update
-            wxGetApp().plater()->sidebar().obj_list()->update_plate_values_for_items();
         }
     }
+
+    //BBS: notify instance updates to part plater list
+    m_selection.notify_instance_update(-1, -1);
 
     // Fixes sinking/flying instances
     for (const std::pair<int, int>& i : done) {
         ModelObject* m = m_model->objects[i.first];
+
+        //BBS: don't call translate if the z is zero
         double shift_z = m->get_instance_min_z(i.second);
         // leave sinking instances as sinking
-        if (min_zs.empty() || min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD) {
+        if ((min_zs.empty() || min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD) && (shift_z != 0.0f)) {
             Vec3d shift(0.0, 0.0, -shift_z);
             m_selection.translate(i.first, i.second, shift);
             m->translate_instance(i.second, shift);
+            //BBS: notify instance updates to part plater list
+            m_selection.notify_instance_update(i.first, i.second);
         }
         wxGetApp().obj_list()->update_info_items(static_cast<size_t>(i.first));
     }
+    //BBS: nofity object list to update
+    wxGetApp().plater()->sidebar().obj_list()->update_plate_values_for_items();
 
     if (!done.empty())
         post_event(SimpleEvent(EVT_GLCANVAS_INSTANCE_SCALED));
@@ -3999,15 +4003,22 @@ void GLCanvas3D::do_mirror(const std::string& snapshot_type)
         }
     }
 
+    //BBS: notify instance updates to part plater list
+    m_selection.notify_instance_update(-1, -1);
+
     // Fixes sinking/flying instances
     for (const std::pair<int, int>& i : done) {
         ModelObject* m = m_model->objects[i.first];
+
+        //BBS: don't call translate if the z is zero
         double shift_z = m->get_instance_min_z(i.second);
         // leave sinking instances as sinking
-        if (min_zs.empty() || min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD) {
+        if ((min_zs.empty() || min_zs.find({ i.first, i.second })->second >= SINKING_Z_THRESHOLD || shift_z > SINKING_Z_THRESHOLD)&&(shift_z != 0.0f)) {
             Vec3d shift(0.0, 0.0, -shift_z);
             m_selection.translate(i.first, i.second, shift);
             m->translate_instance(i.second, shift);
+            //BBS: notify instance updates to part plater list
+            m_selection.notify_instance_update(i.first, i.second);
         }
         wxGetApp().obj_list()->update_info_items(static_cast<size_t>(i.first));
 
@@ -4018,6 +4029,8 @@ void GLCanvas3D::do_mirror(const std::string& snapshot_type)
         //BBS: nofity object list to update
         wxGetApp().plater()->sidebar().obj_list()->update_plate_values_for_items();
     }
+    //BBS: nofity object list to update
+    wxGetApp().plater()->sidebar().obj_list()->update_plate_values_for_items();
 
     post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 

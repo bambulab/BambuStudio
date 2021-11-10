@@ -707,6 +707,7 @@ void Selection::translate(const Vec3d& displacement, bool local)
         return;
 
     EMode translation_type = m_mode;
+    //BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": %1%, displacement {%2%, %3%, %4%}") % __LINE__ % displacement(X) % displacement(Y) % displacement(Z);
 
     for (unsigned int i : m_list) {
         GLVolume& v = *(*m_volumes)[i];
@@ -1120,6 +1121,8 @@ void Selection::translate(unsigned int object_idx, const Vec3d& displacement)
     if (!m_valid)
         return;
 
+    //BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj %1%") % object_idx;
+    //BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": %1%, displacement {%2%, %3%, %4%}") % __LINE__ % displacement(X) % displacement(Y) % displacement(Z);
     for (unsigned int i : m_list) {
         GLVolume& v = *(*m_volumes)[i];
         if (v.object_idx() == (int)object_idx)
@@ -1162,6 +1165,8 @@ void Selection::translate(unsigned int object_idx, unsigned int instance_idx, co
     if (!m_valid)
         return;
 
+    //BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj %1%, instance %2%") % object_idx % instance_idx;
+    //BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": %1%, displacement {%2%, %3%, %4%}") % __LINE__ % displacement(X) % displacement(Y) % displacement(Z);
     for (unsigned int i : m_list) {
         GLVolume& v = *(*m_volumes)[i];
         if (v.object_idx() == (int)object_idx && v.instance_idx() == (int)instance_idx)
@@ -1197,6 +1202,46 @@ void Selection::translate(unsigned int object_idx, unsigned int instance_idx, co
     }
 
     this->set_bounding_boxes_dirty();
+}
+
+//BBS: add partplate related logic
+void Selection::notify_instance_update(int object_idx, int instance_idx)
+{
+    //BBS: notify instance updates to part plater list
+    PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
+
+    if (object_idx == -1)
+    {
+        for (unsigned int i : m_list)
+        {
+            //-1 means all the instance in this object
+            if (instance_idx == -1)
+            {
+                ModelObject* object = m_model->objects[(*m_volumes)[i]->object_idx()];
+
+                for (int index = 0; index < object->instances.size(); index++)
+                {
+                    plate_list.notify_instance_update(object_idx, index);
+                }
+            }
+            else
+                plate_list.notify_instance_update((*m_volumes)[i]->object_idx(), (*m_volumes)[i]->instance_idx());
+        }
+    }
+    else
+    {
+        if (instance_idx == -1)
+        {
+            ModelObject* object = m_model->objects[object_idx];
+
+            for (int index = 0; index < object->instances.size(); index++)
+            {
+                plate_list.notify_instance_update(object_idx, index);
+            }
+        }
+        else
+            plate_list.notify_instance_update(object_idx, instance_idx);
+    }
 }
 
 void Selection::erase()

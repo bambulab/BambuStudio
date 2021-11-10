@@ -1261,6 +1261,10 @@ bool MainFrame::get_enable_slice_status()
 {
     bool enable = true;
 
+    bool on_slicing = m_plater->is_background_process_slicing();
+    if (on_slicing)
+        return false;
+
     PartPlateList &part_plate_list = m_plater->get_partplate_list();
     PartPlate *current_plate = part_plate_list.get_curr_plate();
 
