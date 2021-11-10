@@ -1705,6 +1705,8 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
 
     MachineObject* obj = device_manager->get_default();
 
+    if (!obj) return;
+
     wxString big1_speed_text = wxString::Format("%d", obj->big_fan1_speed);
     m_staticText_big1_speed->SetLabelText(big1_speed_text);
 
@@ -2169,11 +2171,24 @@ int DebugToolDialog::log_info(std::string line)
 
 int DebugToolDialog::publishGcode(std::string gcode)
 {
+    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
     int result = 0;
+    //can not publish gcode when logout
+    if (!account_manager->is_user_login()) {
+        this->log_info("Please login first!");
+        return -1;
+    }
+    Slic3r::AccountInfo* info = account_manager->get_curr_user();
+    if (!info) {
+        this->log_info("User info is invalid!");
+        return -1;
+    }
+
     pt::ptree root, print;
     print.put("command", "gcode_line");
     print.put("param", gcode);
     print.put("sequence_id", this->m_sequence_id++);
+    print.put("user_id", info->get_user_id());
     root.put_child("print", print);
     std::stringstream oss;
     pt::write_json(oss, root, false);

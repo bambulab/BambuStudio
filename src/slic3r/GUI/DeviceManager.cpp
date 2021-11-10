@@ -768,10 +768,18 @@ int MachineObject::parse_json(std::string topic, std::string payload)
 
 int MachineObject::publish_gcode(std::string gcode_str)
 {
+    //can not publish gcode when logout
+    if (!acc_.is_user_login()) {
+        return -1;
+    }
+    Slic3r::AccountInfo* info = acc_.get_curr_user();
+    if (!info) return -1;
+
     pt::ptree root, print;
     print.put("command", "gcode_line");
     print.put("param", gcode_str);
     print.put("sequence_id", MachineObject::m_sequence_id++);
+    print.put("user_id", info->get_user_id());
     root.put_child("print", print);
     std::stringstream oss;
     pt::write_json(oss, root, false);
