@@ -4764,7 +4764,7 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const
             _render_bed(!camera.is_looking_downward(), false);
     }
     else {
-        plate->render(const_cast<GLCanvas3D&>(*this), false, false);
+        plate->render(const_cast<GLCanvas3D&>(*this), false, false, true, true);
     }
 
     // restore background color
@@ -5706,13 +5706,12 @@ bool GLCanvas3D::_update_select_plate_toolbar()
         PartPlate* plate = plate_list.get_plate(i);
         if (plate && plate->thumbnail_data.is_valid()) {
             item.image_data = plate->thumbnail_data.pixels;
+            item.image_width = plate->thumbnail_data.width;
+            item.image_height = plate->thumbnail_data.height;
         }
         else {
             item.image_data.clear();
         }
-
-        item.image_width = m_select_plate_toolbar.get_icons_size();
-        item.image_height = m_select_plate_toolbar.get_icons_size();
 
         if (!m_select_plate_toolbar.add_item(item, GLToolbarItem::ActionWithTextImage))
             return false;

@@ -5789,7 +5789,7 @@ void Plater::update_platplate_thumbnails()
     {
         PartPlate* plate = get_partplate_list().get_plate(i);
         if (!plate->empty()) {
-            get_current_canvas3D()->render_thumbnail(plate->thumbnail_data, plate->plate_thumbnail_width, plate->plate_thumbnail_height, false, false, true, true, i);
+            get_current_canvas3D()->render_thumbnail(plate->thumbnail_data, plate->plate_thumbnail_width, plate->plate_thumbnail_height, false, false, false, true, i);
         }
     }
 }

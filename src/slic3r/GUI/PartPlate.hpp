@@ -106,6 +106,7 @@ class PartPlate : public ObjectBase
     GLTexture m_texture;
     std::array<float, 4> m_select_color{ 0.367f, 0.367f, 0.367f, 1.0f };
     std::array<float, 4> m_unselect_color{ 0.765f, 0.765f, 0.765f, 1.0f };
+    std::array<float, 4> m_default_color{ 0.5f, 0.5f, 0.5f, 1.0f };
     mutable float m_grabber_color[4];
     float m_scale_factor{ 1.0f };
     GLUquadricObject* m_quadric;
@@ -118,10 +119,9 @@ class PartPlate : public ObjectBase
     void calc_triangles(const ExPolygon& poly);
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox);
     void calc_vertex_for_icons(int index, GeometryBuffer &buffer);
-    void render_background() const;
+    void render_background(bool force_default_color = false) const;
     //void render_background_for_picking(const float* render_color) const;
     void render_grid(bool bottom) const;
-    void render_default(bool bottom) const;
     void render_label(GLCanvas3D& canvas) const;
     void render_grabber(const float* render_color, bool use_lighting) const;
     void render_face(float x_size, float y_size) const;
@@ -210,7 +210,7 @@ public:
     bool intersects(const BoundingBoxf3& bb) const;
     
     Point point_projection(const Point& point) const;
-    void render(GLCanvas3D& canvas, bool bottom, bool with_label = true, bool only_body = false);
+    void render(GLCanvas3D& canvas, bool bottom, bool with_label = true, bool only_body = false, bool force_background_color = false);
     void render_for_picking() const { on_render_for_picking(); }
     void set_selected();
     void set_unselected();

@@ -186,16 +186,22 @@ void PartPlate::calc_vertex_for_icons(int index, GeometryBuffer &buffer)
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
 }
 
-void PartPlate::render_background() const {
+void PartPlate::render_background(bool force_default_color) const {
 	unsigned int triangles_vcount = m_triangles.get_vertices_count();
 
 	// draw background
 	glsafe(::glDepthMask(GL_FALSE));
-	if (m_selected) {
-		glsafe(::glColor4fv(m_select_color.data()));
+	
+	if (!force_default_color) {
+		if (m_selected) {
+			glsafe(::glColor4fv(m_select_color.data()));
+		}
+		else {
+			glsafe(::glColor4fv(m_unselect_color.data()));
+		}
 	}
 	else {
-		glsafe(::glColor4fv(m_unselect_color.data()));
+		glsafe(::glColor4fv(m_default_color.data()));
 	}
 	glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
 	glsafe(::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_vertices_data()));
@@ -224,15 +230,6 @@ void PartPlate::render_grid(bool bottom) const {
 		glsafe(::glColor4f(0.6f, 0.6f, 0.6f, 0.6f));
 	glsafe(::glVertexPointer(3, GL_FLOAT, m_gridlines.get_vertex_data_size(), (GLvoid*)m_gridlines.get_vertices_data()));
 	glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_gridlines.get_vertices_count()));
-}
-
-void PartPlate::render_default(bool bottom) const {
-	if (!bottom) {
-		// draw background
-		render_background();
-	}
-
-	render_grid(bottom);
 }
 
 void PartPlate::render_icon_texture(int position_id, int tex_coords_id, const GeometryBuffer &buffer, GLTexture &texture, unsigned int &vbo_id) const
@@ -1008,13 +1005,18 @@ Point PartPlate::point_projection(const Point& point) const
 	return m_polygon.point_projection(point);
 }
 
-void PartPlate::render(GLCanvas3D& canvas, bool bottom, bool with_label, bool only_body) {
+void PartPlate::render(GLCanvas3D& canvas, bool bottom, bool with_label, bool only_body, bool force_background_color) {
 	glsafe(::glEnable(GL_DEPTH_TEST));
 	glsafe(::glEnable(GL_BLEND));
 	glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 	glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
 
-	render_default(bottom);
+	if (!bottom) {
+		// draw background
+		render_background(force_background_color);
+	}
+
+	render_grid(bottom);
 
 	if (!only_body) {
 		/*float render_color[4];
