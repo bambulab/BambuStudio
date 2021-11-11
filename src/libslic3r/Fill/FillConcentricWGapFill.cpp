@@ -9,8 +9,11 @@ namespace Slic3r {
 
 void FillConcentricWGapFill::fill_surface_extrusion(const Surface* surface, const FillParams& params, ExtrusionEntitiesPtr& out)
 {
-    // Perform offset.
-    Slic3r::ExPolygons expp = offset_ex(surface->expolygon, double(scale_(0 - 0.5 * this->spacing)));
+    //BBS: FillConcentricWGapFill.cpp is absolutely newly add by BBL for narrow internal solid infill area to reduce vibration
+    // Because the area is narrow, we should not use the surface->expolygon which has overlap with perimeter, but
+    // use no_overlap_expolygons instead to avoid overflow in narrow area.
+    //Slic3r::ExPolygons expp = offset_ex(surface->expolygon, double(scale_(0 - 0.5 * this->spacing)));
+    Slic3r::ExPolygons expp = offset_ex(this->no_overlap_expolygons, double(scale_(0 - 0.5 * this->spacing)));
     // Create the infills for each of the regions.
     Polylines polylines_out;
     for (size_t i = 0; i < expp.size(); ++i) {
@@ -80,9 +83,7 @@ void FillConcentricWGapFill::fill_surface_extrusion(const Surface* surface, cons
     }
 
     //BBS: add external gapfill between perimeter and infill
-    ExPolygons surface_expolygon;
-    surface_expolygon.push_back(surface->expolygon);
-    ExPolygons external_gaps = diff_ex(surface_expolygon, offset_ex(expp, double(scale_(0.5 * this->spacing))), ApplySafetyOffset::Yes);
+    ExPolygons external_gaps = diff_ex(this->no_overlap_expolygons, offset_ex(expp, double(scale_(0.5 * this->spacing))), ApplySafetyOffset::Yes);
     external_gaps = union_ex(external_gaps);
     if (!this->no_overlap_expolygons.empty())
             external_gaps = intersection_ex(external_gaps, this->no_overlap_expolygons);
