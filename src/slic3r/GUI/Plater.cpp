@@ -4051,8 +4051,38 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
     bool force_render = (current_panel != nullptr);
 #endif // __WXMAC__
 
+    //BBS: add slice logic when switch to preview page
+    auto do_reslice = [this, no_slice]() {
+            // see: Plater::priv::object_list_changed()
+            // FIXME: it may be better to have a single function making this check and let it be called wherever needed
+            bool export_in_progress = this->background_process.is_export_scheduled();
+            bool model_fits = this->view3D->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
+            //BBS: add partplate logic
+            PartPlate * current_plate = this->partplate_list.get_curr_plate();
+
+            if (!no_slice && !this->model.objects.empty() && !export_in_progress && model_fits && current_plate->has_printable_instances())
+            {
+                //if already running in background, not relice here
+                if (!this->background_process.running())
+                {
+                    this->m_slice_all = false;
+                    this->q->reslice();
+                }
+            }
+            // keeps current gcode preview, if any
+            this->preview->reload_print(true);
+
+            preview->set_as_dirty();
+        };
+
     if (current_panel == panel)
+    {
+        //BBS: add slice logic when switch to preview page
+        if (current_panel == preview) {
+            do_reslice();
+        }
         return;
+    }
 
     wxPanel* old_panel = current_panel;
     current_panel = panel;
@@ -4117,7 +4147,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
         if (wxGetApp().is_editor()) {
             // see: Plater::priv::object_list_changed()
             // FIXME: it may be better to have a single function making this check and let it be called wherever needed
-            bool export_in_progress = this->background_process.is_export_scheduled();
+            /*bool export_in_progress = this->background_process.is_export_scheduled();
             bool model_fits = view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
             //BBS: add partplate logic
             PartPlate* current_plate = partplate_list.get_curr_plate();
@@ -4133,9 +4163,11 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             }
             // keeps current gcode preview, if any
             preview->reload_print(true);
+
+            preview->set_as_dirty();*/
+            do_reslice();
         }
 
-        preview->set_as_dirty();
         // reset cached size to force a resize on next call to render() to keep imgui in synch with canvas size
         preview->get_canvas3d()->reset_old_size();
         // BBS

@@ -61,8 +61,8 @@ struct Camera;
 class PartPlateList;
 
 static const constexpr double LOGICAL_PART_PLATE_GAP = 1. / 5.;
-static const constexpr int PARTPLATE_ICON_SIZE = 10;
-static const constexpr int PARTPLATE_ICON_GAP = 2;
+static const constexpr int PARTPLATE_ICON_SIZE = 24;
+static const constexpr int PARTPLATE_ICON_GAP = 4;
 
 
 using GCodeResult = GCodeProcessorResult;

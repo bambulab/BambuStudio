@@ -438,8 +438,13 @@ namespace WindowsSupport
 			if (from_handle)
 		  		break;
 		}
+		//BBS: add some log for error tracing
 		if (! from_handle)
-			return map_windows_error(GetLastError());
+		{
+			auto err_code = map_windows_error(GetLastError());
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("can not open file %1%, error: %2%") % from.c_str() % err_code.message();
+			return err_code;
+		}
 
 		// We normally expect this loop to succeed after a few iterations. If it
 		// requires more than 200 tries, it's more likely that the failures are due to
@@ -460,6 +465,8 @@ namespace WindowsSupport
 			if (! errcode || errcode != std::errc::permission_denied)
 		  		return errcode;
 
+			//BBS: add some log for error tracing
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("first rename file from %1% to %2% failed, reason: %3%") % from.c_str() % to.c_str() % errcode.message();
 			// The destination file probably exists and is currently open in another
 			// process, either because the file was opened without FILE_SHARE_DELETE or
 			// it is mapped into memory (e.g. using MemoryBuffer). Rename it in order to
@@ -474,6 +481,9 @@ namespace WindowsSupport
 				// to rename the source file again.
 				if (errcode == std::errc::no_such_file_or_directory)
 					continue;
+
+				//BBS: add some log for error tracing
+				BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("open dest file %1% failed, reason: %2%") % to.c_str() % errcode.message();
 				return errcode;
 			}
 
@@ -496,6 +506,8 @@ namespace WindowsSupport
 							auto errcode = map_windows_error(GetLastError());
 							if (errcode == std::errc::no_such_file_or_directory)
 						  		break;
+							//BBS: add some log for error tracing
+							BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", line %1%, error: %2%") % __LINE__ % errcode.message();
 							return errcode;
 						}
 						BY_HANDLE_FILE_INFORMATION FI2;
@@ -505,6 +517,8 @@ namespace WindowsSupport
 							break;
 						continue;
 					}
+					//BBS: add some log for error tracing
+					BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", line %1%, error: %2%") % __LINE__ % errcode.message();
 					return errcode;
 				}
 				break;
@@ -517,6 +531,8 @@ namespace WindowsSupport
 		}
 
 		// The most likely root cause.
+		//BBS: add some log for error tracing
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", line %1%, error in the end, permission_denied") % __LINE__;
 		return std::make_error_code(std::errc::permission_denied);
 	}
 } // namespace WindowsSupport
