@@ -7101,7 +7101,15 @@ void Plater::start_next_slice()
         this->p->view3D->reload_scene(false);
 
     // Only restarts if the state is valid.
-    this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
+    bool result = this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
+    if (!result)
+    {
+        //slice next
+        SlicingProcessCompletedEvent evt(EVT_PROCESS_COMPLETED, 0,
+				SlicingProcessCompletedEvent::Finished, nullptr);
+        // Post the "complete" callback message, so that it will slice the next plate soon
+        wxQueueEvent(this, evt.Clone());
+    }
 }
 
 
@@ -7866,7 +7874,7 @@ PartPlateList& Plater::get_partplate_list()
 }
 
 //BBS: select Plate
-int Plater::select_plate(int plate_index)
+int Plater::select_plate(int plate_index, bool need_slice)
 {
     int ret;
     take_snapshot(_L("select partplate"));
@@ -7918,8 +7926,11 @@ int Plater::select_plate(int plate_index)
         {
             if (is_preview_shown())
             {
-                p->m_slice_all = false;
-                reslice();
+                if (need_slice)
+                {
+                    p->m_slice_all = false;
+                    reslice();
+                }
             }
             else
             {
@@ -7956,7 +7967,7 @@ int Plater::select_sliced_plate(int plate_index)
     BOOST_LOG_TRIVIAL(trace) << "select_sliced_plate plate_idx=" << plate_index;
 
     Freeze();
-    ret = select_plate(plate_index);
+    ret = select_plate(plate_index, true);
     if (ret)
     {
         BOOST_LOG_TRIVIAL(error) << "select_plate error for plate_idx=" << plate_index;
@@ -8024,31 +8035,23 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
             }
             else
             {
-                if (is_preview_shown())
+                p->show_sliced_info(false);
+                //check inside status
+                bool model_fits = p->view3D->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
+                //BBS: add partplate logic
+                PartPlate* part_plate = p->partplate_list.get_curr_plate();
+                // BBS: hide action buttons
+                //p->show_action_buttons(true);
+                p->ready_to_slice = true;
+                if (model_fits && part_plate->has_printable_instances())
                 {
-                    p->m_slice_all = false;
-                    reslice();
+                    //p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, true));
+                    p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, true);
                 }
                 else
                 {
-                    p->show_sliced_info(false);
-                    //check inside status
-                    bool model_fits = p->view3D->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
-                    //BBS: add partplate logic
-                    PartPlate* part_plate = p->partplate_list.get_curr_plate();
-                    // BBS: hide action buttons
-                    //p->show_action_buttons(true);
-                    p->ready_to_slice = true;
-                    if (model_fits && part_plate->has_printable_instances())
-                    {
-                        //p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, true));
-                        p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, true);
-                    }
-                    else
-                    {
-                        //p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
-                        p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false);
-                    }
+                    //p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
+                    p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false);
                 }
             }
         }

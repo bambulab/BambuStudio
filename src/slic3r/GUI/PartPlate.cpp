@@ -128,15 +128,19 @@ void PartPlate::calc_bounding_boxes() const {
     m_exclude_bounding_box.clear();
     BoundingBoxf3 exclude_bb;
     for (int index = 0; index < m_exclude_area.size(); index ++) {
-        const Vec2d& p = m_exclude_area[index];
+		const Vec2d& p = m_exclude_area[index];
 
-        if (index % 4 == 0)
-            exclude_bb = BoundingBoxf3();
+		if (index % 4 == 0)
+			exclude_bb = BoundingBoxf3();
 
-        exclude_bb.merge({ p(0), p(1), 0.0 });
+		exclude_bb.merge({ p(0), p(1), 0.0 });
 
-        if (index % 4 == 3)
-            m_exclude_bounding_box.emplace_back(exclude_bb);
+		if (index % 4 == 3)
+		{
+			exclude_bb.max(2) = m_depth;
+			exclude_bb.min(2) = GROUND_Z;
+			m_exclude_bounding_box.emplace_back(exclude_bb);
+		}
 	}
 }
 
@@ -765,7 +769,23 @@ bool PartPlate::check_outside(int obj_id, int instance_id)
 	BoundingBoxf3 plate_box(low_point, up_point);
 
 	if (plate_box.contains(instance_box))
-		outside = false;
+	{
+		if (m_exclude_bounding_box.size() > 0)
+		{
+			int index;
+			for (index = 0; index < m_exclude_bounding_box.size(); index ++)
+			{
+				if (m_exclude_bounding_box[index].intersects(instance_box))
+				{
+					break;
+				}
+			}
+			if (index >= m_exclude_bounding_box.size())
+				outside = false;
+		}
+		else
+			outside = false;
+	}
 
 	return outside;
 }
@@ -848,12 +868,12 @@ int PartPlate::add_instance(int obj_id, int instance_id, bool move_position)
 	}
 
 	//need to judge whether this instance has an outer part
-	bool contains_instance = contain_instance(obj_id, instance_id);
-	if (m_ready_for_slice &&!contains_instance)
+	bool outside = check_outside(obj_id, instance_id);
+	if (m_ready_for_slice && outside)
 	{
 		m_ready_for_slice = false;
 	}
-	else if ((obj_to_instance_set.size() == 1) && (!m_ready_for_slice) && contains_instance)
+	else if ((obj_to_instance_set.size() == 1) && (!m_ready_for_slice) && !outside)
 	{
 		m_ready_for_slice = true;
 	}

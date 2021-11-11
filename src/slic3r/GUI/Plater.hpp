@@ -417,7 +417,7 @@ public:
     //BBS: partplate list related functions
     PartPlateList& get_partplate_list();
     //BBS: select the plate by index
-    int select_plate(int plate_index);
+    int select_plate(int plate_index, bool need_slice = false);
     //BBS: select the plate by hover_id
     int select_plate_by_hover_id(int hover_id, bool right_click = false);
     //BBS: delete the plate, index= -1 means the current plate
