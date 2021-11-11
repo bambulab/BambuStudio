@@ -1451,7 +1451,8 @@ void Sidebar::update_mode()
 
     wxWindowUpdateLocker noUpdates(this);
 
-    obj_list()->get_sizer()->Show(m_mode > comSimple);
+	// BBS
+    //obj_list()->get_sizer()->Show(m_mode > comSimple);
 
     obj_list()->unselect_objects();
     obj_list()->update_selections();
