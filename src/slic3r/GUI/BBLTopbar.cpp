@@ -419,12 +419,14 @@ void BBLTopbar::OnMouseMotion(wxMouseEvent& event)
         wxPoint mouse_pos = ::wxGetMousePosition();
         // leave max state and adjust position 
         if (m_frame->IsMaximized()) {
-            wxPoint mouse_pos = ::wxGetMousePosition();
             wxRect rect = m_frame->GetRect();
-            m_delta = mouse_pos - rect.GetLeftTop();
-            m_delta.x = m_delta.x * m_normalRect.width / rect.width;
-            m_delta.y = m_delta.y * m_normalRect.height / rect.height;
-            m_frame->Restore();
+            // Filter unexcept mouse move
+            if (m_delta + rect.GetLeftTop() != mouse_pos) {
+                m_delta = mouse_pos - rect.GetLeftTop();
+                m_delta.x = m_delta.x * m_normalRect.width / rect.width;
+                m_delta.y = m_delta.y * m_normalRect.height / rect.height;
+                m_frame->Restore();
+            }
         }
         m_frame->Move(mouse_pos - m_delta);
     }
