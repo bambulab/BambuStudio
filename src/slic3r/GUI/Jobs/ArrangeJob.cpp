@@ -355,6 +355,7 @@ void ArrangeJob::process()
     params.clearance_height_to_lid = print.config().extruder_clearance_height_to_lid.value;
     params.cleareance_radius = print.config().extruder_clearance_radius.value;
     params.allow_rotations = settings.enable_rotation;
+    params.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;
     params.is_seq_print = settings.is_seq_print;
     params.min_obj_distance = scaled(settings.distance);
     if (params.is_seq_print) params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius));
@@ -374,7 +375,7 @@ void ArrangeJob::process()
     std::for_each(m_unselected.begin(), m_unselected.end(), [&](auto& ap) {ap.inflation = ap.is_virt_object ? scaled(params.brim_skirt_distance) : params.min_obj_distance / 2; });
 
     Points bedpts = get_bed_shape(*m_plater->config());
-#if 1
+
     // shrink bed by moving to center by dist
     auto shrinkFun = [](Points& bedpts, double dist, int direction) {
 #define SGN(x) ((x)>=0?1:-1)
@@ -384,7 +385,7 @@ void ArrangeJob::process()
     };
     shrinkFun(bedpts, scaled(params.bed_shrink_x), 0);
     shrinkFun(bedpts, scaled(params.bed_shrink_y), 1);
-#endif
+
     BOOST_LOG_TRIVIAL(debug) << "bed_shrink_x,y=" << params.bed_shrink_x << ", " << params.bed_shrink_y << "; bedpts:"
         << bedpts[0].transpose() << ", " << bedpts[1].transpose() << ", " << bedpts[2].transpose() << ", " << bedpts[3].transpose();
     

@@ -448,6 +448,7 @@ public:
 //        float distance_sla       = 6.;
         float accuracy           = 0.65f; // Unused currently
         bool  enable_rotation    = false;
+        bool  allow_multi_materials_on_same_plate = true;
         //BBS: add more arrangeSettings
         bool is_seq_print        = false;
         float bed_shrink_x       = 0.f;

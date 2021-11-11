@@ -353,14 +353,15 @@ protected:
         }
 #endif
 
-        // for layered printing, we want extruder change as few as possible
-        if (!params.is_seq_print)
-        {
-            for (int i = 0; i < m_items.size(); i++) {
-                Item& p = m_items[i];
-                if (p.is_virt_object) continue;
-                score += 0.5 * LARGE_COST_TO_REJECT * (item.extrude_id != p.extrude_id);
-            }
+        for (int i = 0; i < m_items.size(); i++) {
+            Item& p = m_items[i];
+            if (p.is_virt_object) continue;
+            // add a large cost if not multi materials on same plate is not allowed 
+            if (!params.allow_multi_materials_on_same_plate)
+                score += LARGE_COST_TO_REJECT * (item.extrude_id != p.extrude_id);
+            // for layered printing, we want extruder change as few as possible
+            else if (!params.is_seq_print)
+                score += 0.2 * LARGE_COST_TO_REJECT * (item.extrude_id != p.extrude_id);
         }
 
         return std::make_tuple(score, fullbb);

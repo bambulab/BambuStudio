@@ -4489,6 +4489,7 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     float dist_min = 0.f;
     std::string dist_key = "min_object_distance", rot_key = "enable_rotation";
     std::string bed_shrink_x_key = "bed_shrink_x", bed_shrink_y_key = "bed_shrink_y";
+    std::string multi_material_key = "allow_multi_materials_on_same_plate";
     std::string postfix;
     //BBS:
     bool seq_print = false;
@@ -4526,6 +4527,12 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     if (imgui->checkbox(_L("Enable rotations (slow)"), settings.enable_rotation)) {
         settings_out.enable_rotation = settings.enable_rotation;
         appcfg->set("arrange", rot_key.c_str(), settings_out.enable_rotation? "1" : "0");
+        settings_changed = true;
+    }
+
+    if (imgui->checkbox(_L("Allow multiple materials on same plate"), settings.allow_multi_materials_on_same_plate)) {
+        settings_out.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;
+        appcfg->set("arrange", multi_material_key.c_str(), settings_out.allow_multi_materials_on_same_plate ? "1" : "0");
         settings_changed = true;
     }
 
