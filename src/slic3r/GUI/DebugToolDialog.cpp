@@ -47,6 +47,9 @@
 #include "slic3r/GUI/ProjectTask.hpp"
 #include "libslic3r/miniz_extension.hpp"
 
+#define __CHECK_BIND_USER__
+
+
 namespace pt = boost::property_tree;
 typedef pt::ptree JSON;
 
@@ -1424,7 +1427,7 @@ void DebugToolDialog::on_update_list(SimpleEvent& evt)
     std::sort(display_list.begin(), display_list.end(), [&](auto a, auto b)
         {
             auto priority = [&](auto a, auto b) {
-                return (a->get_bind_str().compare(username) == 0) * 100
+                return (a->bind_user_name.compare(username) == 0) * 100
                     + (a->dev_bind_status == MachineObject::MachineBindStatus::MACHINE_BIND_FREE) * 10
                     + (a->dev_id < b->dev_id) * 1;
             };
@@ -1653,7 +1656,7 @@ int DebugToolDialog::publish_json(std::string json_str)
         }
 #ifdef __CHECK_BIND_USER__
         /* compare with bind user */
-        if (obj->get_bind_str().compare(user_name) != 0 || user_name.empty()) {
+        if (obj->bind_user_id.compare(account_manager->get_curr_user()->get_user_id()) != 0) {
             std::string log = "Please Bind dev=" + obj->dev_id + " first!";
             this->send_log_evt(log);
             return -1;

@@ -109,7 +109,6 @@ class MachineObject;
 class AccountManager
 {
 private:
-    //std::unique_ptr<AccountInfo> m_curr_user;
     AccountInfo* m_curr_user;
 
     boost::filesystem::path m_user_info_path;
@@ -180,6 +179,7 @@ public:
 
     /* mqtt */
     std::map<std::string, MachineObject*> mqtt_topics;
+    std::map<std::string, std::string> bind_list_map;    /* dev_id -> user_id */
 
     /* mqtt apis */
     mqtt::async_client* get_client() { return mqtt_cli; }
@@ -212,7 +212,7 @@ public:
     std::map<std::string, BBLProject*> myProjectList;
 
     /* bind apis */
-    int query_bind_status(std::vector<std::string> device_list, CompletedFn fn, ErrorFn errFn);
+    int query_bind_status(std::vector<std::string> device_list, AccountManager::CompletedFn cFn, ErrorFn errFn);
     int request_bind(std::string device_id, ResultFn fn);
     int request_unbind(std::string device_id, ResultFn fn);
     int request_bind_list(ResultFn fn = nullptr);

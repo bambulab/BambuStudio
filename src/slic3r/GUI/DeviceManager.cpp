@@ -1067,19 +1067,19 @@ void MachineObject::set_bind_status(std::string status)
 {
     if (status.compare("free") == 0) {
         dev_bind_status = MACHINE_BIND_FREE;
-        owner = "";
+        bind_user_name = "";
     }
     else if (status.compare("self") == 0) {
         dev_bind_status = MACHINE_BIND_SELF;
-        owner = "";
+        bind_user_name = "";
     }
     else if (status.compare("other") == 0) {
         dev_bind_status = MACHINE_BIND_OHTER;
-        owner = "";
+        bind_user_name = "";
     }
     else {
         dev_bind_status = MACHINE_BIND_OHTER;
-        owner = status;
+        bind_user_name = status;
     }
 }
 
@@ -1090,26 +1090,14 @@ void MachineObject::set_connect_state(CONNECTION_STATE state)
 
 std::string MachineObject::get_bind_str()
 {
-    if (dev_bind_status == MACHINE_BIND_FREE) {
+    std::string default_result = "N/A";
+    if (bind_user_name.compare("null") == 0) {
         return "Free";
     }
-    else if (dev_bind_status == MACHINE_BIND_SELF) {
-        return "Self";
+    else if (!bind_user_name.empty()) {
+        return bind_user_name;
     }
-    else if (dev_bind_status == MACHINE_BIND_OHTER) {
-        if (!owner.empty()) {
-            return owner;
-        }
-        else {
-            return "Other";
-        }
-    }
-    else if (dev_bind_status == MACHINE_BIND_UNKOWN) {
-        return "N/A";
-    }
-    else {
-        return "N/A";
-    }
+    return default_result;
 }
 
 std::string MachineObject::build_report_topic(std::string dev_id)
@@ -1183,27 +1171,7 @@ void DeviceManager::query_bind_status(AccountManager::CompletedFn cFn, AccountMa
         query_list.push_back(it->first);
     }
 
-    acc_.query_bind_status(query_list,
-        [this, query_list, cFn](std::string message) {
-            std::vector<std::string> status_list;
-            split_string(message, status_list);
-
-            if (status_list.size() != query_list.size()) {
-                BOOST_LOG_TRIVIAL(trace) << "query_bind_status, size is not matched, error.";
-                return;
-            }
-
-            // update device bind status list
-            for (int i = 0; i < query_list.size() && i < query_list.size(); i++) {
-                std::map<std::string, MachineObject*>::iterator it = localMachineList.find(query_list[i]);
-                if (it != localMachineList.end()) {
-                    it->second->set_bind_status(status_list[i]);
-                }
-            }
-            if (cFn) {
-                cFn(message);
-            }
-        },
+    acc_.query_bind_status(query_list, cFn,
         [this, errFn](int status, std::string error, std::string body) {
             BOOST_LOG_TRIVIAL(trace) << "query_bind_status error=" << error << ", body=" << body << ", status=" << status;
             if (errFn) {
@@ -1261,7 +1229,7 @@ std::map<std::string, MachineObject*> DeviceManager::get_user_machine_list()
     std::map<std::string, MachineObject*>::iterator it;
 
     for (it = localMachineList.begin(); it != localMachineList.end(); it++) {
-        if (it->second->is_alive && it->second->owner.compare(acc_.get_user_name()) == 0 && !it->second->owner.empty()) {
+        if (it->second->is_alive && it->second->bind_user_name.compare(acc_.get_user_name()) == 0 && !it->second->bind_user_name.empty()) {
             result.insert(std::make_pair(it->first, it->second));
         }
     }

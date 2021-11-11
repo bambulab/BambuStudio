@@ -566,31 +566,49 @@ namespace Slic3r {
     }
 
 
-    int AccountManager::query_bind_status(std::vector<std::string> device_list, CompletedFn fn, ErrorFn errFn)
+    int AccountManager::query_bind_status(std::vector<std::string> device_list, AccountManager::CompletedFn cFn, ErrorFn errFn)
     {
         Http http = Http::get(_get_qeury_bind_list_url(device_list));
         try {
             http.header("accept", "application/json")
                 .header("Authorization", get_token_str())
                 .header("Content-Type", "application/json")
-                .on_complete([&, device_list, fn](std::string body, unsigned) {
-                /* eg: {"message": "free, user1, user2, user3, self"} */
-                std::stringstream ss(body);
-                pt::ptree root;
-                pt::read_json(ss, root);
-                boost::optional<std::string> message = root.get_optional<std::string>("message");
-                if (message.has_value()) {
-                    if (fn) {
-                        fn(message.value());
-                    }
-                }
-                    }).on_error([&, device_list, errFn](std::string body, std::string error, unsigned status) {
-                        BOOST_LOG_TRIVIAL(trace) << "Query bind device list Error! error = " << body;
-                        if (errFn) {
-                            errFn(status, error, body);
+                .on_complete([&, cFn](std::string body, unsigned) {
+                    /* eg: {"message": "free, user1, user2, user3, self"} */
+                    std::stringstream ss(body);
+                    pt::ptree root;
+                    pt::read_json(ss, root);
+                    if (root.empty()) return;
+                    DeviceManager* device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+                    std::map<std::string, MachineObject*> list = device_manager->get_all_machine_list();
+                    std::map<std::string, MachineObject*>::iterator it;
+                    if (root.get_child_optional("bind_list") != boost::none) {
+                        bind_list_map.clear();
+                        pt::ptree bind_list = root.get_child("bind_list");
+                        for (auto bind_item = bind_list.begin(); bind_item != bind_list.end(); ++bind_item) {
+                            boost::optional<std::string> dev_id = bind_item->second.get_optional<std::string>("dev_id");
+                            boost::optional<std::string> user_id = bind_item->second.get_optional<std::string>("user_id");
+                            boost::optional<std::string> user_name = bind_item->second.get_optional<std::string>("user_name");
+                            if (dev_id.has_value()) {
+                                it = list.find(dev_id.value());
+                                if (it != list.end()) {
+                                    if (it->second) {
+                                        it->second->bind_user_id = user_id.value();
+                                        it->second->bind_user_name = user_name.value();
+                                    }
+                                }
+                            }
                         }
-                        void _handle_error_code(int status, std::string error, std::string body);
-                        }).perform();
+                        if (cFn) {
+                            cFn("");
+                        }
+                    }
+                }).on_error([&, device_list, errFn](std::string body, std::string error, unsigned status) {
+                    BOOST_LOG_TRIVIAL(trace) << "Query bind device list Error! error = " << body;
+                    if (errFn) {
+                        errFn(status, error, body);
+                    }
+                }).perform();
         }
         catch (std::exception& e) {
             ;

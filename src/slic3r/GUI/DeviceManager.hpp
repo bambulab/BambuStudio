@@ -134,7 +134,8 @@ public:
     std::string dev_id;
 
     MachineBindStatus dev_bind_status;
-    std::string owner;
+    std::string bind_user_name;
+    std::string bind_user_id;
     bool is_alive;      /* local alive */
     time_t last_alive;
     bool is_online;     /* wan online */
