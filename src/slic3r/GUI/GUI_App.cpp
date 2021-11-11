@@ -1839,6 +1839,17 @@ void GUI_App::download_project(std::string project_id)
     }
 }
 
+void GUI_App::handle_http_error(unsigned int status, std::string body)
+{
+    if (status == 401) {
+        if (m_account_manager->is_user_login()) {
+            m_account_manager->user_logout();
+            wxString msg = wxString::Format("Token is Invalid! Please Login!");
+            wxMessageBox(msg);
+        }
+    }
+}
+
 bool GUI_App::switch_language()
 {
     if (select_language()) {

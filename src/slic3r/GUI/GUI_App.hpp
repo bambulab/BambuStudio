@@ -252,6 +252,7 @@ public:
     void            load_gcode(wxWindow* parent, wxString& input_file) const;
     //BBS
     void            download_project(std::string project_id);
+    void            handle_http_error(unsigned int status, std::string body);
 
     static bool     catch_error(std::function<void()> cb, const std::string& err);
 

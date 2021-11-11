@@ -270,6 +270,7 @@ public:
 
     /* handle webpage command */
     std::string handle_web_request(std::string cmd);
+    void handle_http_error(unsigned int status, std::string body);
 
     void request_model_download(std::string model_id);
     void request_project_download(std::string project_id);

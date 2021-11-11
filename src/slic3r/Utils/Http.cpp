@@ -102,6 +102,7 @@ std::unique_ptr<CurlGlobalInit> CurlGlobalInit::instance;
 
 
 FILE* g_http_log_file = nullptr;
+Http::ErrorFn g_error_func = nullptr;
 
 static void dump(const char *text,
           FILE *stream, unsigned char *ptr, size_t size,
@@ -538,6 +539,7 @@ void Http::priv::http_perform()
 			}
 		}
 		else {
+			if (g_error_func) { g_error_func(buffer, std::string(), http_status); }
 			if (errorfn) { errorfn(std::move(buffer), std::string(), http_status); }
 		}
 	}
@@ -811,6 +813,11 @@ bool Http::disable_log()
 	}
 	g_http_log_file = nullptr;
 	return true;
+}
+
+void Http::register_global_handler(ErrorFn g_err_fn)
+{
+	g_error_func = g_err_fn;
 }
 
 bool Http::ca_file_supported()

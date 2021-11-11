@@ -169,6 +169,11 @@ namespace Slic3r {
         buf << std::put_time(now_time, "debug_http_%a_%b_%d_%H_%M_%S.log");
         std::string log_filename = buf.str();
         Http::enable_log(log_filename.c_str());
+        Http::register_global_handler(
+            [this](std::string body, std::string error, unsigned int status) {
+                handle_http_error(status, body);
+            }
+        );
     }
 
     AccountManager::~AccountManager()
@@ -2182,6 +2187,11 @@ namespace Slic3r {
             return "";
         }
         return "";
+    }
+
+    void AccountManager::handle_http_error(unsigned int status, std::string body)
+    {
+        GUI::wxGetApp().handle_http_error(status, body);
     }
 
     void AccountManager::request_model_download(std::string model_id)

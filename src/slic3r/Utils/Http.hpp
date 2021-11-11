@@ -58,6 +58,7 @@ public:
 
 	static bool enable_log(std::string filename);
 	static bool disable_log();
+	static void register_global_handler(ErrorFn g_err_fn);
 
 	~Http();
 
