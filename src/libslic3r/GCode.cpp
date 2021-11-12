@@ -19,6 +19,7 @@
 #include <cstdlib>
 #include <chrono>
 #include <math.h>
+#include <utility>
 #include <string_view>
 
 #include <boost/algorithm/string.hpp>
@@ -1367,6 +1368,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // Ugly hack: Do not set the initial extruder if the extruder is primed using the MMU priming towers at the edge of the print bed.
         file.write(this->set_extruder(initial_extruder_id, 0.));
     }
+    // BBS: set that indicates objs with brim
+    for (auto iter = print.m_brimMap.begin(); iter != print.m_brimMap.end(); ++iter) {
+        if (!iter->second.empty())
+            this->m_objsWithBrim.insert(iter->first);
+    }
+    if (this->m_objsWithBrim.empty()) m_brim_done = true;
 
     // Do all objects for each layer.
     if (print.config().complete_objects.value) {
@@ -2461,19 +2468,6 @@ GCode::LayerResult GCode::process_layer(
                 m_avoid_crossing_perimeters.disable_once();
         }
 
-        // Extrude brim with the extruder of the 1st region.
-        if (! m_brim_done) {
-            this->set_origin(0., 0.);
-            m_avoid_crossing_perimeters.use_external_mp();
-            for (const ExtrusionEntity *ee : print.brim().entities) {
-                gcode += this->extrude_entity(*ee, "brim", m_config.support_material_speed.value);
-            }
-            m_brim_done = true;
-            m_avoid_crossing_perimeters.use_external_mp(false);
-            // Allow a straight travel move to the first object point.
-            m_avoid_crossing_perimeters.disable_once();
-        }
-
 
         auto objects_by_extruder_it = by_extruder.find(extruder_id);
         if (objects_by_extruder_it == by_extruder.end())
@@ -2486,7 +2480,6 @@ GCode::LayerResult GCode::process_layer(
         for (int print_wipe_extrusions = is_anything_overridden; print_wipe_extrusions>=0; --print_wipe_extrusions) {
             if (is_anything_overridden && print_wipe_extrusions == 0)
                 gcode+="; PURGING FINISHED\n";
-
             for (InstanceToPrint &instance_to_print : instances_to_print) {
                 const LayerToPrint &layer_to_print = layers[instance_to_print.layer_id];
                 // To control print speed of the 1st object layer printed over raft interface.
@@ -2533,6 +2526,25 @@ GCode::LayerResult GCode::process_layer(
                 // Sequential tool path ordering of multiple parts within the same object, aka. perimeter tracking (#5511)
                 for (ObjectByExtruder::Island &island : instance_to_print.object_by_extruder.islands) {
                     const auto& by_region_specific = is_anything_overridden ? island.by_region_per_copy(by_region_per_copy_cache, static_cast<unsigned int>(instance_to_print.instance_id), extruder_id, print_wipe_extrusions != 0) : island.by_region;
+                    //BBS: add brim by obj by extruder
+                    if (this->m_objsWithBrim.find(instance_to_print.print_object.id()) != this->m_objsWithBrim.end()) {
+                        this->set_origin(0., 0.);
+                        m_avoid_crossing_perimeters.use_external_mp();
+                        for (const ExtrusionEntity* ee : print.m_brimMap.at(instance_to_print.print_object.id()).entities) {
+                            gcode += this->extrude_entity(*ee, "brim", m_config.support_material_speed.value);
+                        }
+                        m_avoid_crossing_perimeters.use_external_mp(false);
+                        // Allow a straight travel move to the first object point.
+                        m_avoid_crossing_perimeters.disable_once();
+                        this->m_objsWithBrim.erase(instance_to_print.print_object.id());
+                    }
+                    // When starting a new object, use the external motion planner for the first travel move.
+                    const Point& offset = instance_to_print.print_object.instances()[instance_to_print.instance_id].shift;
+                    std::pair<const PrintObject*, Point> this_object_copy(&instance_to_print.print_object, offset);
+                    if (m_last_obj_copy != this_object_copy)
+                        m_avoid_crossing_perimeters.use_external_mp_once();
+                    m_last_obj_copy = this_object_copy;
+                    this->set_origin(unscale(offset));
                     //FIXME the following code prints regions in the order they are defined, the path is not optimized in any way.
                     if (print.config().infill_first) {
                         gcode += this->extrude_infill(print, by_region_specific, false);

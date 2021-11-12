@@ -2200,7 +2200,7 @@ double ModelInstance::get_auto_brim_width() const
     auto bbox_size = transform_bounding_box(raw_bbox).size();
     double height_to_area = bbox_size(2) / (bbox_size(0) * bbox_size(1));
     double thermalLength = std::max(bbox_size(0), bbox_size(1));
-    double brim_width = std::min(std::max(height_to_area * 40, thermalLength * 0.05), 20.);
+    double brim_width = std::min(std::min(std::max(height_to_area * 40, thermalLength * 0.05), 20.),1.5* thermalLength);
     return brim_width;
 }
 

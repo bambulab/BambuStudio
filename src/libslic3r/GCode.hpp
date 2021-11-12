@@ -18,9 +18,11 @@
 #include "EdgeGrid.hpp"
 #include "GCode/ThumbnailData.hpp"
 #include "GCode/SpeedGenerator.hpp"
+#include "libslic3r/ObjectID.hpp"
 
 #include <memory>
 #include <map>
+#include <set>
 #include <string>
 
 #ifdef HAS_PRESSURE_EQUALIZER
@@ -376,7 +378,7 @@ private:
     std::string     retract(bool toolchange = false);
     std::string     unretract() { return m_writer.unlift() + m_writer.unretract(); }
     std::string     set_extruder(unsigned int extruder_id, double print_z);
-
+    std::set<ObjectID>              m_objsWithBrim; // indicates the objs with brim
     // Cache for custom seam enforcers/blockers for each layer.
     SeamPlacer                          m_seam_placer;
 
