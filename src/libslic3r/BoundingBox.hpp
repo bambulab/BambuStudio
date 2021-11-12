@@ -46,6 +46,7 @@ public:
     {}
 
     void reset() { this->defined = false; this->min = PointClass::Zero(); this->max = PointClass::Zero(); }
+    Polygon polygon(bool is_scaled = false) const;//BBS: 2D footprint polygon
     void merge(const PointClass &point);
     void merge(const std::vector<PointClass> &points);
     void merge(const BoundingBoxBase<PointClass> &bb);

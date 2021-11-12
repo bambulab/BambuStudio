@@ -361,8 +361,16 @@ void ArrangeJob::process()
     if (params.is_seq_print) params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius));
 
     double skirt_distance = print.has_skirt() ? print.config().skirt_distance.value : 0;
-    double brim_max = print.has_auto_brim() ? 0 : (print.has_brim() ? print.default_object_config().brim_width : 0);
-    std::for_each(m_selected.begin(), m_selected.end(), [&](ArrangePolygon ap) {  brim_max = std::max(brim_max, ap.brim_width); });
+    bool is_auto_brim = print.has_auto_brim();
+    double brim_max = 0;
+    if (is_auto_brim) {
+        brim_max = 0;
+        std::for_each(m_selected.begin(), m_selected.end(), [&](ArrangePolygon ap) {  brim_max = std::max(brim_max, ap.auto_brim_width); });
+    }
+    else {
+        brim_max = print.has_brim() ? print.default_object_config().brim_width : 0;
+        std::for_each(m_selected.begin(), m_selected.end(), [&](ArrangePolygon ap) {  brim_max = std::max(brim_max, ap.user_brim_width); });
+    }
 
     // Note: skirt_distance is now defined between outermost brim and skirt, not the object and skirt.
     // So we can't do max but do adding instead.
@@ -386,8 +394,9 @@ void ArrangeJob::process()
     shrinkFun(bedpts, scaled(params.bed_shrink_x), 0);
     shrinkFun(bedpts, scaled(params.bed_shrink_y), 1);
 
-    BOOST_LOG_TRIVIAL(debug) << "bed_shrink_x,y=" << params.bed_shrink_x << ", " << params.bed_shrink_y << "; bedpts:"
-        << bedpts[0].transpose() << ", " << bedpts[1].transpose() << ", " << bedpts[2].transpose() << ", " << bedpts[3].transpose();
+    BOOST_LOG_TRIVIAL(debug) << "bed_shrink_x=" << params.bed_shrink_x
+        << ", brim_max= "<<brim_max<<", "
+        << "; bedpts:" << bedpts[0].transpose() << ", " << bedpts[1].transpose() << ", " << bedpts[2].transpose() << ", " << bedpts[3].transpose();
     
     params.stopcondition = [this]() { return was_canceled(); };
     

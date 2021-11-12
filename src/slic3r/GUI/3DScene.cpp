@@ -966,9 +966,10 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
     //BBS: add instance judge logic, besides to original volume judge logic
     std::map<int64_t, ModelInstanceEPrintVolumeState> model_state;
 
-    const Pointfs& pp_bed_shape = GUI::wxGetApp().plater()->get_partplate_list().get_selected_plate()->get_shape();
+    GUI::PartPlate* curr_plate = GUI::wxGetApp().plater()->get_partplate_list().get_selected_plate();
+    const Pointfs& pp_bed_shape = curr_plate->get_shape();
     BuildVolume plate_build_volume(pp_bed_shape, build_volume.max_print_height());
-    const std::vector<BoundingBoxf3>& exclude_areas = GUI::wxGetApp().plater()->get_partplate_list().get_selected_plate()->get_exclude_areas();
+    const std::vector<BoundingBoxf3>& exclude_areas = curr_plate->get_exclude_areas();
     std::vector<BoundingBoxf3> exclude_volume;
 
     //BBS: add exclude_area logic
@@ -980,17 +981,25 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
 
         exclude_volume.emplace_back(volume);
     }
-    auto intersect_with_exclude = [exclude_volume](const BoundingBoxf3& bb) {
+    auto intersect_with_exclude = [exclude_volume](const Polygon& hull) {
         bool ret = false;
 
         for (int index = 0; index < exclude_volume.size(); index++)
         {
-            ret |= exclude_volume[index].intersects(bb);
+            auto p = exclude_volume[index].polygon(true); // instance convex hull is scaled, so we need to scale here
+            ret |= intersection({ p }, { hull }).empty() == false;
         }
         return ret;
     };
     for (GLVolume* volume : this->volumes)
         if (! volume->is_modifier && (volume->shader_outside_printer_detection_enabled || (! volume->is_wipe_tower && volume->composite_id.volume_id >= 0))) {
+            auto instance = curr_plate->get_instance(volume->composite_id.object_id, volume->composite_id.instance_id);
+            if (!instance) continue;
+
+            // BBS: prusa_2.4 removes ModelInstance::convex_hull_2d()
+            const Transform3d& trafo_instance = instance->get_matrix(false);
+            Polygon hull = instance->get_object()->convex_hull_2d(trafo_instance);
+
             BuildVolume::ObjectState state;
             const BoundingBoxf3& bb = volume_bbox(*volume);
             if (volume_below(*volume))
@@ -1022,7 +1031,7 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
                     overall_state = ModelInstancePVS_Fully_Outside;
                 }
 
-                if (overall_state == ModelInstancePVS_Fully_Outside && volume->is_outside && (state == BuildVolume::ObjectState::Colliding) || intersect_with_exclude(bb))
+                if (overall_state == ModelInstancePVS_Fully_Outside && volume->is_outside && (state == BuildVolume::ObjectState::Colliding) || intersect_with_exclude(hull))
                 {
                     overall_state = ModelInstancePVS_Partly_Outside;
                 }
@@ -1030,7 +1039,7 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
             }
 
             ModelInstanceEPrintVolumeState volume_state;
-            if (volume->is_outside && (plate_build_volume.bounding_volume().intersects(volume->bounding_box()) || intersect_with_exclude(bb)))
+            if (volume->is_outside && (plate_build_volume.bounding_volume().intersects(volume->bounding_box()) || intersect_with_exclude(hull)))
                 volume_state = ModelInstancePVS_Partly_Outside;
             else if (volume->is_outside)
                 volume_state = ModelInstancePVS_Fully_Outside;

@@ -2204,6 +2204,16 @@ double ModelInstance::get_auto_brim_width() const
     return brim_width;
 }
 
+Polygon ModelInstance::convex_hull_2d()
+{
+    //if (!convex_hull.is_valid())
+    //{ // this logic is not working right now, as moving instance doesn't update convex_hull
+        const Transform3d& trafo_instance = get_matrix(false);
+        convex_hull = get_object()->convex_hull_2d(trafo_instance);
+    //}
+    return convex_hull;
+}
+
 void ModelInstance::get_arrange_polygon(void* ap) const
 {
 //    static const double SIMPLIFY_TOLERANCE_MM = 0.1;
@@ -2247,10 +2257,10 @@ void ModelInstance::get_arrange_polygon(void* ap) const
     // get user specified brim width per object
     // Note: if global brim_type=btNoBrim or brAutoBrim, user can't set individual brim_width
     if (object->config.has("brim_width"))
-        ret.brim_width = object->config.opt_float("brim_width");
+        ret.user_brim_width = object->config.opt_float("brim_width");
     else {
-        // get auto brim width
-        ret.brim_width = get_auto_brim_width();
+        // get auto brim width (Note even if the global brim_type=btOuterBrim, we can still go into this branch)
+        ret.auto_brim_width = get_auto_brim_width();
     }
 }
 

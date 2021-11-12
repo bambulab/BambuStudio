@@ -997,6 +997,8 @@ public:
 
     //BBS
     double get_auto_brim_width() const;
+    // BBS
+    Polygon convex_hull_2d();
 
     // Getting the input polygon for arrange
     // We use void* as input type to avoid including Arrange.hpp in Model.hpp.
@@ -1024,6 +1026,7 @@ protected:
 private:
     // Parent object, owning this instance.
     ModelObject* object;
+    Polygon convex_hull; // BBS
 
     // Constructor, which assigns a new unique ID.
     explicit ModelInstance(ModelObject* object) : print_volume_state(ModelInstancePVS_Inside), printable(true), object(object), m_assemble_initialized(false) { assert(this->id().valid()); }

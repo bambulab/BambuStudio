@@ -179,6 +179,11 @@ public:
     //set position and size
     void set_pos_and_size(Vec3d& origin, int width, int depth, int height, bool with_instance_move);
 
+    // BBS
+    ModelObjectPtrs get_objects() { return m_model->objects; }
+    ModelInstance* get_instance(int obj_id, int instance_id);
+
+
     /* instance related operations*/
     //judge whether instance is bound in plate or not
     bool contain_instance(int obj_id, int instance_id);

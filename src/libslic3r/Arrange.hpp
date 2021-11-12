@@ -64,7 +64,8 @@ struct ArrangePolygon {
     int       itemid{ 0 };         // item id in the vector, used for accessing all possible params like extrude_id
     int       is_applied{ 0 };     // transform has been applied
     double    height{ 0 };         // item height 
-    double    brim_width{ 0 };     // auto brim width
+    double    auto_brim_width{ 0 };     // auto brim width
+    double    user_brim_width{ 0 };     // user defined brim width
     std::string name;
     
     // If empty, any rotation is allowed (currently unsupported)

@@ -718,6 +718,14 @@ void PartPlate::set_print(PrintBase* print, GCodeResult* result, int index)
 	return;
 }
 
+ModelInstance* PartPlate::get_instance(int obj_id, int instance_id)
+{
+	if (!contain_instance(obj_id, instance_id))
+		return nullptr;
+	else
+		return m_model->objects[obj_id]->instances[instance_id];
+}
+
 /* instance related operations*/
 //judge whether instance is bound in plate or not
 bool PartPlate::contain_instance(int obj_id, int instance_id)
@@ -764,6 +772,7 @@ bool PartPlate::check_outside(int obj_id, int instance_id)
 	ModelInstance* instance = object->instances[instance_id];
 
 	BoundingBoxf3 instance_box = object->instance_bounding_box(instance_id);
+	Polygon hull = instance->convex_hull_2d();
 	Vec3d up_point(m_origin.x() + m_width, m_origin.y() + m_depth, m_origin.z() + m_height);
 	Vec3d low_point(m_origin.x(), m_origin.y(), m_origin.z() - 5.0f);
 	BoundingBoxf3 plate_box(low_point, up_point);
@@ -775,7 +784,8 @@ bool PartPlate::check_outside(int obj_id, int instance_id)
 			int index;
 			for (index = 0; index < m_exclude_bounding_box.size(); index ++)
 			{
-				if (m_exclude_bounding_box[index].intersects(instance_box))
+				Polygon p = m_exclude_bounding_box[index].polygon(true);  // instance convex hull is scaled, so we need to scale here
+				if (intersection({ p }, { hull }).empty() == false)
 				{
 					break;
 				}
