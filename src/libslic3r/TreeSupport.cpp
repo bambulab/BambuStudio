@@ -2095,6 +2095,10 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
     }
 
     m_highest_overhang_layer = 0;
+    // fix bug of generating support for very thin objects
+    if (m_object.layers().size() <= z_distance_top_layers + 1)
+        return;
+
     for (size_t layer_nr = 1; layer_nr < m_object.layers().size() - z_distance_top_layers; layer_nr++)
     {
         const ExPolygons &overhang = m_object.get_tree_support_layer(layer_nr + m_raft_layers + z_distance_top_layers)->overhang_areas;

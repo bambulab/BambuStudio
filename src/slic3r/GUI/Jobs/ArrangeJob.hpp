@@ -43,6 +43,8 @@ protected:
 
     void prepare() override;
 
+    void check_unprintable();
+
     void on_exception(const std::exception_ptr &) override;
 
     void process() override;

@@ -71,7 +71,7 @@ struct OrientParamsArea {
     Eigen::Vector3f fun_dir;
 
     /// Allow parallel execution.
-    bool parallel = true;
+    bool parallel = false;
 
     /// Progress indicator callback called when an object gets packed. 
     /// The unsigned argument is the number of items remaining to pack.
@@ -115,7 +115,7 @@ struct OrientParams {
 
     
     /// Allow parallel execution.
-    bool parallel = true;
+    bool parallel = false;
 
     /// Progress indicator callback called when an object gets packed. 
     /// The unsigned argument is the number of items remaining to pack.

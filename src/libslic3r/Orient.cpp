@@ -408,30 +408,31 @@ void _orient(OrientMeshs& meshs_,
         std::function<void(unsigned, std::string)> progressfn,
         std::function<bool()>         stopfn)
 {
-#ifndef __TBB_parallel_for_H
-    for (auto& mesh_ : meshs_) {
-        auto progressfn_i = [&](unsigned cnt) {progressfn(cnt, "Orienting " + mesh_.name); };
-        AutoOrienter orienter(&mesh_.mesh, params, progressfn_i, stopfn);
-
-        mesh_.orientation = orienter.process();
-
-        rotation_from_two_vectors(mesh_.orientation, mesh_.axis, mesh_.angle);
-
-        BOOST_LOG_TRIVIAL(info) << std::fixed << std::setprecision(3) << "v,phi: " << mesh_.axis.transpose() <<", "<<mesh_.angle;
-        flush_logs();
+    if (!params.parallel)
+    {
+        for (size_t i = 0; i != meshs_.size(); ++i) {
+            auto& mesh_ = meshs_[i];
+            progressfn(meshs_.size() - i, "Orienting " + std::to_string(i) + "-th item: " + mesh_.name);
+            //auto progressfn_i = [&](unsigned cnt) {progressfn(cnt, "Orienting " + mesh_.name); };
+            AutoOrienter orienter(&mesh_.mesh, params, /*progressfn_i*/{}, stopfn);
+            mesh_.orientation = orienter.process();
+            rotation_from_two_vectors(mesh_.orientation, mesh_.axis, mesh_.angle, mesh_.rotation_matrix);
+            BOOST_LOG_TRIVIAL(info) << std::fixed << std::setprecision(3) << "v,phi: " << mesh_.axis.transpose() << ", " << mesh_.angle;
+            //flush_logs();
+        }
     }
-#else
-     tbb::parallel_for(tbb::blocked_range<size_t>(0, meshs_.size()), [&meshs_,&params, progressfn,stopfn](const tbb::blocked_range<size_t>& range) {
-         for (size_t i = range.begin(); i != range.end(); ++i) {
-             auto& mesh_ = meshs_[i];
-             progressfn(range.size() - i, "Orienting " + std::to_string(i) + "-th item: " + mesh_.name);
-             AutoOrienter orienter(&mesh_.mesh, params, {}, stopfn);
-             mesh_.orientation = orienter.process();
-             rotation_from_two_vectors(mesh_.orientation, mesh_.axis, mesh_.angle, mesh_.rotation_matrix);
-             mesh_.euler_angles = Geometry::extract_euler_angles(mesh_.rotation_matrix);
-             BOOST_LOG_TRIVIAL(debug) << "rotation_from_two_vectors: " << mesh_.orientation << "; " << mesh_.axis << "; " << mesh_.angle << "; euler: " << mesh_.euler_angles.transpose();
-         }});
-#endif
+    else {
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, meshs_.size()), [&meshs_, &params, progressfn, stopfn](const tbb::blocked_range<size_t>& range) {
+            for (size_t i = range.begin(); i != range.end(); ++i) {
+                auto& mesh_ = meshs_[i];
+                progressfn(range.size() - i, "Orienting " + std::to_string(i) + "-th item: " + mesh_.name);
+                AutoOrienter orienter(&mesh_.mesh, params, {}, stopfn);
+                mesh_.orientation = orienter.process();
+                rotation_from_two_vectors(mesh_.orientation, mesh_.axis, mesh_.angle, mesh_.rotation_matrix);
+                mesh_.euler_angles = Geometry::extract_euler_angles(mesh_.rotation_matrix);
+                BOOST_LOG_TRIVIAL(debug) << "rotation_from_two_vectors: " << mesh_.orientation << "; " << mesh_.axis << "; " << mesh_.angle << "; euler: " << mesh_.euler_angles.transpose();
+            }});
+    }
 }
 
 void orient(OrientMeshs &      arrangables,

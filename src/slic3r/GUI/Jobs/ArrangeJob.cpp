@@ -14,6 +14,7 @@
 #include "slic3r/GUI/NotificationManager.hpp"
 #include "slic3r/GUI/format.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/NotificationManager.hpp"
 
 #include "libnest2d/common.hpp"
 
@@ -313,6 +314,22 @@ void ArrangeJob::prepare()
     else if (state == Job::JobPrepareState::PREPARE_STATE_MENU) {
         only_on_partplate = true;   // only arrange items on current plate
         prepare_partplate();
+    }
+    check_unprintable();
+}
+
+void ArrangeJob::check_unprintable()
+{
+    for (auto it = m_selected.begin(); it != m_selected.end();) {
+        if (it->poly.area() < 0.001)
+        {
+            m_unprintable.push_back(*it);
+            //update_status(50, _(L("Object " + it->name + " has zero size and can't be printed!")));
+            wxGetApp().plater()->get_notification_manager()->push_plater_warning_notification((L("Object " + it->name + " has zero size and can't be printed!")));
+            it = m_selected.erase(it);
+        }
+        else
+            it++;
     }
 }
 
