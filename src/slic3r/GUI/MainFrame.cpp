@@ -1892,12 +1892,12 @@ void MainFrame::init_menubar_as_editor()
 #ifdef __APPLE__
     // This fixes a bug on Mac OS where the quit command doesn't emit window close events
     // wx bug: https://trac.wxwidgets.org/ticket/18328
-    wxMenu* apple_menu = m_menubar->OSXGetAppleMenu();
+    /* wxMenu* apple_menu = m_menubar->OSXGetAppleMenu();
     if (apple_menu != nullptr) {
         apple_menu->Bind(wxEVT_MENU, [this](wxCommandEvent &) {
             Close();
         }, wxID_EXIT);
-    }
+    }*/
 #endif // __APPLE__
 
     if (plater()->printer_technology() == ptSLA)
