@@ -96,6 +96,31 @@ namespace Slic3r {
         lostFn = lFn;
     }
 
+    std::string VersionInfo::convert_full_version(std::string short_version)
+    {
+        std::string result = "";
+        std::vector<std::string> items;
+        boost::split(items, short_version, boost::is_any_of("."));
+        if (items.size() == VERSION_LEN) {
+            for (int i = 0; i < VERSION_LEN; i++) {
+                std::stringstream ss;
+                ss << std::setw(2) << std::setfill('0') << items[i];
+                result += ss.str();
+                if (i != VERSION_LEN - 1)
+                    result += ".";
+            }
+            return result;
+        }
+        return result;
+    }
+
+    std::string VersionInfo::convert_short_version(std::string full_version)
+    {
+        full_version.erase(std::remove(full_version.begin(), full_version.end(), '0'), full_version.end());
+        return full_version;
+    }
+
+
     AccountInfo::AccountInfo(std::string account, std::string user_id, AccountInfo::LoginStatus status)
     {
         m_account = account;
@@ -793,6 +818,66 @@ namespace Slic3r {
                 return 0;
     }
 
+    void AccountManager::check_new_version()
+    {
+        std::string platform = "WINDOWS";
+#ifdef __WINDOWS__
+        platform = "WINDOWS";
+#endif
+#ifdef __APPLE__
+        platform = "MAC";
+#endif
+#ifdef __LINUX__
+        platform = "LINUX";
+#endif
+        std::string query_params = (boost::format("?name=BBLS&&version=%1%&&platform=%2%&&guide_version=%3%")
+            % VersionInfo::convert_full_version(SLIC3R_RC_VERSION)
+            % platform
+            % VersionInfo::convert_full_version("0.0.0.1")
+            ).str();
+        std::string url = _get_slicer_info_url() + query_params;
+        Http http = Http::get(url);
+        http.header("accept", "application/json")
+            .header("Authorization", get_token_str())
+            .on_complete([this](std::string body, unsigned) {
+                std::stringstream ss(body);
+                pt::ptree root;
+                pt::read_json(ss, root);
+                if (root.empty()) return;
+                boost::optional<std::string> message = root.get_optional<std::string>("message");
+                if (message.has_value()) {
+                    if (message.value().compare(MSG_SUCCESS) == 0) {
+                        if (root.get_child_optional("software") != boost::none) {
+                            pt::ptree software_node = root.get_child("software");
+                            boost::optional<std::string> url = software_node.get_optional<std::string>("url");
+                            boost::optional<std::string> version = software_node.get_optional<std::string>("version");
+                            boost::optional<std::string> description = software_node.get_optional<std::string>("description");
+
+                            if (url.has_value())
+                                version_info.url = url.value();
+                            if (version.has_value()) {
+                                version_info.parse_version_str(version.value());
+                            }
+                            if (description.has_value())
+                                version_info.description = description.value();
+
+                            check_update();
+                        }
+                    }
+                }
+            }).perform();
+    }
+
+    void AccountManager::check_update()
+    {
+        if (version_info.version_str.empty()) return;
+        if (version_info.url.empty()) return;
+
+        if (version_info.compare(SLIC3R_RC_VERSION) > 0) {
+            GUI::wxGetApp().request_new_version();
+        }
+    }
+
     int AccountManager::request_bind_list(ResultFn fn)
     {
         if (!is_user_login()) {
@@ -856,7 +941,6 @@ namespace Slic3r {
 
     std::string AccountManager::json_request_body_post_project(BBLProject* project)
     {
-        std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
         std::string project_name_str = project->project_name;
 
         pt::ptree root;
@@ -877,7 +961,6 @@ namespace Slic3r {
 
     std::string AccountManager::json_request_body_post_profile(BBLProfile* profile)
     {
-        std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
         std::string profile_name_str = profile->profile_name;
         pt::ptree root;
         root.put("name", profile_name_str);
@@ -1918,7 +2001,6 @@ namespace Slic3r {
     {
         if (!task) return;
 
-        std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
         std::string url = (boost::format("%1%/iot/user/storage") % host).str();
 
         std::string file_str = "file";
@@ -2065,6 +2147,11 @@ namespace Slic3r {
     std::string AccountManager::_get_register_url()
     {
         return (boost::format("%1%/user/register") % host).str();
+    }
+
+    std::string AccountManager::_get_slicer_info_url()
+    {
+        return (boost::format("%1%/iot/slicer/resource") % host).str();
     }
 
     std::string AccountManager::_get_bind_list_url()

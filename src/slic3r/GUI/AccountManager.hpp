@@ -7,9 +7,11 @@
 #include <memory>
 #include <boost/thread.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/algorithm/string.hpp>
 #include "mqtt/async_client.h"
 #include "ProjectTask.hpp"
 #include "slic3r/Utils/Http.hpp"
+
 
 #define MY_MODEL_PUBLISH_URL_FORMAT     "https://portal-dev.bambu-lab.com/my/models/%s/publish?project_id=%s"
 #define MY_COLLECTIONS_URL              "https://portal-dev.bambu-lab.com/my/collections"
@@ -69,6 +71,70 @@ public:
     void set_connect_fns(SuccessFn sFn, FailedFn fFn, LostFn lFn);
 };
 
+
+#define  VERSION_LEN    4
+class VersionInfo
+{
+public:
+    std::string version_str;
+    std::string version_name;
+    std::string description;
+    std::string url;
+    int      ver_items[VERSION_LEN];  // AA.BB.CC.DD
+    VersionInfo() {
+        for (int i = 0; i < VERSION_LEN; i++) {
+            ver_items[i] = 0;
+        }
+    }
+
+    void parse_version_str(std::string str) {
+        version_str = str;
+        std::vector<std::string> items;
+        boost::split(items, str, boost::is_any_of("."));
+        if (items.size() == VERSION_LEN) {
+            try{
+                for (int i = 0; i < VERSION_LEN; i++) {
+                    ver_items[i] = stoi(items[i]);
+                }
+            }
+            catch (...) {
+                ;
+            }
+        }
+    }
+    static std::string convert_full_version(std::string short_version);
+    static std::string convert_short_version(std::string full_version);
+
+    /* return > 0, need update */
+    int compare(std::string ver_str) {
+        if (version_str.empty()) return -1;
+
+        int      ver_target[VERSION_LEN];
+        std::vector<std::string> items;
+        boost::split(items, ver_str, boost::is_any_of("."));
+        if (items.size() == VERSION_LEN) {
+            try{
+                for (int i = 0; i < VERSION_LEN; i++) {
+                    ver_target[i] = stoi(items[i]);
+                    if (ver_target[i] < ver_items[i]) {
+                        return 1;
+                    }
+                    else if (ver_target[i] == ver_items[i]) {
+                        continue;
+                    }
+                    else {
+                        return -1;
+                    }
+                }
+            }
+            catch (...) {
+                return -1;
+            }
+        }
+        return -1;
+    }
+};
+
 class AccountInfo {
 public:
     enum LoginStatus
@@ -122,6 +188,7 @@ private:
     std::string _get_login_url();
     std::string _get_user_profile_url(std::string account);
     std::string _get_register_url();
+    std::string _get_slicer_info_url();
 
     /* bind */
     std::string _get_bind_request(std::string device_id);
@@ -255,6 +322,11 @@ public:
 
     /* submit */
     int submit_print_result(std::string device_id, std::string json_str, ResultFn fn);
+
+    /* slicer resources apis */
+    VersionInfo version_info;
+    void check_new_version();
+    void check_update();
 
     /* common apis */
     AccountInfo* get_curr_user() { return m_curr_user; }

@@ -789,6 +789,10 @@ void GUI_App::post_init()
                 // "prusaslicer-updater.exe" was not started, run our own update check.
         #endif // _WIN32
                 this->preset_updater->slic3r_update_notify();
+
+            //BBS: check new version if user is login
+            if (m_account_manager->is_user_login())
+                m_account_manager->check_new_version();
         });
     }
 
@@ -1204,13 +1208,29 @@ bool GUI_App::on_init_inner()
             app_config->save();
             std::string opt = app_config->get("notify_release");
             if (this->plater_ != nullptr && (opt == "all" || opt == "release")) {
-                if (*Semver::parse(SLIC3R_VERSION) < *Semver::parse(into_u8(evt.GetString()))) {
-                    this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable
-                        , NotificationManager::NotificationLevel::ImportantNotificationLevel
-                        , Slic3r::format(_u8L("New release version %1% is available."), evt.GetString())
-                        , _u8L("See Download page.")
-                        , [](wxEvtHandler* evnthndlr) {wxGetApp().open_web_page_localized("https://www.prusa3d.com/slicerweb"); return true; }
-                    );
+                this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable);
+                //BBS show msg box to download new version
+                wxString description = wxString::FromUTF8(m_account_manager->version_info.description);
+                wxMessageDialog dialog(this->mainframe,
+                    description,
+                    "New Version of Slicer",
+                    wxCENTER | wxYES_DEFAULT | wxYES_NO | wxICON_INFORMATION);
+                wxString extmsg;
+                if (dialog.SetYesNoLabels("Download", "Skip"))
+                {
+                    extmsg = wxString::Format("click yes to download new version: %s", m_account_manager->version_info.version_str);
+                }
+                dialog.SetExtendedMessage(extmsg);
+
+                switch (dialog.ShowModal())
+                {
+                case wxID_YES:
+                    wxLaunchDefaultBrowser(m_account_manager->version_info.url);
+                    break;
+                case wxID_NO:
+                    break;
+                default:
+                    ;
                 }
             }
             });
@@ -1848,6 +1868,14 @@ void GUI_App::handle_http_error(unsigned int status, std::string body)
             wxMessageBox(msg);
         }
     }
+}
+
+//BBS pop up a dialog and download files
+void GUI_App::request_new_version()
+{
+    wxCommandEvent* evt = new wxCommandEvent(EVT_SLIC3R_VERSION_ONLINE);
+    evt->SetString(GUI::from_u8(m_account_manager->version_info.version_str));
+    GUI::wxGetApp().QueueEvent(evt);
 }
 
 bool GUI_App::switch_language()
