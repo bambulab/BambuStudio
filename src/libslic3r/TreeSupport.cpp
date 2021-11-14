@@ -1546,7 +1546,8 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                         }
 
                         if (layer_nr == 0 && m_raft_layers == 0) {
-                            circle = offset(circle, scale_(FIRST_LAYER_EXPANSION))[0];
+                            double brim_width = layers_to_top * layer_height / (scale * branch_radius) * 0.5;
+                            circle = offset(circle, scale_(brim_width))[0];
                         }
                         area = ExPolygon(circle);
                     }
