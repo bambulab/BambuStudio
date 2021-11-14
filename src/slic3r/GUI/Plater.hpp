@@ -20,6 +20,7 @@
 #include "PartPlate.hpp"
 #include "GUI_AuxiliaryList.hpp"
 #include "Jobs/PrintJob.hpp"
+#include "AccountManager.hpp"
 
 class wxButton;
 class ScalableButton;
@@ -88,6 +89,8 @@ private:
     wxPanel *m_object_panel;
     wxPanel *m_auxiliary_panel;
 };
+
+const wxString DEFAULT_PROJECT_NAME = "Untitled";
 
 class Sidebar : public wxPanel
 {
@@ -165,7 +168,7 @@ class Plater: public wxPanel
 public:
     using fs_path = boost::filesystem::path;
 
-    Plater(wxWindow *parent, MainFrame *main_frame);
+    Plater(wxWindow *parent, MainFrame *main_frame, AccountManager* acc);
     Plater(Plater &&) = delete;
     Plater(const Plater &) = delete;
     Plater &operator=(Plater &&) = delete;
@@ -287,7 +290,8 @@ public:
     void schedule_background_process(bool schedule = true);
     bool is_background_process_update_scheduled() const;
     void suppress_background_process(const bool stop_background_process) ;
-    // -1: send current gcode if not specified
+    /* -1: send current gcode if not specified
+     * -2: send all gcode to target machine */
     void send_gcode(int plate_idx = -1);
     //BBS jump to nonitor after print job finished
     void print_job_finished();

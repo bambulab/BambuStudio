@@ -25,6 +25,13 @@
 class GLUquadric;
 typedef class GLUquadric GLUquadricObject;
 
+
+// use PLATE_CURRENT_IDX stands for using current plate
+// and use PLATE_ALL_IDX
+#define PLATE_CURRENT_IDX   -1
+#define PLATE_ALL_IDX       -2
+
+
 inline int compute_colum_count(int count)
 {
     float value = sqrt((float)count);

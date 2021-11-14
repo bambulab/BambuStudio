@@ -33,6 +33,12 @@ void PrintJob::process()
     Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
     Slic3r::DeviceManager* d  = Slic3r::GUI::wxGetApp().getDeviceManager();
 
+    int total_plate_num = 1;
+    if (job_data.plate_idx == PLATE_ALL_IDX) {
+        total_plate_num = m_plater->get_partplate_list().get_plate_count();
+    }
+    
+
     PartPlate* plate = m_plater->get_partplate_list().get_plate(job_data.plate_idx);
     if (plate == nullptr) {
         plate = m_plater->get_partplate_list().get_curr_plate();
@@ -58,12 +64,10 @@ void PrintJob::process()
 
     /* 2 - wan print task */
     // save project, profile, task, subtask info to local, default_output_file as project name
-    // TODO set a 3mf name
-    std::string project_name = boost::format("bbl_project_name").str();
+    std::string project_name = c->get_default_project()->project_name;
     BBLProject* project = new BBLProject(project_name, BBLProject::ProjectType::PROJECT_3MF);
     project->project_3mf_file = job_data._3mf_path.string();
     project->project_path = fs::path(project->project_3mf_file);
-
     res = c->request_project_id(project);
 
     if (res == 0 && !project->project_id.empty()) {
@@ -74,10 +78,11 @@ void PrintJob::process()
         return;
     }
 
-    /* TODO select a profile, use default now */
+    /* select a profile, use default now */
     BBLProfile* profile = new BBLProfile(project);
-    profile->profile_name = "bbl_profile_name";
-
+    // set current print preset to profile_name
+    profile->profile_name = wxGetApp().preset_bundle->prints.get_selected_preset_name();
+    
     res = c->request_profile_id(profile,
         [this](int result, std::string info) {
             if (result == 0) {
@@ -120,20 +125,9 @@ void PrintJob::process()
 
     /* create Task */
     BBLTask* task = new BBLTask(profile);
-    task->task_name = "bbl_task_name";
+    task->task_name = (boost::format("%1%_%2%_P%3%") % project->project_name % profile->profile_name % total_plate_num).str();
 
     /* rqeust task id */
-
-    /* create subTask from current plate */
-    BBLSubTask* subTask = new BBLSubTask(task);
-    subTask->task_gcode_in_3mf = (boost::format(GCODE_FILE_FORMAT) % (plate->get_index() + 1)).str();
-
-    subTask->task_partplate_idx = plate->get_index() + 1;
-    subTask->task_printer_dev_id = job_data.machine_sn;
-    subTask->task_name = subTask->task_gcode_in_3mf;
-
-    task->subtasks.push_back(subTask);
-
     c->request_task_id(task);
 
     if (!task->task_id.empty()) {
@@ -144,20 +138,74 @@ void PrintJob::process()
         return;
     }
 
-    c->request_subtask_id(subTask);
+    
+    BBLSubTask* curr_subtask = nullptr;
+    int curr_plate_idx = 0;
+    if (job_data.plate_idx == PLATE_ALL_IDX) {
+        for (int i = 0; i < total_plate_num; i++) {
+            int subtask_percent_duration = 5;
+            curr_plate_idx = i + 1;
 
-    if (!subTask->task_id.empty()) {
-        update_status(90, "request subtask id ok!");
+            /* create subTask from current plate */
+            BBLSubTask* subTask = new BBLSubTask(task);
+            subTask->task_gcode_in_3mf = (boost::format(GCODE_FILE_FORMAT) % (curr_plate_idx)).str();
+
+            subTask->task_partplate_idx = curr_plate_idx;
+            subTask->task_printer_dev_id = job_data.machine_sn;
+            subTask->task_name = (boost::format("%1%_P%2%-%3%") % profile->profile_name % total_plate_num % curr_plate_idx).str();
+
+            task->subtasks.push_back(subTask);
+
+            c->request_subtask_id(subTask);
+            if (!subTask->task_id.empty()) {
+                update_status(90, "request subtask id ok!");
+            }
+            else {
+                update_status(80, "request subtask id failed!");
+                return;
+            }
+
+            /* set curr_subtask to first task */
+            if (i == 0) {
+                curr_subtask = subTask;
+            }
+        }
     }
     else {
-        update_status(80, "request subtask id failed!");
-        return;
+        if (job_data.plate_idx >= 0)
+            curr_plate_idx = job_data.plate_idx + 1;
+        else if (job_data.plate_idx == PLATE_CURRENT_IDX)
+            curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
+
+        /* create subTask from current plate */
+        BBLSubTask* subTask = new BBLSubTask(task);
+        subTask->task_gcode_in_3mf = (boost::format(GCODE_FILE_FORMAT) % (curr_plate_idx)).str();
+        subTask->task_partplate_idx = curr_plate_idx;
+        subTask->task_printer_dev_id = job_data.machine_sn;
+        subTask->task_name = (boost::format("%1%_P%2%-%3%") % profile->profile_name % total_plate_num % curr_plate_idx).str();
+
+        task->subtasks.push_back(subTask);
+
+        c->request_subtask_id(subTask);
+
+        if (!subTask->task_id.empty()) {
+            update_status(90, "request subtask id ok!");
+        }
+        else {
+            update_status(80, "request subtask id failed!");
+            return;
+        }
+
+        /* set curr_subtask to subtask */
+        curr_subtask = subTask;
     }
 
-    res = c->poll_3mf(subTask);
-    if (!subTask->task_url.empty() && !subTask->task_url_md5.empty()) {
+    if (!curr_subtask) return;
+
+    res = c->poll_3mf(curr_subtask);
+    if (!curr_subtask->task_url.empty() && !curr_subtask->task_url_md5.empty()) {
         update_status(95, "poll 3mf of task ok!");
-        BOOST_LOG_TRIVIAL(trace) << "get subtask url =" << subTask->task_url;
+        BOOST_LOG_TRIVIAL(trace) << "get subtask url =" << curr_subtask->task_url;
     }
     else {
         update_status(90, "poll 3mf of task failed!");
@@ -168,7 +216,7 @@ void PrintJob::process()
     MachineObject* obj = c->find_machine(job_data.machine_sn);
     if (obj) {
         // upload and send to machine
-        obj->send_wan_print_subtask(subTask);
+        obj->send_wan_print_subtask(curr_subtask);
         update_status(100, "send task ok!");
 
         // add to user project

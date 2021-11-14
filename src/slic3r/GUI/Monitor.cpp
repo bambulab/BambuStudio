@@ -222,19 +222,19 @@ void SubTaskListModel::GetValueByRow(wxVariant& variant,
     unsigned int row, unsigned int col) const
 {
     switch (col) {
-    case Col_SubTaskName:
+    case Col_Name:
         if (row >= m_nameColValues.GetCount())
             variant = wxString::Format("N/A", row);
         else
             variant = m_nameColValues[row];
         break;
-    case Col_SubTaskDuration:
+    case Col_Duration:
         if (row >= m_durationColValues.GetCount())
             variant = wxString::Format("N/A", row);
         else
             variant = m_durationColValues[row];
         break;
-    case Col_SubTaskWeight:
+    case Col_Weight:
         if (row >= m_WeightColValues.GetCount())
             variant = wxString::Format("N/A", row);
         else
@@ -256,11 +256,11 @@ bool SubTaskListModel::SetValueByRow(const wxVariant& variant,
 {
     switch (col)
     {
-    case Col_SubTaskName:
+    case Col_Name:
         return true;
-    case Col_SubTaskDuration:
+    case Col_Duration:
         return true;
-    case Col_SubTaskWeight:
+    case Col_Weight:
         return true;
     default:
         break;
@@ -298,6 +298,7 @@ void SubTaskListModel::update_subtask(BBLSubTask* subtask)
     m_nameColValues.clear();
     m_durationColValues.clear();
     m_WeightColValues.clear();
+    m_PlateIdxColValues.clear();
     add_subtask(subtask);
     Reset(m_nameColValues.Count());
 }
@@ -309,6 +310,7 @@ void SubTaskListModel::update_task(BBLTask* task)
     m_nameColValues.clear();
     m_durationColValues.clear();
     m_WeightColValues.clear();
+    m_PlateIdxColValues.clear();
 
     std::vector<BBLSubTask*>::iterator it;
     for (it = task->subtasks.begin(); it != task->subtasks.end(); it++) {
@@ -325,6 +327,7 @@ void SubTaskListModel::update_profile(BBLProfile* profile)
     m_nameColValues.clear();
     m_durationColValues.clear();
     m_WeightColValues.clear();
+    m_PlateIdxColValues.clear();
 
     std::map<std::string, BBLSliceInfo*>::iterator it;
     for (it = profile->slice_info.begin(); it != profile->slice_info.end(); it++) {
@@ -360,10 +363,21 @@ void SubTaskListModel::add_slice_info(BBLSliceInfo* slice_info)
 
 void SubTaskListModel::clear_data()
 {
+    clear();
+    reset();
+}
+
+void SubTaskListModel::clear()
+{
     m_nameColValues.clear();
     m_durationColValues.clear();
     m_WeightColValues.clear();
-    Reset(0);
+    m_PlateIdxColValues.clear();
+}
+
+void SubTaskListModel::reset()
+{
+    Reset(m_nameColValues.GetCount());
 }
 
 
@@ -1113,21 +1127,21 @@ void MonitorPanel::init_model()
     subtask_model = new SubTaskListModel();
     m_dataViewCtrl_subtask->AssociateModel(subtask_model.get());
     m_dataViewCtrl_subtask->AppendTextColumn("Task",
-        SubTaskListModel::Col_SubTaskName,
+        SubTaskListModel::Col_Name,
         wxDATAVIEW_CELL_INERT,
         wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_NOT,
         wxDATAVIEW_COL_RESIZABLE);
 
     m_dataViewCtrl_subtask->AppendTextColumn("Duration",
-        SubTaskListModel::Col_SubTaskDuration,
+        SubTaskListModel::Col_Duration,
         wxDATAVIEW_CELL_INERT,
         wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_NOT,
         wxDATAVIEW_COL_RESIZABLE);
 
     m_dataViewCtrl_subtask->AppendTextColumn("Weight",
-        SubTaskListModel::Col_SubTaskWeight,
+        SubTaskListModel::Col_Weight,
         wxDATAVIEW_CELL_INERT,
         wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_NOT,
@@ -1289,6 +1303,13 @@ bool MonitorPanel::Show(bool show)
     return wxPanel::Show(show);
 }
 
+void MonitorPanel::Reset()
+{
+    obj = nullptr;
+    last_task = nullptr;
+    last_subtask = nullptr;
+}
+
 void MonitorPanel::update_ams(MachineObject* obj)
 {
     if (!obj) return;
@@ -1366,6 +1387,7 @@ void MonitorPanel::update_all()
     update_ams(obj);
 
     update_profile(obj);
+
     update_task(obj);
 }
 

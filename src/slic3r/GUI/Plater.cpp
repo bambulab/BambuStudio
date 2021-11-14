@@ -1548,6 +1548,7 @@ struct Plater::priv
     // PIMPL back pointer ("Q-Pointer")
     Plater *q;
     MainFrame *main_frame;
+    AccountManager* acc_;
 
     MenuFactory menus;
 
@@ -1676,7 +1677,7 @@ struct Plater::priv
     static const std::regex pattern_any_amf;
     static const std::regex pattern_prusa;
 
-    priv(Plater *q, MainFrame *main_frame);
+    priv(Plater *q, MainFrame *main_frame, AccountManager* acc);
     ~priv();
 
     bool is_project_dirty() const { return dirty_state.is_dirty(); }
@@ -1964,7 +1965,6 @@ private:
 
     // path to project file stored with no extension
     wxString 					m_project_filename;
-    BBLProject*                 m_project;
     Slic3r::UndoRedo::Stack 	m_undo_redo_stack_main;
     Slic3r::UndoRedo::Stack 	m_undo_redo_stack_gizmos;
     Slic3r::UndoRedo::Stack    *m_undo_redo_stack_active = &m_undo_redo_stack_main;
@@ -1988,9 +1988,10 @@ const std::regex Plater::priv::pattern_zip_amf(".*[.]zip[.]amf", std::regex::ica
 const std::regex Plater::priv::pattern_any_amf(".*[.](amf|amf[.]xml|zip[.]amf)", std::regex::icase);
 const std::regex Plater::priv::pattern_prusa(".*prusa", std::regex::icase);
 
-Plater::priv::priv(Plater *q, MainFrame *main_frame)
+Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     : q(q)
     , main_frame(main_frame)
+    , acc_(acc)
     //BBS: add bed_exclude_area
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
         "bed_shape", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "complete_objects", "duplicate_distance", "extruder_clearance_radius", "skirts", "skirt_distance",
@@ -2011,7 +2012,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     // BBS
     //, view_toolbar(GLToolbar::Radio, "View")
     , collapse_toolbar(GLToolbar::Normal, "Collapse")
-    , m_project_filename(wxEmptyString)
+    , m_project_filename(DEFAULT_PROJECT_NAME)
     //BBS :partplatelist construction
     , partplate_list(this->q, &model)
     // BBS
@@ -3173,7 +3174,7 @@ void Plater::priv::reset()
 
 	clear_warnings();
 
-    set_project_filename(wxEmptyString);
+    set_project_filename(DEFAULT_PROJECT_NAME);
 
     if (view3D->is_layers_editing_enabled())
         view3D->enable_layers_editing(false);
@@ -3193,8 +3194,12 @@ void Plater::priv::reset()
     sidebar->obj_list()->delete_all_objects_from_list();
     object_list_changed();
 
+    // BBS
     // The hiding of the slicing results, if shown, is not taken care by the background process, so we do it here
-    this->sidebar->show_sliced_info_sizer(false);
+    show_sliced_info(false);
+
+    // BBS reset project
+    acc_->reset_project();
 
     model.custom_gcode_per_print_z.gcodes.clear();
 }
@@ -4596,7 +4601,7 @@ void Plater::priv::on_action_print_all(SimpleEvent&)
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received print all event\n" ;
     }
     //send first plate gcode
-    q->send_gcode(0);
+    q->send_gcode(PLATE_ALL_IDX);
 }
 
 void Plater::priv::on_action_export_gcode(SimpleEvent&)
@@ -4809,6 +4814,9 @@ void Plater::priv::set_project_filename(const wxString& filename)
 
     // BBS
     wxGetApp().mainframe->topbar()->SetProjectName(full_path.filename().generic_wstring());
+
+    //BBS
+    acc_->get_default_project()->set_name(full_path.filename().string());
 }
 
 void Plater::priv::init_notification_manager()
@@ -5572,9 +5580,9 @@ void Sidebar::set_btn_label(const ActionButtonType btn_type, const wxString& lab
 
 // Plater / Public
 
-Plater::Plater(wxWindow *parent, MainFrame *main_frame)
+Plater::Plater(wxWindow *parent, MainFrame *main_frame, AccountManager* acc)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxGetApp().get_min_size())
-    , p(new priv(this, main_frame))
+    , p(new priv(this, main_frame, acc))
 {
     // Initialization performed in the private c-tor
 }
@@ -5875,7 +5883,7 @@ void Plater::load_gcode(const wxString& filename)
         //wxMessageDialog(this, _L("The selected file") + ":\n" + filename + "\n" + _L("does not contain valid gcode."),
         MessageDialog(this, _L("The selected file") + ":\n" + filename + "\n" + _L("does not contain valid gcode."),
             wxString(GCODEVIEWER_APP_NAME) + " - " + _L("Error while loading .gcode file"), wxCLOSE | wxICON_WARNING | wxCENTRE).ShowModal();
-        set_project_filename(wxEmptyString);
+        set_project_filename(DEFAULT_PROJECT_NAME);
     }
     else
         set_project_filename(filename);
@@ -7142,11 +7150,11 @@ void Plater::send_gcode(int plate_idx)
     }
 
     /* generate 3mf */
-    if (plate_idx >= 0) {
-        p->m_print_job_data.plate_idx = plate_idx;
+    if (plate_idx == PLATE_CURRENT_IDX) {
+        p->m_print_job_data.plate_idx = get_partplate_list().get_curr_plate_index();
     }
     else {
-        p->m_print_job_data.plate_idx = get_partplate_list().get_curr_plate_index();
+        p->m_print_job_data.plate_idx = plate_idx;
     }
 
     PartPlate* plate = get_partplate_list().get_curr_plate();

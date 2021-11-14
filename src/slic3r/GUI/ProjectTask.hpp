@@ -142,7 +142,10 @@ public:
         PROJECT_3MF = 0,
         PROJECT_GCODE = 1,
     };
-    BBLProject() {}
+    BBLProject() {
+        /* give a default project name */
+        project_name = "Untitled";
+    }
     BBLProject(std::string name, ProjectType type = PROJECT_3MF) {
         project_type = type;
         project_name = name;
@@ -165,6 +168,7 @@ public:
 
     /* deprecated apis */
     std::string build_content_json();
+    void set_name(std::string name) { project_name = name; }
 };
 
 } // namespace Slic3r

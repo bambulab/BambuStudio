@@ -64,6 +64,7 @@ namespace Slic3r {
         task_create_time = now.FormatISOCombined(' ').ToStdString();
 
         task_progress = 0;
+        task_partplate_idx = 0;
     }
 
     std::string BBLSubTask::build_content_json()

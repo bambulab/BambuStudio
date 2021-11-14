@@ -6,13 +6,14 @@
 #include <string>
 #include <memory>
 #include <boost/thread.hpp>
+#include <boost/log/trivial.hpp>
 #include "mqtt/async_client.h"
 #include "ProjectTask.hpp"
 #include "slic3r/Utils/Http.hpp"
 
 #define MY_MODEL_PUBLISH_URL_FORMAT     "https://portal-dev.bambu-lab.com/my/models/%s/publish?project_id=%s"
 #define MY_COLLECTIONS_URL              "https://portal-dev.bambu-lab.com/my/collections"
-#define MY_PROJECT_LIST_URL             "https://portal-dev.bambu-lab.com/"
+#define MY_PROJECT_LIST_URL             "https://portal-dev.bambu-lab.com/my/projects"
 #define MODEL_STORE_URL                 "https://portal-dev.bambu-lab.com/designs"
 
 namespace Slic3r {
@@ -93,8 +94,6 @@ public:
     /* send a project task to machine */
     //int send_print_task(MachineObject* obj, int project_id, int plate_idx = 0);
 
-
-    friend class boost::serialization::access;
     std::string m_account;
     std::string m_name;
     std::string m_password;
@@ -143,8 +142,9 @@ private:
     std::string json_request_poll_3mf_gather(BBLSubTask* task);
     std::string json_request_poll_3mf_gather_model_only();
 
-    /* project */
-    BBLProject* default_project;
+    /* default project and profile */
+    BBLProject* default_project;    /* current project */
+    BBLProfile* default_profile;    /* current profile */
     std::string _get_project_url();
 
     /* check valid of user or pwd */
@@ -220,6 +220,9 @@ public:
     /* project apis */
     BBLProject* get_default_project() { return default_project; }
     void set_default_project(BBLProject* project) { default_project = project; }
+    BBLProfile* get_default_profile() { return default_profile; }
+    void set_default_profile(BBLProfile* profile) { default_profile = profile; }
+
     // request a project id, project_name -> project_id, sync
     int request_project_id(BBLProject* project, ResultFn resFn = nullptr);
     // request a profile id, profile_name -> profile_id, sync
@@ -258,6 +261,9 @@ public:
     AccountInfo* user() { return m_curr_user; }
     std::string get_user_name();
     std::string get_token_str();
+
+    /* project apis */
+    void reset_project();
 
     void set_host(std::string host_url);
     void set_user_info_path(boost::filesystem::path path) { m_user_info_path = path; }

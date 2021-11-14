@@ -110,9 +110,10 @@ class SubTaskListModel : public wxDataViewVirtualListModel
 public:
     enum
     {
-        Col_SubTaskName,
-        Col_SubTaskDuration,
-        Col_SubTaskWeight,
+        Col_Name,
+        Col_Duration,
+        Col_Weight,
+		Col_PlateIdx,
         Col_Max
     };
     SubTaskListModel();
@@ -140,12 +141,15 @@ public:
     void update_profile(BBLProfile* profile);
     void add_slice_info(BBLSliceInfo* slice_info);
     void clear_data();
+	void clear();
+	void reset();
 
 private:
     BBLTask* task;
     wxArrayString m_nameColValues;
     wxArrayString m_durationColValues;
     wxArrayString m_WeightColValues;
+    wxArrayString m_PlateIdxColValues;
 };
 
 
@@ -335,6 +339,7 @@ public:
     MachineObject* obj;
     int last_wlan_device_selection;
     std::vector<std::string> mybind_machine_list_items;
+    BBLTask*    last_task;
     BBLSubTask* last_subtask;
     BBLProfile* last_profile;
 
@@ -342,6 +347,7 @@ public:
     void select_machine(std::string machine_sn);
 
     bool Show(bool show);
+    void Reset();
 };
 
 } // GUI

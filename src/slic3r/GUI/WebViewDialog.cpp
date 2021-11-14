@@ -124,7 +124,6 @@ WebFrame::WebFrame(const wxString& url) :
     m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewFSHandler("memory")));
 #endif
     m_browser->SetUserAgent(m_bbl_user_agent);
-    m_browser->Create(this, wxID_ANY, url, wxDefaultPosition, wxDefaultSize);
     topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
 
     // Log backend information
@@ -142,6 +141,8 @@ WebFrame::WebFrame(const wxString& url) :
     if (!m_browser->AddScriptMessageHandler("wx"))
         wxLogError("Could not add script message handler");
 
+    // Create url after register handler
+    m_browser->Create(this, wxID_ANY, url, wxDefaultPosition, wxDefaultSize);
     SetSizer(topsizer);
 
     //Set a more sensible size for web browsing

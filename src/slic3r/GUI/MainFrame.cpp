@@ -804,7 +804,7 @@ void MainFrame::init_tabpanel()
         }
     });
 
-    m_plater = new Plater(this, this);
+    m_plater = new Plater(this, this, wxGetApp().getAccountManager());
     m_plater->Hide();
 
     wxGetApp().plater_ = m_plater;

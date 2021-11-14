@@ -152,8 +152,11 @@ namespace Slic3r {
         :mqtt_opt(mqtt::connect_options_builder().clean_session().finalize()),
         mqtt_cli(nullptr),
         mqtt_cb(nullptr),
-        mqtt_uuid_bytes(4)
+        mqtt_uuid_bytes(4),
+        default_project(new BBLProject())
     {
+        default_profile = new BBLProfile(default_project);
+
         mqtt_opt.set_user_name(mqtt_user);
         mqtt_opt.set_password(mqtt_pwd);
         mqtt_opt.set_max_inflight(500);
@@ -161,7 +164,6 @@ namespace Slic3r {
         mqtt_opt.set_automatic_reconnect(3, 10);
 
         m_curr_user = nullptr;
-        default_project = nullptr;
 
         std::time_t t = std::time(0);
         std::tm* now_time = std::localtime(&t);
@@ -1993,6 +1995,11 @@ namespace Slic3r {
             return (boost::format("Bearer %1%") % m_curr_user->m_token).str();
         }
         return "";
+    }
+
+    void AccountManager::reset_project()
+    {
+        ;
     }
 
     std::string AccountManager::get_user_name()
