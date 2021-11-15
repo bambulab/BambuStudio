@@ -13,12 +13,19 @@
 #include "GUI_App.hpp"
 #include "Plater.hpp"
 
+#include "Widgets/Label.hpp"
+#include "Widgets/SwitchButton.hpp"
+#include "Widgets/Button.hpp"
+#include "MarkdownTip.hpp"
+
 namespace Slic3r {
 namespace GUI {
 
 ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name )
     : wxPanel( parent, id, pos, size, style, name )
 {
+    // BBS: new layout
+    SetBackgroundColour("white");
 #ifdef __WXOSX__
     m_top_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_top_sizer->SetSizeHints(this);
@@ -26,7 +33,8 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
 
     // Create additional panel to Fit() it from OnActivate()
     // It's needed for tooltip showing on OSX
-    m_tmp_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
+    // BBS: new layout
+    m_tmp_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, {238, -1}, wxBK_LEFT | wxTAB_TRAVERSAL);
     auto panel = m_tmp_panel;
     auto  sizer = new wxBoxSizer(wxHORIZONTAL);
     m_tmp_panel->SetSizer(sizer);
@@ -40,28 +48,35 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
     panel->SetSizer(m_top_sizer);
 #endif //__WXOSX__
 
-    m_mode_text = new wxStaticText( this, wxID_ANY, wxT("Advanced Mode"), wxDefaultPosition, wxDefaultSize, 0 );
+    // BBS: new layout
+    m_mode_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, { -1, 36 });
+    m_mode_panel->SetBackgroundColour("#E9E9E9");
+    m_mode_text = new Label(wxT("Advanced Mode"), m_mode_panel);
+    m_mode_text->SetFont(Label::Head_12);
     m_mode_text->Wrap( -1 );
 
     //int width, height;
-    m_mode_status = new wxBitmapToggleButton( this, wxID_ANY, wxNullBitmap, wxDefaultPosition,  wxSize(4 * em_unit(this), -1), wxBORDER_NONE );
-    m_toggle_on_icon = create_scaled_bitmap("toggle_on");
-    m_toggle_off_icon = create_scaled_bitmap("toggle_off");
-    m_mode_status->SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
+    // BBS: new layout
+    m_mode_status = new SwitchButton(m_mode_panel);
     update_mode();
     //m_mode_status->GetSize(&width, &height);
 
-    m_search_btn = new ScalableButton(this, wxID_ANY, "search", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+    // BBS: new layout
+    m_search_btn = new ScalableButton(m_mode_panel, wxID_ANY, "search", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+    m_search_btn->SetBackgroundColour("#E9E9E9");
     m_search_btn->SetToolTip(format_wxstr(_L("Search in settings [%1%]"), "Ctrl+F"));
     m_search_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().plater()->search(false); });
     //m_search_button = new wxBitmapButton( this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|0 );
 
     m_staticline_filament = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
     m_staticline_print = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    m_staticline_printer = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+    m_staticline_printer = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+    // BBS: new layout
+    m_staticline_buttons = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+    m_staticline_middle = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL);
 
-    m_export_to_file = new wxButton( this, wxID_ANY, wxT("Export To File"), wxDefaultPosition, wxDefaultSize, 0 );
-    m_import_from_file = new wxButton( this, wxID_ANY, wxT("Import From File"), wxDefaultPosition, wxDefaultSize, 0 );
+    m_export_to_file = new Button( this, wxT("Export To File"), "");
+    m_import_from_file = new Button( this, wxT("Import From File") );
 
     // Initialize the page.
 #ifdef __WXOSX__
@@ -70,9 +85,17 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
     auto page_parent = this;
 #endif
 
-    m_page_view = new wxScrolledWindow( page_parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxVSCROLL );
+    m_page_view = new wxScrolledWindow( page_parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
+    // BBS: center content view and add marktip at right side
+    m_page_view->SetBackgroundColour("##FAFAFA");
+    wxBoxSizer * page_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_page_sizer = new wxBoxSizer(wxVERTICAL);
-    m_page_view->SetSizer(m_page_sizer);
+    page_sizer->AddStretchSpacer(1.0);
+    page_sizer->Add(m_page_sizer, 0, wxEXPAND);
+    page_sizer->AddStretchSpacer(1.0);
+    page_sizer->Add(MarkdownTip::AttachTo(m_page_view), 0, wxEXPAND);
+
+    m_page_view->SetSizer(page_sizer);
     m_page_view->SetScrollbars(1, 20, 1, 2);
     //m_page_view->SetScrollRate( 5, 5 );
 
@@ -89,33 +112,38 @@ void ParamsPanel::create_layout()
 #endif //__WINDOWS__
 
     m_left_sizer = new wxBoxSizer( wxVERTICAL );
-    m_left_sizer->SetMinSize( wxSize( 300,-1 ) );
+    // BBS: new layout
+    // m_left_sizer->SetMinSize( wxSize( 200, -1 ) );
 
     m_mode_sizer = new wxBoxSizer( wxHORIZONTAL );
-    m_mode_sizer->Add( m_mode_text, 0, wxALIGN_CENTER|wxALL, 5 );
-    m_mode_sizer->Add( m_mode_status, 0, wxALIGN_CENTER|wxALL, 5 );
-    m_mode_sizer->Add( 0, 0, 1, wxEXPAND, 5 );
-    m_mode_sizer->Add( m_search_btn, 0, wxALIGN_RIGHT|wxALL, 5 );
-    m_left_sizer->Add( m_mode_sizer, 0, wxEXPAND, 5 );
+    m_mode_sizer->AddSpacer(22);
+    m_mode_sizer->Add( m_mode_text, 0, wxALIGN_CENTER );
+    m_mode_sizer->AddSpacer(9);
+    m_mode_sizer->Add( m_mode_status, 0, wxALIGN_CENTER );
+    m_mode_sizer->AddStretchSpacer(1);
+    m_mode_sizer->Add( m_search_btn, 0, wxALIGN_CENTER );
+    m_mode_sizer->AddSpacer(16);
+    m_mode_panel->SetSizer(m_mode_sizer);
+    m_left_sizer->Add( m_mode_panel, 0, wxEXPAND );
 
-    m_left_sizer->Add( m_staticline_print, 0, wxEXPAND | wxALL, 5 );
+    m_left_sizer->Add( m_staticline_print, 0, wxEXPAND );
     //m_print_sizer = new wxBoxSizer( wxHORIZONTAL );
     //m_print_sizer->Add( m_tab_print, 1, wxEXPAND | wxALL, 5 );
     //m_left_sizer->Add( m_print_sizer, 1, wxEXPAND, 5 );
-    m_left_sizer->Add( m_tab_print, 1, wxEXPAND | wxALL, 5 );
+    m_left_sizer->Add( m_tab_print, 0, wxEXPAND );
 
-    m_left_sizer->Add( m_staticline_filament, 0, wxEXPAND | wxALL, 5 );
+    m_left_sizer->Add( m_staticline_filament, 0, wxEXPAND );
     //m_filament_sizer = new wxBoxSizer( wxVERTICAL );
     //m_filament_sizer->Add( m_tab_filament, 1, wxEXPAND | wxALL, 5 );
    // m_left_sizer->Add( m_filament_sizer, 1, wxEXPAND, 5 );
-    m_left_sizer->Add( m_tab_filament, 1, wxEXPAND | wxALL, 5 );
+    m_left_sizer->Add( m_tab_filament, 0, wxEXPAND );
 
-    m_left_sizer->Add( m_staticline_printer, 0, wxEXPAND | wxALL, 5 );
+    m_left_sizer->Add( m_staticline_printer, 0, wxEXPAND );
     //m_printer_sizer = new wxBoxSizer( wxVERTICAL );
     //m_printer_sizer->Add( m_tab_printer, 1, wxEXPAND | wxALL, 5 );
-    m_left_sizer->Add( m_tab_printer, 1, wxEXPAND | wxALL, 5 );
+    m_left_sizer->Add( m_tab_printer, 0, wxEXPAND );
 
-    //m_left_sizer->Add( m_printer_sizer, 1, wxEXPAND, 5 );
+    //m_left_sizer->Add( m_printer_sizer, 1, wxEXPAND, 1 );
 
     m_button_sizer = new wxBoxSizer( wxHORIZONTAL );
 
@@ -123,16 +151,18 @@ void ParamsPanel::create_layout()
 
     m_button_sizer->Add( m_import_from_file, 0, wxALL, 5 );
 
+    m_left_sizer->Add( m_staticline_buttons, 0, wxEXPAND );
     m_left_sizer->Add( m_button_sizer, 0, wxALIGN_CENTER, 5 );
 
-    m_top_sizer->Add( m_left_sizer, 0, wxEXPAND, 5 );
+    m_top_sizer->Add(m_left_sizer, 0, wxEXPAND);
+    m_top_sizer->Add(m_staticline_middle, 0, wxEXPAND, 0);
 
     //m_right_sizer = new wxBoxSizer( wxVERTICAL );
 
     //m_right_sizer->Add( m_page_view, 1, wxEXPAND | wxALL, 5 );
 
     //m_top_sizer->Add( m_right_sizer, 1, wxEXPAND, 5 );
-    m_top_sizer->Add( m_page_view, 1, wxEXPAND, 5 );
+    m_top_sizer->Add( m_page_view, 1, wxEXPAND );
 
     //this->SetSizer( m_top_sizer );
     this->Layout();
@@ -187,7 +217,9 @@ void ParamsPanel::OnActivate()
     {
         //the first time
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": first time opened, set current tab to print");
-        m_current_tab = m_tab_print;
+        // BBS: open/close tab
+        //m_current_tab = m_tab_print;
+        set_active_tab(m_tab_print);
     }
     Tab* cur_tab = dynamic_cast<Tab *> (m_current_tab);
     if (cur_tab)
@@ -222,6 +254,13 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
 
     m_current_tab = tab;
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": set current to %1%, type=%2%") % cur_tab % cur_tab?cur_tab->type():-1;
+
+    // BBS: open/close tab
+    for (auto t : { m_tab_print , m_tab_filament, m_tab_printer }) {
+        dynamic_cast<Tab*> (t)->set_expanded(tab == t);
+        m_left_sizer->GetItem(t)->SetProportion(tab == t ? 1 : 0);
+    }
+    m_left_sizer->Layout();
 }
 
 bool ParamsPanel::is_active_and_shown_tab(wxPanel* tab)
@@ -239,12 +278,10 @@ void ParamsPanel::update_mode()
     if (app_mode == comExpert)
     {
         m_mode_status->SetValue(true);
-        m_mode_status->SetBitmap(m_toggle_on_icon);
     }
     else
     {
         m_mode_status->SetValue(false);
-        m_mode_status->SetBitmap(m_toggle_off_icon);
     }
 }
 
@@ -303,6 +340,19 @@ void ParamsPanel::delete_subwindows()
         m_staticline_printer = nullptr;
     }
 
+    // BBS: new layout
+    if (m_staticline_buttons)
+    {
+        delete m_staticline_buttons;
+        m_staticline_buttons = nullptr;
+    }
+
+    if (m_staticline_middle)
+    {
+        delete m_staticline_middle;
+        m_staticline_middle = nullptr;
+    }
+
     if (m_export_to_file)
     {
         delete m_export_to_file;
@@ -330,6 +380,12 @@ ParamsPanel::~ParamsPanel()
 
     delete_subwindows();
 #endif
+    // BBS: fix double destruct of OG_CustomCtrl
+    Tab* cur_tab = dynamic_cast<Tab*> (m_current_tab);
+    if (cur_tab)
+        cur_tab->clear_pages();
+
+    MarkdownTip::AttachTo(NULL);
 }
 
 } // GUI

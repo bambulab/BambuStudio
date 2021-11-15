@@ -19,6 +19,9 @@
 
 namespace Slic3r { namespace GUI {
 
+	// BBS: new layout
+	constexpr int titleWidth = 233;
+
 const t_field& OptionsGroup::build_field(const Option& opt) {
     return build_field(opt.opt_id, opt.opt);
 }
@@ -113,13 +116,15 @@ OptionsGroup::OptionsGroup(	wxWindow* _parent, const wxString& title,
                             column_t extra_clmn /* = nullptr */) :
                 m_parent(_parent), title(title),
                 m_use_custom_ctrl(is_tab_opt),
-                staticbox(title!=""), extra_column(extra_clmn)
+				// BBS: new layout
+				staticbox(false), extra_column(extra_clmn)
 {
 }
 
 wxWindow* OptionsGroup::ctrl_parent() const
 {
-	return this->custom_ctrl && m_use_custom_ctrl_as_parent ? static_cast<wxWindow*>(this->custom_ctrl) : (this->stb ? static_cast<wxWindow*>(this->stb) : this->parent());
+	// BBS: new layout
+	return this->custom_ctrl && m_use_custom_ctrl_as_parent ? static_cast<wxWindow*>(this->custom_ctrl) : (staticbox ? static_cast<wxWindow*>(this->stb) : this->parent());
 }
 
 bool OptionsGroup::is_legend_line()
@@ -177,6 +182,11 @@ void OptionsGroup::show_field(const t_config_option_key& opt_key, bool show/* = 
     }
 }
 
+void OptionsGroup::set_name(const wxString& new_name)
+{
+	stb->SetLabel(new_name);
+}
+
 void OptionsGroup::append_line(const Line& line)
 {
 	m_lines.emplace_back(line);
@@ -212,18 +222,18 @@ void OptionsGroup::activate_line(Line& line)
 		line.widget != nullptr ||
 		!line.get_extra_widgets().empty())
 		) {
+		// BBS: new layout
+		const auto h_sizer = new wxBoxSizer(wxHORIZONTAL);
+		sizer->Add(h_sizer, 1, wxEXPAND | wxALL, wxOSX ? 0 : 15);
         if (line.widget != nullptr) {
 			// description lines
-            sizer->Add(line.widget(this->ctrl_parent()), 0, wxEXPAND | wxALL, wxOSX ? 0 : 15);
+			h_sizer->Add(line.widget(this->ctrl_parent()), 0, wxEXPAND | wxLEFT, titleWidth);
             return;
         }
 		if (!line.get_extra_widgets().empty()) {
-			const auto h_sizer = new wxBoxSizer(wxHORIZONTAL);
-			sizer->Add(h_sizer, 1, wxEXPAND | wxALL, wxOSX ? 0 : 15);
-
             bool is_first_item = true;
 			for (auto extra_widget : line.get_extra_widgets()) {
-				h_sizer->Add(extra_widget(this->ctrl_parent()), is_first_item ? 1 : 0, wxLEFT, 15);
+				h_sizer->Add(extra_widget(this->ctrl_parent()), is_first_item ? 1 : 0, wxLEFT, titleWidth);
 				is_first_item = false;
 			}
 			return;
@@ -235,6 +245,8 @@ void OptionsGroup::activate_line(Line& line)
 
     if (!custom_ctrl && m_use_custom_ctrl) {
         custom_ctrl = new OG_CustomCtrl(is_legend_line || !staticbox ? this->parent() : static_cast<wxWindow*>(this->stb), this);
+		// BBS: new layout
+		custom_ctrl->SetLabel(_(title));
 		if (is_legend_line)
 			sizer->Add(custom_ctrl, 0, wxEXPAND | wxLEFT, wxOSX ? 0 : 10);
 		else
@@ -255,10 +267,13 @@ void OptionsGroup::activate_line(Line& line)
 		const auto& option = option_set.front();
 		const auto& field = build_field(option);
 
+		// BBS: new layout
+		const auto h_sizer = new wxBoxSizer(wxHORIZONTAL);
+		sizer->Add(h_sizer, 1, wxEXPAND | wxALL, wxOSX ? 0 : 5);
 		if (is_window_field(field))
-			sizer->Add(field->getWindow(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
+			h_sizer->Add(field->getWindow(), 1, wxEXPAND | wxLEFT, titleWidth);
 		if (is_sizer_field(field))
-			sizer->Add(field->getSizer(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
+			h_sizer->Add(field->getSizer(), 1, wxEXPAND | wxLEFT, titleWidth);
 		return;
 	}
 
@@ -421,14 +436,22 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled/* = [](){}*/
 
 	try {
 		if (staticbox) {
-			stb = new wxStaticBox(m_parent, wxID_ANY, _(title));
+			wxStaticBox * stb = new wxStaticBox(m_parent, wxID_ANY, _(title));
 			if (!wxOSX) stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
 			stb->SetFont(wxOSX ? wxGetApp().normal_font() : wxGetApp().bold_font());
 			wxGetApp().UpdateDarkUI(stb);
+			// BBS: new layout
+			sizer = new wxStaticBoxSizer(stb, wxVERTICAL);
+			this->stb = stb;
 		}
-		else
-			stb = nullptr;
-		sizer = (staticbox ? new wxStaticBoxSizer(stb, wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
+		else {
+			// BBS: new layout
+			wxStaticLine* stl = new wxStaticLine(m_parent);
+			sizer = new wxBoxSizer(wxVERTICAL);
+			sizer->Add(stl, 0, wxEXPAND);
+			sizer->AddSpacer(16);
+			this->stb = stl;
+		}
 
 		auto num_columns = 1U;
 		size_t grow_col = 1;

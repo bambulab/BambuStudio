@@ -52,7 +52,9 @@ class ParamsPanel : public wxPanel
         wxBoxSizer* m_top_sizer { nullptr };
         wxBoxSizer* m_left_sizer { nullptr };
         wxBoxSizer* m_mode_sizer { nullptr };
-        wxStaticText* m_mode_text { nullptr };
+        // // BBS: new layout
+        wxPanel* m_mode_panel{ nullptr };
+        wxStaticText* m_mode_text{ nullptr };
         wxBitmapToggleButton* m_mode_status { nullptr };
         //wxBitmapButton* m_search_button { nullptr };
         wxStaticLine* m_staticline_print { nullptr };
@@ -64,9 +66,12 @@ class ParamsPanel : public wxPanel
         wxStaticLine* m_staticline_printer { nullptr };
         wxBoxSizer* m_printer_sizer { nullptr };
         wxPanel* m_tab_printer { nullptr };
+        wxStaticLine* m_staticline_buttons { nullptr };
+        // BBS: new layout
         wxBoxSizer* m_button_sizer { nullptr };
-        wxButton* m_export_to_file { nullptr };
-        wxButton* m_import_from_file { nullptr };
+        wxWindow* m_export_to_file { nullptr };
+        wxWindow* m_import_from_file { nullptr };
+        wxStaticLine* m_staticline_middle{ nullptr };
         wxBoxSizer* m_right_sizer { nullptr };
         wxScrolledWindow* m_page_view { nullptr };
         wxBoxSizer* m_page_sizer { nullptr };

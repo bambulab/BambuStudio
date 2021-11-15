@@ -76,6 +76,7 @@
 
 #include "BitmapCache.hpp"
 #include "Notebook.hpp"
+#include "Widgets/Label.hpp"
 
 #ifdef __WXMSW__
 #include <dbt.h>
@@ -1404,8 +1405,8 @@ const wxColour GUI_App::get_label_default_clr_modified()
 
 void GUI_App::init_label_colours()
 {
-    m_color_label_modified          = get_label_default_clr_modified();
-    m_color_label_sys               = get_label_default_clr_system();
+    m_color_label_modified          = wxColour("#F1754E");
+    m_color_label_sys               = wxColour("#2B3436");
 
     bool is_dark_mode = dark_mode();
 #ifdef _WIN32
@@ -1535,9 +1536,10 @@ void GUI_App::UpdateAllStaticTextDarkUI(wxWindow* parent)
 
 void GUI_App::init_fonts()
 {
-    m_small_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-    m_bold_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold();
-    m_normal_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+    // BBS: modify font
+    m_small_font = Label::Body_10;
+    m_bold_font = Label::Body_10.Bold();
+    m_normal_font = Label::Body_10;
 
 #ifdef __WXMAC__
     m_small_font.SetPointSize(11);

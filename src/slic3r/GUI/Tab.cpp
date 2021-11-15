@@ -44,6 +44,8 @@
 #include "MsgDialog.hpp"
 #include "Notebook.hpp"
 
+#include "Widgets/Label.hpp"
+
 #ifdef WIN32
 	#include <commctrl.h>
 #endif // WIN32
@@ -205,9 +207,17 @@ void Tab::create_preset_tab()
     m_scaled_buttons.reserve(6);
     m_scaled_bitmaps.reserve(4);
 
-    add_scaled_button(panel, &m_btn_compare_preset, "compare");
-    add_scaled_button(panel, &m_btn_save_preset, "save");
-    add_scaled_button(panel, &m_btn_delete_preset, "cross");
+    m_top_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, { -1, 36 });
+    // BBS: open this tab by select first
+    m_top_panel->SetBackgroundColour("#E9E9E9");
+    m_top_panel->Bind(wxEVT_LEFT_UP, [this](auto & e) {
+        // m_parent->set_active_tab(this);
+        m_treectrl->SelectItem(m_treectrl->GetFirstVisibleItem());
+    });
+
+    // add_scaled_button(panel, &m_btn_compare_preset, "compare");
+    add_scaled_button(m_top_panel, &m_btn_save_preset, "save");
+    add_scaled_button(m_top_panel, &m_btn_delete_preset, "cross");
     //if (m_type == Preset::Type::TYPE_PRINTER)
     //    add_scaled_button(panel, &m_btn_edit_ph_printer, "cog");
 
@@ -241,8 +251,8 @@ void Tab::create_preset_tab()
     fill_icon_descriptions();
     set_tooltips_text();
 
-    add_scaled_button(panel, &m_undo_btn,        m_bmp_white_bullet.name());
-    add_scaled_button(panel, &m_undo_to_sys_btn, m_bmp_white_bullet.name());
+    add_scaled_button(m_top_panel, &m_undo_btn,        m_bmp_white_bullet.name());
+    add_scaled_button(m_top_panel, &m_undo_to_sys_btn, m_bmp_white_bullet.name());
 
     m_undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_roll_back_value(); }));
     m_undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_roll_back_value(true); }));
@@ -258,33 +268,38 @@ void Tab::create_preset_tab()
     m_modified_label_clr	= wxGetApp().get_label_clr_modified();
     m_default_text_clr		= wxGetApp().get_label_clr_default();
 
-    m_main_sizer = new wxBoxSizer(wxVERTICAL);
-    m_top_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_top_left_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_main_sizer = new wxBoxSizer( wxVERTICAL );
+    m_top_sizer = new wxBoxSizer( wxHORIZONTAL );
+    m_top_sizer->AddSpacer(22);
 
-    m_static_title = new wxStaticText(this, wxID_ANY, m_title, wxDefaultPosition, wxDefaultSize, 0);
-    m_static_title->Wrap(-1);
-    m_top_left_sizer->Add(m_static_title, 0, wxALL, 5);
-    m_top_sizer->Add(m_top_left_sizer, 0, wxEXPAND, 5);
+    m_static_title = new Label(Label::Head_12, m_title, m_top_panel);
+    m_static_title->Wrap( -1 );
+    // BBS: open this tab by select first
+    m_static_title->Bind(wxEVT_LEFT_UP, [this](auto& e) {
+        // m_parent->set_active_tab(this);
+        m_treectrl->SelectItem(m_treectrl->GetFirstVisibleItem());
+        });
+    m_top_sizer->Add( m_static_title, 0, wxALIGN_CENTER_VERTICAL);
 
-    m_top_right_sizer = new wxGridSizer(1, 0, 0, 0);
-
-    const float scale_factor = /*wxGetApp().*/em_unit(this) * 0.1;// GetContentScaleFactor();
-    m_top_right_sizer->Add(m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-    m_top_right_sizer->Add(m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
-    m_top_right_sizer->Add(m_undo_btn, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    m_top_sizer->AddStretchSpacer(1);
+    
+    const float scale_factor = /*wxGetApp().*/em_unit(this)*0.1;// GetContentScaleFactor();
+    m_top_sizer->Add( m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL );
+    m_top_sizer->AddSpacer(8);
+    m_top_sizer->Add( m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
+    m_top_sizer->AddSpacer(8);
+    m_top_sizer->Add( m_undo_btn, 0, wxALIGN_CENTER_VERTICAL);
+    m_top_sizer->AddSpacer(8);
     //m_top_right_sizer->AddSpacer(int(4*scale_factor));
-    m_top_right_sizer->Add(m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+    m_top_sizer->Add( m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL);
     //m_top_right_sizer->AddSpacer(int(4*scale_factor));
 
-    m_top_sizer->Add(m_top_right_sizer, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND, 5);
+    m_top_sizer->AddSpacer(16);
 
-    m_main_sizer->Add(m_top_sizer, 0, wxEXPAND, 5);
+    m_top_panel->SetSizer(m_top_sizer);
+    m_main_sizer->Add(m_top_panel, 0, wxEXPAND, 0 );
 
-    m_select_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_select_sizer->Add(m_presets_choice, 0, wxALL, 5);
-
-    m_main_sizer->Add(m_select_sizer, 0, wxEXPAND, 5);
+    m_main_sizer->Add(m_presets_choice, 0, wxEXPAND | wxALL, 10 );
 
 #if 0
 #ifdef _MSW_DARK_MODE
@@ -338,9 +353,10 @@ void Tab::create_preset_tab()
 #endif
     // tree
     m_treectrl = new wxTreeCtrl(panel, wxID_ANY, wxDefaultPosition, wxSize(20 * m_em_unit, -1),
-        wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_SUNKEN | wxWANTS_CHARS);
+        wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_NONE | wxWANTS_CHARS | wxTR_FULL_ROW_HIGHLIGHT);
+    m_treectrl->SetFont(Label::Body_10);
     //m_left_sizer->Add(m_treectrl, 1, wxEXPAND);
-    const int img_sz = int(16 * scale_factor + 0.5f);
+    const int img_sz = int(32 * scale_factor + 0.5f);
     m_icons = new wxImageList(img_sz, img_sz, true, 1);
     // Index of the last icon inserted into $self->{icons}.
     m_icon_count = -1;
@@ -352,6 +368,18 @@ void Tab::create_preset_tab()
     // Delay processing of the following handler until the message queue is flushed.
     // This helps to process all the cursor key events on Windows in the tree control,
     // so that the cursor jumps to the last item.
+    // BBS: bold selection
+    m_treectrl->Bind(wxEVT_TREE_SEL_CHANGING, [this](wxTreeEvent& event) {
+        if (m_disable_tree_sel_changed_event)
+            return;
+        const auto sel_item = m_treectrl->GetSelection();
+        //OutputDebugStringA("wxEVT_TREE_SEL_CHANGING ");
+        //OutputDebugStringA(m_title.c_str());
+        m_treectrl->SetItemBold(sel_item, false);
+        //const auto selection = sel_item ? m_treectrl->GetItemText(sel_item) : "";
+        //OutputDebugString(selection);
+        //OutputDebugStringA("\n");
+        });
     m_treectrl->Bind(wxEVT_TREE_SEL_CHANGED, [this](wxTreeEvent& event) {
 #ifdef __linux__
         // Events queue is opposite On Linux. wxEVT_SET_FOCUS invokes after wxEVT_TREE_SEL_CHANGED,
@@ -376,9 +404,7 @@ void Tab::create_preset_tab()
 
     m_treectrl->Bind(wxEVT_KEY_DOWN, &Tab::OnKeyDown, this);
 
-    m_tree_sizer = new wxBoxSizer(wxVERTICAL);
-    m_tree_sizer->Add(m_treectrl, 1, wxALL | wxEXPAND, 5);
-    m_main_sizer->Add(m_tree_sizer, 1, wxEXPAND, 5);
+    m_main_sizer->Add(m_treectrl, 1, wxEXPAND | wxALL, 10 );
 
     this->SetSizer(m_main_sizer);
     //this->Layout();
@@ -431,6 +457,7 @@ void Tab::add_scaled_button(wxWindow* parent,
                             long style /*= wxBU_EXACTFIT | wxNO_BORDER*/)
 {
     *btn = new ScalableButton(parent, wxID_ANY, icon_name, label, wxDefaultSize, wxDefaultPosition, style, true);
+    (*btn)->SetBackgroundColour("#E9E9E9");
     m_scaled_buttons.push_back(*btn);
 }
 
@@ -459,7 +486,7 @@ Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::str
         icon_idx = (m_icon_index.find(icon) == m_icon_index.end()) ? -1 : m_icon_index.at(icon);
         if (icon_idx == -1) {
             // Add a new icon to the icon list.
-            m_scaled_icons_list.push_back(ScalableBitmap(this, icon));
+            m_scaled_icons_list.push_back(ScalableBitmap(this, icon, 32, false, true));
             m_icons->Add(m_scaled_icons_list.back().bmp());
             icon_idx = ++m_icon_count;
             m_icon_index[icon] = icon_idx;
@@ -533,6 +560,10 @@ void Tab::OnActivate()
 	    }
     }
 #endif
+
+    // BBS: select on first active
+    if (!m_treectrl->GetSelection())
+        m_treectrl->SelectItem(m_treectrl->GetFirstVisibleItem());
 
     //BBS: GUI refactor
     m_page_view->Freeze();
@@ -3324,7 +3355,8 @@ void Tab::rebuild_page_tree()
         if (translate_category(p->title(), m_type) == selected)
             item = itemId;
     }
-    if (!item) {
+    // BBS: not select on hide tab
+    if (!item && m_parent->is_active_and_shown_tab(this)) {
         // this is triggered on first load, so we don't disable the sel change event
         item = m_treectrl->GetFirstVisibleItem();
     }
@@ -3621,7 +3653,29 @@ void Tab::clear_pages()
 //BBS: GUI refactor: unselect current item
 void Tab::unselect_tree_item()
 {
+    // BBS: bold selection
+    const auto sel_item = m_treectrl->GetSelection();
+    //OutputDebugStringA("unselect_tree_item ");
+    //OutputDebugStringA(m_title.c_str());
+    //const auto selection = sel_item ? m_treectrl->GetItemText(sel_item) : "";
+    //OutputDebugString(selection);
+    //OutputDebugStringA("\n");
+    m_treectrl->SetItemBold(sel_item, false);
     m_treectrl->Unselect();
+}
+
+// BBS: open/close this tab
+void Tab::set_expanded(bool value)
+{
+    if (value) {
+        m_main_sizer->Show(m_presets_choice);
+        m_main_sizer->Show(m_treectrl);
+    }
+    else {
+        m_active_page = NULL;
+        m_main_sizer->Hide(m_presets_choice);
+        m_main_sizer->Hide(m_treectrl);
+    }
 }
 
 void Tab::update_description_lines()
@@ -3707,7 +3761,13 @@ bool Tab::tree_sel_change_delayed(wxTreeEvent& event)
     //BBS: GUI refactor
     Page* page = nullptr;
     const auto sel_item = m_treectrl->GetSelection();
+    // BBS: bold selection
+    //OutputDebugStringA("tree_sel_change_delayed ");
+    //OutputDebugStringA(m_title.c_str());
+    m_treectrl->SetItemBold(sel_item, true);
     const auto selection = sel_item ? m_treectrl->GetItemText(sel_item) : "";
+    //OutputDebugString(selection);
+    //OutputDebugStringA("\n");
     for (auto p : m_pages)
         if (translate_category(p->title(), m_type) == selection)
         {
@@ -4293,7 +4353,8 @@ Page::Page(wxWindow* parent, const wxString& title, int iconID, wxPanel* tab_own
         m_title(title),
         m_iconID(iconID)
 {
-    m_vsizer = (wxBoxSizer*)parent->GetSizer();
+    m_vsizer = (wxBoxSizer*)parent->GetSizer()->GetItem(1)->GetSizer();
+    m_page_title = NULL;
     m_item_color = &wxGetApp().get_label_clr_default();
 }
 
@@ -4318,6 +4379,12 @@ void Page::update_visibility(ConfigOptionMode mode, bool update_contolls_visibil
 
 void Page::activate(ConfigOptionMode mode, std::function<void()> throw_if_canceled)
 {
+    if (m_page_title == NULL) {
+        m_page_title = new Label(Label::Head_18, _(m_title), m_parent);
+        m_vsizer->AddSpacer(30);
+        m_vsizer->Add(m_page_title, 0, wxALIGN_CENTER);
+        m_vsizer->AddSpacer(20);
+    }
     for (auto group : m_optgroups) {
         if (!group->activate(throw_if_canceled))
             continue;
@@ -4332,6 +4399,7 @@ void Page::clear()
 {
     for (auto group : m_optgroups)
         group->clear();
+    m_page_title = NULL;
 }
 
 void Page::msw_rescale()

@@ -53,10 +53,13 @@ int     mode_icon_px_size();
 
 wxBitmap create_menu_bitmap(const std::string& bmp_name);
 
+// BBS: support resize by fill border
 wxBitmap create_scaled_bitmap(const std::string& bmp_name, wxWindow *win = nullptr, 
     const int px_cnt = 16, const bool grayscale = false,
     const std::string& new_color = std::string(), // color witch will used instead of orange
-    const bool menu_bitmap = false);
+    const bool menu_bitmap = false, const bool resize = false);
+wxBitmap create_scaled_bitmap(const std::string& bmp_name, wxWindow *win = nullptr, 
+    const int px_cnt = 16, const bool grayscale = false, const bool resize = false);
 
 std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon = false);
 
@@ -143,7 +146,8 @@ public:
     ScalableBitmap( wxWindow *parent,
                     const std::string& icon_name = "",
                     const int px_cnt = 16, 
-                    const bool grayscale = false);
+                    const bool grayscale = false,
+                    const bool resize = false); // BBS: support resize by fill border
 
     ~ScalableBitmap() {}
 

@@ -4,6 +4,7 @@
 
 #include "GUI_App.hpp"
 #include "wxExtensions.hpp"
+#include "Widgets/Button.hpp"
 
 #include <wx/button.h>
 #include <wx/sizer.h>
@@ -16,9 +17,12 @@ ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, wxBoxSizer* side_tools) :
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
+    wxColour default_btn_bg("#3B4446"); // Gradient #414B4E
+    SetBackgroundColour(default_btn_bg);
 
     int em = em_unit(this);// Slic3r::GUI::wxGetApp().em_unit();
-    m_btn_margin  = std::lround(0.3 * em);
+    // BBS: no gap
+    m_btn_margin = 0; // std::lround(0.3 * em);
     m_line_margin = std::lround(0.1 * em);
 
     m_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -39,8 +43,9 @@ ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, wxBoxSizer* side_tools) :
         m_sizer->Add(side_tools, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxBOTTOM, m_btn_margin);
     }
 
-
-    this->Bind(wxEVT_PAINT, &ButtonsListCtrl::OnPaint, this);
+=======
+    // BBS: disable custom paint
+    //this->Bind(wxEVT_PAINT, &ButtonsListCtrl::OnPaint, this);
 }
 
 void ButtonsListCtrl::OnPaint(wxPaintEvent&)
@@ -52,14 +57,14 @@ void ButtonsListCtrl::OnPaint(wxPaintEvent&)
     if (m_selection < 0 || m_selection >= (int)m_pageButtons.size())
         return;
 
-    const wxColour& selected_btn_bg  = Slic3r::GUI::wxGetApp().get_color_selected_btn_bg();
-    const wxColour& default_btn_bg   = Slic3r::GUI::wxGetApp().get_highlight_default_clr();
+    wxColour selected_btn_bg("#1F8EEA");
+    wxColour default_btn_bg("#3B4446"); // Gradient #414B4E
     const wxColour& btn_marker_color = Slic3r::GUI::wxGetApp().get_color_hovered_btn_label();
 
     // highlight selected notebook button
 
     for (int idx = 0; idx < int(m_pageButtons.size()); idx++) {
-        wxButton* btn = m_pageButtons[idx];
+        Button* btn = m_pageButtons[idx];
 
         btn->SetBackgroundColour(idx == m_selection ? selected_btn_bg : default_btn_bg);
 
@@ -103,14 +108,15 @@ void ButtonsListCtrl::UpdateMode()
 void ButtonsListCtrl::Rescale()
 {
     m_mode_sizer->msw_rescale();
-    for (ScalableButton* btn : m_pageButtons)
-        btn->msw_rescale();
+    for (Button* btn : m_pageButtons)
+        btn->SetMinSize({ 120, 36 });
 
-    int em = em_unit(this);
-    m_btn_margin = std::lround(0.3 * em);
-    m_line_margin = std::lround(0.1 * em);
-    m_buttons_sizer->SetVGap(m_btn_margin);
-    m_buttons_sizer->SetHGap(m_btn_margin);
+    // BBS: no gap
+    //int em = em_unit(this);
+    //m_btn_margin = std::lround(0.3 * em);
+    //m_line_margin = std::lround(0.1 * em);
+    //m_buttons_sizer->SetVGap(m_btn_margin);
+    //m_buttons_sizer->SetHGap(m_btn_margin);
 
     m_sizer->Layout();
 }
@@ -119,20 +125,32 @@ void ButtonsListCtrl::SetSelection(int sel)
 {
     if (m_selection == sel)
         return;
+    // BBS: change button color
+    wxColour selected_btn_bg("#1F8EEA");
+    wxColour default_btn_bg("#3B4446"); // Gradient #414B4E
+    if (m_selection >= 0)
+        m_pageButtons[m_selection]->SetBackgroundColour(default_btn_bg);
     m_selection = sel;
+    m_pageButtons[m_selection]->SetBackgroundColour(selected_btn_bg);
     Refresh();
 }
 
 bool ButtonsListCtrl::InsertPage(size_t n, const wxString& text, bool bSelect/* = false*/, const std::string& bmp_name/* = ""*/)
 {
-    ScalableButton* btn = new ScalableButton(this, wxID_ANY, bmp_name, text, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER | (bmp_name.empty() ? 0 : wxBU_LEFT));
+    // BBS: use Button
+    wxColour default_btn_bg("#3B4446"); // Gradient #414B4E
+    Button* btn = new Button(this, " " + text, bmp_name, wxNO_BORDER);
+    btn->SetCornerRadius(0);
+    btn->SetMinSize({ 120, 36 });
+    btn->SetBackgroundColour(default_btn_bg);
+    btn->SetForegroundColour(*wxWHITE);
     btn->Bind(wxEVT_BUTTON, [this, btn](wxCommandEvent& event) {
         if (auto it = std::find(m_pageButtons.begin(), m_pageButtons.end(), btn); it != m_pageButtons.end()) {
-            m_selection = it - m_pageButtons.begin();
+            auto sel = it - m_pageButtons.begin();
+            SetSelection(sel);
             wxCommandEvent evt = wxCommandEvent(wxCUSTOMEVT_NOTEBOOK_SEL_CHANGED);
-            evt.SetId(m_selection);
+            evt.SetId(sel);
             wxPostEvent(this->GetParent(), evt);
-            Refresh();
         }
     });
     Slic3r::GUI::wxGetApp().UpdateDarkUI(btn);
@@ -145,7 +163,7 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString& text, bool bSelect/* 
 
 void ButtonsListCtrl::RemovePage(size_t n)
 {
-    ScalableButton* btn = m_pageButtons[n];
+    Button* btn = m_pageButtons[n];
     m_pageButtons.erase(m_pageButtons.begin() + n);
     m_buttons_sizer->Remove(n);
     btn->Reparent(nullptr);
@@ -157,18 +175,23 @@ bool ButtonsListCtrl::SetPageImage(size_t n, const std::string& bmp_name) const
 {
     if (n >= m_pageButtons.size())
         return false;
-     return m_pageButtons[n]->SetBitmap_(bmp_name);
+     
+    // BBS
+    //return m_pageButtons[n]->SetBitmap_(bmp_name);
+    ScalableBitmap bitmap(NULL, bmp_name);
+    //m_pageButtons[n]->SetBitmap_(bitmap);
+    return true;
 }
 
 void ButtonsListCtrl::SetPageText(size_t n, const wxString& strText)
 {
-    ScalableButton* btn = m_pageButtons[n];
+    Button* btn = m_pageButtons[n];
     btn->SetLabel(strText);
 }
 
 wxString ButtonsListCtrl::GetPageText(size_t n) const
 {
-    ScalableButton* btn = m_pageButtons[n];
+    Button* btn = m_pageButtons[n];
     return btn->GetLabel();
 }
 

@@ -430,7 +430,8 @@ wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in,
                                 const int px_cnt/* = 16*/, 
                                 const bool grayscale/* = false*/,
                                 const std::string& new_color/* = std::string()*/, // color witch will used instead of orange
-                                const bool menu_bitmap/* = false*/)
+                                const bool menu_bitmap/* = false*/,
+                                const bool resize/* = false*/)
 {
     static Slic3r::GUI::BitmapCache cache;
 
@@ -447,9 +448,9 @@ wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in,
         Slic3r::GUI::wxGetApp().dark_mode();
 
     // Try loading an SVG first, then PNG if SVG is not found:
-    wxBitmap *bmp = cache.load_svg(bmp_name, width, height, grayscale, dark_mode, new_color);
+    wxBitmap *bmp = cache.load_svg(bmp_name, width, height, grayscale, dark_mode, new_color, resize);
     if (bmp == nullptr) {
-        bmp = cache.load_png(bmp_name, width, height, grayscale);
+        bmp = cache.load_png(bmp_name, width, height, grayscale, resize);
     }
 
     if (bmp == nullptr) {
@@ -782,11 +783,12 @@ void MenuWithSeparators::SetSecondSeparator()
 ScalableBitmap::ScalableBitmap( wxWindow *parent, 
                                 const std::string& icon_name/* = ""*/,
                                 const int px_cnt/* = 16*/, 
-                                const bool grayscale/* = false*/):
+                                const bool grayscale/* = false*/,
+                                const bool resize/* = false*/):
     m_parent(parent), m_icon_name(icon_name),
     m_px_cnt(px_cnt)
 {
-    m_bmp = create_scaled_bitmap(icon_name, parent, px_cnt, grayscale);
+    m_bmp = create_scaled_bitmap(icon_name, parent, px_cnt, grayscale, resize);
 }
 
 wxSize ScalableBitmap::GetBmpSize() const

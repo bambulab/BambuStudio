@@ -6,6 +6,12 @@ include(PrecompiledHeader)
 set(SLIC3R_GUI_SOURCES
     pchheader.cpp
     pchheader.hpp
+    GUI/Widgets/SwitchButton.cpp
+    GUI/Widgets/SwitchButton.hpp
+    GUI/Widgets/Button.cpp
+    GUI/Widgets/Button.hpp
+    GUI/Widgets/Label.cpp
+    GUI/Widgets/Label.hpp
     GUI/AboutDialog.cpp
     GUI/AboutDialog.hpp
     GUI/SysInfoDialog.cpp

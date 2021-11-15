@@ -964,7 +964,8 @@ void PlaterPresetComboBox::msw_rescale()
 // ---------------------------------
 
 TabPresetComboBox::TabPresetComboBox(wxWindow* parent, Preset::Type preset_type) :
-    PresetComboBox(parent, preset_type, wxSize(35 * wxGetApp().em_unit(), -1))
+    // BBS: new layout
+    PresetComboBox(parent, preset_type, wxSize(20 * wxGetApp().em_unit(), -1))
 {
 }
 
@@ -1119,7 +1120,8 @@ void TabPresetComboBox::update()
 void TabPresetComboBox::msw_rescale()
 {
     PresetComboBox::msw_rescale();
-    wxSize sz = wxSize(35 * m_em_unit, -1);
+    // BBS: new layout
+    wxSize sz = wxSize(20 * m_em_unit, -1);
     SetMinSize(sz);
     SetSize(sz);
 }

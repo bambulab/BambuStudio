@@ -280,11 +280,7 @@ public:
 	wxWindow*		window{ nullptr };
 	void			BUILD() override;
 
-	void			set_value(const bool value, bool change_event = false) {
-		m_disable_change_event = !change_event;
-		dynamic_cast<wxCheckBox*>(window)->SetValue(value);
-		m_disable_change_event = false;
-	}
+	void			set_value(const bool value, bool change_event = false);
 	void			set_value(const boost::any& value, bool change_event = false) override;
     void            set_last_meaningful_value() override;
 	void            set_na_value() override;
@@ -292,8 +288,8 @@ public:
 
     void            msw_rescale() override;
 
-	void			enable() override { dynamic_cast<wxCheckBox*>(window)->Enable(); }
-	void			disable() override { dynamic_cast<wxCheckBox*>(window)->Disable(); }
+	void			enable() override { window->Enable(); }
+	void			disable() override { window->Disable(); }
 	wxWindow*		getWindow() override { return window; }
 };
 

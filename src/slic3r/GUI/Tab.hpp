@@ -57,6 +57,8 @@ class Page// : public wxScrolledWindow
 	wxString		m_title;
 	size_t			m_iconID;
 	wxBoxSizer*		m_vsizer;
+	// BBS: new layout
+	wxStaticText*	m_page_title;
     bool            m_show = true;
 public:
 	//BBS: GUI refactor
@@ -123,6 +125,7 @@ protected:
 	TabPresetComboBox*	m_presets_choice;
 	
 	//BBS: GUI refactor
+	wxPanel*			m_top_panel;
 	wxStaticText* m_static_title;
 	wxBoxSizer* m_main_sizer;
 	wxBoxSizer* m_top_sizer;
@@ -369,6 +372,8 @@ public:
 	//BBS: GUI refactor
 	bool update_current_page_in_background(wxTreeItemId& item);
 	void unselect_tree_item();
+	// BBS: new layout
+	void set_expanded(bool value);
 
 	static bool validate_custom_gcode(const wxString& title, const std::string& gcode);
 	bool        validate_custom_gcodes();

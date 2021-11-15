@@ -258,8 +258,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         // 8 pixels shadow
         SetMaxSize(size + wxSize{16, 16});
     };
-    this->Bind(wxEVT_DPI_CHANGED, [setMaxSize](auto e) {
+    this->Bind(wxEVT_DPI_CHANGED, [setMaxSize](auto & e) {
         setMaxSize();
+        e.Skip();
         });
     setMaxSize();
 #endif // WIN32

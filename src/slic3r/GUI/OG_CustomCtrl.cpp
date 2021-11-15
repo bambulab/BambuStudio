@@ -11,8 +11,11 @@
 #include "libslic3r/Utils.hpp"
 #include "I18N.hpp"
 #include "format.hpp"
+#include <slic3r/GUI/Widgets/Label.hpp>
 
 namespace Slic3r { namespace GUI {
+
+    constexpr int titleWidth = 233;
 
 static bool is_point_in_rect(const wxPoint& pt, const wxRect& rect)
 {
@@ -41,7 +44,8 @@ OG_CustomCtrl::OG_CustomCtrl(   wxWindow*            parent,
     if (!wxOSX)
         SetDoubleBuffered(true);// SetDoubleBuffered exists on Win and Linux/GTK, but is missing on OSX
 
-    m_font      = wxGetApp().normal_font();
+    m_font = wxGetApp().normal_font();
+    SetFont(m_font);
     m_em_unit   = em_unit(m_parent);
     m_v_gap     = lround(1.0 * m_em_unit);
     m_h_gap     = lround(0.2 * m_em_unit);
@@ -108,8 +112,9 @@ int OG_CustomCtrl::get_height(const Line& line)
 
 wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 {
+    // BBS: new layout
     wxCoord v_pos = 0;
-    wxCoord h_pos = 0;
+    wxCoord h_pos = titleWidth;
 
     auto correct_line_height = [](int& line_height, wxWindow* win)
     {
@@ -130,7 +135,8 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
     for (CtrlLine& ctrl_line : ctrl_lines) {
         if (&ctrl_line.og_line == &line)
         {
-            h_pos = m_bmp_mode_sz.GetWidth() + m_h_gap;
+            // BBS: new layout
+            // h_pos = m_bmp_mode_sz.GetWidth() + m_h_gap;
             if (line.near_label_widget_win) {
                 wxSize near_label_widget_sz = line.near_label_widget_win->GetSize();
                 if (field_in)
@@ -159,7 +165,8 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
             if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
                 option_set.front().side_widget == nullptr && line.get_extra_widgets().size() == 0)
             {
-                h_pos += 3 * blinking_button_width;
+                // BBS: new layout
+                // h_pos += 3 * blinking_button_width;
                 Field* field = opt_group->get_field(option_set.front().opt_id);
                 correct_line_height(ctrl_line.height, field->getWindow());
                 correct_horiz_pos(h_pos, field);
@@ -191,16 +198,16 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 #endif //__WXMSW__
                     h_pos += label_w + 1 + m_h_gap;
                 }                
-                h_pos += (opt.opt.gui_type == ConfigOptionDef::GUIType::legend ? 1 : 3) * blinking_button_width;
                 
                 if (field == field_in) {
                     correct_horiz_pos(h_pos, field);
                     break;
-                }
+                // BBS: new layout
+                h_pos += field->getWindow()->GetSize().x;
+                h_pos += blinking_button_width;
+
                 if (opt.opt.gui_type == ConfigOptionDef::GUIType::legend)
                     h_pos += 2 * blinking_button_width;
-
-                h_pos += field->getWindow()->GetSize().x;
 
                 if (option_set.size() == 1 && option_set.front().opt.full_width)
                     break;
@@ -229,9 +236,12 @@ void OG_CustomCtrl::OnPaint(wxPaintEvent&)
         return;
 
     wxPaintDC dc(this);
-    dc.SetFont(m_font);
 
     wxCoord v_pos = 0;
+    // BBS: new layout
+    dc.SetFont(Label::Head_14);
+    dc.DrawText(GetLabel(), { 0, v_pos });
+    dc.SetFont(m_font);
     for (CtrlLine& line : ctrl_lines) {
         if (!line.is_visible)
             continue;
@@ -355,6 +365,8 @@ void OG_CustomCtrl::OnLeaveWin(wxMouseEvent& event)
 
 bool OG_CustomCtrl::update_visibility(ConfigOptionMode mode)
 {
+    // BBS: new layout
+    wxCoord    h_pos = 1024;
     wxCoord    v_pos = 0;
 
     size_t invisible_lines = 0;
@@ -366,7 +378,7 @@ bool OG_CustomCtrl::update_visibility(ConfigOptionMode mode)
             invisible_lines++;
     }    
 
-    this->SetMinSize(wxSize(wxDefaultCoord, v_pos));
+    this->SetMinSize(wxSize(h_pos, v_pos));
 
     return invisible_lines != ctrl_lines.size();
 }
@@ -422,7 +434,8 @@ void OG_CustomCtrl::msw_rescale()
 #ifdef __WXOSX__
     return;
 #endif
-    m_font      = wxGetApp().normal_font();
+    m_font = wxGetApp().normal_font();
+    SetFont(m_font);
     m_em_unit   = em_unit(m_parent);
     m_v_gap     = lround(1.0 * m_em_unit);
     m_h_gap     = lround(0.2 * m_em_unit);
@@ -438,7 +451,8 @@ void OG_CustomCtrl::msw_rescale()
         if (line.is_visible)
             v_pos += (wxCoord)line.height;
     }
-    this->SetMinSize(wxSize(wxDefaultCoord, v_pos));
+    // BBS: new layout
+    this->SetMinSize(wxSize(1024, v_pos));
 
     GetParent()->Layout();
 }
@@ -581,11 +595,13 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
         //BBS: GUI refactor
         if (field && field->undo_bitmap())
         //if (field)
-            draw_act_bmps(dc, wxPoint(0, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink());
+            // BBS: new layout
+            draw_act_bmps(dc, wxPoint(titleWidth, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink());
         return;
     }
 
-    wxCoord h_pos = draw_mode_bmp(dc, v_pos);
+    // BBS: new layout
+    wxCoord h_pos = titleWidth; // draw_mode_bmp(dc, v_pos);
 
     if (og_line.near_label_widget_win)
         h_pos += og_line.near_label_widget_win->GetSize().x + ctrl->m_h_gap;
@@ -613,13 +629,28 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
     if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
         option_set.front().side_widget == nullptr && og_line.get_extra_widgets().size() == 0)
     {
+        // BBS: new layout
+        wxCoord h_pos2 = h_pos;
+        if (field) {
+            if (field->getSizer())
+            {
+                auto children = field->getSizer()->GetChildren();
+                for (auto child : children)
+                    if (child->IsWindow())
+                        h_pos += child->GetWindow()->GetSize().x + ctrl->m_h_gap;
+            }
+            else if (field->getWindow()) {
+                h_pos += field->getWindow()->GetSize().x + ctrl->m_h_gap;
+            }
+        }
+        wxCoord h_pos3 = h_pos;
         if (field && field->undo_to_sys_bitmap())
             h_pos = draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink()) + ctrl->m_h_gap;
         else if (field && !field->undo_to_sys_bitmap() && field->blink()) 
             draw_blinking_bmp(dc, wxPoint(h_pos, v_pos), field->blink());
         // update width for full_width fields
         if (option_set.front().opt.full_width && field && field->getWindow())
-            field->getWindow()->SetSize(ctrl->GetSize().x - h_pos, -1);
+            field->getWindow()->SetSize(ctrl->GetSize().x - h_pos2 + h_pos3 - h_pos, -1);
         return;
     }
 
@@ -642,8 +673,11 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
             h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label, field ? field->label_color() : nullptr, ctrl->opt_group->sublabel_width * ctrl->m_em_unit, is_url_string);
         }
 
-        if (field && field->undo_to_sys_bitmap()) {
-            h_pos = draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink(), bmp_rect_id++);
+        // BBS: new layout
+        // add field
+        if (option_set.size() == 1 && option_set.front().opt.full_width)
+            break;
+        if (field) {
             if (field->getSizer())
             {
                 auto children = field->getSizer()->GetChildren();
@@ -655,16 +689,23 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
                 h_pos += field->getWindow()->GetSize().x + ctrl->m_h_gap;
         }
 
-        // add field
-        if (option_set.size() == 1 && option_set.front().opt.full_width)
-            break;
-
         // add sidetext if any
-        if (!option.sidetext.empty() || ctrl->opt_group->sidetext_width > 0)
+        // BBS: new layout
+        wxCoord offset = 0;
+        if (!option.sidetext.empty() || ctrl->opt_group->sidetext_width > 0) {
+            wxCoord h_pos2 = h_pos + dc.GetTextExtent(_(option.sidetext)).x;
             h_pos = draw_text(dc, wxPoint(h_pos, v_pos), _(option.sidetext), nullptr, ctrl->opt_group->sidetext_width * ctrl->m_em_unit);
+            offset = h_pos - h_pos2;
+        }
 
         if (opt.opt_id != option_set.back().opt_id) //! istead of (opt != option_set.back())
             h_pos += lround(0.6 * ctrl->m_em_unit);
+
+        // BBS: new layout
+        if (field && field->undo_to_sys_bitmap()) {
+            h_pos = draw_act_bmps(dc, wxPoint(h_pos - offset, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink(), bmp_rect_id++);
+            h_pos += offset;
+        }
     }
 }
 

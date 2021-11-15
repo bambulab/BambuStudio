@@ -7,6 +7,7 @@
 
 class ModeSizer;
 class ScalableButton;
+class Button;
 
 // custom message the ButtonsListCtrl sends to its parent (Notebook) to notify a selection change:
 wxDECLARE_EVENT(wxCUSTOMEVT_NOTEBOOK_SEL_CHANGED, wxCommandEvent);
@@ -32,7 +33,8 @@ private:
     wxWindow*                       m_parent;
     wxFlexGridSizer*                m_buttons_sizer;
     wxBoxSizer*                     m_sizer;
-    std::vector<ScalableButton*>    m_pageButtons;
+    // BBS: use Button
+    std::vector<Button*>            m_pageButtons;
     int                             m_selection {-1};
     int                             m_btn_margin;
     int                             m_line_margin;

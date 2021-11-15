@@ -230,7 +230,7 @@ wxBitmap* BitmapCache::insert_raw_rgba(const std::string &bitmap_key, unsigned w
 }
 
 wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned width, unsigned height,
-    const bool grayscale/* = false*/)
+    const bool grayscale/* = false*/, const bool resize/* = false*/) // BBS: support resize by fill border
 {
     std::string bitmap_key = bitmap_name + ( height !=0 ? 
                                            "-h" + std::to_string(height) : 
@@ -251,8 +251,13 @@ wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned width, 
     else if (width != 0 && unsigned(image.GetWidth()) != width)
         height  = unsigned(0.5f + float(image.GetHeight()) * width / image.GetWidth());
 
-    if (height != 0 && width != 0)
-        image.Rescale(width, height, wxIMAGE_QUALITY_BILINEAR);
+    if (height != 0 && width != 0) {
+        // BBS: support resize by fill border
+        if (resize)
+            image.Resize({ (int)width, (int)height }, { (int)(width - image.GetWidth()) / 2, (int)(height - image.GetHeight()) / 2 });
+        else
+            image.Rescale(width, height, wxIMAGE_QUALITY_BILINEAR);
+    }
 
     if (grayscale)
         image = image.ConvertToGreyscale(m_gs, m_gs, m_gs);
@@ -298,7 +303,7 @@ error:
 }
 
 wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_width, unsigned target_height, 
-    const bool grayscale/* = false*/, const bool dark_mode/* = false*/, const std::string& new_color /*= ""*/)
+    const bool grayscale/* = false*/, const bool dark_mode/* = false*/, const std::string& new_color /*= ""*/, const bool resize/* = false*/)
 {
     std::string bitmap_key = bitmap_name + ( target_height !=0 ? 
                                            "-h" + std::to_string(target_height) : 
@@ -344,7 +349,11 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
     }
 
     std::vector<unsigned char> data(n_pixels * 4, 0);
-    ::nsvgRasterize(rast, image, 0, 0, svg_scale, data.data(), width, height, width * 4);
+    // BBS: support resize by fill border
+    if (resize)
+        ::nsvgRasterize(rast, image, 0, 0, 1, data.data() + int(height - image->height) / 2 * width * 4 + int(width - image->width) / 2 * 4, image->width, image->height, width * 4);
+    else
+        ::nsvgRasterize(rast, image, 0, 0, svg_scale, data.data(), width, height, width * 4);
     ::nsvgDeleteRasterizer(rast);
     ::nsvgDelete(image);
 

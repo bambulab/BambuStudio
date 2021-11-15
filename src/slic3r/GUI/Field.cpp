@@ -22,6 +22,7 @@
 
 // BBS
 #include "Notebook.hpp"
+#include "Widgets/SwitchButton.hpp"
 
 #ifdef __WXOSX__
 #define wxOSX true
@@ -682,22 +683,30 @@ void CheckBox::BUILD() {
 
     m_last_meaningful_value = static_cast<unsigned char>(check_value);
 
-	// Set Label as a string of at least one space simbol to correct system scaling of a CheckBox
-	auto temp = new wxCheckBox(m_parent, wxID_ANY, wxString(" "), wxDefaultPosition, size);
-	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+	// BBS: use SwitchButton
+	auto temp = new SwitchButton(m_parent); 
 	if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
+	temp->SetBackgroundColour(*wxWHITE);
 	temp->SetValue(check_value);
 	if (m_opt.readonly) temp->Disable();
 
-	temp->Bind(wxEVT_CHECKBOX, ([this](wxCommandEvent e) {
+	temp->Bind(wxEVT_TOGGLEBUTTON, ([this](wxCommandEvent & e) {
         m_is_na_val = false;
 	    on_change_field();
+		e.Skip();
 	}), temp->GetId());
 
 	temp->SetToolTip(get_tooltip_text(check_value ? "true" : "false"));
 
 	// recast as a wxWindow to fit the calling convention
 	window = dynamic_cast<wxWindow*>(temp);
+}
+
+void CheckBox::set_value(const bool value, bool change_event)
+{
+	m_disable_change_event = !change_event;
+	dynamic_cast<SwitchButton*>(window)->SetValue(value);
+	m_disable_change_event = false;
 }
 
 void CheckBox::set_value(const boost::any& value, bool change_event)
@@ -707,10 +716,10 @@ void CheckBox::set_value(const boost::any& value, bool change_event)
         m_is_na_val = boost::any_cast<unsigned char>(value) == ConfigOptionBoolsNullable::nil_value();
         if (!m_is_na_val)
             m_last_meaningful_value = value;
-        dynamic_cast<wxCheckBox*>(window)->SetValue(m_is_na_val ? false : boost::any_cast<unsigned char>(value) != 0);
+        dynamic_cast<SwitchButton*>(window)->SetValue(m_is_na_val ? false : boost::any_cast<unsigned char>(value) != 0);
     }
     else
-        dynamic_cast<wxCheckBox*>(window)->SetValue(boost::any_cast<bool>(value));
+        dynamic_cast<SwitchButton*>(window)->SetValue(boost::any_cast<bool>(value));
     m_disable_change_event = false;
 }
 
@@ -718,7 +727,7 @@ void CheckBox::set_last_meaningful_value()
 {
     if (m_opt.nullable) {
         m_is_na_val = false;
-        dynamic_cast<wxCheckBox*>(window)->SetValue(boost::any_cast<unsigned char>(m_last_meaningful_value) != 0);
+        dynamic_cast<SwitchButton*>(window)->SetValue(boost::any_cast<unsigned char>(m_last_meaningful_value) != 0);
         on_change_field();
     }
 }
@@ -727,7 +736,7 @@ void CheckBox::set_na_value()
 {
     if (m_opt.nullable) {
         m_is_na_val = true;
-        dynamic_cast<wxCheckBox*>(window)->SetValue(false);
+        dynamic_cast<SwitchButton*>(window)->SetValue(false);
         on_change_field();
     }
 }
@@ -735,7 +744,7 @@ void CheckBox::set_na_value()
 boost::any& CheckBox::get_value()
 {
 // 	boost::any m_value;
-	bool value = dynamic_cast<wxCheckBox*>(window)->GetValue();
+	bool value = dynamic_cast<SwitchButton*>(window)->GetValue();
 	if (m_opt.type == coBool)
 		m_value = static_cast<bool>(value);
 	else
@@ -747,8 +756,8 @@ void CheckBox::msw_rescale()
 {
     Field::msw_rescale();
 
-    wxCheckBox* field = dynamic_cast<wxCheckBox*>(window);
-    field->SetMinSize(wxSize(-1, int(1.5f*field->GetFont().GetPixelSize().y +0.5f)));
+	SwitchButton* field = dynamic_cast<SwitchButton*>(window);
+    //field->SetMinSize(wxSize(-1, int(1.5f*field->GetFont().GetPixelSize().y +0.5f)));
 }
 
 

@@ -36,7 +36,8 @@ class OG_CustomCtrl :public wxPanel
     int     m_max_win_width{0};
 
     struct CtrlLine {
-        wxCoord           height  { wxDefaultCoord };
+        wxCoord           width{ wxDefaultCoord };
+        wxCoord           height{ wxDefaultCoord };
         OG_CustomCtrl*    ctrl    { nullptr };
         const Line&       og_line;
 
