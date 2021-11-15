@@ -805,7 +805,12 @@ void TreeSupport::detect_object_overhangs()
 
                     TreeSupportLayer* ts_layer = m_object.get_tree_support_layer(layer_nr + m_raft_layers);
                     for (ExPolygon& poly : overhang_areas) {
-                        poly.simplify(scale_(radius_sample_resolution), &ts_layer->overhang_areas);
+                        ExPolygons poly_simp = poly.simplify(scale_(radius_sample_resolution));
+                        // simplify method may delete the entire polygon which is unwanted
+                        if(poly_simp.empty())
+                            ts_layer->overhang_areas.emplace_back(poly);
+                        else
+                            append(ts_layer->overhang_areas, poly_simp);
                     }
 
                     {  // update well supported regions
@@ -2171,13 +2176,16 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
 
             if (!added) //If we didn't add any points due to bad luck, we want to add one anyway such that loose parts are also supported.
             {
-                Point candidate = bounding_box_middle(overhang_part.contour.bounding_box());
-                if (!overhang_part.contains(candidate))
-                    move_inside_expoly(overhang_part, candidate);
-                constexpr size_t distance_to_top = 0;
-                constexpr bool to_buildplate = true;
-                Node* contact_node = new Node(candidate, distance_to_top, layer_nr % 2, support_roof_layers, to_buildplate, Node::NO_PARENT);
-                contact_nodes[layer_nr].emplace_back(contact_node);
+                auto bbox = overhang_part.contour.bounding_box();
+                Points candidates = { bbox.min, bounding_box_middle(bbox), bbox.max };
+                for (Point candidate : candidates) {
+                    if (!overhang_part.contains(candidate))
+                        move_inside_expoly(overhang_part, candidate);
+                    constexpr size_t distance_to_top = 0;
+                    constexpr bool to_buildplate = true;
+                    Node* contact_node = new Node(candidate, distance_to_top, layer_nr % 2, support_roof_layers, to_buildplate, Node::NO_PARENT);
+                    contact_nodes[layer_nr].emplace_back(contact_node);
+                }
             }
         }
 
