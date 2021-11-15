@@ -677,7 +677,6 @@ static void remove_bridges_from_contacts(
     const Layer* lower_layer,
     const Layer* current_layer,
     float extrusion_width,
-    float  bridge_length_thresh,
     ExPolygons& overhang_regions)
 {
     // Extrusion width accounts for the roundings of the extrudates.
@@ -717,9 +716,23 @@ static void remove_bridges_from_contacts(
                             supported[j] = true;
                 if (supported[0] && supported[1])
                     // Offset a polyline into a thick line.
-                    polygons_append(bridges, offset(polyline, w));
+                    polygons_append(bridges, offset(polyline, 0.5f * w + 10.f));
             }
         bridges = union_(bridges);
+
+        // remove the entire bridges and only support the unsupported edges
+        //FIXME the brided regions are already collected as layerm->bridged. Use it?
+        for (const Surface& surface : layerm->fill_surfaces.surfaces)
+            if (surface.surface_type == stBottomBridge && surface.bridge_angle != -1)
+                polygons_append(bridges, surface.expolygon);
+        //FIXME add the gap filled areas. Extrude the gaps with a bridge flow?
+        // Remove the unsupported ends of the bridges from the bridged areas.
+        //FIXME add supports at regular intervals to support long bridges!
+#define SUPPORT_MATERIAL_MARGIN 1.5	
+        bridges = diff(bridges,
+            // Offset unsupported edges into polygons.
+            offset(layerm->unsupported_bridge_edges, scale_(SUPPORT_MATERIAL_MARGIN), SUPPORT_SURFACES_OFFSET_PARAMETERS));
+
         overhang_regions = diff_ex(overhang_regions, to_expolygons(bridges));
     }
 }
@@ -787,7 +800,7 @@ void TreeSupport::detect_object_overhangs()
                     ExPolygons overhang_areas = std::move(diff_ex(layer->lslices, lower_layer_offseted));
                     overhang_areas = std::move(offset2_ex(overhang_areas, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
                     if (dont_support_bridges && overhang_areas.size()>0) {
-                        remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, scale_(5), overhang_areas);
+                        remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, overhang_areas);
                     }
 
                     TreeSupportLayer* ts_layer = m_object.get_tree_support_layer(layer_nr + m_raft_layers);
