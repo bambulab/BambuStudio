@@ -254,6 +254,13 @@ int CLI::run(int argc, char **argv)
                         orients_requirement.insert(std::pair<size_t, bool>(o->id().id, false));
                         boost::nowide::cout << "object "<<o->name <<", id :" << o->id().id << ", from bbl 3mf\n";
                     }
+
+                    /*for (ModelObject *model_object : model.objects)
+                        for (ModelInstance *model_instance : model_object->instances)
+                        {
+                            const Vec3d &instance_offset = model_instance->get_offset();
+                            boost::nowide::cout << boost::format("instance %1% transform {%2%,%3%,%4%} at %5%:%6%")% model_object->name % instance_offset.x() % instance_offset.y() %instance_offset.z() % __FUNCTION__ % __LINE__<< std::endl;
+                        }*/
                 }
                 else
                 {
@@ -379,6 +386,12 @@ int CLI::run(int argc, char **argv)
         partplate_list.load_from_3mf_structure(plate_data);
         release_PlateData_list(plate_data);
     }
+    /*for (ModelObject *model_object : m_models[0].objects)
+        for (ModelInstance *model_instance : model_object->instances)
+        {
+            const Vec3d &instance_offset = model_instance->get_offset();
+            boost::nowide::cout << boost::format("instance %1% transform {%2%,%3%,%4%} at %5%:%6%")% model_object->name % instance_offset.x() % instance_offset.y() %instance_offset.z() % __FUNCTION__ % __LINE__<< std::endl;
+        }*/
     
     // Loop through transform options.
     bool user_center_specified = false;    
@@ -841,6 +854,9 @@ int CLI::run(int argc, char **argv)
 #else
                     BuildVolume build_volume(part_plate->get_shape(), z);
                     model.update_print_volume_state(build_volume);
+                    unsigned int count = model.update_print_volume_state(build_volume);
+                    boost::nowide::cout << boost::format("print_volume {%1%,%2%,%3%}->{%4%, %5%, %6%}, has %7% printables") % print_volume.min(0) % print_volume.min(1)
+                        % print_volume.min(2) % print_volume.max(0) % print_volume.max(1) % print_volume.max(2) % count << std::endl;
 #endif
 
                     //PrintBase  *print = (printer_technology == ptFFF) ? static_cast<PrintBase*>(&fff_print) : static_cast<PrintBase*>(&sla_print);
@@ -1264,8 +1280,8 @@ extern "C" {
             argv_ptrs[i] = argv_narrow[i].data();
 
         //BBS: register default exception handler
-        //AddVectoredExceptionHandler(1, CBaseException::UnhandledExceptionFilter);
-        SET_DEFULTER_HANDLER();
+        AddVectoredExceptionHandler(1, CBaseException::UnhandledExceptionFilter);
+        //SET_DEFULTER_HANDLER();
 
         // Call the UTF8 main.
         return CLI().run(argc, argv_ptrs.data());

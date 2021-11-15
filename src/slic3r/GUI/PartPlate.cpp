@@ -15,6 +15,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
+//#include <boost/nowide/iostream.hpp>
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Polygon.hpp"
@@ -1365,7 +1366,7 @@ void PartPlateList::reset(bool do_init)
 /*basic plate operations*/
 //create an empty plate, and return its index
 //these model instances which are not in any plates should not be affected also
-int PartPlateList::create_plate()
+int PartPlateList::create_plate(bool adjust_position)
 {
 	PartPlate* plate = NULL;
 	Vec3d origin;
@@ -1398,12 +1399,14 @@ int PartPlateList::create_plate()
 	update_plate_cols();
 	if (old_cols != cols)
 	{
+		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":old_cols %1% -> new_cols %2%") % old_cols % cols;
 		//update the origin of each plate
-		update_all_plates_pos_and_size(false);
+		update_all_plates_pos_and_size(adjust_position, false);
 		set_shapes(m_shape, m_exclude_areas);
 	}
 	else
 	{
+		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": the same cols %1%") % old_cols;
 		Vec3d origin2 = compute_origin_for_unprintable();
 		unprintable_plate.set_pos_and_size(origin2, m_plate_width, m_plate_depth, m_plate_height, false);
 
@@ -1686,7 +1689,7 @@ void PartPlateList::update_plate_cols()
 	return;
 }
 
-void PartPlateList::update_all_plates_pos_and_size(bool with_unprintable_move)
+void PartPlateList::update_all_plates_pos_and_size(bool adjust_position, bool with_unprintable_move)
 {
 	Vec3d origin1, origin2;
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
@@ -1696,7 +1699,7 @@ void PartPlateList::update_all_plates_pos_and_size(bool with_unprintable_move)
 
 		//compute origin1 for PartPlate
 		origin1 = compute_origin(i, m_plate_cols);
-		plate->set_pos_and_size(origin1, m_plate_width, m_plate_depth, m_plate_height, true);
+		plate->set_pos_and_size(origin1, m_plate_width, m_plate_depth, m_plate_height, adjust_position);
 	}
 
 	origin2 = compute_origin_for_unprintable();
@@ -2617,7 +2620,7 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 	clear(true, true);
 	for (unsigned int i = 0; i < (unsigned int)plate_data_list.size(); ++i)
 	{
-		int index = create_plate();
+		int index = create_plate(false);
 		m_plate_list[index]->m_locked = plate_data_list[i]->locked;
 		if (plate_data_list[i]->plate_index != index)
 		{
