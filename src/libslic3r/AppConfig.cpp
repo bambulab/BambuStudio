@@ -193,6 +193,9 @@ void AppConfig::set_defaults()
     if (get("3mf_include_gcode").empty())
         set("3mf_include_gcode", "1");
 
+    if (get("developer_mode").empty())
+        set("developer_mode", "0");
+
     // Remove legacy window positions/sizes
     erase("", "main_frame_maximized");
     erase("", "main_frame_pos");

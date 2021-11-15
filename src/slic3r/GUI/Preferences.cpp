@@ -296,6 +296,14 @@ void PreferencesDialog::build(size_t selected_tab)
 	option = Option(def, "3mf_include_gcode");
 	m_optgroup_general->append_single_option_line(option);
 
+	// BBS
+	def.label = L("Developer Mode");
+	def.type = coBool;
+	def.tooltip = L("Developer Mode");
+	def.set_default_value(new ConfigOptionBool{ app_config->get("developer_mode") == "1" });
+	option = Option(def, "developer_mode");
+	m_optgroup_general->append_single_option_line(option);
+
 	activate_options_tab(m_optgroup_general);
 
 	// BBS
@@ -610,6 +618,20 @@ void PreferencesDialog::accept(wxEvent&)
 		}
 		else if (m_values["api_rel_domain"].compare("1") == 0) {
 			manager->set_host("api.bambulab.com");
+		}
+	}
+
+	//BBS
+	m_develop_mode_changed = false;
+	if (auto it = m_values.find("developer_mode"); it != m_values.end()) {
+		m_develop_mode_changed = app_config->get("developer_mode") != it->second;
+		if (m_develop_mode_changed) {
+			if (it->second.compare("1") == 0) {
+				Slic3r::GUI::wxGetApp().save_mode(comDevelop);
+			}
+			else {
+				Slic3r::GUI::wxGetApp().save_mode(comExpert);
+			}
 		}
 	}
 

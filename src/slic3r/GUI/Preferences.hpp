@@ -39,6 +39,8 @@ class PreferencesDialog : public DPIDialog
 	wxSizer*                            m_icon_size_sizer;
 	//BBS
 	wxRadioBox*							m_select_domain_box;
+	//BBS
+	bool								m_develop_mode_changed{ false };
 	bool								m_domain_changed{ false };
 	wxColourPickerCtrl*					m_sys_colour {nullptr};
 	wxColourPickerCtrl*					m_mod_colour {nullptr};

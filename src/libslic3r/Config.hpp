@@ -194,7 +194,8 @@ enum ConfigOptionType {
 enum ConfigOptionMode {
     comSimple = 0,
     comAdvanced,
-    comExpert
+    comExpert,
+    comDevelop,
 };
 
 enum PrinterTechnology : unsigned char
