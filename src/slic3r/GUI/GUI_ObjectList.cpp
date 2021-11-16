@@ -2108,7 +2108,7 @@ void ObjectList::split()
 
     auto model_object = (*m_objects)[obj_idx];
 
-    auto parent = m_objects_model->GetTopParent(item);
+    auto parent = m_objects_model->GetObject(item);
     if (parent)
         m_objects_model->DeleteVolumeChildren(parent);
     else
@@ -2168,7 +2168,7 @@ void ObjectList::merge(bool to_multipart_object)
                             sel_map[obj_idx].emplace(i);
                     continue;
                 }
-                int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
+                int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetObject(item));
                 sel_map[obj_idx].emplace(m_objects_model->GetInstanceIdByItem(item));
             }
 
@@ -2376,7 +2376,7 @@ void ObjectList::layers_editing()
     if (!item)
         return;
 
-    const wxDataViewItem obj_item = m_objects_model->GetTopParent(item);
+    const wxDataViewItem obj_item = m_objects_model->GetObject(item);
     wxDataViewItem layers_item = m_objects_model->GetLayerRootItem(obj_item);
 
     // if it doesn't exist now
@@ -2707,7 +2707,7 @@ wxDataViewItem ObjectList::add_settings_item(wxDataViewItem parent_item, const D
         categories.push_back(cat.first);
 
     if (m_objects_model->GetItemType(parent_item) & itInstance)
-        parent_item = m_objects_model->GetTopParent(parent_item);
+        parent_item = m_objects_model->GetObject(parent_item);
 
     ret = m_objects_model->IsSettingsItem(parent_item) ? parent_item : m_objects_model->GetSettingsItem(parent_item);
 
@@ -3025,7 +3025,7 @@ static void update_selection(wxDataViewItemArray& sels, ObjectList::SELECTION_MO
 
                 if (selected_instances_cnt == instances.Count()) 
                 {
-                    wxDataViewItem obj_item = model->GetTopParent(item);
+                    wxDataViewItem obj_item = model->GetObject(item);
                     for (auto& inst : instances)
                         sels.Remove(inst);
                     sels.Add(obj_item);
@@ -3056,7 +3056,7 @@ void ObjectList::remove()
                 // also remove the parent item. Selection should therefore pass to the top parent (object).
                 wxDataViewItemArray children;
                 if (m_objects_model->GetChildren(parent, children) == (type & itLayer ? 1 : 2))
-                    parent = m_objects_model->GetTopParent(item);
+                    parent = m_objects_model->GetObject(item);
             }
 
             del_subobject_item(item);
@@ -3477,7 +3477,7 @@ void ObjectList::update_selections()
                 bool root_is_selected = false;
                 for (const auto& item:current_sels)
                     if (item == m_objects_model->GetParent(frst_inst_item) || 
-                        item == m_objects_model->GetTopParent(frst_inst_item)) {
+                        item == m_objects_model->GetObject(frst_inst_item)) {
                         root_is_selected = true;
                         sels.Add(item);
                         break;
@@ -3784,7 +3784,7 @@ bool ObjectList::check_last_selection(wxString& msg_str)
         GetSelections(sels);
         for (const auto& sel : sels)
             if (sel != m_last_selected_item &&
-                m_objects_model->GetTopParent(sel) != m_objects_model->GetTopParent(m_last_selected_item))
+                m_objects_model->GetObject(sel) != m_objects_model->GetObject(m_last_selected_item))
                 return true;
 
         return false;
@@ -4450,10 +4450,10 @@ void ObjectList::set_extruder_for_selected_items(const int extruder) const
         /* We can change extruder for Object/Volume only.
          * So, if Instance is selected, get its Object item and change it
          */
-        m_objects_model->SetExtruder(extruder_str, type & itInstance ? m_objects_model->GetTopParent(item) : item);
+        m_objects_model->SetExtruder(extruder_str, type & itInstance ? m_objects_model->GetObject(item) : item);
 
         const int obj_idx = type & itObject ? m_objects_model->GetIdByItem(item) :
-                            m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
+                            m_objects_model->GetIdByItem(m_objects_model->GetObject(item));
 
         wxGetApp().plater()->canvas3D()->ensure_on_bed(obj_idx, printer_technology() != ptSLA);
     }
