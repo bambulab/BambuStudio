@@ -218,17 +218,44 @@ int MachineObject::command_fan_off()
 
 int MachineObject::command_task_abort()
 {
-    return this->publish_gcode("M0\n");
+    pt::ptree root, print;
+    print.put("command", "stop");
+    print.put("param", "");
+    print.put("sequence_id", MachineObject::m_sequence_id++);
+    root.put_child("print", print);
+
+    std::stringstream oss;
+    pt::write_json(oss, root, false);
+    std::string json_str = oss.str();
+    return this->publish_json(json_str);
 }
 
 int MachineObject::command_task_pause()
 {
-    return this->publish_gcode("M400 W1\n");
+    pt::ptree root, print;
+    print.put("command", "pause");
+    print.put("param", "");
+    print.put("sequence_id", MachineObject::m_sequence_id++);
+    root.put_child("print", print);
+
+    std::stringstream oss;
+    pt::write_json(oss, root, false);
+    std::string json_str = oss.str();
+    return this->publish_json(json_str);
 }
 
 int MachineObject::command_task_resume()
 {
-    return this->publish_gcode("M400 W0\n");
+    pt::ptree root, print;
+    print.put("command", "resume");
+    print.put("param", "");
+    print.put("sequence_id", MachineObject::m_sequence_id++);
+    root.put_child("print", print);
+
+    std::stringstream oss;
+    pt::write_json(oss, root, false);
+    std::string json_str = oss.str();
+    return this->publish_json(json_str);
 }
 
 int MachineObject::command_set_bed(int temp)

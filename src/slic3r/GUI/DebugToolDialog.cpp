@@ -1181,21 +1181,59 @@ void DebugToolDialog::init()
 
     
     btn_abort_print->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-        this->publishGcode("M0\n");
+            pt::ptree root, print;
+            print.put("command", "stop");
+            print.put("param", "");
+            print.put("sequence_id", this->m_sequence_id++);
+            root.put_child("print", print);
+            std::stringstream oss;
+            pt::write_json(oss, root, false);
+            std::string json_str = oss.str();
 
-        auto et = new wxCommandEvent(EVT_PRINT_FINISH, this->GetId());
-        et->SetInt(0);
-        wxQueueEvent(this, et);
+            int result = this->publish_json(json_str);
+            if (result != 0) {
+                this->log_info("publish_json failed");
+            } else {
+                auto et = new wxCommandEvent(EVT_PRINT_FINISH, this->GetId());
+                et->SetInt(0);
+                wxQueueEvent(this, et);
+            }
         });
     
     btn_pause->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            this->publishGcode("M400 W1\n");
-            this->send_log_evt("Pause Printing...");
+            pt::ptree root, print;
+            print.put("command", "pause");
+            print.put("param", "");
+            print.put("sequence_id", this->m_sequence_id++);
+            root.put_child("print", print);
+            std::stringstream oss;
+            pt::write_json(oss, root, false);
+            std::string json_str = oss.str();
+
+            int result = this->publish_json(json_str);
+            if (result != 0) {
+                this->log_info("publish_json failed");
+            } else {
+                this->send_log_evt("Pause Printing...");
+            }
         });
     
     btn_resume->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            this->publishGcode("M400 W0\n");
-            this->send_log_evt("Resume Printing...");
+            pt::ptree root, print;
+            print.put("command", "resume");
+            print.put("param", "");
+            print.put("sequence_id", this->m_sequence_id++);
+            root.put_child("print", print);
+            std::stringstream oss;
+            pt::write_json(oss, root, false);
+            std::string json_str = oss.str();
+
+            int result = this->publish_json(json_str);
+            if (result != 0) {
+                this->log_info("publish_json failed");
+            } else {
+                this->send_log_evt("Resume Printing...");
+            }
         });
 
     selectGcodeDialog = new wxFileDialog(this, "Open Gcode File", "", "", "Gcode files(*.gcode)|*.gcode", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
