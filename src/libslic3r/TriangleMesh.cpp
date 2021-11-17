@@ -413,7 +413,7 @@ ExPolygons TriangleMesh::horizontal_projection() const
 }
 
 // 2D convex hull of a 3D mesh projected into the Z=0 plane.
-Polygon TriangleMesh::convex_hull()
+Polygon TriangleMesh::convex_hull() const
 {
     Points pp;
     pp.reserve(this->its.vertices.size());

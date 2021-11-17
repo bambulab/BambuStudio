@@ -687,6 +687,10 @@ public:
     void                calculate_convex_hull();
     const TriangleMesh& get_convex_hull() const;
     const std::shared_ptr<const TriangleMesh>& get_convex_hull_shared_ptr() const { return m_convex_hull; }
+    //BBS
+    void                calculate_convex_hull_2d() { m_convex_hull_2d = std::make_shared<Polygon>(this->mesh().convex_hull()); }
+    const Polygon& get_convex_hull_2d() const { return *m_convex_hull_2d.get(); }
+    std::shared_ptr<const Polygon> get_convex_hull_2d_shared_ptr() const { return m_convex_hull_2d; }
     // Get count of errors in the mesh
     int                 get_repaired_errors_count() const;
 
@@ -763,6 +767,7 @@ private:
     t_model_material_id             	m_material_id;
     // The convex hull of this model's mesh.
     std::shared_ptr<const TriangleMesh> m_convex_hull;
+    std::shared_ptr<const Polygon>      m_convex_hull_2d;//BBS
     Geometry::Transformation        	m_transformation;
 
     // flag to optimize the checking if the volume is splittable

@@ -122,7 +122,7 @@ public:
     void merge(const TriangleMesh &mesh);
     ExPolygons horizontal_projection() const;
     // 2D convex hull of a 3D mesh projected into the Z=0 plane.
-    Polygon convex_hull();
+    Polygon convex_hull() const;
     BoundingBoxf3 bounding_box() const;
     // Returns the bbox of this TriangleMesh transformed by the given transformation
     BoundingBoxf3 transformed_bounding_box(const Transform3d &trafo) const;

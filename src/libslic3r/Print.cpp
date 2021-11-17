@@ -13,6 +13,7 @@
 #include "GCode.hpp"
 #include "GCode/WipeTower.hpp"
 #include "Utils.hpp"
+#include "PrintConfig.hpp"
 
 #include <float.h>
 
@@ -369,11 +370,25 @@ bool Print::has_brim() const
     return std::any_of(m_objects.begin(), m_objects.end(), [](PrintObject *object) { return object->has_brim(); });
 }
 
+//BBS
 std::string Print::sequential_print_clearance_valid(const Print& print, Polygons* polygons)
 {
     std::vector<const PrintInstance*> print_instances_ordered = sort_object_instances_by_model_order(print);
     if (print_instances_ordered.size() < 2)
         return "";
+
+    auto print_config = print.config();
+    Pointfs excluse_area_points = print_config.bed_exclude_area.values;
+    Polygons exclude_polys;
+    Polygon exclude_poly;
+    for (int i = 0; i < excluse_area_points.size(); i++) {
+        auto pt = excluse_area_points[i];
+        exclude_poly.points.emplace_back(scale_(pt.x()), scale_(pt.y()));
+        if (i % 4 == 3) {  // exclude areas are always rectangle
+            exclude_polys.push_back(exclude_poly);
+            exclude_poly.points.clear();
+        }
+    }
 
     std::map<const PrintInstance*, Polygon> map_model_object_to_convex_hull;
     {
@@ -392,16 +407,8 @@ std::string Print::sequential_print_clearance_valid(const Print& print, Polygons
             const ModelInstance* model_instance0 = inst->model_instance;
             if (it_convex_hull == map_model_object_to_convex_hull.end()) {
                 // Calculate the convex hull of a printable object. 
-                // Grow convex hull with the clearance margin.
-                // FIXME: Arrangement has different parameters for offsetting (jtMiter, limit 2)
-                // which causes that the warning will be showed after arrangement with the
-                // appropriate object distance. Even if I set this to jtMiter the warning still shows up.
-                auto convex_hull0 = offset(inst->print_object->model_object()->convex_hull_2d(
-                    Geometry::assemble_transform(Vec3d::Zero(), model_instance0->get_rotation(), model_instance0->get_scaling_factor(), model_instance0->get_mirror())),
-                    // Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
-                    // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
-                    float(scale_(0.5 * print.config().extruder_clearance_radius.value - EPSILON)),
-                    jtRound, float(scale_(0.1))).front();
+                auto convex_hull0 = inst->print_object->model_object()->convex_hull_2d(
+                    Geometry::assemble_transform(Vec3d::Zero(), model_instance0->get_rotation(), model_instance0->get_scaling_factor(), model_instance0->get_mirror()));
 
                 double z_diff = Geometry::rotation_diff_z(model_instance0->get_rotation(), inst->model_instance->get_rotation());
                 if (std::abs(z_diff) > EPSILON)
@@ -413,7 +420,22 @@ std::string Print::sequential_print_clearance_valid(const Print& print, Polygons
 
                 it_convex_hull = map_model_object_to_convex_hull.emplace_hint(it_convex_hull, inst, convex_hull0);
             }
-            Polygon& convex_hull = it_convex_hull->second;
+            Polygon convex_hull = it_convex_hull->second;
+            Polygons convex_hulls_temp;
+            convex_hulls_temp.push_back(convex_hull);
+            if (!intersection(exclude_polys, convex_hulls_temp).empty()) {
+                return "Object " + inst->model_instance->get_object()->name + " is too close to exclusion area; your extruder will collide with them.";
+            }
+
+            // Grow convex hull with the clearance margin.
+            // FIXME: Arrangement has different parameters for offsetting (jtMiter, limit 2)
+            // which causes that the warning will be showed after arrangement with the
+            // appropriate object distance. Even if I set this to jtMiter the warning still shows up.
+            convex_hull = offset(convex_hull,
+                // Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
+                // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
+                float(scale_(0.5 * print.config().extruder_clearance_radius.value - EPSILON)),
+                jtRound, float(scale_(0.1))).front();
             if (!intersection(convex_hulls_other, Polygons{ convex_hull }).empty()) {
                 error_msg = "Object " + inst->model_instance->get_object()->name + " is too close to others; your extruder will collide with them.";
                 if (polygons)
@@ -472,13 +494,69 @@ std::string Print::sequential_print_clearance_valid(const Print& print, Polygons
             if (hasRowHeightConflict)
                 return inst->model_instance->get_object()->name + " is too tall and cannot be printed without extruder collisions.";
         }
-        
-        
+
         return "";
     }
 }
 
+//BBS
+static std::string layered_print_cleareance_valid(const Print& print)
+{
+    std::vector<const PrintInstance*> print_instances_ordered = sort_object_instances_by_model_order(print);
+    if (print_instances_ordered.size() < 1)
+        return "";
 
+    auto print_config = print.config();
+    Pointfs excluse_area_points = print_config.bed_exclude_area.values;
+    Polygons exclude_polys;
+    Polygon exclude_poly;
+    for (int i = 0; i < excluse_area_points.size(); i++) {
+        auto pt = excluse_area_points[i];
+        exclude_poly.points.emplace_back(scale_(pt.x()), scale_(pt.y()));
+        if (i % 4 == 3) {  // exclude areas are always rectangle
+            exclude_polys.push_back(exclude_poly);
+            exclude_poly.points.clear();
+        }
+    }
+
+    std::map<const PrintInstance*, Polygon> map_model_object_to_convex_hull;
+    // sequential_print_horizontal_clearance_valid
+    Polygons convex_hulls_other;
+    for (int k = 0; k < print_instances_ordered.size(); k++)
+    {
+        auto& inst = print_instances_ordered[k];
+        auto it_convex_hull = map_model_object_to_convex_hull.find(inst);
+        // Get convex hull of all printable volumes assigned to this print object.
+        const ModelInstance* model_instance0 = inst->model_instance;
+        if (it_convex_hull == map_model_object_to_convex_hull.end()) {
+            // Calculate the convex hull of a printable object. 
+            auto convex_hull0 = inst->print_object->model_object()->convex_hull_2d(
+                Geometry::assemble_transform(Vec3d::Zero(), model_instance0->get_rotation(), model_instance0->get_scaling_factor(), model_instance0->get_mirror()));
+
+            double z_diff = Geometry::rotation_diff_z(model_instance0->get_rotation(), inst->model_instance->get_rotation());
+            if (std::abs(z_diff) > EPSILON)
+                convex_hull0.rotate(z_diff);
+
+            // instance.shift is a position of a centered object, while model object may not be centered.
+            // Conver the shift from the PrintObject's coordinates into ModelObject's coordinates by removing the centering offset.
+            convex_hull0.translate(inst->shift - inst->print_object->center_offset());
+
+            it_convex_hull = map_model_object_to_convex_hull.emplace_hint(it_convex_hull, inst, convex_hull0);
+        }
+        Polygon& convex_hull = it_convex_hull->second;
+        Polygons convex_hulls_temp;
+        convex_hulls_temp.push_back(convex_hull);
+        if (!intersection(convex_hulls_other, convex_hulls_temp).empty()) {
+            return "Object " + inst->model_instance->get_object()->name + " is too close to others; your extruder will collide with them.";
+        }
+        if (!intersection(exclude_polys, convex_hulls_temp).empty()) {
+            return "Object " + inst->model_instance->get_object()->name + " is too close to exclusion area; your extruder will collide with them.";
+        }
+        convex_hulls_other.emplace_back(convex_hull);
+    }
+
+    return "";
+}
 
 // Precondition: Print::validate() requires the Print::apply() to be called its invocation.
 std::string Print::validate(std::string* warning) const
@@ -494,6 +572,12 @@ std::string Print::validate(std::string* warning) const
     if (m_config.complete_objects) {
         std::string ret = sequential_print_clearance_valid(*this);
     	if (!ret.empty())
+            return L(ret);
+    }
+    else {
+        //BBS
+        std::string ret = layered_print_cleareance_valid(*this);
+        if (!ret.empty())
             return L(ret);
     }
 
