@@ -4538,9 +4538,10 @@ CLITransformConfigDef::CLITransformConfigDef()
     def->tooltip = L("Center the print around the given center.");
     def->set_default_value(new ConfigOptionPoint(Vec2d(100,100)));
 
-    def = this->add("dont_arrange", coBool);
-    def->label = L("Don't arrange");
-    def->tooltip = L("Do not rearrange the given models before merging and keep their original XY coordinates.");
+    def = this->add("arrange", coInt);
+    def->label = L("Arrange Options");
+    def->tooltip = L("Arrange options: 0-disable, 1-enable, others-auto");
+    def->cli = "arrange|a";
 
     def = this->add("ensure_on_bed", coBool);
     def->label = L("Ensure on bed");

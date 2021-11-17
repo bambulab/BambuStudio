@@ -2876,6 +2876,8 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
 #endif /* AUTOPLACEMENT_ON_LOAD */
         }
 
+        //BBS: remove the auto scaled_down logic when load models
+        /*
         for (size_t i = 0; i < object->instances.size(); ++i) {
             ModelInstance* instance = object->instances[i];
             const Vec3d size = object->instance_bounding_box(i).size();
@@ -2907,7 +2909,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
                     }
                 }
             }
-        }
+        }*/
     }
 
 #ifdef AUTOPLACEMENT_ON_LOAD
@@ -2928,11 +2930,12 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
 
 #endif /* AUTOPLACEMENT_ON_LOAD */
 
-    if (scaled_down) {
+    //BBS: remove the auto scaled_down logic when load models
+    /*if (scaled_down) {
         GUI::show_info(q,
             _L("Your object appears to be too large, so it was automatically scaled down to fit your print bed."),
             _L("Object too large?"));
-    }
+    }*/
 
     notification_manager->close_notification_of_type(NotificationType::UpdatedItemsInfo);
     for (const size_t idx : obj_idxs) {

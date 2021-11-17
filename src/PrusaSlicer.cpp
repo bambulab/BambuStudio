@@ -209,6 +209,7 @@ int CLI::run(int argc, char **argv)
 
     //BBS: add plate data related logic
     PlateDataPtrs plate_data;
+    int arrange_option;
     bool first_file = true, is_bbl_3mf = false, need_arrange = true;
     std::map<size_t, bool> orients_requirement;
 
@@ -486,10 +487,22 @@ int CLI::run(int argc, char **argv)
                 // this affects volumes:
                 model.translate(-(bb.min.x() - p.x()), -(bb.min.y() - p.y()), -bb.min.z());
             }
-        } else if (opt_key == "dont_arrange") {
-            // do nothing - this option alters other transform options
-            //BBS: set arrange to false
-            need_arrange = false;
+        } else if (opt_key == "arrange") {
+            //BBS: arrange 0 means disable, 1 means force arrange, others means auto
+            int arrange_option = m_config.option<ConfigOptionInt>("arrange")->value;
+
+            if (arrange_option == 0)
+            {
+                need_arrange = false;
+            }
+            else if (arrange_option == 1)
+            {
+                need_arrange = true;
+            }
+            else
+            {
+                //auto arrange, keep the original logic
+            }
         } else if (opt_key == "ensure_on_bed") {
             // do nothing, the value is used later
         } else if (opt_key == "rotate") {
