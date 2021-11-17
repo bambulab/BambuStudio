@@ -2485,6 +2485,7 @@ namespace Slic3r {
 
         if (!open_zip_writer(&archive, filename)) {
             add_error("Unable to open the file");
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to open the file\n");
             return false;
         }
 
@@ -2620,6 +2621,7 @@ namespace Slic3r {
             close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             add_error("Unable to finalize the archive");
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to finalize the archive\n");
             return false;
         }
 
@@ -2642,6 +2644,7 @@ namespace Slic3r {
 
         if (!mz_zip_writer_add_mem(&archive, CONTENT_TYPES_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
             add_error("Unable to add content types file to archive");
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add content types file to archive\n");
             return false;
         }
 
@@ -2660,8 +2663,10 @@ namespace Slic3r {
             mz_free(png_data);
         }
 
-        if (!res)
+        if (!res) {
             add_error("Unable to add thumbnail file to archive");
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add thumbnail file to archive\n");
+        }
 
         return res;
     }
@@ -2679,6 +2684,7 @@ namespace Slic3r {
 
         if (!mz_zip_writer_add_mem(&archive, RELATIONSHIPS_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
             add_error("Unable to add relationships file to archive");
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add relationships file to archive\n");
             return false;
         }
 
@@ -2709,6 +2715,7 @@ namespace Slic3r {
                 (uint64_t(1) << 32) - 1,
             nullptr, nullptr, 0, MZ_DEFAULT_COMPRESSION, nullptr, 0, nullptr, 0)) {
             add_error("Unable to add model file to archive");
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add model file to archive\n");
             return false;
         }
 
@@ -2745,6 +2752,7 @@ namespace Slic3r {
             std::string buf = stream.str();
             if (! buf.empty() && ! mz_zip_writer_add_staged_data(&context, buf.data(), buf.size())) {
                 add_error("Unable to add model file to archive");
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add model file to archive\n");
                 return false;
             }
         }
@@ -2768,6 +2776,7 @@ namespace Slic3r {
             // object_id will be increased to point to the 1st instance of the next ModelObject.
             if (!_add_object_to_model_stream(context, object_id, *obj, build_items, object_it->second.volumes_offsets)) {
                 add_error("Unable to add object to archive");
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add object to archive\n");
                 mz_zip_writer_add_staged_finish(&context);
                 return false;
             }
@@ -2781,6 +2790,7 @@ namespace Slic3r {
             // Store the transformations of all the ModelInstances of all ModelObjects, indexed in a linear fashion.
             if (!_add_build_to_model_stream(stream, build_items)) {
                 add_error("Unable to add build to archive");
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add build to archive\n");
                 mz_zip_writer_add_staged_finish(&context);
                 return false;
             }
@@ -2792,6 +2802,7 @@ namespace Slic3r {
             if ((! buf.empty() && ! mz_zip_writer_add_staged_data(&context, buf.data(), buf.size())) ||
                 ! mz_zip_writer_add_staged_finish(&context)) {
                 add_error("Unable to add model file to archive");
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add model file to archive\n");
                 return false;
             }
         }
@@ -2818,6 +2829,7 @@ namespace Slic3r {
                 if ((! buf.empty() && ! mz_zip_writer_add_staged_data(&context, buf.data(), buf.size())) ||
                     ! _add_mesh_to_object_stream(context, object, volumes_offsets)) {
                     add_error("Unable to add mesh to archive");
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add mesh to archive\n");
                     return false;
                 }
             }
@@ -2875,6 +2887,7 @@ namespace Slic3r {
             if ((force && ! output_buffer.empty()) || output_buffer.size() >= 65536 * 16) {
                 if (! mz_zip_writer_add_staged_data(&context, output_buffer.data(), output_buffer.size())) {
                     add_error("Error during writing or compression");
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Error during writing or compression\n");
                     return false;
                 }
                 output_buffer.clear();
@@ -2926,6 +2939,7 @@ namespace Slic3r {
             const indexed_triangle_set &its = volume->mesh().its;
             if (its.vertices.empty()) {
                 add_error("Found invalid mesh");
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Found invalid mesh\n");
                 return false;
             }
 
@@ -3036,6 +3050,7 @@ namespace Slic3r {
         // This happens for empty projects
         if (build_items.size() == 0) {
             add_error("No build item found");
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format("No build item found\n");
             return true;
         }
 
@@ -3085,6 +3100,7 @@ namespace Slic3r {
         if (!out.empty()) {
             if (!mz_zip_writer_add_mem(&archive, LAYER_HEIGHTS_PROFILE_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
                 add_error("Unable to add layer heights profile file to archive");
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format("Unable to add layer heights profile file to archive\n");
                 return false;
             }
         }
@@ -3143,6 +3159,7 @@ namespace Slic3r {
         if (!out.empty()) {
             if (!mz_zip_writer_add_mem(&archive, LAYER_CONFIG_RANGES_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
                 add_error("Unable to add layer heights profile file to archive");
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format("Unable to add layer heights profile file to archive\n");
                 return false;
             }
         }
@@ -3179,6 +3196,7 @@ namespace Slic3r {
 
             if (!mz_zip_writer_add_mem(&archive, SLA_SUPPORT_POINTS_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
                 add_error("Unable to add sla support points file to archive");
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format("Unable to add sla support points file to archive\n");
                 return false;
             }
         }
@@ -3230,6 +3248,7 @@ namespace Slic3r {
             
             if (!mz_zip_writer_add_mem(&archive, SLA_DRAIN_HOLES_FILE.c_str(), static_cast<const void*>(out.data()), out.length(), mz_uint(MZ_DEFAULT_COMPRESSION))) {
                 add_error("Unable to add sla support points file to archive");
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format("Unable to add sla support points file to archive\n");
                 return false;
             }
         }
@@ -3250,6 +3269,7 @@ namespace Slic3r {
         if (!out.empty()) {
             if (!mz_zip_writer_add_mem(&archive, BBS_PRINT_CONFIG_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
                 add_error("Unable to add print config file to archive");
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format("Unable to add print config file to archive\n");
                 return false;
             }
         }
@@ -3434,6 +3454,7 @@ namespace Slic3r {
         std::string out = stream.str();
 
         if (!mz_zip_writer_add_mem(&archive, BBS_MODEL_CONFIG_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format("Unable to add model config file to archive\n");
             add_error("Unable to add model config file to archive");
             return false;
         }
@@ -3470,6 +3491,7 @@ namespace Slic3r {
 
         if (!mz_zip_writer_add_mem(&archive, SLICE_INFO_CONFIG_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
             add_error("Unable to add model config file to archive");
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", store  slice-info to 3mf,  length %1%, failed\n") % out.length();
             return false;
         }
 
@@ -3486,6 +3508,7 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
             std::string src_gcode_file = encode_path(plate_data->gcode_file.c_str());
             std::string gcode_in_3mf = (boost::format(GCODE_FILE_FORMAT) % (i + 1)).str();
             result = result & mz_zip_writer_add_file(&archive, gcode_in_3mf.c_str(), src_gcode_file.c_str(), "", 0, MZ_DEFAULT_COMPRESSION);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", store  %1% to 3mf %2%, result %3%\n") % src_gcode_file % gcode_in_3mf % result;
         }
 
     }
@@ -3537,6 +3560,7 @@ bool _BBS_3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_ar
     if (!out.empty()) {
         if (!mz_zip_writer_add_mem(&archive, CUSTOM_GCODE_PER_PRINT_Z_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
             add_error("Unable to add custom Gcodes per print_z file to archive");
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add custom Gcodes per print_z file to archive\n");
             return false;
         }
     }
@@ -3577,7 +3601,7 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive& archive, c
                     std::string dest_zip_file = encode_path(dst_in_3mf.c_str());
                     std::string src_zip_file = encode_path(src_file.c_str());
                     result = result & mz_zip_writer_add_file(&archive, dest_zip_file.c_str(), src_zip_file.c_str(), "", 0, MZ_DEFAULT_COMPRESSION);
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", store  %1% to 3mf %2%, result %3%\n") % src_file % dst_in_3mf % result;
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", store  %1% to 3mf %2%, result %3%\n") % src_file % dst_in_3mf % result;
                 }
             }
         }
@@ -3589,7 +3613,7 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive& archive, c
             std::string dest_zip_file = encode_path(dst_in_3mf.c_str());
             std::string src_zip_file = encode_path(src_file.c_str());
             result = result & mz_zip_writer_add_file(&archive, dest_zip_file.c_str(), src_zip_file.c_str(), "", 0, MZ_DEFAULT_COMPRESSION);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", store  %1% to 3mf %2%, result %3%\n") % src_file % dst_in_3mf % result;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", store  %1% to 3mf %2%, result %3%\n") % src_file % dst_in_3mf % result;
         }
     }
 
