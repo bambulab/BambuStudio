@@ -1605,7 +1605,8 @@ void GLCanvas3D::render()
 
     /* view3D render*/
     if (m_canvas_type == ECanvasType::CanvasView3D) {
-        _render_objects(GLVolumeCollection::ERenderType::Opaque);
+        //BBS: add outline logic
+        _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
         _render_sla_slices();
         _render_selection();
         _render_bed(!camera.is_looking_downward(), show_axes);
@@ -1614,7 +1615,8 @@ void GLCanvas3D::render()
     }
     /* preview render */
     else if (m_canvas_type == ECanvasType::CanvasPreview) {
-        _render_objects(GLVolumeCollection::ERenderType::Opaque);
+        //BBS: add outline logic
+        _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
         //BBS: GUI refactor: add canvas size as parameters
         _render_gcode(cnv_size.get_width(), cnv_size.get_height());
         _render_sla_slices();
@@ -1624,10 +1626,12 @@ void GLCanvas3D::render()
     }
     /* assemble render*/
     else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
-        _render_objects(GLVolumeCollection::ERenderType::Opaque);
+        //BBS: add outline logic
+        _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
         _render_bed(!camera.is_looking_downward(), show_axes);
         _render_plane();
-        _render_selection();
+        //BBS: add outline logic insteadof selection under assemble view
+        //_render_selection();
     }
 
     _render_sequential_clearance();
@@ -4688,7 +4692,7 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const
     auto is_visible = [plate_idx, bb](const GLVolume& v) {
         bool ret = v.printable;
         if (plate_idx >= 0) {
-            ret &= bb.contains(v.transformed_bounding_box());
+            ret &= bb.intersects(v.transformed_bounding_box());
         }
         else {
             ret &= (!v.shader_outside_printer_detection_enabled || !v.is_outside);
@@ -6354,7 +6358,8 @@ void GLCanvas3D::_render_plane() const
     ;//TODO render assemble plane
 }
 
-void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
+//BBS: add outline drawing logic
+void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with_outline)
 {
     if (m_volumes.empty())
         return;
@@ -6426,7 +6431,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
                     else {
                         return volume.is_active && (volume.is_modifier || volume.composite_id.object_id != object_id);
                     }
-                    });
+                    }, with_outline);
                 // Let LayersEditing handle rendering of the active object using the layer height profile shader.
                 m_layers_editing.render_volumes(*this, m_volumes);
             }
@@ -6440,7 +6445,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
                     else {
                         return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
                     }
-                    });
+                    }, with_outline);
             }
 
             // In case a painting gizmo is open, it should render the painted triangles
@@ -6467,7 +6472,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
                 else {
                     return true;
                 }
-                });
+                }, with_outline);
             break;
         }
         }

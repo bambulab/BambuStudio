@@ -1008,7 +1008,8 @@ private:
     //BBS: add part plate related logic
     void _render_platelist(bool bottom, bool only_current, bool only_body = false) const;
     void _render_plates_for_picking() const;
-    void _render_objects(GLVolumeCollection::ERenderType type);
+    //BBS: add outline drawing logic
+    void _render_objects(GLVolumeCollection::ERenderType type, bool with_outline = true);
     //BBS: GUI refactor: add canvas size as parameters
     void _render_gcode(int canvas_width, int canvas_height);
     //BBS: render a plane for assemble

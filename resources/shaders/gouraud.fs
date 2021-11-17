@@ -29,6 +29,9 @@ struct SlopeDetection
 uniform vec4 uniform_color;
 uniform SlopeDetection slope;
 
+//BBS: add outline_color
+uniform bool is_outline;
+
 uniform bool offset_depth_buffer;
 
 #ifdef ENABLE_ENVIRONMENT_MAP
@@ -76,11 +79,13 @@ void main()
 		pv_check_max = vec3(0.0, 0.0, world_pos.z - print_volume.z_data.y);
 	}	
 	color = (any(lessThan(pv_check_min, ZERO)) || any(greaterThan(pv_check_max, ZERO))) ? mix(color, ZERO, 0.3333) : color;
-	
+	//BBS: add outline_color
+	if (is_outline)
+		gl_FragColor = uniform_color;
 #ifdef ENABLE_ENVIRONMENT_MAP
-    if (use_environment_tex)
+  else if (use_environment_tex)
         gl_FragColor = vec4(0.45 * texture2D(environment_tex, normalize(eye_normal).xy * 0.5 + 0.5).xyz + 0.8 * color * intensity.x, alpha);
-    else
+  else
 #endif
         gl_FragColor = vec4(vec3(intensity.y) + color * intensity.x, alpha);
 		

@@ -491,6 +491,23 @@ Transform3d GLVolume::world_matrix() const
     return m;
 }
 
+//BBS: scaled_matrix
+Transform3d GLVolume::world_matrix( float scale_factor) const
+{
+    const Vec3d& volume_translation = m_volume_transformation.get_offset();
+    Vec3d scaling_factor = { scale_factor, scale_factor, scale_factor };
+    Transform3d volume_matrix = Geometry::assemble_transform(
+        volume_translation,
+        Vec3d::Zero(),
+        scaling_factor,
+        Vec3d::Ones()
+    );
+    Transform3d m = m_instance_transformation.get_matrix() * volume_matrix;
+
+    //m.translation()(2) += m_sla_shift_z;
+    return m;
+}
+
 bool GLVolume::is_left_handed() const
 {
     const Vec3d &m1 = m_instance_transformation.get_mirror();
@@ -575,7 +592,9 @@ void GLVolume::set_range(double min_z, double max_z)
     }
 }
 
-void GLVolume::render() const
+//BBS: add outline related logic
+//static unsigned char stencil_data[1284][2944];
+void GLVolume::render(bool with_outline) const
 {
     if (!is_active)
         return;
@@ -584,10 +603,145 @@ void GLVolume::render() const
         glFrontFace(GL_CW);
     glsafe(::glCullFace(GL_BACK));
     glsafe(::glPushMatrix());
-    glsafe(::glMultMatrixd(world_matrix().data()));
 
-    this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
+    //BBS: add logic of outline rendering
+    if (with_outline)
+    {
+        GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
 
+        //first draw the stencil buffer
+        if (shader)
+        {
+            do
+            {
+                glEnable(GL_STENCIL_TEST);
+                glStencilMask(0xFF);
+                glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+                glClear(GL_STENCIL_BUFFER_BIT);
+                glStencilFunc(GL_ALWAYS, 0xff, 0xFF);
+                //another way use depth buffer
+                //glsafe(::glEnable(GL_DEPTH_TEST));
+                //glsafe(::glDepthFunc(GL_ALWAYS));
+                //glsafe(::glDepthMask(GL_FALSE));
+                //glsafe(::glEnable(GL_BLEND));
+                //glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
+                /*GLShaderProgram* outline_shader = GUI::wxGetApp().get_shader("outline");
+                if (outline_shader == nullptr)
+                {
+                    glDisable(GL_STENCIL_TEST);
+                    this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
+                    break;
+                }
+                shader->stop_using();
+                outline_shader->start_using();
+                //float scale_ratio = 1.02f;
+                std::array<float, 4> outline_color = { 0.0f, 1.0f, 0.0f, 1.0f };
+
+                outline_shader->set_uniform("uniform_color", outline_color);*/
+#if 0 //dump stencil buffer
+                int i=100, j=100;
+                std::string file_name;
+                FILE* file = NULL;
+                memset(stencil_data, 0, sizeof(stencil_data));
+                glReadPixels(0, 0, 2936, 1083, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, stencil_data);
+                for (i = 100; i < 1083; i++)
+                {
+                    for (j = 100; j < 2936; j++)
+                    {
+                        if (stencil_data[i][j] != 0)
+                        {
+                            file_name = "before_stencil_index_" + std::to_string(i) + "x" + std::to_string(j) + ".a8";
+                            break;
+                        }
+                    }
+
+                    if (stencil_data[i][j] != 0)
+                        break;
+                }
+                file = fopen(file_name.c_str(), "w");
+                if (file)
+                {
+                    fwrite(stencil_data, 2936 * 1083, 1, file);
+                    fclose(file);
+                }
+#endif
+                Transform3d matrix = world_matrix();
+                glsafe(::glMultMatrixd(matrix.data()));
+                this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
+
+#if 0 //dump stencil buffer after first rendering
+                memset(stencil_data, 0, sizeof(stencil_data));
+                glReadPixels(0, 0, 2936, 1083, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, stencil_data);
+                for (i = 100; i < 1083; i++)
+                {
+                    for (j = 100; j < 2936; j++)
+                        if (stencil_data[i][j] != 0)
+                        {
+                            file_name = "after_stencil_index_" + std::to_string(i) + "x" + std::to_string(j) + ".a8";
+                            break;
+                        }
+
+                    if (stencil_data[i][j] != 0)
+                        break;
+                }
+
+                file = fopen(file_name.c_str(), "w");
+                if (file)
+                {
+                    fwrite(stencil_data, 2936 * 1083, 1, file);
+                    fclose(file);
+                }
+#endif
+                // 2nd. render pass: now draw slightly scaled versions of the objects, this time disabling stencil writing.
+                // Because the stencil buffer is now filled with several 1s. The parts of the buffer that are 1 are not drawn, thus only drawing 
+                // the objects' size differences, making it look like borders.
+                // -----------------------------------------------------------------------------------------------------------------------------
+                /*GLShaderProgram* outline_shader = GUI::wxGetApp().get_shader("outline");
+                if (outline_shader == nullptr)
+                {
+                    glDisable(GL_STENCIL_TEST);
+                    break;
+                }
+                shader->stop_using();
+                outline_shader->start_using();*/
+                //outline_shader->stop_using();
+                //shader->start_using();
+
+                glStencilFunc(GL_NOTEQUAL, 0xff, 0xFF);
+                glStencilMask(0x00);
+                float scale = 1.02f;
+                std::array<float, 4> body_color = { 1.0f, 1.0f, 1.0f, 1.0f }; //red
+
+                shader->set_uniform("uniform_color", body_color);
+                shader->set_uniform("is_outline", true);
+                glsafe(::glPopMatrix());
+                glsafe(::glPushMatrix());
+
+                matrix = world_matrix(scale);
+                glsafe(::glMultMatrixd(matrix.data()));
+                this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
+                shader->set_uniform("is_outline", false);
+
+                //glStencilMask(0xFF);
+                //glStencilFunc(GL_ALWAYS, 0, 0xFF);
+                glDisable(GL_STENCIL_TEST);
+                //glEnable(GL_DEPTH_TEST);
+                //outline_shader->stop_using();
+                //shader->start_using();
+            } while (0);
+        }
+        else
+        {
+            glsafe(::glMultMatrixd(world_matrix().data()));
+            this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
+        }
+    }
+    else
+    {
+        glsafe(::glMultMatrixd(world_matrix().data()));
+        this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
+    }
     glsafe(::glPopMatrix());
     if (this->is_left_handed())
         glFrontFace(GL_CCW);
@@ -835,7 +989,8 @@ GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCo
     return list;
 }
 
-void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func) const
+//BBS: add outline drawing logic
+void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func, bool with_outline) const
 {
     GLVolumeWithIdAndZList to_render = volumes_to_render(volumes, type, view_matrix, filter_func);
     if (to_render.empty())
@@ -903,7 +1058,8 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
 #endif // ENABLE_ENVIRONMENT_MAP
         glcheck();
 
-        volume.first->render();
+        //BBS: add outline related logic
+        volume.first->render( with_outline && volume.first->selected );
 
 #if ENABLE_ENVIRONMENT_MAP
         if (use_environment_texture)

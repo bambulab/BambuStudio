@@ -63,6 +63,9 @@ std::pair<bool, std::string> GLShadersManager::init()
     else
         valid &= append_shader("mm_gouraud", {"mm_gouraud.vs", "mm_gouraud.fs"});
 
+    //BBS: add shader for outline
+    valid &= append_shader("outline", { "outline.vs", "outline.fs" });
+
     return { valid, error };
 }
 

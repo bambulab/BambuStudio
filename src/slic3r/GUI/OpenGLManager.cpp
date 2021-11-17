@@ -297,19 +297,21 @@ wxGLContext* OpenGLManager::init_glcontext(wxGLCanvas& canvas)
 wxGLCanvas* OpenGLManager::create_wxglcanvas(wxWindow& parent)
 {
     int attribList[] = { 
-    	WX_GL_RGBA,
-    	WX_GL_DOUBLEBUFFER,
-    	// RGB channels each should be allocated with 8 bit depth. One should almost certainly get these bit depths by default.
-      	WX_GL_MIN_RED, 			8,
-      	WX_GL_MIN_GREEN, 		8,
-      	WX_GL_MIN_BLUE, 		8,
-      	// Requesting an 8 bit alpha channel. Interestingly, the NVIDIA drivers would most likely work with some alpha plane, but glReadPixels would not return
-      	// the alpha channel on NVIDIA if not requested when the GL context is created.
-      	WX_GL_MIN_ALPHA, 		8,
-    	WX_GL_DEPTH_SIZE, 		24,
-    	WX_GL_SAMPLE_BUFFERS, 	GL_TRUE,
-    	WX_GL_SAMPLES, 			4,
-    	0
+        WX_GL_RGBA,
+        WX_GL_DOUBLEBUFFER,
+        // RGB channels each should be allocated with 8 bit depth. One should almost certainly get these bit depths by default.
+        WX_GL_MIN_RED, 			8,
+        WX_GL_MIN_GREEN, 		8,
+        WX_GL_MIN_BLUE, 		8,
+        // Requesting an 8 bit alpha channel. Interestingly, the NVIDIA drivers would most likely work with some alpha plane, but glReadPixels would not return
+        // the alpha channel on NVIDIA if not requested when the GL context is created.
+        WX_GL_MIN_ALPHA, 		8,
+        WX_GL_DEPTH_SIZE, 		24,
+        //BBS: turn on stencil buffer for outline
+        WX_GL_STENCIL_SIZE,     8,
+        WX_GL_SAMPLE_BUFFERS, 	GL_TRUE,
+        WX_GL_SAMPLES, 			4,
+        0
     };
 
     if (s_multisample == EMultisampleState::Unknown) {

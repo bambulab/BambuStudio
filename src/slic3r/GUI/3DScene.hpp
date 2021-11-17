@@ -476,6 +476,9 @@ public:
     Transform3d         world_matrix() const;
     bool                is_left_handed() const;
 
+    //BBS: world_matrix with scale factor
+    Transform3d         world_matrix(float scale_factor) const;
+
     const BoundingBoxf3& transformed_bounding_box() const;
     // non-caching variant
     BoundingBoxf3        transformed_convex_hull_bounding_box(const Transform3d &trafo) const;
@@ -492,7 +495,8 @@ public:
 
     void                set_range(double low, double high);
 
-    void                render() const;
+    //BBS: add outline related logic
+    void                render(bool with_outline = false) const;
 
     void                finalize_geometry(bool opengl_initialized) { this->indexed_vertex_array.finalize_geometry(opengl_initialized); }
     void                release_geometry() { this->indexed_vertex_array.release_geometry(); }
@@ -612,7 +616,8 @@ public:
     GLVolume* new_nontoolpath_volume(const std::array<float, 4>& rgba, size_t reserve_vbo_floats = 0);
 
     // Render the volumes by OpenGL.
-    void render(ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func = std::function<bool(const GLVolume&)>()) const;
+    //BBS: add outline drawing logic
+    void render(ERenderType type, bool disable_cullface, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func = std::function<bool(const GLVolume&)>(), bool with_outline = true) const;
 
     // Finalize the initialization of the geometry & indices,
     // upload the geometry and indices to OpenGL VBO objects
