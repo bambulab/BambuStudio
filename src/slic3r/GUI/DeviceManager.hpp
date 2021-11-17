@@ -168,7 +168,7 @@ public:
     /* printing */
     int     mc_print_stage;
     int     mc_print_error_code;
-    int     mc_print_line_bumber;
+    int     mc_print_line_number;
 
     /* mqtt connections */
     CONNECTION_TYPE conn_type;

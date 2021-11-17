@@ -179,7 +179,7 @@ MachineObject::MachineObject(AccountManager& acc, std::string name, std::string 
     /* printing */
     mc_print_stage = 0;
     mc_print_error_code = 0;
-    mc_print_line_bumber = 0;
+    mc_print_line_number = 0;
 }
 
 bool MachineObject::check_valid_ip()
@@ -537,8 +537,8 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 /* cooling */
                 boost::optional<int> cooling_fan_speed_str      = print.get_optional<int>("cooling_fan_speed");
                 boost::optional<int> big_fan1_speed_str         = print.get_optional<int>("big_fan1_speed");
-                boost::optional<int> big_fan2_speed_str         = print.get_optional<int>("big_fan2_speed_str");
-                boost::optional<int> heatbreak_fan_speed_str    = print.get_optional<int>("heatbreak_fan_speed_str");
+                boost::optional<int> big_fan2_speed_str         = print.get_optional<int>("big_fan2_speed");
+                boost::optional<int> heatbreak_fan_speed_str    = print.get_optional<int>("heatbreak_fan_speed");
                 if (cooling_fan_speed_str.has_value()) {
                     cooling_fan_speed = cooling_fan_speed_str.value();
                 }
@@ -559,15 +559,15 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 /* printing */
                 boost::optional<int> mc_print_stage_str        = print.get_optional<int>("mc_print_stage");
                 boost::optional<int> mc_print_error_code_str   = print.get_optional<int>("mc_print_error_code");
-                boost::optional<int> mc_print_line_bumber_str  = print.get_optional<int>("mc_print_line_bumber");
+                boost::optional<int> mc_print_line_number_str  = print.get_optional<int>("mc_print_line_number");
                 if (mc_print_stage_str.has_value()) {
                     mc_print_stage = mc_print_stage_str.value();
                 }
                 if (mc_print_error_code_str.has_value()) {
                     mc_print_error_code = mc_print_error_code_str.value();
                 }
-                if (mc_print_line_bumber_str.has_value()) {
-                    mc_print_line_bumber = mc_print_line_bumber_str.value();
+                if (mc_print_line_number_str.has_value()) {
+                    mc_print_line_number = mc_print_line_number_str.value();
                 }
 
                 /* positions */

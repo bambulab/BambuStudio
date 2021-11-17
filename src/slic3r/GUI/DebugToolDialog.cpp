@@ -1728,7 +1728,7 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
     wxString print_err_code_text = wxString::Format("%d", obj->mc_print_error_code);
     m_staticText_mc_print_error_code->SetLabelText(print_err_code_text);
 
-    wxString gcode_line_text = wxString::Format("%d", obj->mc_print_line_bumber);
+    wxString gcode_line_text = wxString::Format("%d", obj->mc_print_line_number);
     m_staticText_mc_print_line_number->SetLabelText(gcode_line_text);
 
 

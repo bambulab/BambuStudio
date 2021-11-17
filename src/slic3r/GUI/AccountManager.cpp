@@ -1342,7 +1342,7 @@ namespace Slic3r {
         std::string url = (boost::format("%1%/iot/user/project/%2%%3%") % host % profile->project_id % query_params).str();
         
         int retry_ = 0;
-        int retry_max = 5;
+        int retry_max = POLL_3MF_TIMEOUT;
         
         Http http = Http::get(url);
         http.header("accept", "application/json")
@@ -1400,7 +1400,7 @@ namespace Slic3r {
         if (!project || project->project_id.empty()) return -1;
 
         int retry_ = 0;
-        int retry_max = 5;
+        int retry_max = POLL_3MF_TIMEOUT;
 
         std::string gather = json_request_poll_3mf_gather_model_only();
         gather = boost::replace_all_copy(gather, "\"true\"", "true");
@@ -1488,7 +1488,7 @@ namespace Slic3r {
         BBLProject* project = profile->project_;
 
         int retry_ = 0;
-        int retry_max = 5;
+        int retry_max = POLL_3MF_TIMEOUT;
         
         Http http = Http::get(url);
         http.header("accept", "application/json")

@@ -18,6 +18,8 @@
 #define MY_PROJECT_LIST_URL             "https://portal-dev.bambu-lab.com/my/projects"
 #define MODEL_STORE_URL                 "https://portal-dev.bambu-lab.com/designs"
 
+#define POLL_3MF_TIMEOUT    60
+
 namespace Slic3r {
 
 typedef std::function<void(std::string name)> SuccessFn;
