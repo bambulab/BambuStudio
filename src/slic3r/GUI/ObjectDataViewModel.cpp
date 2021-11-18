@@ -517,7 +517,7 @@ wxDataViewItem ObjectDataViewModel::AddVolumeChild( const wxDataViewItem &parent
     wxString extruder_str = extruder == 0 ? _(L("default")) : wxString::Format("%d", extruder);
 
     const auto node = new ObjectDataViewModelNode(root, name, volume_type, GetVolumeIcon(volume_type, warning_icon_name),
-        volume_type == Slic3r::ModelVolumeType::MODEL_PART ? root->m_extruder : extruder_str, root->m_volumes_cnt, warning_icon_name);
+        extruder == 0 ? root->m_extruder : extruder_str, root->m_volumes_cnt, warning_icon_name);
     insert_position < 0 ? root->Append(node) : root->Insert(node, insert_position);
 
     // if part with errors is added, but object wasn't marked, then mark it
