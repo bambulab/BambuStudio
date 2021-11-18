@@ -511,6 +511,47 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1));
 
+    //BBS
+    def = this->add("overhang_1_4_speed", coFloat);
+    def->label = L("(0%, 25%)");
+    def->category = L("Speed");
+    def->full_label = L("(0%, 25%) overhang speed");
+    def->tooltip = L("Speed for (0%, 25%) overhang wall. 0 means using original wall speed.");
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+    //BBS
+    def = this->add("overhang_2_4_speed", coFloat);
+    def->label = L("[25%, 50%)");
+    def->category = L("Speed");
+    def->full_label = L("[25%, 50%) overhang speed");
+    def->tooltip = L("Speed for [25%, 50%) overhang wall. 0 means using original wall speed.");
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+    //BBS
+    def = this->add("overhang_3_4_speed", coFloat);
+    def->label = L("[50%, 75%)");
+    def->category = L("Speed");
+    def->full_label = L("[50%, 75%) overhang speed");
+    def->tooltip = L("Speed for [50%, 75%) overhang wall. 0 means using original wall speed.");
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+    //BBS
+    def = this->add("overhang_4_4_speed", coFloat);
+    def->label = L("[75%, 100%)");
+    def->category = L("Speed");
+    def->full_label = L("[75%, 100%) overhang speed");
+    def->tooltip = L("Speed for [75%, 100%) overhang wall. 0 means using original wall speed.");
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
     def = this->add("bridge_speed", coFloat);
     def->label = L("Bridges");
     def->category = L("Speed");
@@ -1268,7 +1309,7 @@ void PrintConfigDef::init_fff_params()
                    "to disable acceleration control for first layer of object above raft interface.");
     def->sidetext = L("mm/s²");
     def->min = 0;
-    def->mode = comExpert;
+    def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("first_layer_bed_temperature", coInts);
@@ -3409,14 +3450,6 @@ void PrintConfigDef::init_fff_params()
         default: assert(false);
         }
     }
-
-    def = this->add("auto_slow_down_for_overhang_and_curva", coBool);
-    def->label = L("Auto slow down for overhang and curva");
-    def->category = L("Speed");
-    def->tooltip = L("Auto slow down the print speed of perimeters arrording to the degree of overhang and curva");
-    //BBS
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("detect_narrow_internal_solid_infill", coBool);
     def->label = L("Detect narrow internal solid infill");

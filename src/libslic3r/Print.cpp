@@ -229,9 +229,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
                opt_key == "first_layer_extrusion_width" 
             || opt_key == "min_layer_height"
             || opt_key == "max_layer_height"
-            || opt_key == "gcode_resolution"
-            //BBS: must re-generated perimeter when enable/disable auto-slow-down
-            || opt_key == "auto_slow_down_for_overhang_and_curva") {
+            || opt_key == "gcode_resolution") {
             osteps.emplace_back(posPerimeters);
             osteps.emplace_back(posInfill);
             osteps.emplace_back(posSupportMaterial);

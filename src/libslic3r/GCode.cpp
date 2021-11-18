@@ -3172,6 +3172,14 @@ void GCode::GCodeOutputStream::write_format(const char* format, ...)
     va_end(args);
 }
 
+static std::map<int, std::string> overhang_speed_key_map =
+{
+    {1, "overhang_1_4_speed"},
+    {2, "overhang_2_4_speed"},
+    {3, "overhang_3_4_speed"},
+    {4, "overhang_4_4_speed"},
+};
+
 std::string GCode::_extrude(const ExtrusionPath &path, std::string description, double speed)
 {
     std::string gcode;
@@ -3222,14 +3230,19 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     double min_speed = double(m_config.min_print_speed.get_at(m_writer.extruder()->id()));
     // set speed
     if (speed == -1) {
+        int overhang_degree = path.get_overhang_degree();
         if (path.role() == erPerimeter) {
             speed = m_config.get_abs_value("perimeter_speed");
-            if (m_config.auto_slow_down_for_overhang_and_curva)
-                speed = m_speed_generator.calculate_speed(path, speed, min_speed);
+            if (overhang_degree > 0 && overhang_degree <= 4) {
+                double new_speed = m_config.get_abs_value(overhang_speed_key_map[overhang_degree].c_str());
+                speed = new_speed == 0.0 ? speed : new_speed;
+            }
         } else if (path.role() == erExternalPerimeter) {
             speed = m_config.get_abs_value("external_perimeter_speed");
-            if (m_config.auto_slow_down_for_overhang_and_curva)
-                speed = m_speed_generator.calculate_speed(path, speed, min_speed);
+            if (overhang_degree > 0 && overhang_degree <= 4) {
+                double new_speed = m_config.get_abs_value(overhang_speed_key_map[overhang_degree].c_str());
+                speed = new_speed == 0.0 ? speed : new_speed;
+            }
         } else if (path.role() == erOverhangPerimeter || path.role() == erBridgeInfill) {
             speed = m_config.get_abs_value("bridge_speed");
         } else if (path.role() == erInternalInfill) {

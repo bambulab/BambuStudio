@@ -1078,29 +1078,8 @@ static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print
     }
 
     ExtrusionRole role = is_interface ? erSupportMaterialInterface : erSupportMaterial;
-    if (print.config().auto_slow_down_for_overhang_and_curva) {
-        CurveAnalyzer curve_analyzer;
-        for (size_t i = 0; i < loops.size(); i++) {
-            // BBS: check polygon valid
-            if (!loops[i].is_valid())
-                continue;
-            // BBS: calculate curvatures for the loop of polygon and generate ExtrusionPaths
-            // by order which has different curve degree.
-            ExtrusionPaths paths;
-            ExtrusionPath path(0, 0, role, flow.mm3_per_mm(), flow.width(), flow.height());
-            path.polyline = loops[i].split_at_first_point();
-            paths.emplace_back(std::move(path));
-            // BBS: use absolute mode for tree support because we don't care about the surface quality of support
-            curve_analyzer.calculate_curvatures(paths, ECurveAnalyseMode::AbsoluteMode);
-            // BBS: save result
-            dst.reserve(dst.size() + 1);
-            dst.emplace_back(new ExtrusionLoop(std::move(paths)));
-            paths.clear();
-        }
-    } else {
-        extrusion_entities_append_loops(dst, std::move(loops), role,
-            float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
-    }
+    extrusion_entities_append_loops(dst, std::move(loops), role,
+        float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
 }
 
 static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& print, const ExPolygon& support_area, size_t wall_count, const Flow& flow, ExtrusionRole role, Fill* filler_support, double support_density)
@@ -1164,31 +1143,8 @@ static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& pr
             expoly_list.erase(first_iter);
         }
 
-
-        if (print.config().auto_slow_down_for_overhang_and_curva) {
-            CurveAnalyzer curve_analyzer;
-            for (size_t i = 0; i < loops.size(); i++) {
-                // BBS: check polygon valid
-                if (!loops[i].is_valid())
-                    continue;
-                // BBS: calculate curvatures for the loop of polygon and generate ExtrusionPaths
-                // by order which has different curve degree.
-                ExtrusionPaths paths;
-                ExtrusionPath path(0, 0, role, flow.mm3_per_mm(), flow.width(), flow.height());
-                path.polyline = loops[i].split_at_first_point();
-                paths.emplace_back(std::move(path));
-                // BBS: use absolute mode for tree support because we don't care about the surface quality of support
-                curve_analyzer.calculate_curvatures(paths, ECurveAnalyseMode::AbsoluteMode);
-                // BBS: save result
-                dst.reserve(dst.size() + 1);
-                dst.emplace_back(new ExtrusionLoop(std::move(paths)));
-                paths.clear();
-            }
-        }
-        else {
-            extrusion_entities_append_loops(dst, std::move(loops), role,
-                float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
-        }
+        extrusion_entities_append_loops(dst, std::move(loops), role,
+            float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
     }
 
     // sort regions to reduce travel

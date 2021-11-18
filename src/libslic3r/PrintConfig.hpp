@@ -599,6 +599,11 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                top_solid_min_thickness))
     ((ConfigOptionFloatOrPercent,       top_solid_infill_speed))
     ((ConfigOptionBool,                 wipe_into_infill))
+    //BBS
+    ((ConfigOptionFloat,                overhang_1_4_speed))
+    ((ConfigOptionFloat,                overhang_2_4_speed))
+    ((ConfigOptionFloat,                overhang_3_4_speed))
+    ((ConfigOptionFloat,                overhang_4_4_speed))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(
@@ -805,7 +810,6 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloats,             wiping_volumes_matrix))
     ((ConfigOptionFloats,             wiping_volumes_extruders))
     ((ConfigOptionFloat,              z_offset))
-    ((ConfigOptionBool,               auto_slow_down_for_overhang_and_curva))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Full.

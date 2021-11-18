@@ -1744,6 +1744,15 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_material_speed");
         optgroup->append_single_option_line("support_material_interface_speed");
         optgroup->append_single_option_line("support_transition_speed");
+
+        //BBS
+        line = { L("Overhang"), "" };
+        line.append_option(optgroup->get_option("overhang_1_4_speed"));
+        line.append_option(optgroup->get_option("overhang_2_4_speed"));
+        line.append_option(optgroup->get_option("overhang_3_4_speed"));
+        line.append_option(optgroup->get_option("overhang_4_4_speed"));
+        optgroup->append_line(line);
+
         optgroup->append_single_option_line("bridge_speed");
         optgroup->append_single_option_line("gap_fill_speed");
         optgroup->append_single_option_line("ironing_speed");
@@ -1767,8 +1776,6 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Autospeed (advanced)"));
         optgroup->append_single_option_line("max_print_speed", "max-volumetric-speed_127176");
         optgroup->append_single_option_line("max_volumetric_speed", "max-volumetric-speed_127176");
-        // BBS: new option
-        optgroup->append_single_option_line("auto_slow_down_for_overhang_and_curva", category_path + "auto-slow-down-for-overhang-and-curva");
 #ifdef HAS_PRESSURE_EQUALIZER
         optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_positive");
         optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_negative");

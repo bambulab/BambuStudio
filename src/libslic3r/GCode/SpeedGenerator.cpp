@@ -11,25 +11,18 @@
 namespace Slic3r {
 
 SpeedGenerator::SpeedGenerator() {
-	// default is max speed
+	// default is 100 speed
 	for (int i = 0; i < 6; i++) {
-		for (int j = 0; j < 6; j++) {
-			speed_ratio_table[i][j] = 100;
-		}
+		speed_table[i] = 100;
 	}
 	std::string config_file = resources_dir() + "/PerimeterSpeedConfig.json";
 	std::string encoded_path = encode_path(config_file.c_str());
 	boost::property_tree::read_json<boost::property_tree::ptree>(encoded_path, root);
-	if (root.count("speed_ratio_table")) {
+	if (root.count("speed_table")) {
 		int i = 0;
-		for (auto& array11 : root.get_child("speed_ratio_table")) {
-			int j = 0;
-			for (auto& it : array11.second) {
-				speed_ratio_table[i][j] = it.second.get_value<int>();
-				j++;
-			}
-			i++;
-		}
+		auto array6 = root.get_child("speed_table");
+		for (auto pos = array6.begin(); pos != array6.end() && i < 6; pos++, i++)
+			speed_table[i] = pos->second.get_value<int>();
 	}
 }
 
@@ -44,12 +37,13 @@ double SpeedGenerator::calculate_speed(const ExtrusionPath& path, double max_spe
 		max_speed = min_speed;
 		min_speed = temp;
 	}
+	speed_table[0] = max_speed;
 
 	int overhang_degree = path.get_overhang_degree();
-	int curva_degree = path.get_curve_degree();
-	assert(overhang_degree >= 0 && overhang_degree <= 10);
-	assert(curva_degree >= 0 && curva_degree <= 10);
-	double speed = min_speed + ((double)speed_ratio_table[overhang_degree][curva_degree]) * (max_speed - min_speed) / 100;
+	assert(overhang_degree >= 0 && overhang_degree <= 6);
+	double speed = (double)speed_table[overhang_degree];
+	speed = std::max(speed, min_speed);
+	speed = std::min(speed, max_speed);
 	return speed;
 }
 

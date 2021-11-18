@@ -8,7 +8,7 @@
 #include <cmath>
 #include <cassert>
 
-static const int overhang_sampling_number = 11;
+static const int overhang_sampling_number = 6;
 static const double narrow_loop_length_threshold = 10;
 //BBS: when the width of expolygon is smaller than
 //ext_perimeter_width + ext_perimeter_spacing  * (1 - SMALLER_EXT_INSET_OVERLAP_TOLERANCE),
@@ -286,13 +286,6 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             path.width = extrusion_width;
             path.height     = (float)perimeter_generator.layer_height;
             paths.push_back(path);
-        }
-        
-        // BBS: check all paths of the loop and generate curvature
-        // this step will modify the segment of paths as well
-        if (perimeter_generator.print_config->auto_slow_down_for_overhang_and_curva) {
-            CurveAnalyzer curve_analyzer;
-            curve_analyzer.calculate_curvatures(paths, ECurveAnalyseMode::RelativeMode);
         }
 
         coll.append(ExtrusionLoop(std::move(paths), loop_role));

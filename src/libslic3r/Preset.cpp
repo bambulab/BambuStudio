@@ -546,13 +546,12 @@ static std::vector<std::string> s_Preset_print_options {
     "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_brim_width", "wipe_tower_bridging", "single_extruder_multi_material_priming", "mmu_segmented_region_max_width",
     "wipe_tower_no_sparse_layers", "compatible_printers", "compatible_printers_condition", "inherits",
     // BBS
-    "auto_slow_down_for_overhang_and_curva",
     "tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter", "tree_support_with_infill",
     "tree_support_branch_diameter_angle", "tree_support_collision_resolution", "tree_support_wall_count",
      "detect_narrow_internal_solid_infill",
      "gcode_add_line_number", "enable_arc_fitting", "infill_combination", "adaptive_layer_height",
      "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod", "support_sharp_tails","remove_small_overhangs", "support_transition_speed","support_transition_extrusion_width",
-     "support_material_bottom_interface_spacing"
+     "support_material_bottom_interface_spacing", "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed"
 };
 
 static std::vector<std::string> s_Preset_filament_options {
