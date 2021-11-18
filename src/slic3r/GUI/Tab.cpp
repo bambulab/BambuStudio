@@ -1704,12 +1704,13 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_material_buildplate_only", category_path + "support-on-build-plate-only");
         optgroup->append_single_option_line("support_material_xy_spacing", category_path + "xy-separation-between-an-object-and-its-support");
         optgroup->append_single_option_line("dont_support_bridges", category_path + "dont-support-bridges");
+        optgroup->append_single_option_line("support_sharp_tails", category_path + "support-sharp-tails");//BBS
         optgroup->append_single_option_line("support_material_synchronize_layers", category_path + "synchronize-with-object-layers");
 
     page = add_options_page(L("Speed"), "time");
         optgroup = page->new_optgroup(L("Speed for print moves"));
         optgroup->append_single_option_line("perimeter_speed");
-        // BBS: remove small small_perimeter_speed config, and will absolutely
+        // BBS: remove small_perimeter_speed config, and will absolutely
         // remove related code if no other issue in the coming release.
         //optgroup->append_single_option_line("small_perimeter_speed");
         optgroup->append_single_option_line("external_perimeter_speed");

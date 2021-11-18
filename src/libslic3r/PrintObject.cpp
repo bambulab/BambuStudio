@@ -632,6 +632,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "tree_support_branch_diameter_angle"
             || opt_key == "tree_support_collision_resolution"
             || opt_key == "tree_support_with_infill"
+            || opt_key == "support_sharp_tails"
             || opt_key == "tree_support_wall_count") {
             steps.emplace_back(posSupportMaterial);
         } else if (opt_key == "bottom_solid_layers") {

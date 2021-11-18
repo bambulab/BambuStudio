@@ -346,6 +346,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
                     "support_material_spacing", "support_material_angle", 
                     "support_material_interface_pattern", "support_material_interface_layers", "support_material_bottom_interface_layers",
                     "dont_support_bridges", "support_material_extrusion_width", "support_material_contact_distance",
+                    //BBS
+                    "support_sharp_tails",
                     "support_material_xy_spacing" })
         toggle_field(el, have_support_material);
     toggle_field("support_material_threshold", have_support_material && (support_type == stNormalAuto || support_type == stTreeAuto));

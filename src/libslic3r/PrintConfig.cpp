@@ -669,6 +669,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
+    //BBS
+    def = this->add("support_sharp_tails", coBool);
+    def->label = L("Add support for sharp tails");
+    def->category = L("Support material");
+    def->tooltip = L("Experimental option for adding support material for sharp tails.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
     def = this->add("duplicate_distance", coFloat);
     def->label = L("Distance between copies");
     def->tooltip = L("Distance used for the auto-arrange feature of the plater.");
