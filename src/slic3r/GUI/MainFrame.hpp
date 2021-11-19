@@ -148,15 +148,6 @@ class MainFrame : public DPIFrame
     ESettingsLayout m_layout{ ESettingsLayout::Unknown };
 
     //BBS GUI refactor
-    enum TabPosition
-    {
-        tp3DEditor = 0,
-        tpPreview = 1,
-        tpSettings = 2,
-        tpMonitor = 3,
-    };
-
-    //BBS GUI refactor
     enum PrintSelectType
     {
         ePrintAll = 0,
@@ -175,8 +166,18 @@ protected:
     virtual void on_sys_color_changed() override;
 
 public:
+
     MainFrame();
     ~MainFrame() = default;
+
+    //BBS GUI refactor
+    enum TabPosition
+    {
+        tp3DEditor = 0,
+        tpPreview = 1,
+        tpSettings = 2,
+        tpMonitor = 3,
+    };
 
     //BBS: add slice&&print status update logic
     enum SlicePrintEventType
@@ -246,6 +247,7 @@ public:
     //BBS: GUI refactor
     void        select_tab(wxPanel* panel);
     void        select_tab(size_t tab = size_t(-1));
+    void        request_select_tab(TabPosition pos);
     void        select_view(const std::string& direction);
     // Propagate changed configuration from the Tab to the Plater and save changes to the AppConfig
     void        on_config_changed(DynamicPrintConfig* cfg) const ;

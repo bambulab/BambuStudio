@@ -33,11 +33,7 @@ void PrintJob::process()
     Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
     Slic3r::DeviceManager* d  = Slic3r::GUI::wxGetApp().getDeviceManager();
 
-    int total_plate_num = 1;
-    if (job_data.plate_idx == PLATE_ALL_IDX) {
-        total_plate_num = m_plater->get_partplate_list().get_plate_count();
-    }
-    
+    int total_plate_num = m_plater->get_partplate_list().get_plate_count();
 
     PartPlate* plate = m_plater->get_partplate_list().get_plate(job_data.plate_idx);
     if (plate == nullptr) {
@@ -150,9 +146,9 @@ void PrintJob::process()
             BBLSubTask* subTask = new BBLSubTask(task);
             subTask->task_gcode_in_3mf = (boost::format(GCODE_FILE_FORMAT) % (curr_plate_idx)).str();
 
-            subTask->task_partplate_idx = curr_plate_idx;
+            subTask->task_partplate_idx = std::to_string(curr_plate_idx);
             subTask->task_printer_dev_id = job_data.machine_sn;
-            subTask->task_name = (boost::format("%1%_P%2%-%3%") % profile->profile_name % total_plate_num % curr_plate_idx).str();
+            subTask->task_name = (boost::format("%1%_P%2%_T%3%") % profile->profile_name % curr_plate_idx %total_plate_num).str();
 
             task->subtasks.push_back(subTask);
 
@@ -172,6 +168,7 @@ void PrintJob::process()
         }
     }
     else {
+        int total_subtask_num = 1;
         if (job_data.plate_idx >= 0)
             curr_plate_idx = job_data.plate_idx + 1;
         else if (job_data.plate_idx == PLATE_CURRENT_IDX)
@@ -180,9 +177,9 @@ void PrintJob::process()
         /* create subTask from current plate */
         BBLSubTask* subTask = new BBLSubTask(task);
         subTask->task_gcode_in_3mf = (boost::format(GCODE_FILE_FORMAT) % (curr_plate_idx)).str();
-        subTask->task_partplate_idx = curr_plate_idx;
+        subTask->task_partplate_idx = std::to_string(curr_plate_idx);
         subTask->task_printer_dev_id = job_data.machine_sn;
-        subTask->task_name = (boost::format("%1%_P%2%-%3%") % profile->profile_name % total_plate_num % curr_plate_idx).str();
+        subTask->task_name = (boost::format("%1%_P%2%_T%3%") % profile->profile_name % curr_plate_idx % total_subtask_num).str();
 
         task->subtasks.push_back(subTask);
 

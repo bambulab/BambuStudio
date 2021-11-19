@@ -140,6 +140,7 @@ public:
     void add_subtask(BBLSubTask* subtask);
     void update_profile(BBLProfile* profile);
     void add_slice_info(BBLSliceInfo* slice_info);
+    void add_item(std::string title, int prediction, std::string weight);
     void clear_data();
 	void clear();
 	void reset();
@@ -325,6 +326,7 @@ protected:
     void update_status(MachineObject* obj);
     void update_ams(MachineObject* obj);
     void update_task(MachineObject* obj);
+	void update_subtask(MachineObject* obj);
     void update_profile(MachineObject* obj);
     void update_all();
 

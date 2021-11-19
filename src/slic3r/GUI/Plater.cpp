@@ -7267,8 +7267,7 @@ void Plater::send_gcode(int plate_idx)
 //BBS
 void Plater::print_job_finished()
 {
-    wxCommandEvent* event = new wxCommandEvent(EVT_SELECT_MONITOR);
-    wxQueueEvent(p->main_frame, event);
+    p->main_frame->request_select_tab(MainFrame::TabPosition::tpMonitor);
 }
 
 // Called when the Eject button is pressed.

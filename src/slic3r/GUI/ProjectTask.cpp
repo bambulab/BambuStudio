@@ -32,9 +32,9 @@ namespace Slic3r {
         profile_name = "N/A";
     }
 
-    BBLSliceInfo* BBLProfile::get_slice_info(int plate_idx)
+    BBLSliceInfo* BBLProfile::get_slice_info(std::string plate_idx)
     {
-        std::map<std::string, BBLSliceInfo*>::iterator it = slice_info.find(std::to_string(plate_idx));
+        std::map<std::string, BBLSliceInfo*>::iterator it = slice_info.find(plate_idx);
         if (it == slice_info.end())
             return nullptr;
         return it->second;
@@ -64,7 +64,6 @@ namespace Slic3r {
         task_create_time = now.FormatISOCombined(' ').ToStdString();
 
         task_progress = 0;
-        task_partplate_idx = 0;
     }
 
     std::string BBLSubTask::build_content_json()
@@ -100,7 +99,7 @@ namespace Slic3r {
             if (subtask_create_time.has_value()) task_create_time = subtask_create_time.value();
 
             boost::optional<std::string> subtask_plate_idx = info.get_optional<std::string>("plate_idx");
-            if (subtask_plate_idx.has_value()) task_partplate_idx = std::stoi(subtask_plate_idx.value());
+            if (subtask_plate_idx.has_value()) task_partplate_idx = subtask_plate_idx.value();
 
             boost::optional<std::string> subtask_printer = info.get_optional<std::string>("printer");
             if (subtask_printer.has_value()) task_printer_dev_id = subtask_printer.value();
@@ -190,7 +189,7 @@ namespace Slic3r {
                     if (subtask_create_time.has_value()) new_subtask->task_create_time = subtask_create_time.value();
 
                     boost::optional<std::string> subtask_plate_idx = subtask->second.get_optional<std::string>("plate_idx");
-                    if (subtask_plate_idx.has_value()) new_subtask->task_partplate_idx = std::stoi(subtask_plate_idx.value());
+                    if (subtask_plate_idx.has_value()) new_subtask->task_partplate_idx = subtask_plate_idx.value();
 
                     boost::optional<std::string> subtask_printer = subtask->second.get_optional<std::string>("printer");
                     if (subtask_printer.has_value()) new_subtask->task_printer_dev_id = subtask_printer.value();

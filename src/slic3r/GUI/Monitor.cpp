@@ -358,8 +358,29 @@ void SubTaskListModel::add_slice_info(BBLSliceInfo* slice_info)
         weight_text = wxString::Format("%sg", slice_info->weight);
     }
     m_WeightColValues.push_back(weight_text);
-
 }
+
+void SubTaskListModel::add_item(std::string title, int prediction, std::string weight)
+{
+    wxString name_text = "N/A";
+    name_text = wxString::Format("%s", title);
+    m_nameColValues.push_back(name_text);
+
+    wxString duration_text = "N/A";
+    if (prediction >= 0) {
+        std::string duration = get_time_dhms(prediction);
+        duration_text = wxString::Format("%s", duration);
+    }
+
+    m_durationColValues.push_back(duration_text);
+
+    wxString weight_text = "N/A";
+    if (!weight.empty()) {
+        weight_text = wxString::Format("%sg", weight);
+    }
+    m_WeightColValues.push_back(weight_text);
+}
+
 
 void SubTaskListModel::clear_data()
 {
@@ -1229,8 +1250,7 @@ void MonitorPanel::init_bind()
             BBLProfile* profile = obj->profile_;
             if (!profile) return;
 
-            int slice_plate_idx = subtask->task_partplate_idx + 1;
-            std::map<std::string, BBLSliceInfo*>::iterator iter = profile->slice_info.find(std::to_string(slice_plate_idx));
+            std::map<std::string, BBLSliceInfo*>::iterator iter = profile->slice_info.find(subtask->task_partplate_idx);
             if (iter == profile->slice_info.end()) {
                 return;
             }
@@ -1320,11 +1340,30 @@ void MonitorPanel::update_task(MachineObject* obj)
 {
     if (!obj) return;
 
+    if (!obj->task_ || !obj->profile_) return;
+
+    if (last_task != obj->task_ 
+        && last_profile != obj->profile_
+        && !obj->profile_->slice_info.empty()) {
+        std::vector<BBLSubTask*>::iterator it;
+        std::map<std::string, BBLSliceInfo*>::iterator iter;
+        subtask_model->clear();
+        for (it = obj->task_->subtasks.begin(); it != obj->task_->subtasks.end(); it++) {
+            iter = obj->profile_->slice_info.find((*it)->task_partplate_idx);
+            if (iter != obj->profile_->slice_info.end()) {
+                subtask_model->add_item((*it)->task_name, iter->second->prediction, iter->second->weight);
+            }
+        }
+        subtask_model->reset();
+        last_task = obj->task_;
+        last_profile = obj->profile_;
+    }
+}
+
+void MonitorPanel::update_subtask(MachineObject* obj)
+{
     BBLSubTask* curr_subtask = obj->get_subtask();
     if (last_subtask != curr_subtask) {
-        on_subtask_update(curr_subtask, true);
-    }
-    else {
         on_subtask_update(curr_subtask, false);
     }
     last_subtask = curr_subtask;
@@ -1388,13 +1427,19 @@ void MonitorPanel::update_all()
 
     update_profile(obj);
 
-    update_task(obj);
+    //update_task(obj);
+
+    update_subtask(obj);
 }
 
 void MonitorPanel::on_select(wxCommandEvent& event)
 {
     subtask_model->clear_data();
     tray_model->clear_data();
+
+    last_subtask = nullptr;
+    last_profile = nullptr;
+    last_task = nullptr;
 
     update_all();
 
@@ -1431,10 +1476,10 @@ void MonitorPanel::on_subtask_update(BBLSubTask* curr_subtask, bool update_all)
                 m_staticText_task_value->SetLabelText(wxString::Format("%s(%s)", task->task_name, task->task_id));
             }
         }
-        // update subtask name
-        m_staticText_subtask_value->SetLabelText(wxString::Format("%s(%s)", curr_subtask->task_name, curr_subtask->task_id));
     }
     
+    // update subtask name
+    m_staticText_subtask_value->SetLabelText(wxString::Format("%s(%s)", curr_subtask->task_name, curr_subtask->task_id));
 
     // update gcode progress
     std::string duration = "NA";

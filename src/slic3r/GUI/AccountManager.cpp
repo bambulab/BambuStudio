@@ -998,6 +998,7 @@ namespace Slic3r {
             root.put("project_id", task->parent_task_->task_project_id);
             root.put("profile_id", task->parent_task_->task_profile_id);
         }
+        root.put("dev_id", task->task_printer_dev_id);
         root.put("name", task_name_str);
         root.put("content", task->build_content_json());
         std::stringstream oss;
@@ -1786,8 +1787,8 @@ namespace Slic3r {
                                                 }
                                             }
                                         }
-
                                     }
+                                    BOOST_LOG_TRIVIAL(trace) << "get_profile_info id = " << profile->profile_id << ", profile_name = " << profile->profile_name;
                                 }
                             }
                         }
@@ -1796,12 +1797,10 @@ namespace Slic3r {
             )
             .on_error(
                 [this, project, profile](std::string body, std::string error, unsigned status) {
-                    BOOST_LOG_TRIVIAL(info) << "get_project_info failed! body=" << body;
+                    BOOST_LOG_TRIVIAL(info) << "get_profile_info failed! body=" << body;
                 }
             )
             .perform();
-  
-
     }
 
     void AccountManager::get_project_info(BBLProject* project)

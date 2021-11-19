@@ -626,7 +626,6 @@ void SelectMachineDialog::on_timer(wxTimerEvent& event)
         }
     }
     list.merge(d->get_user_machine_list());
-    list.merge(d->get_free_machine_list());
 
     machine_model->display_machines(list);
 

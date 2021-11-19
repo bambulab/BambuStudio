@@ -60,6 +60,8 @@
 namespace Slic3r {
 namespace GUI {
 
+wxDEFINE_EVENT(EVT_SELECT_TAB, wxCommandEvent);
+
 enum class ERescaleTarget
 {
     Mainframe,
@@ -225,6 +227,12 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->redo(); }, wxID_HIGHEST + wxID_REDO);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); }, wxID_HIGHEST + wxID_COPY);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); }, wxID_HIGHEST + wxID_PASTE);
+
+    //BBS
+    Bind(EVT_SELECT_TAB, [this](wxCommandEvent&evt) {
+        TabPosition pos = (TabPosition)evt.GetInt();
+        m_tabpanel->SetSelection(pos);
+    });
 
     // set default tooltip timer in msec
     // SetAutoPop supposedly accepts long integers but some bug doesn't allow for larger values
@@ -1151,12 +1159,10 @@ wxBoxSizer* MainFrame::create_side_tools()
         if (m_print_select == ePrintAll)
         {
             wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_ALL));
-            this->m_tabpanel->SetSelection(tpMonitor);
         }
         else if (m_print_select == ePrintPlate)
         {
             wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE));
-            this->m_tabpanel->SetSelection(tpMonitor);
         }
         else if (m_print_select == eExportGcode)
             wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_GCODE));
@@ -2513,6 +2519,13 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
     //    m_tabpanel->SetSelection(new_selection);
     //if (tabpanel_was_hidden)
     //    static_cast<Tab*>(m_tabpanel->GetPage(new_selection))->OnActivate();
+}
+
+void MainFrame::request_select_tab(TabPosition pos)
+{
+    wxCommandEvent* evt = new wxCommandEvent(EVT_SELECT_TAB);
+    evt->SetInt(pos);
+    wxQueueEvent(this, evt);
 }
 
 // Set a camera direction, zoom to all objects.

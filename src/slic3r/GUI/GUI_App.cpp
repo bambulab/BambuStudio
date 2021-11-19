@@ -1210,15 +1210,15 @@ bool GUI_App::on_init_inner()
             if (this->plater_ != nullptr && (opt == "all" || opt == "release")) {
                 this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable);
                 //BBS show msg box to download new version
-                wxString description = wxString::FromUTF8(m_account_manager->version_info.description);
+                wxString tips = wxString::Format("click download new version in default browser: %s", m_account_manager->version_info.version_str);
                 wxMessageDialog dialog(this->mainframe,
-                    description,
+                    tips,
                     "New Version of Slicer",
                     wxCENTER | wxYES_DEFAULT | wxYES_NO | wxICON_INFORMATION);
                 wxString extmsg;
                 if (dialog.SetYesNoLabels("Download", "Skip"))
                 {
-                    extmsg = wxString::Format("click yes to download new version: %s", m_account_manager->version_info.version_str);
+                    extmsg = wxString::FromUTF8(m_account_manager->version_info.description);
                 }
                 dialog.SetExtendedMessage(extmsg);
 
@@ -1873,9 +1873,11 @@ void GUI_App::handle_http_error(unsigned int status, std::string body)
 //BBS pop up a dialog and download files
 void GUI_App::request_new_version()
 {
-    wxCommandEvent* evt = new wxCommandEvent(EVT_SLIC3R_VERSION_ONLINE);
-    evt->SetString(GUI::from_u8(m_account_manager->version_info.version_str));
-    GUI::wxGetApp().QueueEvent(evt);
+    if (app_config->get("version_check") == "1") {
+        wxCommandEvent* evt = new wxCommandEvent(EVT_SLIC3R_VERSION_ONLINE);
+        evt->SetString(GUI::from_u8(m_account_manager->version_info.version_str));
+        GUI::wxGetApp().QueueEvent(evt);
+    }
 }
 
 bool GUI_App::switch_language()

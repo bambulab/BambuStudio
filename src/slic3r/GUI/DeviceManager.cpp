@@ -470,14 +470,12 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 boost::optional<std::string> subtask_id         = print.get_optional<std::string>("subtask_id");
 
                 /* sync project and profile info */
-                /* /* sync profile and project from task now
                 if (project_id.has_value() && !project_id.value().empty() && (project_id.value().compare("0") != 0)
                     && profile_id.has_value() && !profile_id.value().empty() && (profile_id.value().compare("0") != 0)
                     )
                 {
                     update_profile(project_id.value(), profile_id.value());
                 }
-                */
 
                 /* sync task info */
                 if (task_id.has_value() && !task_id.value().empty() && (task_id.value().compare("0") != 0))
@@ -982,7 +980,7 @@ BBLSubTask* MachineObject::get_subtask()
     }
 }
 
-BBLSliceInfo* MachineObject::get_slice_info(int plate_idx)
+BBLSliceInfo* MachineObject::get_slice_info(std::string plate_idx)
 {
     if (!profile_)
         return nullptr;
@@ -1013,11 +1011,6 @@ void MachineObject::update_profile(std::string project_id, std::string profile_i
 void MachineObject::update_task(std::string task_id)
 {
     if (task_id.empty()) return;
-
-    if (task_ && task_->task_id.compare(task_id) == 0) {
-        update_profile(task_->task_project_id, task_->task_profile_id);
-        return;
-    }
 
     /* create new task */
     task_ = new BBLTask();
