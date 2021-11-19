@@ -521,8 +521,10 @@ void OptionsGroup::clear(bool destroy_custom_ctrl)
             if (win)
                 win = nullptr;
         }
+		//BBS: custom_ctrl already destroyed from sizer->clear(), no need to destroy here anymore
 		if (destroy_custom_ctrl)
-            custom_ctrl->Destroy();
+            //custom_ctrl->Destroy();
+			custom_ctrl = nullptr;
         else
             custom_ctrl = nullptr;
     }

@@ -494,13 +494,13 @@ Transform3d GLVolume::world_matrix() const
 //BBS: scaled_matrix
 Transform3d GLVolume::world_matrix( float scale_factor) const
 {
-    const Vec3d& volume_translation = m_volume_transformation.get_offset();
-    Vec3d scaling_factor = { scale_factor, scale_factor, scale_factor };
+    //const Vec3d& volume_translation = m_volume_transformation.get_offset();
+    //Vec3d scaling_factor = { scale_factor, scale_factor, scale_factor };
     Transform3d volume_matrix = Geometry::assemble_transform(
-        volume_translation,
-        Vec3d::Zero(),
-        scaling_factor,
-        Vec3d::Ones()
+        m_volume_transformation.get_offset(),
+        m_volume_transformation.get_rotation(),
+        m_volume_transformation.get_scaling_factor() * scale_factor,
+        m_volume_transformation.get_mirror()
     );
     Transform3d m = m_instance_transformation.get_matrix() * volume_matrix;
 
