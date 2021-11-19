@@ -113,7 +113,7 @@ void ParamsPanel::create_layout()
 
     m_left_sizer = new wxBoxSizer( wxVERTICAL );
     // BBS: new layout
-    // m_left_sizer->SetMinSize( wxSize( 200, -1 ) );
+    m_left_sizer->SetMinSize( wxSize( 300, -1 ) );
 
     m_mode_sizer = new wxBoxSizer( wxHORIZONTAL );
     m_mode_sizer->AddSpacer(22);

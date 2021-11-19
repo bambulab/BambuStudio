@@ -1,5 +1,6 @@
 #include "Button.hpp"
 #include "../wxExtensions.hpp"
+#include "Label.hpp"
 
 #include <wx/dcgraph.h>
 
@@ -36,6 +37,7 @@ Button::Button(wxWindow* parent, wxString text, wxString icon, long stlye)
     background_normal = *wxWHITE_BRUSH;
     background_hover = *wxLIGHT_GREY_BRUSH;
     background_pressed = *wxBLUE_BRUSH;
+    SetFont(Label::Body_12);
     SetLabel(text);
     if (!icon.IsEmpty())
         this->icon = create_scaled_bitmap(icon.ToStdString());
@@ -178,6 +180,7 @@ void Button::render(wxDC& dc)
     auto text = GetLabel();
     if (!text.IsEmpty()) {
         pt.y += (rcContent.height - textSize.y) / 2;
+        dc.SetFont(GetFont());
         dc.DrawText(text, pt);
     }
 }

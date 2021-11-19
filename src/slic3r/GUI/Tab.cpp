@@ -189,6 +189,7 @@ void Tab::create_preset_tab()
 
     // preset chooser
     m_presets_choice = new TabPresetComboBox(panel, m_type);
+    m_presets_choice->SetFont(Label::Body_10);
     m_presets_choice->set_selection_changed_function([this](int selection) {
         if (!m_presets_choice->selection_is_changed_according_to_physical_printers())
         {
@@ -354,7 +355,7 @@ void Tab::create_preset_tab()
     // tree
     m_treectrl = new wxTreeCtrl(panel, wxID_ANY, wxDefaultPosition, wxSize(20 * m_em_unit, -1),
         wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_NONE | wxWANTS_CHARS | wxTR_FULL_ROW_HIGHLIGHT);
-    m_treectrl->SetFont(Label::Body_10);
+    m_treectrl->SetFont(Label::Body_12);
     //m_left_sizer->Add(m_treectrl, 1, wxEXPAND);
     const int img_sz = int(32 * scale_factor + 0.5f);
     m_icons = new wxImageList(img_sz, img_sz, true, 1);

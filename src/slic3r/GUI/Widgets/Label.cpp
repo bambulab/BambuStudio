@@ -8,14 +8,22 @@ static wxFont sysFont(int size, bool bold) {
 #ifdef __linux__
 	return wxFont{};
 #endif
-	auto face = wxString::FromUTF8("\xE6\x80\x9D\xE6\xBA\x90\xE9\xBB\x91\xE4\xBD\x93 CN Regular");
-	wxFont font{ size, wxFONTFAMILY_SWISS, wxNORMAL, bold ? wxBOLD : wxNORMAL, false, face };
+	auto face = wxString::FromUTF8("HarmonyOS Sans SC");
+#ifdef __WIN32__
+	wxFont font{ {0, size * 5 / 4}, wxFONTFAMILY_SWISS, wxNORMAL, bold ? wxBOLD : wxNORMAL, false, face };
+#else
+	wxFont font{size, wxFONTFAMILY_SWISS, wxNORMAL, bold ? wxBOLD : wxNORMAL, false, face };
+#endif
 	font.SetFaceName(face);
 	if (!font.IsOk()) {
 		font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 		if (bold)
 			font.MakeBold();
+#ifdef __WIN32__
+		font.SetPixelSize({ 0, size });
+#else
 		font.SetPointSize(size);
+#endif
 	}
 	return font;
 }
