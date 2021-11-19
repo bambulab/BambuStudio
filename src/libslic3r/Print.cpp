@@ -921,6 +921,23 @@ void PrintObject::autoBrimConfigWidth(double flowWidth)
         BOOST_LOG_TRIVIAL(debug) << "brim_width_map: " << this->id().id << ", " << brim_width;
     }
 }
+// BBS: map print object with its first layer's first extruder
+std::map<ObjectID, unsigned int> getObjectExtruderMap(const Print& print) {
+    std::map<ObjectID, unsigned int> objectExtruderMap;
+    for (const PrintObject* object : print.objects()) {
+        unsigned int objectFirstLayerFirstExtruder = print.config().nozzle_diameter.size();
+        auto firstLayerRegions = object->layers().front()->regions();
+        if (!firstLayerRegions.empty()) {
+            for (const LayerRegion* regionPtr : firstLayerRegions) {
+                if (regionPtr -> has_extrusions())
+                    objectFirstLayerFirstExtruder = std::min(objectFirstLayerFirstExtruder,
+                        regionPtr->region()->extruder(frExternalPerimeter));
+            }
+        }
+        objectExtruderMap.insert(std::make_pair(object->id(), objectFirstLayerFirstExtruder));
+    }
+    return objectExtruderMap;
+}
 
 // Slicing process, running at a background thread.
 void Print::process()
@@ -970,12 +987,55 @@ void Print::process()
             _make_skirt();
         }
 
-        // BBS: m_brimMap are used instead of m_brim
+        //BBS: get the objects' indices when GCodes are generated
+        ToolOrdering tool_ordering;
+        unsigned int initial_extruder_id = (unsigned int)-1;
+        unsigned int final_extruder_id = (unsigned int)-1;
+        bool         has_wipe_tower = false;
+        std::vector<const PrintInstance*> 					print_object_instances_ordering;
+        std::vector<const PrintInstance*>::const_iterator 	print_object_instance_sequential_active;
+        if (this->config().complete_objects.value || this->config().layer_bundle_printing.value) {
+            // Order object instances for sequential print.
+            print_object_instances_ordering = sort_object_instances_by_model_order(*this);
+            //        print_object_instances_ordering = sort_object_instances_by_max_z(print);
+            print_object_instance_sequential_active = print_object_instances_ordering.begin();
+            for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++print_object_instance_sequential_active) {
+                tool_ordering = ToolOrdering(*(*print_object_instance_sequential_active)->print_object, initial_extruder_id);
+                if ((initial_extruder_id = tool_ordering.first_extruder()) != static_cast<unsigned int>(-1))
+                    break;
+            }
+        }
+        else {
+            tool_ordering = this->tool_ordering();
+            tool_ordering.assign_custom_gcodes(*this);
+            has_wipe_tower = this->has_wipe_tower() && tool_ordering.has_wipe_tower();
+            initial_extruder_id = (has_wipe_tower && !this->config().single_extruder_multi_material_priming) ?
+                // The priming towers will be skipped.
+                tool_ordering.all_extruders().back() :
+                // Don't skip the priming towers.
+                tool_ordering.first_extruder();
+            print_object_instances_ordering = chain_print_object_instances(*this);
+        }
+
+        auto objectExtruderMap = getObjectExtruderMap(*this);
+        std::vector<std::pair<ObjectID, unsigned int>> objPrintVec;
+        for (const PrintInstance* instance : print_object_instances_ordering) {
+            const ObjectID& print_object_ID = instance->print_object->id();
+            bool existObject = false;
+            for (auto& objIDPair : objPrintVec) {
+                if (print_object_ID == objIDPair.first) existObject = true;
+            }
+            if (!existObject && objectExtruderMap.find(print_object_ID) != objectExtruderMap.end())
+                objPrintVec.push_back(std::make_pair(print_object_ID, objectExtruderMap.at(print_object_ID)));
+        }
+        // BBS: m_brimMap and m_supportBrimMap are used instead of m_brim to generate brim of objs and supports seperately
         m_brimMap.clear();
+        m_supportBrimMap.clear();
         m_first_layer_convex_hull.points.clear();
         if (this->has_brim()) {
             Polygons islands_area;
-            make_brim(*this, this->make_try_cancel(), islands_area, m_brimMap);
+            make_brim(*this, this->make_try_cancel(), islands_area, m_brimMap,
+                m_supportBrimMap, objPrintVec);
             for (Polygon &poly : union_(this->first_layer_islands(), islands_area))
                 append(m_first_layer_convex_hull.points, std::move(poly.points));
         }

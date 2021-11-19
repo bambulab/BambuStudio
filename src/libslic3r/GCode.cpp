@@ -1373,7 +1373,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         if (!iter->second.empty())
             this->m_objsWithBrim.insert(iter->first);
     }
-    if (this->m_objsWithBrim.empty()) m_brim_done = true;
+    for (auto iter = print.m_supportBrimMap.begin(); iter != print.m_supportBrimMap.end(); ++iter) {
+        if (!iter->second.empty())
+            this->m_objSupportsWithBrim.insert(iter->first);
+    }
+    if (this->m_objsWithBrim.empty() && this->m_objSupportsWithBrim.empty()) m_brim_done = true;
 
     // Do all objects for each layer.
     if (print.config().complete_objects.value) {
@@ -2513,6 +2517,25 @@ GCode::LayerResult GCode::process_layer(
                         // support_extrusion_role is erSupportMaterial, erSupportMaterialInterface or erMixed for all extrusion paths.
                         instance_to_print.object_by_extruder.support->chained_path_from(m_last_pos, instance_to_print.object_by_extruder.support_extrusion_role));
 #else
+                    //BBS: print supports' brims first
+                    if (this->m_objSupportsWithBrim.find(instance_to_print.print_object.id()) != this->m_objSupportsWithBrim.end()) {
+                        this->set_origin(0., 0.);
+                        m_avoid_crossing_perimeters.use_external_mp();
+                        for (const ExtrusionEntity* ee : print.m_supportBrimMap.at(instance_to_print.print_object.id()).entities) {
+                            gcode += this->extrude_entity(*ee, "brim", m_config.support_material_speed.value);
+                        }
+                        m_avoid_crossing_perimeters.use_external_mp(false);
+                        // Allow a straight travel move to the first object point.
+                        m_avoid_crossing_perimeters.disable_once();
+                        this->m_objSupportsWithBrim.erase(instance_to_print.print_object.id());
+                    }
+                    // When starting a new object, use the external motion planner for the first travel move.
+                    const Point& offset = instance_to_print.print_object.instances()[instance_to_print.instance_id].shift;
+                    std::pair<const PrintObject*, Point> this_object_copy(&instance_to_print.print_object, offset);
+                    if (m_last_obj_copy != this_object_copy)
+                        m_avoid_crossing_perimeters.use_external_mp_once();
+                    m_last_obj_copy = this_object_copy;
+                    this->set_origin(unscale(offset));
                     ExtrusionEntityCollection support_eec;
                     support_eec.entities = filter_by_extrusion_role(instance_to_print.object_by_extruder.support->entities, instance_to_print.object_by_extruder.support_extrusion_role);
                     for (auto& ptr : support_eec.entities)
