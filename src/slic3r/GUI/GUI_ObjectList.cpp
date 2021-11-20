@@ -2949,8 +2949,7 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
 void ObjectList::delete_all_objects_from_list()
 {
     m_prevent_list_events = true;
-    this->UnselectAll();
-    m_objects_model->ReloadAllPlates();
+    reload_all_plates();
     m_prevent_list_events = false;
     part_selection_changed();
 }
@@ -4480,13 +4479,56 @@ void ObjectList::on_plate_deleted(int plate_idx)
 
 void ObjectList::reload_all_plates()
 {
-    m_objects_model->ReloadAllPlates();
+    m_prevent_canvas_selection_update = true;
 
-    wxDataViewItemArray top_list;
-    m_objects_model->GetChildren(wxDataViewItem(nullptr), top_list);
-    for (wxDataViewItem item : top_list) {
-        Expand(item);
+    // Unselect all objects before deleting them, so that no change of selection is emitted during deletion.
+
+    /* To avoid execution of selection_changed()
+     * from wxEVT_DATAVIEW_SELECTION_CHANGED emitted from DeleteAll(),
+     * wrap this two functions into m_prevent_list_events *
+     * */
+    m_prevent_list_events = true;
+    this->UnselectAll();
+    m_objects_model->ResetAll();
+    m_prevent_list_events = false;
+
+    PartPlateList& ppl = wxGetApp().plater()->get_partplate_list();
+    for (int i = 0; i < ppl.get_plate_count(); i++) {
+        PartPlate* pp = ppl.get_plate(i);
+        m_objects_model->AddPlate(pp, wxEmptyString);
     }
+
+    size_t obj_idx = 0;
+    std::vector<size_t> obj_idxs;
+    obj_idxs.reserve(m_objects->size());
+    while (obj_idx < m_objects->size()) {
+        add_object_to_list(obj_idx, false);
+        obj_idxs.push_back(obj_idx);
+        ++obj_idx;
+    }
+
+    update_selections();
+
+    m_prevent_canvas_selection_update = false;
+
+    // update printable states on canvas
+    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
+    // update scene
+    wxGetApp().plater()->update();
+}
+
+void ObjectList::on_plate_selected(int plate_index)
+{
+    UnselectAll();
+
+    wxDataViewItem item = m_objects_model->GetItemByPlateId(plate_index);
+    Select(item);
+}
+
+void ObjectList::update_after_undo_redo()
+{
+    Plater::SuppressSnapshots suppress(wxGetApp().plater());
+    reload_all_plates();
 }
 
 wxDataViewItemArray ObjectList::reorder_volumes_and_get_selection(int obj_idx, std::function<bool(const ModelVolume*)> add_to_selection/* = nullptr*/)
@@ -4526,56 +4568,6 @@ void ObjectList::apply_volumes_order()
 
     for (size_t obj_idx = 0; obj_idx < m_objects->size(); obj_idx++)
         reorder_volumes_and_get_selection(obj_idx);
-}
-
-void ObjectList::on_plate_selected(int plate_index)
-{
-    UnselectAll();
-
-    wxDataViewItem item = m_objects_model->GetItemByPlateId(plate_index);
-    Select(item);
-}
-
-void ObjectList::update_after_undo_redo()
-{
-    m_prevent_canvas_selection_update = true;
-
-    Plater::SuppressSnapshots suppress(wxGetApp().plater());
-
-    // Unselect all objects before deleting them, so that no change of selection is emitted during deletion.
-
-    /* To avoid execution of selection_changed() 
-     * from wxEVT_DATAVIEW_SELECTION_CHANGED emitted from DeleteAll(), 
-     * wrap this two functions into m_prevent_list_events *
-     * */
-    m_prevent_list_events = true;
-    this->UnselectAll();
-    m_objects_model->ResetAll();
-    m_prevent_list_events = false;
-
-	PartPlateList &ppl = wxGetApp().plater()->get_partplate_list();
-    for (int i = 0; i < ppl.get_plate_count(); i++) {
-        PartPlate* pp = ppl.get_plate(i);
-        m_objects_model->AddPlate(pp, wxEmptyString);
-    }
-
-    size_t obj_idx = 0;
-    std::vector<size_t> obj_idxs;
-    obj_idxs.reserve(m_objects->size());
-    while (obj_idx < m_objects->size()) {
-        add_object_to_list(obj_idx, false);
-        obj_idxs.push_back(obj_idx);
-        ++obj_idx;
-    }
-
-    update_selections();
-
-    m_prevent_canvas_selection_update = false;
-
-    // update printable states on canvas
-    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
-    // update scene
-    wxGetApp().plater()->update();
 }
 
 void ObjectList::update_printable_state(int obj_idx, int instance_idx)

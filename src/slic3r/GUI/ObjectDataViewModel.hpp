@@ -334,7 +334,6 @@ public:
     int  GetRowByItem(const wxDataViewItem& item) const;
     bool IsEmpty() { return m_objects.empty(); }
     bool InvalidItem(const wxDataViewItem& item);
-    void ReloadAllPlates();
 
     // helper method for wxLog
 

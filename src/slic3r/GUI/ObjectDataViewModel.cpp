@@ -1395,42 +1395,10 @@ bool ObjectDataViewModel::InvalidItem(const wxDataViewItem& item)
         return true;
 
     ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(item.GetID());
-    if (!node || node->invalid()) 
+    if (!node || node->invalid())
         return true;
 
     return false;
-}
-
-void ObjectDataViewModel::ReloadAllPlates()
-{
-    // clear plate nodes and object nodes
-    for (auto plate : m_plates) {
-        Delete(wxDataViewItem(plate));
-    }
-    m_plates.clear();
-    m_plate_outside = nullptr;
-
-    m_objects.clear();
-
-    // reload plates from PartPlateList
-    PartPlateList& ppl = wxGetApp().plater()->get_partplate_list();
-    for (int i = 0; i < ppl.get_plate_count(); i++) {
-        PartPlate* pp = ppl.get_plate(i);
-        AddPlate(pp, "", false);
-    }
-
-    std::sort(m_plates.begin(), m_plates.end(), [](ObjectDataViewModelNode* a, ObjectDataViewModelNode* b) -> bool {
-        return a->GetPlateIdx() < b->GetPlateIdx();
-        });
-    m_plate_outside = (ObjectDataViewModelNode*)AddPlate(nullptr, _L("Outside")).GetID();
-
-    // reload objects from Model
-    Model& model = wxGetApp().model();
-    for (auto mo : model.objects) {
-        AddObject(mo, false);
-    }
-
-    Cleared();
 }
 
 wxString ObjectDataViewModel::GetName(const wxDataViewItem &item) const
