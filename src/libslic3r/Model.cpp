@@ -1522,6 +1522,9 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
                 new_object->add_instance(*model_instance);
             ModelVolume* new_vol = new_object->add_volume(*volume, std::move(mesh));
 
+            // BBS.
+            new_vol->config.set("extruder", 0);
+
             for (ModelInstance* model_instance : new_object->instances)
             {
                 Vec3d shift = model_instance->get_transformation().get_matrix(true) * new_vol->get_offset();
