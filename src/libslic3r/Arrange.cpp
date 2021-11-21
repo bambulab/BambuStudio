@@ -316,10 +316,10 @@ protected:
         }
 
 #if 1
-        double hc1 = params.clearance_height_to_lid;
-        double hc2 = params.clearance_height_to_rod;
-        bool isLastOfAll = m_remaining.empty();
-        bool hasRowHeightConflict = false;// item.height < hc1;
+        double clearance_height_to_lid = params.clearance_height_to_lid;
+        double clearance_height_to_rod = params.clearance_height_to_rod;
+        bool hasRowHeightConflict = false;
+        bool hasLidHeightConflict = false;
         auto iy1 = item.boundingBox().minCorner().y();
         auto iy2 = item.boundingBox().maxCorner().y();
         for (int i = 0; i < m_items.size(); i++) {
@@ -330,7 +330,9 @@ protected:
             auto inter_min = std::max(iy1, py1); // min y of intersection
             auto inter_max = std::min(iy2, py2); // max y of intersection. length=max_y-min_y>0 means intersection exists
             if (inter_max - inter_min > 0)
-                hasRowHeightConflict |= (p.height > hc2);
+                hasRowHeightConflict |= (p.height > clearance_height_to_rod);
+            // only last item can be heigher than clearance_height_to_lid, so if the existing items are higher than clearance_height_to_lid, there is height conflict
+            hasLidHeightConflict |= (p.height > clearance_height_to_lid);
         }
 
         double lambda3 = LARGE_COST_TO_REJECT;
@@ -341,8 +343,7 @@ protected:
                 if (p.is_virt_object) continue;
                 score += lambda3 * (item.bed_temp - p.vitrify_temp > 0);
             }
-            score += lambda4 * hasRowHeightConflict
-                + lambda4 * (item.height > hc1) * (1 - isLastOfAll); // only last of all can be heigher than hc1
+            score += lambda4 * hasRowHeightConflict + lambda4 * hasLidHeightConflict;
         }
         else {
             for (int i = 0; i < m_items.size(); i++) {
