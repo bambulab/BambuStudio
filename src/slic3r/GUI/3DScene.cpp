@@ -1183,7 +1183,8 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
             }
 
             ModelInstanceEPrintVolumeState volume_state;
-            if (volume->is_outside && (plate_build_volume.bounding_volume().intersects(volume->bounding_box())))
+            //if (volume->is_outside && (plate_build_volume.bounding_volume().intersects(volume->bounding_box())))
+            if (volume->is_outside && (state == BuildVolume::ObjectState::Colliding))
                 volume_state = ModelInstancePVS_Partly_Outside;
             else if (volume->is_outside)
                 volume_state = ModelInstancePVS_Fully_Outside;

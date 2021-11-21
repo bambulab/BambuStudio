@@ -197,19 +197,19 @@ public:
     bool is_left_top_of(int obj_id, int instance_id);
 
     //check whether instance is outside the plate or not
-    bool check_outside(int obj_id, int instance_id);
+    bool check_outside(int obj_id, int instance_id, BoundingBoxf3* bounding_box = nullptr);
 
     //judge whether instance is intesected with plate or not
-    bool intersect_instance(int obj_id, int instance_id);
+    bool intersect_instance(int obj_id, int instance_id, BoundingBoxf3* bounding_box = nullptr);
 
     //add an instance into plate
-    int add_instance(int obj_id, int instance_id, bool move_position);
+    int add_instance(int obj_id, int instance_id, bool move_position, BoundingBoxf3* bounding_box = nullptr);
 
     //remove instance from plate
     int remove_instance(int obj_id, int instance_id);
 
     //update instance exclude state
-    void update_instance_exclude_status(int obj_id, int instance_id);
+    void update_instance_exclude_status(int obj_id, int instance_id, BoundingBoxf3* bounding_box = nullptr);
 
     //whether it is empty
     bool empty() { return obj_to_instance_set.empty(); }
@@ -218,7 +218,7 @@ public:
     bool has_printable_instances();
 
     //move instances to left or right PartPlate
-    void move_instances_to(PartPlate& left_plate, PartPlate& right_plate);
+    void move_instances_to(PartPlate& left_plate, PartPlate& right_plate, BoundingBoxf3* bounding_box = nullptr);
 
     /*rendering related functions*/
     const Pointfs& get_shape() const { return m_shape; }

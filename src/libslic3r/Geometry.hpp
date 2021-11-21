@@ -376,6 +376,9 @@ public:
     Transformation();
     explicit Transformation(const Transform3d& transform);
 
+    //BBS: add get dirty function
+    bool is_dirty() { return m_dirty; }
+
     const Vec3d& get_offset() const { return m_offset; }
     double get_offset(Axis axis) const { return m_offset(axis); }
 

@@ -336,6 +336,9 @@ public:
 	// A snug bounding box of non-transformed (non-rotated, non-scaled, non-translated) sum of all object volumes.
     BoundingBoxf3 full_raw_mesh_bounding_box() const;
 
+    //BBS: add instance convex hull bounding box
+    BoundingBoxf3 instance_convex_hull_bounding_box(size_t instance_idx, bool dont_translate = false) const;
+
     // Calculate 2D convex hull of of a projection of the transformed printable volumes into the XY plane.
     // This method is cheap in that it does not make any unnecessary copy of the volume meshes.
     // This method is used by the auto arrange function.
@@ -717,10 +720,9 @@ public:
     void                calculate_convex_hull();
     const TriangleMesh& get_convex_hull() const;
     const std::shared_ptr<const TriangleMesh>& get_convex_hull_shared_ptr() const { return m_convex_hull; }
-    //BBS
-    void                calculate_convex_hull_2d() { m_convex_hull_2d = std::make_shared<Polygon>(this->mesh().convex_hull()); }
-    const Polygon& get_convex_hull_2d() const { return *m_convex_hull_2d.get(); }
-    std::shared_ptr<const Polygon> get_convex_hull_2d_shared_ptr() const { return m_convex_hull_2d; }
+    //BBS: add convex_hell_2d related logic
+    const Polygon& get_convex_hull_2d(const Transform3d &trafo_instance) const;
+
     // Get count of errors in the mesh
     int                 get_repaired_errors_count() const;
 
@@ -797,8 +799,14 @@ private:
     t_model_material_id             	m_material_id;
     // The convex hull of this model's mesh.
     std::shared_ptr<const TriangleMesh> m_convex_hull;
-    std::shared_ptr<const Polygon>      m_convex_hull_2d;//BBS
+    //BBS: add convex hull 2d related logic
+    mutable Polygon                     m_convex_hull_2d; //BBS, used for convex_hell_2d acceleration
+    mutable Transform3d                 m_cached_trans_matrix; //BBS, used for convex_hell_2d acceleration
+    mutable Polygon                     m_cached_2d_polygon;   //BBS, used for convex_hell_2d acceleration
     Geometry::Transformation        	m_transformation;
+
+    //BBS: add convex_hell_2d related logic
+    void  calculate_convex_hull_2d(const Geometry::Transformation &transformation) const;
 
     // flag to optimize the checking if the volume is splittable
     //     -1   ->   is unknown value (before first cheking)
@@ -1050,6 +1058,7 @@ public:
     double get_auto_brim_width(double deltaT, double adhension) const;
     // BBS
     Polygon convex_hull_2d();
+    void invalidate_convex_hull_2d();
 
     // Getting the input polygon for arrange
     // We use void* as input type to avoid including Arrange.hpp in Model.hpp.

@@ -782,14 +782,14 @@ bool PartPlate::contain_instance_totally(int obj_id, int instance_id)
 }
 
 //check whether instance is outside the plate or not
-bool PartPlate::check_outside(int obj_id, int instance_id)
+bool PartPlate::check_outside(int obj_id, int instance_id, BoundingBoxf3* bounding_box)
 {
 	bool outside = true;
 
 	ModelObject* object = m_model->objects[obj_id];
 	ModelInstance* instance = object->instances[instance_id];
 
-	BoundingBoxf3 instance_box = object->instance_bounding_box(instance_id);
+	BoundingBoxf3 instance_box = bounding_box? *bounding_box: object->instance_convex_hull_bounding_box(instance_id);
 	Polygon hull = instance->convex_hull_2d();
 	Vec3d up_point(m_origin.x() + m_width, m_origin.y() + m_depth, m_origin.z() + m_height);
 	Vec3d low_point(m_origin.x(), m_origin.y(), m_origin.z() - 5.0f);
@@ -804,6 +804,7 @@ bool PartPlate::check_outside(int obj_id, int instance_id)
 			{
 				Polygon p = m_exclude_bounding_box[index].polygon(true);  // instance convex hull is scaled, so we need to scale here
 				if (intersection({ p }, { hull }).empty() == false)
+				//if (m_exclude_bounding_box[index].intersects(instance_box))
 				{
 					break;
 				}
@@ -819,7 +820,7 @@ bool PartPlate::check_outside(int obj_id, int instance_id)
 }
 
 //judge whether instance is intesected with plate or not
-bool PartPlate::intersect_instance(int obj_id, int instance_id)
+bool PartPlate::intersect_instance(int obj_id, int instance_id, BoundingBoxf3* bounding_box)
 {
 	bool result = false;
 
@@ -833,7 +834,7 @@ bool PartPlate::intersect_instance(int obj_id, int instance_id)
 	{
 		ModelObject* object = m_model->objects[obj_id];
 		ModelInstance* instance = object->instances[instance_id];
-		BoundingBoxf3 instance_box = object->instance_bounding_box(instance_id);
+		BoundingBoxf3 instance_box = bounding_box? *bounding_box: object->instance_convex_hull_bounding_box(instance_id);
 		Vec3d up_point(m_origin.x() + m_width, m_origin.y() + m_depth, m_origin.z() + m_height);
 		Vec3d low_point(m_origin.x(), m_origin.y(), m_origin.z() - 5.0f);
 		BoundingBoxf3 plate_box(low_point, up_point);
@@ -862,14 +863,14 @@ bool PartPlate::is_left_top_of(int obj_id, int instance_id)
 	ModelObject* object = m_model->objects[obj_id];
 	ModelInstance* instance = object->instances[instance_id];
 	std::pair<int, int> pair(obj_id, instance_id);
-	BoundingBoxf3 instance_box = object->instance_bounding_box(instance_id);
+	BoundingBoxf3 instance_box = object->instance_convex_hull_bounding_box(instance_id);
 
 	result = (m_origin.x() <= instance_box.min.x()) && (m_origin.y() >= instance_box.min.y());
 	return result;
 }
 
 //add an instance into plate
-int PartPlate::add_instance(int obj_id, int instance_id, bool move_position)
+int PartPlate::add_instance(int obj_id, int instance_id, bool move_position, BoundingBoxf3* bounding_box)
 {
 	if (!valid_instance(obj_id, instance_id))
 	{
@@ -896,7 +897,7 @@ int PartPlate::add_instance(int obj_id, int instance_id, bool move_position)
 	}
 
 	//need to judge whether this instance has an outer part
-	bool outside = check_outside(obj_id, instance_id);
+	bool outside = check_outside(obj_id, instance_id, bounding_box);
 	if (outside)
 		instance_outside_set.insert(pair);
 
@@ -921,31 +922,32 @@ int PartPlate::remove_instance(int obj_id, int instance_id)
 	it = obj_to_instance_set.find(std::pair(obj_id, instance_id));
 	if (it != obj_to_instance_set.end()) {
 		obj_to_instance_set.erase(it);
-		if (!m_ready_for_slice)
-			update_states();
 		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":plate_id %1%, found obj_id %2%, instance_id %3%") % m_plate_index % obj_id % instance_id;
 		result = 0;
 	}
 	else {
 		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plate_id %1%, can not find obj_id %2%, instance_id %3%") % m_plate_index % obj_id % instance_id;
 		result = -1;
+		return result;
 	}
 
 	it = instance_outside_set.find(std::pair(obj_id, instance_id));
 	if (it != instance_outside_set.end()) {
 		instance_outside_set.erase(it);
 	}
+	if (!m_ready_for_slice)
+		update_states();
 
 	return result;
 }
 
 //update instance exclude state
-void PartPlate::update_instance_exclude_status(int obj_id, int instance_id)
+void PartPlate::update_instance_exclude_status(int obj_id, int instance_id, BoundingBoxf3* bounding_box)
 {
 	bool outside;
 	std::set<std::pair<int, int>>::iterator it;
 
-	outside = check_outside(obj_id, instance_id);
+	outside = check_outside(obj_id, instance_id, bounding_box);
 
 	it = instance_outside_set.find(std::pair(obj_id, instance_id));
 	if (it == instance_outside_set.end()) {
@@ -982,17 +984,17 @@ bool PartPlate::has_printable_instances()
 }
 
 //move instances to left or right PartPlate
-void PartPlate::move_instances_to(PartPlate& left_plate, PartPlate& right_plate)
+void PartPlate::move_instances_to(PartPlate& left_plate, PartPlate& right_plate, BoundingBoxf3* bounding_box)
 {
 	for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
 	{
 		int obj_id = it->first;
 		int instance_id = it->second;
 
-		if (left_plate.intersect_instance(obj_id, instance_id))
-			left_plate.add_instance(obj_id, instance_id, false);
+		if (left_plate.intersect_instance(obj_id, instance_id, bounding_box))
+			left_plate.add_instance(obj_id, instance_id, false, bounding_box);
 		else
-			right_plate.add_instance(obj_id, instance_id, false);
+			right_plate.add_instance(obj_id, instance_id, false, bounding_box);
 	}
 
 	return;
@@ -1155,7 +1157,8 @@ void PartPlate::update_states()
 		int obj_id = it->first;
 		int instance_id = it->second;
 
-		if (check_outside(obj_id, instance_id))
+		//if (check_outside(obj_id, instance_id))
+		if (instance_outside_set.find(std::pair(obj_id, instance_id)) != instance_outside_set.end())
 		{
 			m_ready_for_slice = false;
 			//currently only check whether ready to slice
@@ -1770,16 +1773,18 @@ bool PartPlateList::contains(const BoundingBoxf3& bb)
 
 double PartPlateList::plate_stride_x()
 {
-	const auto plate_shape = Slic3r::Polygon::new_scale(m_shape);
-	double plate_width = plate_shape.bounding_box().size().x();
-	return unscaled<double>((1. + LOGICAL_PART_PLATE_GAP) * plate_width);
+	//const auto plate_shape = Slic3r::Polygon::new_scale(m_shape);
+	//double plate_width = plate_shape.bounding_box().size().x();
+	//return unscaled<double>((1. + LOGICAL_PART_PLATE_GAP) * plate_width);
+	return m_plate_width * (1. + LOGICAL_PART_PLATE_GAP);
 }
 
 double PartPlateList::plate_stride_y()
 {
-	const auto plate_shape = Slic3r::Polygon::new_scale(m_shape);
-	double plate_depth = plate_shape.bounding_box().size().y();
-	return unscaled<double>((1. + LOGICAL_PART_PLATE_GAP) * plate_depth);
+	//const auto plate_shape = Slic3r::Polygon::new_scale(m_shape);
+	//double plate_depth = plate_shape.bounding_box().size().y();
+	//return unscaled<double>((1. + LOGICAL_PART_PLATE_GAP) * plate_depth);
+	return m_plate_depth * (1. + LOGICAL_PART_PLATE_GAP);
 }
 
 //get the plate counts, not including the invalid plate
@@ -1947,6 +1952,16 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 {
 	int ret = 0, index;
 	PartPlate* plate = NULL;
+	ModelObject* object = NULL;
+
+	if ((obj_id >= 0) && (obj_id < m_model->objects.size()))
+	{
+		object = m_model->objects[obj_id];
+	}
+    else
+		return -1;
+
+	BoundingBoxf3 boundingbox = object->instance_convex_hull_bounding_box(instance_id);
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1%, instance_id %2%") % obj_id % instance_id;
 	index = find_instance(obj_id, instance_id);
@@ -1955,7 +1970,7 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 		//found it added before
 		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": found it in previous plate %1%") % index;
 		plate = m_plate_list[index];
-		if (!plate->intersect_instance(obj_id, instance_id))
+		if (!plate->intersect_instance(obj_id, instance_id, &boundingbox))
 		{
 			//not include anymore, remove it from original plate
 			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": not in plate %1% anymore, remove it") % index;
@@ -1964,8 +1979,8 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 		else
 		{
 			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": still in original plate %1%, no need to be updated") % index;
+			plate->update_instance_exclude_status(obj_id, instance_id, &boundingbox);
 			plate->update_states();
-			plate->update_instance_exclude_status(obj_id, instance_id);
 			plate->update_slice_result_valid_state();
 			return 0;
 		}
@@ -1975,7 +1990,7 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 	{
 		//found it in the unprintable plate
 		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": found it in unprintable plate");
-		if (!unprintable_plate.intersect_instance(obj_id, instance_id))
+		if (!unprintable_plate.intersect_instance(obj_id, instance_id, &boundingbox))
 		{
 			//not include anymore, remove it from original plate
 			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": not in unprintable plate anymore, remove it");
@@ -1994,20 +2009,20 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 		PartPlate* plate = m_plate_list[i];
 		assert(plate != NULL);
 
-		if (plate->intersect_instance(obj_id, instance_id))
+		if (plate->intersect_instance(obj_id, instance_id, &boundingbox))
 		{
 			//found a new plate, add it to plate
-			plate->add_instance(obj_id, instance_id, false);
+			plate->add_instance(obj_id, instance_id, false, &boundingbox);
 			plate->update_slice_result_valid_state();
 			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": add it to new plate %1%") % i;
 			return 0;
 		}
 	}
 
-	if (unprintable_plate.intersect_instance(obj_id, instance_id))
+	if (unprintable_plate.intersect_instance(obj_id, instance_id, &boundingbox))
 	{
 		//found in unprintable plate, add it to plate
-		unprintable_plate.add_instance(obj_id, instance_id, false);
+		unprintable_plate.add_instance(obj_id, instance_id, false, &boundingbox);
 		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": add it to unprintable plate");
 		return 0;
 	}
@@ -2100,30 +2115,31 @@ int PartPlateList::reload_all_objects()
 		for (j = 0; j < (unsigned int)object->instances.size(); ++j)
 		{
 			ModelInstance* instance = object->instances[j];
+			BoundingBoxf3 boundingbox = object->instance_convex_hull_bounding_box(j);
 			for (k = 0; k < (unsigned int)m_plate_list.size(); ++k)
 			{
 				PartPlate* plate = m_plate_list[k];
 				assert(plate != NULL);
 
-				if (plate->intersect_instance(i, j))
+				if (plate->intersect_instance(i, j, &boundingbox))
 				{
 					//found a new plate, add it to plate
-					plate->add_instance(i, j, false);
+					plate->add_instance(i, j, false, &boundingbox);
 					BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": found plate_id %1%, for obj_id %2%, instance_id %3%") % k % i % j;
 
 					//need to judge whether this instance has an outer part
-					if (plate->check_outside(i, j))
+					/*if (plate->check_outside(i, j))
 					{
 						plate->m_ready_for_slice = false;
-					}
+					}*/
 					break;
 				}
 			}
 
-			if ((k == m_plate_list.size()) && (unprintable_plate.intersect_instance(i, j)))
+			if ((k == m_plate_list.size()) && (unprintable_plate.intersect_instance(i, j, &boundingbox)))
 			{
 				//found in unprintable plate, add it to plate
-				unprintable_plate.add_instance(i, j, false);
+				unprintable_plate.add_instance(i, j, false, &boundingbox);
 				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": found in unprintable plate, obj_id %1%, instance_id %2%") % i % j;
 			}
 		}

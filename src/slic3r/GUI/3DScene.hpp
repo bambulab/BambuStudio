@@ -285,8 +285,6 @@ private:
     std::optional<BoundingBoxf3> m_transformed_bounding_box;
     // Convex hull of the volume, if any.
     std::shared_ptr<const TriangleMesh> m_convex_hull;
-    // BBS: 2D convex hull projected on z=0 plane
-    std::shared_ptr<const Polygon> m_convex_hull_2d;
     // Bounding box of this volume, in unscaled coordinates.
     std::optional<BoundingBoxf3> m_transformed_convex_hull_bounding_box;
     // Bounding box of the non sinking part of this volume, in unscaled coordinates.
@@ -468,10 +466,6 @@ public:
     void set_convex_hull(std::shared_ptr<const TriangleMesh> convex_hull) { m_convex_hull = std::move(convex_hull); }
     void set_convex_hull(const TriangleMesh &convex_hull) { m_convex_hull = std::make_shared<const TriangleMesh>(convex_hull); }
     void set_convex_hull(TriangleMesh &&convex_hull) { m_convex_hull = std::make_shared<const TriangleMesh>(std::move(convex_hull)); }
-    //BBS
-    void set_convex_hull_2d(std::shared_ptr<const Polygon> convex_hull) { m_convex_hull_2d = std::move(convex_hull); }
-    void set_convex_hull_2d(const Polygon& convex_hull) { m_convex_hull_2d = std::make_shared<const Polygon>(convex_hull); }
-    void set_convex_hull_2d(Polygon&& convex_hull) { m_convex_hull_2d = std::make_shared<const Polygon>(std::move(convex_hull)); }
 
     void set_offset_to_assembly(const Vec3d& offset) { m_offset_to_assembly = offset; set_bounding_boxes_as_dirty(); }
     Vec3d get_offset_to_assembly() { return m_offset_to_assembly; }

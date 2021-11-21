@@ -383,9 +383,10 @@ std::string Print::sequential_print_clearance_valid(const Print& print, Polygons
     Pointfs excluse_area_points = print_config.bed_exclude_area.values;
     Polygons exclude_polys;
     Polygon exclude_poly;
+    const Vec3d print_origin = print.get_plate_origin();
     for (int i = 0; i < excluse_area_points.size(); i++) {
         auto pt = excluse_area_points[i];
-        exclude_poly.points.emplace_back(scale_(pt.x()), scale_(pt.y()));
+        exclude_poly.points.emplace_back(scale_(pt.x() + print_origin.x()), scale_(pt.y() + print_origin.y()));
         if (i % 4 == 3) {  // exclude areas are always rectangle
             exclude_polys.push_back(exclude_poly);
             exclude_poly.points.clear();
@@ -512,9 +513,10 @@ static std::string layered_print_cleareance_valid(const Print& print, std::strin
     Pointfs excluse_area_points = print_config.bed_exclude_area.values;
     Polygons exclude_polys;
     Polygon exclude_poly;
+    const Vec3d print_origin = print.get_plate_origin();
     for (int i = 0; i < excluse_area_points.size(); i++) {
         auto pt = excluse_area_points[i];
-        exclude_poly.points.emplace_back(scale_(pt.x()), scale_(pt.y()));
+        exclude_poly.points.emplace_back(scale_(pt.x() + print_origin.x()), scale_(pt.y() + print_origin.y()));
         if (i % 4 == 3) {  // exclude areas are always rectangle
             exclude_polys.push_back(exclude_poly);
             exclude_poly.points.clear();
@@ -1162,7 +1164,7 @@ std::string Print::export_gcode(const std::string& path_template, GCodeProcessor
     // The following line may die for multiple reasons.
     GCode gcode;
     //BBS: compute plate offset for gcode-generator
-    Vec3d origin = this->get_plate_origin();
+    const Vec3d origin = this->get_plate_origin();
     gcode.set_gcode_offset(origin(0), origin(1));
     gcode.do_export(this, path.c_str(), result, thumbnail_cb);
     return path.c_str();
@@ -1566,7 +1568,7 @@ void Print::export_gcode_from_previous_file(const std::string& file, GCodeProces
 {
     try {
         GCodeProcessor processor;
-        Vec3d origin = this->get_plate_origin();
+        const Vec3d origin = this->get_plate_origin();
         processor.set_xy_offset(origin(0), origin(1));
         //processor.enable_producers(true);
         processor.process_file(file);

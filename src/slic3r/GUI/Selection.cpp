@@ -1303,20 +1303,31 @@ void Selection::notify_instance_update(int object_idx, int instance_idx)
 
     if (object_idx == -1)
     {
+        std::set<std::pair<int, int>> notify_set;
         for (unsigned int i : m_list)
         {
+            int obj_index = (*m_volumes)[i]->object_idx();
             //-1 means all the instance in this object
             if (instance_idx == -1)
             {
-                ModelObject* object = m_model->objects[(*m_volumes)[i]->object_idx()];
+                ModelObject* object = m_model->objects[obj_index];
 
-                for (int index = 0; index < object->instances.size(); index++)
+                for (int instance_index = 0; instance_index < object->instances.size(); instance_index++)
                 {
-                    plate_list.notify_instance_update((*m_volumes)[i]->object_idx(), index);
+                    std::pair<int, int> notify_index(obj_index, instance_index);
+                    if (notify_set.find(notify_index) == notify_set.end()) {
+                        plate_list.notify_instance_update(obj_index, instance_index);
+                        notify_set.insert(notify_index);
+                    }
                 }
             }
-            else
-                plate_list.notify_instance_update((*m_volumes)[i]->object_idx(), (*m_volumes)[i]->instance_idx());
+            else {
+                std::pair<int, int> notify_index(obj_index, instance_idx);
+                if (notify_set.find(notify_index) == notify_set.end()) {
+                    plate_list.notify_instance_update(obj_index, instance_idx);
+                    notify_set.insert(notify_index);
+                }
+            }
         }
     }
     else

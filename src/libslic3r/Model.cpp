@@ -1129,17 +1129,71 @@ BoundingBoxf3 ModelObject::instance_bounding_box(size_t instance_idx, bool dont_
     return bb;
 }
 
+//BBS: add convex bounding box
+BoundingBoxf3 ModelObject::instance_convex_hull_bounding_box(size_t instance_idx, bool dont_translate) const
+{
+    BoundingBoxf3 bb;
+    const Transform3d& inst_matrix = this->instances[instance_idx]->get_transformation().get_matrix(dont_translate);
+    for (ModelVolume *v : this->volumes)
+    {
+        if (v->is_model_part())
+            bb.merge(v->get_convex_hull().transformed_bounding_box(inst_matrix * v->get_matrix()));
+    }
+    return bb;
+}
+
+
 // Calculate 2D convex hull of of a projection of the transformed printable volumes into the XY plane.
 // This method is cheap in that it does not make any unnecessary copy of the volume meshes.
 // This method is used by the auto arrange function.
 Polygon ModelObject::convex_hull_2d(const Transform3d& trafo_instance) const
 {
+#if 0
     Points pts;
+
     for (const ModelVolume* v : volumes) {
         if (v->is_model_part())
-            append(pts, its_convex_hull_2d_above(v->mesh().its, (trafo_instance * v->get_matrix()).cast<float>(), 0.0f).points);
+            //BBS: use convex hull vertex instead of all
+            append(pts, its_convex_hull_2d_above(v->get_convex_hull().its, (trafo_instance * v->get_matrix()).cast<float>(), 0.0f).points);
+            //append(pts, its_convex_hull_2d_above(v->mesh().its, (trafo_instance * v->get_matrix()).cast<float>(), 0.0f).points);
     }
     return Geometry::convex_hull(std::move(pts));
+#else
+    Points pts;
+    for (const ModelVolume *v : this->volumes)
+        if (v->is_model_part()) {
+            const Polygon& volume_hull = v->get_convex_hull_2d(trafo_instance);
+
+            pts.insert(pts.end(), volume_hull.points.begin(), volume_hull.points.end());
+        }
+
+    //std::sort(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a(0) < b(0) || (a(0) == b(0) && a(1) < b(1)); });
+    //pts.erase(std::unique(pts.begin(), pts.end(), [](const Point& a, const Point& b) { return a(0) == b(0) && a(1) == b(1); }), pts.end());
+    /*std::vector<Points> points;
+    //points.push_back(pts);
+    Polygon hull = Geometry::convex_hull(std::move(pts));
+    static int irun = 0;
+    BoundingBox bbox_svg;
+
+    bbox_svg.merge(get_extents(pts));
+    bbox_svg.merge(get_extents(hull));
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": bbox_svg.min{%1%,%2%} max{%3%,%4%}, points count %5%")% bbox_svg.min.x()% bbox_svg.min.y()% bbox_svg.max.x()% bbox_svg.max.y()%points[0].size();
+    {
+        std::stringstream stri;
+        stri << "convex_2d_hull_" << irun << ".svg";
+        SVG svg(stri.str(), bbox_svg);
+
+        std::vector<Polygon> hulls;
+        hulls.push_back(hull);
+        svg.draw(to_polylines(points), "blue");
+        svg.draw(to_polylines(hulls), "red");
+        svg.Close();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": stri %1%, Polygon.size %2%, point[0] {%3%, %4%}, point[1] {%5%, %6%}")% stri.str()% hull.size()% hull[0].x()% hull[0].y()% hull[1].x()% hull[1].y();
+    }
+    ++ irun;
+    return hull;*/
+    return Geometry::convex_hull(std::move(pts));
+#endif
 }
 
 void ModelObject::center_around_origin(bool include_modifiers)
@@ -2082,6 +2136,89 @@ void ModelVolume::calculate_convex_hull()
     assert(m_convex_hull.get());
 }
 
+//BBS: convex_hull_2d using convex_hull_3d
+void  ModelVolume::calculate_convex_hull_2d(const Geometry::Transformation &transformation) const
+{
+    const indexed_triangle_set &its = m_convex_hull->its;
+	if (its.vertices.empty())
+        return;
+
+    Points pts;
+    Vec3d rotation = transformation.get_rotation();
+    Vec3d mirror = transformation.get_mirror();
+    Vec3d scale = transformation.get_scaling_factor();
+    //rotation(2) = 0.f;
+    Transform3d new_matrix = Geometry::assemble_transform(Vec3d::Zero(), rotation, scale, mirror);
+
+    pts.reserve(its.vertices.size());
+    // Using the shared vertices should be a bit quicker than using the STL faces.
+    for (size_t i = 0; i < its.vertices.size(); ++ i) {
+        Vec3d p = new_matrix * its.vertices[i].cast<double>();
+        pts.emplace_back(coord_t(scale_(p.x())), coord_t(scale_(p.y())));
+    }
+    //TODO, do we need to remove the duplicate points before convex_hull?
+    m_cached_2d_polygon = Slic3r::Geometry::convex_hull(pts);
+
+    m_convex_hull_2d = m_cached_2d_polygon;
+    m_convex_hull_2d.translate(scale_(transformation.get_offset(X)), scale_(transformation.get_offset(Y)));
+    //int size = m_cached_2d_polygon.size();
+    //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": size %1%, offset {%2%, %3%}")% size% transformation.get_offset(X)% transformation.get_offset(Y);
+    //for (int i = 0; i < size; i++)
+    //    BOOST_LOG_TRIVIAL(info) << boost::format(": point %1%, position {%2%, %3%}")% i% m_cached_2d_polygon[i].x()% m_cached_2d_polygon[i].y();
+	//m_convex_hull_2d.rotate(transformation.get_rotation(Z));
+    //m_convex_hull_2d.scale(transformation.get_scaling_factor(X), transformation.get_scaling_factor(Y));
+}
+
+const Polygon& ModelVolume::get_convex_hull_2d(const Transform3d &trafo_instance) const
+{
+    Transform3d  new_matrix;
+
+    new_matrix = trafo_instance * m_transformation.get_matrix();
+
+    auto need_recompute = [](Geometry::Transformation& old_transform, Geometry::Transformation& new_transform)->bool {
+            //double old_rot_x = old_transform.get_rotation(X);
+            //double old_rot_y = old_transform.get_rotation(Y);
+            //double new_rot_x = new_transform.get_rotation(X);
+            //double new_rot_y = new_transform.get_rotation(Y);
+            const Vec3d &old_rotation = old_transform.get_rotation();
+            const Vec3d &new_rotation = new_transform.get_rotation();
+            const Vec3d &old_mirror = old_transform.get_mirror();
+            const Vec3d &new_mirror = new_transform.get_mirror();
+            const Vec3d &old_scaling = old_transform.get_scaling_factor();
+            const Vec3d &new_scaling = new_transform.get_scaling_factor();
+
+            if ((old_scaling != new_scaling) || (old_rotation != new_rotation) || (old_mirror != new_mirror))
+                return true;
+            else
+                return false;
+        };
+
+    if ((new_matrix.matrix() != m_cached_trans_matrix.matrix()) || !m_convex_hull_2d.is_valid())
+    {
+        Geometry::Transformation new_trans(new_matrix), old_trans(m_cached_trans_matrix);
+
+        if (need_recompute(old_trans, new_trans) || !m_convex_hull_2d.is_valid())
+        {
+            //need to update
+            calculate_convex_hull_2d(new_trans);
+        }
+        else
+        {
+            m_convex_hull_2d = m_cached_2d_polygon;
+            m_convex_hull_2d.translate(scale_(new_trans.get_offset(X)), scale_(new_trans.get_offset(Y)));
+            //m_convex_hull_2d.rotate(new_trans.get_rotation(Z));
+            //m_convex_hull_2d.scale(new_trans.get_scaling_factor(X), new_trans.get_scaling_factor(Y));
+            //int size = m_cached_2d_polygon.size();
+            //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": use previous cached, size %1%, offset {%2%, %3%}")% size% new_trans.get_offset(X)% new_trans.get_offset(Y);
+            //for (int i = 0; i < size; i++)
+            //    BOOST_LOG_TRIVIAL(info) << boost::format(": point %1%, position {%2%, %3%}")% i% m_cached_2d_polygon[i].x()% m_cached_2d_polygon[i].y();
+        }
+        m_cached_trans_matrix = new_matrix;
+    }
+
+    return m_convex_hull_2d;
+}
+
 int ModelVolume::get_repaired_errors_count() const
 {
     const RepairedMeshErrors &stats = this->mesh().stats().repaired_errors;
@@ -2390,14 +2527,27 @@ double ModelInstance::get_auto_brim_width(double deltaT, double adhension) const
     return brim_width;
 }
 
+//BBS: instance's convex_hull_2d
 Polygon ModelInstance::convex_hull_2d()
 {
+    //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": name %1%, is_valid %2%")% this->object->name.c_str()% convex_hull.is_valid();
     //if (!convex_hull.is_valid())
-    //{ // this logic is not working right now, as moving instance doesn't update convex_hull
+    { // this logic is not working right now, as moving instance doesn't update convex_hull
         const Transform3d& trafo_instance = get_matrix(false);
         convex_hull = get_object()->convex_hull_2d(trafo_instance);
-    //}
+    }
+    //int size = convex_hull.size();
+    //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": convex_hull, point size %1%")% size;
+    //for (int i = 0; i < size; i++)
+    //    BOOST_LOG_TRIVIAL(info) << boost::format(": point %1%, position {%2%, %3%}")% i% convex_hull[i].x()% convex_hull[i].y();
+
     return convex_hull;
+}
+
+//BBS: invalidate instance's convex_hull_2d
+void ModelInstance::invalidate_convex_hull_2d()
+{
+    convex_hull.clear();
 }
 
 //BBS adhesion coefficients from model object class
