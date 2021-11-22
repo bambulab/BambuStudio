@@ -2266,6 +2266,16 @@ void ObjectList::merge(bool to_multipart_object)
                 // set offset
                 const Vec3d vol_offset = volume_offset_correction* new_volume->get_offset();
                 new_volume->set_offset(vol_offset);
+
+                //BBS: add config from old objects
+                //for object config, it has settings of PrintObjectConfig and PrintRegionConfig
+                //for volume config, it only has settings of PrintRegionConfig
+                //so we can not copy settings from object to volume
+                //but we can copy settings from volume to object
+                if (object->volumes.size() > 1)
+                {
+                    new_volume->config.assign_config(volume->config);
+                }
             }
             new_object->sort_volumes(wxGetApp().app_config->get("order_volumes") == "1");
 

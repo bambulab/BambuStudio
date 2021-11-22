@@ -1505,16 +1505,21 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
 
             // XXX: this seems to be the only real usage of m_model, maybe refactor this so that it's not needed?
             ModelObject* new_object = m_model->add_object();
+            //BBS: refine the config logic
+            //use object as basic, and add volume's config
             if (meshes.size() == 1) {
                 new_object->name = volume->name;
                 // Don't copy the config's ID.
-                new_object->config.assign_config(this->config.size() > 0 ? this->config : volume->config);
+                //new_object->config.assign_config(this->config.size() > 0 ? this->config : volume->config);
             }
             else {
                 new_object->name = this->name + (meshes.size() > 1 ? "_" + std::to_string(counter++) : "");
                 // Don't copy the config's ID.
-                new_object->config.assign_config(this->config);
+                //new_object->config.assign_config(this->config);
             }
+            new_object->config.assign_config(this->config);
+            new_object->config.apply(volume->config, true);
+
             assert(new_object->config.id().valid());
             assert(new_object->config.id() != this->config.id());
             new_object->instances.reserve(this->instances.size());
@@ -1522,8 +1527,8 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
                 new_object->add_instance(*model_instance);
             ModelVolume* new_vol = new_object->add_volume(*volume, std::move(mesh));
 
-            // BBS.
-            new_vol->config.set("extruder", 0);
+            // BBS: clear volume's config, as we already set them into object
+            new_vol->config.clear();
 
             for (ModelInstance* model_instance : new_object->instances)
             {
@@ -2018,7 +2023,9 @@ size_t ModelVolume::split(unsigned int max_extruders)
         this->object->volumes[ivolume]->center_geometry_after_creation();
         this->object->volumes[ivolume]->translate(offset);
         this->object->volumes[ivolume]->name = name + "_" + std::to_string(idx + 1);
-        this->object->volumes[ivolume]->config.set("extruder", auto_extruder_id(max_extruders, extruder_counter));
+        //BBS: always set the extruder id the same as original
+        this->object->volumes[ivolume]->config.set("extruder", this->extruder_id());
+        //this->object->volumes[ivolume]->config.set("extruder", auto_extruder_id(max_extruders, extruder_counter));
         this->object->volumes[ivolume]->m_is_splittable = 0;
         ++ idx;
     }
