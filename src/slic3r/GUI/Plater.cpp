@@ -2544,6 +2544,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         partplate_list.update_slice_context_to_current_plate(background_process);
                         this->preview->update_gcode_result(partplate_list.get_current_slice_result());
                         release_PlateData_list(plate_data);
+                        sidebar->obj_list()->reload_all_plates();
                     }
 
                     if (load_config && !config_loaded.empty()) {
@@ -2656,6 +2657,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     partplate_list.update_slice_context_to_current_plate(background_process);
                     this->preview->update_gcode_result(partplate_list.get_current_slice_result());
                     release_PlateData_list(plate_data);
+                    sidebar->obj_list()->reload_all_plates();
                 }
             }
         } catch (const ConfigurationError &e) {
@@ -3914,6 +3916,7 @@ void Plater::priv::reload_from_disk()
                 partplate_list.update_slice_context_to_current_plate(background_process);
                 this->preview->update_gcode_result(partplate_list.get_current_slice_result());
                 release_PlateData_list(plate_data);
+                sidebar->obj_list()->reload_all_plates();
             }
         }
         catch (std::exception&)

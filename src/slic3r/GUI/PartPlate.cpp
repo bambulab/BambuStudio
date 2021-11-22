@@ -2635,10 +2635,6 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 	ret = reload_all_objects();
 	print();
 
-	if (m_plater != nullptr) {
-		// In GUI mode
-		wxGetApp().obj_list()->reload_all_plates();
-	}
 	return ret;
 }
 
