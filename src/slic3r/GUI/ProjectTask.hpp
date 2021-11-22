@@ -18,6 +18,43 @@ class BBLProject;
 class BBLProfile;
 class BBLTask;
 
+
+class BBLSliceInfo {
+public:
+    BBLSliceInfo(BBLProfile* profile = nullptr)
+    {
+        profile_ = profile;
+        prediction = 0;
+    }
+
+    BBLSliceInfo(const BBLSliceInfo& obj) {
+        this->index = obj.index;
+        this->title = obj.title;
+        this->thumbnail_dir = obj.thumbnail_dir;
+        this->thumbnail_name = obj.thumbnail_name;
+        this->thumbnail_url = obj.thumbnail_url;
+        this->gcode_name = obj.gcode_name;
+        this->gcode_dir = obj.gcode_dir;
+        this->gcode_url = obj.gcode_url;
+        this->weight = obj.weight;
+        this->prediction = obj.prediction;
+        this->profile_ = obj.profile_;
+    }
+
+    std::string     index;              // plate index, start 1, 2, 3, etc.
+    std::string     title;
+    std::string     thumbnail_dir;
+    std::string     thumbnail_name;
+    std::string     thumbnail_url;
+    std::string     gcode_name;
+    std::string     gcode_url;
+    std::string     gcode_dir;
+    std::string     config_url;
+    std::string     weight;
+    int             prediction;
+    BBLProfile*     profile_;
+};
+
 class BBLSubTask {
 public:
     enum SubTaskStatus {
@@ -44,6 +81,7 @@ public:
     // task of plate info
     std::string     task_prediction;    /* prediction printing time of plate, unit seconds */
     std::string     task_weight;        /* weight create by slicer */
+    BBLSliceInfo    slice_info;         /* slice info of subtask */
     std::string     task_partplate_idx; /* partplate_idx, start at 1, 2, etc. */
 
     SubTaskStatus   task_status;
@@ -83,6 +121,7 @@ public:
     std::string                 task_project_id;
     std::string                 task_profile_id;
     std::vector<BBLSubTask*>    subtasks;
+    std::map<std::string, BBLSliceInfo*> slice_info; /* slice info of subtasks, key: plate idx, 1, 2, 3, etc... */
 
     std::string task_status_str() {
         if (task_status == TASK_ACTIVE) {
@@ -98,28 +137,6 @@ public:
 
     std::string build_content_json();
     int parse_content_json(std::string json);
-};
-
-class BBLSliceInfo {
-public:
-    BBLSliceInfo(BBLProfile* profile = nullptr)
-    {
-        profile_ = profile;
-        prediction = 0;
-    }
-
-    std::string     index;
-    std::string     title;
-    std::string     thumbnail_dir;
-    std::string     thumbnail_name;
-    std::string     thumbnail_url;
-    std::string     gcode_name;
-    std::string     gcode_url;
-    std::string     gcode_dir;
-    std::string     config_url;
-    std::string     weight;
-    int             prediction;
-    BBLProfile*     profile_;
 };
 
 class BBLProfile {

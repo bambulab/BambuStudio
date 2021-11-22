@@ -1589,15 +1589,82 @@ namespace Slic3r {
                             if (update_time.has_value())
                                 task->task_update_time = update_time.value();
                             boost::optional<std::string> parent_id = root.get_optional<std::string>("parent");
-                            if (root.get_child_optional("sub_task") != boost::none) {
-                                pt::ptree subtask_ids = root.get_child("sub_task");
+                            if (root.get_child_optional("subtask") != boost::none) {
+                                pt::ptree subtask_node = root.get_child("subtask");
                                 task->subtasks.clear();
-                                for (auto sub_id = subtask_ids.begin(); sub_id != subtask_ids.end(); ++sub_id) {
-                                    std::string subtask_id = sub_id->first;
+                                for (auto subtask_item = subtask_node.begin(); subtask_item != subtask_node.end(); ++subtask_item) {
                                     BBLSubTask* subtask = new BBLSubTask();
+                                    subtask->task_id = subtask_item->second.get_optional<std::string>("task_id").value_or("");
+                                    subtask->task_name = subtask_item->second.get_optional<std::string>("name").value_or("");
+                                    subtask->task_create_time = subtask_item->second.get_optional<std::string>("create_time").value_or("");
+                                    subtask->task_update_time = subtask_item->second.get_optional<std::string>("update_time").value_or("");
+                                    boost::optional<std::string> content = subtask_item->second.get_optional<std::string>("content");
+                                    if (content.has_value()) {
+                                        subtask->parse_content_json(content.value());
+                                    }
                                     task->subtasks.push_back(subtask);
-                                    subtask->task_id = subtask_id;
-                                    this->get_subtask(subtask);
+                                }
+                            }
+                            if (root.get_child_optional("context") != boost::none) {
+                                task->slice_info.clear();
+                                pt::ptree context = root.get_child("context");
+                                if (context.get_child_optional("plates") != boost::none) {
+                                    // parse plate sliced info
+                                    pt::ptree plates = context.get_child("plates");
+                                    for (auto plate = plates.begin(); plate != plates.end(); ++plate) {
+                                        boost::optional<std::string> index = plate->second.get_optional<std::string>("index");
+                                        if (!index.has_value()) {
+                                            continue;
+                                        }
+
+                                        BBLSliceInfo* info = nullptr;
+                                        /* do not update if info is initialized */
+                                        if (task->slice_info.find(index.value()) != task->slice_info.end()) {
+                                            continue;
+                                        }
+                                        info = new BBLSliceInfo();
+                                        info->index = index.value();
+                                        // set a format to title
+                                        boost::optional<int> prediction = plate->second.get_optional<int>("prediction");
+                                        if (prediction.has_value()) {
+                                            info->prediction = prediction.value();
+                                        }
+                                        boost::optional<std::string> weight = plate->second.get_optional<std::string>("weight");
+                                        if (weight.has_value()) {
+                                            info->weight = weight.value();
+                                        }
+                                        if (plate->second.get_child_optional("thumbnail") != boost::none) {
+                                            pt::ptree thumbnail_node = plate->second.get_child("thumbnail");
+                                            boost::optional<std::string> thumbnail_name = thumbnail_node.get_optional<std::string>("name");
+                                            if (thumbnail_name.has_value()) {
+                                                info->thumbnail_name = thumbnail_name.value();
+                                            }
+                                            boost::optional<std::string> thumbnail_dir = thumbnail_node.get_optional<std::string>("dir");
+                                            if (thumbnail_dir.has_value()) {
+                                                info->thumbnail_dir = thumbnail_dir.value();
+                                            }
+                                            boost::optional<std::string> thumbnail_url = thumbnail_node.get_optional<std::string>("url");
+                                            if (thumbnail_url.has_value()) {
+                                                info->thumbnail_url = thumbnail_url.value();
+                                            }
+                                        }
+                                        if (plate->second.get_child_optional("gcode") != boost::none) {
+                                            pt::ptree gcode_node = plate->second.get_child("gcode");
+                                            boost::optional<std::string> gcode_name = gcode_node.get_optional<std::string>("name");
+                                            if (gcode_name.has_value()) {
+                                                info->gcode_name = gcode_name.value();
+                                            }
+                                            boost::optional<std::string> gcode_dir = gcode_node.get_optional<std::string>("dir");
+                                            if (gcode_dir.has_value()) {
+                                                info->gcode_dir = gcode_dir.value();
+                                            }
+                                            boost::optional<std::string> gcode_url = gcode_node.get_optional<std::string>("url");
+                                            if (gcode_url.has_value()) {
+                                                info->gcode_url = gcode_url.value();
+                                            }
+                                        }
+                                        task->slice_info.insert(std::make_pair(index.value(), info));
+                                    }
                                 }
                             }
                         }

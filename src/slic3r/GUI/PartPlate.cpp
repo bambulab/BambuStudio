@@ -2595,6 +2595,7 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 			}
 		}
 		if (m_plate_list[i]->get_slice_result()) {
+			plate_data_item->is_sliced_valid = m_plate_list[i]->is_slice_result_valid();
 			plate_data_item->gcode_prediction = std::to_string((int)m_plate_list[i]->get_slice_result()->print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time);
 			const PrintStatistics& ps = m_plater->get_partplate_list().get_current_fff_print().print_statistics();
 			if (ps.total_weight != 0.0) {

@@ -32,6 +32,7 @@ struct PlateData
     std::string     thumbnail_file;
     std::string     gcode_prediction;
     std::string     gcode_weight;
+    bool            is_sliced_valid = false;
 
     std::string get_gcode_prediction_str() {
         return gcode_prediction;

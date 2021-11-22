@@ -268,41 +268,6 @@ bool SubTaskListModel::SetValueByRow(const wxVariant& variant,
     return false;
 }
 
-void SubTaskListModel::add_subtask(BBLSubTask* subtask)
-{
-    wxString task_name_text = "N/A";
-    if (!subtask->task_name.empty()) {
-        task_name_text = wxString::Format("%s", subtask->task_name);
-    }
-    m_nameColValues.push_back(task_name_text);
-
-    wxString duration_text = "N/A";
-    if (!subtask->task_prediction.empty()) {
-        try {
-            std::string duration = get_time_dhms(stoi(subtask->task_prediction));
-            duration_text = wxString::Format("%s", duration);
-        }
-        catch (...) {
-            ;
-        }
-    }
-    m_durationColValues.push_back(duration_text);
-    wxString weight_text = "N/A";
-    if (!subtask->task_weight.empty())
-        weight_text = wxString::Format("%sg", subtask->task_weight);
-    m_WeightColValues.push_back(weight_text);
-}
-
-void SubTaskListModel::update_subtask(BBLSubTask* subtask)
-{
-    m_nameColValues.clear();
-    m_durationColValues.clear();
-    m_WeightColValues.clear();
-    m_PlateIdxColValues.clear();
-    add_subtask(subtask);
-    Reset(m_nameColValues.Count());
-}
-
 void SubTaskListModel::update_task(BBLTask* task)
 {
     if (!task) return;
@@ -313,8 +278,12 @@ void SubTaskListModel::update_task(BBLTask* task)
     m_PlateIdxColValues.clear();
 
     std::vector<BBLSubTask*>::iterator it;
+    std::map<std::string, BBLSliceInfo*>::iterator iter;
     for (it = task->subtasks.begin(); it != task->subtasks.end(); it++) {
-        add_subtask((*it));
+        iter = task->slice_info.find((*it)->task_partplate_idx);
+        if (iter != task->slice_info.end()) {
+            add_item((*it)->task_name, iter->second->prediction, iter->second->weight);
+        }
     }
 
     Reset(m_nameColValues.GetCount());
@@ -1340,33 +1309,29 @@ void MonitorPanel::update_task(MachineObject* obj)
 {
     if (!obj) return;
 
-    if (!obj->task_ || !obj->profile_) return;
+    if (!obj->task_) return;
 
-    if (last_task != obj->task_ 
-        && last_profile != obj->profile_
-        && !obj->profile_->slice_info.empty()) {
+    if (last_task != obj->task_) {
         std::vector<BBLSubTask*>::iterator it;
         std::map<std::string, BBLSliceInfo*>::iterator iter;
         subtask_model->clear();
         for (it = obj->task_->subtasks.begin(); it != obj->task_->subtasks.end(); it++) {
-            iter = obj->profile_->slice_info.find((*it)->task_partplate_idx);
-            if (iter != obj->profile_->slice_info.end()) {
+            iter = obj->task_->slice_info.find((*it)->task_partplate_idx);
+            if (iter != obj->task_->slice_info.end()) {
                 subtask_model->add_item((*it)->task_name, iter->second->prediction, iter->second->weight);
             }
         }
         subtask_model->reset();
-        last_task = obj->task_;
-        last_profile = obj->profile_;
     }
+    last_task = obj->task_;
 }
 
 void MonitorPanel::update_subtask(MachineObject* obj)
 {
-    BBLSubTask* curr_subtask = obj->get_subtask();
-    if (last_subtask != curr_subtask) {
-        on_subtask_update(curr_subtask, false);
+    if (last_subtask != obj->subtask_) {
+        on_subtask_update(obj->subtask_, false);
     }
-    last_subtask = curr_subtask;
+    last_subtask = obj->subtask_;
 }
 
 void MonitorPanel::update_profile(MachineObject* obj)
@@ -1386,6 +1351,10 @@ void MonitorPanel::update_status(MachineObject* obj)
     /* Update Device Info */
     m_staticText_machine_name->SetLabelText(wxString::Format("%s", obj->dev_name));
     m_staticText_sn_value->SetLabelText(wxString::Format("%s", obj->dev_id));
+
+    // update printing status
+    wxString printing_status_text = wxString::Format("%s", obj->print_status);
+    m_staticText_printing_val->SetLabelText(printing_status_text);
 
     // update wifi signal
     m_staticText_wifi_signal->SetLabelText(wxString::Format("%s", obj->wifi_signal));
@@ -1425,9 +1394,9 @@ void MonitorPanel::update_all()
     //if (obj->is_ams_need_update) {}
     update_ams(obj);
 
-    update_profile(obj);
+    //update_profile(obj);
 
-    //update_task(obj);
+    update_task(obj);
 
     update_subtask(obj);
 }
@@ -1508,10 +1477,6 @@ void MonitorPanel::on_subtask_update(BBLSubTask* curr_subtask, bool update_all)
 
     // update current subtask progress
     m_gauge_progress->SetValue(curr_subtask->task_progress);
-
-    // update printing status
-    wxString printing_status_text = wxString::Format("%s", curr_subtask->printing_status);
-    m_staticText_printing_val->SetLabelText(printing_status_text);
 }
 
 void MonitorPanel::on_subtask_status_changed(std::string old_status, std::string new_status)

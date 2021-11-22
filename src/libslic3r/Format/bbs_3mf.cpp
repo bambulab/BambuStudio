@@ -3476,7 +3476,7 @@ namespace Slic3r {
             PlateData* plate_data = plate_data_list[i];
             int instance_size = plate_data->objects_and_instances.size();
 
-            if (plate_data != nullptr) {
+            if (plate_data != nullptr && plate_data->is_sliced_valid) {
                 stream << "  <" << PLATE_TAG << ">\n";
                 //plate index
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PLATE_IDX_ATTR        << "\" " << VALUE_ATTR << "=\"" << i + 1 << "\"/>\n";

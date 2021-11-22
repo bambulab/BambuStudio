@@ -136,8 +136,6 @@ public:
         unsigned int row, unsigned int col) wxOVERRIDE;
 
     void update_task(BBLTask* task);
-    void update_subtask(BBLSubTask* subtask);
-    void add_subtask(BBLSubTask* subtask);
     void update_profile(BBLProfile* profile);
     void add_slice_info(BBLSliceInfo* slice_info);
     void add_item(std::string title, int prediction, std::string weight);

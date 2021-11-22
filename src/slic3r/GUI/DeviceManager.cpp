@@ -540,7 +540,6 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                     }
                 }
 
-
                 /* temperature */
                 boost::optional<std::string> nozzle_temp_raw        = print.get_optional<std::string>("nozzle_temp_raw");
                 boost::optional<std::string> nozzle_temp_target_raw = print.get_optional<std::string>("nozzle_target_temp_raw");
@@ -594,6 +593,9 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 if (mc_print_line_number_str.has_value()) {
                     mc_print_line_number = mc_print_line_number_str.value();
                 }
+
+                if (gcode_state.has_value())
+                    print_status = gcode_state.value();
 
                 /* positions */
                 boost::optional<std::string> pos_x = print.get_optional<std::string>("pos_x");
@@ -1038,6 +1040,10 @@ void MachineObject::update_profile(std::string project_id, std::string profile_i
 void MachineObject::update_task(std::string task_id)
 {
     if (task_id.empty()) return;
+
+    if (task_) {
+        if (task_->task_id.compare(task_id) == 0) return;
+    }
 
     /* create new task */
     task_ = new BBLTask();

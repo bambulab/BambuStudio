@@ -48,21 +48,11 @@ namespace Slic3r {
             task_profile_id = profile->profile_id;
             task_project_id = profile->project_id;
         }
-
-        /* get create time */
-        long t = wxGetUTCTime();
-        wxDateTime now = wxDateTime::Now().MakeUTC();
-        task_create_time = now.FormatISOCombined(' ').ToStdString();
     }
 
-    BBLSubTask::BBLSubTask(BBLTask* task) {
+    BBLSubTask::BBLSubTask(BBLTask* task)
+    {
         parent_task_ = task;
-
-        /* get create time */
-        long t = wxGetUTCTime();
-        wxDateTime now = wxDateTime::Now().MakeUTC();
-        task_create_time = now.FormatISOCombined(' ').ToStdString();
-
         task_progress = 0;
     }
 
@@ -70,11 +60,8 @@ namespace Slic3r {
     {
         pt::ptree root, info;
         info.put("name", task_name);
-        info.put("create_time", task_create_time);
         info.put("plate_idx", task_partplate_idx);
         info.put("printer", task_printer_dev_id);
-        info.put("prediction", task_prediction);
-        info.put("weight", task_weight);
         root.put_child("info", info);
 
         std::stringstream oss;
@@ -95,20 +82,11 @@ namespace Slic3r {
             boost::optional<std::string> subtask_name = info.get_optional<std::string>("name");
             if (subtask_name.has_value()) task_name = subtask_name.value();
 
-            boost::optional<std::string> subtask_create_time = info.get_optional<std::string>("create_time");
-            if (subtask_create_time.has_value()) task_create_time = subtask_create_time.value();
-
             boost::optional<std::string> subtask_plate_idx = info.get_optional<std::string>("plate_idx");
             if (subtask_plate_idx.has_value()) task_partplate_idx = subtask_plate_idx.value();
 
             boost::optional<std::string> subtask_printer = info.get_optional<std::string>("printer");
             if (subtask_printer.has_value()) task_printer_dev_id = subtask_printer.value();
-
-            boost::optional<std::string> subtask_prediction = info.get_optional<std::string>("prediction");
-            if (subtask_prediction.has_value()) task_prediction = subtask_prediction.value();
-
-            boost::optional<std::string> subtask_weight = info.get_optional<std::string>("weight");
-            if (subtask_weight.has_value()) task_weight = subtask_weight.value();
         }
         catch (...) {
             BOOST_LOG_TRIVIAL(trace) << "parse_content_json failed! json=" << json;

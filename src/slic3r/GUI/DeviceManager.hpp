@@ -169,6 +169,7 @@ public:
     int     mc_print_stage;
     int     mc_print_error_code;
     int     mc_print_line_number;
+    std::string print_status;
 
     /* mqtt connections */
     CONNECTION_TYPE conn_type;
