@@ -522,6 +522,15 @@ public:
         return result;
     }
 
+    void accept(PackResult& r) {
+        if (r) {
+            r.item_ptr_->translation(r.move_);
+            r.item_ptr_->rotation(r.rot_);
+            items_.emplace_back(*(r.item_ptr_));
+            merged_pile_ = nfp::merge(merged_pile_, r.item_ptr_->transformedShape());
+        }
+    }
+
     ~_NofitPolyPlacer() {
         clearItems();
     }
@@ -696,6 +705,8 @@ private:
             }
 
             can_pack = best_overfit <= 0;
+            if (can_pack)
+                global_score = 0.2;
             item.rotation(best_rot);
             item.translation(best_tr);
         } else {
@@ -895,7 +906,8 @@ private:
 
         if(can_pack) {
             ret = PackResult(item);
-            merged_pile_ = nfp::merge(merged_pile_, item.transformedShape());
+            ret.score_ = global_score;
+            //merged_pile_ = nfp::merge(merged_pile_, item.transformedShape());
         } else {
             ret = PackResult(best_overfit);
         }
@@ -958,9 +970,13 @@ private:
         if(items_.empty() ||
                 config_.alignment == Config::Alignment::DONT_ALIGN) return;
 
-        Box bb = items_.front().get().boundingBox();
-        for(Item& item : items_)
-            bb = sl::boundingBox(item.boundingBox(), bb);
+        Box bb({ 0, 0 }, { 0, 0 });
+        for (Item& item : items_)
+            if (!item.is_virt_object)
+                if (bb.width() == 0)
+                    bb = item.boundingBox();
+                else
+                    bb = sl::boundingBox(item.boundingBox(), bb);
 
         Vertex ci, cb;
 
@@ -994,7 +1010,9 @@ private:
         }
 
         auto d = cb - ci;
-        for(Item& item : items_) item.translate(d);
+        for(Item& item : items_)
+            if (!item.is_virt_object)
+                item.translate(d);
     }
 
     void setInitialPosition(Item& item) {

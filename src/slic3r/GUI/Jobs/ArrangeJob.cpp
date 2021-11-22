@@ -416,8 +416,10 @@ void ArrangeJob::process()
 
     // sort by item id
     std::sort(m_selected.begin(), m_selected.end(), [](auto a, auto b) {return a.itemid < b.itemid; });
-    for (auto selected : m_selected) {
-        BOOST_LOG_TRIVIAL(debug) << "items after arranging: " << selected.name << ", extruder: " << selected.extrude_id;
+    {
+        BOOST_LOG_TRIVIAL(debug) << "items after arranging: ";
+        for (auto selected : m_selected)
+            BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << selected.extrude_id;
     }
 
     params.progressind = [this, count](unsigned st, std::string str="") {

@@ -167,6 +167,21 @@ protected:
         return double(val) / m_norm;
     }
 
+    // dist function for sequential print (starting_point=BOTTOM_LEFT) which is composed of
+        // 1) Y distance of item corner to bed corner. Must be put above bed corner. (high weight)
+        // 2) X distance of item corner to bed corner (low weight)
+        // 3) item row occupancy (useful when rotation is enabled)
+    double dist_for_BOTTOM_LEFT(Box ibb, const clppr::IntPoint& origin_pack)
+    {
+        double dist_corner_y = ibb.minCorner().Y - origin_pack.Y;
+        double dist_corner_x = ibb.minCorner().X - origin_pack.X;
+        if (dist_corner_y < 0 || dist_corner_x<0)
+            return LARGE_COST_TO_REJECT;
+        double bindist = norm(dist_corner_y + 0.1 * dist_corner_x
+            + 0.1 * double(ibb.maxCorner().Y - ibb.minCorner().Y));  // occupy as few rows as possible
+        return bindist;
+    }
+
     // This is "the" object function which is evaluated many times for each
     // vertex (decimated with the accuracy parameter) of each object.
     // Therefore it is upmost crucial for this function to be as efficient
@@ -245,8 +260,8 @@ protected:
             // The smalles distance from the arranged pile center:
             double dist = norm(*(std::min_element(dists.begin(), dists.end())));
             if (m_pconf.starting_point == PConfig::Alignment::BOTTOM_LEFT) {
-                double bindist = norm(std::abs(ibb.minCorner().y() - origin_pack.y()) + 0.1 * std::abs(ibb.minCorner().x() - origin_pack.x()));
-                dist = 0.5 * dist + 0.5 * bindist;
+                double bindist = dist_for_BOTTOM_LEFT(ibb, origin_pack);
+                dist = 0.2 * dist + 0.8 * bindist;
             }
             else {
                 double bindist = norm(pl::distance(ibb.center(), origin_pack));
@@ -310,7 +325,7 @@ protected:
             // just fine for small items
             score = norm(pl::distance(ibb.center(), bigbb.center()));
             if (m_pconf.starting_point == PConfig::Alignment::BOTTOM_LEFT)
-                score = norm(std::abs(ibb.minCorner().y() - origin_pack.y()) + 0.1 * std::abs(ibb.minCorner().x() - origin_pack.x()));
+                score = dist_for_BOTTOM_LEFT(ibb, origin_pack);
             break;
         }            
         }
@@ -353,16 +368,19 @@ protected:
             }
         }
 #endif
-
+        std::set<int> extruder_ids;
         for (int i = 0; i < m_items.size(); i++) {
             Item& p = m_items[i];
             if (p.is_virt_object) continue;
+            extruder_ids.insert(p.extrude_id);
             // add a large cost if not multi materials on same plate is not allowed 
             if (!params.allow_multi_materials_on_same_plate)
                 score += LARGE_COST_TO_REJECT * (item.extrude_id != p.extrude_id);
-            // for layered printing, we want extruder change as few as possible
-            else if (!params.is_seq_print)
-                score += 0.2 * LARGE_COST_TO_REJECT * (item.extrude_id != p.extrude_id);
+        }
+        // for layered printing, we want extruder change as few as possible
+        if (!params.is_seq_print) {
+            extruder_ids.insert(item.extrude_id);
+            score += 0.2 * LARGE_COST_TO_REJECT * std::max(0, ((int)extruder_ids.size() - 1));
         }
 
         return std::make_tuple(score, fullbb);
@@ -416,11 +434,13 @@ public:
         m_pconf.on_preload = [this](const ItemGroup &items, PConfig &cfg) {
             if (items.empty()) return;
 
-            cfg.alignment = PConfig::Alignment::DONT_ALIGN;
+            // BBS: virtual objects should not affect final alignment
+            if (std::any_of(items.begin(), items.end(), [](Item& itm) {return itm.is_virt_object==false;}))
+                cfg.alignment = PConfig::Alignment::DONT_ALIGN;
             auto bb = sl::boundingBox(m_bin);
-            auto bbcenter = bb.center();
-            cfg.object_function = [this, bb, bbcenter](const Item &item) {
-                return fixed_overfit(objfunc(item, bbcenter), bb);
+            auto starting_point = cfg.starting_point == PConfig::Alignment::BOTTOM_LEFT ? bb.minCorner() : bb.center();
+            cfg.object_function = [this, bb, starting_point](const Item &item) {
+                return fixed_overfit(objfunc(item, starting_point), bb);
             };
         };
 
@@ -561,10 +581,8 @@ template<class Bin> void remove_large_items(std::vector<Item> &items, Bin &&bin)
 
 template<class S> Radians min_area_boundingbox_rotation(const S &sh)
 {
-    // coconut: minAreaBoundingBox has divide 0 error for some objects, need to investigate
-    //return minAreaBoundingBox<S, TCompute<S>, boost::rational<LargeInt>>(sh)
-    //    .angleToX();
-    return Radians();
+    return minAreaBoundingBox<S, TCompute<S>, boost::rational<LargeInt>>(sh)
+        .angleToX();
 }
 
 template<class S>

@@ -224,8 +224,8 @@ inline NfpResult<RawShape> nfpConvexOnly(const RawShape& sh,
         auto next = std::next(first);
 
         while(next != sl::cend(sh)) {
-            add_edge(*(first), *(next));
-
+            // BBS: some polygons may have duplicate points which is not allowed here (for pcos1, pcos2 calculation)
+            if (*first != *next) add_edge(*(first), *(next));
             ++first; ++next;
         }
 
@@ -238,8 +238,7 @@ inline NfpResult<RawShape> nfpConvexOnly(const RawShape& sh,
         auto next = std::next(first);
 
         while(next != sl::cend(other)) {
-            add_edge(*(next), *(first));
-
+            if (*first != *next) add_edge(*(next), *(first));
             ++first; ++next;
         }
 

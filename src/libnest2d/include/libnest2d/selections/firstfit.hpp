@@ -40,15 +40,16 @@ public:
         std::vector<Placer> placers;
         placers.reserve(last-first);
         
-        std::for_each(first, last, [this](Item& itm) {
+        typename Base::PackGroup fixed_bins;
+        std::for_each(first, last, [this,&fixed_bins](Item& itm) {
             if(itm.isFixed()) {
                 if (itm.binId() < 0) itm.binId(0);
                 auto binidx = size_t(itm.binId());
                 
-                while(packed_bins_.size() <= binidx)
-                    packed_bins_.emplace_back();
+                while(fixed_bins.size() <= binidx)
+                    fixed_bins.emplace_back();
                 
-                packed_bins_[binidx].emplace_back(itm);
+                fixed_bins[binidx].emplace_back(itm);
             } else {
                 store_.emplace_back(itm);
             }
@@ -57,11 +58,11 @@ public:
         // If the packed_items array is not empty we have to create as many
         // placers as there are elements in packed bins and preload each item
         // into the appropriate placer
-        for(ItemGroup& ig : packed_bins_) {
-            placers.emplace_back(bin);
-            placers.back().configure(pconfig);
-            placers.back().preload(ig);
-        }
+        //for(ItemGroup& ig : packed_bins_) {
+        //    placers.emplace_back(bin);
+        //    placers.back().configure(pconfig);
+        //    placers.back().preload(ig);
+        //}
         
         std::function<bool(Item& i1, Item& i2)> sortfunc;
         if (pconfig.sortfunc)
@@ -96,19 +97,36 @@ public:
             if (it->get().binId() == BIN_ID_UNSET)
                 continue;
             bool was_packed = false;
+            double best_score = LARGE_COST_TO_REJECT;
+            int best_bed_id = -1;
+            double score;
+            typename Placer::PackResult result, result_best;
             size_t j = 0;
             while(!was_packed && !cancelled()) {
                 for(; j < placers.size() && !was_packed && !cancelled(); j++) {
-                    if((was_packed = placers[j].pack(*it, rem(it, store_) ))) {
-                        it->get().binId(int(j));
-                        it->get().itemId(item_id++);
-                        makeProgress(placers[j], j);
+                    result = placers[j].pack(*it, rem(it, store_));
+                    if((score =  result.score()) > 0 && score<best_score) {
+                        best_score = score;
+                        best_bed_id = j;
+                        result_best = result;
                     }
+                }
+
+                if(best_bed_id>=0)
+                {
+                    was_packed = true;
+                    j = best_bed_id;
+                    it->get().binId(int(j));
+                    it->get().itemId(item_id++);
+                    placers[j].accept(result_best);
+                    makeProgress(placers[j], j);
                 }
 
                 if(!was_packed) {
                     placers.emplace_back(bin);
                     placers.back().configure(pconfig);
+                    if(fixed_bins.size()>=placers.size())
+                        placers.back().preload(fixed_bins[placers.size() - 1]);
                     packed_bins_.emplace_back();
                     j = placers.size() - 1;
                 }

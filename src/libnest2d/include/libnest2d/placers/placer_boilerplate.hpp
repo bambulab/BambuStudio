@@ -23,6 +23,7 @@ public:
     using DefaultIter = typename ItemGroup::const_iterator;
 
     class PackResult {
+    public:
         Item *item_ptr_;
         Vertex move_;
         Radians rot_;
@@ -42,6 +43,8 @@ public:
     public:
         operator bool() { return item_ptr_ != nullptr; }
         double overfit() const { return overfit_; }
+        double score_ = -1;
+        double score() { return score_; }
     };
 
     inline PlacerBoilerplate(const BinType& bin, unsigned cap = 50): bin_(bin)
@@ -60,12 +63,8 @@ public:
     }
 
     template<class Range = ConstItemRange<DefaultIter>>
-    bool pack(Item& item, const Range& rem = Range()) {
+    PackResult pack(Item& item, const Range& rem = Range()) {
         auto&& r = static_cast<Subclass*>(this)->trypack(item, rem);
-        if(r) {
-            items_.emplace_back(*(r.item_ptr_));
-            farea_valid_ = false;
-        }
         return r;
     }
 
@@ -76,9 +75,10 @@ public:
 
     void accept(PackResult& r) {
         if(r) {
-            r.item_ptr_->translation(r.move_);
-            r.item_ptr_->rotation(r.rot_);
-            items_.emplace_back(*(r.item_ptr_));
+            //r.item_ptr_->translation(r.move_);
+            //r.item_ptr_->rotation(r.rot_);
+            //items_.emplace_back(*(r.item_ptr_));
+            static_cast<Subclass*>(this)->accept(r);
             farea_valid_ = false;
         }
     }

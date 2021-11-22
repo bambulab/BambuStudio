@@ -632,7 +632,7 @@ public:
      * packed.
      */
     template<class Range = ConstItemRange<DefaultIterator>>
-    inline bool pack(
+    inline PackResult pack(
             Item& item,
             const Range& remaining = Range())
     {

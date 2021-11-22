@@ -4492,7 +4492,7 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     PrinterTechnology ptech = current_printer_technology();
 
     bool settings_changed = false;
-    float dist_min = 0.f;
+    float dist_min = 0.1f;  // should be larger than 0 so objects won't touch
     std::string dist_key = "min_object_distance", rot_key = "enable_rotation";
     std::string bed_shrink_x_key = "bed_shrink_x", bed_shrink_y_key = "bed_shrink_y";
     std::string multi_material_key = "allow_multi_materials_on_same_plate";
@@ -4501,7 +4501,7 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     bool seq_print = false;
 
     if (ptech == ptSLA) {
-        dist_min     = 0.f;
+        dist_min     = 0.1f;
         postfix      = "_sla";
     } else if (ptech == ptFFF) {
         auto co_opt = m_config->option<ConfigOptionBool>("complete_objects");
@@ -4511,7 +4511,7 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
             //BBS:
             seq_print = true;
         } else {
-            dist_min     = 0.f;
+            dist_min     = 0.1f;
             postfix     = "_fff";
         }
     }
