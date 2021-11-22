@@ -291,7 +291,7 @@ namespace GUI {
 	wxBoxSizer* bSizer14;
 	bSizer14 = new wxBoxSizer( wxHORIZONTAL );
 
-	label_gcode_filename = new wxStaticText( m_panel_run_gcode, wxID_ANY, wxT("Gcode File:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+	label_gcode_filename = new wxStaticText( m_panel_run_gcode, wxID_ANY, wxT("3mf File:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
 	label_gcode_filename->Wrap( -1 );
 	label_gcode_filename->SetMinSize( wxSize( 100,-1 ) );
 
@@ -311,7 +311,7 @@ namespace GUI {
 	wxBoxSizer* bSizer15;
 	bSizer15 = new wxBoxSizer( wxHORIZONTAL );
 
-	label_upload_progress = new wxStaticText( m_panel_run_gcode, wxID_ANY, wxT("Gcode Upload:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+	label_upload_progress = new wxStaticText( m_panel_run_gcode, wxID_ANY, wxT("3mf Upload:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
 	label_upload_progress->Wrap( -1 );
 	label_upload_progress->SetMinSize( wxSize( 100,-1 ) );
 
@@ -327,7 +327,7 @@ namespace GUI {
 	wxBoxSizer* bSizer16;
 	bSizer16 = new wxBoxSizer( wxHORIZONTAL );
 
-	btn_run_gcode = new wxButton( m_panel_run_gcode, wxID_ANY, wxT("Run Gcode"), wxDefaultPosition, wxDefaultSize, 0 );
+	btn_run_gcode = new wxButton( m_panel_run_gcode, wxID_ANY, wxT("Run Slice 3mf"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer16->Add( btn_run_gcode, 0, wxALL, 5 );
 
 	btn_pause = new wxButton( m_panel_run_gcode, wxID_ANY, wxT("Pause"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -342,6 +342,10 @@ namespace GUI {
 
 	bSizer13->Add( bSizer16, 0, wxEXPAND, 5 );
 
+	m_staticText_run_3mf_tips = new wxStaticText( m_panel_run_gcode, wxID_ANY, wxT("Only Support Print First Plate Now!"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_run_3mf_tips->Wrap( -1 );
+	bSizer13->Add( m_staticText_run_3mf_tips, 0, wxALL, 5 );
+
 
 	bSizer13->Add( 0, 0, 1, wxEXPAND, 5 );
 
@@ -349,7 +353,7 @@ namespace GUI {
 	m_panel_run_gcode->SetSizer( bSizer13 );
 	m_panel_run_gcode->Layout();
 	bSizer13->Fit( m_panel_run_gcode );
-	m_notebook1->AddPage( m_panel_run_gcode, wxT("Run Gcode"), false );
+	m_notebook1->AddPage( m_panel_run_gcode, wxT("Run Slice  3mf"), true );
 	m_panel_info_control = new wxPanel( m_notebook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer17;
 	bSizer17 = new wxBoxSizer( wxHORIZONTAL );
@@ -724,7 +728,7 @@ namespace GUI {
 	m_panel_info_control->SetSizer( bSizer17 );
 	m_panel_info_control->Layout();
 	bSizer17->Fit( m_panel_info_control );
-	m_notebook1->AddPage( m_panel_info_control, wxT("Info Control"), true );
+	m_notebook1->AddPage( m_panel_info_control, wxT("Info Control"), false );
 	m_panel_upgrade = new wxPanel( m_notebook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer28;
 	bSizer28 = new wxBoxSizer( wxVERTICAL );
@@ -784,7 +788,7 @@ namespace GUI {
 	bSizer35->Add( m_staticText57, 0, wxALIGN_CENTER|wxALL, 5 );
 
 	cb_upgrade_firmware = new wxComboBox( m_panel_upgrade, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, NULL, 0 );
-	cb_upgrade_firmware->SetMinSize( wxSize( 320,-1 ) );
+	cb_upgrade_firmware->SetMinSize( wxSize( 400,-1 ) );
 
 	bSizer35->Add( cb_upgrade_firmware, 0, wxALL, 5 );
 
@@ -1089,6 +1093,9 @@ void DebugToolDialog::init()
                 /* create a subtask */
                 BBLSubTask* task = new BBLSubTask();
                 task->task_file = txt_gcode_filename->GetValue().ToUTF8().data();
+                task->task_gcode_in_3mf = "Metadata/plate_1.gcode";
+                boost::filesystem::path dest_file(task->task_file);
+                task->task_url = "file:///data/" + dest_file.filename().string();
 
                 /* send print task */
                 MachineObject* obj = dev_manager_.get_default();
@@ -1236,7 +1243,7 @@ void DebugToolDialog::init()
             }
         });
 
-    selectGcodeDialog = new wxFileDialog(this, "Open Gcode File", "", "", "Gcode files(*.gcode)|*.gcode", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    selectGcodeDialog = new wxFileDialog(this, "Open 3MF File", "", "", "Slice files(*.3mf)|*.3mf", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
     btn_return_home->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G28 \n");
@@ -1692,14 +1699,6 @@ int DebugToolDialog::publish_json(std::string json_str)
             this->send_log_evt("Invalid Printer! Please Select a Printer!");
             return -1;
         }
-#ifdef __CHECK_BIND_USER__
-        /* compare with bind user */
-        if (obj->bind_user_id.compare(account_manager->get_curr_user()->get_user_id()) != 0) {
-            std::string log = "Please Bind dev=" + obj->dev_id + " first!";
-            this->send_log_evt(log);
-            return -1;
-        }
-#endif
 
         obj->publish_json(json_str,
             [this](int result, std::string info) {
@@ -2224,6 +2223,16 @@ int DebugToolDialog::publishGcode(std::string gcode)
         this->log_info("User info is invalid!");
         return -1;
     }
+
+#ifdef __CHECK_BIND_USER__
+        /* compare with bind user */
+        MachineObject* obj = dev_manager_.get_default();
+        if (obj->bind_user_id.compare(account_manager->get_curr_user()->get_user_id()) != 0) {
+            std::string log = "Please Bind dev=" + obj->dev_id + " first!";
+            this->send_log_evt(log);
+            return -1;
+        }
+#endif
 
     pt::ptree root, print;
     print.put("command", "gcode_line");

@@ -139,6 +139,7 @@ namespace Slic3r {
 			wxButton* btn_pause;
 			wxButton* btn_resume;
 			wxButton* btn_abort_print;
+			wxStaticText* m_staticText_run_3mf_tips;
 			wxPanel* m_panel_info_control;
 			wxStaticText* m_staticText_nozzle_temp_title;
 			wxStaticText* label_hot_end_temp_val;

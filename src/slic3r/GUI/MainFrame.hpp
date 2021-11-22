@@ -152,7 +152,9 @@ class MainFrame : public DPIFrame
     {
         ePrintAll = 0,
         ePrintPlate = 1,
-        eExportGcode = 2,
+        eExportSlicedFile = 2,
+        eExportGcode = 3,
+        
     };
 
     enum SliceSelectType

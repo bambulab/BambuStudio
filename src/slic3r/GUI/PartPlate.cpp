@@ -2572,7 +2572,7 @@ int PartPlateList::rebuild_plates_after_arrangement(bool recycle_plates)
 	return ret;
 }
 
-int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool with_gcode)
+int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool with_gcode, int plate_idx)
 {
 	int ret = 0;
 
@@ -2590,8 +2590,10 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 		}
 
 		if (with_gcode) {
-			if (m_plate_list[i]->m_gcode_result) {
-				plate_data_item->gcode_file = m_plate_list[i]->m_gcode_result->filename;
+			if (plate_idx < 0 || i == plate_idx) {
+				if (m_plate_list[i]->m_gcode_result) {
+					plate_data_item->gcode_file = m_plate_list[i]->m_gcode_result->filename;
+				}
 			}
 		}
 		if (m_plate_list[i]->get_slice_result()) {
@@ -2602,6 +2604,7 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 				plate_data_item->gcode_weight = wxString::Format("%.2f", ps.total_weight).ToStdString();
 			}
 		}
+		
 		plate_data_list.push_back(plate_data_item);
 	}
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":stored %1% plates!") % m_plate_list.size();

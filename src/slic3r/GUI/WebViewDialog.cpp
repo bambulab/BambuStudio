@@ -118,6 +118,10 @@ WebFrame::WebFrame(const wxString& url) :
 #endif
     // Create the webview
     m_browser = wxWebView::New();
+    // Create url after register handler
+    m_browser->Create(this, wxID_ANY, url, wxDefaultPosition, wxDefaultSize);
+    SetSizer(topsizer);
+
 #ifdef __WXMAC__
     // With WKWebView handlers need to be registered before creation
     m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("wxfs")));
@@ -140,10 +144,6 @@ WebFrame::WebFrame(const wxString& url) :
 #endif
     if (!m_browser->AddScriptMessageHandler("wx"))
         wxLogError("Could not add script message handler");
-
-    // Create url after register handler
-    m_browser->Create(this, wxID_ANY, url, wxDefaultPosition, wxDefaultSize);
-    SetSizer(topsizer);
 
     //Set a more sensible size for web browsing
     SetSize(FromDIP(wxSize(800, 600)));

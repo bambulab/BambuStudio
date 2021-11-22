@@ -1892,6 +1892,7 @@ struct Plater::priv
     void on_action_print_plate(SimpleEvent&);
     void on_action_print_all(SimpleEvent&);
     void on_action_export_gcode(SimpleEvent&);
+    void on_action_export_sliced_file(SimpleEvent&);
     void on_action_select_sliced_plate(wxCommandEvent& evt);
 
     void on_wipetower_moved(Vec3dEvent&);
@@ -2235,6 +2236,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
         q->Bind(EVT_GLTOOLBAR_SELECT_SLICED_PLATE, &priv::on_action_select_sliced_plate, this);
         q->Bind(EVT_GLTOOLBAR_PRINT_ALL, &priv::on_action_print_all, this);
         q->Bind(EVT_GLTOOLBAR_EXPORT_GCODE, &priv::on_action_export_gcode, this);
+        q->Bind(EVT_GLTOOLBAR_EXPORT_SLICED_FILE, &priv::on_action_export_sliced_file, this);
         q->Bind(EVT_GLCANVAS_PLATE_SELECT, &priv::on_plate_selected, this);
         q->Bind(EVT_DOWNLOAD_PROJECT, &priv::on_action_download_project, this);
         //q->Bind(EVT_GLVIEWTOOLBAR_ASSEMBLE, [q](SimpleEvent&) { q->select_view_3D("Assemble"); });
@@ -4664,8 +4666,16 @@ void Plater::priv::on_action_print_all(SimpleEvent&)
 void Plater::priv::on_action_export_gcode(SimpleEvent&)
 {
     if (q != nullptr) {
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received print plate event\n" ;
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received export gcode event\n" ;
         q->export_gcode(false);
+    }
+}
+
+void Plater::priv::on_action_export_sliced_file(SimpleEvent&)
+{
+    if (q != nullptr) {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received export sliced file event\n" ;
+        q->export_gcode_3mf();
     }
 }
 
@@ -6671,6 +6681,51 @@ void Plater::export_gcode(bool prefer_removable)
         // is_path_on_removable_drive() is called with the "true" parameter to update its internal database as the user may have shuffled the external drives
         // while the dialog was open.
         appconfig.update_last_output_dir(output_path.parent_path().string(), path_on_removable_media);
+    }
+}
+
+//BBS export gcode 3mf to file
+void Plater::export_gcode_3mf()
+{
+    if (p->model.objects.empty())
+        return;
+
+    if (p->process_completed_with_error)
+        return;
+
+    //calc default_output_file, get default output file from background process
+    fs::path default_output_file;
+    default_output_file = into_path(get_project_filename(".3mf"));
+    //BBS replace gcode extension to .gcode.3mf
+    default_output_file = default_output_file.replace_extension(".gcode.3mf");
+    default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
+    AppConfig &appconfig = *wxGetApp().app_config;
+    // Get a last save path, either to removable media or to an internal media.
+    std::string start_dir = appconfig.get_last_output_dir(default_output_file.parent_path().string(), false);
+    fs::path output_path;
+    {
+    	std::string ext = default_output_file.extension().string();
+        wxFileDialog dlg(this, _L("Save Sliced file as:"),
+            start_dir,
+            from_path(default_output_file.filename()),
+            GUI::file_wildcards(FT_3MF, ext),
+            wxFD_SAVE | wxFD_OVERWRITE_PROMPT
+        );
+        if (dlg.ShowModal() == wxID_OK)
+            output_path = into_path(dlg.GetPath());
+    }
+
+    if (!output_path.empty()) {
+        //BBS do not set to removable media path
+        bool path_on_removable_media = false;
+        p->notification_manager->new_export_began(path_on_removable_media);
+        p->exporting_status = path_on_removable_media ? ExportingStatus::EXPORTING_TO_REMOVABLE : ExportingStatus::EXPORTING_TO_LOCAL;
+        //BBS do not save last output path
+        //p->last_output_path = output_path.string();
+        p->last_output_dir_path = output_path.parent_path().string();
+        export_3mf(output_path, false);
+        // update lost output dir
+        appconfig.update_last_output_dir(output_path.parent_path().string(), false);
 	}
 }
 
@@ -6842,7 +6897,7 @@ void Plater::export_amf()
     }
 }
 
-bool Plater::export_3mf(const boost::filesystem::path& output_path, bool silence)
+bool Plater::export_3mf(const boost::filesystem::path& output_path, bool silence, int export_plate_idx)
 {
     if (p->model.objects.empty()) {
         MessageDialog dialog(nullptr, _L("The plater is empty.\nDo you want to save the project?"), _L("Save project"), wxYES_NO);
@@ -6880,7 +6935,7 @@ bool Plater::export_3mf(const boost::filesystem::path& output_path, bool silence
     PlateDataPtrs plate_data_list;
     //BBS: add gcode to 3mf logic
     if (wxGetApp().app_config->get("3mf_include_gcode") == "1") {
-        p->partplate_list.store_to_3mf_structure(plate_data_list, true);
+        p->partplate_list.store_to_3mf_structure(plate_data_list, true, export_plate_idx);
     }
     else {
         p->partplate_list.store_to_3mf_structure(plate_data_list, false);

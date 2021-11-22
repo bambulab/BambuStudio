@@ -886,19 +886,24 @@ int MachineObject::send_lan_print_subtask(BBLSubTask* task, UploadedFn uploadedF
     Sftp sftp = Sftp::upload(dev_ip, src_file, dst_file, "root", "root");
     
     sftp.on_complete(
-        [this, src_file, dst_file_str, uploadedFn](std::string body) {
+        [this, src_file, dst_file_str, task, uploadedFn](std::string body) {
             /* boost::filesystem::file_size not right */
             if (uploadedFn) {
                 uploadedFn();
             }
 
             BOOST_LOG_TRIVIAL(trace) << "transform gcode ok!";
-
-            /* send json command */
             pt::ptree root, print;
             print.put("sequence_id", MachineObject::m_sequence_id++);
-            print.put("command", "gcode_file");
-            print.put<std::string>("param", dst_file_str);
+            print.put("command", "project_file");
+            print.put("param", task->task_gcode_in_3mf);
+            print.put("url", task->task_url);   /* 3mf or gcode */
+            print.put("md5", task->task_url_md5);
+            /* project */
+            print.put("project_id", "0");
+            print.put("profile_id", "0");
+            print.put("task_id", "0");
+            print.put("subtask_id", "0");
             root.put_child("print", print);
             std::stringstream oss;
             pt::write_json(oss, root, false);

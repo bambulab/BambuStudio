@@ -18,6 +18,7 @@
 #include "Jobs/Job.hpp"
 #include "Search.hpp"
 #include "PartPlate.hpp"
+#include "GUI_App.hpp"
 #include "GUI_AuxiliaryList.hpp"
 #include "Jobs/PrintJob.hpp"
 #include "AccountManager.hpp"
@@ -268,10 +269,11 @@ public:
     void merge(size_t obj_idx, std::vector<int>& vol_indeces);
 
     void export_gcode(bool prefer_removable);
+    void export_gcode_3mf();
     void export_stl(bool extended = false, bool selection_only = false);
     void export_amf();
     //BBS add extra param for exporting 3mf silence
-    bool export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path(), bool silence = false);
+    bool export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path(), bool silence = false, int export_plate_idx = -1);
     void upload_3mf();
     void reload_from_disk();
     void replace_with_stl();

@@ -1167,6 +1167,8 @@ wxBoxSizer* MainFrame::create_side_tools()
         }
         else if (m_print_select == eExportGcode)
             wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_GCODE));
+        else if (m_print_select == eExportSlicedFile)
+            wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE));
     });
 
     m_slice_option_btn->Bind(wxEVT_BUTTON, [this, slice_all_bitmap, slice_plate_bitmap](wxCommandEvent& event)
@@ -1228,7 +1230,19 @@ wxBoxSizer* MainFrame::create_side_tools()
                     update_print_button_color(m_print_enable);
                     m_print_btn->Enable(m_print_enable);
                 });
-            append_menu_item(menu, wxID_ANY, _L("Export G-Code"), _L("Export gcode"),
+            append_menu_item(menu, wxID_ANY, _L("Export Sliced File"), _L("Export sliced file"),
+                [this, export_gcode_bitmap](wxCommandEvent&)
+                {
+                    m_print_btn->SetLabelText(_L("Export Sliced File"));
+                    m_print_btn->SetBitmap(export_gcode_bitmap);
+                    m_print_btn->SetBitmapCurrent (export_gcode_bitmap);
+                    m_print_select = eExportSlicedFile;
+                    if (m_print_enable)
+                        m_print_enable = get_enable_print_status();
+                    update_print_button_color(m_print_enable);
+                    m_print_btn->Enable(m_print_enable);
+                });
+            /*append_menu_item(menu, wxID_ANY, _L("Export G-Code"), _L("Export gcode"),
                 [this, export_gcode_bitmap](wxCommandEvent&)
                 {
                     m_print_btn->SetLabelText(_L("Export G-Code"));
@@ -1238,7 +1252,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                     m_print_enable = get_enable_print_status();
                     update_print_button_color(m_print_enable);
                     m_print_btn->Enable(m_print_enable);
-                });
+                });*/
             wxPoint btn_pos = m_print_btn->GetPosition();
             this->PopupMenu(menu, btn_pos.x, btn_pos.y + m_print_btn->GetSize().GetHeight() + m_topbar->GetSize().GetHeight());
         }
@@ -1324,6 +1338,13 @@ bool MainFrame::get_enable_print_status()
     else if (m_print_select == eExportGcode)
     {
         if (!current_plate->is_slice_result_valid())
+        {
+            enable = false;
+        }
+    }
+    else if (m_print_select == eExportSlicedFile)
+    {
+        if (!part_plate_list.is_all_slice_results_valid())
         {
             enable = false;
         }
