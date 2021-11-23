@@ -3365,16 +3365,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
         }
         else {
-            //BBS Select plate in this 3D canvas.
-            if (m_picking_enabled && !m_hover_plate_idxs.empty() && evt.LeftDown() && (m_canvas_type == CanvasView3D)) {
-                int hover_idx = m_hover_plate_idxs.front();
-                wxGetApp().plater()->select_plate_by_hover_id(hover_idx);
-                //wxGetApp().plater()->get_partplate_list().select_plate_view();
-                //deselect all the objects
-                if (m_hover_volume_idxs.empty())
-                    deselect_all();
-            }
-
             // Select volume in this 3D canvas.
             // Don't deselect a volume if layer editing is enabled or any gizmo is active. We want the object to stay selected
             // during the scene manipulation.
@@ -3567,6 +3557,16 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (!evt.ShiftDown() && (!any_gizmo_active || !evt.CmdDown()) && m_picking_enabled)
                 deselect_all();
         }
+        //BBS Select plate in this 3D canvas.
+        else if (evt.LeftUp() && !m_mouse.dragging && m_picking_enabled && !m_hover_plate_idxs.empty() && (m_canvas_type == CanvasView3D))
+        {
+                int hover_idx = m_hover_plate_idxs.front();
+                wxGetApp().plater()->select_plate_by_hover_id(hover_idx);
+                //wxGetApp().plater()->get_partplate_list().select_plate_view();
+                //deselect all the objects
+                if (m_hover_volume_idxs.empty())
+                    deselect_all();
+        }
         else if (evt.RightUp()) {
             m_mouse.position = pos.cast<double>();
             // forces a frame render to ensure that m_hover_volume_idxs is updated even when the user right clicks while
@@ -3595,7 +3595,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
 
             //BBS change plate selection
-            if (!m_hover_plate_idxs.empty() && (m_canvas_type == CanvasView3D)) {
+            if (!m_hover_plate_idxs.empty() && (m_canvas_type == CanvasView3D) && !m_mouse.dragging) {
                 int hover_idx = m_hover_plate_idxs.front();
                 wxGetApp().plater()->select_plate_by_hover_id(hover_idx, true);
                 if (m_hover_volume_idxs.empty())

@@ -7087,11 +7087,15 @@ void Plater::export_toolpaths_to_obj() const
     p->preview->get_canvas3d()->export_toolpaths_to_obj(into_u8(path).c_str());
 }
 
+//BBS: add multiple plate reslice logic
 void Plater::reslice()
 {
     // There is "invalid data" button instead "slice now"
     if (p->process_completed_with_error)
+    {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": process_completed_with_error, return directly");
         return;
+    }
 
     // In case SLA gizmo is in editing mode, refuse to continue
     // and notify user that he should leave it first.
@@ -7133,6 +7137,7 @@ void Plater::reslice()
     if ((!result) && p->m_slice_all && (p->m_cur_slice_plate < (p->partplate_list.get_plate_count() - 1)))
     {
         //slice next
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": in slicing all, current plate %1% already sliced, skip to next") % p->m_cur_slice_plate ;
         SlicingProcessCompletedEvent evt(EVT_PROCESS_COMPLETED, 0,
             SlicingProcessCompletedEvent::Finished, nullptr);
         // Post the "complete" callback message, so that it will slice the next plate soon
@@ -7145,7 +7150,11 @@ void Plater::reslice()
         p->m_is_slicing = true;
 
     if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
+    {
+        //BBS: add logs
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": state %1% is UPDATE_BACKGROUND_PROCESS_INVALID, can not slice") % state ;
         return;
+    }
 
     bool clean_gcode_toolpaths = true;
     // BBS
@@ -7179,6 +7188,8 @@ void Plater::reslice()
 
     // BBS
     //p->statusbar()->start_busy();
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished, started slicing for plate %1%") % p->partplate_list.get_curr_plate_index();
 }
 
 //BBS: add project slicing related logic
