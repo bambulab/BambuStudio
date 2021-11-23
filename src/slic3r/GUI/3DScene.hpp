@@ -259,6 +259,7 @@ public:
     static const std::array<float, 4> SLA_PAD_COLOR;
     static const std::array<float, 4> NEUTRAL_COLOR;
     static const std::array<std::array<float, 4>, 4> MODEL_COLOR;
+    static float explosion_ratio;
 
     enum EHoverState : unsigned char
     {
@@ -274,6 +275,7 @@ public:
 private:
     Geometry::Transformation m_instance_transformation;
     Geometry::Transformation m_volume_transformation;
+    Vec3d m_offset_to_assembly;
 
     // Shift in z required by sla supports+pad
     double        m_sla_shift_z;
@@ -468,6 +470,9 @@ public:
     void set_convex_hull_2d(std::shared_ptr<const Polygon> convex_hull) { m_convex_hull_2d = std::move(convex_hull); }
     void set_convex_hull_2d(const Polygon& convex_hull) { m_convex_hull_2d = std::make_shared<const Polygon>(convex_hull); }
     void set_convex_hull_2d(Polygon&& convex_hull) { m_convex_hull_2d = std::make_shared<const Polygon>(std::move(convex_hull)); }
+
+    void set_offset_to_assembly(const Vec3d& offset) { m_offset_to_assembly = offset; }
+    Vec3d get_offset_to_assembly() { return m_offset_to_assembly; }
 
     int                 object_idx() const { return this->composite_id.object_id; }
     int                 volume_idx() const { return this->composite_id.volume_id; }

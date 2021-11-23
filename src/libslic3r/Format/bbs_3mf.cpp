@@ -120,6 +120,8 @@ static constexpr const char* V2_ATTR = "v2";
 static constexpr const char* V3_ATTR = "v3";
 static constexpr const char* OBJECTID_ATTR = "objectid";
 static constexpr const char* TRANSFORM_ATTR = "transform";
+// BBS
+static constexpr const char* OFFSET_ATTR = "offset";
 static constexpr const char* PRINTABLE_ATTR = "printable";
 static constexpr const char* INSTANCESCOUNT_ATTR = "instances_count";
 static constexpr const char* CUSTOM_SUPPORTS_ATTR = "slic3rpe:custom_supports";
@@ -253,6 +255,29 @@ Slic3r::Transform3d bbs_get_transform_from_3mf_specs_string(const std::string& m
         }
     }
     return ret;
+}
+
+Slic3r::Vec3d bbs_get_offset_from_3mf_specs_string(const std::string& vec_str)
+{
+    Slic3r::Vec3d ofs2ass(0, 0, 0);
+
+    if (vec_str.empty())
+        // empty string means default zero offset
+        return ofs2ass;
+
+    std::vector<std::string> vec_elements_str;
+    boost::split(vec_elements_str, vec_str, boost::is_any_of(" "), boost::token_compress_on);
+
+    unsigned int size = (unsigned int)vec_elements_str.size();
+    if (size != 3)
+        // invalid data, return zero offset
+        return ofs2ass;
+
+    for (unsigned int i = 0; i < 3; i++) {
+        ofs2ass(i) = ::atof(vec_elements_str[i].c_str());
+    }
+
+    return ofs2ass;
 }
 
 float bbs_get_unit_factor(const std::string& unit)
@@ -2186,9 +2211,11 @@ namespace Slic3r {
         if (object_item != m_objects.end())
             object_id = object_item->second;
         Transform3d transform = bbs_get_transform_from_3mf_specs_string(bbs_get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR));
+        Vec3d ofs2ass = bbs_get_offset_from_3mf_specs_string(bbs_get_attribute_value_string(attributes, num_attributes, OFFSET_ATTR));
         if (object_id < m_model->objects.size()) {
             if (instance_id < m_model->objects[object_id]->instances.size()) {
                 m_model->objects[object_id]->instances[instance_id]->set_assemble_from_transform(transform);
+                m_model->objects[object_id]->instances[instance_id]->set_offset_to_assembly(ofs2ass);
             }
         }
         return true;
@@ -3443,10 +3470,18 @@ namespace Slic3r {
                                     stream << " ";
                             }
                         }
+
+                    stream << "\" ";
+
+                    stream << OFFSET_ATTR << "=\"";
+                    Vec3d ofs2ass = obj->instances[instance_idx]->get_offset_to_assembly();
+                    stream << ofs2ass(0) << " " << ofs2ass(1) << " " << ofs2ass(2);
+
                     stream << "\" />\n";
                 }
             }
         }
+
         stream << "  </" << ASSEMBLE_TAG << ">\n";
 
         stream << "</" << CONFIG_TAG << ">\n";

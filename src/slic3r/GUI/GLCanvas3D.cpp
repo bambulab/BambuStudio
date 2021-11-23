@@ -2059,10 +2059,12 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 if (m_canvas_type != ECanvasType::CanvasAssembleView) {
                     volume->set_instance_transformation(mvs->model_volume->get_object()->instances[mvs->composite_id.instance_id]->get_transformation());
                     volume->set_volume_transformation(mvs->model_volume->get_transformation());
+                    volume->set_offset_to_assembly(Vec3d(0, 0, 0));
                 }
                 else {
                     volume->set_instance_transformation(mvs->model_volume->get_object()->instances[mvs->composite_id.instance_id]->get_assemble_transformation());
                     volume->set_volume_transformation(mvs->model_volume->get_transformation());
+                    volume->set_offset_to_assembly(mvs->model_volume->get_object()->instances[mvs->composite_id.instance_id]->get_offset_to_assembly());
                 }
             }
         }
@@ -6618,7 +6620,9 @@ void GLCanvas3D::_render_overlays()
 
     //BBS: GUI refactor: GLToolbar
     //move gizmos behind of main
-    //_render_gizmos_overlay();
+    _render_gizmos_overlay();
+
+    _render_explosion_control();
 
     // main toolbar and undoredo toolbar need to be both updated before rendering because both their sizes are needed
     // to correctly place them
@@ -6999,6 +7003,27 @@ void GLCanvas3D::_render_paint_toolbar() const
     ImGui::AlignTextToFramePadding();
     imgui.end();
 
+}
+
+void GLCanvas3D::_render_explosion_control() const
+{
+    if (m_canvas_type != ECanvasType::CanvasAssembleView) {
+        GLVolume::explosion_ratio = 1.0;
+        return;
+    }
+
+    ImGuiWrapper* imgui = wxGetApp().imgui();
+
+    auto canvas_w = float(get_canvas_size().get_width());
+    auto canvas_h = float(get_canvas_size().get_height());
+
+    imgui->set_next_window_pos(canvas_w * 0.5 + 170, canvas_h - 120, ImGuiCond_Always, 1.0f, 0.0f);
+    imgui->begin(_L("Explosion"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+
+    imgui->text(GUI::format_wxstr(_L("Press %1%left mouse button to enter the exact value"), shortkey_ctrl_prefix()));
+    imgui->slider_float(_L("Ratio"), &GLVolume::explosion_ratio, 1.0, 3.0, "%5.2f");
+
+    imgui->end();
 }
 
 #if ENABLE_SHOW_CAMERA_TARGET

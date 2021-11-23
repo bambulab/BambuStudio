@@ -922,6 +922,7 @@ class ModelInstance final : public ObjectBase
 private:
     Geometry::Transformation m_transformation;
     Geometry::Transformation m_assemble_transformation;
+    Vec3d m_offset_to_assembly;
     bool m_assemble_initialized;
 
 public:
@@ -949,6 +950,10 @@ public:
     void rotate_assemble(double angle, const Vec3d& axis) {
         m_assemble_transformation.set_rotation(m_assemble_transformation.get_rotation() + Geometry::extract_euler_angles(Eigen::Quaterniond(Eigen::AngleAxisd(angle, axis)).toRotationMatrix()));
     }
+
+    // BBS
+    void set_offset_to_assembly(const Vec3d& offset) { m_offset_to_assembly = offset; }
+    Vec3d get_offset_to_assembly() { return m_offset_to_assembly; }
 
     const Vec3d& get_offset() const { return m_transformation.get_offset(); }
     double get_offset(Axis axis) const { return m_transformation.get_offset(axis); }
@@ -1039,6 +1044,7 @@ private:
     explicit ModelInstance(ModelObject *object, const ModelInstance &other) :
         m_transformation(other.m_transformation)
         , m_assemble_transformation(other.m_assemble_transformation)
+        , m_offset_to_assembly(other.m_offset_to_assembly)
         , print_volume_state(ModelInstancePVS_Inside)
         , printable(other.printable)
         , object(object)

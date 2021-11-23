@@ -1536,6 +1536,7 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
                 model_instance->set_offset(model_instance->get_offset() + shift);
                 //BBS: add assemble_view related logic
                 model_instance->set_assemble_transformation(model_instance->get_transformation());
+                model_instance->set_offset_to_assembly(new_vol->get_offset());
             }
 
             new_vol->set_offset(Vec3d::Zero());
