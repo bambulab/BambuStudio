@@ -60,7 +60,9 @@ void PrintJob::process()
 
     /* 2 - wan print task */
     // save project, profile, task, subtask info to local, default_output_file as project name
-    std::string project_name = c->get_default_project()->project_name;
+    std::string project_name;
+    if (c->get_default_project())
+        std::string project_name = c->get_default_project()->project_name;
     BBLProject* project = new BBLProject(project_name, BBLProject::ProjectType::PROJECT_3MF);
     project->project_3mf_file = job_data._3mf_path.string();
     project->project_path = fs::path(project->project_3mf_file);

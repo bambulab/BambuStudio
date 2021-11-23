@@ -129,17 +129,27 @@ namespace Slic3r {
 			wxButton* btn_get_version;
 			wxStaticText* m_staticText6;
 			wxStaticText* label_force_upgrade_val;
+			wxPanel* m_panel_run_3mf;
+			wxStaticText* label_3mf_filename;
+			wxTextCtrl* txt_3mf_filename;
+			wxButton* btn_select_3mf_file;
+			wxStaticText* label_upload_progress;
+			wxStaticText* label_3mf_progress;
+			wxButton* btn_run_3mf;
+			wxButton* btn_3mf_pause;
+			wxButton* btn_3mf_resume;
+			wxButton* btn_3mf_abort_print;
+			wxStaticText* m_staticText_run_3mf_tips;
 			wxPanel* m_panel_run_gcode;
 			wxStaticText* label_gcode_filename;
 			wxTextCtrl* txt_gcode_filename;
 			wxButton* btn_select_gcode_file;
-			wxStaticText* label_upload_progress;
-			wxStaticText* label_gcode_progress;
+			wxStaticText* label_upload_progress1;
+			wxStaticText* label_gcode_progress1;
 			wxButton* btn_run_gcode;
 			wxButton* btn_pause;
 			wxButton* btn_resume;
 			wxButton* btn_abort_print;
-			wxStaticText* m_staticText_run_3mf_tips;
 			wxPanel* m_panel_info_control;
 			wxStaticText* m_staticText_nozzle_temp_title;
 			wxStaticText* label_hot_end_temp_val;
@@ -247,7 +257,9 @@ namespace Slic3r {
 
 
             wxFileDialog*   selectGcodeDialog;
+            wxFileDialog*   select3mfDialog;
             bool            gcode_uploading;
+            bool            _3mf_uploading;
 			std::vector<wxString> upgrade_file_list;
             std::fstream customGcodeCacheFile;
             wxTimer* m_deviceListTimer;
