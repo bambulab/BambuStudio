@@ -415,6 +415,11 @@ public:
     // Bounding box is expected to be centered around zero in all axes.
     static Transformation volume_to_bed_transformation(const Transformation& instance_transformation, const BoundingBoxf3& bbox);
 
+    // BBS: backup use this compare
+    friend bool operator==(Transformation const& l, Transformation const& r) {
+        return l.m_offset == r.m_offset && l.m_rotation == r.m_rotation && l.m_scaling_factor == r.m_scaling_factor && l.m_mirror == r.m_mirror;
+    }
+
 private:
 	friend class cereal::access;
 	template<class Archive> void serialize(Archive & ar) { ar(m_offset, m_rotation, m_scaling_factor, m_mirror); }

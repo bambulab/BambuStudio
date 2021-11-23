@@ -378,6 +378,14 @@ namespace Slic3r {
 
             bool empty() { return vertices.empty() || triangles.empty(); }
 
+            // backup & restore
+            void swap(Geometry& o) {
+                std::swap(vertices, o.vertices);
+                std::swap(triangles, o.triangles);
+                std::swap(custom_supports, o.custom_supports);
+                std::swap(custom_seam, o.custom_seam);
+            }
+
             void reset() {
                 vertices.clear();
                 triangles.clear();
@@ -483,6 +491,9 @@ namespace Slic3r {
         unsigned int m_version;
         bool m_check_version;
         bool m_load_aux;
+        // backup & restore
+        bool m_load_restore;
+        // bool m_mesh_only; load only mesh from origin 3mf, currently not work
 
         // Semantic version of PrusaSlicer, that generated this 3MF.
         boost::optional<Semver> m_bambuslicer_generator_version;
@@ -502,12 +513,14 @@ namespace Slic3r {
         IdToAliasesMap m_objects_aliases;
         InstancesList m_instances;
         IdToGeometryMap m_geometries;
+        IdToGeometryMap m_orig_geometries; // backup & restore
         CurrentConfig m_curr_config;
         IdToMetadataMap m_objects_metadata;
         IdToLayerHeightsProfileMap m_layer_heights_profiles;
         IdToLayerConfigRangesMap m_layer_config_ranges;
         IdToSlaSupportPointsMap m_sla_support_points;
         IdToSlaDrainHolesMap    m_sla_drain_holes;
+        std::map<unsigned int, size_t> m_object_id_map; // backup & restore
         std::string m_curr_metadata_name;
         std::string m_curr_characters;
         std::string m_name;
@@ -525,7 +538,8 @@ namespace Slic3r {
         ~_BBS_3MF_Importer();
 
         //BBS: add plate data related logic
-        bool load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version, bool& is_bbl_3mf, bool load_aux);
+        // add backup & restore logic
+        bool load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version, bool& is_bbl_3mf, bool load_aux, bool load_restore);
         unsigned int version() const { return m_version; }
 
     private:
@@ -542,8 +556,10 @@ namespace Slic3r {
         }
 
         //BBS: add plate data related logic
-        bool _load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions);
+        // add backup & restore logic
+        bool _load_model_from_file(std::string filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions);
         bool _extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
+        bool _extract_model_from_file(std::string const& file); // mesh only file -- backup & restore logic
         void _extract_layer_heights_profile_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         void _extract_layer_config_ranges_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, ConfigSubstitutionContext& config_substitutions);
         void _extract_sla_support_points_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
@@ -678,7 +694,8 @@ namespace Slic3r {
     }
 
     //BBS: add plate data related logic
-    bool _BBS_3MF_Importer::load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version, bool& is_bbl_3mf, bool load_aux)
+        // add backup & restore logic
+    bool _BBS_3MF_Importer::load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version, bool& is_bbl_3mf, bool load_aux, bool load_restore)
     {
         m_version = 0;
         m_fdm_supports_painting_version = 0;
@@ -687,6 +704,8 @@ namespace Slic3r {
         m_check_version = check_version;
         //BBS: auxiliary data
         m_load_aux = load_aux;
+        m_load_restore = load_restore;
+        // m_mesh_only = false;
         m_model = &model;
         m_unit_factor = 1.0f;
         m_curr_object.reset();
@@ -709,8 +728,15 @@ namespace Slic3r {
         m_gcode_files.clear();
         clear_errors();
 
+        // restore
+        if (load_restore)
+            model.set_backup_path(filename.substr(0, filename.size() - 5));
         bool result = _load_model_from_file(filename, model, plate_data_list, config, config_substitutions);
         is_bbl_3mf = m_is_bbl_3mf;
+        // save for restore
+        if (result && load_aux && !load_restore) {
+            boost::filesystem::save_string_file(model.get_backup_path() + "/origin.txt", filename);
+        }
         return result;
     }
 
@@ -733,8 +759,37 @@ namespace Slic3r {
     }
 
     //BBS: add plate data related logic
-    bool _BBS_3MF_Importer::_load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions)
+    bool _BBS_3MF_Importer::_load_model_from_file(std::string filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions)
     {
+        // prepare restore
+        if (m_load_restore) {
+            std::string idmapfile = model.get_backup_path() + "/idmap.txt";
+            {
+                std::ifstream ifs(idmapfile);
+                unsigned int id1;
+                size_t id2;
+                while (ifs) {
+                    ifs >> id1 >> id2;
+                    m_object_id_map.insert(std::make_pair(id1, id2));
+                }
+            }
+            std::string originfile;
+            try {
+                if (boost::filesystem::exists(model.get_backup_path() + "/origin.txt"))
+                    boost::filesystem::load_string_file(model.get_backup_path() + "/origin.txt", originfile);
+            }
+            catch (...) {
+            }
+            if (!originfile.empty()) {
+                // m_mesh_only = true;
+                // m_load_restore = false;
+                // preload from origin file, pending params are not hit
+                // _load_model_from_file(originfile, model, plate_data_list, config, config_substitutions);
+                // m_load_restore = true;
+                // m_mesh_only = false;
+            }
+        }
+
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
 
@@ -774,6 +829,14 @@ namespace Slic3r {
                 }
             }
         }
+
+        // only load for mesh, finish here
+        // if (m_mesh_only) {
+        //     close_zip_reader(&archive);
+        //     m_objects.clear();
+        //    
+        //     return true;
+        // }
 
         // we then loop again the entries to read other files stored in the archive
         for (mz_uint i = 0; i < num_entries; ++i) {
@@ -823,8 +886,8 @@ namespace Slic3r {
                     m_parsing_slice_info = false;
                 }
                 else if (boost::algorithm::istarts_with(name, AUXILIARY_DIR)) {
-                    // extract auxiliary directory to temp directory
-                    if (m_load_aux)
+                    // extract auxiliary directory to temp directory, do nothing for restore
+                    if (m_load_aux && !m_load_restore)
                         _extract_auxiliary_file_from_archive(archive, stat, model);
                 }
                 else if (boost::algorithm::istarts_with(name, METADATA_DIR) && boost::algorithm::iends_with(name, GCODE_EXTENSION)) {
@@ -1005,6 +1068,28 @@ namespace Slic3r {
             it++;
         }
 
+        // rename mesh files to new id, two pass to resolve conflict
+        for (const IdToModelObjectMap::value_type& object : m_objects) {
+            ModelObject* model_object = m_model->objects[object.second];
+            size_t & id = m_object_id_map[object.first];
+            std::string path2 = m_model->get_backup_path() + "/mesh_" + boost::lexical_cast<std::string>(id) + ".xml";
+            id = model_object->id().id;
+            std::string path = m_model->get_backup_path() + "/mesh2_" + boost::lexical_cast<std::string>(id) + ".xml";
+            if (boost::filesystem::exists(path2) && !boost::filesystem::exists(path)) {
+                boost::filesystem::rename(path2, path);
+            }
+        }
+        for (const IdToModelObjectMap::value_type& object : m_objects) {
+            ModelObject* model_object = m_model->objects[object.second];
+            size_t id = model_object->id().id;
+            std::string path = m_model->get_backup_path() + "/mesh_" + boost::lexical_cast<std::string>(id) + ".xml";
+            std::string path2 = m_model->get_backup_path() + "/mesh2_" + boost::lexical_cast<std::string>(id) + ".xml";
+            if (boost::filesystem::exists(path2) && !boost::filesystem::exists(path)) {
+                boost::filesystem::rename(path2, path);
+                break;
+            }
+        }
+
         return true;
     }
 
@@ -1066,6 +1151,54 @@ namespace Slic3r {
 
         if (res == 0) {
             add_error("Error while extracting model data from zip archive");
+            return false;
+        }
+
+        return true;
+    }
+    
+    // load mesh only file
+    bool _BBS_3MF_Importer::_extract_model_from_file(std::string const & file)
+    {
+        auto xml_parser = m_xml_parser;
+        m_xml_parser = XML_ParserCreate(nullptr);
+        if (m_xml_parser == nullptr) {
+            add_error("Unable to create parser");
+            m_xml_parser = xml_parser;
+            return false;
+        }
+
+        XML_SetUserData(m_xml_parser, (void*)this);
+        XML_SetElementHandler(m_xml_parser, _BBS_3MF_Importer::_handle_start_model_xml_element, _BBS_3MF_Importer::_handle_end_model_xml_element);
+        XML_SetCharacterDataHandler(m_xml_parser, _BBS_3MF_Importer::_handle_model_xml_characters);
+
+        try
+        {
+            std::ifstream ifs(file);
+            std::string data(4096, char(0));
+            while (ifs) {
+                ifs.read(&data.front(), 4096);
+                if (!XML_Parse(m_xml_parser, &data.front(), (int)ifs.gcount(), ifs.eof() || parse_error())) {
+                    char error_buf[1024];
+                    ::sprintf(error_buf, "Error (%s) while parsing '%s' at line %d", parse_error_message(), file.c_str(), (int)XML_GetCurrentLineNumber(xml_parser));
+                    throw Slic3r::FileIOError(error_buf);
+                }
+            }
+            XML_ParserFree(m_xml_parser);
+            m_xml_parser = xml_parser;
+        }
+        catch (const version_error& e)
+        {
+            // rethrow the exception
+            XML_ParserFree(m_xml_parser);
+            m_xml_parser = xml_parser;
+            throw Slic3r::FileIOError(e.what());
+        }
+        catch (std::exception& e)
+        {
+            XML_ParserFree(m_xml_parser);
+            m_xml_parser = xml_parser;
+            add_error(e.what());
             return false;
         }
 
@@ -1606,6 +1739,8 @@ namespace Slic3r {
             res = _handle_start_triangles(attributes, num_attributes);
         else if (::strcmp(TRIANGLE_TAG, name) == 0)
             res = _handle_start_triangle(attributes, num_attributes);
+        //else if (m_mesh_only)
+        //    res = true;
         else if (::strcmp(COMPONENTS_TAG, name) == 0)
             res = _handle_start_components(attributes, num_attributes);
         else if (::strcmp(COMPONENT_TAG, name) == 0)
@@ -1644,6 +1779,8 @@ namespace Slic3r {
             res = _handle_end_triangles();
         else if (::strcmp(TRIANGLE_TAG, name) == 0)
             res = _handle_end_triangle();
+        // else if (m_mesh_only)
+        //     res = true;
         else if (::strcmp(COMPONENTS_TAG, name) == 0)
             res = _handle_end_components();
         else if (::strcmp(COMPONENT_TAG, name) == 0)
@@ -1661,6 +1798,7 @@ namespace Slic3r {
 
     void _BBS_3MF_Importer::_handle_model_xml_characters(const XML_Char* s, int len)
     {
+        // if (!m_mesh_only)
         m_curr_characters.append(s, len);
     }
 
@@ -1783,6 +1921,10 @@ namespace Slic3r {
         m_curr_object.reset();
 
         if (bbs_is_valid_object_type(bbs_get_attribute_value_string(attributes, num_attributes, TYPE_ATTR))) {
+            // if (m_mesh_only) {
+            //     m_curr_object.id = bbs_get_attribute_value_int(attributes, num_attributes, ID_ATTR);
+            //     return true;
+            // }
             // create new object (it may be removed later if no instances are generated from it)
             m_curr_object.model_object_idx = (int)m_model->objects.size();
             m_curr_object.object = m_model->add_object();
@@ -1804,7 +1946,28 @@ namespace Slic3r {
 
     bool _BBS_3MF_Importer::_handle_end_object()
     {
+        // if (m_mesh_only) {
+        //     if (m_curr_object.geometry.empty()) {
+        //         return false;
+        //     }
+        //     m_orig_geometries.insert({ m_curr_object.id, std::move(m_curr_object.geometry) });
+        //     return true;
+       //  }
         if (m_curr_object.object != nullptr) {
+            if (m_curr_object.geometry.empty() && m_load_restore) {
+                // load mesh from split file
+                auto it = m_object_id_map.find(m_curr_object.id);
+                if (it != m_object_id_map.end()) {
+                    std::string file(m_model->get_backup_path() + "/mesh_" + boost::lexical_cast<std::string>(it->second) + ".xml");
+                    // load into m_curr_object.geometry
+                    _extract_model_from_file(file);
+                }
+                // use mesh from origin project file
+                // TODO: id match
+                // m_curr_object.geometry.swap(m_orig_geometries[m_curr_object.id]);
+                // m_orig_geometries.erase(m_curr_object.id);
+            }
+
             if (m_curr_object.geometry.empty()) {
                 // no geometry defined
                 // remove the object from the model
@@ -2589,6 +2752,7 @@ namespace Slic3r {
 
         bool m_fullpath_sources{ true };
         bool m_zip64 { true };
+        bool m_skip_static{ false }; // not save mesh and other big static contents
 
     public:
         //BBS: add plate data related logic
@@ -2607,7 +2771,7 @@ namespace Slic3r {
         bool _add_relationships_file_to_archive(mz_zip_archive& archive);
         bool _add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data, Export3mfProgressFn proFn = nullptr);
         bool _add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int& object_id, ModelObject& object, BuildItemsList& build_items, VolumeToOffsetsMap& volumes_offsets);
-        bool _add_mesh_to_object_stream(mz_zip_writer_staged_context &context, ModelObject& object, VolumeToOffsetsMap& volumes_offsets);
+        bool _add_mesh_to_object_stream(std::function<bool(std::string&, bool)> const& flush, ModelObject& object, VolumeToOffsetsMap& volumes_offsets);
         bool _add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items);
         bool _add_layer_height_profile_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_layer_config_ranges_file_to_archive(mz_zip_archive& archive, Model& model);
@@ -2670,6 +2834,22 @@ namespace Slic3r {
         return false;
     }
 
+    // backup mesh-only
+    bool _BBS_3MF_Exporter::save_object_mesh(const std::string& filename, ModelObject& object)
+    {
+        std::ofstream ofs(filename);
+        auto flush = [&ofs](std::string& buf, bool force) -> bool {
+            ofs.write(buf.c_str(), buf.size());
+            if (force)
+                ofs.flush();
+            buf.clear();
+            return !!ofs;
+        };
+        VolumeToOffsetsMap volumes_offsets;
+        _add_mesh_to_object_stream(flush, object, volumes_offsets);
+        return false;
+    }
+
     //BBS: add plate data related logic
     bool _BBS_3MF_Exporter::_save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, const std::vector<ThumbnailData*>& thumbnail_data, Export3mfProgressFn proFn)
     {
@@ -2702,7 +2882,7 @@ namespace Slic3r {
 
         // Adds content types file ("[Content_Types].xml";).
         // The content of this file is the same for each PrusaSlicer 3mf.
-        if (!_add_content_types_file_to_archive(archive)) {
+        if (!m_skip_static && !_add_content_types_file_to_archive(archive)) {
             close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
@@ -2712,7 +2892,7 @@ namespace Slic3r {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_CONTENT_TYPES\n");
 
         //BBS: add thumbnail for each plate
-        if (thumbnail_data.size()>0) {
+        if (!m_skip_static && thumbnail_data.size()>0) {
             // Adds the file Metadata/thumbnail.png.
             for (unsigned int index = 0; index < thumbnail_data.size(); index++)
             {
@@ -2744,7 +2924,7 @@ namespace Slic3r {
         // Adds relationships file ("_rels/.rels"). 
         // The content of this file is the same for each PrusaSlicer 3mf.
         // The relationshis file contains a reference to the geometry file "3D/3dmodel.model", the name was chosen to be compatible with CURA.
-        if (!_add_relationships_file_to_archive(archive)) {
+        if (!m_skip_static && !_add_relationships_file_to_archive(archive)) {
             close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
@@ -2905,7 +3085,7 @@ namespace Slic3r {
         }
 
         // Adds gcode files ("Metadata/plate_1.gcode, plate_2.gcode, ...)
-        if (!_add_auxiliary_dir_to_archive(archive, model.get_auxiliary_file_temp_path())) {
+        if (!m_skip_static && !_add_auxiliary_dir_to_archive(archive, model.get_auxiliary_file_temp_path())) {
             close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
@@ -3081,7 +3261,7 @@ namespace Slic3r {
             
             if (obj == nullptr)
                 continue;
-
+            object_id_map.insert(std::make_pair(object_id, obj->id().id));
             // Index of an object in the 3MF file corresponding to the 1st instance of a ModelObject.
             unsigned int curr_id = object_id;
             IdToObjectDataMap::iterator object_it = objects_data.insert({ curr_id, ObjectData(obj) }).first;
@@ -3094,6 +3274,15 @@ namespace Slic3r {
                 mz_zip_writer_add_staged_finish(&context);
                 return false;
             }
+        }
+
+        // save object_id_map
+        {
+            std::ofstream ofs(const_cast<Model &>(model).get_backup_path() + "/idmap.txt");
+            for (auto i : object_id_map) {
+                ofs << i.first << " " << i.second << std::endl;
+            }
+            ofs.flush();
         }
 
         {
@@ -3140,8 +3329,20 @@ namespace Slic3r {
             if (id == 0) {
                 std::string buf = stream.str();
                 reset_stream(stream);
-                if ((! buf.empty() && ! mz_zip_writer_add_staged_data(&context, buf.data(), buf.size())) ||
-                    ! _add_mesh_to_object_stream(context, object, volumes_offsets)) {
+                // backup: make _add_mesh_to_object_stream() reusable
+                auto flush = [this, &context](std::string & buf, bool force = false) {
+                    if ((force && !buf.empty()) || buf.size() >= 65536 * 16) {
+                        if (!mz_zip_writer_add_staged_data(&context, buf.data(), buf.size())) {
+                            add_error("Error during writing or compression");
+                            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Error during writing or compression\n");
+                            return false;
+                        }
+                        buf.clear();
+                    }
+                    return true;
+                };
+                if ((! buf.empty() && ! mz_zip_writer_add_staged_data(&context, buf.data(), buf.size())) || 
+                    ! _add_mesh_to_object_stream(flush, object, volumes_offsets)) {
                     add_error("Unable to add mesh to archive");
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add mesh to archive\n");
                     return false;
@@ -3188,14 +3389,10 @@ namespace Slic3r {
     using coordinate_type_scientific = boost::spirit::karma::real_generator<float, coordinate_policy_scientific<float>>;
 #endif // EXPORT_3MF_USE_SPIRIT_KARMA_FP
 
-    bool _BBS_3MF_Exporter::_add_mesh_to_object_stream(mz_zip_writer_staged_context &context, ModelObject& object, VolumeToOffsetsMap& volumes_offsets)
+    // backup: reuse by save_object_mesh, support skip mesh data
+    bool _BBS_3MF_Exporter::_add_mesh_to_object_stream(std::function<bool(std::string &,bool)> const & flush, ModelObject& object, VolumeToOffsetsMap& volumes_offsets)
     {
         std::string output_buffer;
-        output_buffer += "   <";
-        output_buffer += MESH_TAG;
-        output_buffer += ">\n    <";
-        output_buffer += VERTICES_TAG;
-        output_buffer += ">\n";
 
         auto flush = [this, &output_buffer, &context](bool force = false) {
             if ((force && ! output_buffer.empty()) || output_buffer.size() >= 65536 * 16) {
@@ -3208,6 +3405,14 @@ namespace Slic3r {
             }
             return true;
         };
+
+        if (!m_skip_static) {
+            output_buffer += "   <";
+            output_buffer += MESH_TAG;
+            output_buffer += ">\n    <";
+            output_buffer += VERTICES_TAG;
+            output_buffer += ">\n";
+        }
 
         auto format_coordinate = [](float f, char *buf) -> char* {
             assert(is_decimal_separator_point());
@@ -3259,30 +3464,34 @@ namespace Slic3r {
 
             vertices_count += (int)its.vertices.size();
 
-            const Transform3d& matrix = volume->get_matrix();
+            if (!m_skip_static) {
+                const Transform3d& matrix = volume->get_matrix();
 
-            for (size_t i = 0; i < its.vertices.size(); ++i) {
-                Vec3f v = (matrix * its.vertices[i].cast<double>()).cast<float>();
-                char *ptr = buf;
-                boost::spirit::karma::generate(ptr, boost::spirit::lit("     <") << VERTEX_TAG << " x=\"");
-                ptr = format_coordinate(v.x(), ptr);
-                boost::spirit::karma::generate(ptr, "\" y=\"");
-                ptr = format_coordinate(v.y(), ptr);
-                boost::spirit::karma::generate(ptr, "\" z=\"");
-                ptr = format_coordinate(v.z(), ptr);
-                boost::spirit::karma::generate(ptr, "\"/>\n");
-                *ptr = '\0';
-                output_buffer += buf;
-                if (! flush())
-                    return false;
+                for (size_t i = 0; i < its.vertices.size(); ++i) {
+                    Vec3f v = (matrix * its.vertices[i].cast<double>()).cast<float>();
+                    char* ptr = buf;
+                    boost::spirit::karma::generate(ptr, boost::spirit::lit("     <") << VERTEX_TAG << " x=\"");
+                    ptr = format_coordinate(v.x(), ptr);
+                    boost::spirit::karma::generate(ptr, "\" y=\"");
+                    ptr = format_coordinate(v.y(), ptr);
+                    boost::spirit::karma::generate(ptr, "\" z=\"");
+                    ptr = format_coordinate(v.z(), ptr);
+                    boost::spirit::karma::generate(ptr, "\"/>\n");
+                    *ptr = '\0';
+                    output_buffer += buf;
+                    if (!flush(output_buffer, false))
+                        return false;
+                }
             }
         }
 
-        output_buffer += "    </";
-        output_buffer += VERTICES_TAG;
-        output_buffer += ">\n    <";
-        output_buffer += TRIANGLES_TAG;
-        output_buffer += ">\n";
+        if (!m_skip_static) {
+            output_buffer += "    </";
+            output_buffer += VERTICES_TAG;
+            output_buffer += ">\n    <";
+            output_buffer += TRIANGLES_TAG;
+            output_buffer += ">\n";
+        }
 
         unsigned int triangles_count = 0;
         for (ModelVolume* volume : object.volumes) {
@@ -3299,6 +3508,9 @@ namespace Slic3r {
             volume_it->second.first_triangle_id = triangles_count;
             triangles_count += (int)its.indices.size();
             volume_it->second.last_triangle_id = triangles_count - 1;
+
+            if (m_skip_static)
+                continue;
 
             for (int i = 0; i < int(its.indices.size()); ++ i) {
                 {
@@ -3344,19 +3556,24 @@ namespace Slic3r {
 
                 output_buffer += "/>\n";
 
-                if (! flush())
+                if (! flush(output_buffer, false))
                     return false;
             }
         }
 
-        output_buffer += "    </";
-        output_buffer += TRIANGLES_TAG;
-        output_buffer += ">\n   </";
-        output_buffer += MESH_TAG;
-        output_buffer += ">\n";
+        if (!m_skip_static) {
+            output_buffer += "    </";
+            output_buffer += TRIANGLES_TAG;
+            output_buffer += ">\n   </";
+            output_buffer += MESH_TAG;
+            output_buffer += ">\n";
 
-        // Force flush.
-        return flush(true);
+            // Force flush.
+            return flush(output_buffer, true);
+        }
+        else {
+            return true;
+        }
     }
 
     bool _BBS_3MF_Exporter::_add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items)
@@ -3802,7 +4019,7 @@ namespace Slic3r {
         for (unsigned int i = 0; i < (unsigned int)plate_data_list.size(); ++i)
         {
             PlateData* plate_data = plate_data_list[i];
-            int instance_size = plate_data->objects_and_instances.size();
+            //int instance_size = plate_data->objects_and_instances.size();
 
             if (plate_data != nullptr && plate_data->is_sliced_valid) {
                 stream << "  <" << PLATE_TAG << ">\n";
@@ -3970,7 +4187,314 @@ static void handle_legacy_project_loaded(unsigned int version_project_file, Dyna
     }
 }
 
-bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, bool check_version, bool* is_bbl_3mf, bool load_aux)
+// backup backgroud thread to dispatch tasks and coperate with ui thread
+class _BBS_Backup_Manager
+{
+public:
+    static _BBS_Backup_Manager& get() {
+        static _BBS_Backup_Manager m;
+        return m;
+    }
+
+    void set_post_callback(std::function<void(int)> c) {
+        boost::lock_guard lock(m_mutex);
+        m_post_callback = c;
+    }
+
+    void run_ui_tasks() {
+        std::deque<Task> tasks;
+        {
+            boost::lock_guard lock(m_mutex);
+            std::swap(tasks, m_ui_tasks);
+        }
+        for (auto& t : tasks)
+        {
+            process_ui_task(t);
+        }
+    }
+
+    void push_object_gaurd(ModelObject& object) {
+        m_gaurd_objects.push_back(std::make_pair(&object, 0));
+    }
+
+    void pop_object_gaurd() {
+        auto object = m_gaurd_objects.back();
+        m_gaurd_objects.pop_back();
+        if (object.second)
+            add_object_mesh(*object.first);
+    }
+
+    void add_object_mesh(ModelObject& object, size_t originId = 0) {
+        for (auto& g : m_gaurd_objects) {
+            if (g.first == &object) {
+                ++g.second;
+                return;
+            }
+        }
+        // clone object
+        auto o = m_temp_model.add_object(object);
+        push_task({ AddObject, object.id().id, object.get_model()->get_backup_path(), originId, o, originId == 0 ? size_t(1) : size_t(0) });
+    }
+
+    void remove_object_mesh(ModelObject& object) {
+        push_task({ RemoveObject, object.id().id, object.get_model()->get_backup_path() });
+    }
+
+    void backup_soon() {
+        boost::lock_guard lock(m_mutex);
+        m_tasks.push_back({ Backup, 0, std::string(), ++m_task_seq });
+        m_cond.notify_all();
+    }
+
+    void remove_backup(Model& model, bool removeAll) {
+        std::deque<Task> canceled_tasks;
+        boost::unique_lock lock(m_mutex);
+        if (removeAll) {
+            // running task may not be canceled
+            for (auto & t : m_ui_tasks)
+                canceled_tasks.push_back(t);
+            for (auto & t : m_tasks)
+                canceled_tasks.push_back(t);
+            m_ui_tasks.clear();
+            m_tasks.clear();
+        }
+        m_tasks.push_back({ RemoveBackup, removeAll, model.get_backup_path() });
+        ++m_task_seq;
+        m_cond.notify_all();
+        lock.unlock();
+        for (auto& t : canceled_tasks) {
+            process_ui_task(t, true);
+        }
+    }
+
+    void set_interval(long n) {
+        boost::lock_guard lock(m_mutex);
+        m_next_backup -= boost::posix_time::seconds(m_interval);
+        m_interval = n;
+        m_next_backup += boost::posix_time::seconds(m_interval);
+        m_cond.notify_all();
+    }
+
+    void put_other_changes()
+    {
+        m_other_changes = true;
+    }
+
+    bool has_other_changes()
+    {
+        return m_other_changes == true;
+    }
+
+private:
+    enum TaskType {
+        Backup, // this task is working as response in ui thread
+        AddObject,
+        RemoveObject,
+        RemoveBackup
+    };
+    struct Task {
+        TaskType type;
+        size_t id;
+        std::string path;
+        size_t id2;
+        ModelObject* object;
+        size_t delay; // delay sequence, only last task is delayed
+        friend bool operator==(Task const& l, Task const& r) {
+            return l.type == r.type && l.id == r.id;
+        }
+    };
+
+    struct timer {
+        timer(char const * msg) : msg(msg), start(boost::posix_time::microsec_clock::universal_time()) { }
+        ~timer() {
+#ifdef __WIN32__
+            auto end = boost::posix_time::microsec_clock::universal_time();
+            int duration = (int)(end - start).total_milliseconds();
+            char buf[20];
+            OutputDebugStringA(msg);
+            OutputDebugStringA(": ");
+            OutputDebugStringA(itoa(duration, buf, 10));
+            OutputDebugStringA("\n");
+#endif
+        }
+        char const* msg;
+        boost::posix_time::ptime start;
+    };
+private:
+    _BBS_Backup_Manager() : m_thread(boost::ref(*this)) {
+        m_next_backup = boost::get_system_time() + boost::posix_time::seconds(m_interval);
+    }
+
+    void push_task(Task const & t) {
+        boost::unique_lock lock(m_mutex);
+        if (t.delay && !m_tasks.empty() && m_tasks.back() == t) {
+            auto t2 = m_tasks.back();
+            m_tasks.back() = t;
+            m_tasks.back().delay = t2.delay + 1;
+            m_cond.notify_all();
+            lock.unlock();
+            process_ui_task(t2);
+        }
+        else {
+            m_tasks.push_back(t);
+            ++m_task_seq;
+            m_cond.notify_all();
+        }
+    }
+
+    void process_ui_task(Task& t, bool canceled = false) {
+        switch (t.type) {
+            case Backup: {
+                if (canceled)
+                    break;
+                std::function<void(int)> callback;
+                boost::unique_lock lock(m_mutex);
+                if (m_task_seq != t.id2) {
+                    if (find(m_tasks.begin(), m_tasks.end(), Task{ Backup }) == m_tasks.end()) {
+                        t.id2 = ++m_task_seq; // may has pending tasks, retry later
+                        m_tasks.push_back(t);
+                        m_cond.notify_all();
+                    }
+                    break;
+                }
+                callback = m_post_callback;
+                lock.unlock();
+                {
+                    timer t("backup cost");
+                    callback(1);
+                }
+                m_other_changes = false;
+                break;
+            }
+            case AddObject: {
+                m_temp_model.delete_object(t.object);
+                break;
+            }
+        }
+    }
+
+    void process_task(Task& t) {
+        switch (t.type) {
+            case Backup:
+                // do it in response
+                break;
+            case AddObject: {
+                std::string path = t.path + "/mesh_" + boost::lexical_cast<std::string>(t.id) + ".xml";
+                if (t.id2) {
+                    std::string path2 = t.path + "/mesh_" + boost::lexical_cast<std::string>(t.id2) + ".xml";
+                    if (boost::filesystem::exists(path2) && !boost::filesystem::exists(path)) {
+                        boost::filesystem::rename(path2, path);
+                        break;
+                    }
+                }
+                {
+                    timer tm(path.c_str());
+                    _BBS_3MF_Exporter e;
+                    e.save_object_mesh(path, *t.object);
+                    // response to delete cloned object
+                }
+                break;
+            }
+            case RemoveObject: {
+                boost::filesystem::remove(t.path + "/mesh_" + boost::lexical_cast<std::string>(t.id) + ".xml");
+                t.type == -1;
+                break;
+            }
+            case RemoveBackup: {
+                try {
+                    if (t.id) { // remove all
+                        boost::filesystem::remove_all(t.path);
+                    }
+                    else {
+                        boost::filesystem::remove(t.path + "/.3mf");
+                    }
+                }
+                catch (...) {
+
+                }
+            }
+        }
+    }
+
+public:
+    void operator()() {
+        boost::unique_lock lock(m_mutex);
+        while (true)
+        {
+            while (m_tasks.empty()) {
+                m_cond.timed_wait(lock, m_next_backup);
+                if (m_interval > 0 && boost::get_system_time() > m_next_backup) {
+                    m_tasks.push_back({ Backup, 0, std::string(), ++m_task_seq });
+                    m_next_backup += boost::posix_time::seconds(m_interval);
+                }
+            }
+            Task t = m_tasks.front();
+            if (t.delay) {
+                if (!delay_task(t, lock))
+                    continue;
+            }
+            m_tasks.pop_front();
+            lock.unlock();
+            process_task(t);
+            lock.lock();
+            if (t.type >= 0) {
+                m_ui_tasks.push_back(t);
+                if (m_ui_tasks.size() == 1)
+                    m_post_callback(0);
+            }
+        }
+    }
+
+    bool delay_task(Task& t, boost::unique_lock<boost::mutex> & lock) {
+        // delay last task for 3 seconds after last modify
+        auto now = boost::get_system_time();
+        auto delay_expire = now + boost::posix_time::seconds(10); // must not delay over this time
+        auto wait = now + boost::posix_time::seconds(3);
+        while (true) {
+            m_cond.timed_wait(lock, wait);
+            if (m_tasks.size() != 1 || m_tasks.front().delay == t.delay)
+                break;
+            t.delay = m_tasks.front().delay;
+            now = boost::get_system_time();
+            if (now >= delay_expire)
+                break;
+            wait = now + boost::posix_time::seconds(3);
+            if (wait > delay_expire)
+                wait = delay_expire;
+        };
+        // task maybe canceled
+        if (m_tasks.empty())
+            return false;
+        t = m_tasks.front();
+        char buf[20];
+#ifdef __WIN32__
+        OutputDebugStringA("delay_task merge ");
+        OutputDebugStringA(itoa(t.delay, buf, 10));
+        OutputDebugStringA(" tasks");
+#endif
+        return true;
+    }
+
+private:
+    boost::thread m_thread;
+    boost::mutex m_mutex;
+    boost::condition_variable m_cond;
+    std::deque<Task> m_tasks;
+    std::deque<Task> m_ui_tasks;
+    size_t m_task_seq = 0;
+    // param 0: should call run_ui_tasks
+    // param 1: should backup current project
+    std::function<void(int)> m_post_callback;
+    long m_interval = 1 * 60;
+    boost::system_time m_next_backup;
+    Model m_temp_model; // visit only in main thread
+    bool m_other_changes = false; // visit only in main thread
+    std::vector<std::pair<ModelObject*, size_t>> m_gaurd_objects;
+};
+
+
+//BBS: add plate data list related logic
+bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, bool check_version, bool* is_bbl_3mf, bool load_aux, bool load_restore)
 {
     if (path == nullptr || config == nullptr || model == nullptr)
         return false;
@@ -3978,7 +4502,7 @@ bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstituti
     // All import should use "C" locales for number formatting.
     CNumericLocalesSetter locales_setter;
     _BBS_3MF_Importer importer;
-    bool res = importer.load_model_from_file(path, *model, *plate_data_list, *config, *config_substitutions, check_version, *is_bbl_3mf, load_aux);
+    bool res = importer.load_model_from_file(path, *model, *plate_data_list, *config, *config_substitutions, check_version, *is_bbl_3mf, load_aux, load_restore);
     importer.log_errors();
     handle_legacy_project_loaded(importer.version(), *config);
     return res;
@@ -4013,4 +4537,84 @@ void release_PlateData_list(PlateDataPtrs& plate_data_list)
 
     return;
 }
+
+// backup interface
+
+void save_object_mesh(ModelObject& object, size_t originId)
+{
+    if (!object.get_model() || !object.get_model()->is_need_backup())
+        return;
+    if (object.volumes.empty())
+        return;
+    _BBS_Backup_Manager::get().add_object_mesh(object, originId);
+}
+
+void delete_object_mesh(ModelObject& object)
+{
+    // not really remove
+    // _BBS_Backup_Manager::get().remove_object_mesh(object);
+}
+
+void backup_soon()
+{
+    _BBS_Backup_Manager::get().backup_soon();
+}
+
+void remove_backup(Model& model, bool removeAll)
+{
+    _BBS_Backup_Manager::get().remove_backup(model, removeAll);
+}
+
+void set_backup_interval(long interval)
+{
+    _BBS_Backup_Manager::get().set_interval(interval);
+}
+
+void set_backup_callback(std::function<void(int)> callback)
+{
+    _BBS_Backup_Manager::get().set_post_callback(callback);
+}
+
+void run_backup_ui_tasks()
+{
+    _BBS_Backup_Manager::get().run_ui_tasks();
+}
+
+bool has_restore_data(std::string & path, std::string& origin)
+{
+    std::string file3mf = path + "/.3mf";
+    if (!boost::filesystem::exists(file3mf))
+        return false;
+    if (!boost::filesystem::exists(path + "/idmap.txt"))
+        return false;
+    try {
+        if (boost::filesystem::exists(path + "/origin.txt"))
+            boost::filesystem::load_string_file(path + "/origin.txt", origin);
+    }
+    catch (...) {
+    }
+    path = file3mf;
+    return true;
+}
+
+void put_other_changes()
+{
+    _BBS_Backup_Manager::get().put_other_changes();
+}
+
+bool has_other_changes()
+{
+    return _BBS_Backup_Manager::get().has_other_changes();
+}
+
+SaveObjectGaurd::SaveObjectGaurd(ModelObject& object)
+{
+    _BBS_Backup_Manager::get().push_object_gaurd(object);
+}
+
+SaveObjectGaurd::~SaveObjectGaurd()
+{
+    _BBS_Backup_Manager::get().pop_object_gaurd();
+}
+
 } // namespace Slic3r

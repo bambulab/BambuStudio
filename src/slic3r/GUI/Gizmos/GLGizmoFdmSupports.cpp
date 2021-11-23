@@ -523,6 +523,8 @@ void GLGizmoFdmSupports::update_model_object()
         const ModelObjectPtrs& mos = wxGetApp().model().objects;
         wxGetApp().obj_list()->update_info_items(std::find(mos.begin(), mos.end(), mo) - mos.begin());
 
+        // BBS: backup
+        Slic3r::save_object_mesh(*mo);
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
     }
 

@@ -125,6 +125,10 @@ public:
 	std::string 		get_last_output_dir(const std::string& alt, const bool removable = false) const;
 	void                update_last_output_dir(const std::string &dir, const bool removable = false);
 
+	// BBS: backup & restore
+	std::string 		get_last_backup_dir() const;
+	void                update_last_backup_dir(const std::string &dir);
+
 	// reset the current print / filament / printer selections, so that 
 	// the  PresetBundle::load_selections(const AppConfig &config) call will select
 	// the first non-default preset when called.

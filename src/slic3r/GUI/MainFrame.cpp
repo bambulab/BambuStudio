@@ -61,6 +61,8 @@ namespace Slic3r {
 namespace GUI {
 
 wxDEFINE_EVENT(EVT_SELECT_TAB, wxCommandEvent);
+// BBS: backup
+wxDEFINE_EVENT(EVT_BACKUP_POST, wxCommandEvent);
 
 enum class ERescaleTarget
 {
@@ -219,8 +221,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->new_project(); }, wxID_HIGHEST + wxID_NEW);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->load_project(); }, wxID_HIGHEST + wxID_OPEN);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(into_path(m_plater->get_project_filename(".3mf"))); }, wxID_HIGHEST + wxID_SAVE);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->export_3mf(); }, wxID_HIGHEST + wxID_SAVEAS);
+    // BBS: close save project
+    Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(); }, wxID_HIGHEST + wxID_SAVE);
+    Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(true); }, wxID_HIGHEST + wxID_SAVEAS);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(); }, wxID_HIGHEST + wxID_ADD);
     //Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->remove_selected(); }, wxID_HIGHEST + wxID_DELETE);
     Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->select_all(); }, wxID_HIGHEST + wxID_SELECTALL);
@@ -291,6 +294,15 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             event.Veto();
             return;
         }
+        // BBS: close save project
+        if (event.CanVeto() && !m_plater->close_with_confirm()) {
+            event.Veto();
+            return;
+        }
+        if (event.CanVeto() && !wxGetApp().check_unsaved_changes()) {
+            event.Veto();
+            return;
+        }
 
         if (m_plater != nullptr) {
             int saved_project = m_plater->save_project_if_dirty(_L("Closing PrusaSlicer. Current project is modified."));
@@ -345,7 +357,27 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         // BBS
         //m_plater->show_action_buttons(true);
         update_slice_print_status(eEventSliceUpdate, true, true);
-    }
+
+        // BBS: backup project
+        std::string backup_interval;
+        if (!wxGetApp().app_config->get("", "backup_interval", backup_interval))
+            backup_interval = "10";
+        Slic3r::set_backup_interval(boost::lexical_cast<long>(backup_interval));
+        Slic3r::set_backup_callback([this](int action) {
+            if (action == 0) {
+                wxPostEvent(this, wxCommandEvent(EVT_BACKUP_POST));
+            }
+            else if (action == 1) {
+                if (!m_plater->up_to_date(false, true) || Slic3r::has_other_changes()) {
+                    m_plater->export_3mf(into_path(m_plater->model().get_backup_path() + "/.3mf"), true, true);
+                    m_plater->up_to_date(true, true);
+                }
+            }
+         });
+        Bind(EVT_BACKUP_POST, [](wxCommandEvent& e) {
+            Slic3r::run_backup_ui_tasks();
+            });
+;    }
 }
 
 #ifdef _MSW_DARK_MODE
@@ -1606,8 +1638,9 @@ void MainFrame::init_menubar_as_editor()
 
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(m_recent_projects.GetCount() > 0); }, recent_projects_submenu->GetId());
 
+        // BBS: close save project
         append_menu_item(fileMenu, wxID_ANY, _L("&Save Project") + "\tCtrl+S", _L("Save current project file"),
-            [this](wxCommandEvent&) { save_project(); }, "save", nullptr,
+            [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(); }, "save", nullptr,
             [this](){return m_plater != nullptr && can_save(); }, this);
 
         //BBS upload project
@@ -1620,7 +1653,7 @@ void MainFrame::init_menubar_as_editor()
 #else
         append_menu_item(fileMenu, wxID_ANY, _L("Save Project &as") + dots + "\tCtrl+Alt+S", _L("Save current project file as"),
 #endif // __APPLE__
-            [this](wxCommandEvent&) { save_project_as(); }, "save", nullptr,
+            [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(true); }, "save", nullptr,
             [this](){return m_plater != nullptr && can_save_as(); }, this);
 
         fileMenu->AppendSeparator();

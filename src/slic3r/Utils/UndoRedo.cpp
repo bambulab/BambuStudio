@@ -690,6 +690,7 @@ private:
 	size_t 													m_current_time;
 	// Last selection serialized or deserialized.
 	Selection 												m_selection;
+	std::vector<ObjectBase*> 								m_reusable_objects;
 };
 
 using InputArchive  = cereal::UserDataAdapter<StackImpl, cereal::BinaryInputArchive>;
@@ -868,7 +869,15 @@ template<typename T> ObjectID StackImpl::save_immutable_object(std::shared_ptr<c
 
 template<typename T> T* StackImpl::load_mutable_object(const Slic3r::ObjectID id)
 {
-	T *target = new T();
+	// BBS: reuse objects for backup
+	auto it = std::find_if(m_reusable_objects.begin(), m_reusable_objects.end(), [id](auto o) { return o && o->id() == id; });
+	T* target = nullptr;
+	if (it == m_reusable_objects.end())
+		target = new T();
+	else {
+		target = static_cast<T*>(*it);
+		*it = nullptr;
+	}
 	this->load_mutable_object<T>(id, *target);
 	return target;
 }
@@ -990,7 +999,9 @@ void StackImpl::load_snapshot(size_t timestamp, Slic3r::Model& model, Slic3r::GU
 		throw Slic3r::RuntimeError((boost::format("Snapshot with timestamp %1% does not exist") % timestamp).str());
 
 	m_active_snapshot_time = timestamp;
-	model.clear_objects();
+	// BBS: reuse objects for backup, objects should clear children before load them
+	model.collect_reusable_objects(m_reusable_objects);
+	// model.clear_objects();
 	model.clear_materials();
 	this->load_mutable_object<Slic3r::Model>(ObjectID(it_snapshot->model_id), model);
 	model.update_links_bottom_up_recursive();
@@ -1011,6 +1022,12 @@ void StackImpl::load_snapshot(size_t timestamp, Slic3r::Model& model, Slic3r::GU
 	}
 	this->m_active_snapshot_time = timestamp;
 	assert(this->valid());
+
+	// BBS: reuse objects for backup
+	for (auto o : m_reusable_objects) {
+		delete o;
+	}
+	m_reusable_objects.clear();
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format("snapshot name %1%") % it_snapshot->name;
 	plate_list.print();

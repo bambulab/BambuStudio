@@ -133,6 +133,8 @@ wxDEFINE_EVENT(EVT_PROCESS_COMPLETED,               SlicingProcessCompletedEvent
 wxDEFINE_EVENT(EVT_EXPORT_BEGAN,                    wxCommandEvent);
 wxDEFINE_EVENT(EVT_EXPORT_FINISHED,                 wxCommandEvent);
 wxDEFINE_EVENT(EVT_DOWNLOAD_PROJECT,                wxCommandEvent);
+// BBS: backup & restore
+wxDEFINE_EVENT(EVT_RESTORE_PROJECT,                 wxCommandEvent);
 
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
 {
@@ -1759,7 +1761,8 @@ struct Plater::priv
     std::shared_ptr<BBLStatusBar> statusbar();
     std::string get_config(const std::string &key) const;
 
-    std::vector<size_t> load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool used_inches = false);
+    // BBS: backup & restore
+    std::vector<size_t> load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool load_restore = false, bool used_inches = false);
     std::vector<size_t> load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z = false, bool split_object = false);
 
     fs::path get_export_file_path(GUI::FileType file_type);
@@ -1800,6 +1803,9 @@ struct Plater::priv
     void undo();
     void redo();
     void undo_redo_to(size_t time_to_load);
+
+    // BBS: backup
+    bool up_to_date(bool saved, bool backup);
 
     void suppress_snapshots()   { m_prevent_snapshots++; }
     void allow_snapshots()      { m_prevent_snapshots--; }
@@ -1973,6 +1979,9 @@ private:
                                                               * we should call tack_snapshot just ones
                                                               * instead of calls for each action separately
                                                               * */
+    // BBS: backup
+    size_t m_saved_timestamp = 0;
+    size_t m_backup_timestamp = 0;
     std::string 				m_last_fff_printer_profile_name;
     std::string 				m_last_sla_printer_profile_name;
 
@@ -2012,7 +2021,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     // BBS
     //, view_toolbar(GLToolbar::Radio, "View")
     , collapse_toolbar(GLToolbar::Normal, "Collapse")
-    , m_project_filename(DEFAULT_PROJECT_NAME)
+    //, m_project_filename(DEFAULT_PROJECT_NAME) // BBS no project name
     //BBS :partplatelist construction
     , partplate_list(this->q, &model)
     // BBS
@@ -2311,6 +2320,27 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     // Reset the "dirty project" flag.
     m_undo_redo_stack_main.mark_current_as_saved();
     dirty_state.update_from_undo_redo_stack(false);
+    //this->take_snapshot(_L("New Project"));
+    // BBS: save project confirm
+    up_to_date(true, false);
+    up_to_date(true, true);
+    model.set_need_backup();
+
+    auto last_backup = wxGetApp().app_config->get_last_backup_dir();
+    this->q->Bind(EVT_RESTORE_PROJECT, [this, last = last_backup](wxCommandEvent& e) {
+        std::string last_backup = last;
+        std::string originfile;
+        if (!last_backup.empty() && Slic3r::has_restore_data(last_backup, originfile)) {
+            auto result = wxMessageDialog(this->q, _L("Previous unsaved project detected, do you wan't to restore it?"), wxString(SLIC3R_APP_NAME) + " - " + _L("Restore"), wxYES_NO | wxYES_DEFAULT | wxCENTRE).ShowModal();
+            if (result == wxID_YES) {
+                this->q->load_project(last_backup, originfile);
+                Slic3r::backup_soon();
+                return;
+            }
+        }
+        this->q->new_project();
+    });
+    wxPostEvent(this->q, wxCommandEvent{EVT_RESTORE_PROJECT});
 
     this->q->Bind(EVT_LOAD_MODEL_OTHER_INSTANCE, [this](LoadFromOtherInstanceEvent& evt) {
         BOOST_LOG_TRIVIAL(trace) << "Received load from other instance event.";
@@ -2475,7 +2505,21 @@ std::string Plater::priv::get_config(const std::string &key) const
     return wxGetApp().app_config->get(key);
 }
 
-std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool imperial_units/* = false*/)
+BoundingBoxf Plater::priv::bed_shape_bb() const
+{
+    BoundingBox bb = scaled_bed_shape_bb();
+    return BoundingBoxf(unscale(bb.min), unscale(bb.max));
+}
+
+BoundingBox Plater::priv::scaled_bed_shape_bb() const
+{
+    const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
+    const auto bed_shape = Slic3r::Polygon::new_scale(bed_shape_opt->values);
+    return bed_shape.bounding_box();
+}
+
+// BBS: backup & restore
+std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool load_restore, bool imperial_units/* = false*/)
 {
     if (input_files.empty()) { return std::vector<size_t>(); }
 
@@ -2537,7 +2581,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     PlateDataPtrs plate_data;
                     bool is_bbs_3mf;
                     ConfigSubstitutionContext config_substitutions{ ForwardCompatibilitySubstitutionRule::Enable };
-                    model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, only_if(load_config, Model::LoadAttribute::CheckVersion), load_aux, &plate_data, &is_bbs_3mf);
+                    // BBS: backup & restore
+                    model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, only_if(load_config, Model::LoadAttribute::CheckVersion)
+                        | only_if(load_aux, Model::LoadAttribute::WithAuxiliary) | only_if(load_restore, Model::LoadAttribute::RestoreFromTemp), &plate_data, &is_bbs_3mf);
                     if (plate_data.size() > 0)
                     {
                         partplate_list.load_from_3mf_structure(plate_data);
@@ -2646,7 +2692,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 //BBS: add plate data related logic
                 PlateDataPtrs plate_data;
 
-                model = Slic3r::Model::read_from_file(path.string(), nullptr, nullptr, only_if(load_config, Model::LoadAttribute::CheckVersion), false, &plate_data);
+                model = Slic3r::Model::read_from_file(path.string(), nullptr, nullptr, only_if(load_config, Model::LoadAttribute::CheckVersion), &plate_data);
                 for (auto obj : model.objects)
                     if (obj->name.empty())
                         obj->name = fs::path(obj->input_file).filename().string();
@@ -2782,11 +2828,13 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 auto loaded_idxs = load_model_objects(model.objects, is_project_file);
                 obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
                 //BBS: add auxiliary files logic
-                if (load_aux)
-                {
-                    q->model().set_auxiliary_file_temp_path(model.get_auxiliary_file_temp_path());
+                // BBS: backup & restore
+                if (load_aux) {
+                    q->model().set_backup_path(model.get_backup_path());
                     load_auxiliary_files();
                 }
+                auto loaded_idxs = load_model_objects(model.objects);
+                obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
             } else {
                 // This must be an .stl or .obj file, which may contain a maximum of one volume.
                 for (const ModelObject* model_object : model.objects) {
@@ -3196,10 +3244,11 @@ void Plater::priv::delete_all_objects_from_model()
 void Plater::priv::reset()
 {
     Plater::TakeSnapshot snapshot(q, _L("Reset Project"), UndoRedo::SnapshotType::ProjectSeparator);
+    undo_redo_stack().clear(); // BBS: clear datas old project
 
 	clear_warnings();
 
-    set_project_filename(DEFAULT_PROJECT_NAME);
+    set_project_filename("");
 
     if (view3D->is_layers_editing_enabled())
         view3D->enable_layers_editing(false);
@@ -3214,6 +3263,8 @@ void Plater::priv::reset()
     // Stop and reset the Print content.
     this->background_process.reset();
     model.clear_objects();
+    // BBS: backup
+    model.set_backup_path("");
     update();
     // Delete object from Sidebar list. Do it after update, so that the GLScene selection is updated with the modified model.
     sidebar->obj_list()->delete_all_objects_from_list();
@@ -3913,6 +3964,7 @@ void Plater::priv::reload_from_disk()
             //BBS: add plate data related logic
             PlateDataPtrs plate_data;
 
+            // BBS: backup
             new_model = Model::read_from_file(path, nullptr, nullptr, Model::LoadAttribute::AddDefaultInstances, false, &plate_data);
             for (ModelObject* model_object : new_model.objects) {
                 model_object->center_around_origin();
@@ -5475,6 +5527,19 @@ void Plater::priv::undo_redo_to(size_t time_to_load)
     this->undo_redo_to(it_current);
 }
 
+// BBS: check need save or backup
+bool Plater::priv::up_to_date(bool saved, bool backup)
+{
+    size_t& last_time = backup ? m_backup_timestamp : m_saved_timestamp;
+    if (saved) {
+        last_time = undo_redo_stack().active_snapshot_time();
+        return true;
+    }
+    else {
+        return last_time == undo_redo_stack().active_snapshot_time();
+    }
+}
+
 void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator it_snapshot)
 {
     // Make sure that no updating function calls take_snapshot until we are done.
@@ -5719,10 +5784,37 @@ void Plater::load_project()
     wxGetApp().load_project(this, input_file);
     // And finally load the new project.
     load_project(input_file);
+    // BBS: save confirm
+    if (!close_with_confirm())
+        return;
+    p->reset();
+
+    Plater::TakeSnapshot snapshot(this, _L("New Project"));
+
+    p->load_auxiliary_files();
+    wxGetApp().app_config->update_last_backup_dir(model().get_backup_path());
+
+    p->select_view_3D("3D");
+    p->select_view("topfront");
+
+    up_to_date(true, false);
+    up_to_date(true, true);
 }
 
-void Plater::load_project(const wxString& filename)
+// BBS: backup & store
+void Plater::load_project(wxString const& filename2, wxString const & originfile)
 {
+    // BSS: save project
+    if (!close_with_confirm()) {
+        return;
+    }
+
+    auto filename = filename2;
+    if (filename.empty()) {
+        // Ask user for a project file name.
+        wxGetApp().load_project(this, filename);
+    }
+
     if (filename.empty())
         return;
 
@@ -5731,16 +5823,64 @@ void Plater::load_project(const wxString& filename)
 
     p->reset();
 
+#if 0
     if (! load_files({ into_path(filename) }).empty()) {
         // At least one file was loaded.
         p->set_project_filename(filename);
         reset_project_dirty_initial_presets();
         update_project_dirty_from_presets();
     }
+#endif
+    auto path = into_path(filename);
+    bool load_restore = originfile != "-";
+
+    p->reset();
+
+    // Take the Undo / Redo snapshot.
+    up_to_date(true, false);
+    Plater::TakeSnapshot snapshot(this, _L("Load Project"));
+
+    std::vector<fs::path> input_paths;
+    input_paths.push_back(path);
+
+    std::vector<size_t> res = load_files(input_paths, true, true, load_restore);
+
+    // if res is empty no data has been loaded
+    if (!res.empty()) {
+        p->set_project_filename(load_restore ? originfile : filename);
 
     // BBS set default 3D view and direction after loading project
     p->select_view_3D("3D");
     p->select_view("topfront");
+
+    wxGetApp().app_config->update_last_backup_dir(model().get_backup_path());
+
+    if (!load_restore)
+        up_to_date(true, false);
+    up_to_date(true, true);
+}
+
+// BBS: save logic
+void Plater::save_project(bool saveAs)
+{
+    //if (up_to_date(false, false)) // should we always save
+    //    return;
+    auto filename = get_project_filename(".3mf");
+    if (!saveAs && filename.IsEmpty())
+        saveAs = true;
+    if (saveAs)
+        filename = p->get_export_file(FT_3MF);
+    if (filename.empty())
+        return;
+
+    export_3mf(into_path(filename));
+
+    Slic3r::remove_backup(model(), false);
+
+    p->set_project_filename(filename);
+
+    up_to_date(true, false);
+    up_to_date(true, true);
 }
 
 //BBS download project by project id
@@ -5862,6 +6002,12 @@ void Plater::request_download_project(std::string project_id)
     wxCommandEvent* event = new wxCommandEvent(EVT_DOWNLOAD_PROJECT);
     event->SetString(project_id);
     wxQueueEvent(this, event);
+}
+
+// BBS: save logic
+bool Plater::up_to_date(bool saved, bool backup)
+{
+    return p->up_to_date(saved, backup);
 }
 
 void Plater::add_model(bool imperial_units/* = false*/)
@@ -6006,7 +6152,8 @@ void Plater::update_platplate_thumbnails()
     }
 }
 
-std::vector<size_t> Plater::load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool imperial_units /*= false*/) { return p->load_files(input_files, load_model, load_config, imperial_units); }
+// BBS: backup
+std::vector<size_t> Plater::load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool load_restore, bool imperial_units /*= false*/) { return p->load_files(input_files, load_model, load_config, load_restore, imperial_units); }
 
 // To be called when providing a list of files to the GUI slic3r on command line.
 std::vector<size_t> Plater::load_files(const std::vector<std::string>& input_files, bool load_model, bool load_config, bool imperial_units /*= false*/)
@@ -6362,6 +6509,26 @@ void Plater::reset_with_confirm()
         // BBS: jump to plater panel
         wxGetApp().mainframe->select_tab(size_t(0));
     }
+}
+
+// BBS: save logic
+bool GUI::Plater::close_with_confirm()
+{
+    if (up_to_date(false, false)) {
+        Slic3r::remove_backup(model(), true);
+        return true;
+    }
+
+    auto result = wxMessageDialog(static_cast<wxWindow*>(this), _L("These are modifies in current project，save it before continue?"), wxString(SLIC3R_APP_NAME) + " - " + _L("Save"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE).ShowModal();
+    if (result == wxID_YES) {
+        save_project();
+    }
+    if (result == wxID_CANCEL)
+        return false;
+    Slic3r::remove_backup(model(), true);
+    up_to_date(true, false);
+    up_to_date(true, true);
+    return true;
 }
 
 void Plater::delete_object_from_model(size_t obj_idx) { p->delete_object_from_model(obj_idx); }
@@ -6915,7 +7082,6 @@ void Plater::export_amf()
 
 // BBS: backup
 int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence, bool backup, int export_plate_idx, Export3mfProgressFn proFn)
-
 {
     if (p->model.objects.empty()) {
         MessageDialog dialog(nullptr, _L("The plater is empty.\nDo you want to save the project?"), _L("Save project"), wxYES_NO);
@@ -6926,14 +7092,11 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
     if (output_path.empty())
         return -1;
 
-    wxString path;
+    if (output_path.empty())
+        return;
+
     bool export_config = true;
-    if (output_path.empty()) {
-        path = p->get_export_file(FT_3MF);
-        if (path.empty()) { return false; }
-    }
-    else
-        path = from_path(output_path);
+    wxString path = from_path(output_path);
 
     if (!path.Lower().EndsWith(".3mf"))
         return -1;
@@ -6945,12 +7108,14 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
 
     //BBS: add plate logic for thumbnail generate
     std::vector<ThumbnailData*> thumbnails;
+    // BBS: backup
+    if (!backup) {
     for (unsigned int i = 0; i < p->partplate_list.get_plate_count(); i++) {
         ThumbnailData* thumbnail_data = new ThumbnailData();
         ThumbnailsParams thumbnail_params = { {}, false, true, true, true };
         p->generate_thumbnail(*thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, thumbnail_params, Camera::EType::Ortho, i);
         thumbnails.push_back(thumbnail_data);
-    }
+    }}
 
     //BBS: add bbs 3mf logic
     PlateDataPtrs plate_data_list;

@@ -71,15 +71,46 @@ typedef std::vector<PlateData*> PlateDataPtrs;
 typedef std::map<int, PlateData*> PlateDataMaps;
 
 //BBS: add plate data list related logic
+// add restore logic
 // Load the content of a 3mf file into the given model and preset bundle.
-extern bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, bool check_version, bool* is_bbl_3mf, bool load_aux);
+extern bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, bool check_version, bool* is_bbl_3mf, bool load_aux, bool load_restore);
 
 //BBS: add plate data list related logic
+// add backup logic
 // Save the given model and the config data contained in the given Print into a 3mf file.
 // The model could be modified during the export process if meshes are not repaired or have no shared vertices
 extern bool store_bbs_3mf(const char* path, Model* model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64 = true, bool skip_static = false, Export3mfProgressFn proFn = nullptr);
 
 extern void release_PlateData_list(PlateDataPtrs& plate_data_list);
+
+// backup & restore project 
+
+extern void save_object_mesh(ModelObject& object, size_t originId = 0);
+
+extern void delete_object_mesh(ModelObject& object);
+
+extern void backup_soon();
+
+extern void remove_backup(Model& model, bool removeAll);
+
+extern void set_backup_interval(long interval);
+
+extern void set_backup_callback(std::function<void(int)> callback);
+
+extern void run_backup_ui_tasks();
+
+extern bool has_restore_data(std::string & path, std::string & origin);
+
+extern void put_other_changes();
+
+extern bool has_other_changes();
+
+class SaveObjectGaurd {
+public:
+    SaveObjectGaurd(ModelObject& object);
+    ~SaveObjectGaurd();
+};
+
 } // namespace Slic3r
 
 #endif /* BBS_3MF_hpp_ */

@@ -3766,8 +3766,11 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
             if (model_object != nullptr) {
                 if (selection_mode == Selection::Instance)
                     model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
-                else if (selection_mode == Selection::Volume)
+                else if (selection_mode == Selection::Volume) {
                     model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
+                    // BBS: backup
+                    Slic3r::save_object_mesh(*model_object);
+                }
 
                 object_moved = true;
                 model_object->invalidate_bounding_box();
@@ -3866,6 +3869,8 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
             else if (selection_mode == Selection::Volume) {
                 model_object->volumes[volume_idx]->set_rotation(v->get_volume_rotation());
                 model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
+                // BBS: backup
+                Slic3r::save_object_mesh(*model_object);
             }
             model_object->invalidate_bounding_box();
         }
@@ -3944,6 +3949,8 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
                 model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
                 model_object->volumes[volume_idx]->set_scaling_factor(v->get_volume_scaling_factor());
                 model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
+                // BBS: backup
+                Slic3r::save_object_mesh(*model_object);
             }
             model_object->invalidate_bounding_box();
         }
@@ -4024,8 +4031,11 @@ void GLCanvas3D::do_mirror(const std::string& snapshot_type)
         if (model_object != nullptr) {
             if (selection_mode == Selection::Instance)
                 model_object->instances[instance_idx]->set_mirror(v->get_instance_mirror());
-            else if (selection_mode == Selection::Volume)
+            else if (selection_mode == Selection::Volume) {
                 model_object->volumes[volume_idx]->set_mirror(v->get_volume_mirror());
+                // BBS: backup
+                Slic3r::save_object_mesh(*model_object);
+            }
 
             model_object->invalidate_bounding_box();
         }

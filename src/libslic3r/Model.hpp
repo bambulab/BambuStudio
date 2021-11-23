@@ -22,6 +22,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <algorithm>
+#include <functional>
 
 namespace cereal {
 	class BinaryInputArchive;
@@ -497,14 +499,32 @@ private:
         assert(this->config.id().invalid());
         assert(this->layer_height_profile.id().invalid());
 	}
-	template<class Archive> void serialize(Archive &ar) {
-		ar(cereal::base_class<ObjectBase>(this));
-		Internal::StaticSerializationWrapper<ModelConfigObject> config_wrapper(config);
-        Internal::StaticSerializationWrapper<LayerHeightProfile> layer_heigth_profile_wrapper(layer_height_profile);
-        ar(name, input_file, instances, volumes, config_wrapper, layer_config_ranges, layer_heigth_profile_wrapper, 
+    template<class Archive> void save(Archive& ar) const {
+        ar(cereal::base_class<ObjectBase>(this));
+        Internal::StaticSerializationWrapper<ModelConfigObject const> config_wrapper(config);
+        Internal::StaticSerializationWrapper<LayerHeightProfile const> layer_heigth_profile_wrapper(layer_height_profile);
+        ar(name, input_file, instances, volumes, config_wrapper, layer_config_ranges, layer_heigth_profile_wrapper,
             sla_support_points, sla_points_status, sla_drain_holes, printable, origin_translation,
             m_bounding_box, m_bounding_box_valid, m_raw_bounding_box, m_raw_bounding_box_valid, m_raw_mesh_bounding_box, m_raw_mesh_bounding_box_valid);
-	}
+    }
+    template<class Archive> void load(Archive& ar) {
+        ar(cereal::base_class<ObjectBase>(this));
+        Internal::StaticSerializationWrapper<ModelConfigObject> config_wrapper(config);
+        Internal::StaticSerializationWrapper<LayerHeightProfile> layer_heigth_profile_wrapper(layer_height_profile);
+        // BBS: add backup, check modify
+        SaveObjectGaurd gaurd(*this);
+        std::vector<ObjectID> volume_ids;
+        std::transform(volumes.begin(), volumes.end(), std::back_inserter(volume_ids), std::mem_fn(&ObjectBase::id));
+        volumes.clear();
+        ar(name, input_file, instances, volumes, config_wrapper, layer_config_ranges, layer_heigth_profile_wrapper,
+            sla_support_points, sla_points_status, sla_drain_holes, printable, origin_translation,
+            m_bounding_box, m_bounding_box_valid, m_raw_bounding_box, m_raw_bounding_box_valid, m_raw_mesh_bounding_box, m_raw_mesh_bounding_box_valid);
+        std::vector<ObjectID> volume_ids2;
+        std::transform(volumes.begin(), volumes.end(), std::back_inserter(volume_ids2), std::mem_fn(&ObjectBase::id));
+        if (volume_ids != volume_ids2)
+            Slic3r::save_object_mesh(*this);
+    }
+};
 
     // Called by Print::validate() from the UI thread.
     unsigned int update_instances_print_volume_state(const BuildVolume &build_volume);
@@ -871,10 +891,19 @@ private:
 	}
 	template<class Archive> void load(Archive &ar) {
 		bool has_convex_hull;
+        // BBS: add backup, check modify
+        bool mesh_changed = false;
+        auto tr = m_transformation;
         ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull);
+        mesh_changed |= !(tr == m_transformation);
+        if (mesh_changed) m_transformation.get_matrix(true, true, true, true); // force dirty
+        auto t = supported_facets.timestamp();
         cereal::load_by_value(ar, supported_facets);
+        mesh_changed |= t != supported_facets.timestamp();
+        t = seam_facets.timestamp();
         cereal::load_by_value(ar, seam_facets);
         cereal::load_by_value(ar, mmu_segmentation_facets);
+        mesh_changed |= t != seam_facets.timestamp();
         cereal::load_by_value(ar, config);
 		assert(m_mesh);
 		if (has_convex_hull) {
@@ -884,6 +913,8 @@ private:
 				this->calculate_convex_hull();
 		} else
 			m_convex_hull.reset();
+        if (mesh_changed && object)
+            Slic3r::save_object_mesh(*object);
 	}
 	template<class Archive> void save(Archive &ar) const {
 		bool has_convex_hull = m_convex_hull.get() != nullptr;
@@ -1129,19 +1160,24 @@ public:
 
     enum class LoadAttribute : int {
         AddDefaultInstances,
-        CheckVersion
+        CheckVersion,
+        // BBS: backup
+        RestoreFromTemp,
+        WithAuxiliary
     };
     using LoadAttributes = enum_bitmask<LoadAttribute>;
 
     //BBS: add part plate related logic
+    // BBS: backup
     static Model read_from_file(
         const std::string& input_file, 
         DynamicPrintConfig* config = nullptr, ConfigSubstitutionContext* config_substitutions = nullptr,
-        LoadAttributes options = LoadAttribute::AddDefaultInstances, bool load_aux = false, PlateDataPtrs* plate_data = nullptr, bool* is_bbl_3mf = nullptr);
+        LoadAttributes options = LoadAttribute::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr, bool* is_bbl_3mf = nullptr);
+    // BBS: backup
     static Model read_from_archive(
         const std::string& input_file, 
         DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions,
-        LoadAttributes options = LoadAttribute::AddDefaultInstances, bool load_aux = true, PlateDataPtrs* plate_data = nullptr, bool* is_bbl_3mf = nullptr);
+        LoadAttributes options = LoadAttribute::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr, bool* is_bbl_3mf = nullptr);
 
     // Add a new ModelObject to this Model, generate a new ID for this ModelObject.
     ModelObject* add_object();
@@ -1152,6 +1188,8 @@ public:
     bool         delete_object(ObjectID id);
     bool         delete_object(ModelObject* object);
     void         clear_objects();
+    // BBS: backup, reuse objects
+    void         collect_reusable_objects(std::vector<ObjectBase *> & objects);
 
     ModelMaterial* add_material(t_model_material_id material_id);
     ModelMaterial* add_material(t_model_material_id material_id, const ModelMaterial &other);
@@ -1195,7 +1233,11 @@ public:
     std::string   propose_export_file_name_and_path(const std::string &new_extension) const;
     //BBS: add auxiliary files temp path
     std::string   get_auxiliary_file_temp_path();
-    void   set_auxiliary_file_temp_path(const std::string &aux_dir) { auxiliary_path = aux_dir; }
+    // BBS: backup
+    std::string   get_backup_path();
+    void   set_backup_path(const std::string &path) { backup_path = path; }
+    bool is_need_backup() { return need_backup;  }
+    void set_need_backup();
 
     // Checks if any of objects is painted using the fdm support painting gizmo.
     bool          is_fdm_support_painted() const;
@@ -1214,13 +1256,19 @@ private:
 
 	friend class cereal::access;
 	friend class UndoRedo::StackImpl;
-	template<class Archive> void serialize(Archive &ar) {
-		Internal::StaticSerializationWrapper<ModelWipeTower> wipe_tower_wrapper(wipe_tower);
-		ar(materials, objects, wipe_tower_wrapper);
+    template<class Archive> void load(Archive& ar) {
+        Internal::StaticSerializationWrapper<ModelWipeTower> wipe_tower_wrapper(wipe_tower);
+        ar(materials, objects, wipe_tower_wrapper);
+    }
+    template<class Archive> void save(Archive& ar) const {
+        Internal::StaticSerializationWrapper<ModelWipeTower const> wipe_tower_wrapper(wipe_tower);
+        ar(materials, objects, wipe_tower_wrapper);
     }
 
     //BBS: add aux temp directory
-    std::string auxiliary_path;
+    // BBS: backup
+    std::string backup_path;
+    bool need_backup = false;
 };
 
 ENABLE_ENUM_BITMASK_OPERATORS(Model::LoadAttribute)
@@ -1272,8 +1320,11 @@ static const double SINKING_MIN_Z_THRESHOLD = 0.05;
 
 namespace cereal
 {
-	template <class Archive> struct specialize<Archive, Slic3r::ModelVolume, cereal::specialization::member_load_save> {};
-	template <class Archive> struct specialize<Archive, Slic3r::ModelConfigObject, cereal::specialization::member_serialize> {};
+    template <class Archive> struct specialize<Archive, Slic3r::ModelVolume, cereal::specialization::member_load_save> {};
+    // BBS: backup
+    template <class Archive> struct specialize<Archive, Slic3r::Model, cereal::specialization::member_load_save> {};
+    template <class Archive> struct specialize<Archive, Slic3r::ModelObject, cereal::specialization::member_load_save> {};
+    template <class Archive> struct specialize<Archive, Slic3r::ModelConfigObject, cereal::specialization::member_serialize> {};
 }
 
 #endif /* slic3r_Model_hpp_ */

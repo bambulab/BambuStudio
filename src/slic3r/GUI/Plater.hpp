@@ -197,11 +197,14 @@ public:
     SLAPrint& sla_print();
 
     void new_project();
-    void load_project();
-    void load_project(const wxString& filename);
+    // BBS: save & backup
+    void load_project(wxString const & filename = "", wxString const & originfile = "-");
+    void save_project(bool saveAs = false);
     //BBS download project by project id
     void download_project(const wxString& project_id);
     void request_download_project(std::string project_id);
+    // BBS: check snapshot
+    bool up_to_date(bool saved, bool backup);
 
     void add_model(bool imperial_units = false);
     void import_sl1_archive();
@@ -217,7 +220,8 @@ public:
     void update_sliced_info();
     void update_platplate_thumbnails();
 
-    std::vector<size_t> load_files(const std::vector<boost::filesystem::path>& input_files, bool load_model = true, bool load_config = true, bool imperial_units = false);
+    // BBS: restore
+    std::vector<size_t> load_files(const std::vector<boost::filesystem::path>& input_files, bool load_model = true, bool load_config = true, bool load_restore = false, bool imperial_units = false);
     // To be called when providing a list of files to the GUI slic3r on command line.
     std::vector<size_t> load_files(const std::vector<std::string>& input_files, bool load_model = true, bool load_config = true, bool imperial_units = false);
     // to be called on drag and drop
@@ -253,6 +257,7 @@ public:
     void remove(size_t obj_idx);
     void reset();
     void reset_with_confirm();
+    bool close_with_confirm(); // BBS close project
     void delete_object_from_model(size_t obj_idx);
     void remove_selected();
     void increase_instances(size_t num = 1);

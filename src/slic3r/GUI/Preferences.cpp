@@ -107,6 +107,9 @@ void PreferencesDialog::build(size_t selected_tab)
 	m_optgroup_general->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
 		if (opt_key == "default_action_on_close_application" || opt_key == "default_action_on_select_preset" || opt_key == "default_action_on_new_project")
 			m_values[opt_key] = boost::any_cast<bool>(value) ? "none" : "discard";
+		// BBS: backup
+		else if (opt_key == "backup_interval")
+			m_values[opt_key] = boost::lexical_cast<std::string>(boost::any_cast<int>(value));
 		else
 		    m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
 	};
@@ -302,6 +305,14 @@ void PreferencesDialog::build(size_t selected_tab)
 	def.tooltip = L("Developer Mode");
 	def.set_default_value(new ConfigOptionBool{ app_config->get("developer_mode") == "1" });
 	option = Option(def, "developer_mode");
+	m_optgroup_general->append_single_option_line(option);
+
+	// BBS: backup
+	def.label = L("Backup interval");
+	def.type = coInt;
+	def.tooltip = L("Backup interval in seconds, set 0 to disable period backup");
+	def.set_default_value(new ConfigOptionInt{ boost::lexical_cast<int>(app_config->has("backup_interval") ? app_config->get("backup_interval") : "10") });
+	option = Option(def, "backup_interval");
 	m_optgroup_general->append_single_option_line(option);
 
 	activate_options_tab(m_optgroup_general);
@@ -635,7 +646,22 @@ void PreferencesDialog::accept(wxEvent&)
 		}
 	}
 
-	//BBS GUI refactor: remove unuse layout logic
+	//BBS backup
+	bool backup_interval_changed = false;
+	if (auto it = m_values.find("backup_interval"); it != m_values.end()) {
+		backup_interval_changed = app_config->get("backup_interval") != it->second;
+		if (backup_interval_changed) {
+			Slic3r::set_backup_interval(boost::lexical_cast<long>(it->second));
+		}
+	}
+
+#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+	m_seq_top_gcode_indices_changed = false;
+	if (auto it = m_values.find("seq_top_gcode_indices"); it != m_values.end())
+		m_seq_top_gcode_indices_changed = app_config->get("seq_top_gcode_indices") != it->second;
+#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+
+    //BBS GUI refactor: remove unuse layout logic
 	/*m_settings_layout_changed = false;
 	for (const std::string& key : { "old_settings_layout_mode",
 								    "new_settings_layout_mode",

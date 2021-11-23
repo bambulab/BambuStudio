@@ -617,6 +617,25 @@ void AppConfig::update_last_output_dir(const std::string& dir, const bool remova
 	this->set("", (removable ? "last_output_path_removable" : "last_output_path"), dir);
 }
 
+// BBS: backup
+std::string AppConfig::get_last_backup_dir() const
+{
+	const auto it = m_storage.find("");
+	if (it != m_storage.end()) {
+		const auto it2 = it->second.find("last_backup_path");
+		if (it2 != it->second.end())
+			return it2->second;
+	}
+	return "";
+}
+
+// BBS: backup
+void AppConfig::update_last_backup_dir(const std::string& dir)
+{
+	this->set("", "last_backup_path", dir);
+    this->save();
+}
+
 
 void AppConfig::reset_selections()
 {

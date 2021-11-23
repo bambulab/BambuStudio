@@ -240,7 +240,8 @@ int CLI::run(int argc, char **argv)
                 is_bbl_3mf = false;
                 if (boost::algorithm::iends_with(file, ".3mf") && first_file)
                     load_aux = true;
-                model = Model::read_from_file(file, &config, &config_substitutions, Model::LoadAttribute::AddDefaultInstances, load_aux, &plate_data, &is_bbl_3mf);
+                // BBS: adjust whebackup
+                model = Model::read_from_file(file, &config, &config_substitutions, Model::LoadAttribute::AddDefaultInstances | only_if(load_aux, Model::LoadAttribute::WithAuxiliary), &plate_data, &is_bbl_3mf);
                 if (is_bbl_3mf)
                 {
                     if (!first_file)
@@ -315,7 +316,7 @@ int CLI::run(int argc, char **argv)
     {
         boost::nowide::cout << "merge all the models into one\n";
         Model m;
-        m.set_auxiliary_file_temp_path(m_models[0].get_auxiliary_file_temp_path());
+        m.set_backup_path(m_models[0].get_backup_path());
         for (auto& model : m_models)
             for (ModelObject* o : model.objects)
             {
