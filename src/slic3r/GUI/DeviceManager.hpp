@@ -169,7 +169,7 @@ public:
     int     mc_print_stage;
     int     mc_print_error_code;
     int     mc_print_line_number;
-    std::string print_status;
+    std::string print_status;   /* enum string: FINISH, RUNNING, PAUSE, INIT, FAILED */
 
     /* mqtt connections */
     CONNECTION_TYPE conn_type;
@@ -246,6 +246,8 @@ public:
     void set_bind_status(std::string status);
     void set_connect_state(CONNECTION_STATE state);
     std::string get_bind_str();
+    bool can_print();
+    bool can_resume();
    
     
     /* static apis */

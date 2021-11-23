@@ -1031,7 +1031,6 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
     init_bind();
 
     obj = nullptr;
-    is_pausing = false;
     m_ctrl_unit = 0.1f;
 
     // Connect Events
@@ -1328,10 +1327,42 @@ void MonitorPanel::update_task(MachineObject* obj)
 
 void MonitorPanel::update_subtask(MachineObject* obj)
 {
+    if (!obj->subtask_) return;
+
+    // update subtask static info
     if (last_subtask != obj->subtask_) {
-        on_subtask_update(obj->subtask_, false);
+        // update subtask name
+        m_staticText_subtask_value->SetLabelText(wxString::Format("%s(%s)", obj->subtask_->task_name, obj->subtask_->task_id));
     }
     last_subtask = obj->subtask_;
+
+    // update gcode progress
+    std::string duration = "NA";
+    std::string total_time = "NA";
+    try {
+        if (!obj->subtask_->task_duration.empty())
+            duration = get_time_dhms(stoi(obj->subtask_->task_duration));
+    }
+    catch (...) {
+        ;
+    }
+
+    BBLSliceInfo* info = obj->get_slice_info(obj->subtask_->task_partplate_idx);
+    if (info) {
+        try {
+            total_time = get_time_dhms(info->prediction);
+        }
+        catch (...) {
+            ;
+        }
+    }
+
+    wxString progress_text = wxString::Format("%s/%s", duration, total_time);
+
+    m_staticText_progress->SetLabelText(progress_text);
+
+    // update current subtask progress
+    m_gauge_progress->SetValue(obj->subtask_->task_progress);
 }
 
 void MonitorPanel::update_profile(MachineObject* obj)
@@ -1371,6 +1402,11 @@ void MonitorPanel::update_status(MachineObject* obj)
 
     wxString bed_temp_target_text = wxString::Format("%0.2f", obj->bed_temp_target);
     m_staticText_bed_target->SetLabelText(bed_temp_target_text);
+
+    if (obj->can_resume())
+        m_button_pause_resume->SetLabelText("Resume");
+    else
+        m_button_pause_resume->SetLabelText("Pause");
 }
 
 void MonitorPanel::on_timer(wxTimerEvent& event)
@@ -1423,62 +1459,6 @@ void MonitorPanel::select_machine(std::string machine_sn)
     wxQueueEvent(this, event);
 }
 
-void MonitorPanel::on_subtask_update(BBLSubTask* curr_subtask, bool update_all)
-{
-    if (!curr_subtask) return;
-    // update task info
-
-    if (update_all) {
-        if (curr_subtask->parent_task_) {
-            BBLTask* task = curr_subtask->parent_task_;
-            if (task) {
-                if (task->profile_ && task->profile_->project_) {
-                    // update project name
-                    wxString project_name_text = wxString::Format("%s", task->profile_->project_->project_name);
-                    m_staticText_project_name->SetLabelText(project_name_text);
-
-                    // update profile name
-                    m_staticText_profile_value->SetLabelText(wxString::Format("%s(%s)", task->profile_->profile_name, task->task_profile_id));
-                }
-
-                // update task name
-                m_staticText_task_value->SetLabelText(wxString::Format("%s(%s)", task->task_name, task->task_id));
-            }
-        }
-    }
-    
-    // update subtask name
-    m_staticText_subtask_value->SetLabelText(wxString::Format("%s(%s)", curr_subtask->task_name, curr_subtask->task_id));
-
-    // update gcode progress
-    std::string duration = "NA";
-    try {
-        if (!curr_subtask->task_duration.empty())
-            duration = get_time_dhms(stoi(curr_subtask->task_duration));
-    }
-    catch (...) {
-        ;
-    }
-
-    std::string total_time = "NA";
-    BBLSliceInfo* info = obj->get_slice_info(curr_subtask->task_partplate_idx);
-    if (info) {
-        try {
-            total_time = get_time_dhms(info->prediction);
-        }
-        catch (...) {
-            ;
-        }
-    }
-    
-    wxString progress_text = wxString::Format("%s/%s", duration, total_time);
-
-    m_staticText_progress->SetLabelText(progress_text);
-
-    // update current subtask progress
-    m_gauge_progress->SetValue(curr_subtask->task_progress);
-}
-
 void MonitorPanel::on_subtask_status_changed(std::string old_status, std::string new_status)
 {
     ;//TODO
@@ -1492,13 +1472,10 @@ void MonitorPanel::on_subtask_start(wxCommandEvent& event)
 void MonitorPanel::on_subtask_pause_resume(wxCommandEvent& event)
 {
     if (obj) {
-        if (is_pausing) {
-            obj->command_task_pause();
-        }
-        else {
+        if (obj->can_resume())
             obj->command_task_resume();
-        }
-        is_pausing = !is_pausing;
+        else
+            obj->command_task_pause();
     }
 }
 

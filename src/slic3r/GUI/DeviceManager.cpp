@@ -1041,7 +1041,6 @@ void MachineObject::update_profile(std::string project_id, std::string profile_i
             profile_->profile_id.compare(profile_id) == 0) {
             return;
         }
-        return;
     }
 
     /* create new project and profile */
@@ -1139,6 +1138,24 @@ std::string MachineObject::get_bind_str()
         return bind_user_name;
     }
     return default_result;
+}
+
+bool MachineObject::can_print()
+{
+    if (print_status.compare("RUNNING") == 0) {
+        return false;
+    }
+    if (print_status.compare("IDLE") == 0 || print_status.compare("FINISH") == 0) {
+        return true;
+    }
+    return true;
+}
+
+bool MachineObject::can_resume()
+{
+    if (print_status.compare("PAUSE") == 0)
+        return true;
+    return false;
 }
 
 std::string MachineObject::build_report_topic(std::string dev_id)
