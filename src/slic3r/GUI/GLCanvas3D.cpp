@@ -6963,6 +6963,7 @@ void GLCanvas3D::_render_view_toolbar() const
 }
 #endif
 
+//BBS reander assemble toolbar
 void GLCanvas3D::_render_paint_toolbar() const
 {
     if (m_canvas_type != ECanvasType::CanvasAssembleView)
@@ -6990,18 +6991,28 @@ void GLCanvas3D::_render_paint_toolbar() const
         if (disabled)
             ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 
-        if (ImGui::Button(std::to_string(i + 1).c_str(), ImVec2(button_size, button_size))) {
+        if (ImGui::Button("", ImVec2(button_size, button_size))) {
             wxPostEvent(m_canvas, IntEvent(EVT_GLTOOLBAR_FILLCOLOR, i + 1));
         }
+        ImGui::PopStyleColor(3);
         if (disabled)
             ImGui::PopItemFlag();
-
-        ImGui::PopStyleColor(3);
         ImGui::PopID();
+    }
+    for (int i = 0; i < extruder_num; i++){
+        //TODO use filament type from filament management, current use PLA by default
+        std::string item_text = (boost::format("%1% %2%") % (i + 1) % "PLA").str();
+        const ImVec2 label_size = ImGui::CalcTextSize(item_text.c_str(), NULL, true);
+        ImGui::SameLine(item_spacing + (button_size - label_size.x) / 2 + (button_size + item_spacing) * i);
+        Slic3r::GUI::BitmapCache::parse_color(colors[i], rgb);
+        float gray = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
+        if (gray < 80)
+            ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), item_text.c_str());
+        else
+            ImGui::TextColored(ImVec4(0.0f, 0.0f, 0.0f, 1.0f), item_text.c_str());
     }
     ImGui::AlignTextToFramePadding();
     imgui.end();
-
 }
 
 void GLCanvas3D::_render_explosion_control() const
