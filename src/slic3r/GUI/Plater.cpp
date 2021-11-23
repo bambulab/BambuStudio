@@ -2900,7 +2900,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
                 instance->set_scaling_factor(instance->get_scaling_factor() / max_ratio);
                 scaled_down = true;
             }
-        }
+        }*/
 
         object->ensure_on_bed(allow_negative_z);
         if (!split_object) {
@@ -2913,7 +2913,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
                     }
                 }
             }
-        }*/
+        }
     }
 
 #ifdef AUTOPLACEMENT_ON_LOAD
