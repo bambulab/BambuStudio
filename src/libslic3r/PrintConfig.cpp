@@ -2886,7 +2886,7 @@ void PrintConfigDef::init_fff_params()
                      "If the angle is increased, the branches can be printed more horizontally, allowing them to reach farther.");
     def->sidetext = L("°");
     def->min = 0;
-    def->max = 40;
+    def->max = 60;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(40.));
 

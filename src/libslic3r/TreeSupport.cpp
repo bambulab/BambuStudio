@@ -860,7 +860,8 @@ void TreeSupport::detect_object_overhangs()
             {
                 //auto overhang_dilated = offset_ex({ overhang }, extrusion_width_scaled);
                 if (intersection_ex(ExPolygons{overhang}, overhangs_dilated[layer_nr-1]).empty() && intersection_ex(ExPolygons{overhang}, overhangs_dilated[layer_nr+1]).empty()
-                    && offset_ex({ overhang }, -extrusion_width_scaled * 2).empty())
+                    && offset_ex({ overhang }, -extrusion_width_scaled * 2).empty()
+                    && !intersection_ex(offset_ex(overhang, extrusion_width_scaled), diff_ex(ts_layer->lslices, { overhang })).empty())
                     small_overhangs.push_back(overhang);
             }
             ts_layer->overhang_areas = diff_ex(ts_layer->overhang_areas, small_overhangs);
@@ -1260,7 +1261,7 @@ void TreeSupport::generate_toolpaths()
                             if(with_infill && layer_id > 0 && offset(poly, -scale_(support_spacing)).empty()==false)
                             {
                                 // with infill we only need half the extrusion width
-                                make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object.print(), poly, wall_count, Flow(support_extrusion_width*0.65, ts_layer->height, nozzle_diameter), false, filler_support, support_density);
+                                make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object.print(), poly, wall_count, support_flow, false, filler_support, support_density);
                             }
                             else
                             {
@@ -1615,7 +1616,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                     const Node& node = *p_node;
                     ExPolygon area;
                     if (node.type == ePolygon) {
-                        area = *node.overhang;
+                        area = offset_ex({ *node.overhang }, scale_(m_ts_data->m_xy_distance))[0];
                     }
                     else {
                         Polygon circle;
