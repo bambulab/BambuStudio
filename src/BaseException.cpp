@@ -198,7 +198,10 @@ void CBaseException::ShowExceptionResoult(DWORD dwExceptionCode)
 
 LONG WINAPI CBaseException::UnhandledExceptionFilter(PEXCEPTION_POINTERS pExceptionInfo )
 {
-	if (pExceptionInfo->ExceptionRecord->ExceptionCode < 0x80000000)
+	if (pExceptionInfo->ExceptionRecord->ExceptionCode < 0x80000000
+		//BBS: Load project on computers with SDC may trigger this exception (in ShowModal()),
+		//     It's not fatal and should be ignored, or there will be lots of meaningless crash logs
+		|| pExceptionInfo->ExceptionRecord->ExceptionCode==0xe0434352)
 	{
 		return EXCEPTION_CONTINUE_SEARCH;
 	}
