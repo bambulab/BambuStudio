@@ -249,6 +249,8 @@ public:
     std::string get_bind_str();
     bool can_print();
     bool can_resume();
+    bool can_pause();
+    bool can_abort();
    
     
     /* static apis */

@@ -131,6 +131,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Tab.hpp
     GUI/ParamsPanel.cpp
     GUI/ParamsPanel.hpp
+    GUI/MonitorBasePanel.cpp
+    GUI/MonitorBasePanel.h
     GUI/Monitor.cpp
     GUI/Monitor.hpp
     GUI/WebViewDialog.cpp

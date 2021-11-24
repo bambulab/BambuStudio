@@ -68,6 +68,15 @@ public:
 
     BBLSubTask(BBLTask* task = nullptr);
 
+    BBLSubTask(const BBLSubTask& obj) {
+        task_id = obj.task_id;
+        task_name = obj.task_name;
+        task_partplate_idx = obj.task_partplate_idx;
+        task_printer_dev_id = obj.task_printer_dev_id;
+        task_create_time = obj.task_create_time;
+        task_update_time = obj.task_update_time;
+    }
+
     std::string     task_id;            /* plate id */
     std::string     task_name;          /* task name, generally filename as task name */
     std::string     task_file;          /* local full file path of 3mf or gcode */

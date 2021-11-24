@@ -1162,6 +1162,23 @@ bool MachineObject::can_resume()
     return false;
 }
 
+bool MachineObject::can_pause()
+{
+    if (print_status.compare("RUNNING") == 0)
+        return true;
+    return false;
+}
+
+bool MachineObject::can_abort()
+{
+    if (print_status.compare("PAUSE") == 0
+        || print_status.compare("RUNNING") == 0
+        || print_status.compare("PREPARE") == 0) {
+        return true;
+    }
+    return false;
+}
+
 std::string MachineObject::build_report_topic(std::string dev_id)
 {
     return (boost::format("device/%1%/report") % dev_id).str();
