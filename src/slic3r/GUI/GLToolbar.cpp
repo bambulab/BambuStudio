@@ -73,6 +73,9 @@ GLToolbarItem::Data::Data()
     //BBS: GUI refactor
     , extra_size_ratio(0.0)
     , button_text("")
+    //BBS gei a default value
+    , image_width(40)
+    , image_height(40)
 {
 }
 
@@ -83,9 +86,7 @@ GLToolbarItem::GLToolbarItem(GLToolbarItem::EType type, const GLToolbarItem::Dat
     , m_last_action_type(Undefined)
     , m_highlight_state(NotHighlighted)
 {
-    m_data.image_data = data.image_data;
-    m_data.image_width = data.image_width;
-    m_data.image_height = data.image_height;
+    ;
 }
 
 bool GLToolbarItem::update_visibility()

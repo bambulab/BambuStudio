@@ -5202,7 +5202,7 @@ void Plater::priv::set_project_filename(const wxString& filename)
     wxGetApp().mainframe->topbar()->SetProjectName(full_path.filename().generic_wstring());
 
     //BBS
-    acc_->get_default_project()->set_name(full_path.filename().generic_string());
+    //acc_->get_default_project()->set_name(full_path.filename().string());
 }
 
 void Plater::priv::init_notification_manager()

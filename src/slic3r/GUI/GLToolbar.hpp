@@ -121,8 +121,6 @@ public:
         std::vector<unsigned char> image_data;
         unsigned int image_width;
         unsigned int image_height;
-        //std::vector<unsigned char> pixel_data;
-        //mutable bool texture_dirty;
 
         unsigned int sprite_id;
         // mouse left click
@@ -149,6 +147,9 @@ public:
             visible = data.visible;
             visibility_callback = data.visibility_callback;
             enabling_callback = data.enabling_callback;
+            image_data = data.image_data;
+            image_width = data.image_width;
+            image_height = data.image_height;
         }
     };
 
