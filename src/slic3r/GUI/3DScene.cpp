@@ -395,6 +395,7 @@ void GLVolume::set_color(const std::array<float, 4>& rgba)
 
 // BBS
 float GLVolume::explosion_ratio = 1.0;
+float GLVolume::last_explosion_ratio = 1.0;
 
 void GLVolume::set_render_color(float r, float g, float b, float a)
 {
@@ -525,11 +526,12 @@ bool GLVolume::is_left_handed() const
 
 const BoundingBoxf3& GLVolume::transformed_bounding_box() const
 {
-    if (!m_transformed_bounding_box.has_value()) {
+    if (!m_transformed_bounding_box.has_value() || last_explosion_ratio != explosion_ratio) {
         const BoundingBoxf3& box = bounding_box();
         assert(box.defined || box.min.x() >= box.max.x() || box.min.y() >= box.max.y() || box.min.z() >= box.max.z());
         std::optional<BoundingBoxf3>* trans_box = const_cast<std::optional<BoundingBoxf3>*>(&m_transformed_bounding_box);
         *trans_box = box.transformed(world_matrix());
+        last_explosion_ratio = explosion_ratio;
     }
     return *m_transformed_bounding_box;
 }
