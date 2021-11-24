@@ -373,6 +373,8 @@ public:
 private:
     bool            on_init_inner();
 	void            init_app_config();
+    //BBS set extra header for http request
+    void            init_http_extra_header();
     bool            check_older_app_config(Semver current_version, bool backup);
     void            copy_older_config();
     void            window_pos_save(wxTopLevelWindow* window, const std::string &name);

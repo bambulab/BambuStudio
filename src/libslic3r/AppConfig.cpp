@@ -19,6 +19,9 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/format/format_fwd.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 #ifdef WIN32
 //FIXME replace the two following includes with <boost/md5.hpp> after it becomes mainstream.
@@ -199,6 +202,12 @@ void AppConfig::set_defaults()
     // BBS
     if (get("preset_folder").empty())
         set("preset_folder", "presets");
+
+    // BBS
+    if (get("slicer_uuid").empty()) {
+        boost::uuids::uuid uuid = boost::uuids::random_generator()();
+        set("slicer_uuid", to_string(uuid));
+    }
 
     // Remove legacy window positions/sizes
     erase("", "main_frame_maximized");

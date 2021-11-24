@@ -66,6 +66,8 @@ void PrintJob::process()
     BBLProject* project = new BBLProject(project_name, BBLProject::ProjectType::PROJECT_3MF);
     project->project_3mf_file = job_data._3mf_path.string();
     project->project_path = fs::path(project->project_3mf_file);
+
+    BOOST_LOG_TRIVIAL(trace) << "print_job: request project id";
     res = c->request_project_id(project);
 
     if (res == 0 && !project->project_id.empty()) {
@@ -81,6 +83,7 @@ void PrintJob::process()
     // set current print preset to profile_name
     profile->profile_name = wxGetApp().preset_bundle->prints.get_selected_preset_name();
     
+    BOOST_LOG_TRIVIAL(trace) << "print_job: request profile id";
     res = c->request_profile_id(profile,
         [this](int result, std::string info) {
             if (result == 0) {
@@ -101,6 +104,7 @@ void PrintJob::process()
     }
 
     /* upload and poll */
+    BOOST_LOG_TRIVIAL(trace) << "print_job: start to uploading...";
     res = c->upload_3mf(profile,
         //ResultFn
         [this](int result, std::string info) {
@@ -121,11 +125,13 @@ void PrintJob::process()
         },
         true);
 
+
     /* create Task */
     BBLTask* task = new BBLTask(profile);
     task->task_name = (boost::format("%1%_%2%_P%3%") % project->project_name % profile->profile_name % total_plate_num).str();
 
     /* rqeust task id */
+    BOOST_LOG_TRIVIAL(trace) << "print_job: start to request_task_id";
     c->request_task_id(task);
 
     if (!task->task_id.empty()) {
@@ -154,6 +160,7 @@ void PrintJob::process()
 
             task->subtasks.push_back(subTask);
 
+            BOOST_LOG_TRIVIAL(trace) << "print_job: start to request_subtask_id, index = " << i;
             c->request_subtask_id(subTask);
             if (!subTask->task_id.empty()) {
                 update_status(90, "request subtask id ok!");
@@ -185,6 +192,7 @@ void PrintJob::process()
 
         task->subtasks.push_back(subTask);
 
+        BOOST_LOG_TRIVIAL(trace) << "print_job: start to request_subtask_id";
         c->request_subtask_id(subTask);
 
         if (!subTask->task_id.empty()) {
@@ -201,6 +209,7 @@ void PrintJob::process()
 
     if (!curr_subtask) return;
 
+    BOOST_LOG_TRIVIAL(trace) << "print_job: poll task 3mf";
     res = c->poll_3mf(curr_subtask);
     if (!curr_subtask->task_url.empty() && !curr_subtask->task_url_md5.empty()) {
         update_status(95, "poll 3mf of task ok!");
@@ -214,6 +223,7 @@ void PrintJob::process()
     //subTask url
     MachineObject* obj = c->find_machine(job_data.machine_sn);
     if (obj) {
+        BOOST_LOG_TRIVIAL(trace) << "print_job: send subtask";
         // upload and send to machine
         obj->send_wan_print_subtask(curr_subtask);
         update_status(100, "send task ok!");

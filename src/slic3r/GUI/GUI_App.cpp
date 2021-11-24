@@ -826,6 +826,9 @@ GUI_App::GUI_App(EAppMode mode)
 	//app config initializes early becasuse it is used in instance checking in PrusaSlicer.cpp
 	this->init_app_config();
 
+    //BBS
+    this->init_http_extra_header();
+
     //BBS init account_manager
     std::string account_info_file = data_dir() + "acc.data";
     m_account_manager->set_user_info_path(account_info_file);
@@ -1054,6 +1057,28 @@ bool GUI_App::check_older_app_config(Semver current_version, bool backup)
 void GUI_App::copy_older_config()
 {
     preset_bundle->copy_files(m_older_data_dir_path);
+}
+
+//BBS
+void GUI_App::init_http_extra_header()
+{
+    std::map<std::string, std::string> extra_headers;
+    extra_headers.insert(std::make_pair("X-BBL-Client-Type", "slicer"));
+    extra_headers.insert(std::make_pair("X-BBL-Client-Version", VersionInfo::convert_full_version(SLIC3R_RC_VERSION)));
+#if defined(__WINDOWS__)
+    extra_headers.insert(std::make_pair("X-BBL-OS-Type", "windows"));
+#elif defined(__APPLE__)
+    extra_headers.insert(std::make_pair("X-BBL-OS-Type", "windows"));
+#elif defined(__LINUX__)
+    extra_headers.insert(std::make_pair("X-BBL-OS-Type", "windows"));
+#endif
+    int major = 0, minor = 0, micro = 0;
+    wxGetOsVersion(&major, &minor, &micro);
+    std::string os_version = (boost::format("%1%.%2%.%3%") % major % minor % micro).str();
+    extra_headers.insert(std::make_pair("X-BBL-OS-Version", os_version));
+    extra_headers.insert(std::make_pair("X-BBL-Device-ID", app_config->get("slicer_uuid")));
+    extra_headers.insert(std::make_pair("X-BBL-Language", app_config->get("translation_language")));
+    Http::set_extra_headers(extra_headers);
 }
 
 void GUI_App::init_single_instance_checker(const std::string &name, const std::string &path)

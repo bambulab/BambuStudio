@@ -2629,7 +2629,10 @@ namespace Slic3r {
                         return oss.str();
                     }
                     else {
-                        return "";
+                        response.put("token", "");
+                        root.put_child("response", response);
+                        pt::write_json(oss, root, false);
+                        return oss.str();
                     }
                 }
                 else if (command_str.compare("request_model_download") == 0) {

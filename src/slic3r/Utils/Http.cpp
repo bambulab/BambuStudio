@@ -101,9 +101,12 @@ struct CurlGlobalInit
 std::unique_ptr<CurlGlobalInit> CurlGlobalInit::instance;
 
 
+//BBS
 FILE* g_http_log_file = nullptr;
 Http::ErrorFn g_error_func = nullptr;
+std::map<std::string, std::string> extra_headers;
 
+//BBS dump libcurl log
 static void dump(const char *text,
           FILE *stream, unsigned char *ptr, size_t size,
           char nohex)
@@ -121,9 +124,6 @@ static void dump(const char *text,
           text, (unsigned long)size, (unsigned long)size);
  
   for(i = 0; i<size; i += width) {
- 
-    fprintf(stream, "%4.4lx: ", (unsigned long)i);
- 
     if(!nohex) {
       /* hex not disabled, show it */
       for(c = 0; c < width; c++)
@@ -154,6 +154,7 @@ static void dump(const char *text,
   fflush(stream);
 }
 
+//BBS log callback for libcurl
 static int log_trace(CURL *handle, curl_infotype type,
              char *data, size_t size,
              void *userp)
@@ -189,11 +190,9 @@ static int log_trace(CURL *handle, curl_infotype type,
 		break;
 	}
 
-#ifdef MAX_SIZE_TO_FILE
 	if (size > MAX_SIZE_TO_FILE) {
 		size = MAX_SIZE_TO_FILE;
 	}
-#endif 
  
 	dump(text, g_http_log_file, (unsigned char *)data, size, 1);
 	return 0;
@@ -278,6 +277,7 @@ Http::priv::priv(const std::string &url)
 	::curl_easy_setopt(curl, CURLOPT_URL, url.c_str());   // curl makes a copy internally
 	::curl_easy_setopt(curl, CURLOPT_USERAGENT, SLIC3R_APP_NAME "/" SLIC3R_RC_VERSION);
 	::curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error_buffer.front());
+	//headerlist = curl_slist_append(p->headerlist, name.c_str());
 }
 
 Http::priv::~priv()
@@ -528,7 +528,8 @@ void Http::priv::http_perform()
 		long http_status = 0;
 		::curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_status);
 
-		if (http_status == 200) {
+		//BBS check success http status code
+		if (http_status >= 200 && http_status < 300) {
 			if (completefn) { completefn(std::move(buffer), http_status); }
 			if (ipresolvefn) {
 				char* ct;
@@ -538,14 +539,20 @@ void Http::priv::http_perform()
 				}
 			}
 		}
-		else {
+
+		//BBS check error http status code
+		else if (http_status >= 400) {
 			if (g_error_func) { g_error_func(buffer, std::string(), http_status); }
 			if (errorfn) { errorfn(std::move(buffer), std::string(), http_status); }
 		}
 	}
 }
 
-Http::Http(const std::string &url) : p(new priv(url)) {}
+Http::Http(const std::string &url) : p(new priv(url)) {
+
+	for (auto it = extra_headers.begin(); it != extra_headers.end(); it++)
+		this->header(it->first, it->second);
+}
 
 
 // Public
@@ -796,6 +803,11 @@ Http Http::del(std::string url)
 	Http http{ std::move(url) };
 	curl_easy_setopt(http.p->curl, CURLOPT_CUSTOMREQUEST, "DELETE");
 	return http;
+}
+
+void Http::set_extra_headers(std::map<std::string, std::string> headers)
+{
+	extra_headers.swap(headers);
 }
 
 bool Http::enable_log(std::string filename)

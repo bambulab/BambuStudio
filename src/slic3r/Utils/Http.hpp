@@ -6,7 +6,7 @@
 #include <functional>
 #include <boost/filesystem/path.hpp>
 
-#define MAX_SIZE_TO_FILE 10*1024
+#define MAX_SIZE_TO_FILE    5*1024
 
 namespace Slic3r {
 
@@ -54,10 +54,17 @@ public:
 	static Http post(std::string url);
 	static Http put(std::string url);
 	static Http del(std::string url);
-	static Http put2(std::string url);
 
+	//BBS
+	static Http put2(std::string url);
+	//BBS save log to a file
 	static bool enable_log(std::string filename);
 	static bool disable_log();
+
+	//BBS set global header for each http request
+	static void set_extra_headers(std::map<std::string, std::string> headers);
+
+	//BBS register handler for error status code
 	static void register_global_handler(ErrorFn g_err_fn);
 
 	~Http();
