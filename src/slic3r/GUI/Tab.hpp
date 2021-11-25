@@ -219,6 +219,7 @@ protected:
 	Page*				m_active_page {nullptr};
 	bool				m_disable_tree_sel_changed_event {false};
 	bool				m_show_incompatible_presets;
+	wxTreeItemId		m_last_select_item;
 
     std::vector<Preset::Type>	m_dependent_tabs;
 	enum OptStatus { osSystemValue = 1, osInitValue = 2 };
@@ -374,6 +375,7 @@ public:
 	void unselect_tree_item();
 	// BBS: new layout
 	void set_expanded(bool value);
+	void restore_last_select_item();
 
 	static bool validate_custom_gcode(const wxString& title, const std::string& gcode);
 	bool        validate_custom_gcodes();

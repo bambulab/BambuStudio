@@ -2,6 +2,7 @@
 #define slic3r_GUI_Button_hpp_
 
 #include <wx/stattext.h>
+#include "../wxExtensions.hpp"
 
 class Button : public wxWindow
 {
@@ -10,7 +11,7 @@ class Button : public wxWindow
     bool pressedDown;
     wxSize textSize;
     wxSize minSize; // set by outer
-    wxBitmap icon;
+    ScalableBitmap icon;
     double radius;
     wxColor text_normal;
     wxColor text_hover;
@@ -43,6 +44,8 @@ public:
     void SetForegroundColor(wxColor normal, wxColor hover, wxColor pressed);
 
     void SetBackgroundColor(wxColor normal, wxColor hover, wxColor pressed);
+
+    void Rescale();
 
 private:
     void paintEvent(wxPaintEvent& evt);

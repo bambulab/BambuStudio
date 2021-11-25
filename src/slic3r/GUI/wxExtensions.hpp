@@ -168,7 +168,8 @@ private:
     wxBitmap        m_bmp = wxBitmap();
     std::string     m_icon_name = "";
     int             m_px_cnt {16};
-    bool            m_grayscale {false};
+    bool            m_grayscale{ false };
+    bool            m_resize{ false };
 };
 
 

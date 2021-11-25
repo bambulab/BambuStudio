@@ -108,11 +108,13 @@ void ButtonsListCtrl::UpdateMode()
 void ButtonsListCtrl::Rescale()
 {
     m_mode_sizer->msw_rescale();
-    for (Button* btn : m_pageButtons)
-        btn->SetMinSize({ 120, 36 });
+    int em = em_unit(this);
+    for (Button* btn : m_pageButtons) {
+        btn->SetMinSize({ 12 * em, 4 * em });
+        btn->Rescale();
+    }
 
     // BBS: no gap
-    //int em = em_unit(this);
     //m_btn_margin = std::lround(0.3 * em);
     //m_line_margin = std::lround(0.1 * em);
     //m_buttons_sizer->SetVGap(m_btn_margin);
@@ -141,7 +143,8 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString& text, bool bSelect/* 
     wxColour default_btn_bg("#3B4446"); // Gradient #414B4E
     Button* btn = new Button(this, " " + text, bmp_name, wxNO_BORDER);
     btn->SetCornerRadius(0);
-    btn->SetMinSize({ 120, 36 });
+    int em = em_unit(this);
+    btn->SetMinSize({ 12 * em, 4 * em });
     btn->SetBackgroundColour(default_btn_bg);
     btn->SetForegroundColour(*wxWHITE);
     btn->Bind(wxEVT_BUTTON, [this, btn](wxCommandEvent& event) {

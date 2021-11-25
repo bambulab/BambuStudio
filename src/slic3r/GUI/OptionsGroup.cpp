@@ -20,7 +20,7 @@
 namespace Slic3r { namespace GUI {
 
 	// BBS: new layout
-	constexpr int titleWidth = 233;
+	constexpr int titleWidth = 20;
 
 const t_field& OptionsGroup::build_field(const Option& opt) {
     return build_field(opt.opt_id, opt.opt);
@@ -227,13 +227,13 @@ void OptionsGroup::activate_line(Line& line)
 		sizer->Add(h_sizer, 1, wxEXPAND | wxALL, wxOSX ? 0 : 15);
         if (line.widget != nullptr) {
 			// description lines
-			h_sizer->Add(line.widget(this->ctrl_parent()), 0, wxEXPAND | wxLEFT, titleWidth);
+			h_sizer->Add(line.widget(this->ctrl_parent()), 0, wxEXPAND | wxLEFT, titleWidth * wxGetApp().em_unit());
             return;
         }
 		if (!line.get_extra_widgets().empty()) {
             bool is_first_item = true;
 			for (auto extra_widget : line.get_extra_widgets()) {
-				h_sizer->Add(extra_widget(this->ctrl_parent()), is_first_item ? 1 : 0, wxLEFT, titleWidth);
+				h_sizer->Add(extra_widget(this->ctrl_parent()), is_first_item ? 1 : 0, wxLEFT, titleWidth * wxGetApp().em_unit());
 				is_first_item = false;
 			}
 			return;
@@ -271,9 +271,9 @@ void OptionsGroup::activate_line(Line& line)
 		const auto h_sizer = new wxBoxSizer(wxHORIZONTAL);
 		sizer->Add(h_sizer, 1, wxEXPAND | wxALL, wxOSX ? 0 : 5);
 		if (is_window_field(field))
-			h_sizer->Add(field->getWindow(), 1, wxEXPAND | wxLEFT, titleWidth);
+			h_sizer->Add(field->getWindow(), 1, wxEXPAND | wxLEFT, titleWidth * wxGetApp().em_unit());
 		if (is_sizer_field(field))
-			h_sizer->Add(field->getSizer(), 1, wxEXPAND | wxLEFT, titleWidth);
+			h_sizer->Add(field->getSizer(), 1, wxEXPAND | wxLEFT, titleWidth * wxGetApp().em_unit());
 		return;
 	}
 

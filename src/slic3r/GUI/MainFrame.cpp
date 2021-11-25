@@ -1413,6 +1413,7 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     // update Tabs
     //BBS GUI refactor: remove unused layout new/dlg
     //if (m_layout != ESettingsLayout::Dlg) // Do not update tabs if the Settings are in the separated dialog
+    m_param_panel->msw_rescale();
         for (auto tab : wxGetApp().tabs_list)
             tab->msw_rescale();
 

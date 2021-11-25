@@ -49,7 +49,7 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
 #endif //__WXOSX__
 
     // BBS: new layout
-    m_mode_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, { -1, 36 });
+    m_mode_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition);
     m_mode_panel->SetBackgroundColour("#E9E9E9");
     m_mode_text = new Label(wxT("Advanced Mode"), m_mode_panel);
     m_mode_text->SetFont(Label::Head_12);
@@ -123,6 +123,7 @@ void ParamsPanel::create_layout()
     m_mode_sizer->AddStretchSpacer(1);
     m_mode_sizer->Add( m_search_btn, 0, wxALIGN_CENTER );
     m_mode_sizer->AddSpacer(16);
+    m_mode_sizer->SetMinSize(-1, 3 * em_unit(this));
     m_mode_panel->SetSizer(m_mode_sizer);
     m_left_sizer->Add( m_mode_panel, 0, wxEXPAND );
 
@@ -283,6 +284,13 @@ void ParamsPanel::update_mode()
     {
         m_mode_status->SetValue(false);
     }
+}
+
+void ParamsPanel::msw_rescale()
+{
+    m_mode_sizer->SetMinSize(-1, 3 * em_unit(this));
+    ((Button*)m_export_to_file)->Rescale();
+    ((Button*)m_import_from_file)->Rescale();
 }
 
 void ParamsPanel::free_sizers()

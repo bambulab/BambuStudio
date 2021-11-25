@@ -1453,7 +1453,7 @@ const wxColour GUI_App::get_label_default_clr_modified()
 
 void GUI_App::init_label_colours()
 {
-    m_color_label_modified          = wxColour("#F1754E");
+    m_color_label_modified          = wxColour("#2B3436");
     m_color_label_sys               = wxColour("#2B3436");
 
     bool is_dark_mode = dark_mode();

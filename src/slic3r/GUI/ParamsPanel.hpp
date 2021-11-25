@@ -97,6 +97,7 @@ class ParamsPanel : public wxPanel
         void set_active_tab(wxPanel*tab);
         bool is_active_and_shown_tab(wxPanel*tab);
         void update_mode();
+        void msw_rescale();
 
         wxScrolledWindow* get_paged_view() { return m_page_view;}
         wxPanel*    get_current_tab() { return m_current_tab; }

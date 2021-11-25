@@ -1,5 +1,4 @@
 #include "Button.hpp"
-#include "../wxExtensions.hpp"
 #include "Label.hpp"
 
 #include <wx/dcgraph.h>
@@ -27,7 +26,7 @@ END_EVENT_TABLE()
  * calling Refresh()/Update().
  */
 
-Button::Button(wxWindow* parent, wxString text, wxString icon, long stlye)
+    Button::Button(wxWindow* parent, wxString text, wxString icon, long stlye)
     : wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, stlye)
 {
     pressedDown = hover = false;
@@ -40,12 +39,8 @@ Button::Button(wxWindow* parent, wxString text, wxString icon, long stlye)
     SetFont(Label::Body_12);
     SetLabel(text);
     if (!icon.IsEmpty())
-        this->icon = create_scaled_bitmap(icon.ToStdString());
+        this->icon = ScalableBitmap(this, icon.ToStdString());
     messureSize();
-    Bind(wxEVT_DPI_CHANGED, [this](wxEvent& event) {
-        messureSize();
-        event.Skip();
-        });
 }
 
 void Button::SetCornerRadius(double radius)
@@ -103,6 +98,13 @@ void Button::SetBackgroundColor(wxColor normal, wxColor hover, wxColor pressed)
     paintNow();
 }
 
+void Button::Rescale()
+{
+    if (this->icon.bmp().IsOk())
+        this->icon.msw_rescale();
+    messureSize();
+}
+
 void Button::paintEvent(wxPaintEvent& evt)
 {
     // depending on your system you may need to look at double-buffered dcs
@@ -157,10 +159,10 @@ void Button::render(wxDC& dc)
     // calc content size
     wxSize szIcon;
     wxSize szContent = textSize;
-    if (icon.IsOk()) {
+    if (icon.bmp().IsOk()) {
         if (szContent.y > 0)
             szContent.x +=10;
-        szIcon = icon.GetSize();
+        szIcon = icon.bmp().GetSize();
         szContent.x += szIcon.x;
         if (szIcon.y > szContent.y)
             szContent.y = szIcon.y;
@@ -171,9 +173,9 @@ void Button::render(wxDC& dc)
     rcContent.Deflate(offset.x, offset.y);
     // start draw
     wxPoint pt = rcContent.GetLeftTop();
-    if (icon.IsOk()) {
+    if (icon.bmp().IsOk()) {
         pt.y += (rcContent.height - szIcon.y) / 2;
-        dc.DrawBitmap(icon, pt);
+        dc.DrawBitmap(icon.bmp(), pt);
         pt.x += szIcon.x + 10;
         pt.y = rcContent.y;
     }
@@ -187,16 +189,16 @@ void Button::render(wxDC& dc)
 
 void Button::messureSize()
 {
+    textSize = GetTextExtent(GetLabel());
     if (minSize.GetWidth() > 0) {
         wxWindow::SetMinSize(minSize);
         return;
     }
-    textSize = GetTextExtent(GetLabel());
     wxSize szContent = textSize;
-    if (this->icon.IsOk()) {
+    if (this->icon.bmp().IsOk()) {
         if (szContent.y > 0)
             szContent.x += 10;
-        wxSize szIcon = this->icon.GetSize();
+        wxSize szIcon = this->icon.bmp().GetSize();
         szContent.x += szIcon.x;
         if (szIcon.y > szContent.y)
             szContent.y = szIcon.y;

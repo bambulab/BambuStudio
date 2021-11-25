@@ -1,29 +1,20 @@
 #include "Label.hpp"
 
 static wxFont sysFont(int size, bool bold) {
-	//wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-	//if (bold)
-	//	font.MakeBold();
-	//font.SetPointSize(size);
 #ifdef __linux__
 	return wxFont{};
 #endif
-	auto face = wxString::FromUTF8("HarmonyOS Sans SC");
 #ifdef __WIN32__
-	wxFont font{ {0, size * 5 / 4}, wxFONTFAMILY_SWISS, wxNORMAL, bold ? wxBOLD : wxNORMAL, false, face };
-#else
-	wxFont font{size, wxFONTFAMILY_SWISS, wxNORMAL, bold ? wxBOLD : wxNORMAL, false, face };
+	size = size * 4 / 5;
 #endif
+	auto face = wxString::FromUTF8("HarmonyOS Sans SC");
+	wxFont font{size, wxFONTFAMILY_SWISS, wxNORMAL, bold ? wxBOLD : wxNORMAL, false, face };
 	font.SetFaceName(face);
 	if (!font.IsOk()) {
 		font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 		if (bold)
 			font.MakeBold();
-#ifdef __WIN32__
-		font.SetPixelSize({ 0, size });
-#else
 		font.SetPointSize(size);
-#endif
 	}
 	return font;
 }

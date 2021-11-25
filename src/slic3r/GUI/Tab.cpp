@@ -53,6 +53,7 @@
 namespace Slic3r {
 namespace GUI {
 
+#define DISABLE_UNDO_SYS
 
 void Tab::Highlighter::set_timer_owner(wxEvtHandler* owner, int timerid/* = wxID_ANY*/)
 {
@@ -208,12 +209,11 @@ void Tab::create_preset_tab()
     m_scaled_buttons.reserve(6);
     m_scaled_bitmaps.reserve(4);
 
-    m_top_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, { -1, 36 });
+    m_top_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     // BBS: open this tab by select first
     m_top_panel->SetBackgroundColour("#E9E9E9");
     m_top_panel->Bind(wxEVT_LEFT_UP, [this](auto & e) {
-        // m_parent->set_active_tab(this);
-        m_treectrl->SelectItem(m_treectrl->GetFirstVisibleItem());
+        restore_last_select_item();
     });
 
     // add_scaled_button(panel, &m_btn_compare_preset, "compare");
@@ -277,19 +277,20 @@ void Tab::create_preset_tab()
     m_static_title->Wrap( -1 );
     // BBS: open this tab by select first
     m_static_title->Bind(wxEVT_LEFT_UP, [this](auto& e) {
-        // m_parent->set_active_tab(this);
-        m_treectrl->SelectItem(m_treectrl->GetFirstVisibleItem());
+        restore_last_select_item();
         });
     m_top_sizer->Add( m_static_title, 0, wxALIGN_CENTER_VERTICAL);
 
     m_top_sizer->AddStretchSpacer(1);
     
     const float scale_factor = /*wxGetApp().*/em_unit(this)*0.1;// GetContentScaleFactor();
-    m_top_sizer->Add( m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL );
-    m_top_sizer->AddSpacer(8);
+#ifndef DISABLE_UNDO_SYS
     m_top_sizer->Add( m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
     m_top_sizer->AddSpacer(8);
+#endif
     m_top_sizer->Add( m_undo_btn, 0, wxALIGN_CENTER_VERTICAL);
+    m_top_sizer->AddSpacer(8);
+    m_top_sizer->Add( m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL );
     m_top_sizer->AddSpacer(8);
     //m_top_right_sizer->AddSpacer(int(4*scale_factor));
     m_top_sizer->Add( m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL);
@@ -297,6 +298,7 @@ void Tab::create_preset_tab()
 
     m_top_sizer->AddSpacer(16);
 
+    m_top_sizer->SetMinSize(-1, 3 * m_em_unit);
     m_top_panel->SetSizer(m_top_sizer);
     m_main_sizer->Add(m_top_panel, 0, wxEXPAND, 0 );
 
@@ -376,10 +378,10 @@ void Tab::create_preset_tab()
         const auto sel_item = m_treectrl->GetSelection();
         //OutputDebugStringA("wxEVT_TREE_SEL_CHANGING ");
         //OutputDebugStringA(m_title.c_str());
-        m_treectrl->SetItemBold(sel_item, false);
         //const auto selection = sel_item ? m_treectrl->GetItemText(sel_item) : "";
         //OutputDebugString(selection);
         //OutputDebugStringA("\n");
+        m_treectrl->SetItemBold(sel_item, false);
         });
     m_treectrl->Bind(wxEVT_TREE_SEL_CHANGED, [this](wxTreeEvent& event) {
 #ifdef __linux__
@@ -1053,6 +1055,8 @@ void Tab::update_visibility()
 void Tab::msw_rescale()
 {
     m_em_unit = em_unit(m_parent);
+
+    m_top_sizer->SetMinSize(-1, 3 * m_em_unit);
 
     //BBS: GUI refactor
     //if (m_mode_sizer)
@@ -3371,7 +3375,7 @@ void Tab::rebuild_page_tree()
         bool ret = update_current_page_in_background(item);
         //if m_active_page is changed in update_current_page_in_background
         //will just update the selected item of the treectrl
-        if (ret)
+        // if (ret) // FIX: modify state not update
             m_treectrl->SelectItem(item);
     }
 }
@@ -3673,11 +3677,7 @@ void Tab::unselect_tree_item()
 {
     // BBS: bold selection
     const auto sel_item = m_treectrl->GetSelection();
-    //OutputDebugStringA("unselect_tree_item ");
-    //OutputDebugStringA(m_title.c_str());
-    //const auto selection = sel_item ? m_treectrl->GetItemText(sel_item) : "";
-    //OutputDebugString(selection);
-    //OutputDebugStringA("\n");
+    m_last_select_item = sel_item;
     m_treectrl->SetItemBold(sel_item, false);
     m_treectrl->Unselect();
 }
@@ -3694,6 +3694,13 @@ void Tab::set_expanded(bool value)
         m_main_sizer->Hide(m_presets_choice);
         m_main_sizer->Hide(m_treectrl);
     }
+}
+
+void Tab::restore_last_select_item()
+{
+    m_treectrl->SelectItem(m_last_select_item);
+    if (!m_treectrl->GetSelection())
+        m_treectrl->SelectItem(m_treectrl->GetFirstVisibleItem());
 }
 
 void Tab::update_description_lines()

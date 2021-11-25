@@ -15,7 +15,11 @@
 
 namespace Slic3r { namespace GUI {
 
-    constexpr int titleWidth = 233;
+    constexpr int titleWidth = 20;
+    constexpr int ctrlWidth = 88;
+
+#define DISABLE_BLINKING
+#define DISABLE_UNDO_SYS
 
 static bool is_point_in_rect(const wxPoint& pt, const wxRect& rect)
 {
@@ -114,7 +118,7 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 {
     // BBS: new layout
     wxCoord v_pos = 0;
-    wxCoord h_pos = titleWidth;
+    wxCoord h_pos = titleWidth * m_em_unit;
 
     auto correct_line_height = [](int& line_height, wxWindow* win)
     {
@@ -152,7 +156,9 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
             int blinking_button_width = m_bmp_blinking_sz.GetWidth() + m_h_gap;
 
             if (line.widget) {
+#ifndef DISABLE_BLINKING
                 h_pos += blinking_button_width;
+#endif
 
                 for (auto child : line.widget_sizer->GetChildren())
                     if (child->IsWindow())
@@ -204,10 +210,19 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
                     break;
                 // BBS: new layout
                 h_pos += field->getWindow()->GetSize().x;
-                h_pos += blinking_button_width;
-
-                if (opt.opt.gui_type == ConfigOptionDef::GUIType::legend)
-                    h_pos += 2 * blinking_button_width;
+#ifndef DISABLE_BLINKING
+#  ifndef DISABLE_UNDO_SYS
+                h_pos += 3 * blinking_button_width;
+#  else
+                h_pos += 2 * blinking_button_width;
+#  endif
+#else
+#  ifndef DISABLE_UNDO_SYS
+                h_pos += 2 * blinking_button_width;
+#  else
+                h_pos += 1 * blinking_button_width;
+#  endif
+#endif
 
                 if (option_set.size() == 1 && option_set.front().opt.full_width)
                     break;
@@ -366,7 +381,7 @@ void OG_CustomCtrl::OnLeaveWin(wxMouseEvent& event)
 bool OG_CustomCtrl::update_visibility(ConfigOptionMode mode)
 {
     // BBS: new layout
-    wxCoord    h_pos = 1024;
+    wxCoord    h_pos = ctrlWidth * m_em_unit;
     wxCoord    v_pos = 0;
 
     size_t invisible_lines = 0;
@@ -452,7 +467,7 @@ void OG_CustomCtrl::msw_rescale()
             v_pos += (wxCoord)line.height;
     }
     // BBS: new layout
-    this->SetMinSize(wxSize(1024, v_pos));
+    this->SetMinSize(wxSize(ctrlWidth * m_em_unit, v_pos));
 
     GetParent()->Layout();
 }
@@ -596,12 +611,12 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
         if (field && field->undo_bitmap())
         //if (field)
             // BBS: new layout
-            draw_act_bmps(dc, wxPoint(titleWidth, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink());
+            draw_act_bmps(dc, wxPoint(titleWidth * ctrl->m_em_unit, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink());
         return;
     }
 
     // BBS: new layout
-    wxCoord h_pos = titleWidth; // draw_mode_bmp(dc, v_pos);
+    wxCoord h_pos = titleWidth * ctrl->m_em_unit; // draw_mode_bmp(dc, v_pos);
 
     if (og_line.near_label_widget_win)
         h_pos += og_line.near_label_widget_win->GetSize().x + ctrl->m_h_gap;
@@ -804,10 +819,15 @@ wxPoint OG_CustomCtrl::CtrlLine::draw_blinking_bmp(wxDC& dc, wxPoint pos, bool i
 
 wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmap& bmp_undo_to_sys, const wxBitmap& bmp_undo, bool is_blinking, size_t rect_id)
 {
+#ifndef DISABLE_BLINKING
     pos = draw_blinking_bmp(dc, pos, is_blinking);
+#else
+    pos.y += lround((height - get_bitmap_size(bmp_undo).GetHeight()) / 2);
+#endif
     wxCoord h_pos = pos.x;
     wxCoord v_pos = pos.y;
 
+#ifndef DISABLE_UNDO_SYS
     //BBS: GUI refactor
     dc.DrawBitmap(bmp_undo_to_sys, h_pos, v_pos);
 
@@ -815,12 +835,13 @@ wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBi
     rects_undo_to_sys_icon[rect_id] = wxRect(h_pos, v_pos, bmp_dim, bmp_dim);
 
     h_pos += bmp_dim + ctrl->m_h_gap;
+#endif
     dc.DrawBitmap(bmp_undo, h_pos, v_pos);
 
-    bmp_dim = get_bitmap_size(bmp_undo).GetWidth();
-    rects_undo_icon[rect_id] = wxRect(h_pos, v_pos, bmp_dim, bmp_dim);
+    int bmp_dim2 = get_bitmap_size(bmp_undo).GetWidth();
+    rects_undo_icon[rect_id] = wxRect(h_pos, v_pos, bmp_dim2, bmp_dim2);
 
-    h_pos += bmp_dim + ctrl->m_h_gap;
+    h_pos += bmp_dim2 + ctrl->m_h_gap;
 
     return h_pos;
 }

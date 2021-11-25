@@ -81,7 +81,9 @@ MarkdownTip::MarkdownTip()
 
 bool MarkdownTip::ShowTip(wxPoint pos, std::string const& tip)
 {
-    if (tip.empty() && _tipView->GetParent() == this) {
+    if (tip.empty()) {
+        if (_tipView->GetParent() != this)
+            return false;
         if (pos.x) {
             _hide = true;
             this->Hide();
