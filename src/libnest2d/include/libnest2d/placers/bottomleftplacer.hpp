@@ -26,7 +26,11 @@ struct BLConfig {
     Coord min_obj_distance = 0;
     Coord epsilon = DefaultEpsilon<Coord>::Value;
     bool allow_rotations = false;
+    //BBS: sort function for selector
     std::function<bool(_Item<RawShape>& i1, _Item<RawShape>& i2)> sortfunc;
+    //BBS: excluded region for V4 bed
+    std::vector<_Item<RawShape> > m_excluded_regions;
+    _ItemGroup<RawShape> m_excluded_items;
 };
 
 template<class RawShape>
@@ -77,7 +81,10 @@ public:
         return availableSpace(item, Dir::DOWN);
     }
 
+    double score() const { return score_; }
+
 protected:
+    double score_ = 0;
 
     PackResult _trypack(Item& item) {
 

@@ -109,7 +109,7 @@ public:
         return farea_;
     }
 
-protected:
+public:
 
     BinType bin_;
     ItemGroup items_;

@@ -665,6 +665,8 @@ public:
 
     inline double filledArea() const { return impl_.filledArea(); }
 
+    inline double score() const { return impl_.score(); }
+
 };
 
 // The progress function will be called with the number of placed items

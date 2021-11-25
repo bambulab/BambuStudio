@@ -171,9 +171,6 @@ void ArrangeJob::prepare_selected() {
     // If the selection was empty arrange everything
     if (m_selected.empty()) m_selected.swap(m_unselected);
 
-    //add the virtual object into unselect list if has
-    plate_list.preprocess_exclude_areas(m_unselected);
-
     // The strides have to be removed from the fixed items. For the
     // arrangeable (selected) items bed_idx is ignored and the
     // translation is irrelevant.
@@ -243,8 +240,6 @@ void ArrangeJob::prepare_partplate() {
         }
     }
 
-    //add the virtual object into unselect list if has
-    plate_list.preprocess_exclude_areas(m_unselected);
 
     //don't consider wipe_tower currently
     /*if (auto wti = get_wipe_tower(*m_plater)) {
@@ -274,6 +269,10 @@ void ArrangeJob::prepare()
         only_on_partplate = true;   // only arrange items on current plate
         prepare_partplate();
     }
+
+    //add the virtual object into unselect list if has
+    //m_plater->get_partplate_list().preprocess_exclude_areas(m_unselected);
+
     check_unprintable();
 }
 
@@ -344,6 +343,26 @@ void ArrangeJob::process()
     std::for_each(m_unselected.begin(), m_unselected.end(), [&](auto& ap) {ap.inflation = ap.is_virt_object ? scaled(params.brim_skirt_distance) : params.min_obj_distance / 2; });
 
     Points bedpts = get_bed_shape(*m_plater->config());
+
+    if(0)
+    { // subtract excluded region and get a polygon bed
+        auto print_config = print.config();
+        Pointfs excluse_area_points = print_config.bed_exclude_area.values;
+        Polygons exclude_polys;
+        Polygon exclude_poly;
+        for (int i = 0; i < excluse_area_points.size(); i++) {
+            auto pt = excluse_area_points[i];
+            exclude_poly.points.emplace_back(scale_(pt.x()), scale_(pt.y()));
+            if (i % 4 == 3) {  // exclude areas are always rectangle
+                exclude_polys.push_back(exclude_poly);
+                exclude_poly.points.clear();
+            }
+        }
+        Polygon bed_polygon(bedpts);
+        bed_polygon = diff({ bed_polygon }, exclude_polys)[0];
+        bedpts = bed_polygon.points;
+    }
+    m_plater->get_partplate_list().preprocess_exclude_areas(params.excluded_regions, 1);
 
     // shrink bed by moving to center by dist
     auto shrinkFun = [](Points& bedpts, double dist, int direction) {

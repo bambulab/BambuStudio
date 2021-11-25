@@ -2217,8 +2217,7 @@ bool PartPlateList::preprocess_arrange_polygon_other_locked(int obj_index, int i
 	return locked;
 }
 
-#define MAX_LAYOUT_BEDS_COUNT 16
-bool PartPlateList::preprocess_exclude_areas(arrangement::ArrangePolygons& unselected)
+bool PartPlateList::preprocess_exclude_areas(arrangement::ArrangePolygons& unselected, int num_plates)
 {
 	bool added = false;
 
@@ -2236,7 +2235,7 @@ bool PartPlateList::preprocess_exclude_areas(arrangement::ArrangePolygons& unsel
 				{scaled(plate->m_exclude_bounding_box[index].min.x()), scaled(plate->m_exclude_bounding_box[index].max.y())}
 				});
 
-			for (int j = 0; j < MAX_LAYOUT_BEDS_COUNT; j++)
+			for (int j = 0; j < num_plates; j++)
 			{
 				arrangement::ArrangePolygon ret;
 				ret.poly.contour = ap;

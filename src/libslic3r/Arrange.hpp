@@ -122,6 +122,8 @@ struct ArrangeParams {
     float clearance_height_to_rod = 0;
     float clearance_height_to_lid = 0;
     float cleareance_radius = 0;
+
+    ArrangePolygons excluded_regions;
     
     /// Progress indicator callback called when an object gets packed. 
     /// The unsigned argument is the number of items remaining to pack.

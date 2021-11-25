@@ -109,6 +109,14 @@ void fill_config(PConf& pcfg, const ArrangeParams &params) {
     
     // Allow parallel execution.
     pcfg.parallel = params.parallel;
+
+    // BBS: excluded regions in V4 bed
+    for (auto& poly : params.excluded_regions)
+        process_arrangeable(poly, pcfg.m_excluded_regions);
+    for (auto& itm : pcfg.m_excluded_regions) {
+        itm.markAsFixedInBin(0);
+        itm.inflate(scaled(-2. * EPSILON));
+    }
 }
 
 // Apply penalty to object function result. This is used only when alignment
@@ -136,6 +144,7 @@ public:
     using Packer   = _Nester<Placer, Selector>;
     using PConfig  = typename Packer::PlacementConfig;
     using Distance = TCoord<PointImpl>;
+    std::vector<Item> m_excluded_items_in_each_plate;   // for V4 bed there are excluded regions at bottom left corner
 
 protected:
     Packer    m_pck;
@@ -435,11 +444,11 @@ public:
             if (items.empty()) return;
 
             // BBS: virtual objects should not affect final alignment
-            if (std::any_of(items.begin(), items.end(), [](Item& itm) {return itm.is_virt_object==false;}))
+            if (std::any_of(items.begin(), items.end(), [](Item& itm) {return itm.is_virt_object == false; }))
                 cfg.alignment = PConfig::Alignment::DONT_ALIGN;
             auto bb = sl::boundingBox(m_bin);
             auto starting_point = cfg.starting_point == PConfig::Alignment::BOTTOM_LEFT ? bb.minCorner() : bb.center();
-            cfg.object_function = [this, bb, starting_point](const Item &item) {
+            cfg.object_function = [this, bb, starting_point](const Item& item) {
                 return fixed_overfit(objfunc(item, starting_point), bb);
             };
         };
@@ -555,14 +564,33 @@ template<> std::function<double(const Item&)> AutoArranger<Circle>::get_objfn()
 }
 
 // Specialization for a generalized polygon.
-// Warning: this is unfinished business. It may or may not work.
+// Warning: this is much slower than with Box bed. Need further speedup.
 template<>
 std::function<double(const Item &)> AutoArranger<ExPolygon>::get_objfn()
 {
     auto bb = sl::boundingBox(m_bin);
     auto origin_pack = m_pconf.starting_point == PConfig::Alignment::CENTER ? bb.center() : bb.minCorner();
-    return [this, origin_pack](const Item &item) {
-        return std::get<0>(objfunc(item, origin_pack));
+    return [this, origin_pack](const Item &itm) {
+        auto result = objfunc(itm, origin_pack);
+
+        double score = std::get<0>(result);
+        
+        auto mp = m_merged_pile;
+        mp.emplace_back(itm.transformedShape());
+        auto chull = sl::convexHull(mp);
+        if (m_pconf.starting_point == PConfig::Alignment::BOTTOM_LEFT)
+        {
+            if (!sl::isInside(chull, m_bin))
+                score += LARGE_COST_TO_REJECT;
+        }
+        else
+        {
+            double miss = Placer::overfit(chull, m_bin);
+            miss = miss > 0 ? miss : 0;
+            score += miss * miss;
+        }
+
+        return score;
     };
 }
 

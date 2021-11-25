@@ -41,19 +41,24 @@ public:
         placers.reserve(last-first);
         
         typename Base::PackGroup fixed_bins;
-        std::for_each(first, last, [this,&fixed_bins](Item& itm) {
-            if(itm.isFixed()) {
+        std::for_each(first, last, [this, &fixed_bins](Item& itm) {
+            if (itm.isFixed()) {
                 if (itm.binId() < 0) itm.binId(0);
                 auto binidx = size_t(itm.binId());
-                
-                while(fixed_bins.size() <= binidx)
+
+                while (fixed_bins.size() <= binidx)
                     fixed_bins.emplace_back();
-                
+
                 fixed_bins[binidx].emplace_back(itm);
-            } else {
+            }
+            else {
                 store_.emplace_back(itm);
             }
-        });
+            });
+
+        std::for_each(pconfig.m_excluded_regions.begin(), pconfig.m_excluded_regions.end(), [this, &pconfig](Item& itm) {
+            pconfig.m_excluded_items.emplace_back(itm);
+            });
 
         // If the packed_items array is not empty we have to create as many
         // placers as there are elements in packed bins and preload each item
@@ -97,16 +102,20 @@ public:
             if (it->get().binId() == BIN_ID_UNSET)
                 continue;
             bool was_packed = false;
-            double best_score = LARGE_COST_TO_REJECT;
             int best_bed_id = -1;
-            double score;
+            double score, best_score = LARGE_COST_TO_REJECT;
+            double score_all_plates = 0, score_all_plates_best = std::numeric_limits<double>::max();
             typename Placer::PackResult result, result_best;
             size_t j = 0;
             while(!was_packed && !cancelled()) {
                 for(; j < placers.size() && !was_packed && !cancelled(); j++) {
                     result = placers[j].pack(*it, rem(it, store_));
-                    if((score =  result.score()) > 0 && score<best_score) {
+                    score = result.score();
+                    score_all_plates = std::accumulate(placers.begin(), placers.begin() + j, 0.0,
+                        [](double sum, const Placer& elem) { return sum + elem.score(); });
+                    if(score > 0 && score < LARGE_COST_TO_REJECT && score_all_plates<score_all_plates_best) {
                         best_score = score;
+                        score_all_plates_best = score_all_plates;
                         best_bed_id = j;
                         result_best = result;
                     }
@@ -125,8 +134,9 @@ public:
                 if(!was_packed) {
                     placers.emplace_back(bin);
                     placers.back().configure(pconfig);
-                    if(fixed_bins.size()>=placers.size())
+                    if (fixed_bins.size() >= placers.size())
                         placers.back().preload(fixed_bins[placers.size() - 1]);
+                    placers.back().preload(pconfig.m_excluded_items);
                     packed_bins_.emplace_back();
                     j = placers.size() - 1;
                 }

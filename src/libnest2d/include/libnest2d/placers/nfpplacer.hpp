@@ -119,7 +119,11 @@ struct NfpPConfig {
 
     std::function<void(const ItemGroup &, NfpPConfig &config)> on_preload;
 
+    //BBS: sort function for selector
     std::function<bool(_Item<RawShape>& i1, _Item<RawShape>& i2)> sortfunc;
+    //BBS: excluded region for V4 bed
+    std::vector<_Item<RawShape> > m_excluded_regions;
+    _ItemGroup<RawShape> m_excluded_items;
 
     NfpPConfig(): rotations({0.0, Pi/2.0, Pi, 3*Pi/2}),
         alignment(Alignment::CENTER), starting_point(Alignment::CENTER) {}
@@ -441,6 +445,7 @@ private:
 
     // Norming factor for the optimization function
     const double norm_;
+    double score_ = 0;  // BBS: total costs of putting all the items
     Pile merged_pile_;
 
 public:
@@ -461,6 +466,8 @@ public:
     _NofitPolyPlacer(_NofitPolyPlacer&&) = default;
     _NofitPolyPlacer& operator=(_NofitPolyPlacer&&) = default;
 #endif
+
+    double score() const { return score_; }
 
     static inline double overfit(const Box& bb, const RawShape& bin) {
         auto bbin = sl::boundingBox(bin);
@@ -528,6 +535,7 @@ public:
             r.item_ptr_->rotation(r.rot_);
             items_.emplace_back(*(r.item_ptr_));
             merged_pile_ = nfp::merge(merged_pile_, r.item_ptr_->transformedShape());
+            score_ += r.score();
         }
     }
 
@@ -948,7 +956,7 @@ private:
     }
 #endif
     inline void finalAlign(const RawShape& pbin) {
-        auto bbin = sl::boundingBox(pbin);// inscribedBox(pbin);
+        auto bbin = sl::boundingBox(pbin);//inscribedBox(pbin);
         finalAlign(bbin);
     }
 
@@ -1010,6 +1018,10 @@ private:
         }
 
         auto d = cb - ci;
+        if (!config_.m_excluded_regions.empty()) {
+            d.X = d.X < 0 ? 0 : d.X;
+            d.Y = d.Y < 0 ? 0 : d.Y;
+        }
         for(Item& item : items_)
             if (!item.is_virt_object)
                 item.translate(d);
