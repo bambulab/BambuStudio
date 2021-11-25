@@ -3538,14 +3538,12 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
     for (unsigned int i = 0; i < (unsigned int)plate_data_list.size(); ++i)
     {
         PlateData* plate_data = plate_data_list[i];
-        if (!plate_data->gcode_file.empty()) {
-
+        if (!plate_data->gcode_file.empty() && plate_data->is_sliced_valid) {
             std::string src_gcode_file = encode_path(plate_data->gcode_file.c_str());
             std::string gcode_in_3mf = (boost::format(GCODE_FILE_FORMAT) % (i + 1)).str();
             result = result & mz_zip_writer_add_file(&archive, gcode_in_3mf.c_str(), src_gcode_file.c_str(), "", 0, MZ_DEFAULT_COMPRESSION);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", store  %1% to 3mf %2%, result %3%\n") % src_gcode_file % gcode_in_3mf % result;
         }
-
     }
     return result;
 }
