@@ -224,6 +224,9 @@ BOOL CBaseException::GetLogicalAddress(
 	if ( !GetModuleFileName( (HMODULE)hMod, szModule, len ) )
 		return FALSE;
 
+	if (!hMod)
+		return FALSE;
+
 	PIMAGE_DOS_HEADER pDosHdr = (PIMAGE_DOS_HEADER)hMod;
 	PIMAGE_NT_HEADERS pNtHdr = (PIMAGE_NT_HEADERS)(hMod + pDosHdr->e_lfanew);
 	PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION( pNtHdr );

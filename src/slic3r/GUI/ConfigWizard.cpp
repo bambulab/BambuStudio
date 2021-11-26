@@ -609,7 +609,9 @@ void PagePrinters::set_run_reason(ConfigWizard::RunReason run_reason)
         && (run_reason == ConfigWizard::RR_DATA_EMPTY || run_reason == ConfigWizard::RR_DATA_LEGACY)
         && printer_pickers.size() > 0 
         && printer_pickers[0]->vendor_id == PresetBundle::BBL_BUNDLE) {
-        printer_pickers[0]->select_one(0, true);
+        //BBS: select alll bbs machine by default
+        //printer_pickers[0]->select_one(0, true);
+        printer_pickers[0]->select_all(true);
     }
 }
 
