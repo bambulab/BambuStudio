@@ -2694,8 +2694,10 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
         default:
             break;
     }
+
+    // select last preset
     for (auto tab : wxGetApp().tabs_list) {
-        tab->select_preset("", false);
+        tab->update_tab_ui();
     }
 }
 

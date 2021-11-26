@@ -341,7 +341,8 @@ public:
 	virtual void	init_options_list();
 	void			load_initial_data();
 	void			update_dirty();
-	void			update_tab_ui();
+	//BBS update plater presets if update_plater_presets = true
+	void			update_tab_ui(bool update_plater_presets = false);
 	void			load_config(const DynamicPrintConfig& config);
 	virtual void	reload_config();
     void            update_mode();

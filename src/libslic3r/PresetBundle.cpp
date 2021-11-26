@@ -25,7 +25,7 @@
 
 // Store the print/filament/printer presets into a "presets" subdirectory of the Slic3rPE config dir.
 // This breaks compatibility with the upstream Slic3r if the --datadir is used to switch between the two versions.
-#define SLIC3R_PROFILE_USE_PRESETS_SUBDIR
+//#define SLIC3R_PROFILE_USE_PRESETS_SUBDIR
 
 namespace Slic3r {
 
@@ -252,19 +252,17 @@ PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, Forward
     std::string errors_cummulative;
     std::tie(substitutions, errors_cummulative) = this->load_system_presets(substitution_rule);
 
-    //BBS load preset from user's folder, default value is presets
-    std::string dir_user_presets = data_dir()
-#ifdef SLIC3R_PROFILE_USE_PRESETS_SUBDIR
-        // Store the print/filament/printer presets into user's directory.
-        + "/" + config.get("preset_folder")
-#else
-        // Store the print/filament/printer presets at the same location as the upstream Slic3r.
-#endif
-        ;
-
-    fs::path user_folder(dir_user_presets);
-    if (!fs::exists(user_folder)) {
-        dir_user_presets = data_dir() + "/presets";
+    //BBS load preset from user's folder, load system default if 
+    std::string dir_user_presets;
+    if (!config.get("preset_folder").empty()) {
+        dir_user_presets = data_dir() + "/" + config.get("preset_folder");
+        fs::path user_folder(dir_user_presets);
+        if (!fs::exists(user_folder)) {
+            dir_user_presets = data_dir();
+        }
+    }
+    else {
+        dir_user_presets = data_dir();
     }
 
     // BBS do not load sla_print
@@ -332,7 +330,7 @@ PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig& config, st
 //BBS save user preset to user_id preset folder
 void PresetBundle::save_user_presets(AppConfig& config, std::map<std::string, Preset*> my_presets)
 {
-    const std::string dir_user_presets = data_dir()
+    const std::string dir_user_presets = data_dir() + "/" + config.get("preset_folder")
 #ifdef SLIC3R_PROFILE_USE_PRESETS_SUBDIR
         // Store the print/filament/printer presets into a "presets" directory.
         + "/" + config.get("preset_folder")
@@ -355,7 +353,7 @@ void PresetBundle::remove_users_preset(AppConfig& config)
 {
     // remove preset if user_id is not current user
     for (auto it = prints.begin(); it != prints.end();) {
-        if (it->is_user() && it->user_id.compare(config.get("preset_folder")) != 0) {
+        if (it->is_user() && !it->user_id.empty() && it->user_id.compare(config.get("preset_folder")) != 0) {
             it = prints.erase(it);
         }
         else {
@@ -364,7 +362,7 @@ void PresetBundle::remove_users_preset(AppConfig& config)
     }
 
     for (auto it = filaments.begin(); it != filaments.end();) {
-        if (it->is_user() && it->user_id.compare(config.get("preset_folder")) != 0) {
+        if (it->is_user() && !it->user_id.empty() && it->user_id.compare(config.get("preset_folder")) != 0) {
             it = filaments.erase(it);
         }
         else {
@@ -373,7 +371,7 @@ void PresetBundle::remove_users_preset(AppConfig& config)
     }
 
     for (auto it = printers.begin(); it != printers.end();) {
-        if (it->is_user() && it->user_id.compare(config.get("preset_folder")) != 0) {
+        if (it->is_user() && !it->user_id.empty() && it->user_id.compare(config.get("preset_folder")) != 0) {
             it = printers.erase(it);
         }
         else {

@@ -218,9 +218,13 @@ namespace Slic3r {
 
     void AccountManager::on_user_login(bool online_login)
     {
+        BOOST_LOG_TRIVIAL(info) << "set_preset: set preset_folder = " << get_curr_user()->get_user_id();
         GUI::wxGetApp().app_config->set("preset_folder", get_curr_user()->get_user_id());
         connect_mqtt();
         request_bind_list();
+ 
+
+ 
         if (online_login)
             GUI::wxGetApp().reload_user_presets();
     }
@@ -2260,8 +2264,6 @@ namespace Slic3r {
                     }
         ).on_error(errFn)
         .perform_sync();
-
-        if (my_presets.empty()) return -1;
 
         std::map<std::string, Preset*>::iterator it;
         for (it = my_presets.begin(); it != my_presets.end(); it++) {

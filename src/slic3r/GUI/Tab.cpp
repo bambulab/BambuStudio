@@ -992,9 +992,11 @@ void Tab::update_dirty()
     update_changed_ui();
 }
 
-void Tab::update_tab_ui()
+void Tab::update_tab_ui(bool update_plater_presets)
 {
     m_presets_choice->update();
+    if (update_plater_presets)
+        on_presets_changed();
 }
 
 // Load a provied DynamicConfig into the tab, modifying the active preset.

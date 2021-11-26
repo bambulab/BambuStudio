@@ -201,7 +201,7 @@ void AppConfig::set_defaults()
 
     // BBS
     if (get("preset_folder").empty())
-        set("preset_folder", "presets");
+        set("preset_folder", "");
 
     // BBS
     if (get("slicer_uuid").empty()) {
