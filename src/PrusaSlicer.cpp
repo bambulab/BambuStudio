@@ -891,13 +891,17 @@ int CLI::run(int argc, char **argv)
                             format = "[input_filename_base].SL1";
                     }
                     print->apply(model, m_print_config);
-                    std::string err = print->validate();
-                    if (! err.empty()) {
+                    std::string warning;
+                    std::string err = print->validate(&warning);
+                    if (!err.empty()) {
                         boost::nowide::cerr << err << std::endl;
                         //BBS: continue for other plates
                         continue;
                         //return 1;
                     }
+                    else if (!warning.empty())
+                        boost::nowide::cout << "got warnings: "<< warning << std::endl;
+
                     if (print->empty())
                         boost::nowide::cout << "Nothing to print for " << outfile << " . Either the print is empty or no object is fully inside the print volume." << std::endl;
                     else
@@ -925,6 +929,7 @@ int CLI::run(int argc, char **argv)
                             // Run the post-processing scripts if defined.
                             run_post_process_scripts(outfile, print->full_print_config());
                             boost::nowide::cout << "Slicing result exported to " << outfile << std::endl;
+                            part_plate->update_slice_result_valid_state(true);
                         } catch (const std::exception &ex) {
                             boost::nowide::cout << "found slicing or export error for partplate "<<index << std::endl;
                             boost::nowide::cerr << ex.what() << std::endl;

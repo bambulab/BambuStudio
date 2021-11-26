@@ -500,7 +500,7 @@ std::string Print::sequential_print_clearance_valid(const Print& print, Polygons
 }
 
 //BBS
-static std::string layered_print_cleareance_valid(const Print& print)
+static std::string layered_print_cleareance_valid(const Print& print, std::string* warning)
 {
     std::vector<const PrintInstance*> print_instances_ordered = sort_object_instances_by_model_order(print);
     if (print_instances_ordered.size() < 1)
@@ -547,9 +547,10 @@ static std::string layered_print_cleareance_valid(const Print& print)
         Polygons convex_hulls_temp;
         convex_hulls_temp.push_back(convex_hull);
         if (!intersection(convex_hulls_other, convex_hulls_temp).empty()) {
-            return "Object " + inst->model_instance->get_object()->name + " is too close to others; your extruder will collide with them.";
+            if (warning)
+                *warning = "Object " + inst->model_instance->get_object()->name + " is too close to others; your extruder will collide with them.";
         }
-        if (!intersection(exclude_polys, convex_hulls_temp).empty()) {
+        if (!intersection(exclude_polys, (Polygons)convex_hull).empty()) {
             return "Object " + inst->model_instance->get_object()->name + " is too close to exclusion area; your extruder will collide with them.";
         }
         convex_hulls_other.emplace_back(convex_hull);
@@ -576,9 +577,10 @@ std::string Print::validate(std::string* warning) const
     }
     else {
         //BBS
-        std::string ret = layered_print_cleareance_valid(*this);
-        if (!ret.empty())
+        std::string ret = layered_print_cleareance_valid(*this, warning);
+        if (!ret.empty()) {
             return L(ret);
+        }
     }
 
     if (m_config.spiral_vase) {
