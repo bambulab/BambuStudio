@@ -246,6 +246,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/CommuBackend.hpp
     GUI/Ssdp.cpp
     GUI/Ssdp.hpp
+    GUI/DebugToolPanel.cpp
+    GUI/DebugToolPanel.h
     GUI/DebugToolDialog.cpp
     GUI/DebugToolDialog.hpp
     GUI/AccountManager.hpp

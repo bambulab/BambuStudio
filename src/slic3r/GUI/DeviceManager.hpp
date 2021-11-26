@@ -148,10 +148,11 @@ public:
     bool    is_ams_need_update;
 
     /* temperature */
-    double  nozzle_temp;
-    double  nozzle_temp_target;
-    double  bed_temp;
-    double  bed_temp_target;
+    float  nozzle_temp;
+    float  nozzle_temp_target;
+    float  bed_temp;
+    float  bed_temp_target;
+    float  chamber_temp;
 
     /* cooling */
     int     heatbreak_fan_speed;

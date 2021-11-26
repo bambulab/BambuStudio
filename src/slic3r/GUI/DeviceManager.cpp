@@ -545,6 +545,7 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 boost::optional<std::string> nozzle_temp_target_raw = print.get_optional<std::string>("nozzle_target_temp_raw");
                 boost::optional<std::string> bed_temp_raw           = print.get_optional<std::string>("bed_temp_raw");
                 boost::optional<std::string> bed_temp_target_raw    = print.get_optional<std::string>("bed_target_temp_raw");
+                boost::optional<float> chamber_temp_raw             = print.get_optional<float>("chamber_temp_raw");
                 double temp_scale = 32.0f;
                 if (nozzle_temp_raw.has_value())
                     nozzle_temp = (float)std::stoi(nozzle_temp_raw.value()) / temp_scale;
@@ -557,6 +558,9 @@ int MachineObject::parse_json(std::string topic, std::string payload)
 
                 if (bed_temp_target_raw.has_value())
                     bed_temp_target = (float)std::stoi(bed_temp_target_raw.value()) / temp_scale;
+
+                if (chamber_temp_raw.has_value())
+                    chamber_temp = chamber_temp_raw.value();
 
                 /* cooling */
                 boost::optional<int> cooling_fan_speed_str      = print.get_optional<int>("cooling_fan_speed");
