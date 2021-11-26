@@ -105,8 +105,12 @@ static constexpr const char* VOLUME_TAG = "volume";
 static constexpr const char* PART_TAG = "part";
 static constexpr const char* PLATE_TAG = "plate";
 static constexpr const char* INSTANCE_TAG = "model_instance";
+//BBS
 static constexpr const char* ASSEMBLE_TAG = "assemble";
 static constexpr const char* ASSEMBLE_ITEM_TAG = "assemble_item";
+static constexpr const char* SLICE_HEADER_TAG = "header";
+static constexpr const char* SLICE_HEADER_ITEM_TAG = "header_item";
+
 
 static constexpr const char* UNIT_ATTR = "unit";
 static constexpr const char* NAME_ATTR = "name";
@@ -3505,6 +3509,12 @@ namespace Slic3r {
 		stream << std::setprecision(std::numeric_limits<double>::max_digits10);
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         stream << "<" << CONFIG_TAG << ">\n";
+
+        // save slice header for debug
+        stream << "  <" << SLICE_HEADER_TAG << ">\n";
+        stream << "    <" << SLICE_HEADER_ITEM_TAG << " " << KEY_ATTR << "=\"" << "X-BBL-Client-Type"    << "\" " << VALUE_ATTR << "=\"" << "slicer" << "\"/>\n";
+        stream << "    <" << SLICE_HEADER_ITEM_TAG << " " << KEY_ATTR << "=\"" << "X-BBL-Client-Version" << "\" " << VALUE_ATTR << "=\"" << convert_to_full_version(SLIC3R_RC_VERSION) << "\"/>\n";
+        stream << "  </" << SLICE_HEADER_TAG << ">\n";
 
         for (unsigned int i = 0; i < (unsigned int)plate_data_list.size(); ++i)
         {

@@ -8,6 +8,7 @@
 #include <system_error>
 
 #include <boost/system/error_code.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include "libslic3r.h"
 
@@ -43,6 +44,25 @@ const std::string& resources_dir();
 //BBS: add temp dir
 void set_temporary_dir(const std::string &path);
 const std::string& temporary_dir();
+
+//BBS: convert 0.1.3.4 version format to 00.01.03.04 format, like AA.BB.CC.DD
+inline std::string convert_to_full_version(std::string short_version)
+{
+    std::string result = "";
+    std::vector<std::string> items;
+    boost::split(items, short_version, boost::is_any_of("."));
+    if (items.size() == 4) {
+        for (int i = 0; i < 4; i++) {
+            std::stringstream ss;
+            ss << std::setw(2) << std::setfill('0') << items[i];
+            result += ss.str();
+            if (i != 4 - 1)
+                result += ".";
+        }
+        return result;
+    }
+    return result;
+}
 
 
 
