@@ -2535,16 +2535,19 @@ ConfigOptionMode GUI_App::get_mode()
 {
     if (!app_config->has("view_mode"))
         return comSimple;
-
+    //BBS
     const auto mode = app_config->get("view_mode");
     return mode == "expert" ? comExpert : 
-           mode == "simple" ? comSimple : comAdvanced;
+           mode == "simple" ? comSimple :
+           mode == "develop" ? comDevelop : comAdvanced;
 }
 
 void GUI_App::save_mode(const /*ConfigOptionMode*/int mode) 
 {
+    //BBS
     const std::string mode_str = mode == comExpert ? "expert" :
-                                 mode == comSimple ? "simple" : "advanced";
+                                 mode == comSimple ? "simple" :
+                                 mode == comDevelop ? "develop" : "advanced";
     app_config->set("view_mode", mode_str);
     app_config->save(); 
     update_mode();

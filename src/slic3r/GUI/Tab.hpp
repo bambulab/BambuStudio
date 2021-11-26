@@ -408,7 +408,7 @@ class TabPrint : public Tab
 public:
 	//BBS: GUI refactor
 	TabPrint(ParamsPanel* parent) :
-        Tab(parent, _(L("Print Settings")), Slic3r::Preset::TYPE_PRINT) {}
+        Tab(parent, _(L("Slicing")), Slic3r::Preset::TYPE_PRINT) {}
 	~TabPrint() {}
 
 	void		build() override;
@@ -439,7 +439,7 @@ private:
 public:
 	//BBS: GUI refactor
 	TabFilament(ParamsPanel* parent) :
-		Tab(parent, _(L("Filament Settings")), Slic3r::Preset::TYPE_FILAMENT) {}
+		Tab(parent, _(L("Filament")), Slic3r::Preset::TYPE_FILAMENT) {}
 	~TabFilament() {}
 
 	void		build() override;
@@ -481,7 +481,7 @@ public:
 
 	//BBS: GUI refactor
     TabPrinter(ParamsPanel* parent) :
-        Tab(parent, _L("Printer Settings"), Slic3r::Preset::TYPE_PRINTER) {}
+        Tab(parent, _L("Machine"), Slic3r::Preset::TYPE_PRINTER) {}
 	~TabPrinter() {}
 
 	void		build() override;

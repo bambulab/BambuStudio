@@ -297,6 +297,15 @@ void ParamsPanel::update_mode()
 {
     int app_mode = Slic3r::GUI::wxGetApp().get_mode();
 
+    //BBS: disable the mode tab and return directly when enable develop mode
+    if (app_mode == comDevelop)
+    {
+        m_mode_status->Disable();
+        return;
+    }
+    if (!m_mode_status->IsEnabled())
+        m_mode_status->Enable();
+
     if (app_mode == comExpert)
     {
         m_mode_status->SetValue(true);
