@@ -715,7 +715,7 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
         if (supportBrimAreaMap.find(object->id()) != supportBrimAreaMap.end())
             supportBrimAreaMap[object->id()] = diff_ex(supportBrimAreaMap[object->id()], no_brim_area);
     }
-    brim_area = diff_ex(brim_area, no_brim_area);
+    //brim_area = diff_ex(brim_area, no_brim_area);
     return brim_area;
 }
 // Flip orientation of open polylines to minimize travel distance.

@@ -1036,6 +1036,8 @@ void Print::process()
             Polygons islands_area;
             make_brim(*this, this->make_try_cancel(), islands_area, m_brimMap,
                 m_supportBrimMap, objPrintVec);
+            for (Polygon& poly_ex : islands_area)
+                poly_ex.douglas_peucker(SCALED_RESOLUTION);
             for (Polygon &poly : union_(this->first_layer_islands(), islands_area))
                 append(m_first_layer_convex_hull.points, std::move(poly.points));
         }
