@@ -631,6 +631,10 @@ PlaterPresetComboBox::~PlaterPresetComboBox()
 {
     if (edit_btn)
         edit_btn->Destroy();
+
+    // BBS.
+    if (clr_picker)
+        clr_picker->Destroy();
 }
 
 static void run_wizard(ConfigWizard::StartPage sp)

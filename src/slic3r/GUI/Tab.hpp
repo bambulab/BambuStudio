@@ -86,7 +86,8 @@ public:
     void        refresh();
 	Field*		get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
 	bool		set_value(const t_config_option_key& opt_key, const boost::any& value);
-	ConfigOptionsGroupShp	new_optgroup(const wxString& title, int noncommon_label_width = -1);
+	// BBS. Add is_extruder_og parameter.
+	ConfigOptionsGroupShp	new_optgroup(const wxString& title, int noncommon_label_width = -1, bool is_extruder_og = false);
 	const ConfigOptionsGroupShp	get_optgroup(const wxString& title) const;
 
 	bool		set_item_colour(const wxColour *clr) {

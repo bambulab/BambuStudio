@@ -853,60 +853,87 @@ Sidebar::Sidebar(Plater *parent)
 
     p->sizer_filaments = new wxBoxSizer(wxVERTICAL);
 
-    auto init_combo = [this](PlaterPresetComboBox **combo, wxString label, Preset::Type preset_type, bool filament) {
+    // BBS. Split init_combo to init_print_combo and init_filament_combo.
+    auto init_print_combo = [this](PlaterPresetComboBox **combo, wxString label, Preset::Type preset_type) {
         auto *text = new wxStaticText(p->presets_panel, wxID_ANY, label + " :");
         text->SetFont(wxGetApp().small_font());
         *combo = new PlaterPresetComboBox(p->presets_panel, preset_type);
 
         auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-
-        // BBS
-        if (filament) {
-            // Add AMS slot
-            combo_and_btn_sizer->Add(new wxStaticText(p->presets_panel, wxID_ANY, "1"), 0,
-                wxALIGN_CENTER_VERTICAL | wxRIGHT, 15);
-
-            // Add filament material combo
-            combo_and_btn_sizer->Add(*combo, 1, wxEXPAND);
-
-            // Add color
-            if ((*combo)->clr_picker) {
-                Slic3r::DynamicPrintConfig* config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({ "extruder_colour" }));
-                const std::string& txt_color = config->opt_string("extruder_colour", (unsigned int)0);
-                wxColor color;
-                unsigned char rgb[3];
-                if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb))
-                {
-                    color.Set(rgb[0], rgb[1], rgb[2]);
-                    (*combo)->clr_picker->SetColour(color);
-                }
-                combo_and_btn_sizer->Add((*combo)->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT,
-                    int(0.3 * wxGetApp().em_unit()));
-            }
-        }
-        else {
-            combo_and_btn_sizer->Add(*combo, 1, wxEXPAND);
-            if ((*combo)->edit_btn)
-                combo_and_btn_sizer->Add((*combo)->edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT,
-                    int(0.3 * wxGetApp().em_unit()));
-        }
+        combo_and_btn_sizer->Add(*combo, 1, wxEXPAND);
+#if 0
+        if ((*combo)->edit_btn)
+            combo_and_btn_sizer->Add((*combo)->edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT,
+                int(0.3 * wxGetApp().em_unit()));
+#endif
 
         auto *sizer_presets = this->p->sizer_presets;
-        auto *sizer_filaments = this->p->sizer_filaments;
         sizer_presets->Add(text, 0, wxALIGN_LEFT | wxEXPAND | wxTOP, 12);
-        if (! filament) {
-            sizer_presets->Add(combo_and_btn_sizer, 0, wxEXPAND | wxBOTTOM, 1);
-        } else {
-            sizer_filaments->Add(combo_and_btn_sizer, 0, wxEXPAND | wxBOTTOM, 1);
-            (*combo)->set_extruder_idx(0);
-            sizer_presets->Add(sizer_filaments, 1, wxEXPAND);
+        sizer_presets->Add(combo_and_btn_sizer, 0, wxEXPAND | wxBOTTOM, 1);
+    };
+
+    auto init_filament_combo = [this](PlaterPresetComboBox** combo, wxString label, Preset::Type preset_type) {
+        // init title bar
+        wxBoxSizer* title_sizer = new wxBoxSizer(wxHORIZONTAL);
+        auto* text = new wxStaticText(p->presets_panel, wxID_ANY, label + " :");
+        text->SetFont(wxGetApp().small_font());
+        ScalableButton* add_btn = new ScalableButton(p->presets_panel, wxID_ANY, "add_filament");
+        ScalableButton* del_btn = new ScalableButton(p->presets_panel, wxID_ANY, "delete_filament");
+        title_sizer->Add(text, 0, wxALIGN_LEFT | wxEXPAND | wxTOP, 12);
+        title_sizer->AddStretchSpacer(1);
+        title_sizer->Add(add_btn, 0, wxTOP | wxRIGHT, 12);
+        title_sizer->Add(del_btn, 0, wxTOP | wxRIGHT, 12);
+
+        add_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
+            int extruder_count = p->combos_filament.size() + 1;
+
+            wxGetApp().preset_bundle->printers.get_edited_preset().set_num_extruders(extruder_count);
+            wxGetApp().preset_bundle->update_multi_material_filament_presets();
+            on_extruders_change(extruder_count);
+            update_objects_list_extruder_column(extruder_count);
+        });
+        del_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
+            int extruder_count = std::max(1, (int)p->combos_filament.size() - 1);
+
+            update_objects_list_extruder_column(std::max(1, extruder_count - 1));
+            on_extruders_change(extruder_count);
+            wxGetApp().preset_bundle->printers.get_edited_preset().set_num_extruders(extruder_count);
+            wxGetApp().preset_bundle->update_multi_material_filament_presets();
+        });
+
+        // init first combo box
+        *combo = new PlaterPresetComboBox(p->presets_panel, preset_type);
+        auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
+        combo_and_btn_sizer->Add(new wxStaticText(p->presets_panel, wxID_ANY, "1"), 0,
+            wxALIGN_CENTER_VERTICAL | wxRIGHT, 15);
+        combo_and_btn_sizer->Add(*combo, 1, wxEXPAND);
+        if ((*combo)->clr_picker) {
+            Slic3r::DynamicPrintConfig* config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({ "extruder_colour" }));
+            const std::string& txt_color = config->opt_string("extruder_colour", (unsigned int)0);
+            wxColor color;
+            unsigned char rgb[3];
+            if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb))
+            {
+                color.Set(rgb[0], rgb[1], rgb[2]);
+                (*combo)->clr_picker->SetColour(color);
+            }
+            combo_and_btn_sizer->Add((*combo)->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT,
+                int(0.3 * wxGetApp().em_unit()));
         }
+
+        auto* sizer_presets = this->p->sizer_presets;
+        auto* sizer_filaments = this->p->sizer_filaments;
+        sizer_presets->Add(title_sizer, 0, wxALIGN_LEFT | wxEXPAND | wxTOP, 12);
+
+        sizer_filaments->Add(combo_and_btn_sizer, 0, wxEXPAND | wxBOTTOM, 1);
+        (*combo)->set_extruder_idx(0);
+        sizer_presets->Add(sizer_filaments, 1, wxEXPAND);
     };
 
     p->combos_filament.push_back(nullptr);
-    init_combo(&p->combo_print,         _L("Print settings"),     Preset::TYPE_PRINT,         false);
+    init_print_combo(&p->combo_print, _L("Print settings"), Preset::TYPE_PRINT);
     // BBS
-    init_combo(&p->combos_filament[0],  _L("AMS"),                Preset::TYPE_FILAMENT,      true);
+    init_filament_combo(&p->combos_filament[0], _L("Filament"), Preset::TYPE_FILAMENT);
     //init_combo(&p->combo_sla_print,     _L("SLA print settings"), Preset::TYPE_SLA_PRINT,     false);
     //init_combo(&p->combo_sla_material,  _L("SLA material"),       Preset::TYPE_SLA_MATERIAL,  false);
     //init_combo(&p->combo_printer,       _L("Printer"),            Preset::TYPE_PRINTER,       false);
@@ -1337,6 +1364,35 @@ void Sidebar::jump_to_option(size_t selected)
 
     // Switch to the Settings NotePad
 //    wxGetApp().mainframe->select_tab();
+}
+
+// BBS. Move logic from Plater::on_extruders_change() to Sidebar::on_extruders_change().
+void Sidebar::on_extruders_change(size_t num_extruders)
+{
+    auto& choices = combos_filament();
+
+    if (num_extruders == choices.size())
+        return;
+
+    wxWindowUpdateLocker noUpdates_scrolled_panel(this);
+
+    size_t i = choices.size();
+    while (i < num_extruders)
+    {
+        PlaterPresetComboBox* choice/*{ nullptr }*/;
+        init_filament_combo(&choice, i);
+        choices.push_back(choice);
+
+        // initialize selection
+        choice->update();
+        ++i;
+    }
+
+    // remove unused choices if any
+    remove_unused_filament_combos(num_extruders);
+
+    scrolled_panel()->Layout();
+    scrolled_panel()->Refresh();
 }
 
 // BBS
@@ -7412,32 +7468,10 @@ bool Plater::search_string_getter(int idx, const char** label, const char** tool
     return false;
 }
 
+// BBS.
 void Plater::on_extruders_change(size_t num_extruders)
 {
-    auto& choices = sidebar().combos_filament();
-
-    if (num_extruders == choices.size())
-        return;
-
-    wxWindowUpdateLocker noUpdates_scrolled_panel(&sidebar()/*.scrolled_panel()*/);
-
-    size_t i = choices.size();
-    while ( i < num_extruders )
-    {
-        PlaterPresetComboBox* choice/*{ nullptr }*/;
-        sidebar().init_filament_combo(&choice, i);
-        choices.push_back(choice);
-
-        // initialize selection
-        choice->update();
-        ++i;
-    }
-
-    // remove unused choices if any
-    sidebar().remove_unused_filament_combos(num_extruders);
-
-    sidebar().Layout();
-    sidebar().scrolled_panel()->Refresh();
+    sidebar().on_extruders_change(num_extruders);
 }
 
 bool Plater::update_filament_colors_in_full_config()

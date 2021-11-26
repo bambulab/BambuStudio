@@ -280,7 +280,9 @@ public:
 	Field*		get_fieldc(const t_config_option_key& opt_key, int opt_index);
 	std::pair<OG_CustomCtrl*, bool*>	get_custom_ctrl_with_blinking_ptr(const t_config_option_key& opt_key, int opt_index/* = -1*/);
 
-private:
+	// BBS. Change private to protected to make change_opt_value() method available to
+	// its child class.
+protected:
     // Reference to libslic3r config or ModelConfig::get(), non-owning pointer.
     // The reference is const, so that the spots which modify m_config are clearly
     // demarcated by const_cast and m_config_changed_callback is called afterwards.
@@ -293,6 +295,17 @@ private:
 
     // Change an option on m_config, possibly call ModelConfig::touch().
 	void 	change_opt_value(const t_config_option_key& opt_key, const boost::any& value, int opt_index = 0);
+};
+
+// BBS. Add ExtruderOptionsGroup to change all members in vector option.
+// It is designed for single extruder multiple material machine.
+class ExtruderOptionsGroup : public ConfigOptionsGroup {
+public:
+	ExtruderOptionsGroup(wxWindow* parent, const wxString& title, DynamicPrintConfig* config = nullptr,
+		bool is_tab_opt = false, column_t extra_clmn = nullptr) :
+		ConfigOptionsGroup(parent, title, config, is_tab_opt, extra_clmn) {}
+
+	void on_change_OG(const t_config_option_key& opt_id, const boost::any& value) override;
 };
 
 //  Static text shown among the options.

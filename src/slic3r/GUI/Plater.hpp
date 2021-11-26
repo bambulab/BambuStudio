@@ -117,6 +117,8 @@ public:
     void search();
     void jump_to_option(size_t selected);
     void jump_to_option(const std::string& opt_key, Preset::Type type, const std::wstring& category);
+    // BBS. Add on_extruders_change() method.
+    void on_extruders_change(size_t num_extruders);
 
     // BBS
     //ObjectManipulation*     obj_manipul();

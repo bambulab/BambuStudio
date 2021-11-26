@@ -2424,6 +2424,8 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("max_print_height");
         optgroup->append_single_option_line("z_offset");
 
+        // BBS
+#if 0
         optgroup = page->new_optgroup(L("Capabilities"));
         ConfigOptionDef def;
             def.type =  coInt,
@@ -2487,13 +2489,15 @@ void TabPrinter::build_fff()
                 }
             });
         };
+#endif
 
         build_print_host_upload_group(page.get());
 
         optgroup = page->new_optgroup(L("Firmware"));
         optgroup->append_single_option_line("gcode_flavor");
 
-        option = optgroup->get_option("thumbnails");
+        // BBS
+        Option option = optgroup->get_option("thumbnails");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
 
@@ -2877,14 +2881,27 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
         }
     }
 
+    // BBS. Just create one extruder page because BBL machine has only on physical extruder.
     // Build missed extruder pages
-    for (auto extruder_idx = m_extruders_count_old; extruder_idx < m_extruders_count; ++extruder_idx) {
+    //for (auto extruder_idx = m_extruders_count_old; extruder_idx < m_extruders_count; ++extruder_idx)
+    auto extruder_idx = 0;
+    const wxString& page_name = wxString::Format("Extruder %d", int(extruder_idx + 1));
+    bool page_exist = false;
+    for (auto page_temp : m_pages) {
+        if (page_temp->title() == page_name) {
+            page_exist = true;
+            break;
+        }
+    }
+    
+    if (!page_exist)
+    {
         //# build page
-        const wxString& page_name = wxString::Format("Extruder %d", int(extruder_idx + 1));
+        //const wxString& page_name = wxString::Format("Extruder %d", int(extruder_idx + 1));
         auto page = add_options_page(page_name, "funnel", true);
         m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
 
-            auto optgroup = page->new_optgroup(L("Size"));
+            auto optgroup = page->new_optgroup(L("Size"), -1, true);
             optgroup->append_single_option_line("nozzle_diameter", "", extruder_idx);
 
             optgroup->m_on_change = [this, extruder_idx](const t_config_option_key& opt_key, boost::any value)
@@ -2923,15 +2940,15 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
                 update();
             };
 
-            optgroup = page->new_optgroup(L("Layer height limits"));
+            optgroup = page->new_optgroup(L("Layer height limits"), -1, true);
             optgroup->append_single_option_line("min_layer_height", "", extruder_idx);
             optgroup->append_single_option_line("max_layer_height", "", extruder_idx);
 
 
-            optgroup = page->new_optgroup(L("Position (for multi-extruder printers)"));
+            optgroup = page->new_optgroup(L("Position (for multi-extruder printers)"), -1, true);
             optgroup->append_single_option_line("extruder_offset", "", extruder_idx);
 
-            optgroup = page->new_optgroup(L("Retraction"));
+            optgroup = page->new_optgroup(L("Retraction"), -1, true);
             optgroup->append_single_option_line("retract_length", "", extruder_idx);
             optgroup->append_single_option_line("retract_lift", "", extruder_idx);
                 Line line = { L("Only lift Z"), "" };
@@ -2949,11 +2966,11 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             optgroup->append_single_option_line("wipe_distance", "", extruder_idx);
             optgroup->append_single_option_line("retract_before_wipe", "", extruder_idx);
 
-            optgroup = page->new_optgroup(L("Retraction when tool is disabled (advanced settings for multi-extruder setups)"));
+            optgroup = page->new_optgroup(L("Retraction when tool is disabled (advanced settings for multi-extruder setups)"), -1, true);
             optgroup->append_single_option_line("retract_length_toolchange", "", extruder_idx);
             optgroup->append_single_option_line("retract_restart_extra_toolchange", "", extruder_idx);
 
-            optgroup = page->new_optgroup(L("Preview"));
+            optgroup = page->new_optgroup(L("Preview"), -1, true);
 
             auto reset_to_filament_color = [this, extruder_idx](wxWindow* parent) {
                 m_reset_to_filament_color = new ScalableButton(parent, wxID_ANY, "undo", _L("Reset to Filament Color"), 
@@ -2984,10 +3001,13 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             optgroup->append_line(line);
     }
 
+    // BBS. No extra extruder page for single physical extruder machine
     // # remove extra pages
+#if 0
     if (m_extruders_count < m_extruders_count_old)
         m_pages.erase(	m_pages.begin() + n_before_extruders + m_extruders_count,
                         m_pages.begin() + n_before_extruders + m_extruders_count_old);
+#endif
 
     Thaw();
 
@@ -4505,10 +4525,11 @@ bool Page::set_value(const t_config_option_key& opt_key, const boost::any& value
 }
 
 // package Slic3r::GUI::Tab::Page;
-ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_label_width /*= -1*/)
+ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_label_width /*= -1*/, bool is_extruder_og /* false */)
 {
     //! config_ have to be "right"
-    ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(m_parent, title, m_config, true);
+    ConfigOptionsGroupShp optgroup = is_extruder_og ? std::make_shared<ExtruderOptionsGroup>(m_parent, title, m_config, true)
+        : std::make_shared<ConfigOptionsGroup>(m_parent, title, m_config, true);
     if (noncommon_label_width >= 0)
         optgroup->label_width = noncommon_label_width;
 

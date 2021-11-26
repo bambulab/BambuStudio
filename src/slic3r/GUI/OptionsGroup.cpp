@@ -989,6 +989,37 @@ void ConfigOptionsGroup::change_opt_value(const t_config_option_key& opt_key, co
 		m_modelconfig->touch();
 }
 
+// BBS
+void ExtruderOptionsGroup::on_change_OG(const t_config_option_key& opt_id, const boost::any& value)
+{
+    if (!m_opt_map.empty())
+    {
+        auto it = m_opt_map.find(opt_id);
+        if (it == m_opt_map.end())
+        {
+            OptionsGroup::on_change_OG(opt_id, value);
+            return;
+        }
+
+        auto 				itOption = it->second;
+        const std::string& opt_key = itOption.first;
+
+        auto opt = m_config->option(opt_key);
+        const ConfigOptionVectorBase* opt_vec = dynamic_cast<const ConfigOptionVectorBase*>(opt);
+        if (opt_vec != nullptr) {
+            for (int opt_index = 0; opt_index < opt_vec->size(); opt_index++) {
+                this->change_opt_value(opt_key, value, opt_index);
+            }
+        }
+        else {
+            int opt_index = itOption.second;
+            this->change_opt_value(opt_key, value, opt_index == -1 ? 0 : opt_index);
+        }
+    }
+
+    OptionsGroup::on_change_OG(opt_id, value);
+}
+
 wxString OptionsGroup::get_url(const std::string& path_end)
 {
     if (path_end.empty())
