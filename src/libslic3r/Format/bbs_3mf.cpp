@@ -1047,6 +1047,9 @@ namespace Slic3r {
                 for (const Metadata& metadata : obj_metadata->second.metadata) {
                     if (metadata.key == "name")
                         model_object->name = metadata.value;
+                    //BBS: add module name
+                    else if (metadata.key == "module")
+                        model_object->module_name = metadata.value;
                     else
                         model_object->config.set_deserialize(metadata.key, metadata.value, config_substitutions);
                 }
@@ -3913,6 +3916,10 @@ namespace Slic3r {
                 // stores object's name
                 if (!obj->name.empty())
                     stream << "    <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << OBJECT_TYPE << "\" " << KEY_ATTR << "=\"name\" " << VALUE_ATTR << "=\"" << xml_escape(obj->name) << "\"/>\n";
+
+                //BBS: store object's module name
+                if (!obj->module_name.empty())
+                    stream << "    <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << OBJECT_TYPE << "\" " << KEY_ATTR << "=\"module\" " << VALUE_ATTR << "=\"" << xml_escape(obj->module_name) << "\"/>\n";
 
                 // stores object's config data
                 for (const std::string& key : obj->config.keys()) {

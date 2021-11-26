@@ -7660,16 +7660,19 @@ msgid ""
 msgstr "如果启用, 所有打印挤出机都将在打印开始时在构建板的前缘进行装填。"
 
 #: src/libslic3r/PrintConfig.cpp:1829
-msgid "Generate support material"
-msgstr "生成支撑材料"
+msgid "Generate support"
+msgstr "生成支撑"
 
 #: src/libslic3r/PrintConfig.cpp:1831
-msgid "Enable support material generation."
-msgstr "启用支撑材料生成。"
+msgid "Enable support generation."
+msgstr "启用支撑生成。"
 
 #: src/libslic3r/PrintConfig.cpp:1835
 msgid "Auto generated supports"
 msgstr "自动生成支撑"
+
+msgid "Support type"
+msgstr "支撑类型"
 
 #: src/libslic3r/PrintConfig.cpp:1837
 msgid ""

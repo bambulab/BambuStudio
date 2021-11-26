@@ -75,6 +75,7 @@ class PartPlate : public ObjectBase
     PrinterTechnology  printer_technology;
 
     std::set<std::pair<int, int>> obj_to_instance_set;
+    std::set<std::pair<int, int>> instance_outside_set;
     int m_plate_index;
     Vec3d m_origin;
     int m_width;
@@ -188,7 +189,9 @@ public:
     /* instance related operations*/
     //judge whether instance is bound in plate or not
     bool contain_instance(int obj_id, int instance_id);
-    bool contain_instance(ModelObject* object, int instance_id);
+    bool contain_instance_totally(ModelObject* object, int instance_id);
+    //judge whether instance is totally included in plate or not
+    bool contain_instance_totally(int obj_id, int instance_id);
 
     //judge whether the plate's origin is at the left of instance or not
     bool is_left_top_of(int obj_id, int instance_id);
@@ -204,6 +207,9 @@ public:
 
     //remove instance from plate
     int remove_instance(int obj_id, int instance_id);
+
+    //update instance exclude state
+    void update_instance_exclude_status(int obj_id, int instance_id);
 
     //whether it is empty
     bool empty() { return obj_to_instance_set.empty(); }
@@ -273,19 +279,27 @@ public:
 
     template<class Archive> void load(Archive& ar) {
         std::vector<std::pair<int, int>>	objects_and_instances;
+        std::vector<std::pair<int, int>>	instances_outside;
 
-        ar(m_plate_index, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_printable, m_tmp_gcode_path, objects_and_instances);
+        ar(m_plate_index, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside);
 
         for (std::vector<std::pair<int, int>>::iterator it = objects_and_instances.begin(); it != objects_and_instances.end(); ++it)
             obj_to_instance_set.insert(std::pair(it->first, it->second));
+
+        for (std::vector<std::pair<int, int>>::iterator it = instances_outside.begin(); it != instances_outside.end(); ++it)
+            instance_outside_set.insert(std::pair(it->first, it->second));
     }
     template<class Archive> void save(Archive& ar) const {
         std::vector<std::pair<int, int>>	objects_and_instances;
+        std::vector<std::pair<int, int>>	instances_outside;
+
+        for (std::set<std::pair<int, int>>::iterator it = instance_outside_set.begin(); it != instance_outside_set.end(); ++it)
+            instances_outside.emplace_back(it->first, it->second);
 
         for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
             objects_and_instances.emplace_back(it->first, it->second);
 
-        ar(m_plate_index, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_printable, m_tmp_gcode_path, objects_and_instances);
+        ar(m_plate_index, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside);
     }
     /*template<class Archive> void serialize(Archive& ar)
     {
@@ -408,7 +422,13 @@ public:
 
     /*instance related operations*/
     //find instance in which plate, return -1 when not found
+    //this function only judges whether it is intersect with plate
     int find_instance(int obj_id, int instance_id);
+
+    //find instance belongs to which plate
+    //this function not only judges whether it is intersect with plate, but also judges whether it is fully included in plate
+    //returns -1 when can not find any plate
+    int find_instance_belongs(int obj_id, int instance_id);
 
     //notify instance's update, need to refresh the instance in plates
     int notify_instance_update(int obj_id, int instance_id);

@@ -423,7 +423,7 @@ wxDataViewItem ObjectDataViewModel::AddPlate(PartPlate* part_plate, wxString nam
 
     for (int obj_idx = 0; obj_idx < m_objects.size(); obj_idx++) {
         auto obj_node = m_objects[obj_idx];
-        if (part_plate && part_plate->contain_instance(obj_idx, 0)) {
+        if (part_plate && part_plate->contain_instance_totally(obj_idx, 0)) {
             ReparentObject(plate_node, obj_node);
         }
     }
@@ -448,7 +448,7 @@ wxDataViewItem ObjectDataViewModel::AddObject(ModelObject* model_object, bool re
     ObjectDataViewModelNode* plate_node = nullptr;
     for (auto plate : m_plates) {
         if (plate->m_part_plate != nullptr &&
-            plate->m_part_plate->contain_instance(model_object, 0))
+            plate->m_part_plate->contain_instance_totally(model_object, 0))
         {
             plate_node = plate;
             plate_idx = plate->m_part_plate->get_index();

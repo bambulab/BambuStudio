@@ -130,6 +130,8 @@ public:
 
     // BBS
     AuxiliaryList*          aux_list();
+    //BBS: get project resource rectangle
+    wxRect                  get_project_resource_rect();
 
     ConfigOptionsGroup*     og_freq_chng_params(const bool is_fff);
     wxButton*               get_wiping_dialog_button();
@@ -532,6 +534,9 @@ public:
 	// Wrapper around wxWindow::PopupMenu to suppress error messages popping out while tracking the popup menu.
 	bool PopupMenu(wxMenu *menu, const wxPoint& pos = wxDefaultPosition);
     bool PopupMenu(wxMenu *menu, int x, int y) { return this->PopupMenu(menu, wxPoint(x, y)); }
+
+    //BBS: add popup logic for table object
+    bool PopupObjectTable(int object_id, int volume_id, const wxPoint& position);
 
     // get same Plater/ObjectList menus
     wxMenu* plate_menu();

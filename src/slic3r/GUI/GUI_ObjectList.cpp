@@ -605,7 +605,7 @@ void ObjectList::update_plate_values_for_items()
         wxDataViewItem item = m_objects_model->GetItemById(i);
         if (!item) continue;
 
-        int plate_idx = list.find_instance(i, 0);
+        int plate_idx = list.find_instance_belongs(i, 0);
         wxDataViewItem old_parent = m_objects_model->GetParent(item);
         ObjectDataViewModelNode* old_parent_node = (ObjectDataViewModelNode*)old_parent.GetID();
         int old_plate_idx = old_parent_node->GetPlateIdx();
@@ -1030,8 +1030,13 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
 	    const wxString title = col->GetTitle();
 	    if (title == " ")
 	        toggle_printable_state();
-	    else if (title == _("Editing"))
-	        show_context_menu(evt_context_menu);
+        else if (title == _("Editing")) {
+            //show_context_menu(evt_context_menu);
+            int obj_idx, vol_idx;
+
+            get_selected_item_indexes(obj_idx, vol_idx, item);
+            wxGetApp().plater()->PopupObjectTable(obj_idx, vol_idx, mouse_pos);
+        }
         else if (title == _("Name"))
         {
             if (is_windows10() && m_objects_model->HasWarningIcon(item) &&
@@ -2844,7 +2849,7 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
     //BBS start add obj_idx for debug
     PartPlateList& list = wxGetApp().plater()->get_partplate_list();
     list.notify_instance_update(obj_idx, 0);
-    //int plate_idx = list.find_instance(obj_idx, 0);
+    //int plate_idx = list.find_instance_belongs(obj_idx, 0);
     //std::string item_name_str = (boost::format("[P%1%][O%2%]%3%") % plate_idx % std::to_string(obj_idx) % model_object->name).str();
     //std::string item_name_str = (boost::format("[P%1%]%2%") % plate_idx  % model_object->name).str();
     //const wxString& item_name = from_u8(item_name_str);
@@ -2875,7 +2880,7 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
         std::vector<int> plate_idicator(model_object->instances.size());
         for (size_t i = 0; i < model_object->instances.size(); ++i) {
             print_idicator[i] = model_object->instances[i]->printable;
-            plate_idicator[i] = list.find_instance(obj_idx, i);
+            plate_idicator[i] = list.find_instance_belongs(obj_idx, i);
         }
 
         const wxDataViewItem object_item = m_objects_model->GetItemById(obj_idx);

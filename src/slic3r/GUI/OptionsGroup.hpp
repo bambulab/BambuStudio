@@ -63,6 +63,12 @@ public:
 	wxWindow*	near_label_widget_win {nullptr};
     wxSizer*	widget_sizer {nullptr};
     wxSizer*	extra_widget_sizer {nullptr};
+    //BBS: export the extra colume widget
+    wxWindow*	extra_widget_win {nullptr};
+    //BBS: add api to get the first option's key
+    std::string& get_first_option_key() {
+        return m_options[0].opt_id;
+    }
 
     void append_option(const Option& option) {
         m_options.push_back(option);
@@ -128,6 +134,8 @@ public:
 	void		append_line(const Line& line);
 	// create controls for the option group
 	void		activate_line(Line& line);
+	//BBS: get line for opt_key
+	Line* get_line(const std::string& opt_key);
 
 	// create all controls for the option group from the m_lines
 	bool		activate(std::function<void()> throw_if_canceled = [](){}, int horiz_alignment = wxALIGN_LEFT);

@@ -593,6 +593,7 @@ void PartPlate::set_index(int index)
 void PartPlate::clear()
 {
 	obj_to_instance_set.clear();
+	instance_outside_set.clear();
 	m_ready_for_slice = true;
 	m_slice_result_valid = false;
 
@@ -738,7 +739,7 @@ bool PartPlate::contain_instance(int obj_id, int instance_id)
 }
 
 //judge whether instance is bound in plate or not
-bool PartPlate::contain_instance(ModelObject* object, int instance_id)
+bool PartPlate::contain_instance_totally(ModelObject* object, int instance_id)
 {
 	bool result = false;
 	int obj_id = -1;
@@ -753,11 +754,26 @@ bool PartPlate::contain_instance(ModelObject* object, int instance_id)
 	}
 
 	if ((obj_id >= 0 ) && (obj_id < m_model->objects.size()))
-		result = contain_instance(obj_id, instance_id);
+		result = contain_instance_totally(obj_id, instance_id);
 
 	return result;
 }
 
+//judge whether instance is totally included in plate or not
+bool PartPlate::contain_instance_totally(int obj_id, int instance_id)
+{
+	bool result = false;
+	std::set<std::pair<int, int>>::iterator it;
+
+	it = obj_to_instance_set.find(std::pair(obj_id, instance_id));
+	if (it != obj_to_instance_set.end()) {
+		it = instance_outside_set.find(std::pair(obj_id, instance_id));
+		if (it == instance_outside_set.end())
+			result = true;
+	}
+
+	return result;
+}
 
 //check whether instance is outside the plate or not
 bool PartPlate::check_outside(int obj_id, int instance_id)
@@ -875,6 +891,9 @@ int PartPlate::add_instance(int obj_id, int instance_id, bool move_position)
 
 	//need to judge whether this instance has an outer part
 	bool outside = check_outside(obj_id, instance_id);
+	if (outside)
+		instance_outside_set.insert(pair);
+
 	if (m_ready_for_slice && outside)
 	{
 		m_ready_for_slice = false;
@@ -906,8 +925,33 @@ int PartPlate::remove_instance(int obj_id, int instance_id)
 		result = -1;
 	}
 
+	it = instance_outside_set.find(std::pair(obj_id, instance_id));
+	if (it != instance_outside_set.end()) {
+		instance_outside_set.erase(it);
+	}
+
 	return result;
 }
+
+//update instance exclude state
+void PartPlate::update_instance_exclude_status(int obj_id, int instance_id)
+{
+	bool outside;
+	std::set<std::pair<int, int>>::iterator it;
+
+	outside = check_outside(obj_id, instance_id);
+
+	it = instance_outside_set.find(std::pair(obj_id, instance_id));
+	if (it == instance_outside_set.end()) {
+		if (outside)
+			instance_outside_set.insert(std::pair(obj_id, instance_id));
+	}
+	else {
+		if (!outside)
+			instance_outside_set.erase(it);
+	}
+}
+
 
 //whether it is has printable instances
 bool PartPlate::has_printable_instances()
@@ -921,7 +965,7 @@ bool PartPlate::has_printable_instances()
 		ModelObject* object = m_model->objects[obj_id];
 		ModelInstance* instance = object->instances[instance_id];
 
-		if (instance->printable)
+		if ((instance->printable)&&(instance_outside_set.find(std::pair(obj_id, instance_id)) == instance_outside_set.end()))
 		{
 			result = true;
 			break;
@@ -1191,6 +1235,13 @@ void PartPlate::print() const
 		int instance_id = it->second;
 
 		BOOST_LOG_TRIVIAL(trace) << boost::format("\t the %1%th instance, obj_id %2%, instance id %3%") % count++ % obj_id % instance_id;
+	}
+	BOOST_LOG_TRIVIAL(trace) << boost::format("\n excluded instance:");
+	for (std::set<std::pair<int, int>>::iterator it = instance_outside_set.begin(); it != instance_outside_set.end(); ++it) {
+		int obj_id = it->first;
+		int instance_id = it->second;
+
+		BOOST_LOG_TRIVIAL(trace) << boost::format("\t obj_id %1%, instance id %2%") % obj_id % instance_id;
 	}
 
 	return;
@@ -1840,6 +1891,7 @@ int PartPlateList::find_plate_by_print_index(int print_index)
 
 /*instance related operations*/
 //find instance in which plate, return -1 when not found
+//this function only judges whether it is intersect with plate
 int PartPlateList::find_instance(int obj_id, int instance_id)
 {
 	int ret = -1;
@@ -1851,6 +1903,26 @@ int PartPlateList::find_instance(int obj_id, int instance_id)
 		assert(plate != NULL);
 
 		if (plate->contain_instance(obj_id, instance_id))
+			return i;
+	}
+
+	//return -1 for not found
+	return ret;
+}
+
+//this function not only judges whether it is intersect with plate, but also judges whether it is fully included in plate
+//returns -1 when can not find any plate
+int PartPlateList::find_instance_belongs(int obj_id, int instance_id)
+{
+	int ret = -1;
+
+	//update the plates after it
+	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+	{
+		PartPlate* plate = m_plate_list[i];
+		assert(plate != NULL);
+
+		if (plate->contain_instance_totally(obj_id, instance_id))
 			return i;
 	}
 
@@ -1882,6 +1954,7 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 		{
 			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": still in original plate %1%, no need to be updated") % index;
 			plate->update_states();
+			plate->update_instance_exclude_status(obj_id, instance_id);
 			plate->update_slice_result_valid_state();
 			return 0;
 		}

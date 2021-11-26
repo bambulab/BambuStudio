@@ -245,6 +245,8 @@ class ModelObject final : public ObjectBase
 {
 public:
     std::string             name;
+    //BBS: add module name for assemble
+    std::string             module_name;
     std::string             input_file;    // XXX: consider fs::path
     // Instances of this ModelObject. Each instance defines a shift on the print bed, rotation around the Z axis and a uniform scaling.
     // Instances are owned by this ModelObject.
@@ -503,7 +505,7 @@ private:
         ar(cereal::base_class<ObjectBase>(this));
         Internal::StaticSerializationWrapper<ModelConfigObject const> config_wrapper(config);
         Internal::StaticSerializationWrapper<LayerHeightProfile const> layer_heigth_profile_wrapper(layer_height_profile);
-        ar(name, input_file, instances, volumes, config_wrapper, layer_config_ranges, layer_heigth_profile_wrapper,
+        ar(name, module_name, input_file, instances, volumes, config_wrapper, layer_config_ranges, layer_heigth_profile_wrapper,
             sla_support_points, sla_points_status, sla_drain_holes, printable, origin_translation,
             m_bounding_box, m_bounding_box_valid, m_raw_bounding_box, m_raw_bounding_box_valid, m_raw_mesh_bounding_box, m_raw_mesh_bounding_box_valid);
     }
@@ -516,7 +518,7 @@ private:
         std::vector<ObjectID> volume_ids;
         std::transform(volumes.begin(), volumes.end(), std::back_inserter(volume_ids), std::mem_fn(&ObjectBase::id));
         volumes.clear();
-        ar(name, input_file, instances, volumes, config_wrapper, layer_config_ranges, layer_heigth_profile_wrapper,
+        ar(name, module_name, input_file, instances, volumes, config_wrapper, layer_config_ranges, layer_heigth_profile_wrapper,
             sla_support_points, sla_points_status, sla_drain_holes, printable, origin_translation,
             m_bounding_box, m_bounding_box_valid, m_raw_bounding_box, m_raw_bounding_box_valid, m_raw_mesh_bounding_box, m_raw_mesh_bounding_box_valid);
         std::vector<ObjectID> volume_ids2;

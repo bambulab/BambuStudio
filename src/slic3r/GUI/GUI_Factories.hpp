@@ -19,15 +19,28 @@ enum class ModelVolumeType : int;
 
 namespace GUI {
 
+struct SimpleSettingData
+{
+    std::string name;
+    std::string label;
+    int priority;
+};
+
 struct SettingsFactory
 {
 //				     category ->       vector ( option )
     typedef std::map<std::string, std::vector<std::string>> Bundle;
     static std::map<std::string, std::string>               CATEGORY_ICON;
 
+    //BBS: add setting data for table
+    static std::map<std::string, std::vector<SimpleSettingData>>  OBJECT_CATEGORY_SETTINGS;
+    static std::map<std::string, std::vector<SimpleSettingData>>  PART_CATEGORY_SETTINGS;
+
     static wxBitmap                             get_category_bitmap(const std::string& category_name, bool menu_bmp = true);
     static Bundle                               get_bundle(const DynamicPrintConfig* config, bool is_object_settings);
     static std::vector<std::string>             get_options(bool is_part);
+    //BBS: add api to get options for catogary
+    static std::vector<SimpleSettingData> get_visible_options(const std::string& category, const bool is_part);
 };
 
 class MenuFactory

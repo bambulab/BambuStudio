@@ -279,7 +279,7 @@ void PrintConfigDef::init_common_params()
 
     def = this->add("layer_height", coFloat);
     def->label = L("Layer height");
-    def->category = L("Layers and Perimeters");
+    def->category = L("Quality");
     def->tooltip = L("This setting controls the height (and thus the total number) of the slices/layers. "
                    "Thinner layers give better accuracy but take more time to print.");
     def->sidetext = L("mm");
@@ -389,6 +389,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("avoid_crossing_perimeters", coBool);
     def->label = L("Avoid crossing perimeters");
+    //BBS: change category from "Layers and Perimeters" to "Quality"
+    def->category = L("Quality");
     def->tooltip = L("Optimize travel moves in order to minimize the crossing of perimeters. "
                    "This is mostly useful with Bowden extruders which suffer from oozing. "
                    "This feature slows down both the print and the G-code generation.");
@@ -397,7 +399,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("avoid_crossing_perimeters_max_detour", coFloatOrPercent);
     def->label = L("Avoid crossing perimeters - Max detour length");
-    def->category = L("Layers and Perimeters");
+    //BBS: change category from "Layers and Perimeters" to "Quality"
+    def->category = L("Quality");
     def->tooltip = L("The maximum detour length for avoid crossing perimeters. "
                      "If the detour is longer than this value, avoid crossing perimeters is not applied for this travel path. "
                      "Detour length could be specified either as an absolute value or as percentage (for example 50%) of a direct travel path.");
@@ -443,7 +446,8 @@ void PrintConfigDef::init_fff_params()
     def = this->add("bottom_solid_layers", coInt);
     //TRN To be shown in Print Settings "Bottom solid layers"
     def->label = L("Bottom");
-    def->category = L("Layers and Perimeters");
+    //BBS: change category to Shell
+    def->category = L("Shell");
     def->tooltip = L("Number of solid layers to generate on bottom surfaces.");
     def->full_label = L("Bottom solid layers");
     def->min = 0;
@@ -452,7 +456,8 @@ void PrintConfigDef::init_fff_params()
     def = this->add("bottom_solid_min_thickness", coFloat);
     //TRN To be shown in Print Settings "Top solid layers"
     def->label = L("Bottom");
-    def->category = L("Layers and Perimeters");
+    //BBS: change category to Shell
+    def->category = L("Shell");
     def->tooltip = L("The number of bottom solid layers is increased above bottom_solid_layers if necessary to satisfy "
     				 "minimum thickness of bottom shell.");
     def->full_label = L("Minimum bottom shell thickness");
@@ -724,7 +729,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("ensure_vertical_shell_thickness", coBool);
     def->label = L("Ensure vertical shell thickness");
-    def->category = L("Layers and Perimeters");
+    //BBS: change category from "Layers and Perimeters" to "Shell"
+    def->category = L("Shell");
     def->tooltip = L("Add solid infill near sloping surfaces to guarantee the vertical shell thickness "
                    "(top+bottom solid layers).");
     def->mode = comDevelop;
@@ -791,7 +797,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("external_perimeters_first", coBool);
     def->label = L("External perimeters first");
-    def->category = L("Layers and Perimeters");
+    //BBS: change category from "Layers and Perimeters" to "Quality"
+    def->category = L("Quality");
     def->tooltip = L("Print contour perimeters from the outermost one to the innermost one "
                    "instead of the default inverse order.");
     def->mode = comExpert;
@@ -799,7 +806,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("extra_perimeters", coBool);
     def->label = L("Extra perimeters if needed");
-    def->category = L("Layers and Perimeters");
+    //BBS: change category from "Layers and Perimeters" to "Quality"
+    def->category = L("Quality");
     def->tooltip = L("Add more perimeters when needed for avoiding gaps in sloping walls. "
                    "Slic3r keeps adding perimeters, until more than 70% of the loop immediately above "
                    "is supported.");
@@ -1283,7 +1291,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("first_layer_height", coFloatOrPercent);
     def->label = L("First layer height");
-    def->category = L("Layers and Perimeters");
+    //BBS: change category from "Layers and Perimeters" to "Quality"
+    def->category = L("Quality");
     def->tooltip = L("When printing with very low layer heights, you might still want to print a thicker "
                    "bottom layer to improve adhesion and tolerance for non perfect build plates.");
     def->sidetext = L("mm");
@@ -1294,7 +1303,8 @@ void PrintConfigDef::init_fff_params()
     //BBS
     def = this->add("adaptive_layer_height", coBool);
     def->label = L("Adaptive layer height");
-    def->category = L("Layers and Perimeters");
+    //BBS: change category from "Layers and Perimeters" to "Quality"
+    def->category = L("Quality");
     def->tooltip = L("Enable this option and height will be automatically determined when slicing "
                    "according to the slope of surface. ");
     def->set_default_value(new ConfigOptionBool(0));
@@ -1625,7 +1635,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Force the generation of solid shells between adjacent materials/volumes. "
                    "Useful for multi-extruder prints with translucent materials or manual soluble "
                    "support material.");
-    def->category = L("Layers and Perimeters");
+    //BBS: change category from "Layers and Perimeters" to "Quality"
+    def->category = L("Quality");
     //BBS
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
@@ -2026,7 +2037,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("overhangs", coBool);
     def->label = L("Detect bridging perimeters");
-    def->category = L("Layers and Perimeters");
+    //BBS: change category from "Layers and Perimeters" to "Quality"
+    def->category = L("Quality");
     def->tooltip = L("Experimental option to adjust flow for overhangs (bridge flow will be used), "
                    "to apply bridge speed to them and enable fan.");
     def->mode = comAdvanced;
@@ -2095,7 +2107,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("perimeters", coInt);
     def->label = L("Perimeters");
-    def->category = L("Layers and Perimeters");
+    //BBS: change category from "Layers and Perimeters" to "Shell"
+    def->category = L("Shell");
     def->tooltip = L("This option sets the number of perimeters to generate for each layer. "
                    "Note that Slic3r may increase this number automatically when it detects "
                    "sloping surfaces which benefit from a higher number of perimeters "
@@ -2350,7 +2363,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("seam_position", coEnum);
     def->label = L("Seam position");
-    def->category = L("Layers and Perimeters");
+    //BBS: change category from "Layers and Perimeters" to "Quality"
+    def->category = L("Quality");
     def->tooltip = L("Position of perimeters starting points.");
     def->enum_keys_map = &ConfigOptionEnum<SeamPosition>::get_enum_values();
     def->enum_values.push_back("random");
@@ -2508,6 +2522,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("solid_layers", coInt);
     def->label = L("Solid layers");
+    //BBS: add category as Shell
+    def->category = L("Shell");
     def->tooltip = L("Number of solid layers to generate on top and bottom surfaces.");
     def->shortcut.push_back("top_solid_layers");
     def->shortcut.push_back("bottom_solid_layers");
@@ -2515,6 +2531,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("solid_min_thickness", coFloat);
     def->label = L("Minimum thickness of a top / bottom shell");
+    //BBS: add category as Shell
     def->tooltip = L("Minimum thickness of a top / bottom shell");
     def->shortcut.push_back("top_solid_min_thickness");
     def->shortcut.push_back("bottom_solid_min_thickness");
@@ -2645,9 +2662,10 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionEnum<SlicingMode>(SlicingMode::Regular));
 
     def = this->add("support_material", coBool);
-    def->label = L("Generate support material");
+    //BBS: remove material behind support
+    def->label = L("Generate support");
     def->category = L("Support material");
-    def->tooltip = L("Enable support material generation.");
+    def->tooltip = L("Enable support generation.");
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("support_type", coEnum);
@@ -3042,7 +3060,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("thin_walls", coBool);
     def->label = L("Detect thin walls");
-    def->category = L("Layers and Perimeters");
+    //BBS: change category from "Layers and Perimeters" to "Quality"
+    def->category = L("Quality");
     def->tooltip = L("Detect single-width walls (parts where two extrusions don't fit and we need "
                    "to collapse them into a single trace).");
     //BBS
@@ -3104,7 +3123,8 @@ void PrintConfigDef::init_fff_params()
     def = this->add("top_solid_layers", coInt);
     //TRN To be shown in Print Settings "Top solid layers"
     def->label = L("Top");
-    def->category = L("Layers and Perimeters");
+    //BBS: change category from "Layers and Perimeters" to "Shell"
+    def->category = L("Shell");
     def->tooltip = L("Number of solid layers to generate on top surfaces.");
     def->full_label = L("Top solid layers");
     def->min = 0;
@@ -3113,7 +3133,8 @@ void PrintConfigDef::init_fff_params()
     def = this->add("top_solid_min_thickness", coFloat);
     //TRN To be shown in Print Settings "Top solid layers"
     def->label = L("Top");
-    def->category = L("Layers and Perimeters");
+    //BBS: change category from "Layers and Perimeters" to "Shell"
+    def->category = L("Shell");
     def->tooltip = L("The number of top solid layers is increased above top_solid_layers if necessary to satisfy "
     				 "minimum thickness of top shell."
     				 " This is useful to prevent pillowing effect when printing with variable layer height.");

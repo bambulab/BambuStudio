@@ -103,6 +103,7 @@
 #include "BBLStatusBar.hpp"
 #include "BitmapCache.hpp"
 #include "Widgets/Label.hpp"
+#include "GUI_ObjectTable.hpp"
 
 #ifdef __APPLE__
 #include "Gizmos/GLGizmosManager.hpp"
@@ -1350,6 +1351,12 @@ AuxiliaryList* Sidebar::aux_list()
     return p->project_resource->get_auxiliary_list();
 }
 
+//BBS: get project resource rectangle
+wxRect Sidebar::get_project_resource_rect()
+{
+    return p->project_resource->GetRect();
+}
+
 ObjectSettings* Sidebar::obj_settings()
 {
     return p->object_settings;
@@ -1574,6 +1581,8 @@ struct Plater::priv
     bool m_slice_all{false};
     bool m_is_slicing {false};
     int m_cur_slice_plate;
+    //BBS: add popup object table logic
+    //ObjectTableDialog* m_popup_table{ nullptr };
 
 #if ENABLE_ENVIRONMENT_MAP
     GLTexture environment_texture;
@@ -1960,6 +1969,8 @@ struct Plater::priv
    
     //BBS: add print project related logic
     void update_fff_scene_only_shells();
+    //BBS: add popup object table logic
+    bool PopupObjectTable(int object_id, int volume_id, const wxPoint& position);
 private:
     bool layers_height_allowed() const;
 
@@ -5770,6 +5781,26 @@ void Plater::priv::bring_instance_forward() const
     }
 }
 
+//BBS: popup object table
+bool Plater::priv::PopupObjectTable(int object_id, int volume_id, const wxPoint& position)
+{
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" enter, create ObjectTableDialog");
+    ObjectTableDialog table_dialog(q, q, &model);
+    //m_popup_table = new ObjectTableDialog(q, q,  &model);
+
+    wxPoint pos;
+    pos.x = sidebar->GetRect().width;
+
+    wxRect rect = sidebar->get_project_resource_rect();
+    pos.y = sidebar->ClientToScreen(wxPoint(rect.x, rect.y)).y;
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": show ObjectTableDialog");
+    table_dialog.Popup(object_id, volume_id, pos);
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" finished, will destroy ObjectTableDialog");
+    return true;
+}
+
 void Sidebar::set_btn_label(const ActionButtonType btn_type, const wxString& label) const
 {
     switch (btn_type)
@@ -8658,6 +8689,13 @@ void Plater::bring_instance_forward()
 }
 
 // BBS
+//BBS: add popup logic for table object
+bool Plater::PopupObjectTable(int object_id, int volume_id, const wxPoint& position)
+{
+    return p->PopupObjectTable(object_id, volume_id, position);
+}
+
+
 wxMenu* Plater::plate_menu()            { return p->menus.plate_menu();             }
 wxMenu* Plater::object_menu()           { return p->menus.object_menu();            }
 wxMenu* Plater::part_menu()             { return p->menus.part_menu();              }

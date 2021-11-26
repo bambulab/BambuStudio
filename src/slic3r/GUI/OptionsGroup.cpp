@@ -206,6 +206,18 @@ void OptionsGroup::append_line(const Line& line)
         m_options_mode.push_back(option_set[0].opt.mode);
 }
 
+//BBS: get line for opt_key
+Line* OptionsGroup::get_line(const std::string& opt_key)
+{
+    for (int index = 0; index < m_lines.size(); index++)
+    {
+        if (m_lines[index].get_first_option_key() == opt_key)
+            return &(m_lines[index]);
+    }
+
+    return nullptr;
+}
+
 void OptionsGroup::append_separator()
 {
     m_lines.emplace_back(Line());
