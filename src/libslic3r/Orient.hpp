@@ -24,6 +24,7 @@ static const constexpr int UNORIENTD = -1;
 /// Zero is the physical bed, larger than zero means a virtual bed.
 struct OrientMesh { 
     TriangleMesh mesh;              /// The real mesh data
+    double overhang_angle = 30;
     double angle{ 0 };
     Vec3d axis{ 0,0,1 };
     Vec3d orientation{ 0,0,1 };

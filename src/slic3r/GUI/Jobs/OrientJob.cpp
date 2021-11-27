@@ -4,6 +4,7 @@
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI_ObjectManipulation.hpp"
+#include "libslic3r/PresetBundle.hpp"
 
 
 namespace Slic3r { namespace GUI {
@@ -26,21 +27,7 @@ void OrientJob::clear_input()
     m_unprintable.reserve(cunprint);
 }
 
-void OrientJob::prepare_all() {
-    clear_input();
-    
-    for (ModelObject* obj : m_plater->model().objects)
-    {
-        for (size_t inst_idx = 0; inst_idx < obj->instances.size(); ++inst_idx)
-        {
-            ModelInstance* mi = obj->instances[inst_idx];
-            auto& cont = mi->printable ? m_selected : m_unprintable;
-            cont.emplace_back(get_orient_mesh(mi, m_plater));
-        }
-    }
-}
-
-void OrientJob::prepare_selected() {
+void OrientJob::prepare() {
     clear_input();
     
     Model &model = m_plater->model();
@@ -65,12 +52,9 @@ void OrientJob::prepare_selected() {
             cont.emplace_back(std::move(om));
         }
     }
-    
-}
 
-void OrientJob::prepare()
-{
-    wxGetKeyState(WXK_SHIFT) ? prepare_selected() : prepare_all();
+    // If the selection was empty orient everything
+    if (m_selected.empty()) m_selected.swap(m_unselected);
 }
 
 void OrientJob::on_exception(const std::exception_ptr &eptr)
@@ -138,6 +122,27 @@ void OrientJob::finalize() {
     //wxGetApp().obj_manipul()->set_dirty();
 
     Job::finalize();
+}
+
+orientation::OrientMesh OrientJob::get_orient_mesh(ModelInstance* instance, const Plater* plater)
+{
+    using OrientMesh = orientation::OrientMesh;
+    OrientMesh om;
+    auto obj = instance->get_object();
+    om.name = obj->name;
+    om.mesh = obj->mesh(); // don't know the difference to obj->raw_mesh(). Both seem OK
+    if (obj->config.has("support_material_threshold"))
+        om.overhang_angle = obj->config.opt_int("support_material_threshold");
+    else {
+        const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
+        om.overhang_angle = config.opt_int("support_material_threshold");
+    }
+
+    om.setter = [instance, plater](const OrientMesh& p) {
+        instance->rotate(p.rotation_matrix);
+        instance->get_object()->ensure_on_bed();
+    };
+    return om;
 }
 
 }} // namespace Slic3r::GUI

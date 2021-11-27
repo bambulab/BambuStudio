@@ -51,6 +51,7 @@ namespace orientation {
 // management and spatial index structures for acceleration.
 class AutoOrienter {
 public:
+    OrientMesh* orient_mesh;
     TriangleMesh* mesh;
     TriangleMesh mesh_convex_hull;
     Eigen::MatrixXf normals, normals_hull;
@@ -66,14 +67,17 @@ public:
     std::function<void(unsigned)> progressind = { };  // default empty indicator function
     
 public:
-    AutoOrienter(TriangleMesh* mesh_,
+    AutoOrienter(OrientMesh* orient_mesh_,
                  const OrientParams           &params_,
                  std::function<void(unsigned)> progressind_,
                  std::function<bool(void)>     stopcond_)
     {
-        mesh = mesh_;
+        orient_mesh = orient_mesh_;
+        mesh = &orient_mesh->mesh;
         params = params_;
+        params.ASCENT = cos(PI - orient_mesh->overhang_angle * PI / 180); // use per-object overhang angle
         progressind = progressind_;
+        BOOST_LOG_TRIVIAL(info) << orient_mesh->name << ", angle=" << orient_mesh->overhang_angle;
 
         preprocess();
     }
@@ -414,7 +418,7 @@ void _orient(OrientMeshs& meshs_,
             auto& mesh_ = meshs_[i];
             progressfn(meshs_.size() - i, "Orienting " + std::to_string(i) + "-th item: " + mesh_.name);
             //auto progressfn_i = [&](unsigned cnt) {progressfn(cnt, "Orienting " + mesh_.name); };
-            AutoOrienter orienter(&mesh_.mesh, params, /*progressfn_i*/{}, stopfn);
+            AutoOrienter orienter(&mesh_, params, /*progressfn_i*/{}, stopfn);
             mesh_.orientation = orienter.process();
             rotation_from_two_vectors(mesh_.orientation, mesh_.axis, mesh_.angle, mesh_.rotation_matrix);
             BOOST_LOG_TRIVIAL(info) << std::fixed << std::setprecision(3) << "v,phi: " << mesh_.axis.transpose() << ", " << mesh_.angle;
@@ -426,7 +430,7 @@ void _orient(OrientMeshs& meshs_,
             for (size_t i = range.begin(); i != range.end(); ++i) {
                 auto& mesh_ = meshs_[i];
                 progressfn(range.size() - i, "Orienting " + std::to_string(i) + "-th item: " + mesh_.name);
-                AutoOrienter orienter(&mesh_.mesh, params, {}, stopfn);
+                AutoOrienter orienter(&mesh_, params, {}, stopfn);
                 mesh_.orientation = orienter.process();
                 rotation_from_two_vectors(mesh_.orientation, mesh_.axis, mesh_.angle, mesh_.rotation_matrix);
                 mesh_.euler_angles = Geometry::extract_euler_angles(mesh_.rotation_matrix);

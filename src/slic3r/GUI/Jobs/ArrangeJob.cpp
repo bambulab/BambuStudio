@@ -106,46 +106,6 @@ ArrangePolygon ArrangeJob::prepare_arrange_polygon(void* model_instance)
     return ap;
 }
 
-void ArrangeJob::prepare_all() {
-    Model& model = m_plater->model();
-    PartPlateList& plate_list = m_plater->get_partplate_list();
-
-    clear_input();
-
-    for (size_t oidx = 0; oidx < model.objects.size(); ++oidx)
-    {
-        ModelObject* mo = model.objects[oidx];
-        for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
-        {
-            ModelInstance* mi = mo->instances[inst_idx];
-            ArrangePolygons& cont = mi->printable ? m_selected : m_unprintable;
-            ArrangePolygon&& ap = prepare_arrange_polygon(mi);
-
-            //BBS: partplate_list preprocess
-            //remove the locked plate's instances, neither in selected, nor in un-selected
-            bool locked = plate_list.preprocess_arrange_polygon(oidx, inst_idx, ap, true);
-            if (!locked)
-            {
-                ap.itemid = cont.size();
-                cont.emplace_back(ap);
-            }
-            else
-            {
-                //skip this object due to be locked in plate
-                ap.itemid = m_locked.size();
-                m_locked.emplace_back(ap);
-                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%") % oidx % inst_idx;
-            }
-        }
-    }
-
-    //add the virtual object into unselect list if has
-    plate_list.preprocess_exclude_areas(m_unselected);
-
-    if (auto wti = get_wipe_tower_arrangepoly(*m_plater))
-        m_selected.emplace_back(std::move(*wti));
-}
-
 void ArrangeJob::prepare_selected() {
     PartPlateList& plate_list = m_plater->get_partplate_list();
 
@@ -307,7 +267,7 @@ void ArrangeJob::prepare()
     int state = m_plater->get_prepare_state();
     if (state == Job::JobPrepareState::PREPARE_STATE_DEFAULT) {
         only_on_partplate = false;
-        wxGetKeyState(WXK_SHIFT) ? prepare_selected() : prepare_all();
+        prepare_selected();
     }
     else if (state == Job::JobPrepareState::PREPARE_STATE_MENU) {
         only_on_partplate = true;   // only arrange items on current plate

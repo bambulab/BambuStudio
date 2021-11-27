@@ -4423,12 +4423,12 @@ bool GLCanvas3D::_render_orient_menu(float left, float right, float bottom, floa
 
     imgui->text(GUI::format_wxstr(_L("Press %1%left mouse button to enter the exact value"), shortkey_ctrl_prefix()));
 
-    if (imgui->slider_float(_L("Overhang Angle"), &settings.overhang_angle, angle_min, 90.0f, "%5.2f") || angle_min > settings.overhang_angle) {
-        settings.overhang_angle = std::max(angle_min, settings.overhang_angle);
-        settings_out.overhang_angle = settings.overhang_angle;
-        appcfg->set("orient", angle_key, std::to_string(settings_out.overhang_angle));
-        settings_changed = true;
-    }
+    //if (imgui->slider_float(_L("Overhang Angle"), &settings.overhang_angle, angle_min, 90.0f, "%5.2f") || angle_min > settings.overhang_angle) {
+    //    settings.overhang_angle = std::max(angle_min, settings.overhang_angle);
+    //    settings_out.overhang_angle = settings.overhang_angle;
+    //    appcfg->set("orient", angle_key, std::to_string(settings_out.overhang_angle));
+    //    settings_changed = true;
+    //}
 
     if (imgui->checkbox(_L("Enable rotation"), settings.enable_rotation)) {
         settings_out.enable_rotation = settings.enable_rotation;
@@ -5158,7 +5158,6 @@ bool GLCanvas3D::_init_main_toolbar()
     item.name = "orient";
     item.icon_filename = "orient.svg";
     item.tooltip = _utf8(L("Orient")) + " [O]\n"
-        + _utf8(L("Orient selection")) + " [Shift+O]\n"
         + _utf8(L("Click right mouse button to show auto-orientation options"));
     item.sprite_id++;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ORIENT)); };
@@ -5177,7 +5176,7 @@ bool GLCanvas3D::_init_main_toolbar()
 
     item.name = "arrange";
     item.icon_filename = "arrange.svg";
-    item.tooltip = _utf8(L("Arrange")) + " [A]\n" + _utf8(L("Arrange selection")) + " [Shift+A]\n" + _utf8(L("Click right mouse button to show arrangement options"));
+    item.tooltip = _utf8(L("Arrange")) + " [A]\n" + _utf8(L("Click right mouse button to show arrangement options"));
     item.sprite_id++;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ARRANGE)); };
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };
