@@ -4699,7 +4699,9 @@ void Plater::priv::on_action_print_plate(SimpleEvent&)
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received print plate event\n" ;
     }
-    q->send_gcode();
+    //BBS
+    SelectMachineDialog dlg(q, PLATE_CURRENT_IDX);
+    dlg.ShowModal();
 }
 
 void Plater::priv::on_action_select_sliced_plate(wxCommandEvent &evt)
@@ -4715,8 +4717,9 @@ void Plater::priv::on_action_print_all(SimpleEvent&)
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received print all event\n" ;
     }
-    //send first plate gcode
-    q->send_gcode(PLATE_ALL_IDX);
+    //BBS
+    SelectMachineDialog dlg(q, PLATE_ALL_IDX);
+    dlg.ShowModal();
 }
 
 void Plater::priv::on_action_export_gcode(SimpleEvent&)
@@ -4978,7 +4981,6 @@ int Plater::get_prepare_state()
 void Plater::get_print_job_data(PrintPrepareData* data)
 {
     if (data) {
-        data->machine_sn = p->m_print_job_data.machine_sn;
         data->plate_idx = p->m_print_job_data.plate_idx;
         data->_3mf_path = p->m_print_job_data._3mf_path;
     }
@@ -7358,16 +7360,6 @@ void Plater::send_gcode(int plate_idx)
         BOOST_LOG_TRIVIAL(trace) << "generate 3mf path failed";
     }
     export_3mf(p->m_print_job_data._3mf_path, true);
-
-    //BBS send gcode to printer
-    SelectMachineDialog dlg;
-    if (dlg.ShowModal() == wxID_OK) {
-        BOOST_LOG_TRIVIAL(trace) << "MachineDialog";
-        if (!dlg.machine_sn.empty()) {
-            p->m_print_job_data.machine_sn = dlg.machine_sn.ToStdString();
-            p->m_ui_jobs.print();
-        }
-    }
 
     // Repetier specific: Query the server for the list of file groups.
     /* BBS

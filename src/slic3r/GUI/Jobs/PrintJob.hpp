@@ -12,7 +12,6 @@ namespace Slic3r { namespace GUI {
 class PrintPrepareData
 {
 public:
-    std::string     machine_sn;
     int             plate_idx;
     fs::path        _3mf_path;
     PrintPrepareData() {
@@ -22,7 +21,8 @@ public:
 
 class PrintJob : public PlaterJob
 {
-    PrintPrepareData job_data;
+    PrintPrepareData    job_data;
+    std::string         m_dev_id;
 
 protected:
 
@@ -30,8 +30,9 @@ protected:
 
     void on_exception(const std::exception_ptr &) override;
 public:
-    PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater)
-        : PlaterJob{std::move(pri), plater}
+    PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater, std::string dev_id = "")
+        : PlaterJob{std::move(pri), plater},
+        m_dev_id(dev_id)
     {}
 
     int status_range() const override

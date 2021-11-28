@@ -477,62 +477,78 @@ void SelectMachinePopup::on_timer(wxTimerEvent& event)
     account_manager->request_bind_list();
 }
 
-SelectMachineDialog::SelectMachineDialog()
+SelectMachineDialog::SelectMachineDialog(Plater* plater, int print_plate_idx)
 	: DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("Select Printer"), wxDefaultPosition,
-	wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+	wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
+    m_plater(plater),
+    m_print_plate_idx(print_plate_idx)
+    
 {
     /* auto created by wxFormBuilder */
-    //this->SetSizeHints(wxSize(550, 480), wxSize(1920, 1280));
+    this->SetSizeHints( wxSize( 550,480 ), wxSize( 1920,1280 ) );
 
-    wxBoxSizer* bSizer;
-    bSizer = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer* bSizer;
+	bSizer = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer* bSizer_machines;
-    bSizer_machines = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer* bSizer_machines;
+	bSizer_machines = new wxBoxSizer( wxVERTICAL );
 
-    bSizer_machines->SetMinSize(wxSize(-1, 300));
-    m_dataViewListCtrl_machines = new wxDataViewCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
-    bSizer_machines->Add(m_dataViewListCtrl_machines, 1, wxALL | wxEXPAND, 5);
-
-
-    bSizer->Add(bSizer_machines, 1, wxALL | wxEXPAND, 5);
-
-    wxBoxSizer* bSizer_tips;
-    bSizer_tips = new wxBoxSizer(wxHORIZONTAL);
-
-    m_staticText_left = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_left->Wrap(-1);
-    bSizer_tips->Add(m_staticText_left, 0, wxALIGN_CENTER | wxALL, 5);
+	bSizer_machines->SetMinSize( wxSize( -1,300 ) );
+	m_dataViewListCtrl_machines = new wxDataViewCtrl( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer_machines->Add( m_dataViewListCtrl_machines, 1, wxALL|wxEXPAND, 5 );
 
 
-    bSizer_tips->Add(0, 0, 1, wxEXPAND, 5);
+	bSizer->Add( bSizer_machines, 1, wxALL|wxEXPAND, 5 );
 
-    m_hyperlink_add_machine = new wxHyperlinkCtrl(this, wxID_ANY, wxT("how to add a printer?"), wxT("http://www.wxformbuilder.org"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
-    bSizer_tips->Add(m_hyperlink_add_machine, 0, wxALIGN_CENTER | wxALIGN_RIGHT | wxALL | wxRIGHT, 5);
+	wxBoxSizer* bSizer_tips;
+	bSizer_tips = new wxBoxSizer( wxHORIZONTAL );
 
-
-    bSizer->Add(bSizer_tips, 0, wxEXPAND, 5);
-
-    wxBoxSizer* bSizer_buttons;
-    bSizer_buttons = new wxBoxSizer(wxHORIZONTAL);
+	m_staticText_left = new wxStaticText( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_left->Wrap( -1 );
+	bSizer_tips->Add( m_staticText_left, 0, wxALIGN_CENTER|wxALL, 5 );
 
 
-    bSizer_buttons->Add(0, 0, 1, wxEXPAND, 5);
+	bSizer_tips->Add( 0, 0, 1, wxEXPAND, 5 );
 
-    m_button_cancel = new wxButton(this, wxID_ANY, wxT("Cancel"), wxDefaultPosition, wxDefaultSize, 0);
-    bSizer_buttons->Add(m_button_cancel, 0, wxALIGN_CENTER | wxALL, 5);
-
-    m_button_ensure = new wxButton(this, wxID_ANY, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0);
-    bSizer_buttons->Add(m_button_ensure, 0, wxALIGN_CENTER | wxALL, 5);
+	m_hyperlink_add_machine = new wxHyperlinkCtrl( this, wxID_ANY, wxT("how to add a printer?"), wxT("http://www.wxformbuilder.org"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE );
+	bSizer_tips->Add( m_hyperlink_add_machine, 0, wxALIGN_CENTER|wxALIGN_RIGHT|wxALL|wxRIGHT, 5 );
 
 
-    bSizer->Add(bSizer_buttons, 0, wxEXPAND, 5);
+	bSizer->Add( bSizer_tips, 0, wxEXPAND, 5 );
 
 
-    this->SetSizer(bSizer);
-    this->Layout();
+	bSizer->Add( 0, 10, 0, wxEXPAND, 5 );
 
-    this->Centre(wxBOTH);
+	m_panel_status = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	bSizer->Add( m_panel_status, 0, wxEXPAND | wxALL, 5 );
+
+    /* add BBLStatusBar */
+    m_status_bar = std::make_shared<BBLStatusBar>(this);
+    m_panel_status = m_status_bar->get_panel();
+	bSizer->Add( m_panel_status, 0, wxEXPAND | wxALL, 0 );
+
+    bSizer->Add( 0, 10, 0, wxEXPAND, 5 );
+
+	wxBoxSizer* bSizer_buttons;
+	bSizer_buttons = new wxBoxSizer( wxHORIZONTAL );
+
+
+	bSizer_buttons->Add( 0, 0, 1, wxEXPAND, 5 );
+
+	m_button_cancel = new wxButton( this, wxID_ANY, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer_buttons->Add( m_button_cancel, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	m_button_ensure = new wxButton( this, wxID_ANY, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer_buttons->Add( m_button_ensure, 0, wxALIGN_CENTER|wxALL, 5 );
+
+
+	bSizer->Add( bSizer_buttons, 0, wxEXPAND, 5 );
+
+
+	this->SetSizer( bSizer );
+	this->Layout();
+
+	this->Centre( wxBOTH );
 
     this->SetSizeHints(wxSize(550, 480), wxSize(1920, 1280));
 
@@ -603,7 +619,29 @@ void SelectMachineDialog::on_cancel(wxCommandEvent& event)
 
 void SelectMachineDialog::on_ok(wxCommandEvent& event)
 {
-    this->EndModal(wxID_OK);
+    wxDataViewItem item = m_dataViewListCtrl_machines->GetSelection();
+    wxVariant val;
+    machine_model->GetValue(val, item, MachineListModel::Col_MachineSN);
+    std::string dev_id = val.GetString().ToStdString();
+
+    Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
+    std::map<std::string, MachineObject*>::iterator it = c->myBindMachineList.find(dev_id);
+    if (it == c->myBindMachineList.end()) {
+        m_status_bar->set_status_text("can not find printer = " + dev_id);
+        return;
+    }
+
+    if (!it->second->can_print()) {
+        m_status_bar->set_status_text("current printer is busy! please select another!");
+        return;
+    }
+
+    m_button_ensure->Disable();
+
+    m_plater->send_gcode(m_print_plate_idx);
+
+    PrintJob* print_job = new PrintJob(m_status_bar, m_plater, dev_id);
+    print_job->start();
 }
 
 void SelectMachineDialog::on_timer(wxTimerEvent& event)

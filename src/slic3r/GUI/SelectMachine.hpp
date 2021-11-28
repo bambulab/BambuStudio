@@ -25,6 +25,8 @@
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
 #include "DeviceManager.hpp"
+#include "Plater.hpp"
+#include "BBLStatusBar.hpp"
 
 
 namespace Slic3r { 
@@ -155,19 +157,25 @@ private:
     void init_bind();
     void init_timer();
 public:
-    SelectMachineDialog();
+    SelectMachineDialog(Plater* plater = nullptr, int print_plate_idx = 0);
     ~SelectMachineDialog();
 
     /* model */
     wxObjectDataPtr<MachineListModel> machine_model;
-    wxString machine_sn;
+    wxString        machine_sn;
+    wxString        current_dev_id;
+    Plater*         m_plater;
+    std::shared_ptr<BBLStatusBar> m_status_bar;
+    int             m_print_plate_idx;
 
 protected:
     wxDataViewCtrl* m_dataViewListCtrl_machines;
-    wxStaticText* m_staticText_left;
-    wxHyperlinkCtrl* m_hyperlink_add_machine;
-    wxButton* m_button_cancel;
-    wxButton* m_button_ensure;
+	wxStaticText* m_staticText_left;
+	wxHyperlinkCtrl* m_hyperlink_add_machine;
+	wxGauge* m_gauge_job_progress;
+	wxPanel* m_panel_status;
+	wxButton* m_button_cancel;
+	wxButton* m_button_ensure;
 
     wxTimer* m_refresh_timer;
 

@@ -1876,14 +1876,6 @@ void MainFrame::init_menubar_as_editor()
 #endif // __APPLE__
     }
 
-    // Model Website
-    auto modelWebSiteMenu = new wxMenu();
-    append_menu_item(modelWebSiteMenu, wxID_ANY, _L("My Project List"), _L("Browser Models in BBL WebSite"),
-        [](wxCommandEvent&) {
-            WebFrame *frame = new WebFrame("https://portal-dev.bambu-lab.com/");
-            frame->Show();
-        });
-
     // Help menu
     auto helpMenu = generate_help_menu();
 
@@ -1918,9 +1910,7 @@ void MainFrame::init_menubar_as_editor()
     m_topbar->AddDropDownSubMenu(windowMenu, _L("&Window"));
     if (viewMenu)
         m_topbar->AddDropDownSubMenu(viewMenu, _L("&View"));
-    wxGetApp().add_config_menu(m_topbar->GetTopMenu());
-    if (modelWebSiteMenu)
-        m_topbar->AddDropDownSubMenu(modelWebSiteMenu, _L("&Model Store"));
+    wxGetApp().add_config_menu(m_topbar->GetTopMenu());    
     m_topbar->AddDropDownSubMenu(helpMenu, _L("&Help"));
 
 #ifdef _MSW_DARK_MODE

@@ -42,23 +42,12 @@ void PrintJob::process()
         return;
     }
 
-    /* 1 - lan print task*/
-    std::map<std::string, MachineObject*>::iterator it = c->myBindMachineList.find(job_data.machine_sn);
+    std::map<std::string, MachineObject*>::iterator it = c->myBindMachineList.find(m_dev_id);
     if (it == c->myBindMachineList.end()) {
-        it = d->localMachineList.find(job_data.machine_sn);
-        if (it == d->localMachineList.end()) {
-            update_status(0, "can not find machine =" + job_data.machine_sn);
-            return;
-        }
-
-        /* create a subtask */
-        BBLSubTask* task = new BBLSubTask();
-        task->task_file = encode_path(plate->get_tmp_gcode_path().c_str());
-        it->second->send_print_subtask(task);
+        update_status(0, "can not find machine = " + m_dev_id);
         return;
     }
 
-    /* 2 - wan print task */
     // save project, profile, task, subtask info to local, default_output_file as project name
     std::string project_name;
     if (c->get_default_project())
@@ -155,7 +144,7 @@ void PrintJob::process()
             subTask->task_gcode_in_3mf = (boost::format(GCODE_FILE_FORMAT) % (curr_plate_idx)).str();
 
             subTask->task_partplate_idx = std::to_string(curr_plate_idx);
-            subTask->task_printer_dev_id = job_data.machine_sn;
+            subTask->task_printer_dev_id = m_dev_id;
             subTask->task_name = (boost::format("%1%_P%2%_T%3%") % profile->profile_name % curr_plate_idx %total_plate_num).str();
 
             task->subtasks.push_back(subTask);
@@ -187,7 +176,7 @@ void PrintJob::process()
         BBLSubTask* subTask = new BBLSubTask(task);
         subTask->task_gcode_in_3mf = (boost::format(GCODE_FILE_FORMAT) % (curr_plate_idx)).str();
         subTask->task_partplate_idx = std::to_string(curr_plate_idx);
-        subTask->task_printer_dev_id = job_data.machine_sn;
+        subTask->task_printer_dev_id = m_dev_id;
         subTask->task_name = (boost::format("%1%_P%2%_T%3%") % profile->profile_name % curr_plate_idx % total_subtask_num).str();
 
         task->subtasks.push_back(subTask);
@@ -221,7 +210,7 @@ void PrintJob::process()
     }
 
     //subTask url
-    MachineObject* obj = c->find_machine(job_data.machine_sn);
+    MachineObject* obj = c->find_machine(m_dev_id);
     if (obj) {
         BOOST_LOG_TRIVIAL(trace) << "print_job: send subtask";
         // upload and send to machine
