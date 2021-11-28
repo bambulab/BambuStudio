@@ -157,7 +157,7 @@ private:
 class SubTaskPanel : public wxPanel
 {
 	private:
-		
+		BBLSubTask m_subtask;
 
 	protected:
 		wxStaticBitmap* m_bitmap;

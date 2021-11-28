@@ -476,7 +476,27 @@ SubTaskPanel::~SubTaskPanel()
 
 void SubTaskPanel::on_subtask_print(wxCommandEvent& evt)
 {
-    //ensure print and start to print
+    int result = -1;
+    Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
+    MachineObject* obj = c->get_default_machine();
+    if (!obj->can_print()) {
+        wxMessageBox("Current Printer is Busy!");
+        return;
+    }
+    result = c->poll_3mf(&m_subtask);
+    if (result < 0 || m_subtask.task_url.empty()
+        || m_subtask.task_url.compare("null") == 0
+        || m_subtask.task_url_md5.empty()) {
+        wxMessageBox("poll 3mf failed!");
+        return;
+    }
+
+    result = obj->send_wan_print_subtask(&m_subtask);
+    if (result < 0)
+        wxMessageBox("Send Print Task Failed!");
+    else
+        wxMessageBox("Send Print Task Ok!");
+    
 }
 
 void SubTaskPanel::on_thumbnail_enter(wxMouseEvent& event)
@@ -528,6 +548,9 @@ void SubTaskPanel::set_value(wxString name, wxString prediction, wxString weight
 
 void SubTaskPanel::update_info(BBLSubTask subtask, BBLSliceInfo info)
 {
+    m_subtask = subtask;
+    m_subtask.task_gcode_in_3mf = info.gcode_dir + "/" + info.gcode_name;
+    m_subtask.task_url = info.gcode_url;
     wxString prediction = wxString::Format("%s", get_time_dhms(info.prediction));
     wxString weight = wxString::Format("%sg", info.weight);
     this->set_value(subtask.task_name, prediction, weight, info.thumbnail_url);
@@ -795,6 +818,29 @@ void MonitorPanel::Reset()
     obj = nullptr;
     last_task = nullptr;
     last_subtask = nullptr;
+
+    /* set default value */
+    m_gauge_progress->SetValue(0);
+    m_staticText_subtask_value->SetLabelText("N/A");
+    m_staticText_subtask_progress->SetLabelText("N/A");
+    m_staticText_progress_duration->SetLabelText("N/A");
+    m_staticText_progress_left->SetLabelText("N/A");
+    m_staticText_bed_current->SetLabelText("N/A");
+    m_staticText_nozzle_current->SetLabelText("N/A");
+    m_staticText_pocket_current->SetLabelText("N/A");
+    m_textCtrl_bed->SetLabelText("0");
+    m_textCtrl_nozzle->SetLabelText("0");
+
+    m_staticText_machine_name->SetLabelText("N/A");
+    m_staticText_printing_val->SetLabelText("N/A");
+    m_staticText_wifi_signal->SetLabelText("N/A");
+
+    /* reset task list */
+    task_panels.clear();
+    wxBoxSizer* bSizer_tasklist = new wxBoxSizer(wxVERTICAL);
+    m_scrolledWindow_tasklist->SetSizer(bSizer_tasklist);
+    bSizer_tasklist->Fit(m_scrolledWindow_tasklist);
+    m_scrolledWindow_tasklist->Layout();
 }
 
 void MonitorPanel::update_ams(MachineObject* obj)
@@ -812,6 +858,11 @@ void MonitorPanel::update_task(MachineObject* obj)
     if (last_task != obj->task_) {
         std::vector<BBLSubTask*>::iterator it;
         std::map<std::string, BBLSliceInfo*>::iterator iter;
+        
+        for (auto it = task_panels.begin(); it != task_panels.end();it++) {
+            delete it->second;
+        }
+
         task_panels.clear();
         for (it = obj->task_->subtasks.begin(); it != obj->task_->subtasks.end(); it++) {
             iter = obj->task_->slice_info.find((*it)->task_partplate_idx);
@@ -1285,6 +1336,7 @@ void MonitorPanel::on_xyz_abs(wxCommandEvent& event)
 void MonitorPanel::set_machine(std::string machine_sn)
 {
     this->machine_sn = machine_sn;
+    this->Reset();
 }
 
 

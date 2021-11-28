@@ -1390,16 +1390,14 @@ namespace Slic3r {
     int AccountManager::poll_3mf(BBLSubTask* task)
     {
         if (!task) return -1;
-        if (!task->parent_task_) return -1;
-        if (!task->parent_task_->profile_) return -1;
-        BBLProfile* profile = task->parent_task_->profile_;
+        if (task->parent_id.empty() || task->task_profile_id.empty() || task->task_project_id.empty()) return -1;
 
-        std::string ticket = (boost::format("%1%_%2%") % task->parent_task_->task_id % task->task_id).str();
+        std::string ticket = (boost::format("%1%_%2%") % task->parent_id % task->task_id).str();
         std::string gather = json_request_poll_3mf_gather(task);
         gather.erase(std::remove(gather.begin(), gather.end(), '\\'), gather.end());
         gather = Http::url_encode(gather);
-        std::string query_params = (boost::format("?profile_id=%1%&&ticket=%2%&&gather=%3%") % profile->profile_id % ticket % gather).str();
-        std::string url = (boost::format("%1%/iot/user/project/%2%%3%") % host % profile->project_id % query_params).str();
+        std::string query_params = (boost::format("?profile_id=%1%&&ticket=%2%&&gather=%3%") % task->task_profile_id % ticket % gather).str();
+        std::string url = (boost::format("%1%/iot/user/project/%2%%3%") % host % task->task_project_id % query_params).str();
         
         int retry_ = 0;
         int retry_max = POLL_3MF_TIMEOUT;
@@ -1441,7 +1439,7 @@ namespace Slic3r {
                     BOOST_LOG_TRIVIAL(info) << "get_project_info failed! body=" << body;
                 });
 
-        while (task->task_url.empty() && retry_ < retry_max) {
+        while (task->task_url.empty() || task->task_url.compare("null") == 0 && retry_ < retry_max) {
             http.perform_sync();
             retry_++;
             BOOST_LOG_TRIVIAL(trace) << "get_task_url, retry=" << retry_;
@@ -1652,7 +1650,7 @@ namespace Slic3r {
                                 pt::ptree subtask_node = root.get_child("subtask");
                                 task->subtasks.clear();
                                 for (auto subtask_item = subtask_node.begin(); subtask_item != subtask_node.end(); ++subtask_item) {
-                                    BBLSubTask* subtask = new BBLSubTask();
+                                    BBLSubTask* subtask = new BBLSubTask(task);
                                     subtask->task_id = subtask_item->second.get_optional<std::string>("task_id").value_or("");
                                     subtask->task_name = subtask_item->second.get_optional<std::string>("name").value_or("");
                                     subtask->task_create_time = subtask_item->second.get_optional<std::string>("create_time").value_or("");

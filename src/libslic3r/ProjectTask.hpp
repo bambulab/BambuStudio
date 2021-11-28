@@ -69,15 +69,23 @@ public:
     BBLSubTask(BBLTask* task = nullptr);
 
     BBLSubTask(const BBLSubTask& obj) {
-        task_id = obj.task_id;
-        task_name = obj.task_name;
-        task_partplate_idx = obj.task_partplate_idx;
+        task_id             = obj.task_id;
+        parent_id           = obj.parent_id;
+        task_project_id     = obj.task_project_id;
+        task_profile_id     = obj.task_profile_id;
+        task_name           = obj.task_name;
+        task_partplate_idx  = obj.task_partplate_idx;
         task_printer_dev_id = obj.task_printer_dev_id;
-        task_create_time = obj.task_create_time;
-        task_update_time = obj.task_update_time;
+        task_create_time    = obj.task_create_time;
+        task_update_time    = obj.task_update_time;
+        task_url            = obj.task_url;
+        task_url_md5        = obj.task_url_md5;
+        task_gcode_in_3mf   = obj.task_gcode_in_3mf;
     }
 
     std::string     task_id;            /* plate id */
+    std::string     task_project_id;    /* project id */
+    std::string     task_profile_id;    /* profile id*/
     std::string     task_name;          /* task name, generally filename as task name */
     std::string     task_file;          /* local full file path of 3mf or gcode */
     fs::path        task_path;          /* local path of 3mf or gcode */

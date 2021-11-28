@@ -52,6 +52,11 @@ namespace Slic3r {
     BBLSubTask::BBLSubTask(BBLTask* task)
     {
         parent_task_ = task;
+        if (task) {
+            parent_id = task->task_id;
+            task_project_id = task->task_project_id;
+            task_profile_id = task->task_profile_id;
+        }
         task_progress = 0;
     }
 
