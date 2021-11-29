@@ -489,7 +489,7 @@ void SubTaskPanel::on_subtask_print(wxCommandEvent& evt)
         || m_subtask.task_url_md5.empty()) {
         wxMessageBox("poll 3mf failed!");
         return;
-    }
+    }  
 
     result = obj->send_wan_print_subtask(&m_subtask);
     if (result < 0)

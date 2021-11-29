@@ -56,6 +56,182 @@ typedef pt::ptree JSON;
 
 namespace Slic3r {
 namespace GUI {
+
+void GcodePrintJob::prepare()
+{
+    ;
+}
+
+void GcodePrintJob::on_exception(const std::exception_ptr &eptr)
+{
+    try {
+        if (eptr)
+            std::rethrow_exception(eptr);
+    } catch (std::exception &e) {
+        Job::on_exception(eptr);
+    }
+}
+
+void GcodePrintJob::process()
+{
+    /* print current gcode */
+    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    fs::path gcode_path(m_gcode_file_str);
+    fs::path _3mf_path(gcode_path);
+
+    std::string dst_gcode_file_str = "Metadata/" + gcode_path.filename().string();
+
+    /* zip gcode to 3mf */
+    std::string _3mf_file_str = _3mf_path.replace_extension("3mf").string();
+    mz_zip_archive archive;
+    mz_zip_zero_struct(&archive);
+    if (!open_zip_writer(&archive, _3mf_file_str)) {
+        BOOST_LOG_TRIVIAL(trace) << "Unable to open the file";
+        return;
+    }
+
+    update_status(3, "prepare 3mf file");
+    mz_zip_writer_add_file(&archive, dst_gcode_file_str.c_str(), m_gcode_file_str.c_str(), "", 0, MZ_DEFAULT_COMPRESSION);
+    mz_zip_writer_finalize_archive(&archive);
+    close_zip_writer(&archive);
+
+    BBLProject* project = new BBLProject("gcode_project", BBLProject::ProjectType::PROJECT_3MF);
+    project->project_3mf_file = _3mf_file_str;
+    project->project_path = fs::path(project->project_3mf_file);
+
+    if (!fs::exists(project->project_path)) {
+        update_status(3, "prepare 3mf failed!");
+        return;
+    }
+
+    BOOST_LOG_TRIVIAL(trace) << "debug_print_job: request project id";
+    int res = account_manager->request_project_id(project);
+
+    if (res == 0 && !project->project_id.empty()) {
+        update_status(5, "request project id ok!");
+    } else {
+        BOOST_LOG_TRIVIAL(trace) << "request project id failed!";
+        update_status(3, "reqeust project id failed!");
+        return;
+    }
+
+    BBLProfile* profile = new BBLProfile(project);
+    profile->profile_name = "gcode_profile";
+    
+    BOOST_LOG_TRIVIAL(trace) << "print_job: request profile id";
+    res = account_manager->request_profile_id(profile,
+        [this](int result, std::string info) {
+            if (result == 0) {
+                update_status(10, "request profile id ok!");
+            }
+            else {
+                update_status(5, "request profile id failed!");
+            }
+        }
+        );
+
+    if (res == 0 && !profile->profile_id.empty()) {
+        update_status(10, "request profile id ok!");
+    }
+    else {
+        update_status(5, "request profile id failed!");
+        return;
+    }
+
+    /* upload and poll */
+    BOOST_LOG_TRIVIAL(trace) << "print_job: start to uploading...";
+    res = account_manager->upload_3mf(profile,
+    [this](int result, std::string info) {
+        if (result == 0) {
+            update_status(80, "upload 3mf ok!");
+        }
+        else {
+            update_status(10, "upload 3mf failed!");
+        }
+    },
+    [this](Http::Progress progress, bool &cancel) {
+        int percent = 0;
+        if (was_canceled()) {
+            cancel = true;
+            return;
+        }
+        if (progress.ultotal != 0) {
+            percent = progress.ulnow / progress.ultotal;
+        }
+        percent = 10 + percent * 70 / 100;
+        update_status(percent, "3mf uploading...");
+    },
+    true);
+
+    if (res < 0) {
+        update_status(0, "3mf uploading failed!");
+        return;
+    }
+
+    if (was_canceled()) {
+        update_status(0, "job is canceled");
+        return;
+    }
+
+    /* create Task */
+    BBLTask* task = new BBLTask(profile);
+    task->task_name = "gcode_task";
+
+    /* rqeust task id */
+    BOOST_LOG_TRIVIAL(trace) << "print_job: start to request_task_id";
+    account_manager->request_task_id(task);
+
+    if (!task->task_id.empty()) {
+        update_status(85, "request task id ok!");
+    }
+    else {
+        update_status(80, "request task id failed!");
+        return;
+    }
+
+    if (m_obj) {
+        /* create subtask info */
+        BBLSubTask* subtask = new BBLSubTask(task);
+        subtask->task_path = _3mf_path;
+        subtask->task_name = gcode_path.filename().string();
+        subtask->task_gcode_in_3mf = dst_gcode_file_str;
+        subtask->task_partplate_idx = "1";
+        subtask->task_printer_dev_id = m_obj->dev_id;
+
+        account_manager->request_subtask_id(subtask);
+        if (!subtask->task_id.empty()) {
+            update_status(90, "request subtask id ok!");
+        }
+        else {
+            update_status(80, "request subtask id failed!");
+            return;
+        }
+
+        res = account_manager->poll_3mf(subtask);
+        if (!subtask->task_url.empty() && !subtask->task_url_md5.empty()) {
+            update_status(95, "poll 3mf of task ok!");
+            BOOST_LOG_TRIVIAL(trace) << "get subtask url =" << subtask->task_url;
+        }
+        else {
+            update_status(90, "poll 3mf of task failed!");
+            return;
+        }
+
+        BOOST_LOG_TRIVIAL(trace) << "print_job: send subtask";
+        // upload and send to machine
+        m_obj->send_wan_print_subtask(subtask);
+        update_status(100, "send task ok!");
+    }
+}
+
+void GcodePrintJob::finalize() {
+    // Ignore the arrange result if aborted.
+    if (was_canceled()) return;
+
+    Job::finalize();
+}
+
+
     wxDECLARE_EVENT(EVT_3MF_PROGRESS, wxCommandEvent);
     wxDECLARE_EVENT(EVT_WLAN_GCODE_PROGRESS, wxCommandEvent);
     wxDECLARE_EVENT(EVT_WLAN_3MF_PROGRESS, wxCommandEvent);
@@ -433,106 +609,21 @@ void DebugToolDialog::init()
 
     btn_run_gcode->Bind(wxEVT_BUTTON,
         [this](wxCommandEvent& evt) {
-            if (radio_btn_lan->GetValue()) {
 
-                if (gcode_uploading) {
-                    this->send_log_evt("Gcode is uploading...");
-                    return;
-                }
-                this->gcode_uploading = true;
-                /* collection summary info */
-                summary->time_start = std::time(0);
-                std::tm* now_time = std::localtime(&summary->time_start);
-                std::stringstream buf;
-                buf << std::put_time(now_time, "%a %b %d %H:%M:%S");
-                summary->start_time = buf.str();
-                summary->has_time_start = true;
-                wxString path = txt_gcode_filename->GetValue();
+            // job is running ?
 
-                /* create a subtask */
-                BBLSubTask* task = new BBLSubTask();
-                task->task_file = txt_gcode_filename->GetValue().ToUTF8().data();
+            /* collection summary info */
+            summary->time_start = std::time(0);
+            std::tm* now_time = std::localtime(&summary->time_start);
+            std::stringstream buf;
+            buf << std::put_time(now_time, "%a %b %d %H:%M:%S");
+            summary->start_time = buf.str();
+            summary->has_time_start = true;
 
-                /* send print task */
-                MachineObject* obj = dev_manager_.get_default();
-                if (!obj) {
-                    this->send_log_evt("Invalid Printer! Please Select a Printer!");
-                    gcode_uploading = false;
-                    return;
-                }
-
-                obj->send_print_subtask(task,
-                    [this]() {
-                        auto evt = new wxCommandEvent(EVT_WLAN_GCODE_PROGRESS, this->GetId());
-                        evt->SetInt(100);
-                        gcode_uploading = false;
-                        wxQueueEvent(this, evt);
-                    },
-                    [this](int progress) {
-                        auto evt = new wxCommandEvent(EVT_WLAN_GCODE_PROGRESS, this->GetId());
-                        evt->SetInt(progress);
-                        wxQueueEvent(this, evt);
-                    },
-                    [this](std::string error) {
-                    gcode_uploading = false;
-                    BOOST_LOG_TRIVIAL(trace) << "transform gcode error=" << error;
-                    send_log_evt("trasform gcode failed, error=" + error);
-                    });
-            }
-            else {
-                std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-
-                /* print current 3mf */
-                Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-
-                std::string gcode_file_str = txt_gcode_filename->GetValue().ToUTF8().data();
-                fs::path gcode_path(gcode_file_str);
-                fs::path _3mf_path(gcode_path);
-
-                std::string dst_gcode_file_str = gcode_path.filename().string();
-
-                /* zip gcode to 3mf */
-                std::string _3mf_file_str = _3mf_path.replace_extension("3mf").string();
-                mz_zip_archive archive;
-                mz_zip_zero_struct(&archive);
-                if (!open_zip_writer(&archive, _3mf_file_str)) {
-                    BOOST_LOG_TRIVIAL(trace) << "Unable to open the file";
-                    return;
-                }
-                mz_zip_writer_add_file(&archive, dst_gcode_file_str.c_str(), gcode_file_str.c_str(), "", 0, MZ_DEFAULT_COMPRESSION);
-                mz_zip_writer_finalize_archive(&archive);
-                close_zip_writer(&archive);
-
-                /* create subtask info */
-                BBLSubTask* subtask = new BBLSubTask();
-                subtask->task_id = "0";
-                subtask->task_path = _3mf_path;
-                subtask->task_name = gcode_path.filename().string();
-                subtask->task_gcode_in_3mf = gcode_path.filename().string();
-
-
-                /* send task */
-                MachineObject* obj = account_manager->get_default_machine();
-                if (obj) {
-                    obj->send_wan_print_subtask(subtask,
-                        [this, _3mf_file_str]() {
-                            auto evt = new wxCommandEvent(EVT_WLAN_GCODE_PROGRESS, this->GetId());
-                            evt->SetInt(100);
-                            wxQueueEvent(this, evt);
-                            boost::filesystem::remove(_3mf_file_str);
-                        },
-                        [this](int progress) {
-                            auto evt = new wxCommandEvent(EVT_WLAN_GCODE_PROGRESS, this->GetId());
-                            evt->SetInt(progress);
-                            wxQueueEvent(this, evt);
-                        },
-                            [this, _3mf_file_str](std::string info) {
-                            boost::filesystem::remove(_3mf_file_str);
-                            this->send_log_evt(info);
-                        }
-                        );
-                }
-            }
+            Slic3r::DeviceManager* device_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+            MachineObject* obj = device_manager->get_default();
+            GcodePrintJob* m_print_job = new GcodePrintJob(m_status_bar, txt_gcode_filename->GetValue().ToUTF8().data(), obj);
+            m_print_job->start();
         });
 
     btn_select_3mf_file->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
@@ -881,12 +972,6 @@ void DebugToolDialog::init_bind()
 
 void DebugToolDialog::init_bind_handler()
 {
-    Bind(EVT_WLAN_GCODE_PROGRESS, [this](wxCommandEvent& evt) {
-        std::string text;
-        text = std::to_string(evt.GetInt()) + "%";
-        this->label_gcode_progress1->SetLabelText(text);
-        });
-
     Bind(EVT_WLAN_3MF_PROGRESS, [this](wxCommandEvent& evt) {
         std::string text;
         text = std::to_string(evt.GetInt()) + "%";
@@ -1225,7 +1310,7 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
     m_staticText_mc_print_line_number->SetLabelText(gcode_line_text);
 
     wxString chamber_text = wxString::Format("%fC", obj->chamber_temp);
-    m_staticText_pocket_temp->SetLabelText(chamber_text);
+    m_staticText_volume_temp_val->SetLabelText(chamber_text);
 
     if (mqtt_msg_queue.empty()) {
         return;

@@ -207,7 +207,10 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	m_notebook1->AddPage( m_panel_run_3mf, wxT("Run Slice  3mf"), false );
 	m_panel_run_gcode = new wxPanel( m_notebook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer131;
-	bSizer131 = new wxBoxSizer( wxVERTICAL );
+	bSizer131 = new wxBoxSizer( wxHORIZONTAL );
+
+	wxBoxSizer* bSizer331;
+	bSizer331 = new wxBoxSizer( wxVERTICAL );
 
 	wxBoxSizer* bSizer141;
 	bSizer141 = new wxBoxSizer( wxHORIZONTAL );
@@ -227,23 +230,22 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	bSizer141->Add( btn_select_gcode_file, 0, wxALL, 5 );
 
 
-	bSizer131->Add( bSizer141, 0, wxEXPAND, 5 );
+	bSizer331->Add( bSizer141, 0, wxEXPAND, 5 );
 
 	wxBoxSizer* bSizer151;
 	bSizer151 = new wxBoxSizer( wxHORIZONTAL );
 
-	label_upload_progress1 = new wxStaticText( m_panel_run_gcode, wxID_ANY, wxT("Gcode Upload:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+	label_upload_progress1 = new wxStaticText( m_panel_run_gcode, wxID_ANY, wxT("Status:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
 	label_upload_progress1->Wrap( -1 );
 	label_upload_progress1->SetMinSize( wxSize( 100,-1 ) );
 
 	bSizer151->Add( label_upload_progress1, 0, wxALL, 5 );
 
-	label_gcode_progress1 = new wxStaticText( m_panel_run_gcode, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
-	label_gcode_progress1->Wrap( -1 );
-	bSizer151->Add( label_gcode_progress1, 0, wxALL, 5 );
+	m_status_bar = std::make_shared<BBLStatusBar>(m_panel_run_gcode);
+    m_panel_status = m_status_bar->get_panel();
+	bSizer151->Add( m_panel_status, 1, wxEXPAND | wxALL, 0 );
 
-
-	bSizer131->Add( bSizer151, 0, wxEXPAND, 5 );
+	bSizer331->Add( bSizer151, 0, wxEXPAND, 5 );
 
 	wxBoxSizer* bSizer161;
 	bSizer161 = new wxBoxSizer( wxHORIZONTAL );
@@ -261,7 +263,13 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	bSizer161->Add( btn_abort_print, 0, wxALL, 5 );
 
 
-	bSizer131->Add( bSizer161, 0, wxEXPAND, 5 );
+	bSizer331->Add( bSizer161, 0, wxEXPAND, 5 );
+
+
+	bSizer331->Add( 0, 0, 1, wxEXPAND, 5 );
+
+
+	bSizer131->Add( bSizer331, 0, wxEXPAND, 5 );
 
 
 	bSizer131->Add( 0, 0, 1, wxEXPAND, 5 );
@@ -270,7 +278,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	m_panel_run_gcode->SetSizer( bSizer131 );
 	m_panel_run_gcode->Layout();
 	bSizer131->Fit( m_panel_run_gcode );
-	m_notebook1->AddPage( m_panel_run_gcode, wxT("Run Gcode"), false );
+	m_notebook1->AddPage( m_panel_run_gcode, wxT("Run Gcode"), true );
 	m_panel_info_control = new wxPanel( m_notebook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer17;
 	bSizer17 = new wxBoxSizer( wxHORIZONTAL );
@@ -630,7 +638,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	m_panel_info_control->SetSizer( bSizer17 );
 	m_panel_info_control->Layout();
 	bSizer17->Fit( m_panel_info_control );
-	m_notebook1->AddPage( m_panel_info_control, wxT("Info Control"), true );
+	m_notebook1->AddPage( m_panel_info_control, wxT("Info Control"), false );
 	m_panel_upgrade = new wxPanel( m_notebook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer28;
 	bSizer28 = new wxBoxSizer( wxVERTICAL );
@@ -774,7 +782,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	m_notebook1->AddPage( m_panel_upgrade, wxT("Upgrade"), false );
 	m_panel_ams = new wxPanel( m_notebook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer321;
-	bSizer321 = new wxBoxSizer( wxHORIZONTAL );
+	bSizer321 = new wxBoxSizer( wxVERTICAL );
 
 	wxGridSizer* gSizer5;
 	gSizer5 = new wxGridSizer( 0, 2, 0, 0 );
@@ -813,6 +821,9 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 
 	bSizer321->Add( gSizer5, 0, 0, 5 );
+
+	m_dataViewCtrl_ams = new wxDataViewCtrl( m_panel_ams, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer321->Add( m_dataViewCtrl_ams, 0, wxALL, 5 );
 
 
 	m_panel_ams->SetSizer( bSizer321 );

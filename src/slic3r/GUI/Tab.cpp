@@ -3968,7 +3968,8 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach)
     }
     else {
         new_preset->sync_info = "create";
-        new_preset->user_id = acc->get_curr_user()->get_user_id();
+        if (acc->is_user_login())
+            new_preset->user_id = acc->get_curr_user()->get_user_id();
         BOOST_LOG_TRIVIAL(info) << "sync_preset: create preset = " << new_preset->name;
     }
     new_preset->version = DEFAULT_BBL_SETTING_VERSION;

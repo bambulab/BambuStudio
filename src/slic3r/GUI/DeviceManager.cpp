@@ -157,6 +157,7 @@ MachineObject::MachineObject(AccountManager& acc, std::string name, std::string 
     nozzle_temp_target = 0.0f;
     bed_temp = 0.0f;
     bed_temp_target = 0.0f;
+    chamber_temp = 0.0f;
 
     /* ams fileds */
     ams_exist_bits = 0;

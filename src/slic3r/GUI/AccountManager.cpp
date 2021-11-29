@@ -1087,8 +1087,10 @@ namespace Slic3r {
         root.put<bool>("profile_config", false);
         root.put<bool>("profile_thumbnail", false);
         root.put<bool>("profile_gcode", false);
-        files.put("", task->task_gcode_in_3mf);
-        profile_files.push_back(std::make_pair("", files));
+        if (!task->task_gcode_in_3mf.empty()) {
+            files.put("", task->task_gcode_in_3mf);
+            profile_files.push_back(std::make_pair("", files));
+        }
         root.add_child("profile_files", profile_files);
         std::stringstream oss;
         pt::write_json(oss, root, false);
@@ -1439,7 +1441,7 @@ namespace Slic3r {
                     BOOST_LOG_TRIVIAL(info) << "get_project_info failed! body=" << body;
                 });
 
-        while (task->task_url.empty() || task->task_url.compare("null") == 0 && retry_ < retry_max) {
+        while ((task->task_url.empty() || task->task_url.compare("null") == 0) && retry_ < retry_max) {
             http.perform_sync();
             retry_++;
             BOOST_LOG_TRIVIAL(trace) << "get_task_url, retry=" << retry_;

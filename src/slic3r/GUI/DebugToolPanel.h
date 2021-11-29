@@ -27,8 +27,12 @@
 #include <wx/statbox.h>
 #include <wx/scrolwin.h>
 #include <wx/checkbox.h>
+#include <wx/dataview.h>
 #include <wx/notebook.h>
 #include <wx/splitter.h>
+
+
+#include "BBLStatusBar.hpp"
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -83,7 +87,7 @@ namespace Slic3r
 				wxTextCtrl* txt_gcode_filename;
 				wxButton* btn_select_gcode_file;
 				wxStaticText* label_upload_progress1;
-				wxStaticText* label_gcode_progress1;
+				wxPanel* m_panel_status;
 				wxButton* btn_run_gcode;
 				wxButton* btn_pause;
 				wxButton* btn_resume;
@@ -194,9 +198,12 @@ namespace Slic3r
 				wxCheckBox* cbox_ams_auto_home;
 				wxButton* m_button_ams_pause;
 				wxButton* m_button_ams_resume;
+				wxDataViewCtrl* m_dataViewCtrl_ams;
 				wxPanel* m_panel_log;
 				wxStaticText* m_staticText_log;
 				wxTextCtrl* txt_string_info;
+
+				std::shared_ptr<BBLStatusBar> m_status_bar;
 
 			public:
 
