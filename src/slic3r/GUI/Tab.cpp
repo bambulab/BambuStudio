@@ -4296,7 +4296,8 @@ void TabPrinter::cache_extruder_cnt()
     if (m_presets->get_edited_preset().printer_technology() == ptSLA)
         return;
 
-    m_cache_extruder_count = m_extruders_count;
+    // BBS. Get extruder count from preset instead of m_extruders_count.
+    m_cache_extruder_count = dynamic_cast<ConfigOptionFloats*>((m_presets->get_edited_preset().config).option("nozzle_diameter"))->values.size();
 }
 
 bool TabPrinter::apply_extruder_cnt_from_cache()
