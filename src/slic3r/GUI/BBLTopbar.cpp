@@ -64,7 +64,7 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     m_skip_popup_dropdown_menu = false;
 
     wxInitAllImageHandlers();
-    wxBitmap logo_bitmap = create_scaled_bitmap("logo", nullptr, FromDIP(21));
+    wxBitmap logo_bitmap = create_scaled_bitmap("PrusaSlicer_32px", nullptr, FromDIP(21));
     wxAuiToolBarItem* logo_item = this->AddTool(wxID_ANY, "", logo_bitmap);
     logo_item->SetActive(false);
 
