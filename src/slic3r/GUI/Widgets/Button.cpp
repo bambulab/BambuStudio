@@ -36,10 +36,13 @@ END_EVENT_TABLE()
     background_normal = *wxWHITE_BRUSH;
     background_hover = *wxLIGHT_GREY_BRUSH;
     background_pressed = *wxBLUE_BRUSH;
-    SetFont(Label::Body_12);
+    //BBS set default font
+    SetFont(Label::Body_14);
     SetLabel(text);
-    if (!icon.IsEmpty())
-        this->icon = ScalableBitmap(this, icon.ToStdString());
+    if (!icon.IsEmpty()) {
+        //BBS set button icon default size to 20
+        this->icon = ScalableBitmap(this, icon.ToStdString(), 20);
+    }
     messureSize();
 }
 
@@ -160,8 +163,10 @@ void Button::render(wxDC& dc)
     wxSize szIcon;
     wxSize szContent = textSize;
     if (icon.bmp().IsOk()) {
-        if (szContent.y > 0)
-            szContent.x +=10;
+        if (szContent.y > 0) {
+            //BBS norrow size between text and icon
+            szContent.x += 5;
+        }
         szIcon = icon.bmp().GetSize();
         szContent.x += szIcon.x;
         if (szIcon.y > szContent.y)
@@ -176,7 +181,8 @@ void Button::render(wxDC& dc)
     if (icon.bmp().IsOk()) {
         pt.y += (rcContent.height - szIcon.y) / 2;
         dc.DrawBitmap(icon.bmp(), pt);
-        pt.x += szIcon.x + 10;
+        //BBS norrow size between text and icon
+        pt.x += szIcon.x + 5;
         pt.y = rcContent.y;
     }
     auto text = GetLabel();
@@ -196,8 +202,10 @@ void Button::messureSize()
     }
     wxSize szContent = textSize;
     if (this->icon.bmp().IsOk()) {
-        if (szContent.y > 0)
-            szContent.x += 10;
+        if (szContent.y > 0) {
+            //BBS norrow size between text and icon
+            szContent.x += 5;
+        }
         wxSize szIcon = this->icon.bmp().GetSize();
         szContent.x += szIcon.x;
         if (szIcon.y > szContent.y)

@@ -157,7 +157,7 @@ MachineObjectPanel::MachineObjectPanel( wxWindow* parent, wxWindowID id, const w
 	wxBoxSizer* bSizer_middle;
 	bSizer_middle = new wxBoxSizer( wxVERTICAL );
 
-	m_staticText_printer = new wxStaticText( this, wxID_ANY, wxT("BBL_Printer"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_printer = new wxStaticText( this, wxID_ANY, wxT("BBL_Printer"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END );
 	m_staticText_printer->Wrap( -1 );
 	bSizer_middle->Add( m_staticText_printer, 0, wxALL|wxEXPAND, 5 );
 
@@ -174,7 +174,7 @@ MachineObjectPanel::MachineObjectPanel( wxWindow* parent, wxWindowID id, const w
 	m_bitmap_info = new wxStaticBitmap( this, wxID_ANY, printing_img, wxDefaultPosition, wxSize( 8,8 ), 0 );
 	bSizer_printing_info->Add( m_bitmap_info, 0, wxALIGN_CENTER|wxALL, 5 );
 
-	m_staticText_printing = new wxStaticText( this, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_printing = new wxStaticText( this, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END );
 	m_staticText_printing->Wrap( -1 );
 	bSizer_printing_info->Add( m_staticText_printing, 1, wxALIGN_CENTER|wxALL|wxEXPAND, 5 );
 
@@ -187,7 +187,7 @@ MachineObjectPanel::MachineObjectPanel( wxWindow* parent, wxWindowID id, const w
 	m_bitmap_bind = new wxStaticBitmap( this, wxID_ANY, owner_img, wxDefaultPosition, wxSize( 8,8 ), 0 );
 	bSizer_bind_info->Add( m_bitmap_bind, 0, wxALIGN_CENTER|wxALL, 5 );
 
-	m_staticText_bind_info = new wxStaticText( this, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_bind_info = new wxStaticText( this, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END );
 	m_staticText_bind_info->Wrap( -1 );
 	bSizer_bind_info->Add( m_staticText_bind_info, 1, wxALIGN_CENTER|wxALL|wxEXPAND, 5 );
 
@@ -217,6 +217,12 @@ MachineObjectPanel::MachineObjectPanel( wxWindow* parent, wxWindowID id, const w
 
 	this->SetSizer( bSizer_top );
 	this->Layout();
+
+    wxColour text_color = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT);
+    m_staticText_printer->SetForegroundColour(text_color);
+    m_staticText_printing->SetForegroundColour(text_color);
+    m_staticText_bind_info->SetForegroundColour(text_color);
+
 
     m_staticText_printer->Bind(wxEVT_ENTER_WINDOW,  &MachineObjectPanel::on_mouse_enter, this);
     m_bitmap_type->Bind(wxEVT_ENTER_WINDOW,         &MachineObjectPanel::on_mouse_enter, this);
@@ -328,7 +334,7 @@ SelectMachinePopup::SelectMachinePopup( wxWindow *parent, bool scrolled)
     topSizer = new wxBoxSizer( wxVERTICAL );
     topSizer->SetMinSize(POPUP_WIDTH, POPUP_HEIGHT);
 
-    m_staticText_select = new wxStaticText( m_panel, wxID_ANY, wxT("Select Your Printer"), wxDefaultPosition, wxDefaultSize, 0 );
+    m_staticText_select = new wxStaticText( m_panel, wxID_ANY, wxT("Select Your Printer"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END );
     m_staticText_select->Wrap( -1 );
     topSizer->Add(m_staticText_select, 0, wxALL | wxEXPAND, 5);
 
@@ -350,6 +356,10 @@ SelectMachinePopup::SelectMachinePopup( wxWindow *parent, bool scrolled)
     }
 
     SetClientSize(m_panel->GetSize());
+
+
+    wxColour text_color = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT);
+    m_staticText_select->SetForegroundColour(text_color);
 
     Bind(wxEVT_TIMER, &SelectMachinePopup::on_timer, this);
 }

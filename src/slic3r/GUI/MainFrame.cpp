@@ -140,7 +140,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     , m_settings_dialog(this)
     , diff_dialog(this)
 {
-    
+
     // Fonts were created by the DPIFrame constructor for the monitor, on which the window opened.
     wxGetApp().update_fonts(this);
 
@@ -253,6 +253,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     // initialize layout from config
     update_layout();
     sizer->SetSizeHints(this);
+
     // BBS: fix taskbar overlay on windows
 #ifdef WIN32
     auto setMaxSize = [this]() {
@@ -518,8 +519,8 @@ void MainFrame::update_layout()
             dynamic_cast<Notebook*>(m_tabpanel)->InsertPage(0, m_plater, _L("Plater"), std::string("plater"), true);
         else
 #endif
-        m_tabpanel->InsertPage(tp3DEditor, m_plater, _L("Plater"), std::string("plater"));
-        m_tabpanel->InsertPage(tpPreview, m_plater, _L("Preview"), std::string("preview"));
+        m_tabpanel->InsertPage(tp3DEditor, m_plater, _L("Plater"), std::string("notebook_plater_active"));
+        m_tabpanel->InsertPage(tpPreview, m_plater, _L("Preview"), std::string("notebook_preview_active"));
         m_main_sizer->Add(m_tabpanel, 1, wxEXPAND | wxTOP, 1);
         m_plater->Show();
         m_tabpanel->Show();
@@ -827,7 +828,7 @@ void MainFrame::init_tabpanel()
         //BBS add monitor page
         //MonitorPanel(wxWindow * parent, wxWindowID id = wxID_ANY, const wxPoint & pos = wxDefaultPosition, const wxSize & size = wxSize(800, 600), long style = wxTAB_TRAVERSAL);
         m_monitor = new MonitorPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-        m_tabpanel->AddPage(m_monitor, "Monitor", "monitor");
+        m_tabpanel->AddPage(m_monitor, "Monitor", "notebook_monitor_active");
         m_debug_tool_dlg = new DebugToolDialog(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
         m_tabpanel->AddPage(m_debug_tool_dlg, "DebugTool", "debugtool");
         //m_tabpanel->InsertPage(tpMonitor, m_plater, _L("Monitor"), std::string("monitor"));
@@ -917,7 +918,7 @@ void MainFrame::create_preset_tabs()
     add_created_tab(new TabPrinter(m_param_panel), "printer");
 
     m_param_panel->rebuild_panels();
-    m_tabpanel->AddPage(m_param_panel, "Parameters", "cog");
+    m_tabpanel->AddPage(m_param_panel, "Parameters", "notebook_presets_active");
     //m_tabpanel->InsertPage(tpSettings, m_param_panel, _L("Parameters"), std::string("cog"));
 }
 

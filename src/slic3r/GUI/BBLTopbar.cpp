@@ -1,5 +1,6 @@
 #include "BBLTopbar.hpp"
 #include "wx/artprov.h"
+#include "wx/aui/framemanager.h"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "GUI.hpp"
@@ -28,12 +29,14 @@ class BBLTopbarArt : public wxAuiDefaultToolBarArt
 {
 public:
     virtual void DrawLabel(wxDC& dc, wxWindow* wnd, const wxAuiToolBarItem& item, const wxRect& rect) wxOVERRIDE;
+    virtual void DrawBackground(wxDC& dc, wxWindow* wnd, const wxRect& rect) wxOVERRIDE;
+    virtual void DrawButton(wxDC& dc, wxWindow* wnd, const wxAuiToolBarItem& item, const wxRect& rect) wxOVERRIDE;
 };
 
 void BBLTopbarArt::DrawLabel(wxDC& dc, wxWindow* wnd, const wxAuiToolBarItem& item, const wxRect& rect)
 {
     dc.SetFont(m_font);
-    dc.SetTextForeground(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+    dc.SetTextForeground(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT));
 
     int textWidth = 0, textHeight = 0;
     dc.GetTextExtent(item.GetLabel(), &textWidth, &textHeight);
@@ -54,9 +57,119 @@ void BBLTopbarArt::DrawLabel(wxDC& dc, wxWindow* wnd, const wxAuiToolBarItem& it
     dc.DestroyClippingRegion();
 }
 
+void BBLTopbarArt::DrawBackground(wxDC& dc, wxWindow* wnd, const wxRect& rect)
+{
+    dc.SetBrush(wxBrush(wxColour(38, 46, 48)));
+    wxRect clipRect = rect;
+    clipRect.y -= 8;
+    clipRect.height += 8;
+    dc.SetClippingRegion(clipRect);
+    dc.DrawRectangle(rect);
+    dc.DestroyClippingRegion();
+}
+
+void BBLTopbarArt::DrawButton(wxDC& dc, wxWindow* wnd, const wxAuiToolBarItem& item, const wxRect& rect)
+{
+    int textWidth = 0, textHeight = 0;
+
+    if (m_flags & wxAUI_TB_TEXT)
+    {
+        dc.SetFont(m_font);
+        int tx, ty;
+
+        dc.GetTextExtent(wxT("ABCDHgj"), &tx, &textHeight);
+        textWidth = 0;
+        dc.GetTextExtent(item.GetLabel(), &textWidth, &ty);
+    }
+
+    int bmpX = 0, bmpY = 0;
+    int textX = 0, textY = 0;
+
+    const wxBitmap& bmp = item.GetState() & wxAUI_BUTTON_STATE_DISABLED
+                            ? item.GetDisabledBitmap()
+                            : item.GetBitmap();
+
+    const wxSize bmpSize = bmp.IsOk() ? bmp.GetScaledSize() : wxSize(0, 0);
+
+    if (m_textOrientation == wxAUI_TBTOOL_TEXT_BOTTOM)
+    {
+        bmpX = rect.x +
+                (rect.width/2) -
+                (bmpSize.x/2);
+
+        bmpY = rect.y +
+                ((rect.height-textHeight)/2) -
+                (bmpSize.y/2);
+
+        textX = rect.x + (rect.width/2) - (textWidth/2) + 1;
+        textY = rect.y + rect.height - textHeight - 1;
+    }
+    else if (m_textOrientation == wxAUI_TBTOOL_TEXT_RIGHT)
+    {
+        bmpX = rect.x + wnd->FromDIP(3);
+
+        bmpY = rect.y +
+                (rect.height/2) -
+                (bmpSize.y/2);
+
+        textX = bmpX + wnd->FromDIP(3) + bmpSize.x;
+        textY = rect.y +
+                 (rect.height/2) -
+                 (textHeight/2);
+    }
+
+
+    if (!(item.GetState() & wxAUI_BUTTON_STATE_DISABLED))
+    {
+        if (item.GetState() & wxAUI_BUTTON_STATE_PRESSED)
+        {
+            dc.SetPen(wxPen(m_highlightColour));
+            dc.SetBrush(wxBrush(m_highlightColour.ChangeLightness(20)));
+            dc.DrawRectangle(rect);
+        }
+        else if ((item.GetState() & wxAUI_BUTTON_STATE_HOVER) || item.IsSticky())
+        {
+            dc.SetPen(wxPen(m_highlightColour));
+            dc.SetBrush(wxBrush(m_highlightColour.ChangeLightness(40)));
+
+            // draw an even lighter background for checked item hovers (since
+            // the hover background is the same color as the check background)
+            if (item.GetState() & wxAUI_BUTTON_STATE_CHECKED)
+                dc.SetBrush(wxBrush(m_highlightColour.ChangeLightness(50)));
+
+            dc.DrawRectangle(rect);
+        }
+        else if (item.GetState() & wxAUI_BUTTON_STATE_CHECKED)
+        {
+            // it's important to put this code in an else statement after the
+            // hover, otherwise hovers won't draw properly for checked items
+            dc.SetPen(wxPen(m_highlightColour));
+            dc.SetBrush(wxBrush(m_highlightColour.ChangeLightness(40)));
+            dc.DrawRectangle(rect);
+        }
+    }
+
+    if ( bmp.IsOk() )
+        dc.DrawBitmap(bmp, bmpX, bmpY, true);
+
+    // set the item's text color based on if it is disabled
+    dc.SetTextForeground(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT));
+    if (item.GetState() & wxAUI_BUTTON_STATE_DISABLED)
+    {
+        dc.SetTextForeground(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    }
+
+    if ( (m_flags & wxAUI_TB_TEXT) && !item.GetLabel().empty() )
+    {
+        dc.DrawText(item.GetLabel(), textX, textY);
+    }
+}
+
 BBLTopbar::BBLTopbar(wxFrame* parent)
     : wxAuiToolBar(parent, ID_TOOL_BAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_TEXT | wxAUI_TB_HORZ_TEXT)
 {
+    int topbar_icon_size = 18;
+
     SetArtProvider(new BBLTopbarArt());
 
     m_frame = parent;
@@ -64,28 +177,45 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     m_skip_popup_dropdown_menu = false;
 
     wxInitAllImageHandlers();
-    wxBitmap logo_bitmap = create_scaled_bitmap("PrusaSlicer_32px", nullptr, FromDIP(21));
+
+    this->AddSpacer(5);
+
+    wxBitmap logo_bitmap = create_scaled_bitmap("topbar_logo", nullptr, FromDIP(topbar_icon_size));
     wxAuiToolBarItem* logo_item = this->AddTool(wxID_ANY, "", logo_bitmap);
+    logo_item->SetHoverBitmap(logo_bitmap);
     logo_item->SetActive(false);
 
-    m_file_menu_item = this->AddTool(ID_TOP_FILE_MENU, "File",
-        wxBitmap(), wxEmptyString);
+    wxBitmap file_bitmap = create_scaled_bitmap("topbar_file", nullptr, FromDIP(topbar_icon_size));
+    m_file_menu_item = this->AddTool(ID_TOP_FILE_MENU, "File", file_bitmap, wxEmptyString);
 
+    this->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT));
+
+    this->AddSpacer(5);
+
+    wxBitmap dropdown_bitmap = create_scaled_bitmap("topbar_dropdown", nullptr, FromDIP(topbar_icon_size));
     m_dropdown_menu_item = this->AddTool(ID_TOP_DROPDOWN_MENU, "",
-        create_scaled_bitmap("expand", nullptr, FromDIP(18)), wxEmptyString);
+        dropdown_bitmap, wxEmptyString);
 
+    this->AddSpacer(5);
     this->AddSeparator();
+    this->AddSpacer(5);
 
-    wxBitmap open_bitmap = wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_OTHER, FromDIP(wxSize(18, 18)));
+    wxBitmap open_bitmap = create_scaled_bitmap("topbar_open", nullptr, FromDIP(topbar_icon_size));
     wxAuiToolBarItem* tool_item = this->AddTool(wxID_OPEN, "", open_bitmap);
 
-    wxBitmap save_bitmap = wxArtProvider::GetBitmap(wxART_FILE_SAVE, wxART_OTHER, FromDIP(wxSize(18, 18)));
+    this->AddSpacer(10);
+
+    wxBitmap save_bitmap = create_scaled_bitmap("topbar_save", nullptr, FromDIP(topbar_icon_size));
     wxAuiToolBarItem* save_btn = this->AddTool(wxID_SAVE, "", save_bitmap);
 
-    wxBitmap undo_bitmap = wxArtProvider::GetBitmap(wxART_UNDO, wxART_OTHER, FromDIP(wxSize(18, 18)));
+    this->AddSpacer(10);
+
+    wxBitmap undo_bitmap = create_scaled_bitmap("topbar_undo", nullptr, FromDIP(topbar_icon_size));
     m_undo_item = this->AddTool(wxID_UNDO, "", undo_bitmap);
 
-    wxBitmap redo_bitmap = wxArtProvider::GetBitmap(wxART_REDO, wxART_OTHER, FromDIP(wxSize(18, 18)));
+    this->AddSpacer(10);
+
+    wxBitmap redo_bitmap = create_scaled_bitmap("topbar_redo", nullptr, FromDIP(topbar_icon_size));
     m_redo_item = this->AddTool(wxID_REDO, "", redo_bitmap);
 
     this->AddSpacer(10);
@@ -97,31 +227,40 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     this->AddSpacer(10);
     this->AddStretchSpacer(1);
 
-    wxBitmap model_store_bitmap = create_scaled_bitmap("model_store", nullptr, FromDIP(21));
+    wxBitmap model_store_bitmap = create_scaled_bitmap("topbar_store", nullptr, FromDIP(topbar_icon_size));
     m_model_store_item = this->AddTool(ID_MODEL_STORE, "", model_store_bitmap);
-    this->AddSpacer(10);
+    this->AddSpacer(14);
 
-    wxBitmap account_bitmap = create_scaled_bitmap("account", nullptr, FromDIP(21));
+    wxBitmap account_bitmap = create_scaled_bitmap("topbar_account", nullptr, FromDIP(topbar_icon_size));
     m_account_item = this->AddTool(ID_ACCOUNT, "", account_bitmap);
 
-    this->AddSpacer(10);
+    this->AddSpacer(12);
 
-    wxBitmap printer_bitmap = create_scaled_bitmap("fdm_printer", nullptr, FromDIP(21));
+    wxBitmap printer_bitmap = create_scaled_bitmap("topbar_printer", nullptr, FromDIP(topbar_icon_size));
     m_printer_item = this->AddTool(ID_PRINTER, "", printer_bitmap);
 
-    this->AddSpacer(15);
+    this->AddSpacer(12);
+    this->AddSeparator();
+    this->AddSpacer(6);
 
-    wxBitmap iconize_bitmap = wxArtProvider::GetBitmap(wxART_MINUS, wxART_OTHER, FromDIP(wxSize(18, 18)));
+    wxBitmap iconize_bitmap = create_scaled_bitmap("topbar_min", nullptr, FromDIP(topbar_icon_size));
     wxAuiToolBarItem* iconize_btn = this->AddTool(wxID_ICONIZE_FRAME, "", iconize_bitmap);
 
-    wxBitmap maximize_bitmap = wxArtProvider::GetBitmap(wxART_FULL_SCREEN, wxART_OTHER, FromDIP(wxSize(18, 18)));
+    this->AddSpacer(6);
+
+    wxBitmap maximize_bitmap = create_scaled_bitmap("topbar_max", nullptr, FromDIP(topbar_icon_size));
     wxAuiToolBarItem* maximize_btn = this->AddTool(wxID_MAXIMIZE_FRAME, "", maximize_bitmap);
 
-    wxBitmap close_bitmap = wxArtProvider::GetBitmap(wxART_CLOSE, wxART_OTHER, FromDIP(wxSize(18, 18)));
+    this->AddSpacer(6);
+
+    wxBitmap close_bitmap = create_scaled_bitmap("topbar_close", nullptr, FromDIP(topbar_icon_size));
     wxAuiToolBarItem* close_btn = this->AddTool(wxID_CLOSE_FRAME, "", close_bitmap);
 
+    this->AddSpacer(6);
+
     Realize();
-    m_toolbar_h = this->GetSize().GetHeight();
+    // m_toolbar_h = this->GetSize().GetHeight();
+    m_toolbar_h = 30;
 
     int client_w = parent->GetClientSize().GetWidth();
     this->SetSize(client_w, m_toolbar_h);

@@ -6,6 +6,9 @@
 #include "wxExtensions.hpp"
 #include "Widgets/Button.hpp"
 
+//BBS set font size
+#include "Widgets/Label.hpp"
+
 #include <wx/button.h>
 #include <wx/sizer.h>
 
@@ -128,8 +131,8 @@ void ButtonsListCtrl::SetSelection(int sel)
     if (m_selection == sel)
         return;
     // BBS: change button color
-    wxColour selected_btn_bg("#1F8EEA");
-    wxColour default_btn_bg("#3B4446"); // Gradient #414B4E
+    wxColour selected_btn_bg("#00AE42");    // Gradient #00AE42
+    wxColour default_btn_bg("#3B4446");     // Gradient #414B4E
     if (m_selection >= 0)
         m_pageButtons[m_selection]->SetBackgroundColour(default_btn_bg);
     m_selection = sel;
@@ -143,8 +146,11 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString& text, bool bSelect/* 
     wxColour default_btn_bg("#3B4446"); // Gradient #414B4E
     Button* btn = new Button(this, " " + text, bmp_name, wxNO_BORDER);
     btn->SetCornerRadius(0);
+
     int em = em_unit(this);
-    btn->SetMinSize({ 12 * em, 4 * em });
+    //BBS set size for button
+    btn->SetMinSize({ 132, 36 });
+
     btn->SetBackgroundColour(default_btn_bg);
     btn->SetForegroundColour(*wxWHITE);
     btn->Bind(wxEVT_BUTTON, [this, btn](wxCommandEvent& event) {
