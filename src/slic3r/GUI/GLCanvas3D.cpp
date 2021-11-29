@@ -6999,9 +6999,24 @@ void GLCanvas3D::_render_paint_toolbar() const
             ImGui::PopItemFlag();
         ImGui::PopID();
     }
+
+    std::vector<std::string> filament_types;
+    {
+        auto preset_bundle = wxGetApp().preset_bundle;
+        for (auto filament_name : preset_bundle->filament_presets) {
+            for (auto iter = preset_bundle->filaments.begin(); iter != preset_bundle->filaments.end(); iter++) {
+                if (filament_name == iter->name) {
+                    ConfigOption* opt = iter->config.option("filament_type");
+                    ConfigOptionStrings* opt_strs = dynamic_cast<ConfigOptionStrings*>(opt);
+                    filament_types.push_back(opt_strs->get_at(0));
+                }
+            }
+        }
+    }
+
     for (int i = 0; i < extruder_num; i++){
         //TODO use filament type from filament management, current use PLA by default
-        std::string item_text = (boost::format("%1% %2%") % (i + 1) % "PLA").str();
+        std::string item_text = (boost::format("%1% %2%") % (i + 1) % filament_types[i]).str();
         const ImVec2 label_size = ImGui::CalcTextSize(item_text.c_str(), NULL, true);
         ImGui::SameLine(item_spacing + (button_size - label_size.x) / 2 + (button_size + item_spacing) * i);
         Slic3r::GUI::BitmapCache::parse_color(colors[i], rgb);
