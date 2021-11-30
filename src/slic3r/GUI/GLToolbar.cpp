@@ -1529,8 +1529,8 @@ bool GLToolbar::generate_icons_texture()
     }
     else {
         states.push_back({ 1, false }); // Normal
-        states.push_back({ 1, true });  // Pressed
-        states.push_back({ 1, false }); // Disabled
+        states.push_back({ 0, true });  // Pressed
+        states.push_back({ 2, false }); // Disabled
         states.push_back({ 0, false }); // Hover
         states.push_back({ 1, true });  // HoverPressed
         states.push_back({ 1, false }); // HoverDisabled

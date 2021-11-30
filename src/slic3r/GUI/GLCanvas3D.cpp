@@ -5108,7 +5108,7 @@ bool GLCanvas3D::_init_main_toolbar()
     GLToolbarItem::Data item;
 
     item.name = "add";
-    item.icon_filename = "add.svg";
+    item.icon_filename = "toolbar_add.svg";
     item.tooltip = _utf8(L("Add...")) + " [" + GUI::shortkey_ctrl_prefix() + "I]";
     item.sprite_id = 0;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ADD)); };
@@ -5137,7 +5137,7 @@ bool GLCanvas3D::_init_main_toolbar()
     */
 
     item.name = "addplate";
-    item.icon_filename = "add_plate.svg";
+    item.icon_filename = "toolbar_add_plate.svg";
     item.tooltip = _utf8(L("Add plate")) + " [Add]";
     item.sprite_id++;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ADD_PLATE)); };
@@ -5156,7 +5156,7 @@ bool GLCanvas3D::_init_main_toolbar()
 
 
     item.name = "orient";
-    item.icon_filename = "orient.svg";
+    item.icon_filename = "toolbar_orient.svg";
     item.tooltip = _utf8(L("Orient")) + " [O]\n"
         + _utf8(L("Click right mouse button to show auto-orientation options"));
     item.sprite_id++;
@@ -5175,7 +5175,7 @@ bool GLCanvas3D::_init_main_toolbar()
         return false;
 
     item.name = "arrange";
-    item.icon_filename = "arrange.svg";
+    item.icon_filename = "toolbar_arrange.svg";
     item.tooltip = _utf8(L("Arrange")) + " [A]\n" + _utf8(L("Click right mouse button to show arrangement options"));
     item.sprite_id++;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ARRANGE)); };
@@ -5818,7 +5818,7 @@ bool GLCanvas3D::_init_assemble_view_toolbar()
 
     GLToolbarItem::Data item;
     item.name = "assemble_view";
-    item.icon_filename = "assemble.svg";
+    item.icon_filename = "toolbar_assemble.svg";
     item.tooltip = _utf8(L("Assemble View"));
     item.sprite_id = 1;
     item.left.toggable = false;

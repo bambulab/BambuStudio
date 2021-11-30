@@ -113,7 +113,8 @@ void ButtonsListCtrl::Rescale()
     m_mode_sizer->msw_rescale();
     int em = em_unit(this);
     for (Button* btn : m_pageButtons) {
-        btn->SetMinSize({ 12 * em, 4 * em });
+        //BBS
+        btn->SetMinSize({ 132 * em / 10, 36 * em / 10 });
         btn->Rescale();
     }
 
@@ -149,7 +150,7 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString& text, bool bSelect/* 
 
     int em = em_unit(this);
     //BBS set size for button
-    btn->SetMinSize({ 132, 36 });
+    btn->SetMinSize({ 132 * em / 10, 36 * em / 10 });
 
     btn->SetBackgroundColour(default_btn_bg);
     btn->SetForegroundColour(*wxWHITE);
