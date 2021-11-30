@@ -211,6 +211,9 @@ namespace Slic3r {
         strcpy(lssdp.header.location.suffix, ":5678");
         lssdp.neighbor_list_changed_callback = show_neighbor_list;
         lssdp.network_interface_changed_callback = show_interface_list_and_rebind_socket;
+        // BBS: fix crash
+        lssdp.neighbor_list = NULL;
+        lssdp.packet_received_callback = NULL;
 #endif
     }
 

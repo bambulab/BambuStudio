@@ -33,14 +33,12 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
 
     // Create additional panel to Fit() it from OnActivate()
     // It's needed for tooltip showing on OSX
-    // BBS: new layout
-    m_tmp_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, {238, -1}, wxBK_LEFT | wxTAB_TRAVERSAL);
+    m_tmp_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
     auto panel = m_tmp_panel;
     auto  sizer = new wxBoxSizer(wxHORIZONTAL);
     m_tmp_panel->SetSizer(sizer);
     m_tmp_panel->Layout();
 
-    m_top_sizer->Add(m_tmp_panel, 1, wxEXPAND | wxALL, 0);
 #else
     ParamsPanel*panel = this;
     m_top_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -163,7 +161,13 @@ void ParamsPanel::create_layout()
     //m_right_sizer->Add( m_page_view, 1, wxEXPAND | wxALL, 5 );
 
     //m_top_sizer->Add( m_right_sizer, 1, wxEXPAND, 5 );
+    // BBS: new layout
+#ifdef __WXOSX__
+    m_top_sizer->Add(m_tmp_panel, 1, wxEXPAND | wxALL, 0);
+    m_tmp_panel->GetSizer()->Add( m_page_view, 1, wxEXPAND );
+#else
     m_top_sizer->Add( m_page_view, 1, wxEXPAND );
+#endif
 
     //this->SetSizer( m_top_sizer );
     this->Layout();

@@ -1337,9 +1337,9 @@ void Sidebar::sys_color_changed()
     p->object_layers->sys_color_changed();
 
     // btn...->msw_rescale() updates icon on button, so use it
-    p->btn_send_gcode->msw_rescale();
+    //p->btn_send_gcode->msw_rescale();
 //    p->btn_eject_device->msw_rescale();
-    p->btn_export_gcode_removable->msw_rescale();
+    //p->btn_export_gcode_removable->msw_rescale();
 
     p->scrolled->Layout();
 
@@ -1459,11 +1459,13 @@ void Sidebar::update_objects_list_extruder_column(size_t extruders_count)
 
 void Sidebar::enable_buttons(bool enable)
 {
+#if 0
     p->btn_reslice->Enable(enable);
     p->btn_export_gcode->Enable(enable);
     p->btn_send_gcode->Enable(enable);
 //    p->btn_eject_device->Enable(enable);
 	p->btn_export_gcode_removable->Enable(enable);
+#endif
 }
 
 bool Sidebar::show_reslice(bool show)          const { return p->btn_reslice->Show(show); }

@@ -565,8 +565,7 @@ void Tab::OnActivate()
 #endif
 
     // BBS: select on first active
-    if (!m_treectrl->GetSelection())
-        m_treectrl->SelectItem(m_treectrl->GetFirstVisibleItem());
+    restore_last_select_item();
 
     //BBS: GUI refactor
     m_page_view->Freeze();
@@ -3362,9 +3361,12 @@ void Tab::load_current_preset()
 void Tab::rebuild_page_tree()
 {
     // get label of the currently selected item
-    const auto sel_item = m_treectrl->GetSelection();
-    const auto selected = sel_item ? m_treectrl->GetItemText(sel_item) : "";
+    auto sel_item = m_treectrl->GetSelection();
     const auto rootItem = m_treectrl->GetRootItem();
+    // BBS: fix new layout, record last select
+    if (!sel_item || sel_item == rootItem)
+        sel_item = m_last_select_item;
+    const auto selected = sel_item ? m_treectrl->GetItemText(sel_item) : "";
 
     wxTreeItemId item;
 
@@ -3383,11 +3385,18 @@ void Tab::rebuild_page_tree()
         if (translate_category(p->title(), m_type) == selected)
             item = itemId;
     }
+    // BBS: on mac, root is selected, this fix it
+    m_treectrl->Unselect();
     // BBS: not select on hide tab
     if (!item && m_parent->is_active_and_shown_tab(this)) {
         // this is triggered on first load, so we don't disable the sel change event
         item = m_treectrl->GetFirstVisibleItem();
     }
+    // BBS: fix new layout, record last select
+    if (sel_item == m_last_select_item)
+        m_last_select_item = item;
+    else
+        m_last_select_item = NULL;
 
     // allow activate page before selection of a page_tree item
     m_disable_tree_sel_changed_event = false;
@@ -3397,7 +3406,7 @@ void Tab::rebuild_page_tree()
         bool ret = update_current_page_in_background(item);
         //if m_active_page is changed in update_current_page_in_background
         //will just update the selected item of the treectrl
-        // if (ret) // FIX: modify state not update
+         if (m_parent->is_active_and_shown_tab(this)) // FIX: modify state not update
             m_treectrl->SelectItem(item);
     }
 }
@@ -3718,11 +3727,13 @@ void Tab::set_expanded(bool value)
     }
 }
 
+// BBS: new layout
 void Tab::restore_last_select_item()
 {
-    m_treectrl->SelectItem(m_last_select_item);
-    if (!m_treectrl->GetSelection())
-        m_treectrl->SelectItem(m_treectrl->GetFirstVisibleItem());
+    auto item = m_last_select_item;
+    if (!item)  
+        item = m_treectrl->GetFirstVisibleItem();
+    m_treectrl->SelectItem(item);
 }
 
 void Tab::update_description_lines()
@@ -3772,16 +3783,20 @@ bool Tab::update_current_page_in_background(wxTreeItemId& item)
         m_highlighter.invalidate();
 
         // clear pages from the controlls
+        // BBS: fix after new layout, clear page in backgroud
+        if (!active_tab)
+            m_parent->clear_page();
         for (auto p : m_pages)
             p->clear();
 
         update_undo_buttons();
 
+        // BBS: this is not used, because we not SelectItem in background
         //todo: update selected item of tree_ctrl
-        wxTreeItemData item_data;
-        m_treectrl->SetItemData(item, &item_data);
+        // wxTreeItemData item_data;
+        // m_treectrl->SetItemData(item, &item_data);
 
-        //return false;
+        return false;
     }
 
     return true;

@@ -1190,6 +1190,8 @@ void MenuFactory::sys_color_changed()
 
 void MenuFactory::sys_color_changed(wxMenuBar* menubar)
 {
+    // BBS: fix
+#if 0
     for (size_t id = 0; id < menubar->GetMenuCount(); id++) {
         wxMenu* menu = menubar->GetMenu(id);
         msw_rescale_menu(menu);
@@ -1200,6 +1202,7 @@ void MenuFactory::sys_color_changed(wxMenuBar* menubar)
 #endif
     }
     menubar->Refresh();
+#endif
 }
 
 
