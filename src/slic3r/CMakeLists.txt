@@ -308,8 +308,12 @@ if (APPLE)
             GUI/Mouse3DHandlerMac.mm
             GUI/InstanceCheckMac.mm
             GUI/InstanceCheckMac.h
+            GUI/wxMediaCtrl2.mm
+            GUI/wxMediaCtrl2.h
         )
     FIND_LIBRARY(DISKARBITRATION_LIBRARY DiskArbitration)
+
+    include_directories(../../deps/Tutk/mac/include)
 endif ()
 
 add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})

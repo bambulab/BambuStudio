@@ -572,12 +572,14 @@ function(prusaslicer_copy_dlls target config postfix output_dlls)
     file(COPY ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/win${_bits}/libgmp-10.dll
             ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/win${_bits}/libmpfr-4.dll
             ${TOP_LEVEL_PROJECT_DIR}/deps/WebView2/lib/win${_bits}/WebView2Loader.dll
+            ${CMAKE_PREFIX_PATH}/bin/TutkSource.dll
         DESTINATION ${_out_dir})
 
     set(${output_dlls}
         ${_out_dir}/libgmp-10.dll
         ${_out_dir}/libmpfr-4.dll
         ${_out_dir}/WebView2Loader.dll
+        ${_out_dir}/TutkSource.dll
         PARENT_SCOPE
     )
     

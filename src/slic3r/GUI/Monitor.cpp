@@ -26,6 +26,10 @@
 #include "Widgets/Label.hpp"
 #include "format.hpp"
 
+#ifdef __WXMAC__
+#include "wxMediaCtrl2.h"
+#endif
+
 namespace Slic3r {
 namespace GUI {
 
@@ -626,7 +630,18 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
     m_bitmap_bed->SetBitmap(m_bed_img);
     m_bitmap_nozzle->SetBitmap(m_nozzle_img);
     m_bitmap_pocket->SetBitmap(m_pocket_img);
-    m_bitmap_live_default->SetBitmap(m_live_default_img);
+    //m_bitmap_live_default->SetBitmap(m_live_default_img);
+    m_bitmap_thumbnail->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent &e)
+    {
+        if (obj == NULL) {
+            return;
+        }
+        wxGetApp()
+            .getAccountManager()
+            ->get_camera_url(obj->dev_id, [this](std::string url) {
+                if (!url.empty()) m_media_ctrl->Load(wxURI(url));
+            });
+    });
 
     /* set default values */
     set_toggle_widget_on(m_button_1_0);
@@ -1083,12 +1098,12 @@ void MonitorPanel::update_status(MachineObject* obj)
 
 void MonitorPanel::on_timer(wxTimerEvent& event)
 {
-    Freeze();
+    //Freeze();
     update_all();
     
     Layout();
     Refresh();
-    Thaw();
+    //Thaw(); // will cause media ctrl period flush
 }
 
 void MonitorPanel::update_all()

@@ -354,6 +354,10 @@ public:
     /* submit */
     int submit_print_result(std::string device_id, std::string json_str, ResultFn fn);
 
+    /* camera */
+    void get_camera_url(std::string const &              device,
+                        std::function<void(std::string)> callback);
+
     /* slicer resources apis */
     VersionInfo version_info;
     void check_new_version();

@@ -8,6 +8,10 @@
 #include "MonitorBasePanel.h"
 #include "Widgets/SwitchButton.hpp"
 
+#ifdef __WXMAC__
+#include "wxMediaCtrl2.h"
+#endif
+
 ///////////////////////////////////////////////////////////////////////////
 using namespace Slic3r::GUI;
 
@@ -361,10 +365,21 @@ MonitorBasePanel::MonitorBasePanel( wxWindow* parent, wxWindowID id, const wxPoi
 	wxBoxSizer* bSizer29;
 	bSizer29 = new wxBoxSizer( wxVERTICAL );
 
-	m_bitmap_live_default = new wxStaticBitmap( m_panel_live, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize( -1,-1 ), 0 );
-	m_bitmap_live_default->SetMinSize( wxSize( -1,300 ) );
+	//m_bitmap_live_default = new wxStaticBitmap( m_panel_live, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize( -1,-1 ), 0 );
+	//m_bitmap_live_default->SetMinSize( wxSize( -1,300 ) );
+#ifdef __WXMAC__
+    m_media_ctrl = new wxMediaCtrl2(m_panel_live);
+#else
+    m_media_ctrl = new wxMediaCtrl(m_panel_live, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxMEDIACTRLPLAYERCONTROLS_NONE);
+#endif
+	m_media_ctrl->SetMinSize(wxSize(400, 300));
+	m_media_ctrl->Bind(wxEVT_MEDIA_STATECHANGED, [this](wxMediaEvent& e) {
+        wxSize size = m_media_ctrl->GetBestSize();
+        if (size.GetWidth() > 1000)
+			m_media_ctrl->Play();
+		});
 
-	bSizer29->Add( m_bitmap_live_default, 0, wxALL|wxEXPAND, 5 );
+	bSizer29->Add(m_media_ctrl, 0, wxALL|wxEXPAND, 5 );
 
 
 	m_panel_live->SetSizer( bSizer29 );

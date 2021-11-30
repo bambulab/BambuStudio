@@ -1814,6 +1814,51 @@ namespace Slic3r {
             .perform();
     }
 
+    void AccountManager::get_camera_url(
+        std::string const & device,
+        std::function<void(std::string)> callback)
+    {
+        if (m_curr_user == NULL) return;
+        std::string url = (boost::format("%1%/iot/user/ttcode") % host)
+                              .str();
+        std::string body = (boost::format("{\"dev_id\": \"%1%\"}") % device)
+                               .str();
+        Http http = Http::post(url);
+        http.header("accept", "application/json")
+            .header("Authorization", get_token_str())
+            .header("user-id", m_curr_user->get_user_id())
+            .header("Content-Type", "application/json")
+            .set_post_body(body)
+            .on_complete([this, callback](std::string body, unsigned) {
+                std::stringstream ss(body);
+                pt::ptree         root;
+                pt::read_json(ss, root);
+                std::string ttcode =
+                    root.get_optional<std::string>("ttcode").get_value_or("");
+                std::string authkey =
+                    root.get_optional<std::string>("authkey").get_value_or("");
+                std::string passwd =
+                    root.get_optional<std::string>("passwd").get_value_or("");
+                std::string url;
+                if (!authkey.empty()) {
+                    url.append(url.empty() ? "?" : "&");
+                    url.append("authkey=" + authkey);
+                }
+                if (!passwd.empty()) {
+                    url.append(url.empty() ? "?" : "&");
+                    url.append("passwd=" + passwd);
+                }
+                callback(ttcode.empty() ? ttcode : "tutk:///" + ttcode + url);
+            })
+            .on_error([this, callback](std::string body, std::string error,
+                                        unsigned status) {
+                    BOOST_LOG_TRIVIAL(info) 
+                        << "get_camera_ttcode info failed! body=" << body;
+                    callback("");
+                })
+            .perform();
+    }
+
     void AccountManager::get_profile(BBLProject*& project, BBLProfile*& profile)
     {
         if (!profile || !project) return;
