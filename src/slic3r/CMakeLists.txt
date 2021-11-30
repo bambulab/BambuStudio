@@ -321,9 +321,12 @@ set(SLIC3R_GUI_SOURCES
     GUI/UpdateDialogs.cpp
     GUI/UpdateDialogs.hpp
     GUI/Jobs/Job.hpp
-    GUI/Jobs/Job.cpp
-    GUI/Jobs/PlaterJob.hpp
-    GUI/Jobs/PlaterJob.cpp
+    GUI/Jobs/Worker.hpp
+    GUI/Jobs/BoostThreadWorker.hpp
+    GUI/Jobs/BoostThreadWorker.cpp
+    GUI/Jobs/UIThreadWorker.hpp
+    GUI/Jobs/BusyCursorJob.hpp
+    GUI/Jobs/PlaterWorker.hpp
     GUI/Jobs/UpgradeNetworkJob.hpp
     GUI/Jobs/UpgradeNetworkJob.cpp
     GUI/Jobs/ArrangeJob.hpp
@@ -345,6 +348,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Jobs/BindJob.cpp
     GUI/Jobs/NotificationProgressIndicator.hpp
     GUI/Jobs/NotificationProgressIndicator.cpp
+    GUI/Jobs/ThreadSafeQueue.hpp
+    GUI/Jobs/SLAImportDialog.hpp
     GUI/PhysicalPrinterDialog.hpp
     GUI/PhysicalPrinterDialog.cpp
     GUI/ProgressStatusBar.hpp
