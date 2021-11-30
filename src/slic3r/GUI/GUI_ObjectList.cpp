@@ -4529,9 +4529,13 @@ void ObjectList::reload_all_plates()
 
 void ObjectList::on_plate_selected(int plate_index)
 {
-    UnselectAll();
-
     wxDataViewItem item = m_objects_model->GetItemByPlateId(plate_index);
+    wxDataViewItem sel = GetSelection();
+
+    if (sel == item)
+        return;
+
+    UnselectAll();
     Select(item);
 }
 
