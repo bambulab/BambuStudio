@@ -66,7 +66,9 @@ namespace Slic3r {
         info.put("name", task_name);
         info.put("plate_idx", task_partplate_idx);
         info.put("printer", task_printer_dev_id);
+        info.put("report_id", task_report);
         root.put_child("info", info);
+        
 
         std::stringstream oss;
         pt::write_json(oss, root, false);
@@ -91,12 +93,22 @@ namespace Slic3r {
 
             boost::optional<std::string> subtask_printer = info.get_optional<std::string>("printer");
             if (subtask_printer.has_value()) task_printer_dev_id = subtask_printer.value();
+
+            boost::optional<std::string> subtask_report = info.get_optional<std::string>("report_id");
+            if (subtask_report.has_value()) task_report = subtask_report.value();
         }
         catch (...) {
             BOOST_LOG_TRIVIAL(trace) << "parse_content_json failed! json=" << json;
             return -1;
         }
         return 0;
+    }
+
+    bool BBLSubTask::is_report_done()
+    {
+        if (task_report.empty() || task_report.compare("0") == 0)
+            return false;
+        return true;
     }
 
     BBLSubTask::SubTaskStatus BBLSubTask::parse_status(std::string status)

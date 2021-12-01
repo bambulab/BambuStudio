@@ -413,7 +413,7 @@ SubTaskPanel::SubTaskPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	wxBoxSizer* bSizer_down;
 	bSizer_down = new wxBoxSizer( wxHORIZONTAL );
 
-	m_staticText_prediction_title = new wxStaticText( this, wxID_ANY, wxT("prediction time : "), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
+	m_staticText_prediction_title = new wxStaticText( this, wxID_ANY, wxT("estimate time : "), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
 	m_staticText_prediction_title->Wrap( -1 );
 	bSizer_down->Add( m_staticText_prediction_title, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -551,7 +551,7 @@ void SubTaskPanel::update_info(BBLSubTask subtask, BBLSliceInfo info)
     m_subtask = subtask;
     m_subtask.task_gcode_in_3mf = info.gcode_dir + "/" + info.gcode_name;
     m_subtask.task_url = info.gcode_url;
-    wxString prediction = wxString::Format("%s", get_time_dhms(info.prediction));
+    wxString prediction = wxString::Format("%s", get_bbl_time_dhms(info.prediction));
     wxString weight = wxString::Format("%sg", info.weight);
     this->set_value(subtask.task_name, prediction, weight, info.thumbnail_url);
 }
@@ -639,6 +639,11 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
     obj = nullptr;
     m_ctrl_unit = 0.1f;
 
+#ifdef BBL_INTERNAL_TEST
+    m_button_report->SetFont(Label::Head_12);
+#endif
+
+
     // Connect Events
     m_panel_machine_status_title->Connect( wxEVT_LEFT_DCLICK, wxMouseEventHandler( MonitorPanel::on_status_click ), NULL, this );
 	m_staticText_status->Connect( wxEVT_LEFT_DCLICK, wxMouseEventHandler( MonitorPanel::on_status_click ), NULL, this );
@@ -646,6 +651,7 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
 	m_staticText_subtask_list_title->Connect( wxEVT_LEFT_DCLICK, wxMouseEventHandler( MonitorPanel::on_tasklist_click ), NULL, this );
 	m_panel_notification->Connect( wxEVT_LEFT_DCLICK, wxMouseEventHandler( MonitorPanel::on_notification_click ), NULL, this );
 	m_staticText_notification->Connect( wxEVT_LEFT_DCLICK, wxMouseEventHandler( MonitorPanel::on_notification_click ), NULL, this );
+    m_button_report->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MonitorPanel::on_subtask_report ), NULL, this );
     m_button_pause_resume->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_subtask_pause_resume), NULL, this);
     m_button_abort->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_subtask_abort), NULL, this);
     m_bpButton_y_up->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_axis_ctrl_y_up), NULL, this);
@@ -673,7 +679,6 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
     m_bmToggleBtn_printing_fan->Connect( wxEVT_TOGGLEBUTTON, wxCommandEventHandler( MonitorPanel::on_printing_fan_switch ), NULL, this );
 	m_bmToggleBtn_nozzle_fan->Connect( wxEVT_TOGGLEBUTTON, wxCommandEventHandler( MonitorPanel::on_nozzle_fan_switch ), NULL, this );
 
-
     Bind(wxEVT_SIZE, &MonitorPanel::on_size, this);
 }
 
@@ -692,6 +697,7 @@ MonitorPanel::~MonitorPanel()
 	m_staticText_subtask_list_title->Disconnect( wxEVT_LEFT_DCLICK, wxMouseEventHandler( MonitorPanel::on_tasklist_click ), NULL, this );
 	m_panel_notification->Disconnect( wxEVT_LEFT_DCLICK, wxMouseEventHandler( MonitorPanel::on_notification_click ), NULL, this );
 	m_staticText_notification->Disconnect( wxEVT_LEFT_DCLICK, wxMouseEventHandler( MonitorPanel::on_notification_click ), NULL, this );
+    m_button_report->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MonitorPanel::on_subtask_report ), NULL, this );
     m_button_pause_resume->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_subtask_pause_resume), NULL, this);
     m_button_abort->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_subtask_abort), NULL, this);
     m_bpButton_y_up->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorPanel::on_axis_ctrl_y_up), NULL, this);
@@ -747,6 +753,9 @@ void MonitorPanel::init_bitmap()
     m_ctrl_home = create_scaled_bitmap("axis_ctrl_home", nullptr, bitmap_size);
     m_thumbnail_placeholder = create_scaled_bitmap("monitor_placeholder", this, 160);
 
+    m_signal_strong_img = create_scaled_bitmap("monitor_signal_strong", nullptr, 20);
+    m_signal_middle_img = create_scaled_bitmap("monitor_signal_middle", nullptr, 20);
+    m_signal_weak_img = create_scaled_bitmap("monitor_signal_weak", nullptr, 20);
     m_fan_img = create_scaled_bitmap("monitor_fan", nullptr, 13);
     m_bed_img = create_scaled_bitmap("monitor_bed_temp", nullptr, bitmap_temp_size);
     m_nozzle_img = create_scaled_bitmap("monitor_nozzle_temp", nullptr, bitmap_temp_size);
@@ -985,8 +994,32 @@ void MonitorPanel::update_status(MachineObject* obj)
     wxString printing_status_text = wxString::Format("%s", obj->print_status);
     m_staticText_printing_val->SetLabelText(printing_status_text);
 
-    // TODO up+date signal image
-    // m_bitmap_signal
+    // update wifi signal image
+    int wifi_signal_val = 0;
+    if (!obj->wifi_signal.empty() && boost::ends_with(obj->wifi_signal, "dBm")) {
+        try {
+            wifi_signal_val = std::stoi(obj->wifi_signal.substr(0, obj->wifi_signal.size() - 3));
+        }
+        catch (...) {
+            ;
+        }
+
+        if (last_wifi_signal != wifi_signal_val) {
+            if (wifi_signal_val > -45) {
+                m_bitmap_signal->SetBitmap(m_signal_strong_img);
+            }
+            else if (wifi_signal_val <= -45 && wifi_signal_val >= -60) {
+                m_bitmap_signal->SetBitmap(m_signal_middle_img);
+            }
+            else {
+                m_bitmap_signal->SetBitmap(m_signal_weak_img);
+            }
+        }
+        last_wifi_signal = wifi_signal_val;
+    }
+    else {
+        m_bitmap_signal->SetBitmap(m_signal_weak_img);
+    }
 
     // update wifi signal
     m_staticText_wifi_signal->SetLabelText(wxString::Format("%s", obj->wifi_signal));
@@ -1013,6 +1046,8 @@ void MonitorPanel::update_status(MachineObject* obj)
         m_button_pause_resume->SetLabelText("Resume");
     else
         m_button_pause_resume->SetLabelText("Pause");
+
+    m_panel_machine_status_content->Layout();
 }
 
 void MonitorPanel::on_timer(wxTimerEvent& event)
@@ -1074,6 +1109,15 @@ void MonitorPanel::on_subtask_status_changed(std::string old_status, std::string
 void MonitorPanel::on_subtask_start(wxCommandEvent& event)
 {
     ;//TODO
+}
+
+void MonitorPanel::on_subtask_report(wxCommandEvent& event)
+{
+    if (obj) {
+        if (!obj->subtask_) return;
+        wxString report_url = wxString::Format("https://autotest.bambu-lab.com/testReports/add?taskId=%s", obj->subtask_->task_id);
+        wxLaunchDefaultBrowser(report_url);
+    }
 }
 
 void MonitorPanel::on_subtask_pause_resume(wxCommandEvent& event)

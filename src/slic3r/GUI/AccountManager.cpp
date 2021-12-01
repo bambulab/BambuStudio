@@ -1780,6 +1780,35 @@ namespace Slic3r {
                 }
             )
             .perform();
+
+#ifdef BBL_INTERNAL_TEST
+        get_subtask_report(subtask);
+#endif
+    }
+
+    void AccountManager::get_subtask_report(BBLSubTask*& subtask)
+    {
+        std::string url = (boost::format("%1%/api/subtasks/%2%") % test_host % subtask->task_id).str();
+        Http http = Http::get(url);
+        http.header("accept", "application/json")
+            .header("Authorization", get_token_str())
+            .on_complete(
+                [this, subtask](std::string body, unsigned) {
+                    std::stringstream ss(body);
+                    pt::ptree root;
+                    pt::read_json(ss, root);
+                    boost::optional<std::string> task_report_id = root.get_optional<std::string>("task_report_id");
+                    boost::optional<std::string> task_printing_status = root.get_optional<std::string>("status");
+                    if (task_report_id.has_value())
+                        subtask->task_report = task_report_id.value();
+                }
+            )
+            .on_error(
+                [this](std::string body, std::string error, unsigned status) {
+                    BOOST_LOG_TRIVIAL(info) << "get_task info failed! body=" << body;
+                }
+            )
+            .perform();
     }
 
     void AccountManager::get_profile(BBLProject*& project, BBLProfile*& profile)

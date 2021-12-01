@@ -94,6 +94,7 @@ public:
     std::string     task_update_time;   /* time updated by cloud */
     std::string     task_start_time;    /* time created by machine, seconds from 1970-01-01 */
     std::string     task_duration;      /* duration created by machine, unit seconds */
+    std::string     task_report;        /* report of task */
 
     // task of plate info
     std::string     task_prediction;    /* prediction printing time of plate, unit seconds */
@@ -112,6 +113,7 @@ public:
 
     std::string build_content_json();
     int parse_content_json(std::string json);
+    bool is_report_done();
     static BBLSubTask::SubTaskStatus parse_status(std::string status);
 };
 

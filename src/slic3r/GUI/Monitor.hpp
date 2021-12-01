@@ -214,6 +214,10 @@ protected:
 	wxBitmap m_ctrl_right;
 	wxBitmap m_ctrl_home;
 	wxBitmap m_thumbnail_placeholder;
+	wxBitmap m_signal_strong_img;
+	wxBitmap m_signal_middle_img;
+	wxBitmap m_signal_weak_img;
+
 	wxBitmap m_fan_img;
 	wxBitmap m_bed_img;
 	wxBitmap m_nozzle_img;
@@ -226,6 +230,7 @@ protected:
 #if defined(__WINDOWS__) || defined(__APPLE__)
 	wxWebRequest web_request;
 #endif
+
 
 	bool bed_temp_input = false;
 	bool nozzle_temp_input = false;
@@ -240,8 +245,10 @@ protected:
     void on_select(wxCommandEvent& event);
 
     void on_subtask_start(wxCommandEvent& event);
+	void on_subtask_report(wxCommandEvent& event);
     void on_subtask_pause_resume(wxCommandEvent& event);
     void on_subtask_abort(wxCommandEvent& event);
+
     /* change button status when subtask status changed */
     void on_subtask_status_changed(std::string old_status, std::string new_status);
 
@@ -318,6 +325,8 @@ public:
     BBLTask*    last_task;
     BBLSubTask* last_subtask;
     BBLProfile* last_profile;
+
+    int         last_wifi_signal = -1;
 
     void set_machine(std::string machine_sn);
     void select_machine(std::string machine_sn);

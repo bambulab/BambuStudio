@@ -251,7 +251,9 @@ public:
     bool can_resume();
     bool can_pause();
     bool can_abort();
-   
+    bool is_printing_finished();
+
+    void set_print_state(std::string status);
     
     /* static apis */
     static std::string build_report_topic(std::string dev_id);

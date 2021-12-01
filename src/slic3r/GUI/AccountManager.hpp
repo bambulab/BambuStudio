@@ -13,6 +13,8 @@
 #include "libslic3r/Preset.hpp"
 #include "slic3r/Utils/Http.hpp"
 
+#define BBL_INTERNAL_TEST
+
 
 #define MY_MODEL_PUBLISH_URL_FORMAT     "https://portal-dev.bambu-lab.com/my/models/%s/publish?project_id=%s"
 #define MY_COLLECTIONS_URL              "https://portal-dev.bambu-lab.com/my/collections"
@@ -192,6 +194,7 @@ private:
     boost::filesystem::path m_user_info_path;
     const std::string account_json = "UserInfo.json";
     std::string host = "https://api-qa.bambu-lab.com";
+    std::string test_host = "https://autotest.bambooolab.com";
     std::string MSG_SUCCESS = "success";
 
 
@@ -328,6 +331,7 @@ public:
     // get task info
     void get_task(BBLTask* &task);
     void get_subtask(BBLSubTask* &subtask);
+    void get_subtask_report(BBLSubTask*& subtask);
     void get_profile(BBLProject*& project, BBLProfile*& profile);
 
     // create a project 

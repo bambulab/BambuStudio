@@ -103,8 +103,8 @@ MonitorBasePanel::MonitorBasePanel( wxWindow* parent, wxWindowID id, const wxPoi
 	m_staticText_wifi_signal->Wrap( -1 );
 	bSizer_machine_values->Add( m_staticText_wifi_signal, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-	m_bitmap_signal = new wxStaticBitmap( m_panel_machine_status_content, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer_machine_values->Add( m_bitmap_signal, 0, wxALL, 5 );
+	m_bitmap_signal = new wxStaticBitmap( m_panel_machine_status_content, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize( 20,20 ), 0 );
+	bSizer_machine_values->Add( m_bitmap_signal, 0, wxALIGN_CENTER|wxALL, 5 );
 
 
 	fgSizer_status->Add( bSizer_machine_values, 1, wxALIGN_CENTER_VERTICAL|wxEXPAND, 0 );
@@ -478,14 +478,20 @@ MonitorBasePanel::MonitorBasePanel( wxWindow* parent, wxWindowID id, const wxPoi
 
 	bSizer_task_btn->Add( 0, 0, 1, wxEXPAND, 5 );
 
+	m_button_report = new wxButton( m_panel_printing_content, wxID_ANY, wxT("Report"), wxDefaultPosition, wxSize( 100,36 ), 0 );
+	bSizer_task_btn->Add( m_button_report, 0, wxALIGN_CENTER|wxALIGN_RIGHT|wxALL, 5 );
+
+
+	bSizer_task_btn->Add( 20, 0, 0, wxEXPAND, 5 );
+
 	m_button_pause_resume = new wxButton( m_panel_printing_content, wxID_ANY, wxT("Pause"), wxDefaultPosition, wxSize( 100,36 ), 0 );
-	bSizer_task_btn->Add( m_button_pause_resume, 0, wxALIGN_CENTER|wxALL, 0 );
+	bSizer_task_btn->Add( m_button_pause_resume, 0, wxALIGN_CENTER|wxALIGN_RIGHT|wxALL, 0 );
 
 
 	bSizer_task_btn->Add( 20, 0, 0, wxEXPAND, 0 );
 
 	m_button_abort = new wxButton( m_panel_printing_content, wxID_ANY, wxT("Abort"), wxDefaultPosition, wxSize( 100,36 ), 0 );
-	bSizer_task_btn->Add( m_button_abort, 0, wxALIGN_RIGHT|wxALL, 0 );
+	bSizer_task_btn->Add( m_button_abort, 0, wxALIGN_CENTER|wxALIGN_RIGHT|wxALL, 0 );
 
 
 	bSizer_subtask_info->Add( bSizer_task_btn, 0, wxALIGN_BOTTOM|wxALIGN_CENTER|wxBOTTOM|wxEXPAND, 0 );
@@ -966,6 +972,7 @@ MonitorBasePanel::MonitorBasePanel( wxWindow* parent, wxWindowID id, const wxPoi
 	m_staticText_subtask_list_title->Connect( wxEVT_LEFT_DCLICK, wxMouseEventHandler( MonitorBasePanel::on_tasklist_click ), NULL, this );
 	m_panel_notification->Connect( wxEVT_LEFT_DCLICK, wxMouseEventHandler( MonitorBasePanel::on_notification_click ), NULL, this );
 	m_staticText_notification->Connect( wxEVT_LEFT_DCLICK, wxMouseEventHandler( MonitorBasePanel::on_notification_click ), NULL, this );
+	m_button_report->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MonitorBasePanel::on_subtask_report ), NULL, this );
 	m_button_pause_resume->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MonitorBasePanel::on_subtask_pause_resume ), NULL, this );
 	m_button_abort->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MonitorBasePanel::on_subtask_abort ), NULL, this );
 	m_textCtrl_bed->Connect( wxEVT_KILL_FOCUS, wxFocusEventHandler( MonitorBasePanel::on_bed_temp_kill_focus ), NULL, this );
@@ -991,6 +998,7 @@ MonitorBasePanel::~MonitorBasePanel()
 	m_staticText_subtask_list_title->Disconnect( wxEVT_LEFT_DCLICK, wxMouseEventHandler( MonitorBasePanel::on_tasklist_click ), NULL, this );
 	m_panel_notification->Disconnect( wxEVT_LEFT_DCLICK, wxMouseEventHandler( MonitorBasePanel::on_notification_click ), NULL, this );
 	m_staticText_notification->Disconnect( wxEVT_LEFT_DCLICK, wxMouseEventHandler( MonitorBasePanel::on_notification_click ), NULL, this );
+	m_button_report->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MonitorBasePanel::on_subtask_report ), NULL, this );
 	m_button_pause_resume->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MonitorBasePanel::on_subtask_pause_resume ), NULL, this );
 	m_button_abort->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MonitorBasePanel::on_subtask_abort ), NULL, this );
 	m_textCtrl_bed->Disconnect( wxEVT_KILL_FOCUS, wxFocusEventHandler( MonitorBasePanel::on_bed_temp_kill_focus ), NULL, this );

@@ -599,8 +599,9 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                     mc_print_line_number = mc_print_line_number_str.value();
                 }
 
-                if (gcode_state.has_value())
-                    print_status = gcode_state.value();
+                if (gcode_state.has_value()) {
+                    this->set_print_state(gcode_state.value());
+                }
 
                 /* positions */
                 boost::optional<std::string> pos_x = print.get_optional<std::string>("pos_x");
@@ -1178,6 +1179,20 @@ bool MachineObject::can_abort()
         return true;
     }
     return false;
+}
+
+bool MachineObject::is_printing_finished()
+{
+    if (print_status.compare("FINISH") == 0
+        || print_status.compare("FAILED") == 0) {
+        return true;
+    }
+    return false;
+}
+
+void MachineObject::set_print_state(std::string status)
+{
+    print_status = status;
 }
 
 std::string MachineObject::build_report_topic(std::string dev_id)

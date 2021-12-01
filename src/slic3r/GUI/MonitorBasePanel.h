@@ -91,6 +91,7 @@ namespace Slic3r
 				wxGauge* m_gauge_progress;
 				wxStaticText* m_staticText_progress_duration;
 				wxStaticText* m_staticText_progress_left;
+				wxButton* m_button_report;
 				wxButton* m_button_pause_resume;
 				wxButton* m_button_abort;
 				wxStaticLine* m_staticline6;
@@ -152,6 +153,7 @@ namespace Slic3r
 				virtual void on_status_click( wxMouseEvent& event ) { event.Skip(); }
 				virtual void on_tasklist_click( wxMouseEvent& event ) { event.Skip(); }
 				virtual void on_notification_click( wxMouseEvent& event ) { event.Skip(); }
+				virtual void on_subtask_report( wxCommandEvent& event ) { event.Skip(); }
 				virtual void on_subtask_pause_resume( wxCommandEvent& event ) { event.Skip(); }
 				virtual void on_subtask_abort( wxCommandEvent& event ) { event.Skip(); }
 				virtual void on_bed_temp_kill_focus( wxFocusEvent& event ) { event.Skip(); }
