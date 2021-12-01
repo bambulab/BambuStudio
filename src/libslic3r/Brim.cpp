@@ -607,10 +607,13 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
         top_level_objects_idx.insert(object->id().id);
 
     unsigned int support_material_extruder = 1;
+    auto allExtruders = print.extruders();
     if (print.has_support_material()) {
         assert(top_level_objects_with_brim.front()->config().support_material_extruder >= 0);
         if (top_level_objects_with_brim.front()->config().support_material_extruder > 0)
             support_material_extruder = top_level_objects_with_brim.front()->config().support_material_extruder;
+        allExtruders.push_back(support_material_extruder - 1);
+        sort_remove_duplicates(allExtruders);
     }
 
     ExPolygons brim_area;
@@ -625,8 +628,8 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
     for (const auto& objectWithExtruder : objPrintVec)
         brimToWrite.insert({ objectWithExtruder.first, {true,true} });
 
-
-    for (unsigned int extruderNo : print.extruders()) {
+    
+    for (unsigned int extruderNo : allExtruders) {
         ++extruderNo;
         for (const auto& objectWithExtruder : objPrintVec) {
             const PrintObject* object = print.get_object(objectWithExtruder.first);
@@ -651,7 +654,7 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
                         append(brim_area_object, diff_ex(offset_ex(ex_poly.holes, -brim_offset), offset_ex(ex_poly.holes, -brim_width - brim_offset)));
                     if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btNoBrim)
                         append(no_brim_area_object, diff_ex(offset(ex_poly.contour, no_brim_offset), ex_poly.holes));
-                    if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btNoBrim)
+                    if (brim_type == BrimType::btNoBrim)
                         append(no_brim_area_object, offset_ex(ex_poly.holes, -no_brim_offset));
                     append(holes_object, ex_poly.holes);
                 }
@@ -689,7 +692,7 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
                             append(brim_area_support, diff_ex(offset_ex(ex_poly.holes, -brim_offset), offset_ex(ex_poly.holes, -brim_width - brim_offset)));
                         if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btNoBrim)
                             append(no_brim_area_support, diff_ex(offset(ex_poly.contour, no_brim_offset), ex_poly.holes));
-                        if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btNoBrim)
+                        if (brim_type == BrimType::btNoBrim)
                             append(no_brim_area_support, offset_ex(ex_poly.holes, -no_brim_offset));
                         append(holes_support, ex_poly.holes);
                         if (brim_type != BrimType::btNoBrim)
