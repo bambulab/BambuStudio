@@ -15,6 +15,7 @@
 #include "slic3r/GUI/format.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/NotificationManager.hpp"
+#include "slic3r/GUI/GUI_ObjectList.hpp"
 
 #include "libnest2d/common.hpp"
 
@@ -509,6 +510,10 @@ void ArrangeJob::finalize() {
     
     //BBS: reload all objects due to arrange
     plate_list.rebuild_plates_after_arrangement(!only_on_partplate);
+
+    // FIXME: update slice context and gcode result.
+
+    wxGetApp().obj_list()->reload_all_plates();
 
     m_plater->update();
 

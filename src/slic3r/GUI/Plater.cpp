@@ -8231,6 +8231,7 @@ int Plater::delete_plate(int plate_index)
     //BBS: update the current print to the current plate
     p->partplate_list.update_slice_context_to_current_plate(p->background_process);
     p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
+    p->sidebar->obj_list()->reload_all_plates();
 
     //need to call update
     update();

@@ -1551,10 +1551,13 @@ int PartPlateList::delete_plate(int index)
 
 	delete plate;
 
+    // FIX: context of BackgroundSliceProcess and gcode preview need to be updated before ObjectList::reload_all_plates().
+#if 0
 	if (m_plater != nullptr) {
 		// In GUI mode
 		wxGetApp().obj_list()->reload_all_plates();
 	}
+#endif
 	return ret;
 }
 
@@ -2563,10 +2566,12 @@ int PartPlateList::rebuild_plates_after_arrangement(bool recycle_plates)
 		}
 	}
 
+#if 0
 	if (m_plater != nullptr) {
 		// In GUI mode
 		wxGetApp().obj_list()->reload_all_plates();
 	}
+#endif
 
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":after rebuild, plates count %1%") % m_plate_list.size();
 	return ret;
