@@ -82,7 +82,7 @@ const std::string LAYER_CONFIG_RANGES_FILE = "Metadata/Prusa_Slicer_layer_config
 const std::string SLA_SUPPORT_POINTS_FILE = "Metadata/Slic3r_PE_sla_support_points.txt";
 const std::string SLA_DRAIN_HOLES_FILE = "Metadata/Slic3r_PE_sla_drain_holes.txt";
 const std::string CUSTOM_GCODE_PER_PRINT_Z_FILE = "Metadata/Prusa_Slicer_custom_gcode_per_print_z.xml";
-const std::string AUXILIARY_DIR = "auxiliaries/";
+const std::string AUXILIARY_DIR = "Auxiliaries/";
 
 const unsigned int AUXILIARY_STR_LEN = 12;
 
