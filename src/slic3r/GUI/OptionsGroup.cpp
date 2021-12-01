@@ -117,7 +117,7 @@ OptionsGroup::OptionsGroup(	wxWindow* _parent, const wxString& title,
                 m_parent(_parent), title(title),
                 m_use_custom_ctrl(is_tab_opt),
 				// BBS: new layout
-				staticbox(false), extra_column(extra_clmn)
+				staticbox(!is_tab_opt), extra_column(extra_clmn)
 {
 }
 

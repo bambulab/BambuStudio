@@ -217,6 +217,7 @@ void Button::messureSize()
 void Button::mouseDown(wxMouseEvent& event)
 {
     pressedDown = true;
+    SetFocus();
     paintNow();
 }
 
