@@ -1817,7 +1817,10 @@ void TabPrint::build()
         line = { L("Extruder clearance"), "" };
         line.append_option(optgroup->get_option("extruder_clearance_radius"));
         line.append_option(optgroup->get_option("extruder_clearance_height_to_rod"));
-        line.append_option(optgroup->get_option("extruder_clearance_height_to_lid"));//BBS
+        optgroup->append_line(line);
+        //BBS: new line for extruder_clearance_height_to_lid as there is not enough space for a single line
+        line = { L(" "), "" };
+        line.append_option(optgroup->get_option("extruder_clearance_height_to_lid"));
         optgroup->append_line(line);
 
         optgroup = page->new_optgroup(L("Output file"));

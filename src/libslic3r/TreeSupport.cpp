@@ -7,6 +7,7 @@
 #include "Fill/FillBase.hpp"
 #include "CurveAnalyzer.hpp"
 #include "SVG.hpp"
+#include "ShortestPath.hpp"
 
 #define SQUARE_SUPPORT 0
 #if SQUARE_SUPPORT
@@ -15,6 +16,7 @@
 #define CIRCLE_RESOLUTION 100 //The number of vertices in each circle.
 #endif
 #define MAX_BRANCH_RADIUS 10.0
+#define HEIGHT_TO_SWITCH_INFILL_DIRECTION 20 // change infill direction every 20mm
 
 #ifndef M_PI
 #define M_PI 3.1415926535897932384626433832795
@@ -993,7 +995,9 @@ static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print
         auto first_iter = expoly_list.begin();
         auto depth_iter = depth_per_expoly.find(&expoly_list.front());
         if (depth_iter->second + 1 < wall_count) {
-            ExPolygons expolys_new = offset_ex(expoly_list.front(), -float(flow.scaled_spacing()), jtSquare);
+            // shrink and then dilate to prevent overlapping and overflow
+            ExPolygons expolys_new = offset_ex(expoly_list.front(), -1.4 * float(flow.scaled_spacing()), jtSquare);
+            expolys_new = offset_ex(expolys_new, .4*float(flow.scaled_spacing()), jtSquare);
 
             for (ExPolygon &expoly : expolys_new) {
                 auto new_iter = expoly_list.insert(expoly_list.begin(), expoly);
@@ -1217,9 +1221,9 @@ void TreeSupport::generate_toolpaths()
     }
 
     auto obj_size = m_object.size();
-    Fill* filler_support = Fill::new_from_type(ipRectilinear);
-    filler_support->angle = obj_size.x() > obj_size.y() ? 0. : M_PI/2;  // roughly align fill direction to object direction
-    filler_support->spacing = m_support_material_flow.spacing();//support_extrusion_width;
+    bool obj_is_vertical = obj_size.x() < obj_size.y();
+    int num_layers_to_change_infill_direction = int(HEIGHT_TO_SWITCH_INFILL_DIRECTION / object_config.layer_height.value);  // change direction every 20mm
+
     // generate tree support tool paths
     tbb::parallel_for(
         tbb::blocked_range<size_t>(m_raft_layers, m_object.tree_support_layer_count()),
@@ -1234,40 +1238,70 @@ void TreeSupport::generate_toolpaths()
                 filler_interface->spacing = interface_spacing;
 
                 // bool stands for is_support_interface
-                std::vector<std::pair<ExPolygons *, bool>> area_groups;
-                area_groups.emplace_back(&ts_layer->roof_areas, true);
-                area_groups.emplace_back(&ts_layer->floor_areas, true);
-                area_groups.emplace_back(&ts_layer->base_areas, false);
-                for (std::pair<ExPolygons*, bool>& area_group : area_groups) {
-                    for (ExPolygon& poly : *area_group.first) {
-                        if (area_group.second) {
-                            ExPolygons polys;
-                            if (layer_id == 0) {
-                                Flow flow = m_raft_layers == 0 ? m_object.print()->brim_flow() : support_flow;
-                                make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object.print(),
-                                    poly, wall_count, flow, true);
-                                polys = std::move(offset_ex(poly, -flow.scaled_spacing()));
-                            } else {
-                                polys.push_back(poly);
-                            }
+                std::vector<std::pair<ExPolygon*, bool>> area_groups;
+                for(auto& area: ts_layer->roof_areas)
+                    area_groups.emplace_back(&area, true);
+                for (auto& area : ts_layer->floor_areas)
+                    area_groups.emplace_back(&area, true);
+                for (auto& area : ts_layer->base_areas)
+                    area_groups.emplace_back(&area, false);
 
-                            FillParams fill_params;
-                            fill_params.density = interface_density;
-                            fill_params.dont_adjust = true;
-                            fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(polys),
-                                filler_interface, fill_params, interface_density, erSupportMaterialInterface, support_flow);
+                // sort regions to reduce travel
+                Points ordering_points;
+                for (const auto& area : area_groups)
+                        ordering_points.push_back((area.first)->contour.first_point());
+                std::vector<Points::size_type> order = chain_points(ordering_points);
+                std::vector<std::pair<ExPolygon*, bool>> area_groups_sorted;
+                area_groups_sorted.reserve(ordering_points.size());
+                for (size_t i : order)
+                    area_groups_sorted.emplace_back(std::move(area_groups[i]));
+
+
+                for (std::pair<ExPolygon*, bool>& area_group : area_groups_sorted) {
+                    ExPolygon& poly = *area_group.first;
+                    if (area_group.second) {
+                        ExPolygons polys;
+                        if (layer_id == 0) {
+                            Flow flow = m_raft_layers == 0 ? m_object.print()->brim_flow() : support_flow;
+                            make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object.print(),
+                                poly, wall_count, flow, true);
+                            polys = std::move(offset_ex(poly, -flow.scaled_spacing()));
                         } else {
-                            Flow flow = (layer_id == 0 && m_raft_layers == 0)? m_object.print()->brim_flow() : support_flow;
-                            if(with_infill && layer_id > 0 && offset(poly, -scale_(support_spacing)).empty()==false)
+                            polys.push_back(poly);
+                        }
+
+                        FillParams fill_params;
+                        fill_params.density = interface_density;
+                        fill_params.dont_adjust = true;
+                        fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(polys),
+                            filler_interface, fill_params, interface_density, erSupportMaterialInterface, support_flow);
+                    }
+                    //// add solid infill every 100 layers
+                    //else if (layer_id % 100 == 0)
+                    //{
+                    //    make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object.print(), poly,
+                    //        std::numeric_limits<size_t>::max(), support_flow, false);
+                    //}
+                    else {
+                        Flow flow = (layer_id == 0 && m_raft_layers == 0)? m_object.print()->brim_flow() : support_flow;
+                        if (with_infill && layer_id > 0) {
+                            Fill* filler_support = Fill::new_from_type(ipRectilinear);
+                            filler_support->spacing = m_support_material_flow.spacing();//support_extrusion_width;
+                            filler_support->angle = (obj_is_vertical + int(layer_id / num_layers_to_change_infill_direction)) * M_PI_2;
+
+                            // allow infill-only mode if support is thick enough
+                            if (offset(poly, -scale_(support_spacing * 1.5)).empty() == false)
                             {
-                                // with infill we only need half the extrusion width
                                 make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object.print(), poly, wall_count, support_flow, false, filler_support, support_density);
                             }
-                            else
-                            {
-                                make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object.print(), poly,
-                                    layer_id > 0 ? wall_count : std::numeric_limits<size_t>::max(), flow, false);
+                            else { // otherwise must draw 1 wall
+                                make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object.print(), poly, 1, support_flow, false, filler_support, support_density);
                             }
+                        }
+                        else
+                        {
+                            make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object.print(), poly,
+                                layer_id > 0 ? wall_count : std::numeric_limits<size_t>::max(), flow, false);
                         }
                     }
                 }
@@ -1554,6 +1588,7 @@ inline coordf_t calc_branch_radius(coordf_t base_radius, size_t layers_to_top, s
 void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_nodes)
 {
     const PrintObjectConfig &config = m_object.config();
+    bool has_brim = m_object.print()->has_brim();
     const coordf_t branch_radius = config.tree_support_branch_diameter.value / 2;
     const coordf_t branch_radius_scaled = scale_(branch_radius);
     Polygon branch_circle; //Pre-generate a circle with correct diameter so that we don't have to recompute those (co)sines every time.
@@ -1568,12 +1603,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     }
 
     // Performance optimization. Only generate lslices for brim and skirt.
-    size_t brim_skirt_layers = 0;
-    if (config.brim_width.value > EPSILON)
-    {
-        brim_skirt_layers = 1;
-    }
-
+    size_t brim_skirt_layers = has_brim ? 1 : 0;
     const Print* print = m_object.print();
     const PrintConfig& print_config = print->config();
     for (const PrintObject* object : print->objects())
@@ -1715,7 +1745,8 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 
                 m_object.print()->set_status(95, "Support: draw_circles at layer " + std::to_string(layer_nr));
 
-                auto avoid_region = m_ts_data->get_collision(m_ts_data->m_xy_distance, layer_nr);
+                // let supports touch objects when brim is on
+                auto avoid_region = m_ts_data->get_collision((layer_nr == 0 && has_brim) ? config.brim_offset : m_ts_data->m_xy_distance, layer_nr);
                 auto avoid_region_interface = m_ts_data->get_collision(config.support_material_contact_distance, layer_nr);
                 Polygons layer_contours = std::move(m_ts_data->get_contours_with_holes(layer_nr));
                 base_areas = std::move(diff_ex(base_areas, avoid_region));

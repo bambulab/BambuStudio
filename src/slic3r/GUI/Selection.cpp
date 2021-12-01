@@ -879,6 +879,9 @@ void Selection::flattening_rotate(const Vec3d& normal)
         // Additional rotation to align tnormal with the down vector in the world coordinate space.
         auto  extra_rotation = Eigen::Quaterniond().setFromTwoVectors(tnormal, - Vec3d::UnitZ());
         v.set_instance_rotation(Geometry::extract_euler_angles(extra_rotation.toRotationMatrix() * m_cache.volumes_data[i].get_instance_rotation_matrix()));
+    
+        BOOST_LOG_TRIVIAL(debug) << "flattening_rotate " << (*m_volumes)[i]->name << std::fixed << std::setprecision(4) << ": tnormal=" << tnormal.transpose() << "; extra_rotation=" << Geometry::extract_euler_angles(extra_rotation.toRotationMatrix()).transpose();
+        flush_logs();
     }
 
 #if !DISABLE_INSTANCES_SYNCH
