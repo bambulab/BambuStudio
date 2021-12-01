@@ -10,6 +10,7 @@
 #include "slic3r/GUI/CommuBackend.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/AccountManager.hpp"
+#include "slic3r/GUI/WebViewDialog.hpp"
 
 #include <wx/app.h>
 #include <wx/colour.h>
@@ -316,6 +317,8 @@ public:
     const Plater*        plater() const;
     Model&      		 model();
     NotificationManager * notification_manager();
+    //BBS
+    void            load_url(wxString url);
 
     // Parameters extracted from the command line to be passed to GUI after initialization.
     GUI_InitParams* init_params { nullptr };

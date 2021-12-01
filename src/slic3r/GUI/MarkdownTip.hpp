@@ -3,13 +3,8 @@
 
 #include <wx/frame.h>
 #include <wx/timer.h>
-
-#ifdef __linux__
-class wxWebView : public wxWindow {};
-class wxWebViewEvent;
-#else
 #include <wx/webview.h>
-#endif
+
 
 namespace Slic3r { namespace GUI {
 

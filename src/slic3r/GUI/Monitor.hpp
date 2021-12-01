@@ -33,10 +33,7 @@
 #include <wx/popupwin.h>
 #include <wx/spinctrl.h>
 #include <wx/artprov.h>
-
-#if defined(__WINDOWS__) || defined(__APPLE__)
 #include <wx/webrequest.h>
-#endif
 
 #include <map>
 #include <vector>
@@ -183,11 +180,9 @@ class SubTaskPanel : public wxPanel
 		SubTaskPanel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 316,81 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
 
 		wxBitmap printing_bmp;
-
-#if defined(__WINDOWS__) || defined(__APPLE__)
 		wxWebRequest web_request;
+
 		void on_webrequest_state(wxWebRequestEvent& evt);
-#endif
 		void set_value(wxString name, wxString prediction, wxString weight, std::string thumbnail_url);
 
 		void update_info(BBLSubTask subtask, BBLSliceInfo info);
@@ -227,9 +222,7 @@ protected:
 
 	wxString	 m_request_url;
 	bool         m_start_loading_thumbnail = false;
-#if defined(__WINDOWS__) || defined(__APPLE__)
 	wxWebRequest web_request;
-#endif
 
 
 	bool bed_temp_input = false;
@@ -293,11 +286,8 @@ protected:
 	void on_tasklist_click(wxMouseEvent& event);
 	void on_notification_click(wxMouseEvent& event);
 
-
-#if defined(__WINDOWS__) || defined(__APPLE__)
 	/* web state */
 	void on_webrequest_state(wxWebRequestEvent& evt);
-#endif
 
     void init_bitmap();
     void init_timer();

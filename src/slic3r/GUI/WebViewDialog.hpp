@@ -1,7 +1,6 @@
 #ifndef slic3r_WebViewDialog_hpp_
 #define slic3r_WebViewDialog_hpp_
 
-#if defined(__WINDOWS__) || defined(__APPLE__)
 
 #include "wx/artprov.h"
 #include "wx/cmdline.h"
@@ -39,8 +38,10 @@ WX_DECLARE_HASH_MAP(int, wxSharedPtr<wxWebViewHistoryItem>,
 class WebFrame : public wxFrame
 {
 public:
-    WebFrame(const wxString& url);
+    WebFrame(wxString& url);
     virtual ~WebFrame();
+
+    void load_url(wxString& url);
 
     void UpdateState();
     void OnIdle(wxIdleEvent& evt);
@@ -110,6 +111,7 @@ public:
     void OnFindOptions(wxCommandEvent& evt);
     void OnEnableContextMenu(wxCommandEvent& evt);
     void OnEnableDevTools(wxCommandEvent& evt);
+    void OnClose(wxCloseEvent& evt);
 
 private:
     wxTextCtrl* m_url;
@@ -201,18 +203,5 @@ public:
 
 } // GUI
 } // Slic3r
-#else
-namespace Slic3r {
-namespace GUI {
-
-    class WebFrame : public wxFrame
-    {
-    public:
-        WebFrame(const wxString& url) { BOOST_LOG_TRIVIAL(trace) << "Create dummy WebFrame"; }
-        bool Show() { return true; }
-    };
-}
-}
-#endif
 
 #endif /* slic3r_Tab_hpp_ */

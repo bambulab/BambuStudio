@@ -180,7 +180,6 @@ void MarkdownTip::RunScript(std::string const& script)
 
 class FakeWebView : public wxWebView
 {
-#ifndef __linux__
     virtual bool Create(wxWindow* parent, wxWindowID id, const wxString& url, const wxPoint& pos, const wxSize& size, long style, const wxString& name) override { return false; }
     virtual wxString GetCurrentTitle() const override { return wxString(); }
     virtual wxString GetCurrentURL() const override { return wxString(); }
@@ -213,12 +212,10 @@ class FakeWebView : public wxWebView
     virtual void Redo() override { }
     virtual void* GetNativeBackend() const override { return nullptr; }
     virtual void DoSetPage(const wxString& html, const wxString& baseUrl) override { }
-#endif
 };
 
 wxWebView* MarkdownTip::CreateTipView(wxWindow* parent)
 {
-#ifndef __linux__
     wxWebView* tipView = wxWebView::New();
     if (tipView == nullptr)
         return new FakeWebView;
@@ -228,14 +225,13 @@ wxWebView* MarkdownTip::CreateTipView(wxWindow* parent)
     std::replace(url.begin(), url.end(), '\\', '/');
     url = "file:///" + url;
     set_var_dir(old);
+
+    // Create url after register handler
     tipView->Create(parent, wxID_ANY, url, wxDefaultPosition, { 400, 300 }, wxBORDER_NONE);
     tipView->Bind(wxEVT_WEBVIEW_LOADED, &MarkdownTip::OnLoaded, this);
     tipView->Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &MarkdownTip::OnTitleChanged, this);
     tipView->Bind(wxEVT_WEBVIEW_ERROR, &MarkdownTip::OnError, this);
     return tipView;
-#else
-    return new wxWebView;
-#endif
 }
 
 void MarkdownTip::OnLoaded(wxWebViewEvent& event)
@@ -294,12 +290,15 @@ MarkdownTip& MarkdownTip::markdownTip()
 
 bool MarkdownTip::ShowTip(std::string const& tip, wxPoint pos)
 {
-    return markdownTip().ShowTip(pos, tip);
+    //return markdownTip().ShowTip(pos, tip);
+    return false;
 }
 
 wxWindow* MarkdownTip::AttachTo(wxWindow* parent)
 {
-    MarkdownTip& tip = markdownTip();
+    return nullptr;
+    //TODO
+    /*MarkdownTip& tip = markdownTip();
     if (parent) {
         tip._tipView = tip.CreateTipView(parent);
         tip._pendingScript = " ";
@@ -308,7 +307,7 @@ wxWindow* MarkdownTip::AttachTo(wxWindow* parent)
     else {
         tip.Destroy();
         return NULL;
-    }
+    }*/
 }
 
 }

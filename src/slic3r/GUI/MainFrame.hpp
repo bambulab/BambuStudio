@@ -270,6 +270,9 @@ public:
 
     PrintHostQueueDialog* printhost_queue_dlg() { return m_printhost_queue_dlg; }
 
+    //BBS
+    void        load_url(wxString url);
+
     // BBS. Replace title bar and menu bar with top bar.
     BBLTopbar*            m_topbar{ nullptr };
     Plater*               m_plater { nullptr };
@@ -281,6 +284,9 @@ public:
     Notebook*             m_tabpanel{ nullptr };
     wxBoxSizer*           m_side_tools{ nullptr };
     ParamsPanel*          m_param_panel{ nullptr };
+    //BBS
+    std::shared_ptr<WebFrame> m_webview;
+    
     SettingsDialog        m_settings_dialog;
     DiffPresetDialog      diff_dialog;
     wxWindow*             m_plater_page{ nullptr };

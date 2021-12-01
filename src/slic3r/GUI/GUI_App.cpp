@@ -3165,6 +3165,12 @@ Model& GUI_App::model()
 {
     return plater_->model();
 }
+
+void GUI_App::load_url(wxString url)
+{
+    return mainframe->load_url(url);
+}
+
 Notebook* GUI_App::tab_panel() const
 {
     return mainframe->m_tabpanel;

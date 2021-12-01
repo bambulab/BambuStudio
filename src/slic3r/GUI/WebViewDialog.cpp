@@ -1,7 +1,5 @@
 #include "WebViewDialog.hpp"
 
-#if defined(__WINDOWS__) || defined(__APPLE__)
-
 #include "I18N.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
@@ -19,13 +17,13 @@ namespace GUI {
     wxDEFINE_EVENT(EVT_RESPONSE_MESSAGE, wxCommandEvent);
     
 
-WebFrame::WebFrame(const wxString& url) :
-    wxFrame(NULL, wxID_ANY, "BBL WebView")
+WebFrame::WebFrame(wxString& url) :
+    wxFrame(NULL, wxID_ANY, "BambuSlicer")
 {
     m_bbl_user_agent = wxString::Format("BBL-Slicer/v%s", SLIC3R_RC_VERSION);
 
     // set the frame icon
-    SetTitle("BBL WebView");
+    SetTitle("BambuSlicer");
 
     wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
 
@@ -36,7 +34,7 @@ WebFrame::WebFrame(const wxString& url) :
     wxBitmap back = wxArtProvider::GetBitmap(wxART_GO_BACK, wxART_TOOLBAR);
     wxBitmap forward = wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_TOOLBAR);
 #ifdef __WXGTK__
-    wxBitmap refresh = create_scaled_bitmap("colorchange_del");
+    wxBitmap stop = create_scaled_bitmap("colorchange_del");
 #else
     wxBitmap stop = create_scaled_bitmap("colorchange_del");
 #endif
@@ -118,32 +116,38 @@ WebFrame::WebFrame(const wxString& url) :
 #endif
     // Create the webview
     m_browser = wxWebView::New();
-    // Create url after register handler
-    m_browser->Create(this, wxID_ANY, url, wxDefaultPosition, wxDefaultSize);
-    SetSizer(topsizer);
+    if (m_browser) {
+        m_browser->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_RC_VERSION));
 
+        #ifndef __WXMAC__
+        //We register the wxfs:// protocol for testing purposes
+        m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("bbl")));
+        //And the memory: file system
+        m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewFSHandler("memory")));
+    #endif
+        if (!m_browser->AddScriptMessageHandler("wx"))
+            wxLogError("Could not add script message handler");
+        }
+        else {
+            wxLogError("Could not init m_browser");
+        }
+
+        m_browser->Create(this, wxID_ANY, url, wxDefaultPosition, wxDefaultSize);
+        SetSizer(topsizer);
+        
 #ifdef __WXMAC__
     // With WKWebView handlers need to be registered before creation
     m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("wxfs")));
     m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewFSHandler("memory")));
 #endif
-    m_browser->SetUserAgent(m_bbl_user_agent);
-    topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
+        
+        topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
 
-    // Log backend information
-    wxLogMessage(wxWebView::GetBackendVersionInfo().ToString());
-    wxLogMessage("Backend: %s Version: %s", m_browser->GetClassInfo()->GetClassName(),
-        wxWebView::GetBackendVersionInfo().ToString());
-    wxLogMessage("User Agent: %s", m_browser->GetUserAgent());
-
-#ifndef __WXMAC__
-    //We register the wxfs:// protocol for testing purposes
-    m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("bbl")));
-    //And the memory: file system
-    m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewFSHandler("memory")));
-#endif
-    if (!m_browser->AddScriptMessageHandler("wx"))
-        wxLogError("Could not add script message handler");
+        // Log backend information
+        wxLogMessage(wxWebView::GetBackendVersionInfo().ToString());
+        wxLogMessage("Backend: %s Version: %s", m_browser->GetClassInfo()->GetClassName(),
+            wxWebView::GetBackendVersionInfo().ToString());
+        wxLogMessage("User Agent: %s", m_browser->GetUserAgent());
 
     //Set a more sensible size for web browsing
     SetSize(FromDIP(wxSize(800, 600)));
@@ -337,11 +341,23 @@ WebFrame::WebFrame(const wxString& url) :
 
     //Connect the idle events
     Bind(wxEVT_IDLE, &WebFrame::OnIdle, this);
+    Bind(wxEVT_CLOSE_WINDOW, &WebFrame::OnClose, this);
 }
 
 WebFrame::~WebFrame()
 {
     delete m_tools_menu;
+}
+
+
+void WebFrame::load_url(wxString& url)
+{
+    this->Show();
+    m_url->SetLabelText(url);
+    wxLogMessage(m_url->GetValue());
+    m_browser->LoadURL(m_url->GetValue());
+    m_browser->SetFocus();
+    UpdateState();
 }
 
 /**
@@ -499,6 +515,11 @@ void WebFrame::OnEnableContextMenu(wxCommandEvent& evt)
 void WebFrame::OnEnableDevTools(wxCommandEvent& evt)
 {
     m_browser->EnableAccessToDevTools(evt.IsChecked());
+}
+
+void WebFrame::OnClose(wxCloseEvent& evt)
+{
+    this->Hide();
 }
 
 void WebFrame::OnFind(wxCommandEvent& WXUNUSED(evt))
@@ -1081,5 +1102,3 @@ SourceViewDialog::SourceViewDialog(wxWindow* parent, wxString source) :
 
 } // GUI
 } // Slic3r
-
-#endif

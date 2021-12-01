@@ -2647,6 +2647,18 @@ void MainFrame::add_to_recent_projects(const wxString& filename)
     }
 }
 
+void MainFrame::load_url(wxString url)
+{
+    if (!m_webview) {
+        m_webview = std::make_shared<WebFrame>(url);
+        m_webview->Show();
+    }
+    else {
+        m_webview->load_url(url);
+        m_webview->Show();
+    }
+}
+
 void MainFrame::technology_changed()
 {
     // upadte DiffDlg

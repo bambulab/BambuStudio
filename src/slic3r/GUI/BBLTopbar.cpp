@@ -351,8 +351,7 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
         }, this);
     append_menu_item(accountMenu, wxID_ANY, _L("My Project List"), _L(""),
         [this](wxCommandEvent&) {
-            WebFrame* m_my_projects_webframe = new WebFrame(MY_PROJECT_LIST_URL);
-            m_my_projects_webframe->Show();
+            GUI::wxGetApp().load_url(wxString(MY_PROJECT_LIST_URL));
         }, "upload_queue", nullptr,
         [this] (){
             Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
@@ -361,8 +360,7 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
         this);
     append_menu_item(accountMenu, wxID_ANY, _L("My Collections"), _L(""),
         [this](wxCommandEvent&) {
-            WebFrame* m_my_collections_webframe = new WebFrame(MY_COLLECTIONS_URL);
-            m_my_collections_webframe->Show();
+            GUI::wxGetApp().load_url(wxString(MY_COLLECTIONS_URL));
         }, "upload_queue", nullptr,
         [this] (){
             Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
@@ -382,8 +380,8 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
             wxString url = wxString::Format(MY_MODEL_PUBLISH_URL_FORMAT,
                 project->project_model_id,
                 project->project_id);
-            WebFrame* m_publish_webframe = new WebFrame(url);
-            m_publish_webframe->Show();
+            GUI::wxGetApp().load_url(url);
+
         }, "upload_queue", nullptr,
         [this] (){
             Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
@@ -409,8 +407,7 @@ void BBLTopbar::OnPrinterClicked(wxAuiToolBarEvent& event)
 
 void BBLTopbar::OnModelStoreClicked(wxAuiToolBarEvent& event)
 {
-    WebFrame* m_model_store_webframe = new WebFrame(MODEL_STORE_URL);
-    m_model_store_webframe->Show();
+    GUI::wxGetApp().load_url(wxString(MODEL_STORE_URL));
 }
 
 void BBLTopbar::SetFileMenu(wxMenu* file_menu)

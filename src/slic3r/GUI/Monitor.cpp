@@ -459,10 +459,7 @@ SubTaskPanel::SubTaskPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
     printing_bmp = create_scaled_bitmap("monitor_subtask_print", nullptr, 24, false, false);
     m_bpButton_print->SetBitmap(printing_bmp);
 
-
-#if defined(__WINDOWS__) || defined(__APPLE__)
     Bind(wxEVT_WEBREQUEST_STATE, &SubTaskPanel::on_webrequest_state, this);
-#endif
 
     // Connect Events
     m_bitmap->Connect( wxEVT_ENTER_WINDOW, wxMouseEventHandler( SubTaskPanel::on_thumbnail_enter ), NULL, this );
@@ -538,14 +535,12 @@ void SubTaskPanel::set_value(wxString name, wxString prediction, wxString weight
     m_staticText_prediction_value->SetLabelText(prediction);
     m_staticText_weight_value->SetLabelText(weight);
 
-#if defined(__WINDOWS__) || defined(__APPLE__)
     if (web_request.IsOk()) web_request.Cancel();
 
     if (!thumbnail_url.empty()) {
         web_request = wxWebSession::GetDefault().CreateRequest(this, thumbnail_url);
         web_request.Start();
     }
-#endif
 
     this->Fit();
 }
@@ -560,7 +555,7 @@ void SubTaskPanel::update_info(BBLSubTask subtask, BBLSliceInfo info)
     this->set_value(subtask.task_name, prediction, weight, info.thumbnail_url);
 }
 
-#if defined(__WINDOWS__) || defined(__APPLE__)
+
 void SubTaskPanel::on_webrequest_state(wxWebRequestEvent& evt)
 {
     switch (evt.GetState())
@@ -585,7 +580,6 @@ void SubTaskPanel::on_webrequest_state(wxWebRequestEvent& evt)
         break;
     }
 }
-#endif
 
 
 MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
@@ -795,14 +789,11 @@ void MonitorPanel::init_bind()
 {
     Bind(wxEVT_TIMER, &MonitorPanel::on_timer, this);
 
-#if defined(__WINDOWS__) || defined(__APPLE__)
     Bind(wxEVT_WEBREQUEST_STATE, &MonitorPanel::on_webrequest_state, this);
-#endif
 
     Bind(wxEVT_COMMAND_CHOICE_SELECTED, &MonitorPanel::on_select, this);
 }
 
-#if defined(__WINDOWS__) || defined(__APPLE__)
 /* web state */
 void MonitorPanel::on_webrequest_state(wxWebRequestEvent& evt)
 {
@@ -829,7 +820,6 @@ void MonitorPanel::on_webrequest_state(wxWebRequestEvent& evt)
         break;
     }
 }
-#endif
 
 bool MonitorPanel::Show(bool show)
 {
@@ -933,10 +923,8 @@ void MonitorPanel::update_subtask(MachineObject* obj)
     if (last_subtask != obj->subtask_) {
         // update subtask name
         m_staticText_subtask_value->SetLabelText(wxString::Format("%s(%s)", obj->subtask_->task_name, obj->subtask_->task_id));
-#if defined(__WINDOWS__) || defined(__APPLE__)
         if (web_request.IsOk())
             web_request.Cancel();
-#endif
         m_start_loading_thumbnail = true;
     }
     last_subtask = obj->subtask_;
@@ -955,11 +943,9 @@ void MonitorPanel::update_subtask(MachineObject* obj)
                 m_bitmap_thumbnail->SetBitmap(resize_img);
             }
             else {
-#if defined(__WINDOWS__) || defined(__APPLE__)
                 web_request = wxWebSession::GetDefault().CreateRequest(this, m_request_url);
                 web_request.Start();
                 m_start_loading_thumbnail = false;
-    #endif
             }
         }
     }

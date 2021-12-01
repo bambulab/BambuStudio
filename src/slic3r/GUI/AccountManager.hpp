@@ -16,10 +16,10 @@
 #define BBL_INTERNAL_TEST
 
 
-#define MY_MODEL_PUBLISH_URL_FORMAT     "https://portal-dev.bambu-lab.com/my/models/%s/publish?project_id=%s"
-#define MY_COLLECTIONS_URL              "https://portal-dev.bambu-lab.com/my/collections"
-#define MY_PROJECT_LIST_URL             "https://portal-dev.bambu-lab.com/my/projects"
-#define MODEL_STORE_URL                 "https://portal-dev.bambu-lab.com/designs"
+#define MY_MODEL_PUBLISH_URL_FORMAT     "https://portal-qa.bambu-lab.com/my/models/%s/publish?project_id=%s"
+#define MY_COLLECTIONS_URL              "https://portal-qa.bambu-lab.com/my/collections"
+#define MY_PROJECT_LIST_URL             "https://portal-qa.bambu-lab.com/my/projects"
+#define MODEL_STORE_URL                 "https://portal-qa.bambu-lab.com/designs"
 
 #define POLL_3MF_TIMEOUT    60
 #define DEFAULT_BBL_SETTING_VERSION     "00.00.00.01"
