@@ -1058,8 +1058,9 @@ private:
 	friend class UndoRedo::StackImpl;
 	// Used for deserialization, therefore no IDs are allocated.
 	ModelInstance() : ObjectBase(-1), object(nullptr) { assert(this->id().invalid()); }
-	template<class Archive> void serialize(Archive &ar) {
-        ar(m_transformation, print_volume_state, printable);
+    // BBS. Add added members to archive.
+    template<class Archive> void serialize(Archive& ar) {
+        ar(m_transformation, print_volume_state, printable, m_assemble_transformation, m_offset_to_assembly, m_assemble_initialized);
     }
 };
 
