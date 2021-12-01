@@ -62,6 +62,16 @@ AuxiliaryList::AuxiliaryList(wxWindow* parent)
 	nf_btn->Bind(wxEVT_BUTTON, &AuxiliaryList::on_create_folder, this, wxID_NEW);
 	if_btn->Bind(wxEVT_BUTTON, &AuxiliaryList::on_import_file, this, wxID_ADD);
 	del_btn->Bind(wxEVT_BUTTON, &AuxiliaryList::on_delete, this, wxID_DELETE);
+	of_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+		wxDataViewItem sel_item = this->GetSelection();
+		AuxiliaryModelNode* sel = (AuxiliaryModelNode*)sel_item.GetID();
+		if (sel != nullptr && !sel->IsContainer()) {
+			wxLaunchDefaultApplication(sel->path, 0);
+		}
+		else {
+			evt.Skip();
+		}
+	}, wxID_OPEN);
 
 	// Dataview events
 	this->Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, &AuxiliaryList::on_context_menu, this);
