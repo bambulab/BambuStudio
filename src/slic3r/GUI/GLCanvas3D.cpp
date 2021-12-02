@@ -3502,7 +3502,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     // See GH issue #3816.
                     Camera& camera = wxGetApp().plater()->get_camera();
                     camera.recover_from_free_camera();
-                    camera.rotate_on_sphere(rot.x(), rot.y(), current_printer_technology() != ptSLA);
+                    bool rotate_limit = current_printer_technology() != ptSLA;
+                    //BBS do not limit rotate in assemble view
+                    if (this->m_canvas_type == ECanvasType::CanvasAssembleView)
+                        rotate_limit = false;
+                    camera.rotate_on_sphere(rot.x(), rot.y(), rotate_limit);
                 }
 
                 m_dirty = true;
