@@ -410,7 +410,8 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("°C");
     def->full_label = L("Bed temperature");
     def->min = 0;
-    def->max = 300;
+    //BBS
+    def->max = 120;
     def->set_default_value(new ConfigOptionInts { 0 });
 
     def = this->add("before_layer_gcode", coString);
@@ -1235,7 +1236,8 @@ void PrintConfigDef::init_fff_params()
                    "bed temperature control commands in the output.");
     def->sidetext = L("°C");
     def->max = 0;
-    def->max = 300;
+    //BBS
+    def->max = 120;
     def->set_default_value(new ConfigOptionInts { 0 });
 
     def = this->add("first_layer_extrusion_width", coFloatOrPercent);
