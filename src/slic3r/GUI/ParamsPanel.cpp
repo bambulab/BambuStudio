@@ -97,7 +97,7 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
     m_page_view->SetScrollbars(1, 20, 1, 2);
     //m_page_view->SetScrollRate( 5, 5 );
 
-    this->Bind(wxEVT_TOGGLEBUTTON, &ParamsPanel::OnToggled, this);
+    m_mode_status->Bind(wxEVT_TOGGLEBUTTON, &ParamsPanel::OnToggled, this);
     m_export_to_file->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().mainframe->export_config(); });
     m_import_from_file->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().mainframe->load_config_file(); });
 }
