@@ -18,7 +18,9 @@
 
 #undef MEDIAN
 #define MEDIAN3(a,b,c) std::max(std::min(a,b), std::min(std::max(a,b),c))
-
+#ifndef SQ
+#define SQ(x) ((x)*(x))
+#endif
 
 namespace Slic3r {
 
@@ -32,7 +34,10 @@ namespace orientation {
         float area_laf;  // area_of_low_angle_faces
         float area_projected; // area of projected 2D profile
         float volume;
+        float area_total;  // total area of all faces
+        float radius;    // radius of bounding box
         float unprintability;
+        CostItems(CostItems const & other) = default;
         CostItems() { memset(this, 0, sizeof(*this)); }
         static std::string field_names() {
             return "                                      overhang, bottom, bothull, contour, A_laf, A_prj, volume, unprintability";
@@ -75,9 +80,9 @@ public:
         orient_mesh = orient_mesh_;
         mesh = &orient_mesh->mesh;
         params = params_;
-        params.ASCENT = cos(PI - orient_mesh->overhang_angle * PI / 180); // use per-object overhang angle
         progressind = progressind_;
-        BOOST_LOG_TRIVIAL(info) << orient_mesh->name << ", angle=" << orient_mesh->overhang_angle;
+        //params.ASCENT = cos(PI - orient_mesh->overhang_angle * PI / 180); // use per-object overhang angle
+        //BOOST_LOG_TRIVIAL(info) << orient_mesh->name << ", angle=" << orient_mesh->overhang_angle;
 
         preprocess();
     }
@@ -236,7 +241,8 @@ public:
                     break;
                 }
             }
-            if (duplicate)
+            const Vec3f all_zero = { 0,0,0 };
+            if (duplicate || it->isApprox(all_zero,tol))
                 it = orientations.erase(it);
             else
                 it++;
@@ -294,11 +300,17 @@ public:
     CostItems get_features(Vec3f orientation, bool min_volume = true)
     {
         CostItems costs;
+        costs.area_total = mesh->bounding_box().area();
+        costs.radius = mesh->bounding_box().radius();
+        // volume
+        if (mesh->stl.stats.volume < 0)
+            stl_calculate_volume(&(mesh->stl));
+        costs.volume = mesh->stl.stats.volume;
+
         float total_min_z = z_projected.minCoeff();
         // filter bottom area
         auto bottom_condition = z_max.array() < total_min_z + this->params.FIRST_LAY_H;
-        float bottom = bottom_condition.select(areas, 0).sum();
-        costs.bottom = bottom;
+        costs.bottom = bottom_condition.select(areas, 0).sum();
 
         // filter overhang
         Eigen::VectorXf normal_projection(normals.rows(), 1);// = this->normals.dot(orientation);
@@ -315,7 +327,7 @@ public:
             costs.overhang = (heights.array()* overhang_areas.array()*inner.array()).sum();
         }
         else {
-            costs.overhang = 2 * (overhang_areas.array() * inner.array()).cwiseAbs2().sum();
+            costs.overhang = overhang_areas.array().cwiseAbs().sum();
         }
 
         {
@@ -344,31 +356,25 @@ public:
         auto normal_projection_abs = normal_projection.cwiseAbs();
         Eigen::MatrixXf laf_areas = ((normal_projection_abs.array() < params.LAF_MAX) * (normal_projection_abs.array() > params.LAF_MIN) * (z_max.array() > total_min_z + params.FIRST_LAY_H)).select(areas, 0);
         costs.area_laf = laf_areas.sum();
-
-        // volume
-        costs.volume = mesh->volume();
-
-        return costs;
     }
 
     float target_function(CostItems& costs, bool min_volume)
     {
         float cost=0;
+        float bottom = costs.bottom;//std::min(costs.bottom, params.BOTTOM_MAX);
+        float bottom_hull = costs.bottom_hull;// std::min(costs.bottom_hull, params.BOTTOM_HULL_MAX);
         if (min_volume)
         {
             float overhang = costs.overhang / 25;
-            cost = params.TAR_A * (overhang + params.TAR_B) + params.RELATIVE_F * (/*costs.volume/100*/overhang + params.TAR_C) / (params.TAR_D + params.CONTOUR_F * costs.contour + params.BOTTOM_F * costs.bottom + params.BOTTOM_HULL_F*costs.bottom_hull + params.TAR_E * overhang + params.TAR_PROJ_AREA*costs.area_projected);
+            cost = params.TAR_A * (overhang + params.TAR_B) + params.RELATIVE_F * (/*costs.volume/100*/overhang*params.TAR_C + params.TAR_D + params.TAR_LAF * costs.area_laf * params.use_low_angle_face) / (params.TAR_D + params.CONTOUR_F * costs.contour + params.BOTTOM_F * bottom + params.BOTTOM_HULL_F * bottom_hull + params.TAR_E * overhang + params.TAR_PROJ_AREA * costs.area_projected);
         }
         else {
             float overhang = costs.overhang;
-            cost = params.TAR_A * (overhang + params.TAR_B) + params.RELATIVE_F * (costs.overhang*params.TAR_C+params.TAR_D) / (params.TAR_D + params.CONTOUR_F * costs.contour + params.BOTTOM_F * costs.bottom + params.BOTTOM_HULL_F * costs.bottom_hull + params.TAR_PROJ_AREA * costs.area_projected);
+            cost = params.RELATIVE_F * (costs.overhang * params.TAR_C + params.TAR_D + params.TAR_LAF * costs.area_laf * params.use_low_angle_face) / (params.TAR_D + params.CONTOUR_F * costs.contour + params.BOTTOM_F * bottom + params.BOTTOM_HULL_F * bottom_hull + params.TAR_PROJ_AREA * costs.area_projected);
         }
+        cost += (costs.bottom < params.BOTTOM_MIN) * 100 + (costs.bottom_hull < params.BOTTOM_HULL_MIN) * 200;
 
-        if (params.use_low_angle_face) {
-            cost += params.TAR_LAF * costs.area_laf;
-        }
-
-        costs.unprintability = cost;
+        costs.unprintability = costs.unprintability = cost;
 
         return cost;
     }
@@ -416,7 +422,7 @@ void _orient(OrientMeshs& meshs_,
     {
         for (size_t i = 0; i != meshs_.size(); ++i) {
             auto& mesh_ = meshs_[i];
-            progressfn(meshs_.size() - i, "Orienting " + std::to_string(i) + "-th item: " + mesh_.name);
+            progressfn(i, "Orienting " + std::to_string(i) + "-th item: " + mesh_.name);
             //auto progressfn_i = [&](unsigned cnt) {progressfn(cnt, "Orienting " + mesh_.name); };
             AutoOrienter orienter(&mesh_, params, /*progressfn_i*/{}, stopfn);
             mesh_.orientation = orienter.process();
@@ -429,7 +435,7 @@ void _orient(OrientMeshs& meshs_,
         tbb::parallel_for(tbb::blocked_range<size_t>(0, meshs_.size()), [&meshs_, &params, progressfn, stopfn](const tbb::blocked_range<size_t>& range) {
             for (size_t i = range.begin(); i != range.end(); ++i) {
                 auto& mesh_ = meshs_[i];
-                progressfn(range.size() - i, "Orienting " + std::to_string(i) + "-th item: " + mesh_.name);
+                progressfn(i, "Orienting " + std::to_string(i) + "-th item: " + mesh_.name);
                 AutoOrienter orienter(&mesh_, params, {}, stopfn);
                 mesh_.orientation = orienter.process();
                 rotation_from_two_vectors(mesh_.orientation, mesh_.axis, mesh_.angle, mesh_.rotation_matrix);

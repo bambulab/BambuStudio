@@ -975,6 +975,8 @@ void MenuFactory::create_plate_menu()
             PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
             assert(plate);
             //BBS TODO call auto rotate for current plate
+            plater()->set_prepare_state(Job::PREPARE_STATE_MENU);
+            plater()->orient();
         }, "", nullptr, []() {return true; }, plater());
 
     menu->AppendSeparator();

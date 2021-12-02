@@ -27,27 +27,18 @@ void OrientJob::clear_input()
     m_unprintable.reserve(cunprint);
 }
 
-void OrientJob::prepare() {
-    clear_input();
-    
-    Model &model = m_plater->model();
-    
-    std::vector<const Selection::InstanceIdxsList *>
-            obj_sel(model.objects.size(), nullptr);
-    
-    for (auto &s : m_plater->get_selection().get_content())
-        if (s.first < int(obj_sel.size()))
-            obj_sel[size_t(s.first)] = &s.second;
-    
+void OrientJob::prepare_selection(std::vector<bool> obj_sel)
+{
+    Model& model = m_plater->model();
     // Go through the objects and check if inside the selection
-    for (size_t oidx = 0; oidx < model.objects.size(); ++oidx) {
-        const Selection::InstanceIdxsList * instlist = obj_sel[oidx];
-        ModelObject *mo = model.objects[oidx];
+    for (size_t oidx = 0; oidx < obj_sel.size(); ++oidx) {
+        bool selected = obj_sel[oidx];
+        ModelObject* mo = model.objects[oidx];
 
         for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
         {
             ModelInstance* mi = mo->instances[inst_idx];
-            auto& cont = mo->printable ? (instlist ? m_selected : m_unselected) : m_unprintable;
+            auto& cont = mo->printable ? (selected ? m_selected : m_unselected) : m_unprintable;
             OrientMesh&& om = get_orient_mesh(mi, m_plater);
             cont.emplace_back(std::move(om));
         }
@@ -55,6 +46,67 @@ void OrientJob::prepare() {
 
     // If the selection was empty orient everything
     if (m_selected.empty()) m_selected.swap(m_unselected);
+}
+
+void OrientJob::prepare_selected() {
+    clear_input();
+    
+    Model &model = m_plater->model();
+    
+    std::vector<bool> obj_sel(model.objects.size(), false);
+    
+    for (auto &s : m_plater->get_selection().get_content())
+        if (s.first < int(obj_sel.size()))
+            obj_sel[size_t(s.first)] = !s.second.empty();
+    
+    prepare_selection(obj_sel);
+}
+
+//BBS: prepare current part plate for orienting
+void OrientJob::prepare_partplate() {
+    clear_input();
+
+    PartPlateList& plate_list = m_plater->get_partplate_list();
+    PartPlate* plate = plate_list.get_curr_plate();
+    assert(plate != nullptr);
+
+    if (plate->empty())
+    {
+        //no instances on this plate
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": no instances in current plate!");
+
+        return;
+    }
+
+    Model& model = m_plater->model();
+    
+    std::vector<bool> obj_sel(model.objects.size(), false);
+
+    // Go through the objects and check if inside the selection
+    for (size_t oidx = 0; oidx < model.objects.size(); ++oidx)
+    {
+        ModelObject* mo = model.objects[oidx];
+        for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
+        {
+            obj_sel[oidx] = plate->contain_instance(oidx, inst_idx);
+        }
+    }
+
+    prepare_selection(obj_sel);
+}
+
+//BBS: add partplate logic
+void OrientJob::prepare()
+{
+    int state = m_plater->get_prepare_state();
+    if (state == Job::JobPrepareState::PREPARE_STATE_DEFAULT) {
+        only_on_partplate = false;
+        prepare_selected();
+    }
+    else if (state == Job::JobPrepareState::PREPARE_STATE_MENU) {
+        only_on_partplate = true;   // only arrange items on current plate
+        prepare_partplate();
+    }
 }
 
 void OrientJob::on_exception(const std::exception_ptr &eptr)
@@ -89,7 +141,7 @@ void OrientJob::process()
 
     params.progressind = [this, count](unsigned st, std::string orientstr) {
         st += m_unprintable.size();
-        if (st > 0) update_status(int(count - st), orientstr);
+        if (st > 0) update_status(int(st/float(count)*100), orientstr);
     };
 
     orientation::orient(m_selected, m_unselected, params);

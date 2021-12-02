@@ -48,12 +48,12 @@ struct OrientParamsArea {
     float CONTOUR_F = 0.5;
     float BOTTOM_F = 2.5;
     float BOTTOM_HULL_F = 0.1;
-    float TAR_C = 10;
+    float TAR_C = 0.1;
     float TAR_D = 1;
     float TAR_E = 0.0115;
-    float FIRST_LAY_H = 0.1;// 0.0475;
+    float FIRST_LAY_H = 0.2;// 0.0475;
     float VECTOR_TOL = -0.00083;
-    float NEGL_FACE_SIZE = 0;
+    float NEGL_FACE_SIZE = 0.1;
     float ASCENT = -0.5;
     float PLAFOND_ADV = 0.0599;
     float CONTOUR_AMOUNT = 0.0182427;
@@ -63,8 +63,12 @@ struct OrientParamsArea {
     float height_log_k = 1.9325457;
     float LAF_MAX = 0.9997; // cos(1.4\degree) for low angle face
     float LAF_MIN = 0.9703;  // cos(14\degree)
-    float TAR_LAF = 0.001;
+    float TAR_LAF = 0.01;
     float TAR_PROJ_AREA = 0.1;
+    float BOTTOM_MIN = 0.1;  // min bottom area. If lower than it the objects may be unstable
+    float BOTTOM_MAX = 400;  // min bottom area. If lower than it the objects may be unstable
+    float BOTTOM_HULL_MIN = 100;// min bottom hull area 10*10mm^2
+    float BOTTOM_HULL_MAX = 600;// min bottom hull area 10*10mm^2
 
     float overhang_angle = 60.f;
     bool use_low_angle_face = true;
@@ -72,7 +76,7 @@ struct OrientParamsArea {
     Eigen::Vector3f fun_dir;
 
     /// Allow parallel execution.
-    bool parallel = false;
+    bool parallel = true;
 
     /// Progress indicator callback called when an object gets packed. 
     /// The unsigned argument is the number of items remaining to pack.
@@ -96,7 +100,7 @@ struct OrientParams {
     float TAR_E = 0;//0.032157292647062234;
     float FIRST_LAY_H = 0.029;
     float VECTOR_TOL = -0.0011163303070972383;
-    float NEGL_FACE_SIZE = 0;
+    float NEGL_FACE_SIZE = 0.1;
     float ASCENT= -0.5;
     float PLAFOND_ADV = 0.04079208948120519;
     float CONTOUR_AMOUNT = 0.0101472219892684;
@@ -106,8 +110,12 @@ struct OrientParams {
     float height_log_k = 0.3933594673063997;
     float LAF_MAX = 0.9997; // cos(1.4\degree) for low angle face
     float LAF_MIN= 0.9703;  // cos(14\degree)
-    float TAR_LAF= 0.001;
+    float TAR_LAF= 0.1;
     float TAR_PROJ_AREA = 0.1;
+    float BOTTOM_MIN = 0.1;  // min bottom area. If lower than it the objects may be unstable
+    float BOTTOM_MAX = 400;  // max bottom area. If higher than it the bottom area is clipped
+    float BOTTOM_HULL_MIN = 10;// min bottom hull area 10mm^2
+    float BOTTOM_HULL_MAX = 600;// max bottom hull area to clip
 
     float overhang_angle = 60.f;
     bool use_low_angle_face = true;

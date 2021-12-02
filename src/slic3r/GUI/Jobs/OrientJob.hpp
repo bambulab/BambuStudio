@@ -19,12 +19,18 @@ class OrientJob : public PlaterJob
 
     // clear m_selected and m_unselected, reserve space for next usage
     void clear_input();
+
+    void prepare_selection(std::vector<bool> obj_sel);
     
     // Prepare the selected and unselected items separately. If nothing is
     // selected, behaves as if everything would be selected.
-    void prepare() override;
+    void prepare_selected();
+
+    //BBS:prepare the items from current selected partplate
+    void prepare_partplate();
 
 protected:
+    void prepare() override;
     void on_exception(const std::exception_ptr &) override;
     
 public:
