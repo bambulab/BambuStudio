@@ -143,6 +143,18 @@ public:
     static const ImVec4 COL_BUTTON_HOVERED;
     static const ImVec4 COL_BUTTON_ACTIVE;
 
+    //BBS add more colors
+    static const ImVec4 COL_BLUE_LIGHT;
+    static const ImVec4 COL_HOVER;
+    static const ImVec4 COL_ACTIVE;
+    static const ImVec4 COL_TITLE_BG;
+    static const ImVec4 COL_WINDOW_BG;
+    static const ImVec4 COL_SEPARATOR;
+    
+    //BBS
+    static void push_toolbar_style();
+    static void pop_toolbar_style();
+
 private:
     void init_font(bool compress);
     void init_input();

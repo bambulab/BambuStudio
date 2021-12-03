@@ -91,6 +91,17 @@ const ImVec4 ImGuiWrapper::COL_BUTTON_BACKGROUND = COL_ORANGE_DARK;
 const ImVec4 ImGuiWrapper::COL_BUTTON_HOVERED    = COL_ORANGE_LIGHT;
 const ImVec4 ImGuiWrapper::COL_BUTTON_ACTIVE     = ImGuiWrapper::COL_BUTTON_HOVERED;
 
+//BBS
+
+const ImVec4 ImGuiWrapper::COL_BLUE_LIGHT        = ImVec4(0.122f, 0.557f, 0.918f, 1.00f);
+const ImVec4 ImGuiWrapper::COL_HOVER             = { 0.933f, 0.933f, 0.933f, 1.0f };
+const ImVec4 ImGuiWrapper::COL_ACTIVE            = { 0.675f, 0.675f, 0.675f, 1.0f };
+const ImVec4 ImGuiWrapper::COL_SEPARATOR         = { 0.745f, 0.745f, 0.745f, 1.0f };
+const ImVec4 ImGuiWrapper::COL_TITLE_BG          = { 0.745f, 0.745f, 0.745f, 1.0f };
+const ImVec4 ImGuiWrapper::COL_WINDOW_BG         = { 0.940f, 0.940f, 0.940f, 0.8f };
+
+
+
 ImGuiWrapper::ImGuiWrapper()
 {
     ImGui::CreateContext();
@@ -1080,6 +1091,31 @@ std::vector<unsigned char> ImGuiWrapper::load_svg(const std::string& bitmap_name
     return data;
 }
 
+
+//BBS
+void ImGuiWrapper::push_toolbar_style()
+{
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.00f, 0.00f, 0.00f, 1.00f));       // 1
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImGuiWrapper::COL_WINDOW_BG);          // 2
+    ImGui::PushStyleColor(ImGuiCol_TitleBg, ImGuiWrapper::COL_TITLE_BG);            // 3
+    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImGuiWrapper::COL_TITLE_BG);      // 4
+    ImGui::PushStyleColor(ImGuiCol_Separator, ImGuiWrapper::COL_SEPARATOR);         // 5
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));     // 6
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGuiWrapper::COL_HOVER);         // 7
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(1.00f, 1.00f, 1.00f, 1.00f)); // 8
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));  // 9
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));        // 10
+}
+
+void ImGuiWrapper::pop_toolbar_style()
+{
+    // size in push toolbar style
+    ImGui::PopStyleColor(10);
+    ImGui::PopStyleVar(1);
+}
+
+
 void ImGuiWrapper::init_font(bool compress)
 {
     destroy_font();
@@ -1248,10 +1284,11 @@ void ImGuiWrapper::init_style()
         style.Colors[entity] = color;
     };
 
+    //BBS modify style
     // Window
-    style.WindowRounding = 4.0f;
+    style.WindowRounding = 0.0f;
     set_color(ImGuiCol_WindowBg, COL_WINDOW_BACKGROUND);
-    set_color(ImGuiCol_TitleBgActive, COL_ORANGE_DARK);
+    set_color(ImGuiCol_TitleBgActive, COL_WINDOW_BACKGROUND);
 
     // Generics
     set_color(ImGuiCol_FrameBg, COL_GREY_DARK);
@@ -1263,28 +1300,28 @@ void ImGuiWrapper::init_style()
 
     // Buttons
     set_color(ImGuiCol_Button, COL_BUTTON_BACKGROUND);
-    set_color(ImGuiCol_ButtonHovered, COL_BUTTON_HOVERED);
-    set_color(ImGuiCol_ButtonActive, COL_BUTTON_ACTIVE);
+    set_color(ImGuiCol_ButtonHovered, COL_HOVER);
+    set_color(ImGuiCol_ButtonActive, COL_ACTIVE);
 
     // Checkbox
-    set_color(ImGuiCol_CheckMark, COL_ORANGE_LIGHT);
+    set_color(ImGuiCol_CheckMark, COL_BLUE_LIGHT);
 
     // ComboBox items
     set_color(ImGuiCol_Header, COL_ORANGE_DARK);
-    set_color(ImGuiCol_HeaderHovered, COL_ORANGE_LIGHT);
-    set_color(ImGuiCol_HeaderActive, COL_ORANGE_LIGHT);
+    set_color(ImGuiCol_HeaderHovered, COL_BLUE_LIGHT);
+    set_color(ImGuiCol_HeaderActive, COL_BLUE_LIGHT);
 
     // Slider
-    set_color(ImGuiCol_SliderGrab, COL_ORANGE_DARK);
-    set_color(ImGuiCol_SliderGrabActive, COL_ORANGE_LIGHT);
+    set_color(ImGuiCol_SliderGrab, COL_BLUE_LIGHT);
+    set_color(ImGuiCol_SliderGrabActive, COL_BLUE_LIGHT);
 
     // Separator
-    set_color(ImGuiCol_Separator, COL_ORANGE_LIGHT);
+    set_color(ImGuiCol_Separator, COL_BLUE_LIGHT);
 
     // Tabs
     set_color(ImGuiCol_Tab, COL_ORANGE_DARK);
-    set_color(ImGuiCol_TabHovered, COL_ORANGE_LIGHT);
-    set_color(ImGuiCol_TabActive, COL_ORANGE_LIGHT);
+    set_color(ImGuiCol_TabHovered, COL_BLUE_LIGHT);
+    set_color(ImGuiCol_TabActive, COL_BLUE_LIGHT);
     set_color(ImGuiCol_TabUnfocused, COL_GREY_DARK);
     set_color(ImGuiCol_TabUnfocusedActive, COL_GREY_LIGHT);
 
@@ -1438,7 +1475,6 @@ void ImGuiWrapper::clipboard_set(void* /* user_data */, const char* text)
         wxTheClipboard->Close();
     }
 }
-
 
 } // namespace GUI
 } // namespace Slic3r

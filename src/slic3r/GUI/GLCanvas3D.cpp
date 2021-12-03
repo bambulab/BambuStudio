@@ -225,23 +225,24 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
 
     imgui.begin(_L("Variable layer height"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
-    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _L("Left mouse button:"));
+    //BBS modify imgui style
+    imgui.text_colored(ImGuiWrapper::COL_BLUE_LIGHT, _L("Left mouse button:"));
     ImGui::SameLine();
     imgui.text(_L("Add detail"));
 
-    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _L("Right mouse button:"));
+    imgui.text_colored(ImGuiWrapper::COL_BLUE_LIGHT, _L("Right mouse button:"));
     ImGui::SameLine();
     imgui.text(_L("Remove detail"));
 
-    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _L("Shift + Left mouse button:"));
+    imgui.text_colored(ImGuiWrapper::COL_BLUE_LIGHT, _L("Shift + Left mouse button:"));
     ImGui::SameLine();
     imgui.text(_L("Reset to base"));
 
-    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _L("Shift + Right mouse button:"));
+    imgui.text_colored(ImGuiWrapper::COL_BLUE_LIGHT, _L("Shift + Right mouse button:"));
     ImGui::SameLine();
     imgui.text(_L("Smoothing"));
 
-    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _L("Mouse wheel:"));
+    imgui.text_colored(ImGuiWrapper::COL_BLUE_LIGHT, _L("Mouse wheel:"));
     ImGui::SameLine();
     imgui.text(_L("Increase/decrease edit area"));
     
@@ -4505,6 +4506,9 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     imgui->set_next_window_pos(x, y, ImGuiCond_Always, 1.0f, 0.0f);
 #endif
 
+    //BBS
+    ImGuiWrapper::push_toolbar_style();
+
     imgui->begin(_L("Arrange options"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
     ArrangeSettings settings = get_arrange_settings();
@@ -4595,6 +4599,9 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     }
 
     imgui->end();
+
+    //BBS
+    ImGuiWrapper::pop_toolbar_style();
 
     return settings_changed;
 }

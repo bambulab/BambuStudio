@@ -86,6 +86,10 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always, 1.0f, 0.0f);
 #endif
     //m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
+
+    //BBS
+    ImGuiWrapper::push_toolbar_style();
+
     m_imgui->begin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
@@ -122,8 +126,8 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     window_width = std::max(window_width, cursor_type_radio_left + cursor_type_radio_sphere + cursor_type_radio_circle);
 
     auto draw_text_with_caption = [this, &caption_max](const wxString& caption, const wxString& text) {
-        static const ImVec4 ORANGE(1.0f, 0.49f, 0.22f, 1.0f);
-        m_imgui->text_colored(ORANGE, caption);
+        //BBS set text colored to BLUE_LIGHT
+        m_imgui->text_colored(ImGuiWrapper::COL_BLUE_LIGHT, caption);
         ImGui::SameLine(caption_max);
         m_imgui->text(text);
     };
@@ -213,6 +217,9 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     }
 
     m_imgui->end();
+
+    //BBS
+    ImGuiWrapper::pop_toolbar_style();
 }
 
 

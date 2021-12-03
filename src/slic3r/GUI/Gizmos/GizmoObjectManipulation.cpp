@@ -495,6 +495,10 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
 #else
     imgui_wrapper->set_next_window_pos(x, y, ImGuiCond_Always, 1.0f, 0.0f);
 #endif
+
+    //BBS
+    ImGuiWrapper::push_toolbar_style();
+
     std::string name = this->m_new_title_string + "##" + window_name;
     imgui_wrapper->begin(_L(name), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
@@ -707,6 +711,9 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
     m_last_active_item = current_active_id;
 
     imgui_wrapper->end();
+
+    //BBS
+    ImGuiWrapper::pop_toolbar_style();
 }
 
 
