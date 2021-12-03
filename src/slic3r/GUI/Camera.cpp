@@ -511,7 +511,8 @@ Vec3d Camera::validate_target(const Vec3d& target) const
     BoundingBoxf3 test_box = m_scene_box;
     test_box.translate(-m_scene_box.center());
     // We may let this factor be customizable
-    static const double ScaleFactor = 1.5;
+    //BBS enlarge scene box factor
+    static const double ScaleFactor = 3.0;
     test_box.scale(ScaleFactor);
     test_box.translate(m_scene_box.center());
 

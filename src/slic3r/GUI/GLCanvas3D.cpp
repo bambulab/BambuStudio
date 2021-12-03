@@ -1299,6 +1299,13 @@ BoundingBoxf3 GLCanvas3D::scene_bounding_box() const
     //FIXME why -h?
     bb.min.z() = std::min(bb.min.z(), -h);
     bb.max.z() = std::max(bb.max.z(), h);
+
+    //BBS merge plate scene bounding box
+    if (m_canvas_type == ECanvasType::CanvasView3D) {
+        PartPlateList& plate = wxGetApp().plater()->get_partplate_list();
+        bb.merge(plate.get_bounding_box());
+    }
+
     return bb;
 }
 
