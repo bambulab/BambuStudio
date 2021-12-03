@@ -10,7 +10,7 @@ static wxBitmap& switchButtonBitmap(int index)
 
 }
 SwitchButton::SwitchButton(wxWindow* parent)
-	: wxBitmapToggleButton(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(4 * em_unit(parent), -1), wxBORDER_NONE)
+	: wxBitmapToggleButton(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(4 * em_unit(parent), 16 * em_unit(parent) / 10), wxBORDER_NONE)
 {
 	//SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
 	if (parent)
@@ -28,4 +28,6 @@ void SwitchButton::SetValue(bool value)
 void SwitchButton::update()
 {
 	SetBitmap(switchButtonBitmap(GetValue() ? 0 : 1));
+	auto em = em_unit(GetParent());
+	SetMinSize({ 4 * em, 16 * em / 10 });
 }
