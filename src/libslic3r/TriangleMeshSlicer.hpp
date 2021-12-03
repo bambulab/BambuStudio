@@ -123,9 +123,10 @@ Polygons project_mesh(
     const Transform3d                &trafo,
     std::function<void()>             throw_on_cancel);
 
+// BBS
 void cut_mesh(
     const indexed_triangle_set      &mesh,
-    float                            z,
+    std::array<Vec3d, 4>            plane_points,
     indexed_triangle_set            *upper,
     indexed_triangle_set            *lower,
     bool                             triangulate_caps = true);

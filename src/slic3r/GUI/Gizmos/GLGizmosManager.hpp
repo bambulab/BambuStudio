@@ -219,6 +219,9 @@ public:
     Vec3d get_rotation() const;
     void set_rotation(const Vec3d& rotation);
 
+    // BBS
+    void finish_cut_rotation();
+
     Vec3d get_flattening_normal() const;
 
     void set_flattening_data(const ModelObject* model_object);

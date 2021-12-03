@@ -257,11 +257,9 @@ void GLGizmoCut::perform_cut(const Selection& selection)
     {
         wxGetApp().plater()->segment(object_idx, instance_idx, m_segment_smoothing_alpha, m_segment_number);
     }
-    else if (0.0 < object_cut_z && object_cut_z < m_max_z)
-        wxGetApp().plater()->cut(object_idx, instance_idx, object_cut_z,
-            only_if(m_keep_upper, ModelObjectCutAttribute::KeepUpper) | 
-            only_if(m_keep_lower, ModelObjectCutAttribute::KeepLower) | 
-            only_if(m_rotate_lower, ModelObjectCutAttribute::FlipLower));
+    else if (0.0 < object_cut_z && object_cut_z < m_max_z) {
+        //wxGetApp().plater()->cut(object_idx, instance_idx, object_cut_z, m_keep_upper, m_keep_lower, m_rotate_lower, m_cut_to_parts);
+    }
     else {
         // the object is SLA-elevated and the plane is under it.
     }

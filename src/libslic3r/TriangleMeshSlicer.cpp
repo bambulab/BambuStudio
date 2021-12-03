@@ -4,6 +4,8 @@
 #include "TriangleMesh.hpp"
 #include "TriangleMeshSlicer.hpp"
 #include "Utils.hpp"
+// BBS
+#include "MeshBoolean.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -2102,7 +2104,7 @@ Polygons project_mesh(
     return union_(top.front(), bottom.back());
 }
 
-void cut_mesh(const indexed_triangle_set &mesh, float z, indexed_triangle_set *upper, indexed_triangle_set *lower, bool triangulate_caps)
+void cut_mesh(const indexed_triangle_set &mesh, std::array<Vec3d, 4> plane_points, indexed_triangle_set *upper, indexed_triangle_set *lower, bool triangulate_caps)
 {
     assert(upper || lower);
     if (upper == nullptr && lower == nullptr)
@@ -2110,6 +2112,17 @@ void cut_mesh(const indexed_triangle_set &mesh, float z, indexed_triangle_set *u
 
     BOOST_LOG_TRIVIAL(trace) << "cut_mesh - slicing object";
 
+    if (upper) {
+        *upper = MeshBoolean::cgal::clip(mesh, plane_points);
+    }
+
+    if (lower) {
+        std::array<Vec3d, 4> plane_points_reverse = plane_points;
+        std::reverse(plane_points_reverse.begin(), plane_points_reverse.end());
+        *lower = MeshBoolean::cgal::clip(*mesh, plane_points_reverse);
+    }
+
+#if 0
     if (upper) {
         upper->clear();
         upper->vertices = mesh.vertices;
@@ -2272,6 +2285,7 @@ void cut_mesh(const indexed_triangle_set &mesh, float z, indexed_triangle_set *u
         }
 #endif // NDEBUG
     }
+#endif
 }
 
 } // namespace Slic3r

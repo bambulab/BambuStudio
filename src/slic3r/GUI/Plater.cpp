@@ -6583,7 +6583,8 @@ void Plater::toggle_layers_editing(bool enable)
         canvas3D()->force_main_toolbar_left_action(canvas3D()->get_main_toolbar_item_id("layersediting"));
 }
 
-void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, ModelObjectCutAttributes attributes)
+// BBS: replace z with plane_points
+void Plater::cut(size_t obj_idx, size_t instance_idx, std::array<Vec3d, 4> plane_points, ModelObjectCutAttributes attributes)
 {
     wxCHECK_RET(obj_idx < p->model.objects.size(), "obj_idx out of bounds");
     auto *object = p->model.objects[obj_idx];
@@ -6596,7 +6597,8 @@ void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z, ModelObjectCut
     Plater::TakeSnapshot snapshot(this, _L("Cut by Plane"));
 
     wxBusyCursor wait;
-    const auto new_objects = object->cut(instance_idx, z, attributes);
+    // BBS: replace z with plane_points
+    const auto new_objects = object->cut(instance_idx, plane_points, attributes);
 
     remove(obj_idx);
     p->load_model_objects(new_objects);

@@ -16,7 +16,8 @@
 #include "slic3r/GUI/Gizmos/GLGizmoFlatten.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSlaSupports.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoFdmSupports.hpp"
-#include "slic3r/GUI/Gizmos/GLGizmoCut.hpp"
+// BBS
+#include "slic3r/GUI/Gizmos/GLGizmoAdvancedCut.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoHollow.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSeam.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.hpp"
@@ -138,7 +139,7 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoScale3D(m_parent, "toolbar_scale.svg", 1, &m_object_manipulation));
     m_gizmos.emplace_back(new GLGizmoRotate3D(m_parent, "toolbar_rotate.svg", 2, &m_object_manipulation));
     m_gizmos.emplace_back(new GLGizmoFlatten(m_parent, "toolbar_flatten.svg", 3));
-    m_gizmos.emplace_back(new GLGizmoCut(m_parent, "toolbar_cut.svg", 4));
+    m_gizmos.emplace_back(new GLGizmoAdvancedCut(m_parent, "toolbar_cut.svg", 4));
     m_gizmos.emplace_back(new GLGizmoHollow(m_parent, "hollow.svg", 5));
     m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", 6));
     m_gizmos.emplace_back(new GLGizmoFdmSupports(m_parent, "toolbar_support.svg", 7));
@@ -299,6 +300,8 @@ void GLGizmosManager::update_data()
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
         set_scale(volume->get_instance_scaling_factor());
         set_rotation(Vec3d::Zero());
+        // BBS
+        finish_cut_rotation();
         ModelObject* model_object = selection.get_model()->objects[selection.get_object_idx()];
         set_flattening_data(model_object);
         set_sla_support_data(model_object);
@@ -309,6 +312,8 @@ void GLGizmosManager::update_data()
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
         set_scale(volume->get_volume_scaling_factor());
         set_rotation(Vec3d::Zero());
+        // BBS
+        finish_cut_rotation();
         set_flattening_data(nullptr);
         set_sla_support_data(nullptr);
         set_painter_gizmo_data();
@@ -433,6 +438,12 @@ void GLGizmosManager::set_rotation(const Vec3d& rotation)
     if (!m_enabled || m_gizmos.empty())
         return;
     dynamic_cast<GLGizmoRotate3D*>(m_gizmos[Rotate].get())->set_rotation(rotation);
+}
+
+// BBS
+void GLGizmosManager::finish_cut_rotation()
+{
+    dynamic_cast<GLGizmoAdvancedCut*>(m_gizmos[Cut].get())->finish_rotation();
 }
 
 Vec3d GLGizmosManager::get_flattening_normal() const
@@ -970,8 +981,10 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
         }
         else if (m_current == Cut)
         {
+            // BBS
+#if 0
             auto do_move = [this, &processed](double delta_z) {
-                GLGizmoCut* cut = dynamic_cast<GLGizmoCut*>(get_current());
+                GLGizmoAdvancedCut* cut = dynamic_cast<GLGizmoAdvancedCut*>(get_current());
                 cut->set_cut_z(delta_z + cut->get_cut_z());
                 processed = true;
             };
@@ -982,6 +995,7 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
             case WXK_NUMPAD_DOWN: case WXK_DOWN: { do_move(-1.0); break; }
             default: { break; }
             }
+#endif
         } else if (m_current == Simplify && keyCode == WXK_ESCAPE) {
             GLGizmoSimplify *simplify = dynamic_cast<GLGizmoSimplify *>(get_current());
             if (simplify != nullptr) 

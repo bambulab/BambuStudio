@@ -20,6 +20,9 @@
 // BBS
 #include <CGAL/Polygon_mesh_processing/clip.h>
 #include <CGAL/Polygon_mesh_processing/polygon_mesh_to_polygon_soup.h>
+// BBS
+#include <CGAL/Polygon_mesh_processing/clip.h>
+#include <CGAL/Polygon_mesh_processing/polygon_mesh_to_polygon_soup.h>
 #include <CGAL/Cartesian_converter.h>
 // BBS: for segment
 #include <CGAL/mesh_segmentation.h>
@@ -216,6 +219,33 @@ template<class _Mesh> TriangleMesh cgal_to_triangle_mesh(const _Mesh &cgalmesh)
     return TriangleMesh(std::move(its));
 }
 
+// BBS
+// convert CGAL mesh to TriangleMesh with native API
+template<class _Mesh> TriangleMesh cgal_to_triangle_mesh_native(const _Mesh& cgalmesh)
+{
+    std::vector<typename _EpicMesh::Point> points;
+    using Index3 = std::array<size_t, 3>;
+    std::vector<Index3> indices;
+    CGALProc::polygon_mesh_to_polygon_soup(cgalmesh, points, indices);
+
+    Pointf3s mesh_points;
+    std::vector<Vec3i> facets;
+    for (auto& vi : points) {
+        mesh_points.emplace_back(to_vec3d(vi));
+    }
+    for (auto& face : indices) {
+        int     i = 0;
+        Vec3i trface;
+        for (auto v : face) trface(i++) = static_cast<int>(v);
+        facets.emplace_back(trface);
+    }
+    TriangleMesh out{ mesh_points, facets };
+    if (!mesh_points.empty() && !facets.empty()) {
+        out.require_shared_vertices();
+    }
+    return out;
+}
+
 std::unique_ptr<CGALMesh, CGALMeshDeleter>
 triangle_mesh_to_cgal(const std::vector<stl_vertex> &V,
                       const std::vector<stl_triangle_vertex_indices> &F)
@@ -384,6 +414,31 @@ TriangleMesh merge(std::vector<TriangleMesh> meshes)
     _EpicMesh dst;
     merge(srcs, dst);
     return cgal_to_triangle_mesh(dst);
+}
+
+// BBS
+TriangleMesh clip(const TriangleMesh& mesh, const std::array<Vec3d, 4> plane_points)
+{
+    CGALMesh in_cgal_mesh;
+    auto cgal_params = CGALParams::throw_on_self_intersection(true);
+
+    Vec4d plane_params;
+
+    const Vec3d& p1 = plane_points[0];
+    const Vec3d& p2 = plane_points[1];
+    const Vec3d& p3 = plane_points[2];
+
+    plane_params(0) = (p2(1) - p1(1)) * (p3(2) - p1(2)) - (p2(2) - p1(2)) * (p3(1) - p1(1));
+    plane_params(1) = (p3(0) - p1(0)) * (p2(2) - p1(2)) - (p2(0) - p1(0)) * (p3(2) - p1(2));
+    plane_params(2) = (p2(0) - p1(0)) * (p3(1) - p1(1)) - (p3(0) - p1(0)) * (p2(1) - p1(1));
+    plane_params(3) = -(plane_params(0) * p1(0) + plane_params(1) * p1(1) + plane_params(2) * p1(2));
+
+    EpicKernel::Plane_3 cut_plane(plane_params(0), plane_params(1), plane_params(2), plane_params(3));
+    //EpicKernel::Plane_3 cut_plane(0., 0., 1., 0.);
+
+    MeshBoolean::cgal::triangle_mesh_to_cgal(mesh, in_cgal_mesh.m);
+    bool success = CGALProc::clip(in_cgal_mesh.m, cut_plane, cgal_params.clip_volume(true));
+    return cgal_to_triangle_mesh_native(in_cgal_mesh.m);
 }
 
 // /////////////////////////////////////////////////////////////////////////////

@@ -1230,7 +1230,8 @@ size_t ModelObject::parts_count() const
     return num;
 }
 
-ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, ModelObjectCutAttributes attributes)
+// BBS: replace z with plane_points
+ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_points, ModelObjectCutAttributes attributes)
 {
     if (! attributes.has(ModelObjectCutAttribute::KeepUpper) && ! attributes.has(ModelObjectCutAttribute::KeepLower))
         return {};
@@ -1272,7 +1273,11 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, ModelObjectCutAttr
         instances[instance]->get_mirror()
     );
 
-    z -= instances[instance]->get_offset().z();
+    // BBS
+    //z -= instances[instance]->get_offset().z();
+    for (Vec3d& point : plane_points) {
+        point -= instances[instance]->get_offset();
+    }
 
     // Displacement (in instance coordinates) to be applied to place the upper parts
     Vec3d local_displace = Vec3d::Zero();
@@ -1310,7 +1315,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, ModelObjectCutAttr
             TriangleMesh upper_mesh, lower_mesh;
             {
                 indexed_triangle_set upper_its, lower_its;
-                cut_mesh(mesh.its, float(z), &upper_its, &lower_its);
+                cut_mesh(mesh.its, plane_points, &upper_its, &lower_its);
                 if (attributes.has(ModelObjectCutAttribute::KeepUpper))
                     upper_mesh = TriangleMesh(upper_its);
                 if (attributes.has(ModelObjectCutAttribute::KeepLower))

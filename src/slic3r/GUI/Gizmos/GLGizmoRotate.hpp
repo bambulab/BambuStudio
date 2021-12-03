@@ -76,6 +76,8 @@ private:
 
 class GLGizmoRotate3D : public GLGizmoBase
 {
+// BBS: change to protected for subclass access
+protected:
     std::vector<GLGizmoRotate> m_gizmos;
  
     //BBS: add size adjust related

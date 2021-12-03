@@ -6188,7 +6188,6 @@ void GLCanvas3D::_picking_pass()
 
         //BBS: add plate picking logic
         int plate_hover_id = PartPlate::PLATE_BASE_ID - volume_id;
-
         if (plate_hover_id >= 0 && plate_hover_id < PartPlateList::MAX_PLATES_COUNT * PartPlate::GRABBER_COUNT) {
             wxGetApp().plater()->get_partplate_list().set_hover_id(plate_hover_id);
             hover_plate_idxs->emplace_back(plate_hover_id);
