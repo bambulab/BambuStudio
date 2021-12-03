@@ -1389,7 +1389,7 @@ namespace Slic3r {
         return 0;
     }
 
-    int AccountManager::poll_3mf(BBLSubTask* task)
+    int AccountManager::poll_3mf(BBLSubTask* task, CancelFn fn)
     {
         if (!task) return -1;
         if (task->parent_id.empty() || task->task_profile_id.empty() || task->task_project_id.empty()) return -1;
@@ -1443,6 +1443,12 @@ namespace Slic3r {
 
         while ((task->task_url.empty() || task->task_url.compare("null") == 0) && retry_ < retry_max) {
             http.perform_sync();
+            if (fn) {
+                if (fn()) {
+                    BOOST_LOG_TRIVIAL(trace) << "poll 3mf is cancelled";
+                    return -1;
+                }
+            }
             retry_++;
             BOOST_LOG_TRIVIAL(trace) << "get_task_url, retry=" << retry_;
             boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));

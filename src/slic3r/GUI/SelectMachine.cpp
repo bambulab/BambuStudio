@@ -488,7 +488,7 @@ void SelectMachinePopup::on_timer(wxTimerEvent& event)
 }
 
 SelectMachineDialog::SelectMachineDialog(Plater* plater, int print_plate_idx)
-	: DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("Select Printer"), wxDefaultPosition,
+	: DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("Send Task to"), wxDefaultPosition,
 	wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
     m_plater(plater),
     m_print_plate_idx(print_plate_idx)
@@ -650,8 +650,14 @@ void SelectMachineDialog::on_ok(wxCommandEvent& event)
 
     m_plater->send_gcode(m_print_plate_idx);
 
-    PrintJob* print_job = new PrintJob(m_status_bar, m_plater, dev_id);
-    print_job->start();
+    m_status_bar->set_cancel_callback(
+        [this]() {
+            if (m_print_job->is_running())
+                m_print_job->cancel();
+        }
+    );
+    m_print_job = std::make_shared<PrintJob>(m_status_bar, m_plater, dev_id);
+    m_print_job->start();
 }
 
 void SelectMachineDialog::on_timer(wxTimerEvent& event)

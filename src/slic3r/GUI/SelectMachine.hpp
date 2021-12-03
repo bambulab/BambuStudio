@@ -179,6 +179,8 @@ protected:
 
     wxTimer* m_refresh_timer;
 
+    std::shared_ptr<PrintJob> m_print_job;
+
     // Virtual event handlers, overide them in your derived class
     void on_cancel(wxCommandEvent& event);
     void on_ok(wxCommandEvent& event);

@@ -42,6 +42,11 @@ void PrintJob::process()
         return;
     }
 
+    if (was_canceled()) {
+        update_status(0, "Sending Task canceled");
+        return;
+    }
+
     std::map<std::string, MachineObject*>::iterator it = c->myBindMachineList.find(m_dev_id);
     if (it == c->myBindMachineList.end()) {
         update_status(0, "can not find machine = " + m_dev_id);
@@ -104,16 +109,31 @@ void PrintJob::process()
                 update_status(10, "upload 3mf failed!");
             }
         },
-        [this](Http::Progress progress, bool &cacel) {
+        [this](Http::Progress progress, bool &cancel) {
             int percent = 0;
             if (progress.ultotal != 0) {
                 percent = progress.ulnow / progress.ultotal;
+            }
+            if (was_canceled()) {
+                cancel = true;
+                update_status(percent, "3mf uploading canceled");
+                return;
             }
             percent = 10 + percent * 70 / 100;
             update_status(percent, "3mf uploading...");
         },
         true);
 
+    if (was_canceled()) {
+        update_status(10, "Printing Task is canceled in uploading...");
+        BOOST_LOG_TRIVIAL(trace) << "print_job: subtask is canceled when uploading...";
+        return;
+    }
+
+    if (res < 0) {
+        update_status(10, "3mf uploading failed");
+        return;
+    }
 
     /* create Task */
     BBLTask* task = new BBLTask(profile);
@@ -130,7 +150,6 @@ void PrintJob::process()
         update_status(80, "request task id failed!");
         return;
     }
-
     
     BBLSubTask* curr_subtask = nullptr;
     int curr_plate_idx = 0;
@@ -199,8 +218,21 @@ void PrintJob::process()
     if (!curr_subtask) return;
 
     BOOST_LOG_TRIVIAL(trace) << "print_job: poll task 3mf";
-    res = c->poll_3mf(curr_subtask);
-    if (!curr_subtask->task_url.empty() && !curr_subtask->task_url_md5.empty()) {
+    res = c->poll_3mf(curr_subtask,
+        [this]() {
+            return was_canceled();
+        }
+    );
+
+    if (was_canceled()) {
+        update_status(90, "Printing Task is canceled in poll 3mf (subtask)");
+        BOOST_LOG_TRIVIAL(trace) << "print_job: subtask is canceled in poll 3mf (subtask)";
+        return;
+    }
+
+    if (!curr_subtask->task_url.empty()
+        && curr_subtask->task_url.compare("null") != 0
+        && !curr_subtask->task_url_md5.empty()) {
         update_status(95, "poll 3mf of task ok!");
         BOOST_LOG_TRIVIAL(trace) << "get subtask url =" << curr_subtask->task_url;
     }

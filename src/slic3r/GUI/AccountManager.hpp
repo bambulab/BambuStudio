@@ -254,6 +254,7 @@ public:
     typedef std::function<void(std::string body)> CompletedFn;
     typedef std::function<void(int retcode, std::string error, std::string body)> ErrorFn;
     typedef std::function<void(int result, std::string info)> ResultFn;
+    typedef std::function<bool()> CancelFn;
 
     AccountManager();
     ~AccountManager();
@@ -327,7 +328,7 @@ public:
     // poll_3mf for project and profile, sync
     int poll_3mf(BBLProfile* profile);
     // poll_3mf for task, sync
-    int poll_3mf(BBLSubTask* task);
+    int poll_3mf(BBLSubTask* task, CancelFn  fn = nullptr);
     // get task info
     void get_task(BBLTask* &task);
     void get_subtask(BBLSubTask* &subtask);
