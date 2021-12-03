@@ -968,6 +968,42 @@ void DebugToolDialog::init_bind()
     btn_set_e_neg_10_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("M83 \nG0 E-10.0 F300 \n");
         });
+
+    m_button_upgrade_confirm->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+            pt::ptree root, upgrade;
+            upgrade.put("command", "upgrade_confirm");
+            upgrade.put("sequence_id", this->m_sequence_id++);
+            root.put_child("upgrade", upgrade);
+            std::stringstream oss;
+            pt::write_json(oss, root, false);
+            std::string json_str = oss.str();
+
+            int result = this->publish_json(json_str);
+            if (result != 0) {
+                this->log_info("publish_json failed");
+            } else {
+                this->send_log_evt("upgrade new version confirm");
+            }
+        });
+
+    m_button_consistency_upgrade_confirm->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+            pt::ptree root, upgrade;
+            upgrade.put("command", "consistency_confirm");
+            upgrade.put("sequence_id", this->m_sequence_id++);
+            root.put_child("upgrade", upgrade);
+            std::stringstream oss;
+            pt::write_json(oss, root, false);
+            std::string json_str = oss.str();
+
+            int result = this->publish_json(json_str);
+            if (result != 0) {
+                this->log_info("publish_json failed");
+            } else {
+                this->send_log_evt("consistency upgrade confirm");
+            }
+        }
+    );
+
 }
 
 void DebugToolDialog::init_bind_handler()
@@ -1324,6 +1360,26 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
 
     wxString chamber_text = wxString::Format("%fC", obj->chamber_temp);
     m_staticText_volume_temp_val->SetLabelText(chamber_text);
+
+
+    /* upgrade */
+    if (obj->upgrade_new_version) {
+        m_button_upgrade_confirm->Enable();
+        m_staticText_new_version->SetLabelText("True");
+    }
+    else {
+        m_button_upgrade_confirm->Disable();
+        m_staticText_new_version->SetLabelText("False");
+    }
+
+    if (obj->upgrade_consistency_request) {
+        m_button_consistency_upgrade_confirm->Enable();
+        m_staticText_request_consisitency_upgrade->SetLabelText("True");
+    }
+    else {
+        m_button_consistency_upgrade_confirm->Disable();
+        m_staticText_request_consisitency_upgrade->SetLabelText("False");
+    }
 
     if (mqtt_msg_queue.empty()) {
         return;

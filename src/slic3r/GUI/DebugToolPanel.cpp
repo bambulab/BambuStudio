@@ -234,7 +234,6 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 	wxBoxSizer* bSizer151;
 	bSizer151 = new wxBoxSizer( wxHORIZONTAL );
-
 	label_upload_progress1 = new wxStaticText( m_panel_run_gcode, wxID_ANY, wxT("Status:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
 	label_upload_progress1->Wrap( -1 );
 	label_upload_progress1->SetMinSize( wxSize( 100,-1 ) );
@@ -243,8 +242,9 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 	m_status_bar = std::make_shared<BBLStatusBar>(m_panel_run_gcode);
     m_panel_status = m_status_bar->get_panel();
-	bSizer151->Add( m_panel_status, 1, wxEXPAND | wxALL, 0 );
+    bSizer151->Add( m_panel_status, 1, wxEXPAND | wxALL, 0 );
 
+	
 	bSizer331->Add( bSizer151, 0, wxEXPAND, 5 );
 
 	wxBoxSizer* bSizer161;
@@ -278,7 +278,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	m_panel_run_gcode->SetSizer( bSizer131 );
 	m_panel_run_gcode->Layout();
 	bSizer131->Fit( m_panel_run_gcode );
-	m_notebook1->AddPage( m_panel_run_gcode, wxT("Run Gcode"), true );
+	m_notebook1->AddPage( m_panel_run_gcode, wxT("Run Gcode"), false );
 	m_panel_info_control = new wxPanel( m_notebook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer17;
 	bSizer17 = new wxBoxSizer( wxHORIZONTAL );
@@ -723,39 +723,72 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	wxGridSizer* gSizer10;
 	gSizer10 = new wxGridSizer( 0, 2, 0, 0 );
 
-	m_staticText_status_title = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("Upgrade Status:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+	m_staticText_new_version_title = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("New Version Available:"), wxDefaultPosition, wxSize( 200,-1 ), wxALIGN_RIGHT );
+	m_staticText_new_version_title->Wrap( -1 );
+	gSizer10->Add( m_staticText_new_version_title, 0, wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT|wxALL, 5 );
+
+	wxBoxSizer* bSizer341;
+	bSizer341 = new wxBoxSizer( wxHORIZONTAL );
+
+	bSizer341->SetMinSize( wxSize( 120,-1 ) );
+	m_staticText_new_version = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxSize( -1,-1 ), 0 );
+	m_staticText_new_version->Wrap( -1 );
+	bSizer341->Add( m_staticText_new_version, 0, wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT|wxALL, 5 );
+
+	m_button_upgrade_confirm = new wxButton( m_panel_upgrade, wxID_ANY, wxT("Confirm"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer341->Add( m_button_upgrade_confirm, 0, wxALL, 5 );
+
+
+	gSizer10->Add( bSizer341, 0, wxALIGN_LEFT|wxEXPAND, 5 );
+
+	m_staticText_consistency = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("Consistency Upgrade:"), wxDefaultPosition, wxSize( 140,-1 ), wxALIGN_RIGHT|wxST_ELLIPSIZE_MIDDLE );
+	m_staticText_consistency->Wrap( -1 );
+	gSizer10->Add(m_staticText_consistency, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, 5);
+
+	wxBoxSizer* bSizer351;
+	bSizer351 = new wxBoxSizer( wxHORIZONTAL );
+
+	m_staticText_request_consisitency_upgrade = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_request_consisitency_upgrade->Wrap( -1 );
+	bSizer351->Add( m_staticText_request_consisitency_upgrade, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+	m_button_consistency_upgrade_confirm = new wxButton( m_panel_upgrade, wxID_ANY, wxT("Confirm"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer351->Add( m_button_consistency_upgrade_confirm, 0, wxALL, 5 );
+
+
+	gSizer10->Add( bSizer351, 1, wxEXPAND, 5 );
+
+	m_staticText_status_title = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("Upgrade Status:"), wxDefaultPosition, wxSize( 120,-1 ), wxALIGN_RIGHT );
 	m_staticText_status_title->Wrap( -1 );
-	m_staticText_status_title->SetMinSize( wxSize( 120,-1 ) );
+	gSizer10->Add( m_staticText_status_title, 0, wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT|wxALL, 5 );
 
-	gSizer10->Add( m_staticText_status_title, 0, wxALL, 5 );
-
-	label_upgrade_status_val = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	label_upgrade_status_val = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
 	label_upgrade_status_val->Wrap( -1 );
-	gSizer10->Add( label_upgrade_status_val, 0, wxALIGN_LEFT|wxALL, 5 );
+	gSizer10->Add( label_upgrade_status_val, 0, wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT|wxALL, 5 );
 
-	m_staticText_upgrade_module = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("Upgrade Module:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_upgrade_module = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("Upgrade Module:"), wxDefaultPosition, wxSize( 120,-1 ), wxALIGN_RIGHT );
 	m_staticText_upgrade_module->Wrap( -1 );
-	gSizer10->Add( m_staticText_upgrade_module, 0, wxALIGN_RIGHT|wxALL, 5 );
+	gSizer10->Add( m_staticText_upgrade_module, 0, wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT|wxALL, 5 );
 
-	m_staticText_upgrade_module_value = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_upgrade_module_value = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
 	m_staticText_upgrade_module_value->Wrap( -1 );
-	gSizer10->Add( m_staticText_upgrade_module_value, 0, wxALIGN_LEFT|wxALL, 5 );
+	gSizer10->Add( m_staticText_upgrade_module_value, 0, wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT|wxALL, 5 );
 
-	m_staticText_upgrade_progress = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("Upgrade Progress:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_upgrade_progress = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("Upgrade Progress:"), wxDefaultPosition, wxSize( 120,-1 ), wxALIGN_RIGHT );
 	m_staticText_upgrade_progress->Wrap( -1 );
-	gSizer10->Add( m_staticText_upgrade_progress, 0, wxALIGN_RIGHT|wxALL, 5 );
+	gSizer10->Add( m_staticText_upgrade_progress, 0, wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT|wxALL, 5 );
 
-	label_upgrade_progress_val = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	label_upgrade_progress_val = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
 	label_upgrade_progress_val->Wrap( -1 );
-	gSizer10->Add( label_upgrade_progress_val, 0, wxALIGN_LEFT|wxALL, 5 );
+	gSizer10->Add( label_upgrade_progress_val, 0, wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT|wxALL, 5 );
 
-	m_staticText_upgrade_info = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("Upgrade Info:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_upgrade_info = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("Upgrade Info:"), wxDefaultPosition, wxSize( 120,-1 ), wxALIGN_RIGHT );
 	m_staticText_upgrade_info->Wrap( -1 );
-	gSizer10->Add( m_staticText_upgrade_info, 0, wxALIGN_RIGHT|wxALL, 5 );
+	gSizer10->Add( m_staticText_upgrade_info, 0, wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT|wxALL, 5 );
 
-	label_upgrade_message_val = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	label_upgrade_message_val = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT );
 	label_upgrade_message_val->Wrap( -1 );
-	gSizer10->Add( label_upgrade_message_val, 0, wxALIGN_LEFT|wxALL, 5 );
+	gSizer10->Add( label_upgrade_message_val, 0, wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT|wxALL, 5 );
 
 
 	bSizer31->Add( gSizer10, 0, 0, 5 );
@@ -779,7 +812,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	m_panel_upgrade->SetSizer( bSizer28 );
 	m_panel_upgrade->Layout();
 	bSizer28->Fit( m_panel_upgrade );
-	m_notebook1->AddPage( m_panel_upgrade, wxT("Upgrade"), false );
+	m_notebook1->AddPage( m_panel_upgrade, wxT("Upgrade"), true );
 	m_panel_ams = new wxPanel( m_notebook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer321;
 	bSizer321 = new wxBoxSizer( wxVERTICAL );

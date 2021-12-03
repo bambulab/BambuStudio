@@ -164,7 +164,12 @@ public:
     std::string wifi_signal;
 
     /* upgrade */
-    bool force_upgrade;
+    bool upgrade_force_upgrade;
+    bool upgrade_new_version;
+    bool upgrade_consistency_request;
+    std::string upgrade_progress;
+    std::string upgrade_message;
+    std::string upgrade_status;
 
     /* printing */
     int     mc_print_stage;

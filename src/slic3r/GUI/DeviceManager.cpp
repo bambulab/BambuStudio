@@ -169,7 +169,9 @@ MachineObject::MachineObject(AccountManager& acc, std::string name, std::string 
     wifi_signal = "";
 
     /* upgrade */
-    force_upgrade = false;
+    upgrade_force_upgrade = false;
+    upgrade_new_version = false;
+    upgrade_consistency_request = false;
 
     /* cooling */
     heatbreak_fan_speed = 0;
@@ -481,9 +483,9 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 /* upgrade */
                 boost::optional<std::string> force_upgrade      = print.get_optional<std::string>("force_upgrade");
                 if (force_upgrade.has_value()) {
-                    this->force_upgrade = force_upgrade.value().compare("true") == 0 ? true : false;
-                    // TODO push notification
+                    this->upgrade_force_upgrade = force_upgrade.value().compare("true") == 0 ? true : false;
                 }
+
                 /* gcode */
                 boost::optional<std::string> gcode_start_time   = print.get_optional<std::string>("gcode_start_time");
                 boost::optional<std::string> gcode_duration     = print.get_optional<std::string>("gcode_duration");
@@ -745,10 +747,23 @@ int MachineObject::parse_json(std::string topic, std::string payload)
         // upgrade push info
         else if (root.get_child_optional("upgrade") != boost::none) {
             pt::ptree upgrade = root.get_child("upgrade");
-            boost::optional<std::string> upgrade_module = upgrade.get_optional<std::string>("module");
-            boost::optional<std::string> upgrade_status = upgrade.get_optional<std::string>("status");
-            boost::optional<std::string> upgrade_progress = upgrade.get_optional<std::string>("progress");
-            boost::optional<std::string> upgrade_message = upgrade.get_optional<std::string>("message");
+            boost::optional<std::string> upgrade_module         = upgrade.get_optional<std::string>("module");
+            boost::optional<std::string> upgrade_status_val     = upgrade.get_optional<std::string>("status");
+            boost::optional<std::string> upgrade_progress_val   = upgrade.get_optional<std::string>("progress");
+            boost::optional<std::string> upgrade_message_val    = upgrade.get_optional<std::string>("message");
+            boost::optional<bool> new_version                   = upgrade.get_optional<bool>("new_version");
+            boost::optional<bool> consistency_request           = upgrade.get_optional<bool>("consistency_request");
+            if (new_version.has_value())
+                upgrade_new_version = new_version.value();
+            if (upgrade_progress_val.has_value())
+                upgrade_progress = upgrade_progress_val.value();
+            if (upgrade_message_val.has_value())
+                upgrade_message = upgrade_message_val.value();
+            if (upgrade_status_val.has_value())
+                upgrade_status = upgrade_status_val.value();
+            if (consistency_request.has_value())
+                upgrade_consistency_request = consistency_request.value();
+
         }
         // event info
         else if (root.get_child_optional("event") != boost::none) {

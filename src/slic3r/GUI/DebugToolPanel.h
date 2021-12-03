@@ -31,7 +31,6 @@
 #include <wx/notebook.h>
 #include <wx/splitter.h>
 
-
 #include "BBLStatusBar.hpp"
 
 ///////////////////////////////////////////////////////////////////////////
@@ -180,6 +179,12 @@ namespace Slic3r
 				wxComboBox* cb_upgrade_firmware;
 				wxButton* btn_refresh_upgrade_list;
 				wxButton* btn_upgrade_firmware;
+				wxStaticText* m_staticText_new_version_title;
+				wxStaticText* m_staticText_new_version;
+				wxButton* m_button_upgrade_confirm;
+				wxStaticText* m_staticText_consistency;
+				wxStaticText* m_staticText_request_consisitency_upgrade;
+				wxButton* m_button_consistency_upgrade_confirm;
 				wxStaticText* m_staticText_status_title;
 				wxStaticText* label_upgrade_status_val;
 				wxStaticText* m_staticText_upgrade_module;
