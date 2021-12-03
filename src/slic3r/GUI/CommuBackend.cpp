@@ -68,7 +68,8 @@ namespace Slic3r {
     int SsdpDiscovery::send_msg(int card_no)
     {
         while (!sdp_quit) {
-            int result = bbl_send_ssdp_msg(broadcast_sock_list[card_no]);
+            if (keep_sending)
+                bbl_send_ssdp_msg(broadcast_sock_list[card_no]);
             boost::this_thread::sleep_for(boost::chrono::milliseconds(4000));
         }
         return 0;
@@ -215,6 +216,7 @@ namespace Slic3r {
         lssdp.neighbor_list = NULL;
         lssdp.packet_received_callback = NULL;
 #endif
+        keep_sending = false;
     }
 
     void SsdpDiscovery::start_discover()

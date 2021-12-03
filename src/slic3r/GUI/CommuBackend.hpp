@@ -22,6 +22,7 @@ class SsdpDiscovery
 {
 private:
     bool sdp_quit = false;
+    bool keep_sending = false;
 
 #if defined(__WINDOWS__)
     int send_msg(int card_no);
@@ -38,6 +39,7 @@ public:
     void start_discover();
     void stop_discover();
     void on_sdp_alive(std::string dev_id, std::string dev_ip);
+    void set_keep_sending(bool sending) { keep_sending = sending; }
 };
 
 class CommuBackend
@@ -48,6 +50,12 @@ public:
 
     int start();
     int stop();
+
+    void set_ssdp_discovery(bool discovery) {
+        if (ssdp)
+            ssdp->set_keep_sending(discovery);
+    }
+    
 
 protected:
 

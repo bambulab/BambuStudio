@@ -1077,6 +1077,8 @@ void DebugToolDialog::on_mqtt_failed(wxCommandEvent& evt)
     btn_refresh_device_list->Enable();
     cb_device_list->Enable();
     radio_btn_lan->SetValue(true);
+    CommuBackend* backend = wxGetApp().getCommuBackend();
+    backend->set_ssdp_discovery(true);
 }
 
 void DebugToolDialog::on_mqtt_lost(wxCommandEvent& evt)
@@ -1088,6 +1090,8 @@ void DebugToolDialog::on_mqtt_lost(wxCommandEvent& evt)
     btn_refresh_device_list->Enable();
     cb_device_list->Enable();
     radio_btn_lan->SetValue(true);
+    CommuBackend* backend = wxGetApp().getCommuBackend();
+    backend->set_ssdp_discovery(true);
 }
 
 void DebugToolDialog::on_mqtt_connected(wxCommandEvent& evt)
@@ -1097,6 +1101,8 @@ void DebugToolDialog::on_mqtt_connected(wxCommandEvent& evt)
     btn_refresh_device_list->Disable();
     cb_device_list->Disable();
     radio_btn_lan->SetValue(true);
+    CommuBackend* backend = wxGetApp().getCommuBackend();
+    backend->set_ssdp_discovery(false);
 }
 
 void DebugToolDialog::on_mqtt_disconnected(wxCommandEvent& evt)
@@ -1106,6 +1112,8 @@ void DebugToolDialog::on_mqtt_disconnected(wxCommandEvent& evt)
     btn_refresh_device_list->Enable();
     cb_device_list->Enable();
     radio_btn_lan->SetValue(true);
+    CommuBackend* backend = wxGetApp().getCommuBackend();
+    backend->set_ssdp_discovery(true);
 }
 
 
@@ -1213,12 +1221,17 @@ std::string DebugToolDialog::switch_ams_gcode(std::string t)
 
 bool DebugToolDialog::Show(bool show)
 {
+    CommuBackend* backend = wxGetApp().getCommuBackend();
     if (show) {
+        if (btn_connect->IsEnabled()) {
+            backend->set_ssdp_discovery(true);
+        }
         m_timer->Stop();
         m_timer->SetOwner(this);
         m_timer->Start(10000);
     }
     else {
+        backend->set_ssdp_discovery(false);
         m_timer->Stop();
     }
 
