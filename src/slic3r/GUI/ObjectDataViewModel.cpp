@@ -800,6 +800,8 @@ wxDataViewItem ObjectDataViewModel::Delete(const wxDataViewItem &item)
                 ReparentObject(m_plate_outside, child);
         }
 
+        // FIX: should remove from children collection soon, or will conflict GetChildren
+        m_plates.erase(std::find(m_plates.begin(), m_plates.end(), node), m_plates.end());
         ItemDeleted(parent, wxDataViewItem(node));
         delete node;
         return parent;
@@ -1011,7 +1013,9 @@ wxDataViewItem ObjectDataViewModel::DeleteLastInstance(const wxDataViewItem &par
 void ObjectDataViewModel::ResetAll()
 {
     // BBS
-    for (auto plate : m_plates) {
+    // FIX: should remove from children collection soon, or will conflict GetChildren
+    while (!m_plates.empty()) {
+        auto plate = m_plates.front();
         Delete(wxDataViewItem(plate));
     }
 
@@ -1569,6 +1573,8 @@ void ObjectDataViewModel::ReparentObject(ObjectDataViewModelNode* plate, ObjectD
 
     ObjectDataViewModelNode* old_plate = object->m_parent;
     assert(old_plate != nullptr && (old_plate->m_type & itPlate) != 0);
+    if (old_plate == plate)
+        return;
 
     old_plate->GetChildren().Remove(object);
     ItemDeleted(wxDataViewItem(old_plate), wxDataViewItem(object));
@@ -1716,13 +1722,13 @@ unsigned int ObjectDataViewModel::GetChildren(const wxDataViewItem &parent, wxDa
         for (auto plate : m_plates)
             array.Add(wxDataViewItem((void*)plate));
         node_count += m_plates.size();
-
+        /* FIX: should only return first layer children
         for (auto object : m_objects) {
             if (object->GetParent() == nullptr) {
                 array.Add(wxDataViewItem((void*)object));
                 node_count++;
             }
-        }
+        }*/
         return node_count++;
 	}
 
