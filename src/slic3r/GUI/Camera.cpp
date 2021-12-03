@@ -258,6 +258,28 @@ void Camera::debug_render() const
 }
 #endif // ENABLE_CAMERA_STATISTICS
 
+void Camera::rotate_on_sphere_with_target(double delta_azimut_rad, double delta_zenit_rad, bool apply_limits, Vec3d target)
+{
+    m_zenit += Geometry::rad2deg(delta_zenit_rad);
+    if (apply_limits) {
+        if (m_zenit > 90.0f) {
+            delta_zenit_rad -= Geometry::deg2rad(m_zenit - 90.0f);
+            m_zenit = 90.0f;
+        }
+        else if (m_zenit < -90.0f) {
+            delta_zenit_rad -= Geometry::deg2rad(m_zenit + 90.0f);
+            m_zenit = -90.0f;
+        }
+    }
+
+    Vec3d translation = m_view_matrix.translation() + m_view_rotation * target;
+    auto rot_z = Eigen::AngleAxisd(delta_azimut_rad, Vec3d::UnitZ());
+    m_view_rotation *= rot_z * Eigen::AngleAxisd(delta_zenit_rad, rot_z.inverse() * get_dir_right());
+    m_view_rotation.normalize();
+    m_view_matrix.fromPositionOrientationScale(m_view_rotation * (-target) + translation, m_view_rotation, Vec3d(1., 1., 1.));
+}
+
+
 void Camera::rotate_on_sphere(double delta_azimut_rad, double delta_zenit_rad, bool apply_limits)
 {
     m_zenit += Geometry::rad2deg(delta_zenit_rad);

@@ -107,6 +107,10 @@ public:
     // translate the camera in world space
     void translate_world(const Vec3d& displacement) { set_target(m_target + displacement); }
 
+    // BBS rotate the camera on a sphere having center == target
+    void rotate_on_sphere_with_target(double delta_azimut_rad, double delta_zenit_rad, bool apply_limits, Vec3d target);
+
+
     // rotate the camera on a sphere having center == m_target and radius == m_distance
     // using the given variations of spherical coordinates
     // if apply_limits == true the camera stops rotating when its forward vector is parallel to the world Z axis

@@ -3513,7 +3513,18 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     //BBS do not limit rotate in assemble view
                     if (this->m_canvas_type == ECanvasType::CanvasAssembleView)
                         rotate_limit = false;
-                    camera.rotate_on_sphere(rot.x(), rot.y(), rotate_limit);
+
+                    //BBS rotate on target in assemble view
+                    if (this->m_canvas_type == ECanvasType::CanvasAssembleView) {
+                        Vec3d rotate_target = Vec3d::Zero();
+                        if (!m_selection.is_empty())
+                            rotate_target = m_selection.get_bounding_box().center();
+                        else
+                            rotate_target = scene_bounding_box().center();
+                        camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, rotate_target);
+                    }
+                    else
+                        camera.rotate_on_sphere(rot.x(), rot.y(), rotate_limit);
                 }
 
                 m_dirty = true;
