@@ -24,6 +24,7 @@ public:
     std::string slicer_version;
     std::string device_version;
     std::string start_time;
+    std::string subtask_id;
     int start;
     std::string end_time;
     std::string print_filename;
@@ -44,6 +45,7 @@ public:
         duration = 0;
         has_time_start = false;
         start = 0;
+        subtask_id = "";
     }
 };
 

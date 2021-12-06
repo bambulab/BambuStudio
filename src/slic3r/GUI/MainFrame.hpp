@@ -299,6 +299,7 @@ public:
     mutable bool          m_print_enable{ true };
     bool get_enable_slice_status();
     bool get_enable_print_status();
+    wxPanel* debug_panel() { return m_debug_tool_dlg; }
     void update_slice_button_color(bool enable);
     void update_print_button_color(bool enable);
     void update_slice_print_status(SlicePrintEventType event, bool can_slice = true, bool can_print = true);

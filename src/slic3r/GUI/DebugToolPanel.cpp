@@ -36,6 +36,9 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 	bSizer_lan->Add( cb_device_list, 0, wxALL, 5 );
 
+	m_bpButton_search = new wxBitmapButton( this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|0 );
+	bSizer_lan->Add( m_bpButton_search, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
 	btn_refresh_device_list = new wxButton( this, wxID_ANY, wxT("REFRESH"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer_lan->Add( btn_refresh_device_list, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -234,6 +237,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 	wxBoxSizer* bSizer151;
 	bSizer151 = new wxBoxSizer( wxHORIZONTAL );
+
 	label_upload_progress1 = new wxStaticText( m_panel_run_gcode, wxID_ANY, wxT("Status:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
 	label_upload_progress1->Wrap( -1 );
 	label_upload_progress1->SetMinSize( wxSize( 100,-1 ) );
@@ -244,7 +248,8 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
     m_panel_status = m_status_bar->get_panel();
     bSizer151->Add( m_panel_status, 1, wxEXPAND | wxALL, 0 );
 
-	
+
+
 	bSizer331->Add( bSizer151, 0, wxEXPAND, 5 );
 
 	wxBoxSizer* bSizer161;
@@ -400,6 +405,14 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	m_staticText_mc_print_line_number = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_mc_print_line_number->Wrap( -1 );
 	bSizer_info->Add( m_staticText_mc_print_line_number, 0, wxALIGN_LEFT|wxALL, 5 );
+
+	m_staticText_subtask_id_title = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("SubTask ID:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_subtask_id_title->Wrap( -1 );
+	bSizer_info->Add( m_staticText_subtask_id_title, 0, wxALIGN_RIGHT|wxALL, 5 );
+
+	m_staticText_subtask_id = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_subtask_id->Wrap( -1 );
+	bSizer_info->Add( m_staticText_subtask_id, 0, wxALIGN_LEFT|wxALL, 5 );
 
 
 	sbSizer_info->Add( bSizer_info, 0, wxALL, 5 );
@@ -638,7 +651,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	m_panel_info_control->SetSizer( bSizer17 );
 	m_panel_info_control->Layout();
 	bSizer17->Fit( m_panel_info_control );
-	m_notebook1->AddPage( m_panel_info_control, wxT("Info Control"), false );
+	m_notebook1->AddPage( m_panel_info_control, wxT("Info Control"), true );
 	m_panel_upgrade = new wxPanel( m_notebook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer28;
 	bSizer28 = new wxBoxSizer( wxVERTICAL );
@@ -723,7 +736,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	wxGridSizer* gSizer10;
 	gSizer10 = new wxGridSizer( 0, 2, 0, 0 );
 
-	m_staticText_new_version_title = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("New Version Available:"), wxDefaultPosition, wxSize( 200,-1 ), wxALIGN_RIGHT );
+	m_staticText_new_version_title = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("New Version Available:"), wxDefaultPosition, wxSize( 200,-1 ), wxALIGN_RIGHT|wxST_ELLIPSIZE_MIDDLE );
 	m_staticText_new_version_title->Wrap( -1 );
 	gSizer10->Add( m_staticText_new_version_title, 0, wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT|wxALL, 5 );
 
@@ -743,7 +756,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 	m_staticText_consistency = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("Consistency Upgrade:"), wxDefaultPosition, wxSize( 140,-1 ), wxALIGN_RIGHT|wxST_ELLIPSIZE_MIDDLE );
 	m_staticText_consistency->Wrap( -1 );
-	gSizer10->Add(m_staticText_consistency, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, 5);
+	gSizer10->Add( m_staticText_consistency, 0, wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT|wxALL, 5 );
 
 	wxBoxSizer* bSizer351;
 	bSizer351 = new wxBoxSizer( wxHORIZONTAL );
@@ -812,7 +825,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	m_panel_upgrade->SetSizer( bSizer28 );
 	m_panel_upgrade->Layout();
 	bSizer28->Fit( m_panel_upgrade );
-	m_notebook1->AddPage( m_panel_upgrade, wxT("Upgrade"), true );
+	m_notebook1->AddPage( m_panel_upgrade, wxT("Upgrade"), false );
 	m_panel_ams = new wxPanel( m_notebook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer321;
 	bSizer321 = new wxBoxSizer( wxVERTICAL );
@@ -898,8 +911,14 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 	this->SetSizer( bSizer_top );
 	this->Layout();
+
+	// Connect Events
+	m_bpButton_search->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( DebugToolPanel::on_device_search ), NULL, this );
 }
 
 DebugToolPanel::~DebugToolPanel()
 {
+	// Disconnect Events
+	m_bpButton_search->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( DebugToolPanel::on_device_search ), NULL, this );
+
 }

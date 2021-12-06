@@ -46,6 +46,7 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/ProjectTask.hpp"
 #include "libslic3r/miniz_extension.hpp"
+#include "slic3r/GUI/Search.hpp"
 
 #define __CHECK_BIND_USER__
 
@@ -232,6 +233,166 @@ void GcodePrintJob::finalize() {
 }
 
 
+DeviceSearchListModel::DeviceSearchListModel(wxWindow* parent) : wxDataViewVirtualListModel(0)
+{
+    ;
+}
+
+void DeviceSearchListModel::Clear()
+{
+    m_values.clear();
+    Reset(0);
+}
+
+void DeviceSearchListModel::update_info(std::vector<wxString> list)
+{
+    m_values.clear();
+    m_values.swap(list);
+    Reset(m_values.size());
+}
+
+
+wxString DeviceSearchListModel::GetColumnType(unsigned int col) const 
+{
+    return "string";
+}
+
+void DeviceSearchListModel::GetValueByRow(wxVariant& variant,
+    unsigned int row, unsigned int col) const
+{
+    switch (col)
+    {
+    case colDeviceInfo:
+        variant = m_values[row];
+        break;
+    case colMax:
+        wxFAIL_MSG("invalid column");
+    default:
+        break;
+    }
+}
+
+
+DeviceSearchDialog::DeviceSearchDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+
+	wxBoxSizer* bSizer36;
+	bSizer36 = new wxBoxSizer( wxVERTICAL );
+
+	m_textCtrl_search_line = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer36->Add( m_textCtrl_search_line, 0, wxALL|wxEXPAND, 5 );
+
+	m_dataViewCtrl = new wxDataViewCtrl( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer36->Add( m_dataViewCtrl, 1, wxALL|wxEXPAND, 5 );
+
+
+	this->SetSizer( bSizer36 );
+	this->Layout();
+
+	this->Centre( wxBOTH );
+
+    default_string = _L("Enter a search term");
+
+    search_list_model = new DeviceSearchListModel(this);
+    m_dataViewCtrl->AssociateModel(search_list_model);
+
+    m_dataViewCtrl->AppendTextColumn("Printer", 0, wxDATAVIEW_CELL_INERT, 400, wxALIGN_LEFT);
+    m_dataViewCtrl->GetColumn(DeviceSearchListModel::colDeviceInfo)->SetWidth(400);
+
+	// Connect Events
+	m_textCtrl_search_line->Connect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( DeviceSearchDialog::OnInputText ), NULL, this );
+	m_dataViewCtrl->Connect( wxEVT_COMMAND_DATAVIEW_ITEM_ACTIVATED, wxDataViewEventHandler( DeviceSearchDialog::OnActivate ), NULL, this );
+	m_dataViewCtrl->Connect( wxEVT_COMMAND_DATAVIEW_SELECTION_CHANGED, wxDataViewEventHandler( DeviceSearchDialog::OnSelect ), NULL, this );
+
+    update_list();
+}
+
+DeviceSearchDialog::~DeviceSearchDialog()
+{
+	// Disconnect Events
+	m_textCtrl_search_line->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( DeviceSearchDialog::OnInputText ), NULL, this );
+	m_dataViewCtrl->Disconnect( wxEVT_COMMAND_DATAVIEW_ITEM_ACTIVATED, wxDataViewEventHandler( DeviceSearchDialog::OnActivate ), NULL, this );
+	m_dataViewCtrl->Disconnect( wxEVT_COMMAND_DATAVIEW_SELECTION_CHANGED, wxDataViewEventHandler( DeviceSearchDialog::OnSelect ), NULL, this );
+
+}
+
+
+void DeviceSearchDialog::OnInputText(wxCommandEvent& event)
+{
+    m_textCtrl_search_line->SetInsertionPointEnd();
+
+    wxString input_string = m_textCtrl_search_line->GetValue();
+    if (input_string == default_string)
+        input_string.Clear();
+
+    update_list();
+}
+
+void DeviceSearchDialog::OnActivate(wxDataViewEvent& event)
+{
+    ProcessSelection(event.GetItem());
+}
+
+void DeviceSearchDialog::OnSelect(wxDataViewEvent& event)
+{
+    if (prevent_list_events)
+        return;
+
+#ifndef __APPLE__
+    if (wxGetMouseState().LeftIsDown())
+#endif
+        ProcessSelection(m_dataViewCtrl->GetSelection());
+}
+
+void DeviceSearchDialog::ProcessSelection(wxDataViewItem selection)
+{
+    if (!selection.IsOk())
+        return;
+
+    wxPanel* debug_tool_panel = GUI::wxGetApp().mainframe->debug_panel();
+
+    wxString selected = "";
+    wxVariant val;
+    search_list_model->GetValue(val, selection, 0);
+    selected = val.GetString();
+    ((DebugToolDialog*)debug_tool_panel)->jump_to_printer(selected);
+    this->EndModal(wxID_CLOSE);
+}
+
+void DeviceSearchDialog::update_list()
+{
+    prevent_list_events = true;
+    search_list_model->Clear();
+
+    Slic3r::DeviceManager* dm = Slic3r::GUI::wxGetApp().getDeviceManager();
+
+    std::map<std::string ,MachineObject*> list = dm->get_all_machine_list();
+
+    std::map<std::string, MachineObject*>::iterator it;
+    
+    std::vector<wxString> found;
+
+    std::string search_line = into_u8(m_textCtrl_search_line->GetValue());
+
+    for (it = list.begin(); it != list.end(); it++) {
+        if (it->second) {
+            if (boost::contains(it->second->dev_ip, search_line)) {
+                wxString info = wxString::Format("%-16s(%s)[bind:%s]", it->second->dev_ip, it->second->dev_id, it->second->get_bind_str());
+                found.push_back(info);
+            }
+        }
+    }
+    search_list_model->update_info(found);
+
+    if (search_list_model->GetCount() > 0)
+        m_dataViewCtrl->Select(search_list_model->GetItem(0));
+
+    prevent_list_events = false;
+}
+
+
+
     wxDECLARE_EVENT(EVT_3MF_PROGRESS, wxCommandEvent);
     wxDECLARE_EVENT(EVT_WLAN_GCODE_PROGRESS, wxCommandEvent);
     wxDECLARE_EVENT(EVT_WLAN_3MF_PROGRESS, wxCommandEvent);
@@ -345,6 +506,10 @@ void GcodePrintJob::finalize() {
 
 void DebugToolDialog::init()
 {
+    m_search_img = create_scaled_bitmap("search", nullptr, 24);
+
+    m_bpButton_search->SetBitmap(m_search_img);
+
     cb_device_list->SetEditable(false);
     cb_device_list->Bind(wxEVT_COMBOBOX, &DebugToolDialog::on_select_device, this);
     btn_refresh_device_list->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
@@ -842,6 +1007,12 @@ void DebugToolDialog::init()
                 this->send_log_evt("Resume AMS...");
             }
         });
+    
+
+    m_bpButton_search->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+            search_dialog = new DeviceSearchDialog(this, wxID_ANY, "Search Printer");
+            search_dialog->Show();
+        });
 
 
     // Init custom_gcode
@@ -1058,17 +1229,18 @@ void DebugToolDialog::on_update_list(SimpleEvent& evt)
 
     std::vector<MachineObject*>::iterator iter;
     machine_list_items.clear();
-    wxArrayString new_items;
+
+    device_list_items.clear();
     for (iter = display_list.begin(); iter != display_list.end(); iter++) {
         wxString text = get_machine_display_item(*iter);
         if (!last_dev_id.empty() && (*iter)->dev_id.compare(last_dev_id) == 0) {
-            select = new_items.size();
+            select = device_list_items.size();
         }
         machine_list_items.push_back((*iter)->dev_id);
-        new_items.Add(text);
+        device_list_items.Add(text);
     }
 
-    cb_device_list->Set(new_items);
+    cb_device_list->Set(device_list_items);
     if (select >= 0) {
         cb_device_list->Select(select);
         last_device_selection = select;
@@ -1185,6 +1357,8 @@ void DebugToolDialog::on_print_end(wxCommandEvent& evt)
         std::time_t t = std::time(0);
         summary->duration = std::difftime(t, summary->time_start);
     }
+    if (obj->subtask_)
+        summary->subtask_id = obj->subtask_->task_id;
     
     PrintResultDialog dlg(summary);
     dlg.ShowModal();
@@ -1202,6 +1376,25 @@ void DebugToolDialog::get_version() {
     std::string json_str = oss.str();
     json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());
     this->publish_json(json_str);
+}
+
+void DebugToolDialog::jump_to_printer(wxString selected)
+{
+    if (selected.empty()) return;
+
+    bool found = false;
+    int selected_idx = 0;
+    for (int i = 0; i < device_list_items.size(); i++)
+    {
+        if (boost::starts_with(device_list_items[i], selected.substr(0, 20))) {
+            selected_idx = i;
+            found = true;
+            break;
+        }
+    }
+
+    if (found)
+        cb_device_list->Select(selected_idx);
 }
 
 std::string DebugToolDialog::switch_ams_gcode(std::string t)

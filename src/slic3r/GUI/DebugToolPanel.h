@@ -17,10 +17,11 @@
 #include <wx/settings.h>
 #include <wx/stattext.h>
 #include <wx/combobox.h>
-#include <wx/button.h>
+#include <wx/bmpbuttn.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>
 #include <wx/icon.h>
+#include <wx/button.h>
 #include <wx/sizer.h>
 #include <wx/textctrl.h>
 #include <wx/panel.h>
@@ -51,6 +52,7 @@ namespace Slic3r
 				wxRadioButton* radio_btn_lan;
 				wxStaticText* m_staticText_lan;
 				wxComboBox* cb_device_list;
+				wxBitmapButton* m_bpButton_search;
 				wxButton* btn_refresh_device_list;
 				wxButton* btn_connect;
 				wxButton* btn_disconnect;
@@ -120,6 +122,8 @@ namespace Slic3r
 				wxStaticText* m_staticText_mc_print_error_code;
 				wxStaticText* m_staticText_gcode_line_number;
 				wxStaticText* m_staticText_mc_print_line_number;
+				wxStaticText* m_staticText_subtask_id_title;
+				wxStaticText* m_staticText_subtask_id;
 				wxPanel* m_panel_settings;
 				wxButton* btn_set_hot_bed_temp;
 				wxTextCtrl* txt_set_hot_bed_temp;
@@ -209,6 +213,10 @@ namespace Slic3r
 				wxTextCtrl* txt_string_info;
 
 				std::shared_ptr<BBLStatusBar> m_status_bar;
+
+				// Virtual event handlers, override them in your derived class
+				virtual void on_device_search( wxCommandEvent& event ) { event.Skip(); }
+
 
 			public:
 

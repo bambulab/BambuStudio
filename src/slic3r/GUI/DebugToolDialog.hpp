@@ -20,6 +20,7 @@
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/PrintResultDialog.hpp"
 #include "slic3r/GUI/DebugToolPanel.h"
+#include "slic3r/GUI/Search.hpp"
 #include "Jobs/Job.hpp"
 
 class wxTimer;
@@ -66,6 +67,60 @@ public:
     void finalize() override;
 };
 
+class DeviceSearchListModel : public wxDataViewVirtualListModel
+{
+    std::vector<wxString>   m_values;
+
+public:
+    enum {
+        colDeviceInfo,
+        colMax
+    };
+    DeviceSearchListModel(wxWindow* parent);
+
+    void Clear();
+    void update_info(std::vector<wxString> list);
+
+    unsigned int GetColumnCount() const override { return colMax; }
+    wxString GetColumnType(unsigned int col) const override;
+    void GetValueByRow(wxVariant& variant, unsigned int row, unsigned int col) const override;
+    bool GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr& attr) const override { return true; }
+    bool SetValueByRow(const wxVariant& variant, unsigned int row, unsigned int col) override { return false; }
+
+
+};
+
+
+class DeviceSearchDialog : public wxDialog
+{
+private:
+    wxString default_string;
+protected:
+	wxTextCtrl* m_textCtrl_search_line;
+	wxDataViewCtrl* m_dataViewCtrl;
+
+    DeviceSearchListModel*    search_list_model   { nullptr };
+
+    bool     prevent_list_events {false};
+
+	// Virtual event handlers, override them in your derived class
+    void OnInputText(wxCommandEvent& event);
+    void OnActivate(wxDataViewEvent& event);
+    void OnSelect(wxDataViewEvent& event);
+    void update_list();
+    void ProcessSelection(wxDataViewItem selection);
+
+
+public:
+
+	DeviceSearchDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 538,351 ), long style = wxDEFAULT_DIALOG_STYLE );
+
+	~DeviceSearchDialog();
+
+};
+
+
+
 
 
         class DebugToolDialog : public DebugToolPanel
@@ -98,6 +153,9 @@ public:
             void on_log_info(wxCommandEvent& evt);
             void get_version();
 
+            wxArrayString device_list_items;
+            void jump_to_printer(wxString selected);
+
         private:
 
             enum UPGRADE_MODULE { MODULE_RK = 0, MODULE_MC = 1, MODULE_TH = 2, MODULE_AMS = 3, MODULE_OTA = 4, MODULE_MAX };
@@ -114,7 +172,8 @@ public:
             int last_device_selection;
             int last_wlan_device_selection;
 
-
+            wxBitmap        m_search_img;
+            DeviceSearchDialog* search_dialog;
             wxFileDialog*   selectGcodeDialog;
             wxFileDialog*   select3mfDialog;
             bool            gcode_uploading;

@@ -83,12 +83,6 @@ PrintResultDialog::PrintResultDialog(PrintSummary* s)
 
 	user_info_sizer->Add(-1, 10);
 
-	//m_btn_open_link->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-	//		/* submit summary to cloud */
-	//		wxString url = wxString("https://wenjuan.feishu.cn/m?t=sTOWz7rzrwvi-edku");
-	//		wxLaunchDefaultBrowser(url);
-	//	});
-
 	m_btn_submit->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
 			this->submit();
 		});
@@ -186,13 +180,13 @@ void PrintResultDialog::submit()
 			[this](int result, std::string info) {
 				if (result == 0) {
 					wxQueueEvent(this, new SimpleEvent(EVT_CLOSE_DIALOG));
-					wxString url = wxString("https://wenjuan.feishu.cn/m?t=sTOWz7rzrwvi-edku");
-					wxLaunchDefaultBrowser(url);
+					wxString report_url = wxString::Format("https://autotest.bambu-lab.com/testReports/add?taskId=%s", summary->subtask_id);
+					wxLaunchDefaultBrowser(report_url);
 				}
 				else {
 					wxMessageBox(info);
-					wxString url = wxString("https://wenjuan.feishu.cn/m?t=sTOWz7rzrwvi-edku");
-					wxLaunchDefaultBrowser(url);
+					wxString report_url = wxString::Format("https://autotest.bambu-lab.com/testReports/add?taskId=%s", summary->subtask_id);
+					wxLaunchDefaultBrowser(report_url);
 				}
 			});
 	}
