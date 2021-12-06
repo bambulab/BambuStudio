@@ -1068,9 +1068,9 @@ void GUI_App::init_http_extra_header()
 #if defined(__WINDOWS__)
     extra_headers.insert(std::make_pair("X-BBL-OS-Type", "windows"));
 #elif defined(__APPLE__)
-    extra_headers.insert(std::make_pair("X-BBL-OS-Type", "windows"));
+    extra_headers.insert(std::make_pair("X-BBL-OS-Type", "macos"));
 #elif defined(__LINUX__)
-    extra_headers.insert(std::make_pair("X-BBL-OS-Type", "windows"));
+    extra_headers.insert(std::make_pair("X-BBL-OS-Type", "linux"));
 #endif
     int major = 0, minor = 0, micro = 0;
     wxGetOsVersion(&major, &minor, &micro);

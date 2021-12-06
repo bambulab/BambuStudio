@@ -832,15 +832,15 @@ namespace Slic3r {
 
     void AccountManager::check_new_version()
     {
-        std::string platform = "WINDOWS";
+        std::string platform = "windows";
 #ifdef __WINDOWS__
-        platform = "WINDOWS";
+        platform = "windows";
 #endif
 #ifdef __APPLE__
-        platform = "MAC";
+        platform = "macos";
 #endif
 #ifdef __LINUX__
-        platform = "LINUX";
+        platform = "linux";
 #endif
         std::string query_params = (boost::format("?name=BBLS&&version=%1%&&platform=%2%&&guide_version=%3%")
             % VersionInfo::convert_full_version(SLIC3R_RC_VERSION)
