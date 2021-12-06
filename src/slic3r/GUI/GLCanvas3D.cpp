@@ -7088,6 +7088,7 @@ void GLCanvas3D::_render_paint_toolbar() const
     imgui.end();
 }
 
+//BBS
 void GLCanvas3D::_render_explosion_control() const
 {
     if (m_canvas_type != ECanvasType::CanvasAssembleView) {
@@ -7107,6 +7108,14 @@ void GLCanvas3D::_render_explosion_control() const
     imgui->slider_float(_L("Ratio"), &GLVolume::explosion_ratio, 1.0, 3.0, "%5.2f");
 
     imgui->end();
+
+    //BBS check ratio changed
+    if (m_explosion_ratio != GLVolume::explosion_ratio) {
+        for (GLVolume* volume : m_volumes.volumes) {
+            volume->set_bounding_boxes_as_dirty();
+        }
+    }
+    m_explosion_ratio = GLVolume::explosion_ratio;
 }
 void GLCanvas3D::_render_assemble_info() const
 {

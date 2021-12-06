@@ -547,6 +547,8 @@ private:
     //BBS:add plate related logic
     mutable std::vector<int> m_hover_volume_idxs;
     std::vector<int> m_hover_plate_idxs;
+    //BBS if explosion_ratio is changed, need to update volume bounding box
+    mutable float m_explosion_ratio;
 
     // Following variable is obsolete and it should be safe to remove it.
     // I just don't want to do it now before a release (Lukas Matena 24.3.2019)
