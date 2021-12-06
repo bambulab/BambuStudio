@@ -87,12 +87,6 @@ void PartPlate::init()
 
 	m_print_index = -1;
 	m_print = nullptr;
-
-	boost::filesystem::path temp_path(wxStandardPaths::Get().GetTempDir().utf8_str().data());
-	temp_path /= (boost::format(".%1%.%2%.gcode") % get_current_pid() % GLOBAL_PLATE_INDEX).str() ;
-	m_tmp_gcode_path = temp_path.string();
-
-	GLOBAL_PLATE_INDEX++;
 }
 
 bool PartPlate::valid_instance(int obj_id, int instance_id)
@@ -1142,7 +1136,20 @@ void PartPlate::update_slice_context(BackgroundSlicingProcess & process)
 	return;
 }
 
-//load gcode from file
+// BBS: delay calc gcode path in backup dir
+std::string PartPlate::get_tmp_gcode_path()
+{
+    if (m_tmp_gcode_path.empty()) {
+        boost::filesystem::path temp_path(m_model->get_backup_path());
+        temp_path /= (boost::format(".%1%.%2%.gcode") % get_current_pid() %
+                      GLOBAL_PLATE_INDEX++)
+                         .str();
+        m_tmp_gcode_path = temp_path.string();
+    }
+    return m_tmp_gcode_path;
+}
+
+// load gcode from file
 int PartPlate::load_gcode_from_file(const std::string& filename)
 {
 	int ret = 0;

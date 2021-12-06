@@ -521,6 +521,7 @@ namespace Slic3r {
         IdToSlaSupportPointsMap m_sla_support_points;
         IdToSlaDrainHolesMap    m_sla_drain_holes;
         std::map<unsigned int, size_t> m_object_id_map; // backup & restore
+        std::map<unsigned int, std::string> m_plate_id_map; // backup & restore
         std::string m_curr_metadata_name;
         std::string m_curr_characters;
         std::string m_name;
@@ -763,14 +764,24 @@ namespace Slic3r {
     {
         // prepare restore
         if (m_load_restore) {
-            std::string idmapfile = model.get_backup_path() + "/idmap.txt";
+            std::string objectmapfile = model.get_backup_path() + "/object_map.txt";
             {
-                std::ifstream ifs(idmapfile);
+                std::ifstream ifs(objectmapfile);
                 unsigned int id1;
                 size_t id2;
                 while (ifs) {
                     ifs >> id1 >> id2;
                     m_object_id_map.insert(std::make_pair(id1, id2));
+                }
+            }
+            std::string platemapfile = model.get_backup_path() + "/plate_map.txt";
+            {
+                std::ifstream ifs(platemapfile);
+                unsigned int id1;
+                std::string id2;
+                while (ifs) {
+                    ifs >> id1 >> id2;
+                    m_plate_id_map.insert(std::make_pair(id1, id2));
                 }
             }
             std::string originfile;
@@ -1042,7 +1053,7 @@ namespace Slic3r {
                 for (int index = 0; index < m_gcode_files.size(); index ++)
                 {
                     std::string &file_name = m_gcode_files[index];
-                    std::string sub_name = std::to_string(plate_index)+".gcode";
+                    std::string sub_name  = "plate_" + std::to_string(plate_index) + ".gcode";
                     if (file_name.find(sub_name) != std::string::npos) {
                         return index;
                     }
@@ -1065,6 +1076,11 @@ namespace Slic3r {
             if (gcode_index != -1) {
                 plate_data_list[it->first-1]->gcode_file = m_gcode_files[gcode_index];
             }
+            else if (m_plate_id_map.find(it->first) != m_plate_id_map.end()) {
+                std::string gcode_file = model.get_backup_path() + "/" + m_plate_id_map[it->first] + ".gcode";
+                if (boost::filesystem::exists(gcode_file))
+                    plate_data_list[it->first - 1]->gcode_file = gcode_file;
+            }
             it++;
         }
 
@@ -1086,7 +1102,6 @@ namespace Slic3r {
             std::string path2 = m_model->get_backup_path() + "/mesh2_" + boost::lexical_cast<std::string>(id) + ".xml";
             if (boost::filesystem::exists(path2) && !boost::filesystem::exists(path)) {
                 boost::filesystem::rename(path2, path);
-                break;
             }
         }
 
@@ -1262,13 +1277,10 @@ namespace Slic3r {
         if (stat.m_uncomp_size > 0) {
             std::string dest_file;
             std::string src_file = decode_path(stat.m_filename);
-            const std::string& temp_path = temporary_dir();
+            // BBS: use backup path
+            const std::string &temp_path = model.get_backup_path();
             //aux directory from model
             boost::filesystem::path dir = boost::filesystem::path(temp_path);
-            if (!boost::filesystem::exists(dir))
-            {
-                boost::filesystem::create_directory(dir);
-            }
             std::size_t found = src_file.find(METADATA_DIR);
             if (found != std::string::npos)
                 src_file = src_file.substr(found + METADATA_STR_LEN);
@@ -3091,6 +3103,18 @@ namespace Slic3r {
             return false;
         }
 
+        // save plate_id_map
+       if (m_skip_static) {
+            std::ofstream ofs(const_cast<Model &>(model).get_backup_path() + "/plate_map.txt");
+            int l = model.get_backup_path().length() + 1;
+            for (auto i : plate_data_list) {
+                if (!i->gcode_file.empty()) {
+                    ofs << (i->plate_index + 1) << " " << i->gcode_file.substr(l, i->gcode_file.length() - l - 6) << std::endl;
+                }
+            }
+            ofs.flush();
+        }
+
         if (!mz_zip_writer_finalize_archive(&archive)) {
             close_zip_writer(&archive);
             boost::filesystem::remove(filename);
@@ -3277,8 +3301,8 @@ namespace Slic3r {
         }
 
         // save object_id_map
-        {
-            std::ofstream ofs(const_cast<Model &>(model).get_backup_path() + "/idmap.txt");
+        if (m_skip_static) {
+            std::ofstream ofs(const_cast<Model &>(model).get_backup_path() + "/object_map.txt");
             for (auto i : object_id_map) {
                 ofs << i.first << " " << i.second << std::endl;
             }
@@ -4585,7 +4609,7 @@ bool has_restore_data(std::string & path, std::string& origin)
     std::string file3mf = path + "/.3mf";
     if (!boost::filesystem::exists(file3mf))
         return false;
-    if (!boost::filesystem::exists(path + "/idmap.txt"))
+    if (!boost::filesystem::exists(path + "/object_map.txt"))
         return false;
     try {
         if (boost::filesystem::exists(path + "/origin.txt"))

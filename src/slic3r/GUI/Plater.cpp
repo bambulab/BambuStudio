@@ -2327,20 +2327,25 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     model.set_need_backup();
 
     auto last_backup = wxGetApp().app_config->get_last_backup_dir();
-    this->q->Bind(EVT_RESTORE_PROJECT, [this, last = last_backup](wxCommandEvent& e) {
-        std::string last_backup = last;
-        std::string originfile;
-        if (!last_backup.empty() && Slic3r::has_restore_data(last_backup, originfile)) {
-            auto result = wxMessageDialog(this->q, _L("Previous unsaved project detected, do you wan't to restore it?"), wxString(SLIC3R_APP_NAME) + " - " + _L("Restore"), wxYES_NO | wxYES_DEFAULT | wxCENTRE).ShowModal();
-            if (result == wxID_YES) {
-                this->q->load_project(last_backup, originfile);
-                Slic3r::backup_soon();
-                return;
+    if (!last_backup.empty()) {
+        this->q->Bind(EVT_RESTORE_PROJECT, [this, last = last_backup](wxCommandEvent& e) {
+            std::string last_backup = last;
+            std::string originfile;
+            if (Slic3r::has_restore_data(last_backup, originfile)) {
+                auto result = wxMessageDialog(this->q, _L("Previous unsaved project detected, do you wan't to restore it?"), wxString(SLIC3R_APP_NAME) + " - " + _L("Restore"), wxYES_NO | wxYES_DEFAULT | wxCENTRE).ShowModal();
+                if (result == wxID_YES) {
+                    this->q->load_project(last_backup, originfile);
+                    Slic3r::backup_soon();
+                    return;
+                }
             }
-        }
-        this->q->new_project();
-    });
-    wxPostEvent(this->q, wxCommandEvent{EVT_RESTORE_PROJECT});
+            try {
+                boost::filesystem::remove_all(last);
+            } catch (...) {}
+            this->q->new_project();
+        });
+        wxPostEvent(this->q, wxCommandEvent{EVT_RESTORE_PROJECT});
+    }
 
     this->q->Bind(EVT_LOAD_MODEL_OTHER_INSTANCE, [this](LoadFromOtherInstanceEvent& evt) {
         BOOST_LOG_TRIVIAL(trace) << "Received load from other instance event.";
@@ -5787,6 +5792,8 @@ void Plater::load_project()
     // BBS: save confirm
     if (!close_with_confirm())
         return;
+    get_partplate_list().reinit();
+    get_partplate_list().update_slice_context_to_current_plate(p->background_process);
     p->reset();
 
     Plater::TakeSnapshot snapshot(this, _L("New Project"));
