@@ -801,7 +801,7 @@ wxDataViewItem ObjectDataViewModel::Delete(const wxDataViewItem &item)
         }
 
         // FIX: should remove from children collection soon, or will conflict GetChildren
-        m_plates.erase(std::find(m_plates.begin(), m_plates.end(), node), m_plates.end());
+        m_plates.erase(std::remove(m_plates.begin(), m_plates.end(), node), m_plates.end());
         ItemDeleted(parent, wxDataViewItem(node));
         delete node;
         return parent;
