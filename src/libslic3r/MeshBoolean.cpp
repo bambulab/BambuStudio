@@ -434,7 +434,6 @@ TriangleMesh clip(const TriangleMesh& mesh, const std::array<Vec3d, 4> plane_poi
     plane_params(3) = -(plane_params(0) * p1(0) + plane_params(1) * p1(1) + plane_params(2) * p1(2));
 
     EpicKernel::Plane_3 cut_plane(plane_params(0), plane_params(1), plane_params(2), plane_params(3));
-    //EpicKernel::Plane_3 cut_plane(0., 0., 1., 0.);
 
     MeshBoolean::cgal::triangle_mesh_to_cgal(mesh, in_cgal_mesh.m);
     bool success = CGALProc::clip(in_cgal_mesh.m, cut_plane, cgal_params.clip_volume(true));

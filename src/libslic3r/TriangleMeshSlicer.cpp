@@ -2113,13 +2113,13 @@ void cut_mesh(const indexed_triangle_set &mesh, std::array<Vec3d, 4> plane_point
     BOOST_LOG_TRIVIAL(trace) << "cut_mesh - slicing object";
 
     if (upper) {
-        *upper = MeshBoolean::cgal::clip(mesh, plane_points);
+        std::array<Vec3d, 4> plane_points_reverse = plane_points;
+        std::reverse(plane_points_reverse.begin(), plane_points_reverse.end());
+        *lower = MeshBoolean::cgal::clip(*tmesh, plane_points_reverse);
     }
 
     if (lower) {
-        std::array<Vec3d, 4> plane_points_reverse = plane_points;
-        std::reverse(plane_points_reverse.begin(), plane_points_reverse.end());
-        *lower = MeshBoolean::cgal::clip(*mesh, plane_points_reverse);
+        *upper = MeshBoolean::cgal::clip(mesh, plane_points);
     }
 
 #if 0

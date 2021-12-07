@@ -127,6 +127,23 @@ std::array<Vec3d, 4> GLGizmoAdvancedCut::get_plane_points_world_coord() const
     return plane_world_coord;
 }
 
+void GLGizmoAdvancedCut::reset_plane()
+{
+    const Selection& selection = m_parent.get_selection();
+    const BoundingBoxf3& box = selection.get_bounding_box();
+    const float max_x = box.size()(0) / 2.0 + Margin;
+    const float min_x = -max_x;
+    const float max_y = box.size()(1) / 2.0 + Margin;
+    const float min_y = -max_y;
+
+    m_cut_plane_points[0] = { min_x, min_y, 0 };
+    m_cut_plane_points[1] = { max_x, min_y, 0 };
+    m_cut_plane_points[2] = { max_x, max_y, 0 };
+    m_cut_plane_points[3] = { min_x, max_y, 0 };
+    m_movement = 0.0;
+    m_rotation.setZero();
+}
+
 bool GLGizmoAdvancedCut::on_init()
 {
     if (!GLGizmoRotate3D::on_init())
@@ -147,19 +164,7 @@ void GLGizmoAdvancedCut::on_set_state()
 
     // Reset m_cut_z on gizmo activation
     if (get_state() == On) {
-        const Selection& selection = m_parent.get_selection();
-        const BoundingBoxf3& box = selection.get_bounding_box();
-        const float max_x = box.size()(0) / 2.0 + Margin;
-        const float min_x = -max_x;
-        const float max_y = box.size()(1) / 2.0 + Margin;
-        const float min_y = -max_y;
-
-        m_cut_plane_points[0] = { min_x, min_y, 0 };
-        m_cut_plane_points[1] = { max_x, min_y, 0 };
-        m_cut_plane_points[2] = { max_x, max_y, 0 };
-        m_cut_plane_points[3] = { min_x, max_y, 0 };
-        m_movement = 0.0;
-        m_rotation.setZero();
+        reset_plane();
     }
 }
 
@@ -317,6 +322,7 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
             m_movement = m_buffered_movement;
             m_buffered_movement = 0.0;
             update_plane_points();
+            m_parent.post_event(SimpleEvent(wxEVT_PAINT));
         }
     }
     else {
@@ -335,7 +341,6 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
     ImGui::SameLine(caption_size + 2 * unit_size + 3 * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::InputDouble("##cut_rotation_z", &rotation[2], 0.0f, 0.0f, "%.2f");
-    ImGui::SameLine(caption_size + 3 * unit_size + 4 * space_size);
     if (current_active_id != m_last_active_id) {
         if (std::abs(Geometry::rad2deg(m_rotation(0)) - m_buffered_rotation(0)) > EPSILON ||
             std::abs(Geometry::rad2deg(m_rotation(1)) - m_buffered_rotation(1)) > EPSILON ||
@@ -344,6 +349,7 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
             m_rotation = m_buffered_rotation;
             m_buffered_rotation.setZero();
             update_plane_points();
+            m_parent.post_event(SimpleEvent(wxEVT_PAINT));
         }
     }
     else {
@@ -352,7 +358,15 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
         m_buffered_rotation(2) = Geometry::deg2rad(rotation(2));
     }
 
+    const bool reset_clicked = m_imgui->button(_L("Reset"));
+    if (reset_clicked) {
+        reset_plane();
+    }
     ImGui::Separator();
+
+    // Part selection
+    m_imgui->checkbox(_L("Keep upper part"), m_keep_upper);
+    m_imgui->checkbox(_L("Keep lower part"), m_keep_lower);
 
     // Cut option checkbox
     m_imgui->checkbox(_L("Cut to parts instead of objects"), m_cut_to_parts);
@@ -406,8 +420,14 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
         wxGetApp().plater()->segment(object_idx, instance_idx, m_segment_smoothing_alpha, m_segment_number);
     }
     else {
-        wxGetApp().plater()->cut(object_idx, instance_idx, get_plane_points_world_coord(), m_keep_upper,
-            m_keep_lower, m_rotate_lower, m_cut_to_parts);
+        if (get_plane_normal()(2) >= 0.0) {
+            wxGetApp().plater()->cut(object_idx, instance_idx, get_plane_points_world_coord(), m_keep_upper,
+                m_keep_lower, m_rotate_lower, m_cut_to_parts);
+        }
+        else {
+            wxGetApp().plater()->cut(object_idx, instance_idx, get_plane_points_world_coord(), m_keep_lower,
+                m_keep_upper, m_rotate_lower, m_cut_to_parts);
+        }
     }
 }
 
