@@ -1393,8 +1393,12 @@ void DebugToolDialog::jump_to_printer(wxString selected)
         }
     }
 
-    if (found)
+    if (found) {
         cb_device_list->Select(selected_idx);
+        wxCommandEvent* event = new wxCommandEvent(wxEVT_COMBOBOX, cb_device_list->GetId());
+        event->SetInt(selected_idx);
+        wxQueueEvent(cb_device_list, event);
+    }
 }
 
 std::string DebugToolDialog::switch_ams_gcode(std::string t)
@@ -1553,6 +1557,12 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
 
     wxString chamber_text = wxString::Format("%fC", obj->chamber_temp);
     m_staticText_volume_temp_val->SetLabelText(chamber_text);
+
+    wxString subtask_id = "N/A";
+    if (obj->subtask_) {
+        subtask_id = wxString::Format("%s", obj->subtask_->task_id);
+    }
+    m_staticText_subtask_id->SetLabelText(subtask_id);
 
 
     /* upgrade */
@@ -2032,6 +2042,8 @@ int DebugToolDialog::publishGcode(std::string gcode)
 #ifdef __CHECK_BIND_USER__
         /* compare with bind user */
         MachineObject* obj = dev_manager_.get_default();
+        if (!obj) return -1;
+        if (obj->bind_user_id.empty()) return -1;
         if (obj->bind_user_id.compare(account_manager->get_curr_user()->get_user_id()) != 0) {
             std::string log = "Please Bind dev=" + obj->dev_id + " first!";
             this->send_log_evt(log);
