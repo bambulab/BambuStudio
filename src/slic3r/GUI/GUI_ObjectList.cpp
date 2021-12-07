@@ -342,7 +342,7 @@ void ObjectList::create_objects_ctrl()
     bmp_choice_renderer->set_default_extruder_idx([this]() {
         return m_objects_model->GetDefaultExtruderIdx(GetSelection());
     });
-    AppendColumn(new wxDataViewColumn(_L("AMS"), bmp_choice_renderer,
+    AppendColumn(new wxDataViewColumn(_L("Filament"), bmp_choice_renderer,
         colExtruder, 8 * em, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE));
 
     // column ItemEditing of the view control:

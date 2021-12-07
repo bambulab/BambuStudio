@@ -33,21 +33,21 @@ AuxiliaryList::AuxiliaryList(wxWindow* parent)
 	wxBitmap nf_bitmap = create_scaled_bitmap("new_folder.png", nullptr, FromDIP(21));
 	wxBitmap del_bitmap = create_scaled_bitmap("delete.png", nullptr, FromDIP(21));
 
-	wxBitmapButton* if_btn = new wxBitmapButton(panel, wxID_OPEN, if_bitmap);
-	wxBitmapButton* nf_btn = new wxBitmapButton(panel, wxID_NEW, nf_bitmap);
-	wxBitmapButton* del_btn = new wxBitmapButton(panel, wxID_DELETE, del_bitmap);
+	wxBitmapButton* m_if_btn = new wxBitmapButton(panel, wxID_OPEN, if_bitmap);
+	wxBitmapButton* m_nf_btn = new wxBitmapButton(panel, wxID_NEW, nf_bitmap);
+	wxBitmapButton* m_del_btn = new wxBitmapButton(panel, wxID_DELETE, del_bitmap);
 #endif
 
-	wxButton* nf_btn = new wxButton(panel, wxID_NEW, _L("New Folder"));
-	wxButton* if_btn = new wxButton(panel, wxID_ADD, _L("Import File"));
-	wxButton* of_btn = new wxButton(panel, wxID_OPEN, _("Open File"));
-	wxButton* del_btn = new wxButton(panel, wxID_DELETE, _L("Delete"));
+	//m_nf_btn = new wxButton(panel, wxID_NEW, _L("New Folder"));
+	m_if_btn = new wxButton(panel, wxID_ADD, _L("Import File"));
+	m_of_btn = new wxButton(panel, wxID_OPEN, _("Open File"));
+	m_del_btn = new wxButton(panel, wxID_DELETE, _L("Delete"));
 
 	wxBoxSizer* hsizer = new wxBoxSizer(wxHORIZONTAL);
-	hsizer->Add(nf_btn, 0, wxRIGHT, 5);
-	hsizer->Add(if_btn, 0, wxLEFT | wxRIGHT, 5);
-	hsizer->Add(of_btn, 0, wxLEFT | wxRIGHT, 5);
-	hsizer->Add(del_btn, 0, wxLEFT | wxRIGHT, 5);
+	//hsizer->Add(m_nf_btn, 0, wxRIGHT, 5);
+	hsizer->Add(m_if_btn, 0, wxLEFT | wxRIGHT, 5);
+	hsizer->Add(m_of_btn, 0, wxLEFT | wxRIGHT, 5);
+	hsizer->Add(m_del_btn, 0, wxLEFT | wxRIGHT, 5);
 	panel->SetSizer(hsizer);
 
 	m_sizer->Add(panel, 0, wxEXPAND | wxALL, 5);
@@ -59,10 +59,10 @@ AuxiliaryList::AuxiliaryList(wxWindow* parent)
 	Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { this->handle_key_event(event); });
 
 	// Button events
-	nf_btn->Bind(wxEVT_BUTTON, &AuxiliaryList::on_create_folder, this, wxID_NEW);
-	if_btn->Bind(wxEVT_BUTTON, &AuxiliaryList::on_import_file, this, wxID_ADD);
-	del_btn->Bind(wxEVT_BUTTON, &AuxiliaryList::on_delete, this, wxID_DELETE);
-	of_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+	//m_nf_btn->Bind(wxEVT_BUTTON, &AuxiliaryList::on_create_folder, this, wxID_NEW);
+	m_if_btn->Bind(wxEVT_BUTTON, &AuxiliaryList::on_import_file, this, wxID_ADD);
+	m_del_btn->Bind(wxEVT_BUTTON, &AuxiliaryList::on_delete, this, wxID_DELETE);
+	m_of_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
 		wxDataViewItem sel_item = this->GetSelection();
 		AuxiliaryModelNode* sel = (AuxiliaryModelNode*)sel_item.GetID();
 		if (sel != nullptr && !sel->IsContainer()) {
@@ -84,6 +84,15 @@ AuxiliaryList::AuxiliaryList(wxWindow* parent)
 	// Mouse events
 	wxWindow* win = this->GetMainWindow();
 	win->Bind(wxEVT_LEFT_DCLICK, &AuxiliaryList::on_left_dclick, this);
+
+	Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxDataViewEvent& event) {
+		wxDataViewItem sel_item = event.GetItem();
+		AuxiliaryModelNode* sel_node = (AuxiliaryModelNode*)sel_item.GetID();
+		if (sel_node == nullptr)
+			return;
+
+		m_del_btn->Enable(!sel_node->IsContainer());
+	});
 }
 
 AuxiliaryList::~AuxiliaryList()
@@ -132,6 +141,7 @@ void AuxiliaryList::do_import_file(AuxiliaryModelNode* folder)
 				Expand(wxDataViewItem(file_node->GetParent()));
 			}
 			Select(file_item);
+			m_del_btn->Enable(true);
 		}
 	}
 }

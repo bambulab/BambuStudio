@@ -40,6 +40,11 @@ private:
 	wxDataViewItem m_dragged_item;
 	AuxiliaryModel* m_auxiliary_model;
 	wxSizer* m_sizer;
+
+	//wxButton* m_nf_btn;
+	wxButton* m_if_btn;
+	wxButton* m_of_btn;
+	wxButton* m_del_btn;
 };
 
 #endif //slic3r_GUI_AuxiliaryList_hpp_

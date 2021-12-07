@@ -1,5 +1,12 @@
 #include "AuxiliaryDataViewModel.hpp"
 
+const static std::array<wxString, 4> s_default_folders = {
+    _L("Model Pictures"),
+    _L("Bill of Materials"),
+    _L("Assembly Guide"),
+    _L("Others")
+};
+
 AuxiliaryModel::AuxiliaryModel()
 {
     m_root = nullptr;
@@ -18,10 +25,8 @@ void AuxiliaryModel::Init(wxString aux_path)
     fs::path top_dir_path(m_root_dir.ToStdWstring());
     fs::create_directory(top_dir_path);
 
-    CreateFolder(_L("Model Pictures"));
-    CreateFolder(_L("Bill of Materials"));
-    CreateFolder(_L("Assembly Guide"));
-    CreateFolder(_L("Others"));
+    for (auto folder : s_default_folders)
+        CreateFolder(folder);
 }
 
 AuxiliaryModel::~AuxiliaryModel()
@@ -84,6 +89,19 @@ void AuxiliaryModel::Reload(wxString aux_path)
         }
         ItemsAdded(wxDataViewItem(dir.second), items);
     }
+
+    // Create default folders if they are not loaded
+    wxDataViewItemArray default_items;
+    for (auto folder : s_default_folders) {
+        wxString folder_path = aux_path + "\\" + folder;
+        if (fs::exists(folder_path.ToStdWstring()))
+            continue;
+
+        fs::create_directory(folder_path.ToStdWstring());
+        AuxiliaryModelNode* node = new AuxiliaryModelNode(m_root, folder_path, true);
+        default_items.Add(wxDataViewItem(node));
+    }
+    ItemsAdded(wxDataViewItem(nullptr), default_items);
 }
 
 int AuxiliaryModel::Compare(const wxDataViewItem& item1, const wxDataViewItem& item2,
@@ -295,6 +313,7 @@ void AuxiliaryModel::Delete(const wxDataViewItem& item)
     if (node->IsContainer()) {
         fs::path bfs_path((m_root_dir + "\\" + node->name).ToStdWstring());
         is_done = fs::remove_all(bfs_path);
+        return;
     }
     else {
         fs::path bfs_path(node->path.ToStdWstring());
