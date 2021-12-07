@@ -24,11 +24,11 @@ namespace Slic3r {
 namespace GUI {
 
 
-static const char* URL_CHANGELOG = "https://files.prusa3d.com/?latest=slicer-stable&lng=%1%";
-static const char* URL_DOWNLOAD = "https://www.prusa3d.com/slicerweb&lng=%1%";
-static const char* URL_DEV = "https://github.com/prusa3d/PrusaSlicer/releases/tag/version_%1%";
+static const char* URL_CHANGELOG = "%1%";
+static const char* URL_DOWNLOAD = "%1%";
+static const char* URL_DEV = "%1%";
 
-static const std::string CONFIG_UPDATE_WIKI_URL("https://github.com/prusa3d/PrusaSlicer/wiki/Slic3r-PE-1.40-configuration-update");
+static const std::string CONFIG_UPDATE_WIKI_URL("");
 
 
 // MsgUpdateSlic3r
@@ -278,7 +278,7 @@ MsgDataLegacy::MsgDataLegacy() :
 	content_sizer->AddSpacer(VERT_SPACING);
 
 	auto *text2 = new wxStaticText(this, wxID_ANY, _(L("For more information please visit our wiki page:")));
-	static const wxString url("https://github.com/prusa3d/PrusaSlicer/wiki/Slic3r-PE-1.40-configuration-update");
+	static const wxString url("");
 	// The wiki page name is intentionally not localized:
 	auto *link = new wxHyperlinkCtrl(this, wxID_ANY, wxString::Format("%s 1.40 configuration update", SLIC3R_APP_NAME), CONFIG_UPDATE_WIKI_URL);
 	content_sizer->Add(text2);
