@@ -3500,32 +3500,31 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // if dragging over blank area with left button, rotate
             if ((any_gizmo_active || m_hover_volume_idxs.empty()) && m_mouse.is_start_position_3D_defined()) {
                 const Vec3d rot = (Vec3d(pos.x(), pos.y(), 0.) - m_mouse.drag.start_position_3D) * (PI * TRACKBALLSIZE / 180.);
-                if (wxGetApp().app_config->get("use_free_camera") == "1")
-                    // Virtual track ball (similar to the 3DConnexion mouse).
-                    wxGetApp().plater()->get_camera().rotate_local_around_target(Vec3d(rot.y(), rot.x(), 0.));
-                else {
-                    // Forces camera right vector to be parallel to XY plane in case it has been misaligned using the 3D mouse free rotation.
-                    // It is cheaper to call this function right away instead of testing wxGetApp().plater()->get_mouse3d_controller().connected(),
-                    // which checks an atomics (flushes CPU caches).
-                    // See GH issue #3816.
+                if (this->m_canvas_type == ECanvasType::CanvasAssembleView) {
+                    //BBS rotate around target
                     Camera& camera = wxGetApp().plater()->get_camera();
-                    camera.recover_from_free_camera();
-                    bool rotate_limit = current_printer_technology() != ptSLA;
-                    //BBS do not limit rotate in assemble view
-                    if (this->m_canvas_type == ECanvasType::CanvasAssembleView)
-                        rotate_limit = false;
-
-                    //BBS rotate on target in assemble view
-                    if (this->m_canvas_type == ECanvasType::CanvasAssembleView) {
-                        Vec3d rotate_target = Vec3d::Zero();
-                        if (!m_selection.is_empty())
-                            rotate_target = m_selection.get_bounding_box().center();
-                        else
-                            rotate_target = scene_bounding_box().center();
-                        camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, rotate_target);
-                    }
+                    Vec3d rotate_target = Vec3d::Zero();
+                    if (!m_selection.is_empty())
+                        rotate_target = m_selection.get_bounding_box().center();
                     else
+                        rotate_target = scene_bounding_box().center();
+                    //BBS do not limit rotate in assemble view
+                    camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
+                }
+                else {
+                    if (wxGetApp().app_config->get("use_free_camera") == "1")
+                        // Virtual track ball (similar to the 3DConnexion mouse).
+                        wxGetApp().plater()->get_camera().rotate_local_around_target(Vec3d(rot.y(), rot.x(), 0.));
+                    else {
+                        // Forces camera right vector to be parallel to XY plane in case it has been misaligned using the 3D mouse free rotation.
+                        // It is cheaper to call this function right away instead of testing wxGetApp().plater()->get_mouse3d_controller().connected(),
+                        // which checks an atomics (flushes CPU caches).
+                        // See GH issue #3816.
+                        Camera& camera = wxGetApp().plater()->get_camera();
+                        camera.recover_from_free_camera();
+                        bool rotate_limit = current_printer_technology() != ptSLA;
                         camera.rotate_on_sphere(rot.x(), rot.y(), rotate_limit);
+                    }
                 }
 
                 m_dirty = true;
