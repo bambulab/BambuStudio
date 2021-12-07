@@ -368,12 +368,6 @@ int MachineObject::connect()
             mqtt_cb->add_topics(report_topic);
             mqtt_cli->set_callback(*mqtt_cb);
             mqtt_cli->connect(mqtt_opt, this, *mqtt_cb);
-
-            /* wan mqtt connenction */
-            /* TODO
-            sub_action_listener* sub_listener = new sub_action_listener("WanSubscriber_" + report_topic);
-            mqtt_cloud.subscribe(report_topic, 0, this, *sub_listener);
-            */
             return 0;
         }
     }

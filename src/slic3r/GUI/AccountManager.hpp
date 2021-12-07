@@ -172,8 +172,6 @@ public:
 
     /* user project */
     std::vector<BBLProject*> project_list;
-    /* send a project task to machine */
-    //int send_print_task(MachineObject* obj, int project_id, int plate_idx = 0);
 
     std::string m_account;
     std::string m_name;

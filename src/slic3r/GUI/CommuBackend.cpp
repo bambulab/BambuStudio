@@ -43,8 +43,6 @@ namespace Slic3r {
 
     void SsdpDiscovery::on_sdp_alive(std::string dev_id, std::string dev_ip)
     {
-        BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery::on_sdp_alive, dev_id=" << dev_id << ", dev_ip=" << dev_ip;
-
         if (dev_ip.empty()) return;
 
         try {
@@ -96,9 +94,6 @@ namespace Slic3r {
                     }
                 }
             }
-            else {
-                BOOST_LOG_TRIVIAL(trace) << "SsdpDiscovery::recv_sdp_msg, parser failed!";
-            }
             boost::this_thread::sleep_for(boost::chrono::milliseconds(200));
         }
     }
@@ -114,7 +109,6 @@ namespace Slic3r {
             bbl_read_from_broadcast(broadcast_sock_list[card_no], rece_buff, &recv_size, BUFSIZE);
             int result = lssdp_packet_parser(rece_buff, recv_size, &packet);
             if (result >= 0) {
-                BOOST_LOG_TRIVIAL(trace) << "recv_broadcast_msg, Location=" << packet.location << ", USN=" << packet.usn << ", ST=" << packet.st;
                 if (strncmp(packet.st, SDP_BBL_DEVICE, strlen(SDP_BBL_DEVICE)) == 0) {
                     if (strlen(packet.usn) < strlen(SDP_BBL_DEVICE)) {
                         this->on_sdp_alive(std::string(packet.usn), std::string(packet.location));

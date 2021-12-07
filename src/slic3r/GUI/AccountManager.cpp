@@ -43,6 +43,7 @@ namespace Slic3r {
             successFn(cli_.get_client_id());
         }
         AccountManager* manager = (AccountManager*)context_;
+
         boost::thread update_thread = Slic3r::create_thread([manager] { manager->update_subscription(); });
     }
 
@@ -291,22 +292,17 @@ namespace Slic3r {
     void AccountManager::add_subscribe(MachineObject* obj)
     {
         std::string report_topic = (boost::format("device/%1%/report") % obj->dev_id).str();
-        std::map<std::string, MachineObject*>::iterator it = mqtt_topics.find(report_topic);
-        if (it != mqtt_topics.end()) {
-            return;
-        }
-
         try {
             if (mqtt_cli && mqtt_cli->is_connected()) {
                 if (mqtt_topics.find(report_topic) == mqtt_topics.end()) {
                     BOOST_LOG_TRIVIAL(trace) << "add_subscribe topic=" << report_topic;
                     mqtt_topics.insert(std::make_pair(report_topic, obj));
-                    action_listener* sub_listener = new action_listener("MQTT_Subscriber_" + report_topic, this);
-                    mqtt_cli->subscribe(report_topic, 0, this, *sub_listener);
                 }
                 else {
                     BOOST_LOG_TRIVIAL(trace) << "add_subscribe topic=" << report_topic << " is exists";
                 }
+                action_listener* sub_listener = new action_listener("MQTT_Subscriber_" + report_topic, this);
+                mqtt_cli->subscribe(report_topic, 0, this, *sub_listener);
             }
             else {
                 BOOST_LOG_TRIVIAL(trace) << "add_subscribe failed, topic=" << report_topic << ", mqtt_cli is disconnect or invalid!";
@@ -346,6 +342,7 @@ namespace Slic3r {
     void AccountManager::update_subscription()
     {
         std::map<std::string, MachineObject*>::iterator it;
+        BOOST_LOG_TRIVIAL(trace) << "update_subscription, machine list = " << myBindMachineList.size();
         for (it = myBindMachineList.begin(); it != myBindMachineList.end(); it++) {
             add_subscribe(it->second);
         }
