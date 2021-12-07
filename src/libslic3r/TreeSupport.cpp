@@ -774,10 +774,16 @@ void TreeSupport::detect_object_overhangs()
                     coordf_t lower_layer_offset = layer_nr < support_material_enforce_layers ? -0.15 * extrusion_width_scaled : (float)lower_layer->height / tan(threshold_rad);
                     coordf_t support_offset_scaled = scale_(lower_layer_offset);
                     // Filter out areas whose diameter that is smaller than extrusion_width. Do not use offset2() for this purpose!
-                    ExPolygons lower_polys;
+                    ExPolygons lower_polys;// = offset2_ex(lower_layer->lslices, -extrusion_width_scaled / 2, extrusion_width_scaled / 2);
                     for (const ExPolygon& expoly : lower_layer->lslices) {
                         if (!offset_ex(expoly, -extrusion_width_scaled / 2).empty()) {
                             lower_polys.emplace_back(expoly);
+                        }
+                    }
+                    ExPolygons curr_polys;// = offset2_ex(layer->lslices, -extrusion_width_scaled / 2, extrusion_width_scaled / 2);
+                    for (const ExPolygon& expoly : layer->lslices) {
+                        if (!offset_ex(expoly, -extrusion_width_scaled / 2).empty()) {
+                            curr_polys.emplace_back(expoly);
                         }
                     }
 
@@ -805,7 +811,7 @@ void TreeSupport::detect_object_overhangs()
                         lower_layer_offseted = offset_ex(lower_polys, support_offset_scaled);
                     }
 
-                    ExPolygons overhang_areas = std::move(diff_ex(layer->lslices, lower_layer_offseted));
+                    ExPolygons overhang_areas = std::move(diff_ex(curr_polys, lower_layer_offseted));
                     overhang_areas = std::move(offset2_ex(overhang_areas, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
                     if (dont_support_bridges && overhang_areas.size()>0) {
                         remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, overhang_areas);
@@ -930,7 +936,7 @@ void TreeSupport::create_tree_support_layers()
     }
 }
 
-static inline std::vector<BoundingBox> fill_expolygon_generate_paths(
+static inline BoundingBox fill_expolygon_generate_paths(
     ExtrusionEntitiesPtr    &dst,
     ExPolygon              &&expolygon,
     Fill                    *filler,
@@ -946,15 +952,16 @@ static inline std::vector<BoundingBox> fill_expolygon_generate_paths(
     } catch (InfillFailedException &) {
     }
 
-    std::vector<BoundingBox> fill_bboxes;
-    for (auto& polyline : polylines)
-    {
-        fill_bboxes.push_back(polyline.bounding_box());
+    BoundingBox fill_bbox;
+    if (!polylines.empty()) {
+        fill_bbox = polylines[0].bounding_box();
+        for (auto& polyline : polylines)
+            fill_bbox.merge(polyline.bounding_box());
     }
 
     extrusion_entities_append_paths(dst, std::move(polylines), role, flow.mm3_per_mm(), flow.width(), flow.height());
 
-    return fill_bboxes;
+    return fill_bbox;
 }
 
 static inline std::vector<BoundingBox> fill_expolygons_generate_paths(
@@ -970,8 +977,8 @@ static inline std::vector<BoundingBox> fill_expolygons_generate_paths(
     filler->set_bounding_box(bbox_object);
     std::vector<BoundingBox> fill_boxes;
     for (ExPolygon& expoly : expolygons) {
-        auto boxes = fill_expolygon_generate_paths(dst, std::move(expoly), filler, fill_params, density, role, flow);
-        append(fill_boxes, boxes);
+        auto box = fill_expolygon_generate_paths(dst, std::move(expoly), filler, fill_params, density, role, flow);
+        fill_boxes.emplace_back(box);
     }
     return fill_boxes;
 }
@@ -1039,11 +1046,11 @@ static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& pr
     Polygons   loops;
     ExPolygons support_area_new = offset_ex(support_area, -0.5f * float(flow.scaled_spacing()), jtSquare);
 
-    // draw infill (remember to adjust to align infill between layers)
+    // draw infill
     FillParams fill_params;
     fill_params.density = support_density;
     fill_params.dont_adjust = true;
-    ExPolygons to_infill = offset_ex(support_area, -0.5f * float(flow.scaled_spacing()), jtSquare);// offset2_ex(support_area, float(SCALED_EPSILON), float(-SCALED_EPSILON - 0.5 * flow.scaled_spacing()));
+    ExPolygons to_infill = offset_ex(support_area, -0.5f * float(flow.scaled_spacing()), jtSquare);
     std::vector<BoundingBox> fill_boxes = fill_expolygons_generate_paths(dst, std::move(to_infill), filler_support, fill_params, support_density, erSupportMaterial, flow);
 
     // allow wall_count to be zero, which means only draw infill
@@ -1058,7 +1065,7 @@ static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& pr
                 fill_bbox.min[1] -= scale_(10);
                 fill_bbox.max[1] += scale_(10);
             }
-            support_area_new = diff_ex(support_area_new, to_expolygons({ fill_bbox.polygon() }));
+            support_area_new = diff_ex(support_area_new, offset_ex(to_expolygons({ fill_bbox.polygon() }), 0.5*flow.scaled_width()));
         }
         // filter out small areas
         for (auto it = support_area_new.begin(); it != support_area_new.end(); ) {
@@ -1122,6 +1129,17 @@ static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& pr
                 float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
         }
     }
+
+    // sort regions to reduce travel
+    Points ordering_points;
+    for (const auto& area : dst)
+        ordering_points.push_back(area->first_point());
+    std::vector<Points::size_type> order = chain_points(ordering_points);
+    ExtrusionEntitiesPtr new_dst;
+    new_dst.reserve(ordering_points.size());
+    for (size_t i : order)
+        new_dst.emplace_back(dst[i]);
+    dst = new_dst;
 }
 
 void TreeSupport::generate_toolpaths()
@@ -1226,7 +1244,7 @@ void TreeSupport::generate_toolpaths()
 
     // generate tree support tool paths
     tbb::parallel_for(
-        tbb::blocked_range<size_t>(m_raft_layers, m_object.tree_support_layer_count()),
+        tbb::blocked_range<size_t>(m_raft_layers, m_object.tree_support_layer_count(), m_object.tree_support_layer_count()),
         [&](const tbb::blocked_range<size_t>& range)
         {
             for (size_t layer_id = range.begin(); layer_id < range.end(); layer_id++) {
