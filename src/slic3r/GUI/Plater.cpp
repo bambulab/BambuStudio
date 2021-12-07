@@ -2049,7 +2049,7 @@ const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf
 const std::regex Plater::priv::pattern_3mf(".*3mf", std::regex::icase);
 const std::regex Plater::priv::pattern_zip_amf(".*[.]zip[.]amf", std::regex::icase);
 const std::regex Plater::priv::pattern_any_amf(".*[.](amf|amf[.]xml|zip[.]amf)", std::regex::icase);
-const std::regex Plater::priv::pattern_prusa(".*prusa", std::regex::icase);
+const std::regex Plater::priv::pattern_prusa(".*bbl", std::regex::icase);
 
 Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     : q(q)
@@ -2873,6 +2873,13 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         auto loaded_idxs = load_model_objects(new_model->objects);
         obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
     }
+
+    //BBS: add gcode loading logic in the end
+    partplate_list.load_gcode_files();
+    //set to 3d tab
+    q->select_view_3D("3D");
+    //select plate 0 as default
+    q->select_plate(0);
 
     if (load_model) {
         wxGetApp().app_config->update_skein_dir(input_files[input_files.size() - 1].parent_path().make_preferred().string());

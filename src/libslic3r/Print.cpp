@@ -1470,6 +1470,43 @@ std::string Print::output_filename(const std::string &filename_base) const
     return this->PrintBase::output_filename(m_config.output_filename_format.value, ".gcode", filename_base, &config);
 }
 
+void Print::export_gcode_from_previous_file(const std::string& src_file, std::string& dest_file, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb)
+{
+    if (boost::filesystem::exists(boost::filesystem::path(dest_file))) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": file %1% exists, delete it firstly") % dest_file.c_str();
+        boost::nowide::remove(dest_file.c_str());
+    }
+
+    this->set_started(psGCodeExport);
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": from %1% to %2%") % src_file.c_str() % dest_file.c_str();
+
+    std::error_code ret = rename_file(src_file, dest_file);
+    if (ret) {
+        throw Slic3r::RuntimeError(
+            std::string("Failed to rename the output G-code file from ") + src_file + " to " + dest_file + '\n' + "error code " + ret.message() + '\n' +
+            "when loading gcode from 3mf\n");
+    }
+
+    try {
+        GCodeProcessor processor;
+        Vec3d origin = this->get_plate_origin();
+        processor.set_xy_offset(origin(0), origin(1));
+        processor.enable_producers(true);
+        processor.process_file(dest_file, false);
+
+        *result = std::move(processor.extract_result());
+    } catch (std::exception & /* ex */) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ <<  boost::format(": found errors when process gcode file from %1% to %2%") %src_file.c_str() %dest_file.c_str();
+        throw Slic3r::RuntimeError(
+            std::string("Failed to process the G-code file ") + dest_file + " from 3mf\n");
+    }
+
+    this->set_done(psGCodeExport);
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  boost::format(": finished");
+}
+
 DynamicConfig PrintStatistics::config() const
 {
     DynamicConfig config;

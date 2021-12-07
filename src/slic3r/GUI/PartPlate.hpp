@@ -90,6 +90,7 @@ class PartPlate : public ObjectBase
     int m_print_index;
 
     std::string m_tmp_gcode_path; //use a temp path to store the gcode
+    std::string m_gcode_path_from_3mf; //use a path to store the gcode loaded from 3mf
 
     friend class PartPlateList;
 
@@ -351,6 +352,9 @@ public:
     //clear all the instances in the plate, and delete the plates, only keep the first default plate
     void reset(bool do_init);
 
+    //reset partplate to init states
+    void reinit();
+
     //get the plate stride
     double plate_stride_x();
     double plate_stride_y();
@@ -477,6 +481,8 @@ public:
     */
     int store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool with_gcode = true, int plate_idx = -1);
     int load_from_3mf_structure(PlateDataPtrs& plate_data_list);
+    //load gcode files
+    int load_gcode_files();
 
     template<class Archive> void serialize(Archive& ar)
     {

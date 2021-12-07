@@ -29,6 +29,7 @@
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "libslic3r/AppConfig.hpp"
+#include "libslic3r/PresetBundle.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "3DBed.hpp"
 #include "PartPlate.hpp"
@@ -1146,6 +1147,11 @@ int PartPlate::load_gcode_from_file(const std::string& filename)
 {
 	int ret = 0;
 
+	// process gcode
+	m_print->apply(*m_model, wxGetApp().preset_bundle->full_config());
+	m_print->export_gcode_from_previous_file(filename, m_tmp_gcode_path, m_gcode_result);
+	m_slice_result_valid = true;
+	m_ready_for_slice = true;
 	return ret;
 }
 
@@ -1359,6 +1365,16 @@ void PartPlateList::reset(bool do_init)
 
 	if (do_init)
 		init();
+
+	return;
+}
+
+//reset partplate to init states
+void PartPlateList::reinit()
+{
+	clear(true, true);
+
+	init();
 
 	return;
 }
@@ -2639,10 +2655,41 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 		//just test for file correct or not, we will rebuild later
 		/*for (std::vector<std::pair<int, int>>::iterator it = plate_data_list[i]->objects_and_instances.begin(); it != plate_data_list[i]->objects_and_instances.end(); ++it)
 			m_plate_list[index]->obj_to_instance_set.insert(std::pair(it->first, it->second));*/
+		if (!plate_data_list[i]->gcode_file.empty()) {
+			m_plate_list[index]->m_gcode_path_from_3mf = plate_data_list[i]->gcode_file;
+		}
 	}
 	print();
 	ret = reload_all_objects();
 	print();
+
+	return ret;
+}
+
+//load gcode files
+int PartPlateList::load_gcode_files()
+{
+	int ret = 0;
+
+	//only do this while m_plater valid for gui mode
+	if (!m_plater)
+		return ret;
+
+	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+	{
+		if (!m_plate_list[i]->m_gcode_path_from_3mf.empty()) {
+			//the same as plater::priv::update_print_volume_state();
+			BoundingBoxf3   print_volume = m_plate_list[i]->get_bounding_box(false);
+			print_volume.max(2) = this->m_plate_height;
+			print_volume.min(2) = -1e10;
+			m_model->update_print_volume_state(print_volume);
+
+			if (!m_plate_list[i]->load_gcode_from_file(m_plate_list[i]->m_gcode_path_from_3mf))
+				ret ++;
+		}
+	}
+
+	BOOST_LOG_TRIVIAL(trace) << boost::format("totally got %1% gcode files") % ret;
 
 	return ret;
 }

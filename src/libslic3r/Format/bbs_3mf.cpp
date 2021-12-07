@@ -69,6 +69,9 @@ const std::string SLIC3RPE_MM_PAINTING_VERSION           = "slic3rpe:MmPaintingV
 const std::string MODEL_FOLDER = "3D/";
 const std::string MODEL_EXTENSION = ".model";
 const std::string MODEL_FILE = "3D/3dmodel.model"; // << this is the only format of the string which works with CURA
+//BBS: add metadata_folder
+const std::string METADATA_DIR = "Metadata/";
+const std::string GCODE_EXTENSION = ".gcode";
 const std::string CONTENT_TYPES_FILE = "[Content_Types].xml";
 const std::string RELATIONSHIPS_FILE = "_rels/.rels";
 const std::string THUMBNAIL_FILE = "Metadata/thumbnail";
@@ -85,6 +88,8 @@ const std::string CUSTOM_GCODE_PER_PRINT_Z_FILE = "Metadata/Prusa_Slicer_custom_
 const std::string AUXILIARY_DIR = "Auxiliaries/";
 
 const unsigned int AUXILIARY_STR_LEN = 12;
+const unsigned int METADATA_STR_LEN = 9;
+
 
 static constexpr const char* MODEL_TAG = "model";
 static constexpr const char* RESOURCES_TAG = "resources";
@@ -512,6 +517,7 @@ namespace Slic3r {
         PlateDataMaps m_plater_data;
         PlateData* m_curr_plater;
         CurrentInstance m_curr_instance;
+        std::vector<std::string> m_gcode_files;
 
     public:
         _BBS_3MF_Importer();
@@ -548,6 +554,7 @@ namespace Slic3r {
         bool _extract_model_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model);
 
         void _extract_auxiliary_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model);
+        void _extract_gcode_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model, std::string& name);
 
         // handlers to parse the .model file
         void _handle_start_model_xml_element(const char* name, const char** attributes);
@@ -664,6 +671,8 @@ namespace Slic3r {
             it++;
         }
         m_plater_data.clear();
+
+        m_gcode_files.clear();
     }
 
     //BBS: add plate data related logic
@@ -695,6 +704,7 @@ namespace Slic3r {
         m_plater_data.clear();
         m_curr_instance.object_id = -1;
         m_curr_instance.instance_id = -1;
+        m_gcode_files.clear();
         clear_errors();
 
         bool result = _load_model_from_file(filename, model, plate_data_list, config, config_substitutions);
@@ -808,6 +818,10 @@ namespace Slic3r {
                     // extract auxiliary directory to temp directory
                     if (m_load_aux)
                         _extract_auxiliary_file_from_archive(archive, stat, model);
+                }
+                else if (boost::algorithm::istarts_with(name, METADATA_DIR) && boost::algorithm::iends_with(name, GCODE_EXTENSION)) {
+                    //load gcode files
+                    _extract_gcode_file_from_archive(archive, stat, model, name);
                 }
             }
         }
@@ -953,6 +967,17 @@ namespace Slic3r {
             PlateData* plate = new PlateData();
             plate_data_list.push_back(plate);
         }
+        auto find_gcode_name = [this](int plate_index) -> int {
+                for (int index = 0; index < m_gcode_files.size(); index ++)
+                {
+                    std::string &file_name = m_gcode_files[index];
+                    std::string sub_name = std::to_string(plate_index)+".gcode";
+                    if (file_name.find(sub_name) != std::string::npos) {
+                        return index;
+                    }
+                }
+                return -1;
+            };
         while (it != m_plater_data.end())
         {
             if (it->first > m_plater_data.size())
@@ -963,6 +988,10 @@ namespace Slic3r {
             plate_data_list[it->first-1]->locked = it->second->locked;
             plate_data_list[it->first-1]->plate_index = it->second->plate_index-1;
             plate_data_list[it->first-1]->objects_and_instances = it->second->objects_and_instances;
+            int gcode_index = find_gcode_name(it->first);
+            if (gcode_index != -1) {
+                plate_data_list[it->first-1]->gcode_file = m_gcode_files[gcode_index];
+            }
             it++;
         }
 
@@ -1082,6 +1111,39 @@ namespace Slic3r {
                 return;
             }
         }
+    }
+
+    //BBS: extract gcode file name from archive
+    void _BBS_3MF_Importer::_extract_gcode_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model, std::string& name)
+    {
+        if (stat.m_uncomp_size > 0) {
+            std::string dest_file;
+            std::string src_file = decode_path(stat.m_filename);
+            const std::string& temp_path = temporary_dir();
+            //aux directory from model
+            boost::filesystem::path dir = boost::filesystem::path(temp_path);
+            if (!boost::filesystem::exists(dir))
+            {
+                boost::filesystem::create_directory(dir);
+            }
+            std::size_t found = src_file.find(METADATA_DIR);
+            if (found != std::string::npos)
+                src_file = src_file.substr(found + METADATA_STR_LEN);
+            else
+                return;
+
+            dest_file = dir.string() + std::string("/") + src_file;
+            std::string dest_zip_file = encode_path(dest_file.c_str());
+            mz_bool res = mz_zip_reader_extract_file_to_file(&archive, stat.m_filename, dest_zip_file.c_str(), 0);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % dest_file % stat.m_filename % res;
+            if (res == 0) {
+                add_error("Error while extract gcode file to temp directory");
+                return;
+            }
+            m_gcode_files.push_back(dest_zip_file);
+        }
+
+        return ;
     }
 
     void _BBS_3MF_Importer::_extract_layer_heights_profile_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)

@@ -935,7 +935,10 @@ void Preview::load_print_as_fff(bool keep_z_range)
             }
     }
 
-    if (wxGetApp().is_editor() && !has_layers) {
+    //BBS: support preview gcode directly even if no slicing
+    bool directly_preview = print->is_step_done(psGCodeExport) && !m_gcode_result->moves.empty();
+    if (wxGetApp().is_editor() && !has_layers && !directly_preview) {
+    //if (wxGetApp().is_editor() && !has_layers) {
         hide_layers_slider();
         m_left_sizer->Hide(m_bottom_toolbar_panel);
         m_left_sizer->Layout();
