@@ -262,6 +262,7 @@ namespace logging = boost::log;
 namespace src = boost::log::sources;
 namespace expr = boost::log::expressions;
 namespace keywords = boost::log::keywords;
+namespace attrs = boost::log::attributes;
 void set_log_path_and_level(const std::string& file, unsigned int level)
 {
 	//BBS log file at C:\\Users\\[yourname]\\AppData\\Roaming\\PrusaSlicer-alpha\\[log_filename].log
@@ -272,6 +273,7 @@ void set_log_path_and_level(const std::string& file, unsigned int level)
 		(
 			expr::stream
 			<< expr::format_date_time< boost::posix_time::ptime >("TimeStamp", "%Y-%m-%d %H:%M:%S.%f")
+			<<"[Thread " << expr::attr<attrs::current_thread_id::value_type>("ThreadID") << "]"
 			<< ":" << expr::smessage
 			)
 	);
