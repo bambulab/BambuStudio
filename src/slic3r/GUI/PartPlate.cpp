@@ -524,7 +524,7 @@ void PartPlate::render_right_arrow(const float* render_color, bool use_lighting)
 }
 
 void PartPlate::on_render_for_picking() const {
-	glsafe(::glDisable(GL_DEPTH_TEST));
+	//glsafe(::glDisable(GL_DEPTH_TEST));
 	int hover_id = 0;
 	std::array<float, 4> color = picking_color_component(hover_id);
 	m_grabber_color[0] = color[0];

@@ -626,7 +626,7 @@ void GLVolume::render(bool with_outline) const
             {
                 glEnable(GL_STENCIL_TEST);
                 glStencilMask(0xFF);
-                glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+                glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
                 glClear(GL_STENCIL_BUFFER_BIT);
                 glStencilFunc(GL_ALWAYS, 0xff, 0xFF);
                 //another way use depth buffer
