@@ -2875,11 +2875,13 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     }
 
     //BBS: add gcode loading logic in the end
-    partplate_list.load_gcode_files();
-    //set to 3d tab
-    q->select_view_3D("3D");
-    //select plate 0 as default
-    q->select_plate(0);
+    if (load_model && load_config) {
+        partplate_list.load_gcode_files();
+        //set to 3d tab
+        q->select_view_3D("3D");
+        //select plate 0 as default
+        q->select_plate(0);
+    }
 
     if (load_model) {
         wxGetApp().app_config->update_skein_dir(input_files[input_files.size() - 1].parent_path().make_preferred().string());
