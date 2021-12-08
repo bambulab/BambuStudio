@@ -102,6 +102,7 @@
 // BBS
 #include "BBLStatusBar.hpp"
 #include "BitmapCache.hpp"
+#include "Widgets/Label.hpp"
 
 #ifdef __APPLE__
 #include "Gizmos/GLGizmosManager.hpp"
@@ -678,31 +679,34 @@ struct Sidebar::priv
     Plater *plater;
 
     wxScrolledWindow *scrolled;
-    wxPanel* presets_panel; // Used for MSW better layouts
-
-    ModeSizer  *mode_sizer {nullptr};
-    wxFlexGridSizer *sizer_presets;
     PlaterPresetComboBox *combo_print;
     std::vector<PlaterPresetComboBox*> combos_filament;
     wxBoxSizer *sizer_filaments;
     PlaterPresetComboBox *combo_sla_print;
     PlaterPresetComboBox *combo_sla_material;
     PlaterPresetComboBox *combo_printer;
-
     wxBoxSizer *sizer_params;
 
-    // BBS. Remove frequent changed params.
-    //FreqChangedParams   *frequently_changed_parameters{ nullptr };
-    // BBS. Move object list inside project resource
-    //ObjectList          *object_list{ nullptr };
+    //BBS Sidebar widgets
+    wxPanel* m_panel_print_title;
+    wxStaticText* m_staticText_print_title;
+    wxPanel* m_panel_print_content;
+    wxComboBox* m_comboBox_print_preset;
+    wxStaticLine* m_staticline1;
+    wxPanel* m_panel_filament_title;
+    wxStaticText* m_staticText_filament_settings;
+    wxBitmapButton* m_bpButton_add_filament;
+    wxPanel* m_panel_filament_content;
+    wxScrolledWindow* m_scrolledWindow_filament_content;
+    wxStaticLine* m_staticline2;
+    wxPanel* m_panel_project_title;
+    wxStaticText* m_staticText_object_list;
+    wxStaticText* m_staticText_auxiliary_list;
+    wxScrolledWindow* m_panel_project_content;
+    
     ProjectResource     *project_resource{ nullptr };
-    // BBS. Remove object manipulation.
-    //ObjectManipulation  *object_manipulation{ nullptr };
     ObjectSettings      *object_settings{ nullptr };
     ObjectLayers        *object_layers{ nullptr };
-    // BBS
-    //ObjectInfo *object_info;
-    //SlicedInfo *sliced_info;
 
     wxButton *btn_export_gcode;
     wxButton *btn_reslice;
@@ -745,6 +749,8 @@ void Sidebar::priv::show_preset_comboboxes()
 {
     const bool showSLA = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA;
 
+//BBS
+#if 0
     for (size_t i = 0; i < 4; ++i)
         sizer_presets->Show(i, !showSLA);
 
@@ -753,8 +759,6 @@ void Sidebar::priv::show_preset_comboboxes()
             sizer_presets->Show(i, showSLA);
     }
 
-    // BBS
-#if 0
     frequently_changed_parameters->Show(!showSLA);
 #endif
 
@@ -826,302 +830,223 @@ Sidebar::Sidebar(Plater *parent)
 #endif
 #endif
 
+    int em = wxGetApp().em_unit();
+    //BBS refine layout and styles
     // Sizer in the scrolled area
     auto *scrolled_sizer = new wxBoxSizer(wxVERTICAL);
     p->scrolled->SetSizer(scrolled_sizer);
 
-    // Sizer with buttons for mode changing
-    //p->mode_sizer = new ModeSizer(p->scrolled, int(0.5 * wxGetApp().em_unit()));
 
-    // The preset chooser
-    p->sizer_presets = new wxFlexGridSizer(10, 1, 1, 2);
-    p->sizer_presets->AddGrowableCol(0, 1);
-    p->sizer_presets->SetFlexibleDirection(wxBOTH);
+    // add print title
+    p->m_panel_print_title = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxSize(-1, 36 * em / 10), wxTAB_TRAVERSAL);
+	p->m_panel_print_title->SetBackgroundColour( wxColour( 233, 233, 233 ) );
+
+	wxBoxSizer* bSizer_print_title;
+	bSizer_print_title = new wxBoxSizer( wxHORIZONTAL );
+	bSizer_print_title->Add( 22 * em / 10, 0, 0, 0, 0 );
+    p->m_staticText_print_title = new wxStaticText(p->m_panel_print_title, wxID_ANY, wxT("Print Preset"), wxDefaultPosition, wxDefaultSize, 0);
+    p->m_staticText_print_title->Wrap(-1);
+    p->m_staticText_print_title->SetFont(Label::Body_14);
+    bSizer_print_title->Add(p->m_staticText_print_title, 1, wxALIGN_CENTER_VERTICAL | wxALL, 0);
+    bSizer_print_title->Add(0, 0, 0, 0, 5 * em / 10);
+    p->m_panel_print_title->SetSizer(bSizer_print_title);
+	p->m_panel_print_title->Layout();
+    scrolled_sizer->Add(p->m_panel_print_title, 0, wxALL | wxEXPAND, 0);
+
+    p->m_staticline1 = new wxStaticLine(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+    p->m_staticline1->SetBackgroundColour(wxColour(166, 169, 170));
+
+    scrolled_sizer->Add(p->m_staticline1, 0, wxEXPAND | wxALL, 0);
 
     bool is_msw = false;
 #ifdef __WINDOWS__
     p->scrolled->SetDoubleBuffered(true);
 
-    p->presets_panel = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    wxGetApp().UpdateDarkUI(p->presets_panel);
-    p->presets_panel->SetSizer(p->sizer_presets);
-
     is_msw = true;
-#else
-    p->presets_panel = p->scrolled;
 #endif //__WINDOWS__
 
-    p->sizer_filaments = new wxBoxSizer(wxVERTICAL);
+    // add print content
+    p->m_panel_print_content = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    p->m_panel_print_content->SetBackgroundColour(wxColour(255, 255, 255));
 
-    // BBS. Split init_combo to init_print_combo and init_filament_combo.
-    auto init_print_combo = [this](PlaterPresetComboBox **combo, wxString label, Preset::Type preset_type) {
-        auto *text = new wxStaticText(p->presets_panel, wxID_ANY, label + " :");
-        text->SetFont(wxGetApp().small_font());
-        *combo = new PlaterPresetComboBox(p->presets_panel, preset_type);
+	wxBoxSizer* bSizer_print_content;
+    bSizer_print_content = new wxBoxSizer(wxHORIZONTAL);
 
-        auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-        combo_and_btn_sizer->Add(*combo, 1, wxEXPAND);
-#if 0
-        if ((*combo)->edit_btn)
-            combo_and_btn_sizer->Add((*combo)->edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT,
-                int(0.3 * wxGetApp().em_unit()));
-#endif
+	p->m_panel_print_content->SetSizer( bSizer_print_content );
+	p->m_panel_print_content->Layout();
+	scrolled_sizer->Add( p->m_panel_print_content, 0, wxEXPAND | wxALL, 0 );
 
-        auto *sizer_presets = this->p->sizer_presets;
-        sizer_presets->Add(text, 0, wxALIGN_LEFT | wxEXPAND | wxTOP, 12);
-        sizer_presets->Add(combo_and_btn_sizer, 0, wxEXPAND | wxBOTTOM, 1);
-    };
+    p->m_staticline1 = new wxStaticLine(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+    p->m_staticline1->SetBackgroundColour(wxColour(166, 169, 170));
 
-    auto init_filament_combo = [this](PlaterPresetComboBox** combo, wxString label, Preset::Type preset_type) {
-        // init title bar
-        wxBoxSizer* title_sizer = new wxBoxSizer(wxHORIZONTAL);
-        auto* text = new wxStaticText(p->presets_panel, wxID_ANY, label + " :");
-        text->SetFont(wxGetApp().small_font());
-        ScalableButton* add_btn = new ScalableButton(p->presets_panel, wxID_ANY, "add_filament");
-        ScalableButton* del_btn = new ScalableButton(p->presets_panel, wxID_ANY, "delete_filament");
-        title_sizer->Add(text, 0, wxALIGN_LEFT | wxEXPAND | wxTOP, 12);
-        title_sizer->AddStretchSpacer(1);
-        title_sizer->Add(add_btn, 0, wxTOP | wxRIGHT, 12);
-        title_sizer->Add(del_btn, 0, wxTOP | wxRIGHT, 12);
+	scrolled_sizer->Add( p->m_staticline1, 0, wxEXPAND | wxALL, 0 );
 
-        add_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
-            int extruder_count = p->combos_filament.size() + 1;
+    p->combo_print = new PlaterPresetComboBox(p->m_panel_print_content, Preset::TYPE_PRINT);
+    bSizer_print_content->Add(11 * em / 10, 0, 0, 0, 0);
+    bSizer_print_content->Add(p->combo_print, 1, wxALIGN_CENTER | wxALL, 5 * em / 10);
+    bSizer_print_content->Add(11 * em / 10, 0, 0, 0, 0);
 
-            wxGetApp().preset_bundle->printers.get_edited_preset().set_num_extruders(extruder_count);
-            wxGetApp().preset_bundle->update_multi_material_filament_presets();
-            on_extruders_change(extruder_count);
-            update_objects_list_extruder_column(extruder_count);
-        });
-        del_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
-            int extruder_count = std::max(1, (int)p->combos_filament.size() - 1);
+    // add filament title
+    p->m_panel_filament_title = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxSize(-1, 36 * em / 10), wxTAB_TRAVERSAL);
+    p->m_panel_filament_title->SetBackgroundColour(wxColour(233, 233, 233));
 
-            update_objects_list_extruder_column(std::max(1, extruder_count - 1));
-            on_extruders_change(extruder_count);
-            wxGetApp().preset_bundle->printers.get_edited_preset().set_num_extruders(extruder_count);
-            wxGetApp().preset_bundle->update_multi_material_filament_presets();
-        });
+	wxBoxSizer* bSizer39;
+	bSizer39 = new wxBoxSizer( wxHORIZONTAL );
+	bSizer39->Add( 22 * em / 10, 0, 0, 0, 0 );
+	p->m_staticText_filament_settings = new wxStaticText( p->m_panel_filament_title, wxID_ANY, wxT("Filament Settings"), wxDefaultPosition, wxDefaultSize, 0 );
+	p->m_staticText_filament_settings->Wrap( -1 );
+    p->m_staticText_filament_settings->SetFont(Label::Body_14);
+	bSizer39->Add( p->m_staticText_filament_settings, 1, wxALIGN_CENTER|wxALL, 5 * em / 10 );
 
-        // init first combo box
-        *combo = new PlaterPresetComboBox(p->presets_panel, preset_type);
-        auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-        combo_and_btn_sizer->Add(new wxStaticText(p->presets_panel, wxID_ANY, "1"), 0,
-            wxALIGN_CENTER_VERTICAL | wxRIGHT, 15);
-        combo_and_btn_sizer->Add(*combo, 1, wxEXPAND);
-        if ((*combo)->clr_picker) {
-            Slic3r::DynamicPrintConfig* config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({ "extruder_colour" }));
-            const std::string& txt_color = config->opt_string("extruder_colour", (unsigned int)0);
-            wxColor color;
-            unsigned char rgb[3];
-            if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb))
-            {
-                color.Set(rgb[0], rgb[1], rgb[2]);
-                (*combo)->clr_picker->SetColour(color);
-            }
-            combo_and_btn_sizer->Add((*combo)->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT,
-                int(0.3 * wxGetApp().em_unit()));
-        }
+    ScalableButton* add_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "add_filament");
+    add_btn->SetBackgroundColour(wxColour(233, 233, 233));
+	bSizer39->Add(add_btn, 0, wxALIGN_CENTER|wxALL, 5 * em / 10 );
+	bSizer39->Add( 10 * em / 10, 0, 0, 0, 0 );
+	p->m_panel_filament_title->SetSizer( bSizer39 );
+	p->m_panel_filament_title->Layout();
+    scrolled_sizer->Add(p->m_panel_filament_title, 0, wxEXPAND | wxALL, 0);
 
-        auto* sizer_presets = this->p->sizer_presets;
-        auto* sizer_filaments = this->p->sizer_filaments;
-        sizer_presets->Add(title_sizer, 0, wxALIGN_LEFT | wxEXPAND | wxTOP, 12);
+    add_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
+        int extruder_count = p->combos_filament.size() + 1;
 
-        sizer_filaments->Add(combo_and_btn_sizer, 0, wxEXPAND | wxBOTTOM, 1);
-        (*combo)->set_extruder_idx(0);
-        sizer_presets->Add(sizer_filaments, 1, wxEXPAND);
-    };
+        wxGetApp().preset_bundle->printers.get_edited_preset().set_num_extruders(extruder_count);
+        wxGetApp().preset_bundle->update_multi_material_filament_presets();
+        on_extruders_change(extruder_count);
+        update_objects_list_extruder_column(extruder_count);
+    });
+
+    //BBS
+    // move del_btn to each item
+    ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "delete_filament");
+    del_btn->SetBackgroundColour(wxColour(233, 233, 233));
+    del_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
+        int extruder_count = std::max(1, (int)p->combos_filament.size() - 1);
+
+        update_objects_list_extruder_column(std::max(1, extruder_count - 1));
+        on_extruders_change(extruder_count);
+        wxGetApp().preset_bundle->printers.get_edited_preset().set_num_extruders(extruder_count);
+        wxGetApp().preset_bundle->update_multi_material_filament_presets();
+    });
+
+    bSizer39->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, 5 * em / 10);
+    bSizer39->Add(10 * em / 10, 0, 0, 0, 0);
+
+
+
+    // add filament content
+    p->m_panel_filament_content = new wxPanel( p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	p->m_panel_filament_content->SetBackgroundColour( wxColour( 255, 255, 255 ) );
+
+	wxBoxSizer* bSizer_filament_content;
+	bSizer_filament_content = new wxBoxSizer( wxHORIZONTAL );
+
+	p->sizer_filaments = new wxBoxSizer(wxVERTICAL);
 
     p->combos_filament.push_back(nullptr);
-    init_print_combo(&p->combo_print, _L("Print settings"), Preset::TYPE_PRINT);
-    // BBS
-    init_filament_combo(&p->combos_filament[0], _L("Filament"), Preset::TYPE_FILAMENT);
-    //init_combo(&p->combo_sla_print,     _L("SLA print settings"), Preset::TYPE_SLA_PRINT,     false);
-    //init_combo(&p->combo_sla_material,  _L("SLA material"),       Preset::TYPE_SLA_MATERIAL,  false);
-    //init_combo(&p->combo_printer,       _L("Printer"),            Preset::TYPE_PRINTER,       false);
 
-    const int margin_5  = int(0.5*wxGetApp().em_unit());// 5;
+    /* first filament item */
+    p->combos_filament[0] = new PlaterPresetComboBox(p->m_panel_filament_content, Preset::TYPE_FILAMENT);
+    auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
+    combo_and_btn_sizer->Add(16 * em / 10, 0, 0, 0, 0);
+    combo_and_btn_sizer->Add(new wxStaticText(p->m_panel_filament_content, wxID_ANY, "1"), 0, wxALIGN_CENTER | wxALL, 5 * em / 10);
+    combo_and_btn_sizer->Add(p->combos_filament[0], 1, wxALL | wxEXPAND, 5 * em / 10);
+    if (p->combos_filament[0]->clr_picker) {
+        Slic3r::DynamicPrintConfig* config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({ "extruder_colour" }));
+        const std::string& txt_color = config->opt_string("extruder_colour", (unsigned int)0);
+        wxColor color;
+        unsigned char rgb[3];
+        if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb))
+        {
+            color.Set(rgb[0], rgb[1], rgb[2]);
+            p->combos_filament[0]->clr_picker->SetBackgroundColour(color);
+        }
+        combo_and_btn_sizer->Add(p->combos_filament[0]->clr_picker, 0, wxALIGN_CENTER_VERTICAL, 5 * em / 10);
+    }
+
+    //BBS hide del_btn
+    /*ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_content, wxID_ANY, "delete_filament");
+
+    del_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
+        int extruder_count = std::max(1, (int)p->combos_filament.size() - 1);
+
+        update_objects_list_extruder_column(std::max(1, extruder_count - 1));
+        on_extruders_change(extruder_count);
+        wxGetApp().preset_bundle->printers.get_edited_preset().set_num_extruders(extruder_count);
+        wxGetApp().preset_bundle->update_multi_material_filament_presets();
+    });
+
+    combo_and_btn_sizer->Add(32 * em / 10, 0, 0, 0, 0);
+    combo_and_btn_sizer->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, 5 * em / 10);*/
+    combo_and_btn_sizer->Add(16 * em / 10, 0, 0, 0, 0);
+
+    p->combos_filament[0]->set_extruder_idx(0);
+    p->sizer_filaments->Add(combo_and_btn_sizer, 1, wxEXPAND);
+
+    bSizer_filament_content->Add(p->sizer_filaments, 1, wxALIGN_CENTER | wxALL);
+    p->m_panel_filament_content->SetSizer(p->sizer_filaments);
+    p->m_panel_filament_content->Layout();
+
+    scrolled_sizer->Add(p->m_panel_filament_content, 0, wxALL | wxEXPAND, 0);
+
+	p->m_staticline2 = new wxStaticLine( p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+    p->m_staticline2->SetBackgroundColour( wxColour( 166, 169, 170 ) );
+
+    scrolled_sizer->Add(p->m_staticline2, 0, wxEXPAND | wxALL, 0);
+
+
+    //add project title
+    /*
+    p->m_panel_project_title = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxSize(-1, 36), wxTAB_TRAVERSAL);
+    p->m_panel_project_title->SetBackgroundColour(wxColour(233, 233, 233));
+	wxBoxSizer* bSizer_project_title;
+	bSizer_project_title = new wxBoxSizer( wxHORIZONTAL );
+	bSizer_project_title->Add( 22, 0, 0, wxEXPAND, 0 );
+	p->m_staticText_object_list = new wxStaticText(p->m_panel_project_title, wxID_ANY, wxT("Object List"), wxDefaultPosition, wxDefaultSize, 0 );
+	p->m_staticText_object_list->Wrap( -1 );
+    p->m_staticText_object_list->SetFont(Label::Body_14);
+	bSizer_project_title->Add(p->m_staticText_object_list, 0, wxALIGN_CENTER|wxALL, 5 );
+
+	p->m_staticText_auxiliary_list = new wxStaticText( p->m_panel_project_title, wxID_ANY, wxT("Auxiliary List"), wxDefaultPosition, wxDefaultSize, 0 );
+	p->m_staticText_auxiliary_list->Wrap( -1 );
+    p->m_staticText_auxiliary_list->SetFont(Label::Body_14);
+	bSizer_project_title->Add( p->m_staticText_auxiliary_list, 0, wxALIGN_CENTER|wxALL, 5 );
+	bSizer_project_title->Add( 0, 0, 1, wxEXPAND, 0 );
+	p->m_panel_project_title->SetSizer( bSizer_project_title );
+    p->m_panel_project_title->Layout();
+	scrolled_sizer->Add(p->m_panel_project_title, 0, wxEXPAND | wxALL, 0 );
+    */
 
     p->sizer_params = new wxBoxSizer(wxVERTICAL);
-
-    // BBS
-#if 0
-    // Frequently changed parameters
-    p->frequently_changed_parameters = new FreqChangedParams(p->scrolled);
-    p->sizer_params->Add(p->frequently_changed_parameters->get_sizer(), 0, wxEXPAND | wxTOP | wxBOTTOM, wxOSX ? 1 : margin_5);
-#endif
-
-    // BBS
-#if 0
-    // Object List
-    obj_list() = new ObjectList(p->scrolled);
-    p->sizer_params->Add(obj_list()->get_sizer(), 1, wxEXPAND);
-#endif
     p->project_resource = new ProjectResource(p->scrolled);
     p->sizer_params->Add(p->project_resource, 1, wxEXPAND | wxTOP, 15);
-
-    // BBS
-#if 0
-    // Object Manipulations
-    p->object_manipulation = new ObjectManipulation(p->scrolled);
-    p->object_manipulation->Hide();
-    p->sizer_params->Add(p->object_manipulation->get_sizer(), 0, wxEXPAND | wxTOP, margin_5);
-#endif
 
     // Frequently Object Settings
     p->object_settings = new ObjectSettings(p->scrolled);
     p->object_settings->Hide();
-    p->sizer_params->Add(p->object_settings->get_sizer(), 0, wxEXPAND | wxTOP, margin_5);
 
     // Object Layers
     p->object_layers = new ObjectLayers(p->scrolled);
     p->object_layers->Hide();
-    p->sizer_params->Add(p->object_layers->get_sizer(), 0, wxEXPAND | wxTOP, margin_5);
-
-    // BBS
-#if 0
-    // Info boxes
-    p->object_info = new ObjectInfo(p->scrolled);
-    p->sliced_info = new SlicedInfo(p->scrolled);
-#endif
-
-    // Sizer in the scrolled area
-    //BBS remove mode
-    //if (p->mode_sizer)
-    //    scrolled_sizer->Add(p->mode_sizer, 0, wxALIGN_CENTER_HORIZONTAL);
-    is_msw ?
-        scrolled_sizer->Add(p->presets_panel, 0, wxEXPAND | wxLEFT, margin_5) :
-        scrolled_sizer->Add(p->sizer_presets, 0, wxEXPAND | wxLEFT, margin_5);
-    scrolled_sizer->Add(p->sizer_params, 1, wxEXPAND | wxLEFT, margin_5);
-
-    // BBS
-#if 0
-    scrolled_sizer->Add(p->object_info, 0, wxEXPAND | wxTOP | wxLEFT, margin_5);
-    scrolled_sizer->Add(p->sliced_info, 0, wxEXPAND | wxTOP | wxLEFT, margin_5);
-#endif
-
-#if 0
-    // Buttons underneath the scrolled area
-
-    // rescalable bitmap buttons "Send to printer" and "Remove device" 
-
-    auto init_scalable_btn = [this](ScalableButton** btn, const std::string& icon_name, wxString tooltip = wxEmptyString)
-    {
-#ifdef __APPLE__
-        int bmp_px_cnt = 16;
-#else
-        int bmp_px_cnt = 32;
-#endif //__APPLE__
-        ScalableBitmap bmp = ScalableBitmap(this, icon_name, bmp_px_cnt);
-        *btn = new ScalableButton(this, wxID_ANY, bmp, "", wxBU_EXACTFIT);
-
-#ifdef _WIN32
-        (*btn)->Bind(wxEVT_ENTER_WINDOW, [tooltip, btn, this](wxMouseEvent& event) {
-            p->show_rich_tip(tooltip, *btn);
-            event.Skip();
-        });
-        (*btn)->Bind(wxEVT_LEAVE_WINDOW, [btn, this](wxMouseEvent& event) {
-            p->hide_rich_tip(*btn);
-            event.Skip();
-        });
-#else
-        (*btn)->SetToolTip(tooltip);
-#endif // _WIN32
-        (*btn)->Hide();
-    };
-
-    init_scalable_btn(&p->btn_send_gcode   , "export_gcode", _L("Send to printer") + " " +GUI::shortkey_ctrl_prefix() + "Shift+G");
-//    init_scalable_btn(&p->btn_eject_device, "eject_sd"       , _L("Remove device ") + GUI::shortkey_ctrl_prefix() + "T");
-	init_scalable_btn(&p->btn_export_gcode_removable, "export_to_sd", _L("Export to SD card / Flash drive") + " " + GUI::shortkey_ctrl_prefix() + "U");
-
-    // regular buttons "Slice now" and "Export G-code" 
-
-//    const int scaled_height = p->btn_eject_device->GetBitmapHeight() + 4;
-#ifdef _WIN32
-    const int scaled_height = p->btn_export_gcode_removable->GetBitmapHeight();
-#else
-    const int scaled_height = p->btn_export_gcode_removable->GetBitmapHeight() + 4;
-#endif
-    auto init_btn = [this](wxButton **btn, wxString label, const int button_height) {
-        *btn = new wxButton(this, wxID_ANY, label, wxDefaultPosition,
-                            wxSize(-1, button_height), wxBU_EXACTFIT);
-        (*btn)->SetFont(wxGetApp().bold_font());
-        wxGetApp().UpdateDarkUI((*btn), true);
-    };
-
-    init_btn(&p->btn_export_gcode, _L("Export G-code") + dots , scaled_height);
-    init_btn(&p->btn_reslice     , _L("Slice now")            , scaled_height);
-
-    enable_buttons(false);
-
-    auto *btns_sizer = new wxBoxSizer(wxVERTICAL);
-
-    auto* complect_btns_sizer = new wxBoxSizer(wxHORIZONTAL);
-    complect_btns_sizer->Add(p->btn_export_gcode, 1, wxEXPAND);
-    complect_btns_sizer->Add(p->btn_send_gcode, 0, wxLEFT, margin_5);
-	complect_btns_sizer->Add(p->btn_export_gcode_removable, 0, wxLEFT, margin_5);
-//    complect_btns_sizer->Add(p->btn_eject_device);
-	
-
-    btns_sizer->Add(p->btn_reslice, 0, wxEXPAND | wxTOP, margin_5);
-    btns_sizer->Add(complect_btns_sizer, 0, wxEXPAND | wxTOP, margin_5);
-#endif
+    scrolled_sizer->Add(p->sizer_params, 1, wxEXPAND | wxLEFT, 0);
 
     auto *sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(p->scrolled, 1, wxEXPAND);
-    //sizer->Add(btns_sizer, 0, wxEXPAND | wxLEFT, margin_5);
     SetSizer(sizer);
-
-#if 0
-    // Events
-    p->btn_export_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->export_gcode(false); });
-    p->btn_reslice->Bind(wxEVT_BUTTON, [this](wxCommandEvent&)
-    {
-        if (p->plater->canvas3D()->get_gizmos_manager().is_in_editing_mode(true))
-            return;
-
-        const bool export_gcode_after_slicing = wxGetKeyState(WXK_SHIFT);
-        if (export_gcode_after_slicing)
-            p->plater->export_gcode(true);
-        else
-            p->plater->reslice();
-        p->plater->select_view_3D("Preview");
-    });
-
-#ifdef _WIN32
-    p->btn_reslice->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& event) {
-        p->show_rich_tip(p->btn_reslice_tip, p->btn_reslice);
-        event.Skip();
-    });
-    p->btn_reslice->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& event) {
-        p->hide_rich_tip(p->btn_reslice);
-        event.Skip();
-    });
-#endif // _WIN32
-
-    p->btn_send_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->send_gcode(); });
-//    p->btn_eject_device->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->eject_drive(); });
-	p->btn_export_gcode_removable->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->export_gcode(true); });
-#endif
 }
 
 Sidebar::~Sidebar() {}
 
 void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int extr_idx) {
-    *combo = new PlaterPresetComboBox(p->presets_panel, Slic3r::Preset::TYPE_FILAMENT);
-//         # copy icons from first choice
-//         $choice->SetItemBitmap($_, $choices->[0]->GetItemBitmap($_)) for 0..$#presets;
-
+    *combo = new PlaterPresetComboBox(p->m_panel_filament_content, Slic3r::Preset::TYPE_FILAMENT);
     (*combo)->set_extruder_idx(extr_idx);
 
     auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    // BBS
-#if 0
-    combo_and_btn_sizer->Add((*combo)->edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT,
-                            int(0.3*wxGetApp().em_unit()));
-#else
-    combo_and_btn_sizer->Add(new wxStaticText(p->presets_panel, wxID_ANY, wxString::Format("%d", extr_idx + 1)), 0,
-        wxALIGN_CENTER_HORIZONTAL | wxRIGHT, 15);
-    combo_and_btn_sizer->Add(*combo, 1, wxEXPAND);
+    int em = wxGetApp().em_unit();
+    combo_and_btn_sizer->Add( 16 * em / 10, 0, 0, 0, 0 );
+    combo_and_btn_sizer->Add(new wxStaticText(p->m_panel_filament_content, wxID_ANY, wxString::Format("%d", extr_idx + 1)), 0,
+        wxALIGN_CENTER | wxALL, 5 * em / 10);
+    combo_and_btn_sizer->Add(*combo, 1, wxALL | wxEXPAND, 5 * em / 10);
 
     const std::string& txt_color = p->plater->config()->opt_string("extruder_colour", extr_idx);
     wxColor color;
@@ -1129,15 +1054,29 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int extr_i
     if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb))
     {
         color.Set(rgb[0], rgb[1], rgb[2]);
-        (*combo)->clr_picker->SetColour(color);
+        (*combo)->clr_picker->SetBackgroundColour(color);
     }
 
-    combo_and_btn_sizer->Add((*combo)->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT,
-        int(0.3 * wxGetApp().em_unit()));
-#endif
+    combo_and_btn_sizer->Add((*combo)->clr_picker, 0, wxALIGN_CENTER_VERTICAL, 5 * em / 10);
+
+    /* BBS hide del_btn
+    ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_content, wxID_ANY, "delete_filament");
+    del_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
+        int extruder_count = std::max(1, (int)p->combos_filament.size() - 1);
+
+        update_objects_list_extruder_column(std::max(1, extruder_count - 1));
+        on_extruders_change(extruder_count);
+        wxGetApp().preset_bundle->printers.get_edited_preset().set_num_extruders(extruder_count);
+        wxGetApp().preset_bundle->update_multi_material_filament_presets();
+    });
+
+    combo_and_btn_sizer->Add(32 * em / 10, 0, 0, 0, 0);
+    combo_and_btn_sizer->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, 5 * em / 10);
+    */
+    combo_and_btn_sizer->Add(16 * em / 10, 0, 0, 0, 0);
 
     auto /***/sizer_filaments = this->p->sizer_filaments;
-    sizer_filaments->Add(combo_and_btn_sizer, 1, wxEXPAND | wxBOTTOM, 1);
+    sizer_filaments->Add(combo_and_btn_sizer, 1, wxALIGN_CENTER | wxEXPAND);
 }
 
 void Sidebar::remove_unused_filament_combos(const size_t current_extruder_count)
@@ -1218,12 +1157,6 @@ void Sidebar::update_presets(Preset::Type preset_type)
 
     // Synchronize config.ini with the current selections.
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
-}
-
-void Sidebar::update_mode_sizer() const
-{
-    if (p->mode_sizer)
-        p->mode_sizer->SetMode(m_mode);
 }
 
 void Sidebar::change_top_border_for_mode_sizer(bool increase_border)
@@ -1430,9 +1363,14 @@ wxScrolledWindow* Sidebar::scrolled_panel()
     return p->scrolled;
 }
 
-wxPanel* Sidebar::presets_panel()
+wxPanel* Sidebar::print_panel()
 {
-    return p->presets_panel;
+    return p->m_panel_print_content;
+}
+
+wxPanel* Sidebar::filament_panel()
+{
+    return p->m_panel_filament_content;
 }
 
 ConfigOptionsGroup* Sidebar::og_freq_chng_params(const bool is_fff)
@@ -1504,7 +1442,6 @@ void Sidebar::update_mode()
 
     //BBS: remove print related combos
     //update_reslice_btn_tooltip();
-    //update_mode_sizer();
     update_searcher();
 
     wxWindowUpdateLocker noUpdates(this);
@@ -4311,7 +4248,9 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
             else
                 physical_printers.unselect_printer();
         }
-        wxWindowUpdateLocker noUpdates(sidebar->presets_panel());
+        //BBS
+        wxWindowUpdateLocker noUpdates1(sidebar->print_panel());
+        wxWindowUpdateLocker noUpdates2(sidebar->filament_panel());
         wxGetApp().get_tab(preset_type)->select_preset(preset_name);
     }
 

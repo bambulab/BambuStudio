@@ -146,7 +146,9 @@ public:
     ScalableButton* edit_btn { nullptr };
 
     // BBS
-    wxColourPickerCtrl* clr_picker { nullptr };
+    wxButton* clr_picker { nullptr };
+    wxColourData m_clrData;
+
     wxColor get_color() { return m_color; }
 
     void set_extruder_idx(const int extr_idx)   { m_extruder_idx = extr_idx; }

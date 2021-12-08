@@ -109,7 +109,6 @@ public:
     void update_all_preset_comboboxes();
     //void update_partplate(PartPlateList& list);
     void update_presets(Slic3r::Preset::Type preset_type);
-    void update_mode_sizer() const;
     void change_top_border_for_mode_sizer(bool increase_border);
     void update_reslice_btn_tooltip() const;
     void msw_rescale();
@@ -126,7 +125,8 @@ public:
     ObjectSettings*         obj_settings();
     ObjectLayers*           obj_layers();
     wxScrolledWindow*       scrolled_panel();
-    wxPanel*                presets_panel();
+    wxPanel* print_panel();
+    wxPanel* filament_panel();
 
     // BBS
     AuxiliaryList*          aux_list();

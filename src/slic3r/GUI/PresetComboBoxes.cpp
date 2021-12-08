@@ -586,11 +586,20 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
 
     // BBS
     if (m_type == Preset::TYPE_FILAMENT) {
-        clr_picker = new wxColourPickerCtrl(parent, wxID_ANY);
+        int em = wxGetApp().em_unit();
+        clr_picker = new wxButton(parent, wxID_ANY, "", wxDefaultPosition, wxSize(20 * em / 10, 20 * em / 10), wxBU_NOTEXT | wxBU_EXACTFIT | wxBORDER_NONE);
         clr_picker->SetToolTip(_L("Click to  pick filament color"));
-        clr_picker->Bind(wxEVT_COLOURPICKER_CHANGED, [this](wxColourPickerEvent& event)
+        clr_picker->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+            m_clrData.SetColour(clr_picker->GetBackgroundColour());
+            m_clrData.SetChooseFull(true);
+            m_clrData.SetChooseAlpha(false);
+
+            wxColourDialog dialog(this, &m_clrData);
+            dialog.SetTitle("Please choose the filament colour");
+            if ( dialog.ShowModal() == wxID_OK )
             {
-                // Swallow the mouse click and open the color picker.
+                m_clrData = dialog.GetColourData();
+                clr_picker->SetBackgroundColour(m_clrData.GetColour());
                 // get current color
                 DynamicPrintConfig* cfg = wxGetApp().get_tab(Preset::TYPE_PRINTER)->get_config();
                 auto colors = static_cast<ConfigOptionStrings*>(cfg->option("extruder_colour")->clone());
@@ -598,14 +607,15 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
                 if (!clr.IsOk())
                     clr = wxColour(0, 0, 0); // Don't set alfa to transparence
 
-                colors->values[m_extruder_idx] = event.GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+                colors->values[m_extruder_idx] = m_clrData.GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
                 DynamicPrintConfig cfg_new = *cfg;
                 cfg_new.set_key_value("extruder_colour", colors);
 
                 wxGetApp().get_tab(Preset::TYPE_PRINTER)->load_config(cfg_new);
                 this->update();
                 wxGetApp().plater()->on_config_change(cfg_new);
-            });
+            }
+        });
     }
     else {
         edit_btn = new ScalableButton(parent, wxID_ANY, "cog");
@@ -811,7 +821,7 @@ void PlaterPresetComboBox::update()
             // Extruder color is not defined.
             extruder_color.clear();
         // BBS
-        clr_picker->SetColour(wxColor(extruder_color));
+        clr_picker->SetBackgroundColour(wxColor(extruder_color));
         selected_filament_preset = m_collection->find_preset(m_preset_bundle->filament_presets[m_extruder_idx]);
         assert(selected_filament_preset);
     }
