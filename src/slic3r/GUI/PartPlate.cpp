@@ -1376,6 +1376,15 @@ void PartPlateList::reinit()
 
 	init();
 
+	//reset plate 0's position
+	Vec2d pos = compute_shape_position(0, m_plate_cols);
+	m_plate_list[0]->set_shape(m_shape, m_exclude_areas, pos);
+	//reset unprintable plate's position
+	Vec3d origin2 = compute_origin_for_unprintable();
+	unprintable_plate.set_pos_and_size(origin2, m_plate_width, m_plate_depth, m_plate_height, false);
+	//re-calc the bounding boxes
+	calc_bounding_boxes();
+
 	return;
 }
 
