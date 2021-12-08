@@ -23,6 +23,8 @@ set(lisbslic3r_sources
     BoundingBox.hpp
     BridgeDetector.cpp
     BridgeDetector.hpp
+    FaceDetector.cpp
+    FaceDetector.hpp
     Brim.cpp
     Brim.hpp
     BuildVolume.cpp

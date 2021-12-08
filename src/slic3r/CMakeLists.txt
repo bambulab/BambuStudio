@@ -69,6 +69,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Gizmos/GLGizmoSimplify.hpp
     GUI/Gizmos/GLGizmoMmuSegmentation.cpp
     GUI/Gizmos/GLGizmoMmuSegmentation.hpp
+    GUI/Gizmos/GLGizmoFaceDetector.cpp
+    GUI/Gizmos/GLGizmoFaceDetector.hpp
     GUI/GLSelectionRectangle.cpp
     GUI/GLSelectionRectangle.hpp
     GUI/Gizmos/GizmoObjectManipulation.cpp

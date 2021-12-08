@@ -666,6 +666,9 @@ public:
     // List of mesh facets painted for MMU segmentation.
     FacetsAnnotation    mmu_segmentation_facets;
 
+    // List of exterior faces
+    FacetsAnnotation    exterior_facets;
+
     // A parent object owning this modifier volume.
     ModelObject*        get_object() const { return this->object; }
     ModelVolumeType     type() const { return m_type; }

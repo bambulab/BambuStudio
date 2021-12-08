@@ -18,6 +18,7 @@
 #include "slic3r/GUI/Gizmos/GLGizmoFdmSupports.hpp"
 // BBS
 #include "slic3r/GUI/Gizmos/GLGizmoAdvancedCut.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoFaceDetector.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoHollow.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSeam.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.hpp"
@@ -146,6 +147,7 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoSeam(m_parent, "toolbar_seam.svg", 8));
     m_gizmos.emplace_back(new GLGizmoMmuSegmentation(m_parent, "mmu_segmentation.svg", 9));
     m_gizmos.emplace_back(new GLGizmoSimplify(m_parent, "toolbar_cut.svg", 10));
+    //m_gizmos.emplace_back(new GLGizmoFaceDetector(m_parent, "face recognition.svg", 11));
 
     m_common_gizmos_data.reset(new CommonGizmosDataPool(&m_parent));
 

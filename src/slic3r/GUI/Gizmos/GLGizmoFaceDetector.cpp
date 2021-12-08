@@ -1,0 +1,126 @@
+#include "GLGizmoFaceDetector.hpp"
+
+#include "libslic3r/Model.hpp"
+#include "libslic3r/SLA/IndexedMesh.hpp"
+#include "libslic3r/FaceDetector.hpp"
+
+#include "slic3r/GUI/GLCanvas3D.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/ImGuiWrapper.hpp"
+#include "slic3r/GUI/Plater.hpp"
+
+#include <GL/glew.h>
+
+#ifdef __WINDOWS__
+#include <windows.h>
+#include <stdio.h>
+#endif
+
+namespace Slic3r {
+
+namespace GUI {
+
+bool GLGizmoFaceDetector::on_init()
+{
+    return true;
+}
+
+std::string GLGizmoFaceDetector::on_get_name() const
+{
+    return (_L("Face recognition") + " [P]").ToUTF8().data();
+}
+
+void GLGizmoFaceDetector::on_render() const
+{
+    if (m_iva.has_VBOs()) {
+        ::glColor4f(0.f, 0.f, 1.f, 0.4f);
+        m_iva.render();
+    }
+}
+
+void GLGizmoFaceDetector::on_render_input_window(float x, float y, float bottom_limit)
+{
+    if (!m_c->selection_info() || !m_c->selection_info()->model_object())
+        return;
+
+    const float approx_height = m_imgui->scaled(14.0f);
+    y = std::min(y, bottom_limit - approx_height);
+    //BBS: GUI refactor: move gizmo to the right
+#if BBS_TOOLBAR_ON_TOP
+    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always, 0.5f, 0.0f);
+#else
+    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always, 1.0f, 0.0f);
+#endif
+
+    ImGuiWrapper::push_toolbar_style();
+    m_imgui->begin(on_get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+
+    ImGui::PushItemWidth(m_imgui->get_style_scaling() * 150);
+    ImGui::InputDouble("Sample interval", &m_sample_interval, 0.0f, 0.0f, "%.2f");
+
+    bool btn_clicked = m_imgui->button(_L("Perform Recognition"));
+    if (btn_clicked) {
+        perform_recognition(m_parent.get_selection());
+    }
+
+    m_imgui->end();
+    ImGuiWrapper::pop_toolbar_style();
+}
+
+void GLGizmoFaceDetector::on_set_state()
+{
+    if (get_state() == On) {
+        m_iva.release_geometry();
+    }
+}
+
+bool GLGizmoFaceDetector::on_is_activable() const
+{
+    const Selection& selection = m_parent.get_selection();
+    return selection.is_single_full_instance() && !selection.is_wipe_tower();
+}
+
+void GLGizmoFaceDetector::perform_recognition(const Selection& selection)
+{
+    ModelObject* mo = m_c->selection_info()->model_object();
+    FaceDetector face_detector(mo, m_sample_interval);
+    const ModelInstance* mi = mo->instances[0];
+    Vec3d inst_ofs = mi->get_offset();
+
+    face_detector.detect_exterior_face();
+
+    // update vertices to display
+    {
+        int cnt = 0;
+        m_iva.release_geometry();
+
+        for (ModelVolume* mv : mo->volumes) {
+            Vec3d vol_ofs = mv->get_offset();
+            Vec3d ofs = inst_ofs + vol_ofs;
+            for (const stl_facet& facet : mv->mesh().stl.facet_start) {
+                if (facet.extra[0] != eExteriorAppearance)
+                    continue;
+
+                for (int i = 0; i < 3; ++i) {
+                    m_iva.push_geometry(double(facet.vertex[i](0)) + ofs(0),
+                        double(facet.vertex[i](1) + ofs(1)),
+                        double(facet.vertex[i](2) + ofs(2)),
+                        0., 0., 1.);
+                }
+
+                m_iva.push_triangle(cnt, cnt + 1, cnt + 2);
+                cnt += 3;
+            }
+        }
+
+        m_iva.finalize_geometry(true);
+    }
+}
+
+CommonGizmosDataID GLGizmoFaceDetector::on_get_requirements() const
+{
+    return CommonGizmosDataID::SelectionInfo;
+}
+
+} // namespace GUI
+} // namespace Slic3r

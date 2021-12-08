@@ -76,6 +76,8 @@ public:
         Seam,
         MmuSegmentation,
         Simplify,
+        // BBS
+        FaceRecognition
         Undefined
     };
 
