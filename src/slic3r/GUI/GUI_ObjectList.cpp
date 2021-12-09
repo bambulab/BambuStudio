@@ -96,8 +96,8 @@ ObjectList::ObjectList(wxWindow* parent) :
     m_object_org_menu.Append(org_by_module);
 
     //Bind(wxEVT_DATAVIEW_COLUMN_HEADER_CLICK, &ObjectList::OnColumnHeadClicked, this);
-    Bind(wxEVT_MENU, [this](wxCommandEvent& evt) { this->organize_objects(ortByPlate); }, ID_OBJECT_ORG_MENU_ITEM_PLATE);
-    Bind(wxEVT_MENU, [this](wxCommandEvent& evt) { this->organize_objects(ortByModule); }, ID_OBJECT_ORG_MENU_ITEM_MODULE);
+    Bind(wxEVT_MENU, [this](wxCommandEvent& evt) { this->OnOrganizeObjects(ortByPlate); }, ID_OBJECT_ORG_MENU_ITEM_PLATE);
+    Bind(wxEVT_MENU, [this](wxCommandEvent& evt) { this->OnOrganizeObjects(ortByModule); }, ID_OBJECT_ORG_MENU_ITEM_MODULE);
 
     // describe control behavior 
     Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxDataViewEvent& event) {
@@ -632,9 +632,47 @@ void ObjectList::OnColumnHeadClicked(wxDataViewEvent& event)
     }
 }
 
-void ObjectList::organize_objects(OBJECT_ORGANIZE_TYPE type)
+void ObjectList::OnOrganizeObjects(OBJECT_ORGANIZE_TYPE type)
 {
     printf("%d\n", type);
+}
+
+void ObjectList::object_config_options_changed(const ObjectVolumeID& ov_id)
+{
+    if (ov_id.object == nullptr)
+        return;
+
+    ModelObjectPtrs& objects = wxGetApp().model().objects;
+    ModelObject* mo = ov_id.object;
+    ModelVolume* mv = ov_id.volume;
+
+    wxDataViewItem obj_item = m_objects_model->GetObjectItem(mo);
+    if (mv != nullptr) {
+        size_t vol_idx;
+        for (vol_idx = 0; vol_idx < mo->volumes.size(); vol_idx++) {
+            if (mo->volumes[vol_idx] == mv)
+                break;
+        }
+        assert(vol_idx < mo->volumes.size());
+
+        SettingsFactory::Bundle cat_options = SettingsFactory::get_bundle(&mv->config.get(), false);
+        wxDataViewItem vol_item = m_objects_model->GetVolumeItem(obj_item, vol_idx);
+        if (cat_options.size() > 0) {
+            add_settings_item(vol_item, &mv->config.get());
+        }
+        else {
+            m_objects_model->DeleteSettings(vol_item);
+        }
+    }
+    else {
+        SettingsFactory::Bundle cat_options = SettingsFactory::get_bundle(&mo->config.get(), true);
+        if (cat_options.size() > 0) {
+            add_settings_item(obj_item, &mo->config.get());
+        }
+        else {
+            m_objects_model->DeleteSettings(obj_item);
+        }
+    }
 }
 
 void ObjectList::update_objects_list_extruder_column(size_t extruders_count)
@@ -1441,6 +1479,7 @@ void ObjectList::add_category_to_settings_from_frequent(const std::vector<std::s
     // Add settings item for object/sub-object and show them 
     if (!(item_type & (itPlate | itObject | itVolume | itLayer)))
         item = m_objects_model->GetObject(item);
+
     show_settings(add_settings_item(item, &m_config->get()));
 }
 
@@ -3704,6 +3743,52 @@ void ObjectList::select_item(std::function<wxDataViewItem()> get_item)
     }
 
     m_prevent_list_events = false;
+}
+
+// BBS
+void ObjectList::select_item(const ObjectVolumeID& ov_id)
+{
+    std::vector<ObjectVolumeID> ov_ids;
+    ov_ids.push_back(ov_id);
+    select_items(ov_ids);
+}
+
+void ObjectList::select_items(const std::vector<ObjectVolumeID>& ov_ids)
+{
+    ModelObjectPtrs& objects = wxGetApp().model().objects;
+
+    wxDataViewItemArray sel_items;
+    for (auto ov_id : ov_ids) {
+        if (ov_id.object == nullptr)
+            continue;
+
+        ModelObject* mo = ov_id.object;
+        ModelVolume* mv = ov_id.volume;
+
+        wxDataViewItem obj_item = m_objects_model->GetObjectItem(mo);
+        if (mv != nullptr) {
+            size_t vol_idx;
+            for (vol_idx = 0; vol_idx < mo->volumes.size(); vol_idx++) {
+                if (mo->volumes[vol_idx] == mv)
+                    break;
+            }
+            assert(vol_idx < mo->volumes.size());
+
+            wxDataViewItem vol_item = m_objects_model->GetVolumeItem(obj_item, vol_idx);
+            if (vol_item.GetID() != nullptr) {
+                sel_items.push_back(vol_item);
+            }
+            else {
+                sel_items.push_back(obj_item);
+            }
+        }
+        else {
+            sel_items.push_back(obj_item);
+        }
+    }
+
+    select_items(sel_items);
+    selection_changed();
 }
 
 void ObjectList::select_items(const wxDataViewItemArray& sels)

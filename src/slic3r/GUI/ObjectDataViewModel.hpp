@@ -9,6 +9,7 @@
 
 namespace Slic3r {
 class ModelObject;
+class ModelVolume;
 enum class ModelVolumeType : int;
 
 namespace GUI {
@@ -87,6 +88,8 @@ class ObjectDataViewModelNode
     std::string                     m_action_icon_name = "";
     ModelVolumeType                 m_volume_type;
     InfoItemType                    m_info_item_type {InfoItemType::Undef};
+
+public:
     PartPlate*                      m_part_plate;
     ModelObject*                    m_model_object;
 
@@ -391,7 +394,9 @@ public:
     wxDataViewItem  GetInstanceRootItem(const wxDataViewItem &item) const;
     wxDataViewItem  GetLayerRootItem(const wxDataViewItem &item) const;
     wxDataViewItem  GetInfoItemByType(const wxDataViewItem &parent_item, InfoItemType type) const;
-
+    // BBS
+    wxDataViewItem  GetObjectItem(const ModelObject* mo) const;
+    wxDataViewItem  GetVolumeItem(const wxDataViewItem& parent, int vol_idx) const;
     bool    IsSettingsItem(const wxDataViewItem &item) const;
     void    UpdateSettingsDigest(   const wxDataViewItem &item,
                                     const std::vector<std::string>& categories);

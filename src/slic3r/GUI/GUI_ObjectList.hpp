@@ -40,6 +40,13 @@ typedef std::map<t_layer_height_range, ModelConfig> t_layer_config_ranges;
 #define FIX_THROUGH_NETFABB_ALWAYS 1
 
 namespace GUI {
+struct ObjectVolumeID {
+    ModelObject* object{ nullptr };
+    ModelVolume* volume{ nullptr };
+};
+
+typedef Event<ObjectVolumeID> ObjectSettingEvent;
+
 class PartPlate;
 
 wxDECLARE_EVENT(EVT_OBJ_LIST_OBJECT_SELECT, SimpleEvent);
@@ -359,6 +366,9 @@ public:
     void select_item(const wxDataViewItem& item);
     void select_item(std::function<wxDataViewItem()> get_item);
     void select_items(const wxDataViewItemArray& sels);
+    // BBS
+    void select_item(const ObjectVolumeID& ov_id);
+    void select_items(const std::vector<ObjectVolumeID>& ov_ids);
     void select_all();
     void select_item_all_children();
     void update_selection_mode();
@@ -409,6 +419,7 @@ public:
     void on_plate_deleted(int plate_index);
     void reload_all_plates();
     void on_plate_selected(int plate_index);
+    void object_config_options_changed(const ObjectVolumeID& ov_id);
 
 private:
 #ifdef __WXOSX__
@@ -431,7 +442,7 @@ private:
 
     // BBS
     void OnColumnHeadClicked(wxDataViewEvent& event);
-    void organize_objects(OBJECT_ORGANIZE_TYPE type);
+    void OnOrganizeObjects(OBJECT_ORGANIZE_TYPE type);
     wxMenu m_object_org_menu;
 };
 

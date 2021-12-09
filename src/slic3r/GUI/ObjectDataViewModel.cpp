@@ -1824,6 +1824,29 @@ wxDataViewItem ObjectDataViewModel::GetLayerRootItem(const wxDataViewItem &item)
     return GetItemByType(item, itLayerRoot);
 }
 
+
+wxDataViewItem  ObjectDataViewModel::GetObjectItem(const ModelObject* mo) const
+{
+    for (auto object_node : m_objects) {
+        if (object_node->m_model_object == mo) {
+            return wxDataViewItem(object_node);
+        }
+    }
+
+    return wxDataViewItem(nullptr);
+}
+
+wxDataViewItem  ObjectDataViewModel::GetVolumeItem(const wxDataViewItem& parent, int vol_idx) const
+{
+    ObjectDataViewModelNode* obj_node = (ObjectDataViewModelNode*)parent.GetID();
+    for (auto child : obj_node->GetChildren()) {
+        if (child->GetType() == itVolume && child->GetIdx() == vol_idx)
+            return wxDataViewItem(child);
+    }
+
+    return wxDataViewItem(nullptr);
+}
+
 wxDataViewItem ObjectDataViewModel::GetInfoItemByType(const wxDataViewItem &parent_item, InfoItemType type) const
 {
     if (! parent_item.IsOk())
