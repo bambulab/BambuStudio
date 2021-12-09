@@ -1140,7 +1140,7 @@ namespace Slic3r {
                 add_error("Error while extract gcode file to temp directory");
                 return;
             }
-            m_gcode_files.push_back(dest_zip_file);
+            m_gcode_files.push_back(dest_file.c_str());
         }
 
         return ;
