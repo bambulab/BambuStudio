@@ -126,7 +126,7 @@ std::string MarkdownTip::LoadTip(std::string const& tip)
 {
     auto old = var_dir();
     set_var_dir(data_dir());
-    auto file = var("tooltip/" + tip + ".md");
+    auto file = encode_path(var("tooltip/" + tip + ".md").c_str());
     wxFile f;
     set_var_dir(old);
     if (wxFile::Exists(file) && f.Open(file)) {
@@ -153,14 +153,14 @@ std::string MarkdownTip::LoadTip(std::string const& tip)
     }
     */
     set_var_dir(resources_dir());
-    file = var("tooltip/" + tip + ".md");
+    file = encode_path(var("tooltip/" + tip + ".md").c_str());
     set_var_dir(old);
     if (wxFile::Exists(file) && f.Open(file)) {
         std::string content(f.Length(), 0);
         f.Read(&content[0], content.size());
         return content;
     }
-    return _tipView->GetParent() == this && tip.empty() ? "" : LoadTip("");
+    return (_tipView->GetParent() == this && tip.empty()) ? "" : LoadTip("");
 }
 
 void MarkdownTip::RunScript(std::string const& script)
@@ -224,7 +224,7 @@ wxWebView* MarkdownTip::CreateTipView(wxWindow* parent)
         return new FakeWebView;
     auto old = var_dir();
     set_var_dir(resources_dir());
-    auto url = var("tooltip/styled.html");
+    auto url = encode_path(var("tooltip/styled.html").c_str());
     std::replace(url.begin(), url.end(), '\\', '/');
     url = "file:///" + url;
     set_var_dir(old);
