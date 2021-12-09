@@ -167,7 +167,7 @@ void Selection::add(unsigned int volume_idx, bool as_single_selection, bool chec
     needs_reset |= is_any_modifier() && !volume->is_modifier;
 
     if (!already_contained || needs_reset) {
-        wxGetApp().plater()->take_snapshot(_L("Selection-Add"), UndoRedo::SnapshotType::Selection);
+        wxGetApp().plater()->take_snapshot(_L("Selection-Add!"), UndoRedo::SnapshotType::Selection);
 
         if (needs_reset)
             clear();
@@ -419,7 +419,7 @@ void Selection::remove_all()
 // Not taking the snapshot with non-empty Redo stack will likely be more confusing than losing the Redo stack.
 // Let's wait for user feedback.
 //    if (!wxGetApp().plater()->can_redo())
-        wxGetApp().plater()->take_snapshot(_L("Selection-Remove All"), UndoRedo::SnapshotType::Selection);
+        wxGetApp().plater()->take_snapshot(_L("Selection-Remove All!"), UndoRedo::SnapshotType::Selection);
 
     m_mode = Instance;
     clear();

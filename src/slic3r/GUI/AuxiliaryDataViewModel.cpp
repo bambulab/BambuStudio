@@ -1,4 +1,7 @@
 #include "AuxiliaryDataViewModel.hpp"
+#include "libslic3r/libslic3r.h"
+#include "libslic3r/Model.hpp"
+#include "libslic3r/Format/bbs_3mf.hpp"
 
 const static std::array<wxString, 4> s_default_folders = {
     _L("Model Pictures"),
@@ -59,6 +62,19 @@ void AuxiliaryModel::Reload(wxString aux_path)
     // Check new path. If not exist, create a new one.
     if (!fs::exists(new_aux_path)) {
         fs::create_directory(new_aux_path);
+        // Create default folders if they are not loaded
+        wxDataViewItemArray default_items;
+        for (auto folder : s_default_folders) {
+            wxString folder_path = aux_path + "\\" + folder;
+            if (fs::exists(folder_path.ToStdWstring())) continue;
+
+            fs::create_directory(folder_path.ToStdWstring());
+            AuxiliaryModelNode *node = new AuxiliaryModelNode(m_root,
+                                                              folder_path,
+                                                              true);
+            default_items.Add(wxDataViewItem(node));
+        }
+        ItemsAdded(wxDataViewItem(nullptr), default_items);
         return;
     }
 
@@ -286,10 +302,12 @@ wxDataViewItem AuxiliaryModel::ImportFile(AuxiliaryModelNode* sel, wxString file
         dir_path += "\\" + sel->name;
     dir_path += "\\" + src_bfs_path.filename().generic_wstring();
 
-    fs::copy_file(
+    boost::system::error_code ec;
+    if (!fs::copy_file(
         src_bfs_path,
         fs::path(dir_path.ToStdWstring()),
-        fs::copy_option::overwrite_if_exists);
+        fs::copy_option::overwrite_if_exists, ec))
+        return wxDataViewItem(nullptr);
 
     // Update model data
     AuxiliaryModelNode* file = new AuxiliaryModelNode(parent, dir_path, false);
@@ -298,6 +316,7 @@ wxDataViewItem AuxiliaryModel::ImportFile(AuxiliaryModelNode* sel, wxString file
     wxDataViewItem file_item(file);
     if (parent == m_root)
         parent = nullptr;
+    Slic3r::put_other_changes();
     wxDataViewItem parent_item(parent);
     ItemAdded(parent_item, file_item);
     return file_item;
@@ -313,7 +332,6 @@ void AuxiliaryModel::Delete(const wxDataViewItem& item)
     if (node->IsContainer()) {
         fs::path bfs_path((m_root_dir + "\\" + node->name).ToStdWstring());
         is_done = fs::remove_all(bfs_path);
-        return;
     }
     else {
         fs::path bfs_path(node->path.ToStdWstring());
@@ -325,6 +343,7 @@ void AuxiliaryModel::Delete(const wxDataViewItem& item)
 
     node->GetParent()->GetChildren().Remove(node);
 
+    Slic3r::put_other_changes();
     wxDataViewItem parent_item = GetParent(item);
     ItemDeleted(parent_item, item);
     delete node;
@@ -377,6 +396,7 @@ void AuxiliaryModel::MoveItem(const wxDataViewItem& dropped_item, const wxDataVi
     dragged->path = new_path;
 
     // Notify wxDataViewCtrl to update ui
+    Slic3r::put_other_changes();
     ItemDeleted(old_parent_item, wxDataViewItem(dragged));
     ItemAdded(wxDataViewItem(target_folder == m_root ? nullptr : target_folder), wxDataViewItem(dragged));
 }
@@ -407,6 +427,7 @@ bool AuxiliaryModel::Rename(const wxDataViewItem& item, const wxString& name)
     if (err.failed())
         return false;
 
+    Slic3r::put_other_changes();
     node->name = name;
     return true;
 }

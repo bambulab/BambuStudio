@@ -3639,6 +3639,8 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
         apply_config_from_cache();
 
         load_current_preset();
+        //backup
+        Slic3r::put_other_changes();
     }
 
     if (technology_changed)

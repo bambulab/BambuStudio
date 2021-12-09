@@ -1793,7 +1793,7 @@ struct Plater::priv
     Slic3r::UndoRedo::Stack& undo_redo_stack() { assert(m_undo_redo_stack_active != nullptr); return *m_undo_redo_stack_active; }
     Slic3r::UndoRedo::Stack& undo_redo_stack_main() { return m_undo_redo_stack_main; }
     void enter_gizmos_stack();
-    void leave_gizmos_stack();
+    bool leave_gizmos_stack();
 
     void take_snapshot(const std::string& snapshot_name, UndoRedo::SnapshotType snapshot_type = UndoRedo::SnapshotType::Action);
     void take_snapshot(const wxString& snapshot_name, UndoRedo::SnapshotType snapshot_type = UndoRedo::SnapshotType::Action)
@@ -5430,14 +5430,17 @@ void Plater::priv::enter_gizmos_stack()
     }
 }
 
-void Plater::priv::leave_gizmos_stack()
+bool Plater::priv::leave_gizmos_stack()
 {
+    bool changed = false;
     assert(m_undo_redo_stack_active == &m_undo_redo_stack_gizmos);
     if (m_undo_redo_stack_active == &m_undo_redo_stack_gizmos) {
         assert(! m_undo_redo_stack_active->empty());
+        changed = m_undo_redo_stack_gizmos.has_undo_snapshot();
         m_undo_redo_stack_active->clear();
         m_undo_redo_stack_active = &m_undo_redo_stack_main;
     }
+    return changed;
 }
 
 int Plater::priv::get_active_snapshot_index()
@@ -5541,7 +5544,7 @@ bool Plater::priv::up_to_date(bool saved, bool backup)
         return true;
     }
     else {
-        return last_time == undo_redo_stack().active_snapshot_time();
+        return !undo_redo_stack().has_real_change_from(last_time);
     }
 }
 
@@ -5795,6 +5798,8 @@ void Plater::load_project()
     get_partplate_list().reinit();
     get_partplate_list().update_slice_context_to_current_plate(p->background_process);
     p->reset();
+    get_partplate_list().select_plate(0);
+    p->load_auxiliary_files();
 
     Plater::TakeSnapshot snapshot(this, _L("New Project"));
 
@@ -6014,7 +6019,9 @@ void Plater::request_download_project(std::string project_id)
 // BBS: save logic
 bool Plater::up_to_date(bool saved, bool backup)
 {
-    return p->up_to_date(saved, backup);
+    if (saved) return p->up_to_date(saved, backup);
+    return p->model.objects.empty() || (p->up_to_date(saved, backup) &&
+                                        !Slic3r::has_other_changes(backup));
 }
 
 void Plater::add_model(bool imperial_units/* = false*/)
@@ -8156,7 +8163,7 @@ PartPlateList& Plater::get_partplate_list()
 int Plater::select_plate(int plate_index, bool need_slice)
 {
     int ret;
-    take_snapshot(_L("select partplate"));
+    take_snapshot(_L("select partplate!"));
     ret = p->partplate_list.select_plate(plate_index);
     if (!ret) {
         if (is_view3D_shown())
@@ -8271,7 +8278,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
     if (action == 0)
     {
         //select plate
-        take_snapshot(_L("select partplate"));
+        take_snapshot(_L("select partplate!"));
         ret = p->partplate_list.select_plate(plate_index);
         if ((!ret)&&(p->background_process.can_switch_print()))
         {
@@ -8552,7 +8559,7 @@ bool Plater::can_scale_to_print_volume() const { return p->can_scale_to_print_vo
 const UndoRedo::Stack& Plater::undo_redo_stack_main() const { return p->undo_redo_stack_main(); }
 void Plater::clear_undo_redo_stack_main() { p->undo_redo_stack_main().clear(); }
 void Plater::enter_gizmos_stack() { p->enter_gizmos_stack(); }
-void Plater::leave_gizmos_stack() { p->leave_gizmos_stack(); }
+bool Plater::leave_gizmos_stack() { return p->leave_gizmos_stack(); } // BBS: return false if not changed
 bool Plater::inside_snapshot_capture() { return p->inside_snapshot_capture(); }
 
 void Plater::toggle_render_statistic_dialog()

@@ -27,6 +27,27 @@ GLGizmoPainterBase::GLGizmoPainterBase(GLCanvas3D& parent, const std::string& ic
     m_vbo_sphere.finalize_geometry(true);
 }
 
+void GLGizmoPainterBase::activate_internal_undo_redo_stack(bool activate)
+{
+    if (activate && ! m_internal_stack_active) {
+        wxString str = get_painter_type() == PainterGizmoType::FDM_SUPPORTS
+                           ? _L("Entering Paint-on supports!")
+                           : _L("Entering Seam painting!");
+        Plater::TakeSnapshot(wxGetApp().plater(), str);
+        wxGetApp().plater()->enter_gizmos_stack();
+        m_internal_stack_active = true;
+    }
+    if (! activate && m_internal_stack_active) {
+        wxString str = get_painter_type() == PainterGizmoType::SEAM
+                           ? _L("Leaving Seam painting")
+                           : _L("Leaving Paint-on supports");
+        // BBS: backup and restore
+        if (!wxGetApp().plater()->leave_gizmos_stack()) str += '!';
+        Plater::TakeSnapshot(wxGetApp().plater(), str);
+        m_internal_stack_active = false;
+    }
+}
+
 void GLGizmoPainterBase::set_painter_gizmo_data(const Selection& selection)
 {
     if (m_state != On)

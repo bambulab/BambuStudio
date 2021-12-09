@@ -4284,6 +4284,8 @@ public:
         }
         m_tasks.push_back({ RemoveBackup, removeAll, model.get_backup_path() });
         ++m_task_seq;
+        m_other_changes = false;
+        m_other_changes_backup = false;
         m_cond.notify_all();
         lock.unlock();
         for (auto& t : canceled_tasks) {
@@ -4302,11 +4304,12 @@ public:
     void put_other_changes()
     {
         m_other_changes = true;
+        m_other_changes_backup = true;
     }
 
-    bool has_other_changes()
+    bool has_other_changes(bool backup)
     {
-        return m_other_changes == true;
+        return backup ? m_other_changes_backup : m_other_changes;
     }
 
 private:
@@ -4387,7 +4390,7 @@ private:
                     timer t("backup cost");
                     callback(1);
                 }
-                m_other_changes = false;
+                m_other_changes_backup = false;
                 break;
             }
             case AddObject: {
@@ -4426,11 +4429,9 @@ private:
             }
             case RemoveBackup: {
                 try {
+                    boost::filesystem::remove(t.path + "/.3mf");
                     if (t.id) { // remove all
                         boost::filesystem::remove_all(t.path);
-                    }
-                    else {
-                        boost::filesystem::remove(t.path + "/.3mf");
                     }
                 }
                 catch (...) {
@@ -4513,6 +4514,7 @@ private:
     boost::system_time m_next_backup;
     Model m_temp_model; // visit only in main thread
     bool m_other_changes = false; // visit only in main thread
+    bool m_other_changes_backup = false; // visit only in main thread
     std::vector<std::pair<ModelObject*, size_t>> m_gaurd_objects;
 };
 
@@ -4626,9 +4628,9 @@ void put_other_changes()
     _BBS_Backup_Manager::get().put_other_changes();
 }
 
-bool has_other_changes()
+bool has_other_changes(bool backup)
 {
-    return _BBS_Backup_Manager::get().has_other_changes();
+    return _BBS_Backup_Manager::get().has_other_changes(backup);
 }
 
 SaveObjectGaurd::SaveObjectGaurd(ModelObject& object)

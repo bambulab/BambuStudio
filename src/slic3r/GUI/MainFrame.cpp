@@ -368,7 +368,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                 wxPostEvent(this, wxCommandEvent(EVT_BACKUP_POST));
             }
             else if (action == 1) {
-                if (!m_plater->up_to_date(false, true) || Slic3r::has_other_changes()) {
+                if (!m_plater->up_to_date(false, true)) {
                     m_plater->export_3mf(into_path(m_plater->model().get_backup_path() + "/.3mf"), true, true);
                     m_plater->up_to_date(true, true);
                 }

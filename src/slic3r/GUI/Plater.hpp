@@ -327,7 +327,8 @@ public:
     void clear_undo_redo_stack_main();
     // Enter / leave the Gizmos specific Undo / Redo stack. To be used by the SLA support point editing gizmo.
     void enter_gizmos_stack();
-    void leave_gizmos_stack();
+    // BBS: return false if not changed
+    bool leave_gizmos_stack();
 
     void on_extruders_change(size_t extruders_count);
     bool update_filament_colors_in_full_config();

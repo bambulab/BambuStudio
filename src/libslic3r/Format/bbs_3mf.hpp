@@ -103,7 +103,7 @@ extern bool has_restore_data(std::string & path, std::string & origin);
 
 extern void put_other_changes();
 
-extern bool has_other_changes();
+extern bool has_other_changes(bool backup);
 
 class SaveObjectGaurd {
 public:

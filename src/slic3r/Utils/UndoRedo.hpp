@@ -162,6 +162,8 @@ public:
     void   mark_current_as_saved();
     // Is the project modified with regard to the last "saved" state marked with mark_current_as_saved()?
     bool   project_modified() const;
+	// BBS: backup and restore
+	bool has_real_change_from(size_t time) const;
 
 	// After load_snapshot() / undo() / redo() the selection is deserialized into a list of ObjectIDs, which needs to be converted
 	// into the list of GLVolume pointers once the 3D scene is updated.
