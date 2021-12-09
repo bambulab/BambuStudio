@@ -100,6 +100,8 @@ set(lisbslic3r_sources
     Format/OBJ.hpp
     Format/objparser.cpp
     Format/objparser.hpp
+    Format/STEP.cpp
+    Format/STEP.hpp
     Format/STL.cpp
     Format/STL.hpp
     Format/SL1.hpp
@@ -359,6 +361,41 @@ encoding_check(libslic3r)
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(libslic3r PUBLIC ${EXPAT_INCLUDE_DIRS})
+
+# Find the OCCT and related libraries
+set(OpenCASCADE_DIR "${CMAKE_PREFIX_PATH}/lib/cmake/occt")
+find_package(OpenCASCADE REQUIRED)
+target_include_directories(libslic3r PUBLIC ${OpenCASCADE_INCLUDE_DIR})
+
+set(OCCT_LIBS
+    TKXDESTEP
+    TKSTEP
+    TKSTEP209
+    TKSTEPAttr
+    TKSTEPBase
+    TKXCAF
+    TKXSBase
+    TKVCAF
+    TKCAF
+    TKLCAF
+    TKCDF
+    TKV3d
+    TKService
+    TKMesh
+    TKBO
+    TKPrim
+    TKHLR
+    TKShHealing
+    TKTopAlgo
+    TKGeomAlgo
+    TKBRep
+    TKGeomBase
+    TKG3d
+    TKG2d
+    TKMath
+    TKernel
+)
+
 target_link_libraries(libslic3r
     libnest2d
     admesh
@@ -377,6 +414,7 @@ target_link_libraries(libslic3r
     ${CMAKE_DL_LIBS}
     PNG::PNG
     ZLIB::ZLIB
+    ${OCCT_LIBS}
     )
 
 if (TARGET OpenVDB::openvdb)

@@ -6450,7 +6450,7 @@ void Plater::priv::show_sliced_info(const bool show)
 
 bool Plater::load_files(const wxArrayString& filenames)
 {
-    const std::regex pattern_drop(".*[.](stl|obj|amf|3mf|prusa)", std::regex::icase);
+    const std::regex pattern_drop(".*[.](stp|step|stl|obj|amf|3mf|prusa)", std::regex::icase);
     const std::regex pattern_gcode_drop(".*[.](gcode|g)", std::regex::icase);
 
     std::vector<fs::path> paths;

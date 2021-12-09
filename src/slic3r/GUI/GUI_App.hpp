@@ -61,6 +61,7 @@ struct GUI_InitParams;
 
 enum FileType
 {
+    FT_STEP,
     FT_STL,
     FT_OBJ,
     FT_AMF,

@@ -575,11 +575,67 @@ function(prusaslicer_copy_dlls target config postfix output_dlls)
             ${CMAKE_PREFIX_PATH}/bin/TutkSource.dll
         DESTINATION ${_out_dir})
 
+    file(COPY ${CMAKE_PREFIX_PATH}/bin/occt/TKBO.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKBRep.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKCAF.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKCDF.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKernel.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKG2d.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKG3d.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKGeomAlgo.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKGeomBase.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKHLR.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKLCAF.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKMath.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKMesh.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKPrim.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKService.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKShHealing.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKSTEP.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKSTEP209.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKSTEPAttr.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKSTEPBase.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKTopAlgo.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKV3d.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKVCAF.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKXCAF.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKXDESTEP.dll
+            ${CMAKE_PREFIX_PATH}/bin/occt/TKXSBase.dll
+         DESTINATION ${_out_dir})
+
     set(${output_dlls}
         ${_out_dir}/libgmp-10.dll
         ${_out_dir}/libmpfr-4.dll
         ${_out_dir}/WebView2Loader.dll
         ${_out_dir}/TutkSource.dll
+
+        ${_out_dir}/TKBO.dll
+        ${_out_dir}/TKBRep.dll
+        ${_out_dir}/TKCAF.dll
+        ${_out_dir}/TKCDF.dll
+        ${_out_dir}/TKernel.dll
+        ${_out_dir}/TKG2d.dll
+        ${_out_dir}/TKG3d.dll
+        ${_out_dir}/TKGeomAlgo.dll
+        ${_out_dir}/TKGeomBase.dll
+        ${_out_dir}/TKHLR.dll
+        ${_out_dir}/TKLCAF.dll
+        ${_out_dir}/TKMath.dll
+        ${_out_dir}/TKMesh.dll
+        ${_out_dir}/TKPrim.dll
+        ${_out_dir}/TKService.dll
+        ${_out_dir}/TKShHealing.dll
+        ${_out_dir}/TKSTEP.dll
+        ${_out_dir}/TKSTEP209.dll
+        ${_out_dir}/TKSTEPAttr.dll
+        ${_out_dir}/TKSTEPBase.dll
+        ${_out_dir}/TKTopAlgo.dll
+        ${_out_dir}/TKV3d.dll
+        ${_out_dir}/TKVCAF.dll
+        ${_out_dir}/TKXCAF.dll
+        ${_out_dir}/TKXDESTEP.dll
+        ${_out_dir}/TKXSBase.dll
+
         PARENT_SCOPE
     )
     

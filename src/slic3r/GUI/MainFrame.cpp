@@ -1659,7 +1659,7 @@ void MainFrame::init_menubar_as_editor()
         fileMenu->AppendSeparator();
 
         wxMenu* import_menu = new wxMenu();
-        append_menu_item(import_menu, wxID_ANY, _L("Import STL/OBJ/AM&F/3MF") + dots + "\tCtrl+I", _L("Load a model"),
+        append_menu_item(import_menu, wxID_ANY, _L("Import STL/STEP/OBJ/AM&F/3MF") + dots + "\tCtrl+I", _L("Load a model"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(); }, "import_plater", nullptr,
             [this](){return m_plater != nullptr; }, this);
         
@@ -2090,7 +2090,7 @@ void MainFrame::quick_slice(const int qs)
 
     // select input file
     if (!(qs & qsReslice)) {
-        wxFileDialog dlg(this, _L("Choose a file to slice (STL/OBJ/AMF/3MF/PRUSA):"),
+        wxFileDialog dlg(this, _L("Choose a file to slice (STL/STEP/OBJ/AMF/3MF/PRUSA):"),
             wxGetApp().app_config->get_last_dir(), "",
             file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         if (dlg.ShowModal() != wxID_OK)

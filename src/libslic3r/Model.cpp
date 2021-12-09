@@ -14,6 +14,7 @@
 #include "Format/OBJ.hpp"
 #include "Format/STL.hpp"
 #include "Format/3mf.hpp"
+#include "Format/STEP.hpp"
 
 #include "libslic3r/Geometry/ConvexHull.hpp"
 
@@ -139,7 +140,10 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
         is_bbl_3mf = &temp_is_bbl_3mf;
 
     bool result = false;
-    if (boost::algorithm::iends_with(input_file, ".stl"))
+    if (boost::algorithm::iends_with(input_file, ".stp") ||
+        boost::algorithm::iends_with(input_file, ".step"))
+        result = load_step(input_file.c_str(), &model);
+    else if (boost::algorithm::iends_with(input_file, ".stl"))
         result = load_stl(input_file.c_str(), &model);
     else if (boost::algorithm::iends_with(input_file, ".obj"))
         result = load_obj(input_file.c_str(), &model);
