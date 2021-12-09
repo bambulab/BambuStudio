@@ -80,7 +80,7 @@ void GcodePrintJob::process()
     fs::path gcode_path(m_gcode_file_str);
     fs::path _3mf_path(gcode_path);
 
-    std::string dst_gcode_file_str = "Metadata/" + gcode_path.filename().string();
+    std::string dst_gcode_file_str = "Metadata/run_gcode.gcode";
 
     /* zip gcode to 3mf */
     std::string _3mf_file_str = _3mf_path.replace_extension("3mf").string();
@@ -92,9 +92,14 @@ void GcodePrintJob::process()
     }
 
     update_status(3, "prepare 3mf file");
-    mz_zip_writer_add_file(&archive, dst_gcode_file_str.c_str(), m_gcode_file_str.c_str(), "", 0, MZ_DEFAULT_COMPRESSION);
-    mz_zip_writer_finalize_archive(&archive);
-    close_zip_writer(&archive);
+    std::string src_file_str = encode_path(m_gcode_file_str.c_str());
+    bool result = mz_zip_writer_add_file(&archive, dst_gcode_file_str.c_str(), src_file_str.c_str(), "", 0, MZ_DEFAULT_COMPRESSION);
+    result &= mz_zip_writer_finalize_archive(&archive);
+    result &= close_zip_writer(&archive);
+    if (!result) {
+        update_status(0, "create 3mf failed!");
+        return;
+    }
 
     BBLProject* project = new BBLProject("gcode_project", BBLProject::ProjectType::PROJECT_3MF);
     project->project_3mf_file = _3mf_file_str;
@@ -141,8 +146,10 @@ void GcodePrintJob::process()
 
     /* upload and poll */
     BOOST_LOG_TRIVIAL(trace) << "print_job: start to uploading...";
+    int* result_ptr = &res;
     res = account_manager->upload_3mf(profile,
-    [this](int result, std::string info) {
+    [this, result_ptr](int result, std::string info) {
+            *result_ptr = result;
         if (result == 0) {
             update_status(80, "upload 3mf ok!");
         }
@@ -164,7 +171,7 @@ void GcodePrintJob::process()
     },
     true);
 
-    if (res < 0) {
+    if (res < 0 || *result_ptr < 0) {
         update_status(0, "3mf uploading failed!");
         return;
     }
