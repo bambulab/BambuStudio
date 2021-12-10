@@ -36,7 +36,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 	bSizer_lan->Add( cb_device_list, 0, wxALL, 5 );
 
-	m_bpButton_search = new wxBitmapButton( this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|0 );
+	m_bpButton_search = new wxBitmapButton( this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize( -1,-1 ), wxBU_AUTODRAW|0 );
 	bSizer_lan->Add( m_bpButton_search, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
 	btn_refresh_device_list = new wxButton( this, wxID_ANY, wxT("REFRESH"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -244,10 +244,9 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 	bSizer151->Add( label_upload_progress1, 0, wxALL, 5 );
 
-	m_status_bar = std::make_shared<BBLStatusBar>(m_panel_run_gcode);
+    m_status_bar = std::make_shared<BBLStatusBar>(m_panel_run_gcode);
     m_panel_status = m_status_bar->get_panel();
     bSizer151->Add( m_panel_status, 1, wxEXPAND | wxALL, 0 );
-
 
 
 	bSizer331->Add( bSizer151, 0, wxEXPAND, 5 );
@@ -868,6 +867,30 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 	bSizer321->Add( gSizer5, 0, 0, 5 );
 
+
+	bSizer321->Add( 0, 15, 0, 0, 0 );
+
+	wxBoxSizer* bSizer36;
+	bSizer36 = new wxBoxSizer( wxHORIZONTAL );
+
+	m_button_ams_0 = new wxButton( m_panel_ams, wxID_ANY, wxT("Switch AMS 0"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer36->Add( m_button_ams_0, 0, wxALL, 10 );
+
+	m_button_ams_1 = new wxButton( m_panel_ams, wxID_ANY, wxT("Switch AMS 1"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer36->Add( m_button_ams_1, 0, wxALL, 10 );
+
+	m_button_ams_2 = new wxButton( m_panel_ams, wxID_ANY, wxT("Switch AMS 2"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer36->Add( m_button_ams_2, 0, wxALL, 10 );
+
+	m_button_ams_3 = new wxButton( m_panel_ams, wxID_ANY, wxT("Switch AMS 3"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer36->Add( m_button_ams_3, 0, wxALL, 10 );
+
+	m_button_ams_255 = new wxButton( m_panel_ams, wxID_ANY, wxT("AMS Return"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer36->Add( m_button_ams_255, 0, wxALL, 10 );
+
+
+	bSizer321->Add( bSizer36, 0, 0, 10 );
+
 	m_dataViewCtrl_ams = new wxDataViewCtrl( m_panel_ams, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer321->Add( m_dataViewCtrl_ams, 0, wxALL, 5 );
 
@@ -911,14 +934,8 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 	this->SetSizer( bSizer_top );
 	this->Layout();
-
-	// Connect Events
-	m_bpButton_search->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( DebugToolPanel::on_device_search ), NULL, this );
 }
 
 DebugToolPanel::~DebugToolPanel()
 {
-	// Disconnect Events
-	m_bpButton_search->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( DebugToolPanel::on_device_search ), NULL, this );
-
 }

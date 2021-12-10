@@ -207,15 +207,18 @@ namespace Slic3r
 				wxCheckBox* cbox_ams_auto_home;
 				wxButton* m_button_ams_pause;
 				wxButton* m_button_ams_resume;
+				wxButton* m_button_ams_0;
+				wxButton* m_button_ams_1;
+				wxButton* m_button_ams_2;
+				wxButton* m_button_ams_3;
+				wxButton* m_button_ams_255;
 				wxDataViewCtrl* m_dataViewCtrl_ams;
 				wxPanel* m_panel_log;
 				wxStaticText* m_staticText_log;
 				wxTextCtrl* txt_string_info;
 
-				std::shared_ptr<BBLStatusBar> m_status_bar;
 
-				// Virtual event handlers, override them in your derived class
-				virtual void on_device_search( wxCommandEvent& event ) { event.Skip(); }
+				std::shared_ptr<BBLStatusBar> m_status_bar;
 
 
 			public:

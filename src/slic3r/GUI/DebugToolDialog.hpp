@@ -128,6 +128,8 @@ public:
         public:
             DebugToolDialog(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(800, 600), long style = wxTAB_TRAVERSAL);
 
+            ~DebugToolDialog();
+
             bool Show(bool show);
 
             int publish_json(std::string json_str);

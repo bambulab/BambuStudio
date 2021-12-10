@@ -512,6 +512,11 @@ void DeviceSearchDialog::update_list()
     init_bind_handler();
 }
 
+    DebugToolDialog::~DebugToolDialog()
+    {
+        ;
+    }
+
 void DebugToolDialog::init()
 {
     m_search_img = create_scaled_bitmap("search", nullptr, 24);
@@ -956,6 +961,28 @@ void DebugToolDialog::init()
         std::string gcode = this->switch_ams_gcode(txt_switch_val->GetValue().ToStdString());
         this->publishGcode(gcode);
         });
+
+    m_button_ams_0->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        std::string gcode = this->switch_ams_gcode("0");
+        this->publishGcode(gcode);
+        });
+    m_button_ams_1->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        std::string gcode = this->switch_ams_gcode("1");
+        this->publishGcode(gcode);
+        });
+    m_button_ams_2->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        std::string gcode = this->switch_ams_gcode("2");
+        this->publishGcode(gcode);
+        });
+    m_button_ams_3->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        std::string gcode = this->switch_ams_gcode("3");
+        this->publishGcode(gcode);
+        });
+    m_button_ams_255->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        std::string gcode = this->switch_ams_gcode("255");
+        this->publishGcode(gcode);
+        });
+
 
     btn_send_gcode_1->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         std::string gcode1 = txt_custom_gcode1->GetValue().ToStdString() + "\n";
@@ -1445,7 +1472,7 @@ std::string DebugToolDialog::switch_ams_gcode(std::string t)
     try {
         std::string parsed_command = m_placeholder_parser.process(print_config.toolchange_gcode.value, std::stoi(t.c_str()), &dyn_config, &m_placeholder_parser_context);
         // config xyz coordinate mode
-        std::string auto_home_command = cbox_ams_auto_home->GetValue() ? "G28\n" : "";
+        std::string auto_home_command = cbox_ams_auto_home->GetValue() ? "G28 X\n" : "";
         parsed_command = "G90\n" + auto_home_command + parsed_command;
         std::regex match_pattern(";.*\n");
         std::string replace_pattern = "\n";
