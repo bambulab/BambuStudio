@@ -1,6 +1,8 @@
 #ifndef BBS_3MF_hpp_
 #define BBS_3MF_hpp_
 
+#include <functional>
+
 namespace Slic3r {
 class Model;
 struct ConfigSubstitutionContext;
@@ -44,6 +46,26 @@ struct PlateData
     bool locked;
 };
 
+
+const int EXPORT_STAGE_OPEN_3MF         = 0;
+const int EXPORT_STAGE_CONTENT_TYPES    = 1;
+const int EXPORT_STAGE_ADD_THUMBNAILS   = 2;
+const int EXPORT_STAGE_ADD_RELATIONS    = 3;
+const int EXPORT_STAGE_ADD_MODELS       = 4;
+const int EXPORT_STAGE_ADD_LAYER_RANGE  = 5;
+const int EXPORT_STAGE_ADD_SUPPORT      = 6;
+const int EXPORT_STAGE_ADD_CUSTOM_GCODE = 7;
+const int EXPORT_STAGE_ADD_PRINT_CONFIG = 8;
+const int EXPORT_STAGE_ADD_CONFIG_FILE  = 9;
+const int EXPORT_STAGE_ADD_SLICE_INFO   = 10;
+const int EXPORT_STAGE_ADD_GCODE        = 11;
+const int EXPORT_STAGE_ADD_AUXILIARIES  = 12;
+const int EXPORT_STAGE_FINISH           = 13;
+
+
+//BBS export 3mf progress
+typedef std::function<void(int export_stage, int current, int total, bool& cancel)> Export3mfProgressFn;
+
 typedef std::vector<PlateData*> PlateDataPtrs;
 
 typedef std::map<int, PlateData*> PlateDataMaps;
@@ -55,7 +77,7 @@ extern bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSub
 //BBS: add plate data list related logic
 // Save the given model and the config data contained in the given Print into a 3mf file.
 // The model could be modified during the export process if meshes are not repaired or have no shared vertices
-extern bool store_bbs_3mf(const char* path, Model* model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64 = true);
+extern bool store_bbs_3mf(const char* path, Model* model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64 = true, bool skip_static = false, Export3mfProgressFn proFn = nullptr);
 
 extern void release_PlateData_list(PlateDataPtrs& plate_data_list);
 } // namespace Slic3r

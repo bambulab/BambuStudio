@@ -6913,13 +6913,18 @@ void Plater::export_amf()
     }
 }
 
-bool Plater::export_3mf(const boost::filesystem::path& output_path, bool silence, int export_plate_idx)
+// BBS: backup
+int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence, bool backup, int export_plate_idx, Export3mfProgressFn proFn)
+
 {
     if (p->model.objects.empty()) {
         MessageDialog dialog(nullptr, _L("The plater is empty.\nDo you want to save the project?"), _L("Save project"), wxYES_NO);
         if (dialog.ShowModal() != wxID_YES)
-            return false;
+            return -1;
     }
+
+    if (output_path.empty())
+        return -1;
 
     wxString path;
     bool export_config = true;
@@ -6931,7 +6936,7 @@ bool Plater::export_3mf(const boost::filesystem::path& output_path, bool silence
         path = from_path(output_path);
 
     if (!path.Lower().EndsWith(".3mf"))
-        return false;
+        return -1;
 
     DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
     const std::string path_u8 = into_u8(path);
@@ -6956,7 +6961,9 @@ bool Plater::export_3mf(const boost::filesystem::path& output_path, bool silence
     else {
         p->partplate_list.store_to_3mf_structure(plate_data_list, false);
     }
-    if (Slic3r::store_bbs_3mf(path_u8.c_str(), &p->model, plate_data_list, export_config ? &cfg : nullptr, full_pathnames, thumbnails)) {
+
+    // BBS: backup
+    if (Slic3r::store_bbs_3mf(path_u8.c_str(), &p->model, plate_data_list, export_config ? &cfg : nullptr, full_pathnames, thumbnails, true /*zip64*/, backup, proFn)) {
         if (!silence) {
             // Success
             //p->statusbar()->set_status_text(format_wxstr(_L("3MF file exported to %s"), path));
@@ -6968,6 +6975,7 @@ bool Plater::export_3mf(const boost::filesystem::path& output_path, bool silence
             // Failure
             //p->statusbar()->set_status_text(format_wxstr(_L("Error exporting 3MF file %s"), path));
         }
+        return -1;
     }
 
     release_PlateData_list(plate_data_list);
@@ -7001,7 +7009,19 @@ void Plater::upload_3mf()
     //save 3mf to temp folder
     boost::filesystem::path temp_path(wxStandardPaths::Get().GetTempDir().utf8_str().data());
     temp_path /= (boost::format(".%1%.3mf") % get_current_pid()).str();
-    export_3mf(temp_path, true);
+    int result = export_3mf(temp_path, true, false, -1,
+        [this, progress_dlg](int export_stage, int current, int total, bool& cancel) {
+            wxString msg = wxString::Format("exporting stage %d %d/%d", export_stage, current, total);
+            bool skip = false;
+            progress_dlg->Pulse(msg, &skip);
+            cancel = skip;
+        });
+    if (result < 0) {
+        msg = "Exporting 3mf failed!";
+        progress_dlg->Pulse(msg);
+        delete progress_dlg;
+        return;
+    }
 
     msg = "reqeust project id";
     cont = progress_dlg->Pulse(msg);
@@ -7269,7 +7289,7 @@ void Plater::reslice_SLA_until_step(SLAPrintObjectStep step, const ModelObject &
     this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
 }
 
-void Plater::send_gcode(int plate_idx)
+void Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
 {
     // BBS
     /*PrintHostJob upload_job(physical_printer_config);
@@ -7317,7 +7337,7 @@ void Plater::send_gcode(int plate_idx)
     catch (std::exception& e) {
         BOOST_LOG_TRIVIAL(trace) << "generate 3mf path failed";
     }
-    export_3mf(p->m_print_job_data._3mf_path, true);
+    export_3mf(p->m_print_job_data._3mf_path, true, false, -1, proFn);
 
     // Repetier specific: Query the server for the list of file groups.
     /* BBS

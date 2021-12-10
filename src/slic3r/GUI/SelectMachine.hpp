@@ -166,6 +166,7 @@ public:
     wxString        current_dev_id;
     Plater*         m_plater;
     std::shared_ptr<BBLStatusBar> m_status_bar;
+    bool            m_export_3mf_cancel{ false };
     int             m_print_plate_idx;
 
 protected:

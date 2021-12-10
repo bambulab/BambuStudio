@@ -2523,15 +2523,20 @@ namespace Slic3r {
 
     public:
         //BBS: add plate data related logic
-        bool save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64);
+
+        // add backup logic
+        bool save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64, bool skip_static, Export3mfProgressFn proFn = nullptr);
+        // add backup logic
+        bool save_object_mesh(const std::string& filename, ModelObject& object);
 
     private:
         //BBS: add plate data related logic
-        bool _save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, const std::vector<ThumbnailData*>& thumbnail_data);
+        bool _save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, const std::vector<ThumbnailData*>& thumbnail_data, Export3mfProgressFn proFn);
+
         bool _add_content_types_file_to_archive(mz_zip_archive& archive);
         bool _add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data, int index);
         bool _add_relationships_file_to_archive(mz_zip_archive& archive);
-        bool _add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data);
+        bool _add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data, Export3mfProgressFn proFn = nullptr);
         bool _add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int& object_id, ModelObject& object, BuildItemsList& build_items, VolumeToOffsetsMap& volumes_offsets);
         bool _add_mesh_to_object_stream(mz_zip_writer_staged_context &context, ModelObject& object, VolumeToOffsetsMap& volumes_offsets);
         bool _add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items);
@@ -2542,7 +2547,7 @@ namespace Slic3r {
         bool _add_print_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config);
         bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const IdToObjectDataMap &objects_data);
         bool _add_slice_info_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list);
-        bool _add_gcode_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list);
+        bool _add_gcode_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, Export3mfProgressFn proFn = nullptr);
         bool _add_custom_gcode_per_print_z_file_to_archive(mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config);
         bool _add_auxiliary_dir_to_archive(mz_zip_archive& archive, const std::string& aux_dir);
 
@@ -2562,24 +2567,68 @@ namespace Slic3r {
     };
 
     //BBS: add plate data related logic
-    bool _BBS_3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64)
+    // add backup logic
+    bool _BBS_3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64, bool skip_static, Export3mfProgressFn proFn)
     {
         clear_errors();
         m_fullpath_sources = fullpath_sources;
         m_zip64 = zip64;
-        return _save_model_to_file(filename, model, plate_data_list, config, thumbnail_data);
+
+        m_skip_static = skip_static;
+        boost::system::error_code ec;
+        boost::filesystem::remove(filename + ".tmp", ec);
+        bool result = _save_model_to_file(filename + ".tmp", model,
+                                            plate_data_list, config,
+                                            thumbnail_data, proFn);
+        if (result)
+            boost::filesystem::rename(filename + ".tmp", filename, ec);
+        return result;
+    }
+
+    // backup mesh-only
+    bool _BBS_3MF_Exporter::save_object_mesh(const std::string& filename, ModelObject& object)
+    {
+        std::ofstream ofs(filename);
+        auto flush = [&ofs](std::string& buf, bool force) -> bool {
+            ofs.write(buf.c_str(), buf.size());
+            if (force)
+                ofs.flush();
+            buf.clear();
+            return !!ofs;
+        };
+        VolumeToOffsetsMap volumes_offsets;
+        _add_mesh_to_object_stream(flush, object, volumes_offsets);
+        return false;
     }
 
     //BBS: add plate data related logic
-    bool _BBS_3MF_Exporter::_save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, const std::vector<ThumbnailData*>& thumbnail_data)
+    bool _BBS_3MF_Exporter::_save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, const std::vector<ThumbnailData*>& thumbnail_data, Export3mfProgressFn proFn)
     {
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
+
+        bool cb_cancel = false;
+
+        //BBS progress point
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_OPEN_3MF\n");
+        if (proFn) {
+            proFn(EXPORT_STAGE_OPEN_3MF, 0, 1, cb_cancel);
+            if (cb_cancel)
+                return false;
+        }
 
         if (!open_zip_writer(&archive, filename)) {
             add_error("Unable to open the file");
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to open the file\n");
             return false;
+        }
+
+        //BBS progress point
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_CONTENT_TYPES\n");
+        if (proFn) {
+            proFn(EXPORT_STAGE_CONTENT_TYPES, 0, 1, cb_cancel);
+            if (cb_cancel)
+                return false;
         }
 
         // Adds content types file ("[Content_Types].xml";).
@@ -2590,11 +2639,20 @@ namespace Slic3r {
             return false;
         }
 
+        //BBS progress point
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_CONTENT_TYPES\n");
+
         //BBS: add thumbnail for each plate
         if (thumbnail_data.size()>0) {
             // Adds the file Metadata/thumbnail.png.
             for (unsigned int index = 0; index < thumbnail_data.size(); index++)
             {
+                if (proFn) {
+                    proFn(EXPORT_STAGE_ADD_THUMBNAILS, index, thumbnail_data.size(), cb_cancel);
+                    if (cb_cancel)
+                        return false;
+                }
+
                 if (thumbnail_data[index]->is_valid())
                 {
                     if (!_add_thumbnail_file_to_archive(archive, *thumbnail_data[index], index)) {
@@ -2606,6 +2664,14 @@ namespace Slic3r {
             }
         }
 
+        //BBS progress point
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_RELATIONS\n");
+        if (proFn) {
+            proFn(EXPORT_STAGE_ADD_RELATIONS, 0, 1, cb_cancel);
+            if (cb_cancel)
+                return false;
+        }
+
         // Adds relationships file ("_rels/.rels"). 
         // The content of this file is the same for each PrusaSlicer 3mf.
         // The relationshis file contains a reference to the geometry file "3D/3dmodel.model", the name was chosen to be compatible with CURA.
@@ -2615,10 +2681,18 @@ namespace Slic3r {
             return false;
         }
 
+        //BBS progress point
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_MODELS\n");
+        if (proFn) {
+            proFn(EXPORT_STAGE_ADD_MODELS, 0, 1, cb_cancel);
+            if (cb_cancel)
+                return false;
+        }
+
         // Adds model file ("3D/3dmodel.model").
         // This is the one and only file that contains all the geometry (vertices and triangles) of all ModelVolumes.
         IdToObjectDataMap objects_data;
-        if (!_add_model_file_to_archive(filename, archive, model, objects_data)) {
+        if (!_add_model_file_to_archive(filename, archive, model, objects_data, proFn)) {
             close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
@@ -2635,6 +2709,14 @@ namespace Slic3r {
             return false;
         }*/
 
+        //BBS progress point
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_LAYER_RANGE\n");
+        if (proFn) {
+            proFn(EXPORT_STAGE_ADD_LAYER_RANGE, 0, 1, cb_cancel);
+            if (cb_cancel)
+                return false;
+        }
+
         // Adds layer config ranges file ("Metadata/Slic3r_PE_layer_config_ranges.txt").
         // All layer height profiles of all ModelObjects are stored here, indexed by 1 based index of the ModelObject in Model.
         // The index differes from the index of an object ID of an object instance of a 3MF file!
@@ -2642,6 +2724,14 @@ namespace Slic3r {
             close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
+        }
+
+        //BBS progress point
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_SUPPORT\n");
+        if (proFn) {
+            proFn(EXPORT_STAGE_ADD_SUPPORT, 0, 1, cb_cancel);
+            if (cb_cancel)
+                return false;
         }
 
         // Adds sla support points file ("Metadata/Slic3r_PE_sla_support_points.txt").
@@ -2658,7 +2748,14 @@ namespace Slic3r {
             boost::filesystem::remove(filename);
             return false;
         }
-        
+
+        //BBS progress point
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_CUSTOM_GCODE\n");
+        if (proFn) {
+            proFn(EXPORT_STAGE_ADD_CUSTOM_GCODE, 0, 1, cb_cancel);
+            if (cb_cancel)
+                return false;
+        }
 
         // Adds custom gcode per height file ("Metadata/Prusa_Slicer_custom_gcode_per_print_z.xml").
         // All custom gcode per height of whole Model are stored here
@@ -2666,6 +2763,14 @@ namespace Slic3r {
             close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
+        }
+
+        //BBS progress point
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_PRINT_CONFIG\n");
+        if (proFn) {
+            proFn(EXPORT_STAGE_ADD_PRINT_CONFIG, 0, 1, cb_cancel);
+            if (cb_cancel)
+                return false;
         }
 
         // Adds slic3r print config file ("Metadata/Slic3r_PE.config").
@@ -2678,6 +2783,14 @@ namespace Slic3r {
             }
         }
 
+        //BBS progress point
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_CONFIG_FILE\n");
+        if (proFn) {
+            proFn(EXPORT_STAGE_ADD_CONFIG_FILE, 0, 1, cb_cancel);
+            if (cb_cancel)
+                return false;
+        }
+
         // Adds slic3r model config file ("Metadata/Slic3r_PE_model.config").
         // This file contains all the attributes of all ModelObjects and their ModelVolumes (names, parameter overrides).
         // As there is just a single Indexed Triangle Set data stored per ModelObject, offsets of volumes into their respective Indexed Triangle Set data
@@ -2688,6 +2801,14 @@ namespace Slic3r {
             return false;
         }
 
+        //BBS progress point
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_SLICE_INFO\n");
+        if (proFn) {
+            proFn(EXPORT_STAGE_ADD_SLICE_INFO, 0, 1, cb_cancel);
+            if (cb_cancel)
+                return false;
+        }
+
         // Adds sliced info of plate file ("Metadata/slice_info.config")
         // This file contains all sliced info of all plates
         if (!_add_slice_info_config_file_to_archive(archive, model, plate_data_list)) {
@@ -2696,11 +2817,22 @@ namespace Slic3r {
             return false;
         }
 
+        //BBS progress point
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_GCODE\n");
+
         // Adds gcode files ("Metadata/plate_1.gcode, plate_2.gcode, ...)
-        if (!_add_gcode_file_to_archive(archive, model, plate_data_list)) {
+        if (!m_skip_static && !_add_gcode_file_to_archive(archive, model, plate_data_list, proFn)) {
             close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
+        }
+
+        //BBS progress point
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_AUXILIARIES\n");
+        if (proFn) {
+            proFn(EXPORT_STAGE_ADD_AUXILIARIES, 0, 1, cb_cancel);
+            if (cb_cancel)
+                return false;
         }
 
         // Adds gcode files ("Metadata/plate_1.gcode, plate_2.gcode, ...)
@@ -2716,6 +2848,14 @@ namespace Slic3r {
             add_error("Unable to finalize the archive");
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to finalize the archive\n");
             return false;
+        }
+
+        //BBS progress point
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_FINISH\n");
+        if (proFn) {
+            proFn(EXPORT_STAGE_FINISH, 0, 1, cb_cancel);
+            if (cb_cancel)
+                return false;
         }
 
         close_zip_writer(&archive);
@@ -2795,7 +2935,7 @@ namespace Slic3r {
         stream << std::setprecision(std::numeric_limits<float>::max_digits10);
     }
 
-    bool _BBS_3MF_Exporter::_add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data)
+    bool _BBS_3MF_Exporter::_add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data, Export3mfProgressFn proFn)
     {
         mz_zip_writer_staged_context context;
         if (!mz_zip_writer_add_staged_open(&archive, &context, MODEL_FILE.c_str(), 
@@ -2857,7 +2997,19 @@ namespace Slic3r {
         // all the object instances of all ModelObjects are stored and indexed in a 1 based linear fashion.
         // Therefore the list of object_ids here may not be continuous.
         unsigned int object_id = 1;
+
+        std::map<unsigned int, size_t> object_id_map; // backup: collect id mapping
+        bool cb_cancel = false;
+        int obj_idx = 0;
         for (ModelObject* obj : model.objects) {
+
+            if (proFn) {
+                proFn(EXPORT_STAGE_ADD_GCODE, obj_idx, model.objects.size(), cb_cancel);
+                if (cb_cancel)
+                    return false;
+                obj_idx++;
+            }
+            
             if (obj == nullptr)
                 continue;
 
@@ -3604,11 +3756,19 @@ namespace Slic3r {
 
         return true;
     }
-bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list)
+bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, Export3mfProgressFn proFn)
 {
     bool result = true;
+    bool cb_cancel = false;
+
     for (unsigned int i = 0; i < (unsigned int)plate_data_list.size(); ++i)
     {
+        if (proFn) {
+            proFn(EXPORT_STAGE_ADD_GCODE, i, plate_data_list.size(), cb_cancel);
+            if (cb_cancel)
+                return false;
+        }
+
         PlateData* plate_data = plate_data_list[i];
         if (!plate_data->gcode_file.empty() && plate_data->is_sliced_valid) {
             std::string src_gcode_file = encode_path(plate_data->gcode_file.c_str());
@@ -3753,7 +3913,7 @@ bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstituti
 }
 
 //BBS: add plate data list related logic
-bool store_bbs_3mf(const char* path, Model* model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64)
+bool store_bbs_3mf(const char* path, Model* model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64, bool skip_static, Export3mfProgressFn proFn)
 {
     // All export should use "C" locales for number formatting.
     CNumericLocalesSetter locales_setter;
@@ -3762,7 +3922,7 @@ bool store_bbs_3mf(const char* path, Model* model, PlateDataPtrs& plate_data_lis
         return false;
 
     _BBS_3MF_Exporter exporter;
-    bool res = exporter.save_model_to_file(path, *model, plate_data_list, config, fullpath_sources, thumbnail_data, zip64);
+    bool res = exporter.save_model_to_file(path, *model, plate_data_list, config, fullpath_sources, thumbnail_data, zip64, skip_static, proFn);
     if (!res)
         exporter.log_errors();
 

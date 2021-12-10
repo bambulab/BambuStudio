@@ -7,6 +7,7 @@
 #include "MainFrame.hpp"
 #include "format.hpp"
 
+#include <wx/progdlg.h>
 #include <wx/clipbrd.h>
 
 namespace Slic3r { 
@@ -496,8 +497,8 @@ SelectMachineDialog::SelectMachineDialog(Plater* plater, int print_plate_idx)
 	: DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("Send Task to"), wxDefaultPosition,
 	wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
     m_plater(plater),
-    m_print_plate_idx(print_plate_idx)
-    
+    m_print_plate_idx(print_plate_idx),
+    m_export_3mf_cancel(false)
 {
     /* auto created by wxFormBuilder */
     this->SetSizeHints( wxSize( 550,480 ), wxSize( 1920,1280 ) );
@@ -653,7 +654,22 @@ void SelectMachineDialog::on_ok(wxCommandEvent& event)
 
     m_button_ensure->Disable();
 
-    m_plater->send_gcode(m_print_plate_idx);
+    wxProgressDialog* progress_dlg = new wxProgressDialog("Creating 3mf file", "", 100, this, wxPD_AUTO_HIDE | wxPD_CAN_ABORT);
+    
+    m_plater->send_gcode(m_print_plate_idx,
+        [this, progress_dlg](int export_stage, int current, int total, bool& cancel) {
+            bool cont = true;
+            wxString msg = wxString::Format("exporting 3mf stage %d, %d/%d", export_stage, current, total);
+            cont = progress_dlg->Pulse(msg);
+            this->m_export_3mf_cancel = cancel = !cont;
+        }
+    );
+
+    delete progress_dlg;
+    if (this->m_export_3mf_cancel) {
+        this->m_status_bar->set_status_text("exporting 3mf was cancelled");
+        return;
+    }
 
     m_status_bar->set_cancel_callback(
         [this]() {
@@ -661,6 +677,7 @@ void SelectMachineDialog::on_ok(wxCommandEvent& event)
                 m_print_job->cancel();
         }
     );
+
     m_print_job = std::make_shared<PrintJob>(m_status_bar, m_plater, dev_id);
     m_print_job->start();
 }

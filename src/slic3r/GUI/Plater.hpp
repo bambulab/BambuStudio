@@ -276,7 +276,9 @@ public:
     void export_stl(bool extended = false, bool selection_only = false);
     void export_amf();
     //BBS add extra param for exporting 3mf silence
-    bool export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path(), bool silence = false, int export_plate_idx = -1);
+    // BBS: backup
+    int export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path(), bool silence = false, bool backup = false, int export_plate_idx = -1, Export3mfProgressFn proFn = nullptr);
+
     void upload_3mf();
     void reload_from_disk();
     void replace_with_stl();
@@ -298,7 +300,7 @@ public:
     void suppress_background_process(const bool stop_background_process) ;
     /* -1: send current gcode if not specified
      * -2: send all gcode to target machine */
-    void send_gcode(int plate_idx = -1);
+    void send_gcode(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
     //BBS jump to nonitor after print job finished
     void print_job_finished();
 	void eject_drive();
