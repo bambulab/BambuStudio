@@ -184,6 +184,8 @@ public:
 
 class MachineObject;
 
+#define DEFAULT_HOST "https://api-qa.bambu-lab.com/v1"
+
 class AccountManager
 {
 private:
@@ -191,7 +193,7 @@ private:
 
     boost::filesystem::path m_user_info_path;
     const std::string account_json = "UserInfo.json";
-    std::string host = "https://api-qa.bambu-lab.com";
+    std::string host = DEFAULT_HOST;
     std::string test_host = "https://autotest.bambooolab.com";
     std::string MSG_SUCCESS = "success";
 

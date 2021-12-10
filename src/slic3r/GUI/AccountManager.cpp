@@ -364,9 +364,9 @@ namespace Slic3r {
             return -1;
         }
 
+        
         Http http = Http::post(std::move(_get_login_url()));
         std::string json_str = _get_login_request(account, password);
-
         http.header("accept", "application/json")
             .header("Content-Type", "application/json")
             .set_post_body(json_str)
@@ -658,7 +658,7 @@ namespace Slic3r {
             return -1;
         }
 
-        std::string url = (boost::format("%1%/iot/device/%2%/bind") % host % device_id).str();
+        std::string url = (boost::format("%1%/iot-service/api/device/%2%/bind") % host % device_id).str();
         Http http = Http::put2(std::move(url));
 
         std::string json_str;
@@ -709,7 +709,7 @@ namespace Slic3r {
 
     int AccountManager::request_user_unbind(std::string device_id, ResultFn fn)
     {
-        std::string url = (boost::format("%1%/iot/user/bind") % host).str();
+        std::string url = (boost::format("%1%/iot-service/api/user/bind") % host).str();
 
         std::string json_str;
         pt::ptree root;
@@ -805,7 +805,7 @@ namespace Slic3r {
 
     int AccountManager::submit_print_result(std::string device_id, std::string json_str, ResultFn fn)
     {
-        std::string url = (boost::format("%1%/iot/user/report") % host).str();
+        std::string url = (boost::format("%1%/iot-service/api/user/report") % host).str();
         Http http = Http::post(url);
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
@@ -1178,7 +1178,7 @@ namespace Slic3r {
     {
         if (!profile) return -1;
 
-        std::string project_url = (boost::format("%1%/iot/user/project/%2%") % host % profile->project_id).str();
+        std::string project_url = (boost::format("%1%/iot-service/api/user/project/%2%") % host % profile->project_id).str();
 
         std::vector<std::string> params;
         std::string request_str = json_request_body_post_profile(profile);
@@ -1231,7 +1231,7 @@ namespace Slic3r {
     {
         if (!task) return -1;
         std::string json_str = json_request_body_post_task(task);
-        std::string url = (boost::format("%1%/iot/user/task") % host).str();
+        std::string url = (boost::format("%1%/iot-service/api/user/task") % host).str();
         task->task_id.clear();
 
         Http http = Http::post(url);
@@ -1282,7 +1282,7 @@ namespace Slic3r {
     {
         if (!task) return -1;
         std::string json_str = json_request_body_post_task(task);
-        std::string url = (boost::format("%1%/iot/user/task") % host).str();
+        std::string url = (boost::format("%1%/iot-service/api/user/task") % host).str();
         task->task_id.clear();
 
         Http http = Http::post(url);
@@ -1334,7 +1334,7 @@ namespace Slic3r {
         if (!profile || !profile->project_) return -1;
 
         /* upload 3mf or gcode to cloud */
-        std::string project_url = (boost::format("%1%/iot/user/project/%2%") % host % profile->project_id).str();
+        std::string project_url = (boost::format("%1%/iot-service/api/user/project/%2%") % host % profile->project_id).str();
         std::string file_str("file");
         std::string profile_id_str("profile_id");
         std::string project_file = encode_path(profile->project_->project_path.generic_string().c_str());
@@ -1396,7 +1396,7 @@ namespace Slic3r {
         gather.erase(std::remove(gather.begin(), gather.end(), '\\'), gather.end());
         gather = Http::url_encode(gather);
         std::string query_params = (boost::format("?profile_id=%1%&&ticket=%2%&&gather=%3%") % task->task_profile_id % ticket % gather).str();
-        std::string url = (boost::format("%1%/iot/user/project/%2%%3%") % host % task->task_project_id % query_params).str();
+        std::string url = (boost::format("%1%/iot-service/api/user/project/%2%%3%") % host % task->task_project_id % query_params).str();
         
         int retry_ = 0;
         int retry_max = POLL_3MF_TIMEOUT;
@@ -1473,7 +1473,7 @@ namespace Slic3r {
         gather = Http::url_encode(gather);
         std::string ticket = "0";
         std::string query_params = (boost::format("?profile_id=%1%&&gather=%2%&&ticket=%3%") % profile_id % gather % ticket).str();
-        std::string url = (boost::format("%1%/iot/user/project/%2%%3%") % host % project->project_id % query_params).str();
+        std::string url = (boost::format("%1%/iot-service/api/user/project/%2%%3%") % host % project->project_id % query_params).str();
         Http http = Http::get(url);
 
         http.header("accept", "application/json")
@@ -1546,7 +1546,7 @@ namespace Slic3r {
         std::string ticket = profile->profile_id;
         std::string query_params = (boost::format("?profile_id=%1%&&ticket=%2%") % profile->profile_id % ticket).str();
 
-        std::string url = (boost::format("%1%/iot/user/project/%2%%3%") % host % profile->project_id % query_params).str();
+        std::string url = (boost::format("%1%/iot-service/api/user/project/%2%%3%") % host % profile->project_id % query_params).str();
 
         BBLProject* project = profile->project_;
 
@@ -1615,9 +1615,9 @@ namespace Slic3r {
         return 0;
     }
 
-    void AccountManager::get_task(BBLTask* &task)
+    void AccountManager::get_task(BBLTask* &task) 
     {
-        std::string url = (boost::format("%1%/iot/user/task/%2%") % host % task->task_id).str();
+        std::string url = (boost::format("%1%/iot-service/api/user/task/%2%") % host % task->task_id).str();
         Http http = Http::get(url);
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
@@ -1743,7 +1743,7 @@ namespace Slic3r {
 
     void AccountManager::get_subtask(BBLSubTask* &subtask)
     {
-        std::string url = (boost::format("%1%/iot/user/task/%2%") % host % subtask->task_id).str();
+        std::string url = (boost::format("%1%/iot-service/api/user/task/%2%") % host % subtask->task_id).str();
         Http http = Http::get(url);
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
@@ -1864,7 +1864,7 @@ namespace Slic3r {
         if (!profile || !project) return;
 
         std::string query_params = (boost::format("?profile_id=%1%") % profile->profile_id).str();
-        std::string url = (boost::format("%1%/iot/user/project/%2%%3%") % host % profile->project_id % query_params).str();
+        std::string url = (boost::format("%1%/iot-service/api/user/project/%2%%3%") % host % profile->project_id % query_params).str();
 
         int retry_ = 0;
         int retry_max = 10;
@@ -2011,7 +2011,7 @@ namespace Slic3r {
         if (!project || project->project_id.empty()) return;
 
         std::string query_params("?gather=all");
-        std::string url = (boost::format("%1%/iot/user/project/%2%?%3%") % host % project->project_id % query_params).str();
+        std::string url = (boost::format("%1%/iot-service/api/user/project/%2%?%3%") % host % project->project_id % query_params).str();
         Http http = Http::get(url);
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
@@ -2074,7 +2074,7 @@ namespace Slic3r {
 
         std::string query_params = (boost::format("?profile_id=%1%&gather=all") % profile->profile_id).str();
 
-        std::string url = (boost::format("%1%/iot/user/project/%2%?%3%") % host % project->project_id % query_params).str();
+        std::string url = (boost::format("%1%/iot-service/api/user/project/%2%?%3%") % host % project->project_id % query_params).str();
 
         int retry_ = 0;
         int retry_max = 10;
@@ -2165,7 +2165,7 @@ namespace Slic3r {
             return;
         }
 
-        std::string task_url = (boost::format("%1%/iot/user/task") % host % project->project_id).str();
+        std::string task_url = (boost::format("%1%/iot-service/api/user/task") % host % project->project_id).str();
         std::string json_str = json_request_body_post_task(task);
 
         Http http = Http::post(task_url);
@@ -2203,7 +2203,7 @@ namespace Slic3r {
     {
         if (!task) return;
 
-        std::string url = (boost::format("%1%/iot/user/storage") % host).str();
+        std::string url = (boost::format("%1%/iot-service/api/user/storage") % host).str();
 
         std::string file_str = "file";
         std::string name_str = "name";
@@ -2280,7 +2280,7 @@ namespace Slic3r {
 
         std::string version = DEFAULT_BBL_SETTING_VERSION;
         std::string query_params = (boost::format("?version=%s") % version).str();
-        std::string url = (boost::format("%1%/iot/slicer/setting%2%") % host % query_params).str();
+        std::string url = (boost::format("%1%/iot-service/api/slicer/setting%2%") % host % query_params).str();
         Http http = Http::get(url);
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
@@ -2353,7 +2353,7 @@ namespace Slic3r {
 
     void AccountManager::get_setting(Preset* &preset, bool sync)
     {
-        std::string url = (boost::format("%1%/iot/slicer/setting/%2%") % host % preset->setting_id).str();
+        std::string url = (boost::format("%1%/iot-service/api/slicer/setting/%2%") % host % preset->setting_id).str();
         Http http = Http::get(url);
 
         http.header("accept", "application/json")
@@ -2395,7 +2395,7 @@ namespace Slic3r {
     {
         if (!preset) return -1;
 
-        std::string url = (boost::format("%1%/iot/slicer/setting") % host).str();
+        std::string url = (boost::format("%1%/iot-service/api/slicer/setting") % host).str();
 
         std::vector<std::string> params;
         std::string request_str = json_request_body_post_setting(preset);
@@ -2432,7 +2432,7 @@ namespace Slic3r {
         int result = -1;
         int* result_ptr = &result;
         std::string request_body = json_request_body_put_setting(preset);
-        std::string url = (boost::format("%1%/iot/slicer/setting/%2%") % host % preset->setting_id).str();
+        std::string url = (boost::format("%1%/iot-service/api/slicer/setting/%2%") % host % preset->setting_id).str();
         Http http = Http::put2(url);
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
@@ -2461,7 +2461,7 @@ namespace Slic3r {
     {
         int result = -1;
         int* result_ptr = &result;
-        std::string url = (boost::format("%1%/iot/slicer/setting/%2%") % host % setting_id).str();
+        std::string url = (boost::format("%1%/iot-service/api/slicer/setting/%2%") % host % setting_id).str();
         Http http = Http::del(url);
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
@@ -2547,7 +2547,7 @@ namespace Slic3r {
     std::string AccountManager::_get_query_url(std::string device_id)
     {
         if (m_curr_user) {
-            return (boost::format("%1%/iot/user/bind?dev_id=%2%") % host % device_id).str();
+            return (boost::format("%1%/iot-service/api/user/bind?dev_id=%2%") % host % device_id).str();
         }
         else {
             return "";
@@ -2567,7 +2567,7 @@ namespace Slic3r {
         }
 
         if (m_curr_user) {
-            return (boost::format("%1%/iot/user/bind_list?dev_ids=%2%") % host % dev_id).str();
+            return (boost::format("%1%/iot-service/api/user/bind_list?dev_ids=%2%") % host % dev_id).str();
         }
         else {
             return "";
@@ -2577,17 +2577,17 @@ namespace Slic3r {
 
     std::string AccountManager::_get_bind_url(std::string device_id)
     {
-        return (boost::format("%1%/iot/user/%2%/bind") % host % device_id).str();
+        return (boost::format("%1%/iot-service/api/user/%2%/bind") % host % device_id).str();
     }
 
     std::string AccountManager::_get_login_url()
     {
-        return (boost::format("%1%/user/login") % host).str();
+        return (boost::format("%1%/user-service/user/login") % host).str();
     }
 
     std::string AccountManager::_get_user_profile_url(std::string account)
     {
-        return (boost::format("%1%/my/profile") % host).str();
+        return (boost::format("%1%/user-service/my/profile") % host).str();
     }
 
     std::string AccountManager::_get_register_url()
@@ -2597,13 +2597,13 @@ namespace Slic3r {
 
     std::string AccountManager::_get_slicer_info_url()
     {
-        return (boost::format("%1%/iot/slicer/resource") % host).str();
+        return (boost::format("%1%/iot-service/api/slicer/resource") % host).str();
     }
 
     std::string AccountManager::_get_bind_list_url()
     {
         if (m_curr_user) {
-            return (boost::format("%1%/iot/user/bind") % host).str();
+            return (boost::format("%1%/iot-service/api/user/bind") % host).str();
         }
         else {
             return "";
@@ -2663,7 +2663,7 @@ namespace Slic3r {
     }
 
     std::string AccountManager::_get_project_url() {
-        return (boost::format("%1%/iot/user/project") % host).str();
+        return (boost::format("%1%/iot-service/api/user/project") % host).str();
     }
 
     bool AccountManager::_check_valid(std::string user, std::string password)

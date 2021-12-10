@@ -6029,9 +6029,6 @@ void Plater::download_project(const wxString& project_id)
     fs::path tmp_path = target_path;
     tmp_path += format(".%1%", ".download");
     auto http = Http::get(project->project_url);
-    //BBS get default ca_file
-    std::string default_ca_file = resources_dir() + "/bbl/cacert.pem";
-    http.ca_file(default_ca_file);
     http.on_progress([this, progress_dlg, cont_ptr](Http::Progress progress, bool& cancel) {
         bool skip = false;
         int percent = 0;

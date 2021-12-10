@@ -104,6 +104,7 @@ std::unique_ptr<CurlGlobalInit> CurlGlobalInit::instance;
 //BBS
 FILE* g_http_log_file = nullptr;
 Http::ErrorFn g_error_func = nullptr;
+
 std::map<std::string, std::string> extra_headers;
 
 //BBS dump libcurl log
@@ -277,7 +278,9 @@ Http::priv::priv(const std::string &url)
 	::curl_easy_setopt(curl, CURLOPT_URL, url.c_str());   // curl makes a copy internally
 	::curl_easy_setopt(curl, CURLOPT_USERAGENT, SLIC3R_APP_NAME "/" SLIC3R_RC_VERSION);
 	::curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error_buffer.front());
-	//headerlist = curl_slist_append(p->headerlist, name.c_str());
+
+	::curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+	::curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 }
 
 Http::priv::~priv()

@@ -625,10 +625,10 @@ void PreferencesDialog::accept(wxEvent&)
 		AccountManager* manager = wxGetApp().getAccountManager();
 		manager->user_logout();
 		if (m_values["api_dev_domain"].compare("1") == 0) {
-			manager->set_host("api-qa.bambu-lab.com/v2");
+			manager->set_host(DEFAULT_HOST);
 		}
 		else if (m_values["api_rel_domain"].compare("1") == 0) {
-			manager->set_host("api.bambulab.com");
+			manager->set_host("https://api.bambulab.com");
 		}
 	}
 
