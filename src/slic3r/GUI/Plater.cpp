@@ -6418,8 +6418,11 @@ void Plater::reset_with_confirm()
 {
     if (p->model.objects.empty() ||
         //wxMessageDialog(static_cast<wxWindow*>(this), _L("All objects will be removed, continue?"), wxString(SLIC3R_APP_NAME) + " - " + _L("Delete all"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES)
-        MessageDialog(static_cast<wxWindow*>(this), _L("All objects will be removed, continue?"), wxString(SLIC3R_APP_NAME) + " - " + _L("Delete all"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES)
+        MessageDialog(static_cast<wxWindow*>(this), _L("All objects will be removed, continue?"), wxString(SLIC3R_APP_NAME) + " - " + _L("Delete all"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE).ShowModal() == wxID_YES) {
         reset();
+        // BBS: jump to plater panel
+        wxGetApp().mainframe->select_tab(size_t(0));
+    }
 }
 
 void Plater::delete_object_from_model(size_t obj_idx) { p->delete_object_from_model(obj_idx); }
