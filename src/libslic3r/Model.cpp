@@ -1361,12 +1361,14 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
         for (size_t i = 0; i < instances.size(); ++i) {
             auto &instance = upper->instances[i];
             const Vec3d offset = instance->get_offset();
-            const double rot_z = instance->get_rotation().z();
+            // BBS
+            //const double rot_z = instance->get_rotation().z();
             const Vec3d displace = Geometry::assemble_transform(Vec3d::Zero(), instance->get_rotation()) * local_displace;
 
             instance->set_transformation(Geometry::Transformation());
             instance->set_offset(offset + displace);
-            instance->set_rotation(Vec3d(0.0, 0.0, rot_z));
+            // BBS
+            //instance->set_rotation(Vec3d(0.0, 0.0, rot_z));
         }
 
         res.push_back(upper);
@@ -1418,7 +1420,7 @@ ModelObjectPtrs ModelObject::segment(size_t instance, unsigned int max_extruders
     // const auto instance_matrix = instances[instance]->get_matrix(true);
     const auto instance_matrix = Geometry::assemble_transform(
         Vec3d::Zero(),  // don't apply offset
-        instances[instance]->get_rotation().cwiseProduct(Vec3d(1.0, 1.0, 0.0)),   // don't apply Z-rotation
+        instances[instance]->get_rotation(),   // BBS: keep Z-rotation
         instances[instance]->get_scaling_factor(),
         instances[instance]->get_mirror()
     );
@@ -1481,11 +1483,13 @@ ModelObjectPtrs ModelObject::segment(size_t instance, unsigned int max_extruders
         for (size_t i = 0; i < instances.size(); i++) {
             auto& instance = upper->instances[i];
             const Vec3d offset = instance->get_offset();
-            const double rot_z = instance->get_rotation()(2);
+            // BBS
+            //const double rot_z = instance->get_rotation()(2);
 
             instance->set_transformation(Geometry::Transformation());
             instance->set_offset(offset);
-            instance->set_rotation(Vec3d(0.0, 0.0, rot_z));
+            // BBS
+            //instance->set_rotation(Vec3d(0.0, 0.0, rot_z));
         }
 
         res.push_back(upper);
