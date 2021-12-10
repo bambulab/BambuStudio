@@ -779,6 +779,8 @@ void MonitorPanel::init_bind()
 #if defined(__WINDOWS__) || defined(__APPLE__)
     Bind(wxEVT_WEBREQUEST_STATE, &MonitorPanel::on_webrequest_state, this);
 #endif
+
+    Bind(wxEVT_COMMAND_CHOICE_SELECTED, &MonitorPanel::on_select, this);
 }
 
 #if defined(__WINDOWS__) || defined(__APPLE__)
@@ -826,6 +828,7 @@ void MonitorPanel::Reset()
 {
     obj = nullptr;
     last_task = nullptr;
+    last_profile = nullptr;
     last_subtask = nullptr;
 
     /* set default value */
@@ -839,10 +842,14 @@ void MonitorPanel::Reset()
     m_staticText_pocket_current->SetLabelText("N/A");
     m_textCtrl_bed->SetLabelText("0");
     m_textCtrl_nozzle->SetLabelText("0");
+    m_bitmap_thumbnail->SetBitmap(m_thumbnail_placeholder);
 
     m_staticText_machine_name->SetLabelText("N/A");
     m_staticText_printing_val->SetLabelText("N/A");
     m_staticText_wifi_signal->SetLabelText("N/A");
+    m_staticText_capacity_val->SetLabelText("N/A");
+
+    m_panel_printing_content->Layout();
 
     /* reset task list */
     task_panels.clear();
@@ -1072,21 +1079,12 @@ void MonitorPanel::update_all()
 
     update_subtask(obj);
 
-    //update_profile(obj);
-
     update_task(obj);
-
-    
 }
 
 void MonitorPanel::on_select(wxCommandEvent& event)
 {
-    subtask_model->clear_data();
-    tray_model->clear_data();
-
-    last_subtask = nullptr;
-    last_profile = nullptr;
-    last_task = nullptr;
+    Reset();
 
     update_all();
 

@@ -1351,6 +1351,7 @@ void DeviceManager::check_alive()
         for (it = localMachineList.begin(); it != localMachineList.end(); it++) {
             seconds = difftime(curr, it->second->last_alive);
             if (seconds > ALIVE_TIMEOUT) {
+                it->second->is_alive = false;
                 if (it->second->conn_state != MachineObject::CONNECTION_STATE::STATE_DISCONNECTED) {
                     it->second->conn_state = MachineObject::CONNECTION_STATE::STATE_DISCONNECTED;
                     BOOST_LOG_TRIVIAL(trace) << "device id = " << it->first << " is offline!";

@@ -387,6 +387,11 @@ bool SelectMachinePopup::ProcessLeftDown(wxMouseEvent& event)
 }
 bool SelectMachinePopup::Show( bool show )
 {
+    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    std::vector<MachineObject*> show_list = account_manager->get_select_machine_list();
+    update_machine_list(show_list);
+    account_manager->request_bind_list();
+
     return wxPopupTransientWindow::Show(show);
 }
 
