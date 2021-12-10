@@ -78,7 +78,8 @@ void GcodePrintJob::process()
     /* print current gcode */
     Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
     fs::path gcode_path(m_gcode_file_str);
-    fs::path _3mf_path(gcode_path);
+    fs::path _3mf_path(wxStandardPaths::Get().GetTempDir().utf8_str().data());
+    _3mf_path /= gcode_path.filename().string();
 
     std::string dst_gcode_file_str = "Metadata/run_gcode.gcode";
 
