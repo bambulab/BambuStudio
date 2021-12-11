@@ -256,12 +256,9 @@ bool ObjectDataViewModelNode::SetValue(const wxVariant& variant, unsigned col)
 {
     switch (col)
     {
-    // BBS
-#if 0
     case colPrint:
         m_printable_icon << variant;
         return true;
-#endif
     case colName: {
         DataViewBitmapText data;
         data << variant;
@@ -1266,8 +1263,7 @@ bool ObjectDataViewModel::UpdateColumValues(unsigned col)
 {
     switch (col)
     {
-    // BBS
-    //case colPrint:
+    case colPrint:
     case colName:
     case colEditing:
         return true;
@@ -1455,12 +1451,9 @@ void ObjectDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem &ite
 	ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode*>(item.GetID());
 	switch (col)
 	{
-	// BBS
-#if 0
 	case colPrint:
 		variant << node->m_printable_icon;
 		break;
-#endif
 	case colName:
         variant << DataViewBitmapText(node->m_name, node->m_bmp);
 		break;

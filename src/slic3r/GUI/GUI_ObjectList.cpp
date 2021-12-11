@@ -327,12 +327,9 @@ void ObjectList::create_objects_ctrl()
     //name_col->SetBitmap(create_scaled_bitmap("organize", nullptr, FromDIP(18)));
     AppendColumn(name_col);
 
-    // BBS
-#if 0
     // column PrintableProperty (Icon) of the view control:
     AppendBitmapColumn(" ", colPrint, wxDATAVIEW_CELL_INERT, 3*em,
         wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
-#endif
 
     // column Extruder of the view control:
     BitmapChoiceRenderer* bmp_choice_renderer = new BitmapChoiceRenderer();
@@ -354,8 +351,7 @@ void ObjectList::create_objects_ctrl()
     if (wxOSX)
     {
         GetColumn(colName)->SetWidth(20*em);
-        // BBS
-        //GetColumn(colPrint)->SetWidth(3*em);
+        GetColumn(colPrint)->SetWidth(3*em);
         GetColumn(colExtruder)->SetWidth(8*em);
         GetColumn(colEditing) ->SetWidth(7*em);
     }
@@ -1055,11 +1051,7 @@ void ObjectList::extruder_editing()
 
     wxPoint pos = this->get_mouse_position_in_control();
     wxSize size = wxSize(column_width, -1);
-#if 0
     pos.x = GetColumn(colName)->GetWidth() + GetColumn(colPrint)->GetWidth() + 5;
-#else
-    pos.x = GetColumn(colName)->GetWidth() + 5;
-#endif
     pos.y -= GetTextExtent("m").y;
 
     apply_extruder_selector(&m_extruder_editor, this, "1", pos, size);
@@ -4368,8 +4360,7 @@ void ObjectList::msw_rescale()
     const int em = wxGetApp().em_unit();
 
     GetColumn(colName    )->SetWidth(20 * em);
-    // BBS
-    //GetColumn(colPrint   )->SetWidth( 3 * em);
+    GetColumn(colPrint   )->SetWidth( 3 * em);
     GetColumn(colExtruder)->SetWidth( 8 * em);
     GetColumn(colEditing )->SetWidth( 3 * em);
 

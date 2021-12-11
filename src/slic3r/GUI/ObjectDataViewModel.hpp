@@ -36,7 +36,7 @@ enum ItemType {
 enum ColumnNumber
 {
     colName         = 0,    // item name
-    //colPrint           ,    // printable property
+    colPrint           ,    // printable property
     colExtruder        ,    // extruder selection
     colEditing         ,    // item editing
 };
