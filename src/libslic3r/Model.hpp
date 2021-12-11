@@ -923,7 +923,7 @@ class ModelInstance final : public ObjectBase
 private:
     Geometry::Transformation m_transformation;
     Geometry::Transformation m_assemble_transformation;
-    Vec3d m_offset_to_assembly;
+    Vec3d m_offset_to_assembly{ 0.0, 0.0, 0.0 };
     bool m_assemble_initialized;
 
 public:

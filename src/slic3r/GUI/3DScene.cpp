@@ -492,9 +492,10 @@ Transform3d GLVolume::world_matrix() const
 {
     Transform3d m = m_instance_transformation.get_matrix() * m_volume_transformation.get_matrix();
     Vec3d ofs2ass = m_offset_to_assembly * (GLVolume::explosion_ratio - 1.0);
+    Vec3d volofs2obj = m_volume_transformation.get_offset() * (GLVolume::explosion_ratio - 1.0);
 
     m.translation()(2) += m_sla_shift_z;
-    m.translate(ofs2ass);
+    m.translate(ofs2ass + volofs2obj);
     return m;
 }
 
@@ -504,9 +505,10 @@ Transform3d GLVolume::world_matrix( float scale_factor) const
     //const Vec3d& volume_translation = m_volume_transformation.get_offset();
     //Vec3d scaling_factor = { scale_factor, scale_factor, scale_factor };
     Vec3d ofs2ass = m_offset_to_assembly * (GLVolume::explosion_ratio - 1.0);
+    Vec3d volofs2obj = m_volume_transformation.get_offset() * (GLVolume::explosion_ratio - 1.0);
 
     Transform3d volume_matrix = Geometry::assemble_transform(
-        m_volume_transformation.get_offset() + ofs2ass,
+        m_volume_transformation.get_offset() + ofs2ass + volofs2obj,
         m_volume_transformation.get_rotation(),
         m_volume_transformation.get_scaling_factor() * scale_factor,
         m_volume_transformation.get_mirror()
