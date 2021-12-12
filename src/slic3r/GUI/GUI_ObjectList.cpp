@@ -956,7 +956,9 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
      * and select new item otherwise.
      */
 
-    if (!item) {
+    // BBS
+    //if (!item)
+    {
         if (col == nullptr) {
             if (wxOSX && !multiple_selection())
                 UnselectAll();
