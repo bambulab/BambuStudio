@@ -172,8 +172,9 @@ void Selection::add(unsigned int volume_idx, bool as_single_selection, bool chec
         if (needs_reset)
             clear();
 
+        // BBS
         if (!keep_instance_mode)
-            m_mode = volume->is_modifier ? Volume : Instance;
+            m_mode = volume->is_modifier ? Volume : m_volume_selection_mode;
     }
     else
       // keep current mode

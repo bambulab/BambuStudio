@@ -3405,7 +3405,7 @@ void ObjectList::update_selections()
     }
 #endif
 
-    if ( ( m_selection_mode & (smSettings|smLayer|smLayerRoot) ) == 0)
+    if ( ( m_selection_mode & (smSettings|smLayer|smLayerRoot|smVolume) ) == 0)
         m_selection_mode = smInstance;
 
     // We doesn't update selection if itSettings | itLayerRoot | itLayer Item for the current object/part is selected

@@ -1155,6 +1155,9 @@ bool AssembleView::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrint
     m_canvas->enable_assemble_view_toolbar(false);
     m_canvas->enable_return_toolbar(true);
 
+    // BBS: set volume_selection_mode to Volume
+    m_canvas->get_selection().set_volume_selection_mode(Selection::Volume);
+
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);
 

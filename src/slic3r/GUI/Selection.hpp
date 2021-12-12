@@ -224,6 +224,9 @@ private:
     float m_scale_factor;
     bool m_dragging;
 
+    // BBS
+    EMode m_volume_selection_mode{ Instance };
+
 public:
     Selection();
 
@@ -334,6 +337,7 @@ public:
     void translate(unsigned int object_idx, unsigned int instance_idx, const Vec3d& displacement);
     //BBS: add partplate related logic
     void notify_instance_update(int object_idx, int instance_idx);
+    void set_volume_selection_mode(EMode mode) { m_volume_selection_mode = mode; }
 
     void erase();
 
