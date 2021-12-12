@@ -141,6 +141,8 @@ ObjectList::ObjectList(wxWindow* parent) :
         }
         else {
   	      	wxDataViewItem    new_selected_item  = event.GetItem();
+            // BBS: use wxDataViewCtrl's internal mechanism
+#if 0
 #ifdef __WXMSW__
 			// Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.
 		    wxDataViewItem    item;
@@ -153,6 +155,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 				sim.Char(WXK_RETURN);
 	        }
 #endif //__WXMSW__
+#endif
 	        m_last_selected_item = new_selected_item;
         }
 #ifdef __WXMSW__
