@@ -94,7 +94,8 @@ private:
     void update_plane_points();
     std::array<Vec3d, 4> get_plane_points() const;
     std::array<Vec3d, 4> get_plane_points_world_coord() const;
-    void reset_plane();
+    void reset_cut_plane();
+    void reset_all();
 };
 
 } // namespace GUI

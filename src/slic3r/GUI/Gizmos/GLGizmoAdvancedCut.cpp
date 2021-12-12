@@ -127,7 +127,7 @@ std::array<Vec3d, 4> GLGizmoAdvancedCut::get_plane_points_world_coord() const
     return plane_world_coord;
 }
 
-void GLGizmoAdvancedCut::reset_plane()
+void GLGizmoAdvancedCut::reset_cut_plane()
 {
     const Selection& selection = m_parent.get_selection();
     const BoundingBoxf3& box = selection.get_bounding_box();
@@ -142,6 +142,15 @@ void GLGizmoAdvancedCut::reset_plane()
     m_cut_plane_points[3] = { min_x, max_y, 0 };
     m_movement = 0.0;
     m_rotation.setZero();
+}
+
+void GLGizmoAdvancedCut::reset_all()
+{
+    reset_cut_plane();
+
+    m_keep_upper = true;
+    m_keep_lower = true;
+    m_cut_to_parts = false;
 }
 
 bool GLGizmoAdvancedCut::on_init()
@@ -164,7 +173,7 @@ void GLGizmoAdvancedCut::on_set_state()
 
     // Reset m_cut_z on gizmo activation
     if (get_state() == On) {
-        reset_plane();
+        reset_cut_plane();
     }
 }
 
@@ -358,10 +367,6 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
         m_buffered_rotation(2) = Geometry::deg2rad(rotation(2));
     }
 
-    const bool reset_clicked = m_imgui->button(_L("Reset"));
-    if (reset_clicked) {
-        reset_plane();
-    }
     ImGui::Separator();
 
     // Part selection
@@ -372,6 +377,7 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
     m_imgui->checkbox(_L("Cut to parts instead of objects"), m_cut_to_parts);
     ImGui::Separator();
 
+#if 0
     // Auto segment input
     ImGui::PushItemWidth(m_imgui->get_style_scaling() * 150.0);
     m_imgui->checkbox(_L("Auto Segment"), m_do_segment);
@@ -383,11 +389,18 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
     m_imgui->disabled_end();
 
     ImGui::Separator();
+#endif
 
     // Cut button
     m_imgui->disabled_begin((!m_keep_upper && !m_keep_lower && !m_do_segment));
     const bool cut_clicked = m_imgui->button(_L("Perform cut"));
     m_imgui->disabled_end();
+
+    ImGui::SameLine();
+    const bool reset_clicked = m_imgui->button(_L("Reset"));
+    if (reset_clicked) {
+        reset_all();
+    }
 
     m_imgui->end();
     ImGuiWrapper::pop_toolbar_style();
