@@ -511,7 +511,8 @@ void ArrangeJob::finalize() {
     //BBS: reload all objects due to arrange
     plate_list.rebuild_plates_after_arrangement(!only_on_partplate);
 
-    // FIXME: update slice context and gcode result.
+    // BBS: update slice context and gcode result.
+    m_plater->update_slicing_context_to_current_partplate();
 
     wxGetApp().obj_list()->reload_all_plates();
 

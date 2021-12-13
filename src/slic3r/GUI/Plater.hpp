@@ -433,6 +433,8 @@ public:
     void set_bed_position(Vec2d& pos);
     //BBS: is the background process slicing currently
     bool is_background_process_slicing() const;
+    //BBS: update slicing context
+    void update_slicing_context_to_current_partplate();
 
 #if ENABLE_ENVIRONMENT_MAP
     void init_environment_texture();

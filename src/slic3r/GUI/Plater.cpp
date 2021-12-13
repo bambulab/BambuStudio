@@ -8206,6 +8206,13 @@ bool Plater::is_background_process_slicing() const
     return p->m_is_slicing;
 }
 
+//BBS: update slicing context
+void Plater::update_slicing_context_to_current_partplate()
+{
+    p->partplate_list.update_slice_context_to_current_plate(p->background_process);
+    p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
+}
+
 #if ENABLE_ENVIRONMENT_MAP
 void Plater::init_environment_texture()
 {
