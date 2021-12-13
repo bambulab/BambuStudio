@@ -6955,12 +6955,12 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
     //BBS: add bbs 3mf logic
     PlateDataPtrs plate_data_list;
     //BBS: add gcode to 3mf logic
-    if (wxGetApp().app_config->get("3mf_include_gcode") == "1") {
+    //if (wxGetApp().app_config->get("3mf_include_gcode") == "1") {
         p->partplate_list.store_to_3mf_structure(plate_data_list, true, export_plate_idx);
-    }
-    else {
-        p->partplate_list.store_to_3mf_structure(plate_data_list, false);
-    }
+    //}
+    //else {
+    //    p->partplate_list.store_to_3mf_structure(plate_data_list, false);
+    //}
 
     // BBS: backup
     if (Slic3r::store_bbs_3mf(path_u8.c_str(), &p->model, plate_data_list, export_config ? &cfg : nullptr, full_pathnames, thumbnails, true /*zip64*/, backup, proFn)) {

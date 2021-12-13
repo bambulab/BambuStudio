@@ -3845,6 +3845,9 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
             result = result & mz_zip_writer_add_file(&archive, gcode_in_3mf.c_str(), src_gcode_file.c_str(), "", 0, MZ_DEFAULT_COMPRESSION);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", store  %1% to 3mf %2%, result %3%\n") % src_gcode_file % gcode_in_3mf % result;
         }
+        else {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", gcode_file = %1%, valid = %2%") % plate_data->gcode_file % plate_data->is_sliced_valid;
+        }
     }
     return result;
 }
