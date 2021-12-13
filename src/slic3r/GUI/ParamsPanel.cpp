@@ -83,7 +83,24 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
     auto page_parent = this;
 #endif
 
-    m_page_view = new wxScrolledWindow( page_parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
+    // BBS: fix scroll to tip view
+    class PageScrolledWindow : public wxScrolledWindow
+    {
+    public:
+        PageScrolledWindow(wxWindow *parent)
+            : wxScrolledWindow(parent,
+                               wxID_ANY,
+                               wxDefaultPosition,
+                               wxDefaultSize,
+                               wxVSCROLL)
+        {}
+        virtual bool ShouldScrollToChildOnFocus(wxWindow *child)
+        {
+            return false;
+        }
+    };
+
+    m_page_view = new PageScrolledWindow(page_parent);
     // BBS: center content view and add marktip at right side
     m_page_view->SetBackgroundColour("##FAFAFA");
     wxBoxSizer * page_sizer = new wxBoxSizer(wxHORIZONTAL);
