@@ -4413,6 +4413,7 @@ bool GLCanvas3D::_render_orient_menu(float left, float right, float bottom, floa
     //now change to left_up as {0,0}, and top is 0, bottom is canvas_h
 #if BBS_TOOLBAR_ON_TOP
     const float x = left * float(wxGetApp().plater()->get_camera().get_zoom()) + 0.5f * canvas_w;
+    ImGuiWrapper::push_toolbar_style();
     imgui->set_next_window_pos(x, m_main_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
 #else
     const float x = canvas_w - m_main_toolbar.get_width();
@@ -4482,7 +4483,7 @@ bool GLCanvas3D::_render_orient_menu(float left, float right, float bottom, floa
     }
 
     imgui->end();
-
+    ImGuiWrapper::pop_toolbar_style();
     return settings_changed;
 }
 
@@ -6649,6 +6650,7 @@ void GLCanvas3D::_render_overlays()
     _render_gizmos_overlay();
 
     _render_explosion_control();
+    _render_assemble_info();
 
     // main toolbar and undoredo toolbar need to be both updated before rendering because both their sizes are needed
     // to correctly place them
@@ -7076,6 +7078,49 @@ void GLCanvas3D::_render_explosion_control() const
     imgui->slider_float(_L("Ratio"), &GLVolume::explosion_ratio, 1.0, 3.0, "%5.2f");
 
     imgui->end();
+}
+void GLCanvas3D::_render_assemble_info() const
+{
+    if (m_canvas_type != ECanvasType::CanvasAssembleView) {
+        return;
+    }
+    ImGuiWrapper* imgui = wxGetApp().imgui();
+    auto canvas_w = float(get_canvas_size().get_width());
+    auto canvas_h = float(get_canvas_size().get_height());
+    float space_size = imgui->get_style_scaling() * 8.0f;
+    float caption_max = imgui->calc_text_size(_L("total Volume:")).x + 2 * space_size;
+    ImGuiIO& io = ImGui::GetIO();
+    ImFont* font = io.Fonts->Fonts[0];
+    float origScale = font->Scale;
+    font->Scale = 1.2;
+    ImGui::PushFont(font);
+    ImGui::PopFont();
+    imgui->set_next_window_pos(canvas_w * 0, canvas_h * 0, ImGuiCond_Always, 0, 0);
+    ImGuiWrapper::push_toolbar_style();
+    imgui->begin(_L("Bounding Boxes"), ImGuiWindowFlags_NoCollapse);
+    font->Scale = origScale;
+    ImGui::PushFont(font);
+    ImGui::PopFont();
+
+    double merged_size0 = volumes_bounding_box().size()(0);
+    double merged_size1 = volumes_bounding_box().size()(1);
+    double merged_size2 = volumes_bounding_box().size()(2);
+    ImGui::Text(_L("total Volume:").ToUTF8()); ImGui::SameLine(caption_max);
+    ImGui::Text("%.2f", merged_size0 * merged_size1 * merged_size2);
+    ImGui::Text(_L("total Size:").ToUTF8()); ImGui::SameLine(caption_max);
+    ImGui::Text("%.2f x %.2f x %.2f", merged_size0, merged_size1, merged_size2);
+
+    double size0 = m_selection.get_bounding_box().size()(0);
+    double size1 = m_selection.get_bounding_box().size()(1);
+    double size2 = m_selection.get_bounding_box().size()(2);
+    if (!m_selection.is_empty()) {
+        ImGui::Text(_L("Volume:").ToUTF8()); ImGui::SameLine(caption_max);
+        ImGui::Text("%.2f", size0 * size1 * size2);
+        ImGui::Text(_L("Size:").ToUTF8()); ImGui::SameLine(caption_max);
+        ImGui::Text("%.2f x %.2f x %.2f", size0, size1, size2);
+    }
+    imgui->end();
+    ImGuiWrapper::pop_toolbar_style();
 }
 
 #if ENABLE_SHOW_CAMERA_TARGET
