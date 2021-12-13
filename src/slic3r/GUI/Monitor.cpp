@@ -633,6 +633,10 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
     m_bmToggleBtn_printing_fan->SetValue(false);
     m_bmToggleBtn_nozzle_fan->SetValue(false);
 
+    /* set default enable state */
+    m_button_pause_resume->Disable();
+    m_button_abort->Disable();
+
     init_timer();
     init_bind();
 
@@ -851,6 +855,10 @@ void MonitorPanel::Reset()
 
     m_panel_printing_content->Layout();
 
+    /* default enable state */
+    m_button_pause_resume->Disable();
+    m_button_abort->Disable();
+
     /* reset task list */
     task_panels.clear();
     wxBoxSizer* bSizer_tasklist = new wxBoxSizer(wxVERTICAL);
@@ -1049,10 +1057,23 @@ void MonitorPanel::update_status(MachineObject* obj)
     m_staticText_nozzle_current->SetLabelText(nozzle_temp_curr_text);
 
 
-    if (obj->can_resume())
-        m_button_pause_resume->SetLabelText("Resume");
-    else
-        m_button_pause_resume->SetLabelText("Pause");
+    if (obj->can_abort()) {
+        m_button_abort->Enable();
+    }
+    else {
+        m_button_abort->Disable();
+    }
+
+    if (obj->can_pause() || obj->can_resume()) {
+        m_button_pause_resume->Enable();
+        if (obj->can_resume())
+            m_button_pause_resume->SetLabelText("Resume");
+        else
+            m_button_pause_resume->SetLabelText("Pause");
+    }
+    else {
+        m_button_pause_resume->Disable();
+    }
 
     m_panel_machine_status_content->Layout();
 }
