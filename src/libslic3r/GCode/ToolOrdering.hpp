@@ -130,7 +130,7 @@ public:
 
     // For the use case when all objects are printed at once.
     // (print.config.complete_objects is false).
-    ToolOrdering(const Print &print, unsigned int first_extruder, bool prime_multi_material = false);
+    ToolOrdering(const Print& print, unsigned int first_extruder, bool prime_multi_material = false);
 
     void 				clear() { m_layer_tools.clear(); }
 
@@ -165,9 +165,15 @@ private:
     void				initialize_layers(std::vector<coordf_t> &zs);
     void 				collect_extruders(const PrintObject &object, const std::vector<std::pair<double, unsigned int>> &per_layer_extruder_switches);
     void				reorder_extruders(unsigned int last_extruder_id);
+    // BBS
+    void                reorder_extruders(std::vector<unsigned int> tool_order_layer0);
     void 				fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z, coordf_t max_layer_height);
     void                mark_skirt_layers(const PrintConfig &config, coordf_t max_layer_height);
     void 				collect_extruder_statistics(bool prime_multi_material);
+
+    // BBS
+    std::vector<unsigned int> generate_first_layer_tool_order(const Print& print);
+    std::vector<unsigned int> generate_first_layer_tool_order(const PrintObject& object);
 
     std::vector<LayerTools>    m_layer_tools;
     // First printing extruder, including the multi-material priming sequence.
