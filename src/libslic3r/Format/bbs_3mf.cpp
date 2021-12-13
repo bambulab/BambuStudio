@@ -514,6 +514,7 @@ namespace Slic3r {
 
         //BBS: plater related structures
         bool m_is_bbl_3mf { false };
+        bool m_parsing_slice_info { false };
         PlateDataMaps m_plater_data;
         PlateData* m_curr_plater;
         CurrentInstance m_curr_instance;
@@ -555,6 +556,7 @@ namespace Slic3r {
 
         void _extract_auxiliary_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model);
         void _extract_gcode_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model, std::string& name);
+        bool _extract_slice_info_config_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model);
 
         // handlers to parse the .model file
         void _handle_start_model_xml_element(const char* name, const char** attributes);
@@ -814,6 +816,12 @@ namespace Slic3r {
                         return false;
                     }
                 }
+                else if (boost::algorithm::iequals(name, SLICE_INFO_CONFIG_FILE)) {
+                    m_parsing_slice_info = true;
+                    //extract slice info from archive
+                    _extract_slice_info_config_file_from_archive(archive, stat, model);
+                    m_parsing_slice_info = false;
+                }
                 else if (boost::algorithm::istarts_with(name, AUXILIARY_DIR)) {
                     // extract auxiliary directory to temp directory
                     if (m_load_aux)
@@ -988,6 +996,8 @@ namespace Slic3r {
             plate_data_list[it->first-1]->locked = it->second->locked;
             plate_data_list[it->first-1]->plate_index = it->second->plate_index-1;
             plate_data_list[it->first-1]->objects_and_instances = it->second->objects_and_instances;
+            plate_data_list[it->first-1]->gcode_prediction = it->second->gcode_prediction;
+            plate_data_list[it->first-1]->gcode_weight = it->second->gcode_weight;
             int gcode_index = find_gcode_name(it->first);
             if (gcode_index != -1) {
                 plate_data_list[it->first-1]->gcode_file = m_gcode_files[gcode_index];
@@ -1530,6 +1540,46 @@ namespace Slic3r {
                 m_model->custom_gcode_per_print_z.gcodes.push_back(CustomGCode::Item{print_z, type, extruder, color, extra}) ;
             }
         }
+    }
+
+    bool _BBS_3MF_Importer::_extract_slice_info_config_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model)
+    {
+        if (stat.m_uncomp_size == 0) {
+            add_error("Found invalid size");
+            return false;
+        }
+
+        _destroy_xml_parser();
+
+        m_xml_parser = XML_ParserCreate(nullptr);
+        if (m_xml_parser == nullptr) {
+            add_error("Unable to create parser");
+            return false;
+        }
+
+        XML_SetUserData(m_xml_parser, (void*)this);
+        XML_SetElementHandler(m_xml_parser, _BBS_3MF_Importer::_handle_start_config_xml_element, _BBS_3MF_Importer::_handle_end_config_xml_element);
+
+        void* parser_buffer = XML_GetBuffer(m_xml_parser, (int)stat.m_uncomp_size);
+        if (parser_buffer == nullptr) {
+            add_error("Unable to create buffer");
+            return false;
+        }
+
+        mz_bool res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, parser_buffer, (size_t)stat.m_uncomp_size, 0);
+        if (res == 0) {
+            add_error("Error while reading config data to buffer");
+            return false;
+        }
+
+        if (!XML_ParseBuffer(m_xml_parser, (int)stat.m_uncomp_size, 1)) {
+            char error_buf[1024];
+            ::sprintf(error_buf, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), (int)XML_GetCurrentLineNumber(m_xml_parser));
+            add_error(error_buf);
+            return false;
+        }
+
+        return true;
     }
 
     void _BBS_3MF_Importer::_handle_start_model_xml_element(const char* name, const char** attributes)
@@ -2151,7 +2201,7 @@ namespace Slic3r {
         std::string key = bbs_get_attribute_value_string(attributes, num_attributes, KEY_ATTR);
         std::string value = bbs_get_attribute_value_string(attributes, num_attributes, VALUE_ATTR);
 
-        if (m_curr_plater == nullptr)
+        if ((m_curr_plater == nullptr)&&!m_parsing_slice_info)
         {
             IdToMetadataMap::iterator object = m_objects_metadata.find(m_curr_config.object_id);
             if (object == m_objects_metadata.end()) {
@@ -2197,6 +2247,23 @@ namespace Slic3r {
                 else
                     m_curr_instance.object_id = -1;
             }
+            else if (key == PLATE_IDX_ATTR)
+            {
+                int plate_index = atoi(value.c_str());
+                std::map<int, PlateData*>::iterator it = m_plater_data.find(plate_index);
+                if (it != m_plater_data.end())
+                    m_curr_plater = it->second;
+            }
+            else if (key == SLICE_PREDICTION_ATTR)
+            {
+                if (m_curr_plater)
+                    m_curr_plater->gcode_prediction = value;
+            }
+            else if (key == SLICE_WEIGHT_ATTR)
+            {
+                if (m_curr_plater)
+                    m_curr_plater->gcode_weight = value;
+            }
         }
 
         return true;
@@ -2210,7 +2277,9 @@ namespace Slic3r {
 
     bool _BBS_3MF_Importer::_handle_start_config_plater(const char** attributes, unsigned int num_attributes)
     {
-        m_curr_plater = new PlateData();
+        if (!m_parsing_slice_info) {
+            m_curr_plater = new PlateData();
+        }
  
         return true;
     }

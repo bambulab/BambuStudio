@@ -1149,7 +1149,23 @@ int PartPlate::load_gcode_from_file(const std::string& filename)
 
 	// process gcode
 	m_print->apply(*m_model, wxGetApp().preset_bundle->full_config());
-	m_print->export_gcode_from_previous_file(filename, m_tmp_gcode_path, m_gcode_result);
+	// BBS: use backup path to save temp gcode
+	auto path = get_tmp_gcode_path();
+	if (boost::filesystem::exists(boost::filesystem::path(path))) {
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": file %1% exists, delete it firstly") % filename.c_str();
+		boost::nowide::remove(path.c_str());
+	}
+
+	std::error_code error = rename_file(filename, path);
+	if (error) {
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Failed to rename the output G-code file from %1% to %2, error code %3%") % filename.c_str() % path.c_str() % error.message();
+		return -1;
+	}
+	m_gcode_result->filename = path;
+	m_print->set_gcode_file_ready();
+
+	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": from %1% to %2%, finished") % filename.c_str() % path.c_str();
+
 	m_slice_result_valid = true;
 	m_ready_for_slice = true;
 	return ret;
@@ -2667,6 +2683,12 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 		if (!plate_data_list[i]->gcode_file.empty()) {
 			m_plate_list[index]->m_gcode_path_from_3mf = plate_data_list[i]->gcode_file;
 		}
+		GCodeResult* gcode_result = nullptr;
+		PrintBase* fff_print = nullptr;
+		m_plate_list[index]->get_print(&fff_print, &gcode_result, nullptr);
+		PrintStatistics& ps = (dynamic_cast<Print*>(fff_print))->print_statistics();
+		gcode_result->print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time = atoi(plate_data_list[i]->gcode_prediction.c_str());
+		ps.total_weight = atof(plate_data_list[i]->gcode_weight.c_str());
 	}
 	print();
 	ret = reload_all_objects();

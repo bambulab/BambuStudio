@@ -468,7 +468,7 @@ namespace WindowsSupport
 		  		return errcode;
 
 			//BBS: add some log for error tracing
-			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("first rename file from %1% to %2% failed, reason: %3%") % from.c_str() % to.c_str() % errcode.message();
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(",first rename file from %1% to %2% failed, reason: %3%") % from.c_str() % to.c_str() % errcode.message();
 			// The destination file probably exists and is currently open in another
 			// process, either because the file was opened without FILE_SHARE_DELETE or
 			// it is mapped into memory (e.g. using MemoryBuffer). Rename it in order to
@@ -485,7 +485,7 @@ namespace WindowsSupport
 					continue;
 
 				//BBS: add some log for error tracing
-				BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("open dest file %1% failed, reason: %2%") % to.c_str() % errcode.message();
+				BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(",open dest file %1% failed, reason: %2%") % to.c_str() % errcode.message();
 				return errcode;
 			}
 

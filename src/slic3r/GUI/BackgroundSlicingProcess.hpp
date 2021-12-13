@@ -179,7 +179,9 @@ public:
     // The "finished" flag is reset by the apply() method, if it changes the state of the print.
     // This "finished" flag does not account for the final export of the output file (.gcode or zipped PNGs),
     // and it does not account for the OctoPrint scheduling.
-    bool    finished() const { return m_print->finished(); }
+    //BBS: improve the finished logic, also judge the m_gcode_result
+    //bool    finished() const { return m_print->finished(); }
+    bool    finished() const { return m_print->finished() && !m_gcode_result->moves.empty(); }
 
     //BBS: add Plater to friend class
     //need to call stop_internal in ui thread

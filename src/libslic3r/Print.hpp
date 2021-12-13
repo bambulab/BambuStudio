@@ -634,7 +634,8 @@ public:
     void set_plate_origin(Vec3d origin) { m_origin = origin; }
     Vec3d get_plate_origin() { return m_origin; }
     //BBS: export gcode from previous gcode file from 3mf
-    void export_gcode_from_previous_file(const std::string& src_file, std::string& dest_file, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
+    void set_gcode_file_ready();
+    void export_gcode_from_previous_file(const std::string& file, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
 
     //BBS
     static std::string sequential_print_clearance_valid(const Print& print, Polygons* polygons = nullptr);

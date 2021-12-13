@@ -914,6 +914,7 @@ ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, Fo
 {
     // Read a 64k block from the end of the G-code.
 	boost::nowide::ifstream ifs(file);
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  before parse_file %1%") % file.c_str();
     // Look for Slic3r or PrusaSlicer header.
     // Look for the header across the whole file as the G-code may have been extended at the start by a post-processing script or the user.
     bool has_delimiters = false;
@@ -947,8 +948,10 @@ ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, Fo
                 break;
             }
         }
-        if (! header_found)
+        if (!header_found) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Not a PrusaSlicer / Slic3r PE generated g-code.";
             throw Slic3r::RuntimeError("Not a PrusaSlicer / Slic3r PE generated g-code.");
+        }
     }
 
     auto                      header_end_pos = ifs.tellg();
@@ -973,8 +976,10 @@ ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, Fo
                 end_found = true;
                 break;
             }
-        if (! end_found) 
+        if (!end_found) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << format("Configuration block closing tag \"; prusaslicer_config = end\" not found when reading %1%", file);
             throw Slic3r::RuntimeError(format("Configuration block closing tag \"; prusaslicer_config = end\" not found when reading %1%", file));
+        }
         std::string key, value;
         while (reader.getline(line)) {
             if (line == "; prusaslicer_config = begin") {
@@ -996,8 +1001,10 @@ ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, Fo
                 }
             }
         }
-        if (! begin_found) 
+        if (!begin_found) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << format("Configuration block opening tag \"; prusaslicer_config = begin\" not found when reading %1%", file);
             throw Slic3r::RuntimeError(format("Configuration block opening tag \"; prusaslicer_config = begin\" not found when reading %1%", file));
+        }
     }
     else
     {
@@ -1013,8 +1020,12 @@ ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, Fo
         key_value_pairs = load_from_gcode_string_legacy(*this, data.data(), substitutions_ctxt);
     }
 
-    if (key_value_pairs < 80)
+    if (key_value_pairs < 80) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << format("Suspiciously low number of configuration values extracted from %1%: %2%", file, key_value_pairs);
         throw Slic3r::RuntimeError(format("Suspiciously low number of configuration values extracted from %1%: %2%", file, key_value_pairs));
+    }
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  finished to parse_file %1%") % file.c_str();
     return std::move(substitutions_ctxt.substitutions);
 }
 

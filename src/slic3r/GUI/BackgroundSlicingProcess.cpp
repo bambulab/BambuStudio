@@ -185,17 +185,31 @@ std::string BackgroundSlicingProcess::output_filepath_for_project(const boost::f
 void BackgroundSlicingProcess::process_fff()
 {
 	assert(m_print == m_fff_print);
-    m_print->process();
+	//BBS: add the logic to process from an existed gcode file
+	if (m_print->finished()) {
+		m_fff_print->set_status(80, _utf8(L("Processing G-Code from Previous file...")));
+		wxCommandEvent evt(m_event_slicing_completed_id);
+		// Post the Slicing Finished message for the G-code viewer to update.
+		// Passing the timestamp
+		evt.SetInt((int)(m_fff_print->step_state_with_timestamp(PrintStep::psSlicingFinished).timestamp));
+		wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
 
-	wxCommandEvent evt(m_event_slicing_completed_id);
-	// Post the Slicing Finished message for the G-code viewer to update.
-	// Passing the timestamp 
-	evt.SetInt((int)(m_fff_print->step_state_with_timestamp(PrintStep::psSlicingFinished).timestamp));
-	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
-	//BBS: add plate index into render params
-	m_temp_output_path = this->get_current_plate()->get_tmp_gcode_path();
+		m_temp_output_path = this->get_current_plate()->get_tmp_gcode_path();
+		m_fff_print->export_gcode_from_previous_file(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
+	}
+	else {
+		m_print->process();
 
-	m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
+		wxCommandEvent evt(m_event_slicing_completed_id);
+		// Post the Slicing Finished message for the G-code viewer to update.
+		// Passing the timestamp
+		evt.SetInt((int)(m_fff_print->step_state_with_timestamp(PrintStep::psSlicingFinished).timestamp));
+		wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
+
+		//BBS: add plate index into render params
+		m_temp_output_path = this->get_current_plate()->get_tmp_gcode_path();
+		m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
+	}
 	if (this->set_step_started(bspsGCodeFinalize)) {
 	    if (! m_export_path.empty()) {
 			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));

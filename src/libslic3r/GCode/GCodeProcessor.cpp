@@ -354,6 +354,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     if (in.f == nullptr)
         throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nCannot open file for reading.\n"));
 
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  boost::format(":  before process %1%")%filename.c_str();
     // temporary file to contain modified gcode
     std::string out_path = filename + ".postprocess";
     FilePtr out{ boost::nowide::fopen(out_path.c_str(), "wb") };
@@ -637,6 +638,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
 
     out.close();
     in.close();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  boost::format(":  after process %1%")%filename.c_str();
 
     // updates moves' gcode ids which have been modified by the insertion of the M73 lines
     unsigned int curr_offset_id = 0;
@@ -649,9 +651,11 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         move.gcode_id += total_offset;
     }
 
-    if (rename_file(out_path, filename))
+    if (rename_file(out_path, filename)) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  boost::format(":  Failed to rename the output G-code file from %1% to %2%")%out_path.c_str() % filename.c_str();
         throw Slic3r::RuntimeError(std::string("Failed to rename the output G-code file from ") + out_path + " to " + filename + '\n' +
             "Is " + out_path + " locked?" + '\n');
+    }
 }
 
 void GCodeProcessor::UsedFilaments::reset()
