@@ -137,6 +137,7 @@ private:
 
 private:
     void OnMouse( wxMouseEvent &event );
+    void OnLeftUp( wxMouseEvent &event );
     void OnSize( wxSizeEvent &event );
     void OnSetFocus( wxFocusEvent &event );
     void OnKillFocus( wxFocusEvent &event );

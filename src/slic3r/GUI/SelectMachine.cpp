@@ -340,6 +340,11 @@ SelectMachinePopup::SelectMachinePopup( wxWindow *parent, bool scrolled)
     topSizer->Add(m_staticText_select, 0, wxALL | wxEXPAND, 5);
 
     m_panel->Bind(wxEVT_MOTION, &SelectMachinePopup::OnMouse, this);
+#ifdef __WXMAC__
+    // On Mac, pop up window capture mouse events
+    m_panel->Bind(wxEVT_LEFT_UP, &SelectMachinePopup::OnLeftUp, this);
+#endif
+
 
     m_panel->SetSizer( topSizer );
     if ( scrolled )
@@ -480,9 +485,21 @@ void SelectMachinePopup::OnMouse(wxMouseEvent &event)
     event.Skip();
 }
 
-void SelectMachinePopup::OnButton(wxCommandEvent& event)
+// fix mac mouse capture
+void SelectMachinePopup::OnLeftUp(wxMouseEvent& event)
 {
-    ;
+    for (int i = 0; i < m_obj_list.size(); i++) {
+        wxRect rect(obj_panels[i]->GetRect());
+        rect.SetX(-100000);
+        rect.SetWidth(2000000);
+        wxColour colour = m_bg_colour;
+
+        if (rect.Contains(event.GetPosition())) {
+            obj_panels[i]->on_mouse_left_up(event);
+            break;
+        }
+    }
+    event.Skip();
 }
 
 void SelectMachinePopup::on_timer(wxTimerEvent& event)
