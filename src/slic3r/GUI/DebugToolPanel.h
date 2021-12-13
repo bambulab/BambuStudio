@@ -100,6 +100,8 @@ namespace Slic3r
 				wxStaticText* label_bed_end_temp_val;
 				wxStaticText* m_staticText_pocket_temp;
 				wxStaticText* m_staticText_volume_temp_val;
+				wxStaticText* m_staticText_frame_temp;
+				wxStaticText* m_staticText_frame_temp_value;
 				wxStaticText* m_staticText_progress;
 				wxStaticText* label_print_progress_val;
 				wxStaticText* m_staticText_wifi_signal;
@@ -217,9 +219,7 @@ namespace Slic3r
 				wxStaticText* m_staticText_log;
 				wxTextCtrl* txt_string_info;
 
-
 				std::shared_ptr<BBLStatusBar> m_status_bar;
-
 
 			public:
 

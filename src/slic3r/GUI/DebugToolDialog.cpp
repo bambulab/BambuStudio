@@ -1590,8 +1590,11 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
     wxString gcode_line_text = wxString::Format("%d", obj->mc_print_line_number);
     m_staticText_mc_print_line_number->SetLabelText(gcode_line_text);
 
-    wxString chamber_text = wxString::Format("%fC", obj->chamber_temp);
+    wxString chamber_text = wxString::Format("%0.2fC", obj->chamber_temp);
     m_staticText_volume_temp_val->SetLabelText(chamber_text);
+
+    wxString frame_temp_text = wxString::Format("%0.2fC", obj->frame_temp);
+    m_staticText_frame_temp_value->SetLabelText(frame_temp_text);
 
     wxString subtask_id = "N/A";
     if (obj->subtask_) {

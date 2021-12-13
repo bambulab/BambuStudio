@@ -244,7 +244,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 	bSizer151->Add( label_upload_progress1, 0, wxALL, 5 );
 
-    m_status_bar = std::make_shared<BBLStatusBar>(m_panel_run_gcode);
+ m_status_bar = std::make_shared<BBLStatusBar>(m_panel_run_gcode);
     m_panel_status = m_status_bar->get_panel();
     bSizer151->Add( m_panel_status, 1, wxEXPAND | wxALL, 0 );
 
@@ -309,13 +309,21 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	label_bed_end_temp_val->Wrap( -1 );
 	bSizer_info->Add( label_bed_end_temp_val, 0, wxALIGN_LEFT|wxALL, 5 );
 
-	m_staticText_pocket_temp = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("Chamber Temp"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_pocket_temp = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("Chamber Temp:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_pocket_temp->Wrap( -1 );
 	bSizer_info->Add( m_staticText_pocket_temp, 0, wxALIGN_RIGHT|wxALL, 5 );
 
 	m_staticText_volume_temp_val = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_volume_temp_val->Wrap( -1 );
 	bSizer_info->Add( m_staticText_volume_temp_val, 0, wxALL, 5 );
+
+	m_staticText_frame_temp = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("Frame Temp:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_frame_temp->Wrap( -1 );
+	bSizer_info->Add( m_staticText_frame_temp, 0, wxALIGN_RIGHT|wxALL, 5 );
+
+	m_staticText_frame_temp_value = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText_frame_temp_value->Wrap( -1 );
+	bSizer_info->Add( m_staticText_frame_temp_value, 0, wxALIGN_LEFT|wxALL, 5 );
 
 	m_staticText_progress = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("Print Progress:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_progress->Wrap( -1 );

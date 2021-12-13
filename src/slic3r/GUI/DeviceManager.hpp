@@ -153,6 +153,7 @@ public:
     float  bed_temp;
     float  bed_temp_target;
     float  chamber_temp;
+    float  frame_temp;
 
     /* cooling */
     int     heatbreak_fan_speed;

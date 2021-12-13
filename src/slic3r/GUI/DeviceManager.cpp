@@ -158,6 +158,7 @@ MachineObject::MachineObject(AccountManager& acc, std::string name, std::string 
     bed_temp = 0.0f;
     bed_temp_target = 0.0f;
     chamber_temp = 0.0f;
+    frame_temp = 0.0f;
 
     /* ams fileds */
     ams_exist_bits = 0;
@@ -542,7 +543,12 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 boost::optional<std::string> nozzle_temp_target_raw = print.get_optional<std::string>("nozzle_target_temp_raw");
                 boost::optional<std::string> bed_temp_raw           = print.get_optional<std::string>("bed_temp_raw");
                 boost::optional<std::string> bed_temp_target_raw    = print.get_optional<std::string>("bed_target_temp_raw");
-                boost::optional<float> chamber_temp_raw             = print.get_optional<float>("chamber_temp_raw");
+                boost::optional<std::string> chamber_temper         = print.get_optional<std::string>("chamber_temper");
+                boost::optional<std::string> frame_temper_str       = print.get_optional<std::string>("frame_temper");
+
+                // old chamber style, to be removed
+                boost::optional<std::string> chamber_temp_old       = print.get_optional<std::string>("chamber_temp");
+                
                 double temp_scale = 32.0f;
                 if (nozzle_temp_raw.has_value())
                     nozzle_temp = (float)std::stoi(nozzle_temp_raw.value()) / temp_scale;
@@ -556,8 +562,17 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 if (bed_temp_target_raw.has_value())
                     bed_temp_target = (float)std::stoi(bed_temp_target_raw.value()) / temp_scale;
 
-                if (chamber_temp_raw.has_value())
-                    chamber_temp = chamber_temp_raw.value();
+                if (chamber_temper.has_value()) {
+                    chamber_temp = (float)std::stod(chamber_temper.value());
+                }
+                else if (chamber_temp_old.has_value()) {
+                    std::string chamber_temp_str = chamber_temp_old.value().substr(0, chamber_temp_old.value().length() - 1);
+                    chamber_temp = (float)std::stod(chamber_temp_str);
+                }
+
+                if (frame_temper_str.has_value())
+                    frame_temp = (float)std::stod(frame_temper_str.value());
+
 
                 /* cooling */
                 boost::optional<int> cooling_fan_speed_str      = print.get_optional<int>("cooling_fan_speed");

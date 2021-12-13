@@ -1056,6 +1056,9 @@ void MonitorPanel::update_status(MachineObject* obj)
     wxString nozzle_temp_curr_text = wxString::Format("%0.2f", obj->nozzle_temp);
     m_staticText_nozzle_current->SetLabelText(nozzle_temp_curr_text);
 
+    wxString chamber_temp_curr_text = wxString::Format("%0.2f", obj->chamber_temp);
+    m_staticText_pocket_current->SetLabelText(chamber_temp_curr_text);
+
 
     if (obj->can_abort()) {
         m_button_abort->Enable();
