@@ -1335,6 +1335,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write_format(";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
 
     //BBS
+    if (print.config().enable_spaghetti_detector.value)
+        file.writeln("M981 S1 P20000");
+    //BBS
     if (print.config().scan_first_layer.value)
         file.writeln("M977 S1 P60\nM400 S3\n");
 
@@ -1528,6 +1531,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             }
         }
         file.writeln(this->placeholder_parser_process("end_gcode", print.config().end_gcode, m_writer.extruder()->id(), &config));
+        //BBS
+        if (print.config().enable_spaghetti_detector.value)
+            file.writeln("M981 S0 P20000");
     }
     file.write(m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
     file.write(m_writer.postamble());

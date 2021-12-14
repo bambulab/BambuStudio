@@ -665,6 +665,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                gcode_comments))
     // BBS
     ((ConfigOptionBool,                scan_first_layer))
+    ((ConfigOptionBool,                enable_spaghetti_detector))
     ((ConfigOptionBool,                gcode_add_line_number))
     ((ConfigOptionEnum<GCodeFlavor>,   gcode_flavor))
     ((ConfigOptionBool,                gcode_label_objects))

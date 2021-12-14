@@ -1393,6 +1393,12 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Enable this to enable the camera on printer to check the quality of first layer.");
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionBool(false));
+    //BBS
+    def = this->add("enable_spaghetti_detector", coBool);
+    def->label = L("Enable spaghetti detector");
+    def->tooltip = L("enable the camera on printer to check spaghetti.");
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("gcode_flavor", coEnum);
     def->label = L("G-code flavor");
