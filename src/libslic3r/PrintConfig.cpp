@@ -2802,6 +2802,17 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
+    def = this->add("support_transition_extrusion_width", coFloatOrPercent);
+    def->label = L("Support transition");
+    def->category = L("Extrusion Width");
+    def->tooltip = L("Set this to a non-zero value to set a manual extrusion width for support transition. "
+        "If left zero, default extrusion width will be used if set, otherwise nozzle diameter will be used. "
+        "If expressed as percentage (for example 90%) it will be computed over layer height.");
+    def->sidetext = L("mm or %");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(0.6, false));
+
     def = this->add("support_material_interface_contact_loops", coBool);
     def->label = L("Interface loops");
     def->category = L("Support material");

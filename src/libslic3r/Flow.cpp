@@ -52,6 +52,8 @@ static inline FlowRole opt_key_to_flow_role(const std::string &opt_key)
 		return frTopSolidInfill;
 	else if (opt_key == "support_material_extrusion_width")
     	return frSupportMaterial;
+    else if (opt_key == "support_transition_extrusion_width")
+        return frSupportTransition;
     else 
     	throw Slic3r::RuntimeError("opt_key_to_flow_role: invalid argument");
 };
@@ -227,6 +229,19 @@ Flow support_material_flow(const PrintObject *object, float layer_height)
         // if object->config().support_material_extruder == 0 (which means to not trigger tool change, but use the current extruder instead), get_at will return the 0th component.
         float(object->print()->config().nozzle_diameter.get_at(object->config().support_material_extruder-1)),
         (layer_height > 0.f) ? layer_height : float(object->config().layer_height.value));
+}
+//BBS
+Flow support_transition_flow(const PrintObject* object, float layer_height)
+{
+    return Flow::new_from_config_width(
+        frSupportTransition,
+        // The width parameter accepted by new_from_config_width is of type ConfigOptionFloatOrPercent, the Flow class takes care of the percent to value substitution.
+        (object->config().support_transition_extrusion_width.value > 0) ? object->config().support_transition_extrusion_width : object->config().extrusion_width,
+        // if object->config().support_material_extruder == 0 (which means to not trigger tool change, but use the current extruder instead), get_at will return the 0th component.
+        float(object->print()->config().nozzle_diameter.get_at(object->config().support_material_extruder - 1)),
+        (layer_height > 0.f) ? layer_height : float(object->config().layer_height.value),
+        // bridge_flow_ratio
+        0.f);
 }
 
 Flow support_material_1st_layer_flow(const PrintObject *object, float layer_height)

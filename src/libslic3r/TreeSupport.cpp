@@ -1106,7 +1106,7 @@ static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print
     }
 }
 
-static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& print, const ExPolygon& support_area, size_t wall_count, const Flow& flow, bool is_interface, Fill* filler_support, double support_density)
+static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& print, const ExPolygon& support_area, size_t wall_count, const Flow& flow, ExtrusionRole           role, Fill* filler_support, double support_density)
 {
     Polygons   loops;
     ExPolygons support_area_new = offset_ex(support_area, -0.5f * float(flow.scaled_spacing()), jtSquare);
@@ -1116,7 +1116,7 @@ static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& pr
     fill_params.density = support_density;
     fill_params.dont_adjust = true;
     ExPolygons to_infill = offset_ex(support_area, -0.5f * float(flow.scaled_spacing()), jtSquare);
-    std::vector<BoundingBox> fill_boxes = fill_expolygons_generate_paths(dst, std::move(to_infill), filler_support, fill_params, support_density, erSupportMaterial, flow);
+    std::vector<BoundingBox> fill_boxes = fill_expolygons_generate_paths(dst, std::move(to_infill), filler_support, fill_params, support_density, role, flow);
 
     // allow wall_count to be zero, which means only draw infill
     if (wall_count == 0) {
@@ -1168,7 +1168,6 @@ static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& pr
         }
 
 
-        ExtrusionRole role = is_interface ? erSupportMaterialInterface : erSupportMaterial;
         if (print.config().auto_slow_down_for_overhang_and_curva) {
             CurveAnalyzer curve_analyzer;
             for (size_t i = 0; i < loops.size(); i++) {
@@ -1212,6 +1211,7 @@ void TreeSupport::generate_toolpaths()
     const PrintConfig &print_config = m_object.print()->config();
     const PrintObjectConfig &object_config = m_object.config();
     coordf_t support_extrusion_width = object_config.support_material_extrusion_width.value > 0 ? object_config.support_material_extrusion_width : object_config.extrusion_width;
+    coordf_t support_transition_extrusion_width = object_config.support_transition_extrusion_width.value > 0 ? object_config.support_transition_extrusion_width : object_config.extrusion_width;
     coordf_t nozzle_diameter = print_config.nozzle_diameter.get_at(object_config.support_material_extruder - 1);
 
     const size_t wall_count = object_config.tree_support_wall_count.value;
@@ -1315,6 +1315,7 @@ void TreeSupport::generate_toolpaths()
             for (size_t layer_id = range.begin(); layer_id < range.end(); layer_id++) {
                 TreeSupportLayer* ts_layer = m_object.get_tree_support_layer(layer_id);
                 Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
+                Flow transition_flow(support_transition_extrusion_width, ts_layer->height/**1.5*/, nozzle_diameter);
                 Fill* filler_interface = Fill::new_from_type(ipRectilinear);
 
                 filler_interface->angle = layer_id % 2 ? 0 : 90;
@@ -1360,14 +1361,16 @@ void TreeSupport::generate_toolpaths()
                             filler_interface, fill_params, interface_density, erSupportMaterialInterface, support_flow);
                     }
                     //// add solid infill every 100 layers
-                    //else if (layer_id % 100 == 0)
+                    //else if (layer_id % num_layers_to_change_infill_direction == 0)
                     //{
                     //    make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object.print(), poly,
                     //        std::numeric_limits<size_t>::max(), support_flow, false);
                     //}
                     else {
-                        Flow flow = (layer_id == 0 && m_raft_layers == 0)? m_object.print()->brim_flow() : support_flow;
+                        Flow flow = (layer_id == 0 && m_raft_layers == 0) ? m_object.print()->brim_flow() :
+                            (layer_id % num_layers_to_change_infill_direction == 0 ? transition_flow : support_flow);
                         if (with_infill && layer_id > 0) {
+                            ExtrusionRole role = layer_id % num_layers_to_change_infill_direction == 0 ? erSupportTransition : erSupportMaterial;
                             Fill* filler_support = Fill::new_from_type(ipRectilinear);
                             filler_support->spacing = m_support_material_flow.spacing();//support_extrusion_width;
                             filler_support->angle = (obj_is_vertical + int(layer_id / num_layers_to_change_infill_direction)) * M_PI_2;
@@ -1375,10 +1378,10 @@ void TreeSupport::generate_toolpaths()
                             // allow infill-only mode if support is thick enough
                             if (offset(poly, -scale_(support_spacing * 1.5)).empty() == false)
                             {
-                                make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object.print(), poly, wall_count, support_flow, false, filler_support, support_density);
+                                make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object.print(), poly, wall_count, flow, role, filler_support, support_density);
                             }
                             else { // otherwise must draw 1 wall
-                                make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object.print(), poly, 1, support_flow, false, filler_support, support_density);
+                                make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object.print(), poly, 1, flow, role, filler_support, support_density);
                             }
                         }
                         else

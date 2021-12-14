@@ -1599,6 +1599,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("solid_infill_extrusion_width");
         optgroup->append_single_option_line("top_infill_extrusion_width");
         optgroup->append_single_option_line("support_material_extrusion_width");
+        optgroup->append_single_option_line("support_transition_extrusion_width");
         //BBS
         optgroup = page->new_optgroup(L("Advanced"));
         optgroup->append_single_option_line("external_perimeters_first", category_path + "external-perimeters-first");

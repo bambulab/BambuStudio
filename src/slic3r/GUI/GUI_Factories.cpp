@@ -70,7 +70,8 @@ static SettingsFactory::Bundle FREQ_SETTINGS_BUNDLE_SLA =
 std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_CATEGORY_SETTINGS=
 {
     { L("Quality"), {{"layer_height", "",1},{"first_layer_height", "",2},{"adaptive_layer_height", "",3},{"seam_position", "",4},
-                    {"xy_size_compensation", "",5},{"elefant_foot_compensation", "",6},{"support_material_extrusion_width", "",12}
+                    {"xy_size_compensation", "",5},{"elefant_foot_compensation", "",6},{"support_material_extrusion_width", "",12},
+                    {"support_transition_extrusion_width", "",12}
                     }},
     { L("Support material"), {{"support_material", "",1},{"support_type", "",2},{"support_material_threshold", "",3},{"support_material_buildplate_only", "",4},{"support_material_enforce_layers", "",5},
                             {"tree_support_wall_count", "",6},{"tree_support_with_infill", "",7},//tree support
