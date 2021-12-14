@@ -283,43 +283,51 @@ wxDataViewItem AuxiliaryModel::CreateFolder(wxString name)
     return folder_item;
 }
 
-wxDataViewItem AuxiliaryModel::ImportFile(AuxiliaryModelNode* sel, wxString file_path)
+wxDataViewItemArray AuxiliaryModel::ImportFile(AuxiliaryModelNode* sel, wxArrayString file_paths)
 {
     if (sel == nullptr) {
         sel = m_root;
     }
 
+    wxDataViewItemArray added_items;
     AuxiliaryModelNode* parent = sel->IsContainer() ? sel : sel->GetParent();
-    for (AuxiliaryModelNode* node : parent->GetChildren()) {
-        if (node->path == file_path)
-            return wxDataViewItem(nullptr);
+    for (wxString file_path : file_paths) {
+        bool exists = false;
+        for (AuxiliaryModelNode* node : parent->GetChildren()) {
+            if (node->path == file_path) {
+                exists = true;
+                break;
+            }
+        }
+
+        if (exists)
+            continue;
+
+        // Copy imported file to project temp directory
+        fs::path src_bfs_path(file_path.ToStdWstring());
+        wxString dir_path = m_root_dir;
+        if (sel != m_root)
+            dir_path += "\\" + sel->name;
+        dir_path += "\\" + src_bfs_path.filename().generic_wstring();
+
+        boost::system::error_code ec;
+        if (!fs::copy_file(src_bfs_path, fs::path(dir_path.ToStdWstring()), fs::copy_option::overwrite_if_exists, ec))
+            continue;
+
+        // Update model data
+        AuxiliaryModelNode* file = new AuxiliaryModelNode(parent, dir_path, false);
+
+        // Notify wxDataViewCtrl to update ui
+        wxDataViewItem file_item(file);
+        if (parent == m_root)
+            parent = nullptr;
+        Slic3r::put_other_changes();
+        wxDataViewItem parent_item(parent);
+        ItemAdded(parent_item, file_item);
+        added_items.push_back(file_item);
     }
 
-    // Copy imported file to project temp directory
-    fs::path src_bfs_path(file_path.ToStdWstring());
-    wxString dir_path = m_root_dir;
-    if (sel != m_root)
-        dir_path += "\\" + sel->name;
-    dir_path += "\\" + src_bfs_path.filename().generic_wstring();
-
-    boost::system::error_code ec;
-    if (!fs::copy_file(
-        src_bfs_path,
-        fs::path(dir_path.ToStdWstring()),
-        fs::copy_option::overwrite_if_exists, ec))
-        return wxDataViewItem(nullptr);
-
-    // Update model data
-    AuxiliaryModelNode* file = new AuxiliaryModelNode(parent, dir_path, false);
-
-    // Notify wxDataViewCtrl to update ui
-    wxDataViewItem file_item(file);
-    if (parent == m_root)
-        parent = nullptr;
-    Slic3r::put_other_changes();
-    wxDataViewItem parent_item(parent);
-    ItemAdded(parent_item, file_item);
-    return file_item;
+    return added_items;
 }
 
 void AuxiliaryModel::Delete(const wxDataViewItem& item)
@@ -412,7 +420,10 @@ bool AuxiliaryModel::Rename(const wxDataViewItem& item, const wxString& name)
     AuxiliaryModelNode* node = (AuxiliaryModelNode*)item.GetID();
     AuxiliaryModelNode* parent = node->GetParent();
 
-    if (!node->IsContainer())
+    if (node->IsContainer())
+        return false;
+
+    if (!parent->IsContainer())
         return false;
 
     for (AuxiliaryModelNode* cur_node : parent->GetChildren()) {
@@ -421,8 +432,8 @@ bool AuxiliaryModel::Rename(const wxDataViewItem& item, const wxString& name)
     }
 
     boost::system::error_code err;
-    fs::path old_path((m_root_dir + "\\" + node->name).ToStdWstring());
-    fs::path new_path((m_root_dir + "\\" + name).ToStdWstring());
+    fs::path old_path((m_root_dir + "\\" + parent->name + "\\" + node->name).ToStdWstring());
+    fs::path new_path((m_root_dir + "\\" + parent->name + "\\" + name).ToStdWstring());
     fs::rename(old_path, new_path, err);
     if (err.failed())
         return false;

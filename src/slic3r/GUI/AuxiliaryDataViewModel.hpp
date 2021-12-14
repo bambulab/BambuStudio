@@ -105,7 +105,7 @@ public:
 
     // helper methods to change the model
     wxDataViewItem CreateFolder(wxString name = wxEmptyString);
-    wxDataViewItem ImportFile(AuxiliaryModelNode* sel, wxString file_path);
+    wxDataViewItemArray ImportFile(AuxiliaryModelNode* sel, wxArrayString file_paths);
     void Delete(const wxDataViewItem& item);
     void MoveItem(const wxDataViewItem& dropped_item, const wxDataViewItem& dragged_item);
     bool IsOrphan(const wxDataViewItem& item);

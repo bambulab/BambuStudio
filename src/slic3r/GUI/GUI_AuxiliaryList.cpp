@@ -131,17 +131,22 @@ void AuxiliaryList::do_import_file(AuxiliaryModelNode* folder)
 
 	wxString src_path;
 	wxString dst_path;
-	wxFileDialog dialog(this, _L("Choose one file"), wxEmptyString, wxEmptyString,
-		wxFileSelectorDefaultWildcardStr, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+	wxFileDialog dialog(this, _L("Choose files"), wxEmptyString, wxEmptyString,
+		wxFileSelectorDefaultWildcardStr, wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
 	if (dialog.ShowModal() == wxID_OK) {
-		wxDataViewItem file_item = m_auxiliary_model->ImportFile(folder, dialog.GetPath());
-		AuxiliaryModelNode* file_node = (AuxiliaryModelNode*)file_item.GetID();
-		if (file_node != nullptr) {
-			if (!m_auxiliary_model->IsOrphan(file_item)) {
-				Expand(wxDataViewItem(file_node->GetParent()));
+		wxArrayString sel_paths;
+		dialog.GetPaths(sel_paths);
+		wxDataViewItemArray file_items = m_auxiliary_model->ImportFile(folder, sel_paths);
+		if (!file_items.empty()) {
+			wxDataViewItem file_item = file_items[0];
+			AuxiliaryModelNode* file_node = (AuxiliaryModelNode*)file_item.GetID();
+			if (file_node != nullptr) {
+				if (!m_auxiliary_model->IsOrphan(file_item)) {
+					Expand(wxDataViewItem(file_node->GetParent()));
+				}
+				Select(file_item);
+				m_del_btn->Enable(true);
 			}
-			Select(file_item);
-			m_del_btn->Enable(true);
 		}
 	}
 }
@@ -188,15 +193,6 @@ void AuxiliaryList::on_context_menu(wxDataViewEvent& evt)
 			});
 	}
 	else if (node->IsContainer()) {
-		append_menu_item(menu, wxID_ANY, _L("Rename"), wxEmptyString,
-			[this, item](wxCommandEvent&)
-			{
-				wxDataViewColumn* col = this->GetColumn(0);
-				wxDataViewCellMode mode = col->GetRenderer()->GetMode();
-				col->GetRenderer()->SetMode(wxDATAVIEW_CELL_EDITABLE);
-				this->EditItem(item, col);
-				col->GetRenderer()->SetMode(mode);
-			});
 		append_menu_item(menu, wxID_ANY, _L("Import File"), wxEmptyString,
 			[this, node](wxCommandEvent&)
 			{
@@ -218,6 +214,15 @@ void AuxiliaryList::on_context_menu(wxDataViewEvent& evt)
 			[this, item](wxCommandEvent&)
 			{
 				m_auxiliary_model->Delete(item);
+			});
+		append_menu_item(menu, wxID_ANY, _L("Rename"), wxEmptyString,
+			[this, item](wxCommandEvent&)
+			{
+				wxDataViewColumn* col = this->GetColumn(0);
+				wxDataViewCellMode mode = col->GetRenderer()->GetMode();
+				col->GetRenderer()->SetMode(wxDATAVIEW_CELL_EDITABLE);
+				this->EditItem(item, col);
+				col->GetRenderer()->SetMode(mode);
 			});
 	}
 
