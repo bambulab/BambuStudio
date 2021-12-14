@@ -5865,21 +5865,22 @@ void Plater::load_project()
 }
 
 // BBS: backup & store
-void Plater::load_project(wxString const& filename2, wxString const & originfile)
+void Plater::load_project(wxString const &filename2,
+                          wxString const &originfile)
 {
-    // BSS: save project
-    if (!close_with_confirm()) {
-        return;
-    }
-
     auto filename = filename2;
-    if (filename.empty()) {
-        // Ask user for a project file name.
-        wxGetApp().load_project(this, filename);
-    }
+    auto check    = [&filename, this] {
+        if (filename.empty()) {
+            // Ask user for a project file name.
+            wxGetApp().load_project(this, filename);
+        }
+        return !filename.empty();
+    };
 
-    if (filename.empty())
+    // BSS: save project, force close
+    if (!close_with_confirm(check)) {
         return;
+    }
 
     // Take the Undo / Redo snapshot.
     Plater::TakeSnapshot snapshot(this, _L("Load Project") + ": " + wxString::FromUTF8(into_path(filename).stem().string().c_str()), UndoRedo::SnapshotType::ProjectSeparator);
@@ -6577,19 +6578,22 @@ void Plater::reset_with_confirm()
 }
 
 // BBS: save logic
-bool GUI::Plater::close_with_confirm()
+bool GUI::Plater::close_with_confirm(std::function<bool(void)> second_check)
 {
     if (up_to_date(false, false)) {
+        if (second_check && !second_check()) return false;
         Slic3r::remove_backup(model(), true);
         return true;
     }
 
-    auto result = wxMessageDialog(static_cast<wxWindow*>(this), _L("These are modifies in current project，save it before continue?"), wxString(SLIC3R_APP_NAME) + " - " + _L("Save"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE).ShowModal();
+    auto result = wxMessageDialog(static_cast<wxWindow*>(this), _L("These are modifies in current project，save it before continue?"), 
+        wxString(SLIC3R_APP_NAME) + " - " + _L("Save"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE).ShowModal();
+    if (result == wxID_CANCEL)
+        return false;
+    if (second_check && !second_check()) return false;
     if (result == wxID_YES) {
         save_project();
     }
-    if (result == wxID_CANCEL)
-        return false;
     Slic3r::remove_backup(model(), true);
     up_to_date(true, false);
     up_to_date(true, true);

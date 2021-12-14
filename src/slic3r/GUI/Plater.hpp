@@ -257,7 +257,7 @@ public:
     void remove(size_t obj_idx);
     void reset();
     void reset_with_confirm();
-    bool close_with_confirm(); // BBS close project
+    bool close_with_confirm(std::function<bool(void)> second_check = nullptr); // BBS close project
     void delete_object_from_model(size_t obj_idx);
     void remove_selected();
     void increase_instances(size_t num = 1);
