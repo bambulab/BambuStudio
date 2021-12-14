@@ -2526,6 +2526,9 @@ BoundingBox Plater::priv::scaled_bed_shape_bb() const
 // BBS: backup & restore
 std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool load_restore, bool imperial_units/* = false*/)
 {
+    std::vector<size_t> empty_result;
+    bool dlg_cont = true;
+
     if (input_files.empty()) { return std::vector<size_t>(); }
 
     auto *nozzle_dmrs = config->opt<ConfigOptionFloats>("nozzle_diameter");
@@ -2541,7 +2544,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     }
 
     const auto loading = _L("Loading") + dots;
-    wxProgressDialog dlg(loading, "", 100, find_toplevel_parent(q), wxPD_AUTO_HIDE);
+    wxProgressDialog dlg(loading, "", 100, find_toplevel_parent(q), wxPD_AUTO_HIDE | wxPD_CAN_ABORT);
+    wxProgressDialog* progress_dlg = &dlg;
     wxBusyCursor busy;
 
     auto *new_model = (!load_model || one_by_one) ? nullptr : new Slic3r::Model();
@@ -2560,7 +2564,12 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         const auto &path = input_files[i];
 #endif // _WIN32
         const auto filename = path.filename();
-        dlg.Update(static_cast<int>(100.0f * static_cast<float>(i) / static_cast<float>(input_files.size())), _L("Loading file") + ": " + from_path(filename));
+        const auto dlg_info = _L("Loading file") + ": " + from_path(filename);
+        int progress_percent = static_cast<int>(100.0f * static_cast<float>(i) / static_cast<float>(input_files.size()));
+        dlg_cont = dlg.Update(progress_percent, dlg_info);
+        if (!dlg_cont)
+            return empty_result;
+
         dlg.Fit();
 
         const bool type_3mf = std::regex_match(path.string(), pattern_3mf);
@@ -2588,9 +2597,22 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     ConfigSubstitutionContext config_substitutions{ ForwardCompatibilitySubstitutionRule::Enable };
                     // BBS: backup & restore
                     model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, only_if(load_config, Model::LoadAttribute::CheckVersion)
-                        | only_if(load_aux, Model::LoadAttribute::WithAuxiliary) | only_if(load_restore, Model::LoadAttribute::RestoreFromTemp), &plate_data, &is_bbs_3mf);
+                        | only_if(load_aux, Model::LoadAttribute::WithAuxiliary) | only_if(load_restore, Model::LoadAttribute::RestoreFromTemp), &plate_data, &is_bbs_3mf,
+                        [this, progress_dlg, filename, progress_percent](int import_stage, int current, int total, bool& cancel) {
+                            bool cont = true;
+                            wxString msg = wxString::Format("Loading file: %s, stage %d, %d/%d", from_path(filename), import_stage, current, total);
+                            cont = progress_dlg->Update(progress_percent, msg);
+                            cancel = !cont;
+                        }
+                        );
                     if (plate_data.size() > 0)
                     {
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", import 3mf UPDATE_GCODE_RESULT \n");
+                        wxString msg = wxString::Format("Loading file: %s, import stage %d, update gcode result", filename, UPDATE_GCODE_RESULT);
+                        dlg_cont = dlg.Update(progress_percent, msg);
+                        if (!dlg_cont)
+                            return empty_result;
+
                         partplate_list.load_from_3mf_structure(plate_data);
                         partplate_list.update_slice_context_to_current_plate(background_process);
                         this->preview->update_gcode_result(partplate_list.get_current_slice_result());
@@ -2599,6 +2621,13 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     }
 
                     if (load_config && !config_loaded.empty()) {
+
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", import 3mf IMPORT_LOAD_CONFIG \n");
+                        wxString msg = wxString::Format("Loading file: %s, import stage %d, loading config", from_path(filename), IMPORT_LOAD_CONFIG);
+                        dlg_cont = dlg.Update(progress_percent, msg);
+                        if (!dlg_cont)
+                            return empty_result;
+
                         // Based on the printer technology field found in the loaded config, select the base for the config,
                         PrinterTechnology printer_technology = Preset::printer_technology(config_loaded);
 
@@ -2810,9 +2839,19 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     return obj_idxs;
             }
 
+            int model_idx = 0;
             for (ModelObject* model_object : model.objects) {
                 if (!type_3mf && !type_zip_amf)
                     model_object->center_around_origin(false);
+
+                //BBS
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_LOAD_MODEL_OBJECTS \n");
+                wxString msg = wxString::Format("Loading file: %s, load model objects stage %d, %d/%d", from_path(filename), IMPORT_LOAD_MODEL_OBJECTS, model_idx, model.objects.size());
+                model_idx++;
+                dlg_cont = dlg.Update(progress_percent, msg);
+                if (!dlg_cont)
+                    return empty_result;
+
                 model_object->ensure_on_bed(is_project_file);
             }
 
@@ -2840,10 +2879,22 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 }
                 auto loaded_idxs = load_model_objects(model.objects);
                 obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
+
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_LOAD_MODEL_OBJECTS \n");
+                wxString msg = wxString::Format("Loading file: %s, load model objects", from_path(filename));
+                dlg_cont = dlg.Update(progress_percent, msg);
+                if (!dlg_cont)
+                    return empty_result;
             } else {
                 // This must be an .stl or .obj file, which may contain a maximum of one volume.
                 for (const ModelObject* model_object : model.objects) {
                     new_model->add_object(*model_object);
+
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_ADD_MODEL_OBJECTS \n");
+                    wxString msg = wxString::Format("Loading file: %s, load add objects", filename);
+                    dlg_cont = dlg.Update(progress_percent, msg);
+                    if (!dlg_cont)
+                        return empty_result;
                 }
             }
         }

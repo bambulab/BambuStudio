@@ -114,7 +114,7 @@ void Model::update_links_bottom_up_recursive()
 //BBS: add part plate related logic
 // BBS: backup & restore
 // Loading model from a file, it may be a simple geometry file as STL or OBJ, however it may be a project file as well.
-Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, LoadAttributes options, PlateDataPtrs* plate_data, bool *is_bbl_3mf)
+Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, LoadAttributes options, PlateDataPtrs* plate_data, bool *is_bbl_3mf, Import3mfProgressFn proFn)
 {
     Model model;
 
@@ -143,7 +143,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
         //BBS: add part plate related logic
         // BBS: backup & restore
         //FIXME options & LoadAttribute::CheckVersion ? 
-        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, options & LoadAttribute::CheckVersion, is_bbl_3mf, options & LoadAttribute::WithAuxiliary, options & LoadAttribute::RestoreFromTemp);
+        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, options & LoadAttribute::CheckVersion, is_bbl_3mf, options & LoadAttribute::WithAuxiliary, options & LoadAttribute::RestoreFromTemp, proFn);
     else if (boost::algorithm::iends_with(input_file, ".prusa"))
         result = load_prus(input_file.c_str(), &model);
     else
@@ -171,7 +171,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
 //BBS: add part plate related logic
 // BBS: backup & restore
 // Loading model from a file (3MF or AMF), not from a simple geometry file (STL or OBJ).
-Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, LoadAttributes options, PlateDataPtrs* plate_data, bool *is_bbl_3mf)
+Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, LoadAttributes options, PlateDataPtrs* plate_data, bool *is_bbl_3mf, Import3mfProgressFn proFn)
 {
     assert(config != nullptr);
     assert(config_substitutions != nullptr);
@@ -182,7 +182,7 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
     if (boost::algorithm::iends_with(input_file, ".3mf"))
         //BBS: add part plate related logic
         // BBS: backup & restore
-        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, options & LoadAttribute::CheckVersion, is_bbl_3mf, options & LoadAttribute::WithAuxiliary, options & LoadAttribute::RestoreFromTemp);
+        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, options & LoadAttribute::CheckVersion, is_bbl_3mf, options & LoadAttribute::WithAuxiliary, options & LoadAttribute::RestoreFromTemp, proFn);
     else if (boost::algorithm::iends_with(input_file, ".zip.amf"))
         result = load_amf(input_file.c_str(), config, config_substitutions, &model, options & LoadAttribute::CheckVersion);
     else
@@ -201,11 +201,34 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
             o->input_file = input_file;
     }
 
-    if (options & LoadAttribute::AddDefaultInstances)
+    bool cb_cancel;
+    if (options & LoadAttribute::AddDefaultInstances) {
         model.add_default_instances();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("import 3mf IMPORT_STAGE_ADD_INSTANCE\n");
+        if (proFn) {
+            proFn(IMPORT_STAGE_ADD_INSTANCE, 0, 1, cb_cancel);
+            if (cb_cancel)
+                throw Slic3r::RuntimeError("Canceled");
+        }
+    }
 
     CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, config);
+    
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_UPDATE_GCODE\n");
+    if (proFn) {
+        proFn(IMPORT_STAGE_UPDATE_GCODE, 0, 1, cb_cancel);
+        if (cb_cancel)
+            throw Slic3r::RuntimeError("Canceled");
+    }
+    
     CustomGCode::check_mode_for_custom_gcode_per_print_z(model.custom_gcode_per_print_z);
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_CHECK_MODE_GCODE\n");
+    if (proFn) {
+        proFn(IMPORT_STAGE_CHECK_MODE_GCODE, 0, 1, cb_cancel);
+        if (cb_cancel)
+            throw Slic3r::RuntimeError("Canceled");
+    }
 
     handle_legacy_sla(*config);
 

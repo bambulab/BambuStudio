@@ -62,9 +62,24 @@ const int EXPORT_STAGE_ADD_GCODE        = 11;
 const int EXPORT_STAGE_ADD_AUXILIARIES  = 12;
 const int EXPORT_STAGE_FINISH           = 13;
 
+const int IMPORT_STAGE_RESTORE          = 0;
+const int IMPORT_STAGE_OPEN             = 1;
+const int IMPORT_STAGE_READ_FILES       = 2;
+const int IMPORT_STAGE_EXTRACT          = 3;
+const int IMPORT_STAGE_LOADING_OBJECTS  = 4;
+const int IMPORT_STAGE_LOADING_PLATES   = 5;
+const int IMPORT_STAGE_FINISH           = 6;
+const int IMPORT_STAGE_ADD_INSTANCE     = 7;
+const int IMPORT_STAGE_UPDATE_GCODE     = 8;
+const int IMPORT_STAGE_CHECK_MODE_GCODE = 9;
+const int UPDATE_GCODE_RESULT           = 10;
+const int IMPORT_LOAD_CONFIG            = 11;
+const int IMPORT_LOAD_MODEL_OBJECTS     = 12;
+
 
 //BBS export 3mf progress
 typedef std::function<void(int export_stage, int current, int total, bool& cancel)> Export3mfProgressFn;
+typedef std::function<void(int import_stage, int current, int total, bool& cancel)> Import3mfProgressFn;
 
 typedef std::vector<PlateData*> PlateDataPtrs;
 
@@ -73,7 +88,7 @@ typedef std::map<int, PlateData*> PlateDataMaps;
 //BBS: add plate data list related logic
 // add restore logic
 // Load the content of a 3mf file into the given model and preset bundle.
-extern bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, bool check_version, bool* is_bbl_3mf, bool load_aux, bool load_restore);
+extern bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, bool check_version, bool* is_bbl_3mf, bool load_aux, bool load_restore, Import3mfProgressFn proFn = nullptr);
 
 //BBS: add plate data list related logic
 // add backup logic

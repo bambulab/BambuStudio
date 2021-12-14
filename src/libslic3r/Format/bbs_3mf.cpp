@@ -540,7 +540,7 @@ namespace Slic3r {
 
         //BBS: add plate data related logic
         // add backup & restore logic
-        bool load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version, bool& is_bbl_3mf, bool load_aux, bool load_restore);
+        bool load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version, bool& is_bbl_3mf, bool load_aux, bool load_restore, Import3mfProgressFn proFn = nullptr);
         unsigned int version() const { return m_version; }
 
     private:
@@ -558,7 +558,7 @@ namespace Slic3r {
 
         //BBS: add plate data related logic
         // add backup & restore logic
-        bool _load_model_from_file(std::string filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions);
+        bool _load_model_from_file(std::string filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, Import3mfProgressFn proFn = nullptr);
         bool _extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         bool _extract_model_from_file(std::string const& file); // mesh only file -- backup & restore logic
         void _extract_layer_heights_profile_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
@@ -696,7 +696,7 @@ namespace Slic3r {
 
     //BBS: add plate data related logic
         // add backup & restore logic
-    bool _BBS_3MF_Importer::load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version, bool& is_bbl_3mf, bool load_aux, bool load_restore)
+    bool _BBS_3MF_Importer::load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version, bool& is_bbl_3mf, bool load_aux, bool load_restore, Import3mfProgressFn proFn)
     {
         m_version = 0;
         m_fdm_supports_painting_version = 0;
@@ -732,7 +732,7 @@ namespace Slic3r {
         // restore
         if (load_restore)
             model.set_backup_path(filename.substr(0, filename.size() - 5));
-        bool result = _load_model_from_file(filename, model, plate_data_list, config, config_substitutions);
+        bool result = _load_model_from_file(filename, model, plate_data_list, config, config_substitutions, proFn);
         is_bbl_3mf = m_is_bbl_3mf;
         // save for restore
         if (result && load_aux && !load_restore) {
@@ -760,8 +760,17 @@ namespace Slic3r {
     }
 
     //BBS: add plate data related logic
-    bool _BBS_3MF_Importer::_load_model_from_file(std::string filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions)
+    bool _BBS_3MF_Importer::_load_model_from_file(std::string filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, Import3mfProgressFn proFn)
     {
+        bool cb_cancel = false;
+        //BBS progress point
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_RESTORE\n");
+        if (proFn) {
+            proFn(IMPORT_STAGE_RESTORE, 0, 1, cb_cancel);
+            if (cb_cancel)
+                return false;
+        }
+
         // prepare restore
         if (m_load_restore) {
             std::string objectmapfile = model.get_backup_path() + "/object_map.txt";
@@ -801,6 +810,14 @@ namespace Slic3r {
             }
         }
 
+        //BBS progress point
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_OPEN\n");
+        if (proFn) {
+            proFn(IMPORT_STAGE_OPEN, 0, 1, cb_cancel);
+            if (cb_cancel)
+                return false;
+        }
+
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
 
@@ -815,9 +832,19 @@ namespace Slic3r {
 
         m_name = boost::filesystem::path(filename).stem().string();
 
+
         // we first loop the entries to read from the archive the .model file only, in order to extract the version from it
         for (mz_uint i = 0; i < num_entries; ++i) {
             if (mz_zip_reader_file_stat(&archive, i, &stat)) {
+                
+                //BBS progress point
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_READ_FILES\n");
+                if (proFn) {
+                    proFn(IMPORT_STAGE_READ_FILES, i, num_entries, cb_cancel);
+                    if (cb_cancel)
+                        return false;
+                }
+
                 std::string name(stat.m_filename);
                 std::replace(name.begin(), name.end(), '\\', '/');
 
@@ -852,6 +879,15 @@ namespace Slic3r {
         // we then loop again the entries to read other files stored in the archive
         for (mz_uint i = 0; i < num_entries; ++i) {
             if (mz_zip_reader_file_stat(&archive, i, &stat)) {
+
+                //BBS progress point
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_EXTRACT\n");
+                if (proFn) {
+                    proFn(IMPORT_STAGE_EXTRACT, i, num_entries, cb_cancel);
+                    if (cb_cancel)
+                        return false;
+                }
+
                 std::string name(stat.m_filename);
                 std::replace(name.begin(), name.end(), '\\', '/');
 
@@ -920,6 +956,7 @@ namespace Slic3r {
                 if (model_object->instances.size() > 1) {
                     // select the geometry associated with the original model object
                     const Geometry* geometry = nullptr;
+                    int object_idx = 0;
                     for (const IdToModelObjectMap::value_type& object : m_objects) {
                         if (object.second == int(i)) {
                             IdToGeometryMap::const_iterator obj_geometry = m_geometries.find(object.first);
@@ -927,6 +964,16 @@ namespace Slic3r {
                                 add_error("Unable to find object geometry");
                                 return false;
                             }
+
+                            //BBS progress point
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_LOADING_OBJECTS\n");
+                            if (proFn) {
+                                proFn(IMPORT_STAGE_LOADING_OBJECTS, object_idx, m_objects.size(), cb_cancel);
+                                if (cb_cancel)
+                                    return false;
+                            }
+                            object_idx++;
+
                             geometry = &obj_geometry->second;
                             break;
                         }
@@ -1040,6 +1087,14 @@ namespace Slic3r {
 //        // fixes the min z of the model if negative
 //        model.adjust_min_z();
 
+        //BBS progress point
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_LOADING_PLATES\n");
+        if (proFn) {
+            proFn(IMPORT_STAGE_LOADING_PLATES, 0, 1, cb_cancel);
+            if (cb_cancel)
+                return false;
+        }
+
         //BBS: load the plate info into plate_data_list
         std::map<int, PlateData*>::iterator it = m_plater_data.begin();
         plate_data_list.clear();
@@ -1103,6 +1158,14 @@ namespace Slic3r {
             if (boost::filesystem::exists(path2) && !boost::filesystem::exists(path)) {
                 boost::filesystem::rename(path2, path);
             }
+        }
+
+        //BBS progress point
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_FINISH\n");
+        if (proFn) {
+            proFn(IMPORT_STAGE_FINISH, 0, 1, cb_cancel);
+            if (cb_cancel)
+                return false;
         }
 
         return true;
@@ -4520,7 +4583,7 @@ private:
 
 
 //BBS: add plate data list related logic
-bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, bool check_version, bool* is_bbl_3mf, bool load_aux, bool load_restore)
+bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, bool check_version, bool* is_bbl_3mf, bool load_aux, bool load_restore, Import3mfProgressFn proFn)
 {
     if (path == nullptr || config == nullptr || model == nullptr)
         return false;
@@ -4528,7 +4591,7 @@ bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstituti
     // All import should use "C" locales for number formatting.
     CNumericLocalesSetter locales_setter;
     _BBS_3MF_Importer importer;
-    bool res = importer.load_model_from_file(path, *model, *plate_data_list, *config, *config_substitutions, check_version, *is_bbl_3mf, load_aux, load_restore);
+    bool res = importer.load_model_from_file(path, *model, *plate_data_list, *config, *config_substitutions, check_version, *is_bbl_3mf, load_aux, load_restore, proFn);
     importer.log_errors();
     handle_legacy_project_loaded(importer.version(), *config);
     return res;
