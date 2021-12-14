@@ -647,6 +647,11 @@ void SelectMachineDialog::init_timer()
 
 void SelectMachineDialog::on_cancel(wxCommandEvent& event)
 {
+    if (m_print_job) {
+        if (m_print_job->is_running())
+            m_print_job->cancel();
+        m_print_job->join();
+    }
     this->EndModal(wxID_CANCEL);
 }
 
