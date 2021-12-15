@@ -5297,7 +5297,6 @@ bool GLCanvas3D::_init_main_toolbar()
 
     if (!m_main_toolbar.add_separator())
         return false;
-
     /*
     item.name = "copy";
     item.icon_filename = "copy.svg";

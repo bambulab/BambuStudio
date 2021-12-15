@@ -2,7 +2,9 @@
 #define ARRANGEJOB_HPP
 
 #include "PlaterJob.hpp"
+#include "slic3r/GUI/Plater.hpp"
 #include "libslic3r/Arrange.hpp"
+#include "libslic3r/Model.hpp"
 
 namespace Slic3r {
 
@@ -95,7 +97,9 @@ template<class T>
 arrangement::ArrangePolygon get_arrange_poly(T obj, const Plater *plater)
 {
     using ArrangePolygon = arrangement::ArrangePolygon;
-
+    //BBS update extruder params and speed table before arranging
+    Plater::setExtruderParams(Slic3r::Model::extruderParamsMap);
+    Plater::setPrintSpeedTable(Slic3r::Model::printSpeedMap);
     ArrangePolygon ap = obj.get_arrange_polygon();
     //BBS: always set bed_idx to 0 to use original transforms with no bed_idx
     //if this object is not arranged, it can keep the original transforms

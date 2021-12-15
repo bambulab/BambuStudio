@@ -34,7 +34,11 @@
 #include "MeshBoolean.hpp"
 
 namespace Slic3r {
+    // BBS initialization of static variables
+    ExtruderParams initExtruderParams{"",0,0};
 
+    std::map<size_t, ExtruderParams> Model::extruderParamsMap = { {0,initExtruderParams}};
+    GlobalSpeedMap Model::printSpeedMap{};
 Model& Model::assign_copy(const Model &rhs)
 {
     this->copy_id(rhs);
@@ -2324,13 +2328,46 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
 }
 
 //BBS
-double ModelInstance::get_auto_brim_width() const
+// update the maxSpeed of an object if it is different from the global configuration
+double findMaxSpeed(ModelObject* object) {
+    auto objectKeys = object->config.keys();
+    double objMaxSpeed = Model::printSpeedMap.maxSpeed;
+    if (objectKeys.empty())
+        return objMaxSpeed;
+    for (std::string objectKey : objectKeys) {
+        if (objectKey == "perimeter_speed")
+            objMaxSpeed = std::max(object->config.opt_float("perimeter_speed"), objMaxSpeed);
+        if (objectKey == "external_perimeter_speed") {
+            objMaxSpeed = std::max(object->config.get().get_abs_value("external_perimeter_speed", Model::printSpeedMap.perimeterSpeed), objMaxSpeed);
+        }     
+        if (objectKey == "infill_speed")
+            objMaxSpeed = std::max(object->config.opt_float("infill_speed"), objMaxSpeed);
+        if (objectKey == "solid_infill_speed") {
+            objMaxSpeed = std::max(object->config.get().get_abs_value("solid_infill_speed", Model::printSpeedMap.infillSpeed), objMaxSpeed);
+        }
+        if (objectKey == "top_solid_infill_speed") {
+            objMaxSpeed = std::max(object->config.get().get_abs_value("top_solid_infill_speed", Model::printSpeedMap.infillSpeed), objMaxSpeed);
+        }
+        if (objectKey == "support_material_speed")
+            objMaxSpeed = std::max(object->config.opt_float("support_material_speed"), objMaxSpeed);
+    }
+    return objMaxSpeed;
+}
+// max printing speed, difference in bed temperature and envirument temperature and bed adhension coefficients are considered 
+double ModelInstance::get_auto_brim_width(double deltaT, double adhension) const
 {
     BoundingBoxf3 raw_bbox = object->raw_mesh_bounding_box();
+    double maxSpeed = findMaxSpeed(object);
+
     auto bbox_size = transform_bounding_box(raw_bbox).size();
-    double height_to_area = bbox_size(2) / (bbox_size(0) * bbox_size(1));
+    double height_to_area = std::max(bbox_size(2) / (bbox_size(0) * bbox_size(0) * bbox_size(1)),
+        bbox_size(2) / (bbox_size(1) * bbox_size(1) * bbox_size(0)));
     double thermalLength = std::max(bbox_size(0), bbox_size(1));
-    double brim_width = std::min(std::min(std::max(height_to_area * 40, thermalLength * 0.05), 20.),1.5* thermalLength);
+
+    double brim_width = adhension * std::min(std::min(std::max(height_to_area * 200 * maxSpeed/200, (deltaT-30)/75 * thermalLength * 0.15), 20.), 1.5 * thermalLength);
+    // small brims are omitted
+    if (brim_width < 5 && brim_width < 1.5 * thermalLength)
+        brim_width = 0;
     return brim_width;
 }
 
@@ -2342,6 +2379,36 @@ Polygon ModelInstance::convex_hull_2d()
         convex_hull = get_object()->convex_hull_2d(trafo_instance);
     //}
     return convex_hull;
+}
+
+//BBS adhesion coefficients from model object class
+double getadhesionCoeff(const ModelVolumePtrs objectVolumes)
+{
+    double adhesionCoeff = 1;
+    for (const ModelVolume* modelVolume : objectVolumes) {
+        if (Model::extruderParamsMap.find(modelVolume->extruder_id()) != Model::extruderParamsMap.end())
+            if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PET") {
+                adhesionCoeff = 2;
+            }
+            else if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU") {
+                adhesionCoeff = 0.5;
+            }
+    }
+    return adhesionCoeff;
+}
+
+//BBS maximum temperature difference from model object class
+double getTemperatureFromExtruder(const ModelVolumePtrs objectVolumes) {
+    std::vector<size_t> extruders;
+    for (const ModelVolume* modelVolume : objectVolumes) {
+        extruders.push_back(modelVolume->extruder_id());
+    }
+
+    double maxDeltaTemp = 0;
+    for (auto extruderID : extruders) {
+        maxDeltaTemp = std::max(maxDeltaTemp, Model::extruderParamsMap.at(extruderID).bedTemp);
+    }
+    return maxDeltaTemp;
 }
 
 void ModelInstance::get_arrange_polygon(void* ap) const
@@ -2389,8 +2456,11 @@ void ModelInstance::get_arrange_polygon(void* ap) const
     if (object->config.has("brim_width"))
         ret.user_brim_width = object->config.opt_float("brim_width");
     else {
+        // BBS: get DeltaT, adhcoeff before calculating brim width
+        double adhcoeff = getadhesionCoeff(object->volumes);
+        double DeltaT = getTemperatureFromExtruder(object->volumes);
         // get auto brim width (Note even if the global brim_type=btOuterBrim, we can still go into this branch)
-        ret.auto_brim_width = get_auto_brim_width();
+        ret.auto_brim_width = get_auto_brim_width(DeltaT, adhcoeff);
     }
 }
 

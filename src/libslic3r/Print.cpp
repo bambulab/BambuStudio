@@ -14,7 +14,7 @@
 #include "GCode/WipeTower.hpp"
 #include "Utils.hpp"
 #include "PrintConfig.hpp"
-
+#include "Model.hpp"
 #include <float.h>
 
 #include <algorithm>
@@ -910,19 +910,93 @@ void Print::auto_assign_extruders(ModelObject* model_object) const
             volume->config.set("extruder", int(volume_id + 1));
     }
 }
+//BBS maximum temperature difference from print object class
+double getTemperatureFromExtruder(const PrintObject *printObject) {
+    auto print = printObject -> print();
+    std::vector<size_t> extrudersFirstLayer;
+    auto firstLayerRegions = printObject->layers().front()->regions();
+    if (!firstLayerRegions.empty()) {
+        for (const LayerRegion* regionPtr : firstLayerRegions) {
+            if (regionPtr->has_extrusions())
+                extrudersFirstLayer.push_back(regionPtr->region()->extruder(frExternalPerimeter));
+        }
+    }
+    
+    double maxDeltaTemp = 0;
+    for (auto extruderID : extrudersFirstLayer) {
+        if (print->config().bed_temperature.get_at(extruderID-1) > maxDeltaTemp)
+            maxDeltaTemp = print->config().bed_temperature.get_at(extruderID - 1);
+    }
+    return maxDeltaTemp;
+}
+//BBS adhesion coefficients from print object class
+double getadhesionCoeff(const PrintObject* printObject)
+{
+    auto& insts = printObject->instances();
+    auto objectVolumes = insts[0].model_instance->get_object()->volumes;
 
+    auto print = printObject->print();
+    std::vector<size_t> extrudersFirstLayer;
+    auto firstLayerRegions = printObject->layers().front()->regions();
+    if (!firstLayerRegions.empty()) {
+        for (const LayerRegion* regionPtr : firstLayerRegions) {
+            if (regionPtr->has_extrusions())
+                extrudersFirstLayer.push_back(regionPtr->region()->extruder(frExternalPerimeter));
+        }
+    }
+    auto temp3 = Model::extruderParamsMap;
+    double adhesionCoeff = 1;
+    for (const ModelVolume* modelVolume : objectVolumes) {
+        for (auto iter = extrudersFirstLayer.begin(); iter != extrudersFirstLayer.end(); iter++)
+            if (modelVolume->extruder_id() == *iter) {
+                if (Model::extruderParamsMap.find(modelVolume->extruder_id())!= Model::extruderParamsMap.end())
+                    if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PET"){
+                        adhesionCoeff = 2;
+                    }else if(Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU"){
+                        adhesionCoeff = 0.5;
+                    }
+            }
+    }
+
+    return adhesionCoeff;
+	/*
+   def->enum_values.push_back("PLA");
+   def->enum_values.push_back("PET");
+   def->enum_values.push_back("ABS");
+   def->enum_values.push_back("ASA");
+   def->enum_values.push_back("TPU");//BBS
+   def->enum_values.push_back("FLEX");
+   def->enum_values.push_back("HIPS");
+   def->enum_values.push_back("EDGE");
+   def->enum_values.push_back("NGEN");
+   def->enum_values.push_back("NYLON");
+   def->enum_values.push_back("PVA");
+   def->enum_values.push_back("PC");
+   def->enum_values.push_back("PP");
+   def->enum_values.push_back("PEI");
+   def->enum_values.push_back("PEEK");
+   def->enum_values.push_back("PEKK");
+   def->enum_values.push_back("POM");
+   def->enum_values.push_back("PSU");
+   def->enum_values.push_back("PVDF");
+   def->enum_values.push_back("SCAFF");
+   */
+}
 // BBS: auto assign brimWidth obj by objs
 void PrintObject::autoBrimConfigWidth(double flowWidth)
 {
     bool has_brim_auto = this->config().brim_type == btAutoBrim;
     if (has_brim_auto){
-        auto insts = this->instances();
-        double brim_width = insts[0].model_instance->get_auto_brim_width();
+        double deltaT = getTemperatureFromExtruder(this);
+        double adhension = getadhesionCoeff(this);
+        auto &insts = this->instances();
+        double brim_width = insts[0].model_instance->get_auto_brim_width(deltaT, adhension);
         brim_width = floor(brim_width / flowWidth / 2) * flowWidth * 2;
         this->configBrimWidth(brim_width);
         BOOST_LOG_TRIVIAL(debug) << "brim_width_map: " << this->id().id << ", " << brim_width;
     }
 }
+
 // BBS: map print object with its first layer's first extruder
 std::map<ObjectID, unsigned int> getObjectExtruderMap(const Print& print) {
     std::map<ObjectID, unsigned int> objectExtruderMap;

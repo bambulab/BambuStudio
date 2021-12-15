@@ -22,6 +22,7 @@
 #include "GUI_AuxiliaryList.hpp"
 #include "Jobs/PrintJob.hpp"
 #include "AccountManager.hpp"
+#include "libslic3r/Model.hpp"
 
 class wxButton;
 class ScalableButton;
@@ -226,6 +227,9 @@ public:
     void show_sliced_info(const bool show);
     void update_sliced_info();
     void update_platplate_thumbnails();
+    //BBS static functions that update extruder params and speed table
+    static void setPrintSpeedTable(Slic3r::GlobalSpeedMap& printSpeedMap);
+    static void setExtruderParams(std::map<size_t, Slic3r::ExtruderParams>& extParas);
 
     // BBS: restore
     std::vector<size_t> load_files(const std::vector<boost::filesystem::path>& input_files, bool load_model = true, bool load_config = true, bool load_restore = false, bool imperial_units = false);

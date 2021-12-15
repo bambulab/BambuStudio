@@ -1046,14 +1046,14 @@ public:
     bool is_assemble_initialized() { return m_assemble_initialized; }
 
     //BBS
-    double get_auto_brim_width() const;
+    double get_auto_brim_width(double deltaT, double adhension) const;
     // BBS
     Polygon convex_hull_2d();
 
     // Getting the input polygon for arrange
     // We use void* as input type to avoid including Arrange.hpp in Model.hpp.
     void get_arrange_polygon(void* arrange_polygon) const;
-    
+
     // Apply the arrange result on the ModelInstance
     void apply_arrange_result(const Vec2d& offs, double rotation)
     {
@@ -1134,6 +1134,24 @@ private:
     template<typename Archive> void serialize(Archive &ar) { ar(position, rotation); }
 };
 
+// BBS structure stores extruder parameters and speed map of all models
+struct ExtruderParams
+{
+    std::string materialName;
+    double bedTemp;
+    double heatEndTemp;
+};
+
+struct GlobalSpeedMap
+{
+    double perimeterSpeed;
+    double externalPerimeterSpeed;
+    double infillSpeed;
+    double solidInfillSpeed;
+    double topSolidInfillSpeed;
+    double supportSpeed;
+    double maxSpeed;
+};
 // The print bed content.
 // Description of a triangular model with multiple materials, multiple instances with various affine transformations
 // and with multiple modifier meshes.
@@ -1149,6 +1167,9 @@ public:
     ModelObjectPtrs     objects;
     // Wipe tower object.
     ModelWipeTower	    wipe_tower;
+    // BBS static members store extruder parameters and speed map of all models
+    static std::map<size_t, ExtruderParams> extruderParamsMap;
+    static GlobalSpeedMap printSpeedMap;
 
     // Extensions for color print
     CustomGCode::Info custom_gcode_per_print_z;

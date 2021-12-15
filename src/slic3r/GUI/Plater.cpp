@@ -53,7 +53,6 @@
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/ClipperUtils.hpp"
 
-
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
@@ -2468,6 +2467,67 @@ void Plater::priv::select_view(const std::string& direction)
         assemble_view->select_view(direction);
     }
 }
+// BBS set print speed table and find maximum speed
+void Plater::setPrintSpeedTable(GlobalSpeedMap &printSpeedMap) {
+    Slic3r::DynamicPrintConfig config = wxGetApp().preset_bundle->full_config();
+    printSpeedMap.maxSpeed = 0;
+    if (config.has("perimeter_speed")) {
+        printSpeedMap.perimeterSpeed = config.opt_float("perimeter_speed");
+        if (printSpeedMap.perimeterSpeed > printSpeedMap.maxSpeed)
+            printSpeedMap.maxSpeed = printSpeedMap.perimeterSpeed;
+    }
+    if (config.has("external_perimeter_speed")) {
+        printSpeedMap.externalPerimeterSpeed = config.get_abs_value("external_perimeter_speed", printSpeedMap.perimeterSpeed);
+        printSpeedMap.maxSpeed = std::max(printSpeedMap.maxSpeed, printSpeedMap.externalPerimeterSpeed);
+    }
+    if (config.has("infill_speed")) {
+        printSpeedMap.infillSpeed = config.opt_float("infill_speed");
+        if (printSpeedMap.infillSpeed > printSpeedMap.maxSpeed)
+            printSpeedMap.maxSpeed = printSpeedMap.infillSpeed;
+    }
+    if (config.has("solid_infill_speed")) {
+        printSpeedMap.solidInfillSpeed = config.get_abs_value("solid_infill_speed", printSpeedMap.infillSpeed);
+        if (printSpeedMap.solidInfillSpeed > printSpeedMap.maxSpeed)
+            printSpeedMap.maxSpeed = printSpeedMap.solidInfillSpeed;
+    }
+    if (config.has("top_solid_infill_speed")) {
+        printSpeedMap.topSolidInfillSpeed = config.get_abs_value("top_solid_infill_speed", printSpeedMap.infillSpeed);
+        if (printSpeedMap.topSolidInfillSpeed > printSpeedMap.maxSpeed)
+            printSpeedMap.maxSpeed = printSpeedMap.topSolidInfillSpeed;
+    }
+    if (config.has("support_material_speed")) {
+        printSpeedMap.supportSpeed = config.opt_float("support_material_speed");
+
+        if (printSpeedMap.supportSpeed > printSpeedMap.maxSpeed)
+            printSpeedMap.maxSpeed = printSpeedMap.supportSpeed;
+    }
+
+    /*        "perimeter_speed", "small_perimeter_speed", "external_perimeter_speed", "infill_speed", "solid_infill_speed",
+        "top_solid_infill_speed", "support_material_speed", "support_material_xy_spacing", "support_material_interface_speed",
+        "bridge_speed", "gap_fill_speed", "travel_speed", "first_layer_speed"*/
+}
+
+// find temperature of heatend and bed and matierial of an given extruder
+void Plater::setExtruderParams(std::map<size_t, Slic3r::ExtruderParams>& extParas) {
+    extParas.clear();
+    Slic3r::DynamicPrintConfig config = wxGetApp().preset_bundle->full_config();
+    int numExtruders = dynamic_cast<ConfigOptionFloats*>(config.option("nozzle_diameter"))->values.size();
+    for (unsigned int i = 0; i != numExtruders; ++i) {
+        std::string matName = "";
+        double bedTemp, endTemp;
+        if (config.has("filament_type")) {
+            matName = config.opt_string("filament_type", i);
+        }
+        if (config.has("temperature")) {
+            endTemp = config.opt_int("temperature", i);
+        }
+        if (config.has("bed_temperature")) {
+            bedTemp = config.opt_int("bed_temperature", i);
+        }
+        if (i == 0) extParas.insert({ i,{matName, bedTemp, endTemp} });
+        extParas.insert({ i + 1,{matName, bedTemp, endTemp} });
+    }
+}
 
 void Plater::priv::apply_free_camera_correction(bool apply/* = true*/)
 {
@@ -2485,6 +2545,9 @@ void Plater::priv::select_view_3D(const std::string& name, bool no_slice)
     }
     else if (name == "Preview") {
         BOOST_LOG_TRIVIAL(info) << "select preview";
+        //BBS update extruder params and speed table before slicing
+        Plater::setExtruderParams(Slic3r::Model::extruderParamsMap);
+        Plater::setPrintSpeedTable(Slic3r::Model::printSpeedMap);
         set_current_panel(preview, no_slice);
     }
     else if (name == "Assemble") {
@@ -3401,7 +3464,10 @@ void Plater::find_new_position(const ModelInstancePtrs &instances)
 {
     arrangement::ArrangePolygons movable, fixed;
     arrangement::ArrangeParams arr_params = get_arrange_params(this);
-    
+
+    //BBS update extruder params and speed table before arranging
+    Plater::setExtruderParams(Slic3r::Model::extruderParamsMap);
+    Plater::setPrintSpeedTable(Slic3r::Model::printSpeedMap);
     for (const ModelObject *mo : p->model.objects)
         for (ModelInstance *inst : mo->instances) {
             auto it = std::find(instances.begin(), instances.end(), inst);
@@ -4838,6 +4904,9 @@ void Plater::priv::on_action_slice_plate(SimpleEvent&)
 {
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice plate event\n" ;
+        //BBS update extruder params and speed table before slicing
+        Plater::setExtruderParams(Slic3r::Model::extruderParamsMap);
+        Plater::setPrintSpeedTable(Slic3r::Model::printSpeedMap);
         m_slice_all = false;
         q->reslice();
         q->select_view_3D("Preview");
@@ -4849,6 +4918,9 @@ void Plater::priv::on_action_slice_all(SimpleEvent&)
 {
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice project event\n" ;
+        //BBS update extruder params and speed table before slicing
+        Plater::setExtruderParams(Slic3r::Model::extruderParamsMap);
+        Plater::setPrintSpeedTable(Slic3r::Model::printSpeedMap);
         m_slice_all = true;
         m_cur_slice_plate = 0;
         //select plate
