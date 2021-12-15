@@ -4493,11 +4493,18 @@ void Page::reload_config()
 void Page::update_visibility(ConfigOptionMode mode, bool update_contolls_visibility)
 {
     bool ret_val = false;
+    // BBS: no line spliter for first group
+    bool first = true;
     for (auto group : m_optgroups) {
         ret_val = (update_contolls_visibility     ? 
                    group->update_visibility(mode) :  // update visibility for all controlls in group
                    group->is_visible(mode)           // just detect visibility for the group
                    ) || ret_val;
+        // BBS: no line spliter for first group
+        if (update_contolls_visibility && ret_val && first) {
+            if (group->stb) group->stb->Hide();
+            first = false;
+        }
     }
 
     m_show = ret_val;
@@ -4505,17 +4512,25 @@ void Page::update_visibility(ConfigOptionMode mode, bool update_contolls_visibil
 
 void Page::activate(ConfigOptionMode mode, std::function<void()> throw_if_canceled)
 {
+#if 0 // BBS: page title
     if (m_page_title == NULL) {
         m_page_title = new Label(Label::Head_18, _(m_title), m_parent);
         m_vsizer->AddSpacer(30);
         m_vsizer->Add(m_page_title, 0, wxALIGN_CENTER);
         m_vsizer->AddSpacer(20);
     }
+#else
+    m_vsizer->AddSpacer(20);
+#endif
+    // BBS: no line spliter for first group
+    bool first = true;
     for (auto group : m_optgroups) {
         if (!group->activate(throw_if_canceled))
             continue;
         m_vsizer->Add(group->sizer, 0, wxEXPAND | (group->is_legend_line() ? (wxLEFT|wxTOP) : wxALL), 10);
         group->update_visibility(mode);
+        if (first) group->stb->Hide();
+        first = false;
         group->reload_config();
         throw_if_canceled();
     }

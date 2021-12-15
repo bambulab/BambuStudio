@@ -48,7 +48,8 @@ OG_CustomCtrl::OG_CustomCtrl(   wxWindow*            parent,
     if (!wxOSX)
         SetDoubleBuffered(true);// SetDoubleBuffered exists on Win and Linux/GTK, but is missing on OSX
 
-    m_font = wxGetApp().normal_font();
+    // BBS: new font
+    m_font = Label::Body_14;
     SetFont(m_font);
     m_em_unit   = em_unit(m_parent);
     m_v_gap     = lround(1.0 * m_em_unit);
@@ -254,7 +255,8 @@ void OG_CustomCtrl::OnPaint(wxPaintEvent&)
 
     wxCoord v_pos = 0;
     // BBS: new layout
-    dc.SetFont(Label::Head_14);
+    dc.SetFont(Label::Head_16);
+    dc.SetTextForeground(wxColour("#283436"));
     dc.DrawText(GetLabel(), { 0, v_pos });
     dc.SetFont(m_font);
     for (CtrlLine& line : ctrl_lines) {
@@ -449,7 +451,8 @@ void OG_CustomCtrl::msw_rescale()
 #ifdef __WXOSX__
     return;
 #endif
-    m_font = wxGetApp().normal_font();
+    // BBS: new font
+    m_font = Label::Body_14;
     SetFont(m_font);
     m_em_unit   = em_unit(m_parent);
     m_v_gap     = lround(1.0 * m_em_unit);

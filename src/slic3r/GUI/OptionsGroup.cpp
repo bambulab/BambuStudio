@@ -511,6 +511,7 @@ void OptionsGroup::clear(bool destroy_custom_ctrl)
 
 	m_grid_sizer = nullptr;
 	sizer = nullptr;
+    stb = nullptr; // BBS: fix pointer
 
 	for (Line& line : m_lines) {
         if (line.near_label_widget_win)

@@ -97,11 +97,10 @@ using t_optionfield_map = std::map<t_config_option_key, t_field>;
 using t_opt_map = std::map< std::string, std::pair<std::string, int> >;
 
 class OptionsGroup {
-protected:
-	// BBS: new layout
-	wxControl*	stb;
 public:
     const bool		staticbox {true};
+	// BBS: new layout
+    wxControl*		stb;
     const wxString	title;
     size_t			label_width = 20 ;// {200};
     wxSizer*		sizer {nullptr};

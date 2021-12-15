@@ -22,7 +22,7 @@
 
 // BBS
 #include "Notebook.hpp"
-#include "Widgets/SwitchButton.hpp"
+#include "Widgets/CheckBox.hpp"
 
 #ifdef __WXOSX__
 #define wxOSX true
@@ -683,8 +683,8 @@ void CheckBox::BUILD() {
 
     m_last_meaningful_value = static_cast<unsigned char>(check_value);
 
-	// BBS: use SwitchButton
-	auto temp = new SwitchButton(m_parent); 
+	// BBS: use ::CheckBox
+	auto temp = new ::CheckBox(m_parent); 
 	if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 	temp->SetBackgroundColour(*wxWHITE);
 	temp->SetValue(check_value);
@@ -705,7 +705,7 @@ void CheckBox::BUILD() {
 void CheckBox::set_value(const bool value, bool change_event)
 {
 	m_disable_change_event = !change_event;
-	dynamic_cast<SwitchButton*>(window)->SetValue(value);
+    dynamic_cast<::CheckBox *>(window)->SetValue(value); // BBS
 	m_disable_change_event = false;
 }
 
@@ -716,10 +716,10 @@ void CheckBox::set_value(const boost::any& value, bool change_event)
         m_is_na_val = boost::any_cast<unsigned char>(value) == ConfigOptionBoolsNullable::nil_value();
         if (!m_is_na_val)
             m_last_meaningful_value = value;
-        dynamic_cast<SwitchButton*>(window)->SetValue(m_is_na_val ? false : boost::any_cast<unsigned char>(value) != 0);
+        dynamic_cast<::CheckBox*>(window)->SetValue(m_is_na_val ? false : boost::any_cast<unsigned char>(value) != 0); // BBS
     }
     else
-        dynamic_cast<SwitchButton*>(window)->SetValue(boost::any_cast<bool>(value));
+        dynamic_cast<::CheckBox*>(window)->SetValue(boost::any_cast<bool>(value)); // BBS
     m_disable_change_event = false;
 }
 
@@ -727,7 +727,7 @@ void CheckBox::set_last_meaningful_value()
 {
     if (m_opt.nullable) {
         m_is_na_val = false;
-        dynamic_cast<SwitchButton*>(window)->SetValue(boost::any_cast<unsigned char>(m_last_meaningful_value) != 0);
+        dynamic_cast<::CheckBox*>(window)->SetValue(boost::any_cast<unsigned char>(m_last_meaningful_value) != 0); // BBS
         on_change_field();
     }
 }
@@ -736,7 +736,7 @@ void CheckBox::set_na_value()
 {
     if (m_opt.nullable) {
         m_is_na_val = true;
-        dynamic_cast<SwitchButton*>(window)->SetValue(false);
+        dynamic_cast<::CheckBox *>(window)->SetValue(false); // BBS
         on_change_field();
     }
 }
@@ -744,7 +744,7 @@ void CheckBox::set_na_value()
 boost::any& CheckBox::get_value()
 {
 // 	boost::any m_value;
-	bool value = dynamic_cast<SwitchButton*>(window)->GetValue();
+	bool value = dynamic_cast<::CheckBox*>(window)->GetValue(); // BBS
 	if (m_opt.type == coBool)
 		m_value = static_cast<bool>(value);
 	else
@@ -756,7 +756,8 @@ void CheckBox::msw_rescale()
 {
     Field::msw_rescale();
 
-	SwitchButton* field = dynamic_cast<SwitchButton*>(window);
+	// BBS: new param style
+	::CheckBox* field = dynamic_cast<::CheckBox*>(window);
     //field->SetMinSize(wxSize(-1, int(1.5f*field->GetFont().GetPixelSize().y +0.5f)));
 }
 

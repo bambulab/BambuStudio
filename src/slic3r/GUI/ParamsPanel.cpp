@@ -48,7 +48,7 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
 
     // BBS: new layout
     m_mode_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition);
-    m_mode_panel->SetBackgroundColour("#E9E9E9");
+    m_mode_panel->SetBackgroundColour("#FFFFFF");
     m_mode_text = new Label(wxT("Advanced Mode"), m_mode_panel);
     m_mode_text->SetFont(Label::Head_12);
     m_mode_text->Wrap( -1 );
