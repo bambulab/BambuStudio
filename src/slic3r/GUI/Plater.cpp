@@ -6007,7 +6007,8 @@ void Plater::save_project(bool saveAs)
     if (filename.empty())
         return;
 
-    export_3mf(into_path(filename));
+    //BBS export 3mf without gcode
+    export_3mf(into_path(filename), false, false, -1, nullptr, false);
 
     Slic3r::remove_backup(model(), false);
 
@@ -7222,7 +7223,7 @@ void Plater::export_amf()
 }
 
 // BBS: backup
-int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence, bool backup, int export_plate_idx, Export3mfProgressFn proFn)
+int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence, bool backup, int export_plate_idx, Export3mfProgressFn proFn, bool with_gcode)
 {
     if (p->model.objects.empty()) {
         MessageDialog dialog(nullptr, _L("The plater is empty.\nDo you want to save the project?"), _L("Save project"), wxYES_NO);
@@ -7262,7 +7263,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
     PlateDataPtrs plate_data_list;
     //BBS: add gcode to 3mf logic
     //if (wxGetApp().app_config->get("3mf_include_gcode") == "1") {
-        p->partplate_list.store_to_3mf_structure(plate_data_list, true, export_plate_idx);
+        p->partplate_list.store_to_3mf_structure(plate_data_list, with_gcode, export_plate_idx);
     //}
     //else {
     //    p->partplate_list.store_to_3mf_structure(plate_data_list, false);
