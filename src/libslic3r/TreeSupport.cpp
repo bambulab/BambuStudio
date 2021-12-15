@@ -747,13 +747,24 @@ void TreeSupport::detect_object_overhangs()
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     const bool dont_support_bridges = config.dont_support_bridges.value;
     const bool support_sharp_tails = config.support_sharp_tails.value;
+    const bool remove_small_overhangs = config.remove_small_overhangs.value;
     const int support_material_enforce_layers = config.support_material_enforce_layers.value;
     const double thresh_well_supported = SQ(scale_(4));  // min: 4x4=16mm^2
+    // a region is considered well supported if the number of layers below it exceeds this threshold
+    const int thresh_layers_below = 5 / config.layer_height;
     double obj_height = m_object.size().z();
 
+    struct ExPolygonComp {
+        bool operator()(const ExPolygon& a, const ExPolygon& b) const {
+            return &a < &b;
+        }
+    };
+
     if (config.support_type.value == stTreeAuto) {
-        double threshold_rad = (config.support_material_threshold.value < EPSILON ? 30 : config.support_material_threshold.value) * M_PI / 180.;
+        double threshold_rad = (config.support_material_threshold.value < EPSILON ? 30 : config.support_material_threshold.value + 1) * M_PI / 180.;
         ExPolygons regions_well_supported; // regions on buildplate or well supported
+        std::map<ExPolygon, int, ExPolygonComp> region_layers_below;  // regions and the number of layers below
+        ExPolygons lower_overhang_dilated;  // for small overhang 
 
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_object.layer_count(), m_object.layer_count()),
@@ -787,32 +798,62 @@ void TreeSupport::detect_object_overhangs()
                         }
                     }
 
-                    ExPolygons lower_layer_offseted;
-                    if (support_sharp_tails)
-                    {
-                        // detect sharp tail and add more supports around
-                        for (auto lower_region : lower_polys) {
-                            ExPolygons lower_region_off;
-                            ExPolygons lower_region_tmp;
-                            lower_region_tmp.push_back(lower_region);
-                            auto radius = get_extents(lower_region).radius();
-                            if ( area(intersection_ex(lower_region_tmp, regions_well_supported)) < thresh_well_supported
-                                && (obj_height-scale_(layer->slice_z))>get_extents(lower_region).radius()*5) {
-                                lower_region_off = { lower_region };// offset_ex(lower_region, -0.1 * extrusion_width_scaled);
-                            }
-                            else {
-                                lower_region_off = offset_ex(lower_region, support_offset_scaled);
-                            }
-                            if (!lower_region_off.empty())
-                                lower_layer_offseted.push_back(lower_region_off.front());
-                        }
-                    }
-                    else {
-                        lower_layer_offseted = offset_ex(lower_polys, support_offset_scaled);
-                    }
-
+                    // normal overhang
+                    ExPolygons lower_layer_offseted = offset_ex(lower_polys, support_offset_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS);
                     ExPolygons overhang_areas = std::move(diff_ex(curr_polys, lower_layer_offseted));
                     overhang_areas = std::move(offset2_ex(overhang_areas, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
+
+                    ExPolygons small_overhangs;
+                    if (remove_small_overhangs && layer_nr > 1 && layer_nr < m_object.layer_count() - 2)
+                    {
+                        for (auto& overhang : overhang_areas)
+                        {
+                            // rules for small overhang:
+                            // 1) single layer (do not intersects lower overhangs)
+                            // 2) thin enough
+                            // 3) is not island (must intersect with other parts)
+                            auto dilate1 = offset_ex({ overhang }, -extrusion_width_scaled * 1);
+                            auto bbox_size = get_extents(dilate1).size();
+                            auto inter_with_others = intersection_ex(offset_ex(overhang, extrusion_width_scaled), diff_ex(layer->lslices, { overhang }));
+                            if (intersection_ex({ overhang }, lower_overhang_dilated).empty()
+                                && (dilate1.empty() || (bbox_size.x() < extrusion_width_scaled && bbox_size.y() < extrusion_width_scaled))
+                                && !inter_with_others.empty())
+                                small_overhangs.push_back(overhang);
+                        }
+                    }
+
+                    ExPolygons overhangs_sharp_tail;
+                    if (support_sharp_tails)
+                    {
+                        lower_layer_offseted.clear();
+                        // detect sharp tail and add more supports around
+                        for (auto lower_region : lower_polys) {
+                            auto radius = get_extents(lower_region).radius();
+                            auto out_of_well_supported_region = offset_ex(diff_ex({ lower_region }, regions_well_supported), -extrusion_width_scaled);
+                            auto bbox_size = get_extents(out_of_well_supported_region).size();
+                            if ((bbox_size.x() > extrusion_width_scaled && bbox_size.y() > extrusion_width_scaled)
+                                && area(intersection_ex({ lower_region }, regions_well_supported)) < thresh_well_supported
+                                && (obj_height - scale_(layer->slice_z)) > get_extents(lower_region).radius() * 5) {
+                                lower_layer_offseted.push_back(lower_region);// offset_ex(lower_region, -0.1 * extrusion_width_scaled);
+                            }
+                            else {
+                                lower_layer_offseted.push_back(offset_ex(lower_region, support_offset_scaled)[0]);
+                            }
+                        }
+                        if (!lower_layer_offseted.empty()) {
+                            overhangs_sharp_tail = std::move(diff_ex(curr_polys, lower_layer_offseted));
+                            overhangs_sharp_tail = std::move(offset2_ex(overhangs_sharp_tail, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
+                            overhangs_sharp_tail = diff_ex(overhangs_sharp_tail, overhang_areas);
+                        }
+                    }
+
+
+                    if (remove_small_overhangs)
+                        overhang_areas = diff_ex(overhang_areas, small_overhangs);
+                    if (support_sharp_tails)
+                        overhang_areas = union_ex(overhang_areas, overhangs_sharp_tail);
+
+
                     if (dont_support_bridges && overhang_areas.size()>0) {
                         remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, overhang_areas);
                     }
@@ -835,13 +876,54 @@ void TreeSupport::detect_object_overhangs()
                         auto inters2 = intersection_ex(layer->lslices, ts_layer->overhang_areas);
                         inters.insert(inters.end(), inters2.begin(), inters2.end());
                         for (auto inter : inters) {
-                            if (inter.area() >= thresh_well_supported)
+                            auto bbox_size = get_extents(inter).size();
+                            if (inter.area() >= thresh_well_supported
+                                || (bbox_size.x() > scale_(5) && bbox_size.y() > scale_(5)))
                             {
-                                //inter = offset_ex(inter, support_offset_scaled)[0];
+                                inter = offset_ex(inter, support_offset_scaled)[0];
                                 regions_well_supported2.emplace_back(inter);
                             }
-                        }                        
+                        }
+#if 0
+                        // experimental: regions high enough is also well supported
+                        std::map<ExPolygon, int, ExPolygonComp> region_layers_below2;
+                        if (layer_nr == 0) {
+                            for (auto& region : layer->lslices) {
+                                region_layers_below.emplace(region, 0);
+                            }
+                        }
+                        else {
+                            for (auto& region : layer->lslices) {
+                                int layers_below = 0;
+                                for (const auto& rn : region_layers_below)
+                                {
+                                    auto inters = intersection_ex(offset_ex({ region }, extrusion_width_scaled), { rn.first });
+                                    if (!inters.empty()) {
+                                        layers_below = rn.second + 1;
+                                        region_layers_below2.emplace(inters.front(), layers_below);
+
+                                        if (layers_below > thresh_layers_below)
+                                            regions_well_supported2.emplace_back(inters.front());
+
+                                        auto remains = diff_ex({ region }, inters);
+                                        for (auto remain : remains)
+                                            region_layers_below2.emplace(remain, 0);
+
+                                        break;
+                                    }
+                                }
+                                if (layers_below == 0)
+                                    region_layers_below2.emplace(region, 0);
+                            }
+                            std::swap(region_layers_below, region_layers_below2);
+                        }
+#endif
+                        //std::swap(regions_well_supported, regions_well_supported2);
                         regions_well_supported = union_ex(regions_well_supported2);
+                    }
+                    if (remove_small_overhangs)
+                    {
+                        lower_overhang_dilated = offset2_ex(ts_layer->overhang_areas, -0.5 * extrusion_width_scaled, 1.5 * extrusion_width_scaled);
                     }
                 }
             }
@@ -852,28 +934,8 @@ void TreeSupport::detect_object_overhangs()
     auto blockers  = m_object.slice_support_blockers();
     m_object.project_and_append_custom_facets(false, EnforcerBlockerType::ENFORCER, enforcers);
     m_object.project_and_append_custom_facets(false, EnforcerBlockerType::BLOCKER, blockers);
-    // small overhang removal
-    std::vector<ExPolygons> overhangs_dilated(m_object.layer_count());
-    for (int layer_nr = 0; layer_nr < m_object.layer_count(); layer_nr++) {
-        overhangs_dilated[layer_nr] = offset_ex(m_object.get_tree_support_layer(layer_nr + m_raft_layers)->overhang_areas, extrusion_width_scaled);
-    }
     for (int layer_nr = 0; layer_nr < m_object.layer_count(); layer_nr++) {
         TreeSupportLayer* ts_layer = m_object.get_tree_support_layer(layer_nr + m_raft_layers);
-
-        if (1)
-        {   // small overhang removal
-            if (layer_nr<1 || layer_nr>overhangs_dilated.size() - 2) continue;
-            ExPolygons small_overhangs;
-            for (auto& overhang : ts_layer->overhang_areas)
-            {
-                //auto overhang_dilated = offset_ex({ overhang }, extrusion_width_scaled);
-                if (intersection_ex(ExPolygons{overhang}, overhangs_dilated[layer_nr-1]).empty() && intersection_ex(ExPolygons{overhang}, overhangs_dilated[layer_nr+1]).empty()
-                    && offset_ex({ overhang }, -extrusion_width_scaled * 2).empty()
-                    && !intersection_ex(offset_ex(overhang, extrusion_width_scaled), diff_ex(ts_layer->lslices, { overhang })).empty())
-                    small_overhangs.push_back(overhang);
-            }
-            ts_layer->overhang_areas = diff_ex(ts_layer->overhang_areas, small_overhangs);
-        }
 
         if (layer_nr < enforcers.size()) {
             Polygons& enforcer = enforcers[layer_nr];

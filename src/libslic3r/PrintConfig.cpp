@@ -694,6 +694,12 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Experimental option for adding support material for sharp tails.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
+    def = this->add("remove_small_overhangs", coBool);
+    def->label = L("Remove support for small overhangs");
+    def->category = L("Support material");
+    def->tooltip = L("Experimental option for removing support material for small overhangs.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("duplicate_distance", coFloat);
     def->label = L("Distance between copies");

@@ -493,6 +493,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     // Automatic supports (generated based on support_material_threshold).
     // BBS
     ((ConfigOptionBool,                support_sharp_tails))
+    ((ConfigOptionBool,                remove_small_overhangs))
     ((ConfigOptionEnum<SupportType>,   support_type))
     // Direction of the support pattern (in XY plane).`
     ((ConfigOptionFloat,               support_material_angle))
