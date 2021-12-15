@@ -15,11 +15,14 @@
 
 namespace Slic3r { namespace GUI {
 
+ // BBS: modify param ui style
     constexpr int titleWidth = 20;
     constexpr int ctrlWidth = 88;
 
 #define DISABLE_BLINKING
 #define DISABLE_UNDO_SYS
+#define SPLIT_MULTI_LINES 1
+#define OPTION_LABEL_AT_RIGHT 1
 
 static bool is_point_in_rect(const wxPoint& pt, const wxRect& rect)
 {
@@ -98,7 +101,12 @@ void OG_CustomCtrl::init_ctrl_lines()
         else if (opt_group->label_width != 0 && (!line.label.IsEmpty() || option_set.front().opt.gui_type == ConfigOptionDef::GUIType::legend) )
         {
             wxSize label_sz = GetTextExtent(line.label);
-            height = label_sz.y * (label_sz.GetWidth() > int(opt_group->label_width * m_em_unit) ? 2 : 1) + m_v_gap;
+#if SPLIT_MULTI_LINES // BBS
+            if (option_set.size() > 1)
+                height = (label_sz.y + m_v_gap) * option_set.size();
+            else
+#endif
+                height = label_sz.y * (label_sz.GetWidth() > int(opt_group->label_width * m_em_unit) ? 2 : 1) + m_v_gap;
             ctrl_lines.emplace_back(CtrlLine(height, this, line, false, opt_group->staticbox));
         }
         else
@@ -185,6 +193,7 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
                 Field* field = opt_group->get_field(opt.opt_id);
                 correct_line_height(ctrl_line.height, field->getWindow());
 
+#if !OPTION_LABEL_AT_RIGHT // BBS: position option label at right
                 ConfigOptionDef option = opt.opt;
                 // add label if any
                 if (is_multioption_line && !option.label.empty()) {
@@ -205,10 +214,15 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 #endif //__WXMSW__
                     h_pos += label_w + 1 + m_h_gap;
                 }                
-                
+#endif
+
                 if (field == field_in) {
                     correct_horiz_pos(h_pos, field);
                     break;
+                }
+#if SPLIT_MULTI_LINES // BBS
+                v_pos += ctrl_line.height / option_set.size();
+#else
                 // BBS: new layout
                 h_pos += field->getWindow()->GetSize().x;
 #ifndef DISABLE_BLINKING
@@ -234,6 +248,7 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 
                 if (opt.opt_id != option_set.back().opt_id) //! istead of (opt != option_set.back())
                     h_pos += lround(0.6 * m_em_unit);
+#endif
             }
             break;
         }
@@ -404,6 +419,10 @@ void OG_CustomCtrl::correct_window_position(wxWindow* win, const Line& line, Fie
 {
     wxPoint pos = get_pos(line, field);
     int line_height = get_height(line);
+#if SPLIT_MULTI_LINES // BBS
+    if (line.get_options().size() > 1)
+        line_height /= line.get_options().size();
+#endif
     pos.y += std::max(0, int(0.5 * (line_height - win->GetSize().y)));
     win->SetPosition(pos);
 };
@@ -455,7 +474,7 @@ void OG_CustomCtrl::msw_rescale()
     m_font = Label::Body_14;
     SetFont(m_font);
     m_em_unit   = em_unit(m_parent);
-    m_v_gap     = lround(1.0 * m_em_unit);
+    m_v_gap     = lround(1.5 * m_em_unit);
     m_h_gap     = lround(0.2 * m_em_unit);
 
     m_bmp_mode_sz = create_scaled_bitmap("mode_simple", this, wxOSX ? 10 : 12).GetSize();
@@ -544,7 +563,13 @@ void OG_CustomCtrl::CtrlLine::msw_rescale()
 
     if (ctrl->opt_group->label_width != 0 && !og_line.label.IsEmpty()) {
         wxSize label_sz = ctrl->GetTextExtent(og_line.label);
-        height = label_sz.y * (label_sz.GetWidth() > int(ctrl->opt_group->label_width * ctrl->m_em_unit) ? 2 : 1) + ctrl->m_v_gap;
+#if SPLIT_MULTI_LINES // BBS
+        const std::vector<Option> &option_set = og_line.get_options();
+        if (option_set.size() > 1)
+            height = (label_sz.y + ctrl->m_v_gap) * option_set.size();
+        else
+#endif
+            height = label_sz.y * (label_sz.GetWidth() > int(ctrl->opt_group->label_width * ctrl->m_em_unit) ? 2 : 1) + ctrl->m_v_gap;
     }
 
     correct_items_positions();
@@ -643,12 +668,12 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
     // If we're here, we have more than one option or a single option with sidetext
     // so we need a horizontal sizer to arrange these things
 
+    wxCoord h_pos2 = h_pos;
     // If we have a single option with no sidetext just add it directly to the grid sizer
     if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
         option_set.front().side_widget == nullptr && og_line.get_extra_widgets().size() == 0)
     {
         // BBS: new layout
-        wxCoord h_pos2 = h_pos;
         if (field) {
             if (field->getSizer())
             {
@@ -677,6 +702,19 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
     for (const Option& opt : option_set) {
         field = ctrl->opt_group->get_field(opt.opt_id);
         ConfigOptionDef option = opt.opt;
+#if OPTION_LABEL_AT_RIGHT // BBS
+        if (field) {
+            if (field->getSizer()) {
+                auto children = field->getSizer()->GetChildren();
+                for (auto child : children)
+                    if (child->IsWindow())
+                        h_pos += child->GetWindow()->GetSize().x +
+                                 ctrl->m_h_gap;
+            } else if (field->getWindow())
+                h_pos += field->getWindow()->GetSize().x + ctrl->m_h_gap;
+            h_pos += em_unit(ctrl);
+        }
+#endif
         // add label if any
         if (is_multioption_line && !option.label.empty()) {
             //!            To correct translation by context have to use wxGETTEXT_IN_CONTEXT macro from wxWidget 3.1.1
@@ -695,6 +733,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
         // add field
         if (option_set.size() == 1 && option_set.front().opt.full_width)
             break;
+#if !OPTION_LABEL_AT_RIGHT // BBS
         if (field) {
             if (field->getSizer())
             {
@@ -706,7 +745,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
             else if (field->getWindow())
                 h_pos += field->getWindow()->GetSize().x + ctrl->m_h_gap;
         }
-
+#endif
         // add sidetext if any
         // BBS: new layout
         wxCoord offset = 0;
@@ -716,14 +755,20 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
             offset = h_pos - h_pos2;
         }
 
-        if (opt.opt_id != option_set.back().opt_id) //! istead of (opt != option_set.back())
-            h_pos += lround(0.6 * ctrl->m_em_unit);
-
         // BBS: new layout
         if (field && field->undo_to_sys_bitmap()) {
+            offset -= ctrl->m_h_gap;
             h_pos = draw_act_bmps(dc, wxPoint(h_pos - offset, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink(), bmp_rect_id++);
             h_pos += offset;
         }
+
+        if (opt.opt_id != option_set.back().opt_id) //! istead of (opt != option_set.back())
+            h_pos += lround(0.6 * ctrl->m_em_unit);
+
+#if SPLIT_MULTI_LINES // BBS
+        v_pos += height / option_set.size();
+        h_pos = h_pos2;
+#endif
     }
 }
 
@@ -776,7 +821,13 @@ wxCoord    OG_CustomCtrl::CtrlLine::draw_text(wxDC& dc, wxPoint pos, const wxStr
         wxCoord text_width, text_height;
         dc.GetMultiLineTextExtent(out_text, &text_width, &text_height);
 
-        pos.y = pos.y + lround((height - text_height) / 2);
+#if SPLIT_MULTI_LINES // BBS
+        const std::vector<Option> &option_set = og_line.get_options();
+        if (option_set.size() > 1)
+            pos.y = pos.y + lround((height / option_set.size() - text_height) / 2);
+        else
+#endif
+            pos.y = pos.y + lround((height - text_height) / 2);
         if (width > 0)
             rect_label = wxRect(pos, wxSize(text_width, text_height));
 
@@ -825,7 +876,13 @@ wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBi
 #ifndef DISABLE_BLINKING
     pos = draw_blinking_bmp(dc, pos, is_blinking);
 #else
-    pos.y += lround((height - get_bitmap_size(bmp_undo).GetHeight()) / 2);
+#if SPLIT_MULTI_LINES // BBS
+    const std::vector<Option> &option_set = og_line.get_options();
+    if (option_set.size() > 1)
+        pos.y += lround((height / option_set.size() - get_bitmap_size(bmp_undo).GetHeight()) / 2);
+    else
+#endif
+        pos.y += lround((height - get_bitmap_size(bmp_undo).GetHeight()) / 2);
 #endif
     wxCoord h_pos = pos.x;
     wxCoord v_pos = pos.y;
