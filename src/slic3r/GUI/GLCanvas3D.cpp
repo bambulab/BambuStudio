@@ -70,7 +70,6 @@
 
 #include <imgui/imgui_internal.h>
 
-
 static constexpr const float TRACKBALLSIZE = 0.8f;
 
 static constexpr const float DEFAULT_BG_DARK_COLOR[3] = { 0.478f, 0.478f, 0.478f };
@@ -2633,12 +2632,23 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
             post_event(SimpleEvent(EVT_GLCANVAS_UNDO));
         break;
 
+        // BBS
+        case '0': { select_view("iso"); break; }
+        case '1': { select_view("top"); break; }
+        case '2': { select_view("bottom"); break; }
+        case '3': { select_view("front"); break; }
+        case '4': { select_view("rear"); break; }
+        case '5': { select_view("left"); break; }
+        case '6': { select_view("right"); break; }
+        case '7': { select_plate(); break; }
+
         case WXK_BACK:
         case WXK_DELETE:
              post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL)); break;
         default:            evt.Skip();
         }
     } else {
+        auto obj_list = wxGetApp().obj_list();
         switch (keyCode)
         {
         case WXK_BACK:
@@ -2650,14 +2660,21 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 post_event(SimpleEvent(EVT_GLCANVAS_RELOAD_FROM_DISK));
             break;
         }
-        case '0': { select_view("iso"); break; }
-        case '1': { select_view("top"); break; }
-        case '2': { select_view("bottom"); break; }
-        case '3': { select_view("front"); break; }
-        case '4': { select_view("rear"); break; }
-        case '5': { select_view("left"); break; }
-        case '6': { select_view("right"); break; }
-        case '7': { select_plate(); break; }
+
+        // BBS: use keypad to change extruder
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9': {
+            obj_list->set_extruder_for_selected_items(keyCode - '0');
+            break;
+        }
+
         case '+': {
             if (dynamic_cast<Preview*>(m_canvas->GetParent()) != nullptr)
                 post_event(wxKeyEvent(EVT_GLCANVAS_EDIT_COLOR_CHANGE, evt));
@@ -2919,6 +2936,20 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                         break;
                     }
                     default: { break; }
+                    }
+                }
+                // BBS
+                else if (evt.ControlDown()) {
+                    switch (keyCode) {
+                        case '0': { select_view("iso"); break; }
+                        case '1': { select_view("top"); break; }
+                        case '2': { select_view("bottom"); break; }
+                        case '3': { select_view("front"); break; }
+                        case '4': { select_view("rear"); break; }
+                        case '5': { select_view("left"); break; }
+                        case '6': { select_view("right"); break; }
+                        case '7': { select_plate(); break; }
+                        default: break;
                     }
                 }
             }
@@ -3547,12 +3578,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 const Vec3d& cur_pos = _mouse_to_3d(pos, &z);
                 Vec3d orig = _mouse_to_3d(m_mouse.drag.start_position_2D, &z);
                 Camera& camera = wxGetApp().plater()->get_camera();
-                if (wxGetApp().app_config->get("use_free_camera") != "1")
-                    // Forces camera right vector to be parallel to XY plane in case it has been misaligned using the 3D mouse free rotation.
-                    // It is cheaper to call this function right away instead of testing wxGetApp().plater()->get_mouse3d_controller().connected(),
-                    // which checks an atomics (flushes CPU caches).
-                    // See GH issue #3816.
-                    camera.recover_from_free_camera();
+                if (this->m_canvas_type != ECanvasType::CanvasAssembleView) {
+                    if (wxGetApp().app_config->get("use_free_camera") != "1")
+                        // Forces camera right vector to be parallel to XY plane in case it has been misaligned using the 3D mouse free rotation.
+                        // It is cheaper to call this function right away instead of testing wxGetApp().plater()->get_mouse3d_controller().connected(),
+                        // which checks an atomics (flushes CPU caches).
+                        // See GH issue #3816.
+                        camera.recover_from_free_camera();
+                }
 
                 camera.set_target(camera.get_target() + orig - cur_pos);
                 m_dirty = true;

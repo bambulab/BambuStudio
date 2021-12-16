@@ -4533,8 +4533,13 @@ void ObjectList::OnEditingDone(wxDataViewEvent &event)
         plater->set_current_canvas_as_dirty();
 }
 
-void ObjectList::set_extruder_for_selected_items(const int extruder) const 
+// BBS: remove "const" qualifier
+void ObjectList::set_extruder_for_selected_items(const int extruder)
 {
+    // BBS: check extruder id
+    if (extruder > wxGetApp().extruders_cnt())
+        return;
+
     wxDataViewItemArray sels;
     GetSelections(sels);
 
@@ -4574,6 +4579,9 @@ void ObjectList::set_extruder_for_selected_items(const int extruder) const
 
     // update scene
     wxGetApp().plater()->update();
+
+    // BBS: update extruder/filament column
+    Refresh();
 }
 
 void ObjectList::on_plate_added(PartPlate* part_plate)

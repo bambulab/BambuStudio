@@ -1921,6 +1921,8 @@ void MainFrame::init_menubar_as_editor()
 #endif
     }
 
+    // BBS
+#if 0
     // Window menu
     auto windowMenu = new wxMenu();
     {
@@ -1975,6 +1977,7 @@ void MainFrame::init_menubar_as_editor()
         append_menu_item(windowMenu, wxID_ANY, _L("Compare Presets")/* + "\tCtrl+F"*/, _L("Compare presets"), 
             [this](wxCommandEvent&) { diff_dialog.show();}, "compare", nullptr, []() {return true; }, this);
     }
+#endif
 
     // View menu
     wxMenu* viewMenu = nullptr;
@@ -2221,10 +2224,11 @@ void MainFrame::update_menubar()
     //m_changeable_menu_items[miExport]       ->SetItemLabel((is_fff ? _L("Export &G-code")         : _L("E&xport"))        + dots    + "\tCtrl+G");
     //m_changeable_menu_items[miSend]         ->SetItemLabel((is_fff ? _L("S&end G-code")           : _L("S&end to print")) + dots    + "\tCtrl+Shift+G");
 
-    m_changeable_menu_items[miMaterialTab]  ->SetItemLabel((is_fff ? _L("&Filament Settings Tab") : _L("Mate&rial Settings Tab"))   + "\tCtrl+3");
-    m_changeable_menu_items[miMaterialTab]  ->SetBitmap(create_menu_bitmap(is_fff ? "spool"   : "resin"));
+    // BBS: remove material and printer tabs
+    //m_changeable_menu_items[miMaterialTab]  ->SetItemLabel((is_fff ? _L("&Filament Settings Tab") : _L("Mate&rial Settings Tab"))   + "\tCtrl+3");
+    //m_changeable_menu_items[miMaterialTab]  ->SetBitmap(create_menu_bitmap(is_fff ? "spool"   : "resin"));
 
-    m_changeable_menu_items[miPrinterTab]   ->SetBitmap(create_menu_bitmap(is_fff ? "printer" : "sla_printer"));
+    //m_changeable_menu_items[miPrinterTab]   ->SetBitmap(create_menu_bitmap(is_fff ? "printer" : "sla_printer"));
 }
 
 #if 0
@@ -2936,6 +2940,8 @@ SettingsDialog::SettingsDialog(MainFrame* mainframe)
     SetIcon(wxIcon(var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
 #endif // _WIN32
 
+    // BBS
+#if 0
     this->Bind(wxEVT_SHOW, [this](wxShowEvent& evt) {
 
         auto key_up_handker = [this](wxKeyEvent& evt) {
@@ -2965,6 +2971,7 @@ SettingsDialog::SettingsDialog(MainFrame* mainframe)
                 m_tabpanel->Unbind(wxEVT_KEY_UP, key_up_handker);
         }
         });
+#endif
 
     //just hide the Frame on closing
     this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& evt) { this->Hide(); });

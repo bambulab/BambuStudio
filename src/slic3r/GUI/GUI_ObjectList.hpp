@@ -412,7 +412,8 @@ public:
     void update_printable_state(int obj_idx, int instance_idx);
     void toggle_printable_state();
 
-    void set_extruder_for_selected_items(const int extruder) const ;
+    //BBS: remove const qualifier
+    void set_extruder_for_selected_items(const int extruder);
     wxDataViewItemArray reorder_volumes_and_get_selection(int obj_idx, std::function<bool(const ModelVolume*)> add_to_selection = nullptr);
     void apply_volumes_order();
     bool has_paint_on_segmentation();
