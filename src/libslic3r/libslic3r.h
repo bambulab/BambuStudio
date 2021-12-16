@@ -2,9 +2,9 @@
 #define _libslic3r_h_
 
 #include "libslic3r_version.h"
-#define GCODEVIEWER_APP_NAME "PrusaSlicer G-code Viewer"
-#define GCODEVIEWER_APP_KEY  "PrusaSlicerGcodeViewer"
-#define GCODEVIEWER_BUILD_ID std::string("PrusaSlicer G-code Viewer-") + std::string(SLIC3R_VERSION) + std::string("-UNKNOWN")
+#define GCODEVIEWER_APP_NAME "BambuSlicer G-code Viewer"
+#define GCODEVIEWER_APP_KEY  "BambuSlicerGcodeViewer"
+#define GCODEVIEWER_BUILD_ID std::string("BambuSlicer G-code Viewer-") + std::string(SLIC3R_VERSION) + std::string("-UNKNOWN")
 
 // this needs to be included early for MSVC (listing it in Build.PL is not enough)
 #include <memory>
