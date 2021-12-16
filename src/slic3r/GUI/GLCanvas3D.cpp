@@ -4741,6 +4741,7 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const
         return ret;
     };
 
+    static std::array<float, 4> curr_color;
     static const std::array<float, 4> orange = { 0.923f, 0.504f, 0.264f, 1.0f };
     static const std::array<float, 4> gray   = { 0.64f, 0.64f, 0.64f, 1.0f };
 
@@ -4775,6 +4776,7 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const
     camera.set_scene_box(plate_scene_bounding_box(plate_idx));
     camera.apply_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
     camera.zoom_to_box(volumes_box);
+    camera.select_view("topfront");
     camera.apply_view_matrix();
 
     double near_z = -1.0;
@@ -4807,8 +4809,15 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const
     shader->set_uniform("emission_factor", 0.0f);
 
     for (GLVolume* vol : visible_volumes) {
+        //BBS set render color for thumbnails
+        curr_color[0] = vol->render_color[0];
+        curr_color[1] = vol->render_color[1];
+        curr_color[2] = vol->render_color[2];
+        curr_color[3] = vol->render_color[3];
+
+        shader->set_uniform("uniform_color", curr_color);
         //BBS set all volume to orange
-        shader->set_uniform("uniform_color", orange);
+        //shader->set_uniform("uniform_color", orange);
         /*if (plate_idx > 0) {
             shader->set_uniform("uniform_color", orange);
         }
