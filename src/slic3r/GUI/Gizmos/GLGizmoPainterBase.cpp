@@ -657,8 +657,10 @@ bool GLGizmoPainterBase::on_is_activable() const
 
 bool GLGizmoPainterBase::on_is_selectable() const
 {
-    return (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF
-         && wxGetApp().get_mode() != comSimple );
+    //BBS
+    /*return (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF
+         && wxGetApp().get_mode() != comSimple );*/
+    return (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF);
 }
 
 
