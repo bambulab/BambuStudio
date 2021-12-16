@@ -92,7 +92,7 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
                                wxID_ANY,
                                wxDefaultPosition,
                                wxDefaultSize,
-                               wxVSCROLL)
+                               wxVSCROLL | wxALWAYS_SHOW_SB) // hide hori-bar will cause hidden field mis-position
         {}
         virtual bool ShouldScrollToChildOnFocus(wxWindow *child)
         {
@@ -106,7 +106,7 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
     wxBoxSizer * page_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_page_sizer = new wxBoxSizer(wxVERTICAL);
     page_sizer->AddStretchSpacer(1.0);
-    page_sizer->Add(m_page_sizer, 0, wxEXPAND);
+    page_sizer->Add(m_page_sizer);
     page_sizer->AddStretchSpacer(1.0);
     page_sizer->Add(MarkdownTip::AttachTo(m_page_view), 0, wxEXPAND);
 
