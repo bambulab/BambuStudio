@@ -81,6 +81,8 @@ public:
     // To be called by the main thread. It always emits the G-code, it does not remember the previous state.
     // Keeping the state is left to the CoolingBuffer, which runs asynchronously on another thread.
     std::string set_fan(unsigned int speed) const;
+    //BBS: set additional fan speed for BBS machine only
+    std::string set_additional_fan(unsigned int speed, bool dont_save = false);
 
 private:
 	// Extruders are sorted by their ID, so that binary search is possible.
@@ -93,6 +95,8 @@ private:
     // If set to zero, the limit is not in action.
     unsigned int    m_max_acceleration;
     unsigned int    m_last_fan_speed;
+    //BBS
+    unsigned int    m_last_additional_fan_speed;
     unsigned int    m_last_bed_temperature;
     bool            m_last_bed_temperature_reached;
     double          m_lifted;

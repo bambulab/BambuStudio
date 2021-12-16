@@ -718,10 +718,15 @@ std::string CoolingBuffer::apply_layer_cooldown(
     new_gcode.reserve(gcode.size() * 2);
     bool bridge_fan_control = false;
     int  bridge_fan_speed   = 0;
-    auto change_extruder_set_fan = [ this, layer_id, layer_time, &new_gcode, &bridge_fan_control, &bridge_fan_speed ]() {
+    // BBS
+    int  additional_fan_speed = -1;
+    auto change_extruder_set_fan = [ this, layer_id, layer_time, &new_gcode, &bridge_fan_control, &bridge_fan_speed, &additional_fan_speed]() {
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_current_extruder)
         int min_fan_speed = EXTRUDER_CONFIG(min_fan_speed);
         int fan_speed_new = EXTRUDER_CONFIG(fan_always_on) ? min_fan_speed : 0;
+        //BBS
+        int additional_fan_speed_new = (EXTRUDER_CONFIG(fan_always_on) || EXTRUDER_CONFIG(cooling)) ?
+                                        EXTRUDER_CONFIG(additional_cooling_fan_speed) : 0;
         int disable_fan_first_layers = EXTRUDER_CONFIG(disable_fan_first_layers);
         // Is the fan speed ramp enabled?
         int full_fan_speed_layer = EXTRUDER_CONFIG(full_fan_speed_layer);
@@ -758,10 +763,16 @@ std::string CoolingBuffer::apply_layer_cooldown(
             bridge_fan_control = false;
             bridge_fan_speed   = 0;
             fan_speed_new      = 0;
+            additional_fan_speed_new = 0;
         }
         if (fan_speed_new != m_fan_speed) {
             m_fan_speed = fan_speed_new;
             new_gcode  += GCodeWriter::set_fan(m_config.gcode_flavor, m_config.gcode_comments, m_fan_speed);
+        }
+        //BBS
+        if (additional_fan_speed_new != additional_fan_speed) {
+            additional_fan_speed = additional_fan_speed_new;
+            new_gcode += m_gcodegen.writer().set_additional_fan(additional_fan_speed);
         }
     };
 

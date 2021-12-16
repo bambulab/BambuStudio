@@ -1941,6 +1941,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionInts { 35 });
 
+    def = this->add("additional_cooling_fan_speed", coInts);
+    def->label = L("Additional cooling fan speed");
+    def->tooltip = L("This setting represents the speed of additional cooling fan speed.");
+    def->sidetext = L("%");
+    def->min = 0;
+    def->max = 100;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionInts { 0 });
+
     def = this->add("min_layer_height", coFloats);
     def->label = L("Min");
     def->tooltip = L("This is the lowest printable layer height for this extruder and limits "
