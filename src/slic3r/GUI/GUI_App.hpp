@@ -176,6 +176,7 @@ private:
     Slic3r::CommuBackend* m_backend;
     Slic3r::DeviceManager* m_device_manager;
     Slic3r::AccountManager* m_account_manager;
+    boost::thread   m_sync_update_thread;
     bool            enable_sync = true;
 
 public:

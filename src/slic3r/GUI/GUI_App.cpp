@@ -1044,6 +1044,8 @@ GUI_App::GUI_App(EAppMode mode)
 GUI_App::~GUI_App()
 {
     enable_sync = false;
+    if (m_sync_update_thread.joinable())
+        m_sync_update_thread.join();
 
     if (app_config != nullptr)
         delete app_config;
@@ -2195,12 +2197,13 @@ void GUI_App::sync_preset(Preset*& preset)
 
 void GUI_App::start_sync_service()
 {
-    boost::thread update_thread = Slic3r::create_thread(
+    enable_sync = true;
+    m_sync_update_thread = Slic3r::create_thread(
         [this] {
             int count = 0;
             while (enable_sync) {
                 count++;
-                boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
+                boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
                 if (!m_account_manager->is_user_login()) {
                     continue;
                 }
