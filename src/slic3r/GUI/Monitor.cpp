@@ -858,7 +858,11 @@ void MonitorPanel::Reset()
     m_button_abort->Disable();
 
     /* reset task list */
+    for (auto it = task_panels.begin(); it != task_panels.end();it++) {
+        delete it->second;
+    }
     task_panels.clear();
+
     wxBoxSizer* bSizer_tasklist = new wxBoxSizer(wxVERTICAL);
     m_scrolledWindow_tasklist->SetSizer(bSizer_tasklist);
     bSizer_tasklist->Fit(m_scrolledWindow_tasklist);
@@ -891,6 +895,7 @@ void MonitorPanel::update_task(MachineObject* obj)
             if (iter != obj->task_->slice_info.end()) {
                 SubTaskPanel* panel = new SubTaskPanel(m_scrolledWindow_tasklist, wxID_ANY, wxDefaultPosition, wxSize(-1, 60));
                 panel->update_info(*(*it), *(iter->second));
+                panel->Layout();
                 task_panels.insert(std::make_pair((*it)->task_partplate_idx, panel));
             }
         }
