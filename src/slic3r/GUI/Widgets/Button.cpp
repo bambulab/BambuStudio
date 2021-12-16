@@ -26,7 +26,7 @@ END_EVENT_TABLE()
  * calling Refresh()/Update().
  */
 
-    Button::Button(wxWindow* parent, wxString text, wxString icon, long stlye)
+    Button::Button(wxWindow* parent, wxString text, wxString icon, long stlye, int iconSize)
     : wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, stlye)
 {
     pressedDown = hover = false;
@@ -38,10 +38,10 @@ END_EVENT_TABLE()
     background_pressed = *wxBLUE_BRUSH;
     //BBS set default font
     SetFont(Label::Body_14);
-    SetLabel(text);
+    wxWindow::SetLabel(text);
     if (!icon.IsEmpty()) {
         //BBS set button icon default size to 20
-        this->icon = ScalableBitmap(this, icon.ToStdString(), 20);
+        this->icon = ScalableBitmap(this, icon.ToStdString(), iconSize > 0 ? iconSize : 20);
     }
     messureSize();
 }
@@ -157,7 +157,10 @@ void Button::render(wxDC& dc)
         dc.SetPen(wxNullPen);
 
     wxSize size = GetSize();
-    dc.DrawRoundedRectangle(0, 0, size.x, size.y, radius);
+    if (radius == 0)
+        dc.DrawRectangle(0, 0, size.x, size.y);
+    else
+        dc.DrawRoundedRectangle(0, 0, size.x, size.y, radius);
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
     // calc content size
     wxSize szIcon;

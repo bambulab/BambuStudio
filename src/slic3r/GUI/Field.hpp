@@ -21,6 +21,7 @@
 
 #include "GUI.hpp"
 #include "wxExtensions.hpp"
+#include "Widgets/SpinInput.hpp"
 
 #ifdef __WXMSW__
 #define wxMSW true
@@ -197,6 +198,7 @@ public:
 	const wxString*			undo_to_sys_tooltip()	{ return m_undo_to_sys_tooltip; }
 	const wxColour*			label_color()			{ return m_label_color; }
 	const bool				blink()					{ return m_blink; }
+	const bool				combine_side_text()		{ return m_combine_side_text; } // BBS: new param style
 
 protected:
 	// Bitmap and Tooltip text for m_Undo_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
@@ -217,8 +219,10 @@ protected:
 	boost::any			m_last_meaningful_value;
 
     int                 m_em_unit;
+    bool m_combine_side_text = false;
 
     bool    bEnterPressed = false;
+
     
 	friend class OptionsGroup;
 };
@@ -267,6 +271,7 @@ public:
     void			enable() override;
     void			disable() override;
     wxWindow* 		getWindow() override { return window; }
+    wxTextCtrl *    text_ctrl();
 };
 
 class CheckBox : public Field {
@@ -313,26 +318,26 @@ public:
 
     void			set_value(const std::string& value, bool change_event = false) {
 		m_disable_change_event = !change_event;
-		dynamic_cast<wxSpinCtrl*>(window)->SetValue(value);
+		dynamic_cast<SpinInput*>(window)->SetValue(value);
 		m_disable_change_event = false;
     }
     void			set_value(const boost::any& value, bool change_event = false) override {
 		m_disable_change_event = !change_event;
 		tmp_value = boost::any_cast<int>(value);
         m_value = value;
-		dynamic_cast<wxSpinCtrl*>(window)->SetValue(tmp_value);
+		dynamic_cast<SpinInput*>(window)->SetValue(tmp_value);
 		m_disable_change_event = false;
 	}
 
 	boost::any&		get_value() override {
-		int value = static_cast<wxSpinCtrl*>(window)->GetValue();
+		int value = static_cast<SpinInput*>(window)->GetValue();
 		return m_value = value;
 	}
 
     void            msw_rescale() override;
 
-	void			enable() override { dynamic_cast<wxSpinCtrl*>(window)->Enable(); }
-	void			disable() override { dynamic_cast<wxSpinCtrl*>(window)->Disable(); }
+	void			enable() override { dynamic_cast<SpinInput*>(window)->Enable(); }
+	void			disable() override { dynamic_cast<SpinInput*>(window)->Disable(); }
 	wxWindow*		getWindow() override { return window; }
 };
 

@@ -99,9 +99,9 @@ using t_opt_map = std::map< std::string, std::pair<std::string, int> >;
 class OptionsGroup {
 public:
     const bool		staticbox {true};
-	// BBS: new layout
-    wxControl*		stb;
-    const wxString	title;
+    // BBS: new layout
+    wxWindow *     stb;
+    const wxString  title;
     size_t			label_width = 20 ;// {200};
     wxSizer*		sizer {nullptr};
 	OG_CustomCtrl*  custom_ctrl{ nullptr };

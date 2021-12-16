@@ -749,7 +749,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
         // add sidetext if any
         // BBS: new layout
         wxCoord offset = 0;
-        if (!option.sidetext.empty() || ctrl->opt_group->sidetext_width > 0) {
+        if (!field->combine_side_text() && (!option.sidetext.empty() || ctrl->opt_group->sidetext_width > 0)) {
             wxCoord h_pos2 = h_pos + dc.GetTextExtent(_(option.sidetext)).x;
             h_pos = draw_text(dc, wxPoint(h_pos, v_pos), _(option.sidetext), nullptr, ctrl->opt_group->sidetext_width * ctrl->m_em_unit);
             offset = h_pos - h_pos2;

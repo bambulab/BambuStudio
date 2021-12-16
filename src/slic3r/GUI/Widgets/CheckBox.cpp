@@ -16,9 +16,6 @@ CheckBox::CheckBox(wxWindow* parent)
 	if (parent)
 		SetBackgroundColour(parent->GetBackgroundColour());
 	Bind(wxEVT_TOGGLEBUTTON, [this](auto& e) { update(); e.Skip(); });
-    Bind(wxEVT_MOVE, [this](auto &e) {
-		e.Skip();
-	});
 	update();
 }
 

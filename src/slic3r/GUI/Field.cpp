@@ -23,6 +23,8 @@
 // BBS
 #include "Notebook.hpp"
 #include "Widgets/CheckBox.hpp"
+#include "Widgets/TextInput.hpp"
+#include "Widgets/SpinInput.hpp"
 
 #ifdef __WXOSX__
 #define wxOSX true
@@ -433,7 +435,7 @@ bool is_defined_input_value(wxWindow* win, const ConfigOptionType& type)
 }
 
 void TextCtrl::BUILD() {
-    auto size = wxSize(def_width()*m_em_unit, wxDefaultCoord);
+    auto size = wxSize(def_width_wider() * m_em_unit, wxDefaultCoord);
     if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
     if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
@@ -483,13 +485,15 @@ void TextCtrl::BUILD() {
 		break;
 	}
 
-    long style = m_opt.multiline ? wxTE_MULTILINE : wxTE_PROCESS_ENTER;
-#ifdef _WIN32
-	style |= wxBORDER_SIMPLE;
-#endif
-	auto temp = new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, style);
+	// BBS: new param ui style
+    // const long style = m_opt.multiline ? wxTE_MULTILINE : wxTE_PROCESS_ENTER/*0*/;
+    auto temp = m_opt.multiline
+        ? (wxWindow *) new wxTextCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size, wxTE_MULTILINE)
+        : new ::TextInput(m_parent, text_value, _L(m_opt.sidetext), "", wxDefaultPosition, size, wxTE_PROCESS_ENTER);
+	auto text_ctrl = m_opt.multiline ? (wxTextCtrl *)temp : ((TextInput *) temp)->GetTextCtrl();
+    m_combine_side_text = !m_opt.multiline;
     if (parent_is_custom_ctrl && m_opt.height < 0)
-        opt_height = (double)temp->GetSize().GetHeight()/m_em_unit;
+        opt_height = (double) text_ctrl->GetSize().GetHeight() / m_em_unit;
     temp->SetFont(m_opt.is_code ?
                   Slic3r::GUI::wxGetApp().code_font():
                   Slic3r::GUI::wxGetApp().normal_font());
@@ -500,13 +504,13 @@ void TextCtrl::BUILD() {
 		// This does not apply to the multi-line edit field, where the last line and a narrow frame around the text is not cleared.
 		temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 #ifdef __WXOSX__
-    temp->OSXDisableAllSmartSubstitutions();
+    // temp->OSXDisableAllSmartSubstitutions();
 #endif // __WXOSX__
 
 	temp->SetToolTip(get_tooltip_text(text_value));
 
-    if (style & wxTE_PROCESS_ENTER) {
-        temp->Bind(wxEVT_TEXT_ENTER, ([this, temp](wxEvent& e)
+    if (!m_opt.multiline) {
+        text_ctrl->Bind(wxEVT_TEXT_ENTER, ([this, temp](wxEvent &e)
         {
 #if !defined(__WXGTK__)
             e.Skip();
@@ -514,10 +518,10 @@ void TextCtrl::BUILD() {
 #endif // __WXGTK__
             EnterPressed enter(this);
             propagate_value();
-        }), temp->GetId());
+        }), text_ctrl->GetId());
     }
 
-	temp->Bind(wxEVT_LEFT_DOWN, ([temp](wxEvent& event)
+	text_ctrl->Bind(wxEVT_LEFT_DOWN, ([temp](wxEvent &event)
 	{
 		//! to allow the default handling
 		event.Skip();
@@ -528,9 +532,9 @@ void TextCtrl::BUILD() {
 		flag = true;
 #endif // __WXGTK__
 		temp->GetToolTip()->Enable(flag);
-	}), temp->GetId());
+	}), text_ctrl->GetId());
 
-	temp->Bind(wxEVT_KILL_FOCUS, ([this, temp](wxEvent& e)
+	text_ctrl->Bind(wxEVT_KILL_FOCUS, ([this, temp](wxEvent &e)
 	{
 		e.Skip();
 #if !defined(__WXGTK__)
@@ -538,6 +542,10 @@ void TextCtrl::BUILD() {
 #endif // __WXGTK__
         if (!bEnterPressed)
             propagate_value();
+#ifdef __WXOSX__
+		// After processing of KILL_FOCUS event we should to invalidate a bKilledFocus flag
+		bKilledFocus = false;
+#endif // __WXOSX__
 	}), temp->GetId());
 /*
 	// select all text using Ctrl+A
@@ -558,7 +566,7 @@ bool TextCtrl::value_was_changed()
         return true;
 
     boost::any val = m_value;
-    wxString ret_str = static_cast<wxTextCtrl*>(window)->GetValue();
+    wxString   ret_str = text_ctrl()->GetValue(); // BBS
     // update m_value!
     // ret_str might be changed inside get_value_by_opt_type
     get_value_by_opt_type(ret_str);
@@ -586,7 +594,7 @@ bool TextCtrl::value_was_changed()
 
 void TextCtrl::propagate_value()
 {
-	if (!is_defined_input_value<wxTextCtrl>(window, m_opt.type) )
+    if (!is_defined_input_value<wxTextCtrl>(text_ctrl(), m_opt.type)) // BBS
 		// on_kill_focus() cause a call of OptionsGroup::reload_config(),
 		// Thus, do it only when it's really needed (when undefined value was input)
         on_kill_focus();
@@ -600,14 +608,15 @@ void TextCtrl::set_value(const boost::any& value, bool change_event/* = false*/)
         const bool m_is_na_val = boost::any_cast<wxString>(value) == na_value();
         if (!m_is_na_val)
             m_last_meaningful_value = value;
-        dynamic_cast<wxTextCtrl*>(window)->SetValue(m_is_na_val ? na_value() : boost::any_cast<wxString>(value));
+        text_ctrl()->SetValue(m_is_na_val ? na_value() :
+                                            boost::any_cast<wxString>(value)); // BBS
     }
     else
-        dynamic_cast<wxTextCtrl*>(window)->SetValue(boost::any_cast<wxString>(value));
+        text_ctrl()->SetValue(boost::any_cast<wxString>(value)); // BBS
     m_disable_change_event = false;
 
     if (!change_event) {
-        wxString ret_str = static_cast<wxTextCtrl*>(window)->GetValue();
+        wxString ret_str = text_ctrl()->GetValue();
         /* Update m_value to correct work of next value_was_changed().
          * But after checking of entered value, don't fix the "incorrect" value and don't show a warning message,
          * just clear m_value in this case.
@@ -618,19 +627,19 @@ void TextCtrl::set_value(const boost::any& value, bool change_event/* = false*/)
 
 void TextCtrl::set_last_meaningful_value()
 {
-    dynamic_cast<wxTextCtrl*>(window)->SetValue(boost::any_cast<wxString>(m_last_meaningful_value));
+    text_ctrl()->SetValue(boost::any_cast<wxString>(m_last_meaningful_value)); // BBS
     propagate_value();
 }
 
 void TextCtrl::set_na_value()
 {
-    dynamic_cast<wxTextCtrl*>(window)->SetValue(na_value());
+    text_ctrl()->SetValue(na_value()); // BBS
     propagate_value();
 }
 
 boost::any& TextCtrl::get_value()
 {
-	wxString ret_str = static_cast<wxTextCtrl*>(window)->GetValue();
+    wxString ret_str = text_ctrl()->GetValue(); // BBS
 	// update m_value
 	get_value_by_opt_type(ret_str);
 
@@ -650,17 +659,34 @@ void TextCtrl::msw_rescale()
 
     if (size != wxDefaultSize)
     {
-        wxTextCtrl* field = dynamic_cast<wxTextCtrl*>(window);
+        wxTextCtrl *field = text_ctrl(); // BBS
         if (parent_is_custom_ctrl)
             field->SetSize(size);
         else
             field->SetMinSize(size);
+        if (field != window) dynamic_cast<::TextInput *>(window)->Rescale();
     }
 
 }
 
-void TextCtrl::enable() { dynamic_cast<wxTextCtrl*>(window)->Enable(); dynamic_cast<wxTextCtrl*>(window)->SetEditable(true); }
-void TextCtrl::disable() { dynamic_cast<wxTextCtrl*>(window)->Disable(); dynamic_cast<wxTextCtrl*>(window)->SetEditable(false); }
+void TextCtrl::enable()
+{
+    text_ctrl()->Enable();
+    text_ctrl()->SetEditable(true);
+}
+void TextCtrl::disable()
+{
+    text_ctrl()->Disable();
+    text_ctrl()->SetEditable(false);
+}
+
+wxTextCtrl *TextCtrl::text_ctrl()
+{
+    auto ctrl = dynamic_cast<wxTextCtrl *>(window);
+    if (ctrl == nullptr)
+        ctrl = dynamic_cast<::TextInput *>(window)->GetTextCtrl();
+    return ctrl;
+}
 
 #ifdef __WXGTK__
 void TextCtrl::change_field_value(wxEvent& event)
@@ -763,7 +789,7 @@ void CheckBox::msw_rescale()
 
 
 void SpinCtrl::BUILD() {
-	auto size = wxSize(def_width() * m_em_unit, wxDefaultCoord);
+    auto size = wxSize(def_width_wider() * m_em_unit, wxDefaultCoord);
     if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
     if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
@@ -802,13 +828,9 @@ void SpinCtrl::BUILD() {
     ? 0 : m_opt.min;
 	const int max_val = m_opt.max < 2147483647 ? m_opt.max : 2147483647;
 
-	auto temp = new wxSpinCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size,
-		wxTE_PROCESS_ENTER | wxSP_ARROW_KEYS
-#ifdef _WIN32
-		| wxBORDER_SIMPLE
-#endif 
-		, min_val, max_val, default_value);
-
+	auto temp = new SpinInput(m_parent, text_value, _L(m_opt.sidetext), wxDefaultPosition, size,
+		wxSP_ARROW_KEYS, min_val, max_val, default_value);
+    m_combine_side_text = true;
 #ifdef __WXGTK3__
 	wxSize best_sz = temp->GetBestSize();
 	if (best_sz.x > size.x)
@@ -821,13 +843,13 @@ void SpinCtrl::BUILD() {
     if (m_opt.height < 0 && parent_is_custom_ctrl)
         opt_height = (double)temp->GetSize().GetHeight() / m_em_unit;
 
-// XXX: On OS X the wxSpinCtrl widget is made up of two subwidgets, unfortunatelly
+// XXX: On OS X the SpinInput widget is made up of two subwidgets, unfortunatelly
 // the kill focus event is not propagated to the encompassing widget,
 // so we need to bind it on the inner text widget instead. (Ugh.)
 #ifdef __WXOSX__
-	temp->GetText()->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e)
+    temp->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent &e)
 #else
-	temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e)
+    temp->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent &e)
 #endif
 	{
         e.Skip();
@@ -839,18 +861,18 @@ void SpinCtrl::BUILD() {
         propagate_value();
 	}));
 
-    temp->Bind(wxEVT_SPINCTRL, ([this](wxCommandEvent e) {  propagate_value();  }), temp->GetId());
-
-    temp->Bind(wxEVT_TEXT_ENTER, ([this](wxCommandEvent e)
+    temp->Bind(wxEVT_SPINCTRL, ([this](wxCommandEvent e) {  propagate_value();  }), temp->GetId()); 
+    
+    temp->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, ([this](wxCommandEvent & e)
     {
         e.Skip();
         propagate_value();
         bEnterPressed = true;
-    }), temp->GetId());
+    }), temp->GetTextCtrl()->GetId());
 
-	temp->Bind(wxEVT_TEXT, ([this, temp](wxCommandEvent e)
+	temp->GetTextCtrl()->Bind(wxEVT_TEXT, ([this, temp](wxCommandEvent e)
 	{
-// 		# On OSX / Cocoa, wxSpinCtrl::GetValue() doesn't return the new value
+// 		# On OSX / Cocoa, SpinInput::GetValue() doesn't return the new value
 // 		# when it was changed from the text control, so the on_change callback
 // 		# gets the old one, and on_kill_focus resets the control to the old value.
 // 		# As a workaround, we get the new value from $event->GetString and store
@@ -865,22 +887,23 @@ void SpinCtrl::BUILD() {
 #ifdef __WXOSX__
             // Forcibly set the input value for SpinControl, since the value
             // inserted from the keyboard or clipboard is not updated under OSX
-            temp->SetValue(tmp_value);
+            SpinInput* spin = static_cast<SpinInput*>(window);
+            spin->SetValue(tmp_value);
             // But in SetValue() is executed m_text_ctrl->SelectAll(), so
             // discard this selection and set insertion point to the end of string
-            temp->GetText()->SetInsertionPointEnd();
+            // temp->GetText()->SetInsertionPointEnd();
 #else
             // update value for the control only if it was changed in respect to the Min/max values
             if (tmp_value != (int)value) {
                 temp->SetValue(tmp_value);
                 // But after SetValue() cursor ison the first position
                 // so put it to the end of string
-                int pos = std::to_string(tmp_value).length();
-                temp->SetSelection(pos, pos);
+                // int pos = std::to_string(tmp_value).length();
+                // temp->SetSelection(pos, pos);
             }
 #endif
         }
-	}), temp->GetId());
+	}), temp->GetTextCtrl()->GetId());
 
 	temp->SetToolTip(get_tooltip_text(text_value));
 
@@ -900,9 +923,9 @@ void SpinCtrl::propagate_value()
 #ifdef __WXOSX__
         // check input value for minimum
         if (m_opt.min > 0 && tmp_value < m_opt.min) {
-            wxSpinCtrl* spin = static_cast<wxSpinCtrl*>(window);
+            SpinInput* spin = static_cast<SpinInput*>(window);
             spin->SetValue(m_opt.min);
-            spin->GetText()->SetInsertionPointEnd();
+            // spin->GetText()->SetInsertionPointEnd(); // BBS
         }
 #endif
         on_change_field();
@@ -914,7 +937,7 @@ void SpinCtrl::msw_rescale()
 {
     Field::msw_rescale();
 
-    wxSpinCtrl* field = dynamic_cast<wxSpinCtrl*>(window);
+    SpinInput* field = dynamic_cast<SpinInput*>(window);
     if (parent_is_custom_ctrl)
         field->SetSize(wxSize(def_width() * m_em_unit, lround(opt_height * m_em_unit)));
     else

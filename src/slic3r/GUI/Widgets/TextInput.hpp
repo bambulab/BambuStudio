@@ -1,32 +1,38 @@
-#ifndef slic3r_GUI_Button_hpp_
-#define slic3r_GUI_Button_hpp_
+#ifndef slic3r_GUI_TextInput_hpp_
+#define slic3r_GUI_TextInput_hpp_
 
-#include <wx/stattext.h>
+#include <wx/textctrl.h>
 #include "../wxExtensions.hpp"
 
-class Button : public wxWindow
+class TextInput : public wxWindow
 {
+
     bool hover;
-    bool pressedDown;
-    wxSize textSize;
-    wxSize minSize; // set by outer
+    wxSize labelSize;
     ScalableBitmap icon;
     double radius;
     wxColor text_normal;
-    wxColor text_hover;
-    wxColor text_pressed;
+    wxColor text_disabled;
+    wxColor text_focused;
     wxPen border_normal;
-    wxPen border_hover;
-    wxPen border_pressed;
+    wxPen border_disabled;
+    wxPen border_focused;
     wxBrush background_normal;
-    wxBrush background_hover;
-    wxBrush background_pressed;
+    wxBrush background_disabled;
+    wxBrush background_focused;
+    wxTextCtrl * text_ctrl;
 
-    static const int buttonWidth = 200;
-    static const int buttonHeight = 50;
+    static const int TextInputWidth = 200;
+    static const int TextInputHeight = 50;
 
 public:
-    Button(wxWindow* parent, wxString text, wxString icon = "", long style = 0, int iconSize = 0);
+    TextInput(wxWindow *     parent,
+              wxString       text,
+              wxString       label = "",
+              wxString       icon  = "",
+              const wxPoint &pos   = wxDefaultPosition,
+              const wxSize & size  = wxDefaultSize,
+              long           style = 0);
 
     void SetCornerRadius(double radius);
 
@@ -36,15 +42,17 @@ public:
 
     bool SetBackgroundColour(wxColour const & color) override;
 
-    void SetMinSize(const wxSize& size) override;
-    
     void SetBorderColor(wxColor normal, wxColor hover, wxColor pressed);
 
     void SetForegroundColor(wxColor normal, wxColor hover, wxColor pressed);
 
     void SetBackgroundColor(wxColor normal, wxColor hover, wxColor pressed);
-    
+
     void Rescale();
+
+    virtual bool Enable(bool enable = true);
+
+    wxTextCtrl * GetTextCtrl() { return text_ctrl; }
 
 private:
     void paintEvent(wxPaintEvent& evt);
@@ -56,18 +64,13 @@ private:
 
     // some useful events
     void mouseMoved(wxMouseEvent& event);
-    void mouseDown(wxMouseEvent& event);
     void mouseWheelMoved(wxMouseEvent& event);
-    void mouseReleased(wxMouseEvent& event);
-    void rightClick(wxMouseEvent& event);
     void mouseEnterWindow(wxMouseEvent& event);
     void mouseLeaveWindow(wxMouseEvent& event);
     void keyPressed(wxKeyEvent& event);
     void keyReleased(wxKeyEvent& event);
 
-    void sendButtonEvent();
-
     DECLARE_EVENT_TABLE()
 };
 
-#endif // !slic3r_GUI_Button_hpp_
+#endif // !slic3r_GUI_TextInput_hpp_

@@ -6,6 +6,7 @@
 #include "OG_CustomCtrl.hpp"
 #include "MsgDialog.hpp"
 #include "format.hpp"
+#include "Widgets/StaticLine.hpp"
 
 #include <utility>
 #include <wx/bookctrl.h>
@@ -458,7 +459,7 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled/* = [](){}*/
 		}
 		else {
 			// BBS: new layout
-			wxStaticLine* stl = new wxStaticLine(m_parent);
+			StaticLine* stl = new StaticLine(m_parent);
 			sizer = new wxBoxSizer(wxVERTICAL);
 			sizer->Add(stl, 0, wxEXPAND);
 			sizer->AddSpacer(16);
