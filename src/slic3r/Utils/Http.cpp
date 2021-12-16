@@ -519,9 +519,12 @@ Http& Http::form_add_file(const std::string &name, const fs::path &path, const s
 // This option is only supported for Schannel (the native Windows SSL library).
 Http& Http::ssl_revoke_best_effort(bool set)
 {
+	// BBS
+#if 0
 	if(p && set){
 		::curl_easy_setopt(p->curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_REVOKE_BEST_EFFORT);
 	}
+#endif
 	return *this;
 }
 #endif // WIN32

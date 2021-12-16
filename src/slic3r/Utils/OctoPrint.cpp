@@ -62,6 +62,8 @@ std::string substitute_host(const std::string& orig_addr, std::string sub_addr)
     final_addr.replace(host_start, host_end - host_start, sub_addr);
     return final_addr;
 #else
+    // BBS
+#if 0
     // Using the new CURL API for handling URL. https://everything.curl.dev/libcurl/url
     // If anything fails, return the input unchanged.
     std::string out = orig_addr;
@@ -89,6 +91,7 @@ std::string substitute_host(const std::string& orig_addr, std::string sub_addr)
     } else
         BOOST_LOG_TRIVIAL(error) << "OctoPrint substitute_host: failed to allocate curl_url";
     return out;
+#endif
 #endif
 }
 } //namespace
