@@ -276,7 +276,8 @@ public:
 private:
     Geometry::Transformation m_instance_transformation;
     Geometry::Transformation m_volume_transformation;
-    Vec3d m_offset_to_assembly;
+    // BBS
+    Vec3d m_offset_to_assembly{ 0.0, 0.0, 0.0 };
 
     // Shift in z required by sla supports+pad
     double        m_sla_shift_z;

@@ -2046,6 +2046,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 deleted_volumes.emplace_back(volume, volume_id);
                 delete volume;
             }
+
+            // BBS
+            m_explosion_ratio = 1.0;
         }
         else {
             // This GLVolume will be reused.
@@ -7125,7 +7128,7 @@ void GLCanvas3D::_render_paint_toolbar() const
 void GLCanvas3D::_render_explosion_control() const
 {
     if (m_canvas_type != ECanvasType::CanvasAssembleView) {
-        GLVolume::explosion_ratio = 1.0;
+        GLVolume::explosion_ratio = m_explosion_ratio = 1.0;
         return;
     }
 
@@ -7138,7 +7141,7 @@ void GLCanvas3D::_render_explosion_control() const
     imgui->begin(_L("Explosion"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
     imgui->text(GUI::format_wxstr(_L("Press %1%left mouse button to enter the exact value"), shortkey_ctrl_prefix()));
-    imgui->slider_float(_L("Ratio"), &GLVolume::explosion_ratio, 1.0, 3.0, "%5.2f");
+    imgui->slider_float(_L("Ratio"), &m_explosion_ratio, 1.0, 3.0, "%5.2f");
 
     imgui->end();
 
@@ -7147,8 +7150,8 @@ void GLCanvas3D::_render_explosion_control() const
         for (GLVolume* volume : m_volumes.volumes) {
             volume->set_bounding_boxes_as_dirty();
         }
+        GLVolume::explosion_ratio = m_explosion_ratio;
     }
-    m_explosion_ratio = GLVolume::explosion_ratio;
 }
 void GLCanvas3D::_render_assemble_info() const
 {
