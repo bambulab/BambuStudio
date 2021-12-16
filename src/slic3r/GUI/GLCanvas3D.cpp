@@ -3507,7 +3507,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     if (!m_selection.is_empty())
                         rotate_target = m_selection.get_bounding_box().center();
                     else
-                        rotate_target = scene_bounding_box().center();
+                        rotate_target = volumes_bounding_box().center();
                     //BBS do not limit rotate in assemble view
                     camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
                 }
