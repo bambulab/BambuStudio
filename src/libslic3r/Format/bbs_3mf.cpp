@@ -775,7 +775,7 @@ namespace Slic3r {
         if (m_load_restore) {
             std::string objectmapfile = model.get_backup_path() + "/object_map.txt";
             {
-                std::ifstream ifs(objectmapfile);
+                std::ifstream ifs(encode_path(objectmapfile.c_str()));
                 unsigned int id1;
                 size_t id2;
                 while (ifs) {
@@ -785,7 +785,7 @@ namespace Slic3r {
             }
             std::string platemapfile = model.get_backup_path() + "/plate_map.txt";
             {
-                std::ifstream ifs(platemapfile);
+                std::ifstream ifs(encode_path(platemapfile.c_str()));
                 unsigned int id1;
                 std::string id2;
                 while (ifs) {
@@ -1255,7 +1255,7 @@ namespace Slic3r {
 
         try
         {
-            std::ifstream ifs(file);
+            std::ifstream ifs(encode_path(file.c_str()));
             std::string data(4096, char(0));
             while (ifs) {
                 ifs.read(&data.front(), 4096);
@@ -2899,7 +2899,7 @@ namespace Slic3r {
     // backup mesh-only
     bool _BBS_3MF_Exporter::save_object_mesh(const std::string& filename, ModelObject& object)
     {
-        std::ofstream ofs(filename);
+        std::ofstream ofs(encode_path(filename.c_str()));
         auto flush = [&ofs](std::string& buf, bool force) -> bool {
             ofs.write(buf.c_str(), buf.size());
             if (force)
@@ -3171,7 +3171,7 @@ namespace Slic3r {
 
         // save plate_id_map
        if (m_skip_static) {
-            std::ofstream ofs(const_cast<Model &>(model).get_backup_path() + "/plate_map.txt");
+            std::ofstream ofs(encode_path((const_cast<Model &>(model).get_backup_path() + "/plate_map.txt").c_str()));
             int l = model.get_backup_path().length() + 1;
             for (auto i : plate_data_list) {
                 if (!i->gcode_file.empty()) {
@@ -3368,7 +3368,7 @@ namespace Slic3r {
 
         // save object_id_map
         if (m_skip_static) {
-            std::ofstream ofs(const_cast<Model &>(model).get_backup_path() + "/object_map.txt");
+            std::ofstream ofs(encode_path((const_cast<Model &>(model).get_backup_path() + "/object_map.txt").c_str()));
             for (auto i : object_id_map) {
                 ofs << i.first << " " << i.second << std::endl;
             }
@@ -4387,7 +4387,8 @@ private:
         Backup, // this task is working as response in ui thread
         AddObject,
         RemoveObject,
-        RemoveBackup
+        RemoveBackup,
+        Exit
     };
     struct Task {
         TaskType type;
@@ -4420,6 +4421,10 @@ private:
 private:
     _BBS_Backup_Manager() : m_thread(boost::ref(*this)) {
         m_next_backup = boost::get_system_time() + boost::posix_time::seconds(m_interval);
+    }
+
+    ~_BBS_Backup_Manager() {
+        push_task({Exit});
     }
 
     void push_task(Task const & t) {
@@ -4524,6 +4529,7 @@ public:
                 }
             }
             Task t = m_tasks.front();
+            if (t.type == Exit) break;
             if (t.delay) {
                 if (!delay_task(t, lock))
                     continue;
@@ -4534,7 +4540,7 @@ public:
             lock.lock();
             if (t.type >= 0) {
                 m_ui_tasks.push_back(t);
-                if (m_ui_tasks.size() == 1)
+                if (m_ui_tasks.size() == 1 && m_post_callback)
                     m_post_callback(0);
             }
         }

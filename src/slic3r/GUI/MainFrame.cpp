@@ -369,7 +369,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             }
             else if (action == 1) {
                 if (!m_plater->up_to_date(false, true)) {
-                    m_plater->export_3mf(into_path(m_plater->model().get_backup_path() + "/.3mf"), true, true);
+                    m_plater->export_3mf(m_plater->model().get_backup_path() + "/.3mf", true, true);
                     m_plater->up_to_date(true, true);
                 }
             }

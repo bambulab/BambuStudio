@@ -58,9 +58,6 @@ Model& Model::assign_copy(const Model &rhs)
     // copy custom code per height
     this->custom_gcode_per_print_z = rhs.custom_gcode_per_print_z;
 
-    //BBS: add auxiliary path logic
-    // BBS: backup, all in one temp dir
-    this->backup_path = rhs.backup_path;
     return *this;
 }
 
@@ -85,7 +82,7 @@ Model& Model::assign_copy(Model &&rhs)
 
     //BBS: add auxiliary path logic
     // BBS: backup, all in one temp dir
-    this->backup_path = rhs.backup_path;
+    this->backup_path = std::move(rhs.backup_path);
     return *this;
 }
 
@@ -111,7 +108,16 @@ void Model::update_links_bottom_up_recursive()
 	}
 }
 
-//BBS: add part plate related logic
+Model::~Model()
+{
+    this->clear_objects();
+    this->clear_materials();
+    // BBS: clear backup dir of temparary model
+    if (!backup_path.empty())
+        Slic3r::remove_backup(*this, true);
+}
+
+// BBS: add part plate related logic
 // BBS: backup & restore
 // Loading model from a file, it may be a simple geometry file as STL or OBJ, however it may be a project file as well.
 Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, LoadAttributes options, PlateDataPtrs* plate_data, bool *is_bbl_3mf, Import3mfProgressFn proFn)

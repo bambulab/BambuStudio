@@ -209,7 +209,7 @@ void Selection::remove(unsigned int volume_idx)
     if (!contains_volume(volume_idx))
         return;
 
-    wxGetApp().plater()->take_snapshot(_L("Selection-Remove"), UndoRedo::SnapshotType::Selection);
+    wxGetApp().plater()->take_snapshot(_L("Selection-Remove!"), UndoRedo::SnapshotType::Selection);
 
     GLVolume* volume = (*m_volumes)[volume_idx];
 
@@ -394,7 +394,7 @@ void Selection::add_all()
     if ((unsigned int)m_list.size() == count)
         return;
     
-    wxGetApp().plater()->take_snapshot(_(L("Selection-Add All")), UndoRedo::SnapshotType::Selection);
+    wxGetApp().plater()->take_snapshot(_(L("Selection-Add All!")), UndoRedo::SnapshotType::Selection);
 
     m_mode = Instance;
     clear();

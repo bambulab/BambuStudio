@@ -2338,25 +2338,23 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     model.set_need_backup();
 
     auto last_backup = wxGetApp().app_config->get_last_backup_dir();
-    if (!last_backup.empty()) {
-        this->q->Bind(EVT_RESTORE_PROJECT, [this, last = last_backup](wxCommandEvent& e) {
-            std::string last_backup = last;
-            std::string originfile;
-            if (Slic3r::has_restore_data(last_backup, originfile)) {
-                auto result = wxMessageDialog(this->q, _L("Previous unsaved project detected, do you wan't to restore it?"), wxString(SLIC3R_APP_NAME) + " - " + _L("Restore"), wxYES_NO | wxYES_DEFAULT | wxCENTRE).ShowModal();
-                if (result == wxID_YES) {
-                    this->q->load_project(last_backup, originfile);
-                    Slic3r::backup_soon();
-                    return;
-                }
+    this->q->Bind(EVT_RESTORE_PROJECT, [this, last = last_backup](wxCommandEvent& e) {
+        std::string last_backup = last;
+        std::string originfile;
+        if (Slic3r::has_restore_data(last_backup, originfile)) {
+            auto result = wxMessageDialog(this->q, _L("Previous unsaved project detected, do you wan't to restore it?"), wxString(SLIC3R_APP_NAME) + " - " + _L("Restore"), wxYES_NO | wxYES_DEFAULT | wxCENTRE).ShowModal();
+            if (result == wxID_YES) {
+                this->q->load_project(from_path(last_backup), from_path(originfile));
+                Slic3r::backup_soon();
+                return;
             }
-            try {
-                boost::filesystem::remove_all(last);
-            } catch (...) {}
-            this->q->new_project();
-        });
-        wxPostEvent(this->q, wxCommandEvent{EVT_RESTORE_PROJECT});
-    }
+        }
+        try {
+            boost::filesystem::remove_all(last);
+        } catch (...) {}
+        this->q->new_project();
+    });
+    wxPostEvent(this->q, wxCommandEvent{EVT_RESTORE_PROJECT});
 
     this->q->Bind(EVT_LOAD_MODEL_OTHER_INSTANCE, [this](LoadFromOtherInstanceEvent& evt) {
         BOOST_LOG_TRIVIAL(trace) << "Received load from other instance event.";
@@ -2886,6 +2884,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 // BBS: backup & restore
                 if (load_aux) {
                     q->model().set_backup_path(model.get_backup_path());
+                    model.set_backup_path("");
                     load_auxiliary_files();
                 }
                 auto loaded_idxs = load_model_objects(model.objects);
@@ -3330,8 +3329,6 @@ void Plater::priv::reset()
     // Stop and reset the Print content.
     this->background_process.reset();
     model.clear_objects();
-    // BBS: backup
-    model.set_backup_path("");
     update();
     // Delete object from Sidebar list. Do it after update, so that the GLScene selection is updated with the modified model.
     sidebar->obj_list()->delete_all_objects_from_list();
@@ -6614,6 +6611,7 @@ bool GUI::Plater::close_with_confirm(std::function<bool(void)> second_check)
     if (up_to_date(false, false)) {
         if (second_check && !second_check()) return false;
         Slic3r::remove_backup(model(), true);
+        model().set_backup_path("");
         return true;
     }
 
@@ -6626,6 +6624,7 @@ bool GUI::Plater::close_with_confirm(std::function<bool(void)> second_check)
         save_project();
     }
     Slic3r::remove_backup(model(), true);
+    model().set_backup_path("");
     up_to_date(true, false);
     up_to_date(true, true);
     return true;
