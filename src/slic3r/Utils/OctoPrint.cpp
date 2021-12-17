@@ -92,6 +92,7 @@ std::string substitute_host(const std::string& orig_addr, std::string sub_addr)
         BOOST_LOG_TRIVIAL(error) << "OctoPrint substitute_host: failed to allocate curl_url";
     return out;
 #endif
+    return "";
 #endif
 }
 } //namespace
