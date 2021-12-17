@@ -5782,7 +5782,11 @@ void Plater::priv::bring_instance_forward() const
 bool Plater::priv::PopupObjectTable(int object_id, int volume_id, const wxPoint& position)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" enter, create ObjectTableDialog");
-    ObjectTableDialog table_dialog(q, q, &model);
+    int max_width{1920}, max_height{1080};
+
+    if (view3D != nullptr)
+        view3D->GetSize(&max_width, &max_height);
+    ObjectTableDialog table_dialog(q, q, &model, wxSize(max_width, max_height));
     //m_popup_table = new ObjectTableDialog(q, q,  &model);
 
     wxPoint pos;

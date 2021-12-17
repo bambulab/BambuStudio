@@ -20,6 +20,7 @@ static const int grid_cell_border_width = 2;
 static const int grid_cell_border_height = 2;
 static const int grid_cell_checkbox_size = 16;
 static const int min_row_count = 16;
+static const int min_setting_width = 464;
 
 /* ObjectGridTable related class */
 // ----------------------------------------------------------------------------
@@ -552,7 +553,7 @@ void ObjectGridTable::update_value_to_object(Model* model, ObjectGridRow* grid_r
         volume = object->volumes[grid_row->volume_id];
         if (col == col_name) {
             name_ptr = &(volume->name);
-            name_value = grid_row->name.value.erase(0, 2);
+            name_value = grid_row->name.value;
         }
     }
     else {
@@ -569,7 +570,7 @@ void ObjectGridTable::update_value_to_object(Model* model, ObjectGridRow* grid_r
     if ((name_ptr) && (*name_ptr != name_value)) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", change name from %1% to %2%!")%name_ptr->c_str() %name_value.c_str();
         *name_ptr = name_value;
-        //todo: notify object list
+        //notify object list
         wxGetApp().obj_list()->update_name_for_items();
     }
 }
@@ -603,7 +604,8 @@ void ObjectGridTable::SetValue( int row, int col, const wxString& value )
 
             option_value.value = enum_value + 1;
             update_value_to_config(grid_row->config, grid_col->key, option_value, option_ori_value);
-            obj_list->update_extruder_values_for_items(enum_value + 1);
+            wxGetApp().obj_list()->update_extruder_values_for_items(enum_value + 1);
+            m_panel->m_plater->update();
         }
     }
     else {
@@ -976,8 +978,9 @@ void ObjectGridTable::SetSelection(int object_id, int volume_id)
     {
         ObjectGridRow* row = m_grid_data[index];
         if (row->object_id == object_id) {
-            if ((volume_id == -1) || (volume_id == row->volume_id)) {
+            if ((volume_id == -1) || ((volume_id == row->volume_id)&&(row->row_type == row_volume))) {
                 m_panel->m_object_grid->SelectRow(index+1);
+                m_panel->m_object_grid->MakeCellVisible(index + 1, 0);
                 BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", found row %1%") %index;
                 break;
             }
@@ -1080,6 +1083,7 @@ void ObjectGridTable::reload_cell_data(int row, const std::string& category)
     object_volume_id.object = m_panel->m_model->objects[grid_row->object_id];
     object_volume_id.volume = (grid_row->row_type == row_object)?nullptr:object_volume_id.object->volumes[grid_row->volume_id];
     wxGetApp().obj_list()->object_config_options_changed(object_volume_id);
+    m_panel->m_plater->update();
 }
 
 void ObjectGridTable::update_row_properties()
@@ -1257,13 +1261,21 @@ void ObjectGridTable::OnCellLeftClick(int row, int col)
             //reset the value to original one
             if (cur_option != orig_option) {
                 cur_option.set(&orig_option);
-                update_value_to_config(grid_row->config, grid_col_2->key, cur_option, orig_option);
+                if (grid_col_2->b_from_config) {
+                    update_value_to_config(grid_row->config, grid_col_2->key, cur_option, orig_option);
+                    ObjectVolumeID object_volume_id;
+                    object_volume_id.object = m_panel->m_model->objects[grid_row->object_id];
+                    object_volume_id.volume = (grid_row->row_type == row_object) ? nullptr : object_volume_id.object->volumes[grid_row->volume_id];
+                    if (col == col_filaments_reset)
+                        wxGetApp().obj_list()->update_extruder_values_for_items((dynamic_cast<ConfigOptionInt&>(orig_option)).value);
+                    else
+                        wxGetApp().obj_list()->object_config_options_changed(object_volume_id);
+                    m_panel->m_plater->update();
+                }
+                else {
+                    update_value_to_object(m_panel->m_model, grid_row, col - 1);
+                }
                 m_panel->m_object_grid->ForceRefresh();
-
-                ObjectVolumeID object_volume_id;
-                object_volume_id.object = m_panel->m_model->objects[grid_row->object_id];
-                object_volume_id.volume = (grid_row->row_type == row_object)?nullptr:object_volume_id.object->volumes[grid_row->volume_id];
-                wxGetApp().obj_list()->object_config_options_changed(object_volume_id);
             }
         }
     }
@@ -1359,10 +1371,16 @@ void ObjectGridTable::OnCellValueChanged(int row, int col)
                     break;
             }
         }*/
-        ObjectVolumeID object_volume_id;
-        object_volume_id.object = object;
-        object_volume_id.volume = is_object?nullptr:object->volumes[grid_row->volume_id];
-        wxGetApp().obj_list()->object_config_options_changed(object_volume_id);
+        //obj_list->update_extruder_values_for_items(enum_value + 1);
+        if (grid_col->b_from_config) {
+            if (col != col_filaments) {//for col_filaments, no cellvaluechanged triggered
+                ObjectVolumeID object_volume_id;
+                object_volume_id.object = object;
+                object_volume_id.volume = is_object ? nullptr : object->volumes[grid_row->volume_id];
+                wxGetApp().obj_list()->object_config_options_changed(object_volume_id);
+                m_panel->m_plater->update();
+            }
+        }
     }
 }
 
@@ -1745,12 +1763,18 @@ wxSize ObjectTablePanel::get_init_size()
         row_count = row_count + 2;
     height =  row_height * row_count;
 
+    for (int index = 0; index < m_object_grid_table->GetNumberCols(); index++)
+    {
+        width += m_object_grid->GetColSize(index);
+    }
+    width += min_setting_width;
+
     size.Set(width, height);
 
     return size;
 }
 
-ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model *modelObj)
+ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model *modelObj, wxSize maxSize)
     : GUI::DPIDialog(parent, wxID_ANY, _L("Object/Part Setting"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
     m_model(modelObj), m_plater(platerObj)
 {
@@ -1785,7 +1809,9 @@ ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model 
 
     //m_panel->SetSize(wxSize(1024, 512));
     wxSize panel_size = m_obj_panel->get_init_size();
-    this->SetSize(wxSize(1880, panel_size.GetHeight()));
+    int dialog_height = (panel_size.GetHeight() > maxSize.GetHeight())?maxSize.GetHeight():panel_size.GetHeight();
+    int dialog_width = (panel_size.GetWidth() > maxSize.GetWidth())?maxSize.GetWidth():panel_size.GetWidth();
+    this->SetSize(wxSize(dialog_width, dialog_height));
     //m_top_sizer->SetSizeHints(this);
     //this->SetSizer(m_top_sizer);
     //SetClientSize(m_panel->GetSize());

@@ -467,7 +467,7 @@ class ObjectTableDialog : public GUI::DPIDialog
 
 
 public:
-    ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model *modelObj);
+    ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model *modelObj, wxSize maxSize);
     ~ObjectTableDialog();
     void Popup(int obj_idx = -1, int vol_idx = -1, wxPoint position = wxDefaultPosition);
 
