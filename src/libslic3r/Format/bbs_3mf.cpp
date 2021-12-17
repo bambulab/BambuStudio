@@ -738,6 +738,8 @@ namespace Slic3r {
         if (result && load_aux && !load_restore) {
             boost::filesystem::save_string_file(model.get_backup_path() + "/origin.txt", filename);
         }
+        if (load_restore && !result) // not clear failed backup data for later analyze
+            model.set_backup_path("");
         return result;
     }
 
@@ -2891,8 +2893,10 @@ namespace Slic3r {
         bool result = _save_model_to_file(filename + ".tmp", model,
                                             plate_data_list, config,
                                             thumbnail_data, proFn);
-        if (result)
+        if (result) {
             boost::filesystem::rename(filename + ".tmp", filename, ec);
+            boost::filesystem::save_string_file(model.get_backup_path() + "/origin.txt", filename);
+        }
         return result;
     }
 
@@ -4506,6 +4510,7 @@ private:
             case RemoveBackup: {
                 try {
                     boost::filesystem::remove(t.path + "/.3mf");
+                    boost::filesystem::remove(t.path + "/lock.txt");
                     if (t.id) { // remove all
                         boost::filesystem::remove_all(t.path);
                     }
@@ -4685,9 +4690,27 @@ void run_backup_ui_tasks()
 
 bool has_restore_data(std::string & path, std::string& origin)
 {
+    if (path.empty()) {
+        origin = "<lock>";
+        return false;
+    }
     std::string file3mf = path + "/.3mf";
     if (!boost::filesystem::exists(file3mf))
         return false;
+    if (boost::filesystem::exists(path + "/lock.txt")) {
+        std::string pid;
+        boost::filesystem::load_string_file(path + "/lock.txt", pid);
+        try {
+            if (get_process_name(boost::lexical_cast<int>(pid)) ==
+                get_process_name(0)) {
+                origin = "<lock>";
+                return false;
+            }
+        }
+        catch (...) {
+            return false;
+        }
+    }
     if (!boost::filesystem::exists(path + "/object_map.txt"))
         return false;
     try {

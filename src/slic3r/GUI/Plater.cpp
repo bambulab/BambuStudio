@@ -2337,6 +2337,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     up_to_date(true, true);
     model.set_need_backup();
 
+    // BBS: restore project
     auto last_backup = wxGetApp().app_config->get_last_backup_dir();
     this->q->Bind(EVT_RESTORE_PROJECT, [this, last = last_backup](wxCommandEvent& e) {
         std::string last_backup = last;
@@ -2350,7 +2351,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
             }
         }
         try {
-            boost::filesystem::remove_all(last);
+            if (originfile != "<lock>") // see bbs_3mf.cpp for lock detail
+                boost::filesystem::remove_all(last);
         } catch (...) {}
         this->q->new_project();
     });

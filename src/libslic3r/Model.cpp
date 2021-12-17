@@ -687,6 +687,8 @@ std::string Model::get_backup_path()
             boost::filesystem::remove_all(temp_path);
         }
         boost::filesystem::create_directories(backup_path);
+        boost::filesystem::save_string_file(backup_path + "/lock.txt",
+                                            boost::lexical_cast<std::string>(get_current_pid()));
     }
 
     return backup_path;

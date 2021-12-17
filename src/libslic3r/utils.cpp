@@ -26,6 +26,7 @@
 	#endif
 	#ifdef __APPLE__
 		#include <mach/mach.h>
+		#include <libproc.h>
 	#endif
 	#ifdef __linux__
 		#include <sys/stat.h>
@@ -986,6 +987,37 @@ unsigned get_current_pid()
     return GetCurrentProcessId();
 #else
     return ::getpid();
+#endif
+}
+
+// BBS: backup & restore
+std::string get_process_name(int pid)
+{
+#ifdef WIN32
+	char name[MAX_PATH] = { 0 };
+	if (pid == 0) {
+		GetModuleFileNameA(NULL, name, MAX_PATH);
+	}
+	else {
+		HANDLE h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid);
+		if (h == INVALID_HANDLE_VALUE) return {};
+		GetModuleFileNameExA(h, NULL, name, MAX_PATH);
+		CloseHandle(h);
+	}
+	char* p = strchr(name, '\\');
+	while (auto q = strchr(p + 1, '\\'))
+		p = q;
+	return decode_path(p);
+#elif defined __APPLE__
+	char pathbuf[PROC_PIDPATHINFO_MAXSIZE] = { 0 };
+	if (pid == 0) pid = ::getpid();
+	int ret = proc_pidpath(pid, pathbuf, sizeof(pathbuf));
+	if (ret <= 0) return {};
+	char* p = strchr(pathbuf, '/');
+	while (auto q = strchr(p + 1, '/')) p = q;
+	return p;
+#else
+	return {};
 #endif
 }
 

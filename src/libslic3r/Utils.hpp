@@ -166,6 +166,8 @@ std::string header_gcodeviewer_generated();
 
 // getpid platform wrapper
 extern unsigned get_current_pid();
+// BBS: backup & restore
+std::string get_process_name(int pid);
 
 // Compute the next highest power of 2 of 32-bit v
 // http://graphics.stanford.edu/~seander/bithacks.html
