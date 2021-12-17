@@ -1100,6 +1100,10 @@ void ObjectDataViewModel::DeleteSettings(const wxDataViewItem& parent)
         auto settings_item = wxDataViewItem(settings_node);
         node->GetChildren().RemoveAt(0);
         delete settings_node;
+        // BBS
+        if (node->GetChildCount() == 0) {
+            node->m_container = false;
+        }
         ItemDeleted(parent, settings_item);
     }
 }
@@ -1292,6 +1296,36 @@ void ObjectDataViewModel::UpdateExtruderBitmap(wxDataViewItem item)
         return;
     ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(item.GetID());
     node->UpdateExtruderAndColorIcon();
+}
+
+void ObjectDataViewModel::UpdateItemNames()
+{
+    wxDataViewItemArray changed_items;
+
+    for (auto obj_node : m_objects) {
+        ModelObject* mo = obj_node->m_model_object;
+        wxString new_obj_name = from_u8(mo->name);
+        if (obj_node->m_name != new_obj_name) {
+            obj_node->m_name = new_obj_name;
+            changed_items.push_back(wxDataViewItem(obj_node));
+        }
+
+        for (auto child_node : obj_node->GetChildren()) {
+            if ((child_node->GetType() & itVolume) == 0)
+                continue;
+
+            assert(child_node->GetIdx() < mo->volumes.size());
+
+            ModelVolume* mv = mo->volumes[child_node->GetIdx()];
+            wxString new_vol_name = from_u8(mv->name);
+            if (child_node->m_name != new_vol_name) {
+                child_node->m_name = new_vol_name;
+                changed_items.push_back(wxDataViewItem(child_node));
+            }
+        }
+    }
+
+    ItemsChanged(changed_items);
 }
 
 void ObjectDataViewModel::UpdateVolumesExtruderBitmap(wxDataViewItem obj_item)
@@ -1499,6 +1533,9 @@ void ObjectDataViewModel::SetExtruder(const wxString& extruder, wxDataViewItem i
     node->UpdateExtruderAndColorIcon(extruder);
     if (node->GetType() == itObject)
         UpdateVolumesExtruderBitmap(item);
+
+    // BBS
+    ItemChanged(item);
 }
 
 bool ObjectDataViewModel::SetName(const wxString& new_name, wxDataViewItem item)

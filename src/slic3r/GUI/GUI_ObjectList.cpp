@@ -595,6 +595,9 @@ void ObjectList::update_extruder_values_for_items(const size_t max_extruder)
             }
         }
     }
+
+    // BBS
+    wxGetApp().plater()->update();
 }
 
 void ObjectList::update_plate_values_for_items()
@@ -621,6 +624,14 @@ void ObjectList::update_plate_values_for_items()
         Expand(item);
         Select(item);
     }
+}
+
+// BBS
+void ObjectList::update_name_for_items()
+{
+    m_objects_model->UpdateItemNames();
+
+    wxGetApp().plater()->update();
 }
 
 // BBS

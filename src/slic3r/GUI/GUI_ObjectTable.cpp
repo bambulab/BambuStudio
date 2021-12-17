@@ -570,6 +570,7 @@ void ObjectGridTable::update_value_to_object(Model* model, ObjectGridRow* grid_r
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", change name from %1% to %2%!")%name_ptr->c_str() %name_value.c_str();
         *name_ptr = name_value;
         //todo: notify object list
+        wxGetApp().obj_list()->update_name_for_items();
     }
 }
 
@@ -579,6 +580,7 @@ void ObjectGridTable::SetValue( int row, int col, const wxString& value )
         return;
     ObjectGridRow* grid_row = m_grid_data[row - 1];
     ObjectGridCol* grid_col = m_col_data[col];
+    ObjectList* obj_list = wxGetApp().obj_list();
     if (grid_col->type == coEnum) {
         int enum_value = 0;
         for (int i = 0; i < grid_col->choice_count; i++)
@@ -601,6 +603,7 @@ void ObjectGridTable::SetValue( int row, int col, const wxString& value )
 
             option_value.value = enum_value + 1;
             update_value_to_config(grid_row->config, grid_col->key, option_value, option_ori_value);
+            obj_list->update_extruder_values_for_items(enum_value + 1);
         }
     }
     else {
