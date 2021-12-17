@@ -304,6 +304,7 @@ void GCodeViewer::SequentialView::GCodeWindow::load_gcode(const std::string& fil
     try
     {
         m_file.open(boost::filesystem::path(m_filename));
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": mapping file " << m_filename;
     }
     catch (...)
     {
@@ -474,8 +475,11 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
 
 void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
 {
-    if (m_file.is_open())
+    //BBS: add log to trace the gcode file issue
+    if (m_file.is_open()) {
         m_file.close();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": finished mapping file " << m_filename;
+    }
 }
 
 //BBS: GUI refactor: move to the right
@@ -649,11 +653,16 @@ void GCodeViewer::init()
 void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& print, bool initialized)
 {
     // avoid processing if called with the same gcode_result
-    if (m_last_result_id == gcode_result.id)
+    if (m_last_result_id == gcode_result.id) {
+        //BBS: add logs
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": the same id %1%, return directly ") % m_last_result_id;
         return;
+    }
 
     m_last_result_id = gcode_result.id;
     m_gcode_result = &gcode_result;
+    //BBS: add logs
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": new id %1%, gcode file %2% ") % m_last_result_id % gcode_result.filename;
 
     // release gpu memory, if used
     reset(); 
@@ -736,6 +745,8 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
             short_time(get_time_dhms(time)) == short_time(get_time_dhms(m_print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time)))
             m_time_estimate_mode = PrintEstimatedStatistics::ETimeMode::Normal;
     }
+    //BBS: add logs
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished!");
 }
 
 void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::vector<std::string>& str_tool_colors)
@@ -743,6 +754,13 @@ void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::v
 #if ENABLE_GCODE_VIEWER_STATISTICS
     auto start_time = std::chrono::high_resolution_clock::now();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+
+    //BBS: add safe check
+    if (gcode_result.moves.size() == 0) {
+        //result cleaned before slicing ,should return here
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": gcode result reset before, return directly!");
+        return;
+    }
 
     if (m_moves_count == 0)
         return;
@@ -2233,7 +2251,8 @@ void GCodeViewer::load_shells(const Print& print, bool initialized)
 
     //BBS: always load shell when preview
     m_shells.print_id = print.id().id;
-    //m_shells.visible = true;
+    m_shells.previewing = true;
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": shell loaded, id change to %1%") % m_shells.print_id;
 }
 
 void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const
@@ -3070,7 +3089,9 @@ void GCodeViewer::render_toolpaths()
 
 void GCodeViewer::render_shells()
 {
-    if (!m_shells.visible || m_shells.volumes.empty())
+    //BBS: add shell previewing logic
+    if ((!m_shells.previewing && !m_shells.visible) || m_shells.volumes.empty())
+        //if (!m_shells.visible || m_shells.volumes.empty())
         return;
 
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");

@@ -937,6 +937,7 @@ void Preview::load_print_as_fff(bool keep_z_range)
 
     //BBS: support preview gcode directly even if no slicing
     bool directly_preview = print->is_step_done(psGCodeExport) && !m_gcode_result->moves.empty();
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": directly_preview: %1%, gcode_result moves %2%") % directly_preview % m_gcode_result->moves.size();
     if (wxGetApp().is_editor() && !has_layers && !directly_preview) {
     //if (wxGetApp().is_editor() && !has_layers) {
         hide_layers_slider();
@@ -976,20 +977,25 @@ void Preview::load_print_as_fff(bool keep_z_range)
         m_canvas->set_selected_extruder(0);
         if (gcode_preview_data_valid) {
             // Load the real G-code preview.
+            //BBS: add more log
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": will load gcode_preview from result, moves count %1%") % m_gcode_result->moves.size();
             m_canvas->load_gcode_preview(*m_gcode_result, colors);
             m_left_sizer->Show(m_bottom_toolbar_panel);
             m_left_sizer->Layout();
+            //BBS: turn off shells for preview
+            m_canvas->set_shells_on_previewing(false);
             Refresh();
             zs = m_canvas->get_gcode_layers_zs();
             m_loaded = true;
         }
         else if (wxGetApp().is_editor()) {
             // Load the initial preview based on slices, not the final G-code.
-            m_canvas->load_preview(colors, color_print_values);
+            //BBS: only display shell before slicing result out
+            //m_canvas->load_preview(colors, color_print_values);
             m_left_sizer->Hide(m_bottom_toolbar_panel);
             m_left_sizer->Layout();
             Refresh();
-            zs = m_canvas->get_volumes_print_zs(true);
+            //zs = m_canvas->get_volumes_print_zs(true);
         }
 
         if (!zs.empty() && !m_keep_current_preview_type) {

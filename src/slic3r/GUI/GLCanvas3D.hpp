@@ -821,6 +821,7 @@ public:
     //BBS: always load shell at preview
     void load_shells(const Print& print);
     void reset_shells() { m_gcode_viewer.reset_shell(); }
+    void set_shells_on_previewing(bool is_preview) { m_gcode_viewer.set_shells_on_preview(is_preview); }
 
     void load_gcode_preview(const GCodeProcessorResult& gcode_result, const std::vector<std::string>& str_tool_colors);
     void refresh_gcode_preview_render_paths();

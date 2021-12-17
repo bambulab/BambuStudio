@@ -4191,17 +4191,33 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             //BBS: add partplate logic
             PartPlate * current_plate = this->partplate_list.get_curr_plate();
 
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": from set_current_panel, no_slice %1%, export_in_progress %2%, model_fits %3%, m_is_slicing %4%")%no_slice%export_in_progress%model_fits%m_is_slicing;
+
             if (!no_slice && !this->model.objects.empty() && !export_in_progress && model_fits && current_plate->has_printable_instances())
             {
                 //if already running in background, not relice here
-                if (!this->background_process.running())
+                //BBS: add more judge for slicing
+                if (!this->background_process.running() && !this->m_is_slicing)
                 {
                     this->m_slice_all = false;
                     this->q->reslice();
                 }
+                else {
+                    //reset current plate to the slicing plate
+                    int plate_index = this->background_process.get_current_plate()->get_index();
+                    this->partplate_list.select_plate(plate_index);
+                }
+                this->partplate_list.select_plate_view();
             }
             // keeps current gcode preview, if any
-            this->preview->reload_print(true);
+            if (this->m_slice_all) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": slicing all, just reload shells");
+                this->update_fff_scene_only_shells();
+            }
+            else {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": single slice, reload print");
+                this->preview->reload_print(true);
+            }
 
             preview->set_as_dirty();
         };
@@ -4680,22 +4696,23 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
 
     if (is_finished)
     {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":finished, reload print soon");
         this->statusbar()->reset_cancel_callback();
         this->statusbar()->stop_busy();
         m_is_slicing = false;
+        this->preview->reload_print(false);
     }
     else
     {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":slicing all, plate %1% finished, start next slice...")%m_cur_slice_plate;
         m_cur_slice_plate++;
 
         q->Freeze();
         q->select_plate(m_cur_slice_plate);
         partplate_list.select_plate_view();
         q->start_next_slice();
-        update_fff_scene_only_shells();
         //not the last plate
-        if (m_cur_slice_plate == (partplate_list.get_plate_count() - 1))
-            this->preview->reload_print(false);
+        update_fff_scene_only_shells();
         q->Thaw();
     }
 }
@@ -7412,19 +7429,6 @@ void Plater::reslice()
                 object->sla_points_status = sla::PointsStatus::Generating;
     }
 
-    //BBS: stop the slicing on previous plate and restart the slicing on current plate
-    if ((p->partplate_list.get_plate_count() > 1) && !p->background_process.can_switch_print())
-    {
-        //on slicing currently, need to judge whether it is the current plater or not
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": plate count %1%, current plate %2%, slicing plate %3%") % p->partplate_list.get_plate_count() % p->partplate_list.get_curr_plate_index() % p->background_process.get_current_plate()->get_index();
-        if (p->partplate_list.get_curr_plate_index() != p->background_process.get_current_plate()->get_index())
-        {
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": stop slicing for plate %1%") % p->background_process.get_current_plate()->get_index();
-            p->background_process.stop();
-            p->m_ignore_event = true;
-        }
-    }
-
     //FIXME Don't reslice if export of G-code or sending to OctoPrint is running.
     // bitmask of UpdateBackgroundProcessReturnState
     unsigned int state = this->p->update_background_process(true);
@@ -7444,6 +7448,8 @@ void Plater::reslice()
         // Post the "complete" callback message, so that it will slice the next plate soon
         wxQueueEvent(this, evt.Clone());
         p->m_is_slicing = true;
+        if (p->m_cur_slice_plate == 0)
+            reset_gcode_toolpaths();
         return;
     }
 
@@ -7472,14 +7478,17 @@ void Plater::reslice()
             p->show_action_buttons(false);
         }
 #endif
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": background process is running, m_is_slicing is true");
     }
     else if (!p->background_process.empty() && !p->background_process.idle()) {
         //p->show_action_buttons(true);
         p->ready_to_slice = true;
         p->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, true);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": background process changes to not_idle, set ready_to_slice back to true");
     }
     else {
         clean_gcode_toolpaths = false;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": background process in idle state, use previous result, no need to reset_gcode_toolpaths");
     }
 
     if (clean_gcode_toolpaths)
@@ -7505,6 +7514,7 @@ void Plater::start_next_slice()
     if (state & priv::UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE)
         this->p->view3D->reload_scene(false);
 
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": update_background_process returns %1%")%state;
     // Only restarts if the state is valid.
     bool result = this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
     if (!result)
@@ -7515,6 +7525,7 @@ void Plater::start_next_slice()
         // Post the "complete" callback message, so that it will slice the next plate soon
         wxQueueEvent(this, evt.Clone());
     }
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": restart_background_process returns %1%")%result;
 }
 
 
@@ -8268,30 +8279,51 @@ int Plater::select_plate(int plate_index, bool need_slice)
 
         if (result_valid)
         {
-            PrintBase* print;
-
-            part_plate->get_print(&print, NULL, NULL);
+            PrintBase* print = nullptr;
+            GCodeResult* gcode_result = nullptr;
+ 
+            part_plate->get_print(&print, &gcode_result, NULL);
             //apply the current plate's print
             Print::ApplyStatus invalidated = print->apply(this->model(), wxGetApp().preset_bundle->full_config());
 
-            if (invalidated & PrintBase::APPLY_STATUS_INVALIDATED)
+            if (is_preview_shown())
             {
-                part_plate->update_slice_result_valid_state(false);
-                p->show_sliced_info(false);
-                // BBS
-                //p->show_action_buttons(true);
-                p->ready_to_slice = true;
-                p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, true);
+                if (need_slice) { //from preview's thumbnail
+                    if ((invalidated & PrintBase::APPLY_STATUS_INVALIDATED) || (gcode_result->moves.empty())){
+                        //part_plate->update_slice_result_valid_state(false);
+                        p->m_slice_all = false;
+                        reslice();
+                    }
+                    else {
+                        //just refresh_print
+                        refresh_print();
+                    }
+                }
+                else {// from multiple slice's next
+                    //do nothing
+                }
             }
             else
             {
-                p->show_sliced_info(true);
-                // BBS
-                //p->show_action_buttons(false);
-                p->ready_to_slice = false;
-                p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false);
+                if (invalidated & PrintBase::APPLY_STATUS_INVALIDATED)
+                {
+                    part_plate->update_slice_result_valid_state(false);
+                    p->show_sliced_info(false);
+                    // BBS
+                    //p->show_action_buttons(true);
+                    p->ready_to_slice = true;
+                    p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, true);
+                }
+                else
+                {
+                    p->show_sliced_info(true);
+                    // BBS
+                    //p->show_action_buttons(false);
+                    p->ready_to_slice = false;
+                    p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false);
 
-                refresh_print();
+                    refresh_print();
+                }
             }
         }
         else
@@ -8556,6 +8588,8 @@ void Plater::enable_preview_moves_slider(bool enable)
 
 void Plater::reset_gcode_toolpaths()
 {
+    //BBS: add some logs
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": reset the gcode viewer's toolpaths");
     p->reset_gcode_toolpaths();
 }
 

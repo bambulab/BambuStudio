@@ -862,6 +862,9 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
             std::string("Failed to rename the output G-code file from ") + path_tmp + " to " + path + '\n' + "error code " + ret.message() + '\n' +
             "Is " + path_tmp + " locked?" + '\n');
     }
+    else {
+        BOOST_LOG_TRIVIAL(info) << boost::format("rename_file from %1% to %2% successfully")% path_tmp % path;
+    }
 
     BOOST_LOG_TRIVIAL(info) << "Exporting G-code finished" << log_memory_info();
     print->set_done(psGCodeExport);
