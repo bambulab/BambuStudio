@@ -1657,7 +1657,7 @@ struct Plater::priv
             m_pri{std::make_shared<NotificationProgressIndicator>(m->notification_manager.get())}
         {
             m_arrange_id = add_job(std::make_unique<ArrangeJob>(m_pri, m->q));
-            m_orient_id = add_job(std::make_unique<OrientJob>(m->statusbar(), m->q));
+            m_orient_id = add_job(std::make_unique<OrientJob>(m_pri, m->q));
             m_fill_bed_id = add_job(std::make_unique<FillBedJob>(m_pri, m->q));
             m_rotoptimize_id = add_job(std::make_unique<RotoptimizeJob>(m_pri, m->q));
             m_sla_import_id = add_job(std::make_unique<SLAImportJob>(m_pri, m->q));
