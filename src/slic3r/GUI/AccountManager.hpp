@@ -238,8 +238,6 @@ private:
     void _handle_error_code(int status, std::string error, std::string body);
 
     /* mqtt cloud client */
-    mqtt::string_ref mqtt_user = "bbl_mqtt";
-    mqtt::binary_ref mqtt_pwd = "emqx@204";
     mqtt::async_client* mqtt_cli;
     cloud_conn_callback* mqtt_cb;
     mqtt::connect_options mqtt_opt;

@@ -181,9 +181,6 @@ namespace Slic3r {
         default_project(new BBLProject())
     {
         default_profile = new BBLProfile(default_project);
-
-        mqtt_opt.set_user_name(mqtt_user);
-        mqtt_opt.set_password(mqtt_pwd);
         mqtt_opt.set_max_inflight(500);
         mqtt_opt.set_connect_timeout(10);
         mqtt_opt.set_automatic_reconnect(3, 10);
@@ -254,6 +251,10 @@ namespace Slic3r {
             boost::uuids::uuid uuid = boost::uuids::random_generator()();
             mqtt_uuid = to_string(uuid).substr(0, mqtt_uuid_bytes);
             std::string client_id = (boost::format("%1%:%2%") % m_curr_user->m_user_id % mqtt_uuid).str();
+
+            // update mqtt user_name and password
+            mqtt_opt.set_user_name(m_curr_user->m_user_id);
+            mqtt_opt.set_password(m_curr_user->get_token());
             mqtt_cli = new mqtt::async_client(MQTT_HOST, client_id);
             mqtt_cb = new cloud_conn_callback(*mqtt_cli, mqtt_opt, this);
             if (mqtt_cli) {
