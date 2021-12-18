@@ -2132,7 +2132,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->q->Bind(EVT_SLICING_UPDATE, &priv::on_slicing_update, this);
 
     view3D = new View3D(q, bed, &model, config, &background_process);
-    preview = new Preview(q, bed, &model, config, &background_process, &gcode_result, [this]() { schedule_background_process(); });
+    //BBS: use partplater's gcode
+    preview = new Preview(q, bed, &model, config, &background_process, partplate_list.get_current_slice_result(), [this]() { schedule_background_process(); });
 
 #ifdef __APPLE__
     // set default view_toolbar icons size equal to GLGizmosManager::Default_Icons_Size
@@ -2519,6 +2520,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     {
                         partplate_list.load_from_3mf_structure(plate_data);
                         partplate_list.update_slice_context_to_current_plate(background_process);
+                        this->preview->update_gcode_result(partplate_list.get_current_slice_result());
                         release_PlateData_list(plate_data);
                     }
 
@@ -2628,6 +2630,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 {
                     partplate_list.load_from_3mf_structure(plate_data);
                     partplate_list.update_slice_context_to_current_plate(background_process);
+                    this->preview->update_gcode_result(partplate_list.get_current_slice_result());
                     release_PlateData_list(plate_data);
                 }
             }
@@ -3311,6 +3314,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     {
         //BBS: update the current print to the current plate
         this->partplate_list.update_slice_context_to_current_plate(background_process);
+        this->preview->update_gcode_result(partplate_list.get_current_slice_result());
     }
     Print::ApplyStatus invalidated = background_process.apply(q->model(), wxGetApp().preset_bundle->full_config());
 
@@ -3799,6 +3803,7 @@ void Plater::priv::reload_from_disk()
             {
                 partplate_list.load_from_3mf_structure(plate_data);
                 partplate_list.update_slice_context_to_current_plate(background_process);
+                this->preview->update_gcode_result(partplate_list.get_current_slice_result());
                 release_PlateData_list(plate_data);
             }
         }
@@ -4345,6 +4350,7 @@ void Plater::priv::on_action_del_plate(SimpleEvent&)
 
         //BBS: update the current print to the current plate
         this->partplate_list.update_slice_context_to_current_plate(this->background_process);
+        this->preview->update_gcode_result(partplate_list.get_current_slice_result());
 
         //need to call update
         update();

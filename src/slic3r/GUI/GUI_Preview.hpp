@@ -135,7 +135,7 @@ public:
     virtual ~Preview();
 
     //BBS: update gcode_result
-    void update_gcode_result(GCodeProcessor::Result* gcode_result);
+    void update_gcode_result(GCodeProcessorResult* gcode_result);
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }
     GLCanvas3D* get_canvas3d() { return m_canvas; }

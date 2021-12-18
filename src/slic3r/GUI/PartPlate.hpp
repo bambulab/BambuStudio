@@ -40,7 +40,7 @@ struct Camera;
 
 static const constexpr double LOGICAL_PART_PLATE_GAP = 1. / 5.;
 
-using GCodeResult = GCodeProcessor::Result;
+using GCodeResult = GCodeProcessorResult;
 
 class PartPlate : public ObjectBase
 {
@@ -60,7 +60,7 @@ class PartPlate : public ObjectBase
     bool m_slice_result_valid;
 
     Print *m_print; //Print reference, not own it, no need to serialize
-    GCodeProcessor::Result *m_gcode_result;
+    GCodeProcessorResult *m_gcode_result;
     int m_print_index;
 
     std::string m_thumbnail_path; //use a temp path to store the thumbnail
@@ -206,7 +206,7 @@ public:
     //return the fff print object
     Print* fff_print() { return m_print; }
     //return the slice result
-    GCodeProcessor::Result* get_slice_result() { return m_gcode_result; }
+    GCodeProcessorResult* get_slice_result() { return m_gcode_result; }
     //load gcode from file
     int load_gcode_from_file(const std::string& filename);
 
@@ -366,7 +366,7 @@ public:
     //return the current fff print object
     Print& get_current_fff_print() const;
     //return the slice result
-    GCodeProcessor::Result* get_current_slice_result() const;
+    GCodeProcessorResult* get_current_slice_result() const;
     //will create a plate and load gcode, return the plate index
     int create_plate_from_gcode_file(const std::string& filename);
 

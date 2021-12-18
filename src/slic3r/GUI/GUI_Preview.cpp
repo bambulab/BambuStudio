@@ -186,6 +186,13 @@ Preview::Preview(
         load_print();
 }
 
+void Preview::update_gcode_result(GCodeProcessorResult* gcode_result)
+{
+    m_gcode_result = gcode_result;
+
+    return;
+}
+
 bool Preview::init(wxWindow* parent, Bed3D& bed, Model* model)
 {
     if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 /* disable wxTAB_TRAVERSAL */))
