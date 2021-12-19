@@ -14,9 +14,11 @@ arrangement::ArrangePolygons get_arrange_polys(const Model &model, ModelInstance
     ArrangePolygons input;
     input.reserve(count);
     instances.clear(); instances.reserve(count);
+    ArrangePolygon ap;
     for (ModelObject *mo : model.objects)
         for (ModelInstance *minst : mo->instances) {
-            input.emplace_back(minst->get_arrange_polygon());
+            minst->get_arrange_polygon(&ap);
+            input.emplace_back(ap);
             instances.emplace_back(minst);
         }
     
@@ -43,7 +45,8 @@ Slic3r::arrangement::ArrangePolygon get_arrange_poly(const Model &model)
     Points &apts = ap.poly.contour.points;
     for (const ModelObject *mo : model.objects)
         for (const ModelInstance *minst : mo->instances) {
-            ArrangePolygon obj_ap = minst->get_arrange_polygon();
+            ArrangePolygon obj_ap;
+            minst->get_arrange_polygon(&obj_ap);
             ap.poly.contour.rotate(obj_ap.rotation);
             ap.poly.contour.translate(obj_ap.translation.x(), obj_ap.translation.y());
             const Points &pts = obj_ap.poly.contour.points;

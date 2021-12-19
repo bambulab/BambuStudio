@@ -77,6 +77,7 @@ void ArrangeJob::clear_input()
     m_selected.reserve(count + 1 /* for optional wti */);
     m_unselected.reserve(count + 1 /* for optional wti */);
     m_unprintable.reserve(cunprint /* for optional wti */);
+    current_plate_index = 0;
 }
 
 void ArrangeJob::prepare_all() {
@@ -110,6 +111,9 @@ void ArrangeJob::prepare_all() {
             bool locked = plate_list.preprocess_arrange_polygon(oidx, inst_idx, ap, true);
             if (!locked)
             {
+                ap.itemid = cont.size();
+                ap.height = mo->bounding_box().size().z();
+                ap.name = mo->name;
                 cont.emplace_back(ap);
             }
             else
@@ -174,6 +178,9 @@ void ArrangeJob::prepare_selected() {
                         m_unselected) :
                     m_unprintable;
 
+                ap.itemid = cont.size();
+                ap.height = mo->bounding_box().size().z();
+                ap.name = mo->name;
                 cont.emplace_back(std::move(ap));
             }
             else
@@ -221,6 +228,7 @@ void ArrangeJob::prepare_partplate() {
 
     PartPlateList& plate_list = m_plater->get_partplate_list();
     PartPlate* plate = plate_list.get_curr_plate();
+    current_plate_index = plate_list.get_curr_plate_index();
     assert(plate != nullptr);
 
     if (plate->empty())
@@ -255,9 +263,11 @@ void ArrangeJob::prepare_partplate() {
                 ap.first_print_temp = config.opt_int("first_layer_temperature", ap.extrude_id - 1);
 
             ArrangePolygons& cont = mo->instances[inst_idx]->printable ?
-                (in_plate ? m_selected :
-                    m_unselected) :
+                (in_plate ? m_selected : m_unselected) :
                 m_unprintable;
+            ap.itemid = cont.size();
+            ap.height = mo->bounding_box().size().z();
+            ap.name = mo->name;
             bool locked = plate_list.preprocess_arrange_polygon_other_locked(ap, in_plate);
             if (!locked)
             {
@@ -295,7 +305,7 @@ void ArrangeJob::prepare()
         wxGetKeyState(WXK_SHIFT) ? prepare_selected() : prepare_all();
     }
     else if (state == Job::JobPrepareState::PREPARE_STATE_MENU) {
-        only_on_partplate = true;
+        only_on_partplate = true;   // only arrange items on current plate
         prepare_partplate();
     }
 }
@@ -315,24 +325,88 @@ void ArrangeJob::on_exception(const std::exception_ptr &eptr)
 
 void ArrangeJob::process()
 {
-    static const auto arrangestr = _(L("Arranging"));
+    static const auto arrangestr = _(L("Arranging "));
+    const GLCanvas3D::ArrangeSettings &settings =
+        static_cast<const GLCanvas3D*>(m_plater->canvas3D())->get_arrange_settings();
 
-    arrangement::ArrangeParams params = get_arrange_params(m_plater);
+    params.allow_rotations  = settings.enable_rotation;
+    params.min_obj_distance = scaled(settings.distance);
+    //BBS: add specific params
+    params.is_seq_print  = settings.is_seq_print;
+    params.bed_shrink_x  = settings.bed_shrink_x;
+    params.bed_shrink_y  = settings.bed_shrink_y;
 
-    auto count = unsigned(m_selected.size() + m_unprintable.size());
     Points bedpts = get_bed_shape(*m_plater->config());
+
+    // shrink bed
+    // TODO: shrink on y is not working yet!
+    params.bed_shrink_y = 0;
+    bedpts[0] += Point(scaled(params.bed_shrink_x), scaled(params.bed_shrink_y));
+    bedpts[1] += Point(-scaled(params.bed_shrink_x), scaled(params.bed_shrink_y));
+    bedpts[2] += Point(-scaled(params.bed_shrink_x), -scaled(params.bed_shrink_y));
+    bedpts[3] += Point(scaled(params.bed_shrink_x), -scaled(params.bed_shrink_y));
+
+    BOOST_LOG_TRIVIAL(debug) << "bed_shrink_x,y=" << params.bed_shrink_x << ", " << params.bed_shrink_y << "; bedpts:";
+    for (auto p : bedpts) BOOST_LOG_TRIVIAL(debug) << unscaled(p);
     
     params.stopcondition = [this]() { return was_canceled(); };
     
-    params.progressind = [this, count](unsigned st) {
+    auto count = unsigned(m_selected.size() + m_unprintable.size());
+    params.progressind = [this, count](unsigned st, std::string str="") {
         st += m_unprintable.size();
-        if (st > 0) update_status(int(count - st), arrangestr);
+        if (st > 0) update_status(int(count - st), arrangestr+str);
     };
 
-    arrangement::arrange(m_selected, m_unselected, bedpts, params);
+    // divide selected items into groups
+    if (params.is_seq_print)
+    {
+        m_selected_groups.clear();
+        for (auto& item : m_selected)
+        {
+            if (m_selected_groups.find(item.extrude_id) == m_selected_groups.end())
+                m_selected_groups[item.extrude_id] = ArrangePolygons();
+            m_selected_groups[item.extrude_id].push_back(item);
+        }
 
-    params.progressind = [this, count](unsigned st) {
-        if (st > 0) update_status(int(count - st), arrangestr);
+        int beds = -1;
+        for (auto it=m_selected_groups.begin();it!=m_selected_groups.end();it++)
+        {
+            arrangement::arrange(it->second, {}, bedpts, params);
+
+            beds++;  // new group will start from next plate
+            for (auto& ap : it->second) {
+                ap.bed_idx += beds;
+                ap.bed_idx = std::max(ap.bed_idx, current_plate_index);
+                for (auto& item : m_selected) {
+                    if (item.itemid == ap.itemid) {
+                        item = ap;
+                        item.apply();
+                        break;
+                    }
+                }
+            }
+            for (auto& ap : it->second)
+                beds = std::max(std::max(beds, ap.bed_idx), it->first - 1);
+
+        }
+
+        // merge plates with small coverage
+        //PartPlateList& plate_list = m_plater->get_partplate_list();
+        //plate_list.clear();
+        //for (int i = 0; i < beds; i++) plate_list.create_plate();
+        //plate_list.reload_all_objects();
+        //for (int i = 0; i < beds; i++) {
+        //}
+    }
+    else {
+        // force all heights be the same, so items are sorted by area
+        for (auto& ap : m_selected) ap.height = 1;
+        for (auto& ap : m_unselected) ap.height = 1;
+        arrangement::arrange(m_selected, m_unselected, bedpts, params);
+    }
+
+    params.progressind = [this, count](unsigned st, std::string str="") {
+        if (st > 0) update_status(int(count - st), arrangestr+str);
     };
 
     arrangement::arrange(m_unprintable, {}, bedpts, params);

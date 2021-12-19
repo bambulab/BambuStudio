@@ -84,11 +84,18 @@ const double BIG_ITEM_TRESHOLD = 0.02;
 template<class PConf>
 void fill_config(PConf& pcfg, const ArrangeParams &params) {
 
-    // Align the arranged pile into the center of the bin
-    pcfg.alignment = PConf::Alignment::CENTER;
-
-    // Start placing the items from the center of the print bed
-    pcfg.starting_point = PConf::Alignment::CENTER;
+    if (params.is_seq_print) {
+        // Align the arranged pile into the center of the bin
+        pcfg.alignment = PConf::Alignment::BOTTOM_LEFT;
+        // Start placing the items from the center of the print bed
+        pcfg.starting_point = PConf::Alignment::BOTTOM_LEFT;
+    }
+    else {
+        // Align the arranged pile into the center of the bin
+        pcfg.alignment = PConf::Alignment::CENTER;
+        // Start placing the items from the center of the print bed
+        pcfg.starting_point = PConf::Alignment::CENTER;
+    }
 
     // TODO cannot use rotations until multiple objects of same geometry can
     // handle different rotations.
@@ -154,6 +161,7 @@ protected:
     ItemGroup m_remaining;      // Remaining items
     ItemGroup m_items;          // allready packed items
     size_t    m_item_count = 0; // Number of all items to be packed
+    ArrangeParams params;
     
     template<class T> ArithmeticOnly<T, double> norm(T val)
     {
@@ -166,7 +174,7 @@ protected:
     // as it possibly can be but at the same time, it has to provide
     // reasonable results.
     std::tuple<double /*score*/, Box /*farthest point from bin center*/>
-    objfunc(const Item &item, const Point &bincenter)
+    objfunc(const Item &item, const clppr::IntPoint &origin_pack)
     {
         const double bin_area = m_bin_area;
         const SpatIndex& spatindex = m_rtree;
@@ -182,6 +190,12 @@ protected:
         
         // Calculate the full bounding box of the pile with the candidate item
         auto fullbb = sl::boundingBox(m_pilebb, ibb);
+
+        int max_height = 0;  // max height of existing items
+        for (int i = 0; i < m_items.size();i++) {
+            Item& p = m_items[i];
+            max_height = max_height > p.height ? max_height : p.height;
+        }
         
         // The bounding box of the big items (they will accumulate in the center
         // of the pile
@@ -237,8 +251,12 @@ protected:
 
             // The smalles distance from the arranged pile center:
             double dist = norm(*(std::min_element(dists.begin(), dists.end())));
-            double bindist = norm(pl::distance(ibb.center(), bincenter));
+            double bindist = norm(pl::distance(ibb.center(), origin_pack));
+            if (m_pconf.alignment == PConfig::Alignment::BOTTOM_LEFT)
+                bindist = std::abs(ibb.minCorner().Y - origin_pack.Y) + 0.1 * std::abs(ibb.minCorner().X - origin_pack.X);
+
             dist = 0.8 * dist + 0.2 * bindist;
+
 
             // Prepare a variable for the alignment score.
             // This will indicate: how well is the candidate item
@@ -296,9 +314,14 @@ protected:
             // No need to play around with the anchor points, the center will be
             // just fine for small items
             score = norm(pl::distance(ibb.center(), bigbb.center()));
+            if (m_pconf.alignment == PConfig::Alignment::BOTTOM_LEFT)
+                score += std::abs(ibb.minCorner().Y - origin_pack.Y) + 0.1 * std::abs(ibb.minCorner().X - origin_pack.X);
             break;
         }            
         }
+
+        if(!spatindex.empty())
+            score += 10 * (max_height > item.height) * (ibb.minCorner().Y < m_pilebb.maxCorner().Y);  // current item can't be shorter than existing items below
         
         return std::make_tuple(score, fullbb);
     }
@@ -308,7 +331,7 @@ protected:
 public:
     AutoArranger(const TBin &                  bin,
                  const ArrangeParams           &params,
-                 std::function<void(unsigned)> progressind,
+                 std::function<void(unsigned,std::string)> progressind,
                  std::function<bool(void)>     stopcond)
         : m_pck(bin, params.min_obj_distance)
         , m_bin(bin)
@@ -316,6 +339,7 @@ public:
         , m_norm(std::sqrt(m_bin_area))
     {
         fill_config(m_pconf, params);
+        this->params = params;
 
         // Set up a callback that is called just before arranging starts
         // This functionality is provided by the Nester class (m_pack).
@@ -361,22 +385,20 @@ public:
         auto on_packed = params.on_packed;
         
         if (progressind || on_packed)
-            m_pck.progressIndicator([this, progressind, on_packed](unsigned rem) {
-
-            if (progressind)
-                progressind(rem);
-
-            if (on_packed) {
-                int last_bed = m_pck.lastPackedBinId();
-                if (last_bed >= 0) {
-                    Item &last_packed = m_pck.lastResult()[last_bed].back();
-                    ArrangePolygon ap;
-                    ap.bed_idx = last_packed.binId();
-                    ap.priority = last_packed.priority();
-                    on_packed(ap);
-                }
-            }
-        });
+            m_pck.progressIndicator(
+                [this, progressind, on_packed](unsigned rem) {
+                    int last_bed = m_pck.lastPackedBinId();
+                    if (last_bed >= 0) {
+                        Item& last_packed = m_pck.lastResult()[last_bed].back();
+                        ArrangePolygon ap;
+                        ap.bed_idx = last_packed.binId();
+                        ap.priority = last_packed.priority();
+                        if (progressind)
+                            progressind(rem, last_packed.name);
+                        if (on_packed)
+                            on_packed(ap);
+                    }
+                });
 
         if (stopcond) m_pck.stopCondition(stopcond);
 
@@ -405,10 +427,10 @@ public:
 
 template<> std::function<double(const Item&)> AutoArranger<Box>::get_objfn()
 {
-    auto bincenter = m_bin.center();
+    auto origin_pack = m_pconf.alignment == PConfig::Alignment::CENTER ? m_bin.center() : m_bin.minCorner();
 
-    return [this, bincenter](const Item &itm) {
-        auto result = objfunc(itm, bincenter);
+    return [this, origin_pack](const Item &itm) {
+        auto result = objfunc(itm, origin_pack);
         
         double score = std::get<0>(result);
         auto& fullbb = std::get<1>(result);
@@ -423,10 +445,11 @@ template<> std::function<double(const Item&)> AutoArranger<Box>::get_objfn()
 
 template<> std::function<double(const Item&)> AutoArranger<Circle>::get_objfn()
 {
-    auto bincenter = m_bin.center();
-    return [this, bincenter](const Item &item) {
+    auto bb = sl::boundingBox(m_bin);
+    auto origin_pack = m_pconf.alignment == PConfig::Alignment::CENTER ? bb.center() : bb.minCorner();
+    return [this, origin_pack](const Item &item) {
         
-        auto result = objfunc(item, bincenter);
+        auto result = objfunc(item, origin_pack);
         
         double score = std::get<0>(result);
         
@@ -452,9 +475,10 @@ template<> std::function<double(const Item&)> AutoArranger<Circle>::get_objfn()
 template<>
 std::function<double(const Item &)> AutoArranger<ExPolygon>::get_objfn()
 {
-    auto bincenter = sl::boundingBox(m_bin).center();
-    return [this, bincenter](const Item &item) {
-        return std::get<0>(objfunc(item, bincenter));
+    auto bb = sl::boundingBox(m_bin);
+    auto origin_pack = m_pconf.alignment == PConfig::Alignment::CENTER ? bb.center() : bb.minCorner();
+    return [this, origin_pack](const Item &item) {
+        return std::get<0>(objfunc(item, origin_pack));
     };
 }
 
@@ -484,7 +508,7 @@ void _arrange(
         std::vector<Item> &           excludes,
         const BinT &                  bin,
         const ArrangeParams           &params,
-        std::function<void(unsigned)> progressfn,
+        std::function<void(unsigned,std::string)> progressfn,
         std::function<bool()>         stopfn)
 {
     // Integer ceiling the min distance from the bed perimeters
@@ -492,7 +516,7 @@ void _arrange(
     md = md / 2;
     
     auto corrected_bin = bin;
-    sl::offset(corrected_bin, md);
+    //sl::offset(corrected_bin, md);
     ArrangeParams mod_params = params;
     mod_params.min_obj_distance = 0;
 
@@ -591,6 +615,10 @@ static void process_arrangeable(const ArrangePolygon &arrpoly,
     outp.back().translation({offs.x(), offs.y()});
     outp.back().binId(arrpoly.bed_idx);
     outp.back().priority(arrpoly.priority);
+    outp.back().itemId(arrpoly.itemid);
+    outp.back().extrude_id = arrpoly.extrude_id;
+    outp.back().height = arrpoly.height;
+    outp.back().name = arrpoly.name;
 }
 
 template<class Fn> auto call_with_bed(const Points &bed, Fn &&fn)
@@ -643,10 +671,7 @@ void arrange(ArrangePolygons &      arrangables,
     
     for (Item &itm : fixeditems) itm.inflate(scaled(-2. * EPSILON));
     
-    auto &cfn = params.stopcondition;
-    auto &pri = params.progressind;
-    
-    _arrange(items, fixeditems, to_nestbin(bed), params, pri, cfn);
+    _arrange(items, fixeditems, to_nestbin(bed), params, params.progressind, params.stopcondition);
     
     for(size_t i = 0; i < items.size(); ++i) {
         Point tr = items[i].translation();

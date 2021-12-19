@@ -118,9 +118,9 @@ void FillBedJob::process()
         return was_canceled() || do_stop;
     };
 
-    params.progressind = [this](unsigned st) {
+    params.progressind = [this](unsigned st,std::string str="") {
         if (st > 0)
-            update_status(int(m_status_range - st), _(L("Filling bed")));
+            update_status(int(m_status_range - st), _(L("Filling bed" + str)));
     };
 
     params.on_packed = [&do_stop] (const ArrangePolygon &ap) {

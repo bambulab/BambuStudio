@@ -65,7 +65,11 @@ public:
         
         auto sortfunc = [](Item& i1, Item& i2) {
             int p1 = i1.priority(), p2 = i2.priority();
-            return p1 == p2 ? i1.area() > i2.area() : p1 > p2;
+            if (i1.height == i2.height) {
+                return p1 == p2 ? i1.area() > i2.area() : p1 > p2;
+            }
+            else
+                return i1.height < i2.height;
         };
 
         std::sort(store_.begin(), store_.end(), sortfunc);

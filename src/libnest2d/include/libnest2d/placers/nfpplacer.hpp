@@ -633,6 +633,9 @@ private:
         double norm = norm_;
         auto pbb = sl::boundingBox(merged_pile_);
         auto binbb = sl::boundingBox(bin);
+        auto origin = binbb.center();
+        if(config_.alignment== Config::Alignment::BOTTOM_LEFT)
+            origin = binbb.minCorner();
 
         // This is the kernel part of the object function that is
         // customizable by the library client
@@ -655,14 +658,15 @@ private:
                     miss = miss > 0? miss : 0;
                     return std::pow(miss, 2);
                 };
-
-            _objfunc = [norm, binbb, pbb, ins_check](const Item& item)
+            auto alignment = config_.alignment;
+            _objfunc = [norm, origin, pbb, ins_check, alignment](const Item& item)
             {
                 auto ibb = item.boundingBox();
                 auto fullbb = sl::boundingBox(pbb, ibb);
 
-                double score = pl::distance(ibb.center(),
-                                            binbb.center());
+                double score = pl::distance(ibb.center(), origin);
+                if(alignment==Config::Alignment::BOTTOM_LEFT)
+                    score = std::abs(ibb.center().Y - origin.Y);
                 score /= norm;
 
                 score += ins_check(fullbb);

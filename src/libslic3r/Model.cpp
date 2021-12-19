@@ -4,7 +4,8 @@
 #include "Exception.hpp"
 #include "Model.hpp"
 #include "ModelArrange.hpp"
-#include "Geometry/ConvexHull.hpp"
+#include "Arrange.hpp"
+#include "Geometry.hpp"
 #include "MTUtils.hpp"
 #include "TriangleMeshSlicer.hpp"
 #include "TriangleSelector.hpp"
@@ -1996,7 +1997,7 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
     polygon->scale(get_scaling_factor(X), get_scaling_factor(Y)); // scale around polygon origin
 }
 
-arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
+void ModelInstance::get_arrange_polygon(void* ap) const
 {
 //    static const double SIMPLIFY_TOLERANCE_MM = 0.1;
     
@@ -2013,7 +2014,7 @@ arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
 //        if (!pp.empty()) p = pp.front();
 //    }
    
-    arrangement::ArrangePolygon ret;
+    arrangement::ArrangePolygon& ret = *(arrangement::ArrangePolygon*)ap;
     ret.poly.contour = std::move(p);
     ret.translation  = Vec2crd{scaled(get_offset(X)), scaled(get_offset(Y))};
     ret.rotation     = get_rotation(Z);
@@ -2031,13 +2032,13 @@ arrangement::ArrangePolygon ModelInstance::get_arrange_polygon() const
     if (!volume)
     {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid object, should not happen";
-        return ret;
+        return;
     }
     ret.extrude_id = volume->extruder_id();
     if (ret.extrude_id == 0) //the default extruder
         ret.extrude_id = 1;
 
-    return ret;
+    return;
 }
 
 indexed_triangle_set FacetsAnnotation::get_facets(const ModelVolume& mv, EnforcerBlockerType type) const

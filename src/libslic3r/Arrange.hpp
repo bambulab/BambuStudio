@@ -56,6 +56,10 @@ struct ArrangePolygon {
     int       print_temp{0};      ///print temperature for different material judge
     int       first_bed_temp{ 0 };      ///first layer bed temperature for different material judge
     int       first_print_temp{ 0 };      ///first layer print temperature for different material judge
+    int       itemid{ 0 };         // item id in the vector, used for accessing all possible params like extrude_id
+    int       is_applied{ 0 };     // transform has been applied
+    double    height{ 0 };         // item height 
+    std::string name;
     
     // If empty, any rotation is allowed (currently unsupported)
     // If only a zero is there, no rotation is allowed
@@ -65,7 +69,12 @@ struct ArrangePolygon {
     std::function<void(const ArrangePolygon&)> setter = nullptr;
     
     /// Helper function to call the setter with the arrange data arguments
-    void apply() const { if (setter) setter(*this); }
+    void apply() {
+        if (setter && !is_applied) { 
+            setter(*this);
+            is_applied = 1;
+        }
+    }
 
     /// Test if arrange() was called previously and gave a successful result.
     bool is_arranged() const { return bed_idx != UNARRANGED; }
@@ -104,7 +113,7 @@ struct ArrangeParams {
     
     /// Progress indicator callback called when an object gets packed. 
     /// The unsigned argument is the number of items remaining to pack.
-    std::function<void(unsigned)> progressind;
+    std::function<void(unsigned,std::string)> progressind;
 
     std::function<void(const ArrangePolygon &)> on_packed;
     

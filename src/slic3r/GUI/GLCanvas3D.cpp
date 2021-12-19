@@ -4214,7 +4214,7 @@ bool GLCanvas3D::_render_orient_menu(float pos_x)
 
     ImGui::SameLine();
 
-    if (imgui->button(_L("orient"))) {
+    if (imgui->button(_L("Orient"))) {
         wxGetApp().plater()->orient();
     }
 
@@ -4242,6 +4242,7 @@ bool GLCanvas3D::_render_arrange_menu(float pos_x)
     bool settings_changed = false;
     float dist_min = 0.f;
     std::string dist_key = "min_object_distance", rot_key = "enable_rotation";
+    std::string bed_shrink_x_key = "bed_shrink_x", bed_shrink_y_key = "bed_shrink_y";
     std::string postfix;
     //BBS:
     bool seq_print = false;
@@ -4264,6 +4265,8 @@ bool GLCanvas3D::_render_arrange_menu(float pos_x)
 
     dist_key += postfix;
     rot_key  += postfix;
+    bed_shrink_x_key += postfix;
+    bed_shrink_y_key += postfix;
 
     imgui->text(GUI::format_wxstr(_L("Press %1%left mouse button to enter the exact value"), shortkey_ctrl_prefix()));
 
@@ -4277,6 +4280,18 @@ bool GLCanvas3D::_render_arrange_menu(float pos_x)
     if (imgui->checkbox(_L("Enable rotations (slow)"), settings.enable_rotation)) {
         settings_out.enable_rotation = settings.enable_rotation;
         appcfg->set("arrange", rot_key.c_str(), settings_out.enable_rotation? "1" : "0");
+        settings_changed = true;
+    }
+
+    if (imgui->slider_float(_L("bed_shrink_x"), &settings.bed_shrink_x, 0, 100.0f, "%.0f")) {
+        settings_out.bed_shrink_x = settings.bed_shrink_x;
+        appcfg->set("arrange", bed_shrink_x_key.c_str(), std::to_string(settings_out.bed_shrink_x));
+        settings_changed = true;
+    }
+
+    if (imgui->slider_float(_L("bed_shrink_y"), &settings.bed_shrink_y, 0, 100.0f, "%.0f")) {
+        settings_out.bed_shrink_y = settings.bed_shrink_y;
+        appcfg->set("arrange", bed_shrink_y_key.c_str(), std::to_string(settings_out.bed_shrink_y));
         settings_changed = true;
     }
 

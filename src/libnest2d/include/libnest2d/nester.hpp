@@ -72,6 +72,10 @@ class _Item {
     bool fixed_{false};
 
 public:
+    int itemid_{ 0 };
+    int extrude_id{ 1 };
+    double height{ 0 };
+    std::string name;
 
     /// The type of the shape which was handed over as the template argument.
     using ShapeType = RawShape;
@@ -141,6 +145,8 @@ public:
     inline void priority(int p) { priority_ = p; }
     inline int priority() const noexcept { return priority_; }
 
+    inline void itemId(int idx) { itemid_ = idx; }
+    inline int itemId() const noexcept { return itemid_; }
     /**
      * @brief Convert the polygon to string representation. The format depends
      * on the implementation of the polygon.

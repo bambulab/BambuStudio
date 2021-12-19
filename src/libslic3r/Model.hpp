@@ -11,7 +11,6 @@
 #include "SLA/SupportPoint.hpp"
 #include "SLA/Hollowing.hpp"
 #include "TriangleMesh.hpp"
-#include "Arrange.hpp"
 #include "CustomGCode.hpp"
 #include "enum_bitmask.hpp"
 //BBS: add bbs 3mf
@@ -983,7 +982,8 @@ public:
     bool is_assemble_initialized() { return m_assemble_initialized; }
 
     // Getting the input polygon for arrange
-    arrangement::ArrangePolygon get_arrange_polygon() const;
+    // We use void* as input type to avoid including Arrange.hpp in Model.hpp.
+    void get_arrange_polygon(void* arrange_polygon) const;
     
     // Apply the arrange result on the ModelInstance
     void apply_arrange_result(const Vec2d& offs, double rotation)
