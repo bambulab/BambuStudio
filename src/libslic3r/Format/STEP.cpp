@@ -94,8 +94,8 @@ bool load_step(const char *path, Model *model)
     }
 
     ModelObject* new_object = model->add_object();
-    //BBS: todo use assemble name
-    new_object->name = "step_file";
+    const char *last_slash = strrchr(path, DIR_SEPARATOR);
+    new_object->name.assign((last_slash == nullptr) ? path : last_slash + 1);
     new_object->input_file = path;
 
     for (int i = 0; i < namedSolids.size(); i++) {
@@ -116,6 +116,7 @@ bool load_step(const char *path, Model *model)
         if (aNbTriangles == 0) {
             //BBS: No triangulation on the shape.
             model->delete_object(new_object);
+            shapeTool.reset(nullptr);
             application->Close(document);
             return false;
         }
@@ -172,6 +173,7 @@ bool load_step(const char *path, Model *model)
         if (triagle_mesh.facets_count() == 0) {
             // BBS: die "This step file couldn't be read because has invalid solid object.\n"
             model->delete_object(new_object);
+            shapeTool.reset(nullptr);
             application->Close(document);
             return false;
         }
@@ -182,6 +184,8 @@ bool load_step(const char *path, Model *model)
         new_volume->source.object_idx = (int)model->objects.size() - 1;
         new_volume->source.volume_idx = (int)new_object->volumes.size() - 1;
     }
+
+    shapeTool.reset(nullptr);
     application->Close(document);
 
     return true;
