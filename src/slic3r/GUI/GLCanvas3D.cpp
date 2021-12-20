@@ -6331,10 +6331,11 @@ void GLCanvas3D::_render_background() const
     glsafe(::glDisable(GL_DEPTH_TEST));
 
     ::glBegin(GL_QUADS);
+
     if (use_error_color)
-        ::glColor3fv(ERROR_BG_DARK_COLOR);
+        ::glColor3fv(ERROR_BG_LIGHT_COLOR);
     else
-        ::glColor3fv(DEFAULT_BG_DARK_COLOR);
+        ::glColor3fv(DEFAULT_BG_LIGHT_COLOR);
 
     ::glVertex2f(-1.0f, -1.0f);
     ::glVertex2f(1.0f, -1.0f);
