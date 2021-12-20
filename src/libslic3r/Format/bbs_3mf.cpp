@@ -4425,6 +4425,7 @@ private:
 
     ~_BBS_Backup_Manager() {
         push_task({Exit});
+        m_thread.join();
     }
 
     void push_task(Task const & t) {
