@@ -190,7 +190,7 @@ void Tab::create_preset_tab()
 
     // preset chooser
     m_presets_choice = new TabPresetComboBox(panel, m_type);
-    m_presets_choice->SetFont(Label::Body_10);
+    // m_presets_choice->SetFont(Label::Body_10); // BBS
     m_presets_choice->set_selection_changed_function([this](int selection) {
         if (!m_presets_choice->selection_is_changed_according_to_physical_printers())
         {

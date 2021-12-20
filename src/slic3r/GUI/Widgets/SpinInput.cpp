@@ -36,7 +36,7 @@ SpinInput::SpinInput(wxWindow *     parent,
     , border_color(std::make_pair(0xDBDBDB, (int) StateColor::Disabled),
                    std::make_pair(0x1F8EEA, (int) StateColor::Focused),
                    std::make_pair(0xDBDBDB, (int) StateColor::Normal))
-    , text_color(std::make_pair(0x6D6D6D, (int) StateColor::Disabled),
+    , text_color(std::make_pair(0xACACAC, (int) StateColor::Disabled),
                  std::make_pair(*wxBLACK, (int) StateColor::Normal))
     , background_color(std::make_pair(0xF0F0F0, (int) StateColor::Disabled),
                        std::make_pair(*wxWHITE, (int) StateColor::Normal))
@@ -51,8 +51,10 @@ SpinInput::SpinInput(wxWindow *     parent,
     text_ctrl = new wxTextCtrl(this, wxID_ANY, text, {20, 5}, wxDefaultSize,
                                style | wxBORDER_NONE | wxTE_PROCESS_ENTER);
     text_ctrl->SetFont(Label::Body_14);
-    text_ctrl->Bind(wxEVT_SET_FOCUS,
-                    [this](auto &e) { ProcessEventLocally(e); });
+    text_ctrl->Bind(wxEVT_SET_FOCUS, [this](auto &e) {
+        e.SetId(GetId());
+        ProcessEventLocally(e);
+    });
     text_ctrl->Bind(wxEVT_KILL_FOCUS, &SpinInput::onTextLostFocus, this);
     text_ctrl->Bind(wxEVT_TEXT_ENTER, &SpinInput::onTextEnter, this);
     button_inc = createButton(true);
@@ -145,8 +147,7 @@ void SpinInput::paintEvent(wxPaintEvent& evt)
 {
     // depending on your system you may need to look at double-buffered dcs
     wxPaintDC dc(this);
-    wxGCDC dc2(dc);
-    render(dc2);
+    render(dc);
 }
 
 /*
@@ -270,9 +271,11 @@ void SpinInput::onTimer(wxTimerEvent &evnet) {
 
 void SpinInput::onTextLostFocus(wxEvent &event)
 {
-    ProcessEventLocally(event);
     wxCommandEvent e;
     onTextEnter(e);
+    // pass to outer
+    event.SetId(GetId());
+    ProcessEventLocally(event);
 }
 
 void SpinInput::onTextEnter(wxCommandEvent &event)
@@ -283,6 +286,8 @@ void SpinInput::onTextEnter(wxCommandEvent &event)
         SetValue(value);
         sendSpinEvent();
     }
+    event.SetId(GetId());
+    ProcessEventLocally(event);
 }
 
 void SpinInput::mouseWheelMoved(wxMouseEvent &event)

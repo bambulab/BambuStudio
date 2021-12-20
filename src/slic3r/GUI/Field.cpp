@@ -25,6 +25,7 @@
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/TextInput.hpp"
 #include "Widgets/SpinInput.hpp"
+#include "Widgets/ComboBox.hpp"
 
 #ifdef __WXOSX__
 #define wxOSX true
@@ -885,6 +886,7 @@ void SpinCtrl::BUILD() {
         else {
             tmp_value = std::min(std::max((int)value, m_opt.min), m_opt.max);
 #ifdef __WXOSX__
+#ifdef UNDEFINED__WXOSX__ // BBS
             // Forcibly set the input value for SpinControl, since the value
             // inserted from the keyboard or clipboard is not updated under OSX
             SpinInput* spin = static_cast<SpinInput*>(window);
@@ -892,6 +894,7 @@ void SpinCtrl::BUILD() {
             // But in SetValue() is executed m_text_ctrl->SelectAll(), so
             // discard this selection and set insertion point to the end of string
             // temp->GetText()->SetInsertionPointEnd();
+#endif
 #else
             // update value for the control only if it was changed in respect to the Min/max values
             if (tmp_value != (int)value) {
@@ -945,14 +948,9 @@ void SpinCtrl::msw_rescale()
 }
 
 #ifdef __WXOSX__
-static_assert(wxMAJOR_VERSION >= 3, "Use of wxBitmapComboBox on Settings Tabs requires wxWidgets 3.0 and newer");
-using choice_ctrl = wxBitmapComboBox;
+using choice_ctrl = ::ComboBox; // BBS
 #else
-#ifdef _WIN32
-using choice_ctrl = BitmapComboBox;
-#else
-using choice_ctrl = wxComboBox;
-#endif
+using choice_ctrl = ::ComboBox; // BBS
 #endif // __WXOSX__
 
 void Choice::BUILD() {
@@ -966,7 +964,7 @@ void Choice::BUILD() {
         temp = new choice_ctrl(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr, wxTE_PROCESS_ENTER);
     }
     else {
-#ifdef __WXOSX__
+#ifdef UNDEIFNED__WXOSX__ // __WXOSX__ // BBS
         /* wxBitmapComboBox with wxCB_READONLY style return NULL for GetTextCtrl(),
          * so ToolTip doesn't shown.
          * Next workaround helps to solve this problem
@@ -985,7 +983,7 @@ void Choice::BUILD() {
         temp->SetSize(best_sz);
 #endif //__WXGTK3__
 
-	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+	//temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
     if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
 	// recast as a wxWindow to fit the calling convention
@@ -1309,7 +1307,7 @@ void Choice::msw_rescale()
     Field::msw_rescale();
 
     choice_ctrl* field = dynamic_cast<choice_ctrl*>(window);
-#ifdef __WXOSX__
+#ifdef UNDEFINED__WXOSX__ // BBS
     const wxString selection = field->GetValue();// field->GetString(index);
 
 	/* To correct scaling (set new controll size) of a wxBitmapCombobox

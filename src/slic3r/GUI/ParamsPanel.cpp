@@ -128,7 +128,7 @@ void ParamsPanel::create_layout()
 
     m_left_sizer = new wxBoxSizer( wxVERTICAL );
     // BBS: new layout
-    m_left_sizer->SetMinSize( wxSize( 300, -1 ) );
+    m_left_sizer->SetMinSize( wxSize( 30 * em_unit(this), -1 ) );
 
     m_mode_sizer = new wxBoxSizer( wxHORIZONTAL );
     m_mode_sizer->AddSpacer(22);
@@ -318,6 +318,7 @@ void ParamsPanel::update_mode()
 
 void ParamsPanel::msw_rescale()
 {
+    m_left_sizer->SetMinSize(wxSize(30 * em_unit(this), -1));
     m_mode_sizer->SetMinSize(-1, 3 * em_unit(this));
     ((Button*)m_export_to_file)->Rescale();
     ((Button*)m_import_from_file)->Rescale();

@@ -8,6 +8,7 @@
 #include "libslic3r/Preset.hpp"
 #include "wxExtensions.hpp"
 #include "BitmapComboBox.hpp"
+#include "Widgets/ComboBox.hpp"
 #include "GUI_Utils.hpp"
 
 class wxString;
@@ -29,7 +30,7 @@ class BitmapCache;
 // ---------------------------------
 
 // BitmapComboBox used to presets list on Sidebar and Tabs
-class PresetComboBox : public BitmapComboBox
+class PresetComboBox : public ::ComboBox // BBS
 {
     bool m_show_all { false };
 public:

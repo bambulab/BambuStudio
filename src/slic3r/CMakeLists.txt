@@ -6,10 +6,14 @@ include(PrecompiledHeader)
 set(SLIC3R_GUI_SOURCES
     pchheader.cpp
     pchheader.hpp
-    GUI/Widgets/CheckBox.cpp
-    GUI/Widgets/CheckBox.hpp
     GUI/Widgets/Button.cpp
     GUI/Widgets/Button.hpp
+    GUI/Widgets/CheckBox.cpp
+    GUI/Widgets/CheckBox.hpp
+    GUI/Widgets/ComboBox.cpp
+    GUI/Widgets/ComboBox.hpp
+    GUI/Widgets/DropDown.cpp
+    GUI/Widgets/DropDown.hpp
     GUI/Widgets/Label.cpp
     GUI/Widgets/Label.hpp
     GUI/Widgets/SwitchButton.cpp

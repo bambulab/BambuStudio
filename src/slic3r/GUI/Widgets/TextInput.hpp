@@ -22,7 +22,18 @@ class TextInput : public wxWindow
     static const int TextInputHeight = 50;
 
 public:
+    TextInput();
+
     TextInput(wxWindow *     parent,
+              wxString       text,
+              wxString       label = "",
+              wxString       icon  = "",
+              const wxPoint &pos   = wxDefaultPosition,
+              const wxSize & size  = wxDefaultSize,
+              long           style = 0);
+
+public:
+    void Create(wxWindow *     parent,
               wxString       text,
               wxString       label = "",
               wxString       icon  = "",
@@ -42,7 +53,12 @@ public:
 
     virtual bool Enable(bool enable = true);
 
-    wxTextCtrl * GetTextCtrl() { return text_ctrl; }
+    wxTextCtrl *GetTextCtrl() { return text_ctrl; }
+
+    wxTextCtrl const *GetTextCtrl() const { return text_ctrl; }
+
+protected:
+    virtual void OnEdit() {}
 
 private:
     void paintEvent(wxPaintEvent& evt);

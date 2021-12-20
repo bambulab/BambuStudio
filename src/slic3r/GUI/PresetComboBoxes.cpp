@@ -71,7 +71,7 @@ namespace GUI {
  **/
 
 PresetComboBox::PresetComboBox(wxWindow* parent, Preset::Type preset_type, const wxSize& size, PresetBundle* preset_bundle/* = nullptr*/) :
-    BitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, size, 0, nullptr, wxCB_READONLY),
+    ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, size, 0, nullptr, wxCB_READONLY),
     m_type(preset_type),
     m_last_selected(wxNOT_FOUND),
     m_em_unit(em_unit(this)),
@@ -421,6 +421,11 @@ wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, bool wide_icons, con
                                     bool is_compatible/* = true*/, bool is_system/* = false*/, bool is_single_bar/* = false*/,
                                     const std::string& filament_rgb/* = ""*/, const std::string& extruder_rgb/* = ""*/, const std::string& material_rgb/* = ""*/)
 {
+    // BBS: no icon
+#if 1
+    static wxBitmap bmp;
+    return &bmp;
+#else
     // If the filament preset is not compatible and there is a "red flag" icon loaded, show it left
     // to the filament color image.
     if (wide_icons)
@@ -476,11 +481,17 @@ wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, bool wide_icons, con
     }
 
     return bmp;
+#endif
 }
 
 wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, const std::string& main_icon_name, const std::string& next_icon_name,
                                     bool is_enabled/* = true*/, bool is_compatible/* = true*/, bool is_system/* = false*/)
 {
+    // BBS: no icon
+#if 1
+    static wxBitmap bmp;
+    return &bmp;
+#else
     bitmap_key += !is_enabled ? "_disabled" : "";
     bitmap_key += is_compatible ? ",cmpt" : ",ncmpt";
     bitmap_key += is_system ? ",syst" : ",nsyst";
@@ -500,6 +511,7 @@ wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, const std::string& m
     }
 
     return bmp;
+#endif
 }
 
 bool PresetComboBox::is_selected_physical_printer()
