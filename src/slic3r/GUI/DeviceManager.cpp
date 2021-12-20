@@ -5,6 +5,7 @@
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/Sftp.hpp"
 
+#include "nlohmann/json.hpp"
 #include <thread>
 #include <mutex>
 #include <codecvt>
@@ -14,6 +15,7 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
+using namespace nlohmann;
 
 namespace Slic3r {
 
@@ -272,6 +274,36 @@ int MachineObject::command_set_nozzle(int temp)
 {
     std::string gcode_str = (boost::format("M104 S%1%\n") % temp).str();
     return this->publish_gcode(gcode_str);
+}
+
+int MachineObject::command_set_chamber_light(LIGHT_EFFECT effect, int on_time, int off_time, int loops, int interval)
+{
+    json j;
+    j["system"]["command"] = "ledctrl";
+    j["system"]["led_node"] = "chamber_light";
+    j["system"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["system"]["led_mode"] = light_effect_str(effect);
+    j["system"]["led_on_time"] = on_time;
+    j["system"]["led_off_time"] = off_time;
+    j["system"]["loop_times"] = loops;
+    j["system"]["interval_time"] = interval;
+
+    return this->publish_json(j.dump());
+}
+
+int MachineObject::command_set_work_light(LIGHT_EFFECT effect, int on_time, int off_time, int loops, int interval)
+{
+    json j;
+    j["system"]["command"] = "ledctrl";
+    j["system"]["led_node"] = "work_light";
+    j["system"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["system"]["led_mode"] = light_effect_str(effect);
+    j["system"]["led_on_time"] = on_time;
+    j["system"]["led_off_time"] = off_time;
+    j["system"]["loop_times"] = loops;
+    j["system"]["interval_time"] = interval;
+
+    return this->publish_json(j.dump());
 }
 
 int MachineObject::command_axis_control(std::string axis, double unit, double value, int speed)
@@ -819,6 +851,27 @@ int MachineObject::parse_json(std::string topic, std::string payload)
             }
 
             BOOST_LOG_TRIVIAL(trace) << "parse_json, bind topic=" << topic << ", payload = " << payload;
+        }
+        else if (root.get_child_optional("system") != boost::none) {
+            pt::ptree system = root.get_child("system");
+            try {
+                if (system.get_child_optional("lights") != boost::none) {
+                    pt::ptree light_list = system.get_child("lights");
+                    for (auto light_node = light_list.begin(); light_node != light_list.end(); ++light_node) {
+                        boost::optional<std::string> led_node = light_node->second.get_optional<std::string>("node");
+                        boost::optional<std::string> led_mode = light_node->second.get_optional<std::string>("mode");
+                        if (led_node.has_value() && led_mode.has_value()) {
+                            if (led_node.value().compare("chamber_light") == 0)
+                                chamber_light = light_effect_parse(led_mode.value());
+                            else if (led_node.value().compare("work_light") == 0)
+                                work_light = light_effect_parse(led_mode.value());
+                        }
+                    }
+                }
+            }
+            catch (...) {
+                ;
+            }
         }
     }
     catch (...) {

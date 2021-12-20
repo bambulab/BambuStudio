@@ -26,6 +26,7 @@
 #include <wx/textctrl.h>
 #include <wx/panel.h>
 #include <wx/statbox.h>
+#include <wx/radiobox.h>
 #include <wx/scrolwin.h>
 #include <wx/checkbox.h>
 #include <wx/dataview.h>
@@ -136,6 +137,8 @@ namespace Slic3r
 				wxButton* btn_auto_leveling;
 				wxButton* btn_xyz_abs_mode;
 				wxButton* btn_return_home;
+				wxRadioBox* m_radioBox_chamber_light;
+				wxRadioBox* m_radioBox_work_light;
 				wxPanel* m_panel__control;
 				wxButton* btn_set_x_pos_0_1;
 				wxButton* btn_set_x_pos_1_0;
@@ -219,7 +222,7 @@ namespace Slic3r
 				wxStaticText* m_staticText_log;
 				wxTextCtrl* txt_string_info;
 
-				std::shared_ptr<BBLStatusBar> m_status_bar;
+				 std::shared_ptr<BBLStatusBar> m_status_bar;
 
 			public:
 

@@ -1049,6 +1049,34 @@ void DebugToolDialog::init()
             search_dialog->Show();
         });
 
+    m_radioBox_chamber_light->Bind(wxEVT_RADIOBOX, [this](wxCommandEvent& evt) {
+            MachineObject* obj = dev_manager_.get_default();
+            if (!obj) {
+                this->send_log_evt("Invalid Printer! Please Select a Printer!");
+                return;
+            }
+            if (evt.GetInt() == 0)
+                obj->command_set_chamber_light(MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_ON);
+            else if (evt.GetInt() == 1)
+                obj->command_set_chamber_light(MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_OFF);
+            else if (evt.GetInt() == 2)
+                obj->command_set_chamber_light(MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_FLASHING);
+        });
+
+    m_radioBox_work_light->Bind(wxEVT_RADIOBOX, [this](wxCommandEvent& evt) {
+            MachineObject* obj = dev_manager_.get_default();
+            if (!obj) {
+                this->send_log_evt("Invalid Printer! Please Select a Printer!");
+                return;
+            }
+            if (evt.GetInt() == 0)
+                obj->command_set_work_light(MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_ON);
+            else if (evt.GetInt() == 1)
+                obj->command_set_work_light(MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_OFF);
+            else if (evt.GetInt() == 2)
+                obj->command_set_work_light(MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_FLASHING);
+        });
+
 
     // Init custom_gcode
     pt::ptree custom_gocde_root;
@@ -1966,6 +1994,9 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
                 /* refresh after bind */
                 this->refresh_device_list();
             }
+        }
+        else if (root.get_child_optional("system") != boost::none) {
+            return;
         }
         this->log_info("json=" + json_str);
     }

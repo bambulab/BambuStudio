@@ -125,6 +125,13 @@ public:
         STATE_CONNECTED = 2,
     };
 
+    enum LIGHT_EFFECT {
+        LIGHT_EFFECT_ON,
+        LIGHT_EFFECT_OFF,
+        LIGHT_EFFECT_FLASHING,
+        LIGHT_EFFECT_UNKOWN,
+    };
+
     static inline int m_sequence_id = 20000;
 
     MachineObject(AccountManager& acc, std::string name, std::string id, std::string ip);
@@ -163,6 +170,10 @@ public:
 
     /* signals */
     std::string wifi_signal;
+
+    /* lights */
+    LIGHT_EFFECT chamber_light;
+    LIGHT_EFFECT work_light;
 
     /* upgrade */
     bool upgrade_force_upgrade;
@@ -213,6 +224,32 @@ public:
     int command_task_resume();
     int command_set_bed(int temp);
     int command_set_nozzle(int temp);
+    inline std::string light_effect_str(LIGHT_EFFECT effect) {
+        switch (effect)
+        {
+        case LIGHT_EFFECT::LIGHT_EFFECT_ON:
+            return "on";
+        case LIGHT_EFFECT_OFF:
+            return "off";
+        case LIGHT_EFFECT_FLASHING:
+            return "flashing";
+        default:
+            return "unknown";
+        }
+    }
+    inline LIGHT_EFFECT light_effect_parse(std::string& effect_str) {
+        if (effect_str.compare("on") == 0)
+            return LIGHT_EFFECT_ON;
+        else if (effect_str.compare("off") == 0)
+            return LIGHT_EFFECT_OFF;
+        else if (effect_str.compare("flashing") == 0)
+            return LIGHT_EFFECT_FLASHING;
+        else
+            return LIGHT_EFFECT_UNKOWN;
+    }
+
+    int command_set_chamber_light(LIGHT_EFFECT effect, int on_time = 500, int off_time = 500, int loops = 1, int interval = 1000);
+    int command_set_work_light(LIGHT_EFFECT effect, int on_time = 500, int off_time = 500, int loops = 1, int interval = 1000);
 
     // axis string is X, Y, Z, E
     int command_axis_control(std::string axis, double unit = 1.0f, double value = 1.0f, int speed = 3000);

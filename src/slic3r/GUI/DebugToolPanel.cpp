@@ -244,10 +244,10 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 	bSizer151->Add( label_upload_progress1, 0, wxALL, 5 );
 
- m_status_bar = std::make_shared<BBLStatusBar>(m_panel_run_gcode);
+
+	m_status_bar = std::make_shared<BBLStatusBar>(m_panel_run_gcode);
     m_panel_status = m_status_bar->get_panel();
     bSizer151->Add( m_panel_status, 1, wxEXPAND | wxALL, 0 );
-
 
 	bSizer331->Add( bSizer151, 0, wxEXPAND, 5 );
 
@@ -471,11 +471,35 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 	bSizer22->Add( gSizer1, 1, wxALL, 5 );
 
+	wxBoxSizer* bSizer37;
+	bSizer37 = new wxBoxSizer( wxHORIZONTAL );
+
+	wxString m_radioBox_chamber_lightChoices[] = { wxT("On"), wxT("Off"), wxT("Flash") };
+	int m_radioBox_chamber_lightNChoices = sizeof( m_radioBox_chamber_lightChoices ) / sizeof( wxString );
+	m_radioBox_chamber_light = new wxRadioBox( m_panel_settings, wxID_ANY, wxT("Chamber Light"), wxDefaultPosition, wxDefaultSize, m_radioBox_chamber_lightNChoices, m_radioBox_chamber_lightChoices, 1, wxRA_SPECIFY_ROWS );
+	m_radioBox_chamber_light->SetSelection( 0 );
+	bSizer37->Add( m_radioBox_chamber_light, 1, wxALL|wxEXPAND, 5 );
+
+
+	bSizer22->Add( bSizer37, 0, wxEXPAND, 5 );
+
+	wxBoxSizer* bSizer38;
+	bSizer38 = new wxBoxSizer( wxVERTICAL );
+
+	wxString m_radioBox_work_lightChoices[] = { wxT("On"), wxT("Off"), wxT("Flash") };
+	int m_radioBox_work_lightNChoices = sizeof( m_radioBox_work_lightChoices ) / sizeof( wxString );
+	m_radioBox_work_light = new wxRadioBox( m_panel_settings, wxID_ANY, wxT("Work Light"), wxDefaultPosition, wxDefaultSize, m_radioBox_work_lightNChoices, m_radioBox_work_lightChoices, 1, wxRA_SPECIFY_ROWS );
+	m_radioBox_work_light->SetSelection( 0 );
+	bSizer38->Add( m_radioBox_work_light, 1, wxALL|wxEXPAND, 5 );
+
+
+	bSizer22->Add( bSizer38, 0, wxEXPAND, 5 );
+
 
 	m_panel_settings->SetSizer( bSizer22 );
 	m_panel_settings->Layout();
 	bSizer22->Fit( m_panel_settings );
-	bSizer25->Add( m_panel_settings, 0, wxALL, 5 );
+	bSizer25->Add( m_panel_settings, 1, wxALL, 5 );
 
 	m_panel__control = new wxPanel( m_panel_info_control, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	m_panel__control->SetMinSize( wxSize( 300,-1 ) );
