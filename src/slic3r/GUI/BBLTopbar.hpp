@@ -37,6 +37,7 @@ public:
 
     void SetFileMenu(wxMenu* file_menu);
     void AddDropDownSubMenu(wxMenu* sub_menu, const wxString& title);
+    void AddDropDownMenuItem(wxMenuItem* menu_item);
     wxMenu *GetTopMenu();
     void SetProjectName(wxString project_name);
 

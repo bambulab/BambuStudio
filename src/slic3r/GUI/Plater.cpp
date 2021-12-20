@@ -2193,6 +2193,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
             this->q->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
             this->q->arrange();
             });
+        view3D_canvas->Bind(EVT_GLTOOLBAR_CUT, [q](SimpleEvent&) { q->cut_selection_to_clipboard(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_COPY, [q](SimpleEvent&) { q->copy_selection_to_clipboard(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_PASTE, [q](SimpleEvent&) { q->paste_from_clipboard(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_MORE, [q](SimpleEvent&) { q->increase_instances(); });
@@ -8176,6 +8177,15 @@ void Plater::fill_color(int extruder_id)
     }
 }
 
+//BBS
+void Plater::cut_selection_to_clipboard()
+{
+    Plater::TakeSnapshot snapshot(this, _L("Cut Selected Objects"));
+    if (can_cut_to_clipboard() && !p->sidebar->obj_list()->cut_to_clipboard()) {
+        p->view3D->get_canvas3d()->get_selection().cut_to_clipboard();
+    }
+}
+
 void Plater::copy_selection_to_clipboard()
 {
     // At first try to copy selected values to the ObjectList's clipboard
@@ -8681,6 +8691,14 @@ bool Plater::can_paste_from_clipboard() const
     if ((mode == Selection::Instance) && (selection.get_mode() != Selection::Instance))
         return false;
 
+    return true;
+}
+
+//BBS support cut
+bool Plater::can_cut_to_clipboard() const
+{
+    if (is_selection_empty())
+        return false;
     return true;
 }
 

@@ -208,6 +208,26 @@ void AppConfig::set_defaults()
         set("slicer_uuid", to_string(uuid));
     }
 
+    if (get("show_model_mesh").empty()) {
+        set("show_model_mesh", "0");
+    }
+
+    if (get("show_model_shadow").empty()) {
+        set("show_model_shadow", "1");
+    }
+
+    if (get("show_build_edges").empty()) {
+        set("show_build_edgets", "0");
+    }
+
+    if (get("show_daily_tips").empty()) {
+        set("show_daily_tips", "1");
+    }
+
+    if (get("show_printable_box").empty()) {
+        set("show_printable_box", "1");
+    }
+
     // Remove legacy window positions/sizes
     erase("", "main_frame_maximized");
     erase("", "main_frame_pos");

@@ -350,6 +350,8 @@ public:
 
     bool requires_local_axes() const;
 
+    //BBS
+    void cut_to_clipboard();
     void copy_to_clipboard();
     void paste_from_clipboard();
 

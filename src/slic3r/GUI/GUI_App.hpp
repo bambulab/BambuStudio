@@ -99,6 +99,12 @@ enum ConfigMenuIDs {
     ConfigMenuCnt,
 };
 
+enum CameraMenuIDs {
+    wxID_CAMERA_PERSPECTIVE,
+    wxID_CAMERA_ORTHOGONAL,
+    wxID_CAMERA_COUNT,
+};
+
 class Tab;
 class ConfigWizard;
 
@@ -258,6 +264,7 @@ public:
     void            download_project(std::string project_id);
     void            handle_http_error(unsigned int status, std::string body);
     void            request_new_version();
+    void            no_new_version();
     void            reload_settings();
     void            reload_user_presets();
     void            sync_preset(Preset* &preset);

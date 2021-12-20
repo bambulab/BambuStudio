@@ -2597,6 +2597,14 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
             post_event(SimpleEvent(EVT_GLTOOLBAR_PASTE));
         break;
 
+#ifdef __APPLE__
+        case 'x':
+        case 'X':
+#else /* __APPLE__ */
+        case WXK_CONTROL_X:
+#endif /* __APPLE__ */
+            post_event(SimpleEvent(EVT_GLTOOLBAR_CUT));
+        break;
 
 #ifdef __APPLE__
         case 'f':

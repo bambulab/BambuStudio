@@ -836,7 +836,7 @@ namespace Slic3r {
                 return 0;
     }
 
-    void AccountManager::check_new_version()
+    void AccountManager::check_new_version(bool show_tips)
     {
         std::string platform = "windows";
 #ifdef __WINDOWS__
@@ -848,7 +848,7 @@ namespace Slic3r {
 #ifdef __LINUX__
         platform = "linux";
 #endif
-        std::string query_params = (boost::format("?name=BBLS&&version=%1%&&platform=%2%&&guide_version=%3%")
+        std::string query_params = (boost::format("?name=slicer&&version=%1%&&platform=%2%&&guide_version=%3%")
             % VersionInfo::convert_full_version(SLIC3R_RC_VERSION)
             % platform
             % VersionInfo::convert_full_version("0.0.0.1")
@@ -857,42 +857,49 @@ namespace Slic3r {
         Http http = Http::get(url);
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
-            .on_complete([this](std::string body, unsigned) {
+            .on_complete([this, show_tips](std::string body, unsigned) {
                 std::stringstream ss(body);
                 pt::ptree root;
                 pt::read_json(ss, root);
                 if (root.empty()) return;
                 boost::optional<std::string> message = root.get_optional<std::string>("message");
+                boost::optional<std::string> err_code = root.get_optional<std::string>("code");
                 if (message.has_value()) {
                     if (message.value().compare(MSG_SUCCESS) == 0) {
                         if (root.get_child_optional("software") != boost::none) {
                             pt::ptree software_node = root.get_child("software");
-                            boost::optional<std::string> url = software_node.get_optional<std::string>("url");
-                            boost::optional<std::string> version = software_node.get_optional<std::string>("version");
-                            boost::optional<std::string> description = software_node.get_optional<std::string>("description");
 
-                            if (url.has_value())
-                                version_info.url = url.value();
-                            if (version.has_value()) {
-                                version_info.parse_version_str(version.value());
+                            // newest version
+                            if (software_node.empty() && err_code.value().compare("null") == 0 && show_tips) {
+                                GUI::wxGetApp().no_new_version();
+                            } else {
+                                boost::optional<std::string> url = software_node.get_optional<std::string>("url");
+                                boost::optional<std::string> version = software_node.get_optional<std::string>("version");
+                                boost::optional<std::string> description = software_node.get_optional<std::string>("description");
+                                if (version.has_value() && url.has_value() &&description.has_value()) {
+                                    version_info.url = url.value();
+                                    version_info.parse_version_str(version.value());
+                                    version_info.description = description.value();
+                                    check_update(show_tips);
+                                }
                             }
-                            if (description.has_value())
-                                version_info.description = description.value();
-
-                            check_update();
                         }
                     }
                 }
             }).perform();
     }
 
-    void AccountManager::check_update()
+    void AccountManager::check_update(bool show_tips)
     {
         if (version_info.version_str.empty()) return;
         if (version_info.url.empty()) return;
 
         if (version_info.compare(SLIC3R_RC_VERSION) > 0) {
             GUI::wxGetApp().request_new_version();
+        }
+        // Same Version
+        else if (version_info.compare(SLIC3R_RC_VERSION) == 0) {
+            GUI::wxGetApp().no_new_version();
         }
     }
 

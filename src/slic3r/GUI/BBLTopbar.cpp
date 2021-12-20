@@ -422,6 +422,11 @@ void BBLTopbar::AddDropDownSubMenu(wxMenu* sub_menu, const wxString& title)
     m_top_menu.AppendSubMenu(sub_menu, title);
 }
 
+void BBLTopbar::AddDropDownMenuItem(wxMenuItem* menu_item)
+{
+    m_top_menu.Append(menu_item);
+}
+
 wxMenu *BBLTopbar::GetTopMenu()
 {
     return &m_top_menu;

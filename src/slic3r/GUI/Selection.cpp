@@ -1466,6 +1466,12 @@ bool Selection::requires_local_axes() const
     return (m_mode == Volume) && is_from_single_instance();
 }
 
+void Selection::cut_to_clipboard()
+{
+    copy_to_clipboard();
+    erase();
+}
+
 void Selection::copy_to_clipboard()
 {
     if (!m_valid)

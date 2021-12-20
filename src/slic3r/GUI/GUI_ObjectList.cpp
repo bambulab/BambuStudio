@@ -1149,6 +1149,11 @@ void ObjectList::paste()
     wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_PASTE));
 }
 
+bool ObjectList::cut_to_clipboard()
+{
+    return copy_to_clipboard();
+}
+
 bool ObjectList::copy_to_clipboard()
 {
     wxDataViewItemArray sels;

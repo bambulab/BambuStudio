@@ -375,6 +375,9 @@ public:
     const DynamicPrintConfig * config() const;
     bool                set_printer_technology(PrinterTechnology printer_technology);
 
+    //BBS
+    void cut_selection_to_clipboard();
+
     void copy_selection_to_clipboard();
     void paste_from_clipboard();
     void search(bool plater_is_active);
@@ -399,6 +402,8 @@ public:
     bool can_split_to_volumes() const;
     bool can_arrange() const;
     bool can_layers_editing() const;
+    //BBS
+    bool can_cut_to_clipboard() const;
     bool can_paste_from_clipboard() const;
     bool can_copy_to_clipboard() const;
     bool can_undo() const;

@@ -255,6 +255,8 @@ public:
 
     void                copy();
     void                paste();
+    //BBS
+    bool                cut_to_clipboard();
     bool                copy_to_clipboard();
     bool                paste_from_clipboard();
     void                undo();

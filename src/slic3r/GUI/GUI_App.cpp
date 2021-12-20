@@ -2133,6 +2133,12 @@ void GUI_App::request_new_version()
     }
 }
 
+void GUI_App::no_new_version()
+{
+    wxString msg = wxString::Format("Your slicer version is the newest!");
+    wxMessageBox(msg);
+}
+
 void GUI_App::reload_settings()
 {
     if (preset_bundle && m_account_manager) {
