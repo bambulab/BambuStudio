@@ -179,7 +179,8 @@ include(CGAL/CGAL.cmake)
 include(NLopt/NLopt.cmake)
 
 include(OpenSSL/OpenSSL.cmake)
-include(CURL/CURL.cmake)
+##remove curl in deps, built it outside in the thirdparty
+#include(CURL/CURL.cmake)
 
 include(JPEG/JPEG.cmake)
 include(TIFF/TIFF.cmake)
