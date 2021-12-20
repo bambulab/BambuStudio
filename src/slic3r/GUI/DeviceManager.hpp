@@ -250,6 +250,7 @@ public:
     void request_unbind(ResultFn fn);
 
     /* common apis */
+    inline bool is_local() { return !dev_ip.empty(); }
     void set_bind_status(std::string status);
     void set_connect_state(CONNECTION_STATE state);
     std::string get_bind_str();

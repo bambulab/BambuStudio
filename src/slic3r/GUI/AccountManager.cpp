@@ -1792,6 +1792,7 @@ namespace Slic3r {
 
     void AccountManager::get_subtask_report(BBLSubTask*& subtask)
     {
+        /*
         std::string url = (boost::format("%1%/api/subtasks/%2%") % test_host % subtask->task_id).str();
         Http http = Http::get(url);
         http.header("accept", "application/json")
@@ -1813,6 +1814,7 @@ namespace Slic3r {
                 }
             )
             .perform();
+        */
     }
 
     void AccountManager::get_camera_url(

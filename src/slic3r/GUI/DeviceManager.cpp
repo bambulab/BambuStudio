@@ -494,46 +494,55 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 boost::optional<std::string> task_id            = print.get_optional<std::string>("task_id");
                 boost::optional<std::string> subtask_id         = print.get_optional<std::string>("subtask_id");
 
-                /* sync project and profile info */
-                if (project_id.has_value() && !project_id.value().empty() && (project_id.value().compare("0") != 0)
-                    && profile_id.has_value() && !profile_id.value().empty() && (profile_id.value().compare("0") != 0)
-                    )
-                {
-                    update_profile(project_id.value(), profile_id.value());
+                // can query users info
+                bool query_user = true;
+                if (acc_.get_curr_user() && is_local()) {
+                    if (!bind_user_id.empty() && bind_user_id.compare(acc_.get_curr_user()->get_user_id()) != 0)
+                        query_user = false;
                 }
 
-                /* sync task info */
-                if (task_id.has_value() && !task_id.value().empty() && (task_id.value().compare("0") != 0))
-                {
-                    update_task(task_id.value());
-                }
-
-                /* valid subtask */
-                if (subtask_id.has_value() && !subtask_id.value().empty() && subtask_id.value().compare("0") != 0)
-                {
-                    update_subtask(subtask_id.value());
-                }
-
-                BBLSubTask* curr_task = get_subtask();
-
-                if (curr_task) {
-                    if (progress.has_value())
-                        curr_task->task_progress = stoi(progress.value());
-                    if (gcode_start_time.has_value())
-                        curr_task->task_start_time = gcode_start_time.value();
-                    if (gcode_duration.has_value())
-                        curr_task->task_duration = gcode_duration.value();
-
-                    if (gcode_state.has_value())
-                        curr_task->printing_status = gcode_state.value();
-
-                    // update default subtask fields
-                    if (subtask_id.has_value()) {
-                        curr_task->task_id = subtask_id.value();
+                if (query_user) {
+                    /* sync project and profile info */
+                    if (project_id.has_value() && !project_id.value().empty() && (project_id.value().compare("0") != 0)
+                        && profile_id.has_value() && !profile_id.value().empty() && (profile_id.value().compare("0") != 0)
+                        )
+                    {
+                        update_profile(project_id.value(), profile_id.value());
                     }
-                    if (gcode_file.has_value()) {
-                        if (curr_task == temptask_) {
-                            curr_task->task_name = gcode_file.value();
+
+                    /* sync task info */
+                    if (task_id.has_value() && !task_id.value().empty() && (task_id.value().compare("0") != 0))
+                    {
+                        update_task(task_id.value());
+                    }
+
+                    /* valid subtask */
+                    if (subtask_id.has_value() && !subtask_id.value().empty() && subtask_id.value().compare("0") != 0)
+                    {
+                        update_subtask(subtask_id.value());
+                    }
+
+                    BBLSubTask* curr_task = get_subtask();
+
+                    if (curr_task) {
+                        if (progress.has_value())
+                            curr_task->task_progress = stoi(progress.value());
+                        if (gcode_start_time.has_value())
+                            curr_task->task_start_time = gcode_start_time.value();
+                        if (gcode_duration.has_value())
+                            curr_task->task_duration = gcode_duration.value();
+
+                        if (gcode_state.has_value())
+                            curr_task->printing_status = gcode_state.value();
+
+                        // update default subtask fields
+                        if (subtask_id.has_value()) {
+                            curr_task->task_id = subtask_id.value();
+                        }
+                        if (gcode_file.has_value()) {
+                            if (curr_task == temptask_) {
+                                curr_task->task_name = gcode_file.value();
+                            }
                         }
                     }
                 }
@@ -842,7 +851,7 @@ int MachineObject::publish_gcode(std::string gcode_str)
     pt::write_json(oss, root, false);
     std::string json_str = oss.str();
 
-    return this->publish_json(json_str);
+    return publish_json(json_str);
 }
 
 std::string get_printer_dest_file(std::string file)
