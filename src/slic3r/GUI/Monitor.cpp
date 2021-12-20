@@ -432,6 +432,7 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
     m_bpButton_xy_home->SetBitmap(m_ctrl_home);
     m_bpButton_x_left->SetBitmap(m_ctrl_left);
     m_bpButton_x_right->SetBitmap(m_ctrl_right);
+    m_bpButton_printer->SetBitmap(m_printer_img);
     m_bpButton_z_up->SetBitmap(m_ctrl_up);
     m_bpButton_z_home->SetBitmap(m_ctrl_home);
     m_bpButton_z_down->SetBitmap(m_ctrl_down);
@@ -597,6 +598,7 @@ void MonitorPanel::init_bitmap()
     m_bed_img = create_scaled_bitmap("monitor_bed_temp", nullptr, bitmap_temp_size);
     m_nozzle_img = create_scaled_bitmap("monitor_nozzle_temp", nullptr, bitmap_temp_size);
     m_pocket_img = create_scaled_bitmap("monitor_volume_temp", nullptr, bitmap_temp_size);
+    m_printer_img = create_scaled_bitmap("monitor_printer", nullptr, bitmap_temp_size);
     m_live_default_img = create_scaled_bitmap("live_stream_default", nullptr, FromDIP(300));
 }
 
@@ -1229,6 +1231,18 @@ void MonitorPanel::on_xyz_abs(wxCommandEvent& event)
 {
     if (obj)
         obj->command_xyz_abs();
+}
+
+void MonitorPanel::on_printer_clicked(wxCommandEvent& event)
+{
+    SelectMachinePopup* m_select_machine = new SelectMachinePopup(this, true);
+
+    wxRect rect = m_bpButton_printer->GetRect();
+    wxPoint pos = m_bpButton_printer->ClientToScreen(wxPoint(0, 0));
+    pos.y += rect.height;
+
+    m_select_machine->Position(pos, wxSize(0, 0));
+    m_select_machine->Popup();
 }
 
 void MonitorPanel::set_machine(std::string machine_sn)

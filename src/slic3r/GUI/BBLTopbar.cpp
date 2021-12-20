@@ -18,7 +18,6 @@ enum CUSTOM_ID
     ID_TOP_MENU_TOOL = 3100,
     ID_TOP_FILE_MENU,
     ID_TOP_DROPDOWN_MENU,
-    ID_PRINTER,
     ID_ACCOUNT,
     ID_MODEL_STORE,
     ID_TOOL_BAR = 3200,
@@ -236,10 +235,6 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
 
     this->AddSpacer(12);
 
-    wxBitmap printer_bitmap = create_scaled_bitmap("topbar_printer", nullptr, FromDIP(topbar_icon_size));
-    m_printer_item = this->AddTool(ID_PRINTER, "", printer_bitmap);
-
-    this->AddSpacer(12);
     this->AddSeparator();
     this->AddSpacer(6);
 
@@ -280,7 +275,6 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnSaveProject, this, wxID_SAVE);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnRedo, this, wxID_REDO);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnUndo, this, wxID_UNDO);
-    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnPrinterClicked, this, ID_PRINTER);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnAccountClicked, this, ID_ACCOUNT);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnModelStoreClicked, this, ID_MODEL_STORE);
 }
@@ -393,18 +387,6 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
 
     wxRect rect = this->GetToolRect(m_account_item->GetId());
     this->PopupMenu(accountMenu, rect.x, rect.y + this->GetSize().GetHeight() - 5);
-}
-
-void BBLTopbar::OnPrinterClicked(wxAuiToolBarEvent& event)
-{
-    m_select_machine = std::make_shared<SelectMachinePopup>(this, true);
-
-    wxRect rect = this->GetToolRect(m_printer_item->GetId());
-    wxPoint pos = this->ClientToScreen(wxPoint(rect.x, rect.y));
-    pos.y += rect.height;
-
-    m_select_machine->Position(pos, wxSize(0, 0));
-    m_select_machine->Popup();
 }
 
 void BBLTopbar::OnModelStoreClicked(wxAuiToolBarEvent& event)

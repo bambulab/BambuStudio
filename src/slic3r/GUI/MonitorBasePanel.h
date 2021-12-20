@@ -33,7 +33,6 @@
 #include <wx/combobox.h>
 #include <wx/splitter.h>
 #include <wx/mediactrl.h>
-
 ///////////////////////////////////////////////////////////////////////////
 class wxMediaCtrl2;
 
@@ -115,6 +114,7 @@ namespace Slic3r
 				wxStaticLine* m_staticline3;
 				wxStaticText* m_staticText_ctrl_caption;
 				wxStaticText* m_staticText57;
+				wxBitmapButton* m_bpButton_printer;
 				wxBitmapButton* m_bpButton_y_up;
 				wxBitmapButton* m_bpButton_y_down;
 				wxBitmapButton* m_bpButton_x_left;
@@ -171,7 +171,7 @@ namespace Slic3r
 				virtual void on_extruder_retraction( wxCommandEvent& event ) { event.Skip(); }
 				virtual void on_printing_fan_switch( wxCommandEvent& event ) { event.Skip(); }
 				virtual void on_nozzle_fan_switch( wxCommandEvent& event ) { event.Skip(); }
-
+				virtual void on_printer_clicked(wxCommandEvent& event) { event.Skip(); }
 
 			public:
 

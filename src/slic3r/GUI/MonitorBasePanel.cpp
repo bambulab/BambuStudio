@@ -51,6 +51,9 @@ MonitorBasePanel::MonitorBasePanel( wxWindow* parent, wxWindowID id, const wxPoi
 
 	bSizer_status_caption->Add( m_staticText_status, 1, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
+	m_bpButton_printer = new wxBitmapButton(m_panel_machine_status_title, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | 0);
+	bSizer_status_caption->Add(m_bpButton_printer, 0, wxALL, 5);
+
 
 	bSizer_status_caption->Add( 5, 0, 0, 0, 5 );
 
@@ -1008,6 +1011,8 @@ MonitorBasePanel::MonitorBasePanel( wxWindow* parent, wxWindowID id, const wxPoi
 	m_button_extruder_out->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MonitorBasePanel::on_extruder_retraction ), NULL, this );
 	m_bmToggleBtn_printing_fan->Connect( wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( MonitorBasePanel::on_printing_fan_switch ), NULL, this );
 	m_bmToggleBtn_nozzle_fan->Connect( wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( MonitorBasePanel::on_nozzle_fan_switch ), NULL, this );
+	m_bpButton_printer->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorBasePanel::on_printer_clicked), NULL, this);
+
 }
 
 MonitorBasePanel::~MonitorBasePanel()
@@ -1034,5 +1039,5 @@ MonitorBasePanel::~MonitorBasePanel()
 	m_button_extruder_out->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MonitorBasePanel::on_extruder_retraction ), NULL, this );
 	m_bmToggleBtn_printing_fan->Disconnect( wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( MonitorBasePanel::on_printing_fan_switch ), NULL, this );
 	m_bmToggleBtn_nozzle_fan->Disconnect( wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( MonitorBasePanel::on_nozzle_fan_switch ), NULL, this );
-
+	m_bpButton_printer->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MonitorBasePanel::on_printer_clicked), NULL, this);
 }

@@ -56,7 +56,6 @@ private:
     wxMenu* m_file_menu;
     wxAuiToolBarItem* m_title_item;
     wxAuiToolBarItem* m_account_item;
-    wxAuiToolBarItem* m_printer_item;
     wxAuiToolBarItem* m_model_store_item;
     wxAuiToolBarItem* m_undo_item;
     wxAuiToolBarItem* m_redo_item;
@@ -64,5 +63,4 @@ private:
     int m_toolbar_h;
     bool m_skip_popup_file_menu;
     bool m_skip_popup_dropdown_menu;
-    std::shared_ptr<SelectMachinePopup> m_select_machine;
 };

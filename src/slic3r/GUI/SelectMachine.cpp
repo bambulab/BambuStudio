@@ -145,7 +145,7 @@ bool MachineListModel::SetValueByRow(const wxVariant& variant,
 MachineObjectPanel::MachineObjectPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name ) : wxPanel( parent, id, pos, size, style, name )
 {
     m_bg_colour = wxColour(43, 52, 54);
-    m_hover_colour = wxColour(61, 70, 72);
+    m_hover_colour = wxColour(238, 238, 238);
 
     init_bitmap();
 
@@ -219,7 +219,7 @@ MachineObjectPanel::MachineObjectPanel( wxWindow* parent, wxWindowID id, const w
 	this->SetSizer( bSizer_top );
 	this->Layout();
 
-    wxColour text_color = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT);
+    wxColour text_color = wxColour(50, 58, 61, 1);
     m_staticText_printer->SetForegroundColour(text_color);
     m_staticText_printing->SetForegroundColour(text_color);
     m_staticText_bind_info->SetForegroundColour(text_color);
@@ -327,7 +327,7 @@ SelectMachinePopup::SelectMachinePopup( wxWindow *parent, bool scrolled)
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
 
-    m_bg_colour = wxColour(43, 52, 54);
+    m_bg_colour = wxColour(255, 255, 255);
     m_hover_colour = wxColour(61, 70, 72);
 
     m_panel = new wxScrolledWindow( this, wxID_ANY );
@@ -364,7 +364,7 @@ SelectMachinePopup::SelectMachinePopup( wxWindow *parent, bool scrolled)
     SetClientSize(m_panel->GetSize());
 
 
-    wxColour text_color = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT);
+    wxColour text_color = wxColour(50, 58, 61, 1);
     m_staticText_select->SetForegroundColour(text_color);
 
     m_refresh_timer = new wxTimer();

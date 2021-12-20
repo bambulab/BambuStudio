@@ -157,6 +157,7 @@ protected:
 	wxBitmap m_signal_strong_img;
 	wxBitmap m_signal_middle_img;
 	wxBitmap m_signal_weak_img;
+	wxBitmap m_printer_img;
 
 	wxBitmap m_fan_img;
 	wxBitmap m_bed_img;
@@ -230,6 +231,8 @@ protected:
 	void on_status_click(wxMouseEvent& event);
 	void on_tasklist_click(wxMouseEvent& event);
 	void on_notification_click(wxMouseEvent& event);
+	void on_printer_clicked(wxCommandEvent& event);
+
 
 	/* web state */
 	void on_webrequest_state(wxWebRequestEvent& evt);
