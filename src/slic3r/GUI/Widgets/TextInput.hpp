@@ -3,6 +3,7 @@
 
 #include <wx/textctrl.h>
 #include "../wxExtensions.hpp"
+#include "StateHandler.hpp"
 
 class TextInput : public wxWindow
 {
@@ -11,15 +12,10 @@ class TextInput : public wxWindow
     wxSize labelSize;
     ScalableBitmap icon;
     double radius;
-    wxColor text_normal;
-    wxColor text_disabled;
-    wxColor text_focused;
-    wxPen border_normal;
-    wxPen border_disabled;
-    wxPen border_focused;
-    wxBrush background_normal;
-    wxBrush background_disabled;
-    wxBrush background_focused;
+    StateHandler   state_handler;
+    StateColor     text_color;
+    StateColor     border_color;
+    StateColor     background_color;
     wxTextCtrl * text_ctrl;
 
     static const int TextInputWidth = 200;
@@ -38,15 +34,9 @@ public:
 
     void SetLabel(const wxString& label);
 
-    bool SetForegroundColour(const wxColour& colour) override;
+    bool SetForegroundColour(wxColour const &color) override;
 
     bool SetBackgroundColour(wxColour const & color) override;
-
-    void SetBorderColor(wxColor normal, wxColor hover, wxColor pressed);
-
-    void SetForegroundColor(wxColor normal, wxColor hover, wxColor pressed);
-
-    void SetBackgroundColor(wxColor normal, wxColor hover, wxColor pressed);
 
     void Rescale();
 

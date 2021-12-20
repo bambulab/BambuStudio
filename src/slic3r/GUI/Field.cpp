@@ -666,20 +666,20 @@ void TextCtrl::msw_rescale()
             field->SetMinSize(size);
         if (field != window) dynamic_cast<::TextInput *>(window)->Rescale();
     }
-
 }
 
 void TextCtrl::enable()
 {
-    text_ctrl()->Enable();
-    text_ctrl()->SetEditable(true);
+    window->Enable();
+    text_ctrl()->SetEditable(true); // BBS
 }
 void TextCtrl::disable()
 {
-    text_ctrl()->Disable();
-    text_ctrl()->SetEditable(false);
+    window->Disable();
+    text_ctrl()->SetEditable(false); // BBS
 }
 
+ // BBS
 wxTextCtrl *TextCtrl::text_ctrl()
 {
     auto ctrl = dynamic_cast<wxTextCtrl *>(window);

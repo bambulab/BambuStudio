@@ -18,6 +18,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/SpinInput.hpp
     GUI/Widgets/StaticLine.cpp
     GUI/Widgets/StaticLine.hpp
+    GUI/Widgets/StateColor.cpp
+    GUI/Widgets/StateColor.hpp
+    GUI/Widgets/StateHandler.cpp
+    GUI/Widgets/StateHandler.hpp
     GUI/Widgets/TextInput.cpp
     GUI/Widgets/TextInput.hpp
     GUI/AboutDialog.cpp

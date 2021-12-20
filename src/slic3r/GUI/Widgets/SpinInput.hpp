@@ -3,6 +3,7 @@
 
 #include <wx/textctrl.h>
 #include "../wxExtensions.hpp"
+#include "StateHandler.hpp"
 
 class Button;
 
@@ -12,15 +13,10 @@ class SpinInput : public wxWindow
     bool hover;
     wxSize labelSize;
     double radius;
-    wxColor text_normal;
-    wxColor text_disabled;
-    wxColor text_focused;
-    wxPen border_normal;
-    wxPen border_disabled;
-    wxPen border_focused;
-    wxBrush background_normal;
-    wxBrush background_disabled;
-    wxBrush background_focused;
+    StateHandler state_handler;
+    StateColor   text_color;
+    StateColor   border_color;
+    StateColor   background_color;
     wxTextCtrl * text_ctrl;
     Button * button_inc;
     Button * button_dec;
@@ -48,15 +44,9 @@ public:
 
     void SetLabel(const wxString &label) wxOVERRIDE;
 
-    bool SetForegroundColour(const wxColour& colour) override;
+    bool SetForegroundColour(const wxColour &color) override;
 
     bool SetBackgroundColour(wxColour const & color) override;
-
-    void SetBorderColor(wxColor normal, wxColor hover, wxColor pressed);
-
-    void SetForegroundColor(wxColor normal, wxColor hover, wxColor pressed);
-
-    void SetBackgroundColor(wxColor normal, wxColor hover, wxColor pressed);
 
     void SetSize(wxSize const &size);
 

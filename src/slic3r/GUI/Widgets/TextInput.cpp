@@ -31,32 +31,31 @@ TextInput::TextInput(wxWindow *     parent,
                      const wxSize & size,
                      long           style)
     : wxWindow(parent, wxID_ANY, pos, size)
+    , state_handler(this)
+    , border_color(std::make_pair(0xDBDBDB, (int) StateColor::Disabled),
+                   std::make_pair(0x1F8EEA, (int) StateColor::Focused),
+                   std::make_pair(0xDBDBDB, (int) StateColor::Normal))
+    , text_color(std::make_pair(0xF0F0F0, (int) StateColor::Disabled),
+                 std::make_pair(*wxBLACK, (int) StateColor::Normal))
+    , background_color(std::make_pair(0xF0F0F0, (int) StateColor::Disabled),
+                 std::make_pair(*wxWHITE, (int) StateColor::Normal))
 {
     hover = false;
     radius = 0;
-    border_normal = wxColour("#DBDBDB");
-    border_disabled = wxColour("#DBDBDB");
-    border_focused = wxColour("#1F8EEA");
-    text_normal = text_focused = *wxBLACK;
-    text_disabled = wxColour("#6D6D6D");
-    background_normal = *wxWHITE_BRUSH;
-    background_disabled = wxBrush(wxColour("#F0F0F0"));
-    background_focused = *wxWHITE_BRUSH;
     SetFont(Label::Body_12);
     wxWindow::SetLabel(label);
+    state_handler.attach({&border_color, &text_color, &background_color});
+    state_handler.update_binds();
+    state_handler.Bind(EVT_STATE_CHANGED, [this](auto &e) { paintNow(); });
     text_ctrl = new wxTextCtrl(this, wxID_ANY, text, {5, 5}, wxDefaultSize,
                                style | wxBORDER_NONE);
-    text_ctrl->Bind(wxEVT_SET_FOCUS, [this](auto &e) {
-        e.Skip();
-        paintNow();
-    });
-    text_ctrl->Bind(wxEVT_KILL_FOCUS, [this](auto &e) {
-        e.Skip();
-        paintNow();
-    });
+    text_ctrl->Bind(wxEVT_SET_FOCUS,
+                    [this](auto &e) { ProcessEventLocally(e); });
+    text_ctrl->Bind(wxEVT_KILL_FOCUS,
+                    [this](auto &e) { ProcessEventLocally(e); });
     text_ctrl->SetFont(Label::Body_14);
     if (!icon.IsEmpty()) {
-        this->icon = ScalableBitmap(this, icon.ToStdString(), 20);
+        this->icon = ScalableBitmap(this, icon.ToStdString(), 6);
     }
     messureSize();
 }
@@ -74,40 +73,18 @@ void TextInput::SetLabel(const wxString& label)
     paintNow();
 }
 
-bool TextInput::SetForegroundColour(const wxColour& colour)
+bool TextInput::SetForegroundColour(const wxColour &color)
 {
-    SetForegroundColor(colour, colour, colour);
+    text_color = StateColor(color);
+    state_handler.update_binds();
     return true;
 }
 
 bool TextInput::SetBackgroundColour(wxColour const& color)
 {
-    SetBackgroundColor(color, color, color);
+    background_color = StateColor(color);
+    state_handler.update_binds();
     return true;
-}
-
-void TextInput::SetBorderColor(wxColor normal, wxColor hover, wxColor pressed)
-{
-    border_normal = normal;
-    border_disabled = hover;
-    border_focused = pressed;
-    paintNow();
-}
-
-void TextInput::SetForegroundColor(wxColor normal, wxColor hover, wxColor pressed)
-{
-    text_normal = normal;
-    text_disabled = hover;
-    text_focused = pressed;
-    paintNow();
-}
-
-void TextInput::SetBackgroundColor(wxColor normal, wxColor hover, wxColor pressed)
-{
-    background_normal = normal;
-    border_disabled = hover;
-    background_focused = pressed;
-    paintNow();
 }
 
 void TextInput::Rescale()
@@ -120,7 +97,10 @@ void TextInput::Rescale()
 bool TextInput::Enable(bool enable)
 {
     bool result = text_ctrl->Enable(enable) && wxWindow::Enable(enable);
-    paintNow();
+    if (result) {
+        wxCommandEvent e(EVT_ENABLE_CHANGED);
+        ProcessEventLocally(e);
+    }
     return result;
 }
 
@@ -154,23 +134,11 @@ void TextInput::paintNow()
  */
 void TextInput::render(wxDC& dc)
 {
-    if (!text_ctrl->IsEnabled()) {
-        dc.SetPen(border_disabled);
-        dc.SetBrush(background_disabled);
-        dc.SetTextForeground(text_disabled);
-    }
-    else if (text_ctrl->HasFocus()) {
-        dc.SetPen(border_focused);
-        dc.SetBrush(background_focused);
-        dc.SetTextForeground(text_focused);
-    }
-    else{
-        dc.SetPen(border_normal);
-        dc.SetBrush(background_normal);
-        dc.SetTextForeground(text_normal);
-    }
-
+    int states = state_handler.states();
+    char   buf[32];
     wxSize size = GetSize();
+    dc.SetPen(wxPen(border_color.colorForStates(states)));
+    dc.SetBrush(wxBrush(background_color.colorForStates(states)));
     dc.DrawRoundedRectangle(0, 0, size.x, size.y, radius);
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
     // start draw
@@ -186,6 +154,7 @@ void TextInput::render(wxDC& dc)
         wxSize textSize = text_ctrl->GetSize();
         pt.x += textSize.x;
         pt.y = (size.y + textSize.y) / 2 - labelSize.y;
+        dc.SetTextForeground(text_color.colorForStates(states));
         dc.SetFont(GetFont());
         dc.DrawText(text, pt);
     }

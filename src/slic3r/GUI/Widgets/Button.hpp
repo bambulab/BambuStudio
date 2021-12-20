@@ -3,24 +3,21 @@
 
 #include <wx/stattext.h>
 #include "../wxExtensions.hpp"
+#include "StateHandler.hpp"
 
 class Button : public wxWindow
 {
-    bool hover;
-    bool pressedDown;
     wxSize textSize;
     wxSize minSize; // set by outer
     ScalableBitmap icon;
     double radius;
-    wxColor text_normal;
-    wxColor text_hover;
-    wxColor text_pressed;
-    wxPen border_normal;
-    wxPen border_hover;
-    wxPen border_pressed;
-    wxBrush background_normal;
-    wxBrush background_hover;
-    wxBrush background_pressed;
+
+    StateHandler state_handler;
+    StateColor   text_color;
+    StateColor   border_color;
+    StateColor   background_color;
+
+    bool pressedDown = false;
 
     static const int buttonWidth = 200;
     static const int buttonHeight = 50;
@@ -32,17 +29,17 @@ public:
 
     void SetLabel(const wxString& label);
 
-    bool SetForegroundColour(const wxColour& colour) override;
+    bool SetForegroundColour(wxColour const & colour) override;
 
     bool SetBackgroundColour(wxColour const & color) override;
 
     void SetMinSize(const wxSize& size) override;
     
-    void SetBorderColor(wxColor normal, wxColor hover, wxColor pressed);
+    void SetBorderColor(StateColor const & color);
 
-    void SetForegroundColor(wxColor normal, wxColor hover, wxColor pressed);
+    void SetForegroundColor(StateColor const &color);
 
-    void SetBackgroundColor(wxColor normal, wxColor hover, wxColor pressed);
+    void SetBackgroundColor(StateColor const &color);
     
     void Rescale();
 
@@ -55,15 +52,8 @@ private:
     void messureSize();
 
     // some useful events
-    void mouseMoved(wxMouseEvent& event);
     void mouseDown(wxMouseEvent& event);
-    void mouseWheelMoved(wxMouseEvent& event);
     void mouseReleased(wxMouseEvent& event);
-    void rightClick(wxMouseEvent& event);
-    void mouseEnterWindow(wxMouseEvent& event);
-    void mouseLeaveWindow(wxMouseEvent& event);
-    void keyPressed(wxKeyEvent& event);
-    void keyReleased(wxKeyEvent& event);
 
     void sendButtonEvent();
 

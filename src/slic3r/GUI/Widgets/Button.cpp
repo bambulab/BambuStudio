@@ -5,15 +5,8 @@
 
 BEGIN_EVENT_TABLE(Button, wxPanel)
 
-EVT_MOTION(Button::mouseMoved)
 EVT_LEFT_DOWN(Button::mouseDown)
 EVT_LEFT_UP(Button::mouseReleased)
-EVT_RIGHT_DOWN(Button::rightClick)
-EVT_ENTER_WINDOW(Button::mouseEnterWindow)
-EVT_LEAVE_WINDOW(Button::mouseLeaveWindow)
-EVT_KEY_DOWN(Button::keyPressed)
-EVT_KEY_UP(Button::keyReleased)
-EVT_MOUSEWHEEL(Button::mouseWheelMoved)
 
 // catch paint events
 EVT_PAINT(Button::paintEvent)
@@ -26,16 +19,18 @@ END_EVENT_TABLE()
  * calling Refresh()/Update().
  */
 
-    Button::Button(wxWindow* parent, wxString text, wxString icon, long stlye, int iconSize)
+Button::Button(wxWindow* parent, wxString text, wxString icon, long stlye, int iconSize)
     : wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, stlye)
+    , state_handler(this)
+    , border_color(0x303A3C)
+    , text_color(*wxBLACK)
+    , background_color(std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered),
+                       std::make_pair(*wxWHITE, (int) StateColor::Normal))
 {
-    pressedDown = hover = false;
     radius = 8;
-    border_normal = border_hover = border_pressed = wxColour("#303A3C");
-    text_normal = text_hover = text_pressed = *wxBLACK;
-    background_normal = *wxWHITE_BRUSH;
-    background_hover = *wxLIGHT_GREY_BRUSH;
-    background_pressed = *wxBLUE_BRUSH;
+    state_handler.attach({&border_color, &text_color, &background_color});
+    state_handler.update_binds();
+    state_handler.Bind(EVT_STATE_CHANGED, [this](auto &e) { paintNow(); });
     //BBS set default font
     SetFont(Label::Body_14);
     wxWindow::SetLabel(text);
@@ -59,15 +54,17 @@ void Button::SetLabel(const wxString& label)
     paintNow();
 }
 
-bool Button::SetForegroundColour(const wxColour& colour)
+bool Button::SetForegroundColour(wxColour const &color)
 {
-    SetForegroundColor(colour, colour, colour);
+    text_color = StateColor(color);
+    state_handler.update_binds();
     return true;
 }
 
 bool Button::SetBackgroundColour(wxColour const& color)
 {
-    SetBackgroundColor(color, color, color);
+    background_color = StateColor(color);
+    state_handler.update_binds();
     return true;
 }
 
@@ -77,27 +74,24 @@ void Button::SetMinSize(const wxSize& size)
     messureSize();
 }
 
-void Button::SetBorderColor(wxColor normal, wxColor hover, wxColor pressed)
+void Button::SetBorderColor(StateColor const &color)
 {
-    border_normal = normal;
-    border_hover = hover;
-    border_pressed = pressed;
+    border_color = color;
+    state_handler.update_binds();
     paintNow();
 }
 
-void Button::SetForegroundColor(wxColor normal, wxColor hover, wxColor pressed)
+void Button::SetForegroundColor(StateColor const &color)
 {
-    text_normal = normal;
-    text_hover = hover;
-    text_pressed = pressed;
+    text_color = color;
+    state_handler.update_binds();
     paintNow();
 }
 
-void Button::SetBackgroundColor(wxColor normal, wxColor hover, wxColor pressed)
+void Button::SetBackgroundColor(StateColor const &color)
 {
-    background_normal = normal;
-    background_hover = hover;
-    background_pressed = pressed;
+    background_color = color;
+    state_handler.update_binds();
     paintNow();
 }
 
@@ -138,21 +132,9 @@ void Button::paintNow()
  */
 void Button::render(wxDC& dc)
 {
-    if (pressedDown) {
-        //dc.SetPen(border_pressed);
-        dc.SetBrush(background_pressed);
-        dc.SetTextForeground(text_pressed);
-    }
-    else if (hover) {
-        //dc.SetPen(border_hover);
-        dc.SetBrush(background_hover);
-        dc.SetTextForeground(text_hover);
-    }
-    else {
-        //dc.SetPen(border_normal);
-        dc.SetBrush(background_normal);
-        dc.SetTextForeground(text_normal);
-    }
+    int states = state_handler.states();
+    dc.SetPen(wxPen(border_color.colorForStates(states)));
+    dc.SetBrush(wxBrush(background_color.colorForStates(states)));
     if (GetWindowStyle() & wxBORDER_NONE)
         dc.SetPen(wxNullPen);
 
@@ -192,6 +174,7 @@ void Button::render(wxDC& dc)
     if (!text.IsEmpty()) {
         pt.y += (rcContent.height - textSize.y) / 2;
         dc.SetFont(GetFont());
+        dc.SetTextForeground(text_color.colorForStates(states));
         dc.DrawText(text, pt);
     }
 }
@@ -219,46 +202,19 @@ void Button::messureSize()
 
 void Button::mouseDown(wxMouseEvent& event)
 {
+    event.Skip();
     pressedDown = true;
     SetFocus();
-    paintNow();
 }
 
 void Button::mouseReleased(wxMouseEvent& event)
 {
+    event.Skip();
     if (pressedDown) {
         pressedDown = false;
-        paintNow();
         sendButtonEvent();
     }
 }
-
-void Button::mouseEnterWindow(wxMouseEvent& event)
-{
-    if (!hover)
-    {
-        hover = true;
-        paintNow();
-    }
-}
-
-void Button::mouseLeaveWindow(wxMouseEvent& event)
-{
-    if (pressedDown || hover)
-    {
-        pressedDown = false;
-        hover = false;
-        paintNow();
-    }
-}
-
-// currently unused events
-void Button::mouseMoved(wxMouseEvent& event) {}
-
-void Button::mouseWheelMoved(wxMouseEvent& event) {}
-void Button::rightClick(wxMouseEvent& event) {}
-void Button::keyPressed(wxKeyEvent& event) {}
-void Button::keyReleased(wxKeyEvent& event) {}
 
 void Button::sendButtonEvent()
 {

@@ -32,22 +32,27 @@ SpinInput::SpinInput(wxWindow *     parent,
                      long           style,
                      int min, int max, int initial)
     : wxWindow(parent, wxID_ANY, pos, size)
+    , state_handler(this)
+    , border_color(std::make_pair(0xDBDBDB, (int) StateColor::Disabled),
+                   std::make_pair(0x1F8EEA, (int) StateColor::Focused),
+                   std::make_pair(0xDBDBDB, (int) StateColor::Normal))
+    , text_color(std::make_pair(0x6D6D6D, (int) StateColor::Disabled),
+                 std::make_pair(*wxBLACK, (int) StateColor::Normal))
+    , background_color(std::make_pair(0xF0F0F0, (int) StateColor::Disabled),
+                       std::make_pair(*wxWHITE, (int) StateColor::Normal))
 {
     hover = false;
     radius = 0;
-    border_normal = wxColour("#DBDBDB");
-    border_disabled = wxColour("#DBDBDB");
-    border_focused = wxColour("#1F8EEA");
-    text_normal = text_focused = *wxBLACK;
-    text_disabled = wxColour("#6D6D6D");
-    background_normal = *wxWHITE_BRUSH;
-    background_disabled = wxBrush(wxColour("#F0F0F0"));
-    background_focused = *wxWHITE_BRUSH;
     SetFont(Label::Body_12);
     wxWindow::SetLabel(label);
+    state_handler.attach({&border_color, &text_color, &background_color});
+    state_handler.update_binds();
+    state_handler.Bind(EVT_STATE_CHANGED, [this](auto &e) { paintNow(); });
     text_ctrl = new wxTextCtrl(this, wxID_ANY, text, {20, 5}, wxDefaultSize,
                                style | wxBORDER_NONE | wxTE_PROCESS_ENTER);
     text_ctrl->SetFont(Label::Body_14);
+    text_ctrl->Bind(wxEVT_SET_FOCUS,
+                    [this](auto &e) { ProcessEventLocally(e); });
     text_ctrl->Bind(wxEVT_KILL_FOCUS, &SpinInput::onTextLostFocus, this);
     text_ctrl->Bind(wxEVT_TEXT_ENTER, &SpinInput::onTextEnter, this);
     button_inc = createButton(true);
@@ -76,40 +81,18 @@ void SpinInput::SetLabel(const wxString &label)
     paintNow();
 }
 
-bool SpinInput::SetForegroundColour(const wxColour& colour)
+bool SpinInput::SetForegroundColour(wxColour const &color)
 {
-    SetForegroundColor(colour, colour, colour);
+    text_color = StateColor(color);
+    state_handler.update_binds();
     return true;
 }
 
 bool SpinInput::SetBackgroundColour(wxColour const& color)
 {
-    SetBackgroundColor(color, color, color);
+    background_color = StateColor(color);
+    state_handler.update_binds();
     return true;
-}
-
-void SpinInput::SetBorderColor(wxColor normal, wxColor hover, wxColor pressed)
-{
-    border_normal = normal;
-    border_disabled = hover;
-    border_focused = pressed;
-    paintNow();
-}
-
-void SpinInput::SetForegroundColor(wxColor normal, wxColor hover, wxColor pressed)
-{
-    text_normal = normal;
-    text_disabled = hover;
-    text_focused = pressed;
-    paintNow();
-}
-
-void SpinInput::SetBackgroundColor(wxColor normal, wxColor hover, wxColor pressed)
-{
-    background_normal = normal;
-    border_disabled = hover;
-    background_focused = pressed;
-    paintNow();
 }
 
 void SpinInput::SetSize(wxSize const &size)
@@ -188,27 +171,14 @@ void SpinInput::paintNow()
  */
 void SpinInput::render(wxDC& dc)
 {
-    if (!text_ctrl->IsEnabled()) {
-        dc.SetPen(border_disabled);
-        dc.SetBrush(background_disabled);
-        dc.SetTextForeground(text_disabled);
-    }
-    else if (text_ctrl->HasFocus()) {
-        dc.SetPen(border_focused);
-        dc.SetBrush(background_focused);
-        dc.SetTextForeground(text_focused);
-    }
-    else{
-        dc.SetPen(border_normal);
-        dc.SetBrush(background_normal);
-        dc.SetTextForeground(text_normal);
-    }
-
+    int    states = state_handler.states();
     wxSize size = GetSize();
+    dc.SetPen(wxPen(border_color.colorForStates(states)));
+    dc.SetBrush(wxBrush(background_color.colorForStates(states)));
     dc.DrawRoundedRectangle(0, 0, size.x, size.y, radius);
     wxPoint pt = button_inc->GetPosition();
     pt.y = size.y / 2;
-    dc.SetPen(border_normal);
+    dc.SetPen(wxPen(border_color.defaultColor()));
     dc.DrawLine(pt, pt + wxSize{button_inc->GetSize().x - 2, 0});
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
     // start draw
@@ -217,6 +187,7 @@ void SpinInput::render(wxDC& dc)
         pt.x = size.x - labelSize.x - 5;
         pt.y = (size.y - labelSize.y) / 2;
         dc.SetFont(GetFont());
+        dc.SetTextForeground(text_color.colorForStates(states));
         dc.DrawText(text, pt);
     }
 }
@@ -299,7 +270,7 @@ void SpinInput::onTimer(wxTimerEvent &evnet) {
 
 void SpinInput::onTextLostFocus(wxEvent &event)
 {
-    event.Skip();
+    ProcessEventLocally(event);
     wxCommandEvent e;
     onTextEnter(e);
 }
