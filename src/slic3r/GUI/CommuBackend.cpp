@@ -172,7 +172,6 @@ namespace Slic3r {
         topic_device_json* msg = static_cast<topic_device_json*>(message);
         std::istringstream is(msg->json());
         BOOST_LOG_TRIVIAL(trace) << "on_alive_msg json = " << msg->json();
-        logWarning("GUI", "received alive msg" << msg->json());
 
         pt::ptree root;
         try {
