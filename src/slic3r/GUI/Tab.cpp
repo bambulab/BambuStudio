@@ -1740,6 +1740,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("top_solid_infill_speed");
         optgroup->append_single_option_line("support_material_speed");
         optgroup->append_single_option_line("support_material_interface_speed");
+        optgroup->append_single_option_line("support_transition_speed");
         optgroup->append_single_option_line("bridge_speed");
         optgroup->append_single_option_line("gap_fill_speed");
         optgroup->append_single_option_line("ironing_speed");

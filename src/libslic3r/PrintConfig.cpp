@@ -2879,9 +2879,20 @@ void PrintConfigDef::init_fff_params()
                    "(for example 50%) it will be calculated over support material speed.");
     def->sidetext = L("mm/s or %");
     def->ratio_over = "support_material_speed";
-    def->min = 0;
+    def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
+
+    def = this->add("support_transition_speed", coFloatOrPercent);
+    def->label = L("Support transition");
+    def->category = L("Support material");
+    def->tooltip = L("Speed for printing support transition layers in which support infill direction is changed."
+        "If expressed as percentage (for example 50%) it will be calculated over support material speed.");
+    def->sidetext = L("mm/s or %");
+    def->ratio_over = "support_material_speed";
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(50, true));
 
     def = this->add("support_material_pattern", coEnum);
     def->label = L("Pattern");

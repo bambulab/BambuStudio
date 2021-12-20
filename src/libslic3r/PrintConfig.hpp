@@ -536,6 +536,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,               tree_support_with_infill))
     ((ConfigOptionBool,               detect_narrow_internal_solid_infill))
     ((ConfigOptionBool,               adaptive_layer_height))
+    ((ConfigOptionFloatOrPercent,     support_transition_speed))
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.

@@ -2252,7 +2252,7 @@ GCode::LayerResult GCode::process_layer(
             const PrintObject  &object = *support_layer.object();
             if (! support_layer.support_fills.entities.empty()) {
                 ExtrusionRole   role               = support_layer.support_fills.role();
-                bool            has_support        = role == erMixed || role == erSupportMaterial;
+                bool            has_support        = role == erMixed || role == erSupportMaterial || role == erSupportTransition;
                 bool            has_interface      = role == erMixed || role == erSupportMaterialInterface;
                 // Extruder ID of the support base. -1 if "don't care".
                 unsigned int    support_extruder   = object.config().support_material_extruder.value - 1;
@@ -2301,7 +2301,7 @@ GCode::LayerResult GCode::process_layer(
             const PrintObject& object = *tree_support_layer.object();
             if (!tree_support_layer.support_fills.entities.empty()) {
                 ExtrusionRole   role = tree_support_layer.support_fills.role();
-                bool            has_support = role == erMixed || role == erSupportMaterial;
+                bool            has_support = role == erMixed || role == erSupportMaterial || role == erSupportTransition;
                 bool            has_interface = role == erMixed || role == erSupportMaterialInterface;
                 // Extruder ID of the support base. -1 if "don't care".
                 unsigned int    support_extruder = object.config().support_material_extruder.value - 1;
@@ -2528,7 +2528,7 @@ GCode::LayerResult GCode::process_layer(
                     // BBS. Keep paths order
 #if 0
                     gcode += this->extrude_support(
-                        // support_extrusion_role is erSupportMaterial, erSupportMaterialInterface or erMixed for all extrusion paths.
+                        // support_extrusion_role is erSupportMaterial, erSupportTransition, erSupportMaterialInterface or erMixed for all extrusion paths.
                         instance_to_print.object_by_extruder.support->chained_path_from(m_last_pos, instance_to_print.object_by_extruder.support_extrusion_role));
 #else
                     //BBS: print supports' brims first
@@ -2999,6 +2999,7 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
 {
     static constexpr const char *support_label            = "support material";
     static constexpr const char *support_interface_label  = "support material interface";
+    const char* support_transition_label = "support transition";
 
     std::string gcode;
     if (! support_fills.entities.empty()) {
@@ -3006,8 +3007,9 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
         const double  support_interface_speed  = m_config.support_material_interface_speed.get_abs_value(support_speed);
         for (const ExtrusionEntity *ee : support_fills.entities) {
             ExtrusionRole role = ee->role();
-            assert(role == erSupportMaterial || role == erSupportMaterialInterface);
-            const char  *label = (role == erSupportMaterial) ? support_label : support_interface_label;
+            assert(role == erSupportMaterial || role == erSupportMaterialInterface || role == erSupportTransition);
+            const char* label = (role == erSupportMaterial) ? support_label :
+                ((role == erSupportMaterialInterface) ? support_interface_label : support_transition_label);
             // BBS
             //const double speed = (role == erSupportMaterial) ? support_speed : support_interface_speed;
             const double speed = -1.0;
@@ -3164,12 +3166,16 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         // BBS: enable slow down option for support. Because only tree speed calculate the curvature, so this
         // only slow down tree support and normal support still use speed in config directly.
         }
-        else if (path.role() == erSupportMaterial || path.role() == erSupportMaterialInterface) {
+        else if (path.role() == erSupportMaterial ||
+                 path.role() == erSupportMaterialInterface ||
+                 path.role() == erSupportTransition) {
             const double  support_speed = m_config.support_material_speed.value;
             const double  support_interface_speed = m_config.support_material_interface_speed.get_abs_value(support_speed);
             speed = (path.role() == erSupportMaterial) ? support_speed : support_interface_speed;
-            if (m_config.auto_slow_down_for_overhang_and_curva)
-                speed = m_speed_generator.calculate_speed(path, speed, min_speed);
+            const double  support_transition_speed = m_config.support_transition_speed.get_abs_value(support_speed);
+            speed = (path.role() == erSupportMaterial) ? support_speed :
+                ((path.role() == erSupportMaterialInterface) ? support_interface_speed :
+                    support_transition_speed);
         } else {
             throw Slic3r::InvalidArgument("Invalid speed");
         }
@@ -3398,7 +3404,7 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role)
         return false;
     }
 
-    if (role == erSupportMaterial) {
+    if (role == erSupportMaterial || role == erSupportTransition) {
         const SupportLayer* support_layer = dynamic_cast<const SupportLayer*>(m_layer);
         //FIXME support_layer->support_islands.contains should use some search structure!
         if (support_layer != NULL && support_layer->support_islands.contains(travel))

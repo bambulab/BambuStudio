@@ -284,7 +284,7 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
     for (auto support_layer : object.support_layers()) {
         LayerTools   &layer_tools = this->tools_for_layer(support_layer->print_z);
         ExtrusionRole role = support_layer->support_fills.role();
-        bool         has_support        = role == erMixed || role == erSupportMaterial;
+        bool         has_support        = role == erMixed || role == erSupportMaterial || role == erSupportTransition;
         bool         has_interface      = role == erMixed || role == erSupportMaterialInterface;
         unsigned int extruder_support   = object.config().support_material_extruder.value;
         unsigned int extruder_interface = object.config().support_material_interface_extruder.value;
@@ -300,7 +300,7 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
     for (auto tree_support_layer : object.tree_support_layers()) {
         LayerTools   &layer_tools = this->tools_for_layer(tree_support_layer->print_z);
         ExtrusionRole role = tree_support_layer->support_fills.role();
-        bool         has_support        = role == erMixed || role == erSupportMaterial;
+        bool         has_support        = role == erMixed || role == erSupportMaterial || role == erSupportTransition;;
         bool         has_interface      = role == erMixed || role == erSupportMaterialInterface;
         unsigned int extruder_support   = object.config().support_material_extruder.value;
         unsigned int extruder_interface = object.config().support_material_interface_extruder.value;

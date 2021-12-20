@@ -510,6 +510,7 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
     { 0.00f, 0.53f, 0.43f, 1.0f },   // erSkirt
     { 0.00f, 1.00f, 0.00f, 1.0f },   // erSupportMaterial
     { 0.00f, 0.50f, 0.00f, 1.0f },   // erSupportMaterialInterface
+    { 0.00f, 0.25f, 0.00f, 1.0f },   // erSupportTransition
     { 0.70f, 0.89f, 0.67f, 1.0f },   // erWipeTower
     { 0.37f, 0.82f, 0.58f, 1.0f },   // erCustom
     { 0.00f, 0.00f, 0.00f, 1.0f }    // erMixed

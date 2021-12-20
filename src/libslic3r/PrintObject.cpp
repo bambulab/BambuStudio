@@ -710,6 +710,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "seam_preferred_direction_jitter"
             || opt_key == "support_material_speed"
             || opt_key == "support_material_interface_speed"
+            //BBS
+            || opt_key == "support_transition_speed"
             || opt_key == "bridge_speed"
             || opt_key == "external_perimeter_speed"
             || opt_key == "infill_speed"

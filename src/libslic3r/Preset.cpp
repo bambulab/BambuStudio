@@ -536,7 +536,7 @@ static std::vector<std::string> s_Preset_print_options {
     "tree_support_branch_diameter_angle", "tree_support_collision_resolution", "tree_support_wall_count",
      "detect_narrow_internal_solid_infill",
      "gcode_add_line_number", "enable_arc_fitting", "infill_combination", "adaptive_layer_height",
-     "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod", "support_sharp_tails",
+     "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod", "support_sharp_tails","remove_small_overhangs", "support_transition_speed"
 };
 
 static std::vector<std::string> s_Preset_filament_options {

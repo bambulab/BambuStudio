@@ -7744,7 +7744,8 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                         for (const ExtrusionEntity *extrusion_entity : support_layer->support_fills.entities)
                             _3DScene::extrusionentity_to_verts(extrusion_entity, float(layer->print_z), copy,
 	                            volume(idx_layer, 
-		                            (extrusion_entity->role() == erSupportMaterial) ?
+		                            (extrusion_entity->role() == erSupportMaterial ||
+                                     extrusion_entity->role() == erSupportTransition) ?
 			                            support_layer->object()->config().support_material_extruder :
 			                            support_layer->object()->config().support_material_interface_extruder,
 		                            2));

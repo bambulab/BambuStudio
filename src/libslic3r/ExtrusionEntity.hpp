@@ -30,6 +30,7 @@ enum ExtrusionRole : uint8_t {
     erSkirt,
     erSupportMaterial,
     erSupportMaterialInterface,
+    erSupportTransition,
     erWipeTower,
     erCustom,
     // Extrusion role for a collection with multiple extrusion roles.
