@@ -2177,11 +2177,14 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
 }
 
 //BBS: always load shell when preview
-void GCodeViewer::load_shells(const Print& print, bool initialized)
+void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_previewing)
 {
-    if (print.id().id == m_shells.print_id)
+    if (print.id().id == m_shells.print_id) {
+        if (force_previewing)
+            m_shells.previewing = force_previewing;
         //already loaded
         return;
+    }
 
     if (print.objects().empty())
         // no shells, return

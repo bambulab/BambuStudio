@@ -1623,6 +1623,11 @@ int PartPlateList::delete_plate(int index)
 	else if (m_current_plate >= index) {
 		select_plate(m_current_plate - 1);
 	}
+	else {
+		//delete the plate behind current, just need to update the position of Bed3D
+		Vec2d pos = compute_shape_position(m_current_plate, m_plate_cols);
+		m_plater->get_bed().set_position(pos);
+	}
 
 	unprintable_plate.set_index(m_plate_list.size());
 
@@ -2679,6 +2684,9 @@ int PartPlateList::rebuild_plates_after_arrangement(bool recycle_plates)
 				//delete it
 				BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":delete plate %1% for empty") % i;
 				delete_plate(i);
+			}
+			else if (m_plate_list[i]->is_locked()) {
+				continue;
 			}
 			else
 			{

@@ -2332,11 +2332,11 @@ static void reserve_new_volume_finalize_old_volume(GLVolume& vol_new, GLVolume& 
 }
 
 //BBS: always load shell at preview
-void GLCanvas3D::load_shells(const Print& print)
+void GLCanvas3D::load_shells(const Print& print, bool force_previewing)
 {
     if (m_initialized)
     {
-        m_gcode_viewer.load_shells(print, m_initialized);
+        m_gcode_viewer.load_shells(print, m_initialized, force_previewing);
         m_gcode_viewer.update_shells_color_by_extruder(m_config);
     }
 }

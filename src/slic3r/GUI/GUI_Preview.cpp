@@ -424,9 +424,9 @@ void Preview::refresh_print()
 }
 
 //BBS: always load shell at preview
-void Preview::load_shells(const Print& print)
+void Preview::load_shells(const Print& print, bool force_previewing)
 {
-    m_canvas->load_shells(print);
+    m_canvas->load_shells(print, force_previewing);
 }
 
 //BBS: always load shell at preview
@@ -919,7 +919,7 @@ void Preview::load_print_as_fff(bool keep_z_range)
     bool has_layers = false;
     const Print *print = m_process->fff_print();
     //BBS: always load shell at preview
-    load_shells(*print);
+    load_shells(*print, true);
     if (print->is_step_done(posSlice)) {
         for (const PrintObject* print_object : print->objects())
             if (! print_object->layers().empty()) {

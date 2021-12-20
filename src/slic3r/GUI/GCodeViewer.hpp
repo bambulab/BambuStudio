@@ -750,7 +750,7 @@ public:
     void reset();
     //BBS: always load shell at preview
     void reset_shell();
-    void load_shells(const Print& print, bool initialized);
+    void load_shells(const Print& print, bool initialized, bool force_previewing = false);
     void set_shells_on_preview(bool is_previewing) { m_shells.previewing = is_previewing; }
     //BBS: GUI refactor: add canvas width and height
     void render(int canvas_width, int canvas_height);

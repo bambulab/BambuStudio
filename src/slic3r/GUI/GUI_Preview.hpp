@@ -150,7 +150,7 @@ public:
     void reload_print(bool keep_volumes = false);
     void refresh_print();
     //BBS: always load shell at preview
-    void load_shells(const Print& print);
+    void load_shells(const Print& print, bool force_previewing = false);
     void reset_shells();
 
     void msw_rescale();
