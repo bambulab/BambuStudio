@@ -839,6 +839,9 @@ void GCodeViewer::reset_shell()
 
 void GCodeViewer::reset()
 {
+    //BBS: should also reset the result id
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": current result id %1% ")%m_last_result_id;
+    m_last_result_id = -1;
     m_moves_count = 0;
     m_seams_ids.clear();
     for (TBuffer& buffer : m_buffers) {
