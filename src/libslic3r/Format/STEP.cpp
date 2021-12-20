@@ -28,6 +28,9 @@
 #include "TopExp_Explorer.hxx"
 #include "BRep_Tool.hxx"
 
+const double STEP_TRANS_CHORD_ERROR = 0.003;
+const double STEP_TRANS_ANGLE_RES = 0.4;
+
 namespace Slic3r {
 
 struct NamedSolid {
@@ -99,7 +102,7 @@ bool load_step(const char *path, Model *model)
     new_object->input_file = path;
 
     for (int i = 0; i < namedSolids.size(); i++) {
-        BRepMesh_IncrementalMesh mesh(namedSolids[i].solid, 1e-3, true, 0.1, true);
+        BRepMesh_IncrementalMesh mesh(namedSolids[i].solid, STEP_TRANS_CHORD_ERROR, true, STEP_TRANS_ANGLE_RES, true);
 
         //BBS: calculate total number of the nodes and triangles
         int aNbNodes = 0;
