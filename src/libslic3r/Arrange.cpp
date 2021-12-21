@@ -253,7 +253,7 @@ protected:
             double dist = norm(*(std::min_element(dists.begin(), dists.end())));
             double bindist = norm(pl::distance(ibb.center(), origin_pack));
             if (m_pconf.alignment == PConfig::Alignment::BOTTOM_LEFT)
-                bindist = std::abs(ibb.minCorner().Y - origin_pack.Y) + 0.1 * std::abs(ibb.minCorner().X - origin_pack.X);
+                bindist = std::abs(ibb.minCorner().y() - origin_pack.y()) + 0.1 * std::abs(ibb.minCorner().x() - origin_pack.x());
 
             dist = 0.8 * dist + 0.2 * bindist;
 
@@ -315,13 +315,13 @@ protected:
             // just fine for small items
             score = norm(pl::distance(ibb.center(), bigbb.center()));
             if (m_pconf.alignment == PConfig::Alignment::BOTTOM_LEFT)
-                score += std::abs(ibb.minCorner().Y - origin_pack.Y) + 0.1 * std::abs(ibb.minCorner().X - origin_pack.X);
+                score += std::abs(ibb.minCorner().y() - origin_pack.y()) + 0.1 * std::abs(ibb.minCorner().x() - origin_pack.x());
             break;
         }            
         }
 
         if(!spatindex.empty())
-            score += 10 * (max_height > item.height) * (ibb.minCorner().Y < m_pilebb.maxCorner().Y);  // current item can't be shorter than existing items below
+            score += 10 * (max_height > item.height) * (ibb.minCorner().y() < m_pilebb.maxCorner().y());  // current item can't be shorter than existing items below
         
         return std::make_tuple(score, fullbb);
     }

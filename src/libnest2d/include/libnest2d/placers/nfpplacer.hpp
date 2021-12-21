@@ -666,7 +666,7 @@ private:
 
                 double score = pl::distance(ibb.center(), origin);
                 if(alignment==Config::Alignment::BOTTOM_LEFT)
-                    score = std::abs(ibb.center().Y - origin.Y);
+                    score = std::abs(ibb.center().y() - origin.y());
                 score /= norm;
 
                 score += ins_check(fullbb);

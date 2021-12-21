@@ -93,6 +93,7 @@ public:
     explicit TriangleMesh(const indexed_triangle_set &M);
     explicit TriangleMesh(indexed_triangle_set &&M, const RepairedMeshErrors& repaired_errors = RepairedMeshErrors());
     void clear() { this->its.clear(); this->m_stats.clear(); }
+    bool from_stl(stl_file& stl, bool repair = true);
     bool ReadSTLFile(const char* input_file, bool repair = true);
     bool write_ascii(const char* output_file);
     bool write_binary(const char* output_file);

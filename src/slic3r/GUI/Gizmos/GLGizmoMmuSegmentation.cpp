@@ -533,7 +533,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     m_imgui->end();
 }
 
-void GLGizmoMmuSegmentation::update_model_object() const
+void GLGizmoMmuSegmentation::update_model_object()
 {
     bool updated = false;
     ModelObject* mo = m_c->selection_info()->model_object();
@@ -577,7 +577,7 @@ void GLGizmoMmuSegmentation::init_model_triangle_selectors()
     m_original_volumes_extruder_idxs = get_extruder_id_for_volumes(*mo);
 }
 
-void GLGizmoMmuSegmentation::update_from_model_object()
+void GLGizmoMmuSegmentation::update_from_model_object(bool first_update)
 {
     wxBusyCursor wait;
 

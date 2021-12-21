@@ -2169,7 +2169,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     //BBS: use partplater's gcode
     preview = new Preview(q, bed, &model, config, &background_process, partplate_list.get_current_slice_result(), [this]() { schedule_background_process(); });
 
-    assemble_view = new AssembleView(q, &model, config, &background_process);
+    assemble_view = new AssembleView(q, bed, &model, config, &background_process);
 
 #ifdef __APPLE__
     // set default view_toolbar icons size equal to GLGizmosManager::Default_Icons_Size
@@ -3468,7 +3468,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
                 const Print* print = background_process.fff_print();
                 Polygons polygons;
                 if (print->config().complete_objects)
-                    Print::sequential_print_horizontal_clearance_valid(*print, &polygons);
+                    Print::sequential_print_clearance_valid(*print, &polygons);
                 view3D->get_canvas3d()->set_sequential_print_clearance_visible(true);
                 view3D->get_canvas3d()->set_sequential_print_clearance_render_fill(true);
                 view3D->get_canvas3d()->set_sequential_print_clearance_polygons(polygons);

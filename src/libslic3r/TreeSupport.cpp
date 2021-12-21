@@ -721,15 +721,15 @@ void TreeSupport::detect_object_overhangs()
         );
     }
 
-    std::vector<ExPolygons> enforcers = m_object.slice_support_enforcers();
-    std::vector<ExPolygons> blockers  = m_object.slice_support_blockers();
+    auto enforcers = m_object.slice_support_enforcers();
+    auto blockers  = m_object.slice_support_blockers();
     m_object.project_and_append_custom_facets(false, EnforcerBlockerType::ENFORCER, enforcers);
     m_object.project_and_append_custom_facets(false, EnforcerBlockerType::BLOCKER, blockers);
     for (int layer_nr = 0; layer_nr < m_object.layer_count(); layer_nr++) {
         TreeSupportLayer* ts_layer = m_object.get_tree_support_layer(layer_nr + m_raft_layers);
 
         if (layer_nr < enforcers.size()) {
-            ExPolygons& enforcer = enforcers[layer_nr];
+            Polygons& enforcer = enforcers[layer_nr];
             // coconut: enforcer can't do offset2_ex, otherwise faces with angle near 90 degrees can't have enforcers, which
             // is not good. For example: tails of animals needs extra support except the lowest tip.
             //enforcer = std::move(offset2_ex(enforcer, -0.1 * scale_(extrusion_width), 0.1 * scale_(extrusion_width)));
@@ -737,7 +737,7 @@ void TreeSupport::detect_object_overhangs()
         }
 
         if (layer_nr < blockers.size()) {
-            ExPolygons& blocker = blockers[layer_nr];
+            Polygons& blocker = blockers[layer_nr];
             ts_layer->overhang_areas = diff_ex(ts_layer->overhang_areas, offset_ex(blocker, scale_(radius_sample_resolution)));
         }
     }
@@ -889,7 +889,9 @@ static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& pr
     FillParams fill_params;
     fill_params.density = support_density;
     fill_params.dont_adjust = false;
-    ExPolygons to_infill = offset2_ex(support_area, float(SCALED_EPSILON), float(-SCALED_EPSILON - 0.5 * flow.scaled_width()));
+    ExPolygons support_areas;
+    support_areas.push_back(support_area);
+    ExPolygons to_infill = offset2_ex(support_areas, float(SCALED_EPSILON), float(-SCALED_EPSILON - 0.5 * flow.scaled_width()));
     fill_expolygons_generate_paths(dst, std::move(to_infill), filler_support, fill_params, support_density, erSupportMaterial, flow);
 }
 

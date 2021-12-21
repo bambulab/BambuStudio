@@ -199,7 +199,7 @@ class AssembleView : public wxPanel
     wxGLCanvas* m_canvas_widget{ nullptr };
     GLCanvas3D* m_canvas{ nullptr };
 public:
-    AssembleView(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
+    AssembleView(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
     ~AssembleView();
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }
@@ -213,7 +213,7 @@ public:
     void select_view(const std::string& direction);
 
 private:
-    bool init(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
+    bool init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
 };
 
 } // namespace GUI

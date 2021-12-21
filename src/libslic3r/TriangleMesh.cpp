@@ -177,24 +177,21 @@ static void trianglemesh_repair_on_import(stl_file &stl)
     BOOST_LOG_TRIVIAL(debug) << "TriangleMesh::repair() finished";
 }
 
-bool TriangleMesh::ReadSTLFile(const char* input_file, bool repair)
-{ 
-    stl_file stl;
-    if (! stl_open(&stl, input_file))
-        return false;
+bool TriangleMesh::from_stl(stl_file& stl, bool repair)
+{
     if (repair)
         trianglemesh_repair_on_import(stl);
 
-    m_stats.number_of_facets        = stl.stats.number_of_facets;
-    m_stats.min                     = stl.stats.min;
-    m_stats.max                     = stl.stats.max;
-    m_stats.size                    = stl.stats.size;
-    m_stats.volume                  = stl.stats.volume;
+    m_stats.number_of_facets = stl.stats.number_of_facets;
+    m_stats.min = stl.stats.min;
+    m_stats.max = stl.stats.max;
+    m_stats.size = stl.stats.size;
+    m_stats.volume = stl.stats.volume;
 
     auto facets_w_1_bad_edge = stl.stats.connected_facets_2_edge - stl.stats.connected_facets_3_edge;
     auto facets_w_2_bad_edge = stl.stats.connected_facets_1_edge - stl.stats.connected_facets_2_edge;
     auto facets_w_3_bad_edge = stl.stats.number_of_facets - stl.stats.connected_facets_1_edge;
-    m_stats.open_edges              = stl.stats.backwards_edges + facets_w_1_bad_edge + facets_w_2_bad_edge * 2 + facets_w_3_bad_edge * 3;
+    m_stats.open_edges = stl.stats.backwards_edges + facets_w_1_bad_edge + facets_w_2_bad_edge * 2 + facets_w_3_bad_edge * 3;
 
     m_stats.repaired_errors = { stl.stats.edges_fixed,
                                 stl.stats.degenerate_facets,
@@ -202,10 +199,18 @@ bool TriangleMesh::ReadSTLFile(const char* input_file, bool repair)
                                 stl.stats.facets_reversed,
                                 stl.stats.backwards_edges };
 
-    m_stats.number_of_parts         = stl.stats.number_of_parts;
+    m_stats.number_of_parts = stl.stats.number_of_parts;
 
     stl_generate_shared_vertices(&stl, this->its);
     return true;
+}
+
+bool TriangleMesh::ReadSTLFile(const char* input_file, bool repair)
+{ 
+    stl_file stl;
+    if (! stl_open(&stl, input_file))
+        return false;
+    return from_stl(stl, repair);
 }
 
 bool TriangleMesh::write_ascii(const char* output_file)

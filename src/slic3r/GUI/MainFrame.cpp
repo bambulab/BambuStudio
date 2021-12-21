@@ -1847,7 +1847,8 @@ bool MainFrame::load_config_file(const std::string &path)
 //BBS: export current config bundle as BBL default reference
 void MainFrame::export_current_configbundle()
 {
-    if (!wxGetApp().check_unsaved_changes())
+    if (!wxGetApp().check_and_save_current_preset_changes(_L("Exporting current configuration bundle"),
+        _L("Some presets are modified and the unsaved changes will not be exported into configuration bundle."), false, true))
         return;
 
     // validate current configuration in case it's dirty
@@ -1879,8 +1880,9 @@ void MainFrame::export_current_configbundle()
 void MainFrame::export_configbundle(bool export_physical_printers /*= false*/)
 {
     if (!wxGetApp().check_and_save_current_preset_changes(_L("Exporting configuration bundle"),
-                                                          _L("Some presets are modified and the unsaved changes will not be exported into configuration bundle."), false, true))
+        _L("Some presets are modified and the unsaved changes will not be exported into configuration bundle."), false, true))
         return;
+
     // validate current configuration in case it's dirty
     auto err = wxGetApp().preset_bundle->full_config().validate();
     if (! err.empty()) {

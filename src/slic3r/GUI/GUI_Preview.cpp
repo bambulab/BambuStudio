@@ -1077,11 +1077,11 @@ wxString Preview::get_option_type_string(OptionType type) const
 }
 
 
-AssembleView::AssembleView(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
+AssembleView::AssembleView(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
     : m_canvas_widget(nullptr)
     , m_canvas(nullptr)
 {
-    init(parent, model, config, process);
+    init(parent, bed, model, config, process);
 }
 
 AssembleView::~AssembleView()
@@ -1090,7 +1090,7 @@ AssembleView::~AssembleView()
     delete m_canvas_widget;
 }
 
-bool AssembleView::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
+bool AssembleView::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
 {
     if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 /* disable wxTAB_TRAVERSAL */))
         return false;
@@ -1099,7 +1099,7 @@ bool AssembleView::init(wxWindow* parent, Model* model, DynamicPrintConfig* conf
     if (m_canvas_widget == nullptr)
         return false;
 
-    m_canvas = new GLCanvas3D(m_canvas_widget);
+    m_canvas = new GLCanvas3D(m_canvas_widget, bed);
     m_canvas->set_context(wxGetApp().init_glcontext(*m_canvas_widget));
 
     m_canvas->allow_multisample(OpenGLManager::can_multisample());

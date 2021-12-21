@@ -405,12 +405,14 @@ static void make_inner_island_brim(const Print& print, const ConstPrintObjectPtr
 {
     const auto scaled_resolution = scaled<double>(print.config().gcode_resolution.value);
 
-    auto save_polygon_if_is_inner_island = [scaled_resolution](const Polygons& holes_area, Polygon& counter, std::map<size_t, Polygons>& hole_island_pair) {
+    auto save_polygon_if_is_inner_island = [scaled_resolution](const Polygons& holes_area, Polygon& contour, std::map<size_t, Polygons>& hole_island_pair) {
         for (size_t i = 0; i < holes_area.size(); i++) {
-            if (diff_ex({ counter }, { holes_area[i] }).empty()) {
+            Polygons contour_polys;
+            contour_polys.push_back(contour);
+            if (diff_ex(contour_polys, { holes_area[i] }).empty()) {
                 // BBS: this is an inner island inside holes_area[i], save
-                counter.douglas_peucker(scaled_resolution);
-                hole_island_pair[i].push_back(counter);
+                contour.douglas_peucker(scaled_resolution);
+                hole_island_pair[i].push_back(contour);
                 break;
             }
         }

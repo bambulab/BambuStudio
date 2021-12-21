@@ -165,6 +165,13 @@ struct indexed_triangle_set
     std::vector<stl_vertex>       				vertices;
 
     bool empty() const { return indices.empty() || vertices.empty(); }
+    stl_vertex get_vertex(int facet_idx, int vertex_idx) const{
+        return vertices[indices[facet_idx][vertex_idx]];
+    }
+    float facet_area(int facet_idx) const {
+        return std::abs((get_vertex(facet_idx, 0) - get_vertex(facet_idx, 1))
+            .cross(get_vertex(facet_idx, 0) - get_vertex(facet_idx, 2)).norm()) / 2;
+    }
 };
 
 extern bool stl_open(stl_file *stl, const char *file);

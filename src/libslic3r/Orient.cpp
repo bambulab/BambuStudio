@@ -147,18 +147,18 @@ public:
     void preprocess()
     {
         {
-            auto& facets = mesh->stl.facet_start;
-            int face_count = facets.size();
+            int face_count = mesh->facets_count();
+            auto its = mesh->its;
+            auto face_normals = its_face_normals(its);
             areas.resize(face_count, 1);
             normals.resize(face_count, 3);
             face_index.resize(face_count);
             for (size_t i = 0; i < face_count; i++)
             {
-                float area = get_area(&facets[i]);
+                float area = its.facet_area(i);
                 if (params.NEGL_FACE_SIZE > 0 && area < params.NEGL_FACE_SIZE)
                     continue;
-                normals.row(i) = facets[i].normal;
-                normals.row(i).normalize();
+                normals.row(i) = face_normals[i];
                 areas(i) = area;
                 face_index[i] = i;
             }
@@ -169,17 +169,17 @@ public:
             mesh_convex_hull = mesh->convex_hull_3d();
             //mesh_convex_hull.write_binary("convex_hull_debug.stl");
 
-            auto& facets = mesh_convex_hull.stl.facet_start;
-            int face_count = facets.size();
+            int face_count = mesh_convex_hull.facets_count();
+            auto its = mesh_convex_hull.its;
+            auto face_normals = its_face_normals(its);
             areas_hull.resize(face_count, 1);
             normals_hull.resize(face_count, 3);
             for (size_t i = 0; i < face_count; i++)
             {
-                float area = get_area(&facets[i]);
+                float area = its.facet_area(i);
                 if (params.NEGL_FACE_SIZE > 0 && area < params.NEGL_FACE_SIZE)
                     continue;
-                normals_hull.row(i) = facets[i].normal;
-                normals_hull.row(i).normalize();
+                normals_hull.row(i) = face_normals[i];
                 areas_hull(i) = area;
             }
         }
@@ -244,16 +244,17 @@ public:
 
     void project_vertices(Vec3f orientation)
     {
-        int face_count = mesh->stl.facet_start.size();
+        int face_count = mesh->facets_count();
+        auto its = mesh->its;
         z_projected.resize(face_count, 3);
         z_max.resize(face_count, 1);
         z_median.resize(face_count, 1);
         z_mean.resize(face_count, 1);
         for (size_t i = 0; i < face_count; i++)
         {
-            float z0 = this->mesh->stl.facet_start[i].vertex[0].dot(orientation);
-            float z1 = this->mesh->stl.facet_start[i].vertex[1].dot(orientation);
-            float z2 = this->mesh->stl.facet_start[i].vertex[2].dot(orientation);
+            float z0 = its.get_vertex(i,0).dot(orientation);
+            float z1 = its.get_vertex(i,1).dot(orientation);
+            float z2 = its.get_vertex(i,2).dot(orientation);
             z_projected(i, 0) = z0;
             z_projected(i, 1) = z1;
             z_projected(i, 2) = z2;
@@ -262,12 +263,13 @@ public:
             z_mean(i) = (z0 + z1 + z2) / 3;
         }
 
-        z_max_hull.resize(mesh_convex_hull.stl.facet_start.size(), 1);
+        z_max_hull.resize(mesh_convex_hull.facets_count(), 1);
+        its = mesh_convex_hull.its;
         for (size_t i = 0; i < z_max_hull.rows(); i++)
         {
-            float z0 = mesh_convex_hull.stl.facet_start[i].vertex[0].dot(orientation);
-            float z1 = mesh_convex_hull.stl.facet_start[i].vertex[1].dot(orientation);
-            float z2 = mesh_convex_hull.stl.facet_start[i].vertex[2].dot(orientation);
+            float z0 = its.get_vertex(i,0).dot(orientation);
+            float z1 = its.get_vertex(i,1).dot(orientation);
+            float z2 = its.get_vertex(i,2).dot(orientation);
             z_max_hull(i) = MAX3(z0, z1, z2);
         }
     }
@@ -319,14 +321,14 @@ public:
             // contour perimeter
             //cost.contour = 4 * sqrt(bottom); // the simple way for contour
             float contour = 0;
-            const auto& facets = mesh->stl.facet_start;
-            int face_count = facets.size();
+            int face_count = mesh->facets_count();
+            auto its = mesh->its;
             int contour_amout = 0;
             for (size_t i = 0; i < face_count; i++)
             {
                 if (bottom_condition(i)) {
                     Eigen::VectorXi index = argsort(z_projected.row(i));
-                    stl_vertex line = facets[i].vertex[index(0)] - facets[i].vertex[index(1)];
+                    stl_vertex line = its.get_vertex(i, index(0)) - its.get_vertex(i, index(1));
                     contour += line.norm();
                     contour_amout++;
                 }
@@ -343,9 +345,7 @@ public:
         costs.area_laf = laf_areas.sum();
 
         // volume
-        if(mesh->stl.stats.volume<0)
-            stl_calculate_volume(&(mesh->stl));
-        costs.volume = mesh->stl.stats.volume;
+        costs.volume = mesh->volume();
 
         return costs;
     }

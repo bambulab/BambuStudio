@@ -2062,9 +2062,9 @@ namespace Slic3r {
 
             // splits volume out of imported geometry
 			TriangleMesh triangle_mesh;
-            stl_file    &stl             = triangle_mesh.stl;
-			unsigned int triangles_count = volume_data.last_triangle_id - volume_data.first_triangle_id + 1;
-			stl.stats.type = inmemory;
+            stl_file stl;
+            unsigned int triangles_count = volume_data.last_triangle_id - volume_data.first_triangle_id + 1;
+            stl.stats.type = inmemory;
             stl.stats.number_of_facets = (uint32_t)triangles_count;
             stl.stats.original_num_facets = (int)stl.stats.number_of_facets;
             stl_allocate(&stl);
@@ -2082,10 +2082,12 @@ namespace Slic3r {
                     }
                     facet.vertex[v] = Vec3f(geometry.vertices[tri_id + 0], geometry.vertices[tri_id + 1], geometry.vertices[tri_id + 2]);
                 }
+
             }
 
 			stl_get_size(&stl);
-			triangle_mesh.repair();
+            triangle_mesh.from_stl(stl, true);
+
 
 #if ENABLE_RELOAD_FROM_DISK_FOR_3MF
             if (m_version == 0) {
@@ -2692,10 +2694,8 @@ namespace Slic3r {
             if (volume == nullptr)
                 continue;
 
-			if (!volume->mesh().repaired)
+			if (!volume->mesh().repaired())
 				throw Slic3r::FileIOError("store_3mf() requires repair()");
-			if (!volume->mesh().has_shared_vertices())
-				throw Slic3r::FileIOError("store_3mf() requires shared vertices");
 
             volumes_offsets.insert({ volume, Offsets(vertices_count) });
 
