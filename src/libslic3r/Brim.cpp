@@ -449,7 +449,7 @@ static void make_inner_island_brim(const Print& print, const ConstPrintObjectPtr
         }
 
         //BBS: 3 generate loops, only save part of loop which inside hole
-        const float    brim_offset = scale_(object->config().brim_offset.value);
+        const float    brim_offset = scale_(object->config().brim_separation.value);
         const float    brim_width = scale_(object->config().brim_width.value);
         if (brim_type == BrimType::btInnerOnly) {
             // If brim_type is btInnerOnly, we actually doesn't generate loops for inner island.
@@ -505,7 +505,7 @@ static void make_inner_island_brim(const Print& print, const ConstPrintObjectPtr
 
                 }
                 extrusion_entities_append_loops_and_paths(brim.entities, std::move(final_loops),
-                    erSkirt, float(flow.mm3_per_mm()), float(flow.width),
+                    erSkirt, float(flow.mm3_per_mm()), float(flow.width()),
                     float(print.skirt_first_layer_height()));
 
                 //BBS: save all inner island and inner island brim area here, which is necesary if generate inner brim for holes

@@ -73,6 +73,8 @@ void CBaseException::ShowCallstack(HANDLE hThread, const CONTEXT* context)
 
 void CBaseException::ShowExceptionResoult(DWORD dwExceptionCode)
 {
+	// BBS: to be checked
+#if 0
 	OutputString(_T("Exception Code :%08x "), dwExceptionCode);
 	switch (dwExceptionCode)
 	{
@@ -191,6 +193,7 @@ void CBaseException::ShowExceptionResoult(DWORD dwExceptionCode)
 
 	OutputString(_T("%s"), szBuffer);
 	OutputString(_T("\r\n"));
+#endif
 }
 
 LONG WINAPI CBaseException::UnhandledExceptionFilter(PEXCEPTION_POINTERS pExceptionInfo )

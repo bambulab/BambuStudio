@@ -19,7 +19,7 @@ public:
     GCodeWriter() : 
         multiple_extruders(false), m_extrusion_axis("E"), m_extruder(nullptr),
         m_single_extruder_multi_material(false),
-        m_last_acceleration(0), m_max_acceleration(0),
+        m_last_acceleration(0), m_max_acceleration(0), m_last_fan_speed(0),
         m_last_bed_temperature(0), m_last_bed_temperature_reached(true), 
         m_lifted(0)
         {}
@@ -94,6 +94,7 @@ private:
     // Limit for setting the acceleration, to respect the machine limits set for the Marlin firmware.
     // If set to zero, the limit is not in action.
     unsigned int    m_max_acceleration;
+    unsigned int    m_last_fan_speed;
     unsigned int    m_last_bed_temperature;
     bool            m_last_bed_temperature_reached;
     double          m_lifted;

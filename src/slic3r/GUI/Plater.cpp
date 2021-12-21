@@ -2158,8 +2158,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     sla_print.set_status_callback(statuscb); */
 
     // BBS: to be checked. Not follow patch.
-    // https://gerrit.bambooolab.com/c/bbl/bamboo_slicer/+/121/7/src/slic3r/GUI/Plater.cpp#2080
-    background_process.set_thumbnail_cb([this](const ThumbnailsParams& params) { return this->generate_thumbnails(params, Camera::EType::Ortho); });
+    background_process.set_thumbnail_cb([this](const ThumbnailsParams& params, int plate_id = 0) { return this->generate_thumbnails(params, Camera::EType::Ortho, plate_id); });
     background_process.set_slicing_completed_event(EVT_SLICING_COMPLETED);
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
     background_process.set_export_began_event(EVT_EXPORT_BEGAN);
@@ -3369,7 +3368,7 @@ void Plater::priv::process_validation_warning(const std::string& warning) const
                 assert(print_tab);
                 DynamicPrintConfig& config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
                 config.set_key_value("support_material", new ConfigOptionBool(true));
-                config.set_key_value("auto_support_type", new ConfigOptionEnum<AutoSupportType>(astNormal));
+                config.set_key_value("auto_support_type", new ConfigOptionEnum<SupportType>(stNormalAuto));
                 print_tab->on_value_change("support_material", config.opt_bool("support_material"));
                 print_tab->on_value_change("support_material_auto", config.opt_bool("support_material_auto"));
                 return true;
@@ -4310,11 +4309,11 @@ void Plater::priv::on_export_finished(wxCommandEvent& evt)
 
     if (Slic3r::store_bbs_3mf(project_file_path.c_str(), &model, plate_data_list, &cfg, full_pathnames, thumbnails)) {
         // Success
-        statusbar()->set_status_text(format_wxstr(_L("3MF file exported to %s"), project_file_path));
+        //statusbar()->set_status_text(format_wxstr(_L("3MF file exported to %s"), project_file_path));
     }
     else {
         // Failure
-        statusbar()->set_status_text(format_wxstr(_L("Error exporting 3MF file %s"), project_file_path));
+        //statusbar()->set_status_text(format_wxstr(_L("Error exporting 3MF file %s"), project_file_path));
     }
 
     release_PlateData_list(plate_data_list);

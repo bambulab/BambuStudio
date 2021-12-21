@@ -245,7 +245,7 @@ int CLI::run(int argc, char **argv)
                 }
                 first_file = false;
 
-                PrinterTechnology other_printer_technology = Slic3r::printer_technology(config);
+                PrinterTechnology other_printer_technology = get_printer_technology(config);
                 if (printer_technology == ptUnknown) {
                     printer_technology = other_printer_technology;
                 }
@@ -784,12 +784,17 @@ int CLI::run(int argc, char **argv)
                     }
 
                     //update plate's bounding box to model
+#if 0
                     BoundingBoxf3   print_volume = part_plate->get_bounding_box(false);
                     print_volume.max(2) = z;
                     print_volume.min(2) = -1e10;
                     model.update_print_volume_state(print_volume);
                     boost::nowide::cout << boost::format("print_volume {%1%,%2%,%3%}->{%4%, %5%, %6%}") % print_volume.min(0) % print_volume.min(1)
-                        % print_volume.min(2) % print_volume.max(0) % print_volume.max(1) % print_volume.max(2)<< std::endl;
+                        % print_volume.min(2) % print_volume.max(0) % print_volume.max(1) % print_volume.max(2) << std::endl;
+#else
+                    BuildVolume build_volume(part_plate->get_shape(), z);
+                    model.update_print_volume_state(build_volume);
+#endif
 
                     //PrintBase  *print = (printer_technology == ptFFF) ? static_cast<PrintBase*>(&fff_print) : static_cast<PrintBase*>(&sla_print);
                     /*if (! m_config.opt_bool("dont_arrange")) {

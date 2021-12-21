@@ -45,8 +45,8 @@ void FillConcentricWGapFill::fill_surface_extrusion(const Surface* surface, cons
             coll_nosort->entities, std::move(loops),
             good_role,
             params.flow.mm3_per_mm(),
-            params.flow.width,
-            params.flow.height);
+            params.flow.width(),
+            params.flow.height());
 
         //BBS: add internal gapfills between infill loops
         if (!gaps.empty() && params.density >= 1) {
@@ -86,7 +86,7 @@ void FillConcentricWGapFill::fill_surface_extrusion(const Surface* surface, cons
         //BBS: collapse, be sure we don't gapfill where the perimeters are already touching each other (negative spacing).
         min = std::max(min, double(Flow::new_from_spacing((float)EPSILON,
                                    (float)params.flow.nozzle_diameter,
-                                   (float)params.flow.height, false).scaled_width()));
+                                   (float)params.flow.height(), false).scaled_width()));
         ExPolygons external_gaps_collapsed = offset2_ex(external_gaps, double(-min / 2), double(+min / 2));
         ThickPolylines polylines;
         for (const ExPolygon& ex : external_gaps_collapsed) {

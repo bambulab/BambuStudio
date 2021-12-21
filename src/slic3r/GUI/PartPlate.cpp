@@ -124,11 +124,8 @@ void PartPlate::calc_bounding_boexes() const {
 }
 
 void PartPlate::calc_triangles(const ExPolygon& poly) {
-    Polygons triangles;
-    poly.triangulate_p2t(&triangles);
-
-    if (!m_triangles.set_from_triangles(triangles, GROUND_Z, true))
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed triangles\n";
+	if (!m_triangles.set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z))
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed triangles\n";
 }
 
 void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox) {
@@ -208,7 +205,7 @@ void PartPlate::render_label(GLCanvas3D& canvas) const {
 
 	float x = 0.0f;
 	float y = 0.0f;
-	if (camera.get_type() == Camera::Perspective) {
+	if (camera.get_type() == Camera::EType::Perspective) {
 		x = (0.5f + 0.001f * 0.5f * (float)screen_box_center(0)) * viewport[2];
 		y = (0.5f - 0.001f * 0.5f * (float)screen_box_center(1)) * viewport[3];
 	}
@@ -231,7 +228,7 @@ void PartPlate::render_label(GLCanvas3D& canvas) const {
 	imgui.text(label);
 
 	// force re-render while the windows gets to its final size (it takes several frames)
-	if (ImGui::GetWindowContentRegionWidth() + 2.0f * ImGui::GetStyle().WindowPadding.x != ImGui::CalcWindowExpectedSize(ImGui::GetCurrentWindow()).x)
+	if (ImGui::GetWindowContentRegionWidth() + 2.0f * ImGui::GetStyle().WindowPadding.x != ImGui::CalcWindowNextAutoFitSize(ImGui::GetCurrentWindow()).x)
 		canvas.request_extra_frame();
 
 	imgui.end();
@@ -843,7 +840,9 @@ void PartPlate::render(GLCanvas3D& canvas, bool bottom, bool with_label, bool on
 
 	if (!only_body) {
 		float render_color[4];
-		::memcpy((void*)m_grabber_color, (const void*)DEFAULT_HIGHLIGHT_COLOR, 4 * sizeof(float));
+		//::memcpy((void*)m_grabber_color, (const void*)DEFAULT_HIGHLIGHT_COLOR, 4 * sizeof(float));
+		for (int i = 0; i < 4; i++)
+			m_grabber_color[i] = DEFAULT_HIGHLIGHT_COLOR[i];
 
 		render_color[0] = 1.0f - m_grabber_color[0];
 		render_color[1] = 1.0f - m_grabber_color[1];
@@ -1961,7 +1960,7 @@ Print& PartPlateList::get_current_fff_print() const
 }
 
 //return the slice result
-GCodeProcessor::Result* PartPlateList::get_current_slice_result() const
+GCodeProcessorResult* PartPlateList::get_current_slice_result() const
 {
 	PartPlate* current_plate;
 

@@ -519,7 +519,6 @@ private:
     bool m_tab_down;
     ECursorType m_cursor_type;
     GLSelectionRectangle m_rectangle_selection;
-    std::vector<int> m_hover_volume_idxs;
 
     //BBS:add plate related logic
     mutable std::vector<int> m_hover_volume_idxs;

@@ -954,7 +954,7 @@ namespace Slic3r {
                 add_error("Error while reading config data to buffer");
                 return;
             }
-            config.load_from_gcode_string(buffer.data(), config_substitutions);
+            ConfigBase::load_from_gcode_string_legacy(config, buffer.data(), config_substitutions);
         }
     }
 

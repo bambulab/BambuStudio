@@ -111,16 +111,16 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
         // calculate actual flow from spacing (which might have been adjusted by the infill
         // pattern generator)
         double flow_mm3_per_mm = params.flow.mm3_per_mm();
-        double flow_width = params.flow.width;
+        double flow_width = params.flow.width();
         if (params.using_internal_flow) {
             // if we used the internal flow we're not doing a solid infill
             // so we can safely ignore the slight variation that might have
             // been applied to f->spacing
         }
         else {
-            Flow new_flow = Flow::new_from_spacing(float(this->spacing), params.flow.nozzle_diameter, params.flow.height, params.flow.bridge);
+            Flow new_flow = Flow::new_from_spacing(float(this->spacing), params.flow.nozzle_diameter, params.flow.height(), params.flow.bridge());
             flow_mm3_per_mm = new_flow.mm3_per_mm();
-            flow_width = new_flow.width;
+            flow_width = new_flow.width();
         }
         // Save into layer.
         ExtrusionEntityCollection* eec = nullptr;
@@ -130,7 +130,7 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
         extrusion_entities_append_paths(
             eec->entities, std::move(polylines),
             params.extrusion_role,
-            flow_mm3_per_mm, float(flow_width), params.flow.height);
+            flow_mm3_per_mm, float(flow_width), params.flow.height());
     }
 }
 

@@ -15,6 +15,8 @@
 #include "Format/STL.hpp"
 #include "Format/3mf.hpp"
 
+#include "libslic3r/Geometry/ConvexHull.hpp"
+
 #include <float.h>
 
 #include <boost/algorithm/string/predicate.hpp>

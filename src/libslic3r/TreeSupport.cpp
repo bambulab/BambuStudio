@@ -799,7 +799,7 @@ static inline void fill_expolygon_generate_paths(
     } catch (InfillFailedException &) {
     }
 
-    extrusion_entities_append_paths(dst, std::move(polylines), role, flow.mm3_per_mm(), flow.width, flow.height);
+    extrusion_entities_append_paths(dst, std::move(polylines), role, flow.mm3_per_mm(), flow.width(), flow.height());
 }
 
 static inline void fill_expolygons_generate_paths(
@@ -837,7 +837,7 @@ static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print
             // BBS: calculate curvatures for the loop of polygon and generate ExtrusionPaths
             // by order which has different curve degree.
             ExtrusionPaths paths;
-            ExtrusionPath path(0, 0, role, flow.mm3_per_mm(), flow.width, flow.height);
+            ExtrusionPath path(0, 0, role, flow.mm3_per_mm(), flow.width(), flow.height());
             path.polyline = loops[i].split_at_first_point();
             paths.emplace_back(std::move(path));
             // BBS: use absolute mode for tree support because we don't care about the surface quality of support
@@ -849,7 +849,7 @@ static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print
         }
     } else {
         extrusion_entities_append_loops(dst, std::move(loops), role,
-            float(flow.mm3_per_mm()), float(flow.width), float(flow.height));
+            float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
     }
 }
 
@@ -869,7 +869,7 @@ static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& pr
             // BBS: calculate curvatures for the loop of polygon and generate ExtrusionPaths
             // by order which has different curve degree.
             ExtrusionPaths paths;
-            ExtrusionPath path(0, 0, role, flow.mm3_per_mm(), flow.width, flow.height);
+            ExtrusionPath path(0, 0, role, flow.mm3_per_mm(), flow.width(), flow.height());
             path.polyline = loops[i].split_at_first_point();
             paths.emplace_back(std::move(path));
             // BBS: use absolute mode for tree support because we don't care about the surface quality of support
@@ -882,7 +882,7 @@ static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& pr
     }
     else {
         extrusion_entities_append_loops(dst, std::move(loops), role,
-            float(flow.mm3_per_mm()), float(flow.width), float(flow.height));
+            float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
     }
 
     // draw infill (remember to adjust to align infill between layers)
@@ -948,7 +948,7 @@ void TreeSupport::generate_toolpaths()
             loops.insert(loops.end(), expoly.holes.begin(), expoly.holes.end());
         }
         extrusion_entities_append_loops(ts_layer->support_fills.entities, std::move(loops), raft_contour_er,
-            float(flow.mm3_per_mm()), float(flow.width), float(flow.height));
+            float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
         raft_areas = offset_ex(raft_areas, -flow.scaled_spacing() / 2.);
     }
 
@@ -1301,7 +1301,8 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 roof_areas = std::move(offset2_ex(roof_areas, branch_radius_scaled, -branch_radius_scaled));
                 base_areas = std::move(diff_ex(base_areas, roof_areas));
 
-#if 1
+                // BBS: to be checked. Enable arc fitting
+#if 0
                 if (m_object.print()->config().enable_arc_fitting.value == false) {
                     // simplify support contours if arc fitting is disabled
                     ExPolygons base_areas_simplified;

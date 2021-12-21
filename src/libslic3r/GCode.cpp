@@ -1383,7 +1383,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 // BBS. change tool before moving to origin point.
                 if (m_writer.need_toolchange(initial_extruder_id)) {
                     const PrintObjectConfig& object_config = object.config();
-                    coordf_t first_layer_height = object_config.first_layer_height.get_abs_value(object_config.layer_height.value);
+                    coordf_t first_layer_height = print.config().first_layer_height.get_abs_value(object_config.layer_height.value);
                     file.write(this->set_extruder(initial_extruder_id, first_layer_height));
                 }
                 else {

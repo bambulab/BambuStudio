@@ -319,6 +319,14 @@ Slic3r::ExPolygons offset_ex(const Slic3r::Polygons &polygons, const float delta
 Slic3r::ExPolygons offset_ex(const Slic3r::ExPolygon &expolygon, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
 Slic3r::ExPolygons offset_ex(const Slic3r::ExPolygons &expolygons, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
 Slic3r::ExPolygons offset_ex(const Slic3r::Surfaces &surfaces, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
+// BBS
+inline Slic3r::ExPolygons offset_ex(const Slic3r::Polygon &polygon, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit)
+{
+    Slic3r::Polygons temp;
+    temp.push_back(polygon);
+
+    return offset_ex(temp, delta, joinType, miterLimit);
+}
 
 inline Slic3r::Polygons   union_safety_offset   (const Slic3r::Polygons   &polygons)   { return offset   (polygons,   ClipperSafetyOffset); }
 inline Slic3r::Polygons   union_safety_offset   (const Slic3r::ExPolygons &expolygons) { return offset   (expolygons, ClipperSafetyOffset); }
@@ -348,6 +356,11 @@ inline Slic3r::ExPolygons shrink_ex(const Slic3r::Polygons &polygons, const floa
 Slic3r::Polygons   offset2(const Slic3r::ExPolygons &expolygons, const float delta1, const float delta2, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
 Slic3r::ExPolygons offset2_ex(const Slic3r::ExPolygons &expolygons, const float delta1, const float delta2, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
 Slic3r::ExPolygons offset2_ex(const Slic3r::Surfaces &surfaces, const float delta1, const float delta2, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
+
+// BBS
+Slic3r::ExPolygons _clipper_ex(ClipperLib::ClipType clipType,
+    const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, bool safety_offset_ = false);
+
 
 // Offset outside, then inside produces morphological closing. All deltas should be positive.
 Slic3r::Polygons          closing(const Slic3r::Polygons &polygons, const float delta1, const float delta2, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
@@ -453,10 +466,7 @@ Slic3r::ExPolygons union_ex(const Slic3r::Polygons &subject, ClipperLib::PolyFil
 Slic3r::ExPolygons union_ex(const Slic3r::ExPolygons &subject);
 Slic3r::ExPolygons union_ex(const Slic3r::Surfaces &subject);
 
-inline Slic3r::ExPolygons union_ex(const Slic3r::ExPolygons& poly1, const Slic3r::ExPolygons& poly2, bool safety_offset_ = false)
-{
-    return _clipper_ex(ClipperLib::ctUnion, to_polygons(poly1), to_polygons(poly2), safety_offset_);
-}
+Slic3r::ExPolygons union_ex(const Slic3r::ExPolygons& poly1, const Slic3r::ExPolygons& poly2, bool safety_offset_ = false);
 
 // Convert polygons / expolygons into ClipperLib::PolyTree using ClipperLib::pftEvenOdd, thus union will NOT be performed.
 // If the contours are not intersecting, their orientation shall not be modified by union_pt().
