@@ -730,8 +730,12 @@ namespace Slic3r {
         clear_errors();
 
         // restore
-        if (load_restore)
+        if (load_restore) {
             model.set_backup_path(filename.substr(0, filename.size() - 5));
+            boost::filesystem::save_string_file(
+                model.get_backup_path() + "/lock.txt",
+                boost::lexical_cast<std::string>(get_current_pid()));
+        }
         bool result = _load_model_from_file(filename, model, plate_data_list, config, config_substitutions, proFn);
         is_bbl_3mf = m_is_bbl_3mf;
         // save for restore
@@ -4494,7 +4498,9 @@ private:
                 lock.unlock();
                 {
                     timer t("backup cost");
-                    callback(1);
+                    try {
+                        callback(1);
+                    } catch (...) {}
                 }
                 m_other_changes_backup = false;
                 break;

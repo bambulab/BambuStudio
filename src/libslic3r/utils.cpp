@@ -1008,7 +1008,7 @@ std::string get_process_name(int pid)
 		GetModuleFileNameExA(h, NULL, name, MAX_PATH);
 		CloseHandle(h);
 	}
-	char* p = strchr(name, '\\');
+	char* p = name;
 	while (auto q = strchr(p + 1, '\\'))
 		p = q;
 	return decode_path(p);
@@ -1017,7 +1017,7 @@ std::string get_process_name(int pid)
 	if (pid == 0) pid = ::getpid();
 	int ret = proc_pidpath(pid, pathbuf, sizeof(pathbuf));
 	if (ret <= 0) return {};
-	char* p = strchr(pathbuf, '/');
+	char* p = pathbuf;
 	while (auto q = strchr(p + 1, '/')) p = q;
 	return p;
 #else
