@@ -16,6 +16,7 @@ class ArrangeJob : public PlaterJob
     using ArrangePolygons = arrangement::ArrangePolygons;
 
     ArrangePolygons m_selected, m_unselected, m_unprintable;
+    std::vector<ModelInstance*> m_unarranged;
     std::map<int, ArrangePolygons> m_selected_groups;   // groups of selected items for sequential printing
     arrangement::ArrangeParams params;
     int current_plate_index = 0;
