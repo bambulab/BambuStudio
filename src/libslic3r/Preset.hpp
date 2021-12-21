@@ -302,6 +302,8 @@ public:
     typedef std::deque<Preset>::iterator Iterator;
     typedef std::deque<Preset>::const_iterator ConstIterator;
     typedef std::function<void(Preset* preset, std::string sync_info)> SyncFunc;
+    //BBS get m_presets begin
+    Iterator        lbegin() { return m_presets.begin(); }
 
     Iterator        begin() { return m_presets.begin() + m_num_default_presets; }
     ConstIterator   begin() const { return m_presets.cbegin() + m_num_default_presets; }

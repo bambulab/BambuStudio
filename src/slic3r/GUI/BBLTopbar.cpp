@@ -384,6 +384,8 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
 
         }, "upload_queue", nullptr,
         [this] (){
+            if (GUI::wxGetApp().plater()->model().objects.empty()) return false;
+
             Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
             return account_manager->can_publish();
             },
