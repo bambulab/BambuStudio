@@ -2180,19 +2180,22 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
 //BBS: always load shell when preview
 void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_previewing)
 {
-    if (print.id().id == m_shells.print_id) {
+    /*if (print.id().id == m_shells.print_id) {
+        //BBS: update force previewing logic
         if (force_previewing)
             m_shells.previewing = force_previewing;
         //already loaded
         return;
-    }
-
-    if (print.objects().empty())
-        // no shells, return
-        return;
+    }*/
 
     //reset shell firstly
     reset_shell();
+
+    //BBS: move behind of reset_shell, to clear previous shell for empty plate
+    if (print.objects().empty()) {
+        // no shells, return
+        return;
+    }
     // adds objects' volumes 
     int object_id = 0;
     for (const PrintObject* obj : print.objects()) {

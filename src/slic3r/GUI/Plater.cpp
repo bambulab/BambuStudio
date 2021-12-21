@@ -1968,7 +1968,7 @@ struct Plater::priv
 	bool                        process_completed_with_error { false };
    
     //BBS: add print project related logic
-    void update_fff_scene_only_shells();
+    void update_fff_scene_only_shells(bool only_shells = true);
     //BBS: add popup object table logic
     bool PopupObjectTable(int object_id, int volume_id, const wxPoint& position);
 private:
@@ -3760,7 +3760,7 @@ void Plater::priv::update_fff_scene()
 }
 
 //BBS: add print project related logic
-void Plater::priv::update_fff_scene_only_shells()
+void Plater::priv::update_fff_scene_only_shells(bool only_shells)
 {
     if (this->preview != nullptr)
     {
@@ -3770,6 +3770,11 @@ void Plater::priv::update_fff_scene_only_shells()
             //this->preview->reset_shells();
             this->preview->load_shells(*current_print);
         }
+    }
+
+    if (!only_shells) {
+        view3D->reload_scene(true);
+        assemble_view->reload_scene(true);
     }
 }
 
@@ -4212,8 +4217,14 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
                     int plate_index = this->background_process.get_current_plate()->get_index();
                     this->partplate_list.select_plate(plate_index);
                 }
-                this->partplate_list.select_plate_view();
             }
+            //BBS: process empty plate, reset previous toolpath
+            else if (!current_plate->has_printable_instances())
+            {
+                reset_gcode_toolpaths();
+            }
+            this->partplate_list.select_plate_view();
+
             // keeps current gcode preview, if any
             if (this->m_slice_all) {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": slicing all, just reload shells");
@@ -4483,12 +4494,15 @@ void Plater::priv::on_slicing_completed(wxCommandEvent & evt)
     //BBS: add slice project logic
     if (m_slice_all && (m_cur_slice_plate < (partplate_list.get_plate_count() - 1)))
         return;
-    
+
     if (view3D->is_dragging()) // updating scene now would interfere with the gizmo dragging
         delayed_scene_refresh = true;
     else {
-        if (this->printer_technology == ptFFF)
-            this->update_fff_scene();
+        if (this->printer_technology == ptFFF) {
+            //BBS: only reload shells
+            this->update_fff_scene_only_shells(false);
+            //this->update_fff_scene();
+        }
         else
             this->update_sla_scene();
     }
@@ -7492,7 +7506,12 @@ void Plater::reslice()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": background process changes to not_idle, set ready_to_slice back to true");
     }
     else {
-        clean_gcode_toolpaths = false;
+        //BBS: add reset logic for empty plate
+        PartPlate * current_plate = p->background_process.get_current_plate();
+        if (!current_plate->has_printable_instances())
+            clean_gcode_toolpaths = true;
+        else
+            clean_gcode_toolpaths = false;
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": background process in idle state, use previous result, no need to reset_gcode_toolpaths");
     }
 
@@ -8281,16 +8300,16 @@ int Plater::select_plate(int plate_index, bool need_slice)
 
         PartPlate* part_plate = p->partplate_list.get_curr_plate();
         bool result_valid = part_plate->is_slice_result_valid();
+        PrintBase* print = nullptr;
+        GCodeResult* gcode_result = nullptr;
+        Print::ApplyStatus invalidated;
+
+        part_plate->get_print(&print, &gcode_result, NULL);
+        //always apply the current plate's print
+        invalidated = print->apply(this->model(), wxGetApp().preset_bundle->full_config());
 
         if (result_valid)
         {
-            PrintBase* print = nullptr;
-            GCodeResult* gcode_result = nullptr;
- 
-            part_plate->get_print(&print, &gcode_result, NULL);
-            //apply the current plate's print
-            Print::ApplyStatus invalidated = print->apply(this->model(), wxGetApp().preset_bundle->full_config());
-
             if (is_preview_shown())
             {
                 if (need_slice) { //from preview's thumbnail
@@ -8412,29 +8431,30 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
 
             PartPlate* part_plate = p->partplate_list.get_curr_plate();
             bool result_valid = part_plate->is_slice_result_valid();
+            PrintBase* print = nullptr;
+            GCodeResult* gcode_result = nullptr;
+            Print::ApplyStatus invalidated;
+
+            part_plate->get_print(&print, &gcode_result, NULL);
+            //always apply the current plate's print
+            invalidated = print->apply(this->model(), wxGetApp().preset_bundle->full_config());
 
             if (result_valid)
             {
-                PrintBase* print;
-
-                part_plate->get_print(&print, NULL, NULL);
-                //apply the current plate's print
-                Print::ApplyStatus invalidated = print->apply(this->model(), wxGetApp().preset_bundle->full_config());
-
                 if (invalidated & PrintBase::APPLY_STATUS_INVALIDATED)
                 {
                     part_plate->update_slice_result_valid_state(false);
 
-                    // BBS
                     p->show_sliced_info(false);
+                    // BBS
                     //p->show_action_buttons(true);
                     p->ready_to_slice = true;
                     p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, true);
                 }
                 else
                 {
-                    // BBS
                     p->show_sliced_info(true);
+                    // BBS
                     //p->show_action_buttons(false);
                     p->ready_to_slice = false;
                     p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false);
@@ -8444,12 +8464,15 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
             }
             else
             {
+                // BBS
                 p->show_sliced_info(false);
                 //check inside status
                 bool model_fits = p->view3D->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
                 //BBS: add partplate logic
                 PartPlate* part_plate = p->partplate_list.get_curr_plate();
-                // BBS: hide action buttons
+                part_plate->update_slice_ready_status(model_fits);
+
+                // BBS: don't show action buttons
                 //p->show_action_buttons(true);
                 p->ready_to_slice = true;
                 if (model_fits && part_plate->has_printable_instances())
