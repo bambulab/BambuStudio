@@ -7105,6 +7105,15 @@ void GLCanvas3D::_render_paint_toolbar() const
         if (ImGui::Button("", ImVec2(button_size, button_size))) {
             wxPostEvent(m_canvas, IntEvent(EVT_GLTOOLBAR_FILLCOLOR, i + 1));
         }
+        if (ImGui::IsItemHovered()) {
+            ImGui::BeginTooltip();
+            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 20.0f);
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));
+            ImGui::TextUnformatted(_L((boost::format("Press numeric key %1% to set current filament") % (i + 1)).str()).ToUTF8().data());
+            ImGui::PopStyleColor(1);
+            ImGui::PopTextWrapPos();
+            ImGui::EndTooltip();
+        }
         ImGui::PopStyleColor(3);
         if (disabled)
             ImGui::PopItemFlag();
