@@ -56,13 +56,13 @@ static ExtrusionPaths thick_polyline_to_extrusion_paths(const ThickPolyline& thi
             path.polyline.append(line.b);
             // Convert from spacing to extrusion width based on the extrusion model
             // of a square extrusion ended with semi circles.
-            flow.width = unscale<float>(w) + flow.height() * float(1. - 0.25 * PI);
+            Flow new_flow = flow.with_width(unscale<float>(w) + flow.height() * float(1. - 0.25 * PI));
 #ifdef SLIC3R_DEBUG
-            printf("  filling %f gap\n", flow.width());
+            printf("  filling %f gap\n", flow.width);
 #endif
-            path.mm3_per_mm = flow.mm3_per_mm();
-            path.width = flow.width();
-            path.height = flow.height();
+            path.mm3_per_mm = new_flow.mm3_per_mm();
+            path.width = new_flow.width();
+            path.height = new_flow.height();
         }
         else {
             thickness_delta = fabs(scale_(flow.width()) - w);
@@ -84,7 +84,7 @@ static ExtrusionPaths thick_polyline_to_extrusion_paths(const ThickPolyline& thi
     return paths;
 }
 
-void variable_width(const ThickPolylines& polylines, ExtrusionRole role, Flow flow, std::vector<ExtrusionEntity*>& out)
+void variable_width(const ThickPolylines& polylines, ExtrusionRole role, const Flow& flow, std::vector<ExtrusionEntity*>& out)
 {
     // This value determines granularity of adaptive width, as G-code does not allow
     // variable extrusion within a single move; this value shall only affect the amount
@@ -92,6 +92,7 @@ void variable_width(const ThickPolylines& polylines, ExtrusionRole role, Flow fl
     const float tolerance = float(scale_(0.05));
     for (const ThickPolyline& p : polylines) {
         ExtrusionPaths paths = thick_polyline_to_extrusion_paths(p, role, flow, tolerance);
+        // Append paths to collection.
         if (!paths.empty()) {
             if (paths.front().first_point() == paths.back().last_point())
                 out.emplace_back(new ExtrusionLoop(std::move(paths)));

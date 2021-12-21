@@ -6,6 +6,7 @@
 #include "libslic3r/Print.hpp"
 #include "libslic3r/ObjectID.hpp"
 
+#include <boost/thread.hpp>
 
 namespace Slic3r::GUI {
 

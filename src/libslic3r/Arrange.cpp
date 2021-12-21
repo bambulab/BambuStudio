@@ -174,7 +174,7 @@ protected:
     // as it possibly can be but at the same time, it has to provide
     // reasonable results.
     std::tuple<double /*score*/, Box /*farthest point from bin center*/>
-    objfunc(const Item &item, const clppr::IntPoint &origin_pack)
+    objfunc(const Item &item, const ClipperLib::IntPoint &origin_pack)
     {
         const double bin_area = m_bin_area;
         const SpatIndex& spatindex = m_rtree;

@@ -211,14 +211,18 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     ImGui::Separator();
 
+    // BBS
+    const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
+    std::string format_str = std::string("%.f") + I18N::translate_utf8("°",
+        "Degree sign to use in the respective slider in FDM supports gizmo,"
+        "placed after the number with no whitespace in between.");
+
+#if 0
     float position_before_text_y = ImGui::GetCursorPos().y;
     ImGui::AlignTextToFramePadding();
     m_imgui->text_wrapped(m_desc["highlight_by_angle"] + ":", autoset_slider_label_max_width);
     ImGui::AlignTextToFramePadding();
     float position_after_text_y  = ImGui::GetCursorPos().y;
-    std::string format_str = std::string("%.f") + I18N::translate_utf8("°",
-        "Degree sign to use in the respective slider in FDM supports gizmo,"
-        "placed after the number with no whitespace in between.");
     ImGui::SameLine(sliders_left_width);
 
     float slider_height = m_imgui->get_slider_float_height();
@@ -245,7 +249,6 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     // Restores the cursor position to be below the multi-line text.
     ImGui::SetCursorPosY(std::max(position_before_text_y + slider_height, position_after_text_y));
 
-    const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
 #if !ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     if (ImGui::IsItemHovered())
         m_imgui->tooltip(format_wxstr(_L("Preselects faces by overhang angle. It is possible to restrict paintable facets to only preselected faces when "
@@ -266,6 +269,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         m_parent.use_slope(false);
     }
     m_imgui->disabled_end();
+#endif
 
     ImGui::Separator();
 

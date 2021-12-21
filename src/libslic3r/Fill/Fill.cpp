@@ -431,8 +431,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 
 		// BBS
 		params.flow = surface_fill.params.flow;
-		// BBS: add support part logic
-		params.extrusion_role = is_support_part ? erSupportMaterial : surface_fill.params.extrusion_role;
+		params.extrusion_role = surface_fill.params.extrusion_role;
 		params.using_internal_flow = using_internal_flow;
 
 		LayerRegion* layerm = this->m_regions[surface_fill.region_id];

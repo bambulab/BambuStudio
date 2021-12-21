@@ -81,11 +81,11 @@ void FillConcentricWGapFill::fill_surface_extrusion(const Surface* surface, cons
             external_gaps = intersection_ex(external_gaps, this->no_overlap_expolygons);
 
     if (!external_gaps.empty()) {
-        double min = 0.4 * scale_(params.flow.nozzle_diameter) * (1 - INSET_OVERLAP_TOLERANCE);
+        double min = 0.4 * scale_(params.flow.nozzle_diameter()) * (1 - INSET_OVERLAP_TOLERANCE);
         double max = 2. * params.flow.scaled_width();
         //BBS: collapse, be sure we don't gapfill where the perimeters are already touching each other (negative spacing).
         min = std::max(min, double(Flow::new_from_spacing((float)EPSILON,
-                                   (float)params.flow.nozzle_diameter,
+                                   (float)params.flow.nozzle_diameter(),
                                    (float)params.flow.height(), false).scaled_width()));
         ExPolygons external_gaps_collapsed = offset2_ex(external_gaps, double(-min / 2), double(+min / 2));
         ThickPolylines polylines;

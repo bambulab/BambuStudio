@@ -403,11 +403,13 @@ static Polylines connect_brim_lines(Polylines &&polylines, const Polygons &brim_
 // Collect island + brim area to be minused when generating inner brim for holes
 static void make_inner_island_brim(const Print& print, const ConstPrintObjectPtrs& top_level_objects_with_brim, ExtrusionEntityCollection& brim, ExPolygons& islands_area_ex)
 {
-    auto save_polygon_if_is_inner_island = [](const Polygons& holes_area, Polygon& counter, std::map<size_t, Polygons>& hole_island_pair) {
+    const auto scaled_resolution = scaled<double>(print.config().gcode_resolution.value);
+
+    auto save_polygon_if_is_inner_island = [scaled_resolution](const Polygons& holes_area, Polygon& counter, std::map<size_t, Polygons>& hole_island_pair) {
         for (size_t i = 0; i < holes_area.size(); i++) {
             if (diff_ex({ counter }, { holes_area[i] }).empty()) {
                 // BBS: this is an inner island inside holes_area[i], save
-                counter.douglas_peucker(SCALED_RESOLUTION);
+                counter.douglas_peucker(scaled_resolution);
                 hole_island_pair[i].push_back(counter);
                 break;
             }
@@ -470,10 +472,12 @@ static void make_inner_island_brim(const Print& print, const ConstPrintObjectPtr
                 for (size_t i = 0; i < num_loops; ++i) {
                     contour = offset(contour, float(flow.scaled_spacing()), jtSquare);
                     for (Polygon& poly : contour)
-                        poly.douglas_peucker(SCALED_RESOLUTION);
+                        poly.douglas_peucker(scaled_resolution);
                     polygons_append(loops, offset(contour, -0.5f * float(flow.scaled_spacing())));
                 }
-                loops = union_pt_chained_outside_in(loops, false);
+                // BBS: to be checked.
+                //loops = union_pt_chained_outside_in(loops, false);
+                loops = union_pt_chained_outside_in(loops);
 
                 std::vector<Polylines> loops_pl_by_levels;
                 {

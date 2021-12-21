@@ -4298,7 +4298,8 @@ void Plater::priv::on_export_finished(wxCommandEvent& evt)
     for (unsigned int i = 0; i < partplate_list.get_plate_count(); i++)
     {
         ThumbnailData* thumbnail_data = new ThumbnailData();
-        generate_thumbnail(*thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, false, true, true, true, i);
+        ThumbnailsParams thumbnail_params = { {}, false, true, true, true };
+        generate_thumbnail(*thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, thumbnail_params, Camera::EType::Ortho, i);
         thumbnails.push_back(thumbnail_data);
     }
 

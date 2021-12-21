@@ -2808,7 +2808,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
                 line.append_option(optgroup->get_option("retract_lift_above", extruder_idx));
                 line.append_option(optgroup->get_option("retract_lift_below", extruder_idx));
                 optgroup->append_line(line);
-            optgroup->append_single_option_line("dont_lift_for_single_material", wxEmptyString, extruder_idx);
+            optgroup->append_single_option_line("dont_lift_for_single_material", "", extruder_idx);
 
             optgroup->append_single_option_line("retract_speed", "", extruder_idx);
             optgroup->append_single_option_line("deretract_speed", "", extruder_idx);
@@ -2816,7 +2816,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             optgroup->append_single_option_line("retract_before_travel", "", extruder_idx);
             optgroup->append_single_option_line("retract_layer_change", "", extruder_idx);
             optgroup->append_single_option_line("wipe", "", extruder_idx);
-            optgroup->append_single_option_line("wipe_distance", wxEmptyString, extruder_idx);
+            optgroup->append_single_option_line("wipe_distance", "", extruder_idx);
             optgroup->append_single_option_line("retract_before_wipe", "", extruder_idx);
 
             optgroup = page->new_optgroup(L("Retraction when tool is disabled (advanced settings for multi-extruder setups)"));

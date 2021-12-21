@@ -739,6 +739,24 @@ ConfigSubstitutions ConfigBase::load(const boost::property_tree::ptree &tree, Fo
     return std::move(substitutions_ctxt.substitutions);
 }
 
+// BBS
+static bool         is_whitespace(char c) { return c == ' ' || c == '\t'; }
+static bool         is_end_of_line(char c) { return c == '\r' || c == '\n' || c == 0; }
+static bool         is_end_of_gcode_line(char c) { return c == ';' || is_end_of_line(c); }
+static bool         is_end_of_word(char c) { return is_whitespace(c) || is_end_of_gcode_line(c); }
+
+static const char* skip_word(const char* c) {
+    for (; !is_end_of_word(*c); ++c)
+        ; // silence -Wempty-body
+    return c;
+}
+
+static const char* skip_whitespaces(const char* c) {
+    for (; is_whitespace(*c); ++c)
+        ; // silence -Wempty-body
+    return c;
+}
+
 // Load the config keys from the given string.
 size_t ConfigBase::load_from_gcode_string_legacy(ConfigBase& config, const char* str, ConfigSubstitutionContext& substitutions)
 {
@@ -873,24 +891,6 @@ private:
     pos_type                 m_file_start;
     pos_type                 m_file_pos   = 0;
 };
-
-// BBS
-static bool         is_whitespace(char c) { return c == ' ' || c == '\t'; }
-static bool         is_end_of_line(char c) { return c == '\r' || c == '\n' || c == 0; }
-static bool         is_end_of_gcode_line(char c) { return c == ';' || is_end_of_line(c); }
-static bool         is_end_of_word(char c) { return is_whitespace(c) || is_end_of_gcode_line(c); }
-
-static const char* skip_word(const char* c) {
-    for (; !is_end_of_word(*c); ++c)
-        ; // silence -Wempty-body
-    return c;
-}
-
-static const char* skip_whitespaces(const char* c) {
-    for (; is_whitespace(*c); ++c)
-        ; // silence -Wempty-body
-    return c;
-}
 
 // Load the config keys from the tail of a G-code file.
 ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule)

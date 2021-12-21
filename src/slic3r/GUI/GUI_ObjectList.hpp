@@ -397,9 +397,6 @@ public:
     void apply_volumes_order();
     bool has_paint_on_segmentation();
 
-    //BBS: move to public
-    void set_extruder_for_selected_items(const int extruder) const;
-
 private:
 #ifdef __WXOSX__
 //    void OnChar(wxKeyEvent& event);

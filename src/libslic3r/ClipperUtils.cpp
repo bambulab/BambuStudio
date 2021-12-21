@@ -634,7 +634,7 @@ Slic3r::ExPolygons union_ex(const Slic3r::ExPolygons &subject)
     { return PolyTreeToExPolygons(clipper_do_polytree(ClipperLib::ctUnion, ClipperUtils::ExPolygonsProvider(subject), ClipperUtils::EmptyPathsProvider(), ClipperLib::pftNonZero)); }
 Slic3r::ExPolygons union_ex(const Slic3r::Surfaces &subject)
     { return PolyTreeToExPolygons(clipper_do_polytree(ClipperLib::ctUnion, ClipperUtils::SurfacesProvider(subject), ClipperUtils::EmptyPathsProvider(), ClipperLib::pftNonZero)); }
-Slic3r::ExPolygons union_ex(const Slic3r::ExPolygons& poly1, const Slic3r::ExPolygons& poly2, bool safety_offset_ = false)
+Slic3r::ExPolygons union_ex(const Slic3r::ExPolygons& poly1, const Slic3r::ExPolygons& poly2, bool safety_offset_)
 {   return _clipper_ex(ClipperLib::ctUnion, to_polygons(poly1), to_polygons(poly2), safety_offset_); }
 
 template<typename PathsProvider1, typename PathsProvider2>
