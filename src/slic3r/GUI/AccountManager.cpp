@@ -1822,7 +1822,7 @@ namespace Slic3r {
         std::function<void(std::string)> callback)
     {
         if (m_curr_user == NULL) return;
-        std::string url = (boost::format("%1%/iot/user/ttcode") % host)
+        std::string url = (boost::format("%1%/iot-service/api/user/ttcode") % host)
                               .str();
         std::string body = (boost::format("{\"dev_id\": \"%1%\"}") % device)
                                .str();
