@@ -241,10 +241,11 @@ private:
     mqtt::async_client* mqtt_cli;
     cloud_conn_callback* mqtt_cb;
     mqtt::connect_options mqtt_opt;
+    mqtt::ssl_options mqtt_ssl_opt;
     std::string mqtt_uuid;
     int mqtt_uuid_bytes;
 public:
-    std::string MQTT_HOST = "emqx.bambooolab.com:1883";
+    std::string MQTT_HOST = "ssl://47.100.225.51:8883";
     const int MQTT_QOS = 0;
 
     typedef std::function<void(int progress)> ProgressFn;

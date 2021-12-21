@@ -188,6 +188,15 @@ namespace Slic3r {
         mqtt_opt.set_connect_timeout(10);
         mqtt_opt.set_automatic_reconnect(3, 10);
 
+        mqtt_ssl_opt.ca_path(resources_dir() + "/cert");
+        std::string key_store = resources_dir() + "/cert/slicer.crt";
+        std::string trust_store = resources_dir() + "/cert/slicer_chain.crt";
+        std::string private_key = resources_dir() + "/cert/slicer_pri.pem";
+        mqtt_ssl_opt.set_key_store(key_store);
+        mqtt_ssl_opt.set_trust_store(trust_store);
+        mqtt_ssl_opt.set_private_key(private_key);
+        mqtt_opt.set_ssl(mqtt_ssl_opt);
+
         m_curr_user = nullptr;
 
         std::time_t t = std::time(0);
@@ -205,6 +214,8 @@ namespace Slic3r {
 
     AccountManager::~AccountManager()
     {
+        if (mqtt_cli->is_connected())
+            mqtt_cli->disconnect();
         Http::disable_log();
     }
 
@@ -253,10 +264,10 @@ namespace Slic3r {
             }
             boost::uuids::uuid uuid = boost::uuids::random_generator()();
             mqtt_uuid = to_string(uuid).substr(0, mqtt_uuid_bytes);
-            std::string client_id = (boost::format("%1%:%2%") % m_curr_user->m_user_id % mqtt_uuid).str();
+            std::string client_id = (boost::format("slicer:%1%:%2%") % m_curr_user->m_user_id % mqtt_uuid).str();
 
             // update mqtt user_name and password
-            mqtt_opt.set_user_name(m_curr_user->m_user_id);
+            mqtt_opt.set_user_name((boost::format("u_%1%") % m_curr_user->m_user_id).str());
             mqtt_opt.set_password(m_curr_user->get_token());
             mqtt_cli = new mqtt::async_client(MQTT_HOST, client_id);
             mqtt_cb = new cloud_conn_callback(*mqtt_cli, mqtt_opt, this);
