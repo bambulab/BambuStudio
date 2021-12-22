@@ -360,7 +360,10 @@ void Model::collect_reusable_objects(std::vector<ObjectBase*>& objects)
         objects.push_back(model_object);
         for (ModelVolume* model_volume : model_object->volumes)
             objects.push_back(model_volume);
-        model_object->clear_instances();
+        std::transform(model_object->volumes.begin(),
+                       model_object->volumes.end(),
+                       std::back_inserter(model_object->volume_ids),
+                       std::mem_fn(&ObjectBase::id));
     }
     // we never own these objects 
     this->objects.clear();
@@ -722,9 +725,6 @@ bool Model::is_mm_painted() const
 
 ModelObject::~ModelObject()
 {
-    // BBS: reuse object, if we have no instance, we don't own volumes too
-    if (instances.empty())
-        return;
     this->clear_volumes();
     this->clear_instances();
 }

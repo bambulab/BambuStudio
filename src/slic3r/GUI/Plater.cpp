@@ -2344,7 +2344,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
             std::string last_backup = last;
             std::string originfile;
             if (Slic3r::has_restore_data(last_backup, originfile)) {
-                auto result = wxMessageDialog(this->q, _L("Previous unsaved project detected, do you wan't to restore it?"), wxString(SLIC3R_APP_NAME) + " - " + _L("Restore"), wxYES_NO | wxYES_DEFAULT | wxCENTRE).ShowModal();
+                auto result = wxMessageDialog(this->q, _L("Previous unsaved project detected, do you want to restore it?"), wxString(SLIC3R_APP_NAME) + " - " + _L("Restore"), wxYES_NO | wxYES_DEFAULT | wxCENTRE).ShowModal();
                 if (result == wxID_YES) {
                     this->q->load_project(from_path(last_backup), from_path(originfile));
                     Slic3r::backup_soon();
@@ -6656,7 +6656,7 @@ bool GUI::Plater::close_with_confirm(std::function<bool(void)> second_check)
         return true;
     }
 
-    auto result = wxMessageDialog(static_cast<wxWindow*>(this), _L("These are modifies in current project，save it before continue?"), 
+    auto result = wxMessageDialog(static_cast<wxWindow*>(this), _L("There are modifies in current project，save it before continue?"), 
         wxString(SLIC3R_APP_NAME) + " - " + _L("Save"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE).ShowModal();
     if (result == wxID_CANCEL)
         return false;

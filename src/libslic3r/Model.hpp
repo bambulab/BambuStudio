@@ -281,6 +281,9 @@ public:
         when user expects that. */
     Vec3d                   origin_translation;
 
+    // BBS: save for compare with new load volumes
+    std::vector<ObjectID>   volume_ids;
+
     Model*                  get_model() { return m_model; }
     const Model*            get_model() const { return m_model; }
 
@@ -515,9 +518,6 @@ private:
         Internal::StaticSerializationWrapper<LayerHeightProfile> layer_heigth_profile_wrapper(layer_height_profile);
         // BBS: add backup, check modify
         SaveObjectGaurd gaurd(*this);
-        std::vector<ObjectID> volume_ids;
-        std::transform(volumes.begin(), volumes.end(), std::back_inserter(volume_ids), std::mem_fn(&ObjectBase::id));
-        volumes.clear();
         ar(name, module_name, input_file, instances, volumes, config_wrapper, layer_config_ranges, layer_heigth_profile_wrapper,
             sla_support_points, sla_points_status, sla_drain_holes, printable, origin_translation,
             m_bounding_box, m_bounding_box_valid, m_raw_bounding_box, m_raw_bounding_box_valid, m_raw_mesh_bounding_box, m_raw_mesh_bounding_box_valid);
@@ -525,6 +525,7 @@ private:
         std::transform(volumes.begin(), volumes.end(), std::back_inserter(volume_ids2), std::mem_fn(&ObjectBase::id));
         if (volume_ids != volume_ids2)
             Slic3r::save_object_mesh(*this);
+        volume_ids.clear();
     }
 };
 

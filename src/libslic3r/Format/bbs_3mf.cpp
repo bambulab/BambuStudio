@@ -2895,7 +2895,8 @@ namespace Slic3r {
                                             thumbnail_data, proFn);
         if (result) {
             boost::filesystem::rename(filename + ".tmp", filename, ec);
-            boost::filesystem::save_string_file(model.get_backup_path() + "/origin.txt", filename);
+            if (!skip_static)
+                boost::filesystem::save_string_file(model.get_backup_path() + "/origin.txt", filename);
         }
         return result;
     }
@@ -4473,10 +4474,14 @@ private:
                 m_other_changes_backup = false;
                 break;
             }
-            case AddObject: {
+            case AddObject:
                 m_temp_model.delete_object(t.object);
                 break;
-            }
+            case RemoveBackup:
+                if (t.id) { // remove all
+                    boost::filesystem::remove_all(t.path);
+                }
+                break;
         }
     }
 
@@ -4511,13 +4516,8 @@ private:
                 try {
                     boost::filesystem::remove(t.path + "/.3mf");
                     boost::filesystem::remove(t.path + "/lock.txt");
-                    if (t.id) { // remove all
-                        boost::filesystem::remove_all(t.path);
-                    }
                 }
-                catch (...) {
-
-                }
+                catch (...) {}
             }
         }
     }
@@ -4694,9 +4694,6 @@ bool has_restore_data(std::string & path, std::string& origin)
         origin = "<lock>";
         return false;
     }
-    std::string file3mf = path + "/.3mf";
-    if (!boost::filesystem::exists(file3mf))
-        return false;
     if (boost::filesystem::exists(path + "/lock.txt")) {
         std::string pid;
         boost::filesystem::load_string_file(path + "/lock.txt", pid);
@@ -4711,6 +4708,9 @@ bool has_restore_data(std::string & path, std::string& origin)
             return false;
         }
     }
+    std::string file3mf = path + "/.3mf";
+    if (!boost::filesystem::exists(file3mf))
+        return false;
     if (!boost::filesystem::exists(path + "/object_map.txt"))
         return false;
     try {
