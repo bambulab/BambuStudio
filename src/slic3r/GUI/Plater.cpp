@@ -7339,6 +7339,12 @@ int Plater::delete_plate(int plate_index)
     return ret;
 }
 
+//BBS: set bed positions
+void Plater::set_bed_position(Vec2d& pos)
+{
+    p->bed.set_position(pos);
+}
+
 #if ENABLE_ENVIRONMENT_MAP
 void Plater::init_environment_texture()
 {

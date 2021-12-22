@@ -809,10 +809,10 @@ bool PartPlate::contains(const BoundingBoxf3& bb) const
 	// Allow the objects to protrude below the print bed
 	BoundingBoxf3 print_volume(Vec3d(m_bounding_box.min(0), m_bounding_box.min(1), 0.0), Vec3d(m_bounding_box.max(0), m_bounding_box.max(1), 1e3));
 	print_volume.min(2) = -1e10;
-	print_volume.min(0) -= BedEpsilon;
-	print_volume.min(1) -= BedEpsilon;
-	print_volume.max(0) += BedEpsilon;
-	print_volume.max(1) += BedEpsilon;
+	print_volume.min(0) -= Slic3r::BuildVolume::BedEpsilon;
+	print_volume.min(1) -= Slic3r::BuildVolume::BedEpsilon;
+	print_volume.max(0) += Slic3r::BuildVolume::BedEpsilon;
+	print_volume.max(1) += Slic3r::BuildVolume::BedEpsilon;
 	return print_volume.contains(bb);
 }
 
@@ -821,10 +821,10 @@ bool PartPlate::intersects(const BoundingBoxf3& bb) const
 	// Allow the objects to protrude below the print bed
 	BoundingBoxf3 print_volume(Vec3d(m_bounding_box.min(0), m_bounding_box.min(1), 0.0), Vec3d(m_bounding_box.max(0), m_bounding_box.max(1), 1e3));
 	print_volume.min(2) = -1e10;
-	print_volume.min(0) -= BedEpsilon;
-	print_volume.min(1) -= BedEpsilon;
-	print_volume.max(0) += BedEpsilon;
-	print_volume.max(1) += BedEpsilon;
+	print_volume.min(0) -= Slic3r::BuildVolume::BedEpsilon;
+	print_volume.min(1) -= Slic3r::BuildVolume::BedEpsilon;
+	print_volume.max(0) += Slic3r::BuildVolume::BedEpsilon;
+	print_volume.max(1) += Slic3r::BuildVolume::BedEpsilon;
 	return print_volume.intersects(bb);
 }
 
@@ -1316,7 +1316,7 @@ int PartPlateList::select_plate(int index)
 	if (m_intialized && m_plater) {
 		double stride = plate_stride();
 		Vec2d pos = { stride * index, 0.0 };
-		m_plater->get_bed().set_position(pos);
+        m_plater->set_bed_position(pos);
 	}
 
 	return 0;
@@ -2059,7 +2059,7 @@ int PartPlateList::rebuild_plates_after_deserialize()
 	//update the bed's position
 	double stride = plate_stride();
 	Vec2d pos = { stride * m_current_plate, 0.0 };
-	m_plater->get_bed().set_position(pos);
+	m_plater->set_bed_position(pos);
 
 	//not used
 	/*if (m_plate_width == 0)

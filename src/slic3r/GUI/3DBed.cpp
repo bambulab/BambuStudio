@@ -176,13 +176,23 @@ bool Bed3D::set_shape(const Pointfs& bed_shape, const double max_print_height, c
         model_filename.clear();
     }
 
-    
+    //BBS: add position related logic
     if (m_build_volume.bed_shape() == bed_shape && m_build_volume.max_print_height() == max_print_height && m_type == type && m_texture_filename == texture_filename && m_model_filename == model_filename && position == m_position)
         // No change, no need to update the UI.
         return false;
 
+    //BBS: add part plate logic, apply position to bed shape
+    if ((position(0) != 0) || (position(1) != 0)) {
+        Pointfs new_bed_shape;
+        for (const Vec2d& p : bed_shape) {
+            Vec2d point(p(0) + m_position.x(), p(1) + m_position.y());
+            new_bed_shape.push_back(point);
+        }
+        m_build_volume = BuildVolume { new_bed_shape, max_print_height };
+    }
+    else
+        m_build_volume = BuildVolume { bed_shape, max_print_height };
     m_type = type;
-    m_build_volume = BuildVolume { bed_shape, max_print_height };
     m_texture_filename = texture_filename;
     m_model_filename = model_filename;
     m_extended_bounding_box = this->calc_extended_bounding_box();
@@ -223,9 +233,10 @@ bool Bed3D::set_shape(const Pointfs& bed_shape, const double max_print_height, c
     return true;
 }
 
+//BBS: add api to set position for partplate related bed
 void Bed3D::set_position(Vec2d& position)
 {
-    set_shape(m_build_volume.bed_shape(), m_texture_filename, m_model_filename, false, position, false);
+    set_shape(m_build_volume.bed_shape(), m_build_volume.max_print_height(), m_texture_filename, m_model_filename, false, position, false);
 }
 
 void Bed3D::set_axes_mode(bool origin)

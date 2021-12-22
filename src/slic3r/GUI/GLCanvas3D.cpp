@@ -1140,14 +1140,14 @@ BoundingBoxf3 GLCanvas3D::_get_current_partplate_print_volume()
         BoundingBoxf3 print_volume({ plate_bb.min(0), plate_bb.min(1), 0.0 }, { plate_bb.max(0), plate_bb.max(1), m_config->opt_float("max_print_height") });
         // Allow the objects to protrude below the print bed
         print_volume.min(2) = -1e10;
-        print_volume.min(0) -= BedEpsilon;
-        print_volume.min(1) -= BedEpsilon;
-        print_volume.max(0) += BedEpsilon;
-        print_volume.max(1) += BedEpsilon;
+        print_volume.min(0) -= Slic3r::BuildVolume::BedEpsilon;
+        print_volume.min(1) -= Slic3r::BuildVolume::BedEpsilon;
+        print_volume.max(0) += Slic3r::BuildVolume::BedEpsilon;
+        print_volume.max(1) += Slic3r::BuildVolume::BedEpsilon;
         test_volume = print_volume;
     }
     else
-        test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
+        test_volume = BoundingBoxf3();
 
     return test_volume;
 }

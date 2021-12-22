@@ -367,6 +367,8 @@ public:
     int select_plate_by_hover_id(int hover_id);
     //BBS: delete the plate, index= -1 means the current plate
     int delete_plate(int plate_index = -1);
+    //BBS: set bed positions
+    void set_bed_position(Vec2d& pos);
 
 #if ENABLE_ENVIRONMENT_MAP
     void init_environment_texture();
