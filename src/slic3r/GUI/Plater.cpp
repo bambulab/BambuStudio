@@ -6538,6 +6538,9 @@ bool Plater::load_files(const wxArrayString& filenames)
                         int choice = dlg.get_action();
                         load_type = static_cast<LoadType>(choice);
                         wxGetApp().app_config->set("drop_project_action", std::to_string(choice));
+
+                        // BBS: jump to plater panel
+                        wxGetApp().mainframe->select_tab(size_t(0));
                     }
                 }
                 else
