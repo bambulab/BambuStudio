@@ -2289,20 +2289,53 @@ static Vec3d calc_plane_normal(const std::array<Vec3d, 4>& plane_points)
 
 void cut_mesh(const indexed_triangle_set& mesh, std::array<Vec3d, 4> plane_points, indexed_triangle_set* upper, indexed_triangle_set* lower, bool triangulate_caps)
 {
+    assert(upper || lower);
+    if (upper == nullptr && lower == nullptr)
+        return;
+
+    BOOST_LOG_TRIVIAL(trace) << "cut_mesh - slicing object";
+
     Vec3d plane_normal = calc_plane_normal(plane_points);
     if (std::abs(plane_normal(0)) < EPSILON && std::abs(plane_normal(1)) < EPSILON) {
         cut_mesh(mesh, plane_points[0](2), upper, lower);
         return;
     }
 
+    Vec3d mid_point = { 0.0, 0.0, 0.0 };
+    for (auto pt : plane_points)
+        mid_point += pt;
+    mid_point /= (double)plane_points.size();
+    BoundingBox3Base<stl_vertex> mesh_bbox(mesh.vertices);
+    Vec3d movement = mesh_bbox.center() - mid_point;
+    if (plane_normal(2) < 0.0) {
+        movement *= -1.0;
+    }
+
+    Vec3d axis = { 0.0, 0.0, 0.0 };
+    double phi = 0.0;
+    Matrix3d matrix;
+    matrix.setIdentity();
+    Geometry::rotation_from_two_vectors(plane_normal, { 0.0, 0.0, 1.0 }, axis, phi, &matrix);
+    Vec3d angles = Geometry::extract_euler_angles(matrix);
+
+    movement = matrix * movement;
+    Transform3d transfo;
+    transfo.setIdentity();
+    transfo.rotate(Eigen::AngleAxisd(angles(2), Vec3d::UnitZ()) * Eigen::AngleAxisd(angles(1), Vec3d::UnitY()) * Eigen::AngleAxisd(angles(0), Vec3d::UnitX()));
+    transfo.translate(movement);
+    
+    indexed_triangle_set mesh_temp = mesh;
+    its_transform(mesh_temp, transfo);
+    cut_mesh(mesh_temp, 0., upper, lower);
+
+    
+    Transform3d transfo_inv = transfo.inverse();
     if (upper) {
-        std::array<Vec3d, 4> plane_points_reverse = plane_points;
-        std::reverse(plane_points_reverse.begin(), plane_points_reverse.end());
-        *upper = MeshBoolean::cgal::clip(*this->mesh, plane_points_reverse);
+        its_transform(*upper, transfo_inv);
     }
 
     if (lower) {
-        *lower = MeshBoolean::cgal::clip(*this->mesh, plane_points);
+        its_transform(*lower, transfo_inv);
     }
 }
 
