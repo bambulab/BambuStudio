@@ -6,7 +6,7 @@
 #include "Flow.hpp"
 
 namespace Slic3r {
-    void variable_width(const ThickPolylines& polylines, ExtrusionRole role, Flow flow, std::vector<ExtrusionEntity*>& out);
+    void variable_width(const ThickPolylines& polylines, ExtrusionRole role, const Flow& flow, std::vector<ExtrusionEntity*>& out);
 }
 
 #endif

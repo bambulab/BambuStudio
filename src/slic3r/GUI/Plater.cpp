@@ -2371,7 +2371,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     }
 
     // Initialize the Undo / Redo stack with a first snapshot.
-    this->take_snapshot(_L("New Project"), UndoRedo::SnapshotType::ProjectSeparator);
+    //this->take_snapshot(_L("New Project"), UndoRedo::SnapshotType::ProjectSeparator);
     // Reset the "dirty project" flag.
     m_undo_redo_stack_main.mark_current_as_saved();
     dirty_state.update_from_undo_redo_stack(false);

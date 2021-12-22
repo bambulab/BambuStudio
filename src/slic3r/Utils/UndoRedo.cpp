@@ -639,7 +639,9 @@ public:
 
 #ifndef NDEBUG
 	bool valid() const {
-		assert(! m_snapshots.empty());
+		//assert(! m_snapshots.empty());
+		if (m_snapshots.empty())
+			return false;
 		assert(m_snapshots.back().is_topmost());
 		auto it = std::lower_bound(m_snapshots.begin(), m_snapshots.end(), Snapshot(m_active_snapshot_time));
 		assert(it != m_snapshots.begin() && it != m_snapshots.end() && it->timestamp == m_active_snapshot_time);
@@ -1016,7 +1018,10 @@ void StackImpl::load_snapshot(size_t timestamp, Slic3r::Model& model, Slic3r::GU
 
 bool StackImpl::has_undo_snapshot() const
 { 
-	assert(this->valid());
+	//assert(this->valid());
+	if (!this->valid())
+		return false;
+
 	auto it = std::lower_bound(m_snapshots.begin(), m_snapshots.end(), Snapshot(m_active_snapshot_time));
 	return -- it != m_snapshots.begin();
 }
@@ -1028,7 +1033,9 @@ bool StackImpl::has_undo_snapshot(size_t time_to_load) const
 
 bool StackImpl::has_redo_snapshot() const
 {
-	assert(this->valid());
+	//assert(this->valid());
+	if (!this->valid())
+		return false;
 	auto it = std::lower_bound(m_snapshots.begin(), m_snapshots.end(), Snapshot(m_active_snapshot_time));
 	return ++ it != m_snapshots.end();
 }

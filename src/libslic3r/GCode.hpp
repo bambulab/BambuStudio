@@ -195,6 +195,8 @@ public:
 
             if (tree_support_layer != nullptr)
                 return tree_support_layer;
+
+            return nullptr;
         }
         const PrintObject* 	object()  const { return (this->layer() != nullptr) ? this->layer()->object() : nullptr; }
         coordf_t            print_z() const

@@ -64,7 +64,7 @@ struct FillParams
     bool        complete 		{ false };
 
     // BBS
-    Flow            flow{ 0, 0, 0 };
+    Flow            flow;
     ExtrusionRole   extrusion_role{ ExtrusionRole(0) };
     bool            using_internal_flow{ false };
 };

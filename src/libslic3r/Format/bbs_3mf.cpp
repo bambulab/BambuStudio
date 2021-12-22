@@ -2694,7 +2694,7 @@ namespace Slic3r {
             if (volume == nullptr)
                 continue;
 
-			if (!volume->mesh().repaired())
+			if (!volume->mesh().stats().repaired())
 				throw Slic3r::FileIOError("store_3mf() requires repair()");
 
             volumes_offsets.insert({ volume, Offsets(vertices_count) });
