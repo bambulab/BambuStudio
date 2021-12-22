@@ -28,8 +28,12 @@
 #include "TopExp_Explorer.hxx"
 #include "BRep_Tool.hxx"
 
-const double STEP_TRANS_CHORD_ERROR = 0.003;
-const double STEP_TRANS_ANGLE_RES = 0.4;
+const double STEP_TRANS_CHORD_ERROR = 0.0012;
+const double STEP_TRANS_ANGLE_RES = 0.12;
+
+const int LOAD_STEP_STAGE_READ_FILE          = 0;
+const int LOAD_STEP_STAGE_GET_SOLID          = 1;
+const int LOAD_STEP_STAGE_GET_MESH           = 2;
 
 namespace Slic3r {
 
@@ -72,27 +76,43 @@ static void getNamedSolids(const TopLoc_Location& location, const std::string& p
     }
 }
 
-bool load_step(const char *path, Model *model)
+bool load_step(const char *path, Model *model, ImportStepProgressFn proFn)
 {
-    std::vector<NamedSolid> namedSolids;
+    bool cb_cancel = false;
+    if (proFn) {
+        proFn(LOAD_STEP_STAGE_READ_FILE, 0, 1, cb_cancel);
+        if (cb_cancel)
+            return false;
+    }
 
+    std::vector<NamedSolid> namedSolids;
     Handle(TDocStd_Document) document;
     Handle(XCAFApp_Application) application = XCAFApp_Application::GetApplication();
     application->NewDocument(path, document);
     STEPCAFControl_Reader reader;
     reader.SetNameMode(true);
+    //BBS: Todo, read file is slow which cause the progress_bar no update and gui no response
     IFSelect_ReturnStatus stat = reader.ReadFile(path);
     if (stat != IFSelect_RetDone || !reader.Transfer(document)) {
         application->Close(document);
         throw std::logic_error{ std::string{"Could not read '"} + path + "'" };
         return false;
     }
-
     Handle(XCAFDoc_ShapeTool) shapeTool = XCAFDoc_DocumentTool::ShapeTool(document->Main());
     TDF_LabelSequence topLevelShapes;
     shapeTool->GetFreeShapes(topLevelShapes);
+
     unsigned int id{1};
-    for (Standard_Integer iLabel = 1; iLabel <= topLevelShapes.Length(); ++iLabel) {
+    Standard_Integer topShapeLength = topLevelShapes.Length() + 1;
+    for (Standard_Integer iLabel = 1; iLabel < topShapeLength; ++iLabel) {
+        if (proFn) {
+            proFn(LOAD_STEP_STAGE_GET_SOLID, iLabel, topShapeLength, cb_cancel);
+            if (cb_cancel) {
+                shapeTool.reset(nullptr);
+                application->Close(document);
+                return false;
+            }
+        }
         getNamedSolids(TopLoc_Location{}, "", id, shapeTool, topLevelShapes.Value(iLabel), namedSolids);
     }
 
@@ -101,27 +121,33 @@ bool load_step(const char *path, Model *model)
     new_object->name.assign((last_slash == nullptr) ? path : last_slash + 1);
     new_object->input_file = path;
 
-    for (int i = 0; i < namedSolids.size(); i++) {
-        BRepMesh_IncrementalMesh mesh(namedSolids[i].solid, STEP_TRANS_CHORD_ERROR, true, STEP_TRANS_ANGLE_RES, true);
+    for (size_t i = 0; i < namedSolids.size(); ++i) {
+        if (proFn) {
+            proFn(LOAD_STEP_STAGE_GET_MESH, i, namedSolids.size(), cb_cancel);
+            if (cb_cancel) {
+                model->delete_object(new_object);
+                shapeTool.reset(nullptr);
+                application->Close(document);
+                return false;
+            }
+        }
 
+        BRepMesh_IncrementalMesh mesh(namedSolids[i].solid, STEP_TRANS_CHORD_ERROR, true, STEP_TRANS_ANGLE_RES, true);
         //BBS: calculate total number of the nodes and triangles
         int aNbNodes = 0;
         int aNbTriangles = 0;
-        for (TopExp_Explorer anExpSF (namedSolids[i].solid, TopAbs_FACE); anExpSF.More(); anExpSF.Next()) {
+        for (TopExp_Explorer anExpSF(namedSolids[i].solid, TopAbs_FACE); anExpSF.More(); anExpSF.Next()) {
             TopLoc_Location aLoc;
-            Handle(Poly_Triangulation) aTriangulation = BRep_Tool::Triangulation (TopoDS::Face (anExpSF.Current()), aLoc);
-            if (! aTriangulation.IsNull()) {
-                aNbNodes += aTriangulation->NbNodes ();
-                aNbTriangles += aTriangulation->NbTriangles ();
+            Handle(Poly_Triangulation) aTriangulation = BRep_Tool::Triangulation(TopoDS::Face(anExpSF.Current()), aLoc);
+            if (!aTriangulation.IsNull()) {
+                aNbNodes += aTriangulation->NbNodes();
+                aNbTriangles += aTriangulation->NbTriangles();
             }
         }
 
         if (aNbTriangles == 0) {
             //BBS: No triangulation on the shape.
-            model->delete_object(new_object);
-            shapeTool.reset(nullptr);
-            application->Close(document);
-            return false;
+            continue;
         }
 
         Pointf3s points;
@@ -133,10 +159,10 @@ bool load_step(const char *path, Model *model)
         //BBS: fill temporary triangulation
         Standard_Integer aNodeOffset = 0;
         Standard_Integer aTriangleOffet = 0;
-        for (TopExp_Explorer anExpSF (namedSolids[i].solid, TopAbs_FACE); anExpSF.More(); anExpSF.Next()) {
+        for (TopExp_Explorer anExpSF(namedSolids[i].solid, TopAbs_FACE); anExpSF.More(); anExpSF.Next()) {
             const TopoDS_Shape& aFace = anExpSF.Current();
             TopLoc_Location aLoc;
-            Handle(Poly_Triangulation) aTriangulation = BRep_Tool::Triangulation (TopoDS::Face (aFace), aLoc);
+            Handle(Poly_Triangulation) aTriangulation = BRep_Tool::Triangulation(TopoDS::Face(aFace), aLoc);
             if (aTriangulation.IsNull()) {
                 ++aNbFacesNoTri;
                 continue;
@@ -144,17 +170,17 @@ bool load_step(const char *path, Model *model)
             //BBS: copy nodes
             gp_Trsf aTrsf = aLoc.Transformation();
             for (Standard_Integer aNodeIter = 1; aNodeIter <= aTriangulation->NbNodes(); ++aNodeIter) {
-                gp_Pnt aPnt = aTriangulation->Node (aNodeIter);
-                aPnt.Transform (aTrsf);
+                gp_Pnt aPnt = aTriangulation->Node(aNodeIter);
+                aPnt.Transform(aTrsf);
                 points.emplace_back(std::move(Vec3d(aPnt.X(), aPnt.Y(), aPnt.Z())));
             }
             //BBS: copy triangles
             const TopAbs_Orientation anOrientation = anExpSF.Current().Orientation();
             for (Standard_Integer aTriIter = 1; aTriIter <= aTriangulation->NbTriangles(); ++aTriIter) {
-                Poly_Triangle aTri = aTriangulation->Triangle (aTriIter);
+                Poly_Triangle aTri = aTriangulation->Triangle(aTriIter);
 
                 Standard_Integer anId[3];
-                aTri.Get (anId[0], anId[1], anId[2]);
+                aTri.Get(anId[0], anId[1], anId[2]);
                 if (anOrientation == TopAbs_REVERSED) {
                     //BBS: swap 1, 2.
                     Standard_Integer aTmpIdx = anId[1];
@@ -171,17 +197,13 @@ bool load_step(const char *path, Model *model)
             aNodeOffset += aTriangulation->NbNodes();
             aTriangleOffet += aTriangulation->NbTriangles();
         }
-        TriangleMesh triagle_mesh(points, facets);
-        triagle_mesh.repair();
-        if (triagle_mesh.facets_count() == 0) {
-            // BBS: die "This step file couldn't be read because has invalid solid object.\n"
-            model->delete_object(new_object);
-            shapeTool.reset(nullptr);
-            application->Close(document);
-            return false;
-        }
 
-        ModelVolume *new_volume = new_object->add_volume(std::move(triagle_mesh));
+        TriangleMesh triangle_mesh(points, facets);
+        triangle_mesh.repair();
+        if (triangle_mesh.facets_count() == 0) {
+            continue;
+        }
+        ModelVolume* new_volume = new_object->add_volume(std::move(triangle_mesh));
         new_volume->name = namedSolids[i].name;
         new_volume->source.input_file = path;
         new_volume->source.object_idx = (int)model->objects.size() - 1;
@@ -190,6 +212,12 @@ bool load_step(const char *path, Model *model)
 
     shapeTool.reset(nullptr);
     application->Close(document);
+
+    //BBS: no valid shape from the step, delete the new object as well
+    if (new_object->volumes.size() == 0) {
+        model->delete_object(new_object);
+        return false;
+    }
 
     return true;
 }

@@ -2740,8 +2740,15 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             else {
                 //BBS: add plate data related logic
                 PlateDataPtrs plate_data;
-
-                model = Slic3r::Model::read_from_file(path.string(), nullptr, nullptr, only_if(load_config, Model::LoadAttribute::CheckVersion), &plate_data);
+                bool is_bbs_3mf;
+                model = Slic3r::Model::read_from_file(path.string(), nullptr, nullptr, only_if(load_config, Model::LoadAttribute::CheckVersion), &plate_data,
+                &is_bbs_3mf, nullptr,
+                [progress_dlg, filename, progress_percent](int import_stage, int current, int total, bool &cancel) {
+                    bool cont = true;
+                    wxString msg = wxString::Format("Loading file: %s, stage %d, %d/%d", from_path(filename), import_stage, current, total);
+                    cont = progress_dlg->Update(progress_percent, msg);
+                    cancel = !cont;
+                });
                 for (auto obj : model.objects)
                     if (obj->name.empty())
                         obj->name = fs::path(obj->input_file).filename().string();

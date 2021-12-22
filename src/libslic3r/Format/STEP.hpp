@@ -6,8 +6,10 @@ namespace Slic3r {
 class TriangleMesh;
 class ModelObject;
 
+typedef std::function<void(int load_stage, int current, int total, bool& cancel)> ImportStepProgressFn;
+
 //BBS: Load an step file into a provided model.
-extern bool load_step(const char *path, Model *model);
+extern bool load_step(const char *path, Model *model, ImportStepProgressFn proFn = nullptr);
 
 }; // namespace Slic3r
 

@@ -16,6 +16,8 @@
 
 //BBS: add bbs 3mf
 #include "Format/bbs_3mf.hpp"
+//BBS: add step
+#include "Format/STEP.hpp"
 
 #include <map>
 #include <memory>
@@ -1179,7 +1181,8 @@ public:
     static Model read_from_file(
         const std::string& input_file, 
         DynamicPrintConfig* config = nullptr, ConfigSubstitutionContext* config_substitutions = nullptr,
-        LoadAttributes options = LoadAttribute::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr, bool* is_bbl_3mf = nullptr, Import3mfProgressFn proFn = nullptr);
+        LoadAttributes options = LoadAttribute::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr,
+        bool* is_bbl_3mf = nullptr, Import3mfProgressFn proFn = nullptr, ImportStepProgressFn stepFn = nullptr);
     // BBS: backup
     static Model read_from_archive(
         const std::string& input_file, 
