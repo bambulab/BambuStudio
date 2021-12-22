@@ -2104,7 +2104,7 @@ Polygons project_mesh(
     return union_(top.front(), bottom.back());
 }
 
-void cut_mesh(const indexed_triangle_set &mesh, std::array<Vec3d, 4> plane_points, indexed_triangle_set *upper, indexed_triangle_set *lower, bool triangulate_caps)
+void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* upper, indexed_triangle_set* lower, bool triangulate_caps)
 {
     assert(upper || lower);
     if (upper == nullptr && lower == nullptr)
@@ -2112,17 +2112,6 @@ void cut_mesh(const indexed_triangle_set &mesh, std::array<Vec3d, 4> plane_point
 
     BOOST_LOG_TRIVIAL(trace) << "cut_mesh - slicing object";
 
-    if (upper) {
-        std::array<Vec3d, 4> plane_points_reverse = plane_points;
-        std::reverse(plane_points_reverse.begin(), plane_points_reverse.end());
-        *lower = MeshBoolean::cgal::clip(*tmesh, plane_points_reverse);
-    }
-
-    if (lower) {
-        *upper = MeshBoolean::cgal::clip(mesh, plane_points);
-    }
-
-#if 0
     if (upper) {
         upper->clear();
         upper->vertices = mesh.vertices;
@@ -2285,7 +2274,37 @@ void cut_mesh(const indexed_triangle_set &mesh, std::array<Vec3d, 4> plane_point
         }
 #endif // NDEBUG
     }
-#endif
 }
+
+// BBS: implement plane cut with cgal
+static Vec3d calc_plane_normal(const std::array<Vec3d, 4>& plane_points)
+{
+    Vec3d v01 = plane_points[1] - plane_points[0];
+    Vec3d v12 = plane_points[2] - plane_points[1];
+
+    Vec3d plane_normal = v01.cross(v12);
+    plane_normal.normalize();
+    return plane_normal;
+}
+
+void cut_mesh(const indexed_triangle_set& mesh, std::array<Vec3d, 4> plane_points, indexed_triangle_set* upper, indexed_triangle_set* lower, bool triangulate_caps)
+{
+    Vec3d plane_normal = calc_plane_normal(plane_points);
+    if (std::abs(plane_normal(0)) < EPSILON && std::abs(plane_normal(1)) < EPSILON) {
+        cut_mesh(mesh, plane_points[0](2), upper, lower);
+        return;
+    }
+
+    if (upper) {
+        std::array<Vec3d, 4> plane_points_reverse = plane_points;
+        std::reverse(plane_points_reverse.begin(), plane_points_reverse.end());
+        *upper = MeshBoolean::cgal::clip(*this->mesh, plane_points_reverse);
+    }
+
+    if (lower) {
+        *lower = MeshBoolean::cgal::clip(*this->mesh, plane_points);
+    }
+}
+
 
 } // namespace Slic3r

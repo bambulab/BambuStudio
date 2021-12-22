@@ -123,6 +123,13 @@ Polygons project_mesh(
     const Transform3d                &trafo,
     std::function<void()>             throw_on_cancel);
 
+void cut_mesh(
+    const indexed_triangle_set      &mesh,
+    float                            z,
+    indexed_triangle_set            *upper,
+    indexed_triangle_set            *lower,
+    bool                             triangulate_caps = true);
+
 // BBS
 void cut_mesh(
     const indexed_triangle_set      &mesh,

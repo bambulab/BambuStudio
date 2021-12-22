@@ -436,6 +436,9 @@ TriangleMesh clip(const TriangleMesh& mesh, const std::array<Vec3d, 4> plane_poi
     EpicKernel::Plane_3 cut_plane(plane_params(0), plane_params(1), plane_params(2), plane_params(3));
 
     MeshBoolean::cgal::triangle_mesh_to_cgal(mesh, in_cgal_mesh.m);
+    if (CGALProc::does_self_intersect(in_cgal_mesh.m)) {
+        throw Exception("Mesh self intersected\n");
+    }
     bool success = CGALProc::clip(in_cgal_mesh.m, cut_plane, cgal_params.clip_volume(true));
     return cgal_to_triangle_mesh_native(in_cgal_mesh.m);
 }
