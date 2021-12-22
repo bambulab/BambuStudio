@@ -1033,6 +1033,7 @@ GUI_App::GUI_App(EAppMode mode)
 	//app config initializes early becasuse it is used in instance checking in PrusaSlicer.cpp
 	this->init_app_config();
 
+
     //BBS
     this->init_http_extra_header();
 
@@ -2611,7 +2612,8 @@ void GUI_App::update_mode()
     for (auto tab : tabs_list)
         tab->update_mode();
 
-    plater()->update_menus();
+    //BBS plater()->update_menus();
+    
     plater()->canvas3D()->update_gizmos_on_off_state();
 }
 

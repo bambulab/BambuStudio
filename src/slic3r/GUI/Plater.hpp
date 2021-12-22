@@ -263,6 +263,10 @@ public:
     // Update the UI based on the current preferences.
     void update_ui_from_settings();
 
+    //BBS
+    void select_curr_plate_all();
+    void remove_curr_plate_all();
+
     void select_all();
     void deselect_all();
     void remove(size_t obj_idx);
@@ -552,6 +556,8 @@ public:
 
     //BBS: add popup logic for table object
     bool PopupObjectTable(int object_id, int volume_id, const wxPoint& position);
+    //BBS: popup selection at default position
+    bool PopupObjectTableBySelection();
 
     // get same Plater/ObjectList menus
     wxMenu* plate_menu();

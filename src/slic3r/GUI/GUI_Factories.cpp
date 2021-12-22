@@ -467,9 +467,6 @@ void MenuFactory::append_menu_item_delete(wxMenu* menu)
     append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDel", _L("Remove the selected object"),
         [](wxCommandEvent&) { plater()->remove_selected(); }, "delete", nullptr, 
         []() { return plater()->can_delete(); }, m_parent);
-
-    menu->AppendSeparator();
-
 }
 
 wxMenu* MenuFactory::append_submenu_add_generic(wxMenu* menu, ModelVolumeType type) {
@@ -501,7 +498,8 @@ void MenuFactory::append_menu_items_add_volume(wxMenu* menu)
             menu->Destroy(settings_id);
     }
 
-    const ConfigOptionMode mode = wxGetApp().get_mode();
+    //BBS set mode to expert by default
+    const ConfigOptionMode mode = comExpert;
 
     if (mode == comAdvanced) {
         append_menu_item(menu, wxID_ANY, _(ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::MODEL_PART)].first), "",
@@ -617,7 +615,8 @@ wxMenuItem* MenuFactory::append_menu_item_settings(wxMenu* menu_)
     const bool is_object_settings = !(item_type& itVolume || item_type & itLayer);
 
     // Add frequently settings
-    create_freq_settings_popupmenu(menu, is_object_settings, item);
+    // BBS remvoe freq setting popupmenu
+    // create_freq_settings_popupmenu(menu, is_object_settings, item);
 
     if (mode == comAdvanced)
         return nullptr;
@@ -717,25 +716,29 @@ void MenuFactory::append_menu_item_rename(wxMenu* menu)
 
 wxMenuItem* MenuFactory::append_menu_item_fix_through_netfabb(wxMenu* menu)
 {
-    if (!is_windows10())
-        return nullptr;
+    //BBS
+    /*if (!is_windows10())
+        return nullptr;*/
+
     wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _L("Fix through the Netfabb"), "",
         [](wxCommandEvent&) { obj_list()->fix_through_netfabb(); }, "", menu,
         []() {return plater()->can_fix_through_netfabb(); }, plater());
-    menu->AppendSeparator();
 
     return menu_item;
 }
 
-void MenuFactory::append_menu_item_export_stl(wxMenu* menu)
+
+void MenuFactory::append_menu_item_export_stl(wxMenu* menu, bool is_mulity_menu)
 {
     append_menu_item(menu, wxID_ANY, _L("Export as STL") + dots, "",
         [](wxCommandEvent&) { plater()->export_stl(false, true); }, "", nullptr,
-        []() {
+        [is_mulity_menu]() {
             const Selection& selection = plater()->canvas3D()->get_selection();
-            return selection.is_single_full_instance() || selection.is_single_full_object();
+            if (is_mulity_menu)
+                return selection.is_multiple_full_instance() || selection.is_multiple_full_object();
+            else
+                return selection.is_single_full_instance() || selection.is_single_full_object();
         }, m_parent);
-    menu->AppendSeparator();
 }
 
 void MenuFactory::append_menu_item_reload_from_disk(wxMenu* menu)
@@ -781,6 +784,7 @@ void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
 
         const wxString& item_name = (i == 0 ? _L("Default") : wxString::Format(_L("Extruder %d"), i)) +
             (is_active_extruder ? " (" + _L("active") + ")" : "");
+
 
         append_menu_item(extruder_selection_menu, wxID_ANY, item_name, "",
             [i](wxCommandEvent&) { obj_list()->set_extruder_for_selected_items(i); }, *icons[icon_idx], menu,
@@ -855,7 +859,6 @@ void MenuFactory::append_menu_items_convert_unit(wxMenu* menu, int insert_pos/* 
 
 void MenuFactory::append_menu_item_merge_to_multipart_object(wxMenu* menu)
 {
-    menu->AppendSeparator();
     append_menu_item(menu, wxID_ANY, _L("Merge"), _L("Merge objects to the one multipart object"),
         [](wxCommandEvent&) { obj_list()->merge(true); }, "", menu,
         []() { return obj_list()->can_merge_to_multipart_object(); }, m_parent);
@@ -973,6 +976,56 @@ void MenuFactory::create_object_menu()
     // "Add (volumes)" popupmenu will be added later in append_menu_items_add_volume()
 }
 
+void MenuFactory::create_bbl_object_menu()
+{
+    // Object Clone
+    append_menu_item_clone(&m_object_menu);
+    // Object Repair
+    append_menu_item_fix_through_netfabb(&m_object_menu);
+    // Object Simplify
+    append_menu_item_simplify(&m_object_menu);
+    // Object Split
+    wxMenu* split_menu = new wxMenu();
+    if (!split_menu)
+        return;
+    append_menu_item(split_menu, wxID_ANY, _L("To objects"), _L("Split the selected object into individual objects"),
+        [](wxCommandEvent&) { plater()->split_object(); }, "split_object_SMALL", &m_object_menu, 
+        []() { return plater()->can_split(true); }, m_parent);
+    append_menu_item(split_menu, wxID_ANY, _L("To parts"), _L("Split the selected object into individual parts"),
+        [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts_SMALL", &m_object_menu, 
+        []() { return plater()->can_split(false); }, m_parent);
+
+    append_submenu(&m_object_menu, split_menu, wxID_ANY, _L("Split"), _L("Split the selected object"), "",
+        []() { return plater()->can_split(true) && wxGetApp().get_mode() > comSimple; }, m_parent);
+
+    // Mirror
+    append_menu_items_mirror(&m_object_menu);
+    // Delete
+    append_menu_item_delete(&m_object_menu);
+    m_object_menu.AppendSeparator();
+    // Modifier Part
+    append_menu_items_add_volume(&m_object_menu);
+    m_object_menu.AppendSeparator();
+    // Set filament insert menu item here
+    // Set Printable
+    wxMenuItem* menu_item_printable = append_menu_item_printable(&m_object_menu);
+    // Enter per object parameters
+    append_menu_item_per_object_settings(&m_object_menu);
+    m_object_menu.AppendSeparator();
+    append_menu_item_export_stl(&m_object_menu);
+}
+
+void MenuFactory::create_bbl_assemble_object_menu()
+{
+    // Delete
+    append_menu_item_delete(&m_assemble_object_menu);
+    // Object Repair
+    append_menu_item_fix_through_netfabb(&m_assemble_object_menu);
+    // Object Simplify
+    append_menu_item_simplify(&m_assemble_object_menu);
+    m_assemble_object_menu.AppendSeparator();
+}
+
 void MenuFactory::create_sla_object_menu()
 {
     create_common_object_menu(&m_sla_object_menu);
@@ -1001,37 +1054,113 @@ void MenuFactory::create_part_menu()
     append_menu_item(menu, wxID_ANY, _L("Split"), _L("Split the selected object into individual parts"),
         [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts_SMALL", nullptr, 
         []() { return plater()->can_split(false); }, m_parent);
-
+     
     menu->AppendSeparator();
     append_menu_item_change_type(menu);
-
+    append_menu_items_mirror(&m_part_menu);
+    append_menu_item(&m_part_menu, wxID_ANY, _L("Split"), _L("Split the selected object into individual parts"),
+        [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts_SMALL", nullptr, 
+        []() { return plater()->can_split(false); }, m_parent);
+    m_part_menu.AppendSeparator();
+    append_menu_item_per_object_settings(&m_part_menu);
 }
 
-void MenuFactory::create_instance_menu()
+void MenuFactory::create_bbl_part_menu()
 {
-    wxMenu* menu = &m_instance_menu;
-    // create "Instance to Object" menu item
-    append_menu_item_instance_to_object(menu);
-    append_menu_item_printable(menu);
+    wxMenu* menu = &m_part_menu;
+
+    append_menu_item_delete(menu);
+    append_menu_item_fix_through_netfabb(menu);
+    append_menu_item_simplify(menu);
+    append_menu_items_mirror(menu);
+    wxMenu* split_menu = new wxMenu();
+    if (!split_menu)
+        return;
+
+    append_menu_item(split_menu, wxID_ANY, _L("To objects"), _L("Split the selected object into individual objects"),
+        [](wxCommandEvent&) { plater()->split_object(); }, "split_object_SMALL", menu, 
+        []() { return plater()->can_split(true); }, m_parent);
+    append_menu_item(split_menu, wxID_ANY, _L("To parts"), _L("Split the selected object into individual parts"),
+        [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts_SMALL", menu, 
+        []() { return plater()->can_split(false); }, m_parent);
+
+    append_submenu(menu, split_menu, wxID_ANY, _L("Split"), _L("Split the selected object"), "",
+        []() { return plater()->can_split(true) && wxGetApp().get_mode() > comSimple; }, m_parent);
+    menu->AppendSeparator();
+    append_menu_item_per_object_settings(menu);
+}
+
+void MenuFactory::create_bbl_assemble_part_menu()
+{
+    wxMenu* menu = &m_assemble_part_menu;
+
+    append_menu_item_delete(menu);
+    append_menu_item_simplify(menu);
+    menu->AppendSeparator();
 }
 
 //BBS: add part plate related logic
 void MenuFactory::create_plate_menu()
 {
     wxMenu* menu = &m_plate_menu;
-    append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDel", _L("Remove the selected plate"),
-        [](wxCommandEvent&) { plater()->delete_plate(); }, "delete", nullptr,
-        []() { return plater()->can_delete_plate(); }, m_parent);
+    // select objects on current plate
+    append_menu_item(menu, wxID_ANY, _L("Select All"), _L("select all objects on current plate"),
+        [](wxCommandEvent&) {
+            plater()->select_curr_plate_all();
+        }, "", nullptr, []() {
+            PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
+            assert(plate);
+            return plate->get_objects().empty();
+        }, plater());
 
-    menu->AppendSeparator();
+    // delete objects on current plate
+    append_menu_item(menu, wxID_ANY, _L("Delete All"), _L("delete all objects on current plate"),
+        [](wxCommandEvent&) {
+            plater()->remove_curr_plate_all();
+        }, "", nullptr, []() { 
+            PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
+            assert(plate);
+            return plate->get_objects().empty();
+        }, plater());
 
-    wxMenuItem* menu_item_locked = append_menu_check_item(menu, wxID_ANY, _L("Locked"), "",
+    // arrange objects on current plate
+    append_menu_item(menu, wxID_ANY, _L("Arrange"), _L("arrange current plate"),
+        [](wxCommandEvent&) {
+            PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
+            assert(plate);
+            plater()->set_prepare_state(Job::PREPARE_STATE_MENU);
+            plater()->arrange();
+        }, "", nullptr, []() {return true; }, plater());
+
+    // orient objects on current plate
+    append_menu_item(menu, wxID_ANY, _L("Auto Rotate"), _L("auto rorate current plate"),
+        [](wxCommandEvent&) {
+            PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
+            assert(plate);
+            //BBS TODO call auto rotate for current plate
+            plater()->set_prepare_state(Job::PREPARE_STATE_MENU);
+            plater()->orient();
+        }, "", nullptr, []() {return true; }, plater()); 
+    
+    // lock current plate
+    wxMenuItem* menu_item_locked = append_menu_check_item(menu, wxID_ANY, _L("Locked(Debug)"), "",
         [](wxCommandEvent&) {
             PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
             assert(plate);
             bool lock = plate->is_locked();
             plate->lock(!lock);
         }, menu);
+
+    // delete current plate
+    append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDel", _L("Remove the selected plate"),
+        [](wxCommandEvent&) { plater()->delete_plate(); }, "delete", nullptr,
+        []() { return plater()->can_delete_plate(); }, m_parent);
+
+    // add shapes
+    menu->AppendSeparator();
+    wxMenu* sub_menu = append_submenu_add_generic(menu, ModelVolumeType::INVALID);
+    append_submenu(menu, sub_menu, wxID_ANY, _L("Add Shape"), "", "add_part",
+        []() {return true; }, m_parent);
 
     m_parent->Bind(wxEVT_UPDATE_UI, [](wxUpdateUIEvent& evt) {
         PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
@@ -1041,30 +1170,7 @@ void MenuFactory::create_plate_menu()
         plater()->set_current_canvas_as_dirty();
 
         }, menu_item_locked->GetId());
-    menu->AppendSeparator();
-
-    append_menu_item(menu, wxID_ANY, _L("Arrange"), _L("arrange current plate"),
-        [](wxCommandEvent&) {
-            PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
-            assert(plate);
-            plater()->set_prepare_state(Job::PREPARE_STATE_MENU);
-            plater()->arrange();
-        }, "", nullptr, []() {return true; }, plater());
-
-    append_menu_item(menu, wxID_ANY, _L("Auto Rotate"), _L("auto rorate current plate"),
-        [](wxCommandEvent&) {
-            PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
-            assert(plate);
-            //BBS TODO call auto rotate for current plate
-            plater()->set_prepare_state(Job::PREPARE_STATE_MENU);
-            plater()->orient();
-        }, "", nullptr, []() {return true; }, plater());
-
-    menu->AppendSeparator();
-    wxMenu* sub_menu = append_submenu_add_generic(menu, ModelVolumeType::INVALID);
-    append_submenu(menu, sub_menu, wxID_ANY, _L("Add Shape"), "", "add_part",
-        []() {return true; }, m_parent);
-
+    
     return;
 }
 
@@ -1073,9 +1179,16 @@ void MenuFactory::init(wxWindow* parent)
     m_parent = parent;
 
     create_default_menu();
-    create_object_menu();
+    //BBS
+    //create_object_menu();
     create_sla_object_menu();
-    create_part_menu();
+    //create_part_menu();
+
+    create_bbl_object_menu();
+    create_bbl_part_menu();
+    create_bbl_assemble_object_menu();
+    create_bbl_assemble_part_menu();
+
     //BBS: add part plate related logic
     create_plate_menu();
 
@@ -1096,11 +1209,8 @@ wxMenu* MenuFactory::default_menu()
 
 wxMenu* MenuFactory::object_menu()
 {
-    append_menu_items_convert_unit(&m_object_menu, 11);
-    append_menu_item_settings(&m_object_menu);
-    append_menu_item_change_extruder(&m_object_menu);
-    //update_menu_items_instance_manipulation(mtObjectFFF);
-
+    append_menu_item_change_filament(&m_object_menu, 13);
+    append_menu_items_convert_unit(&m_object_menu, 16);
     return &m_object_menu;
 }
 
@@ -1115,10 +1225,9 @@ wxMenu* MenuFactory::sla_object_menu()
 
 wxMenu* MenuFactory::part_menu()
 {
-    append_menu_items_convert_unit(&m_part_menu, 2);
-    append_menu_item_settings(&m_part_menu);
-    append_menu_item_change_extruder(&m_part_menu);
-
+    append_menu_items_convert_unit(&m_part_menu, 4);
+    append_menu_item_change_filament(&m_part_menu, 8);
+    append_menu_item_per_object_settings(&m_part_menu);
     return &m_part_menu;
 }
 
@@ -1137,6 +1246,61 @@ wxMenu* MenuFactory::layer_menu()
 
 wxMenu* MenuFactory::multi_selection_menu()
 {
+    //BBS
+    wxDataViewItemArray sels;
+    obj_list()->GetSelections(sels);
+    bool multi_volume = true;
+
+    for (const wxDataViewItem& item : sels) {
+        multi_volume = list_model()->GetItemType(item) & itVolume;
+        if (!(list_model()->GetItemType(item) & (itVolume | itObject | itInstance)))
+            // show this menu only for Objects(Instances mixed with Objects)/Volumes selection
+            return nullptr;
+    }
+
+    wxMenu* menu = new MenuWithSeparators();
+    if (!multi_volume) {
+        if (obj_list()->can_merge_to_multipart_object())
+            append_menu_item_merge_to_multipart_object(menu);
+        append_menu_item_fix_through_netfabb(menu);
+        //BBS append_menu_item_simplify(menu);
+        append_menu_item_delete(menu);
+        menu->AppendSeparator();
+        //BBS
+        append_menu_item_change_filament(menu, 4);
+
+        append_menu_item_set_printable(menu);
+        menu->AppendSeparator();
+        append_menu_items_convert_unit(menu, 7);
+        menu->AppendSeparator();
+        append_menu_item_export_stl(menu, true);
+    }
+    else {
+        append_menu_item_fix_through_netfabb(menu);
+        // BBS append_menu_item_simplify(menu);
+        append_menu_item_delete(menu);
+        append_menu_items_convert_unit(menu, 3);
+        wxMenu* split_menu = new wxMenu();
+        if (split_menu) {
+            append_menu_item(split_menu, wxID_ANY, _L("To objects"), _L("Split the selected object into individual objects"),
+                [](wxCommandEvent&) { plater()->split_object(); }, "split_object_SMALL", menu, 
+                []() { return plater()->can_split(true); }, m_parent);
+            append_menu_item(split_menu, wxID_ANY, _L("To parts"), _L("Split the selected object into individual parts"),
+                [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts_SMALL", menu, 
+                []() { return plater()->can_split(false); }, m_parent);
+
+            append_submenu(menu, split_menu, wxID_ANY, _L("Split"), _L("Split the selected object"), "",
+                []() { return plater()->can_split(true) && wxGetApp().get_mode() > comSimple; }, m_parent);
+        }
+        menu->AppendSeparator();
+        append_menu_item_change_extruder(menu);
+        
+    }
+    return menu;
+}
+
+wxMenu* MenuFactory::assemble_multi_selection_menu()
+{
     wxDataViewItemArray sels;
     obj_list()->GetSelections(sels);
 
@@ -1146,21 +1310,35 @@ wxMenu* MenuFactory::multi_selection_menu()
             return nullptr;
 
     wxMenu* menu = new MenuWithSeparators();
-
-    append_menu_item_reload_from_disk(menu);
-    append_menu_items_convert_unit(menu);
-    if (obj_list()->can_merge_to_multipart_object())
-        append_menu_item_merge_to_multipart_object(menu);
-    if (extruders_count() > 1)
-        append_menu_item_change_extruder(menu);
-
+    append_menu_item_fix_through_netfabb(menu);
+    // BBS append_menu_item_simplify(menu);
+    append_menu_item_delete(menu);
+    menu->AppendSeparator();
+    append_menu_item_change_extruder(menu);
     return menu;
 }
+
 
 //BBS: add partplate related logic
 wxMenu* MenuFactory::plate_menu()
 {
     return &m_plate_menu;
+}
+
+wxMenu* MenuFactory::assemble_object_menu()
+{
+    // Set filament
+    append_menu_item_change_extruder(&m_assemble_object_menu);
+    // Enter per object parameters
+    append_menu_item_per_object_settings(&m_assemble_object_menu);
+    return &m_assemble_object_menu;
+}
+
+wxMenu* MenuFactory::assemble_part_menu()
+{
+    append_menu_item_change_extruder(&m_assemble_part_menu);
+    append_menu_item_per_object_settings(&m_assemble_part_menu);
+    return &m_assemble_part_menu;
 }
 
 #if 0
@@ -1213,6 +1391,119 @@ void MenuFactory::update_menu_items_instance_manipulation(MenuType type)
     }
 }
 #endif
+
+void MenuFactory::append_menu_item_clone(wxMenu* menu)
+{
+    append_menu_item(menu, wxID_ANY, _L("Clone") , "",
+        [this](wxCommandEvent&) {
+            long res = wxGetNumberFromUser("",
+                    _L("Enter copies number:"),
+                    _L("Input Clone Selected Number"),
+                    1, 0, 100, m_parent);
+                wxString msg;
+                if (res == -1) {
+                    msg = _L("Invalid number");
+                    return;
+                }
+            Selection& selection = plater()->canvas3D()->get_selection();
+            selection.clone(res);
+        }, "", nullptr,
+        []() {
+            return true;
+        }, m_parent);
+}
+
+void MenuFactory::append_menu_item_simplify(wxMenu* menu)
+{
+    wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _L("Simplify model"), "",
+        [](wxCommandEvent&) { obj_list()->simplify(); }, "", menu,
+        []() {return plater()->can_simplify(); }, m_parent);
+}
+
+void MenuFactory::append_menu_item_per_object_settings(wxMenu* menu)
+{
+    const std::vector<wxString> names = { _L("Per object edit"), _L("Edit each object print parameters") };
+    // Delete old menu item
+    for (const wxString& name : names) {
+        const int item_id = menu->FindItem(name);
+        if (item_id != wxNOT_FOUND)
+            menu->Destroy(item_id);
+    }
+
+    append_menu_item(menu, wxID_ANY, names[0], names[1],
+        [](wxCommandEvent&) {
+            plater()->PopupObjectTableBySelection();
+        }, "", nullptr,
+        []() {
+            Selection& selection = plater()->canvas3D()->get_selection();
+            return selection.is_single_full_object() || selection.is_single_full_instance() || selection.is_single_volume();
+        }, m_parent);
+}
+
+void MenuFactory::append_menu_item_change_filament(wxMenu* menu, int insert_pos)
+{
+    const std::vector<wxString> names = { _L("Change Filament"), _L("Set Filament for selected items") };
+    // Delete old menu item
+    for (const wxString& name : names) {
+        const int item_id = menu->FindItem(name);
+        if (item_id != wxNOT_FOUND)
+            menu->Destroy(item_id);
+    }
+
+    const int extruders_cnt = extruders_count();
+    if (extruders_cnt <= 1)
+        return;
+
+    wxDataViewItemArray sels;
+    obj_list()->GetSelections(sels);
+    if (sels.IsEmpty())
+        return;
+
+    std::vector<wxBitmap*> icons = get_extruder_color_icons(true);
+    wxMenu* extruder_selection_menu = new wxMenu();
+    const wxString& name = sels.Count() == 1 ? names[0] : names[1];
+
+    int initial_extruder = -1; // negative value for multiple object/part selection
+    if (sels.Count() == 1) {
+        const ModelConfig& config = obj_list()->get_item_config(sels[0]);
+        initial_extruder = config.has("extruder") ? config.extruder() : 0;
+    }
+
+    for (int i = 0; i <= extruders_cnt; i++)
+    {
+        bool is_active_extruder = i == initial_extruder;
+        int icon_idx = i == 0 ? 0 : i - 1;
+
+        const wxString& item_name = (i == 0 ? _L("Default") : wxString::Format(_L("Filament %d"), i)) +
+            (is_active_extruder ? " (" + _L("active") + ")" : "");
+
+        append_menu_item(extruder_selection_menu, wxID_ANY, item_name, "",
+            [i](wxCommandEvent&) { obj_list()->set_extruder_for_selected_items(i); }, *icons[icon_idx], menu,
+            [is_active_extruder]() { return !is_active_extruder; }, m_parent);
+    }
+    menu->Insert(insert_pos, wxID_ANY, name, extruder_selection_menu, _L("Change Filament"));
+}
+
+void MenuFactory::append_menu_item_set_printable(wxMenu* menu)
+{
+    const Selection& selection = plater()->canvas3D()->get_selection();
+    bool all_printable = true;
+    ModelObjectPtrs objects = selection.get_model()->objects;
+    for (auto it = objects.begin(); it != objects.end(); it++) {
+        for (auto inst : (*it)->instances)
+            all_printable &= inst->printable;
+    }
+
+    wxString menu_text = all_printable ? L("Set Unprintable") : _L("Set Printable");
+    append_menu_item(menu, wxID_ANY, menu_text, _L(""), [this, all_printable](wxCommandEvent&) {
+        Selection& selection = plater()->canvas3D()->get_selection();
+        selection.set_printable(!all_printable);
+
+
+
+        }, "", nullptr, []() { return true; }, m_parent);
+}
+
 
 void MenuFactory::update_object_menu()
 {

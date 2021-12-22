@@ -119,6 +119,20 @@ void View3D::select_view(const std::string& direction)
         m_canvas->select_view(direction);
 }
 
+//BBS
+void View3D::select_curr_plate_all()
+{
+    if (m_canvas != nullptr)
+        m_canvas->select_curr_plate_all();
+}
+
+//BBS
+void View3D::remove_curr_plate_all()
+{
+    if (m_canvas != nullptr)
+        m_canvas->remove_curr_plate_all();
+}
+
 void View3D::select_all()
 {
     if (m_canvas != nullptr)

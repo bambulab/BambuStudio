@@ -1885,7 +1885,8 @@ void MainFrame::init_menubar_as_editor()
                     msg = _L("Invalid number");
                     return;
                 }
-                //TODO m_plater->clone_selections(res);
+                Selection& selection = plater()->canvas3D()->get_selection();
+                selection.clone(res);
             },
             "menu_remove", nullptr, [this](){return can_select(); }, this);
         editMenu->AppendSeparator();

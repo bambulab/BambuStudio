@@ -70,6 +70,9 @@ public:
     wxMenu* multi_selection_menu();
     //BBS: add part plate related logic
     wxMenu* plate_menu();
+    wxMenu* assemble_object_menu();
+    wxMenu* assemble_part_menu();
+    wxMenu* assemble_multi_selection_menu();
 
 private:
     enum MenuType {
@@ -87,6 +90,10 @@ private:
     MenuWithSeparators m_instance_menu;
     //BBS: add part plate related logic
     MenuWithSeparators m_plate_menu;
+    MenuWithSeparators m_assemble_object_menu;
+    MenuWithSeparators m_assemble_part_menu;
+   
+
 
     // Removed/Prepended Items according to the view mode
     std::array<wxMenuItem*, mtCount> items_increase;
@@ -98,9 +105,13 @@ private:
     void        create_object_menu();
     void        create_sla_object_menu();
     void        create_part_menu();
-    void        create_instance_menu();
     //BBS: add part plate related logic
     void        create_plate_menu();
+    //BBS: add bbl object menu
+    void        create_bbl_object_menu();
+    void        create_bbl_part_menu();
+    void        create_bbl_assemble_object_menu();
+    void        create_bbl_assemble_part_menu();
 
     wxMenu*     append_submenu_add_generic(wxMenu* menu, ModelVolumeType type);
     void        append_menu_items_add_volume(wxMenu* menu);
@@ -111,8 +122,8 @@ private:
     wxMenuItem* append_menu_item_printable(wxMenu* menu);
     void        append_menu_item_rename(wxMenu* menu);
     wxMenuItem* append_menu_item_fix_through_netfabb(wxMenu* menu);
-    wxMenuItem* append_menu_item_simplify(wxMenu* menu);
-    void        append_menu_item_export_stl(wxMenu* menu);
+    //wxMenuItem* append_menu_item_simplify(wxMenu* menu);
+    void        append_menu_item_export_stl(wxMenu* menu, bool is_mulity_menu = false);
     void        append_menu_item_reload_from_disk(wxMenu* menu);
     void        append_menu_item_replace_with_stl(wxMenu* menu);
     void        append_menu_item_change_extruder(wxMenu* menu);
@@ -125,6 +136,13 @@ private:
     void        append_menu_items_mirror(wxMenu *menu);
     //void        append_menu_items_instance_manipulation(wxMenu *menu);
     //void        update_menu_items_instance_manipulation(MenuType type);
+    //BBS add bbl menu item
+    void        append_menu_item_clone(wxMenu* menu);
+    void        append_menu_item_simplify(wxMenu* menu);
+    void        append_menu_item_per_object_settings(wxMenu* menu);
+    void        append_menu_item_change_filament(wxMenu* menu, int insert_pos = 1);
+    void        append_menu_item_set_printable(wxMenu* menu);
+
 };
 
 }}

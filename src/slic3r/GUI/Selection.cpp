@@ -107,6 +107,7 @@ const ModelObjectPtrs& Selection::Clipboard::get_objects() const
     return m_model->objects;
 }
 
+
 Selection::Selection()
     : m_volumes(nullptr)
     , m_model(nullptr)
@@ -378,6 +379,92 @@ void Selection::remove_volumes(EMode mode, const std::vector<unsigned int>& volu
 
     update_type();
     this->set_bounding_boxes_dirty();
+}
+
+void Selection::add_curr_plate()
+{
+    if (!m_valid)
+        return;
+
+    wxGetApp().plater()->take_snapshot(_(L("Selection-Add Curr Plate All!")));
+    m_mode = Instance;
+    clear();
+
+    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+    for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
+        if (plate && plate->contain_instance_totally(obj_idx, 0)) {
+            std::vector<unsigned int> volume_idxs = get_volume_idxs_from_object(obj_idx);
+            do_add_volumes(volume_idxs);
+        }
+    }
+
+    update_type();
+    this->set_bounding_boxes_dirty();
+}
+
+void Selection::remove_curr_plate()
+{
+    if (!m_valid)
+        return;
+
+    wxGetApp().plater()->take_snapshot(_(L("Selection-Delete Curr Plate All!")));
+    m_mode = Instance;
+    clear();
+
+    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+    for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
+        if (plate && plate->contain_instance_totally(obj_idx, 0)) {
+            std::vector<unsigned int> volume_idxs = get_volume_idxs_from_object(obj_idx);
+            do_add_volumes(volume_idxs);
+        }
+    }
+
+    update_type();
+    this->set_bounding_boxes_dirty();
+
+    erase();
+}
+
+void Selection::clone(int numbers)
+{
+    for (int i = 0; i < numbers; i++) {
+        copy_to_clipboard();
+        paste_from_clipboard();
+    }
+}
+
+//BBS
+void Selection::set_printable(bool printable)
+{
+    if (!m_valid)
+        return;
+
+    std::set<std::pair<int, int>> instances_idxs;
+    for (ObjectIdxsToInstanceIdxsMap::iterator obj_it = m_cache.content.begin(); obj_it != m_cache.content.end(); ++obj_it)
+    {
+        for (InstanceIdxsList::reverse_iterator inst_it = obj_it->second.rbegin(); inst_it != obj_it->second.rend(); ++inst_it)
+        {
+            instances_idxs.insert(std::make_pair(obj_it->first, *inst_it));
+        }
+    }
+
+    wxString snapshot_text = from_u8((boost::format("%1%") % (printable ? _utf8(L("Set Selection Printable")) : _utf8(L("Set Selection Unprintable")))).str());
+    wxGetApp().plater()->take_snapshot(snapshot_text);
+
+    // set printable value for all instances in object
+    for (const std::pair<int, int>& i : instances_idxs)
+    {
+        ModelObject* object = m_model->objects[i.first];
+        for (auto inst : object->instances)
+            inst->printable = printable;
+        wxGetApp().obj_list()->update_printable_state(i.first, i.second);
+
+        //update printable state on canvas
+        wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object((size_t)i.first);
+    }
+
+    // update scene
+    wxGetApp().plater()->update();
 }
 
 void Selection::add_all()
@@ -1542,6 +1629,43 @@ void Selection::paste_from_clipboard()
         break;
     }
     }
+}
+
+//BBS get export mesh for exporting stl
+TriangleMesh Selection::get_export_mesh()
+{
+    TriangleMesh mesh;
+    // BBS only support multi full object now
+    if (!is_multiple_full_object()) return mesh;
+
+    std::set<std::pair<int, int>> instances_idxs;
+    for (ObjectIdxsToInstanceIdxsMap::iterator obj_it = m_cache.content.begin(); obj_it != m_cache.content.end(); ++obj_it)
+    {
+        for (InstanceIdxsList::reverse_iterator inst_it = obj_it->second.rbegin(); inst_it != obj_it->second.rend(); ++inst_it)
+        {
+            instances_idxs.insert(std::make_pair(obj_it->first, *inst_it));
+        }
+    }
+
+    for (const std::pair<int, int>& i : instances_idxs)
+    {
+        ModelObject* object = m_model->objects[i.first];
+        for (const ModelVolume *v : object->volumes)
+        if (v->is_model_part()) {
+            TriangleMesh vol_mesh(v->mesh());
+            vol_mesh.transform(v->get_matrix(), true);
+            mesh.merge(vol_mesh);
+        }
+    
+        TriangleMesh vols_mesh(mesh);
+        mesh = TriangleMesh();
+        for (const ModelInstance *i : object->instances) {
+            TriangleMesh m = vols_mesh;
+            m.transform(i->get_matrix(), true);
+            mesh.merge(m);
+        }
+    }
+    return mesh;
 }
 
 void Selection::fill_color(int extruder_id)

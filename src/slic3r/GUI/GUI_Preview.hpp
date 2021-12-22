@@ -55,6 +55,11 @@ public:
     void plates_count_changed();
 
     void select_view(const std::string& direction);
+
+    //BBS
+    void select_curr_plate_all();
+    void remove_curr_plate_all();
+
     void select_all();
     void deselect_all();
     void delete_selected();

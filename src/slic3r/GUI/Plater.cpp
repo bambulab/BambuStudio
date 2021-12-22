@@ -1821,6 +1821,10 @@ struct Plater::priv
     void selection_changed();
     void object_list_changed();
 
+    // BBS
+    void select_curr_plate_all();
+    void remove_curr_plate_all();
+
     void select_all();
     void deselect_all();
     void remove(size_t obj_idx);
@@ -2006,6 +2010,7 @@ struct Plater::priv
     void update_fff_scene_only_shells(bool only_shells = true);
     //BBS: add popup object table logic
     bool PopupObjectTable(int object_id, int volume_id, const wxPoint& position);
+
 private:
     bool layers_height_allowed() const;
 
@@ -2185,6 +2190,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
             //BBS arrage from EVT set default state.
             this->q->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
             this->q->arrange(); });
+        //BBS
+        view3D_canvas->Bind(EVT_GLCANVAS_SELECT_CURR_PLATE_ALL, [this](SimpleEvent&) {this->q->select_curr_plate_all(); });
+
         view3D_canvas->Bind(EVT_GLCANVAS_SELECT_ALL, [this](SimpleEvent&) { this->q->select_all(); });
         view3D_canvas->Bind(EVT_GLCANVAS_QUESTION_MARK, [](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
         view3D_canvas->Bind(EVT_GLCANVAS_INCREASE_INSTANCES, [this](Event<int>& evt)
@@ -2274,6 +2282,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
         assemble_canvas->Bind(EVT_GLTOOLBAR_FILLCOLOR, [q](IntEvent& evt) { q->fill_color(evt.get_data()); });
         assemble_canvas->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
         assemble_canvas->Bind(EVT_GLVIEWTOOLBAR_3D, [q](SimpleEvent&) { q->select_view_3D("3D"); });
+        assemble_canvas->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
     }
 
     if (wxGetApp().is_editor()) {
@@ -3396,6 +3405,18 @@ void Plater::priv::object_list_changed()
     //sidebar->enable_buttons(!model.objects.empty() && !export_in_progress && model_fits && part_plate->has_printable_instances());
     bool can_slice = !model.objects.empty() && !export_in_progress && model_fits && part_plate->has_printable_instances();
     main_frame->update_slice_print_status(MainFrame::eEventObjectUpdate, can_slice);
+}
+
+void Plater::priv::select_curr_plate_all()
+{
+    view3D->select_curr_plate_all();
+    this->sidebar->obj_list()->update_selections();
+}
+
+void Plater::priv::remove_curr_plate_all()
+{
+    view3D->remove_curr_plate_all();
+    this->sidebar->obj_list()->update_selections();
 }
 
 void Plater::priv::select_all()
@@ -5094,8 +5115,14 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
                 return;
             menu = menus.default_menu();
         }
-        else
-            menu = menus.multi_selection_menu();
+        else {
+            if (current_panel == assemble_view) {
+                menu = menus.assemble_multi_selection_menu();
+            }
+            else {
+                menu = menus.multi_selection_menu();
+            }
+        }
     }
     else {
         // If in 3DScene is(are) selected volume(s), but right button was clicked on empty space
@@ -5103,7 +5130,7 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
             return;
 
         // Each context menu respects to the selected item in ObjectList, 
-        // so this selection should be updated before menu creation
+        // so this selection should be updated before menu agyuicreation
         wxGetApp().obj_list()->update_selections();
 
         if (printer_technology == ptSLA)
@@ -5115,8 +5142,15 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
                                                 selection.is_single_full_object() || 
                                                 selection.is_multiple_full_instance();
             const bool is_part = selection.is_single_volume() || selection.is_single_modifier();
-            menu = is_some_full_instances   ? menus.object_menu() : 
-                   is_part                  ? menus.part_menu()   : menus.multi_selection_menu();
+
+            //BBS get assemble view menu
+            if (current_panel == assemble_view) {
+                menu = is_some_full_instances   ? menus.assemble_object_menu() : 
+                   is_part                  ? menus.assemble_part_menu()   : menus.assemble_multi_selection_menu();
+            } else {
+                menu = is_some_full_instances   ? menus.object_menu() : 
+                       is_part                  ? menus.part_menu()   : menus.multi_selection_menu();
+            }
         }
     }
 
@@ -6915,6 +6949,10 @@ void Plater::collapse_sidebar(bool show) { p->collapse_sidebar(show); }
 
 bool Plater::is_view3D_layers_editing_enabled() const { return p->is_view3D_layers_editing_enabled(); }
 
+//BBS
+void Plater::select_curr_plate_all() { p->select_curr_plate_all(); }
+void Plater::remove_curr_plate_all() { p->remove_curr_plate_all(); }
+
 void Plater::select_all() { p->select_all(); }
 void Plater::deselect_all() { p->deselect_all(); }
 
@@ -7350,9 +7388,19 @@ void Plater::export_stl(bool extended, bool selection_only)
     wxBusyCursor wait;
 
     const auto &selection = p->get_selection();
-    const auto obj_idx = selection.get_object_idx();
-    if (selection_only && (obj_idx == -1 || selection.is_wipe_tower()))
+
+    // BBS support mulity objects
+    // const auto obj_idx = selection.get_object_idx();
+    // if (selection_only && (obj_idx == -1 || selection.is_wipe_tower()))
+    //    return;
+
+    if (selection_only && selection.is_wipe_tower())
         return;
+
+    // only support selection single full object and mulitiple full object
+    if (!selection.is_single_full_object() && !selection.is_multiple_full_object())
+        return;
+
 
     // Following lambda generates a combined mesh for export with normals pointing outwards.
     auto mesh_to_export = [](const ModelObject* mo, bool instances) -> TriangleMesh {
@@ -7378,20 +7426,25 @@ void Plater::export_stl(bool extended, bool selection_only)
     TriangleMesh mesh;
     if (p->printer_technology == ptFFF) {
         if (selection_only) {
-            const ModelObject* model_object = p->model.objects[obj_idx];
-            if (selection.get_mode() == Selection::Instance)
-            {
-                if (selection.is_single_full_object())
-                    mesh = mesh_to_export(model_object, true);
+            if (selection.is_single_full_object()) {
+                const auto obj_idx = selection.get_object_idx();
+                const ModelObject* model_object = p->model.objects[obj_idx];
+                if (selection.get_mode() == Selection::Instance)
+                {
+                    if (selection.is_single_full_object())
+                        mesh = mesh_to_export(model_object, true);
+                    else
+                        mesh = mesh_to_export(model_object, false);
+                }
                 else
-                    mesh = mesh_to_export(model_object, false);
-            }
-            else
-            {
-                const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-                mesh = model_object->volumes[volume->volume_idx()]->mesh();
-                mesh.transform(volume->get_volume_transformation().get_matrix(), true);
-                mesh.translate(-model_object->origin_translation.cast<float>());
+                {
+                    const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+                    mesh = model_object->volumes[volume->volume_idx()]->mesh();
+                    mesh.transform(volume->get_volume_transformation().get_matrix(), true);
+                    mesh.translate(-model_object->origin_translation.cast<float>());
+                }
+            } else if (selection.is_multiple_full_object()) {
+                mesh = std::move(p->get_selection().get_export_mesh());
             }
         }
         else {
@@ -7404,7 +7457,7 @@ void Plater::export_stl(bool extended, bool selection_only)
         // This is SLA mode, all objects have only one volume.
         // However, we must have a look at the backend to load
         // hollowed mesh and/or supports
-
+        const auto obj_idx = selection.get_object_idx();
         const PrintObjects& objects = p->sla_print.objects();
         for (const SLAPrintObject* object : objects)
         {
@@ -9063,6 +9116,15 @@ void Plater::bring_instance_forward()
 bool Plater::PopupObjectTable(int object_id, int volume_id, const wxPoint& position)
 {
     return p->PopupObjectTable(object_id, volume_id, position);
+}
+
+bool Plater::PopupObjectTableBySelection()
+{
+    wxDataViewItem item;
+    int obj_idx, vol_idx;
+    const wxPoint pos = wxPoint(0, 0);  //Fake position
+    wxGetApp().obj_list()->get_selected_item_indexes(obj_idx, vol_idx, item);
+    return p->PopupObjectTable(obj_idx, vol_idx, pos);
 }
 
 

@@ -257,6 +257,12 @@ public:
     void add_volumes(EMode mode, const std::vector<unsigned int>& volume_idxs, bool as_single_selection = true);
     void remove_volumes(EMode mode, const std::vector<unsigned int>& volume_idxs);
 
+    //BBS
+    void add_curr_plate();
+    void remove_curr_plate();
+    void clone(int numbers = 1);
+    void set_printable(bool printable);
+
     void add_all();
     void remove_all();
 
@@ -354,6 +360,8 @@ public:
     void cut_to_clipboard();
     void copy_to_clipboard();
     void paste_from_clipboard();
+    //BBS get export mesh for exporting stl
+    TriangleMesh get_export_mesh();
 
     const Clipboard& get_clipboard() const { return m_clipboard; }
 
