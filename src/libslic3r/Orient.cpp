@@ -380,39 +380,6 @@ public:
     }
 };
 
-void rotation_from_two_vectors(Vec3d bestside, Vec3d& rotation_axis, double& phi, Matrix3d& rotation_matrix)
-{
-    double epsilon = 1e-5;
-    Vec3d z_axis(0, 0, 1);
-    // note: a.isMuchSmallerThan(b,prec) compares a.abs().sum()<b*prec, so previously we set b=0 && prec=dummpy_prec() is wrong
-    if ((bestside + z_axis).isMuchSmallerThan(1, epsilon))
-    {
-        rotation_axis << 1, 0, 0;
-        phi = M_PI;
-        rotation_matrix = -Matrix3d::Identity();
-    }
-    else if ((bestside - z_axis).isMuchSmallerThan(1, epsilon)) {
-        rotation_axis << 1, 0, 0;
-        phi = 0;
-        rotation_matrix = Matrix3d::Identity();
-    }
-    else {
-        rotation_axis = bestside.cross(z_axis);
-        double s = rotation_axis.norm(); // sin(phi)
-        double c = bestside.dot(z_axis); // cos(phi)
-        auto& v = rotation_axis;
-        Matrix3d kmat;
-        kmat << 0, -v[2], v[1],
-            v[2], 0, -v[0],
-            -v[1], v[0], 0;
-
-        rotation_axis.normalize();
-        phi = acos(std::min(bestside.dot(z_axis), 1.0));
-        rotation_matrix = Matrix3d::Identity() + kmat + kmat * kmat * ((1 - c) / (s * s));
-    }
-}
-
-
 void _orient(OrientMeshs& meshs_,
         const OrientParams           &params,
         std::function<void(unsigned, std::string)> progressfn,
@@ -426,7 +393,7 @@ void _orient(OrientMeshs& meshs_,
             //auto progressfn_i = [&](unsigned cnt) {progressfn(cnt, "Orienting " + mesh_.name); };
             AutoOrienter orienter(&mesh_, params, /*progressfn_i*/{}, stopfn);
             mesh_.orientation = orienter.process();
-            rotation_from_two_vectors(mesh_.orientation, mesh_.axis, mesh_.angle, mesh_.rotation_matrix);
+            Geometry::rotation_from_two_vectors(mesh_.orientation, { 0,0,1 }, mesh_.axis, mesh_.angle, &mesh_.rotation_matrix);
             BOOST_LOG_TRIVIAL(info) << std::fixed << std::setprecision(3) << "v,phi: " << mesh_.axis.transpose() << ", " << mesh_.angle;
             //flush_logs();
         }
@@ -438,7 +405,7 @@ void _orient(OrientMeshs& meshs_,
                 progressfn(i, "Orienting " + std::to_string(i) + "-th item: " + mesh_.name);
                 AutoOrienter orienter(&mesh_, params, {}, stopfn);
                 mesh_.orientation = orienter.process();
-                rotation_from_two_vectors(mesh_.orientation, mesh_.axis, mesh_.angle, mesh_.rotation_matrix);
+                Geometry::rotation_from_two_vectors(mesh_.orientation, { 0,0,1 }, mesh_.axis, mesh_.angle, &mesh_.rotation_matrix);
                 mesh_.euler_angles = Geometry::extract_euler_angles(mesh_.rotation_matrix);
                 BOOST_LOG_TRIVIAL(debug) << "rotation_from_two_vectors: " << mesh_.orientation << "; " << mesh_.axis << "; " << mesh_.angle << "; euler: " << mesh_.euler_angles.transpose();
             }});
@@ -464,9 +431,7 @@ void orient(ModelObject* obj)
     Vec3d orientation = orienter.process();
     Vec3d axis;
     double angle;
-    Matrix3d rotation_matrix;
-    rotation_from_two_vectors(orientation, axis, angle, rotation_matrix);
-    //Vec3d euler_angles = Geometry::extract_euler_angles(rotation_matrix);
+    Geometry::rotation_from_two_vectors(orientation, { 0,0,1 }, axis, angle);
 
     obj->rotate(angle, axis);
     obj->ensure_on_bed();
@@ -480,8 +445,7 @@ void orient(ModelInstance* instance)
     Vec3d axis;
     double angle;
     Matrix3d rotation_matrix;
-    rotation_from_two_vectors(orientation, axis, angle, rotation_matrix);
-    //Vec3d euler_angles = Geometry::extract_euler_angles(rotation_matrix);
+    Geometry::rotation_from_two_vectors(orientation, { 0,0,1 }, axis, angle, &rotation_matrix);
     instance->rotate(rotation_matrix);
 }
 
