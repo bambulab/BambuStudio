@@ -2,7 +2,7 @@
 
 namespace Slic3r {
 
-static ExtrusionPaths thick_polyline_to_extrusion_paths(const ThickPolyline& thick_polyline, ExtrusionRole role, Flow& flow, const float tolerance)
+static ExtrusionPaths thick_polyline_to_extrusion_paths(const ThickPolyline& thick_polyline, ExtrusionRole role, const Flow& flow, const float tolerance)
 {
     ExtrusionPaths paths;
     ExtrusionPath path(role);

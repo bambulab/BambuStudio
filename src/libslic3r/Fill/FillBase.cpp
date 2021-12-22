@@ -118,7 +118,7 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
             // been applied to f->spacing
         }
         else {
-            Flow new_flow = Flow::new_from_spacing(float(this->spacing), params.flow.nozzle_diameter(), params.flow.height(), params.flow.bridge());
+            Flow new_flow = params.flow.with_spacing(this->spacing);
             flow_mm3_per_mm = new_flow.mm3_per_mm();
             flow_width = new_flow.width();
         }

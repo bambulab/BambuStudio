@@ -26,7 +26,12 @@ void FillConcentricWGapFill::fill_surface_extrusion(const Surface* surface, cons
         Polygons last = loops;
         bool first = true;
         while (!last.empty()) {
-            Polygons next_onion = offset2(last, -double(distance + scale_(this->spacing) / 2), +double(scale_(this->spacing) / 2));
+            ExPolygons temp_expolygon;
+            temp_expolygon.reserve(last.size());
+            for (size_t i = 0; i < last.size(); i++) {
+                temp_expolygon.push_back(ExPolygon(last[i]));
+            }
+            Polygons next_onion = offset2(temp_expolygon, -double(distance + scale_(this->spacing) / 2), +double(scale_(this->spacing) / 2));
             loops.insert(loops.end(), next_onion.begin(), next_onion.end());
             append(gaps, diff_ex(
                 offset(last, -0.5f * distance),
@@ -55,7 +60,7 @@ void FillConcentricWGapFill::fill_surface_extrusion(const Surface* surface, cons
             ExPolygons gaps_ex = diff_ex(
                 offset2_ex(gaps, -float(min / 2), float(min / 2)),
                 offset2_ex(gaps, -float(max / 2), float(max / 2)),
-                true);
+                ApplySafetyOffset::Yes);
             ThickPolylines polylines;
             for (const ExPolygon& ex : gaps_ex) {
                 ex.medial_axis(max, min, &polylines);
@@ -75,8 +80,10 @@ void FillConcentricWGapFill::fill_surface_extrusion(const Surface* surface, cons
     }
 
     //BBS: add external gapfill between perimeter and infill
-    ExPolygons external_gaps = diff_ex({ surface->expolygon }, offset_ex(expp, double(scale_(0.5 * this->spacing))));
-    external_gaps = union_ex(external_gaps, true);
+    ExPolygons surface_expolygon;
+    surface_expolygon.push_back(surface->expolygon);
+    ExPolygons external_gaps = diff_ex(surface_expolygon, offset_ex(expp, double(scale_(0.5 * this->spacing))), ApplySafetyOffset::Yes);
+    external_gaps = union_ex(external_gaps);
     if (!this->no_overlap_expolygons.empty())
             external_gaps = intersection_ex(external_gaps, this->no_overlap_expolygons);
 
@@ -84,9 +91,7 @@ void FillConcentricWGapFill::fill_surface_extrusion(const Surface* surface, cons
         double min = 0.4 * scale_(params.flow.nozzle_diameter()) * (1 - INSET_OVERLAP_TOLERANCE);
         double max = 2. * params.flow.scaled_width();
         //BBS: collapse, be sure we don't gapfill where the perimeters are already touching each other (negative spacing).
-        min = std::max(min, double(Flow::new_from_spacing((float)EPSILON,
-                                   (float)params.flow.nozzle_diameter(),
-                                   (float)params.flow.height(), false).scaled_width()));
+        min = std::max(min, (double)Flow::rounded_rectangle_extrusion_width_from_spacing((float)EPSILON, (float)params.flow.height()));
         ExPolygons external_gaps_collapsed = offset2_ex(external_gaps, double(-min / 2), double(+min / 2));
         ThickPolylines polylines;
         for (const ExPolygon& ex : external_gaps_collapsed) {
