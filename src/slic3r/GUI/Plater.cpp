@@ -2338,25 +2338,28 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     model.set_need_backup();
 
     // BBS: restore project
-    auto last_backup = wxGetApp().app_config->get_last_backup_dir();
-    this->q->Bind(EVT_RESTORE_PROJECT, [this, last = last_backup](wxCommandEvent& e) {
-        std::string last_backup = last;
-        std::string originfile;
-        if (Slic3r::has_restore_data(last_backup, originfile)) {
-            auto result = wxMessageDialog(this->q, _L("Previous unsaved project detected, do you wan't to restore it?"), wxString(SLIC3R_APP_NAME) + " - " + _L("Restore"), wxYES_NO | wxYES_DEFAULT | wxCENTRE).ShowModal();
-            if (result == wxID_YES) {
-                this->q->load_project(from_path(last_backup), from_path(originfile));
-                Slic3r::backup_soon();
-                return;
+    if (wxGetApp().is_editor()) {
+        auto last_backup = wxGetApp().app_config->get_last_backup_dir();
+        this->q->Bind(EVT_RESTORE_PROJECT, [this, last = last_backup](wxCommandEvent& e) {
+            std::string last_backup = last;
+            std::string originfile;
+            if (Slic3r::has_restore_data(last_backup, originfile)) {
+                auto result = wxMessageDialog(this->q, _L("Previous unsaved project detected, do you wan't to restore it?"), wxString(SLIC3R_APP_NAME) + " - " + _L("Restore"), wxYES_NO | wxYES_DEFAULT | wxCENTRE).ShowModal();
+                if (result == wxID_YES) {
+                    this->q->load_project(from_path(last_backup), from_path(originfile));
+                    Slic3r::backup_soon();
+                    return;
+                }
             }
-        }
-        try {
-            if (originfile != "<lock>") // see bbs_3mf.cpp for lock detail
-                boost::filesystem::remove_all(last);
-        } catch (...) {}
-        this->q->new_project();
-    });
-    wxPostEvent(this->q, wxCommandEvent{EVT_RESTORE_PROJECT});
+            try {
+                if (originfile != "<lock>") // see bbs_3mf.cpp for lock detail
+                    boost::filesystem::remove_all(last);
+            }
+            catch (...) {}
+            this->q->new_project();
+            });
+        wxPostEvent(this->q, wxCommandEvent{EVT_RESTORE_PROJECT});
+    }
 
     this->q->Bind(EVT_LOAD_MODEL_OTHER_INSTANCE, [this](LoadFromOtherInstanceEvent& evt) {
         BOOST_LOG_TRIVIAL(trace) << "Received load from other instance event.";
