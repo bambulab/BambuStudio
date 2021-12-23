@@ -364,6 +364,7 @@ void Model::collect_reusable_objects(std::vector<ObjectBase*>& objects)
                        model_object->volumes.end(),
                        std::back_inserter(model_object->volume_ids),
                        std::mem_fn(&ObjectBase::id));
+        model_object->volumes.clear();
     }
     // we never own these objects 
     this->objects.clear();
