@@ -137,6 +137,7 @@ namespace Slic3r
 				wxButton* btn_auto_leveling;
 				wxButton* btn_xyz_abs_mode;
 				wxButton* btn_return_home;
+				wxButton* m_button_calibration;
 				wxRadioBox* m_radioBox_chamber_light;
 				wxRadioBox* m_radioBox_work_light;
 				wxPanel* m_panel__control;

@@ -936,6 +936,13 @@ void DebugToolDialog::init()
     btn_return_home->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G28 \n");
         });
+
+    m_button_calibration->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        this->publishGcode("G28 \nG90 \nG0 X128 Y128 F30000\nM970 Q1 A7 B10 C130 K0\nM970 Q1 A7 B131 C250 K1\n"
+            "M974 Q1 S2 P0 \nM970 Q0 A9 B10 C130 H20 K0 \nM970 Q0 A9 B131 C250 K1 \nM974 Q0 S2 P0 \nM500 \n"
+            "G0 X120 Y240 Z100 F1800 \n");
+        });
+
     btn_auto_leveling->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
         this->publishGcode("G29 \n");
         });

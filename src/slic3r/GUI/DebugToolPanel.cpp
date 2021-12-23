@@ -465,8 +465,8 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	btn_return_home = new wxButton( m_panel_settings, wxID_ANY, wxT("Return Home(G28)"), wxDefaultPosition, wxDefaultSize, 0 );
 	gSizer1->Add( btn_return_home, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-
-	gSizer1->Add( 0, 0, 1, wxEXPAND, 5 );
+	m_button_calibration = new wxButton( m_panel_settings, wxID_ANY, wxT("Start Calibration"), wxDefaultPosition, wxDefaultSize, 0 );
+	gSizer1->Add( m_button_calibration, 0, wxALIGN_LEFT | wxALL, 5 );
 
 
 	bSizer22->Add( gSizer1, 1, wxALL, 5 );
