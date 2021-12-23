@@ -2908,8 +2908,11 @@ void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
     add_layer_root_item(item);
 
 #ifndef __WXOSX__ 
-    if (call_selection_changed)
-	    selection_changed();
+    if (call_selection_changed) {
+        UnselectAll();
+        Select(item);
+        selection_changed();
+    }
 #endif //__WXMSW__
 }
 
