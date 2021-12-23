@@ -983,16 +983,23 @@ bool UnsavedChangesDialog::save(PresetCollection* dependent_presets, bool show_s
         std::string name = preset.name;
 
         // for system/default/external presets we should take an edited name
-        if (preset.is_system || preset.is_default || preset.is_external) {
+        //BBS: add project embedded preset logic and refine is_external
+        bool save_to_project = false;
+        if (preset.is_system || preset.is_default) {
+        //if (preset.is_system || preset.is_default || preset.is_external) {
             SavePresetDialog save_dlg(this, preset.type);
             if (save_dlg.ShowModal() != wxID_OK) {
                 m_exit_action = Action::Discard;
                 return false;
             }
             name = save_dlg.get_name();
+            save_to_project = save_dlg.get_save_to_project_selection(preset.type);
         }
 
-        names_and_types.emplace_back(make_pair(name, preset.type));
+        //BBS: add project embedded preset relate logic
+        PresetData preset_data(name, preset.type, save_to_project);
+        names_and_types.emplace_back(preset_data);
+        //names_and_types.emplace_back(make_pair(name, preset.type));
     }
     // save all presets 
     else
@@ -1004,10 +1011,15 @@ bool UnsavedChangesDialog::save(PresetCollection* dependent_presets, bool show_s
         for (Tab* tab : wxGetApp().tabs_list)
             if (tab->supports_printer_technology(printer_technology) && tab->current_preset_is_dirty()) {
                 const Preset& preset = tab->get_presets()->get_edited_preset();
-                if (preset.is_system || preset.is_default || preset.is_external)
+                //BBS: add project embedded preset logic and refine is_external
+                if (preset.is_system || preset.is_default)
+                //if (preset.is_system || preset.is_default || preset.is_external)
                     types_for_save.emplace_back(preset.type);
 
-                names_and_types.emplace_back(make_pair(preset.name, preset.type));
+                //BBS: add project embedded preset relate logic
+                PresetData preset_data(preset.name, preset.type, preset.is_project_embedded);
+                names_and_types.emplace_back(preset_data);
+                //names_and_types.emplace_back(make_pair(preset.name, preset.type));
             }
 
 
@@ -1018,11 +1030,18 @@ bool UnsavedChangesDialog::save(PresetCollection* dependent_presets, bool show_s
                 return false;
             }
 
-            for (std::pair<std::string, Preset::Type>& nt : names_and_types) {
-                const std::string& name = save_dlg.get_name(nt.second);
+            //BBS: add project embedded preset relate logic
+            for (PresetData& nt : names_and_types) {
+                const std::string& name = save_dlg.get_name(nt.type);
                 if (!name.empty())
-                    nt.first = name;
+                    nt.name = name;
+                nt.save_to_project = save_dlg.get_save_to_project_selection(nt.type);
             }
+            //for (std::pair<std::string, Preset::Type>& nt : names_and_types) {
+            //    const std::string& name = save_dlg.get_name(nt.second);
+            //    if (!name.empty())
+            //        nt.first = name;
+            //}
         }
     }
     return true;

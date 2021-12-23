@@ -848,6 +848,8 @@ void PlaterPresetComboBox::update()
     bool wide_icons = selected_preset && !selected_preset->is_compatible;
 
     std::map<wxString, wxBitmap*> nonsys_presets;
+    //BBS: add project embedded presets logic
+    std::map<wxString, wxBitmap*>  project_embedded_presets;
 
     wxString selected_user_preset;
     wxString tooltip;
@@ -900,6 +902,15 @@ void PlaterPresetComboBox::update()
             if (is_selected)
                 tooltip = from_u8(preset.name);
         }
+        //BBS: add project embedded preset logic
+        else if (preset.is_project_embedded)
+        {
+            project_embedded_presets.emplace(wxString::FromUTF8((name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), bmp);
+            if (is_selected) {
+                selected_user_preset = wxString::FromUTF8((name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str());
+                tooltip = wxString::FromUTF8(preset.name.c_str());
+            }
+        }
         else
         {
             nonsys_presets.emplace(get_preset_name(preset), bmp);
@@ -915,6 +926,15 @@ void PlaterPresetComboBox::update()
     {
         set_label_marker(Append(separator(L("User presets")), wxNullBitmap));
         for (std::map<wxString, wxBitmap*>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
+            Append(it->first, *it->second);
+            validate_selection(it->first == selected_user_preset);
+        }
+    }
+    //BBS: add project embedded preset logic
+    if (!project_embedded_presets.empty())
+    {
+        set_label_marker(Append(separator(L("Project-inside presets")), wxNullBitmap));
+        for (std::map<wxString, wxBitmap*>::iterator it = project_embedded_presets.begin(); it != project_embedded_presets.end(); ++it) {
             Append(it->first, *it->second);
             validate_selection(it->first == selected_user_preset);
         }
@@ -1051,6 +1071,8 @@ void TabPresetComboBox::update()
     const std::deque<Preset>& presets = m_collection->get_presets();
 
     std::map<wxString, std::pair<wxBitmap*, bool>> nonsys_presets;
+    //BBS: add project embedded presets logic
+    std::map<wxString, std::pair<wxBitmap*, bool>>  project_embedded_presets;
     wxString selected = "";
     if (!presets.front().is_visible)
         set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
@@ -1089,6 +1111,14 @@ void TabPresetComboBox::update()
                 set_label_marker(item_id, LABEL_ITEM_DISABLED);
             validate_selection(i == idx_selected);
         }
+        //BBS: add project embedded preset logic
+        else if (preset.is_project_embedded)
+        {
+            //std::pair<wxBitmap*, bool> pair(bmp, is_enabled);
+            project_embedded_presets.emplace(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), std::pair<wxBitmap*, bool>(bmp, is_enabled));
+            if (i == idx_selected)
+                selected = wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str());
+        }
         else
         {
             std::pair<wxBitmap*, bool> pair(bmp, is_enabled);
@@ -1103,6 +1133,18 @@ void TabPresetComboBox::update()
     {
         set_label_marker(Append(separator(L("User presets")), wxNullBitmap));
         for (std::map<wxString, std::pair<wxBitmap*, bool>>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
+            int item_id = Append(it->first, *it->second.first);
+            bool is_enabled = it->second.second;
+            if (!is_enabled)
+                set_label_marker(item_id, LABEL_ITEM_DISABLED);
+            validate_selection(it->first == selected);
+        }
+    }
+    //BBS: add project embedded preset logic
+    if (!project_embedded_presets.empty())
+    {
+        set_label_marker(Append(separator(L("Project-inside presets")), wxNullBitmap));
+        for (std::map<wxString, std::pair<wxBitmap*, bool>>::iterator it = project_embedded_presets.begin(); it != project_embedded_presets.end(); ++it) {
             int item_id = Append(it->first, *it->second.first);
             bool is_enabled = it->second.second;
             if (!is_enabled)

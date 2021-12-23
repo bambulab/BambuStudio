@@ -43,6 +43,8 @@ class SavePresetDialog : public DPIDialog
         bool            is_valid()      const { return m_valid_type != NoValid; }
         Preset::Type    type()          const { return m_type; }
         std::string     preset_name()   const { return m_preset_name; }
+        //BBS: add project embedded preset relate logic
+        bool save_to_project() const { return m_save_to_project; }
 
     private:
         Preset::Type    m_type;
@@ -55,6 +57,11 @@ class SavePresetDialog : public DPIDialog
         wxStaticText*       m_valid_label   {nullptr};
 
         PresetCollection*   m_presets       {nullptr};
+
+        //BBS: add project embedded preset relate logic
+        wxRadioButton*      m_radio_user {nullptr};
+        wxRadioButton*      m_radio_project {nullptr};
+        bool                m_save_to_project {false};
 
         void update();
     };
@@ -84,6 +91,8 @@ public:
     void add_info_for_edit_ph_printer(wxBoxSizer *sizer);
     void update_info_for_edit_ph_printer(const std::string &preset_name);
     void layout();
+    //BBS: add project embedded preset relate logic
+    bool get_save_to_project_selection(Preset::Type type);
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;

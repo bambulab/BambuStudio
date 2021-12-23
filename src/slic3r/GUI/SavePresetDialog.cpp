@@ -8,6 +8,8 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/wupdlock.h>
+//BBS: add radio button for project embedded preset logic
+#include <wx/radiobut.h>
 
 #include "libslic3r/PresetBundle.hpp"
 
@@ -49,7 +51,9 @@ SavePresetDialog::Item::Item(Preset::Type type, const std::string& suffix, wxBox
 
     std::vector<std::string> values;
     for (const Preset& preset : *m_presets) {
-        if (preset.is_default || preset.is_system || preset.is_external)
+        //BBS: add project embedded preset logic and refine is_external
+        if (preset.is_default || preset.is_system)
+        //if (preset.is_default || preset.is_system || preset.is_external)
             continue;
         values.push_back(preset.name);
     }
@@ -82,6 +86,31 @@ SavePresetDialog::Item::Item(Preset::Type type, const std::string& suffix, wxBox
 
     if (m_type == Preset::TYPE_PRINTER)
         m_parent->add_info_for_edit_ph_printer(sizer);
+
+    //BBS: add project embedded presets logic
+    wxBoxSizer* radio_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_radio_user = new wxRadioButton(m_parent, wxID_ANY, "User Preset", wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+    m_radio_project = new wxRadioButton(m_parent, wxID_ANY, "Project-inside Preset");
+    radio_sizer->Add(m_radio_user, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, BORDER_W);
+    radio_sizer->Add(m_radio_project, 0, wxEXPAND, BORDER_W);
+    sizer->Add(radio_sizer,     0, wxEXPAND | wxBOTTOM, BORDER_W);
+
+    auto radio_clicked = [this](wxCommandEvent&) {
+        if (m_radio_user->GetValue())
+            m_save_to_project = false;
+        else if (m_radio_project->GetValue())
+            m_save_to_project = true;
+    };
+    m_radio_user->Bind(wxEVT_RADIOBUTTON, radio_clicked);
+    m_radio_project->Bind(wxEVT_RADIOBUTTON, radio_clicked);
+
+    bool is_project_embedded = m_presets->get_edited_preset().is_project_embedded;
+    if (is_project_embedded)
+        m_radio_project->SetValue(true);
+    else
+        m_radio_user->SetValue(true);
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", create item: type" << Preset::get_type_string(m_type)<<", preset " << m_preset_name << ", is_project_embedded = " << is_project_embedded;
 
     update();
 }
@@ -123,10 +152,11 @@ void SavePresetDialog::Item::update()
         m_valid_type = NoValid;
     }
 
-    if (m_valid_type == Valid && existing && (existing->is_external)) {
+    //BBS: add project embedded preset logic and refine is_external
+    /*if (m_valid_type == Valid && existing && (existing->is_external)) {
         info_line = _L("Cannot overwrite an external profile.");
         m_valid_type = NoValid;
-    }
+    }*/
 
     if (m_valid_type == Valid && existing && m_preset_name != m_presets->get_selected_preset_name())
     {
@@ -156,6 +186,24 @@ void SavePresetDialog::Item::update()
     if (m_valid_type == Valid && m_presets->get_preset_name_by_alias(m_preset_name) != m_preset_name) {
         info_line = _L("The name cannot be the same as a preset alias name.");
         m_valid_type = NoValid;
+    }
+
+    //BBS: add project embedded presets logic
+    if (existing) {
+        if (existing->is_project_embedded) {
+            m_radio_project->SetValue(true);
+            m_save_to_project = true;
+        }
+        else {
+            m_radio_user->SetValue(true);
+            m_save_to_project = false;
+        }
+        m_radio_user->Disable();
+        m_radio_project->Disable();
+    }
+    else {
+        m_radio_user->Enable();
+        m_radio_project->Enable();
     }
 
     m_valid_label->SetLabel(info_line);
@@ -273,6 +321,15 @@ std::string SavePresetDialog::get_name(Preset::Type type)
         if (item->type() == type)
             return item->preset_name();
     return "";
+}
+
+//BBS: add project relate
+bool SavePresetDialog::get_save_to_project_selection(Preset::Type type)
+{
+    for (const Item* item : m_items)
+        if (item->type() == type)
+            return item->save_to_project();
+    return false;
 }
 
 bool SavePresetDialog::enable_ok_btn() const

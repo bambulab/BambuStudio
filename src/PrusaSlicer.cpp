@@ -212,6 +212,7 @@ int CLI::run(int argc, char **argv)
     int arrange_option;
     bool first_file = true, is_bbl_3mf = false, need_arrange = true;
     std::map<size_t, bool> orients_requirement;
+    std::vector<Preset*> project_presets;
 
     // Read input file(s) if any.
     boost::nowide::cout << "Will start to read model file now, file count :" << m_input_files.size() << "\n";
@@ -241,7 +242,7 @@ int CLI::run(int argc, char **argv)
                 if (boost::algorithm::iends_with(file, ".3mf") && first_file)
                     load_aux = true;
                 // BBS: adjust whebackup
-                model = Model::read_from_file(file, &config, &config_substitutions, Model::LoadAttribute::AddDefaultInstances | only_if(load_aux, Model::LoadAttribute::WithAuxiliary), &plate_data, &is_bbl_3mf);
+                model = Model::read_from_file(file, &config, &config_substitutions, Model::LoadAttribute::AddDefaultInstances | only_if(load_aux, Model::LoadAttribute::WithAuxiliary), &plate_data, &project_presets, &is_bbl_3mf);
                 if (is_bbl_3mf)
                 {
                     if (!first_file)
@@ -815,7 +816,8 @@ int CLI::run(int argc, char **argv)
             //BBS: export as bbl 3mf
             PlateDataPtrs plate_data_list;
             partplate_list.store_to_3mf_structure(plate_data_list);
-            if (! this->export_project(&m_models[0], plate_data_list, &m_print_config))
+            std::vector<Preset*> project_presets;
+            if (! this->export_project(&m_models[0], plate_data_list, project_presets, &m_print_config))
             {
                 release_PlateData_list(plate_data_list);
                 flush_and_exit(1);
@@ -1205,13 +1207,13 @@ bool CLI::export_models(IO::ExportFormat format)
 }
 
 //BBS: add export_project function
-bool CLI::export_project(Model *model, PlateDataPtrs &partplate_data, const DynamicPrintConfig* config)
+bool CLI::export_project(Model *model, PlateDataPtrs &partplate_data, std::vector<Preset*>& project_presets, const DynamicPrintConfig* config)
 {
     const std::string path = this->output_filepath(*model, IO::TMF);
     bool success = false;
     std::vector<ThumbnailData*> thumbnails;
 
-    success = Slic3r::store_bbs_3mf(path.c_str(), model, partplate_data, config, false, thumbnails); 
+    success = Slic3r::store_bbs_3mf(path.c_str(), model, partplate_data, project_presets, config, false, thumbnails);
 
     if (success)
         boost::nowide::cout << "File exported to " << path << std::endl;

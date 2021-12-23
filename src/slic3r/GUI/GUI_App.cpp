@@ -2180,7 +2180,7 @@ void GUI_App::reload_user_presets()
     }
 }
 
-void GUI_App::sync_preset(Preset*& preset)
+void GUI_App::sync_preset(Preset* preset)
 {
     int result = -1;
     // only sync user's preset
@@ -2222,7 +2222,8 @@ void GUI_App::start_sync_service()
     enable_sync = true;
     m_sync_update_thread = Slic3r::create_thread(
         [this] {
-            int count = 0;
+            int count = 0, sync_count = 0;
+            std::vector<Preset> presets_to_sync;
             while (enable_sync) {
                 count++;
                 boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
@@ -2232,17 +2233,25 @@ void GUI_App::start_sync_service()
                 //sync preset
                 if (!preset_bundle) continue;
 
-                for (auto it = preset_bundle->prints.begin(); it != preset_bundle->prints.end(); it++) {
-                    Preset* preset = &preset_bundle->prints.preset(it - preset_bundle->prints.begin(), true);
-                    sync_preset(preset);
+                sync_count = preset_bundle->prints.get_user_presets(presets_to_sync);
+                if (sync_count > 0) {
+                    for (Preset& preset: presets_to_sync) {
+                        sync_preset(&preset);
+                    }
                 }
-                for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
-                    Preset* preset = &preset_bundle->filaments.preset(it - preset_bundle->filaments.begin(), true);
-                    sync_preset(preset);
+
+                sync_count = preset_bundle->filaments.get_user_presets(presets_to_sync);
+                if (sync_count > 0) {
+                    for (Preset& preset: presets_to_sync) {
+                        sync_preset(&preset);
+                    }
                 }
-                for (auto it = preset_bundle->printers.begin(); it != preset_bundle->printers.end(); it++) {
-                    Preset* preset = &preset_bundle->printers.preset(it - preset_bundle->printers.begin(), true);
-                    sync_preset(preset);
+
+                sync_count = preset_bundle->printers.get_user_presets(presets_to_sync);
+                if (sync_count > 0) {
+                    for (Preset& preset: presets_to_sync) {
+                        sync_preset(&preset);
+                    }
                 }
 
                 for (auto it = m_account_manager->need_delete_presets.begin(); it != m_account_manager->need_delete_presets.end();) {
@@ -2915,8 +2924,11 @@ bool GUI_App::check_and_save_current_preset_changes(const wxString& caption, con
 
         if (dlg.save_preset())  // save selected changes
         {
-            for (const std::pair<std::string, Preset::Type>& nt : dlg.get_names_and_types())
-                preset_bundle->save_changes_for_preset(nt.first, nt.second, dlg.get_unselected_options(nt.second));
+            //BBS: add project embedded preset relate logic
+            for (const UnsavedChangesDialog::PresetData& nt : dlg.get_names_and_types())
+                preset_bundle->save_changes_for_preset(nt.name, nt.type, dlg.get_unselected_options(nt.type), nt.save_to_project);
+            //for (const std::pair<std::string, Preset::Type>& nt : dlg.get_names_and_types())
+            //    preset_bundle->save_changes_for_preset(nt.first, nt.second, dlg.get_unselected_options(nt.second));
 
             load_current_presets(false);
 

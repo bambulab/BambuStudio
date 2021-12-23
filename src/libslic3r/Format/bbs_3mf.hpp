@@ -7,9 +7,14 @@ namespace Slic3r {
 class Model;
 struct ConfigSubstitutionContext;
 class DynamicPrintConfig;
+class Preset;
 struct ThumbnailData;
 
-#define GCODE_FILE_FORMAT     "Metadata/plate_%1%.gcode"
+#define GCODE_FILE_FORMAT               "Metadata/plate_%1%.gcode"
+#define EMBEDDED_PRINT_FILE_FORMAT      "Metadata/print_setting_%1%.config"
+#define EMBEDDED_FILAMENT_FILE_FORMAT      "Metadata/filament_setting_%1%.config"
+#define EMBEDDED_PRINTER_FILE_FORMAT      "Metadata/printer_setting_%1%.config"
+
 
 //BBS: define plate data list related structures
 struct PlateData
@@ -56,11 +61,12 @@ const int EXPORT_STAGE_ADD_LAYER_RANGE  = 5;
 const int EXPORT_STAGE_ADD_SUPPORT      = 6;
 const int EXPORT_STAGE_ADD_CUSTOM_GCODE = 7;
 const int EXPORT_STAGE_ADD_PRINT_CONFIG = 8;
-const int EXPORT_STAGE_ADD_CONFIG_FILE  = 9;
-const int EXPORT_STAGE_ADD_SLICE_INFO   = 10;
-const int EXPORT_STAGE_ADD_GCODE        = 11;
-const int EXPORT_STAGE_ADD_AUXILIARIES  = 12;
-const int EXPORT_STAGE_FINISH           = 13;
+const int EXPORT_STAGE_ADD_PROJECT_CONFIG = 9;
+const int EXPORT_STAGE_ADD_CONFIG_FILE  = 10;
+const int EXPORT_STAGE_ADD_SLICE_INFO   = 11;
+const int EXPORT_STAGE_ADD_GCODE        = 12;
+const int EXPORT_STAGE_ADD_AUXILIARIES  = 13;
+const int EXPORT_STAGE_FINISH           = 14;
 
 const int IMPORT_STAGE_RESTORE          = 0;
 const int IMPORT_STAGE_OPEN             = 1;
@@ -88,13 +94,13 @@ typedef std::map<int, PlateData*> PlateDataMaps;
 //BBS: add plate data list related logic
 // add restore logic
 // Load the content of a 3mf file into the given model and preset bundle.
-extern bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, bool check_version, bool* is_bbl_3mf, bool load_aux, bool load_restore, Import3mfProgressFn proFn = nullptr);
+extern bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, std::vector<Preset*>* project_presets, bool check_version, bool* is_bbl_3mf, bool load_aux, bool load_restore, Import3mfProgressFn proFn = nullptr);
 
 //BBS: add plate data list related logic
 // add backup logic
 // Save the given model and the config data contained in the given Print into a 3mf file.
 // The model could be modified during the export process if meshes are not repaired or have no shared vertices
-extern bool store_bbs_3mf(const char* path, Model* model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64 = true, bool skip_static = false, Export3mfProgressFn proFn = nullptr, bool silence = true);
+extern bool store_bbs_3mf(const char* path, Model* model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64 = true, bool skip_static = false, Export3mfProgressFn proFn = nullptr, bool silence = true);
 
 extern void release_PlateData_list(PlateDataPtrs& plate_data_list);
 

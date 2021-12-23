@@ -1042,6 +1042,8 @@ void ConfigBase::save(const std::string &file) const
     for (const std::string &opt_key : this->keys())
         c << opt_key << " = " << this->opt_serialize(opt_key) << std::endl;
     c.close();
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", saved config to %1%\n")%file;
 }
 
 // Set all the nullable values to nils.

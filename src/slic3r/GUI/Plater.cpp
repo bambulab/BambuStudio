@@ -2712,9 +2712,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     PlateDataPtrs plate_data;
                     bool is_bbs_3mf;
                     ConfigSubstitutionContext config_substitutions{ ForwardCompatibilitySubstitutionRule::Enable };
+                    std::vector<Preset*> project_presets;
                     // BBS: backup & restore
                     model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, only_if(load_config, Model::LoadAttribute::CheckVersion)
-                        | only_if(load_aux, Model::LoadAttribute::WithAuxiliary) | only_if(load_restore, Model::LoadAttribute::RestoreFromTemp), &plate_data, &is_bbs_3mf,
+                        | only_if(load_aux, Model::LoadAttribute::WithAuxiliary) | only_if(load_restore, Model::LoadAttribute::RestoreFromTemp), &plate_data, &project_presets, &is_bbs_3mf,
                         [this, progress_dlg, filename, progress_percent](int import_stage, int current, int total, bool& cancel) {
                             bool cont = true;
                             wxString msg = wxString::Format("Loading file: %s, stage %d, %d/%d", from_path(filename), import_stage, current, total);
@@ -2735,6 +2736,17 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         this->preview->update_gcode_result(partplate_list.get_current_slice_result());
                         release_PlateData_list(plate_data);
                         sidebar->obj_list()->reload_all_plates();
+                    }
+
+                    //BBS:: project embedded presets
+                    if (project_presets.size() > 0)
+                    {
+                        //load project embedded presets
+                        PresetsConfigSubstitutions  preset_substitutions;
+                        PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
+                        preset_substitutions = preset_bundle.load_project_embedded_presets(project_presets, ForwardCompatibilitySubstitutionRule::Enable);
+                        if (! preset_substitutions.empty())
+                            show_substitutions_info(preset_substitutions);
                     }
 
                     if (load_config && !config_loaded.empty()) {
@@ -2858,8 +2870,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             else {
                 //BBS: add plate data related logic
                 PlateDataPtrs plate_data;
+                //BBS: project embedded settings
+                std::vector<Preset*> project_presets;
                 bool is_bbs_3mf;
-                model = Slic3r::Model::read_from_file(path.string(), nullptr, nullptr, only_if(load_config, Model::LoadAttribute::CheckVersion), &plate_data,
+                model = Slic3r::Model::read_from_file(path.string(), nullptr, nullptr, only_if(load_config, Model::LoadAttribute::CheckVersion), &plate_data, &project_presets,
                 &is_bbs_3mf, nullptr,
                 [progress_dlg, filename, progress_percent](int import_stage, int current, int total, bool &cancel) {
                     bool cont = true;
@@ -2867,6 +2881,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     cont = progress_dlg->Update(progress_percent, msg);
                     cancel = !cont;
                 });
+
                 for (auto obj : model.objects)
                     if (obj->name.empty())
                         obj->name = fs::path(obj->input_file).filename().string();
@@ -2878,6 +2893,17 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     this->preview->update_gcode_result(partplate_list.get_current_slice_result());
                     release_PlateData_list(plate_data);
                     sidebar->obj_list()->reload_all_plates();
+                }
+
+                //BBS:: project embedded presets
+                if (project_presets.size() > 0)
+                {
+                    //load project embedded presets
+                    PresetsConfigSubstitutions  preset_substitutions;
+                    PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
+                    preset_substitutions = preset_bundle.load_project_embedded_presets(project_presets, ForwardCompatibilitySubstitutionRule::Enable);
+                    if (! preset_substitutions.empty())
+                        show_substitutions_info(preset_substitutions);
                 }
             }
         } catch (const ConfigurationError &e) {
@@ -3474,6 +3500,9 @@ void Plater::priv::reset()
 
     // BBS reset project
     acc_->reset_project();
+
+    //BBS: reset all project embedded presets
+    wxGetApp().preset_bundle->reset_project_embedded_presets();
 
     model.custom_gcode_per_print_z.gcodes.clear();
 }
@@ -4169,10 +4198,13 @@ void Plater::priv::reload_from_disk()
         {
             //BBS: add plate data related logic
             PlateDataPtrs plate_data;
+            //BBS: project embedded settings
+            std::vector<Preset*> project_presets;
 
             // BBS: backup
-            new_model = Model::read_from_file(path, nullptr, nullptr, Model::LoadAttribute::AddDefaultInstances, &plate_data);
-            for (ModelObject* model_object : new_model.objects) {
+            new_model = Model::read_from_file(path, nullptr, nullptr, Model::LoadAttribute::AddDefaultInstances, &plate_data, &project_presets);
+            for (ModelObject* model_object : new_model.objects)
+            {
                 model_object->center_around_origin();
                 model_object->ensure_on_bed();
             }
@@ -7520,7 +7552,9 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
     //}
 
     // BBS: backup
-    if (Slic3r::store_bbs_3mf(path_u8.c_str(), &p->model, plate_data_list, export_config ? &cfg : nullptr, full_pathnames, thumbnails, true /*zip64*/, backup, proFn, silence)) {
+    PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
+    std::vector<Preset*> project_presets = preset_bundle.get_current_project_embedded_presets();
+    if (Slic3r::store_bbs_3mf(path_u8.c_str(), &p->model, plate_data_list, project_presets, export_config ? &cfg : nullptr, full_pathnames, thumbnails, true /*zip64*/, backup, proFn, silence)) {
         if (!silence) {
             // Success
             //p->statusbar()->set_status_text(format_wxstr(_L("3MF file exported to %s"), path));

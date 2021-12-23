@@ -269,7 +269,7 @@ public:
     void            no_new_version();
     void            reload_settings();
     void            reload_user_presets();
-    void            sync_preset(Preset* &preset);
+    void            sync_preset(Preset* preset);
     void            start_sync_service();
 
     static bool     catch_error(std::function<void()> cb, const std::string& err);

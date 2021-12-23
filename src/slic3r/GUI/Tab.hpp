@@ -317,7 +317,10 @@ public:
 	void		OnKeyDown(wxKeyEvent& event);
 
 	void		compare_preset();
-	void		save_preset(std::string name = std::string(), bool detach = false);
+	//BBS: add project embedded preset relate logic
+	void        save_preset(std::string name = std::string(), bool detach = false, bool save_to_project = false);
+	//void		save_preset(std::string name = std::string(), bool detach = false);
+
 	void		delete_preset();
 	void		toggle_show_hide_incompatible();
 	void		update_show_hide_incompatible_button();

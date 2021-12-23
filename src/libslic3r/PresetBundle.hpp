@@ -47,6 +47,11 @@ public:
     //BBS: add API to get previous machine
     bool validate_printers(const std::string &name, DynamicPrintConfig& config);
 
+    //BBS: project embedded preset logic
+    PresetsConfigSubstitutions load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule);
+    std::vector<Preset*> get_current_project_embedded_presets();
+    void reset_project_embedded_presets();
+
     // Export selections (current print, current filaments, current printer) into config.ini
     void            export_selections(AppConfig &config);
 
@@ -158,7 +163,8 @@ public:
 
     // Save current preset of a provided type under a new name. If the name is different from the old one,
     // Unselected option would be reverted to the beginning values
-    void                        save_changes_for_preset(const std::string& new_name, Preset::Type type, const std::vector<std::string>& unselected_options);
+    //BBS: add project embedded preset logic
+    void                        save_changes_for_preset(const std::string& new_name, Preset::Type type, const std::vector<std::string>& unselected_options, bool save_to_project = false);
 
     //BBS: add BBL as default
     static const char *BBL_BUNDLE;

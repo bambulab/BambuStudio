@@ -3484,7 +3484,9 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
             }
         }
     }
-    assert(! delete_current || (m_presets->get_edited_preset().name != preset_name && m_presets->get_edited_preset().is_user()));
+    //BBS: add project embedded preset logic and refine is_external
+    assert(! delete_current || (m_presets->get_edited_preset().name != preset_name && (m_presets->get_edited_preset().is_user() || m_presets->get_edited_preset().is_project_embedded)));
+    //assert(! delete_current || (m_presets->get_edited_preset().name != preset_name && m_presets->get_edited_preset().is_user()));
     bool current_dirty = ! delete_current && m_presets->current_is_dirty();
     bool print_tab     = m_presets->type() == Preset::TYPE_PRINT || m_presets->type() == Preset::TYPE_SLA_PRINT;
     bool printer_tab   = m_presets->type() == Preset::TYPE_PRINTER;
@@ -3664,16 +3666,22 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
     {
         const std::vector<std::string>& unselected_options = dlg.get_unselected_options(presets->type());
         const std::string& name = dlg.get_preset_name();
+        //BBS: add project embedded preset relate logic
+        bool save_to_project = dlg.get_save_to_project_option();
 
         if (m_type == presets->type()) // save changes for the current preset from this tab
         {
             // revert unselected options to the old values
             presets->get_edited_preset().config.apply_only(presets->get_selected_preset().config, unselected_options);
-            save_preset(name);
+            //BBS: add project embedded preset relate logic
+            save_preset(name, false, save_to_project);
+            //save_preset(name);
         }
         else
         {
-            m_preset_bundle->save_changes_for_preset(name, presets->type(), unselected_options);
+            //BBS: add project embedded preset relate logic
+            m_preset_bundle->save_changes_for_preset(name, presets->type(), unselected_options, save_to_project);
+            //m_preset_bundle->save_changes_for_preset(name, presets->type(), unselected_options);
 
             // If filament preset is saved for multi-material printer preset,
             // there are cases when filament comboboxs are updated for old (non-modified) colors,
@@ -3970,7 +3978,8 @@ void Tab::compare_preset()
 // and activates the new preset.
 // Wizard calls save_preset with a name "My Settings", otherwise no name is provided and this method
 // opens a Slic3r::GUI::SavePresetDialog dialog.
-void Tab::save_preset(std::string name /*= ""*/, bool detach)
+//BBS: add project embedded preset relate logic
+void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_project)
 {
     // since buttons(and choices too) don't get focus on Mac, we set focus manually
     // to the treectrl so that the EVT_* events are fired for the input field having
@@ -3982,6 +3991,8 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach)
         if (dlg.ShowModal() != wxID_OK)
             return;
         name = dlg.get_name();
+        //BBS: add project embedded preset relate logic
+        save_to_project = dlg.get_save_to_project_selection(m_type);
     }
 
     //BBS record current preset name
@@ -3994,7 +4005,7 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach)
     }
 
     // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
-    m_presets->save_current_preset(name, detach);
+    m_presets->save_current_preset(name, detach, save_to_project);
 
     //BBS create new settings
     new_preset = m_presets->find_preset(name, false, true);
@@ -4085,7 +4096,9 @@ void Tab::delete_preset()
 {
     auto current_preset = m_presets->get_selected_preset();
     // Don't let the user delete the ' - default - ' configuration.
-    std::string action = current_preset.is_external ? _utf8(L("remove")) : _utf8(L("delete"));
+    //BBS: add project embedded preset logic and refine is_external
+    std::string action =  _utf8(L("Delete"));
+    //std::string action = current_preset.is_external ? _utf8(L("remove")) : _utf8(L("delete"));
     // TRN  remove/delete
 
     PhysicalPrinterCollection& physical_printers = m_preset_bundle->physical_printers;
@@ -4134,7 +4147,9 @@ void Tab::delete_preset()
         msg += from_u8((boost::format(_u8L("Are you sure you want to %1% the selected preset?")) % action).str());
     }
 
-    action = current_preset.is_external ? _utf8(L("Remove")) : _utf8(L("Delete"));
+    //BBS: add project embedded preset logic and refine is_external
+    action =  _utf8(L("Delete"));
+    //action = current_preset.is_external ? _utf8(L("Remove")) : _utf8(L("Delete"));
     // TRN  Remove/Delete
     wxString title = from_u8((boost::format(_utf8(L("%1% Preset"))) % action).str());  //action + _(L(" Preset"));
     if (current_preset.is_default ||
@@ -4259,7 +4274,9 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
         for (size_t idx = 0; idx < depending_presets.size(); ++ idx)
         {
             Preset& preset = depending_presets.preset(idx);
-            bool add = ! preset.is_default && ! preset.is_external;
+            //BBS: add project embedded preset logic and refine is_external
+            bool add = ! preset.is_default;
+            //bool add = ! preset.is_default && ! preset.is_external;
             if (add && deps.type == Preset::TYPE_PRINTER)
                 // Only add printers with the same technology as the active printer.
                 add &= preset.printer_technology() == printer_technology;

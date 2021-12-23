@@ -250,6 +250,9 @@ PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, Forward
     // First load the vendor specific system presets.
     PresetsConfigSubstitutions substitutions;
     std::string errors_cummulative;
+
+    //BBS: add config related logs
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" enter, substitution_rule %1%, preferred_model_id %2%")%substitution_rule%preferred_model_id;
     std::tie(substitutions, errors_cummulative) = this->load_system_presets(substitution_rule);
 
     //BBS load preset from user's folder, load system default if 
@@ -288,15 +291,79 @@ PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, Forward
 
     this->load_selections(config, preferred_selection);
 
+    //BBS: add config related logs
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" finished, returned substitutions %1%")%substitutions.size();
     return substitutions;
 }
 
-PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig& config, std::map<std::string, Preset*> my_presets, ForwardCompatibilitySubstitutionRule substitution_rule)
+//BBS: load project embedded presets
+PresetsConfigSubstitutions PresetBundle::load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule)
 {
     // First load the vendor specific system presets.
     PresetsConfigSubstitutions substitutions;
     std::string errors_cummulative;
 
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, substitution_rule %1%, preset toltal count %2%")%substitution_rule% project_presets.size();
+    try {
+        this->prints.load_project_embedded_presets(project_presets, "print", substitutions, substitution_rule);
+    } catch (const std::runtime_error &err) {
+        errors_cummulative += err.what();
+    }
+    try {
+        this->filaments.load_project_embedded_presets(project_presets, "filament", substitutions, substitution_rule);
+    } catch (const std::runtime_error &err) {
+        errors_cummulative += err.what();
+    }
+    try {
+        this->printers.load_project_embedded_presets(project_presets, "printer", substitutions, substitution_rule);
+    } catch (const std::runtime_error &err) {
+        errors_cummulative += err.what();
+    }
+
+    //this->update_multi_material_filament_presets();
+    //this->update_compatible(PresetSelectCompatibleType::Never);
+    if (! errors_cummulative.empty())
+        throw Slic3r::RuntimeError(errors_cummulative);
+
+    //this->load_selections(config, "");
+
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished, returned substitutions %1%")%substitutions.size();
+    return substitutions;
+}
+
+//BBS: get current project embedded presets
+std::vector<Preset*> PresetBundle::get_current_project_embedded_presets()
+{
+    std::vector<Preset*> project_presets;
+
+    project_presets = this->prints.get_project_embedded_presets();
+
+    auto filament_presets = this->filaments.get_project_embedded_presets();
+    if (!filament_presets.empty())
+        std::copy(filament_presets.begin(), filament_presets.end(), std::back_inserter(project_presets));
+    auto printer_presets = this->printers.get_project_embedded_presets();
+    if (!printer_presets.empty())
+        std::copy(printer_presets.begin(), printer_presets.end(), std::back_inserter(project_presets));
+
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished, returned project_presets count %1%")%project_presets.size();
+    return project_presets;
+}
+
+//BBS: reset project embedded presets
+void PresetBundle::reset_project_embedded_presets()
+{
+    this->prints.reset_project_embedded_presets();
+    this->filaments.reset_project_embedded_presets();
+    this->printers.reset_project_embedded_presets();
+}
+
+PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &config, std::map<std::string, Preset*> my_presets, ForwardCompatibilitySubstitutionRule substitution_rule)
+{
+    // First load the vendor specific system presets.
+    PresetsConfigSubstitutions substitutions;
+    std::string errors_cummulative;
+
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, substitution_rule %1%, preset toltal count %2%")%substitution_rule%my_presets.size();
     try {
         this->prints.load_user_presets(my_presets, "print", substitutions, substitution_rule);
     }
@@ -323,7 +390,7 @@ PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig& config, st
 
     this->load_selections(config, PresetPreferences());
 
-
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished, returned substitutions %1%")%substitutions.size();
     return substitutions;
 }
 
@@ -339,6 +406,7 @@ void PresetBundle::save_user_presets(AppConfig& config, std::map<std::string, Pr
 #endif
         ;
 
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, save to %1%, preset toltal count %2%")%dir_user_presets %my_presets.size();
     fs::path folder(dir_user_presets);
     if (!fs::exists(folder))
         fs::create_directory(folder);
@@ -346,6 +414,7 @@ void PresetBundle::save_user_presets(AppConfig& config, std::map<std::string, Pr
     this->prints.save_user_presets(my_presets, dir_user_presets, "print");
     this->filaments.save_user_presets(my_presets, dir_user_presets, "filament");
     this->printers.save_user_presets(my_presets, dir_user_presets, "printer");
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished");
 }
 
 //BBS: validate printers from previous project
@@ -368,6 +437,7 @@ void PresetBundle::remove_users_preset(AppConfig& config)
     // remove preset if user_id is not current user
     for (auto it = prints.begin(); it != prints.end();) {
         if (it->is_user() && !it->user_id.empty() && it->user_id.compare(config.get("preset_folder")) != 0) {
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":prints erase %1%, type %2%， user_id %3%")%it->name %Preset::get_type_string(it->type) %it->user_id;
             it = prints.erase(it);
         }
         else {
@@ -377,6 +447,7 @@ void PresetBundle::remove_users_preset(AppConfig& config)
 
     for (auto it = filaments.begin(); it != filaments.end();) {
         if (it->is_user() && !it->user_id.empty() && it->user_id.compare(config.get("preset_folder")) != 0) {
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":filaments erase %1%, type %2%， user_id %3%")%it->name %Preset::get_type_string(it->type) %it->user_id;
             it = filaments.erase(it);
         }
         else {
@@ -386,6 +457,7 @@ void PresetBundle::remove_users_preset(AppConfig& config)
 
     for (auto it = printers.begin(); it != printers.end();) {
         if (it->is_user() && !it->user_id.empty() && it->user_id.compare(config.get("preset_folder")) != 0) {
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":printers erase %1%, type %2%， user_id %3%")%it->name %Preset::get_type_string(it->type) %it->user_id;
             it = printers.erase(it);
         }
         else {
@@ -398,6 +470,8 @@ void PresetBundle::remove_users_preset(AppConfig& config)
 // For each vendor, there will be a single PresetBundle loaded.
 std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_presets(ForwardCompatibilitySubstitutionRule compatibility_rule)
 {
+    //BBS: add config related logs
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, compatibility_rule %1%")%compatibility_rule;
     if (compatibility_rule == ForwardCompatibilitySubstitutionRule::EnableSystemSilent)
         // Loading system presets, don't log substitutions.
         compatibility_rule = ForwardCompatibilitySubstitutionRule::EnableSilent;
@@ -447,6 +521,8 @@ std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_pre
 	}
 
 	this->update_system_maps();
+    //BBS: add config related logs
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished, errors_cummulative %1%")%errors_cummulative;
     return std::make_pair(std::move(substitutions), errors_cummulative);
 }
 
@@ -517,8 +593,9 @@ const std::string& PresetBundle::get_preset_name_by_alias( const Preset::Type& p
     return presets.get_preset_name_by_alias(alias);
 }
 
+//BBS: add project embedded preset logic
 void PresetBundle::save_changes_for_preset(const std::string& new_name, Preset::Type type,
-                                           const std::vector<std::string>& unselected_options)
+                                           const std::vector<std::string>& unselected_options, bool save_to_project)
 {
     PresetCollection& presets = type == Preset::TYPE_PRINT          ? prints :
                                 type == Preset::TYPE_SLA_PRINT      ? sla_prints :
@@ -532,7 +609,9 @@ void PresetBundle::save_changes_for_preset(const std::string& new_name, Preset::
     }
 
     // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
-    presets.save_current_preset(new_name);
+    //BBS: add project embedded preset logic
+    //presets.save_current_preset(new_name);
+    presets.save_current_preset(new_name, false, save_to_project);
     // Mark the print & filament enabled if they are compatible with the currently selected preset.
     // If saving the preset changes compatibility with other presets, keep the now incompatible dependent presets selected, however with a "red flag" icon showing that they are no more compatible.
     update_compatible(PresetSelectCompatibleType::Never);
@@ -593,6 +672,7 @@ void PresetBundle::load_installed_sla_materials(AppConfig &config)
 // This is done on application start up or after updates are applied.
 void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& preferred_selection/* = PresetPreferences()*/)
 {
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": enter, preferred_model_id %1%")%preferred_model_id;
 	// Update visibility of presets based on application vendor / model / variant configuration.
 	this->load_installed_printers(config);
 
@@ -681,6 +761,8 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     // Activate physical printer from the config
     if (!initial_physical_printer_name.empty())
         physical_printers.select_printer(initial_physical_printer_name);
+
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": finished, preferred_model_id %1%")%preferred_model_id;
 }
 
 // Export selections (current print, current filaments, current printer) into config.ini
@@ -701,6 +783,8 @@ void PresetBundle::export_selections(AppConfig &config)
     config.set("presets", "sla_material", sla_materials.get_selected_preset_name());
     config.set("presets", "printer",      printers.get_selected_preset_name());
     config.set("presets", "physical_printer", physical_printers.get_selected_full_printer_name());
+    //BBS: add config related log
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": printer %1%, print %2%, filaments[0] %3% ")%printers.get_selected_preset_name() % prints.get_selected_preset_name() %filament_presets[0];
 }
 
 DynamicPrintConfig PresetBundle::full_config() const
@@ -886,6 +970,8 @@ ConfigSubstitutions PresetBundle::load_config_file(const std::string &path, Forw
 {
 	if (is_gcode_file(path)) {
 		DynamicPrintConfig config;
+        //BBS: add config related logs
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, gcodefile %1%, compatibility_rule %2%")%path %compatibility_rule;
 		config.apply(FullPrintConfig::defaults());
         ConfigSubstitutions config_substitutions = config.load_from_gcode_file(path, compatibility_rule);
         Preset::normalize(config);
@@ -893,6 +979,8 @@ ConfigSubstitutions PresetBundle::load_config_file(const std::string &path, Forw
 		return config_substitutions;
 	}
 
+    //BBS: add config related logs
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, configfile %1%, compatibility_rule %2%")%path %compatibility_rule;
     // 1) Try to load the config file into a boost property tree.
     boost::property_tree::ptree tree;
     try {
@@ -924,15 +1012,21 @@ ConfigSubstitutions PresetBundle::load_config_file(const std::string &path, Forw
             config_substitutions = config.load(tree, compatibility_rule);
     		Preset::normalize(config);
     		load_config_file_config(path, true, std::move(config));
+            //BBS: add config related logs
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": normal config, finished, got %1% substitutions")%config_substitutions.size();
             return config_substitutions;
         }
         case CONFIG_FILE_TYPE_CONFIG_BUNDLE:
+            //BBS: add config related logs
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": found config bundle");
             return load_config_file_config_bundle(path, tree, compatibility_rule);
         }
     } catch (const ConfigurationError &e) {
         throw Slic3r::RuntimeError(format("Invalid configuration file %1%: %2%", path, e.what()));
     }
 
+    //BBS: add config related logs
+    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" finished, should not be here");
     // This shall never happen. Suppres compiler warnings.
     assert(false);
     return ConfigSubstitutions{};
@@ -960,6 +1054,9 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                  config.option<ConfigOptionFloats>("filament_diameter")->values.size()) :
 		// 1 SLA material
         1;
+
+    //BBS: add config related logs
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": , name_or_path %1%, is_external %2%, num_extruders %3%")%name_or_path %is_external %num_extruders;
     // Make a copy of the "compatible_printers_condition_cummulative" and "inherits_cummulative" vectors, which 
     // accumulate values over all presets (print, filaments, printers).
     // These values will be distributed into their particular presets when loading.
@@ -1003,6 +1100,8 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 		compatible_printers_condition = compatible_printers_condition_values[idx];
         if (idx > 0 && idx - 1 < compatible_prints_condition_values.size())
             compatible_prints_condition = compatible_prints_condition_values[idx - 1];
+        //BBS: add config related logs
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": , name %1%, is_external %2%, inherits %3%")%name %is_external %inherits;
 		if (is_external)
 			presets.load_external_preset(name_or_path, name, config.opt_string(key, true), config);
 		else
@@ -1012,7 +1111,11 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     switch (Preset::printer_technology(config)) {
     case ptFFF:
     {
+        //BBS: add config related logs
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": load print preset from print_settings_id");
         load_preset(this->prints, 0, "print_settings_id");
+        //BBS: add config related logs
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": load printer preset from printer_settings_id");
         load_preset(this->printers, num_extruders + 1, "printer_settings_id");
 
         // 3) Now load the filaments. If there are multiple filament presets, split them and load them.
@@ -1025,6 +1128,9 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             compatible_printers_condition = compatible_printers_condition_values[1];
 			compatible_prints_condition   = compatible_prints_condition_values.front();
 			Preset                *loaded = nullptr;
+
+            //BBS: add config related logs
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": load single filament preset from filament_settings_id");
             if (is_external)
                 loaded = this->filaments.load_external_preset(name_or_path, name, old_filament_profile_names->values.front(), config).first;
             else {
@@ -1057,6 +1163,8 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             // in a case when next added preset take a place of previosly selected preset,
             // we should add presets from last to first
             bool any_modified = false;
+            //BBS: add config related logs
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": load multiple filament preset from filament_settings_id");
             for (int i = (int)configs.size()-1; i >= 0; i--) {
                 DynamicPrintConfig &cfg = configs[i];
                 // Split the "compatible_printers_condition" and "inherits" from the cummulative vectors to separate filament presets.
@@ -1104,6 +1212,8 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         else
             this->physical_printers.unselect_printer();
     }
+    //BBS: add config related logs
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": finished");
 }
 
 // Load the active configuration of a config bundle from a boost property_tree. This is a private method called from load_config_file.
@@ -1119,6 +1229,8 @@ ConfigSubstitutions PresetBundle::load_config_file_config_bundle(
 
     std::string bundle_name = std::string(" - ") + boost::filesystem::path(path).filename().string();
 
+    //BBS: add config related logs
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": enter, bundle_name %1%")%bundle_name;
     // 2) Extract active configs from the config bundle, copy them and activate them in this bundle.
     ConfigSubstitutions config_substitutions;
     auto load_one = [&path, &bundle_name, &presets_substitutions = presets_substitutions, &config_substitutions](
@@ -1182,6 +1294,9 @@ ConfigSubstitutions PresetBundle::load_config_file_config_bundle(
     this->update_compatible(PresetSelectCompatibleType::Never);
 
     sort_remove_duplicates(config_substitutions);
+
+    //BBS: add config related logs
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": finished, got %1% substitutions")%config_substitutions.size();
     return config_substitutions;
 }
 
@@ -1334,6 +1449,8 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_configbundle(
     ConfigSubstitutionContext  substitution_context { compatibility_rule };
     PresetsConfigSubstitutions substitutions;
 
+    //BBS: add config related logs
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, path %1%, compatibility_rule %2%")%path.c_str()%compatibility_rule;
     if (flags.has(LoadConfigBundleAttribute::ResetUserProfile) || flags.has(LoadConfigBundleAttribute::LoadSystem))
         // Reset this bundle, delete user profile files if SaveImported.
         this->reset(flags.has(LoadConfigBundleAttribute::SaveImported));
@@ -1360,6 +1477,10 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_configbundle(
         }
         vendor_profile = &this->vendors.insert({vp.id, vp}).first->second;
     }
+
+    //BBS: add config related logs
+    if (vendor_profile)
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", loaded vendor profile, name %1%, id %2%, version %3%")%vendor_profile->name%vendor_profile->id%vendor_profile->config_version.to_string();
 
     if (flags.has(LoadConfigBundleAttribute::LoadVendorOnly))
         return std::make_pair(PresetsConfigSubstitutions{}, 0);
@@ -1592,6 +1713,8 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_configbundle(
                     preset_name, presets->type(), PresetConfigSubstitutions::Source::ConfigBundle, 
                     std::string(), std::move(substitution_context.substitutions) });
             ++ presets_loaded;
+            //BBS: add config related logs
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", got preset %1%, from %2%")%loaded.name %path;
         }
 
         if (ph_printers != nullptr) {
@@ -1661,6 +1784,8 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_configbundle(
         this->update_compatible(PresetSelectCompatibleType::Never);
     }
 
+    //BBS: add config related logs
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", finished, presets_loaded %1%, ph_printers_loaded %2%")%presets_loaded %ph_printers_loaded;
     return std::make_pair(std::move(substitutions), presets_loaded + ph_printers_loaded);
 }
 
@@ -1968,7 +2093,9 @@ void PresetBundle::export_configbundle(const std::string &path, bool export_syst
 		(const PresetCollection*)&this->sla_prints, (const PresetCollection*)&this->sla_materials, 
 		(const PresetCollection*)&this->printers }) {
         for (const Preset &preset : (*presets)()) {
-            if (preset.is_default || preset.is_external || (preset.is_system && ! export_system_settings))
+            //BBS: add project embedded preset logic and refine is_external
+            if (preset.is_default || preset.is_project_embedded || (preset.is_system && ! export_system_settings))
+            //if (preset.is_default || preset.is_external || (preset.is_system && ! export_system_settings))
                 // Only export the common presets, not external files or the default preset.
                 continue;
             c << std::endl << "[" << presets->section_name() << ":" << preset.name << "]" << std::endl;

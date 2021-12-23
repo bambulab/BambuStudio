@@ -138,7 +138,11 @@ public:
     // Is this preset compatible with the currently active printer?
     bool                is_compatible = true;
 
-    bool                is_user() const { return ! this->is_default && ! this->is_system; }
+    //BBS: add type for project-embedded
+    bool                is_project_embedded = false;
+    ConfigSubstitutions *loading_substitutions{nullptr};
+    bool                is_user() const { return ! this->is_default && ! this->is_system && ! this->is_project_embedded; }
+    //bool                is_user() const { return ! this->is_default && ! this->is_system; }
 
     // Name of the preset, usually derived form the file name.
     std::string         name;
@@ -281,7 +285,9 @@ struct PresetConfigSubstitutions {
     enum class Source {
         UserFile,
         ConfigBundle,
+        //BBS: add cloud and project type
         UserCloud,
+        ProjectFile,
     };
     Source                                  preset_source;
     // Source of the preset. It may be empty in case of a ConfigBundle being loaded.
@@ -320,6 +326,9 @@ public:
     Iterator        erase(Iterator it) { return m_presets.erase(it); }
     SyncFunc        sync_func{ nullptr };
     void            set_sync_func(SyncFunc func) { sync_func = func; }
+    //BBS: mutex
+    void            lock() { m_mutex.lock(); }
+    void            unlock() { m_mutex.unlock(); }
 
     void            reset(bool delete_files);
 
@@ -339,6 +348,13 @@ public:
     //BBS Load user presets
     void            save_user_presets(std::map<std::string, Preset*> my_presets, const std::string& dir_path, const std::string& type);
     void            load_user_presets(std::map<std::string, Preset*> my_presets, const std::string& type, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule);
+    //BBS: get user presets
+    int             get_user_presets(std::vector<Preset>& result_presets);
+
+    //BBS: add project embedded presets logic
+    void load_project_embedded_presets(std::vector<Preset*>& project_presets, const std::string& type, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule);
+    std::vector<Preset*> get_project_embedded_presets();
+    void reset_project_embedded_presets();
 
     // Load a preset from an already parsed config file, insert it into the sorted sequence of presets
     // and select it, losing previous modifications.
@@ -371,7 +387,8 @@ public:
     // Save the preset under a new name. If the name is different from the old one,
     // a new preset is stored into the list of presets.
     // All presets are marked as not modified and the new preset is activated.
-    void            save_current_preset(const std::string &new_name, bool detach = false);
+    //BBS: add project embedded preset logic
+    void            save_current_preset(const std::string &new_name, bool detach = false, bool save_to_project = false);
 
     // Delete the current preset, activate the first visible preset.
     // returns true if the preset was deleted successfully.
@@ -627,6 +644,9 @@ private:
 
     // to access select_preset_by_name_strict() and the default & copy constructors.
     friend class PresetBundle;
+
+    //BBS: mutex
+    std::mutex          m_mutex;
 };
 
 // Printer supports the FFF and SLA technologies, with different set of configuration values,

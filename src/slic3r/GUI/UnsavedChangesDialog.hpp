@@ -260,8 +260,25 @@ class UnsavedChangesDialog : public DPIDialog
 
     // selected action after Dialog closing
     Action m_exit_action {Action::Undef};
+
+public:
+    //BBS: add project embedded preset relate logic
+    struct PresetData
+    {
+        std::string name;
+        Preset::Type type;
+        bool save_to_project;
+
+        PresetData(std::string preset_name, Preset::Type preset_type, bool save_project)
+            :name(preset_name), type(preset_type), save_to_project(save_project)
+        {
+        }
+    };
+
+private:
     // preset names which are modified in SavePresetDialog and related types
-    std::vector<std::pair<std::string, Preset::Type>>  names_and_types;
+    std::vector<PresetData>  names_and_types;
+    //std::vector<std::pair<std::string, Preset::Type>>  names_and_types;
     // additional action buttons used in dialog
     int m_buttons { ActionButtons::TRANSFER | ActionButtons::SAVE };
 
@@ -294,9 +311,12 @@ public:
     bool discard() const            { return m_exit_action == Action::Discard;  }
 
     // get full bundle of preset names and types for saving
-    const std::vector<std::pair<std::string, Preset::Type>>& get_names_and_types() { return names_and_types; }
+    //BBS: add project embedded preset relate logic
+    const std::vector<UnsavedChangesDialog::PresetData>& get_names_and_types() { return names_and_types; }
+    bool get_save_to_project_option() { return names_and_types[0].save_to_project; }
+    //const std::vector<std::pair<std::string, Preset::Type>>& get_names_and_types() { return names_and_types; }
     // short version of the previous function, for the case, when just one preset is modified
-    std::string get_preset_name() { return names_and_types[0].first; }
+    std::string get_preset_name() { return names_and_types[0].name; }
 
     std::vector<std::string> get_unselected_options(Preset::Type type)  { return m_tree->options(type, false); }
     std::vector<std::string> get_selected_options  (Preset::Type type)  { return m_tree->options(type, true); }

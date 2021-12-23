@@ -1,6 +1,7 @@
 #include "../libslic3r.h"
 #include "../Exception.hpp"
 #include "../Model.hpp"
+#include "../Preset.hpp"
 #include "../Utils.hpp"
 #include "../LocalesUtils.hpp"
 #include "../GCode.hpp"
@@ -86,6 +87,10 @@ const std::string SLA_SUPPORT_POINTS_FILE = "Metadata/Slic3r_PE_sla_support_poin
 const std::string SLA_DRAIN_HOLES_FILE = "Metadata/Slic3r_PE_sla_drain_holes.txt";
 const std::string CUSTOM_GCODE_PER_PRINT_Z_FILE = "Metadata/Prusa_Slicer_custom_gcode_per_print_z.xml";
 const std::string AUXILIARY_DIR = "Auxiliaries/";
+const std::string PROJECT_EMBEDDED_PRINT_PRESETS_FILE = "Metadata/print_setting_";
+const std::string PROJECT_EMBEDDED_FILAMENT_PRESETS_FILE = "Metadata/filament_setting_";
+const std::string PROJECT_EMBEDDED_PRINTER_PRESETS_FILE = "Metadata/printer_setting_";
+
 
 const unsigned int AUXILIARY_STR_LEN = 12;
 const unsigned int METADATA_STR_LEN = 9;
@@ -540,7 +545,7 @@ namespace Slic3r {
 
         //BBS: add plate data related logic
         // add backup & restore logic
-        bool load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version, bool& is_bbl_3mf, bool load_aux, bool load_restore, Import3mfProgressFn proFn = nullptr);
+        bool load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version, bool& is_bbl_3mf, bool load_aux, bool load_restore, Import3mfProgressFn proFn = nullptr);
         unsigned int version() const { return m_version; }
 
     private:
@@ -558,7 +563,7 @@ namespace Slic3r {
 
         //BBS: add plate data related logic
         // add backup & restore logic
-        bool _load_model_from_file(std::string filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, Import3mfProgressFn proFn = nullptr);
+        bool _load_model_from_file(std::string filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, Import3mfProgressFn proFn = nullptr);
         bool _extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         bool _extract_model_from_file(std::string const& file); // mesh only file -- backup & restore logic
         void _extract_layer_heights_profile_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
@@ -570,6 +575,8 @@ namespace Slic3r {
 
         void _extract_print_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, DynamicPrintConfig& config, ConfigSubstitutionContext& subs_context, const std::string& archive_filename);
         bool _extract_model_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model);
+        //BBS: extract project embedded presets
+        void _extract_project_embedded_presets_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, std::vector<Preset*>&project_presets, Model& model, Preset::Type type);
 
         void _extract_auxiliary_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model);
         void _extract_gcode_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model, std::string& name);
@@ -696,7 +703,7 @@ namespace Slic3r {
 
     //BBS: add plate data related logic
         // add backup & restore logic
-    bool _BBS_3MF_Importer::load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version, bool& is_bbl_3mf, bool load_aux, bool load_restore, Import3mfProgressFn proFn)
+    bool _BBS_3MF_Importer::load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version, bool& is_bbl_3mf, bool load_aux, bool load_restore, Import3mfProgressFn proFn)
     {
         m_version = 0;
         m_fdm_supports_painting_version = 0;
@@ -736,7 +743,7 @@ namespace Slic3r {
                 model.get_backup_path() + "/lock.txt",
                 boost::lexical_cast<std::string>(get_current_pid()));
         }
-        bool result = _load_model_from_file(filename, model, plate_data_list, config, config_substitutions, proFn);
+        bool result = _load_model_from_file(filename, model, plate_data_list, project_presets, config, config_substitutions, proFn);
         is_bbl_3mf = m_is_bbl_3mf;
         // save for restore
         if (result && load_aux && !load_restore) {
@@ -766,7 +773,7 @@ namespace Slic3r {
     }
 
     //BBS: add plate data related logic
-    bool _BBS_3MF_Importer::_load_model_from_file(std::string filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, Import3mfProgressFn proFn)
+    bool _BBS_3MF_Importer::_load_model_from_file(std::string filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, Import3mfProgressFn proFn)
     {
         bool cb_cancel = false;
         //BBS progress point
@@ -919,6 +926,19 @@ namespace Slic3r {
                 else if ((boost::algorithm::iequals(name, PRINT_CONFIG_FILE))||(boost::algorithm::iequals(name, BBS_PRINT_CONFIG_FILE))) {
                     // extract slic3r print config file
                     _extract_print_config_from_archive(archive, stat, config, config_substitutions, filename);
+                }
+                //BBS: project embedded presets
+                else if (boost::algorithm::istarts_with(name, PROJECT_EMBEDDED_PRINT_PRESETS_FILE)) {
+                    // extract slic3r layer config ranges file
+                    _extract_project_embedded_presets_from_archive(archive, stat, project_presets, model, Preset::TYPE_PRINT);
+                }
+                else if (boost::algorithm::istarts_with(name, PROJECT_EMBEDDED_FILAMENT_PRESETS_FILE)) {
+                    // extract slic3r layer config ranges file
+                    _extract_project_embedded_presets_from_archive(archive, stat, project_presets, model, Preset::TYPE_FILAMENT);
+                }
+                else if (boost::algorithm::istarts_with(name, PROJECT_EMBEDDED_PRINTER_PRESETS_FILE)) {
+                    // extract slic3r layer config ranges file
+                    _extract_project_embedded_presets_from_archive(archive, stat, project_presets, model, Preset::TYPE_PRINTER);
                 }
                 else if (boost::algorithm::iequals(name, CUSTOM_GCODE_PER_PRINT_Z_FILE)) {
                     // extract slic3r layer config ranges file
@@ -1302,6 +1322,89 @@ namespace Slic3r {
                 return;
             }
             ConfigBase::load_from_gcode_string_legacy(config, buffer.data(), config_substitutions);
+        }
+    }
+
+    //BBS: extract project embedded presets
+    void _BBS_3MF_Importer::_extract_project_embedded_presets_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, std::vector<Preset*>&project_presets, Model& model, Preset::Type type)
+    {
+        if (stat.m_uncomp_size > 0) {
+            const std::string& temp_path = model.get_backup_path();
+            /*std::string src_file = decode_path(stat.m_filename);
+            std::size_t found = src_file.find(METADATA_DIR);
+            if (found != std::string::npos)
+                src_file = src_file.substr(found + METADATA_STR_LEN);
+            else
+                return;*/
+            std::string dest_file = temp_path + std::string("/") + "_temp_2.config";;
+            std::string dest_zip_file = encode_path(dest_file.c_str());
+            mz_bool res = mz_zip_reader_extract_file_to_file(&archive, stat.m_filename, dest_zip_file.c_str(), 0);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % dest_file % stat.m_filename % res;
+            if (res == 0) {
+                add_error("Error while extract auxiliary file to file");
+                return;
+            }
+            //load presets
+            DynamicPrintConfig config;
+            ConfigSubstitutions config_substitutions = config.load_from_ini(dest_file, Enable);
+            ConfigOptionString* print_name;
+            ConfigOptionStrings* filament_names;
+            std::string preset_name;
+            if (type == Preset::TYPE_PRINT) {
+                print_name = dynamic_cast < ConfigOptionString* > (config.option("print_settings_id"));
+                if (!print_name) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", can not found print_settings_id from  %1%\n") % dest_file;
+                    //skip this file
+                    return;
+                }
+                preset_name = print_name->value;
+            }
+            else if (type == Preset::TYPE_FILAMENT) {
+                filament_names = dynamic_cast < ConfigOptionStrings* > (config.option("filament_settings_id"));
+                if (!filament_names) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", can not found filament_settings_id from  %1%\n") % dest_file;
+                    //skip this file
+                    return;
+                }
+                preset_name = filament_names->values[0];
+            }
+            else if (type == Preset::TYPE_PRINTER) {
+                print_name = dynamic_cast < ConfigOptionString* > (config.option("printer_settings_id"));
+                if (!print_name) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", can not found printer_settings_id from  %1%\n") % dest_file;
+                    //skip this file
+                    return;
+                }
+                preset_name = print_name->value;
+            }
+            else {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", invalid type  %1% from file %2%\n")% Preset::get_type_string(type) % dest_file;
+                //skip this file
+                return;
+            }
+
+            Preset *preset = new Preset(type, preset_name, false);
+            preset->file = dest_file;
+            preset->config = std::move(config);
+            preset->loaded = true;
+            preset->is_project_embedded = true;
+            preset->is_external = true;
+            preset->is_dirty = false;
+            /*for (int i = 0; i < config_substitutions.size(); i++)
+            {
+                //ConfigSubstitution config_substitution;
+                //config_substitution.opt_def   = optdef;
+                //config_substitution.old_value = value;
+                //config_substitution.new_value = ConfigOptionUniquePtr(opt->clone());
+                preset->loading_substitutions.emplace_back(std::move(config_substitutions[i]));
+            }*/
+            if (!config_substitutions.empty()) {
+                preset->loading_substitutions = new ConfigSubstitutions();
+                *(preset->loading_substitutions) = std::move(config_substitutions);
+            }
+
+            project_presets.push_back(preset);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", create one project embedded preset: %1% from %2%, type %3%\n") % preset_name % dest_file %Preset::get_type_string(type);
         }
     }
 
@@ -2844,13 +2947,13 @@ namespace Slic3r {
         //BBS: add plate data related logic
 
         // add backup logic
-        bool save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64, bool skip_static, Export3mfProgressFn proFn = nullptr, bool silence = false);
+        bool save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64, bool skip_static, Export3mfProgressFn proFn = nullptr, bool silence = false);
         // add backup logic
         bool save_object_mesh(const std::string& filename, ModelObject& object);
 
     private:
         //BBS: add plate data related logic
-        bool _save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, const std::vector<ThumbnailData*>& thumbnail_data, Export3mfProgressFn proFn);
+        bool _save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, const DynamicPrintConfig* config, const std::vector<ThumbnailData*>& thumbnail_data, Export3mfProgressFn proFn);
 
         bool _add_content_types_file_to_archive(mz_zip_archive& archive);
         bool _add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data, int index);
@@ -2864,6 +2967,8 @@ namespace Slic3r {
         bool _add_sla_support_points_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_sla_drain_holes_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_print_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config);
+        //BBS: add project embedded preset files
+        bool _add_project_embedded_presets_to_archive(mz_zip_archive& archive, Model& model, std::vector<Preset*> project_presets);
         bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const IdToObjectDataMap &objects_data);
         bool _add_slice_info_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list);
         bool _add_gcode_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, Export3mfProgressFn proFn = nullptr);
@@ -2887,7 +2992,7 @@ namespace Slic3r {
 
     //BBS: add plate data related logic
     // add backup logic
-    bool _BBS_3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64, bool skip_static, Export3mfProgressFn proFn, bool silence)
+    bool _BBS_3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64, bool skip_static, Export3mfProgressFn proFn, bool silence)
     {
         clear_errors();
         m_fullpath_sources = fullpath_sources;
@@ -2897,7 +3002,7 @@ namespace Slic3r {
         boost::system::error_code ec;
         boost::filesystem::remove(filename + ".tmp", ec);
         bool result = _save_model_to_file(filename + ".tmp", model,
-                                            plate_data_list, config,
+                                            plate_data_list, project_presets, config,
                                             thumbnail_data, proFn);
         if (result) {
             boost::filesystem::rename(filename + ".tmp", filename, ec);
@@ -2924,7 +3029,7 @@ namespace Slic3r {
     }
 
     //BBS: add plate data related logic
-    bool _BBS_3MF_Exporter::_save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, const std::vector<ThumbnailData*>& thumbnail_data, Export3mfProgressFn proFn)
+    bool _BBS_3MF_Exporter::_save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, const DynamicPrintConfig* config, const std::vector<ThumbnailData*>& thumbnail_data, Export3mfProgressFn proFn)
     {
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
@@ -3111,6 +3216,19 @@ namespace Slic3r {
             proFn(EXPORT_STAGE_ADD_CONFIG_FILE, 0, 1, cb_cancel);
             if (cb_cancel)
                 return false;
+        }
+
+        //BBS: add project config
+        if (project_presets.size() > 0) {
+            //BBS: add project embedded preset files
+            _add_project_embedded_presets_to_archive(archive, model, project_presets);
+
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_PROJECT_CONFIG\n");
+            if (proFn) {
+                proFn(EXPORT_STAGE_ADD_PROJECT_CONFIG, 0, 1, cb_cancel);
+                if (cb_cancel)
+                    return false;
+            }
         }
 
         // Adds slic3r model config file ("Metadata/Slic3r_PE_model.config").
@@ -3898,6 +4016,54 @@ namespace Slic3r {
         return true;
     }
 
+    //BBS: add project embedded preset files
+    bool _BBS_3MF_Exporter::_add_project_embedded_presets_to_archive(mz_zip_archive& archive, Model& model, std::vector<Preset*> project_presets)
+    {
+        bool result = true;
+        char buffer[1024];
+        sprintf(buffer, "; %s\n\n", header_slic3r_generated().c_str());
+        std::string out = buffer;
+        int print_count = 0, filament_count = 0, printer_count = 0;
+        const std::string& temp_path = model.get_backup_path();
+
+        for (int i = 0; i < project_presets.size(); i++)
+        {
+            Preset* preset = project_presets[i];
+
+            if (preset) {
+                preset->file = temp_path + std::string("/") + "_temp_1.config";
+                DynamicPrintConfig& config = preset->config;
+                config.save(preset->file);
+
+                std::string src_file = encode_path(preset->file.c_str());
+                std::string dest_file;
+                if (preset->type == Preset::TYPE_PRINT) {
+                    dest_file = (boost::format(EMBEDDED_PRINT_FILE_FORMAT) % (print_count + 1)).str();
+                    print_count++;
+                }
+                else if (preset->type == Preset::TYPE_FILAMENT) {
+                    dest_file = (boost::format(EMBEDDED_FILAMENT_FILE_FORMAT) % (filament_count + 1)).str();
+                    filament_count++;
+                }
+                else if (preset->type == Preset::TYPE_PRINTER) {
+                    dest_file = (boost::format(EMBEDDED_PRINTER_FILE_FORMAT) % (printer_count + 1)).str();
+                    printer_count++;
+                }
+                else
+                    continue;
+
+                result = mz_zip_writer_add_file(&archive, dest_file.c_str(), src_file.c_str(), "", 0, MZ_DEFAULT_COMPRESSION);
+                if (!result) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", Unable to add embedded preset %1% to archive %2%, type %3%\n")%preset->file %dest_file %Preset::get_type_string(preset->type);
+                }
+                else
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", add embedded print preset %1% to archive %2%, type %3%\n")%preset->file %dest_file %Preset::get_type_string(preset->type);
+            }
+        }
+
+        return true;
+    }
+
     bool _BBS_3MF_Exporter::_add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const IdToObjectDataMap &objects_data)
     {
         std::stringstream stream;
@@ -4004,7 +4170,7 @@ namespace Slic3r {
                             for (const std::string& key : volume->config.keys()) {
                                 stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << PART_TYPE << "\" " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << volume->config.opt_serialize(key) << "\"/>\n";
                             }
-                            
+
                             // stores mesh's statistics
                             const RepairedMeshErrors& stats = volume->mesh().stats().repaired_errors;
                             stream << "   <" << MESH_TAG << " ";
@@ -4248,13 +4414,9 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive& archive, c
 
                     std::string dest_zip_file = encode_path(dst_in_3mf.c_str());
                     std::string src_zip_file = encode_path(src_file.c_str());
-<<<<<<< HEAD   (625ded FIX: slience not update backup origin (fix 66251db34))
-                    result = result & mz_zip_writer_add_file(&archive, dest_zip_file.c_str(), src_zip_file.c_str(), "", 0, MZ_DEFAULT_COMPRESSION);
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", store  %1% to 3mf %2%, result %3%\n") % src_file % dst_in_3mf % result;
-=======
+
                     result = result & mz_zip_writer_add_file(&archive, dest_zip_file.c_str(), src_zip_file.c_str(), "", 0, MZ_DEFAULT_LEVEL);
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", store  %1% to 3mf %2%, result %3%\n") % src_file % dst_in_3mf % result;
->>>>>>> CHANGE (1244f3 FIX: fix run gcode encoding bug)
                 }
             }
         }
@@ -4265,13 +4427,9 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive& archive, c
 
             std::string dest_zip_file = encode_path(dst_in_3mf.c_str());
             std::string src_zip_file = encode_path(src_file.c_str());
-<<<<<<< HEAD   (625ded FIX: slience not update backup origin (fix 66251db34))
-            result = result & mz_zip_writer_add_file(&archive, dest_zip_file.c_str(), src_zip_file.c_str(), "", 0, MZ_DEFAULT_COMPRESSION);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", store  %1% to 3mf %2%, result %3%\n") % src_file % dst_in_3mf % result;
-=======
+
             result = result & mz_zip_writer_add_file(&archive, dest_zip_file.c_str(), src_zip_file.c_str(), "", 0, MZ_DEFAULT_LEVEL);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", store  %1% to 3mf %2%, result %3%\n") % src_file % dst_in_3mf % result;
->>>>>>> CHANGE (1244f3 FIX: fix run gcode encoding bug)
         }
     }
 
@@ -4626,7 +4784,7 @@ private:
 
 
 //BBS: add plate data list related logic
-bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, bool check_version, bool* is_bbl_3mf, bool load_aux, bool load_restore, Import3mfProgressFn proFn)
+bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, std::vector<Preset*>* project_presets, bool check_version, bool* is_bbl_3mf, bool load_aux, bool load_restore, Import3mfProgressFn proFn)
 {
     if (path == nullptr || config == nullptr || model == nullptr)
         return false;
@@ -4634,14 +4792,14 @@ bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstituti
     // All import should use "C" locales for number formatting.
     CNumericLocalesSetter locales_setter;
     _BBS_3MF_Importer importer;
-    bool res = importer.load_model_from_file(path, *model, *plate_data_list, *config, *config_substitutions, check_version, *is_bbl_3mf, load_aux, load_restore, proFn);
+    bool res = importer.load_model_from_file(path, *model, *plate_data_list, *project_presets, *config, *config_substitutions, check_version, *is_bbl_3mf, load_aux, load_restore, proFn);
     importer.log_errors();
     handle_legacy_project_loaded(importer.version(), *config);
     return res;
 }
 
 //BBS: add plate data list related logic
-bool store_bbs_3mf(const char* path, Model* model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64, bool skip_static, Export3mfProgressFn proFn, bool silence)
+bool store_bbs_3mf(const char* path, Model* model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64, bool skip_static, Export3mfProgressFn proFn, bool silence)
 {
     // All export should use "C" locales for number formatting.
     CNumericLocalesSetter locales_setter;
@@ -4650,7 +4808,7 @@ bool store_bbs_3mf(const char* path, Model* model, PlateDataPtrs& plate_data_lis
         return false;
 
     _BBS_3MF_Exporter exporter;
-    bool res = exporter.save_model_to_file(path, *model, plate_data_list, config, fullpath_sources, thumbnail_data, zip64, skip_static, proFn, silence);
+    bool res = exporter.save_model_to_file(path, *model, plate_data_list, project_presets, config, fullpath_sources, thumbnail_data, zip64, skip_static, proFn, silence);
     if (!res)
         exporter.log_errors();
 

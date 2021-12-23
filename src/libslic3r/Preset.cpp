@@ -29,6 +29,8 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+//BBS: add regex
+#include <boost/algorithm/string/regex.hpp>
 
 #include <boost/nowide/cenv.hpp>
 #include <boost/nowide/convert.hpp>
@@ -378,6 +380,9 @@ void Preset::load_info(const std::string& file)
 
 void Preset::save_info(std::string file)
 {
+    //BBS: add project embedded preset logic
+    if (this->is_project_embedded)
+        return;
     if (file.empty()) {
         fs::path idx_file(this->file);
         idx_file.replace_extension(".idx");
@@ -395,6 +400,9 @@ void Preset::save_info(std::string file)
 
 void Preset::remove_files()
 {
+    //BBS: add project embedded preset logic
+    if (this->is_project_embedded)
+        return;
     // Erase the preset file.
     boost::nowide::remove(this->file.c_str());
     fs::path idx_path(this->file);
@@ -405,6 +413,9 @@ void Preset::remove_files()
 
 void Preset::save()
 {
+    //BBS: add project embedded preset logic
+    if (this->is_project_embedded)
+        return;
     this->config.save(this->file);
     fs::path idx_file(this->file);
     idx_file.replace_extension(".idx");
@@ -473,6 +484,8 @@ bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const Pre
 
 void Preset::set_visible_from_appconfig(const AppConfig &app_config)
 {
+    //BBS: add config related log
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": name %1%, is_visible %2%")%name % is_visible;
     if (vendor == nullptr) { return; }
 
     if (type == TYPE_PRINTER) {
@@ -496,6 +509,8 @@ void Preset::set_visible_from_appconfig(const AppConfig &app_config)
 	    		is_visible = has(*it);
 	    }
     }
+    //BBS: add config related log
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": name %1%, is_visible set to %2%")%name % is_visible;
 }
 
 static std::vector<std::string> s_Preset_print_options {
@@ -711,6 +726,8 @@ PresetCollection::PresetCollection(Preset::Type type, const std::vector<std::str
 
 void PresetCollection::reset(bool delete_files)
 {
+    //BBS: add lock logic for sync preset in background
+    lock();
     if (m_presets.size() > m_num_default_presets) {
         if (delete_files) {
             // Erase the preset files.
@@ -724,6 +741,8 @@ void PresetCollection::reset(bool delete_files)
         m_presets.erase(m_presets.begin() + m_num_default_presets, m_presets.end());
         this->select_preset(0);
     }
+    //BBS: add lock logic for sync preset in background
+    unlock();
     m_map_alias_to_profile_name.clear();
     m_map_system_profile_renamed.clear();
 }
@@ -747,6 +766,8 @@ void PresetCollection::load_presets(
     // see https://github.com/prusa3d/PrusaSlicer/issues/732
     boost::filesystem::path dir = boost::filesystem::absolute(boost::filesystem::path(dir_path) / subdir).make_preferred();
 
+    //BBS: add config related logs
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, load presets from %1%, current type %2%")%dir %Preset::get_type_string(m_type);
     //BBS do not parse folder if not exists
     if (!fs::exists(dir)) return;
 
@@ -791,6 +812,8 @@ void PresetCollection::load_presets(
                         BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" <<
                             preset.file << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
                     preset.loaded = true;
+                    //BBS: add config related logs
+                    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", preset type %1%, name %2%, path %3%, is_system %4%, is_default %5% is_visible %6%")%Preset::get_type_string(m_type) %preset.name %preset.file %preset.is_system %preset.is_default %preset.is_visible;
                 } catch (const std::ifstream::failure &err) {
                     throw Slic3r::RuntimeError(std::string("The selected preset cannot be loaded: ") + preset.file + "\n\tReason: " + err.what());
                 } catch (const std::runtime_error &err) {
@@ -804,11 +827,133 @@ void PresetCollection::load_presets(
         }
     m_presets.insert(m_presets.end(), std::make_move_iterator(presets_loaded.begin()), std::make_move_iterator(presets_loaded.end()));
     std::sort(m_presets.begin() + m_num_default_presets, m_presets.end());
+    //BBS: add config related logs
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": loaded %1% presets from %2%, type %3%")%presets_loaded.size() %dir %Preset::get_type_string(m_type);
     this->select_preset(first_visible_idx());
     if (! errors_cummulative.empty())
         throw Slic3r::RuntimeError(errors_cummulative);
 }
 
+//BBS: save user presets to local
+void PresetCollection::load_project_embedded_presets(std::vector<Preset*>& project_presets, const std::string& type, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule)
+{
+    std::string errors_cummulative;
+    // Store the loaded presets into a new vector, otherwise the binary search for already existing presets would be broken.
+    // (see the "Preset already present, not loading" message).
+    std::deque<Preset> presets_loaded;
+    std::vector<Preset*>::iterator it;
+
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, type %1% , total preset counts %2%")%Preset::get_type_string(m_type) %project_presets.size();
+    lock();
+    for (it = project_presets.begin(); it != project_presets.end(); it++) {
+        Preset* preset = *it;
+        if (preset->type != Preset::get_type_from_string(type)) continue;
+        if (!preset->is_project_embedded) continue;
+        std::string name = preset->name;
+        if (this->find_preset(name, false)) {
+            BOOST_LOG_TRIVIAL(warning) << "Preset already present, not loading: " << name;
+            continue;
+        }
+        try {
+            DynamicPrintConfig config = preset->config;
+            if (preset->loading_substitutions && ! preset->loading_substitutions->empty()) {
+                substitutions.push_back({ preset->name, m_type, PresetConfigSubstitutions::Source::ProjectFile, preset->name, std::move(*(preset->loading_substitutions))});
+                free(preset->loading_substitutions);
+                preset->loading_substitutions = NULL;
+            }
+            // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
+            const Preset &default_preset = this->default_preset_for(config);
+            preset->config = default_preset.config;
+            preset->config.apply(std::move(config));
+            Preset::normalize(preset->config);
+            // Report configuration fields, which are misplaced into a wrong group.
+            std::string incorrect_keys = Preset::remove_invalid_keys(config, default_preset.config);
+            if (! incorrect_keys.empty())
+                BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" <<
+                    preset->name << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
+            preset->loaded = true;
+            presets_loaded.emplace_back(*preset);
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", %1% got preset, name %2%, path %3%, is_system %4%, is_default %5% is_visible %6%")%Preset::get_type_string(m_type) %preset->name %preset->file %preset->is_system %preset->is_default %preset->is_visible;
+        } catch (const std::runtime_error &err) {
+            errors_cummulative += err.what();
+            errors_cummulative += "\n";
+        }
+    }
+
+    m_presets.insert(m_presets.end(), std::make_move_iterator(presets_loaded.begin()), std::make_move_iterator(presets_loaded.end()));
+    std::sort(m_presets.begin() + m_num_default_presets, m_presets.end());
+    //don't select it here
+    //this->select_preset(first_visible_idx());
+    unlock();
+
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished, %1% got %2% presets, errors_cummulative %3%")%Preset::get_type_string(m_type) %presets_loaded.size() %errors_cummulative;
+    if (! errors_cummulative.empty())
+        throw Slic3r::RuntimeError(errors_cummulative);
+}
+
+//BBS: get project embedded presets from 
+std::vector<Preset*> PresetCollection::get_project_embedded_presets()
+{
+    std::vector<Preset*> project_presets;
+
+    lock();
+    for (Preset &preset : m_presets) {
+        //if (preset.type != Preset::get_type_from_string(type)) continue;
+        if (!preset.is_project_embedded) continue;
+
+        project_presets.push_back(&preset);
+    }
+    unlock();
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, type %1% , total preset counts %2%")%Preset::get_type_string(m_type) %project_presets.size();
+    return project_presets;
+}
+
+//BBS: reset project embedded presets
+void PresetCollection::reset_project_embedded_presets()
+{
+    std::deque<Preset>::iterator it = m_presets.begin();
+    bool re_select = false;
+    int count = -1;
+
+    lock();
+    while ( it!=m_presets.end() )
+    {
+        count++;
+        //if (preset.type != Preset::get_type_from_string(type)) continue;
+        if (it->is_project_embedded) {
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" type %1% , delete preset %2%")%Preset::get_type_string(m_type) % it->name;
+            if ((!re_select) && (m_idx_selected == count))
+                re_select = true;
+            it = m_presets.erase(it);
+        }
+        else
+            it++;
+    }
+    if (re_select)
+        this->select_preset(first_visible_idx());
+    unlock();
+}
+
+//BBS: get user presets
+int PresetCollection::get_user_presets(std::vector<Preset>& result_presets)
+{
+    int count = 0;
+    result_presets.clear();
+
+    lock();
+    for (Preset &preset : m_presets) {
+        if (!preset.is_user()) continue;
+
+        result_presets.push_back(preset);
+        count++;
+    }
+    unlock();
+
+    return count;
+}
+
+
+//BBS: save user presets to local
 void PresetCollection::save_user_presets(std::map<std::string, Preset*> my_presets, const std::string& dir_path, const std::string& type)
 {
     boost::filesystem::path dir = boost::filesystem::absolute(boost::filesystem::path(dir_path) / type).make_preferred();
@@ -827,12 +972,15 @@ void PresetCollection::save_user_presets(std::map<std::string, Preset*> my_prese
     }
 }
 
+//BBS: load user presets from cloud side
 void PresetCollection::load_user_presets(std::map<std::string, Preset*> my_presets, const std::string &type, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule)
 {
     std::string errors_cummulative;
     // Store the loaded presets into a new vector, otherwise the binary search for already existing presets would be broken.
     // (see the "Preset already present, not loading" message).
     std::deque<Preset> presets_loaded;
+
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, type %1% , total preset counts %2%")%Preset::get_type_string(m_type) %my_presets.size();
 
     std::map<std::string, Preset*>::iterator it;
     for (it = my_presets.begin(); it != my_presets.end(); it++) {
@@ -861,6 +1009,7 @@ void PresetCollection::load_user_presets(std::map<std::string, Preset*> my_prese
                     preset->name << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
             preset->loaded = true;
             presets_loaded.emplace_back(*it->second);
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", %1% got preset, name %2%, path %3%, is_system %4%, is_default %5% is_visible %6%")%Preset::get_type_string(m_type) %preset->name %preset->file %preset->is_system %preset->is_default %preset->is_visible;
         } catch (const std::runtime_error &err) {
             errors_cummulative += err.what();
             errors_cummulative += "\n";
@@ -870,6 +1019,8 @@ void PresetCollection::load_user_presets(std::map<std::string, Preset*> my_prese
     m_presets.insert(m_presets.end(), std::make_move_iterator(presets_loaded.begin()), std::make_move_iterator(presets_loaded.end()));
     std::sort(m_presets.begin() + m_num_default_presets, m_presets.end());
     this->select_preset(first_visible_idx());
+
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished, %1% got %2% presets, errors_cummulative %3%")%Preset::get_type_string(m_type) %presets_loaded.size() %errors_cummulative;
     if (! errors_cummulative.empty())
         throw Slic3r::RuntimeError(errors_cummulative);
 }
@@ -947,12 +1098,16 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     const auto        &keys = cfg.keys();
     cfg.apply_only(combined_config, keys, true);
     std::string                 &inherits = Preset::inherits(cfg);
+    //BBS: add config related logs
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, type %1% , path %2%, name %3%, original_name %4%, inherits %5%")%Preset::get_type_string(m_type) %path %name %original_name %inherits;
     if (select == LoadAndSelect::Never) {
         // Some filament profile has been selected and modified already.
         // Check whether this profile is equal to the modified edited profile.
         const Preset &edited = this->get_edited_preset();
         if ((edited.name == original_name || edited.name == inherits) && profile_print_params_same(edited.config, cfg))
             // Just point to that already selected and edited profile.
+            //BBS: add config related logs
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" Just point to that already selected and edited profile %1%")%edited.name;
             return std::make_pair(&(*this->find_preset_internal(edited.name)), false);
     }
     // Is there a preset already loaded with the name stored inside the config?
@@ -974,6 +1129,8 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
             //if (app_config)
             //    app_config->set(AppConfig::SECTION_FILAMENTS, it->name, "1");
         }
+        //BBS: add config related logs
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" The preset exists and it matches the values stored inside config. using original_name %1%")%original_name;
         return std::make_pair(&(*it), false);
     }
     if (! found && select != LoadAndSelect::Never && ! inherits.empty()) {
@@ -993,6 +1150,8 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
                 //if (app_config)
                 //    app_config->set(AppConfig::SECTION_FILAMENTS, it->name, "1");
             }
+            //BBS: add config related logs
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" The preset exists and it matches the values stored inside config. using inherits %1%")%inherits;
             return std::make_pair(&(*it), false);
         }
     }
@@ -1013,6 +1172,8 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
                 //if (app_config)
                 //    app_config->set(AppConfig::SECTION_FILAMENTS, it->name, "1");
             }
+            //BBS: add config related logs
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" Select the existing preset %1% and override it with new values")%it->name;
             return std::make_pair(&(*it), this->get_edited_preset().is_dirty);
         }
         if (inherits.empty()) {
@@ -1024,16 +1185,33 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
 
     // The external preset does not match an internal preset, load the external preset.
     std::string new_name;
+    //BBS: add project embedded preset logic
     for (size_t idx = 0;; ++ idx) {
         std::string suffix;
         if (original_name.empty()) {
-            if (idx > 0)
-                suffix = " (" + std::to_string(idx) + ")";
+            if (!inherits.empty()) {
+                if (idx == 0)
+                    suffix = " (" + inherits + ")";
+                else
+                    suffix = " (" + inherits + "-" + std::to_string(idx) + ")";
+            }
+            else {
+                if (idx > 0)
+                    suffix = " (" + std::to_string(idx) + ")";
+            }
         } else {
+            std::string reduced_name = original_name;
+            //TODO
+            //boost::regex rx("3mf\(*\)");
+            //boost::iterator_range<std::string::iterator> result = boost::algorithm::find_regex(reduced_name, rx);
+            //if (!result.empty()) {
+            //    reduced_name = std::string(result.begin(), result.end());
+            //}
+
             if (idx == 0)
-                suffix = " (" + original_name + ")";
+                suffix = " (" + reduced_name + ")";
             else
-                suffix = " (" + original_name + "-" + std::to_string(idx) + ")";
+                suffix = " (" + reduced_name + "-" + std::to_string(idx) + ")";
         }
         new_name = name + suffix;
         it = this->find_preset_internal(new_name);
@@ -1044,16 +1222,30 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
             // The preset exists and it matches the values stored inside config.
             if (select == LoadAndSelect::Always)
                 this->select_preset(it - m_presets.begin());
+            //BBS: add config related logs
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" The preset %1% exists and it matches the values stored inside config.")%new_name;
             return std::make_pair(&(*it), false);
         }
         // Form another profile name.
     }
     // Insert a new profile.
+    //BBS: add project embedded preset logic
+    bool from_project = boost::algorithm::iends_with(name, ".3mf");
     Preset &preset = this->load_preset(path, new_name, std::move(cfg), select == LoadAndSelect::Always);
     preset.is_external = true;
+    if (from_project) {
+        preset.is_project_embedded = true;
+    }
+    else {
+        //external config
+        preset.file = path_from_name(preset.name);
+        preset.save();
+    }
     if (&this->get_selected_preset() == &preset)
         this->get_edited_preset().is_external = true;
 
+    //BBS: add config related logs
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", type %1% added a preset, name %2%, path %3%, is_system %4%, is_default %5% is_external %6%")%Preset::get_type_string(m_type) %preset.name %preset.file %preset.is_system %preset.is_default %preset.is_external;
     return std::make_pair(&preset, false);
 }
 
@@ -1071,10 +1263,13 @@ Preset& PresetCollection::load_preset(const std::string &path, const std::string
     preset.is_dirty = false;
     if (select)
         this->select_preset_by_name(name, true);
+    //BBS: add config related logs
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", preset type %1%, name %2%, path %3%, is_system %4%, is_default %5% is_visible %6%")%Preset::get_type_string(m_type) %preset.name %preset.file %preset.is_system %preset.is_default %preset.is_visible;
     return preset;
 }
 
-void PresetCollection::save_current_preset(const std::string &new_name, bool detach)
+//BBS: add project embedded preset logic
+void PresetCollection::save_current_preset(const std::string &new_name, bool detach, bool save_to_project)
 {
     // 1) Find the preset with a new_name or create a new one,
     // initialize it with the edited config.
@@ -1082,7 +1277,9 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
     if (it != m_presets.end() && it->name == new_name) {
         // Preset with the same name found.
         Preset &preset = *it;
-        if (preset.is_default || preset.is_external || preset.is_system)
+        //BBS: add project embedded preset logic
+        if (preset.is_default || preset.is_system)
+        //if (preset.is_default || preset.is_external || preset.is_system)
             // Cannot overwrite the default preset.
             return;
         // Overwriting an existing preset.
@@ -1097,6 +1294,8 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
 			preset.renamed_from.clear();
         }
     } else {
+        //BBS: add lock logic for sync preset in background
+        lock();
         // Creating a new preset.
         Preset       &preset   = *m_presets.insert(it, m_edited_preset);
         std::string  &inherits = preset.inherits();
@@ -1126,6 +1325,20 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
         preset.is_visible  = true;
         // Just system presets have aliases
         preset.alias.clear();
+        //BBS: add project embedded preset logic
+        if (save_to_project) {
+            preset.is_project_embedded = true;
+            if (m_type == Preset::TYPE_PRINT)
+                preset.config.option<ConfigOptionString >("print_settings_id", true)->value  = preset.name;
+            else if (m_type == Preset::TYPE_FILAMENT)
+                preset.config.option<ConfigOptionStrings>("filament_settings_id", true)->values[0] = preset.name;
+            else if (m_type == Preset::TYPE_PRINTER)
+                preset.config.option<ConfigOptionString>("printer_settings_id", true)->value = preset.name;
+        }
+        else
+            preset.is_project_embedded = false;
+        //BBS: add lock logic for sync preset in background
+        unlock();
     }
     // 2) Activate the saved preset.
     this->select_preset_by_name(new_name, true);
@@ -1138,12 +1351,18 @@ bool PresetCollection::delete_current_preset()
     Preset &selected = this->get_selected_preset();
     if (selected.is_default)
         return false;
-    if (! selected.is_external && ! selected.is_system) {
+    //BBS: add project embedded preset logic and refine is_external
+    //if (! selected.is_external && ! selected.is_system) {
+    if (! selected.is_system) {
         //BBS Erase the preset file.
         selected.remove_files();
     }
+    //BBS: add lock logic for sync preset in background
+    lock();
     // Remove the preset from the list.
     m_presets.erase(m_presets.begin() + m_idx_selected);
+    unlock();
+
     // Find the next visible preset.
     size_t new_selected_idx = m_idx_selected;
     if (new_selected_idx < m_presets.size())
@@ -1161,10 +1380,16 @@ bool PresetCollection::delete_preset(const std::string& name)
     Preset& preset = *it;
     if (preset.is_default)
         return false;
-    if (!preset.is_external && !preset.is_system) {
+    //BBS: add project embedded preset logic and refine is_external
+    //if (!preset.is_external && !preset.is_system) {
+    if (! preset.is_system) {
         preset.remove_files();
     }
+    //BBS: add lock logic for sync preset in background
+    lock();
     m_presets.erase(it);
+    unlock();
+
     return true;
 }
 
@@ -1194,7 +1419,9 @@ const Preset* PresetCollection::get_selected_preset_parent() const
 		if (it != m_presets.end())
 			preset = &(*it);
     }
-    return (preset == nullptr/* || preset->is_default*/ || preset->is_external) ? nullptr : preset;
+    //BBS: add project embedded preset logic and refine is_external
+    return (preset == nullptr/* || preset->is_default || preset->is_external*/) ? nullptr : preset;
+    //return (preset == nullptr/* || preset->is_default*/ || preset->is_external) ? nullptr : preset;
 }
 
 const Preset* PresetCollection::get_preset_parent(const Preset& child) const
@@ -1213,7 +1440,8 @@ const Preset* PresetCollection::get_preset_parent(const Preset& child) const
          // not found
         (preset == nullptr/* || preset->is_default */||
          // this should not happen, user profile should not derive from an external profile
-         preset->is_external ||
+         //BBS: add project embedded preset logic and refine is_external
+         /*preset->is_external ||*/
          // this should not happen, however people are creative, see GH #4996
          preset == &child) ?
             nullptr :
@@ -1275,13 +1503,25 @@ Preset* PresetCollection::find_preset(const std::string &name, bool first_visibl
 // Return index of the first visible preset. Certainly at least the '- default -' preset shall be visible.
 size_t PresetCollection::first_visible_idx() const
 {
+    //BBS: set first visible filament to fla
+    size_t first_visible = -1;
     size_t idx = m_default_suppressed ? m_num_default_presets : 0;
     for (; idx < m_presets.size(); ++ idx)
-        if (m_presets[idx].is_visible)
-            break;
-    if (idx == m_presets.size())
-        idx = 0;
-    return idx;
+        if (m_presets[idx].is_visible) {
+            if (first_visible == -1)
+                first_visible = idx;
+            if (m_type != Preset::TYPE_FILAMENT)
+                break;
+            else {
+                if (m_presets[idx].name.find("PLA") != std::string::npos) {
+                    first_visible = idx;
+                    break;
+                }
+            }
+        }
+    if (first_visible == -1)
+        first_visible = 0;
+    return first_visible;
 }
 
 void PresetCollection::set_default_suppressed(bool default_suppressed)
@@ -1425,6 +1665,8 @@ std::vector<std::string> PresetCollection::dirty_options(const Preset *edited, c
 // If the preset with index idx does not exist, a first visible preset is selected.
 Preset& PresetCollection::select_preset(size_t idx)
 {
+    //BBS: add config related logs
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": %1% try to select preset %2%")%Preset::get_type_string(m_type) %idx;
     for (Preset &preset : m_presets)
         preset.is_dirty = false;
     if (idx >= m_presets.size())
@@ -1435,11 +1677,15 @@ Preset& PresetCollection::select_preset(size_t idx)
     bool default_visible = ! m_default_suppressed || m_idx_selected < m_num_default_presets;
     for (size_t i = 0; i < m_num_default_presets; ++i)
         m_presets[i].is_visible = default_visible;
+    //BBS: add config related logs
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": %1% select success, m_idx_selected %2%, name %3%, is_system %4%, is_default %5%")%Preset::get_type_string(m_type) % m_idx_selected % m_edited_preset.name % m_edited_preset.is_system % m_edited_preset.is_default;
     return m_presets[idx];
 }
 
 bool PresetCollection::select_preset_by_name(const std::string &name_w_suffix, bool force)
 {
+    //BBS: add config related logs
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": %1%, try to select by name %2%, force %3%")%Preset::get_type_string(m_type) %name_w_suffix %force;
     std::string name = Preset::remove_suffix_modified(name_w_suffix);
     // 1) Try to find the preset by its name.
     auto it = this->find_preset_internal(name);
@@ -1460,14 +1706,20 @@ bool PresetCollection::select_preset_by_name(const std::string &name_w_suffix, b
     // 2) Select the new preset.
     if (m_idx_selected != idx || force) {
         this->select_preset(idx);
+        //BBS: add config related logs
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": %1%, select %2%, success")%Preset::get_type_string(m_type) %name_w_suffix;
         return true;
     }
 
+    //BBS: add config related logs
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": %1%, select %2%, failed")%Preset::get_type_string(m_type) %name_w_suffix;
     return false;
 }
 
 bool PresetCollection::select_preset_by_name_strict(const std::string &name)
 {
+    //BBS: add config related logs
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": %1%, try to select by name %2%")%Preset::get_type_string(m_type) %name;
     // 1) Try to find the preset by its name.
     auto it = this->find_preset_internal(name);
 
@@ -1478,10 +1730,13 @@ bool PresetCollection::select_preset_by_name_strict(const std::string &name)
     // 2) Select the new preset.
     if (idx != (size_t)-1) {
         this->select_preset(idx);
+        //BBS: add config related logs
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": %1%, select %2%, success")%Preset::get_type_string(m_type) %name;
         return true;
     }
     m_idx_selected = idx;
-    
+    //BBS: add config related logs
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": %1%, select %2%, failed")%Preset::get_type_string(m_type) %name;
     return false;
 }
 
