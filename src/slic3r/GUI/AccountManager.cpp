@@ -6,6 +6,7 @@
 #include "libslic3r/AppConfig.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "nlohmann/json.hpp"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
@@ -18,6 +19,8 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+
+using namespace nlohmann;
 
 void split_string(std::string s, std::vector<std::string>& v) {
 
@@ -517,11 +520,16 @@ namespace Slic3r {
 
     MachineObject* AccountManager::get_default_machine()
     {
-        if (default_machine.empty())
-            return nullptr;
+        std::map<std::string, MachineObject*>::iterator it;
+        if (default_machine.empty() && !myBindMachineList.empty()) {
+            it = myBindMachineList.begin();
+            if (!it->second) return nullptr;
+            default_machine = it->second->dev_id;
+            return it->second;
+        }
 
         /* find in local list */
-        std::map<std::string, MachineObject*>::iterator it = myBindMachineList.find(default_machine);
+        it = myBindMachineList.find(default_machine);
         if (it != myBindMachineList.end()) {
             return it->second;
         }
@@ -1021,27 +1029,20 @@ namespace Slic3r {
         std::string result;
         if (!preset) return "";
 
-        pt::ptree root, setting_node;
-        root.put<bool>("public", preset->is_system ? true : false);
-        if (!preset->version.empty())
-            root.put("version", preset->version);
-        else
-            root.put("version", DEFAULT_BBL_SETTING_VERSION);
-        root.put("type", Preset::get_type_string(preset->type));
-        root.put("name", preset->name);
+        json j;
 
+        j["public"] = preset->is_system ? true : false;
+        if (!preset->version.empty())
+            j["version"] = preset->version;
+        else
+            j["version"] = DEFAULT_BBL_SETTING_VERSION;
+        j["type"] = Preset::get_type_string(preset->type);
+        j["name"] = preset->name;
         if (!preset->base_id.empty()) {
-            root.put("base_id", "");
-            //TODO put changed values to setting node
-            root.add_child("setting", setting_node);
+            j["base_id"] = "";
+            j["setting"] = nullptr;
         }
-        
-        std::stringstream oss;
-        pt::write_json(oss, root, false);
-        result = oss.str();
-        result = boost::replace_all_copy(result, "\"true\"", "true");
-        result = boost::replace_all_copy(result, "\"false\"", "false");
-        return result;
+        return j.dump();
     }
 
     std::string AccountManager::json_request_body_put_setting(Preset* preset)
@@ -1065,15 +1066,12 @@ namespace Slic3r {
 
     std::string AccountManager::json_request_poll_3mf_gather_model_only()
     {
-        pt::ptree root, profile_files;
-        root.put<bool>("base_model", true);
-        root.put<bool>("profile_config", true);
-        root.put<bool>("profile_thumbnail", false);
-        root.put<bool>("profile_gcode", false);
-        root.add_child("profile_files", profile_files);
-        std::stringstream oss;
-        pt::write_json(oss, root, false);
-        return oss.str();
+        json j;
+        j["profile_files"]["base_model"] = true;
+        j["profile_files"]["profile_config"] = true;
+        j["profile_files"]["profile_thumbnail"] = false;
+        j["profile_files"]["profile_gcode"] = false;
+        return j.dump();
     }
 
     std::string AccountManager::json_request_poll_3mf_gather(BBLSubTask* task)
@@ -1467,8 +1465,6 @@ namespace Slic3r {
         int retry_max = POLL_3MF_TIMEOUT;
 
         std::string gather = json_request_poll_3mf_gather_model_only();
-        gather = boost::replace_all_copy(gather, "\"true\"", "true");
-        gather = boost::replace_all_copy(gather, "\"false\"", "false");
 
         gather.erase(std::remove(gather.begin(), gather.end(), '\\'), gather.end());
         gather = Http::url_encode(gather);

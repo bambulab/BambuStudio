@@ -823,13 +823,6 @@ void MonitorPanel::on_webrequest_state(wxWebRequestEvent& evt)
 
 bool MonitorPanel::Show(bool show)
 {
-    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-    obj = account_manager->get_default_machine();
-
-    if (obj && show) {
-        update_ams(obj);
-    }
-
     return wxPanel::Show(show);
 }
 
