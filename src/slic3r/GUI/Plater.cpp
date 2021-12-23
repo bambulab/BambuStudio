@@ -2622,7 +2622,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     if (plate_data.size() > 0)
                     {
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", import 3mf UPDATE_GCODE_RESULT \n");
-                        wxString msg = wxString::Format("Loading file: %s, import stage %d, update gcode result", filename, UPDATE_GCODE_RESULT);
+                        wxString msg = wxString::Format("Loading file: %s, import stage %d, update gcode result", from_path(filename), UPDATE_GCODE_RESULT);
                         dlg_cont = dlg.Update(progress_percent, msg);
                         if (!dlg_cont)
                             return empty_result;
