@@ -117,14 +117,21 @@ WebFrame::WebFrame(wxString& url) :
     // Create the webview
     m_browser = wxWebView::New();
     if (m_browser) {
+#ifdef __WIN32__
         m_browser->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_RC_VERSION));
-
-        #ifndef __WXMAC__
+        m_browser->Create(this, wxID_ANY, url, wxDefaultPosition, wxDefaultSize);
         //We register the wxfs:// protocol for testing purposes
         m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("bbl")));
         //And the memory: file system
         m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewFSHandler("memory")));
-    #endif
+#else
+        // With WKWebView handlers need to be registered before creation
+        m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("wxfs")));
+        // And the memory: file system
+        m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewFSHandler("memory")));
+        m_browser->Create(this, wxID_ANY, url, wxDefaultPosition, wxDefaultSize);
+        m_browser->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_RC_VERSION));
+#endif
         if (!m_browser->AddScriptMessageHandler("wx"))
             wxLogError("Could not add script message handler");
         }
@@ -132,14 +139,7 @@ WebFrame::WebFrame(wxString& url) :
             wxLogError("Could not init m_browser");
         }
 
-        m_browser->Create(this, wxID_ANY, url, wxDefaultPosition, wxDefaultSize);
         SetSizer(topsizer);
-        
-#ifdef __WXMAC__
-    // With WKWebView handlers need to be registered before creation
-    m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("wxfs")));
-    m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewFSHandler("memory")));
-#endif
         
         topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
 
@@ -353,6 +353,7 @@ WebFrame::~WebFrame()
 void WebFrame::load_url(wxString& url)
 {
     this->Show();
+    this->Raise();
     m_url->SetLabelText(url);
     wxLogMessage(m_url->GetValue());
     m_browser->LoadURL(m_url->GetValue());

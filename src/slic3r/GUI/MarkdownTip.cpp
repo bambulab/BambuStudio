@@ -226,8 +226,13 @@ wxWebView* MarkdownTip::CreateTipView(wxWindow* parent)
     url = "file:///" + url;
     set_var_dir(old);
 
-    // Create url after register handler
+#ifdef __WIN32__
+    tipView->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_RC_VERSION));
     tipView->Create(parent, wxID_ANY, url, wxDefaultPosition, { 400, 300 }, wxBORDER_NONE);
+#else
+    tipView->Create(parent, wxID_ANY, url, wxDefaultPosition, { 400, 300 }, wxBORDER_NONE);
+    tipView->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_RC_VERSION));
+#endif
     tipView->Bind(wxEVT_WEBVIEW_LOADED, &MarkdownTip::OnLoaded, this);
     tipView->Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &MarkdownTip::OnTitleChanged, this);
     tipView->Bind(wxEVT_WEBVIEW_ERROR, &MarkdownTip::OnError, this);
@@ -290,15 +295,12 @@ MarkdownTip& MarkdownTip::markdownTip()
 
 bool MarkdownTip::ShowTip(std::string const& tip, wxPoint pos)
 {
-    //return markdownTip().ShowTip(pos, tip);
-    return false;
+    return markdownTip().ShowTip(pos, tip);
 }
 
 wxWindow* MarkdownTip::AttachTo(wxWindow* parent)
 {
-    return nullptr;
-    //TODO
-    /*MarkdownTip& tip = markdownTip();
+    MarkdownTip& tip = markdownTip();
     if (parent) {
         tip._tipView = tip.CreateTipView(parent);
         tip._pendingScript = " ";
@@ -307,7 +309,7 @@ wxWindow* MarkdownTip::AttachTo(wxWindow* parent)
     else {
         tip.Destroy();
         return NULL;
-    }*/
+    }
 }
 
 }
