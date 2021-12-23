@@ -45,6 +45,7 @@
 #include "Notebook.hpp"
 
 #include "Widgets/Label.hpp"
+#include "MarkdownTip.hpp"
 
 #ifdef WIN32
 	#include <commctrl.h>
@@ -273,7 +274,7 @@ void Tab::create_preset_tab()
     m_top_sizer = new wxBoxSizer( wxHORIZONTAL );
     m_top_sizer->AddSpacer(22);
 
-    m_static_title = new Label(Label::Head_12, m_title, m_top_panel);
+    m_static_title = new Label(Label::Body_14, m_title, m_top_panel);
     m_static_title->Wrap( -1 );
     // BBS: open this tab by select first
     m_static_title->Bind(wxEVT_LEFT_UP, [this](auto& e) {
@@ -357,7 +358,7 @@ void Tab::create_preset_tab()
     // tree
     m_treectrl = new wxTreeCtrl(panel, wxID_ANY, wxDefaultPosition, wxSize(20 * m_em_unit, -1),
         wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_NONE | wxWANTS_CHARS | wxTR_FULL_ROW_HIGHLIGHT);
-    m_treectrl->SetFont(Label::Body_12);
+    m_treectrl->SetFont(Label::Body_14);
     //m_left_sizer->Add(m_treectrl, 1, wxEXPAND);
     const int img_sz = int(32 * scale_factor + 0.5f);
     m_icons = new wxImageList(img_sz, img_sz, true, 1);
@@ -565,7 +566,8 @@ void Tab::OnActivate()
 #endif
 
     // BBS: select on first active
-    restore_last_select_item();
+    if (!m_active_page)
+        restore_last_select_item();
 
     //BBS: GUI refactor
     m_page_view->Freeze();

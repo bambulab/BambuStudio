@@ -41,7 +41,7 @@ ComboBox::ComboBox(wxWindow *      parent,
         e.SetId(GetId());
         wxMouseEvent e1;
         mouseDown(e1);
-        ProcessEventLocally(e);
+        GetEventHandler()->ProcessEvent(e);
     });
     drop.Bind(wxEVT_SHOW, [this](auto &e) {
         if (!e.IsShown()) {

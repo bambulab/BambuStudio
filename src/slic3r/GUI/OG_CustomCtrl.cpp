@@ -17,7 +17,7 @@ namespace Slic3r { namespace GUI {
 
  // BBS: modify param ui style
     constexpr int titleWidth = 20;
-    constexpr int ctrlWidth = 88;
+    constexpr int ctrlWidth = 70;
 
 #define DISABLE_BLINKING
 #define DISABLE_UNDO_SYS
@@ -720,7 +720,9 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
             //!            To correct translation by context have to use wxGETTEXT_IN_CONTEXT macro from wxWidget 3.1.1
             label = (option.label == L_CONTEXT("Top", "Layers") || option.label == L_CONTEXT("Bottom", "Layers")) ?
                     _CTX(option.label, "Layers") : _(option.label);
+#if !OPTION_LABEL_AT_RIGHT // BBS
             label += ":";
+#endif
 
             if (is_url_string)
                 is_url_string = false;
