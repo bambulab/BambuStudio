@@ -4273,6 +4273,21 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
 
     panel_sizer->Layout();
 
+    if (wxGetApp().plater()) {
+        Camera& cam = wxGetApp().plater()->get_camera();
+        if (old_panel == preview || old_panel == view3D) {
+            view3D->get_canvas3d()->get_camera().load_camera_view(cam);
+        } else if (old_panel == assemble_view) {
+            assemble_view->get_canvas3d()->get_camera().load_camera_view(cam);
+        }
+        if (current_panel == view3D || current_panel == preview) {
+            cam.load_camera_view(view3D->get_canvas3d()->get_camera());
+        }
+        else if (current_panel == assemble_view) {
+            cam.load_camera_view(assemble_view->get_canvas3d()->get_camera());
+        }
+    }
+
     if (current_panel == view3D) {
         if (old_panel == preview)
             preview->get_canvas3d()->unbind_event_handlers();

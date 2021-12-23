@@ -1271,6 +1271,11 @@ void GLCanvas3D::plates_count_changed()
     m_dirty = true;
 }
 
+Camera& GLCanvas3D::get_camera()
+{
+    return camera;
+}
+
 void GLCanvas3D::set_color_by(const std::string& value)
 {
     m_color_by = value;

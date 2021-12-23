@@ -493,6 +493,18 @@ void Camera::set_distance(double distance)
     }
 }
 
+void Camera::load_camera_view(Camera& cam)
+{
+    m_target = cam.get_target();
+    m_zoom = cam.get_zoom();
+    m_scene_box = cam.get_scene_box();
+    m_viewport = cam.get_viewport();
+    m_view_matrix = cam.get_view_matrix();
+    m_projection_matrix = cam.get_projection_matrix();
+    m_view_rotation = cam.get_view_rotation();
+    m_frustrum_zs = cam.get_z_range();
+}
+
 void Camera::look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up)
 {
     const Vec3d unit_z = (position - target).normalized();

@@ -73,15 +73,20 @@ public:
     const BoundingBoxf3& get_scene_box() const { return m_scene_box; }
     void set_scene_box(const BoundingBoxf3& box) { m_scene_box = box; }
 
+
     void select_view(const std::string& direction);
 
     const std::array<int, 4>& get_viewport() const { return m_viewport; }
     const Transform3d& get_view_matrix() const { return m_view_matrix; }
     const Transform3d& get_projection_matrix() const { return m_projection_matrix; }
 
+    //BBS
+    const Eigen::Quaterniond& get_view_rotation() const {return m_view_rotation; }
+
     Vec3d get_dir_right() const { return m_view_matrix.matrix().block(0, 0, 3, 3).row(0); }
     Vec3d get_dir_up() const { return m_view_matrix.matrix().block(0, 0, 3, 3).row(1); }
     Vec3d get_dir_forward() const { return -m_view_matrix.matrix().block(0, 0, 3, 3).row(2); }
+
 
     Vec3d get_position() const { return m_view_matrix.matrix().inverse().block(0, 3, 3, 1); }
 
@@ -127,6 +132,9 @@ public:
         if (std::abs(get_dir_right()(2)) > EPSILON)
             look_at(get_position(), m_target, Vec3d::UnitZ());
     }
+
+    //BBS store and load camera view
+    void load_camera_view(Camera& cam);
 
     void look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up);
 
