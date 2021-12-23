@@ -4479,7 +4479,9 @@ private:
                 break;
             case RemoveBackup:
                 if (t.id) { // remove all
-                    boost::filesystem::remove_all(t.path);
+                    try {
+                        boost::filesystem::remove_all(t.path);
+                    } catch (...) {}
                 }
                 break;
         }

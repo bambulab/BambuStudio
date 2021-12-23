@@ -5937,6 +5937,9 @@ void Plater::load_project()
     get_partplate_list().reinit();
     get_partplate_list().update_slice_context_to_current_plate(p->background_process);
     p->reset();
+    Model m;
+    model().set_backup_path(m.get_backup_path()); // new id avoid same path name
+    m.set_backup_path("");
     get_partplate_list().select_plate(0);
     p->load_auxiliary_files();
 

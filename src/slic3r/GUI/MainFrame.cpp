@@ -323,6 +323,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             event.Veto();
             return;
         }
+        m_plater->reset();
         this->shutdown();
         // propagate event
         event.Skip();
@@ -727,7 +728,8 @@ void MainFrame::shutdown()
     // set to null tabs and a plater
     // to avoid any manipulations with them from App->wxEVT_IDLE after of the mainframe closing 
     wxGetApp().tabs_list.clear();
-    wxGetApp().plater_ = nullptr;
+    // BBS: why clear ?
+    //wxGetApp().plater_ = nullptr;
 }
 
 void MainFrame::update_title()
