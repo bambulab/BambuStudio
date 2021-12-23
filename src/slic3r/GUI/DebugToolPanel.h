@@ -185,6 +185,8 @@ namespace Slic3r
 				wxComboBox* cb_upgrade_module;
 				wxStaticText* m_staticText67;
 				wxComboBox* cb_upgrade_mode;
+				wxStaticText* m_staticText_select_version;
+				wxComboBox* cb_upgrade_version;
 				wxStaticText* m_staticText57;
 				wxComboBox* cb_upgrade_firmware;
 				wxButton* btn_refresh_upgrade_list;
@@ -223,8 +225,7 @@ namespace Slic3r
 				wxStaticText* m_staticText_log;
 				wxTextCtrl* txt_string_info;
 
-				 std::shared_ptr<BBLStatusBar> m_status_bar;
-
+				std::shared_ptr<BBLStatusBar> m_status_bar;
 			public:
 
 				DebugToolPanel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1379,726 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );

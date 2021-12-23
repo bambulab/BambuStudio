@@ -29,6 +29,8 @@
 #include <miniz.h>
 #include <codecvt>
 
+#include "nlohmann/json.hpp"
+
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "Plater.hpp"
@@ -51,6 +53,7 @@
 #define __CHECK_BIND_USER__
 
 
+using namespace nlohmann;
 namespace pt = boost::property_tree;
 typedef pt::ptree JSON;
 
@@ -444,55 +447,6 @@ void DeviceSearchDialog::update_list()
         return log_filename;
     }
 
-    /* upgrade */
-    void XML_StartElementHandler(void* userData, const XML_Char* name, const XML_Char** atts) {
-        if (strcmp(name, "a") == 0) {
-            if (strcmp(atts[0], "href") == 0) {
-                DebugToolDialog* dlg = (DebugToolDialog*)userData;
-                std::string firmware_value(atts[1]);
-                dlg->add_firmware(atts[1]);
-            }
-        }
-    };
-    void XML_EndElementHandler(void* userData, const XML_Char* name) {
-        ;
-    };
-    void XML_CharacterDataHandler(void* userData, const XML_Char* s, int len) {
-        ;
-    };      
-
-    void DebugToolDialog::add_firmware(std::string firmware)
-    {
-        UPGRADE_MODULE upgrade_module = (UPGRADE_MODULE)cb_upgrade_module->GetCurrentSelection();
-        if (upgrade_module == MODULE_RK) {
-            if ((firmware.find("update") == 0) && firmware.find("img") > 0) {
-                upgrade_file_list.push_back(firmware);
-            }
-        }
-        else if (upgrade_module == MODULE_MC) {
-            if (firmware.find("mc") == 0) {
-                upgrade_file_list.push_back(firmware);
-            }
-        }
-        else if (upgrade_module == MODULE_TH) {
-            if (firmware.find("th") == 0) {
-                upgrade_file_list.push_back(firmware);
-            }
-        }
-        else if (upgrade_module == MODULE_AMS) {
-            if (firmware.find("ams") == 0) {
-                upgrade_file_list.push_back(firmware);
-            }
-        }
-        else if (upgrade_module == MODULE_OTA) {
-            if (firmware.find("ota") == 0) {
-                upgrade_file_list.push_back(firmware);
-            }
-        }
-        else {
-            upgrade_file_list.push_back(firmware);
-        }
-    }
 
     DebugToolDialog::DebugToolDialog(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
         : DebugToolPanel(parent, id, pos, size, style)
@@ -656,8 +610,9 @@ void DebugToolDialog::init()
         }
         UPGRADE_MODULE upgrade_module = (UPGRADE_MODULE)cb_upgrade_module->GetCurrentSelection();
         UPGRADE_MODE upgrade_mode = (UPGRADE_MODE)cb_upgrade_mode->GetCurrentSelection();
-        std::string dst_url = (boost::format("%1%%2%%3%%4%") % UPGRADE_URL % upgrade_post_url[upgrade_module] % upgrade_mode_name[upgrade_mode] %firmware_name).str();
-        std::string version = firmware_name.substr(firmware_name.rfind("-v") + 2, 11);
+        int idx = cb_upgrade_firmware->GetSelection();
+        std::string version = upgrade_img_list[idx].version;
+        std::string dst_url = upgrade_img_list[idx].url;
 
         // send upgrade
         pt::ptree root, upgrade;
@@ -2045,27 +2000,66 @@ wxString DebugToolDialog::get_machine_display_item(MachineObject* obj)
 void DebugToolDialog::refresh_firmware_list(bool show_error)
 {
     cb_upgrade_firmware->Clear();
+    upgrade_img_list.clear();
     upgrade_file_list.clear();
     if (cb_upgrade_module->GetValue().compare("") == 0) {
         std::string log = "Please select a module!";
         this->send_log_evt(log);
         return;
     }
+
     UPGRADE_MODULE upgrade_module = (UPGRADE_MODULE)cb_upgrade_module->GetCurrentSelection();
     UPGRADE_MODE upgrade_mode = (UPGRADE_MODE)cb_upgrade_mode->GetCurrentSelection();
-    Http http = Http::get(UPGRADE_URL + upgrade_post_url[upgrade_module] + upgrade_mode_name[upgrade_mode]);
-    http.on_complete([&](std::string body, unsigned) {
-            BOOST_LOG_TRIVIAL(trace) << "get firmware request: body=" << body;
-            XML_Parser parser = XML_ParserCreate(nullptr);
-            XML_SetUserData(parser, this);
-            XML_SetElementHandler(parser, XML_StartElementHandler, XML_EndElementHandler);
-            XML_SetCharacterDataHandler(parser, XML_CharacterDataHandler);
-            XML_Parse(parser, body.c_str(), body.size(), 1);
-            XML_ParserFree(parser);
+
+    std::string url = (boost::format("%1%?module_name=%2%&build_type=%3%")
+                        % UPGRADE_URL
+                        % upgrade_post_url[upgrade_module]
+                        % upgrade_mode_name[upgrade_mode]).str();
+    Http http = Http::get(url);
+    http.auth_basic("slicer", "znFx94AAew8VVHv");
+    http.on_complete([this](std::string body, unsigned) {
+        try{
+            UPGRADE_MODULE upgrade_module = (UPGRADE_MODULE)cb_upgrade_module->GetCurrentSelection();
+            int version = cb_upgrade_version->GetCurrentSelection();
+
+            json j = json::parse(body);
+            for (json::iterator it = j.begin(); it != j.end(); ++it) {
+                if (upgrade_module == MODULE_MC || upgrade_module == MODULE_TH || upgrade_module == MODULE_AMS) {
+                    std::string item = (*it)["name"];
+                    if (version == 0 && boost::contains(item, "rev5")) {
+                        UpgradeItem item;
+                        item.name = (*it)["name"];
+                        item.version = (*it)["version"];
+                        item.url = (*it)["url"];
+                        upgrade_file_list.push_back((*it)["name"]);
+                        upgrade_img_list.push_back(item);
+                    }
+                    else if (version == 1 && boost::contains(item, "rev4")) {
+                        UpgradeItem item;
+                        item.name = (*it)["name"];
+                        item.version = (*it)["version"];
+                        item.url = (*it)["url"];
+                        upgrade_file_list.push_back((*it)["name"]);
+                        upgrade_img_list.push_back(item);
+                    }
+                }
+                else {
+                    UpgradeItem item;
+                    item.name = (*it)["name"];
+                    item.version = (*it)["version"];
+                    item.url = (*it)["url"];
+                    upgrade_file_list.push_back((*it)["name"]);
+                    upgrade_img_list.push_back(item);
+                }
+            }
+
             cb_upgrade_firmware->Set(upgrade_file_list);
             cb_upgrade_firmware->Select(0);
-        })
-        .on_error([this](std::string body, std::string error, unsigned status) {
+        }
+        catch (...) {
+            ;
+        }
+        }).on_error([this](std::string body, std::string error, unsigned status) {
             this->send_log_evt("Get Upgrade List Failed! error=" + error);
         }).perform();
 }

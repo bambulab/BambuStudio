@@ -140,7 +140,6 @@ public:
 
             void refresh_device_list();
             void refresh_firmware_list(bool show_error=false);
-            void add_firmware(std::string firmware);
             void on_update_list(SimpleEvent& evt);
             void on_update_mybind_list(SimpleEvent& evt);
             void on_select_device(wxCommandEvent& evt);
@@ -162,11 +161,11 @@ public:
 
             enum UPGRADE_MODULE { MODULE_RK = 0, MODULE_MC = 1, MODULE_TH = 2, MODULE_AMS = 3, MODULE_OTA = 4, MODULE_MAX };
             enum UPGRADE_MODE { MODE_DAILYBUILD = 0, MODE_RELEASE = 1, MODE_DEBUG = 2, MODE_MAX};
-            std::string upgrade_post_url[MODULE_MAX] = { "rk/", "mc/", "th/", "ams/", "ota/"};
+            std::string upgrade_post_url[MODULE_MAX] = { "rk", "mc", "th", "ams", "ota"};
             std::string upgrade_module_name[MODULE_MAX] = { "rk1126", "mc", "th", "ams", "ota"};
-            std::string upgrade_mode_name[MODE_MAX] = { "dailybuild/", "release/", "debug/"};
+            std::string upgrade_mode_name[MODE_MAX] = { "dailybuild", "release", "debug"};
 
-            std::string UPGRADE_URL = "http://upgrade.bambooolab.com/";
+            std::string UPGRADE_URL = "http://192.168.0.12:8000/api/devices_upgrade_firmware";
 
             DeviceManager& dev_manager_;
             std::vector<std::string> machine_list_items;
@@ -181,6 +180,14 @@ public:
             bool            gcode_uploading;
             bool            _3mf_uploading;
 			std::vector<wxString> upgrade_file_list;
+
+            struct UpgradeItem {
+                std::string name;
+                std::string version;
+                std::string url;
+            };
+            std::vector<UpgradeItem> upgrade_img_list;
+
             std::fstream customGcodeCacheFile;
             wxTimer* m_deviceListTimer;
 			std::queue<std::string> mqtt_msg_queue;

@@ -244,10 +244,10 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 	bSizer151->Add( label_upload_progress1, 0, wxALL, 5 );
 
-
-	m_status_bar = std::make_shared<BBLStatusBar>(m_panel_run_gcode);
+	 m_status_bar = std::make_shared<BBLStatusBar>(m_panel_run_gcode);
     m_panel_status = m_status_bar->get_panel();
     bSizer151->Add( m_panel_status, 1, wxEXPAND | wxALL, 0 );
+
 
 	bSizer331->Add( bSizer151, 0, wxEXPAND, 5 );
 
@@ -682,7 +682,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	m_panel_info_control->SetSizer( bSizer17 );
 	m_panel_info_control->Layout();
 	bSizer17->Fit( m_panel_info_control );
-	m_notebook1->AddPage( m_panel_info_control, wxT("Info Control"), true );
+	m_notebook1->AddPage( m_panel_info_control, wxT("Info Control"), false );
 	m_panel_upgrade = new wxPanel( m_notebook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer28;
 	bSizer28 = new wxBoxSizer( wxVERTICAL );
@@ -733,6 +733,26 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 
 	bSizer32->Add( bSizer34, 1, wxEXPAND, 5 );
+
+	wxBoxSizer* bSizer39;
+	bSizer39 = new wxBoxSizer( wxHORIZONTAL );
+
+	m_staticText_select_version = new wxStaticText( m_panel_upgrade, wxID_ANY, wxT("Select Version:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+	m_staticText_select_version->Wrap( -1 );
+	m_staticText_select_version->SetMinSize( wxSize( 120,-1 ) );
+
+	bSizer39->Add( m_staticText_select_version, 0, wxALL, 5 );
+
+	cb_upgrade_version = new wxComboBox( m_panel_upgrade, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, NULL, 0 );
+	cb_upgrade_version->Append( wxT("V5") );
+	cb_upgrade_version->Append( wxT("V4") );
+	cb_upgrade_version->SetSelection( 0 );
+	cb_upgrade_version->SetMinSize( wxSize( 100,-1 ) );
+
+	bSizer39->Add( cb_upgrade_version, 0, wxALL, 5 );
+
+
+	bSizer32->Add( bSizer39, 1, wxEXPAND, 5 );
 
 	wxBoxSizer* bSizer35;
 	bSizer35 = new wxBoxSizer( wxHORIZONTAL );
@@ -856,7 +876,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	m_panel_upgrade->SetSizer( bSizer28 );
 	m_panel_upgrade->Layout();
 	bSizer28->Fit( m_panel_upgrade );
-	m_notebook1->AddPage( m_panel_upgrade, wxT("Upgrade"), false );
+	m_notebook1->AddPage( m_panel_upgrade, wxT("Upgrade"), true );
 	m_panel_ams = new wxPanel( m_notebook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer321;
 	bSizer321 = new wxBoxSizer( wxVERTICAL );
