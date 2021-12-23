@@ -4241,7 +4241,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
     if (current_panel == panel)
     {
         //BBS: add slice logic when switch to preview page
-        if (current_panel == preview) {
+        if ((current_panel == preview) && (wxGetApp().is_editor())) {
             do_reslice();
         }
         return;
@@ -4328,7 +4328,8 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             preview->reload_print(true);
 
             preview->set_as_dirty();*/
-            do_reslice();
+            if (wxGetApp().is_editor())
+                do_reslice();
         }
 
         // reset cached size to force a resize on next call to render() to keep imgui in synch with canvas size
