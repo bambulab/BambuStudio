@@ -880,8 +880,11 @@ void TreeSupport::detect_object_overhangs()
                             if (inter.area() >= thresh_well_supported
                                 || (bbox_size.x() > scale_(5) && bbox_size.y() > scale_(5)))
                             {
-                                inter = offset_ex(inter, support_offset_scaled)[0];
-                                regions_well_supported2.emplace_back(inter);
+                                auto tmp = offset_ex(inter, support_offset_scaled);
+                                if (!tmp.empty()) {
+                                    // if inter is a single line with only 2 valid points, clipper will return empty
+                                    regions_well_supported2.emplace_back(tmp[0]);
+                                }
                             }
                         }
 #if 0
