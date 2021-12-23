@@ -9270,6 +9270,11 @@ void Plater::init_notification_manager()
     p->init_notification_manager();
 }
 
+void Plater::show_status_message(std::string s)
+{
+    p->statusbar()->set_status_text(s);
+}
+
 bool Plater::can_delete() const { return p->can_delete(); }
 bool Plater::can_delete_all() const { return p->can_delete_all(); }
 bool Plater::can_add_plate() const { return p->can_add_plate(); }

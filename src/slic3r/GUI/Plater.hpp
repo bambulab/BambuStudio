@@ -500,8 +500,10 @@ public:
 	void set_bed_shape() const;
     void set_bed_shape(const Pointfs& shape, const Pointfs& exclude_area, const double max_print_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom = false) const;
 
-    NotificationManager * get_notification_manager();
-    const NotificationManager * get_notification_manager() const;
+	const NotificationManager* get_notification_manager() const;
+	NotificationManager* get_notification_manager();
+    //BBS: show message in status bar
+    void show_status_message(std::string s);
 
     void init_notification_manager();
 

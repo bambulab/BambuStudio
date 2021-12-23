@@ -51,7 +51,7 @@ struct OrientParamsArea {
     float TAR_C = 0.1;
     float TAR_D = 1;
     float TAR_E = 0.0115;
-    float FIRST_LAY_H = 0.0475;
+    float FIRST_LAY_H = 0.2;//0.0475;
     float VECTOR_TOL = -0.00083;
     float NEGL_FACE_SIZE = 0.1;
     float ASCENT = -0.5;
@@ -65,10 +65,11 @@ struct OrientParamsArea {
     float LAF_MIN = 0.9703;  // cos(14\degree)
     float TAR_LAF = 0.01;
     float TAR_PROJ_AREA = 0.1;
-    float BOTTOM_MIN = 0.1;  // min bottom area. If lower than it the objects may be unstable
-    float BOTTOM_MAX = 400;  // min bottom area. If lower than it the objects may be unstable
-    float BOTTOM_HULL_MIN = 100;// min bottom hull area 10*10mm^2
-    float BOTTOM_HULL_MAX = 600;// min bottom hull area 10*10mm^2
+    float BOTTOM_MIN = 0.1;  // min bottom area. If lower than it the object may be unstable
+    float BOTTOM_MAX = 400;  // max bottom area. If get to it the object is stable enough (further increase bottom area won't do more help)
+    float height_to_bottom_hull_ratio_MIN = 1;
+    float BOTTOM_HULL_MAX = 600;// max bottom hull area
+    float APPERANCE_FACE_SUPP=3; // penalty of generating supports on appearance face
 
     float overhang_angle = 60.f;
     bool use_low_angle_face = true;
@@ -98,7 +99,7 @@ struct OrientParams {
     float TAR_C = 0.24308070476924726;
     float TAR_D = 0.6284515508160871;
     float TAR_E = 0;//0.032157292647062234;
-    float FIRST_LAY_H = 0.029;
+    float FIRST_LAY_H = 0.2;//0.029;
     float VECTOR_TOL = -0.0011163303070972383;
     float NEGL_FACE_SIZE = 0.1;
     float ASCENT= -0.5;
@@ -113,9 +114,10 @@ struct OrientParams {
     float TAR_LAF= 0.1;
     float TAR_PROJ_AREA = 0.1;
     float BOTTOM_MIN = 0.1;  // min bottom area. If lower than it the objects may be unstable
-    float BOTTOM_MAX = 400;  // max bottom area. If higher than it the bottom area is clipped
-    float BOTTOM_HULL_MIN = 10;// min bottom hull area 10mm^2
+    float BOTTOM_MAX = 400;
+    float height_to_bottom_hull_ratio_MIN = 1;
     float BOTTOM_HULL_MAX = 600;// max bottom hull area to clip
+    float APPERANCE_FACE_SUPP=3; // penalty of generating supports on appearance face
 
     float overhang_angle = 60.f;
     bool use_low_angle_face = true;

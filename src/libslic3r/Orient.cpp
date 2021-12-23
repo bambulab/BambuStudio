@@ -36,16 +36,17 @@ namespace orientation {
         float volume;
         float area_total;  // total area of all faces
         float radius;    // radius of bounding box
+        float height_to_bottom_hull_ratio;  // affects stability, the lower the better
         float unprintability;
         CostItems(CostItems const & other) = default;
         CostItems() { memset(this, 0, sizeof(*this)); }
         static std::string field_names() {
-            return "                     overhang, bottom, bothull, contour, A_laf, A_prj, volume, unprintability";
+            return "                                      overhang, bottom, bothull, contour, A_laf, A_prj, unprintability";
         }
         std::string field_values() {
             std::stringstream ss;
             ss << std::fixed << std::setprecision(1);
-            ss << overhang << ",\t" << bottom << ",\t" << bottom_hull << ",\t" << contour << ",\t" << area_laf << ",\t" << area_projected << ",\t" << volume << ",\t" << unprintability;
+            ss << overhang << ",\t" << bottom << ",\t" << bottom_hull << ",\t" << contour << ",\t" << area_laf << ",\t" << area_projected << ",\t" << unprintability;
             return ss.str();
         }
     };
@@ -83,7 +84,9 @@ public:
         params = params_;
         progressind = progressind_;
         params.ASCENT = cos(PI - orient_mesh->overhang_angle * PI / 180); // use per-object overhang angle
+        
         // BOOST_LOG_TRIVIAL(info) << orient_mesh->name << ", angle=" << orient_mesh->overhang_angle << ", params.ASCENT=" << params.ASCENT;
+        // std::cout << orient_mesh->name << ", angle=" << orient_mesh->overhang_angle << ", params.ASCENT=" << params.ASCENT;
 
         preprocess();
     }
@@ -94,13 +97,15 @@ public:
         preprocess();
     }
 
-    struct cmp_vec3f {
-        bool operator()(const Vec3f& n1, const Vec3f& n2) const {
-            return n1(0) < n2(0)
-                || ((n1(0) == n2(0)) && n1(1) < n2(1))
-                || (((n1(0) == n2(0)) && (n1(1) == n2(1)) && (n1(2) < n2(2))));
+    struct VecHash {
+        size_t operator()(const Vec3f& n1) const {
+            return std::hash<coord_t>()(int(n1(0)*100+100)) + std::hash<coord_t>()(int(n1(1)*100+100)) * 101 + std::hash<coord_t>()(int(n1(2)*100+100)) * 10221;
         }
     };
+
+    Vec3f quantize_vec3f(const Vec3f n1) {
+        return Vec3f(floor(n1(0) * 1000) / 1000, floor(n1(1) * 1000) / 1000, floor(n1(2) * 1000) / 1000);
+    }
 
     Vec3d process()
     {
@@ -108,7 +113,7 @@ public:
 
         area_cumulation(normals, areas);
 
-        area_cumulation(normals_hull, areas_hull);
+        area_cumulation(normals_hull, areas_hull, 10);
 
         add_supplements();
 
@@ -120,8 +125,9 @@ public:
         if (progressind)
             progressind(30);
 
-        std::map<Vec3f, CostItems, cmp_vec3f> results;
-        BOOST_LOG_TRIVIAL(info) << this->orient_mesh->name <<"; " << CostItems::field_names();
+        std::unordered_map<Vec3f, CostItems, VecHash> results;
+        BOOST_LOG_TRIVIAL(info) << CostItems::field_names();
+        std::cout << CostItems::field_names() << std::endl;
         for (int i = 0; i < orientations.size();i++) {
             auto orientation = -orientations[i];
 
@@ -133,7 +139,8 @@ public:
 
             results[orientation] = cost_items;
 
-            BOOST_LOG_TRIVIAL(info) << std::fixed << std::setprecision(4) << "orientation:" << orientation.transpose() << ", cost:" << cost_items.field_values();
+            BOOST_LOG_TRIVIAL(info) << std::fixed << std::setprecision(4) << "orientation:" << orientation.transpose() << ", cost:" << std::fixed << std::setprecision(4) << cost_items.field_values();
+            std::cout << std::fixed << std::setprecision(4) << "orientation:" << orientation.transpose() << ", cost:" << std::fixed << std::setprecision(4) << cost_items.field_values() << std::endl;
         }
         if (progressind)
             progressind(60);
@@ -147,18 +154,22 @@ public:
 
         auto best_orientation = results_vector[0].first;
 
-        BOOST_LOG_TRIVIAL(info) << std::fixed << std::setprecision(4) << "best:" << best_orientation.transpose() << ", costs:" << results_vector[0].second.field_values();
-        flush_logs();
+        BOOST_LOG_TRIVIAL(info) << std::fixed << std::setprecision(6) << "best:" << best_orientation.transpose() << ", costs:" << results_vector[0].second.field_values();
+        std::cout << std::fixed << std::setprecision(6) << "best:" << best_orientation.transpose() << ", costs:" << results_vector[0].second.field_values() << std::endl;
 
         return best_orientation.cast<double>();
     }
 
     void preprocess()
     {
+        int count_apperance = 0;
         {
             int face_count = mesh->facets_count();
             auto its = mesh->its;
             auto face_normals = its_face_normals(its);
+            if (its.properties.size() < face_count) {
+                its.properties.resize(face_count);
+            }
             areas = Eigen::VectorXf::Zero(face_count);
             is_apperance = Eigen::VectorXf::Zero(face_count);
             normals = Eigen::MatrixXf::Zero(face_count, 3);
@@ -167,10 +178,15 @@ public:
                 float area = its.facet_area(i);
                 if (params.NEGL_FACE_SIZE > 0 && area < params.NEGL_FACE_SIZE)
                     continue;
-                normals.row(i) = face_normals[i];
+                
+                normals.row(i) = quantize_vec3f(face_normals[i]);
                 areas(i) = area;
+                is_apperance(i) = (its.properties[i].type == EnumFaceTypes::eExteriorAppearance);
+                count_apperance += (is_apperance(i)==1);
             }
         }
+
+        BOOST_LOG_TRIVIAL(debug) <<orient_mesh->name<< ", count_apperance=" << count_apperance;
 
         // get convex hull statistics
         {
@@ -187,7 +203,7 @@ public:
                 float area = its.facet_area(i);
                 if (params.NEGL_FACE_SIZE > 0 && area < params.NEGL_FACE_SIZE)
                     continue;
-                normals_hull.row(i) = face_normals[i];
+                normals_hull.row(i) = quantize_vec3f(face_normals[i]);
                 areas_hull(i) = area;
             }
         }
@@ -195,7 +211,7 @@ public:
 
     void area_cumulation(const Eigen::MatrixXf& normals_, const Eigen::VectorXf& areas_, int num_directions = 10)
     {
-        std::map<stl_normal, float, cmp_vec3f> alignments;
+        std::unordered_map<stl_normal, float, VecHash> alignments;
         // init to 0
         for (size_t i = 0; i < areas_.size(); i++)
             alignments.insert(std::pair(normals_.row(i), 0));
@@ -213,6 +229,7 @@ public:
         for (size_t i = 0; i < num_directions; i++)
         {
             orientations.push_back(align_counts[i].first);
+            BOOST_LOG_TRIVIAL(debug) << align_counts[i].first.transpose() << ", area: " << align_counts[i].second;
         }
     }
 
@@ -230,8 +247,8 @@ public:
     /// <summary>
     /// remove duplicate orientations
     /// </summary>
-    /// <param name="tol">tolerance. default 0.08 =sin(5\degree)</param>
-    void remove_duplicates(float tol=0.08)
+    /// <param name="tol">tolerance. default 0.01 =sin(0.57\degree)</param>
+    void remove_duplicates(float tol=0.01)
     {
         for (auto it = orientations.begin()+1; it < orientations.end(); )
         {
@@ -283,12 +300,20 @@ public:
         }
     }
 
-    static Eigen::VectorXi argsort(const Eigen::VectorXf& vec)
+    static Eigen::VectorXi argsort(const Eigen::VectorXf& vec, std::string order="ascend")
     {
         Eigen::VectorXi ind = Eigen::VectorXi::LinSpaced(vec.size(), 0, vec.size() - 1);//[0 1 2 3 ... N-1]
-        auto rule = [vec](int i, int j)->bool {
-            return vec(i) < vec(j);
-        };
+        std::function<bool(int, int)> rule;
+        if (order == "ascend") {
+            rule = [vec](int i, int j)->bool {
+                return vec(i) < vec(j);
+                };
+            }
+        else {
+            rule = [vec](int i, int j)->bool {
+                return vec(i) > vec(j);
+                };
+            }
         std::sort(ind.data(), ind.data() + ind.size(), rule);
         return ind;
 
@@ -318,7 +343,8 @@ public:
         {
             normal_projection(i) = normals.row(i).dot(orientation);
         }
-        auto overhang_areas = ((normal_projection.array() < params.ASCENT) * (!bottom_condition)).select(areas, 0);
+        auto areas_appearance = areas *(is_apperance * params.APPERANCE_FACE_SUPP + Eigen::VectorXf::Ones(is_apperance.rows(), is_apperance.cols()));
+        auto overhang_areas = ((normal_projection.array() < params.ASCENT) * (!bottom_condition)).select(areas_appearance, 0);
         Eigen::MatrixXf inner = normal_projection.array() - params.ASCENT;
         inner = inner.cwiseMin(0).cwiseAbs();
         if (min_volume)
@@ -332,7 +358,10 @@ public:
 
         {
             // contour perimeter
-            //cost.contour = 4 * sqrt(bottom); // the simple way for contour
+#if 1
+            // the simple way for contour is even better for faces of small bridges
+            costs.contour = 4 * sqrt(costs.bottom);
+#else
             float contour = 0;
             int face_count = mesh->facets_count();
             auto its = mesh->its;
@@ -347,6 +376,7 @@ public:
                 }
             }
             costs.contour += contour + params.CONTOUR_AMOUNT * contour_amout;
+#endif
         }
 
         // bottom of convex hull
@@ -356,6 +386,10 @@ public:
         auto normal_projection_abs = normal_projection.cwiseAbs();
         Eigen::MatrixXf laf_areas = ((normal_projection_abs.array() < params.LAF_MAX) * (normal_projection_abs.array() > params.LAF_MIN) * (z_max.array() > total_min_z + params.FIRST_LAY_H)).select(areas, 0);
         costs.area_laf = laf_areas.sum();
+
+        // height to bottom_hull_area ratio
+        //float total_max_z = z_projected.maxCoeff();
+        //costs.height_to_bottom_hull_ratio = SQ(total_max_z) / (costs.bottom_hull + 1e-7);
 
         return costs;
     }
@@ -374,7 +408,7 @@ public:
             float overhang = costs.overhang;
             cost = params.RELATIVE_F * (costs.overhang * params.TAR_C + params.TAR_D + params.TAR_LAF * costs.area_laf * params.use_low_angle_face) / (params.TAR_D + params.CONTOUR_F * costs.contour + params.BOTTOM_F * bottom + params.BOTTOM_HULL_F * bottom_hull + params.TAR_PROJ_AREA * costs.area_projected);
         }
-        cost += (costs.bottom < params.BOTTOM_MIN) * 100;// + (costs.bottom_hull < params.BOTTOM_HULL_MIN) * 200;
+        cost += (costs.bottom < params.BOTTOM_MIN) * 100;// +(costs.height_to_bottom_hull_ratio > params.height_to_bottom_hull_ratio_MIN) * 110;
 
         costs.unprintability = costs.unprintability = cost;
 
