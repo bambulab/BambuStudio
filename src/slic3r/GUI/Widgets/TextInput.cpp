@@ -132,7 +132,25 @@ bool TextInput::Enable(bool enable)
     return result;
 }
 
-void TextInput::paintEvent(wxPaintEvent& evt)
+void TextInput::DoSetSize(int x, int y, int width, int height, int sizeFlags)
+{
+    wxWindow::DoSetSize(x, y, width, height, sizeFlags);
+    if (sizeFlags & wxSIZE_USE_EXISTING) return;
+    wxSize size = GetSize();
+    wxPoint textPos = {5, 0};
+    if (this->icon.bmp().IsOk()) {
+        wxSize szIcon = this->icon.bmp().GetSize();
+        textPos.x += szIcon.x;
+    }
+    bool align_right = GetWindowStyle() & wxRIGHT;
+    if (align_right) textPos.x += labelSize.x;
+    wxSize textSize = text_ctrl->GetSize();
+    textSize.x = size.x - textPos.x - labelSize.x - 5;
+    text_ctrl->SetSize(textSize);
+    text_ctrl->SetPosition({textPos.x, (size.y - textSize.y) / 2});
+}
+
+void TextInput::paintEvent(wxPaintEvent &evt)
 {
     // depending on your system you may need to look at double-buffered dcs
     wxPaintDC dc(this);
@@ -197,21 +215,12 @@ void TextInput::messureSize()
     int    h        = textSize.y * 24 / 14;
     if (size.y < h) {
         size.y = h;
-        SetSize(size);
     } else if (size.y > h) {
         textSize.y = size.y * 14 / 24;
     }
-    SetMinSize(size);
     labelSize = GetTextExtent(wxWindow::GetLabel());
-    wxPoint textPos = {5, 0};
-    if (this->icon.bmp().IsOk()) {
-        wxSize szIcon = this->icon.bmp().GetSize();
-        textPos.x += szIcon.x;
-    }
-    if (align_right) textPos.x += labelSize.x;
-    textSize.x = size.x - textPos.x - labelSize.x - 5;
-    text_ctrl->SetSize(textSize);
-    text_ctrl->SetPosition({textPos.x, (size.y - textSize.y) / 2});
+    SetSize(size);
+    SetMinSize(size);
 }
 
 void TextInput::mouseEnterWindow(wxMouseEvent& event)

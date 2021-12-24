@@ -49,7 +49,7 @@ SpinInput::SpinInput(wxWindow *     parent,
     state_handler.update_binds();
     state_handler.Bind(EVT_STATE_CHANGED, [this](auto &e) { paintNow(); });
     text_ctrl = new wxTextCtrl(this, wxID_ANY, text, {20, 5}, wxDefaultSize,
-                               style | wxBORDER_NONE | wxTE_PROCESS_ENTER);
+                               style | wxBORDER_NONE | wxTE_PROCESS_ENTER, wxTextValidator(wxFILTER_DIGITS));
     text_ctrl->SetFont(Label::Body_14);
     text_ctrl->Bind(wxEVT_SET_FOCUS, [this](auto &e) {
         e.SetId(GetId());

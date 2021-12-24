@@ -60,6 +60,9 @@ public:
 protected:
     virtual void OnEdit() {}
 
+    virtual void DoSetSize(
+        int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO);
+
 private:
     void paintEvent(wxPaintEvent& evt);
     void paintNow();
