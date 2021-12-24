@@ -37,7 +37,8 @@
 #ifdef _WIN32
     #include <windows.h>
     #include <netlistmgr.h>
-    #include <atlbase.h>
+    //BBS: remove atl related logic
+    //#include <atlbase.h>
     #include <Iphlpapi.h>
     #pragma comment(lib, "iphlpapi.lib")
 #elif __APPLE__
@@ -134,8 +135,8 @@ public:
 };
 
 
-
-#ifdef _WIN32
+//BBS: remove atl related logic
+/*#ifdef _WIN32
 static bool check_internet_connection_win()
 {
     bool internet = true; // return true if COM object creation fails.
@@ -154,7 +155,7 @@ static bool check_internet_connection_win()
 
     return internet;
 }
-#endif
+#endif*/
 
 
 // Last version where the info was sent / dialog dismissed is saved in appconfig.
@@ -191,7 +192,9 @@ static bool should_dialog_be_shown()
     // As of now, this is only implemented on Win. The other platforms do not check beforehand.
 
 #ifdef _WIN32
-    return check_internet_connection_win();
+    //BBS: remove atl related logic
+    //return check_internet_connection_win();
+    return true;
 #else
     return true;
 #endif

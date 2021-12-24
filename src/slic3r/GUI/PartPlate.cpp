@@ -174,15 +174,15 @@ void PartPlate::calc_vertex_for_icons(int index, GeometryBuffer &buffer)
 	ExPolygon poly;
 	Vec2d& p = m_shape[2];
 
-	poly.contour.append({ p(0), (p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP)) });
-	poly.contour.append({ (p(0) + PARTPLATE_ICON_SIZE), (p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP)) });
-	poly.contour.append({ (p(0) + PARTPLATE_ICON_SIZE), (p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP) - PARTPLATE_ICON_SIZE) });
-	poly.contour.append({ p(0), (p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP) - PARTPLATE_ICON_SIZE) });
+	poly.contour.append({ scale_(p(0)), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP) - PARTPLATE_ICON_SIZE) });
+	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_SIZE), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP) - PARTPLATE_ICON_SIZE) });
+	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_SIZE), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP))});
+	poly.contour.append({ scale_(p(0)), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP)) });
+
 	auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
 	if (!buffer.set_from_triangles(triangles, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
 }
-
 
 void PartPlate::render_background() const {
 	unsigned int triangles_vcount = m_triangles.get_vertices_count();

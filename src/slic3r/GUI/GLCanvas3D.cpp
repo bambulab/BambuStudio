@@ -5300,7 +5300,8 @@ void GLCanvas3D::_picking_pass()
         else
             m_gizmos.set_hover_id(inside && (unsigned int)gizmo_id <= GLGizmoBase::BASE_ID ? ((int)GLGizmoBase::BASE_ID - gizmo_id) : -1);
 
-        int plate_hover_id = PartPlate::PLATE_BASE_ID - volume_id;
+        //BBS: shoule minus 1 for volume-id
+        int plate_hover_id = PartPlate::PLATE_BASE_ID - volume_id - 1;
 
         if (plate_hover_id >= 0 && plate_hover_id < PartPlateList::MAX_PLATES_COUNT * PartPlate::GRABBER_COUNT) {
             wxGetApp().plater()->get_partplate_list().set_hover_id(plate_hover_id);

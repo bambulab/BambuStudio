@@ -94,6 +94,7 @@ private:
     float m_scale_factor{ 1.0f };
     //BBS: add part plate related logic
     Vec2d m_position{ Vec2d::Zero() };
+    std::vector<Vec2d>  m_bed_shape;
 
 public:
     Bed3D() = default;

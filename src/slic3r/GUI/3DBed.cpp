@@ -177,14 +177,16 @@ bool Bed3D::set_shape(const Pointfs& bed_shape, const double max_print_height, c
     }
 
     //BBS: add position related logic
-    if (m_build_volume.bed_shape() == bed_shape && m_build_volume.max_print_height() == max_print_height && m_type == type && m_texture_filename == texture_filename && m_model_filename == model_filename && position == m_position)
+    if (m_bed_shape == bed_shape && m_build_volume.max_print_height() == max_print_height && m_type == type && m_texture_filename == texture_filename && m_model_filename == model_filename && position == m_position)
         // No change, no need to update the UI.
         return false;
 
     //BBS: add part plate logic, apply position to bed shape
+    m_position = position;
+    m_bed_shape = bed_shape;
     if ((position(0) != 0) || (position(1) != 0)) {
         Pointfs new_bed_shape;
-        for (const Vec2d& p : bed_shape) {
+        for (const Vec2d& p : m_bed_shape) {
             Vec2d point(p(0) + m_position.x(), p(1) + m_position.y());
             new_bed_shape.push_back(point);
         }
@@ -196,8 +198,6 @@ bool Bed3D::set_shape(const Pointfs& bed_shape, const double max_print_height, c
     m_texture_filename = texture_filename;
     m_model_filename = model_filename;
     m_extended_bounding_box = this->calc_extended_bounding_box();
-    //BBS: add part plate logic
-    m_position = position;
 
     //BBS: add part plate logic
 #if 0
@@ -236,7 +236,7 @@ bool Bed3D::set_shape(const Pointfs& bed_shape, const double max_print_height, c
 //BBS: add api to set position for partplate related bed
 void Bed3D::set_position(Vec2d& position)
 {
-    set_shape(m_build_volume.bed_shape(), m_build_volume.max_print_height(), m_texture_filename, m_model_filename, false, position, false);
+    set_shape(m_bed_shape, m_build_volume.max_print_height(), m_texture_filename, m_model_filename, false, position, false);
 }
 
 void Bed3D::set_axes_mode(bool origin)
@@ -298,7 +298,7 @@ BoundingBoxf3 Bed3D::calc_extended_bounding_box() const
     BoundingBoxf3 out { m_build_volume.bounding_volume() };
     
     //BBS: to be checked. add part plate related logic.
-    out.translate(Vec3d(m_position.x(), m_position.y(), 0.0));
+    //out.translate(Vec3d(m_position.x(), m_position.y(), 0.0));
 
     const Vec3d size = out.size();
     // ensures that the bounding box is set as defined or the following calls to merge() will not work as intented
