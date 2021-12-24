@@ -766,7 +766,9 @@ void TreeSupport::detect_object_overhangs()
                         lower_layer_offseted = offset_ex(lower_polys, -0.1 * extrusion_width_scaled);
                     else {
                         for (auto lower_region : lower_polys) {
-                            if (area(intersection_ex({ lower_region }, regions_well_supported)) < thresh_well_supported) {
+                            ExPolygons lower_region_tmp;
+                            lower_region_tmp.push_back(lower_region);
+                            if (area(intersection_ex(lower_region_tmp, regions_well_supported)) < thresh_well_supported) {
                                 lower_layer_offseted.push_back(offset_ex(lower_region, -0.1 * extrusion_width_scaled)[0]);
                             }
                             else {

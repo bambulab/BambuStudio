@@ -690,26 +690,25 @@ void MainFrame::init_tabpanel()
 #else
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, [this](wxBookCtrlEvent& e) {
 #endif
-        m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, [this](wxEvent& evt) {
-            //BBS if panel is not monitor panel
-            wxWindow* panel = m_tabpanel->GetCurrentPage();
-            if (panel != m_monitor) {
-                Tab* tab = dynamic_cast<Tab*>(panel);
+        //BBS if panel is not monitor panel
+        wxWindow* panel = m_tabpanel->GetCurrentPage();
+        if (panel != m_monitor) {
+            Tab* tab = dynamic_cast<Tab*>(panel);
 
-                // There shouldn't be a case, when we try to select a tab, which doesn't support a printer technology
-                if (panel == nullptr || (tab != nullptr && !tab->supports_printer_technology(m_plater->printer_technology())))
-                    return;
+            // There shouldn't be a case, when we try to select a tab, which doesn't support a printer technology
+            if (panel == nullptr || (tab != nullptr && !tab->supports_printer_technology(m_plater->printer_technology())))
+                return;
 
-                auto& tabs_list = wxGetApp().tabs_list;
-                if (tab && std::find(tabs_list.begin(), tabs_list.end(), tab) != tabs_list.end()) {
-                    // On GTK, the wxEVT_NOTEBOOK_PAGE_CHANGED event is triggered
-                    // before the MainFrame is fully set up.
-                    tab->OnActivate();
-                    m_last_selected_tab = m_tabpanel->GetSelection();
-                }
-                else
-                    select_tab(size_t(0)); // select Plater
+            auto& tabs_list = wxGetApp().tabs_list;
+            if (tab && std::find(tabs_list.begin(), tabs_list.end(), tab) != tabs_list.end()) {
+                // On GTK, the wxEVT_NOTEBOOK_PAGE_CHANGED event is triggered
+                // before the MainFrame is fully set up.
+                tab->OnActivate();
+                m_last_selected_tab = m_tabpanel->GetSelection();
             }
+            else
+                select_tab(size_t(0)); // select Plater
+        }
     });
 
     m_plater = new Plater(this, this);

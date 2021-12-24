@@ -553,12 +553,12 @@ get_wipe_tower_arrangepoly(const Plater &plater)
 
 //BBS: add sudoku-style stride
 double bed_stride_x(const Plater* plater) {
-    double bedwidth = plater->bed_shape_bb().size().x();
+    double bedwidth = plater->build_volume().bounding_box().size().x();
     return scaled<double>((1. + LOGICAL_BED_GAP) * bedwidth);
 }
 
 double bed_stride_y(const Plater* plater) {
-    double beddepth = plater->bed_shape_bb().size().y();
+    double beddepth = plater->build_volume().bounding_box().size().y();
     return scaled<double>((1. + LOGICAL_BED_GAP) * beddepth);
 }
 

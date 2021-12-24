@@ -5017,7 +5017,7 @@ void Plater::priv::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_ar
         //Pointfs& exclude_areas = config->option<ConfigOptionPoints>("bed_exclude_area")->values;
         partplate_list.reset_size(max.x() - min.x(), max.y() - min.y(), z);
 
-        partplate_list.set_shapes(shape);
+        partplate_list.set_shapes(shape, exclude_areas);
     }
 }
 
@@ -6459,7 +6459,7 @@ bool Plater::export_3mf(const boost::filesystem::path& output_path, bool silence
         delete thumbnails[i];
     }
     thumbnails.clear();
-    return ret;
+    return 0;
 }
 
 void Plater::reload_from_disk()
@@ -7425,7 +7425,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
             {
                 p->sidebar->show_sliced_info_sizer(false);
                 //check inside status
-                bool model_fits = p->view3D->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
+                bool model_fits = p->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
                 //BBS: add partplate logic
                 PartPlate* part_plate = p->partplate_list.get_curr_plate();
                 p->show_action_buttons(true);

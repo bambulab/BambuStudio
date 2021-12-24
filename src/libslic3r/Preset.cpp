@@ -492,7 +492,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "remaining_times", "silent_mode",
     "machine_limits_usage", "thumbnails",
     // BBS
-    , "scan_first_layer"
+    "scan_first_layer",
 };
 
 static std::vector<std::string> s_Preset_sla_print_options {

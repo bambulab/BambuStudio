@@ -723,7 +723,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloatOrPercent,     avoid_crossing_perimeters_max_detour))
     ((ConfigOptionPoints,             bed_shape))
     //BBS: add bed_exclude_area
-    ((ConfigOptionPoints              bed_exclude_area))
+    ((ConfigOptionPoints,             bed_exclude_area))
     ((ConfigOptionInts,               bed_temperature))
     ((ConfigOptionFloat,              bridge_acceleration))
     ((ConfigOptionInts,               bridge_fan_speed))

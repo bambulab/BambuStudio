@@ -172,15 +172,14 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 void PartPlate::calc_vertex_for_icons(int index, GeometryBuffer &buffer)
 {
 	ExPolygon poly;
-	Polygons triangles;
 	Vec2d& p = m_shape[2];
 
-	poly.contour.append({ p(0)/BED_SCALE_FACTOR, (p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP))/BED_SCALE_FACTOR });
-	poly.contour.append({ (p(0) + PARTPLATE_ICON_SIZE)/BED_SCALE_FACTOR, (p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP))/BED_SCALE_FACTOR });
-	poly.contour.append({ (p(0) + PARTPLATE_ICON_SIZE)/BED_SCALE_FACTOR, (p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP) - PARTPLATE_ICON_SIZE)/BED_SCALE_FACTOR });
-	poly.contour.append({ p(0)/BED_SCALE_FACTOR, (p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP) - PARTPLATE_ICON_SIZE)/BED_SCALE_FACTOR });
-	poly.triangulate_p2t(&triangles);
-	if (!buffer.set_from_triangles(triangles, GROUND_Z, true))
+	poly.contour.append({ p(0), (p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP)) });
+	poly.contour.append({ (p(0) + PARTPLATE_ICON_SIZE), (p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP)) });
+	poly.contour.append({ (p(0) + PARTPLATE_ICON_SIZE), (p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP) - PARTPLATE_ICON_SIZE) });
+	poly.contour.append({ p(0), (p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP) - PARTPLATE_ICON_SIZE) });
+	auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
+	if (!buffer.set_from_triangles(triangles, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
 }
 
@@ -2475,7 +2474,7 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 			}
 		}
 		if (m_plate_list[i]->get_slice_result()) {
-			plate_data_item->gcode_prediction = std::to_string((int)m_plate_list[i]->get_slice_result()->time_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time);
+			plate_data_item->gcode_prediction = std::to_string((int)m_plate_list[i]->get_slice_result()->print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time);
 			const PrintStatistics& ps = m_plater->get_partplate_list().get_current_fff_print().print_statistics();
 			if (ps.total_weight != 0.0) {
 				plate_data_item->gcode_weight = wxString::Format("%.2f", ps.total_weight).ToStdString();

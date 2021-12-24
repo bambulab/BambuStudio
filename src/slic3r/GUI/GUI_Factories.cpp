@@ -141,7 +141,7 @@ std::map<std::string, std::string> SettingsFactory::CATEGORY_ICON =
     { L("Hollowing")            , "hollowing"   }
 };
 
-wxBitmap SettingsFactory::get_category_bitmap(const std::string& category_name)
+wxBitmap SettingsFactory::get_category_bitmap(const std::string& category_name, bool menu_bmp)
 {
     if (CATEGORY_ICON.find(category_name) == CATEGORY_ICON.end())
         return wxNullBitmap;
@@ -154,7 +154,7 @@ wxBitmap SettingsFactory::get_category_bitmap(const std::string& category_name)
 //-------------------------------------
 
 // Note: id accords to type of the sub-object (adding volume), so sequence of the menu items is important
-std::vector<std::pair<std::string, std::string>> MenuFactory::ADD_VOLUME_MENU_ITEMS = {
+const std::vector<std::pair<std::string, std::string>> MenuFactory::ADD_VOLUME_MENU_ITEMS = {
 //       menu_item Name              menu_item bitmap name
         {L("Add part"),              "add_part" },           // ~ModelVolumeType::MODEL_PART
         {L("Add modifier"),          "add_modifier"},        // ~ModelVolumeType::PARAMETER_MODIFIER
@@ -584,6 +584,8 @@ wxMenuItem* MenuFactory::append_menu_item_instance_to_object(wxMenu* menu)
 
 wxMenuItem* MenuFactory::append_menu_item_printable(wxMenu* menu)
 {
+    // BBS: to be checked
+#if 0
     return append_menu_check_item(menu, wxID_ANY, _L("Printable"), "", [](wxCommandEvent&) {
         const Selection& selection = plater()->canvas3D()->get_selection();
         wxDataViewItem item;
@@ -595,6 +597,32 @@ wxMenuItem* MenuFactory::append_menu_item_printable(wxMenu* menu)
         if (item)
             obj_list()->toggle_printable_state(item);
         }, menu);
+#else
+    wxMenuItem* menu_item_printable = append_menu_check_item(menu, wxID_ANY, _L("Printable"), "",
+        [](wxCommandEvent&) { obj_list()->toggle_printable_state(); }, menu);
+
+    m_parent->Bind(wxEVT_UPDATE_UI, [](wxUpdateUIEvent& evt) {
+        ObjectList* list = obj_list();
+        wxDataViewItemArray sels;
+        list->GetSelections(sels);
+        wxDataViewItem frst_item = sels[0];
+        ItemType type = list->GetModel()->GetItemType(frst_item);
+        bool check;
+        if (type != itInstance && type != itObject)
+            check = false;
+        else {
+            int obj_idx = list->GetModel()->GetObjectIdByItem(frst_item);
+            int inst_idx = type == itObject ? 0 : list->GetModel()->GetInstanceIdByItem(frst_item);
+            check = list->object(obj_idx)->instances[inst_idx]->printable;
+        }
+
+        evt.Check(check);
+        plater()->set_current_canvas_as_dirty();
+
+        }, menu_item_printable->GetId());
+
+    return menu_item_printable;
+#endif
 }
 
 void MenuFactory::append_menu_items_osx(wxMenu* menu)
@@ -968,6 +996,12 @@ void MenuFactory::init(wxWindow* parent)
     append_menu_item_instance_to_object(&m_instance_menu);
 }
 
+void MenuFactory::update()
+{
+    update_default_menu();
+    update_object_menu();
+}
+
 wxMenu* MenuFactory::default_menu()
 {
     return &m_default_menu;
@@ -1096,11 +1130,72 @@ void MenuFactory::update_object_menu()
     append_menu_items_add_volume(&m_object_menu);
 }
 
+void MenuFactory::update_default_menu()
+{
+    const auto menu_item_id = m_default_menu.FindItem(_("Add Shape"));
+    if (menu_item_id != wxNOT_FOUND)
+        m_default_menu.Destroy(menu_item_id);
+    create_default_menu();
+}
+
 void MenuFactory::msw_rescale()
 {
     for (MenuWithSeparators* menu : { &m_object_menu, &m_sla_object_menu, &m_part_menu, &m_default_menu })
         msw_rescale_menu(dynamic_cast<wxMenu*>(menu));
 }
+
+#ifdef _WIN32
+// For this class is used code from stackoverflow:
+// https://stackoverflow.com/questions/257288/is-it-possible-to-write-a-template-to-check-for-a-functions-existence
+// Using this code we can to inspect of an existence of IsWheelInverted() function in class T
+template <typename T>
+class menu_has_update_def_colors
+{
+    typedef char one;
+    struct two { char x[2]; };
+
+    template <typename C> static one test(decltype(&C::UpdateDefColors));
+    template <typename C> static two test(...);
+
+public:
+    static constexpr bool value = sizeof(test<T>(0)) == sizeof(char);
+};
+
+template<typename T>
+static void update_menu_item_def_colors(T* item)
+{
+    if constexpr (menu_has_update_def_colors<wxMenuItem>::value) {
+        item->UpdateDefColors();
+    }
+}
+#endif
+
+void MenuFactory::sys_color_changed()
+{
+    for (MenuWithSeparators* menu : { &m_object_menu, &m_sla_object_menu, &m_part_menu, &m_default_menu }) {
+        msw_rescale_menu(dynamic_cast<wxMenu*>(menu));// msw_rescale_menu updates just icons, so use it
+#ifdef _WIN32 
+        // but under MSW we have to update item's bachground color
+        for (wxMenuItem* item : menu->GetMenuItems())
+            update_menu_item_def_colors(item);
+#endif
+    }
+}
+
+void MenuFactory::sys_color_changed(wxMenuBar* menubar)
+{
+    for (size_t id = 0; id < menubar->GetMenuCount(); id++) {
+        wxMenu* menu = menubar->GetMenu(id);
+        msw_rescale_menu(menu);
+#ifdef _WIN32 
+        // but under MSW we have to update item's bachground color
+        for (wxMenuItem* item : menu->GetMenuItems())
+            update_menu_item_def_colors(item);
+#endif
+    }
+    menubar->Refresh();
+}
+
 
 } //namespace GUI
 } //namespace Slic3r 

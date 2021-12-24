@@ -1420,8 +1420,8 @@ ModelObjectPtrs ModelObject::segment(size_t instance, unsigned int max_extruders
     for (ModelVolume* volume : volumes) {
         const auto volume_matrix = volume->get_matrix();
 
-        volume->supported_facets.clear();
-        volume->seam_facets.clear();
+        volume->supported_facets.reset();
+        volume->seam_facets.reset();
 
         if (!volume->is_model_part()) {
             // Modifiers are not cut, but we still need to add the instance transformation
