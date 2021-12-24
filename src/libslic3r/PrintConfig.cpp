@@ -151,6 +151,7 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialInterfacePattern)
 static t_config_enum_values s_keys_map_SupportType{
     { "normal(auto)",   stNormalAuto },
     { "tree(auto)", stTreeAuto },
+    { "hybrid(auto)", stHybridAuto },
     { "normal", stNormal },
     { "tree", stTree }
 };
@@ -2691,10 +2692,12 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<SupportType>::get_enum_values();
     def->enum_values.push_back("normal(auto)");
     def->enum_values.push_back("tree(auto)");
+    def->enum_values.push_back("hybrid(auto)");
     def->enum_values.push_back("normal");
     def->enum_values.push_back("tree");
     def->enum_labels.push_back(L("normal(auto)"));
     def->enum_labels.push_back(L("tree(auto)"));
+    def->enum_labels.push_back(L("hybrid(auto)"));
     def->enum_labels.push_back(L("normal"));
     def->enum_labels.push_back(L("tree"));
     def->mode = comSimple;
@@ -2744,7 +2747,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("0.1");
     def->enum_values.push_back("0.2");
     def->enum_labels.push_back(L("0 (soluble)"));
-    def->enum_labels.push_back(L("0.1 (detachable)"));
+    def->enum_labels.push_back(L("0.1 (semi-detachable)"));
     def->enum_labels.push_back(L("0.2 (detachable)"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.2));

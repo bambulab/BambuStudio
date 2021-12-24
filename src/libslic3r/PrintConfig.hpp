@@ -99,7 +99,7 @@ enum SupportMaterialInterfacePattern {
 
 // BBS
 enum SupportType {
-    stNormalAuto, stTreeAuto, stNormal, stTree
+    stNormalAuto, stTreeAuto, stHybridAuto, stNormal, stTree
 };
 
 enum SeamPosition {

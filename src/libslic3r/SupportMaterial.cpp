@@ -1991,7 +1991,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
 
     // BBS: tree support is selected so normal supports need not be generated.
     // Note we still need to go through the following steps if support is disabled but raft is enabled.
-    if (m_object_config->support_material.value && (m_object_config->support_type.value == stTreeAuto || m_object_config->support_type.value == stTree)) {
+    if (m_object_config->support_material.value && (m_object_config->support_type.value == stTreeAuto || m_object_config->support_type.value == stTree || m_object_config->support_type.value == stHybridAuto)) {
         return MyLayersPtr();
     }
 
