@@ -860,10 +860,10 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
         if (dependent_presets && switched_presets && (type == dependent_presets->type() ?
             dependent_presets->get_edited_preset().printer_technology() == dependent_presets->find_preset(new_selected_preset)->printer_technology() :
             switched_presets->get_edited_preset().printer_technology() == switched_presets->find_preset(new_selected_preset)->printer_technology()))
-            add_btn(&m_transfer_btn, m_move_btn_id, "paste_menu", Action::Transfer, switched_presets->get_edited_preset().name == new_selected_preset ? _L("Keep") : _L("Transfer"));
+            add_btn(&m_transfer_btn, m_move_btn_id, "menu_paste", Action::Transfer, switched_presets->get_edited_preset().name == new_selected_preset ? _L("Keep") : _L("Transfer"));
     }
     if (!m_transfer_btn && (ActionButtons::KEEP & m_buttons))
-        add_btn(&m_transfer_btn, m_move_btn_id, "paste_menu", Action::Transfer, _L("Keep"));
+        add_btn(&m_transfer_btn, m_move_btn_id, "menu_paste", Action::Transfer, _L("Keep"));
 
     { // "Don't save" / "Discard" button
         std::string btn_icon    = (ActionButtons::DONT_SAVE & m_buttons) ? "" : (dependent_presets || (ActionButtons::KEEP & m_buttons)) ? "switch_presets" : "exit";
