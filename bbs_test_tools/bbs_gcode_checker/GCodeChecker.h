@@ -93,6 +93,7 @@ public:
     GCodeCheckResult parse_file(const std::string& path);
 
 private:
+    bool include_chinese(const char* str);
     GCodeCheckResult parse_line(const std::string& line);
 
     GCodeCheckResult parse_command(GCodeLine& gcode_line);

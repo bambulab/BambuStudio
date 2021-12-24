@@ -50,6 +50,20 @@ GCodeCheckResult GCodeChecker::parse_file(const std::string& path)
     return GCodeCheckResult::Success;
 }
 
+bool GCodeChecker::include_chinese(const char* str)
+{
+   char c;
+   while(1)
+   {
+       c=*str++;
+       if (is_end_of_line(c))
+           break;
+       if ((c & 0x80) && (*str & 0x80))
+           return true;
+   }
+   return false;
+}
+
 GCodeCheckResult GCodeChecker::parse_line(const std::string& line)
 {
     // update start position
@@ -57,7 +71,10 @@ GCodeCheckResult GCodeChecker::parse_line(const std::string& line)
 
     GCodeCheckResult ret;
     const char *c = skip_whitespaces(line.c_str());
-    if (is_end_of_line(*c)) {
+    if (include_chinese(c)) {
+        //chinese is forbidden
+        return GCodeCheckResult::ParseFailed;
+    } if (is_end_of_line(*c)) {
         //BBS: skip empty line
         return GCodeCheckResult::Success;
     } else if (is_comment_line(*c)) {
