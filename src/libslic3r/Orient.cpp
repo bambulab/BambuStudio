@@ -151,7 +151,6 @@ public:
             auto face_normals = its_face_normals(its);
             areas.resize(face_count, 1);
             normals.resize(face_count, 3);
-            face_index.resize(face_count);
             for (size_t i = 0; i < face_count; i++)
             {
                 float area = its.facet_area(i);

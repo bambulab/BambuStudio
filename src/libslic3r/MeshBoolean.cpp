@@ -12,6 +12,14 @@
 #include <CGAL/Polygon_mesh_processing/corefinement.h>
 #include <CGAL/Exact_integer.h>
 #include <CGAL/Surface_mesh.h>
+#include <CGAL/Polygon_mesh_processing/orient_polygon_soup.h>
+#include <CGAL/Polygon_mesh_processing/repair.h>
+#include <CGAL/Polygon_mesh_processing/remesh.h>
+#include <CGAL/Polygon_mesh_processing/polygon_soup_to_polygon_mesh.h>
+#include <CGAL/Polygon_mesh_processing/orientation.h>
+// BBS
+#include <CGAL/Polygon_mesh_processing/clip.h>
+#include <CGAL/Polygon_mesh_processing/polygon_mesh_to_polygon_soup.h>
 #include <CGAL/Cartesian_converter.h>
 // BBS: for segment
 #include <CGAL/mesh_segmentation.h>
@@ -113,6 +121,35 @@ struct CGALMesh {
 // /////////////////////////////////////////////////////////////////////////////
 // Converions from and to CGAL mesh
 // /////////////////////////////////////////////////////////////////////////////
+
+template<class _Mesh> void triangle_mesh_to_cgal(const TriangleMesh& M, _Mesh& out)
+{
+    using Index3 = std::array<size_t, 3>;
+
+    if (M.empty()) return;
+
+    std::vector<typename _Mesh::Point> points;
+    std::vector<Index3> indices;
+    points.reserve(M.its.vertices.size());
+    indices.reserve(M.its.indices.size());
+    for (auto& v : M.its.vertices) points.emplace_back(v.x(), v.y(), v.z());
+    for (auto& _f : M.its.indices) {
+        auto f = _f.cast<size_t>();
+        indices.emplace_back(Index3{ f(0), f(1), f(2) });
+    }
+
+    CGALProc::orient_polygon_soup(points, indices);
+    CGALProc::polygon_soup_to_polygon_mesh(points, indices, out);
+
+    // Number the faces because 'orient_to_bound_a_volume' needs a face <--> index map
+    unsigned index = 0;
+    for (auto face : out.faces()) face = CGAL::SM_Face_index(index++);
+
+    if (CGAL::is_closed(out))
+        CGALProc::orient_to_bound_a_volume(out);
+    else
+        throw Slic3r::RuntimeError("Mesh not watertight");
+}
 
 template<class _Mesh>
 void triangle_mesh_to_cgal(const std::vector<stl_vertex> &                 V,

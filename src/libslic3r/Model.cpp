@@ -1435,7 +1435,6 @@ ModelObjectPtrs ModelObject::segment(size_t instance, unsigned int max_extruders
             TriangleMesh mesh(volume->mesh());
             mesh.transform(instance_matrix * volume_matrix, true);
             volume->reset_mesh();
-            mesh.require_shared_vertices();
 
             auto mesh_segments = MeshBoolean::cgal::segment(mesh, smoothing_alpha, segment_number);
 
@@ -1449,8 +1448,6 @@ ModelObjectPtrs ModelObject::segment(size_t instance, unsigned int max_extruders
             for (int idx=0;idx<mesh_segments.size();idx++)
             {
                 auto& mesh_segment = mesh_segments[idx];
-                mesh_segment.repair();
-                mesh_segment.reset_repair_stats();
 
                 if (mesh_segment.facets_count() > 0) {
                     ModelVolume* vol = upper->add_volume(mesh_segment);
@@ -1587,12 +1584,10 @@ ModelObjectPtrs ModelObject::merge_volumes(std::vector<int>& vol_indeces)
             TriangleMesh mesh_(volume->mesh());
             mesh_.transform(volume_matrix, true);
             volume->reset_mesh();
-            mesh_.require_shared_vertices();
 
             mesh.merge(mesh_);
         }
     }
-    mesh.repair();
 #else
     std::vector<TriangleMesh> meshes;
     for (int i : vol_indeces) {
