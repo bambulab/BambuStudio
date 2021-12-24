@@ -792,7 +792,7 @@ bool PartPlate::is_left_top_of(int obj_id, int instance_id)
 	std::pair<int, int> pair(obj_id, instance_id);
 	BoundingBoxf3 instance_box = object->instance_bounding_box(instance_id);
 
-	result = (m_origin.x() <= instance_box.min.x())&&(m_origin.y() >= instance_box.min.y());
+	result = (m_origin.x() <= instance_box.min.x()) && (m_origin.y() >= instance_box.min.y());
 	return result;
 }
 
@@ -1166,7 +1166,7 @@ Vec3d PartPlateList::compute_origin_for_unprintable()
 {
 	int max_count = m_plate_cols * m_plate_cols;
 	if (m_plate_count == max_count)
-		return compute_origin(max_count + m_plate_cols - 1 , m_plate_cols + 1);
+		return compute_origin(max_count + m_plate_cols - 1, m_plate_cols + 1);
 	else
 		return compute_origin(m_plate_count, m_plate_cols);
 }
@@ -1529,9 +1529,8 @@ int PartPlateList::select_plate(int index)
 
 	//BBS update bed origin
 	if (m_intialized && m_plater) {
-        Vec2d pos = compute_shape_position(index, m_plate_cols);
-
-		m_plater->set_bed_position(pos);
+		Vec2d pos = compute_shape_position(index, m_plate_cols);
+        m_plater->set_bed_position(pos);
 	}
 
 	return 0;
@@ -1591,7 +1590,6 @@ double PartPlateList::plate_stride_y()
 	return unscaled<double>((1. + LOGICAL_PART_PLATE_GAP) * plate_depth);
 }
 
-
 //get the plate counts, not including the invalid plate
 int PartPlateList::get_plate_count()
 {
@@ -1605,17 +1603,17 @@ int PartPlateList::get_plate_count()
 //update the plate cols due to plate count change
 void PartPlateList::update_plate_cols()
 {
-    m_plate_count = m_plate_list.size();
+	m_plate_count = m_plate_list.size();
 
-    m_plate_cols = compute_colum_count(m_plate_count);
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":m_plate_count %1%, m_plate_cols change to %2%") % m_plate_count % m_plate_cols;
-    return;
+	m_plate_cols = compute_colum_count(m_plate_count);
+	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":m_plate_count %1%, m_plate_cols change to %2%") % m_plate_count % m_plate_cols;
+	return;
 }
 
 void PartPlateList::update_all_plates_pos_and_size(bool with_unprintable_move)
 {
-    Vec3d origin1, origin2;
-    for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+	Vec3d origin1, origin2;
+	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
 		PartPlate* plate = m_plate_list[i];
 		assert(plate != NULL);
@@ -1923,7 +1921,7 @@ int PartPlateList::compute_plate_index(arrangement::ArrangePolygon& arrange_poly
 	int row, col;
 
 	float col_value = (unscale<double>(arrange_polygon.translation(X))) / plate_stride_x();
-	float row_value = (plate_stride_y() - unscale<double>(arrange_polygon.translation(Y)))  / plate_stride_y();
+	float row_value = (plate_stride_y() - unscale<double>(arrange_polygon.translation(Y))) / plate_stride_y();
 
 	row = round(row_value);
 	col = round(col_value);
@@ -1972,7 +1970,7 @@ bool PartPlateList::preprocess_arrange_polygon(int obj_index, int instance_index
 	if (!selected)
 		arrange_polygon.bed_idx = PartPlateList::MAX_PLATES_COUNT;
 
-	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": not in any plates, bed_idx %1%, translation(x) %2%, (y) %3%") % arrange_polygon.bed_idx %  unscale<double>(arrange_polygon.translation(X)) % unscale<double>(arrange_polygon.translation(Y));
+	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": not in any plates, bed_idx %1%, translation(x) %2%, (y) %3%") % arrange_polygon.bed_idx % unscale<double>(arrange_polygon.translation(X)) % unscale<double>(arrange_polygon.translation(Y));
 
 	return locked;
 }
@@ -2068,7 +2066,7 @@ void PartPlateList::postprocess_bed_index_for_selected(arrangement::ArrangePolyg
 			//judge whether it is at the left side of the plate border
 			if (arrange_polygon.bed_idx <= i)
 			{
-				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":found in plate_index %1%, bed_idx %2%") % i %arrange_polygon.bed_idx;
+				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":found in plate_index %1%, bed_idx %2%") % i % arrange_polygon.bed_idx;
 				return;
 			}
 		}
@@ -2081,7 +2079,7 @@ void PartPlateList::postprocess_bed_index_for_selected(arrangement::ArrangePolyg
 	{
 		if (arrange_polygon.bed_idx <= plate_index)
 		{
-			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":new plate_index %1%, matches bed_idx %2%") % plate_index %arrange_polygon.bed_idx;
+			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":new plate_index %1%, matches bed_idx %2%") % plate_index % arrange_polygon.bed_idx;
 			break;
 		}
 
@@ -2113,7 +2111,7 @@ void PartPlateList::postprocess_bed_index_for_unselected(arrangement::ArrangePol
 			//judge whether it is at the left side of the plate border
 			if (arrange_polygon.bed_idx <= i)
 			{
-				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":found in plate_index %1%, bed_idx %2%") % i %arrange_polygon.bed_idx;
+				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":found in plate_index %1%, bed_idx %2%") % i % arrange_polygon.bed_idx;
 				return;
 			}
 		}
@@ -2235,7 +2233,6 @@ int PartPlateList::select_plate_by_obj(int obj_index, int instance_index)
 	}
 	return -1;
 }
-
 
 void PartPlateList::calc_bounding_boxes()
 {

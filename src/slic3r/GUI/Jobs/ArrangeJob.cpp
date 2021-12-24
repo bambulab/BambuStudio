@@ -73,11 +73,8 @@ void ArrangeJob::clear_input()
     m_selected.clear();
     m_unselected.clear();
     m_unprintable.clear();
-<<<<<<< HEAD   (f0d9b0 ENH: use the contour of brim of inner island)
-    m_unarranged.clear();
-=======
     m_locked.clear();
->>>>>>> CHANGE (995119 ENH: adjust the plates layout to sudoku-style)
+    m_unarranged.clear();
     m_selected.reserve(count + 1 /* for optional wti */);
     m_unselected.reserve(count + 1 /* for optional wti */);
     m_unprintable.reserve(cunprint /* for optional wti */);
@@ -432,8 +429,8 @@ void ArrangeJob::process()
     //BBS: already processed in m_selected
     // finalize just here.
     update_status(int(count),
-                  was_canceled() ? _(L("Arranging canceled.")):
-        we_have_unpackable_items? _(L("Arranging done but we have unpacked items! Reduce spacing or bed_shrink and try again!")) : _(L("Arranging done.")));
+        was_canceled() ? _(L("Arranging canceled.")) :
+        we_have_unpackable_items ? _(L("Arranging done but we have unpacked items! Reduce spacing or bed_shrink and try again!")) : _(L("Arranging done.")));
 }
 
 static std::string concat_strings(const std::set<std::string> &strings,
@@ -459,7 +456,7 @@ void ArrangeJob::finalize() {
     plate_list.clear();
 
     //BBS: adjust the bed_index, create new plates, get the max bed_index
-    for (ArrangePolygon &ap : m_selected) {
+    for (ArrangePolygon& ap : m_selected) {
         //if (ap.bed_idx < 0) continue;  // bed_idx<0 means unarrangable
         //BBS: partplate postprocess
         if (only_on_partplate)
@@ -470,11 +467,6 @@ void ArrangeJob::finalize() {
         beds = std::max(ap.bed_idx, beds);
 
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":selected: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y));
-<<<<<<< HEAD   (f0d9b0 ENH: use the contour of brim of inner island)
-
-        ap.apply();
-=======
->>>>>>> CHANGE (995119 ENH: adjust the plates layout to sudoku-style)
     }
 
     //BBS: adjust the bed_index, create new plates, get the max bed_index
@@ -491,7 +483,7 @@ void ArrangeJob::finalize() {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":unselected: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y));
     }
 
-    for (ArrangePolygon &ap : m_locked) {
+    for (ArrangePolygon& ap : m_locked) {
         beds = std::max(ap.bed_idx, beds);
 
         plate_list.postprocess_arrange_polygon(ap, false);
@@ -500,7 +492,7 @@ void ArrangeJob::finalize() {
     }
 
     // Apply the arrange result to all selected objects
-    for (ArrangePolygon &ap : m_selected) {
+    for (ArrangePolygon& ap : m_selected) {
         //BBS: partplate postprocess
         plate_list.postprocess_arrange_polygon(ap, true);
 
@@ -521,7 +513,7 @@ void ArrangeJob::finalize() {
 
     // Move the unprintable items to the last virtual bed.
     // Note ap.apply() moves relatively according to bed_idx, so we need to subtract the orignal bed_idx
-    for (ArrangePolygon &ap : m_unprintable) {
+    for (ArrangePolygon& ap : m_unprintable) {
         ap.bed_idx = beds + 1;
         plate_list.postprocess_arrange_polygon(ap, true);
 
@@ -529,7 +521,6 @@ void ArrangeJob::finalize() {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":m_unprintable: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y));
     }
 
-<<<<<<< HEAD   (f0d9b0 ENH: use the contour of brim of inner island)
     m_plater->update();
     wxGetApp().obj_manipul()->set_dirty();
 
@@ -543,8 +534,6 @@ void ArrangeJob::finalize() {
             concat_strings(names, "\n")));
     }
     
-=======
->>>>>>> CHANGE (995119 ENH: adjust the plates layout to sudoku-style)
     //BBS: reload all objects due to arrange
     plate_list.rebuild_plates_after_arrangement(!only_on_partplate);
 
@@ -562,18 +551,17 @@ get_wipe_tower_arrangepoly(const Plater &plater)
     return {};
 }
 
-<<<<<<< HEAD   (f0d9b0 ENH: use the contour of brim of inner island)
-double bed_stride(const Plater *plater) {
-    double bedwidth = plater->build_volume().bounding_volume().size().x();
-=======
 //BBS: add sudoku-style stride
-double bed_stride_x(const Plater *plater) {
+double bed_stride_x(const Plater* plater) {
     double bedwidth = plater->bed_shape_bb().size().x();
->>>>>>> CHANGE (995119 ENH: adjust the plates layout to sudoku-style)
     return scaled<double>((1. + LOGICAL_BED_GAP) * bedwidth);
 }
 
-<<<<<<< HEAD   (f0d9b0 ENH: use the contour of brim of inner island)
+double bed_stride_y(const Plater* plater) {
+    double beddepth = plater->bed_shape_bb().size().y();
+    return scaled<double>((1. + LOGICAL_BED_GAP) * beddepth);
+}
+
 template<>
 arrangement::ArrangePolygon get_arrange_poly(ModelInstance *inst,
                                              const Plater * plater)
@@ -596,12 +584,5 @@ arrangement::ArrangeParams get_arrange_params(Plater *p)
 
     return params;
 }
-=======
-double bed_stride_y(const Plater *plater) {
-    double beddepth = plater->bed_shape_bb().size().y();
-    return scaled<double>((1. + LOGICAL_BED_GAP) * beddepth);
-}
-
->>>>>>> CHANGE (995119 ENH: adjust the plates layout to sudoku-style)
 
 }} // namespace Slic3r::GUI

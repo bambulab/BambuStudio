@@ -15,13 +15,9 @@ class ArrangeJob : public PlaterJob
     using ArrangePolygon = arrangement::ArrangePolygon;
     using ArrangePolygons = arrangement::ArrangePolygons;
 
-<<<<<<< HEAD   (f0d9b0 ENH: use the contour of brim of inner island)
-    ArrangePolygons m_selected, m_unselected, m_unprintable;
-    std::vector<ModelInstance*> m_unarranged;
-=======
     //BBS: add locked logic
     ArrangePolygons m_selected, m_unselected, m_unprintable, m_locked;
->>>>>>> CHANGE (995119 ENH: adjust the plates layout to sudoku-style)
+    std::vector<ModelInstance*> m_unarranged;
     std::map<int, ArrangePolygons> m_selected_groups;   // groups of selected items for sequential printing
     arrangement::ArrangeParams params;
     int current_plate_index = 0;
@@ -72,8 +68,8 @@ static const constexpr double LOGICAL_BED_GAP = 1. / 5.;
 
 //BBS: add sudoku-style strides for x and y
 // Stride between logical beds
-double bed_stride_x(const Plater *plater);
-double bed_stride_y(const Plater *plater);
+double bed_stride_x(const Plater* plater);
+double bed_stride_y(const Plater* plater);
 
 template<class T> struct PtrWrapper
 {
