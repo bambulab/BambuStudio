@@ -2898,7 +2898,7 @@ void PrintConfigDef::init_fff_params()
                      "(lower accuracy) will save a lot of time calculating, but will also make the support appear jagged when it's"
                      "near the mesh.");
     def->sidetext = L("mm");
-    def->min = 1;
+    def->min = 0;
     def->max = 10;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.2));
