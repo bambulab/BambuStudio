@@ -3326,7 +3326,10 @@ void Plater::priv::reset()
         view3D->enable_layers_editing(false);
 
     reset_gcode_toolpaths();
-    gcode_result.reset();
+    //BBS: update gcode to current partplate's
+    GCodeProcessor::Result* current_result = this->background_process.get_current_plate()->get_slice_result();
+    current_result->reset();
+    //gcode_result.reset();
 
     view3D->get_canvas3d()->reset_sequential_print_clearance();
 
