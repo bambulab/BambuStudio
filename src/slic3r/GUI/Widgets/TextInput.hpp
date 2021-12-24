@@ -63,6 +63,8 @@ protected:
     virtual void DoSetSize(
         int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO);
 
+    void DoSetToolTipText(wxString const &tip) override;
+
 private:
     void paintEvent(wxPaintEvent& evt);
     void paintNow();

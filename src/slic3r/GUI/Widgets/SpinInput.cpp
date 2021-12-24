@@ -129,6 +129,12 @@ void SpinInput::SetRange(int min, int max)
     this->max = max;
 }
 
+void SpinInput::DoSetToolTipText(wxString const &tip)
+{ 
+    wxWindow::DoSetToolTipText(tip);
+    text_ctrl->SetToolTip(tip);
+}
+
 void SpinInput::Rescale()
 {
     button_inc->Rescale();

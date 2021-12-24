@@ -64,6 +64,9 @@ public:
 
     void SetRange(int min, int max);
 
+protected:
+    void DoSetToolTipText(wxString const &tip) override;
+
 private:
     void paintEvent(wxPaintEvent& evt);
     void paintNow();

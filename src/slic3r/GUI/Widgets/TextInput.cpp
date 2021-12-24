@@ -150,6 +150,12 @@ void TextInput::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     text_ctrl->SetPosition({textPos.x, (size.y - textSize.y) / 2});
 }
 
+void TextInput::DoSetToolTipText(wxString const &tip)
+{
+    wxWindow::DoSetToolTipText(tip);
+    text_ctrl->SetToolTip(tip);
+}
+
 void TextInput::paintEvent(wxPaintEvent &evt)
 {
     // depending on your system you may need to look at double-buffered dcs
