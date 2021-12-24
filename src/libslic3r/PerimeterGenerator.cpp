@@ -219,8 +219,8 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
         } else {
             //BBS: normal perimeter
             lower_polygons_series = perimeter_generator.m_lower_polygons_series;
-            extrusion_mm3_per_mm = extrusion_mm3_per_mm;
-            extrusion_width = extrusion_width;
+            extrusion_mm3_per_mm = perimeter_generator.mm3_per_mm();
+            extrusion_width = perimeter_generator.perimeter_flow.width();
         }
 
 

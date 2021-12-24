@@ -30,7 +30,7 @@ public:
     SurfaceCollection           *fill_surfaces;
 
     //BBS
-    Flow                        smaller_ext_perimeter_flow = Flow(0, 0, 0);
+    Flow                        smaller_ext_perimeter_flow;
     std::map<int, Polygons>     m_lower_polygons_series;
     std::map<int, Polygons>     m_external_lower_polygons_series;
     std::map<int, Polygons>     m_smaller_external_lower_polygons_series;
