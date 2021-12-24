@@ -1018,9 +1018,7 @@ void StackImpl::load_snapshot(size_t timestamp, Slic3r::Model& model, Slic3r::GU
 
 bool StackImpl::has_undo_snapshot() const
 { 
-	//assert(this->valid());
-	if (!this->valid())
-		return false;
+	assert(this->valid());
 
 	auto it = std::lower_bound(m_snapshots.begin(), m_snapshots.end(), Snapshot(m_active_snapshot_time));
 	return -- it != m_snapshots.begin();
@@ -1033,9 +1031,8 @@ bool StackImpl::has_undo_snapshot(size_t time_to_load) const
 
 bool StackImpl::has_redo_snapshot() const
 {
-	//assert(this->valid());
-	if (!this->valid())
-		return false;
+	assert(this->valid());
+
 	auto it = std::lower_bound(m_snapshots.begin(), m_snapshots.end(), Snapshot(m_active_snapshot_time));
 	return ++ it != m_snapshots.end();
 }

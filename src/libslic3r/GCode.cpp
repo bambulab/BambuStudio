@@ -2947,19 +2947,16 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
             // BBS
             //const double speed = (role == erSupportMaterial) ? support_speed : support_interface_speed;
             const double speed = -1.0;
-            const ExtrusionPath *path = dynamic_cast<const ExtrusionPath*>(ee);
+            const ExtrusionPath* path = dynamic_cast<const ExtrusionPath*>(ee);
+            const ExtrusionMultiPath* multipath = dynamic_cast<const ExtrusionMultiPath*>(ee);
+            const ExtrusionLoop* loop = dynamic_cast<const ExtrusionLoop*>(ee);
             if (path)
                 gcode += this->extrude_path(*path, label, speed);
-            else {
-                const ExtrusionMultiPath *multipath = dynamic_cast<const ExtrusionMultiPath*>(ee);
-                if (multipath)
-                    gcode += this->extrude_multi_path(*multipath, label, speed);
-                else {
-                    const ExtrusionEntityCollection *eec = dynamic_cast<const ExtrusionEntityCollection*>(ee);
-                    assert(eec);
-                    if (eec)
-                        gcode += this->extrude_support(*eec);
-                }
+            else if (multipath) {
+                gcode += this->extrude_multi_path(*multipath, label, speed);
+            }
+            else if (loop) {
+                gcode += this->extrude_loop(*loop, label, speed);
             }
         }
     }
