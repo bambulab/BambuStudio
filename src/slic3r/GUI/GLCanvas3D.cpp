@@ -1997,7 +1997,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         const ModelObject &model_object = *m_model->objects[obj_idx];
         for (int volume_idx = 0; volume_idx < (int)model_object.volumes.size(); ++ volume_idx) {
 			const ModelVolume &model_volume = *model_object.volumes[volume_idx];
-            if (m_canvas_type == ECanvasType::CanvasAssembleView)
+            if (m_canvas_type == ECanvasType::CanvasAssembleView && !model_volume.is_model_part())
                 continue;
             for (int instance_idx = 0; instance_idx < (int)model_object.instances.size(); ++ instance_idx) {
 				const ModelInstance &model_instance = *model_object.instances[instance_idx];

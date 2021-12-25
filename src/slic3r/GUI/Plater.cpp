@@ -2478,6 +2478,8 @@ void Plater::priv::select_view_3D(const std::string& name)
         set_current_panel(view3D);
     else if (name == "Preview")
         set_current_panel(preview);
+    else if (name == "Assemble")
+        set_current_panel(assemble_view);
 
     apply_free_camera_correction(false);
 }
