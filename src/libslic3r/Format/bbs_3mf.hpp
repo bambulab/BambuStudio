@@ -3,6 +3,7 @@
 
 namespace Slic3r {
 class Model;
+struct ConfigSubstitutionContext;
 class DynamicPrintConfig;
 struct ThumbnailData;
 

@@ -2,9 +2,11 @@
 #include "../Exception.hpp"
 #include "../Model.hpp"
 #include "../Utils.hpp"
+#include "../LocalesUtils.hpp"
 #include "../GCode.hpp"
 #include "../Geometry.hpp"
 #include "../GCode/ThumbnailData.hpp"
+#include "../Semver.hpp"
 #include "../Time.hpp"
 
 #include "../I18N.hpp"
@@ -22,6 +24,7 @@
 #include <boost/nowide/fstream.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/spirit/include/karma.hpp>
+#include <boost/spirit/include/qi_int.hpp>
 #include <boost/log/trivial.hpp>
 
 #include <boost/property_tree/ptree.hpp>
@@ -32,6 +35,8 @@ namespace pt = boost::property_tree;
 #include <expat.h>
 #include <Eigen/Dense>
 #include "miniz_extension.hpp"
+
+#include <fast_float/fast_float.h>
 
 // Slightly faster than sprintf("%.9g"), but there is an issue with the karma floating point formatter,
 // https://github.com/boostorg/spirit/pull/586
@@ -50,6 +55,16 @@ const unsigned int VERSION_BBS_3MF = 1;
 const unsigned int VERSION_BBS_3MF_COMPATIBLE = 2;
 const char* BBS_3MF_VERSION = "bamboo_slicer:Version3mf"; // definition of the metadata name saved into .model file
 const char* BBS_PRUSA_VERSION = "slic3rpe:Version3mf"; //compatible with prusa currently
+// Painting gizmos data version numbers
+// 0 : 3MF files saved by older PrusaSlicer or the painting gizmo wasn't used. No version definition in them.
+// 1 : Introduction of painting gizmos data versioning. No other changes in painting gizmos data.
+const unsigned int FDM_SUPPORTS_PAINTING_VERSION = 1;
+const unsigned int SEAM_PAINTING_VERSION         = 1;
+const unsigned int MM_PAINTING_VERSION           = 1;
+
+const std::string SLIC3RPE_FDM_SUPPORTS_PAINTING_VERSION = "slic3rpe:FdmSupportsPaintingVersion";
+const std::string SLIC3RPE_SEAM_PAINTING_VERSION         = "slic3rpe:SeamPaintingVersion";
+const std::string SLIC3RPE_MM_PAINTING_VERSION           = "slic3rpe:MmPaintingVersion";
 
 const std::string MODEL_FOLDER = "3D/";
 const std::string MODEL_EXTENSION = ".model";
@@ -109,6 +124,7 @@ static constexpr const char* PRINTABLE_ATTR = "printable";
 static constexpr const char* INSTANCESCOUNT_ATTR = "instances_count";
 static constexpr const char* CUSTOM_SUPPORTS_ATTR = "slic3rpe:custom_supports";
 static constexpr const char* CUSTOM_SEAM_ATTR = "slic3rpe:custom_seam";
+static constexpr const char* MMU_SEGMENTATION_ATTR = "slic3rpe:mmu_segmentation";
 
 static constexpr const char* KEY_ATTR = "key";
 static constexpr const char* VALUE_ATTR = "value";
@@ -140,6 +156,13 @@ static constexpr const char* SOURCE_OFFSET_Y_KEY = "source_offset_y";
 static constexpr const char* SOURCE_OFFSET_Z_KEY = "source_offset_z";
 static constexpr const char* SOURCE_IN_INCHES    = "source_in_inches";
 static constexpr const char* SOURCE_IN_METERS    = "source_in_meters";
+
+static constexpr const char* MESH_STAT_EDGES_FIXED          = "edges_fixed";
+static constexpr const char* MESH_STAT_DEGENERATED_FACETS   = "degenerate_facets";
+static constexpr const char* MESH_STAT_FACETS_REMOVED       = "facets_removed";
+static constexpr const char* MESH_STAT_FACETS_RESERVED      = "facets_reversed";
+static constexpr const char* MESH_STAT_BACKWARDS_EDGES      = "backwards_edges";
+
 
 const unsigned int BBS_VALID_OBJECT_TYPES_COUNT = 1;
 const char* BBS_VALID_OBJECT_TYPES[] =
@@ -183,14 +206,18 @@ std::string bbs_get_attribute_value_string(const char** attributes, unsigned int
 
 float bbs_get_attribute_value_float(const char** attributes, unsigned int attributes_size, const char* attribute_key)
 {
-    const char* text = bbs_get_attribute_value_charptr(attributes, attributes_size, attribute_key);
-    return (text != nullptr) ? (float)::atof(text) : 0.0f;
+    float value = 0.0f;
+    if (const char *text = bbs_get_attribute_value_charptr(attributes, attributes_size, attribute_key); text != nullptr)
+        fast_float::from_chars(text, text + strlen(text), value);
+    return value;
 }
 
 int bbs_get_attribute_value_int(const char** attributes, unsigned int attributes_size, const char* attribute_key)
 {
-    const char* text = bbs_get_attribute_value_charptr(attributes, attributes_size, attribute_key);
-    return (text != nullptr) ? ::atoi(text) : 0;
+    int value = 0;
+    if (const char *text = bbs_get_attribute_value_charptr(attributes, attributes_size, attribute_key); text != nullptr)
+        boost::spirit::qi::parse(text, text + strlen(text), boost::spirit::qi::int_, value);
+    return value;
 }
 
 bool bbs_get_attribute_value_bool(const char** attributes, unsigned int attributes_size, const char* attribute_key)
@@ -309,10 +336,11 @@ namespace Slic3r {
 
         struct Geometry
         {
-            std::vector<float> vertices;
-            std::vector<unsigned int> triangles;
+            std::vector<Vec3f> vertices;
+            std::vector<Vec3i> triangles;
             std::vector<std::string> custom_supports;
             std::vector<std::string> custom_seam;
+            std::vector<std::string> mmu_segmentation;
 
             bool empty() { return vertices.empty() || triangles.empty(); }
 
@@ -321,6 +349,7 @@ namespace Slic3r {
                 triangles.clear();
                 custom_supports.clear();
                 custom_seam.clear();
+                mmu_segmentation.clear();
             }
         };
 
@@ -390,6 +419,7 @@ namespace Slic3r {
                 unsigned int first_triangle_id;
                 unsigned int last_triangle_id;
                 MetadataList metadata;
+                RepairedMeshErrors mesh_stats;
 
                 VolumeMetadata(unsigned int first_triangle_id, unsigned int last_triangle_id)
                     : first_triangle_id(first_triangle_id)
@@ -419,6 +449,12 @@ namespace Slic3r {
         unsigned int m_version;
         bool m_check_version;
         bool m_load_aux;
+
+        // Semantic version of PrusaSlicer, that generated this 3MF.
+        boost::optional<Semver> m_bambuslicer_generator_version;
+        unsigned int m_fdm_supports_painting_version = 0;
+        unsigned int m_seam_painting_version         = 0;
+        unsigned int m_mm_painting_version           = 0;
 
         XML_Parser m_xml_parser;
         // Error code returned by the application side of the parser. In that case the expat may not reliably deliver the error state
@@ -454,6 +490,7 @@ namespace Slic3r {
 
         //BBS: add plate data related logic
         bool load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version, bool& is_bbl_3mf, bool load_aux);
+        unsigned int version() const { return m_version; }
 
     private:
         void _destroy_xml_parser();
@@ -542,7 +579,9 @@ namespace Slic3r {
         bool _handle_end_config_object();
 
         bool _handle_start_config_volume(const char** attributes, unsigned int num_attributes);
+        bool _handle_start_config_volume_mesh(const char** attributes, unsigned int num_attributes);
         bool _handle_end_config_volume();
+        bool _handle_end_config_volume_mesh();
 
         bool _handle_start_config_metadata(const char** attributes, unsigned int num_attributes);
         bool _handle_end_config_metadata();
@@ -602,6 +641,9 @@ namespace Slic3r {
     bool _BBS_3MF_Importer::load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version, bool& is_bbl_3mf, bool load_aux)
     {
         m_version = 0;
+        m_fdm_supports_painting_version = 0;
+        m_seam_painting_version = 0;
+        m_mm_painting_version = 0;
         m_check_version = check_version;
         //BBS: auxiliary data
         m_load_aux = load_aux;
@@ -664,7 +706,7 @@ namespace Slic3r {
 
         mz_zip_archive_file_stat stat;
 
-        m_name = boost::filesystem::path(filename).filename().stem().string();
+        m_name = boost::filesystem::path(filename).stem().string();
 
         // we first loop the entries to read from the archive the .model file only, in order to extract the version from it
         for (mz_uint i = 0; i < num_entries; ++i) {
@@ -741,7 +783,6 @@ namespace Slic3r {
 
         close_zip_reader(&archive);
 
-#if ENABLE_RELOAD_FROM_DISK_FOR_3MF
         if (m_version == 0) {
             // if the 3mf was not produced by PrusaSlicer and there is more than one instance,
             // split the object in as many objects as instances
@@ -770,7 +811,7 @@ namespace Slic3r {
                     }
 
                     // use the geometry to create the volumes in the new model objects
-                    ObjectMetadata::VolumeMetadataList volumes(1, { 0, (unsigned int)geometry->triangles.size() / 3 - 1 });
+                    ObjectMetadata::VolumeMetadataList volumes(1, { 0, (unsigned int)geometry->triangles.size() - 1 });
 
                     // for each instance after the 1st, create a new model object containing only that instance
                     // and copy into it the geometry
@@ -786,7 +827,6 @@ namespace Slic3r {
                 ++i;
             }
         }
-#endif // ENABLE_RELOAD_FROM_DISK_FOR_3MF
 
         for (const IdToModelObjectMap::value_type& object : m_objects) {
             if (object.second >= int(m_model->objects.size())) {
@@ -844,7 +884,7 @@ namespace Slic3r {
                 // config data not found, this model was not saved using slic3r pe
 
                 // add the entire geometry as the single volume to generate
-                volumes.emplace_back(0, (int)obj_geometry->second.triangles.size() / 3 - 1);
+                volumes.emplace_back(0, (int)obj_geometry->second.triangles.size() - 1);
 
                 // select as volumes
                 volumes_ptr = &volumes;
@@ -854,7 +894,6 @@ namespace Slic3r {
                 return false;
         }
 
-#if ENABLE_RELOAD_FROM_DISK_FOR_3MF
         int object_idx = 0;
         for (ModelObject* o : model.objects) {
             int volume_idx = 0;
@@ -870,7 +909,6 @@ namespace Slic3r {
             }
             ++object_idx;
         }
-#endif // ENABLE_RELOAD_FROM_DISK_FOR_3MF
 
 //        // fixes the min z of the model if negative
 //        model.adjust_min_z();
@@ -1497,6 +1535,8 @@ namespace Slic3r {
             res = _handle_start_config_volume(attributes, num_attributes);
         else if (::strcmp(PART_TAG, name) == 0)
             res = _handle_start_config_volume(attributes, num_attributes);
+        else if (::strcmp(MESH_TAG, name) == 0)
+            res = _handle_start_config_volume_mesh(attributes, num_attributes);
         else if (::strcmp(METADATA_TAG, name) == 0)
             res = _handle_start_config_metadata(attributes, num_attributes);
         else if (::strcmp(PLATE_TAG, name) == 0)
@@ -1527,6 +1567,8 @@ namespace Slic3r {
             res = _handle_end_config_volume();
         else if (::strcmp(PART_TAG, name) == 0)
             res = _handle_end_config_volume();
+        else if (::strcmp(MESH_TAG, name) == 0)
+            res = _handle_end_config_volume_mesh();
         else if (::strcmp(METADATA_TAG, name) == 0)
             res = _handle_end_config_metadata();
         else if (::strcmp(PLATE_TAG, name) == 0)
@@ -1559,6 +1601,13 @@ namespace Slic3r {
             ModelObject *model_object = m_model->objects[object.second];
             if (model_object != nullptr && model_object->instances.size() == 0)
                 m_model->delete_object(model_object);
+        }
+
+        if (m_version == 0) {
+            // if the 3mf was not produced by PrusaSlicer and there is only one object,
+            // set the object name to match the filename
+            if (m_model->objects.size() == 1)
+                m_model->objects.front()->name = m_name;
         }
 
         // applies instances' matrices
@@ -1679,9 +1728,10 @@ namespace Slic3r {
     {
         // appends the vertex coordinates
         // missing values are set equal to ZERO
-        m_curr_object.geometry.vertices.push_back(m_unit_factor * bbs_get_attribute_value_float(attributes, num_attributes, X_ATTR));
-        m_curr_object.geometry.vertices.push_back(m_unit_factor * bbs_get_attribute_value_float(attributes, num_attributes, Y_ATTR));
-        m_curr_object.geometry.vertices.push_back(m_unit_factor * bbs_get_attribute_value_float(attributes, num_attributes, Z_ATTR));
+        m_curr_object.geometry.vertices.emplace_back(
+            m_unit_factor * bbs_get_attribute_value_float(attributes, num_attributes, X_ATTR),
+            m_unit_factor * bbs_get_attribute_value_float(attributes, num_attributes, Y_ATTR),
+            m_unit_factor * bbs_get_attribute_value_float(attributes, num_attributes, Z_ATTR));
         return true;
     }
 
@@ -1715,12 +1765,14 @@ namespace Slic3r {
 
         // appends the triangle's vertices indices
         // missing values are set equal to ZERO
-        m_curr_object.geometry.triangles.push_back((unsigned int)bbs_get_attribute_value_int(attributes, num_attributes, V1_ATTR));
-        m_curr_object.geometry.triangles.push_back((unsigned int)bbs_get_attribute_value_int(attributes, num_attributes, V2_ATTR));
-        m_curr_object.geometry.triangles.push_back((unsigned int)bbs_get_attribute_value_int(attributes, num_attributes, V3_ATTR));
+        m_curr_object.geometry.triangles.emplace_back(
+            bbs_get_attribute_value_int(attributes, num_attributes, V1_ATTR),
+            bbs_get_attribute_value_int(attributes, num_attributes, V2_ATTR),
+            bbs_get_attribute_value_int(attributes, num_attributes, V3_ATTR));
 
         m_curr_object.geometry.custom_supports.push_back(bbs_get_attribute_value_string(attributes, num_attributes, CUSTOM_SUPPORTS_ATTR));
         m_curr_object.geometry.custom_seam.push_back(bbs_get_attribute_value_string(attributes, num_attributes, CUSTOM_SEAM_ATTR));
+        m_curr_object.geometry.mmu_segmentation.push_back(bbs_get_attribute_value_string(attributes, num_attributes, MMU_SEGMENTATION_ATTR));
         return true;
     }
 
@@ -1813,6 +1865,12 @@ namespace Slic3r {
         return true;
     }
 
+    inline static void check_painting_version(unsigned int loaded_version, unsigned int highest_supported_version, const std::string &error_msg)
+    {
+        if (loaded_version > highest_supported_version)
+            throw version_error(error_msg);
+    }
+
     bool _BBS_3MF_Importer::_handle_end_metadata()
     {
         if ((m_curr_metadata_name == BBS_3MF_VERSION)||(m_curr_metadata_name == BBS_PRUSA_VERSION)) {
@@ -1825,6 +1883,23 @@ namespace Slic3r {
                 const std::string msg = (boost::format(_(L("The selected 3mf file has been saved with a newer version of %1% and is not compatible."))) % std::string(SLIC3R_APP_NAME)).str();
                 throw version_error(msg);
             }
+        } else if (m_curr_metadata_name == "Application") {
+            // Generator application of the 3MF.
+            // SLIC3R_APP_KEY - SLIC3R_VERSION
+            if (boost::starts_with(m_curr_characters, "BambuSlicer-"))
+                m_bambuslicer_generator_version = Semver::parse(m_curr_characters.substr(12));
+        } else if (m_curr_metadata_name == SLIC3RPE_FDM_SUPPORTS_PAINTING_VERSION) {
+            m_fdm_supports_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
+            check_painting_version(m_fdm_supports_painting_version, FDM_SUPPORTS_PAINTING_VERSION,
+                _(L("The selected 3MF contains FDM supports painted object using a newer version of PrusaSlicer and is not compatible.")));
+        } else if (m_curr_metadata_name == SLIC3RPE_SEAM_PAINTING_VERSION) {
+            m_seam_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
+            check_painting_version(m_seam_painting_version, SEAM_PAINTING_VERSION,
+                _(L("The selected 3MF contains seam painted object using a newer version of PrusaSlicer and is not compatible.")));
+        } else if (m_curr_metadata_name == SLIC3RPE_MM_PAINTING_VERSION) {
+            m_mm_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
+            check_painting_version(m_mm_painting_version, MM_PAINTING_VERSION,
+                _(L("The selected 3MF contains multi-material painted object using a newer version of PrusaSlicer and is not compatible.")));
         }
 
         return true;
@@ -1938,7 +2013,38 @@ namespace Slic3r {
         return true;
     }
 
+    bool _BBS_3MF_Importer::_handle_start_config_volume_mesh(const char** attributes, unsigned int num_attributes)
+    {
+        IdToMetadataMap::iterator object = m_objects_metadata.find(m_curr_config.object_id);
+        if (object == m_objects_metadata.end()) {
+            add_error("Cannot assign volume mesh to a valid object");
+            return false;
+        }
+        if (object->second.volumes.empty()) {
+            add_error("Cannot assign mesh to a valid olume");
+            return false;
+        }
+
+        ObjectMetadata::VolumeMetadata& volume = object->second.volumes.back();
+
+        int edges_fixed         = bbs_get_attribute_value_int(attributes, num_attributes, MESH_STAT_EDGES_FIXED       );
+        int degenerate_facets   = bbs_get_attribute_value_int(attributes, num_attributes, MESH_STAT_DEGENERATED_FACETS);
+        int facets_removed      = bbs_get_attribute_value_int(attributes, num_attributes, MESH_STAT_FACETS_REMOVED    );
+        int facets_reversed     = bbs_get_attribute_value_int(attributes, num_attributes, MESH_STAT_FACETS_RESERVED   );
+        int backwards_edges     = bbs_get_attribute_value_int(attributes, num_attributes, MESH_STAT_BACKWARDS_EDGES   );
+
+        volume.mesh_stats = { edges_fixed, degenerate_facets, facets_removed, facets_reversed, backwards_edges };
+
+        return true;
+    }
+
     bool _BBS_3MF_Importer::_handle_end_config_volume()
+    {
+        // do nothing
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_end_config_volume_mesh()
     {
         // do nothing
         return true;
@@ -2096,7 +2202,8 @@ namespace Slic3r {
             return false;
         }
 
-        unsigned int geo_tri_count = (unsigned int)geometry.triangles.size() / 3;
+        unsigned int geo_tri_count = (unsigned int)geometry.triangles.size();
+        unsigned int renamed_volumes_count = 0;
 
         for (const ObjectMetadata::VolumeMetadata& volume_data : volumes) {
             if (geo_tri_count <= volume_data.first_triangle_id || geo_tri_count <= volume_data.last_triangle_id || volume_data.last_triangle_id < volume_data.first_triangle_id) {
@@ -2116,45 +2223,56 @@ namespace Slic3r {
             }
 
             // splits volume out of imported geometry
-			TriangleMesh triangle_mesh;
-            stl_file stl;
-            unsigned int triangles_count = volume_data.last_triangle_id - volume_data.first_triangle_id + 1;
-            stl.stats.type = inmemory;
-            stl.stats.number_of_facets = (uint32_t)triangles_count;
-            stl.stats.original_num_facets = (int)stl.stats.number_of_facets;
-            stl_allocate(&stl);
-
-            unsigned int src_start_id = volume_data.first_triangle_id * 3;
-
-            for (unsigned int i = 0; i < triangles_count; ++i) {
-                unsigned int ii = i * 3;
-                stl_facet& facet = stl.facet_start[i];
-                for (unsigned int v = 0; v < 3; ++v) {
-                    unsigned int tri_id = geometry.triangles[src_start_id + ii + v] * 3;
-                    if (tri_id + 2 >= geometry.vertices.size()) {
-                        add_error("Malformed triangle mesh");
-                        return false;
-                    }
-                    facet.vertex[v] = Vec3f(geometry.vertices[tri_id + 0], geometry.vertices[tri_id + 1], geometry.vertices[tri_id + 2]);
-                }
-
+            indexed_triangle_set its;
+            its.indices.assign(geometry.triangles.begin() + volume_data.first_triangle_id, geometry.triangles.begin() + volume_data.last_triangle_id + 1);
+            const size_t triangles_count = its.indices.size();
+            if (triangles_count == 0) {
+                add_error("An empty triangle mesh found");
+                return false;
             }
 
-			stl_get_size(&stl);
-            triangle_mesh.from_stl(stl, true);
+            {
+                int min_id = its.indices.front()[0];
+                int max_id = min_id;
+                for (const Vec3i& face : its.indices) {
+                    for (const int tri_id : face) {
+                        if (tri_id < 0 || tri_id >= int(geometry.vertices.size())) {
+                            add_error("Found invalid vertex id");
+                            return false;
+                        }
+                        min_id = std::min(min_id, tri_id);
+                        max_id = std::max(max_id, tri_id);
+                    }
+                }
+                its.vertices.assign(geometry.vertices.begin() + min_id, geometry.vertices.begin() + max_id + 1);
 
+                // rebase indices to the current vertices list
+                for (Vec3i& face : its.indices)
+                    for (int& tri_id : face)
+                        tri_id -= min_id;
+            }
 
-#if ENABLE_RELOAD_FROM_DISK_FOR_3MF
+            if (m_bambuslicer_generator_version && 
+                *m_bambuslicer_generator_version >= *Semver::parse("2.4.0-alpha1") &&
+                *m_bambuslicer_generator_version < *Semver::parse("2.4.0-alpha3"))
+                // PrusaSlicer 2.4.0-alpha2 contained a bug, where all vertices of a single object were saved for each volume the object contained.
+                // Remove the vertices, that are not referenced by any face.
+                its_compactify_vertices(its, true);
+
+            TriangleMesh triangle_mesh(std::move(its), volume_data.mesh_stats);
+
             if (m_version == 0) {
                 // if the 3mf was not produced by PrusaSlicer and there is only one instance,
                 // bake the transformation into the geometry to allow the reload from disk command
                 // to work properly
                 if (object.instances.size() == 1) {
-                    triangle_mesh.transform(object.instances.front()->get_transformation().get_matrix());
+                    triangle_mesh.transform(object.instances.front()->get_transformation().get_matrix(), false);
                     object.instances.front()->set_transformation(Slic3r::Geometry::Transformation());
+                    //FIXME do the mesh fixing?
                 }
             }
-#endif // ENABLE_RELOAD_FROM_DISK_FOR_3MF
+            if (triangle_mesh.volume() < 0)
+                triangle_mesh.flip_triangles();
 
 			ModelVolume* volume = object.add_volume(std::move(triangle_mesh));
             // stores the volume matrix taken from the metadata, if present
@@ -2162,17 +2280,25 @@ namespace Slic3r {
                 volume->source.transform = Slic3r::Geometry::Transformation(volume_matrix_to_object);
             volume->calculate_convex_hull();
 
-            // recreate custom supports and seam from previously loaded attribute
-            for (unsigned i=0; i<triangles_count; ++i) {
-                size_t index = src_start_id/3 + i;
+            // recreate custom supports, seam and mmu segmentation from previously loaded attribute
+            volume->supported_facets.reserve(triangles_count);
+            volume->seam_facets.reserve(triangles_count);
+            volume->mmu_segmentation_facets.reserve(triangles_count);
+            for (size_t i=0; i<triangles_count; ++i) {
+                size_t index = volume_data.first_triangle_id + i;
                 assert(index < geometry.custom_supports.size());
                 assert(index < geometry.custom_seam.size());
+                assert(index < geometry.mmu_segmentation.size());
                 if (! geometry.custom_supports[index].empty())
                     volume->supported_facets.set_triangle_from_string(i, geometry.custom_supports[index]);
                 if (! geometry.custom_seam[index].empty())
                     volume->seam_facets.set_triangle_from_string(i, geometry.custom_seam[index]);
+                if (! geometry.mmu_segmentation[index].empty())
+                    volume->mmu_segmentation_facets.set_triangle_from_string(i, geometry.mmu_segmentation[index]);
             }
-
+            volume->supported_facets.shrink_to_fit();
+            volume->seam_facets.shrink_to_fit();
+            volume->mmu_segmentation_facets.shrink_to_fit();
 
             // apply the remaining volume's metadata
             for (const Metadata& metadata : volume_data.metadata) {
@@ -2196,8 +2322,18 @@ namespace Slic3r {
                     volume->source.mesh_offset(2) = ::atof(metadata.value.c_str());
                 else if (metadata.key == SOURCE_IN_INCHES)
                     volume->source.is_converted_from_inches = metadata.value == "1";
+                else if (metadata.key == SOURCE_IN_METERS)
+                    volume->source.is_converted_from_meters = metadata.value == "1";
                 else
                     volume->config.set_deserialize(metadata.key, metadata.value, config_substitutions);
+            }
+
+            // this may happen for 3mf saved by 3rd part softwares
+            if (volume->name.empty()) {
+                volume->name = object.name;
+                if (renamed_volumes_count > 0)
+                    volume->name += "_" + std::to_string(renamed_volumes_count + 1);
+                ++renamed_volumes_count;
             }
         }
 
@@ -2576,6 +2712,16 @@ namespace Slic3r {
             stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
             stream << "<" << MODEL_TAG << " unit=\"millimeter\" xml:lang=\"en-US\" xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" xmlns:slic3rpe=\"http://schemas.slic3r.org/3mf/2017/06\">\n";
             stream << " <" << METADATA_TAG << " name=\"" << BBS_3MF_VERSION << "\">" << VERSION_BBS_3MF << "</" << METADATA_TAG << ">\n";
+
+            if (model.is_fdm_support_painted())
+                stream << " <" << METADATA_TAG << " name=\"" << SLIC3RPE_FDM_SUPPORTS_PAINTING_VERSION << "\">" << FDM_SUPPORTS_PAINTING_VERSION << "</" << METADATA_TAG << ">\n";
+
+            if (model.is_seam_painted())
+                stream << " <" << METADATA_TAG << " name=\"" << SLIC3RPE_SEAM_PAINTING_VERSION << "\">" << SEAM_PAINTING_VERSION << "</" << METADATA_TAG << ">\n";
+
+            if (model.is_mm_painted())
+                stream << " <" << METADATA_TAG << " name=\"" << SLIC3RPE_MM_PAINTING_VERSION << "\">" << MM_PAINTING_VERSION << "</" << METADATA_TAG << ">\n";
+
             std::string name = xml_escape(boost::filesystem::path(filename).stem().string());
             stream << " <" << METADATA_TAG << " name=\"Title\">" << name << "</" << METADATA_TAG << ">\n";
             stream << " <" << METADATA_TAG << " name=\"Designer\">" << "</" << METADATA_TAG << ">\n";
@@ -2731,6 +2877,7 @@ namespace Slic3r {
         };
 
         auto format_coordinate = [](float f, char *buf) -> char* {
+            assert(is_decimal_separator_point());
 #if EXPORT_3MF_USE_SPIRIT_KARMA_FP
             // Slightly faster than sprintf("%.9g"), but there is an issue with the karma floating point formatter,
             // https://github.com/boostorg/spirit/pull/586
@@ -2808,6 +2955,7 @@ namespace Slic3r {
             if (volume == nullptr)
                 continue;
 
+            bool is_left_handed = volume->is_left_handed();
             VolumeToOffsetsMap::iterator volume_it = volumes_offsets.find(volume);
             assert(volume_it != volumes_offsets.end());
 
@@ -2826,9 +2974,9 @@ namespace Slic3r {
                         " v1=\"" << boost::spirit::int_ <<
                         "\" v2=\"" << boost::spirit::int_ <<
                         "\" v3=\"" << boost::spirit::int_ << "\"",
-                        idx[0] + volume_it->second.first_vertex_id,
+                        idx[is_left_handed ? 2 : 0] + volume_it->second.first_vertex_id,
                         idx[1] + volume_it->second.first_vertex_id,
-                        idx[2] + volume_it->second.first_vertex_id);
+                        idx[is_left_handed ? 0 : 2] + volume_it->second.first_vertex_id);
                     *ptr = '\0';
                     output_buffer += buf;
                 }
@@ -2851,6 +2999,15 @@ namespace Slic3r {
                     output_buffer += "\"";
                 }
 
+                std::string mmu_painting_data_string = volume->mmu_segmentation_facets.get_triangle_as_string(i);
+                if (! mmu_painting_data_string.empty()) {
+                    output_buffer += " ";
+                    output_buffer += MMU_SEGMENTATION_ATTR;
+                    output_buffer += "=\"";
+                    output_buffer += mmu_painting_data_string;
+                    output_buffer += "\"";
+                }
+
                 output_buffer += "/>\n";
 
                 if (! flush())
@@ -2870,9 +3027,10 @@ namespace Slic3r {
 
     bool _BBS_3MF_Exporter::_add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items)
     {
+        // This happens for empty projects
         if (build_items.size() == 0) {
             add_error("No build item found");
-            return false;
+            return true;
         }
 
         stream << " <" << BUILD_TAG << ">\n";
@@ -2896,6 +3054,7 @@ namespace Slic3r {
 
     bool _BBS_3MF_Exporter::_add_layer_height_profile_file_to_archive(mz_zip_archive& archive, Model& model)
     {
+        assert(is_decimal_separator_point());
         std::string out = "";
         char buffer[1024];
 
@@ -2987,6 +3146,7 @@ namespace Slic3r {
 
     bool _BBS_3MF_Exporter::_add_sla_support_points_file_to_archive(mz_zip_archive& archive, Model& model)
     {
+        assert(is_decimal_separator_point());
         std::string out = "";
         char buffer[1024];
 
@@ -3021,6 +3181,7 @@ namespace Slic3r {
     
     bool _BBS_3MF_Exporter::_add_sla_drain_holes_file_to_archive(mz_zip_archive& archive, Model& model)
     {
+        assert(is_decimal_separator_point());
         const char *const fmt = "object_id=%d|";
         std::string out;
         
@@ -3071,6 +3232,7 @@ namespace Slic3r {
 
     bool _BBS_3MF_Exporter::_add_print_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config)
     {
+        assert(is_decimal_separator_point());
         char buffer[1024];
         sprintf(buffer, "; %s\n\n", header_slic3r_generated().c_str());
         std::string out = buffer;
@@ -3180,21 +3342,33 @@ namespace Slic3r {
                                     stream << prefix << SOURCE_OFFSET_Y_KEY  << "\" " << VALUE_ATTR << "=\"" << volume->source.mesh_offset(1) << "\"/>\n";
                                     stream << prefix << SOURCE_OFFSET_Z_KEY  << "\" " << VALUE_ATTR << "=\"" << volume->source.mesh_offset(2) << "\"/>\n";
                                 }
+                                assert(! volume->source.is_converted_from_inches || ! volume->source.is_converted_from_meters);
                                 if (volume->source.is_converted_from_inches)
                                     stream << prefix << SOURCE_IN_INCHES << "\" " << VALUE_ATTR << "=\"1\"/>\n";
+                                else if (volume->source.is_converted_from_meters)
+                                    stream << prefix << SOURCE_IN_METERS << "\" " << VALUE_ATTR << "=\"1\"/>\n";
                             }
 
                             // stores volume's config data
                             for (const std::string& key : volume->config.keys()) {
-                                stream << "      <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << volume->config.opt_serialize(key) << "\"/>\n";
+                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << PART_TYPE << "\" " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << volume->config.opt_serialize(key) << "\"/>\n";
                             }
+                            
+                            // stores mesh's statistics
+                            const RepairedMeshErrors& stats = volume->mesh().stats().repaired_errors;
+                            stream << "   <" << MESH_TAG << " ";
+                            stream << MESH_STAT_EDGES_FIXED        << "=\"" << stats.edges_fixed        << "\" ";
+                            stream << MESH_STAT_DEGENERATED_FACETS << "=\"" << stats.degenerate_facets  << "\" ";
+                            stream << MESH_STAT_FACETS_REMOVED     << "=\"" << stats.facets_removed     << "\" ";
+                            stream << MESH_STAT_FACETS_RESERVED    << "=\"" << stats.facets_reversed    << "\" ";
+                            stream << MESH_STAT_BACKWARDS_EDGES    << "=\"" << stats.backwards_edges    << "\"/>\n";
 
-                            stream << "    </" << VOLUME_TAG << ">\n";
+                            stream << "  </" << VOLUME_TAG << ">\n";
                         }
                     }
                 }
 
-                stream << "  </" << OBJECT_TAG << ">\n";
+                stream << " </" << OBJECT_TAG << ">\n";
             }
         }
 
@@ -3416,22 +3590,39 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive& archive, c
     return result;
 }
 
+// Perform conversions based on the config values available.
+//FIXME provide a version of PrusaSlicer that stored the project file (3MF).
+static void handle_legacy_project_loaded(unsigned int version_project_file, DynamicPrintConfig& config)
+{
+    if (! config.has("brim_separation")) {
+        if (auto *opt_elephant_foot   = config.option<ConfigOptionFloat>("elefant_foot_compensation", false); opt_elephant_foot) {
+            // Conversion from older PrusaSlicer which applied brim separation equal to elephant foot compensation.
+            auto *opt_brim_separation = config.option<ConfigOptionFloat>("brim_separation", true);
+            opt_brim_separation->value = opt_elephant_foot->value;
+        }
+    }
+}
 
-//BBS: add plate data list related logic
 bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, bool check_version, bool* is_bbl_3mf, bool load_aux)
 {
     if (path == nullptr || config == nullptr || model == nullptr)
         return false;
 
+    // All import should use "C" locales for number formatting.
+    CNumericLocalesSetter locales_setter;
     _BBS_3MF_Importer importer;
     bool res = importer.load_model_from_file(path, *model, *plate_data_list, *config, *config_substitutions, check_version, *is_bbl_3mf, load_aux);
     importer.log_errors();
+    handle_legacy_project_loaded(importer.version(), *config);
     return res;
 }
 
 //BBS: add plate data list related logic
 bool store_bbs_3mf(const char* path, Model* model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64)
 {
+    // All export should use "C" locales for number formatting.
+    CNumericLocalesSetter locales_setter;
+
     if (path == nullptr || model == nullptr)
         return false;
 
@@ -3439,7 +3630,7 @@ bool store_bbs_3mf(const char* path, Model* model, PlateDataPtrs& plate_data_lis
     bool res = exporter.save_model_to_file(path, *model, plate_data_list, config, fullpath_sources, thumbnail_data, zip64);
     if (!res)
         exporter.log_errors();
- 
+
     return res;
 }
 
