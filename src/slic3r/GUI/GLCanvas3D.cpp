@@ -1519,7 +1519,9 @@ void GLCanvas3D::render()
         if (m_rectangle_selection.is_dragging())
             // picking pass using rectangle selection
             _rectangular_selection_picking_pass();
-        else if (!m_volumes.empty())
+        //BBS: enable picking when no volumes for partplate logic
+        //else if (!m_volumes.empty())
+        else
             // regular picking pass
             _picking_pass();
     }
@@ -5272,7 +5274,8 @@ void GLCanvas3D::_picking_pass()
         if (m_camera_clipping_plane.is_active())
             ::glDisable(GL_CLIP_PLANE0);
 
-        _render_bed_for_picking(!wxGetApp().plater()->get_camera().is_looking_downward());
+        //BBS: remove the bed picking logic
+        //_render_bed_for_picking(!wxGetApp().plater()->get_camera().is_looking_downward());
 
         m_gizmos.render_current_gizmo_for_picking_pass();
 
@@ -5292,7 +5295,9 @@ void GLCanvas3D::_picking_pass()
                 // we reserve color = (0,0,0) for occluders (as the printbed) 
                 // volumes' id are shifted by 1
                 // see: _render_volumes_for_picking()
-                volume_id = color[0] + (color[1] << 8) + (color[2] << 16) - 1;
+                //BBS: remove the bed picking logic
+                //volume_id = color[0] + (color[1] << 8) + (color[2] << 16) - 1;
+                volume_id = color[0] + (color[1] << 8) + (color[2] << 16);
                 // gizmos' id are instead properly encoded by the color
                 gizmo_id = color[0] + (color[1] << 8) + (color[2] << 16);
             }
@@ -5300,12 +5305,13 @@ void GLCanvas3D::_picking_pass()
         else
             m_gizmos.set_hover_id(inside && (unsigned int)gizmo_id <= GLGizmoBase::BASE_ID ? ((int)GLGizmoBase::BASE_ID - gizmo_id) : -1);
 
-        //BBS: shoule minus 1 for volume-id
-        int plate_hover_id = PartPlate::PLATE_BASE_ID - volume_id - 1;
+        //BBS: add plate picking logic
+        int plate_hover_id = PartPlate::PLATE_BASE_ID - volume_id;
 
         if (plate_hover_id >= 0 && plate_hover_id < PartPlateList::MAX_PLATES_COUNT * PartPlate::GRABBER_COUNT) {
             wxGetApp().plater()->get_partplate_list().set_hover_id(plate_hover_id);
             hover_plate_idxs->emplace_back(plate_hover_id);
+            const_cast<GLGizmosManager*>(&m_gizmos)->set_hover_id(-1);
         }
         else {
             wxGetApp().plater()->get_partplate_list().reset_hover_id();
@@ -5340,7 +5346,8 @@ void GLCanvas3D::_rectangular_selection_picking_pass()
         glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
         _render_volumes_for_picking();
-        _render_bed_for_picking(!wxGetApp().plater()->get_camera().is_looking_downward());
+        //BBS: remove the bed picking logic
+        //_render_bed_for_picking(!wxGetApp().plater()->get_camera().is_looking_downward());
 
         if (m_multisample_allowed)
             glsafe(::glEnable(GL_MULTISAMPLE));
@@ -5362,7 +5369,9 @@ void GLCanvas3D::_rectangular_selection_picking_pass()
                 // we reserve color = (0,0,0) for occluders (as the printbed) 
                 // volumes' id are shifted by 1
                 // see: _render_volumes_for_picking()
-                int id() const { return data[0] + (data[1] << 8) + (data[2] << 16) - 1; }
+                //BBS: remove the bed picking logic
+                int id() const { return data[0] + (data[1] << 8) + (data[2] << 16); }
+                //int id() const { return data[0] + (data[1] << 8) + (data[2] << 16) - 1; }
             };
 
             std::vector<Pixel> frame(px_count);
@@ -5776,7 +5785,9 @@ void GLCanvas3D::_render_volumes_for_picking() const
 		        // Object picking mode. Render the object with a color encoding the object index.
                 // we reserve color = (0,0,0) for occluders (as the printbed) 
                 // so we shift volumes' id by 1 to get the proper color
-                unsigned int id = 1 + volume.second.first;
+                //BBS: remove the bed picking logic
+                unsigned int id = volume.second.first;
+                //unsigned int id = 1 + volume.second.first;
                 unsigned int r = (id & (0x000000FF << 0)) << 0;
 		        unsigned int g = (id & (0x000000FF << 8)) >> 8;
 		        unsigned int b = (id & (0x000000FF << 16)) >> 16;

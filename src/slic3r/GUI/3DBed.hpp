@@ -132,8 +132,9 @@ public:
     void render_for_picking(GLCanvas3D& canvas, bool bottom, float scale_factor);
 
 private:
+    //BBS: add partplate related logic
     // Calculate an extended bounding box from axes and current model for visualization purposes.
-    BoundingBoxf3 calc_extended_bounding_box() const;
+    BoundingBoxf3 calc_extended_bounding_box(bool consider_model_offset = true) const;
     void calc_triangles(const ExPolygon& poly);
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox);
     void update_model_offset() const;

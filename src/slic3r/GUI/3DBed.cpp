@@ -197,7 +197,8 @@ bool Bed3D::set_shape(const Pointfs& bed_shape, const double max_print_height, c
     m_type = type;
     m_texture_filename = texture_filename;
     m_model_filename = model_filename;
-    m_extended_bounding_box = this->calc_extended_bounding_box();
+    //BBS: add part plate logic
+    m_extended_bounding_box = this->calc_extended_bounding_box(false);
 
     //BBS: add part plate logic
 #if 0
@@ -221,9 +222,10 @@ bool Bed3D::set_shape(const Pointfs& bed_shape, const double max_print_height, c
         m_texture.reset();
         m_model.reset();
     }
-    else {
+    //BBS: add part plate logic, always update model offset
+    //else {
         update_model_offset();
-    }
+    //}
 
     // Set the origin and size for rendering the coordinate system axes.
     m_axes.set_origin({ 0.0, 0.0, static_cast<double>(GROUND_Z) });
@@ -292,13 +294,11 @@ void Bed3D::render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
     glsafe(::glDisable(GL_DEPTH_TEST));
 }
 
+//BBS: add partplate related logic
 // Calculate an extended bounding box from axes and current model for visualization purposes.
-BoundingBoxf3 Bed3D::calc_extended_bounding_box() const
+BoundingBoxf3 Bed3D::calc_extended_bounding_box(bool consider_model_offset) const
 {
     BoundingBoxf3 out { m_build_volume.bounding_volume() };
-    
-    //BBS: to be checked. add part plate related logic.
-    //out.translate(Vec3d(m_position.x(), m_position.y(), 0.0));
 
     const Vec3d size = out.size();
     // ensures that the bounding box is set as defined or the following calls to merge() will not work as intented
@@ -308,13 +308,18 @@ BoundingBoxf3 Bed3D::calc_extended_bounding_box() const
     out.min.z() = 0.0;
     out.max.z() = 0.0;
     // extend to contain axes
-    out.merge(m_axes.get_origin() + m_axes.get_total_length() * Vec3d::Ones());
+    //BBS: add part plate related logic.
+    Vec3d offset{ m_position.x(), m_position.y(), 0.f };
+    out.merge(m_axes.get_origin() + offset + m_axes.get_total_length() * Vec3d::Ones());
     out.merge(out.min + Vec3d(-Axes::DefaultTipRadius, -Axes::DefaultTipRadius, out.max.z()));
-    // extend to contain model, if any
-    BoundingBoxf3 model_bb = m_model.get_bounding_box();
-    if (model_bb.defined) {
-        model_bb.translate(m_model_offset);
-        out.merge(model_bb);
+    //BBS: add part plate related logic.
+    if (consider_model_offset) {
+        // extend to contain model, if any
+        BoundingBoxf3 model_bb = m_model.get_bounding_box();
+        if (model_bb.defined) {
+            model_bb.translate(m_model_offset);
+            out.merge(model_bb);
+        }
     }
     return out;
 }
