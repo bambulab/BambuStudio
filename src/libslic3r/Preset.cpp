@@ -940,6 +940,13 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
         // The preset exists and it matches the values stored inside config.
         if (select == LoadAndSelect::Always)
             this->select_preset(it - m_presets.begin());
+        //BBS: set the preset to visible
+        if ( !it->is_visible ) {
+            it->is_visible = true;
+            //AppConfig* app_config = get_app_config();
+            //if (app_config)
+            //    app_config->set(AppConfig::SECTION_FILAMENTS, it->name, "1");
+        }
         return std::make_pair(&(*it), false);
     }
     if (! found && select != LoadAndSelect::Never && ! inherits.empty()) {
@@ -952,6 +959,13 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
             // The system preset exists and it matches the values stored inside config.
             if (select == LoadAndSelect::Always)
                 this->select_preset(it - m_presets.begin());
+            //BBS: set the preset to visible
+            if ( !it->is_visible ) {
+                it->is_visible = true;
+                //AppConfig* app_config = get_app_config();
+                //if (app_config)
+                //    app_config->set(AppConfig::SECTION_FILAMENTS, it->name, "1");
+            }
             return std::make_pair(&(*it), false);
         }
     }
@@ -965,6 +979,13 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
             this->update_dirty();
             update_saved_preset_from_current_preset();
             assert(this->get_edited_preset().is_dirty);
+            //BBS: set the preset to visible
+            if ( !it->is_visible ) {
+                it->is_visible = true;
+                //AppConfig* app_config = get_app_config();
+                //if (app_config)
+                //    app_config->set(AppConfig::SECTION_FILAMENTS, it->name, "1");
+            }
             return std::make_pair(&(*it), this->get_edited_preset().is_dirty);
         }
         if (inherits.empty()) {
