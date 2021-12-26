@@ -3281,7 +3281,6 @@ void Plater::priv::object_list_changed()
     //const bool model_fits = view3D->get_canvas3d()->check_volumes_outside_state() == ModelInstancePVS_Inside;
     const bool model_fits = view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
 
-    sidebar->enable_buttons(!model.objects.empty() && !export_in_progress && model_fits);
     PartPlate* part_plate = partplate_list.get_curr_plate();
 
     // BBS
