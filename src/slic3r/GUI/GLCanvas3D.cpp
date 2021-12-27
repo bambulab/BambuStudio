@@ -2088,6 +2088,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     auto deleted_volumes_lower = [](const GLVolumeState &v1, const GLVolumeState &v2) { return v1.composite_id < v2.composite_id; };
     std::sort(deleted_volumes.begin(), deleted_volumes.end(), deleted_volumes_lower);
 
+    //BBS clean hover_volume_idxs
+    m_hover_volume_idxs.clear();
+
     if (m_reload_delayed)
         return;
 
