@@ -4548,7 +4548,7 @@ void Plater::priv::on_export_finished(wxCommandEvent& evt)
     fs::path gcode_path(gcode_path_str);
 
     if (q) {
-        q->export_3mf(gcode_path.replace_extension(".3mf"));
+        q->export_3mf(gcode_path.replace_extension(".3mf"), true); // BBS: silence
     }
 }
 
@@ -7076,7 +7076,7 @@ void Plater::export_gcode_3mf()
         //BBS do not save last output path
         //p->last_output_path = output_path.string();
         p->last_output_dir_path = output_path.parent_path().string();
-        export_3mf(output_path, false);
+        export_3mf(output_path, true); // BBS: silence
         // update lost output dir
         appconfig.update_last_output_dir(output_path.parent_path().string(), false);
 	}
@@ -7298,7 +7298,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
     //}
 
     // BBS: backup
-    if (Slic3r::store_bbs_3mf(path_u8.c_str(), &p->model, plate_data_list, export_config ? &cfg : nullptr, full_pathnames, thumbnails, true /*zip64*/, backup, proFn)) {
+    if (Slic3r::store_bbs_3mf(path_u8.c_str(), &p->model, plate_data_list, export_config ? &cfg : nullptr, full_pathnames, thumbnails, true /*zip64*/, backup, proFn, silence)) {
         if (!silence) {
             // Success
             //p->statusbar()->set_status_text(format_wxstr(_L("3MF file exported to %s"), path));

@@ -2838,7 +2838,7 @@ namespace Slic3r {
         //BBS: add plate data related logic
 
         // add backup logic
-        bool save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64, bool skip_static, Export3mfProgressFn proFn = nullptr);
+        bool save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64, bool skip_static, Export3mfProgressFn proFn = nullptr, bool silence = false);
         // add backup logic
         bool save_object_mesh(const std::string& filename, ModelObject& object);
 
@@ -2881,7 +2881,7 @@ namespace Slic3r {
 
     //BBS: add plate data related logic
     // add backup logic
-    bool _BBS_3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64, bool skip_static, Export3mfProgressFn proFn)
+    bool _BBS_3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64, bool skip_static, Export3mfProgressFn proFn, bool silence)
     {
         clear_errors();
         m_fullpath_sources = fullpath_sources;
@@ -2895,7 +2895,7 @@ namespace Slic3r {
                                             thumbnail_data, proFn);
         if (result) {
             boost::filesystem::rename(filename + ".tmp", filename, ec);
-            if (!skip_static)
+            if (silence)
                 boost::filesystem::save_string_file(model.get_backup_path() + "/origin.txt", filename);
         }
         return result;
@@ -4619,7 +4619,7 @@ bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstituti
 }
 
 //BBS: add plate data list related logic
-bool store_bbs_3mf(const char* path, Model* model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64, bool skip_static, Export3mfProgressFn proFn)
+bool store_bbs_3mf(const char* path, Model* model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64, bool skip_static, Export3mfProgressFn proFn, bool silence)
 {
     // All export should use "C" locales for number formatting.
     CNumericLocalesSetter locales_setter;
@@ -4628,7 +4628,7 @@ bool store_bbs_3mf(const char* path, Model* model, PlateDataPtrs& plate_data_lis
         return false;
 
     _BBS_3MF_Exporter exporter;
-    bool res = exporter.save_model_to_file(path, *model, plate_data_list, config, fullpath_sources, thumbnail_data, zip64, skip_static, proFn);
+    bool res = exporter.save_model_to_file(path, *model, plate_data_list, config, fullpath_sources, thumbnail_data, zip64, skip_static, proFn, silence);
     if (!res)
         exporter.log_errors();
 
