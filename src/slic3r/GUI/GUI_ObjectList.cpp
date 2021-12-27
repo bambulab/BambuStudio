@@ -4537,7 +4537,8 @@ void ObjectList::OnEditingDone(wxDataViewEvent &event)
 void ObjectList::set_extruder_for_selected_items(const int extruder)
 {
     // BBS: check extruder id
-    if (extruder > wxGetApp().extruders_cnt())
+    std::vector<std::string> colors = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+    if (extruder > colors.size())
         return;
 
     wxDataViewItemArray sels;
