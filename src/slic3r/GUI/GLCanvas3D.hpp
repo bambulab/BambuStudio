@@ -541,6 +541,8 @@ private:
     bool m_multisample_allowed;
     bool m_moving;
     bool m_tab_down;
+    //BBS: add toolpath outside
+    bool m_toolpath_outside{ false };
     ECursorType m_cursor_type;
     GLSelectionRectangle m_rectangle_selection;
 

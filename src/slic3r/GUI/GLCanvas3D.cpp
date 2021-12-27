@@ -6369,8 +6369,18 @@ void GLCanvas3D::_render_background() const
 
         if (!m_volumes.empty())
             use_error_color &= _is_any_volume_outside();
-        else
-            use_error_color &= m_gcode_viewer.has_data() && !m_gcode_viewer.is_contained_in_bed();
+        else {
+            //BBS: use current plater's bounding box
+            //BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
+            BoundingBoxf3 test_volume = (const_cast<GLCanvas3D*>(this))->_get_current_partplate_print_volume();
+            const BoundingBoxf3& path_bounding_box = m_gcode_viewer.get_paths_bounding_box();
+            if (empty(path_bounding_box))
+                use_error_color = false;
+            else
+                //BBS: use previous result
+                use_error_color = (test_volume.radius() > 0.0) ? m_toolpath_outside : false;
+            //use_error_color &= (test_volume.radius() > 0.0) ? !test_volume.contains(path_bounding_box) : false;
+        }
     }
 
     glsafe(::glPushMatrix());
