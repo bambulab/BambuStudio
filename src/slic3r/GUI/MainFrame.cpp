@@ -295,12 +295,16 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             event.Veto();
             return;
         }
-        // BBS: close save project
-        if (event.CanVeto() && !m_plater->close_with_confirm()) {
+
+        //BBS: first check params save logic
+        if (event.CanVeto() && !wxGetApp().check_unsaved_changes()) {
             event.Veto();
             return;
         }
-        if (event.CanVeto() && !wxGetApp().check_unsaved_changes()) {
+
+        // BBS: close save project
+        int result;
+        if (event.CanVeto() && ((result = m_plater->close_with_confirm()) == wxID_CANCEL)) {
             event.Veto();
             return;
         }
@@ -319,10 +323,12 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             }
         }
 
-        if (event.CanVeto() && !wxGetApp().check_print_host_queue()) {
+        //BBS: remove unused print host queue logic
+        /*if (event.CanVeto() && !wxGetApp().check_print_host_queue()) {
             event.Veto();
             return;
-        }
+        }*/
+
         m_plater->reset();
         this->shutdown();
         // propagate event

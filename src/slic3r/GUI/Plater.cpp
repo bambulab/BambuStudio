@@ -5950,7 +5950,8 @@ void Plater::load_project()
     // And finally load the new project.
     load_project(input_file);
     // BBS: save confirm
-    if (!close_with_confirm())
+    int result;
+    if ((result = close_with_confirm()) == wxID_CANCEL)
         return;
     get_partplate_list().reinit();
     get_partplate_list().update_slice_context_to_current_plate(p->background_process);
@@ -5987,7 +5988,8 @@ void Plater::load_project(wxString const &filename2,
     };
 
     // BSS: save project, force close
-    if (!close_with_confirm(check)) {
+    int result;
+    if ((result = close_with_confirm(check)) == wxID_CANCEL) {
         return;
     }
 
@@ -6821,20 +6823,21 @@ void Plater::reset_with_confirm()
 }
 
 // BBS: save logic
-bool GUI::Plater::close_with_confirm(std::function<bool(void)> second_check)
+int GUI::Plater::close_with_confirm(std::function<bool(void)> second_check)
 {
     if (up_to_date(false, false)) {
-        if (second_check && !second_check()) return false;
+        if (second_check && !second_check()) return wxID_CANCEL;
         Slic3r::remove_backup(model(), true);
         model().set_backup_path("");
-        return true;
+        return wxID_NO;
     }
 
     auto result = wxMessageDialog(static_cast<wxWindow*>(this), _L("There are modifies in current project，save it before continue?"), 
         wxString(SLIC3R_APP_NAME) + " - " + _L("Save"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE).ShowModal();
     if (result == wxID_CANCEL)
-        return false;
-    if (second_check && !second_check()) return false;
+        return result;
+    if (second_check && !second_check()) return wxID_CANCEL;
+
     if (result == wxID_YES) {
         save_project();
     }
@@ -6842,7 +6845,7 @@ bool GUI::Plater::close_with_confirm(std::function<bool(void)> second_check)
     model().set_backup_path("");
     up_to_date(true, false);
     up_to_date(true, true);
-    return true;
+    return result;
 }
 
 void Plater::delete_object_from_model(size_t obj_idx) { p->delete_object_from_model(obj_idx); }
