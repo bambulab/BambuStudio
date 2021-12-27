@@ -780,8 +780,8 @@ namespace Slic3r {
                 std::ifstream ifs(encode_path(objectmapfile.c_str()));
                 unsigned int id1;
                 size_t id2;
-                while (ifs) {
-                    ifs >> id1 >> id2;
+                while (ifs >> id1 >> id2) {
+                    BOOST_LOG_TRIVIAL(info) << "load object_map: " << id1 << " -> " << id2;
                     m_object_id_map.insert(std::make_pair(id1, id2));
                 }
             }
@@ -790,8 +790,8 @@ namespace Slic3r {
                 std::ifstream ifs(encode_path(platemapfile.c_str()));
                 unsigned int id1;
                 std::string id2;
-                while (ifs) {
-                    ifs >> id1 >> id2;
+                while (ifs >> id1 >> id2) {
+                    BOOST_LOG_TRIVIAL(info) << "load plate_map: " << id1 << " -> " << id2;
                     m_plate_id_map.insert(std::make_pair(id1, id2));
                 }
             }
@@ -2041,6 +2041,8 @@ namespace Slic3r {
                     std::string file(m_model->get_backup_path() + "/mesh_" + boost::lexical_cast<std::string>(it->second) + ".xml");
                     // load into m_curr_object.geometry
                     _extract_model_from_file(file);
+                } else {
+                    add_error("not found mesh object " + boost::lexical_cast<std::string>(m_curr_object.id) + " in object_map");
                 }
                 // use mesh from origin project file
                 // TODO: id match
@@ -3180,7 +3182,9 @@ namespace Slic3r {
             int l = model.get_backup_path().length() + 1;
             for (auto i : plate_data_list) {
                 if (!i->gcode_file.empty()) {
-                    ofs << (i->plate_index + 1) << " " << i->gcode_file.substr(l, i->gcode_file.length() - l - 6) << std::endl;
+                    auto id = i->gcode_file.substr(l, i->gcode_file.length() - l - 6);
+                    BOOST_LOG_TRIVIAL(info) << "save plate_map: " << (i->plate_index + 1) << " -> " << id;
+                    ofs << (i->plate_index + 1) << " " << id << std::endl;
                 }
             }
             ofs.flush();
@@ -3375,6 +3379,7 @@ namespace Slic3r {
         if (m_skip_static) {
             std::ofstream ofs(encode_path((const_cast<Model &>(model).get_backup_path() + "/object_map.txt").c_str()));
             for (auto i : object_id_map) {
+                BOOST_LOG_TRIVIAL(info) << "save object_map: " << i.first << " -> " << i.second;
                 ofs << i.first << " " << i.second << std::endl;
             }
             ofs.flush();
@@ -4341,12 +4346,15 @@ public:
 
     void backup_soon() {
         boost::lock_guard lock(m_mutex);
+        m_other_changes_backup = true;
         m_tasks.push_back({ Backup, 0, std::string(), ++m_task_seq });
         m_cond.notify_all();
     }
 
     void remove_backup(Model& model, bool removeAll) {
-        std::deque<Task> canceled_tasks;
+        BOOST_LOG_TRIVIAL(info)
+            << "remove_backup " << model.get_backup_path() << ", " << removeAll;
+        std::deque<Task>   canceled_tasks;
         boost::unique_lock lock(m_mutex);
         if (removeAll) {
             // running task may not be canceled
@@ -4378,7 +4386,8 @@ public:
 
     void put_other_changes()
     {
-        m_other_changes = true;
+        BOOST_LOG_TRIVIAL(info) << "put_other_changes";
+        m_other_changes        = true;
         m_other_changes_backup = true;
     }
 
@@ -4389,6 +4398,7 @@ public:
 
 private:
     enum TaskType {
+        None, 
         Backup, // this task is working as response in ui thread
         AddObject,
         RemoveObject,
@@ -4404,6 +4414,20 @@ private:
         size_t delay; // delay sequence, only last task is delayed
         friend bool operator==(Task const& l, Task const& r) {
             return l.type == r.type && l.id == r.id;
+        }
+        std::string to_string() const {
+            constexpr char const *type_names[] = {"None",
+                                                  "Backup",
+                                                  "AddObject",
+                                                  "RemoveObject",
+                                                  "RemoveBackup",
+                                                  "Exit"};
+            std::ostringstream os;
+            os << "{ type:" << type_names[type] << ", id:" << id
+               << ", path:" << path
+               << ", id2:" << id2
+               << ", object:" << (object ? object->id().id : 0) << ", delay:" << delay << "}";
+            return os.str();
         }
     };
 
@@ -4451,6 +4475,7 @@ private:
     }
 
     void process_ui_task(Task& t, bool canceled = false) {
+        BOOST_LOG_TRIVIAL(info) << "process_ui_task" << t.to_string();
         switch (t.type) {
             case Backup: {
                 if (canceled)
@@ -4489,6 +4514,7 @@ private:
     }
 
     void process_task(Task& t) {
+        BOOST_LOG_TRIVIAL(info) << "process_task" << t.to_string();
         switch (t.type) {
             case Backup:
                 // do it in response
@@ -4512,7 +4538,7 @@ private:
             }
             case RemoveObject: {
                 boost::filesystem::remove(t.path + "/mesh_" + boost::lexical_cast<std::string>(t.id) + ".xml");
-                t.type == -1;
+                t.type = None;
                 break;
             }
             case RemoveBackup: {
@@ -4546,7 +4572,7 @@ public:
             lock.unlock();
             process_task(t);
             lock.lock();
-            if (t.type >= 0) {
+            if (t.type > None) {
                 m_ui_tasks.push_back(t);
                 if (m_ui_tasks.size() == 1 && m_post_callback)
                     m_post_callback(0);
@@ -4575,12 +4601,6 @@ public:
         if (m_tasks.empty())
             return false;
         t = m_tasks.front();
-        char buf[20];
-#ifdef __WIN32__
-        OutputDebugStringA("delay_task merge ");
-        OutputDebugStringA(itoa(t.delay, buf, 10));
-        OutputDebugStringA(" tasks");
-#endif
         return true;
     }
 
