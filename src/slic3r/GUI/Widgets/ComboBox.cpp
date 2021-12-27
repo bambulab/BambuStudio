@@ -130,6 +130,7 @@ void ComboBox::SetString(unsigned int n, wxString const &value)
 {
     texts[n]  = value;
     drop.Invalidate();
+    if (n == drop.GetSelection()) SetLabel(value);
 }
 
 int ComboBox::DoInsertItems(const wxArrayStringsAdapter &items,

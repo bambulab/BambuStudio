@@ -145,7 +145,7 @@ void TextInput::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     bool align_right = GetWindowStyle() & wxRIGHT;
     if (align_right) textPos.x += labelSize.x;
     wxSize textSize = text_ctrl->GetSize();
-    textSize.x = size.x - textPos.x - labelSize.x - 5;
+    textSize.x = size.x - textPos.x - labelSize.x - 10;
     text_ctrl->SetSize(textSize);
     text_ctrl->SetPosition({textPos.x, (size.y - textSize.y) / 2});
 }
@@ -207,8 +207,7 @@ void TextInput::render(wxDC& dc)
         if (!align_right)
             pt.x += textSize.x;
         else if (pt.x + labelSize.x > size.x) {
-            dc.SetClippingRegion(pt, size);
-            pt.x = size.x - labelSize.x;
+            text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, size.x - pt.x);
         }
         pt.y = (size.y + textSize.y) / 2 - labelSize.y;
         dc.SetTextForeground(text_color.colorForStates(states));

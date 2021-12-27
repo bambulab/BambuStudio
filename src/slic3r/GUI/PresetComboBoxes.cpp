@@ -1180,8 +1180,10 @@ void TabPresetComboBox::update_dirty()
             if (marker == LABEL_ITEM_PHYSICAL_PRINTER)
                 new_label = ph_printer_name + PhysicalPrinter::separator() + new_label;
 
-            if (old_label != new_label)
+            if (old_label != new_label) {
                 SetString(ui_id, from_u8(new_label));
+                if (ui_id == GetSelection()) SetToolTip(wxString::FromUTF8(new_label.c_str())); // BBS
+            }
         }
     }
 #ifdef __APPLE__

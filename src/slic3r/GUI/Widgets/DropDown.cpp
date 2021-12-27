@@ -225,17 +225,16 @@ void DropDown::render(wxDC &dc)
             pt.x += iconSize.x + 5;
             pt.y = rcContent.y;
         }
-        auto &text = texts[i];
+        auto text = texts[i];
         if (!text.IsEmpty()) {
-            wxSize tSize   = GetTextExtent(text);
-            dc.SetClippingRegion(pt, wxSize(rcContent.GetRight() - pt.x, rcContent.height));
+            wxSize tSize = GetTextExtent(text);
             if (hover_item == i && pt.x + tSize.x > rcContent.GetRight()) {
-                pt.x = rcContent.GetRight() - tSize.x;
+                text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END,
+                                            rcContent.GetRight() - pt.x);
             }
             pt.y += (rcContent.height - textSize.y) / 2;
             dc.SetFont(GetFont());
             dc.DrawText(text, pt);
-            dc.DestroyClippingRegion();
         }
         rcContent.y += rowSize.y;
     }
@@ -339,6 +338,7 @@ void DropDown::mouseMove(wxMouseEvent &event)
         int hover = event.GetPosition().y / rowSize.y;
         if (hover == hover_item) return;
         hover_item = hover;
+        SetToolTip(texts[hover]);
     }
     paintNow();
 }
