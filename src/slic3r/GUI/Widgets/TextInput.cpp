@@ -206,6 +206,10 @@ void TextInput::render(wxDC& dc)
         wxSize textSize = text_ctrl->GetSize();
         if (!align_right)
             pt.x += textSize.x;
+        else if (pt.x + labelSize.x > size.x) {
+            dc.SetClippingRegion(pt, size);
+            pt.x = size.x - labelSize.x;
+        }
         pt.y = (size.y + textSize.y) / 2 - labelSize.y;
         dc.SetTextForeground(text_color.colorForStates(states));
         dc.SetFont(GetFont());

@@ -16,6 +16,7 @@ class DropDown : public wxPopupTransientWindow
     double radius = 0;
     wxSize textSize;
     wxSize iconSize;
+    wxSize rowSize;
 
     StateHandler state_handler;
     StateColor   text_color;
@@ -25,6 +26,8 @@ class DropDown : public wxPopupTransientWindow
 
     bool pressedDown = false;
     boost::posix_time::ptime dismissTime;
+    wxPoint                  offset; // x not used
+    wxPoint                  dragStart;
 
     static const int DropDownWidth = 200;
     static const int DropDownHeight = 50;
@@ -71,6 +74,7 @@ private:
 
     friend class ComboBox;
     void messureSize();
+    void autoPosition();
 
     // some useful events
     void mouseDown(wxMouseEvent& event);

@@ -161,8 +161,7 @@ void ComboBox::mouseDown(wxMouseEvent &event)
     if (drop_down) {
         drop.Hide();
     } else if (drop.HasDismissLongTime()) {
-        drop.messureSize();
-        drop.Position(ClientToScreen(wxPoint(0, 0)), {0, GetSize().y + 6});
+        drop.autoPosition();
         drop_down = true;
         drop.Show();
         drop.Raise();
