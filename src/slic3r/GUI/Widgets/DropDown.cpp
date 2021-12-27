@@ -36,7 +36,6 @@ DropDown::DropDown(wxWindow *             parent,
     SetBackgroundStyle(wxBG_STYLE_PAINT);
     state_handler.attach({&border_color, &text_color, &background_color});
     state_handler.update_binds();
-    state_handler.Bind(EVT_STATE_CHANGED, [this](auto &e) { paintNow(); });
     check_bitmap = ScalableBitmap(this, "checked", 16);
 
     // BBS set default font
@@ -186,11 +185,11 @@ void DropDown::render(wxDC &dc)
     // draw position bar
     if (rowSize.y * texts.size() > size.y) {
         int    height = rowSize.y * texts.size();
-        wxRect rect = {size.x - 8, -offset.y * size.y / height, 8,
+        wxRect rect = {size.x - 6, -offset.y * size.y / height, 4,
                        size.y * size.y / height};
         dc.SetBrush(wxBrush(*wxLIGHT_GREY));
-        dc.DrawRoundedRectangle(rect, 4);
-        rcContent.width -= 8;
+        dc.DrawRoundedRectangle(rect, 2);
+        rcContent.width -= 6;
     }
 
     // draw foreground
@@ -228,7 +227,7 @@ void DropDown::render(wxDC &dc)
         auto text = texts[i];
         if (!text.IsEmpty()) {
             wxSize tSize = GetTextExtent(text);
-            if (hover_item == i && pt.x + tSize.x > rcContent.GetRight()) {
+            if (pt.x + tSize.x > rcContent.GetRight()) {
                 text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END,
                                             rcContent.GetRight() - pt.x);
             }
@@ -278,13 +277,15 @@ void DropDown::autoPosition()
     if (old != GetPosition()) {
         size = rowSize;
         size.y *= texts.size();
-        offset = wxPoint();
-        wxWindow::SetSize(size);
+        if (size != GetSize()) {
+            wxWindow::SetSize(size);
+            offset = wxPoint();
+            Position(pos, {0, GetParent()->GetSize().y + 12});
+        }
     }
     if (GetPosition().y > pos.y) {
         // may exceed
-        wxSize dsize = wxDisplay(wxDisplay::GetFromWindow(this))
-                           .GetClientArea()
+        wxSize dsize = wxDisplay(wxDisplay::GetFromWindow(this)).GetGeometry()
                            .GetSize();
         if (GetPosition().y + size.y > dsize.y) {
             size.y = dsize.y - GetPosition().y;
@@ -335,10 +336,12 @@ void DropDown::mouseMove(wxMouseEvent &event)
         }
     }
     if (!pressedDown || hover_item >= 0) {
-        int hover = event.GetPosition().y / rowSize.y;
+        int hover = (event.GetPosition().y - offset.y) / rowSize.y;
+        if (hover >= texts.size()) hover = -1;
         if (hover == hover_item) return;
         hover_item = hover;
-        SetToolTip(texts[hover]);
+        if (hover >= 0)
+            SetToolTip(texts[hover]);
     }
     paintNow();
 }

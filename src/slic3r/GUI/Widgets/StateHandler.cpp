@@ -1,6 +1,5 @@
 #include "StateHandler.hpp"
 
-wxDEFINE_EVENT(EVT_STATE_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_ENABLE_CHANGED, wxCommandEvent);
 
 StateHandler::StateHandler(wxWindow * owner)
@@ -47,8 +46,7 @@ void StateHandler::update_binds()
         }
     }
     bind_states_ = bind_states;
-    wxCommandEvent e(EVT_STATE_CHANGED);
-    ProcessEventLocally(e);
+    owner_->Refresh();
 }
 
 void StateHandler::changed(wxEvent & event)
@@ -73,6 +71,5 @@ void StateHandler::changed(wxEvent & event)
             }
         }
     }
-    wxCommandEvent e(EVT_STATE_CHANGED);
-    ProcessEventLocally(e);
+    owner_->Refresh();
 }

@@ -30,7 +30,6 @@ Button::Button(wxWindow* parent, wxString text, wxString icon, long stlye, int i
     radius = 8;
     state_handler.attach({&border_color, &text_color, &background_color});
     state_handler.update_binds();
-    state_handler.Bind(EVT_STATE_CHANGED, [this](auto &e) { paintNow(); });
     //BBS set default font
     SetFont(Label::Body_14);
     wxWindow::SetLabel(text);
@@ -44,14 +43,14 @@ Button::Button(wxWindow* parent, wxString text, wxString icon, long stlye, int i
 void Button::SetCornerRadius(double radius)
 {
     this->radius = radius;
-    paintNow();
+    Refresh();
 }
 
 void Button::SetLabel(const wxString& label)
 {
     wxWindow::SetLabel(label);
     messureSize();
-    paintNow();
+    Refresh();
 }
 
 bool Button::SetForegroundColour(wxColour const &color)
@@ -78,21 +77,21 @@ void Button::SetBorderColor(StateColor const &color)
 {
     border_color = color;
     state_handler.update_binds();
-    paintNow();
+    Refresh();
 }
 
 void Button::SetForegroundColor(StateColor const &color)
 {
     text_color = color;
     state_handler.update_binds();
-    paintNow();
+    Refresh();
 }
 
 void Button::SetBackgroundColor(StateColor const &color)
 {
     background_color = color;
     state_handler.update_binds();
-    paintNow();
+    Refresh();
 }
 
 void Button::Rescale()
@@ -108,21 +107,6 @@ void Button::paintEvent(wxPaintEvent& evt)
     wxPaintDC dc(this);
     wxGCDC dc2(dc);
     render(dc2);
-}
-
-/*
- * Alternatively, you can use a clientDC to paint on the panel
- * at any time. Using this generally does not free you from
- * catching paint events, since it is possible that e.g. the window
- * manager throws away your drawing when the window comes to the
- * background, and expects you will redraw it when the window comes
- * back (by sending a paint event).
- */
-void Button::paintNow()
-{
-    // depending on your system you may need to look at double-buffered dcs
-    wxClientDC dc(this);
-    render(dc);
 }
 
 /*

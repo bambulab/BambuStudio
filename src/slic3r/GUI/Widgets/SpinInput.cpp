@@ -47,7 +47,6 @@ SpinInput::SpinInput(wxWindow *     parent,
     wxWindow::SetLabel(label);
     state_handler.attach({&border_color, &text_color, &background_color});
     state_handler.update_binds();
-    state_handler.Bind(EVT_STATE_CHANGED, [this](auto &e) { paintNow(); });
     text_ctrl = new wxTextCtrl(this, wxID_ANY, text, {20, 5}, wxDefaultSize,
                                style | wxBORDER_NONE | wxTE_PROCESS_ENTER, wxTextValidator(wxFILTER_DIGITS));
     text_ctrl->SetFont(Label::Body_14);
@@ -73,14 +72,14 @@ SpinInput::SpinInput(wxWindow *     parent,
 void SpinInput::SetCornerRadius(double radius)
 {
     this->radius = radius;
-    paintNow();
+    Refresh();
 }
 
 void SpinInput::SetLabel(const wxString &label)
 {
     wxWindow::SetLabel(label);
     messureSize();
-    paintNow();
+    Refresh();
 }
 
 bool SpinInput::SetForegroundColour(wxColour const &color)
@@ -145,7 +144,10 @@ void SpinInput::Rescale()
 bool SpinInput::Enable(bool enable)
 {
     bool result = text_ctrl->Enable(enable) && wxWindow::Enable(enable);
-    paintNow();
+    if (result) {
+        wxCommandEvent e(EVT_ENABLE_CHANGED);
+        GetEventHandler()->ProcessEvent(e);
+    }
     return result;
 }
 
@@ -153,21 +155,6 @@ void SpinInput::paintEvent(wxPaintEvent& evt)
 {
     // depending on your system you may need to look at double-buffered dcs
     wxPaintDC dc(this);
-    render(dc);
-}
-
-/*
- * Alternatively, you can use a clientDC to paint on the panel
- * at any time. Using this generally does not free you from
- * catching paint events, since it is possible that e.g. the window
- * manager throws away your drawing when the window comes to the
- * background, and expects you will redraw it when the window comes
- * back (by sending a paint event).
- */
-void SpinInput::paintNow()
-{
-    // depending on your system you may need to look at double-buffered dcs
-    wxClientDC dc(this);
     render(dc);
 }
 
@@ -253,7 +240,7 @@ void SpinInput::mouseEnterWindow(wxMouseEvent& event)
     if (!hover)
     {
         hover = true;
-        paintNow();
+        Refresh();
     }
 }
 
@@ -262,7 +249,7 @@ void SpinInput::mouseLeaveWindow(wxMouseEvent& event)
     if (hover)
     {
         hover = false;
-        paintNow();
+        Refresh();
     }
 }
 

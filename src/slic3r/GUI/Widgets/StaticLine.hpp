@@ -17,8 +17,6 @@ private:
 private:
     void paintEvent(wxPaintEvent& evt);
 
-    void paintNow();
-
     void render(wxDC& dc);
 };
 
