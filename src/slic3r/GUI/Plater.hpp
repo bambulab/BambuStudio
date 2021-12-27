@@ -203,7 +203,9 @@ public:
     void load_project(wxString const & filename = "", wxString const & originfile = "-");
     void save_project(bool saveAs = false);
     //BBS download project by project id
+    void import_model_id(const wxString& model_id);
     void download_project(const wxString& project_id);
+    void request_model_download(std::string model_id);
     void request_download_project(std::string project_id);
     // BBS: check snapshot
     bool up_to_date(bool saved, bool backup);

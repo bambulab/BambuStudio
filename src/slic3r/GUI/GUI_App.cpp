@@ -2105,6 +2105,13 @@ void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
         input_file = dialog.GetPath();
 }
 
+void GUI_App::request_model_download(std::string model_id)
+{
+    if (plater_) {
+        plater_->request_model_download(model_id);
+    }
+}
+
 //BBS download project by project id
 void GUI_App::download_project(std::string project_id)
 {

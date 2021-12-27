@@ -1074,10 +1074,11 @@ namespace Slic3r {
     std::string AccountManager::json_request_poll_3mf_gather_model_only()
     {
         json j;
-        j["profile_files"]["base_model"] = true;
-        j["profile_files"]["profile_config"] = true;
-        j["profile_files"]["profile_thumbnail"] = false;
-        j["profile_files"]["profile_gcode"] = false;
+        j["base_model"] = true;
+        j["profile_config"] = false;
+        j["profile_thumbnail"] = false;
+        j["profile_gcode"] = false;
+        j["profile_files"] = json::array();
         return j.dump();
     }
 
@@ -2763,14 +2764,7 @@ namespace Slic3r {
 
     void AccountManager::request_model_download(std::string model_id)
     {
-        int result = 0;
-        BBLProject* project = new BBLProject();
-        project->project_model_id = model_id;
-        result = request_project_id(project,
-            [this, project](int result, std::string info) {
-                GUI::wxGetApp().download_project(project->project_id);
-            }
-        );
+        GUI::wxGetApp().request_model_download(model_id);
     }
 
     void AccountManager::request_project_download(std::string project_id)
