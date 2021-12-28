@@ -1163,6 +1163,33 @@ void Sidebar::update_presets(Preset::Type preset_type)
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
 }
 
+//BBS
+void Sidebar::update_presets_from_to(Slic3r::Preset::Type preset_type, std::string from, std::string to)
+{
+    PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
+
+    switch (preset_type) {
+    case Preset::TYPE_FILAMENT:
+    {
+        const size_t filament_cnt = p->combos_filament.size();
+        for (auto it = preset_bundle.filament_presets.begin(); it != preset_bundle.filament_presets.end(); it++)
+        {
+            if ((*it).compare(from) == 0) {
+                (*it) = to;
+            }
+        }
+        for (size_t i = 0; i < filament_cnt; i++)
+            p->combos_filament[i]->update();
+        break;
+    }
+
+    default: break;
+    }
+
+    // Synchronize config.ini with the current selections.
+    wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
+}
+
 void Sidebar::change_top_border_for_mode_sizer(bool increase_border)
 {
     // BBS

@@ -109,6 +109,9 @@ public:
     void update_all_preset_comboboxes();
     //void update_partplate(PartPlateList& list);
     void update_presets(Slic3r::Preset::Type preset_type);
+    //BBS
+    void update_presets_from_to(Slic3r::Preset::Type preset_type, std::string from, std::string to);
+
     void change_top_border_for_mode_sizer(bool increase_border);
     void update_reslice_btn_tooltip() const;
     void msw_rescale();

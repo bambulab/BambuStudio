@@ -3985,6 +3985,9 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach)
         name = dlg.get_name();
     }
 
+    //BBS record current preset name
+    std::string curr_preset_name = m_presets->get_edited_preset().name;
+
     bool exist_preset = false;
     Preset* new_preset = m_presets->find_preset(name, false);
     if (new_preset) {
@@ -4022,8 +4025,15 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach)
     m_preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
     // Add the new item into the UI component, remove dirty flags and activate the saved item.
     update_tab_ui();
+
     // Update the selection boxes at the plater.
     on_presets_changed();
+
+    //BBS if create a new prset name, preset changed from preset name to new preset name
+    if (!exist_preset) {
+        wxGetApp().plater()->sidebar().update_presets_from_to(m_type, curr_preset_name, new_preset->name);
+    }
+
     // If current profile is saved, "delete preset" button have to be enabled
     m_btn_delete_preset->Show();
     m_btn_delete_preset->GetParent()->Layout();
