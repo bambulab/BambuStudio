@@ -258,6 +258,8 @@ public:
     AccountManager();
     ~AccountManager();
 
+    void init_log();
+
     // Check user last login status
     int load_user_info();
     int save_user_info();

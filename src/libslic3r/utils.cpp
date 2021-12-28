@@ -267,7 +267,11 @@ namespace attrs = boost::log::attributes;
 void set_log_path_and_level(const std::string& file, unsigned int level)
 {
 	//BBS log file at C:\\Users\\[yourname]\\AppData\\Roaming\\PrusaSlicer-alpha\\[log_filename].log
-	auto full_path = (boost::filesystem::path(g_data_dir) / file).make_preferred();
+	auto log_folder = boost::filesystem::path(g_data_dir) / "log";
+	if (!boost::filesystem::exists(log_folder)) {
+		boost::filesystem::create_directory(log_folder);
+	}
+	auto full_path = (log_folder / file).make_preferred();
 	g_log_sink = boost::log::add_file_log(
 		keywords::file_name = full_path.string(),
 		keywords::format =

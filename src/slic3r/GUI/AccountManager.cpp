@@ -7,6 +7,7 @@
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "nlohmann/json.hpp"
+#include <boost/filesystem/path.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
@@ -198,18 +199,6 @@ namespace Slic3r {
         mqtt_opt.set_ssl(mqtt_ssl_opt);
 
         m_curr_user = nullptr;
-
-        std::time_t t = std::time(0);
-        std::tm* now_time = std::localtime(&t);
-        std::stringstream buf;
-        buf << std::put_time(now_time, "debug_http_%a_%b_%d_%H_%M_%S.log");
-        std::string log_filename = buf.str();
-        Http::enable_log(log_filename.c_str());
-        Http::register_global_handler(
-            [this](std::string body, std::string error, unsigned int status) {
-                handle_http_error(status, body);
-            }
-        );
     }
 
     AccountManager::~AccountManager()
@@ -217,6 +206,26 @@ namespace Slic3r {
         if (mqtt_cli->is_connected())
             mqtt_cli->disconnect();
         Http::disable_log();
+    }
+
+    void AccountManager::init_log()
+    {
+        std::time_t t = std::time(0);
+        std::tm* now_time = std::localtime(&t);
+        std::stringstream buf;
+        buf << std::put_time(now_time, "debug_http_%a_%b_%d_%H_%M_%S.log");
+        auto log_folder = boost::filesystem::path(data_dir()) / "log";
+        if (!boost::filesystem::exists(log_folder)) {
+            boost::filesystem::create_directory(log_folder);
+        }
+        auto http_log_path = (log_folder / buf.str()).make_preferred();
+        std::string log_filename = http_log_path.string();
+        Http::enable_log(log_filename.c_str());
+        Http::register_global_handler(
+            [this](std::string body, std::string error, unsigned int status) {
+                handle_http_error(status, body);
+            }
+        );
     }
 
     int AccountManager::load_user_info()

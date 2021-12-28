@@ -3,7 +3,10 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
 
+static std::string g_log_folder;
 
 CBaseException::CBaseException(HANDLE hProcess, WORD wPID, LPCTSTR lpSymbolPath, PEXCEPTION_POINTERS pEp):
 	CStackWalker(hProcess, wPID, lpSymbolPath)
@@ -17,15 +20,32 @@ CBaseException::CBaseException(HANDLE hProcess, WORD wPID, LPCTSTR lpSymbolPath,
 	std::time_t t = std::time(0);
 	std::tm* now_time = std::localtime(&t);
 	std::stringstream buf;
-	buf << std::put_time(now_time, "crash_%a_%b_%d_%H_%M_%S.log");
-	std::string log_filename = buf.str();
-	output_file->open(log_filename, std::ios::out | std::ios::app);
+
+	if (!g_log_folder.empty()) {
+		buf << std::put_time(now_time, "crash_%a_%b_%d_%H_%M_%S.log");
+		auto log_folder = boost::filesystem::path(g_log_folder) / "log";
+		if (!boost::filesystem::exists(log_folder)) {
+		    boost::filesystem::create_directory(log_folder);
+	    }
+		auto crash_log_path = boost::filesystem::path(log_folder / buf.str()).make_preferred();
+		std::string log_filename = crash_log_path.string();
+		output_file->open(log_filename, std::ios::out | std::ios::app);
+	}
 }
 
 CBaseException::~CBaseException(void)
 {
-	output_file->close();
-	delete output_file;
+	if (output_file) {
+		output_file->close();
+		delete output_file;
+	}
+}
+
+
+//BBS set crash log folder
+void CBaseException::set_log_folder(std::string log_folder)
+{
+	g_log_folder = log_folder;
 }
 
 void CBaseException::OutputString(LPCTSTR lpszFormat, ...)

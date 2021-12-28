@@ -91,6 +91,10 @@
 #include <boost/dll/runtime_symbol_info.hpp>
 #endif
 
+#ifdef WIN32
+#include "BaseException.h"
+#endif
+
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG
 #include <boost/beast/core/detail/base64.hpp>
 #include <boost/nowide/fstream.hpp>
@@ -1113,9 +1117,10 @@ void GUI_App::init_app_config()
     if (data_dir().empty()) {
         #ifndef __linux__
             std::string data_dir = wxStandardPaths::Get().GetUserDataDir().ToUTF8().data();
-            std::string::size_type pos = data_dir.find(SLIC3R_APP_KEY);
-            if (pos != std::string::npos)
-                data_dir.replace(pos, strlen(SLIC3R_APP_KEY), "BambooSlicer");
+            //BBS create folder if not exists
+            boost::filesystem::path data_dir_path(data_dir);
+            if (!boost::filesystem::exists(data_dir_path))
+                boost::filesystem::create_directory(data_dir_path);
             set_data_dir(data_dir);
         #else
             // Since version 2.3, config dir on Linux is in ${XDG_CONFIG_HOME}.
@@ -1337,6 +1342,15 @@ bool GUI_App::on_init_inner()
 #if defined(__WXGTK20__) || defined(__WXGTK3__)
     g_object_set (gtk_settings_get_default (), "gtk-menu-images", TRUE, NULL);
 #endif
+
+#ifdef WIN32
+    //BBS set crash log folder
+    CBaseException::set_log_folder(data_dir());
+#endif
+
+
+    //BBS start http log
+    m_account_manager->init_log();
 
     // Verify resources path
     const wxString resources_dir = from_u8(Slic3r::resources_dir());

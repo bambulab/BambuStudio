@@ -18,6 +18,8 @@ public:
 	virtual void ShowExceptionInformation();
 	static LONG WINAPI UnhandledExceptionFilter(PEXCEPTION_POINTERS pExceptionInfo);
 	static void STF(unsigned int ui,  PEXCEPTION_POINTERS pEp);
+	//BBS set crash log folder
+	static void set_log_folder(std::string log_folder);
 protected:
 	PEXCEPTION_POINTERS m_pEp;
 	boost::nowide::ofstream *output_file;
