@@ -2917,7 +2917,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     new_model->add_object(*model_object);
 
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_ADD_MODEL_OBJECTS \n");
-                    wxString msg = wxString::Format("Loading file: %s, load add objects", filename);
+                    wxString msg = wxString::Format("Loading file: %s, load add objects", from_path(filename));
                     dlg_cont = dlg.Update(progress_percent, msg);
                     if (!dlg_cont)
                         return empty_result;
@@ -2940,6 +2940,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         auto loaded_idxs = load_model_objects(new_model->objects);
         obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
     }
+
+    if (new_model) delete new_model;
 
     //BBS: add gcode loading logic in the end
     if (load_model && load_config) {

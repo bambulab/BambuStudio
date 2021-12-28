@@ -4480,6 +4480,7 @@ private:
             case RemoveBackup:
                 if (t.id) { // remove all
                     try {
+                        boost::filesystem::remove(t.path + "/lock.txt");
                         boost::filesystem::remove_all(t.path);
                     } catch (...) {}
                 }
@@ -4517,7 +4518,6 @@ private:
             case RemoveBackup: {
                 try {
                     boost::filesystem::remove(t.path + "/.3mf");
-                    boost::filesystem::remove(t.path + "/lock.txt");
                 }
                 catch (...) {}
             }
