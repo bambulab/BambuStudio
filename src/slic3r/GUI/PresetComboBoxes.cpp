@@ -571,6 +571,8 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
 {
     if (m_type == Preset::TYPE_FILAMENT)
     {
+        // BBS: not show color picker
+#if 0
         Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {
             const Preset* selected_preset = m_collection->find_preset(m_preset_bundle->filament_presets[m_extruder_idx]);
             // Wide icons are shown if the currently selected preset is not compatible with the current printer,
@@ -594,6 +596,7 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
             // Swallow the mouse click and open the color picker.
             //change_extruder_color();
         });
+#endif
     }
 
     // BBS
