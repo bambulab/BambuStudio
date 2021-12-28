@@ -23,7 +23,7 @@ CBaseException::CBaseException(HANDLE hProcess, WORD wPID, LPCTSTR lpSymbolPath,
 
 	if (!g_log_folder.empty()) {
 		buf << std::put_time(now_time, "crash_%a_%b_%d_%H_%M_%S.log");
-		auto log_folder = boost::filesystem::path(g_log_folder) / "log";
+		auto log_folder = (boost::filesystem::path(g_log_folder) / "log").make_preferred();
 		if (!boost::filesystem::exists(log_folder)) {
 		    boost::filesystem::create_directory(log_folder);
 	    }

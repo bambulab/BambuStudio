@@ -1524,8 +1524,8 @@ bool GUI_App::on_init_inner()
         }
 
     //BBS init account_manager
-    std::string account_info_file = data_dir() + "\\UserInfo.json";
-    m_account_manager->set_user_info_path(account_info_file);
+    auto user_info_folder = (boost::filesystem::path(data_dir()) / "UserInfo.json").make_preferred();
+    m_account_manager->set_user_info_path(encode_path(user_info_folder.string().c_str()));
     m_account_manager->load_user_info();
 
     //BBS if load user preset failed

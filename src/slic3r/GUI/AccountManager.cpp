@@ -214,12 +214,12 @@ namespace Slic3r {
         std::tm* now_time = std::localtime(&t);
         std::stringstream buf;
         buf << std::put_time(now_time, "debug_http_%a_%b_%d_%H_%M_%S.log");
-        auto log_folder = boost::filesystem::path(data_dir()) / "log";
+        auto log_folder = (boost::filesystem::path(data_dir()) / "log").make_preferred();
         if (!boost::filesystem::exists(log_folder)) {
             boost::filesystem::create_directory(log_folder);
         }
-        auto http_log_path = (log_folder / buf.str()).make_preferred();
-        std::string log_filename = http_log_path.string();
+        auto http_log_path = ( log_folder / buf.str()).make_preferred();
+        std::string log_filename = encode_path(http_log_path.string().c_str());
         Http::enable_log(log_filename.c_str());
         Http::register_global_handler(
             [this](std::string body, std::string error, unsigned int status) {

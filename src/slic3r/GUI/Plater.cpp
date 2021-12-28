@@ -6282,9 +6282,8 @@ void Plater::import_model_id(const wxString& model_id)
         *cont_ptr = dlg.Update(100, msg);
     }
 
-    this->load_project(target_path.string());
-
-
+    BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << target_path.string();
+    this->load_project(encode_path(target_path.string().c_str()));
 }
 
 //BBS download project by project id
@@ -6937,15 +6936,16 @@ int GUI::Plater::close_with_confirm(std::function<bool(void)> second_check)
         wxString(SLIC3R_APP_NAME) + " - " + _L("Save"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE).ShowModal();
     if (result == wxID_CANCEL)
         return result;
-    if (second_check && !second_check()) return wxID_CANCEL;
-
-    if (result == wxID_YES) {
+    else if (result == wxID_YES) {
         save_project();
     }
+
     Slic3r::remove_backup(model(), true);
     model().set_backup_path("");
     up_to_date(true, false);
     up_to_date(true, true);
+
+    if (second_check && !second_check()) return wxID_CANCEL;
     return result;
 }
 
