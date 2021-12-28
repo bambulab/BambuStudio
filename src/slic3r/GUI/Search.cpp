@@ -332,7 +332,10 @@ const Option& OptionsSearcher::get_option(size_t pos_in_filter) const
 const Option& OptionsSearcher::get_option(const std::string& opt_key, Preset::Type type) const
 {
     auto it = std::lower_bound(options.begin(), options.end(), Option({ boost::nowide::widen(get_key(opt_key, type)) }));
-    assert(it != options.end());
+    //BBS: return the 0th option when not found in searcher caused by mode difference
+    //assert(it != options.end());
+    if (it == options.end())
+        return options[0];
 
     return options[it - options.begin()];
 }
