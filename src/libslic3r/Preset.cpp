@@ -1334,7 +1334,8 @@ inline t_config_option_keys deep_diff(const ConfigBase &config_this, const Confi
         const ConfigOption *other_opt = config_other.option(opt_key);
         if (this_opt != nullptr && other_opt != nullptr && *this_opt != *other_opt)
         {
-            if (opt_key == "bed_shape" || opt_key == "thumbnails" || opt_key == "compatible_prints" || opt_key == "compatible_printers") {
+            //BBS: add bed_exclude_area
+            if (opt_key == "bed_shape" || opt_key == "bed_exclude_area" || opt_key == "thumbnails" || opt_key == "compatible_prints" || opt_key == "compatible_printers") {
                 // Scalar variable, or a vector variable, which is independent from number of extruders,
                 // thus the vector is presented to the user as a single input.
                 diff.emplace_back(opt_key);
