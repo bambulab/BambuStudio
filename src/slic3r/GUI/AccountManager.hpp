@@ -191,8 +191,7 @@ class AccountManager
 private:
     AccountInfo* m_curr_user;
 
-    boost::filesystem::path m_user_info_path;
-    const std::string account_json = "UserInfo.json";
+    std::string m_user_info_filename;
     std::string host = DEFAULT_HOST;
     std::string test_host = "https://autotest.bambooolab.com";
     std::string MSG_SUCCESS = "success";
@@ -376,7 +375,7 @@ public:
     void reset_project();
 
     void set_host(std::string host_url);
-    void set_user_info_path(boost::filesystem::path path) { m_user_info_path = path; }
+    void set_user_info_path(std::string user_info_filename) { m_user_info_filename = user_info_filename; }
     std::string get_user_id() {
         if (m_curr_user) {
             return m_curr_user->user_id();

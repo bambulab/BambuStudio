@@ -230,7 +230,7 @@ namespace Slic3r {
 
     int AccountManager::load_user_info()
     {
-        m_curr_user = AccountInfo::load_from_json(account_json);
+        m_curr_user = AccountInfo::load_from_json(m_user_info_filename);
         if (this->is_user_login()) {
             this->on_user_login();
         }
@@ -244,8 +244,6 @@ namespace Slic3r {
         connect_mqtt();
         request_bind_list();
  
-
- 
         if (online_login)
             GUI::wxGetApp().reload_user_presets();
     }
@@ -253,7 +251,7 @@ namespace Slic3r {
     int AccountManager::save_user_info()
     {
         if (m_curr_user) {
-            return m_curr_user->save_to_json(account_json);
+            return m_curr_user->save_to_json(m_user_info_filename);
         }
         return 0;
     }

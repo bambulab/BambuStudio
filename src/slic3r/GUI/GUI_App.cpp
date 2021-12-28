@@ -1036,10 +1036,6 @@ GUI_App::GUI_App(EAppMode mode)
     //BBS
     this->init_http_extra_header();
 
-    //BBS init account_manager
-    std::string account_info_file = data_dir() + "acc.data";
-    m_account_manager->set_user_info_path(account_info_file);
-    m_account_manager->load_user_info();
     std::string domain = wxGetApp().app_config->get("api_dev_domain") == "1" ? DEFAULT_HOST :
             wxGetApp().app_config->get("api_rel_domain") == "1" ? "api.bambulab.com" : DEFAULT_HOST;
     m_account_manager->set_host(domain);
@@ -1526,6 +1522,11 @@ bool GUI_App::on_init_inner()
             }
         );
         }
+
+    //BBS init account_manager
+    std::string account_info_file = data_dir() + "\\UserInfo.json";
+    m_account_manager->set_user_info_path(account_info_file);
+    m_account_manager->load_user_info();
 
     //BBS if load user preset failed
     //if (loaded_preset_result != 0) {
