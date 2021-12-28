@@ -632,22 +632,25 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
         ++extruderNo;
         for (const auto& objectWithExtruder : objPrintVec) {
             const PrintObject* object = print.get_object(objectWithExtruder.first);
-            const BrimType brim_type = object->config().brim_type.value;
-            const float    brim_offset = scale_(object->config().brim_separation.value);
-            double flowWidth = print.brim_flow().scaled_spacing() * SCALING_FACTOR;
-            const float    brim_width = scale_(floor(object->config().brim_width.value / flowWidth / 2) * flowWidth * 2);
-            const bool     top_outer_brim = top_level_objects_idx.find(object->id().id) != top_level_objects_idx.end();
-
-            ExPolygons brim_area_object;
-            ExPolygons no_brim_area_object;
-            ExPolygons brim_area_support;
-            ExPolygons no_brim_area_support;
-            Polygons   holes_object;
-            Polygons   holes_support;
+            const BrimType     brim_type = object->config().brim_type.value;
+            const float        brim_offset = scale_(object->config().brim_separation.value);
+            double             flowWidth = print.brim_flow().scaled_spacing() * SCALING_FACTOR;
+            const float        brim_width = scale_(floor(object->config().brim_width.value / flowWidth / 2) * flowWidth * 2);
+            const bool         top_outer_brim = top_level_objects_idx.find(object->id().id) != top_level_objects_idx.end();
+            ExPolygons         brim_area_object;
+            ExPolygons         no_brim_area_object;
+            ExPolygons         brim_area_support;
+            ExPolygons         no_brim_area_support;
+            Polygons           holes_object;
+            Polygons           holes_support;
             if (objectWithExtruder.second == extruderNo && brimToWrite.at(object->id()).obj) {
                 for (const ExPolygon& ex_poly : object->layers().front()->lslices) {
+                    // BBS: additional brim width will be added if part's adhension area is too small and brim is not generated 
+                    float brim_width_mod = ex_poly.area() / ex_poly.contour.length() < scaled_half_min_adh_length
+                        && brim_width < scaled_flow_width ? brim_width + scaled_additional_brim_width : brim_width;
+                    brim_width_mod = floor(brim_width_mod / scaled_flow_width / 2) * scaled_flow_width * 2;
                     if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner || brim_type == BrimType::btAutoBrim) {
-                        append(brim_area_object, diff_ex(offset_ex(ex_poly.contour, brim_width + brim_offset, jtRound, SCALED_RESOLUTION), offset_ex(ex_poly.contour, brim_offset)));
+                        append(brim_area_object, diff_ex(offset_ex(ex_poly.contour, brim_width_mod + brim_offset, jtRound, SCALED_RESOLUTION), offset_ex(ex_poly.contour, brim_offset)));
                     }
                     if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btOuterAndInner)
                         append(brim_area_object, diff_ex(offset_ex(ex_poly.holes, -brim_offset), offset_ex(ex_poly.holes, -brim_width - brim_offset)));
@@ -684,8 +687,12 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
                 // BBS
                 if (!object->tree_support_layers().empty()) {
                     for (const ExPolygon& ex_poly : object->tree_support_layers().front()->lslices) {
+                        // BBS: additional brim width will be added if adhension area is too small without brim
+                        float brim_width_mod = ex_poly.area() / ex_poly.contour.length() < scaled_half_min_adh_length
+                            && brim_width < scaled_flow_width ? brim_width + scaled_additional_brim_width : brim_width;
+                        brim_width_mod = floor(brim_width_mod / scaled_flow_width / 2) * scaled_flow_width * 2;
                         if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner || brim_type == BrimType::btAutoBrim) {
-                            append(brim_area_support, diff_ex(offset_ex(ex_poly.contour, brim_width + brim_offset, jtRound, SCALED_RESOLUTION), offset_ex(ex_poly.contour, brim_offset)));
+                            append(brim_area_support, diff_ex(offset_ex(ex_poly.contour, brim_width_mod + brim_offset, jtRound, SCALED_RESOLUTION), offset_ex(ex_poly.contour, brim_offset)));
                         }
                         if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btOuterAndInner)
                             append(brim_area_support, diff_ex(offset_ex(ex_poly.holes, -brim_offset), offset_ex(ex_poly.holes, -brim_width - brim_offset)));
