@@ -651,6 +651,9 @@ namespace Slic3r {
         void process_G1(const GCodeReader::GCodeLine& line);
         void process_G2_G3(const GCodeReader::GCodeLine& line);
 
+        // BBS: handle delay command
+        void process_G4(const GCodeReader::GCodeLine& line);
+
         // Retract
         void process_G10(const GCodeReader::GCodeLine& line);
 
@@ -671,6 +674,9 @@ namespace Slic3r {
 
         // Move to origin
         void process_G28(const GCodeReader::GCodeLine& line);
+
+        // BBS
+        void process_G29(const GCodeReader::GCodeLine& line);
 
         // Set to Absolute Positioning
         void process_G90(const GCodeReader::GCodeLine& line);
@@ -725,6 +731,9 @@ namespace Slic3r {
 
         // Set extrude factor override percentage
         void process_M221(const GCodeReader::GCodeLine& line);
+
+        // BBS: handle delay command. M400 is defined by BBL only
+        void process_M400(const GCodeReader::GCodeLine& line);
 
         // Repetier: Store x, y and z position
         void process_M401(const GCodeReader::GCodeLine& line);

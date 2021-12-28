@@ -1294,7 +1294,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     if (!print.config().cooling.get_at(initial_extruder_id) || print.config().disable_fan_first_layers.get_at(initial_extruder_id)) {
         file.write(m_writer.set_fan(0));
         //BBS: disable additional fan
-        file.write(m_writer.set_additional_fan(0, true));
+        file.write(m_writer.set_additional_fan(0));
     }
 
     // Let the start-up script prime the 1st printing tool.

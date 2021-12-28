@@ -486,7 +486,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         g1_times_cache_it.emplace_back(machine.g1_times_cache.begin());
 
     // add lines M73 to exported gcode
-    auto process_line_G1 = [
+    auto process_line_move = [
         // Lambdas, mostly for string formatting, all with an empty capture block.
         time_in_minutes, format_time_float, format_line_M73_main, format_line_M73_stop_int, format_line_M73_stop_float, time_in_last_minute,
         &self = std::as_const(*this),
@@ -609,9 +609,12 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                     auto [processed, lines_added_count] = process_placeholders(gcode_line);
                     if (processed && lines_added_count > 0)
                         offsets.push_back({ line_id, lines_added_count });
-                    if (! processed && ! is_temporary_decoration(gcode_line) && GCodeReader::GCodeLine::cmd_is(gcode_line, "G1")) {
+                    if (! processed && ! is_temporary_decoration(gcode_line) &&
+                        (GCodeReader::GCodeLine::cmd_is(gcode_line, "G1") || 
+                            GCodeReader::GCodeLine::cmd_is(gcode_line, "G2") ||
+                            GCodeReader::GCodeLine::cmd_is(gcode_line, "G3"))) {
                         // remove temporary lines, add lines M73 where needed
-                        unsigned int extra_lines_count = process_line_G1(g1_lines_counter ++);
+                        unsigned int extra_lines_count = process_line_move(g1_lines_counter ++);
                         if (extra_lines_count > 0)
                             offsets.push_back({ line_id, extra_lines_count });
                     }
@@ -1545,6 +1548,8 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line, bool
                 case '1': { process_G1(line); break; }  // Move
                 case '2':
                 case '3': { process_G2_G3(line); break; }  // Move
+                //BBS
+                case 4:  { process_G4(line); break; }  // Delay
                 default: break;
                 }
                 break;
@@ -1564,6 +1569,7 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line, bool
                     case '2': { process_G22(line); break; } // Firmware controlled retract
                     case '3': { process_G23(line); break; } // Firmware controlled unretract
                     case '8': { process_G28(line); break; } // Move to origin
+                    case '9': { process_G29(line); break; }
                     default: break;
                     }
                     break;
@@ -1653,6 +1659,8 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line, bool
                     switch (cmd[2]) {
                     case '0':
                         switch (cmd[3]) {
+                        //BBS
+                        case '0': { process_M400(line); break; } // BBS delay
                         case '1': { process_M401(line); break; } // Repetier: Store x, y and z position
                         case '2': { process_M402(line); break; } // Repetier: Go to stored position
                         default: break;
@@ -3120,6 +3128,26 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
     store_move_vertex(type, m_move_path_type);
 }
 
+//BBS
+void GCodeProcessor::process_G4(const GCodeReader::GCodeLine& line)
+{
+    float value_s = 0.0;
+    float value_p = 0.0;
+    if (line.has_value('S', value_s) || line.has_value('P', value_p)) {
+        value_s += value_p * 0.001;
+        simulate_st_synchronize(value_s);
+    }
+}
+
+//BBS
+void GCodeProcessor::process_G29(const GCodeReader::GCodeLine& line)
+{
+    //BBS: hardcode 260 seconds for G29
+    //Todo: use a machine related setting when we have second kind of BBL printer
+    const float value_s = 260.0;
+    simulate_st_synchronize(value_s);
+}
+
 void GCodeProcessor::process_G10(const GCodeReader::GCodeLine& line)
 {
     // stores retract move
@@ -3452,6 +3480,16 @@ void GCodeProcessor::process_M221(const GCodeReader::GCodeLine& line)
         for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
             m_time_processor.machines[i].extrude_factor_override_percentage = value_s;
         }
+    }
+}
+
+void GCodeProcessor::process_M400(const GCodeReader::GCodeLine& line)
+{
+    float value_s = 0.0;
+    float value_p = 0.0;
+    if (line.has_value('S', value_s) || line.has_value('P', value_p)) {
+        value_s += value_p * 0.001;
+        simulate_st_synchronize(value_s);
     }
 }
 
