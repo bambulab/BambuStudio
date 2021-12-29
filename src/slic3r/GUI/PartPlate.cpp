@@ -1209,7 +1209,7 @@ int PartPlate::load_gcode_from_file(const std::string& filename)
 
 	std::error_code error = rename_file(filename, path);
 	if (error) {
-		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Failed to rename the output G-code file from %1% to %2, error code %3%") % filename.c_str() % path.c_str() % error.message();
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Failed to rename the output G-code file from %1% to %2%, error code %3%") % filename.c_str() % path.c_str() % error.message();
 		return -1;
 	}
 	m_gcode_result->filename = path;
