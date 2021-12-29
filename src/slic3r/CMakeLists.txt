@@ -332,6 +332,10 @@ if (APPLE)
     FIND_LIBRARY(DISKARBITRATION_LIBRARY DiskArbitration)
 
     include_directories(../../deps/Tutk/mac/include)
+else ()
+    list(APPEND SLIC3R_GUI_SOURCES
+            GUI/wxMediaCtrl2.cpp
+        )
 endif ()
 
 add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})

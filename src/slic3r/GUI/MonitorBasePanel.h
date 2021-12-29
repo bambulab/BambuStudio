@@ -83,11 +83,7 @@ namespace Slic3r
 				wxPanel* m_panel_monitor;
 				wxPanel* m_panel_live;
 				//wxStaticBitmap* m_bitmap_live_default;
-#ifdef __WXMAC__
                 wxMediaCtrl2* m_media_ctrl;
-#else
-				wxMediaCtrl* m_media_ctrl;
-#endif
 				wxPanel* m_panel_timelapse;
 				wxPanel* m_panel_printing_content;
 				wxStaticText* m_staticText_task_caption;

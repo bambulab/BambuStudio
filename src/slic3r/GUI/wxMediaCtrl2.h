@@ -8,10 +8,13 @@
 #ifndef wxMediaCtrl2_h
 #define wxMediaCtrl2_h
 
-#include "wx/statbmp.h"
 #include "wx/uri.h"
 
-class wxMediaCtrl2: public wxWindow
+#ifdef __WXMAC__
+
+#include "wx/mediactrl.h"
+
+class wxMediaCtrl2 : public wxWindow
 {
 public:
     wxMediaCtrl2(wxWindow * parent);
@@ -22,12 +25,31 @@ public:
     
     void Stop();
     
+    wxMediaState GetState() const;
+    
 protected:
     wxSize DoGetBestSize() const override;
     
 private:
     void * m_player;
-    NSView * view;
+    wxMediaState m_state;
 };
+
+#else
+
+class wxMediaCtrl2 : public wxMediaCtrl
+{
+public:
+    wxMediaCtrl2();
+
+    void Load(wxURI url);
+
+protected:
+    WXLRESULT MSWWindowProc(WXUINT   nMsg,
+                            WXWPARAM wParam,
+                            WXLPARAM lParam) override;
+};
+
+#endif
 
 #endif /* wxMediaCtrl2_h */

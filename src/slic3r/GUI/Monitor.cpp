@@ -25,6 +25,7 @@
 #include "MainFrame.hpp"
 #include "Widgets/Label.hpp"
 #include "format.hpp"
+#include "wxMediaCtrl2.h"
 
 #ifdef __WXMAC__
 #include "wxMediaCtrl2.h"
