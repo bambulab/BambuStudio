@@ -303,8 +303,7 @@ static ExPolygons top_level_outer_brim_area(const Print& print, const ConstPrint
         for (const auto &objectWithExtruder : objPrintVec) {
             const PrintObject* object = print.get_object(objectWithExtruder.first);
             const BrimType brim_type = object->config().brim_type.value;
-            auto temp1 = object->config().brim_offset.value;
-            const float    brim_offset = scale_(object->config().brim_offset.value);
+            const float    brim_offset = scale_(object->config().brim_separation.value);
             // recording the autoAssigned brimWidth and corresponding objs
             double brimWidthAuto = object->config().brim_width.value;
             double flowWidth = print.brim_flow().scaled_spacing() * SCALING_FACTOR;
@@ -493,7 +492,7 @@ static ExPolygons inner_brim_area(const Print& print, const ConstPrintObjectPtrs
         for (const auto& objectWithExtruder : objPrintVec) {
             const PrintObject* object = print.get_object(objectWithExtruder.first);
             const BrimType brim_type = object->config().brim_type.value;
-            const float    brim_offset = scale_(object->config().brim_offset.value);
+            const float    brim_offset = scale_(object->config().brim_separation.value);
             double flowWidth = print.brim_flow().scaled_spacing() * SCALING_FACTOR;
             const float    brim_width = scale_(floor(object->config().brim_width.value / flowWidth / 2) * flowWidth * 2);
             const bool     top_outer_brim = top_level_objects_idx.find(object->id().id) != top_level_objects_idx.end();
@@ -634,7 +633,7 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
         for (const auto& objectWithExtruder : objPrintVec) {
             const PrintObject* object = print.get_object(objectWithExtruder.first);
             const BrimType brim_type = object->config().brim_type.value;
-            const float    brim_offset = scale_(object->config().brim_offset.value);
+            const float    brim_offset = scale_(object->config().brim_separation.value);
             double flowWidth = print.brim_flow().scaled_spacing() * SCALING_FACTOR;
             const float    brim_width = scale_(floor(object->config().brim_width.value / flowWidth / 2) * flowWidth * 2);
             const bool     top_outer_brim = top_level_objects_idx.find(object->id().id) != top_level_objects_idx.end();
@@ -1020,7 +1019,7 @@ static void make_inner_island_brim(const Print& print, const ConstPrintObjectPtr
                 }
 
                 //BBS: 3 generate loops, only save part of loop which inside hole
-                const float    brim_offset = scale_(object->config().brim_offset.value);
+                const float    brim_offset = scale_(object->config().brim_separation.value);
                 const float    brim_width = floor(scale_(object->config().brim_width.value) / 2 / flow.scaled_spacing()) * 2 * flow.scaled_spacing();
                 if (objectWithExtruder.second == extruderNo && brimToWrite.at(object->id()).obj) {
                     if (brim_type == BrimType::btInnerOnly) {
@@ -1241,7 +1240,7 @@ Polygons tryExPolygonOffset(const ExPolygons islandAreaEx, const Print& print)
 ExtrusionEntityCollection makeBrimInfill(const ExPolygons& singleBrimArea, const Print& print, const Polygons& islands_area) {
     Polygons        loops = tryExPolygonOffset(singleBrimArea, print);
     Flow  flow = print.brim_flow();
-    loops = union_pt_chained_outside_in(loops, false);
+    loops = union_pt_chained_outside_in(loops);
 
     std::vector<Polylines> loops_pl_by_levels;
     {
@@ -1268,7 +1267,7 @@ ExtrusionEntityCollection makeBrimInfill(const ExPolygons& singleBrimArea, const
     optimize_polylines_by_reversing(&all_loops);
     all_loops = connect_brim_lines(std::move(all_loops), offset(singleBrimArea, float(SCALED_EPSILON)), float(flow.scaled_spacing()) * 2.f);
 
-    extrusion_entities_append_loops_and_paths(brim.entities, std::move(all_loops), erSkirt, float(flow.mm3_per_mm()), float(flow.width), float(print.skirt_first_layer_height()));
+    extrusion_entities_append_loops_and_paths(brim.entities, std::move(all_loops), erSkirt, float(flow.mm3_per_mm()), float(flow.width()), float(print.skirt_first_layer_height()));
     return brim;
 }
 
@@ -1284,8 +1283,10 @@ void make_brim(const Print& print, PrintTryCancel try_cancel, Polygons& islands_
     std::map<ObjectID, ExPolygons> brimAreaMap;
     std::map<ObjectID, ExPolygons> supportBrimAreaMap;
     Flow                 flow = print.brim_flow();
-    ConstPrintObjectPtrs top_level_objects_with_brim = get_top_level_objects_with_brim(print);
-    Polygons             islands = top_level_outer_brim_islands(top_level_objects_with_brim);
+    const auto           scaled_resolution = scaled<double>(print.config().gcode_resolution.value);
+    std::vector<ExPolygons> bottom_layers_expolygons = get_print_bottom_layers_expolygons(print);
+    ConstPrintObjectPtrs    top_level_objects_with_brim = get_top_level_objects_with_brim(print, bottom_layers_expolygons);
+    Polygons                islands = top_level_outer_brim_islands(top_level_objects_with_brim, scaled_resolution);
     ExPolygons           islands_area_ex = outer_inner_brim_area(print, top_level_objects_with_brim,
         float(flow.scaled_spacing()), brimAreaMap, supportBrimAreaMap, objPrintVec);;
 
