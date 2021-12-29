@@ -874,6 +874,29 @@ void PresetCollection::load_user_presets(std::map<std::string, Preset*> my_prese
         throw Slic3r::RuntimeError(errors_cummulative);
 }
 
+//BBS: validate_printers
+bool PresetCollection::validate_printers(const std::string &name, DynamicPrintConfig& config)
+{
+    std::string&                 original_name = config.opt_string("printer_settings_id", true);
+    std::deque<Preset>::iterator it       = this->find_preset_internal(original_name);
+    std::string&                 inherit = Preset::inherits(config);
+    bool                         found    = it != m_presets.end() && it->name == original_name && (it->is_system || it->is_default);
+    if (!found) {
+        it = this->find_preset_renamed(original_name);
+        found = it != m_presets.end() && (it->is_system || it->is_default);
+    }
+    if (!found) {
+        if (!inherit.empty()) {
+            it    = this->find_preset_internal(inherit);
+            found = it != m_presets.end() && it->name == inherit && (it->is_system || it->is_default);
+        }
+    }
+    BOOST_LOG_TRIVIAL(warning) << boost::format(": name %1%, printer_settings %2%, inherit %3%, found result %4%")%name %original_name % inherit % found;
+
+    return found;
+}
+
+
 // Load a preset from an already parsed config file, insert it into the sorted sequence of presets
 // and select it, losing previous modifications.
 Preset& PresetCollection::load_preset(const std::string &path, const std::string &name, const DynamicPrintConfig &config, bool select)

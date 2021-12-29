@@ -2768,64 +2768,80 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     if (!config.empty()) {
                         Preset::normalize(config);
                         PresetBundle* preset_bundle = wxGetApp().preset_bundle;
-                        preset_bundle->load_config_model(filename.string(), std::move(config));
-                        {
-                            // After loading of the presets from project, check if they are visible.
-                            // Set them to visible if they are not.
-
-                            auto update_selected_preset_visibility = [](PresetCollection& presets, std::vector<std::string>& names) {
-                                if (!presets.get_selected_preset().is_visible) {
-                                    assert(presets.get_selected_preset().name == presets.get_edited_preset().name);
-                                    presets.get_selected_preset().is_visible = true;
-                                    presets.get_edited_preset().is_visible = true;
-                                    names.emplace_back(presets.get_selected_preset().name);
-                                }
-                            };
-
-                            std::vector<std::string> names;
-                            if (printer_technology == ptFFF) {
-                                update_selected_preset_visibility(preset_bundle->prints, names);
-                                for (const std::string& filament : preset_bundle->filament_presets) {
-                                    Preset* preset = preset_bundle->filaments.find_preset(filament);
-                                    if (preset && !preset->is_visible) {
-                                        preset->is_visible = true;
-                                        names.emplace_back(preset->name);
-                                        if (preset->name == preset_bundle->filaments.get_edited_preset().name)
-                                            preset_bundle->filaments.get_selected_preset().is_visible = true;
-                                    }
-                                }
-                            }
-                            else {
-                                update_selected_preset_visibility(preset_bundle->sla_prints, names);
-                                update_selected_preset_visibility(preset_bundle->sla_materials, names);
-                            }
-                            update_selected_preset_visibility(preset_bundle->printers, names);
-
-                            preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
-
-                            // show notification about temporarily installed presets
-                            if (!names.empty()) {
-                                std::string notif_text = into_u8(_L_PLURAL("The preset below was temporarily installed on the active instance of PrusaSlicer",
-                                                                           "The presets below were temporarily installed on the active instance of PrusaSlicer", names.size())) + ":";
-                                for (std::string& name : names)
-                                    notif_text += "\n - " + name;
-                                notification_manager->push_notification(NotificationType::CustomNotification,
-                                    NotificationManager::NotificationLevel::PrintInfoNotificationLevel, notif_text);
+                        //BBS: first validate the printer
+                        //TODO: remove it after released""
+                        bool validated = preset_bundle->validate_printers(filename.string(), config);
+                        if (!validated) {
+                            load_config = false;
+                            show_info(q, "this 3MF's printer is not be used anymore, only load geometry files!", "Incompatible Printers");
+                            for (ModelObject *model_object : model.objects) {
+                                model_object->config.clear();
+                                // Is there any modifier or advanced config data?
+                                for (ModelVolume* model_volume : model_object->volumes)
+                                    model_volume->config.clear();
                             }
                         }
+                        else {
+                            preset_bundle->load_config_model(filename.string(), std::move(config));
+                            //BBS: moved this logic to presetcollection
+                            /*{
+                                // After loading of the presets from project, check if they are visible.
+                                // Set them to visible if they are not.
 
-                        if (printer_technology == ptFFF)
-                            CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, &preset_bundle->project_config);
+                                auto update_selected_preset_visibility = [](PresetCollection& presets, std::vector<std::string>& names) {
+                                    if (!presets.get_selected_preset().is_visible) {
+                                        assert(presets.get_selected_preset().name == presets.get_edited_preset().name);
+                                        presets.get_selected_preset().is_visible = true;
+                                        presets.get_edited_preset().is_visible = true;
+                                        names.emplace_back(presets.get_selected_preset().name);
+                                    }
+                                };
 
-                        // For exporting from the amf/3mf we shouldn't check printer_presets for the containing information about "Print Host upload"
-                        //BBS: add preset combo box re-active logic
-                        //currently found only needs re-active here
-                        wxGetApp().load_current_presets(true, false);
-                        // Update filament colors for the MM-printer profile in the full config 
-                        // to avoid black (default) colors for Extruders in the ObjectList, 
-                        // when for extruder colors are used filament colors
-                        q->update_filament_colors_in_full_config();
-                        is_project_file = true;
+                                std::vector<std::string> names;
+                                if (printer_technology == ptFFF) {
+                                    update_selected_preset_visibility(preset_bundle->prints, names);
+                                    for (const std::string& filament : preset_bundle->filament_presets) {
+                                        Preset* preset = preset_bundle->filaments.find_preset(filament);
+                                        if (preset && !preset->is_visible) {
+                                            preset->is_visible = true;
+                                            names.emplace_back(preset->name);
+                                            if (preset->name == preset_bundle->filaments.get_edited_preset().name)
+                                                preset_bundle->filaments.get_selected_preset().is_visible = true;
+                                        }
+                                    }
+                                }
+                                else {
+                                    update_selected_preset_visibility(preset_bundle->sla_prints, names);
+                                    update_selected_preset_visibility(preset_bundle->sla_materials, names);
+                                }
+                                update_selected_preset_visibility(preset_bundle->printers, names);
+
+                                preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
+
+                                // show notification about temporarily installed presets
+                                if (!names.empty()) {
+                                    std::string notif_text = into_u8(_L_PLURAL("The preset below was temporarily installed on the active instance of PrusaSlicer",
+                                                                               "The presets below were temporarily installed on the active instance of PrusaSlicer", names.size())) + ":";
+                                    for (std::string& name : names)
+                                        notif_text += "\n - " + name;
+                                    notification_manager->push_notification(NotificationType::CustomNotification,
+                                        NotificationManager::NotificationLevel::PrintInfoNotificationLevel, notif_text);
+                                }
+                            }*/
+
+                            if (printer_technology == ptFFF)
+                                CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, &preset_bundle->project_config);
+
+                            // For exporting from the amf/3mf we shouldn't check printer_presets for the containing information about "Print Host upload"
+                            //BBS: add preset combo box re-active logic
+                            //currently found only needs re-active here
+                            wxGetApp().load_current_presets(true, false);
+                            // Update filament colors for the MM-printer profile in the full config 
+                            // to avoid black (default) colors for Extruders in the ObjectList, 
+                            // when for extruder colors are used filament colors
+                            q->update_filament_colors_in_full_config();
+                            is_project_file = true;
+                        }
                     }
                     wxGetApp().app_config->update_config_dir(path.parent_path().string());
                 }

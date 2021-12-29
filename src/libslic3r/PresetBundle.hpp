@@ -44,6 +44,9 @@ public:
     void save_user_presets(AppConfig& config, std::map<std::string, Preset*> my_presets);
     void remove_users_preset(AppConfig &config);
 
+    //BBS: add API to get previous machine
+    bool validate_printers(const std::string &name, DynamicPrintConfig& config);
+
     // Export selections (current print, current filaments, current printer) into config.ini
     void            export_selections(AppConfig &config);
 

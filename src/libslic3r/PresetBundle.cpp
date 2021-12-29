@@ -348,6 +348,11 @@ void PresetBundle::save_user_presets(AppConfig& config, std::map<std::string, Pr
     this->printers.save_user_presets(my_presets, dir_user_presets, "printer");
 }
 
+//BBS: validate printers from previous project
+bool PresetBundle::validate_printers(const std::string &name, DynamicPrintConfig& config)
+{
+    return this->printers.validate_printers(name, config);
+}
 
 void PresetBundle::remove_users_preset(AppConfig& config)
 {
