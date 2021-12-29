@@ -75,6 +75,8 @@ public:
 
     void draw_text(const Point &pt, const char *text, const char *color, int font_size = 20);
     void draw_legend(const Point &pt, const char *text, const char *color);
+    //BBS
+    void draw_grid(const BoundingBox& bbox, const std::string& stroke = "black", coordf_t stroke_width = scale_(0.05), coordf_t step=scale_(1.0));
 
     void Close();
     

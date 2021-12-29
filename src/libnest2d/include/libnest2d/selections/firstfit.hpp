@@ -63,7 +63,7 @@ public:
         // If the packed_items array is not empty we have to create as many
         // placers as there are elements in packed bins and preload each item
         // into the appropriate placer
-        //for(ItemGroup& ig : packed_bins_) {
+        //for(ItemGroup& ig : fixed_bins) {
         //    placers.emplace_back(bin);
         //    placers.back().configure(pconfig);
         //    placers.back().preload(ig);
@@ -99,7 +99,7 @@ public:
         int item_id = 0;
         for (auto it = store_.begin(); it != store_.end() && !cancelled(); ++it) {
             // skip unpackable item
-            if (it->get().binId() == BIN_ID_UNSET)
+            if (it->get().binId() == BIN_ID_UNFIT)
                 continue;
             bool was_packed = false;
             int best_bed_id = -1;
@@ -120,6 +120,11 @@ public:
                         result_best = result;
                     }
                 }
+                // item is not fit because we have tried all possible plates
+                if (j == MAX_NUM_PLATES) {
+                    it->get().binId(BIN_ID_UNFIT);
+                    break;
+                }
 
                 if(best_bed_id>=0)
                 {
@@ -131,12 +136,12 @@ public:
                     makeProgress(placers[j], j);
                 }
 
-                if(!was_packed) {
+                if(!was_packed){
                     placers.emplace_back(bin);
                     placers.back().configure(pconfig);
                     if (fixed_bins.size() >= placers.size())
                         placers.back().preload(fixed_bins[placers.size() - 1]);
-                    placers.back().preload(pconfig.m_excluded_items);
+                    //placers.back().preload(pconfig.m_excluded_items);
                     packed_bins_.emplace_back();
                     j = placers.size() - 1;
                 }

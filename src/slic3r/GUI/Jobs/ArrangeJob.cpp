@@ -1,6 +1,7 @@
 #include "ArrangeJob.hpp"
 
 #include "libslic3r/BuildVolume.hpp"
+#include "libslic3r/SVG.hpp"
 #include "libslic3r/MTUtils.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -18,6 +19,8 @@
 #include "slic3r/GUI/GUI_ObjectList.hpp"
 
 #include "libnest2d/common.hpp"
+
+#define SAVE_ARRANGE_POLY 0
 
 namespace Slic3r { namespace GUI {
     using ArrangePolygon = arrangement::ArrangePolygon;
@@ -271,7 +274,16 @@ void ArrangeJob::prepare()
     }
 
     //add the virtual object into unselect list if has
-    //m_plater->get_partplate_list().preprocess_exclude_areas(m_unselected);
+    m_plater->get_partplate_list().preprocess_exclude_areas(m_unselected, MAX_NUM_PLATES);
+
+#if SAVE_ARRANGE_POLY
+    for (auto it = m_selected.begin(); it != m_selected.end();it++) {
+        BoundingBox bbox = get_extents(it->poly);
+        SVG svg("SVG/"+it->name + "_arrange_poly.svg", bbox);
+        svg.draw_grid(bbox,"gray",scale_(0.05));
+        svg.draw_outline(it->poly);
+    }
+#endif
 
     check_unprintable();
 }
@@ -282,7 +294,6 @@ void ArrangeJob::check_unprintable()
         if (it->poly.area() < 0.001)
         {
             m_unprintable.push_back(*it);
-            //update_status(50, _(L("Object " + it->name + " has zero size and can't be printed!")));
             wxGetApp().plater()->get_notification_manager()->push_plater_warning_notification((L("Object " + it->name + " has zero size and can't be printed!")));
             it = m_selected.erase(it);
         }
@@ -362,7 +373,7 @@ void ArrangeJob::process()
         bed_polygon = diff({ bed_polygon }, exclude_polys)[0];
         bedpts = bed_polygon.points;
     }
-    m_plater->get_partplate_list().preprocess_exclude_areas(params.excluded_regions, 1);
+     m_plater->get_partplate_list().preprocess_exclude_areas(params.excluded_regions, 1);
 
     // shrink bed by moving to center by dist
     auto shrinkFun = [](Points& bedpts, double dist, int direction) {
@@ -399,16 +410,16 @@ void ArrangeJob::process()
     {
         BOOST_LOG_TRIVIAL(debug) << "items after arranging: ";
         for (auto selected : m_selected)
-            BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << selected.extrude_id;
+            BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << selected.extrude_id << ", bed: " << selected.bed_idx;
     }
 
-    params.progressind = [this, count](unsigned st, std::string str="") {
-        if (st > 0) update_status(int(count - st), arrangestr+str);
+    params.progressind = [this, count](unsigned num_finished, std::string str="") {
+        if (num_finished > 0) update_status(int(count - num_finished), arrangestr+str);
     };
 
     arrangement::arrange(m_unprintable, {}, bedpts, params);
 
-    // put unpackable items to m_unprintable so they goes to last virtual bed
+    // put unpackable items to m_unprintable so they goes outside
     bool we_have_unpackable_items = false;
     for (auto item : m_selected) {
         if (item.bed_idx < 0) {
@@ -418,7 +429,6 @@ void ArrangeJob::process()
         }
     }
 
-    //BBS: already processed in m_selected
     // finalize just here.
     update_status(int(count),
         was_canceled() ? _(L("Arranging canceled.")) :

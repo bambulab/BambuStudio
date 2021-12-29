@@ -443,10 +443,10 @@ inline void offset(PolygonImpl& sh, bp2d::Coord distance)
 
 #ifndef DISABLE_BOOST_SERIALIZE
 template<> inline std::string serialize<libnest2d::Formats::SVG>(
-        const PolygonImpl& sh, double scale)
+        const PolygonImpl& sh, double scale, std::string fill, std::string stroke, float stroke_width)
 {
     std::stringstream ss;
-    std::string style = "fill: none; stroke: black; stroke-width: 1px;";
+    std::string style = "fill: "+fill+"; stroke: "+stroke+"; stroke-width: "+std::to_string(stroke_width)+"px; ";
 
     using namespace boost::geometry;
     using Pointf = model::point<double, 2, cs::cartesian>;

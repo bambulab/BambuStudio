@@ -641,7 +641,7 @@ inline std::string toString(const S& /*sh*/)
 }
 
 template<Formats, class S>
-inline std::string serialize(const S& /*sh*/, double /*scale*/=1)
+inline std::string serialize(const S& /*sh*/, double /*scale*/=1, std::string fill = "none", std::string stroke = "black", float stroke_width = 1)
 {
     static_assert(always_false<S>::value,
                   "shapelike::serialize() unimplemented!");

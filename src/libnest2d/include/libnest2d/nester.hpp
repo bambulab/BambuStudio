@@ -13,7 +13,8 @@
 
 namespace libnest2d {
 
-static const constexpr int BIN_ID_UNSET = -1;
+    static const constexpr int BIN_ID_UNSET = -1;
+    static const constexpr int BIN_ID_UNFIT = -1;
 
 /**
  * \brief An item to be placed on a bin.

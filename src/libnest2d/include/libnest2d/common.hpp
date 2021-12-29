@@ -11,6 +11,8 @@
 #include <type_traits>
 #include <limits>
 
+#define MAX_NUM_PLATES 50
+
 #if defined(_MSC_VER) &&  _MSC_VER <= 1800 || __cplusplus < 201103L
     #define BP2D_NOEXCEPT
     #define BP2D_CONSTEXPR

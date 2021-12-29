@@ -297,6 +297,31 @@ void SVG::draw_legend(const Point &pt, const char *text, const char *color)
         "black", text);
 }
 
+//BBS
+void SVG::draw_grid(const BoundingBox& bbox, const std::string& stroke, coordf_t stroke_width, coordf_t step)
+{
+    // draw grid
+    Point bbox_size = bbox.size();
+    if (bbox_size(0) < step || bbox_size(1) < step)
+        return;
+
+    Point start_pt(bbox.min(0), bbox.min(1));
+    Point end_pt(bbox.max(1), bbox.min(1));
+    for (coordf_t y = bbox.min(1); y <= bbox.max(1); y += step) {
+        start_pt(1) = y;
+        end_pt(1) = y;
+        draw(Line(start_pt, end_pt), stroke, stroke_width);
+    }
+
+    start_pt(1) = bbox.min(1);
+    end_pt(1) = bbox.max(1);
+    for (coordf_t x = bbox.min(0); x <= bbox.max(0); x += step) {
+        start_pt(0) = x;
+        end_pt(0) = x;
+        draw(Line(start_pt, end_pt), stroke, stroke_width);
+    }
+}
+
 void SVG::Close()
 {
     fprintf(this->f, "</svg>\n");

@@ -733,6 +733,15 @@ private:
 
                 nfps = calcnfp(item, Lvl<MaxNfpLevel::value>());
 
+#ifdef SVGTOOLS_HPP
+                svg::SVGWriter<RawShape> svgwriter;
+                svgwriter.writeShape(nfps[0]);
+                svgwriter.writeItem(item,"none","red");
+                svgwriter.draw_text(20, 20, "trans:" + std::to_string(item.translation().X) +","+ std::to_string(item.translation().Y)
+                    + "; rot:" + std::to_string(item.rotation().toDegrees()), "blue", 20);
+                svgwriter.save("SVG/nfpplacer_"+item.name);
+#endif
+
                 auto iv = item.referenceVertex();
 
                 auto startpos = item.translation();
@@ -1018,6 +1027,7 @@ private:
         }
 
         auto d = cb - ci;
+        // BBS TODO we assume the exclude region contains bottom left corner. If not, change the code below
         if (!config_.m_excluded_regions.empty()) {
             d.x() = d.x() < 0 ? 0 : d.x();
             d.y() = d.y() < 0 ? 0 : d.y();

@@ -49,7 +49,7 @@ public:
                 conf_.mm_in_coord_units;
     }
     
-    void writeShape(RawShape tsh) {
+    void writeShape(RawShape tsh, std::string fill = "none", std::string stroke = "black", float stroke_width = 1) {
         if(svg_layers_.empty()) addLayer();
         if(conf_.origo_location == BOTTOMLEFT) {
             auto d = static_cast<Coord>(
@@ -64,12 +64,12 @@ public:
         }
         currentLayer() +=
             shapelike::serialize<Formats::SVG>(tsh,
-                                               1.0 / conf_.mm_in_coord_units) +
+                                               1.0 / conf_.mm_in_coord_units, fill, stroke, stroke_width) +
             "\n";
     }
 
-    void writeItem(const Item& item) {
-        writeShape(item.transformedShape());
+    void writeItem(const Item& item, std::string fill = "none", std::string stroke = "black", float stroke_width = 1) {
+        writeShape(item.transformedShape(), fill, stroke, stroke_width);
     }
 
     void writePackGroup(const PackGroup& result) {
@@ -92,6 +92,15 @@ public:
             ++it;
         }
         writePackGroup(pg);
+    }
+
+    void draw_text(float x,float y, const std::string text, const std::string color, int font_size)
+    {
+        char s[200];
+        sprintf(s,
+            "<text x=\"%f\" y=\"%f\" font-family=\"sans-serif\" font-size=\"%dpx\" fill=\"%s\">%s</text>\n",
+            x,y, font_size, color.c_str(), text.c_str());
+        currentLayer() += s;
     }
 
     void addLayer() {

@@ -35,7 +35,7 @@ protected:
         // then it should be removed from the list
         Placer p{ bin };
         p.configure(pcfg);
-        p.preload(pcfg.m_excluded_items);
+        //p.preload(pcfg.m_excluded_items);
         auto it = c.begin();
         while (it != c.end() && !stopcond_()) {
 
@@ -48,7 +48,7 @@ protected:
 
             auto result = p.pack(cpy);
             if (itm.area() <= 0 || !result) {
-                static_cast<Item&>(*it).binId(BIN_ID_UNSET);
+                static_cast<Item&>(*it).binId(BIN_ID_UNFIT);
             }
             it++;
         }

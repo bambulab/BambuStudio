@@ -221,26 +221,7 @@ static void draw_avoidance_and_nodes_to_svg
     if (!svg.is_opened())        return;
 
     // draw grid
-    const coordf_t step = scale_(1.0);
-    Point bbox_size = bbox.size();
-    if (bbox_size(0) < step || bbox_size(1) < step)
-        return;
-
-    Point start_pt(bbox.min(0), bbox.min(1));
-    Point end_pt(bbox.max(1), bbox.min(1));
-    for (coordf_t y = bbox.min(1); y <= bbox.max(1); y += step) {
-        start_pt(1) = y;
-        end_pt(1) = y;
-        svg.draw(Line(start_pt, end_pt), "gray", coord_t(scale_(0.05)));
-    }
-
-    start_pt(1) = bbox.min(1);
-    end_pt(1) = bbox.max(1);
-    for (coordf_t x = bbox.min(0); x <= bbox.max(0); x += step) {
-        start_pt(0) = x;
-        end_pt(0) = x;
-        svg.draw(Line(start_pt, end_pt), "gray", coord_t(scale_(0.05)));
-    }
+    svg.draw_grid(bbox, "gray", coord_t(scale_(0.05)));
 
     // draw overhang areas
     svg.draw(union_ex(overhangs), colors[0]);
