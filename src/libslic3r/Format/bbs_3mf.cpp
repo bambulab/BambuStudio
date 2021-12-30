@@ -2897,7 +2897,7 @@ namespace Slic3r {
                                             thumbnail_data, proFn);
         if (result) {
             boost::filesystem::rename(filename + ".tmp", filename, ec);
-            if (silence)
+            if (!silence)
                 boost::filesystem::save_string_file(model.get_backup_path() + "/origin.txt", filename);
         }
         return result;
