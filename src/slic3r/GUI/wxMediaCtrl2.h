@@ -9,10 +9,9 @@
 #define wxMediaCtrl2_h
 
 #include "wx/uri.h"
+#include "wx/mediactrl.h"
 
 #ifdef __WXMAC__
-
-#include "wx/mediactrl.h"
 
 class wxMediaCtrl2 : public wxWindow
 {
@@ -45,9 +44,11 @@ public:
     void Load(wxURI url);
 
 protected:
+#ifdef __WIN32__
     WXLRESULT MSWWindowProc(WXUINT   nMsg,
                             WXWPARAM wParam,
                             WXLPARAM lParam) override;
+#endif
 };
 
 #endif

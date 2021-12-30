@@ -6,10 +6,14 @@ wxMediaCtrl2::wxMediaCtrl2()
 
 void wxMediaCtrl2::Load(wxURI url)
 {
+#ifdef __WIN32__
     url = wxURI(url.BuildURI().append("&hwnd=").append(
         boost::lexical_cast<std::string>(GetHandle())));
+#endif
     wxMediaCtrl::Load(url);
 }
+
+#ifdef __WIN32__
 
 WXLRESULT wxMediaCtrl2::MSWWindowProc(WXUINT   nMsg,
                                    WXWPARAM wParam,
@@ -21,3 +25,5 @@ WXLRESULT wxMediaCtrl2::MSWWindowProc(WXUINT   nMsg,
     }
     return wxMediaCtrl::MSWWindowProc(nMsg, wParam, lParam);
 }
+
+#endif
