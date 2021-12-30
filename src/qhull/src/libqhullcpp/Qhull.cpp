@@ -314,7 +314,13 @@ runQhull(const char *inputComment, int pointDimension, int pointCount, const rea
     for(int k= qh_qh->hull_dim; k--; ){  // Do not move into QH_TRY block.  It may throw an error
         origin_point << 0.0;
     }
-    qh_qh->maybeThrowQhullMessage(QH_TRY_status);
+    // BBS: throw up the error to prevent crash
+    try {
+        qh_qh->maybeThrowQhullMessage(QH_TRY_status);
+    }
+    catch (QhullError& e) {
+        throw e;
+    }
 }//runQhull
 
 #//!\name Helpers -- be careful of allocating C++ objects due to setjmp/longjmp() error handling by qh_... routines
