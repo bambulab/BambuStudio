@@ -1103,20 +1103,18 @@ namespace Slic3r {
     std::string AccountManager::json_request_poll_3mf_gather(BBLSubTask* task)
     {
         if (!task) return "";
-
-        pt::ptree root, profile_files, files;
-        root.put<bool>("base_model", false);
-        root.put<bool>("profile_config", false);
-        root.put<bool>("profile_thumbnail", false);
-        root.put<bool>("profile_gcode", false);
+        json j;
+        j["base_model"] = false;
+        j["profile_config"] = false;
+        j["profile_thumbnail"] = false;
+        j["profile_gcode"] = false;
         if (!task->task_gcode_in_3mf.empty()) {
-            files.put("", task->task_gcode_in_3mf);
-            profile_files.push_back(std::make_pair("", files));
+            j["profile_files"] = json::array({task->task_gcode_in_3mf});
         }
-        root.add_child("profile_files", profile_files);
-        std::stringstream oss;
-        pt::write_json(oss, root, false);
-        return oss.str();
+        else {
+            j["profile_files"] = json::array();
+        }
+        return j.dump();
     }
 
     int AccountManager::request_project_id(BBLProject* project, ResultFn resFn)
@@ -1418,7 +1416,6 @@ namespace Slic3r {
 
         std::string ticket = (boost::format("%1%_%2%") % task->parent_id % task->task_id).str();
         std::string gather = json_request_poll_3mf_gather(task);
-        gather.erase(std::remove(gather.begin(), gather.end(), '\\'), gather.end());
         gather = Http::url_encode(gather);
         std::string query_params = (boost::format("?profile_id=%1%&&ticket=%2%&&gather=%3%") % task->task_profile_id % ticket % gather).str();
         std::string url = (boost::format("%1%/iot-service/api/user/project/%2%%3%") % host % task->task_project_id % query_params).str();

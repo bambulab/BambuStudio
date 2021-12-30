@@ -84,7 +84,7 @@ void GcodePrintJob::process()
     fs::path _3mf_path(wxStandardPaths::Get().GetTempDir().utf8_str().data());
     _3mf_path /= gcode_path.filename().string();
 
-    std::string dst_gcode_file_str = "Metadata/run_gcode.gcode";
+    std::string dst_gcode_file_str = "Metadata/" + gcode_path.filename().string();
 
     /* zip gcode to 3mf */
     std::string _3mf_file_str = _3mf_path.replace_extension("3mf").string();
@@ -97,7 +97,7 @@ void GcodePrintJob::process()
 
     update_status(3, "prepare 3mf file");
     std::string src_file_str = encode_path(m_gcode_file_str.c_str());
-    bool result = mz_zip_writer_add_file(&archive, dst_gcode_file_str.c_str(), src_file_str.c_str(), "", 0, MZ_DEFAULT_COMPRESSION);
+    bool result = mz_zip_writer_add_file(&archive, dst_gcode_file_str.c_str(), src_file_str.c_str(), "", 0, MZ_DEFAULT_LEVEL);
     result &= mz_zip_writer_finalize_archive(&archive);
     result &= close_zip_writer(&archive);
     if (!result) {
@@ -710,7 +710,7 @@ void DebugToolDialog::init()
                     BOOST_LOG_TRIVIAL(trace) << "Unable to open the file";
                     return;
                 }
-                mz_zip_writer_add_file(&archive, dst_gcode_file_str.c_str(), gcode_file_str.c_str(), "", 0, MZ_DEFAULT_COMPRESSION);
+                mz_zip_writer_add_file(&archive, dst_gcode_file_str.c_str(), gcode_file_str.c_str(), "", 0, MZ_DEFAULT_LEVEL);
                 mz_zip_writer_finalize_archive(&archive);
                 close_zip_writer(&archive);
 
