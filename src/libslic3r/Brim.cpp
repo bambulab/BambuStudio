@@ -637,6 +637,9 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
             double             flowWidth = print.brim_flow().scaled_spacing() * SCALING_FACTOR;
             const float        brim_width = scale_(floor(object->config().brim_width.value / flowWidth / 2) * flowWidth * 2);
             const bool         top_outer_brim = top_level_objects_idx.find(object->id().id) != top_level_objects_idx.end();
+            const float        scaled_flow_width = print.brim_flow().scaled_spacing();
+            const float        scaled_additional_brim_width = scale_(floor(5 / flowWidth / 2) * flowWidth * 2);
+            const float        scaled_half_min_adh_length = scale_(1.1);
             ExPolygons         brim_area_object;
             ExPolygons         no_brim_area_object;
             ExPolygons         brim_area_support;

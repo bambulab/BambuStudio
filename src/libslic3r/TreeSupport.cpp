@@ -1832,7 +1832,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 m_object.print()->set_status(95, "Support: draw_circles at layer " + std::to_string(layer_nr));
 
                 // let supports touch objects when brim is on
-                auto avoid_region = m_ts_data->get_collision((layer_nr == 0 && has_brim) ? config.brim_offset : m_ts_data->m_xy_distance, layer_nr);
+                auto avoid_region = m_ts_data->get_collision((layer_nr == 0 && has_brim) ? config.brim_separation : m_ts_data->m_xy_distance, layer_nr);
                 auto avoid_region_interface = m_ts_data->get_collision(config.support_material_contact_distance, layer_nr);
                 Polygons layer_contours = std::move(m_ts_data->get_contours_with_holes(layer_nr));
                 base_areas = std::move(diff_ex(base_areas, avoid_region));

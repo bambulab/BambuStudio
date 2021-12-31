@@ -321,7 +321,7 @@ PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig& config, st
     if (!errors_cummulative.empty())
         throw Slic3r::RuntimeError(errors_cummulative);
 
-    this->load_selections(config, "");
+    this->load_selections(config, PresetPreferences());
 
 
     return substitutions;

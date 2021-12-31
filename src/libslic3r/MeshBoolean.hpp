@@ -60,9 +60,6 @@ TriangleMesh merge(std::vector<TriangleMesh> meshes);
 
 bool does_bound_a_volume(const CGALMesh &mesh);
 bool empty(const CGALMesh &mesh);
-
-// BBS
-TriangleMesh clip(const TriangleMesh& mesh, const std::array<Vec3d, 4>);
 }
 
 } // namespace MeshBoolean

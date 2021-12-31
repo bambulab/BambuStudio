@@ -160,8 +160,10 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
         // BBS: backup & restore
         //FIXME options & LoadAttribute::CheckVersion ? 
         result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, options & LoadAttribute::CheckVersion, is_bbl_3mf, options & LoadAttribute::WithAuxiliary, options & LoadAttribute::RestoreFromTemp, proFn);
+#if 0
     else if (boost::algorithm::iends_with(input_file, ".prusa"))
         result = load_prus(input_file.c_str(), &model);
+#endif
     else
         throw Slic3r::RuntimeError("Unknown file format. Input file must have .stl, .obj, .amf(.xml) or .prusa extension.");
 
@@ -1651,7 +1653,7 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
             ModelVolume* new_vol = new_object->add_volume(*volume, std::move(mesh));
 
             // BBS: clear volume's config, as we already set them into object
-            new_vol->config.clear();
+            new_vol->config.reset();
 
             for (ModelInstance* model_instance : new_object->instances)
             {

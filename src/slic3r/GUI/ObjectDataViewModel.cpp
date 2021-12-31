@@ -1529,7 +1529,6 @@ void ObjectDataViewModel::SetExtruder(const wxString& extruder, wxDataViewItem i
         return;
     }
 
-    ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(item.GetID());
     node->UpdateExtruderAndColorIcon(extruder);
     if (node->GetType() == itObject)
         UpdateVolumesExtruderBitmap(item);

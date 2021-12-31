@@ -39,9 +39,8 @@ static double get_volume_min_z(const GLVolume* volume)
     const TriangleMesh& hull = mv->get_convex_hull();
 
     float min_z = std::numeric_limits<float>::max();
-    for (const stl_facet& facet : hull.stl.facet_start) {
-        for (int i = 0; i < 3; ++ i)
-            min_z = std::min(min_z, Vec3f::UnitZ().dot(world_matrix * facet.vertex[i]));
+    for (const stl_vertex& vert : hull.its.vertices) {
+        min_z = std::min(min_z, Vec3f::UnitZ().dot(world_matrix * vert));
     }
     return min_z;
 }

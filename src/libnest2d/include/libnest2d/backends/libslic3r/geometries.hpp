@@ -263,19 +263,19 @@ inline TMultiShape<PolygonImpl> merge(const TMultiShape<PolygonImpl>& shapes)
 
 inline PolygonImpl intersection(const PolygonImpl& subject, const PolygonImpl& clip)
 {
-    ClipperLib::Clipper clipper;
+    Slic3r::ClipperLib::Clipper clipper;
 
     bool closed = true;
 
-    clipper.AddPath(subject.Contour, ClipperLib::ptSubject, closed);
-    clipper.AddPaths(subject.Holes, ClipperLib::ptSubject, closed);
+    clipper.AddPath(subject.contour, Slic3r::ClipperLib::ptSubject, closed);
+    clipper.AddPaths(subject.holes, Slic3r::ClipperLib::ptSubject, closed);
 
-    clipper.AddPath(clip.Contour, ClipperLib::ptClip, closed);
-    clipper.AddPaths(clip.Holes, ClipperLib::ptClip, closed);
+    clipper.AddPath(clip.contour, Slic3r::ClipperLib::ptClip, closed);
+    clipper.AddPaths(clip.holes, Slic3r::ClipperLib::ptClip, closed);
 
-    auto mode = ClipperLib::pftNegative;
+    auto mode = Slic3r::ClipperLib::pftNegative;
 
-    auto results = libnest2d::clipper_execute(clipper, ClipperLib::ctIntersection, mode, mode);
+    auto results = libnest2d::clipper_execute(clipper, Slic3r::ClipperLib::ctIntersection, mode, mode);
     if (results.size() > 0)
         return results.front();
     else

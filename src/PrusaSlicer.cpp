@@ -568,7 +568,7 @@ int CLI::run(int argc, char **argv)
                     for (Vec3d& point : plane_points) {
                         point += box.center();
                     }
-                    model.objects.front()->cut(0, plane_points, true, true, true);
+                    model.objects.front()->cut(0, plane_points, ModelObjectCutAttribute::KeepUpper | ModelObjectCutAttribute::KeepLower);
 #endif
                     model.delete_object(size_t(0));
                 }
@@ -885,8 +885,9 @@ int CLI::run(int argc, char **argv)
                     BuildVolume build_volume(part_plate->get_shape(), z);
                     model.update_print_volume_state(build_volume);
                     unsigned int count = model.update_print_volume_state(build_volume);
-                    boost::nowide::cout << boost::format("print_volume {%1%,%2%,%3%}->{%4%, %5%, %6%}, has %7% printables") % print_volume.min(0) % print_volume.min(1)
-                        % print_volume.min(2) % print_volume.max(0) % print_volume.max(1) % print_volume.max(2) % count << std::endl;
+                    // BBS: TODO
+                    //boost::nowide::cout << boost::format("print_volume {%1%,%2%,%3%}->{%4%, %5%, %6%}, has %7% printables") % print_volume.min(0) % print_volume.min(1)
+                    //    % print_volume.min(2) % print_volume.max(0) % print_volume.max(1) % print_volume.max(2) % count << std::endl;
 #endif
 
                     //PrintBase  *print = (printer_technology == ptFFF) ? static_cast<PrintBase*>(&fff_print) : static_cast<PrintBase*>(&sla_print);

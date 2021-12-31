@@ -1355,10 +1355,6 @@ size_t Stack::active_snapshot_time() const { return pimpl->active_snapshot_time(
 bool Stack::temp_snapshot_active() const { return pimpl->temp_snapshot_active(); }
 void Stack::mark_current_as_saved() { pimpl->mark_current_as_saved(); }
 bool Stack::project_modified() const { return pimpl->project_modified(); }
-bool Stack::temp_snapshot_active() const
-{
-    return pimpl->temp_snapshot_active();
-}
 
 bool Stack::has_real_change_from(size_t time) const
 {

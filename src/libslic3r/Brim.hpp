@@ -1,6 +1,8 @@
 #ifndef slic3r_Brim_hpp_
 #define slic3r_Brim_hpp_
 
+#include "Point.hpp"
+
 #include<map>
 #include<vector>
 
@@ -9,7 +11,6 @@ namespace Slic3r {
 class Print;
 class ExtrusionEntityCollection;
 class PrintTryCancel;
-class Polygons;
 class ObjectID;
 
 // Produce brim lines around those objects, that have the brim enabled.

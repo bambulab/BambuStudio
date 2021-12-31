@@ -1265,11 +1265,14 @@ void Sidebar::sys_color_changed()
 #ifdef _WIN32
     wxWindowUpdateLocker noUpdates(this);
 
+#if 0
     for (wxWindow* win : std::vector<wxWindow*>{ this, p->sliced_info->GetStaticBox(), p->object_info->GetStaticBox(), p->btn_reslice, p->btn_export_gcode })
         wxGetApp().UpdateDarkUI(win);
     p->object_info->msw_rescale();
+
     for (wxWindow* win : std::vector<wxWindow*>{ p->scrolled, p->presets_panel })
         wxGetApp().UpdateAllStaticTextDarkUI(win);
+#endif
     for (wxWindow* btn : std::vector<wxWindow*>{ p->btn_reslice, p->btn_export_gcode })
         wxGetApp().UpdateDarkUI(btn, true);
 
@@ -1523,7 +1526,9 @@ void Sidebar::update_ui_from_settings()
     p->plater->canvas3D()->update_gizmos_on_off_state();
     p->plater->set_current_canvas_as_dirty();
     p->plater->get_current_canvas3D()->request_extra_frame();
+#if 0
     p->object_list->apply_volumes_order();
+#endif
 }
 
 std::vector<PlaterPresetComboBox*>& Sidebar::combos_filament()
@@ -1796,6 +1801,8 @@ struct Plater::priv
     //std::shared_ptr<ProgressStatusBar> statusbar();
     std::shared_ptr<BBLStatusBar> statusbar();
     std::string get_config(const std::string &key) const;
+    BoundingBoxf bed_shape_bb() const;
+    BoundingBox scaled_bed_shape_bb() const;
 
     // BBS: backup & restore
     std::vector<size_t> load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool load_restore = false, bool used_inches = false);
@@ -2775,10 +2782,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             load_config = false;
                             show_info(q, "this 3MF's printer is not be used anymore, only load geometry files!", "Incompatible Printers");
                             for (ModelObject *model_object : model.objects) {
-                                model_object->config.clear();
+                                model_object->config.reset();
                                 // Is there any modifier or advanced config data?
                                 for (ModelVolume* model_volume : model_object->volumes)
-                                    model_volume->config.clear();
+                                    model_volume->config.reset();
                             }
                         }
                         else {
@@ -3009,8 +3016,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     model.set_backup_path("");
                     load_auxiliary_files();
                 }
-                auto loaded_idxs = load_model_objects(model.objects);
-                obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
 
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_LOAD_MODEL_OBJECTS \n");
                 wxString msg = wxString::Format("Loading file: %s, load model objects", from_path(filename));
@@ -3445,7 +3450,7 @@ void Plater::priv::reset()
 
     reset_gcode_toolpaths();
     //BBS: update gcode to current partplate's
-    GCodeProcessor::Result* current_result = this->background_process.get_current_plate()->get_slice_result();
+    GCodeProcessorResult* current_result = this->background_process.get_current_plate()->get_slice_result();
     current_result->reset();
     //gcode_result.reset();
 
@@ -4164,7 +4169,7 @@ void Plater::priv::reload_from_disk()
             PlateDataPtrs plate_data;
 
             // BBS: backup
-            new_model = Model::read_from_file(path, nullptr, nullptr, Model::LoadAttribute::AddDefaultInstances, false, &plate_data);
+            new_model = Model::read_from_file(path, nullptr, nullptr, Model::LoadAttribute::AddDefaultInstances, &plate_data);
             for (ModelObject* model_object : new_model.objects) {
                 model_object->center_around_origin();
                 model_object->ensure_on_bed();
@@ -6056,7 +6061,9 @@ void Plater::new_project()
     update_project_dirty_from_presets();
 }
 
-void Plater::load_project()
+// BBS: FIXME, missing resotre logic
+void Plater::load_project(wxString const& filename2,
+    wxString const& originfile)
 {
     if (!wxGetApp().can_load_project())
         return;
@@ -6088,67 +6095,6 @@ void Plater::load_project()
     p->select_view("topfront");
 
     up_to_date(true, false);
-    up_to_date(true, true);
-}
-
-// BBS: backup & store
-void Plater::load_project(wxString const &filename2,
-                          wxString const &originfile)
-{
-    auto filename = filename2;
-    auto check    = [&filename, this] {
-        if (filename.empty()) {
-            // Ask user for a project file name.
-            wxGetApp().load_project(this, filename);
-        }
-        return !filename.empty();
-    };
-
-    // BSS: save project, force close
-    int result;
-    if ((result = close_with_confirm(check)) == wxID_CANCEL) {
-        return;
-    }
-
-    // Take the Undo / Redo snapshot.
-    Plater::TakeSnapshot snapshot(this, _L("Load Project") + ": " + wxString::FromUTF8(into_path(filename).stem().string().c_str()), UndoRedo::SnapshotType::ProjectSeparator);
-
-    p->reset();
-
-#if 0
-    if (! load_files({ into_path(filename) }).empty()) {
-        // At least one file was loaded.
-        p->set_project_filename(filename);
-        reset_project_dirty_initial_presets();
-        update_project_dirty_from_presets();
-    }
-#endif
-    auto path = into_path(filename);
-    bool load_restore = originfile != "-";
-
-    p->reset();
-
-    // Take the Undo / Redo snapshot.
-    up_to_date(true, false);
-    Plater::TakeSnapshot snapshot(this, _L("Load Project"));
-
-    std::vector<fs::path> input_paths;
-    input_paths.push_back(path);
-
-    std::vector<size_t> res = load_files(input_paths, true, true, load_restore);
-
-    // if res is empty no data has been loaded
-    if (!res.empty()) {
-        p->set_project_filename(load_restore ? originfile : filename);
-
-    // BBS set default 3D view and direction after loading project
-    p->select_view_3D("3D");
-    p->select_view("topfront");
-
-    wxGetApp().app_config->update_last_backup_dir(model().get_backup_path());
-
-    if (!load_restore)
-        up_to_date(true, false);
     up_to_date(true, true);
 }
 
@@ -7525,9 +7471,6 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
 
     if (output_path.empty())
         return -1;
-
-    if (output_path.empty())
-        return;
 
     bool export_config = true;
     wxString path = from_path(output_path);

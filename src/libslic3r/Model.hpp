@@ -529,7 +529,6 @@ private:
             Slic3r::save_object_mesh(*this);
         volume_ids.clear();
     }
-};
 
     // Called by Print::validate() from the UI thread.
     unsigned int update_instances_print_volume_state(const BuildVolume &build_volume);

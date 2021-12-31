@@ -46,7 +46,6 @@ ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, wxBoxSizer* side_tools) :
         m_sizer->Add(side_tools, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxBOTTOM, m_btn_margin);
     }
 
-=======
     // BBS: disable custom paint
     //this->Bind(wxEVT_PAINT, &ButtonsListCtrl::OnPaint, this);
 }

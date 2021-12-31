@@ -1,4 +1,5 @@
 #include "BoundingBox.hpp"
+#include "Polygon.hpp"
 #include <algorithm>
 #include <assert.h>
 

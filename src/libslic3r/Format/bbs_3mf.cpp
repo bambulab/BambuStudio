@@ -2923,22 +2923,6 @@ namespace Slic3r {
         return false;
     }
 
-    // backup mesh-only
-    bool _BBS_3MF_Exporter::save_object_mesh(const std::string& filename, ModelObject& object)
-    {
-        std::ofstream ofs(filename);
-        auto flush = [&ofs](std::string& buf, bool force) -> bool {
-            ofs.write(buf.c_str(), buf.size());
-            if (force)
-                ofs.flush();
-            buf.clear();
-            return !!ofs;
-        };
-        VolumeToOffsetsMap volumes_offsets;
-        _add_mesh_to_object_stream(flush, object, volumes_offsets);
-        return false;
-    }
-
     //BBS: add plate data related logic
     bool _BBS_3MF_Exporter::_save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, const DynamicPrintConfig* config, const std::vector<ThumbnailData*>& thumbnail_data, Export3mfProgressFn proFn)
     {
@@ -3498,6 +3482,7 @@ namespace Slic3r {
     {
         std::string output_buffer;
 
+#if 0
         auto flush = [this, &output_buffer, &context](bool force = false) {
             if ((force && ! output_buffer.empty()) || output_buffer.size() >= 65536 * 16) {
                 if (! mz_zip_writer_add_staged_data(&context, output_buffer.data(), output_buffer.size())) {
@@ -3509,6 +3494,7 @@ namespace Slic3r {
             }
             return true;
         };
+#endif
 
         if (!m_skip_static) {
             output_buffer += "   <";

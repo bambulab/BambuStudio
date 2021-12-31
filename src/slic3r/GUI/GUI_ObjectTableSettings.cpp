@@ -303,7 +303,7 @@ void ObjectTableSettings::update_config_values(bool is_object, ModelObject* obje
     }
 
     // load checked values from main_config to config
-    config->clear();
+    config->reset();
     config->apply_only(main_config, diff_keys, true);
     // Initialize UI components with the config values.
     std::vector<SimpleSettingData> category_settings = SettingsFactory::get_visible_options(category, !is_object);

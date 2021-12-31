@@ -433,14 +433,9 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
         wxGetApp().plater()->segment(object_idx, instance_idx, m_segment_smoothing_alpha, m_segment_number);
     }
     else {
-        if (get_plane_normal()(2) >= 0.0) {
-            wxGetApp().plater()->cut(object_idx, instance_idx, get_plane_points_world_coord(), m_keep_upper,
-                m_keep_lower, m_rotate_lower, m_cut_to_parts);
-        }
-        else {
-            wxGetApp().plater()->cut(object_idx, instance_idx, get_plane_points_world_coord(), m_keep_lower,
-                m_keep_upper, m_rotate_lower, m_cut_to_parts);
-        }
+        wxGetApp().plater()->cut(object_idx, instance_idx, get_plane_points_world_coord(),
+            only_if(m_keep_upper, ModelObjectCutAttribute::KeepUpper) |
+            only_if(m_keep_lower, ModelObjectCutAttribute::KeepLower));
     }
 }
 

@@ -196,7 +196,7 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
     for (auto object : print.objects()) {
         auto first_layer = object->get_layer(0);
         for (auto layerm : first_layer->regions()) {
-            int extruder_id = layerm->region()->config().option("perimeter_extruder")->getInt();
+            int extruder_id = layerm->region().config().option("perimeter_extruder")->getInt();
             for (auto expoly : to_expolygons(layerm->slices.surfaces)) {
                 double contour_area = expoly.contour.area();
                 auto iter = min_areas_per_extruder.find(extruder_id);
@@ -233,7 +233,7 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
     std::map<int, double> min_areas_per_extruder;
     auto first_layer = object.get_layer(0);
     for (auto layerm : first_layer->regions()) {
-        int extruder_id = layerm->region()->config().option("perimeter_extruder")->getInt();
+        int extruder_id = layerm->region().config().option("perimeter_extruder")->getInt();
         for (auto expoly : to_expolygons(layerm->slices.surfaces)) {
             double contour_area = expoly.contour.area();
             auto iter = min_areas_per_extruder.find(extruder_id);

@@ -29,13 +29,12 @@ void FaceDetector::detect_exterior_face()
             continue;
 
         TriangleMesh vol_mesh = mv->mesh();
-        volume_facet_ranges.emplace_back(mv, object_mesh.stl.stats.number_of_facets, object_mesh.stl.stats.number_of_facets + vol_mesh.stl.stats.number_of_facets);
+        volume_facet_ranges.emplace_back(mv, object_mesh.stats().number_of_facets, object_mesh.stats().number_of_facets + vol_mesh.stats().number_of_facets);
 
         Vec3d vol_ofs = mv->get_offset() + inst_ofs;
         vol_mesh.translate({ (float)vol_ofs(0), (float)vol_ofs(1), (float)vol_ofs(2) });
         object_mesh.merge(vol_mesh);
     }
-    object_mesh.require_shared_vertices(false);
 
     sla::IndexedMesh indexed_mesh(object_mesh);
     BoundingBoxf3 bbox = m_mo->bounding_box();
@@ -94,9 +93,12 @@ void FaceDetector::detect_exterior_face()
             }
         }
 
+        // TODO: add exterior flag
         TriangleMesh& vol_mesh = const_cast<TriangleMesh&>(mv->mesh());
+#if 0
         stl_facet& vol_facet = vol_mesh.stl.facet_start[vol_facet_idx];
         vol_facet.extra[0] = EnumFaceTypes::eExteriorAppearance;
+#endif
 
         // check
 #if 0

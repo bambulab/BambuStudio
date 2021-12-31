@@ -150,7 +150,7 @@ bool load_step(const char *path, Model *model, ImportStepProgressFn proFn)
             continue;
         }
 
-        Pointf3s points;
+        std::vector<Vec3f> points;
         points.reserve(aNbNodes);
         std::vector<Vec3i> facets;
         facets.reserve(aNbTriangles);
@@ -199,7 +199,8 @@ bool load_step(const char *path, Model *model, ImportStepProgressFn proFn)
         }
 
         TriangleMesh triangle_mesh(points, facets);
-        triangle_mesh.repair();
+        // BBS: FIXME, comment repair to avoid build error
+        //triangle_mesh.repair();
         if (triangle_mesh.facets_count() == 0) {
             continue;
         }

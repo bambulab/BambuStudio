@@ -552,7 +552,7 @@ static std::string layered_print_cleareance_valid(const Print& print, std::strin
             if (warning)
                 *warning = "Object " + inst->model_instance->get_object()->name + " is too close to others; your extruder will collide with them.";
         }
-        if (!intersection(exclude_polys, (Polygons)convex_hull).empty()) {
+        if (!intersection(exclude_polys, convex_hull).empty()) {
             return "Object " + inst->model_instance->get_object()->name + " is too close to exclusion area; your extruder will collide with them.";
         }
         convex_hulls_other.emplace_back(convex_hull);
@@ -922,7 +922,7 @@ double getTemperatureFromExtruder(const PrintObject *printObject) {
     if (!firstLayerRegions.empty()) {
         for (const LayerRegion* regionPtr : firstLayerRegions) {
             if (regionPtr->has_extrusions())
-                extrudersFirstLayer.push_back(regionPtr->region()->extruder(frExternalPerimeter));
+                extrudersFirstLayer.push_back(regionPtr->region().extruder(frExternalPerimeter));
         }
     }
     
@@ -945,7 +945,7 @@ double getadhesionCoeff(const PrintObject* printObject)
     if (!firstLayerRegions.empty()) {
         for (const LayerRegion* regionPtr : firstLayerRegions) {
             if (regionPtr->has_extrusions())
-                extrudersFirstLayer.push_back(regionPtr->region()->extruder(frExternalPerimeter));
+                extrudersFirstLayer.push_back(regionPtr->region().extruder(frExternalPerimeter));
         }
     }
     auto temp3 = Model::extruderParamsMap;
@@ -1011,7 +1011,7 @@ std::map<ObjectID, unsigned int> getObjectExtruderMap(const Print& print) {
             for (const LayerRegion* regionPtr : firstLayerRegions) {
                 if (regionPtr -> has_extrusions())
                     objectFirstLayerFirstExtruder = std::min(objectFirstLayerFirstExtruder,
-                        regionPtr->region()->extruder(frExternalPerimeter));
+                        regionPtr->region().extruder(frExternalPerimeter));
             }
         }
         objectExtruderMap.insert(std::make_pair(object->id(), objectFirstLayerFirstExtruder));
@@ -1074,7 +1074,7 @@ void Print::process()
         bool         has_wipe_tower = false;
         std::vector<const PrintInstance*> 					print_object_instances_ordering;
         std::vector<const PrintInstance*>::const_iterator 	print_object_instance_sequential_active;
-        if (this->config().complete_objects.value || this->config().layer_bundle_printing.value) {
+        if (this->config().complete_objects.value) {
             // Order object instances for sequential print.
             print_object_instances_ordering = sort_object_instances_by_model_order(*this);
             //        print_object_instances_ordering = sort_object_instances_by_max_z(print);
@@ -1559,13 +1559,13 @@ void Print::set_gcode_file_ready()
 }
 
 //BBS: add gcode file preload logic
-void Print::export_gcode_from_previous_file(const std::string& file, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb)
+void Print::export_gcode_from_previous_file(const std::string& file, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb)
 {
     try {
         GCodeProcessor processor;
         Vec3d origin = this->get_plate_origin();
         processor.set_xy_offset(origin(0), origin(1));
-        processor.enable_producers(true);
+        //processor.enable_producers(true);
         processor.process_file(file, false);
 
         *result = std::move(processor.extract_result());

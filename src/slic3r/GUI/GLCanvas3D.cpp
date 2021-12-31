@@ -1502,14 +1502,14 @@ void GLCanvas3D::update_volumes_colors_by_extruder()
 
 float GLCanvas3D::get_collapse_toolbar_width()
 {
-    const GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
+    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
 
     return collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0;
 }
 
 float GLCanvas3D::get_collapse_toolbar_height()
 {
-    const GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
+    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
 
     return collapse_toolbar.is_enabled() ? collapse_toolbar.get_height() : 0;
 }

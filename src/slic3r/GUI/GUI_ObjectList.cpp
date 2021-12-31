@@ -1086,7 +1086,7 @@ void ObjectList::show_context_menu(const bool evt_context_menu)
             if (!(type & (itPlate | itObject | itVolume | itLayer | itInstance)))
                 return;
 
-            menu =  type & itPlate                                              ? plater->plate_menu();
+            menu =  type & itPlate                                              ? plater->plate_menu() :
                     type & itInstance                                           ? plater->instance_menu() :
                     type & itLayer                                              ? plater->layer_menu() :
                     type & itVolume                                             ? plater->part_menu() :

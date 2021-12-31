@@ -303,9 +303,7 @@ public:
         costs.area_total = mesh->bounding_box().area();
         costs.radius = mesh->bounding_box().radius();
         // volume
-        if (mesh->stl.stats.volume < 0)
-            stl_calculate_volume(&(mesh->stl));
-        costs.volume = mesh->stl.stats.volume;
+        costs.volume = mesh->stats().volume > 0 ? mesh->stats().volume : its_volume(mesh->its);
 
         float total_min_z = z_projected.minCoeff();
         // filter bottom area
@@ -356,6 +354,8 @@ public:
         auto normal_projection_abs = normal_projection.cwiseAbs();
         Eigen::MatrixXf laf_areas = ((normal_projection_abs.array() < params.LAF_MAX) * (normal_projection_abs.array() > params.LAF_MIN) * (z_max.array() > total_min_z + params.FIRST_LAY_H)).select(areas, 0);
         costs.area_laf = laf_areas.sum();
+
+        return costs;
     }
 
     float target_function(CostItems& costs, bool min_volume)
