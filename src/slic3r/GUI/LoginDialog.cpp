@@ -69,7 +69,12 @@ LoginDialog::LoginDialog()
 		this->txt_stdout->Clear();
 		Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
 		if (!account_manager->is_user_login()) {
-			int result = account_manager->user_login(m_txt_user->GetValue().ToStdString(), m_txt_password->GetValue().ToStdString(),
+			std::string username = m_txt_user->GetValue().ToStdString();
+			std::string password = m_txt_password->GetValue().ToStdString();
+
+			int res = account_manager->user_login_autotest(username, password);
+
+			int result = account_manager->user_login(username, password,
 				[this](int retcode, std::string info) {
 					if (retcode == 0) {
 						auto evt = new wxCommandEvent(EVT_LOGIN_OK, this->GetId());

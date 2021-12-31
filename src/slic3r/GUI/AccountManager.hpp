@@ -14,7 +14,7 @@
 #include "slic3r/Utils/Http.hpp"
 
 #define BBL_INTERNAL_TEST
-
+#define BBL_CHECK_USER_REPORT
 
 #define MY_MODEL_PUBLISH_URL_FORMAT     "https://portal-qa.bambu-lab.com/my/models/%s/publish?project_id=%s"
 #define MY_COLLECTIONS_URL              "https://portal-qa.bambu-lab.com/my/collections"
@@ -180,6 +180,8 @@ public:
     std::string m_avatar;
     std::string m_token;
     LoginStatus m_login_status;
+
+    std::string m_autotest_token;
 };
 
 class MachineObject;
@@ -195,7 +197,6 @@ private:
     std::string host = DEFAULT_HOST;
     std::string test_host = "https://autotest.bambooolab.com";
     std::string MSG_SUCCESS = "success";
-
 
     /* login, register */
     std::string _get_login_request(std::string account, std::string password);
@@ -281,12 +282,14 @@ public:
     /* user login register apis */
     bool is_user_login();
     void on_user_login(bool online_login = false);
+    int user_login_autotest(std::string account, std::string password);
     int user_login(std::string account, std::string password, LoginFn fn);
     int user_get_profile(std::string account, LoginFn fn);
     int user_logout();
     int user_register(std::string account, std::string passoword);
     int request_user_unbind(std::string device_id, ResultFn fn);
     void clean_user_data();
+    void user_check_report(int* query_task_id, bool* printable);
 
     /* myBindList */
     std::mutex listMutex;

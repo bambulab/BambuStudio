@@ -140,6 +140,7 @@ namespace Slic3r {
             root.put("token", m_token);
             root.put("user_id", m_user_id);
             root.put("login_status", m_login_status);
+            root.put("autotest_token", m_autotest_token);
             pt::write_json(filename, root);
             return 0;
         }
@@ -160,8 +161,10 @@ namespace Slic3r {
                 std::string account = root.get<std::string>("account");
                 std::string token = root.get<std::string>("token");
                 std::string user_id = root.get<std::string>("user_id");
+                std::string autotest_token = root.get<std::string>("autotest_token");
                 AccountInfo::LoginStatus status = (AccountInfo::LoginStatus)root.get<int>("login_status");
                 AccountInfo* info = new AccountInfo(account, user_id, status);
+                info->m_autotest_token = autotest_token;
                 info->set_token(token);
                 return info;
             }
@@ -401,13 +404,44 @@ namespace Slic3r {
             return false;
     }
 
+    int AccountManager::user_login_autotest(std::string account, std::string password)
+    {
+        std::string::size_type pos = account.find_last_of('@');
+        if (pos == account.npos) {
+            BOOST_LOG_TRIVIAL(trace) << "invalid account name = " << account;
+            return -1;
+        }
+        account = account.substr(0, pos);
+        std::string url = "https://keycloak-qa.bambu-lab.com/auth/realms/staff/protocol/openid-connect/token";
+        std::string post_body = (boost::format("username=%1%&password=%2%&grant_type=password&client_id=slicer&client_secret=98f3173c-b4cf-4610-b265-dd4867af8241")
+                                % account
+                                % password).str();
+        Http http = Http::post(url);
+        http.header("Content-Type", "application/x-www-form-urlencoded")
+            .set_post_body(post_body)
+            .on_complete([&, this](std::string body, unsigned) {
+                    try {
+                        json j = json::parse(body);
+                        m_curr_user = new AccountInfo("", "", AccountInfo::LoginStatus::STATUS_LOGIN);
+                        m_curr_user->m_autotest_token = j["access_token"].get<std::string>();
+                    }
+                    catch (...) {
+                        ;
+                    }
+                })
+            .on_error([&, this](std::string body, std::string error, unsigned status) {
+                    BOOST_LOG_TRIVIAL(trace) << "error = " << error << ", body = " << body << ", status = " << status;
+                }
+            ).perform_sync();
+        return 0;
+    }
+
     int AccountManager::user_login(std::string account, std::string password, LoginFn fn)
     {
         // check valid account
         if (!_check_valid(account, password)) {
             return -1;
         }
-
         
         Http http = Http::post(std::move(_get_login_url()));
         std::string json_str = _get_login_request(account, password);
@@ -422,8 +456,12 @@ namespace Slic3r {
                 boost::optional<std::string> acceptToken = root.get_optional<std::string>("accessToken");
                 if (acceptToken.has_value()) {
                     BOOST_LOG_TRIVIAL(trace) << "User = " << account << " Login Success!";
-                    if (m_curr_user) delete m_curr_user;
-                    m_curr_user = new AccountInfo(account, "", AccountInfo::LoginStatus::STATUS_LOGIN);
+                    if (!m_curr_user) {
+                        m_curr_user = new AccountInfo(account, "", AccountInfo::LoginStatus::STATUS_LOGIN);
+                    } else {
+                        m_curr_user->m_account = account;
+                        m_curr_user->set_login_status(AccountInfo::LoginStatus::STATUS_LOGIN);
+                    }
                     m_curr_user->set_token(acceptToken.value());
 
                     //get user id
@@ -520,8 +558,34 @@ namespace Slic3r {
         }
         myBindMachineList.clear();
         mqtt_topics.clear();
-
         myProjectList.clear();
+    }
+
+    void AccountManager::user_check_report(int* query_task_id, bool* printable)
+    {
+        if (!m_curr_user) {
+            *printable = false;
+            return;
+        }
+
+        std::string user_id = m_curr_user->get_user_id();
+        std::string url = (boost::format("http://192.168.0.12:8000/api/user_last_task_report?user_id=%1%") % user_id).str();
+        Http http = Http::get(url);
+        http.auth_basic("slicer", "znFx94AAew8VVHv");
+        http.on_complete([this, printable, query_task_id](std::string body, unsigned status) {
+            try {
+                json j = json::parse(body);
+                *query_task_id = j["task_id"].get<int>();
+                *printable = j["print_flag"].get<bool>();
+            }
+            catch (...) {
+                ;
+            }
+            })
+            .on_error([this](std::string body, std::string error, unsigned status) {
+                BOOST_LOG_TRIVIAL(trace) << "user_check_report: body = " << body << ", status = " << status;
+            })
+            .perform_sync();
     }
 
     int AccountManager::user_register(std::string account, std::string password)

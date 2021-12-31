@@ -80,6 +80,22 @@ void GcodePrintJob::process()
 {
     /* print current gcode */
     Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+
+#ifdef BBL_CHECK_USER_REPORT
+    int task_id = 0;
+    bool printable = true;
+    account_manager->user_check_report(&task_id, &printable);
+    if (task_id!=0 && !printable) {
+        update_status(0, _L("Please fill report first!"));
+        std::string report_url = (boost::format("https://autotest.bambu-lab.com/slicerAddReport?task_id=%1%&token=%2%")
+            % task_id
+            % account_manager->get_curr_user()->m_autotest_token
+            ).str();
+        wxLaunchDefaultBrowser(report_url);
+        return;
+    }
+#endif
+
     fs::path gcode_path(m_gcode_file_str);
     fs::path _3mf_path(wxStandardPaths::Get().GetTempDir().utf8_str().data());
     _3mf_path /= gcode_path.filename().string();
