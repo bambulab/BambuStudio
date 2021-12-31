@@ -634,6 +634,7 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
         wxGetApp()
             .getAccountManager()
             ->get_camera_url(obj->dev_id, [this](std::string url) {
+                BOOST_LOG_TRIVIAL(info) << "camera_url: " << url;
                 if (!url.empty()) m_media_ctrl->Load(wxURI(url));
             });
     });

@@ -8,6 +8,7 @@ BEGIN_EVENT_TABLE(DropDown, wxPanel)
 EVT_LEFT_DOWN(DropDown::mouseDown)
 EVT_LEFT_UP(DropDown::mouseReleased)
 EVT_MOTION(DropDown::mouseMove)
+EVT_MOUSEWHEEL(DropDown::mouseWheelMoved)
 
 // catch paint events
 EVT_PAINT(DropDown::paintEvent)
@@ -52,10 +53,15 @@ void DropDown::Invalidate(bool clear)
 {
     if (clear)
         selection = -1;
+    assert(selection < (int) texts.size());
     need_sync = true;
 }
 
-void DropDown::SetSelection(int n) { selection = n; }
+void DropDown::SetSelection(int n)
+{
+    assert(n < (int) texts.size());
+    selection = n;
+}
 
 wxString DropDown::GetValue() const
 {
@@ -337,11 +343,33 @@ void DropDown::mouseMove(wxMouseEvent &event)
     }
     if (!pressedDown || hover_item >= 0) {
         int hover = (event.GetPosition().y - offset.y) / rowSize.y;
-        if (hover >= texts.size()) hover = -1;
+        if (hover >= (int) texts.size()) hover = -1;
         if (hover == hover_item) return;
         hover_item = hover;
         if (hover >= 0)
             SetToolTip(texts[hover]);
+    }
+    paintNow();
+}
+
+void DropDown::mouseWheelMoved(wxMouseEvent &event)
+{
+    auto delta = (event.GetWheelRotation() < 0 == event.IsWheelInverted()) ? rowSize.y : -rowSize.y;
+    wxPoint pt2 = offset + wxPoint{0, delta};
+    if (pt2.y > 0)
+        pt2.y = 0;
+    else if (pt2.y + rowSize.y * texts.size() < GetSize().y)
+        pt2.y = GetSize().y - rowSize.y * texts.size();
+    if (pt2.y != offset.y) {
+        offset = pt2;
+    } else {
+        return;
+    }
+    int hover = (event.GetPosition().y - offset.y) / rowSize.y;
+    if (hover >= (int) texts.size()) hover = -1;
+    if (hover != hover_item) {
+        hover_item = hover;
+        if (hover >= 0) SetToolTip(texts[hover]);
     }
     paintNow();
 }

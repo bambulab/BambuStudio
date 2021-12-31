@@ -80,6 +80,7 @@ private:
     void mouseDown(wxMouseEvent& event);
     void mouseReleased(wxMouseEvent &event);
     void mouseMove(wxMouseEvent &event);
+    void mouseWheelMoved(wxMouseEvent &event);
 
     void sendDropDownEvent();
 
