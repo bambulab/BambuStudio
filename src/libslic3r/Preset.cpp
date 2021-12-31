@@ -875,11 +875,10 @@ void PresetCollection::load_user_presets(std::map<std::string, Preset*> my_prese
 }
 
 //BBS: validate_printers
-bool PresetCollection::validate_printers(const std::string &name, DynamicPrintConfig& config)
+bool PresetCollection::validate_printers(const std::string &name, DynamicPrintConfig& config, std::string &inherit)
 {
     std::string&                 original_name = config.opt_string("printer_settings_id", true);
     std::deque<Preset>::iterator it       = this->find_preset_internal(original_name);
-    std::string&                 inherit = Preset::inherits(config);
     bool                         found    = it != m_presets.end() && it->name == original_name && (it->is_system || it->is_default);
     if (!found) {
         it = this->find_preset_renamed(original_name);
@@ -889,6 +888,11 @@ bool PresetCollection::validate_printers(const std::string &name, DynamicPrintCo
         if (!inherit.empty()) {
             it    = this->find_preset_internal(inherit);
             found = it != m_presets.end() && it->name == inherit && (it->is_system || it->is_default);
+        }
+        else {
+            //inherit is null , should not happen , just consider it as valid
+            found = true;
+            BOOST_LOG_TRIVIAL(warning) << boost::format(": name %1%, printer_settings %2%, no inherit, pass it")%name %original_name;
         }
     }
     BOOST_LOG_TRIVIAL(warning) << boost::format(": name %1%, printer_settings %2%, inherit %3%, found result %4%")%name %original_name % inherit % found;

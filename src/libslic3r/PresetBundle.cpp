@@ -351,7 +351,16 @@ void PresetBundle::save_user_presets(AppConfig& config, std::map<std::string, Pr
 //BBS: validate printers from previous project
 bool PresetBundle::validate_printers(const std::string &name, DynamicPrintConfig& config)
 {
-    return this->printers.validate_printers(name, config);
+    std::vector<std::string> inherits_values;
+    PrinterTechnology printer_technology = Preset::printer_technology(config);
+    size_t num_extruders = (printer_technology == ptFFF) ?
+        std::min(config.option<ConfigOptionFloats>("nozzle_diameter"  )->values.size(),
+                 config.option<ConfigOptionFloats>("filament_diameter")->values.size()) : 1;
+    inherits_values.resize(num_extruders + 2, std::string());
+    inherits_values  = config.option<ConfigOptionStrings>("inherits_cummulative", true)->values;
+    std::string inherits = inherits_values[num_extruders + 1];
+
+    return this->printers.validate_printers(name, config, inherits);
 }
 
 void PresetBundle::remove_users_preset(AppConfig& config)

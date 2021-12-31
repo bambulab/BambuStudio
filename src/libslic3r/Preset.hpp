@@ -305,7 +305,7 @@ public:
     //BBS get m_presets begin
     Iterator        lbegin() { return m_presets.begin(); }
     //BBS: validate_printers
-    bool            validate_printers(const std::string &name, DynamicPrintConfig& config);
+    bool            validate_printers(const std::string &name, DynamicPrintConfig& config, std::string &inherit);
 
     Iterator        begin() { return m_presets.begin() + m_num_default_presets; }
     ConstIterator   begin() const { return m_presets.cbegin() + m_num_default_presets; }
