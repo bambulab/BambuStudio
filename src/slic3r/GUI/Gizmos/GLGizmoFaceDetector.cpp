@@ -30,7 +30,7 @@ std::string GLGizmoFaceDetector::on_get_name() const
     return (_L("Face recognition") + " [P]").ToUTF8().data();
 }
 
-void GLGizmoFaceDetector::on_render() const
+void GLGizmoFaceDetector::on_render()
 {
     if (m_iva.has_VBOs()) {
         ::glColor4f(0.f, 0.f, 1.f, 0.4f);
@@ -98,8 +98,9 @@ void GLGizmoFaceDetector::perform_recognition(const Selection& selection)
             Vec3d vol_ofs = mv->get_offset();
             Vec3d ofs = inst_ofs + vol_ofs;
             const indexed_triangle_set& mv_its = mv->mesh().its;
-            for (const stl_triangle_vertex_indices& facet_vert_idxs : mv_its.indices) {
-                if(mv_its.properties[facet_vert_idxs].type!=eExteriorAppearance)
+            for (int facet_idx = 0; facet_idx < mv_its.indices.size(); facet_idx++) {
+                const stl_triangle_vertex_indices& facet_vert_idxs = mv_its.indices[facet_idx];
+                if(mv_its.properties[facet_idx].type != eExteriorAppearance)
                     continue;
 
                 for (int i = 0; i < 3; ++i) {

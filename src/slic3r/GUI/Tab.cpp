@@ -1122,8 +1122,9 @@ void Tab::sys_color_changed()
     update_label_colours();
 #ifdef _WIN32
     wxWindowUpdateLocker noUpdates(this);
-    if (m_mode_sizer)
-        m_mode_sizer->msw_rescale();
+    //BBS: GUI refactor
+    //if (m_mode_sizer)
+    //    m_mode_sizer->msw_rescale();
     wxGetApp().UpdateDarkUI(this);
     wxGetApp().UpdateDarkUI(m_treectrl);
 #endif

@@ -27,6 +27,8 @@ GLGizmoPainterBase::GLGizmoPainterBase(GLCanvas3D& parent, const std::string& ic
     m_vbo_sphere.finalize_geometry(true);
 }
 
+// BBS. FIXME: Not exist in prusa 2.4
+#if 0
 void GLGizmoPainterBase::activate_internal_undo_redo_stack(bool activate)
 {
     if (activate && ! m_internal_stack_active) {
@@ -47,6 +49,7 @@ void GLGizmoPainterBase::activate_internal_undo_redo_stack(bool activate)
         m_internal_stack_active = false;
     }
 }
+#endif
 
 void GLGizmoPainterBase::set_painter_gizmo_data(const Selection& selection)
 {

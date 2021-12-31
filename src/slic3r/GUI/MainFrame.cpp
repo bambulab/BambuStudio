@@ -299,7 +299,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         }
 
         //BBS: first check params save logic
-        if (event.CanVeto() && !wxGetApp().check_unsaved_changes()) {
+        if (event.CanVeto() && !wxGetApp().check_and_save_current_preset_changes(_L("PrusaSlicer is closing"), _L("Closing PrusaSlicer while some presets are modified."))) {
             event.Veto();
             return;
         }
@@ -566,10 +566,13 @@ void MainFrame::update_layout()
         m_main_sizer->Add(m_tabpanel, 1, wxEXPAND | wxTOP, 1);
         m_plater->Show();
         m_tabpanel->Show();
+#if 0
         // update Tabs
         if (old_layout == ESettingsLayout::Dlg)
             if (int sel = m_tabpanel->GetSelection(); sel != wxNOT_FOUND)
                 m_tabpanel->SetSelection(sel+1);// call SetSelection to correct layout after switching from Dlg to Old mode
+#endif
+
 #ifdef _MSW_DARK_MODE
         if (wxGetApp().tabs_as_menu())
             show_tabs_menu(true);

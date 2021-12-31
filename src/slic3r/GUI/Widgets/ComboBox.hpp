@@ -24,7 +24,7 @@ public:
              const wxString  choices[] = NULL,
              long            style     = 0);
 
-    void Rescale();
+    //void Rescale();
 
     DropDown & GetDropDown() { return drop; }
 

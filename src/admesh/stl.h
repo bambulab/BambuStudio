@@ -176,9 +176,9 @@ struct indexed_triangle_set
 		return sizeof(*this) + sizeof(stl_triangle_vertex_indices) * indices.size() + sizeof(stl_vertex) * vertices.size();
 	}
 
-	std::vector<stl_triangle_vertex_indices> 	indices;
-  std::vector<stl_vertex>       				    vertices;
-  std::vector<FaceProperty>                 properties;
+	std::vector<stl_triangle_vertex_indices>    indices;
+    std::vector<stl_vertex>                     vertices;
+    std::vector<FaceProperty>                   properties;
 
     bool empty() const { return indices.empty() || vertices.empty(); }
     stl_vertex get_vertex(int facet_idx, int vertex_idx) const{

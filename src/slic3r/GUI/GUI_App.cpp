@@ -2815,7 +2815,8 @@ void GUI_App::open_preferences(size_t open_on_tab, const std::string& highlight_
         // so we put it into an inner scope
         PreferencesDialog dlg(mainframe, open_on_tab, highlight_option);
         dlg.ShowModal();
-        app_layout_changed = dlg.settings_layout_changed();
+        // BBS
+        //app_layout_changed = dlg.settings_layout_changed();
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
         if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
 #else
@@ -2835,12 +2836,15 @@ void GUI_App::open_preferences(size_t open_on_tab, const std::string& highlight_
         }
 #endif // _WIN32
     }
+
+    // BBS
+    /*
     if (app_layout_changed) {
         // hide full main_sizer for mainFrame
         mainframe->GetSizer()->Show(false);
         mainframe->update_layout();
         mainframe->select_tab(size_t(0));
-    }
+    }*/
 }
 
 bool GUI_App::has_unsaved_preset_changes() const

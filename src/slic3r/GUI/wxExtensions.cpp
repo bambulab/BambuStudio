@@ -788,7 +788,7 @@ ScalableBitmap::ScalableBitmap( wxWindow *parent,
     m_parent(parent), m_icon_name(icon_name),
     m_px_cnt(px_cnt), m_grayscale(grayscale), m_resize(resize) // BBS: support resize by fill border
 {
-    m_bmp = create_scaled_bitmap(icon_name, parent, px_cnt, grayscale, resize);
+    m_bmp = create_scaled_bitmap(icon_name, parent, px_cnt, m_grayscale, std::string(), false, resize);
 }
 
 wxSize ScalableBitmap::GetBmpSize() const
@@ -822,7 +822,7 @@ int ScalableBitmap::GetBmpHeight() const
 void ScalableBitmap::msw_rescale()
 {
     // BBS: support resize by fill border
-    m_bmp = create_scaled_bitmap(m_icon_name, m_parent, m_px_cnt, m_grayscale, m_resize);
+    m_bmp = create_scaled_bitmap(m_icon_name, m_parent, m_px_cnt, m_grayscale, std::string(), false, m_resize);
 }
 
 // ----------------------------------------------------------------------------

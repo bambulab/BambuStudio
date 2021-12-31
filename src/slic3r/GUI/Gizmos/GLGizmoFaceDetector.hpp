@@ -15,8 +15,8 @@ public:
         : GLGizmoBase(parent, icon_filename, sprite_id) {}
 
 protected:
-    void on_render() const override;
-    void on_render_for_picking() const override {}
+    void on_render() override;
+    void on_render_for_picking() override {}
     void on_render_input_window(float x, float y, float bottom_limit) override;
     std::string on_get_name() const override;
     void on_set_state() override;

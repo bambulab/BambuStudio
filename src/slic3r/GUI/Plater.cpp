@@ -4327,7 +4327,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             // see: Plater::priv::object_list_changed()
             // FIXME: it may be better to have a single function making this check and let it be called wherever needed
             bool export_in_progress = this->background_process.is_export_scheduled();
-            bool model_fits = this->view3D->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
+            bool model_fits = this->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
             //BBS: add partplate logic
             PartPlate * current_plate = this->partplate_list.get_curr_plate();
 
@@ -8616,7 +8616,7 @@ int Plater::select_plate(int plate_index, bool need_slice)
                 // BBS
                 p->show_sliced_info(false);
                 //check inside status
-                bool model_fits = p->view3D->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
+                bool model_fits = p->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
                 //BBS: add partplate logic
                 PartPlate* part_plate = p->partplate_list.get_curr_plate();
                 part_plate->update_slice_ready_status(model_fits);
@@ -8718,7 +8718,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
                 // BBS
                 p->show_sliced_info(false);
                 //check inside status
-                bool model_fits = p->view3D->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
+                bool model_fits = p->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
                 //BBS: add partplate logic
                 PartPlate* part_plate = p->partplate_list.get_curr_plate();
                 part_plate->update_slice_ready_status(model_fits);

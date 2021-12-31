@@ -215,7 +215,7 @@ void GLGizmoAdvancedCut::on_update(const UpdateData& data)
         set_movement(m_start_movement + calc_projection(data.mouse_ray));
 }
 
-void GLGizmoAdvancedCut::on_render() const
+void GLGizmoAdvancedCut::on_render()
 {
     const Selection& selection = m_parent.get_selection();
     const BoundingBoxf3& box = selection.get_bounding_box();
@@ -282,14 +282,15 @@ void GLGizmoAdvancedCut::on_render() const
     ::glVertex3dv(m_move_grabber.center.data());
     glsafe(::glEnd());
 
-    std::copy(std::begin(GrabberColor), std::end(GrabberColor), m_move_grabber.color);
+    //std::copy(std::begin(GrabberColor), std::end(GrabberColor), m_move_grabber.color);
+    m_move_grabber.color = GrabberColor;
     m_move_grabber.render(m_hover_id == get_group_id(), (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0));
 
     // Should be placed at last, because GLGizmoRotate3D clears depth buffer
     GLGizmoRotate3D::on_render();
 }
 
-void GLGizmoAdvancedCut::on_render_for_picking() const
+void GLGizmoAdvancedCut::on_render_for_picking()
 {
     GLGizmoRotate3D::on_render_for_picking();
 

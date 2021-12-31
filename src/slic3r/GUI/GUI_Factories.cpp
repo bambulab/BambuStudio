@@ -913,7 +913,8 @@ void MenuFactory::create_default_menu()
 void MenuFactory::create_common_object_menu(wxMenu* menu)
 {
     append_menu_item_rename(menu);
-    append_menu_items_instance_manipulation(menu);
+    // BBS
+    //append_menu_items_instance_manipulation(menu);
     // Delete menu was moved to be after +/- instace to make it more difficult to be selected by mistake.
     append_menu_item_delete(menu);
     //append_menu_item_instance_to_object(menu);

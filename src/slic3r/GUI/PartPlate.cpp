@@ -1626,7 +1626,7 @@ int PartPlateList::delete_plate(int index)
 	else {
 		//delete the plate behind current, just need to update the position of Bed3D
 		Vec2d pos = compute_shape_position(m_current_plate, m_plate_cols);
-		m_plater->get_bed().set_position(pos);
+		m_plater->set_bed_position(pos);
 	}
 
 	unprintable_plate.set_index(m_plate_list.size());
@@ -2803,10 +2803,10 @@ int PartPlateList::load_gcode_files()
 	{
 		if (!m_plate_list[i]->m_gcode_path_from_3mf.empty()) {
 			//the same as plater::priv::update_print_volume_state();
-			BoundingBoxf3   print_volume = m_plate_list[i]->get_bounding_box(false);
-			print_volume.max(2) = this->m_plate_height;
-			print_volume.min(2) = -1e10;
-			m_model->update_print_volume_state(print_volume);
+			//BoundingBoxf3   print_volume = m_plate_list[i]->get_bounding_box(false);
+			//print_volume.max(2) = this->m_plate_height;
+			//print_volume.min(2) = -1e10;
+			m_model->update_print_volume_state({m_plate_list[i]->get_shape(), (double)this->m_plate_height });
 
 			if (!m_plate_list[i]->load_gcode_from_file(m_plate_list[i]->m_gcode_path_from_3mf))
 				ret ++;

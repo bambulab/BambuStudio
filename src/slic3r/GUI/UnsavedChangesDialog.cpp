@@ -794,8 +794,9 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection* 
 
     const std::string& def_action = wxGetApp().app_config->get(m_app_config_key);
     if (def_action == none) {
-        if (wxGetApp().mainframe->is_dlg_layout() && wxGetApp().mainframe->m_settings_dialog.HasFocus())
-            this->SetPosition(wxGetApp().mainframe->m_settings_dialog.GetPosition());
+        //BBS GUI refactor: remove unused layout new/dlg
+        //if (wxGetApp().mainframe->is_dlg_layout() && wxGetApp().mainframe->m_settings_dialog.HasFocus())
+        //    this->SetPosition(wxGetApp().mainframe->m_settings_dialog.GetPosition());
         this->CenterOnScreen();
     }
     else {

@@ -54,8 +54,8 @@ protected:
     virtual bool on_is_activable() const;
     virtual void on_start_dragging();
     virtual void on_update(const UpdateData& data);
-    virtual void on_render() const;
-    virtual void on_render_for_picking() const;
+    virtual void on_render();
+    virtual void on_render_for_picking();
     virtual void on_render_input_window(float x, float y, float bottom_limit);
 
     virtual void on_enable_grabber(unsigned int id)
