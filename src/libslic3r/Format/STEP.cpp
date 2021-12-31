@@ -37,6 +37,112 @@ const int LOAD_STEP_STAGE_GET_MESH           = 2;
 
 namespace Slic3r {
 
+bool StepPreProcessor::preprocess(const char* path, std::string &output_path)
+{
+    boost::nowide::ifstream infile(path);
+    if (!infile.good()) {
+        throw Slic3r::RuntimeError(std::string("Load step file failed.\nCannot open file for reading.\n"));
+        return false;
+    }
+
+    boost::filesystem::path temp_path(temporary_dir());
+    std::string temp_step_path = temp_path.string() + "/temp.step";
+    boost::nowide::remove(temp_step_path.c_str());
+    boost::nowide::ofstream temp_file(temp_step_path, std::ios::app);
+    std::string temp_line;
+    while (std::getline(infile, temp_line)) {
+        if (m_encode_type == EncodedType::UTF8) {
+            //BBS: continue to judge whether is other type
+            if (isUtf8(temp_line)) {
+                //BBS: do nothing, but must be checked before checking whether is GBK
+            }
+            //BBS: not utf8, then maybe GBK
+            else if (isGBK(temp_line)) {
+                m_encode_type = EncodedType::GBK;
+            }
+            //BBS: not UTF8 and not GBK, then maybe some kind of special encoded type which we can't handle
+            // Load the step as UTF and user will see garbage characters in slicer but we have no solution at the moment
+            else {
+                m_encode_type = EncodedType::OTHER;
+            }
+        }
+        if (m_encode_type == EncodedType::GBK)
+            //BBS: transform to UTF8 format if is GBK
+            //todo: use gbkToUtf8 function to replace
+            temp_file << decode_path(temp_line.c_str()) << std::endl;
+        else
+            temp_file << temp_line.c_str() << std::endl;
+    }
+    temp_file.close();
+    infile.close();
+    if (m_encode_type == EncodedType::GBK) {
+        output_path = temp_step_path;
+    } else {
+        boost::nowide::remove(temp_step_path.c_str());
+        output_path = std::string(path);
+    }
+
+    return true;
+}
+
+bool StepPreProcessor::isUtf8(const std::string str)
+{
+    size_t num = 0;
+    int i = 0;
+    while (i < str.length()) {
+        if ((str[i] & 0x80) == 0x00) {
+            i++;
+        } else if ((num = preNum(str[i])) > 2) {
+            i++;
+            for (int j = 0; j < num - 1; j++) {
+                if ((str[i] & 0xc0) != 0x80)
+                    return false;
+                i++;
+            }
+        } else {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool StepPreProcessor::isGBK(const std::string str) {
+    size_t i = 0;
+    while (i < str.length()) {
+        if (str[i] <= 0x7f) {
+            i++;
+            continue;
+        } else {
+            if (str[i] >= 0x81 &&
+                str[i] <= 0xfe &&
+                str[i + 1] >= 0x40 &&
+                str[i + 1] <= 0xfe &&
+                str[i + 1] != 0xf7) {
+                i += 2;
+                continue;
+            }
+            else {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+int StepPreProcessor::preNum(const unsigned char byte) {
+    unsigned char mask = 0x80;
+    int num = 0;
+    for (int i = 0; i < 8; i++) {
+        if ((byte & mask) == mask) {
+            mask = mask >> 1;
+            num++;
+        } else {
+            break;
+        }
+    }
+    return num;
+}
+
 struct NamedSolid {
     NamedSolid(const TopoDS_Solid& s,
                const std::string& n) : solid{s}, name{n} {}
@@ -85,14 +191,19 @@ bool load_step(const char *path, Model *model, ImportStepProgressFn proFn)
             return false;
     }
 
+    std::string file_after_preprocess;
+    StepPreProcessor pre_processor;
+    if (!pre_processor.preprocess(path, file_after_preprocess))
+        return false;
+
     std::vector<NamedSolid> namedSolids;
     Handle(TDocStd_Document) document;
     Handle(XCAFApp_Application) application = XCAFApp_Application::GetApplication();
-    application->NewDocument(path, document);
+    application->NewDocument(file_after_preprocess.c_str(), document);
     STEPCAFControl_Reader reader;
     reader.SetNameMode(true);
     //BBS: Todo, read file is slow which cause the progress_bar no update and gui no response
-    IFSelect_ReturnStatus stat = reader.ReadFile(path);
+    IFSelect_ReturnStatus stat = reader.ReadFile(file_after_preprocess.c_str());
     if (stat != IFSelect_RetDone || !reader.Transfer(document)) {
         application->Close(document);
         throw std::logic_error{ std::string{"Could not read '"} + path + "'" };
