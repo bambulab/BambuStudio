@@ -2045,10 +2045,34 @@ void MainFrame::init_menubar_as_editor()
     auto config_wizard_name = _(ConfigWizard::name(true) + "(Debug)");
     const auto config_wizard_tooltip = from_u8((boost::format(_utf8(L("Run %s"))) % config_wizard_name).str());
     auto config_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuWizard + config_id_base, config_wizard_name, config_wizard_tooltip);
-
     auto preference_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuPreferences + config_id_base, _L("&Preference"), "");
+    auto language_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuLanguage + config_id_base, _L("&Switch Language"), "");
     m_topbar->GetTopMenu()->Bind(wxEVT_MENU, [this, config_id_base](wxEvent& event) {
         switch (event.GetId() - config_id_base) {
+        case ConfigMenuLanguage:
+        {
+            /* Before change application language, let's check unsaved changes on 3D-Scene
+             * and draw user's attention to the application restarting after a language change
+             */
+            {
+                // the dialog needs to be destroyed before the call to switch_language()
+                // or sometimes the application crashes into wxDialogBase() destructor
+                // so we put it into an inner scope
+                wxString title = wxGetApp().is_editor() ? wxString(SLIC3R_APP_NAME) : wxString(GCODEVIEWER_APP_NAME);
+                title += " - " + _L("Language selection");
+                wxMessageDialog dialog(nullptr,
+                    _L("Switching the language will trigger application restart.\n"
+                        "You will lose content of the plater.") + "\n\n" +
+                    _L("Do you want to proceed?"),
+                    title,
+                    wxICON_QUESTION | wxOK | wxCANCEL);
+                if (dialog.ShowModal() == wxID_CANCEL)
+                    return;
+            }
+
+            wxGetApp().switch_language();
+            break;
+        }
         case ConfigMenuWizard:
         {
             wxGetApp().run_wizard(ConfigWizard::RR_USER);
@@ -2118,6 +2142,7 @@ void MainFrame::init_menubar_as_editor()
         m_topbar->AddDropDownSubMenu(viewMenu, _L("&View"));
     //BBS add Preference
     m_topbar->AddDropDownMenuItem(preference_item);
+    m_topbar->AddDropDownMenuItem(language_item);
     m_topbar->AddDropDownMenuItem(config_item);
     m_topbar->AddDropDownSubMenu(helpMenu, _L("&Help"));
 
