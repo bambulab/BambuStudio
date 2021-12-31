@@ -1979,8 +1979,8 @@ struct Plater::priv
 #endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
 
     //BBS: add plate_id for thumbnail
-    void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type, int plate_id);
-    ThumbnailsList generate_thumbnails(const ThumbnailsParams& params, Camera::EType camera_type, int plate_id);
+    void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type);
+    ThumbnailsList generate_thumbnails(const ThumbnailsParams& params, Camera::EType camera_type);
 
     void bring_instance_forward() const;
 
@@ -2096,7 +2096,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     sla_print.set_status_callback(statuscb); */
 
     // BBS: to be checked. Not follow patch.
-    background_process.set_thumbnail_cb([this](const ThumbnailsParams& params, int plate_id = 0) { return this->generate_thumbnails(params, Camera::EType::Ortho, plate_id); });
+    background_process.set_thumbnail_cb([this](const ThumbnailsParams& params) { return this->generate_thumbnails(params, Camera::EType::Ortho); });
     background_process.set_slicing_completed_event(EVT_SLICING_COMPLETED);
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
     background_process.set_export_began_event(EVT_EXPORT_BEGAN);
@@ -5157,19 +5157,19 @@ void Plater::priv::on_3dcanvas_mouse_dragging_finished(SimpleEvent&)
 }
 
 //BBS: add plate id for thumbnail generate param
-void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type, int plate_id)
+void Plater::priv::generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type)
 {
-    view3D->get_canvas3d()->render_thumbnail(data, w, h, thumbnail_params, camera_type, plate_id);
+    view3D->get_canvas3d()->render_thumbnail(data, w, h, thumbnail_params, camera_type);
 }
 
 //BBS: add plate id for thumbnail generate param
-ThumbnailsList Plater::priv::generate_thumbnails(const ThumbnailsParams& params, Camera::EType camera_type, int plate_id)
+ThumbnailsList Plater::priv::generate_thumbnails(const ThumbnailsParams& params, Camera::EType camera_type)
 {
     ThumbnailsList thumbnails;
     for (const Vec2d& size : params.sizes) {
         thumbnails.push_back(ThumbnailData());
         Point isize(size); // round to ints
-        generate_thumbnail(thumbnails.back(), isize.x(), isize.y(), params, camera_type, plate_id);
+        generate_thumbnail(thumbnails.back(), isize.x(), isize.y(), params, camera_type);
         if (!thumbnails.back().is_valid())
             thumbnails.pop_back();
     }
@@ -6517,7 +6517,8 @@ void Plater::update_platplate_thumbnails()
     {
         PartPlate* plate = get_partplate_list().get_plate(i);
         if (!plate->empty()) {
-            get_current_canvas3D()->render_thumbnail(plate->thumbnail_data, plate->plate_thumbnail_width, plate->plate_thumbnail_height, false, false, false, true, i);
+            ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i};
+            get_current_canvas3D()->render_thumbnail(plate->thumbnail_data, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params, Camera::EType::Ortho);
         }
     }
 }
@@ -7489,8 +7490,8 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
     if (!backup) {
     for (unsigned int i = 0; i < p->partplate_list.get_plate_count(); i++) {
         ThumbnailData* thumbnail_data = new ThumbnailData();
-        ThumbnailsParams thumbnail_params = { {}, false, true, true, true };
-        p->generate_thumbnail(*thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, thumbnail_params, Camera::EType::Ortho, i);
+        ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i };
+        p->generate_thumbnail(*thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, thumbnail_params, Camera::EType::Ortho);
         thumbnails.push_back(thumbnail_data);
     }}
 
