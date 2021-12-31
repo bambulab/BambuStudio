@@ -153,6 +153,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Tab.hpp
     GUI/ParamsPanel.cpp
     GUI/ParamsPanel.hpp
+	GUI/AmsWidgets.cpp
+	GUI/AmsWidgets.hpp
     GUI/MonitorBasePanel.cpp
     GUI/MonitorBasePanel.h
     GUI/Monitor.cpp

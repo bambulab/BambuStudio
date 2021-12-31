@@ -21,6 +21,7 @@
 #include "slic3r/GUI/PrintResultDialog.hpp"
 #include "slic3r/GUI/DebugToolPanel.h"
 #include "slic3r/GUI/Search.hpp"
+#include "slic3r/GUI/AmsWidgets.hpp"
 #include "Jobs/Job.hpp"
 
 class wxTimer;
@@ -177,6 +178,7 @@ public:
             DeviceSearchDialog* search_dialog;
             wxFileDialog*   selectGcodeDialog;
             wxFileDialog*   select3mfDialog;
+            wxObjectDataPtr<TrayListModel> tray_model;
             bool            gcode_uploading;
             bool            _3mf_uploading;
 			std::vector<wxString> upgrade_file_list;
@@ -193,6 +195,7 @@ public:
 			std::queue<std::string> mqtt_msg_queue;
 
 			void init();
+            void init_model();
             void init_bind();
             void init_bind_handler();
 

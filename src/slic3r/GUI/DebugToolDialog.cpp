@@ -461,6 +461,8 @@ void DeviceSearchDialog::update_list()
 
     init();
 
+    init_model();
+
     init_bind();
 
     init_bind_handler();
@@ -481,6 +483,58 @@ void DebugToolDialog::init()
     m_search_img = create_scaled_bitmap("search", nullptr, 24);
 
     m_bpButton_search->SetBitmap(m_search_img);
+
+    tray_model = new TrayListModel();
+    m_dataViewCtrl_ams->AssociateModel(tray_model.get());
+
+    m_dataViewCtrl_ams->AppendTextColumn("Name",
+        TrayListModel::Col_TrayTitle,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
+    m_dataViewCtrl_ams->AppendTextColumn("Color",
+        TrayListModel::Col_TrayColor,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
+    m_dataViewCtrl_ams->AppendTextColumn("Meterial",
+        TrayListModel::Col_TrayMeterial,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
+    m_dataViewCtrl_ams->AppendTextColumn("SN",
+        TrayListModel::Col_TraySN,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
+    m_dataViewCtrl_ams->AppendTextColumn("Weight",
+        TrayListModel::Col_TrayWeight,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
+    m_dataViewCtrl_ams->AppendTextColumn("Diameter",
+        TrayListModel::Col_TrayDiameter,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
+    m_dataViewCtrl_ams->AppendTextColumn("Time",
+        TrayListModel::Col_TrayTime,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
+    m_dataViewCtrl_ams->AppendTextColumn("Smooth",
+        TrayListModel::Col_TraySmooth,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
 
     cb_device_list->SetEditable(false);
     cb_device_list->Bind(wxEVT_COMBOBOX, &DebugToolDialog::on_select_device, this);
@@ -1091,6 +1145,61 @@ void DebugToolDialog::init()
     //}
 }
 
+void DebugToolDialog::init_model()
+{
+    tray_model = new TrayListModel();
+    m_dataViewCtrl_ams->AssociateModel(tray_model.get());
+
+    m_dataViewCtrl_ams->AppendTextColumn("Name",
+        TrayListModel::Col_TrayTitle,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
+    m_dataViewCtrl_ams->AppendTextColumn("Color",
+        TrayListModel::Col_TrayColor,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
+    m_dataViewCtrl_ams->AppendTextColumn("Meterial",
+        TrayListModel::Col_TrayMeterial,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
+    m_dataViewCtrl_ams->AppendTextColumn("SN",
+        TrayListModel::Col_TraySN,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
+    m_dataViewCtrl_ams->AppendTextColumn("Weight",
+        TrayListModel::Col_TrayWeight,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
+    m_dataViewCtrl_ams->AppendTextColumn("Diameter",
+        TrayListModel::Col_TrayDiameter,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
+    m_dataViewCtrl_ams->AppendTextColumn("Time",
+        TrayListModel::Col_TrayTime,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
+    m_dataViewCtrl_ams->AppendTextColumn("Smooth",
+        TrayListModel::Col_TraySmooth,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_SORTABLE);
+}
+
 void DebugToolDialog::init_bind()
 {
     btn_set_x_pos_0_1->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
@@ -1580,6 +1689,8 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
     MachineObject* obj = device_manager->get_default();
 
     if (!obj) return;
+
+    tray_model->update(obj);
 
     wxString big1_speed_text = wxString::Format("%d", obj->big_fan1_speed);
     m_staticText_big1_speed->SetLabelText(big1_speed_text);

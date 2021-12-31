@@ -944,7 +944,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	bSizer321->Add( bSizer36, 0, 0, 10 );
 
 	m_dataViewCtrl_ams = new wxDataViewCtrl( m_panel_ams, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer321->Add( m_dataViewCtrl_ams, 0, wxALL, 5 );
+	bSizer321->Add(m_dataViewCtrl_ams, 1, wxALL | wxEXPAND, 5);
 
 
 	m_panel_ams->SetSizer( bSizer321 );

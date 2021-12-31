@@ -43,65 +43,10 @@
 #include "wxExtensions.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/MonitorBasePanel.h"
+#include "slic3r/GUI/AmsWidgets.hpp"
 
 namespace Slic3r {
 namespace GUI {
-
-class TrayListModel : public wxDataViewVirtualListModel
-{
-public:
-	enum
-	{
-		Col_TrayTitle,
-		Col_TrayColor,
-		Col_TrayMeterial,
-		Col_TrayWeight,
-		Col_TrayDiameter,
-		Col_TrayTime,
-		Col_TraySN,
-		Col_TrayManufacturer,
-		Col_TraySaturability,
-		Col_TrayTransmittance,
-		Col_TraySmooth,
-		Col_Max,
-	};
-
-	TrayListModel();
-
-	virtual unsigned int GetColumnCount() const wxOVERRIDE
-	{
-		return Col_Max;
-	}
-
-	virtual wxString GetColumnType(unsigned int col) const wxOVERRIDE
-	{
-		return "string";
-	}
-
-	virtual void GetValueByRow(wxVariant& variant,
-		unsigned int row, unsigned int col) const wxOVERRIDE;
-	virtual bool GetAttrByRow(unsigned int row, unsigned int col,
-		wxDataViewItemAttr& attr) const wxOVERRIDE;
-	virtual bool SetValueByRow(const wxVariant& variant,
-		unsigned int row, unsigned int col) wxOVERRIDE;
-
-	void update(MachineObject* obj);
-	void clear_data();
-
-private:
-	wxArrayString m_titleColValues;
-	wxArrayString m_colorColValues;
-	wxArrayString m_meterialColValues;
-	wxArrayString m_weightColValues;
-	wxArrayString m_diameterColValues;
-	wxArrayString m_timeColValues;
-	wxArrayString m_snColValues;
-	wxArrayString m_manufacturerColValues;
-	wxArrayString m_saturabilityColValues;
-	wxArrayString m_transmittanceColValues;
-	wxArrayString m_smoothColValues;
-
-};
 
 class SubTaskListModel : public wxDataViewVirtualListModel
 {
