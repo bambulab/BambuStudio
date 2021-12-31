@@ -772,7 +772,7 @@ std::string CoolingBuffer::apply_layer_cooldown(
         //BBS
         if (additional_fan_speed_new != additional_fan_speed) {
             additional_fan_speed = additional_fan_speed_new;
-            new_gcode += m_gcodegen.writer().set_additional_fan(additional_fan_speed);
+            new_gcode += GCodeWriter::set_additional_fan(m_config.gcode_flavor, m_config.gcode_comments, additional_fan_speed);
         }
     };
 

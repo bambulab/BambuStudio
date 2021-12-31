@@ -589,21 +589,18 @@ std::string GCodeWriter::set_fan(unsigned int speed) const
 }
 
 //BBS: set additional fan speed for BBS machine only
-std::string GCodeWriter::set_additional_fan(unsigned int speed, bool dont_save)
+std::string GCodeWriter::set_additional_fan(const GCodeFlavor gcode_flavor, bool gcode_comments, unsigned int speed)
 {
     std::ostringstream gcode;
-    if (m_last_additional_fan_speed != speed || dont_save) {
-        if (!dont_save) m_last_additional_fan_speed = speed;
 
-        gcode << "M106 " << "P2 " << "S" << (int)(255.0 * speed / 100.0);
-        if (this->config.gcode_comments) {
-            if (speed == 0)
-                gcode << " ; disable additional fan ";
-            else
-                gcode << " ; enable additional fan ";
-        }
-        gcode << "\n";
+    gcode << "M106 " << "P2 " << "S" << (int)(255.0 * speed / 100.0);
+    if (gcode_comments) {
+        if (speed == 0)
+            gcode << " ; disable additional fan ";
+        else
+            gcode << " ; enable additional fan ";
     }
+    gcode << "\n";
     return gcode.str();
 }
 
