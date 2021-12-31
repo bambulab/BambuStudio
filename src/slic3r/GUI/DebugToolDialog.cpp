@@ -468,7 +468,12 @@ void DeviceSearchDialog::update_list()
 
     DebugToolDialog::~DebugToolDialog()
     {
-        ;
+        if (m_timer) {
+            m_timer->Stop();
+        }
+
+        if (m_deviceListTimer)
+            m_deviceListTimer->Stop();
     }
 
 void DebugToolDialog::init()

@@ -367,12 +367,13 @@ SelectMachinePopup::SelectMachinePopup( wxWindow *parent, bool scrolled)
     wxColour text_color = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT);
     m_staticText_select->SetForegroundColour(text_color);
 
+    m_refresh_timer = new wxTimer();
     Bind(wxEVT_TIMER, &SelectMachinePopup::on_timer, this);
 }
 
 void SelectMachinePopup::Popup(wxWindow* WXUNUSED(focus))
 {
-    m_refresh_timer = new wxTimer();
+    m_refresh_timer->Stop();
     m_refresh_timer->SetOwner(this);
     m_refresh_timer->Start(MACHINE_LIST_REFRESH_INTERVAL);
     wxPostEvent(this, wxTimerEvent());
@@ -383,6 +384,7 @@ void SelectMachinePopup::OnDismiss()
 {
     if (m_refresh_timer) {
         m_refresh_timer->Stop();
+        delete m_refresh_timer;
     }
     wxPopupTransientWindow::OnDismiss();
 }
@@ -754,7 +756,10 @@ void SelectMachineDialog::on_dpi_changed(const wxRect& suggested_rect)
 
 SelectMachineDialog::~SelectMachineDialog()
 {
-    m_refresh_timer->Stop();
+    if (m_refresh_timer) {
+        m_refresh_timer->Stop();
+        delete m_refresh_timer;
+    }
 
     // Disconnect Events
     m_button_cancel->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(SelectMachineDialog::on_cancel), NULL, this);

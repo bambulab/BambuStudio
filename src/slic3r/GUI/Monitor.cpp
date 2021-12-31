@@ -705,6 +705,9 @@ void MonitorPanel::on_size(wxSizeEvent& event)
 
 MonitorPanel::~MonitorPanel()
 {
+    if (m_refresh_timer)
+        m_refresh_timer->Stop();
+
     // Disconnect Events
     m_panel_machine_status_title->Disconnect( wxEVT_LEFT_DCLICK, wxMouseEventHandler( MonitorPanel::on_status_click ), NULL, this );
 	m_staticText_status->Disconnect( wxEVT_LEFT_DCLICK, wxMouseEventHandler( MonitorPanel::on_status_click ), NULL, this );
@@ -825,6 +828,15 @@ void MonitorPanel::on_webrequest_state(wxWebRequestEvent& evt)
 
 bool MonitorPanel::Show(bool show)
 {
+    if (show) {
+        m_refresh_timer->Stop();
+        m_refresh_timer->SetOwner(this);
+        m_refresh_timer->Start(REFRESH_INTERVAL);
+        wxPostEvent(this, wxTimerEvent());
+    }
+    else {
+        m_refresh_timer->Stop();
+    }
     return wxPanel::Show(show);
 }
 
