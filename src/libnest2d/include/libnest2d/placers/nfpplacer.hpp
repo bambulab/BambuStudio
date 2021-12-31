@@ -1019,8 +1019,8 @@ private:
 
         auto d = cb - ci;
         if (!config_.m_excluded_regions.empty()) {
-            d.X = d.X < 0 ? 0 : d.X;
-            d.Y = d.Y < 0 ? 0 : d.Y;
+            d.x() = d.x() < 0 ? 0 : d.x();
+            d.y() = d.y() < 0 ? 0 : d.y();
         }
         for(Item& item : items_)
             if (!item.is_virt_object)

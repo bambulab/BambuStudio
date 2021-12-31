@@ -180,14 +180,14 @@ protected:
         // 1) Y distance of item corner to bed corner. Must be put above bed corner. (high weight)
         // 2) X distance of item corner to bed corner (low weight)
         // 3) item row occupancy (useful when rotation is enabled)
-    double dist_for_BOTTOM_LEFT(Box ibb, const ClipperLib_Z::IntPoint& origin_pack)
+    double dist_for_BOTTOM_LEFT(Box ibb, const ClipperLib::IntPoint& origin_pack)
     {
-        double dist_corner_y = ibb.minCorner().Y - origin_pack.Y;
-        double dist_corner_x = ibb.minCorner().X - origin_pack.X;
+        double dist_corner_y = ibb.minCorner().y() - origin_pack.y();
+        double dist_corner_x = ibb.minCorner().x() - origin_pack.x();
         if (dist_corner_y < 0 || dist_corner_x<0)
             return LARGE_COST_TO_REJECT;
         double bindist = norm(dist_corner_y + 0.1 * dist_corner_x
-            + 0.1 * double(ibb.maxCorner().Y - ibb.minCorner().Y));  // occupy as few rows as possible
+            + 0.1 * double(ibb.maxCorner().y() - ibb.minCorner().y()));  // occupy as few rows as possible
         return bindist;
     }
 

@@ -99,7 +99,8 @@ void GLGizmoFaceDetector::perform_recognition(const Selection& selection)
             Vec3d ofs = inst_ofs + vol_ofs;
             const indexed_triangle_set& mv_its = mv->mesh().its;
             for (const stl_triangle_vertex_indices& facet_vert_idxs : mv_its.indices) {
-                // TODO: check exterior facet
+                if(mv_its.properties[facet_vert_idxs].type!=eExteriorAppearance)
+                    continue;
 
                 for (int i = 0; i < 3; ++i) {
                     m_iva.push_geometry(double(mv_its.vertices[facet_vert_idxs[i]](0)) + ofs(0),

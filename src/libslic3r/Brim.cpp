@@ -960,7 +960,7 @@ static void make_inner_island_brim(const Print& print, const ConstPrintObjectPtr
 {
     auto save_polygon_if_is_inner_island = [](const Polygons& holes_area, Polygon& counter, std::map<size_t, Polygons>& hole_island_pair) {
         for (size_t i = 0; i < holes_area.size(); i++) {
-            if (diff_ex({ counter }, { holes_area[i] }).empty()) {
+            if (diff_ex(Polygons{ counter }, { holes_area[i] }).empty()) {
                 // BBS: this is an inner island inside holes_area[i], save
                 counter.douglas_peucker(SCALED_RESOLUTION);
                 hole_island_pair[i].push_back(counter);

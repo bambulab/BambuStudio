@@ -2306,7 +2306,7 @@ void cut_mesh(const indexed_triangle_set& mesh, std::array<Vec3d, 4> plane_point
         mid_point += pt;
     mid_point /= (double)plane_points.size();
     BoundingBox3Base<stl_vertex> mesh_bbox(mesh.vertices);
-    Vec3d movement = mesh_bbox.center() - mid_point;
+    Vec3d movement = mesh_bbox.center().cast<double>() - mid_point;
     if (plane_normal(2) < 0.0) {
         movement *= -1.0;
     }

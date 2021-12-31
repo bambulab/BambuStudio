@@ -95,10 +95,7 @@ void FaceDetector::detect_exterior_face()
 
         // TODO: add exterior flag
         TriangleMesh& vol_mesh = const_cast<TriangleMesh&>(mv->mesh());
-#if 0
-        stl_facet& vol_facet = vol_mesh.stl.facet_start[vol_facet_idx];
-        vol_facet.extra[0] = EnumFaceTypes::eExteriorAppearance;
-#endif
+        vol_mesh.its.properties[vol_facet_idx].type = EnumFaceTypes::eExteriorAppearance;
 
         // check
 #if 0

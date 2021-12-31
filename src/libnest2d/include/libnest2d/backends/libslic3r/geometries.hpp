@@ -261,47 +261,6 @@ inline TMultiShape<PolygonImpl> merge(const TMultiShape<PolygonImpl>& shapes)
     return Slic3r::union_ex(shapes);
 }
 
-inline PolygonImpl intersection(const PolygonImpl& subject, const PolygonImpl& clip)
-{
-    Slic3r::ClipperLib::Clipper clipper;
-
-    bool closed = true;
-
-    clipper.AddPath(subject.contour, Slic3r::ClipperLib::ptSubject, closed);
-    clipper.AddPaths(subject.holes, Slic3r::ClipperLib::ptSubject, closed);
-
-    clipper.AddPath(clip.contour, Slic3r::ClipperLib::ptClip, closed);
-    clipper.AddPaths(clip.holes, Slic3r::ClipperLib::ptClip, closed);
-
-    auto mode = Slic3r::ClipperLib::pftNegative;
-
-    auto results = libnest2d::clipper_execute(clipper, Slic3r::ClipperLib::ctIntersection, mode, mode);
-    if (results.size() > 0)
-        return results.front();
-    else
-        return PolygonImpl();
-}
-
-inline PolygonImpl intersection(const PolygonImpl& subject, const _Box<PointImpl>& box)
-{
-    PolygonImpl clip;
-    using Point = PointImpl;
-    auto minX = getX(box.minCorner());
-    auto maxX = getX(box.maxCorner());
-    auto minY = getY(box.minCorner());
-    auto maxY = getY(box.maxCorner());
-    sl::addVertex(clip, Point(minX, minY));
-    sl::addVertex(clip, Point(maxX, minY));
-    sl::addVertex(clip, Point(maxX, maxY));
-    sl::addVertex(clip, Point(minX, maxY));
-    return intersection(subject, clip);
-}
-
-// TODO unimplemented now
-inline PolygonImpl intersection(const PolygonImpl& subject, const _Circle<PointImpl>& box) {
-    return subject;
-}
-
 } // namespace nfp
 } // namespace libnest2d
 
