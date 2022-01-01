@@ -1273,7 +1273,9 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* pres
             wxString old_val = from_u8((boost::format("%1%") % old_config.opt<ConfigOptionStrings>("extruder_colour")->values.size()).str());
             wxString new_val = from_u8((boost::format("%1%") % new_config.opt<ConfigOptionStrings>("extruder_colour")->values.size()).str());
 
-            m_tree->Append("extruders_count", type, _L("General"), _L("Capabilities"), local_label, old_val, new_val, category_icon_map.at("General"));
+            //BBS: the page "General" changed to "Basic information" instead
+            m_tree->Append("extruders_count", type, _L("General"), _L("Capabilities"), local_label, old_val, new_val, category_icon_map.at("Basic information"));
+            //m_tree->Append("extruders_count", type, _L("General"), _L("Capabilities"), local_label, old_val, new_val, category_icon_map.at("General"));
         }
 
         for (const std::string& opt_key : dirty_options) {

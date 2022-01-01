@@ -2844,7 +2844,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             // For exporting from the amf/3mf we shouldn't check printer_presets for the containing information about "Print Host upload"
                             //BBS: add preset combo box re-active logic
                             //currently found only needs re-active here
-                            wxGetApp().load_current_presets(true, false);
+                            wxGetApp().load_current_presets(false, false);
                             // Update filament colors for the MM-printer profile in the full config 
                             // to avoid black (default) colors for Extruders in the ObjectList, 
                             // when for extruder colors are used filament colors
