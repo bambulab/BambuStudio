@@ -69,9 +69,11 @@ public:
 
     virtual wxGridCellEditor *Clone() const wxOVERRIDE;
 
+    virtual void BeginEdit(int row, int col, wxGrid* grid) wxOVERRIDE;
 
 protected:
     wxBitmapComboBox *Combo() const { return (wxBitmapComboBox *)m_control; }
+    void OnComboCloseUp(wxCommandEvent& evt);
 
     std::vector<wxBitmap*>* m_icons;
 
@@ -160,23 +162,23 @@ public:
     {
         col_plate_index = 0,
         col_assemble_name = 1,
-        col_assemble_name_reset = 2,
-        col_name = 3,
-        col_name_reset = 4,
-        col_filaments = 5,
-        col_filaments_reset = 6,
-        col_layer_height = 7,
-        col_layer_height_reset = 8,
-        col_perimeters = 9,
-        col_perimeters_reset = 10,
-        col_fill_density = 11,
-        col_fill_density_reset = 12,
-        col_support_material = 13,
-        col_support_material_reset = 14,
-        col_brim_type = 15,
-        col_brim_type_reset = 16,
-        col_speed_perimeter = 17,
-        col_speed_perimeter_reset = 18,
+        //col_assemble_name_reset = 2,
+        col_name = col_assemble_name + 1,
+        //col_name_reset = 4,
+        col_filaments = col_name + 1,
+        col_filaments_reset = col_filaments + 1,
+        col_layer_height = col_filaments_reset + 1,
+        col_layer_height_reset = col_layer_height + 1,
+        col_perimeters = col_layer_height_reset + 1,
+        col_perimeters_reset = col_perimeters + 1,
+        col_fill_density = col_perimeters_reset + 1,
+        col_fill_density_reset = col_fill_density + 1,
+        col_support_material = col_fill_density_reset + 1,
+        col_support_material_reset = col_support_material + 1,
+        col_brim_type = col_support_material_reset + 1,
+        col_brim_type_reset = col_brim_type + 1,
+        col_speed_perimeter = col_brim_type_reset + 1,
+        col_speed_perimeter_reset = col_speed_perimeter + 1,
         col_max
     };
 
@@ -221,12 +223,12 @@ public:
                     return plate_index;
                 case col_assemble_name:
                     return assemble_name;
-                case col_assemble_name_reset:
-                    return ori_assemble_name;
+                //case col_assemble_name_reset:
+                //    return ori_assemble_name;
                 case col_name:
                     return name;
-                case col_name_reset:
-                    return ori_name;
+                //case col_name_reset:
+                //    return ori_name;
                 case col_filaments:
                     return filaments;
                 case col_filaments_reset:
@@ -470,6 +472,7 @@ public:
     ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model *modelObj, wxSize maxSize);
     ~ObjectTableDialog();
     void Popup(int obj_idx = -1, int vol_idx = -1, wxPoint position = wxDefaultPosition);
+    void OnClose(wxCloseEvent &evt);
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;

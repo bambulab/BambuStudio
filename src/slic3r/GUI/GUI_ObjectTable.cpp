@@ -22,6 +22,9 @@ static const int grid_cell_checkbox_size = 16;
 static const int min_row_count = 16;
 static const int min_setting_width = 464;
 
+static int g_dialog_width = 0;
+static int g_dialog_height = 0;
+
 /* ObjectGridTable related class */
 // ----------------------------------------------------------------------------
 // GridCellIconRenderer
@@ -156,6 +159,62 @@ void GridCellFilamentsEditor::SetSize(const wxRect& rect)
 
     DoPositionEditor(size, rect);*/
 }
+
+void GridCellFilamentsEditor::OnComboCloseUp(wxCommandEvent& evt)
+{
+    wxGridCellChoiceEditor::OnComboCloseUp(evt);
+}
+
+void GridCellFilamentsEditor::BeginEdit(int row, int col, wxGrid* grid)
+{
+    wxGridCellEditorEvtHandler* evtHandler = NULL;
+    if (m_control)
+    {
+        // This event handler is needed to properly dismiss the editor when the popup is closed
+        m_control->Bind(wxEVT_COMBOBOX_CLOSEUP, &GridCellFilamentsEditor::OnComboCloseUp, this);
+        evtHandler = wxDynamicCast(m_control->GetEventHandler(), wxGridCellEditorEvtHandler);
+    }
+
+    // Don't immediately end if we get a kill focus event within BeginEdit
+    if (evtHandler)
+        evtHandler->SetInSetFocus(true);
+
+    //m_value = grid->GetTable()->GetValue(row, col);
+    ObjectGridTable *table = dynamic_cast<ObjectGridTable *>(grid->GetTable());
+    ObjectGridTable::ObjectGridCol* grid_col = table->get_grid_col(col);
+    ObjectGridTable::ObjectGridRow* grid_row = table->get_grid_row(row - 1);
+    ConfigOption& option = (*grid_row)[(ObjectGridTable::GridColType)col];
+    ConfigOptionInt& option_value = dynamic_cast<ConfigOptionInt&>(option);
+    if ((option_value.value - 1) < grid_col->choice_count) {
+       //return grid_col->choices[(option_value.value > 0)?option_value.value - 1: 0];
+        int index = (option_value.value > 0) ? option_value.value - 1 : 0;
+        m_value = grid_col->choices[index];
+       //return grid_col->choices[index];
+    }
+    //m_value = grid->GetTable()->GetValue(row, col);
+
+    Reset(); // this updates combo box to correspond to m_value
+
+    Combo()->SetFocus();
+
+#ifdef __WXOSX_COCOA__
+    // This is a work around for the combobox being simply dismissed when a
+    // choice is made in it under OS X. The bug is almost certainly due to a
+    // problem in focus events generation logic but it's not obvious to fix and
+    // for now this at least allows to use wxGrid.
+    Combo()->Popup();
+#endif
+
+    if (evtHandler)
+    {
+        // When dropping down the menu, a kill focus event
+        // happens after this point, so we can't reset the flag yet.
+#if !defined(__WXGTK20__)
+        evtHandler->SetInSetFocus(false);
+#endif
+    }
+}
+
 
 // ----------------------------------------------------------------------------
 // GridCellFilamentsRenderer
@@ -442,7 +501,7 @@ wxString ObjectGridTable::GetValue (int row, int col)
         switch ((GridColType)col)
         {
             case col_plate_index:
-                return "Plate Index";
+                return "Plate";
             case col_assemble_name:
                 return "Module";
             case col_name:
@@ -456,9 +515,9 @@ wxString ObjectGridTable::GetValue (int row, int col)
             case col_fill_density:
                 return "Infill density(%)";
             case col_support_material:
-                return "Support enable";
+                return "Support";
             case col_brim_type:
-                return "Brim type";
+                return "Brim";
             case col_speed_perimeter:
                 return "Perimeter speed";
             default:
@@ -484,6 +543,7 @@ wxString ObjectGridTable::GetValue (int row, int col)
                //return grid_col->choices[(option_value.value > 0)?option_value.value - 1: 0];
                 int index = (option_value.value > 0) ? option_value.value - 1 : 0;
                return convert_filament_string(index, grid_col->choices[index]);
+               //return grid_col->choices[index];
             }
         }
     }
@@ -604,7 +664,7 @@ void ObjectGridTable::SetValue( int row, int col, const wxString& value )
 
             option_value.value = enum_value + 1;
             update_value_to_config(grid_row->config, grid_col->key, option_value, option_ori_value);
-            wxGetApp().obj_list()->update_extruder_values_for_items(enum_value + 1);
+            wxGetApp().obj_list()->update_extruder_values_for_items(m_panel->m_filaments_count);
             m_panel->m_plater->update();
         }
     }
@@ -784,16 +844,16 @@ void ObjectGridTable::init_cols()
     m_col_data.push_back(col);
 
     //preview icon for object/volume
-    col = new ObjectGridCol(coString, "assemble_name_reset", L(" "), false, true, false, false, wxALIGN_CENTRE);
-    m_col_data.push_back(col);
+    //col = new ObjectGridCol(coString, "assemble_name_reset", L(" "), false, true, false, false, wxALIGN_CENTRE);
+    //m_col_data.push_back(col);
 
     //3th column: for object/volume name
     col = new ObjectGridCol(coString, "name", L(" "), false, false, true, false, wxALIGN_RIGHT);
     m_col_data.push_back(col);
 
     //reset icon for name
-    col = new ObjectGridCol(coString, "name_reset", L(" "), false, true, false, false, wxALIGN_CENTRE);
-    m_col_data.push_back(col);
+    //col = new ObjectGridCol(coString, "name_reset", L(" "), false, true, false, false, wxALIGN_CENTRE);
+    //m_col_data.push_back(col);
 
     //object/volume extruder_id
     col = new ObjectGridCol(coEnum, "extruder", L(" "), false, false, true, true, wxALIGN_LEFT);
@@ -892,7 +952,7 @@ void ObjectGridTable::construct_object_configs ()
         if (plate_index == -1)
             object_grid->plate_index.value = std::string("Outside");
         else
-            object_grid->plate_index.value = std::string("Plate ") + std::to_string(plate_index+1);
+            object_grid->plate_index.value = /*std::string("Plate ") + */std::to_string(plate_index+1);
         object_grid->assemble_name.value = object->module_name;
         object_grid->ori_assemble_name = object_grid->assemble_name;
         auto extruder_id_ptr = get_object_config_value<ConfigOptionInt>(filament_config, object_grid->config, m_col_data[col_filaments]->key);
@@ -1243,8 +1303,8 @@ void ObjectGridTable::OnCellLeftClick(int row, int col)
                 std::string row1_plate = row1->plate_index.value;
                 std::string row2_plate = row2->plate_index.value;
                 //set Outside as the same start char 'P'
-                row1_plate[0] = 'P';
-                row2_plate[0] = 'P';
+                //row1_plate[0] = 'P';
+                //row2_plate[0] = 'P';
                 return (row1_plate < row2_plate);
             };
             sort_row_data(sort_func);
@@ -1267,7 +1327,7 @@ void ObjectGridTable::OnCellLeftClick(int row, int col)
                     object_volume_id.object = m_panel->m_model->objects[grid_row->object_id];
                     object_volume_id.volume = (grid_row->row_type == row_object) ? nullptr : object_volume_id.object->volumes[grid_row->volume_id];
                     if (col == col_filaments_reset)
-                        wxGetApp().obj_list()->update_extruder_values_for_items((dynamic_cast<ConfigOptionInt&>(orig_option)).value);
+                        wxGetApp().obj_list()->update_extruder_values_for_items(m_panel->m_filaments_count);
                     else
                         wxGetApp().obj_list()->object_config_options_changed(object_volume_id);
                     m_panel->m_plater->update();
@@ -1371,7 +1431,7 @@ void ObjectGridTable::OnCellValueChanged(int row, int col)
                     break;
             }
         }*/
-        //obj_list->update_extruder_values_for_items(enum_value + 1);
+        //obj_list->update_extruder_values_for_items(m_panel->m_filaments_count);
         if (grid_col->b_from_config) {
             if (col != col_filaments) {//for col_filaments, no cellvaluechanged triggered
                 ObjectVolumeID object_volume_id;
@@ -1549,8 +1609,8 @@ void ObjectTablePanel::load_data()
     attr->SetReadOnly(true);
     m_object_grid->SetRowAttr (0, attr);
     //merges
-    m_object_grid->SetCellSize(0, ObjectGridTable::col_assemble_name, 1, 2);
-    m_object_grid->SetCellSize(0, ObjectGridTable::col_name, 1, 2);
+    m_object_grid->SetCellSize(0, ObjectGridTable::col_assemble_name, 1, 1);
+    m_object_grid->SetCellSize(0, ObjectGridTable::col_name, 1, 1);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_filaments, 1, 2);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_layer_height, 1, 2);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_perimeters, 1, 2);
@@ -1808,13 +1868,17 @@ ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model 
     //m_top_sizer->Add(m_obj_panel, 1, wxALL | wxEXPAND, 5);
 
     //m_panel->SetSize(wxSize(1024, 512));
-    wxSize panel_size = m_obj_panel->get_init_size();
-    int dialog_height = (panel_size.GetHeight() > maxSize.GetHeight())?maxSize.GetHeight():panel_size.GetHeight();
-    int dialog_width = (panel_size.GetWidth() > maxSize.GetWidth())?maxSize.GetWidth():panel_size.GetWidth();
-    this->SetSize(wxSize(dialog_width, dialog_height));
+    if ((g_dialog_width == 0) || (g_dialog_height == 0))
+    {
+        wxSize panel_size = m_obj_panel->get_init_size();
+        g_dialog_height = (panel_size.GetHeight() > maxSize.GetHeight())?maxSize.GetHeight():panel_size.GetHeight();
+        g_dialog_width = (panel_size.GetWidth() > maxSize.GetWidth())?maxSize.GetWidth():panel_size.GetWidth();
+    }
+    this->SetSize(wxSize(g_dialog_width, g_dialog_height));
     //m_top_sizer->SetSizeHints(this);
     //this->SetSizer(m_top_sizer);
     //SetClientSize(m_panel->GetSize());
+    Bind(wxEVT_CLOSE_WINDOW, &ObjectTableDialog::OnClose, this);
 
     //this->Layout();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", created, this %1%, m_obj_panel %2%") %this % m_obj_panel;
@@ -1853,6 +1917,13 @@ void ObjectTableDialog::on_sys_color_changed()
 {
 
     Refresh();
+}
+
+void ObjectTableDialog::OnClose(wxCloseEvent &evt)
+{ 
+    this->GetSize(&g_dialog_width, &g_dialog_height);
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", g_dialog_width %1%, g_dialog_height %2%") %g_dialog_width % g_dialog_height;
+    evt.Skip();
 }
 
 } // namespace GUI
