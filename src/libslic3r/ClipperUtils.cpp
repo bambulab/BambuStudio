@@ -255,7 +255,8 @@ static ClipperLib::Paths raw_offset_polyline(PathsProvider &&paths, float offset
 template<class TResult, typename PathsProvider>
 static TResult expand_paths(PathsProvider &&paths, float offset, ClipperLib::JoinType joinType, double miterLimit)
 {
-    assert(offset > 0);
+    // BBS
+    //assert(offset > 0);
     return clipper_union<TResult>(raw_offset(std::forward<PathsProvider>(paths), offset, joinType, miterLimit));
 }
 
@@ -269,7 +270,8 @@ template<> void remove_outermost_polygon<ClipperLib::PolyTree>(ClipperLib::PolyT
 template<class TResult, typename PathsProvider>
 static TResult shrink_paths(PathsProvider &&paths, float offset, ClipperLib::JoinType joinType, double miterLimit)
 {
-    assert(offset > 0);
+    // BBS
+    //assert(offset > 0);
     TResult out;
     if (auto raw = raw_offset(std::forward<PathsProvider>(paths), - offset, joinType, miterLimit); ! raw.empty()) {
         ClipperLib::Clipper clipper;
@@ -286,7 +288,9 @@ static TResult shrink_paths(PathsProvider &&paths, float offset, ClipperLib::Joi
 template<class TResult, typename PathsProvider>
 static TResult offset_paths(PathsProvider &&paths, float offset, ClipperLib::JoinType joinType, double miterLimit)
 {
-    assert(offset != 0);
+    // BBS
+    //assert(offset != 0);
+
     return offset > 0 ?
         expand_paths<TResult>(std::forward<PathsProvider>(paths),   offset, joinType, miterLimit) :
         shrink_paths<TResult>(std::forward<PathsProvider>(paths), - offset, joinType, miterLimit);

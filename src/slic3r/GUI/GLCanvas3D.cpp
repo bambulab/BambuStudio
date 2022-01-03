@@ -6727,10 +6727,6 @@ void GLCanvas3D::_render_overlays()
 
     _check_and_update_toolbar_icon_scale();
 
-    //BBS: GUI refactor: GLToolbar
-    //move gizmos behind of main
-    _render_gizmos_overlay();
-
     _render_explosion_control();
     _render_assemble_info();
 

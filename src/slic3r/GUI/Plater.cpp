@@ -2393,7 +2393,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
                     boost::filesystem::remove_all(last);
             }
             catch (...) {}
-            this->q->new_project();
+            //BBS: FIXME, comment new_project to walkaround runtime error
+            //this->q->new_project();
             });
         wxPostEvent(this->q, wxCommandEvent{EVT_RESTORE_PROJECT});
     }
@@ -2559,6 +2560,7 @@ void Plater::priv::select_view_3D(const std::string& name, bool no_slice)
     }
     else if (name == "Assemble") {
         BOOST_LOG_TRIVIAL(info) << "select assemble view";
+        set_current_panel(assemble_view, no_slice);
     }
 
     apply_free_camera_correction(false);
@@ -6065,36 +6067,48 @@ void Plater::new_project()
 void Plater::load_project(wxString const& filename2,
     wxString const& originfile)
 {
-    if (!wxGetApp().can_load_project())
-        return;
+    auto filename = filename2;
+    auto check = [&filename, this] {
+        if (filename.empty()) {
+            // Ask user for a project file name.
+            wxGetApp().load_project(this, filename);
+        }
+        return !filename.empty();
+    };
 
-    // Ask user for a project file name.
-    wxString input_file;
-    wxGetApp().load_project(this, input_file);
-    // And finally load the new project.
-    load_project(input_file);
-    // BBS: save confirm
+    // BSS: save project, force close
     int result;
-    if ((result = close_with_confirm()) == wxID_CANCEL)
+    if ((result = close_with_confirm(check)) == wxID_CANCEL) {
         return;
-    get_partplate_list().reinit();
-    get_partplate_list().update_slice_context_to_current_plate(p->background_process);
+    }
+
+    auto path = into_path(filename);
+    bool load_restore = originfile != "-";
+
     p->reset();
-    Model m;
-    model().set_backup_path(m.get_backup_path()); // new id avoid same path name
-    m.set_backup_path("");
-    get_partplate_list().select_plate(0);
-    p->load_auxiliary_files();
 
-    Plater::TakeSnapshot snapshot(this, _L("New Project"));
+    // Take the Undo / Redo snapshot.
+    up_to_date(true, false);
+    Plater::TakeSnapshot snapshot(this, _L("Load Project"));
 
-    p->load_auxiliary_files();
-    wxGetApp().app_config->update_last_backup_dir(model().get_backup_path());
+    std::vector<fs::path> input_paths;
+    input_paths.push_back(path);
 
+    std::vector<size_t> res = load_files(input_paths, true, true, load_restore);
+
+    // if res is empty no data has been loaded
+    if (!res.empty()) {
+        p->set_project_filename(load_restore ? originfile : filename);
+    }
+
+    // BBS set default 3D view and direction after loading project
     p->select_view_3D("3D");
     p->select_view("topfront");
 
-    up_to_date(true, false);
+    wxGetApp().app_config->update_last_backup_dir(model().get_backup_path());
+
+    if (!load_restore)
+        up_to_date(true, false);
     up_to_date(true, true);
 }
 

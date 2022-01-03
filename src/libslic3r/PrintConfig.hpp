@@ -319,6 +319,9 @@ protected:
                 m_keys.emplace_back(kvp.first);
                 const ConfigOptionDef *def = defs->get(kvp.first);
                 assert(def != nullptr);
+                if (def->opt_key == "start_gcode") {
+                    int test = 15;
+                }
                 if (def->default_value)
                     opt->set(def->default_value.get());
             }
@@ -650,7 +653,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionStrings,             filament_type))
     ((ConfigOptionBools,               filament_soluble))
     ((ConfigOptionFloats,              filament_cost))
-    ((ConfigOptionFloats,              temperature_vitrification))  //BBS
+    ((ConfigOptionInts,                temperature_vitrification))  //BBS
     ((ConfigOptionFloats,              filament_spool_weight))
     ((ConfigOptionFloats,              filament_max_volumetric_speed))
     ((ConfigOptionFloats,              filament_loading_speed))

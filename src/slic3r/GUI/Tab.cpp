@@ -217,7 +217,7 @@ void Tab::create_preset_tab()
         restore_last_select_item();
     });
 
-    // add_scaled_button(panel, &m_btn_compare_preset, "compare");
+    add_scaled_button(panel, &m_btn_compare_preset, "compare");
     add_scaled_button(m_top_panel, &m_btn_save_preset, "save");
     add_scaled_button(m_top_panel, &m_btn_delete_preset, "cross");
     //if (m_type == Preset::Type::TYPE_PRINTER)
@@ -2192,11 +2192,6 @@ void TabFilament::build()
         add_filament_overrides_page();
 
     page = add_options_page(L("Advanced"), "wrench");
-        // BBS: coasting is related to material
-        optgroup = page->new_optgroup(L("Coasting"));
-        optgroup->append_single_option_line("coasting_enable");
-        optgroup->append_single_option_line("coasting_length");
-
         optgroup = page->new_optgroup(L("Wipe tower parameters"));
         optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
 
