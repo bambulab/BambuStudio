@@ -134,7 +134,9 @@ static std::vector<PrintObjectTrafoAndInstances> print_objects_from_model_object
 {
     std::set<PrintObjectTrafoAndInstances> trafos;
     PrintObjectTrafoAndInstances           trafo;
-    for (ModelInstance *model_instance : model_object.instances)
+    //BBS: add useful logs for debug
+    int index = 0;
+    for (ModelInstance *model_instance : model_object.instances) {
         if (model_instance->is_printable()) {
             trafo.trafo = model_instance->get_matrix();
             auto shift = Point::new_scale(trafo.trafo.data()[12], trafo.trafo.data()[13]);
@@ -144,7 +146,16 @@ static std::vector<PrintObjectTrafoAndInstances> print_objects_from_model_object
             // Search or insert a trafo.
             auto it = trafos.emplace(trafo).first;
             const_cast<PrintObjectTrafoAndInstances&>(*it).instances.emplace_back(PrintInstance{ nullptr, model_instance, shift });
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", Line %1%: found object %2%'s instance %3% for print")%__LINE__ %model_object.name %index;
         }
+        else {
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", Line %1%: found object %2%'s instance %3% not printable")%__LINE__ %model_object.name %index;
+            BOOST_LOG_TRIVIAL(debug) << boost::format(" object printable %1%, instance printable %2%, print_volume_state %3%")%model_object.printable %model_instance->printable %model_instance->print_volume_state;
+        }
+        index++;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: got %2% print objects")%__LINE__ %trafos.size();
     return std::vector<PrintObjectTrafoAndInstances>(trafos.begin(), trafos.end());
 }
 

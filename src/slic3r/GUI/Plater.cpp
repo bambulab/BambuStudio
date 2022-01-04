@@ -3718,6 +3718,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     // Apply new config to the possibly running background task.
     bool               was_running = background_process.running();
     //BBS: add the switch print logic before Print::Apply
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": enter, force_validation=%1% postpone_error_messages=%2%, switch_print=%3%, was_running=%4%")%force_validation %postpone_error_messages %switch_print %was_running;
     if (switch_print)
     {
         // Update the "out of print bed" state of ModelInstances.
@@ -3728,6 +3729,8 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     }
     Print::ApplyStatus invalidated = background_process.apply(q->model(), wxGetApp().preset_bundle->full_config());
 
+    //BBS: add slicing related logs
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": background process apply result=%1%")%invalidated;
     // Just redraw the 3D canvas without reloading the scene to consume the update of the layer height profile.
     if (view3D->is_layers_editing_enabled())
         view3D->get_wxglcanvas()->Refresh();
@@ -3762,8 +3765,12 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
 		// The delayed error message is no more valid.
 		delayed_error_message.clear();
 		// The state of the Print changed, and it is non-zero. Let's validate it and give the user feedback on errors.
+
+        //BBS: add is_warning logic
         std::string warning;
         std::string err = background_process.validate(&warning);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": validate err=%1%, warning=%2%")%err%warning;
+
         if (err.empty()) {
 			notification_manager->set_all_slicing_errors_gray(true);
             notification_manager->close_notification_of_type(NotificationType::ValidateError);
@@ -3829,6 +3836,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         //    sidebar->set_btn_label(btn, invalid_str);
 
         process_completed_with_error = true;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: set to process_completed_with_error, return_state=%2%")%__LINE__%return_state;
     }
     else
     {
@@ -3841,6 +3849,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
             notification_manager->set_slicing_progress_hidden();
 
         //BBS: add slice&&print status update logic        
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: background data valid, return_state=%2%")%__LINE__%return_state;
         if (background_process.finished())
         {
             ready_to_slice = false;
@@ -3874,6 +3883,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
 #endif
     }
 
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: exit, return_state=%2%")%__LINE__%return_state;
     return return_state;
 }
 
@@ -3882,6 +3892,7 @@ bool Plater::priv::restart_background_process(unsigned int state)
 {
     if (m_ui_jobs.is_any_running()) {
         // Avoid a race condition
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: ui jobs running, return false")%__LINE__;
         return false;
     }
 
@@ -3890,6 +3901,7 @@ bool Plater::priv::restart_background_process(unsigned int state)
          ( ((state & UPDATE_BACKGROUND_PROCESS_FORCE_RESTART) != 0 && ! this->background_process.finished()) ||
            (state & UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT) != 0 ||
            (state & UPDATE_BACKGROUND_PROCESS_RESTART) != 0 ) ) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: print is valid, try to start it now")%__LINE__;
         // The print is valid and it can be started.
         if (this->background_process.start()) {
 //            this->statusbar()->set_cancel_callback([this]() {
@@ -3898,9 +3910,11 @@ bool Plater::priv::restart_background_process(unsigned int state)
 //            });
 			if (!show_warning_dialog)
 				on_slicing_began();
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: start successfully")%__LINE__;
             return true;
         }
     }
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: not started")%__LINE__;
     return false;
 }
 
@@ -7832,6 +7846,7 @@ void Plater::reslice()
     // Only restarts if the state is valid.
     //BBS: jusdge the result
     bool result = this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: restart background,state=%2%, result=%3%")%__LINE__%state %result;
     if ((!result) && p->m_slice_all && (p->m_cur_slice_plate < (p->partplate_list.get_plate_count() - 1)))
     {
         //slice next

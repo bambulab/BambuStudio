@@ -1876,10 +1876,24 @@ unsigned int ModelObject::update_instances_print_volume_state(const BuildVolume 
         INSIDE = 1,
         OUTSIDE = 2
     };
+
+    //BBS: add logs for build_volume
+    const BoundingBoxf3& print_volume = build_volume.bounding_volume();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", print_volume {%1%, %2%, %3%} to {%4%, %5%, %6%}")\
+        %print_volume.min.x() %print_volume.min.y() %print_volume.min.z()%print_volume.max.x() %print_volume.max.y() %print_volume.max.z();
     for (ModelInstance* model_instance : this->instances) {
         unsigned int inside_outside = 0;
         for (const ModelVolume* vol : this->volumes)
             if (vol->is_model_part()) {
+                //BBS: add bounding box empty check logic, for some volume is empty before split(it will be removed after split to object)
+                BoundingBoxf3 bb = vol->get_convex_hull().bounding_box();
+                Vec3d size = bb.size();
+                if ((size.x() == 0.f) || (size.y() == 0.f) || (size.z() == 0.f)) {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", object %1%'s vol %2% is empty, skip it, box: {%3%, %4%, %5%} to {%6%, %7%, %8%}")%this->name %vol->name\
+                        %bb.min.x() %bb.min.y() %bb.min.z()%bb.max.x() %bb.max.y() %bb.max.z();
+                    continue;
+                }
+
                 const Transform3d matrix = model_instance->get_matrix() * vol->get_matrix();
                 BuildVolume::ObjectState state = build_volume.object_state(vol->mesh().its, matrix.cast<float>(), true /* may be below print bed */);
                 if (state == BuildVolume::ObjectState::Inside)
@@ -1898,9 +1912,12 @@ unsigned int ModelObject::update_instances_print_volume_state(const BuildVolume 
         model_instance->print_volume_state =
             inside_outside == (INSIDE | OUTSIDE) ? ModelInstancePVS_Partly_Outside :
             inside_outside == INSIDE ? ModelInstancePVS_Inside : ModelInstancePVS_Fully_Outside;
-        if (inside_outside == INSIDE)
+        if (inside_outside == INSIDE) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", object %1%'s instance inside print volum")%this->name;
             ++num_printable;
+        }
     }
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", found %1% printable instances")%num_printable;
     return num_printable;
 }
 

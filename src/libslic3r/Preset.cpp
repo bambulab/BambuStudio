@@ -1074,8 +1074,8 @@ bool PresetCollection::validate_printers(const std::string &name, DynamicPrintCo
         }
         else {
             //inherit is null , should not happen , just consider it as valid
-            found = true;
-            BOOST_LOG_TRIVIAL(warning) << boost::format(": name %1%, printer_settings %2%, no inherit, pass it")%name %original_name;
+            found = false;
+            BOOST_LOG_TRIVIAL(warning) << boost::format(": name %1%, printer_settings %2%, no inherit, set to not found")%name %original_name;
         }
     }
     BOOST_LOG_TRIVIAL(warning) << boost::format(": name %1%, printer_settings %2%, inherit %3%, found result %4%")%name %original_name % inherit % found;
