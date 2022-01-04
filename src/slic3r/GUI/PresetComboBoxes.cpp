@@ -1232,7 +1232,7 @@ void TabPresetComboBox::msw_rescale()
 {
     PresetComboBox::msw_rescale();
     // BBS: new layout
-    wxSize sz = wxSize(20 * m_em_unit, -1);
+    wxSize sz = wxSize(20 * m_em_unit, GetSize().GetHeight());
     SetMinSize(sz);
     SetSize(sz);
 }
