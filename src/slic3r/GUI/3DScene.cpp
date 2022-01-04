@@ -445,14 +445,16 @@ void GLVolume::set_render_color()
             set_render_color(color);
     }
 
-    if (!printable) {
-        render_color[0] /= 4;
-        render_color[1] /= 4;
-        render_color[2] /= 4;
-    }
-
     if (force_transparent)
         render_color[3] = color[3];
+
+    //BBS set unprintable color
+    if (!printable) {
+        render_color[0] = 0.0f;
+        render_color[1] = 0.0f;
+        render_color[2] = 0.0f;
+        render_color[3] = 0.5f;
+    }
 }
 
 std::array<float, 4> color_from_model_volume(const ModelVolume& model_volume)
