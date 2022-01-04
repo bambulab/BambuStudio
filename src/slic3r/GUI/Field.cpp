@@ -543,10 +543,6 @@ void TextCtrl::BUILD() {
 #endif // __WXGTK__
         if (!bEnterPressed)
             propagate_value();
-#ifdef __WXOSX__
-		// After processing of KILL_FOCUS event we should to invalidate a bKilledFocus flag
-		bKilledFocus = false;
-#endif // __WXOSX__
 	}), temp->GetId());
 /*
 	// select all text using Ctrl+A

@@ -281,7 +281,8 @@ static void generate_thumbnail_from_model(const std::string& filename)
     volume->set_volume_transformation(model.objects[0]->volumes[0]->get_transformation());
 
     ThumbnailData thumbnail_data;
-    const ThumbnailsParams thumbnail_params = { {}, false, false, false, true };
+    // BBS
+    const ThumbnailsParams thumbnail_params = { {}, false, false, false, true, 0 };
     wxGetApp().plater()->canvas3D()->render_thumbnail(thumbnail_data, 256, 256, thumbnail_params, volumes, Camera::EType::Perspective);
 
     if (thumbnail_data.width == 0 || thumbnail_data.height == 0)

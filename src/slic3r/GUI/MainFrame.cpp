@@ -37,7 +37,6 @@
 #include "../Utils/Process.hpp"
 #include "format.hpp"
 // BBS
-#include "Notebook.hpp"
 #include "PartPlate.hpp"
 #include "Preferences.hpp"
 

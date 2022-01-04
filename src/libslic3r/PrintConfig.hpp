@@ -319,9 +319,6 @@ protected:
                 m_keys.emplace_back(kvp.first);
                 const ConfigOptionDef *def = defs->get(kvp.first);
                 assert(def != nullptr);
-                if (def->opt_key == "start_gcode") {
-                    int test = 15;
-                }
                 if (def->default_value)
                     opt->set(def->default_value.get());
             }

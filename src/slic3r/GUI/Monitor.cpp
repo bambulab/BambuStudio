@@ -457,7 +457,7 @@ SubTaskPanel::SubTaskPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	this->Layout();
 
 
-    printing_bmp = create_scaled_bitmap("monitor_subtask_print", nullptr, 24, false, false);
+    printing_bmp = create_scaled_bitmap("monitor_subtask_print", nullptr, 24);
     m_bpButton_print->SetBitmap(printing_bmp);
 
     Bind(wxEVT_WEBREQUEST_STATE, &SubTaskPanel::on_webrequest_state, this);

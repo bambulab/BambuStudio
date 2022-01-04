@@ -1,7 +1,7 @@
 #ifndef slic3r_Notebook_hpp_
 #define slic3r_Notebook_hpp_
 
-#ifdef _WIN32
+//#ifdef _WIN32
 
 #include <wx/bookctrl.h>
 
@@ -254,7 +254,7 @@ public:
         GetBtnsListCtrl()->Rescale();
     }
 
-    void Notebook::OnNavigationKey(wxNavigationKeyEvent& event)
+    void OnNavigationKey(wxNavigationKeyEvent& event)
     {
         if (event.IsWindowChange()) {
             // change pages
@@ -406,5 +406,5 @@ private:
     ButtonsListCtrl* m_ctrl{ nullptr };
 
 };
-#endif // _WIN32
+//#endif // _WIN32
 #endif // slic3r_Notebook_hpp_

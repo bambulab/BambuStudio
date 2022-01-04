@@ -1,5 +1,9 @@
 #include "SendSystemInfoDialog.hpp"
 
+#if __APPLE__
+#import <IOKit/IOKitLib.h>
+#endif
+
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/BlacklistedLibraryCheck.hpp"
 #include "libslic3r/Platform.hpp"
@@ -42,7 +46,6 @@
     #include <Iphlpapi.h>
     #pragma comment(lib, "iphlpapi.lib")
 #elif __APPLE__
-    #import <IOKit/IOKitLib.h>
     #include <CoreFoundation/CoreFoundation.h>
 #else // Linux/BSD
     #include <charconv>

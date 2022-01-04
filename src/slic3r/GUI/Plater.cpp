@@ -7534,12 +7534,13 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
     std::vector<ThumbnailData*> thumbnails;
     // BBS: backup
     if (!backup) {
-    for (unsigned int i = 0; i < p->partplate_list.get_plate_count(); i++) {
-        ThumbnailData* thumbnail_data = new ThumbnailData();
-        ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i };
-        p->generate_thumbnail(*thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, thumbnail_params, Camera::EType::Ortho);
-        thumbnails.push_back(thumbnail_data);
-    }}
+        for (int i = 0; i < p->partplate_list.get_plate_count(); i++) {
+            ThumbnailData* thumbnail_data = new ThumbnailData();
+            const ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i };
+            p->generate_thumbnail(*thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, thumbnail_params, Camera::EType::Ortho);
+            thumbnails.push_back(thumbnail_data);
+        }
+    }
 
     //BBS: add bbs 3mf logic
     PlateDataPtrs plate_data_list;

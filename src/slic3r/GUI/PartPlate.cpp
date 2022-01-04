@@ -67,8 +67,8 @@ PartPlate::PartPlate(PartPlateList *partplate_list, Vec3d origin, int width, int
 PartPlate::~PartPlate()
 {
 	clear();
-	if (m_quadric != nullptr)
-		::gluDeleteQuadric(m_quadric);
+	//if (m_quadric != nullptr)
+	//	::gluDeleteQuadric(m_quadric);
 	release_opengl_resource();
 
 	boost::nowide::remove(m_tmp_gcode_path.c_str());
@@ -81,9 +81,9 @@ void PartPlate::init()
 	m_slice_result_valid = false;
 	m_hover_id = -1;
 	m_selected = false;
-	m_quadric = ::gluNewQuadric();
-	if (m_quadric != nullptr)
-		::gluQuadricDrawStyle(m_quadric, GLU_FILL);
+	//m_quadric = ::gluNewQuadric();
+	//if (m_quadric != nullptr)
+	//	::gluQuadricDrawStyle(m_quadric, GLU_FILL);
 
 	m_print_index = -1;
 	m_print = nullptr;
@@ -434,6 +434,7 @@ void PartPlate::render_face(float x_size, float y_size) const
 
 void PartPlate::render_arrows(const float* render_color, bool use_lighting) const
 {
+#if 0
 	if (m_quadric == nullptr)
 		return;
 	double radius = m_grabber_box.size().y() * 0.5f;
@@ -466,10 +467,12 @@ void PartPlate::render_arrows(const float* render_color, bool use_lighting) cons
 
 	if (use_lighting)
 		glsafe(::glDisable(GL_LIGHTING));
+#endif
 }
 
 void PartPlate::render_left_arrow(const float* render_color, bool use_lighting) const
 {
+#if 0
 	if (m_quadric == nullptr)
 		return;
 	double radius = m_grabber_box.size().y() * 0.5f;
@@ -492,9 +495,11 @@ void PartPlate::render_left_arrow(const float* render_color, bool use_lighting) 
 
 	if (use_lighting)
 		glsafe(::glDisable(GL_LIGHTING));
+#endif
 }
 void PartPlate::render_right_arrow(const float* render_color, bool use_lighting) const
 {
+#if 0
 	if (m_quadric == nullptr)
 		return;
 	double radius = m_grabber_box.size().y() * 0.5f;
@@ -516,6 +521,7 @@ void PartPlate::render_right_arrow(const float* render_color, bool use_lighting)
 
 	if (use_lighting)
 		glsafe(::glDisable(GL_LIGHTING));
+#endif
 }
 
 void PartPlate::on_render_for_picking() const {

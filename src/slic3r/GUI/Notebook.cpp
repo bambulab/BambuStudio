@@ -1,6 +1,6 @@
 #include "Notebook.hpp"
 
-#ifdef _WIN32
+//#ifdef _WIN32
 
 #include "GUI_App.hpp"
 #include "wxExtensions.hpp"
@@ -204,6 +204,6 @@ wxString ButtonsListCtrl::GetPageText(size_t n) const
     return btn->GetLabel();
 }
 
-#endif // _WIN32
+//#endif // _WIN32
 
 
