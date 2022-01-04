@@ -566,7 +566,8 @@ protected:
     // Copy constructor and copy operators are not to be used from outside PresetBundle,
     // as the Profile::vendor points to an instance of VendorProfile stored at parent PresetBundle!
     PresetCollection(const PresetCollection &other) = default;
-    PresetCollection& operator=(const PresetCollection &other) = default;
+    //BBS: add operator= logic insteadof default
+    PresetCollection& operator=(const PresetCollection &other);
     // After copying a collection with the default operators above, call this function
     // to adjust Profile::vendor pointers.
     void            update_vendor_ptrs_after_copy(const VendorMap &vendors);

@@ -724,6 +724,23 @@ PresetCollection::PresetCollection(Preset::Type type, const std::vector<std::str
     update_saved_preset_from_current_preset();
 }
 
+ //BBS: add operator= implemention
+PresetCollection& PresetCollection::operator=(const PresetCollection &rhs)
+{
+    m_type = rhs.m_type;
+    m_presets = rhs.m_presets;
+    m_map_alias_to_profile_name = rhs.m_map_alias_to_profile_name;
+    m_map_system_profile_renamed = rhs.m_map_system_profile_renamed;
+    m_edited_preset = rhs.m_edited_preset;
+    m_saved_preset = rhs.m_saved_preset;
+    m_idx_selected = rhs.m_idx_selected;
+    m_default_suppressed = rhs.m_default_suppressed;
+    m_num_default_presets = rhs.m_num_default_presets;
+    m_dir_path = rhs.m_dir_path;
+
+    return *this;
+}
+
 void PresetCollection::reset(bool delete_files)
 {
     //BBS: add lock logic for sync preset in background

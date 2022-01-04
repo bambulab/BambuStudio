@@ -252,7 +252,7 @@ PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, Forward
     std::string errors_cummulative;
 
     //BBS: add config related logs
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" enter, substitution_rule %1%, preferred_model_id %2%")%substitution_rule%preferred_model_id;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" enter, substitution_rule %1%, preferred printer_model_id %2%")%substitution_rule%preferred_selection.printer_model_id;
     std::tie(substitutions, errors_cummulative) = this->load_system_presets(substitution_rule);
 
     //BBS load preset from user's folder, load system default if 
@@ -672,7 +672,7 @@ void PresetBundle::load_installed_sla_materials(AppConfig &config)
 // This is done on application start up or after updates are applied.
 void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& preferred_selection/* = PresetPreferences()*/)
 {
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": enter, preferred_model_id %1%")%preferred_model_id;
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": enter, preferred printer_model_id %1%")%preferred_selection.printer_model_id;
 	// Update visibility of presets based on application vendor / model / variant configuration.
 	this->load_installed_printers(config);
 
@@ -762,7 +762,7 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     if (!initial_physical_printer_name.empty())
         physical_printers.select_printer(initial_physical_printer_name);
 
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": finished, preferred_model_id %1%")%preferred_model_id;
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": finished, preferred printer_model_id %1%")%preferred_selection.printer_model_id;
 }
 
 // Export selections (current print, current filaments, current printer) into config.ini

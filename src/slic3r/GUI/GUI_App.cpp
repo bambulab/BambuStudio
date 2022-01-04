@@ -2988,10 +2988,11 @@ bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, con
             reset_modifications();
         else  // save selected changes
         {
+            //BBS: add project embedded preset relate logic
             const auto& preset_names_and_types = dlg.get_names_and_types();
             if (dlg.save_preset()) {
-                for (const std::pair<std::string, Preset::Type>& nt : preset_names_and_types)
-                    preset_bundle->save_changes_for_preset(nt.first, nt.second, dlg.get_unselected_options(nt.second));
+                for (const UnsavedChangesDialog::PresetData& nt : preset_names_and_types)
+                    preset_bundle->save_changes_for_preset(nt.name, nt.type, dlg.get_unselected_options(nt.type), nt.save_to_project);
 
                 // if we saved changes to the new presets, we should to 
                 // synchronize config.ini with the current selections.
@@ -3008,8 +3009,8 @@ bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, con
             else if (dlg.transfer_changes() && (dlg.has_unselected_options() || is_called_from_configwizard)) {
                 // execute this part of code only if not all modifications are keeping to the new project 
                 // OR this function is called when ConfigWizard is closed and "Keep modifications" is selected
-                for (const std::pair<std::string, Preset::Type>& nt : preset_names_and_types) {
-                    Preset::Type type = nt.second;
+                for (const UnsavedChangesDialog::PresetData& nt : preset_names_and_types) {
+                    Preset::Type type = nt.type;
                     Tab* tab = get_tab(type);
                     std::vector<std::string> selected_options = dlg.get_selected_options(type);
                     if (type == Preset::TYPE_PRINTER) {
