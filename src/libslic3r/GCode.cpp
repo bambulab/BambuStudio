@@ -1341,9 +1341,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write_format(";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
 
     //BBS
-    if (print.config().enable_spaghetti_detector.value)
-        file.writeln("M981 S1 P20000");
-    //BBS
     if (print.config().scan_first_layer.value)
         file.writeln("M977 S1 P60\nM400 S3\n");
 
@@ -1539,9 +1536,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             }
         }
         file.writeln(this->placeholder_parser_process("end_gcode", print.config().end_gcode, m_writer.extruder()->id(), &config));
-        //BBS
-        if (print.config().enable_spaghetti_detector.value)
-            file.writeln("M981 S0 P20000");
     }
     file.write(m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
     file.write(m_writer.postamble());
@@ -2213,6 +2207,13 @@ GCode::LayerResult GCode::process_layer(
             gcode += "M960 S0 P0\nM400 S3\nM960 S1 P1\nM400 S3\nM976 S2 P1\nM400 S10\n";
         }
     }
+    //BBS: open spaghetti detector from second layer
+    if (print.config().enable_spaghetti_detector.value) {
+        if (layer.id() == 1) {
+            gcode += ";open spaghetti detector after first layer\n";
+            gcode += "M981 S1 P20000\n";
+        }
+    }
 
     if (! first_layer && ! m_second_layer_things_done) {
         // Transition from 1st to 2nd layer. Adjust nozzle temperatures as prescribed by the nozzle dependent
@@ -2632,8 +2633,17 @@ GCode::LayerResult GCode::process_layer(
             gcode += this->retract();
             gcode += ";scan bed after print first layer\n";
             gcode += "M973 S3 P0\nM400 S5\nM973 S2 P5000\nM400 S5\n";
-            gcode += "M976 S1 P1\nM400 S5\nM960 S0\nM400 S5\nM973 S4 P0\nM400 S5\n";
+            gcode += "M976 S1 P1\nM400 S5\nM960 S0 P0\nM400 S5\nM973 S4 P0\nM400 S5\n";
             gcode += this->unretract();
+        }
+    }
+    //BBS: close spaghetti detector after printing last layer of object
+    if (print.config().enable_spaghetti_detector.value) {
+        //BBS: don't need to close if the object has only one layer
+        const PrintObject* object = layer.object();
+        if (!first_layer && object && (object->layer_count() == layer.id() + 1)){
+            gcode += ";close spaghetti detector\n";
+            gcode += "M981 S0 P20000\n";
         }
     }
 
