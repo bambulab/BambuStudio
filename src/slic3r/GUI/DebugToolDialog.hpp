@@ -165,6 +165,9 @@ public:
             std::string upgrade_post_url[MODULE_MAX] = { "rk", "mc", "th", "ams", "ota"};
             std::string upgrade_module_name[MODULE_MAX] = { "rk1126", "mc", "th", "ams", "ota"};
             std::string upgrade_mode_name[MODE_MAX] = { "dailybuild", "release", "debug"};
+            int last_upgrade_module_sel;
+            int last_upgrade_mode_sel;
+            int last_upgrade_version_sel;
 
             std::string UPGRADE_URL = "http://192.168.0.12:8000/api/devices_upgrade_firmware";
 

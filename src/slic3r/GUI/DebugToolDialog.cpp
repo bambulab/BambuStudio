@@ -691,21 +691,29 @@ void DebugToolDialog::init()
         }
         });
 
+    last_upgrade_module_sel = cb_upgrade_module->GetSelection();
     cb_upgrade_module->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt)
     {
-        cb_upgrade_firmware->Clear();
+        if (evt.GetSelection() != last_upgrade_module_sel)
+            cb_upgrade_firmware->Clear();
+        last_upgrade_module_sel = evt.GetSelection();
     });
 
+    last_upgrade_mode_sel = cb_upgrade_mode->GetSelection();
     cb_upgrade_mode->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt)
     {
-        cb_upgrade_firmware->Clear();
+        if (evt.GetSelection() != last_upgrade_mode_sel)
+            cb_upgrade_firmware->Clear();
+        last_upgrade_mode_sel = evt.GetSelection();
     });
 
+    last_upgrade_version_sel = cb_upgrade_version->GetSelection();
     cb_upgrade_version->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt)
     {
-        cb_upgrade_firmware->Clear();
+        if (evt.GetSelection() != last_upgrade_version_sel)
+            cb_upgrade_firmware->Clear();
+        last_upgrade_version_sel = evt.GetSelection();
     });
-    
 
 
     cb_upgrade_module->SetEditable(false);
