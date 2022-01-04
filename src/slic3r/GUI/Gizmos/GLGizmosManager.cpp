@@ -1194,7 +1194,6 @@ void GLGizmosManager::do_render_overlay() const
     float u_offset = 1.0f / (float)tex_width;
     float v_offset = 1.0f / (float)tex_height;
 
-    float current_y   = FLT_MAX;
     for (size_t idx : selectable_idxs)
     {
         GLGizmoBase* gizmo = m_gizmos[idx].get();
@@ -1208,29 +1207,24 @@ void GLGizmosManager::do_render_overlay() const
         float u_right = u_left + du - u_offset;
 
         GLTexture::render_sub_texture(icons_texture_id, zoomed_top_x, zoomed_top_x + zoomed_icons_size, zoomed_top_y - zoomed_icons_size, zoomed_top_y, { { u_left, v_bottom }, { u_right, v_bottom }, { u_right, v_top }, { u_left, v_top } });
-        if (idx == m_current || current_y == FLT_MAX) {
-            // The FLT_MAX trick is here so that even non-selectable but activable
-            // gizmos are passed some meaningful value.
-            current_y = 0.5f * cnv_h - zoomed_top_y * zoom;
+
+        if (idx == m_current) {
+            //BBS: GUI refactor: GLToolbar&&Gizmo adjust
+            //render_input_window uses a different coordination(imgui)
+            //1. no need to scale by camera zoom, set {0,0} at left-up corner for imgui
+#if BBS_TOOLBAR_ON_TOP
+            //gizmo->render_input_window(width, 0.5f * cnv_h - zoomed_top_y * zoom, toolbar_top);
+            gizmo->render_input_window(0.5 * cnv_w + zoomed_top_x * zoom, height, cnv_h);
+#else
+            float toolbar_top = cnv_h - wxGetApp().plater()->get_view_toolbar().get_height();
+            //gizmo->render_input_window(width, 0.5f * cnv_h - zoomed_top_y * zoom, toolbar_top);
+            gizmo->render_input_window(cnv_w - width, 0.5f * cnv_h - zoomed_top_y * zoom, toolbar_top);
+#endif
         }
 #if BBS_TOOLBAR_ON_TOP
         zoomed_top_x += zoomed_stride_x;
 #else
         zoomed_top_y -= zoomed_stride_y;
-#endif
-    }
-
-    if (m_current != Undefined) {
-        //BBS: GUI refactor: GLToolbar&&Gizmo adjust
-        //render_input_window uses a different coordination(imgui)
-        //1. no need to scale by camera zoom, set {0,0} at left-up corner for imgui
-#if BBS_TOOLBAR_ON_TOP
-        //gizmo->render_input_window(width, 0.5f * cnv_h - zoomed_top_y * zoom, toolbar_top);
-        m_gizmos[m_current]->render_input_window(0.5 * cnv_w + zoomed_top_x * zoom, height, cnv_h);
-#else
-        float toolbar_top = cnv_h - wxGetApp().plater()->get_view_toolbar().get_height();
-        //m_gizmos[m_current]->render_input_window(width, current_y, toolbar_top);
-        m_gizmos[m_current]->render_input_window(cnv_w - width, current_y, toolbar_top);
 #endif
     }
 }

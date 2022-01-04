@@ -926,7 +926,9 @@ void TreeSupport::detect_object_overhangs()
             // coconut: enforcer can't do offset2_ex, otherwise faces with angle near 90 degrees can't have enforcers, which
             // is not good. For example: tails of animals needs extra support except the lowest tip.
             //enforcer = std::move(offset2_ex(enforcer, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
-            ts_layer->overhang_areas.insert(ts_layer->overhang_areas.end(), enforcer.begin(), enforcer.end());
+            for (const Polygon& poly : enforcer) {
+                ts_layer->overhang_areas.emplace_back(poly);
+            }
         }
 
         if (layer_nr < blockers.size()) {
