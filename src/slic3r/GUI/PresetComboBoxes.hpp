@@ -68,6 +68,9 @@ public:
     void add_physical_printer();
     bool del_physical_printer(const wxString& note_string = wxEmptyString);
 
+    //BBS
+    wxString get_tooltip(const Preset& preset);
+
     virtual wxString get_preset_name(const Preset& preset); 
     Preset::Type     get_type() { return m_type; }
     void             show_all(bool show_all);

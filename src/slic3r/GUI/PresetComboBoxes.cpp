@@ -228,6 +228,26 @@ static std::string suffix(Preset* preset)
     return (preset->is_dirty ? Preset::suffix_modified() : "");
 }
 
+wxString PresetComboBox::get_tooltip(const Preset& preset)
+{
+    wxString tooltip = from_u8(preset.name);
+    if (m_type == Preset::TYPE_FILAMENT) {
+        int temperature[4] = { 0,0,0,0 };
+        if (preset.config.has("first_layer_temperature")) //get the first_layer_temperature
+            temperature[0] = preset.config.opt_int("first_layer_temperature", 0);
+        if (preset.config.has("temperature")) //get the first_layer_temperature
+            temperature[1] = preset.config.opt_int("temperature", 0);
+        if (preset.config.has("first_layer_bed_temperature")) //get the first_layer_temperature
+            temperature[2] = preset.config.opt_int("first_layer_bed_temperature", 0);
+        if (preset.config.has("bed_temperature")) //get the first_layer_temperature
+            temperature[3] = preset.config.opt_int("bed_temperature", 0);
+
+        tooltip += wxString::Format("\nNozzle First Layer:%d, Other Layer:%d\n Bed First Layer:%d, Other Layers:%d",
+            temperature[0], temperature[1], temperature[2], temperature[3]);
+    }
+    return tooltip;
+}
+
 wxString PresetComboBox::get_preset_name(const Preset & preset)
 {
     return from_u8(preset.name/* + suffix(preset)*/);
@@ -900,7 +920,8 @@ void PlaterPresetComboBox::update()
             Append(get_preset_name(preset), *bmp);
             validate_selection(is_selected);
             if (is_selected)
-                tooltip = from_u8(preset.name);
+                //BBS set tooltip
+                tooltip = get_tooltip(preset);
         }
         //BBS: add project embedded preset logic
         else if (preset.is_project_embedded)
@@ -916,7 +937,8 @@ void PlaterPresetComboBox::update()
             nonsys_presets.emplace(get_preset_name(preset), bmp);
             if (is_selected) {
                 selected_user_preset = get_preset_name(preset);
-                tooltip = from_u8(preset.name);
+                //BBS set tooltip
+                tooltip = get_tooltip(preset);
             }
         }
         if (i + 1 == m_collection->num_default_presets())
