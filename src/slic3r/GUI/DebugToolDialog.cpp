@@ -637,6 +637,23 @@ void DebugToolDialog::init()
         }
         });
 
+    cb_upgrade_module->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt)
+    {
+        cb_upgrade_firmware->Clear();
+    });
+
+    cb_upgrade_mode->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt)
+    {
+        cb_upgrade_firmware->Clear();
+    });
+
+    cb_upgrade_version->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt)
+    {
+        cb_upgrade_firmware->Clear();
+    });
+    
+
+
     cb_upgrade_module->SetEditable(false);
     cb_upgrade_firmware->SetEditable(false);
     cb_upgrade_mode->SetEditable(false);
