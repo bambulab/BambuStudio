@@ -427,7 +427,10 @@ bool PresetBundle::validate_printers(const std::string &name, DynamicPrintConfig
                  config.option<ConfigOptionFloats>("filament_diameter")->values.size()) : 1;
     inherits_values.resize(num_extruders + 2, std::string());
     inherits_values  = config.option<ConfigOptionStrings>("inherits_cummulative", true)->values;
-    std::string inherits = inherits_values[num_extruders + 1];
+
+    std::string inherits;
+    if (inherits_values.size() >= (num_extruders + 2))
+        inherits = inherits_values[num_extruders + 1];
 
     return this->printers.validate_printers(name, config, inherits);
 }
