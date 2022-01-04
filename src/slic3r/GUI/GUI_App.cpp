@@ -1648,6 +1648,9 @@ unsigned GUI_App::get_colour_approx_luma(const wxColour &colour)
 
 bool GUI_App::dark_mode()
 {
+    //BBS disable DarkUI mode
+    return false;
+
 #if __APPLE__
     // The check for dark mode returns false positive on 10.12 and 10.13,
     // which allowed setting dark menu bar and dock area, which is
@@ -1712,6 +1715,9 @@ void GUI_App::update_label_colours()
 
 void GUI_App::UpdateDarkUI(wxWindow* window, bool highlited/* = false*/, bool just_font/* = false*/)
 {
+    //BBS disable DarkUI mode
+    return;
+
 #ifdef _WIN32
     if (wxButton* btn = dynamic_cast<wxButton*>(window)) {
         if (!(btn->GetWindowStyle() & wxNO_BORDER)) {
@@ -1771,12 +1777,18 @@ static void update_dark_children_ui(wxWindow* window, bool just_buttons_update =
 // Note: Don't use this function for Dialog contains ScalableButtons
 void GUI_App::UpdateDlgDarkUI(wxDialog* dlg, bool just_buttons_update/* = false*/)
 {
+    //BBS disable DarkUI mode
+    return;
+
 #ifdef _WIN32
     update_dark_children_ui(dlg, just_buttons_update);
 #endif
 }
 void GUI_App::UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited/* = false*/)
 {
+    //BBS disable DarkUI mode
+    return;
+
 #ifdef _WIN32
     UpdateDarkUI(dvc, highlited ? dark_mode() : false);
 #ifdef _MSW_DARK_MODE
@@ -1791,6 +1803,9 @@ void GUI_App::UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited/* = false*/)
 
 void GUI_App::UpdateAllStaticTextDarkUI(wxWindow* parent)
 {
+    //BBS disable DarkUI mode
+    return;
+
 #ifdef _WIN32
     wxGetApp().UpdateDarkUI(parent);
 
