@@ -1640,7 +1640,7 @@ void GLCanvas3D::render()
     else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
         //BBS: add outline logic
         _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
-        _render_bed(!camera.is_looking_downward(), show_axes);
+        //_render_bed(!camera.is_looking_downward(), show_axes);
         _render_plane();
         //BBS: add outline logic insteadof selection under assemble view
         //_render_selection();
