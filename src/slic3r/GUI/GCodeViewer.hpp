@@ -700,7 +700,7 @@ private:
     size_t m_moves_count{ 0 };
     //BBS: save m_gcode_result as well
     const GCodeProcessorResult* m_gcode_result;
-    std::vector<size_t> m_seams_ids;
+    std::vector<size_t> m_ssid_to_moveid_map;
 
     std::vector<TBuffer> m_buffers{ static_cast<size_t>(EMoveType::Extrude) };
     // bounding box of toolpaths

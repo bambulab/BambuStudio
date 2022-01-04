@@ -844,7 +844,7 @@ void GCodeViewer::reset()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": current result id %1% ")%m_last_result_id;
     m_last_result_id = -1;
     m_moves_count = 0;
-    m_seams_ids.clear();
+    m_ssid_to_moveid_map.clear();
     for (TBuffer& buffer : m_buffers) {
         buffer.reset();
     }
@@ -1650,10 +1650,21 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
         }
     }
 
-    m_seams_ids = seams_ids;
+    auto extract_move_id = [&seams_ids](size_t id) {
+            for (int i = seams_ids.size() - 1; i >= 0; --i) {
+                if (seams_ids[i] < id + i + 1)
+                    return id + (size_t)i + 1;
+            }
+            return id;
+    };
+    //BBS: generate map from ssid to move id in advance to reduce computation
+    m_ssid_to_moveid_map.clear();
+    m_ssid_to_moveid_map.reserve( m_moves_count - seams_ids.size());
+    for (size_t i = 0; i < m_moves_count - seams_ids.size(); i++)
+        m_ssid_to_moveid_map.push_back(extract_move_id(i));
 
     //BBS: smooth toolpaths corners for the given TBuffer using triangles
-    auto smooth_triangle_toolpaths_corners = [&gcode_result, &seams_ids](const TBuffer& t_buffer, MultiVertexBuffer& v_multibuffer) {
+    auto smooth_triangle_toolpaths_corners = [&gcode_result, this](const TBuffer& t_buffer, MultiVertexBuffer& v_multibuffer) {
         auto extract_position_at = [](const VertexBuffer& vertices, size_t offset) {
             return Vec3f(vertices[offset + 0], vertices[offset + 1], vertices[offset + 2]);
         };
@@ -1662,13 +1673,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
             vertices[offset + 1] = position.y();
             vertices[offset + 2] = position.z();
         };
-        auto extract_move_id = [&seams_ids](size_t id) {
-            for (int i = seams_ids.size() - 1; i >= 0; --i) {
-                if (seams_ids[i] < id + i + 1)
-                    return id + (size_t)i + 1;
-            }
-            return id;
-        };
         auto match_right_vertices_with_internal_point = [&](const Path::Sub_Path& prev_sub_path, const Path::Sub_Path& next_sub_path,
             size_t curr_s_id, bool is_internal_point, size_t interpolation_point_id, size_t vertex_size_floats, const Vec3f& displacement_vec) {
             if (&prev_sub_path == &next_sub_path || is_internal_point) { // previous and next segment are both contained into to the same vertex buffer
@@ -1676,11 +1680,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
                 // offset into the vertex buffer of the next segment 1st vertex
                 size_t temp_offset = prev_sub_path.last.s_id - curr_s_id;
                 for (size_t i = prev_sub_path.last.s_id; i > curr_s_id; i--) {
-                    size_t move_id = extract_move_id(i);
+                    size_t move_id = m_ssid_to_moveid_map[i];
                     temp_offset += (gcode_result.moves[move_id].is_arc_move() ? gcode_result.moves[move_id].interpolation_points.size() : 0);
                 }
                 if (is_internal_point) {
-                    size_t move_id = extract_move_id(curr_s_id);
+                    size_t move_id = m_ssid_to_moveid_map[curr_s_id];
                     temp_offset += (gcode_result.moves[move_id].interpolation_points.size() - interpolation_point_id);
                 }
                 const size_t next_1st_offset = temp_offset * 6 * vertex_size_floats;
@@ -1718,11 +1722,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
                 // offset into the vertex buffer of the next segment 1st vertex
                 size_t temp_offset = prev_sub_path.last.s_id - curr_s_id;
                 for (size_t i = prev_sub_path.last.s_id; i > curr_s_id; i--) {
-                    size_t move_id = extract_move_id(i);
+                    size_t move_id = m_ssid_to_moveid_map[i];
                     temp_offset += (gcode_result.moves[move_id].is_arc_move() ? gcode_result.moves[move_id].interpolation_points.size() : 0);
                 }
                 if (is_internal_point) {
-                    size_t move_id = extract_move_id(curr_s_id);
+                    size_t move_id = m_ssid_to_moveid_map[curr_s_id];
                     temp_offset += (gcode_result.moves[move_id].interpolation_points.size() - interpolation_point_id);
                 }
                 const size_t next_1st_offset = temp_offset * 6 * vertex_size_floats;
@@ -1764,7 +1768,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
             // BBS: modify a lot to support arc move which has internal points
             for (size_t j = 1; j < path_vertices_count; ++j) {
                 size_t curr_s_id = path.sub_paths.front().first.s_id + j;
-                size_t move_id = extract_move_id(curr_s_id);
+                size_t move_id = m_ssid_to_moveid_map[curr_s_id];
                 int interpolation_points_num = gcode_result.moves[move_id].is_arc_move_with_interpolation_points()?
                                                     gcode_result.moves[move_id].interpolation_points.size() : 0;
                 int loop_num = interpolation_points_num;
@@ -1772,7 +1776,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
                 if (!path.sub_paths[prev_sub_path_id].contains(curr_s_id))
                     ++prev_sub_path_id;
                 if (j == path_vertices_count - 1) {
-                    if (!gcode_result.moves[curr_s_id].is_arc_move_with_interpolation_points())
+                    if (!gcode_result.moves[move_id].is_arc_move_with_interpolation_points())
                         break;   // BBS: the last move has no internal point.
                     loop_num--;  //BBS: don't need to handle the endpoint of the last arc move of path
                     next_sub_path_id = prev_sub_path_id;
@@ -1793,7 +1797,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
                                         gcode_result.moves[move_id].interpolation_points[k];
                     const Vec3f& next = k < interpolation_points_num - 1?
                                         gcode_result.moves[move_id].interpolation_points[k+1]:
-                                        (k == interpolation_points_num - 1? gcode_result.moves[curr_s_id].position :
+                                        (k == interpolation_points_num - 1? gcode_result.moves[move_id].position :
                                         (gcode_result.moves[move_id + 1].is_arc_move_with_interpolation_points()?
                                         gcode_result.moves[move_id + 1].interpolation_points[0] :
                                         gcode_result.moves[move_id + 1].position));
@@ -2337,15 +2341,6 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             (min_s_id <= path.sub_paths.back().last.s_id && path.sub_paths.back().last.s_id <= max_s_id);
     };
 
-    //BBS
-    auto extract_move_id = [this](size_t id) {
-        for (int i = m_seams_ids.size() - 1; i >= 0; --i) {
-            if (m_seams_ids[i] < id + i + 1)
-                return id + (size_t)i + 1;
-        }
-        return id;
-    };
-
 #if ENABLE_GCODE_VIEWER_STATISTICS
     Statistics* statistics = const_cast<Statistics*>(&m_statistics);
     statistics->render_paths_size = 0;
@@ -2461,7 +2456,8 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
                                 unsigned int indices_count = buffer.indices_per_segment();
                                 // BBS: modify to support moves which has internal point
                                 for (size_t i = sub_path.first.s_id + 1; i < m_sequential_view.current.last + 1; i++) {
-                                    const GCodeProcessorResult::MoveVertex& curr = m_gcode_result->moves[extract_move_id(i)];
+                                    size_t move_id = m_ssid_to_moveid_map[i];
+                                    const GCodeProcessorResult::MoveVertex& curr = m_gcode_result->moves[move_id];
                                     if (curr.is_arc_move()) {
                                         offset += curr.interpolation_points.size();
                                     }
@@ -2562,7 +2558,8 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             size_t min_s_id = std::max(m_sequential_view.current.first, sub_path.first.s_id);
             unsigned int segments_count = max_s_id - min_s_id;
             for (size_t i = min_s_id + 1; i < max_s_id + 1; i++) {
-                const GCodeProcessorResult::MoveVertex& curr = m_gcode_result->moves[extract_move_id(i)];
+                size_t move_id = m_ssid_to_moveid_map[i];
+                const GCodeProcessorResult::MoveVertex& curr = m_gcode_result->moves[move_id];
                 if (curr.is_arc_move()) {
                     segments_count += curr.interpolation_points.size();
                 }
