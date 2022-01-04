@@ -850,7 +850,7 @@ void SpinCtrl::BUILD() {
 #ifdef __WXOSX__
     temp->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent &e)
 #else
-    temp->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent &e)
+    temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent &e)
 #endif
 	{
         e.Skip();
@@ -864,12 +864,12 @@ void SpinCtrl::BUILD() {
 
     temp->Bind(wxEVT_SPINCTRL, ([this](wxCommandEvent e) {  propagate_value();  }), temp->GetId()); 
     
-    temp->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, ([this](wxCommandEvent & e)
+    temp->Bind(wxEVT_TEXT_ENTER, ([this](wxCommandEvent & e)
     {
         e.Skip();
         propagate_value();
         bEnterPressed = true;
-    }), temp->GetTextCtrl()->GetId());
+    }), temp->GetId());
 
 	temp->GetTextCtrl()->Bind(wxEVT_TEXT, ([this, temp](wxCommandEvent e)
 	{

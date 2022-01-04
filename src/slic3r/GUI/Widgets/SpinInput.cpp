@@ -219,6 +219,7 @@ Button *SpinInput::createButton(bool inc)
         SetValue(val + delta);
         sendSpinEvent();
         text_ctrl->SetFocus();
+        btn->CaptureMouse();
         delta *= 8;
         timer.Start(100);
     });
@@ -228,6 +229,7 @@ Button *SpinInput::createButton(bool inc)
         sendSpinEvent();
     });
     btn->Bind(wxEVT_LEFT_UP, [=](auto &e) {
+        btn->ReleaseMouse();
         timer.Stop();
         text_ctrl->SelectAll();
         delta = 0;
@@ -264,6 +266,7 @@ void SpinInput::onTimer(wxTimerEvent &evnet) {
 
 void SpinInput::onTextLostFocus(wxEvent &event)
 {
+    timer.Stop();
     wxCommandEvent e;
     onTextEnter(e);
     // pass to outer
