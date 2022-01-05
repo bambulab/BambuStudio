@@ -3227,6 +3227,11 @@ const Plater* GUI_App::plater() const
     return plater_;
 }
 
+ParamsPanel* GUI_App::params_panel()
+{
+    return mainframe->m_param_panel;
+}
+
 Model& GUI_App::model()
 {
     return plater_->model();

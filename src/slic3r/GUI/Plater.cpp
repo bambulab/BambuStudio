@@ -977,9 +977,22 @@ Sidebar::Sidebar(Plater *parent)
         wxGetApp().preset_bundle->printers.get_edited_preset().set_num_extruders(extruder_count);
         wxGetApp().preset_bundle->update_multi_material_filament_presets();
     });
+    */
 
-    combo_and_btn_sizer->Add(32 * em / 10, 0, 0, 0, 0);
-    combo_and_btn_sizer->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, 5 * em / 10);*/
+    ScalableButton* edit_btn = new ScalableButton(p->m_panel_filament_content, wxID_ANY, "cog");
+    edit_btn->SetBackgroundColour(wxColour(255, 255, 255));
+    edit_btn->SetToolTip(_L("Click to edit preset"));
+
+    PlaterPresetComboBox* combobox = p->combos_filament[0];
+    edit_btn->Bind(wxEVT_BUTTON, [this, combobox](wxCommandEvent)
+        {
+            combobox->switch_to_tab();
+        });
+
+    combo_and_btn_sizer->Add(16 * em / 10, 0, 0, 0, 0);
+
+    combo_and_btn_sizer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL, 5 * em / 10);
+
     combo_and_btn_sizer->Add(16 * em / 10, 0, 0, 0, 0);
 
     p->combos_filament[0]->set_extruder_idx(0);
@@ -1076,6 +1089,20 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int extr_i
     combo_and_btn_sizer->Add(32 * em / 10, 0, 0, 0, 0);
     combo_and_btn_sizer->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, 5 * em / 10);
     */
+    ScalableButton* edit_btn = new ScalableButton(p->m_panel_filament_content, wxID_ANY, "cog");
+    edit_btn->SetBackgroundColour(wxColour(255, 255, 255));
+    edit_btn->SetToolTip(_L("Click to edit preset"));
+
+    PlaterPresetComboBox* combobox = (*combo);
+    edit_btn->Bind(wxEVT_BUTTON, [this, combobox](wxCommandEvent)
+        {
+            combobox->switch_to_tab();
+        });
+
+    combo_and_btn_sizer->Add(16 * em / 10, 0, 0, 0, 0);
+
+    combo_and_btn_sizer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL, 5 * em / 10);
+
     combo_and_btn_sizer->Add(16 * em / 10, 0, 0, 0, 0);
 
     auto /***/sizer_filaments = this->p->sizer_filaments;

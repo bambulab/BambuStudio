@@ -1293,8 +1293,7 @@ wxMenu* MenuFactory::multi_selection_menu()
                 []() { return plater()->can_split(true) && wxGetApp().get_mode() > comSimple; }, m_parent);
         }
         menu->AppendSeparator();
-        append_menu_item_change_extruder(menu);
-        
+        append_menu_item_change_filament(menu, 7);
     }
     return menu;
 }

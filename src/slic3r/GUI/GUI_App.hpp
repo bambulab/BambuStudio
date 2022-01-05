@@ -54,6 +54,7 @@ class ObjectSettings;
 class ObjectList;
 class ObjectLayers;
 class Plater;
+class ParamsPanel;
 class NotificationManager;
 struct GUI_InitParams;
 
@@ -326,6 +327,7 @@ public:
     ObjectLayers*        obj_layers();
     Plater*              plater();
     const Plater*        plater() const;
+    ParamsPanel*         params_panel();
     Model&      		 model();
     NotificationManager * notification_manager();
     //BBS

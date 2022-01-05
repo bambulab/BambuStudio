@@ -722,6 +722,23 @@ void PlaterPresetComboBox::switch_to_tab()
     if (!tab)
         return;
 
+    //BBS  Select NoteBook Tab params
+    wxGetApp().mainframe->select_tab(2);
+    ParamsPanel* param_panel = (ParamsPanel*)wxGetApp().params_panel();
+    param_panel->set_active_tab(param_panel->filament_panel());
+
+    const Preset* selected_filament_preset = nullptr;
+    if (m_type == Preset::TYPE_FILAMENT)
+    {
+        const std::string& selected_preset = GetString(GetSelection()).ToUTF8().data();
+        if (!boost::algorithm::ends_with(selected_preset, Preset::suffix_modified()))
+        {
+            const std::string& preset_name = wxGetApp().preset_bundle->filaments.get_preset_name_by_alias(selected_preset);
+            wxGetApp().get_tab(m_type)->select_preset(preset_name);
+        }
+    }
+
+    /*
     if (int page_id = wxGetApp().tab_panel()->FindPage(tab); page_id != wxNOT_FOUND)
     {
         wxGetApp().tab_panel()->SetSelection(page_id);
@@ -741,6 +758,7 @@ void PlaterPresetComboBox::switch_to_tab()
             }
         }
     }
+    */
 }
 
 void PlaterPresetComboBox::change_extruder_color()

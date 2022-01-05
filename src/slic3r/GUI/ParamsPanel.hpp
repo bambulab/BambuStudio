@@ -99,6 +99,8 @@ class ParamsPanel : public wxPanel
         void update_mode();
         void msw_rescale();
 
+        wxPanel* filament_panel() { return m_tab_filament; }
+
         wxScrolledWindow* get_paged_view() { return m_page_view;}
         wxPanel*    get_current_tab() { return m_current_tab; }
 
