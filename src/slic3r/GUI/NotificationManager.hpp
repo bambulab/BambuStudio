@@ -113,6 +113,8 @@ enum class NotificationType
 	NetfabbFinished,
 	// Short meesage to fill space between start and finish of export
 	ExportOngoing,
+	// BBS: Short meesage to fill space between start and finish of arranging
+	ArrangeOngoing,
 };
 
 class NotificationManager

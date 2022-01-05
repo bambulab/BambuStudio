@@ -263,6 +263,8 @@ void ArrangeJob::prepare_partplate() {
 //BBS: add partplate logic
 void ArrangeJob::prepare()
 {
+    wxGetApp().plater()->get_notification_manager()->push_notification(NotificationType::ArrangeOngoing, NotificationManager::NotificationLevel::RegularNotificationLevel, "Arranging the imported model...");
+
     int state = m_plater->get_prepare_state();
     if (state == Job::JobPrepareState::PREPARE_STATE_DEFAULT) {
         only_on_partplate = false;
@@ -536,7 +538,8 @@ void ArrangeJob::finalize() {
             _L("Arrangement ignored the following objects which can't fit into a single bed:\n%s"),
             concat_strings(names, "\n")));
     }
-    
+    m_plater->get_notification_manager()->close_notification_of_type(NotificationType::ArrangeOngoing);
+
     //BBS: reload all objects due to arrange
     plate_list.rebuild_plates_after_arrangement(!only_on_partplate);
 
