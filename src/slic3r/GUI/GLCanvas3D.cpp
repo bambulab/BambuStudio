@@ -1751,7 +1751,9 @@ void GLCanvas3D::render()
 
     wxGetApp().plater()->get_mouse3d_controller().render_settings_dialog(*this);
 
-    wxGetApp().plater()->get_notification_manager()->render_notifications(*this, get_overlay_window_width());
+    if (m_canvas_type != ECanvasType::CanvasAssembleView) {
+        wxGetApp().plater()->get_notification_manager()->render_notifications(*this, get_overlay_window_width());
+    }
 
     wxGetApp().imgui()->render();
 
