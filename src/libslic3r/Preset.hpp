@@ -350,6 +350,7 @@ public:
     void            load_user_presets(std::map<std::string, Preset*> my_presets, const std::string& type, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule);
     //BBS: get user presets
     int             get_user_presets(std::vector<Preset>& result_presets);
+    void             set_sync_info_and_save(std::string name, std::string setting_id);
 
     //BBS: add project embedded presets logic
     void load_project_embedded_presets(std::vector<Preset*>& project_presets, const std::string& type, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule);

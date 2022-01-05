@@ -951,6 +951,21 @@ void PresetCollection::reset_project_embedded_presets()
     unlock();
 }
 
+void PresetCollection::set_sync_info_and_save(std::string name, std::string setting_id)
+{
+    lock();
+    for (auto it = m_presets.begin(); it != m_presets.end(); it++) {
+        Preset* preset = &m_presets[it - m_presets.begin()];
+        if (preset->name == name) {
+            preset->sync_info.clear();
+            preset->setting_id = setting_id;
+            preset->save_info();
+            break;
+        }
+    }
+    unlock();
+}
+
 //BBS: get user presets
 int PresetCollection::get_user_presets(std::vector<Preset>& result_presets)
 {

@@ -2225,11 +2225,20 @@ void GUI_App::sync_preset(Preset* preset)
             result = m_account_manager->put_setting(preset);
         }
     }
+
+    //update sync_info preset info in file
     if (result == 0) {
+        PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+        if (!preset_bundle) return;
+
         BOOST_LOG_TRIVIAL(trace) << "sync_preset: sync operation: " << preset->sync_info << " success! preset = " << preset->name;
-        preset->sync_info.clear();
-        //update preset info in file
-        preset->save_info();
+        if (preset->type == Preset::Type::TYPE_FILAMENT) {
+            preset_bundle->filaments.set_sync_info_and_save(preset->name, preset->setting_id);
+        } else if (preset->type == Preset::Type::TYPE_PRINT) {
+            preset_bundle->prints.set_sync_info_and_save(preset->name, preset->setting_id);
+        } else if (preset->type == Preset::Type::TYPE_PRINTER) {
+            preset_bundle->printers.set_sync_info_and_save(preset->name, preset->setting_id);
+        }
     }
 }
 
