@@ -2301,15 +2301,17 @@ void cut_mesh(const indexed_triangle_set& mesh, std::array<Vec3d, 4> plane_point
         return;
     }
 
+    if (plane_normal(2) < 0.0) {
+        std::reverse(plane_points.begin(), plane_points.end());
+    }
+    plane_normal = calc_plane_normal(plane_points);
+
     Vec3d mid_point = { 0.0, 0.0, 0.0 };
     for (auto pt : plane_points)
         mid_point += pt;
     mid_point /= (double)plane_points.size();
     BoundingBox3Base<stl_vertex> mesh_bbox(mesh.vertices);
     Vec3d movement = mesh_bbox.center().cast<double>() - mid_point;
-    if (plane_normal(2) < 0.0) {
-        movement *= -1.0;
-    }
 
     Vec3d axis = { 0.0, 0.0, 0.0 };
     double phi = 0.0;
@@ -2321,13 +2323,12 @@ void cut_mesh(const indexed_triangle_set& mesh, std::array<Vec3d, 4> plane_point
     movement = matrix * movement;
     Transform3d transfo;
     transfo.setIdentity();
-    transfo.rotate(Eigen::AngleAxisd(angles(2), Vec3d::UnitZ()) * Eigen::AngleAxisd(angles(1), Vec3d::UnitY()) * Eigen::AngleAxisd(angles(0), Vec3d::UnitX()));
     transfo.translate(movement);
+    transfo.rotate(Eigen::AngleAxisd(angles(2), Vec3d::UnitZ()) * Eigen::AngleAxisd(angles(1), Vec3d::UnitY()) * Eigen::AngleAxisd(angles(0), Vec3d::UnitX()));
     
     indexed_triangle_set mesh_temp = mesh;
     its_transform(mesh_temp, transfo);
     cut_mesh(mesh_temp, 0., upper, lower);
-
     
     Transform3d transfo_inv = transfo.inverse();
     if (upper) {

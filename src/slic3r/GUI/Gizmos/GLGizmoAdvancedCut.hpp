@@ -27,8 +27,6 @@ private:
     bool m_keep_upper;
     bool m_keep_lower;
     bool m_rotate_lower;
-    // BBS: m_cut_to_parts, m_do_segment
-    bool m_cut_to_parts;
     bool m_do_segment;
     double m_segment_smoothing_alpha;
     int m_segment_number;

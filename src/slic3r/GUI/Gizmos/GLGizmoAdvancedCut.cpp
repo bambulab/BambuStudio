@@ -64,7 +64,6 @@ GLGizmoAdvancedCut::GLGizmoAdvancedCut(GLCanvas3D& parent, const std::string& ic
     , m_keep_upper(true)
     , m_keep_lower(true)
     , m_rotate_lower(false)
-    , m_cut_to_parts(false)
     , m_do_segment(false)
     , m_segment_smoothing_alpha(0.5) 
     , m_segment_number(5)
@@ -150,7 +149,6 @@ void GLGizmoAdvancedCut::reset_all()
 
     m_keep_upper = true;
     m_keep_lower = true;
-    m_cut_to_parts = false;
 }
 
 bool GLGizmoAdvancedCut::on_init()
@@ -373,9 +371,6 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
     // Part selection
     m_imgui->checkbox(_L("Keep upper part"), m_keep_upper);
     m_imgui->checkbox(_L("Keep lower part"), m_keep_lower);
-
-    // Cut option checkbox
-    m_imgui->checkbox(_L("Cut to parts instead of objects"), m_cut_to_parts);
     ImGui::Separator();
 
 #if 0
