@@ -2659,7 +2659,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         break;
 
         // BBS
-        case '0': { select_view("iso"); break; }
+        case '0': { select_view("topfront"); break; }
         case '1': { select_view("top"); break; }
         case '2': { select_view("bottom"); break; }
         case '3': { select_view("front"); break; }
@@ -2967,7 +2967,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 // BBS
                 else if (evt.ControlDown()) {
                     switch (keyCode) {
-                        case '0': { select_view("iso"); break; }
+                        case '0': { select_view("topfront"); break; }
                         case '1': { select_view("top"); break; }
                         case '2': { select_view("bottom"); break; }
                         case '3': { select_view("front"); break; }
