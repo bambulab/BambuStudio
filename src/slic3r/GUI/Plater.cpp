@@ -4945,8 +4945,12 @@ void Plater::priv::on_layer_editing_toggled(bool enable)
 
 void Plater::priv::on_action_add(SimpleEvent&)
 {
-    if (q != nullptr)
+    if (q != nullptr) {
         q->add_model();
+        //BBS: arrange newly imported objects
+        notification_manager->push_notification(GUI::format(_L("Arranging the imported model...")));
+        wxPostEvent(get_current_canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_ARRANGE));
+    }
 }
 
 //BBS: add plate from toolbar
