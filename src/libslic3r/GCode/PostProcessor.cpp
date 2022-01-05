@@ -207,7 +207,7 @@ void gcode_add_line_number(const std::string& path, const DynamicPrintConfig& co
 
     std::fstream fs;
     std::string new_gcode;
-    fs.open(path, std::fstream::in | std::fstream::out);
+    fs.open(gcode_file.c_str(), std::fstream::in | std::fstream::out);
 
     size_t line_number = 1;
     std::string gcode_line;
