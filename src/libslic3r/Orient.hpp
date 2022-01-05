@@ -17,12 +17,12 @@ static const constexpr int UNORIENTD = -1;
 /// be modified during orientment. Instead, the translation and rotation fields
 /// will mark the needed transformation for the polygon to be in the orientd
 /// position. These can also be set to an initial offset and rotation.
-/// 
+///
 /// The bed_idx field will indicate the logical bed into which the
 /// polygon belongs: UNORIENTD means no place for the polygon
 /// (also the initial state before orient), 0..N means the index of the bed.
 /// Zero is the physical bed, larger than zero means a virtual bed.
-struct OrientMesh { 
+struct OrientMesh {
     TriangleMesh mesh;              /// The real mesh data
     double overhang_angle = 30;
     double angle{ 0 };
@@ -31,10 +31,10 @@ struct OrientMesh {
     Matrix3d rotation_matrix;
     Vec3d euler_angles;
     std::string name;
-        
+
     /// Optional setter function which can store arbitrary data in its closure
     std::function<void(const OrientMesh&)> setter = nullptr;
-    
+
     /// Helper function to call the setter with the orient data arguments
     void apply() const { if (setter) setter(*this); }
 
@@ -51,7 +51,7 @@ struct OrientParamsArea {
     float TAR_C = 0.1;
     float TAR_D = 1;
     float TAR_E = 0.0115;
-    float FIRST_LAY_H = 0.2;// 0.0475;
+    float FIRST_LAY_H = 0.0475;
     float VECTOR_TOL = -0.00083;
     float NEGL_FACE_SIZE = 0.1;
     float ASCENT = -0.5;
@@ -78,7 +78,7 @@ struct OrientParamsArea {
     /// Allow parallel execution.
     bool parallel = true;
 
-    /// Progress indicator callback called when an object gets packed. 
+    /// Progress indicator callback called when an object gets packed.
     /// The unsigned argument is the number of items remaining to pack.
     std::function<void(unsigned, std::string)> progressind = {};
 
@@ -88,7 +88,7 @@ struct OrientParamsArea {
     OrientParamsArea() = default;
 };
 
-struct OrientParams {    
+struct OrientParams {
     float TAR_A = 0.01;//0.128f;
     float TAR_B = 0.177f;
     float RELATIVE_F= 6.610621027964314;
@@ -122,17 +122,17 @@ struct OrientParams {
     bool min_volume = false;
     Eigen::Vector3f fun_dir;
 
-    
+
     /// Allow parallel execution.
     bool parallel = false;
 
-    /// Progress indicator callback called when an object gets packed. 
+    /// Progress indicator callback called when an object gets packed.
     /// The unsigned argument is the number of items remaining to pack.
     std::function<void(unsigned, std::string)> progressind = {};
-    
+
     /// A predicate returning true if abort is needed.
     std::function<bool(void)>     stopcondition = {};
-    
+
     OrientParams() = default;
 };
 
@@ -140,8 +140,8 @@ using OrientMeshs = std::vector<OrientMesh>;
 
 /**
  * \brief Orients the input polygons.
- 
- * \param items Input vector of OrientMeshs. The transformation, rotation 
+
+ * \param items Input vector of OrientMeshs. The transformation, rotation
  * and bin_idx fields will be changed after the call finished and can be used
  * to apply the result on the input polygon.
  */

@@ -40,7 +40,7 @@ namespace orientation {
         CostItems(CostItems const & other) = default;
         CostItems() { memset(this, 0, sizeof(*this)); }
         static std::string field_names() {
-            return "                                      overhang, bottom, bothull, contour, A_laf, A_prj, volume, unprintability";
+            return "                     overhang, bottom, bothull, contour, A_laf, A_prj, volume, unprintability";
         }
         std::string field_values() {
             std::stringstream ss;
@@ -61,6 +61,7 @@ public:
     TriangleMesh mesh_convex_hull;
     Eigen::MatrixXf normals, normals_hull;
     Eigen::VectorXf areas, areas_hull;
+    Eigen::VectorXf is_apperance; // whether a facet is outer apperance
     Eigen::MatrixXf z_projected;
     Eigen::VectorXf z_max, z_max_hull;  // max of projected z
     Eigen::VectorXf z_median;  // median of projected z
@@ -70,7 +71,7 @@ public:
 
     std::vector< Vec3f> orientations;  // Vec3f == stl_normal
     std::function<void(unsigned)> progressind = { };  // default empty indicator function
-    
+
 public:
     AutoOrienter(OrientMesh* orient_mesh_,
                  const OrientParams           &params_,
@@ -115,12 +116,12 @@ public:
             progressind(20);
 
         remove_duplicates();
-        
+
         if (progressind)
             progressind(30);
 
         std::map<Vec3f, CostItems, cmp_vec3f> results;
-        BOOST_LOG_TRIVIAL(info) << CostItems::field_names();
+        BOOST_LOG_TRIVIAL(info) << this->orient_mesh->name <<"; " << CostItems::field_names();
         for (int i = 0; i < orientations.size();i++) {
             auto orientation = -orientations[i];
 
@@ -140,7 +141,7 @@ public:
         typedef std::pair<Vec3f, CostItems> PAIR;
         std::vector<PAIR> results_vector(results.begin(), results.end());
         sort(results_vector.begin(), results_vector.end(), [](const PAIR& p1, const PAIR& p2) {return p1.second.unprintability < p2.second.unprintability; });
-        
+
         if (progressind)
             progressind(80);
 
@@ -151,15 +152,16 @@ public:
 
         return best_orientation.cast<double>();
     }
-     
+
     void preprocess()
     {
         {
             int face_count = mesh->facets_count();
             auto its = mesh->its;
             auto face_normals = its_face_normals(its);
-            areas.resize(face_count, 1);
-            normals.resize(face_count, 3);
+            areas = Eigen::VectorXf::Zero(face_count);
+            is_apperance = Eigen::VectorXf::Zero(face_count);
+            normals = Eigen::MatrixXf::Zero(face_count, 3);
             for (size_t i = 0; i < face_count; i++)
             {
                 float area = its.facet_area(i);
@@ -178,8 +180,8 @@ public:
             int face_count = mesh_convex_hull.facets_count();
             auto its = mesh_convex_hull.its;
             auto face_normals = its_face_normals(its);
-            areas_hull.resize(face_count, 1);
-            normals_hull.resize(face_count, 3);
+            areas_hull = Eigen::VectorXf::Zero(face_count);
+            normals_hull = Eigen::MatrixXf::Zero(face_count, 3);
             for (size_t i = 0; i < face_count; i++)
             {
                 float area = its.facet_area(i);
@@ -206,7 +208,7 @@ public:
         typedef std::pair<stl_normal, float> PAIR;
         std::vector<PAIR> align_counts(alignments.begin(), alignments.end());
         sort(align_counts.begin(), align_counts.end(), [](const PAIR& p1, const PAIR& p2) {return p1.second > p2.second; });
-        
+
         num_directions = std::min((size_t)num_directions, align_counts.size());
         for (size_t i = 0; i < num_directions; i++)
         {
@@ -372,7 +374,7 @@ public:
             float overhang = costs.overhang;
             cost = params.RELATIVE_F * (costs.overhang * params.TAR_C + params.TAR_D + params.TAR_LAF * costs.area_laf * params.use_low_angle_face) / (params.TAR_D + params.CONTOUR_F * costs.contour + params.BOTTOM_F * bottom + params.BOTTOM_HULL_F * bottom_hull + params.TAR_PROJ_AREA * costs.area_projected);
         }
-        cost += (costs.bottom < params.BOTTOM_MIN) * 100 + (costs.bottom_hull < params.BOTTOM_HULL_MIN) * 200;
+        cost += (costs.bottom < params.BOTTOM_MIN) * 100;// + (costs.bottom_hull < params.BOTTOM_HULL_MIN) * 200;
 
         costs.unprintability = costs.unprintability = cost;
 
@@ -416,12 +418,12 @@ void orient(OrientMeshs &      arrangables,
              const OrientMeshs &excludes,
              const OrientParams &  params)
 {
-    
+
     auto &cfn = params.stopcondition;
     auto &pri = params.progressind;
-    
+
     _orient(arrangables, params, pri, cfn);
-    
+
 }
 
 void orient(ModelObject* obj)
