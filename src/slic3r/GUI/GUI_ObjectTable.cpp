@@ -267,6 +267,55 @@ GridCellFilamentsRenderer *GridCellFilamentsRenderer::Clone() const
 }
 
 // ----------------------------------------------------------------------------
+// wxGridCellSupportEditor
+// ----------------------------------------------------------------------------
+// the default values for GetValue()
+wxString GridCellSupportEditor::ms_stringValues[2] = { wxT(""), wxT("1") };
+
+void GridCellSupportEditor::DoActivate(int row, int col, wxGrid* grid)
+{
+    wxGridCellBoolEditor::DoActivate(row, col, grid);
+    grid->SelectBlock(row, col, row, col, true);
+}
+
+void GridCellSupportEditor::SetValueFromGrid(int row, int col, wxGrid* grid)
+{
+    if (grid->GetTable()->CanGetValueAs(row, col, wxGRID_VALUE_BOOL))
+    {
+        m_value = grid->GetTable()->GetValueAsBool(row, col);
+    }
+    else
+    {
+        wxString cellval( grid->GetTable()->GetValue(row, col) );
+
+        if ( cellval == ms_stringValues[false] )
+            m_value = false;
+        else if ( cellval == ms_stringValues[true] )
+            m_value = true;
+        else
+        {
+            // do not try to be smart here and convert it to true or false
+            // because we'll still overwrite it with something different and
+            // this risks to be very surprising for the user code, let them
+            // know about it
+            wxFAIL_MSG( wxT("invalid value for a cell with bool editor!") );
+
+            // Still need to initialize it to something.
+            m_value = false;
+        }
+    }
+}
+
+void GridCellSupportEditor::SetGridFromValue(int row, int col, wxGrid* grid) const
+{
+    wxGridTableBase * const table = grid->GetTable();
+    if ( table->CanSetValueAs(row, col, wxGRID_VALUE_BOOL) )
+        table->SetValueAsBool(row, col, m_value);
+    else
+        table->SetValue(row, col, GetStringValue());
+}
+
+// ----------------------------------------------------------------------------
 // GridCellSupportRenderer
 // ----------------------------------------------------------------------------
 void GridCellSupportRenderer::Draw(wxGrid& grid,
@@ -276,6 +325,7 @@ void GridCellSupportRenderer::Draw(wxGrid& grid,
                               int row, int col,
                               bool isSelected)
 {
+#if 0
     ObjectGridTable *table = dynamic_cast<ObjectGridTable *>(grid.GetTable());
     wxRect text_rect = rect;
 
@@ -327,8 +377,9 @@ void GridCellSupportRenderer::Draw(wxGrid& grid,
 
         wxRendererNative::Get().DrawCheckBox( &grid, dc, text_rect, flags );
     }
-
-    //wxGridCellBoolRenderer::Draw(grid, attr, dc, text_rect, row, col, isSelected);
+#else
+    wxGridCellBoolRenderer::Draw(grid, attr, dc, rect, row, col, isSelected);
+#endif
 }
 
 wxSize GridCellSupportRenderer::GetBestSize(wxGrid& grid,
@@ -337,12 +388,15 @@ wxSize GridCellSupportRenderer::GetBestSize(wxGrid& grid,
                                int WXUNUSED(row),
                                int WXUNUSED(col))
 {
+#if 0
     int text_width, text_height, width;
     grid.GetTextExtent(L("Support Disabled"), &text_width, &text_height, NULL, NULL, &Label::Body_10);
     width = text_width + 3*grid_cell_border_width + grid_cell_checkbox_size;
 
     wxSize size{width, 20};
-
+#else
+    wxSize size{32, 20};
+#endif
     return size;
 }
 
@@ -351,6 +405,130 @@ GridCellSupportRenderer *GridCellSupportRenderer::Clone() const
     return new GridCellSupportRenderer();
 }
 
+// ----------------------------------------------------------------------------
+// ObjectGridTable
+// ----------------------------------------------------------------------------
+bool ObjectGrid::OnCellLeftClick(wxGridEvent& event, int row, int col, ConfigOptionType type)
+{
+    if (type != coBool)
+        return false;
+
+    bool consumed = false;
+    wxGridCellCoords coords(row, col);
+    // Process the mouse down event depending on the current cursor mode. Note
+    // that this assumes m_cursorMode was set in the mouse move event hendler.
+    if ( m_cursorMode == WXGRID_CURSOR_SELECT_CELL)
+    {
+        if (!event.ShiftDown() && !event.CmdDown())
+        {
+            DisableCellEditControl();
+            MakeCellVisible(coords);
+            ClearSelection();
+
+            if ( m_selection )
+            {
+                // In row or column selection mode just clicking on the cell
+                // should select the row or column containing it: this is more
+                // convenient for the kinds of controls that use such selection
+                // mode and is compatible with 2.8 behaviour (see #12062).
+                switch ( m_selection->GetSelectionMode() )
+                {
+                    case wxGridSelectNone:
+                    case wxGridSelectCells:
+                    //case wxGridSelectRowsOrColumns:
+                        // nothing to do in these cases
+                        //BBS: select this cell when first click
+                        m_selection->SelectBlock(coords.GetRow(), coords.GetCol(),
+                                             coords.GetRow(), coords.GetCol(),
+                                             event);
+                        consumed = true;
+                        break;
+
+                    default:
+                        consumed = false;
+                        break;
+                }
+            }
+            else
+                consumed = true;
+
+            m_waitForSlowClick = true;
+            SetCurrentCell(coords);
+        }
+    }
+    return consumed;
+}
+
+void ObjectGrid::OnKeyDown( wxKeyEvent& event )
+{
+    //wxGrid::OnKeyDown(event);
+}
+
+void ObjectGrid::OnKeyUp( wxKeyEvent& event )
+{
+    //wxGrid::OnKeyUp(event);
+}
+
+void ObjectGrid::OnChar( wxKeyEvent& event )
+{
+    // see include/wx/defs.h enum wxKeyCode
+    int keyCode = event.GetKeyCode();
+    int ctrlMask = wxMOD_CONTROL;
+    int shiftMask = wxMOD_SHIFT;
+
+    if ((event.GetModifiers() & ctrlMask) != 0) {
+        // CTRL is pressed
+        switch (keyCode) {
+#ifdef __APPLE__
+            case 'c':
+            case 'C':
+#else /* __APPLE__ */
+            case WXK_CONTROL_A:
+#endif /* __APPLE__ */
+            //
+            break;
+
+#ifdef __APPLE__
+            case 'v':
+            case 'V':
+#else /* __APPLE__ */
+            case WXK_CONTROL_C:
+#endif /* __APPLE__ */
+            //
+            break;
+
+
+#ifdef __APPLE__
+            case 'f':
+            case 'F':
+#else /* __APPLE__ */
+            case WXK_CONTROL_F:
+#endif /* __APPLE__ */
+            //TODO: search
+            break;
+
+#ifdef __APPLE__
+            case 'z':
+            case 'Z':
+#else /* __APPLE__ */
+            case WXK_CONTROL_Z:
+#endif /* __APPLE__ */
+            //TODO:
+            break;
+
+        case WXK_BACK:
+        case WXK_DELETE:
+            //TODO;
+            break;
+        default:
+            event.Skip();
+        }
+    }
+    wxGrid::OnChar(event);
+}
+// ----------------------------------------------------------------------------
+// ObjectGridTable
+// ----------------------------------------------------------------------------
 ObjectGridTable::~ObjectGridTable()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", this %1%, row_data size %2%") %this % m_grid_data.size();
@@ -997,7 +1175,7 @@ void ObjectGridTable::construct_object_configs ()
             if (plate_index == -1)
                 volume_grid->plate_index.value = std::string("Outside");
             else
-                volume_grid->plate_index.value = std::string("Plate ") + std::to_string(plate_index+1);
+                volume_grid->plate_index.value = /*std::string("Plate ") +*/ std::to_string(plate_index+1);
             volume_grid->assemble_name.value = object->module_name;
             volume_grid->ori_assemble_name = volume_grid->assemble_name;
             auto extruder_id_ptr = get_volume_config_value<ConfigOptionInt>(filament_config, object_grid->config, volume_grid->config, m_col_data[col_filaments]->key);
@@ -1176,9 +1354,10 @@ void ObjectGridTable::update_row_properties()
                             grid_table->SetCellRenderer(row, col, new wxGridCellAutoWrapStringRenderer());
                             break;
                         case coBool:
-                            grid_table->SetCellEditor(row, col, new wxGridCellBoolEditor());
-                            grid_table->SetCellRenderer(row, col, new GridCellSupportRenderer());
-                            //grid_table->SetCellRenderer(row, col, new wxGridCellBoolRenderer());
+                            grid_table->SetCellEditor(row, col, new GridCellSupportEditor());
+                            //grid_table->SetCellEditor(row, col, new wxGridCellBoolEditor());
+                            //grid_table->SetCellRenderer(row, col, new GridCellSupportRenderer());
+                            grid_table->SetCellRenderer(row, col, new wxGridCellBoolRenderer());
                             break;
                         case coInt:
                             grid_table->SetCellEditor(row, col, new wxGridCellNumberEditor());
@@ -1227,10 +1406,16 @@ void ObjectGridTable::sort_by_default()
     compare_row_func sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
         std::string row1_plate = row1->plate_index.value;
         std::string row2_plate = row2->plate_index.value;
-        //set Outside as the same start char 'P'
-        row1_plate[0] = 'P';
-        row2_plate[0] = 'P';
-        return (row1_plate < row2_plate);
+        bool result = false;
+
+        if (row1_plate < row2_plate)
+            result = true;
+        else if (row1_plate == row2_plate) {
+            std::string row1_name = row1->name.value;
+            std::string row2_name = row2->name.value;
+            result = (row1_name < row2_name);
+        }
+        return result;
     };
     sort_row_data(sort_func);
 }
@@ -1278,8 +1463,10 @@ void ObjectGridTable::sort_row_data(compare_row_func sort_func)
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" finished, this %1%, row_data size %2%") %this % m_grid_data.size();
 }
 
-void ObjectGridTable::OnCellLeftClick(int row, int col)
+bool ObjectGridTable::OnCellLeftClick(int row, int col, ConfigOptionType &type)
 {
+    bool consumed = false;
+
     if (row == 0) {
         //handle the sort logic
         if (col == col_name) {
@@ -1302,10 +1489,16 @@ void ObjectGridTable::OnCellLeftClick(int row, int col)
             compare_row_func sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
                 std::string row1_plate = row1->plate_index.value;
                 std::string row2_plate = row2->plate_index.value;
-                //set Outside as the same start char 'P'
-                //row1_plate[0] = 'P';
-                //row2_plate[0] = 'P';
-                return (row1_plate < row2_plate);
+                bool result = false;
+
+                if (row1_plate < row2_plate)
+                    result = true;
+                else if (row1_plate == row2_plate) {
+                    std::string row1_name = row1->name.value;
+                    std::string row2_name = row2->name.value;
+                    result = (row1_name < row2_name);
+                }
+                return result;
             };
             sort_row_data(sort_func);
         }
@@ -1337,8 +1530,12 @@ void ObjectGridTable::OnCellLeftClick(int row, int col)
                 }
                 m_panel->m_object_grid->ForceRefresh();
             }
+            consumed = true;
         }
+        else
+            type = grid_col->type;
     }
+    return consumed;
 }
 
 void ObjectGridTable::OnSelectCell(int row, int col)
@@ -1457,7 +1654,6 @@ wxBitmap* ObjectGridTable::get_color_bitmap(int color_index)
         return m_panel->m_color_bitmaps[0];
 }
 
-
 wxIMPLEMENT_CLASS(ObjectTablePanel, wxPanel);
 /* ObjectTabelPanel related class */
 wxBEGIN_EVENT_TABLE( ObjectTablePanel, wxPanel )
@@ -1472,8 +1668,10 @@ wxBEGIN_EVENT_TABLE( ObjectTablePanel, wxPanel )
     //EVT_GRID_CELL_CHANGING( GridFrame::OnCellValueChanging )
     EVT_GRID_CELL_CHANGED( ObjectTablePanel::OnCellValueChanged )
     //EVT_GRID_CELL_BEGIN_DRAG( GridFrame::OnCellBeginDrag )
+    //EVT_KEY_UP( ObjectTablePanel::OnKeyUp )
+    //EVT_CHAR( ObjectTablePanel::OnChar )
+    //EVT_KEY_DOWN( ObjectTablePanel::OnKeyDown )
 wxEND_EVENT_TABLE()
-
 
 ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name, Plater* platerObj, Model *modelObj )
                     : wxPanel( parent, id, pos, size, style, name ), m_model(modelObj), m_plater(platerObj), m_float_validator(2, nullptr, wxNUM_VAL_ZERO_AS_BLANK)
@@ -1500,9 +1698,9 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
     //m_object_grid->AssignTable(m_object_grid_table);
 
     //set sizers
-	m_top_sizer->Add(m_object_grid, 0, wxEXPAND);
+	m_top_sizer->Add(m_object_grid, 1, wxEXPAND);
 
-    m_side_window = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
+    m_side_window = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(min_setting_width,-1), wxVSCROLL);
     m_page_sizer = new wxBoxSizer(wxVERTICAL);
     m_side_window->SetBackgroundColour(wxColour(0xff, 0xff, 0xff));
     m_side_window->SetSizer(m_page_sizer);
@@ -1514,9 +1712,9 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
     //create object settings
     m_object_settings = new ObjectTableSettings(m_side_window, m_object_grid_table);
     m_object_settings->Hide();
-    m_page_sizer->Add(m_object_settings->get_sizer(), 0, wxEXPAND | wxTOP, 5);
+    m_page_sizer->Add(m_object_settings->get_sizer(), 1, wxEXPAND | wxTOP, 5);
 
-    m_top_sizer->Add(m_side_window, 1, wxEXPAND);
+    m_top_sizer->Add(m_side_window, 0, wxEXPAND);
 
     //wxBoxSizer * page_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -1661,8 +1859,10 @@ void ObjectTablePanel::load_data()
                         m_object_grid->SetCellRenderer(row, col, new wxGridCellAutoWrapStringRenderer());
                         break;
                     case coBool:
-                        m_object_grid->SetCellEditor(row, col, new wxGridCellBoolEditor());
-                        m_object_grid->SetCellRenderer(row, col, new GridCellSupportRenderer());
+                        m_object_grid->SetCellEditor(row, col, new GridCellSupportEditor());
+                        //m_object_grid->SetCellEditor(row, col, new wxGridCellBoolEditor());
+                        //m_object_grid->SetCellRenderer(row, col, new GridCellSupportRenderer());
+                        m_object_grid->SetCellRenderer(row, col, new wxGridCellBoolRenderer());
                         break;
                     case coInt:
                         m_object_grid->SetCellEditor(row, col, new wxGridCellNumberEditor());
@@ -1756,9 +1956,17 @@ void ObjectTablePanel::OnCellLeftClick( wxGridEvent& ev )
     int row = ev.GetRow();
     int col = ev.GetCol();
 
-    m_object_grid_table->OnCellLeftClick(row, col);
+    ConfigOptionType type = coNone;
+    bool consumed = m_object_grid_table->OnCellLeftClick(row, col, type);
+    if (consumed) {
+        //m_object_grid->ClearSelection();
+        //m_object_grid->SelectBlock(row, col-1, row, col-1, true);
+        return;
+    }
 
-    ev.Skip();
+    consumed = m_object_grid->OnCellLeftClick(ev, row, col, type);
+    if (!consumed)
+        ev.Skip();
 }
 
 void ObjectTablePanel::OnSelectCell( wxGridEvent& ev )
@@ -1806,6 +2014,21 @@ void ObjectTablePanel::OnRangeSelected( wxGridRangeSelectEvent& ev )
     ev.Skip();
 }
 
+void ObjectTablePanel::OnKeyDown( wxKeyEvent& event )
+{
+    m_object_grid->OnKeyDown(event);
+}
+
+void ObjectTablePanel::OnKeyUp( wxKeyEvent& event )
+{
+    m_object_grid->OnKeyUp(event);
+}
+
+void ObjectTablePanel::OnChar( wxKeyEvent& event )
+{
+    m_object_grid->OnChar(event);
+}
+
 wxSize ObjectTablePanel::get_init_size()
 {
     wxSize size;
@@ -1825,7 +2048,7 @@ wxSize ObjectTablePanel::get_init_size()
 
     for (int index = 0; index < m_object_grid_table->GetNumberCols(); index++)
     {
-        width += m_object_grid->GetColSize(index);
+        width += m_object_grid->GetColSize(index)+2;
     }
     width += min_setting_width;
 
@@ -1864,7 +2087,7 @@ ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model 
     // And also actually enable them.
     //m_panel->SetScrollRate(10, 10);
 
-    m_obj_panel = new ObjectTablePanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxBORDER_NONE, wxString("Tabel Panel"), m_plater, m_model);
+    m_obj_panel = new ObjectTablePanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE, wxString("Tabel Panel"), m_plater, m_model);
     //m_top_sizer->Add(m_obj_panel, 1, wxALL | wxEXPAND, 5);
 
     //m_panel->SetSize(wxSize(1024, 512));

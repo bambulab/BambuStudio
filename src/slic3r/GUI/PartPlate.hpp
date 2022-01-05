@@ -264,10 +264,19 @@ public:
     bool is_slice_result_valid() const { return m_slice_result_valid; }
 
     //is slice result ready for print
-    bool is_slice_result_ready_for_print() const { return m_slice_result_valid&&(m_gcode_result?(!m_gcode_result->toolpath_outside):false); }
+    bool is_slice_result_ready_for_print() const
+    {
+        bool result = m_slice_result_valid;
+        if (result)
+            result = m_gcode_result ? (!m_gcode_result->toolpath_outside) : false;
+        return result;
+    }
 
     //invalid sliced result
-    void update_slice_result_valid_state(bool valid = false) { m_slice_result_valid = valid; }
+    void update_slice_result_valid_state(bool valid = false)
+    {
+        m_slice_result_valid = valid;
+    }
 
     /*slice related functions*/
     //update current slice context into backgroud slicing process

@@ -6160,7 +6160,8 @@ bool Plater::priv::PopupObjectTable(int object_id, int volume_id, const wxPoint&
     //m_popup_table = new ObjectTableDialog(q, q,  &model);
 
     wxPoint pos;
-    pos.x = sidebar->GetRect().width;
+    //pos.x = sidebar->GetRect().width;
+    pos.x = 0;
 
     wxRect rect = sidebar->get_project_resource_rect();
     pos.y = sidebar->ClientToScreen(wxPoint(rect.x, rect.y)).y;

@@ -3,6 +3,7 @@
 
 #include <wx/wx.h>
 #include <wx/intl.h>
+#include <wx/generic/gridsel.h>
 #include <wx/grid.h>
 #include <wx/renderer.h>
 #include <wx/gdicmn.h>
@@ -100,6 +101,29 @@ public:
     virtual GridCellFilamentsRenderer *Clone() const wxOVERRIDE;
 };
 
+class GridCellSupportEditor : public wxGridCellBoolEditor
+{
+public:
+    GridCellSupportEditor() { }
+    virtual void DoActivate(int row, int col, wxGrid* grid) wxOVERRIDE;
+
+private:
+    // These functions modify or use m_value.
+    void SetValueFromGrid(int row, int col, wxGrid* grid);
+    void SetGridFromValue(int row, int col, wxGrid* grid) const;
+
+    wxString GetStringValue() const { return GetStringValue(m_value); }
+
+    static
+    wxString GetStringValue(bool value) { return ms_stringValues[value]; }
+
+    bool m_value;
+
+    static wxString ms_stringValues[2];
+
+    wxDECLARE_NO_COPY_CLASS(GridCellSupportEditor);
+};
+
 class GridCellSupportRenderer : public wxGridCellBoolRenderer
 {
 public:
@@ -148,6 +172,16 @@ public:
         return wxNullPen;
     }*/
 
+    bool OnCellLeftClick(wxGridEvent& event, int row, int col, ConfigOptionType type);
+
+    //set ObjectGridTable and ObjectTablePanel as friend
+    friend class     ObjectGridTable;
+    friend class     ObjectTablePanel;
+protected:
+    //void OnSize( wxSizeEvent& );
+    void OnKeyDown( wxKeyEvent& );
+    void OnKeyUp( wxKeyEvent& );
+    void OnChar( wxKeyEvent& );
 };
 
 class ObjectGridTable : public wxGridTableBase
@@ -356,7 +390,7 @@ public:
     void update_value_to_object(Model* model, ObjectGridRow* grid_row, int col);
     wxBitmap& get_undo_bitmap(bool selected = false);
     wxBitmap* get_color_bitmap(int color_index);
-    void OnCellLeftClick(int row, int col);
+    bool OnCellLeftClick(int row, int col, ConfigOptionType &type);
     void OnSelectCell(int row, int col);
     void OnRangeSelected(int row, int col, int row_count, int col_count);
     //void OnRangeSelecting( wxGridRangeSelectEvent& );
@@ -423,6 +457,9 @@ public:
         m_filaments_colors.push_back(*wxGREEN);
         m_filaments_name.push_back("Generic PLA");
     }
+    void OnKeyDown( wxKeyEvent& event );
+    void OnKeyUp( wxKeyEvent& event );
+    void OnChar( wxKeyEvent& event );
 
 private:
     wxColour            m_bg_colour;
