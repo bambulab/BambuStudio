@@ -78,8 +78,8 @@ void ButtonsListCtrl::OnPaint(wxPaintEvent&)
         dc.DrawRectangle(pos.x, pos.y + size.y, size.x, sz.y - size.y);
     }
 
+#if 0
     // highlight selected mode button
-
     if (m_mode_sizer) {
         const std::vector<ModeButton*>& mode_btns = m_mode_sizer->get_btns();
         for (int idx = 0; idx < int(mode_btns.size()); idx++) {
@@ -94,6 +94,7 @@ void ButtonsListCtrl::OnPaint(wxPaintEvent&)
             //dc.DrawRectangle(pos.x, pos.y + size.y, size.x, sz.y - size.y);
         }
     }
+#endif
 
     // Draw orange bottom line
 
@@ -104,12 +105,12 @@ void ButtonsListCtrl::OnPaint(wxPaintEvent&)
 
 void ButtonsListCtrl::UpdateMode()
 {
-    m_mode_sizer->SetMode(Slic3r::GUI::wxGetApp().get_mode());
+    //m_mode_sizer->SetMode(Slic3r::GUI::wxGetApp().get_mode());
 }
 
 void ButtonsListCtrl::Rescale()
 {
-    m_mode_sizer->msw_rescale();
+    //m_mode_sizer->msw_rescale();
     int em = em_unit(this);
     for (Button* btn : m_pageButtons) {
         //BBS
