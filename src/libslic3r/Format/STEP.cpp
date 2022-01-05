@@ -261,10 +261,14 @@ bool load_step(const char *path, Model *model, ImportStepProgressFn proFn)
             continue;
         }
 
+        stl_file stl;
+        stl.stats.type = inmemory;
+        stl.stats.number_of_facets = (uint32_t)aNbTriangles;
+        stl.stats.original_num_facets = stl.stats.number_of_facets;
+        stl_allocate(&stl);
+
         std::vector<Vec3f> points;
         points.reserve(aNbNodes);
-        std::vector<Vec3i> facets;
-        facets.reserve(aNbTriangles);
         //BBS: count faces missing triangulation
         Standard_Integer aNbFacesNoTri = 0;
         //BBS: fill temporary triangulation
@@ -302,19 +306,26 @@ bool load_step(const char *path, Model *model, ImportStepProgressFn proFn)
                 anId[0] += aNodeOffset;
                 anId[1] += aNodeOffset;
                 anId[2] += aNodeOffset;
-                facets.emplace_back(std::move(Vec3i(anId[0] - 1, anId[1] - 1, anId[2] - 1)));
+                //BBS: save triangles facets
+                stl_facet facet;
+                facet.vertex[0] = points[anId[0] - 1].cast<float>();
+                facet.vertex[1] = points[anId[1] - 1].cast<float>();
+                facet.vertex[2] = points[anId[2] - 1].cast<float>();
+                facet.extra[0] = 0;
+                facet.extra[1] = 0;
+                stl_normal normal;
+                stl_calculate_normal(normal, &facet);
+                stl_normalize_vector(normal);
+                facet.normal = normal;
+                stl.facet_start[aTriangleOffet + aTriIter - 1] = facet;
             }
 
             aNodeOffset += aTriangulation->NbNodes();
             aTriangleOffet += aTriangulation->NbTriangles();
         }
 
-        TriangleMesh triangle_mesh(points, facets);
-        // BBS: FIXME, comment repair to avoid build error
-        //triangle_mesh.repair();
-        if (triangle_mesh.facets_count() == 0) {
-            continue;
-        }
+        TriangleMesh triangle_mesh;
+        triangle_mesh.from_stl(stl);
         ModelVolume* new_volume = new_object->add_volume(std::move(triangle_mesh));
         new_volume->name = namedSolids[i].name;
         new_volume->source.input_file = path;
