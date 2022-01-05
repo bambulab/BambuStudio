@@ -6231,8 +6231,10 @@ void GLCanvas3D::_picking_pass()
 
         glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-        //BBS: add plates related logic
-        _render_plates_for_picking();
+        //BBS: only render plate in view 3D
+        if (m_canvas_type == ECanvasType::CanvasView3D) {
+            _render_plates_for_picking();
+        }
 
         m_camera_clipping_plane = m_gizmos.get_clipping_plane();
         if (m_camera_clipping_plane.is_active()) {
