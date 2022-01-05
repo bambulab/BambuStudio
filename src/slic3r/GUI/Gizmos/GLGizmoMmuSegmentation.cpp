@@ -277,6 +277,9 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
                             y = std::min(y, bottom_limit - approx_height);
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always);
 
+    //BBS
+    ImGuiWrapper::push_toolbar_style();
+
     m_imgui->begin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
@@ -326,7 +329,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     window_width       = std::max(window_width, 2.f * buttons_width + m_imgui->scaled(1.f));
 
     auto draw_text_with_caption = [this, &caption_max](const wxString &caption, const wxString &text) {
-        m_imgui->text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, caption);
+        m_imgui->text_colored(ImGuiWrapper::COL_BLUE_LIGHT, caption);
         ImGui::SameLine(caption_max);
         m_imgui->text(text);
     };
@@ -531,6 +534,9 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     }
 
     m_imgui->end();
+
+    //BBS
+    ImGuiWrapper::pop_toolbar_style();
 }
 
 void GLGizmoMmuSegmentation::update_model_object()

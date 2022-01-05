@@ -145,7 +145,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     y = std::min(y, bottom_limit - approx_height);
     //BBS: GUI refactor: move gizmo to the right
 #if BBS_TOOLBAR_ON_TOP
-    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always, 0.5f, 0.0f);
+    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always, 0.0f, 0.0f);
 #else
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always, 1.0f, 0.0f);
 #endif
