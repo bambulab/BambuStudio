@@ -249,6 +249,8 @@ protected:
     void update_profile(MachineObject* obj);
     void update_all();
 
+    void reset_printing_values();
+
 public:
 
     MonitorPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(800, 600), long style = wxTAB_TRAVERSAL);

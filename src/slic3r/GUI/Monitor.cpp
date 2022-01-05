@@ -750,6 +750,13 @@ void MonitorPanel::update_task(MachineObject* obj)
 
 void MonitorPanel::update_subtask(MachineObject* obj)
 {
+    if (!obj) return;
+
+    if (obj->print_status.compare("FAILED") == 0) {
+        reset_printing_values();
+        return;
+    }
+
     if (!obj->subtask_) return;
 
     // update subtask static info
@@ -938,6 +945,17 @@ void MonitorPanel::update_all()
     update_subtask(obj);
 
     update_task(obj);
+}
+
+void MonitorPanel::reset_printing_values()
+{
+    m_gauge_progress->SetValue(0);
+    m_staticText_subtask_value->SetLabelText("N/A");
+    m_staticText_subtask_progress->SetLabelText("N/A");
+    m_staticText_progress_duration->SetLabelText("N/A");
+    m_staticText_progress_left->SetLabelText("N/A");
+    m_bitmap_thumbnail->SetBitmap(m_thumbnail_placeholder);
+    m_panel_printing_content->Layout();
 }
 
 void MonitorPanel::on_select(wxCommandEvent& event)
