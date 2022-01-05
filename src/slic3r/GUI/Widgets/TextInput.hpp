@@ -51,7 +51,9 @@ public:
 
     void Rescale();
 
-    virtual bool Enable(bool enable = true);
+    virtual bool Enable(bool enable = true) override;
+
+    virtual void SetMinSize(const wxSize& size) override;
 
     wxTextCtrl *GetTextCtrl() { return text_ctrl; }
 

@@ -535,7 +535,7 @@ void TextCtrl::BUILD() {
 		temp->GetToolTip()->Enable(flag);
 	}), text_ctrl->GetId());
 
-	text_ctrl->Bind(wxEVT_KILL_FOCUS, ([this, temp](wxEvent &e)
+	temp->Bind(wxEVT_KILL_FOCUS, ([this, temp](wxEvent &e)
 	{
 		e.Skip();
 #if !defined(__WXGTK__)
