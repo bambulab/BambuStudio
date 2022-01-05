@@ -26,16 +26,14 @@ void FillConcentricWGapFill::fill_surface_extrusion(const Surface* surface, cons
 
         ExPolygons gaps;
         Polygons loops = (Polygons)expolygon;
-        Polygons last = loops;
+        ExPolygons last = { expolygon };
         bool first = true;
         while (!last.empty()) {
-            ExPolygons temp_expolygon;
-            temp_expolygon.reserve(last.size());
-            for (size_t i = 0; i < last.size(); i++) {
-                temp_expolygon.push_back(ExPolygon(last[i]));
+            ExPolygons next_onion = offset2_ex(last, -double(distance + scale_(this->spacing) / 2), +double(scale_(this->spacing) / 2));
+            for (auto it = next_onion.begin(); it != next_onion.end(); it++) {
+                Polygons temp_loops = (Polygons)(*it);
+                loops.insert(loops.end(), temp_loops.begin(), temp_loops.end());
             }
-            Polygons next_onion = offset2(temp_expolygon, -double(distance + scale_(this->spacing) / 2), +double(scale_(this->spacing) / 2));
-            loops.insert(loops.end(), next_onion.begin(), next_onion.end());
             append(gaps, diff_ex(
                 offset(last, -0.5f * distance),
                 offset(next_onion, 0.5f * distance + 10)));  // 10 is safty offset
