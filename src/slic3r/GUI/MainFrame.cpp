@@ -562,7 +562,7 @@ void MainFrame::update_layout()
 #endif
         m_tabpanel->InsertPage(tp3DEditor, m_plater, _L("Plater"), std::string("notebook_plater_active"));
         m_tabpanel->InsertPage(tpPreview, m_plater, _L("Preview"), std::string("notebook_preview_active"));
-        m_main_sizer->Add(m_tabpanel, 1, wxEXPAND | wxTOP, 1);
+        m_main_sizer->Add(m_tabpanel, 1, wxEXPAND | wxTOP, 0);
         m_plater->Show();
         m_tabpanel->Show();
 #if 0
