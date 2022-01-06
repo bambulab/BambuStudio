@@ -484,6 +484,8 @@ void DebugToolDialog::init()
 
     m_bpButton_search->SetBitmap(m_search_img);
 
+    search_dialog = new DeviceSearchDialog(this, wxID_ANY, "Search Printer");
+
     tray_model = new TrayListModel();
     m_dataViewCtrl_ams->AssociateModel(tray_model.get());
 
@@ -1091,8 +1093,8 @@ void DebugToolDialog::init()
     
 
     m_bpButton_search->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            search_dialog = new DeviceSearchDialog(this, wxID_ANY, "Search Printer");
             search_dialog->Show();
+            search_dialog->SetFocus();
         });
 
     m_radioBox_chamber_light->Bind(wxEVT_RADIOBOX, [this](wxCommandEvent& evt) {
