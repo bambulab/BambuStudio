@@ -1454,7 +1454,7 @@ bool GUI_App::on_init_inner()
             app_config->save();
             std::string opt = app_config->get("notify_release");
             if (this->plater_ != nullptr && (opt == "all" || opt == "release")) {
-                this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable);
+                // this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable);
                 //BBS show msg box to download new version
                 wxString tips = wxString::Format("click download new version in default browser: %s", m_account_manager->version_info.version_str);
                 wxMessageDialog dialog(this->mainframe,
@@ -1480,7 +1480,7 @@ bool GUI_App::on_init_inner()
                 }
             }
             });
-        Bind(EVT_SLIC3R_EXPERIMENTAL_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
+        /* BBS Bind(EVT_SLIC3R_EXPERIMENTAL_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
             app_config->save();
             if (this->plater_ != nullptr && app_config->get("notify_release") == "all") {
                 std::string evt_string = into_u8(evt.GetString());
@@ -1494,7 +1494,7 @@ bool GUI_App::on_init_inner()
                     );
                 }
             }
-            });
+            });*/
         //BBS: TODO: workaround solution currently, always update bbl.ini from resource to vendor to make sure the modification valid after software upgrade
         //currently do it before preset_bundle->load_presets, need to move back later
         preset_updater->sync(preset_bundle);
