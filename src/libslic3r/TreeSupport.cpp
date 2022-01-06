@@ -1350,11 +1350,11 @@ void TreeSupport::generate_toolpaths()
                     //        std::numeric_limits<size_t>::max(), support_flow, false);
                     //}
                     else {
-                        Flow flow = (layer_id == 0 && m_raft_layers == 0) ? m_object.print()->brim_flow() :
-                            (layer_id % num_layers_to_change_infill_direction == 0 ? transition_flow : support_flow);
+                        Flow flow = (layer_id == 0 && m_raft_layers == 0) ? m_object.print()->brim_flow() : support_flow;
+                            // (layer_id % num_layers_to_change_infill_direction == 0 ? transition_flow : support_flow);
                         if (with_infill && layer_id > 0) {
-                            ExtrusionRole role = layer_id % num_layers_to_change_infill_direction == 0 ? erSupportTransition : erSupportMaterial;
-                            Fill* filler_support = Fill::new_from_type(ipRectilinear);
+                            ExtrusionRole role = erSupportMaterial;// layer_id % num_layers_to_change_infill_direction == 0 ? erSupportTransition : erSupportMaterial;
+                            Fill* filler_support = Fill::new_from_type(ipGrid);//ipRectilinear,ipGyroid
                             filler_support->spacing = m_support_material_flow.spacing();//support_extrusion_width;
                             filler_support->angle = (obj_is_vertical + int(layer_id / num_layers_to_change_infill_direction)) * M_PI_2;
 
@@ -1364,7 +1364,8 @@ void TreeSupport::generate_toolpaths()
                                 make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object.print(), poly, wall_count, flow, role, filler_support, support_density);
                             }
                             else { // otherwise must draw 1 wall
-                                make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object.print(), poly, 1, flow, role, filler_support, support_density);
+                                //make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object.print(), poly, 1, flow, role, filler_support, support_density);
+                                make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object.print(), poly, wall_count, flow, false);
                             }
                         }
                         else
