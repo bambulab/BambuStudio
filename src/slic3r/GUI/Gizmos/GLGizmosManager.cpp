@@ -812,6 +812,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         else if (evt.RightDown()) {
             m_mouse_capture.right = true;
             m_mouse_capture.parent = &m_parent;
+            return true;
         }
     }
 

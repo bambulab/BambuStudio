@@ -3255,6 +3255,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 	}
 
     if (m_main_toolbar.on_mouse(evt, *this)) {
+        if (m_main_toolbar.is_any_item_pressed())
+            m_gizmos.reset_all_states();
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
         m_mouse.set_start_position_3D_as_invalid();
@@ -3334,6 +3336,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     };
 
     if (m_gizmos.on_mouse(evt)) {
+        if (m_gizmos.is_running()) {
+            _deactivate_arrange_menu();
+            _deactivate_orient_menu();
+        }
         if (wxWindow::FindFocus() != m_canvas)
             // Grab keyboard focus for input in gizmo dialogs.
             m_canvas->SetFocus();
@@ -3423,10 +3429,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
     else if (evt.LeftDown() || evt.RightDown() || evt.MiddleDown()) {
         //BBS: add orient deactivate logic
-        if (_deactivate_undo_redo_toolbar_items() || _deactivate_search_toolbar_item()
-            || _deactivate_arrange_menu() || _deactivate_orient_menu())
-            return;
-
+        if (!m_gizmos.on_mouse(evt)) {
+            if (_deactivate_undo_redo_toolbar_items() || _deactivate_search_toolbar_item()
+                || _deactivate_arrange_menu() || _deactivate_orient_menu())
+                return;
+        }
         // If user pressed left or right button we first check whether this happened
         // on a volume or not.
         m_layers_editing.state = LayersEditing::Unknown;
