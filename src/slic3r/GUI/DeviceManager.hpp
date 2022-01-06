@@ -187,6 +187,9 @@ public:
     int     mc_print_stage;
     int     mc_print_error_code;
     int     mc_print_line_number;
+    int     mc_print_percent;       /* left print progess in percent */
+    int     mc_left_time;           /* left time in seconds */
+
     std::string print_status;   /* enum string: FINISH, RUNNING, PAUSE, INIT, FAILED */
 
     /* mqtt connections */

@@ -792,38 +792,38 @@ void MonitorPanel::update_subtask(MachineObject* obj)
 
     // update gcode progress
     std::string duration = "N/A";
-    std::string total_time = "N/A";
     std::string left_time = "N/A";
-    try {
-        if (!obj->subtask_->task_duration.empty()) {
-            //duration = get_time_dhms(stoi(obj->subtask_->task_duration));
-            duration = get_time_hms(stoi(obj->subtask_->task_duration));
-        }
-    }
-    catch (...) {
-        ;
-    }
-    wxString duration_text = wxString::Format("%s", duration);
-    m_staticText_progress_duration->SetLabelText(duration_text);
 
-    BBLSliceInfo* info = obj->get_slice_info(obj->subtask_->task_partplate_idx);
-    if (info) {
+    wxString duration_text = "N/A";
+    wxString left_time_text = "N/A";
+    wxString progress_text = "N/A";
+
+    // valid gcode percent / left time
+    if (obj->mc_left_time != 0 || obj->mc_print_percent != 0) {
         try {
-            //total_time = get_time_dhms(info->prediction);
-            left_time = get_time_hms(info->prediction * (100 - obj->subtask_->task_progress) / 100);
+            if (!obj->subtask_->task_duration.empty()) {
+                duration = get_bbl_monitor_time_dhm(stoi(obj->subtask_->task_duration));
+            }
         }
         catch (...) {
             ;
         }
+        duration_text = wxString::Format("%s", duration);
+        try {
+            left_time = get_bbl_monitor_time_dhm(obj->mc_left_time);
+        }
+        catch (...) {
+            ;
+        }
+        left_time_text = wxString::Format("-%s", left_time);
+        progress_text = wxString::Format("%d%%", obj->subtask_->task_progress);
     }
 
-    wxString left_time_text = wxString::Format("-%s", left_time);
-    m_staticText_progress_left->SetLabelText(left_time_text);
-
     // update current subtask progress
-    m_gauge_progress->SetValue(obj->subtask_->task_progress);
-    wxString progress_text = wxString::Format("%d%%", obj->subtask_->task_progress);
+    m_staticText_progress_left->SetLabelText(left_time_text);
     m_staticText_subtask_progress->SetLabelText(progress_text);
+    m_staticText_progress_duration->SetLabelText(duration_text);
+    m_gauge_progress->SetValue(obj->subtask_->task_progress);
 
     m_panel_printing_content->Layout();
 }

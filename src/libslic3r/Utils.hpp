@@ -432,6 +432,8 @@ inline std::string get_time_dhm(float time_in_secs)
         ::sprintf(buffer, "%dh %dm", hours, minutes);
     else if (minutes > 0)
         ::sprintf(buffer, "%dm", minutes);
+    else
+        ::sprintf(buffer, "%dm", 0);
 
     return buffer;
 }
@@ -446,6 +448,23 @@ inline std::string get_time_hms(float time_in_secs)
 
     char buffer[64];
     ::sprintf(buffer, "%02d:%02d:%02d", hours, minutes, secs);
+    return buffer;
+}
+
+inline std::string get_bbl_monitor_time_dhm(float time_in_secs)
+{
+    int days = (int)(time_in_secs / 86400.0f);
+    time_in_secs -= (float)days * 86400.0f;
+    int hours = (int)(time_in_secs / 3600.0f);
+    time_in_secs -= (float)hours * 3600.0f;
+    int minutes = (int)(time_in_secs / 60.0f);
+
+    char buffer[64];
+    if (days > 0)
+        ::sprintf(buffer, "%02dd:%02d:%02d", days, hours, minutes);
+    else
+        ::sprintf(buffer, "%02d:%02d", hours, minutes);
+
     return buffer;
 }
 

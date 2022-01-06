@@ -17,6 +17,14 @@
 
 using namespace nlohmann;
 
+// json command const string
+const std::string JSON_CMD_PRINT = "print";
+const std::string JSON_CMD_SYSTEM = "system";
+
+// json key const string
+const std::string JSON_MC_REMAIN_TIME   = "mc_remaining_time";
+const std::string JSON_MC_PERCENT = "mc_percent";
+
 namespace Slic3r {
 
 /* Common Functions */
@@ -186,6 +194,8 @@ MachineObject::MachineObject(AccountManager& acc, std::string name, std::string 
     mc_print_stage = 0;
     mc_print_error_code = 0;
     mc_print_line_number = 0;
+    mc_print_percent = 0;
+    mc_left_time = 0;
 }
 
 bool MachineObject::check_valid_ip()
@@ -493,6 +503,26 @@ int MachineObject::publish_json(std::string json_str, ResultFn resFn, CONNECTION
 int MachineObject::parse_json(std::string topic, std::string payload)
 {
     try {
+        // json style parser
+        json j = json::parse(payload);
+
+        if (j.contains(JSON_CMD_PRINT)) {
+            json jj = j[JSON_CMD_PRINT];
+            if (jj.contains(JSON_MC_REMAIN_TIME)) {
+                if (jj[JSON_MC_REMAIN_TIME].is_string())
+                    mc_left_time = stoi(j[JSON_CMD_PRINT][JSON_MC_REMAIN_TIME].get<std::string>()) * 60;
+                else if (jj[JSON_MC_REMAIN_TIME].is_number_integer())
+                    mc_left_time = j[JSON_CMD_PRINT][JSON_MC_REMAIN_TIME].get<int>() * 60;
+            }
+            if (jj.contains(JSON_MC_PERCENT)) {
+                if (jj[JSON_MC_PERCENT].is_string())
+                    mc_print_percent = stoi(j[JSON_CMD_PRINT][JSON_MC_PERCENT].get<std::string>());
+                else if (jj[JSON_MC_PERCENT].is_number_integer())
+                    mc_print_percent = j[JSON_CMD_PRINT][JSON_MC_PERCENT].get<int>();
+            }
+        }
+
+
         std::stringstream ss(payload);
         pt::ptree root;
         pt::read_json(ss, root);
@@ -557,8 +587,7 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                     BBLSubTask* curr_task = get_subtask();
 
                     if (curr_task) {
-                        if (progress.has_value())
-                            curr_task->task_progress = stoi(progress.value());
+                        curr_task->task_progress = mc_print_percent;
                         if (gcode_start_time.has_value())
                             curr_task->task_start_time = gcode_start_time.value();
                         if (gcode_duration.has_value())
