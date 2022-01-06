@@ -1089,7 +1089,6 @@ void GLGizmosManager::render_background(float left, float top, float right, floa
 
 void GLGizmosManager::render_arrow(const GLCanvas3D& parent, EType highlighted_type) const
 {
-    
     std::vector<size_t> selectable_idxs = get_selectable_idxs();
     if (selectable_idxs.empty())
         return;
@@ -1226,6 +1225,11 @@ void GLGizmosManager::do_render_overlay() const
 #else
         zoomed_top_y -= zoomed_stride_y;
 #endif
+    }
+
+    // BBS simplify gizmo is not a selected gizmo and need to render input window
+    if (m_current != Undefined) {
+        m_gizmos[m_current]->render_input_window(0.5 * cnv_w + zoomed_top_x * zoom, height, cnv_h);
     }
 }
 
