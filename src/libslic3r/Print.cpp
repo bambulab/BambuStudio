@@ -1096,6 +1096,9 @@ void Print::process()
                 tool_ordering.first_extruder();
             print_object_instances_ordering = chain_print_object_instances(*this);
         }
+        // BBS: get the actural tool ordering
+        std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> layers_to_print = GCode::collect_layers_to_print(*this);
+        auto printExtruders = tool_ordering.tools_for_layer(layers_to_print.front().first).extruders;
 
         auto objectExtruderMap = getObjectExtruderMap(*this);
         std::vector<std::pair<ObjectID, unsigned int>> objPrintVec;
@@ -1115,7 +1118,7 @@ void Print::process()
         if (this->has_brim()) {
             Polygons islands_area;
             make_brim(*this, this->make_try_cancel(), islands_area, m_brimMap,
-                m_supportBrimMap, objPrintVec);
+                m_supportBrimMap, objPrintVec, printExtruders);
             for (Polygon& poly_ex : islands_area)
                 poly_ex.douglas_peucker(SCALED_RESOLUTION);
             for (Polygon &poly : union_(this->first_layer_islands(), islands_area))

@@ -598,14 +598,15 @@ static ExPolygons inner_brim_area(const Print& print, const ConstPrintObjectPtrs
 static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObjectPtrs& top_level_objects_with_brim,
     const float no_brim_offset, std::map<ObjectID, ExPolygons>& brimAreaMap,
     std::map<ObjectID, ExPolygons>& supportBrimAreaMap,
-    std::vector<std::pair<ObjectID, unsigned int>>& objPrintVec)
+    std::vector<std::pair<ObjectID, unsigned int>>& objPrintVec,
+    std::vector<unsigned int> & printExtruders)
 {
     std::unordered_set<size_t> top_level_objects_idx;
     top_level_objects_idx.reserve(top_level_objects_with_brim.size());
     for (const PrintObject* object : top_level_objects_with_brim)
         top_level_objects_idx.insert(object->id().id);
 
-    unsigned int support_material_extruder = 1;
+    unsigned int support_material_extruder = printExtruders.front() + 1;
     auto allExtruders = print.extruders();
     if (print.has_support_material()) {
         assert(top_level_objects_with_brim.front()->config().support_material_extruder >= 0);
@@ -627,8 +628,7 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
     for (const auto& objectWithExtruder : objPrintVec)
         brimToWrite.insert({ objectWithExtruder.first, {true,true} });
 
-    
-    for (unsigned int extruderNo : allExtruders) {
+    for (unsigned int extruderNo : printExtruders) {
         ++extruderNo;
         for (const auto& objectWithExtruder : objPrintVec) {
             const PrintObject* object = print.get_object(objectWithExtruder.first);
@@ -679,11 +679,14 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
             if (support_material_extruder == extruderNo && brimToWrite.at(object->id()).sup) {
                 if (!object->support_layers().empty()) {
                     for (const Polygon& support_contour : object->support_layers().front()->support_fills.polygons_covered_by_spacing()) {
+                        // Brim will not be generated for supports
+                        /*
                         if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner || brim_type == BrimType::btAutoBrim) {
                             append(brim_area_support, diff_ex(offset_ex(support_contour, brim_width + brim_offset, jtRound, SCALED_RESOLUTION), offset_ex(support_contour, brim_offset)));
                         }
                         if (brim_type != BrimType::btNoBrim)
                             append(no_brim_area_support, offset_ex(support_contour, 0));
+                        */
                         no_brim_area_support.emplace_back(support_contour);
                     }
                 }
@@ -694,11 +697,14 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
                         float brim_width_mod = ex_poly.area() / ex_poly.contour.length() < scaled_half_min_adh_length
                             && brim_width < scaled_flow_width ? brim_width + scaled_additional_brim_width : brim_width;
                         brim_width_mod = floor(brim_width_mod / scaled_flow_width / 2) * scaled_flow_width * 2;
+                        // Brim will not be generated for supports
+                        /*
                         if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner || brim_type == BrimType::btAutoBrim) {
                             append(brim_area_support, diff_ex(offset_ex(ex_poly.contour, brim_width_mod + brim_offset, jtRound, SCALED_RESOLUTION), offset_ex(ex_poly.contour, brim_offset)));
                         }
                         if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btOuterAndInner)
                             append(brim_area_support, diff_ex(offset_ex(ex_poly.holes, -brim_offset), offset_ex(ex_poly.holes, -brim_width - brim_offset)));
+                        */
                         if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btNoBrim)
                             append(no_brim_area_support, diff_ex(offset(ex_poly.contour, no_brim_offset), ex_poly.holes));
                         if (brim_type == BrimType::btNoBrim)
@@ -1285,7 +1291,8 @@ ExtrusionEntityCollection makeBrimInfill(const ExPolygons& singleBrimArea, const
 void make_brim(const Print& print, PrintTryCancel try_cancel, Polygons& islands_area,
     std::map<ObjectID, ExtrusionEntityCollection>& brimMap,
     std::map<ObjectID, ExtrusionEntityCollection>& supportBrimMap,
-    std::vector<std::pair<ObjectID, unsigned int>> &objPrintVec)
+    std::vector<std::pair<ObjectID, unsigned int>> &objPrintVec,
+    std::vector<unsigned int>& printExtruders)
 {
 
     double brim_width_max = 0;
@@ -1298,7 +1305,7 @@ void make_brim(const Print& print, PrintTryCancel try_cancel, Polygons& islands_
     ConstPrintObjectPtrs    top_level_objects_with_brim = get_top_level_objects_with_brim(print, bottom_layers_expolygons);
     Polygons                islands = top_level_outer_brim_islands(top_level_objects_with_brim, scaled_resolution);
     ExPolygons           islands_area_ex = outer_inner_brim_area(print, top_level_objects_with_brim,
-        float(flow.scaled_spacing()), brimAreaMap, supportBrimAreaMap, objPrintVec);;
+        float(flow.scaled_spacing()), brimAreaMap, supportBrimAreaMap, objPrintVec, printExtruders);
 
     /*islands_area_ex = top_level_outer_brim_area(print, top_level_objects_with_brim, float(flow.scaled_spacing()),
         brim_width_max, brim_width_map, brimAreaMap, supportBrimAreaMap, objPrintVec);
