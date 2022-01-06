@@ -660,13 +660,15 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
         return;
     }
 
-    m_last_result_id = gcode_result.id;
-    m_gcode_result = &gcode_result;
     //BBS: add logs
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": new id %1%, gcode file %2% ") % m_last_result_id % gcode_result.filename;
 
     // release gpu memory, if used
-    reset(); 
+    reset();
+
+    //BBS: move the id to the end of reset
+    m_last_result_id = gcode_result.id;
+    m_gcode_result = &gcode_result;
 
     m_sequential_view.gcode_window.load_gcode(gcode_result.filename,
         // Stealing out lines_ends should be safe because this gcode_result is processed only once (see the 1st if in this function).

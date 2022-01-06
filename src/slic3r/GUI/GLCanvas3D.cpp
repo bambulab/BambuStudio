@@ -1162,7 +1162,11 @@ BoundingBoxf3 GLCanvas3D::_get_current_partplate_print_volume()
 
 ModelInstanceEPrintVolumeState GLCanvas3D::check_volumes_outside_state() const
 {
-    assert(m_initialized);
+    //BBS: if not initialized, return inside directly insteadof assert
+    if (!m_initialized) {
+        return ModelInstancePVS_Inside;
+    }
+    //assert(m_initialized);
 
     ModelInstanceEPrintVolumeState state;
     m_volumes.check_outside_state(m_bed.build_volume(), &state);

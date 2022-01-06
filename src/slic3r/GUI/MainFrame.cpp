@@ -2214,7 +2214,7 @@ void MainFrame::init_menubar_as_gcodeviewer()
     if (viewMenu != nullptr)
         m_topbar->AddDropDownSubMenu(viewMenu, _L("&View"));
     wxGetApp().add_config_menu(m_topbar->GetTopMenu());
-    m_topbar->AddDropDownSubMenu(viewMenu, _L("&Help"));
+    m_topbar->AddDropDownSubMenu(helpMenu, _L("&Help"));
 
 #ifdef __APPLE__
     // This fixes a bug on Mac OS where the quit command doesn't emit window close events

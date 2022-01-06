@@ -2429,8 +2429,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
                     boost::filesystem::remove_all(last);
             }
             catch (...) {}
-            //BBS: FIXME, comment new_project to walkaround runtime error
-            //this->q->new_project();
+            this->q->new_project();
             });
         wxPostEvent(this->q, wxCommandEvent{EVT_RESTORE_PROJECT});
     }
@@ -3539,6 +3538,7 @@ void Plater::priv::reset()
     model.clear_objects();
     update();
 
+    //BBS
     if (wxGetApp().is_editor()) {
         // Delete object from Sidebar list. Do it after update, so that the GLScene selection is updated with the modified model.
         sidebar->obj_list()->delete_all_objects_from_list();

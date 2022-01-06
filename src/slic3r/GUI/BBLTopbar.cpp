@@ -279,6 +279,13 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnModelStoreClicked, this, ID_MODEL_STORE);
 }
 
+BBLTopbar::~BBLTopbar()
+{
+    m_file_menu_item = nullptr;
+    m_dropdown_menu_item = nullptr;
+    m_file_menu = nullptr;
+}
+
 void BBLTopbar::OnOpenProject(wxAuiToolBarEvent& event)
 {
     MainFrame* main_frame = dynamic_cast<MainFrame*>(m_frame);

@@ -13,6 +13,7 @@ class BBLTopbar : public wxAuiToolBar
 {
 public:
     BBLTopbar(wxFrame* parent);
+    ~BBLTopbar();
     void UpdateToolbarWidth(int width);
     void OnIconize(wxAuiToolBarEvent& event);
     void OnFullScreen(wxAuiToolBarEvent& event);

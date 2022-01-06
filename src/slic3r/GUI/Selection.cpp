@@ -1312,7 +1312,7 @@ void Selection::notify_instance_update(int object_idx, int instance_idx)
 
                 for (int index = 0; index < object->instances.size(); index++)
                 {
-                    plate_list.notify_instance_update(object_idx, index);
+                    plate_list.notify_instance_update((*m_volumes)[i]->object_idx(), index);
                 }
             }
             else
