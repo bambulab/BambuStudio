@@ -251,8 +251,9 @@ void PrintJob::process()
 
         // add to user project
         c->myProjectList.insert(std::make_pair(project->project_id, project));
-
         m_plater->print_job_finished();
+
+        m_job_finished = true;
     }
 }
 

@@ -178,6 +178,7 @@ protected:
 	wxPanel* m_panel_status;
 	wxButton* m_button_cancel;
 	wxButton* m_button_ensure;
+    bool      m_need_disable_btn_ensure{ false };
 
     wxTimer* m_refresh_timer;
 

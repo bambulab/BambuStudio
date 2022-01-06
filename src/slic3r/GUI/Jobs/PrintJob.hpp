@@ -23,6 +23,7 @@ class PrintJob : public PlaterJob
 {
     PrintPrepareData    job_data;
     std::string         m_dev_id;
+    bool                m_job_finished{ false };
 
 protected:
 
@@ -39,6 +40,8 @@ public:
     {
         return 100;
     }
+
+    bool is_finished() { return m_job_finished;  }
 
     void process() override;
     void finalize() override;

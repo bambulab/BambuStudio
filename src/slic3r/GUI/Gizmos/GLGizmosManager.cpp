@@ -1194,6 +1194,8 @@ void GLGizmosManager::do_render_overlay() const
     float u_offset = 1.0f / (float)tex_width;
     float v_offset = 1.0f / (float)tex_height;
 
+    bool is_render_current = false;
+
     for (size_t idx : selectable_idxs)
     {
         GLGizmoBase* gizmo = m_gizmos[idx].get();
@@ -1215,6 +1217,8 @@ void GLGizmosManager::do_render_overlay() const
 #if BBS_TOOLBAR_ON_TOP
             //gizmo->render_input_window(width, 0.5f * cnv_h - zoomed_top_y * zoom, toolbar_top);
             gizmo->render_input_window(0.5 * cnv_w + zoomed_top_x * zoom, height, cnv_h);
+
+            is_render_current = true;
 #else
             float toolbar_top = cnv_h - wxGetApp().plater()->get_view_toolbar().get_height();
             //gizmo->render_input_window(width, 0.5f * cnv_h - zoomed_top_y * zoom, toolbar_top);
@@ -1229,7 +1233,7 @@ void GLGizmosManager::do_render_overlay() const
     }
 
     // BBS simplify gizmo is not a selected gizmo and need to render input window
-    if (m_current != Undefined) {
+    if (!is_render_current && m_current != Undefined) {
         m_gizmos[m_current]->render_input_window(0.5 * cnv_w + zoomed_top_x * zoom, height, cnv_h);
     }
 }

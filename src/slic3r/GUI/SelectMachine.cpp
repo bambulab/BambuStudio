@@ -667,7 +667,8 @@ void SelectMachineDialog::on_ok(wxCommandEvent& event)
     Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
     std::map<std::string, MachineObject*>::iterator it = c->myBindMachineList.find(dev_id);
     if (it == c->myBindMachineList.end()) {
-        m_status_bar->set_status_text("can not find printer = " + dev_id);
+        wxString msg = _L("Please select a printer first!");
+        m_status_bar->set_status_text(msg);
         return;
     }
 
@@ -676,6 +677,7 @@ void SelectMachineDialog::on_ok(wxCommandEvent& event)
         return;
     }
 
+    m_need_disable_btn_ensure = true;
     m_button_ensure->Disable();
 
     wxProgressDialog* progress_dlg = new wxProgressDialog("Creating 3mf file", "", 100, this, wxPD_AUTO_HIDE | wxPD_CAN_ABORT);
@@ -708,6 +710,11 @@ void SelectMachineDialog::on_ok(wxCommandEvent& event)
 
 void SelectMachineDialog::on_timer(wxTimerEvent& event)
 {
+    if (m_need_disable_btn_ensure && m_print_job->is_finalized() && !m_print_job->is_finished()) {
+        m_button_ensure->Enable();
+        m_need_disable_btn_ensure = false;
+    }
+
     // update machine list, collections of bind list and local free
     Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
     Slic3r::DeviceManager* d = Slic3r::GUI::wxGetApp().getDeviceManager();

@@ -359,6 +359,7 @@ void SubTaskPanel::set_value(wxString name, wxString prediction, wxString weight
 
     if (!thumbnail_url.empty()) {
         web_request = wxWebSession::GetDefault().CreateRequest(this, thumbnail_url);
+        BOOST_LOG_TRIVIAL(trace) << "monitor: subtask_panel start reqeust thumbnail, url = " << thumbnail_url;
         web_request.Start();
     }
 
@@ -378,6 +379,7 @@ void SubTaskPanel::update_info(BBLSubTask subtask, BBLSliceInfo info)
 
 void SubTaskPanel::on_webrequest_state(wxWebRequestEvent& evt)
 {
+    BOOST_LOG_TRIVIAL(trace) << "monitor: sub_task_panel web request state = " << evt.GetState();
     switch (evt.GetState())
     {
     case wxWebRequest::State_Completed:
@@ -623,6 +625,7 @@ void MonitorPanel::init_bind()
 /* web state */
 void MonitorPanel::on_webrequest_state(wxWebRequestEvent& evt)
 {
+    BOOST_LOG_TRIVIAL(trace) << "monitor: monitor_panel web request state = " << evt.GetState();
     switch (evt.GetState())
     {
     case wxWebRequest::State_Completed:
@@ -717,6 +720,7 @@ void MonitorPanel::update_task(MachineObject* obj)
     if (!obj->task_) return;
 
     if (last_task != obj->task_) {
+        BOOST_LOG_TRIVIAL(trace) << "monitor: change to task id = " << obj->task_->task_id;
         std::vector<BBLSubTask*>::iterator it;
         std::map<std::string, BBLSliceInfo*>::iterator iter;
         
@@ -761,6 +765,7 @@ void MonitorPanel::update_subtask(MachineObject* obj)
 
     // update subtask static info
     if (last_subtask != obj->subtask_) {
+        BOOST_LOG_TRIVIAL(trace) << "monitor: change to sub task id = " << obj->subtask_->task_id;
         // update subtask name
         m_staticText_subtask_value->SetLabelText(wxString::Format("%s(%s)", obj->subtask_->task_name, obj->subtask_->task_id));
         if (web_request.IsOk())
@@ -784,6 +789,7 @@ void MonitorPanel::update_subtask(MachineObject* obj)
             }
             else {
                 web_request = wxWebSession::GetDefault().CreateRequest(this, m_request_url);
+                BOOST_LOG_TRIVIAL(trace) << "monitor: start reqeust thumbnail, url = " << m_request_url;
                 web_request.Start();
                 m_start_loading_thumbnail = false;
             }
