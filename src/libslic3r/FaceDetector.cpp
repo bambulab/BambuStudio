@@ -31,13 +31,24 @@ void FaceDetector::detect_exterior_face()
         TriangleMesh vol_mesh = mv->mesh();
         volume_facet_ranges.emplace_back(mv, object_mesh.stats().number_of_facets, object_mesh.stats().number_of_facets + vol_mesh.stats().number_of_facets);
 
-        Vec3d vol_ofs = mv->get_offset() + inst_ofs;
-        vol_mesh.translate({ (float)vol_ofs(0), (float)vol_ofs(1), (float)vol_ofs(2) });
+        vol_mesh.transform(mv->get_matrix());
         object_mesh.merge(vol_mesh);
     }
 
+    for (ModelVolume* mv : m_mo->volumes) {
+        TriangleMesh& vol_mesh = const_cast<TriangleMesh&>(mv->mesh());
+        if (vol_mesh.its.properties.size() < vol_mesh.its.indices.size()) {
+            vol_mesh.its.properties.clear();
+            vol_mesh.its.properties.resize(vol_mesh.its.indices.size());
+        }
+
+        for (FaceProperty& face_prop : vol_mesh.its.properties) {
+            face_prop.type = eNormal;
+        }
+    }
+
     sla::IndexedMesh indexed_mesh(object_mesh);
-    BoundingBoxf3 bbox = m_mo->bounding_box();
+    BoundingBoxf3 bbox = object_mesh.bounding_box();
     //bbox.translate(inst_ofs);
     bbox.offset(BBOX_OFFSET);
 

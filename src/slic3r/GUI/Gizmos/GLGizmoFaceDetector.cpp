@@ -95,18 +95,18 @@ void GLGizmoFaceDetector::perform_recognition(const Selection& selection)
         m_iva.release_geometry();
 
         for (ModelVolume* mv : mo->volumes) {
-            Vec3d vol_ofs = mv->get_offset();
-            Vec3d ofs = inst_ofs + vol_ofs;
-            const indexed_triangle_set& mv_its = mv->mesh().its;
+            TriangleMesh mesh_temp = mv->mesh();
+            mesh_temp.transform(mv->get_matrix());
+            indexed_triangle_set& mv_its = mesh_temp.its;
             for (int facet_idx = 0; facet_idx < mv_its.indices.size(); facet_idx++) {
                 const stl_triangle_vertex_indices& facet_vert_idxs = mv_its.indices[facet_idx];
                 if(mv_its.properties[facet_idx].type != eExteriorAppearance)
                     continue;
 
                 for (int i = 0; i < 3; ++i) {
-                    m_iva.push_geometry(double(mv_its.vertices[facet_vert_idxs[i]](0)) + ofs(0),
-                        double(mv_its.vertices[facet_vert_idxs[i]](1)) + ofs(1),
-                        double(mv_its.vertices[facet_vert_idxs[i]](2)) + ofs(2),
+                    m_iva.push_geometry(double(mv_its.vertices[facet_vert_idxs[i]](0)) + inst_ofs(0),
+                        double(mv_its.vertices[facet_vert_idxs[i]](1)) + inst_ofs(1),
+                        double(mv_its.vertices[facet_vert_idxs[i]](2)) + inst_ofs(2),
                         0., 0., 1.);
                 }
 
