@@ -60,7 +60,7 @@ class OG_CustomCtrl :public wxPanel
 
         void render_separator(wxDC& dc, wxCoord v_pos);
 
-        void    render(wxDC& dc, wxCoord v_pos);
+        void    render(wxDC& dc, wxCoord h_pos, wxCoord v_pos);
         wxCoord draw_mode_bmp(wxDC& dc, wxCoord v_pos);
         wxCoord draw_text      (wxDC& dc, wxPoint pos, const wxString& text, const wxColour* color, int width, bool is_url = false);
         wxPoint draw_blinking_bmp(wxDC& dc, wxPoint pos, bool is_blinking);
@@ -96,6 +96,9 @@ public:
     void    init_max_win_width();
     void    set_max_win_width(int max_win_width);
     int     get_max_win_width() { return m_max_win_width; }
+
+    //BBS
+    int    get_title_width();
 
     void    msw_rescale();
     void    sys_color_changed();

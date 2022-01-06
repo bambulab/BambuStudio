@@ -127,7 +127,7 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 {
     // BBS: new layout
     wxCoord v_pos = 0;
-    wxCoord h_pos = titleWidth * m_em_unit;
+    wxCoord h_pos = get_title_width() * m_em_unit;
 
     auto correct_line_height = [](int& line_height, wxWindow* win)
     {
@@ -268,16 +268,18 @@ void OG_CustomCtrl::OnPaint(wxPaintEvent&)
 
     wxPaintDC dc(this);
 
+    wxCoord h_pos = get_title_width();
     wxCoord v_pos = 0;
     // BBS: new layout
     dc.SetFont(Label::Head_16);
     dc.SetTextForeground(wxColour("#283436"));
-    dc.DrawText(GetLabel(), { 0, v_pos });
+    if (!GetLabel().IsEmpty())
+        dc.DrawText(GetLabel(), { 0, v_pos });
     dc.SetFont(m_font);
     for (CtrlLine& line : ctrl_lines) {
         if (!line.is_visible)
             continue;
-        line.render(dc, v_pos);
+        line.render(dc, h_pos, v_pos);
         v_pos += line.height;
     }
 }
@@ -453,6 +455,14 @@ void OG_CustomCtrl::init_max_win_width()
         }
 }
 
+int OG_CustomCtrl::get_title_width()
+{
+    if (!GetLabel().IsEmpty())
+        return titleWidth;
+    else
+        return 0;
+}
+
 void OG_CustomCtrl::set_max_win_width(int max_win_width)
 {
     if (m_max_win_width == max_win_width)
@@ -624,7 +634,7 @@ void OG_CustomCtrl::CtrlLine::render_separator(wxDC& dc, wxCoord v_pos)
     dc.SetPen(old_pen);
 }
 
-void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
+void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
 {
     if (is_separator()) {
         render_separator(dc, v_pos);
@@ -639,12 +649,12 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
         if (field && field->undo_bitmap())
         //if (field)
             // BBS: new layout
-            draw_act_bmps(dc, wxPoint(titleWidth * ctrl->m_em_unit, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink());
+            draw_act_bmps(dc, wxPoint(h_pos * ctrl->m_em_unit, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink());
         return;
     }
 
     // BBS: new layout
-    wxCoord h_pos = titleWidth * ctrl->m_em_unit; // draw_mode_bmp(dc, v_pos);
+    h_pos = h_pos * ctrl->m_em_unit; // draw_mode_bmp(dc, v_pos);
 
     if (og_line.near_label_widget_win)
         h_pos += og_line.near_label_widget_win->GetSize().x + ctrl->m_h_gap;
