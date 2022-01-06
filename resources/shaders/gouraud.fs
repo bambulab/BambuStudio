@@ -85,8 +85,8 @@ void main()
 #ifdef ENABLE_ENVIRONMENT_MAP
   else if (use_environment_tex)
         gl_FragColor = vec4(0.45 * texture2D(environment_tex, normalize(eye_normal).xy * 0.5 + 0.5).xyz + 0.8 * color * intensity.x, alpha);
-  else
 #endif
+	else
         gl_FragColor = vec4(vec3(intensity.y) + color * intensity.x, alpha);
 		
     // In the support painting gizmo and the seam painting gizmo are painted triangles rendered over the already
