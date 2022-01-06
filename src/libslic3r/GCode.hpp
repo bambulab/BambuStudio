@@ -460,6 +460,7 @@ private:
     // BBS
     unsigned int m_toolchange_count;
     coordf_t m_nominal_z;
+    bool m_need_change_layer_lift_z = false;
 
     std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1);
     void print_machine_envelope(GCodeOutputStream &file, Print &print);

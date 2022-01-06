@@ -2736,6 +2736,9 @@ std::string GCode::change_layer(coordf_t print_z, bool lazy_raise)
         std::ostringstream comment;
         comment << "move to next layer (" << m_layer_index << ")";
         gcode += m_writer.travel_to_z(z, comment.str());
+    } else {
+        //BBS: set m_need_change_layer_lift_z to be true so that z lift can be done in travel_to() function
+        m_need_change_layer_lift_z = true;
     }
 
     // BBS
@@ -3114,12 +3117,15 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         description += " (bridge)";
 
     // go to first point of extrusion path
-    if (!m_last_pos_defined || m_last_pos != path.first_point()) {
+    //BBS: path.first_point is 2D point. But in lazy raise case, lift z is done in travel_to function.
+    //Add m_need_change_layer_lift_z when change_layer in case of no lift if m_last_pos is equal to path.first_point() by chance
+    if (!m_last_pos_defined || m_last_pos != path.first_point() || m_need_change_layer_lift_z) {
         gcode += this->travel_to(
             path.first_point(),
             path.role(),
             "move to first " + description + " point"
         );
+        m_need_change_layer_lift_z = false;
     }
 
     // compensate retraction
