@@ -297,19 +297,25 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             return;
         }
 
-        //BBS: first check params save logic
-        if (event.CanVeto() && !wxGetApp().check_and_save_current_preset_changes(_L("PrusaSlicer is closing"), _L("Closing PrusaSlicer while some presets are modified."))) {
-            event.Veto();
-            return;
-        }
+        //BBS:
+        //if (event.CanVeto() && !wxGetApp().check_and_save_current_preset_changes(_L("PrusaSlicer is closing"), _L("Closing PrusaSlicer while some presets are modified."))) {
+        //    event.Veto();
+        //    return;
+        //}
+        auto check = [](bool yes_or_no) {
+            if (yes_or_no)
+                return true;
+            return wxGetApp().check_and_save_current_preset_changes(_L("PrusaSlicer is closing"), _L("Closing PrusaSlicer while some presets are modified."));
+        };
 
         // BBS: close save project
         int result;
-        if (event.CanVeto() && ((result = m_plater->close_with_confirm()) == wxID_CANCEL)) {
+        if (event.CanVeto() && ((result = m_plater->close_with_confirm(check)) == wxID_CANCEL)) {
             event.Veto();
             return;
         }
 
+    #if 0 // BBS
         if (m_plater != nullptr) {
             int saved_project = m_plater->save_project_if_dirty(_L("Closing PrusaSlicer. Current project is modified."));
             if (saved_project == wxID_CANCEL) {
@@ -323,6 +329,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                 return;
             }
         }
+    #endif
 
         //BBS: remove unused print host queue logic
         /*if (event.CanVeto() && !wxGetApp().check_print_host_queue()) {

@@ -205,7 +205,7 @@ public:
     void new_project();
     // BBS: save & backup
     void load_project(wxString const & filename = "", wxString const & originfile = "-");
-    void save_project(bool saveAs = false);
+    int save_project(bool saveAs = false);
     //BBS download project by project id
     void import_model_id(const wxString& model_id);
     void download_project(const wxString& project_id);
@@ -273,7 +273,7 @@ public:
     void reset();
     void reset_with_confirm();
     //BBS: return int for various result
-    int close_with_confirm(std::function<bool(void)> second_check = nullptr); // BBS close project
+    int close_with_confirm(std::function<bool(bool yes_or_no)> second_check = nullptr); // BBS close project
     void delete_object_from_model(size_t obj_idx);
     void remove_selected();
     void increase_instances(size_t num = 1);

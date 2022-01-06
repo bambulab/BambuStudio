@@ -3065,11 +3065,12 @@ bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, con
 
 bool GUI_App::can_load_project()
 {
-    int saved_project = plater()->save_project_if_dirty(_L("Loading a new project while the current project is modified."));
-    if (saved_project == wxID_CANCEL ||
-        (plater()->is_project_dirty() && saved_project == wxID_NO && 
-         !check_and_save_current_preset_changes(_L("Project is loading"), _L("Opening new project while some presets are unsaved."))))
-        return false;
+    // BBS
+    //int saved_project = plater()->save_project_if_dirty(_L("Loading a new project while the current project is modified."));
+    //if (saved_project == wxID_CANCEL ||
+    //    (plater()->is_project_dirty() && saved_project == wxID_NO && 
+    //     !check_and_save_current_preset_changes(_L("Project is loading"), _L("Opening new project while some presets are unsaved."))))
+    //    return false;
     return true;
 }
 

@@ -3070,15 +3070,15 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             if (one_by_one) {
                 if (type_3mf && !is_project_file)
                     model.center_instances_around_point(this->bed.build_volume().bed_center());
-                auto loaded_idxs = load_model_objects(model.objects, is_project_file);
-                obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
-                //BBS: add auxiliary files logic
+                // BBS: add auxiliary files logic
                 // BBS: backup & restore
                 if (load_aux) {
                     q->model().set_backup_path(model.get_backup_path());
                     model.set_backup_path("");
                     load_auxiliary_files();
                 }
+                auto loaded_idxs = load_model_objects(model.objects, is_project_file);
+                obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
 
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_LOAD_MODEL_OBJECTS \n");
                 wxString msg = wxString::Format("Loading file: %s, load model objects", from_path(filename));
@@ -3368,7 +3368,10 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
         is_shapes_dir(out_dir) ? from_u8(wxGetApp().app_config->get_last_dir()) : from_path(output_file.parent_path()), from_path(output_file.filename()),
         wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
-    if (dlg.ShowModal() != wxID_OK)
+    int result = dlg.ShowModal();
+    if (result == wxID_CANCEL)
+        return "<cancel>";
+    if (result != wxID_OK)
         return wxEmptyString;
 
     wxString out_path = dlg.GetPath();
@@ -3514,7 +3517,6 @@ void Plater::priv::delete_all_objects_from_model()
 void Plater::priv::reset()
 {
     Plater::TakeSnapshot snapshot(q, _L("Reset Project"), UndoRedo::SnapshotType::ProjectSeparator);
-    undo_redo_stack().clear(); // BBS: clear datas old project
 
 	clear_warnings();
 
@@ -5858,7 +5860,7 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name, const UndoRed
 
     if (snapshot_type == UndoRedo::SnapshotType::ProjectSeparator && wxGetApp().app_config->get("clear_undo_redo_stack_on_new_project") == "1")
         this->undo_redo_stack().clear();
-    this->undo_redo_stack().take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection(), gizmos, snapshot_data);
+    this->undo_redo_stack().take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection(), view3D->get_canvas3d()->get_gizmos_manager(), partplate_list, snapshot_data);
     if (snapshot_type == UndoRedo::SnapshotType::LeavingGizmoWithAction) {
         // Filter all but the last UndoRedo::SnapshotType::GizmoAction in a row between the last UndoRedo::SnapshotType::EnteringGizmo and UndoRedo::SnapshotType::LeavingGizmoWithAction.
         // The remaining snapshot will be renamed to a more generic name,
@@ -5871,7 +5873,6 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name, const UndoRed
         m_undo_redo_stack_main.mark_current_as_saved();
     }
     //BBS: add PartPlateList as the paremeter for take_snapshot
-    this->undo_redo_stack().take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection(), view3D->get_canvas3d()->get_gizmos_manager(), partplate_list, snapshot_data);
     this->undo_redo_stack().release_least_recently_used();
 
     dirty_state.update_from_undo_redo_stack(m_undo_redo_stack_main.project_modified());
@@ -5910,11 +5911,13 @@ bool Plater::priv::up_to_date(bool saved, bool backup)
 {
     size_t& last_time = backup ? m_backup_timestamp : m_saved_timestamp;
     if (saved) {
-        last_time = undo_redo_stack().active_snapshot_time();
+        last_time = undo_redo_stack_main().active_snapshot_time();
+        if (!backup)
+            undo_redo_stack_main().mark_current_as_saved();
         return true;
     }
     else {
-        return !undo_redo_stack().has_real_change_from(last_time);
+        return !undo_redo_stack_main().has_real_change_from(last_time);
     }
 }
 
@@ -6150,6 +6153,8 @@ Print&          Plater::fff_print()         { return p->fff_print; }
 const SLAPrint& Plater::sla_print() const   { return p->sla_print; }
 SLAPrint&       Plater::sla_print()         { return p->sla_print; }
 
+#if 0
+
 void Plater::new_project()
 {
     if (int saved_project = p->save_project_if_dirty(_L("Creating a new project while the current project is modified.")); saved_project == wxID_CANCEL)
@@ -6176,12 +6181,57 @@ void Plater::new_project()
     update_project_dirty_from_presets();
 }
 
+#else
+
+void Plater::new_project()
+{
+    // BBS: save confirm
+    auto check = [](bool yes_or_no) {
+        wxString header = _L("Creating a new project while some presets are modified.") + "\n" + 
+            (yes_or_no ? _L("You can keep presets modifications to the new project or discard them") :
+                _L("You can keep presets modifications to the new project, discard them or save changes as new presets.\n"
+                    "Note, if changes will be saved then new project wouldn't keep them"));
+        using ab = UnsavedChangesDialog::ActionButtons;
+        int act_buttons = ab::KEEP;
+        if (!yes_or_no)
+            act_buttons |= ab::SAVE;
+        return wxGetApp().check_and_keep_current_preset_changes(_L("Creating a new project"), header, act_buttons);
+    };
+    int result;
+    if ((result = close_with_confirm(check)) == wxID_CANCEL)
+        return;
+
+    Plater::TakeSnapshot snapshot(this, _L("New Project"), UndoRedo::SnapshotType::ProjectSeparator);
+
+    get_partplate_list().reinit();
+    get_partplate_list().update_slice_context_to_current_plate(p->background_process);
+    reset();
+    reset_project_dirty_initial_presets();
+    wxGetApp().update_saved_preset_from_current_preset();
+    update_project_dirty_from_presets();
+
+    Model m;
+    model().set_backup_path(m.get_backup_path()); // new id avoid same path name
+    m.set_backup_path("");
+    get_partplate_list().select_plate(0);
+    p->load_auxiliary_files();
+    wxGetApp().app_config->update_last_backup_dir(model().get_backup_path());
+
+    p->select_view_3D("3D");
+    p->select_view("topfront");
+
+    up_to_date(true, false);
+    up_to_date(true, true);
+}
+
+#endif
+
 // BBS: FIXME, missing resotre logic
 void Plater::load_project(wxString const& filename2,
     wxString const& originfile)
 {
     auto filename = filename2;
-    auto check = [&filename, this] {
+    auto check = [&filename, this] (bool) {
         if (filename.empty()) {
             // Ask user for a project file name.
             wxGetApp().load_project(this, filename);
@@ -6198,16 +6248,19 @@ void Plater::load_project(wxString const& filename2,
     auto path = into_path(filename);
     bool load_restore = originfile != "-";
 
-    p->reset();
+    Plater::TakeSnapshot snapshot(this, _L("Load Project"), UndoRedo::SnapshotType::ProjectSeparator);
+    reset();
 
     // Take the Undo / Redo snapshot.
     up_to_date(true, false);
-    Plater::TakeSnapshot snapshot(this, _L("Load Project"));
 
     std::vector<fs::path> input_paths;
     input_paths.push_back(path);
 
     std::vector<size_t> res = load_files(input_paths, true, true, load_restore);
+
+    reset_project_dirty_initial_presets();
+    update_project_dirty_from_presets();
 
     // if res is empty no data has been loaded
     if (!res.empty()) {
@@ -6226,7 +6279,7 @@ void Plater::load_project(wxString const& filename2,
 }
 
 // BBS: save logic
-void Plater::save_project(bool saveAs)
+int Plater::save_project(bool saveAs)
 {
     //if (up_to_date(false, false)) // should we always save
     //    return;
@@ -6236,7 +6289,9 @@ void Plater::save_project(bool saveAs)
     if (saveAs)
         filename = p->get_export_file(FT_3MF);
     if (filename.empty())
-        return;
+        return wxID_NO;
+    if (filename == "<cancel>")
+        return wxID_CANCEL;
 
     //BBS export 3mf without gcode
     export_3mf(into_path(filename), false, false, -1, nullptr, false);
@@ -6247,6 +6302,7 @@ void Plater::save_project(bool saveAs)
 
     up_to_date(true, false);
     up_to_date(true, true);
+    return wxID_OK;
 }
 
 //BBS import model by model id
@@ -7017,10 +7073,10 @@ void Plater::reset_with_confirm()
 }
 
 // BBS: save logic
-int GUI::Plater::close_with_confirm(std::function<bool(void)> second_check)
+int GUI::Plater::close_with_confirm(std::function<bool(bool)> second_check)
 {
     if (up_to_date(false, false)) {
-        if (second_check && !second_check()) return wxID_CANCEL;
+        if (second_check && !second_check(true)) return wxID_CANCEL;
         Slic3r::remove_backup(model(), true);
         model().set_backup_path("");
         return wxID_NO;
@@ -7031,15 +7087,18 @@ int GUI::Plater::close_with_confirm(std::function<bool(void)> second_check)
     if (result == wxID_CANCEL)
         return result;
     else if (result == wxID_YES) {
-        save_project();
+        result = save_project();
+        if (result == wxID_CANCEL)
+            return result;
     }
+
+    if (second_check && !second_check(result == wxID_YES)) return wxID_CANCEL;
 
     Slic3r::remove_backup(model(), true);
     model().set_backup_path("");
     up_to_date(true, false);
     up_to_date(true, true);
 
-    if (second_check && !second_check()) return wxID_CANCEL;
     return result;
 }
 

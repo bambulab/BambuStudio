@@ -1132,7 +1132,7 @@ static inline bool snapshot_modifies_project(SnapshotType type)
 
 static inline bool snapshot_modifies_project(const Snapshot &snapshot)
 {
-	return snapshot_modifies_project(snapshot.snapshot_data.snapshot_type);
+	return snapshot_modifies_project(snapshot.snapshot_data.snapshot_type) && (snapshot.name.empty() || snapshot.name.back() != '!');
 }
 
 // Release snapshots between begin and end. Only erases data from m_snapshots, not from m_objects!
@@ -1314,12 +1314,12 @@ bool StackImpl::has_real_change_from(size_t time) const
     if (it_active == m_snapshots.end()) return true;
     if (it_active > it_time) {
         for (it_time; it_time < it_active; ++it_time) {
-            if (it_time->name.empty() || it_time->name.back() != '!')
+            if (snapshot_modifies_project(*it_time))
                 return true;
 		}
     } else {
         for (it_active; it_active < it_time; ++it_active) {
-            if (it_active->name.empty() || it_active->name.back() != '!')
+            if (snapshot_modifies_project(*it_active))
                 return true;
         }
 	}
