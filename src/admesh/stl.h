@@ -170,13 +170,13 @@ struct FaceProperty
 
 struct indexed_triangle_set
 {
-	void clear() { indices.clear(); vertices.clear(); }
+    void clear() { indices.clear(); vertices.clear(); properties.clear(); }
 
-	size_t memsize() const {
-		return sizeof(*this) + sizeof(stl_triangle_vertex_indices) * indices.size() + sizeof(stl_vertex) * vertices.size();
-	}
+    size_t memsize() const {
+        return sizeof(*this) + (sizeof(stl_triangle_vertex_indices) + sizeof(FaceProperty)) * indices.size() + sizeof(stl_vertex) * vertices.size();
+    }
 
-	std::vector<stl_triangle_vertex_indices>    indices;
+    std::vector<stl_triangle_vertex_indices>    indices;
     std::vector<stl_vertex>                     vertices;
     std::vector<FaceProperty>                   properties;
 

@@ -30,6 +30,7 @@ void FaceDetector::detect_exterior_face()
 
         TriangleMesh vol_mesh = mv->mesh();
         volume_facet_ranges.emplace_back(mv, object_mesh.stats().number_of_facets, object_mesh.stats().number_of_facets + vol_mesh.stats().number_of_facets);
+        vol_mesh.its.properties.resize(vol_mesh.its.indices.size()); // allocate memory for properties
 
         vol_mesh.transform(mv->get_matrix());
         object_mesh.merge(vol_mesh);
