@@ -726,6 +726,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	cb_upgrade_mode->Append( wxT("DailyBuild") );
 	cb_upgrade_mode->Append( wxT("Release") );
 	cb_upgrade_mode->Append( wxT("Debug") );
+	cb_upgrade_mode->Append( wxT("Wip") );
 	cb_upgrade_mode->SetSelection( 1 );
 	cb_upgrade_mode->SetMinSize( wxSize( 100,-1 ) );
 
