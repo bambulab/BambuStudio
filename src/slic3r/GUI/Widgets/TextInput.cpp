@@ -135,6 +135,9 @@ void TextInput::SetMinSize(const wxSize& size)
 {
     wxSize size2 = size;
     if (size2.y < 0) {
+#ifdef __WXMAC__
+        if (GetPeer()) // peer is not ready in Create on mac
+#endif
         size2.y = GetSize().y;
     }
     wxWindow::SetMinSize(size2);
@@ -145,18 +148,17 @@ void TextInput::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     wxWindow::DoSetSize(x, y, width, height, sizeFlags);
     if (sizeFlags & wxSIZE_USE_EXISTING) return;
     wxSize size = GetSize();
-    bool align_right = GetWindowStyle() & wxRIGHT;
-    if (!align_right) {
-        wxPoint textPos = {5, 0};
-        if (this->icon.bmp().IsOk()) {
-            wxSize szIcon = this->icon.bmp().GetSize();
-            textPos.x += szIcon.x;
-        }
-        wxSize textSize = text_ctrl->GetSize();
-        textSize.x = size.x - textPos.x - labelSize.x - 10;
-        text_ctrl->SetSize(textSize);
-        text_ctrl->SetPosition({textPos.x, (size.y - textSize.y) / 2});
+    wxPoint textPos = {5, 0};
+    if (this->icon.bmp().IsOk()) {
+        wxSize szIcon = this->icon.bmp().GetSize();
+        textPos.x += szIcon.x;
     }
+    bool align_right = GetWindowStyle() & wxRIGHT;
+    if (align_right) textPos.x += labelSize.x;
+    wxSize textSize = text_ctrl->GetSize();
+    textSize.x = size.x - textPos.x - labelSize.x - 10;
+    text_ctrl->SetSize(textSize);
+    text_ctrl->SetPosition({textPos.x, (size.y - textSize.y) / 2});
 }
 
 void TextInput::DoSetToolTipText(wxString const &tip)

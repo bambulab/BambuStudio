@@ -833,21 +833,14 @@ void SpinCtrl::BUILD() {
 	if (best_sz.x > size.x)
 		temp->SetSize(wxSize(size.x + 2 * best_sz.y, best_sz.y));
 #endif //__WXGTK3__
-	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+	// temp->SetFont(Slic3r::GUI::wxGetApp().normal_font()); // BBS
     if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 	wxGetApp().UpdateDarkUI(temp);
 
     if (m_opt.height < 0 && parent_is_custom_ctrl)
         opt_height = (double)temp->GetSize().GetHeight() / m_em_unit;
 
-// XXX: On OS X the SpinInput widget is made up of two subwidgets, unfortunatelly
-// the kill focus event is not propagated to the encompassing widget,
-// so we need to bind it on the inner text widget instead. (Ugh.)
-#ifdef __WXOSX__
-    temp->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent &e)
-#else
     temp->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent &e)
-#endif
 	{
         e.Skip();
         if (bEnterPressed) {
