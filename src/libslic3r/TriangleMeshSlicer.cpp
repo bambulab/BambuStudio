@@ -2287,7 +2287,14 @@ static Vec3d calc_plane_normal(const std::array<Vec3d, 4>& plane_points)
     return plane_normal;
 }
 
-void cut_mesh(const indexed_triangle_set& mesh, std::array<Vec3d, 4> plane_points, indexed_triangle_set* upper, indexed_triangle_set* lower, bool triangulate_caps)
+void cut_mesh
+(
+    const indexed_triangle_set& mesh, // model object coordinate
+    std::array<Vec3d, 4> plane_points, // model object coordinate
+    indexed_triangle_set* upper,
+    indexed_triangle_set* lower,
+    bool triangulate_caps
+)
 {
     assert(upper || lower);
     if (upper == nullptr && lower == nullptr)
@@ -2310,8 +2317,7 @@ void cut_mesh(const indexed_triangle_set& mesh, std::array<Vec3d, 4> plane_point
     for (auto pt : plane_points)
         mid_point += pt;
     mid_point /= (double)plane_points.size();
-    BoundingBox3Base<stl_vertex> mesh_bbox(mesh.vertices);
-    Vec3d movement = mesh_bbox.center().cast<double>() - mid_point;
+    Vec3d movement = -mid_point;
 
     Vec3d axis = { 0.0, 0.0, 0.0 };
     double phi = 0.0;
