@@ -3538,9 +3538,12 @@ void Plater::priv::reset()
     this->background_process.reset();
     model.clear_objects();
     update();
-    // Delete object from Sidebar list. Do it after update, so that the GLScene selection is updated with the modified model.
-    sidebar->obj_list()->delete_all_objects_from_list();
-    object_list_changed();
+
+    if (wxGetApp().is_editor()) {
+        // Delete object from Sidebar list. Do it after update, so that the GLScene selection is updated with the modified model.
+        sidebar->obj_list()->delete_all_objects_from_list();
+        object_list_changed();
+    }
 
     // BBS
     // The hiding of the slicing results, if shown, is not taken care by the background process, so we do it here
