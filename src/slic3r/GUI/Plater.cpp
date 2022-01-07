@@ -7811,7 +7811,7 @@ void Plater::upload_3mf()
     msg = "start to upload";
     cont = progress_dlg->Pulse(msg);
 
-    c->upload_3mf(profile, nullptr,
+    result = c->upload_3mf(profile, nullptr,
         [this, progress_dlg, cont_ptr](Http::Progress progress, bool &cancel) {
             bool skip = false;
             int percent = 0;
@@ -7832,7 +7832,14 @@ void Plater::upload_3mf()
                 *cont_ptr = true;
                 progress_dlg->Resume();
             }
-        }, true);
+        });
+
+    if (result < 0) {
+        msg = _L("upload failed!");
+        progress_dlg->Pulse(msg);
+        delete progress_dlg;
+        return;
+    }
 
     if (*cont_ptr) {
         //BBS update default project

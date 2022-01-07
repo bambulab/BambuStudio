@@ -172,8 +172,7 @@ void GcodePrintJob::process()
         }
         percent = 10 + percent * 70 / 100;
         update_status(percent, "3mf uploading...");
-    },
-    true);
+    });
 
     if (res < 0 || *result_ptr < 0) {
         update_status(0, "3mf uploading failed!");

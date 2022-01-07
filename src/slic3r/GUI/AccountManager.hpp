@@ -237,11 +237,13 @@ private:
     void _handle_error_code(int status, std::string error, std::string body);
 
     /* mqtt cloud client */
-    mqtt::async_client* mqtt_cli;
-    cloud_conn_callback* mqtt_cb;
+    mqtt::async_client* mqtt_cli{ nullptr };
+    cloud_conn_callback* mqtt_cb{ nullptr };
     mqtt::connect_options mqtt_opt;
     mqtt::ssl_options mqtt_ssl_opt;
     std::string mqtt_uuid;
+    boost::thread reconn_thread;
+
     int mqtt_uuid_bytes;
 public:
     std::string MQTT_HOST = "ssl://47.100.225.51:8883";
@@ -271,6 +273,7 @@ public:
     mqtt::async_client* get_client() { return mqtt_cli; }
     int connect_mqtt(bool sync = false);
     int disconnect_mqtt();
+    void check_mqtt_connection();
     void add_subscribe(MachineObject* obj);
     void del_subscribe(MachineObject* obj);
     void update_subscription();
@@ -320,8 +323,8 @@ public:
     int request_task_id(BBLTask* task, ResultFn resFn = nullptr);
     // request a sub task id, project_id, profile_id -> subtask_id, sync
     int request_subtask_id(BBLSubTask* task, ResultFn resFn = nullptr);
-    // upload 3mf for project and profile, aync
-    int upload_3mf(BBLProfile* profile, ResultFn resFn = nullptr, Http::ProgressFn proFn = nullptr, bool sync = false);
+    // upload 3mf for project and profile
+    int upload_3mf(BBLProfile* profile, ResultFn resFn = nullptr, Http::ProgressFn proFn = nullptr);
     // poll_3mf for project model only, sync
     int poll_3mf(BBLProject* project);
     int poll_3mf(BBLProject* project, std::string profile_id, Http::ErrorFn errFn = nullptr);

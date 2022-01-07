@@ -187,7 +187,6 @@ namespace Slic3r {
         default_profile = new BBLProfile(default_project);
         mqtt_opt.set_max_inflight(500);
         mqtt_opt.set_connect_timeout(10);
-        mqtt_opt.set_automatic_reconnect(3, 10);
 
         mqtt_ssl_opt.ca_path(resources_dir() + "/cert");
         std::string key_store = resources_dir() + "/cert/slicer.crt";
@@ -285,6 +284,18 @@ namespace Slic3r {
                 else
                     mqtt_cli->connect(mqtt_opt, this, *mqtt_cb);
             }
+
+            reconn_thread = Slic3r::create_thread([this] {
+                try {
+                    while(mqtt_cli) {
+                        check_mqtt_connection();
+                        boost::this_thread::sleep_for(boost::chrono::milliseconds(2000));
+                    }
+                }
+                catch (boost::thread_interrupted&) {
+                    BOOST_LOG_TRIVIAL(trace) << "reconn_thread is interrupted";
+                }
+            });
             return 0;
         }
         catch (mqtt::exception& e) {
@@ -307,8 +318,19 @@ namespace Slic3r {
             }
             delete mqtt_cli;
             mqtt_cli = nullptr;
+            reconn_thread.interrupt();
+            if (reconn_thread.joinable()) {
+                reconn_thread.join();
+            }
         }
         return 0;
+    }
+
+    void AccountManager::check_mqtt_connection()
+    {
+        if (is_user_login() && mqtt_cli && !mqtt_cli->is_connected()) {
+            mqtt_cli->connect(mqtt_opt, this, *mqtt_cb);
+        }
     }
 
     void AccountManager::add_subscribe(MachineObject* obj)
@@ -1352,8 +1374,11 @@ namespace Slic3r {
         return 0;
     }
 
-    int AccountManager::upload_3mf(BBLProfile* profile, ResultFn resFn, Http::ProgressFn proFn, bool sync)
+    int AccountManager::upload_3mf(BBLProfile* profile, ResultFn resFn, Http::ProgressFn proFn)
     {
+        int result = 0;
+        int* result_ptr = &result;
+
         if (!profile || !profile->project_) return -1;
 
         /* upload 3mf or gcode to cloud */
@@ -1369,7 +1394,7 @@ namespace Slic3r {
             .mime_form_add_file(file_str, project_file.c_str())
             .mime_form_add_text(profile_id_str, profile->profile_id)
             .on_complete(
-                [this, resFn](std::string body, unsigned) {
+                [this, resFn, result_ptr](std::string body, unsigned) {
                     std::stringstream ss(body);
                     pt::ptree root;
                     pt::read_json(ss, root);
@@ -1386,27 +1411,23 @@ namespace Slic3r {
                     if (resFn) {
                         resFn(-1, "upload_3mf_to_project failed! body=" + body);
                     }
+                    *result_ptr = -1;
                 }
             )
             .on_progress(proFn)
             .on_error(
-                [this, resFn](std::string body, std::string error, unsigned status) {
+                [this, resFn, result_ptr](std::string body, std::string error, unsigned status) {
                     BOOST_LOG_TRIVIAL(info) << "create_project, upload project failed! body=" << body;
                     if (resFn) {
                         std::string info("upload project failed!");
                         info += " body=" + body;
                         resFn(-1, info);
                     }
+                    *result_ptr = -1;
                 }
             );
-
-        if (sync) {
-            http_put.perform_sync();
-        }
-        else {
-            http_put.perform();
-        }
-        return 0;
+        http_put.perform_sync();
+        return *result_ptr;
     }
 
     int AccountManager::poll_3mf(BBLSubTask* task, CancelFn fn)

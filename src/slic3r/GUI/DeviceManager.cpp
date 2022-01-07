@@ -463,11 +463,6 @@ bool MachineObject::is_connected()
 
 int MachineObject::publish_json(std::string json_str, ResultFn resFn, CONNECTION_TYPE conn_type)
 {
-    if (mqtt_cli == nullptr)
-        conn_type = CONNECTION_WAN;
-    else
-        conn_type = CONNECTION_TYPE::CONNECTION_LAN;
-
     mqtt::async_client* client = nullptr;
     if (conn_type == CONNECTION_LAN) {
         client = mqtt_cli;
@@ -476,7 +471,6 @@ int MachineObject::publish_json(std::string json_str, ResultFn resFn, CONNECTION
         client = acc_.get_client();
     }
     else {
-        client = nullptr;
         return -1;
     }
 
@@ -1071,68 +1065,26 @@ int MachineObject::send_wan_print_subtask(BBLSubTask* task, UploadedFn uploadedF
     /* update subtask */
     subtask_ = task;
 
-    // url is ready
-    if (!task->task_url.empty()) {
-        if (!task->parent_task_) return -1;
-        pt::ptree root, print;
-        print.put("sequence_id", MachineObject::m_sequence_id++);
-        print.put("command", "project_file");
-        print.put("param", task->task_gcode_in_3mf);
-        print.put("url", task->task_url);   /* 3mf or gcode */
-        print.put("md5", task->task_url_md5);
-        /* project */
-        print.put("project_id", task->parent_task_->task_project_id);
-        print.put("profile_id", task->parent_task_->task_profile_id);
-        print.put("task_id", task->parent_task_->task_id);
-        print.put("subtask_id", task->task_id);
-        root.put_child("print", print);
-        std::stringstream oss;
-        pt::write_json(oss, root, false);
-        std::string json_str = oss.str();
-        /* !!! remove '\' !!!! */
-        json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());
-        this->publish_json(json_str, nullptr, CONNECTION_WAN);
-        return 0;
+    if (task->task_url.empty()) {
+        BOOST_LOG_TRIVIAL(trace) << "task_url is empty!";
+        return -1;
     }
+    if (!task->parent_task_) return -1;
 
-    /* upload local gcode file */
-    acc_.post_task(task,
-        [this, task, uploadedFn, errFn](int result, std::string info) {
-            if (result == 0) {
-                if (uploadedFn) {
-                    uploadedFn();
-                }
+    json j;
+    j["print"]["sequence_id"] = MachineObject::m_sequence_id++;
+    j["print"]["command"]   = "project_file";
+    j["print"]["param"]     = task->task_gcode_in_3mf;
+    j["print"]["url"]       = task->task_url;
+    j["print"]["md5"]       = task->task_url_md5;
+    j["print"]["project_id"] = task->parent_task_->task_project_id;
+    j["print"]["profile_id"] = task->parent_task_->task_profile_id;
+    j["print"]["task_id"] = task->parent_task_->task_id;
+    j["print"]["subtask_id"] = task->task_id;
 
-                pt::ptree root, print;
-                print.put("sequence_id", MachineObject::m_sequence_id++);
-                print.put("command", "project_file");
-                print.put("param", task->task_gcode_in_3mf);
-                print.put("url", task->task_url);       /* 3mf or gcode */
-                print.put("md5", task->task_url_md5);
-                print.put("project_id", "0");
-                print.put("profile_id", "0");
-                print.put("task_id", "0");
-                print.put("subtask_id", task->task_id);
-                root.put_child("print", print);
-                std::stringstream oss;
-                pt::write_json(oss, root, false);
-                std::string json_str = oss.str();
-                this->publish_json(json_str);
-            }
-            else {
-                if (errFn) {
-                    errFn(info);
-                }
-            }
-        }
-        ,
-            [this, proFn](int percent) {
-            if (proFn) {
-                proFn(percent);
-            }
-        }
-        );
-    return 0;
+    std::string json_str = j.dump();
+    json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());
+    return this->publish_json(json_str, nullptr, CONNECTION_WAN);
 }
 
 BBLSubTask* MachineObject::get_subtask()

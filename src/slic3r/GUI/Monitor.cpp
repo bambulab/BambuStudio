@@ -942,6 +942,13 @@ void MonitorPanel::on_timer(wxTimerEvent& event)
 void MonitorPanel::update_all()
 {
     Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+
+    //BBS check user login status
+    if (!account_manager->is_user_login()) {
+        Reset();
+        return;
+    }
+
     obj = account_manager->get_default_machine();
     if (!obj) return;
 

@@ -385,6 +385,7 @@ void SelectMachinePopup::OnDismiss()
     if (m_refresh_timer) {
         m_refresh_timer->Stop();
         delete m_refresh_timer;
+        m_refresh_timer = nullptr;
     }
     wxPopupTransientWindow::OnDismiss();
 }
@@ -710,7 +711,7 @@ void SelectMachineDialog::on_ok(wxCommandEvent& event)
 
 void SelectMachineDialog::on_timer(wxTimerEvent& event)
 {
-    if (m_need_disable_btn_ensure && m_print_job->is_finalized() && !m_print_job->is_finished()) {
+    if (m_print_job && m_need_disable_btn_ensure && m_print_job->is_finalized() && !m_print_job->is_finished()) {
         m_button_ensure->Enable();
         m_need_disable_btn_ensure = false;
     }
@@ -766,6 +767,11 @@ SelectMachineDialog::~SelectMachineDialog()
     if (m_refresh_timer) {
         m_refresh_timer->Stop();
         delete m_refresh_timer;
+    }
+
+    if (m_print_job && m_print_job->is_running()) {
+        m_print_job->cancel();
+        m_print_job->join(10 * 1000);
     }
 
     // Disconnect Events

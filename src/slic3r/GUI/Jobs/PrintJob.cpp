@@ -89,6 +89,12 @@ void PrintJob::process()
         }
         );
 
+    if (was_canceled()) {
+        update_status(0, "Printing Task is cancelled");
+        BOOST_LOG_TRIVIAL(trace) << "print_job: subtask is canceled";
+        return;
+    }
+
     if (res == 0 && !profile->profile_id.empty()) {
         update_status(10, "request profile id ok!");
     }
@@ -121,8 +127,13 @@ void PrintJob::process()
             }
             percent = 10 + percent * 70 / 100;
             update_status(percent, "3mf uploading...");
-        },
-        true);
+        });
+
+    if (res < 0) {
+        update_status(10, _L("upload 3mf failed!"));
+        BOOST_LOG_TRIVIAL(trace) << "print_job: subtask is uploading failed!";
+        return;
+    }
 
     if (was_canceled()) {
         update_status(10, "Printing Task is canceled in uploading...");
@@ -142,6 +153,12 @@ void PrintJob::process()
     /* rqeust task id */
     BOOST_LOG_TRIVIAL(trace) << "print_job: start to request_task_id";
     c->request_task_id(task);
+
+    if (was_canceled()) {
+        update_status(0, "Printing Task is cancelled");
+        BOOST_LOG_TRIVIAL(trace) << "print_job: subtask is canceled";
+        return;
+    }
 
     if (!task->task_id.empty()) {
         update_status(85, "request task id ok!");
@@ -215,6 +232,12 @@ void PrintJob::process()
         curr_subtask = subTask;
     }
 
+    if (was_canceled()) {
+        update_status(0, "Printing Task is cancelled");
+        BOOST_LOG_TRIVIAL(trace) << "print_job: subtask is canceled";
+        return;
+    }
+
     if (!curr_subtask) return;
 
     BOOST_LOG_TRIVIAL(trace) << "print_job: poll task 3mf";
@@ -246,7 +269,11 @@ void PrintJob::process()
     if (obj) {
         BOOST_LOG_TRIVIAL(trace) << "print_job: send subtask";
         // upload and send to machine
-        obj->send_wan_print_subtask(curr_subtask);
+        res = obj->send_wan_print_subtask(curr_subtask);
+        if (res < 0) {
+            update_status(0, _L("send task failed!"));
+            return;
+        }
         update_status(100, "send task ok!");
 
         // add to user project
@@ -258,7 +285,6 @@ void PrintJob::process()
 }
 
 void PrintJob::finalize() {
-    // Ignore the arrange result if aborted.
     if (was_canceled()) return;
 
     Job::finalize();
