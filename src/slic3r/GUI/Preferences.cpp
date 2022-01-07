@@ -310,6 +310,7 @@ void PreferencesDialog::build(size_t selected_tab)
 	// BBS: backup
 	def.label = L("Backup interval");
 	def.type = coInt;
+	def.sidetext = L("s");
 	def.tooltip = L("Backup interval in seconds, set 0 to disable period backup");
 	def.set_default_value(new ConfigOptionInt{ boost::lexical_cast<int>(app_config->has("backup_interval") ? app_config->get("backup_interval") : "10") });
 	option = Option(def, "backup_interval");

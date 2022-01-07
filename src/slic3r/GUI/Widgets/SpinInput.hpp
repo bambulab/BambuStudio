@@ -25,7 +25,6 @@ class SpinInput : public wxWindow
     int val;
     int min;
     int max;
-    int initail;
     int delta;
 
     static const int SpinInputWidth = 200;

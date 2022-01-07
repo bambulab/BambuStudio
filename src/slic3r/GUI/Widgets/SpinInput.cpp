@@ -65,7 +65,7 @@ SpinInput::SpinInput(wxWindow *     parent,
     if ( text.ToLong(&initialFromText) )
         initial = initialFromText;
     SetRange(min, max);
-    SetValue(initail);
+    SetValue(initial);
     messureSize();
 }
 
