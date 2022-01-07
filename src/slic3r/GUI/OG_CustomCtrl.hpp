@@ -99,6 +99,8 @@ public:
 
     //BBS
     int    get_title_width();
+    // BBS
+    void fixup_items_positions();
 
     void    msw_rescale();
     void    sys_color_changed();

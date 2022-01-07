@@ -4562,6 +4562,15 @@ void Page::activate(ConfigOptionMode mode, std::function<void()> throw_if_cancel
         group->reload_config();
         throw_if_canceled();
     }
+
+#ifdef __WXMSW__
+    // BBS: fix field control position
+    wxTheApp->CallAfter([this]() {
+        for (auto group : m_optgroups) {
+            group->custom_ctrl->fixup_items_positions();
+        }
+    });
+#endif
 }
 
 void Page::clear()

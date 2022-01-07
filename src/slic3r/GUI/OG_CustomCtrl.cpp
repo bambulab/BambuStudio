@@ -417,6 +417,14 @@ bool OG_CustomCtrl::update_visibility(ConfigOptionMode mode)
     return invisible_lines != ctrl_lines.size();
 }
 
+// BBS: call by Tab/Page
+void OG_CustomCtrl::fixup_items_positions()
+{
+    for (CtrlLine& line : ctrl_lines) {
+        line.correct_items_positions();
+    }
+}
+
 void OG_CustomCtrl::correct_window_position(wxWindow* win, const Line& line, Field* field/* = nullptr*/)
 {
     wxPoint pos = get_pos(line, field);

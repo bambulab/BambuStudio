@@ -62,6 +62,7 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
     // BBS: new layout
     m_search_btn = new ScalableButton(m_mode_panel, wxID_ANY, "search", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
     m_search_btn->SetToolTip(format_wxstr(_L("Search in settings [%1%]"), "Ctrl+F"));
+    m_search_btn->SetBackgroundColour("#FFFFFF");
     m_search_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().plater()->search(false); });
     //m_search_button = new wxBitmapButton( this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|0 );
 
@@ -91,7 +92,7 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
                                wxID_ANY,
                                wxDefaultPosition,
                                wxDefaultSize,
-                               wxVSCROLL | wxALWAYS_SHOW_SB) // hide hori-bar will cause hidden field mis-position
+                               wxVSCROLL | wxHSCROLL) // hide hori-bar will cause hidden field mis-position
         {}
         virtual bool ShouldScrollToChildOnFocus(wxWindow *child)
         {
