@@ -405,7 +405,7 @@ void OptionsGroup::activate_line(Line& line)
                 sizer_tmp->Add(field->getWindow(), 0, wxALIGN_CENTER_VERTICAL, 0);
 
             // add sidetext if any
-            if (!option.sidetext.empty() || sidetext_width > 0) {
+            if (!field->combine_side_text() && (!option.sidetext.empty() || sidetext_width > 0)) {
                 auto sidetext = new wxStaticText(this->ctrl_parent(), wxID_ANY, _(option.sidetext), wxDefaultPosition,
                     wxSize(sidetext_width != -1 ? sidetext_width * wxGetApp().em_unit() : -1, -1), wxALIGN_LEFT);
                 sidetext->SetBackgroundStyle(wxBG_STYLE_PAINT);
