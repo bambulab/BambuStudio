@@ -26,6 +26,8 @@ public:
 
     DropDown & GetDropDown() { return drop; }
 
+    virtual bool SetFont(wxFont const & font) override;
+
 public:
     int Append(const wxString &item, const wxBitmap &bitmap = wxNullBitmap);
 
@@ -42,6 +44,9 @@ public:
 
     void SetLabel(const wxString &label) override;
     wxString GetLabel() const override;
+
+    void SetTextLabel(const wxString &label);
+    wxString GetTextLabel() const;
 
     wxString GetString(unsigned int n) const override;
     void     SetString(unsigned int n, wxString const &value) override;

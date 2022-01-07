@@ -966,6 +966,10 @@ void Choice::BUILD() {
 #endif //__WXOSX__
     }
 
+    // BBS
+    temp->SetTextLabel(m_opt.sidetext);
+    m_combine_side_text = true;
+
 #ifdef __WXGTK3__
     wxSize best_sz = temp->GetBestSize();
     if (best_sz.x > size.x)

@@ -27,13 +27,15 @@ ComboBox::ComboBox(wxWindow *      parent,
                    long            style)
     : drop(this, texts, icons)
 {
-    TextInput::Create(parent, "ABC", value, "drop_down", pos, size,
-                      style | wxRIGHT | wxTE_PROCESS_ENTER);
+    if (style & wxCB_READONLY)
+        style |= wxRIGHT;
+    TextInput::Create(parent, "", value, "drop_down", pos, size,
+                      style | wxTE_PROCESS_ENTER);
 
     if (style & wxCB_READONLY)
     {
         GetTextCtrl()->Hide();
-        SetFont(Label::Body_14);
+        TextInput::SetFont(Label::Body_14);
     }
     drop.Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
         SetLabel(drop.GetValue());
@@ -74,8 +76,9 @@ void ComboBox::SetValue(const wxString &value)
 
 void ComboBox::SetLabel(const wxString &value)
 {
-    GetTextCtrl()->SetValue(value);
-    if (!GetTextCtrl()->IsShown())
+    if (GetTextCtrl()->IsShown())
+        GetTextCtrl()->SetValue(value);
+    else
         TextInput::SetLabel(value);
 }
 
@@ -85,6 +88,24 @@ wxString ComboBox::GetLabel() const
         return GetTextCtrl()->GetValue();
     else
         return TextInput::GetLabel();
+}
+
+void ComboBox::SetTextLabel(const wxString& label)
+{
+    TextInput::SetLabel(label);
+}
+
+wxString ComboBox::GetTextLabel() const
+{
+    return TextInput::GetLabel();
+}
+
+bool ComboBox::SetFont(wxFont const& font)
+{
+    if (GetTextCtrl()->IsShown())
+        return GetTextCtrl()->SetFont(font);
+    else
+        return TextInput::SetFont(font);
 }
 
 int ComboBox::Append(const wxString &item, const wxBitmap &bitmap)

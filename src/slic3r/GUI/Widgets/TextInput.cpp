@@ -154,7 +154,8 @@ void TextInput::DoSetSize(int x, int y, int width, int height, int sizeFlags)
         textPos.x += szIcon.x;
     }
     bool align_right = GetWindowStyle() & wxRIGHT;
-    if (align_right) textPos.x += labelSize.x;
+    if (align_right)
+        textPos.x += labelSize.x;
     wxSize textSize = text_ctrl->GetSize();
     textSize.x = size.x - textPos.x - labelSize.x - 10;
     text_ctrl->SetSize(textSize);
