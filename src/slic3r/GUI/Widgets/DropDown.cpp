@@ -52,7 +52,7 @@ DropDown::DropDown(wxWindow *             parent,
 void DropDown::Invalidate(bool clear)
 {
     if (clear)
-        selection = -1;
+        selection = hover_item = -1;
     assert(selection < (int) texts.size());
     need_sync = true;
 }
@@ -60,6 +60,8 @@ void DropDown::Invalidate(bool clear)
 void DropDown::SetSelection(int n)
 {
     assert(n < (int) texts.size());
+    if (n >= (int) texts.size())
+        n = -1;
     selection = n;
 }
 
