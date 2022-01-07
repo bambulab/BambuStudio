@@ -2136,6 +2136,13 @@ void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
         input_file = dialog.GetPath();
 }
 
+//BBS
+void GUI_App::request_login()
+{
+    //BBS
+    wxMessageBox(_L("Please login first!"));
+}
+
 void GUI_App::request_model_download(std::string model_id)
 {
     if (plater_) {

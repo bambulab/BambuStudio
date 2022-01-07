@@ -264,6 +264,7 @@ public:
     void            import_model(wxWindow *parent, wxArrayString& input_files) const;
     void            load_gcode(wxWindow* parent, wxString& input_file) const;
     //BBS
+    void            request_login();
     void            request_model_download(std::string model_id);
     void            download_project(std::string project_id);
     void            handle_http_error(unsigned int status, std::string body);

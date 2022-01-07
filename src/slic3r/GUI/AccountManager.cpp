@@ -2800,11 +2800,19 @@ namespace Slic3r {
 
     void AccountManager::request_model_download(std::string model_id)
     {
+        if (!is_user_login()) {
+            GUI::wxGetApp().request_login();
+            return;
+        }
         GUI::wxGetApp().request_model_download(model_id);
     }
 
     void AccountManager::request_project_download(std::string project_id)
     {
+        if (!is_user_login()) {
+            GUI::wxGetApp().request_login();
+            return;
+        }
         GUI::wxGetApp().download_project(project_id);
     }
 
