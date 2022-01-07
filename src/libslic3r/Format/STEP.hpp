@@ -7,9 +7,10 @@ class TriangleMesh;
 class ModelObject;
 
 typedef std::function<void(int load_stage, int current, int total, bool& cancel)> ImportStepProgressFn;
+typedef std::function<void(bool isUtf8)> StepIsUtf8Fn;
 
 //BBS: Load an step file into a provided model.
-extern bool load_step(const char *path, Model *model, ImportStepProgressFn proFn = nullptr);
+extern bool load_step(const char *path, Model *model, ImportStepProgressFn proFn = nullptr, StepIsUtf8Fn isUtf8Fn = nullptr);
 
 //BBS: Used to detect what kind of encoded type is used in name field of step
 // If is encoded in UTF8, the file don't need to be handled, then return the original path directly.
@@ -27,10 +28,11 @@ class StepPreProcessor {
 
 public:
     bool preprocess(const char* path, std::string &output_path);
+    static bool isUtf8File(const char* path);
 private:
-    bool isUtf8(const std::string str);
-    bool isGBK(const std::string str);
-    int preNum(const unsigned char byte);
+    static bool isUtf8(const std::string str);
+    static bool isGBK(const std::string str);
+    static int preNum(const unsigned char byte);
     //BBS: default is UTF8 for most step file.
     EncodedType m_encode_type = EncodedType::UTF8;
 };

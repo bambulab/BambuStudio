@@ -85,6 +85,26 @@ bool StepPreProcessor::preprocess(const char* path, std::string &output_path)
     return true;
 }
 
+bool StepPreProcessor::isUtf8File(const char* path)
+{
+    boost::nowide::ifstream infile(path);
+    if (!infile.good()) {
+        throw Slic3r::RuntimeError(std::string("Load step file failed.\nCannot open file for reading.\n"));
+        return false;
+    }
+
+    std::string temp_line;
+    while (std::getline(infile, temp_line)) {
+        if (!isUtf8(temp_line)) {
+            infile.close();
+            return false;
+        }
+    }
+
+    infile.close();
+    return true;
+}
+
 bool StepPreProcessor::isUtf8(const std::string str)
 {
     size_t num = 0;
@@ -182,7 +202,7 @@ static void getNamedSolids(const TopLoc_Location& location, const std::string& p
     }
 }
 
-bool load_step(const char *path, Model *model, ImportStepProgressFn proFn)
+bool load_step(const char *path, Model *model, ImportStepProgressFn proFn, StepIsUtf8Fn isUtf8Fn)
 {
     bool cb_cancel = false;
     if (proFn) {
@@ -191,10 +211,9 @@ bool load_step(const char *path, Model *model, ImportStepProgressFn proFn)
             return false;
     }
 
-    std::string file_after_preprocess;
-    StepPreProcessor pre_processor;
-    if (!pre_processor.preprocess(path, file_after_preprocess))
-        return false;
+    if (!StepPreProcessor::isUtf8File(path) && isUtf8Fn)
+        isUtf8Fn(false);
+    std::string file_after_preprocess = std::string(path);
 
     std::vector<NamedSolid> namedSolids;
     Handle(TDocStd_Document) document;

@@ -1204,7 +1204,8 @@ public:
         const std::string& input_file, 
         DynamicPrintConfig* config = nullptr, ConfigSubstitutionContext* config_substitutions = nullptr,
         LoadAttributes options = LoadAttribute::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr,
-        std::vector<Preset*>* project_presets = nullptr, bool* is_bbl_3mf = nullptr, Import3mfProgressFn proFn = nullptr, ImportStepProgressFn stepFn = nullptr);
+        std::vector<Preset*>* project_presets = nullptr, bool* is_bbl_3mf = nullptr, Import3mfProgressFn proFn = nullptr,
+        ImportStepProgressFn stepFn = nullptr, StepIsUtf8Fn stepIsUtf8Fn = nullptr);
 
     // BBS: backup
     static Model read_from_archive(

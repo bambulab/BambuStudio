@@ -2915,6 +2915,13 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     wxString msg = wxString::Format("Loading file: %s, stage %d, %d/%d", from_path(filename), import_stage, current, total);
                     cont = progress_dlg->Update(progress_percent, msg);
                     cancel = !cont;
+                },
+                [](int isUtf8StepFile) {
+                    if (!isUtf8StepFile)
+                        Slic3r::GUI::show_info(nullptr,
+                            _L("Name of components inside step file is not UTF8 format!") + "\n\n" +
+                            _L("The name may show garbage characters!"),
+                            _L("Attention!"));
                 });
 
                 for (auto obj : model.objects)

@@ -127,7 +127,7 @@ Model::~Model()
 // Loading model from a file, it may be a simple geometry file as STL or OBJ, however it may be a project file as well.
 Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions,
                             LoadAttributes options, PlateDataPtrs* plate_data, std::vector<Preset*>* project_presets, bool *is_bbl_3mf, Import3mfProgressFn proFn,
-                            ImportStepProgressFn stepFn)
+                            ImportStepProgressFn stepFn, StepIsUtf8Fn stepIsUtf8Fn)
 {
     Model model;
 
@@ -148,7 +148,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     bool result = false;
     if (boost::algorithm::iends_with(input_file, ".stp") ||
         boost::algorithm::iends_with(input_file, ".step"))
-        result = load_step(input_file.c_str(), &model, stepFn);
+        result = load_step(input_file.c_str(), &model, stepFn, stepIsUtf8Fn);
     else if (boost::algorithm::iends_with(input_file, ".stl"))
         result = load_stl(input_file.c_str(), &model);
     else if (boost::algorithm::iends_with(input_file, ".obj"))
