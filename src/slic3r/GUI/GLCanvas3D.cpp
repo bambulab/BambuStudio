@@ -3600,8 +3600,19 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         // See GH issue #3816.
                         Camera& camera = wxGetApp().plater()->get_camera();
                         camera.recover_from_free_camera();
+
                         bool rotate_limit = current_printer_technology() != ptSLA;
-                        camera.rotate_on_sphere(rot.x(), rot.y(), rotate_limit);
+                        //BBS modify rotation
+                        if (evt.ControlDown() || evt.CmdDown() && m_canvas_type == ECanvasType::CanvasView3D) {
+                            camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, wxGetApp().plater()->get_partplate_list().get_bounding_box().center());
+                        } else {
+                            //BBS rotate with current plate center
+                            PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+                            if (plate)
+                                camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, plate->get_bounding_box().center());
+                            else
+                                camera.rotate_on_sphere(rot.x(), rot.y(), rotate_limit);
+                        }
                     }
                 }
 

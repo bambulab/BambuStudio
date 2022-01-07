@@ -64,6 +64,7 @@ public:
 
     double get_distance() const { return (get_position() - m_target).norm(); }
     double get_gui_scale() const { return m_gui_scale; }
+    float  get_zenit() const { return m_zenit; }
 
     double get_zoom() const { return m_zoom; }
     double get_inv_zoom() const { assert(m_zoom != 0.0); return 1.0 / m_zoom; }

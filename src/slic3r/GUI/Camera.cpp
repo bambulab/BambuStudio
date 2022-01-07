@@ -503,6 +503,7 @@ void Camera::load_camera_view(Camera& cam)
     m_projection_matrix = cam.get_projection_matrix();
     m_view_rotation = cam.get_view_rotation();
     m_frustrum_zs = cam.get_z_range();
+    m_zenit = cam.get_zenit();
 }
 
 void Camera::look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up)
