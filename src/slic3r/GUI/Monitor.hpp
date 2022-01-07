@@ -81,10 +81,10 @@ public:
     void update_task(BBLTask* task);
     void update_profile(BBLProfile* profile);
     void add_slice_info(BBLSliceInfo* slice_info);
-    void add_item(std::string title, int prediction, std::string weight);
+    void add_item(wxString title, int prediction, std::string weight);
     void clear_data();
-	void clear();
-	void reset();
+    void clear();
+    void reset();
 
 private:
     BBLTask* task;
@@ -262,9 +262,9 @@ public:
     MachineObject* obj;
     int last_wlan_device_selection;
     std::vector<std::string> mybind_machine_list_items;
-    BBLTask*    last_task;
-    BBLSubTask* last_subtask;
-    BBLProfile* last_profile;
+    BBLTask* last_task{ nullptr };
+    BBLSubTask* last_subtask{ nullptr };
+    BBLProfile* last_profile{ nullptr };
 
     int         last_wifi_signal = -1;
 

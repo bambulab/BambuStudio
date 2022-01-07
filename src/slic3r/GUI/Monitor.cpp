@@ -107,7 +107,7 @@ void SubTaskListModel::update_task(BBLTask* task)
     for (it = task->subtasks.begin(); it != task->subtasks.end(); it++) {
         iter = task->slice_info.find((*it)->task_partplate_idx);
         if (iter != task->slice_info.end()) {
-            add_item((*it)->task_name, iter->second->prediction, iter->second->weight);
+            add_item(GUI::from_u8((*it)->task_name), iter->second->prediction, iter->second->weight);
         }
     }
 
@@ -154,7 +154,7 @@ void SubTaskListModel::add_slice_info(BBLSliceInfo* slice_info)
     m_WeightColValues.push_back(weight_text);
 }
 
-void SubTaskListModel::add_item(std::string title, int prediction, std::string weight)
+void SubTaskListModel::add_item(wxString title, int prediction, std::string weight)
 {
     wxString name_text = "N/A";
     name_text = wxString::Format("%s", title);
@@ -373,7 +373,7 @@ void SubTaskPanel::update_info(BBLSubTask subtask, BBLSliceInfo info)
     m_subtask.task_url = info.gcode_url;
     wxString prediction = wxString::Format("%s", get_bbl_time_dhms(info.prediction));
     wxString weight = wxString::Format("%sg", info.weight);
-    this->set_value(subtask.task_name, prediction, weight, info.thumbnail_url);
+    this->set_value(GUI::from_u8(subtask.task_name), prediction, weight, info.thumbnail_url);
 }
 
 
@@ -767,7 +767,8 @@ void MonitorPanel::update_subtask(MachineObject* obj)
     if (last_subtask != obj->subtask_) {
         BOOST_LOG_TRIVIAL(trace) << "monitor: change to sub task id = " << obj->subtask_->task_id;
         // update subtask name
-        m_staticText_subtask_value->SetLabelText(wxString::Format("%s(%s)", obj->subtask_->task_name, obj->subtask_->task_id));
+        wxString subtask_text = wxString::Format("%s(%s)", GUI::from_u8(obj->subtask_->task_name), obj->subtask_->task_id);
+        m_staticText_subtask_value->SetLabelText(subtask_text);
         if (web_request.IsOk())
             web_request.Cancel();
         m_start_loading_thumbnail = true;
