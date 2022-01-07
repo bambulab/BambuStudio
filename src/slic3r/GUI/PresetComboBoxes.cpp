@@ -1069,14 +1069,20 @@ void TabPresetComboBox::OnSelect(wxCommandEvent &evt)
     auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
     if (marker >= LABEL_ITEM_DISABLED && marker < LABEL_ITEM_MAX) {
         this->SetSelection(m_last_selected);
-        if (marker == LABEL_ITEM_WIZARD_PRINTERS)
-            wxTheApp->CallAfter([this]() {
-            run_wizard(ConfigWizard::SP_PRINTERS);
+        ConfigWizard::StartPage sp = ConfigWizard::SP_WELCOME;
+        switch (marker) {
+        case LABEL_ITEM_WIZARD_PRINTERS: sp = ConfigWizard::SP_PRINTERS; break;
+        case LABEL_ITEM_WIZARD_FILAMENTS: sp = ConfigWizard::SP_FILAMENTS; break;
+        case LABEL_ITEM_WIZARD_MATERIALS: sp = ConfigWizard::SP_MATERIALS; break;
+        default: break;
+        }
+        wxTheApp->CallAfter([this, sp]() {
+        run_wizard(sp);
 
-            // update combobox if its parent is a PhysicalPrinterDialog
-            PhysicalPrinterDialog* parent = dynamic_cast<PhysicalPrinterDialog*>(this->GetParent());
-            if (parent != nullptr)
-                update();
+        // update combobox if its parent is a PhysicalPrinterDialog
+        PhysicalPrinterDialog* parent = dynamic_cast<PhysicalPrinterDialog*>(this->GetParent());
+        if (parent != nullptr)
+            update();
         });
     }
     else if (on_selection_changed && (m_last_selected != selected_item || m_collection->current_is_dirty())) {
@@ -1223,6 +1229,14 @@ void TabPresetComboBox::update()
 
         set_label_marker(Append(separator(L("Add/Remove printers")), *bmp), LABEL_ITEM_WIZARD_PRINTERS);
     }
+
+    // BBS Add/Remove filaments select
+    wxBitmap* bmp = get_bmp("edit_preset_list", false, "edit_uni");
+    assert(bmp);
+    if (m_type == Preset::TYPE_FILAMENT)
+        set_label_marker(Append(separator(L("Add/Remove filaments")), *bmp), LABEL_ITEM_WIZARD_FILAMENTS);
+    else if (m_type == Preset::TYPE_SLA_MATERIAL)
+        set_label_marker(Append(separator(L("Add/Remove materials")), *bmp), LABEL_ITEM_WIZARD_MATERIALS);
 
     update_selection();
     Thaw();
