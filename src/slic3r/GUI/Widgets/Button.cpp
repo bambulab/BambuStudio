@@ -105,8 +105,7 @@ void Button::paintEvent(wxPaintEvent& evt)
 {
     // depending on your system you may need to look at double-buffered dcs
     wxPaintDC dc(this);
-    wxGCDC dc2(dc);
-    render(dc2);
+    render(dc);
 }
 
 /*
@@ -120,7 +119,7 @@ void Button::render(wxDC& dc)
     dc.SetPen(wxPen(border_color.colorForStates(states)));
     dc.SetBrush(wxBrush(background_color.colorForStates(states)));
     if (GetWindowStyle() & wxBORDER_NONE)
-        dc.SetPen(wxNullPen);
+        dc.SetPen(wxPen(background_color.colorForStates(states)));
 
     wxSize size = GetSize();
     if (radius == 0)
