@@ -107,11 +107,14 @@ class PartPlate : public ObjectBase
     Polygon m_polygon;
     unsigned int m_vbo_id{ 0 };
     GeometryBuffer m_triangles;
+    //GeometryBuffer m_exclude_triangles;
     GeometryBuffer m_gridlines;
     GeometryBuffer m_del_icon;
     mutable unsigned int m_del_vbo_id{ 0 };
     GeometryBuffer m_arrange_icon;
     mutable unsigned int m_arrange_vbo_id{ 0 };
+    GeometryBuffer m_lock_icon;
+    mutable unsigned int m_lock_vbo_id{ 0 };
     GLTexture m_texture;
     std::array<float, 4> m_select_color{ 0.367f, 0.367f, 0.367f, 1.0f };
     std::array<float, 4> m_unselect_color{ 0.765f, 0.765f, 0.765f, 1.0f };
@@ -146,7 +149,7 @@ class PartPlate : public ObjectBase
 
 public:
     static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
-    static const unsigned int GRABBER_COUNT = 3;
+    static const unsigned int GRABBER_COUNT = 4;
 
     PartPlate();
     PartPlate(PartPlateList *partplate_list, Vec3d origin, int width, int depth, int height, Plater* platerObj, Model* modelObj, bool printable=true, PrinterTechnology tech = ptFFF);
@@ -336,6 +339,8 @@ class PartPlateList : public ObjectBase
     bool m_intialized;
     GLTexture m_del_texture;
     GLTexture m_arrange_texture;
+    GLTexture m_locked_texture;
+    GLTexture m_lockopen_texture;
 
     void init();
     //compute the origin for printable plate with index i
@@ -416,6 +421,9 @@ public:
 
     //lock plate
     int lock_plate(int index, bool state);
+
+    //is locked
+    bool is_locked(int index) { return m_plate_list[index]->is_locked();}
 
     //find plate by print index, return -1 if not found
     int find_plate_by_print_index(int index);

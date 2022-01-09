@@ -8983,6 +8983,12 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
             ret = -1;
         }
     }
+    else if ((action == 3)&&(!right_click))
+    {
+        //lock the plate
+        take_snapshot(_L("lock partplate"));
+        ret = p->partplate_list.lock_plate(plate_index, !p->partplate_list.is_locked(plate_index));
+    }
     else
     {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid action %1%, with right_click=%2%" << action << right_click;
