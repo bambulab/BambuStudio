@@ -6528,24 +6528,25 @@ void Plater::download_project(const wxString& project_id)
             *cont_ptr = false;
             return;
             })
-            .on_complete([&](std::string body, unsigned /* http_status */) {
-                fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
-                file.write(body.c_str(), body.size());
-                file.close();
-                fs::rename(tmp_path, target_path);
-                res = true;
-                })
-                .perform_sync();
+        .on_complete([&](std::string body, unsigned /* http_status */) {
+            fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
+            file.write(body.c_str(), body.size());
+            file.close();
+            fs::rename(tmp_path, target_path);
+            res = true;
+            })
+        .perform_sync();
 
-                if (!*cont_ptr) {
-                    return;
-                }
-                else {
-                    wxString msg = "Download completed! close to import project";
-                    *cont_ptr = dlg.Update(100, msg);
-                }
+    if (!*cont_ptr) {
+        wxMessageBox("Import Failed!");
+        return;
+    }
+    else {
+        wxString msg = "Download completed! close to import project";
+        *cont_ptr = dlg.Update(100, msg);
+    }
 
-                this->load_project(target_path.string());
+    this->load_project(target_path.string());
 }
 
 void Plater::request_model_download(std::string model_id)

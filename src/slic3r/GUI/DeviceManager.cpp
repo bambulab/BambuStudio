@@ -581,7 +581,11 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                     BBLSubTask* curr_task = get_subtask();
 
                     if (curr_task) {
-                        curr_task->task_progress = mc_print_percent;
+                        if (mc_left_time == 0 && mc_print_percent == 0)
+                            curr_task->task_progress = stoi(progress.has_value() ? progress.value() : "0");
+                        else
+                            curr_task->task_progress = mc_print_percent;
+
                         if (gcode_start_time.has_value())
                             curr_task->task_start_time = gcode_start_time.value();
                         if (gcode_duration.has_value())
