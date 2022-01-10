@@ -778,21 +778,23 @@ void MonitorPanel::update_subtask(MachineObject* obj)
     if (m_start_loading_thumbnail) {
         if (obj->profile_) {
             std::map<std::string, BBLSliceInfo*>::iterator iter = obj->profile_->slice_info.find(obj->subtask_->task_partplate_idx);
-            if (iter != obj->profile_->slice_info.end())
+            if (iter != obj->profile_->slice_info.end()) {
                 m_request_url = wxString(iter->second->thumbnail_url);
-
-            wxImage img;
-            std::map<wxString, wxImage>::iterator it = img_list.find(m_request_url);
-            if (it != img_list.end()) {
-                img = it->second;
-                wxImage resize_img = img.Scale(m_bitmap_thumbnail->GetSize().x, m_bitmap_thumbnail->GetSize().y);
-                m_bitmap_thumbnail->SetBitmap(resize_img);
-            }
-            else {
-                web_request = wxWebSession::GetDefault().CreateRequest(this, m_request_url);
-                BOOST_LOG_TRIVIAL(trace) << "monitor: start reqeust thumbnail, url = " << m_request_url;
-                web_request.Start();
-                m_start_loading_thumbnail = false;
+                if (!m_request_url.IsEmpty()) {
+                    wxImage img;
+                    std::map<wxString, wxImage>::iterator it = img_list.find(m_request_url);
+                    if (it != img_list.end()) {
+                        img = it->second;
+                        wxImage resize_img = img.Scale(m_bitmap_thumbnail->GetSize().x, m_bitmap_thumbnail->GetSize().y);
+                        m_bitmap_thumbnail->SetBitmap(resize_img);
+                    }
+                    else {
+                        web_request = wxWebSession::GetDefault().CreateRequest(this, m_request_url);
+                        BOOST_LOG_TRIVIAL(trace) << "monitor: start reqeust thumbnail, url = " << m_request_url;
+                        web_request.Start();
+                        m_start_loading_thumbnail = false;
+                    }
+                }
             }
         }
     }
