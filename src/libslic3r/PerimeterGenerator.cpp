@@ -504,31 +504,31 @@ void PerimeterGenerator::process()
                 }
                 {
                     const bool fuzzify_contours = this->config->fuzzy_skin != FuzzySkinType::None && i == 0 && this->layer_id > 0;
-                    const bool fuzzify_holes    = fuzzify_contours && this->config->fuzzy_skin == FuzzySkinType::All;
-                    for (const ExPolygon &expolygon : offsets) {
-    	                // Outer contour may overlap with an inner contour,
-    	                // inner contour may overlap with another inner contour,
-    	                // outer contour may overlap with itself.
-    	                //FIXME evaluate the overlaps, annotate each point with an overlap depth,
+                    const bool fuzzify_holes = fuzzify_contours && this->config->fuzzy_skin == FuzzySkinType::All;
+                    for (const ExPolygon& expolygon : offsets) {
+                        // Outer contour may overlap with an inner contour,
+                        // inner contour may overlap with another inner contour,
+                        // outer contour may overlap with itself.
+                        //FIXME evaluate the overlaps, annotate each point with an overlap depth,
                         // compensate for the depth of intersection.
                         contours[i].emplace_back(expolygon.contour, i, true, fuzzify_contours);
 
-                        if (! expolygon.holes.empty()) {
-                            holes[i].reserve(holes[i].size() + expolygon.holes.size());
-                            for (const Polygon &hole : expolygon.holes)
-                                holes[i].emplace_back(hole, i, false, fuzzify_holes);
-                        }
-                    }
-                }
-
-                //BBS: save perimeter loop which use smaller width
-                if (i == 0) {
-                    for (const ExPolygon& expolygon : offsets_with_smaller_width) {
-                        contours[i].emplace_back(PerimeterGeneratorLoop(expolygon.contour, i, true, true));
                         if (!expolygon.holes.empty()) {
                             holes[i].reserve(holes[i].size() + expolygon.holes.size());
                             for (const Polygon& hole : expolygon.holes)
-                                holes[i].emplace_back(PerimeterGeneratorLoop(hole, i, false, true));
+                                holes[i].emplace_back(hole, i, false, fuzzify_holes);
+                        }
+                    }
+
+                    //BBS: save perimeter loop which use smaller width
+                    if (i == 0) {
+                        for (const ExPolygon& expolygon : offsets_with_smaller_width) {
+                            contours[i].emplace_back(PerimeterGeneratorLoop(expolygon.contour, i, true, fuzzify_contours, true));
+                            if (!expolygon.holes.empty()) {
+                                holes[i].reserve(holes[i].size() + expolygon.holes.size());
+                                for (const Polygon& hole : expolygon.holes)
+                                    holes[i].emplace_back(PerimeterGeneratorLoop(hole, i, false, fuzzify_contours, true));
+                            }
                         }
                     }
                 }
