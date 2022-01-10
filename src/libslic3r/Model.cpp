@@ -1437,7 +1437,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
     // const auto instance_matrix = instances[instance]->get_matrix(true);
     const auto instance_matrix = Geometry::assemble_transform(
         Vec3d::Zero(),  // don't apply offset
-        instances[instance]->get_rotation().cwiseProduct(Vec3d(1.0, 1.0, 0.0)),   // don't apply Z-rotation
+        instances[instance]->get_rotation().cwiseProduct(Vec3d(1.0, 1.0, 1.0)),   // BBS: do apply Z-rotation
         instances[instance]->get_scaling_factor(),
         instances[instance]->get_mirror()
     );
@@ -1552,10 +1552,12 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
         // Reset instance transformation except offset and Z-rotation
         for (auto *instance : lower->instances) {
             const Vec3d offset = instance->get_offset();
-            const double rot_z = instance->get_rotation().z();
+            // BBS
+            //const double rot_z = instance->get_rotation().z();
             instance->set_transformation(Geometry::Transformation());
             instance->set_offset(offset);
-            instance->set_rotation(Vec3d(attributes.has(ModelObjectCutAttribute::FlipLower) ? Geometry::deg2rad(180.0) : 0.0, 0.0, rot_z));
+            // BBS
+            //instance->set_rotation(Vec3d(attributes.has(ModelObjectCutAttribute::FlipLower) ? Geometry::deg2rad(180.0) : 0.0, 0.0, rot_z));
         }
 
         res.push_back(lower);
