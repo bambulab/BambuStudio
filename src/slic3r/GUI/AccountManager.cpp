@@ -7,6 +7,7 @@
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "nlohmann/json.hpp"
+#include "slic3r/Utils/minilzo_extension.hpp"
 #include <boost/filesystem/path.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -37,6 +38,10 @@ void split_string(std::string s, std::vector<std::string>& v) {
     }
     v.push_back(t);
 }
+
+uint64_t lzo_out_len = 5 * 1024;
+const uint64_t LZO_OUT_MAX_LEN = 5 * 1024;
+unsigned char lzo_out[LZO_OUT_MAX_LEN];
 
 namespace Slic3r {
     void cloud_conn_callback::connected(const std::string& cause)
@@ -81,8 +86,16 @@ namespace Slic3r {
             std::string topic = msg->get_topic();
             std::map<std::string, MachineObject*>::iterator it = manager->mqtt_topics.find(topic);
             if (it != manager->mqtt_topics.end()) {
-                if (it->second)
-                    it->second->parse_json(msg->get_topic(), msg->get_payload_str());
+                if (it->second) {
+                    int result = 0;
+                    lzo_out_len = LZO_OUT_MAX_LEN;
+                    result = lzo_decompress((unsigned char*)msg->get_payload_ref().data(), msg->get_payload().length(), lzo_out, &lzo_out_len);
+                    // decompress ok
+                    if (result == 0)
+                        it->second->parse_json(msg->get_topic(), std::string((char*)lzo_out, lzo_out_len));
+                    else
+                        it->second->parse_json(msg->get_topic(), msg->get_payload_str());
+                }
 
                 // update my bind list machine
                 std::map<std::string, MachineObject*>::iterator iter = manager->myBindMachineList.find(it->second->dev_id);
