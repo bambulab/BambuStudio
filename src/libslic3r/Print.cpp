@@ -1193,7 +1193,6 @@ void Print::_make_skirt()
     // Collect points from all layers contained in skirt height.
     Points points;
     // BBS
-    double max_brim_width = 0.;
     for (const PrintObject *object : m_objects) {
         Points object_points;
         // Get object layers up to skirt_height_z.
@@ -1216,12 +1215,6 @@ void Print::_make_skirt()
                 break;
 
             layer->support_fills.collect_points(object_points);
-        }
-
-        // Get brim width
-        {
-            const PrintObjectConfig& obj_config = object->config();
-            max_brim_width = std::max(scale_(obj_config.brim_width.value), max_brim_width);
         }
 
         // Repeat points for each object copy.
@@ -1285,8 +1278,8 @@ void Print::_make_skirt()
         // Generate the skirt centerline.
         Polygon loop;
         {
-            // BBS. If there is brim, skirt_distance is the gap between skirt and outer most brim.
-            Polygons loops = offset(convex_hull, distance + max_brim_width, ClipperLib::jtRound, float(scale_(0.1)));
+            // BBS. skirt_distance is defined as the gap between skirt and outer most brim, so no need to add max_brim_width
+            Polygons loops = offset(convex_hull, distance, ClipperLib::jtRound, float(scale_(0.1)));
             Geometry::simplify_polygons(loops, scale_(0.05), &loops);
 			if (loops.empty())
 				break;
@@ -1325,8 +1318,7 @@ void Print::_make_skirt()
     m_skirt.reverse();
 
     // Remember the outer edge of the last skirt line extruded as m_skirt_convex_hull.
-    // BBS. If there is brim, skirt_distance is the gap between skirt and outer most brim.
-    for (Polygon &poly : offset(convex_hull, distance + max_brim_width + 0.5f * float(scale_(spacing)), ClipperLib::jtRound, float(scale_(0.1))))
+    for (Polygon &poly : offset(convex_hull, distance + 0.5f * float(scale_(spacing)), ClipperLib::jtRound, float(scale_(0.1))))
         append(m_skirt_convex_hull, std::move(poly.points));
 }
 
