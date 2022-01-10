@@ -23,7 +23,7 @@ AuxiliaryList::AuxiliaryList(wxWindow* parent)
 	m_auxiliary_model = new AuxiliaryModel();
 	this->AssociateModel(m_auxiliary_model);
 	m_sizer = new wxBoxSizer(wxVERTICAL);
-	m_sizer->Add(this, 1, wxEXPAND | wxALL, 5);
+	m_sizer->Add(this, 1, wxEXPAND | wxALL, 0);
 
 	wxPanel* panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, FromDIP(21)));
 	//panel->SetBackgroundColour(*wxLIGHT_GREY);

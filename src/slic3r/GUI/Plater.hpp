@@ -77,13 +77,15 @@ enum class ActionButtonType : int;
 //BBS: add EVT_SLICING_UPDATE declare here
 wxDECLARE_EVENT(EVT_SLICING_UPDATE, Slic3r::SlicingStatusEvent);
 
-class ProjectResource : public wxNotebook
+class ProjectResource : public wxPanel
 {
 public:
     ProjectResource(wxWindow *parent);
     ~ProjectResource();
-    ObjectList *get_object_list() { return m_object_list; }
+    ObjectList* get_object_list() { return m_object_list; }
     AuxiliaryList* get_auxiliary_list() { return m_auxiliary_list; }
+    wxPanel* get_object_panel() { return m_object_panel; }
+    wxPanel* get_auxiliary_panel () { return m_auxiliary_panel; }
 
 private:
     ObjectList *m_object_list{ nullptr };

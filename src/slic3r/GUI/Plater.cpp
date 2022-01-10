@@ -649,24 +649,26 @@ static wxString temp_dir;
 
 // BBS. ProjectResource methods.
 ProjectResource::ProjectResource(wxWindow *parent)
-    : wxNotebook(parent, wxID_ANY)
+    : wxPanel(parent, wxID_ANY)
 {
+    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
     m_object_panel = new wxPanel(this);
     m_object_list = new ObjectList(m_object_panel);
     wxBoxSizer* object_sizer = new wxBoxSizer(wxVERTICAL);
     object_sizer->Add(m_object_list, 1, wxEXPAND);
     m_object_panel->SetSizer(object_sizer);
-    this->AddPage(m_object_panel, _L("Object List"));
 
     m_auxiliary_panel = new wxPanel(this);
     m_auxiliary_list = new AuxiliaryList(m_auxiliary_panel);
-	m_auxiliary_panel->SetSizer(m_auxiliary_list->get_top_sizer());
-    this->AddPage(m_auxiliary_panel, _L("Auxiliary List"));
+    m_auxiliary_panel->SetSizer(m_auxiliary_list->get_top_sizer());
+    sizer->Add(m_object_panel, 1, wxEXPAND | wxALL);
+    sizer->Add(m_auxiliary_panel, 1, wxEXPAND | wxALL);
+    m_auxiliary_panel->Show(false);
+    this->SetSizer(sizer);
 }
 
 ProjectResource::~ProjectResource()
 {
-    this->DeleteAllPages();
 }
 
 // Sidebar / private
@@ -705,8 +707,7 @@ struct Sidebar::priv
     wxPanel* m_panel_project_title;
     wxStaticText* m_staticText_object_list;
     wxStaticText* m_staticText_auxiliary_list;
-    wxScrolledWindow* m_panel_project_content;
-    
+
     ProjectResource     *project_resource{ nullptr };
     ObjectSettings      *object_settings{ nullptr };
     ObjectLayers        *object_layers{ nullptr };
@@ -715,7 +716,7 @@ struct Sidebar::priv
     wxButton *btn_reslice;
     ScalableButton *btn_send_gcode;
     //ScalableButton *btn_eject_device;
-	ScalableButton* btn_export_gcode_removable; //exports to removable drives (appears only if removable drive is connected)
+    ScalableButton* btn_export_gcode_removable; //exports to removable drives (appears only if removable drive is connected)
 
     bool                is_collapsed {false};
     Search::OptionsSearcher     searcher;
@@ -840,25 +841,28 @@ Sidebar::Sidebar(Plater *parent)
     p->scrolled->SetSizer(scrolled_sizer);
 
     wxColour title_bg = wxColour(248, 248, 248);
+    wxColour inactive_text = wxColour(86, 86, 86);
+    wxColour active_text = wxColour(0, 0, 0);
+    wxColour static_line_col = wxColour(166, 169, 170);
 
     // add print title
     p->m_panel_print_title = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxSize(-1, 36 * em / 10), wxTAB_TRAVERSAL);
     p->m_panel_print_title->SetBackgroundColour(title_bg);
 
-	wxBoxSizer* bSizer_print_title;
-	bSizer_print_title = new wxBoxSizer( wxHORIZONTAL );
-	bSizer_print_title->Add( 22 * em / 10, 0, 0, 0, 0 );
+    wxBoxSizer* bSizer_print_title;
+    bSizer_print_title = new wxBoxSizer( wxHORIZONTAL );
+    bSizer_print_title->Add( 22 * em / 10, 0, 0, 0, 0 );
     p->m_staticText_print_title = new wxStaticText(p->m_panel_print_title, wxID_ANY, wxT("Print Preset"), wxDefaultPosition, wxDefaultSize, 0);
     p->m_staticText_print_title->Wrap(-1);
     p->m_staticText_print_title->SetFont(Label::Body_14);
     bSizer_print_title->Add(p->m_staticText_print_title, 1, wxALIGN_CENTER_VERTICAL | wxALL, 0);
     bSizer_print_title->Add(0, 0, 0, 0, 5 * em / 10);
     p->m_panel_print_title->SetSizer(bSizer_print_title);
-	p->m_panel_print_title->Layout();
+    p->m_panel_print_title->Layout();
     scrolled_sizer->Add(p->m_panel_print_title, 0, wxALL | wxEXPAND, 0);
 
     p->m_staticline1 = new wxStaticLine(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
-    p->m_staticline1->SetBackgroundColour(wxColour(166, 169, 170));
+    p->m_staticline1->SetBackgroundColour(static_line_col);
 
     scrolled_sizer->Add(p->m_staticline1, 0, wxEXPAND | wxALL, 0);
 
@@ -873,17 +877,17 @@ Sidebar::Sidebar(Plater *parent)
     p->m_panel_print_content = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     p->m_panel_print_content->SetBackgroundColour(wxColour(255, 255, 255));
 
-	wxBoxSizer* bSizer_print_content;
+    wxBoxSizer* bSizer_print_content;
     bSizer_print_content = new wxBoxSizer(wxHORIZONTAL);
 
-	p->m_panel_print_content->SetSizer( bSizer_print_content );
-	p->m_panel_print_content->Layout();
-	scrolled_sizer->Add( p->m_panel_print_content, 0, wxEXPAND | wxALL, 0 );
+    p->m_panel_print_content->SetSizer( bSizer_print_content );
+    p->m_panel_print_content->Layout();
+    scrolled_sizer->Add( p->m_panel_print_content, 0, wxEXPAND | wxALL, 0 );
 
     p->m_staticline1 = new wxStaticLine(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
-    p->m_staticline1->SetBackgroundColour(wxColour(166, 169, 170));
+    p->m_staticline1->SetBackgroundColour(static_line_col);
 
-	scrolled_sizer->Add( p->m_staticline1, 0, wxEXPAND | wxALL, 0 );
+    scrolled_sizer->Add( p->m_staticline1, 0, wxEXPAND | wxALL, 0 );
 
     p->combo_print = new PlaterPresetComboBox(p->m_panel_print_content, Preset::TYPE_PRINT);
     bSizer_print_content->Add(11 * em / 10, 0, 0, 0, 0);
@@ -894,20 +898,20 @@ Sidebar::Sidebar(Plater *parent)
     p->m_panel_filament_title = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxSize(-1, 36 * em / 10), wxTAB_TRAVERSAL);
     p->m_panel_filament_title->SetBackgroundColour(title_bg);
 
-	wxBoxSizer* bSizer39;
-	bSizer39 = new wxBoxSizer( wxHORIZONTAL );
-	bSizer39->Add( 22 * em / 10, 0, 0, 0, 0 );
-	p->m_staticText_filament_settings = new wxStaticText( p->m_panel_filament_title, wxID_ANY, wxT("Filament Settings"), wxDefaultPosition, wxDefaultSize, 0 );
-	p->m_staticText_filament_settings->Wrap( -1 );
+    wxBoxSizer* bSizer39;
+    bSizer39 = new wxBoxSizer( wxHORIZONTAL );
+    bSizer39->Add( 22 * em / 10, 0, 0, 0, 0 );
+    p->m_staticText_filament_settings = new wxStaticText( p->m_panel_filament_title, wxID_ANY, wxT("Filament Settings"), wxDefaultPosition, wxDefaultSize, 0 );
+    p->m_staticText_filament_settings->Wrap( -1 );
     p->m_staticText_filament_settings->SetFont(Label::Body_14);
-	bSizer39->Add( p->m_staticText_filament_settings, 1, wxALIGN_CENTER|wxALL, 5 * em / 10 );
+    bSizer39->Add( p->m_staticText_filament_settings, 1, wxALIGN_CENTER|wxALL, 5 * em / 10 );
 
     ScalableButton* add_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "add_filament");
     add_btn->SetBackgroundColour(title_bg);
-	bSizer39->Add(add_btn, 0, wxALIGN_CENTER|wxALL, 5 * em / 10 );
-	bSizer39->Add( 10 * em / 10, 0, 0, 0, 0 );
-	p->m_panel_filament_title->SetSizer( bSizer39 );
-	p->m_panel_filament_title->Layout();
+    bSizer39->Add(add_btn, 0, wxALIGN_CENTER|wxALL, 5 * em / 10 );
+    bSizer39->Add( 10 * em / 10, 0, 0, 0, 0 );
+    p->m_panel_filament_title->SetSizer( bSizer39 );
+    p->m_panel_filament_title->Layout();
     scrolled_sizer->Add(p->m_panel_filament_title, 0, wxEXPAND | wxALL, 0);
 
     add_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
@@ -941,12 +945,12 @@ Sidebar::Sidebar(Plater *parent)
 
     // add filament content
     p->m_panel_filament_content = new wxPanel( p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	p->m_panel_filament_content->SetBackgroundColour( wxColour( 255, 255, 255 ) );
+    p->m_panel_filament_content->SetBackgroundColour( wxColour( 255, 255, 255 ) );
 
-	wxBoxSizer* bSizer_filament_content;
-	bSizer_filament_content = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer* bSizer_filament_content;
+    bSizer_filament_content = new wxBoxSizer( wxHORIZONTAL );
 
-	p->sizer_filaments = new wxBoxSizer(wxVERTICAL);
+    p->sizer_filaments = new wxBoxSizer(wxVERTICAL);
 
     p->combos_filament.push_back(nullptr);
 
@@ -1017,37 +1021,54 @@ Sidebar::Sidebar(Plater *parent)
         }));
     scrolled_sizer->Add(wiping_dialog_button, 0, wxTOP | wxBOTTOM | wxEXPAND, 0);
 
-	p->m_staticline2 = new wxStaticLine( p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    p->m_staticline2->SetBackgroundColour( wxColour( 166, 169, 170 ) );
+    p->m_staticline2 = new wxStaticLine( p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+    p->m_staticline2->SetBackgroundColour( static_line_col );
 
     scrolled_sizer->Add(p->m_staticline2, 0, wxEXPAND | wxALL, 0);
 
 
     //add project title
-    /*
-    p->m_panel_project_title = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxSize(-1, 36), wxTAB_TRAVERSAL);
-    p->m_panel_project_title->SetBackgroundColour(wxColour(233, 233, 233));
-	wxBoxSizer* bSizer_project_title;
-	bSizer_project_title = new wxBoxSizer( wxHORIZONTAL );
-	bSizer_project_title->Add( 22, 0, 0, wxEXPAND, 0 );
-	p->m_staticText_object_list = new wxStaticText(p->m_panel_project_title, wxID_ANY, wxT("Object List"), wxDefaultPosition, wxDefaultSize, 0 );
-	p->m_staticText_object_list->Wrap( -1 );
+    p->m_panel_project_title = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxSize(-1, 36 * em / 10), wxTAB_TRAVERSAL);
+    p->m_panel_project_title->SetBackgroundColour(title_bg);
+    wxBoxSizer* bSizer_project_title;
+    bSizer_project_title = new wxBoxSizer( wxHORIZONTAL );
+    bSizer_project_title->Add( 18 * em / 10, 0, 0, wxEXPAND, 0 );
+    p->m_staticText_object_list = new wxStaticText(p->m_panel_project_title, wxID_ANY, _L("Object List"), wxDefaultPosition, wxDefaultSize, 0 );
+    p->m_staticText_object_list->Wrap( -1 );
     p->m_staticText_object_list->SetFont(Label::Body_14);
-	bSizer_project_title->Add(p->m_staticText_object_list, 0, wxALIGN_CENTER|wxALL, 5 );
-
-	p->m_staticText_auxiliary_list = new wxStaticText( p->m_panel_project_title, wxID_ANY, wxT("Auxiliary List"), wxDefaultPosition, wxDefaultSize, 0 );
-	p->m_staticText_auxiliary_list->Wrap( -1 );
+    p->m_staticText_object_list->Bind(wxEVT_LEFT_DOWN, [this, inactive_text, active_text](wxMouseEvent) {
+        p->project_resource->get_auxiliary_panel()->Show(false);
+        p->m_staticText_auxiliary_list->SetForegroundColour(inactive_text);
+        p->project_resource->get_object_panel()->Show(true);
+        p->m_staticText_object_list->SetForegroundColour(active_text);
+        p->m_panel_project_title->Refresh();
+        p->project_resource->Layout();
+    });
+    
+    bSizer_project_title->Add(p->m_staticText_object_list, 0, wxALIGN_CENTER|wxALL, 5 * em / 10);
+    bSizer_project_title->Add(22 * em / 10, 0, 0, wxEXPAND, 0);
+    p->m_staticText_auxiliary_list = new wxStaticText( p->m_panel_project_title, wxID_ANY, _L("Auxiliary List"), wxDefaultPosition, wxDefaultSize, 0 );
+    p->m_staticText_auxiliary_list->Wrap( -1 );
     p->m_staticText_auxiliary_list->SetFont(Label::Body_14);
-	bSizer_project_title->Add( p->m_staticText_auxiliary_list, 0, wxALIGN_CENTER|wxALL, 5 );
-	bSizer_project_title->Add( 0, 0, 1, wxEXPAND, 0 );
-	p->m_panel_project_title->SetSizer( bSizer_project_title );
+    p->m_staticText_auxiliary_list->SetForegroundColour(inactive_text);
+    p->m_staticText_auxiliary_list->Bind(wxEVT_LEFT_DOWN, [this, inactive_text, active_text](wxMouseEvent) {
+        p->project_resource->get_object_panel()->Show(false);
+        p->m_staticText_object_list->SetForegroundColour(inactive_text);
+        p->project_resource->get_auxiliary_panel()->Show(true);
+        p->m_staticText_auxiliary_list->SetForegroundColour(active_text);
+        p->m_panel_project_title->Refresh();
+        p->project_resource->Layout();
+    });
+    bSizer_project_title->Add(p->m_staticText_auxiliary_list, 0, wxALIGN_CENTER | wxALL, 5 * em / 10);
+    p->m_panel_project_title->SetSizer( bSizer_project_title );
     p->m_panel_project_title->Layout();
-	scrolled_sizer->Add(p->m_panel_project_title, 0, wxEXPAND | wxALL, 0 );
-    */
+    scrolled_sizer->Add(p->m_panel_project_title, 0, wxEXPAND | wxALL, 0 );
 
+    //add project content
     p->sizer_params = new wxBoxSizer(wxVERTICAL);
     p->project_resource = new ProjectResource(p->scrolled);
-    p->sizer_params->Add(p->project_resource, 1, wxEXPAND | wxTOP, 15);
+    p->sizer_params->Add(p->project_resource, 1, wxEXPAND | wxTOP, 0);
+    scrolled_sizer->Add(p->sizer_params, 1, wxEXPAND | wxLEFT, 0);
 
     // Frequently Object Settings
     p->object_settings = new ObjectSettings(p->scrolled);
@@ -1056,7 +1077,6 @@ Sidebar::Sidebar(Plater *parent)
     // Object Layers
     p->object_layers = new ObjectLayers(p->scrolled);
     p->object_layers->Hide();
-    scrolled_sizer->Add(p->sizer_params, 1, wxEXPAND | wxLEFT, 0);
 
     auto *sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(p->scrolled, 1, wxEXPAND);
@@ -1286,7 +1306,7 @@ void Sidebar::msw_rescale()
 
     p->btn_send_gcode->msw_rescale();
 //    p->btn_eject_device->msw_rescale();
-	p->btn_export_gcode_removable->msw_rescale();
+    p->btn_export_gcode_removable->msw_rescale();
 #ifdef _WIN32
     const int scaled_height = p->btn_export_gcode_removable->GetBitmapHeight();
 #else
@@ -1481,7 +1501,7 @@ void Sidebar::enable_buttons(bool enable)
     p->btn_export_gcode->Enable(enable);
     p->btn_send_gcode->Enable(enable);
 //    p->btn_eject_device->Enable(enable);
-	p->btn_export_gcode_removable->Enable(enable);
+    p->btn_export_gcode_removable->Enable(enable);
 #endif
 }
 
@@ -1525,7 +1545,7 @@ void Sidebar::update_mode()
 
     wxWindowUpdateLocker noUpdates(this);
 
-	// BBS
+    // BBS
     //obj_list()->get_sizer()->Show(m_mode > comSimple);
 
     obj_list()->unselect_objects();
@@ -1933,13 +1953,13 @@ struct Plater::priv
     bool restart_background_process(unsigned int state);
     // returns bit mask of UpdateBackgroundProcessReturnState
     unsigned int update_restart_background_process(bool force_scene_update, bool force_preview_update);
-	void show_delayed_error_message() {
-		if (!this->delayed_error_message.empty()) {
-			std::string msg = std::move(this->delayed_error_message);
-			this->delayed_error_message.clear();
-			GUI::show_error(this->q, msg);
-		}
-	}
+    void show_delayed_error_message() {
+        if (!this->delayed_error_message.empty()) {
+            std::string msg = std::move(this->delayed_error_message);
+            this->delayed_error_message.clear();
+            GUI::show_error(this->q, msg);
+        }
+    }
     void export_gcode(fs::path output_path, bool output_path_on_removable_media, PrintHostJob upload_job);
     void reload_from_disk();
     bool replace_volume_with_stl(int object_idx, int volume_idx, const fs::path& new_path, const wxString& snapshot = "");
@@ -1953,20 +1973,20 @@ struct Plater::priv
     void on_slicing_update(SlicingStatusEvent&);
     void on_slicing_completed(wxCommandEvent&);
     void on_process_completed(SlicingProcessCompletedEvent&);
-	void on_export_began(wxCommandEvent&);
+    void on_export_began(wxCommandEvent&);
     void on_export_finished(wxCommandEvent&);
     void on_layer_editing_toggled(bool enable);
-	void on_slicing_began();
+    void on_slicing_began();
 
-	void clear_warnings();
-	void add_warning(const Slic3r::PrintStateBase::Warning &warning, size_t oid);
+    void clear_warnings();
+    void add_warning(const Slic3r::PrintStateBase::Warning &warning, size_t oid);
     // Update notification manager with the current state of warnings produced by the background process (slicing).
-	void actualize_slicing_warnings(const PrintBase &print);
+    void actualize_slicing_warnings(const PrintBase &print);
     void actualize_object_warnings(const PrintBase& print);
-	// Displays dialog window with list of warnings. 
-	// Returns true if user clicks OK.
-	// Returns true if current_warnings vector is empty without showning the dialog
-	bool warnings_dialog();
+    // Displays dialog window with list of warnings. 
+    // Returns true if user clicks OK.
+    // Returns true if current_warnings vector is empty without showning the dialog
+    bool warnings_dialog();
 
     void on_action_add(SimpleEvent&);
     void on_action_add_plate(SimpleEvent&);
@@ -2055,7 +2075,7 @@ struct Plater::priv
     //BBS store machine_sn and 3mf_path for PrintJob
     PrintPrepareData            m_print_job_data;
     bool                        inside_snapshot_capture() { return m_prevent_snapshots != 0; }
-	bool                        process_completed_with_error { false };
+    bool                        process_completed_with_error { false };
    
     //BBS: add print project related logic
     void update_fff_scene_only_shells(bool only_shells = true);
@@ -2089,10 +2109,10 @@ private:
     std::string 				m_last_fff_printer_profile_name;
     std::string 				m_last_sla_printer_profile_name;
 
-	// vector of all warnings generated by last slicing
-	std::vector<std::pair<Slic3r::PrintStateBase::Warning, size_t>> current_warnings;
-	bool show_warning_dialog { false };
-	
+    // vector of all warnings generated by last slicing
+    std::vector<std::pair<Slic3r::PrintStateBase::Warning, size_t>> current_warnings;
+    bool show_warning_dialog { false };
+    
 };
 
 const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf)", std::regex::icase);
@@ -2142,7 +2162,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     background_process.set_thumbnail_cb([this](const ThumbnailsParams& params) { return this->generate_thumbnails(params, Camera::EType::Ortho); });
     background_process.set_slicing_completed_event(EVT_SLICING_COMPLETED);
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
-	background_process.set_export_began_event(EVT_EXPORT_BEGAN);
+    background_process.set_export_began_event(EVT_EXPORT_BEGAN);
     // Default printer technology for default config.
     background_process.select_technology(this->printer_technology);
     // Register progress callback from the Print class to the Plater.
@@ -2377,31 +2397,31 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
 
     // Load the 3DConnexion device database.
     mouse3d_controller.load_config(*wxGetApp().app_config);
-	// Start the background thread to detect and connect to a HID device (Windows and Linux).
-	// Connect to a 3DConnextion driver (OSX).
+    // Start the background thread to detect and connect to a HID device (Windows and Linux).
+    // Connect to a 3DConnextion driver (OSX).
     mouse3d_controller.init();
 #ifdef _WIN32
     // Register an USB HID (Human Interface Device) attach event. evt contains Win32 path to the USB device containing VID, PID and other info.
     // This event wakes up the Mouse3DController's background thread to enumerate HID devices, if the VID of the callback event
     // is one of the 3D Mouse vendors (3DConnexion or Logitech).
     this->q->Bind(EVT_HID_DEVICE_ATTACHED, [this](HIDDeviceAttachedEvent &evt) {
-    	mouse3d_controller.device_attached(evt.data);
+        mouse3d_controller.device_attached(evt.data);
         });
     this->q->Bind(EVT_HID_DEVICE_DETACHED, [this](HIDDeviceAttachedEvent& evt) {
         mouse3d_controller.device_detached(evt.data);
         });
 #endif /* _WIN32 */
 
-	//notification_manager = new NotificationManager(this->q);
+    //notification_manager = new NotificationManager(this->q);
 
     if (wxGetApp().is_editor()) {
         this->q->Bind(EVT_EJECT_DRIVE_NOTIFICAION_CLICKED, [this](EjectDriveNotificationClickedEvent&) { this->q->eject_drive(); });
         this->q->Bind(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED, [this](ExportGcodeNotificationClickedEvent&) { this->q->export_gcode(true); });
         this->q->Bind(EVT_PRESET_UPDATE_AVAILABLE_CLICKED, [](PresetUpdateAvailableClickedEvent&) {  wxGetApp().get_preset_updater()->on_update_notification_confirm(); });
         this->q->Bind(EVT_REMOVABLE_DRIVE_EJECTED, [this](RemovableDriveEjectEvent &evt) {
-		    if (evt.data.second) {
+            if (evt.data.second) {
                 // BBS
-			    //this->show_action_buttons(this->ready_to_slice);
+                //this->show_action_buttons(this->ready_to_slice);
                 notification_manager->close_notification_of_type(NotificationType::ExportFinished);
                 notification_manager->push_notification(NotificationType::CustomNotification,
                                                         NotificationManager::NotificationLevel::RegularNotificationLevel,
@@ -2413,13 +2433,13 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
                                                         format(_L("Ejecting of device %s(%s) has failed."), evt.data.first.name, evt.data.first.path)
                     );
             }
-	    });
+        });
         this->q->Bind(EVT_REMOVABLE_DRIVES_CHANGED, [this](RemovableDrivesChangedEvent &) {
             // BBS
             //this->show_action_buttons(this->ready_to_slice); 
-		    // Close notification ExportingFinished but only if last export was to removable
-		    notification_manager->device_ejected();
-	    });
+            // Close notification ExportingFinished but only if last export was to removable
+            notification_manager->device_ejected();
+        });
         // Start the background thread and register this window as a target for update events.
         wxGetApp().removable_drive_manager()->init(this->q);
 #ifdef _WIN32
@@ -2476,7 +2496,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     this->q->Bind(EVT_INSTANCE_GO_TO_FRONT, [this](InstanceGoToFrontEvent &) {
         bring_instance_forward();
     });
-	wxGetApp().other_instance_message_handler()->init(this->q);
+    wxGetApp().other_instance_message_handler()->init(this->q);
 
     // collapse sidebar according to saved value
     if (wxGetApp().is_editor()) {
@@ -3573,7 +3593,7 @@ void Plater::priv::reset()
 {
     Plater::TakeSnapshot snapshot(q, _L("Reset Project"), UndoRedo::SnapshotType::ProjectSeparator);
 
-	clear_warnings();
+    clear_warnings();
 
     set_project_filename("");
 
@@ -3825,9 +3845,9 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     }
 
     if ((invalidated != Print::APPLY_STATUS_UNCHANGED || force_validation) && ! background_process.empty()) {
-		// The delayed error message is no more valid.
-		delayed_error_message.clear();
-		// The state of the Print changed, and it is non-zero. Let's validate it and give the user feedback on errors.
+        // The delayed error message is no more valid.
+        delayed_error_message.clear();
+        // The state of the Print changed, and it is non-zero. Let's validate it and give the user feedback on errors.
 
         //BBS: add is_warning logic
         std::string warning;
@@ -3835,7 +3855,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": validate err=%1%, warning=%2%")%err%warning;
 
         if (err.empty()) {
-			notification_manager->set_all_slicing_errors_gray(true);
+            notification_manager->set_all_slicing_errors_gray(true);
             notification_manager->close_notification_of_type(NotificationType::ValidateError);
             if (invalidated != Print::APPLY_STATUS_UNCHANGED && background_processing_enabled())
                 return_state |= UPDATE_BACKGROUND_PROCESS_RESTART;
@@ -3850,8 +3870,8 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
             }
         }
         else {
-			// The print is not valid.
-			// Show error as notification.
+            // The print is not valid.
+            // Show error as notification.
             notification_manager->push_validate_error_notification(err);
             return_state |= UPDATE_BACKGROUND_PROCESS_INVALID;
             if (printer_technology == ptFFF) {
@@ -3866,19 +3886,19 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         }
     }
     else if (! this->delayed_error_message.empty()) {
-    	// Reusing the old state.
+        // Reusing the old state.
         return_state |= UPDATE_BACKGROUND_PROCESS_INVALID;
     }
 
-	//actualizate warnings
-	if (invalidated != Print::APPLY_STATUS_UNCHANGED || background_process.empty()) {
+    //actualizate warnings
+    if (invalidated != Print::APPLY_STATUS_UNCHANGED || background_process.empty()) {
         if (background_process.empty())
             process_validation_warning(std::string());
-		actualize_slicing_warnings(*this->background_process.current_print());
+        actualize_slicing_warnings(*this->background_process.current_print());
         actualize_object_warnings(*this->background_process.current_print());
-		show_warning_dialog = false;
-		process_completed_with_error = false;  
-	} 
+        show_warning_dialog = false;
+        process_completed_with_error = false;  
+    } 
 
     if (invalidated != Print::APPLY_STATUS_UNCHANGED && was_running && ! this->background_process.running() &&
         (return_state & UPDATE_BACKGROUND_PROCESS_RESTART) == 0) {
@@ -3971,8 +3991,8 @@ bool Plater::priv::restart_background_process(unsigned int state)
 //                this->statusbar()->set_status_text(_L("Cancelling"));
 //                this->background_process.stop();
 //            });
-			if (!show_warning_dialog)
-				on_slicing_began();
+            if (!show_warning_dialog)
+                on_slicing_began();
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: start successfully")%__LINE__;
             return true;
         }
@@ -4787,12 +4807,12 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
                 state = print_object->step_state_with_warnings(static_cast<SLAPrintObjectStep>(warning_step));
         }
         // Now process state.warnings.
-		for (auto const& warning : state.warnings) {
-			if (warning.current) {
+        for (auto const& warning : state.warnings) {
+            if (warning.current) {
                 notification_manager->push_slicing_warning_notification(warning.message, false, object_id, warning_step);
                 add_warning(warning, object_id.id);
-			}
-		}
+            }
+        }
     }
 }
 
@@ -4818,8 +4838,8 @@ void Plater::priv::on_slicing_completed(wxCommandEvent & evt)
 
 void Plater::priv::on_export_began(wxCommandEvent& evt)
 {
-	if (show_warning_dialog)
-		warnings_dialog();  
+    if (show_warning_dialog)
+        warnings_dialog();  
 }
 
 void Plater::priv::on_export_finished(wxCommandEvent& evt)
@@ -4835,20 +4855,20 @@ void Plater::priv::on_export_finished(wxCommandEvent& evt)
 
 void Plater::priv::on_slicing_began()
 {
-	clear_warnings();
+    clear_warnings();
     notification_manager->close_notification_of_type(NotificationType::SignDetected);
     notification_manager->close_notification_of_type(NotificationType::ExportFinished);
     notification_manager->set_slicing_progress_began();
 }
 void Plater::priv::add_warning(const Slic3r::PrintStateBase::Warning& warning, size_t oid)
 {
-	for (auto const& it : current_warnings) {
-		if (warning.message_id == it.first.message_id) {
-			if (warning.message_id != 0 || (warning.message_id == 0 && warning.message == it.first.message))
-				return;
-		} 
-	}
-	current_warnings.emplace_back(std::pair<Slic3r::PrintStateBase::Warning, size_t>(warning, oid));
+    for (auto const& it : current_warnings) {
+        if (warning.message_id == it.first.message_id) {
+            if (warning.message_id != 0 || (warning.message_id == 0 && warning.message == it.first.message))
+                return;
+        } 
+    }
+    current_warnings.emplace_back(std::pair<Slic3r::PrintStateBase::Warning, size_t>(warning, oid));
 }
 void Plater::priv::actualize_slicing_warnings(const PrintBase &print)
 {
@@ -4859,7 +4879,7 @@ void Plater::priv::actualize_slicing_warnings(const PrintBase &print)
     }
     ids.emplace_back(print.id());
     std::sort(ids.begin(), ids.end());
-	notification_manager->remove_slicing_warnings_of_released_objects(ids);
+    notification_manager->remove_slicing_warnings_of_released_objects(ids);
     notification_manager->set_all_slicing_warnings_gray(true);
 }
 void Plater::priv::actualize_object_warnings(const PrintBase& print)
@@ -4874,27 +4894,27 @@ void Plater::priv::actualize_object_warnings(const PrintBase& print)
 }
 void Plater::priv::clear_warnings()
 {
-	notification_manager->close_slicing_errors_and_warnings();
-	this->current_warnings.clear();
+    notification_manager->close_slicing_errors_and_warnings();
+    this->current_warnings.clear();
 }
 bool Plater::priv::warnings_dialog()
 {
-	if (current_warnings.empty())
-		return true;
-	std::string text = _u8L("There are active warnings concerning sliced models:") + "\n";
-	for (auto const& it : current_warnings) {
+    if (current_warnings.empty())
+        return true;
+    std::string text = _u8L("There are active warnings concerning sliced models:") + "\n";
+    for (auto const& it : current_warnings) {
         size_t next_n = it.first.message.find_first_of('\n', 0);
-		text += "\n";
-		if (next_n != std::string::npos)
-			text += it.first.message.substr(0, next_n);
-		else
-			text += it.first.message;
-	}
-	//text += "\n\nDo you still wish to export?";
-	//wxMessageDialog msg_wingow(this->q, from_u8(text), wxString(SLIC3R_APP_NAME " ") + _L("generated warnings"), wxOK);
-	MessageDialog msg_wingow(this->q, from_u8(text), wxString(SLIC3R_APP_NAME " ") + _L("generated warnings"), wxOK);
-	const auto res = msg_wingow.ShowModal();
-	return res == wxID_OK;
+        text += "\n";
+        if (next_n != std::string::npos)
+            text += it.first.message.substr(0, next_n);
+        else
+            text += it.first.message;
+    }
+    //text += "\n\nDo you still wish to export?";
+    //wxMessageDialog msg_wingow(this->q, from_u8(text), wxString(SLIC3R_APP_NAME " ") + _L("generated warnings"), wxOK);
+    MessageDialog msg_wingow(this->q, from_u8(text), wxString(SLIC3R_APP_NAME " ") + _L("generated warnings"), wxOK);
+    const auto res = msg_wingow.ShowModal();
+    return res == wxID_OK;
 
 }
 
@@ -4989,7 +5009,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         else
             this->update_sla_scene();
     }
-	
+    
     //BBS: add slice&&print status update logic
     if (evt.cancelled()) {
         /*if (wxGetApp().get_mode() == comSimple)
@@ -5835,7 +5855,7 @@ bool Plater::priv::can_layers_editing() const
 #if 0
 void Plater::priv::show_action_buttons(const bool ready_to_slice) const
 {
-	// Cache this value, so that the callbacks from the RemovableDriveManager may repeat that value when calling show_action_buttons().
+    // Cache this value, so that the callbacks from the RemovableDriveManager may repeat that value when calling show_action_buttons().
     this->ready_to_slice = ready_to_slice;
 
     wxWindowUpdateLocker noUpdater(sidebar);
@@ -5850,23 +5870,23 @@ void Plater::priv::show_action_buttons(const bool ready_to_slice) const
     // when a background processing is ON, export_btn and/or send_btn are showing
     if (wxGetApp().app_config->get("background_processing") == "1")
     {
-	    RemovableDriveManager::RemovableDrivesStatus removable_media_status = wxGetApp().removable_drive_manager()->status();
-		if (sidebar->show_reslice(false) |
-			sidebar->show_export(true) |
-			sidebar->show_send(send_gcode_shown) |
-			sidebar->show_export_removable(removable_media_status.has_removable_drives))
+        RemovableDriveManager::RemovableDrivesStatus removable_media_status = wxGetApp().removable_drive_manager()->status();
+        if (sidebar->show_reslice(false) |
+            sidebar->show_export(true) |
+            sidebar->show_send(send_gcode_shown) |
+            sidebar->show_export_removable(removable_media_status.has_removable_drives))
 //			sidebar->show_eject(removable_media_status.has_eject))
             sidebar->Layout();
     }
     else
     {
-	    RemovableDriveManager::RemovableDrivesStatus removable_media_status;
-	    if (! ready_to_slice) 
-	    	removable_media_status = wxGetApp().removable_drive_manager()->status();
+        RemovableDriveManager::RemovableDrivesStatus removable_media_status;
+        if (! ready_to_slice) 
+            removable_media_status = wxGetApp().removable_drive_manager()->status();
         if (sidebar->show_reslice(ready_to_slice) |
             sidebar->show_export(!ready_to_slice) |
             sidebar->show_send(send_gcode_shown && !ready_to_slice) |
-			sidebar->show_export_removable(!ready_to_slice && removable_media_status.has_removable_drives))
+            sidebar->show_export_removable(!ready_to_slice && removable_media_status.has_removable_drives))
 //            sidebar->show_eject(!ready_to_slice && removable_media_status.has_eject))
             sidebar->Layout();
     }
@@ -6096,9 +6116,9 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
             //FIXME Why are we reloading the whole preset bundle here? Please document. This is fishy and it is unnecessarily expensive.
             // Anyways, don't report any config value substitutions, they have been already reported to the user at application start up.
             wxGetApp().preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilent);
-			// load_current_presets() calls Tab::load_current_preset() -> TabPrint::update() -> Object_list::update_and_show_object_settings_item(),
-			// but the Object list still keeps pointer to the old Model. Avoid a crash by removing selection first.
-			this->sidebar->obj_list()->unselect_objects();
+            // load_current_presets() calls Tab::load_current_preset() -> TabPrint::update() -> Object_list::update_and_show_object_settings_item(),
+            // but the Object list still keeps pointer to the old Model. Avoid a crash by removing selection first.
+            this->sidebar->obj_list()->unselect_objects();
             // Load the currently selected preset into the GUI, update the preset selection box.
             // This also switches the printer technology based on the printer technology of the active printer profile.
             wxGetApp().load_current_presets();
@@ -6190,10 +6210,10 @@ void Plater::priv::update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bo
         view3D->set_as_dirty();
     }
 
-	// this->update() above was called with POSTPONE_VALIDATION_ERROR_MESSAGE, so that if an error message was generated when updating the back end, it would not open immediately, 
-	// but it would be saved to be show later. Let's do it now. We do not want to display the message box earlier, because on Windows & OSX the message box takes over the message
-	// queue pump, which in turn executes the rendering function before a full update after the Undo / Redo jump.
-	this->show_delayed_error_message();
+    // this->update() above was called with POSTPONE_VALIDATION_ERROR_MESSAGE, so that if an error message was generated when updating the back end, it would not open immediately, 
+    // but it would be saved to be show later. Let's do it now. We do not want to display the message box earlier, because on Windows & OSX the message box takes over the message
+    // queue pump, which in turn executes the rendering function before a full update after the Undo / Redo jump.
+    this->show_delayed_error_message();
 
     //FIXME what about the state of the manipulators?
     //FIXME what about the focus? Cursor in the side panel?
@@ -7540,17 +7560,17 @@ void Plater::export_gcode(bool prefer_removable)
     RemovableDriveManager 	&removable_drive_manager = *wxGetApp().removable_drive_manager();
     // Get a last save path, either to removable media or to an internal media.
     std::string      		 start_dir 				 = appconfig.get_last_output_dir(default_output_file.parent_path().string(), prefer_removable);
-	if (prefer_removable) {
-		// Returns a path to a removable media if it exists, prefering start_dir. Update the internal removable drives database.
-		start_dir = removable_drive_manager.get_removable_drive_path(start_dir);
-		if (start_dir.empty())
-			// Direct user to the last internal media.
-			start_dir = appconfig.get_last_output_dir(default_output_file.parent_path().string(), false);
-	}
+    if (prefer_removable) {
+        // Returns a path to a removable media if it exists, prefering start_dir. Update the internal removable drives database.
+        start_dir = removable_drive_manager.get_removable_drive_path(start_dir);
+        if (start_dir.empty())
+            // Direct user to the last internal media.
+            start_dir = appconfig.get_last_output_dir(default_output_file.parent_path().string(), false);
+    }
 
     fs::path output_path;
     {
-    	std::string ext = default_output_file.extension().string();
+        std::string ext = default_output_file.extension().string();
         wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _L("Save G-code file as:") : _L("Save SL1 / SL1S file as:"),
             start_dir,
             from_path(default_output_file.filename()),
@@ -7574,7 +7594,7 @@ void Plater::export_gcode(bool prefer_removable)
     }
 
     if (! output_path.empty()) {
-		bool path_on_removable_media = removable_drive_manager.set_and_verify_last_save_path(output_path.string());
+        bool path_on_removable_media = removable_drive_manager.set_and_verify_last_save_path(output_path.string());
         p->notification_manager->new_export_began(path_on_removable_media);
         p->exporting_status = path_on_removable_media ? ExportingStatus::EXPORTING_TO_REMOVABLE : ExportingStatus::EXPORTING_TO_LOCAL;
         p->last_output_path = output_path.string();
@@ -7607,7 +7627,7 @@ void Plater::export_gcode_3mf()
     std::string start_dir = appconfig.get_last_output_dir(default_output_file.parent_path().string(), false);
     fs::path output_path;
     {
-    	std::string ext = default_output_file.extension().string();
+        std::string ext = default_output_file.extension().string();
         wxFileDialog dlg(this, _L("Save Sliced file as:"),
             start_dir,
             from_path(default_output_file.filename()),
@@ -7629,7 +7649,7 @@ void Plater::export_gcode_3mf()
         export_3mf(output_path, true); // BBS: silence
         // update lost output dir
         appconfig.update_last_output_dir(output_path.parent_path().string(), false);
-	}
+    }
 }
 
 void Plater::export_stl(bool extended, bool selection_only)
@@ -8152,7 +8172,7 @@ void Plater::start_next_slice()
     {
         //slice next
         SlicingProcessCompletedEvent evt(EVT_PROCESS_COMPLETED, 0,
-				SlicingProcessCompletedEvent::Finished, nullptr);
+                SlicingProcessCompletedEvent::Finished, nullptr);
         // Post the "complete" callback message, so that it will slice the next plate soon
         wxQueueEvent(this, evt.Clone());
     }
@@ -8276,7 +8296,7 @@ void Plater::print_job_finished()
 void Plater::eject_drive()
 {
     wxBusyCursor wait;
-	wxGetApp().removable_drive_manager()->eject_drive();
+    wxGetApp().removable_drive_manager()->eject_drive();
 }
 
 void Plater::take_snapshot(const std::string &snapshot_name) { p->take_snapshot(snapshot_name); }
@@ -8498,14 +8518,14 @@ void Plater::force_filament_colors_update()
 
 void Plater::force_print_bed_update()
 {
-	// Fill in the printer model key with something which cannot possibly be valid, so that Plater::on_config_change() will update the print bed
-	// once a new Printer profile config is loaded.
-	p->config->opt_string("printer_model", true) = "\x01\x00\x01";
+    // Fill in the printer model key with something which cannot possibly be valid, so that Plater::on_config_change() will update the print bed
+    // once a new Printer profile config is loaded.
+    p->config->opt_string("printer_model", true) = "\x01\x00\x01";
 }
 
 void Plater::on_activate()
 {
-	this->p->show_delayed_error_message();
+    this->p->show_delayed_error_message();
 }
 
 // Get vector of extruder colors considering filament color, if extruder color is undefined.
@@ -9380,20 +9400,20 @@ Plater::TakeSnapshot::TakeSnapshot(Plater* plater, const std::string& snapshot_n
 // Wrapper around wxWindow::PopupMenu to suppress error messages popping out while tracking the popup menu.
 bool Plater::PopupMenu(wxMenu *menu, const wxPoint& pos)
 {
-	// Don't want to wake up and trigger reslicing while tracking the pop-up menu.
-	SuppressBackgroundProcessingUpdate sbpu;
-	// When tracking a pop-up menu, postpone error messages from the slicing result.
-	m_tracking_popup_menu = true;
-	bool out = this->wxPanel::PopupMenu(menu, pos);
-	m_tracking_popup_menu = false;
-	if (! m_tracking_popup_menu_error_message.empty()) {
+    // Don't want to wake up and trigger reslicing while tracking the pop-up menu.
+    SuppressBackgroundProcessingUpdate sbpu;
+    // When tracking a pop-up menu, postpone error messages from the slicing result.
+    m_tracking_popup_menu = true;
+    bool out = this->wxPanel::PopupMenu(menu, pos);
+    m_tracking_popup_menu = false;
+    if (! m_tracking_popup_menu_error_message.empty()) {
         // Don't know whether the CallAfter is necessary, but it should not hurt.
         // The menus likely sends out some commands, so we may be safer if the dialog is shown after the menu command is processed.
-		wxString message = std::move(m_tracking_popup_menu_error_message);
+        wxString message = std::move(m_tracking_popup_menu_error_message);
         wxTheApp->CallAfter([message, this]() { show_error(this, message); });
         m_tracking_popup_menu_error_message.clear();
     }
-	return out;
+    return out;
 }
 void Plater::bring_instance_forward()
 {
