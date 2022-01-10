@@ -8,6 +8,8 @@
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/PresetBundle.hpp"
+//BBS: add convex hull logic for toolpath check
+#include "libslic3r/Geometry/ConvexHull.hpp"
 
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
@@ -1516,14 +1518,21 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
 
     wxBusyCursor busy;
 
+    //BBS: use convex_hull for toolpath outside check
+    Points pts;
+
     // extract approximate paths bounding box from result
     for (const GCodeProcessorResult::MoveVertex& move : gcode_result.moves) {
-        if (wxGetApp().is_gcode_viewer())
+        if (wxGetApp().is_gcode_viewer()) {
             // for the gcode viewer we need to take in account all moves to correctly size the printbed
             m_paths_bounding_box.merge(move.position.cast<double>());
+        }
         else {
-            if (move.type == EMoveType::Extrude && move.extrusion_role != erCustom && move.width != 0.0f && move.height != 0.0f)
+            if (move.type == EMoveType::Extrude && move.extrusion_role != erCustom && move.width != 0.0f && move.height != 0.0f) {
                 m_paths_bounding_box.merge(move.position.cast<double>());
+                //BBS: use convex_hull for toolpath outside check
+                pts.emplace_back(Point(scale_(move.position.x()), scale_(move.position.y())));
+            }
         }
     }
 
@@ -1538,8 +1547,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
                 m_paths_bounding_box.merge(move.interpolation_points[i].cast<double>());
         else {
             if (move.type == EMoveType::Extrude && move.width != 0.0f && move.height != 0.0f)
-                for (int i = 0; i < move.interpolation_points.size(); i++)
+                for (int i = 0; i < move.interpolation_points.size(); i++) {
                     m_paths_bounding_box.merge(move.interpolation_points[i].cast<double>());
+                    //BBS: use convex_hull for toolpath outside check
+                    pts.emplace_back(Point(scale_(move.interpolation_points[i].x()), scale_(move.interpolation_points[i].y())));
+                }
         }
     }
 
@@ -1547,8 +1559,30 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
     m_max_bounding_box = m_paths_bounding_box;
     m_max_bounding_box.merge(m_paths_bounding_box.max + m_sequential_view.marker.get_bounding_box().size().z() * Vec3d::UnitZ());
 
-    if (wxGetApp().is_editor())
+    if (wxGetApp().is_editor()) {
+        //BBS: use convex_hull for toolpath outside check
         m_contained_in_bed = wxGetApp().plater()->build_volume().all_paths_inside(gcode_result, m_paths_bounding_box);
+        if (m_contained_in_bed) {
+            PartPlateList& partplate_list = wxGetApp().plater()->get_partplate_list();
+            PartPlate* plate = partplate_list.get_curr_plate();
+            const std::vector<BoundingBoxf3>& exclude_bounding_box = plate->get_exclude_areas();
+            if (exclude_bounding_box.size() > 0)
+            {
+                int index;
+                Slic3r::Polygon convex_hull_2d = Slic3r::Geometry::convex_hull(std::move(pts));
+                for (index = 0; index < exclude_bounding_box.size(); index ++)
+                {
+                    Slic3r::Polygon p = exclude_bounding_box[index].polygon(true);  // instance convex hull is scaled, so we need to scale here
+                    if (intersection({ p }, { convex_hull_2d }).empty() == false)
+                    {
+                        m_contained_in_bed = false;
+                        break;
+                    }
+                }
+            }
+        }
+        (const_cast<GCodeProcessorResult&>(gcode_result)).toolpath_outside = !m_contained_in_bed;
+    }
 
     m_sequential_view.gcode_ids.clear();
     for (size_t i = 0; i < gcode_result.moves.size(); ++i) {

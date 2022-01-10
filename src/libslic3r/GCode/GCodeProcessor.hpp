@@ -131,6 +131,8 @@ namespace Slic3r {
         Pointfs bed_shape;
         //BBS: add bed exclude area
         Pointfs bed_exclude_area;
+        //BBS: add toolpath_outside
+        bool toolpath_outside;
         float max_print_height;
         SettingsIds settings_ids;
         size_t extruders_count;

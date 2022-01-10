@@ -733,6 +733,8 @@ void GCodeProcessorResult::reset() {
     bed_shape = Pointfs();
     //BBS: add bed exclude area
     bed_exclude_area = Pointfs();
+    //BBS: add toolpath_outside
+    toolpath_outside = false;
     max_print_height = 0.0f;
     settings_ids.reset();
     extruders_count = 0;
@@ -750,6 +752,8 @@ void GCodeProcessorResult::reset() {
     bed_shape = Pointfs();
     //BBS: add bed exclude area
     bed_exclude_area = Pointfs();
+    //BBS: add toolpath_outside
+    toolpath_outside = false;
     max_print_height = 0.0f;
     settings_ids.reset();
     extruders_count = 0;

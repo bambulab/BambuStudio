@@ -1379,14 +1379,14 @@ bool MainFrame::get_enable_print_status()
 
     if (m_print_select == ePrintAll)
     {
-        if (!part_plate_list.is_all_slice_results_valid())
+        if (!part_plate_list.is_all_slice_results_ready_for_print())
         {
             enable = false;
         }
     }
     else if (m_print_select == ePrintPlate)
     {
-        if (!current_plate->is_slice_result_valid())
+        if (!current_plate->is_slice_result_ready_for_print())
         {
             enable = false;
         }

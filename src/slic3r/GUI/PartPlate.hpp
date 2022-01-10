@@ -107,7 +107,7 @@ class PartPlate : public ObjectBase
     Polygon m_polygon;
     unsigned int m_vbo_id{ 0 };
     GeometryBuffer m_triangles;
-    //GeometryBuffer m_exclude_triangles;
+    GeometryBuffer m_exclude_triangles;
     GeometryBuffer m_gridlines;
     GeometryBuffer m_del_icon;
     mutable unsigned int m_del_vbo_id{ 0 };
@@ -129,9 +129,11 @@ class PartPlate : public ObjectBase
     bool valid_instance(int obj_id, int instance_id);
     void calc_bounding_boxes() const;
     void calc_triangles(const ExPolygon& poly);
+    void calc_exclude_triangles(const ExPolygon& poly);
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox);
     void calc_vertex_for_icons(int index, GeometryBuffer &buffer);
     void render_background(bool force_default_color = false) const;
+    void render_exclude_area(bool force_default_color) const;
     //void render_background_for_picking(const float* render_color) const;
     void render_grid(bool bottom) const;
     void render_label(GLCanvas3D& canvas) const;
@@ -260,6 +262,9 @@ public:
 
     //is slice result valid or not
     bool is_slice_result_valid() const { return m_slice_result_valid; }
+
+    //is slice result ready for print
+    bool is_slice_result_ready_for_print() const { return m_slice_result_valid&&(m_gcode_result?(!m_gcode_result->toolpath_outside):false); }
 
     //invalid sliced result
     void update_slice_result_valid_state(bool valid = false) { m_slice_result_valid = valid; }
@@ -495,6 +500,7 @@ public:
     void update_current_slice_result_state(bool valid) { m_plate_list[m_current_plate]->update_slice_result_valid_state(valid); }
     //is slice result valid or not
     bool is_all_slice_results_valid() const;
+    bool is_all_slice_results_ready_for_print() const;
     bool is_all_plates_ready_for_slice() const;
     void print() const;
 

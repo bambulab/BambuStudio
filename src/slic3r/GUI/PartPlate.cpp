@@ -142,7 +142,12 @@ void PartPlate::calc_bounding_boxes() const {
 
 void PartPlate::calc_triangles(const ExPolygon& poly) {
 	if (!m_triangles.set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z))
-		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed triangles\n";
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create plate triangles\n";
+}
+
+void PartPlate::calc_exclude_triangles(const ExPolygon& poly) {
+	if (!m_exclude_triangles.set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z))
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create exclude triangles\n";
 }
 
 void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox) {
@@ -208,6 +213,34 @@ void PartPlate::render_background(bool force_default_color) const {
 	glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount));
 	glsafe(::glDepthMask(GL_TRUE));
 }
+
+void PartPlate::render_exclude_area(bool force_default_color) const {
+	unsigned int triangles_vcount = m_exclude_triangles.get_vertices_count();
+	std::array<float, 4> select_color{ 0.45f, 0.45f, 0.45f, 1.0f };
+	std::array<float, 4> unselect_color{ 0.9f, 0.9f, 0.9f, 1.0f };
+	std::array<float, 4> default_color{ 0.9f, 0.9f, 0.9f, 1.0f };
+
+	// draw exclude area
+	glsafe(::glDepthMask(GL_FALSE));
+
+	if (!force_default_color) {
+		if (m_selected) {
+			glsafe(::glColor4fv(select_color.data()));
+		}
+		else {
+			glsafe(::glColor4fv(unselect_color.data()));
+		}
+	}
+	else {
+		glsafe(::glColor4fv(default_color.data()));
+	}
+
+	glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
+	glsafe(::glVertexPointer(3, GL_FLOAT, m_exclude_triangles.get_vertex_data_size(), (GLvoid*)m_exclude_triangles.get_vertices_data()));
+	glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount));
+	glsafe(::glDepthMask(GL_TRUE));
+}
+
 
 /*void PartPlate::render_background_for_picking(const float* render_color) const
 {
@@ -1042,6 +1075,12 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 
 	calc_triangles(poly);
 
+	ExPolygon exclude_poly;
+	for (const Vec2d& p : m_exclude_area) {
+		exclude_poly.contour.append({ scale_(p(0)), scale_(p(1)) });
+	}
+	calc_exclude_triangles(exclude_poly);
+
 	const BoundingBox& pp_bbox = poly.contour.bounding_box();
 	calc_gridlines(poly, pp_bbox);
 
@@ -1109,6 +1148,8 @@ void PartPlate::render(GLCanvas3D& canvas, bool bottom, bool with_label, bool on
 	if (!bottom) {
 		// draw background
 		render_background(force_background_color);
+
+		render_exclude_area(force_background_color);
 	}
 
 	render_grid(bottom);
@@ -2613,6 +2654,18 @@ bool PartPlateList::is_all_slice_results_valid() const
 	}
 	return true;
 }
+
+//check whether all plates's slice result valid for print
+bool PartPlateList::is_all_slice_results_ready_for_print() const
+{
+	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+	{
+		if (!m_plate_list[i]->is_slice_result_ready_for_print())
+			return false;
+	}
+	return true;
+}
+
 
 //check whether all plates ready for slice
 bool PartPlateList::is_all_plates_ready_for_slice() const

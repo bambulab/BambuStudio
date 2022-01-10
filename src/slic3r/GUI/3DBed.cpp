@@ -310,7 +310,8 @@ BoundingBoxf3 Bed3D::calc_extended_bounding_box(bool consider_model_offset) cons
     // extend to contain axes
     //BBS: add part plate related logic.
     Vec3d offset{ m_position.x(), m_position.y(), 0.f };
-    out.merge(m_axes.get_origin() + offset + m_axes.get_total_length() * Vec3d::Ones());
+    //out.merge(m_axes.get_origin() + offset + m_axes.get_total_length() * Vec3d::Ones());
+    out.merge(Vec3d(0.f, 0.f, GROUND_Z) + offset + m_axes.get_total_length() * Vec3d::Ones());
     out.merge(out.min + Vec3d(-Axes::DefaultTipRadius, -Axes::DefaultTipRadius, out.max.z()));
     //BBS: add part plate related logic.
     if (consider_model_offset) {
