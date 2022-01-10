@@ -463,6 +463,11 @@ bool MachineObject::is_connected()
 
 int MachineObject::publish_json(std::string json_str, ResultFn resFn, CONNECTION_TYPE conn_type)
 {
+    if (mqtt_cli == nullptr)
+        conn_type = CONNECTION_WAN;
+    else
+        conn_type = CONNECTION_TYPE::CONNECTION_LAN;
+
     mqtt::async_client* client = nullptr;
     if (conn_type == CONNECTION_LAN) {
         client = mqtt_cli;
