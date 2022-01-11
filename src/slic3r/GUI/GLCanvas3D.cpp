@@ -3210,6 +3210,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     if (!m_initialized || !_set_current())
         return;
 
+    // BBS: single snapshot
+    Plater::SingleSnapshot single(wxGetApp().plater());
+
 #if ENABLE_RETINA_GL
     const float scale = m_retina_helper->get_scale_factor();
     evt.SetX(evt.GetX() * scale);

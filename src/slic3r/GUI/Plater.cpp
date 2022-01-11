@@ -1883,6 +1883,15 @@ struct Plater::priv
 
     void suppress_snapshots()   { m_prevent_snapshots++; }
     void allow_snapshots()      { m_prevent_snapshots--; }
+    // BBS: single snapshot
+    void single_snapshots_enter(SingleSnapshot *single)
+    {
+        if (m_single == nullptr) m_single = single;
+    }
+    void single_snapshots_leave(SingleSnapshot *single)
+    {
+        if (m_single == single) m_single = nullptr;
+    }
 
     void process_validation_warning(const std::string& warning) const;
 
@@ -2057,6 +2066,8 @@ private:
                                                               * we should call tack_snapshot just ones
                                                               * instead of calls for each action separately
                                                               * */
+    // BBS: single snapshot
+    Plater::SingleSnapshot     *m_single = nullptr;
     // BBS: backup
     size_t m_saved_timestamp = 0;
     size_t m_backup_timestamp = 0;
@@ -5857,6 +5868,9 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name, const UndoRed
     if (m_prevent_snapshots > 0)
         return;
     assert(m_prevent_snapshots >= 0);
+    // BBS: single snapshot
+    if (m_single && !m_single->check())
+        return;
     UndoRedo::SnapshotData snapshot_data;
     snapshot_data.snapshot_type      = snapshot_type;
     snapshot_data.printer_technology = this->printer_technology;
@@ -8169,6 +8183,15 @@ void Plater::take_snapshot(const std::string &snapshot_name, UndoRedo::SnapshotT
 void Plater::take_snapshot(const wxString &snapshot_name, UndoRedo::SnapshotType snapshot_type) { p->take_snapshot(snapshot_name, snapshot_type); }
 void Plater::suppress_snapshots() { p->suppress_snapshots(); }
 void Plater::allow_snapshots() { p->allow_snapshots(); }
+// BBS: single snapshot
+void Plater::single_snapshots_enter(SingleSnapshot *single)
+{
+    p->single_snapshots_enter(single);
+}
+void Plater::single_snapshots_leave(SingleSnapshot *single)
+{
+    p->single_snapshots_leave(single);
+}
 void Plater::undo() { p->undo(); }
 void Plater::redo() { p->redo(); }
 void Plater::undo_to(int selection)
@@ -8922,7 +8945,6 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
     if (action == 0)
     {
         //select plate
-        take_snapshot(_L("select partplate!"));
         ret = p->partplate_list.select_plate(plate_index);
         if ((!ret)&&(p->background_process.can_switch_print()))
         {
@@ -9036,7 +9058,6 @@ int Plater::delete_plate(int plate_index)
     if (plate_index == -1)
         index = p->partplate_list.get_curr_plate_index();
 
-    take_snapshot(_L("delete partplate"));
     ret = p->partplate_list.delete_plate(index);
 
     //BBS: update the current print to the current plate

@@ -547,6 +547,30 @@ public:
 		Plater *m_plater;
 	};
 
+    // BBS: limit to single snapshot taking by the methods called from inside
+    // this snapshot.
+    class SingleSnapshot
+    {
+    public:
+        SingleSnapshot(Plater *plater) : m_plater(plater)
+        {
+            m_plater->single_snapshots_enter(this);
+        }
+
+        ~SingleSnapshot() { m_plater->single_snapshots_leave(this); }
+
+        bool check()
+        {
+            if (token) return false;
+            token = true;
+            return true;
+        }
+
+    private:
+        Plater *m_plater;
+        bool    token = false;
+    };
+
     bool inside_snapshot_capture();
 
     void toggle_render_statistic_dialog();
@@ -589,7 +613,10 @@ private:
 
     void suppress_snapshots();
     void allow_snapshots();
-    //BBS: add project slice related functions
+    // BBS: single snapshot
+    void single_snapshots_enter(SingleSnapshot *single);
+    void single_snapshots_leave(SingleSnapshot *single);
+    // BBS: add project slice related functions
     void start_next_slice();
 
     friend class SuppressBackgroundProcessingUpdate;

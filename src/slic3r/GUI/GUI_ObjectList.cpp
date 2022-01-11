@@ -1759,6 +1759,9 @@ static TriangleMesh create_mesh(const std::string& type_name, const BoundingBoxf
 
 void ObjectList::load_generic_subobject(const std::string& type_name, const ModelVolumeType type)
 {
+    // BBS: single snapshot
+    Plater::SingleSnapshot single(wxGetApp().plater());
+
     if (type == ModelVolumeType::INVALID) {
         load_shape_object(type_name);
         return;

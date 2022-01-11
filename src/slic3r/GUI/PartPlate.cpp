@@ -1675,6 +1675,9 @@ int PartPlateList::delete_plate(int index)
 		return -1;
 	}
 
+	// BBS: erase unnecessary snapshot
+	m_plater->take_snapshot(_L("delete partplate"));
+
 	int cols = compute_colum_count(m_plate_list.size() - 1);
 	int old_cols = compute_colum_count(m_plate_list.size());
 
@@ -1789,7 +1792,11 @@ int PartPlateList::select_plate(int index)
 		return -1;
 	}
 
-	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
+	// BBS: erase unnecessary snapshot
+	if (get_curr_plate_index() == index) return 0;
+	m_plater->take_snapshot(_L("select partplate!"));
+
+	std::vector<PartPlate *>::iterator it = m_plate_list.begin();
 	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
 		(*it)->set_unselected();
 	}
