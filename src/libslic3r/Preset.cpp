@@ -1136,11 +1136,12 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
         // Some filament profile has been selected and modified already.
         // Check whether this profile is equal to the modified edited profile.
         const Preset &edited = this->get_edited_preset();
-        if ((edited.name == original_name || edited.name == inherits) && profile_print_params_same(edited.config, cfg))
+        if ((edited.name == original_name || edited.name == inherits) && profile_print_params_same(edited.config, cfg)) {
             // Just point to that already selected and edited profile.
             //BBS: add config related logs
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" Just point to that already selected and edited profile %1%")%edited.name;
             return std::make_pair(&(*this->find_preset_internal(edited.name)), false);
+        }
     }
     // Is there a preset already loaded with the name stored inside the config?
     std::deque<Preset>::iterator it       = this->find_preset_internal(original_name);

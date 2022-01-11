@@ -883,11 +883,11 @@ void GCodeViewer::render(int canvas_width, int canvas_height)
     m_statistics.total_instances_gpu_size = 0;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
-    if (m_roles.empty())
-        return;
-
     //BBS: always render shells in preview window
     render_shells();
+
+    if (m_roles.empty())
+        return;
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_toolpaths();

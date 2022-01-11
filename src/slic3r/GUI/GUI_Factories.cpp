@@ -78,7 +78,7 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
                             {"support_material_contact_distance", "",8},{"support_material_pattern", "",9},{"support_material_spacing", "",10},
                             {"support_material_interface_layers", "",11},{"support_material_bottom_interface_layers", "",12},{"support_material_interface_spacing", "",13},{"support_material_xy_spacing", "",14}
                             }},
-    { L("Bed adhension"), {{"brim_type", "",1},{"brim_width", "",1},{"brim_offset", "",1},{"raft_layers", "",1}}}
+    { L("Bed adhension"), {{"brim_type", "",1},{"brim_width", "",1},{"brim_separation", "",1},{"raft_layers", "",1}}}
 };
 
 std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CATEGORY_SETTINGS=
@@ -139,7 +139,7 @@ std::vector<SimpleSettingData> SettingsFactory::get_visible_options(const std::s
         //support
         "support_material_contact_distance", "support_material_pattern", "support_material_spacing", "support_material_interface_layers", "support_material_bottom_interface_layers", "support_material_interface_spacing", "support_material_xy_spacing",
         //adhesion
-        "brim_type", "brim_width", "brim_offset", "raft_layers"
+        "brim_type", "brim_width", "brim_separation", "raft_layers"
         };*/
     std::vector<SimpleSettingData> options;
     std::map<std::string, std::vector<SimpleSettingData>>::iterator it;

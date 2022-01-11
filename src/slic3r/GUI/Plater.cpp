@@ -2731,7 +2731,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
         Slic3r::Model model;
         //BBS: add auxiliary files related logic
-        bool load_aux = false;
+        bool load_aux = false, load_old_project = false;
         if (load_model && load_config && type_3mf)
         {
             load_aux = true;
@@ -2829,6 +2829,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         bool validated = preset_bundle->validate_printers(filename.string(), config);
                         if (!validated) {
                             load_config = false;
+                            load_old_project = true;
+                            //select view to 3D
+                            q->select_view_3D("3D");
+                            //select plate 0 as default
+                            q->select_plate(0);
                             show_info(q, "this 3MF's printer is not be used anymore, only load geometry files!", "Incompatible Printers");
                             for (ModelObject *model_object : model.objects) {
                                 model_object->config.reset();
@@ -2966,7 +2971,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 //                wxGetApp().sidebar().update_ui_from_settings();
             };
 
-            if (!is_project_file) {
+            //BBS: add load_old_project logic
+            if ((!is_project_file)&&(!load_old_project)) {
+            //if (!is_project_file) {
                 if (int deleted_objects = model.removed_objects_with_zero_volume(); deleted_objects > 0) {
                     MessageDialog(q, format_wxstr(_L_PLURAL(
                         "Object size from file %s appears to be zero.\n"
@@ -3075,7 +3082,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             }
 
             if (one_by_one) {
-                if (type_3mf && !is_project_file)
+                //BBS: add load_old_project logic
+                if (type_3mf && !is_project_file && !load_old_project)
+                //if (type_3mf && !is_project_file)
                     model.center_instances_around_point(this->bed.build_volume().bed_center());
                 // BBS: add auxiliary files logic
                 // BBS: backup & restore
@@ -3154,7 +3163,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             // this is required because the selected object changed and the flatten on face an sla support gizmos need to be updated accordingly
             view3D->get_canvas3d()->update_gizmos_on_off_state();
     }
-        
+
     GLGizmoSimplify::add_simplify_suggestion_notification(
         obj_idxs, model.objects, *notification_manager);
 
@@ -4696,9 +4705,10 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
     if (evt.status.flags & (PrintBase::SlicingStatus::RELOAD_SCENE | PrintBase::SlicingStatus::RELOAD_SLA_SUPPORT_POINTS)) {
         switch (this->printer_technology) {
         case ptFFF:
-            //BBS: add slice project logic
+            //BBS: add slice project logic, only display shells at the beginning
             if (!m_slice_all || (m_cur_slice_plate == (partplate_list.get_plate_count() - 1)))
-                this->update_fff_scene();
+                //this->update_fff_scene();
+                this->update_fff_scene_only_shells();
             break;
         case ptSLA:
             // If RELOAD_SLA_SUPPORT_POINTS, then the SLA gizmo is updated (reload_scene calls update_gizmos_data)

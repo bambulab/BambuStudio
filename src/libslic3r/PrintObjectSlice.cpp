@@ -527,7 +527,8 @@ void PrintObject::slice()
 {
     if (! this->set_started(posSlice))
         return;
-    m_print->set_status(10, L("Processing triangulated mesh"));
+    //BBS: add flag to reload scene for shell rendering
+    m_print->set_status(10, L("Processing triangulated mesh"), PrintBase::SlicingStatus::RELOAD_SCENE);
     std::vector<coordf_t> layer_height_profile;
     this->update_layer_height_profile(*this->model_object(), m_slicing_params, layer_height_profile);
     m_print->throw_if_canceled();
