@@ -80,6 +80,10 @@
 #include "Notebook.hpp"
 #include "Widgets/Label.hpp"
 
+//BBS: DailyTip and UserGuide Dialog
+#include "WebDailytipDialog.hpp"
+#include "WebGuideDialog.hpp"
+
 #ifdef __WXMSW__
 #include <dbt.h>
 #include <shlobj.h>
@@ -1014,6 +1018,22 @@ void GUI_App::post_init()
 
     // start ssdp and connect mqtt
     m_backend->start();
+
+    // BBS:Show NewUser Guide
+    try {
+        GuideFrame GuideDlg(this);
+        if (GuideDlg.IsFirstUse()) GuideDlg.ShowModal();
+    } catch (std::exception &e) {
+        // wxMessageBox(e.what(), "", MB_OK);
+    }
+
+    // BBS: Dialy Tip Dialog
+    try {
+        DailytipFrame TipDlg(this);
+        if (TipDlg.IsWhetherShow()) TipDlg.ShowModal();
+    } catch (std::exception &e) {
+        // wxMessageBox(e.what(), "", MB_OK);
+    }
 }
 
 IMPLEMENT_APP(GUI_App)

@@ -163,6 +163,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/Monitor.hpp
     GUI/WebViewDialog.cpp
     GUI/WebViewDialog.hpp
+    GUI/WebDailytipDialog.hpp
+    GUI/WebDailytipDialog.cpp
+    GUI/WebGuideDialog.hpp
+    GUI/WebGuideDialog.cpp
     GUI/ConfigManipulation.cpp
     GUI/ConfigManipulation.hpp
     GUI/Field.cpp

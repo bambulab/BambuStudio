@@ -216,6 +216,8 @@ class FakeWebView : public wxWebView
 
 wxWebView* MarkdownTip::CreateTipView(wxWindow* parent)
 {
+    //return new FakeWebView;
+
     wxWebView* tipView = wxWebView::New();
     if (tipView == nullptr)
         return new FakeWebView;
