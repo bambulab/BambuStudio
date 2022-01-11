@@ -136,6 +136,7 @@ void ComboBox::DoClear()
 
 void ComboBox::DoDeleteOneItem(unsigned int pos)
 {
+    if (pos >= texts.size()) return;
     texts.erase(texts.begin() + pos);
     icons.erase(icons.begin() + pos);
     datas.erase(datas.begin() + pos);
@@ -145,10 +146,14 @@ void ComboBox::DoDeleteOneItem(unsigned int pos)
 
 unsigned int ComboBox::GetCount() const { return texts.size(); }
 
-wxString ComboBox::GetString(unsigned int n) const { return texts[n]; }
+wxString ComboBox::GetString(unsigned int n) const
+{
+    return n < texts.size() ? texts[n] : wxString{};
+}
 
 void ComboBox::SetString(unsigned int n, wxString const &value)
 {
+    if (n >= texts.size()) return;
     texts[n]  = value;
     drop.Invalidate();
     if (n == drop.GetSelection()) SetLabel(value);
@@ -159,6 +164,7 @@ int ComboBox::DoInsertItems(const wxArrayStringsAdapter &items,
                             void **                      clientData,
                             wxClientDataType             type)
 {
+    if (pos > texts.size()) return -1;
     for (int i = 0; i < items.GetCount(); ++i) {
         texts.insert(texts.begin() + pos, items[i]);
         icons.insert(icons.begin() + pos, wxNullBitmap);
@@ -170,11 +176,12 @@ int ComboBox::DoInsertItems(const wxArrayStringsAdapter &items,
     return pos - 1;
 }
 
-void *ComboBox::DoGetItemClientData(unsigned int n) const { return datas[n]; }
+void *ComboBox::DoGetItemClientData(unsigned int n) const { return n < texts.size() ? datas[n] : NULL; }
 
 void ComboBox::DoSetItemClientData(unsigned int n, void *data)
 {
-    datas[n] = data;
+    if (n < texts.size())
+        datas[n] = data;
 }
 
 void ComboBox::mouseDown(wxMouseEvent &event)
@@ -197,9 +204,9 @@ void ComboBox::mouseWheelMoved(wxMouseEvent &event)
     event.Skip();
     if (drop_down) return;
     auto delta = (event.GetWheelRotation() < 0 == event.IsWheelInverted()) ? -1 : 1;
-    int n = GetSelection() + delta;
-    if (n >= 0 && n < GetCount()) {
-        SetSelection(n);
+    unsigned int n = GetSelection() + delta;
+    if (n < GetCount()) {
+        SetSelection((int) n);
         sendComboBoxEvent();
     }
 }
