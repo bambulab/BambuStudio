@@ -1923,9 +1923,10 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
 #endif /* _DEBUG */
 }
 
-void ObjectList::del_object(const int obj_idx)
+//BBS
+void ObjectList::del_object(const int obj_idx, bool refresh_immediately)
 {
-    wxGetApp().plater()->delete_object_from_model(obj_idx);
+    wxGetApp().plater()->delete_object_from_model(obj_idx, refresh_immediately);
 }
 
 // Delete subobject
@@ -2972,13 +2973,18 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
         return;
 
     m_prevent_list_events = true;
+    //BBS
+    bool need_update = false;
 
     std::set<size_t> modified_objects_ids;
     for (std::vector<ItemForDelete>::const_reverse_iterator item = items_for_delete.rbegin(); item != items_for_delete.rend(); ++item) {
         if (!(item->type&(itObject | itVolume | itInstance)))
             continue;
         if (item->type&itObject) {
-            del_object(item->obj_idx);
+            // refresh after del_object
+            need_update = true;
+            bool refresh_immediately = false;
+            del_object(item->obj_idx, refresh_immediately);
             m_objects_model->Delete(m_objects_model->GetItemById(item->obj_idx));
         }
         else {
@@ -3006,6 +3012,11 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
         }
 
         modified_objects_ids.insert(static_cast<size_t>(item->obj_idx));
+    }
+
+    if (need_update) {
+        wxGetApp().plater()->update();
+        wxGetApp().plater()->object_list_changed();
     }
 
     for (size_t id : modified_objects_ids) {

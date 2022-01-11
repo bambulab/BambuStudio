@@ -241,6 +241,8 @@ public:
     const wxString& get_last_loaded_gcode() const { return m_last_loaded_gcode; }
 
     void update();
+    //BBS
+    void object_list_changed();
     void stop_jobs();
     bool is_any_job_running() const;
     void select_view(const std::string& direction);
@@ -274,7 +276,7 @@ public:
     void reset_with_confirm();
     //BBS: return int for various result
     int close_with_confirm(std::function<bool(bool yes_or_no)> second_check = nullptr); // BBS close project
-    void delete_object_from_model(size_t obj_idx);
+    void delete_object_from_model(size_t obj_idx, bool refresh_immediately = true); // BBS support refresh immediately
     void remove_selected();
     void increase_instances(size_t num = 1);
     void decrease_instances(size_t num = 1);

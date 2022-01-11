@@ -1855,7 +1855,7 @@ struct Plater::priv
     void select_all();
     void deselect_all();
     void remove(size_t obj_idx);
-    void delete_object_from_model(size_t obj_idx);
+    void delete_object_from_model(size_t obj_idx, bool refresh_immediately = true); //BBS
     void delete_all_objects_from_model();
     void reset();
     void mirror(Axis axis);
@@ -3489,7 +3489,7 @@ void Plater::priv::remove(size_t obj_idx)
 }
 
 
-void Plater::priv::delete_object_from_model(size_t obj_idx)
+void Plater::priv::delete_object_from_model(size_t obj_idx, bool refresh_immediately)
 {
     wxString snapshot_label = _L("Delete Object");
     if (! model.objects[obj_idx]->name.empty())
@@ -3497,8 +3497,12 @@ void Plater::priv::delete_object_from_model(size_t obj_idx)
     Plater::TakeSnapshot snapshot(q, snapshot_label);
     m_ui_jobs.cancel_all();
     model.delete_object(obj_idx);
-    update();
-    object_list_changed();
+
+    //BBS
+    if (refresh_immediately) {
+        update();
+        object_list_changed();
+    }
 }
 
 void Plater::priv::delete_all_objects_from_model()
@@ -7046,6 +7050,8 @@ bool Plater::load_files(const wxArrayString& filenames)
 
 void Plater::update() { p->update(); }
 
+void Plater::object_list_changed() { p->object_list_changed(); }
+
 void Plater::stop_jobs() { p->m_ui_jobs.stop_all(); }
 
 bool Plater::is_any_job_running() const
@@ -7122,7 +7128,8 @@ int GUI::Plater::close_with_confirm(std::function<bool(bool)> second_check)
     return result;
 }
 
-void Plater::delete_object_from_model(size_t obj_idx) { p->delete_object_from_model(obj_idx); }
+//BBS
+void Plater::delete_object_from_model(size_t obj_idx, bool refresh_immediately) { p->delete_object_from_model(obj_idx, refresh_immediately); }
 
 void Plater::remove_selected()
 {
