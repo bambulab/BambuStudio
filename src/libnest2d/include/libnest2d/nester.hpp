@@ -673,6 +673,7 @@ public:
 // The progress function will be called with the number of placed items
 using ProgressFunction = std::function<void(unsigned)>;
 using StopCondition = std::function<bool(void)>;
+using UnfitIndicator = std::function<void(std::string)>;
 
 /**
  * A wrapper interface (trait) class for any selections strategy provider.
@@ -706,6 +707,9 @@ public:
      * number of the remaining items to pack.
      */
     void progressIndicator(ProgressFunction fn) { impl_.progressIndicator(fn); }
+
+    //BBS
+    void unfitIndicator(UnfitIndicator fn) { impl_.unfitIndicator(fn); }
 
     void stopCondition(StopCondition cond) { impl_.stopCondition(cond); }
 
@@ -857,6 +861,12 @@ public:
     inline _Nester& progressIndicator(ProgressFunction func)
     {
         selector_.progressIndicator(func); return *this;
+    }
+
+    /// BBS: Set unfit indicator function object for the selector.
+    inline _Nester& unfitIndicator(UnfitIndicator func)
+    {
+        selector_.unfitIndicator(func); return *this;
     }
 
     /// Set a predicate to tell when to abort nesting.

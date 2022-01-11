@@ -319,7 +319,6 @@ void ArrangeJob::on_exception(const std::exception_ptr &eptr)
 
 void ArrangeJob::process()
 {
-    static const auto arrangestr = _(L("Arranging "));
     const GLCanvas3D::ArrangeSettings &settings =
         static_cast<const GLCanvas3D*>(m_plater->canvas3D())->get_arrange_settings();
     auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
@@ -396,7 +395,7 @@ void ArrangeJob::process()
     auto count = unsigned(m_selected.size() + m_unprintable.size());
     params.progressind = [this, count](unsigned st, std::string str="") {
         st += m_unprintable.size();
-        if (st > 0) update_status(int(count - st), arrangestr+str);
+        if (st > 0) update_status(int(count - st), str);
     };
 
     if(!params.is_seq_print)
@@ -416,7 +415,7 @@ void ArrangeJob::process()
     }
 
     params.progressind = [this, count](unsigned num_finished, std::string str="") {
-        if (num_finished > 0) update_status(int(count - num_finished), arrangestr+str);
+        if (num_finished > 0) update_status(int(count - num_finished), str);
     };
 
     arrangement::arrange(m_unprintable, {}, bedpts, params);

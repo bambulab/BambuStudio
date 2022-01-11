@@ -103,27 +103,42 @@ public:
                 continue;
             bool was_packed = false;
             int best_bed_id = -1;
+            int bed_id_firstfit = -1;
             double score, best_score = LARGE_COST_TO_REJECT;
             double score_all_plates = 0, score_all_plates_best = std::numeric_limits<double>::max();
-            typename Placer::PackResult result, result_best;
+            typename Placer::PackResult result, result_best, result_firstfit;
             size_t j = 0;
             while(!was_packed && !cancelled()) {
                 for(; j < placers.size() && !was_packed && !cancelled(); j++) {
                     result = placers[j].pack(*it, rem(it, store_));
                     score = result.score();
-                    score_all_plates = std::accumulate(placers.begin(), placers.begin() + j, 0.0,
+                    score_all_plates = std::accumulate(placers.begin(), placers.begin() + j, score,
                         [](double sum, const Placer& elem) { return sum + elem.score(); });
-                    if(score > 0 && score < LARGE_COST_TO_REJECT && score_all_plates<score_all_plates_best) {
-                        best_score = score;
-                        score_all_plates_best = score_all_plates;
-                        best_bed_id = j;
-                        result_best = result;
+                    if(score > 0 && score < LARGE_COST_TO_REJECT) {
+                        if (bed_id_firstfit == -1) {
+                            bed_id_firstfit = j;
+                            result_firstfit = result;
+                        }
+                        if (score_all_plates < score_all_plates_best) {
+                            best_score = score;
+                            score_all_plates_best = score_all_plates;
+                            best_bed_id = j;
+                            result_best = result;
+                        }
                     }
                 }
-                // item is not fit because we have tried all possible plates
-                if (j == MAX_NUM_PLATES) {
-                    it->get().binId(BIN_ID_UNFIT);
-                    break;
+                if (best_bed_id == MAX_NUM_PLATES) {
+                    // item is not fit because we have tried all possible plates to find a good enough fit
+                    if (bed_id_firstfit == MAX_NUM_PLATES) {
+                        it->get().binId(BIN_ID_UNFIT);
+                        this->unfitindicator_(it->get().name);
+                        break;
+                    }
+                    else {
+                        // best bed is invalid, but firstfit bed is OK, use the latter
+                        best_bed_id = bed_id_firstfit;
+                        result_best = result_firstfit;
+                    }
                 }
 
                 if(best_bed_id>=0)

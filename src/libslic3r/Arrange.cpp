@@ -465,11 +465,17 @@ public:
                         ap.bed_idx = last_packed.binId();
                         ap.priority = last_packed.priority();
                         if (progressind)
-                            progressind(rem, last_packed.name);
+                            progressind(rem, "Arranging "+last_packed.name);
                         if (on_packed)
                             on_packed(ap);
                     }
                 });
+
+        if (progressind) {
+            m_pck.unfitIndicator([this, progressind](std::string name) {
+                progressind(100, name+" not fit!");
+                });
+        }
 
         if (stopcond) m_pck.stopCondition(stopcond);
 

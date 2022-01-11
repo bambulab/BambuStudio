@@ -24,6 +24,8 @@ public:
 
     inline void stopCondition(StopCondition cond) { stopcond_ = cond; }
 
+    inline void unfitIndicator(UnfitIndicator fn) { unfitindicator_ = fn; }
+
     inline void clear() { packed_bins_.clear(); }
 
 protected:
@@ -56,7 +58,8 @@ protected:
 
     PackGroup packed_bins_;
     ProgressFunction progress_ = [](unsigned){};
-    StopCondition stopcond_ = [](){ return false; };
+    StopCondition stopcond_ = []() { return false; };
+    UnfitIndicator unfitindicator_;
     int last_packed_bin_id_ = -1;
 };
 
