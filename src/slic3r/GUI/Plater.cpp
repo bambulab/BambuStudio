@@ -4719,16 +4719,18 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         ObjectID object_id = evt.status.warning_object_id;
         int warning_step = evt.status.warning_step;
         PrintStateBase::StateWithWarnings state;
+
+        //BBS: add partplate related logic, use the print in background process
         if (evt.status.flags & PrintBase::SlicingStatus::UPDATE_PRINT_STEP_WARNINGS) {
             state = this->printer_technology == ptFFF ? 
-                this->fff_print.step_state_with_warnings(static_cast<PrintStep>(warning_step)) :
-                this->sla_print.step_state_with_warnings(static_cast<SLAPrintStep>(warning_step));
+                this->background_process.m_fff_print->step_state_with_warnings(static_cast<PrintStep>(warning_step)) :
+                this->background_process.m_sla_print->step_state_with_warnings(static_cast<SLAPrintStep>(warning_step));
         } else if (this->printer_technology == ptFFF) {
-            const PrintObject *print_object = this->fff_print.get_object(object_id);
+            const PrintObject *print_object = this->background_process.m_fff_print->get_object(object_id);
             if (print_object)
                 state = print_object->step_state_with_warnings(static_cast<PrintObjectStep>(warning_step));
         } else {
-            const SLAPrintObject *print_object = this->sla_print.get_object(object_id);
+            const SLAPrintObject *print_object = this->background_process.m_sla_print->get_object(object_id);
             if (print_object)
                 state = print_object->step_state_with_warnings(static_cast<SLAPrintObjectStep>(warning_step));
         }

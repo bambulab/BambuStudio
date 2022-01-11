@@ -407,8 +407,9 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
     return slices_by_region;
 }
 
-std::string fix_slicing_errors(LayerPtrs &layers, const std::function<void()> &throw_if_canceled)
+std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std::function<void()> &throw_if_canceled)
 {
+    std::string error_msg;//BBS
     // Collect layers with slicing errors.
     // These layers will be fixed in parallel.
     std::vector<size_t> buggy_layers;
@@ -430,6 +431,9 @@ std::string fix_slicing_errors(LayerPtrs &layers, const std::function<void()> &t
         }
         if (lslices.empty()) {
             layer->slicing_errors = true;
+            //BBS
+            error_msg = object->model_object()->name + " has empty layers around "+ std::to_string(idx_layer) + "-th layer!"
+                + " They are replaced by nearest normal layers, but you may still want to check the result!";
         }
 
         if (layers[idx_layer]->slicing_errors)
@@ -504,9 +508,11 @@ std::string fix_slicing_errors(LayerPtrs &layers, const std::function<void()> &t
             layers[i]->set_id(layers[i]->id() - 1);
     }
 
-    return buggy_layers.empty() ? "" :
-        "The model has overlapping or self-intersecting facets. I tried to repair it, "
-        "however you might want to check the results or repair the input file and retry.\n";
+    //BBS
+    if(error_msg.empty() && !buggy_layers.empty())
+        error_msg = "The model has overlapping or self-intersecting facets. I tried to repair it, "
+            "however you might want to check the results or repair the input file and retry.\n";
+    return error_msg;
 }
 
 // Called by make_perimeters()
@@ -532,10 +538,13 @@ void PrintObject::slice()
     m_print->throw_if_canceled();
     // Fix the model.
     //FIXME is this the right place to do? It is done repeateadly at the UI and now here at the backend.
-    std::string warning = fix_slicing_errors(m_layers, [this](){ m_print->throw_if_canceled(); });
+    std::string warning = fix_slicing_errors(this, m_layers, [this](){ m_print->throw_if_canceled(); });
     m_print->throw_if_canceled();
-    if (! warning.empty())
+    //BBS: send warning message to slicing callback
+    if (!warning.empty()) {
         BOOST_LOG_TRIVIAL(info) << warning;
+        this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning);
+    }
     // Update bounding boxes, back up raw slices of complex models.
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, m_layers.size()),

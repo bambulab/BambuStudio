@@ -396,11 +396,12 @@ public:
     virtual void            finalize() {}
 
     struct SlicingStatus {
-		SlicingStatus(int percent, const std::string &text, unsigned int flags = 0) : percent(percent), text(text), flags(flags) {}
-        SlicingStatus(const PrintBase &print, int warning_step) : 
-            flags(UPDATE_PRINT_STEP_WARNINGS), warning_object_id(print.id()), warning_step(warning_step) {}
-        SlicingStatus(const PrintObjectBase &print_object, int warning_step) : 
-            flags(UPDATE_PRINT_OBJECT_STEP_WARNINGS), warning_object_id(print_object.id()), warning_step(warning_step) {}
+		SlicingStatus(int percent, const std::string &text, unsigned int flags = 0, int warning_step = -1) :
+            percent(percent), text(text), flags(flags), warning_step(warning_step) {}
+        SlicingStatus(const PrintBase &print, int warning_step, const std::string& text) :
+            flags(UPDATE_PRINT_STEP_WARNINGS), warning_object_id(print.id()), text(text), warning_step(warning_step) {}
+        SlicingStatus(const PrintObjectBase &print_object, int warning_step, const std::string& text) :
+            flags(UPDATE_PRINT_OBJECT_STEP_WARNINGS), warning_object_id(print_object.id()), text(text), warning_step(warning_step) {}
         int             percent { -1 };
         std::string     text;
         // Bitmap of flags.
@@ -429,8 +430,8 @@ public:
     // Register a custom status callback.
     void                    set_status_callback(status_callback_type cb) { m_status_callback = cb; }
     // Calls a registered callback to update the status, or print out the default message.
-    void                    set_status(int percent, const std::string &message, unsigned int flags = SlicingStatus::DEFAULT) {
-		if (m_status_callback) m_status_callback(SlicingStatus(percent, message, flags));
+    void                    set_status(int percent, const std::string &message, unsigned int flags = SlicingStatus::DEFAULT, int warning_step = -1) {
+		if (m_status_callback) m_status_callback(SlicingStatus(percent, message, flags, warning_step));
         else printf("%d => %s\n", percent, message.c_str());
     }
 
@@ -482,6 +483,8 @@ protected:
 	// The UI will be notified by calling a status callback.
 	// If no status callback is registered, the message is printed to console.
     void 				   status_update_warnings(int step, PrintStateBase::WarningLevel warning_level, const std::string &message, const PrintObjectBase* print_object = nullptr);
+    //BBS: add api to update printobject's warnings
+	void                   status_update_warnings(int step, PrintStateBase::WarningLevel /* warning_level */, const std::string& message, PrintObjectBase &object);
 
     // If the background processing stop was requested, throw CanceledException.
     // To be called by the worker thread and its sub-threads (mostly launched on the TBB thread pool) regularly.
