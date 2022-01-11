@@ -1005,8 +1005,14 @@ void MonitorPanel::on_subtask_report(wxCommandEvent& event)
 {
     if (obj) {
         if (!obj->subtask_) return;
-        wxString report_url = wxString::Format("https://autotest.bambu-lab.com/testReports/add?taskId=%s", obj->subtask_->task_id);
-        wxLaunchDefaultBrowser(report_url);
+
+        std::string last_report_url;
+        AccountManager::get_machine_last_report_url(obj->dev_id, last_report_url);
+        if (last_report_url.empty()) {
+            wxMessageBox("There is no need to fill a report!");
+        } else {
+            wxLaunchDefaultBrowser(last_report_url);
+        }
     }
 }
 

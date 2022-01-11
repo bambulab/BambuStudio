@@ -1894,8 +1894,29 @@ namespace Slic3r {
 #endif
     }
 
+    void AccountManager::get_machine_last_report_url(std::string dev_id, std::string& last_url)
+    {
+        std::string* return_url = new std::string();
+        std::string url = (boost::format("http://192.168.0.12:8000/api/device_last_task_report?dev_id=%1%")
+                        % dev_id).str();
+        Http http = Http::get(url);
+        http.auth_basic("slicer", "znFx94AAew8VVHv");
+        http.on_complete([return_url](std::string body, unsigned status) {
+            json j = json::parse(body);
+            std::string report_url = j["report_url"].get<std::string>();
+            *return_url = report_url;
+        })
+        .on_error([](std::string body, std::string error, unsigned status) {
+            BOOST_LOG_TRIVIAL(trace) << "on_subtask_report, body = " << body << ", error = " << error << ", status = " << status;
+        })
+        .perform_sync();
+        last_url = *return_url;
+        delete return_url;
+    }
+
     void AccountManager::get_subtask_report(BBLSubTask*& subtask)
     {
+
         /*
         std::string url = (boost::format("%1%/api/subtasks/%2%") % test_host % subtask->task_id).str();
         Http http = Http::get(url);

@@ -341,6 +341,8 @@ public:
     void get_subtask_report(BBLSubTask*& subtask);
     void get_profile(BBLProject*& project, BBLProfile*& profile);
 
+    static void get_machine_last_report_url(std::string dev_id, std::string& last_url);
+
     // create a project 
     void get_project_info(BBLProject* project);
     void get_profile_info(BBLProject* &project, BBLProfile* &profile);
