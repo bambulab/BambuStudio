@@ -3272,11 +3272,11 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Purging volumes - matrix");
     def->tooltip = L("This matrix describes volumes (in cubic milimetres) required to purge the"
                      " new filament on the wipe tower for any given pair of tools.");
-    def->set_default_value(new ConfigOptionFloats {   0.f, 140.f, 140.f, 140.f, 140.f,
-                                                    140.f,   0.f, 140.f, 140.f, 140.f,
-                                                    140.f, 140.f,   0.f, 140.f, 140.f,
-                                                    140.f, 140.f, 140.f,   0.f, 140.f,
-                                                    140.f, 140.f, 140.f, 140.f,   0.f });
+    def->set_default_value(new ConfigOptionFloats {   0.f, 30.f, 30.f, 30.f, 30.f,
+                                                     30.f,  0.f, 30.f, 30.f, 30.f,
+                                                     30.f, 30.f,  0.f, 30.f, 30.f,
+                                                     30.f, 30.f, 30.f,  0.f, 30.f,
+                                                     30.f, 30.f, 30.f, 30.f,  0.f });
 
     def = this->add("wipe_tower_x", coFloat);
     def->label = L("Position X");

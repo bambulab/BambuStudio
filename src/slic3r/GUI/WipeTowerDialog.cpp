@@ -173,9 +173,10 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
 : wxDialog(parent, wxID_ANY, _(L("Wipe tower - Purging volume adjustment")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE/* | wxRESIZE_BORDER*/)
 {
     update_ui(this);
-    auto widget_button = new wxButton(this,wxID_ANY,"-",wxPoint(0,0),wxDefaultSize);
-    update_ui(widget_button);
-    m_panel_wiping  = new WipingPanel(this,matrix,extruders, extruder_colours, widget_button);
+
+    //auto widget_button = new wxButton(this,wxID_ANY,"-",wxPoint(0,0),wxDefaultSize);
+    //update_ui(widget_button);
+    m_panel_wiping = new WipingPanel(this, matrix, extruders, extruder_colours, nullptr);
 
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -184,7 +185,7 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
 	main_sizer->SetMinSize(wxSize(sizer_width, -1));
 
     main_sizer->Add(m_panel_wiping, 0, wxEXPAND | wxALL, 5);
-	main_sizer->Add(widget_button, 0, wxALIGN_CENTER_HORIZONTAL | wxCENTER | wxBOTTOM, 5);
+    //main_sizer->Add(widget_button, 0, wxALIGN_CENTER_HORIZONTAL | wxCENTER | wxBOTTOM, 5);
     main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 10);
     SetSizer(main_sizer);
     main_sizer->SetSizeHints(this);
@@ -220,8 +221,9 @@ void WipingPanel::format_sizer(wxSizer* sizer, wxPanel* page, wxGridSizer* grid_
 WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, const std::vector<std::string>& extruder_colours, wxButton* widget_button)
 : wxPanel(parent,wxID_ANY, wxDefaultPosition, wxDefaultSize/*,wxBORDER_RAISED*/)
 {
-    m_widget_button = widget_button;    // pointer to the button in parent dialog
-    m_widget_button->Bind(wxEVT_BUTTON,[this](wxCommandEvent&){ toggle_advanced(true); });
+    // BBS: toggle button is removed
+    //m_widget_button = widget_button;    // pointer to the button in parent dialog
+    //m_widget_button->Bind(wxEVT_BUTTON,[this](wxCommandEvent&){ toggle_advanced(true); });
 
     m_number_of_extruders = (int)(sqrt(matrix.size())+0.001);
 
@@ -445,13 +447,16 @@ void WipingPanel::toggle_advanced(bool user_action) {
     }
     if (user_action)
         m_advanced = !m_advanced;                // user demands a change -> toggle
-    else
-        m_advanced = !advanced_matches_simple(); // if called from constructor, show what is appropriate
+    else {
+        // BBS: show advanced mode by default
+        //m_advanced = !advanced_matches_simple(); // if called from constructor, show what is appropriate
+        m_advanced = true;
+    }
 
     (m_advanced ? m_page_advanced : m_page_simple)->Show();
 	(!m_advanced ? m_page_advanced : m_page_simple)->Hide();
 
-    m_widget_button->SetLabel(m_advanced ? _(L("Show simplified settings")) : _(L("Show advanced settings")));
+    //m_widget_button->SetLabel(m_advanced ? _(L("Show simplified settings")) : _(L("Show advanced settings")));
     if (m_advanced)
         if (user_action) fill_in_matrix();  // otherwise keep values loaded from config
 

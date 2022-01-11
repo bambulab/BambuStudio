@@ -2116,9 +2116,25 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     if (m_reload_delayed)
         return;
 
+    // BBS: do not check wipe tower changes
     bool update_object_list = false;
-    if (m_volumes.volumes != glvolumes_new)
-		update_object_list = true;
+    if (m_volumes.volumes != glvolumes_new) {
+        int vol_idx = 0;
+        for (; vol_idx < std::min(m_volumes.volumes.size(), glvolumes_new.size()); vol_idx++) {
+            if (m_volumes.volumes[vol_idx] != glvolumes_new[vol_idx]) {
+                update_object_list = true;
+                break;
+            }
+        }
+        for (int temp_idx = vol_idx; temp_idx < m_volumes.volumes.size() && !update_object_list; temp_idx++) {
+            if (!m_volumes.volumes[temp_idx]->is_wipe_tower)
+                update_object_list = true;
+        }
+        for (int temp_idx = vol_idx; temp_idx < glvolumes_new.size() && !update_object_list; temp_idx++) {
+            if (!glvolumes_new[temp_idx]->is_wipe_tower)
+                update_object_list = true;
+        }
+    }
     m_volumes.volumes = std::move(glvolumes_new);
     for (unsigned int obj_idx = 0; obj_idx < (unsigned int)m_model->objects.size(); ++ obj_idx) {
         const ModelObject &model_object = *m_model->objects[obj_idx];

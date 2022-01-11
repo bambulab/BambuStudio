@@ -259,6 +259,8 @@ namespace Slic3r {
 
         std::string tcr_rotated_gcode = post_process_wipe_tower_moves(tcr, wipe_tower_offset, wipe_tower_rotation);
 
+        // BBS: toolchange gcode will move to start_pos
+#if 0
         if (! tcr.priming) {
             // Move over the wipe tower.
             gcode += gcodegen.retract();
@@ -269,6 +271,7 @@ namespace Slic3r {
                 "Travel to a Wipe Tower");
             gcode += gcodegen.unretract();
         }
+#endif
 
         double current_z = gcodegen.writer().get_position().z();
         if (z == -1.) // in case no specific z was provided, print at current_z pos
@@ -292,6 +295,10 @@ namespace Slic3r {
             }
         }
 
+        // BBS: should be placed before toolchange parsing
+        std::string toolchange_retract_str = gcodegen.retract(true);
+        check_add_eol(toolchange_retract_str);
+
         // Process the custom toolchange_gcode. If it is empty, provide a simple Tn command to change the filament.
         // Otherwise, leave control to the user completely.
         std::string toolchange_gcode_str;
@@ -306,7 +313,47 @@ namespace Slic3r {
             config.set_key_value("layer_z", new ConfigOptionFloat(tcr.print_z));
             config.set_key_value("toolchange_z", new ConfigOptionFloat(z));
 //            config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
+            // BBS
+            {
+                GCodeWriter& gcode_writer = gcodegen.m_writer;
+                FullPrintConfig& full_config = gcodegen.m_config;
+                unsigned int fan_speed = gcode_writer.get_fan();
+                float old_retract_length = gcode_writer.extruder() != nullptr ? full_config.retract_length.get_at(previous_extruder_id) : 0;
+                float new_retract_length = full_config.retract_length.get_at(new_extruder_id);
+                float old_retract_length_toolchange = gcode_writer.extruder() != nullptr ? full_config.retract_length_toolchange.get_at(previous_extruder_id) : 0;
+                float new_retract_length_toolchange = full_config.retract_length_toolchange.get_at(new_extruder_id);
+                int old_filament_temp = gcode_writer.extruder() != nullptr ? full_config.temperature.get_at(previous_extruder_id) : 210;
+                int new_filament_temp = full_config.temperature.get_at(new_extruder_id);
+                Vec3d nozzle_pos = gcode_writer.get_position();
+
+                config.set_key_value("max_layer_z", new ConfigOptionFloat(gcodegen.m_max_layer_z));
+                config.set_key_value("use_relative_e_distances", new ConfigOptionBool(full_config.use_relative_e_distances.value));
+                config.set_key_value("toolchange_count", new ConfigOptionInt((int)gcodegen.m_toolchange_count));
+                config.set_key_value("fan_speed", new ConfigOptionInt((int)fan_speed));
+                config.set_key_value("old_retract_length", new ConfigOptionFloat(old_retract_length));
+                config.set_key_value("new_retract_length", new ConfigOptionFloat(new_retract_length));
+                config.set_key_value("old_retract_length_toolchange", new ConfigOptionFloat(old_retract_length_toolchange));
+                config.set_key_value("new_retract_length_toolchange", new ConfigOptionFloat(new_retract_length_toolchange));
+                config.set_key_value("old_filament_temp", new ConfigOptionInt(old_filament_temp));
+                config.set_key_value("new_filament_temp", new ConfigOptionInt(new_filament_temp));
+                config.set_key_value("x_after_toolchange", new ConfigOptionFloat(start_pos(0)));
+                config.set_key_value("y_after_toolchange", new ConfigOptionFloat(start_pos(1)));
+                config.set_key_value("z_after_toolchange", new ConfigOptionFloat(nozzle_pos(2)));
+            }
             toolchange_gcode_str = gcodegen.placeholder_parser_process("toolchange_gcode", toolchange_gcode, new_extruder_id, &config);
+            check_add_eol(toolchange_gcode_str);
+
+            // retract before toolchange
+            toolchange_gcode_str = toolchange_retract_str + toolchange_gcode_str;
+
+            // move to start_pos for wiping after toolchange
+            std::string start_pos_str;
+            start_pos_str = gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, start_pos), erMixed, "Move to start pos");
+            check_add_eol(start_pos_str);
+            toolchange_gcode_str += start_pos_str;
+
+            // unretract before wiping
+            toolchange_gcode_str += gcodegen.unretract();
             check_add_eol(toolchange_gcode_str);
         }
 
@@ -341,7 +388,6 @@ namespace Slic3r {
         unescape_string_cstyle(tcr_escaped_gcode, tcr_gcode);
         gcode += tcr_gcode;
         check_add_eol(toolchange_gcode_str);
-
 
         // A phony move to the end position at the wipe tower.
         gcodegen.writer().travel_to_xy(end_pos.cast<double>());
@@ -442,10 +488,12 @@ namespace Slic3r {
     std::string WipeTowerIntegration::prime(GCode& gcodegen)
     {
         std::string gcode;
+#if 0
         for (const WipeTower::ToolChangeResult& tcr : m_priming) {
             if (! tcr.extrusions.empty())
                 gcode += append_tcr(gcodegen, tcr, tcr.new_tool);
         }
+#endif
         return gcode;
     }
 
@@ -475,6 +523,7 @@ namespace Slic3r {
                 }
             }
         }
+
         return gcode;
     }
 
@@ -482,9 +531,12 @@ namespace Slic3r {
     std::string WipeTowerIntegration::finalize(GCode& gcodegen)
     {
         std::string gcode;
+        // BBS
+#if 0
         if (std::abs(gcodegen.writer().get_position()(2) - m_final_purge.print_z) > EPSILON)
             gcode += gcodegen.change_layer(m_final_purge.print_z);
         gcode += append_tcr(gcodegen, m_final_purge, -1);
+#endif
         return gcode;
     }
 
@@ -1263,11 +1315,16 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         tool_ordering = print.tool_ordering();
         tool_ordering.assign_custom_gcodes(print);
         has_wipe_tower = print.has_wipe_tower() && tool_ordering.has_wipe_tower();
-        initial_extruder_id = (has_wipe_tower && ! print.config().single_extruder_multi_material_priming) ?
+        // BBS: priming logic is removed, so 1st layer tool_ordering also respect the object tool sequence 
+#if 0
+        initial_extruder_id = (has_wipe_tower && !print.config().single_extruder_multi_material_priming) ?
             // The priming towers will be skipped.
             tool_ordering.all_extruders().back() :
             // Don't skip the priming towers.
             tool_ordering.first_extruder();
+#else
+        initial_extruder_id = tool_ordering.first_extruder();
+#endif
         // In non-sequential print, the printing extruders may have been modified by the extruder switches stored in Model::custom_gcode_per_print_z.
         // Therefore initialize the printing extruders from there.
         this->set_extruders(tool_ordering.all_extruders());
@@ -1369,7 +1426,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // Collect custom seam data from all objects.
     m_seam_placer.init(print);
 
-    if (! (has_wipe_tower && print.config().single_extruder_multi_material_priming)) {
+    // BBS: priming logic is removed, always set first extruer here.
+    //if (! (has_wipe_tower && print.config().single_extruder_multi_material_priming))
+    {
         // Set initial extruder only after custom start G-code.
         // Ugly hack: Do not set the initial extruder if the extruder is primed using the MMU priming towers at the edge of the print bed.
         file.write(this->set_extruder(initial_extruder_id, 0.));

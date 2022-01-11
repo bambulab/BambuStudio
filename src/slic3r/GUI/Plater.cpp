@@ -918,8 +918,6 @@ Sidebar::Sidebar(Plater *parent)
         update_objects_list_extruder_column(extruder_count);
     });
 
-    //BBS
-    // move del_btn to each item
     ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "delete_filament");
     del_btn->SetBackgroundColour(wxColour(233, 233, 233));
     del_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
@@ -966,19 +964,6 @@ Sidebar::Sidebar(Plater *parent)
         combo_and_btn_sizer->Add(p->combos_filament[0]->clr_picker, 0, wxALIGN_CENTER_VERTICAL, 5 * em / 10);
     }
 
-    //BBS hide del_btn
-    /*ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_content, wxID_ANY, "delete_filament");
-
-    del_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
-        int extruder_count = std::max(1, (int)p->combos_filament.size() - 1);
-
-        update_objects_list_extruder_column(std::max(1, extruder_count - 1));
-        on_extruders_change(extruder_count);
-        wxGetApp().preset_bundle->printers.get_edited_preset().set_num_extruders(extruder_count);
-        wxGetApp().preset_bundle->update_multi_material_filament_presets();
-    });
-    */
-
     ScalableButton* edit_btn = new ScalableButton(p->m_panel_filament_content, wxID_ANY, "cog");
     edit_btn->SetBackgroundColour(wxColour(255, 255, 255));
     edit_btn->SetToolTip(_L("Click to edit preset"));
@@ -990,9 +975,7 @@ Sidebar::Sidebar(Plater *parent)
         });
 
     combo_and_btn_sizer->Add(16 * em / 10, 0, 0, 0, 0);
-
     combo_and_btn_sizer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL, 5 * em / 10);
-
     combo_and_btn_sizer->Add(16 * em / 10, 0, 0, 0, 0);
 
     p->combos_filament[0]->set_extruder_idx(0);
@@ -1003,6 +986,31 @@ Sidebar::Sidebar(Plater *parent)
     p->m_panel_filament_content->Layout();
 
     scrolled_sizer->Add(p->m_panel_filament_content, 0, wxALL | wxEXPAND, 0);
+
+    // add wiping dialog
+    ScalableButton* wiping_dialog_button = new ScalableButton(p->scrolled, wxID_ANY, "", _L("Purging volumes"));
+    //wiping_dialog_button->SetFont(wxGetApp().normal_font());
+
+    wiping_dialog_button->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent& e)
+        {
+            auto& project_config = wxGetApp().preset_bundle->project_config;
+            const std::vector<double>& init_matrix = (project_config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values;
+            const std::vector<double>& init_extruders = (project_config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values;
+
+            const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+
+            WipingDialog dlg(parent, cast<float>(init_matrix), cast<float>(init_extruders), extruder_colours);
+
+            if (dlg.ShowModal() == wxID_OK) {
+                std::vector<float> matrix = dlg.get_matrix();
+                std::vector<float> extruders = dlg.get_extruders();
+                (project_config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values = std::vector<double>(matrix.begin(), matrix.end());
+                (project_config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values = std::vector<double>(extruders.begin(), extruders.end());
+                wxGetApp().plater()->update_project_dirty_from_presets();
+                wxPostEvent(parent, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, parent));
+            }
+        }));
+    scrolled_sizer->Add(wiping_dialog_button, 0, wxTOP | wxBOTTOM | wxEXPAND, 0);
 
 	p->m_staticline2 = new wxStaticLine( p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
     p->m_staticline2->SetBackgroundColour( wxColour( 166, 169, 170 ) );

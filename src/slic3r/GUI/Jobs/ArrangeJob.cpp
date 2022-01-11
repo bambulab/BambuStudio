@@ -55,6 +55,9 @@ public:
         ret.poly.contour = std::move(ap);
         ret.translation  = scaled(m_pos);
         ret.rotation     = m_rotation;
+        //BBS
+        ret.name = "WipeTower";
+        ret.is_virt_object = true;
         ++ret.priority;
 
         return ret;
@@ -243,15 +246,13 @@ void ArrangeJob::prepare_partplate() {
         }
     }
 
-
-    //don't consider wipe_tower currently
-    /*if (auto wti = get_wipe_tower(*m_plater)) {
+    if (auto wti = get_wipe_tower(*m_plater)) {
         ArrangePolygon&& ap = get_arrange_poly(wti, m_plater);
 
         auto& cont = m_plater->get_selection().is_wipe_tower() ? m_selected :
             m_unselected;
         cont.emplace_back(std::move(ap));
-    }*/
+    }
 
     // The strides have to be removed from the fixed items. For the
     // arrangeable (selected) items bed_idx is ignored and the

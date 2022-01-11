@@ -331,28 +331,37 @@ public:
 	// Let the firmware back up the active speed override value.
 	WipeTowerWriter& speed_override_backup()
     {
+        // BBS: BBL machine don't support speed backup
+#if 0
         // This is only supported by Prusa at this point (https://github.com/prusa3d/PrusaSlicer/issues/3114)
         if (m_gcode_flavor == gcfMarlinLegacy || m_gcode_flavor == gcfMarlinFirmware)
             m_gcode += "M220 B\n";
+#endif
 		return *this;
     }
 
 	// Let the firmware restore the active speed override value.
 	WipeTowerWriter& speed_override_restore()
 	{
+	    // BBS: BBL machine don't support speed restore
+#if 0
         if (m_gcode_flavor == gcfMarlinLegacy || m_gcode_flavor == gcfMarlinFirmware)
             m_gcode += "M220 R\n";
+#endif
 		return *this;
     }
 
 	// Set digital trimpot motor
 	WipeTowerWriter& set_extruder_trimpot(int current)
 	{
+        // BBS: don't control trimpot
+#if 0
         if (m_gcode_flavor == gcfRepRapSprinter || m_gcode_flavor == gcfRepRapFirmware)
             m_gcode += "M906 E";
         else
             m_gcode += "M907 E";
         m_gcode += std::to_string(current) + "\n";
+#endif
 		return *this;
     }
 
@@ -759,7 +768,8 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool)
                           is_first_layer() ? m_filpar[tool].first_layer_temperature : m_filpar[tool].temperature);
         toolchange_Change(writer, tool, m_filpar[tool].material); // Change the tool, set a speed override for soluble and flex materials.
         toolchange_Load(writer, cleaning_box);
-        writer.travel(writer.x(), writer.y()-m_perimeter_width); // cooling and loading were done a bit down the road
+        // BBS
+        //writer.travel(writer.x(), writer.y()-m_perimeter_width); // cooling and loading were done a bit down the road
         toolchange_Wipe(writer, cleaning_box, wipe_volume);     // Wipe the newly loaded filament until the end of the assigned wipe area.
         ++ m_num_tool_changes;
     } else
@@ -792,6 +802,8 @@ void WipeTower::toolchange_Unload(
 	const std::string&		 current_material,
 	const int 				 new_temperature)
 {
+    // BBS: toolchange unload is done in toolchange_gcode
+#if 0
 	float xl = cleaning_box.ld.x() + 1.f * m_perimeter_width;
 	float xr = cleaning_box.rd.x() - 1.f * m_perimeter_width;
 	
@@ -919,6 +931,7 @@ void WipeTower::toolchange_Unload(
 
 	writer.resume_preview()
 		  .flush_planner_queue();
+#endif
 }
 
 // Change the tool, set a speed override for soluble and flex materials.
@@ -936,6 +949,8 @@ void WipeTower::toolchange_Change(
     writer.append("[end_filament_gcode]\n");
     writer.append("[toolchange_gcode]\n");
 
+    // BBS: do travel in GCode::append_tcr() for lazy_lift
+#if 0
     // Travel to where we assume we are. Custom toolchange or some special T code handling (parking extruder etc)
     // gcode could have left the extruder somewhere, we cannot just start extruding. We should also inform the
     // postprocessor that we absolutely want to have this in the gcode, even if it thought it is the same as before.
@@ -944,6 +959,7 @@ void WipeTower::toolchange_Change(
           .append(std::string("G1 X") + Slic3r::float_to_string_decimal_point(current_pos.x())
                              +  " Y"  + Slic3r::float_to_string_decimal_point(current_pos.y())
                              + never_skip_tag() + "\n");
+#endif
 
     // The toolchange Tn command will be inserted later, only in case that the user does
     // not provide a custom toolchange gcode.
@@ -958,6 +974,8 @@ void WipeTower::toolchange_Load(
 	WipeTowerWriter &writer,
 	const box_coordinates  &cleaning_box)
 {
+    // BBS: tool load is done in toolchange_gcode
+#if 0
     if (m_semm && (m_parking_pos_retraction != 0 || m_extra_loading_move != 0)) {
         float xl = cleaning_box.ld.x() + m_perimeter_width * 0.75f;
         float xr = cleaning_box.rd.x() - m_perimeter_width * 0.75f;
@@ -980,6 +998,7 @@ void WipeTower::toolchange_Load(
         if (m_set_extruder_trimpot)
             writer.set_extruder_trimpot(550);
     }
+#endif
 }
 
 // Wipe the newly loaded filament until the end of the assigned wipe area.
@@ -1205,6 +1224,9 @@ void WipeTower::plan_toolchange(float z_par, float layer_height_par, unsigned in
 	// this is an actual toolchange - let's calculate depth to reserve on the wipe tower
     float depth = 0.f;
 	float width = m_wipe_tower_width - 3*m_perimeter_width; 
+
+    // BBS: remove old filament ramming and first line
+#if 0
 	float length_to_extrude = volume_to_length(0.25f * std::accumulate(m_filpar[old_tool].ramming_speed.begin(), m_filpar[old_tool].ramming_speed.end(), 0.f),
 										m_perimeter_width * m_filpar[old_tool].ramming_line_width_multiplicator,
 										layer_height_par);
@@ -1215,10 +1237,18 @@ void WipeTower::plan_toolchange(float z_par, float layer_height_par, unsigned in
     length_to_extrude += volume_to_length(wipe_volume, m_perimeter_width, layer_height_par);
     length_to_extrude = std::max(length_to_extrude,0.f);
 
-	depth += (int(length_to_extrude / width) + 1) * m_perimeter_width;
-	depth *= m_extra_spacing;
+    depth += (int(length_to_extrude / width) + 1) * m_perimeter_width;
+    depth *= m_extra_spacing;
 
-	m_plan.back().tool_changes.push_back(WipeTowerInfo::ToolChange(old_tool, new_tool, depth, ramming_depth, first_wipe_line, wipe_volume));
+    m_plan.back().tool_changes.push_back(WipeTowerInfo::ToolChange(old_tool, new_tool, depth, ramming_depth, first_wipe_line, wipe_volume));
+#else
+    float length_to_extrude = volume_to_length(wipe_volume, m_perimeter_width, layer_height_par);
+
+    depth += (int(length_to_extrude / width) + 1) * m_perimeter_width;
+    depth *= m_extra_spacing;
+
+    m_plan.back().tool_changes.push_back(WipeTowerInfo::ToolChange(old_tool, new_tool, depth, 0.f, 0.f, wipe_volume));
+#endif
 }
 
 
