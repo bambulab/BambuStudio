@@ -3029,6 +3029,7 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
             const ExtrusionPath* path = dynamic_cast<const ExtrusionPath*>(ee);
             const ExtrusionMultiPath* multipath = dynamic_cast<const ExtrusionMultiPath*>(ee);
             const ExtrusionLoop* loop = dynamic_cast<const ExtrusionLoop*>(ee);
+            const ExtrusionEntityCollection* collection = dynamic_cast<const ExtrusionEntityCollection*>(ee);
             if (path)
                 gcode += this->extrude_path(*path, label, speed);
             else if (multipath) {
@@ -3036,6 +3037,12 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
             }
             else if (loop) {
                 gcode += this->extrude_loop(*loop, label, speed);
+            }
+            else if (collection) {
+                gcode += extrude_support(*collection);
+            }
+            else {
+                throw Slic3r::InvalidArgument("Unknown extrusion type");
             }
         }
     }
