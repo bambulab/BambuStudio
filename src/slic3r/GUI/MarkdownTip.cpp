@@ -110,12 +110,12 @@ bool MarkdownTip::ShowTip(wxPoint pos, std::string const& tip)
         }
         _lastTip = tip;
     }
-    wxSize size = wxDisplay(wxDisplay::GetFromWindow(this)).GetClientArea().GetSize();
-    _requestPos = pos;
-    if (pos.y + this->GetSize().y > size.y)
-        pos.y = size.y - this->GetSize().y;
-    this->SetPosition(pos);
     if (_tipView->GetParent() == this) {
+        wxSize size = wxDisplay(wxDisplay::GetFromWindow(this)).GetClientArea().GetSize();
+        _requestPos = pos;
+        if (pos.y + this->GetSize().y > size.y)
+            pos.y = size.y - this->GetSize().y;
+        this->SetPosition(pos);
         _hide = false;
         this->Show();
     }
