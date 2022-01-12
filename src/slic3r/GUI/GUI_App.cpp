@@ -1019,21 +1019,6 @@ void GUI_App::post_init()
     // start ssdp and connect mqtt
     m_backend->start();
 
-    // BBS:Show NewUser Guide
-    try {
-        GuideFrame GuideDlg(this);
-        if (GuideDlg.IsFirstUse()) GuideDlg.ShowModal();
-    } catch (std::exception &e) {
-        // wxMessageBox(e.what(), "", MB_OK);
-    }
-
-    // BBS: Dialy Tip Dialog
-    try {
-        DailytipFrame TipDlg(this);
-        if (TipDlg.IsWhetherShow()) TipDlg.ShowModal();
-    } catch (std::exception &e) {
-        // wxMessageBox(e.what(), "", MB_OK);
-    }
 }
 
 IMPLEMENT_APP(GUI_App)
@@ -2018,6 +2003,30 @@ void GUI_App::keyboard_shortcuts()
     KBShortcutsDialog dlg;
     dlg.ShowModal();
 }
+
+
+void GUI_App::ShowUserGuide() {
+    // BBS:Show NewUser Guide
+    try {
+        GuideFrame GuideDlg(this);
+        //if (GuideDlg.IsFirstUse()) 
+            GuideDlg.ShowModal();
+    } catch (std::exception &e) {
+        // wxMessageBox(e.what(), "", MB_OK);
+    }
+}
+
+void GUI_App::ShowDailyTip() {
+    // BBS: Dialy Tip Dialog
+    try {
+        DailytipFrame TipDlg(this);
+        //if (TipDlg.IsWhetherShow()) 
+            TipDlg.ShowModal();
+    } catch (std::exception &e) {
+        // wxMessageBox(e.what(), "", MB_OK);
+    }
+}
+
 
 // static method accepting a wxWindow object as first parameter
 bool GUI_App::catch_error(std::function<void()> cb,

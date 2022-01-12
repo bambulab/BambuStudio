@@ -1,0 +1,67 @@
+
+body
+{
+	display:flex;
+	flex-direction: column;
+}
+
+
+#Title
+{
+	height: 15%;
+	display: flex;
+	flex-direction:column;
+	justify-content: center;
+}
+
+#Title div
+{
+	font-size:28px;
+	line-height: 28px;
+	text-align: center;
+	height: 28px;
+	color: #1848FF;
+}
+
+
+
+#Content
+{
+	height: 70%;
+	padding: 0mm 10mm;	
+	overflow-y: hidden;
+	text-align: left;
+}
+
+#Content div
+{
+
+}
+
+
+#AcceptArea
+{
+	height:15%;
+	padding: 0mm 10mm;
+	text-align: left;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	
+}
+
+#AcceptBtn
+{
+
+}
+
+#RefuseBtn
+{
+	width: 30mm;
+	padding: 3mm 6mm;
+	border: 1px solid #1848FF;
+	font-size: 14px;
+	text-align: center;
+	border-radius: 3px;
+	cursor: pointer;	
+}

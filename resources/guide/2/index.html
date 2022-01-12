@@ -1,0 +1,113 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="max-age=7200" />
+<title>引导_P1</title>
+<link rel="stylesheet" href="../swiper/swiper-bundle.min.css" />	
+<link rel="stylesheet" type="text/css" href="../css/common.css" />		
+<link rel="stylesheet" type="text/css" href="2.css" />
+<script src="../swiper/swiper-bundle.min.js"></script>	
+<script type="text/javascript" src="../js/jquery-2.1.1.min.js"></script>
+<script type="text/javascript" src="../js/json2.js"></script>	
+<script type="text/javascript" src="../js/common.js"></script>	
+<script type="text/javascript" src="./2.js"></script>
+<style type="text/css">
+      .swiper {
+        width: 100%;
+        height: 100%;
+      }
+
+      .swiper-slide {
+        font-size: 18px;
+        height: auto;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        padding: 0px 10px;
+      }
+</style>
+</head>
+<body onLoad="OnInit()">
+<div id="Title">
+	<div>User Agreement</div>
+</div>
+<div id="Content">
+    <div class="swiper mySwiper">
+      <div class="swiper-wrapper">
+        <div class="swiper-slide">
+			The main interface of the system is divided into 8 areas:
+
+			1. Enterprise brand logo area:
+The enterprise brand logo is displayed. The administrator can change the logo of the login interface and internal interface in the [system setting] à [system core setting] à [interface setting] function.
+
+					
+2. To do / reminder shortcut button area:
+There will be numbers next to these buttons to indicate your current number of reminders / to-do items. Click to quickly enter the reminder / to-do interface to view relevant contents.
+
+3. Help button:
+Click the help button to see the number of people online, the current version and the instructions in the help
+
+4. Navigation menu area:
+At the menu entry of all functions of the system, click the corresponding function menu to open the corresponding function interface.
+
+5. The function quick switch label area has been opened:
+If you open multiple functions at the same time, you can quickly switch different functions in this area to truly realize multi-function and multi task at the same time.
+
+Tip: the maximum number of function labels that can be opened is determined by the system setting. The specific number of function labels that can be opened can be set by the administrator in [system setting] à [system core setting] à [interface setting] à [maximum number of open labels]
+
+6. Main work interface area:
+The main working interface, display / operation of most functions and other elements will be displayed in this area.
+
+7. Personal login information display area:
+Display the current login user name (account). Click to exit the account and modify your own information password.
+
+8. System information display area:
+Display the main interface information and desktop information
+	
+1. Enterprise brand logo area:
+The enterprise brand logo is displayed. The administrator can change the logo of the login interface and internal interface in the [system setting] à [system core setting] à [interface setting] function.
+
+2. To do / reminder shortcut button area:
+There will be numbers next to these buttons to indicate your current number of reminders / to-do items. Click to quickly enter the reminder / to-do interface to view relevant contents.
+
+3. Help button:
+Click the help button to see the number of people online, the current version and the instructions in the help
+
+4. Navigation menu area:
+At the menu entry of all functions of the system, click the corresponding function menu to open the corresponding function interface.
+
+5. The function quick switch label area has been opened:
+If you open multiple functions at the same time, you can quickly switch different functions in this area to truly realize multi-function and multi task at the same time.
+
+Tip: the maximum number of function labels that can be opened is determined by the system setting. The specific number of function labels that can be opened can be set by the administrator in [system setting] à [system core setting] à [interface setting] à [maximum number of open labels]
+
+6. Main work interface area:
+The main working interface, display / operation of most functions and other elements will be displayed in this area.
+
+7. Personal login information display area:
+Display the current login user name (account). Click to exit the account and modify your own information password.
+
+8. System information display area:
+Display the main interface information and desktop information	
+        </div>
+      </div>
+      <div class="swiper-scrollbar"></div>
+    </div>
+</div>
+<div id="AcceptArea">
+	<div id="RefuseBtn" class="BorderBtn" onClick="RefuseClause();">Reject clause</div>	
+	<div style="float: right;" id="AcceptBtn" class="NormalBtn" onclick="window.open('../3/index.html','_self')">Agree</div>	
+</div>
+    <script>
+      var swiper = new Swiper(".mySwiper", {
+        direction: "vertical",
+        slidesPerView: "auto",
+        freeMode: true,
+        scrollbar: {
+          el: ".swiper-scrollbar",
+        },
+        mousewheel: true,
+      });
+    </script>		
+</body>
+</html>

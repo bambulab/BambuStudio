@@ -1529,6 +1529,11 @@ static wxMenu* generate_help_menu()
     // shortcut key
     append_menu_item(helpMenu, wxID_ANY, _L("Keyboard Shortcuts") + sep + "&?", _L("Show the list of the keyboard shortcuts"),
         [](wxCommandEvent&) { wxGetApp().keyboard_shortcuts(); });
+    // Show UserGuide
+    append_menu_item(helpMenu, wxID_ANY,_L("New User Guide"),_L("New User Guide"),[](wxCommandEvent &) {wxGetApp().ShowUserGuide();});
+    // Show DailyTip
+    append_menu_item(helpMenu, wxID_ANY, _L("Show Dailytip"),_L("Show Dailytip"),[](wxCommandEvent &) { wxGetApp().ShowDailyTip(); });
+
     helpMenu->AppendSeparator();
     // Open Config Folder
     append_menu_item(helpMenu, wxID_ANY, _L("Show &Configuration Folder"), _L("Show user configuration folder (datadir)"),

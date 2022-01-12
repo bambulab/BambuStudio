@@ -263,6 +263,9 @@ public:
     void            load_project(wxWindow *parent, wxString& input_file) const;
     void            import_model(wxWindow *parent, wxArrayString& input_files) const;
     void            load_gcode(wxWindow* parent, wxString& input_file) const;
+
+    void            ShowUserGuide();
+    void            ShowDailyTip();
     //BBS
     void            request_login();
     void            request_model_download(std::string model_id);
