@@ -1081,7 +1081,7 @@ int MachineObject::send_wan_print_subtask(BBLSubTask* task, UploadedFn uploadedF
     if (!task->parent_task_) return -1;
 
     json j;
-    j["print"]["sequence_id"] = MachineObject::m_sequence_id++;
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["command"]   = "project_file";
     j["print"]["param"]     = task->task_gcode_in_3mf;
     j["print"]["url"]       = task->task_url;
