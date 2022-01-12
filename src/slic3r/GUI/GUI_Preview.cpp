@@ -934,6 +934,8 @@ void Preview::load_print_as_fff(bool keep_z_range)
     const Print *print = m_process->fff_print();
     //BBS: always load shell at preview
     load_shells(*print, true);
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" %1%: print: %2%, gcode_result %3%, check started")%__LINE__ %print %m_gcode_result;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: print is step done, posSlice %2%, posSupportMaterial %3%, psGCodeExport %4%") % __LINE__ % print->is_step_done(posSlice) %print->is_step_done(posSupportMaterial) % print->is_step_done(psGCodeExport);
     if (print->is_step_done(posSlice)) {
         for (const PrintObject* print_object : print->objects())
             if (! print_object->layers().empty()) {
@@ -951,7 +953,7 @@ void Preview::load_print_as_fff(bool keep_z_range)
 
     //BBS: support preview gcode directly even if no slicing
     bool directly_preview = print->is_step_done(psGCodeExport) && !m_gcode_result->moves.empty();
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": directly_preview: %1%, gcode_result moves %2%") % directly_preview % m_gcode_result->moves.size();
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": directly_preview: %1%, gcode_result moves %2%, has_layers %3%") % directly_preview % m_gcode_result->moves.size() %has_layers;
     if (wxGetApp().is_editor() && !has_layers && !directly_preview) {
     //if (wxGetApp().is_editor() && !has_layers) {
         hide_layers_slider();

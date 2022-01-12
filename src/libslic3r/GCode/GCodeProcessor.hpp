@@ -146,6 +146,33 @@ namespace Slic3r {
         int64_t time{ 0 };
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
         void reset();
+
+        //BBS: add mutex for protection of gcode result
+        mutable std::mutex result_mutex;
+        GCodeProcessorResult& operator=(const GCodeProcessorResult &other)
+        {
+            filename = other.filename;
+            id = other.id;
+            moves = other.moves;
+            lines_ends = other.lines_ends;
+            bed_shape = other.bed_shape;
+            bed_exclude_area = other.bed_exclude_area;
+            toolpath_outside = other.toolpath_outside;
+            max_print_height = other.max_print_height;
+            settings_ids = other.settings_ids;
+            extruders_count = other.extruders_count;
+            extruder_colors = other.extruder_colors;
+            filament_diameters = other.filament_diameters;
+            filament_densities = other.filament_densities;
+            print_statistics = other.print_statistics;
+            custom_gcode_per_print_z = other.custom_gcode_per_print_z;
+#if ENABLE_GCODE_VIEWER_STATISTICS
+            time = other.time;
+#endif
+            return *this;
+        }
+        void  lock() const { result_mutex.lock(); }
+        void  unlock() const { result_mutex.unlock(); }
     };
 
 

@@ -187,7 +187,7 @@ void BackgroundSlicingProcess::process_fff()
 	assert(m_print == m_fff_print);
 	//BBS: add the logic to process from an existed gcode file
 	if (m_print->finished()) {
-		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": skip slicing, to process previous gcode file");
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: skip slicing, to process previous gcode file")%__LINE__;
 		m_fff_print->set_status(80, _utf8(L("Processing G-Code from Previous file...")));
 		wxCommandEvent evt(m_event_slicing_completed_id);
 		// Post the Slicing Finished message for the G-code viewer to update.
@@ -197,16 +197,17 @@ void BackgroundSlicingProcess::process_fff()
 
 		m_temp_output_path = this->get_current_plate()->get_tmp_gcode_path();
 		m_fff_print->export_gcode_from_previous_file(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
-		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": export_gcode_from_previous_file finished");
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: export_gcode_from_previous_file finished")%__LINE__;
 	}
 	else {
 		//BBS: reset the gcode before reload_print in slicing_completed event processing
 		//FIX the gcode rename failed issue
-		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": will start slicing, reset gcode_result firstly");
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: will start slicing, reset gcode_result %2% firstly")%__LINE__%m_gcode_result;
 		m_gcode_result->reset();
 
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: gcode_result reseted, will start print::process")%__LINE__;
 		m_print->process();
-		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": after print::process, send slicing complete event to gui...");
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: after print::process, send slicing complete event to gui...")%__LINE__;
 
 		wxCommandEvent evt(m_event_slicing_completed_id);
 		// Post the Slicing Finished message for the G-code viewer to update.
@@ -647,6 +648,7 @@ Print::ApplyStatus BackgroundSlicingProcess::apply(const Model &model, const Dyn
 		// Some FFF status was invalidated, and the G-code was not exported yet.
 		// Let the G-code preview UI know that the final G-code preview is not valid.
 		// In addition, this early memory deallocation reduces memory footprint.
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": invalide gcode result %1%, will reset soon")%m_gcode_result;
 		if (m_gcode_result != nullptr)
 			m_gcode_result->reset();
 	}

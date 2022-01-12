@@ -636,6 +636,8 @@ public:
     //BBS: export gcode from previous gcode file from 3mf
     void set_gcode_file_ready();
     void export_gcode_from_previous_file(const std::string& file, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
+    //BBS: add modify_count logic
+    int get_modified_count() const {return m_modified_count;}
 
     //BBS
     static std::string sequential_print_clearance_valid(const Print& print, Polygons* polygons = nullptr);
@@ -684,6 +686,8 @@ private:
 
     //BBS: plate's origin
     Vec3d   m_origin;
+    //BBS: modified_count
+    int     m_modified_count {0};
 
     // To allow GCode to set the Print's GCodeExport step status.
     friend class GCode;

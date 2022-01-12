@@ -729,6 +729,9 @@ void GCodeProcessor::UsedFilaments::process_caches(GCodeProcessor* processor)
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
 void GCodeProcessorResult::reset() {
+    //BBS: add mutex for protection of gcode result
+    lock();
+
     moves = std::vector<GCodeProcessorResult::MoveVertex>();
     bed_shape = Pointfs();
     //BBS: add bed exclude area
@@ -743,9 +746,14 @@ void GCodeProcessorResult::reset() {
     filament_densities = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_DENSITY);
     custom_gcode_per_print_z = std::vector<CustomGCode::Item>();
     time = 0;
+
+    //BBS: add mutex for protection of gcode result
+    unlock();
 }
 #else
 void GCodeProcessorResult::reset() {
+    //BBS: add mutex for protection of gcode result
+    lock();
 
     moves.clear();
     lines_ends.clear();
@@ -761,6 +769,11 @@ void GCodeProcessorResult::reset() {
     filament_diameters = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_DIAMETER);
     filament_densities = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_DENSITY);
     custom_gcode_per_print_z = std::vector<CustomGCode::Item>();
+
+    //BBS: add mutex for protection of gcode result
+    unlock();
+    //BBS: add logs
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: this=%2% reset finished")%__LINE__%this;
 }
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 

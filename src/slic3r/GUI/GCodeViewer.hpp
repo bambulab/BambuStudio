@@ -379,6 +379,7 @@ class GCodeViewer
         bool visible{ false };
         //BBS: always load shell when preview
         int print_id{ -1 };
+        int print_modify_count { -1 };
         bool previewing{ false };
     };
 

@@ -658,15 +658,25 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     // avoid processing if called with the same gcode_result
     if (m_last_result_id == gcode_result.id) {
         //BBS: add logs
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": the same id %1%, return directly ") % m_last_result_id;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": the same id %1%, return directly, result %2% ") % m_last_result_id % (&gcode_result);
         return;
     }
 
     //BBS: add logs
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": new id %1%, gcode file %2% ") % m_last_result_id % gcode_result.filename;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": gcode result %1%, new id %2%, gcode file %3% ") % (&gcode_result) % m_last_result_id % gcode_result.filename;
 
     // release gpu memory, if used
     reset();
+
+    //BBS: add mutex for protection of gcode result
+    gcode_result.lock();
+    //BBS: add safe check
+    if (gcode_result.moves.size() == 0) {
+        //result cleaned before slicing ,should return here
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": gcode result reset before, return directly!");
+        gcode_result.unlock();
+        return;
+    }
 
     //BBS: move the id to the end of reset
     m_last_result_id = gcode_result.id;
@@ -683,8 +693,11 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
 
     load_toolpaths(gcode_result);
 
-    if (m_layers.empty())
+    //BBS: add mutex for protection of gcode result
+    if (m_layers.empty()) {
+        gcode_result.unlock();
         return;
+    }
 
     m_settings_ids = gcode_result.settings_ids;
     m_filament_diameters = gcode_result.filament_diameters;
@@ -750,6 +763,9 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
             short_time(get_time_dhms(time)) == short_time(get_time_dhms(m_print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time)))
             m_time_estimate_mode = PrintEstimatedStatistics::ETimeMode::Normal;
     }
+
+    //BBS: add mutex for protection of gcode result
+    gcode_result.unlock();
     //BBS: add logs
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished!");
 }
@@ -760,15 +776,22 @@ void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::v
     auto start_time = std::chrono::high_resolution_clock::now();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
+    //BBS: add mutex for protection of gcode result
+    gcode_result.lock();
+
     //BBS: add safe check
     if (gcode_result.moves.size() == 0) {
         //result cleaned before slicing ,should return here
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": gcode result reset before, return directly!");
+        gcode_result.unlock();
         return;
     }
 
-    if (m_moves_count == 0)
+    //BBS: add mutex for protection of gcode result
+    if (m_moves_count == 0) {
+        gcode_result.unlock();
         return;
+    }
 
     wxBusyCursor busy;
 
@@ -818,6 +841,9 @@ void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::v
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.refresh_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+
+    //BBS: add mutex for protection of gcode result
+    gcode_result.unlock();
 
     // update buffers' render paths
     refresh_render_paths();
@@ -2220,13 +2246,14 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
 //BBS: always load shell when preview
 void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_previewing)
 {
-    /*if (print.id().id == m_shells.print_id) {
+    if ((print.id().id == m_shells.print_id)&&(print.get_modified_count() == m_shells.print_modify_count)) {
         //BBS: update force previewing logic
         if (force_previewing)
             m_shells.previewing = force_previewing;
         //already loaded
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": already loaded, print=%1% print_id=%2%, print_modify_count=%3%, force_previewing %4%")%(&print) %m_shells.print_id %m_shells.print_modify_count %force_previewing;
         return;
-    }*/
+    }
 
     //reset shell firstly
     reset_shell();
@@ -2301,8 +2328,9 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
 
     //BBS: always load shell when preview
     m_shells.print_id = print.id().id;
+    m_shells.print_modify_count = print.get_modified_count();
     m_shells.previewing = true;
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": shell loaded, id change to %1%") % m_shells.print_id;
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": shell loaded, id change to %1%, modify_count %2%, object count %3%") % m_shells.print_id %m_shells.print_modify_count %object_id;
 }
 
 void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const

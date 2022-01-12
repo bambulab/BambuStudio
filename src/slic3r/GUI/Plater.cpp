@@ -3770,6 +3770,8 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         this->show_sliced_info(false);
         //BBS: update current plater's slicer result to invalid
         this->background_process.get_current_plate()->update_slice_result_valid_state(false);
+        //no need, should be done in background_process.apply
+        //this->background_process.get_current_gcode_result()->reset();
         // Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
         // Otherwise they will be just refreshed.
         if (preview != nullptr) {
@@ -8800,8 +8802,9 @@ int Plater::select_plate(int plate_index, bool need_slice)
 
         part_plate->get_print(&print, &gcode_result, NULL);
         //always apply the current plate's print
-        invalidated = print->apply(this->model(), wxGetApp().preset_bundle->full_config());
+        invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config());
 
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: after apply, invalidated= %2%, previous result_valid %3% ")%__LINE__ % invalidated %result_valid;
         if (result_valid)
         {
             if (is_preview_shown())
@@ -8880,6 +8883,7 @@ int Plater::select_plate(int plate_index, bool need_slice)
             }
         }
     }
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: return %2%")%__LINE__ % ret;
     return ret;
 }
 
@@ -8931,8 +8935,9 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
 
             part_plate->get_print(&print, &gcode_result, NULL);
             //always apply the current plate's print
-            invalidated = print->apply(this->model(), wxGetApp().preset_bundle->full_config());
+            invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config());
 
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: after apply, invalidated= %2%, previous result_valid %3% ")%__LINE__ % invalidated %result_valid;
             if (result_valid)
             {
                 if (invalidated & PrintBase::APPLY_STATUS_INVALIDATED)
@@ -9015,6 +9020,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
         ret = -1;
     }
 
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: return %2%")%__LINE__ % ret;
     return ret;
 }
 

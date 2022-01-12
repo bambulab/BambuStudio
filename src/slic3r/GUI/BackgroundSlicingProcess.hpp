@@ -89,10 +89,12 @@ public:
 	void set_thumbnail_cb(ThumbnailsGeneratorCallback cb) { m_thumbnail_cb = cb; }
 	void set_gcode_result(GCodeProcessorResult* result) { m_gcode_result = result; }
 
+	//BBS: add partplate related logic
 	bool switch_print_preprocess();
 	bool can_switch_print();
 	void set_current_plate(GUI::PartPlate* plate) { m_current_plate = plate; }
 	GUI::PartPlate* get_current_plate() { return m_current_plate; }
+	GCodeProcessorResult* get_current_gcode_result() { return m_gcode_result;}
 
 	// The following wxCommandEvent will be sent to the UI thread / Plater window, when the slicing is finished
 	// and the background processing will transition into G-code export.

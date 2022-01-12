@@ -1449,6 +1449,10 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     check_model_ids_equal(m_model, model);
 #endif /* _DEBUG */
 
+	//BBS: add timestamp logic
+	if (apply_status != APPLY_STATUS_UNCHANGED)
+		m_modified_count++;
+	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: finished,  this %2%, m_modified_count %3%, apply_status %4%, ")%__LINE__ %this %m_modified_count %apply_status;
 	return static_cast<ApplyStatus>(apply_status);
 }
 
