@@ -1036,13 +1036,14 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
 #endif // ENABLE_MODIFIERS_ALWAYS_TRANSPARENT
 
         // render sinking contours of non-hovered volumes
-        if (m_show_sinking_contours)
+        //BBS: remove sinking logic
+        /*if (m_show_sinking_contours)
             if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
                 volume.first->hover == GLVolume::HS_None && !volume.first->force_sinking_contours) {
                 shader->stop_using();
                 volume.first->render_sinking_contours();
                 shader->start_using();
-            }
+            }*/
 
         glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
         glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
@@ -1088,7 +1089,8 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
     }
 
-    if (m_show_sinking_contours) {
+    //BBS: remove sinking logic
+    /*if (m_show_sinking_contours) {
         for (GLVolumeWithIdAndZ& volume : to_render) {
             // render sinking contours of hovered/displaced volumes
             if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
@@ -1100,7 +1102,7 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
                 shader->start_using();
             }
         }
-    }
+    }*/
 
     if (disable_cullface)
         glsafe(::glEnable(GL_CULL_FACE));
