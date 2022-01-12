@@ -2840,6 +2840,7 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 				plate_data_item->gcode_file = m_plate_list[i]->m_gcode_result->filename;
 				plate_data_item->is_sliced_valid = true;
 				plate_data_item->gcode_prediction = std::to_string((int)m_plate_list[i]->get_slice_result()->print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time);
+				plate_data_item->toolpath_outside = m_plate_list[i]->m_gcode_result->toolpath_outside;
 				Print* print = nullptr;
 				m_plate_list[i]->get_print((PrintBase**)&print, nullptr, nullptr);
 				if (print) {
@@ -2892,6 +2893,7 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 		PrintStatistics& ps = (dynamic_cast<Print*>(fff_print))->print_statistics();
 		gcode_result->print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time = atoi(plate_data_list[i]->gcode_prediction.c_str());
 		ps.total_weight = atof(plate_data_list[i]->gcode_weight.c_str());
+		gcode_result->toolpath_outside = plate_data_list[i]->toolpath_outside;
 	}
 	print();
 	ret = reload_all_objects();

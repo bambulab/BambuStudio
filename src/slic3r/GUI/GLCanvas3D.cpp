@@ -1627,7 +1627,8 @@ void GLCanvas3D::render()
         _render_sla_slices();
         _render_selection();
         _render_bed(!camera.is_looking_downward(), show_axes);
-        _render_objects(GLVolumeCollection::ERenderType::Transparent);
+        //BBS: add outline logic
+        _render_objects(GLVolumeCollection::ERenderType::Transparent, !m_gizmos.is_running());
         _render_platelist(!camera.is_looking_downward(), only_current, only_body);
     }
     /* preview render */

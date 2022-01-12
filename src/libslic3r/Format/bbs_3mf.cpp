@@ -154,6 +154,7 @@ static constexpr const char* PLATERID_ATTR = "plater_id";
 static constexpr const char* PLATE_IDX_ATTR = "index";
 static constexpr const char* SLICE_PREDICTION_ATTR = "prediction";
 static constexpr const char* SLICE_WEIGHT_ATTR = "weight";
+static constexpr const char* OUTSIDE_ATTR = "outside";
 
 static constexpr const char* OBJECT_TYPE = "object";
 static constexpr const char* VOLUME_TYPE = "volume";
@@ -1156,6 +1157,7 @@ namespace Slic3r {
             plate_data_list[it->first-1]->objects_and_instances = it->second->objects_and_instances;
             plate_data_list[it->first-1]->gcode_prediction = it->second->gcode_prediction;
             plate_data_list[it->first-1]->gcode_weight = it->second->gcode_weight;
+            plate_data_list[it->first-1]->toolpath_outside = it->second->toolpath_outside;
             int gcode_index = find_gcode_name(it->first);
             if (gcode_index != -1) {
                 plate_data_list[it->first-1]->gcode_file = m_gcode_files[gcode_index];
@@ -2615,6 +2617,11 @@ namespace Slic3r {
             {
                 if (m_curr_plater)
                     m_curr_plater->gcode_weight = value;
+            }
+            else if (key == OUTSIDE_ATTR)
+            {
+                if (m_curr_plater)
+                    std::istringstream(value) >> std::boolalpha >> m_curr_plater->toolpath_outside;
             }
         }
 
@@ -4287,6 +4294,7 @@ namespace Slic3r {
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PLATE_IDX_ATTR        << "\" " << VALUE_ATTR << "=\"" << i + 1 << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SLICE_PREDICTION_ATTR << "\" " << VALUE_ATTR << "=\"" << plate_data->get_gcode_prediction_str() << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SLICE_WEIGHT_ATTR      << "\" " << VALUE_ATTR << "=\"" <<  plate_data->get_gcode_weight_str() << "\"/>\n";
+                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << OUTSIDE_ATTR      << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->toolpath_outside << "\"/>\n";
                 stream << "  </" << PLATE_TAG << ">\n";
             }
         }

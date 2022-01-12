@@ -196,8 +196,13 @@ void BackgroundSlicingProcess::process_fff()
 		wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
 
 		m_temp_output_path = this->get_current_plate()->get_tmp_gcode_path();
-		m_fff_print->export_gcode_from_previous_file(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
-		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: export_gcode_from_previous_file finished")%__LINE__;
+		if (! m_export_path.empty()) {
+			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: export gcode directly to %2%")%__LINE__%m_export_path;
+		}
+		else {
+			m_fff_print->export_gcode_from_previous_file(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
+			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: export_gcode_from_previous_file finished")%__LINE__;
+		}
 	}
 	else {
 		//BBS: reset the gcode before reload_print in slicing_completed event processing

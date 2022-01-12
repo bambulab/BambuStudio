@@ -40,6 +40,7 @@ struct PlateData
     std::string     gcode_prediction;
     std::string     gcode_weight;
     bool            is_sliced_valid = false;
+    bool            toolpath_outside {false};
 
     std::string get_gcode_prediction_str() {
         return gcode_prediction;
