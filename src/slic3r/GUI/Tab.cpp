@@ -3947,7 +3947,7 @@ bool Tab::tree_sel_change_delayed(wxTreeEvent& event)
         //m_hsizer->Layout();
         m_parent->Layout();
         throw_if_canceled();
-        Refresh();
+        // Refresh();
 
         m_page_view->Thaw();
     } catch (const UIBuildCanceled&) {
@@ -4567,7 +4567,8 @@ void Page::activate(ConfigOptionMode mode, std::function<void()> throw_if_cancel
     // BBS: fix field control position
     wxTheApp->CallAfter([this]() {
         for (auto group : m_optgroups) {
-            group->custom_ctrl->fixup_items_positions();
+            if (group->custom_ctrl)
+                group->custom_ctrl->fixup_items_positions();
         }
     });
 #endif
