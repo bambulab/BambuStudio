@@ -16,6 +16,11 @@ public:
         Focused = 4,
         Hovered = 8,
         Pressed = 16,
+        Disabled = 1 << 16,
+        NotChecked = 2 << 16,
+        NotFocused = 4 << 16,
+        NotHovered = 8 << 16,
+        NotPressed = 16 << 16,
     };
 
 public:
@@ -29,6 +34,9 @@ public:
     void update_binds();
 
     int states() const { return states_; }
+
+    void set_state(State state) { states_ |= state; }
+    void clean_state(State state) { states_ &= ~state; }
 
 private:
     void changed(wxEvent & event);

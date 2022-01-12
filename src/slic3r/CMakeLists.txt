@@ -12,6 +12,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/CheckBox.hpp
     GUI/Widgets/ComboBox.cpp
     GUI/Widgets/ComboBox.hpp
+    GUI/Widgets/SideButton.hpp
+    GUI/Widgets/SideButton.cpp
     GUI/Widgets/DropDown.cpp
     GUI/Widgets/DropDown.hpp
     GUI/Widgets/Label.cpp
