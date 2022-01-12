@@ -29,6 +29,8 @@ public:
 
     void SetLabel(const wxString& label);
 
+    void SetIcon(const wxString& icon);
+
     bool SetForegroundColour(wxColour const & colour) override;
 
     bool SetBackgroundColour(wxColour const & color) override;

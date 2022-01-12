@@ -41,6 +41,8 @@ namespace Slic3r
 	namespace GUI
 	{
 
+		class MediaPlayCtrl;
+
 		///////////////////////////////////////////////////////////////////////////////
 		/// Class MonitorBasePanel
 		///////////////////////////////////////////////////////////////////////////////
@@ -82,7 +84,8 @@ namespace Slic3r
 				wxPanel* m_panel_monitor;
 				wxPanel* m_panel_live;
 				//wxStaticBitmap* m_bitmap_live_default;
-                wxMediaCtrl2* m_media_ctrl;
+				wxMediaCtrl2* m_media_ctrl;
+				MediaPlayCtrl* m_media_play_ctrl;
 				wxPanel* m_panel_timelapse;
 				wxPanel* m_panel_printing_content;
 				wxStaticText* m_staticText_task_caption;

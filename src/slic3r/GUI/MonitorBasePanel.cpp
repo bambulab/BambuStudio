@@ -6,8 +6,10 @@
 ///////////////////////////////////////////////////////////////////////////
 
 #include "MonitorBasePanel.h"
+#include "MediaPlayCtrl.h"
 #include "Widgets/SwitchButton.hpp"
 #include "wxMediaCtrl2.h"
+#include "MediaPlayCtrl.h"
 
 ///////////////////////////////////////////////////////////////////////////
 using namespace Slic3r::GUI;
@@ -374,21 +376,10 @@ MonitorBasePanel::MonitorBasePanel( wxWindow* parent, wxWindowID id, const wxPoi
     m_media_ctrl->Create(m_panel_live, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxMEDIACTRLPLAYERCONTROLS_NONE);
 #endif
 	m_media_ctrl->SetMinSize(wxSize(400, 300));
-    m_media_ctrl->SetClientData((void *) m_media_ctrl->GetState());
-	m_media_ctrl->Bind(wxEVT_MEDIA_STATECHANGED, [this](wxMediaEvent& e) {
-        auto last_state = (wxMediaState) (int) (long long int) m_media_ctrl->GetClientData();
-        auto state = m_media_ctrl->GetState();
-        m_media_ctrl->SetClientData((void*) state);
-		if (last_state != wxMEDIASTATE_STOPPED &&
-			state == wxMEDIASTATE_STOPPED) {
-            return;
-		}
-        wxSize size = m_media_ctrl->GetBestSize();
-        if (size.GetWidth() > 1000)
-			m_media_ctrl->Play();
-    });
+	m_media_play_ctrl = new MediaPlayCtrl(m_panel_live, m_media_ctrl);
 
 	bSizer29->Add(m_media_ctrl, 0, wxALL|wxEXPAND, 5 );
+	bSizer29->Add(m_media_play_ctrl, 0, wxALL|wxEXPAND, 5 );
 
 
 	m_panel_live->SetSizer( bSizer29 );

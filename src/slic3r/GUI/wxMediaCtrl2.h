@@ -26,6 +26,8 @@ public:
     
     wxMediaState GetState() const;
     
+    static constexpr wxMediaState MEDIASTATE_BUFFERING = (wxMediaState) 6;
+
 protected:
     wxSize DoGetBestSize() const override;
     

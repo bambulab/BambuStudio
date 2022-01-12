@@ -159,6 +159,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ParamsPanel.hpp
 	GUI/AmsWidgets.cpp
 	GUI/AmsWidgets.hpp
+    GUI/MediaPlayCtrl.cpp
+    GUI/MediaPlayCtrl.h
     GUI/MonitorBasePanel.cpp
     GUI/MonitorBasePanel.h
     GUI/Monitor.cpp

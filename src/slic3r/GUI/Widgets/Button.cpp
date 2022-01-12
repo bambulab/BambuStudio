@@ -53,6 +53,19 @@ void Button::SetLabel(const wxString& label)
     Refresh();
 }
 
+void Button::SetIcon(const wxString& icon)
+{
+    if (!icon.IsEmpty()) {
+        //BBS set button icon default size to 20
+        this->icon = ScalableBitmap(this, icon.ToStdString(), this->icon.px_cnt());
+    }
+    else
+    {
+        this->icon = ScalableBitmap();
+    }
+    Refresh();
+}
+
 bool Button::SetForegroundColour(wxColour const &color)
 {
     text_color = StateColor(color);
