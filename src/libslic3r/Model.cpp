@@ -2572,12 +2572,14 @@ double getadhesionCoeff(const ModelVolumePtrs objectVolumes)
 double getTemperatureFromExtruder(const ModelVolumePtrs objectVolumes) {
     std::vector<size_t> extruders;
     for (const ModelVolume* modelVolume : objectVolumes) {
-        extruders.push_back(modelVolume->extruder_id());
+        if (modelVolume->extruder_id() >= 0)
+            extruders.push_back(modelVolume->extruder_id());
     }
 
     double maxDeltaTemp = 0;
     for (auto extruderID : extruders) {
-        maxDeltaTemp = std::max(maxDeltaTemp, Model::extruderParamsMap.at(extruderID).bedTemp);
+        if (Model::extruderParamsMap.find(extruderID) != Model::extruderParamsMap.end())
+            maxDeltaTemp = std::max(maxDeltaTemp, Model::extruderParamsMap.at(extruderID).bedTemp);
     }
     return maxDeltaTemp;
 }

@@ -664,7 +664,7 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
                     append(holes_object, ex_poly.holes);
                 }
                 append(no_brim_area_object, offset_ex(object->layers().front()->lslices, brim_offset));
-                brimToWrite.at(object->id()).obj == false;
+                brimToWrite.at(object->id()).obj = false;
                 for (const PrintInstance& instance : object->instances()) {
                     if (!brim_area_object.empty())
                         append_and_translate(brim_area, brim_area_object, instance, print, brimAreaMap);
@@ -716,7 +716,7 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
                     }
                 }
             }
-            brimToWrite.at(object->id()).sup == false;
+            brimToWrite.at(object->id()).sup = false;
             for (const PrintInstance& instance : object->instances()) {
                 if (!brim_area_support.empty())
                     append_and_translate(brim_area, brim_area_support, instance, print, supportBrimAreaMap);
