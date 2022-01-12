@@ -4959,7 +4959,7 @@ void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, un
         return;
 
     bool multisample = m_multisample_allowed;
-    if (multisample)
+    if (!multisample)
         glsafe(::glEnable(GL_MULTISAMPLE));
 
     GLint max_samples;
@@ -5047,7 +5047,7 @@ void GLCanvas3D::_render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, un
         glsafe(::glDeleteTextures(1, &render_tex));
     glsafe(::glDeleteFramebuffers(1, &render_fbo));
 
-    if (multisample)
+    if (!multisample)
         glsafe(::glDisable(GL_MULTISAMPLE));
 }
 
@@ -5058,7 +5058,7 @@ void GLCanvas3D::_render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data
         return;
 
     bool multisample = m_multisample_allowed;
-    if (multisample)
+    if (!multisample)
         glsafe(::glEnable(GL_MULTISAMPLE));
 
     GLint max_samples;
@@ -5146,7 +5146,7 @@ void GLCanvas3D::_render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data
         glsafe(::glDeleteTextures(1, &render_tex));
     glsafe(::glDeleteFramebuffersEXT(1, &render_fbo));
 
-    if (multisample)
+    if (!multisample)
         glsafe(::glDisable(GL_MULTISAMPLE));
 }
 
