@@ -876,7 +876,11 @@ void PlaterPresetComboBox::update()
         // BBS
         clr_picker->SetBackgroundColour(wxColor(extruder_color));
         selected_filament_preset = m_collection->find_preset(m_preset_bundle->filament_presets[m_extruder_idx]);
-        assert(selected_filament_preset);
+        if (!selected_filament_preset) {
+            //can not find this filament, should be caused by project embedded presets, will be updated later
+            return;
+        }
+        //assert(selected_filament_preset);
     }
 
     bool has_selection = m_collection->get_selected_idx() != size_t(-1);
@@ -888,13 +892,17 @@ void PlaterPresetComboBox::update()
     std::map<wxString, wxBitmap*> nonsys_presets;
     //BBS: add project embedded presets logic
     std::map<wxString, wxBitmap*>  project_embedded_presets;
+    std::map<wxString, wxBitmap*>  system_presets;
 
+    //BBS:  move system to the end
+    wxString selected_system_preset;
     wxString selected_user_preset;
     wxString tooltip;
     const std::deque<Preset>& presets = m_collection->get_presets();
 
-    if (!presets.front().is_visible)
-        this->set_label_marker(this->Append(separator(L("System presets")), wxNullBitmap));
+    //BBS:  move system to the end
+    /*if (!presets.front().is_visible)
+        this->set_label_marker(this->Append(separator(L("System presets")), wxNullBitmap));*/
 
     for (size_t i = presets.front().is_visible ? 0 : m_collection->num_default_presets(); i < presets.size(); ++i) 
     {
@@ -935,11 +943,17 @@ void PlaterPresetComboBox::update()
 
         const std::string name = preset.alias.empty() ? preset.name : preset.alias;
         if (preset.is_default || preset.is_system) {
-            Append(get_preset_name(preset), *bmp);
-            validate_selection(is_selected);
-            if (is_selected)
-                //BBS set tooltip
+            //BBS: move system to the end
+            system_presets.emplace(wxString::FromUTF8((name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), bmp);
+            if (is_selected) {
                 tooltip = get_tooltip(preset);
+                selected_system_preset = wxString::FromUTF8((name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str());
+            }
+            //Append(get_preset_name(preset), *bmp);
+            //validate_selection(is_selected);
+            //if (is_selected)
+                //BBS set tooltip
+            //    tooltip = get_tooltip(preset);
         }
         //BBS: add project embedded preset logic
         else if (preset.is_project_embedded)
@@ -959,16 +973,9 @@ void PlaterPresetComboBox::update()
                 tooltip = get_tooltip(preset);
             }
         }
-        if (i + 1 == m_collection->num_default_presets())
-            set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
-    }
-    if (!nonsys_presets.empty())
-    {
-        set_label_marker(Append(separator(L("User presets")), wxNullBitmap));
-        for (std::map<wxString, wxBitmap*>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
-            Append(it->first, *it->second);
-            validate_selection(it->first == selected_user_preset);
-        }
+        //BBS: move system to the end
+        //if (i + 1 == m_collection->num_default_presets())
+        //    set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
     }
     //BBS: add project embedded preset logic
     if (!project_embedded_presets.empty())
@@ -979,8 +986,26 @@ void PlaterPresetComboBox::update()
             validate_selection(it->first == selected_user_preset);
         }
     }
+    if (!nonsys_presets.empty())
+    {
+        set_label_marker(Append(separator(L("User presets")), wxNullBitmap));
+        for (std::map<wxString, wxBitmap*>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
+            Append(it->first, *it->second);
+            validate_selection(it->first == selected_user_preset);
+        }
+    }
+    //BBS: move system to the end
+    if (!system_presets.empty())
+    {
+        set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
+        for (std::map<wxString, wxBitmap*>::iterator it = system_presets.begin(); it != system_presets.end(); ++it) {
+            Append(it->first, *it->second);
+            validate_selection(it->first == selected_system_preset);
+        }
+    }
 
-    if (m_type == Preset::TYPE_PRINTER)
+    //BBS: remove unused pysical printer logic
+    /*if (m_type == Preset::TYPE_PRINTER)
     {
         // add Physical printers, if any exists
         if (!m_preset_bundle->physical_printers.empty()) {
@@ -1001,7 +1026,7 @@ void PlaterPresetComboBox::update()
                 }
             }
         }
-    }
+    }*/
 
     if (m_type == Preset::TYPE_PRINTER || m_type == Preset::TYPE_FILAMENT || m_type == Preset::TYPE_SLA_MATERIAL) {
         wxBitmap* bmp = get_bmp("edit_preset_list", wide_icons, "edit_uni");
@@ -1118,10 +1143,14 @@ void TabPresetComboBox::update()
 
     std::map<wxString, std::pair<wxBitmap*, bool>> nonsys_presets;
     //BBS: add project embedded presets logic
-    std::map<wxString, std::pair<wxBitmap*, bool>>  project_embedded_presets;
+    std::map<wxString, std::pair<wxBitmap*, bool>>  project_embedded_presets;    
+    //BBS:  move system to the end
+    std::map<wxString, std::pair<wxBitmap*, bool>>  system_presets;
+
     wxString selected = "";
-    if (!presets.front().is_visible)
-        set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
+    //BBS:  move system to the end
+    /*if (!presets.front().is_visible)
+        set_label_marker(Append(separator(L("System presets")), wxNullBitmap));*/
     size_t idx_selected = m_collection->get_selected_idx();
 
     if (m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection()) {
@@ -1152,10 +1181,14 @@ void TabPresetComboBox::update()
         assert(bmp);
 
         if (preset.is_default || preset.is_system) {
-            int item_id = Append(get_preset_name(preset), *bmp);
-            if (!is_enabled)
-                set_label_marker(item_id, LABEL_ITEM_DISABLED);
-            validate_selection(i == idx_selected);
+            //BBS: move system to the end
+            system_presets.emplace(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), std::pair<wxBitmap*, bool>(bmp, is_enabled));
+            if (i == idx_selected)
+                selected = wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str());
+            //int item_id = Append(get_preset_name(preset), *bmp);
+            //if (!is_enabled)
+            //    set_label_marker(item_id, LABEL_ITEM_DISABLED);
+            //validate_selection(i == idx_selected);
         }
         //BBS: add project embedded preset logic
         else if (preset.is_project_embedded)
@@ -1172,19 +1205,9 @@ void TabPresetComboBox::update()
             if (i == idx_selected)
                 selected = get_preset_name(preset);
         }
-        if (i + 1 == m_collection->num_default_presets())
-            set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
-    }
-    if (!nonsys_presets.empty())
-    {
-        set_label_marker(Append(separator(L("User presets")), wxNullBitmap));
-        for (std::map<wxString, std::pair<wxBitmap*, bool>>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
-            int item_id = Append(it->first, *it->second.first);
-            bool is_enabled = it->second.second;
-            if (!is_enabled)
-                set_label_marker(item_id, LABEL_ITEM_DISABLED);
-            validate_selection(it->first == selected);
-        }
+        //BBS: move system to the end
+        //if (i + 1 == m_collection->num_default_presets())
+        //    set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
     }
     //BBS: add project embedded preset logic
     if (!project_embedded_presets.empty())
@@ -1198,10 +1221,34 @@ void TabPresetComboBox::update()
             validate_selection(it->first == selected);
         }
     }
+    if (!nonsys_presets.empty())
+    {
+        set_label_marker(Append(separator(L("User presets")), wxNullBitmap));
+        for (std::map<wxString, std::pair<wxBitmap*, bool>>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
+            int item_id = Append(it->first, *it->second.first);
+            bool is_enabled = it->second.second;
+            if (!is_enabled)
+                set_label_marker(item_id, LABEL_ITEM_DISABLED);
+            validate_selection(it->first == selected);
+        }
+    }
+    //BBS: move system to the end
+    if (!system_presets.empty())
+    {
+        set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
+        for (std::map<wxString, std::pair<wxBitmap*, bool>>::iterator it = system_presets.begin(); it != system_presets.end(); ++it) {
+            int item_id = Append(it->first, *it->second.first);
+            bool is_enabled = it->second.second;
+            if (!is_enabled)
+                set_label_marker(item_id, LABEL_ITEM_DISABLED);
+            validate_selection(it->first == selected);
+        }
+    }
 
     if (m_type == Preset::TYPE_PRINTER)
     {
-        // add Physical printers, if any exists
+        //BBS: remove unused pysical printer logic
+        /*// add Physical printers, if any exists
         if (!m_preset_bundle->physical_printers.empty()) {
             set_label_marker(Append(separator(L("Physical printers")), wxNullBitmap));
             const PhysicalPrinterCollection& ph_printers = m_preset_bundle->physical_printers;
@@ -1220,7 +1267,7 @@ void TabPresetComboBox::update()
                     validate_selection(ph_printers.is_selected(it, preset_name));
                 }
             }
-        }
+        }*/
 
         // add "Add/Remove printers" item
         std::string icon_name = "edit_uni";

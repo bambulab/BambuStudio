@@ -1264,6 +1264,12 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     // Insert a new profile.
     //BBS: add project embedded preset logic
     bool from_project = boost::algorithm::iends_with(name, ".3mf");
+    if (m_type == Preset::TYPE_PRINT)
+        cfg.option<ConfigOptionString >("print_settings_id", true)->value  = new_name;
+    else if (m_type == Preset::TYPE_FILAMENT)
+        cfg.option<ConfigOptionStrings>("filament_settings_id", true)->values[0] = new_name;
+    else if (m_type == Preset::TYPE_PRINTER)
+        cfg.option<ConfigOptionString>("printer_settings_id", true)->value = new_name;
     Preset &preset = this->load_preset(path, new_name, std::move(cfg), select == LoadAndSelect::Always);
     preset.is_external = true;
     if (from_project) {

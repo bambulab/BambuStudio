@@ -355,6 +355,16 @@ void PresetBundle::reset_project_embedded_presets()
     this->prints.reset_project_embedded_presets();
     this->filaments.reset_project_embedded_presets();
     this->printers.reset_project_embedded_presets();
+
+    //update filament_presets
+    for (size_t i = 0; i < filament_presets.size(); ++ i)
+    {
+        Preset* selected_filament = this->filaments.find_preset(filament_presets[i], false);
+        if (!selected_filament) {
+            //it should be the project embedded presets
+            filament_presets[i] = this->filaments.first_visible().name;
+        }
+    }
 }
 
 PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &config, std::map<std::string, Preset*> my_presets, ForwardCompatibilitySubstitutionRule substitution_rule)

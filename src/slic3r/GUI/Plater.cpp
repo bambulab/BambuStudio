@@ -3579,6 +3579,7 @@ void Plater::priv::reset()
 
     //BBS: reset all project embedded presets
     wxGetApp().preset_bundle->reset_project_embedded_presets();
+    wxGetApp().load_current_presets(false, false);
 
     model.custom_gcode_per_print_z.gcodes.clear();
 }
