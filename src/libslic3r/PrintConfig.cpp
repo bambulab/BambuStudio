@@ -634,7 +634,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     //BBS
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(91.5f));
+    def->set_default_value(new ConfigOptionFloat(91.5));
 
     def = this->add("cooling_tube_length", coFloat);
     def->label = L("Cooling tube length");
@@ -642,7 +642,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(5.f));
+    def->set_default_value(new ConfigOptionFloat(5.));
 
     def = this->add("default_acceleration", coFloat);
     def->label = L("Default");
@@ -1023,7 +1023,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats { 2.2f });
+    def->set_default_value(new ConfigOptionFloats { 2.2 });
 
     def = this->add("filament_minimal_purge_on_wipe_tower", coFloats);
     def->label = L("Minimal purge on wipe tower");
@@ -1034,7 +1034,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm³");
     def->min = 0;
     def->mode = comExpert;
-    def->set_default_value(new ConfigOptionFloats { 15.f });
+    def->set_default_value(new ConfigOptionFloats { 15. });
 
     def = this->add("filament_cooling_final_speed", coFloats);
     def->label = L("Speed of the last cooling move");
@@ -1042,7 +1042,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats { 3.4f });
+    def->set_default_value(new ConfigOptionFloats { 3.4 });
 
     def = this->add("filament_load_time", coFloats);
     def->label = L("Filament load time");
@@ -1050,7 +1050,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("s");
     def->min = 0;
     def->mode = comExpert;
-    def->set_default_value(new ConfigOptionFloats { 0.0f });
+    def->set_default_value(new ConfigOptionFloats { 0.0 });
 
     def = this->add("filament_ramming_parameters", coStrings);
     def->label = L("Ramming parameters");
@@ -1065,7 +1065,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("s");
     def->min = 0;
     def->mode = comExpert;
-    def->set_default_value(new ConfigOptionFloats { 0.0f });
+    def->set_default_value(new ConfigOptionFloats { 0.0 });
 
     def = this->add("filament_diameter", coFloats);
     def->label = L("Diameter");
@@ -1655,7 +1655,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->category = L("Advanced");
     def->mode = comExpert;
-    def->set_default_value(new ConfigOptionFloat(0.f));
+    def->set_default_value(new ConfigOptionFloat(0.));
 
     def = this->add("ironing", coBool);
     def->label = L("Enable ironing");
@@ -2067,7 +2067,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(92.f));
+    def->set_default_value(new ConfigOptionFloat(92.));
 
     def = this->add("extra_loading_move", coFloat);
     def->label = L("Extra loading distance");
@@ -2076,7 +2076,7 @@ void PrintConfigDef::init_fff_params()
                       " if negative, the loading move is shorter than unloading.");
     def->sidetext = L("mm");
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(-2.f));
+    def->set_default_value(new ConfigOptionFloat(-2.));
 
     def = this->add("perimeter_acceleration", coFloat);
     def->label = L("Perimeters");
@@ -3266,17 +3266,17 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("This vector saves required volumes to change from/to each tool used on the "
                      "wipe tower. These values are used to simplify creation of the full purging "
                      "volumes below.");
-    def->set_default_value(new ConfigOptionFloats { 70.f, 70.f, 70.f, 70.f, 70.f, 70.f, 70.f, 70.f, 70.f, 70.f  });
+    def->set_default_value(new ConfigOptionFloats { 70., 70., 70., 70., 70., 70., 70., 70., 70., 70.  });
 
     def = this->add("wiping_volumes_matrix", coFloats);
     def->label = L("Purging volumes - matrix");
     def->tooltip = L("This matrix describes volumes (in cubic milimetres) required to purge the"
                      " new filament on the wipe tower for any given pair of tools.");
-    def->set_default_value(new ConfigOptionFloats {   0.f, 30.f, 30.f, 30.f, 30.f,
-                                                     30.f,  0.f, 30.f, 30.f, 30.f,
-                                                     30.f, 30.f,  0.f, 30.f, 30.f,
-                                                     30.f, 30.f, 30.f,  0.f, 30.f,
-                                                     30.f, 30.f, 30.f, 30.f,  0.f });
+    def->set_default_value(new ConfigOptionFloats {   0., 30., 30., 30., 30.,
+                                                     30.,  0., 30., 30., 30.,
+                                                     30., 30.,  0., 30., 30.,
+                                                     30., 30., 30.,  0., 30.,
+                                                     30., 30., 30., 30.,  0. });
 
     def = this->add("wipe_tower_x", coFloat);
     def->label = L("Position X");
@@ -3311,7 +3311,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Wipe tower brim width");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
-    def->min = 0.f;
+    def->min = 0.;
     def->set_default_value(new ConfigOptionFloat(2.));
 
     def = this->add("wipe_into_infill", coBool);
@@ -3949,7 +3949,7 @@ void PrintConfigDef::init_sla_params()
     def->tooltip = L("No support points will be placed closer than this threshold.");
     def->sidetext = L("mm");
     def->min = 0;
-    def->set_default_value(new ConfigOptionFloat(1.f));
+    def->set_default_value(new ConfigOptionFloat(1.));
 
     def = this->add("pad_enable", coBool);
     def->label = L("Use pad");
