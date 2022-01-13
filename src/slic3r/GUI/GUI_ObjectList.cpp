@@ -585,11 +585,14 @@ void ObjectList::update_extruder_values_for_items(const size_t max_extruder)
                 item = m_objects_model->GetItemByVolumeId(i, id);
                 if (!item) continue;
                 if (!object->volumes[id]->config.has("extruder") ||
-                    size_t(object->volumes[id]->config.extruder()) > max_extruder)
+                    size_t(object->volumes[id]->config.extruder()) > max_extruder) {
                     //extruder = _(L("default"));
+                    object->volumes[id]->config.set_key_value("extruder", new ConfigOptionInt(1));
                     extruder = "1";
-                else
-                    extruder = wxString::Format("%d", object->volumes[id]->config.extruder()); 
+                }
+                else {
+                    extruder = wxString::Format("%d", object->volumes[id]->config.extruder());
+                }
 
                 m_objects_model->SetExtruder(extruder, item);
             }
@@ -693,7 +696,8 @@ void ObjectList::update_objects_list_extruder_column(size_t extruders_count)
 
     m_prevent_update_extruder_in_config = true;
 
-    if (m_objects && extruders_count > 1)
+    // BBS: update extruder values even when extruders_count is 1, because it may be reduced from value greater than 1
+    if (m_objects && extruders_count >= 1)
         update_extruder_values_for_items(extruders_count);
 
     update_extruder_colors();

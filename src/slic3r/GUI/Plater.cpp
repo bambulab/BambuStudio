@@ -910,6 +910,10 @@ Sidebar::Sidebar(Plater *parent)
     scrolled_sizer->Add(p->m_panel_filament_title, 0, wxEXPAND | wxALL, 0);
 
     add_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
+        // BBS: limit filament choices to 16
+        if (p->combos_filament.size() >= 16)
+            return;
+
         int extruder_count = p->combos_filament.size() + 1;
 
         wxGetApp().preset_bundle->printers.get_edited_preset().set_num_extruders(extruder_count);
@@ -921,18 +925,18 @@ Sidebar::Sidebar(Plater *parent)
     ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "delete_filament");
     del_btn->SetBackgroundColour(wxColour(233, 233, 233));
     del_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
-        int extruder_count = std::max(1, (int)p->combos_filament.size() - 1);
+        if (p->combos_filament.size() <= 1)
+            return;
 
-        update_objects_list_extruder_column(std::max(1, extruder_count - 1));
-        on_extruders_change(extruder_count);
-        wxGetApp().preset_bundle->printers.get_edited_preset().set_num_extruders(extruder_count);
+        size_t new_extruder_count = p->combos_filament.size() - 1;
+        update_objects_list_extruder_column(new_extruder_count);
+        on_extruders_change(new_extruder_count);
+        wxGetApp().preset_bundle->printers.get_edited_preset().set_num_extruders(new_extruder_count);
         wxGetApp().preset_bundle->update_multi_material_filament_presets();
     });
 
     bSizer39->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, 5 * em / 10);
     bSizer39->Add(10 * em / 10, 0, 0, 0, 0);
-
-
 
     // add filament content
     p->m_panel_filament_content = new wxPanel( p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
