@@ -22,6 +22,7 @@
 #include "UnsavedChangesDialog.hpp"
 #include "DebugToolDialog.hpp"
 #include "Widgets/SideButton.hpp"
+#include "Widgets/SideMenuPopup.hpp"
 
 // BBS
 #include "BBLTopbar.hpp"

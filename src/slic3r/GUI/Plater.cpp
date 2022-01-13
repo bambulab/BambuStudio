@@ -839,10 +839,11 @@ Sidebar::Sidebar(Plater *parent)
     auto *scrolled_sizer = new wxBoxSizer(wxVERTICAL);
     p->scrolled->SetSizer(scrolled_sizer);
 
+    wxColour title_bg = wxColour(248, 248, 248);
 
     // add print title
     p->m_panel_print_title = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxSize(-1, 36 * em / 10), wxTAB_TRAVERSAL);
-	p->m_panel_print_title->SetBackgroundColour( wxColour( 233, 233, 233 ) );
+    p->m_panel_print_title->SetBackgroundColour(title_bg);
 
 	wxBoxSizer* bSizer_print_title;
 	bSizer_print_title = new wxBoxSizer( wxHORIZONTAL );
@@ -891,7 +892,7 @@ Sidebar::Sidebar(Plater *parent)
 
     // add filament title
     p->m_panel_filament_title = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxSize(-1, 36 * em / 10), wxTAB_TRAVERSAL);
-    p->m_panel_filament_title->SetBackgroundColour(wxColour(233, 233, 233));
+    p->m_panel_filament_title->SetBackgroundColour(title_bg);
 
 	wxBoxSizer* bSizer39;
 	bSizer39 = new wxBoxSizer( wxHORIZONTAL );
@@ -902,7 +903,7 @@ Sidebar::Sidebar(Plater *parent)
 	bSizer39->Add( p->m_staticText_filament_settings, 1, wxALIGN_CENTER|wxALL, 5 * em / 10 );
 
     ScalableButton* add_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "add_filament");
-    add_btn->SetBackgroundColour(wxColour(233, 233, 233));
+    add_btn->SetBackgroundColour(title_bg);
 	bSizer39->Add(add_btn, 0, wxALIGN_CENTER|wxALL, 5 * em / 10 );
 	bSizer39->Add( 10 * em / 10, 0, 0, 0, 0 );
 	p->m_panel_filament_title->SetSizer( bSizer39 );
@@ -923,7 +924,7 @@ Sidebar::Sidebar(Plater *parent)
     });
 
     ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "delete_filament");
-    del_btn->SetBackgroundColour(wxColour(233, 233, 233));
+    del_btn->SetBackgroundColour(title_bg);
     del_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
         if (p->combos_filament.size() <= 1)
             return;

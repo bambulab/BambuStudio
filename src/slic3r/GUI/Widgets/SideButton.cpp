@@ -4,13 +4,10 @@
 #include <wx/dcgraph.h>
 
 BEGIN_EVENT_TABLE(SideButton, wxPanel)
-
 EVT_LEFT_DOWN(SideButton::mouseDown)
 EVT_LEFT_UP(SideButton::mouseReleased)
 EVT_LEAVE_WINDOW(SideButton::mouseLeave)
-// catch paint events
 EVT_PAINT(SideButton::paintEvent)
-
 END_EVENT_TABLE()
 
 SideButton::SideButton(wxWindow* parent, wxString text, wxString icon, long stlye, int iconSize)
@@ -59,6 +56,14 @@ void SideButton::SetCornerRadius(double radius)
     Refresh();
 }
 
+void SideButton::SetCornerEnable(const std::vector<bool>& enable)
+{
+    radius_enable.clear();
+    for (auto en : enable) {
+        radius_enable.push_back(en);
+    }
+}
+
 void SideButton::SetLabel(const wxString& label)
 {
     wxWindow::SetLabel(label);
@@ -77,6 +82,12 @@ bool SideButton::SetBackgroundColour(wxColour const& color)
 {
     background_color = StateColor(color);
     state_handler.update_binds();
+    return true;
+}
+
+bool SideButton::SetBottomColour(wxColour const& color)
+{
+    bottom_color = color;
     return true;
 }
 
@@ -159,7 +170,7 @@ void SideButton::render(wxDC& dc)
 
     // draw background
     dc.SetPen(wxNullPen);
-    dc.SetBrush(wxColour(0x3B4446));
+    dc.SetBrush(bottom_color);
     dc.DrawRectangle(0, 0, size.x, size.y);
 
     int states = state_handler.states();
@@ -171,17 +182,26 @@ void SideButton::render(wxDC& dc)
     
     // draw icon style
     if (icon.bmp().IsOk()) {
-        dc.DrawRoundedRectangle(0, 0, size.x, size.y, radius);
-        dc.DrawRectangle(radius, 0, size.x - radius, size.y);
-        dc.SetPen(wxNullPen);
-        dc.DrawRectangle(radius - pen_width, pen_width, radius, size.y - 2 * pen_width);
+        if (radius > 1e-5) {
+            dc.DrawRoundedRectangle(0, 0, size.x, size.y, radius);
+            dc.DrawRectangle(radius, 0, size.x - radius, size.y);
+            dc.SetPen(wxNullPen);
+            dc.DrawRectangle(radius - pen_width, pen_width, radius, size.y - 2 * pen_width);
+        }
+        else {
+            dc.DrawRectangle(0, 0, size.x, size.y);
+        }
     }
     // draw text style
     else {
-        dc.DrawRoundedRectangle(0, 0, size.x, size.y, radius);
-        dc.DrawRectangle(0, 0, size.x - radius, size.y);
-        dc.SetPen(wxNullPen);
-        dc.DrawRectangle(size.x - radius - pen_width, pen_width, 2 * pen_width, size.y - 2 * pen_width);
+        if (radius > 1e-5) {
+            dc.DrawRoundedRectangle(0, 0, size.x, size.y, radius);
+            dc.DrawRectangle(0, 0, size.x - radius, size.y);
+            dc.SetPen(wxNullPen);
+            dc.DrawRectangle(size.x - radius - pen_width, pen_width, 2 * pen_width, size.y - 2 * pen_width);
+        } else {
+            dc.DrawRectangle(0, 0, size.x, size.y);
+        }
     }
 
     dc.SetBrush(*wxTRANSPARENT_BRUSH);

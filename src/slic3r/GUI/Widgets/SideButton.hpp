@@ -2,6 +2,8 @@
 #define slic3r_GUI_SideButton_hpp_
 
 #include <wx/stattext.h>
+#include <wx/vlbox.h>
+#include <wx/combo.h>
 #include "../wxExtensions.hpp"
 #include "StateHandler.hpp"
 
@@ -14,11 +16,13 @@ class SideButton : public wxWindow
     double radius;
     wxSize extra_size;
     int icon_offset;
+    std::vector<bool> radius_enable;
 
     StateHandler    state_handler;
     StateColor      text_color;
     StateColor      border_color;
     StateColor      background_color;
+    wxColour        bottom_color;
 
 	bool pressedDown = false;
 
@@ -27,11 +31,16 @@ public:
 
     void SetCornerRadius(double radius);
 
+    //BBS set enable array
+    void SetCornerEnable(const std::vector<bool>& enable);
+
     void SetLabel(const wxString& label);
 
     bool SetForegroundColour(wxColour const & colour) override;
 
     bool SetBackgroundColour(wxColour const & color) override;
+
+    bool SetBottomColour(wxColour const &color);
 
     void SetMinSize(const wxSize& size) override;
     
@@ -64,5 +73,4 @@ private:
 
 	DECLARE_EVENT_TABLE()
 };
-
 #endif // !slic3r_GUI_Button_hpp_

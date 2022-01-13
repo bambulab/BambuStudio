@@ -1224,67 +1224,81 @@ wxBoxSizer* MainFrame::create_side_tools()
 
     m_slice_option_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
-            wxMenu* menu = new wxMenu();
+            SidePopup* p = new SidePopup(this);
+            SideButton* slice_all_btn = new SideButton(p, _L("Slice all"), "");
+            slice_all_btn->SetCornerRadius(0);
+            SideButton* slice_plate_btn = new SideButton(p, _L("Slice plate"), "");
+            slice_plate_btn->SetCornerRadius(0);
 
-            append_menu_item(menu, wxID_ANY, _L("Slice all"), _L("Slice all plates"),
-                [this](wxCommandEvent&)
-                {
+            slice_all_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_slice_btn->SetLabel(_L("Slice all"));
                     m_slice_select = eSliceAll;
                     m_slice_enable = get_enable_slice_status();
                     m_slice_btn->Enable(m_slice_enable);
                     this->Layout();
+                    p->Dismiss();
                 });
-            append_menu_item(menu, wxID_ANY, _L("Slice plate"), _L("Slice selected plate"),
-                [this](wxCommandEvent&)
-                {
+
+            slice_plate_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_slice_btn->SetLabel(_L("Slice plate"));
                     m_slice_select = eSlicePlate;
                     m_slice_enable = get_enable_slice_status();
                     m_slice_btn->Enable(m_slice_enable);
                     this->Layout();
+                    p->Dismiss();
                 });
-            wxPoint parent_pos = m_slice_btn->GetParent()->GetPosition();
-            wxPoint btn_pos = m_slice_btn->GetPosition() + parent_pos;
-            this->PopupMenu(menu, btn_pos.x, btn_pos.y + m_slice_btn->GetSize().GetHeight() + m_topbar->GetSize().GetHeight());
+            p->append_button(slice_all_btn);
+            p->append_button(slice_plate_btn);
+            wxPoint popup_pos = m_slice_btn->ClientToScreen(wxPoint(0, 0));
+            p->Position(popup_pos, wxSize(0, m_slice_btn->GetSize().y));
+            p->Popup();
         }
     );
 
     m_print_option_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
-            wxMenu* menu = new wxMenu();
+            SidePopup* p = new SidePopup(this);
+            SideButton* print_all_btn = new SideButton(p, _L("Print all"), "");
+            print_all_btn->SetCornerRadius(0);
+            SideButton* print_plate_btn = new SideButton(p, _L("Print plate"), "");
+            print_plate_btn->SetCornerRadius(0);
+            SideButton* export_sliced_file_btn = new SideButton(p, _L("Export sliced file"), "");
+            export_sliced_file_btn->SetCornerRadius(0);
 
-            append_menu_item(menu, wxID_ANY, _L("Print all"), _L("Print all plates"),
-                [this](wxCommandEvent&)
-                {
+            print_all_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Print all"));
                     m_print_select = ePrintAll;
                     if (m_print_enable)
                         m_print_enable = get_enable_print_status();
                     m_print_btn->Enable(m_print_enable);
                     this->Layout();
+                    p->Dismiss();
                 });
-            append_menu_item(menu, wxID_ANY, _L("Print plate"), _L("Print selected plate"),
-                [this](wxCommandEvent&)
-                {
+
+            print_plate_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Print plate"));
                     m_print_select = ePrintPlate;
                     m_print_enable = get_enable_print_status();
                     m_print_btn->Enable(m_print_enable);
                     this->Layout();
+                    p->Dismiss();
                 });
-            append_menu_item(menu, wxID_ANY, _L("Export Sliced File"), _L("Export sliced file"),
-                [this](wxCommandEvent&)
-                {
+
+            export_sliced_file_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Export Sliced File"));
                     m_print_select = eExportSlicedFile;
                     if (m_print_enable)
                         m_print_enable = get_enable_print_status();
                     m_print_btn->Enable(m_print_enable);
                     this->Layout();
+                    p->Dismiss();
                 });
-            wxPoint btn_pos = m_print_btn->GetPosition();
-            this->PopupMenu(menu, btn_pos.x, btn_pos.y + m_print_btn->GetSize().GetHeight() + m_topbar->GetSize().GetHeight());
+            p->append_button(print_all_btn);
+            p->append_button(print_plate_btn);
+            p->append_button(export_sliced_file_btn);
+            wxPoint popup_pos = m_print_btn->ClientToScreen(wxPoint(0, 0));
+            p->Position(popup_pos, wxSize(0, m_print_btn->GetSize().y));
+            p->Popup();
         }
     );
     return sizer;
@@ -1372,17 +1386,21 @@ void MainFrame::update_side_button_style()
     m_slice_btn->SetMinSize(wxSize(-1, 24 * em / 10));
     m_slice_btn->SetCornerRadius(12 * em / 10);
     m_slice_btn->SetExtraSize(wxSize(38 * em / 10, 10 * em / 10));
+    m_slice_btn->SetBottomColour(wxColour(0x3B4446));
     m_slice_option_btn->SetCornerRadius(12 * em / 10);
     m_slice_option_btn->SetExtraSize(wxSize(10 * em / 10, 10 * em / 10));
     m_slice_option_btn->SetIconOffset(2 * em / 10);
     m_slice_option_btn->SetMinSize(wxSize(24 * em / 10, 24 * em / 10));
+    m_slice_option_btn->SetBottomColour(wxColour(0x3B4446));
     m_print_btn->SetCornerRadius(12 * em / 10);
     m_print_btn->SetExtraSize(wxSize(38 * em / 10, 10 * em / 10));
     m_print_btn->SetMinSize(wxSize(-1, 24 * em / 10));
+    m_print_btn->SetBottomColour(wxColour(0x3B4446));
     m_print_option_btn->SetCornerRadius(12 * em / 10);
     m_print_option_btn->SetExtraSize(wxSize(10 * em / 10, 10 * em / 10));
     m_print_option_btn->SetIconOffset(2 * em / 10);
     m_print_option_btn->SetMinSize(wxSize(24 * em / 10, 24 * em / 10));
+    m_print_option_btn->SetBottomColour(wxColour(0x3B4446));
 }
 
 void MainFrame::update_slice_print_status(SlicePrintEventType event, bool can_slice, bool can_print)
