@@ -6591,7 +6591,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                 m_volumes.render(type, false, wxGetApp().plater()->get_camera().get_view_matrix(), [object_id, canvas_type](const GLVolume& volume) {
                     // Which volume to paint without the layer height profile shader?
                     if (canvas_type == ECanvasType::CanvasAssembleView) {
-                        return volume.is_active && !volume.is_modifier;
+                        return volume.is_active && !volume.is_modifier && !volume.is_wipe_tower;
                     }
                     else {
                         return volume.is_active && (volume.is_modifier || volume.composite_id.object_id != object_id);

@@ -182,6 +182,7 @@ bool TriangleMesh::from_stl(stl_file& stl, bool repair)
     if (repair)
         trianglemesh_repair_on_import(stl);
 
+#if 0
     m_stats.number_of_facets = stl.stats.number_of_facets;
     m_stats.min = stl.stats.min;
     m_stats.max = stl.stats.max;
@@ -200,8 +201,10 @@ bool TriangleMesh::from_stl(stl_file& stl, bool repair)
                                 stl.stats.backwards_edges };
 
     m_stats.number_of_parts = stl.stats.number_of_parts;
+#endif
 
     stl_generate_shared_vertices(&stl, this->its);
+    fill_initial_stats(this->its, this->m_stats);
     return true;
 }
 
