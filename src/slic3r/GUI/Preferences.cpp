@@ -315,6 +315,7 @@ void PreferencesDialog::build(size_t selected_tab)
 	def.set_default_value(new ConfigOptionInt{ boost::lexical_cast<int>(app_config->has("backup_interval") ? app_config->get("backup_interval") : "10") });
 	option = Option(def, "backup_interval");
 	m_optgroup_general->append_single_option_line(option);
+	def.sidetext.clear();
 
 	activate_options_tab(m_optgroup_general);
 

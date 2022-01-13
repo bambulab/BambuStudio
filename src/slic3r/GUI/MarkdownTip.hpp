@@ -15,6 +15,8 @@ public:
 
     static wxWindow* AttachTo(wxWindow * parent);
 
+    static wxWindow* DetachFrom(wxWindow * parent);
+
 private:
     static MarkdownTip& markdownTip();
 

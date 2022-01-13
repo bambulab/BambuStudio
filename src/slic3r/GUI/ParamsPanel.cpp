@@ -424,7 +424,7 @@ ParamsPanel::~ParamsPanel()
     if (cur_tab)
         cur_tab->clear_pages();
 
-    MarkdownTip::AttachTo(NULL);
+    MarkdownTip::DetachFrom(m_page_view);
 }
 
 } // GUI

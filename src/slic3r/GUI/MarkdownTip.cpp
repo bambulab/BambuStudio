@@ -303,15 +303,18 @@ bool MarkdownTip::ShowTip(std::string const& tip, wxPoint pos)
 wxWindow* MarkdownTip::AttachTo(wxWindow* parent)
 {
     MarkdownTip& tip = markdownTip();
-    if (parent) {
-        tip._tipView = tip.CreateTipView(parent);
-        tip._pendingScript = " ";
-        return tip._tipView;
-    }
-    else {
+    tip._tipView = tip.CreateTipView(parent);
+    tip._pendingScript = " ";
+    return tip._tipView;
+}
+
+wxWindow* MarkdownTip::DetachFrom(wxWindow* parent)
+{
+    MarkdownTip& tip = markdownTip();
+    if (tip._tipView->GetParent() == parent) {
         tip.Destroy();
-        return NULL;
     }
+    return NULL;
 }
 
 }

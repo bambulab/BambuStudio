@@ -2564,14 +2564,6 @@ bool GUI_App::load_language(wxString language, bool initial)
 
 	BOOST_LOG_TRIVIAL(trace) << boost::format("Switching wxLocales to %1%") % language_info->CanonicalName.ToUTF8().data();
 
-    // Alternate language code.
-    wxLanguage language_dict = wxLanguage(language_info->Language);
-    if (language_info->CanonicalName.BeforeFirst('_') == "sk") {
-    	// Slovaks understand Czech well. Give them the Czech translation.
-    	language_dict = wxLANGUAGE_CZECH;
-		BOOST_LOG_TRIVIAL(trace) << "Using Czech dictionaries for Slovak language";
-    }
-
     // Select language for locales. This language may be different from the language of the dictionary.
     if (language_info == m_language_info_best || language_info == m_language_info_system) {
         // The current language matches user's default profile exactly. That's great.
@@ -2581,6 +2573,14 @@ bool GUI_App::load_language(wxString language, bool initial)
         language_info = m_language_info_best;
     } else if (m_language_info_system != nullptr && language_info->CanonicalName.BeforeFirst('_') == m_language_info_system->CanonicalName.BeforeFirst('_'))
         language_info = m_language_info_system;
+
+    // Alternate language code.
+    wxLanguage language_dict = wxLanguage(language_info->Language);
+    if (language_info->CanonicalName.BeforeFirst('_') == "sk") {
+    	// Slovaks understand Czech well. Give them the Czech translation.
+    	language_dict = wxLANGUAGE_CZECH;
+		BOOST_LOG_TRIVIAL(trace) << "Using Czech dictionaries for Slovak language";
+    }
 
 #ifdef __linux__
     // If we can't find this locale , try to use different one for the language
