@@ -82,25 +82,41 @@ namespace Slic3r {
     {
         AccountManager* manager = (AccountManager*)context_;
         if (manager) {
-            BOOST_LOG_TRIVIAL(trace) << "message topic:" << msg->get_topic() << ", payload=" << msg->get_payload_str();
             std::string topic = msg->get_topic();
             std::map<std::string, MachineObject*>::iterator it = manager->mqtt_topics.find(topic);
             if (it != manager->mqtt_topics.end()) {
+                std::string json_str;
                 if (it->second) {
-                    int result = 0;
-                    lzo_out_len = LZO_OUT_MAX_LEN;
-                    result = lzo_decompress((unsigned char*)msg->get_payload_ref().data(), msg->get_payload().length(), lzo_out, &lzo_out_len);
-                    // decompress ok
-                    if (result == 0)
-                        it->second->parse_json(msg->get_topic(), std::string((char*)lzo_out, lzo_out_len));
-                    else
-                        it->second->parse_json(msg->get_topic(), msg->get_payload_str());
+                    try {
+                        // BBS check valid json
+                        json j = json::parse(msg->get_payload_str());
+                        if (j.is_null()) {
+                            int result = 0;
+                            lzo_out_len = LZO_OUT_MAX_LEN;
+                            result = lzo_decompress((unsigned char*)msg->get_payload_ref().data(), msg->get_payload().length(), lzo_out, &lzo_out_len);
+                            if (result == 0) {
+                                json_str = std::string((char*)lzo_out, lzo_out_len);
+                                BOOST_LOG_TRIVIAL(trace) << "message topic:" << msg->get_topic() << ", payload=" << json_str;
+                            } else {
+                                BOOST_LOG_TRIVIAL(trace) << "message_arrived: invalid json and decompress failed, result = " << result;
+                            }
+                        } else {
+                            json_str = msg->get_payload_str();
+                            BOOST_LOG_TRIVIAL(trace) << "message topic:" << msg->get_topic() << ", payload=" << json_str;
+                        }
+                    }
+                    catch (...) {
+                        ;
+                    }
                 }
+                if (json_str.empty()) return;
+
+                it->second->parse_json(msg->get_topic(), json_str);
 
                 // update my bind list machine
                 std::map<std::string, MachineObject*>::iterator iter = manager->myBindMachineList.find(it->second->dev_id);
                 if (iter != manager->myBindMachineList.end()) {
-                    iter->second->parse_json(msg->get_topic(), msg->get_payload_str());
+                    iter->second->parse_json(msg->get_topic(), json_str);
                 }
             }
         }

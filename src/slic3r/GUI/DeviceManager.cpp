@@ -6,6 +6,7 @@
 #include "slic3r/Utils/Sftp.hpp"
 
 #include "nlohmann/json.hpp"
+#include "slic3r/Utils/minilzo_extension.hpp"
 #include <thread>
 #include <mutex>
 #include <codecvt>
@@ -24,6 +25,10 @@ const std::string JSON_CMD_SYSTEM = "system";
 // json key const string
 const std::string JSON_MC_REMAIN_TIME   = "mc_remaining_time";
 const std::string JSON_MC_PERCENT = "mc_percent";
+
+static uint64_t lzo_out_len = 5 * 1024;
+const uint64_t LZO_OUT_MAX_LEN = 5 * 1024;
+static unsigned char lzo_out[LZO_OUT_MAX_LEN];
 
 namespace Slic3r {
 
@@ -104,10 +109,32 @@ void machine_conn_callback::connection_lost(const std::string& cause) {
 void machine_conn_callback::message_arrived(mqtt::const_message_ptr msg)
 {
     MachineObject* obj = (MachineObject*)context_;
-    std::string payload = msg->get_payload_str();
 
+    std::string json_str;
     if (obj) {
-        obj->parse_json(msg->get_topic(), payload);
+        try {
+            // BBS check valid json
+            json j = json::parse(msg->get_payload_str());
+            if (j.is_null()) {
+                int result = 0;
+                lzo_out_len = LZO_OUT_MAX_LEN;
+                result = lzo_decompress((unsigned char*)msg->get_payload_ref().data(), msg->get_payload().length(), lzo_out, &lzo_out_len);
+                if (result == 0) {
+                    json_str = std::string((char*)lzo_out, lzo_out_len);
+                    BOOST_LOG_TRIVIAL(trace) << " machine_conn_callback: message_arrived " << msg->get_topic() << ", payload=" << json_str;
+                } else {
+                    BOOST_LOG_TRIVIAL(trace) << "machine_conn_callback: message_arrived invalid json and decompress failed, result = " << result;
+                }
+            } else {
+                json_str = msg->get_payload_str();
+                BOOST_LOG_TRIVIAL(trace) << "message topic:" << msg->get_topic() << ", payload=" << json_str;
+            }
+        }
+        catch (...) {
+            ;
+        }
+        if (json_str.empty()) return;
+        obj->parse_json(msg->get_topic(), json_str);
     }
 }
 
