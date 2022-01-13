@@ -5996,6 +5996,9 @@ bool GLCanvas3D::_init_assemble_view_toolbar()
     item.left.render_callback = GLToolbarItem::Default_Render_Callback;
     item.visible = true;
     item.visibility_callback = [this]()->bool { return true; };
+    item.enabling_callback = [this]()->bool {
+        return wxGetApp().plater()->has_assmeble_view();
+    };
     if (!m_assemble_view_toolbar.add_item(item))
         return false;
 

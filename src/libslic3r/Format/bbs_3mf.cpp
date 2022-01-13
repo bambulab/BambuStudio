@@ -4231,29 +4231,30 @@ namespace Slic3r {
             const ModelObject* obj = obj_metadata.second.object;
             if (obj != nullptr) {
                 for (int instance_idx = 0; instance_idx < obj->instances.size(); ++instance_idx) {
-                    stream << "   <" << ASSEMBLE_ITEM_TAG << " " << OBJECT_ID_ATTR << "=\"" << obj_metadata.first << "\" ";
-                    stream << INSTANCEID_ATTR << "=\"" << obj_metadata.first + instance_idx << "\" " << TRANSFORM_ATTR << "=\"";
-                        for (unsigned c = 0; c < 4; ++c) {
-                            for (unsigned r = 0; r < 3; ++r) {
-                                const Transform3d assemble_trans = obj->instances[instance_idx]->get_assemble_transformation().get_matrix();
-                                stream << assemble_trans(r, c);
-                                if (r != 2 || c != 3)
-                                    stream << " ";
+                    if (obj->instances[instance_idx]->is_assemble_initialized()) {
+                        stream << "   <" << ASSEMBLE_ITEM_TAG << " " << OBJECT_ID_ATTR << "=\"" << obj_metadata.first << "\" ";
+                        stream << INSTANCEID_ATTR << "=\"" << obj_metadata.first + instance_idx << "\" " << TRANSFORM_ATTR << "=\"";
+                            for (unsigned c = 0; c < 4; ++c) {
+                                for (unsigned r = 0; r < 3; ++r) {
+                                    const Transform3d assemble_trans = obj->instances[instance_idx]->get_assemble_transformation().get_matrix();
+                                    stream << assemble_trans(r, c);
+                                    if (r != 2 || c != 3)
+                                        stream << " ";
+                                }
                             }
-                        }
 
-                    stream << "\" ";
+                        stream << "\" ";
 
-                    stream << OFFSET_ATTR << "=\"";
-                    Vec3d ofs2ass = obj->instances[instance_idx]->get_offset_to_assembly();
-                    stream << ofs2ass(0) << " " << ofs2ass(1) << " " << ofs2ass(2);
-
+                        stream << OFFSET_ATTR << "=\"";
+                        Vec3d ofs2ass = obj->instances[instance_idx]->get_offset_to_assembly();
+                        stream << ofs2ass(0) << " " << ofs2ass(1) << " " << ofs2ass(2);
                     stream << "\" />\n";
+                    }
                 }
             }
         }
-
         stream << "  </" << ASSEMBLE_TAG << ">\n";
+
 
         stream << "</" << CONFIG_TAG << ">\n";
 

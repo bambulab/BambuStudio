@@ -434,6 +434,7 @@ public:
 
     //BBS:
     bool can_fillcolor() const;
+    bool has_assmeble_view() const;
 
     void msw_rescale();
     void sys_color_changed();

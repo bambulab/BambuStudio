@@ -2025,6 +2025,7 @@ struct Plater::priv
     bool can_reload_from_disk() const;
     //BBS:
     bool can_fillcolor() const;
+    bool has_assemble_view() const;
     bool can_replace_with_stl() const;
     bool can_split(bool to_objects) const;
 #if ENABLE_ENHANCED_PRINT_VOLUME_FIT
@@ -5609,6 +5610,17 @@ bool Plater::priv::can_fillcolor() const
 {
     //BBS TODO
     return true;
+}
+
+bool Plater::priv::has_assemble_view() const
+{
+    for (auto object: model.objects)
+    {
+        for (auto instance : object->instances)
+            if (instance->is_assemble_initialized())
+                return true;
+    }
+    return false;
 }
 
 #if ENABLE_ENHANCED_PRINT_VOLUME_FIT
@@ -9250,6 +9262,7 @@ bool Plater::can_redo() const { return p->undo_redo_stack().has_redo_snapshot();
 bool Plater::can_reload_from_disk() const { return p->can_reload_from_disk(); }
 //BBS
 bool Plater::can_fillcolor() const { return p->can_fillcolor(); }
+bool Plater::has_assmeble_view() const { return p->has_assemble_view(); }
 bool Plater::can_replace_with_stl() const { return p->can_replace_with_stl(); }
 bool Plater::can_mirror() const { return p->can_mirror(); }
 bool Plater::can_split(bool to_objects) const { return p->can_split(to_objects); }
