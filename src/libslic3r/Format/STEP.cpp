@@ -164,9 +164,9 @@ int StepPreProcessor::preNum(const unsigned char byte) {
 }
 
 struct NamedSolid {
-    NamedSolid(const TopoDS_Solid& s,
+    NamedSolid(const TopoDS_Shape& s,
                const std::string& n) : solid{s}, name{n} {}
-    const TopoDS_Solid solid;
+    const TopoDS_Shape solid;
     const std::string  name;
 };
 
@@ -195,9 +195,20 @@ static void getNamedSolids(const TopLoc_Location& location, const std::string& p
     } else {
         TopoDS_Shape shape;
         shapeTool->GetShape(referredLabel, shape);
-        if (shape.ShapeType() == TopAbs_SOLID) {
-            BRepBuilderAPI_Transform transform(shape, localLocation, Standard_True);
+        TopAbs_ShapeEnum shape_type = shape.ShapeType();
+        BRepBuilderAPI_Transform transform(shape, localLocation, Standard_True);
+        switch (shape_type) {
+        case TopAbs_COMPOUND:
+            namedSolids.emplace_back(TopoDS::Compound(transform.Shape()), fullName);
+            break;
+        case TopAbs_COMPSOLID:
+            namedSolids.emplace_back(TopoDS::CompSolid(transform.Shape()), fullName);
+            break;
+        case TopAbs_SOLID:
             namedSolids.emplace_back(TopoDS::Solid(transform.Shape()), fullName);
+            break;
+        default:
+            break;
         }
     }
 }
