@@ -307,7 +307,10 @@ public:
     bool get_enable_slice_status();
     bool get_enable_print_status();
     wxPanel* debug_panel() { return m_debug_tool_dlg; }
+    //BBS
+    void update_side_button_style();
     void update_slice_print_status(SlicePrintEventType event, bool can_slice = true, bool can_print = true);
+    
 
 #ifdef __APPLE__
     std::unique_ptr<wxTaskBarIcon> m_taskbar_icon;

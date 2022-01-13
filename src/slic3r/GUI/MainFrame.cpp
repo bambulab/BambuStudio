@@ -1171,34 +1171,26 @@ bool MainFrame::can_reslice() const
 
 wxBoxSizer* MainFrame::create_side_tools()
 {
+    int em = em_unit();
     wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
-
-    wxBitmap slice_all_bitmap = create_scaled_bitmap("slice_all");
-    wxBitmap slice_plate_bitmap = create_scaled_bitmap("slice_plate");
-    wxBitmap print_all_bitmap = create_scaled_bitmap("print_all");
-    wxBitmap print_plate_bitmap = create_scaled_bitmap("print_plate");
-    wxBitmap export_gcode_bitmap = create_scaled_bitmap("export_gcode");
 
     m_slice_select = eSlicePlate;
     m_print_select = ePrintPlate;
 
     m_slice_btn = new SideButton(this, _L("Slice plate"), "");
-    m_slice_option_btn = new SideButton(this, "", "sidebutton_dropdown");
+    m_slice_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, 14 * em / 10);
     m_print_btn = new SideButton(this, _L("Print plate"), "");
-    m_print_option_btn = new SideButton(this, "", "sidebutton_dropdown");
+    m_print_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, 14 * em / 10);
 
-    m_slice_btn->SetMinSize(wxSize(-1, 24));
-    m_slice_option_btn->SetMinSize(wxSize(-1, 24));
+    update_side_button_style();
     m_slice_option_btn->Enable();
-    m_print_btn->SetMinSize(wxSize(-1, 24));
-    m_print_option_btn->SetMinSize(wxSize(-1, 24));
     m_print_option_btn->Enable();
-    sizer->Add(m_slice_option_btn, 0, wxRIGHT, 1);
-    sizer->Add(m_slice_btn, 0, wxLEFT, 1);
-    sizer->Add(15, 0, 0, 0, 0);
-    sizer->Add(m_print_option_btn, 0, wxRIGHT, 1);
-    sizer->Add(m_print_btn, 0, wxLEFT, 1);
-    sizer->Add(19, 0, 0, 0, 0);
+    sizer->Add(m_slice_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 1 * em / 10);
+    sizer->Add(m_slice_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1 * em / 10);
+    sizer->Add(15 * em / 10, 0, 0, 0, 0);
+    sizer->Add(m_print_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 1 * em / 10);
+    sizer->Add(m_print_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1 * em / 10);
+    sizer->Add(19 * em / 10, 0, 0, 0, 0);
     
     sizer->Layout();
 
@@ -1230,12 +1222,12 @@ wxBoxSizer* MainFrame::create_side_tools()
             wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE));
     });
 
-    m_slice_option_btn->Bind(wxEVT_BUTTON, [this, slice_all_bitmap, slice_plate_bitmap](wxCommandEvent& event)
+    m_slice_option_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
             wxMenu* menu = new wxMenu();
 
             append_menu_item(menu, wxID_ANY, _L("Slice all"), _L("Slice all plates"),
-                [this, slice_all_bitmap](wxCommandEvent&)
+                [this](wxCommandEvent&)
                 {
                     m_slice_btn->SetLabel(_L("Slice all"));
                     m_slice_select = eSliceAll;
@@ -1244,7 +1236,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                     this->Layout();
                 });
             append_menu_item(menu, wxID_ANY, _L("Slice plate"), _L("Slice selected plate"),
-                [this, slice_plate_bitmap](wxCommandEvent&)
+                [this](wxCommandEvent&)
                 {
                     m_slice_btn->SetLabel(_L("Slice plate"));
                     m_slice_select = eSlicePlate;
@@ -1258,12 +1250,12 @@ wxBoxSizer* MainFrame::create_side_tools()
         }
     );
 
-    m_print_option_btn->Bind(wxEVT_BUTTON, [this, print_all_bitmap, print_plate_bitmap, export_gcode_bitmap](wxCommandEvent& event)
+    m_print_option_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
             wxMenu* menu = new wxMenu();
 
             append_menu_item(menu, wxID_ANY, _L("Print all"), _L("Print all plates"),
-                [this, print_all_bitmap](wxCommandEvent&)
+                [this](wxCommandEvent&)
                 {
                     m_print_btn->SetLabel(_L("Print all"));
                     m_print_select = ePrintAll;
@@ -1273,7 +1265,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                     this->Layout();
                 });
             append_menu_item(menu, wxID_ANY, _L("Print plate"), _L("Print selected plate"),
-                [this, print_plate_bitmap](wxCommandEvent&)
+                [this](wxCommandEvent&)
                 {
                     m_print_btn->SetLabel(_L("Print plate"));
                     m_print_select = ePrintPlate;
@@ -1282,7 +1274,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                     this->Layout();
                 });
             append_menu_item(menu, wxID_ANY, _L("Export Sliced File"), _L("Export sliced file"),
-                [this, export_gcode_bitmap](wxCommandEvent&)
+                [this](wxCommandEvent&)
                 {
                     m_print_btn->SetLabel(_L("Export Sliced File"));
                     m_print_select = eExportSlicedFile;
@@ -1291,14 +1283,6 @@ wxBoxSizer* MainFrame::create_side_tools()
                     m_print_btn->Enable(m_print_enable);
                     this->Layout();
                 });
-            /*BBS append_menu_item(menu, wxID_ANY, _L("Export G-Code"), _L("Export gcode"),
-                [this, export_gcode_bitmap](wxCommandEvent&)
-                {
-                    m_print_btn->SetLabelText(_L("Export G-Code"));
-                    m_print_select = eExportGcode;
-                    m_print_enable = get_enable_print_status();
-                    m_print_btn->Enable(m_print_enable);
-                });*/
             wxPoint btn_pos = m_print_btn->GetPosition();
             this->PopupMenu(menu, btn_pos.x, btn_pos.y + m_print_btn->GetSize().GetHeight() + m_topbar->GetSize().GetHeight());
         }
@@ -1381,6 +1365,25 @@ bool MainFrame::get_enable_print_status()
     return enable;
 }
 
+void MainFrame::update_side_button_style()
+{
+    // BBS
+    int em = em_unit();
+    m_slice_btn->SetMinSize(wxSize(-1, 24 * em / 10));
+    m_slice_btn->SetCornerRadius(12 * em / 10);
+    m_slice_btn->SetExtraSize(wxSize(38 * em / 10, 10 * em / 10));
+    m_slice_option_btn->SetCornerRadius(12 * em / 10);
+    m_slice_option_btn->SetExtraSize(wxSize(10 * em / 10, 10 * em / 10));
+    m_slice_option_btn->SetIconOffset(2 * em / 10);
+    m_slice_option_btn->SetMinSize(wxSize(24 * em / 10, 24 * em / 10));
+    m_print_btn->SetCornerRadius(12 * em / 10);
+    m_print_btn->SetExtraSize(wxSize(38 * em / 10, 10 * em / 10));
+    m_print_btn->SetMinSize(wxSize(-1, 24 * em / 10));
+    m_print_option_btn->SetCornerRadius(12 * em / 10);
+    m_print_option_btn->SetExtraSize(wxSize(10 * em / 10, 10 * em / 10));
+    m_print_option_btn->SetIconOffset(2 * em / 10);
+    m_print_option_btn->SetMinSize(wxSize(24 * em / 10, 24 * em / 10));
+}
 
 void MainFrame::update_slice_print_status(SlicePrintEventType event, bool can_slice, bool can_print)
 {
@@ -1427,6 +1430,13 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
 
     // BBS
     m_tabpanel->Rescale();
+
+    update_side_button_style();
+
+    m_slice_btn->Rescale();
+    m_slice_option_btn->Rescale();
+    m_print_btn->Rescale();
+    m_print_option_btn->Rescale();
 
     // update Plater
     wxGetApp().plater()->msw_rescale();

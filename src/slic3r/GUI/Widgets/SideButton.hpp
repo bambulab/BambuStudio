@@ -8,31 +8,32 @@
 
 class SideButton : public wxWindow
 {
-	wxSize textSize;
-	wxSize minSize;
-	ScalableBitmap icon;
-	double radius;
-	wxSize extra_size;
+    wxSize textSize;
+    wxSize minSize;
+    ScalableBitmap icon;
+    double radius;
+    wxSize extra_size;
+    int icon_offset;
 
-	StateHandler	state_handler;
-	StateColor		text_color;
-	StateColor		border_color;
-	StateColor		background_color;
+    StateHandler    state_handler;
+    StateColor      text_color;
+    StateColor      border_color;
+    StateColor      background_color;
 
 	bool pressedDown = false;
 
 public:
-	SideButton(wxWindow* parent, wxString text, wxString icon = "", long style = 0, int iconSize = 0);
+    SideButton(wxWindow* parent, wxString text, wxString icon = "", long style = 0, int iconSize = 0);
 
-	void SetCornerRadius(double radius);
+    void SetCornerRadius(double radius);
 
-	void SetLabel(const wxString& label);
+    void SetLabel(const wxString& label);
 
-	bool SetForegroundColour(wxColour const & colour) override;
+    bool SetForegroundColour(wxColour const & colour) override;
 
     bool SetBackgroundColour(wxColour const & color) override;
 
-	void SetMinSize(const wxSize& size) override;
+    void SetMinSize(const wxSize& size) override;
     
     void SetBorderColor(StateColor const & color);
 
@@ -40,22 +41,26 @@ public:
 
     void SetBackgroundColor(StateColor const &color);
 
-	bool Enable(bool enable = true);
-    
+    bool Enable(bool enable = true);
+
     void Rescale();
 
+    void SetExtraSize(const wxSize& size);
+
+    void SetIconOffset(const int offset);
+
 private:
-	void paintEvent(wxPaintEvent& evt);
+    void paintEvent(wxPaintEvent& evt);
 
     void render(wxDC& dc);
 
-	void messureSize();
+    void messureSize();
 
-	void mouseDown(wxMouseEvent& event);
+    void mouseDown(wxMouseEvent& event);
     void mouseReleased(wxMouseEvent& event);
-	void mouseLeave(wxMouseEvent& event);
+    void mouseLeave(wxMouseEvent& event);
 
-	void sendButtonEvent();
+    void sendButtonEvent();
 
 	DECLARE_EVENT_TABLE()
 };

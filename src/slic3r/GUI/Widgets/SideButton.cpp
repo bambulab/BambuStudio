@@ -19,6 +19,7 @@ SideButton::SideButton(wxWindow* parent, wxString text, wxString icon, long stly
 {
     radius = 12;
     extra_size = wxSize(38, 10);
+    icon_offset = 0;
 
     border_color.append(0x6B6B6B, StateColor::Disabled);
     border_color.append(0x1B8844, StateColor::Pressed);
@@ -127,6 +128,18 @@ void SideButton::Rescale()
     messureSize();
 }
 
+void SideButton::SetExtraSize(const wxSize& size)
+{
+    extra_size = size;
+    messureSize();
+}
+
+void SideButton::SetIconOffset(const int offset)
+{
+    icon_offset = offset;
+    messureSize();
+}
+
 void SideButton::paintEvent(wxPaintEvent& evt)
 {
     // depending on your system you may need to look at double-buffered dcs
@@ -194,7 +207,7 @@ void SideButton::render(wxDC& dc)
     wxPoint pt = rcContent.GetLeftTop();
     if (icon.bmp().IsOk()) {
         //BBS extra 2 pixels for icon
-        pt.x += 2;
+        pt.x += icon_offset;
         pt.y += (rcContent.height - szIcon.y) / 2;
         dc.DrawBitmap(icon.bmp(), pt);
         //BBS norrow size between text and icon
@@ -229,7 +242,7 @@ void SideButton::messureSize()
         if (szIcon.y > szContent.y)
             szContent.y = szIcon.y;
         //BBS icon only
-        wxWindow::SetMinSize(szContent + wxSize{ 10, 10 });
+        wxWindow::SetMinSize(szContent + wxSize(szContent.GetX() + extra_size.GetX(), minSize.GetHeight()));
     }
     else {
         if (minSize.GetHeight() > 0) {
@@ -244,7 +257,6 @@ void SideButton::messureSize()
 
 void SideButton::mouseDown(wxMouseEvent& event)
 {
-    //event.Skip();
     pressedDown = true;
     state_handler.set_state(StateHandler::State::Pressed);
     Refresh();
