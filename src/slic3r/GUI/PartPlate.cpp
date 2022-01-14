@@ -1793,8 +1793,9 @@ int PartPlateList::select_plate(int index)
 	}
 
 	// BBS: erase unnecessary snapshot
-	if (get_curr_plate_index() == index) return 0;
-	m_plater->take_snapshot(_L("select partplate!"));
+	if (get_curr_plate_index() != index && m_intialized) {
+		m_plater->take_snapshot(_L("select partplate!"));
+	}
 
 	std::vector<PartPlate *>::iterator it = m_plate_list.begin();
 	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
