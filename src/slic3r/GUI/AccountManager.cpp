@@ -427,10 +427,10 @@ namespace Slic3r {
     bool AccountManager::is_user_login()
     {
         if (m_curr_user) {
-            return m_curr_user->login_status() == AccountInfo::LoginStatus::STATUS_LOGIN;
+            if (m_curr_user->is_valid())
+                return m_curr_user->login_status() == AccountInfo::LoginStatus::STATUS_LOGIN;
         }
-        else
-            return false;
+        return false;
     }
 
     int AccountManager::user_login_autotest(std::string account, std::string password)
