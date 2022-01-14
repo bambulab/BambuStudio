@@ -55,9 +55,9 @@ else()
 endif()
 
 prusaslicer_add_cmake_project(CURL
-  # GIT_REPOSITORY      https://github.com/curl/curl.git
+  # GIT_REPOSITORY      https://github.com.cnpmjs.org/curl/curl.git
   # GIT_TAG             curl-7_75_0
-  URL                 https://github.com/curl/curl/archive/refs/tags/curl-7_75_0.zip
+  URL                 https://github.com.cnpmjs.org/curl/curl/archive/refs/tags/curl-7_75_0.zip
   URL_HASH            SHA256=a63ae025bb0a14f119e73250f2c923f4bf89aa93b8d4fafa4a9f5353a96a765a
   DEPENDS             ${ZLIB_PKG}
   # PATCH_COMMAND       ${GIT_EXECUTABLE} checkout -f -- . && git clean -df && 

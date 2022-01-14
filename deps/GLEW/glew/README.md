@@ -8,7 +8,7 @@ A CMAKE CONFIG EXPORT IS ADDED TO ENABLE FIND PACKAGE TO FIND DEBUG BUILD ON MSV
 
 http://glew.sourceforge.net/
 
-https://github.com/nigels-com/glew
+https://github.com.cnpmjs.org/nigels-com/glew
 
 [![Build Status](https://travis-ci.org/nigels-com/glew.svg?branch=master)](https://travis-ci.org/nigels-com/glew)
 [![Gitter](https://badges.gitter.im/nigels-com/glew.svg)](https://gitter.im/nigels-com/glew?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
@@ -171,7 +171,7 @@ https://glew.s3.amazonaws.com/index.html
 
 ## Authors
 
-GLEW is currently maintained by [Nigel Stewart](https://github.com/nigels-com)
+GLEW is currently maintained by [Nigel Stewart](https://github.com.cnpmjs.org/nigels-com)
 with bug fixes, new OpenGL extension support and new releases.
 
 GLEW was developed by [Milan Ikits](http://www.cs.utah.edu/~ikits/)
