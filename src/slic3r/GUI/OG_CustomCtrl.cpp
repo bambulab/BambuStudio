@@ -259,6 +259,55 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
     return wxPoint(h_pos, v_pos);
 }
 
+// BBS: draw multi-line title
+static void draw_title(wxDC& dc, wxPoint pos, const wxString& text, const wxColour* color, int width)
+{
+    wxString multiline_text;
+    if (width > 0 && dc.GetTextExtent(text).x > width) {
+        multiline_text = text;
+
+        size_t idx = size_t(-1);
+        size_t start = 0;
+        for (size_t i = 0; i < multiline_text.Len(); i++)
+        {
+            if (multiline_text[i] == ' ')
+            {
+                if (dc.GetTextExtent(multiline_text.SubString(start, i)).x < width)
+                    idx = i;
+                else {
+                    if (idx == size_t(-1))
+                        idx = i;
+                    multiline_text[idx] = '\n';
+                    start = idx + 1;
+                    idx = size_t(-1);
+                }
+            }
+        }
+        if (idx != size_t(-1))
+            multiline_text[idx] = '\n';
+    }
+
+    if (!text.IsEmpty()) {
+        const wxString& out_text = multiline_text.IsEmpty() ? text : multiline_text;
+        wxCoord text_width, text_height;
+        dc.GetMultiLineTextExtent(out_text, &text_width, &text_height);
+
+        wxColour old_clr = dc.GetTextForeground();
+        wxFont old_font = dc.GetFont();
+        dc.SetTextForeground(color ? *color :
+#ifdef _WIN32
+            wxGetApp().get_label_clr_default());
+#else
+            wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT));
+#endif /* _WIN32 */
+        dc.DrawText(out_text, pos);
+        dc.SetTextForeground(old_clr);
+        dc.SetFont(old_font);
+
+        if (width < 1)
+            width = text_width;
+    }
+}
 
 void OG_CustomCtrl::OnPaint(wxPaintEvent&)
 {
@@ -268,13 +317,12 @@ void OG_CustomCtrl::OnPaint(wxPaintEvent&)
 
     wxPaintDC dc(this);
 
-    wxCoord h_pos = get_title_width();
+    wxCoord h_pos = get_title_width() * m_em_unit;
     wxCoord v_pos = 0;
     // BBS: new layout
     dc.SetFont(Label::Head_16);
-    dc.SetTextForeground(wxColour("#283436"));
-    if (!GetLabel().IsEmpty())
-        dc.DrawText(GetLabel(), { 0, v_pos });
+    wxColour color("#283436");
+    draw_title(dc, {0, v_pos}, GetLabel(), &color, h_pos);
     dc.SetFont(m_font);
     for (CtrlLine& line : ctrl_lines) {
         if (!line.is_visible)
@@ -401,6 +449,7 @@ bool OG_CustomCtrl::update_visibility(ConfigOptionMode mode)
 {
     // BBS: new layout
     wxCoord    h_pos = ctrlWidth * m_em_unit;
+    wxCoord    h_pos2 = get_title_width() * m_em_unit;
     wxCoord    v_pos = 0;
 
     size_t invisible_lines = 0;
@@ -410,7 +459,17 @@ bool OG_CustomCtrl::update_visibility(ConfigOptionMode mode)
             v_pos += (wxCoord)line.height;
         else
             invisible_lines++;
-    }    
+    }
+    // BBS: multi-line title
+    SetFont(Label::Head_16);
+    wxSize label_sz = GetTextExtent(GetLabel());
+    SetFont(m_font);
+    auto lineHeight = label_sz.y;
+    while (label_sz.x > h_pos2) {
+        label_sz.x -= h_pos2;
+        label_sz.y += lineHeight;
+    }
+    if (v_pos < label_sz.y) v_pos = label_sz.y;
 
     this->SetMinSize(wxSize(h_pos, v_pos));
 
@@ -502,14 +561,26 @@ void OG_CustomCtrl::msw_rescale()
 
     m_max_win_width = 0;
 
+    wxCoord    h_pos = ctrlWidth * m_em_unit;
+    wxCoord    h_pos2 = get_title_width() * m_em_unit;
     wxCoord    v_pos = 0;
     for (CtrlLine& line : ctrl_lines) {
         line.msw_rescale();
         if (line.is_visible)
             v_pos += (wxCoord)line.height;
     }
+    // BBS: multi-line title
+    SetFont(Label::Head_16);
+    wxSize label_sz = GetTextExtent(GetLabel());
+    SetFont(m_font);
+    auto lineHeight = label_sz.y;
+    while (label_sz.x > h_pos2) {
+        label_sz.x -= h_pos2;
+        label_sz.y += lineHeight;
+    }
+    if (v_pos < label_sz.y) v_pos = label_sz.y;
     // BBS: new layout
-    this->SetMinSize(wxSize(ctrlWidth * m_em_unit, v_pos));
+    this->SetMinSize(wxSize(h_pos, v_pos));
 
     GetParent()->Layout();
 }
@@ -664,7 +735,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
     }
 
     // BBS: new layout
-    h_pos = h_pos * ctrl->m_em_unit; // draw_mode_bmp(dc, v_pos);
+    // h_pos = draw_mode_bmp(dc, v_pos);
 
     if (og_line.near_label_widget_win)
         h_pos += og_line.near_label_widget_win->GetSize().x + ctrl->m_h_gap;
