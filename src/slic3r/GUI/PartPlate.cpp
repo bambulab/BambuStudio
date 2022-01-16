@@ -35,6 +35,7 @@
 #include "PartPlate.hpp"
 #include "Camera.hpp"
 #include "GUI_ObjectList.hpp"
+#include "Tab.hpp"
 #include <imgui/imgui_internal.h>
 
 using boost::optional;
@@ -1598,6 +1599,17 @@ int PartPlateList::create_plate(bool adjust_position)
 		calc_bounding_boxes();
 	}
 
+	// update wipe tower config
+	if (m_plater) {
+		// In GUI mode
+		Tab* tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
+		DynamicConfig* tab_cfg = tab->get_config();
+		ConfigOptionFloats* wipe_tower_x = tab_cfg->opt<ConfigOptionFloats>("wipe_tower_x");
+		ConfigOptionFloats* wipe_tower_y = tab_cfg->opt<ConfigOptionFloats>("wipe_tower_y");
+		wipe_tower_x->values.resize(m_plate_list.size(), wipe_tower_x->values.front());
+		wipe_tower_y->values.resize(m_plate_list.size(), wipe_tower_y->values.front());
+	}
+
 	unprintable_plate.set_index(new_index+1);
 
 	//reload all objects here
@@ -1677,6 +1689,17 @@ int PartPlateList::delete_plate(int index)
 
 	// BBS: erase unnecessary snapshot
 	m_plater->take_snapshot(_L("delete partplate"));
+
+	// BBS: add wipe tower logic
+	if (m_plater) {
+		// In GUI mode
+		Tab* tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
+		DynamicConfig* tab_cfg = tab->get_config();
+		ConfigOptionFloats* wipe_tower_x = tab_cfg->opt<ConfigOptionFloats>("wipe_tower_x");
+		ConfigOptionFloats* wipe_tower_y = tab_cfg->opt<ConfigOptionFloats>("wipe_tower_y");
+		wipe_tower_x->values.erase(wipe_tower_x->values.begin() + index);
+		wipe_tower_y->values.erase(wipe_tower_y->values.begin() + index);
+	}
 
 	int cols = compute_colum_count(m_plate_list.size() - 1);
 	int old_cols = compute_colum_count(m_plate_list.size());
@@ -2350,6 +2373,7 @@ bool PartPlateList::preprocess_exclude_areas(arrangement::ArrangePolygons& unsel
 				ret.is_virt_object = true;
 				ret.bed_idx      = j;
 				ret.height      = 1;
+				ret.name = "ExcludedRegion" + std::to_string(index);
 
 				unselected.emplace_back(std::move(ret));
 			}

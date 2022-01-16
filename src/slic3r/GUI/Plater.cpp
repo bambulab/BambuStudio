@@ -1993,8 +1993,9 @@ struct Plater::priv
     void on_action_export_sliced_file(SimpleEvent&);
     void on_action_select_sliced_plate(wxCommandEvent& evt);
 
-    void on_wipetower_moved(Vec3dEvent&);
-    void on_wipetower_rotated(Vec3dEvent&);
+    // BBS: support wipe-tower in multi-plates
+    void on_wipetower_moved(WipeTowerEvent&);
+    void on_wipetower_rotated(WipeTowerEvent&);
     void on_update_geometry(Vec3dsEvent<2>&);
     void on_3dcanvas_mouse_dragging_started(SimpleEvent&);
     void on_3dcanvas_mouse_dragging_finished(SimpleEvent&);
@@ -3282,7 +3283,9 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
     Polyline bed; bed.points.reserve(bedpoints.size());
     for(auto& v : bedpoints) bed.append(Point::new_scale(v(0), v(1)));
 
-    std::pair<bool, GLCanvas3D::WipeTowerInfo> wti = view3D->get_canvas3d()->get_wipe_tower_info();
+    // BBS: get wipe tower of current plate
+    int cur_plate_idx = partplate_list.get_curr_plate_index();
+    std::pair<bool, GLCanvas3D::WipeTowerInfo> wti = view3D->get_canvas3d()->get_wipe_tower_info(cur_plate_idx);
 
     arr::find_new_position(model, new_instances, min_obj_distance, bed, wti);
 
@@ -5288,21 +5291,34 @@ void Plater::priv::on_plate_right_click(RBtnPlateEvent& evt)
 #endif
 }
 
-void Plater::priv::on_wipetower_moved(Vec3dEvent &evt)
+// BBS: support wipe-tower in multi-plates
+void Plater::priv::on_wipetower_moved(WipeTowerEvent&evt)
 {
+    Tab* tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
+    Vec3d plate_origin = partplate_list.get_plate(evt.data.plate_id)->get_origin();
+    ConfigOptionFloat wipe_tower_x(evt.data.vec(0) - plate_origin(0));
+    ConfigOptionFloat wipe_tower_y(evt.data.vec(1) - plate_origin(1));
+
     DynamicPrintConfig cfg;
-    cfg.opt<ConfigOptionFloat>("wipe_tower_x", true)->value = evt.data(0);
-    cfg.opt<ConfigOptionFloat>("wipe_tower_y", true)->value = evt.data(1);
-    wxGetApp().get_tab(Preset::TYPE_PRINT)->load_config(cfg);
+    ConfigOptionFloats* wipe_tower_x_opt = cfg.option<ConfigOptionFloats>("wipe_tower_x", true);
+    ConfigOptionFloats* wipe_tower_y_opt = cfg.option<ConfigOptionFloats>("wipe_tower_y", true);
+    *wipe_tower_x_opt = tab->get_config()->opt<ConfigOptionFloats>("wipe_tower_x");
+    *wipe_tower_y_opt = tab->get_config()->opt<ConfigOptionFloats>("wipe_tower_y");
+    wipe_tower_x_opt->set_at(&wipe_tower_x, evt.data.plate_id, 0);
+    wipe_tower_y_opt->set_at(&wipe_tower_y, evt.data.plate_id, 0);
+    tab->load_config(cfg);
 }
 
-void Plater::priv::on_wipetower_rotated(Vec3dEvent& evt)
+void Plater::priv::on_wipetower_rotated(WipeTowerEvent& evt)
 {
+    // BBS: don't support wipe-tower rotation
+#if 0
     DynamicPrintConfig cfg;
     cfg.opt<ConfigOptionFloat>("wipe_tower_x", true)->value = evt.data(0);
     cfg.opt<ConfigOptionFloat>("wipe_tower_y", true)->value = evt.data(1);
     cfg.opt<ConfigOptionFloat>("wipe_tower_rotation_angle", true)->value = Geometry::rad2deg(evt.data(2));
     wxGetApp().get_tab(Preset::TYPE_PRINT)->load_config(cfg);
+#endif
 }
 
 void Plater::priv::on_update_geometry(Vec3dsEvent<2>&)
@@ -5919,10 +5935,20 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name, const UndoRed
 
     //FIXME updating the Wipe tower config values at the ModelWipeTower from the Print config.
     // This is a workaround until we refactor the Wipe Tower position / orientation to live solely inside the Model, not in the Print config.
+    // BBS: add partplate logic
     if (this->printer_technology == ptFFF) {
         const DynamicPrintConfig &config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-        model.wipe_tower.position = Vec2d(config.opt_float("wipe_tower_x"), config.opt_float("wipe_tower_y"));
-        model.wipe_tower.rotation = config.opt_float("wipe_tower_rotation_angle");
+        const ConfigOptionFloats* tower_x_opt = config.option<ConfigOptionFloats>("wipe_tower_x");
+        const ConfigOptionFloats* tower_y_opt = config.option<ConfigOptionFloats>("wipe_tower_y");
+        assert(tower_x_opt->values.size() == tower_y_opt->values.size());
+        model.wipe_tower.positions.clear();
+        model.wipe_tower.positions.resize(tower_x_opt->values.size());
+        for (int plate_idx = 0; plate_idx < tower_x_opt->values.size(); plate_idx++) {
+            ModelWipeTower& tower = model.wipe_tower;
+
+            tower.positions[plate_idx] = Vec2d(tower_x_opt->get_at(plate_idx), tower_y_opt->get_at(plate_idx));
+            tower.rotation = config.opt_float("wipe_tower_rotation_angle");
+        }
     }
     const GLGizmosManager& gizmos = view3D->get_canvas3d()->get_gizmos_manager();
 
@@ -6011,10 +6037,20 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
     ((this->printer_technology == ptFFF) ? m_last_fff_printer_profile_name : m_last_sla_printer_profile_name) = wxGetApp().preset_bundle->printers.get_selected_preset_name();
     //FIXME updating the Wipe tower config values at the ModelWipeTower from the Print config.
     // This is a workaround until we refactor the Wipe Tower position / orientation to live solely inside the Model, not in the Print config.
+    // BBS: add partplate logic
     if (this->printer_technology == ptFFF) {
-        const DynamicPrintConfig &config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-                model.wipe_tower.position = Vec2d(config.opt_float("wipe_tower_x"), config.opt_float("wipe_tower_y"));
-                model.wipe_tower.rotation = config.opt_float("wipe_tower_rotation_angle");
+        const DynamicPrintConfig& config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+        const ConfigOptionFloats* tower_x_opt = config.option<ConfigOptionFloats>("wipe_tower_x");
+        const ConfigOptionFloats* tower_y_opt = config.option<ConfigOptionFloats>("wipe_tower_y");
+        assert(tower_x_opt->values.size() == tower_y_opt->values.size());
+        model.wipe_tower.positions.clear();
+        model.wipe_tower.positions.resize(tower_x_opt->values.size());
+        for (int plate_idx = 0; plate_idx < tower_x_opt->values.size(); plate_idx++) {
+            ModelWipeTower& tower = model.wipe_tower;
+
+            tower.positions[plate_idx] = Vec2d(tower_x_opt->get_at(plate_idx), tower_y_opt->get_at(plate_idx));
+            tower.rotation = config.opt_float("wipe_tower_rotation_angle");
+        }
     }
     const int layer_range_idx = it_snapshot->snapshot_data.layer_range_idx;
     // Flags made of Snapshot::Flags enum values.
@@ -6067,16 +6103,47 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
         }
         //FIXME updating the Print config from the Wipe tower config values at the ModelWipeTower.
         // This is a workaround until we refactor the Wipe Tower position / orientation to live solely inside the Model, not in the Print config.
+        // BBS: add partplate logic
         if (this->printer_technology == ptFFF) {
-            const DynamicPrintConfig &current_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-            Vec2d 					  current_position(current_config.opt_float("wipe_tower_x"), current_config.opt_float("wipe_tower_y"));
-            double 					  current_rotation = current_config.opt_float("wipe_tower_rotation_angle");
-            if (current_position != model.wipe_tower.position || current_rotation != model.wipe_tower.rotation) {
+            const DynamicPrintConfig& config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+            ConfigOptionFloats* tower_x_opt = const_cast<ConfigOptionFloats*>(config.option<ConfigOptionFloats>("wipe_tower_x"));
+            ConfigOptionFloats* tower_y_opt = const_cast<ConfigOptionFloats*>(config.option<ConfigOptionFloats>("wipe_tower_y"));
+            // BBS: don't support wipe tower rotation
+            //double current_rotation = current_config.opt_float("wipe_tower_rotation_angle");
+            bool need_update = false;
+            if (tower_x_opt->values.size() != model.wipe_tower.positions.size()) {
+                tower_x_opt->clear();
+                ConfigOptionFloat default_tower_x(180.f);
+                tower_x_opt->resize(model.wipe_tower.positions.size(), &default_tower_x);
+                need_update = true;
+            }
+
+            if (tower_y_opt->values.size() != model.wipe_tower.positions.size()) {
+                tower_y_opt->clear();
+                ConfigOptionFloat default_tower_y(140.f);
+                tower_y_opt->resize(model.wipe_tower.positions.size(), &default_tower_y);
+                need_update = true;
+            }
+
+            for (int plate_idx = 0; plate_idx < model.wipe_tower.positions.size(); plate_idx++) {
+                if (Vec2d(tower_x_opt->get_at(plate_idx), tower_y_opt->get_at(plate_idx)) != model.wipe_tower.positions[plate_idx]) {
+                    need_update = true;
+                    break;
+                }
+            }
+
+            if (need_update) {
                 DynamicPrintConfig new_config;
-                new_config.set_key_value("wipe_tower_x", new ConfigOptionFloat(model.wipe_tower.position.x()));
-                new_config.set_key_value("wipe_tower_y", new ConfigOptionFloat(model.wipe_tower.position.y()));
-                new_config.set_key_value("wipe_tower_rotation_angle", new ConfigOptionFloat(model.wipe_tower.rotation));
-                Tab *tab_print = wxGetApp().get_tab(Preset::TYPE_PRINT);
+                ConfigOptionFloats* wipe_tower_x_opt = new_config.option<ConfigOptionFloats>("wipe_tower_x", true);
+                ConfigOptionFloats* wipe_tower_y_opt = new_config.option<ConfigOptionFloats>("wipe_tower_y", true);
+                for (int plate_idx = 0; plate_idx < model.wipe_tower.positions.size(); plate_idx++) {
+                    ConfigOptionFloat new_tower_x(model.wipe_tower.positions[plate_idx].x());
+                    ConfigOptionFloat new_tower_y(model.wipe_tower.positions[plate_idx].y());
+                    wipe_tower_x_opt->set_at(&new_tower_x, plate_idx, 0);
+                    wipe_tower_y_opt->set_at(&new_tower_y, plate_idx, 0);
+                }
+
+                Tab* tab_print = wxGetApp().get_tab(Preset::TYPE_PRINT);
                 tab_print->load_config(new_config);
                 tab_print->update_dirty();
             }

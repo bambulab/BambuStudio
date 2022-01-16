@@ -58,15 +58,17 @@ public:
         //BBS
         ret.name = "WipeTower";
         ret.is_virt_object = true;
+        ret.is_wipe_tower = true;
         ++ret.priority;
 
         return ret;
     }
 };
 
-static WipeTower get_wipe_tower(const Plater &plater)
+// BBS: add partplate logic
+static WipeTower get_wipe_tower(const Plater &plater, int plate_idx)
 {
-    return WipeTower{plater.canvas3D()->get_wipe_tower_info()};
+    return WipeTower{plater.canvas3D()->get_wipe_tower_info(plate_idx)};
 }
 
 void ArrangeJob::clear_input()
@@ -121,6 +123,7 @@ void ArrangeJob::prepare_selected() {
     Model &model = m_plater->model();
     //BBS: remove logic for unselected object
     //double stride = bed_stride_x(m_plater);
+    std::set<int> selected_beds, unselected_beds;
     
     std::vector<const Selection::InstanceIdxsList *>
             obj_sel(model.objects.size(), nullptr);
@@ -155,6 +158,10 @@ void ArrangeJob::prepare_selected() {
 
                 ap.itemid = cont.size();
                 cont.emplace_back(std::move(ap));
+                if (&cont == &m_selected)
+                    selected_beds.insert(ap.bed_idx);
+                else if (&cont == &m_unselected)
+                    unselected_beds.insert(ap.bed_idx);
             }
             else
             {
@@ -166,13 +173,17 @@ void ArrangeJob::prepare_selected() {
         }
     }
 
-    if (auto wti = get_wipe_tower(*m_plater)) {
-        ArrangePolygon &&ap = get_arrange_poly(wti, m_plater);
-
-        auto &cont = m_plater->get_selection().is_wipe_tower() ? m_selected :
-                                                                 m_unselected;
-        cont.emplace_back(std::move(ap));
-    }
+    // BBS: get selected and un_selected wipe tower
+    for(int bedid:selected_beds)
+        if (auto wti = get_wipe_tower(*m_plater, bedid)) {
+            ArrangePolygon &&ap = get_arrange_poly(wti, m_plater);
+            m_selected.emplace_back(std::move(ap));
+        }
+    for (int bedid : unselected_beds)
+        if (auto wti = get_wipe_tower(*m_plater, bedid)) {
+            ArrangePolygon&& ap = get_arrange_poly(wti, m_plater);
+            m_unselected.emplace_back(std::move(ap));
+        }
     
     // If the selection was empty arrange everything
     if (m_selected.empty()) m_selected.swap(m_unselected);
@@ -246,12 +257,10 @@ void ArrangeJob::prepare_partplate() {
         }
     }
 
-    if (auto wti = get_wipe_tower(*m_plater)) {
+    // BBS
+    if (auto wti = get_wipe_tower(*m_plater, current_plate_index)) {
         ArrangePolygon&& ap = get_arrange_poly(wti, m_plater);
-
-        auto& cont = m_plater->get_selection().is_wipe_tower() ? m_selected :
-            m_unselected;
-        cont.emplace_back(std::move(ap));
+        m_selected.emplace_back(std::move(ap));
     }
 
     // The strides have to be removed from the fixed items. For the
@@ -264,7 +273,8 @@ void ArrangeJob::prepare_partplate() {
 //BBS: add partplate logic
 void ArrangeJob::prepare()
 {
-    wxGetApp().plater()->get_notification_manager()->push_notification(NotificationType::ArrangeOngoing, NotificationManager::NotificationLevel::RegularNotificationLevel, "Arranging the imported model...");
+    wxGetApp().plater()->get_notification_manager()->push_notification(NotificationType::ArrangeOngoing,
+        NotificationManager::NotificationLevel::RegularNotificationLevel, "Arranging...");
 
     int state = m_plater->get_prepare_state();
     if (state == Job::JobPrepareState::PREPARE_STATE_DEFAULT) {
@@ -280,11 +290,17 @@ void ArrangeJob::prepare()
     m_plater->get_partplate_list().preprocess_exclude_areas(m_unselected, MAX_NUM_PLATES);
 
 #if SAVE_ARRANGE_POLY
-    for (auto it = m_selected.begin(); it != m_selected.end();it++) {
-        BoundingBox bbox = get_extents(it->poly);
-        SVG svg("SVG/"+it->name + "_arrange_poly.svg", bbox);
-        svg.draw_grid(bbox,"gray",scale_(0.05));
-        svg.draw_outline(it->poly);
+    BoundingBox bbox = get_extents(m_selected.front().poly);
+    for (auto it = m_selected.begin(); it != m_selected.end(); it++) {
+        bbox.merge(it->poly);
+    }
+    SVG svg("SVG/arrange_poly.svg", bbox);
+    if (svg.is_opened()) {
+        std::vector<std::string> color_array = { "red","black","yellow","gree","blue" };
+        for (auto it = m_selected.begin(); it != m_selected.end(); it++) {
+            svg.draw_grid(bbox, "gray", scale_(0.05));
+            svg.draw_outline(it->poly, color_array[(it - m_selected.begin()) % color_array.size()]);
+        }
     }
 #endif
 
@@ -405,6 +421,19 @@ void ArrangeJob::process()
         for (auto& ap : m_selected) ap.height = 1;
         for (auto& ap : m_unselected) ap.height = 1;
     }
+
+    {
+        BOOST_LOG_TRIVIAL(debug) << "items selected before arranging: ";
+        for (auto selected : m_selected)
+            BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << selected.extrude_id << ", bed: " << selected.bed_idx
+            << ", trans: " << selected.translation.transpose();
+        BOOST_LOG_TRIVIAL(debug) << "items unselected before arranging: ";
+        for (auto item : m_unselected)
+            if (!item.is_virt_object)
+                BOOST_LOG_TRIVIAL(debug) << item.name << ", extruder: " << item.extrude_id << ", bed: " << item.bed_idx
+                << ", trans: " << item.translation.transpose();
+    }
+
     arrangement::arrange(m_selected, m_unselected, bedpts, params);
 
     // sort by item id
@@ -412,7 +441,13 @@ void ArrangeJob::process()
     {
         BOOST_LOG_TRIVIAL(debug) << "items after arranging: ";
         for (auto selected : m_selected)
-            BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << selected.extrude_id << ", bed: " << selected.bed_idx;
+            BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << selected.extrude_id << ", bed: " << selected.bed_idx
+            << ", trans: " << selected.translation.transpose();
+        BOOST_LOG_TRIVIAL(debug) << "items unselected after arranging: ";
+        for (auto item : m_unselected)
+            if (!item.is_virt_object)
+                BOOST_LOG_TRIVIAL(debug) << item.name << ", extruder: " << item.extrude_id << ", bed: " << item.bed_idx
+                << ", trans: " << item.translation.transpose();
     }
 
     params.progressind = [this, count](unsigned num_finished, std::string str="") {
@@ -470,7 +505,7 @@ void ArrangeJob::finalize() {
 
         beds = std::max(ap.bed_idx, beds);
 
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":selected: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y));
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":selected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
     }
 
     //BBS: adjust the bed_index, create new plates, get the max bed_index
@@ -484,7 +519,7 @@ void ArrangeJob::finalize() {
             plate_list.postprocess_bed_index_for_unselected(ap);
 
         beds = std::max(ap.bed_idx, beds);
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":unselected: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y));
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":unselected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
     }
 
     for (ArrangePolygon& ap : m_locked) {
@@ -556,7 +591,8 @@ void ArrangeJob::finalize() {
 std::optional<arrangement::ArrangePolygon>
 get_wipe_tower_arrangepoly(const Plater &plater)
 {
-    if (auto wti = get_wipe_tower(plater))
+    // BBS FIXME: use actual plate_idx
+    if (auto wti = get_wipe_tower(plater, 0))
         return get_arrange_poly(wti, &plater);
 
     return {};

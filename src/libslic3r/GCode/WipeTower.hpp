@@ -125,7 +125,8 @@ public:
 	// y			-- y coordinates of wipe tower in mm ( left bottom corner )
 	// width		-- width of wipe tower in mm ( default 60 mm - leave as it is )
 	// wipe_area	-- space available for one toolchange in mm
-    WipeTower(const PrintConfig& config, const std::vector<std::vector<float>>& wiping_matrix, size_t initial_tool);
+	// BBS: add partplate logic
+    WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origin, const std::vector<std::vector<float>>& wiping_matrix, size_t initial_tool);
 
 
 	// Set the extruder properties.

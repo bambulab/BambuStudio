@@ -469,7 +469,7 @@ public:
     std::string                output_filepath(const std::string &path, const std::string &filename_base = std::string()) const;
 
     //BBS: get/set plate id
-    int get_plate_index() { return m_plate_index; }
+    int get_plate_index() const { return m_plate_index; }
     void set_plate_index(int index) { m_plate_index = index; }
 
 protected:

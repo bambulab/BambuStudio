@@ -259,9 +259,12 @@ namespace Slic3r {
 
         std::string tcr_rotated_gcode = post_process_wipe_tower_moves(tcr, wipe_tower_offset, wipe_tower_rotation);
 
-        // BBS: toolchange gcode will move to start_pos
-#if 0
-        if (! tcr.priming) {
+        // BBS: add partplate logic
+        Vec2f plate_origin_2d(m_plate_origin(0), m_plate_origin(1));
+
+        // BBS: toolchange gcode will move to start_pos,
+        // so only perform movement when printing sparse partition to support upper layer.
+        if (! tcr.priming && !gcodegen.writer().need_toolchange(new_extruder_id)) {
             // Move over the wipe tower.
             gcode += gcodegen.retract();
             gcodegen.m_avoid_crossing_perimeters.use_external_mp_once();
@@ -271,7 +274,6 @@ namespace Slic3r {
                 "Travel to a Wipe Tower");
             gcode += gcodegen.unretract();
         }
-#endif
 
         double current_z = gcodegen.writer().get_position().z();
         if (z == -1.) // in case no specific z was provided, print at current_z pos
@@ -348,7 +350,7 @@ namespace Slic3r {
 
             // move to start_pos for wiping after toolchange
             std::string start_pos_str;
-            start_pos_str = gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, start_pos), erMixed, "Move to start pos");
+            start_pos_str = gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, start_pos + plate_origin_2d), erMixed, "Move to start pos");
             check_add_eol(start_pos_str);
             toolchange_gcode_str += start_pos_str;
 
@@ -391,7 +393,7 @@ namespace Slic3r {
 
         // A phony move to the end position at the wipe tower.
         gcodegen.writer().travel_to_xy(end_pos.cast<double>());
-        gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, end_pos));
+        gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, end_pos + plate_origin_2d));
         if (!is_approx(z, current_z)) {
             gcode += gcodegen.writer().retract();
             gcode += gcodegen.writer().travel_to_z(current_z, "Travel back up to the topmost object layer.");
@@ -1514,7 +1516,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> layers_to_print = collect_layers_to_print(print);
         // Prusa Multi-Material wipe tower.
         if (has_wipe_tower && ! layers_to_print.empty()) {
-            m_wipe_tower.reset(new WipeTowerIntegration(print.config(), *print.wipe_tower_data().priming.get(), print.wipe_tower_data().tool_changes, *print.wipe_tower_data().final_purge.get()));
+            m_wipe_tower.reset(new WipeTowerIntegration(print.config(), print.get_plate_index(), print.get_plate_origin(), * print.wipe_tower_data().priming.get(), print.wipe_tower_data().tool_changes, *print.wipe_tower_data().final_purge.get()));
             file.write(m_writer.travel_to_z(first_layer_height + m_config.z_offset.value, "Move to the first layer height"));
             if (print.config().single_extruder_multi_material_priming) {
                 file.write(m_wipe_tower->prime(*this));

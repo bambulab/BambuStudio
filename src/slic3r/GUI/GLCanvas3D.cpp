@@ -900,8 +900,8 @@ wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_MOVED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_ROTATED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_SCALED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_FORCE_UPDATE, SimpleEvent);
-wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
-wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_ROTATED, Vec3dEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, WipeTowerEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_ROTATED, WipeTowerEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_STARTED, SimpleEvent);
@@ -1984,7 +1984,11 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     m_reload_delayed = !m_canvas->IsShown() && !refresh_immediately && !force_full_scene_refresh;
 
     PrinterTechnology printer_technology = current_printer_technology();
-    int               volume_idx_wipe_tower_old = -1;
+
+    // BBS: support wipe tower for multi-plates
+    PartPlateList& ppl = wxGetApp().plater()->get_partplate_list();
+    int n_plates = ppl.get_plate_count();
+    std::vector<int> volume_idxs_wipe_tower_old(n_plates, -1);
 
     // Release invalidated volumes to conserve GPU memory in case of delayed refresh (see m_reload_delayed).
     // First initialize model_volumes_new_sorted & model_instances_new_sorted.
@@ -2066,8 +2070,10 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             // This GLVolume will be released.
             if (volume->is_wipe_tower) {
                 // There is only one wipe tower.
-                assert(volume_idx_wipe_tower_old == -1);
-                volume_idx_wipe_tower_old = (int)volume_id;
+                //assert(volume_idx_wipe_tower_old == -1);
+                int plate_id = volume->composite_id.object_id - 1000;
+                if (plate_id < n_plates)
+                    volume_idxs_wipe_tower_old[plate_id] = (int)volume_id;
             }
             if (!m_reload_delayed) {
                 deleted_volumes.emplace_back(volume, volume_id);
@@ -2278,22 +2284,27 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         if (extruders_count > 1 && wt && !co) {
             // Height of a print (Show at least a slab)
             double height = std::max(m_model->bounding_box().max(2), 10.0);
+            
+            
+            for (int plate_id = 0; plate_id < n_plates; plate_id++) {
+                float x = dynamic_cast<const ConfigOptionFloats*>(m_config->option("wipe_tower_x"))->get_at(plate_id);
+                float y = dynamic_cast<const ConfigOptionFloats*>(m_config->option("wipe_tower_y"))->get_at(plate_id);
+                float w = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_width"))->value;
+                float a = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_rotation_angle"))->value;
+                Vec3d plate_origin = ppl.get_plate(plate_id)->get_origin();
 
-            float x = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_x"))->value;
-            float y = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_y"))->value;
-            float w = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_width"))->value;
-            float a = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_rotation_angle"))->value;
+                const Print* print = m_process->fff_print();
 
-            const Print *print = m_process->fff_print();
+                float depth = print->wipe_tower_data(extruders_count).depth;
+                float brim_width = print->wipe_tower_data(extruders_count).brim_width;
 
-            float depth = print->wipe_tower_data(extruders_count).depth;
-            float brim_width = print->wipe_tower_data(extruders_count).brim_width;
-
-            int volume_idx_wipe_tower_new = m_volumes.load_wipe_tower_preview(
-                1000, x, y, w, depth, (float)height, a, !print->is_step_done(psWipeTower),
-                brim_width, m_initialized);
-            if (volume_idx_wipe_tower_old != -1)
-                map_glvolume_old_to_new[volume_idx_wipe_tower_old] = volume_idx_wipe_tower_new;
+                int volume_idx_wipe_tower_new = m_volumes.load_wipe_tower_preview(
+                    1000 + plate_id, x + plate_origin(0), y + plate_origin(1), w, depth, (float)height, a,
+                    !print->is_step_done(psWipeTower), brim_width, m_initialized);
+                int volume_idx_wipe_tower_old = volume_idxs_wipe_tower_old[plate_id];
+                if (volume_idx_wipe_tower_old != -1)
+                    map_glvolume_old_to_new[volume_idx_wipe_tower_old] = volume_idx_wipe_tower_new;
+            }
         }
     }
 
@@ -3858,7 +3869,10 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
 
     std::set<std::pair<int, int>> done;  // keeps track of modified instances
     bool object_moved = false;
-    Vec3d wipe_tower_origin = Vec3d::Zero();
+
+    // BBS: support wipe-tower for multi-plates
+    int n_plates = wxGetApp().plater()->get_partplate_list().get_plate_count();
+    std::vector<Vec3d> wipe_tower_origins(n_plates, Vec3d::Zero());
 
     Selection::EMode selection_mode = m_selection.get_mode();
 
@@ -3887,9 +3901,10 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
                 model_object->invalidate_bounding_box();
             }
         }
-        else if (object_idx == 1000)
+        else if (object_idx >= 1000 && object_idx < 1000 + n_plates) {
             // Move a wipe tower proxy.
-            wipe_tower_origin = v->get_volume_offset();
+            wipe_tower_origins[object_idx - 1000] = v->get_volume_offset();
+        }
     }
 
     //BBS: notify instance updates to part plater list
@@ -3922,8 +3937,14 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
     if (object_moved)
         post_event(SimpleEvent(EVT_GLCANVAS_INSTANCE_MOVED));
 
-    if (wipe_tower_origin != Vec3d::Zero())
-        post_event(Vec3dEvent(EVT_GLCANVAS_WIPETOWER_MOVED, std::move(wipe_tower_origin)));
+    // BBS: support wipe-tower for multi-plates
+    for (int plate_id = 0; plate_id < wipe_tower_origins.size(); plate_id++) {
+        Vec3d& wipe_tower_origin = wipe_tower_origins[plate_id];
+        if (wipe_tower_origin == Vec3d::Zero())
+            continue;
+
+        post_event(WipeTowerEvent(EVT_GLCANVAS_WIPETOWER_MOVED, { wipe_tower_origin, plate_id }));
+    }
 
     reset_sequential_print_clearance();
 
@@ -4247,21 +4268,26 @@ void GLCanvas3D::update_ui_from_settings()
         wxGetApp().plater()->enable_collapse_toolbar(wxGetApp().app_config->get("show_collapse_button") == "1");
 }
 
-GLCanvas3D::WipeTowerInfo GLCanvas3D::get_wipe_tower_info() const
+// BBS: add partplate logic
+GLCanvas3D::WipeTowerInfo GLCanvas3D::get_wipe_tower_info(int plate_idx) const
 {
     WipeTowerInfo wti;
-    
+
     for (const GLVolume* vol : m_volumes.volumes) {
-        if (vol->is_wipe_tower) {
-            wti.m_pos = Vec2d(m_config->opt_float("wipe_tower_x"),
-                            m_config->opt_float("wipe_tower_y"));
-            wti.m_rotation = (M_PI/180.) * m_config->opt_float("wipe_tower_rotation_angle");
+        if (vol->is_wipe_tower && vol->object_idx() - 1000 == plate_idx) {
+            wti.m_pos = Vec2d(m_config->opt<ConfigOptionFloats>("wipe_tower_x")->get_at(plate_idx),
+                              m_config->opt<ConfigOptionFloats>("wipe_tower_y")->get_at(plate_idx));
+            // BBS: don't support rotation
+            //wti.m_rotation = (M_PI/180.) * m_config->opt_float("wipe_tower_rotation_angle");
             const BoundingBoxf3& bb = vol->bounding_box();
             wti.m_bb = BoundingBoxf{to_2d(bb.min), to_2d(bb.max)};
+
+            // BBS: add partplate logic
+            wti.m_plate_idx = plate_idx;
             break;
         }
     }
-    
+
     return wti;
 }
 
@@ -7982,7 +8008,13 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const BuildVolume& build_volume, con
         ctxt.final.emplace_back(*print->wipe_tower_data().final_purge.get());
 
     ctxt.wipe_tower_angle = ctxt.print->config().wipe_tower_rotation_angle.value/180.f * PI;
-    ctxt.wipe_tower_pos = Vec2f(ctxt.print->config().wipe_tower_x.value, ctxt.print->config().wipe_tower_y.value);
+    
+    // BBS: add partplate logic
+    int plate_idx = print->get_plate_index();
+    Vec3d plate_origin = print->get_plate_origin();
+    double wipe_tower_x = ctxt.print->config().wipe_tower_x.get_at(plate_idx) + plate_origin(0);
+    double wipe_tower_y = ctxt.print->config().wipe_tower_y.get_at(plate_idx) + plate_origin(1);
+    ctxt.wipe_tower_pos = Vec2f(wipe_tower_x, wipe_tower_y);
 
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - start" << m_volumes.log_memory_info() << log_memory_info();
 
@@ -8437,10 +8469,20 @@ const SLAPrint* GLCanvas3D::sla_print() const
 
 void GLCanvas3D::WipeTowerInfo::apply_wipe_tower() const
 {
+    // BBS: add partplate logic
+    Tab* tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
+    Vec3d plate_origin = wxGetApp().plater()->get_partplate_list().get_plate(m_plate_idx)->get_origin();
+    ConfigOptionFloat wipe_tower_x(m_pos(X));
+    ConfigOptionFloat wipe_tower_y(m_pos(Y));
+
     DynamicPrintConfig cfg;
-    cfg.opt<ConfigOptionFloat>("wipe_tower_x", true)->value = m_pos(X);
-    cfg.opt<ConfigOptionFloat>("wipe_tower_y", true)->value = m_pos(Y);
-    cfg.opt<ConfigOptionFloat>("wipe_tower_rotation_angle", true)->value = (180./M_PI) * m_rotation;
+    ConfigOptionFloats* wipe_tower_x_opt = cfg.option<ConfigOptionFloats>("wipe_tower_x", true);
+    ConfigOptionFloats* wipe_tower_y_opt = cfg.option<ConfigOptionFloats>("wipe_tower_y", true);
+    *wipe_tower_x_opt = tab->get_config()->opt<ConfigOptionFloats>("wipe_tower_x");
+    *wipe_tower_y_opt = tab->get_config()->opt<ConfigOptionFloats>("wipe_tower_y");
+    wipe_tower_x_opt->set_at(&wipe_tower_x, m_plate_idx, 0);
+    wipe_tower_y_opt->set_at(&wipe_tower_y, m_plate_idx, 0);
+
     wxGetApp().get_tab(Preset::TYPE_PRINT)->load_config(cfg);
 }
 

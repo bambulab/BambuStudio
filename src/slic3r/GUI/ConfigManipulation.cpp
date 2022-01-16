@@ -220,6 +220,34 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
     }
 
+    // BBS: wipe_tower conflicts with adaptive layer height
+    if (config->opt_bool("wipe_tower") && config->opt_bool("adaptive_layer_height")) {
+        if (is_global_config) {
+            wxString msg_text = _(L("The wipe tower is only supported if all objects have the same layer height.\n"
+                                    "Press \"YES\" to choose wipe tower, \"NO\" to choose adaptive layer height."));
+            MessageDialog dialog(m_msg_dlg_parent, msg_text, _(L("Wipe Tower")),
+                wxICON_WARNING | wxYES | wxNO);
+            DynamicPrintConfig new_conf = *config;
+            auto answer = dialog.ShowModal();
+            if (answer == wxID_YES) {
+                new_conf.set_key_value("adaptive_layer_height", new ConfigOptionBool(false));
+            }
+            else {
+                new_conf.set_key_value("wipe_tower", new ConfigOptionBool(false));
+            }
+            apply(config, &new_conf);
+        }
+        else {
+            wxString msg_text = _(L("The wipe tower is only supported if all objects have the same layer height.\n"
+                                    "Please disable wipe tower first.\n"));
+            MessageDialog dialog(m_msg_dlg_parent, msg_text, _(L("Adaptive Layer Height")), wxICON_WARNING | wxOK);
+            dialog.ShowModal();
+            DynamicPrintConfig new_conf = *config;
+            new_conf.set_key_value("adaptive_layer_height", new ConfigOptionBool(false));
+            apply(config, &new_conf);
+        }
+    }
+
     // Check "support_material" and "overhangs" relations only on global settings level
     if (is_global_config && config->opt_bool("support_material")) {
         // Ask only once.

@@ -3266,31 +3266,37 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("This vector saves required volumes to change from/to each tool used on the "
                      "wipe tower. These values are used to simplify creation of the full purging "
                      "volumes below.");
-    def->set_default_value(new ConfigOptionFloats { 70., 70., 70., 70., 70., 70., 70., 70., 70., 70.  });
+
+    // BBS: change 70.f => 15.f
+    def->set_default_value(new ConfigOptionFloats { 15.f, 15.f, 15.f, 15.f, 15.f, 15.f, 15.f, 15.f, 15.f, 15.f  });
 
     def = this->add("wiping_volumes_matrix", coFloats);
     def->label = L("Purging volumes - matrix");
     def->tooltip = L("This matrix describes volumes (in cubic milimetres) required to purge the"
                      " new filament on the wipe tower for any given pair of tools.");
-    def->set_default_value(new ConfigOptionFloats {   0., 30., 30., 30., 30.,
-                                                     30.,  0., 30., 30., 30.,
-                                                     30., 30.,  0., 30., 30.,
-                                                     30., 30., 30.,  0., 30.,
-                                                     30., 30., 30., 30.,  0. });
 
-    def = this->add("wipe_tower_x", coFloat);
+    // BBS: change 140.f => 30.f
+    def->set_default_value(new ConfigOptionFloats {   0.f, 30.f, 30.f, 30.f, 30.f,
+                                                     30.f,  0.f, 30.f, 30.f, 30.f,
+                                                     30.f, 30.f,  0.f, 30.f, 30.f,
+                                                     30.f, 30.f, 30.f,  0.f, 30.f,
+                                                     30.f, 30.f, 30.f, 30.f,  0.f });
+
+    def = this->add("wipe_tower_x", coFloats);
     def->label = L("Position X");
     def->tooltip = L("X coordinate of the left front corner of a wipe tower");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(180.));
+    // BBS: change data type to floats to add partplate logic
+    def->set_default_value(new ConfigOptionFloats{ 180. });
 
-    def = this->add("wipe_tower_y", coFloat);
+    def = this->add("wipe_tower_y", coFloats);
     def->label = L("Position Y");
     def->tooltip = L("Y coordinate of the left front corner of a wipe tower");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(140.));
+    // BBS: change data type to floats to add partplate logic
+    def->set_default_value(new ConfigOptionFloats{ 140. });
 
     def = this->add("wipe_tower_width", coFloat);
     def->label = L("Width");

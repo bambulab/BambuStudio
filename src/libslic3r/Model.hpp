@@ -1118,8 +1118,9 @@ private:
 class ModelWipeTower final : public ObjectBase
 {
 public:
-	Vec2d		position;
-	double 		rotation;
+    // BBS: add partplate logic
+	std::vector<Vec2d>      positions;
+	double 	                rotation;
 
 private:
 	friend class cereal::access;
@@ -1141,7 +1142,7 @@ private:
     ModelWipeTower& operator=(ModelWipeTower &&rhs) = delete;
 
     // For serialization / deserialization of ModelWipeTower composed into another class into the Undo / Redo stack as a separate object.
-    template<typename Archive> void serialize(Archive &ar) { ar(position, rotation); }
+    template<typename Archive> void serialize(Archive &ar) { ar(positions, rotation); }
 };
 
 // BBS structure stores extruder parameters and speed map of all models
@@ -1176,7 +1177,7 @@ public:
     // Objects are owned by a model. Each model may have multiple instances, each instance having its own transformation (shift, scale, rotation).
     ModelObjectPtrs     objects;
     // Wipe tower object.
-    ModelWipeTower	    wipe_tower;
+    ModelWipeTower	wipe_tower;
     // BBS static members store extruder parameters and speed map of all models
     static std::map<size_t, ExtruderParams> extruderParamsMap;
     static GlobalSpeedMap printSpeedMap;

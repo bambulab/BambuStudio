@@ -1361,7 +1361,8 @@ std::vector<Point> Print::first_layer_wipe_tower_corners() const
                 Vec2d(pt0.x(),       pt0.y()+depth)
             }) {
             pt = Eigen::Rotation2Dd(Geometry::deg2rad(m_config.wipe_tower_rotation_angle.value)) * pt;
-            pt += Vec2d(m_config.wipe_tower_x.value, m_config.wipe_tower_y.value);
+            // BBS: add partplate logic
+            pt += Vec2d(m_config.wipe_tower_x.get_at(m_plate_index) + m_origin(0), m_config.wipe_tower_y.get_at(m_plate_index) + m_origin(1));
             corners.emplace_back(Point(scale_(pt.x()), scale_(pt.y())));
         }
     }
@@ -1464,7 +1465,7 @@ void Print::_make_wipe_tower()
     this->throw_if_canceled();
 
     // Initialize the wipe tower.
-    WipeTower wipe_tower(m_config, wipe_volumes, m_wipe_tower_data.tool_ordering.first_extruder());
+    WipeTower wipe_tower(m_config, m_plate_index, m_origin, wipe_volumes, m_wipe_tower_data.tool_ordering.first_extruder());
 
     //wipe_tower.set_retract();
     //wipe_tower.set_zhop();

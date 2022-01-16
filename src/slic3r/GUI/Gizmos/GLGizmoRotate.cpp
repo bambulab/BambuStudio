@@ -473,7 +473,9 @@ std::string GLGizmoRotate3D::on_get_name() const
 
 bool GLGizmoRotate3D::on_is_activable() const
 {
-    return !m_parent.get_selection().is_empty();
+    // BBS: don't support rotate wipe tower
+    const Selection& selection = m_parent.get_selection();
+    return !m_parent.get_selection().is_empty() && !selection.is_wipe_tower();
 }
 
 void GLGizmoRotate3D::on_start_dragging()

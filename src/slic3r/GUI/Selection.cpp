@@ -799,7 +799,34 @@ void Selection::translate(const Vec3d& displacement, bool local)
 
     for (unsigned int i : m_list) {
         GLVolume& v = *(*m_volumes)[i];
-        if (m_mode == Volume || v.is_wipe_tower) {
+        if (v.is_wipe_tower) {
+            int plate_idx = v.object_idx() - 1000;
+            BoundingBoxf3 plate_bbox = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx)->get_bounding_box();
+            Vec3d tower_size = v.bounding_box().size();
+            Vec3d tower_origin = m_cache.volumes_data[i].get_volume_position();
+            Vec3d actual_displacement = displacement;
+            const double margin = 10.f;
+
+            if (!local)
+                actual_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() * m_cache.volumes_data[i].get_instance_mirror_matrix()).inverse() * displacement;
+
+            if (tower_origin(0) + actual_displacement(0) - margin < plate_bbox.min(0)) {
+                actual_displacement(0) = plate_bbox.min(0) - tower_origin(0) + margin;
+            }
+            else if (tower_origin(0) + actual_displacement(0) + tower_size(0) + margin > plate_bbox.max(0)) {
+                actual_displacement(0) = plate_bbox.max(0) - tower_origin(0) - tower_size(0) - margin;
+            }
+
+            if (tower_origin(1) + actual_displacement(1) - margin < plate_bbox.min(1)) {
+                actual_displacement(1) = plate_bbox.min(1) - tower_origin(1) + margin;
+            }
+            else if (tower_origin(1) + actual_displacement(1) + tower_size(1) + margin > plate_bbox.max(1)) {
+                actual_displacement(1) = plate_bbox.max(1) - tower_origin(1) - tower_size(1) - margin;
+            }
+
+            v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + actual_displacement);
+        }
+        else if (m_mode == Volume || v.is_wipe_tower) {
             if (local)
                 v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + displacement);
             else {

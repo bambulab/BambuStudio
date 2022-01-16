@@ -137,8 +137,12 @@ BoundingBoxf get_wipe_tower_extrusions_extents(const Print &print, const coordf_
 {
     // Wipe tower extrusions are saved as if the tower was at the origin with no rotation
     // We need to get position and angle of the wipe tower to transform them to actual position.
+    int plate_idx = print.get_plate_index();
+    Vec3d plate_origin = print.get_plate_origin();
+    double wipe_tower_x = print.config().wipe_tower_x.get_at(plate_idx) + plate_origin(0);
+    double wipe_tower_y = print.config().wipe_tower_y.get_at(plate_idx) + plate_origin(1);
     Transform2d trafo =
-        Eigen::Translation2d(print.config().wipe_tower_x.value, print.config().wipe_tower_y.value) *
+        Eigen::Translation2d(wipe_tower_x, wipe_tower_y) *
         Eigen::Rotation2Dd(Geometry::deg2rad(print.config().wipe_tower_rotation_angle.value));
 
     BoundingBoxf bbox;

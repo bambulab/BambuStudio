@@ -190,6 +190,7 @@ public:
     ModelObjectPtrs get_objects() { return m_model->objects; }
     ModelInstance* get_instance(int obj_id, int instance_id);
 
+    Vec3d get_origin() { return m_origin; }
 
     /* instance related operations*/
     //judge whether instance is bound in plate or not

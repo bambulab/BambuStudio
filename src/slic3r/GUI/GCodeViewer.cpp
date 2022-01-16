@@ -2303,7 +2303,11 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
             const float depth = print.wipe_tower_data(extruders_count).depth;
             const float brim_width = print.wipe_tower_data(extruders_count).brim_width;
 
-            m_shells.volumes.load_wipe_tower_preview(1000, config.wipe_tower_x, config.wipe_tower_y, config.wipe_tower_width, depth, max_z, config.wipe_tower_rotation_angle,
+            int plate_idx = print.get_plate_index();
+            Vec3d plate_origin = print.get_plate_origin();
+            double wipe_tower_x = config.wipe_tower_x.get_at(plate_idx) + plate_origin(0);
+            double wipe_tower_y = config.wipe_tower_y.get_at(plate_idx) + plate_origin(1);
+            m_shells.volumes.load_wipe_tower_preview(1000, wipe_tower_x, wipe_tower_y, config.wipe_tower_width, depth, max_z, config.wipe_tower_rotation_angle,
                 !print.is_step_done(psWipeTower), brim_width, initialized);
         }
     }
