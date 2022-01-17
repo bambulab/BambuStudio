@@ -26,7 +26,8 @@ END_EVENT_TABLE()
 TextInput::TextInput()
     : state_handler(this)
     , border_color(std::make_pair(0xDBDBDB, (int) StateColor::Disabled),
-                   std::make_pair(0x1F8EEA, (int) StateColor::Focused),
+                   std::make_pair(0x00AE42, (int) StateColor::Focused),
+                   std::make_pair(0x00AE42, (int) StateColor::Hovered),
                    std::make_pair(0xDBDBDB, (int) StateColor::Normal))
     , text_color(std::make_pair(0xACACAC, (int) StateColor::Disabled),
                  std::make_pair(0x363636, (int) StateColor::Normal))
@@ -67,6 +68,14 @@ void TextInput::Create(wxWindow *     parent,
     text_ctrl = new wxTextCtrl(this, wxID_ANY, text, {5, 5}, wxDefaultSize,
                                style | wxBORDER_NONE);
     text_ctrl->Bind(wxEVT_SET_FOCUS, [this](auto &e) {
+        e.SetId(GetId());
+        ProcessEventLocally(e);
+    });
+    text_ctrl->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
+        e.SetId(GetId());
+        ProcessEventLocally(e);
+    });
+    text_ctrl->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {
         e.SetId(GetId());
         ProcessEventLocally(e);
     });
@@ -112,6 +121,24 @@ bool TextInput::SetBackgroundColour(wxColour const& color)
     background_color = StateColor(color);
     state_handler.update_binds();
     return true;
+}
+
+void TextInput::SetBorderColor(StateColor const& color)
+{
+    border_color = color;
+    state_handler.update_binds();
+}
+
+void TextInput::SetForegroundColor(StateColor const& color)
+{
+    text_color= color;
+    state_handler.update_binds();
+}
+
+void TextInput::SetBackgroundColor(StateColor const& color)
+{
+    background_color = color;
+    state_handler.update_binds();
 }
 
 void TextInput::Rescale()

@@ -34,7 +34,8 @@ SpinInput::SpinInput(wxWindow *     parent,
     : wxWindow(parent, wxID_ANY, pos, size)
     , state_handler(this)
     , border_color(std::make_pair(0xDBDBDB, (int) StateColor::Disabled),
-                   std::make_pair(0x1F8EEA, (int) StateColor::Focused),
+                   std::make_pair(0x00AE42, (int) StateColor::Focused),
+                   std::make_pair(0x00AE42, (int) StateColor::Hovered),
                    std::make_pair(0xDBDBDB, (int) StateColor::Normal))
     , text_color(std::make_pair(0xACACAC, (int) StateColor::Disabled),
                  std::make_pair(*wxBLACK, (int) StateColor::Normal))
@@ -51,6 +52,14 @@ SpinInput::SpinInput(wxWindow *     parent,
                                style | wxBORDER_NONE | wxTE_PROCESS_ENTER, wxTextValidator(wxFILTER_DIGITS));
     text_ctrl->SetFont(Label::Body_14);
     text_ctrl->Bind(wxEVT_SET_FOCUS, [this](auto &e) {
+        e.SetId(GetId());
+        ProcessEventLocally(e);
+    });
+    text_ctrl->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
+        e.SetId(GetId());
+        ProcessEventLocally(e);
+    });
+    text_ctrl->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {
         e.SetId(GetId());
         ProcessEventLocally(e);
     });

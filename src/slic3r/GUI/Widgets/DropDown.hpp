@@ -21,7 +21,8 @@ class DropDown : public wxPopupTransientWindow
     StateHandler state_handler;
     StateColor   text_color;
     StateColor   border_color;
-    StateColor   background_color;
+    StateColor   selector_border_color;
+    StateColor   selector_background_color;
     ScalableBitmap check_bitmap;
 
     bool pressedDown = false;
@@ -53,13 +54,13 @@ public:
 
     bool SetForegroundColour(wxColour const & colour) override;
 
-    bool SetBackgroundColour(wxColour const & color) override;
-
     void SetBorderColor(StateColor const & color);
+
+    void SetSelectorBorderColor(StateColor const & color);
 
     void SetForegroundColor(StateColor const &color);
 
-    void SetBackgroundColor(StateColor const &color);
+    void SetSelectorBackgroundColor(StateColor const &color);
     
 public:
     void Rescale();

@@ -31,11 +31,14 @@ DropDown::DropDown(wxWindow *             parent,
     , state_handler(this)
     , border_color(0xDBDBDB)
     , text_color(0x363636)
-    , background_color(std::make_pair(0xEEEEEE, (int) StateColor::Hovered),
-                       std::make_pair(*wxWHITE, (int) StateColor::Normal))
+    , selector_border_color(std::make_pair(0x00AE42, (int) StateColor::Hovered),
+        std::make_pair(*wxWHITE, (int) StateColor::Normal))
+    , selector_background_color(std::make_pair(0xEDFAF2, (int) StateColor::Checked),
+        std::make_pair(*wxWHITE, (int) StateColor::Normal))
 {
     SetBackgroundStyle(wxBG_STYLE_PAINT);
-    state_handler.attach({&border_color, &text_color, &background_color});
+    SetBackgroundColour(*wxWHITE);
+    state_handler.attach({&border_color, &text_color, &selector_border_color, &selector_background_color});
     state_handler.update_binds();
     check_bitmap = ScalableBitmap(this, "checked", 16);
 
@@ -89,16 +92,16 @@ bool DropDown::SetForegroundColour(wxColour const &color)
     return true;
 }
 
-bool DropDown::SetBackgroundColour(wxColour const& color)
-{
-    background_color = StateColor(color);
-    state_handler.update_binds();
-    return true;
-}
-
 void DropDown::SetBorderColor(StateColor const &color)
 {
     border_color = color;
+    state_handler.update_binds();
+    paintNow();
+}
+
+void DropDown::SetSelectorBorderColor(StateColor const &color)
+{
+    selector_border_color = color;
     state_handler.update_binds();
     paintNow();
 }
@@ -110,9 +113,9 @@ void DropDown::SetForegroundColor(StateColor const &color)
     paintNow();
 }
 
-void DropDown::SetBackgroundColor(StateColor const &color)
+void DropDown::SetSelectorBackgroundColor(StateColor const &color)
 {
-    background_color = color;
+    selector_background_color = color;
     state_handler.update_binds();
     paintNow();
 }
@@ -163,8 +166,7 @@ void DropDown::render(wxDC &dc)
     if (texts.size() == 0) return;
     int states = state_handler.states();
     dc.SetPen(wxPen(border_color.colorForStates(states)));
-    dc.SetBrush(wxBrush(
-        background_color.colorForStates(states & ~StateColor::Hovered)));
+    dc.SetBrush(wxBrush(GetBackgroundColour()));
     // if (GetWindowStyle() & wxBORDER_NONE)
     //    dc.SetPen(wxNullPen);
 
@@ -175,13 +177,30 @@ void DropDown::render(wxDC &dc)
     else
         dc.DrawRoundedRectangle(0, 0, size.x, size.y, radius);
 
-    // draw hover background
+    // draw hover rectangle
     wxRect rcContent = {{0, offset.y}, rowSize};
     if (hover_item >= 0 && (states & StateColor::Hovered)) {
-        dc.SetBrush(wxBrush(background_color.colorForStates(states)));
         rcContent.y += rowSize.y * hover_item;
-        if (rcContent.GetBottom() > 0 && rcContent.y < size.y)
+        if (rcContent.GetBottom() > 0 && rcContent.y < size.y) {
+            if (selection == hover_item)
+                dc.SetBrush(wxBrush(selector_background_color.colorForStates(states | StateColor::Checked)));
+            dc.SetPen(wxPen(selector_border_color.colorForStates(states)));
+            rcContent.Deflate(4, 1);
             dc.DrawRectangle(rcContent);
+            rcContent.Inflate(4, 1);
+        }
+        rcContent.y = offset.y;
+    }
+    // draw checked rectangle
+    if (selection >= 0 && selection != hover_item) {
+        rcContent.y += rowSize.y * selection;
+        if (rcContent.GetBottom() > 0 && rcContent.y < size.y) {
+            dc.SetBrush(wxBrush(selector_background_color.colorForStates(states | StateColor::Checked)));
+            dc.SetPen(wxPen(selector_background_color.colorForStates(states)));
+            rcContent.Deflate(4, 1);
+            dc.DrawRectangle(rcContent);
+            rcContent.Inflate(4, 1);
+        }
         rcContent.y = offset.y;
     }
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
