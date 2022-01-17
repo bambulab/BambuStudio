@@ -597,7 +597,7 @@ namespace Slic3r {
         enum class EProducer
         {
             Unknown,
-            PrusaSlicer,
+            BambuSlicer,
             Slic3rPE,
             Slic3r,
             SuperSlicer,

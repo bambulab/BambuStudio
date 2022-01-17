@@ -95,7 +95,7 @@ void MsgDialog::apply_style(long style)
 
     logo->SetBitmap( create_scaled_bitmap(style & wxICON_WARNING        ? "exclamation" :
                                           style & wxICON_INFORMATION    ? "info"        :
-                                          style & wxICON_QUESTION       ? "question"    : "PrusaSlicer", this, 64, style & wxICON_ERROR));
+                                          style & wxICON_QUESTION       ? "question"    : "BambuSlicer", this, 64, style & wxICON_ERROR));
 }
 
 void MsgDialog::finalize()
@@ -188,7 +188,7 @@ ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg, bool monospaced_
     add_msg_content(this, content_sizer, msg, monospaced_font);
 
 	// Use a small bitmap with monospaced font, as the error text will not be wrapped.
-	logo->SetBitmap(create_scaled_bitmap("PrusaSlicer_192px_grayscale.png", this, monospaced_font ? 48 : /*1*/84));
+	logo->SetBitmap(create_scaled_bitmap("BambuSlicer_192px_grayscale.png", this, monospaced_font ? 48 : /*1*/84));
 
     SetMaxSize(wxSize(-1, CONTENT_MAX_HEIGHT*wxGetApp().em_unit()));
 

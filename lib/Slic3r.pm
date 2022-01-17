@@ -105,7 +105,7 @@ sub copyright_info
     my (%params) = @_;
     my %tag = Slic3r::tags($params{format});
     my $out =
-        'Copyright &copy; 2016 Vojtech Bubnik, Prusa Research. <br />' .
+        'Copyright &copy; 2016 Vojtech Bubnik, Bambu Research. <br />' .
         'Copyright &copy; 2011-2016 Alessandro Ranellucci. <br />' .
         '<a href="http://slic3r.org/">Slic3r</a> is licensed under the ' .
         '<a href="http://www.gnu.org/licenses/agpl-3.0.html">GNU Affero General Public License, version 3</a>.' .

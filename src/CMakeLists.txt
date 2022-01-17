@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.13)
-project(PrusaSlicer-native)
+project(BambuSlicer-native)
 
 add_subdirectory(build-utils)
 add_subdirectory(admesh)
-add_subdirectory(avrdude)
+# add_subdirectory(avrdude)
 # boost/nowide
 add_subdirectory(boost)
 add_subdirectory(clipper)
@@ -101,61 +101,61 @@ endif()
 
 # Create a slic3r executable
 # Process mainfests for various platforms.
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/msw/PrusaSlicer.rc.in ${CMAKE_CURRENT_BINARY_DIR}/PrusaSlicer.rc @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/msw/PrusaSlicer-gcodeviewer.rc.in ${CMAKE_CURRENT_BINARY_DIR}/PrusaSlicer-gcodeviewer.rc @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/msw/PrusaSlicer.manifest.in ${CMAKE_CURRENT_BINARY_DIR}/PrusaSlicer.manifest @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/msw/BambuSlicer.rc.in ${CMAKE_CURRENT_BINARY_DIR}/BambuSlicer.rc @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/msw/BambuSlicer-gcodeviewer.rc.in ${CMAKE_CURRENT_BINARY_DIR}/BambuSlicer-gcodeviewer.rc @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/msw/BambuSlicer.manifest.in ${CMAKE_CURRENT_BINARY_DIR}/BambuSlicer.manifest @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/osx/Info.plist.in ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
 if (WIN32)
-    add_library(PrusaSlicer SHARED PrusaSlicer.cpp PrusaSlicer.hpp BaseException.cpp BaseException.h StackWalker.cpp StackWalker.h)
+    add_library(BambuSlicer SHARED BambuSlicer.cpp BambuSlicer.hpp BaseException.cpp BaseException.h StackWalker.cpp StackWalker.h)
 else ()
-    add_executable(PrusaSlicer PrusaSlicer.cpp PrusaSlicer.hpp)
+    add_executable(BambuSlicer BambuSlicer.cpp BambuSlicer.hpp)
 endif ()
 
 if (MINGW)
-    target_link_options(PrusaSlicer PUBLIC "-Wl,-allow-multiple-definition")
-    set_target_properties(PrusaSlicer PROPERTIES PREFIX "")
+    target_link_options(BambuSlicer PUBLIC "-Wl,-allow-multiple-definition")
+    set_target_properties(BambuSlicer PROPERTIES PREFIX "")
 endif (MINGW)
 
 if (NOT WIN32 AND NOT APPLE)
     # Binary name on unix like systems (Linux, Unix)
-    set_target_properties(PrusaSlicer PROPERTIES OUTPUT_NAME "prusa-slicer")
+    set_target_properties(BambuSlicer PROPERTIES OUTPUT_NAME "bambu-slicer")
 endif ()
 
-target_link_libraries(PrusaSlicer libslic3r cereal)
+target_link_libraries(BambuSlicer libslic3r cereal)
 if (APPLE)
 #    add_compile_options(-stdlib=libc++)
 #    add_definitions(-DBOOST_THREAD_DONT_USE_CHRONO -DBOOST_NO_CXX11_RVALUE_REFERENCES -DBOOST_THREAD_USES_MOVE)
     # -liconv: boost links to libiconv by default
-    target_link_libraries(PrusaSlicer "-liconv -framework IOKit" "-framework CoreFoundation" "-framework AVFoundation" "-framework AVKit" "-framework CoreMedia" "-framework VideoToolbox" -lc++)
+    target_link_libraries(BambuSlicer "-liconv -framework IOKit" "-framework CoreFoundation" "-framework AVFoundation" "-framework AVKit" "-framework CoreMedia" "-framework VideoToolbox" -lc++)
 elseif (MSVC)
-    # Manifest is provided through PrusaSlicer.rc, don't generate your own.
+    # Manifest is provided through BambuSlicer.rc, don't generate your own.
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /MANIFEST:NO")
 else ()
     # Boost on Raspberry-Pi does not link to pthreads explicitely.
-    target_link_libraries(PrusaSlicer ${CMAKE_DL_LIBS} -lstdc++ Threads::Threads)
+    target_link_libraries(BambuSlicer ${CMAKE_DL_LIBS} -lstdc++ Threads::Threads)
 endif ()
 
 # Add the Slic3r GUI library, libcurl, OpenGL and GLU libraries.
 if (SLIC3R_GUI)
-#    target_link_libraries(PrusaSlicer ws2_32 uxtheme setupapi libslic3r_gui ${wxWidgets_LIBRARIES})
-target_link_libraries(PrusaSlicer libslic3r_gui)
+#    target_link_libraries(BambuSlicer ws2_32 uxtheme setupapi libslic3r_gui ${wxWidgets_LIBRARIES})
+target_link_libraries(BambuSlicer libslic3r_gui)
     if (MSVC)
         # Generate debug symbols even in release mode.
-        target_link_options(PrusaSlicer PUBLIC "$<$<CONFIG:RELEASE>:/DEBUG>")
-        target_link_libraries(PrusaSlicer user32.lib Setupapi.lib iphlpapi.lib)
+        target_link_options(BambuSlicer PUBLIC "$<$<CONFIG:RELEASE>:/DEBUG>")
+        target_link_libraries(BambuSlicer user32.lib Setupapi.lib iphlpapi.lib)
     elseif (MINGW)
-        target_link_libraries(PrusaSlicer ws2_32 uxtheme setupapi)
+        target_link_libraries(BambuSlicer ws2_32 uxtheme setupapi)
     elseif (APPLE)
-        target_link_libraries(PrusaSlicer "-framework OpenGL")
-        target_link_libraries(PrusaSlicer "-ljson-c")
-        target_link_libraries(PrusaSlicer "-lIOTCAPIs_ALL")
-        target_link_libraries(PrusaSlicer "-lTutkPlayerLib")
+        target_link_libraries(BambuSlicer "-framework OpenGL")
+        target_link_libraries(BambuSlicer "-ljson-c")
+        target_link_libraries(BambuSlicer "-lIOTCAPIs_ALL")
+        target_link_libraries(BambuSlicer "-lTutkPlayerLib")
     else ()
-        target_link_libraries(PrusaSlicer -ldl)
+        target_link_libraries(BambuSlicer -ldl)
     endif ()
     if (WIN32)
         find_library(PSAPI_LIB NAMES Psapi)
-        target_link_libraries(PrusaSlicer ${PSAPI_LIB})
+        target_link_libraries(BambuSlicer ${PSAPI_LIB})
     endif ()
 endif ()
 
@@ -166,35 +166,35 @@ if (WIN32)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -municode")
     endif()
 
-    add_executable(PrusaSlicer_app_gui WIN32 PrusaSlicer_app_msvc.cpp ${CMAKE_CURRENT_BINARY_DIR}/PrusaSlicer.rc)
+    add_executable(BambuSlicer_app_gui WIN32 BambuSlicer_app_msvc.cpp ${CMAKE_CURRENT_BINARY_DIR}/BambuSlicer.rc)
     # Generate debug symbols even in release mode.
     if(MSVC)
-        target_link_options(PrusaSlicer_app_gui PUBLIC "$<$<CONFIG:RELEASE>:/DEBUG>")
+        target_link_options(BambuSlicer_app_gui PUBLIC "$<$<CONFIG:RELEASE>:/DEBUG>")
     endif()
-    target_compile_definitions(PrusaSlicer_app_gui PRIVATE -DSLIC3R_WRAPPER_NOCONSOLE)
-    add_dependencies(PrusaSlicer_app_gui PrusaSlicer)
-    set_target_properties(PrusaSlicer_app_gui PROPERTIES OUTPUT_NAME "prusa-slicer")
-    target_link_libraries(PrusaSlicer_app_gui PRIVATE boost_headeronly)
+    target_compile_definitions(BambuSlicer_app_gui PRIVATE -DSLIC3R_WRAPPER_NOCONSOLE)
+    add_dependencies(BambuSlicer_app_gui BambuSlicer)
+    set_target_properties(BambuSlicer_app_gui PROPERTIES OUTPUT_NAME "bambu-slicer")
+    target_link_libraries(BambuSlicer_app_gui PRIVATE boost_headeronly)
 
-    add_executable(PrusaSlicer_app_console PrusaSlicer_app_msvc.cpp ${CMAKE_CURRENT_BINARY_DIR}/PrusaSlicer.rc)
+    add_executable(BambuSlicer_app_console BambuSlicer_app_msvc.cpp ${CMAKE_CURRENT_BINARY_DIR}/BambuSlicer.rc)
     # Generate debug symbols even in release mode.
     if (MSVC)
-        target_link_options(PrusaSlicer_app_console PUBLIC "$<$<CONFIG:RELEASE>:/DEBUG>")
+        target_link_options(BambuSlicer_app_console PUBLIC "$<$<CONFIG:RELEASE>:/DEBUG>")
     endif ()
-    target_compile_definitions(PrusaSlicer_app_console PRIVATE -DSLIC3R_WRAPPER_CONSOLE)
-    add_dependencies(PrusaSlicer_app_console PrusaSlicer)
-    set_target_properties(PrusaSlicer_app_console PROPERTIES OUTPUT_NAME "prusa-slicer-console")
-    target_link_libraries(PrusaSlicer_app_console PRIVATE boost_headeronly)
+    target_compile_definitions(BambuSlicer_app_console PRIVATE -DSLIC3R_WRAPPER_CONSOLE)
+    add_dependencies(BambuSlicer_app_console BambuSlicer)
+    set_target_properties(BambuSlicer_app_console PROPERTIES OUTPUT_NAME "bambu-slicer-console")
+    target_link_libraries(BambuSlicer_app_console PRIVATE boost_headeronly)
 
-    add_executable(PrusaSlicer_app_gcodeviewer WIN32 PrusaSlicer_app_msvc.cpp ${CMAKE_CURRENT_BINARY_DIR}/PrusaSlicer-gcodeviewer.rc)
+    add_executable(BambuSlicer_app_gcodeviewer WIN32 BambuSlicer_app_msvc.cpp ${CMAKE_CURRENT_BINARY_DIR}/BambuSlicer-gcodeviewer.rc)
     # Generate debug symbols even in release mode.
     if (MSVC)
-        target_link_options(PrusaSlicer_app_gcodeviewer PUBLIC "$<$<CONFIG:RELEASE>:/DEBUG>")
+        target_link_options(BambuSlicer_app_gcodeviewer PUBLIC "$<$<CONFIG:RELEASE>:/DEBUG>")
     endif ()
-    target_compile_definitions(PrusaSlicer_app_gcodeviewer PRIVATE -DSLIC3R_WRAPPER_NOCONSOLE -DSLIC3R_WRAPPER_GCODEVIEWER)
-    add_dependencies(PrusaSlicer_app_gcodeviewer PrusaSlicer)
-    set_target_properties(PrusaSlicer_app_gcodeviewer PROPERTIES OUTPUT_NAME "prusa-gcodeviewer")
-    target_link_libraries(PrusaSlicer_app_gcodeviewer PRIVATE boost_headeronly)
+    target_compile_definitions(BambuSlicer_app_gcodeviewer PRIVATE -DSLIC3R_WRAPPER_NOCONSOLE -DSLIC3R_WRAPPER_GCODEVIEWER)
+    add_dependencies(BambuSlicer_app_gcodeviewer BambuSlicer)
+    set_target_properties(BambuSlicer_app_gcodeviewer PROPERTIES OUTPUT_NAME "bambu-gcodeviewer")
+    target_link_libraries(BambuSlicer_app_gcodeviewer PRIVATE boost_headeronly)
 endif ()
 
 # Link the resources dir to where Slic3r GUI expects it
@@ -203,13 +203,13 @@ set(output_dlls_Debug "")
 set(output_dlls_RelWithDebInfo "")
 if (WIN32)
     # This has to be a separate target due to the windows command line lenght limits
-    add_custom_target(PrusaSlicerDllsCopy ALL DEPENDS PrusaSlicer)
+    add_custom_target(BambuSlicerDllsCopy ALL DEPENDS BambuSlicer)
 
     if (CMAKE_CONFIGURATION_TYPES)
         foreach (CONF ${CMAKE_CONFIGURATION_TYPES})
             file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CONF}" WIN_CONF_OUTPUT_DIR)
             file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CONF}/resources" WIN_RESOURCES_SYMLINK)
-            add_custom_command(TARGET PrusaSlicer POST_BUILD
+            add_custom_command(TARGET BambuSlicer POST_BUILD
                 COMMAND if exist "${WIN_CONF_OUTPUT_DIR}" "("
                         if not exist "${WIN_RESOURCES_SYMLINK}" "("
                             mklink /J "${WIN_RESOURCES_SYMLINK}" "${SLIC3R_RESOURCES_DIR_WIN}"
@@ -221,15 +221,15 @@ if (WIN32)
         endforeach ()
 
         if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-            prusaslicer_copy_dlls(PrusaSlicerDllsCopy "Debug" "d" output_dlls_Debug)
+            bambuslicer_copy_dlls(BambuSlicerDllsCopy "Debug" "d" output_dlls_Debug)
         elseif("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
-            prusaslicer_copy_dlls(PrusaSlicerDllsCopy "RelWithDebInfo" "" output_dlls_RelWithDebInfo)
+            bambuslicer_copy_dlls(BambuSlicerDllsCopy "RelWithDebInfo" "" output_dlls_RelWithDebInfo)
         else()
-            prusaslicer_copy_dlls(PrusaSlicerDllsCopy "Release" "" output_dlls_Release)
+            bambuslicer_copy_dlls(BambuSlicerDllsCopy "Release" "" output_dlls_Release)
         endif()
     else ()
         file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/resources" WIN_RESOURCES_SYMLINK)
-        add_custom_command(TARGET PrusaSlicer POST_BUILD
+        add_custom_command(TARGET BambuSlicer POST_BUILD
             COMMAND if not exist "${WIN_RESOURCES_SYMLINK}" "(" mklink /J "${WIN_RESOURCES_SYMLINK}" "${SLIC3R_RESOURCES_DIR_WIN}" ")"
             COMMENT "Symlinking the resources directory into the build tree"
             VERBATIM
@@ -240,18 +240,18 @@ if (WIN32)
 else ()
     if (APPLE)
         # On OSX, the name of the binary matches the name of the Application.
-        add_custom_command(TARGET PrusaSlicer POST_BUILD
-            COMMAND ln -sf PrusaSlicer prusa-slicer
-            COMMAND ln -sf PrusaSlicer prusa-gcodeviewer
-            COMMAND ln -sf PrusaSlicer PrusaGCodeViewer
-            WORKING_DIRECTORY "$<TARGET_FILE_DIR:PrusaSlicer>"
-            COMMENT "Symlinking the G-code viewer to PrusaSlicer, symlinking to prusa-slicer and prusa-gcodeviewer"
+        add_custom_command(TARGET BambuSlicer POST_BUILD
+            COMMAND ln -sf BambuSlicer bambu-slicer
+            COMMAND ln -sf BambuSlicer bambu-gcodeviewer
+            COMMAND ln -sf BambuSlicer BambuGCodeViewer
+            WORKING_DIRECTORY "$<TARGET_FILE_DIR:BambuSlicer>"
+            COMMENT "Symlinking the G-code viewer to BambuSlicer, symlinking to bambu-slicer and bambu-gcodeviewer"
             VERBATIM)
     else ()
-        add_custom_command(TARGET PrusaSlicer POST_BUILD
-            COMMAND ln -sf prusa-slicer prusa-gcodeviewer
-            WORKING_DIRECTORY "$<TARGET_FILE_DIR:PrusaSlicer>"
-            COMMENT "Symlinking the G-code viewer to PrusaSlicer"
+        add_custom_command(TARGET BambuSlicer POST_BUILD
+            COMMAND ln -sf bambu-slicer bambu-gcodeviewer
+            WORKING_DIRECTORY "$<TARGET_FILE_DIR:BambuSlicer>"
+            COMMENT "Symlinking the G-code viewer to BambuSlicer"
             VERBATIM)
     endif ()
     if (XCODE)
@@ -260,7 +260,7 @@ else ()
     else ()
         set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/../resources")
     endif ()
-    add_custom_command(TARGET PrusaSlicer POST_BUILD
+    add_custom_command(TARGET BambuSlicer POST_BUILD
         COMMAND ln -sfn "${SLIC3R_RESOURCES_DIR}" "${BIN_RESOURCES_DIR}"
         COMMENT "Symlinking the resources directory into the build tree"
         VERBATIM)
@@ -280,16 +280,16 @@ endif()
 message(STATUS "libslic3r-CMAKE_BUILD_TYPE: ${build_type}")
 message(STATUS "CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}")
 if (WIN32)
-    install(TARGETS PrusaSlicer RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}")
+    install(TARGETS BambuSlicer RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}")
     if (MSVC)
-        install(TARGETS PrusaSlicer_app_gui RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}")
-        install(TARGETS PrusaSlicer_app_console RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}")
-        install(TARGETS PrusaSlicer_app_gcodeviewer RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}")
+        install(TARGETS BambuSlicer_app_gui RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}")
+        install(TARGETS BambuSlicer_app_console RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}")
+        install(TARGETS BambuSlicer_app_gcodeviewer RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}")
     endif ()
     install(FILES ${output_dlls_${build_type}} DESTINATION "${CMAKE_INSTALL_PREFIX}")
 else ()
-    install(TARGETS PrusaSlicer RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+    install(TARGETS BambuSlicer RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 
     # Install the symlink for gcodeviewer
-    install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink prusa-slicer prusa-gcodeviewer WORKING_DIRECTORY \$ENV{DESTDIR}/${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})")
+    install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink bambu-slicer bambu-gcodeviewer WORKING_DIRECTORY \$ENV{DESTDIR}/${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})")
 endif ()

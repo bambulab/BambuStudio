@@ -1,4 +1,4 @@
-prusaslicer_add_cmake_project(ZLIB
+bambuslicer_add_cmake_project(ZLIB
   # GIT_REPOSITORY https://github.com.cnpmjs.org/madler/zlib.git
   # GIT_TAG v1.2.11
   URL https://github.com.cnpmjs.org/madler/zlib/archive/refs/tags/v1.2.11.zip

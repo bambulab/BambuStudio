@@ -39,7 +39,7 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 	wxString path;
 	wxFileName::SplitPath(wxStandardPaths::Get().GetExecutablePath(), &path, nullptr, nullptr, wxPATH_NATIVE);
 	path += "\\";
-	path += (instance_type == NewSlicerInstanceType::Slicer) ? "prusa-slicer.exe" : "prusa-gcodeviewer.exe";
+	path += (instance_type == NewSlicerInstanceType::Slicer) ? "bambu-slicer.exe" : "bambu-gcodeviewer.exe";
 	std::vector<const wchar_t*> args;
 	args.reserve(4);
 	args.emplace_back(path.wc_str());
@@ -51,7 +51,7 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 		args.emplace_back(L"--single-instance");
 	args.emplace_back(nullptr);
 	BOOST_LOG_TRIVIAL(info) << "Trying to spawn a new slicer \"" << into_u8(path) << "\"";
-	// Don't call with wxEXEC_HIDE_CONSOLE, PrusaSlicer in GUI mode would just show the splash screen. It would not open the main window though, it would
+	// Don't call with wxEXEC_HIDE_CONSOLE, BambuSlicer in GUI mode would just show the splash screen. It would not open the main window though, it would
 	// just hang in the background.
 	if (wxExecute(const_cast<wchar_t**>(args.data()), wxEXEC_ASYNC) <= 0)
 		BOOST_LOG_TRIVIAL(error) << "Failed to spawn a new slicer \"" << into_u8(path);
@@ -60,11 +60,11 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 	boost::filesystem::path bin_path = into_path(wxStandardPaths::Get().GetExecutablePath());
 #if defined(__APPLE__)
 	{
-		// Maybe one day we will be able to run PrusaGCodeViewer, but for now the Apple notarization 
+		// Maybe one day we will be able to run BambuGCodeViewer, but for now the Apple notarization 
 		// process refuses Apps with multiple binaries and Vojtech does not know any workaround.
-		// ((instance_type == NewSlicerInstanceType::Slicer) ? "PrusaSlicer" : "PrusaGCodeViewer");
-		// Just run PrusaSlicer and give it a --gcodeviewer parameter.
-		bin_path = bin_path.parent_path() / "PrusaSlicer";
+		// ((instance_type == NewSlicerInstanceType::Slicer) ? "BambuSlicer" : "BambuGCodeViewer");
+		// Just run BambuSlicer and give it a --gcodeviewer parameter.
+		bin_path = bin_path.parent_path() / "BambuSlicer";
 		// On Apple the wxExecute fails, thus we use boost::process instead.
 		BOOST_LOG_TRIVIAL(info) << "Trying to spawn a new slicer \"" << bin_path.string() << "\"";
 		try {
@@ -78,11 +78,11 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 			if (instance_type == NewSlicerInstanceType::Slicer && single_instance)
 				args.emplace_back("--single-instance");
 			boost::process::spawn(bin_path, args);
-		    // boost::process::spawn() sets SIGCHLD to SIGIGN for the child process, thus if a child PrusaSlicer spawns another
-		    // subprocess and the subrocess dies, the child PrusaSlicer will not receive information on end of subprocess
+		    // boost::process::spawn() sets SIGCHLD to SIGIGN for the child process, thus if a child BambuSlicer spawns another
+		    // subprocess and the subrocess dies, the child BambuSlicer will not receive information on end of subprocess
 		    // (posix waitpid() call will always fail).
 		    // https://jmmv.dev/2008/10/boostprocess-and-sigchld.html
-		    // The child instance of PrusaSlicer has to reset SIGCHLD to its default, so that posix waitpid() and similar continue to work.
+		    // The child instance of BambuSlicer has to reset SIGCHLD to its default, so that posix waitpid() and similar continue to work.
 		    // See GH issue #5507
 		}
 		catch (const std::exception& ex) {
@@ -109,7 +109,7 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 		std::string my_path;
 		if (args.empty()) {
 			// Binary path was not set to the AppImage in the Linux specific block above, call the application directly.
-			my_path = (bin_path.parent_path() / ((instance_type == NewSlicerInstanceType::Slicer) ? "prusa-slicer" : "prusa-gcodeviewer")).string();
+			my_path = (bin_path.parent_path() / ((instance_type == NewSlicerInstanceType::Slicer) ? "bambu-slicer" : "bambu-gcodeviewer")).string();
 			args.emplace_back(my_path.c_str());
 		}
 		std::string to_open;

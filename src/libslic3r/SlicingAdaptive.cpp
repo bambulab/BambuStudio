@@ -25,7 +25,7 @@ lerr2=1./(0.3+cos(a));
 plot(adeg, t, 'b', adeg, sqrt(t), 'g', adeg, 0.5 * lerr, 'm', adeg, 0.5 * lerr2, 'r')
 xlabel("angle(deg), 0 - horizontal wall, 90 - vertical wall");
 ylabel("layer height");
-legend("tan(a) as cura - topographic lines distance limit", "sqrt(tan(a)) as PrusaSlicer - error triangle area limit", "old slic3r - max distance metric", "new slic3r - Waserfall paper");
+legend("tan(a) as cura - topographic lines distance limit", "sqrt(tan(a)) as BambuSlicer - error triangle area limit", "old slic3r - max distance metric", "new slic3r - Waserfall paper");
 #endif
 
 #ifndef NDEBUG

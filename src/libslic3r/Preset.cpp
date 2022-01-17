@@ -168,7 +168,7 @@ VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem
             }
 
             model.family = section.second.get<std::string>("family", std::string());
-            if (model.family.empty() && res.name == "Prusa Research") {
+            if (model.family.empty() && res.name == "Bambu Research") {
                 // If no family is specified, it can be inferred for known printers
                 const auto from_pre_map = pre_family_model_map.find(model.id);
                 if (from_pre_map != pre_family_model_map.end()) { model.family = from_pre_map->second; }
@@ -497,7 +497,7 @@ void Preset::set_visible_from_appconfig(const AppConfig &app_config)
     } else if (type == TYPE_FILAMENT || type == TYPE_SLA_MATERIAL) {
     	const std::string &section_name = (type == TYPE_FILAMENT) ? AppConfig::SECTION_FILAMENTS : AppConfig::SECTION_MATERIALS;
     	if (app_config.has_section(section_name)) {
-    		// Check whether this profile is marked as "installed" in PrusaSlicer.ini,
+    		// Check whether this profile is marked as "installed" in BambuSlicer.ini,
     		// or whether a profile is marked as "installed", which this profile may have been renamed from.
 	    	const std::map<std::string, std::string> &installed = app_config.get_section(section_name);
 	    	auto has = [&installed](const std::string &name) {

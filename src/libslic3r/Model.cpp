@@ -160,12 +160,8 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
         // BBS: backup & restore
         //FIXME options & LoadAttribute::CheckVersion ? 
         result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, options & LoadAttribute::CheckVersion, is_bbl_3mf, options & LoadAttribute::WithAuxiliary, options & LoadAttribute::RestoreFromTemp, proFn);
-#if 0
-    else if (boost::algorithm::iends_with(input_file, ".prusa"))
-        result = load_prus(input_file.c_str(), &model);
-#endif
     else
-        throw Slic3r::RuntimeError("Unknown file format. Input file must have .stl, .obj, .amf(.xml) or .prusa extension.");
+        throw Slic3r::RuntimeError("Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension.");
 
     if (! result)
         throw Slic3r::RuntimeError("Loading of a model file failed.");

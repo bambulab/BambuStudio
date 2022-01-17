@@ -1054,7 +1054,7 @@ void PageMaterials::sort_list_data(StringList* list, bool add_All_item, bool mat
         const std::string& data = list->get_data(i);
         if (data == EMPTY) // do not sort <all> item
             continue;
-        if (!material_type_ordering && data.find("Prusa") != std::string::npos)
+        if (!material_type_ordering && data.find("Bambu") != std::string::npos)
             prusa_profiles.push_back(data);
         else 
             other_profiles.push_back(data);
@@ -1109,7 +1109,7 @@ void PageMaterials::sort_list_data(PresetList* list, const std::vector<ProfilePr
     //for (int i = 0; i < data.size(); ++i) {
     for (const auto& item : data) {
         const std::string& name = item.name;
-        if (name.find("Prusa") != std::string::npos)
+        if (name.find("Bambu") != std::string::npos)
             prusa_profiles.emplace_back(item);
         else
             other_profiles.emplace_back(item);
@@ -1264,9 +1264,9 @@ PageReloadFromDisk::PageReloadFromDisk(ConfigWizard* parent)
 PageFilesAssociation::PageFilesAssociation(ConfigWizard* parent)
     : ConfigWizardPage(parent, _L("Files association"), _L("Files association"))
 {
-    cb_3mf = new wxCheckBox(this, wxID_ANY, _L("Associate .3mf files to PrusaSlicer"));
-    cb_stl = new wxCheckBox(this, wxID_ANY, _L("Associate .stl files to PrusaSlicer"));
-//    cb_gcode = new wxCheckBox(this, wxID_ANY, _L("Associate .gcode files to PrusaSlicer G-code Viewer"));
+    cb_3mf = new wxCheckBox(this, wxID_ANY, _L("Associate .3mf files to BambuSlicer"));
+    cb_stl = new wxCheckBox(this, wxID_ANY, _L("Associate .stl files to BambuSlicer"));
+//    cb_gcode = new wxCheckBox(this, wxID_ANY, _L("Associate .gcode files to BambuSlicer G-code Viewer"));
 
     append(cb_3mf);
     append(cb_stl);
@@ -1277,7 +1277,7 @@ PageFilesAssociation::PageFilesAssociation(ConfigWizard* parent)
 PageMode::PageMode(ConfigWizard *parent)
     : ConfigWizardPage(parent, _L("View mode"), _L("View mode"))
 {
-    append_text(_L("PrusaSlicer's user interfaces comes in three variants:\nSimple, Advanced, and Expert.\n"
+    append_text(_L("BambuSlicer's user interfaces comes in three variants:\nSimple, Advanced, and Expert.\n"
         "The Simple mode shows only the most frequently used settings relevant for regular 3D printing. "
         "The other two offer progressively more sophisticated fine-tuning, "
         "they are suitable for advanced and expert users, respectively."));
@@ -1612,7 +1612,7 @@ void PageTemperatures::apply_custom_config(DynamicPrintConfig &config)
 
 ConfigWizardIndex::ConfigWizardIndex(wxWindow *parent)
     : wxPanel(parent)
-    , bg(ScalableBitmap(parent, "PrusaSlicer_192px_transparent.png", 192))
+    , bg(ScalableBitmap(parent, "BambuSlicer_192px_transparent.png", 192))
     , bullet_black(ScalableBitmap(parent, "bullet_black.png"))
     , bullet_blue(ScalableBitmap(parent, "bullet_blue.png"))
     , bullet_white(ScalableBitmap(parent, "bullet_white.png"))
@@ -2000,7 +2000,7 @@ void ConfigWizard::priv::load_vendors()
 
                 const auto &model = needle->second.first;
                 const auto &variant = needle->second.second;
-                appconfig_new.set_variant("PrusaResearch", model, variant, true);
+                appconfig_new.set_variant("BambuResearch", model, variant, true);
             }
     }
 

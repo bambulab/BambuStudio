@@ -53,7 +53,7 @@
 
 #include "libslic3r/Orient.hpp"
 
-#include "PrusaSlicer.hpp"
+#include "BambuSlicer.hpp"
 //BBS: add exception handler for win32
 #include <wx/stdpaths.h>
 #ifdef WIN32
@@ -116,7 +116,7 @@ int CLI::run(int argc, char **argv)
         boost::nowide::cout << "index="<< index <<", arg is "<< argv[index] <<std::endl;
     /*int debug_argc = 7;
     char *debug_argv[] = {
-        "D:\work\Projects\prusa_git_test\bamboo_slicer\build\src\RelWithDebInfo\prusa-slicer.exe",
+        "D:\work\Projects\prusa_git_test\bamboo_slicer\build\src\RelWithDebInfo\bambu-slicer.exe",
         "--slice",
         "--output=test_linux",
         "--export-3mf",
@@ -1050,18 +1050,18 @@ bool CLI::setup(int argc, char **argv)
     detect_platform();
 
 #ifdef WIN32
-    // Notify user that a blacklisted DLL was injected into PrusaSlicer process (for example Nahimic, see GH #5573).
-    // We hope that if a DLL is being injected into a PrusaSlicer process, it happens at the very start of the application,
+    // Notify user that a blacklisted DLL was injected into BambuSlicer process (for example Nahimic, see GH #5573).
+    // We hope that if a DLL is being injected into a BambuSlicer process, it happens at the very start of the application,
     // thus we shall detect them now.
     if (BlacklistedLibraryCheck::get_instance().perform_check()) {
-        std::wstring text = L"Following DLLs have been injected into the PrusaSlicer process:\n\n";
+        std::wstring text = L"Following DLLs have been injected into the BambuSlicer process:\n\n";
         text += BlacklistedLibraryCheck::get_instance().get_blacklisted_string();
         text += L"\n\n"
-                L"PrusaSlicer is known to not run correctly with these DLLs injected. "
+                L"BambuSlicer is known to not run correctly with these DLLs injected. "
                 L"We suggest stopping or uninstalling these services if you experience "
-                L"crashes or unexpected behaviour while using PrusaSlicer.\n"
-                L"For example, ASUS Sonic Studio injects a Nahimic driver, which makes PrusaSlicer "
-                L"to crash on a secondary monitor, see PrusaSlicer github issue #5573";
+                L"crashes or unexpected behaviour while using BambuSlicer.\n"
+                L"For example, ASUS Sonic Studio injects a Nahimic driver, which makes BambuSlicer "
+                L"to crash on a secondary monitor, see BambuSlicer github issue #5573";
         MessageBoxW(NULL, text.c_str(), L"Warning"/*L"Incopatible library found"*/, MB_OK);
     }
 #endif
@@ -1149,7 +1149,7 @@ void CLI::print_help(bool include_print_options, PrinterTechnology printer_techn
 #endif /* SLIC3R_GUI */
         << std::endl
         << "https://github.com/prusa3d/PrusaSlicer" << std::endl << std::endl
-        << "Usage: prusa-slicer [ ACTIONS ] [ TRANSFORM ] [ OPTIONS ] [ file.stl ... ]" << std::endl
+        << "Usage: bambu-slicer [ ACTIONS ] [ TRANSFORM ] [ OPTIONS ] [ file.stl ... ]" << std::endl
         << std::endl
         << "Actions:" << std::endl;
     cli_actions_config_def.print_cli_help(boost::nowide::cout, false);

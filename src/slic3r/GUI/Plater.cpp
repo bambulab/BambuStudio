@@ -2095,7 +2095,7 @@ private:
 	
 };
 
-const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf|prusa)", std::regex::icase);
+const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf)", std::regex::icase);
 const std::regex Plater::priv::pattern_3mf(".*3mf", std::regex::icase);
 const std::regex Plater::priv::pattern_zip_amf(".*[.]zip[.]amf", std::regex::icase);
 const std::regex Plater::priv::pattern_any_amf(".*[.](amf|amf[.]xml|zip[.]amf)", std::regex::icase);
@@ -2908,8 +2908,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                                 // show notification about temporarily installed presets
                                 if (!names.empty()) {
-                                    std::string notif_text = into_u8(_L_PLURAL("The preset below was temporarily installed on the active instance of PrusaSlicer",
-                                                                               "The presets below were temporarily installed on the active instance of PrusaSlicer", names.size())) + ":";
+                                    std::string notif_text = into_u8(_L_PLURAL("The preset below was temporarily installed on the active instance of BambuSlicer",
+                                                                               "The presets below were temporarily installed on the active instance of BambuSlicer", names.size())) + ":";
                                     for (std::string& name : names)
                                         notif_text += "\n - " + name;
                                     notification_manager->push_notification(NotificationType::CustomNotification,
@@ -3021,9 +3021,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     if (answer_convert_from_meters == wxOK_DEFAULT) {
                         RichMessageDialog dlg(q, format_wxstr(_L_PLURAL(
                             "The dimensions of the object from file %s seem to be defined in meters.\n"
-                            "The internal unit of PrusaSlicer is a millimeter. Do you want to recalculate the dimensions of the object?",
+                            "The internal unit of BambuSlicer is a millimeter. Do you want to recalculate the dimensions of the object?",
                             "The dimensions of some objects from file %s seem to be defined in meters.\n"
-                            "The internal unit of PrusaSlicer is a millimeter. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
+                            "The internal unit of BambuSlicer is a millimeter. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
                             _L("The object is too small"), wxICON_QUESTION | wxYES_NO);
                         dlg.ShowCheckBox(_L("Apply to all the remaining small objects being loaded."));
                         int answer = dlg.ShowModal();
@@ -3043,9 +3043,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     if (answer_convert_from_imperial_units == wxOK_DEFAULT) {
                         RichMessageDialog dlg(q, format_wxstr(_L_PLURAL(
                             "The dimensions of the object from file %s seem to be defined in inches.\n"
-                            "The internal unit of PrusaSlicer is a millimeter. Do you want to recalculate the dimensions of the object?",
+                            "The internal unit of BambuSlicer is a millimeter. Do you want to recalculate the dimensions of the object?",
                             "The dimensions of some objects from file %s seem to be defined in inches.\n"
-                            "The internal unit of PrusaSlicer is a millimeter. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
+                            "The internal unit of BambuSlicer is a millimeter. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
                             _L("The object is too small"), wxICON_QUESTION | wxYES_NO);
                         dlg.ShowCheckBox(_L("Apply to all the remaining small objects being loaded."));
                         int answer = dlg.ShowModal();
@@ -6208,7 +6208,7 @@ void Plater::priv::bring_instance_forward() const
         BOOST_LOG_TRIVIAL(debug) << "Couldnt bring instance forward - mainframe is null";
         return;
     }
-    BOOST_LOG_TRIVIAL(debug) << "prusaslicer window going forward";
+    BOOST_LOG_TRIVIAL(debug) << "bambuslicer window going forward";
     //this code maximize app window on Fedora
     {
         main_frame->Iconize(false);
@@ -7048,7 +7048,7 @@ void Plater::priv::show_sliced_info(const bool show)
 
 bool Plater::load_files(const wxArrayString& filenames)
 {
-    const std::regex pattern_drop(".*[.](stp|step|stl|obj|amf|3mf|prusa)", std::regex::icase);
+    const std::regex pattern_drop(".*[.](stp|step|stl|obj|amf|3mf)", std::regex::icase);
     const std::regex pattern_gcode_drop(".*[.](gcode|g)", std::regex::icase);
 
     std::vector<fs::path> paths;

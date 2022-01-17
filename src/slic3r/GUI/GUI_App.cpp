@@ -60,7 +60,7 @@
 #include "../Utils/MacDarkMode.hpp"
 #include "slic3r/Config/Snapshot.hpp"
 #include "ConfigSnapshotDialog.hpp"
-#include "FirmwareDialog.hpp"
+//#include "FirmwareDialog.hpp"
 #include "Preferences.hpp"
 #include "Tab.hpp"
 #include "SysInfoDialog.hpp"
@@ -477,7 +477,7 @@ private:
             // credits infornation
             credits =   title + " " +
                         _L("is based on Slic3r by Alessandro Ranellucci and the RepRap community.") + "\n" +
-                        _L("Developed by Prusa Research.")+ "\n\n" +
+                        _L("Developed by Bambu Research.")+ "\n\n" +
                         title + " " + _L("is licensed under the") + " " + _L("GNU Affero General Public License, version 3") + "\n\n" +
                         _L("Contributions by Vojtech Bubnik, Enrico Turri, Oleksandra Iushchenko, Tamas Meszaros, Lukas Matena, Vojtech Kral, David Kocik and numerous others.") + "\n\n" +
                         _L("Artwork model by M Boyer");
@@ -592,7 +592,7 @@ bool static check_old_linux_datadir(const wxString& app_name) {
     // If we are on Linux and the datadir does not exist yet, look into the old
     // location where the datadir was before version 2.3. If we find it there,
     // tell the user that he might wanna migrate to the new location.
-    // (https://github.com/prusa3d/PrusaSlicer/issues/2911)
+    // (https://github.com/Bambu3d/BambuSlicer/issues/2911)
     // To be precise, the datadir should exist, it is created when single instance
     // lock happens. Instead of checking for existence, check the contents.
 
@@ -647,9 +647,9 @@ bool static check_old_linux_datadir(const wxString& app_name) {
 static bool run_updater_win()
 {
     // find updater exe
-    boost::filesystem::path path_updater = boost::dll::program_location().parent_path() / "prusaslicer-updater.exe";
+    boost::filesystem::path path_updater = boost::dll::program_location().parent_path() / "bambuslicer-updater.exe";
     if (boost::filesystem::exists(path_updater)) {
-        // run updater. Original args: /silent -restartapp prusa-slicer.exe -startappfirst
+        // run updater. Original args: /silent -restartapp bambu-slicer.exe -startappfirst
 
         // Using quoted string as mentioned in CreateProcessW docs, silent execution parameter.
         std::wstring wcmd = L"\"" + path_updater.wstring() + L"\" /silent";
@@ -680,7 +680,7 @@ static bool run_updater_win()
             CloseHandle(pi.hThread);
             return true;
         } else {
-            BOOST_LOG_TRIVIAL(error) << "Failed to start prusaslicer-updater.exe with command " << wcmd;
+            BOOST_LOG_TRIVIAL(error) << "Failed to start bambuslicer-updater.exe with command " << wcmd;
         }
     }
     return false;
@@ -916,8 +916,8 @@ static void generic_exception_handle()
         BOOST_LOG_TRIVIAL(error) << boost::format("std::bad_alloc exception: %1%") % ex.what();
         std::terminate();
     } catch (const boost::io::bad_format_string& ex) {
-        wxString errmsg = _L("PrusaSlicer has encountered a localization error. "
-                             "Please report to PrusaSlicer team, what language was active and in which scenario "
+        wxString errmsg = _L("BambuSlicer has encountered a localization error. "
+                             "Please report to BambuSlicer team, what language was active and in which scenario "
                              "this issue happened. Thank you.\n\nThe application will now terminate.");
         wxMessageBox(errmsg + "\n\n" + wxString(ex.what()), _L("Critical error"), wxOK | wxICON_ERROR);
         BOOST_LOG_TRIVIAL(error) << boost::format("Uncaught exception: %1%") % ex.what();
@@ -1001,7 +1001,7 @@ void GUI_App::post_init()
         #ifdef _WIN32
             // Run external updater on Windows if version check is enabled.
             if (this->preset_updater->version_check_enabled() && ! run_updater_win())
-                // "prusaslicer-updater.exe" was not started, run our own update check.
+                // "Bambuslicer-updater.exe" was not started, run our own update check.
         #endif // _WIN32
                 this->preset_updater->slic3r_update_notify();
 
@@ -1035,7 +1035,7 @@ GUI_App::GUI_App(EAppMode mode)
     m_backend = new Slic3r::CommuBackend();
     m_device_manager = new Slic3r::DeviceManager(*m_account_manager, *m_backend);
     
-	//app config initializes early becasuse it is used in instance checking in PrusaSlicer.cpp
+	//app config initializes early becasuse it is used in instance checking in BambuSlicer.cpp
 	this->init_app_config();
 
 
@@ -1086,14 +1086,14 @@ bool GUI_App::init_opengl()
 #endif
 }
 
-// gets path to PrusaSlicer.ini, returns semver from first line comment
+// gets path to BambuSlicer.ini, returns semver from first line comment
 static boost::optional<Semver> parse_semver_from_ini(std::string path)
 {
     std::ifstream stream(path);
     std::stringstream buffer;
     buffer << stream.rdbuf();
     std::string body = buffer.str();
-    size_t start = body.find("PrusaSlicer ");
+    size_t start = body.find("BambuSlicer ");
     if (start == std::string::npos)
         return boost::none;
     body = body.substr(start + 12);
@@ -1105,7 +1105,7 @@ static boost::optional<Semver> parse_semver_from_ini(std::string path)
 
 void GUI_App::init_app_config()
 {
-	// Profiles for the alpha are stored into the PrusaSlicer-alpha directory to not mix with the current release.
+	// Profiles for the alpha are stored into the BambuSlicer-alpha directory to not mix with the current release.
     SetAppName(SLIC3R_APP_KEY);
 //	SetAppName(SLIC3R_APP_KEY "-alpha");
 //    SetAppName(SLIC3R_APP_KEY "-beta");
@@ -1126,7 +1126,7 @@ void GUI_App::init_app_config()
             set_data_dir(data_dir);
         #else
             // Since version 2.3, config dir on Linux is in ${XDG_CONFIG_HOME}.
-            // https://github.com/prusa3d/PrusaSlicer/issues/2911
+            // https://github.com/Bambu3d/BambuSlicer/issues/2911
             wxString dir;
             if (! wxGetEnv(wxS("XDG_CONFIG_HOME"), &dir) || dir.empty() )
                 dir = wxFileName::GetHomeDir() + wxS("/.config");
@@ -1147,13 +1147,13 @@ void GUI_App::init_app_config()
             // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
             if (is_editor()) {
                 throw Slic3r::RuntimeError(
-                    _u8L("Error parsing PrusaSlicer config file, it is probably corrupted. "
+                    _u8L("Error parsing BambuSlicer config file, it is probably corrupted. "
                         "Try to manually delete the file to recover from the error. Your user profiles will not be affected.") +
                     "\n\n" + app_config->config_path() + "\n\n" + error);
             }
             else {
                 throw Slic3r::RuntimeError(
-                    _u8L("Error parsing PrusaGCodeViewer config file, it is probably corrupted. "
+                    _u8L("Error parsing BambuGCodeViewer config file, it is probably corrupted. "
                         "Try to manually delete the file to recover from the error.") +
                     "\n\n" + app_config->config_path() + "\n\n" + error);
             }
@@ -1247,13 +1247,13 @@ bool GUI_App::check_older_app_config(Semver current_version, bool backup)
             // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
             if (is_editor()) {
                 throw Slic3r::RuntimeError(
-                    _u8L("Error parsing PrusaSlicer config file, it is probably corrupted. "
+                    _u8L("Error parsing BambuSlicer config file, it is probably corrupted. "
                         "Try to manually delete the file to recover from the error. Your user profiles will not be affected.") +
                     "\n\n" + app_config->config_path() + "\n\n" + error);
             }
             else {
                 throw Slic3r::RuntimeError(
-                    _u8L("Error parsing PrusaGCodeViewer config file, it is probably corrupted. "
+                    _u8L("Error parsing BambuGCodeViewer config file, it is probably corrupted. "
                         "Try to manually delete the file to recover from the error.") +
                     "\n\n" + app_config->config_path() + "\n\n" + error);
             }
@@ -1327,11 +1327,11 @@ bool GUI_App::on_init_inner()
     // Win32 32bit build.
     if (wxPlatformInfo::Get().GetArchName().substr(0, 2) == "64") {
         RichMessageDialog dlg(nullptr,
-            _L("You are running a 32 bit build of PrusaSlicer on 64-bit Windows."
-                "\n32 bit build of PrusaSlicer will likely not be able to utilize all the RAM available in the system."
-                "\nPlease download and install a 64 bit build of PrusaSlicer from https://www.prusa3d.cz/prusaslicer/."
+            _L("You are running a 32 bit build of BambuSlicer on 64-bit Windows."
+                "\n32 bit build of BambuSlicer will likely not be able to utilize all the RAM available in the system."
+                "\nPlease download and install a 64 bit build of BambuSlicer from https://www.Bambu3d.cz/Bambuslicer/."
                 "\nDo you wish to continue?"),
-            "PrusaSlicer", wxICON_QUESTION | wxYES_NO);
+            "BambuSlicer", wxICON_QUESTION | wxYES_NO);
         if (dlg.ShowModal() != wxID_YES)
             return false;
     }
@@ -1384,7 +1384,7 @@ bool GUI_App::on_init_inner()
             RichMessageDialog
                 dlg(nullptr,
                     wxString::Format(_L("%s\nDo you want to continue?"), msg),
-                    "PrusaSlicer", wxICON_QUESTION | wxYES_NO);
+                    "BambuSlicer", wxICON_QUESTION | wxYES_NO);
             dlg.ShowCheckBox(_L("Remember my choice"));
             if (dlg.ShowModal() != wxID_YES) return false;
 
@@ -1495,7 +1495,7 @@ bool GUI_App::on_init_inner()
                         , NotificationManager::NotificationLevel::ImportantNotificationLevel
                         , Slic3r::format(_u8L("New prerelease version %1% is available."), evt_string)
                         , _u8L("See Releases page.")
-                        , [](wxEvtHandler* evnthndlr) {wxGetApp().open_browser_with_warning_dialog("https://github.com/prusa3d/PrusaSlicer/releases"); return true; }
+                        , [](wxEvtHandler* evnthndlr) {wxGetApp().open_browser_with_warning_dialog("https://github.com/Bambu3d/BambuSlicer/releases"); return true; }
                     );
                 }
             }
@@ -1939,7 +1939,7 @@ void GUI_App::check_printer_presets()
     for (const std::string& preset_name : preset_names)
         msg_text += "\n    \"" + from_u8(preset_name) + "\",";
     msg_text.RemoveLast();
-    msg_text += "\n\n" + _L("But since this version of PrusaSlicer we don't show this information in Printer Settings anymore.\n"
+    msg_text += "\n\n" + _L("But since this version of BambuSlicer we don't show this information in Printer Settings anymore.\n"
                             "Settings will be available in physical printers settings.") + "\n\n" +
                          _L("By default new Printer devices will be named as \"Printer N\" during its creation.\n"
                             "Note: This name can be changed later from the physical printers settings");
@@ -2145,7 +2145,7 @@ void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files) const
 {
     input_files.Clear();
     wxFileDialog dialog(parent ? parent : GetTopWindow(),
-        _L("Choose one or more files (STL/STEP/OBJ/AMF/3MF/PRUSA):"),
+        _L("Choose one or more files (STL/STEP/OBJ/AMF/3MF/Bambu):"),
         from_u8(app_config->get_last_dir()), "",
         file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
 
@@ -2501,10 +2501,10 @@ bool GUI_App::load_language(wxString language, bool initial)
     if (initial) {
     	// There is a static list of lookup path prefixes in wxWidgets. Add ours.
 	    wxFileTranslationsLoader::AddCatalogLookupPathPrefix(from_u8(localization_dir()));
-    	// Get the active language from PrusaSlicer.ini, or empty string if the key does not exist.
+    	// Get the active language from BambuSlicer.ini, or empty string if the key does not exist.
         language = app_config->get("translation_language");
         if (! language.empty())
-        	BOOST_LOG_TRIVIAL(trace) << boost::format("translation_language provided by PrusaSlicer.ini: %1%") % language;
+        	BOOST_LOG_TRIVIAL(trace) << boost::format("translation_language provided by BambuSlicer.ini: %1%") % language;
 
         // Get the system language.
         {
@@ -2519,7 +2519,7 @@ bool GUI_App::load_language(wxString language, bool initial)
 	    	wxLocale temp_locale;
 	    	// Set the current translation's language to default, otherwise GetBestTranslation() may not work (see the wxWidgets source code).
 	    	wxTranslations::Get()->SetLanguage(wxLANGUAGE_DEFAULT);
-	    	// Let the wxFileTranslationsLoader enumerate all translation dictionaries for PrusaSlicer
+	    	// Let the wxFileTranslationsLoader enumerate all translation dictionaries for BambuSlicer
 	    	// and try to match them with the system specific "preferred languages". 
 	    	// There seems to be a support for that on Windows and OSX, while on Linuxes the code just returns wxLocale::GetSystemLanguage().
 	    	// The last parameter gets added to the list of detected dictionaries. This is a workaround 
@@ -2548,12 +2548,12 @@ bool GUI_App::load_language(wxString language, bool initial)
 	}
 
 	if (language_info != nullptr && language_info->LayoutDirection == wxLayout_RightToLeft) {
-    	BOOST_LOG_TRIVIAL(trace) << boost::format("The following language code requires right to left layout, which is not supported by PrusaSlicer: %1%") % language_info->CanonicalName.ToUTF8().data();
+    	BOOST_LOG_TRIVIAL(trace) << boost::format("The following language code requires right to left layout, which is not supported by BambuSlicer: %1%") % language_info->CanonicalName.ToUTF8().data();
 		language_info = nullptr;
 	}
 
     if (language_info == nullptr) {
-        // PrusaSlicer does not support the Right to Left languages yet.
+        // BambuSlicer does not support the Right to Left languages yet.
         if (m_language_info_system != nullptr && m_language_info_system->LayoutDirection != wxLayout_RightToLeft)
             language_info = m_language_info_system;
         if (m_language_info_best != nullptr && m_language_info_best->LayoutDirection != wxLayout_RightToLeft)
@@ -2595,14 +2595,14 @@ bool GUI_App::load_language(wxString language, bool initial)
 
     if (! wxLocale::IsAvailable(language_info->Language)) {
     	// Loading the language dictionary failed.
-    	wxString message = "Switching PrusaSlicer to language " + language_info->CanonicalName + " failed.";
+    	wxString message = "Switching BambuSlicer to language " + language_info->CanonicalName + " failed.";
 #if !defined(_WIN32) && !defined(__APPLE__)
         // likely some linux system
         message += "\nYou may need to reconfigure the missing locales, likely by running the \"locale-gen\" and \"dpkg-reconfigure locales\" commands.\n";
 #endif
         if (initial)
         	message + "\n\nApplication will close.";
-        wxMessageBox(message, "PrusaSlicer - Switching language failed", wxOK | wxICON_ERROR);
+        wxMessageBox(message, "BambuSlicer - Switching language failed", wxOK | wxICON_ERROR);
         if (initial)
 			std::exit(EXIT_FAILURE);
 		else
@@ -2725,7 +2725,7 @@ void GUI_App::add_config_menu(wxMenu *menu)
         local_menu->AppendSeparator();
         local_menu->Append(config_id_base + ConfigMenuFlashFirmware, _L("Flash Printer &Firmware"), _L("Upload a firmware image into an Arduino based printer"));
         // TODO: for when we're able to flash dictionaries
-        // local_menu->Append(config_id_base + FirmwareMenuDict,  _L("Flash Language File"),    _L("Upload a language dictionary file into a Prusa printer"));
+        // local_menu->Append(config_id_base + FirmwareMenuDict,  _L("Flash Language File"),    _L("Upload a language dictionary file into a Bambu printer"));
     }
 
     local_menu->Bind(wxEVT_MENU, [this, config_id_base](wxEvent &event) {
@@ -2856,7 +2856,7 @@ void GUI_App::add_config_menu(wxMenu *menu)
             break;
         }
         case ConfigMenuFlashFirmware:
-            FirmwareDialog::run(mainframe);
+            //BBS FirmwareDialog::run(mainframe);
             break;
         default:
             break;
@@ -3188,7 +3188,7 @@ void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
         if (is_gcode_file(into_u8(filename)))
             ++ num_gcodes;
     if (fileNames.size() == num_gcodes) {
-        // Opening PrusaSlicer by drag & dropping a G-Code onto PrusaSlicer icon in Finder,
+        // Opening BambuSlicer by drag & dropping a G-Code onto BambuSlicer icon in Finder,
         // just G-codes were passed. Switch to G-code viewer mode.
         m_app_mode = EAppMode::GCodeViewer;
         unlock_lockfile(get_instance_hash_string() + ".lock", data_dir() + "/cache/");
@@ -3316,7 +3316,7 @@ int GUI_App::extruders_edited_cnt() const
 
 wxString GUI_App::current_language_code_safe() const
 {
-	// Translate the language code to a code, for which Prusa Research maintains translations.
+	// Translate the language code to a code, for which Bambu Research maintains translations.
 	const std::map<wxString, wxString> mapping {
 		{ "cs", 	"cs_CZ", },
 		{ "sk", 	"cs_CZ", },
@@ -3551,7 +3551,7 @@ bool GUI_App::open_browser_with_warning_dialog(const wxString& url, int flags/* 
     bool launch = true;
 
     if (get_app_config()->get("suppress_hyperlinks").empty()) {
-        RichMessageDialog dialog(nullptr, _L("Open hyperlink in default browser?"), _L("PrusaSlicer: Open hyperlink"), wxICON_QUESTION | wxYES_NO);
+        RichMessageDialog dialog(nullptr, _L("Open hyperlink in default browser?"), _L("BambuSlicer: Open hyperlink"), wxICON_QUESTION | wxYES_NO);
         dialog.ShowCheckBox(_L("Remember my choice"));
         int answer = dialog.ShowModal();
         launch = answer == wxID_YES;
@@ -3635,8 +3635,8 @@ void GUI_App::associate_3mf_files()
     ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
 
     std::wstring prog_path = L"\"" + std::wstring(app_path) + L"\"";
-    std::wstring prog_id = L"Prusa.Slicer.1";
-    std::wstring prog_desc = L"PrusaSlicer";
+    std::wstring prog_id = L"Bambu.Slicer.1";
+    std::wstring prog_desc = L"BambuSlicer";
     std::wstring prog_command = prog_path + L" \"%1\"";
     std::wstring reg_base = L"Software\\Classes";
     std::wstring reg_extension = reg_base + L"\\.3mf";
@@ -3659,8 +3659,8 @@ void GUI_App::associate_stl_files()
     ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
 
     std::wstring prog_path = L"\"" + std::wstring(app_path) + L"\"";
-    std::wstring prog_id = L"Prusa.Slicer.1";
-    std::wstring prog_desc = L"PrusaSlicer";
+    std::wstring prog_id = L"Bambu.Slicer.1";
+    std::wstring prog_desc = L"BambuSlicer";
     std::wstring prog_command = prog_path + L" \"%1\"";
     std::wstring reg_base = L"Software\\Classes";
     std::wstring reg_extension = reg_base + L"\\.stl";
@@ -3683,8 +3683,8 @@ void GUI_App::associate_gcode_files()
     ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
 
     std::wstring prog_path = L"\"" + std::wstring(app_path) + L"\"";
-    std::wstring prog_id = L"PrusaSlicer.GCodeViewer.1";
-    std::wstring prog_desc = L"PrusaSlicerGCodeViewer";
+    std::wstring prog_id = L"BambuSlicer.GCodeViewer.1";
+    std::wstring prog_desc = L"BambuSlicerGCodeViewer";
     std::wstring prog_command = prog_path + L" \"%1\"";
     std::wstring reg_base = L"Software\\Classes";
     std::wstring reg_extension = reg_base + L"\\.gcode";

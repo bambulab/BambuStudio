@@ -1,4 +1,4 @@
-prusaslicer_add_cmake_project(
+bambuslicer_add_cmake_project(
     CGAL
     # GIT_REPOSITORY https://github.com.cnpmjs.org/CGAL/cgal.git
     # GIT_TAG        caacd806dc55c61cc68adaad99f2240f00493b29 # releases/CGAL-5.3

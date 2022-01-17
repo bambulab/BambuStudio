@@ -16,7 +16,7 @@ AboutDialogLogo::AboutDialogLogo(wxWindow* parent)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
     this->SetBackgroundColour(*wxWHITE);
-    this->logo = wxBitmap(from_u8(Slic3r::var("PrusaSlicer_192px.png")), wxBITMAP_TYPE_PNG);
+    this->logo = wxBitmap(from_u8(Slic3r::var("BambuSlicer_192px.png")), wxBITMAP_TYPE_PNG);
     this->SetMinSize(this->logo.GetSize());
     
     this->Bind(wxEVT_PAINT, &AboutDialogLogo::onRepaint, this);
@@ -268,14 +268,14 @@ AboutDialog::AboutDialog()
         // TRN "Slic3r _is licensed under the_ License"
         const std::string is_lecensed_str = _utf8(L("is licensed under the"));
         const std::string license_str = _utf8(L("GNU Affero General Public License, version 3"));
-        const std::string based_on_str = _utf8(L("PrusaSlicer is based on Slic3r by Alessandro Ranellucci and the RepRap community."));
+        const std::string based_on_str = _utf8(L("BambuSlicer is based on Slic3r by Alessandro Ranellucci and the RepRap community."));
         const std::string contributors_str = _utf8(L("Contributions by Henrik Brix Andersen, Nicolas Dandrimont, Mark Hindess, Petr Ledvina, Joseph Lenox, Y. Sapir, Mike Sheldrake, Vojtech Bubnik and numerous others."));
         const auto text = from_u8(
             (boost::format(
             "<html>"
             "<body bgcolor= %1% link= %2%>"
             "<font color=%3%>"
-            "%4% &copy; 2016-2021 Prusa Research. <br />"
+            "%4% &copy; 2016-2021 Bambu Research. <br />"
             "%5% &copy; 2011-2018 Alessandro Ranellucci. <br />"
             "<a href=\"http://slic3r.org/\">Slic3r</a> %6% "
             "<a href=\"http://www.gnu.org/licenses/agpl-3.0.html\">%7%</a>."

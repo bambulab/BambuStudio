@@ -196,7 +196,7 @@ public:
     bool is_editor() const { return m_app_mode == EAppMode::Editor; }
     bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
     bool is_recreating_gui() const { return m_is_recreating_gui; }
-    std::string logo_name() const { return is_editor() ? "PrusaSlicer" : "PrusaSlicer-gcodeviewer"; }
+    std::string logo_name() const { return is_editor() ? "BambuSlicer" : "BambuSlicer-gcodeviewer"; }
 
     // To be called after the GUI is fully built up.
     // Process command line parameters cached in this->init_params,
@@ -308,7 +308,7 @@ public:
     void            load_current_presets(bool active_preset_combox = false, bool check_printer_presets = true);
 
     wxString        current_language_code() const { return m_wxLocale->GetCanonicalName(); }
-	// Translate the language code to a code, for which Prusa Research maintains translations. Defaults to "en_US".
+	// Translate the language code to a code, for which Bambu Research maintains translations. Defaults to "en_US".
     wxString 		current_language_code_safe() const;
     bool            is_localized() const { return m_wxLocale->GetLocale() != "English"; }
 

@@ -222,8 +222,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/MsgDialog.hpp
     GUI/UpdateDialogs.cpp
     GUI/UpdateDialogs.hpp
-    GUI/FirmwareDialog.cpp
-    GUI/FirmwareDialog.hpp
     GUI/PrintHostDialogs.cpp
     GUI/PrintHostDialogs.hpp
     GUI/Jobs/Job.hpp
@@ -356,7 +354,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SLIC3R_GUI_SOURCES})
 
 encoding_check(libslic3r_gui)
 
-target_link_libraries(libslic3r_gui libslic3r avrdude cereal imgui minilzo GLEW::GLEW OpenGL::GL hidapi libcurl 
+target_link_libraries(libslic3r_gui libslic3r cereal imgui minilzo GLEW::GLEW OpenGL::GL hidapi libcurl 
 ${wxWidgets_LIBRARIES} eclipse-paho-mqtt-c::paho-mqtt3as-static paho-mqttpp3::paho-mqttpp3-static)
 
 if (MSVC)

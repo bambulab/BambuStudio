@@ -452,7 +452,7 @@ void PresetUpdater::priv::check_install_indices() const
 }
 
 // Generates a list of bundle updates that are to be performed.
-// Version of slic3r that was running the last time and which was read out from PrusaSlicer.ini is provided
+// Version of slic3r that was running the last time and which was read out from BambuSlicer.ini is provided
 // as a parameter.
 Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version) const
 {
@@ -512,7 +512,7 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
 		}
 
 		if (recommended->config_version < vp.config_version) {
-			BOOST_LOG_TRIVIAL(warning) << format("Recommended config version for the currently running PrusaSlicer is older than the currently installed config for vendor %1%. This should not happen.", idx.vendor());
+			BOOST_LOG_TRIVIAL(warning) << format("Recommended config version for the currently running BambuSlicer is older than the currently installed config for vendor %1%. This should not happen.", idx.vendor());
 			continue;
 		}
 
@@ -521,13 +521,13 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
 			continue;
 		}
 
-		// Config bundle update situation. The recommended config bundle version for this PrusaSlicer version from the index from the cache is newer
+		// Config bundle update situation. The recommended config bundle version for this BambuSlicer version from the index from the cache is newer
 		// than the version of the currently installed config bundle.
 
 		// The config index inside the cache directory (given by idx.path()) is one of the following:
-		// 1) The last config index downloaded by any previously running PrusaSlicer instance
-		// 2) The last config index installed by any previously running PrusaSlicer instance (older or newer) from its resources.
-		// 3) The last config index installed by the currently running PrusaSlicer instance from its resources.
+		// 1) The last config index downloaded by any previously running BambuSlicer instance
+		// 2) The last config index installed by any previously running BambuSlicer instance (older or newer) from its resources.
+		// 3) The last config index installed by the currently running BambuSlicer instance from its resources.
 		// The config index is always the newest one (given by its newest config bundle referenced), and older config indices shall fully contain
 		// the content of the older config indices.
 
@@ -583,7 +583,7 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
 					found = true;
 				} else {
 					BOOST_LOG_TRIVIAL(warning) << format("The recommended config version for vendor `%1%` in resources does not match the recommended\n"
-			                                             " config version for this version of PrusaSlicer. Corrupted installation?", idx.vendor());
+			                                             " config version for this version of BambuSlicer. Corrupted installation?", idx.vendor());
 				}
 			}
 		}

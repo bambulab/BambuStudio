@@ -10,7 +10,7 @@ if (APPLE)
     set(_patch_step PATCH_COMMAND ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/PNG.patch)
 endif ()
 
-prusaslicer_add_cmake_project(PNG 
+bambuslicer_add_cmake_project(PNG 
     # GIT_REPOSITORY https://github.com.cnpmjs.org/glennrp/libpng.git 
     # GIT_TAG v1.6.35
     URL https://github.com.cnpmjs.org/glennrp/libpng/archive/refs/tags/v1.6.35.zip

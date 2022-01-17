@@ -397,7 +397,7 @@ static std::string generate_system_info_json()
     namespace pt = boost::property_tree;
 
     pt::ptree data_node;
-    data_node.put("PrusaSlicerVersion", SLIC3R_VERSION);
+    data_node.put("BambuSlicerVersion", SLIC3R_VERSION);
     data_node.put("BuildID", SLIC3R_BUILD_ID);
     data_node.put("UniqueID", unique_id);
     data_node.put("Platform", platform_to_string(platform()));
@@ -558,7 +558,7 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
 {
     const int em = GUI::wxGetApp().em_unit();
 
-    // Get current PrusaSliver version info.
+    // Get current BambuSliver version info.
     std::string app_name;
     {
         Semver semver(SLIC3R_VERSION);
@@ -604,7 +604,7 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
            "to identify you later. To detect duplicate entries, a unique number derived "
            "from your system is sent, but the source information cannot be reconstructed. "
            "Apart from that, only general data about your OS, hardware and OpenGL "
-           "installation are sent. PrusaSlicer is open source, if you want to "
+           "installation are sent. BambuSlicer is open source, if you want to "
            "inspect the code actually performing the communication, see %1%."),
            std::string("<i>") + filename + "</i>");
 
@@ -612,7 +612,7 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     wxString html = GUI::format_wxstr(
             "<html><body bgcolor=%1%><font color=%2%>"
             "<table><tr><td>"
-            "<img src = \"" + resources_dir() + "/icons/PrusaSlicer_192px.png\" />"
+            "<img src = \"" + resources_dir() + "/icons/BambuSlicer_192px.png\" />"
             "</td><td align=\"left\">"
             + text0 + "<br / ><br / >"
             + text1 + "<br /><br />"

@@ -333,13 +333,13 @@ std::string AppConfig::load()
 #endif // WIN32
             BOOST_LOG_TRIVIAL(info) << format("Failed to parse configuration file \"%1%\": %2%", AppConfig::loading_path(), ex.what());
         if (! recovered) {
-            // Report the initial error of parsing PrusaSlicer.ini.
+            // Report the initial error of parsing BambuSlicer.ini.
             // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
             // ! But to avoid the use of _utf8 (related to use of wxWidgets) 
             // we will rethrow this exception from the place of load() call, if returned value wouldn't be empty
             /*
             throw Slic3r::RuntimeError(
-                _utf8(L("Error parsing PrusaSlicer config file, it is probably corrupted. "
+                _utf8(L("Error parsing BambuSlicer config file, it is probably corrupted. "
                         "Try to manually delete the file to recover from the error. Your user profiles will not be affected.")) +
                 "\n\n" + AppConfig::config_path() + "\n\n" + ex.what());
             */
@@ -477,7 +477,7 @@ void AppConfig::save()
 #endif
 
     // Rename the config atomically.
-    // On Windows, the rename is likely NOT atomic, thus it may fail if PrusaSlicer crashes on another thread in the meanwhile.
+    // On Windows, the rename is likely NOT atomic, thus it may fail if BambuSlicer crashes on another thread in the meanwhile.
     // To cope with that, we already made a backup of the config on Windows.
     rename_file(path_pid, path);
     m_dirty = false;

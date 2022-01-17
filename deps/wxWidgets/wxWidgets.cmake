@@ -9,7 +9,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(_wx_toolkit "-DwxBUILD_TOOLKIT=gtk${_gtk_ver}")
 endif()
 
-prusaslicer_add_cmake_project(wxWidgets
+bambuslicer_add_cmake_project(wxWidgets
     GIT_REPOSITORY "ssh://lane.wei@gerrit.bambooolab.com:29418/bbl/wxWidget"
     #GIT_TAG ${_wx_git_tag}
     #GIT_TAG tm_cross_compile #${_wx_git_tag}

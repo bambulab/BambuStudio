@@ -1,7 +1,7 @@
 [Desktop Entry]
-Name=Prusa GCode viewer
-Exec=prusa-slicer --gcodeviewer %F
-Icon=PrusaSlicer-gcodeviewer
+Name=Bambu GCode viewer
+Exec=bambu-slicer --gcodeviewer %F
+Icon=BambuSlicer-gcodeviewer
 Terminal=false
 Type=Application
 MimeType=text/x.gcode;

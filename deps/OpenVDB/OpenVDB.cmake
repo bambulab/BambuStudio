@@ -6,7 +6,7 @@ else()
     set(_build_static ON)
 endif()
 
-prusaslicer_add_cmake_project(OpenVDB
+bambuslicer_add_cmake_project(OpenVDB
     URL https://github.com.cnpmjs.org/tamasmeszaros/openvdb/archive/refs/tags/v6.2.1-prusa3d.zip #v6.2.1 patched
     URL_HASH SHA256=caf9f0c91976722883ff9cb32420ef142af22f7e625fc643b91c23d6e4172f62 
     DEPENDS dep_TBB dep_Blosc dep_OpenEXR dep_Boost

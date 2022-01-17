@@ -78,9 +78,9 @@ public:
     wxMenu *CreatePopupMenu() override {
         wxMenu *menu = new wxMenu;
         if(wxGetApp().app_config->get("single_instance") == "0") {
-            // Only allow opening a new PrusaSlicer instance on OSX if "single_instance" is disabled, 
+            // Only allow opening a new BambuSlicer instance on OSX if "single_instance" is disabled, 
             // as starting new instances would interfere with the locking mechanism of "single_instance" support.
-            append_menu_item(menu, wxID_ANY, _L("Open new instance"), _L("Open a new PrusaSlicer instance"),
+            append_menu_item(menu, wxID_ANY, _L("Open new instance"), _L("Open a new BambuSlicer instance"),
             [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr);
         }
         append_menu_item(menu, wxID_ANY, _L("G-code preview") + dots, _L("Open G-code viewer"),
@@ -94,7 +94,7 @@ public:
     GCodeViewerTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE) : wxTaskBarIcon(iconType) {}
     wxMenu *CreatePopupMenu() override {
         wxMenu *menu = new wxMenu;
-        append_menu_item(menu, wxID_ANY, _L("Open PrusaSlicer"), _L("Open a new PrusaSlicer instance"),
+        append_menu_item(menu, wxID_ANY, _L("Open BambuSlicer"), _L("Open a new BambuSlicer instance"),
             [](wxCommandEvent&) { start_new_slicer(nullptr, true); }, "", nullptr);
         append_menu_item(menu, wxID_ANY, _L("G-code preview") + dots, _L("Open new G-code viewer"),
             [](wxCommandEvent&) { start_new_gcodeviewer_open_file(); }, "", nullptr);
@@ -112,19 +112,19 @@ static wxIcon main_frame_icon(GUI_App::EAppMode app_mode)
     if (len > 0 && len < MAX_PATH) {
         path.erase(path.begin() + len, path.end());
         if (app_mode == GUI_App::EAppMode::GCodeViewer) {
-            // Only in case the slicer was started with --gcodeviewer parameter try to load the icon from prusa-gcodeviewer.exe
+            // Only in case the slicer was started with --gcodeviewer parameter try to load the icon from bambu-gcodeviewer.exe
             // Otherwise load it from the exe.
-            for (const std::wstring_view exe_name : { std::wstring_view(L"prusa-slicer.exe"), std::wstring_view(L"prusa-slicer-console.exe") })
+            for (const std::wstring_view exe_name : { std::wstring_view(L"bambu-slicer.exe"), std::wstring_view(L"bambu-slicer-console.exe") })
                 if (boost::iends_with(path, exe_name)) {
                     path.erase(path.end() - exe_name.size(), path.end());
-                    path += L"prusa-gcodeviewer.exe";
+                    path += L"bambu-gcodeviewer.exe";
                     break;
                 }
         }
     }
     return wxIcon(path, wxBITMAP_TYPE_ICO);
 #else // _WIN32
-    return wxIcon(Slic3r::var(app_mode == GUI_App::EAppMode::Editor ? "PrusaSlicer_128px.png" : "PrusaSlicer-gcodeviewer_128px.png"), wxBITMAP_TYPE_PNG);
+    return wxIcon(Slic3r::var(app_mode == GUI_App::EAppMode::Editor ? "BambuSlicer_128px.png" : "BambuSlicer-gcodeviewer_128px.png"), wxBITMAP_TYPE_PNG);
 #endif // _WIN32
 }
 
@@ -163,11 +163,11 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     default:
     case GUI_App::EAppMode::Editor:
         m_taskbar_icon = std::make_unique<PrusaSlicerTaskBarIcon>(wxTBI_DOCK);
-        m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("PrusaSlicer-mac_128px.png"), wxBITMAP_TYPE_PNG), "PrusaSlicer");
+        m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("BambuSlicer-mac_128px.png"), wxBITMAP_TYPE_PNG), "BambuSlicer");
         break;
     case GUI_App::EAppMode::GCodeViewer:
         m_taskbar_icon = std::make_unique<GCodeViewerTaskBarIcon>(wxTBI_DOCK);
-        m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("PrusaSlicer-gcodeviewer-mac_128px.png"), wxBITMAP_TYPE_PNG), "G-code Viewer");
+        m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("BambuSlicer-gcodeviewer-mac_128px.png"), wxBITMAP_TYPE_PNG), "G-code Viewer");
         break;
     }
 #endif // __APPLE__
@@ -298,14 +298,14 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         }
 
         //BBS:
-        //if (event.CanVeto() && !wxGetApp().check_and_save_current_preset_changes(_L("PrusaSlicer is closing"), _L("Closing PrusaSlicer while some presets are modified."))) {
+        //if (event.CanVeto() && !wxGetApp().check_and_save_current_preset_changes(_L("BambuSlicer is closing"), _L("Closing BambuSlicer while some presets are modified."))) {
         //    event.Veto();
         //    return;
         //}
         auto check = [](bool yes_or_no) {
             if (yes_or_no)
                 return true;
-            return wxGetApp().check_and_save_current_preset_changes(_L("PrusaSlicer is closing"), _L("Closing PrusaSlicer while some presets are modified."));
+            return wxGetApp().check_and_save_current_preset_changes(_L("BambuSlicer is closing"), _L("Closing BambuSlicer while some presets are modified."));
         };
 
         // BBS: close save project
@@ -317,14 +317,14 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
     #if 0 // BBS
         if (m_plater != nullptr) {
-            int saved_project = m_plater->save_project_if_dirty(_L("Closing PrusaSlicer. Current project is modified."));
+            int saved_project = m_plater->save_project_if_dirty(_L("Closing BambuSlicer. Current project is modified."));
             if (saved_project == wxID_CANCEL) {
                 event.Veto();
                 return;
             }
             // check unsaved changes only if project wasn't saved
             else if (plater()->is_project_dirty() && saved_project == wxID_NO && event.CanVeto() &&
-                     (plater()->is_presets_dirty() && !wxGetApp().check_and_save_current_preset_changes(_L("PrusaSlicer is closing"), _L("Closing PrusaSlicer while some presets are modified.")))) {
+                     (plater()->is_presets_dirty() && !wxGetApp().check_and_save_current_preset_changes(_L("BambuSlicer is closing"), _L("Closing BambuSlicer while some presets are modified.")))) {
                 event.Veto();
                 return;
             }
@@ -1994,7 +1994,7 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { m_printhost_queue_dlg->Show(); }, "upload_queue", nullptr, []() {return true; }, this);
         
         windowMenu->AppendSeparator();
-        append_menu_item(windowMenu, wxID_ANY, _L("Open New Instance") + "\tCtrl+Shift+I", _L("Open a new PrusaSlicer instance"),
+        append_menu_item(windowMenu, wxID_ANY, _L("Open New Instance") + "\tCtrl+Shift+I", _L("Open a new BambuSlicer instance"),
             [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr, [this]() {return m_plater != nullptr && wxGetApp().app_config->get("single_instance") != "1"; }, this);
 
         windowMenu->AppendSeparator();
@@ -2217,7 +2217,7 @@ void MainFrame::init_menubar_as_gcodeviewer()
         append_menu_item(fileMenu, wxID_ANY, _L("Export &Toolpaths as OBJ") + dots, _L("Export toolpaths as OBJ"),
             [this](wxCommandEvent&) { if (m_plater != nullptr) m_plater->export_toolpaths_to_obj(); }, "export_plater", nullptr,
             [this]() {return can_export_toolpaths(); }, this);
-        append_menu_item(fileMenu, wxID_ANY, _L("Open &PrusaSlicer") + dots, _L("Open PrusaSlicer"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Open &BambuSlicer") + dots, _L("Open BambuSlicer"),
             [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr,
             []() {return true; }, this);
         fileMenu->AppendSeparator();
@@ -2298,7 +2298,7 @@ void MainFrame::quick_slice(const int qs)
 
     // select input file
     if (!(qs & qsReslice)) {
-        wxFileDialog dlg(this, _L("Choose a file to slice (STL/STEP/OBJ/AMF/3MF/PRUSA):"),
+        wxFileDialog dlg(this, _L("Choose a file to slice (STL/STEP/OBJ/AMF/3MF):"),
             wxGetApp().app_config->get_last_dir(), "",
             file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         if (dlg.ShowModal() != wxID_OK)
@@ -2986,7 +2986,7 @@ SettingsDialog::SettingsDialog(MainFrame* mainframe)
         SetIcon(wxIcon(szExeFileName, wxBITMAP_TYPE_ICO));
     }
 #else
-    SetIcon(wxIcon(var("PrusaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
+    SetIcon(wxIcon(var("BambuSlicer_128px.png"), wxBITMAP_TYPE_PNG));
 #endif // _WIN32
 
     // BBS
