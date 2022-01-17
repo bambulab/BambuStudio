@@ -439,22 +439,32 @@ public:
 
     // Resize this vector by duplicating the /*last*/first value.
     // If the current vector is empty, the default value is used instead.
+    // BBS: support scaler opt_default
     void resize(size_t n, const ConfigOption *opt_default = nullptr) override
     {
-        assert(opt_default == nullptr || opt_default->is_vector());
+        //assert(opt_default == nullptr || opt_default->is_vector());
 //        assert(opt_default == nullptr || dynamic_cast<ConfigOptionVector<T>>(opt_default));
         assert(! this->values.empty() || opt_default != nullptr);
+
         if (n == 0)
             this->values.clear();
         else if (n < this->values.size())
             this->values.erase(this->values.begin() + n, this->values.end());
         else if (n > this->values.size()) {
             if (this->values.empty()) {
-                if (opt_default == nullptr)
+                if (opt_default == nullptr) {
                     throw ConfigurationError("ConfigOptionVector::resize(): No default value provided.");
-                if (opt_default->type() != this->type())
-                    throw ConfigurationError("ConfigOptionVector::resize(): Extending with an incompatible type.");
-                this->values.resize(n, static_cast<const ConfigOptionVector<T>*>(opt_default)->values.front());
+                }
+                else if (opt_default->is_vector()) {
+                    if (opt_default->type() != this->type())
+                        throw ConfigurationError("ConfigOptionVector::resize(): Extending with an incompatible type.");
+                    this->values.resize(n, static_cast<const ConfigOptionVector<T>*>(opt_default)->values.front());
+                }
+                else {
+                    if (opt_default->type() != this->scalar_type())
+                        throw ConfigurationError("ConfigOptionVector::resize(): Extending with an incompatible type.");
+                    this->values.resize(n, static_cast<const ConfigOptionSingle<T>*>(opt_default)->value);
+                }
             } else {
                 // Resize by duplicating the last value.
                 this->values.resize(n, this->values./*back*/front());
