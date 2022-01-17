@@ -7249,6 +7249,10 @@ void Plater::remove_selected()
     if (p->get_selection().is_empty())
         return;
 
+    // BBS: check before deleting object
+    if (!p->can_delete())
+        return;
+
     Plater::TakeSnapshot snapshot(this, _L("Delete Selected Objects"));
     p->m_ui_jobs.cancel_all();
     p->view3D->delete_selected();

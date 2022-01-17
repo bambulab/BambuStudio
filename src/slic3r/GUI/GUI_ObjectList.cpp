@@ -2087,7 +2087,10 @@ void ObjectList::del_layers_from_object(const int obj_idx)
 bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, const int type)
 {
     assert(idx >= 0);
-	if (obj_idx == 1000 || idx<0)
+
+    // BBS: support partplage logic
+    int n_plates = wxGetApp().plater()->get_partplate_list().get_plate_count();
+	if ((obj_idx >= 1000 && obj_idx < 1000 + n_plates) || idx<0)
 		// Cannot delete a wipe tower or volume with negative id
 		return false;
 

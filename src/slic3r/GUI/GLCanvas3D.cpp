@@ -1178,7 +1178,8 @@ void GLCanvas3D::toggle_sla_auxiliaries_visibility(bool visible, const ModelObje
     m_render_sla_auxiliaries = visible;
 
     for (GLVolume* vol : m_volumes.volumes) {
-        if (vol->composite_id.object_id == 1000)
+        if (vol->composite_id.object_id >= 1000 &&
+            vol->composite_id.object_id < 1000 + wxGetApp().plater()->get_partplate_list().get_plate_count())
             continue; // the wipe tower
         if ((mo == nullptr || m_model->objects[vol->composite_id.object_id] == mo)
         && (instance_idx == -1 || vol->composite_id.instance_id == instance_idx)
@@ -1190,7 +1191,9 @@ void GLCanvas3D::toggle_sla_auxiliaries_visibility(bool visible, const ModelObje
 void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject* mo, int instance_idx, const ModelVolume* mv)
 {
     for (GLVolume* vol : m_volumes.volumes) {
-        if (vol->composite_id.object_id == 1000) { // wipe tower
+        // BBS: add partplate logic
+        if (vol->composite_id.object_id >= 1000 &&
+            vol->composite_id.object_id < 1000 + wxGetApp().plater()->get_partplate_list().get_plate_count()) { // wipe tower
             vol->is_active = (visible && mo == nullptr);
         }
         else {
@@ -2124,7 +2127,10 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
     // BBS: do not check wipe tower changes
     bool update_object_list = false;
-    if (m_volumes.volumes != glvolumes_new) {
+    if (!deleted_volumes.empty())
+        update_object_list = true;
+
+    if (m_volumes.volumes != glvolumes_new && !update_object_list) {
         int vol_idx = 0;
         for (; vol_idx < std::min(m_volumes.volumes.size(), glvolumes_new.size()); vol_idx++) {
             if (m_volumes.volumes[vol_idx] != glvolumes_new[vol_idx]) {
@@ -3982,10 +3988,13 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
 
     for (const GLVolume* v : m_volumes.volumes) {
         int object_idx = v->object_idx();
+        // BBS: don't support wipe tower rotation
+#if 0
         if (object_idx == 1000) { // the wipe tower
             Vec3d offset = v->get_volume_offset();
             post_event(Vec3dEvent(EVT_GLCANVAS_WIPETOWER_ROTATED, Vec3d(offset(0), offset(1), v->get_volume_rotation()(2))));
         }
+#endif
         if (object_idx < 0 || (int)m_model->objects.size() <= object_idx)
             continue;
 
