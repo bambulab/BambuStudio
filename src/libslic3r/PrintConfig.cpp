@@ -2878,13 +2878,23 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(2));
 
     def = this->add("support_material_interface_spacing", coFloat);
-    def->label = L("Interface pattern spacing");
+    def->label = L("Top interface pattern spacing");
     def->category = L("Support material");
     def->tooltip = L("Spacing between interface lines. Set zero to get a solid interface.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
+
+    //BBS
+    def = this->add("support_material_bottom_interface_spacing", coFloat);
+    def->label = L("Bottom interface pattern spacing");
+    def->category = L("Support material");
+    def->tooltip = L("Spacing between bottom interface lines. Set zero to get a solid interface.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.5));
 
     def = this->add("support_material_interface_speed", coFloatOrPercent);
     def->label = L("Support material interface");
@@ -3045,7 +3055,7 @@ void PrintConfigDef::init_fff_params()
                      "rate at which the support gets wider.");
     def->sidetext = L("°");
     def->min = 1;
-    def->max = 10;
+    def->max = 45;
     //BBS
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloat(5.));

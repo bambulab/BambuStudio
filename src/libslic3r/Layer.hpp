@@ -217,6 +217,7 @@ public:
     ExtrusionEntityCollection support_fills;
     ExPolygons overhang_areas;
     ExPolygons roof_areas;
+    ExPolygons roof_1st_layer;  // the layer just below roof. When working with PolySupport, this layer should be printed with regular material
     ExPolygons floor_areas;
     ExPolygons base_areas;
 

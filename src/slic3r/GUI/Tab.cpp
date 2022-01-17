@@ -1722,6 +1722,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_material_bottom_interface_layers", category_path + "interface-layers");
         optgroup->append_single_option_line("support_material_interface_pattern", category_path + "interface-pattern");
         optgroup->append_single_option_line("support_material_interface_spacing", category_path + "interface-pattern-spacing");
+        optgroup->append_single_option_line("support_material_bottom_interface_spacing", category_path + "interface-pattern-spacing");
         optgroup->append_single_option_line("support_material_interface_contact_loops", category_path + "interface-loops");
         
         optgroup->append_single_option_line("support_material_xy_spacing", category_path + "xy-separation-between-an-object-and-its-support");

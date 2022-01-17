@@ -538,6 +538,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,               adaptive_layer_height))
     ((ConfigOptionFloatOrPercent,     support_transition_extrusion_width))
     ((ConfigOptionFloatOrPercent,     support_transition_speed))
+    ((ConfigOptionFloat,              support_material_bottom_interface_spacing))
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.

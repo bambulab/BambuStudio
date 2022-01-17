@@ -76,7 +76,8 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
     { L("Support material"), {{"support_material", "",1},{"support_type", "",2},{"support_material_threshold", "",3},{"support_material_buildplate_only", "",4},{"support_material_enforce_layers", "",5},
                             {"tree_support_wall_count", "",6},{"tree_support_with_infill", "",7},//tree support
                             {"support_material_contact_distance", "",8},{"support_material_pattern", "",9},{"support_material_spacing", "",10},
-                            {"support_material_interface_layers", "",11},{"support_material_bottom_interface_layers", "",12},{"support_material_interface_spacing", "",13},{"support_material_xy_spacing", "",14}
+                            {"support_material_interface_layers", "",11},{"support_material_bottom_interface_layers", "",12},{"support_material_interface_spacing", "",13},{"support_material_interface_spacing", "",14},
+                            {"support_material_xy_spacing", "",15}
                             }},
     { L("Bed adhension"), {{"brim_type", "",1},{"brim_width", "",1},{"brim_separation", "",1},{"raft_layers", "",1}}}
 };
@@ -137,7 +138,7 @@ std::vector<SimpleSettingData> SettingsFactory::get_visible_options(const std::s
         //tree support
         "tree_support_wall_count", "tree_support_with_infill",
         //support
-        "support_material_contact_distance", "support_material_pattern", "support_material_spacing", "support_material_interface_layers", "support_material_bottom_interface_layers", "support_material_interface_spacing", "support_material_xy_spacing",
+        "support_material_contact_distance", "support_material_pattern", "support_material_spacing", "support_material_interface_layers", "support_material_bottom_interface_layers", "support_material_interface_spacing", "support_material_bottom_interface_spacing", "support_material_xy_spacing",
         //adhesion
         "brim_type", "brim_width", "brim_separation", "raft_layers"
         };*/
