@@ -83,6 +83,7 @@ public:
     std::string name;
     //BBS: virtual object to mark unprintable region on heatbed
     bool is_virt_object{ false };
+    bool is_wipe_tower{ false };
 
     /// The type of the shape which was handed over as the template argument.
     using ShapeType = RawShape;

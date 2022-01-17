@@ -123,7 +123,6 @@ void ArrangeJob::prepare_selected() {
     Model &model = m_plater->model();
     //BBS: remove logic for unselected object
     //double stride = bed_stride_x(m_plater);
-    std::set<int> selected_beds, unselected_beds;
     
     std::vector<const Selection::InstanceIdxsList *>
             obj_sel(model.objects.size(), nullptr);
@@ -158,10 +157,6 @@ void ArrangeJob::prepare_selected() {
 
                 ap.itemid = cont.size();
                 cont.emplace_back(std::move(ap));
-                if (&cont == &m_selected)
-                    selected_beds.insert(ap.bed_idx);
-                else if (&cont == &m_unselected)
-                    unselected_beds.insert(ap.bed_idx);
             }
             else
             {
@@ -173,20 +168,19 @@ void ArrangeJob::prepare_selected() {
         }
     }
 
-    // BBS: get selected and un_selected wipe tower
-    for(int bedid:selected_beds)
-        if (auto wti = get_wipe_tower(*m_plater, bedid)) {
-            ArrangePolygon &&ap = get_arrange_poly(wti, m_plater);
-            m_selected.emplace_back(std::move(ap));
-        }
-    for (int bedid : unselected_beds)
-        if (auto wti = get_wipe_tower(*m_plater, bedid)) {
-            ArrangePolygon&& ap = get_arrange_poly(wti, m_plater);
-            m_unselected.emplace_back(std::move(ap));
-        }
     
     // If the selection was empty arrange everything
     if (m_selected.empty()) m_selected.swap(m_unselected);
+
+
+    // BBS: prepare wipe tower for all possible plates
+    for (int bedid = 0; bedid < MAX_NUM_PLATES; bedid++)
+        if (auto wti = get_wipe_tower(*m_plater, bedid)) {
+            ArrangePolygon&& ap = get_arrange_poly(wti, m_plater);
+            auto& cont = m_plater->get_selection().is_wipe_tower() ? m_selected :
+                m_unselected;
+            cont.emplace_back(std::move(ap));
+        }
 
     // The strides have to be removed from the fixed items. For the
     // arrangeable (selected) items bed_idx is ignored and the
@@ -260,7 +254,9 @@ void ArrangeJob::prepare_partplate() {
     // BBS
     if (auto wti = get_wipe_tower(*m_plater, current_plate_index)) {
         ArrangePolygon&& ap = get_arrange_poly(wti, m_plater);
-        m_selected.emplace_back(std::move(ap));
+        auto& cont = m_plater->get_selection().is_wipe_tower() ? m_selected :
+            m_unselected;
+        cont.emplace_back(std::move(ap));
     }
 
     // The strides have to be removed from the fixed items. For the
@@ -439,7 +435,7 @@ void ArrangeJob::process()
     // sort by item id
     std::sort(m_selected.begin(), m_selected.end(), [](auto a, auto b) {return a.itemid < b.itemid; });
     {
-        BOOST_LOG_TRIVIAL(debug) << "items after arranging: ";
+        BOOST_LOG_TRIVIAL(debug) << "items selected after arranging: ";
         for (auto selected : m_selected)
             BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << selected.extrude_id << ", bed: " << selected.bed_idx
             << ", trans: " << selected.translation.transpose();

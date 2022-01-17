@@ -8481,8 +8481,8 @@ void GLCanvas3D::WipeTowerInfo::apply_wipe_tower() const
     // BBS: add partplate logic
     Tab* tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
     Vec3d plate_origin = wxGetApp().plater()->get_partplate_list().get_plate(m_plate_idx)->get_origin();
-    ConfigOptionFloat wipe_tower_x(m_pos(X));
-    ConfigOptionFloat wipe_tower_y(m_pos(Y));
+    ConfigOptionFloat wipe_tower_x(m_pos(X) - plate_origin(0));
+    ConfigOptionFloat wipe_tower_y(m_pos(Y) - plate_origin(1));
 
     DynamicPrintConfig cfg;
     ConfigOptionFloats* wipe_tower_x_opt = cfg.option<ConfigOptionFloats>("wipe_tower_x", true);

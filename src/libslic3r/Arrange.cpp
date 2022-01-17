@@ -332,7 +332,7 @@ protected:
             // already processed bigger items.
             // No need to play around with the anchor points, the center will be
             // just fine for small items
-            score = norm(pl::distance(ibb.center(), bigbb.center()));
+            score = 0.5*norm(pl::distance(ibb.center(), bigbb.center())) + 0.5*norm(pl::distance(ibb.center(), origin_pack));
             if (m_pconf.starting_point == PConfig::Alignment::BOTTOM_LEFT)
                 score = dist_for_BOTTOM_LEFT(ibb, origin_pack);
             break;
@@ -440,14 +440,38 @@ public:
         
         m_pconf.object_function = get_objfn();
 
-        m_pconf.on_preload = [this](const ItemGroup &items, PConfig &cfg) {
+        auto bbox2expoly = [](Box bb) {
+            ExPolygon bin_poly;
+            auto c0 = bb.minCorner();
+            auto c1 = bb.maxCorner();
+            bin_poly.contour.points.emplace_back(c0);
+            bin_poly.contour.points.emplace_back(c1.x(), c0.y());
+            bin_poly.contour.points.emplace_back(c1);
+            bin_poly.contour.points.emplace_back(c0.x(), c1.y());
+            return bin_poly;
+        };
+
+        m_pconf.on_preload = [this, bbox2expoly](const ItemGroup &items, PConfig &cfg) {
             if (items.empty()) return;
 
-            // BBS: virtual objects should not affect final alignment
-            if (std::any_of(items.begin(), items.end(), [](Item& itm) {return itm.is_virt_object == false; }))
-                cfg.alignment = PConfig::Alignment::DONT_ALIGN;
             auto bb = sl::boundingBox(m_bin);
+            // BBS: virtual objects docked on bed boundary (e.g. excluded region) should not affect final alignment
+            if (std::any_of(items.begin(), items.end(), [this, bb, bbox2expoly](Item& itm) {
+                itm.inflate(1);
+                auto diff = diff_ex(itm, bbox2expoly(bb));
+                itm.inflate(-1);
+                return diff.empty();
+                }))
+                cfg.alignment = PConfig::Alignment::DONT_ALIGN;
+
             auto starting_point = cfg.starting_point == PConfig::Alignment::BOTTOM_LEFT ? bb.minCorner() : bb.center();
+            // if we have wipe tower, items should be arranged around wipe tower
+            for (Item itm : items) {
+                if (itm.is_wipe_tower) {
+                    starting_point = itm.boundingBox().center();
+                    break;
+                }
+            }
             cfg.object_function = [this, bb, starting_point](const Item& item) {
                 return fixed_overfit(objfunc(item, starting_point), bb);
             };
@@ -743,6 +767,7 @@ static void process_arrangeable(const ArrangePolygon &arrpoly,
     item.name = arrpoly.name;
     //BBS: add virtual object logic
     item.is_virt_object = arrpoly.is_virt_object;
+    item.is_wipe_tower = arrpoly.is_wipe_tower;
     item.bed_temp = arrpoly.bed_temp;
     item.print_temp = arrpoly.print_temp;
     item.vitrify_temp = arrpoly.vitrify_temp;
