@@ -1804,7 +1804,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("mmu_segmented_region_max_width");
 
     //BBS
-    page = add_options_page(L("Special mode"), "wrench");
+    page = add_options_page(L("Special mode"), "advanced");
         optgroup = page->new_optgroup(L("Spiral vase"));
         optgroup->append_single_option_line("spiral_vase");
 
@@ -1858,7 +1858,7 @@ void TabPrint::build()
         option.opt.height = 25;//250;
         optgroup->append_single_option_line(option);
 
-    page = add_options_page(L("Dependencies"), "wrench.png");
+    page = add_options_page(L("Dependencies"), "advanced.png");
         optgroup = page->new_optgroup(L("Profile dependencies"));
 
         create_line_with_widget(optgroup.get(), "compatible_printers", "", [this](wxWindow* parent) {
@@ -1992,7 +1992,7 @@ static void validate_custom_gcode_cb(Tab* tab, ConfigOptionsGroupShp opt_group, 
 void TabFilament::add_filament_overrides_page()
 {
     //BBS
-    PageShp page = add_options_page(L("Filament Retraction"), "wrench");
+    PageShp page = add_options_page(L("Filament Retraction"), "retraction");
     ConfigOptionsGroupShp optgroup = page->new_optgroup(L("Retraction"));
 
     auto append_single_option_line = [optgroup, this](const std::string& opt_key, int opt_index)
@@ -2107,7 +2107,7 @@ void TabFilament::build()
     m_presets = &m_preset_bundle->filaments;
     load_initial_data();
 
-    auto page = add_options_page(L("Filament"), "spool.png");
+    auto page = add_options_page(L("Filament"), "spool");
         //BBS
         auto optgroup = page->new_optgroup(L("Basic information"));
         // Set size as all another fields for a better alignment
@@ -2192,7 +2192,7 @@ void TabFilament::build()
         //BBS
         add_filament_overrides_page();
 
-    page = add_options_page(L("Advanced"), "wrench");
+    page = add_options_page(L("Advanced"), "advanced");
         optgroup = page->new_optgroup(L("Wipe tower parameters"));
         optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
 
@@ -2258,7 +2258,7 @@ void TabFilament::build()
         option.opt.height = notes_field_height;// 250;
         optgroup->append_single_option_line(option);
 
-    page = add_options_page(L("Dependencies"), "wrench.png");
+    page = add_options_page(L("Dependencies"), "advanced");
         optgroup = page->new_optgroup(L("Profile dependencies"));
         create_line_with_widget(optgroup.get(), "compatible_printers", "", [this](wxWindow* parent) {
             return compatible_widget_create(parent, m_compatible_printers);
@@ -2654,7 +2654,7 @@ void TabPrinter::build_fff()
         option.opt.height = notes_field_height;//250;
         optgroup->append_single_option_line(option);
 
-    page = add_options_page(L("Dependencies"), "wrench.png");
+    page = add_options_page(L("Dependencies"), "advanced");
         optgroup = page->new_optgroup(L("Profile dependencies"));
 
         build_preset_description_line(optgroup.get());
@@ -4894,7 +4894,7 @@ void TabSLAPrint::build()
     optgroup->append_single_option_line("hollowing_quality");
     optgroup->append_single_option_line("hollowing_closing_distance");
 
-    page = add_options_page(L("Advanced"), "wrench");
+    page = add_options_page(L("Advanced"), "advanced");
     optgroup = page->new_optgroup(L("Slicing"));
     optgroup->append_single_option_line("slice_closing_radius");
     optgroup->append_single_option_line("slicing_mode");
@@ -4905,7 +4905,7 @@ void TabSLAPrint::build()
     option.opt.full_width = true;
     optgroup->append_single_option_line(option);
 
-    page = add_options_page(L("Dependencies"), "wrench");
+    page = add_options_page(L("Dependencies"), "advanced");
     optgroup = page->new_optgroup(L("Profile dependencies"));
 
     create_line_with_widget(optgroup.get(), "compatible_printers", "", [this](wxWindow* parent) {

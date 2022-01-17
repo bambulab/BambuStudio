@@ -448,9 +448,9 @@ wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in,
         Slic3r::GUI::wxGetApp().dark_mode();
 
     // Try loading an SVG first, then PNG if SVG is not found:
-    wxBitmap *bmp = cache.load_svg(bmp_name, width, height, grayscale, dark_mode, new_color, resize);
+    wxBitmap *bmp = cache.load_svg(bmp_name, width, height, grayscale, dark_mode, new_color, resize ? em_unit(win) * 0.1f : 0.f);
     if (bmp == nullptr) {
-        bmp = cache.load_png(bmp_name, width, height, grayscale, resize);
+        bmp = cache.load_png(bmp_name, width, height, grayscale, resize ? em_unit(win) * 0.1f : 0.f);
     }
 
     if (bmp == nullptr) {
