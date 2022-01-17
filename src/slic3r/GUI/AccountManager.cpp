@@ -89,20 +89,22 @@ namespace Slic3r {
                 if (it->second) {
                     try {
                         // BBS check valid json
-                        json j = json::parse(msg->get_payload_str());
-                        if (j.is_null()) {
+                        char head = *msg->get_payload_ref().c_str();
+                        if (head == '{') {
+                            json j = json::parse(msg->get_payload_str());
+                            if (j.is_null()) return;
+                            json_str = msg->get_payload_str();
+                            BOOST_LOG_TRIVIAL(trace) << "message topic:" << msg->get_topic() << ", payload=" << json_str;
+                        } else {
                             int result = 0;
                             lzo_out_len = LZO_OUT_MAX_LEN;
                             result = lzo_decompress((unsigned char*)msg->get_payload_ref().data(), msg->get_payload().length(), lzo_out, &lzo_out_len);
                             if (result == 0) {
                                 json_str = std::string((char*)lzo_out, lzo_out_len);
-                                BOOST_LOG_TRIVIAL(trace) << "message topic:" << msg->get_topic() << ", payload=" << json_str;
+                                BOOST_LOG_TRIVIAL(trace) << "message topic:" << msg->get_topic() << ", decompress payload=" << json_str;
                             } else {
                                 BOOST_LOG_TRIVIAL(trace) << "message_arrived: invalid json and decompress failed, result = " << result;
                             }
-                        } else {
-                            json_str = msg->get_payload_str();
-                            BOOST_LOG_TRIVIAL(trace) << "message topic:" << msg->get_topic() << ", payload=" << json_str;
                         }
                     }
                     catch (...) {
