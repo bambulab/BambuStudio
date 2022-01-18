@@ -3267,20 +3267,20 @@ void PrintConfigDef::init_fff_params()
                      "wipe tower. These values are used to simplify creation of the full purging "
                      "volumes below.");
 
-    // BBS: change 70.f => 15.f
-    def->set_default_value(new ConfigOptionFloats { 15.f, 15.f, 15.f, 15.f, 15.f, 15.f, 15.f, 15.f, 15.f, 15.f  });
+    // BBS: change 70.f => 7.5f
+    def->set_default_value(new ConfigOptionFloats { 7.5f, 7.5f, 7.5f, 7.5f, 7.5f, 7.5f, 7.5f, 7.5f, 7.5f, 7.5f  });
 
     def = this->add("wiping_volumes_matrix", coFloats);
     def->label = L("Purging volumes - matrix");
     def->tooltip = L("This matrix describes volumes (in cubic milimetres) required to purge the"
                      " new filament on the wipe tower for any given pair of tools.");
 
-    // BBS: change 140.f => 30.f
-    def->set_default_value(new ConfigOptionFloats {   0.f, 30.f, 30.f, 30.f, 30.f,
-                                                     30.f,  0.f, 30.f, 30.f, 30.f,
-                                                     30.f, 30.f,  0.f, 30.f, 30.f,
-                                                     30.f, 30.f, 30.f,  0.f, 30.f,
-                                                     30.f, 30.f, 30.f, 30.f,  0.f });
+    // BBS: change 140.f => 15.f
+    def->set_default_value(new ConfigOptionFloats {   0.f, 15.f, 15.f, 15.f, 15.f,
+                                                     15.f,  0.f, 15.f, 15.f, 15.f,
+                                                     15.f, 15.f,  0.f, 15.f, 15.f,
+                                                     15.f, 15.f, 15.f,  0.f, 15.f,
+                                                     15.f, 15.f, 15.f, 15.f,  0.f });
 
     def = this->add("wipe_tower_x", coFloats);
     def->label = L("Position X");
@@ -3303,7 +3303,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Width of a wipe tower");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(60.));
+    def->set_default_value(new ConfigOptionFloat(25.));
 
     def = this->add("wipe_tower_rotation_angle", coFloat);
     def->label = L("Wipe tower rotation angle");
