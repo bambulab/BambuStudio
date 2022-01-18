@@ -924,6 +924,8 @@ wxDEFINE_EVENT(EVT_GLCANVAS_TOOLBAR_HIGHLIGHTER_TIMER, wxTimerEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_GIZMO_HIGHLIGHTER_TIMER, wxTimerEvent);
 
 const double GLCanvas3D::DefaultCameraZoomToBoxMarginFactor = 1.25;
+const double GLCanvas3D::DefaultCameraZoomToBedMarginFactor = 2.00;
+const double GLCanvas3D::DefaultCameraZoomToPlateMarginFactor = 1.25;
 
 void GLCanvas3D::load_arrange_settings()
 {
@@ -1467,7 +1469,7 @@ void GLCanvas3D::zoom_to_bed()
     BoundingBoxf3 box = m_bed.build_volume().bounding_volume();
     box.min.z() = 0.0;
     box.max.z() = 0.0;
-    _zoom_to_box(box);
+    _zoom_to_box(box, DefaultCameraZoomToBedMarginFactor);
 }
 
 void GLCanvas3D::zoom_to_volumes()
@@ -1486,6 +1488,29 @@ void GLCanvas3D::zoom_to_selection()
 void GLCanvas3D::zoom_to_gcode()
 {
     _zoom_to_box(m_gcode_viewer.get_paths_bounding_box(), 1.05);
+}
+
+void GLCanvas3D::zoom_to_plate(int plate_idx)
+{
+    BoundingBoxf3 box;
+    if (plate_idx == REQUIRES_ZOOM_TO_ALL_PLATE) {
+        box = wxGetApp().plater()->get_partplate_list().get_bounding_box();
+        box.min.z() = 0.0;
+        box.max.z() = 0.0;
+        _zoom_to_box(box, DefaultCameraZoomToPlateMarginFactor);
+    } else {
+        PartPlate* plate = nullptr;
+        if (plate_idx == REQUIRES_ZOOM_TO_CUR_PLATE) {
+            plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+        }else {
+            assert(plate_idx >= 0 && plate_idx < wxGetApp().plater()->get_partplate_list().get_plate_count());
+            plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+        }
+        box = plate->get_bounding_box(true);
+        box.min.z() = 0.0;
+        box.max.z() = 0.0;
+        _zoom_to_box(box, DefaultCameraZoomToPlateMarginFactor);
+    }
 }
 
 void GLCanvas3D::select_view(const std::string& direction)
@@ -1579,6 +1604,18 @@ void GLCanvas3D::render()
         zoom_to_bed();
         _resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
         camera.requires_zoom_to_bed = false;
+    }
+
+    if (camera.requires_zoom_to_plate > REQUIRES_ZOOM_TO_PLATE_IDLE) {
+        zoom_to_plate(camera.requires_zoom_to_plate);
+        _resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
+        camera.requires_zoom_to_plate = REQUIRES_ZOOM_TO_PLATE_IDLE;
+    }
+
+    if (camera.requires_zoom_to_volumes) {
+        zoom_to_volumes();
+        _resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
+        camera.requires_zoom_to_volumes = false;
     }
 
     camera.apply_view_matrix();
@@ -4938,8 +4975,13 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const
     //BBS modify scene box to plate scene bounding box
     camera.set_scene_box(plate_scene_bounding_box(plate_idx));
     camera.apply_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
-    camera.zoom_to_box(volumes_box);
-    camera.select_view("topfront");
+
+    BoundingBoxf3 plate_box = plate->get_bounding_box(false);
+    plate_box.min.z() = 0.0;
+    plate_box.max.z() = 0.0;
+    camera.zoom_to_box(plate_box);
+    //camera.zoom_to_box(volumes_box);
+    camera.select_view("top");
     camera.apply_view_matrix();
 
     double near_z = -1.0;

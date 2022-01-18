@@ -8,6 +8,11 @@
 namespace Slic3r {
 namespace GUI {
 
+#define REQUIRES_ZOOM_TO_CUR_PLATE      -1
+#define REQUIRES_ZOOM_TO_ALL_PLATE      -2
+#define REQUIRES_ZOOM_TO_PLATE_IDLE     -100
+
+
 struct Camera
 {
     static const double DefaultDistance;
@@ -27,6 +32,9 @@ struct Camera
     };
 
     bool requires_zoom_to_bed{ false };
+    //BBS
+    bool requires_zoom_to_volumes{ false };
+    int  requires_zoom_to_plate{ REQUIRES_ZOOM_TO_PLATE_IDLE };
 
 private:
     EType m_type{ EType::Perspective };

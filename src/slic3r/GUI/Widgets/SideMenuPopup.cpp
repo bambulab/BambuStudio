@@ -14,7 +14,10 @@ SidePopup::SidePopup(wxWindow* parent)
     wxBORDER_NONE |
     wxPU_CONTAINS_CONTROLS)
 {
-    ;
+#ifdef __WINDOWS__
+    SetDoubleBuffered(true);
+#endif //__WINDOWS__
+
 }
 
 SidePopup::~SidePopup()

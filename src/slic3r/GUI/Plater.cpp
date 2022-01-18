@@ -1686,6 +1686,7 @@ struct Plater::priv
     GLToolbar collapse_toolbar;
     Preview *preview;
     AssembleView* assemble_view;
+    bool first_enter_assemble{ true };
     std::unique_ptr<NotificationManager> notification_manager;
 
     ProjectDirtyStateManager dirty_state;
@@ -4672,6 +4673,13 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
 
         assemble_view->get_canvas3d()->bind_event_handlers();
         assemble_view->reload_scene(true);
+
+        // BBS set default view and zoom
+        if (first_enter_assemble) {
+            wxGetApp().plater()->get_camera().requires_zoom_to_volumes = true;
+            first_enter_assemble = false;
+        }
+
         assemble_view->set_as_dirty();
         // BBS
         //view_toolbar.select_item("Assemble");
@@ -5084,6 +5092,9 @@ void Plater::priv::on_action_add_plate(SimpleEvent&)
         take_snapshot(_L("add partplate"));
         this->partplate_list.create_plate();
         update();
+        // BBS set default view
+        q->get_camera().select_view("topfront");
+        q->get_camera().requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
     }
 }
 
@@ -5092,6 +5103,9 @@ void Plater::priv::on_action_del_plate(SimpleEvent&)
 {
     if (q != nullptr) {
         q->delete_plate();
+
+        q->get_camera().select_view("topfront");
+        q->get_camera().requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
     }
 }
 
@@ -6375,8 +6389,10 @@ void Plater::new_project()
     p->load_auxiliary_files();
     wxGetApp().app_config->update_last_backup_dir(model().get_backup_path());
 
+    // BBS set default view and zoom
     p->select_view_3D("3D");
     p->select_view("topfront");
+    p->camera.requires_zoom_to_bed = true;
 
     up_to_date(true, false);
     up_to_date(true, true);
@@ -6428,6 +6444,7 @@ void Plater::load_project(wxString const& filename2,
     // BBS set default 3D view and direction after loading project
     p->select_view_3D("3D");
     p->select_view("topfront");
+    p->camera.requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
 
     wxGetApp().app_config->update_last_backup_dir(model().get_backup_path());
 
@@ -9189,6 +9206,10 @@ int Plater::delete_plate(int plate_index)
     p->partplate_list.update_slice_context_to_current_plate(p->background_process);
     p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
     p->sidebar->obj_list()->reload_all_plates();
+
+    // BBS update default view
+    get_camera().select_view("topfront");
+    get_camera().requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
 
     //need to call update
     update();
