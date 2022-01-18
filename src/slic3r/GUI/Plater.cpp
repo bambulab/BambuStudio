@@ -5051,8 +5051,6 @@ void Plater::priv::on_action_add(SimpleEvent&)
 {
     if (q != nullptr) {
         q->add_model();
-        //BBS: arrange newly imported objects
-        wxPostEvent(get_current_canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_ARRANGE));
     }
 }
 
@@ -6729,8 +6727,11 @@ void Plater::add_model(bool imperial_units/* = false*/)
     }
 
     Plater::TakeSnapshot snapshot(this, snapshot_label);
-    if (! load_files(paths, true, false, imperial_units).empty())
+    if (!load_files(paths, true, false, imperial_units).empty()) {
         wxGetApp().mainframe->update_title();
+        //BBS: arrange newly imported objects
+        wxPostEvent(get_current_canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_ARRANGE));
+    }
 }
 
 void Plater::import_sl1_archive()
@@ -8814,6 +8815,9 @@ void Plater::paste_from_clipboard()
     // and then paste from the 3DCanvas's clipboard if not
     if (!p->sidebar->obj_list()->paste_from_clipboard())
         p->view3D->get_canvas3d()->get_selection().paste_from_clipboard();
+
+    //BBS: arrange newly copied objects
+    wxPostEvent(get_current_canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_ARRANGE));
 }
 
 void Plater::search(bool plater_is_active)

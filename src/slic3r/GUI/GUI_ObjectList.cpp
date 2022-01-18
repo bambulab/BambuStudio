@@ -1851,6 +1851,9 @@ void ObjectList::load_shape_object(const std::string& type_name)
     TriangleMesh mesh = create_mesh(type_name, bb);
     load_mesh_object(mesh, _L("Shape") + "-" + _(type_name));
     wxGetApp().mainframe->update_title();
+
+    //BBS: arrange newly added objects
+    wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_ARRANGE));
 }
 
 void ObjectList::load_shape_object_from_gallery()
@@ -1881,8 +1884,12 @@ void ObjectList::load_shape_object_from_gallery(const wxArrayString& input_files
         snapshot_label += ", " + wxString::FromUTF8(paths[i].filename().string().c_str());
 
     take_snapshot(snapshot_label);
-    if (! wxGetApp().plater()->load_files(paths, true, false).empty())
+    if (!wxGetApp().plater()->load_files(paths, true, false).empty()) {
         wxGetApp().mainframe->update_title();
+
+        //BBS: arrange newly added objects
+        wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_ARRANGE));
+    }
 }
 
 void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center)
