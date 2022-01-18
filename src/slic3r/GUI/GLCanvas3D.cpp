@@ -1980,6 +1980,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     std::vector<size_t> instance_ids_selected;
     std::vector<size_t> map_glvolume_old_to_new(m_volumes.volumes.size(), size_t(-1));
     std::vector<GLVolumeState> deleted_volumes;
+    // BBS
+    std::vector<GLVolumeState> deleted_wipe_towers;
     std::vector<GLVolume*> glvolumes_new;
     glvolumes_new.reserve(m_volumes.volumes.size());
     auto model_volume_state_lower = [](const ModelVolumeState& m1, const ModelVolumeState& m2) { return m1.geometry_id < m2.geometry_id; };
@@ -2080,6 +2082,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             }
             if (!m_reload_delayed) {
                 deleted_volumes.emplace_back(volume, volume_id);
+                // BBS
+                if (volume->is_wipe_tower)
+                    deleted_wipe_towers.emplace_back(volume, volume_id);
                 delete volume;
             }
 
@@ -2127,7 +2132,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
     // BBS: do not check wipe tower changes
     bool update_object_list = false;
-    if (!deleted_volumes.empty())
+    if (deleted_volumes.size() != deleted_wipe_towers.size())
         update_object_list = true;
 
     if (m_volumes.volumes != glvolumes_new && !update_object_list) {
