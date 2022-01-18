@@ -230,7 +230,7 @@ wxBitmap* BitmapCache::insert_raw_rgba(const std::string &bitmap_key, unsigned w
 }
 
 wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned width, unsigned height,
-    const bool grayscale/* = false*/, const float resize/* = false*/) // BBS: support resize by fill border
+    const bool grayscale/* = false*/, const float scale_in_center/* = 0*/) // BBS: support resize by fill border
 {
     std::string bitmap_key = bitmap_name + ( height !=0 ? 
                                            "-h" + std::to_string(height) : 
@@ -253,7 +253,7 @@ wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned width, 
 
     if (height != 0 && width != 0) {
         // BBS: support resize by fill border
-        if (resize > 0)
+        if (scale_in_center > 0)
             image.Resize({ (int)width, (int)height }, { (int)(width - image.GetWidth()) / 2, (int)(height - image.GetHeight()) / 2 });
         else
             image.Rescale(width, height, wxIMAGE_QUALITY_BILINEAR);
@@ -303,7 +303,7 @@ error:
 }
 
 wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_width, unsigned target_height, 
-    const bool grayscale/* = false*/, const bool dark_mode/* = false*/, const std::string& new_color /*= ""*/, const float resize/* = false*/)
+    const bool grayscale/* = false*/, const bool dark_mode/* = false*/, const std::string& new_color /*= ""*/, const float scale_in_center/* = 0*/)
 {
     std::string bitmap_key = bitmap_name + ( target_height !=0 ? 
                                            "-h" + std::to_string(target_height) : 
@@ -350,10 +350,10 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
 
     std::vector<unsigned char> data(n_pixels * 4, 0);
     // BBS: support resize by fill border
-    if (resize > 0) {
-        int w = image->width; // (int)(image->width * resize);
-        int h = image->height; // (int)(image->height * resize);
-        ::nsvgRasterize(rast, image, 0, 0, resize, data.data() + int(height - h) / 2 * width * 4 + int(width - w) / 2 * 4, w, h, width * 4);
+    if (scale_in_center > 0) {
+        int w = (int)(image->width * scale_in_center);
+        int h = (int)(image->height * scale_in_center);
+        ::nsvgRasterize(rast, image, 0, 0, scale_in_center, data.data() + int(height - h) / 2 * width * 4 + int(width - w) / 2 * 4, w, h, width * 4);
     } else
         ::nsvgRasterize(rast, image, 0, 0, svg_scale, data.data(), width, height, width * 4);
     ::nsvgDeleteRasterizer(rast);

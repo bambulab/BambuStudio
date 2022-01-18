@@ -361,7 +361,7 @@ void Tab::create_preset_tab()
     m_treectrl->SetFont(Label::Body_14);
     //m_left_sizer->Add(m_treectrl, 1, wxEXPAND);
     const int img_sz = int(32 * scale_factor + 0.5f);
-    m_icons = new wxImageList(img_sz, img_sz, true, 1);
+    m_icons = new wxImageList(img_sz, img_sz, false, 1);
     // Index of the last icon inserted into $self->{icons}.
     m_icon_count = -1;
     m_treectrl->AssignImageList(m_icons);
@@ -1082,7 +1082,7 @@ void Tab::msw_rescale()
         bmp.msw_rescale();
     // recreate and set new ImageList for tree_ctrl
     m_icons->RemoveAll();
-    m_icons = new wxImageList(m_scaled_icons_list.front().bmp().GetWidth(), m_scaled_icons_list.front().bmp().GetHeight());
+    m_icons = new wxImageList(m_scaled_icons_list.front().bmp().GetWidth(), m_scaled_icons_list.front().bmp().GetHeight(), false);
     for (ScalableBitmap& bmp : m_scaled_icons_list)
         m_icons->Add(bmp.bmp());
     m_treectrl->AssignImageList(m_icons);
@@ -1113,7 +1113,7 @@ void Tab::sys_color_changed()
         bmp.msw_rescale();
     // recreate and set new ImageList for tree_ctrl
     m_icons->RemoveAll();
-    m_icons = new wxImageList(m_scaled_icons_list.front().bmp().GetWidth(), m_scaled_icons_list.front().bmp().GetHeight());
+    m_icons = new wxImageList(m_scaled_icons_list.front().bmp().GetWidth(), m_scaled_icons_list.front().bmp().GetHeight(), false);
     for (ScalableBitmap& bmp : m_scaled_icons_list)
         m_icons->Add(bmp.bmp());
     m_treectrl->AssignImageList(m_icons);
@@ -1851,7 +1851,7 @@ void TabPrint::build()
         option.opt.height = 5;//50;
         optgroup->append_single_option_line(option);
 
-    page = add_options_page(L("Notes"), "note.png");
+    page = add_options_page(L("Notes"), "printer.png");
         optgroup = page->new_optgroup(L("Notes"), 0);
         option = optgroup->get_option("notes");
         option.opt.full_width = true;
@@ -2250,7 +2250,7 @@ void TabFilament::build()
         option.opt.height = gcode_field_height;// 150;
         optgroup->append_single_option_line(option);
 
-    page = add_options_page(L("Notes"), "note.png");
+    page = add_options_page(L("Notes"), "printer.png");
         optgroup = page->new_optgroup(L("Notes"), 0);
         optgroup->label_width = 0;
         option = optgroup->get_option("filament_notes");
@@ -2647,7 +2647,7 @@ void TabPrinter::build_fff()
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
 
-    page = add_options_page(L("Notes"), "note.png");
+    page = add_options_page(L("Notes"), "printer.png");
         optgroup = page->new_optgroup(L("Notes"), 0);
         option = optgroup->get_option("printer_notes");
         option.opt.full_width = true;
@@ -2719,7 +2719,7 @@ void TabPrinter::build_sla()
 
     const int notes_field_height = 25; // 250
 
-    page = add_options_page(L("Notes"), "note.png");
+    page = add_options_page(L("Notes"), "printer.png");
     optgroup = page->new_optgroup(L("Notes"), 0);
     option = optgroup->get_option("printer_notes");
     option.opt.full_width = true;
@@ -4750,7 +4750,7 @@ void TabSLAMaterial::build()
 
     optgroup->append_line(line);
 
-    page = add_options_page(L("Notes"), "note.png");
+    page = add_options_page(L("Notes"), "printer.png");
     optgroup = page->new_optgroup(L("Notes"), 0);
     optgroup->label_width = 0;
     Option option = optgroup->get_option("material_notes");
@@ -4779,7 +4779,7 @@ void TabSLAMaterial::build()
 
     build_preset_description_line(optgroup.get());
 
-    page = add_options_page(L("Material printing profile"), "note.png");
+    page = add_options_page(L("Material printing profile"), "printer.png");
     optgroup = page->new_optgroup(L("Material printing profile"));
     option = optgroup->get_option("material_print_speed");
     optgroup->append_single_option_line(option);
