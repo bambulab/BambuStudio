@@ -318,6 +318,10 @@ void PartPlate::render_icons(bool bottom) const
         else
             render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_lockopen_texture, m_lock_vbo_id);
 
+        if (m_plate_index >=0 && m_plate_index < MAX_PLATE_COUNT) {
+            render_icon_texture(position_id, tex_coords_id, m_plate_idx_icon, m_partplate_list->m_idx_textures[m_plate_index], m_plate_idx_vbo_id);
+        }
+
         if (tex_coords_id != -1)
             glsafe(::glDisableVertexAttribArray(tex_coords_id));
 
@@ -627,6 +631,10 @@ void PartPlate::release_opengl_resource()
 	if (m_lock_vbo_id > 0) {
 		glsafe(::glDeleteBuffers(1, &m_lock_vbo_id));
 		m_lock_vbo_id = 0;
+	}
+	if (m_plate_idx_vbo_id > 0) {
+		glsafe(::glDeleteBuffers(1, &m_plate_idx_vbo_id));
+		m_plate_idx_vbo_id = 0;
 	}
 }
 
@@ -1088,6 +1096,7 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 	calc_vertex_for_icons(0, m_del_icon);
 	calc_vertex_for_icons(1, m_arrange_icon);
     calc_vertex_for_icons(2, m_lock_icon);
+	calc_vertex_for_icons(3, m_plate_idx_icon);
 
 	release_opengl_resource();
 
@@ -1447,6 +1456,15 @@ void PartPlateList::generate_icon_textures()
 			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
 		}
 	}
+
+	for (int i = 0; i < MAX_PLATE_COUNT; i++) {
+		if (m_idx_textures[i].get_id() == 0) {
+			file_name = path + (boost::format("plate_%1%.svg") % (i + 1)).str();
+			if (!m_idx_textures[i].load_from_svg_file(file_name, true, false, false, max_tex_size / 8)) {
+				BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+			}
+		}
+	}
 }
 
 void PartPlateList::release_icon_textures()
@@ -1455,6 +1473,9 @@ void PartPlateList::release_icon_textures()
 	m_arrange_texture.reset();
     m_locked_texture.reset();
     m_lockopen_texture.reset();
+	for (int i = 0;i < MAX_PLATE_COUNT; i++) {
+		m_idx_textures[i].reset();
+	}
 }
 
 //this may be happened after machine changed
@@ -2525,7 +2546,7 @@ void PartPlateList::render(GLCanvas3D& canvas, bool bottom, float scale_factor, 
 	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
 		if (only_current && ((*it)->get_index() != m_current_plate))
 			continue;
-		(*it)->render(canvas, bottom, true, only_body);
+        (*it)->render(canvas, bottom, false, only_body);
 	}
 }
 

@@ -31,6 +31,7 @@ typedef class GLUquadric GLUquadricObject;
 #define PLATE_CURRENT_IDX   -1
 #define PLATE_ALL_IDX       -2
 
+#define MAX_PLATE_COUNT     36
 
 inline int compute_colum_count(int count)
 {
@@ -115,6 +116,8 @@ class PartPlate : public ObjectBase
     mutable unsigned int m_arrange_vbo_id{ 0 };
     GeometryBuffer m_lock_icon;
     mutable unsigned int m_lock_vbo_id{ 0 };
+    GeometryBuffer m_plate_idx_icon;
+    mutable unsigned int m_plate_idx_vbo_id{ 0 };
     GLTexture m_texture;
     std::array<float, 4> m_select_color{ 0.367f, 0.367f, 0.367f, 1.0f };
     std::array<float, 4> m_unselect_color{ 0.765f, 0.765f, 0.765f, 1.0f };
@@ -356,6 +359,7 @@ class PartPlateList : public ObjectBase
     GLTexture m_arrange_texture;
     GLTexture m_locked_texture;
     GLTexture m_lockopen_texture;
+    GLTexture m_idx_textures[MAX_PLATE_COUNT];
 
     void init();
     //compute the origin for printable plate with index i
@@ -373,7 +377,7 @@ class PartPlateList : public ObjectBase
     friend class PartPlate;
 
 public:
-    static const unsigned int MAX_PLATES_COUNT = 50;
+    static const unsigned int MAX_PLATES_COUNT = MAX_PLATE_COUNT;
 
     PartPlateList(int width, int depth, int height, Plater* platerObj, Model* modelObj, PrinterTechnology tech = ptFFF);
     PartPlateList(Plater* platerObj, Model* modelObj, PrinterTechnology tech = ptFFF);
