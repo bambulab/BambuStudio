@@ -39,6 +39,8 @@ public:
 
     void SetSelection(int n) override;
 
+    virtual void Rescale() override;
+
     wxString GetValue() const;
     void     SetValue(const wxString &value);
 

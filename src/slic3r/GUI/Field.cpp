@@ -780,6 +780,7 @@ void CheckBox::msw_rescale()
 	// BBS: new param style
 	::CheckBox* field = dynamic_cast<::CheckBox*>(window);
     //field->SetMinSize(wxSize(-1, int(1.5f*field->GetFont().GetPixelSize().y +0.5f)));
+    field->Rescale();
 }
 
 

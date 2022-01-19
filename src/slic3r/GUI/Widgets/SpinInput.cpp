@@ -208,7 +208,8 @@ void SpinInput::messureSize()
     }
     wxSize btnSize = {14, (size.y - 4) / 2};
     btnSize.x = btnSize.x * btnSize.y / 10;
-    labelSize  = GetTextExtent(GetLabel());
+    wxClientDC dc(this);
+    labelSize  = dc.GetMultiLineTextExtent(GetLabel());
     textSize.x = size.x - labelSize.x - btnSize.x - 16;
     text_ctrl->SetSize(textSize);
     text_ctrl->SetPosition({6 + btnSize.x, (size.y - textSize.y) / 2});

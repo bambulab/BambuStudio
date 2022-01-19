@@ -55,7 +55,7 @@ public:
 
     void SetBackgroundColor(StateColor const &color);
 
-    void Rescale();
+    virtual void Rescale();
 
     virtual bool Enable(bool enable = true) override;
 

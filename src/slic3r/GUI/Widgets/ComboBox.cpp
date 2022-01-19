@@ -70,6 +70,12 @@ void ComboBox::SetSelection(int n)
     SetLabel(drop.GetValue());
 }
 
+void ComboBox::Rescale()
+{
+    TextInput::Rescale();
+    drop.Rescale();
+}
+
 wxString ComboBox::GetValue() const
 {
     return drop.GetSelection() >= 0 ? drop.GetValue() : GetLabel();

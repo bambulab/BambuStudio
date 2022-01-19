@@ -123,7 +123,6 @@ void DropDown::SetSelectorBackgroundColor(StateColor const &color)
 void DropDown::Rescale()
 {
     need_sync = true;
-    messureSize();
 }
 
 bool DropDown::HasDismissLongTime()
@@ -253,7 +252,7 @@ void DropDown::render(wxDC &dc)
         }
         auto text = texts[i];
         if (!text.IsEmpty()) {
-            wxSize tSize = GetTextExtent(text);
+            wxSize tSize = dc.GetMultiLineTextExtent(text);
             if (pt.x + tSize.x > rcContent.GetRight()) {
                 text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END,
                                             rcContent.GetRight() - pt.x);
@@ -270,8 +269,9 @@ void DropDown::messureSize()
 {
     if (!need_sync) return;
     textSize = wxSize();
+    wxClientDC dc(GetParent() ? GetParent() : this);
     for (auto & text : texts) {
-        wxSize size = GetTextExtent(text);
+        wxSize size = dc.GetMultiLineTextExtent(text);
         if (size.x > textSize.x) textSize = size;
     }
     iconSize = wxSize();
@@ -312,10 +312,9 @@ void DropDown::autoPosition()
     }
     if (GetPosition().y > pos.y) {
         // may exceed
-        wxSize dsize = wxDisplay(wxDisplay::GetFromWindow(this)).GetGeometry()
-                           .GetSize();
-        if (GetPosition().y + size.y > dsize.y) {
-            size.y = dsize.y - GetPosition().y;
+        auto drect = wxDisplay(wxDisplay::GetFromWindow(this)).GetGeometry();
+        if (GetPosition().y + size.y + 10 > drect.GetBottom()) {
+            size.y = drect.GetBottom() - GetPosition().y - 10;
             wxWindow::SetSize(size);
             if (selection >= 0) {
                 if (offset.y + rowSize.y * (selection + 1) > size.y)

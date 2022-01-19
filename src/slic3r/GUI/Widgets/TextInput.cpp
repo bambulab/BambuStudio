@@ -228,12 +228,14 @@ void TextInput::render(wxDC& dc)
     auto text = wxWindow::GetLabel();
     if (!text.IsEmpty()) {
         wxSize textSize = text_ctrl->GetSize();
-        if (!align_right)
+        if (align_right) {
+            if (pt.x + labelSize.x > size.x)
+                text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, size.x - pt.x);
+            pt.y = (size.y - labelSize.y) / 2;
+        } else {
             pt.x += textSize.x;
-        else if (pt.x + labelSize.x > size.x) {
-            text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, size.x - pt.x);
+            pt.y = (size.y + textSize.y) / 2 - labelSize.y;
         }
-        pt.y = (size.y + textSize.y) / 2 - labelSize.y;
         dc.SetTextForeground(text_color.colorForStates(states));
         dc.SetFont(GetFont());
         dc.DrawText(text, pt);
@@ -244,6 +246,8 @@ void TextInput::messureSize()
 {
     wxSize size     = GetSize();
     wxSize textSize = text_ctrl->GetSize();
+    wxClientDC dc(this);
+    labelSize  = dc.GetMultiLineTextExtent(wxWindow::GetLabel());
     bool   align_right    = GetWindowStyle() & wxRIGHT;
     int    h        = textSize.y * 24 / 14;
     if (size.y < h) {
@@ -251,7 +255,6 @@ void TextInput::messureSize()
     } else if (size.y > h) {
         textSize.y = size.y * 14 / 24;
     }
-    labelSize = GetTextExtent(wxWindow::GetLabel());
     SetSize(size);
     SetMinSize(size);
 }
