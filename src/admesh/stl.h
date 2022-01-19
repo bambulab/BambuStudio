@@ -170,6 +170,12 @@ struct FaceProperty
 
 struct indexed_triangle_set
 {
+    indexed_triangle_set(std::vector<stl_triangle_vertex_indices>    indices_,
+        std::vector<stl_vertex>                     vertices_) :indices(indices_), vertices(vertices_) {
+        properties.resize(indices_.size());
+    }
+    indexed_triangle_set() {}
+
     void clear() { indices.clear(); vertices.clear(); properties.clear(); }
 
     size_t memsize() const {
@@ -178,7 +184,6 @@ struct indexed_triangle_set
 
     std::vector<stl_triangle_vertex_indices>    indices;
     std::vector<stl_vertex>                     vertices;
-    std::vector<FaceProperty>                   properties;
 
     bool empty() const { return indices.empty() || vertices.empty(); }
     stl_vertex get_vertex(int facet_idx, int vertex_idx) const{
@@ -188,6 +193,15 @@ struct indexed_triangle_set
         return std::abs((get_vertex(facet_idx, 0) - get_vertex(facet_idx, 1))
             .cross(get_vertex(facet_idx, 0) - get_vertex(facet_idx, 2)).norm()) / 2;
     }
+    FaceProperty& get_property(int face_idx) {
+        if (properties.size() != indices.size()) {
+            properties.clear();
+            properties.resize(indices.size());
+        }
+        return properties[face_idx];
+    }
+private:
+    std::vector<FaceProperty>                   properties;
 };
 
 extern bool stl_open(stl_file *stl, const char *file);

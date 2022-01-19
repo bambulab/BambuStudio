@@ -167,9 +167,6 @@ public:
             int face_count = mesh->facets_count();
             auto its = mesh->its;
             auto face_normals = its_face_normals(its);
-            if (its.properties.size() < face_count) {
-                its.properties.resize(face_count);
-            }
             areas = Eigen::VectorXf::Zero(face_count);
             is_apperance = Eigen::VectorXf::Zero(face_count);
             normals = Eigen::MatrixXf::Zero(face_count, 3);
@@ -181,7 +178,7 @@ public:
                 
                 normals.row(i) = quantize_vec3f(face_normals[i]);
                 areas(i) = area;
-                is_apperance(i) = (its.properties[i].type == EnumFaceTypes::eExteriorAppearance);
+                is_apperance(i) = (its.get_property(i).type == EnumFaceTypes::eExteriorAppearance);
                 count_apperance += (is_apperance(i)==1);
             }
         }

@@ -15,6 +15,8 @@
 #include "Format/STL.hpp"
 #include "Format/3mf.hpp"
 #include "Format/STEP.hpp"
+// BBS
+#include "FaceDetector.hpp"
 
 #include "libslic3r/Geometry/ConvexHull.hpp"
 
@@ -1669,13 +1671,45 @@ ModelObjectPtrs ModelObject::segment(size_t instance, unsigned int max_extruders
 
 void ModelObject::split(ModelObjectPtrs* new_objects)
 {
-    for (ModelVolume* volume : this->volumes) {
+    std::vector<TriangleMesh> all_meshes;
+    std::vector<Transform3d> all_transfos;
+    std::vector<std::pair<int, int>> volume_mesh_counts;
+    all_meshes.reserve(this->volumes.size() * 5);
+
+    for (int volume_idx = 0; volume_idx < this->volumes.size(); volume_idx++) {
+        ModelVolume* volume = this->volumes[volume_idx];
         if (volume->type() != ModelVolumeType::MODEL_PART)
             continue;
 
-        std::vector<TriangleMesh> meshes = volume->mesh().split();
+        std::vector<TriangleMesh> volume_meshes = volume->mesh().split();
+        int mesh_count = 0;
+        for (TriangleMesh& mesh : volume_meshes) {
+            if (mesh.facets_count() < 3)
+                continue;
+
+            all_meshes.emplace_back(std::move(mesh));
+            all_transfos.emplace_back(volume->get_matrix());
+            mesh_count++;
+        }
+        volume_mesh_counts.push_back({ volume_idx, mesh_count });
+    }
+
+    FaceDetector face_detector(all_meshes, all_transfos, 1.0);
+    face_detector.detect_exterior_face();
+
+    int volume_mesh_begin = 0;
+    for (int i = 0; i < volume_mesh_counts.size(); i++) {
+        std::pair<int, int> mesh_info = volume_mesh_counts[i];
+        ModelVolume* volume = this->volumes[mesh_info.first];
+
+        std::vector<TriangleMesh> meshes;
+        for (int mesh_idx = volume_mesh_begin; mesh_idx < volume_mesh_begin + mesh_info.second; mesh_idx++) {
+            meshes.emplace_back(std::move(all_meshes[mesh_idx]));
+        }
+        volume_mesh_begin += mesh_info.second;
+
         size_t counter = 1;
-        for (TriangleMesh &mesh : meshes) {
+        for (TriangleMesh& mesh : meshes) {
             // FIXME: crashes if not satisfied
             if (mesh.facets_count() < 3)
                 continue;

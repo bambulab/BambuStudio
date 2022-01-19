@@ -4,53 +4,30 @@
 #include "Model.hpp"
 
 namespace Slic3r {
+static const double BBOX_OFFSET = 2.0;
 void FaceDetector::detect_exterior_face()
 {
-    if (m_mo == nullptr)
-        return;
-
-    struct VolumeFacetRange {
-        VolumeFacetRange(ModelVolume* mv, uint32_t facet_begin, uint32_t facet_end) :
-            mv(mv), facet_begin(facet_begin), facet_end(facet_end) {}
-        VolumeFacetRange() : mv(nullptr), facet_begin(0), facet_end(0) {}
-        ModelVolume* mv;
+    struct MeshFacetRange {
+        MeshFacetRange(TriangleMesh* tm, uint32_t facet_begin, uint32_t facet_end) :
+            tm(tm), facet_begin(facet_begin), facet_end(facet_end) {}
+        MeshFacetRange() : tm(nullptr), facet_begin(0), facet_end(0) {}
+        TriangleMesh* tm;
         uint32_t facet_begin;
         uint32_t facet_end;
     };
 
-    const double BBOX_OFFSET = 2.0;
-
-    const ModelInstance* mi = m_mo->instances[0];
     TriangleMesh object_mesh;
-    Vec3d inst_ofs = mi->get_offset();
-    std::vector<VolumeFacetRange> volume_facet_ranges;
-    for (ModelVolume* mv : m_mo->volumes) {
-        if (!mv->is_model_part())
-            continue;
+    std::vector<MeshFacetRange> volume_facet_ranges;
+    for (int i = 0; i < m_meshes.size(); i++) {
+        TriangleMesh vol_mesh = m_meshes[i];
+        volume_facet_ranges.emplace_back(&m_meshes[i], object_mesh.stats().number_of_facets, object_mesh.stats().number_of_facets + vol_mesh.stats().number_of_facets);
 
-        TriangleMesh vol_mesh = mv->mesh();
-        volume_facet_ranges.emplace_back(mv, object_mesh.stats().number_of_facets, object_mesh.stats().number_of_facets + vol_mesh.stats().number_of_facets);
-        vol_mesh.its.properties.resize(vol_mesh.its.indices.size()); // allocate memory for properties
-
-        vol_mesh.transform(mv->get_matrix());
-        object_mesh.merge(vol_mesh);
-    }
-
-    for (ModelVolume* mv : m_mo->volumes) {
-        TriangleMesh& vol_mesh = const_cast<TriangleMesh&>(mv->mesh());
-        if (vol_mesh.its.properties.size() < vol_mesh.its.indices.size()) {
-            vol_mesh.its.properties.clear();
-            vol_mesh.its.properties.resize(vol_mesh.its.indices.size());
-        }
-
-        for (FaceProperty& face_prop : vol_mesh.its.properties) {
-            face_prop.type = eNormal;
-        }
+        vol_mesh.transform(m_transfos[i]);
+        object_mesh.merge(std::move(vol_mesh));
     }
 
     sla::IndexedMesh indexed_mesh(object_mesh);
     BoundingBoxf3 bbox = object_mesh.bounding_box();
-    //bbox.translate(inst_ofs);
     bbox.offset(BBOX_OFFSET);
 
     std::unordered_set<size_t> hit_face_indices;
@@ -95,31 +72,18 @@ void FaceDetector::detect_exterior_face()
     }
 
     for (size_t facet_idx : hit_face_indices) {
-        ModelVolume* mv = nullptr;
+        TriangleMesh* tm = nullptr;
         uint32_t vol_facet_idx = 0;
         for (auto range : volume_facet_ranges) {
             if (facet_idx >= range.facet_begin && facet_idx < range.facet_end) {
-                mv = range.mv;
+                tm = range.tm;
                 vol_facet_idx = facet_idx - range.facet_begin;
                 break;
             }
         }
 
-        // TODO: add exterior flag
-        TriangleMesh& vol_mesh = const_cast<TriangleMesh&>(mv->mesh());
-        vol_mesh.its.properties[vol_facet_idx].type = EnumFaceTypes::eExteriorAppearance;
-
-        // check
-#if 0
-        for (int i = 0; i < 3; i++) {
-            stl_vertex& obj_facet_vert = object_mesh.its.vertices[object_mesh.its.indices[facet_idx](i)];
-            stl_vertex& vol_facet_vert = vol_facet.vertex[i];
-            Vec3d vol_ofs = mv->get_offset() + inst_ofs;
-            if (std::abs(obj_facet_vert(0) - vol_facet_vert(0) - vol_ofs(0)) > EPSILON) {
-                printf("vertex not match\n");
-            }
-        }
-#endif
+        tm->its.get_property(vol_facet_idx).type = EnumFaceTypes::eExteriorAppearance;
     }
 }
+
 }

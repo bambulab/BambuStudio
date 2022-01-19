@@ -40,6 +40,7 @@ void GLGizmoFaceDetector::on_render()
 
 void GLGizmoFaceDetector::on_render_input_window(float x, float y, float bottom_limit)
 {
+#if 0
     if (!m_c->selection_info() || !m_c->selection_info()->model_object())
         return;
 
@@ -65,12 +66,14 @@ void GLGizmoFaceDetector::on_render_input_window(float x, float y, float bottom_
 
     m_imgui->end();
     ImGuiWrapper::pop_toolbar_style();
+#endif
 }
 
 void GLGizmoFaceDetector::on_set_state()
 {
     if (get_state() == On) {
         m_iva.release_geometry();
+        display_exterior_face();
     }
 }
 
@@ -83,30 +86,33 @@ bool GLGizmoFaceDetector::on_is_activable() const
 void GLGizmoFaceDetector::perform_recognition(const Selection& selection)
 {
     ModelObject* mo = m_c->selection_info()->model_object();
-    FaceDetector face_detector(mo, m_sample_interval);
-    const ModelInstance* mi = mo->instances[0];
-    Vec3d inst_ofs = mi->get_offset();
+    //FaceDetector face_detector(mo, m_sample_interval);
 
-    face_detector.detect_exterior_face();
+    //face_detector.detect_exterior_face();
+}
 
-    // update vertices to display
-    {
-        int cnt = 0;
-        m_iva.release_geometry();
+void GLGizmoFaceDetector::display_exterior_face()
+{
+    int cnt = 0;
+    m_iva.release_geometry();
 
+    const ModelObjectPtrs& objects = wxGetApp().model().objects;
+    for (ModelObject* mo : objects) {
+        const ModelInstance* mi = mo->instances[0];
+        Transform3d inst_transfo = mi->get_matrix();
         for (ModelVolume* mv : mo->volumes) {
             TriangleMesh mesh_temp = mv->mesh();
-            mesh_temp.transform(mv->get_matrix());
+            mesh_temp.transform(mv->get_matrix() * inst_transfo);
             indexed_triangle_set& mv_its = mesh_temp.its;
             for (int facet_idx = 0; facet_idx < mv_its.indices.size(); facet_idx++) {
                 const stl_triangle_vertex_indices& facet_vert_idxs = mv_its.indices[facet_idx];
-                if(mv_its.properties[facet_idx].type != eExteriorAppearance)
+                if (mv_its.get_property(facet_idx).type != eExteriorAppearance)
                     continue;
 
                 for (int i = 0; i < 3; ++i) {
-                    m_iva.push_geometry(double(mv_its.vertices[facet_vert_idxs[i]](0)) + inst_ofs(0),
-                        double(mv_its.vertices[facet_vert_idxs[i]](1)) + inst_ofs(1),
-                        double(mv_its.vertices[facet_vert_idxs[i]](2)) + inst_ofs(2),
+                    m_iva.push_geometry(double(mv_its.vertices[facet_vert_idxs[i]](0)),
+                        double(mv_its.vertices[facet_vert_idxs[i]](1)),
+                        double(mv_its.vertices[facet_vert_idxs[i]](2)),
                         0., 0., 1.);
                 }
 
@@ -114,9 +120,9 @@ void GLGizmoFaceDetector::perform_recognition(const Selection& selection)
                 cnt += 3;
             }
         }
-
-        m_iva.finalize_geometry(true);
     }
+
+    m_iva.finalize_geometry(true);
 }
 
 CommonGizmosDataID GLGizmoFaceDetector::on_get_requirements() const
