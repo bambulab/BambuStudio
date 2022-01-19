@@ -479,7 +479,7 @@ bool OG_CustomCtrl::update_visibility(ConfigOptionMode mode)
 // BBS: call by Tab/Page
 void OG_CustomCtrl::fixup_items_positions()
 {
-    if (GetPosition().y < GetParent()->GetSize().y)
+    if (GetParent() == nullptr || GetPosition().y < GetParent()->GetSize().y)
         return;
     for (CtrlLine& line : ctrl_lines) {
         line.correct_items_positions();

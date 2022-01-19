@@ -724,8 +724,7 @@ void PlaterPresetComboBox::switch_to_tab()
 
     //BBS  Select NoteBook Tab params
     wxGetApp().mainframe->select_tab(2);
-    ParamsPanel* param_panel = (ParamsPanel*)wxGetApp().params_panel();
-    param_panel->set_active_tab(param_panel->filament_panel());
+    tab->restore_last_select_item();
 
     const Preset* selected_filament_preset = nullptr;
     if (m_type == Preset::TYPE_FILAMENT)
