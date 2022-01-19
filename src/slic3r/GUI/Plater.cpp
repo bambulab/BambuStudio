@@ -1626,8 +1626,11 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
     this->MSWUpdateDragImageOnLeave();
 #endif // WIN32
 
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": drag %1% files into app")%filenames.size();
     bool res = (m_plater != nullptr) ? m_plater->load_files(filenames) : false;
     wxGetApp().mainframe->update_title();
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": return %1%")%res;
     return res;
 }
 
@@ -2746,6 +2749,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         }
     }
 
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": load_model %1%, load_config %2%, load_restore %3%, input_files size %4%")%load_model %load_config %load_restore %input_files.size();
+
     const auto loading = _L("Loading") + dots;
     wxProgressDialog dlg(loading, "", 100, find_toplevel_parent(q), wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_APP_MODAL);
     wxProgressDialog* progress_dlg = &dlg;
@@ -2769,6 +2774,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         const auto filename = path.filename();
         const auto dlg_info = _L("Loading file") + ": " + from_path(filename);
         int progress_percent = static_cast<int>(100.0f * static_cast<float>(i) / static_cast<float>(input_files.size()));
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": load file %1%")%filename;
         dlg_cont = dlg.Update(progress_percent, dlg_info);
         if (!dlg_cont)
             return empty_result;
@@ -2788,6 +2794,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             load_aux = true;
         }
         bool is_project_file = type_prusa;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": is_project_file %1%, type_3mf %2%, type_prusa %3%")%is_project_file %type_3mf %type_prusa;
         try {
             if (type_3mf || type_zip_amf) {
                 DynamicPrintConfig config;
@@ -3505,6 +3512,7 @@ void Plater::priv::object_list_changed()
     // BBS
     //sidebar->enable_buttons(!model.objects.empty() && !export_in_progress && model_fits && part_plate->has_printable_instances());
     bool can_slice = !model.objects.empty() && !export_in_progress && model_fits && part_plate->has_printable_instances();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": can_slice %1%, model_fits= %2%, export_in_progress %3%, has_printable_instances %4% ")%can_slice %model_fits %export_in_progress %part_plate->has_printable_instances();
     main_frame->update_slice_print_status(MainFrame::eEventObjectUpdate, can_slice);
 }
 
@@ -7124,9 +7132,11 @@ bool Plater::load_files(const wxArrayString& filenames)
         else
             continue;
     }
-    if (paths.empty())
+    if (paths.empty()) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": can not find valid path, return directly");
         // Likely all paths processed were gcodes, for which a G-code viewer instance has hopefully been started.
         return false;
+    }
 
     // searches for project files
     for (std::vector<fs::path>::const_reverse_iterator it = paths.rbegin(); it != paths.rend(); ++it) {
