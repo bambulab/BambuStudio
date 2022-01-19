@@ -6453,6 +6453,10 @@ void Plater::load_project(wxString const& filename2,
     p->camera.requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
 
     wxGetApp().app_config->update_last_backup_dir(model().get_backup_path());
+    if (load_restore) {
+        wxGetApp().app_config->update_skein_dir(into_path(originfile).parent_path().string());
+        wxGetApp().app_config->update_config_dir(into_path(originfile).parent_path().string());
+    }
 
     if (!load_restore)
         up_to_date(true, false);
