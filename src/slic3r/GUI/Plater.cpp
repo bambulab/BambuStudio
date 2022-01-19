@@ -2193,9 +2193,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     if (wxGetApp().is_editor()) {
         statusbar_panel = m_statusbar->get_panel();
     }
-    m_statusbar->set_status_text(_L("Version") + " " +
+
+    //BBS remove this tips
+    /* m_statusbar->set_status_text(_L("Version") + " " +
         SLIC3R_VERSION + " - " +
         _L("Remember to check for updates at https://github.com/prusa3d/PrusaSlicer/releases"));
+    */
 
     auto* hsizer = new wxBoxSizer(wxHORIZONTAL);
     auto* vsizer = new wxBoxSizer(wxVERTICAL);
