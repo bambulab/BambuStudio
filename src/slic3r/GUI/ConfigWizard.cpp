@@ -2478,6 +2478,7 @@ bool ConfigWizard::priv::check_and_install_missing_materials(Technology technolo
 		}
     }
 
+    /* BBS skip SLA
     if (any_sla_selected && (technology & T_SLA)) {
     	std::set<const VendorProfile::PrinterModel*> printer_models_without_material = printer_models_missing_materials(ptSLA, AppConfig::SECTION_MATERIALS);
     	if (! printer_models_without_material.empty()) {
@@ -2495,6 +2496,7 @@ bool ConfigWizard::priv::check_and_install_missing_materials(Technology technolo
 	        return false;
 	    }
     }
+    */
 
     return true;
 }
@@ -2719,7 +2721,8 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
         }
     };
     get_first_added_material_preset(AppConfig::SECTION_FILAMENTS, first_added_filament);
-    get_first_added_material_preset(AppConfig::SECTION_MATERIALS, first_added_sla_material);
+
+    //BBS skip sla get_first_added_material_preset(AppConfig::SECTION_MATERIALS, first_added_sla_material);
 
     // if unsaved changes was not cheched till this moment
     if (!check_unsaved_preset_changes) {
@@ -2731,18 +2734,27 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
                 return false;
         }
         else {
+            //BBS
             bool is_filaments_changed = app_config->get_section(AppConfig::SECTION_FILAMENTS) != appconfig_new.get_section(AppConfig::SECTION_FILAMENTS);
+            if ((check_unsaved_preset_changes = is_filaments_changed)) {
+                header = _L("Some filaments were uninstalled.");
+                if (!wxGetApp().check_and_keep_current_preset_changes(caption, header, act_btns, &apply_keeped_changes))
+                    return false;
+            }
+
+            /*bool is_filaments_changed = app_config->get_section(AppConfig::SECTION_FILAMENTS) != appconfig_new.get_section(AppConfig::SECTION_FILAMENTS);
             bool is_sla_materials_changed = app_config->get_section(AppConfig::SECTION_MATERIALS) != appconfig_new.get_section(AppConfig::SECTION_MATERIALS);
             if ((check_unsaved_preset_changes = is_filaments_changed || is_sla_materials_changed)) {
                 header = is_filaments_changed ? _L("Some filaments were uninstalled.") : _L("Some SLA materials were uninstalled.");
                 if (!wxGetApp().check_and_keep_current_preset_changes(caption, header, act_btns, &apply_keeped_changes))
                     return false;
-            }
+            }*/
         }
     }
 
     // apply materials in app_config
-    for (const std::string& section_name : {AppConfig::SECTION_FILAMENTS, AppConfig::SECTION_MATERIALS})
+    //BBS skip sla
+    for (const std::string& section_name : {AppConfig::SECTION_FILAMENTS})
         app_config->set_section(section_name, appconfig_new.get_section(section_name));
 
     app_config->set_vendors(appconfig_new);
