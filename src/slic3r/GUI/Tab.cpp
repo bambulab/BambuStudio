@@ -1772,12 +1772,15 @@ void TabPrint::build()
         optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_positive");
         optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_negative");
 #endif /* HAS_PRESSURE_EQUALIZER */
-    //BBS
-    page = add_options_page(L("Material choice"), "funnel");
+    // BBS
+    page = add_options_page(L("Multiple Materials"), "funnel");
         optgroup = page->new_optgroup(L("Material for specific part"));
+    // BBS
+#if 0
         optgroup->append_single_option_line("perimeter_extruder");
         optgroup->append_single_option_line("infill_extruder");
         optgroup->append_single_option_line("solid_infill_extruder");
+#endif
         optgroup->append_single_option_line("support_material_extruder");
         optgroup->append_single_option_line("support_material_interface_extruder");
 
@@ -1791,11 +1794,15 @@ void TabPrint::build()
         //optgroup->append_single_option_line("wipe_tower_x");
         //optgroup->append_single_option_line("wipe_tower_y");
         optgroup->append_single_option_line("wipe_tower_width");
+
+        // BBS
+#if 0
         optgroup->append_single_option_line("wipe_tower_rotation_angle");
         optgroup->append_single_option_line("wipe_tower_brim_width");
         optgroup->append_single_option_line("wipe_tower_bridging");
         optgroup->append_single_option_line("wipe_tower_no_sparse_layers");
         optgroup->append_single_option_line("single_extruder_multi_material_priming");
+#endif
 
         optgroup = page->new_optgroup(L("Advanced"));
         optgroup->append_single_option_line("interface_shells");

@@ -1622,7 +1622,8 @@ void ObjectList::load_part(ModelObject& model_object, std::vector<ModelVolume*>&
                 auto new_volume = model_object.add_volume(*volume, type);
                 new_volume->name = boost::filesystem::path(input_file).filename().string();
                 // set a default extruder value, since user can't add it manually
-                new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
+                // BBS
+                new_volume->config.set_key_value("extruder", new ConfigOptionInt(1));
 
                 added_volumes.push_back(new_volume);
             }
@@ -1714,7 +1715,8 @@ void ObjectList::load_modifier(ModelObject& model_object, std::vector<ModelVolum
         ModelVolume* new_volume = model_object.add_volume(std::move(mesh), type);
         new_volume->name = boost::filesystem::path(input_file).filename().string();
         // set a default extruder value, since user can't add it manually
-        new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
+        // BBS
+        new_volume->config.set_key_value("extruder", new ConfigOptionInt(1));
         // update source data
         new_volume->source.input_file = input_file;
         new_volume->source.object_idx = obj_idx;
@@ -1811,7 +1813,8 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     const wxString name = _L("Generic") + "-" + _(type_name);
     new_volume->name = into_u8(name);
     // set a default extruder value, since user can't add it manually
-    new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
+    // BBS
+    new_volume->config.set_key_value("extruder", new ConfigOptionInt(1));
     new_volume->source.is_from_builtin_objects = true;
 
     select_item([this, obj_idx, new_volume]() {
@@ -1908,7 +1911,8 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
     new_object->sort_volumes(wxGetApp().app_config->get("order_volumes") == "1");
     new_volume->name = into_u8(name);
     // set a default extruder value, since user can't add it manually
-    new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
+    // BBS
+    new_object->config.set_key_value("extruder", new ConfigOptionInt(1));
     new_object->invalidate_bounding_box();
     new_object->translate(-bb.center());
 
@@ -2513,7 +2517,8 @@ DynamicPrintConfig ObjectList::get_default_layer_config(const int obj_idx)
                             object(obj_idx)->config.opt_float("layer_height") : 
                             wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_float("layer_height");
     config.set_key_value("layer_height",new ConfigOptionFloat(layer_height));
-    config.set_key_value("extruder",    new ConfigOptionInt(0));
+    // BBS
+    config.set_key_value("extruder",    new ConfigOptionInt(1));
 
     return config;
 }
@@ -4104,7 +4109,8 @@ void ObjectList::last_volume_is_deleted(const int obj_idx)
     volume->config.reset();
 
     // set a default extruder value, since user can't add it manually
-    volume->config.set_key_value("extruder", new ConfigOptionInt(0));
+    // BBS
+    volume->config.set_key_value("extruder", new ConfigOptionInt(1));
 }
 
 void ObjectList::update_and_show_object_settings_item()
