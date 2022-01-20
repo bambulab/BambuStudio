@@ -13,7 +13,6 @@
 #include "Format/AMF.hpp"
 #include "Format/OBJ.hpp"
 #include "Format/STL.hpp"
-#include "Format/3mf.hpp"
 #include "Format/STEP.hpp"
 // BBS
 #include "FaceDetector.hpp"

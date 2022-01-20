@@ -41,7 +41,6 @@
 #include "MsgDialog.hpp"
 
 // A workaround for a set of issues related to text fitting into gtk widgets:
-// See e.g.: https://github.com/prusa3d/PrusaSlicer/issues/4584
 #if defined(__WXGTK20__) || defined(__WXGTK3__)
     #include <glib-2.0/glib-object.h>
     #include <pango-1.0/pango/pango-layout.h>
@@ -127,7 +126,6 @@ PresetComboBox::PresetComboBox(wxWindow* parent, Preset::Type preset_type, const
 
 void PresetComboBox::OnSelect(wxCommandEvent& evt)
 {
-    // see https://github.com/prusa3d/PrusaSlicer/issues/3889
     // Under OSX: in case of use of a same names written in different case (like "ENDER" and "Ender")
     // m_presets_choice->GetSelection() will return first item, because search in PopupListCtrl is case-insensitive.
     // So, use GetSelection() from event parameter 
@@ -199,7 +197,6 @@ void PresetComboBox::update_selection()
     SetToolTip(GetString(m_last_selected));
 
 // A workaround for a set of issues related to text fitting into gtk widgets:
-// See e.g.: https://github.com/prusa3d/PrusaSlicer/issues/4584
 #if defined(__WXGTK20__) || defined(__WXGTK3__)
     GList* cells = gtk_cell_layout_get_cells(GTK_CELL_LAYOUT(m_widget));
 
@@ -1055,7 +1052,6 @@ void PlaterPresetComboBox::update()
 
 #ifdef __WXMSW__
     // Use this part of code just on Windows to avoid of some layout issues on Linux
-    // see https://github.com/prusa3d/PrusaSlicer/issues/5163 and https://github.com/prusa3d/PrusaSlicer/issues/5505
     // Update control min size after rescale (changed Display DPI under MSW)
     if (GetMinWidth() != 20 * m_em_unit)
         SetMinSize(wxSize(20 * m_em_unit, GetSize().GetHeight()));
@@ -1084,7 +1080,6 @@ TabPresetComboBox::TabPresetComboBox(wxWindow* parent, Preset::Type preset_type)
 
 void TabPresetComboBox::OnSelect(wxCommandEvent &evt)
 {
-    // see https://github.com/prusa3d/PrusaSlicer/issues/3889
     // Under OSX: in case of use of a same names written in different case (like "ENDER" and "Ender")
     // m_presets_choice->GetSelection() will return first item, because search in PopupListCtrl is case-insensitive.
     // So, use GetSelection() from event parameter 
@@ -1118,7 +1113,6 @@ void TabPresetComboBox::OnSelect(wxCommandEvent &evt)
 #ifdef __WXMSW__
     // From the Win 2004 preset combobox lose a focus after change the preset selection
     // and that is why the up/down arrow doesn't work properly
-    // (see https://github.com/prusa3d/PrusaSlicer/issues/5531 ).
     // So, set the focus to the combobox explicitly
     this->SetFocus();
 #endif

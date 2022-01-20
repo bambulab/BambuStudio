@@ -54,7 +54,7 @@
 namespace Slic3r {
 namespace GUI {
 
-static const std::string SEND_SYSTEM_INFO_DOMAIN = "prusa3d.com";
+static const std::string SEND_SYSTEM_INFO_DOMAIN = "bambu-lab.com";
 static const std::string SEND_SYSTEM_INFO_URL = "https://files." + SEND_SYSTEM_INFO_DOMAIN + "/wp-json/v1/ps";
 
 
@@ -187,8 +187,7 @@ static bool should_dialog_be_shown()
         return false;
 
     // We might want to check that the internet connection is ready so we don't open the dialog
-    // if it cannot really send any data. Using a dummy HTTP GET request led to
-    // https://forum.prusaprinters.org/forum/prusaslicer/prusaslicer-2-4-0-beta1-is-out/#post-518488.
+    // if it cannot really send any data. Using a dummy HTTP GET request led 
     // It might also trigger security softwares, which would look bad and would lead to questions
     // about what PS is doing. We better use some less intrusive way of checking the connection.
 
@@ -205,7 +204,7 @@ static bool should_dialog_be_shown()
 
 
 
-// Following function saves current PrusaSlicer version into app config.
+// Following function saves current BambuSlicer version into app config.
 // It will be later used to decide whether to open the dialog or not.
 static void save_version()
 {

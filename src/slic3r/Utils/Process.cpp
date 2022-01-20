@@ -14,7 +14,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
 
-// For starting another PrusaSlicer instance on OSX.
+// For starting another BambuSlicer instance on OSX.
 // Fails to compile on Windows on the build server.
 #ifdef __APPLE__
     #include <boost/process/spawn.hpp>

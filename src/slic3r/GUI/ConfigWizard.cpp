@@ -451,7 +451,6 @@ ConfigWizardPage::ConfigWizardPage(ConfigWizard *parent, wxString title, wxStrin
     SetSizer(sizer);
 
     // There is strange layout on Linux with GTK3, 
-    // see https://github.com/prusa3d/PrusaSlicer/issues/5103 and https://github.com/prusa3d/PrusaSlicer/issues/4861
     // So, non-active pages will be hidden later, on wxEVT_SHOW, after completed Layout() for all pages 
     if (!wxLinux_gtk3)
         this->Hide();
@@ -878,7 +877,6 @@ void PageMaterials::update_lists(int sel_type, int sel_vendor, int last_selected
 	int sel_printers_count = list_printer->GetSelections(sel_printers);
 
     // Does our wxWidgets version support operator== for wxArrayInt ?
-    // https://github.com/prusa3d/PrusaSlicer/issues/5152#issuecomment-787208614
 #if wxCHECK_VERSION(3, 1, 1)
     if (sel_printers != sel_printers_prev) {
 #else
@@ -1896,14 +1894,6 @@ const std::string& Materials::get_material_vendor(const Preset *preset)
 // priv
 
 static const std::unordered_map<std::string, std::pair<std::string, std::string>> legacy_preset_map {{
-    { "Original Prusa i3 MK2.ini",                           std::make_pair("MK2S", "0.4") },
-    { "Original Prusa i3 MK2 MM Single Mode.ini",            std::make_pair("MK2SMM", "0.4") },
-    { "Original Prusa i3 MK2 MM Single Mode 0.6 nozzle.ini", std::make_pair("MK2SMM", "0.6") },
-    { "Original Prusa i3 MK2 MultiMaterial.ini",             std::make_pair("MK2SMM", "0.4") },
-    { "Original Prusa i3 MK2 MultiMaterial 0.6 nozzle.ini",  std::make_pair("MK2SMM", "0.6") },
-    { "Original Prusa i3 MK2 0.25 nozzle.ini",               std::make_pair("MK2S", "0.25") },
-    { "Original Prusa i3 MK2 0.6 nozzle.ini",                std::make_pair("MK2S", "0.6") },
-    { "Original Prusa i3 MK3.ini",                           std::make_pair("MK3",  "0.4") },
 }};
 
 void ConfigWizard::priv::load_pages()

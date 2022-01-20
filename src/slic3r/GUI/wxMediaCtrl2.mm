@@ -1,6 +1,6 @@
 //
 //  TutkPlayer.m
-//  PrusaSlicer
+//  BambuSlicer
 //
 //  Created by cmguo on 2021/12/7.
 //

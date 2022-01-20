@@ -3151,7 +3151,6 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
 #ifdef __WXMSW__
 	// For some reason the Idle event is not being generated after the mouse scroll event in case of scrolling with the two fingers on the touch pad,
 	// if the event is not allowed to be passed further.
-	// https://github.com/prusa3d/PrusaSlicer/issues/2750
     // evt.Skip() used to trigger the needed screen refresh, but it does no more. wxWakeUpIdle() seem to work now.
     wxWakeUpIdle();
 #endif /* __WXMSW__ */
@@ -4595,7 +4594,7 @@ bool GLCanvas3D::_render_search_list(float pos_x)
 
     if (selected >= 0) {
         // selected == 9999 means that Esc kye was pressed
-        /*// revert commit https://github.com/prusa3d/PrusaSlicer/commit/91897589928789b261ca0dc735ffd46f2b0b99f2
+        /*
         if (selected == 9999)
             action_taken = true;
         else
@@ -4914,7 +4913,7 @@ static void debug_output_thumbnail(const ThumbnailData& thumbnail_data)
         }
     }
 
-    image.SaveFile("C:/prusa/test/test.png", wxBITMAP_TYPE_PNG);
+    image.SaveFile("C:/bambu/test/test.png", wxBITMAP_TYPE_PNG);
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
 
@@ -5784,7 +5783,6 @@ bool GLCanvas3D::_init_print_flow_toolbar()
 #if ENABLE_RETINA_GL
     // For non-visible or non-created window getBackingScaleFactor function return 0.0 value.
     // And using of the zero scale causes a crash, when we trying to draw text to the (0,0) rectangle
-    // https://github.com/prusa3d/PrusaSlicer/issues/3916
     if (scale <= 0.0f)
         scale = 1.0;
 #endif
@@ -5907,7 +5905,6 @@ bool GLCanvas3D::_init_print_select_toolbar()
 #if ENABLE_RETINA_GL
     // For non-visible or non-created window getBackingScaleFactor function return 0.0 value.
     // And using of the zero scale causes a crash, when we trying to draw text to the (0,0) rectangle
-    // https://github.com/prusa3d/PrusaSlicer/issues/3916
     if (scale <= 0.0f)
         scale = 1.0;
 #endif
@@ -6005,7 +6002,6 @@ bool GLCanvas3D::_update_select_plate_toolbar()
 #if ENABLE_RETINA_GL
     // For non-visible or non-created window getBackingScaleFactor function return 0.0 value.
     // And using of the zero scale causes a crash, when we trying to draw text to the (0,0) rectangle
-    // https://github.com/prusa3d/PrusaSlicer/issues/3916
     if (scale <= 0.0f)
         scale = 1.0;
 #endif

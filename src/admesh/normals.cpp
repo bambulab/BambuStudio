@@ -114,7 +114,7 @@ static bool check_normal_vector(stl_file *stl, int facet_num, int normal_fix_fla
 
 void stl_fix_normal_directions(stl_file *stl)
 {
- 	// This may happen for malformed models, see: https://github.com/prusa3d/PrusaSlicer/issues/2209
+ 	// This may happen for malformed models
   	if (stl->stats.number_of_facets == 0)
   		return;
 

@@ -305,7 +305,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
         double nominal_z = m_pos(2) - m_lifted;
         m_lifted -= (point(2) - nominal_z);
         // In case that retract_lift == layer_height we could end up with almost zero in_m_lifted
-        // and a retract could be skipped (https://github.com/prusa3d/PrusaSlicer/issues/2154
+        // and a retract could be skipped
         if (std::abs(m_lifted) < EPSILON)
             m_lifted = 0.;
         return this->travel_to_xy(to_2d(point));

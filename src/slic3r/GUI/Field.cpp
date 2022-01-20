@@ -243,7 +243,6 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
         const char dec_sep_alt = dec_sep == '.' ? ',' : '.';
         // Replace the first incorrect separator in decimal number, 
         // if this value doesn't "N/A" value in some language
-        // see https://github.com/prusa3d/PrusaSlicer/issues/6921
         if (!is_na_value && str.Replace(dec_sep_alt, dec_sep, false) != 0)
             set_value(str, false);
 
@@ -300,7 +299,6 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
     case coFloatOrPercent: {
         if (m_opt.type == coFloatOrPercent && m_opt.opt_key == "first_layer_height" && !str.IsEmpty() && str.Last() == '%') {
             // Workaroud to avoid of using of the % for first layer height
-            // see https://github.com/prusa3d/PrusaSlicer/issues/7418
             wxString label = m_opt.full_label.empty() ? _(m_opt.label) : _(m_opt.full_label);
             show_error(m_parent, from_u8((boost::format(_utf8(L("%s doesn't support percentage"))) % label).str()));
             const wxString stVal = double_to_string(0.01, 2);
@@ -1181,7 +1179,7 @@ void Choice::set_value(const boost::any& value, bool change_event)
 	case coEnum: {
 		int val = boost::any_cast<int>(value);
 		if (m_opt_id.compare("host_type") == 0 && val != 0 && 
-			m_opt.enum_values.size() > field->GetCount()) // for case, when PrusaLink isn't used as a HostType
+			m_opt.enum_values.size() > field->GetCount()) // for case, when the Link isn't used as a HostType
 			val--;
 
 		if (m_opt_id == "top_fill_pattern" || m_opt_id == "bottom_fill_pattern" || m_opt_id == "fill_pattern")
@@ -1263,7 +1261,7 @@ boost::any& Choice::get_value()
 	if (m_opt.type == coEnum)
 	{
 		if (m_opt_id.compare("host_type") == 0 && m_opt.enum_values.size() > field->GetCount()) {
-			// for case, when PrusaLink isn't used as a HostType
+			// for case, when the Link isn't used as a HostType
 			m_value = field->GetSelection()+1;
 		} else if (m_opt_id == "top_fill_pattern" || m_opt_id == "bottom_fill_pattern" || m_opt_id == "fill_pattern") {
 			const std::string& key = m_opt.enum_values[field->GetSelection()];

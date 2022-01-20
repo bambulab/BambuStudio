@@ -415,7 +415,6 @@ void Control::SetLayersTimes(const std::vector<float>& layers_times, float total
 
     // Erase duplicates values from m_values and save it to the m_layers_values
     // They will be used for show the correct estimated time for MM print, when "No sparce layer" is enabled
-    // See https://github.com/prusa3d/PrusaSlicer/issues/6232
     if (m_is_wipe_tower && m_values.size() != m_layers_times.size()) {
         m_layers_values = m_values;
         sort(m_layers_values.begin(), m_layers_values.end());
@@ -735,7 +734,6 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
     // When "Print Settings -> Multiple Extruders -> No sparse layer" is enabled, then "Smart" Wipe Tower is used for wiping.
     // As a result, each layer with tool changes is splited for min 3 parts: first tool, wiping, second tool ...
     // So, vertical slider have to respect to this case.
-    // see https://github.com/prusa3d/PrusaSlicer/issues/6232.
     // m_values contains data for all layer's parts,
     // but m_layers_values contains just unique Z values.
     // Use this function for correct conversion slider position to number of printed layer
@@ -1445,7 +1443,7 @@ wxString Control::get_tooltip(int tick/*=-1*/)
         std::string space = "   ";
         tooltip = space;
         auto format_gcode = [space](std::string gcode) {
-            // when the tooltip is too long, it starts to flicker, see: https://github.com/prusa3d/PrusaSlicer/issues/7368
+            // when the tooltip is too long, it starts to flicker
             // so we limit the number of lines shown
             std::vector<std::string> lines;
             boost::split(lines, gcode, boost::is_any_of("\n"), boost::token_compress_off);

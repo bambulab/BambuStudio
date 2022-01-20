@@ -666,7 +666,7 @@ namespace Slic3r {
         // Process tags embedded into comments
         void process_tags(const std::string_view comment, bool producers_enabled);
         bool process_producers_tags(const std::string_view comment);
-        bool process_prusaslicer_tags(const std::string_view comment);
+        bool process_bambuslicer_tags(const std::string_view comment);
         bool process_cura_tags(const std::string_view comment);
         bool process_simplify3d_tags(const std::string_view comment);
         bool process_craftware_tags(const std::string_view comment);

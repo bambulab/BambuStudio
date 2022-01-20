@@ -13,12 +13,11 @@
 
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Channel.hpp"
-#include "OctoPrint.hpp"
-#include "Duet.hpp"
-#include "FlashAir.hpp"
-#include "AstroBox.hpp"
-#include "Repetier.hpp"
-#include "MKS.hpp"
+//#include "Duet.hpp"
+//#include "FlashAir.hpp"
+//#include "AstroBox.hpp"
+//#include "Repetier.hpp"
+//#include "MKS.hpp"
 #include "../GUI/PrintHostDialogs.hpp"
 
 namespace fs = boost::filesystem;
@@ -32,6 +31,7 @@ PrintHost::~PrintHost() {}
 
 PrintHost* PrintHost::get_print_host(DynamicPrintConfig *config)
 {
+    /*
     PrinterTechnology tech = ptFFF;
 
     {
@@ -46,18 +46,20 @@ PrintHost* PrintHost::get_print_host(DynamicPrintConfig *config)
         const auto host_type = opt != nullptr ? opt->value : htOctoPrint;
 
         switch (host_type) {
-            case htOctoPrint: return new OctoPrint(config);
-            case htDuet:      return new Duet(config);
-            case htFlashAir:  return new FlashAir(config);
-            case htAstroBox:  return new AstroBox(config);
-            case htRepetier:  return new Repetier(config);
-            case htPrusaLink: return new PrusaLink(config);
-            case htMKS:       return new MKS(config);
+            //case htOctoPrint: return new OctoPrint(config);
+            //case htDuet:      return new Duet(config);
+            //case htFlashAir:  return new FlashAir(config);
+            //case htAstroBox:  return new AstroBox(config);
+            //case htRepetier:  return new Repetier(config);
+            //case htPrusaLink: return new PrusaLink(config);
+            //case htMKS:       return new MKS(config);
             default:          return nullptr;
         }
     } else {
-        return new SL1Host(config);
+        //return new SL1Host(config);
     }
+    */
+    return nullptr;
 }
 
 wxString PrintHost::format_error(const std::string &body, const std::string &error, unsigned status) const

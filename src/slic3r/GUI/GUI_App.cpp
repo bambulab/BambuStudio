@@ -2287,7 +2287,7 @@ void GUI_App::start_sync_service()
             std::vector<Preset> presets_to_sync;
             while (enable_sync) {
                 count++;
-                boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
+                boost::this_thread::sleep_for(boost::chrono::milliseconds(500));
                 if (!m_account_manager->is_user_login()) {
                     continue;
                 }

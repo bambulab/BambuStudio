@@ -1036,6 +1036,9 @@ void ExtruderOptionsGroup::on_change_OG(const t_config_option_key& opt_id, const
 
 wxString OptionsGroup::get_url(const std::string& path_end)
 {
+    //BBS
+    return "";
+    /*
     if (path_end.empty())
         return wxEmptyString;
 
@@ -1043,6 +1046,7 @@ wxString OptionsGroup::get_url(const std::string& path_end)
     wxString lang_marker = language.IsEmpty() ? "en" : language.BeforeFirst('_');
 
     return wxString("https://help.prusa3d.com/") + lang_marker + wxString("/article/" + path_end);
+    */
 }
 
 bool OptionsGroup::launch_browser(const std::string& path_end)
@@ -1115,7 +1119,8 @@ void ogStaticText::SetPathEnd(const std::string& link)
         if (!HasCapture())
             return;
         ReleaseMouse();
-        OptionsGroup::launch_browser(link);
+        //BBS
+        // OptionsGroup::launch_browser(link);
         event.Skip();
     } );
     Bind(wxEVT_ENTER_WINDOW, [this, link](wxMouseEvent& event) {

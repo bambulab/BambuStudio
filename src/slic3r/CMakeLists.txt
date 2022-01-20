@@ -213,8 +213,6 @@ set(SLIC3R_GUI_SOURCES
     Config/Version.hpp    
     Utils/ASCIIFolding.cpp
     Utils/ASCIIFolding.hpp
-    Utils/Serial.cpp
-    Utils/Serial.hpp
     GUI/ConfigWizard.cpp
     GUI/ConfigWizard.hpp
     GUI/ConfigWizard_private.hpp
@@ -296,16 +294,6 @@ set(SLIC3R_GUI_SOURCES
     Utils/Sftp.hpp
     Utils/FixModelByWin10.cpp
     Utils/FixModelByWin10.hpp
-    Utils/OctoPrint.cpp
-    Utils/OctoPrint.hpp
-    Utils/Duet.cpp
-    Utils/Duet.hpp
-    Utils/FlashAir.cpp
-    Utils/FlashAir.hpp
-    Utils/AstroBox.cpp
-    Utils/AstroBox.hpp
-    Utils/Repetier.cpp
-    Utils/Repetier.hpp
     Utils/PrintHost.cpp
     Utils/PrintHost.hpp
     Utils/Bonjour.cpp
@@ -321,8 +309,6 @@ set(SLIC3R_GUI_SOURCES
     Utils/HexFile.hpp
     Utils/TCPConsole.cpp
     Utils/TCPConsole.hpp
-    Utils/MKS.cpp
-    Utils/MKS.hpp
     Utils/minilzo_extension.hpp
     Utils/minilzo_extension.cpp
 )

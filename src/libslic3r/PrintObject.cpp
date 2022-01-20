@@ -2010,7 +2010,6 @@ void PrintObject::discover_horizontal_shells()
                     // when spacing is added in Fill.pm
                     {
                         //FIXME Vojtech: Disable this and you will be sorry.
-                        // https://github.com/prusa3d/PrusaSlicer/issues/26 bottom
                         float margin = 3.f * layerm->flow(frSolidInfill).scaled_width(); // require at least this size
                         // we use a higher miterLimit here to handle areas with acute angles
                         // in those cases, the default miterLimit would cut the corner and we'd
@@ -2038,7 +2037,6 @@ void PrintObject::discover_horizontal_shells()
                                     // is grown, and that little space is an internal solid shell so 
                                     // it triggers this too_narrow logic.)
                                     internal));
-                            // see https://github.com/prusa3d/PrusaSlicer/pull/3426
                             // solid = new_internal_solid;
                         }
                     }

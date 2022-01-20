@@ -750,8 +750,6 @@ static void process_arrangeable(const ArrangePolygon &arrpoly,
 
     if (p.is_counter_clockwise()) p.reverse();
 
-    // This fixes:
-    // https://github.com/prusa3d/PrusaSlicer/issues/2209
     if (p.size() < 3)
         return;
 

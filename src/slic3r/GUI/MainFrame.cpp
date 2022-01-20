@@ -71,10 +71,10 @@ enum class ERescaleTarget
 };
 
 #ifdef __APPLE__
-class PrusaSlicerTaskBarIcon : public wxTaskBarIcon
+class BambuSlicerTaskBarIcon : public wxTaskBarIcon
 {
 public:
-    PrusaSlicerTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE) : wxTaskBarIcon(iconType) {}
+    BambuSlicerTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE) : wxTaskBarIcon(iconType) {}
     wxMenu *CreatePopupMenu() override {
         wxMenu *menu = new wxMenu;
         if(wxGetApp().app_config->get("single_instance") == "0") {
@@ -162,7 +162,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     switch (wxGetApp().get_app_mode()) {
     default:
     case GUI_App::EAppMode::Editor:
-        m_taskbar_icon = std::make_unique<PrusaSlicerTaskBarIcon>(wxTBI_DOCK);
+        m_taskbar_icon = std::make_unique<BambuSlicerTaskBarIcon>(wxTBI_DOCK);
         m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("BambuSlicer-mac_128px.png"), wxBITMAP_TYPE_PNG), "BambuSlicer");
         break;
     case GUI_App::EAppMode::GCodeViewer:
@@ -711,7 +711,6 @@ void MainFrame::shutdown()
         m_plater->unbind_canvas_event_handlers();
 
         // Cleanup of canvases' volumes needs to be done here or a crash may happen on some Linux Debian flavours
-        // see: https://github.com/prusa3d/PrusaSlicer/issues/3964
         m_plater->reset_canvas_volumes();
     }
 

@@ -38,7 +38,7 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Format/AMF.hpp"
-#include "libslic3r/Format/3mf.hpp"
+//#include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/Format/bbs_3mf.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "libslic3r/Model.hpp"
@@ -818,7 +818,7 @@ Sidebar::Sidebar(Plater *parent)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(42 * wxGetApp().em_unit(), -1)), p(new priv(parent))
 {
     p->scrolled = new wxScrolledWindow(this);
-//    p->scrolled->SetScrollbars(0, 100, 1, 2); // ys_DELETE_after_testing. pixelsPerUnitY = 100 from https://github.com/prusa3d/PrusaSlicer/commit/8f019e5fa992eac2c9a1e84311c990a943f80b01, 
+//    p->scrolled->SetScrollbars(0, 100, 1, 2); // ys_DELETE_after_testing. pixelsPerUnitY = 100
     // but this cause the bad layout of the sidebar, when all infoboxes appear.
     // As a result we can see the empty block at the bottom of the sidebar
     // But if we set this value to 5, layout will be better
@@ -2221,7 +2221,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     //BBS remove this tips
     /* m_statusbar->set_status_text(_L("Version") + " " +
         SLIC3R_VERSION + " - " +
-        _L("Remember to check for updates at https://github.com/prusa3d/PrusaSlicer/releases"));
+        _L("Remember to check for updates"));
     */
 
     auto* hsizer = new wxBoxSizer(wxHORIZONTAL);
@@ -4701,7 +4701,6 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     PlaterPresetComboBox* combo = static_cast<PlaterPresetComboBox*>(evt.GetEventObject());
     Preset::Type preset_type    = combo->get_type();
 
-    // see https://github.com/prusa3d/PrusaSlicer/issues/3889
     // Under OSX: in case of use of a same names written in different case (like "ENDER" and "Ender"),
     // m_presets_choice->GetSelection() will return first item, because search in PopupListCtrl is case-insensitive.
     // So, use GetSelection() from event parameter 
@@ -4757,7 +4756,6 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 #ifdef __WXMSW__
     // From the Win 2004 preset combobox lose a focus after change the preset selection
     // and that is why the up/down arrow doesn't work properly
-    // (see https://github.com/prusa3d/PrusaSlicer/issues/5531 ).
     // So, set the focus to the combobox explicitly
     combo->SetFocus();
 #endif

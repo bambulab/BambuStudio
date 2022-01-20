@@ -79,7 +79,7 @@ static double calc_max_layer_height(const PrintConfig &config, double max_object
             mlh = 0.75 * config.nozzle_diameter.values[i];
         max_layer_height = std::min(max_layer_height, mlh);
     }
-    // The Prusa3D Fast (0.35mm layer height) print profile sets a higher layer height than what is normally allowed
+    // The Bambu3D Fast (0.35mm layer height) print profile sets a higher layer height than what is normally allowed
     // by the nozzle. This is a hack and it works by increasing extrusion width. See GH #3919.
     return std::max(max_layer_height, max_object_layer_height);
 }

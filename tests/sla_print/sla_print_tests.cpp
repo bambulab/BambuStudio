@@ -158,7 +158,7 @@ TEST_CASE("FloorSupportsDoNotPierceModel", "[SLASupportGeneration]") {
 }
 
 TEST_CASE("InitializedRasterShouldBeNONEmpty", "[SLARasterOutput]") {
-    // Default Prusa SL1 display parameters
+    // Default SL1 display parameters
     sla::RasterBase::Resolution res{2560, 1440};
     sla::RasterBase::PixelDim   pixdim{120. / res.width_px, 68. / res.height_px};
     

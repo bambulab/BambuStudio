@@ -10,7 +10,7 @@
 #include <string_view>
 
 // Test for nested namespace definition
-namespace PrusaSlicer::Cpp17 {
+namespace BambuSlicer::Cpp17 {
 
 template<class T> class Foo
 {
@@ -20,7 +20,7 @@ public:
     explicit Foo(T &&arg): m_arg{arg} {}
 };
 
-} // namespace PrusaSlicer::Cpp17
+} // namespace BambuSlicer::Cpp17
 
 template<class T> std::string get_type(const T &v);
 
@@ -34,7 +34,7 @@ int main()
     // Template argument deduction for class templates
     // /////////////////////////////////////////////////////////////////////////
     
-    auto foo = PrusaSlicer::Cpp17::Foo{1.f};
+    auto foo = BambuSlicer::Cpp17::Foo{1.f};
     
     // /////////////////////////////////////////////////////////////////////////
     // Structured bindings:

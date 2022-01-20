@@ -778,7 +778,7 @@ void MenuWithSeparators::SetSecondSeparator()
 }
 
 // ----------------------------------------------------------------------------
-// PrusaBitmap
+// BambuBitmap
 // ----------------------------------------------------------------------------
 ScalableBitmap::ScalableBitmap( wxWindow *parent, 
                                 const std::string& icon_name/* = ""*/,
@@ -826,7 +826,7 @@ void ScalableBitmap::msw_rescale()
 }
 
 // ----------------------------------------------------------------------------
-// PrusaButton
+// BambuButton
 // ----------------------------------------------------------------------------
 
 ScalableButton::ScalableButton( wxWindow *          parent,

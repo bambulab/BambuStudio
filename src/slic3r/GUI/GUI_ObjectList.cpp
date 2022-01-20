@@ -103,7 +103,6 @@ ObjectList::ObjectList(wxWindow* parent) :
     Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxDataViewEvent& event) {
         // detect the current mouse position here, to pass it to list_manipulation() method
         // if we detect it later, the user may have moved the mouse pointer while calculations are performed, and this would mess-up the HitTest() call performed into list_manipulation()
-        // see: https://github.com/prusa3d/PrusaSlicer/issues/3802
 #ifndef __WXOSX__
         const wxPoint mouse_pos = this->get_mouse_position_in_control();
 #endif
@@ -112,7 +111,6 @@ ObjectList::ObjectList(wxWindow* parent) :
         // On Windows and Linux:
         // It's not invoked KillFocus event for "temporary" panels (like "Manipulation panel", "Settings", "Layer ranges"),
         // if we change selection in object list.
-        // see https://github.com/prusa3d/PrusaSlicer/issues/3303
         // But, if we call SetFocus() for ObjectList it will cause an invoking of a KillFocus event for "temporary" panels  
         this->SetFocus();
 #else
@@ -995,7 +993,6 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
 {
     // Interesting fact: when mouse_pos.x < 0, HitTest(mouse_pos, item, col) returns item = null, but column = last column.
     // So, when mouse was moved to scene immediately after clicking in ObjectList, in the scene will be shown context menu for the Editing column.
-    // see: https://github.com/prusa3d/PrusaSlicer/issues/3802
     if (mouse_pos.x < 0)
         return;
 
@@ -3525,7 +3522,6 @@ void ObjectList::update_selections()
             sels.Add(m_objects_model->GetItemByInstanceId(selection.get_object_idx(), selection.get_instance_idx()));
         // Can be the case, when we have selected itSettings | itLayerRoot | itLayer in the ObjectList and selected object/instance in the Scene
         // and then select some object/instance in 3DScene using Ctrt+left click
-        // see https://github.com/prusa3d/PrusaSlicer/issues/5517
         else {
             // Unselect all items in ObjectList
             m_last_selected_item = wxDataViewItem(nullptr);

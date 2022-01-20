@@ -266,7 +266,7 @@ namespace keywords = boost::log::keywords;
 namespace attrs = boost::log::attributes;
 void set_log_path_and_level(const std::string& file, unsigned int level)
 {
-	//BBS log file at C:\\Users\\[yourname]\\AppData\\Roaming\\PrusaSlicer-alpha\\[log_filename].log
+	//BBS log file at C:\\Users\\[yourname]\\AppData\\Roaming\\BambuSlicer\\log\\[log_filename].log
 	auto log_folder = boost::filesystem::path(g_data_dir) / "log";
 	if (!boost::filesystem::exists(log_folder)) {
 		boost::filesystem::create_directory(log_folder);
@@ -838,7 +838,6 @@ CopyFileResult check_copy(const std::string &origin, const std::string &copy)
 }
 
 // Ignore system and hidden files, which may be created by the DropBox synchronisation process.
-// https://github.com/prusa3d/PrusaSlicer/issues/1298
 bool is_plain_file(const boost::filesystem::directory_entry &dir_entry)
 {
     if (! boost::filesystem::is_regular_file(dir_entry.status()))

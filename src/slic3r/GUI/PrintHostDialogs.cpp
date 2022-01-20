@@ -124,7 +124,6 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUplo
 #ifdef __linux__
     // On Linux with GTK2 when text control lose the focus then selection (colored background) disappears but text color stay white
     // and as a result the text is invisible with light mode
-    // see https://github.com/prusa3d/PrusaSlicer/issues/4532
     // Workaround: Unselect text selection explicitly on kill focus
     txt_filename->Bind(wxEVT_KILL_FOCUS, [this](wxEvent& e) {
         e.Skip();

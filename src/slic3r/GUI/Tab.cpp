@@ -1,5 +1,5 @@
 // #include "libslic3r/GCodeSender.hpp"
-#include "slic3r/Utils/Serial.hpp"
+//#include "slic3r/Utils/Serial.hpp"
 #include "Tab.hpp"
 #include "PresetHints.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -388,7 +388,6 @@ void Tab::create_preset_tab()
 #ifdef __linux__
         // Events queue is opposite On Linux. wxEVT_SET_FOCUS invokes after wxEVT_TREE_SEL_CHANGED,
         // and a result wxEVT_KILL_FOCUS doesn't invoke for the TextCtrls.
-        // see https://github.com/prusa3d/PrusaSlicer/issues/5720
         // So, call SetFocus explicitly for this control before changing of the selection
         m_treectrl->SetFocus();
 #endif
@@ -1273,7 +1272,6 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (m_postpone_update_ui) {
         // It means that not all values are rolled to the system/last saved values jet.
         // And call of the update() can causes a redundant check of the config values,
-        // see https://github.com/prusa3d/PrusaSlicer/issues/7146
         return;
     }
 
@@ -1918,7 +1916,6 @@ void TabPrint::update()
 
     m_update_cnt++;
 
-    // see https://github.com/prusa3d/PrusaSlicer/issues/6814
     // ysFIXME: It's temporary workaround and should be clewer reworked:
     // Note: This workaround works till "support_material" and "overhangs" is exclusive sets of mutually no-exclusive parameters.
     // But it should be corrected when we will have more such sets.
@@ -3840,7 +3837,6 @@ bool Tab::update_current_page_in_background(wxTreeItemId& item)
 //BBS: GUI refactor
 bool Tab::tree_sel_change_delayed(wxTreeEvent& event)
 {
-    // There is a bug related to Ubuntu overlay scrollbars, see https://github.com/prusa3d/PrusaSlicer/issues/898 and https://github.com/prusa3d/PrusaSlicer/issues/952.
     // The issue apparently manifests when Show()ing a window with overlay scrollbars while the UI is frozen. For this reason,
     // we will Thaw the UI prematurely on Linux. This means destroing the no_updates object prematurely.
 #ifdef __linux__

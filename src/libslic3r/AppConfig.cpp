@@ -33,10 +33,6 @@ namespace Slic3r {
 
 static const std::string VENDOR_PREFIX = "vendor:";
 static const std::string MODEL_PREFIX = "model:";
-// Because of a crash in PrusaSlicer 2.3.0/2.3.1 when showing an update notification with some locales, we don't want PrusaSlicer 2.3.0/2.3.1
-// to show this notification. On the other hand, we would like PrusaSlicer 2.3.2 to show an update notification of the upcoming PrusaSlicer 2.4.0.
-// Thus we will let PrusaSlicer 2.3.2 and couple of follow-up versions to download the version number from an alternate file until the PrusaSlicer 2.3.0/2.3.1
-// are phased out, then we will revert to the original name.
 static const std::string VERSION_CHECK_URL = "";
 
 const std::string AppConfig::SECTION_FILAMENTS = "filaments";
@@ -59,7 +55,7 @@ void AppConfig::set_defaults()
         if (get("background_processing").empty())
             set("background_processing", "0");
         // If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
-        // By default, Prusa has the controller hidden.
+        // By default, BambuSlicer has the controller hidden.
         if (get("no_controller").empty())
             set("no_controller", "1");
         // If set, the "- default -" selections of print/filament/printer are suppressed, if there is a valid preset available.
