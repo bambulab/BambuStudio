@@ -1088,6 +1088,7 @@ void TabPresetComboBox::OnSelect(wxCommandEvent &evt)
     auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
     if (marker >= LABEL_ITEM_DISABLED && marker < LABEL_ITEM_MAX) {
         this->SetSelection(m_last_selected);
+        // BBS: Add/Remove filaments
         ConfigWizard::StartPage sp = ConfigWizard::SP_WELCOME;
         switch (marker) {
         case LABEL_ITEM_WIZARD_PRINTERS: sp = ConfigWizard::SP_PRINTERS; break;
@@ -1095,14 +1096,16 @@ void TabPresetComboBox::OnSelect(wxCommandEvent &evt)
         case LABEL_ITEM_WIZARD_MATERIALS: sp = ConfigWizard::SP_MATERIALS; break;
         default: break;
         }
-        wxTheApp->CallAfter([this, sp]() {
-        run_wizard(sp);
+        if (sp != ConfigWizard::SP_WELCOME) {
+            wxTheApp->CallAfter([this, sp]() {
+                run_wizard(sp);
 
-        // update combobox if its parent is a PhysicalPrinterDialog
-        PhysicalPrinterDialog* parent = dynamic_cast<PhysicalPrinterDialog*>(this->GetParent());
-        if (parent != nullptr)
-            update();
-        });
+                // update combobox if its parent is a PhysicalPrinterDialog
+                PhysicalPrinterDialog* parent = dynamic_cast<PhysicalPrinterDialog*>(this->GetParent());
+                if (parent != nullptr)
+                    update();
+            });
+        }
     }
     else if (on_selection_changed && (m_last_selected != selected_item || m_collection->current_is_dirty())) {
         m_last_selected = selected_item;
