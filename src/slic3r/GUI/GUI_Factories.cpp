@@ -472,7 +472,7 @@ void MenuFactory::append_menu_item_delete(wxMenu* menu)
 wxMenu* MenuFactory::append_submenu_add_generic(wxMenu* menu, ModelVolumeType type) {
     auto sub_menu = new wxMenu;
 
-    if (wxGetApp().get_mode() == comExpert && type != ModelVolumeType::INVALID) {
+    if (type != ModelVolumeType::INVALID) {
         append_menu_item(sub_menu, wxID_ANY, _L("Load") + " " + dots, "",
             [type](wxCommandEvent&) { obj_list()->load_subobject(type); }, "", menu);
         sub_menu->AppendSeparator();
@@ -586,9 +586,6 @@ wxMenuItem* MenuFactory::append_menu_item_settings(wxMenu* menu_)
     if (sel_vol && sel_vol->type() >= ModelVolumeType::SUPPORT_ENFORCER)
         return nullptr;
 
-    const ConfigOptionMode mode = wxGetApp().get_mode();
-    if (mode == comSimple)
-        return nullptr;
 
     // Create new items for settings popupmenu
 
@@ -617,9 +614,6 @@ wxMenuItem* MenuFactory::append_menu_item_settings(wxMenu* menu_)
     // Add frequently settings
     // BBS remvoe freq setting popupmenu
     // create_freq_settings_popupmenu(menu, is_object_settings, item);
-
-    if (mode == comAdvanced)
-        return nullptr;
 
     menu->SetSecondSeparator();
 
@@ -966,7 +960,7 @@ void MenuFactory::create_object_menu()
         []() { return plater()->can_split(false); }, m_parent);
 
     append_submenu(&m_object_menu, split_menu, wxID_ANY, _L("Split"), _L("Split the selected object"), "",
-        []() { return plater()->can_split(true) && wxGetApp().get_mode() > comSimple; }, m_parent);
+        []() { return plater()->can_split(true); }, m_parent);
     m_object_menu.AppendSeparator();
 
     // Layers Editing for object
@@ -996,7 +990,7 @@ void MenuFactory::create_bbl_object_menu()
         []() { return plater()->can_split(false); }, m_parent);
 
     append_submenu(&m_object_menu, split_menu, wxID_ANY, _L("Split"), _L("Split the selected object"), "",
-        []() { return plater()->can_split(true) && wxGetApp().get_mode() > comSimple; }, m_parent);
+        []() { return plater()->can_split(true); }, m_parent);
 
     // Mirror
     append_menu_items_mirror(&m_object_menu);
@@ -1085,7 +1079,7 @@ void MenuFactory::create_bbl_part_menu()
         []() { return plater()->can_split(false); }, m_parent);
 
     append_submenu(menu, split_menu, wxID_ANY, _L("Split"), _L("Split the selected object"), "",
-        []() { return plater()->can_split(true) && wxGetApp().get_mode() > comSimple; }, m_parent);
+        []() { return plater()->can_split(true); }, m_parent);
     menu->AppendSeparator();
     append_menu_item_per_object_settings(menu);
 }
@@ -1290,7 +1284,7 @@ wxMenu* MenuFactory::multi_selection_menu()
                 []() { return plater()->can_split(false); }, m_parent);
 
             append_submenu(menu, split_menu, wxID_ANY, _L("Split"), _L("Split the selected object"), "",
-                []() { return plater()->can_split(true) && wxGetApp().get_mode() > comSimple; }, m_parent);
+                []() { return plater()->can_split(true); }, m_parent);
         }
         menu->AppendSeparator();
         append_menu_item_change_filament(menu, 7);
