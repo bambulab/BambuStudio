@@ -1697,8 +1697,13 @@ int PartPlateList::delete_plate(int index)
 		DynamicConfig* tab_cfg = tab->get_config();
 		ConfigOptionFloats* wipe_tower_x = tab_cfg->opt<ConfigOptionFloats>("wipe_tower_x");
 		ConfigOptionFloats* wipe_tower_y = tab_cfg->opt<ConfigOptionFloats>("wipe_tower_y");
-		wipe_tower_x->values.erase(wipe_tower_x->values.begin() + index);
-		wipe_tower_y->values.erase(wipe_tower_y->values.begin() + index);
+		// wipe_tower_x and wip_tower_y may be less than plate count in the following case:
+		// 1. wipe_tower is enabled after creating new plates
+		// 2. wipe tower is not enabled
+		if (index < wipe_tower_x->values.size())
+			wipe_tower_x->values.erase(wipe_tower_x->values.begin() + index);
+		if (index < wipe_tower_y->values.size())
+			wipe_tower_y->values.erase(wipe_tower_y->values.begin() + index);
 	}
 
 	int cols = compute_colum_count(m_plate_list.size() - 1);
