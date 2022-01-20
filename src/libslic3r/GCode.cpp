@@ -264,12 +264,13 @@ namespace Slic3r {
 
         // BBS: toolchange gcode will move to start_pos,
         // so only perform movement when printing sparse partition to support upper layer.
+        // start_pos is the position in plate coordinate.
         if (! tcr.priming && !gcodegen.writer().need_toolchange(new_extruder_id)) {
             // Move over the wipe tower.
             gcode += gcodegen.retract();
             gcodegen.m_avoid_crossing_perimeters.use_external_mp_once();
             gcode += gcodegen.travel_to(
-                wipe_tower_point_to_object_point(gcodegen, start_pos),
+                wipe_tower_point_to_object_point(gcodegen, start_pos + plate_origin_2d),
                 erMixed,
                 "Travel to a Wipe Tower");
             gcode += gcodegen.unretract();
