@@ -60,6 +60,10 @@ private:
     wxAuiToolBarItem* m_model_store_item;
     wxAuiToolBarItem* m_undo_item;
     wxAuiToolBarItem* m_redo_item;
+    wxAuiToolBarItem* maximize_btn;
+
+    wxBitmap maximize_bitmap;
+    wxBitmap window_bitmap;
 
     int m_toolbar_h;
     bool m_skip_popup_file_menu;

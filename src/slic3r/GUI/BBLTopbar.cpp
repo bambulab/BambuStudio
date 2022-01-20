@@ -243,8 +243,13 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
 
     this->AddSpacer(6);
 
-    wxBitmap maximize_bitmap = create_scaled_bitmap("topbar_max", nullptr, FromDIP(topbar_icon_size));
-    wxAuiToolBarItem* maximize_btn = this->AddTool(wxID_MAXIMIZE_FRAME, "", maximize_bitmap);
+    maximize_bitmap = create_scaled_bitmap("topbar_max", nullptr, FromDIP(topbar_icon_size));
+    window_bitmap = create_scaled_bitmap("topbar_win", nullptr, FromDIP(topbar_icon_size));
+    if (m_frame->IsMaximized()) {
+        maximize_btn = this->AddTool(wxID_MAXIMIZE_FRAME, "", window_bitmap);
+    } else {
+        maximize_btn = this->AddTool(wxID_MAXIMIZE_FRAME, "", maximize_bitmap);
+    }
 
     this->AddSpacer(6);
 
@@ -441,9 +446,11 @@ void BBLTopbar::OnIconize(wxAuiToolBarEvent& event)
 void BBLTopbar::OnFullScreen(wxAuiToolBarEvent& event)
 {
     if (m_frame->IsMaximized()) {
+        maximize_btn->SetBitmap(maximize_bitmap);
         m_frame->Restore();
     }
     else {
+        maximize_btn->SetBitmap(window_bitmap);
         m_normalRect = m_frame->GetRect();
         m_frame->Maximize();
     }

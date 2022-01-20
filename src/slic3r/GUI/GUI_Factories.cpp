@@ -1494,7 +1494,7 @@ void MenuFactory::append_menu_item_set_printable(wxMenu* menu)
     }
 
     wxString menu_text = all_printable ? L("Set Unprintable") : _L("Set Printable");
-    append_menu_item(menu, wxID_ANY, menu_text, _L(""), [this, all_printable](wxCommandEvent&) {
+    append_menu_item(menu, wxID_ANY, menu_text, "", [this, all_printable](wxCommandEvent&) {
         Selection& selection = plater()->canvas3D()->get_selection();
         selection.set_printable(!all_printable);
 
