@@ -19,6 +19,7 @@ static wxFont sysFont(int size, bool bold) {
 	return font;
 }
 wxFont Label::Head_24 = sysFont(24, true);
+wxFont Label::Head_20 = sysFont(20, true);
 wxFont Label::Head_18 = sysFont(18, true);
 wxFont Label::Head_16 = sysFont(16, true);
 wxFont Label::Head_14 = sysFont(14, true);

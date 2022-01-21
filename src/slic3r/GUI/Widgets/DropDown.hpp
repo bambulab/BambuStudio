@@ -52,13 +52,11 @@ public:
 public:
     void SetCornerRadius(double radius);
 
-    bool SetForegroundColour(wxColour const & colour) override;
-
     void SetBorderColor(StateColor const & color);
 
     void SetSelectorBorderColor(StateColor const & color);
 
-    void SetForegroundColor(StateColor const &color);
+    void SetTextColor(StateColor const &color);
 
     void SetSelectorBackgroundColor(StateColor const &color);
     

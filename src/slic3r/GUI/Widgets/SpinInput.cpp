@@ -91,18 +91,16 @@ void SpinInput::SetLabel(const wxString &label)
     Refresh();
 }
 
-bool SpinInput::SetForegroundColour(wxColour const &color)
+void SpinInput::SetTextColor(StateColor const &color)
 {
-    text_color = StateColor(color);
+    text_color = color;
     state_handler.update_binds();
-    return true;
 }
 
-bool SpinInput::SetBackgroundColour(wxColour const& color)
+void SpinInput::SetBackgroundColor(StateColor const& color)
 {
-    background_color = StateColor(color);
+    background_color = color;
     state_handler.update_binds();
-    return true;
 }
 
 void SpinInput::SetSize(wxSize const &size)

@@ -20,8 +20,8 @@ void StateColor::append(wxString const & color, int states)
 
 void StateColor::append(unsigned long color, int states)
 {
-    wxColour c1(color & 0xff00ff00 | ((color & 0xff) << 16) | ((color >> 16) & 0xff));
-    append(c1, states);
+    wxColour cl; cl.SetRGBA(color & 0xff00ff00 | ((color & 0xff) << 16) | ((color >> 16) & 0xff));
+    append(cl, states);
 }
 
 void StateColor::clear()

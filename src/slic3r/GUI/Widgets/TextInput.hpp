@@ -45,13 +45,9 @@ public:
 
     void SetLabel(const wxString& label);
 
-    bool SetForegroundColour(wxColour const &color) override;
-
-    bool SetBackgroundColour(wxColour const & color) override;
-
     void SetBorderColor(StateColor const & color);
 
-    void SetForegroundColor(StateColor const &color);
+    void SetTextColor(StateColor const &color);
 
     void SetBackgroundColor(StateColor const &color);
 

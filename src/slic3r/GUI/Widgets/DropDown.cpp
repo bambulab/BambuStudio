@@ -85,13 +85,6 @@ void DropDown::SetCornerRadius(double radius)
     paintNow();
 }
 
-bool DropDown::SetForegroundColour(wxColour const &color)
-{
-    text_color = StateColor(color);
-    state_handler.update_binds();
-    return true;
-}
-
 void DropDown::SetBorderColor(StateColor const &color)
 {
     border_color = color;
@@ -106,7 +99,7 @@ void DropDown::SetSelectorBorderColor(StateColor const &color)
     paintNow();
 }
 
-void DropDown::SetForegroundColor(StateColor const &color)
+void DropDown::SetTextColor(StateColor const &color)
 {
     text_color = color;
     state_handler.update_binds();
@@ -218,7 +211,7 @@ void DropDown::render(wxDC &dc)
         rcContent.width -= 6;
     }
 
-    // draw foreground
+    // draw Text
     rcContent.x += 5;
     rcContent.width -= 10;
     if (check_bitmap.bmp().IsOk()) {

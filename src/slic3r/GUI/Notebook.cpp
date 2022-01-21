@@ -68,7 +68,7 @@ void ButtonsListCtrl::OnPaint(wxPaintEvent&)
     for (int idx = 0; idx < int(m_pageButtons.size()); idx++) {
         Button* btn = m_pageButtons[idx];
 
-        btn->SetBackgroundColour(idx == m_selection ? selected_btn_bg : default_btn_bg);
+        btn->SetBackgroundColor(idx == m_selection ? selected_btn_bg : default_btn_bg);
 
         wxPoint pos = btn->GetPosition();
         wxSize size = btn->GetSize();
@@ -84,7 +84,7 @@ void ButtonsListCtrl::OnPaint(wxPaintEvent&)
         const std::vector<ModeButton*>& mode_btns = m_mode_sizer->get_btns();
         for (int idx = 0; idx < int(mode_btns.size()); idx++) {
             ModeButton* btn = mode_btns[idx];
-            btn->SetBackgroundColour(btn->is_selected() ? selected_btn_bg : default_btn_bg);
+            btn->SetBackgroundColor(btn->is_selected() ? selected_btn_bg : default_btn_bg);
 
             //wxPoint pos = btn->GetPosition();
             //wxSize size = btn->GetSize();
@@ -135,9 +135,9 @@ void ButtonsListCtrl::SetSelection(int sel)
     wxColour selected_btn_bg("#00AE42");    // Gradient #00AE42
     wxColour default_btn_bg("#3B4446");     // Gradient #414B4E
     if (m_selection >= 0)
-        m_pageButtons[m_selection]->SetBackgroundColour(default_btn_bg);
+        m_pageButtons[m_selection]->SetBackgroundColor(default_btn_bg);
     m_selection = sel;
-    m_pageButtons[m_selection]->SetBackgroundColour(selected_btn_bg);
+    m_pageButtons[m_selection]->SetBackgroundColor(selected_btn_bg);
     Refresh();
 }
 
@@ -152,8 +152,8 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString& text, bool bSelect/* 
     //BBS set size for button
     btn->SetMinSize({ 132 * em / 10, 36 * em / 10 });
 
-    btn->SetBackgroundColour(default_btn_bg);
-    btn->SetForegroundColour(*wxWHITE);
+    btn->SetBackgroundColor(default_btn_bg);
+    btn->SetTextColor(*wxWHITE);
     btn->Bind(wxEVT_BUTTON, [this, btn](wxCommandEvent& event) {
         if (auto it = std::find(m_pageButtons.begin(), m_pageButtons.end(), btn); it != m_pageButtons.end()) {
             auto sel = it - m_pageButtons.begin();

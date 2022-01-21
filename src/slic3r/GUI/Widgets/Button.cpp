@@ -20,15 +20,14 @@ END_EVENT_TABLE()
  */
 
 Button::Button(wxWindow* parent, wxString text, wxString icon, long stlye, int iconSize)
-    : wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, stlye)
-    , state_handler(this)
-    , border_color(0x303A3C)
+    : StaticBox(parent, stlye)
     , text_color(*wxBLACK)
-    , background_color(std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered),
-                       std::make_pair(*wxWHITE, (int) StateColor::Normal))
 {
-    radius = 8;
-    state_handler.attach({&border_color, &text_color, &background_color});
+    background_color = StateColor(
+        std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered),
+        std::make_pair(*wxLIGHT_GREY, (int) StateColor::Checked),
+        std::make_pair(*wxWHITE, (int) StateColor::Normal));
+    state_handler.attach({&text_color});
     state_handler.update_binds();
     //BBS set default font
     SetFont(Label::Body_14);
@@ -38,12 +37,6 @@ Button::Button(wxWindow* parent, wxString text, wxString icon, long stlye, int i
         this->icon = ScalableBitmap(this, icon.ToStdString(), iconSize > 0 ? iconSize : 20);
     }
     messureSize();
-}
-
-void Button::SetCornerRadius(double radius)
-{
-    this->radius = radius;
-    Refresh();
 }
 
 void Button::SetLabel(const wxString& label)
@@ -66,43 +59,15 @@ void Button::SetIcon(const wxString& icon)
     Refresh();
 }
 
-bool Button::SetForegroundColour(wxColour const &color)
-{
-    text_color = StateColor(color);
-    state_handler.update_binds();
-    return true;
-}
-
-bool Button::SetBackgroundColour(wxColour const& color)
-{
-    background_color = StateColor(color);
-    state_handler.update_binds();
-    return true;
-}
-
 void Button::SetMinSize(const wxSize& size)
 {
     minSize = size;
     messureSize();
 }
 
-void Button::SetBorderColor(StateColor const &color)
-{
-    border_color = color;
-    state_handler.update_binds();
-    Refresh();
-}
-
-void Button::SetForegroundColor(StateColor const &color)
+void Button::SetTextColor(StateColor const &color)
 {
     text_color = color;
-    state_handler.update_binds();
-    Refresh();
-}
-
-void Button::SetBackgroundColor(StateColor const &color)
-{
-    background_color = color;
     state_handler.update_binds();
     Refresh();
 }
@@ -128,17 +93,9 @@ void Button::paintEvent(wxPaintEvent& evt)
  */
 void Button::render(wxDC& dc)
 {
+    StaticBox::render(dc);
     int states = state_handler.states();
-    dc.SetPen(wxPen(border_color.colorForStates(states)));
-    dc.SetBrush(wxBrush(background_color.colorForStates(states)));
-    if (GetWindowStyle() & wxBORDER_NONE)
-        dc.SetPen(wxPen(background_color.colorForStates(states)));
-
     wxSize size = GetSize();
-    if (radius == 0)
-        dc.DrawRectangle(0, 0, size.x, size.y);
-    else
-        dc.DrawRoundedRectangle(0, 0, size.x, size.y, radius);
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
     // calc content size
     wxSize szIcon;

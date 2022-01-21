@@ -109,27 +109,13 @@ void TextInput::SetLabel(const wxString& label)
     Refresh();
 }
 
-bool TextInput::SetForegroundColour(const wxColour &color)
-{
-    text_color = StateColor(color);
-    state_handler.update_binds();
-    return true;
-}
-
-bool TextInput::SetBackgroundColour(wxColour const& color)
-{
-    background_color = StateColor(color);
-    state_handler.update_binds();
-    return true;
-}
-
 void TextInput::SetBorderColor(StateColor const& color)
 {
     border_color = color;
     state_handler.update_binds();
 }
 
-void TextInput::SetForegroundColor(StateColor const& color)
+void TextInput::SetTextColor(StateColor const& color)
 {
     text_color= color;
     state_handler.update_binds();
@@ -210,7 +196,6 @@ void TextInput::paintEvent(wxPaintEvent &evt)
 void TextInput::render(wxDC& dc)
 {
     int states = state_handler.states();
-    char   buf[32];
     wxSize size = GetSize();
     bool   align_right = GetWindowStyle() & wxRIGHT;
     dc.SetPen(wxPen(border_color.colorForStates(states)));
