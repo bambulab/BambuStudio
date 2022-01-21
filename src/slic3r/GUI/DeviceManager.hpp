@@ -215,6 +215,8 @@ public:
     BBLSubTask* subtask_;
     BBLSubTask* temptask_;
     
+    /* command commands */
+    int command_get_version();
 
     /* control apis */
     int command_xyz_abs();
@@ -227,6 +229,7 @@ public:
     int command_task_resume();
     int command_set_bed(int temp);
     int command_set_nozzle(int temp);
+
     inline std::string light_effect_str(LIGHT_EFFECT effect) {
         switch (effect)
         {
@@ -269,7 +272,7 @@ public:
     bool is_connected();
     void set_msg_send_fn(MsgFn fn) { msg_send_fn = std::move(fn); }
     void set_msg_recv_fn(MsgFn fn) { msg_recv_fn = std::move(fn); }
-    int publish_json(std::string json_str, ResultFn resFn = nullptr, CONNECTION_TYPE conn_type = CONNECTION_TYPE::CONNECTION_DEFAULT);
+    int publish_json(std::string json_str, ResultFn resFn = nullptr, int qos = 0);
     int parse_json(std::string topic, std::string payload);
     int publish_gcode(std::string gcode_str);
 

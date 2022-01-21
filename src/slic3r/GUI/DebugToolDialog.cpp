@@ -895,16 +895,12 @@ void DebugToolDialog::init()
         });
     
     btn_abort_print->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            pt::ptree root, print;
-            print.put("command", "stop");
-            print.put("param", "");
-            print.put("sequence_id", this->m_sequence_id++);
-            root.put_child("print", print);
-            std::stringstream oss;
-            pt::write_json(oss, root, false);
-            std::string json_str = oss.str();
+            json j;
+            j["print"]["command"] = "stop";
+            j["print"]["param"] = "";
+            j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
-            int result = this->publish_json(json_str);
+            int result = this->publish_json(j.dump());
             if (result != 0) {
                 this->log_info("publish_json failed");
             } else {
@@ -916,15 +912,12 @@ void DebugToolDialog::init()
     
     btn_3mf_pause->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
             pt::ptree root, print;
-            print.put("command", "pause");
-            print.put("param", "");
-            print.put("sequence_id", this->m_sequence_id++);
-            root.put_child("print", print);
-            std::stringstream oss;
-            pt::write_json(oss, root, false);
-            std::string json_str = oss.str();
+            json j;
+            j["print"]["command"] = "pause";
+            j["print"]["param"] = "";
+            j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
-            int result = this->publish_json(json_str);
+            int result = this->publish_json(j.dump());
             if (result != 0) {
                 this->log_info("publish_json failed");
             } else {
@@ -1547,16 +1540,10 @@ void DebugToolDialog::on_print_end(wxCommandEvent& evt)
 
 void DebugToolDialog::get_version() {
 
-    pt::ptree root, info;
-    info.put<int>("sequence_id", this->m_sequence_id++);
-    info.put("command", "get_version");
-    root.put_child("info", info);
-
-    std::stringstream oss;
-    pt::write_json(oss, root, false);
-    std::string json_str = oss.str();
-    json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());
-    this->publish_json(json_str);
+    json j;
+    j["info"]["sequence_id"] = std::to_string(this->m_sequence_id++);
+    j["info"]["command"] = "get_version";
+    this->publish_json(j.dump());
 }
 
 void DebugToolDialog::jump_to_printer(wxString selected)
@@ -1688,8 +1675,7 @@ int DebugToolDialog::publish_json(std::string json_str)
                 if (result < 0) {
                     this->send_log_evt(info);
                 }
-            }
-        , MachineObject::CONNECTION_TYPE::CONNECTION_WAN);
+            });
     }
 
     return 0;

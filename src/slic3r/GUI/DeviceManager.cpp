@@ -220,6 +220,14 @@ bool MachineObject::check_valid_ip()
     return true;
 }
 
+int MachineObject::command_get_version()
+{
+    json j;
+    j["info"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["info"]["command"] = "get_version";
+    return this->publish_json(j.dump());
+}
+
 int MachineObject::command_xyz_abs()
 {
     return this->publish_gcode("G90 \n");
@@ -247,44 +255,32 @@ int MachineObject::command_fan_off()
 
 int MachineObject::command_task_abort()
 {
-    pt::ptree root, print;
-    print.put("command", "stop");
-    print.put("param", "");
-    print.put("sequence_id", MachineObject::m_sequence_id++);
-    root.put_child("print", print);
+    json j;
+    j["print"]["command"] = "stop";
+    j["print"]["param"] = "";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
-    std::stringstream oss;
-    pt::write_json(oss, root, false);
-    std::string json_str = oss.str();
-    return this->publish_json(json_str);
+    return this->publish_json(j.dump(), nullptr, 1);
 }
 
 int MachineObject::command_task_pause()
 {
-    pt::ptree root, print;
-    print.put("command", "pause");
-    print.put("param", "");
-    print.put("sequence_id", MachineObject::m_sequence_id++);
-    root.put_child("print", print);
+    json j;
+    j["print"]["command"] = "pause";
+    j["print"]["param"] = "";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
-    std::stringstream oss;
-    pt::write_json(oss, root, false);
-    std::string json_str = oss.str();
-    return this->publish_json(json_str);
+    return this->publish_json(j.dump(), nullptr, 1);
 }
 
 int MachineObject::command_task_resume()
 {
-    pt::ptree root, print;
-    print.put("command", "resume");
-    print.put("param", "");
-    print.put("sequence_id", MachineObject::m_sequence_id++);
-    root.put_child("print", print);
+    json j;
+    j["print"]["command"] = "resume";
+    j["print"]["param"] = "";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
-    std::stringstream oss;
-    pt::write_json(oss, root, false);
-    std::string json_str = oss.str();
-    return this->publish_json(json_str);
+    return this->publish_json(j.dump(), nullptr, 1);
 }
 
 int MachineObject::command_set_bed(int temp)
@@ -474,10 +470,10 @@ bool MachineObject::is_connected()
     return false;
 }
 
-int MachineObject::publish_json(std::string json_str, ResultFn resFn, CONNECTION_TYPE conn_type)
+int MachineObject::publish_json(std::string json_str, ResultFn resFn, int qos)
 {
     if (mqtt_cli == nullptr)
-        conn_type = CONNECTION_WAN;
+        conn_type = CONNECTION_TYPE::CONNECTION_WAN;
     else
         conn_type = CONNECTION_TYPE::CONNECTION_LAN;
 
@@ -492,8 +488,6 @@ int MachineObject::publish_json(std::string json_str, ResultFn resFn, CONNECTION
         return -1;
     }
 
-    if (!client) return -1;
-
     if (!client->is_connected()) {
         if (resFn) {
             resFn(-1, "Please Connect First!");
@@ -504,7 +498,8 @@ int MachineObject::publish_json(std::string json_str, ResultFn resFn, CONNECTION
     std::string topic = (boost::format("device/%1%/request") % dev_id).str();
     json_str += '\0';
     BOOST_LOG_TRIVIAL(trace) << "publish_json topic=" << topic << ", payload=" << json_str;
-    client->publish(topic, json_str);
+    auto msg = mqtt::message::create(topic, json_str, qos, false);
+    client->publish(msg);
     if (msg_send_fn) {
         msg_send_fn(topic, json_str);
     }
@@ -973,23 +968,17 @@ int MachineObject::send_print_task(BBLTask* task)
 int MachineObject::send_wan_print_task(BBLTask* task)
 {
     /* send json command */
-    pt::ptree root, print;
-    print.put("sequence_id", MachineObject::m_sequence_id++);
-    print.put("command", "gcode_file");
-    print.put("project_id", task->task_project_id);
-    print.put("profile_id", task->task_profile_id);
-    print.put("url", task->task_url);
-    print.put("md5", task->task_url_md5);
-    print.put("task_id", task->task_id);
-    print.put("subtask", "0");
-    root.put_child("print", print);
-    std::stringstream oss;
-    pt::write_json(oss, root, false);
-    std::string json_str = oss.str();
-    /* !!! remove '\' !!!! */
-    json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());
-    
-    this->publish_json(json_str);
+    json j;
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["command"] = "gcode_file";
+    j["print"]["project_id"] = task->task_project_id;
+    j["print"]["profile_id"] = task->task_profile_id;
+    j["print"]["url"] = task->task_url;
+    j["print"]["md5"] = task->task_url_md5;
+    j["print"]["task_id"] = task->task_id;
+    j["print"]["subtask_id"] = "0";
+
+    this->publish_json(j.dump(), nullptr, 1);
     return 0;
 }
 
@@ -1106,7 +1095,7 @@ int MachineObject::send_wan_print_subtask(BBLSubTask* task, UploadedFn uploadedF
 
     std::string json_str = j.dump();
     json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());
-    return this->publish_json(json_str, nullptr, CONNECTION_WAN);
+    return this->publish_json(json_str, nullptr, 1);
 }
 
 BBLSubTask* MachineObject::get_subtask()
