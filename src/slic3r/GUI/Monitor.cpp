@@ -26,6 +26,7 @@
 #include "Widgets/Label.hpp"
 #include "format.hpp"
 #include "MediaPlayCtrl.h"
+#include "MediaFilePanel.h"
 
 namespace Slic3r {
 namespace GUI {
@@ -443,6 +444,13 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
     m_bitmap_bed->SetBitmap(m_bed_img);
     m_bitmap_nozzle->SetBitmap(m_nozzle_img);
     m_bitmap_pocket->SetBitmap(m_pocket_img);
+
+    m_bitmap_thumbnail->Bind(wxEVT_LEFT_UP, [this](auto& e) {
+        if (m_media_file_panel == NULL) {
+            m_media_file_panel = (new MediaFileFrame(this))->filePanel();
+        }
+        m_media_file_panel->GetParent()->Show();
+    });
 
     /* set default values */
     set_toggle_widget_on(m_button_1_0);
@@ -936,6 +944,8 @@ void MonitorPanel::update_all()
 
     obj = account_manager->get_default_machine();
     m_media_play_ctrl->SetMachineObject(obj);
+    if (m_media_file_panel)
+        m_media_file_panel->SetMachineObject(obj);
     if (!obj) return;
 
     update_status(obj);

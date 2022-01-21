@@ -143,6 +143,8 @@ target_link_libraries(BambuStudio libslic3r_gui)
         # Generate debug symbols even in release mode.
         target_link_options(BambuStudio PUBLIC "$<$<CONFIG:RELEASE>:/DEBUG>")
         target_link_libraries(BambuStudio user32.lib Setupapi.lib iphlpapi.lib)
+        find_library(TUTK_LIB NAMES TutkSource)
+        target_link_libraries(BambuStudio ${TUTK_LIB})
     elseif (MINGW)
         target_link_libraries(BambuStudio ws2_32 uxtheme setupapi)
     elseif (APPLE)

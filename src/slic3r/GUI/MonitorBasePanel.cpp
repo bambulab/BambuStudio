@@ -7,6 +7,7 @@
 
 #include "MonitorBasePanel.h"
 #include "MediaPlayCtrl.h"
+#include "Printer/PrinterFileSystem.h"
 #include "Widgets/SwitchButton.hpp"
 #include "wxMediaCtrl2.h"
 #include "MediaPlayCtrl.h"

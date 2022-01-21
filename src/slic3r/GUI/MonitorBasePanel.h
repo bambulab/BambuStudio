@@ -42,6 +42,7 @@ namespace Slic3r
 	{
 
 		class MediaPlayCtrl;
+		class MediaFilePanel;
 
 		///////////////////////////////////////////////////////////////////////////////
 		/// Class MonitorBasePanel
@@ -154,6 +155,8 @@ namespace Slic3r
 				wxStaticBitmap* m_bitmap_fan_big;
 				wxStaticText* m_staticText67;
 				wxStaticText* m_staticText69;
+
+				MediaFilePanel * m_media_file_panel = NULL;
 
 				// Virtual event handlers, override them in your derived class
 				virtual void on_status_click( wxMouseEvent& event ) { event.Skip(); }

@@ -6,6 +6,8 @@ include(PrecompiledHeader)
 set(SLIC3R_GUI_SOURCES
     pchheader.cpp
     pchheader.hpp
+    GUI/Printer/PrinterFileSystem.cpp
+    GUI/Printer/PrinterFileSystem.h
     GUI/Widgets/Button.cpp
     GUI/Widgets/Button.hpp
     GUI/Widgets/CheckBox.cpp
@@ -44,6 +46,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/BackgroundSlicingProcess.hpp
     GUI/BitmapCache.cpp
     GUI/BitmapCache.hpp
+    GUI/ImageGrid.cpp
+    GUI/ImageGrid.h
     GUI/ConfigSnapshotDialog.cpp
     GUI/ConfigSnapshotDialog.hpp
     GUI/3DScene.cpp
@@ -161,6 +165,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ParamsPanel.hpp
 	GUI/AmsWidgets.cpp
 	GUI/AmsWidgets.hpp
+    GUI/MediaFilePanel.cpp
+    GUI/MediaFilePanel.h
     GUI/MediaPlayCtrl.cpp
     GUI/MediaPlayCtrl.h
     GUI/MonitorBasePanel.cpp
@@ -335,6 +341,7 @@ if (APPLE)
 else ()
     list(APPEND SLIC3R_GUI_SOURCES
             GUI/wxMediaCtrl2.cpp
+            GUI/wxMediaCtrl2.h
         )
 endif ()
 
