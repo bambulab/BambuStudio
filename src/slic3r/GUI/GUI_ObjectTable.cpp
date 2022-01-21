@@ -1,3 +1,5 @@
+#include "wx/clipbrd.h"
+
 #include "SelectMachine.hpp"
 #include "I18N.hpp"
 
@@ -408,6 +410,14 @@ GridCellSupportRenderer *GridCellSupportRenderer::Clone() const
 // ----------------------------------------------------------------------------
 // ObjectGridTable
 // ----------------------------------------------------------------------------
+//wxIMPLEMENT_CLASS(ObjectGrid, wxGrid);
+
+wxBEGIN_EVENT_TABLE( ObjectGrid, wxGrid )
+    EVT_KEY_DOWN( ObjectGrid::OnKeyDown )
+    EVT_KEY_UP( ObjectGrid::OnKeyUp )
+    EVT_CHAR ( ObjectGrid::OnChar )
+wxEND_EVENT_TABLE()
+
 bool ObjectGrid::OnCellLeftClick(wxGridEvent& event, int row, int col, ConfigOptionType type)
 {
     if (type != coBool)
@@ -461,70 +471,219 @@ bool ObjectGrid::OnCellLeftClick(wxGridEvent& event, int row, int col, ConfigOpt
 
 void ObjectGrid::OnKeyDown( wxKeyEvent& event )
 {
-    //wxGrid::OnKeyDown(event);
+    event.Skip();
+}
+
+void ObjectGrid::paste_data( wxTextDataObject& text_data )
+{
+    wxString buf = text_data.GetText();
+    int clip_size = buf.size();
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", clip_size %1%, pasted_data %2%") %clip_size %buf;
+    if (clip_size <= 0)
+        return;
+    int src_top_row = m_selected_block.GetTopRow();
+    int src_bottom_row = m_selected_block.GetBottomRow();
+    int src_left_col = m_selected_block.GetLeftCol();
+    int src_right_col = m_selected_block.GetRightCol();
+    int src_row_cnt = src_bottom_row - src_top_row + 1;
+    int src_col_cnt = src_right_col -src_left_col + 1;
+
+    const wxGridBlocks blocks = GetSelectedBlocks();
+    wxGridBlocks::iterator iter = blocks.begin();
+    wxGridBlockCoords selection;
+    if (iter == blocks.end())
+    {
+        // No selection, copy just the current cell.
+        if (m_currentCellCoords == wxGridNoCellCoords)
+        {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", no selection and no current , can not paste");
+            return;
+        }
+
+        selection = wxGridBlockCoords(GetGridCursorRow(),
+            GetGridCursorCol(),
+            GetGridCursorRow(),
+            GetGridCursorCol());
+    }
+    else // We do have at least one selected block.
+    {
+        selection = *blocks.begin();
+    }
+
+    int dst_top_row = selection.GetTopRow();
+    int dst_bottom_row = selection.GetBottomRow();
+    int dst_left_col = selection.GetLeftCol();
+    int dst_right_col = selection.GetRightCol();
+    int dst_row_cnt = dst_bottom_row - dst_top_row + 1;
+    int dst_col_cnt = dst_right_col - dst_left_col + 1;
+    wxArrayString string_array;
+
+    auto split = [](wxString& source, wxArrayString& array) {
+        wxString temp = source;
+        wxChar split_char1 = '\t';
+        wxChar split_char2 = '\n';
+        bool finished = false;
+        while (!finished && (temp.Length() > 0)) {
+            int pos = temp.find(split_char2);
+            if (pos == 0)
+            {
+                temp = temp.substr(1);
+                continue;
+            }
+
+            wxString temp_line;
+            if (pos == wxString::npos)
+            {
+                temp_line = temp;
+                finished = true;
+            }
+            else
+            {
+                temp_line = temp.substr(0, pos);
+                temp = temp.substr(pos+1);
+            }
+
+            while(true) {
+                pos = temp_line.find(split_char1);
+                if (pos == 0)
+                {
+                    temp_line = temp_line.substr(1);
+                    continue;
+                }
+                else if (pos == wxString::npos)
+                {
+                    if (temp_line.Length() > 0)
+                    {
+                        array.push_back(temp_line.Trim());
+                        break;
+                    }
+                }
+                else
+                {
+                    array.push_back(temp_line.substr(0, pos));
+                    temp_line = temp_line.substr(pos+1);
+                }
+            }
+        }
+    };
+
+    ObjectGridTable* grid_table = dynamic_cast <ObjectGridTable * >(GetTable());
+    if ((src_row_cnt == 1) && (src_col_cnt == 1))
+    {
+        if ((dst_col_cnt != 1) || (dst_left_col != src_left_col)) {
+            wxLogWarning(_L("one cell can only be copied to one or multiple cells in the same column"));
+        }
+        else {
+            split(buf, string_array);
+            wxString source_string = string_array[0];
+            if (string_array.GetCount() <= 0) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", can not split pasted data %1%")%buf;
+                return;
+            }
+            for ( int i = 0; i < dst_row_cnt; i++ )
+            {
+                if (!this->IsReadOnly(dst_top_row+i, dst_left_col)) {
+                    grid_table->SetValue(dst_top_row+i, dst_left_col, source_string);
+                    grid_table->OnCellValueChanged(dst_top_row+i, dst_left_col);
+                }
+            }
+        }
+    }
+    else {
+        if ((src_col_cnt != 1) || (dst_left_col != src_left_col))
+            wxLogWarning(_L("multiple columns copy is not supported"));
+        else {
+            split(buf, string_array);
+            int count = string_array.GetCount();
+            if ((count <= 0) || (count != src_row_cnt* src_col_cnt )){
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", can not split pasted data %1%, count %2%, src_row_cnt %3%, src_col_cnt %4%")%buf %count %src_row_cnt %src_col_cnt;
+                return;
+            }
+            for ( int i = 0; i < src_row_cnt; i++ )
+                for ( int j = 0; j < src_col_cnt; j++ )
+                {
+                    if (!this->IsReadOnly(dst_top_row+i, dst_left_col+j)) {
+                        grid_table->SetValue(dst_top_row+i, dst_left_col+j, string_array[i*src_col_cnt+j]);
+                        grid_table->OnCellValueChanged(dst_top_row+i, dst_left_col+j);
+                    }
+                }
+        }
+    }
+    this->ForceRefresh();
 }
 
 void ObjectGrid::OnKeyUp( wxKeyEvent& event )
-{
-    //wxGrid::OnKeyUp(event);
-}
-
-void ObjectGrid::OnChar( wxKeyEvent& event )
 {
     // see include/wx/defs.h enum wxKeyCode
     int keyCode = event.GetKeyCode();
     int ctrlMask = wxMOD_CONTROL;
     int shiftMask = wxMOD_SHIFT;
+    // Coordinates of the selected block to copy to clipboard.
+    wxGridBlockCoords selection;
+    wxTextDataObject text_data;
 
     if ((event.GetModifiers() & ctrlMask) != 0) {
         // CTRL is pressed
         switch (keyCode) {
-#ifdef __APPLE__
             case 'c':
             case 'C':
-#else /* __APPLE__ */
-            case WXK_CONTROL_A:
-#endif /* __APPLE__ */
-            //
-            break;
+                {
+                    // Check if we have any selected blocks and if we don't
+                    // have too many of them.
+                    const wxGridBlocks blocks = GetSelectedBlocks();
+                    wxGridBlocks::iterator iter = blocks.begin();
+                    if (iter == blocks.end())
+                    {
+                        // No selection, copy just the current cell.
+                        if (m_currentCellCoords == wxGridNoCellCoords)
+                        {
+                            // But we don't even have it -- nothing to do then.
+                            event.Skip();
+                            break;
+                        }
 
-#ifdef __APPLE__
+                        selection = wxGridBlockCoords(GetGridCursorRow(),
+                            GetGridCursorCol(),
+                            GetGridCursorRow(),
+                            GetGridCursorCol());
+                    }
+                    else // We do have at least one selected block.
+                    {
+                        selection = *blocks.begin();
+
+                    }
+                    m_selected_block = selection;
+                    break;
+                }
+
             case 'v':
             case 'V':
-#else /* __APPLE__ */
-            case WXK_CONTROL_C:
-#endif /* __APPLE__ */
-            //
-            break;
+                //
+                wxTheClipboard->GetData(text_data);
+                paste_data(text_data);
 
+                break;
 
-#ifdef __APPLE__
             case 'f':
             case 'F':
-#else /* __APPLE__ */
-            case WXK_CONTROL_F:
-#endif /* __APPLE__ */
-            //TODO: search
-            break;
+                //TODO: search
+                break;
 
-#ifdef __APPLE__
             case 'z':
             case 'Z':
-#else /* __APPLE__ */
-            case WXK_CONTROL_Z:
-#endif /* __APPLE__ */
-            //TODO:
-            break;
+                //TODO:
+                break;
 
-        case WXK_BACK:
-        case WXK_DELETE:
-            //TODO;
-            break;
-        default:
-            event.Skip();
+            default:
+                event.Skip();
         }
     }
-    wxGrid::OnChar(event);
+}
+
+void ObjectGrid::OnChar( wxKeyEvent& event )
+{
+    event.Skip();
 }
 // ----------------------------------------------------------------------------
 // ObjectGridTable
@@ -828,6 +987,10 @@ void ObjectGridTable::SetValue( int row, int col, const wxString& value )
                 enum_value = i;
                 break;
             }
+            else if ((col == col_filaments)&&(value.substr(0,2) == grid_col->choices[i].substr(0,2))){
+                enum_value = i;
+                break;
+            }
         }
         if (col == col_brim_type) {
             ConfigOptionEnum<BrimType>& option_value = dynamic_cast<ConfigOptionEnum<BrimType>&>((*grid_row)[(GridColType)col]);
@@ -843,8 +1006,47 @@ void ObjectGridTable::SetValue( int row, int col, const wxString& value )
             option_value.value = enum_value + 1;
             update_value_to_config(grid_row->config, grid_col->key, option_value, option_ori_value);
             wxGetApp().obj_list()->update_extruder_values_for_items(m_panel->m_filaments_count);
-            m_panel->m_plater->update();
+            //m_panel->m_plater->update();
         }
+    }
+    else if (grid_col->type == coBool) {
+        ConfigOptionBool &option_value = dynamic_cast<ConfigOptionBool &>((*grid_row)[(GridColType)col]);
+        ConfigOptionBool &option_ori_value = dynamic_cast<ConfigOptionBool &>((*grid_row)[(GridColType)(col+1)]);
+
+        option_value.value = (wxAtoi(value) == 1)?true:false;
+
+        update_value_to_config(grid_row->config, grid_col->key, option_value, option_ori_value);
+    }
+    else if (grid_col->type == coFloat) {
+        ConfigOptionFloat &option_value = dynamic_cast<ConfigOptionFloat &>((*grid_row)[(GridColType)col]);
+        ConfigOptionFloat &option_ori_value = dynamic_cast<ConfigOptionFloat &>((*grid_row)[(GridColType)(col+1)]);
+
+        double  double_value;
+        value.ToDouble(&double_value);
+        option_value.value = (float)double_value;
+
+        update_value_to_config(grid_row->config, grid_col->key, option_value, option_ori_value);
+    }
+    else if (grid_col->type == coInt) {
+        ConfigOptionInt &option_value = dynamic_cast<ConfigOptionInt &>((*grid_row)[(GridColType)col]);
+        ConfigOptionInt &option_ori_value = dynamic_cast<ConfigOptionInt &>((*grid_row)[(GridColType)(col+1)]);
+        long  int_value;
+        value.ToLong(&int_value);
+
+        option_value.value = (int) int_value;
+        update_value_to_config(grid_row->config, grid_col->key, option_value, option_ori_value);
+    }
+    else if (grid_col->type == coPercent) {
+        double  double_value;
+        value.ToDouble(&double_value);
+        if ((double_value > 100.f) || (double_value < 0.f))
+            return;
+        ConfigOptionFloat &option_value = dynamic_cast<ConfigOptionFloat &>((*grid_row)[(GridColType)col]);
+        ConfigOptionFloat &option_ori_value = dynamic_cast<ConfigOptionFloat &>((*grid_row)[(GridColType)(col+1)]);
+
+        option_value.value = (float)double_value;
+
+        update_value_to_config(grid_row->config, grid_col->key, option_value, option_ori_value);
     }
     else {
         if (grid_col->b_from_config) {
@@ -1283,6 +1485,7 @@ void ObjectGridTable::reload_part_data(ObjectGridRow* volume_row, ObjectGridRow*
     }
 }
 
+//called by the GUI_ObjectTableSettings, to update the values on the cell, and also update data to plater
 void ObjectGridTable::reload_cell_data(int row, const std::string& category)
 {
     if (row == 0)
@@ -1321,7 +1524,7 @@ void ObjectGridTable::reload_cell_data(int row, const std::string& category)
     object_volume_id.object = m_panel->m_model->objects[grid_row->object_id];
     object_volume_id.volume = (grid_row->row_type == row_object)?nullptr:object_volume_id.object->volumes[grid_row->volume_id];
     wxGetApp().obj_list()->object_config_options_changed(object_volume_id);
-    m_panel->m_plater->update();
+    //m_panel->m_plater->update();
 }
 
 void ObjectGridTable::update_row_properties()
@@ -1523,7 +1726,14 @@ bool ObjectGridTable::OnCellLeftClick(int row, int col, ConfigOptionType &type)
                         wxGetApp().obj_list()->update_extruder_values_for_items(m_panel->m_filaments_count);
                     else
                         wxGetApp().obj_list()->object_config_options_changed(object_volume_id);
-                    m_panel->m_plater->update();
+
+                    //update the right side setting list                    
+                    bool is_object = (grid_row->row_type == row_object);
+                    ModelObject* object = m_panel->m_model->objects[grid_row->object_id];
+                    m_panel->m_side_window->Freeze();
+                    m_panel->m_object_settings->ValueChanged(row, is_object, object, grid_row->config, grid_col_2->category, grid_col_2->key);
+                    m_panel->m_side_window->Thaw();
+                    //m_panel->m_plater->update();
                 }
                 else {
                     update_value_to_object(m_panel->m_model, grid_row, col - 1);
@@ -1635,7 +1845,7 @@ void ObjectGridTable::OnCellValueChanged(int row, int col)
                 object_volume_id.object = object;
                 object_volume_id.volume = is_object ? nullptr : object->volumes[grid_row->volume_id];
                 wxGetApp().obj_list()->object_config_options_changed(object_volume_id);
-                m_panel->m_plater->update();
+                //m_panel->m_plater->update();
             }
         }
     }
@@ -1668,9 +1878,6 @@ wxBEGIN_EVENT_TABLE( ObjectTablePanel, wxPanel )
     //EVT_GRID_CELL_CHANGING( GridFrame::OnCellValueChanging )
     EVT_GRID_CELL_CHANGED( ObjectTablePanel::OnCellValueChanged )
     //EVT_GRID_CELL_BEGIN_DRAG( GridFrame::OnCellBeginDrag )
-    //EVT_KEY_UP( ObjectTablePanel::OnKeyUp )
-    //EVT_CHAR( ObjectTablePanel::OnChar )
-    //EVT_KEY_DOWN( ObjectTablePanel::OnKeyDown )
 wxEND_EVENT_TABLE()
 
 ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name, Plater* platerObj, Model *modelObj )
@@ -2012,21 +2219,6 @@ void ObjectTablePanel::OnRangeSelected( wxGridRangeSelectEvent& ev )
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format("cell from (%1%, %2%) to (%3%, %4%) selected") %top_row %left_col %bottom_row %right_col;
 
     ev.Skip();
-}
-
-void ObjectTablePanel::OnKeyDown( wxKeyEvent& event )
-{
-    m_object_grid->OnKeyDown(event);
-}
-
-void ObjectTablePanel::OnKeyUp( wxKeyEvent& event )
-{
-    m_object_grid->OnKeyUp(event);
-}
-
-void ObjectTablePanel::OnChar( wxKeyEvent& event )
-{
-    m_object_grid->OnChar(event);
 }
 
 wxSize ObjectTablePanel::get_init_size()

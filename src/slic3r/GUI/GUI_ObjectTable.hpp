@@ -182,6 +182,12 @@ protected:
     void OnKeyDown( wxKeyEvent& );
     void OnKeyUp( wxKeyEvent& );
     void OnChar( wxKeyEvent& );
+
+private:
+    wxDECLARE_EVENT_TABLE();
+
+    wxGridBlockCoords   m_selected_block;
+    void paste_data( wxTextDataObject& text_data );
 };
 
 class ObjectGridTable : public wxGridTableBase
@@ -457,9 +463,6 @@ public:
         m_filaments_colors.push_back(*wxGREEN);
         m_filaments_name.push_back("Generic PLA");
     }
-    void OnKeyDown( wxKeyEvent& event );
-    void OnKeyUp( wxKeyEvent& event );
-    void OnChar( wxKeyEvent& event );
 
 private:
     wxColour            m_bg_colour;
@@ -486,7 +489,7 @@ private:
     wxBitmap           m_undo_bitmap;
     std::vector<wxBitmap*> m_color_bitmaps; 
 private:
-    wxDECLARE_ABSTRACT_CLASS(ObjectTablePanel);
+    wxDECLARE_ABSTRACT_CLASS(ObjectGrid);
     wxDECLARE_EVENT_TABLE();
 };
 
