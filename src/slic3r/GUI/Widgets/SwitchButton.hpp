@@ -8,7 +8,7 @@
 class SwitchButton : public wxBitmapToggleButton
 {
 public:
-	SwitchButton(wxWindow * parent = NULL);
+	SwitchButton(wxWindow * parent = NULL, bool isBlue = true);
 
 public:
 	void SetValue(bool value) override;
@@ -21,6 +21,9 @@ private:
 private:
 	ScalableBitmap m_on;
 	ScalableBitmap m_off;
+	ScalableBitmap m_on_monitor;
+	ScalableBitmap m_off_monitor;
+	bool color;
 };
 
 #endif // !slic3r_GUI_SwitchButton_hpp_

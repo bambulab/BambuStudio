@@ -19,7 +19,7 @@ END_EVENT_TABLE()
  * calling Refresh()/Update().
  */
 
-Button::Button(wxWindow* parent, wxString text, wxString icon, long stlye, int iconSize)
+    Button::Button(wxWindow* parent, wxString text, wxString icon, long stlye, int iconSize)
     : StaticBox(parent, stlye)
     , text_color(*wxBLACK)
 {
@@ -65,11 +65,22 @@ void Button::SetMinSize(const wxSize& size)
     messureSize();
 }
 
-void Button::SetTextColor(StateColor const &color)
+void Button::SetTextColor(StateColor const& color)
 {
     text_color = color;
     state_handler.update_binds();
     Refresh();
+}
+
+bool Button::Enable(bool enable)
+{
+    bool result = wxWindow::Enable(enable);
+    if (result) {
+        wxCommandEvent e(EVT_ENABLE_CHANGED);
+        e.SetEventObject(this);
+        GetEventHandler()->ProcessEvent(e);
+    }
+    return result;
 }
 
 void Button::Rescale()

@@ -235,8 +235,13 @@ void ImageGrid::paintEvent(wxPaintEvent& evt)
 */
 void ImageGrid::render(wxDC& dc)
 {
-    if (!m_file_sys) return;
     wxSize size = GetClientSize();
+    dc.SetPen(wxPen(GetBackgroundColour()));
+    dc.SetBrush(wxBrush(GetBackgroundColour()));
+    if (!m_file_sys) {
+        dc.DrawRectangle({ 0, 0, size.x, size.y });
+        return;
+    }
     int offx = (size.x - (m_col_count - 1) * m_cell_size.GetWidth() - m_image_size.GetWidth()) / 2;
     int offy = (m_row_offset + 1 < m_row_count || m_row_count == 0)
         ? m_cell_size.GetHeight() - m_image_size.GetHeight() - m_row_offset * m_cell_size.GetHeight() / 4 + m_row_offset / 4 * m_cell_size.GetHeight()
@@ -245,8 +250,6 @@ void ImageGrid::render(wxDC& dc)
         ? m_row_offset / 4 * m_col_count 
         : ((m_file_sys->GetCount() + m_col_count - 1) / m_col_count - (size.y + m_image_size.GetHeight() - 1) / m_cell_size.GetHeight()) * m_col_count;
     // background: left/right/top side
-    dc.SetPen(wxPen(GetBackgroundColour()));
-    dc.SetBrush(wxBrush(GetBackgroundColour()));
     dc.DrawRectangle({0, 0, offx, size.y});
     dc.DrawRectangle({size.x - offx - 1, 0, offx + 1, size.y});
     if (offy > 0)

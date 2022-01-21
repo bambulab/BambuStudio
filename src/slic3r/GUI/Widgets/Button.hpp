@@ -28,6 +28,8 @@ public:
     
     void SetTextColor(StateColor const &color);
 
+    bool Enable(bool enable = true);
+
     void Rescale();
 
 private:
