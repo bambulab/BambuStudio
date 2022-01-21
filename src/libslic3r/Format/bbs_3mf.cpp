@@ -876,7 +876,8 @@ namespace Slic3r {
                     {
                         // ensure the zip archive is closed and rethrow the exception
                         close_zip_reader(&archive);
-                        throw Slic3r::FileIOError(e.what());
+                        add_error(e.what());
+                        return false;
                     }
                 }
             }
@@ -1284,6 +1285,11 @@ namespace Slic3r {
         try
         {
             std::ifstream ifs(encode_path(file.c_str()));
+            if (!ifs) {
+                char error_buf[1024];
+                ::sprintf(error_buf, "Error while opening '%s", file.c_str());
+                throw Slic3r::FileIOError(error_buf);
+            }
             std::string data(4096, char(0));
             while (ifs) {
                 ifs.read(&data.front(), 4096);
@@ -2416,7 +2422,7 @@ namespace Slic3r {
 
         IdToAliasesMap::iterator it = m_objects_aliases.find(object_id);
         if (it == m_objects_aliases.end()) {
-            add_error("Found item with invalid object id");
+            add_error("Found item with invalid object id " + std::to_string(object_id));
             return false;
         }
 
