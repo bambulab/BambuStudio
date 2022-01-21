@@ -1861,7 +1861,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Maximum acceleration when retracting (M204 R)");
     def->sidetext = L("mm/s²");
     def->min = 0;
-    def->mode = comAdvanced;
+    def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
 
     // M204 T... [mm/sec^2]
