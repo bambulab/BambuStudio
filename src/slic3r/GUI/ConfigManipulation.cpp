@@ -378,13 +378,13 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
                     "support_sharp_tails","remove_small_overhangs","support_type","support_material_buildplate_only",
                     "support_material_xy_spacing", "support_transition_extrusion_width" })
         toggle_field(el, have_support_material);
-    toggle_field("support_material_threshold", have_support_material && (support_type == stNormalAuto || support_type == stTreeAuto));
+    toggle_field("support_material_threshold", have_support_material && (support_type == stNormalAuto || support_type == stTreeAuto || support_type==stHybridAuto));
     toggle_field("support_material_bottom_contact_distance", have_support_material && ! have_support_soluble);
     toggle_field("support_material_closing_radius", have_support_material && support_material_style == smsSnug);
 
     for (auto el : { "tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter",
                     "tree_support_branch_diameter_angle", "tree_support_collision_resolution", "tree_support_wall_count", "tree_support_with_infill" })
-        toggle_field(el, config->opt_bool("support_material") && (support_type == stTreeAuto || support_type == stTree));
+        toggle_field(el, config->opt_bool("support_material") && (support_type == stTreeAuto || support_type == stTree || support_type == stHybridAuto));
 
     for (auto el : { "support_material_interface_spacing", "support_material_interface_extruder",
                     "support_material_interface_speed", "support_material_interface_contact_loops",
