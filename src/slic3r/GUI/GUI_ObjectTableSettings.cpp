@@ -69,7 +69,7 @@ ObjectTableSettings::ObjectTableSettings(wxWindow* parent, ObjectGridTable* tabl
     m_bmp_reset = ScalableBitmap(parent, "undo");
     m_bmp_reset_focus = ScalableBitmap(parent, "undo");
     //TODO, adjust later
-    m_bmp_reset_disable = ScalableBitmap(parent, "dot_white");
+    m_bmp_reset_disable = ScalableBitmap(parent, "dot");
 }
 
 bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_selection, ModelObject* object, ModelConfig* config, const std::string& category)
@@ -174,7 +174,7 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
         for (auto& opt : cat.second)
         {
             Option option = optgroup->get_option(opt.name);
-            option.opt.width = 12;
+            option.opt.width = 18;
             if (is_extruders_cat)
                 option.opt.max = wxGetApp().extruders_edited_cnt();
             optgroup->append_single_option_line(option);
@@ -339,7 +339,11 @@ void ObjectTableSettings::ValueChanged(int row, bool is_object,  ModelObject* ob
         my_opt->set(config->option(key));
     }
     else {
-        my_opt->set(m_origin_config.option(key));
+        ConfigOption* config_option = m_origin_config.option(key);
+        if (config_option)
+            my_opt->set(config_option);
+        else
+            m_current_config.erase(key);
     }
     update_config_values(is_object, object, config, category);
 }

@@ -202,10 +202,10 @@ public:
     {
         col_plate_index = 0,
         col_assemble_name = 1,
-        //col_assemble_name_reset = 2,
         col_name = col_assemble_name + 1,
-        //col_name_reset = 4,
-        col_filaments = col_name + 1,
+        col_unprintable = col_name + 1,
+        col_unprintable_reset = col_unprintable + 1,
+        col_filaments = col_unprintable_reset + 1,
         col_filaments_reset = col_filaments + 1,
         col_layer_height = col_filaments_reset + 1,
         col_layer_height_reset = col_layer_height + 1,
@@ -232,6 +232,8 @@ public:
         ConfigOptionString          ori_assemble_name;
         ConfigOptionString          name;
         ConfigOptionString          ori_name;
+        ConfigOptionBool            unprintable;
+        ConfigOptionBool            ori_unprintable;
         ConfigOptionInt             filaments;
         ConfigOptionInt             ori_filaments;
         ConfigOptionFloat           layer_height;
@@ -263,12 +265,12 @@ public:
                     return plate_index;
                 case col_assemble_name:
                     return assemble_name;
-                //case col_assemble_name_reset:
-                //    return ori_assemble_name;
                 case col_name:
                     return name;
-                //case col_name_reset:
-                //    return ori_name;
+                case col_unprintable:
+                    return unprintable;
+                case col_unprintable_reset:
+                    return ori_unprintable;
                 case col_filaments:
                     return filaments;
                 case col_filaments_reset:
@@ -434,8 +436,8 @@ private:
 class ObjectTablePanel : public wxPanel
 {
     void OnCellLeftClick( wxGridEvent& );
-    //void OnRowSize( wxGridSizeEvent& );
-    //void OnColSize( wxGridSizeEvent& );
+    void OnRowSize( wxGridSizeEvent& );
+    void OnColSize( wxGridSizeEvent& );
     void OnSelectCell( wxGridEvent& );
     void OnRangeSelected( wxGridRangeSelectEvent& );
     //void OnRangeSelecting( wxGridRangeSelectEvent& );
@@ -513,6 +515,7 @@ public:
     ~ObjectTableDialog();
     void Popup(int obj_idx = -1, int vol_idx = -1, wxPoint position = wxDefaultPosition);
     void OnClose(wxCloseEvent &evt);
+    void OnSize(wxSizeEvent& event);
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;

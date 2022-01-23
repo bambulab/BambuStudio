@@ -16,16 +16,32 @@
 #include "GUI_ObjectTable.hpp"
 #include "GUI_ObjectList.hpp"
 
+//use wxGridWindow to compute position
+//#include "wx/generic/private/grid.h"
+
 namespace Slic3r {
 namespace GUI {
 static const int grid_cell_border_width = 2;
 static const int grid_cell_border_height = 2;
 static const int grid_cell_checkbox_size = 16;
-static const int min_row_count = 16;
-static const int min_setting_width = 464;
+
+//min row count
+static const int g_min_row_count = 19;
+//when row count is bigger than overflow row count, will compute the total height by row_count*g_min_row_size
+//else will count the height one by one
+static const int g_overflow_row_count = 50;
+static const int g_min_row_size = 36;
+static const int g_extra_height = 64;
+
+static const int g_min_setting_width = 464;
+static const int g_vscroll_width = 32;
+
 
 static int g_dialog_width = 0;
 static int g_dialog_height = 0;
+static int g_dialog_max_width = 0;
+static int g_dialog_max_height = 0;
+static wxSize g_max_size_from_parent;
 
 /* ObjectGridTable related class */
 // ----------------------------------------------------------------------------
@@ -425,6 +441,32 @@ bool ObjectGrid::OnCellLeftClick(wxGridEvent& event, int row, int col, ConfigOpt
 
     bool consumed = false;
     wxGridCellCoords coords(row, col);
+
+    //found the grid window for this event
+    /*wxGridWindow *gridWindow =
+        DevicePosToGridWindow(event.GetPosition() + m_gridWin->GetPosition());
+    if ( !gridWindow )
+        gridWindow = m_gridWin;
+    wxPoint position = CalcGridWindowUnscrolledPosition(event.GetPosition(), gridWindow);*/
+
+    //compute the position considering the scrolled rows
+    wxPoint position = CalcGridWindowUnscrolledPosition(event.GetPosition(), nullptr);
+
+    int col_right_pos = GetColRight(col);
+    int row_up_pos = GetRowTop(row);
+    int row_down_pos = GetRowBottom(row);
+    int row_offset = ((row_down_pos - row_up_pos) - grid_cell_checkbox_size) /2;
+    if (row_offset < 0)
+        row_offset = 0;
+    bool checkbox_hovered = false;
+    if ((position.x > (col_right_pos - grid_cell_checkbox_size)) && (position.y >= (row_up_pos + row_offset)) && (position.y <= (row_down_pos - row_offset)))
+        checkbox_hovered = true;
+    //wxGridCellRenderer *render = this->GetCellRenderer(row, col);
+    //wxDC temp_dc;
+    //wxGridCellAttr temp_attr;
+    //const wxRect checkBoxRect =
+    //    wxGetContentRect(render->GetBestSize(*this, temp_attr, temp_dc, row, col),
+    //                     rect, hAlign, vAlign);
     // Process the mouse down event depending on the current cursor mode. Note
     // that this assumes m_cursorMode was set in the mouse move event hendler.
     if ( m_cursorMode == WXGRID_CURSOR_SELECT_CELL)
@@ -462,7 +504,10 @@ bool ObjectGrid::OnCellLeftClick(wxGridEvent& event, int row, int col, ConfigOpt
             else
                 consumed = true;
 
-            m_waitForSlowClick = true;
+            if (checkbox_hovered)
+                m_waitForSlowClick = true;
+            else
+                m_waitForSlowClick = false;
             SetCurrentCell(coords);
         }
     }
@@ -843,6 +888,8 @@ wxString ObjectGridTable::GetValue (int row, int col)
                 return "Module";
             case col_name:
                 return "Name";
+            case col_unprintable:
+                return "Unprintable";
             case col_filaments:
                 return "Filaments";
             case col_layer_height:
@@ -962,6 +1009,11 @@ void ObjectGridTable::update_value_to_object(Model* model, ObjectGridRow* grid_r
             name_ptr = &(object->module_name);
             name_value = grid_row->assemble_name.value;
         }
+        else if (col == col_unprintable) {
+            object->printable = !(grid_row->unprintable.value);
+            object->instances[0]->printable = object->printable;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", change object %1%'s printable from %2%")%object->module_name %object->printable;
+        }
     }
 
     if ((name_ptr) && (*name_ptr != name_value)) {
@@ -1015,7 +1067,12 @@ void ObjectGridTable::SetValue( int row, int col, const wxString& value )
 
         option_value.value = (wxAtoi(value) == 1)?true:false;
 
-        update_value_to_config(grid_row->config, grid_col->key, option_value, option_ori_value);
+        if (grid_col->b_from_config) {
+            update_value_to_config(grid_row->config, grid_col->key, option_value, option_ori_value);
+        }
+        else {
+            update_value_to_object(m_panel->m_model, grid_row, col);
+        }
     }
     else if (grid_col->type == coFloat) {
         ConfigOptionFloat &option_value = dynamic_cast<ConfigOptionFloat &>((*grid_row)[(GridColType)col]);
@@ -1126,7 +1183,12 @@ void ObjectGridTable::SetValueAsBool( int row, int col, bool value )
 
     option_value.value = (int) value;
 
-    update_value_to_config(grid_row->config, grid_col->key, option_value, option_ori_value);
+    if (grid_col->b_from_config) {
+        update_value_to_config(grid_row->config, grid_col->key, option_value, option_ori_value);
+    }
+    else {
+        update_value_to_object(m_panel->m_model, grid_row, col);
+    }
     m_panel->m_object_grid->ForceRefresh();
 
     return;
@@ -1223,17 +1285,17 @@ void ObjectGridTable::init_cols()
     col = new ObjectGridCol(coString, "assemble_name", L(" "), true, false, true, false, wxALIGN_RIGHT);
     m_col_data.push_back(col);
 
-    //preview icon for object/volume
-    //col = new ObjectGridCol(coString, "assemble_name_reset", L(" "), false, true, false, false, wxALIGN_CENTRE);
-    //m_col_data.push_back(col);
-
     //3th column: for object/volume name
     col = new ObjectGridCol(coString, "name", L(" "), false, false, true, false, wxALIGN_RIGHT);
     m_col_data.push_back(col);
 
-    //reset icon for name
-    //col = new ObjectGridCol(coString, "name_reset", L(" "), false, true, false, false, wxALIGN_CENTRE);
-    //m_col_data.push_back(col);
+    //unprintable for object
+    col = new ObjectGridCol(coBool, "unprintable", L(" "), true, false, true, false, wxALIGN_RIGHT);
+    m_col_data.push_back(col);
+
+    //reset icon for unprintable
+    col = new ObjectGridCol(coBool, "unprintable_reset", L(" "), false, true, false, false, wxALIGN_CENTRE);
+    m_col_data.push_back(col);
 
     //object/volume extruder_id
     col = new ObjectGridCol(coEnum, "extruder", L(" "), false, false, true, true, wxALIGN_LEFT);
@@ -1335,6 +1397,8 @@ void ObjectGridTable::construct_object_configs ()
             object_grid->plate_index.value = /*std::string("Plate ") + */std::to_string(plate_index+1);
         object_grid->assemble_name.value = object->module_name;
         object_grid->ori_assemble_name = object_grid->assemble_name;
+        object_grid->unprintable.value = !(object->printable);
+        object_grid->ori_unprintable = object_grid->unprintable;
         auto extruder_id_ptr = get_object_config_value<ConfigOptionInt>(filament_config, object_grid->config, m_col_data[col_filaments]->key);
         if (extruder_id_ptr)
             object_grid->filaments = *extruder_id_ptr;
@@ -1380,6 +1444,8 @@ void ObjectGridTable::construct_object_configs ()
                 volume_grid->plate_index.value = /*std::string("Plate ") +*/ std::to_string(plate_index+1);
             volume_grid->assemble_name.value = object->module_name;
             volume_grid->ori_assemble_name = volume_grid->assemble_name;
+            volume_grid->unprintable.value = !(object->printable);
+            volume_grid->ori_unprintable = volume_grid->unprintable;
             auto extruder_id_ptr = get_volume_config_value<ConfigOptionInt>(filament_config, object_grid->config, volume_grid->config, m_col_data[col_filaments]->key);
             if (extruder_id_ptr)
                 volume_grid->filaments = *extruder_id_ptr;
@@ -1534,7 +1600,7 @@ void ObjectGridTable::update_row_properties()
     for (int col = 1; col < col_speed_perimeter_reset; col++)
     {
         ObjectGridTable::ObjectGridCol* grid_col = get_grid_col(col);
-        grid_table->SetColSize(col, grid_col->size);
+        //grid_table->SetColSize(col, grid_col->size);
 
         //row 0 no need to update, always for headers
         for (int row = 1; row < get_row_count(); row++)
@@ -1550,6 +1616,7 @@ void ObjectGridTable::update_row_properties()
                 }
                 else {
                     grid_table->SetReadOnly(row, col, false);
+
                     switch (grid_col->type)
                     {
                         case coString:
@@ -1598,6 +1665,8 @@ void ObjectGridTable::update_row_properties()
                     }
                 }
             }
+            else if ((col == col_name) && (grid_row->row_type == ObjectGridTable::row_object))
+                grid_table->SetCellFont(row, col, Label::Head_14);
         }
     }
 
@@ -1869,8 +1938,8 @@ wxIMPLEMENT_CLASS(ObjectTablePanel, wxPanel);
 wxBEGIN_EVENT_TABLE( ObjectTablePanel, wxPanel )
     //EVT_GRID_LABEL_LEFT_CLICK( ObjectTablePanel::OnLabelLeftClick )
     EVT_GRID_CELL_LEFT_CLICK( ObjectTablePanel::OnCellLeftClick )
-    //EVT_GRID_ROW_SIZE( ObjectTablePanel::OnRowSize )
-    //EVT_GRID_COL_SIZE( ObjectTablePanel::OnColSize )
+    EVT_GRID_ROW_SIZE( ObjectTablePanel::OnRowSize )
+    EVT_GRID_COL_SIZE( ObjectTablePanel::OnColSize )
     //EVT_GRID_COL_AUTO_SIZE( ObjectTablePanel::OnColAutoSize )
     EVT_GRID_SELECT_CELL( ObjectTablePanel::OnSelectCell )
     //EVT_GRID_RANGE_SELECTING( ObjectTablePanel::OnRangeSelecting )
@@ -1898,7 +1967,7 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
 	m_top_sizer = new wxBoxSizer(wxHORIZONTAL);
     //m_top_sizer->Add(m_search_line, 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, 10);
 
-	m_object_grid = new ObjectGrid(this, wxID_ANY);
+    m_object_grid = new ObjectGrid(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
     m_object_grid_table = new ObjectGridTable(this);
     this->load_data();
     //m_object_grid_table->SetAttrProvider(new MyGridCellAttrProvider);
@@ -1907,7 +1976,7 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
     //set sizers
 	m_top_sizer->Add(m_object_grid, 1, wxEXPAND);
 
-    m_side_window = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(min_setting_width,-1), wxVSCROLL);
+    m_side_window = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(g_min_setting_width,-1), wxVSCROLL);
     m_page_sizer = new wxBoxSizer(wxVERTICAL);
     m_side_window->SetBackgroundColour(wxColour(0xff, 0xff, 0xff));
     m_side_window->SetSizer(m_page_sizer);
@@ -2016,6 +2085,7 @@ void ObjectTablePanel::load_data()
     //merges
     m_object_grid->SetCellSize(0, ObjectGridTable::col_assemble_name, 1, 1);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_name, 1, 1);
+    m_object_grid->SetCellSize(0, ObjectGridTable::col_unprintable, 1, 2);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_filaments, 1, 2);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_layer_height, 1, 2);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_perimeters, 1, 2);
@@ -2176,6 +2246,34 @@ void ObjectTablePanel::OnCellLeftClick( wxGridEvent& ev )
         ev.Skip();
 }
 
+void ObjectTablePanel::OnRowSize( wxGridSizeEvent& ev)
+{
+    wxSize panel_size = get_init_size();
+
+    g_dialog_max_width = (panel_size.GetWidth() > g_max_size_from_parent.GetWidth())?g_max_size_from_parent.GetWidth():panel_size.GetWidth();
+    g_dialog_max_height =(panel_size.GetHeight() > g_max_size_from_parent.GetHeight())?g_max_size_from_parent.GetHeight():panel_size.GetHeight();
+    this->SetMaxSize(wxSize(g_dialog_max_width, g_dialog_max_height));
+
+    wxSize current_size = GetParent()->GetSize();
+    //if (current_size.GetHeight() < g_dialog_max_height)
+        GetParent()->SetMaxSize(wxSize(g_dialog_max_width, g_dialog_max_height));
+    GetParent()->SetSize(wxSize(g_dialog_max_width, g_dialog_max_height));
+}
+
+void ObjectTablePanel::OnColSize( wxGridSizeEvent& ev)
+{
+    wxSize panel_size = get_init_size();
+
+    g_dialog_max_width = (panel_size.GetWidth() > g_max_size_from_parent.GetWidth())?g_max_size_from_parent.GetWidth():panel_size.GetWidth();
+    g_dialog_max_height =(panel_size.GetHeight() > g_max_size_from_parent.GetHeight())?g_max_size_from_parent.GetHeight():panel_size.GetHeight();
+    this->SetMaxSize(wxSize(g_dialog_max_width, g_dialog_max_height));
+
+    wxSize current_size = GetParent()->GetSize();
+    //if (current_size.GetWidth() < g_dialog_max_width)
+        GetParent()->SetMaxSize(wxSize(g_dialog_max_width, g_dialog_max_height));
+    GetParent()->SetSize(wxSize(g_dialog_max_width, g_dialog_max_height));
+}
+
 void ObjectTablePanel::OnSelectCell( wxGridEvent& ev )
 {
     int row = ev.GetRow();
@@ -2224,25 +2322,30 @@ void ObjectTablePanel::OnRangeSelected( wxGridRangeSelectEvent& ev )
 wxSize ObjectTablePanel::get_init_size()
 {
     wxSize size;
-    int width = 0, height, row_count, row_height;
+    int width = 0, height = 0;
 
-    row_count = m_object_grid_table->GetNumberRows();
-    if (row_count > 1)
-        row_height = m_object_grid->GetRowSize(1);
-    else
-        row_height = m_object_grid->GetRowSize(0);
+    //compute height
+    int row_count = m_object_grid_table->GetNumberRows();
+    if (row_count >= g_overflow_row_count) {
+        height = row_count * g_min_row_size;
+    }
+    else {
+        for (int index = 0; index < m_object_grid_table->GetNumberRows(); index++)
+        {
+            height += m_object_grid->GetRowSize(index);
+        }
+    }
+    height += g_extra_height;
 
-    if (row_count < (min_row_count - 2))
-        row_count = min_row_count;
-    else
-        row_count = row_count + 2;
-    height =  row_height * row_count;
+    if (height < (g_min_row_count * g_min_row_size))
+        height = g_min_row_count * g_min_row_size;
 
+    //compute width
     for (int index = 0; index < m_object_grid_table->GetNumberCols(); index++)
     {
-        width += m_object_grid->GetColSize(index)+2;
+        width += m_object_grid->GetColSize(index);
     }
-    width += min_setting_width;
+    width += g_vscroll_width + g_min_setting_width;
 
     size.Set(width, height);
 
@@ -2250,7 +2353,7 @@ wxSize ObjectTablePanel::get_init_size()
 }
 
 ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model *modelObj, wxSize maxSize)
-    : GUI::DPIDialog(parent, wxID_ANY, _L("Object/Part Setting"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
+    : GUI::DPIDialog(parent, wxID_ANY, _L("Object/Part Setting"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMAXIMIZE_BOX),
     m_model(modelObj), m_plater(platerObj)
 {
 #ifdef __WINDOWS__
@@ -2282,18 +2385,22 @@ ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model 
     m_obj_panel = new ObjectTablePanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE, wxString("Tabel Panel"), m_plater, m_model);
     //m_top_sizer->Add(m_obj_panel, 1, wxALL | wxEXPAND, 5);
 
-    //m_panel->SetSize(wxSize(1024, 512));
+    wxSize panel_size = m_obj_panel->get_init_size();
+    g_max_size_from_parent = maxSize;
     if ((g_dialog_width == 0) || (g_dialog_height == 0))
     {
-        wxSize panel_size = m_obj_panel->get_init_size();
-        g_dialog_height = (panel_size.GetHeight() > maxSize.GetHeight())?maxSize.GetHeight():panel_size.GetHeight();
-        g_dialog_width = (panel_size.GetWidth() > maxSize.GetWidth())?maxSize.GetWidth():panel_size.GetWidth();
+        g_dialog_height = (panel_size.GetHeight() > g_max_size_from_parent.GetHeight())?g_max_size_from_parent.GetHeight():panel_size.GetHeight();
+        g_dialog_width = (panel_size.GetWidth() > g_max_size_from_parent.GetWidth())?g_max_size_from_parent.GetWidth():panel_size.GetWidth();
     }
     this->SetSize(wxSize(g_dialog_width, g_dialog_height));
+    g_dialog_max_width = (panel_size.GetWidth() > g_max_size_from_parent.GetWidth())?g_max_size_from_parent.GetWidth():panel_size.GetWidth();
+    g_dialog_max_height =(panel_size.GetHeight() > g_max_size_from_parent.GetHeight())?g_max_size_from_parent.GetHeight():panel_size.GetHeight();
+    this->SetMaxSize(wxSize(g_dialog_max_width, g_dialog_max_height));
     //m_top_sizer->SetSizeHints(this);
     //this->SetSizer(m_top_sizer);
     //SetClientSize(m_panel->GetSize());
     Bind(wxEVT_CLOSE_WINDOW, &ObjectTableDialog::OnClose, this);
+    Bind(wxEVT_SIZE, &ObjectTableDialog::OnSize, this);
 
     //this->Layout();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", created, this %1%, m_obj_panel %2%") %this % m_obj_panel;
@@ -2339,6 +2446,17 @@ void ObjectTableDialog::OnClose(wxCloseEvent &evt)
     this->GetSize(&g_dialog_width, &g_dialog_height);
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", g_dialog_width %1%, g_dialog_height %2%") %g_dialog_width % g_dialog_height;
     evt.Skip();
+}
+
+void ObjectTableDialog::OnSize(wxSizeEvent& event)
+{
+    wxSize new_size = event.GetSize();
+    if ((new_size.GetWidth() > g_dialog_max_width) || (new_size.GetHeight() > g_dialog_max_height)) {
+        int width = (new_size.GetWidth() > g_dialog_max_width)?new_size.GetWidth():g_dialog_max_width;
+        int height = (new_size.GetHeight() > g_dialog_max_height)?new_size.GetHeight():g_dialog_max_height;
+        this->SetMaxSize(wxSize(width, height));
+    }
+    event.Skip();
 }
 
 } // namespace GUI
