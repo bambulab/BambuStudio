@@ -24,8 +24,8 @@ Button::Button(wxWindow* parent, wxString text, wxString icon, long stlye, int i
     , text_color(*wxBLACK)
 {
     background_color = StateColor(
-        std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered),
         std::make_pair(*wxLIGHT_GREY, (int) StateColor::Checked),
+        std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered),
         std::make_pair(*wxWHITE, (int) StateColor::Normal));
     state_handler.attach({&text_color});
     state_handler.update_binds();
@@ -158,6 +158,7 @@ void Button::mouseDown(wxMouseEvent& event)
     event.Skip();
     pressedDown = true;
     SetFocus();
+    CaptureMouse();
 }
 
 void Button::mouseReleased(wxMouseEvent& event)
@@ -165,7 +166,9 @@ void Button::mouseReleased(wxMouseEvent& event)
     event.Skip();
     if (pressedDown) {
         pressedDown = false;
-        sendButtonEvent();
+        ReleaseMouse();
+        if (wxRect({0, 0}, GetSize()).Contains(event.GetPosition()))
+            sendButtonEvent();
     }
 }
 
