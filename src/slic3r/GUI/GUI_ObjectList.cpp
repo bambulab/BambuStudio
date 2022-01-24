@@ -2680,7 +2680,7 @@ void ObjectList::part_selection_changed()
                         GLGizmosManager::EType gizmo_type = info_type == InfoItemType::CustomSupports ? GLGizmosManager::EType::FdmSupports :
                                                             info_type == InfoItemType::CustomSeam ? GLGizmosManager::EType::Seam :
                                                             GLGizmosManager::EType::MmuSegmentation;
-                        GLGizmosManager& gizmos_mgr = wxGetApp().plater()->canvas3D()->get_gizmos_manager();
+                        GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
                         if (gizmos_mgr.get_current_type() != gizmo_type)
                             gizmos_mgr.open_gizmo(gizmo_type);
                         break;
@@ -4466,7 +4466,7 @@ void ObjectList::fix_through_netfabb()
 void ObjectList::simplify()
 {
     auto plater = wxGetApp().plater();
-    GLGizmosManager& gizmos_mgr = plater->canvas3D()->get_gizmos_manager();
+    GLGizmosManager& gizmos_mgr = plater->get_view3D_canvas3D()->get_gizmos_manager();
 
     // Do not simplify when a gizmo is open. There might be issues with updates
     // and what is worse, the snapshot time would refer to the internal stack.

@@ -291,7 +291,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
     // declare events
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& event) {
-        if (event.CanVeto() && m_plater->canvas3D()->get_gizmos_manager().is_in_editing_mode(true)) {
+        if (event.CanVeto() && m_plater->get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode(true)) {
             // prevents to open the save dirty project dialog
             event.Veto();
             return;
@@ -1019,14 +1019,14 @@ bool MainFrame::can_start_new_project() const
 bool MainFrame::can_save() const
 {
     return (m_plater != nullptr) &&
-        !m_plater->canvas3D()->get_gizmos_manager().is_in_editing_mode(false) &&
+        !m_plater->get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode(false) &&
         m_plater->is_project_dirty();
 }
 
 bool MainFrame::can_save_as() const
 {
     return (m_plater != nullptr) &&
-        !m_plater->canvas3D()->get_gizmos_manager().is_in_editing_mode(false);
+        !m_plater->get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode(false);
 }
 
 void MainFrame::save_project()

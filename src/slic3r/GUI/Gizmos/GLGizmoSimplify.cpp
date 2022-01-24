@@ -124,7 +124,7 @@ void GLGizmoSimplify::add_simplify_suggestion_notification(
                 selection.clear();
                 selection.add_object((unsigned int) object_id);
 
-                auto &manager = plater->canvas3D()->get_gizmos_manager();
+                auto &manager = plater->get_view3D_canvas3D()->get_gizmos_manager();
                 bool  close_notification = true;
                 if(!manager.open_gizmo(GLGizmosManager::Simplify))
                     return close_notification;

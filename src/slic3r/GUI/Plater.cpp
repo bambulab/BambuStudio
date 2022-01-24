@@ -4171,7 +4171,7 @@ bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const
 
 void Plater::priv::replace_with_stl()
 {
-    if (! q->canvas3D()->get_gizmos_manager().check_gizmos_closed_except(GLGizmosManager::EType::Undefined))
+    if (! q->get_view3D_canvas3D()->get_gizmos_manager().check_gizmos_closed_except(GLGizmosManager::EType::Undefined))
         return;
 
     const Selection& selection = get_selection();
@@ -5825,7 +5825,7 @@ bool Plater::priv::can_simplify() const
     // is object for simplification selected
     if (get_selected_object_idx() < 0) return false;
     // is already opened?
-    if (q->canvas3D()->get_gizmos_manager().get_current_type() ==
+    if (q->get_view3D_canvas3D()->get_gizmos_manager().get_current_type() ==
         GLGizmosManager::EType::Simplify)
         return false;
     return true;
@@ -5834,7 +5834,7 @@ bool Plater::priv::can_simplify() const
 bool Plater::priv::can_increase_instances() const
 {
     if (m_ui_jobs.is_any_running()
-     || q->canvas3D()->get_gizmos_manager().is_in_editing_mode())
+     || q->get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode())
             return false;
 
     int obj_idx = get_selected_object_idx();
@@ -5844,7 +5844,7 @@ bool Plater::priv::can_increase_instances() const
 bool Plater::priv::can_decrease_instances() const
 {
     if (m_ui_jobs.is_any_running()
-     || q->canvas3D()->get_gizmos_manager().is_in_editing_mode())
+     || q->get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode())
             return false;
 
     int obj_idx = get_selected_object_idx();
@@ -7559,7 +7559,7 @@ void Plater::export_gcode(bool prefer_removable)
     if (p->model.objects.empty())
         return;
 
-    if (canvas3D()->get_gizmos_manager().is_in_editing_mode(true))
+    if (get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode(true))
         return;
 
 
@@ -8091,7 +8091,7 @@ void Plater::reslice()
 
     // In case SLA gizmo is in editing mode, refuse to continue
     // and notify user that he should leave it first.
-    if (canvas3D()->get_gizmos_manager().is_in_editing_mode(true))
+    if (get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode(true))
         return;
 
     // Stop arrange and (or) optimize rotation tasks.
@@ -8637,11 +8637,17 @@ bool Plater::is_single_full_object_selection() const
 
 GLCanvas3D* Plater::canvas3D()
 {
+    // BBS modify view3D->get_canvas3d() to current canvas
     return p->get_current_canvas3D();
-    //return p->view3D->get_canvas3d();
 }
 
 const GLCanvas3D* Plater::canvas3D() const
+{
+    // BBS modify view3D->get_canvas3d() to current canvas
+    return p->get_current_canvas3D();
+}
+
+GLCanvas3D* Plater::get_view3D_canvas3D()
 {
     return p->view3D->get_canvas3d();
 }
@@ -8736,7 +8742,7 @@ void Plater::clear_before_change_mesh(int obj_idx)
 //                        // Make sure the snapshot is still available and that
 //                        // we are in the main stack and not in a gizmo-stack.
 //                        if (undo_redo_stack().has_undo_snapshot(snapshot_time)
-//                         && q->canvas3D()->get_gizmos_manager().get_current() == nullptr)
+//                         && q->get_view3D_canvas3D()->get_gizmos_manager().get_current() == nullptr)
 //                            undo_redo_to(snapshot_time);
 //                        else
 //                            notification_manager->push_notification(
