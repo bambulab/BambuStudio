@@ -57,7 +57,7 @@ static wxString generate_html_row(const Config::Snapshot &snapshot, bool row_eve
         text += " (" + wxString::FromUTF8(snapshot.comment.data()) + ")";
     text += "</b></font><br>";
     // End of row header.
-    text += _(L("BambuSlicer version")) + ": " + snapshot.slic3r_version_captured.to_string() + "<br>";
+    text += _(L("BambuStudio version")) + ": " + snapshot.slic3r_version_captured.to_string() + "<br>";
     bool has_fff = ! snapshot.print.empty() || ! snapshot.filaments.empty();
     bool has_sla = ! snapshot.sla_print.empty() || ! snapshot.sla_material.empty();
     if (has_fff || ! has_sla) {
@@ -73,9 +73,9 @@ static wxString generate_html_row(const Config::Snapshot &snapshot, bool row_eve
     bool compatible = true;
     for (const Config::Snapshot::VendorConfig &vc : snapshot.vendor_configs) {
         text += _(L("vendor")) + ": " + vc.name +", " + _(L("version")) + ": " + vc.version.config_version.to_string() + 
-				", " + _(L("min BambuSlicer version")) + ": " + vc.version.min_slic3r_version.to_string();
+				", " + _(L("min BambuStudio version")) + ": " + vc.version.min_slic3r_version.to_string();
         if (vc.version.max_slic3r_version != Semver::inf())
-            text += ", " + _(L("max BambuSlicer version")) + ": " + vc.version.max_slic3r_version.to_string();
+            text += ", " + _(L("max BambuStudio version")) + ": " + vc.version.max_slic3r_version.to_string();
         text += "<br>";
         for (const auto& model : vc.models_variants_installed) {
             text += _(L("model")) + ": " + model.first + ", " + _(L("variants")) + ": ";

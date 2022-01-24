@@ -29,7 +29,7 @@ using namespace nlohmann;
 namespace Slic3r { namespace GUI {
 
 GuideFrame::GuideFrame(GUI_App *pGUI)
-    : wxDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, "BambuSlicer")
+    : wxDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, "BambuStudio")
 {
     // INI
     m_SectionName = "firstguide";
@@ -43,7 +43,7 @@ GuideFrame::GuideFrame(GUI_App *pGUI)
     m_bbl_user_agent = wxString::Format("BBL-Slicer/v%s", SLIC3R_RC_VERSION);
 
     // set the frame icon
-    SetTitle("BambuSlicer");
+    SetTitle("BambuStudio");
 
     wxBoxSizer *topsizer = new wxBoxSizer(wxVERTICAL);
 

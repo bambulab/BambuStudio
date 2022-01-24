@@ -18,16 +18,16 @@ public:
 
 	// methods that actually do / undo desktop integration. Static to be accesible from anywhere.
 
-	// returns true if path to BambuSlicer.desktop is stored in App Config and existence of desktop file. 
+	// returns true if path to BambuStudio.desktop is stored in App Config and existence of desktop file. 
 	// Does not check if desktop file leads to this binary or existence of icons and viewer desktop file.
 	static bool is_integrated();
 	// true if appimage
 	static bool integration_possible();
-	// Creates Desktop files and icons for both BambuSlicer and GcodeViewer.
+	// Creates Desktop files and icons for both BambuStudio and GcodeViewer.
 	// Stores paths into App Config.
 	// Rewrites if files already existed.
 	static void perform_desktop_integration();
-	// Deletes Desktop files and icons for both BambuSlicer and GcodeViewer at paths stored in App Config.
+	// Deletes Desktop files and icons for both BambuStudio and GcodeViewer at paths stored in App Config.
 	static void undo_desktop_intgration();
 private:
 

@@ -1620,7 +1620,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Estimated_Printing_Time_Placeholder).c_str());
 
     // Append full config, delimited by two 'phony' configuration keys bambuslicer_config = begin and bambuslicer_config = end.
-    // The delimiters are structured as configuration key / value pairs to be parsable by older versions of BambuSlicer G-code viewer.
+    // The delimiters are structured as configuration key / value pairs to be parsable by older versions of BambuStudio G-code viewer.
     {
         file.write("\n; bambuslicer_config = begin\n");
         std::string full_config;

@@ -57,7 +57,7 @@ const unsigned int VERSION_BBS_3MF_COMPATIBLE = 2;
 const char* BBS_3MF_VERSION = "bamboo_slicer:Version3mf"; // definition of the metadata name saved into .model file
 const char* BBS_PRUSA_VERSION = "slic3rpe:Version3mf"; //compatible with prusa currently
 // Painting gizmos data version numbers
-// 0 : 3MF files saved by older BambuSlicer or the painting gizmo wasn't used. No version definition in them.
+// 0 : 3MF files saved by older BambuStudio or the painting gizmo wasn't used. No version definition in them.
 // 1 : Introduction of painting gizmos data versioning. No other changes in painting gizmos data.
 const unsigned int FDM_SUPPORTS_PAINTING_VERSION = 1;
 const unsigned int SEAM_PAINTING_VERSION         = 1;
@@ -501,7 +501,7 @@ namespace Slic3r {
         bool m_load_restore;
         // bool m_mesh_only; load only mesh from origin 3mf, currently not work
 
-        // Semantic version of BambuSlicer, that generated this 3MF.
+        // Semantic version of BambuStudio, that generated this 3MF.
         boost::optional<Semver> m_bambuslicer_generator_version;
         unsigned int m_fdm_supports_painting_version = 0;
         unsigned int m_seam_painting_version         = 0;
@@ -975,7 +975,7 @@ namespace Slic3r {
         close_zip_reader(&archive);
 
         if (m_version == 0) {
-            // if the 3mf was not produced by BambuSlicer and there is more than one instance,
+            // if the 3mf was not produced by BambuStudio and there is more than one instance,
             // split the object in as many objects as instances
             size_t curr_models_count = m_model->objects.size();
             size_t i = 0;
@@ -1851,7 +1851,7 @@ namespace Slic3r {
                 std::string         extra;
                 pt::ptree attr_tree = tree.find("<xmlattr>")->second;
                 if (attr_tree.find("type") == attr_tree.not_found()) {
-                    // It means that data was saved in old version (2.2.0 and older) of BambuSlicer
+                    // It means that data was saved in old version (2.2.0 and older) of BambuStudio
                     // read old data ... 
                     std::string gcode       = tree.get<std::string> ("<xmlattr>.gcode");
                     // ... and interpret them to the new data
@@ -2082,7 +2082,7 @@ namespace Slic3r {
         }
 
         if (m_version == 0) {
-            // if the 3mf was not produced by BambuSlicer and there is only one object,
+            // if the 3mf was not produced by BambuStudio and there is only one object,
             // set the object name to match the filename
             if (m_model->objects.size() == 1)
                 m_model->objects.front()->name = m_name;
@@ -2391,20 +2391,20 @@ namespace Slic3r {
         } else if (m_curr_metadata_name == "Application") {
             // Generator application of the 3MF.
             // SLIC3R_APP_KEY - SLIC3R_VERSION
-            if (boost::starts_with(m_curr_characters, "BambuSlicer-"))
+            if (boost::starts_with(m_curr_characters, "BambuStudio-"))
                 m_bambuslicer_generator_version = Semver::parse(m_curr_characters.substr(12));
         } else if (m_curr_metadata_name == SLIC3RPE_FDM_SUPPORTS_PAINTING_VERSION) {
             m_fdm_supports_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
             check_painting_version(m_fdm_supports_painting_version, FDM_SUPPORTS_PAINTING_VERSION,
-                _(L("The selected 3MF contains FDM supports painted object using a newer version of BambuSlicer and is not compatible.")));
+                _(L("The selected 3MF contains FDM supports painted object using a newer version of BambuStudio and is not compatible.")));
         } else if (m_curr_metadata_name == SLIC3RPE_SEAM_PAINTING_VERSION) {
             m_seam_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
             check_painting_version(m_seam_painting_version, SEAM_PAINTING_VERSION,
-                _(L("The selected 3MF contains seam painted object using a newer version of BambuSlicer and is not compatible.")));
+                _(L("The selected 3MF contains seam painted object using a newer version of BambuStudio and is not compatible.")));
         } else if (m_curr_metadata_name == SLIC3RPE_MM_PAINTING_VERSION) {
             m_mm_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
             check_painting_version(m_mm_painting_version, MM_PAINTING_VERSION,
-                _(L("The selected 3MF contains multi-material painted object using a newer version of BambuSlicer and is not compatible.")));
+                _(L("The selected 3MF contains multi-material painted object using a newer version of BambuStudio and is not compatible.")));
         }
 
         return true;
@@ -2487,7 +2487,7 @@ namespace Slic3r {
             return false;
         }
 
-        // Added because of github #3435, currently not used by BambuSlicer
+        // Added because of github #3435, currently not used by BambuStudio
         // int instances_count_id = bbs_get_attribute_value_int(attributes, num_attributes, INSTANCESCOUNT_ATTR);
 
         m_objects_metadata.insert({ object_id, ObjectMetadata() });
@@ -2786,14 +2786,14 @@ namespace Slic3r {
             if (m_bambuslicer_generator_version && 
                 *m_bambuslicer_generator_version >= *Semver::parse("2.4.0-alpha1") &&
                 *m_bambuslicer_generator_version < *Semver::parse("2.4.0-alpha3"))
-                // BambuSlicer 2.4.0-alpha2 contained a bug, where all vertices of a single object were saved for each volume the object contained.
+                // BambuStudio 2.4.0-alpha2 contained a bug, where all vertices of a single object were saved for each volume the object contained.
                 // Remove the vertices, that are not referenced by any face.
                 its_compactify_vertices(its, true);
 
             TriangleMesh triangle_mesh(std::move(its), volume_data.mesh_stats);
 
             if (m_version == 0) {
-                // if the 3mf was not produced by BambuSlicer and there is only one instance,
+                // if the 3mf was not produced by BambuStudio and there is only one instance,
                 // bake the transformation into the geometry to allow the reload from disk command
                 // to work properly
                 if (object.instances.size() == 1) {
@@ -3072,7 +3072,7 @@ namespace Slic3r {
         }
 
         // Adds content types file ("[Content_Types].xml";).
-        // The content of this file is the same for each BambuSlicer 3mf.
+        // The content of this file is the same for each BambuStudio 3mf.
         if (!m_skip_static && !_add_content_types_file_to_archive(archive)) {
             close_zip_writer(&archive);
             boost::filesystem::remove(filename);
@@ -3113,7 +3113,7 @@ namespace Slic3r {
         }
 
         // Adds relationships file ("_rels/.rels"). 
-        // The content of this file is the same for each BambuSlicer 3mf.
+        // The content of this file is the same for each BambuStudio 3mf.
         // The relationshis file contains a reference to the geometry file "3D/3dmodel.model", the name was chosen to be compatible with CURA.
         if (!m_skip_static && !_add_relationships_file_to_archive(archive)) {
             close_zip_writer(&archive);
@@ -4089,7 +4089,7 @@ namespace Slic3r {
         for (const IdToObjectDataMap::value_type& obj_metadata : objects_data) {
             const ModelObject* obj = obj_metadata.second.object;
             if (obj != nullptr) {
-                // Output of instances count added because of github #3435, currently not used by BambuSlicer
+                // Output of instances count added because of github #3435, currently not used by BambuStudio
                 stream << "  <"  << OBJECT_TAG << " " << ID_ATTR << "=\"" << obj_metadata.first << "\" " << INSTANCESCOUNT_ATTR << "=\"" << obj->instances.size() << "\">\n";
 
                 // stores object's name
@@ -4362,7 +4362,7 @@ bool _BBS_3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_ar
             code_tree.put("<xmlattr>.color"     , code.color    );
             code_tree.put("<xmlattr>.extra"     , code.extra    );
 
-            // add gcode field data for the old version of the BambuSlicer
+            // add gcode field data for the old version of the BambuStudio
             std::string gcode = code.type == CustomGCode::ColorChange ? config->opt_string("color_change_gcode")    :
                                 code.type == CustomGCode::PausePrint  ? config->opt_string("pause_print_gcode")     :
                                 code.type == CustomGCode::Template    ? config->opt_string("template_custom_gcode") :
@@ -4452,12 +4452,12 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive& archive, c
 }
 
 // Perform conversions based on the config values available.
-//FIXME provide a version of BambuSlicer that stored the project file (3MF).
+//FIXME provide a version of BambuStudio that stored the project file (3MF).
 static void handle_legacy_project_loaded(unsigned int version_project_file, DynamicPrintConfig& config)
 {
     if (! config.has("brim_separation")) {
         if (auto *opt_elephant_foot   = config.option<ConfigOptionFloat>("elefant_foot_compensation", false); opt_elephant_foot) {
-            // Conversion from older BambuSlicer which applied brim separation equal to elephant foot compensation.
+            // Conversion from older BambuStudio which applied brim separation equal to elephant foot compensation.
             auto *opt_brim_separation = config.option<ConfigOptionFloat>("brim_separation", true);
             opt_brim_separation->value = opt_elephant_foot->value;
         }

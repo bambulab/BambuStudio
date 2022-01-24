@@ -2939,8 +2939,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                                 // show notification about temporarily installed presets
                                 if (!names.empty()) {
-                                    std::string notif_text = into_u8(_L_PLURAL("The preset below was temporarily installed on the active instance of BambuSlicer",
-                                                                               "The presets below were temporarily installed on the active instance of BambuSlicer", names.size())) + ":";
+                                    std::string notif_text = into_u8(_L_PLURAL("The preset below was temporarily installed on the active instance of BambuStudio",
+                                                                               "The presets below were temporarily installed on the active instance of BambuStudio", names.size())) + ":";
                                     for (std::string& name : names)
                                         notif_text += "\n - " + name;
                                     notification_manager->push_notification(NotificationType::CustomNotification,
@@ -3052,9 +3052,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     if (answer_convert_from_meters == wxOK_DEFAULT) {
                         RichMessageDialog dlg(q, format_wxstr(_L_PLURAL(
                             "The dimensions of the object from file %s seem to be defined in meters.\n"
-                            "The internal unit of BambuSlicer is a millimeter. Do you want to recalculate the dimensions of the object?",
+                            "The internal unit of BambuStudio is a millimeter. Do you want to recalculate the dimensions of the object?",
                             "The dimensions of some objects from file %s seem to be defined in meters.\n"
-                            "The internal unit of BambuSlicer is a millimeter. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
+                            "The internal unit of BambuStudio is a millimeter. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
                             _L("The object is too small"), wxICON_QUESTION | wxYES_NO);
                         dlg.ShowCheckBox(_L("Apply to all the remaining small objects being loaded."));
                         int answer = dlg.ShowModal();
@@ -3074,9 +3074,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     if (answer_convert_from_imperial_units == wxOK_DEFAULT) {
                         RichMessageDialog dlg(q, format_wxstr(_L_PLURAL(
                             "The dimensions of the object from file %s seem to be defined in inches.\n"
-                            "The internal unit of BambuSlicer is a millimeter. Do you want to recalculate the dimensions of the object?",
+                            "The internal unit of BambuStudio is a millimeter. Do you want to recalculate the dimensions of the object?",
                             "The dimensions of some objects from file %s seem to be defined in inches.\n"
-                            "The internal unit of BambuSlicer is a millimeter. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
+                            "The internal unit of BambuStudio is a millimeter. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
                             _L("The object is too small"), wxICON_QUESTION | wxYES_NO);
                         dlg.ShowCheckBox(_L("Apply to all the remaining small objects being loaded."));
                         int answer = dlg.ShowModal();

@@ -30,7 +30,7 @@ namespace Slic3r { namespace GUI {
 // END_EVENT_TABLE()
 
 DailytipFrame::DailytipFrame(GUI_App *pGUI)
-    : wxDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, "BambuSlicer")
+    : wxDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, "BambuStudio")
 {
     wxString ExePath = boost::dll::program_location().parent_path().string();
     wxString TargetUrl = "file:///" + ExePath + "\\resources\\dailytip\\index.html";

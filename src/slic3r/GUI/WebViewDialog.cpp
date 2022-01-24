@@ -18,12 +18,12 @@ namespace GUI {
     
 
 WebFrame::WebFrame(wxString& url) :
-    wxFrame(NULL, wxID_ANY, "BambuSlicer")
+    wxFrame(NULL, wxID_ANY, "BambuStudio")
 {
     m_bbl_user_agent = wxString::Format("BBL-Slicer/v%s", SLIC3R_RC_VERSION);
 
     // set the frame icon
-    SetTitle("BambuSlicer");
+    SetTitle("BambuStudio");
 
     wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
 

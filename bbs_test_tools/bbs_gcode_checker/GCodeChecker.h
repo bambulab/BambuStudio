@@ -6,7 +6,7 @@
 #include <vector>
 #include <array>
 
-namespace BambuSlicer {
+namespace BambuStudio {
 
 enum class GCodeCheckResult : unsigned char
 {

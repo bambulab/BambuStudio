@@ -54,7 +54,7 @@ else()
   set(_curl_static ON)
 endif()
 
-bambuslicer_add_cmake_project(CURL
+bambustudio_add_cmake_project(CURL
   # GIT_REPOSITORY      https://github.com.cnpmjs.org/curl/curl.git
   # GIT_TAG             curl-7_75_0
   URL                 https://github.com.cnpmjs.org/curl/curl/archive/refs/tags/curl-7_75_0.zip

@@ -28,12 +28,12 @@
 @ECHO                  deps-dirty - build deps without cleaning
 @ECHO                Default: %PS_STEPS_DEFAULT%
 @ECHO  -r -RUN       Specifies what to perform at the run step:
-@ECHO                  console - run and wait on bambu-slicer-console.exe
+@ECHO                  console - run and wait on bambu-studio-console.exe
 @ECHO                  custom - run and wait on your custom build/%PS_CUSTOM_RUN_FILE%
 @ECHO                  ide - open project in Visual Studio if not open (no wait)
 @ECHO                  none - run step does nothing
 @ECHO                  viewer - run bambu-gcodeviewer.exe (no wait)
-@ECHO                  window - run bambu-slicer.exe (no wait)
+@ECHO                  window - run bambu-studio.exe (no wait)
 @ECHO                Default: none
 @ECHO  -d -DESTDIR   Deps destination directory
 @ECHO                Warning: Changing destdir path will not delete the old destdir.
@@ -53,7 +53,7 @@ GOTO :END
 REM Script constants
 SET START_TIME=%TIME%
 SET PS_START_DIR=%CD%
-SET PS_SOLUTION_NAME=BambuSlicer
+SET PS_SOLUTION_NAME=BambuStudio
 SET PS_CHOICE_TIMEOUT=30
 SET PS_CUSTOM_RUN_FILE=custom_run.bat
 SET PS_DEPS_PATH_FILE_NAME=.DEPS_PATH.txt
@@ -246,11 +246,11 @@ FOR /F "tokens=2 delims=," %%I in (
 @ECHO Running %PS_RUN% application...
 @REM icacls below is just a hack for file-not-found error handling
 IF "%PS_RUN%" EQU "console" (
-    icacls bambu-slicer-console.exe >nul || GOTO :END
-    start /wait /b bambu-slicer-console.exe
+    icacls bambu-studio-console.exe >nul || GOTO :END
+    start /wait /b bambu-studio-console.exe
 ) ELSE IF "%PS_RUN%" EQU "window" (
-    icacls bambu-slicer.exe >nul || GOTO :END
-    start bambu-slicer.exe
+    icacls bambu-studio.exe >nul || GOTO :END
+    start bambu-studio.exe
 ) ELSE IF "%PS_RUN%" EQU "viewer" (
     icacls bambu-gcodeviewer.exe >nul || GOTO :END
     start bambu-gcodeviewer.exe

@@ -2,7 +2,7 @@ This library is based on miniz 2.1.0 - amalgamated version.
 
 ----------------------------------------------------------------
 
-BambuResearch (Vojtech) homebrewed the following:
+BambuStudio homebrewed the following:
 
 mz_zip_writer_add_staged_open(), mz_zip_writer_add_staged_data() and mz_zip_writer_add_staged_finish() 
 were derived from mz_zip_writer_add_read_buf_callback() by splitting it and passing a new
@@ -16,7 +16,7 @@ knowing the size of the file up front.
 
 Vojtech made the following comments to the pull request above:
 
-The pull request looks good to me in general. We need such a functionality at https://github.com/prusa3d/PrusaSlicer so we are going to merge it into our project. Namely, we are exporting potentially huge model files, which are XML encoded, thus the compression ration is quite high and keeping the XML encoded model file in memory is not really practical.
+The pull request looks good to me in general. We need such a functionality so we are going to merge it into our project. Namely, we are exporting potentially huge model files, which are XML encoded, thus the compression ration is quite high and keeping the XML encoded model file in memory is not really practical.
 
 I am a bit uneasy about two things though:
 

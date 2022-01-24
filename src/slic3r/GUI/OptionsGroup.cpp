@@ -1056,7 +1056,7 @@ bool OptionsGroup::launch_browser(const std::string& path_end)
     if (get_app_config()->get("suppress_hyperlinks").empty()) {
         //wxWindow* parent = wxGetApp().mainframe->m_tabpanel;
         wxWindow* parent = wxGetApp().mainframe;
-        RichMessageDialog dialog(nullptr, _L("Open hyperlink in default browser?"), _L("BambuSlicer: Open hyperlink"), wxYES_NO);
+        RichMessageDialog dialog(nullptr, _L("Open hyperlink in default browser?"), _L("BambuStudio: Open hyperlink"), wxYES_NO);
         dialog.ShowCheckBox(_L("Remember my choice"));
         int answer = dialog.ShowModal();
         if (answer == wxID_CANCEL)
@@ -1065,11 +1065,11 @@ bool OptionsGroup::launch_browser(const std::string& path_end)
         if (dialog.IsCheckBoxChecked()) {
             wxString preferences_item = _L("Suppress to open hyperlink in browser");
             wxString msg =
-                _L("BambuSlicer will remember your choice.") + "\n\n" +
+                _L("BambuStudio will remember your choice.") + "\n\n" +
                 _L("You will not be asked about it again on label hovering.") + "\n\n" +
                 format_wxstr(_L("Visit \"Preferences\" and check \"%1%\"\nto changes your choice."), preferences_item);
 
-            MessageDialog msg_dlg(parent, msg, _L("BambuSlicer: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
+            MessageDialog msg_dlg(parent, msg, _L("BambuStudio: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
             if (msg_dlg.ShowModal() == wxID_CANCEL)
                 return false;
 

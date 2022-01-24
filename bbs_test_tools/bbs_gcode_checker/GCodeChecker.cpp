@@ -3,7 +3,7 @@
 #include <math.h>
 #include <map>
 
-namespace BambuSlicer {
+namespace BambuStudio {
 
 //BBS: only check wodth when dE is longer than this value
 const double CHECK_WIDTH_E_THRESHOLD = 0.0025;

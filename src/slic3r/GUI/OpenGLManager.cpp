@@ -254,15 +254,15 @@ bool OpenGLManager::init_gl()
         if (!valid_version) {
             // Complain about the OpenGL version.
             wxString message = from_u8((boost::format(
-                _utf8(L("BambuSlicer requires OpenGL 2.0 capable graphics driver to run correctly, \n"
+                _utf8(L("BambuStudio requires OpenGL 2.0 capable graphics driver to run correctly, \n"
                     "while OpenGL version %s, render %s, vendor %s was detected."))) % s_gl_info.get_version() % s_gl_info.get_renderer() % s_gl_info.get_vendor()).str());
             message += "\n";
         	message += _L("You may need to update your graphics card driver.");
 #ifdef _WIN32
             message += "\n";
-            message += _L("As a workaround, you may run BambuSlicer with a software rendered 3D graphics by running bambu-slicer.exe with the --sw-renderer parameter.");
+            message += _L("As a workaround, you may run BambuStudio with a software rendered 3D graphics by running bambu-studio.exe with the --sw-renderer parameter.");
 #endif
-        	wxMessageBox(message, wxString("BambuSlicer - ") + _L("Unsupported OpenGL version"), wxOK | wxICON_ERROR);
+        	wxMessageBox(message, wxString("BambuStudio - ") + _L("Unsupported OpenGL version"), wxOK | wxICON_ERROR);
         }
 
         if (valid_version) {
@@ -271,7 +271,7 @@ bool OpenGLManager::init_gl()
             if (!result) {
                 wxString message = from_u8((boost::format(
                     _utf8(L("Unable to load the following shaders:\n%s"))) % error).str());
-                wxMessageBox(message, wxString("BambuSlicer - ") + _L("Error loading shaders"), wxOK | wxICON_ERROR);
+                wxMessageBox(message, wxString("BambuStudio - ") + _L("Error loading shaders"), wxOK | wxICON_ERROR);
             }
         }
     }
