@@ -1869,7 +1869,7 @@ void ObjectList::load_shape_object(const std::string& type_name)
     if (obj_idx < 0)
         return;
 
-    take_snapshot(_L("Add Shape"));
+    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Add Shape"));
 
     // Create mesh
     BoundingBoxf3 bb;
@@ -1878,7 +1878,8 @@ void ObjectList::load_shape_object(const std::string& type_name)
     wxGetApp().mainframe->update_title();
 
     //BBS: arrange newly added objects
-    wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_ARRANGE));
+    SimpleEvent evt(EVT_GLTOOLBAR_ARRANGE);
+    ((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas())->ProcessEvent(evt);
 }
 
 void ObjectList::load_shape_object_from_gallery()
@@ -1908,12 +1909,13 @@ void ObjectList::load_shape_object_from_gallery(const wxArrayString& input_files
     for (size_t i = 1; i < paths.size(); ++i)
         snapshot_label += ", " + wxString::FromUTF8(paths[i].filename().string().c_str());
 
-    take_snapshot(snapshot_label);
+    Plater::TakeSnapshot snapshot(wxGetApp().plater(), snapshot_label);
     if (!wxGetApp().plater()->load_files(paths, true, false).empty()) {
         wxGetApp().mainframe->update_title();
 
         //BBS: arrange newly added objects
-        wxPostEvent((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_ARRANGE));
+        SimpleEvent evt(EVT_GLTOOLBAR_ARRANGE);
+        ((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas())->ProcessEvent(evt);
     }
 }
 

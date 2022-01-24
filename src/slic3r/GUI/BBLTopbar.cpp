@@ -473,8 +473,10 @@ void BBLTopbar::OnMouseLeftDClock(wxMouseEvent& mouse)
 {
     // check whether mouse is not on any tool item
     if (this->FindToolByCurrentPosition() != NULL &&
-        this->FindToolByCurrentPosition() != m_title_item)
+        this->FindToolByCurrentPosition() != m_title_item) {
+        mouse.Skip();
         return;
+    }
 
     if (m_frame->IsMaximized()) {
         m_frame->Restore();

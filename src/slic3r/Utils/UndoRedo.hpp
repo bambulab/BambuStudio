@@ -87,7 +87,20 @@ struct Snapshot
 	// The topmost snapshot is not being serialized to the Undo / Redo stack until going back in time, 
 	// when the top most state is being serialized, so we can redo back to the top most state.
 	bool 		is_topmost_captured() const { assert(this->is_topmost()); return model_id > 0; }
+
 };
+
+// BBS: moved from UndoRedo.cpp
+// If a snapshot modifies the snapshot type, 
+inline bool snapshot_modifies_project(SnapshotType type)
+{
+	return type == SnapshotType::Action || type == SnapshotType::GizmoAction || type == SnapshotType::ProjectSeparator;
+}
+
+inline bool snapshot_modifies_project(const Snapshot &snapshot)
+{
+	return snapshot_modifies_project(snapshot.snapshot_data.snapshot_type) && (snapshot.name.empty() || snapshot.name.back() != '!');
+}
 
 // Excerpt of Slic3r::GUI::Selection for serialization onto the Undo / Redo stack.
 struct Selection : public Slic3r::ObjectBase {

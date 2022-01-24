@@ -1042,9 +1042,13 @@ bool StackImpl::has_undo_snapshot() const
 	if (!this->valid())
 		return false;
 #endif
-
+	// BBS: undo-redo until modify record
 	auto it = std::lower_bound(m_snapshots.begin(), m_snapshots.end(), Snapshot(m_active_snapshot_time));
-	return -- it != m_snapshots.begin();
+	for (auto it2 = m_snapshots.begin(); it2 != it; ++it2) {
+		if (snapshot_modifies_project(*it2))
+			return true;
+	}
+	return false;
 }
 
 bool StackImpl::has_undo_snapshot(size_t time_to_load) const
@@ -1059,8 +1063,13 @@ bool StackImpl::has_redo_snapshot() const
 		return false;
 #endif
 
+	// BBS: undo-redo until modify record
 	auto it = std::lower_bound(m_snapshots.begin(), m_snapshots.end(), Snapshot(m_active_snapshot_time));
-	return ++ it != m_snapshots.end();
+	for (it; it != m_snapshots.end(); ++it) {
+		if (snapshot_modifies_project(*it))
+			return true;
+	}
+	return false;
 }
 
 bool StackImpl::undo(Slic3r::Model &model, const Slic3r::GUI::Selection &selection, Slic3r::GUI::GLGizmosManager &gizmos, Slic3r::GUI::PartPlateList& plate_list, const SnapshotData &snapshot_data, size_t time_to_load)
@@ -1122,17 +1131,6 @@ bool StackImpl::redo(Slic3r::Model& model, Slic3r::GUI::GLGizmosManager& gizmos,
  	this->print();
 #endif /* SLIC3R_UNDOREDO_DEBUG */
 	return true;
-}
-
-// If a snapshot modifies the snapshot type, 
-static inline bool snapshot_modifies_project(SnapshotType type)
-{
-	return type == SnapshotType::Action || type == SnapshotType::GizmoAction || type == SnapshotType::ProjectSeparator;
-}
-
-static inline bool snapshot_modifies_project(const Snapshot &snapshot)
-{
-	return snapshot_modifies_project(snapshot.snapshot_data.snapshot_type) && (snapshot.name.empty() || snapshot.name.back() != '!');
 }
 
 // Release snapshots between begin and end. Only erases data from m_snapshots, not from m_objects!

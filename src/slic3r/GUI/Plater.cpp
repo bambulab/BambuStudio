@@ -6021,17 +6021,22 @@ void Plater::priv::undo()
 {
     const std::vector<UndoRedo::Snapshot> &snapshots = this->undo_redo_stack().snapshots();
     auto it_current = std::lower_bound(snapshots.begin(), snapshots.end(), UndoRedo::Snapshot(this->undo_redo_stack().active_snapshot_time()));
-    if (-- it_current != snapshots.begin())
-        this->undo_redo_to(it_current);
+    // BBS: undo-redo until modify record
+    while (--it_current != snapshots.begin() && !snapshot_modifies_project(*it_current));
+    if (it_current == snapshots.begin()) return;
+    while (--it_current != snapshots.begin() && !snapshot_modifies_project(*it_current));
+    this->undo_redo_to(++it_current);
 }
 
 void Plater::priv::redo()
 {
     const std::vector<UndoRedo::Snapshot> &snapshots = this->undo_redo_stack().snapshots();
     auto it_current = std::lower_bound(snapshots.begin(), snapshots.end(), UndoRedo::Snapshot(this->undo_redo_stack().active_snapshot_time()));
-    if (++ it_current != snapshots.end())
+    // BBS: undo-redo until modify record
+    while (it_current != snapshots.end() && !snapshot_modifies_project(*it_current++));
+    if (it_current != snapshots.end())
         this->undo_redo_to(it_current);
-}
+} 
 
 void Plater::priv::undo_redo_to(size_t time_to_load)
 {
@@ -6775,7 +6780,8 @@ void Plater::add_model(bool imperial_units/* = false*/)
     if (!load_files(paths, true, false, imperial_units).empty()) {
         wxGetApp().mainframe->update_title();
         //BBS: arrange newly imported objects
-        wxPostEvent(get_current_canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_ARRANGE));
+        SimpleEvent evt(EVT_GLTOOLBAR_ARRANGE);
+        get_current_canvas3D()->get_wxglcanvas()->GetEventHandler()->ProcessEvent(evt);
     }
 }
 
@@ -8870,7 +8876,8 @@ void Plater::paste_from_clipboard()
         p->view3D->get_canvas3d()->get_selection().paste_from_clipboard();
 
     //BBS: arrange newly copied objects
-    wxPostEvent(get_current_canvas3D()->get_wxglcanvas(), SimpleEvent(EVT_GLTOOLBAR_ARRANGE));
+    SimpleEvent evt(EVT_GLTOOLBAR_ARRANGE);
+    get_current_canvas3D()->get_wxglcanvas()->GetEventHandler()->ProcessEvent(evt);
 }
 
 void Plater::search(bool plater_is_active)
