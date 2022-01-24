@@ -1567,6 +1567,14 @@ void DebugToolDialog::jump_to_printer(wxString selected)
         event->SetInt(selected_idx);
         wxQueueEvent(cb_device_list, event);
     }
+    else {
+        cb_device_list->Clear();
+        cb_device_list->Append(selected);
+        cb_device_list->Select(0);
+        wxCommandEvent* event = new wxCommandEvent(wxEVT_COMBOBOX, cb_device_list->GetId());
+        event->SetInt(selected_idx);
+        wxQueueEvent(cb_device_list, event);
+    }
 }
 
 std::string DebugToolDialog::switch_ams_gcode(std::string t)

@@ -258,7 +258,7 @@ void ParamsPanel::OnToggled(wxCommandEvent& event)
     if (value)
     {
         //m_mode_status->SetBitmap(m_toggle_on_icon);
-        mode_id = comExpert;
+        mode_id = comAdvanced;
     }
     else
     {
@@ -306,7 +306,7 @@ void ParamsPanel::update_mode()
     if (!m_mode_status->IsEnabled())
         m_mode_status->Enable();
 
-    if (app_mode == comExpert)
+    if (app_mode == comAdvanced)
     {
         m_mode_status->SetValue(true);
     }

@@ -974,7 +974,7 @@ void GUI_App::post_init()
     }
 
     // BBS: to be checked
-#if 0
+#if SUPPORT_SHOW_HINTS
     // show "Did you know" notification
     if (app_config->get("show_hints") == "1" && ! is_gcode_viewer())
         plater_->get_notification_manager()->push_hint_notification(true);
@@ -1289,7 +1289,7 @@ void GUI_App::init_http_extra_header()
     std::string os_version = (boost::format("%1%.%2%.%3%") % major % minor % micro).str();
     extra_headers.insert(std::make_pair("X-BBL-OS-Version", os_version));
     extra_headers.insert(std::make_pair("X-BBL-Device-ID", app_config->get("slicer_uuid")));
-    extra_headers.insert(std::make_pair("X-BBL-Language", app_config->get("translation_language")));
+    extra_headers.insert(std::make_pair("X-BBL-Language", app_config->get("language")));
     Http::set_extra_headers(extra_headers);
 }
 
@@ -1399,8 +1399,10 @@ bool GUI_App::on_init_inner()
 
     // If load_language() fails, the application closes.
     load_language(wxString(), true);
+#ifdef SUPPORT_DARK_MODE
 #ifdef _MSW_DARK_MODE
     NppDarkMode::InitDarkMode(app_config->get("dark_color_mode") == "1", app_config->get("sys_menu_enabled") == "1");
+#endif
 #endif
 
     if (m_last_config_version) {
@@ -1414,7 +1416,8 @@ bool GUI_App::on_init_inner()
     app_config->save();
 
     BBLSplashScreen * scrn = nullptr;
-    if (app_config->get("show_splash_screen") == "1") {
+    const bool show_splash_screen = true;
+    if (show_splash_screen) {
         // make a bitmap with dark grey banner on the left side
         //BBS make BBL splash screen bitmap
         wxBitmap bmp = BBLSplashScreen::MakeBitmap();
@@ -1455,16 +1458,13 @@ bool GUI_App::on_init_inner()
 
         preset_updater = new PresetUpdater();
         Bind(EVT_SLIC3R_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
-            app_config->set("version_online", into_u8(evt.GetString()));
-            app_config->save();
-            std::string opt = app_config->get("notify_release");
-            if (this->plater_ != nullptr && (opt == "all" || opt == "release")) {
+            if (this->plater_ != nullptr) {
                 // this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable);
                 //BBS show msg box to download new version
                 wxString tips = wxString::Format("click download new version in default browser: %s", m_account_manager->version_info.version_str);
                 wxMessageDialog dialog(this->mainframe,
                     tips,
-                    "New Version of Slicer",
+                    "New Version of BambuStudio",
                     wxCENTER | wxYES_DEFAULT | wxYES_NO | wxICON_INFORMATION);
                 wxString extmsg;
                 if (dialog.SetYesNoLabels("Download", "Skip"))
@@ -1487,7 +1487,7 @@ bool GUI_App::on_init_inner()
             });
         /* BBS Bind(EVT_SLIC3R_EXPERIMENTAL_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
             app_config->save();
-            if (this->plater_ != nullptr && app_config->get("notify_release") == "all") {
+            if (this->plater_ != nullptr) {
                 std::string evt_string = into_u8(evt.GetString());
                 if (*Semver::parse(SLIC3R_VERSION) < *Semver::parse(evt_string)) {
                     auto notif_type = (evt_string.find("beta") != std::string::npos ? NotificationType::NewBetaAvailable : NotificationType::NewAlphaAvailable);
@@ -1516,7 +1516,7 @@ bool GUI_App::on_init_inner()
     init_fonts();
 
     // Suppress the '- default -' presets.
-    preset_bundle->set_default_suppressed(app_config->get("no_defaults") == "1");
+    preset_bundle->set_default_suppressed(true);
     
     //BBS loading user preset
     scrn->SetText(_L("Loading user presets..."));
@@ -1576,7 +1576,8 @@ bool GUI_App::on_init_inner()
 
     plater_->init_notification_manager();
 
-    m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
+    //BBS
+    // m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
 
     if (is_gcode_viewer()) {
         mainframe->update_layout();
@@ -1609,7 +1610,7 @@ bool GUI_App::on_init_inner()
         if (! plater_)
             return;
 
-        if (app_config->dirty() && app_config->get("autosave") == "1")
+        if (app_config->dirty())
             app_config->save();
 
         // BBS
@@ -1653,9 +1654,7 @@ unsigned GUI_App::get_colour_approx_luma(const wxColour &colour)
 
 bool GUI_App::dark_mode()
 {
-    //BBS disable DarkUI mode
-    return false;
-
+#ifdef SUPPORT_DARK_MODE
 #if __APPLE__
     // The check for dark mode returns false positive on 10.12 and 10.13,
     // which allowed setting dark menu bar and dock area, which is
@@ -1666,6 +1665,10 @@ bool GUI_App::dark_mode()
     return wxGetApp().app_config->get("dark_color_mode") == "1" ? true : check_dark_mode();
     //const unsigned luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
     //return luma < 128;
+#endif
+#else
+    //BBS disable DarkUI mode
+    return false;
 #endif
 }
 
@@ -1699,17 +1702,7 @@ void GUI_App::init_label_colours()
 
 void GUI_App::update_label_colours_from_appconfig()
 {
-    if (app_config->has("label_clr_sys")) {
-        auto str = app_config->get("label_clr_sys");
-        if (str != "")
-            m_color_label_sys = wxColour(str);
-    }
-
-    if (app_config->has("label_clr_modified")) {
-        auto str = app_config->get("label_clr_modified");
-        if (str != "")
-            m_color_label_modified = wxColour(str);
-    }
+    ;
 }
 
 void GUI_App::update_label_colours()
@@ -1859,29 +1852,35 @@ void GUI_App::update_fonts(const MainFrame *main_frame)
 
 void GUI_App::set_label_clr_modified(const wxColour& clr) 
 {
+    return;
+    //BBS
+    /*
     if (m_color_label_modified == clr)
         return;
     m_color_label_modified = clr;
     auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), clr.Red(), clr.Green(), clr.Blue());
     std::string str = clr_str.ToStdString();
-    app_config->set("label_clr_modified", str);
     app_config->save();
+    */
 }
 
 void GUI_App::set_label_clr_sys(const wxColour& clr)
 {
+    return;
+    //BBS
+    /*
     if (m_color_label_sys == clr)
         return;
     m_color_label_sys = clr;
     auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), clr.Red(), clr.Green(), clr.Blue());
     std::string str = clr_str.ToStdString();
-    app_config->set("label_clr_sys", str);
     app_config->save();
+    */
 }
 
 bool GUI_App::tabs_as_menu() const
 {
-    return app_config->get("tabs_as_menu") == "1"; // || dark_mode();
+    return false;
 }
 
 wxSize GUI_App::get_min_size() const
@@ -1897,15 +1896,13 @@ float GUI_App::toolbar_icon_scale(const bool is_limited/* = false*/) const
     const float icon_sc = m_em_unit*0.1f;
 #endif // __APPLE__
 
-    const std::string& use_val  = app_config->get("use_custom_toolbar_size");
-    const std::string& val      = app_config->get("custom_toolbar_size");
-    const std::string& auto_val = app_config->get("auto_toolbar_size");
+    const std::string& auto_val = app_config->get("toolkit_size");
 
-    if (val.empty() || auto_val.empty() || use_val.empty())
+    if (auto_val.empty())
         return icon_sc;
 
-    int int_val = use_val == "0" ? 100 : atoi(val.c_str());
-    // correct value in respect to auto_toolbar_size
+    int int_val =  100;
+    // correct value in respect to toolkit_size
     int_val = std::min(atoi(auto_val.c_str()), int_val);
 
     if (is_limited && int_val < 50)
@@ -1925,7 +1922,7 @@ void GUI_App::set_auto_toolbar_icon_scale(float scale) const
     long int_val = std::min(int(std::lround(scale / icon_sc * 100)), 100);
     std::string val = std::to_string(int_val);
 
-    app_config->set("auto_toolbar_size", val);
+    app_config->set("toolkit_size", val);
 }
 
 // check user printer_presets for the containing information about "Print Host upload"
@@ -1974,7 +1971,7 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
     old_main_frame->Destroy();
 
     dlg.Update(80, _L("Loading of current presets") + dots);
-    m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
+    //m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
     load_current_presets();
     mainframe->Show(true);
 
@@ -2102,7 +2099,6 @@ void GUI_App::update_ui_from_settings()
         m_force_colors_update = false;
         mainframe->force_color_changed();
         mainframe->diff_dialog.force_color_changed();
-        mainframe->printhost_queue_dlg()->force_color_changed();
 #ifdef _MSW_DARK_MODE
         update_scrolls(mainframe);
 #endif //_MSW_DARK_MODE
@@ -2202,11 +2198,9 @@ void GUI_App::handle_http_error(unsigned int status, std::string body)
 //BBS pop up a dialog and download files
 void GUI_App::request_new_version()
 {
-    if (app_config->get("version_check") == "1") {
-        wxCommandEvent* evt = new wxCommandEvent(EVT_SLIC3R_VERSION_ONLINE);
-        evt->SetString(GUI::from_u8(m_account_manager->version_info.version_str));
-        GUI::wxGetApp().QueueEvent(evt);
-    }
+    wxCommandEvent* evt = new wxCommandEvent(EVT_SLIC3R_VERSION_ONLINE);
+    evt->SetString(GUI::from_u8(m_account_manager->version_info.version_str));
+    GUI::wxGetApp().QueueEvent(evt);   
 }
 
 void GUI_App::no_new_version()
@@ -2485,7 +2479,7 @@ bool GUI_App::select_language()
             // 2) Current locale language may not match the dictionary name, see GH issue #3901
             //    m_wxLocale->GetCanonicalName()
             // 3) new_language_info->CanonicalName is a safe bet. It points to a valid dictionary name.
-			app_config->set("translation_language", new_language_info->CanonicalName.ToUTF8().data());            
+			app_config->set("language", new_language_info->CanonicalName.ToUTF8().data());            
 			app_config->save();
     		return true;
     	}
@@ -2495,16 +2489,16 @@ bool GUI_App::select_language()
 }
 
 // Load gettext translation files and activate them at the start of the application,
-// based on the "translation_language" key stored in the application config.
+// based on the "language" key stored in the application config.
 bool GUI_App::load_language(wxString language, bool initial)
 {
     if (initial) {
     	// There is a static list of lookup path prefixes in wxWidgets. Add ours.
 	    wxFileTranslationsLoader::AddCatalogLookupPathPrefix(from_u8(localization_dir()));
     	// Get the active language from BambuStudio.ini, or empty string if the key does not exist.
-        language = app_config->get("translation_language");
+        language = app_config->get("language");
         if (! language.empty())
-        	BOOST_LOG_TRIVIAL(trace) << boost::format("translation_language provided by BambuStudio.ini: %1%") % language;
+        	BOOST_LOG_TRIVIAL(trace) << boost::format("language provided by BambuStudio.ini: %1%") % language;
 
         // Get the system language.
         {
@@ -2635,22 +2629,22 @@ Tab* GUI_App::get_tab(Preset::Type type)
 
 ConfigOptionMode GUI_App::get_mode()
 {
-    if (!app_config->has("view_mode"))
+    if (!app_config->has("user_mode"))
         return comSimple;
     //BBS
-    const auto mode = app_config->get("view_mode");
-    return mode == "expert" ? comExpert : 
+    const auto mode = app_config->get("user_mode");
+    return mode == "advanced" ? comAdvanced :
            mode == "simple" ? comSimple :
-           mode == "develop" ? comDevelop : comAdvanced;
+           mode == "develop" ? comDevelop : comSimple;
 }
 
 void GUI_App::save_mode(const /*ConfigOptionMode*/int mode) 
 {
     //BBS
-    const std::string mode_str = mode == comExpert ? "expert" :
+    const std::string mode_str = mode == comAdvanced ? "advanced" :
                                  mode == comSimple ? "simple" :
-                                 mode == comDevelop ? "develop" : "advanced";
-    app_config->set("view_mode", mode_str);
+                                 mode == comDevelop ? "develop" : "simple";
+    app_config->set("user_mode", mode_str);
     app_config->save(); 
     update_mode();
 }
@@ -2709,13 +2703,9 @@ void GUI_App::add_config_menu(wxMenu *menu)
         local_menu->AppendSeparator();
         mode_menu = new wxMenu();
         mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple, _L("Simple"), _L("Simple View Mode"));
-//    mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeAdvanced, _L("Advanced"), _L("Advanced View Mode"));
-        //BBS: GUI refactor: remove advanced mode, and set expert mode to advanced
-        //mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeAdvanced, _CTX(L_CONTEXT("Advanced", "Mode"), "Mode"), _L("Advanced View Mode"));
-        mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeExpert, _L("Advanced"), _L("Advanced View Mode"));
+        mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeAdvanced, _L("Advanced"), _L("Advanced View Mode"));
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { if (get_mode() == comSimple) evt.Check(true); }, config_id_base + ConfigMenuModeSimple);
-        //Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { if (get_mode() == comAdvanced) evt.Check(true); }, config_id_base + ConfigMenuModeAdvanced);
-        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { if (get_mode() == comExpert) evt.Check(true); }, config_id_base + ConfigMenuModeExpert);
+        Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { if (get_mode() == comAdvanced) evt.Check(true); }, config_id_base + ConfigMenuModeAdvanced);
 
         local_menu->AppendSubMenu(mode_menu, _L("Mode"), wxString::Format(_L("%s View Mode"), SLIC3R_APP_NAME));
     }
@@ -2868,8 +2858,7 @@ void GUI_App::add_config_menu(wxMenu *menu)
     if (mode_menu != nullptr) {
         auto modfn = [this](int mode, wxCommandEvent&) { if (get_mode() != mode) save_mode(mode); };
         mode_menu->Bind(wxEVT_MENU, std::bind(modfn, comSimple, _1), config_id_base + ConfigMenuModeSimple);
-        //mode_menu->Bind(wxEVT_MENU, std::bind(modfn, comAdvanced, _1), config_id_base + ConfigMenuModeAdvanced);
-        mode_menu->Bind(wxEVT_MENU, std::bind(modfn, comExpert, _1), config_id_base + ConfigMenuModeExpert);
+        mode_menu->Bind(wxEVT_MENU, std::bind(modfn, comAdvanced, _1), config_id_base + ConfigMenuModeAdvanced);
     }
 
     // BBS
@@ -2975,13 +2964,11 @@ std::vector<std::pair<unsigned int, std::string>> GUI_App::get_selected_presets(
 bool GUI_App::check_and_save_current_preset_changes(const wxString& caption, const wxString& header, bool remember_choice/* = true*/, bool dont_save_insted_of_discard/* = false*/)
 {
     if (has_current_preset_changes()) {
-        const std::string app_config_key = remember_choice ? "default_action_on_close_application" : "";
         int act_buttons = UnsavedChangesDialog::ActionButtons::SAVE;
         if (dont_save_insted_of_discard)
             act_buttons |= UnsavedChangesDialog::ActionButtons::DONT_SAVE;
-        UnsavedChangesDialog dlg(caption, header, app_config_key, act_buttons);
-        std::string act = app_config_key.empty() ? "none" : wxGetApp().app_config->get(app_config_key);
-        if (act == "none" && dlg.ShowModal() == wxID_CANCEL)
+        UnsavedChangesDialog dlg(caption, header, "", act_buttons);
+        if (dlg.ShowModal() == wxID_CANCEL)
             return false;
 
         if (dlg.save_preset())  // save selected changes
@@ -3028,10 +3015,8 @@ bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, con
     if (has_current_preset_changes()) {
         bool is_called_from_configwizard = postponed_apply_of_keeped_changes != nullptr;
 
-        const std::string app_config_key = is_called_from_configwizard ? "" : "default_action_on_new_project";
-        UnsavedChangesDialog dlg(caption, header, app_config_key, action_buttons);
-        std::string act = app_config_key.empty() ? "none" : wxGetApp().app_config->get(app_config_key);
-        if (act == "none" && dlg.ShowModal() == wxID_CANCEL)
+        UnsavedChangesDialog dlg(caption, header, "", action_buttons);
+        if (dlg.ShowModal() == wxID_CANCEL)
             return false;
 
         auto reset_modifications = [this, is_called_from_configwizard]() {
@@ -3115,7 +3100,7 @@ bool GUI_App::check_print_host_queue()
     wxString dirty;
     std::vector<std::pair<std::string, std::string>> jobs;
     // Get ongoing jobs from dialog
-    mainframe->m_printhost_queue_dlg->get_active_jobs(jobs);
+    // mainframe->m_printhost_queue_dlg->get_active_jobs(jobs);
     if (jobs.empty())
         return true;
     // Show dialog
@@ -3133,8 +3118,6 @@ bool GUI_App::check_print_host_queue()
     if (dialog.ShowModal() == wxID_YES)
         return true;
 
-    // TODO: If already shown, bring forward
-    mainframe->m_printhost_queue_dlg->Show();
     return false;
 }
 
@@ -3548,19 +3531,7 @@ void GUI_App::check_updates(const bool verbose)
 
 bool GUI_App::open_browser_with_warning_dialog(const wxString& url, int flags/* = 0*/)
 {
-    bool launch = true;
-
-    if (get_app_config()->get("suppress_hyperlinks").empty()) {
-        RichMessageDialog dialog(nullptr, _L("Open hyperlink in default browser?"), _L("BambuStudio: Open hyperlink"), wxICON_QUESTION | wxYES_NO);
-        dialog.ShowCheckBox(_L("Remember my choice"));
-        int answer = dialog.ShowModal();
-        launch = answer == wxID_YES;
-        get_app_config()->set("suppress_hyperlinks", dialog.IsCheckBoxChecked() ? (answer == wxID_NO ? "1" : "0") : "");
-    }
-    if (launch)
-        launch = get_app_config()->get("suppress_hyperlinks") != "1";
-
-    return  launch && wxLaunchDefaultBrowser(url, flags);
+    return wxLaunchDefaultBrowser(url, flags);
 }
 
 // static method accepting a wxWindow object as first parameter

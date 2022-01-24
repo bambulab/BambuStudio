@@ -1354,7 +1354,7 @@ bool ObjectList::can_drop(const wxDataViewItem& item) const
 
         if (dragged_item_v_type == item_v_type && dragged_item_v_type != ModelVolumeType::MODEL_PART)
             return true;
-        if ((wxGetApp().app_config->get("order_volumes") == "1" && dragged_item_v_type != item_v_type) ||   // we can't reorder volumes outside of types
+        if ((dragged_item_v_type != item_v_type) ||   // we can't reorder volumes outside of types
             item_v_type >= ModelVolumeType::SUPPORT_BLOCKER)        // support blockers/enforcers can't change its place
             return false; 
 
@@ -1942,7 +1942,7 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
     new_object->add_instance(); // each object should have at list one instance
     
     ModelVolume* new_volume = new_object->add_volume(mesh);
-    new_object->sort_volumes(wxGetApp().app_config->get("order_volumes") == "1");
+    new_object->sort_volumes(true);
     new_volume->name = into_u8(name);
     // set a default extruder value, since user can't add it manually
     // BBS
@@ -2392,7 +2392,7 @@ void ObjectList::merge(bool to_multipart_object)
                     new_volume->config.assign_config(volume->config);
                 }
             }
-            new_object->sort_volumes(wxGetApp().app_config->get("order_volumes") == "1");
+            new_object->sort_volumes(true);
 
             // merge settings
             auto new_opt_keys = config.keys();
@@ -4749,7 +4749,7 @@ wxDataViewItemArray ObjectList::reorder_volumes_and_get_selection(int obj_idx, s
     if (object->volumes.size() <= 1)
         return items;
 
-    object->sort_volumes(wxGetApp().app_config->get("order_volumes") == "1");
+    object->sort_volumes(true);
 
     wxDataViewItem object_item = m_objects_model->GetItemById(obj_idx);
     m_objects_model->DeleteVolumeChildren(object_item);
@@ -4773,7 +4773,7 @@ wxDataViewItemArray ObjectList::reorder_volumes_and_get_selection(int obj_idx, s
 
 void ObjectList::apply_volumes_order()
 {
-    if (wxGetApp().app_config->get("order_volumes") != "1" || !m_objects)
+    if (!m_objects)
         return;
 
     for (size_t obj_idx = 0; obj_idx < m_objects->size(); obj_idx++)

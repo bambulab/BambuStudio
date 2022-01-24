@@ -238,7 +238,6 @@ class UnsavedChangesDialog : public DPIDialog
     ScalableButton*         m_discard_btn   { nullptr };
     wxStaticText*           m_action_line   { nullptr };
     wxStaticText*           m_info_line     { nullptr };
-    wxCheckBox*             m_remember_choice   { nullptr };
 
     bool                    m_has_long_strings  { false };
     int                     m_save_btn_id       { wxID_ANY };

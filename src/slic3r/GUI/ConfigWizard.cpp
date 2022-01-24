@@ -1206,58 +1206,6 @@ PageCustom::PageCustom(ConfigWizard *parent)
     append(tc_profile_name);
 }
 
-PageUpdate::PageUpdate(ConfigWizard *parent)
-    : ConfigWizardPage(parent, _L("Automatic updates"), _L("Updates"))
-    , version_check(true)
-    , preset_update(true)
-{
-    const AppConfig *app_config = wxGetApp().app_config;
-    auto boldfont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-    boldfont.SetWeight(wxFONTWEIGHT_BOLD);
-
-    auto *box_slic3r = new wxCheckBox(this, wxID_ANY, _L("Check for application updates"));
-    box_slic3r->SetValue(app_config->get("notify_release") != "none");
-    append(box_slic3r);
-    append_text(wxString::Format(_L(
-        "If enabled, %s checks for new application versions online. When a new version becomes available, "
-         "a notification is displayed at the next application startup (never during program usage). "
-         "This is only a notification mechanisms, no automatic installation is done."), SLIC3R_APP_NAME));
-
-    append_spacer(VERTICAL_SPACING);
-
-    auto *box_presets = new wxCheckBox(this, wxID_ANY, _L("Update built-in Presets automatically"));
-    box_presets->SetValue(app_config->get("preset_update") == "1");
-    append(box_presets);
-    append_text(wxString::Format(_L(
-        "If enabled, %s downloads updates of built-in system presets in the background."
-        "These updates are downloaded into a separate temporary location."
-        "When a new preset version becomes available it is offered at application startup."), SLIC3R_APP_NAME));
-    const auto text_bold = _L("Updates are never applied without user's consent and never overwrite user's customized settings.");
-    auto *label_bold = new wxStaticText(this, wxID_ANY, text_bold);
-    label_bold->SetFont(boldfont);
-    label_bold->Wrap(WRAP_WIDTH);
-    append(label_bold);
-    append_text(_L("Additionally a backup snapshot of the whole configuration is created before an update is applied."));
-
-    box_slic3r->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &event) { this->version_check = event.IsChecked(); });
-    box_presets->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &event) { this->preset_update = event.IsChecked(); });
-}
-
-PageReloadFromDisk::PageReloadFromDisk(ConfigWizard* parent)
-    : ConfigWizardPage(parent, _L("Reload from disk"), _L("Reload from disk"))
-    , full_pathnames(false)
-{
-    auto* box_pathnames = new wxCheckBox(this, wxID_ANY, _L("Export full pathnames of models and parts sources into 3mf and amf files"));
-    box_pathnames->SetValue(wxGetApp().app_config->get("export_sources_full_pathnames") == "1");
-    append(box_pathnames);
-    append_text(_L(
-        "If enabled, allows the Reload from disk command to automatically find and load the files when invoked.\n"
-        "If not enabled, the Reload from disk command will ask to select each file using an open file dialog."
-    ));
-
-    box_pathnames->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& event) { this->full_pathnames = event.IsChecked(); });
-}
-
 #ifdef _WIN32
 PageFilesAssociation::PageFilesAssociation(ConfigWizard* parent)
     : ConfigWizardPage(parent, _L("Files association"), _L("Files association"))
@@ -1273,20 +1221,18 @@ PageFilesAssociation::PageFilesAssociation(ConfigWizard* parent)
 #endif // _WIN32
 
 PageMode::PageMode(ConfigWizard *parent)
-    : ConfigWizardPage(parent, _L("View mode"), _L("View mode"))
+    : ConfigWizardPage(parent, _L("User mode"), _L("User mode"))
 {
-    append_text(_L("BambuStudio's user interfaces comes in three variants:\nSimple, Advanced, and Expert.\n"
+    append_text(_L("BambuStudio's user interfaces comes in three variants:\nSimple and Advanced.\n"
         "The Simple mode shows only the most frequently used settings relevant for regular 3D printing. "
         "The other two offer progressively more sophisticated fine-tuning, "
-        "they are suitable for advanced and expert users, respectively."));
+        "they are suitable for advanced users, respectively."));
 
     radio_simple = new wxRadioButton(this, wxID_ANY, _L("Simple mode"));
     radio_advanced = new wxRadioButton(this, wxID_ANY, _L("Advanced mode"));
-    radio_expert = new wxRadioButton(this, wxID_ANY, _L("Expert mode"));
 
     append(radio_simple);
     append(radio_advanced);
-    append(radio_expert);
 
     append_text("\n" + _L("The size of the object can be specified in inches"));
     check_inch = new wxCheckBox(this, wxID_ANY, _L("Use inches"));
@@ -1296,10 +1242,9 @@ PageMode::PageMode(ConfigWizard *parent)
 void PageMode::on_activate()
 {
     std::string mode { "simple" };
-    wxGetApp().app_config->get("", "view_mode", mode);
+    wxGetApp().app_config->get("", "user_mode", mode);
 
     if (mode == "advanced") { radio_advanced->SetValue(true); }
-    else if (mode == "expert") { radio_expert->SetValue(true); }
     else { radio_simple->SetValue(true); }
 
     check_inch->SetValue(wxGetApp().app_config->get("use_inches") == "1");
@@ -1311,14 +1256,13 @@ void PageMode::serialize_mode(AppConfig *app_config) const
 
     if (radio_simple->GetValue()) { mode = "simple"; }
     if (radio_advanced->GetValue()) { mode = "advanced"; }
-    if (radio_expert->GetValue()) { mode = "expert"; }
 
     // If "Mode" page wasn't selected (no one radiobutton is checked),
-    // we shouldn't to update a view_mode value in app_config
+    // we shouldn't to update a user_mode value in app_config
     if (mode.empty())
         return; 
 
-    app_config->set("view_mode", mode);
+    app_config->set("user_mode", mode);
     app_config->set("use_inches", check_inch->GetValue() ? "1" : "0");
 }
 
@@ -1935,8 +1879,6 @@ void ConfigWizard::priv::load_pages()
     // there should to be selected at least one printer
     btn_finish->Enable();
 
-    index->add_page(page_update);
-    index->add_page(page_reload_from_disk);
 #ifdef _WIN32
     index->add_page(page_files_association);
 #endif // _WIN32
@@ -2749,10 +2691,6 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 
     app_config->set_vendors(appconfig_new);
 
-    app_config->set("notify_release", page_update->version_check ? "all" : "none");
-    app_config->set("preset_update", page_update->preset_update ? "1" : "0");
-    app_config->set("export_sources_full_pathnames", page_reload_from_disk->full_pathnames ? "1" : "0");
-
 #ifdef _WIN32
     app_config->set("associate_3mf", page_files_association->associate_3mf() ? "1" : "0");
     app_config->set("associate_stl", page_files_association->associate_stl() ? "1" : "0");
@@ -2927,9 +2865,6 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     p->add_page(p->page_sla_materials = new PageMaterials(this, &p->sla_materials,
         _L("SLA Material Profiles Selection") + " ", _L("SLA Materials"), _L("Type:") ));
 
-    
-    p->add_page(p->page_update   = new PageUpdate(this));
-    p->add_page(p->page_reload_from_disk = new PageReloadFromDisk(this));
 #ifdef _WIN32
     p->add_page(p->page_files_association = new PageFilesAssociation(this));
 #endif // _WIN32

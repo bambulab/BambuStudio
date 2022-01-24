@@ -188,9 +188,8 @@ PresetUpdater::priv::priv()
 // Pull relevant preferences from AppConfig
 void PresetUpdater::priv::set_download_prefs(AppConfig *app_config)
 {
-	enabled_version_check = app_config->get("notify_release") != "none";
 	version_check_url = app_config->version_check_url();
-	enabled_config_update = app_config->get("preset_update") == "1" && !app_config->legacy_datadir();
+	enabled_config_update = true;
 }
 
 // Downloads a file (http get operation). Cancels if the Updater is being destroyed.
@@ -763,28 +762,6 @@ void PresetUpdater::slic3r_update_notify()
 {
 	if (! p->enabled_version_check)
 		return;
-
-	//BBS: disable online update currently
-#if 0
-	auto* app_config = GUI::wxGetApp().app_config;
-	const auto ver_online_str = app_config->get("version_online");
-	const auto ver_online = Semver::parse(ver_online_str);
-	const auto ver_online_seen = Semver::parse(app_config->get("version_online_seen"));
-
-	if (ver_online) {
-		// Only display the notification if the version available online is newer AND if we haven't seen it before
-		if (*ver_online > Slic3r::SEMVER && (! ver_online_seen || *ver_online_seen < *ver_online)) {
-			GUI::MsgUpdateSlic3r notification(Slic3r::SEMVER, *ver_online);
-			notification.ShowModal();
-			if (notification.disable_version_check()) {
-				app_config->set("notify_release", "none");
-				p->enabled_version_check = false;
-			}
-		}
-
-		app_config->set("version_online_seen", ver_online_str);
-	}
-#endif
 }
 
 static bool reload_configs_update_gui()

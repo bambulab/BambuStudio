@@ -238,7 +238,7 @@ protected:
     int                 m_em_unit;
     // To avoid actions with no-completed Tab
     bool                m_completed { false };
-    ConfigOptionMode    m_mode = comExpert; // to correct first Tab update_visibility() set mode to Expert
+    ConfigOptionMode    m_mode = comAdvanced; // to correct first Tab update_visibility() set mode to Advanced
 
 	struct Highlighter
 	{

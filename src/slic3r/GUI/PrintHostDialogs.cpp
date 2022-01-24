@@ -463,57 +463,11 @@ void PrintHostQueueDialog::get_active_jobs(std::vector<std::pair<std::string, st
 }
 void PrintHostQueueDialog::save_user_data(int udt)
 {
-    const auto em = GetTextExtent("m").x;
-    auto *app_config = wxGetApp().app_config;
-    if (udt & UserDataType::UDT_SIZE) {
-        
-        app_config->set("print_host_queue_dialog_height", std::to_string(this->GetSize().x / em));
-        app_config->set("print_host_queue_dialog_width", std::to_string(this->GetSize().y / em));
-    }
-    if (udt & UserDataType::UDT_POSITION)
-    {
-        app_config->set("print_host_queue_dialog_x", std::to_string(this->GetPosition().x));
-        app_config->set("print_host_queue_dialog_y", std::to_string(this->GetPosition().y));
-    }
-    if (udt & UserDataType::UDT_COLS)
-    {
-        for (size_t i = 0; i < job_list->GetColumnCount() - 1; i++)
-        {
-            app_config->set("print_host_queue_dialog_column_" + std::to_string(i), std::to_string(job_list->GetColumn(i)->GetWidth()));
-        }
-    }    
+    //BBS do not save dialog info
+    return;    
 }
 bool PrintHostQueueDialog::load_user_data(int udt, std::vector<int>& vector)
 {
-    auto* app_config = wxGetApp().app_config;
-    auto hasget = [app_config](const std::string& name, std::vector<int>& vector)->bool {
-        if (app_config->has(name)) {
-            vector.push_back(std::stoi(app_config->get(name)));
-            return true;
-        }
-        return false;
-    };
-    if (udt & UserDataType::UDT_SIZE) {
-        if (!hasget("print_host_queue_dialog_height",vector))
-            return false;
-        if (!hasget("print_host_queue_dialog_width", vector))
-            return false;
-    }
-    if (udt & UserDataType::UDT_POSITION)
-    {
-        if (!hasget("print_host_queue_dialog_x", vector))
-            return false;
-        if (!hasget("print_host_queue_dialog_y", vector))
-            return false;
-    }
-    if (udt & UserDataType::UDT_COLS)
-    {
-        for (size_t i = 0; i < 6; i++)
-        {
-            if (!hasget("print_host_queue_dialog_column_" + std::to_string(i), vector))
-                return false;
-        }
-    }
-    return true;
+    return true; 
 }
 }}

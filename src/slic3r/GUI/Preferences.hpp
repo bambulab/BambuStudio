@@ -28,7 +28,6 @@ class PreferencesDialog : public DPIDialog
 {
 	std::map<std::string, std::string>	m_values;
 	std::shared_ptr<ConfigOptionsGroup>	m_optgroup_general;
-	std::shared_ptr<ConfigOptionsGroup>	m_optgroup_camera;
 	std::shared_ptr<ConfigOptionsGroup>	m_optgroup_gui;
 #ifdef _WIN32
 	std::shared_ptr<ConfigOptionsGroup>	m_optgroup_dark_mode;
@@ -42,8 +41,6 @@ class PreferencesDialog : public DPIDialog
 	//BBS
 	bool								m_develop_mode_changed{ false };
 	bool								m_domain_changed{ false };
-	wxColourPickerCtrl*					m_sys_colour {nullptr};
-	wxColourPickerCtrl*					m_mod_colour {nullptr};
     bool                                isOSX {false};
 	//BBS GUI refactor: remove unuse layout logic
 	//bool								m_settings_layout_changed {false};
@@ -67,7 +64,6 @@ protected:
     void layout();
     void create_icon_size_slider();
     void create_settings_mode_widget();
-    void create_settings_text_color_widget();
 	void init_highlighter(const t_config_option_key& opt_key);
 	std::vector<ConfigOptionsGroup*> optgroups();
 	// BBS

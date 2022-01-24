@@ -1583,11 +1583,13 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_configbundle(
                     unescape_strings_cstyle(kvp.second.data(), *dst);
             }
         } else if (section.first == "settings") {
+#ifdef SUPPORT_AUTO_CENTER
             // Load the settings.
             for (auto &kvp : section.second) {
                 if (kvp.first == "autocenter") {
                 }
             }
+#endif
         } else
             // Ignore an unknown section.
             continue;

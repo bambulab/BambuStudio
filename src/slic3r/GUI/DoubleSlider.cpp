@@ -1265,7 +1265,7 @@ int Control::get_value_from_position(const wxCoord x, const wxCoord y)
 bool Control::is_lower_thumb_editable()
 {
     if (m_draw_mode == dmSequentialGCodeView)
-        return Slic3r::GUI::get_app_config()->get("seq_top_layer_only") == "0";
+        return false;
     return true;
 }
 

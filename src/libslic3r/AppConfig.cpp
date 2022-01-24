@@ -48,33 +48,25 @@ void AppConfig::reset()
 void AppConfig::set_defaults()
 {
     if (m_mode == EAppMode::Editor) {
+#ifdef SUPPORT_AUTO_CENTER
         // Reset the empty fields to defaults.
         if (get("autocenter").empty())
             set("autocenter", "0");
+#endif
+
+#ifdef SUPPORT_BACKGROUND_PROCESSING
         // Disable background processing by default as it is not stable.
         if (get("background_processing").empty())
             set("background_processing", "0");
-        // If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
-        // By default, BambuStudio has the controller hidden.
-        if (get("no_controller").empty())
-            set("no_controller", "1");
-        // If set, the "- default -" selections of print/filament/printer are suppressed, if there is a valid preset available.
-        if (get("no_defaults").empty())
-            set("no_defaults", "1");
-        if (get("show_incompatible_presets").empty())
-            set("show_incompatible_presets", "0");
+#endif
 
+#ifdef SUPPORT_SHOW_DROP_PROJECT
         if (get("show_drop_project_dialog").empty())
             set("show_drop_project_dialog", "1");
+#endif
+
         if (get("drop_project_action").empty())
             set("drop_project_action", "1");
-
-        //BBS: disable preset update currently
-        if (get("preset_update").empty())
-            set("preset_update", "0");
-
-        if (get("export_sources_full_pathnames").empty())
-            set("export_sources_full_pathnames", "0");
 
 #ifdef _WIN32
         if (get("associate_3mf").empty())
@@ -82,8 +74,6 @@ void AppConfig::set_defaults()
         if (get("associate_stl").empty())
             set("associate_stl", "0");
 
-        if (get("tabs_as_menu").empty())
-            set("tabs_as_menu", "0");
 #endif // _WIN32
 
         // remove old 'use_legacy_opengl' parameter from this config, if present
@@ -104,23 +94,15 @@ void AppConfig::set_defaults()
 #endif // __APPLE__
                 );
 
+#ifdef SUPPORT_REMEMBER_OUTPUT_PATH
         if (get("remember_output_path").empty())
             set("remember_output_path", "1");
 
         if (get("remember_output_path_removable").empty())
             set("remember_output_path_removable", "1");
-
-        if (get("use_custom_toolbar_size").empty())
-            set("use_custom_toolbar_size", "0");
-
-        if (get("custom_toolbar_size").empty())
-            set("custom_toolbar_size", "100");
-
-        if (get("auto_toolbar_size").empty())
-            set("auto_toolbar_size", "100");
- 
-       if (get("notify_release").empty())
-           set("notify_release", "all"); // or "none" or "release"
+#endif
+        if (get("toolkit_size").empty())
+            set("toolkit_size", "100");
 
 #if ENABLE_ENVIRONMENT_MAP
         if (get("use_environment_map").empty())
@@ -129,24 +111,6 @@ void AppConfig::set_defaults()
 
         if (get("use_inches").empty())
             set("use_inches", "0");
-
-        if (get("default_action_on_close_application").empty())
-            set("default_action_on_close_application", "none"); // , "discard" or "save" 
-
-        if (get("default_action_on_select_preset").empty())
-            set("default_action_on_select_preset", "none");     // , "transfer", "discard" or "save" 
-
-        if (get("default_action_on_new_project").empty())
-            set("default_action_on_new_project", "none");       // , "keep(transfer)", "discard" or "save" 
-
-        if (get("color_mapinulation_panel").empty())
-            set("color_mapinulation_panel", "0");
-
-        if (get("order_volumes").empty())
-            set("order_volumes", "1");
-
-        if (get("clear_undo_redo_stack_on_new_project").empty())
-            set("clear_undo_redo_stack_on_new_project", "1");
     }
     else {
 #ifdef _WIN32
@@ -155,36 +119,41 @@ void AppConfig::set_defaults()
 #endif // _WIN32
     }
 
-    if (get("seq_top_layer_only").empty())
-        set("seq_top_layer_only", "1");
-
     if (get("use_perspective_camera").empty())
         set("use_perspective_camera", "1");
 
+#ifdef SUPPORT_FREE_CAMERA
     if (get("use_free_camera").empty())
         set("use_free_camera", "0");
+#endif
 
+#ifdef SUPPORT_REVERSE_MOUSE_ZOOM
     if (get("reverse_mouse_wheel_zoom").empty())
         set("reverse_mouse_wheel_zoom", "0");
+#endif
 
-    if (get("show_splash_screen").empty())
-        set("show_splash_screen", "1");
-
+#ifdef SUPPORT_SHOW_HINTS
     if (get("show_hints").empty())
         set("show_hints", "1");
+#endif
 
-    if (get("allow_ip_resolve").empty())
-        set("allow_ip_resolve", "1");
 
 #ifdef _WIN32
+
+#ifdef SUPPORT_3D_CONNEXION
     if (get("use_legacy_3DConnexion").empty())
         set("use_legacy_3DConnexion", "0");
+#endif
 
+#ifdef SUPPORT_DARK_MODE
     if (get("dark_color_mode").empty())
         set("dark_color_mode", "0");
+#endif
 
+#ifdef SUPPORT_SYS_MENU
     if (get("sys_menu_enabled").empty())
         set("sys_menu_enabled", "1");
+#endif
 #endif // _WIN32
 
     // BBS
@@ -601,7 +570,7 @@ std::string AppConfig::get_last_output_dir(const std::string &alt) const
 	
     const auto it = m_storage.find("");
     if (it != m_storage.end()) {
-        const auto it2 = it->second.find("last_output_path");
+        const auto it2 = it->second.find("last_export_path");
         const auto it3 = it->second.find("remember_output_path");
         if (it2 != it->second.end() && it3 != it->second.end() && ! it2->second.empty() && it3->second == "1")
             return it2->second;
@@ -611,18 +580,16 @@ std::string AppConfig::get_last_output_dir(const std::string &alt) const
 
 void AppConfig::update_last_output_dir(const std::string &dir)
 {
-    this->set("", "last_output_path", dir);
+    this->set("", "last_export_path", dir);
 }
 */
 std::string AppConfig::get_last_output_dir(const std::string& alt, const bool removable) const
 {
-	std::string s1 = (removable ? "last_output_path_removable" : "last_output_path");
-	std::string s2 = (removable ? "remember_output_path_removable" : "remember_output_path");
+	std::string s1 = (removable ? "last_export_path_removable" : "last_export_path");
 	const auto it = m_storage.find("");
 	if (it != m_storage.end()) {
 		const auto it2 = it->second.find(s1);
-		const auto it3 = it->second.find(s2);
-		if (it2 != it->second.end() && it3 != it->second.end() && !it2->second.empty() && it3->second == "1")
+		if (it2 != it->second.end() && !it2->second.empty())
 			return it2->second;
 	}
 	return is_shapes_dir(alt) ? get_last_dir() : alt;
@@ -630,7 +597,7 @@ std::string AppConfig::get_last_output_dir(const std::string& alt, const bool re
 
 void AppConfig::update_last_output_dir(const std::string& dir, const bool removable)
 {
-	this->set("", (removable ? "last_output_path_removable" : "last_output_path"), dir);
+	this->set("", (removable ? "last_export_path_removable" : "last_export_path"), dir);
 }
 
 // BBS: backup

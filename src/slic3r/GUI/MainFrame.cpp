@@ -24,7 +24,6 @@
 #include "Tab.hpp"
 #include "ProgressStatusBar.hpp"
 #include "3DScene.hpp"
-#include "PrintHostDialogs.hpp"
 #include "wxExtensions.hpp"
 #include "GUI_ObjectList.hpp"
 #include "Mouse3DController.hpp"
@@ -134,8 +133,7 @@ static wxIcon main_frame_icon(GUI_App::EAppMode app_mode)
 wxDEFINE_EVENT(EVT_SELECT_DEFAULT_PRESET,     SimpleEvent);
 
 MainFrame::MainFrame() :
-DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_STYLE, "mainframe"),
-    m_printhost_queue_dlg(new PrintHostQueueDialog(this))
+DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_STYLE, "mainframe")
     // BBS
     , m_topbar(new BBLTopbar(this))
     , m_recent_projects(9)
@@ -380,7 +378,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     update_ui_from_settings();    // FIXME (?)
 
     if (m_plater != nullptr) {
+#ifdef SUPPORT_COLLAPSE_BUTTON
         m_plater->get_collapse_toolbar().set_enabled(wxGetApp().app_config->get("show_collapse_button") == "1");
+#endif
         // BBS
         //m_plater->show_action_buttons(true);
         update_slice_print_status(eEventSliceUpdate, true, true);
@@ -1136,8 +1136,12 @@ bool MainFrame::can_eject() const
 
 bool MainFrame::can_slice() const
 {
+#ifdef SUPPORT_BACKGROUND_PROCESSING
     bool bg_proc = wxGetApp().app_config->get("background_processing") == "1";
     return (m_plater != nullptr) ? !m_plater->model().objects.empty() && !bg_proc : false;
+#else
+    return (m_plater != nullptr) ? !m_plater->model().objects.empty() : false;
+#endif
 }
 
 bool MainFrame::can_change_view() const
@@ -2033,16 +2037,16 @@ void MainFrame::init_menubar_as_editor()
         wxWindowID camera_id_base = wxWindow::NewControlId(int(wxID_CAMERA_COUNT));
         auto perspective_item = append_menu_radio_item(viewMenu, wxID_CAMERA_PERSPECTIVE + camera_id_base, _L("Use Perspective View"), _L("Use perspective view  camera"),
             [this](wxCommandEvent&) {
-                wxGetApp().app_config->set("use_perspective_camera", "1");
+                wxGetApp().app_config->set("is_perspective", "1");
                 wxGetApp().update_ui_from_settings();
             }, nullptr);
         //BBS orthogonal view
         auto orthogonal_item = append_menu_radio_item(viewMenu, wxID_CAMERA_ORTHOGONAL + camera_id_base, _L("Use Orthogonal View"), _L("Use orthogonal view camera"),
             [this](wxCommandEvent&) {
-                wxGetApp().app_config->set("use_perspective_camera", "0");
+                wxGetApp().app_config->set("is_perspective", "0");
                 wxGetApp().update_ui_from_settings();
             }, nullptr);
-        if (wxGetApp().app_config->get("use_perspective_camera").compare("1") == 0)
+        if (wxGetApp().app_config->get("is_perspective").compare("1") == 0)
             viewMenu->Check(wxID_CAMERA_PERSPECTIVE + camera_id_base, true);
         else
             viewMenu->Check(wxID_CAMERA_ORTHOGONAL + camera_id_base, true);

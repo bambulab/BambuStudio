@@ -537,9 +537,11 @@ GLGizmoRotate3D::RotoptimzeWindow::RotoptimzeWindow(ImGuiWrapper *   imgui,
         for (size_t i = 0; i < RotoptimizeJob::get_methods_count(); ++i) {
             if (ImGui::Selectable(RotoptimizeJob::get_method_name(i).c_str())) {
                 state.method_id = i;
+#ifdef SUPPORT_SLA_AUTO_ROTATE
                 wxGetApp().app_config->set("sla_auto_rotate",
                                            "method_id",
                                            std::to_string(state.method_id));
+#endif SUPPORT_SLA_AUTO_ROTATE
             }
 
             if (ImGui::IsItemHovered())

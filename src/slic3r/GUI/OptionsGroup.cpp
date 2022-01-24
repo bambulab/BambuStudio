@@ -1038,52 +1038,12 @@ wxString OptionsGroup::get_url(const std::string& path_end)
 {
     //BBS
     return "";
-    /*
-    if (path_end.empty())
-        return wxEmptyString;
-
-    wxString language = get_app_config()->get("translation_language");
-    wxString lang_marker = language.IsEmpty() ? "en" : language.BeforeFirst('_');
-
-    return wxString("https://help.prusa3d.com/") + lang_marker + wxString("/article/" + path_end);
-    */
 }
 
 bool OptionsGroup::launch_browser(const std::string& path_end)
 {
-    bool launch = true;
-
-    if (get_app_config()->get("suppress_hyperlinks").empty()) {
-        //wxWindow* parent = wxGetApp().mainframe->m_tabpanel;
-        wxWindow* parent = wxGetApp().mainframe;
-        RichMessageDialog dialog(nullptr, _L("Open hyperlink in default browser?"), _L("BambuStudio: Open hyperlink"), wxYES_NO);
-        dialog.ShowCheckBox(_L("Remember my choice"));
-        int answer = dialog.ShowModal();
-        if (answer == wxID_CANCEL)
-            return false;
-
-        if (dialog.IsCheckBoxChecked()) {
-            wxString preferences_item = _L("Suppress to open hyperlink in browser");
-            wxString msg =
-                _L("BambuStudio will remember your choice.") + "\n\n" +
-                _L("You will not be asked about it again on label hovering.") + "\n\n" +
-                format_wxstr(_L("Visit \"Preferences\" and check \"%1%\"\nto changes your choice."), preferences_item);
-
-            MessageDialog msg_dlg(parent, msg, _L("BambuStudio: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
-            if (msg_dlg.ShowModal() == wxID_CANCEL)
-                return false;
-
-            get_app_config()->set("suppress_hyperlinks", dialog.IsCheckBoxChecked() ? (answer == wxID_NO ? "1" : "0") : "");
-        }
-
-        launch = answer == wxID_YES;
-    }
-    if (launch)
-        launch = get_app_config()->get("suppress_hyperlinks") != "1";
-
-    return launch && wxLaunchDefaultBrowser(OptionsGroup::get_url(path_end));
+    return wxLaunchDefaultBrowser(OptionsGroup::get_url(path_end));
 }
-
 
 
 //-------------------------------------------------------------------------------------------
@@ -1124,7 +1084,7 @@ void ogStaticText::SetPathEnd(const std::string& link)
         event.Skip();
     } );
     Bind(wxEVT_ENTER_WINDOW, [this, link](wxMouseEvent& event) {
-        SetToolTip(OptionsGroup::get_url(get_app_config()->get("suppress_hyperlinks") != "1" ? link : std::string()));
+        SetToolTip(OptionsGroup::get_url(std::string()));
         FocusText(true); 
         event.Skip(); 
     });
@@ -1133,9 +1093,6 @@ void ogStaticText::SetPathEnd(const std::string& link)
 
 void ogStaticText::FocusText(bool focus)
 {
-    if (get_app_config()->get("suppress_hyperlinks") == "1")
-        return;
-
     SetFont(focus ? Slic3r::GUI::wxGetApp().link_font() :
                     Slic3r::GUI::wxGetApp().normal_font());
     Refresh();

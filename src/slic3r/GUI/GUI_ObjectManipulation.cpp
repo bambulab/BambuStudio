@@ -105,7 +105,9 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     OG_Settings(parent, true)
 {
     m_imperial_units = wxGetApp().app_config->get("use_inches") == "1";
+#ifdef SUPPORT_COLOR_MAPINULATION
     m_use_colors     = wxGetApp().app_config->get("color_mapinulation_panel") == "1";
+#endif
 
     m_manifold_warning_bmp = ScalableBitmap(parent, "exclamation");
 
@@ -160,7 +162,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
         this->set_world_coordinates(evt.GetSelection() != 1);
     }), m_word_local_combo->GetId());
 
-    // Small trick to correct layouting in different view_mode :
+    // Small trick to correct layouting in different user_mode :
     // Show empty string of a same height as a m_word_local_combo, when m_word_local_combo is hidden
     m_word_local_combo_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_empty_str = new wxStaticText(parent, wxID_ANY, "");
@@ -488,7 +490,7 @@ void ObjectManipulation::update_ui_from_settings()
         }
     }
     m_check_inch->SetValue(m_imperial_units);
-
+#ifdef SUPPORT_COLOR_MAPINULATION
     if (m_use_colors != (wxGetApp().app_config->get("color_mapinulation_panel") == "1"))
     {
         m_use_colors = wxGetApp().app_config->get("color_mapinulation_panel") == "1";
@@ -514,6 +516,7 @@ void ObjectManipulation::update_ui_from_settings()
                 axis_id = 0;
         }
     }
+#endif
 }
 
 void ObjectManipulation::update_settings_value(const Selection& selection)

@@ -422,7 +422,6 @@ struct PageMode: ConfigWizardPage
 {
     wxRadioButton *radio_simple;
     wxRadioButton *radio_advanced;
-    wxRadioButton *radio_expert;
 
     wxCheckBox    *check_inch;
 
@@ -575,7 +574,6 @@ struct ConfigWizard::priv
     PageMaterials    *page_filaments = nullptr;
     PageMaterials    *page_sla_materials = nullptr;
     PageCustom       *page_custom = nullptr;
-    PageUpdate       *page_update = nullptr;
     PageReloadFromDisk *page_reload_from_disk = nullptr;
 #ifdef _WIN32
     PageFilesAssociation* page_files_association = nullptr;

@@ -773,42 +773,14 @@ UnsavedChangesDialog::UnsavedChangesDialog(const wxString& caption, const wxStri
     m_buttons(act_buttons)
 {
     build(Preset::TYPE_INVALID, nullptr, "", header);
-
-    const std::string& def_action = m_app_config_key.empty() ? none : wxGetApp().app_config->get(m_app_config_key);
-    if (def_action == none)
-        this->CenterOnScreen();
-    else {
-        m_exit_action = def_action == ActTransfer   ? Action::Transfer  :
-                        def_action == ActSave       ? Action::Save      : Action::Discard;
-        if (m_exit_action != Action::Discard)
-            save(nullptr, m_exit_action == Action::Save);
-    }
+    this->CenterOnScreen();
 }
 
 UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset)
     : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("Switching Presets: Unsaved Changes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-    m_app_config_key = "default_action_on_select_preset";
-
     build(type, dependent_presets, new_selected_preset);
-
-    const std::string& def_action = wxGetApp().app_config->get(m_app_config_key);
-    if (def_action == none) {
-        //BBS GUI refactor: remove unused layout new/dlg
-        //if (wxGetApp().mainframe->is_dlg_layout() && wxGetApp().mainframe->m_settings_dialog.HasFocus())
-        //    this->SetPosition(wxGetApp().mainframe->m_settings_dialog.GetPosition());
-        this->CenterOnScreen();
-    }
-    else {
-        m_exit_action = def_action == ActTransfer   ? Action::Transfer  :
-                        def_action == ActSave       ? Action::Save      : Action::Discard;
-        const PresetCollection& printers = wxGetApp().preset_bundle->printers;
-        if (m_exit_action == Action::Save || 
-            (m_exit_action == Action::Transfer && dependent_presets && (type == dependent_presets->type() ?
-            dependent_presets->get_edited_preset().printer_technology() != dependent_presets->find_preset(new_selected_preset)->printer_technology() :
-            printers.get_edited_preset().printer_technology() != printers.find_preset(new_selected_preset)->printer_technology())) )
-            save(dependent_presets);
-    }
+    this->CenterOnScreen();
 }
 
 void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset, const wxString& header)
@@ -844,7 +816,6 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
         (*btn)->SetFont(btn_font);
 
         (*btn)->Bind(wxEVT_BUTTON, [this, close_act, dependent_presets](wxEvent&) {
-            update_config(close_act);
             bool save_names_and_types = close_act == Action::Save || (close_act == Action::Transfer && ActionButtons::KEEP & m_buttons);
             if (save_names_and_types && !save(dependent_presets, close_act == Action::Save))
                 return;
@@ -886,27 +857,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
     m_info_line->Hide();
 
     if (!m_app_config_key.empty()) {
-        m_remember_choice = new wxCheckBox(this, wxID_ANY, _L("Remember my choice"));
-        m_remember_choice->SetValue(wxGetApp().app_config->get(m_app_config_key) != none);
-        m_remember_choice->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& evt)
-        {
-            if (!evt.IsChecked())
-                return;
-            wxString preferences_item = m_app_config_key == "default_action_on_new_project"     ? _L("Ask for unsaved changes when creating new project") :
-                                        m_app_config_key == "default_action_on_select_preset"   ? _L("Ask for unsaved changes when selecting new preset") :
-                                                                                                  _L("Ask to save unsaved changes when closing the application or when loading a new project") ;
-            wxString action = m_app_config_key == "default_action_on_new_project"   ? _L("You will not be asked about the unsaved changes the next time you create new project") : 
-                              m_app_config_key == "default_action_on_select_preset" ? _L("You will not be asked about the unsaved changes the next time you switch a preset") :
-                                                                                      _L("You will not be asked about the unsaved changes the next time you: \n"
-						                                                                    "- Closing BambuStudio while some presets are modified,\n"
-						                                                                    "- Loading a new project while some presets are modified") ;
-            wxString msg = _L("BambuStudio will remember your action.") + "\n\n" + action + "\n\n" +
-                           format_wxstr(_L("Visit \"Preferences\" and check \"%1%\"\nto be asked about unsaved changes again."), preferences_item);
-    
-            MessageDialog dialog(nullptr, msg, _L("BambuStudio: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
-            if (dialog.ShowModal() == wxID_CANCEL)
-                m_remember_choice->SetValue(false);
-        });
+        
     }
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
@@ -915,8 +866,6 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
     topSizer->Add(m_tree,       1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
     topSizer->Add(m_info_line,  0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, 2*border);
     topSizer->Add(buttons,      0, wxEXPAND | wxALL, border);
-    if (m_remember_choice)
-        topSizer->Add(m_remember_choice, 0, wxEXPAND | wxLEFT | wxBOTTOM | wxRIGHT, border);
 
     update(type, dependent_presets, new_selected_preset, header);
 
@@ -955,16 +904,6 @@ void UnsavedChangesDialog::show_info_line(Action action, std::string preset_name
 
     Layout();
     Refresh();
-}
-
-void UnsavedChangesDialog::update_config(Action action)
-{
-    if (!m_remember_choice || !m_remember_choice->GetValue())
-        return;
-
-    std::string act = action == Action::Transfer ? ActTransfer :
-                      action == Action::Discard  ? ActDiscard   : ActSave;
-    wxGetApp().app_config->set(m_app_config_key, act);
 }
 
 void UnsavedChangesDialog::close(Action action)

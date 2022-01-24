@@ -530,8 +530,8 @@ void MenuFactory::append_menu_items_add_volume(wxMenu* menu)
             menu->Destroy(settings_id);
     }
 
-    //BBS set mode to expert by default
-    const ConfigOptionMode mode = comExpert;
+    //BBS set mode to advanced by default
+    const ConfigOptionMode mode = comAdvanced;
 
     if (mode == comAdvanced) {
         append_menu_item(menu, wxID_ANY, _(ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::MODEL_PART)].first), "",
@@ -552,7 +552,7 @@ void MenuFactory::append_menu_items_add_volume(wxMenu* menu)
         return;
     }
 
-    for (size_t type = (mode == comExpert ? 0 : 1); type < ADD_VOLUME_MENU_ITEMS.size(); type++)
+    for (size_t type = (mode == comAdvanced ? 0 : 1); type < ADD_VOLUME_MENU_ITEMS.size(); type++)
     {
         auto& item = ADD_VOLUME_MENU_ITEMS[type];
 

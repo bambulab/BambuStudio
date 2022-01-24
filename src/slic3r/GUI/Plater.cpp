@@ -1564,9 +1564,11 @@ void Sidebar::collapse(bool collapse)
     this->Show(!collapse);
     p->plater->Layout();
 
+#ifdef SUPPORT_COLLAPSED_SIDEBAR
     // save collapsing state to the AppConfig
     if (wxGetApp().is_editor())
         wxGetApp().app_config->set("collapsed_sidebar", collapse ? "1" : "0");
+#endif
 }
 
 #ifdef _MSW_DARK_MODE
@@ -1932,7 +1934,13 @@ struct Plater::priv
 
     void process_validation_warning(const std::string& warning) const;
 
-    bool background_processing_enabled() const { return this->get_config("background_processing") == "1"; }
+    bool background_processing_enabled() const {
+#ifdef SUPPORT_BACKGROUND_PROCESSING
+        return this->get_config("background_processing") == "1";
+#else
+        return false;
+#endif
+    }
     void update_print_volume_state();
     void schedule_background_process();
     // Update background processing thread from the current config and Model.
@@ -2397,7 +2405,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
 
     // updates camera type from .ini file
     camera.enable_update_config_on_type_change(true);
-    camera.set_type(get_config("use_perspective_camera"));
+    camera.set_type(get_config("is_perspective"));
 
     // Load the 3DConnexion device database.
     mouse3d_controller.load_config(*wxGetApp().app_config);
@@ -2502,11 +2510,13 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     });
     wxGetApp().other_instance_message_handler()->init(this->q);
 
+#ifdef SUPPORT_COLLAPSED_SIDEBAR
     // collapse sidebar according to saved value
     if (wxGetApp().is_editor()) {
         bool is_collapsed = wxGetApp().app_config->get("collapsed_sidebar") == "1";
         sidebar->collapse(is_collapsed);
     }
+#endif
 }
 
 Plater::priv::~priv()
@@ -2521,8 +2531,10 @@ void Plater::priv::update(unsigned int flags)
 {
     // the following line, when enabled, causes flickering on NVIDIA graphics cards
 //    wxWindowUpdateLocker freeze_guard(q);
+#ifdef SUPPORT_AUTOCENTER
     if (get_config("autocenter") == "1")
         model.center_instances_around_point(this->bed.build_volume().bed_center());
+#endif
 
     unsigned int update_status = 0;
     const bool force_background_processing_restart = this->printer_technology == ptSLA || (flags & (unsigned int)UpdateParams::FORCE_BACKGROUND_PROCESSING_UPDATE);
@@ -2628,8 +2640,12 @@ void Plater::setExtruderParams(std::map<size_t, Slic3r::ExtruderParams>& extPara
 
 void Plater::priv::apply_free_camera_correction(bool apply/* = true*/)
 {
-    camera.set_type(wxGetApp().app_config->get("use_perspective_camera"));
-    if (apply && wxGetApp().app_config->get("use_free_camera") != "1")
+    camera.set_type(wxGetApp().app_config->get("is_perspective"));
+    if (apply
+#ifdef SUPPORT_FREE_CAMERA
+        && wxGetApp().app_config->get("use_free_camera") != "1"
+#endif
+        )
         camera.recover_from_free_camera();
 }
 
@@ -3254,7 +3270,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
 #endif /* AUTOPLACEMENT_ON_LOAD */
     for (ModelObject *model_object : model_objects) {
         auto *object = model.add_object(*model_object);
-        object->sort_volumes(wxGetApp().app_config->get("order_volumes") == "1");
+        object->sort_volumes(true);
         std::string object_name = object->name.empty() ? fs::path(object->input_file).filename().string() : object->name;
         obj_idxs.push_back(obj_count++);
 
@@ -4168,7 +4184,7 @@ bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const
     old_model_object->delete_volume(old_model_object->volumes.size() - 1);
     if (!sinking)
         old_model_object->ensure_on_bed();
-    old_model_object->sort_volumes(wxGetApp().app_config->get("order_volumes") == "1");
+    old_model_object->sort_volumes(true);
 
     // if object has just one volume, rename object too
     if (old_model_object->volumes.size() == 1)
@@ -4455,7 +4471,7 @@ void Plater::priv::reload_from_disk()
                 old_model_object->delete_volume(old_model_object->volumes.size() - 1);
                 if (!sinking)
                     old_model_object->ensure_on_bed();
-                old_model_object->sort_volumes(wxGetApp().app_config->get("order_volumes") == "1");
+                old_model_object->sort_volumes(true);
 
                 sla::reproject_points_and_holes(old_model_object);
             }
@@ -6006,7 +6022,7 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name, const UndoRed
     }
     const GLGizmosManager& gizmos = view3D->get_canvas3d()->get_gizmos_manager();
 
-    if (snapshot_type == UndoRedo::SnapshotType::ProjectSeparator && wxGetApp().app_config->get("clear_undo_redo_stack_on_new_project") == "1")
+    if (snapshot_type == UndoRedo::SnapshotType::ProjectSeparator)
         this->undo_redo_stack().clear();
     this->undo_redo_stack().take_snapshot(snapshot_name, model, view3D->get_canvas3d()->get_selection(), view3D->get_canvas3d()->get_gizmos_manager(), partplate_list, snapshot_data);
     if (snapshot_type == UndoRedo::SnapshotType::LeavingGizmoWithAction) {
@@ -6242,7 +6258,7 @@ void Plater::priv::update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bo
 
     if (wxGetApp().get_mode() == comSimple && model_has_advanced_features(this->model)) {
         // If the user jumped to a snapshot that require user interface with advanced features, switch to the advanced mode without asking.
-        // There is a little risk of surprising the user, as he already must have had the advanced or expert mode active for such a snapshot to be taken.
+        // There is a little risk of surprising the user, as he already must have had the advanced or advanced mode active for such a snapshot to be taken.
         Slic3r::GUI::wxGetApp().save_mode(comAdvanced);
         view3D->set_as_dirty();
     }
@@ -6956,7 +6972,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string& filename)
     main_sizer->Add(new wxStaticText(this, wxID_ANY,
         _L("Select an action to apply to the file") + ": " + from_u8(filename)), 0, wxEXPAND | wxALL, 10);
 
-    m_action = std::clamp(std::stoi(wxGetApp().app_config->get("drop_project_action")),
+    m_action = std::clamp(std::stoi(wxGetApp().app_config->get("import_project_action")),
         static_cast<int>(LoadType::OpenProject), static_cast<int>(LoadType::LoadConfig)) - 1;
 
     wxStaticBox* action_stb = new wxStaticBox(this, wxID_ANY, _L("Action"));
@@ -6975,12 +6991,14 @@ ProjectDropDialog::ProjectDropDialog(const std::string& filename)
     main_sizer->Add(stb_sizer, 1, wxEXPAND | wxRIGHT | wxLEFT, 10);
 
     wxBoxSizer* bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
+#ifdef SUPPORT_SHOW_DROP_PROJECT
     wxCheckBox* check = new wxCheckBox(this, wxID_ANY, _L("Don't show again"));
     check->Bind(wxEVT_CHECKBOX, [](wxCommandEvent& evt) {
         wxGetApp().app_config->set("show_drop_project_dialog", evt.IsChecked() ? "0" : "1");
         });
 
     bottom_sizer->Add(check, 0, wxEXPAND | wxRIGHT, 5);
+#endif
     bottom_sizer->Add(CreateStdDialogButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT, 5);
     main_sizer->Add(bottom_sizer, 0, wxEXPAND | wxALL, 10);
 
@@ -7158,19 +7176,20 @@ bool Plater::load_files(const wxArrayString& filenames)
         if (boost::algorithm::iends_with(filename, ".3mf") || boost::algorithm::iends_with(filename, ".amf")) {
             LoadType load_type = LoadType::Unknown;
             if (!model().objects.empty()) {
-                if (wxGetApp().app_config->get("show_drop_project_dialog") == "1") {
+                bool show_drop_project_dialog = true;
+                if (show_drop_project_dialog) {
                     ProjectDropDialog dlg(filename);
                     if (dlg.ShowModal() == wxID_OK) {
                         int choice = dlg.get_action();
                         load_type = static_cast<LoadType>(choice);
-                        wxGetApp().app_config->set("drop_project_action", std::to_string(choice));
+                        wxGetApp().app_config->set("import_project_action", std::to_string(choice));
 
                         // BBS: jump to plater panel
                         wxGetApp().mainframe->select_tab(size_t(0));
                     }
                 }
                 else
-                    load_type = static_cast<LoadType>(std::clamp(std::stoi(wxGetApp().app_config->get("drop_project_action")),
+                    load_type = static_cast<LoadType>(std::clamp(std::stoi(wxGetApp().app_config->get("import_project_action")),
                         static_cast<int>(LoadType::OpenProject), static_cast<int>(LoadType::LoadConfig)));
             }
             else
@@ -7345,8 +7364,10 @@ void Plater::increase_instances(size_t num)
 //        p->print.get_object(obj_idx)->add_copy(Slic3r::to_2d(offset_vec));
     }
 
+#ifdef SUPPORT_AUTO_CENTER
     if (p->get_config("autocenter") == "1")
         arrange();
+#endif
 
     p->update();
 
@@ -7866,7 +7887,7 @@ void Plater::export_amf()
     wxBusyCursor wait;
     bool export_config = true;
     DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
-    bool full_pathnames = wxGetApp().app_config->get("export_sources_full_pathnames") == "1";
+    bool full_pathnames = false;
     if (Slic3r::store_amf(path_u8.c_str(), &p->model, export_config ? &cfg : nullptr, full_pathnames)) {
         // Success
 //        p->statusbar()->set_status_text(format_wxstr(_L("AMF file exported to %s"), path));
@@ -7897,7 +7918,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
     DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
     const std::string path_u8 = into_u8(path);
     wxBusyCursor wait;
-    bool full_pathnames = wxGetApp().app_config->get("export_sources_full_pathnames") == "1";
+    bool full_pathnames = false;
 
     //BBS: add plate logic for thumbnail generate
     std::vector<ThumbnailData*> thumbnails;

@@ -106,13 +106,12 @@ enum TagCheckResult
 // returns if in mode defined by tag
 TagCheckResult tag_check_mode(const std::string& tag)
 {
-	std::vector<std::string> allowed_tags = {"simple", "advanced", "expert"};
+	std::vector<std::string> allowed_tags = {"simple", "advanced"};
 	if (std::find(allowed_tags.begin(), allowed_tags.end(), tag) != allowed_tags.end())
 	{
 		ConfigOptionMode config_mode = wxGetApp().get_mode();
 		if (config_mode == ConfigOptionMode::comSimple)        return (tag == "simple"   ? TagCheckAffirmative : TagCheckNegative);
 		else if (config_mode == ConfigOptionMode::comAdvanced) return (tag == "advanced" ? TagCheckAffirmative : TagCheckNegative);
-		else if (config_mode == ConfigOptionMode::comExpert)   return (tag == "expert"   ? TagCheckAffirmative : TagCheckNegative);
 	}
 	return TagCheckNotCompatible;
 }
@@ -877,7 +876,7 @@ void NotificationManager::HintNotification::render_close_button(ImGuiWrapper& im
 	//render_right_arrow_button(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
 	render_logo(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
 	render_preferences_button(imgui, win_pos_x, win_pos_y);
-	if (!m_documentation_link.empty() && wxGetApp().app_config->get("suppress_hyperlinks") != "1")
+	if (!m_documentation_link.empty())
 	{
 		render_documentation_button(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
 	}

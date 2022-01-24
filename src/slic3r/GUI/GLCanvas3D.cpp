@@ -930,19 +930,19 @@ const double GLCanvas3D::DefaultCameraZoomToPlateMarginFactor = 1.25;
 void GLCanvas3D::load_arrange_settings()
 {
     std::string dist_fff_str =
-        wxGetApp().app_config->get("arrange", "min_object_distance_fff");
+        wxGetApp().app_config->get("arrange", "min_object_distance");
 
     std::string dist_fff_seq_print_str =
-        wxGetApp().app_config->get("arrange", "min_object_distance_fff_seq_print");
+        wxGetApp().app_config->get("arrange", "min_object_distance_seq_print");
 
     std::string dist_sla_str =
         wxGetApp().app_config->get("arrange", "min_object_distance_sla");
 
     std::string en_rot_fff_str =
-        wxGetApp().app_config->get("arrange", "enable_rotation_fff");
+        wxGetApp().app_config->get("arrange", "enable_rotation");
 
     std::string en_rot_fff_seqp_str =
-        wxGetApp().app_config->get("arrange", "enable_rotation_fff_seq_print");
+        wxGetApp().app_config->get("arrange", "enable_rotation_seq_print");
 
     std::string en_rot_sla_str =
         wxGetApp().app_config->get("arrange", "enable_rotation_sla");
@@ -2678,9 +2678,13 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
             // On OSX use Cmd+Shift+M to "Show/Hide 3Dconnexion devices settings dialog"
             if ((evt.GetModifiers() & shiftMask) != 0) {
 #endif // __APPLE__
+
+#ifdef SUPPORT_3D_CONNEXION
                 Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
                 controller.show_settings_dialog(!controller.is_settings_dialog_shown());
                 m_dirty = true;
+#endif
+
 #ifdef __APPLE__
             } 
             else 
@@ -3182,7 +3186,11 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
         return;
 
     // Calculate the zoom delta and apply it to the current zoom factor
+#ifdef SUPPORT_REVERSE_MOUSE_ZOOM
     double direction_factor = (wxGetApp().app_config->get("reverse_mouse_wheel_zoom") == "1") ? -1.0 : 1.0;
+#else
+    double direction_factor = 1.0;
+#endif
     _update_camera_zoom(direction_factor * (double)evt.GetWheelRotation() / (double)evt.GetWheelDelta());
 }
 
@@ -3665,10 +3673,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
                 }
                 else {
+#ifdef SUPPORT_FEEE_CAMERA
                     if (wxGetApp().app_config->get("use_free_camera") == "1")
                         // Virtual track ball (similar to the 3DConnexion mouse).
                         wxGetApp().plater()->get_camera().rotate_local_around_target(Vec3d(rot.y(), rot.x(), 0.));
                     else {
+#endif
                         // Forces camera right vector to be parallel to XY plane in case it has been misaligned using the 3D mouse free rotation.
                         // It is cheaper to call this function right away instead of testing wxGetApp().plater()->get_mouse3d_controller().connected(),
                         // which checks an atomics (flushes CPU caches).
@@ -3688,7 +3698,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                             else
                                 camera.rotate_on_sphere(rot.x(), rot.y(), rotate_limit);
                         }
+#ifdef SUPPORT_FEEE_CAMERA
                     }
+#endif
                 }
 
                 m_dirty = true;
@@ -3703,6 +3715,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 const Vec3d& cur_pos = _mouse_to_3d(pos, &z);
                 Vec3d orig = _mouse_to_3d(m_mouse.drag.start_position_2D, &z);
                 Camera& camera = wxGetApp().plater()->get_camera();
+#ifdef SUPPORT_FREE_CAMERA
                 if (this->m_canvas_type != ECanvasType::CanvasAssembleView) {
                     if (wxGetApp().app_config->get("use_free_camera") != "1")
                         // Forces camera right vector to be parallel to XY plane in case it has been misaligned using the 3D mouse free rotation.
@@ -3711,6 +3724,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         // See GH issue #3816.
                         camera.recover_from_free_camera();
                 }
+#endif
 
                 camera.set_target(camera.get_target() + orig - cur_pos);
                 m_dirty = true;
@@ -4297,7 +4311,7 @@ void GLCanvas3D::update_ui_from_settings()
     // Update OpenGL scaling on OSX after the user toggled the "use_retina_opengl" settings in Preferences dialog.
     const float orig_scaling = m_retina_helper->get_scale_factor();
 
-    const bool use_retina = wxGetApp().app_config->get("use_retina_opengl") == "1";
+    const bool use_retina = wxGetApp().app_config->get("is_retina") == "1";
     BOOST_LOG_TRIVIAL(debug) << "GLCanvas3D: Use Retina OpenGL: " << use_retina;
     m_retina_helper->set_use_retina(use_retina);
     const float new_scaling = m_retina_helper->get_scale_factor();
@@ -4311,8 +4325,10 @@ void GLCanvas3D::update_ui_from_settings()
     }
 #endif // ENABLE_RETINA_GL
 
+#ifdef SUPPORT_COLLAPSE_BUTTON
     if (wxGetApp().is_editor())
         wxGetApp().plater()->enable_collapse_toolbar(wxGetApp().app_config->get("show_collapse_button") == "1");
+#endif
 }
 
 // BBS: add partplate logic
@@ -5513,26 +5529,10 @@ bool GLCanvas3D::_init_main_toolbar()
     if (!m_main_toolbar.add_item(item))
         return false;
 
-    //if (!m_main_toolbar.add_separator())
-    //    return false;
-
-    /*item.name = "settings";
-    item.icon_filename = "settings.svg";
-    item.tooltip = _u8L("Switch to Settings") + "\n" + "[" + GUI::shortkey_ctrl_prefix() + "2] - " + _u8L("Print Settings Tab")    + 
-                                                "\n" + "[" + GUI::shortkey_ctrl_prefix() + "3] - " + (current_printer_technology() == ptFFF ? _u8L("Filament Settings Tab") : _u8L("Material Settings Tab")) +
-                                                "\n" + "[" + GUI::shortkey_ctrl_prefix() + "4] - " + _u8L("Printer Settings Tab") ;
-    item.sprite_id++;
-    item.enabling_callback    = GLToolbarItem::Default_Enabling_Callback;
-    item.visibility_callback  = []() { return (wxGetApp().app_config->get("new_settings_layout_mode") == "1" ||
-                                               wxGetApp().app_config->get("dlg_settings_layout_mode") == "1"); };
-    item.left.action_callback = []() { wxGetApp().mainframe->select_tab(); };
-    if (!m_main_toolbar.add_item(item))
-        return false;*/
-
     /*
     if (!m_main_toolbar.add_separator())
         return false;
-        */
+    */
 
     /*item.name = "search";
     item.icon_filename = "search_.svg";

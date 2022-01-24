@@ -3675,7 +3675,7 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
     if (presets == nullptr) presets = m_presets;
 
     UnsavedChangesDialog dlg(m_type, presets, new_printer_name);
-    if (wxGetApp().app_config->get("default_action_on_select_preset") == "none" && dlg.ShowModal() == wxID_CANCEL)
+    if (dlg.ShowModal() == wxID_CANCEL)
         return false;
 
     if (dlg.save_preset())  // save selected changes
@@ -4224,7 +4224,7 @@ void Tab::update_ui_from_settings()
 {
     // Show the 'show / hide presets' button only for the print and filament tabs, and only if enabled
     // in application preferences.
-    m_show_btn_incompatible_presets = wxGetApp().app_config->get("show_incompatible_presets")[0] == '1' ? true : false;
+    m_show_btn_incompatible_presets = true;
     bool show = m_show_btn_incompatible_presets && m_type != Slic3r::Preset::TYPE_PRINTER;
     //BBS: GUI refactor
     //Layout();

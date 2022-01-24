@@ -37,7 +37,7 @@ void Camera::set_type(EType type)
     if (m_type != type && (type == EType::Ortho || type == EType::Perspective)) {
         m_type = type;
         if (m_update_config_on_type_change_enabled) {
-            wxGetApp().app_config->set("use_perspective_camera", (m_type == EType::Perspective) ? "1" : "0");
+            wxGetApp().app_config->set("is_perspective", (m_type == EType::Perspective) ? "1" : "0");
             wxGetApp().app_config->save();
         }
     }
@@ -212,7 +212,11 @@ void Camera::debug_render() const
     imgui.begin(std::string("Camera statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
     std::string type = get_type_as_string();
-    if (wxGetApp().plater()->get_mouse3d_controller().connected() || (wxGetApp().app_config->get("use_free_camera") == "1"))
+    if (wxGetApp().plater()->get_mouse3d_controller().connected()
+#ifdef SUPPORT_FREE_CAMERA
+        || (wxGetApp().app_config->get("use_free_camera") == "1")
+#endif
+        )
         type += "/free";
     else
         type += "/constrained";

@@ -166,7 +166,10 @@ static bool check_internet_connection_win()
 // current version is newer. Only major and minor versions are compared.
 static bool should_dialog_be_shown()
 {
-    std::string last_sent_version = wxGetApp().app_config->get("version_system_info_sent");
+    //BBS TODO remember to read last version
+    //std::string last_sent_version = wxGetApp().app_config->get("version_last");
+    std::string last_sent_version = SLIC3R_VERSION;
+
     Semver semver_current(SLIC3R_VERSION);
     Semver semver_last_sent;
     if (! last_sent_version.empty())
@@ -208,7 +211,7 @@ static bool should_dialog_be_shown()
 // It will be later used to decide whether to open the dialog or not.
 static void save_version()
 {
-    wxGetApp().app_config->set("version_system_info_sent", std::string(SLIC3R_VERSION));
+    //BBS sentwxGetApp().app_config->set("version_last", std::string(SLIC3R_VERSION));
 }
 
 
@@ -431,7 +434,7 @@ static std::string generate_system_info_json()
     );
 #endif // __WXGTK__
     data_node.put("SystemLanguage", sys_language);
-    data_node.put("TranslationLanguage: ", wxGetApp().app_config->get("translation_language"));
+    data_node.put("TranslationLanguage: ", wxGetApp().app_config->get("language"));
 
 
     pt::ptree hw_node;

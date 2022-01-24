@@ -56,10 +56,11 @@ ConfigFileType guess_config_file_type(const ptree &tree)
     size_t config       = 0;
     for (const ptree::value_type &v : tree) {
         if (v.second.empty()) {
-            if (v.first == "background_processing" ||
-                v.first == "last_output_path" ||
-                v.first == "no_controller" ||
-                v.first == "no_defaults")
+            if (
+#ifdef SUPPORT_BACKGROUND_PROCESSING
+                v.first == "background_processing" ||
+#endif
+                v.first == "last_export_path")
                 ++ app_config;
             else if (v.first == "nozzle_diameter" ||
                 v.first == "filament_diameter")

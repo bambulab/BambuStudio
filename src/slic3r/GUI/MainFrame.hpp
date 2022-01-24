@@ -40,7 +40,6 @@ namespace GUI
 {
 
 class Tab;
-class PrintHostQueueDialog;
 class DebugToolDialog;
 class Plater;
 class MainFrame;
@@ -270,8 +269,6 @@ public:
     void        add_to_recent_projects(const wxString& filename);
     void        technology_changed();
 
-    PrintHostQueueDialog* printhost_queue_dlg() { return m_printhost_queue_dlg; }
-
     //BBS
     void        load_url(wxString url);
 
@@ -293,7 +290,6 @@ public:
     DiffPresetDialog      diff_dialog;
     wxWindow*             m_plater_page{ nullptr };
 //    wxProgressDialog*     m_progress_dialog { nullptr };
-    PrintHostQueueDialog* m_printhost_queue_dlg;
 
     // BBS
     //std::shared_ptr<ProgressStatusBar>  m_statusbar;

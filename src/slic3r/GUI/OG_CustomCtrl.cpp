@@ -338,13 +338,13 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
     wxString tooltip;
     std::string markdowntip;
 
-    wxString language = wxGetApp().app_config->get("translation_language");
+    wxString language = wxGetApp().app_config->get("language");
 
     // BBS: markdown tip
     CtrlLine* focusedLine = nullptr;
     // BBS
 
-    bool suppress_hyperlinks = get_app_config()->get("suppress_hyperlinks") == "1";
+    bool suppress_hyperlinks = false;
 
     for (CtrlLine& line : ctrl_lines) {
         line.is_focused = is_point_in_rect(pos, line.rect_label);
@@ -724,7 +724,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
 
     Field* field = ctrl->opt_group->get_field(og_line.get_options().front().opt_id);
 
-    bool suppress_hyperlinks = get_app_config()->get("suppress_hyperlinks") == "1";
+    bool suppress_hyperlinks = false;
     if (draw_just_act_buttons) {
         //BBS: GUI refactor
         if (field && field->undo_bitmap())
@@ -872,7 +872,7 @@ wxCoord OG_CustomCtrl::CtrlLine::draw_mode_bmp(wxDC& dc, wxCoord v_pos)
 
     ConfigOptionMode mode = og_line.get_options()[0].opt.mode;
     const std::string& bmp_name = mode == ConfigOptionMode::comSimple   ? "mode_simple" :
-                                  mode == ConfigOptionMode::comAdvanced ? "mode_advanced" : "mode_expert";
+                                  mode == ConfigOptionMode::comAdvanced ? "mode_advanced" : "mode_simple";
     wxBitmap bmp = create_scaled_bitmap(bmp_name, ctrl, wxOSX ? 10 : 12);
     wxCoord y_draw = v_pos + lround((height - get_bitmap_size(bmp).GetHeight()) / 2);
 
@@ -1004,7 +1004,7 @@ bool OG_CustomCtrl::CtrlLine::launch_browser() const
     if (!is_focused || og_line.label_path.empty())
         return false;
 
-    return OptionsGroup::launch_browser(og_line.label_path);
+    return true;
 }
 
 } // GUI
