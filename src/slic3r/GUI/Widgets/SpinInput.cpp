@@ -201,6 +201,7 @@ void SpinInput::messureSize()
     if (size.y < h) {
         size.y = h;
         SetSize(size);
+        SetMinSize(size);
     } else {
         textSize.y = size.y * 14 / 24;
     }

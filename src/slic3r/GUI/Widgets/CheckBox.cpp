@@ -12,6 +12,7 @@ CheckBox::CheckBox(wxWindow* parent)
 		SetBackgroundColour(parent->GetBackgroundColour());
 	Bind(wxEVT_TOGGLEBUTTON, [this](auto& e) { update(); e.Skip(); });
 	SetSize(m_on.GetBmpSize());
+	SetMinSize(m_on.GetBmpSize());
 	update();
 }
 
