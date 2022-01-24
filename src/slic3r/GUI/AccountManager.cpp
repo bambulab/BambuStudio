@@ -1478,7 +1478,7 @@ namespace Slic3r {
 
         /* upload 3mf or gcode to cloud */
         std::string project_url = (boost::format("%1%/iot-service/api/user/project/%2%") % host % profile->project_id).str();
-        std::string file_str("file");
+        std::string filename_str = profile->project_->project_path.filename().string();
         std::string profile_id_str("profile_id");
         std::string project_file = encode_path(profile->project_->project_path.generic_string().c_str());
 
@@ -1486,7 +1486,7 @@ namespace Slic3r {
         http_put.header("accept", "application/json")
             .header("Authorization", get_token_str())
             .header("Content-Type", "multipart/form-data")
-            .mime_form_add_file(file_str, project_file.c_str())
+            .mime_form_add_file(filename_str, project_file.c_str())
             .mime_form_add_text(profile_id_str, profile->profile_id)
             .on_complete(
                 [this, resFn, result_ptr](std::string body, unsigned) {
@@ -2243,7 +2243,6 @@ namespace Slic3r {
                 .header("Authorization", get_token_str())
                 .on_complete(
                     [this, project, profile](std::string body, unsigned) {
-                        std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
                         std::stringstream ss(body);
                         pt::ptree root;
                         pt::read_json(ss, root);
@@ -2369,14 +2368,14 @@ namespace Slic3r {
         std::string expires_str = "expires";
         std::string name_value = "name";
         std::string expires_value = "86400";
-        std::string filename_str = task->task_path.filename().generic_string();
+        std::string filename_str = task->task_path.filename().string();
         std::string task_file = encode_path(task->task_path.generic_string().c_str());
         
         Http http = Http::post(url);
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
             .header("Content-Type", "multipart/form-data")
-            .mime_form_add_file(file_str, task_file.c_str())
+            .mime_form_add_file(filename_str, task_file.c_str())
             .mime_form_add_text(name_str, filename_str)
             .mime_form_add_text(expires_str, expires_value)
             .on_complete(

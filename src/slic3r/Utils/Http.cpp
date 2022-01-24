@@ -422,6 +422,8 @@ void Http::priv::mime_form_add_file(const char* name, const char* path)
 	curl_mime_name(part, "file");
 	curl_mime_type(part, "multipart/form-data");
 	curl_mime_filedata(part, path);
+	// BBS specify filename after filedata
+	curl_mime_filename(part, name);
 }
 
 //FIXME may throw! Is the caller aware of it?
