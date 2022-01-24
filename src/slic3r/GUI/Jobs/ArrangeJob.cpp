@@ -177,9 +177,8 @@ void ArrangeJob::prepare_selected() {
     for (int bedid = 0; bedid < MAX_NUM_PLATES; bedid++)
         if (auto wti = get_wipe_tower(*m_plater, bedid)) {
             ArrangePolygon&& ap = get_arrange_poly(wti, m_plater);
-            auto& cont = m_plater->get_selection().is_wipe_tower() ? m_selected :
-                m_unselected;
-            cont.emplace_back(std::move(ap));
+            ap.bed_idx = bedid;
+            m_unselected.emplace_back(std::move(ap));
         }
 
     // The strides have to be removed from the fixed items. For the
@@ -254,9 +253,7 @@ void ArrangeJob::prepare_partplate() {
     // BBS
     if (auto wti = get_wipe_tower(*m_plater, current_plate_index)) {
         ArrangePolygon&& ap = get_arrange_poly(wti, m_plater);
-        auto& cont = m_plater->get_selection().is_wipe_tower() ? m_selected :
-            m_unselected;
-        cont.emplace_back(std::move(ap));
+        m_unselected.emplace_back(std::move(ap));
     }
 
     // The strides have to be removed from the fixed items. For the
