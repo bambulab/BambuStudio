@@ -2744,8 +2744,11 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
 
     if (m_seams_detector.is_active()) {
         // check for seam starting vertex
-        if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter && !m_seams_detector.has_first_vertex())
-            m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id]);
+        if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter && !m_seams_detector.has_first_vertex()) {
+            //BBS: m_result.moves.back().position has plate offset, must minus plate offset before calculate the real seam position
+            const Vec3f real_first_pos = Vec3f(m_result.moves.back().position.x() - m_x_offset, m_result.moves.back().position.y() - m_y_offset, m_result.moves.back().position.z());
+            m_seams_detector.set_first_vertex(real_first_pos - m_extruder_offsets[m_extruder_id]);
+        }
         // check for seam ending vertex and store the resulting move
         else if ((type != EMoveType::Extrude || (m_extrusion_role != erExternalPerimeter && m_extrusion_role != erOverhangPerimeter)) && m_seams_detector.has_first_vertex()) {
             auto set_end_position = [this](const Vec3f& pos) {
@@ -2753,7 +2756,9 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             };
 
             const Vec3f curr_pos(m_end_position[X], m_end_position[Y], m_end_position[Z]);
-            const Vec3f new_pos = m_result.moves.back().position - m_extruder_offsets[m_extruder_id];
+            //BBS: m_result.moves.back().position has plate offset, must minus plate offset before calculate the real seam position
+            const Vec3f real_last_pos = Vec3f(m_result.moves.back().position.x() - m_x_offset, m_result.moves.back().position.y() - m_y_offset, m_result.moves.back().position.z());
+            const Vec3f new_pos = real_last_pos - m_extruder_offsets[m_extruder_id];
             const std::optional<Vec3f> first_vertex = m_seams_detector.get_first_vertex();
             // the threshold value = 0.0625f == 0.25 * 0.25 is arbitrary, we may find some smarter condition later
 

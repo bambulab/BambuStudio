@@ -269,8 +269,11 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Tool position") + ":");
     ImGui::SameLine();
     char buf[1024];
+    //BBS: minus the plate offset when show tool position
+    PartPlateList& partplate_list = wxGetApp().plater()->get_partplate_list();
+    PartPlate* plate = partplate_list.get_curr_plate();
     const Vec3f position = m_world_position + m_world_offset;
-    sprintf(buf, "X: %.3f, Y: %.3f, Z: %.3f", position.x(), position.y(), position.z());
+    sprintf(buf, "X: %.3f, Y: %.3f, Z: %.3f", position.x() - plate->get_origin().x(), position.y() - plate->get_origin().y(), position.z());
     imgui.text(std::string(buf));
 
     // force extra frame to automatically update window size
