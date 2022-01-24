@@ -93,6 +93,11 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
 {
     auto last_state = m_last_state;
     auto state = m_media_ctrl->GetState();
+    if ((int) state < 0)
+        return;
+    if (last_state == MEDIASTATE_IDLE && state == wxMEDIASTATE_STOPPED) {
+        return;
+    }
     m_last_state = state;
     if ((last_state == wxMEDIASTATE_PAUSED || last_state == wxMEDIASTATE_PLAYING)  &&
         state == wxMEDIASTATE_STOPPED) {
