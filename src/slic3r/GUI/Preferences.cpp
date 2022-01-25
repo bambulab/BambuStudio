@@ -303,7 +303,7 @@ void PreferencesDialog::build(size_t selected_tab)
 	def.label = L("Developer Mode");
 	def.type = coBool;
 	def.tooltip = L("Developer Mode");
-	def.set_default_value(new ConfigOptionBool{ app_config->get("developer_mode") == "1" });
+	def.set_default_value(new ConfigOptionBool{ app_config->get("view_mode") == "develop" });
 	option = Option(def, "developer_mode");
 	m_optgroup_general->append_single_option_line(option);
 
