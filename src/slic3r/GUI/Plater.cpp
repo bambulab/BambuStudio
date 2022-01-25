@@ -3445,7 +3445,7 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
 
     wxFileDialog dlg(q, dlg_title,
         is_shapes_dir(out_dir) ? from_u8(wxGetApp().app_config->get_last_dir()) : from_path(output_file.parent_path()), from_path(output_file.filename()),
-        wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT | wxPD_APP_MODAL);
 
     int result = dlg.ShowModal();
     if (result == wxID_CANCEL)
