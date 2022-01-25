@@ -407,11 +407,14 @@ void Selection::remove_curr_plate()
     if (!m_valid)
         return;
 
-    wxGetApp().plater()->take_snapshot(_(L("Selection-Delete Curr Plate All!")));
+    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+    if (plate->empty())
+        return;
+
+    wxGetApp().plater()->take_snapshot(_(L("Selection-Delete Curr Plate All")));
     m_mode = Instance;
     clear();
 
-    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
     for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
         if (plate && plate->contain_instance_totally(obj_idx, 0)) {
             std::vector<unsigned int> volume_idxs = get_volume_idxs_from_object(obj_idx);

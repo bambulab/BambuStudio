@@ -3524,6 +3524,7 @@ void Plater::priv::select_curr_plate_all()
 
 void Plater::priv::remove_curr_plate_all()
 {
+    SingleSnapshot ss(q);
     view3D->remove_curr_plate_all();
     this->sidebar->obj_list()->update_selections();
 }
@@ -3643,6 +3644,9 @@ void Plater::priv::reset()
     wxGetApp().load_current_presets(false, false);
 
     model.custom_gcode_per_print_z.gcodes.clear();
+
+    // BBS
+    m_saved_timestamp = m_backup_timestamp = size_t(-1);
 }
 
 void Plater::priv::mirror(Axis axis)
@@ -6428,11 +6432,9 @@ void Plater::load_project(wxString const& filename2,
     auto path = into_path(filename);
     bool load_restore = originfile != "-";
 
+    // Take the Undo / Redo snapshot.
     Plater::TakeSnapshot snapshot(this, _L("Load Project"), UndoRedo::SnapshotType::ProjectSeparator);
     reset();
-
-    // Take the Undo / Redo snapshot.
-    up_to_date(true, false);
 
     std::vector<fs::path> input_paths;
     input_paths.push_back(path);
