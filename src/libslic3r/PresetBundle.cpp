@@ -1930,7 +1930,7 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
     public:
         PreferedFilamentsProfileMatch(const Preset *preset, const std::vector<std::string> &prefered_names) :
             m_prefered_alias(preset ? preset->alias : std::string()),
-            m_prefered_filament_type(preset ? preset->config.opt_string("filament_type", 0) : std::string()),
+            m_prefered_filament_type(preset ? preset->config.opt_string("filament_type", 0) : std::string("PLA")), // BBS: default choose PLA
             m_prefered_names(prefered_names)
             {}
 
