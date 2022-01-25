@@ -41,6 +41,8 @@ public:
     void AddDropDownMenuItem(wxMenuItem* menu_item);
     wxMenu *GetTopMenu();
     void SetProjectName(wxString project_name);
+    void SetMaximizedSize();
+    void SetWindowSize();
 
     void EnableUndoRedoItems();
     void DisableUndoRedoItems();

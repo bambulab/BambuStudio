@@ -433,6 +433,16 @@ void BBLTopbar::SetProjectName(wxString project_name)
     this->Refresh();
 }
 
+void BBLTopbar::SetMaximizedSize()
+{
+    maximize_btn->SetBitmap(maximize_bitmap);
+}
+
+void BBLTopbar::SetWindowSize()
+{
+    maximize_btn->SetBitmap(window_bitmap);
+}
+
 void BBLTopbar::UpdateToolbarWidth(int width)
 {
     this->SetSize(width, m_toolbar_h);
@@ -446,11 +456,9 @@ void BBLTopbar::OnIconize(wxAuiToolBarEvent& event)
 void BBLTopbar::OnFullScreen(wxAuiToolBarEvent& event)
 {
     if (m_frame->IsMaximized()) {
-        maximize_btn->SetBitmap(maximize_bitmap);
         m_frame->Restore();
     }
     else {
-        maximize_btn->SetBitmap(window_bitmap);
         m_normalRect = m_frame->GetRect();
         m_frame->Maximize();
     }
