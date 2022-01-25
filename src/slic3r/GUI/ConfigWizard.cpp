@@ -1919,13 +1919,13 @@ void ConfigWizard::priv::load_pages()
                     index->add_page(page);
         }
 
-        index->add_page(page_custom);
+        /*index->add_page(page_custom);
         if (page_custom->custom_wanted()) {
             index->add_page(page_firmware);
             index->add_page(page_bed);
             index->add_page(page_diams);
             index->add_page(page_temps);
-        }
+        }*/
    
     // Filaments & Materials
         if (any_fff_selected) { index->add_page(page_filaments); }
@@ -1933,7 +1933,7 @@ void ConfigWizard::priv::load_pages()
     if (any_sla_selected) { index->add_page(page_sla_materials); }
 
     // there should to be selected at least one printer
-    btn_finish->Enable(any_fff_selected || any_sla_selected || custom_printer_selected);
+    btn_finish->Enable();
 
     index->add_page(page_update);
     index->add_page(page_reload_from_disk);
@@ -2777,20 +2777,20 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
         preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem, 
                                     {preferred_model, preferred_variant, first_added_filament, first_added_sla_material});
 
-    if (!only_sla_mode && page_custom->custom_wanted()) {
-        // if unsaved changes was not cheched till this moment
-        if (!check_unsaved_preset_changes && 
-            !wxGetApp().check_and_keep_current_preset_changes(caption, _L("Custom printer was installed and it will be activated."), act_btns, &apply_keeped_changes))
-            return false;
+    //if (!only_sla_mode && page_custom->custom_wanted()) {
+    //    // if unsaved changes was not cheched till this moment
+    //    if (!check_unsaved_preset_changes && 
+    //        !wxGetApp().check_and_keep_current_preset_changes(caption, _L("Custom printer was installed and it will be activated."), act_btns, &apply_keeped_changes))
+    //        return false;
 
-        page_firmware->apply_custom_config(*custom_config);
-        page_bed->apply_custom_config(*custom_config);
-        page_diams->apply_custom_config(*custom_config);
-        page_temps->apply_custom_config(*custom_config);
+    //    page_firmware->apply_custom_config(*custom_config);
+    //    page_bed->apply_custom_config(*custom_config);
+    //    page_diams->apply_custom_config(*custom_config);
+    //    page_temps->apply_custom_config(*custom_config);
 
-        const std::string profile_name = page_custom->profile_name();
-        preset_bundle->load_config_from_wizard(profile_name, *custom_config);
-    }
+    //    const std::string profile_name = page_custom->profile_name();
+    //    preset_bundle->load_config_from_wizard(profile_name, *custom_config);
+    //}
 
     // Update the selections from the compatibilty.
     preset_bundle->export_selections(*app_config);
@@ -2911,8 +2911,8 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
 	    // Pages for 3rd party vendors
 	    p->create_3rdparty_pages();   // Needs to be done _before_ creating PageVendors
 	    p->add_page(p->page_vendors = new PageVendors(this));
-	    p->add_page(p->page_custom = new PageCustom(this));
-        p->custom_printer_selected = p->page_custom->custom_wanted();
+	    //p->add_page(p->page_custom = new PageCustom(this));
+        //p->custom_printer_selected = p->page_custom->custom_wanted();
     }
 
     p->any_sla_selected = p->check_sla_selected();

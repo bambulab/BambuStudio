@@ -5099,7 +5099,7 @@ void Plater::priv::on_action_add_plate(SimpleEvent&)
         this->partplate_list.create_plate();
         update();
         // BBS set default view
-        q->get_camera().select_view("topfront");
+        //q->get_camera().select_view("topfront");
         q->get_camera().requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
     }
 }
@@ -5109,9 +5109,8 @@ void Plater::priv::on_action_del_plate(SimpleEvent&)
 {
     if (q != nullptr) {
         q->delete_plate();
-
-        q->get_camera().select_view("topfront");
-        q->get_camera().requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
+        //q->get_camera().select_view("topfront");
+        //q->get_camera().requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
     }
 }
 
@@ -9226,8 +9225,8 @@ int Plater::delete_plate(int plate_index)
     p->sidebar->obj_list()->reload_all_plates();
 
     // BBS update default view
-    get_camera().select_view("topfront");
-    get_camera().requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
+    //get_camera().select_view("topfront");
+    //get_camera().requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
 
     //need to call update
     update();
