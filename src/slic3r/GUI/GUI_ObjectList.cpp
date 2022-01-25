@@ -687,6 +687,31 @@ void ObjectList::object_config_options_changed(const ObjectVolumeID& ov_id)
     }
 }
 
+void ObjectList::printable_state_changed(const std::vector<ObjectVolumeID>& ov_ids)
+{
+    std::vector<size_t> obj_idxs;
+    for (const ObjectVolumeID ov_id : ov_ids) {
+        if (ov_id.object == nullptr)
+            continue;
+
+        ModelInstance* mi = ov_id.object->instances[0];
+        wxDataViewItem obj_item = m_objects_model->GetObjectItem(ov_id.object);
+        m_objects_model->SetObjectPrintableState(mi->printable ? piPrintable : piUnprintable, obj_item);
+
+        int obj_idx = m_objects_model->GetObjectIdByItem(obj_item);
+        obj_idxs.emplace_back(static_cast<size_t>(obj_idx));
+    }
+
+    sort(obj_idxs.begin(), obj_idxs.end());
+    obj_idxs.erase(unique(obj_idxs.begin(), obj_idxs.end()), obj_idxs.end());
+
+    // update printable state on canvas
+    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
+
+    // update scene
+    wxGetApp().plater()->update();
+}
+
 void ObjectList::update_objects_list_extruder_column(size_t extruders_count)
 {
     if (printer_technology() == ptSLA)
