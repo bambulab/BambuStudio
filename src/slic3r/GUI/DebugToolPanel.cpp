@@ -397,6 +397,14 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	m_staticText_mc_print_stage->Wrap( -1 );
 	bSizer_info->Add( m_staticText_mc_print_stage, 0, wxALL, 5 );
 
+	m_staticText_mc_sub_stage_title = new wxStaticText(sbSizer_info->GetStaticBox(), wxID_ANY, wxT("Print Sub State(MC):"), wxDefaultPosition, wxDefaultSize, 0);
+	m_staticText_mc_sub_stage_title->Wrap(-1);
+	bSizer_info->Add(m_staticText_mc_sub_stage_title, 0, wxALIGN_RIGHT | wxALL, 5);
+
+	m_staticText_mc_sub_stage_value = new wxStaticText(sbSizer_info->GetStaticBox(), wxID_ANY, wxT("N/A"), wxDefaultPosition, wxDefaultSize, 0);
+	m_staticText_mc_sub_stage_value->Wrap(-1);
+	bSizer_info->Add(m_staticText_mc_sub_stage_value, 0, wxALL, 5);
+
 	m_staticText_print_error_code = new wxStaticText( sbSizer_info->GetStaticBox(), wxID_ANY, wxT("PrintErrCode(MC):"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText_print_error_code->Wrap( -1 );
 	bSizer_info->Add( m_staticText_print_error_code, 0, wxALIGN_RIGHT|wxALL, 5 );

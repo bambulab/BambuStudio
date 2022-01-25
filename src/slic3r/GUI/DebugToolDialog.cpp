@@ -1718,6 +1718,10 @@ void DebugToolDialog::on_message_arrived(wxCommandEvent &evt)
     wxString print_state_text = wxString::Format("%d", obj->mc_print_stage);
     m_staticText_mc_print_stage->SetLabelText(print_state_text);
 
+    wxString print_sub_state_text = wxString::Format("%d", obj->mc_print_sub_stage);
+    m_staticText_mc_sub_stage_value->SetLabelText(print_sub_state_text);
+
+
     wxString print_err_code_text = wxString::Format("%d", obj->mc_print_error_code);
     m_staticText_mc_print_error_code->SetLabelText(print_err_code_text);
 

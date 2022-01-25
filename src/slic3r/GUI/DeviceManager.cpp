@@ -25,6 +25,7 @@ const std::string JSON_CMD_SYSTEM = "system";
 // json key const string
 const std::string JSON_MC_REMAIN_TIME   = "mc_remaining_time";
 const std::string JSON_MC_PERCENT = "mc_percent";
+const std::string JSON_MC_PRINT_SUB_STAGE = "mc_print_sub_stage";
 
 static uint64_t lzo_out_len = 5 * 1024;
 const uint64_t LZO_OUT_MAX_LEN = 5 * 1024;
@@ -208,6 +209,7 @@ MachineObject::MachineObject(AccountManager& acc, std::string name, std::string 
     mc_print_error_code = 0;
     mc_print_line_number = 0;
     mc_print_percent = 0;
+    mc_print_sub_stage = 0;
     mc_left_time = 0;
 }
 
@@ -527,8 +529,11 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 else if (jj[JSON_MC_PERCENT].is_number_integer())
                     mc_print_percent = j[JSON_CMD_PRINT][JSON_MC_PERCENT].get<int>();
             }
+            if (jj.contains(JSON_MC_PRINT_SUB_STAGE)) {
+                if (jj[JSON_MC_PRINT_SUB_STAGE].is_number_integer())
+                    mc_print_sub_stage = j[JSON_CMD_PRINT][JSON_MC_PRINT_SUB_STAGE].get<int>();
+            }
         }
-
 
         std::stringstream ss(payload);
         pt::ptree root;

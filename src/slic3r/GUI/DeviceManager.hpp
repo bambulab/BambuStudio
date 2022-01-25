@@ -185,6 +185,7 @@ public:
 
     /* printing */
     int     mc_print_stage;
+    int     mc_print_sub_stage;
     int     mc_print_error_code;
     int     mc_print_line_number;
     int     mc_print_percent;       /* left print progess in percent */

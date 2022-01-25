@@ -121,6 +121,8 @@ namespace Slic3r
 				wxStaticText* m_staticText_heatbreak_speed;
 				wxStaticText* m_staticText_print_stage;
 				wxStaticText* m_staticText_mc_print_stage;
+				wxStaticText* m_staticText_mc_sub_stage_title;
+				wxStaticText* m_staticText_mc_sub_stage_value;
 				wxStaticText* m_staticText_print_error_code;
 				wxStaticText* m_staticText_mc_print_error_code;
 				wxStaticText* m_staticText_gcode_line_number;
