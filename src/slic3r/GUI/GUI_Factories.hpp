@@ -94,7 +94,6 @@ private:
     MenuWithSeparators m_assemble_part_menu;
    
 
-
     // Removed/Prepended Items according to the view mode
     std::array<wxMenuItem*, mtCount> items_increase;
     std::array<wxMenuItem*, mtCount> items_decrease;
@@ -142,6 +141,7 @@ private:
     void        append_menu_item_per_object_settings(wxMenu* menu);
     void        append_menu_item_change_filament(wxMenu* menu, int insert_pos = 1);
     void        append_menu_item_set_printable(wxMenu* menu);
+    void        append_menu_item_locked(wxMenu* menu, int insert_pos = 1);
 
 };
 

@@ -1136,15 +1136,6 @@ void MenuFactory::create_plate_menu()
             plater()->set_prepare_state(Job::PREPARE_STATE_MENU);
             plater()->orient();
         }, "", nullptr, []() {return true; }, plater()); 
-    
-    // lock current plate
-    wxMenuItem* menu_item_locked = append_menu_check_item(menu, wxID_ANY, _L("Locked(Debug)"), "",
-        [](wxCommandEvent&) {
-            PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
-            assert(plate);
-            bool lock = plate->is_locked();
-            plate->lock(!lock);
-        }, menu);
 
     // delete current plate
     append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDel", _L("Remove the selected plate"),
@@ -1163,8 +1154,7 @@ void MenuFactory::create_plate_menu()
         bool check = plate->is_locked();
         evt.Check(check);
         plater()->set_current_canvas_as_dirty();
-
-        }, menu_item_locked->GetId());
+        }, wxID_ANY);
     
     return;
 }
@@ -1316,6 +1306,7 @@ wxMenu* MenuFactory::assemble_multi_selection_menu()
 //BBS: add partplate related logic
 wxMenu* MenuFactory::plate_menu()
 {
+    append_menu_item_locked(&m_plate_menu, 4);
     return &m_plate_menu;
 }
 
@@ -1492,10 +1483,28 @@ void MenuFactory::append_menu_item_set_printable(wxMenu* menu)
     append_menu_item(menu, wxID_ANY, menu_text, "", [this, all_printable](wxCommandEvent&) {
         Selection& selection = plater()->canvas3D()->get_selection();
         selection.set_printable(!all_printable);
-
-
-
         }, "", nullptr, []() { return true; }, m_parent);
+}
+
+void MenuFactory::append_menu_item_locked(wxMenu* menu, int insert_pos)
+{
+    const std::vector<wxString> names = { _L("Unlock"), _L("Lock") };
+    // Delete old menu item
+    for (const wxString& name : names) {
+        const int item_id = menu->FindItem(name);
+        if (item_id != wxNOT_FOUND)
+            menu->Destroy(item_id);
+    }
+
+    PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
+    assert(plate);
+    wxString lock_text = plate->is_locked() ? names[0] : names[1];
+
+    append_menu_item(menu, wxID_ANY, lock_text, "",
+        [plate](wxCommandEvent&) {
+            bool lock = plate->is_locked();
+            plate->lock(!lock);
+        }, "", nullptr, []() { return true; }, m_parent, insert_pos);
 }
 
 
