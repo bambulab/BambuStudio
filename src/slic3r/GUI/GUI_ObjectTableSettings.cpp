@@ -74,6 +74,7 @@ ObjectTableSettings::ObjectTableSettings(wxWindow* parent, ObjectGridTable* tabl
 
 bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_selection, ModelObject* object, ModelConfig* config, const std::string& category)
 {
+    std::string group_category;
     m_settings_list_sizer->Clear(true);
     m_og_settings.resize(0);
     Show(true);
@@ -101,59 +102,99 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
     //SettingsFactory::Bundle cat_options = SettingsFactory::get_bundle(&config->get(), is_object);
     std::map<std::string, std::vector<SimpleSettingData>> cat_options;
     std::vector<SimpleSettingData> category_settings = SettingsFactory::get_visible_options(category, !is_object);
-    if (category_settings.size() == 0) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "can not find settings for category " <<category <<", should not happen!!!" << std::endl;
+    bool display_multiple = false;
+    auto is_option_modified = [this](std::string key) {
+        ConfigOption* config_option1 = m_origin_config.option(key);
+        ConfigOption* config_option2 = m_current_config.option(key);
+        if (!config_option1 && config_option2)
+            return true;
+        else if (config_option1 && config_option2 && (*config_option1 != *config_option2))
+            return true;
+
         return false;
+    };
+
+    //get the category and settings
+    if (category_settings.size() == 0) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "can not find settings for category " <<category <<", display all the modified settings instead!!!" << std::endl;
+        //return false;
+        cat_options = SettingsFactory::get_all_visible_options(!is_object);
+        std::map<std::string, std::vector<SimpleSettingData>>::iterator it1 = cat_options.begin();
+
+        while (it1 != cat_options.end())
+        {
+            std::vector<SimpleSettingData>& settings = it1->second;
+            std::vector<SimpleSettingData>::iterator it2 = settings.begin();
+
+            while ( it2 != settings.end() )
+            {
+                if (!is_option_modified(it2->name)) {
+                    it2 = settings.erase(it2);
+                }
+                else {
+                    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" category %1% , keep option %2%")%it1->first % it2->name;
+                    it2++;
+                }
+            }
+            if (settings.size() > 0)
+                it1++;
+            else
+                it1 = cat_options.erase(it1);
+        }
+        display_multiple = true;
     }
-    cat_options.emplace(category, category_settings);
+    else {
+        cat_options.emplace(category, category_settings);
+    }
     std::vector<std::string> categories;
     categories.reserve(cat_options.size());
-
-    auto extra_column = [this, is_object, object, config, category](wxWindow* parent, const Line& line)
-    {
-        auto opt_key = (line.get_options())[0].opt_id;  //we assume that we have one option per line
-
-        auto btn = new ScalableButton(parent, wxID_ANY, m_bmp_reset);
-        btn->SetToolTip(_(L("Reset parameter")));
-
-        btn->SetBitmapFocus(m_bmp_reset_focus.bmp());
-        btn->SetBitmapHover(m_bmp_reset_focus.bmp());
-        btn->SetBitmapDisabled(m_bmp_reset_disable.bmp());
-
-        btn->Bind(wxEVT_BUTTON, [btn, opt_key, this, is_object, object, config, category](wxEvent &event) {
-            //wxGetApp().plater()->take_snapshot(from_u8((boost::format(_utf8(L("Reset Option %s"))) % opt_key).str()));
-            config->erase(opt_key);
-            //btn->Hide();
-            wxGetApp().obj_list()->changed_object();
-            /*wxTheApp->CallAfter([this, is_object, object, config, category]() {
-                wxWindowUpdateLocker noUpdates(m_parent);
-                update_settings_list(is_object, false, object, config, category); 
-            });*/
-            this->m_parent->Freeze();
-            /* Check overriden options list after deleting.
-             * Some options couldn't be deleted because of another one.
-             * Like, we couldn't delete fill pattern, if fill density is set to 100%
-             */
-            m_current_config = m_origin_config;
-            m_current_config.apply(config->get(), true);
-            update_config_values(is_object, object, config, category);
-            this->m_parent->Thaw();
-        });
-        (const_cast<Line&>(line)).extra_widget_win = btn;
-        return btn;
-    };
 
     for (auto& cat : cat_options)
     {
         categories.push_back(cat.first);
+        group_category = cat.first;
+
+        auto extra_column = [this, is_object, object, config, group_category](wxWindow* parent, const Line& line)
+        {
+            auto opt_key = (line.get_options())[0].opt_id;  //we assume that we have one option per line
+
+            auto btn = new ScalableButton(parent, wxID_ANY, m_bmp_reset);
+            btn->SetToolTip(_(L("Reset parameter")));
+
+            btn->SetBitmapFocus(m_bmp_reset_focus.bmp());
+            btn->SetBitmapHover(m_bmp_reset_focus.bmp());
+            btn->SetBitmapDisabled(m_bmp_reset_disable.bmp());
+
+            btn->Bind(wxEVT_BUTTON, [btn, opt_key, this, is_object, object, config, group_category](wxEvent &event) {
+                //wxGetApp().plater()->take_snapshot(from_u8((boost::format(_utf8(L("Reset Option %s"))) % opt_key).str()));
+                config->erase(opt_key);
+                //btn->Hide();
+                wxGetApp().obj_list()->changed_object();
+                /*wxTheApp->CallAfter([this, is_object, object, config, category]() {
+                    wxWindowUpdateLocker noUpdates(m_parent);
+                    update_settings_list(is_object, false, object, config, category); 
+                });*/
+                this->m_parent->Freeze();
+                /* Check overriden options list after deleting.
+                 * Some options couldn't be deleted because of another one.
+                 * Like, we couldn't delete fill pattern, if fill density is set to 100%
+                 */
+                m_current_config = m_origin_config;
+                m_current_config.apply(config->get(), true);
+                update_config_values(is_object, object, config, group_category);
+                this->m_parent->Thaw();
+            });
+            (const_cast<Line&>(line)).extra_widget_win = btn;
+            return btn;
+        };
 
         auto optgroup = std::make_shared<ConfigOptionsGroup>(m_og->ctrl_parent(), _(cat.first), &m_current_config, false, extra_column);
         optgroup->label_width = 15;
         optgroup->sidetext_width = 5;
 
-        optgroup->m_on_change = [this, optgroup, is_object, object, config, category](const t_config_option_key& opt_id, const boost::any& value) {
+        optgroup->m_on_change = [this, optgroup, is_object, object, config, group_category](const t_config_option_key& opt_id, const boost::any& value) {
                                     this->m_parent->Freeze();
-                                    this->update_config_values(is_object, object, config, category);
+                                    this->update_config_values(is_object, object, config, group_category);
                                     wxGetApp().obj_list()->changed_object();
                                     this->m_parent->Thaw();
                                     //update_extra_column_visible_status(optgroup.get(), cat.second, config);

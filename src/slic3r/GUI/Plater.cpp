@@ -6274,17 +6274,13 @@ bool Plater::priv::PopupObjectTable(int object_id, int volume_id, const wxPoint&
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" enter, create ObjectTableDialog");
     int max_width{1920}, max_height{1080};
 
-    if (view3D != nullptr)
-        view3D->GetSize(&max_width, &max_height);
+    max_width = q->GetMaxWidth();
+    max_height = q->GetMaxHeight();
     ObjectTableDialog table_dialog(q, q, &model, wxSize(max_width, max_height));
     //m_popup_table = new ObjectTableDialog(q, q,  &model);
 
-    wxPoint pos;
-    //pos.x = sidebar->GetRect().width;
-    pos.x = 0;
-
     wxRect rect = sidebar->get_project_resource_rect();
-    pos.y = sidebar->ClientToScreen(wxPoint(rect.x, rect.y)).y;
+    wxPoint pos = sidebar->ClientToScreen(wxPoint(rect.x, rect.y));
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": show ObjectTableDialog");
     table_dialog.Popup(object_id, volume_id, pos);

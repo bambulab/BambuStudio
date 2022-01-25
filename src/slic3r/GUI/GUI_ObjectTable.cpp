@@ -34,7 +34,7 @@ static const int g_min_row_size = 36;
 static const int g_extra_height = 64;
 
 static const int g_min_setting_width = 464;
-static const int g_vscroll_width = 32;
+static const int g_vscroll_width = 48;
 
 
 static int g_dialog_width = 0;
@@ -233,6 +233,55 @@ void GridCellFilamentsEditor::BeginEdit(int row, int col, wxGrid* grid)
     }
 }
 
+wxGridActivationResult GridCellFilamentsEditor::TryActivate(int row, int col, wxGrid* grid, const wxGridActivationSource& actSource)
+{
+    ObjectGridTable *table = dynamic_cast<ObjectGridTable *>(grid->GetTable());
+    ObjectGridTable::ObjectGridCol* grid_col = table->get_grid_col(col);
+    ObjectGridTable::ObjectGridRow* grid_row = table->get_grid_row(row - 1);
+
+    if ( actSource.GetOrigin() == wxGridActivationSource::Key ) {
+        const wxKeyEvent& key_event = actSource.GetKeyEvent();
+        int keyCode = key_event.GetKeyCode();
+        wxString choice;
+
+        int digital_value = keyCode - '0';
+        if ((digital_value >= 1) && (digital_value <= 9))
+            m_cached_value = digital_value;
+        else
+            m_cached_value = -1;
+
+        if (m_cached_value != -1) {
+            if (m_cached_value <= grid_col->choice_count) {
+                choice = grid_col->choices[m_cached_value-1];
+                return wxGridActivationResult::DoChange(choice);
+            }
+            else {
+                return wxGridActivationResult::DoNothing();
+            }
+        }
+        else
+            return wxGridActivationResult::DoNothing();
+    }
+    else {
+        m_cached_value = -1;
+        return wxGridActivationResult::DoEdit();
+    }
+}
+
+void GridCellFilamentsEditor::DoActivate(int row, int col, wxGrid* grid)
+{
+    if (m_cached_value != -1) {
+        ObjectGridTable *table = dynamic_cast<ObjectGridTable *>(grid->GetTable());
+        ObjectGridTable::ObjectGridCol* grid_col = table->get_grid_col(col);
+        ObjectGridTable::ObjectGridRow* grid_row = table->get_grid_row(row - 1);
+        if (m_cached_value <= grid_col->choice_count) {
+            wxString choice = grid_col->choices[m_cached_value-1];
+            table->SetValue(row, col, choice);
+            //Combo()->SetValue(choice);
+        }
+        m_cached_value = -1;
+    }
+}
 
 // ----------------------------------------------------------------------------
 // GridCellFilamentsRenderer
@@ -636,7 +685,8 @@ void ObjectGrid::paste_data( wxTextDataObject& text_data )
         }
     }
     else {
-        if ((src_col_cnt != 1) || (dst_left_col != src_left_col))
+        wxLogWarning(_L("multiple cells copy is not supported"));
+        /*if ((src_col_cnt != 1) || (dst_left_col != src_left_col))
             wxLogWarning(_L("multiple columns copy is not supported"));
         else {
             split(buf, string_array);
@@ -653,7 +703,7 @@ void ObjectGrid::paste_data( wxTextDataObject& text_data )
                         grid_table->OnCellValueChanged(dst_top_row+i, dst_left_col+j);
                     }
                 }
-        }
+        }*/
     }
     this->ForceRefresh();
 }
@@ -733,6 +783,9 @@ void ObjectGrid::OnChar( wxKeyEvent& event )
 // ----------------------------------------------------------------------------
 // ObjectGridTable
 // ----------------------------------------------------------------------------
+std::string ObjectGridTable::category_all = "All";
+std::string ObjectGridTable::plate_outside = "Outside";
+
 ObjectGridTable::~ObjectGridTable()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", this %1%, row_data size %2%") %this % m_grid_data.size();
@@ -1012,7 +1065,14 @@ void ObjectGridTable::update_value_to_object(Model* model, ObjectGridRow* grid_r
         else if (col == col_unprintable) {
             object->printable = !(grid_row->unprintable.value);
             object->instances[0]->printable = object->printable;
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", change object %1%'s printable from %2%")%object->module_name %object->printable;
+
+            std::vector<ObjectVolumeID> object_volume_ids;
+            ObjectVolumeID object_volume_id;
+            object_volume_id.object = object;
+            object_volume_id.volume = nullptr;
+            object_volume_ids.push_back(object_volume_id);
+            wxGetApp().obj_list()->printable_state_changed(object_volume_ids);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", change object %1%'s printable to %2%")%object->module_name %object->printable;
         }
     }
 
@@ -1294,7 +1354,7 @@ void ObjectGridTable::init_cols()
     m_col_data.push_back(col);
 
     //reset icon for unprintable
-    col = new ObjectGridCol(coBool, "unprintable_reset", L(" "), false, true, false, false, wxALIGN_CENTRE);
+    col = new ObjectGridCol(coBool, "unprintable_reset", L(" "), true, true, false, false, wxALIGN_CENTRE);
     m_col_data.push_back(col);
 
     //object/volume extruder_id
@@ -1313,7 +1373,7 @@ void ObjectGridTable::init_cols()
     m_col_data.push_back(col);
 
     //reset icon for extruder_id
-    col = new ObjectGridCol(coFloat, "layer_height_reset", L("Quality"), false, true, false, false, wxALIGN_CENTRE);
+    col = new ObjectGridCol(coFloat, "layer_height_reset", L("Quality"), true, true, false, false, wxALIGN_CENTRE);
     m_col_data.push_back(col);
 
     //object/volume perimeters
@@ -1337,7 +1397,7 @@ void ObjectGridTable::init_cols()
     m_col_data.push_back(col);
 
     //reset icon for support material
-    col = new ObjectGridCol(coBool, "support_material_reset", L("Support material"), false, true, false, false, wxALIGN_CENTRE);
+    col = new ObjectGridCol(coBool, "support_material_reset", L("Support material"), true, true, false, false, wxALIGN_CENTRE);
     m_col_data.push_back(col);
 
     //Bed Adhesion
@@ -1348,7 +1408,7 @@ void ObjectGridTable::init_cols()
     m_col_data.push_back(col);
 
     //reset icon for Bed Adhesion
-    col = new ObjectGridCol(coEnum, "brim_type_reset", L("Bed adhension"), false, true, false, false, wxALIGN_CENTRE);
+    col = new ObjectGridCol(coEnum, "brim_type_reset", L("Bed adhension"), true, true, false, false, wxALIGN_CENTRE);
     m_col_data.push_back(col);
 
     //object/volume speed
@@ -1392,13 +1452,13 @@ void ObjectGridTable::construct_object_configs ()
         object_grid->ori_name = object_grid->name;
         plate_index = partplate_list.find_instance_belongs(i, 0);
         if (plate_index == -1)
-            object_grid->plate_index.value = std::string("Outside");
+            object_grid->plate_index.value = ObjectGridTable::plate_outside;
         else
             object_grid->plate_index.value = /*std::string("Plate ") + */std::to_string(plate_index+1);
         object_grid->assemble_name.value = object->module_name;
         object_grid->ori_assemble_name = object_grid->assemble_name;
-        object_grid->unprintable.value = !(object->printable);
-        object_grid->ori_unprintable = object_grid->unprintable;
+        object_grid->unprintable.value = !(object->instances[0]->printable);
+        object_grid->ori_unprintable.value = false;
         auto extruder_id_ptr = get_object_config_value<ConfigOptionInt>(filament_config, object_grid->config, m_col_data[col_filaments]->key);
         if (extruder_id_ptr)
             object_grid->filaments = *extruder_id_ptr;
@@ -1439,13 +1499,13 @@ void ObjectGridTable::construct_object_configs ()
             volume_grid->ori_name = volume_grid->name;
             plate_index = partplate_list.find_instance_belongs(i, 0);
             if (plate_index == -1)
-                volume_grid->plate_index.value = std::string("Outside");
+                volume_grid->plate_index.value = ObjectGridTable::plate_outside;
             else
                 volume_grid->plate_index.value = /*std::string("Plate ") +*/ std::to_string(plate_index+1);
             volume_grid->assemble_name.value = object->module_name;
             volume_grid->ori_assemble_name = volume_grid->assemble_name;
-            volume_grid->unprintable.value = !(object->printable);
-            volume_grid->ori_unprintable = volume_grid->unprintable;
+            volume_grid->unprintable.value = !(object->instances[0]->printable);
+            volume_grid->ori_unprintable.value = volume_grid->unprintable.value;
             auto extruder_id_ptr = get_volume_config_value<ConfigOptionInt>(filament_config, object_grid->config, volume_grid->config, m_col_data[col_filaments]->key);
             if (extruder_id_ptr)
                 volume_grid->filaments = *extruder_id_ptr;
@@ -1497,7 +1557,21 @@ void ObjectGridTable::SetSelection(int object_id, int volume_id)
 
 void ObjectGridTable::reload_object_data(ObjectGridRow* grid_row, const std::string& category, DynamicPrintConfig&  global_config)
 {
-    if (category == L("Quality")) {
+    if (category == ObjectGridTable::category_all) {
+        grid_row->layer_height = *(get_object_config_value<ConfigOptionFloat>(global_config, grid_row->config, m_col_data[col_layer_height]->key));
+        grid_row->ori_layer_height = *(global_config.option<ConfigOptionFloat>(m_col_data[col_layer_height]->key));
+        grid_row->perimeters = *(get_object_config_value<ConfigOptionInt>(global_config, grid_row->config, m_col_data[col_perimeters]->key));
+        grid_row->ori_perimeters = *(global_config.option<ConfigOptionInt>(m_col_data[col_perimeters]->key));
+        grid_row->fill_density = *(get_object_config_value<ConfigOptionPercent>(global_config, grid_row->config, m_col_data[col_fill_density]->key));
+        grid_row->ori_fill_density = *(global_config.option<ConfigOptionPercent>(m_col_data[col_fill_density]->key));
+        grid_row->support_material = *(get_object_config_value<ConfigOptionBool>(global_config, grid_row->config, m_col_data[col_support_material]->key));
+        grid_row->ori_support_material = *(global_config.option<ConfigOptionBool>(m_col_data[col_support_material]->key));
+        grid_row->brim_type = *(get_object_config_value<ConfigOptionEnum<BrimType>>(global_config, grid_row->config, m_col_data[col_brim_type]->key));
+        grid_row->ori_brim_type = *(global_config.option<ConfigOptionEnum<BrimType>>(m_col_data[col_brim_type]->key));
+        grid_row->speed_perimeter = *(get_object_config_value<ConfigOptionFloat>(global_config, grid_row->config, m_col_data[col_speed_perimeter]->key));
+        grid_row->ori_speed_perimeter = *(global_config.option<ConfigOptionFloat>(m_col_data[col_speed_perimeter]->key));
+    }
+    else if (category == L("Quality")) {
         grid_row->layer_height = *(get_object_config_value<ConfigOptionFloat>(global_config, grid_row->config, m_col_data[col_layer_height]->key));
         grid_row->ori_layer_height = *(global_config.option<ConfigOptionFloat>(m_col_data[col_layer_height]->key));
     }
@@ -1525,7 +1599,21 @@ void ObjectGridTable::reload_object_data(ObjectGridRow* grid_row, const std::str
 
 void ObjectGridTable::reload_part_data(ObjectGridRow* volume_row, ObjectGridRow* object_row, const std::string& category, DynamicPrintConfig&  global_config)
 {
-    if (category == L("Quality")) {
+    if (category == ObjectGridTable::category_all) {
+        volume_row->layer_height = *(get_volume_config_value<ConfigOptionFloat>(global_config, object_row->config, volume_row->config, m_col_data[col_layer_height]->key));
+        volume_row->ori_layer_height = object_row->layer_height;
+        volume_row->perimeters = *(get_volume_config_value<ConfigOptionInt>(global_config, object_row->config, volume_row->config, m_col_data[col_perimeters]->key));
+        volume_row->ori_perimeters = object_row->perimeters;
+        volume_row->fill_density = *(get_volume_config_value<ConfigOptionPercent>(global_config, object_row->config, volume_row->config, m_col_data[col_fill_density]->key));
+        volume_row->ori_fill_density = object_row->fill_density;
+        volume_row->support_material = *(get_volume_config_value<ConfigOptionBool>(global_config, object_row->config, volume_row->config, m_col_data[col_support_material]->key));
+        volume_row->ori_support_material = object_row->support_material;
+        volume_row->brim_type = *(get_volume_config_value<ConfigOptionEnum<BrimType>>(global_config, object_row->config, volume_row->config, m_col_data[col_brim_type]->key));
+        volume_row->ori_brim_type = object_row->brim_type;
+        volume_row->speed_perimeter = *(get_volume_config_value<ConfigOptionFloat>(global_config, object_row->config, volume_row->config, m_col_data[col_speed_perimeter]->key));
+        volume_row->ori_speed_perimeter = object_row->speed_perimeter;
+    }
+    else if (category == L("Quality")) {
          volume_row->layer_height = *(get_volume_config_value<ConfigOptionFloat>(global_config, object_row->config, volume_row->config, m_col_data[col_layer_height]->key));
          volume_row->ori_layer_height = object_row->layer_height;
     }
@@ -1676,11 +1764,21 @@ void ObjectGridTable::update_row_properties()
 void ObjectGridTable::sort_by_default()
 {
     compare_row_func sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
+        int plate_1, plate_2;
         std::string row1_plate = row1->plate_index.value;
         std::string row2_plate = row2->plate_index.value;
         bool result = false;
 
-        if (row1_plate < row2_plate)
+        if (row1_plate == ObjectGridTable::plate_outside)
+            plate_1 = 100;
+        else
+            plate_1 = std::atoi(row1_plate.c_str());
+        if (row2_plate == ObjectGridTable::plate_outside)
+            plate_2 = 100;
+        else
+            plate_2 = std::atoi(row2_plate.c_str());
+
+        if (plate_1 < plate_2)
             result = true;
         else if (row1_plate == row2_plate) {
             std::string row1_name = row1->name.value;
@@ -1690,6 +1788,7 @@ void ObjectGridTable::sort_by_default()
         return result;
     };
     sort_row_data(sort_func);
+    m_sort_col = 0;
 }
 
 void ObjectGridTable::sort_row_data(compare_row_func sort_func)
@@ -1742,37 +1841,102 @@ bool ObjectGridTable::OnCellLeftClick(int row, int col, ConfigOptionType &type)
     if (row == 0) {
         //handle the sort logic
         if (col == col_name) {
-            auto sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
-                return (row1->name.value.compare(row2->name.value) < 0);
-            };
-            //sort_by_name();
-            sort_row_data(sort_func);
+            if (m_sort_col == col) {
+                auto sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
+                    return (row2->name.value.compare(row1->name.value) < 0);
+                };
+                //sort_by_name();
+                sort_row_data(sort_func);
+                m_sort_col = -1;
+            }
+            else {
+                auto sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
+                    return (row1->name.value.compare(row2->name.value) < 0);
+                };
+                //sort_by_name();
+                sort_row_data(sort_func);
+                m_sort_col = col;
+            }
         }
         else if (col == col_assemble_name) {
-            compare_row_func sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
-                //wxString string1 = GUI::from_u8(row1->assemble_name.value);
-                //wxString string2 = GUI::from_u8(row2->assemble_name.value);
-                //return (string1.compare(string2) <= 0);
-                return (row1->assemble_name.value.compare(row2->assemble_name.value) < 0);
-            };
-            sort_row_data(sort_func);
+            if (m_sort_col == col) {
+                compare_row_func sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
+                    //wxString string1 = GUI::from_u8(row1->assemble_name.value);
+                    //wxString string2 = GUI::from_u8(row2->assemble_name.value);
+                    //return (string1.compare(string2) <= 0);
+                    return (row2->assemble_name.value.compare(row1->assemble_name.value) < 0);
+                };
+                sort_row_data(sort_func);
+                m_sort_col = -1;
+            }
+            else {
+                compare_row_func sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
+                    //wxString string1 = GUI::from_u8(row1->assemble_name.value);
+                    //wxString string2 = GUI::from_u8(row2->assemble_name.value);
+                    //return (string1.compare(string2) <= 0);
+                    return (row1->assemble_name.value.compare(row2->assemble_name.value) < 0);
+                };
+                sort_row_data(sort_func);
+                m_sort_col = col;
+            }
         }
         else if (col == col_plate_index) {
-            compare_row_func sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
-                std::string row1_plate = row1->plate_index.value;
-                std::string row2_plate = row2->plate_index.value;
-                bool result = false;
+            if (m_sort_col == col) {
+                compare_row_func sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
+                    int plate_1, plate_2;
+                    std::string row1_plate = row1->plate_index.value;
+                    std::string row2_plate = row2->plate_index.value;
+                    bool result = false;
 
-                if (row1_plate < row2_plate)
-                    result = true;
-                else if (row1_plate == row2_plate) {
-                    std::string row1_name = row1->name.value;
-                    std::string row2_name = row2->name.value;
-                    result = (row1_name < row2_name);
-                }
-                return result;
-            };
-            sort_row_data(sort_func);
+                    if (row1_plate == ObjectGridTable::plate_outside)
+                        plate_1 = 100;
+                    else
+                        plate_1 = std::atoi(row1_plate.c_str());
+                    if (row2_plate == ObjectGridTable::plate_outside)
+                        plate_2 = 100;
+                    else
+                        plate_2 = std::atoi(row2_plate.c_str());
+
+                    if (plate_2 < plate_1)
+                        result = true;
+                    else if (plate_1 == plate_2) {
+                        std::string row1_name = row1->name.value;
+                        std::string row2_name = row2->name.value;
+                        result = (row2_name < row1_name);
+                    }
+                    return result;
+                };
+                sort_row_data(sort_func);
+                m_sort_col = -1;
+            }
+            else {
+                compare_row_func sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
+                    int plate_1, plate_2;
+                    std::string row1_plate = row1->plate_index.value;
+                    std::string row2_plate = row2->plate_index.value;
+                    bool result = false;
+
+                    if (row1_plate == ObjectGridTable::plate_outside)
+                        plate_1 = 100;
+                    else
+                        plate_1 = std::atoi(row1_plate.c_str());
+                    if (row2_plate == ObjectGridTable::plate_outside)
+                        plate_2 = 100;
+                    else
+                        plate_2 = std::atoi(row2_plate.c_str());
+
+                    if (plate_1 < plate_2)
+                        result = true;
+                    else if (plate_1 == plate_2) {
+                        std::string row1_name = row1->name.value;
+                        std::string row2_name = row2->name.value;
+                        result = (row1_name < row2_name);
+                    }
+                    return result;
+                };
+                sort_row_data(sort_func);
+                m_sort_col = col;
+            }
         }
     }
     else if (col >= col_assemble_name) {
@@ -1834,8 +1998,13 @@ void ObjectGridTable::OnSelectCell(int row, int col)
         m_panel->m_page_text->SetLabel(GUI::from_u8(grid_row->name.value));
         m_panel->m_object_settings->UpdateAndShow(row, true, is_object, false, object, grid_row->config, grid_col->category);
 
-        wxGridCellCoordsArray cell_array = m_panel->m_object_grid->GetSelectedCells();
         std::vector<ObjectVolumeID> object_volume_ids;
+        ObjectVolumeID object_volume_id;
+        object_volume_id.object = object;
+        object_volume_id.volume = (grid_row->row_type == row_object)?nullptr:object->volumes[grid_row->volume_id];
+        object_volume_ids.push_back(object_volume_id);
+        //disable multiple selection notify, only notify one selected item to object list
+        /*wxGridCellCoordsArray cell_array = m_panel->m_object_grid->GetSelectedCells();
         int count = cell_array.size();
         if (count == 0) {
             ObjectVolumeID object_volume_id;
@@ -1861,7 +2030,7 @@ void ObjectGridTable::OnSelectCell(int row, int col)
                 wxGridCellCoords cell_coord(cel_row, cel_col);
                 m_selected_cells.push_back(cell_coord);
             }
-        }
+        }*/
 
         wxGetApp().obj_list()->select_items(object_volume_ids);
     }
@@ -1982,7 +2151,7 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
     m_side_window->SetSizer(m_page_sizer);
     m_side_window->SetScrollbars(1, 20, 1, 2);
     //m_side_window->SetSize(wxSize(128, 512));
-    m_page_text = new wxStaticText(m_side_window, wxID_ANY, wxString("Per Object Setting"), wxDefaultPosition, wxSize(128, 32), wxALIGN_CENTRE_HORIZONTAL);
+    m_page_text = new wxStaticText(m_side_window, wxID_ANY, wxString("Per Object Setting"), wxDefaultPosition, wxSize(128, 32), wxALIGN_CENTRE_HORIZONTAL|wxST_ELLIPSIZE_MIDDLE);
     m_page_text->SetFont(Label::Head_18);
     m_page_sizer->Add(m_page_text, 0, wxEXPAND | wxTOP | wxALIGN_CENTER_HORIZONTAL, 5);
     //create object settings
@@ -2176,6 +2345,8 @@ void ObjectTablePanel::load_data()
                     default:
                         break;
                 }
+                if ((col == ObjectGridTable::col_name) && (grid_row->row_type == ObjectGridTable::row_object))
+                    m_object_grid->SetCellFont(row, col, Label::Head_14);
             }
         }
     }
@@ -2387,6 +2558,14 @@ ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model 
 
     wxSize panel_size = m_obj_panel->get_init_size();
     g_max_size_from_parent = maxSize;
+    if ((maxSize.GetWidth() == -1) || (maxSize.GetHeight() == -1)) {
+        wxDisplay display(wxDisplay::GetFromWindow(this));
+        //auto drect = display.GetGeometry();
+        wxRect 	client_area = display.GetClientArea ();
+        g_max_size_from_parent.SetWidth(client_area.GetWidth());
+        g_max_size_from_parent.SetHeight(client_area.GetHeight());
+    }
+
     if ((g_dialog_width == 0) || (g_dialog_height == 0))
     {
         g_dialog_height = (panel_size.GetHeight() > g_max_size_from_parent.GetHeight())?g_max_size_from_parent.GetHeight():panel_size.GetHeight();

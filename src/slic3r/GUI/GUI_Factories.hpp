@@ -41,6 +41,7 @@ struct SettingsFactory
     static std::vector<std::string>             get_options(bool is_part);
     //BBS: add api to get options for catogary
     static std::vector<SimpleSettingData> get_visible_options(const std::string& category, const bool is_part);
+    static std::map<std::string, std::vector<SimpleSettingData>> get_all_visible_options(const bool is_part);
 };
 
 class MenuFactory

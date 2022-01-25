@@ -164,6 +164,37 @@ std::vector<SimpleSettingData> SettingsFactory::get_visible_options(const std::s
     return options;
 }
 
+std::map<std::string, std::vector<SimpleSettingData>> SettingsFactory::get_all_visible_options(const bool is_part)
+{
+    std::map<std::string, std::vector<SimpleSettingData>> option_maps;
+    std::map<std::string, std::vector<SimpleSettingData>>::iterator it1, it2;
+
+    option_maps = PART_CATEGORY_SETTINGS;
+    if (!is_part) {
+        for (it1 = OBJECT_CATEGORY_SETTINGS.begin(); it1 != OBJECT_CATEGORY_SETTINGS.end(); it1++)
+        {
+            std::string category = it1->first;
+            it2 = PART_CATEGORY_SETTINGS.find(category);
+            if (it2 != PART_CATEGORY_SETTINGS.end())
+            {
+                std::vector<SimpleSettingData>& options = option_maps[category];
+                options.insert(options.end(), it1->second.begin(), it1->second.end());
+
+                auto sort_func = [](SimpleSettingData& setting1, SimpleSettingData& setting2) {
+                    return (setting1.priority < setting2.priority);
+                };
+                std::sort(options.begin(), options.end(), sort_func);
+            }
+            else {
+                option_maps.insert(*it1);
+            }
+        }
+    }
+
+    return option_maps;
+}
+
+
 SettingsFactory::Bundle SettingsFactory::get_bundle(const DynamicPrintConfig* config, bool is_object_settings)
 {
     auto opt_keys = config->keys();

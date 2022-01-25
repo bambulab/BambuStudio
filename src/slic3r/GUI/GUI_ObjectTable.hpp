@@ -72,6 +72,9 @@ public:
 
     virtual void BeginEdit(int row, int col, wxGrid* grid) wxOVERRIDE;
 
+    virtual wxGridActivationResult TryActivate(int row, int col, wxGrid* grid, const wxGridActivationSource& actSource) wxOVERRIDE;
+    virtual void DoActivate(int row, int col, wxGrid* grid) wxOVERRIDE;
+
 protected:
     wxBitmapComboBox *Combo() const { return (wxBitmapComboBox *)m_control; }
     void OnComboCloseUp(wxCommandEvent& evt);
@@ -79,6 +82,8 @@ protected:
     std::vector<wxBitmap*>* m_icons;
 
     wxDECLARE_NO_COPY_CLASS(GridCellFilamentsEditor);
+private:
+    int m_cached_value {-1};
 };
 
 
@@ -193,6 +198,8 @@ private:
 class ObjectGridTable : public wxGridTableBase
 {
 public:
+    static std::string category_all;
+    static std::string plate_outside;
     enum GridRowType
     {
         row_object = 0,
@@ -423,6 +430,8 @@ private:
     bool m_data_valid{false};
 
     std::list<wxGridCellCoords> m_selected_cells;
+
+    int m_sort_col{ -1 };
 
     void init_cols();
     //generic function for sort row datas
