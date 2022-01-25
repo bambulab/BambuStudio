@@ -141,6 +141,8 @@ static constexpr const char* INSTANCESCOUNT_ATTR = "instances_count";
 static constexpr const char* CUSTOM_SUPPORTS_ATTR = "slic3rpe:custom_supports";
 static constexpr const char* CUSTOM_SEAM_ATTR = "slic3rpe:custom_seam";
 static constexpr const char* MMU_SEGMENTATION_ATTR = "slic3rpe:mmu_segmentation";
+// BBS
+static constexpr const char* FACE_PROPERTY_ATTR = "bbs:face_property";
 
 static constexpr const char* KEY_ATTR = "key";
 static constexpr const char* VALUE_ATTR = "value";
@@ -381,6 +383,8 @@ namespace Slic3r {
             std::vector<std::string> custom_supports;
             std::vector<std::string> custom_seam;
             std::vector<std::string> mmu_segmentation;
+            // BBS
+            std::vector<std::string> face_properties;
 
             bool empty() { return vertices.empty() || triangles.empty(); }
 
@@ -2278,6 +2282,8 @@ namespace Slic3r {
         m_curr_object.geometry.custom_supports.push_back(bbs_get_attribute_value_string(attributes, num_attributes, CUSTOM_SUPPORTS_ATTR));
         m_curr_object.geometry.custom_seam.push_back(bbs_get_attribute_value_string(attributes, num_attributes, CUSTOM_SEAM_ATTR));
         m_curr_object.geometry.mmu_segmentation.push_back(bbs_get_attribute_value_string(attributes, num_attributes, MMU_SEGMENTATION_ATTR));
+        // BBS
+        m_curr_object.geometry.face_properties.push_back(bbs_get_attribute_value_string(attributes, num_attributes, FACE_PROPERTY_ATTR));
         return true;
     }
 
@@ -2776,6 +2782,13 @@ namespace Slic3r {
                     }
                 }
                 its.vertices.assign(geometry.vertices.begin() + min_id, geometry.vertices.begin() + max_id + 1);
+
+                // BBS
+                for (const std::string prop_str : geometry.face_properties) {
+                    FaceProperty face_prop;
+                    face_prop.from_string(prop_str);
+                    its.properties.push_back(face_prop);
+                }
 
                 // rebase indices to the current vertices list
                 for (Vec3i& face : its.indices)
@@ -3772,6 +3785,15 @@ namespace Slic3r {
                     output_buffer += MMU_SEGMENTATION_ATTR;
                     output_buffer += "=\"";
                     output_buffer += mmu_painting_data_string;
+                    output_buffer += "\"";
+                }
+
+                // BBS
+                if (i < its.properties.size()) {
+                    output_buffer += " ";
+                    output_buffer += FACE_PROPERTY_ATTR;
+                    output_buffer += "=\"";
+                    output_buffer += its.properties[i].to_string();
                     output_buffer += "\"";
                 }
 

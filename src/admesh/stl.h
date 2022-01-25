@@ -166,6 +166,28 @@ struct FaceProperty
     EnumFaceTypes type;
     double area;
     // stl_normal normal;
+
+    std::string to_string() const
+    {
+        std::string str;
+        str += std::to_string(type) + " ";
+        str += std::to_string(area);
+        return str;
+    }
+
+    void from_string(const std::string& str)
+    {
+        std::string val_str, area_str;
+
+        size_t type_end_pos = str.find(" ");
+        if (type_end_pos == std::string::npos)
+            return;
+        val_str = str.substr(0, type_end_pos);
+        this->type = (EnumFaceTypes)std::atoi(val_str.c_str());
+
+        area_str = str.substr(type_end_pos + 1);
+        this->area = std::atof(area_str.c_str());
+    }
 };
 
 struct indexed_triangle_set
@@ -184,6 +206,7 @@ struct indexed_triangle_set
 
     std::vector<stl_triangle_vertex_indices>    indices;
     std::vector<stl_vertex>                     vertices;
+    std::vector<FaceProperty>                   properties;
 
     bool empty() const { return indices.empty() || vertices.empty(); }
     stl_vertex get_vertex(int facet_idx, int vertex_idx) const{
@@ -200,8 +223,6 @@ struct indexed_triangle_set
         }
         return properties[face_idx];
     }
-private:
-    std::vector<FaceProperty>                   properties;
 };
 
 extern bool stl_open(stl_file *stl, const char *file);
