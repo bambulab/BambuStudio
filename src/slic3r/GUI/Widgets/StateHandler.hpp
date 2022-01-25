@@ -33,10 +33,7 @@ public:
 
     void update_binds();
 
-    int states() const { return states_; }
-
-    void set_state(State state) { states_ |= state; }
-    void clean_state(State state) { states_ &= ~state; }
+    int states() const { return states_ | states2_; }
 
 private:
     void changed(wxEvent & event);
@@ -46,6 +43,7 @@ private:
     std::vector<StateColor const *> colors_;
     int bind_states_ = 0;
     int states_ = 0;
+    int states2_ = 0;
 };
 
 #endif // !slic3r_GUI_StateHandler_hpp_

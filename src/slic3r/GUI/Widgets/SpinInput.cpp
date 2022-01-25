@@ -65,6 +65,7 @@ SpinInput::SpinInput(wxWindow *     parent,
     });
     text_ctrl->Bind(wxEVT_KILL_FOCUS, &SpinInput::onTextLostFocus, this);
     text_ctrl->Bind(wxEVT_TEXT_ENTER, &SpinInput::onTextEnter, this);
+    text_ctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable context menu
     button_inc = createButton(true);
     button_dec = createButton(false);
     delta      = 0;
@@ -153,6 +154,7 @@ bool SpinInput::Enable(bool enable)
     bool result = text_ctrl->Enable(enable) && wxWindow::Enable(enable);
     if (result) {
         wxCommandEvent e(EVT_ENABLE_CHANGED);
+        e.SetEventObject(this);
         GetEventHandler()->ProcessEvent(e);
     }
     return result;

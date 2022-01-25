@@ -89,6 +89,7 @@ void TextInput::Create(wxWindow *     parent,
         e.SetId(GetId());
         ProcessEventLocally(e);
     });
+    text_ctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable context menu
     text_ctrl->SetFont(Label::Body_14);
     if (!icon.IsEmpty()) {
         this->icon = ScalableBitmap(this, icon.ToStdString(), 16);
@@ -139,6 +140,7 @@ bool TextInput::Enable(bool enable)
     bool result = text_ctrl->Enable(enable) && wxWindow::Enable(enable);
     if (result) {
         wxCommandEvent e(EVT_ENABLE_CHANGED);
+        e.SetEventObject(this);
         GetEventHandler()->ProcessEvent(e);
     }
     return result;

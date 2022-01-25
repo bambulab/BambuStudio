@@ -54,22 +54,26 @@ void StateHandler::changed(wxEvent & event)
     event.Skip();
     wxEventType events[] = {EVT_ENABLE_CHANGED, wxEVT_CHECKBOX, wxEVT_SET_FOCUS, wxEVT_ENTER_WINDOW, wxEVT_LEFT_DOWN};
     wxEventType events2[] = {{0}, {0}, wxEVT_KILL_FOCUS, wxEVT_LEAVE_WINDOW, wxEVT_LEFT_UP};
+    int old = states2_ | states_;
+    // some events are from another window (ex: text_ctrl of TextInput), save state in states2_ to avoid conflicts
+    int & states = event.GetEventObject() == owner_ ? states_ : states2_;
     for (int i = 0; i < 5; ++i) {
         if (events2[i]) {
             if (event.GetEventType() == events[i]) {
-                states_ |= 1 << i;
+                states |= 1 << i;
                 break;
             } else if (event.GetEventType() == events2[i]) {
-                states_ &= ~(1 << i);
+                states &= ~(1 << i);
                 break;
             }
         }
         else {
             if (event.GetEventType() == events[i]) {
-                states_ ^= (1 << i);
+                states ^= (1 << i);
                 break;
             }
         }
     }
-    owner_->Refresh();
+    if (old != (states2_ | states_))
+        owner_->Refresh();
 }

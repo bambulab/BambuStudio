@@ -67,7 +67,6 @@ private:
 
     void mouseDown(wxMouseEvent& event);
     void mouseReleased(wxMouseEvent& event);
-    void mouseLeave(wxMouseEvent& event);
 
     void sendButtonEvent();
 

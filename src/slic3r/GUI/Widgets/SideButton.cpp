@@ -6,7 +6,6 @@
 BEGIN_EVENT_TABLE(SideButton, wxPanel)
 EVT_LEFT_DOWN(SideButton::mouseDown)
 EVT_LEFT_UP(SideButton::mouseReleased)
-EVT_LEAVE_WINDOW(SideButton::mouseLeave)
 EVT_PAINT(SideButton::paintEvent)
 END_EVENT_TABLE()
 
@@ -22,19 +21,16 @@ SideButton::SideButton(wxWindow* parent, wxString text, wxString icon, long stly
     border_color.append(0x1B8844, StateColor::Pressed);
     border_color.append(0xFFFFF, StateColor::Hovered);
     border_color.append(0x00AE42, StateColor::Normal);
-    border_color.append(0x00AE42, StateColor::Enabled);
 
     text_color.append(0xACACAC, StateColor::Disabled);
     text_color.append(0xFFFFFF, StateColor::Pressed);
     text_color.append(0xFFFFFF, StateColor::Hovered);
     text_color.append(0xFFFFFF, StateColor::Normal);
-    text_color.append(0xFFFFFF, StateColor::Enabled);
 
     background_color.append(0x6B6B6B, StateColor::Disabled);
     background_color.append(0x1B8844, StateColor::Pressed);
     background_color.append(0x00AE42, StateColor::Hovered);
     background_color.append(0x00AE42, StateColor::Normal);
-    background_color.append(0x00AE42, StateColor::Enabled);
 
     state_handler.attach({ &border_color, &text_color, &background_color });
     state_handler.update_binds();
@@ -120,16 +116,13 @@ void SideButton::SetBackgroundColor(StateColor const &color)
 
 bool SideButton::Enable(bool enable)
 {
-    if (enable) {
-        state_handler.set_state(StateHandler::State::Enabled);
-        state_handler.clean_state(StateHandler::State::Disabled);
+    bool result = wxWindow::Enable(enable);
+    if (result) {
+        wxCommandEvent e(EVT_ENABLE_CHANGED);
+        e.SetEventObject(this);
+        GetEventHandler()->ProcessEvent(e);
     }
-    else {
-        state_handler.set_state(StateHandler::State::Disabled);
-        state_handler.clean_state(StateHandler::State::Enabled);
-    }
-    Refresh();
-    return wxWindow::Enable(enable);
+    return result;
 }
 
 void SideButton::Rescale()
@@ -277,28 +270,20 @@ void SideButton::messureSize()
 
 void SideButton::mouseDown(wxMouseEvent& event)
 {
+    event.Skip();
     pressedDown = true;
-    state_handler.set_state(StateHandler::State::Pressed);
-    Refresh();
     SetFocus();
+    CaptureMouse();
 }
 
 void SideButton::mouseReleased(wxMouseEvent& event)
 {
+    event.Skip();
     if (pressedDown) {
         pressedDown = false;
-        state_handler.clean_state(StateHandler::State::Pressed);
-        Refresh();
-        sendButtonEvent();
-    }
-}
-
-void SideButton::mouseLeave(wxMouseEvent& event)
-{
-    if (pressedDown) {
-        pressedDown = false;
-        state_handler.clean_state(StateHandler::State::Pressed);
-        Refresh();
+        ReleaseMouse();
+        if (wxRect({0, 0}, GetSize()).Contains(event.GetPosition()))
+            sendButtonEvent();
     }
 }
 
