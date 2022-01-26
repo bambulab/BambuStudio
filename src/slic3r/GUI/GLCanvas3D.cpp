@@ -6705,7 +6705,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                 // do not cull backfaces to show broken geometry, if any
                 m_volumes.render(type, m_picking_enabled, wxGetApp().plater()->get_camera().get_view_matrix(), [this, canvas_type](const GLVolume& volume) {
                     if (canvas_type == ECanvasType::CanvasAssembleView) {
-                        return !volume.is_modifier;
+                        return !volume.is_modifier && !volume.is_wipe_tower;
                     }
                     else {
                         return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
