@@ -70,6 +70,9 @@ public:
     // Projection of a point onto the polygon.
     Point point_projection(const Point &point) const;
     std::vector<float> parameter_by_length() const;
+    
+    //BBS
+    Polygon transform(const Transform3d& trafo) const;
 
     using iterator = Points::iterator;
     using const_iterator = Points::const_iterator;

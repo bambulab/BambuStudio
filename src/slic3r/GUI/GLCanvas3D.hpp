@@ -925,6 +925,13 @@ public:
 
     double get_size_proportional_to_max_bed_size(double factor) const;
 
+    // BBS: get empty cells to put new object
+    // start_point={-1,-1} means sort from bed center
+    std::vector<Vec2f> get_empty_cells(const Vec2f start_point);
+    // BBS: get the nearest empty cell
+    // start_point={-1,-1} means sort from bed center
+    Vec2f get_nearest_empty_cell(const Vec2f start_point);
+
     void set_cursor(ECursorType type);
     void msw_rescale();
 

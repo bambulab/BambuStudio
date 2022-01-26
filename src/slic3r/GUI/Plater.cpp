@@ -3252,7 +3252,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     return obj_idxs;
 }
 
-// #define AUTOPLACEMENT_ON_LOAD
+ #define AUTOPLACEMENT_ON_LOAD
 
 std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z, bool split_object)
 {
@@ -3328,6 +3328,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
     }
 
 #ifdef AUTOPLACEMENT_ON_LOAD
+#if 0
     // FIXME distance should be a config value /////////////////////////////////
     auto min_obj_distance = static_cast<coord_t>(6/SCALING_FACTOR);
     const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
@@ -3344,6 +3345,16 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
 
     // it remains to move the wipe tower:
     view3D->get_canvas3d()->arrange_wipe_tower(wti);
+#else
+    // BBS: find an empty cell to put the copied object
+    for (auto& instance : new_instances) {
+        auto offset = instance->get_offset();
+        auto start_point = this->bed.build_volume().bounding_volume2d().center();
+        auto empty_cell = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({ start_point(0),start_point(1) });
+        Vec3d displacement = { empty_cell.x(),empty_cell.y(),offset(2)};
+        instance->set_offset(displacement);
+    }
+#endif
 
 #endif /* AUTOPLACEMENT_ON_LOAD */
 
@@ -6806,9 +6817,6 @@ void Plater::add_model(bool imperial_units/* = false*/)
     Plater::TakeSnapshot snapshot(this, snapshot_label);
     if (!load_files(paths, true, false, imperial_units).empty()) {
         wxGetApp().mainframe->update_title();
-        //BBS: arrange newly imported objects
-        SimpleEvent evt(EVT_GLTOOLBAR_ARRANGE);
-        get_current_canvas3D()->get_wxglcanvas()->GetEventHandler()->ProcessEvent(evt);
     }
 }
 
@@ -8906,10 +8914,6 @@ void Plater::paste_from_clipboard()
     // and then paste from the 3DCanvas's clipboard if not
     if (!p->sidebar->obj_list()->paste_from_clipboard())
         p->view3D->get_canvas3d()->get_selection().paste_from_clipboard();
-
-    //BBS: arrange newly copied objects
-    SimpleEvent evt(EVT_GLTOOLBAR_ARRANGE);
-    get_current_canvas3D()->get_wxglcanvas()->GetEventHandler()->ProcessEvent(evt);
 }
 
 void Plater::search(bool plater_is_active)

@@ -293,6 +293,32 @@ void Polygon::densify(float min_length, std::vector<float>* lengths_ptr)
     assert(points.size() == lengths.size() - 1);
 }
 
+Polygon Polygon::transform(const Transform3d& trafo) const
+{
+    unsigned int vertices_count = (unsigned int)points.size();
+    Polygon dstpoly;
+    dstpoly.points.resize(vertices_count);
+    if (vertices_count == 0)
+        return dstpoly;
+
+    unsigned int data_size = 3 * vertices_count * sizeof(float);
+
+    Eigen::MatrixXd src(3, vertices_count);
+    for (size_t i = 0; i < vertices_count; i++)
+    {
+        src.col(i) = Vec3d{ double(points[i].x()), double(points[i].y()),0. };
+    }
+
+    Eigen::MatrixXd dst(3, vertices_count);
+    dst = trafo * src.colwise().homogeneous();
+
+    for (size_t i = 0; i < vertices_count; i++)
+    {
+        dstpoly.points[i] = { dst(0,i),dst(1,i) };
+    }
+    return dstpoly;
+}
+
 BoundingBox get_extents(const Polygon &poly) 
 { 
     return poly.bounding_box();
