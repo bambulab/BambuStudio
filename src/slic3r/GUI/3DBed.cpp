@@ -540,8 +540,8 @@ void Bed3D::update_model_offset() const
     shift(2) = -0.03;
     Vec3d* model_offset_ptr = const_cast<Vec3d*>(&m_model_offset);
     *model_offset_ptr = shift;
-    //BBS: TODO: hack for current stl for v4
-    if (std::string::npos != m_model_filename.find("bbl-3dp-004_bed"))
+    //BBS: TODO: hack for current stl for BBL printer
+    if (std::string::npos != m_model_filename.find("bbl-3dp-"))
     {
         (*model_offset_ptr)(0) -= 128.f;
         (*model_offset_ptr)(1) -= 128.f;
