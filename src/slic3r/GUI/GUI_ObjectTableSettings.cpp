@@ -75,6 +75,8 @@ ObjectTableSettings::ObjectTableSettings(wxWindow* parent, ObjectGridTable* tabl
 bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_selection, ModelObject* object, ModelConfig* config, const std::string& category)
 {
     std::string group_category;
+    int different_count = 0;
+
     m_settings_list_sizer->Clear(true);
     m_og_settings.resize(0);
     Show(true);
@@ -191,6 +193,7 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
         auto optgroup = std::make_shared<ConfigOptionsGroup>(m_og->ctrl_parent(), _(cat.first), &m_current_config, false, extra_column);
         optgroup->label_width = 15;
         optgroup->sidetext_width = 5;
+        optgroup->set_config_category_and_type(GUI::from_u8(group_category), Preset::TYPE_PRINT);
 
         optgroup->m_on_change = [this, optgroup, is_object, object, config, group_category](const t_config_option_key& opt_id, const boost::any& value) {
                                     this->m_parent->Freeze();
@@ -235,7 +238,10 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
             };
 
         optgroup->reload_config();
-        update_extra_column_visible_status(optgroup.get(), cat.second, config);
+        different_count = update_extra_column_visible_status(optgroup.get(), cat.second, config);
+        m_current_different += different_count;
+        if (different_count > 0)
+            m_different_map[group_category] = different_count;
         /*for (auto& opt : cat.second)
         {
             auto line = optgroup->get_line(opt);
@@ -265,6 +271,10 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
     //if (!categories.empty()) {
     //    update_config_values(is_object, object, config, category);
     //}
+    if (m_current_different > 0)
+        m_table->enable_reset_all_button(true);
+    else
+        m_table->enable_reset_all_button(false);
 
     return true;
 }
@@ -286,26 +296,33 @@ bool ObjectTableSettings::add_missed_options(ModelConfig* config_to, const Dynam
     return is_added;
 }
 
-void ObjectTableSettings::update_extra_column_visible_status(ConfigOptionsGroup* option_group, const std::vector<SimpleSettingData>& option_keys, ModelConfig* config)
+int ObjectTableSettings::update_extra_column_visible_status(ConfigOptionsGroup* option_group, const std::vector<SimpleSettingData>& option_keys, ModelConfig* config)
 {
+    int count = 0;
+
     for (auto& opt : option_keys)
     {
         auto line = option_group->get_line(opt.name);
         Field* field = option_group->get_fieldc(opt.name, -1);
         wxWindow *reset_window = field?field->getWindow():nullptr;
         if (line) {
-            if ((config->has(opt.name)) && reset_window&&reset_window->IsEnabled())
+            if ((config->has(opt.name)) && reset_window&&reset_window->IsEnabled()) {
                 line->extra_widget_win->Enable();
+                count++;
+            }
             else
                 line->extra_widget_win->Disable();
         }
     }
     wxGridSizer* grid_sizer = option_group->get_grid_sizer();
     grid_sizer->Layout();
+
+    return count;
 }
 
 void ObjectTableSettings::update_config_values(bool is_object, ModelObject* object, ModelConfig* config, const std::string& category)
 {
+    int different_count = 0;
     const auto printer_technology   = wxGetApp().plater()->printer_technology();
 
     if (!object || !config)
@@ -348,11 +365,31 @@ void ObjectTableSettings::update_config_values(bool is_object, ModelObject* obje
     config->apply_only(main_config, diff_keys, true);
     // Initialize UI components with the config values.
     std::vector<SimpleSettingData> category_settings = SettingsFactory::get_visible_options(category, !is_object);
+    std::string current_category;
     for (auto og : m_og_settings)
     {
+        current_category = GUI::into_u8(og->config_category());
         og->reload_config();
-        update_extra_column_visible_status(og.get(), category_settings, config);
+        if (category == ObjectGridTable::category_all) {
+            category_settings = SettingsFactory::get_visible_options(current_category, !is_object);
+            different_count = update_extra_column_visible_status(og.get(), category_settings, config);
+            if (different_count > 0)
+                m_different_map[current_category] = different_count;
+            else
+                m_different_map.erase(current_category);
+        }
+        else if (category == current_category){
+            different_count = update_extra_column_visible_status(og.get(), category_settings, config);
+            if (different_count > 0)
+                m_different_map[current_category] = different_count;
+            else
+                m_different_map.erase(current_category);
+        }
     }
+    if (m_different_map.size() > 0)
+        m_table->enable_reset_all_button(true);
+    else
+        m_table->enable_reset_all_button(false);
 
     //update the table and volume settings
     m_table->reload_cell_data(m_current_row, category);
@@ -362,6 +399,8 @@ void ObjectTableSettings::UpdateAndShow(int row, const bool show, bool is_object
 {
     m_current_row = row;
     m_current_category = category;
+    m_current_different = 0;
+    m_different_map.clear();
     //OTG_Settings::UpdateAndShow(show ? update_settings_list(is_object, is_multiple_selection, object, config, category) : false);
     if (show) {
         update_settings_list(is_object, is_multiple_selection, object, config, category);
@@ -372,7 +411,8 @@ void ObjectTableSettings::UpdateAndShow(int row, const bool show, bool is_object
 
 void ObjectTableSettings::ValueChanged(int row, bool is_object,  ModelObject* object, ModelConfig* config, const std::string& category, const std::string& key)
 {
-    if ((row != m_current_row) || (category != m_current_category))
+    if ((row != m_current_row)
+        || ((category != m_current_category) && (m_current_category != ObjectGridTable::category_all)))
         return;
 
     ConfigOption *my_opt = m_current_config.option(key, true);
@@ -389,6 +429,43 @@ void ObjectTableSettings::ValueChanged(int row, bool is_object,  ModelObject* ob
     update_config_values(is_object, object, config, category);
 }
 
+void  ObjectTableSettings::resetAllValues(int row, bool is_object, ModelObject* object, ModelConfig* config, const std::string& category)
+{
+    if ((row != m_current_row) || (category != m_current_category))
+        return;
+
+    if (category == ObjectGridTable::category_all) {
+        std::map<std::string, std::vector<SimpleSettingData>> cat_options;
+
+        //get the category and settings
+        cat_options = SettingsFactory::get_all_visible_options(!is_object);
+        std::map<std::string, std::vector<SimpleSettingData>>::iterator it1 = cat_options.begin();
+
+        while (it1 != cat_options.end())
+        {
+            std::vector<SimpleSettingData>& settings = it1->second;
+            std::vector<SimpleSettingData>::iterator it2 = settings.begin();
+
+            while ( it2 != settings.end() )
+            {
+                config->erase(it2->name);
+                it2++;
+            }
+            it1++;
+        }
+    }
+    else {
+        // Initialize UI components with the config values.
+        std::vector<SimpleSettingData> category_settings = SettingsFactory::get_visible_options(category, !is_object);
+        for (auto& opt : category_settings)
+        {
+            config->erase(opt.name);
+        }
+    }
+    m_current_config = m_origin_config;
+    m_current_config.apply(config->get(), true);
+    update_config_values(is_object, object, config, category);
+}
 
 void ObjectTableSettings::msw_rescale()
 {

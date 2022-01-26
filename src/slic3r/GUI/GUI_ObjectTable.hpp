@@ -402,6 +402,8 @@ public:
     ObjectGridRow* get_grid_row(int row) { return m_grid_data[row]; }
     void construct_object_configs();
     void update_value_to_config(ModelConfig* config, std::string& key, ConfigOption& new_value,  ConfigOption& ori_value);
+    void update_filament_to_config(ModelConfig* config, std::string& key, ConfigOption& new_value,  ConfigOption& ori_value, bool is_object);
+    void update_volume_values_from_object(int row, int col);
     void update_value_to_object(Model* model, ObjectGridRow* grid_row, int col);
     wxBitmap& get_undo_bitmap(bool selected = false);
     wxBitmap* get_color_bitmap(int color_index);
@@ -420,6 +422,8 @@ public:
     void reload_object_data(ObjectGridRow* grid_row, const std::string& category, DynamicPrintConfig&  global_config);
     void reload_part_data(ObjectGridRow* volume_row, ObjectGridRow* object_row, const std::string& category, DynamicPrintConfig&  global_config);
     void reload_cell_data(int row, const std::string& category);
+    void resetValuesInCurrentCell(wxEvent& WXUNUSED(event));
+    void enable_reset_all_button(bool enable);
 
     int m_icon_col_width{ 0 };
     int m_icon_row_height{ 0 };
@@ -438,6 +442,8 @@ private:
     void sort_row_data(compare_row_func sort_func);
     //update the row properties for the data has been sorted
     void update_row_properties();
+    int m_current_row {-1};
+    int m_current_col {-1};
 };
 
 
@@ -461,6 +467,7 @@ public:
     void SetSelection(int object_id, int volume_id);
     void sort_by_default() { m_object_grid_table->sort_by_default(); }
     wxSize get_init_size();
+    void resetAllValuesInSideWindow(int row, bool is_object, ModelObject* object, ModelConfig* config, const std::string& category);
 
     //set ObjectGridTable as friend
     friend class     ObjectGridTable;
@@ -480,10 +487,12 @@ private:
     wxColour            m_hover_colour;
     wxBoxSizer*         m_top_sizer{nullptr};
     wxBoxSizer*         m_page_sizer{nullptr};
+    wxBoxSizer*         m_page_top_sizer{nullptr};
     wxTextCtrl*         m_search_line{ nullptr };
     ObjectGrid*         m_object_grid{nullptr};
     ObjectGridTable*    m_object_grid_table{nullptr};
     wxStaticText*       m_page_text{nullptr};
+    ScalableButton*     m_global_reset{nullptr};
     wxScrolledWindow*   m_side_window{nullptr};
     ObjectTableSettings* m_object_settings{ nullptr };
     Model*              m_model{nullptr};
@@ -499,6 +508,8 @@ private:
     wxFloatingPointValidator<float> m_float_validator;
     wxBitmap           m_undo_bitmap;
     std::vector<wxBitmap*> m_color_bitmaps; 
+    ScalableBitmap     m_bmp_reset;
+    ScalableBitmap     m_bmp_reset_disable;
 private:
     wxDECLARE_ABSTRACT_CLASS(ObjectGrid);
     wxDECLARE_EVENT_TABLE();

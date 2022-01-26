@@ -1017,6 +1017,18 @@ wxString ObjectGridTable::GetValue (int row, int col)
     return wxString();
 }
 
+void ObjectGridTable::update_filament_to_config(ModelConfig* config, std::string& key, ConfigOption& new_value,  ConfigOption& ori_value, bool is_object)
+{
+    if (!is_object)
+        update_value_to_config(config, key, new_value, ori_value);
+    else {
+        //always create extruder in object config
+        config->set_key_value(key, new_value.clone());
+        config->touch();
+    }
+}
+
+
 void ObjectGridTable::update_value_to_config(ModelConfig* config, std::string& key, ConfigOption& new_value,  ConfigOption& ori_value)
 {
     if (!config->has(key))
@@ -1032,6 +1044,46 @@ void ObjectGridTable::update_value_to_config(ModelConfig* config, std::string& k
     }
     config->touch();
 }
+
+void ObjectGridTable::update_volume_values_from_object(int row, int col)
+{
+    ObjectGridRow* grid_row = m_grid_data[row - 1];
+    bool need_refresh = false;
+    DynamicPrintConfig&  global_config   = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    if (grid_row->row_type == row_object) {
+        int next_row = row + 1;
+        while ((next_row - 1) < m_grid_data.size())
+        {
+            ObjectGridRow* part_row = m_grid_data[next_row - 1];
+            if (part_row->row_type == row_volume) {
+                if (col == col_filaments) {
+                    auto extruder_id_ptr = static_cast<const ConfigOptionInt*>(part_row->config->option(m_col_data[col]->key));
+                    if (extruder_id_ptr) {
+                        part_row->filaments = *extruder_id_ptr;
+                        if (part_row->filaments == grid_row->filaments) {
+                            part_row->config->erase(m_col_data[col_filaments]->key);
+                        }
+                    }
+                    else
+                        part_row->filaments = grid_row->filaments;
+                    part_row->ori_filaments = grid_row->filaments;
+                }
+                else
+                    reload_part_data(part_row, grid_row, m_col_data[col]->category, global_config);
+                next_row++;
+                need_refresh = true;
+            }
+            else
+                break;
+        }
+    }
+
+    if (need_refresh)
+        m_panel->m_object_grid->ForceRefresh();
+
+    return;
+}
+
 
 void ObjectGridTable::update_value_to_object(Model* model, ObjectGridRow* grid_row, int col)
 {
@@ -1116,7 +1168,8 @@ void ObjectGridTable::SetValue( int row, int col, const wxString& value )
             ConfigOptionInt& option_ori_value = dynamic_cast<ConfigOptionInt&>((*grid_row)[(GridColType)(col + 1)]);
 
             option_value.value = enum_value + 1;
-            update_value_to_config(grid_row->config, grid_col->key, option_value, option_ori_value);
+            update_filament_to_config(grid_row->config, grid_col->key, option_value, option_ori_value, (grid_row->row_type == row_object));
+            update_volume_values_from_object(row, col);
             wxGetApp().obj_list()->update_extruder_values_for_items(m_panel->m_filaments_count);
             //m_panel->m_plater->update();
         }
@@ -1342,30 +1395,30 @@ void ObjectGridTable::init_cols()
     m_col_data.push_back(col);
 
     //second column for module name
-    col = new ObjectGridCol(coString, "assemble_name", L(" "), true, false, true, false, wxALIGN_RIGHT);
+    col = new ObjectGridCol(coString, "assemble_name", ObjectGridTable::category_all, true, false, true, false, wxALIGN_RIGHT);
     m_col_data.push_back(col);
 
     //3th column: for object/volume name
-    col = new ObjectGridCol(coString, "name", L(" "), false, false, true, false, wxALIGN_RIGHT);
+    col = new ObjectGridCol(coString, "name", ObjectGridTable::category_all, false, false, true, false, wxALIGN_RIGHT);
     m_col_data.push_back(col);
 
     //unprintable for object
-    col = new ObjectGridCol(coBool, "unprintable", L(" "), true, false, true, false, wxALIGN_RIGHT);
+    col = new ObjectGridCol(coBool, "unprintable", ObjectGridTable::category_all, true, false, true, false, wxALIGN_RIGHT);
     m_col_data.push_back(col);
 
     //reset icon for unprintable
-    col = new ObjectGridCol(coBool, "unprintable_reset", L(" "), true, true, false, false, wxALIGN_CENTRE);
+    col = new ObjectGridCol(coBool, "unprintable_reset", ObjectGridTable::category_all, true, true, false, false, wxALIGN_CENTRE);
     m_col_data.push_back(col);
 
     //object/volume extruder_id
-    col = new ObjectGridCol(coEnum, "extruder", L(" "), false, false, true, true, wxALIGN_LEFT);
+    col = new ObjectGridCol(coEnum, "extruder", ObjectGridTable::category_all, false, false, true, true, wxALIGN_LEFT);
     //the spec now guarantees vectors store their elements contiguously
     col->choices = &m_panel->m_filaments_name[0];
     col->choice_count = m_panel->m_filaments_count;
     m_col_data.push_back(col);
 
     //reset icon for extruder_id
-    col = new ObjectGridCol(coEnum, "extruder_reset", L(" "), false, true, false, false, wxALIGN_CENTRE);
+    col = new ObjectGridCol(coEnum, "extruder_reset", ObjectGridTable::category_all, false, true, false, false, wxALIGN_CENTRE);
     m_col_data.push_back(col);
 
     //object layer height
@@ -1459,16 +1512,21 @@ void ObjectGridTable::construct_object_configs ()
         object_grid->ori_assemble_name = object_grid->assemble_name;
         object_grid->unprintable.value = !(object->instances[0]->printable);
         object_grid->ori_unprintable.value = false;
-        auto extruder_id_ptr = get_object_config_value<ConfigOptionInt>(filament_config, object_grid->config, m_col_data[col_filaments]->key);
-        if (extruder_id_ptr)
+        //auto extruder_id_ptr = get_object_config_value<ConfigOptionInt>(filament_config, object_grid->config, m_col_data[col_filaments]->key);
+        auto extruder_id_ptr = static_cast<const ConfigOptionInt*>(object_grid->config->option(m_col_data[col_filaments]->key));
+        if (extruder_id_ptr) {
             object_grid->filaments = *extruder_id_ptr;
-        else
-            object_grid->filaments.value = 0;
-        extruder_id_ptr = filament_config.option<ConfigOptionInt>(m_col_data[col_filaments]->key);
-        if (extruder_id_ptr)
-            object_grid->ori_filaments = *extruder_id_ptr;
-        else
-            object_grid->ori_filaments.value = 0;
+            if (object_grid->filaments.value == 0) {
+                object_grid->filaments.value = 1;
+                object_grid->config->set_key_value(m_col_data[col_filaments]->key, object_grid->filaments.clone());
+            }
+        }
+        else {
+            object_grid->filaments.value = 1;
+            object_grid->config->set_key_value(m_col_data[col_filaments]->key, object_grid->filaments.clone());
+        }
+        object_grid->ori_filaments.value = 1;
+
         object_grid->layer_height = *(get_object_config_value<ConfigOptionFloat>(global_config, object_grid->config, m_col_data[col_layer_height]->key));
         object_grid->ori_layer_height = *(global_config.option<ConfigOptionFloat>(m_col_data[col_layer_height]->key));
         object_grid->perimeters = *(get_object_config_value<ConfigOptionInt>(global_config, object_grid->config, m_col_data[col_perimeters]->key));
@@ -1506,11 +1564,17 @@ void ObjectGridTable::construct_object_configs ()
             volume_grid->ori_assemble_name = volume_grid->assemble_name;
             volume_grid->unprintable.value = !(object->instances[0]->printable);
             volume_grid->ori_unprintable.value = volume_grid->unprintable.value;
-            auto extruder_id_ptr = get_volume_config_value<ConfigOptionInt>(filament_config, object_grid->config, volume_grid->config, m_col_data[col_filaments]->key);
-            if (extruder_id_ptr)
+            //auto extruder_id_ptr = get_volume_config_value<ConfigOptionInt>(filament_config, object_grid->config, volume_grid->config, m_col_data[col_filaments]->key);
+            auto extruder_id_ptr = static_cast<const ConfigOptionInt*>(volume_grid->config->option(m_col_data[col_filaments]->key));
+            if (extruder_id_ptr) {
                 volume_grid->filaments = *extruder_id_ptr;
+                if ((volume_grid->filaments.value == 0) || (volume_grid->filaments == object_grid->filaments)) {
+                    volume_grid->config->erase(m_col_data[col_filaments]->key);
+                    volume_grid->filaments = object_grid->filaments;
+                }
+            }
             else
-                volume_grid->filaments.value = 0;
+                volume_grid->filaments = object_grid->filaments;
             volume_grid->ori_filaments = object_grid->filaments;
             volume_grid->layer_height = *(get_volume_config_value<ConfigOptionFloat>(global_config, object_grid->config, volume_grid->config, m_col_data[col_layer_height]->key));
             volume_grid->ori_layer_height = object_grid->layer_height;
@@ -1614,27 +1678,45 @@ void ObjectGridTable::reload_part_data(ObjectGridRow* volume_row, ObjectGridRow*
         volume_row->ori_speed_perimeter = object_row->speed_perimeter;
     }
     else if (category == L("Quality")) {
-         volume_row->layer_height = *(get_volume_config_value<ConfigOptionFloat>(global_config, object_row->config, volume_row->config, m_col_data[col_layer_height]->key));
-         volume_row->ori_layer_height = object_row->layer_height;
+        volume_row->layer_height = *(get_volume_config_value<ConfigOptionFloat>(global_config, object_row->config, volume_row->config, m_col_data[col_layer_height]->key));
+        if (volume_row->layer_height == object_row->layer_height) {
+            volume_row->config->erase(m_col_data[col_layer_height]->key);
+        }
+        volume_row->ori_layer_height = object_row->layer_height;
     }
     else if (category == L("Shell")) {
         volume_row->perimeters = *(get_volume_config_value<ConfigOptionInt>(global_config, object_row->config, volume_row->config, m_col_data[col_perimeters]->key));
+        if (volume_row->perimeters == object_row->perimeters) {
+            volume_row->config->erase(m_col_data[col_perimeters]->key);
+        }
         volume_row->ori_perimeters = object_row->perimeters;
     }
     else if (category == L("Infill")) {
         volume_row->fill_density = *(get_volume_config_value<ConfigOptionPercent>(global_config, object_row->config, volume_row->config, m_col_data[col_fill_density]->key));
+        if (volume_row->fill_density == object_row->fill_density) {
+            volume_row->config->erase(m_col_data[col_fill_density]->key);
+        }
         volume_row->ori_fill_density = object_row->fill_density;
     }
     else if (category == L("Support material")) {
         volume_row->support_material = *(get_volume_config_value<ConfigOptionBool>(global_config, object_row->config, volume_row->config, m_col_data[col_support_material]->key));
+        if (volume_row->support_material == object_row->support_material) {
+            volume_row->config->erase(m_col_data[col_support_material]->key);
+        }
         volume_row->ori_support_material = object_row->support_material;
     }
     else if (category == L("Bed adhension")) {
         volume_row->brim_type = *(get_volume_config_value<ConfigOptionEnum<BrimType>>(global_config, object_row->config, volume_row->config, m_col_data[col_brim_type]->key));
+        if (volume_row->brim_type == object_row->brim_type) {
+            volume_row->config->erase(m_col_data[col_brim_type]->key);
+        }
         volume_row->ori_brim_type = object_row->brim_type;
     }
     else if (category == L("Speed")) {
         volume_row->speed_perimeter = *(get_volume_config_value<ConfigOptionFloat>(global_config, object_row->config, volume_row->config, m_col_data[col_speed_perimeter]->key));
+        if (volume_row->speed_perimeter == object_row->speed_perimeter) {
+            volume_row->config->erase(m_col_data[col_speed_perimeter]->key);
+        }
         volume_row->ori_speed_perimeter = object_row->speed_perimeter;
     }
 }
@@ -1951,7 +2033,12 @@ bool ObjectGridTable::OnCellLeftClick(int row, int col, ConfigOptionType &type)
             if (cur_option != orig_option) {
                 cur_option.set(&orig_option);
                 if (grid_col_2->b_from_config) {
-                    update_value_to_config(grid_row->config, grid_col_2->key, cur_option, orig_option);
+                    if (col == col_filaments_reset) {
+                        update_filament_to_config(grid_row->config, grid_col_2->key, cur_option, orig_option, (grid_row->row_type == row_object));
+                        update_volume_values_from_object(row, col-1);
+                    }
+                    else
+                        update_value_to_config(grid_row->config, grid_col_2->key, cur_option, orig_option);
                     ObjectVolumeID object_volume_id;
                     object_volume_id.object = m_panel->m_model->objects[grid_row->object_id];
                     object_volume_id.volume = (grid_row->row_type == row_object) ? nullptr : object_volume_id.object->volumes[grid_row->volume_id];
@@ -2036,6 +2123,8 @@ void ObjectGridTable::OnSelectCell(int row, int col)
     }
     m_panel->m_side_window->Layout();
     m_panel->m_side_window->Thaw();
+    m_current_row = row;
+    m_current_col = col;
 }
 
 void ObjectGridTable::OnRangeSelected(int row, int col, int row_count, int col_count)
@@ -2102,6 +2191,25 @@ wxBitmap* ObjectGridTable::get_color_bitmap(int color_index)
         return m_panel->m_color_bitmaps[0];
 }
 
+void ObjectGridTable::resetValuesInCurrentCell(wxEvent& WXUNUSED(event))
+{
+    //return for the first row
+    if (m_current_row <= 0)
+        return;
+
+    ObjectGridRow* grid_row = m_grid_data[m_current_row - 1];
+    ObjectGridCol* grid_col = m_col_data[m_current_col];
+    bool is_object = (grid_row->row_type == row_object);
+    ModelObject* object = m_panel->m_model->objects[grid_row->object_id];
+
+    m_panel->resetAllValuesInSideWindow(m_current_row, is_object, object, grid_row->config, grid_col->category);
+}
+
+void ObjectGridTable::enable_reset_all_button(bool enable)
+{
+    m_panel->m_global_reset->Enable(enable);
+}
+
 wxIMPLEMENT_CLASS(ObjectTablePanel, wxPanel);
 /* ObjectTabelPanel related class */
 wxBEGIN_EVENT_TABLE( ObjectTablePanel, wxPanel )
@@ -2147,16 +2255,33 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
 
     m_side_window = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(g_min_setting_width,-1), wxVSCROLL);
     m_page_sizer = new wxBoxSizer(wxVERTICAL);
+    m_page_top_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_side_window->SetBackgroundColour(wxColour(0xff, 0xff, 0xff));
     m_side_window->SetSizer(m_page_sizer);
     m_side_window->SetScrollbars(1, 20, 1, 2);
     //m_side_window->SetSize(wxSize(128, 512));
-    m_page_text = new wxStaticText(m_side_window, wxID_ANY, wxString("Per Object Setting"), wxDefaultPosition, wxSize(128, 32), wxALIGN_CENTRE_HORIZONTAL|wxST_ELLIPSIZE_MIDDLE);
+    m_page_text = new wxStaticText(m_side_window, wxID_ANY, wxString("Per Object Setting"), wxDefaultPosition, wxSize(-1, 32), wxALIGN_CENTRE_HORIZONTAL|wxST_ELLIPSIZE_END);
+    m_page_text->SetMaxSize(wxSize(256, 32));
     m_page_text->SetFont(Label::Head_18);
-    m_page_sizer->Add(m_page_text, 0, wxEXPAND | wxTOP | wxALIGN_CENTER_HORIZONTAL, 5);
+    m_page_top_sizer->Add(m_page_text, 0, wxEXPAND, 5);
+    m_bmp_reset = ScalableBitmap(m_side_window, "undo");
+    //TODO, adjust later
+    m_bmp_reset_disable = ScalableBitmap(m_side_window, "dot");
+    m_global_reset = new ScalableButton(m_side_window, wxID_ANY, m_bmp_reset);
+    m_global_reset->SetToolTip(_(L("Reset All")));
+
+    m_global_reset->SetBitmapDisabled(m_bmp_reset_disable.bmp());
+
+    m_global_reset->Bind(wxEVT_BUTTON, [this](wxEvent &event) {
+        m_object_grid_table->resetValuesInCurrentCell(event);
+    });
+    m_global_reset->Enable(false);
+    m_page_top_sizer->AddSpacer(16);
+    m_page_top_sizer->Add(m_global_reset, 0, wxEXPAND, 5);
     //create object settings
     m_object_settings = new ObjectTableSettings(m_side_window, m_object_grid_table);
     m_object_settings->Hide();
+    m_page_sizer->Add(m_page_top_sizer, 0, wxEXPAND | wxTOP | wxALIGN_CENTER_HORIZONTAL, 5);
     m_page_sizer->Add(m_object_settings->get_sizer(), 1, wxEXPAND | wxTOP, 5);
 
     m_top_sizer->Add(m_side_window, 0, wxEXPAND);
@@ -2171,6 +2296,7 @@ int ObjectTablePanel::init_bitmap()
 {
     m_undo_bitmap = create_scaled_bitmap("undo", nullptr, 24);
     m_color_bitmaps = get_extruder_color_icons();
+
     return 0;
 }
 
@@ -2523,6 +2649,15 @@ wxSize ObjectTablePanel::get_init_size()
     return size;
 }
 
+void ObjectTablePanel::resetAllValuesInSideWindow(int row, bool is_object, ModelObject* object, ModelConfig* config, const std::string& category)
+{
+    //
+    m_object_settings->resetAllValues(row, is_object, object, config, category);
+}
+
+// ----------------------------------------------------------------------------
+// ObjectTableDialog
+// ----------------------------------------------------------------------------
 ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model *modelObj, wxSize maxSize)
     : GUI::DPIDialog(parent, wxID_ANY, _L("Object/Part Setting"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMAXIMIZE_BOX),
     m_model(modelObj), m_plater(platerObj)

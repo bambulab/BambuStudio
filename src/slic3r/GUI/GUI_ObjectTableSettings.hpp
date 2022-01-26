@@ -52,10 +52,15 @@ class ObjectTableSettings : public OTG_Settings
     ObjectGridTable* m_table{ nullptr };
     int m_current_row{ 0 };
     std::string m_current_category;
+    int m_current_different { 0 };
+    std::map<std::string, int> m_different_map;
 
 public:
     ObjectTableSettings(wxWindow* parent, ObjectGridTable* table);
-    ~ObjectTableSettings() {}
+    ~ObjectTableSettings()
+    {
+        m_different_map.clear();
+    }
 
     bool        update_settings_list(bool is_object, bool is_multiple_selection, ModelObject* object, ModelConfig* config, const std::string& category);
     /* Additional check for override options: Add options, if its needed.
@@ -63,10 +68,12 @@ public:
      * we should add fill_pattern to avoid endless loop in update
      */
     bool        add_missed_options(ModelConfig *config_to, const DynamicPrintConfig &config_from);
-    void        update_extra_column_visible_status(ConfigOptionsGroup* option_group, const std::vector<SimpleSettingData>& option_keys, ModelConfig* config);
+    //return visible count
+    int         update_extra_column_visible_status(ConfigOptionsGroup* option_group, const std::vector<SimpleSettingData>& option_keys, ModelConfig* config);
     void        update_config_values(bool is_object, ModelObject* object, ModelConfig* config, const std::string& category);
     void        UpdateAndShow(int row, const bool show, bool is_object, bool is_multiple_selection, ModelObject* object, ModelConfig* config, const std::string& category);
     void        ValueChanged(int row, bool is_object, ModelObject* object, ModelConfig* config, const std::string& category, const std::string& key);
+    void        resetAllValues(int row, bool is_object, ModelObject* object, ModelConfig* config, const std::string& category);
     void        msw_rescale();
 };
 
