@@ -16,6 +16,8 @@ SideButton::SideButton(wxWindow* parent, wxString text, wxString icon, long stly
     radius = 12;
     extra_size = wxSize(38, 10);
     icon_offset = 0;
+    text_orientation = HO_Left;
+    text_margin = 15;
 
     border_color.append(0x6B6B6B, StateColor::Disabled);
     border_color.append(0x1B8844, StateColor::Pressed);
@@ -58,6 +60,14 @@ void SideButton::SetCornerEnable(const std::vector<bool>& enable)
     for (auto en : enable) {
         radius_enable.push_back(en);
     }
+}
+
+void SideButton::SetTextLayout(EHorizontalOrientation orient, int margin)
+{
+    text_orientation = orient;
+    text_margin = margin;
+    messureSize();
+    Refresh();
 }
 
 void SideButton::SetLabel(const wxString& label)
@@ -213,13 +223,21 @@ void SideButton::render(wxDC& dc)
     }
     // move to center
     wxRect rcContent = { {0, 0}, size };
-    wxSize offset = (size - szContent) / 2;
-    rcContent.Deflate(offset.x, offset.y);
+    if (text_orientation == EHorizontalOrientation::HO_Center) {
+        wxSize offset = (size - szContent) / 2;
+        rcContent.Deflate(offset.x, offset.y);
+    } else if (text_orientation == EHorizontalOrientation::HO_Left) {
+        wxSize offset = (size - szContent) / 2;
+        rcContent.Deflate(text_margin, offset.y);
+    } else if (text_orientation == EHorizontalOrientation::HO_Right) {
+        wxSize offset = (size - szContent) / 2;
+        rcContent.Deflate(size.x - text_margin, offset.y);
+    }
 
     // start draw
     wxPoint pt = rcContent.GetLeftTop();
     if (icon.bmp().IsOk()) {
-        //BBS extra 2 pixels for icon
+        //BBS extra pixels for icon
         pt.x += icon_offset;
         pt.y += (rcContent.height - szIcon.y) / 2;
         dc.DrawBitmap(icon.bmp(), pt);

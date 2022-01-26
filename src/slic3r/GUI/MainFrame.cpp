@@ -1399,19 +1399,23 @@ void MainFrame::update_side_button_style()
 {
     // BBS
     int em = em_unit();
+    m_slice_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Left, 15 * em / 10);
     m_slice_btn->SetMinSize(wxSize(-1, 24 * em / 10));
     m_slice_btn->SetCornerRadius(12 * em / 10);
     m_slice_btn->SetExtraSize(wxSize(38 * em / 10, 10 * em / 10));
     m_slice_btn->SetBottomColour(wxColour(0x3B4446));
+    m_slice_option_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center);
     m_slice_option_btn->SetCornerRadius(12 * em / 10);
     m_slice_option_btn->SetExtraSize(wxSize(10 * em / 10, 10 * em / 10));
     m_slice_option_btn->SetIconOffset(2 * em / 10);
     m_slice_option_btn->SetMinSize(wxSize(24 * em / 10, 24 * em / 10));
     m_slice_option_btn->SetBottomColour(wxColour(0x3B4446));
+    m_print_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Left, 15 * em / 10);
     m_print_btn->SetCornerRadius(12 * em / 10);
     m_print_btn->SetExtraSize(wxSize(38 * em / 10, 10 * em / 10));
     m_print_btn->SetMinSize(wxSize(-1, 24 * em / 10));
     m_print_btn->SetBottomColour(wxColour(0x3B4446));
+    m_print_option_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center);
     m_print_option_btn->SetCornerRadius(12 * em / 10);
     m_print_option_btn->SetExtraSize(wxSize(10 * em / 10, 10 * em / 10));
     m_print_option_btn->SetIconOffset(2 * em / 10);
