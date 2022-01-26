@@ -1874,10 +1874,6 @@ void ObjectList::load_shape_object(const std::string& type_name)
     TriangleMesh mesh = create_mesh(type_name, bb);
     load_mesh_object(mesh, _L("Shape") + "-" + _(type_name));
     wxGetApp().mainframe->update_title();
-
-    //BBS: arrange newly added objects
-    SimpleEvent evt(EVT_GLTOOLBAR_ARRANGE);
-    ((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas())->ProcessEvent(evt);
 }
 
 void ObjectList::load_shape_object_from_gallery()
@@ -1910,10 +1906,6 @@ void ObjectList::load_shape_object_from_gallery(const wxArrayString& input_files
     Plater::TakeSnapshot snapshot(wxGetApp().plater(), snapshot_label);
     if (!wxGetApp().plater()->load_files(paths, true, false).empty()) {
         wxGetApp().mainframe->update_title();
-
-        //BBS: arrange newly added objects
-        SimpleEvent evt(EVT_GLTOOLBAR_ARRANGE);
-        ((wxEvtHandler*)wxGetApp().plater()->canvas3D()->get_wxglcanvas())->ProcessEvent(evt);
     }
 }
 
@@ -1941,8 +1933,12 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
     new_object->invalidate_bounding_box();
     new_object->translate(-bb.center());
 
+    // BBS: find an empty cell to put the copied object
+    auto start_point = wxGetApp().plater()->build_volume().bounding_volume2d().center();
+    auto empty_cell = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({ start_point(0), start_point(1) });
+
     new_object->instances[0]->set_offset(center ? 
-        to_3d(wxGetApp().plater()->build_volume().bounding_volume2d().center(), -new_object->origin_translation.z()) :
+        to_3d(Vec2d(empty_cell(0),empty_cell(1)), -new_object->origin_translation.z()) :
         bb.center());
 
     new_object->ensure_on_bed();
