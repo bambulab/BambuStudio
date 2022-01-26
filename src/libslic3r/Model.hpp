@@ -919,8 +919,10 @@ private:
         mesh_changed |= t != supported_facets.timestamp();
         t = seam_facets.timestamp();
         cereal::load_by_value(ar, seam_facets);
-        cereal::load_by_value(ar, mmu_segmentation_facets);
         mesh_changed |= t != seam_facets.timestamp();
+        t = mmu_segmentation_facets.timestamp();
+        cereal::load_by_value(ar, mmu_segmentation_facets);
+        mesh_changed |= t != mmu_segmentation_facets.timestamp();
         cereal::load_by_value(ar, config);
 		assert(m_mesh);
 		if (has_convex_hull) {
