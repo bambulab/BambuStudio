@@ -3552,6 +3552,8 @@ void Plater::priv::remove(size_t obj_idx)
 
     m_ui_jobs.cancel_all();
     model.delete_object(obj_idx);
+    //BBS: notify partplate the instance removed
+    partplate_list.notify_instance_removed(obj_idx, -1);
     update();
     // Delete object from Sidebar list. Do it after update, so that the GLScene selection is updated with the modified model.
     sidebar->obj_list()->delete_object_from_list(obj_idx);
@@ -3567,6 +3569,8 @@ void Plater::priv::delete_object_from_model(size_t obj_idx, bool refresh_immedia
     Plater::TakeSnapshot snapshot(q, snapshot_label);
     m_ui_jobs.cancel_all();
     model.delete_object(obj_idx);
+    //BBS: notify partplate the instance removed
+    partplate_list.notify_instance_removed(obj_idx, -1);
 
     //BBS
     if (refresh_immediately) {

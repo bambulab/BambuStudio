@@ -220,6 +220,9 @@ public:
     //update instance exclude state
     void update_instance_exclude_status(int obj_id, int instance_id, BoundingBoxf3* bounding_box = nullptr);
 
+    //update object's index caused by original object deleted
+    void update_object_index(int obj_idx_removed, int obj_idx_max);
+
     //whether it is empty
     bool empty() { return obj_to_instance_set.empty(); }
 
@@ -302,7 +305,7 @@ public:
         std::vector<std::pair<int, int>>	objects_and_instances;
         std::vector<std::pair<int, int>>	instances_outside;
 
-        ar(m_plate_index, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside);
+        ar(m_plate_index, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside);
 
         for (std::vector<std::pair<int, int>>::iterator it = objects_and_instances.begin(); it != objects_and_instances.end(); ++it)
             obj_to_instance_set.insert(std::pair(it->first, it->second));
@@ -320,7 +323,7 @@ public:
         for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
             objects_and_instances.emplace_back(it->first, it->second);
 
-        ar(m_plate_index, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside);
+        ar(m_plate_index, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside);
     }
     /*template<class Archive> void serialize(Archive& ar)
     {
@@ -469,6 +472,9 @@ public:
     //reload all objects
     int reload_all_objects();
 
+    //reload objects for newly created plate
+    int construct_objects_list_for_new_plate(int plate_index);
+
     /* arrangement related functions */
     //compute the plate index
     int compute_plate_index(arrangement::ArrangePolygon& arrange_polygon);
@@ -518,8 +524,10 @@ public:
     bool is_all_plates_ready_for_slice() const;
     void print() const;
 
+    //get the all the sliced result
+    void get_sliced_result(std::vector<bool>& sliced_result);
     //retruct plates structures after de-serialize
-    int rebuild_plates_after_deserialize();
+    int rebuild_plates_after_deserialize(std::vector<bool>& previous_sliced_result);
 
     //retruct plates structures after auto-arrangement
     int rebuild_plates_after_arrangement(bool recycle_plates = true);

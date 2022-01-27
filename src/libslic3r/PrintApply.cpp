@@ -208,10 +208,12 @@ static bool custom_per_printz_gcodes_tool_changes_differ(const std::vector<Custo
 }
 
 // Collect changes to print config, account for overrides of extruder retract values by filament presets.
+//BBS: add plate index
 static t_config_option_keys print_config_diffs(
     const PrintConfig        &current_config,
     const DynamicPrintConfig &new_full_config,
-    DynamicPrintConfig       &filament_overrides)
+    DynamicPrintConfig       &filament_overrides,
+    int plate_index)
 {
     const std::vector<std::string> &extruder_retract_keys = print_config_def.extruder_retract_keys();
     const std::string               filament_prefix       = "filament_";
@@ -240,22 +242,51 @@ static t_config_option_keys print_config_diffs(
                 } else
                     delete opt_copy;
             }
-        } else if (*opt_new != *opt_old)
-            print_diff.emplace_back(opt_key);
+        } else if (*opt_new != *opt_old) {
+            //BBS: add plate_index logic for wipe_tower_x/wipe_tower_y
+            if (!opt_key.compare("wipe_tower_x") || !opt_key.compare("wipe_tower_y")) {
+                const ConfigOptionFloats* option_new = dynamic_cast<const ConfigOptionFloats*>(opt_new);
+                const ConfigOptionFloats* option_old = dynamic_cast<const ConfigOptionFloats*>(opt_old);
+                if ((plate_index < option_new->values.size())&&(plate_index < option_old->values.size()))
+                {
+                    float value_new = option_new->values[plate_index];
+                    float value_old = option_old->values[plate_index];
+                    if (value_old != value_new)
+                        print_diff.emplace_back(opt_key);
+                }
+            }
+            else
+                print_diff.emplace_back(opt_key);
+        }
     }
 
     return print_diff;
 }
 
 // Prepare for storing of the full print config into new_full_config to be exported into the G-code and to be used by the PlaceholderParser.
-static t_config_option_keys full_print_config_diffs(const DynamicPrintConfig &current_full_config, const DynamicPrintConfig &new_full_config)
+//BBS: add plate index
+static t_config_option_keys full_print_config_diffs(const DynamicPrintConfig &current_full_config, const DynamicPrintConfig &new_full_config, int plate_index)
 {
     t_config_option_keys full_config_diff;
     for (const t_config_option_key &opt_key : new_full_config.keys()) {
         const ConfigOption *opt_old = current_full_config.option(opt_key);
         const ConfigOption *opt_new = new_full_config.option(opt_key);
-        if (opt_old == nullptr || *opt_new != *opt_old)
-            full_config_diff.emplace_back(opt_key);
+        if (opt_old == nullptr || *opt_new != *opt_old) {
+            //BBS: add plate_index logic for wipe_tower_x/wipe_tower_y
+            if (opt_old && (!opt_key.compare("wipe_tower_x") || !opt_key.compare("wipe_tower_y"))) {
+                const ConfigOptionFloats* option_new = dynamic_cast<const ConfigOptionFloats*>(opt_new);
+                const ConfigOptionFloats* option_old = dynamic_cast<const ConfigOptionFloats*>(opt_old);
+                if ((plate_index < option_new->values.size())&&(plate_index < option_old->values.size()))
+                {
+                    float value_new = option_new->values[plate_index];
+                    float value_old = option_old->values[plate_index];
+                    if (value_old != value_new)
+                        full_config_diff.emplace_back(opt_key);
+                }
+            }
+            else
+                full_config_diff.emplace_back(opt_key);
+        }
     }
     return full_config_diff;
 }
@@ -987,8 +1018,9 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 
     // Find modified keys of the various configs. Resolve overrides extruder retract values by filament profiles.
     DynamicPrintConfig   filament_overrides;
-    t_config_option_keys print_diff       = print_config_diffs(m_config, new_full_config, filament_overrides);
-    t_config_option_keys full_config_diff = full_print_config_diffs(m_full_print_config, new_full_config);
+    //BBS: add plate index
+    t_config_option_keys print_diff       = print_config_diffs(m_config, new_full_config, filament_overrides, this->m_plate_index);
+    t_config_option_keys full_config_diff = full_print_config_diffs(m_full_print_config, new_full_config, this->m_plate_index);
     // Collect changes to object and region configs.
     t_config_option_keys object_diff      = m_default_object_config.diff(new_full_config);
     t_config_option_keys region_diff      = m_default_region_config.diff(new_full_config);
@@ -1077,7 +1109,8 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 				model_object_status_db.add(*model_object, ModelObjectStatus::Old);
         } else if (model_object_list_extended(m_model, model)) {
             // Add new objects. Their volumes and configs will be synchronized later.
-            update_apply_status(this->invalidate_step(psGCodeExport));
+            //BBS: we don't need to set invalid here, we judge it by comparing the print_object list
+            //update_apply_status(this->invalidate_step(psGCodeExport));
             for (const ModelObject *model_object : m_model.objects)
                 model_object_status_db.add(*model_object, ModelObjectStatus::Old);
             for (size_t i = m_model.objects.size(); i < model.objects.size(); ++ i) {
@@ -1089,7 +1122,8 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             // Reorder the objects, add new objects.
             // First stop background processing before shuffling or deleting the PrintObjects in the object list.
             this->call_cancel_callback();
-            update_apply_status(this->invalidate_step(psGCodeExport));
+            //BBS: we don't need to set invalid here, we judge it by comparing the print_object list
+            //update_apply_status(this->invalidate_step(psGCodeExport));
             // Second create a new list of objects.
             std::vector<ModelObject*> model_objects_old(std::move(m_model.objects));
             m_model.objects.clear();

@@ -2371,9 +2371,6 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     if (update_object_list)
     {
         post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
-
-        PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
-        plate_list.reload_all_objects();
     }
 
     //BBS:exclude the assmble view

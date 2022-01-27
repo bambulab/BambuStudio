@@ -963,6 +963,9 @@ void Preview::load_print_as_fff(bool keep_z_range)
         m_canvas_widget->Refresh();
         return;
     }
+    //BBS: for direct preview, don't keep z range
+    else if (directly_preview && !has_layers)
+        keep_z_range = false;
 
     GCodeViewer::EViewType gcode_view_type = m_canvas->get_gcode_view_preview_type();
     bool gcode_preview_data_valid = !m_gcode_result->moves.empty();

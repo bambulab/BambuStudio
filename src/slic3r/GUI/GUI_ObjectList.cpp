@@ -963,6 +963,9 @@ void ObjectList::paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& vol
 
     select_items(items);
     selection_changed();
+
+    //BBS: notify partplate the modify
+    notify_instance_updated(obj_idx);
 }
 
 void ObjectList::paste_objects_into_list(const std::vector<size_t>& object_idxs)
@@ -1592,6 +1595,9 @@ void ObjectList::load_subobject(ModelVolumeType type, bool from_galery/* = false
     select_items(items);
 
     selection_changed();
+
+    //BBS: notify partplate the modify
+    notify_instance_updated(obj_idx);
 }
 /*
 void ObjectList::load_part(ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery = false)
@@ -1854,6 +1860,9 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
         wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
 
     selection_changed();
+
+    //BBS: notify partplate the modify
+    notify_instance_updated(obj_idx);
 }
 
 void ObjectList::load_shape_object(const std::string& type_name)
@@ -2166,6 +2175,8 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
                 add_settings_item(obj_item, &object->config.get());
             }
         }
+        //BBS: notify partplate the modify
+        notify_instance_updated(obj_idx);
     }
     else if (type == itInstance) {
         if (object->instances.size() == 1) {
@@ -2231,6 +2242,9 @@ void ObjectList::split()
         Expand(parent);
 
     changed_object(obj_idx);
+
+    //BBS: notify partplate the modify
+    notify_instance_updated(obj_idx);
 }
 
 void ObjectList::merge(bool to_multipart_object)
@@ -2904,12 +2918,14 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selectio
 
 
 
-void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed)
+void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed, bool notify_partplate)
 {
     auto model_object = (*m_objects)[obj_idx];
     //BBS start add obj_idx for debug
     PartPlateList& list = wxGetApp().plater()->get_partplate_list();
-    list.notify_instance_update(obj_idx, 0);
+    if (notify_partplate) {
+        list.notify_instance_update(obj_idx, 0);
+    }
     //int plate_idx = list.find_instance_belongs(obj_idx, 0);
     //std::string item_name_str = (boost::format("[P%1%][O%2%]%3%") % plate_idx % std::to_string(obj_idx) % model_object->name).str();
     //std::string item_name_str = (boost::format("[P%1%]%2%") % plate_idx  % model_object->name).str();
@@ -4656,7 +4672,7 @@ void ObjectList::on_plate_deleted(int plate_idx)
     }
 }
 
-void ObjectList::reload_all_plates()
+void ObjectList::reload_all_plates(bool notify_partplate)
 {
     m_prevent_canvas_selection_update = true;
 
@@ -4681,7 +4697,7 @@ void ObjectList::reload_all_plates()
     std::vector<size_t> obj_idxs;
     obj_idxs.reserve(m_objects->size());
     while (obj_idx < m_objects->size()) {
-        add_object_to_list(obj_idx, false);
+        add_object_to_list(obj_idx, false, notify_partplate);
         obj_idxs.push_back(obj_idx);
         ++obj_idx;
     }
@@ -4708,10 +4724,21 @@ void ObjectList::on_plate_selected(int plate_index)
     Select(item);
 }
 
+//BBS: notify partplate the instance added/updated
+void ObjectList::notify_instance_updated(int obj_idx)
+{
+    const int inst_cnt = (*m_objects)[obj_idx]->instances.size();
+    PartPlateList& list = wxGetApp().plater()->get_partplate_list();
+    for (int index = 0; index < inst_cnt; index ++)
+        list.notify_instance_update(obj_idx, index);
+}
+
 void ObjectList::update_after_undo_redo()
 {
     Plater::SuppressSnapshots suppress(wxGetApp().plater());
-    reload_all_plates();
+    //BBS: undo/redo will rebuild all the plates before
+    //no need to notify instance to partplate
+    reload_all_plates(false);
 }
 
 wxDataViewItemArray ObjectList::reorder_volumes_and_get_selection(int obj_idx, std::function<bool(const ModelVolume*)> add_to_selection/* = nullptr*/)

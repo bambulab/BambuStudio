@@ -311,7 +311,7 @@ public:
     void                part_selection_changed();
 
     // Add object to the list
-    void add_object_to_list(size_t obj_idx, bool call_selection_changed = true);
+    void add_object_to_list(size_t obj_idx, bool call_selection_changed = true, bool notify_partplate = true);
     // Delete object from the list
     void delete_object_from_list();
     void delete_object_from_list(const size_t obj_idx);
@@ -421,8 +421,9 @@ public:
     // BBS
     void on_plate_added(PartPlate* part_plate);
     void on_plate_deleted(int plate_index);
-    void reload_all_plates();
+    void reload_all_plates(bool notify_partplate = false);
     void on_plate_selected(int plate_index);
+    void notify_instance_updated(int obj_idx);
     void object_config_options_changed(const ObjectVolumeID& ov_id);
     void printable_state_changed(const std::vector<ObjectVolumeID>& ov_ids);
 

@@ -1019,9 +1019,12 @@ void StackImpl::load_snapshot(size_t timestamp, Slic3r::Model& model, Slic3r::GU
 	//BBS:load the partplater related data
 	{
 		//Slic3r::GUI::PartPlateList& plate_list = GUI::wxGetApp().plater()->get_partplate_list();
+		std::vector<bool> previous_slice_result;
+		plate_list.get_sliced_result(previous_slice_result);
+
 		plate_list.reset(false);
 		this->load_mutable_object<Slic3r::GUI::PartPlateList>(plate_list.id(), plate_list);
-		plate_list.rebuild_plates_after_deserialize();
+		plate_list.rebuild_plates_after_deserialize(previous_slice_result);
 	}
 	this->m_active_snapshot_time = timestamp;
 	assert(this->valid());

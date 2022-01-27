@@ -143,12 +143,12 @@ void PartPlate::calc_bounding_boxes() const {
 
 void PartPlate::calc_triangles(const ExPolygon& poly) {
 	if (!m_triangles.set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z))
-		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create plate triangles\n";
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create plate triangles\n";
 }
 
 void PartPlate::calc_exclude_triangles(const ExPolygon& poly) {
 	if (!m_exclude_triangles.set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z))
-		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create exclude triangles\n";
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create exclude triangles\n";
 }
 
 void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox) {
@@ -1018,6 +1018,35 @@ void PartPlate::update_instance_exclude_status(int obj_id, int instance_id, Boun
 	}
 }
 
+//update object's index caused by original object deleted
+void PartPlate::update_object_index(int obj_idx_removed, int obj_idx_max)
+{
+	std::set<std::pair<int, int>> temp_set;
+	std::set<std::pair<int, int>>::iterator it;
+	//update the obj_to_instance_set
+	for (it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
+	{
+		if (it->first >= obj_idx_removed)
+			temp_set.insert(std::pair(it->first-1, it->second));
+		else
+			temp_set.insert(std::pair(it->first, it->second));
+	}
+	obj_to_instance_set.clear();
+	obj_to_instance_set = temp_set;
+
+	//update the instance_outside_set
+	temp_set.clear();
+	for (it = instance_outside_set.begin(); it != instance_outside_set.end(); ++it)
+	{
+		if (it->first >= obj_idx_removed)
+			temp_set.insert(std::pair(it->first - 1, it->second));
+		else
+			temp_set.insert(std::pair(it->first, it->second));
+	}
+	instance_outside_set.clear();
+	instance_outside_set = temp_set;
+
+}
 
 //whether it is has printable instances
 bool PartPlate::has_printable_instances()
@@ -1028,6 +1057,10 @@ bool PartPlate::has_printable_instances()
 	{
 		int obj_id = it->first;
 		int instance_id = it->second;
+
+		if (obj_id >= m_model->objects.size())
+			continue;
+
 		ModelObject* object = m_model->objects[obj_id];
 		ModelInstance* instance = object->instances[instance_id];
 
@@ -1609,6 +1642,11 @@ int PartPlateList::create_plate(bool adjust_position)
 		//update the origin of each plate
 		update_all_plates_pos_and_size(adjust_position, false);
 		set_shapes(m_shape, m_exclude_areas);
+
+		if (m_plater) {
+			Vec2d pos = compute_shape_position(m_current_plate, cols);
+			m_plater->set_bed_position(pos);
+		}
 	}
 	else
 	{
@@ -1634,7 +1672,8 @@ int PartPlateList::create_plate(bool adjust_position)
 	unprintable_plate.set_index(new_index+1);
 
 	//reload all objects here
-	reload_all_objects();
+	if (adjust_position)
+		construct_objects_list_for_new_plate(new_index);
 
 	if (m_plater) {
 		// In GUI mode
@@ -2166,27 +2205,40 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 //notify instance is removed
 int PartPlateList::notify_instance_removed(int obj_id, int instance_id)
 {
-	int ret = 0, index;
+	int ret = 0, index, instance_to_delete = instance_id;
 	PartPlate* plate = NULL;
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1%, instance_id %2%") % obj_id % instance_id;
-	index = find_instance(obj_id, instance_id);
+	if (instance_id == -1) {
+		instance_to_delete = 0;
+	}
+	index = find_instance(obj_id, instance_to_delete);
 	if (index != -1)
 	{
 		//found it added before
 		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": found it in plate %1%, remove it") % index;
 		plate = m_plate_list[index];
-		plate->remove_instance(obj_id, instance_id);
+		plate->remove_instance(obj_id, instance_to_delete);
 		plate->update_slice_result_valid_state();
-		return 0;
 	}
 
-	if (unprintable_plate.contain_instance(obj_id, instance_id))
+	if (unprintable_plate.contain_instance(obj_id, instance_to_delete))
 	{
 		//found in unprintable plate, add it to plate
-		unprintable_plate.remove_instance(obj_id, instance_id);
+		unprintable_plate.remove_instance(obj_id, instance_to_delete);
 		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": found it in unprintable plate, remove it");
-		return 0;
+	}
+
+	if (instance_id == -1) {
+		//update all the obj_ids which is bigger
+		for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+		{
+			PartPlate* plate = m_plate_list[i];
+			assert(plate != NULL);
+
+			plate->update_object_index(obj_id, m_model->objects.size());
+		}
+		unprintable_plate.update_object_index(obj_id, m_model->objects.size());
 	}
 
 	return 0;
@@ -2281,6 +2333,61 @@ int PartPlateList::reload_all_objects()
 
 	return ret;
 }
+
+//reload objects for newly created plate
+int PartPlateList::construct_objects_list_for_new_plate(int plate_index)
+{
+	int ret = 0;
+	unsigned int i, j, k;
+	PartPlate* new_plate = m_plate_list[plate_index];
+	bool already_included;
+
+	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": m_model->objects.size() is %1%") % m_model->objects.size();
+	unprintable_plate.clear();
+	//try to find a new plate
+	for (i = 0; i < (unsigned int)m_model->objects.size(); ++i)
+	{
+		ModelObject* object = m_model->objects[i];
+		for (j = 0; j < (unsigned int)object->instances.size(); ++j)
+		{
+			ModelInstance* instance = object->instances[j];
+			already_included = false;
+
+			for (k = 0; k < (unsigned int)plate_index; ++k)
+			{
+				PartPlate* plate = m_plate_list[k];
+				if (plate->contain_instance(i, j))
+				{
+					already_included = true;
+					break;
+				}
+			}
+
+			if (already_included)
+				continue;
+
+			BoundingBoxf3 boundingbox = object->instance_convex_hull_bounding_box(j);
+			if (new_plate->intersect_instance(i, j, &boundingbox))
+			{
+				//found a new plate, add it to plate
+				ret |= new_plate->add_instance(i, j, false, &boundingbox);
+				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": added to plate_id %1%, for obj_id %2%, instance_id %3%") % plate_index % i % j;
+
+				continue;
+			}
+
+			if ( (unprintable_plate.intersect_instance(i, j, &boundingbox)))
+			{
+				//found in unprintable plate, add it to plate
+				unprintable_plate.add_instance(i, j, false, &boundingbox);
+				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": found in unprintable plate, obj_id %1%, instance_id %2%") % i % j;
+			}
+		}
+	}
+
+	return ret;
+}
+
 
 //compute the plate index
 int PartPlateList::compute_plate_index(arrangement::ArrangePolygon& arrange_polygon)
@@ -2444,7 +2551,7 @@ void PartPlateList::postprocess_bed_index_for_selected(arrangement::ArrangePolyg
 	}
 
 	//create a new plate which can hold this arrange_polygon
-	int plate_index = create_plate();
+	int plate_index = create_plate(false);
 
 	while (plate_index != -1)
 	{
@@ -2454,7 +2561,7 @@ void PartPlateList::postprocess_bed_index_for_selected(arrangement::ArrangePolyg
 			break;
 		}
 
-		plate_index = create_plate();
+		plate_index = create_plate(false);
 	}
 
 	return;
@@ -2744,8 +2851,16 @@ int PartPlateList::create_plate_from_gcode_file(const std::string& filename)
 	return ret;
 }
 
+void PartPlateList::get_sliced_result(std::vector<bool>& sliced_result)
+{
+	sliced_result.resize(m_plate_list.size());
+	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+	{
+		sliced_result[i] = m_plate_list[i]->m_slice_result_valid;
+	}
+}
 //rebuild data which are not serialized after de-serialize
-int PartPlateList::rebuild_plates_after_deserialize()
+int PartPlateList::rebuild_plates_after_deserialize(std::vector<bool>& previous_sliced_result)
 {
 	int ret = 0;
 
@@ -2758,6 +2873,11 @@ int PartPlateList::rebuild_plates_after_deserialize()
 		m_plate_list[i]->m_partplate_list = this;
 		m_plate_list[i]->m_model = this->m_model;
 		m_plate_list[i]->printer_technology = this->printer_technology;
+		//check the previous sliced result
+		if (m_plate_list[i]->m_slice_result_valid) {
+			if ((i >= previous_sliced_result.size()) || !previous_sliced_result[i])
+				m_plate_list[i]->m_slice_result_valid = false;
+		}
 
 		std::map<int, PrintBase*>::iterator it = m_print_list.find(m_plate_list[i]->m_print_index);
 		std::map<int, GCodeResult*>::iterator it2 = m_gcode_result_list.find(m_plate_list[i]->m_print_index);
