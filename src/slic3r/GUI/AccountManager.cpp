@@ -363,7 +363,14 @@ namespace Slic3r {
     void AccountManager::check_mqtt_connection()
     {
         if (is_user_login() && mqtt_cli && !mqtt_cli->is_connected()) {
-            mqtt_cli->connect(mqtt_opt, this, *mqtt_cb);
+            try {
+                mqtt_cli->connect(mqtt_opt, this, *mqtt_cb);
+            } catch(const mqtt::exception& exc) {
+                BOOST_LOG_TRIVIAL(error) << "mqtt_exception: " << exc.what();
+            }
+            catch(...) {
+                BOOST_LOG_TRIVIAL(error) << "mqtt_exception occur";
+            }
         }
     }
 
