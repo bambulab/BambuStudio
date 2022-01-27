@@ -2824,15 +2824,20 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         if (!dlg_cont)
                             return empty_result;
 
-                        partplate_list.load_from_3mf_structure(plate_data);
-                        partplate_list.update_slice_context_to_current_plate(background_process);
-                        this->preview->update_gcode_result(partplate_list.get_current_slice_result());
-                        release_PlateData_list(plate_data);
-                        sidebar->obj_list()->reload_all_plates();
+                        if (load_config) {
+                            partplate_list.load_from_3mf_structure(plate_data);
+                            partplate_list.update_slice_context_to_current_plate(background_process);
+                            this->preview->update_gcode_result(partplate_list.get_current_slice_result());
+                            release_PlateData_list(plate_data);
+                            sidebar->obj_list()->reload_all_plates();
+                        }
+                        else {
+                            partplate_list.reload_all_objects();
+                        }
                     }
 
                     //BBS:: project embedded presets
-                    if (project_presets.size() > 0)
+                    if ((project_presets.size() > 0) && load_config)
                     {
                         //load project embedded presets
                         PresetsConfigSubstitutions  preset_substitutions;
