@@ -233,15 +233,17 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             && ! ((perimeter_generator.object_config->support_material || perimeter_generator.object_config->support_material_enforce_layers > 0) && 
                   perimeter_generator.object_config->support_material_contact_distance.value == 0)) {
             // get non 100% overhang paths by intersecting this loop with the grown lower slices
-            Polygons polygons;
-            polygons.push_back(polygon);
-            Polylines remain_polines = to_polylines(polygons);
+            Polylines remain_polines;
             for (auto it = lower_polygons_series.begin();
                 it != lower_polygons_series.end(); it++)
             {
+
+                Polylines inside_polines = (it == lower_polygons_series.begin()) ?
+                                           intersection_pl({ polygon }, it->second) :
+                                           intersection_pl({ remain_polines }, it->second);
                 extrusion_paths_append(
                     paths,
-                    intersection_pl({ remain_polines }, it->second),
+                    std::move(inside_polines),
                     it->first,
                     int(0),
                     role,
@@ -249,7 +251,9 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                     extrusion_width,
                     (float)perimeter_generator.layer_height);
 
-                remain_polines = diff_pl({ remain_polines }, it->second);
+                remain_polines = (it == lower_polygons_series.begin())?
+                                  diff_pl({ polygon }, it->second) :
+                                  diff_pl({ remain_polines }, it->second);
 
                 if (remain_polines.size() == 0)
                     break;
