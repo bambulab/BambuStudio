@@ -142,8 +142,7 @@ static std::vector<VolumeSlices> slice_volumes_inner(
     params_base.closing_radius = print_object_config.slice_closing_radius.value;
     params_base.extra_offset   = 0;
     params_base.trafo          = object_trafo;
-    //BBS: when enable arc fit, we should keep resolution here and will do path-simplifing when export gcode
-    params_base.resolution     = print_config.enable_arc_fitting ? 0 : print_config.resolution.value;
+    params_base.resolution     = print_config.resolution.value;
 
     switch (print_object_config.slicing_mode.value) {
     case SlicingMode::Regular:    params_base.mode = MeshSlicingParams::SlicingMode::Regular; break;

@@ -2892,9 +2892,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         if (m_config.enable_arc_fitting &&
             path->polyline.fitting_result.empty() &&
             !m_config.spiral_vase) {
-            double tolerance = is_perimeter(paths.front().role()) ? scale_(m_config.resolution): m_scaled_resolution;
-            path->simplify_by_fitting_arc(tolerance);
-        } else if (!is_perimeter(paths.front().role())) {
+            path->simplify_by_fitting_arc(m_scaled_resolution);
+        } else {
             path->simplify(m_scaled_resolution);
         }
         gcode += this->_extrude(*path, description, speed);

@@ -386,13 +386,13 @@ void PerimeterGenerator::process()
 
     // we need to process each island separately because we might have different
     // extra perimeters for each one
+
+    // BBS: don't simplify too much which influence arc fitting when export gcode if arc_fitting is enabled
+    double surface_simplify_resolution = (print_config->enable_arc_fitting) ? 0.1 * m_scaled_resolution : m_scaled_resolution;
     for (const Surface &surface : this->slices->surfaces) {
         // detect how many perimeters must be generated for this island
         int        loop_number = this->config->perimeters + surface.extra_perimeters - 1;  // 0-indexed loops
-        // BBS: simplify has already done in slicing according to user resulution setting.
-        // SCALED_RESOLUTION is a default value with low resolution and should not be used.
-        //ExPolygons last        = union_ex(surface.expolygon.simplify_p(m_scaled_resolution));
-        ExPolygons last        = union_ex(surface.expolygon);
+        ExPolygons last        = union_ex(surface.expolygon.simplify_p(surface_simplify_resolution));
         ExPolygons gaps;
         if (loop_number >= 0) {
             // In case no perimeters are to be generated, loop_number will equal to -1.
