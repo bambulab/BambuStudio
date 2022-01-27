@@ -912,7 +912,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     //BBS
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(20));
+    def->set_default_value(new ConfigOptionFloat(36));
 
     def = this->add("extruder_colour", coStrings);
     def->label = L("Extruder Color");

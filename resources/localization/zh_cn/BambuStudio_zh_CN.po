@@ -1988,9 +1988,15 @@ msgstr ""
 msgid "Radius"
 msgstr "半径"
 
+msgid "Height to rod"
+msgstr "滑杆高度"
+
+msgid "Height to lid"
+msgstr "上盖高度"
+
 #: src/slic3r/GUI/GLCanvas3D.cpp:287
 msgid "Keep min"
-msgstr ""
+msgstr "保留最小"
 
 #: src/slic3r/GUI/GLCanvas3D.cpp:296 src/slic3r/GUI/GLCanvas3D.cpp:4678
 #: src/slic3r/GUI/GLCanvas3D.cpp:4793

@@ -1824,12 +1824,14 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Sequential printing"));
         optgroup->append_single_option_line("complete_objects", "sequential-printing_124589");
-        line = { L("Extruder clearance"), "" };
+        line = { L("Extruder radius"), "" };
         line.append_option(optgroup->get_option("extruder_clearance_radius"));
-        line.append_option(optgroup->get_option("extruder_clearance_height_to_rod"));
         optgroup->append_line(line);
         //BBS: new line for extruder_clearance_height_to_lid as there is not enough space for a single line
-        line = { L(" "), "" };
+        line = { L("Height to rod"), "" };
+        line.append_option(optgroup->get_option("extruder_clearance_height_to_rod"));
+        optgroup->append_line(line);
+        line = { L("Height to lid"), "" };
         line.append_option(optgroup->get_option("extruder_clearance_height_to_lid"));
         optgroup->append_line(line);
 
