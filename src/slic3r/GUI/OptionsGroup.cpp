@@ -649,8 +649,15 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
 		value = get_config_value(config, opt_short_key, opt_index);
 	}
 
-	set_value(opt_key, value);
-	on_change_OG(opt_key, get_value(opt_key));
+    // BBS: restore all pages in preset
+    if (set_value(opt_key, value))
+	    on_change_OG(opt_key, get_value(opt_key));
+    else if (m_opt_map.find(opt_key) != m_opt_map.end()) {
+        auto opt_id = m_opt_map.find(opt_key)->first;
+        std::string opt_short_key = m_opt_map.at(opt_id).first;
+        int opt_index = m_opt_map.at(opt_id).second;
+        on_change_OG(opt_key, get_config_value2(config, opt_short_key, opt_index));
+    }
 }
 
 void ConfigOptionsGroup::on_kill_focus(const std::string& opt_key)
@@ -962,6 +969,117 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 		break;
 	}
 	return ret;
+}
+
+// BBS: restore all pages in preset
+boost::any ConfigOptionsGroup::get_config_value2(const DynamicPrintConfig& config, const std::string& opt_key, int opt_index /*= -1*/)
+{
+    size_t idx = opt_index == -1 ? 0 : opt_index;
+
+    boost::any ret;
+    const ConfigOptionDef* opt = config.def()->get(opt_key);
+
+    if (opt->nullable)
+    {
+        switch (opt->type)
+        {
+        case coPercents:
+        case coFloats: {
+            if (config.option(opt_key)->is_nil())
+                ret = ConfigOptionFloatsNullable::nil_value();
+            else {
+                double val = opt->type == coFloats ?
+                    config.option<ConfigOptionFloatsNullable>(opt_key)->get_at(idx) :
+                    config.option<ConfigOptionPercentsNullable>(opt_key)->get_at(idx);
+                ret = val; }
+        }
+                     break;
+        case coBools:
+            ret = config.option<ConfigOptionBoolsNullable>(opt_key)->values[idx];
+            break;
+        case coInts:
+            ret = config.option<ConfigOptionIntsNullable>(opt_key)->get_at(idx);
+            break;
+        default:
+            break;
+        }
+        return ret;
+    }
+
+    switch (opt->type) {
+    case coFloatOrPercent:{
+        const auto &value = *config.option<ConfigOptionFloatOrPercent>(opt_key);
+
+        wxString text_value = double_to_string(value.value);
+        if (value.percent)
+            text_value += "%";
+
+        ret = into_u8(text_value);
+        break;
+    }
+    case coPercent:{
+        double val = config.option<ConfigOptionPercent>(opt_key)->value;
+        ret = val;
+    }
+                  break;
+    case coPercents:
+    case coFloats:
+    case coFloat:{
+        double val = opt->type == coFloats ?
+            config.opt_float(opt_key, idx) :
+            opt->type == coFloat ? config.opt_float(opt_key) :
+            config.option<ConfigOptionPercents>(opt_key)->get_at(idx);
+        ret = val;
+    }
+                break;
+    case coString:
+        ret = config.opt_string(opt_key);
+        break;
+    case coStrings:
+        if (opt_key == "compatible_printers" || opt_key == "compatible_prints") {
+            ret = config.option<ConfigOptionStrings>(opt_key)->values;
+            break;
+        }
+        if (opt_key == "filament_ramming_parameters") {
+            ret = config.opt_string(opt_key, static_cast<unsigned int>(idx));
+            break;
+        }
+        if (config.option<ConfigOptionStrings>(opt_key)->values.empty())
+            ret = std::string();
+        else if (opt->gui_flags == "serialized") {
+            ret = config.option<ConfigOptionStrings>(opt_key)->values;
+        }
+        else
+            ret = config.opt_string(opt_key, static_cast<unsigned int>(idx));
+        break;
+    case coBool:
+        ret = config.opt_bool(opt_key);
+        break;
+    case coBools:
+        ret = config.opt_bool(opt_key, idx);
+        break;
+    case coInt:
+        ret = config.opt_int(opt_key);
+        break;
+    case coInts:
+        ret = config.opt_int(opt_key, idx);
+        break;
+    case coEnum:
+        ret = config.option(opt_key)->getInt();
+        break;
+    case coPoints:
+        if (opt_key == "bed_shape")
+            ret = config.option<ConfigOptionPoints>(opt_key)->values;
+        else if (opt_key == "thumbnails")
+            ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
+        else
+            ret = config.option<ConfigOptionPoints>(opt_key)->get_at(idx);
+        break;
+    case coNone:
+    default:
+        break;
+    }
+    return ret;
 }
 
 Field* ConfigOptionsGroup::get_fieldc(const t_config_option_key& opt_key, int opt_index)

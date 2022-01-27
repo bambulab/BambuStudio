@@ -730,7 +730,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
         if (field && field->undo_bitmap())
         //if (field)
             // BBS: new layout
-            draw_act_bmps(dc, wxPoint(h_pos * ctrl->m_em_unit, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink());
+            draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink());
         return;
     }
 

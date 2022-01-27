@@ -929,9 +929,10 @@ void ScalableButton::msw_rescale()
     if (!m_current_icon_name.empty()) {
         wxBitmap bmp = create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt);
         SetBitmap(bmp);
-        SetBitmapCurrent(bmp);
-        SetBitmapPressed(bmp);
-        SetBitmapFocus(bmp);
+        // BBS: why disappear on hover? why current HBITMAP differ from other 
+        //SetBitmapCurrent(bmp);
+        //SetBitmapPressed(bmp);
+        //SetBitmapFocus(bmp);
         if (!m_disabled_icon_name.empty())
             SetBitmapDisabled(create_scaled_bitmap(m_disabled_icon_name, m_parent, m_px_cnt));
         else if (m_use_default_disabled_bitmap)

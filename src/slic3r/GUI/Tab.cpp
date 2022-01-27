@@ -748,6 +748,8 @@ void Tab::update_changed_ui()
         if (parent()) //To avoid a crash, parent should be exist for a moment of a tree updating
             update_changed_tree_ui();
     });
+    // BBS: 
+    update_undo_buttons();
 }
 
 void Tab::init_options_list()
@@ -906,12 +908,12 @@ void Tab::update_changed_tree_ui()
         auto next_item = m_treectrl->GetNextVisible(cur_item);
         cur_item = next_item;
     }
-    update_undo_buttons();
 }
 
 void Tab::update_undo_buttons()
 {
-    m_undo_btn->        SetBitmap_(m_is_modified_values ? m_bmp_value_revert: m_bmp_white_bullet);
+    // BBS: restore all pages in preset
+    m_undo_btn->        SetBitmap_(m_presets->get_edited_preset().is_dirty ? m_bmp_value_revert: m_bmp_white_bullet);
     m_undo_to_sys_btn-> SetBitmap_(m_is_nonsys_values   ? *m_bmp_non_system : m_bmp_value_lock);
 
     m_undo_btn->SetToolTip(m_is_modified_values ? m_ttg_value_revert : m_ttg_white_bullet);
@@ -920,7 +922,8 @@ void Tab::update_undo_buttons()
 
 void Tab::on_roll_back_value(const bool to_sys /*= true*/)
 {
-    if (!m_active_page) return;
+    // BBS: restore all pages in preset
+    // if (!m_active_page) return;
 
     int os;
     if (to_sys)	{
@@ -928,13 +931,16 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
         os = osSystemValue;
     }
     else {
-        if (!m_is_modified_values) return;
+        // BBS: restore all pages in preset
+        if (!m_presets->get_edited_preset().is_dirty) return;
         os = osInitValue;
     }
 
     m_postpone_update_ui = true;
 
-    for (auto group : m_active_page->m_optgroups) {
+    // BBS: restore all preset
+    for (auto page : m_pages)
+    for (auto group : page->m_optgroups) {
         if (group->title == "Capabilities") {
             if ((m_options_list["extruders_count"] & os) == 0)
                 to_sys ? group->back_to_sys_value("extruders_count") : group->back_to_initial_value("extruders_count");
@@ -976,18 +982,25 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
         }
     }
 
+    // BBS: restore all pages in preset
+    m_presets->discard_current_changes();
+
     m_postpone_update_ui = false;
 
     // When all values are rolled, then we hane to update whole tab in respect to the reverted values
     update();
 
-    update_changed_ui();
+    // BBS: restore all pages in preset, update_dirty also update combobox
+    update_dirty();
 }
 
 // Update the combo box label of the selected preset based on its "dirty" state,
 // comparing the selected preset config with $self->{config}.
 void Tab::update_dirty()
 {
+    if (m_postpone_update_ui)
+        return;
+
     m_presets_choice->update_dirty();
     on_presets_changed();
     update_changed_ui();
@@ -3761,6 +3774,7 @@ void Tab::unselect_tree_item()
     m_last_select_item = sel_item;
     m_treectrl->SetItemBold(sel_item, false);
     m_treectrl->Unselect();
+    m_active_page = nullptr;
 }
 
 // BBS: open/close this tab
@@ -3827,7 +3841,8 @@ bool Tab::update_current_page_in_background(wxTreeItemId& item)
     {
         m_is_nonsys_values = page->m_is_nonsys_values;
         m_is_modified_values = page->m_is_modified_values;
-        m_active_page = page;
+        // BBS: not need active
+        // m_active_page = page;
 
         // invalidated highlighter, if any exists
         m_highlighter.invalidate();
@@ -3914,7 +3929,8 @@ bool Tab::tree_sel_change_delayed(wxTreeEvent& event)
             current_tab->unselect_tree_item();
         }
         m_active_page = page;
-        update_undo_buttons();
+        // BBS: not changed
+        // update_undo_buttons();
         this->OnActivate();
         m_parent->set_active_tab(this);
 
@@ -3955,7 +3971,8 @@ bool Tab::tree_sel_change_delayed(wxTreeEvent& event)
             no_updates.reset(nullptr);
         #endif
 
-        update_undo_buttons();
+        // BBS: not changed
+        // update_undo_buttons();
         throw_if_canceled();
 
         //BBS: GUI refactor
