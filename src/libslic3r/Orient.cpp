@@ -340,7 +340,7 @@ public:
         {
             normal_projection(i) = normals.row(i).dot(orientation);
         }
-        auto areas_appearance = areas *(is_apperance * params.APPERANCE_FACE_SUPP + Eigen::VectorXf::Ones(is_apperance.rows(), is_apperance.cols()));
+        auto areas_appearance = areas.cwiseProduct((is_apperance * params.APPERANCE_FACE_SUPP + Eigen::VectorXf::Ones(is_apperance.rows(), is_apperance.cols())));
         auto overhang_areas = ((normal_projection.array() < params.ASCENT) * (!bottom_condition)).select(areas_appearance, 0);
         Eigen::MatrixXf inner = normal_projection.array() - params.ASCENT;
         inner = inner.cwiseMin(0).cwiseAbs();
