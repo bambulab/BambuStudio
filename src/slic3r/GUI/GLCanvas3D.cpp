@@ -4354,67 +4354,6 @@ double GLCanvas3D::get_size_proportional_to_max_bed_size(double factor) const
     return factor * std::max(bbox.size()[0], bbox.size()[1]);
 }
 
-//BBS
-std::vector<Vec2f> GLCanvas3D::get_empty_cells(const Vec2f start_point)
-{
-    const BoundingBoxf& bbox = m_bed.build_volume().bounding_volume2d();
-    std::vector<Vec2f> cells;
-    for (float x = bbox.min.x(); x < bbox.max.x(); x+=10)
-        for (float y = bbox.min.y(); y < bbox.max.y(); y += 10)
-        {
-            cells.emplace_back(x, y);
-        }
-    for (size_t i = 0; i < m_model->objects.size(); ++i) {
-        ModelObject* model_object = m_model->objects[i];
-        auto id = model_object->id().id;
-        if (m_convex_hull_caches.find(id) == m_convex_hull_caches.end()) {
-            ModelInstance* model_instance0 = model_object->instances.front();
-            Polygon hull_2d = model_object->convex_hull_2d(Geometry::assemble_transform({ 0.0, 0.0, model_instance0->get_offset().z() }, model_instance0->get_rotation(),
-                model_instance0->get_scaling_factor(), model_instance0->get_mirror()));
-            m_convex_hull_caches.emplace(id, hull_2d);
-        }
-        
-        Polygon& hull_2d = m_convex_hull_caches[id];
-        const auto& instances = model_object->instances;
-        double rotation_z0 = instances.front()->get_rotation().z();
-        for (const auto& instance : instances) {
-            Geometry::Transformation transformation;
-            const Vec3d& offset = instance->get_offset();
-            transformation.set_offset({ scale_(offset.x()), scale_(offset.y()), 0.0 });
-            transformation.set_rotation(Z, instance->get_rotation().z() - rotation_z0);
-            const Transform3d& trafo = transformation.get_matrix();
-            Polygon inst_hull_2d = hull_2d.transform(trafo);
-
-            for (auto it = cells.begin(); it != cells.end(); )
-            {
-                if (inst_hull_2d.contains(Point(scale_(it->x()), scale_(it->y()))))
-                    it = cells.erase(it);
-                else
-                    it++;
-            }
-        }
-    }
-
-    Vec2f start = start_point;
-    if (start_point(0) < 0 && start_point(1) < 0) {
-        start(0) = bbox.center()(0);
-        start(1) = bbox.center()(1);
-    }
-    std::sort(cells.begin(), cells.end(), [start](const Vec2f& cell1, const Vec2f& cell2) {return (cell1 - start).norm() < (cell2 - start).norm(); });
-    return cells;
-}
-
-Vec2f GLCanvas3D::get_nearest_empty_cell(const Vec2f start_point)
-{
-    std::vector<Vec2f> empty_cells = get_empty_cells(start_point);
-    if (!empty_cells.empty())
-        return empty_cells.front();
-    else {
-        double offset = get_size_proportional_to_max_bed_size(0.05);
-        return { start_point(0) + offset, start_point(1) + offset };
-    }
-}
-
 void GLCanvas3D::set_cursor(ECursorType type)
 {
     if ((m_canvas != nullptr) && (m_cursor_type != type))

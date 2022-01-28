@@ -925,11 +925,6 @@ public:
 
     double get_size_proportional_to_max_bed_size(double factor) const;
 
-    // BBS
-    std::vector<Vec2f> get_empty_cells(const Vec2f start_point);
-    Vec2f get_nearest_empty_cell(const Vec2f start_point);
-    std::map<int, Polygon> m_convex_hull_caches;
-
     void set_cursor(ECursorType type);
     void msw_rescale();
 
