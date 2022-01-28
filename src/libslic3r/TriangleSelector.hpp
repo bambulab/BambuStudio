@@ -227,6 +227,9 @@ public:
     // Get edges around the selected area by seed fill.
     std::vector<Vec2i> get_seed_fill_contour() const;
 
+    // BBS
+    void get_facets(std::vector<indexed_triangle_set>& facets_per_type) const;
+
     // Set facet of the mesh to a given state. Only works for original triangles.
     void set_facet(int facet_idx, EnforcerBlockerType state);
 

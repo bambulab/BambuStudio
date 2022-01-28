@@ -7,6 +7,8 @@
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Geometry.hpp"
+// BBS
+#include "libslic3r/ObjectID.hpp"
 
 #include "GLModel.hpp"
 
@@ -59,7 +61,7 @@ public:
         triangle_indices(rhs.triangle_indices),
         quad_indices(rhs.quad_indices),
         m_bounding_box(rhs.m_bounding_box)
-        { assert(! rhs.has_VBOs()); m_bounding_box.setEmpty(); }
+        { assert(!rhs.has_VBOs()); m_bounding_box.setEmpty(); }
     GLIndexedVertexArray(GLIndexedVertexArray &&rhs) :
         vertices_and_normals_interleaved(std::move(rhs.vertices_and_normals_interleaved)),
         triangle_indices(std::move(rhs.triangle_indices)),
@@ -377,6 +379,10 @@ public:
 
     // Interleaved triangles & normals with indexed triangles & quads.
     GLIndexedVertexArray        indexed_vertex_array;
+    // BBS
+    mutable std::vector<GLIndexedVertexArray> mmuseg_ivas;
+    mutable ObjectBase::Timestamp       mmuseg_ts;
+
     // Ranges of triangle and quad indices to be rendered.
     std::pair<size_t, size_t>   tverts_range;
     std::pair<size_t, size_t>   qverts_range;

@@ -606,6 +606,21 @@ void GLVolume::set_range(double min_z, double max_z)
     }
 }
 
+// BBS
+static std::vector<std::array<float, 4>> get_extruders_colors()
+{
+    unsigned char                     rgb_color[3] = {};
+    std::vector<std::string>          colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
+    std::vector<std::array<float, 4>> colors_out(colors.size());
+    for (const std::string& color : colors) {
+        Slic3r::GUI::BitmapCache::parse_color(color, rgb_color);
+        size_t color_idx = &color - &colors.front();
+        colors_out[color_idx] = { float(rgb_color[0]) / 255.f, float(rgb_color[1]) / 255.f, float(rgb_color[2]) / 255.f, 1.f };
+    }
+
+    return colors_out;
+}
+
 //BBS: add outline related logic
 //static unsigned char stencil_data[1284][2944];
 void GLVolume::render(bool with_outline) const
@@ -618,144 +633,188 @@ void GLVolume::render(bool with_outline) const
     glsafe(::glCullFace(GL_BACK));
     glsafe(::glPushMatrix());
 
-    //BBS: add logic of outline rendering
-    if (with_outline)
-    {
-        GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
+    // BBS: add logic for mmu segmentation rendering
+    auto render_body = [&]() {
+        bool color_volume = false;
+        ModelObjectPtrs& model_objects = GUI::wxGetApp().model().objects;
+        do {
+            if (object_idx() >= model_objects.size())
+                break;
 
-        //first draw the stencil buffer
-        if (shader)
-        {
-            do
-            {
-                glEnable(GL_STENCIL_TEST);
-                glStencilMask(0xFF);
-                glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
-                glClear(GL_STENCIL_BUFFER_BIT);
-                glStencilFunc(GL_ALWAYS, 0xff, 0xFF);
-                //another way use depth buffer
-                //glsafe(::glEnable(GL_DEPTH_TEST));
-                //glsafe(::glDepthFunc(GL_ALWAYS));
-                //glsafe(::glDepthMask(GL_FALSE));
-                //glsafe(::glEnable(GL_BLEND));
-                //glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+            ModelObject* mo = model_objects[object_idx()];
+            ModelVolume* mv = mo->volumes[volume_idx()];
+            if (mv->mmu_segmentation_facets.empty())
+                break;
 
-                /*GLShaderProgram* outline_shader = GUI::wxGetApp().get_shader("outline");
-                if (outline_shader == nullptr)
-                {
-                    glDisable(GL_STENCIL_TEST);
-                    this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
-                    break;
+            color_volume = true;
+            if (mv->mmu_segmentation_facets.timestamp() != mmuseg_ts) {
+                mmuseg_ivas.clear();
+                std::vector<indexed_triangle_set> its_per_color;
+                mv->mmu_segmentation_facets.get_facets(*mv, its_per_color);
+                mmuseg_ivas.resize(its_per_color.size());
+                for (int idx = 0; idx < its_per_color.size(); idx++) {
+                    mmuseg_ivas[idx].load_its_flat_shading(its_per_color[idx]);
+                    mmuseg_ivas[idx].finalize_geometry(true);
                 }
-                shader->stop_using();
-                outline_shader->start_using();
-                //float scale_ratio = 1.02f;
-                std::array<float, 4> outline_color = { 0.0f, 1.0f, 0.0f, 1.0f };
 
-                outline_shader->set_uniform("uniform_color", outline_color);*/
-#if 0 //dump stencil buffer
-                int i=100, j=100;
-                std::string file_name;
-                FILE* file = NULL;
-                memset(stencil_data, 0, sizeof(stencil_data));
-                glReadPixels(0, 0, 2936, 1083, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, stencil_data);
-                for (i = 100; i < 1083; i++)
-                {
-                    for (j = 100; j < 2936; j++)
-                    {
-                        if (stencil_data[i][j] != 0)
-                        {
-                            file_name = "before_stencil_index_" + std::to_string(i) + "x" + std::to_string(j) + ".a8";
-                            break;
-                        }
+                mmuseg_ts = mv->mmu_segmentation_facets.timestamp();
+            }
+        } while (0);
+
+        if (color_volume) {
+            GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
+            std::vector<std::array<float, 4>> colors = get_extruders_colors();
+            glsafe(::glMultMatrixd(world_matrix().data()));
+            for (int idx = 0; idx < mmuseg_ivas.size(); idx++) {
+                GLIndexedVertexArray& iva = mmuseg_ivas[idx];
+                if (iva.triangle_indices_size == 0 && iva.quad_indices_size == 0)
+                    continue;
+
+                if (shader) {
+                    if (idx == 0) {
+                        ModelObject* mo = model_objects[object_idx()];
+                        ModelVolume* mv = mo->volumes[volume_idx()];
+                        int extruder_id = mv->extruder_id();
+                        shader->set_uniform("uniform_color", colors[extruder_id - 1]);
                     }
-
-                    if (stencil_data[i][j] != 0)
-                        break;
+                    else {
+                        shader->set_uniform("uniform_color", colors[idx - 1]);
+                    }
                 }
-                file = fopen(file_name.c_str(), "w");
-                if (file)
-                {
-                    fwrite(stencil_data, 2936 * 1083, 1, file);
-                    fclose(file);
-                }
-#endif
-
-                Transform3d matrix = world_matrix();
-                glsafe(::glMultMatrixd(matrix.data()));
-                this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
-
-#if 0 //dump stencil buffer after first rendering
-                memset(stencil_data, 0, sizeof(stencil_data));
-                glReadPixels(0, 0, 2936, 1083, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, stencil_data);
-                for (i = 100; i < 1083; i++)
-                {
-                    for (j = 100; j < 2936; j++)
-                        if (stencil_data[i][j] != 0)
-                        {
-                            file_name = "after_stencil_index_" + std::to_string(i) + "x" + std::to_string(j) + ".a8";
-                            break;
-                        }
-
-                    if (stencil_data[i][j] != 0)
-                        break;
-                }
-
-                file = fopen(file_name.c_str(), "w");
-                if (file)
-                {
-                    fwrite(stencil_data, 2936 * 1083, 1, file);
-                    fclose(file);
-                }
-#endif
-                // 2nd. render pass: now draw slightly scaled versions of the objects, this time disabling stencil writing.
-                // Because the stencil buffer is now filled with several 1s. The parts of the buffer that are 1 are not drawn, thus only drawing 
-                // the objects' size differences, making it look like borders.
-                // -----------------------------------------------------------------------------------------------------------------------------
-                /*GLShaderProgram* outline_shader = GUI::wxGetApp().get_shader("outline");
-                if (outline_shader == nullptr)
-                {
-                    glDisable(GL_STENCIL_TEST);
-                    break;
-                }
-                shader->stop_using();
-                outline_shader->start_using();*/
-                //outline_shader->stop_using();
-                //shader->start_using();
-
-                glStencilFunc(GL_NOTEQUAL, 0xff, 0xFF);
-                glStencilMask(0x00);
-                float scale = 1.02f;
-                std::array<float, 4> body_color = { 1.0f, 1.0f, 1.0f, 1.0f }; //red
-
-                shader->set_uniform("uniform_color", body_color);
-                shader->set_uniform("is_outline", true);
-                glsafe(::glPopMatrix());
-                glsafe(::glPushMatrix());
-
-                matrix = world_matrix(scale);
-                glsafe(::glMultMatrixd(matrix.data()));
-                this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
-                shader->set_uniform("is_outline", false);
-
-                //glStencilMask(0xFF);
-                //glStencilFunc(GL_ALWAYS, 0, 0xFF);
-                glDisable(GL_STENCIL_TEST);
-                //glEnable(GL_DEPTH_TEST);
-                //outline_shader->stop_using();
-                //shader->start_using();
-            } while (0);
+                iva.render(this->tverts_range, this->qverts_range);
+            }
         }
-        else
-        {
+        else {
             glsafe(::glMultMatrixd(world_matrix().data()));
             this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
         }
-    }
-    else
+    };
+
+    //BBS: add logic of outline rendering
+    GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
+    if (with_outline && shader != nullptr)
     {
-        glsafe(::glMultMatrixd(world_matrix().data()));
-        this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
+        do
+        {
+            glEnable(GL_STENCIL_TEST);
+            glStencilMask(0xFF);
+            glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
+            glClear(GL_STENCIL_BUFFER_BIT);
+            glStencilFunc(GL_ALWAYS, 0xff, 0xFF);
+            //another way use depth buffer
+            //glsafe(::glEnable(GL_DEPTH_TEST));
+            //glsafe(::glDepthFunc(GL_ALWAYS));
+            //glsafe(::glDepthMask(GL_FALSE));
+            //glsafe(::glEnable(GL_BLEND));
+            //glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
+            /*GLShaderProgram* outline_shader = GUI::wxGetApp().get_shader("outline");
+            if (outline_shader == nullptr)
+            {
+                glDisable(GL_STENCIL_TEST);
+                this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
+                break;
+            }
+            shader->stop_using();
+            outline_shader->start_using();
+            //float scale_ratio = 1.02f;
+            std::array<float, 4> outline_color = { 0.0f, 1.0f, 0.0f, 1.0f };
+
+            outline_shader->set_uniform("uniform_color", outline_color);*/
+#if 0 //dump stencil buffer
+            int i = 100, j = 100;
+            std::string file_name;
+            FILE* file = NULL;
+            memset(stencil_data, 0, sizeof(stencil_data));
+            glReadPixels(0, 0, 2936, 1083, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, stencil_data);
+            for (i = 100; i < 1083; i++)
+            {
+                for (j = 100; j < 2936; j++)
+                {
+                    if (stencil_data[i][j] != 0)
+                    {
+                        file_name = "before_stencil_index_" + std::to_string(i) + "x" + std::to_string(j) + ".a8";
+                        break;
+                    }
+                }
+
+                if (stencil_data[i][j] != 0)
+                    break;
+            }
+            file = fopen(file_name.c_str(), "w");
+            if (file)
+            {
+                fwrite(stencil_data, 2936 * 1083, 1, file);
+                fclose(file);
+            }
+#endif
+
+            Transform3d matrix = world_matrix();
+            render_body();
+
+#if 0 //dump stencil buffer after first rendering
+            memset(stencil_data, 0, sizeof(stencil_data));
+            glReadPixels(0, 0, 2936, 1083, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, stencil_data);
+            for (i = 100; i < 1083; i++)
+            {
+                for (j = 100; j < 2936; j++)
+                    if (stencil_data[i][j] != 0)
+                    {
+                        file_name = "after_stencil_index_" + std::to_string(i) + "x" + std::to_string(j) + ".a8";
+                        break;
+                    }
+
+                if (stencil_data[i][j] != 0)
+                    break;
+            }
+
+            file = fopen(file_name.c_str(), "w");
+            if (file)
+            {
+                fwrite(stencil_data, 2936 * 1083, 1, file);
+                fclose(file);
+            }
+#endif
+            // 2nd. render pass: now draw slightly scaled versions of the objects, this time disabling stencil writing.
+            // Because the stencil buffer is now filled with several 1s. The parts of the buffer that are 1 are not drawn, thus only drawing 
+            // the objects' size differences, making it look like borders.
+            // -----------------------------------------------------------------------------------------------------------------------------
+            /*GLShaderProgram* outline_shader = GUI::wxGetApp().get_shader("outline");
+            if (outline_shader == nullptr)
+            {
+                glDisable(GL_STENCIL_TEST);
+                break;
+            }
+            shader->stop_using();
+            outline_shader->start_using();*/
+            //outline_shader->stop_using();
+            //shader->start_using();
+
+            glStencilFunc(GL_NOTEQUAL, 0xff, 0xFF);
+            glStencilMask(0x00);
+            float scale = 1.02f;
+            std::array<float, 4> body_color = { 1.0f, 1.0f, 1.0f, 1.0f }; //red
+
+            shader->set_uniform("uniform_color", body_color);
+            shader->set_uniform("is_outline", true);
+            glsafe(::glPopMatrix());
+            glsafe(::glPushMatrix());
+
+            matrix = world_matrix(scale);
+            glsafe(::glMultMatrixd(matrix.data()));
+            this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
+            shader->set_uniform("is_outline", false);
+
+            //glStencilMask(0xFF);
+            //glStencilFunc(GL_ALWAYS, 0, 0xFF);
+            glDisable(GL_STENCIL_TEST);
+            //glEnable(GL_DEPTH_TEST);
+            //outline_shader->stop_using();
+            //shader->start_using();
+        } while (0);
+    }
+    else {
+        render_body();
     }
     glsafe(::glPopMatrix());
     if (this->is_left_handed())
@@ -1075,7 +1134,7 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         glcheck();
 
         //BBS: add outline related logic
-        volume.first->render( with_outline && volume.first->selected );
+        volume.first->render(with_outline && volume.first->selected);
 
 #if ENABLE_ENVIRONMENT_MAP
         if (use_environment_texture)

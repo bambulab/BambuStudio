@@ -1352,6 +1352,33 @@ indexed_triangle_set TriangleSelector::get_facets(EnforcerBlockerType state) con
     return out;
 }
 
+// BBS
+void TriangleSelector::get_facets(std::vector<indexed_triangle_set>& facets_per_type) const
+{
+    facets_per_type.clear();
+
+    for (int type = (int)EnforcerBlockerType::NONE; type < (int)EnforcerBlockerType::Extruder15; type++) {
+        facets_per_type.emplace_back();
+        indexed_triangle_set& its = facets_per_type.back();
+        std::vector<int> vertex_map(m_vertices.size(), -1);
+
+        for (const Triangle& tr : m_triangles) {
+            if (tr.valid() && !tr.is_split() && tr.get_state() == (EnforcerBlockerType)type) {
+                stl_triangle_vertex_indices indices;
+                for (int i = 0; i < 3; ++i) {
+                    int j = tr.verts_idxs[i];
+                    if (vertex_map[j] == -1) {
+                        vertex_map[j] = int(its.vertices.size());
+                        its.vertices.emplace_back(m_vertices[j].v);
+                    }
+                    indices[i] = vertex_map[j];
+                }
+                its.indices.emplace_back(indices);
+            }
+        }
+    }
+}
+
 indexed_triangle_set TriangleSelector::get_facets_strict(EnforcerBlockerType state) const
 {
     indexed_triangle_set out;
