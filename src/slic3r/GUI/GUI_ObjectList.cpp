@@ -1849,6 +1849,9 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
         Vec3d(instance_bb.max.x(), instance_bb.min.y(), instance_bb.min.z()) + 0.5 * mesh_bb.size() - v->get_instance_offset();
     new_volume->set_offset(v->get_instance_transformation().get_matrix(true).inverse() * offset);
 
+    // BBS: backup
+    Slic3r::save_object_mesh(model_object);
+
     const wxString name = _L("Generic") + "-" + _(type_name);
     new_volume->name = into_u8(name);
     // set a default extruder value, since user can't add it manually
