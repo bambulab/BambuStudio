@@ -163,46 +163,31 @@ namespace Slic3r {
         m_login_status = status;
     }
 
-    int AccountInfo::save_to_json(std::string filename)
+    int AccountInfo::save_to_json()
     {
-        try {
-            pt::ptree root;
-            root.put("account", m_account);
-            root.put("token", m_token);
-            root.put("user_id", m_user_id);
-            root.put("login_status", m_login_status);
-            root.put("autotest_token", m_autotest_token);
-            pt::write_json(filename, root);
-            return 0;
-        }
-        catch (std::exception& e) {
-            BOOST_LOG_TRIVIAL(error) << "AccountManager::save_to_json() failed! exception=" << e.what();
-            return -1;
-        }
+        AppConfig* config = GUI::wxGetApp().app_config;
+        config->set("user", "account", m_account);
+        config->set("user", "token", m_token);
+        config->set("user", "user_id", m_user_id);
+        config->set("user", "login_status", std::to_string((int)m_login_status));
+        config->set("user", "autotest_token", m_autotest_token);
+        config->save();
+        return 0;
     }
 
-    AccountInfo* AccountInfo::load_from_json(std::string filename)
+    AccountInfo* AccountInfo::load_from_json()
     {
         try {
-            std::ifstream f(filename.c_str());
-            if (f.good()) {
-                pt::ptree root;
-                pt::read_json(f, root);
-                f.close();
-                std::string account = root.get<std::string>("account");
-                std::string token = root.get<std::string>("token");
-                std::string user_id = root.get<std::string>("user_id");
-                std::string autotest_token = root.get<std::string>("autotest_token");
-                AccountInfo::LoginStatus status = (AccountInfo::LoginStatus)root.get<int>("login_status");
-                AccountInfo* info = new AccountInfo(account, user_id, status);
-                info->m_autotest_token = autotest_token;
-                info->set_token(token);
-                return info;
-            }
-            else {
-                BOOST_LOG_TRIVIAL(trace) << "load json failed! filename=" << filename;
-                return nullptr;
-            }
+            AppConfig* config = GUI::wxGetApp().app_config;
+            std::string account = config->get("user", "account");
+            std::string token = config->get("user", "token");
+            std::string user_id = config->get("user", "user_id");
+            std::string autotest_token = config->get("user", "autotest_token");
+            AccountInfo::LoginStatus status = (AccountInfo::LoginStatus)std::stoi(config->get("user", "login_status"));
+            AccountInfo* info = new AccountInfo(account, user_id, status);
+            info->m_autotest_token = autotest_token;
+            info->set_token(token);
+            return info;
         }
         catch (std::exception& e)
         {
@@ -263,7 +248,7 @@ namespace Slic3r {
 
     int AccountManager::load_user_info()
     {
-        m_curr_user = AccountInfo::load_from_json(m_user_info_filename);
+        m_curr_user = AccountInfo::load_from_json();
         if (this->is_user_login()) {
             this->on_user_login();
         }
@@ -284,7 +269,7 @@ namespace Slic3r {
     int AccountManager::save_user_info()
     {
         if (m_curr_user) {
-            return m_curr_user->save_to_json(m_user_info_filename);
+            return m_curr_user->save_to_json();
         }
         return 0;
     }

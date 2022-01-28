@@ -2535,7 +2535,7 @@ void Plater::priv::update(unsigned int flags)
     // the following line, when enabled, causes flickering on NVIDIA graphics cards
 //    wxWindowUpdateLocker freeze_guard(q);
 #ifdef SUPPORT_AUTOCENTER
-    if (get_config("autocenter") == "1")
+    if (get_config("autocenter") == "true")
         model.center_instances_around_point(this->bed.build_volume().bed_center());
 #endif
 
@@ -2557,7 +2557,7 @@ void Plater::priv::update(unsigned int flags)
 
     // BBS
 #if 0
-    if (get_config("autocenter") == "1" && this->sidebar->obj_manipul()->IsShown())
+    if (get_config("autocenter") == "true" && this->sidebar->obj_manipul()->IsShown())
         this->sidebar->obj_manipul()->UpdateAndShow(true);
 #endif
 }
@@ -3049,7 +3049,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
             auto convert_from_imperial_units = [](Model& model, bool only_small_volumes) {
                 model.convert_from_imperial_units(only_small_volumes);
-//                wxGetApp().app_config->set("use_inches", "1");
+//                wxGetApp().app_config->set("use_inches", true);
 //                wxGetApp().sidebar().update_ui_from_settings();
             };
 
@@ -7381,7 +7381,7 @@ void Plater::increase_instances(size_t num)
     }
 
 #ifdef SUPPORT_AUTO_CENTER
-    if (p->get_config("autocenter") == "1")
+    if (p->get_config("autocenter") == "true")
         arrange();
 #endif
 

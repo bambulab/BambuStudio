@@ -4,11 +4,13 @@
 #include <set>
 #include <map>
 #include <string>
-
+#include "nlohmann/json.hpp"
 #include <boost/algorithm/string/trim_all.hpp>
 
 #include "libslic3r/Config.hpp"
 #include "libslic3r/Semver.hpp"
+
+using namespace nlohmann;
 
 namespace Slic3r {
 
@@ -60,7 +62,7 @@ public:
 	std::string 		get(const std::string &section, const std::string &key) const
 		{ std::string value; this->get(section, key, value); return value; }
 	std::string 		get(const std::string &key) const
-		{ std::string value; this->get("", key, value); return value; }
+		{ std::string value; this->get("app", key, value); return value; }
 	void			    set(const std::string &section, const std::string &key, const std::string &value)
 	{
 #ifndef NDEBUG
@@ -77,8 +79,25 @@ public:
 			m_dirty = true;
 		}
 	}
+
+	void				set(const std::string& section, const std::string &key, bool value)
+	{
+		if (value){
+			set(section, key, std::string("true"));
+		} else {
+			set(section, key, std::string("false"));
+		}
+	}
+
+
 	void			    set(const std::string &key, const std::string &value)
-		{ this->set("", key, value);  }
+		{ this->set("app", key, value);  }
+
+	void                set(const std::string &key, const bool &value)
+		{
+			this->set("app", key, value);
+		}
+
 	bool				has(const std::string &section, const std::string &key) const
 	{
 		auto it = m_storage.find(section);
@@ -88,7 +107,7 @@ public:
 		return it2 != it->second.end() && ! it2->second.empty();
 	}
 	bool				has(const std::string &key) const
-		{ return this->has("", key); }
+		{ return this->has("app", key); }
 
 	void				erase(const std::string &section, const std::string &key)
 	{
@@ -115,7 +134,7 @@ public:
 	void 				set_vendors(VendorMap &&vendors) { m_vendors = std::move(vendors); m_dirty = true; }
 	const VendorMap&    vendors() const { return m_vendors; }
 
-	// return recent/skein_directory or recent/config_directory or empty string.
+	// return recent/last_opened_folder or recent/settings_folder or empty string.
 	std::string 		get_last_dir() const;
 	void 				update_config_dir(const std::string &dir);
 	void 				update_skein_dir(const std::string &dir);
@@ -195,6 +214,7 @@ private:
 	EAppMode													m_mode { EAppMode::Editor };
 	// Map of section, name -> value
 	std::map<std::string, std::map<std::string, std::string>> 	m_storage;
+
 	// Map of enabled vendors / models / variants
 	VendorMap                                                   m_vendors;
 	// Has any value been modified since the config.ini has been last saved or loaded?

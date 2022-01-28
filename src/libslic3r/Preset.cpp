@@ -75,7 +75,7 @@ ConfigFileType guess_config_file_type(const ptree &tree)
             ++ bundle;
         } else if (v.first == "recent") {
             for (auto &kvp : v.second)
-                if (kvp.first == "config_directory" || kvp.first == "skein_directory")
+                if (kvp.first == "settings_folder" || kvp.first == "last_opened_folder")
                     ++ app_config;
         }
     }

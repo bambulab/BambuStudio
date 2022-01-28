@@ -304,7 +304,7 @@ private:
             title = wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME;
 
             // dynamically get the version to display
-            version = _L("V") + " " + std::string(SLIC3R_VERSION);
+            version = _L("V") + " " + std::string(SLIC3R_RC_VERSION);
 
             // credits infornation
             credits = "";
@@ -1450,9 +1450,9 @@ bool GUI_App::on_init_inner()
 
     if (is_editor()) {
 #ifdef __WXMSW__ 
-        if (app_config->get("associate_3mf") == "1")
+        if (app_config->get("associate_3mf") == "true")
             associate_3mf_files();
-        if (app_config->get("associate_stl") == "1")
+        if (app_config->get("associate_stl") == "true")
             associate_stl_files();
 #endif // __WXMSW__
 
@@ -1506,7 +1506,7 @@ bool GUI_App::on_init_inner()
     }
     else {
 #ifdef __WXMSW__ 
-        if (app_config->get("associate_gcode") == "1")
+        if (app_config->get("associate_gcode") == "true")
             associate_gcode_files();
 #endif // __WXMSW__
     }
@@ -1530,8 +1530,6 @@ bool GUI_App::on_init_inner()
         }
 
     //BBS init account_manager
-    auto user_info_folder = (boost::filesystem::path(data_dir()) / "UserInfo.json").make_preferred();
-    m_account_manager->set_user_info_path(encode_path(user_info_folder.string().c_str()));
     m_account_manager->load_user_info();
 
     //BBS if load user preset failed
@@ -2800,13 +2798,13 @@ void GUI_App::add_config_menu(wxMenu *menu)
                 }
 #ifdef _WIN32
                 if (is_editor()) {
-                    if (app_config->get("associate_3mf") == "1")
+                    if (app_config->get("associate_3mf") == "true")
                         associate_3mf_files();
-                    if (app_config->get("associate_stl") == "1")
+                    if (app_config->get("associate_stl") == "true")
                         associate_stl_files();
                 }
                 else {
-                    if (app_config->get("associate_gcode") == "1")
+                    if (app_config->get("associate_gcode") == "true")
                         associate_gcode_files();
                 }
 #endif // _WIN32
@@ -2885,13 +2883,13 @@ void GUI_App::open_preferences(size_t open_on_tab, const std::string& highlight_
             this->plater_->refresh_print();
 #ifdef _WIN32
         if (is_editor()) {
-            if (app_config->get("associate_3mf") == "1")
+            if (app_config->get("associate_3mf") == "true")
                 associate_3mf_files();
-            if (app_config->get("associate_stl") == "1")
+            if (app_config->get("associate_stl") == "true")
                 associate_stl_files();
         }
         else {
-            if (app_config->get("associate_gcode") == "1")
+            if (app_config->get("associate_gcode") == "true")
                 associate_gcode_files();
         }
 #endif // _WIN32

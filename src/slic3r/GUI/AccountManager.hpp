@@ -167,8 +167,8 @@ public:
     std::string get_account() { return m_account; }
     std::string get_user_id() { return m_user_id; }
     LoginStatus login_status() { return m_login_status; }
-    int save_to_json(std::string filename);
-    static AccountInfo* load_from_json(std::string filename);
+    int save_to_json();
+    static AccountInfo* load_from_json();
     bool is_valid() { return !m_user_id.empty() && !m_token.empty() && !m_account.empty(); }
 
     /* user project */

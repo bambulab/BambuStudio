@@ -1263,7 +1263,7 @@ void PageMode::serialize_mode(AppConfig *app_config) const
         return; 
 
     app_config->set("user_mode", mode);
-    app_config->set("use_inches", check_inch->GetValue() ? "1" : "0");
+    app_config->set("use_inches", check_inch->GetValue());
 }
 
 PageVendors::PageVendors(ConfigWizard *parent)
@@ -1862,19 +1862,10 @@ void ConfigWizard::priv::load_pages()
                 if (page && page->install)
                     index->add_page(page);
         }
-
-        /*index->add_page(page_custom);
-        if (page_custom->custom_wanted()) {
-            index->add_page(page_firmware);
-            index->add_page(page_bed);
-            index->add_page(page_diams);
-            index->add_page(page_temps);
-        }*/
    
     // Filaments & Materials
         if (any_fff_selected) { index->add_page(page_filaments); }
     }
-    if (any_sla_selected) { index->add_page(page_sla_materials); }
 
     // there should to be selected at least one printer
     btn_finish->Enable();
@@ -2217,8 +2208,6 @@ void ConfigWizard::priv::on_printer_pick(PagePrinters *page, const PrinterPicker
 
     if (page->technology & T_FFF) {
         page_filaments->clear();
-    } else if (page->technology & T_SLA) {
-        page_sla_materials->clear();
     }
 }
 
@@ -2226,7 +2215,7 @@ void ConfigWizard::priv::select_default_materials_for_printer_model(const Vendor
 {
     PageMaterials* page_materials = technology & T_FFF ? page_filaments : page_sla_materials;
     for (const std::string& material : printer_model.default_materials)
-        appconfig_new.set(page_materials->materials->appconfig_section(), material, "1");
+        appconfig_new.set(page_materials->materials->appconfig_section(), material, "true");
 }
 
 void ConfigWizard::priv::select_default_materials_for_printer_models(Technology technology, const std::set<const VendorProfile::PrinterModel*> &printer_models)
@@ -2319,8 +2308,6 @@ bool ConfigWizard::priv::on_bnt_finish()
     update_materials(T_ANY);
     if (any_fff_selected)
         page_filaments->reload_presets();
-    if (any_sla_selected)
-        page_sla_materials->reload_presets();
 
 	// theres no need to check that filament is selected if we have only custom printer
     if (custom_printer_selected && !any_fff_selected && !any_sla_selected) return true;
@@ -2355,7 +2342,7 @@ bool ConfigWizard::priv::check_and_install_missing_materials(Technology technolo
 	            		printer_models_without_material.find(printer_model) == printer_models_without_material.end()) {
                     	bool has_material = false;
                         for (const auto& preset : appconfig_presets) {
-			            	if (preset.second == "1") {
+			            	if (preset.second == "1" || preset.second == "true") {
 			            		const Preset *material = materials.find_preset(preset.first, false);
 			            		if (material != nullptr && is_compatible_with_printer(PresetWithVendorProfile(*material, nullptr), PresetWithVendorProfile(printer, nullptr))) {
 				                	has_material = true;
@@ -2692,9 +2679,9 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
     app_config->set_vendors(appconfig_new);
 
 #ifdef _WIN32
-    app_config->set("associate_3mf", page_files_association->associate_3mf() ? "1" : "0");
-    app_config->set("associate_stl", page_files_association->associate_stl() ? "1" : "0");
-//    app_config->set("associate_gcode", page_files_association->associate_gcode() ? "1" : "0");
+    app_config->set("associate_3mf", page_files_association->associate_3mf());
+    app_config->set("associate_stl", page_files_association->associate_stl());
+    //app_config->set("associate_gcode", page_files_association->associate_gcode());
 
     if (wxGetApp().is_editor()) {
         if (page_files_association->associate_3mf())
@@ -2861,9 +2848,6 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     if (!p->only_sla_mode)
         p->add_page(p->page_filaments = new PageMaterials(this, &p->filaments,
             _L("Filament Profiles Selection"), _L("Filaments"), _L("Type:") ));
-
-    p->add_page(p->page_sla_materials = new PageMaterials(this, &p->sla_materials,
-        _L("SLA Material Profiles Selection") + " ", _L("SLA Materials"), _L("Type:") ));
 
 #ifdef _WIN32
     p->add_page(p->page_files_association = new PageFilesAssociation(this));

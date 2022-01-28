@@ -162,24 +162,17 @@ void PresetBundle::setup_directories()
         data_dir,
 		data_dir / "vendor",
         data_dir / "cache",
-        data_dir / "shapes",
 #ifdef SLIC3R_PROFILE_USE_PRESETS_SUBDIR
         // Store the print/filament/printer presets into a "presets" directory.
         data_dir / "presets", 
         data_dir / "presets" / "print", 
-        data_dir / "presets" / "filament", 
-        data_dir / "presets" / "sla_print",  
-        data_dir / "presets" / "sla_material", 
-        data_dir / "presets" / "printer", 
-        data_dir / "presets" / "physical_printer" 
+        data_dir / "presets" / "filament",
+        data_dir / "presets" / "printer"
 #else
         // Store the print/filament/printer presets at the same location as the upstream Slic3r.
         data_dir / "print", 
-        data_dir / "filament", 
-        data_dir / "sla_print", 
-        data_dir / "sla_material", 
-        data_dir / "printer", 
-        data_dir / "physical_printer" 
+        data_dir / "filament",
+        data_dir / "printer"
 #endif
     };
     for (const boost::filesystem::path &path : paths) {
@@ -220,24 +213,17 @@ void PresetBundle::copy_files(const std::string& from)
     boost::filesystem::path from_data_dir = boost::filesystem::path(from);
     std::initializer_list<boost::filesystem::path> from_dirs= {
         from_data_dir / "vendor",
-        from_data_dir / "shapes",
 #ifdef SLIC3R_PROFILE_USE_PRESETS_SUBDIR
         // Store the print/filament/printer presets into a "presets" directory.
         data_dir / "presets",
         data_dir / "presets" / "print",
         data_dir / "presets" / "filament",
-        data_dir / "presets" / "sla_print",
-        data_dir / "presets" / "sla_material",
-        data_dir / "presets" / "printer",
-        data_dir / "presets" / "physical_printer"
+        data_dir / "presets" / "printer"
 #else
         // Store the print/filament/printer presets at the same location as the upstream Slic3r.
         from_data_dir / "print",
         from_data_dir / "filament",
-        from_data_dir / "sla_print",
-        from_data_dir / "sla_material",
-        from_data_dir / "printer",
-        from_data_dir / "physical_printer"
+        from_data_dir / "printer"
 #endif
     };
     // copy recursively all files
@@ -653,7 +639,7 @@ void PresetBundle::load_installed_filaments(AppConfig &config)
 			}
 		// and mark these filaments as installed, therefore this code will not be executed at the next start of the application.
         for (const auto &filament: compatible_filaments)
-            config.set(AppConfig::SECTION_FILAMENTS, filament->name, "1");
+            config.set(AppConfig::SECTION_FILAMENTS, filament->name, "true");
     }
 
     for (auto &preset : filaments)
@@ -676,7 +662,7 @@ void PresetBundle::load_installed_sla_materials(AppConfig &config)
 			}
 		// and mark these SLA materials as installed, therefore this code will not be executed at the next start of the application.
 		for (const auto &material: comp_sla_materials)
-            config.set(AppConfig::SECTION_MATERIALS, material->name, "1");
+            config.set(AppConfig::SECTION_MATERIALS, material->name, "true");
     }
 
     for (auto &preset : sla_materials)
@@ -794,10 +780,11 @@ void PresetBundle::export_selections(AppConfig &config)
         config.set("presets", name, filament_presets[i]);
     }
 
-    config.set("presets", "sla_print",    sla_prints.get_selected_preset_name());
-    config.set("presets", "sla_material", sla_materials.get_selected_preset_name());
-    config.set("presets", "printer",      printers.get_selected_preset_name());
-    config.set("presets", "physical_printer", physical_printers.get_selected_full_printer_name());
+    config.set("presets", "printer", printers.get_selected_preset_name());
+    // BBS
+    //config.set("presets", "sla_print",    sla_prints.get_selected_preset_name());
+    //config.set("presets", "sla_material", sla_materials.get_selected_preset_name());
+    //config.set("presets", "physical_printer", physical_printers.get_selected_full_printer_name());
     //BBS: add config related log
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": printer %1%, print %2%, filaments[0] %3% ")%printers.get_selected_preset_name() % prints.get_selected_preset_name() %filament_presets[0];
 }

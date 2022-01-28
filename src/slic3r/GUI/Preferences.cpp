@@ -119,7 +119,7 @@ void PreferencesDialog::build(size_t selected_tab)
 		def.type = coBool;
 		def.tooltip = L("If this is enabled, Slic3r will auto-center objects "
 			"around the print bed center.");
-		def.set_default_value(new ConfigOptionBool{ app_config->get("autocenter") == "1" });
+		def.set_default_value(new ConfigOptionBool{ app_config->get("autocenter") == "true" });
 		option = Option(def, "autocenter");
 		m_optgroup_general->append_single_option_line(option);
 #endif
@@ -140,14 +140,14 @@ void PreferencesDialog::build(size_t selected_tab)
 		def.label = L("Associate .3mf files to BambuStudio");
 		def.type = coBool;
 		def.tooltip = L("If enabled, sets BambuStudio as default application to open .3mf files.");
-		def.set_default_value(new ConfigOptionBool(app_config->get("associate_3mf") == "1"));
+		def.set_default_value(new ConfigOptionBool(app_config->get("associate_3mf") == "true"));
 		option = Option(def, "associate_3mf");
 		m_optgroup_general->append_single_option_line(option);
 
 		def.label = L("Associate .stl files to BambuStudio");
 		def.type = coBool;
 		def.tooltip = L("If enabled, sets BambuStudio as default application to open .stl files.");
-		def.set_default_value(new ConfigOptionBool(app_config->get("associate_stl") == "1"));
+		def.set_default_value(new ConfigOptionBool(app_config->get("associate_stl") == "true"));
 		option = Option(def, "associate_stl");
 		m_optgroup_general->append_single_option_line(option);
 #endif // _WIN32
@@ -157,7 +157,7 @@ void PreferencesDialog::build(size_t selected_tab)
 		def.label = L("Associate .gcode files to BambuStudio G-code Viewer");
 		def.type = coBool;
 		def.tooltip = L("If enabled, sets BambuStudio G-code Viewer as default application to open .gcode files.");
-		def.set_default_value(new ConfigOptionBool(app_config->get("associate_gcode") == "1"));
+		def.set_default_value(new ConfigOptionBool(app_config->get("associate_gcode") == "true"));
 		option = Option(def, "associate_gcode");
 		m_optgroup_general->append_single_option_line(option);
 	}
@@ -175,14 +175,6 @@ void PreferencesDialog::build(size_t selected_tab)
 	m_optgroup_general->append_single_option_line(option);
 #endif // _WIN32 || __APPLE__
 #endif
-
-	// BBS
-	/*def.label = L("Export 3mf include gcode");
-	def.type = coBool;
-	def.tooltip = L("Export 3mf include gcode");
-	def.set_default_value(new ConfigOptionBool{ app_config->get("3mf_include_gcode") == "1" });
-	option = Option(def, "3mf_include_gcode");
-	m_optgroup_general->append_single_option_line(option);*/
 
 	// BBS
 	def.label = L("Developer Mode");
@@ -352,10 +344,10 @@ void PreferencesDialog::accept(wxEvent&)
 	if (m_domain_changed) {
 		AccountManager* manager = wxGetApp().getAccountManager();
 		manager->user_logout();
-		if (m_values["api_dev_domain"].compare("1") == 0) {
+		if (m_values["api_dev_domain"].compare("true") == 0) {
 			manager->set_host(DEFAULT_HOST);
 		}
-		else if (m_values["api_rel_domain"].compare("1") == 0) {
+		else if (m_values["api_rel_domain"].compare("true") == 0) {
 			manager->set_host("https://api.bambulab.com");
 		}
 	}
@@ -365,7 +357,7 @@ void PreferencesDialog::accept(wxEvent&)
 	if (auto it = m_values.find("developer_mode"); it != m_values.end()) {
 		m_develop_mode_changed = !app_config->get("developer_mode").empty() || app_config->get("developer_mode") != it->second;
 		if (m_develop_mode_changed) {
-			if (it->second.compare("1") == 0) {
+			if (it->second.compare("true") == 0) {
 				Slic3r::GUI::wxGetApp().save_mode(comDevelop);
 			}
 			else {
