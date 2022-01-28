@@ -2273,6 +2273,16 @@ GCode::LayerResult GCode::process_layer(
         }
     }
 
+    //BBS: set first layer global acceleration and reset at second layer
+    if (layer.id() < 2 && m_config.default_acceleration.value > 0 && m_config.first_layer_acceleration.value > 0) {
+        double acceleration = 0;
+        if (this->on_first_layer())
+            acceleration = m_config.first_layer_acceleration.value;
+        else if (this->on_second_layer())
+            acceleration = m_config.default_acceleration.value;
+        gcode += m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
+    }
+
     if (! first_layer && ! m_second_layer_things_done) {
         // Transition from 1st to 2nd layer. Adjust nozzle temperatures as prescribed by the nozzle dependent
         // first_layer_temperature vs. temperature settings.
@@ -2890,8 +2900,10 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         gcode += this->_extrude(*path, description, speed);
     }
 
-    // reset acceleration
-    gcode += m_writer.set_acceleration((unsigned int)(m_config.default_acceleration.value + 0.5));
+    //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
+    if (!this->on_first_layer())
+        // reset acceleration
+        gcode += m_writer.set_acceleration((unsigned int)(m_config.default_acceleration.value + 0.5));
 
     // BBS
     if (m_wipe.enable) {
@@ -2974,8 +2986,10 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
         }
         m_wipe.path.reverse();
     }
-    // reset acceleration
-    gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
+    //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
+    if (!this->on_first_layer())
+        // reset acceleration
+        gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
     return gcode;
 }
 
@@ -3009,8 +3023,10 @@ std::string GCode::extrude_path(ExtrusionPath path, std::string description, dou
         m_wipe.path = std::move(path.polyline);
         m_wipe.path.reverse();
     }
-    // reset acceleration
-    gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
+    //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
+    if (!this->on_first_layer())
+        // reset acceleration
+        gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
     return gcode;
 }
 
