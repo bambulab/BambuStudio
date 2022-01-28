@@ -615,8 +615,29 @@ void PerimeterGenerator::process()
                 opening_ex(gaps, float(min / 2.)),
                 offset2_ex(gaps, - float(max / 2.), float(max / 2. + ClipperSafetyOffset)));
             ThickPolylines polylines;
-            for (const ExPolygon &ex : gaps_ex)
+            for (ExPolygon& ex : gaps_ex) {
+                //BBS: medial axis algorithm can't handle duplicated points in expolygon.
+                //Use DP simplify to avoid duplicated points and accelerate medial-axis calculation as well.
+                ex.douglas_peucker(SCALED_RESOLUTION);
                 ex.medial_axis(max, min, &polylines);
+            }
+
+#ifdef GAPS_OF_PERIMETER_DEBUG_TO_SVG
+            {
+                static int irun = 0;
+                BoundingBox bbox_svg;
+                bbox_svg.merge(get_extents(gaps_ex));
+                {
+                    std::stringstream stri;
+                    stri << "debug_gaps_ex_" << irun << ".svg";
+                    SVG svg(stri.str(), bbox_svg);
+                    svg.draw(to_polylines(gaps_ex), "blue", 0.5);
+                    svg.Close();
+                }
+                ++ irun;
+            }
+#endif
+
             if (! polylines.empty()) {
 				ExtrusionEntityCollection gap_fill;
 				variable_width(polylines, erGapFill, this->solid_infill_flow, gap_fill.entities);
