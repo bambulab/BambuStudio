@@ -1119,6 +1119,27 @@ namespace Slic3r {
             ++object_idx;
         }
 
+        for (ModelObject* mo : m_model->objects) {
+            const ConfigOptionInt* extruder_opt = dynamic_cast<const ConfigOptionInt*>(mo->config.option("extruder"));
+            int extruder_id = 0;
+            if (extruder_opt != nullptr)
+                extruder_id = extruder_opt->getInt();
+
+            if (extruder_id == 0)
+                mo->config.set_key_value("extruder", new ConfigOptionInt(1));
+
+            if (mo->volumes.size() == 1) {
+                mo->volumes[0]->config.erase("extruder");
+            }
+            else {
+                for (ModelVolume* mv : mo->volumes) {
+                    const ConfigOptionInt* vol_extruder_opt = dynamic_cast<const ConfigOptionInt*>(mv->config.option("extruder"));
+                    if (vol_extruder_opt && vol_extruder_opt->getInt() == 0)
+                        mv->config.erase("extruder");
+                }
+            }
+        }
+
 //        // fixes the min z of the model if negative
 //        model.adjust_min_z();
 
