@@ -3790,11 +3790,14 @@ namespace Slic3r {
 
                 // BBS
                 if (i < its.properties.size()) {
-                    output_buffer += " ";
-                    output_buffer += FACE_PROPERTY_ATTR;
-                    output_buffer += "=\"";
-                    output_buffer += its.properties[i].to_string();
-                    output_buffer += "\"";
+                    std::string prop_str = its.properties[i].to_string();
+                    if (!prop_str.empty()) {
+                        output_buffer += " ";
+                        output_buffer += FACE_PROPERTY_ATTR;
+                        output_buffer += "=\"";
+                        output_buffer += prop_str;
+                        output_buffer += "\"";
+                    }
                 }
 
                 output_buffer += "/>\n";

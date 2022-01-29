@@ -170,23 +170,42 @@ struct FaceProperty
     std::string to_string() const
     {
         std::string str;
-        str += std::to_string(type) + " ";
-        str += std::to_string(area);
+        // skip normal type facet to improve performance 
+        if (type > eNormal && type < eMaxNumFaceTypes) {
+            str += std::to_string(type);
+            if (area != 0.f)
+                str += " " + std::to_string(area);
+        }
         return str;
     }
 
     void from_string(const std::string& str)
     {
         std::string val_str, area_str;
+        do {
+            if (str.empty())
+                break;
 
-        size_t type_end_pos = str.find(" ");
-        if (type_end_pos == std::string::npos)
+            this->type = (EnumFaceTypes)std::atoi(str.c_str());
+            if (this->type <= eNormal || this->type >= eMaxNumFaceTypes)
+                break;
+
+            size_t type_end_pos = str.find(" ");
+            if (type_end_pos == std::string::npos) {
+                this->area = 0.f;
+                return;
+            }
+
+            area_str = str.substr(type_end_pos + 1);
+            if (!area_str.empty())
+                this->area = std::atof(area_str.c_str());
+            else
+                this->area = 0.f;
             return;
-        val_str = str.substr(0, type_end_pos);
-        this->type = (EnumFaceTypes)std::atoi(val_str.c_str());
+        } while (0);
 
-        area_str = str.substr(type_end_pos + 1);
-        this->area = std::atof(area_str.c_str());
+        this->type = eNormal;
+        this->area = 0.f;
     }
 };
 
