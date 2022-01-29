@@ -84,20 +84,26 @@ static void lowpass_filter_by_paths_overhang_degree(ExtrusionPaths& paths) {
     const double filter_range = scale_(6.5);
     const double threshold_length = scale_(1.2);
 
-    int path_num = paths.size();
-    ExtrusionPaths out;
+    //0.save old overhang series first which is input of filter
+    const int path_num = paths.size();
+    if (path_num < 2)
+        //don't need to do filting if only has one path in vector
+        return;
+    std::vector<int> old_overhang_series;
+    old_overhang_series.reserve(path_num);
+    for (int i = 0; i < path_num; i++)
+        old_overhang_series.push_back(paths[i].get_overhang_degree());
 
     //1.lowpass filter
     for (int i = 0; i < path_num; i++) {
         double current_length = paths[i].length();
-        int current_overhang_degree = paths[i].get_overhang_degree();
+        int current_overhang_degree = old_overhang_series[i];
         if (current_length < threshold_length &&
             (paths[i].role() == erPerimeter || paths[i].role() == erExternalPerimeter)) {
             double left_total_length = (filter_range - current_length) / 2;
             double right_total_length = left_total_length;
-            int temp_overhang_degree;
-            double temp_length;
 
+            double temp_length;
             int j = i - 1;
             int index;
             std::vector<std::pair<double, int>> neighbor_path;
@@ -105,14 +111,11 @@ static void lowpass_filter_by_paths_overhang_degree(ExtrusionPaths& paths) {
                 index = (j < 0) ? path_num - 1 : j;
                 if (paths[index].role() == erOverhangPerimeter)
                     break;
-                temp_overhang_degree = paths[index].get_overhang_degree();
                 temp_length = paths[index].length();
-                if (temp_length > left_total_length) {
-                    neighbor_path.emplace_back(std::pair<double, int>(left_total_length, temp_overhang_degree));
-                }
-                else {
-                    neighbor_path.emplace_back(std::pair<double, int>(temp_length, temp_overhang_degree));
-                }
+                if (temp_length > left_total_length)
+                    neighbor_path.emplace_back(std::pair<double, int>(left_total_length, old_overhang_series[index]));
+                else
+                    neighbor_path.emplace_back(std::pair<double, int>(temp_length, old_overhang_series[index]));
                 left_total_length -= temp_length;
                 j = index;
                 j--;
@@ -123,14 +126,11 @@ static void lowpass_filter_by_paths_overhang_degree(ExtrusionPaths& paths) {
                 index = j % path_num;
                 if (paths[index].role() == erOverhangPerimeter)
                     break;
-                temp_overhang_degree = paths[index].get_overhang_degree();
                 temp_length = paths[index].length();
-                if (temp_length > right_total_length) {
-                    neighbor_path.emplace_back(std::pair<double, int>(right_total_length, temp_overhang_degree));
-                }
-                else {
-                    neighbor_path.emplace_back(std::pair<double, int>(temp_length, temp_overhang_degree));
-                }
+                if (temp_length > right_total_length) 
+                    neighbor_path.emplace_back(std::pair<double, int>(right_total_length, old_overhang_series[index]));
+                else
+                    neighbor_path.emplace_back(std::pair<double, int>(temp_length, old_overhang_series[index]));
                 right_total_length -= temp_length;
                 j++;
             }
@@ -143,35 +143,21 @@ static void lowpass_filter_by_paths_overhang_degree(ExtrusionPaths& paths) {
             }
 
             double average_overhang = (double)(current_length * current_overhang_degree + sum) / (length_sum + current_length);
-            ExtrusionPath new_overhang_path = paths[i];
-            new_overhang_path.set_overhang_degree((int)average_overhang);
-            out.push_back(new_overhang_path);
-        }
-        else {
-            out.push_back(paths[i]);
+            paths[i].set_overhang_degree((int)average_overhang);
         }
     }
 
-    //2.merge path if have same overhang degree
-    paths.clear();
-    int last_overhang = -1;
-    for (auto it = out.begin(); it != out.end(); it++) {
+    //2.merge path if have same overhang degree. from back to front to avoid data copy
+    int last_overhang = paths[path_num - 1].get_overhang_degree();
+    for (auto it = paths.end() - 2; it >= paths.begin(); it--) {
         if (last_overhang == it->get_overhang_degree()) {
-            if (paths.size() > 0) {
-                //BBS: don't need to append duplicated points, remove the last point
-                if ((paths.end() - 1)->polyline.last_point() == it->polyline.first_point())
-                    (paths.end() - 1)->polyline.points.pop_back();
-                (paths.end() - 1)->polyline.append(it->polyline);
-            }
-            else {
-                //BBS: should never happen
-                assert(0);
-            }
+            //BBS: don't need to append duplicated points, remove the last point
+            if (it->polyline.last_point() == (it+1)->polyline.first_point())
+                it->polyline.points.pop_back();
+            it->polyline.append(std::move((it+1)->polyline));
+            paths.erase(it + 1);
         }
-        else {
-            paths.push_back(*it);
-            last_overhang = it->get_overhang_degree();
-        }
+        last_overhang = it->get_overhang_degree();
     }
 }
 
@@ -201,24 +187,24 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
         ExtrusionPaths paths;
 
         // BBS: get lower polygons series, width, mm3_per_mm
-        std::map<int, Polygons> lower_polygons_series;
+        const std::map<int, Polygons> *lower_polygons_series;
         double extrusion_mm3_per_mm;
         double extrusion_width;
         if (is_external) {
             if (is_small_width) {
                 //BBS: smaller width external perimeter
-                lower_polygons_series = perimeter_generator.m_smaller_external_lower_polygons_series;
+                lower_polygons_series = &perimeter_generator.m_smaller_external_lower_polygons_series;
                 extrusion_mm3_per_mm = perimeter_generator.smaller_width_ext_mm3_per_mm();
                 extrusion_width = perimeter_generator.smaller_ext_perimeter_flow.width();
             } else {
                 //BBS: normal external perimeter
-                lower_polygons_series = perimeter_generator.m_external_lower_polygons_series;
+                lower_polygons_series = &perimeter_generator.m_external_lower_polygons_series;
                 extrusion_mm3_per_mm = perimeter_generator.ext_mm3_per_mm();
                 extrusion_width = perimeter_generator.ext_perimeter_flow.width();
             }
         } else {
             //BBS: normal perimeter
-            lower_polygons_series = perimeter_generator.m_lower_polygons_series;
+            lower_polygons_series = &perimeter_generator.m_lower_polygons_series;
             extrusion_mm3_per_mm = perimeter_generator.mm3_per_mm();
             extrusion_width = perimeter_generator.perimeter_flow.width();
         }
@@ -234,13 +220,13 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                   perimeter_generator.object_config->support_material_contact_distance.value == 0)) {
             // get non 100% overhang paths by intersecting this loop with the grown lower slices
             Polylines remain_polines;
-            for (auto it = lower_polygons_series.begin();
-                it != lower_polygons_series.end(); it++)
+            for (auto it = lower_polygons_series->begin();
+                it != lower_polygons_series->end(); it++)
             {
 
-                Polylines inside_polines = (it == lower_polygons_series.begin()) ?
+                Polylines inside_polines = (it == lower_polygons_series->begin()) ?
                                            intersection_pl({ polygon }, it->second) :
-                                           intersection_pl({ remain_polines }, it->second);
+                                           intersection_pl(remain_polines, it->second);
                 extrusion_paths_append(
                     paths,
                     std::move(inside_polines),
@@ -251,9 +237,9 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                     extrusion_width,
                     (float)perimeter_generator.layer_height);
 
-                remain_polines = (it == lower_polygons_series.begin())?
+                remain_polines = (it == lower_polygons_series->begin())?
                                   diff_pl({ polygon }, it->second) :
-                                  diff_pl({ remain_polines }, it->second);
+                                  diff_pl(remain_polines, it->second);
 
                 if (remain_polines.size() == 0)
                     break;
@@ -265,7 +251,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             if (remain_polines.size() != 0) {
                 extrusion_paths_append(
                     paths,
-                    remain_polines,
+                    std::move(remain_polines),
                     overhang_sampling_number - 1,
                     int(0),
                     erOverhangPerimeter,
@@ -289,7 +275,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             path.mm3_per_mm = extrusion_mm3_per_mm;
             path.width = extrusion_width;
             path.height     = (float)perimeter_generator.layer_height;
-            paths.push_back(path);
+            paths.emplace_back(std::move(path));
         }
 
         coll.append(ExtrusionLoop(std::move(paths), loop_role));
