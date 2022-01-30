@@ -645,7 +645,7 @@ void GLGizmoFdmSupports::init_print_instance()
     const PrintObjectConfig& config = m_print_instance.print_object->config();
     //m_angle_threshold_deg = config.support_material_angle;
     m_is_tree_support = config.support_material.value &&
-        (config.support_type.value == stTreeAuto || config.support_type.value == stTree);
+        (config.support_type.value == stTreeAuto || config.support_type.value == stTree || config.support_type.value==stHybridAuto);
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",get support_material_angle "<< m_angle_threshold_deg<<", is_tree "<<m_is_tree_support;
 
     return;
