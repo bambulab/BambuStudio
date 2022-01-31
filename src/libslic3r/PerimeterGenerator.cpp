@@ -148,16 +148,20 @@ static void lowpass_filter_by_paths_overhang_degree(ExtrusionPaths& paths) {
     }
 
     //2.merge path if have same overhang degree. from back to front to avoid data copy
-    int last_overhang = paths[path_num - 1].get_overhang_degree();
-    for (auto it = paths.end() - 2; it >= paths.begin(); it--) {
+    int last_overhang = paths[0].get_overhang_degree();
+    auto it = paths.begin() + 1;
+    while (it != paths.end())
+    {
         if (last_overhang == it->get_overhang_degree()) {
             //BBS: don't need to append duplicated points, remove the last point
-            if (it->polyline.last_point() == (it+1)->polyline.first_point())
-                it->polyline.points.pop_back();
-            it->polyline.append(std::move((it+1)->polyline));
-            paths.erase(it + 1);
+            if ((it-1)->polyline.last_point() == it->polyline.first_point())
+                (it-1)->polyline.points.pop_back();
+            (it-1)->polyline.append(std::move(it->polyline));
+            it = paths.erase(it);
+        } else {
+            last_overhang = it->get_overhang_degree();
+            it++;
         }
-        last_overhang = it->get_overhang_degree();
     }
 }
 
