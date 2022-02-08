@@ -1835,8 +1835,12 @@ void ObjectGridTable::update_row_properties()
                     }
                 }
             }
-            else if ((col == col_name) && (grid_row->row_type == ObjectGridTable::row_object))
-                grid_table->SetCellFont(row, col, Label::Head_14);
+            else if (col == ObjectGridTable::col_name) {
+                if (grid_row->row_type == ObjectGridTable::row_object)
+                    grid_table->SetCellFont(row, col, Label::Head_14);
+                else
+                    grid_table->SetCellFont(row, col, Label::Body_14);
+            }
         }
     }
 
@@ -2471,8 +2475,12 @@ void ObjectTablePanel::load_data()
                     default:
                         break;
                 }
-                if ((col == ObjectGridTable::col_name) && (grid_row->row_type == ObjectGridTable::row_object))
-                    m_object_grid->SetCellFont(row, col, Label::Head_14);
+                if (col == ObjectGridTable::col_name) {
+                    if (grid_row->row_type == ObjectGridTable::row_object)
+                        m_object_grid->SetCellFont(row, col, Label::Head_14);
+                    else
+                        m_object_grid->SetCellFont(row, col, Label::Body_14);
+                }
             }
         }
     }
