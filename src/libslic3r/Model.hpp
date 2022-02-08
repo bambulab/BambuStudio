@@ -291,6 +291,8 @@ public:
 
     Model*                  get_model() { return m_model; }
     const Model*            get_model() const { return m_model; }
+    // BBS: production extension
+    int                     get_backup_id() const;
 
     ModelVolume*            add_volume(const TriangleMesh &mesh);
     ModelVolume*            add_volume(TriangleMesh &&mesh, ModelVolumeType type = ModelVolumeType::MODEL_PART);
@@ -1239,6 +1241,7 @@ public:
     void         collect_reusable_objects(std::vector<ObjectBase *> & objects);
     void         set_object_backup_id(ModelObject const & object, int uuid);
     int          get_object_backup_id(ModelObject const & object); // generate new if needed
+    int          get_object_backup_id(ModelObject const & object) const; // generate new if needed
 
     ModelMaterial* add_material(t_model_material_id material_id);
     ModelMaterial* add_material(t_model_material_id material_id, const ModelMaterial &other);

@@ -310,8 +310,17 @@ ModelObject* Model::add_object(const ModelObject &other)
     if (!new_object->config.has("extruder") || new_object->config.extruder() == 0)
         new_object->config.set_key_value("extruder", new ConfigOptionInt(1));
     this->objects.push_back(new_object);
+    // BBS: backup
     if (need_backup) {
-        Slic3r::save_object_mesh(*new_object, other.id().id);
+        if (auto model = other.get_model()) {
+            auto iter = object_backup_id_map.find(other.id().id);
+            if (iter != object_backup_id_map.end()) {
+                object_backup_id_map.emplace(new_object->id().id, iter->second);
+                object_backup_id_map.erase(iter);
+                return new_object;
+            }
+        }
+        Slic3r::save_object_mesh(*new_object);
     }
     return new_object;
 }
@@ -403,6 +412,11 @@ int Model::get_object_backup_id(ModelObject const& object)
         i = object_backup_id_map.insert(std::make_pair(object.id().id, next_object_backup_id++)).first;
     }
     return i->second;
+}
+
+int Model::get_object_backup_id(ModelObject const& object) const
+{
+    return object_backup_id_map.find(object.id().id)->second;
 }
 
 void Model::delete_material(t_model_material_id material_id)
@@ -725,7 +739,7 @@ std::string Model::get_backup_path()
         {
             boost::filesystem::remove_all(temp_path);
         }
-        boost::filesystem::create_directories(backup_path);
+        boost::filesystem::create_directories(backup_path + "/3D/Objects/");
         boost::filesystem::save_string_file(backup_path + "/lock.txt",
                                             boost::lexical_cast<std::string>(get_current_pid()));
     }
@@ -874,6 +888,10 @@ void ModelObject::assign_new_unique_ids_recursive()
 //{
 //    return new ModelObject(parent, *this, true);
 //}
+
+
+// BBS: production extension
+int ModelObject::get_backup_id() const { return m_model ? m_model->get_object_backup_id(*this) : -1; }
 
 ModelVolume* ModelObject::add_volume(const TriangleMesh &mesh)
 {
