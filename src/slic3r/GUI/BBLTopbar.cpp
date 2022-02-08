@@ -9,6 +9,7 @@
 #include "Plater.hpp"
 #include "MainFrame.hpp"
 #include "WebViewDialog.hpp"
+#include "PartPlate.hpp"
 
 
 using namespace Slic3r;
@@ -373,7 +374,7 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
             return account_manager->is_user_login();
             },
         this);
-    append_menu_item(accountMenu, wxID_ANY, _L("Upload/Publish Model"), _L(""),
+    append_menu_item(accountMenu, wxID_ANY, _L("Upload/Publish Model"), _L("Please slice all plates before upload"),
         [this](wxCommandEvent&) {
             /* upload project first and publish */
             Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
@@ -391,6 +392,11 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
         }, "upload_queue", nullptr,
         [this] (){
             if (GUI::wxGetApp().plater()->model().objects.empty()) return false;
+
+            //BBS check gcode validation
+            GUI::PartPlateList& part_plate_list = GUI::wxGetApp().plater()->get_partplate_list();
+            bool publish_enable = part_plate_list.is_all_slice_results_ready_for_print();
+            if (!publish_enable) return false;
 
             Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
             return account_manager->can_publish();
