@@ -10,6 +10,7 @@ void wxMediaCtrl2::Load(wxURI url)
     url = wxURI(url.BuildURI().append("&hwnd=").append(
         boost::lexical_cast<std::string>(GetHandle())));
 #endif
+    m_error = 0;
     wxMediaCtrl::Load(url);
 }
 
@@ -20,7 +21,18 @@ WXLRESULT wxMediaCtrl2::MSWWindowProc(WXUINT   nMsg,
                                    WXLPARAM lParam)
 {
     if (nMsg == WM_USER + 1000) {
-        BOOST_LOG_TRIVIAL(info) << wxString((wchar_t const *) lParam).ToUTF8().data();
+        wxString msg((wchar_t const *) lParam);
+        if (wParam == 1) {
+            if (msg.EndsWith("]")) {
+                int n = msg.find_last_of('[');
+                if (n != wxString::npos) {
+                    long val = 0;
+                    if (msg.SubString(n + 1, msg.Length() - 2).ToLong(&val))
+                        m_error = (int) val;
+                }
+            }
+        }
+        BOOST_LOG_TRIVIAL(info) << msg.ToUTF8().data();
         return 0;
     }
     return wxMediaCtrl::MSWWindowProc(nMsg, wParam, lParam);

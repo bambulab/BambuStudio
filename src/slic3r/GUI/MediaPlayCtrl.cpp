@@ -17,6 +17,10 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow * parent, wxMediaCtrl2* media_ctrl)
 
     m_button_play->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto & e) { TogglePlay(); });
 
+    m_button_play->Bind(wxEVT_RIGHT_UP, [this](auto & e) { m_media_ctrl->Play(); });
+
+    Bind(wxEVT_RIGHT_UP, [this](auto & e) { wxClipboard & c = *wxTheClipboard; if (c.Open()) { c.SetData(new wxTextDataObject(m_url)); c.Close(); } });
+
     wxBoxSizer * sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(m_button_play);
     sizer->AddStretchSpacer(1);
@@ -49,11 +53,12 @@ void MediaPlayCtrl::Play()
         ->get_camera_url(m_machine->dev_id, [this](std::string url) {
         BOOST_LOG_TRIVIAL(info) << "camera_url: " << url;
         CallAfter([this, url] {
+            m_url = url;
             if (m_last_state != MEDIASTATE_INITIALIZING)
                 return;
             if (url.empty()) {
                 Stop();
-                SetStatus(L"Initialize failed!");
+                SetStatus(L"Initialize failed [%d]!");
             } else {
                 m_last_state = MEDIASTATE_LOADING;
                 m_media_ctrl->Load(wxURI(url));
@@ -84,7 +89,7 @@ void MediaPlayCtrl::TogglePlay()
 
 void MediaPlayCtrl::SetStatus(wxString const& msg)
 {
-    m_label_status->SetLabel(msg);
+    m_label_status->SetLabel(wxString::Format(msg, m_media_ctrl->GetLastError()));
     m_label_status->SetForegroundColour(!msg.EndsWith("!") ? 0x42AE00 : 0x3B65E9);
     Layout();
 }
@@ -113,7 +118,7 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
         }
         else {
             Stop();
-            SetStatus(L"connect failed");
+            SetStatus(L"Connect failed [%d]!");
         }
     }
 }

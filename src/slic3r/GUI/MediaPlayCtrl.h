@@ -47,6 +47,7 @@ private:
     wxMediaCtrl2 * m_media_ctrl;
     wxMediaState m_last_state = MEDIASTATE_IDLE;
     MachineObject* m_machine = nullptr;
+    wxString m_url;
 
     ::Button * m_button_play;
     ::Label * m_label_status;

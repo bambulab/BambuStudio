@@ -26,6 +26,8 @@ public:
     
     wxMediaState GetState() const;
     
+    int GetLastError() const { return m_error; }
+
     static constexpr wxMediaState MEDIASTATE_BUFFERING = (wxMediaState) 6;
 
 protected:
@@ -34,6 +36,7 @@ protected:
 private:
     void * m_player;
     wxMediaState m_state;
+    int m_error = 0;
 };
 
 #else
@@ -45,12 +48,17 @@ public:
 
     void Load(wxURI url);
 
+    int GetLastError() const { return m_error; }
+
 protected:
 #ifdef __WIN32__
     WXLRESULT MSWWindowProc(WXUINT   nMsg,
                             WXWPARAM wParam,
                             WXLPARAM lParam) override;
 #endif
+
+private:
+    int m_error = 0;
 };
 
 #endif
