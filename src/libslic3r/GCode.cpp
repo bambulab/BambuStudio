@@ -2707,11 +2707,19 @@ GCode::LayerResult GCode::process_layer(
     }
     //BBS: close spaghetti detector after printing last layer of object
     if (print.config().enable_spaghetti_detector.value) {
-        //BBS: don't need to close if the object has only one layer
-        const PrintObject* object = layer.object();
-        if (!first_layer && object && (object->layer_count() == layer.id() + 1)){
-            gcode += ";close spaghetti detector\n";
-            gcode += "M981 S0 P20000\n";
+        //BBS: don't need to close if the object has only one layer.
+        //complete_objects mode has different judgement for last layer
+        if (print.config().complete_objects.value) {
+            const PrintObject* object = layer.object();
+            if (!first_layer && object && (object->layer_count() == layer.id() + 1)) {
+                gcode += ";close spaghetti detector\n";
+                gcode += "M981 S0 P20000\n";
+            }
+        } else {
+            if (!first_layer && last_layer) {
+                gcode += ";close spaghetti detector\n";
+                gcode += "M981 S0 P20000\n";
+            }
         }
     }
 
