@@ -54,6 +54,57 @@ struct PlateData
     bool locked;
 };
 
+// BBS: encrypt
+enum class SaveStrategy
+{
+    Default = 0,
+    FullPathSources = 1,
+    Zip64 = 2,
+    ProductionExt = 4,
+    SecureContentExt = 8,
+    WithGcode = 16,
+    Silence = 32,
+    SkipStatic = 64,
+
+    SplitModel = 0x1000 | ProductionExt,
+
+    Backup = 0x10000 | WithGcode | Silence | SkipStatic | SplitModel,
+};
+
+inline SaveStrategy operator | (SaveStrategy lhs, SaveStrategy rhs)
+{
+    using T = std::underlying_type_t <SaveStrategy>;
+    return static_cast<SaveStrategy>(static_cast<T>(lhs) | static_cast<T>(rhs));
+}
+
+inline bool operator & (SaveStrategy lhs, SaveStrategy rhs)
+{
+    using T = std::underlying_type_t <SaveStrategy>;
+    return static_cast<T>(lhs) & static_cast<T>(rhs);
+}
+
+enum class LoadStrategy
+{
+    Default = 0,
+    AddDefaultInstances = 1,
+    CheckVersion = 2, 
+    WithAuxiliary = 8,
+
+    Restore = 0x10000,
+};
+
+inline LoadStrategy operator | (LoadStrategy lhs, LoadStrategy rhs)
+{
+    using T = std::underlying_type_t <LoadStrategy>;
+    return static_cast<LoadStrategy>(static_cast<T>(lhs) | static_cast<T>(rhs));
+}
+
+inline bool operator & (LoadStrategy lhs, LoadStrategy rhs)
+{
+    using T = std::underlying_type_t <LoadStrategy>;
+    return static_cast<T>(lhs) & static_cast<T>(rhs);
+}
+
 const int EXPORT_STAGE_OPEN_3MF         = 0;
 const int EXPORT_STAGE_CONTENT_TYPES    = 1;
 const int EXPORT_STAGE_ADD_THUMBNAILS   = 2;
@@ -101,10 +152,7 @@ struct StoreParams
     DynamicPrintConfig* config;
     std::vector<ThumbnailData*> thumbnail_data;
     std::vector<ThumbnailData*> calibration_thumbnail_data;
-    bool fullpath_sources;
-    bool zip64 = true;
-    bool skip_static = false;
-    bool silence = true;
+    SaveStrategy strategy = SaveStrategy::Zip64;
     Export3mfProgressFn proFn = nullptr;
     std::vector<PlateBBoxData*> id_bboxes;
     BBLProject* project = nullptr;
@@ -117,8 +165,7 @@ struct StoreParams
 //BBS: add plate data list related logic
 // add restore logic
 // Load the content of a 3mf file into the given model and preset bundle.
-extern bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model,
-    PlateDataPtrs* plate_data_list, std::vector<Preset*>* project_presets, bool check_version, bool* is_bbl_3mf, bool load_aux, bool load_restore, Import3mfProgressFn proFn, BBLProject *project = nullptr);
+extern bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, std::vector<Preset*>* project_presets, bool* is_bbl_3mf, Import3mfProgressFn proFn = nullptr, LoadStrategy strategy = LoadStrategy::Default, BBLProject *project = nullptr);
 
 //BBS: add plate data list related logic
 // add backup logic

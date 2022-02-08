@@ -237,12 +237,14 @@ int CLI::run(int argc, char **argv)
                 DynamicPrintConfig config;
                 ConfigSubstitutionContext config_substitutions(config_substitution_rule);
 
-                //FIXME should we check the version here? // | Model::LoadAttribute::CheckVersion ?
+                //FIXME should we check the version here? // | LoadStrategy::CheckVersion ?
                 is_bbl_3mf = false;
                 if (boost::algorithm::iends_with(file, ".3mf") && first_file)
                     load_aux = true;
                 // BBS: adjust whebackup
-                model = Model::read_from_file(file, &config, &config_substitutions, Model::LoadAttribute::AddDefaultInstances | only_if(load_aux, Model::LoadAttribute::WithAuxiliary), &plate_data, &project_presets, &is_bbl_3mf);
+                LoadStrategy strategy = LoadStrategy::AddDefaultInstances;
+                if (load_aux) strategy = strategy | LoadStrategy::WithAuxiliary;
+                model = Model::read_from_file(file, &config, &config_substitutions, strategy, &plate_data, &project_presets, &is_bbl_3mf);
                 if (is_bbl_3mf)
                 {
                     if (!first_file)
@@ -1219,10 +1221,7 @@ bool CLI::export_project(Model *model, PlateDataPtrs &partplate_data, std::vecto
     store_params.plate_data_list = partplate_data;
     store_params.project_presets = project_presets;
     store_params.config = (DynamicPrintConfig*)config;
-    store_params.fullpath_sources = false;
     store_params.thumbnail_data = thumbnails;
-    store_params.zip64 = true;
-    store_params.skip_static = false;
 
     success = Slic3r::store_bbs_3mf(store_params);
 

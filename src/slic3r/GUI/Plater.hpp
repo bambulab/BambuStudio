@@ -303,7 +303,7 @@ public:
     void export_amf();
     //BBS add extra param for exporting 3mf silence
     // BBS: backup
-    int export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path(), bool silence = false, bool backup = false, int export_plate_idx = -1, Export3mfProgressFn proFn = nullptr, bool with_gcode = true);
+    int export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path(), SaveStrategy strategy = SaveStrategy::Default, int export_plate_idx = -1, Export3mfProgressFn proFn = nullptr);
 
     //BBS
     void publish_project();

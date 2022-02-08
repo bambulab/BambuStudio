@@ -89,6 +89,8 @@ Model& Model::assign_copy(Model &&rhs)
     //BBS: add auxiliary path logic
     // BBS: backup, all in one temp dir
     this->backup_path = std::move(rhs.backup_path);
+    this->object_backup_id_map = std::move(rhs.object_backup_id_map);
+    this->next_object_backup_id = rhs.next_object_backup_id;
     return *this;
 }
 
@@ -127,7 +129,7 @@ Model::~Model()
 // BBS: backup & restore
 // Loading model from a file, it may be a simple geometry file as STL or OBJ, however it may be a project file as well.
 Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions,
-                            LoadAttributes options, PlateDataPtrs* plate_data, std::vector<Preset*>* project_presets, bool *is_bbl_3mf, Import3mfProgressFn proFn,
+                            LoadStrategy options, PlateDataPtrs* plate_data, std::vector<Preset*>* project_presets, bool *is_bbl_3mf, Import3mfProgressFn proFn,
                             ImportStepProgressFn stepFn, StepIsUtf8Fn stepIsUtf8Fn, BBLProject* project)
 {
     Model model;
@@ -155,13 +157,12 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     else if (boost::algorithm::iends_with(input_file, ".obj"))
         result = load_obj(input_file.c_str(), &model);
     else if (boost::algorithm::iends_with(input_file, ".amf") || boost::algorithm::iends_with(input_file, ".amf.xml"))
-        result = load_amf(input_file.c_str(), config, config_substitutions, &model, options & LoadAttribute::CheckVersion);
+        result = load_amf(input_file.c_str(), config, config_substitutions, &model, options & LoadStrategy::CheckVersion);
     else if (boost::algorithm::iends_with(input_file, ".3mf"))
         //BBS: add part plate related logic
         // BBS: backup & restore
-        //FIXME options & LoadAttribute::CheckVersion ? 
-        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, options & LoadAttribute::CheckVersion,
-            is_bbl_3mf, options & LoadAttribute::WithAuxiliary, options & LoadAttribute::RestoreFromTemp, proFn, project);
+        //FIXME options & LoadStrategy::CheckVersion ? 
+        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, is_bbl_3mf, proFn, options, project);
     else
         throw Slic3r::RuntimeError("Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension.");
 
@@ -174,7 +175,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     for (ModelObject *o : model.objects)
         o->input_file = input_file;
     
-    if (options & LoadAttribute::AddDefaultInstances)
+    if (options & LoadStrategy::AddDefaultInstances)
         model.add_default_instances();
 
     //BBS
@@ -188,7 +189,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
 //BBS: add part plate related logic
 // BBS: backup & restore
 // Loading model from a file (3MF or AMF), not from a simple geometry file (STL or OBJ).
-Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, LoadAttributes options, PlateDataPtrs* plate_data, std::vector<Preset*>* project_presets, bool *is_bbl_3mf, Import3mfProgressFn proFn, BBLProject *project)
+Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, LoadStrategy options, PlateDataPtrs* plate_data, std::vector<Preset*>* project_presets, bool *is_bbl_3mf, Import3mfProgressFn proFn, BBLProject *project)
 {
     assert(config != nullptr);
     assert(config_substitutions != nullptr);
@@ -199,9 +200,9 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
     if (boost::algorithm::iends_with(input_file, ".3mf"))
         //BBS: add part plate related logic
         // BBS: backup & restore
-        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, options & LoadAttribute::CheckVersion, is_bbl_3mf, options & LoadAttribute::WithAuxiliary, options & LoadAttribute::RestoreFromTemp, proFn, project);
+        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, is_bbl_3mf, proFn, options, project);
     else if (boost::algorithm::iends_with(input_file, ".zip.amf"))
-        result = load_amf(input_file.c_str(), config, config_substitutions, &model, options & LoadAttribute::CheckVersion);
+        result = load_amf(input_file.c_str(), config, config_substitutions, &model, options & LoadStrategy::CheckVersion);
     else
         throw Slic3r::RuntimeError("Unknown file format. Input file must have .3mf or .zip.amf extension.");
 
@@ -219,7 +220,7 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
     }
 
     bool cb_cancel;
-    if (options & LoadAttribute::AddDefaultInstances) {
+    if (options & LoadStrategy::AddDefaultInstances) {
         model.add_default_instances();
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("import 3mf IMPORT_STAGE_ADD_INSTANCE\n");
         if (proFn) {
@@ -368,6 +369,8 @@ void Model::clear_objects()
         delete o;
     }
     this->objects.clear();
+    object_backup_id_map.clear();
+    next_object_backup_id = 1;
 }
 
 // BBS: backup, reuse objects
@@ -385,6 +388,21 @@ void Model::collect_reusable_objects(std::vector<ObjectBase*>& objects)
     }
     // we never own these objects 
     this->objects.clear();
+}
+
+void Model::set_object_backup_id(ModelObject const& object, int uuid)
+{
+    object_backup_id_map[object.id().id] = uuid;
+    if (uuid >= next_object_backup_id) next_object_backup_id = uuid + 1;
+}
+
+int Model::get_object_backup_id(ModelObject const& object)
+{
+    auto i = object_backup_id_map.find(object.id().id);
+    if (i == object_backup_id_map.end()) {
+        i = object_backup_id_map.insert(std::make_pair(object.id().id, next_object_backup_id++)).first;
+    }
+    return i->second;
 }
 
 void Model::delete_material(t_model_material_id material_id)
@@ -713,6 +731,14 @@ std::string Model::get_backup_path()
     }
 
     return backup_path;
+}
+
+void Model::load_from(Model& model)
+{
+    backup_path = model.get_backup_path();
+    model.backup_path.clear();
+    object_backup_id_map = model.object_backup_id_map;
+    next_object_backup_id = model.next_object_backup_id;
 }
 
 // BBS: backup

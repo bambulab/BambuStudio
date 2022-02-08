@@ -2831,6 +2831,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         {
             load_aux = true;
         }
+        LoadStrategy strategy = LoadStrategy::Default;
+        if (load_config) strategy = strategy | LoadStrategy::CheckVersion;
         bool is_project_file = type_prusa;
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": is_project_file %1%, type_3mf %2%, type_prusa %3%")%is_project_file %type_3mf %type_prusa;
         try {
@@ -2845,8 +2847,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     ConfigSubstitutionContext config_substitutions{ ForwardCompatibilitySubstitutionRule::Enable };
                     std::vector<Preset*> project_presets;
                     // BBS: backup & restore
-                    model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, only_if(load_config, Model::LoadAttribute::CheckVersion)
-                        | only_if(load_aux, Model::LoadAttribute::WithAuxiliary) | only_if(load_restore, Model::LoadAttribute::RestoreFromTemp), &plate_data, &project_presets, &is_bbs_3mf,
+                    if (load_restore) strategy = strategy | LoadStrategy::Restore;
+                    if (load_aux) strategy = strategy | LoadStrategy::WithAuxiliary;
+                    model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, strategy, &plate_data, &project_presets, &is_bbs_3mf,
                         [this, progress_dlg, filename, progress_percent](int import_stage, int current, int total, bool& cancel) {
                             bool cont = true;
                             wxString msg = wxString::Format("Loading file: %s, stage %d, %d/%d", from_path(filename), import_stage, current, total);
@@ -3015,7 +3018,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 //BBS: project embedded settings
                 std::vector<Preset*> project_presets;
                 bool is_bbs_3mf;
-                model = Slic3r::Model::read_from_file(path.string(), nullptr, nullptr, only_if(load_config, Model::LoadAttribute::CheckVersion), &plate_data, &project_presets,
+                model = Slic3r::Model::read_from_file(path.string(), nullptr, nullptr, strategy, &plate_data, &project_presets,
                 &is_bbs_3mf, nullptr,
                 [progress_dlg, filename, progress_percent](int import_stage, int current, int total, bool &cancel) {
                     bool cont = true;
@@ -3191,8 +3194,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 // BBS: add auxiliary files logic
                 // BBS: backup & restore
                 if (load_aux) {
-                    q->model().set_backup_path(model.get_backup_path());
-                    model.set_backup_path("");
+                    q->model().load_from(model);
                     load_auxiliary_files();
                 }
                 //BBS: don't allow negative_z when load model objects
@@ -4174,7 +4176,7 @@ bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const
 
     Model new_model;
     try {
-        new_model = Model::read_from_file(path, nullptr, nullptr, Model::LoadAttribute::AddDefaultInstances);
+        new_model = Model::read_from_file(path, nullptr, nullptr, LoadStrategy::AddDefaultInstances);
         for (ModelObject* model_object : new_model.objects) {
             model_object->center_around_origin();
             model_object->ensure_on_bed();
@@ -4421,7 +4423,7 @@ void Plater::priv::reload_from_disk()
             std::vector<Preset*> project_presets;
 
             // BBS: backup
-            new_model = Model::read_from_file(path, nullptr, nullptr, Model::LoadAttribute::AddDefaultInstances, &plate_data, &project_presets);
+            new_model = Model::read_from_file(path, nullptr, nullptr, LoadStrategy::AddDefaultInstances, &plate_data, &project_presets);
             for (ModelObject* model_object : new_model.objects)
             {
                 model_object->center_around_origin();
@@ -4928,7 +4930,7 @@ void Plater::priv::on_export_finished(wxCommandEvent& evt)
     fs::path gcode_path(gcode_path_str);
 
     if (q) {
-        q->export_3mf(gcode_path.replace_extension(".3mf"), true); // BBS: silence
+        q->export_3mf(gcode_path.replace_extension(".3mf"), SaveStrategy::Silence | SaveStrategy::WithGcode); // BBS: silence
     }
 }
 
@@ -6511,8 +6513,7 @@ void Plater::new_project()
     p->set_project_name(_L("Untitled"));
 
     Model m;
-    model().set_backup_path(m.get_backup_path()); // new id avoid same path name
-    m.set_backup_path("");
+    model().load_from(m); // new id avoid same path name
     get_partplate_list().select_plate(0);
     p->load_auxiliary_files();
     wxGetApp().app_config->update_last_backup_dir(model().get_backup_path());
@@ -6599,7 +6600,7 @@ int Plater::save_project(bool saveAs)
         return wxID_CANCEL;
 
     //BBS export 3mf without gcode
-    export_3mf(into_path(filename), false, false, -1, nullptr, false);
+    export_3mf(into_path(filename));
 
     Slic3r::remove_backup(model(), false);
 
@@ -7294,7 +7295,6 @@ int GUI::Plater::close_with_confirm(std::function<bool(bool)> second_check)
     if (up_to_date(false, false)) {
         if (second_check && !second_check(true)) return wxID_CANCEL;
         Slic3r::remove_backup(model(), true);
-        model().set_backup_path("");
         return wxID_NO;
     }
 
@@ -7311,7 +7311,6 @@ int GUI::Plater::close_with_confirm(std::function<bool(bool)> second_check)
     if (second_check && !second_check(result == wxID_YES)) return wxID_CANCEL;
 
     Slic3r::remove_backup(model(), true);
-    model().set_backup_path("");
     up_to_date(true, false);
     up_to_date(true, true);
 
@@ -7700,7 +7699,7 @@ void Plater::export_gcode_3mf()
         //BBS do not save last output path
         //p->last_output_path = output_path.string();
         p->last_output_dir_path = output_path.parent_path().string();
-        export_3mf(output_path, true); // BBS: silence
+        export_3mf(output_path, SaveStrategy::Silence | SaveStrategy::WithGcode); // BBS: silence
         // update lost output dir
         appconfig.update_last_output_dir(output_path.parent_path().string(), false);
     }
@@ -7890,7 +7889,7 @@ void Plater::export_amf()
 }
 
 // BBS: backup
-int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence, bool backup, int export_plate_idx, Export3mfProgressFn proFn, bool with_gcode)
+int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy strategy, int export_plate_idx, Export3mfProgressFn proFn)
 {
     if (p->model.objects.empty()) {
         MessageDialog dialog(nullptr, _L("The plater is empty.\nDo you want to save the project?"), _L("Save project"), wxYES_NO);
@@ -7910,14 +7909,13 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
     DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
     const std::string path_u8 = into_u8(path);
     wxBusyCursor wait;
-    bool full_pathnames = false;
 
     //BBS: add plate logic for thumbnail generate
     std::vector<ThumbnailData*> thumbnails;
     std::vector<ThumbnailData*> calibration_thumbnails;
     std::vector<PlateBBoxData*> plate_bboxes;
     // BBS: backup
-    if (!backup) {
+    if (!(strategy & SaveStrategy::Backup)) {
         for (int i = 0; i < p->partplate_list.get_plate_count(); i++) {
             ThumbnailData* thumbnail_data = new ThumbnailData();
             const ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i };
@@ -7944,7 +7942,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
     PlateDataPtrs plate_data_list;
     //BBS: add gcode to 3mf logic
     //if (wxGetApp().app_config->get("3mf_include_gcode") == "1") {
-        p->partplate_list.store_to_3mf_structure(plate_data_list, with_gcode, export_plate_idx);
+        p->partplate_list.store_to_3mf_structure(plate_data_list, strategy & SaveStrategy::WithGcode, export_plate_idx);
     //}
     //else {
     //    p->partplate_list.store_to_3mf_structure(plate_data_list, false);
@@ -7963,23 +7961,19 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
     store_params.thumbnail_data = thumbnails;
     store_params.calibration_thumbnail_data = calibration_thumbnails;
     store_params.proFn = proFn;
-    store_params.fullpath_sources = full_pathnames;
-    store_params.zip64 = true;
-    store_params.skip_static = backup;
-    store_params.silence = silence;
     store_params.id_bboxes = plate_bboxes;//BBS
     store_params.project = &p->project;
-
+    store_params.strategy = strategy | SaveStrategy::Zip64;
     if (Slic3r::store_bbs_3mf(store_params)) {
     //if (Slic3r::store_bbs_3mf(path_u8.c_str(), &p->model, plate_data_list, project_presets, export_config ? &cfg : nullptr, full_pathnames, thumbnails, true /*zip64*/, backup, proFn, silence)) {
-        if (!silence) {
+        if (!(store_params.strategy & SaveStrategy::Silence)) {
             // Success
             //p->statusbar()->set_status_text(format_wxstr(_L("3MF file exported to %s"), path));
             p->set_project_filename(path);
         }
     }
     else {
-        if (!silence) {
+        if (!(store_params.strategy & SaveStrategy::Silence)) {
             // Failure
             //p->statusbar()->set_status_text(format_wxstr(_L("Error exporting 3MF file %s"), path));
         }
@@ -8025,7 +8019,7 @@ void Plater::publish_project()
     temp_path /= (boost::format(".%1%.3mf") % unique).str();
     BOOST_LOG_TRIVIAL(debug) << "publish_project: export to temp 3mf: " << temp_path.string();
 
-    int result = export_3mf(temp_path, true, false, -1,
+    int result = export_3mf(temp_path, SaveStrategy::Silence | SaveStrategy::WithGcode, -1,
         [this, progress_dlg](int export_stage, int current, int total, bool& cancel) {
             wxString msg = wxString::Format("preparing... exporting stage %d %d/%d", export_stage, current, total);
             bool skip = false;
@@ -8391,7 +8385,7 @@ void Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
     catch (std::exception& e) {
         BOOST_LOG_TRIVIAL(trace) << "generate 3mf path failed";
     }
-    export_3mf(p->m_print_job_data._3mf_path, true, false, -1, proFn);
+    export_3mf(p->m_print_job_data._3mf_path, SaveStrategy::Silence | SaveStrategy::WithGcode, -1, proFn);
 
     // Repetier specific: Query the server for the list of file groups.
     /* BBS

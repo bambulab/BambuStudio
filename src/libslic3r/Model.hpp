@@ -1211,21 +1211,12 @@ public:
 
     OBJECTBASE_DERIVED_COPY_MOVE_CLONE(Model)
 
-    enum class LoadAttribute : int {
-        AddDefaultInstances,
-        CheckVersion,
-        // BBS: backup
-        RestoreFromTemp,
-        WithAuxiliary
-    };
-    using LoadAttributes = enum_bitmask<LoadAttribute>;
-
     //BBS: add part plate related logic
     // BBS: backup
     static Model read_from_file(
         const std::string& input_file, 
         DynamicPrintConfig* config = nullptr, ConfigSubstitutionContext* config_substitutions = nullptr,
-        LoadAttributes options = LoadAttribute::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr,
+        LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr,
         std::vector<Preset*>* project_presets = nullptr, bool* is_bbl_3mf = nullptr, Import3mfProgressFn proFn = nullptr,
         ImportStepProgressFn stepFn = nullptr, StepIsUtf8Fn stepIsUtf8Fn = nullptr, BBLProject* project = nullptr);
 
@@ -1233,8 +1224,7 @@ public:
     static Model read_from_archive(
         const std::string& input_file, 
         DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions,
-        LoadAttributes options = LoadAttribute::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr,
-        std::vector<Preset*>* project_presets = nullptr, bool* is_bbl_3mf = nullptr, Import3mfProgressFn proFn = nullptr, BBLProject* project = nullptr);
+        LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr, std::vector<Preset*>* project_presets = nullptr, bool* is_bbl_3mf = nullptr, Import3mfProgressFn proFn = nullptr, BBLProject* project = nullptr);
 
     // Add a new ModelObject to this Model, generate a new ID for this ModelObject.
     ModelObject* add_object();
@@ -1247,6 +1237,8 @@ public:
     void         clear_objects();
     // BBS: backup, reuse objects
     void         collect_reusable_objects(std::vector<ObjectBase *> & objects);
+    void         set_object_backup_id(ModelObject const & object, int uuid);
+    int          get_object_backup_id(ModelObject const & object); // generate new if needed
 
     ModelMaterial* add_material(t_model_material_id material_id);
     ModelMaterial* add_material(t_model_material_id material_id, const ModelMaterial &other);
@@ -1293,6 +1285,7 @@ public:
     // BBS: backup
     std::string   get_backup_path();
     void   set_backup_path(const std::string &path) { backup_path = path; }
+    void load_from(Model & model);
     bool is_need_backup() { return need_backup;  }
     void set_need_backup();
 
@@ -1326,9 +1319,9 @@ private:
     // BBS: backup
     std::string backup_path;
     bool need_backup = false;
+    std::map<int, int> object_backup_id_map; // ObjectId -> backup id;
+    int next_object_backup_id = 1;
 };
-
-ENABLE_ENUM_BITMASK_OPERATORS(Model::LoadAttribute)
 
 #undef OBJECTBASE_DERIVED_COPY_MOVE_CLONE
 #undef OBJECTBASE_DERIVED_PRIVATE_COPY_MOVE
