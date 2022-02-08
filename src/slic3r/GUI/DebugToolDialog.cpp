@@ -2166,11 +2166,13 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
 
     UPGRADE_MODULE upgrade_module = (UPGRADE_MODULE)cb_upgrade_module->GetCurrentSelection();
     UPGRADE_MODE upgrade_mode = (UPGRADE_MODE)cb_upgrade_mode->GetCurrentSelection();
+    std::string hardware_version = cb_upgrade_version->GetCurrentSelection() == 0 ? "v5": "v4";
 
-    std::string url = (boost::format("%1%?module_name=%2%&build_type=%3%")
+    std::string url = (boost::format("%1%?module_name=%2%&build_type=%3%&hardware_version=%4%")
                         % UPGRADE_URL
                         % upgrade_post_url[upgrade_module]
-                        % upgrade_mode_name[upgrade_mode]).str();
+                        % upgrade_mode_name[upgrade_mode]
+                        % hardware_version).str();
     Http http = Http::get(url);
     http.auth_basic("slicer", "znFx94AAew8VVHv");
     http.on_complete([this](std::string body, unsigned) {
