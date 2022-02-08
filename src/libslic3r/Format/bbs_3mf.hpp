@@ -67,6 +67,7 @@ enum class SaveStrategy
     SkipStatic = 64,
 
     SplitModel = 0x1000 | ProductionExt,
+    Encrypted = SecureContentExt | SplitModel,
 
     Backup = 0x10000 | WithGcode | Silence | SkipStatic | SplitModel,
 };

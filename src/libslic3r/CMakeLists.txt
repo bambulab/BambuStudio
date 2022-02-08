@@ -102,6 +102,8 @@ set(lisbslic3r_sources
     Format/OBJ.hpp
     Format/objparser.cpp
     Format/objparser.hpp
+    Format/Secure.cpp
+    Format/Secure.hpp
     Format/STEP.cpp
     Format/STEP.hpp
     Format/STL.cpp

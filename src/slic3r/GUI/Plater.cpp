@@ -6600,7 +6600,7 @@ int Plater::save_project(bool saveAs)
         return wxID_CANCEL;
 
     //BBS export 3mf without gcode
-    export_3mf(into_path(filename), SaveStrategy::SplitModel);
+    export_3mf(into_path(filename), SaveStrategy::SplitModel | SaveStrategy::WithGcode);
 
     Slic3r::remove_backup(model(), false);
 

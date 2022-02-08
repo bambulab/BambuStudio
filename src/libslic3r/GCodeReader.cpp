@@ -9,6 +9,7 @@
 #include "Utils.hpp"
 
 #include "LocalesUtils.hpp"
+#include "Format/Secure.hpp"
 
 #include <Shiny/Shiny.h>
 #include <fast_float/fast_float.h>
@@ -120,58 +121,102 @@ void GCodeReader::update_coordinates(GCodeLine &gline, std::pair<const char*, co
     }
 }
 
+// BBS: decrypt gcode
 template<typename ParseLineCallback, typename LineEndCallback>
 bool GCodeReader::parse_file_raw_internal(const std::string &filename, ParseLineCallback parse_line_callback, LineEndCallback line_end_callback)
 {
+    struct Decrypt : DecryptInflate
+    {
+        Decrypt(bool & m_parsing, ParseLineCallback parse_line_callback, LineEndCallback line_end_callback)
+            : m_parsing(m_parsing), parse_line_callback(parse_line_callback), line_end_callback(line_end_callback) {}
+        bool & m_parsing;
+        ParseLineCallback parse_line_callback;
+        LineEndCallback line_end_callback;
+
+        std::string gcode_line;
+        size_t file_pos = 0;
+
+        virtual bool update(unsigned char const* data, int len) override
+        {
+            if (has_setup()) {
+                return DecryptInflate::update(data, len);
+            }
+            output(data, len);
+            return true;
+        }
+        virtual bool finalize() override
+        {
+            if (!has_setup()) return true;
+            bool ret = DecryptInflate::finalize();
+            output(nullptr, 0);
+            return ret;
+        }
+        virtual bool output(unsigned char const * data, int cnt_read) override
+        {
+            auto buffer    = (char const *) data;
+            bool eof       = cnt_read == 0;
+            auto it        = buffer;
+            auto it_bufend = buffer + cnt_read;
+            while (it != it_bufend || (eof && ! gcode_line.empty())) {
+                // Find end of line.
+                bool eol    = false;
+                auto it_end = it;
+                for (; it_end != it_bufend && ! (eol = *it_end == '\r' || *it_end == '\n'); ++ it_end)
+                    if (*it_end == '\n')
+                        line_end_callback(file_pos + (it_end - buffer) + 1);
+                // End of line is indicated also if end of file was reached.
+                eol |= eof && it_end == it_bufend;
+                if (eol) {
+                    if (gcode_line.empty())
+                        parse_line_callback(&(*it), &(*it_end));
+                    else {
+                        gcode_line.insert(gcode_line.end(), it, it_end);
+                        parse_line_callback(gcode_line.c_str(), gcode_line.c_str() + gcode_line.size());
+                        gcode_line.clear();
+                    }
+                    if (! m_parsing)
+                        // The callback wishes to exit.
+                        return false;
+                } else
+                    gcode_line.insert(gcode_line.end(), it, it_end);
+                // Skip EOL.
+                it = it_end; 
+                if (it != it_bufend && *it == '\r')
+                    ++ it;
+                if (it != it_bufend && *it == '\n') {
+                    line_end_callback(file_pos + (it - buffer) + 1);
+                    ++ it;
+                }
+            }
+            file_pos += cnt_read;
+            return true;
+        }
+    } decrypt(m_parsing, parse_line_callback, line_end_callback);
+
+    if (m_key_store) {
+        if (!m_key_store->setup(filename, decrypt, false))
+            return false;
+    }
+
     FilePtr in{ boost::nowide::fopen(filename.c_str(), "rb") };
 
     // Read the input stream 64kB at a time, extract lines and process them.
     std::vector<char> buffer(65536 * 10, 0);
     // Line buffer.
-    std::string gcode_line;
-    size_t file_pos = 0;
     m_parsing = true;
     for (;;) {
         size_t cnt_read = ::fread(buffer.data(), 1, buffer.size(), in.f);
         if (::ferror(in.f))
             return false;
-        bool eof       = cnt_read == 0;
-        auto it        = buffer.begin();
-        auto it_bufend = buffer.begin() + cnt_read;
-        while (it != it_bufend || (eof && ! gcode_line.empty())) {
-            // Find end of line.
-            bool eol    = false;
-            auto it_end = it;
-            for (; it_end != it_bufend && ! (eol = *it_end == '\r' || *it_end == '\n'); ++ it_end)
-                if (*it_end == '\n')
-                    line_end_callback(file_pos + (it_end - buffer.begin()) + 1);
-            // End of line is indicated also if end of file was reached.
-            eol |= eof && it_end == it_bufend;
-            if (eol) {
-                if (gcode_line.empty())
-                    parse_line_callback(&(*it), &(*it_end));
-                else {
-                    gcode_line.insert(gcode_line.end(), it, it_end);
-                    parse_line_callback(gcode_line.c_str(), gcode_line.c_str() + gcode_line.size());
-                    gcode_line.clear();
-                }
-                if (! m_parsing)
-                    // The callback wishes to exit.
-                    return true;
-            } else
-                gcode_line.insert(gcode_line.end(), it, it_end);
-            // Skip EOL.
-            it = it_end; 
-            if (it != it_bufend && *it == '\r')
-                ++ it;
-            if (it != it_bufend && *it == '\n') {
-                line_end_callback(file_pos + (it - buffer.begin()) + 1);
-                ++ it;
-            }
-        }
-        if (eof)
+        bool eof = cnt_read == 0;
+        decrypt.update((unsigned char const *) buffer.data(), cnt_read);
+        if (! m_parsing)
+            // The callback wishes to exit.
+            return true;
+        if (eof) {
+            decrypt.finalize();
             break;
-        file_pos += cnt_read;
+        }
     }
     return true;
 }

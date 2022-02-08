@@ -13,6 +13,7 @@
 #include "../I18N.hpp"
 
 #include "bbs_3mf.hpp"
+#include "Secure.hpp"
 
 #include <limits>
 #include <stdexcept>
@@ -96,6 +97,8 @@ const std::string PROJECT_EMBEDDED_PRINT_PRESETS_FILE = "Metadata/print_setting_
 const std::string PROJECT_EMBEDDED_SLICE_PRESETS_FILE = "Metadata/slice_settings_";
 const std::string PROJECT_EMBEDDED_FILAMENT_PRESETS_FILE = "Metadata/filament_settings_";
 const std::string PROJECT_EMBEDDED_PRINTER_PRESETS_FILE = "Metadata/printer_settings_";
+// BBS: encrypt
+const std::string KEYSTORE_FILE = "Secure/keystore.xml";
 
 
 const unsigned int AUXILIARY_STR_LEN = 12;
@@ -136,6 +139,32 @@ static constexpr const char* BUILD_UUID = "d8eb061-b1ec-4553-aec9-835e5b724bb4";
 static constexpr const char* BUILD_UUID_SUFFIX = "-b1ec-4553-aec9-835e5b724bb4";
 static constexpr const char* TARGET_ATTR = "Target";
 static constexpr const char* RELS_TYPE_ATTR = "Type";
+
+// BBS: encrypt
+static constexpr const char* KEYSTORE_TAG = "keystore";
+static constexpr const char* CONSUMER_TAG = "consumer";
+static constexpr const char* KEYVALUE_TAG = "keyvalue";
+static constexpr const char* CEKPARAMS_TAG = "cekparams";
+static constexpr const char* IV_TAG = "iv";
+static constexpr const char* TAG_TAG = "tag";
+static constexpr const char* AAD_TAG = "aad";
+static constexpr const char* KEKPARAMS_TAG = "kekparams";
+static constexpr const char* ACCESSRIGHT_TAG = "accessright";
+static constexpr const char* CIPHERDATA_TAG = "cipherdata";
+static constexpr const char* CIPHERVALUE_TAG = "xenc:CipherValue";
+static constexpr const char* RESOURCEDATA_TAG = "resourcedata";
+static constexpr const char* RESOURCEDATAGROUP_TAG = "resourcedatagroup";
+static constexpr const char* UUID_ATTR = "UUID";
+static constexpr const char* CONSUMERID_ATTR = "consumerid";
+static constexpr const char* KEYID_ATTR = "keyid";
+static constexpr const char* KEYUUID_ATTR = "keyuuid";
+static constexpr const char* PATH_ATTR = "path";
+static constexpr const char* ENCRYPTIONALGORITHM_ATTR = "encryptionalgorithm";
+static constexpr const char* COMPRESSION_ATTR = "compression";
+static constexpr const char* CONSUMERINDEX_ATTR = "consumerindex";
+static constexpr const char* WRAPPINGALGORITHM_ATTR = "wrappingalgorithm";
+static constexpr const char* MGFALGORITHM_ATTR = "mgfalgorithm";
+static constexpr const char* DIGESTMETHOD_ATTR = "digestmethod";
 
 static constexpr const char* UNIT_ATTR = "unit";
 static constexpr const char* NAME_ATTR = "name";
@@ -573,7 +602,9 @@ namespace Slic3r {
         std::string m_sub_model_path;
 
         std::string m_start_part_path;
+        std::string m_key_store_path;
         std::vector<std::string> m_sub_model_paths;
+        std::vector<std::string> m_encrypted_paths;
 
         //BBS: plater related structures
         bool m_is_bbl_3mf { false };
@@ -582,6 +613,8 @@ namespace Slic3r {
         PlateData* m_curr_plater;
         CurrentInstance m_curr_instance;
         std::vector<std::string> m_gcode_files;
+        // BBS: encrypt
+        std::shared_ptr<KeyStore> m_key_store;
 
     public:
         _BBS_3MF_Importer();
@@ -717,6 +750,26 @@ namespace Slic3r {
 
         bool _handle_start_relationship(const char** attributes, unsigned int num_attributes);
 
+        // BBS: encrypt key store
+        static void XMLCALL _handle_start_key_store_element(void* userData, const char* name, const char** attributes);
+        static void XMLCALL _handle_end_key_store_element(void* userData, const char* name);
+
+        void _handle_start_key_store_element(const char* name, const char** attributes);
+        void _handle_end_key_store_element(const char* name);
+
+        bool _handle_start_keystore(const char** attributes, unsigned int num_attributes);
+        bool _handle_start_consumer(const char** attributes, unsigned int num_attributes);
+        bool _handle_start_resourcedatagroup(const char** attributes, unsigned int num_attributes);
+        bool _handle_start_accessright(const char** attributes, unsigned int num_attributes);
+        bool _handle_start_kekparams(const char** attributes, unsigned int num_attributes);
+        bool _handle_start_resourcedata(const char** attributes, unsigned int num_attributes);
+        bool _handle_start_cekparams(const char** attributes, unsigned int num_attributes);
+        bool _handle_end_keyvalue();
+        bool _handle_end_iv();
+        bool _handle_end_tag();
+        bool _handle_end_aad();
+        bool _handle_end_CipherValue();
+
         bool _generate_volumes(ModelObject& object, const Geometry& geometry, const ObjectMetadata::VolumeMetadataList& volumes, ConfigSubstitutionContext& config_substitutions);
 
         // callbacks to parse the .model file
@@ -803,6 +856,9 @@ namespace Slic3r {
                 model.get_backup_path() + "/lock.txt",
                 boost::lexical_cast<std::string>(get_current_pid()));
         }
+        else {
+            m_backup_path = model.get_backup_path();
+        }
         bool result = _load_model_from_file(filename, model, plate_data_list, project_presets, config, config_substitutions, proFn, project);
         is_bbl_3mf = m_is_bbl_3mf;
         // save for restore
@@ -811,6 +867,8 @@ namespace Slic3r {
         }
         if (m_load_restore && !result) // not clear failed backup data for later analyze
             model.set_backup_path("");
+        if (m_key_store)
+            model.set_key_store(m_key_store);
         return result;
     }
 
@@ -897,6 +955,18 @@ namespace Slic3r {
         // BBS: load relationships
         if (!_extract_xml_from_archive(archive, RELATIONSHIPS_FILE, _handle_start_relationships_element, _handle_end_relationships_element))
             return false;
+        // BBS: load key_store
+        if (!m_key_store_path.empty()) {
+            if (proFn) {
+                proFn(IMPORT_STAGE_READ_FILES, 1, 3, cb_cancel);
+                if (cb_cancel)
+                    return false;
+            }
+            m_key_store.reset(new KeyStore);
+            if (!_extract_xml_from_archive(archive, m_key_store_path, _handle_start_key_store_element, _handle_end_key_store_element))
+                return false;
+            m_model->set_key_store(m_key_store);
+        }
         if (m_start_part_path.empty())
             return false;
         // BBS: load sub models (Production Extension)
@@ -1264,6 +1334,7 @@ namespace Slic3r {
         mz_zip_archive_file_stat stat;
         std::string path2 = path;
         if (path2.front() == '/') path2 = path2.substr(1);
+        // TODO: path is uft-8, but zip filename maybe not
         int index = mz_zip_reader_locate_file(&archive, path2.c_str(), nullptr, 0);
         if (index < 0 || !mz_zip_reader_file_stat(&archive, index, &stat)) {
             if (m_load_restore) {
@@ -1378,6 +1449,7 @@ namespace Slic3r {
             XML_Parser& parser;
             _BBS_3MF_Importer& importer;
             const mz_zip_archive_file_stat& stat;
+            ZipDecrypt * decrypt = nullptr;
 
             CallbackData(XML_Parser& parser, _BBS_3MF_Importer& importer, const mz_zip_archive_file_stat& stat) : parser(parser), importer(importer), stat(stat) {}
         };
@@ -1388,16 +1460,29 @@ namespace Slic3r {
 
         try
         {
-            res = mz_zip_reader_extract_file_to_callback(&archive, stat.m_filename, [](void* pOpaque, mz_uint64 file_ofs, const void* pBuf, size_t n)->size_t {
+            mz_file_write_func callback = [](void* pOpaque, mz_uint64 file_ofs, const void* pBuf, size_t n)->size_t {
                 CallbackData* data = (CallbackData*)pOpaque;
-                if (!XML_Parse(data->parser, (const char*)pBuf, (int)n, (file_ofs + n == data->stat.m_uncomp_size) ? 1 : 0) || data->importer.parse_error()) {
+                if (!XML_Parse(data->parser, (const char*)pBuf, (int)n, (data->decrypt ? data->decrypt->done() : (file_ofs + n == data->stat.m_uncomp_size)) ? 1 : 0) || data->importer.parse_error()) {
                     char error_buf[1024];
                     ::sprintf(error_buf, "Error (%s) while parsing '%s' at line %d", data->importer.parse_error_message(), data->stat.m_filename, (int)XML_GetCurrentLineNumber(data->parser));
                     throw Slic3r::FileIOError(error_buf);
                 }
-
                 return n;
-                }, &data, 0);
+            };
+            void* opaque = &data;
+            ZipDecrypt decrypt;
+            std::string path = std::string("/") + stat.m_filename;
+            if (std::find(m_encrypted_paths.begin(), m_encrypted_paths.end(), path) != m_encrypted_paths.end()) {
+                std::string userkey, iv;
+                if (!decrypt.open(stat.m_uncomp_size, callback, opaque) || !m_key_store->setup(path, decrypt, false)) {
+                    add_error("Can't decrypt " + path + "without match key");
+                    return false;
+                }
+                data.decrypt = &decrypt;
+                callback = &ZipDecrypt::static_callback;
+                opaque = &decrypt;
+            }
+            res = mz_zip_reader_extract_to_callback(&archive, stat.m_file_index, callback, opaque, 0);
         }
         catch (const version_error& e)
         {
@@ -1439,7 +1524,7 @@ namespace Slic3r {
 
             std::string dest_file = temp_path + std::string("/") + "_temp_3.config";;
             std::string dest_zip_file = encode_path(dest_file.c_str());
-            mz_bool res = mz_zip_reader_extract_file_to_file(&archive, stat.m_filename, dest_zip_file.c_str(), 0);
+            mz_bool res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % dest_file % stat.m_filename % res;
             if (res == 0) {
                 add_error("Error while extract project config file to file");
@@ -1465,9 +1550,9 @@ namespace Slic3r {
                 src_file = src_file.substr(found + METADATA_STR_LEN);
             else
                 return;*/
-            std::string dest_file = temp_path + std::string("/") + "_temp_2.config";;
+            std::string dest_file = m_backup_path + std::string("/") + "_temp_2.config";;
             std::string dest_zip_file = encode_path(dest_file.c_str());
-            mz_bool res = mz_zip_reader_extract_file_to_file(&archive, stat.m_filename, dest_zip_file.c_str(), 0);
+            mz_bool res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % dest_file % stat.m_filename % res;
             if (res == 0) {
                 add_error("Error while extract auxiliary file to file");
@@ -1567,7 +1652,7 @@ namespace Slic3r {
             dest_file = dir.string() + std::string("/") + src_file;
             std::string dest_zip_file = encode_path(dest_file.c_str());
             //std::string src_zip_file = encode_path(stat.m_filename);
-            mz_bool res = mz_zip_reader_extract_file_to_file(&archive, stat.m_filename, dest_zip_file.c_str(), 0);
+            mz_bool res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % dest_file % stat.m_filename % res;
             if (res == 0) {
                 add_error("Error while extract auxiliary file to file");
@@ -1610,7 +1695,7 @@ namespace Slic3r {
     {
         if (stat.m_uncomp_size > 0) {
             std::string buffer((size_t)stat.m_uncomp_size, 0);
-            mz_bool res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, (void*)buffer.data(), (size_t)stat.m_uncomp_size, 0);
+            mz_bool res = mz_zip_reader_extract_to_mem(&archive, stat.m_file_index, (void*)buffer.data(), (size_t)stat.m_uncomp_size, 0);
             if (res == 0) {
                 add_error("Error while reading layer heights profile data to buffer");
                 return;
@@ -2810,6 +2895,184 @@ namespace Slic3r {
         if (boost::starts_with(type, "http://schemas.microsoft.com/3dmanufacturing/") && boost::ends_with(type, "3dmodel")) {
             if (m_start_part_path.empty()) m_start_part_path = path;
             else m_sub_model_paths.push_back(path);
+        } else if (boost::starts_with(type, "http://schemas.microsoft.com/3dmanufacturing/") && boost::ends_with(type, "keystore")) {
+            m_key_store_path = path;
+        } else if (boost::starts_with(type, "http://schemas.openxmlformats.org/") && boost::ends_with(type, "encryptedfile")) {
+            m_encrypted_paths.push_back(path);
+        }
+        return true;
+    }
+
+    void XMLCALL _BBS_3MF_Importer::_handle_start_key_store_element(void* userData, const char* name, const char** attributes)
+    {
+        _BBS_3MF_Importer* importer = (_BBS_3MF_Importer*)userData;
+        if (importer != nullptr)
+            importer->_handle_start_key_store_element(name, attributes);
+    }
+
+    void XMLCALL _BBS_3MF_Importer::_handle_end_key_store_element(void* userData, const char* name)
+    {
+        _BBS_3MF_Importer* importer = (_BBS_3MF_Importer*)userData;
+        if (importer != nullptr)
+            importer->_handle_end_key_store_element(name);
+    }
+
+    void _BBS_3MF_Importer::_handle_start_key_store_element(const char* name, const char** attributes)
+    {
+        if (m_xml_parser == nullptr)
+            return;
+
+        bool res = true;
+        unsigned int num_attributes = (unsigned int)XML_GetSpecifiedAttributeCount(m_xml_parser);
+
+        if (::strcmp(KEYSTORE_TAG, name) == 0)
+            res = _handle_start_keystore(attributes, num_attributes);
+        else if (::strcmp(CONSUMER_TAG, name) == 0)
+            res = _handle_start_consumer(attributes, num_attributes);
+        else if (::strcmp(RESOURCEDATAGROUP_TAG, name) == 0)
+            res = _handle_start_resourcedatagroup(attributes, num_attributes);
+        else if (::strcmp(ACCESSRIGHT_TAG, name) == 0)
+            res = _handle_start_accessright(attributes, num_attributes);
+        else if (::strcmp(KEKPARAMS_TAG, name) == 0)
+            res = _handle_start_kekparams(attributes, num_attributes);
+        else if (::strcmp(RESOURCEDATA_TAG, name) == 0)
+            res = _handle_start_resourcedata(attributes, num_attributes);
+        else if (::strcmp(CEKPARAMS_TAG, name) == 0)
+            res = _handle_start_cekparams(attributes, num_attributes);
+
+        m_curr_characters.clear();
+        if (!res)
+            _stop_xml_parser();
+    }
+
+    void _BBS_3MF_Importer::_handle_end_key_store_element(const char* name)
+    {
+        if (m_xml_parser == nullptr)
+            return;
+
+        bool res = true;
+
+        if (::strcmp(CIPHERVALUE_TAG, name) == 0)
+            res = _handle_end_CipherValue();
+        else if (::strcmp(KEYVALUE_TAG, name) == 0)
+            res = _handle_end_keyvalue();
+        else if (::strcmp(IV_TAG, name) == 0)
+            res = _handle_end_iv();
+        else if (::strcmp(TAG_TAG, name) == 0)
+            res = _handle_end_tag();
+        else if (::strcmp(AAD_TAG, name) == 0)
+            res = _handle_end_aad();
+
+        if (!res)
+            _stop_xml_parser();
+    }
+
+    bool _BBS_3MF_Importer::_handle_start_keystore(const char** attributes, unsigned int num_attributes)
+    {
+        m_key_store->UUID = bbs_get_attribute_value_string(attributes, num_attributes, UUID_ATTR);
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_start_consumer(const char** attributes, unsigned int num_attributes)
+    {
+        KeyStore::Consumer c;
+        c.consumerid = bbs_get_attribute_value_string(attributes, num_attributes, CONSUMERID_ATTR);
+        c.keyid = bbs_get_attribute_value_string(attributes, num_attributes, KEYID_ATTR);
+        m_key_store->consumers.push_back(c);
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_start_resourcedatagroup(const char** attributes, unsigned int num_attributes)
+    {
+        KeyStore::ResourceDataGroup g;
+        g.keyuuid = bbs_get_attribute_value_string(attributes, num_attributes, KEYUUID_ATTR);
+        m_key_store->resourcedatagroups.push_back(g);
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_start_accessright(const char** attributes, unsigned int num_attributes)
+    {
+        KeyStore::ResourceDataGroup & g = m_key_store->resourcedatagroups.back();
+        KeyStore::AccessRight a;
+        a.consumerindex = bbs_get_attribute_value_int(attributes, num_attributes, CONSUMERINDEX_ATTR);
+        g.accessrights.push_back(a);
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_start_kekparams(const char** attributes, unsigned int num_attributes)
+    {
+        KeyStore::ResourceDataGroup & g = m_key_store->resourcedatagroups.back();
+        KeyStore::AccessRight & a = g.accessrights.back();
+        KeyStore::KEKParams & k = a.kekparams;
+        k.wrappingalgorithm = bbs_get_attribute_value_string(attributes, num_attributes, WRAPPINGALGORITHM_ATTR);
+        k.mgfalgorithm = bbs_get_attribute_value_string(attributes, num_attributes, MGFALGORITHM_ATTR);
+        k.digestmethod = bbs_get_attribute_value_string(attributes, num_attributes, DIGESTMETHOD_ATTR);
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_start_resourcedata(const char** attributes, unsigned int num_attributes)
+    {
+        KeyStore::ResourceDataGroup & g = m_key_store->resourcedatagroups.back();
+        KeyStore::ResourceData r;
+        r.path = bbs_get_attribute_value_string(attributes, num_attributes, PATH_ATTR);
+        g.resourcedatas.push_back(r);
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_start_cekparams(const char** attributes, unsigned int num_attributes)
+    {
+        KeyStore::ResourceDataGroup & g = m_key_store->resourcedatagroups.back();
+        KeyStore::ResourceData & r = g.resourcedatas.back();
+        KeyStore::CEKParams & c = r.cekparams;
+        c.encryptionalgorithm = bbs_get_attribute_value_string(attributes, num_attributes, ENCRYPTIONALGORITHM_ATTR);
+        c.compression = bbs_get_attribute_value_string(attributes, num_attributes, COMPRESSION_ATTR);
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_end_keyvalue()
+    {
+        KeyStore::Consumer & c = m_key_store->consumers.back();
+        c.keyvalue = m_curr_characters; // only for public key
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_end_iv()
+    {
+        KeyStore::ResourceDataGroup & g = m_key_store->resourcedatagroups.back();
+        KeyStore::ResourceData & r = g.resourcedatas.back();
+        KeyStore::CEKParams & c = r.cekparams;
+        c.iv = base64_decode(m_curr_characters);
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_end_tag()
+    {
+        KeyStore::ResourceDataGroup & g = m_key_store->resourcedatagroups.back();
+        KeyStore::ResourceData & r = g.resourcedatas.back();
+        KeyStore::CEKParams & c = r.cekparams;
+        c.tag = base64_decode(m_curr_characters);
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_end_aad()
+    {
+        KeyStore::ResourceDataGroup & g = m_key_store->resourcedatagroups.back();
+        KeyStore::ResourceData & r = g.resourcedatas.back();
+        KeyStore::CEKParams & c = r.cekparams;
+        c.aad = base64_decode(m_curr_characters);
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_end_CipherValue()
+    {
+        KeyStore::ResourceDataGroup & g = m_key_store->resourcedatagroups.back();
+        KeyStore::AccessRight & a = g.accessrights.back();
+        a.cipherdata = base64_decode(m_curr_characters);
+        if (boost::algorithm::starts_with(a.cipherdata, "%3McF\x00\x00\x00") && a.cipherdata.length() > 12) {
+            boost::uint32_t head_len;
+            memcpy(&head_len, a.cipherdata.data() + 8, 4);
+            if (head_len < a.cipherdata.length())
+                a.cipherdata = a.cipherdata.substr(head_len);
         }
         return true;
     }
@@ -3052,9 +3315,9 @@ namespace Slic3r {
         bool m_fullpath_sources{ true };
         bool m_zip64 { true };
         bool m_production_ext { false }; // save with Production Extention
-        bool m_secure_content_ext { false }; // save with Secure Content Extention
         bool m_skip_static{ false }; // not save mesh and other big static contents
         bool m_split_model { false }; // save object per file with Production Extention
+        std::shared_ptr<KeyStore> m_key_store; // save object encrypted with Secure Content Extention
 
     public:
         //BBS: add plate data related logic
@@ -3085,6 +3348,7 @@ namespace Slic3r {
         bool _add_bbox_file_to_archive(mz_zip_archive& archive, const PlateBBoxData& id_bboxes, int index);
         bool _add_relationships_file_to_archive(mz_zip_archive& archive, std::vector<std::string> const & submodels = {}) const;
         bool _add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data, Export3mfProgressFn proFn = nullptr, BBLProject* project = nullptr) const;
+        bool _add_key_store_to_archive(mz_zip_archive& archive, KeyStore const & store);
         bool _add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int object_id, ModelObject& object, VolumeToOffsetsMap& volumes_offsets) const;
         bool _add_mesh_to_object_stream(std::function<bool(std::string&, bool)> const& flush, ModelObject& object, VolumeToOffsetsMap& volumes_offsets) const;
         bool _add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items) const;
@@ -3125,8 +3389,17 @@ namespace Slic3r {
         m_zip64 = store_params.strategy & SaveStrategy::Zip64;
         m_production_ext = store_params.strategy & SaveStrategy::ProductionExt;
 
+        m_key_store = store_params.model->get_key_store();
+        if (m_key_store) {
+            store_params.strategy = store_params.strategy | SaveStrategy::Encrypted;
+            m_key_store.reset(new KeyStore(*m_key_store)); // not modify origin, such as gcode paths
+        }
         m_skip_static = store_params.strategy & SaveStrategy::SkipStatic;
         m_split_model = store_params.strategy & SaveStrategy::SplitModel;
+        if (store_params.strategy & SaveStrategy::SecureContentExt) {
+            if (!m_key_store)
+                m_key_store.reset(KeyStore::create(""));
+        }
 
         boost::system::error_code ec;
         std::string filename = std::string(store_params.path);
@@ -3146,12 +3419,13 @@ namespace Slic3r {
     bool _BBS_3MF_Exporter::save_object_mesh(const std::string& temp_path, ModelObject& object, int obj_id)
     {
         m_production_ext = true;
+        Model & model = *object.get_model();
+        m_key_store = model.get_key_store();
 
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
 
-        Model & model = *object.get_model();
-        auto filename = boost::format("3D/Objects/%s_%d.model") % object.name % obj_id;
+        auto filename = boost::format(m_key_store ? "3D/Objects/%s_%d_encrypted.model" :  "3D/Objects/%s_%d.model") % object.name % obj_id;
         std::string filepath = temp_path + "/" + filename.str();
         if (!open_zip_writer(&archive, filepath)) {
             add_error("Unable to open the file");
@@ -3199,6 +3473,17 @@ namespace Slic3r {
             return false;
         }
 
+        struct close_lock
+        {
+            mz_zip_archive & archive;
+            std::string const * filename;
+            ~close_lock() {
+                close_zip_writer(&archive);
+                if (filename)
+                boost::filesystem::remove(*filename);
+            }
+        } lock{ archive, &filename};
+
         //BBS progress point
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_CONTENT_TYPES\n");
         if (proFn) {
@@ -3209,9 +3494,7 @@ namespace Slic3r {
 
         // Adds content types file ("[Content_Types].xml";).
         // The content of this file is the same for each BambuStudio 3mf.
-        if (!m_skip_static && !_add_content_types_file_to_archive(archive)) {
-            close_zip_writer(&archive);
-            boost::filesystem::remove(filename);
+        if (!_add_content_types_file_to_archive(archive)) {
             return false;
         }
 
@@ -3232,8 +3515,6 @@ namespace Slic3r {
                 if (thumbnail_data[index]->is_valid())
                 {
                     if (!_add_thumbnail_file_to_archive(archive, *thumbnail_data[index], index)) {
-                        close_zip_writer(&archive);
-                        boost::filesystem::remove(filename);
                         return false;
                     }
                 }
@@ -3282,8 +3563,6 @@ namespace Slic3r {
         // The content of this file is the same for each BambuStudio 3mf.
         // The relationshis file contains a reference to the geometry file "3D/3dmodel.model", the name was chosen to be compatible with CURA.
         if (!_add_relationships_file_to_archive(archive)) {
-            close_zip_writer(&archive);
-            boost::filesystem::remove(filename);
             return false;
         }
 
@@ -3299,8 +3578,6 @@ namespace Slic3r {
         // This is the one and only file that contains all the geometry (vertices and triangles) of all ModelVolumes.
         IdToObjectDataMap objects_data;
         if (!_add_model_file_to_archive(filename, archive, model, objects_data, proFn, project)) {
-            close_zip_writer(&archive);
-            boost::filesystem::remove(filename);
             return false;
         }
 
@@ -3310,8 +3587,6 @@ namespace Slic3r {
         // BBS: don't need to save layer_height_profile because we calculate when slicing every time.
         /*
         if (!_add_layer_height_profile_file_to_archive(archive, model)) {
-            close_zip_writer(&archive);
-            boost::filesystem::remove(filename);
             return false;
         }*/
 
@@ -3327,8 +3602,6 @@ namespace Slic3r {
         // All layer height profiles of all ModelObjects are stored here, indexed by 1 based index of the ModelObject in Model.
         // The index differes from the index of an object ID of an object instance of a 3MF file!
         if (!_add_layer_config_ranges_file_to_archive(archive, model)) {
-            close_zip_writer(&archive);
-            boost::filesystem::remove(filename);
             return false;
         }
 
@@ -3344,14 +3617,10 @@ namespace Slic3r {
         // All  sla support points of all ModelObjects are stored here, indexed by 1 based index of the ModelObject in Model.
         // The index differes from the index of an object ID of an object instance of a 3MF file!
         if (!_add_sla_support_points_file_to_archive(archive, model)) {
-            close_zip_writer(&archive);
-            boost::filesystem::remove(filename);
             return false;
         }
         
         if (!_add_sla_drain_holes_file_to_archive(archive, model)) {
-            close_zip_writer(&archive);
-            boost::filesystem::remove(filename);
             return false;
         }
 
@@ -3366,8 +3635,6 @@ namespace Slic3r {
         // Adds custom gcode per height file ("Metadata/Prusa_Slicer_custom_gcode_per_print_z.xml").
         // All custom gcode per height of whole Model are stored here
         if (!_add_custom_gcode_per_print_z_file_to_archive(archive, model, config)) {
-            close_zip_writer(&archive);
-            boost::filesystem::remove(filename);
             return false;
         }
 
@@ -3385,8 +3652,6 @@ namespace Slic3r {
             //BBS: change to json format
             //if (!_add_print_config_file_to_archive(archive, *config)) {
             if (!_add_project_config_file_to_archive(archive, *config, model)) {
-                close_zip_writer(&archive);
-                boost::filesystem::remove(filename);
                 return false;
             }
         }
@@ -3417,8 +3682,6 @@ namespace Slic3r {
         // As there is just a single Indexed Triangle Set data stored per ModelObject, offsets of volumes into their respective Indexed Triangle Set data
         // is stored here as well.
         if (!_add_model_config_file_to_archive(archive, model, plate_data_list, objects_data)) {
-            close_zip_writer(&archive);
-            boost::filesystem::remove(filename);
             return false;
         }
 
@@ -3433,8 +3696,6 @@ namespace Slic3r {
         // Adds sliced info of plate file ("Metadata/slice_info.config")
         // This file contains all sliced info of all plates
         if (!_add_slice_info_config_file_to_archive(archive, model, plate_data_list)) {
-            close_zip_writer(&archive);
-            boost::filesystem::remove(filename);
             return false;
         }
 
@@ -3458,8 +3719,6 @@ namespace Slic3r {
 
         // Adds gcode files ("Metadata/plate_1.gcode, plate_2.gcode, ...)
         if (!m_skip_static && !_add_auxiliary_dir_to_archive(archive, model.get_auxiliary_file_temp_path())) {
-            close_zip_writer(&archive);
-            boost::filesystem::remove(filename);
             return false;
         }
 
@@ -3478,8 +3737,6 @@ namespace Slic3r {
         }
 
         if (!mz_zip_writer_finalize_archive(&archive)) {
-            close_zip_writer(&archive);
-            boost::filesystem::remove(filename);
             add_error("Unable to finalize the archive");
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to finalize the archive\n");
             return false;
@@ -3493,7 +3750,7 @@ namespace Slic3r {
                 return false;
         }
 
-        close_zip_writer(&archive);
+        lock.filename = nullptr;
 
         return true;
     }
@@ -3507,6 +3764,8 @@ namespace Slic3r {
         stream << " <Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>\n";
         stream << " <Default Extension=\"model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>\n";
         stream << " <Default Extension=\"png\" ContentType=\"image/png\"/>\n";
+        if (m_key_store)
+            stream << " <Override ContentType=\"application/vnd.ms-package.3dmanufacturing-keystore+xml\" PartName=\"/" << KEYSTORE_FILE << "\"/>\n";
         stream << "</Types>";
 
         std::string out = stream.str();
@@ -3528,7 +3787,7 @@ namespace Slic3r {
         void* png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)thumbnail_data.pixels.data(), thumbnail_data.width, thumbnail_data.height, 4, &png_size, MZ_DEFAULT_LEVEL, 1);
         if (png_data != nullptr) {
             std::string thumbnail_name = (boost::format("Metadata/plate_%1%.png") % (index + 1)).str();
-            res = mz_zip_writer_add_mem(&archive, thumbnail_name.c_str(), (const void*)png_data, png_size, MZ_DEFAULT_COMPRESSION);
+            res = mz_zip_writer_add_mem(&archive, thumbnail_name.c_str(), (const void*)png_data, png_size, MZ_NO_COMPRESSION);
             mz_free(png_data);
         }
 
@@ -3548,7 +3807,7 @@ namespace Slic3r {
         void* png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)thumbnail_data.pixels.data(), thumbnail_data.width, thumbnail_data.height, 4, &png_size, MZ_DEFAULT_LEVEL, 1);
         if (png_data != nullptr) {
             std::string thumbnail_name = (boost::format("Metadata/plate_%1%_pattern_layer_0.png") % (index + 1)).str();
-            res = mz_zip_writer_add_mem(&archive, thumbnail_name.c_str(), (const void*)png_data, png_size, MZ_DEFAULT_COMPRESSION);
+            res = mz_zip_writer_add_mem(&archive, thumbnail_name.c_str(), (const void*)png_data, png_size, MZ_NO_COMPRESSION);
             mz_free(png_data);
         }
 
@@ -3585,11 +3844,17 @@ namespace Slic3r {
         if (submodels.empty()) {
             stream << " <Relationship Target=\"/" << MODEL_FILE << "\" Id=\"rel-1\" Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\"/>\n";
             stream << " <Relationship Target=\"/" << THUMBNAIL_FILE << "\" Id=\"rel-2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail\"/>\n";
+            if (m_key_store) {
+                stream << " <Relationship Target=\"/" << KEYSTORE_FILE << "\" Id=\"rel-3\" Type=\"http://schemas.microsoft.com/3dmanufacturing/2019/04/keystore\"/>\n";
+                stream << " <Relationship Target=\"/" << KEYSTORE_FILE << "\" Id=\"rel-3\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/mustpreserve\"/>\n";
+            }
         }
         else {
             int i = 0;
             for (auto & path : submodels) {
                 stream << " <Relationship Target=\"/" << path << "\" Id=\"rel-" << boost::to_string(++i) << "\" Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\"/>\n";
+                if (m_key_store)
+                    stream << " <Relationship Target=\"/" << path << "\" Id=\"rel-" << boost::to_string(++i) << "\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/encryptedfile\"/>\n";
             }
         }
         stream << "</Relationships>";
@@ -3599,6 +3864,59 @@ namespace Slic3r {
         if (!mz_zip_writer_add_mem(&archive, submodels.empty() ? RELATIONSHIPS_FILE.c_str() : MODEL_RELS_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
             add_error("Unable to add relationships file to archive");
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add relationships file to archive\n");
+            return false;
+        }
+
+        return true;
+    }
+
+    bool _BBS_3MF_Exporter::_add_key_store_to_archive(mz_zip_archive& archive, KeyStore const & store)
+    {
+        std::stringstream stream;
+        stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+        stream << "<keystore xmlns=\"http://schemas.microsoft.com/3dmanufacturing/securecontent/2019/04\" xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\" xmlns:xenc=\"http://www.w3.org/2001/04/xmlenc#\" UUID=\"" << store.UUID << "\">\n";
+        for (auto & c : store.consumers) {
+            stream << " <consumer consumerid=\"" << c.consumerid;
+            if (!c.keyid.empty()) stream << "\" keyid=\"" << c.keyid;
+            stream << "\">\n";
+            if (!c.keyvalue.empty())
+                stream << "  <keyvalue>" << c.keyvalue << "</keyvalue>\n";
+            stream << " </consumer>\n";
+        }
+        for (auto & g : store.resourcedatagroups) {
+            stream << " <resourcedatagroup keyuuid=\"" << g.keyuuid << "\">\n";
+            for (auto & a : g.accessrights) {
+                stream << "  <accessright consumerindex=\"" << a.consumerindex << "\">\n";
+                stream << "   <kekparams wrappingalgorithm=\"" << a.kekparams.wrappingalgorithm;
+                if (!a.kekparams.mgfalgorithm.empty()) stream << "\" mgfalgorithm=\"" << a.kekparams.mgfalgorithm;
+                if (!a.kekparams.digestmethod.empty()) stream << "\" digestmethod=\"" << a.kekparams.digestmethod;
+                stream << "\"/>\n";
+                stream << "   <cipherdata>\n    <xenc:CipherValue>" << base64_encode(std::string("%3McF\x00\x00\x00\x0c\x00\x00\x00", 12) + a.cipherdata) << "</xenc:CipherValue>\n   </cipherdata>\n";
+                stream << "  </accessright>\n";
+            }
+            for (auto & d : g.resourcedatas) {
+                stream << "  <resourcedata path=\"" << d.path << "\">\n";
+                stream << "   <cekparams encryptionalgorithm=\"" << d.cekparams.encryptionalgorithm;
+                if (!d.cekparams.compression.empty()) stream << "\" compression=\"" << d.cekparams.compression;
+                stream << "\">\n";
+                if (!d.cekparams.iv.empty())
+                    stream << "    <iv>" << base64_encode(d.cekparams.iv) << "</iv>\n";
+                if (!d.cekparams.tag.empty())
+                    stream << "    <tag>" << base64_encode(d.cekparams.tag) << "</tag>\n";
+                if (!d.cekparams.aad.empty())
+                    stream << "    <aad>" << base64_encode(d.cekparams.aad) << "</aad>\n";
+                stream << "   </cekparams>\n";
+                stream << "  </resourcedata>\n";
+            }
+            stream << " </resourcedatagroup>\n";
+        }
+        stream << "</keystore>";
+
+        std::string out = stream.str();
+
+        if (!mz_zip_writer_add_mem(&archive, KEYSTORE_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
+            add_error("Unable to add key store file to archive");
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add key store file to archive\n");
             return false;
         }
 
@@ -3635,10 +3953,28 @@ namespace Slic3r {
                 // Maximum expected 3MF file size is 4GB-1. This is a workaround for interoperability with Windows 10 3D model fixing API, see
                 // GH issue #6193.
                 (uint64_t(1) << 32) - 1,
-            nullptr, nullptr, 0, MZ_DEFAULT_COMPRESSION, nullptr, 0, nullptr, 0)) {
+            nullptr, nullptr, 0, sub_model && m_key_store ? MZ_BEST_SPEED : MZ_DEFAULT_COMPRESSION, nullptr, 0, nullptr, 0)) {
             add_error("Unable to add model file to archive");
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add model file to archive\n");
             return false;
+        }
+
+        // BBS: encrypt
+        struct MyZipEncrypt : ZipEncrypt {
+            ~MyZipEncrypt() { // work as close lock
+                if (!input_context) return;
+                auto context = input_context;
+                close();
+                mz_zip_writer_add_staged_finish(context);
+            }
+        } encrypt;
+        std::string path = "/" + filename;
+        if (sub_model && m_key_store) {
+            std::string userkey, iv;
+            if (!encrypt.open(context))
+                return false;
+            if (!m_key_store->setup(path, encrypt, true))
+                return false;
         }
 
         {
@@ -3726,7 +4062,6 @@ namespace Slic3r {
                 if (!_add_object_to_model_stream(context, object_it->first, *obj, object_it->second.volumes_offsets)) {
                     add_error("Unable to add object to archive");
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add object to archive\n");
-                    mz_zip_writer_add_staged_finish(&context);
                     return false;
                 }
             }
@@ -3740,8 +4075,8 @@ namespace Slic3r {
             for (const ModelInstance* instance : obj->instances) {
                 Transform3d t = instance->get_matrix();
                 // instance_id is just a 1 indexed index in build_items.
-                assert(curr_id == build_items.size() + 1);
-                auto filename = boost::format("3D/Objects/%s_%d.model") % obj->name % const_cast<Model&>(model).get_object_backup_id(*obj);
+                assert(m_skip_static || curr_id == build_items.size() + 1);
+                auto filename = boost::format(m_key_store ? "3D/Objects/%s_%d_encrypted.model" :  "3D/Objects/%s_%d.model") % obj->name % const_cast<Model&>(model).get_object_backup_id(*obj);
                 object_paths.push_back(filename.str());
                 build_items.emplace_back(m_split_model ? "/" + filename.str() : "", curr_id++, t, instance->printable);
             }
@@ -3757,7 +4092,6 @@ namespace Slic3r {
             if (!_add_build_to_model_stream(stream, build_items)) {
                 add_error("Unable to add build to archive");
                 BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add build to archive\n");
-                mz_zip_writer_add_staged_finish(&context);
                 return false;
             }
 
@@ -3766,6 +4100,8 @@ namespace Slic3r {
             std::string buf = stream.str();
 
             if ((! buf.empty() && ! mz_zip_writer_add_staged_data(&context, buf.data(), buf.size())) ||
+                ! encrypt.close() || // switch context if open
+                (sub_model && m_key_store && !m_key_store->finalize(path, encrypt)) || 
                 ! mz_zip_writer_add_staged_finish(&context)) {
                 add_error("Unable to add model file to archive");
                 BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add model file to archive\n");
@@ -3800,60 +4136,31 @@ namespace Slic3r {
             return true;
         }
 
-        // save sub models
-        struct SubTaskCtx {
-            _BBS_3MF_Exporter const * exporter;
-            Model const & model;
-            mz_zip_archive* main;
-            boost::mutex & mutex;
-            std::vector<mz_zip_archive> & archives;
-            std::vector<std::string> & object_paths;
-            std::vector<unsigned int> & object_ids;
-            IdToObjectDataMap & objects_data;
-            BBLProject* project;
-        };
-        struct SubTask : SubTaskCtx
         {
-            size_t begin;
-            size_t end;
-
-            SubTask(SubTaskCtx const & o) : SubTaskCtx(o) {};
-            SubTask(SubTask const & o, tbb::split) : SubTaskCtx(o) {};
-
-            void operator()(const tbb::blocked_range<size_t>& range) {
-                begin = range.begin(); end = range.end();
-                for (size_t i = begin; i < end; ++i) {
+            boost::mutex mutex;
+            tbb::parallel_for(tbb::blocked_range<size_t>(0, objects_data.size(), 1), [this, &mutex, &model, &object_ids, &objects_data, &object_paths, main = &archive, project](const tbb::blocked_range<size_t>& range) {
+                for (size_t i = range.begin(); i < range.end(); ++i) {
                     auto iter = objects_data.find(object_ids[i]);
                     IdToObjectDataMap objects_data2;
                     objects_data2.insert(*iter);
                     auto & object = *iter->second.object;
-                    mz_zip_archive &archive = archives[i];
+                    mz_zip_archive archive;
+                    mz_zip_zero_struct(&archive);
                     mz_zip_writer_init_heap(&archive, 0, 1024 * 1024);
-                    exporter->_add_model_file_to_archive(object_paths[i], archive, model, objects_data2, nullptr, project);
+                    _add_model_file_to_archive(object_paths[i], archive, model, objects_data2, nullptr, project);
                     iter->second = objects_data2.begin()->second;
                     void *ppBuf; size_t pSize;
                     mz_zip_writer_finalize_heap_archive(&archive, &ppBuf, &pSize);
                     mz_zip_writer_end(&archive);
+                    mz_zip_zero_struct(&archive);
                     mz_zip_reader_init_mem(&archive, ppBuf, pSize, 0);
-                }
-            }
-            void join(SubTask & o) {
-                for (size_t i = o.begin; i < o.end; ++i) {
-                    mz_zip_archive &archive = o.archives[i];
                     {
                         boost::unique_lock l(mutex);
                         mz_zip_writer_add_from_zip_reader(main, &archive, 0);
-                        mz_zip_reader_end(&archive);
                     }
+                    mz_zip_reader_end(&archive);
                 }
-            }
-        };
-        {
-            std::vector<mz_zip_archive> archives(objects_data.size());
-            boost::mutex mutex;
-            SubTask body(SubTaskCtx{this, model, &archive, mutex, archives, object_paths, object_ids, objects_data, project});
-            tbb::parallel_reduce(tbb::blocked_range<size_t>(0, objects_data.size(), 1), body);
-            body.join(body);
+            });
         }
 
         return true;
@@ -3932,7 +4239,6 @@ namespace Slic3r {
     using coordinate_type_scientific = boost::spirit::karma::real_generator<float, coordinate_policy_scientific<float>>;
 #endif // EXPORT_3MF_USE_SPIRIT_KARMA_FP
 
-    // backup: reuse by save_object_mesh, support skip mesh data
     bool _BBS_3MF_Exporter::_add_mesh_to_object_stream(std::function<bool(std::string &,bool)> const & flush, ModelObject& object, VolumeToOffsetsMap& volumes_offsets) const
     {
         std::string output_buffer;
@@ -4123,8 +4429,6 @@ namespace Slic3r {
     {
         // This happens for empty projects
         if (build_items.size() == 0) {
-            add_error("No build item found");
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format("No build item found\n");
             return true;
         }
 
@@ -4764,38 +5068,37 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive& archive, c
         return result;
     }
 
+    static std::string const nocomp_exts[] = {".png", ".jpg", ".mp4", ".jpeg"};
+    std::deque<boost::filesystem::path> directories({dir});
+    int root_dir_len = dir.string().length() + 1;
     //boost file access
-    for (auto &dir_entry : boost::filesystem::directory_iterator(dir))
-    {
-        std::string src_file;
-        std::string dst_in_3mf;
-        if (boost::filesystem::is_directory(dir_entry.path()))
+    while (!directories.empty()) {
+        boost::filesystem::directory_iterator iterator(directories.front());
+        directories.pop_front();
+        for (auto &dir_entry : iterator)
         {
-            for (auto &subdir_entry : boost::filesystem::directory_iterator(dir_entry.path()))
+            std::string src_file;
+            std::string dst_in_3mf;
+            if (boost::filesystem::is_directory(dir_entry.path()))
             {
-                if (boost::filesystem::is_regular_file(subdir_entry.path()))
-                {
-                    src_file = subdir_entry.path().string();
-                    dst_in_3mf = std::string(AUXILIARY_DIR) + dir_entry.path().filename().string() + std::string("/") + subdir_entry.path().filename().string();
-
-                    std::string dest_zip_file = encode_path(dst_in_3mf.c_str());
-                    std::string src_zip_file = encode_path(src_file.c_str());
-
-                    result = result & mz_zip_writer_add_file(&archive, dest_zip_file.c_str(), src_zip_file.c_str(), "", 0, MZ_DEFAULT_LEVEL);
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", store  %1% to 3mf %2%, result %3%\n") % src_file % dst_in_3mf % result;
-                }
+                directories.push_back(dir_entry.path());
+                continue;
             }
-        }
-        else if (boost::filesystem::is_regular_file(dir_entry.path()))
-        {
-            src_file = dir_entry.path().string();
-            dst_in_3mf = std::string(AUXILIARY_DIR) + dir_entry.path().filename().string();
+            if (boost::filesystem::is_regular_file(dir_entry.path()))
+            {
+                src_file = dir_entry.path().string();
+                dst_in_3mf = dir_entry.path().string();
+                dst_in_3mf.replace(0, root_dir_len, AUXILIARY_DIR);
+                std::replace(dst_in_3mf.begin(), dst_in_3mf.end(), '\\', '/');
 
-            std::string dest_zip_file = encode_path(dst_in_3mf.c_str());
-            std::string src_zip_file = encode_path(src_file.c_str());
+                std::string dest_zip_file = encode_path(dst_in_3mf.c_str());
+                std::string src_zip_file = encode_path(src_file.c_str());
 
-            result = result & mz_zip_writer_add_file(&archive, dest_zip_file.c_str(), src_zip_file.c_str(), "", 0, MZ_DEFAULT_LEVEL);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", store  %1% to 3mf %2%, result %3%\n") % src_file % dst_in_3mf % result;
+                auto end = nocomp_exts + sizeof(nocomp_exts) / sizeof(nocomp_exts[0]);
+                bool nocomp = std::find_if(nocomp_exts, end, [&dst_in_3mf](auto & ext) { return boost::algorithm::ends_with(dst_in_3mf, ext); }) != end;
+                result = result & mz_zip_writer_add_file(&archive, dest_zip_file.c_str(), src_zip_file.c_str(), "", 0, nocomp ? MZ_NO_COMPRESSION : MZ_DEFAULT_LEVEL);
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", store  %1% to 3mf %2%, result %3%\n") % src_file % dst_in_3mf % result;
+            }
         }
     }
 
@@ -4862,6 +5165,7 @@ public:
         // clone object
         auto model = object.get_model();
         auto o = m_temp_model.add_object(object);
+        m_temp_model.set_key_store(model->get_key_store());
         int backup_id = model->get_object_backup_id(object);
         push_task({ AddObject, (size_t) backup_id, object.get_model()->get_backup_path(), originId, o, originId == 0 ? size_t(1) : size_t(0) });
     }
@@ -4890,6 +5194,7 @@ public:
                 canceled_tasks.push_back(t);
             m_ui_tasks.clear();
             m_tasks.clear();
+            m_temp_model.set_key_store(nullptr);
         }
         m_tasks.push_back({ RemoveBackup, removeAll, model.get_backup_path() });
         ++m_task_seq;

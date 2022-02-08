@@ -63,6 +63,8 @@ Model& Model::assign_copy(const Model &rhs)
 
     // copy custom code per height
     this->custom_gcode_per_print_z = rhs.custom_gcode_per_print_z;
+    // BBS: for encrypt
+    this->key_store = rhs.key_store;
 
     return *this;
 }
@@ -91,6 +93,8 @@ Model& Model::assign_copy(Model &&rhs)
     this->backup_path = std::move(rhs.backup_path);
     this->object_backup_id_map = std::move(rhs.object_backup_id_map);
     this->next_object_backup_id = rhs.next_object_backup_id;
+    this->key_store = rhs.key_store;
+    rhs.key_store.reset();
     return *this;
 }
 
@@ -730,8 +734,9 @@ std::string Model::get_backup_path()
         std::time_t t = std::time(0);
         std::tm* now_time = std::localtime(&t);
         std::stringstream buf;
-        buf << "/bamboo_model/" << this->id().id;
-        buf << std::put_time(now_time, "_%a_%b_%d_%H_%M_%S");
+        buf << "/bamboo_model/";
+        buf << std::put_time(now_time, "%a_%b_%d/%H_%M_%S#");
+        buf << this->id().id;
 
         backup_path = parent_path.string() + buf.str();
         boost::filesystem::path temp_path(backup_path);
@@ -740,6 +745,7 @@ std::string Model::get_backup_path()
             boost::filesystem::remove_all(temp_path);
         }
         boost::filesystem::create_directories(backup_path + "/3D/Objects/");
+        boost::filesystem::create_directories(backup_path + "/Metadata");
         boost::filesystem::save_string_file(backup_path + "/lock.txt",
                                             boost::lexical_cast<std::string>(get_current_pid()));
     }
@@ -753,6 +759,8 @@ void Model::load_from(Model& model)
     model.backup_path.clear();
     object_backup_id_map = model.object_backup_id_map;
     next_object_backup_id = model.next_object_backup_id;
+    key_store = model.key_store;
+    model.key_store.reset();
 }
 
 // BBS: backup
