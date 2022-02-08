@@ -1341,7 +1341,8 @@ std::string PartPlate::get_tmp_gcode_path()
 {
     if (m_tmp_gcode_path.empty()) {
         boost::filesystem::path temp_path(m_model->get_backup_path());
-        temp_path /= (boost::format(".%1%.%2%.gcode") % get_current_pid() %
+		temp_path /= "Metadata";
+        temp_path /= (boost::format(m_model->get_key_store() ? ".%1%.%2%_encrypted.gcode" : ".%1%.%2%.gcode") % get_current_pid() %
                       GLOBAL_PLATE_INDEX++)
                          .str();
         m_tmp_gcode_path = temp_path.string();
@@ -1357,21 +1358,25 @@ int PartPlate::load_gcode_from_file(const std::string& filename)
 	// process gcode
 	m_print->apply(*m_model, wxGetApp().preset_bundle->full_config());
 	// BBS: use backup path to save temp gcode
-	auto path = get_tmp_gcode_path();
-	if (boost::filesystem::exists(boost::filesystem::path(path))) {
-		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": file %1% exists, delete it firstly") % filename.c_str();
-		boost::nowide::remove(path.c_str());
-	}
+	//auto path = get_tmp_gcode_path();
+	//if (boost::filesystem::exists(boost::filesystem::path(path))) {
+	//	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": file %1% exists, delete it firstly") % filename.c_str();
+	//	boost::nowide::remove(path.c_str());
+	//}
 
-	std::error_code error = rename_file(filename, path);
-	if (error) {
-		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Failed to rename the output G-code file from %1% to %2%, error code %3%") % filename.c_str() % path.c_str() % error.message();
-		return -1;
-	}
-	m_gcode_result->filename = path;
-	m_print->set_gcode_file_ready();
+	//std::error_code error = rename_file(filename, path);
+	//if (error) {
+	//	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Failed to rename the output G-code file from %1% to %2%, error code %3%") % filename.c_str() % path.c_str() % error.message();
+	//	return -1;
+	//}
+	if (boost::filesystem::exists(filename)) {
+		assert(m_tmp_gcode_path.empty());
+		m_tmp_gcode_path = filename;
+		m_gcode_result->filename = filename;
+		m_print->set_gcode_file_ready();
 
-	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": from %1% to %2%, finished") % filename.c_str() % path.c_str();
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": from %1% to %2%, finished") % filename.c_str() % filename.c_str();
+	}
 
 	m_slice_result_valid = true;
 	m_ready_for_slice = true;

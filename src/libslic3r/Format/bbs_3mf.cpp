@@ -194,6 +194,7 @@ static constexpr const char* FIRST_TRIANGLE_ID_ATTR = "firstid";
 static constexpr const char* LAST_TRIANGLE_ID_ATTR = "lastid";
 static constexpr const char* SUBTYPE_ATTR = "subtype";
 static constexpr const char* LOCK_ATTR = "locked";
+static constexpr const char* GCODE_FILE_ATTR = "gcode_file";
 static constexpr const char* OBJECT_ID_ATTR = "object_id";
 static constexpr const char* INSTANCEID_ATTR = "instance_id";
 static constexpr const char* PLATERID_ATTR = "plater_id";
@@ -595,7 +596,6 @@ namespace Slic3r {
         IdToLayerConfigRangesMap m_layer_config_ranges;
         IdToSlaSupportPointsMap m_sla_support_points;
         IdToSlaDrainHolesMap    m_sla_drain_holes;
-        std::map<unsigned int, std::string> m_plate_id_map; // backup & restore
         std::string m_curr_metadata_name;
         std::string m_curr_characters;
         std::string m_name;
@@ -612,7 +612,7 @@ namespace Slic3r {
         PlateDataMaps m_plater_data;
         PlateData* m_curr_plater;
         CurrentInstance m_curr_instance;
-        std::vector<std::string> m_gcode_files;
+
         // BBS: encrypt
         std::shared_ptr<KeyStore> m_key_store;
 
@@ -660,7 +660,7 @@ namespace Slic3r {
         void _extract_project_embedded_presets_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, std::vector<Preset*>&project_presets, Model& model, Preset::Type type, bool use_json = true);
 
         void _extract_auxiliary_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model);
-        void _extract_gcode_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model, std::string& name);
+        void _extract_gcode_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
 
         // handlers to parse the .model file
         void _handle_start_model_xml_element(const char* name, const char** attributes);
@@ -806,8 +806,6 @@ namespace Slic3r {
             it++;
         }
         m_plater_data.clear();
-
-        m_gcode_files.clear();
     }
 
     //BBS: add plate data related logic
@@ -841,7 +839,6 @@ namespace Slic3r {
         m_plater_data.clear();
         m_curr_instance.object_id = -1;
         m_curr_instance.instance_id = -1;
-        m_gcode_files.clear();
         clear_errors();
 
         // restore
@@ -910,16 +907,6 @@ namespace Slic3r {
                 proFn(IMPORT_STAGE_RESTORE, 0, 1, cb_cancel);
                 if (cb_cancel)
                     return false;
-            }
-            std::string platemapfile = model.get_backup_path() + "/plate_map.txt";
-            {
-                std::ifstream ifs(encode_path(platemapfile.c_str()));
-                unsigned int id1;
-                std::string id2;
-                while (ifs >> id1 >> id2) {
-                    BOOST_LOG_TRIVIAL(info) << "load plate_map: " << id1 << " -> " << id2;
-                    m_plate_id_map.insert(std::make_pair(id1, id2));
-                }
             }
         }
 
@@ -1092,7 +1079,7 @@ namespace Slic3r {
                 }
                 else if (boost::algorithm::istarts_with(name, METADATA_DIR) && boost::algorithm::iends_with(name, GCODE_EXTENSION)) {
                     //load gcode files
-                    _extract_gcode_file_from_archive(archive, stat, model, name);
+                    _extract_gcode_file_from_archive(archive, stat);
                 }
             }
         }
@@ -1281,17 +1268,6 @@ namespace Slic3r {
             PlateData* plate = new PlateData();
             plate_data_list.push_back(plate);
         }
-        auto find_gcode_name = [this](int plate_index) -> int {
-                for (int index = 0; index < m_gcode_files.size(); index ++)
-                {
-                    std::string &file_name = m_gcode_files[index];
-                    std::string sub_name  = "plate_" + std::to_string(plate_index) + ".gcode";
-                    if (file_name.find(sub_name) != std::string::npos) {
-                        return index;
-                    }
-                }
-                return -1;
-            };
         while (it != m_plater_data.end())
         {
             if (it->first > m_plater_data.size())
@@ -1302,18 +1278,10 @@ namespace Slic3r {
             plate_data_list[it->first-1]->locked = it->second->locked;
             plate_data_list[it->first-1]->plate_index = it->second->plate_index-1;
             plate_data_list[it->first-1]->objects_and_instances = it->second->objects_and_instances;
+            plate_data_list[it->first-1]->gcode_file = (m_load_restore || it->second->gcode_file.empty()) ? it->second->gcode_file : m_backup_path + "/" + it->second->gcode_file;
             plate_data_list[it->first-1]->gcode_prediction = it->second->gcode_prediction;
             plate_data_list[it->first-1]->gcode_weight = it->second->gcode_weight;
             plate_data_list[it->first-1]->toolpath_outside = it->second->toolpath_outside;
-            int gcode_index = find_gcode_name(it->first);
-            if (gcode_index != -1) {
-                plate_data_list[it->first-1]->gcode_file = m_gcode_files[gcode_index];
-            }
-            else if (m_plate_id_map.find(it->first) != m_plate_id_map.end()) {
-                std::string gcode_file = model.get_backup_path() + "/" + m_plate_id_map[it->first] + ".gcode";
-                if (boost::filesystem::exists(gcode_file))
-                    plate_data_list[it->first - 1]->gcode_file = gcode_file;
-            }
             it++;
         }
 
@@ -1543,7 +1511,6 @@ namespace Slic3r {
     void _BBS_3MF_Importer::_extract_project_embedded_presets_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, std::vector<Preset*>&project_presets, Model& model, Preset::Type type, bool use_json)
     {
         if (stat.m_uncomp_size > 0) {
-            const std::string& temp_path = model.get_backup_path();
             /*std::string src_file = decode_path(stat.m_filename);
             std::size_t found = src_file.find(METADATA_DIR);
             if (found != std::string::npos)
@@ -1662,32 +1629,23 @@ namespace Slic3r {
     }
 
     //BBS: extract gcode file name from archive
-    void _BBS_3MF_Importer::_extract_gcode_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model, std::string& name)
+    void _BBS_3MF_Importer::_extract_gcode_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)
     {
         if (stat.m_uncomp_size > 0) {
-            std::string dest_file;
             std::string src_file = decode_path(stat.m_filename);
             // BBS: use backup path
-            const std::string &temp_path = model.get_backup_path();
             //aux directory from model
-            boost::filesystem::path dir = boost::filesystem::path(temp_path);
-            std::size_t found = src_file.find(METADATA_DIR);
-            if (found != std::string::npos)
-                src_file = src_file.substr(found + METADATA_STR_LEN);
-            else
-                return;
-
-            dest_file = dir.string() + std::string("/") + src_file;
-            std::string dest_zip_file = encode_path(dest_file.c_str());
-            mz_bool res = mz_zip_reader_extract_file_to_file(&archive, stat.m_filename, dest_zip_file.c_str(), 0);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % dest_file % stat.m_filename % res;
+            boost::filesystem::path dest_path = boost::filesystem::path(m_backup_path + "/" + src_file);
+            std::string dest_zip_file = encode_path(dest_path.string().c_str());
+            mz_bool res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % dest_path % stat.m_filename % res;
             if (res == 0) {
                 add_error("Error while extract gcode file to temp directory");
                 return;
             }
-            m_gcode_files.push_back(dest_file.c_str());
+            if (m_key_store)
+                m_key_store->rename("/" + src_file, dest_path.string());
         }
-
         return ;
     }
 
@@ -2708,6 +2666,10 @@ namespace Slic3r {
             {
                 std::istringstream(value) >> std::boolalpha >> m_curr_plater->locked;
             }
+            else if (key == GCODE_FILE_ATTR)
+            {
+                m_curr_plater->gcode_file = value;
+            }
             else if (key == INSTANCEID_ATTR)
             {
                 m_curr_instance.instance_id = atoi(value.c_str());
@@ -3677,6 +3639,12 @@ namespace Slic3r {
             }
         }
 
+        // Adds gcode files ("Metadata/plate_1.gcode, plate_2.gcode, ...)
+        // Before _add_model_config_file_to_archive, because we modify plate_data
+        if (!m_skip_static && !_add_gcode_file_to_archive(archive, model, plate_data_list, proFn)) {
+            return false;
+        }
+
         // Adds slic3r model config file ("Metadata/Slic3r_PE_model.config").
         // This file contains all the attributes of all ModelObjects and their ModelVolumes (names, parameter overrides).
         // As there is just a single Indexed Triangle Set data stored per ModelObject, offsets of volumes into their respective Indexed Triangle Set data
@@ -3702,13 +3670,6 @@ namespace Slic3r {
         //BBS progress point
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_GCODE\n");
 
-        // Adds gcode files ("Metadata/plate_1.gcode, plate_2.gcode, ...)
-        if (!m_skip_static && !_add_gcode_file_to_archive(archive, model, plate_data_list, proFn)) {
-            close_zip_writer(&archive);
-            boost::filesystem::remove(filename);
-            return false;
-        }
-
         //BBS progress point
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_AUXILIARIES\n");
         if (proFn) {
@@ -3722,18 +3683,9 @@ namespace Slic3r {
             return false;
         }
 
-        // save plate_id_map
-       if (m_skip_static) {
-            std::ofstream ofs(encode_path((const_cast<Model &>(model).get_backup_path() + "/plate_map.txt").c_str()));
-            int l = model.get_backup_path().length() + 1;
-            for (auto i : plate_data_list) {
-                if (!i->gcode_file.empty()) {
-                    auto id = i->gcode_file.substr(l, i->gcode_file.length() - l - 6);
-                    BOOST_LOG_TRIVIAL(info) << "save plate_map: " << (i->plate_index + 1) << " -> " << id;
-                    ofs << (i->plate_index + 1) << " " << id << std::endl;
-                }
-            }
-            ofs.flush();
+        // BBS: encrypt, should be last step
+        if (m_key_store && !_add_key_store_to_archive(archive, *m_key_store)) {
+            return false;
         }
 
         if (!mz_zip_writer_finalize_archive(&archive)) {
@@ -4868,6 +4820,7 @@ namespace Slic3r {
                 //plate index
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PLATERID_ATTR << "\" " << VALUE_ATTR << "=\"" << i + 1 << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << LOCK_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->locked<< "\"/>\n";
+                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << GCODE_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->gcode_file<< "\"/>\n";
                 if (instance_size > 0)
                 {
                     for (unsigned int j = 0; j < instance_size; ++j)
@@ -4977,6 +4930,7 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
     bool result = true;
     bool cb_cancel = false;
 
+    PlateDataPtrs plate_data_list2;
     for (unsigned int i = 0; i < (unsigned int)plate_data_list.size(); ++i)
     {
         if (proFn) {
@@ -4986,16 +4940,61 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
         }
 
         PlateData* plate_data = plate_data_list[i];
-        if (!plate_data->gcode_file.empty() && plate_data->is_sliced_valid) {
-            std::string src_gcode_file = encode_path(plate_data->gcode_file.c_str());
-            std::string gcode_in_3mf = (boost::format(GCODE_FILE_FORMAT) % (i + 1)).str();
-            result = result & mz_zip_writer_add_file(&archive, gcode_in_3mf.c_str(), src_gcode_file.c_str(), "", 0, MZ_DEFAULT_LEVEL);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", store  %1% to 3mf %2%, result %3%\n") % src_gcode_file % gcode_in_3mf % result;
-        }
-        else {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", gcode_file = %1%, valid = %2%") % plate_data->gcode_file % plate_data->is_sliced_valid;
+        if (!plate_data->gcode_file.empty() && plate_data->is_sliced_valid && boost::filesystem::exists(plate_data->gcode_file)) {
+            plate_data_list2.push_back(plate_data);
         }
     }
+    boost::mutex mutex;
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, plate_data_list2.size(), 1), [this, &plate_data_list2, &root_archive = archive, &mutex](const tbb::blocked_range<size_t>& range) {
+        for (int i = range.begin(); i < range.end(); ++i) {
+            PlateData* plate_data = plate_data_list2[i];
+            auto src_gcode_file = plate_data->gcode_file;
+            std::string gcode_in_3mf = m_skip_static ? src_gcode_file : (boost::format(GCODE_FILE_FORMAT) % (i + 1)).str();
+            bool encrypted = boost::algorithm::ends_with(src_gcode_file, "_encrypted.gcode");
+            if (m_key_store && !(m_skip_static && encrypted))
+                gcode_in_3mf.insert(gcode_in_3mf.length() - 6, "_encrypted");
+            plate_data->gcode_file = gcode_in_3mf;
+            mz_zip_archive archive;
+            mz_zip_writer_staged_context context;
+            mz_zip_zero_struct(&archive);
+            mz_zip_writer_init_heap(&archive, 0, 1024 * 1024);
+            {
+                mz_zip_writer_add_staged_open(&archive, &context, gcode_in_3mf.c_str(), m_zip64 ? (uint64_t(1) << 30) * 16 : (uint64_t(1) << 32) - 1, nullptr, nullptr, 0, 
+                    m_key_store ? MZ_BEST_SPEED : MZ_DEFAULT_COMPRESSION, nullptr, 0, nullptr, 0);
+                ZipEncrypt encrypt;
+                std::string path = "/" + gcode_in_3mf;
+                if (m_key_store && !encrypted) {
+                    std::string userkey, iv;
+                    encrypt.open(context);
+                    m_key_store->setup(path, encrypt, true);
+                }
+                boost::filesystem::ifstream ifs(src_gcode_file, std::ios::binary);
+                std::string buf(64 * 1024, 0);
+                while (ifs) {
+                    ifs.read(buf.data(), buf.size());
+                    mz_zip_writer_add_staged_data(&context, buf.data(), ifs.gcount());
+                }
+                if (m_key_store && !encrypted) {
+                    encrypt.close();
+                    m_key_store->finalize(path, encrypt);
+                } else if (m_key_store) {
+                    m_key_store->rename(src_gcode_file, path);
+                }
+                mz_zip_writer_add_staged_finish(&context);
+            }
+            void *ppBuf; size_t pSize;
+            mz_zip_writer_finalize_heap_archive(&archive, &ppBuf, &pSize);
+            mz_zip_writer_end(&archive);
+            mz_zip_zero_struct(&archive);
+            mz_zip_reader_init_mem(&archive, ppBuf, pSize, 0);
+            {
+                boost::unique_lock l(mutex);
+                mz_zip_writer_add_from_zip_reader(&root_archive, &archive, 0);
+            }
+            mz_zip_reader_end(&archive);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", store  %1% to 3mf %2%\n") % src_gcode_file % gcode_in_3mf;
+        }
+    });
     return result;
 }
 

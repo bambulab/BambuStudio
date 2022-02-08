@@ -4,6 +4,7 @@
 #include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/format.hpp"
 #include "GCodeProcessor.hpp"
+#include "Format/Secure.hpp"
 
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -347,7 +348,8 @@ void GCodeProcessor::TimeProcessor::reset()
     machines[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].enabled = true;
 }
 
-void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, std::vector<GCodeProcessorResult::MoveVertex>& moves, std::vector<size_t>& lines_ends)
+// BBS: decrypt & encrypt
+void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, std::shared_ptr<KeyStore> key_store, std::vector<GCodeProcessorResult::MoveVertex>& moves, std::vector<size_t>& lines_ends)
 {
     FilePtr in{ boost::nowide::fopen(filename.c_str(), "rb") };
     if (in.f == nullptr)
@@ -359,6 +361,83 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     FilePtr out{ boost::nowide::fopen(out_path.c_str(), "wb") };
     if (out.f == nullptr) {
         throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nCannot open file for writing.\n"));
+    }
+
+    // BBS: decrypt & encrypt
+    struct DecryptInput : DecryptInflate
+    {
+        FILE * f;
+        char * buffer = nullptr;
+        size_t left = 0;
+        std::vector<char> buffer2;
+        DecryptInput(FILE * f) : f(f) {}
+        size_t read(char * data, int len)
+        {
+            if (has_setup()) {
+                size_t n = std::min(buffer2.size(), (size_t)len);
+                if (n) {
+                    memcpy(data, buffer2.data(), n);
+                    buffer2.erase(buffer2.begin(), buffer2.begin() + n);
+                }
+                if (len == n || !f)
+                    return n;
+                left = len - n;
+                buffer = data + n;
+                n = left / 10;
+                std::vector<char> buffer3(n , 0);
+                int n2 = fread(buffer3.data(), 1, n, f); // TODO: 
+                if (n2 > 0) {
+                    update((unsigned char *)buffer3.data(), n2);
+                } else {
+                    f = nullptr;
+                    finalize();
+                }
+                return len - left;
+            }
+            return fread(data, 1, len, f);
+        }
+        virtual bool output(unsigned char const* data, int len) override
+        {
+            if (len <= left) {
+                memcpy(buffer, data, len);
+                left -= len;
+                buffer += len;
+                return true;
+            }
+            if (left) {
+                memcpy(buffer, data, left);
+                len -= left;
+                data += left;
+                left = 0;
+                buffer = nullptr;
+            }
+            buffer2.insert(buffer2.end(), (char *)data, (char *)data + len);
+            return true;
+        }
+    } decrypt(in.f);
+
+    struct EncryptOutput : DeflateEncrypt
+    {
+        FILE * f;
+        EncryptOutput(FILE * f) : f(f) {}
+        virtual bool update(unsigned char const* data, int len) override
+        {
+            if (has_setup()) {
+                return DeflateEncrypt::update(data, len);
+            }
+            output(data, len);
+            return true;
+        }
+        virtual bool output(unsigned char const* data, int len) override
+        {
+            return fwrite(data, 1, len, f) == len;
+        }
+    } encrypt(out.f);
+
+    if (key_store) {
+        auto filename2 = filename.substr(0, filename.length() - 4);
+        key_store->setup(filename2, decrypt, false);
+        key_store->setup(filename2, encrypt, true);
     }
 
     auto time_in_minutes = [](float time_in_seconds) {
@@ -560,8 +639,10 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     // helper function to write to disk
     size_t out_file_pos = 0;
     lines_ends.clear();
-    auto write_string = [&export_line, &out, &out_path, &out_file_pos, &lines_ends](const std::string& str) {
-        fwrite((const void*)export_line.c_str(), 1, export_line.length(), out.f);
+    auto write_string = [&export_line, &out, &encrypt, &out_path, &out_file_pos, &lines_ends](const std::string& str) {
+        // BBS: decrypt & encrypt
+        // fwrite((const void*)export_line.c_str(), 1, export_line.length(), out.f);
+        encrypt.update((unsigned char *) export_line.c_str(), export_line.length());
         if (ferror(out.f)) {
             out.close();
             boost::nowide::remove(out_path.c_str());
@@ -583,7 +664,9 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         // Line buffer.
         assert(gcode_line.empty());
         for (;;) {
-            size_t cnt_read = ::fread(buffer.data(), 1, buffer.size(), in.f);
+            // BBS: decrypt & encrypt
+            //size_t cnt_read = ::fread(buffer.data(), 1, buffer.size(), in.f);
+            size_t cnt_read = decrypt.read(buffer.data(), buffer.size());
             if (::ferror(in.f))
                 throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nError while reading from file.\n"));
             bool eof       = cnt_read == 0;
@@ -631,9 +714,15 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                 break;
         }
     }
-
     if (!export_line.empty())
         write_string(export_line);
+
+    // BBS: decrypt & encrypt
+    if (key_store) {
+        encrypt.finalize();
+        auto filename2 = filename.substr(0, filename.length() - 4);
+        key_store->finalize(filename2, encrypt);
+    }
 
     out.close();
     in.close();
@@ -1221,6 +1310,12 @@ static inline const char* remove_eols(const char *begin, const char *end) {
     return end;
 }
 
+// BBS: decrypt gcode
+void GCodeProcessor::set_key_store(std::shared_ptr<KeyStore> key_store)
+{
+    m_parser.set_key_store(key_store);
+}
+
 // Load a G-code into a stand-alone G-code viewer.
 // throws CanceledException through print->throw_if_canceled() (sent by the caller as callback).
 void GCodeProcessor::process_file(const std::string& filename, std::function<void()> cancel_callback)
@@ -1234,17 +1329,35 @@ void GCodeProcessor::process_file(const std::string& filename, std::function<voi
     // pre-processing
     // parse the gcode file to detect its producer
     {
-        m_parser.parse_file_raw(filename, [this](GCodeReader& reader, const char *begin, const char *end) {
+        // BBS: support encrypted gcode
+        std::string filename_config;
+        FilePtr config_out{ m_parser.get_key_store() ? boost::nowide::fopen((filename_config = filename + ".config").c_str(), "wb") : nullptr };
+        m_parser.parse_file_raw(filename, [this, &config_out](GCodeReader& reader, const char *begin, const char *end) {
             begin = skip_whitespaces(begin, end);
             if (begin != end && *begin == ';') {
                 // Comment.
+                if (config_out.f) {
+                    fwrite(begin, 1, end - begin, config_out.f);
+                    fputc('\n', config_out.f);
+                }
                 begin = skip_whitespaces(++ begin, end);
                 end   = remove_eols(begin, end);
-                if (begin != end && detect_producer(std::string_view(begin, end - begin)))
-                    m_parser.quit_parsing();
+                if (begin != end) {
+                    if (m_producer == EProducer::Unknown) {
+                        if (detect_producer(std::string_view(begin, end - begin))) {
+                            if (config_out.f && (m_producer == EProducer::BambuStudio || m_producer == EProducer::Slic3rPE || m_producer == EProducer::Slic3r))
+                                fwrite("\n\n", 1, 2, config_out.f);
+                            else
+                                m_parser.quit_parsing();
+                        }
+                    } else if (std::string(begin, end).find("bambuslicer_config = end") != std::string::npos) {
+                        m_parser.quit_parsing();
+                    }
+                }
             }
         });
         m_parser.reset();
+        config_out.close();
 
         // if the gcode was produced by BambuStudio,
         // extract the config from it
@@ -1254,7 +1367,10 @@ void GCodeProcessor::process_file(const std::string& filename, std::function<voi
             // Silently substitute unknown values by new ones for loading configurations from BambuStudio's own G-code.
             // Showing substitution log or errors may make sense, but we are not really reading many values from the G-code config,
             // thus a probability of incorrect substitution is low and the G-code viewer is a consumer-only anyways.
-            config.load_from_gcode_file(filename, ForwardCompatibilitySubstitutionRule::EnableSilent);
+            // BBS: support encrypted gcode
+            config.load_from_gcode_file(filename_config.empty() ? filename : filename_config, ForwardCompatibilitySubstitutionRule::EnableSilent);
+            if (!filename_config.empty())
+                boost::filesystem::remove(filename_config);
             apply_config(config);
         }
         else if (m_producer == EProducer::Simplify3D)
@@ -1336,8 +1452,9 @@ void GCodeProcessor::finalize(bool post_process)
     m_width_compare.output();
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
+    // BBS: decrypt & encrypt
     if (post_process)
-        m_time_processor.post_process(m_result.filename, m_result.moves, m_result.lines_ends);
+        m_time_processor.post_process(m_result.filename, m_parser.get_key_store(), m_result.moves, m_result.lines_ends);
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_result.time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_start_time).count();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS

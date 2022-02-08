@@ -301,6 +301,10 @@ void GCodeViewer::SequentialView::GCodeWindow::load_gcode(const std::string& fil
     if (m_file.is_open())
         return;
 
+    // BBS: not work for encrypt gcode
+    if (wxGetApp().plater()->model().get_key_store())
+        return;
+
     m_filename   = filename;
     m_lines_ends = std::move(lines_ends);
 
