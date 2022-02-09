@@ -18,11 +18,9 @@ namespace Slic3r {
 void GCodeWriter::apply_print_config(const PrintConfig &print_config)
 {
     this->config.apply(print_config, true);
-    m_extrusion_axis = get_extrusion_axis(this->config);
     m_single_extruder_multi_material = print_config.single_extruder_multi_material.value;
     bool is_marlin = print_config.gcode_flavor.value == gcfMarlinLegacy || print_config.gcode_flavor.value == gcfMarlinFirmware;
-    m_max_acceleration = std::lrint((is_marlin && print_config.machine_limits_usage.value == MachineLimitsUsage::EmitToGCode) ?
-        print_config.machine_max_acceleration_extruding.values.front() : 0);
+    m_max_acceleration = std::lrint(is_marlin ? print_config.machine_max_acceleration_extruding.values.front() : 0);
 }
 
 void GCodeWriter::set_extruders(std::vector<unsigned int> extruder_ids)
@@ -201,9 +199,9 @@ std::string GCodeWriter::reset_e(bool force)
         m_extruder->reset_E();
     }
 
-    if (! m_extrusion_axis.empty() && ! this->config.use_relative_e_distances) {
+    if (! this->config.use_relative_e_distances) {
         std::ostringstream gcode;
-        gcode << "G92 " << m_extrusion_axis << "0";
+        gcode << "G92 E0";
         if (this->config.gcode_comments) gcode << " ; reset extrusion distance";
         gcode << "\n";
         return gcode.str();
@@ -390,7 +388,7 @@ std::string GCodeWriter::extrude_to_xy(const Vec2d &point, double dE, const std:
 
     GCodeG1Formatter w;
     w.emit_xy(point_on_plate);
-    w.emit_e(m_extrusion_axis, m_extruder->E());
+    w.emit_e(m_extruder->E());
     w.emit_comment(this->config.gcode_comments, comment);
     return w.string();
 }
@@ -409,7 +407,7 @@ std::string GCodeWriter::extrude_arc_to_xy(const Vec2d& point, const Vec2d& cent
     GCodeG2G3Formatter w(is_ccw);
     w.emit_xy(point_on_plate);
     w.emit_ij(center_offset);
-    w.emit_e(m_extrusion_axis, m_extruder->E());
+    w.emit_e(m_extruder->E());
     w.emit_comment(this->config.gcode_comments, comment);
     return w.string();
 }
@@ -425,7 +423,7 @@ std::string GCodeWriter::extrude_to_xyz(const Vec3d &point, double dE, const std
 
     GCodeG1Formatter w;
     w.emit_xyz(point_on_plate);
-    w.emit_e(m_extrusion_axis, m_extruder->E());
+    w.emit_e(m_extruder->E());
     w.emit_comment(this->config.gcode_comments, comment);
     return w.string();
 }
@@ -459,23 +457,14 @@ std::string GCodeWriter::_retract(double length, double restart_extra, const std
         might be 0, in which case the retraction logic gets skipped. */
     if (this->config.use_firmware_retraction)
         length = 1;
-    
-    // If we use volumetric E values we turn lengths into volumes */
-    if (this->config.use_volumetric_e) {
-        double d = m_extruder->filament_diameter();
-        double area = d * d * PI/4;
-        length = length * area;
-        restart_extra = restart_extra * area;
-    }
-    
 
     std::string gcode;
     if (double dE = m_extruder->retract(length, restart_extra);  dE != 0) {
         if (this->config.use_firmware_retraction) {
             gcode = FLAVOR_IS(gcfMachinekit) ? "G22 ; retract\n" : "G10 ; retract\n";
-        } else if (! m_extrusion_axis.empty()) {
+        } else {
             GCodeG1Formatter w;
-            w.emit_e(m_extrusion_axis, m_extruder->E());
+            w.emit_e(m_extruder->E());
             w.emit_f(m_extruder->retract_speed() * 60.);
             w.emit_comment(this->config.gcode_comments, comment);
             gcode = w.string();
@@ -499,10 +488,10 @@ std::string GCodeWriter::unretract()
         if (this->config.use_firmware_retraction) {
             gcode += FLAVOR_IS(gcfMachinekit) ? "G23 ; unretract\n" : "G11 ; unretract\n";
             gcode += this->reset_e();
-        } else if (! m_extrusion_axis.empty()) {
+        } else {
             // use G1 instead of G0 because G0 will blend the restart with the previous travel move
             GCodeG1Formatter w;
-            w.emit_e(m_extrusion_axis, m_extruder->E());
+            w.emit_e(m_extruder->E());
             w.emit_f(m_extruder->deretract_speed() * 60.);
             w.emit_comment(this->config.gcode_comments, " ; unretract");
             gcode += w.string();

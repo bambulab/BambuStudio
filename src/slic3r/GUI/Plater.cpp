@@ -2140,7 +2140,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     //BBS: add bed_exclude_area
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
         "bed_shape", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "complete_objects", "duplicate_distance", "extruder_clearance_radius", "skirts", "skirt_distance",
-        "brim_width", "brim_separation", "brim_type", "variable_layer_height", "nozzle_diameter", "single_extruder_multi_material",
+        "brim_width", "brim_separation", "brim_type", "nozzle_diameter", "single_extruder_multi_material",
         "wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_brim_width",
         "extruder_colour", "filament_colour", "material_colour", "max_print_height", "printer_model", "printer_technology",
         // These values are necessary to construct SlicingParameters by the Canvas3D variable layer height editor.
@@ -5735,7 +5735,7 @@ bool Plater::priv::layers_height_allowed() const
 
     int obj_idx = get_selected_object_idx();
     return 0 <= obj_idx && obj_idx < (int)model.objects.size() && model.objects[obj_idx]->bounding_box().max.z() > SINKING_Z_THRESHOLD &&
-        config->opt_bool("variable_layer_height") && view3D->is_layers_editing_allowed();
+        view3D->is_layers_editing_allowed();
 }
 
 bool Plater::priv::can_mirror() const
@@ -8507,12 +8507,6 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             // opt_key == "filament_minimal_purge_on_wipe_tower" // ? #ys_FIXME
             opt_key == "single_extruder_multi_material") {
             update_scheduled = true;
-        }
-        else if(opt_key == "variable_layer_height") {
-            if (p->config->opt_bool("variable_layer_height") != true) {
-                p->view3D->enable_layers_editing(false);
-                p->view3D->set_as_dirty();
-            }
         }
         else if(opt_key == "extruder_colour") {
             update_scheduled = true;

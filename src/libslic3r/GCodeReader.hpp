@@ -86,7 +86,7 @@ public:
     typedef std::function<void(GCodeReader&, const GCodeLine&)> callback_t;
     typedef std::function<void(GCodeReader&, const char*, const char*)> raw_line_callback_t;
     
-    GCodeReader() : m_verbose(false), m_extrusion_axis('E') { this->reset(); }
+    GCodeReader() : m_verbose(false) { this->reset(); }
     void reset() { memset(m_position, 0, sizeof(m_position)); }
     void apply_config(const GCodeConfig &config);
     void apply_config(const DynamicPrintConfig &config);
@@ -148,10 +148,6 @@ public:
     float& j()       { return m_position[J]; }
     float  j() const { return m_position[J]; }
 
-    // Returns 0 for gcfNoExtrusion.
-    char   extrusion_axis() const { return m_extrusion_axis; }
-//  void   set_extrusion_axis(char axis) { m_extrusion_axis = axis; }
-
 private:
     template<typename ParseLineCallback, typename LineEndCallback>
     bool        parse_file_raw_internal(const std::string &filename, ParseLineCallback parse_line_callback, LineEndCallback line_end_callback);
@@ -177,7 +173,6 @@ private:
     }
 
     GCodeConfig m_config;
-    char        m_extrusion_axis;
     float       m_position[NUM_AXES];
     bool        m_verbose;
     // To be set by the callback to stop parsing.

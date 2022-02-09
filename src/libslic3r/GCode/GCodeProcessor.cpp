@@ -337,7 +337,6 @@ void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks, floa
 void GCodeProcessor::TimeProcessor::reset()
 {
     extruder_unloaded = true;
-    export_remaining_time_enabled = false;
     machine_envelope_processing_enabled = false;
     machine_limits = MachineEnvelopeConfig();
     filament_load_times = std::vector<float>();
@@ -424,8 +423,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         std::string ret;
         if (line.length() > 1) {
             line = line.substr(1);
-            if (export_remaining_time_enabled &&
-                (line == reserved_tag(ETags::First_Line_M73_Placeholder) || line == reserved_tag(ETags::Last_Line_M73_Placeholder))) {
+            if (line == reserved_tag(ETags::First_Line_M73_Placeholder) || line == reserved_tag(ETags::Last_Line_M73_Placeholder)) {
                 for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
                     const TimeMachine& machine = machines[i];
                     if (machine.enabled) {
@@ -496,61 +494,59 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         &export_line]
         (const size_t g1_lines_counter) {
         unsigned int exported_lines_count = 0;
-        if (self.export_remaining_time_enabled) {
-            for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
-                const TimeMachine& machine = self.machines[i];
-                if (machine.enabled) {
-                    // export pair <percent, remaining time>
-                    // Skip all machine.g1_times_cache below g1_lines_counter.
-                    auto& it = g1_times_cache_it[i];
-                    while (it != machine.g1_times_cache.end() && it->id < g1_lines_counter)
-                        ++it;
-                    if (it != machine.g1_times_cache.end() && it->id == g1_lines_counter) {
-                        std::pair<int, int> to_export_main = { int(100.0f * it->elapsed_time / machine.time),
-                                                               time_in_minutes(machine.time - it->elapsed_time) };
-                        if (last_exported_main[i] != to_export_main) {
-                            export_line += format_line_M73_main(machine.line_m73_main_mask.c_str(),
-                                to_export_main.first, to_export_main.second);
-                            last_exported_main[i] = to_export_main;
-                            ++exported_lines_count;
-                        }
-                        // export remaining time to next printer stop
-                        auto it_stop = std::upper_bound(machine.stop_times.begin(), machine.stop_times.end(), it->elapsed_time,
-                            [](float value, const TimeMachine::StopTime& t) { return value < t.elapsed_time; });
-                        if (it_stop != machine.stop_times.end()) {
-                            int to_export_stop = time_in_minutes(it_stop->elapsed_time - it->elapsed_time);
-                            if (last_exported_stop[i] != to_export_stop) {
-                                if (to_export_stop > 0) {
-                                    if (last_exported_stop[i] != to_export_stop) {
-                                        export_line += format_line_M73_stop_int(machine.line_m73_stop_mask.c_str(), to_export_stop);
-                                        last_exported_stop[i] = to_export_stop;
-                                        ++exported_lines_count;
-                                    }
+        for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
+            const TimeMachine& machine = self.machines[i];
+            if (machine.enabled) {
+                // export pair <percent, remaining time>
+                // Skip all machine.g1_times_cache below g1_lines_counter.
+                auto& it = g1_times_cache_it[i];
+                while (it != machine.g1_times_cache.end() && it->id < g1_lines_counter)
+                    ++it;
+                if (it != machine.g1_times_cache.end() && it->id == g1_lines_counter) {
+                    std::pair<int, int> to_export_main = { int(100.0f * it->elapsed_time / machine.time),
+                                                            time_in_minutes(machine.time - it->elapsed_time) };
+                    if (last_exported_main[i] != to_export_main) {
+                        export_line += format_line_M73_main(machine.line_m73_main_mask.c_str(),
+                            to_export_main.first, to_export_main.second);
+                        last_exported_main[i] = to_export_main;
+                        ++exported_lines_count;
+                    }
+                    // export remaining time to next printer stop
+                    auto it_stop = std::upper_bound(machine.stop_times.begin(), machine.stop_times.end(), it->elapsed_time,
+                        [](float value, const TimeMachine::StopTime& t) { return value < t.elapsed_time; });
+                    if (it_stop != machine.stop_times.end()) {
+                        int to_export_stop = time_in_minutes(it_stop->elapsed_time - it->elapsed_time);
+                        if (last_exported_stop[i] != to_export_stop) {
+                            if (to_export_stop > 0) {
+                                if (last_exported_stop[i] != to_export_stop) {
+                                    export_line += format_line_M73_stop_int(machine.line_m73_stop_mask.c_str(), to_export_stop);
+                                    last_exported_stop[i] = to_export_stop;
+                                    ++exported_lines_count;
                                 }
-                                else {
-                                    bool is_last = false;
-                                    auto next_it = it + 1;
-                                    is_last |= (next_it == machine.g1_times_cache.end());
+                            }
+                            else {
+                                bool is_last = false;
+                                auto next_it = it + 1;
+                                is_last |= (next_it == machine.g1_times_cache.end());
 
-                                    if (next_it != machine.g1_times_cache.end()) {
-                                        auto next_it_stop = std::upper_bound(machine.stop_times.begin(), machine.stop_times.end(), next_it->elapsed_time,
-                                            [](float value, const TimeMachine::StopTime& t) { return value < t.elapsed_time; });
-                                        is_last |= (next_it_stop != it_stop);
+                                if (next_it != machine.g1_times_cache.end()) {
+                                    auto next_it_stop = std::upper_bound(machine.stop_times.begin(), machine.stop_times.end(), next_it->elapsed_time,
+                                        [](float value, const TimeMachine::StopTime& t) { return value < t.elapsed_time; });
+                                    is_last |= (next_it_stop != it_stop);
 
-                                        std::string time_float_str = format_time_float(time_in_last_minute(it_stop->elapsed_time - it->elapsed_time));
-                                        std::string next_time_float_str = format_time_float(time_in_last_minute(it_stop->elapsed_time - next_it->elapsed_time));
-                                        is_last |= (string_to_double_decimal_point(time_float_str) > 0. && string_to_double_decimal_point(next_time_float_str) == 0.);
-                                    }
+                                    std::string time_float_str = format_time_float(time_in_last_minute(it_stop->elapsed_time - it->elapsed_time));
+                                    std::string next_time_float_str = format_time_float(time_in_last_minute(it_stop->elapsed_time - next_it->elapsed_time));
+                                    is_last |= (string_to_double_decimal_point(time_float_str) > 0. && string_to_double_decimal_point(next_time_float_str) == 0.);
+                                }
 
-                                    if (is_last) {
-                                        if (std::distance(machine.stop_times.begin(), it_stop) == static_cast<ptrdiff_t>(machine.stop_times.size() - 1))
-                                            export_line += format_line_M73_stop_int(machine.line_m73_stop_mask.c_str(), to_export_stop);
-                                        else
-                                            export_line += format_line_M73_stop_float(machine.line_m73_stop_mask.c_str(), time_in_last_minute(it_stop->elapsed_time - it->elapsed_time));
+                                if (is_last) {
+                                    if (std::distance(machine.stop_times.begin(), it_stop) == static_cast<ptrdiff_t>(machine.stop_times.size() - 1))
+                                        export_line += format_line_M73_stop_int(machine.line_m73_stop_mask.c_str(), to_export_stop);
+                                    else
+                                        export_line += format_line_M73_stop_float(machine.line_m73_stop_mask.c_str(), time_in_last_minute(it_stop->elapsed_time - it->elapsed_time));
 
-                                        last_exported_stop[i] = to_export_stop;
-                                        ++exported_lines_count;
-                                    }
+                                    last_exported_stop[i] = to_export_stop;
+                                    ++exported_lines_count;
                                 }
                             }
                         }
@@ -878,7 +874,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         m_result.filament_densities[i]  = static_cast<float>(config.filament_density.get_at(i));
     }
 
-    if ((m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware) && config.machine_limits_usage.value != MachineLimitsUsage::Ignore) {
+    if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware) {
         m_time_processor.machine_limits = reinterpret_cast<const MachineEnvelopeConfig&>(config);
         if (m_flavor == gcfMarlinLegacy) {
             // Legacy Marlin does not have separate travel acceleration, it uses the 'extruding' value instead.
@@ -909,9 +905,6 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         m_time_processor.machines[i].max_travel_acceleration = max_travel_acceleration;
         m_time_processor.machines[i].travel_acceleration = (max_travel_acceleration > 0.0f) ? max_travel_acceleration : DEFAULT_TRAVEL_ACCELERATION;
     }
-
-    m_time_processor.export_remaining_time_enabled = config.remaining_times.value;
-    m_use_volumetric_e = config.use_volumetric_e;
 
     const ConfigOptionFloatOrPercent* first_layer_height = config.option<ConfigOptionFloatOrPercent>("first_layer_height");
     if (first_layer_height != nullptr)
@@ -1045,12 +1038,7 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         }
     }
 
-    bool use_machine_limits = false;
-    const ConfigOptionEnum<MachineLimitsUsage>* machine_limits_usage = config.option<ConfigOptionEnum<MachineLimitsUsage>>("machine_limits_usage");
-    if (machine_limits_usage != nullptr)
-        use_machine_limits = machine_limits_usage->value != MachineLimitsUsage::Ignore;
-
-    if (use_machine_limits && (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware)) {
+    if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware) {
         const ConfigOptionFloats* machine_max_acceleration_x = config.option<ConfigOptionFloats>("machine_max_acceleration_x");
         if (machine_max_acceleration_x != nullptr)
             m_time_processor.machine_limits.machine_max_acceleration_x.values = machine_max_acceleration_x->values;
@@ -1145,10 +1133,6 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         }
     }
 
-    const ConfigOptionBool* use_volumetric_e = config.option<ConfigOptionBool>("use_volumetric_e");
-    if (use_volumetric_e != nullptr)
-        m_use_volumetric_e = use_volumetric_e->value;
-
     const ConfigOptionFloatOrPercent* first_layer_height = config.option<ConfigOptionFloatOrPercent>("first_layer_height");
     if (first_layer_height != nullptr)
         m_first_layer_height = std::abs(first_layer_height->value);
@@ -1216,7 +1200,6 @@ void GCodeProcessor::reset()
     m_result.reset();
     m_result.id = ++s_result_id;
 
-    m_use_volumetric_e = false;
     m_last_default_color_id = 0;
 
     m_options_z_corrector.reset();
@@ -2417,8 +2400,6 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         if (lineG1.has(Slic3r::Axis(axis))) {
             float lengthsScaleFactor = (m_units == EUnits::Inches) ? INCHES_TO_MM : 1.0f;
             float ret = lineG1.value(Slic3r::Axis(axis)) * lengthsScaleFactor;
-            if (axis == E && m_use_volumetric_e)
-                ret /= area_filament_cross_section;
             return is_relative ? m_start_position[axis] + ret : m_origin[axis] + ret;
         }
         else
@@ -2794,8 +2775,6 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
         if (lineG2_3.has(Slic3r::Axis(axis))) {
             float lengthsScaleFactor = (m_units == EUnits::Inches) ? INCHES_TO_MM : 1.0f;
             float ret = lineG2_3.value(Slic3r::Axis(axis)) * lengthsScaleFactor;
-            if (axis == E && m_use_volumetric_e)
-                ret /= area_filament_cross_section;
             if (axis == I)
                 return m_start_position[X] + ret;
             else if (axis == J)

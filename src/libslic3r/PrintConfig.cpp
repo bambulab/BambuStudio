@@ -59,13 +59,6 @@ static t_config_enum_values s_keys_map_GCodeFlavor {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GCodeFlavor)
 
-static t_config_enum_values s_keys_map_MachineLimitsUsage {
-    { "emit_to_gcode",      int(MachineLimitsUsage::EmitToGCode) },
-    { "time_estimate_only", int(MachineLimitsUsage::TimeEstimateOnly) },
-    { "ignore",             int(MachineLimitsUsage::Ignore) }
-};
-CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(MachineLimitsUsage)
-
 static t_config_enum_values s_keys_map_PrintHostType {
     { "prusalink",      htPrusaLink },
     { "octoprint",      htOctoPrint },
@@ -933,12 +926,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionPoints { Vec2d(0,0) });
 
-    def = this->add("extrusion_axis", coString);
-    def->label = L("Extrusion axis");
-    def->tooltip = L("Use this option to set the axis letter associated to your printer's extruder "
-                   "(usually E but some printers use A).");
-    def->set_default_value(new ConfigOptionString("E"));
-
     def = this->add("extrusion_multiplier", coFloats);
     def->label = L("Extrusion multiplier");
     def->tooltip = L("This factor changes the amount of flow proportionally. You may need to tweak "
@@ -986,15 +973,6 @@ void PrintConfigDef::init_fff_params()
     //BBS
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionStrings { "#29B2B2" });
-
-    def = this->add("filament_notes", coStrings);
-    def->label = L("Filament notes");
-    def->tooltip = L("You can put your notes regarding the filament here.");
-    def->multiline = true;
-    def->full_width = true;
-    def->height = 13;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionStrings { "" });
 
     def = this->add("filament_max_volumetric_speed", coFloats);
     def->label = L("Max volumetric speed");
@@ -1762,35 +1740,11 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionString(""));
 
-    def = this->add("remaining_times", coBool);
-    def->label = L("Supports remaining times");
-    def->tooltip = L("Emit M73 P[percent printed] R[remaining time in minutes] at 1 minute"
-                     " intervals into the G-code to let the firmware show accurate remaining time."
-                     " As of now only the Bambu i3 MK3 firmware recognizes M73."
-                     " Also the i3 MK3 firmware supports M73 Qxx Sxx for the silent mode.");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(false));
-
     def = this->add("silent_mode", coBool);
     def->label = L("Supports stealth mode");
     def->tooltip = L("The firmware supports stealth mode");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(true));
-
-    def = this->add("machine_limits_usage", coEnum);
-    def->label = L("How to apply limits");
-    def->full_label = L("Purpose of Machine Limits");
-    def->category = L("Machine limits");
-    def->tooltip = L("How to apply the Machine Limits");
-    def->enum_keys_map = &ConfigOptionEnum<MachineLimitsUsage>::get_enum_values();
-    def->enum_values.push_back("emit_to_gcode");
-    def->enum_values.push_back("time_estimate_only");
-    def->enum_values.push_back("ignore");
-    def->enum_labels.push_back(L("Emit to G-code"));
-    def->enum_labels.push_back(L("Use for time estimate"));
-    def->enum_labels.push_back(L("Ignore"));
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionEnum<MachineLimitsUsage>(MachineLimitsUsage::EmitToGCode));
 
     {
         struct AxisDefault {
@@ -2025,16 +1979,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
-    def = this->add("notes", coString);
-    def->label = L("Configuration notes");
-    def->tooltip = L("You can put here your personal notes. This text will be added to the G-code "
-                   "header comments.");
-    def->multiline = true;
-    def->full_width = true;
-    def->height = 13;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionString(""));
-
     def = this->add("nozzle_diameter", coFloats);
     def->label = L("Nozzle diameter");
     def->tooltip = L("This is the diameter of your extruder nozzle (for example: 0.5, 0.35 etc.)");
@@ -2195,15 +2139,6 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Type of the printer.");
     def->set_default_value(new ConfigOptionString());
     def->cli = ConfigOptionDef::nocli;
-
-    def = this->add("printer_notes", coString);
-    def->label = L("Printer notes");
-    def->tooltip = L("You can put your notes regarding the printer here.");
-    def->multiline = true;
-    def->full_width = true;
-    def->height = 13;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("printer_vendor", coString);
     def->label = L("Printer vendor");
@@ -3268,26 +3203,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("use_volumetric_e", coBool);
-    def->label = L("Use volumetric E");
-    def->tooltip = L("This experimental setting uses outputs the E values in cubic millimeters "
-                   "instead of linear millimeters. If your firmware doesn't already know "
-                   "filament diameter(s), you can put commands like 'M200 D[filament_diameter_0] T0' "
-                   "in your start G-code in order to turn volumetric mode on and use the filament "
-                   "diameter associated to the filament selected in Slic3r. This is only supported "
-                   "in recent Marlin.");
-    //BBS
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(false));
-
-    def = this->add("variable_layer_height", coBool);
-    def->label = L("Enable variable layer height feature");
-    def->tooltip = L("Some printers or printer setups may have difficulties printing "
-                   "with a variable layer height. Enabled by default.");
-    //BBS
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(true));
-
     def = this->add("wipe", coBools);
     def->label = L("Wipe while retracting");
     def->tooltip = L("This flag will move the nozzle while retracting to minimize the possible blob "
@@ -3776,15 +3691,6 @@ void PrintConfigDef::init_sla_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1.));
-
-    def = this->add("material_notes", coString);
-    def->label = L("SLA print material notes");
-    def->tooltip = L("You can put your notes regarding the SLA print material here.");
-    def->multiline = true;
-    def->full_width = true;
-    def->height = 13;
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("material_vendor", coString);
     def->set_default_value(new ConfigOptionString(L("(Unknown)")));

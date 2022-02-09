@@ -15,8 +15,7 @@ Extruder::Extruder(unsigned int id, GCodeConfig *config, bool share_extruder) :
     
     // cache values that are going to be called often
     m_e_per_mm3 = this->extrusion_multiplier();
-    if (! m_config->use_volumetric_e)
-        m_e_per_mm3 /= this->filament_crossection();
+    m_e_per_mm3 /= this->filament_crossection();
 }
 
 double Extruder::extrude(double dE)
@@ -99,13 +98,9 @@ double Extruder::extruded_volume() const
     // BBS
     if (m_share_extruder) {
         // FIXME: need to count m_retracted for share extruder machine
-        return m_config->use_volumetric_e ?
-            m_absolute_E :
-            this->used_filament() * this->filament_crossection();
+        return this->used_filament() * this->filament_crossection();
     } else {
-        return m_config->use_volumetric_e ?
-            m_absolute_E + m_retracted :
-            this->used_filament() * this->filament_crossection();
+        return this->used_filament() * this->filament_crossection();
     }
 }
 
@@ -115,13 +110,9 @@ double Extruder::used_filament() const
     // BBS
     if (m_share_extruder) {
         // FIXME: need to count retracted length for share-extruder machine
-        return m_config->use_volumetric_e ?
-            this->extruded_volume() / this->filament_crossection() :
-            m_absolute_E;
+        return m_absolute_E;
     } else {
-        return m_config->use_volumetric_e ?
-            this->extruded_volume() / this->filament_crossection() :
-            m_absolute_E + m_retracted;
+        return m_absolute_E + m_retracted;
     }
 }
 

@@ -17,7 +17,7 @@ public:
     bool multiple_extruders;
     
     GCodeWriter() : 
-        multiple_extruders(false), m_extrusion_axis("E"), m_extruder(nullptr),
+        multiple_extruders(false), m_extruder(nullptr),
         m_single_extruder_multi_material(false),
         m_last_acceleration(0), m_max_acceleration(0), m_last_fan_speed(0),
         m_last_bed_temperature(0), m_last_bed_temperature_reached(true), 
@@ -27,8 +27,6 @@ public:
     Extruder*            extruder()             { return m_extruder; }
     const Extruder*      extruder()     const   { return m_extruder; }
 
-    // Returns empty string for gcfNoExtrusion.
-    std::string          extrusion_axis() const { return m_extrusion_axis; }
     void                 apply_print_config(const PrintConfig &print_config);
     // Extruders are expected to be sorted in an increasing order.
     void                 set_extruders(std::vector<unsigned int> extruder_ids);
@@ -88,7 +86,6 @@ public:
 private:
 	// Extruders are sorted by their ID, so that binary search is possible.
     std::vector<Extruder> m_extruders;
-    std::string     m_extrusion_axis;
     bool            m_single_extruder_multi_material;
     Extruder*       m_extruder;
     unsigned int    m_last_acceleration;
@@ -157,11 +154,8 @@ public:
         this->emit_axis('Z', z, XYZF_EXPORT_DIGITS);
     }
 
-    void emit_e(const std::string &axis, double v) {
-        if (! axis.empty()) {
-            // not gcfNoExtrusion
-            this->emit_axis(axis[0], v, E_EXPORT_DIGITS);
-        }
+    void emit_e(double v) {
+        this->emit_axis('E', v, E_EXPORT_DIGITS);
     }
 
     void emit_f(double speed) {

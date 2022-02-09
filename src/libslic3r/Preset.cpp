@@ -537,7 +537,7 @@ static std::vector<std::string> s_Preset_print_options {
     "support_material_synchronize_layers", "support_material_angle", "support_material_interface_layers", "support_material_bottom_interface_layers",
     "support_material_interface_pattern", "support_material_interface_spacing", "support_material_interface_contact_loops", 
     "support_material_contact_distance", "support_material_bottom_contact_distance",
-    "support_material_buildplate_only", "dont_support_bridges", "thick_bridges", "notes", "complete_objects", "extruder_clearance_radius",
+    "support_material_buildplate_only", "dont_support_bridges", "thick_bridges", "complete_objects", "extruder_clearance_radius",
     "gcode_comments", "gcode_label_objects", "output_filename_format", "post_process", "perimeter_extruder",
     "infill_extruder", "solid_infill_extruder", "support_material_extruder", "support_material_interface_extruder",
     "ooze_prevention", "standby_temperature_delta", "interface_shells", "extrusion_width", "first_layer_extrusion_width",
@@ -556,7 +556,7 @@ static std::vector<std::string> s_Preset_print_options {
 };
 
 static std::vector<std::string> s_Preset_filament_options {
-    "filament_colour", "filament_diameter", "filament_type", "filament_soluble", "filament_notes", "filament_max_volumetric_speed",
+    "filament_colour", "filament_diameter", "filament_type", "filament_soluble", "filament_max_volumetric_speed",
     "extrusion_multiplier", "filament_density", "filament_cost", "filament_spool_weight", "filament_loading_speed", "filament_loading_speed_start", "filament_load_time",
     "filament_unloading_speed", "filament_unloading_speed_start", "filament_unload_time", "filament_toolchange_delay", "filament_cooling_moves",
     "filament_cooling_initial_speed", "filament_cooling_final_speed", "filament_ramming_parameters", "filament_minimal_purge_on_wipe_tower",
@@ -585,16 +585,16 @@ static std::vector<std::string> s_Preset_machine_limits_options {
 static std::vector<std::string> s_Preset_printer_options {
     "printer_technology",
     "bed_shape", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "z_offset", "gcode_flavor", "use_relative_e_distances",
-    "use_firmware_retraction", "use_volumetric_e", "variable_layer_height",
+    "use_firmware_retraction",
     //FIXME the print host keys are left here just for conversion from the Printer preset to Physical Printer preset.
     "host_type", "print_host", "printhost_apikey", "printhost_cafile",
     "single_extruder_multi_material", "start_gcode", "end_gcode", "before_layer_gcode", "layer_gcode", "toolchange_gcode",
     "color_change_gcode", "pause_print_gcode", "template_custom_gcode",
-    "between_objects_gcode", "printer_vendor", "printer_model", "printer_variant", "printer_notes", "cooling_tube_retraction",
+    "between_objects_gcode", "printer_vendor", "printer_model", "printer_variant", "cooling_tube_retraction",
     "cooling_tube_length", "high_current_on_filament_swap", "parking_pos_retraction", "extra_loading_move", "max_print_height",
     "default_print_profile", "inherits",
-    "remaining_times", "silent_mode",
-    "machine_limits_usage", "thumbnails",
+    "silent_mode",
+    "thumbnails",
     // BBS
     "scan_first_layer", "enable_spaghetti_detector"
 };
@@ -661,7 +661,6 @@ static std::vector<std::string> s_Preset_sla_material_options {
     "material_correction_x",
     "material_correction_y",
     "material_correction_z",
-    "material_notes",
     "material_vendor",
     "material_print_speed",
     "default_sla_material_profile",
@@ -688,7 +687,6 @@ static std::vector<std::string> s_Preset_sla_printer_options {
     "min_initial_exposure_time", "max_initial_exposure_time",
     //FIXME the print host keys are left here just for conversion from the Printer preset to Physical Printer preset.
     "print_host", "printhost_apikey", "printhost_cafile",
-    "printer_notes",
     "inherits"
 };
 

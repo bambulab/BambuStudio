@@ -1255,21 +1255,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         [&file](const char* sz) { file.write(sz); },
         [&print]() { print.throw_if_canceled(); });
 
-    // Write notes (content of the Print Settings tab -> Notes)
-    {
-        std::list<std::string> lines;
-        boost::split(lines, print.config().notes.value, boost::is_any_of("\n"), boost::token_compress_off);
-        for (auto line : lines) {
-            // Remove the trailing '\r' from the '\r\n' sequence.
-            if (! line.empty() && line.back() == '\r')
-                line.pop_back();
-            file.write_format("; %s\n", line.c_str());
-        }
-        if (! lines.empty())
-            file.write("\n");
-    }
-    print.throw_if_canceled();
-
     // Write some terse information on the slicing parameters.
     const PrintObject *first_object         = print.objects().front();
     const double       layer_height         = first_object->config().layer_height.value;
@@ -1291,8 +1276,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     print.throw_if_canceled();
 
     // adds tags for time estimators
-    if (print.config().remaining_times.value)
-        file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::First_Line_M73_Placeholder).c_str());
+    file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::First_Line_M73_Placeholder).c_str());
 
     // Prepare the helper object for replacing placeholders in custom G-code and output filename.
     m_placeholder_parser = print.placeholder_parser();
@@ -1612,8 +1596,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write(m_writer.postamble());
 
     // adds tags for time estimators
-    if (print.config().remaining_times.value)
-        file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Last_Line_M73_Placeholder).c_str());
+    file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Last_Line_M73_Placeholder).c_str());
 
     print.throw_if_canceled();
 
@@ -1810,8 +1793,7 @@ static bool custom_gcode_sets_temperature(const std::string &gcode, const int mc
 // Do not process this piece of G-code by the time estimator, it already knows the values through another sources.
 void GCode::print_machine_envelope(GCodeOutputStream &file, Print &print)
 {
-    if ((print.config().gcode_flavor.value == gcfMarlinLegacy || print.config().gcode_flavor.value == gcfMarlinFirmware)
-     && print.config().machine_limits_usage.value == MachineLimitsUsage::EmitToGCode) {
+    if (print.config().gcode_flavor.value == gcfMarlinLegacy || print.config().gcode_flavor.value == gcfMarlinFirmware) {
         file.write_format("M201 X%d Y%d Z%d E%d ; sets maximum accelerations, mm/sec^2\n",
             int(print.config().machine_max_acceleration_x.values.front() + 0.5),
             int(print.config().machine_max_acceleration_y.values.front() + 0.5),
@@ -3248,9 +3230,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     // calculate extrusion length per distance unit
     double e_per_mm = m_writer.extruder()->e_per_mm3() * path.mm3_per_mm;
-    if (m_writer.extrusion_axis().empty())
-        // gcfNoExtrusion
-        e_per_mm = 0;
 
     double min_speed = double(m_config.min_print_speed.get_at(m_writer.extruder()->id()));
     // set speed

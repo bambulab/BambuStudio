@@ -77,7 +77,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "duplicate_distance",
         "end_gcode",
         "end_filament_gcode",
-        "extrusion_axis",
         "extruder_clearance_height_to_rod",
         "extruder_clearance_height_to_lid",
         "extruder_clearance_radius",
@@ -90,7 +89,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "filament_colour",
         "filament_diameter",
         "filament_density",
-        "filament_notes",
         "filament_cost",
         "filament_spool_weight",
         "first_layer_acceleration",
@@ -113,12 +111,10 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "max_volumetric_extrusion_rate_slope_positive",
         "max_volumetric_extrusion_rate_slope_negative",
 #endif /* HAS_PRESSURE_EQUALIZER */
-        "notes",
         "only_retract_when_crossing_perimeters",
         "output_filename_format",
         "perimeter_acceleration",
         "post_process",
-        "printer_notes",
         "retract_before_travel",
         "retract_before_wipe",
         "retract_layer_change",
@@ -141,8 +137,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "threads",
         "use_firmware_retraction",
         "use_relative_e_distances",
-        "use_volumetric_e",
-        "variable_layer_height",
         "wipe",
         // BBS
         "wipe_distance"
@@ -619,8 +613,6 @@ std::string Print::validate(std::string* warning) const
             return L("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).");
         if (m_config.ooze_prevention)
             return L("Ooze prevention is currently not supported with the wipe tower enabled.");
-        if (m_config.use_volumetric_e)
-            return L("The Wipe Tower currently does not support volumetric E (use_volumetric_e=0).");
         if (m_config.complete_objects && extruders.size() > 1)
             return L("The Wipe Tower is currently not supported for multimaterial sequential prints.");
         

@@ -262,9 +262,8 @@ std::string PresetHints::top_bottom_shell_thickness_explanation(const PresetBund
     double  top_solid_min_thickness        	= print_config.opt_float("top_solid_min_thickness");
     double  bottom_solid_min_thickness  	= print_config.opt_float("bottom_solid_min_thickness");
     double  layer_height                    = print_config.opt_float("layer_height");
-    bool    variable_layer_height			= printer_config.opt_bool("variable_layer_height");
     //FIXME the following line takes into account the 1st extruder only.
-    double  min_layer_height				= variable_layer_height ? Slicing::min_layer_height_from_nozzle(printer_config, 1) : layer_height;
+    double  min_layer_height				= Slicing::min_layer_height_from_nozzle(printer_config, 1);
 
 	if (layer_height <= 0.f) {
 		out += _utf8(L("Top / bottom shell thickness hint: Not available due to invalid layer height."));
@@ -281,7 +280,7 @@ std::string PresetHints::top_bottom_shell_thickness_explanation(const PresetBund
     	}
     	double top_shell_thickness_minimum = std::max(top_solid_min_thickness, top_solid_layers * min_layer_height);
         out += (boost::format(_utf8(L("Top shell is %1% mm thick for layer height %2% mm."))) % top_shell_thickness % layer_height).str();
-        if (variable_layer_height && top_shell_thickness_minimum < top_shell_thickness) {
+        if (top_shell_thickness_minimum < top_shell_thickness) {
         	out += " ";
 	        out += (boost::format(_utf8(L("Minimum top shell thickness is %1% mm."))) % top_shell_thickness_minimum).str();        	
         }
@@ -300,7 +299,7 @@ std::string PresetHints::top_bottom_shell_thickness_explanation(const PresetBund
     	}
     	double bottom_shell_thickness_minimum = std::max(bottom_solid_min_thickness, bottom_solid_layers * min_layer_height);
         out += (boost::format(_utf8(L("Bottom shell is %1% mm thick for layer height %2% mm."))) % bottom_shell_thickness % layer_height).str();
-        if (variable_layer_height && bottom_shell_thickness_minimum < bottom_shell_thickness) {
+        if (bottom_shell_thickness_minimum < bottom_shell_thickness) {
         	out += " ";
 	        out += (boost::format(_utf8(L("Minimum bottom shell thickness is %1% mm."))) % bottom_shell_thickness_minimum).str();        	
         }

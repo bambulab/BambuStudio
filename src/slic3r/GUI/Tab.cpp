@@ -1880,13 +1880,6 @@ void TabPrint::build()
         option.opt.height = 5;//50;
         optgroup->append_single_option_line(option);
 
-    page = add_options_page(L("Notes"), "printer.png");
-        optgroup = page->new_optgroup(L("Notes"), 0);
-        option = optgroup->get_option("notes");
-        option.opt.full_width = true;
-        option.opt.height = 25;//250;
-        optgroup->append_single_option_line(option);
-
     page = add_options_page(L("Dependencies"), "advanced.png");
         optgroup = page->new_optgroup(L("Profile dependencies"));
 
@@ -2255,7 +2248,6 @@ void TabFilament::build()
         });
 
         const int gcode_field_height = 15; // 150
-        const int notes_field_height = 25; // 250
 
     page = add_options_page(L("Custom G-code"), "cog");
         optgroup = page->new_optgroup(L("Start G-code"), 0);
@@ -2276,14 +2268,6 @@ void TabFilament::build()
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;// 150;
-        optgroup->append_single_option_line(option);
-
-    page = add_options_page(L("Notes"), "printer.png");
-        optgroup = page->new_optgroup(L("Notes"), 0);
-        optgroup->label_width = 0;
-        option = optgroup->get_option("filament_notes");
-        option.opt.full_width = true;
-        option.opt.height = notes_field_height;// 250;
         optgroup->append_single_option_line(option);
 
     page = add_options_page(L("Dependencies"), "advanced");
@@ -2552,7 +2536,6 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line(option);
 
         optgroup->append_single_option_line("silent_mode");
-        optgroup->append_single_option_line("remaining_times");
 
         optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value) {
             wxTheApp->CallAfter([this, opt_key, value]() {
@@ -2579,14 +2562,11 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Advanced"));
         optgroup->append_single_option_line("use_relative_e_distances");
         optgroup->append_single_option_line("use_firmware_retraction");
-        optgroup->append_single_option_line("use_volumetric_e");
-        optgroup->append_single_option_line("variable_layer_height");
         //BBS
         optgroup->append_single_option_line("scan_first_layer");
         optgroup->append_single_option_line("enable_spaghetti_detector");
 
     const int gcode_field_height = 15; // 150
-    const int notes_field_height = 25; // 250
     page = add_options_page(L("Custom G-code"), "cog");
         optgroup = page->new_optgroup(L("Start G-code"), 0);
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
@@ -2675,13 +2655,6 @@ void TabPrinter::build_fff()
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
 
-    page = add_options_page(L("Notes"), "printer.png");
-        optgroup = page->new_optgroup(L("Notes"), 0);
-        option = optgroup->get_option("printer_notes");
-        option.opt.full_width = true;
-        option.opt.height = notes_field_height;//250;
-        optgroup->append_single_option_line(option);
-
     page = add_options_page(L("Dependencies"), "advanced");
         optgroup = page->new_optgroup(L("Profile dependencies"));
 
@@ -2745,15 +2718,6 @@ void TabPrinter::build_sla()
 
     build_print_host_upload_group(page.get());
 
-    const int notes_field_height = 25; // 250
-
-    page = add_options_page(L("Notes"), "printer.png");
-    optgroup = page->new_optgroup(L("Notes"), 0);
-    option = optgroup->get_option("printer_notes");
-    option.opt.full_width = true;
-    option.opt.height = notes_field_height;//250;
-    optgroup->append_single_option_line(option);
-
     page = add_options_page(L("Dependencies"), "wrench.png");
     optgroup = page->new_optgroup(L("Profile dependencies"));
 
@@ -2801,15 +2765,6 @@ PageShp TabPrinter::build_kinematics_page()
     auto page = add_options_page(L("Machine limits"), "cog", true);
 
     auto optgroup = page->new_optgroup(L("General"));
-    {
-	    optgroup->append_single_option_line("machine_limits_usage");
-        Line line { "", "" };
-        line.full_width = 1;
-        line.widget = [this](wxWindow* parent) {
-            return description_line_widget(parent, &m_machine_limits_description_line);
-        };
-        optgroup->append_line(line);
-    }
 
     if (m_use_silent_mode) {
         // Legend for OptionsGroups
@@ -3149,8 +3104,6 @@ void TabPrinter::clear_pages()
 {
     Tab::clear_pages();
     m_reset_to_filament_color = nullptr;
-    //BBS: free the subwindow pointers
-    m_machine_limits_description_line = nullptr;
 }
 
 void TabPrinter::toggle_options()
@@ -3237,17 +3190,14 @@ void TabPrinter::toggle_options()
         toggle_option("retract_restart_extra_toolchange", have_multiple_extruders && toolchange_retraction, i);
     }
 
-    if (m_active_page->title() == "Machine limits" && m_machine_limits_description_line) {
+    if (m_active_page->title() == "Machine limits") {
         assert(m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlinLegacy
             || m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlinFirmware);
-		const auto *machine_limits_usage = m_config->option<ConfigOptionEnum<MachineLimitsUsage>>("machine_limits_usage");
-		bool enabled = machine_limits_usage->value != MachineLimitsUsage::Ignore;
         bool silent_mode = m_config->opt_bool("silent_mode");
         int  max_field = silent_mode ? 2 : 1;
     	for (const std::string &opt : Preset::machine_limits_options())
             for (int i = 0; i < max_field; ++ i)
-	            toggle_option(opt, enabled, i);
-        update_machine_limits_description(machine_limits_usage->value);
+	            toggle_option(opt, true, i);
     }
 }
 
@@ -4442,25 +4392,6 @@ bool Tab::validate_custom_gcodes()
     return valid;
 }
 
-void TabPrinter::update_machine_limits_description(const MachineLimitsUsage usage)
-{
-	wxString text;
-	switch (usage) {
-	case MachineLimitsUsage::EmitToGCode:
-		text = _L("Machine limits will be emitted to G-code and used to estimate print time.");
-		break;
-	case MachineLimitsUsage::TimeEstimateOnly:
-		text = _L("Machine limits will NOT be emitted to G-code, however they will be used to estimate print time, "
-			      "which may therefore not be accurate as the printer may apply a different set of machine limits.");
-		break;
-	case MachineLimitsUsage::Ignore:
-		text = _L("Machine limits are not set, therefore the print time estimate may not be accurate.");
-		break;
-	default: assert(false);
-	}
-    m_machine_limits_description_line->SetText(text);
-}
-
 void Tab::compatible_widget_reload(PresetDependencies &deps)
 {
     Field* field = this->get_field(deps.key_condition);
@@ -4781,14 +4712,6 @@ void TabSLAMaterial::build()
 
     optgroup->append_line(line);
 
-    page = add_options_page(L("Notes"), "printer.png");
-    optgroup = page->new_optgroup(L("Notes"), 0);
-    optgroup->label_width = 0;
-    Option option = optgroup->get_option("material_notes");
-    option.opt.full_width = true;
-    option.opt.height = 25;//250;
-    optgroup->append_single_option_line(option);
-
     page = add_options_page(L("Dependencies"), "wrench.png");
     optgroup = page->new_optgroup(L("Profile dependencies"));
 
@@ -4796,7 +4719,7 @@ void TabSLAMaterial::build()
         return compatible_widget_create(parent, m_compatible_printers);
     });
     
-    option = optgroup->get_option("compatible_printers_condition");
+    Option option = optgroup->get_option("compatible_printers_condition");
     option.opt.full_width = true;
     optgroup->append_single_option_line(option);
 

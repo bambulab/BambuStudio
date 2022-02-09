@@ -36,13 +36,6 @@ enum GCodeFlavor : unsigned char {
     gcfSmoothie, gcfNoExtrusion,
 };
 
-enum class MachineLimitsUsage {
-    EmitToGCode,
-    TimeEstimateOnly,
-    Ignore,
-    Count,
-};
-
 enum PrintHostType {
     htPrusaLink, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS
 };
@@ -143,7 +136,6 @@ enum DraftShield {
 
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PrinterTechnology)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(GCodeFlavor)
-CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(MachineLimitsUsage)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PrintHostType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(AuthorizationType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FuzzySkinType)
@@ -609,8 +601,6 @@ PRINT_CONFIG_CLASS_DEFINE(
 PRINT_CONFIG_CLASS_DEFINE(
     MachineEnvelopeConfig,
 
-    // Allowing the machine limits to be completely ignored or used just for time estimator.
-    ((ConfigOptionEnum<MachineLimitsUsage>, machine_limits_usage))
     // M201 X... Y... Z... E... [mm/sec^2]
     ((ConfigOptionFloats,               machine_max_acceleration_x))
     ((ConfigOptionFloats,               machine_max_acceleration_y))
@@ -649,7 +639,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                enable_arc_fitting))
     ((ConfigOptionString,              end_gcode))
     ((ConfigOptionStrings,             end_filament_gcode))
-    ((ConfigOptionString,              extrusion_axis))
     ((ConfigOptionFloats,              extrusion_multiplier))
     ((ConfigOptionFloats,              filament_diameter))
     ((ConfigOptionFloats,              filament_density))
@@ -706,26 +695,16 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               travel_speed_z))
     ((ConfigOptionBool,                use_firmware_retraction))
     ((ConfigOptionBool,                use_relative_e_distances))
-    ((ConfigOptionBool,                use_volumetric_e))
-    ((ConfigOptionBool,                variable_layer_height))
     ((ConfigOptionFloat,               cooling_tube_retraction))
     ((ConfigOptionFloat,               cooling_tube_length))
     ((ConfigOptionBool,                high_current_on_filament_swap))
     ((ConfigOptionFloat,               parking_pos_retraction))
-    ((ConfigOptionBool,                remaining_times))
     ((ConfigOptionBool,                silent_mode))
     ((ConfigOptionFloat,               extra_loading_move))
     ((ConfigOptionString,              color_change_gcode))
     ((ConfigOptionString,              pause_print_gcode))
     ((ConfigOptionString,              template_custom_gcode))
 )
-
-static inline std::string get_extrusion_axis(const GCodeConfig &cfg)
-{
-    return
-        ((cfg.gcode_flavor.value == gcfMach3) || (cfg.gcode_flavor.value == gcfMachinekit)) ? "A" :
-        (cfg.gcode_flavor.value == gcfNoExtrusion) ? "" : cfg.extrusion_axis.value;
-}
 
 // This object is mapped to Perl as Slic3r::Config::Print.
 PRINT_CONFIG_CLASS_DERIVED_DEFINE(
@@ -757,7 +736,6 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBools,              fan_always_on))
     ((ConfigOptionInts,               fan_below_layer_time))
     ((ConfigOptionStrings,            filament_colour))
-    ((ConfigOptionStrings,            filament_notes))
     ((ConfigOptionFloat,              first_layer_acceleration))
     ((ConfigOptionInts,               first_layer_bed_temperature))
     ((ConfigOptionFloatOrPercent,     first_layer_extrusion_width))
@@ -774,7 +752,6 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              max_print_height))
     ((ConfigOptionFloats,             min_print_speed))
     ((ConfigOptionFloat,              min_skirt_length))
-    ((ConfigOptionString,             notes))
     ((ConfigOptionFloats,             nozzle_diameter))
     ((ConfigOptionBool,               only_retract_when_crossing_perimeters))
     ((ConfigOptionBool,               ooze_prevention))
@@ -782,7 +759,6 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              perimeter_acceleration))
     ((ConfigOptionStrings,            post_process))
     ((ConfigOptionString,             printer_model))
-    ((ConfigOptionString,             printer_notes))
     ((ConfigOptionFloat,              resolution))
     ((ConfigOptionFloat,              gcode_resolution))
     ((ConfigOptionFloats,             retract_before_travel))
