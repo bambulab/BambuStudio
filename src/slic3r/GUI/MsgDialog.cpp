@@ -26,13 +26,13 @@ namespace GUI {
 
 
 MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, long style, wxBitmap bitmap)
-	: wxDialog(parent ? parent : dynamic_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+	: wxDialog(parent ? parent : dynamic_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, title, wxDefaultPosition, wxSize(360, -1),wxDEFAULT_DIALOG_STYLE)
 	, boldfont(wxGetApp().normal_font())
 	, content_sizer(new wxBoxSizer(wxVERTICAL))
 	, btn_sizer(new wxBoxSizer(wxHORIZONTAL))
 {
 	boldfont.SetWeight(wxFONTWEIGHT_BOLD);
-
+    this->SetBackgroundColour(0xFFFFFF);
     this->SetFont(wxGetApp().normal_font());
     this->CenterOnParent();
 
@@ -40,23 +40,24 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
 	auto *topsizer = new wxBoxSizer(wxHORIZONTAL);
 	auto *rightsizer = new wxBoxSizer(wxVERTICAL);
 
-	auto *headtext = new wxStaticText(this, wxID_ANY, headline);
-	headtext->SetFont(boldfont);
-    headtext->Wrap(CONTENT_WIDTH*wxGetApp().em_unit());
-	rightsizer->Add(headtext);
-	rightsizer->AddSpacer(VERT_SPACING);
+	//auto *headtext = new wxStaticText(this, wxID_ANY, headline);
+	//headtext->SetFont(boldfont);
+ //   headtext->Wrap(CONTENT_WIDTH*wxGetApp().em_unit());
+	//rightsizer->Add(headtext);
+	//rightsizer->AddSpacer(VERT_SPACING);
 
 	rightsizer->Add(content_sizer, 1, wxEXPAND);
-    btn_sizer->AddStretchSpacer();
 
 	logo = new wxStaticBitmap(this, wxID_ANY, bitmap.IsOk() ? bitmap : wxNullBitmap);
+    topsizer->Add(LOGO_SPACING, 0, 0, wxEXPAND, 0);
+	topsizer->Add(logo, 0, wxTOP, BORDER);
+    topsizer->Add(LOGO_GAP, 0, 0, wxEXPAND, 0);
+	topsizer->Add(rightsizer, 1, wxTOP | wxEXPAND, BORDER);
 
-	topsizer->Add(logo, 0, wxALL, BORDER);
-	topsizer->Add(rightsizer, 1, wxTOP | wxBOTTOM | wxRIGHT | wxEXPAND, BORDER);
+    btn_sizer->AddStretchSpacer();
 
     main_sizer->Add(topsizer, 1, wxEXPAND);
-    main_sizer->Add(new StaticLine(this), 0, wxEXPAND | wxLEFT | wxRIGHT, HORIZ_SPACING);
-    main_sizer->Add(btn_sizer, 0, wxALL | wxEXPAND, VERT_SPACING);
+    main_sizer->Add(btn_sizer, 0, wxBOTTOM | wxRIGHT | wxEXPAND, BORDER);
 
     apply_style(style);
 
@@ -65,33 +66,75 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
 
 void MsgDialog::SetButtonLabel(wxWindowID btn_id, const wxString& label, bool set_focus/* = false*/) 
 {
-    if (wxButton* btn = get_button(btn_id)) {
+    if (Button* btn = get_button(btn_id)) {
         btn->SetLabel(label);
         if (set_focus)
             btn->SetFocus();
     }
 }
 
-wxButton* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, const wxString& label/* = wxString()*/)
+Button* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, const wxString& label/* = wxString()*/)
 {
-    wxButton* btn = new wxButton(this, btn_id, label);
+    Button* btn = new Button(this, label);
+    btn->SetMinSize(wxSize(48, 24));
+    btn->SetCornerRadius(12);
+    StateColor btn_bg_green(
+        std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
+    );
+
+    StateColor btn_bd_green(
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
+    );
+
+    StateColor btn_text_green(
+        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)
+    );
+
+    StateColor btn_bg_white(
+        std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)
+    );
+
+    StateColor btn_bd_white(
+        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)
+    );
+
+    StateColor btn_text_white(
+        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)
+    );
+
+    if (btn_id == wxID_OK || btn_id == wxID_YES) {
+        btn->SetBackgroundColor(btn_bg_green);
+        btn->SetBorderColor(btn_bd_green);
+        btn->SetTextColor(btn_text_green);
+    }
+
+    if (btn_id == wxID_CANCEL || btn_id == wxID_NO) {
+        btn->SetBackgroundColor(btn_bg_white);
+        btn->SetBorderColor(btn_bd_white);
+        btn->SetTextColor(btn_text_white);
+    }
+
     if (set_focus)
         btn->SetFocus();
-    btn_sizer->Add(btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, HORIZ_SPACING);
+    btn_sizer->Add(btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_SPACING);
     btn->Bind(wxEVT_BUTTON, [this, btn_id](wxCommandEvent&) { this->EndModal(btn_id); });
     return btn;
 };
 
-wxButton* MsgDialog::get_button(wxWindowID btn_id){
-    return static_cast<wxButton*>(FindWindowById(btn_id, this));
+Button* MsgDialog::get_button(wxWindowID btn_id){
+    return static_cast<Button*>(FindWindowById(btn_id, this));
 }
 
 void MsgDialog::apply_style(long style)
 {
-    if (style & wxOK)       add_button(wxID_OK, true);
-    if (style & wxYES)      add_button(wxID_YES, true);
-    if (style & wxNO)       add_button(wxID_NO);
-    if (style & wxCANCEL)   add_button(wxID_CANCEL);
+    if (style & wxOK)       add_button(wxID_OK, true, wxT("OK"));
+    if (style & wxYES)      add_button(wxID_YES, true, wxT("Yes"));
+    if (style & wxNO)       add_button(wxID_NO, false,wxT("No"));
+    if (style & wxCANCEL)   add_button(wxID_CANCEL, false, wxT("Cancel"));
 
     logo->SetBitmap( create_scaled_bitmap(style & wxICON_WARNING        ? "exclamation" :
                                           style & wxICON_INFORMATION    ? "info"        :

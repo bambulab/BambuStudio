@@ -11,6 +11,7 @@
 #include <wx/richmsgdlg.h>
 #include <wx/textctrl.h>
 #include <wx/statline.h>
+#include "Widgets/Button.hpp"
 
 class wxBoxSizer;
 class wxCheckBox;
@@ -34,18 +35,20 @@ struct MsgDialog : wxDialog
 
 protected:
 	enum {
-		CONTENT_WIDTH = 70,//50,
-		CONTENT_MAX_HEIGHT = 60,
-		BORDER = 30,
-		VERT_SPACING = 15,
-		HORIZ_SPACING = 5,
+		BORDER = 20,
+		LOGO_SPACING = 35,
+		LOGO_GAP = 20,
+		CONTENT_WIDTH = 242,
+		CONTENT_MAX_HEIGHT = 60,//TO
+		BTN_SPACING = 20,
+		VERT_SPACING = 15,//TO
 	};
 
 	MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, long style = wxOK, wxBitmap bitmap = wxNullBitmap);
 	// returns pointer to created button
-	wxButton* add_button(wxWindowID btn_id, bool set_focus = false, const wxString& label = wxString());
+	Button* add_button(wxWindowID btn_id, bool set_focus = false, const wxString& label = wxString());
 	// returns pointer to found button or NULL
-	wxButton* get_button(wxWindowID btn_id);
+	Button* get_button(wxWindowID btn_id);
 	void apply_style(long style);
 	void finalize();
 
