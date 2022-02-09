@@ -52,7 +52,6 @@ struct PlateData
     bool locked;
 };
 
-
 const int EXPORT_STAGE_OPEN_3MF         = 0;
 const int EXPORT_STAGE_CONTENT_TYPES    = 1;
 const int EXPORT_STAGE_ADD_THUMBNAILS   = 2;
@@ -83,7 +82,6 @@ const int UPDATE_GCODE_RESULT           = 10;
 const int IMPORT_LOAD_CONFIG            = 11;
 const int IMPORT_LOAD_MODEL_OBJECTS     = 12;
 
-
 //BBS export 3mf progress
 typedef std::function<void(int export_stage, int current, int total, bool& cancel)> Export3mfProgressFn;
 typedef std::function<void(int import_stage, int current, int total, bool& cancel)> Import3mfProgressFn;
@@ -91,6 +89,25 @@ typedef std::function<void(int import_stage, int current, int total, bool& cance
 typedef std::vector<PlateData*> PlateDataPtrs;
 
 typedef std::map<int, PlateData*> PlateDataMaps;
+
+struct StoreParams
+{
+    const char* path;
+    Model* model = nullptr;
+    PlateDataPtrs plate_data_list;
+    std::vector<Preset*> project_presets;
+    DynamicPrintConfig* config;
+    std::vector<ThumbnailData*> thumbnail_data;
+    std::vector<ThumbnailData*> calibration_thumbnail_data;
+    bool fullpath_sources;
+    bool zip64 = true;
+    bool skip_static = false;
+    bool silence = true;
+    Export3mfProgressFn proFn = nullptr;
+
+    StoreParams() {}
+};
+
 
 //BBS: add plate data list related logic
 // add restore logic
@@ -101,7 +118,21 @@ extern bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSub
 // add backup logic
 // Save the given model and the config data contained in the given Print into a 3mf file.
 // The model could be modified during the export process if meshes are not repaired or have no shared vertices
-extern bool store_bbs_3mf(const char* path, Model* model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64 = true, bool skip_static = false, Export3mfProgressFn proFn = nullptr, bool silence = true);
+/*
+extern bool store_bbs_3mf(const char* path,
+                          Model* model,
+                          PlateDataPtrs& plate_data_list,
+                          std::vector<Preset*>& project_presets,
+                          const DynamicPrintConfig* config,
+                          bool fullpath_sources,
+                          const std::vector<ThumbnailData*>& thumbnail_data,
+                          bool zip64 = true,
+                          bool skip_static = false,
+                          Export3mfProgressFn proFn = nullptr,
+                          bool silence = true);
+*/
+
+extern bool store_bbs_3mf(StoreParams& store_params);
 
 extern void release_PlateData_list(PlateDataPtrs& plate_data_list);
 

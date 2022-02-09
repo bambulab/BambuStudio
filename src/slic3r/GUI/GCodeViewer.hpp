@@ -3,6 +3,7 @@
 
 #include "3DScene.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
+#include "libslic3r/GCode/ThumbnailData.hpp"
 #include "GLModel.hpp"
 
 #include <boost/iostreams/device/mapped_file.hpp>
@@ -755,6 +756,10 @@ public:
     void set_shells_on_preview(bool is_previewing) { m_shells.previewing = is_previewing; }
     //BBS: GUI refactor: add canvas width and height
     void render(int canvas_width, int canvas_height);
+    //BBS 
+    void _render_calibration_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params);
+    void _render_calibration_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params);
+    void render_calibration_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params);
 
     bool has_data() const { return !m_roles.empty(); }
     bool can_export_toolpaths() const;

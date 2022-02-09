@@ -933,6 +933,339 @@ void GCodeViewer::render(int canvas_width, int canvas_height)
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 }
 
+#define ENABLE_CALIBRATION_THUMBNAIL_OUTPUT 0
+#if ENABLE_CALIBRATION_THUMBNAIL_OUTPUT
+static void debug_calibration_output_thumbnail(const ThumbnailData& thumbnail_data)
+{
+    // debug export of generated image
+    wxImage image(thumbnail_data.width, thumbnail_data.height);
+    image.InitAlpha();
+
+    for (unsigned int r = 0; r < thumbnail_data.height; ++r)
+    {
+        unsigned int rr = (thumbnail_data.height - 1 - r) * thumbnail_data.width;
+        for (unsigned int c = 0; c < thumbnail_data.width; ++c)
+        {
+            unsigned char* px = (unsigned char*)thumbnail_data.pixels.data() + 4 * (rr + c);
+            image.SetRGB((int)c, (int)r, px[0], px[1], px[2]);
+            image.SetAlpha((int)c, (int)r, px[3]);
+        }
+    }
+
+    image.SaveFile("D:/calibrate.png", wxBITMAP_TYPE_PNG);
+}
+#endif
+
+void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params)
+{
+    int plate_idx = thumbnail_params.plate_id;
+    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+    BoundingBoxf3 plate_box = plate->get_bounding_box(false);
+    plate_box.min.z() = 0.0;
+    plate_box.max.z() = 0.0;
+
+    double near_z = -1.0;
+    double far_z = -1.0;
+
+#if 1
+    std::array<float, 4> light_intensity = { 0.75f, 0.75f, 0.75f, 0.75f };
+    Camera camera;
+    camera.apply_viewport(0,0,thumbnail_data.width, thumbnail_data.height);
+    camera.set_scene_box(plate_box);
+    camera.zoom_to_box(plate_box, 1.0f);
+    camera.select_view("top");
+    camera.set_type("1");
+    double zoom = camera.get_zoom();
+    const std::array<int, 4>& viewport = camera.get_viewport();
+    float near_plane_height = camera.get_type() == Camera::EType::Perspective ? static_cast<float>(viewport[3]) / (2.0f * static_cast<float>(2.0 * std::tan(0.5 * Geometry::deg2rad(camera.get_fov())))) :
+        static_cast<float>(viewport[3]) * 0.0005;
+
+    auto render_as_triangles = [
+#if ENABLE_GCODE_VIEWER_STATISTICS
+        this
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+    ](std::vector<RenderPath>::iterator it_path, std::vector<RenderPath>::iterator it_end, GLShaderProgram& shader, int uniform_color) {
+        for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
+            const RenderPath& path = *it;
+            // Some OpenGL drivers crash on empty glMultiDrawElements, see GH #7415.
+            assert(!path.sizes.empty());
+            assert(!path.offsets.empty());
+            glsafe(::glUniform4fv(uniform_color, 1, static_cast<const GLfloat*>(path.color.data())));
+            glsafe(::glMultiDrawElements(GL_TRIANGLES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
+#if ENABLE_GCODE_VIEWER_STATISTICS
+            ++m_statistics.gl_multi_triangles_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+        }
+    };
+
+    auto render_as_instanced_model = [
+#if ENABLE_GCODE_VIEWER_STATISTICS
+        this
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+    ](TBuffer& buffer, GLShaderProgram& shader) {
+        for (auto& range : buffer.model.instances.render_ranges.ranges) {
+            if (range.vbo == 0 && range.count > 0) {
+                glsafe(::glGenBuffers(1, &range.vbo));
+                glsafe(::glBindBuffer(GL_ARRAY_BUFFER, range.vbo));
+                glsafe(::glBufferData(GL_ARRAY_BUFFER, range.count * buffer.model.instances.instance_size_bytes(), (const void*)&buffer.model.instances.buffer[range.offset * buffer.model.instances.instance_size_floats()], GL_STATIC_DRAW));
+                glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+            }
+
+            if (range.vbo > 0) {
+                buffer.model.model.set_color(-1, range.color);
+                buffer.model.model.render_instanced(range.vbo, range.count);
+#if ENABLE_GCODE_VIEWER_STATISTICS
+                ++m_statistics.gl_instanced_models_calls_count;
+                m_statistics.total_instances_gpu_size += static_cast<int64_t>(range.count * buffer.model.instances.instance_size_bytes());
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+            }
+        }
+    };
+
+#if ENABLE_GCODE_VIEWER_STATISTICS
+    auto render_as_batched_model = [this](TBuffer& buffer, GLShaderProgram& shader) {
+#else
+    auto render_as_batched_model = [](TBuffer& buffer, GLShaderProgram& shader) {
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+
+        struct Range
+        {
+            unsigned int first;
+            unsigned int last;
+            bool intersects(const Range& other) const { return (other.last < first || other.first > last) ? false : true; }
+        };
+        Range buffer_range = { 0, 0 };
+        size_t indices_per_instance = buffer.model.data.indices_count();
+
+        for (size_t j = 0; j < buffer.indices.size(); ++j) {
+            const IBuffer& i_buffer = buffer.indices[j];
+            buffer_range.last = buffer_range.first + i_buffer.count / indices_per_instance;
+            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
+            glsafe(::glVertexPointer(buffer.vertices.position_size_floats(), GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.position_offset_bytes()));
+            glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+            bool has_normals = buffer.vertices.normal_size_floats() > 0;
+            if (has_normals) {
+                glsafe(::glNormalPointer(GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.normal_offset_bytes()));
+                glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
+            }
+
+            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.ibo));
+
+            for (auto& range : buffer.model.instances.render_ranges.ranges) {
+                Range range_range = { range.offset, range.offset + range.count };
+                if (range_range.intersects(buffer_range)) {
+                    shader.set_uniform("uniform_color", range.color);
+                    unsigned int offset = (range_range.first > buffer_range.first) ? range_range.first - buffer_range.first : 0;
+                    size_t offset_bytes = static_cast<size_t>(offset) * indices_per_instance * sizeof(IBufferType);
+                    Range render_range = { std::max(range_range.first, buffer_range.first), std::min(range_range.last, buffer_range.last) };
+                    size_t count = static_cast<size_t>(render_range.last - render_range.first) * indices_per_instance;
+                    if (count > 0) {
+                        glsafe(::glDrawElements(GL_TRIANGLES, (GLsizei)count, GL_UNSIGNED_SHORT, (const void*)offset_bytes));
+#if ENABLE_GCODE_VIEWER_STATISTICS
+                        ++m_statistics.gl_batched_models_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+                    }
+                }
+            }
+
+            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
+            if (has_normals)
+                glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
+
+            glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
+            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+
+            buffer_range.first = buffer_range.last;
+        }
+    };
+
+    unsigned char begin_id = buffer_id(EMoveType::Retract);
+    unsigned char end_id = buffer_id(EMoveType::Count);
+
+    for (unsigned char i = begin_id; i < end_id; ++i) {
+        TBuffer& buffer = m_buffers[i];
+        if (!buffer.visible || !buffer.has_data())
+            continue;
+
+        GLShaderProgram* shader = wxGetApp().get_shader(buffer.shader.c_str());
+        if (shader != nullptr) {
+            shader->start_using();
+
+            if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::InstancedModel) {
+                shader->set_uniform("emission_factor", 0.25f);
+                render_as_instanced_model(buffer, *shader);
+                shader->set_uniform("emission_factor", 0.0f);
+            }
+            else if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::BatchedModel) {
+                shader->set_uniform("emission_factor", 0.25f);
+                render_as_batched_model(buffer, *shader);
+                shader->set_uniform("emission_factor", 0.0f);
+            }
+            else {
+                switch (buffer.render_primitive_type) {
+                default: break;
+                }
+                int uniform_color = shader->get_uniform_location("uniform_color");
+                auto it_path = buffer.render_paths.begin();
+                for (unsigned int ibuffer_id = 0; ibuffer_id < static_cast<unsigned int>(buffer.indices.size()); ++ibuffer_id) {
+                    const IBuffer& i_buffer = buffer.indices[ibuffer_id];
+                    // Skip all paths with ibuffer_id < ibuffer_id.
+                    for (; it_path != buffer.render_paths.end() && it_path->ibuffer_id < ibuffer_id; ++it_path);
+                    if (it_path == buffer.render_paths.end() || it_path->ibuffer_id > ibuffer_id)
+                        // Not found. This shall not happen.
+                        continue;
+
+                    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
+                    glsafe(::glVertexPointer(buffer.vertices.position_size_floats(), GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.position_offset_bytes()));
+                    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+                    bool has_normals = buffer.vertices.normal_size_floats() > 0;
+                    if (has_normals) {
+                        glsafe(::glNormalPointer(GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.normal_offset_bytes()));
+                        glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
+                    }
+
+                    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.ibo));
+
+                    // Render all elements with it_path->ibuffer_id == ibuffer_id, possible with varying colors.
+                    switch (buffer.render_primitive_type)
+                    {
+                    case TBuffer::ERenderPrimitiveType::Triangle: {
+                        render_as_triangles(it_path, buffer.render_paths.end(), *shader, uniform_color);
+                        break;
+                    }
+                    default: { break; }
+                    }
+
+                    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
+                    if (has_normals)
+                        glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
+
+                    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
+                    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+                }
+            }
+
+            shader->stop_using();
+        }
+    }
+#endif
+}
+
+void GCodeViewer::_render_calibration_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params)
+{
+    thumbnail_data.set(w, h);
+    if (!thumbnail_data.is_valid())
+        return;
+
+    //TODO bool multisample = m_multisample_allowed;
+    bool multisample = true;
+    if (!multisample)
+        glsafe(::glEnable(GL_MULTISAMPLE));
+
+    GLint max_samples;
+    glsafe(::glGetIntegerv(GL_MAX_SAMPLES, &max_samples));
+    GLsizei num_samples = max_samples / 2;
+
+    GLuint render_fbo;
+    glsafe(::glGenFramebuffers(1, &render_fbo));
+    glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, render_fbo));
+
+    GLuint render_tex = 0;
+    GLuint render_tex_buffer = 0;
+    if (multisample) {
+        // use renderbuffer instead of texture to avoid the need to use glTexImage2DMultisample which is available only since OpenGL 3.2
+        glsafe(::glGenRenderbuffers(1, &render_tex_buffer));
+        glsafe(::glBindRenderbuffer(GL_RENDERBUFFER, render_tex_buffer));
+        glsafe(::glRenderbufferStorageMultisample(GL_RENDERBUFFER, num_samples, GL_RGBA8, w, h));
+        glsafe(::glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, render_tex_buffer));
+    }
+    else {
+        glsafe(::glGenTextures(1, &render_tex));
+        glsafe(::glBindTexture(GL_TEXTURE_2D, render_tex));
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+        glsafe(::glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, render_tex, 0));
+    }
+
+    GLuint render_depth;
+    glsafe(::glGenRenderbuffers(1, &render_depth));
+    glsafe(::glBindRenderbuffer(GL_RENDERBUFFER, render_depth));
+    if (multisample)
+        glsafe(::glRenderbufferStorageMultisample(GL_RENDERBUFFER, num_samples, GL_DEPTH_COMPONENT24, w, h));
+    else
+        glsafe(::glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, w, h));
+
+    glsafe(::glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, render_depth));
+
+    GLenum drawBufs[] = { GL_COLOR_ATTACHMENT0 };
+    glsafe(::glDrawBuffers(1, drawBufs));
+
+
+    if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
+        // set m_layers_z_range to 0, 0
+        std::array<unsigned int, 2> tmp_layers_z_range = m_layers_z_range;
+        m_layers_z_range = {0 , 0};
+        refresh_render_paths(false, false);
+        _render_calibration_thumbnail_internal(thumbnail_data, thumbnail_params);
+        // reset m_layers_z_range
+        m_layers_z_range = tmp_layers_z_range;
+        refresh_render_paths(false, false);
+
+        if (multisample) {
+            GLuint resolve_fbo;
+            glsafe(::glGenFramebuffers(1, &resolve_fbo));
+            glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, resolve_fbo));
+
+            GLuint resolve_tex;
+            glsafe(::glGenTextures(1, &resolve_tex));
+            glsafe(::glBindTexture(GL_TEXTURE_2D, resolve_tex));
+            glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
+            glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+            glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+            glsafe(::glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, resolve_tex, 0));
+
+            glsafe(::glDrawBuffers(1, drawBufs));
+
+            if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
+                glsafe(::glBindFramebuffer(GL_READ_FRAMEBUFFER, render_fbo));
+                glsafe(::glBindFramebuffer(GL_DRAW_FRAMEBUFFER, resolve_fbo));
+                glsafe(::glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_LINEAR));
+
+                glsafe(::glBindFramebuffer(GL_READ_FRAMEBUFFER, resolve_fbo));
+                glsafe(::glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)thumbnail_data.pixels.data()));
+            }
+
+            glsafe(::glDeleteTextures(1, &resolve_tex));
+            glsafe(::glDeleteFramebuffers(1, &resolve_fbo));
+        }
+        else
+            glsafe(::glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)thumbnail_data.pixels.data()));
+    }
+#if ENABLE_CALIBRATION_THUMBNAIL_OUTPUT
+     debug_calibration_output_thumbnail(thumbnail_data);
+#endif
+
+     glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, 0));
+     glsafe(::glDeleteRenderbuffers(1, &render_depth));
+     if (render_tex_buffer != 0)
+         glsafe(::glDeleteRenderbuffers(1, &render_tex_buffer));
+     if (render_tex != 0)
+         glsafe(::glDeleteTextures(1, &render_tex));
+     glsafe(::glDeleteFramebuffers(1, &render_fbo));
+
+    if (!multisample)
+        glsafe(::glDisable(GL_MULTISAMPLE));
+}
+
+//BBS
+void GCodeViewer::render_calibration_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params)
+{
+    _render_calibration_thumbnail_framebuffer(thumbnail_data, w, h, thumbnail_params);
+}
+
 bool GCodeViewer::can_export_toolpaths() const
 {
     return has_data() && m_buffers[buffer_id(EMoveType::Extrude)].render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle;

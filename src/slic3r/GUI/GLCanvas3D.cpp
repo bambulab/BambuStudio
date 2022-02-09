@@ -1821,6 +1821,12 @@ void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w,
     }
 }
 
+void GLCanvas3D::render_calibration_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params)
+{
+    //load current plate gcode
+    m_gcode_viewer.render_calibration_thumbnail(thumbnail_data, w, h, thumbnail_params);
+}
+
 //BBS
 void GLCanvas3D::select_curr_plate_all()
 {

@@ -2994,16 +2994,26 @@ namespace Slic3r {
         //BBS: add plate data related logic
 
         // add backup logic
-        bool save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64, bool skip_static, Export3mfProgressFn proFn = nullptr, bool silence = false);
+        //bool save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64, bool skip_static, Export3mfProgressFn proFn = nullptr, bool silence = false);
+
+        bool save_model_to_file(StoreParams& store_params);
         // add backup logic
         bool save_object_mesh(const std::string& filename, ModelObject& object);
 
     private:
         //BBS: add plate data related logic
-        bool _save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, const DynamicPrintConfig* config, const std::vector<ThumbnailData*>& thumbnail_data, Export3mfProgressFn proFn);
+        bool _save_model_to_file(const std::string& filename,
+            Model& model, PlateDataPtrs& plate_data_list,
+            std::vector<Preset*>& project_presets,
+            const DynamicPrintConfig* config,
+            const std::vector<ThumbnailData*>& thumbnail_data,
+            Export3mfProgressFn proFn,
+            const std::vector<ThumbnailData*>& calibration_data);
 
         bool _add_content_types_file_to_archive(mz_zip_archive& archive);
+
         bool _add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data, int index);
+        bool _add_calibration_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data, int index);
         bool _add_relationships_file_to_archive(mz_zip_archive& archive);
         bool _add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data, Export3mfProgressFn proFn = nullptr);
         bool _add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int& object_id, ModelObject& object, BuildItemsList& build_items, VolumeToOffsetsMap& volumes_offsets);
@@ -3039,6 +3049,7 @@ namespace Slic3r {
 
     //BBS: add plate data related logic
     // add backup logic
+    /*
     bool _BBS_3MF_Exporter::save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64, bool skip_static, Export3mfProgressFn proFn, bool silence)
     {
         clear_errors();
@@ -3050,11 +3061,33 @@ namespace Slic3r {
         boost::filesystem::remove(filename + ".tmp", ec);
         bool result = _save_model_to_file(filename + ".tmp", model,
                                             plate_data_list, project_presets, config,
-                                            thumbnail_data, proFn);
+                                            thumbnail_data, proFn, thumbnail_data);
         if (result) {
             boost::filesystem::rename(filename + ".tmp", filename, ec);
             if (!silence)
                 boost::filesystem::save_string_file(model.get_backup_path() + "/origin.txt", filename);
+        }
+        return result;
+    }
+    */
+
+    bool _BBS_3MF_Exporter::save_model_to_file(StoreParams& store_params)
+    {
+        clear_errors();
+        m_fullpath_sources = store_params.fullpath_sources;
+        m_zip64 = store_params.zip64;
+
+        m_skip_static = store_params.skip_static;
+        boost::system::error_code ec;
+        std::string filename = std::string(store_params.path);
+        boost::filesystem::remove(filename + ".tmp", ec);
+
+        bool result = _save_model_to_file(filename + ".tmp", *store_params.model, store_params.plate_data_list, store_params.project_presets, store_params.config,
+            store_params.thumbnail_data, store_params.proFn, store_params.calibration_thumbnail_data);
+        if (result) {
+            boost::filesystem::rename(filename + ".tmp", filename, ec);
+            if (!store_params.silence)
+                boost::filesystem::save_string_file(store_params.model->get_backup_path() + "/origin.txt", filename);
         }
         return result;
     }
@@ -3076,7 +3109,14 @@ namespace Slic3r {
     }
 
     //BBS: add plate data related logic
-    bool _BBS_3MF_Exporter::_save_model_to_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, const DynamicPrintConfig* config, const std::vector<ThumbnailData*>& thumbnail_data, Export3mfProgressFn proFn)
+    bool _BBS_3MF_Exporter::_save_model_to_file(const std::string& filename,
+        Model& model,
+        PlateDataPtrs& plate_data_list,
+        std::vector<Preset*>& project_presets,
+        const DynamicPrintConfig* config,
+        const std::vector<ThumbnailData*>& thumbnail_data,
+        Export3mfProgressFn proFn,
+        const std::vector<ThumbnailData*>& calibration_data)
     {
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
@@ -3130,6 +3170,28 @@ namespace Slic3r {
                 if (thumbnail_data[index]->is_valid())
                 {
                     if (!_add_thumbnail_file_to_archive(archive, *thumbnail_data[index], index)) {
+                        close_zip_writer(&archive);
+                        boost::filesystem::remove(filename);
+                        return false;
+                    }
+                }
+            }
+        }
+
+        //BBS add calibration thumbnail for each plate
+        if (!m_skip_static && thumbnail_data.size() > 0) {
+            // Adds the file Metadata/calibration_p[X].png.
+            for (unsigned int index = 0; index < calibration_data.size(); index++)
+            {
+                if (proFn) {
+                    proFn(EXPORT_STAGE_ADD_THUMBNAILS, index, calibration_data.size(), cb_cancel);
+                    if (cb_cancel)
+                        return false;
+                }
+
+                if (calibration_data[index]->is_valid())
+                {
+                    if (!_add_calibration_file_to_archive(archive, *calibration_data[index], index)) {
                         close_zip_writer(&archive);
                         boost::filesystem::remove(filename);
                         return false;
@@ -3364,6 +3426,7 @@ namespace Slic3r {
         return true;
     }
 
+
     bool _BBS_3MF_Exporter::_add_content_types_file_to_archive(mz_zip_archive& archive)
     {
         std::stringstream stream;
@@ -3393,6 +3456,26 @@ namespace Slic3r {
         void* png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)thumbnail_data.pixels.data(), thumbnail_data.width, thumbnail_data.height, 4, &png_size, MZ_DEFAULT_LEVEL, 1);
         if (png_data != nullptr) {
             std::string thumbnail_name = (boost::format("Metadata/plate_%1%.png") % (index + 1)).str();
+            res = mz_zip_writer_add_mem(&archive, thumbnail_name.c_str(), (const void*)png_data, png_size, MZ_DEFAULT_COMPRESSION);
+            mz_free(png_data);
+        }
+
+        if (!res) {
+            add_error("Unable to add thumbnail file to archive");
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add thumbnail file to archive\n");
+        }
+
+        return res;
+    }
+
+    bool _BBS_3MF_Exporter::_add_calibration_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data, int index)
+    {
+        bool res = false;
+
+        size_t png_size = 0;
+        void* png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)thumbnail_data.pixels.data(), thumbnail_data.width, thumbnail_data.height, 4, &png_size, MZ_DEFAULT_LEVEL, 1);
+        if (png_data != nullptr) {
+            std::string thumbnail_name = (boost::format("Metadata/plate_%1%_pattern_layer_0.png") % (index + 1)).str();
             res = mz_zip_writer_add_mem(&archive, thumbnail_name.c_str(), (const void*)png_data, png_size, MZ_DEFAULT_COMPRESSION);
             mz_free(png_data);
         }
@@ -4861,6 +4944,7 @@ bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstituti
 }
 
 //BBS: add plate data list related logic
+/*
 bool store_bbs_3mf(const char* path, Model* model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64, bool skip_static, Export3mfProgressFn proFn, bool silence)
 {
     // All export should use "C" locales for number formatting.
@@ -4871,6 +4955,24 @@ bool store_bbs_3mf(const char* path, Model* model, PlateDataPtrs& plate_data_lis
 
     _BBS_3MF_Exporter exporter;
     bool res = exporter.save_model_to_file(path, *model, plate_data_list, project_presets, config, fullpath_sources, thumbnail_data, zip64, skip_static, proFn, silence);
+    if (!res)
+        exporter.log_errors();
+
+    return res;
+}
+*/
+
+
+bool store_bbs_3mf(StoreParams& store_params)
+{
+    // All export should use "C" locales for number formatting.
+    CNumericLocalesSetter locales_setter;
+
+    if (store_params.path == nullptr || store_params.model == nullptr)
+        return false;
+
+    _BBS_3MF_Exporter exporter;
+    bool res = exporter.save_model_to_file(store_params);
     if (!res)
         exporter.log_errors();
 

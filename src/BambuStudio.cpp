@@ -1212,7 +1212,18 @@ bool CLI::export_project(Model *model, PlateDataPtrs &partplate_data, std::vecto
     bool success = false;
     std::vector<ThumbnailData*> thumbnails;
 
-    success = Slic3r::store_bbs_3mf(path.c_str(), model, partplate_data, project_presets, config, false, thumbnails);
+    StoreParams store_params;
+    store_params.path = path.c_str();
+    store_params.model = model;
+    store_params.plate_data_list = partplate_data;
+    store_params.project_presets = project_presets;
+    store_params.config = (DynamicPrintConfig*)config;
+    store_params.fullpath_sources = false;
+    store_params.thumbnail_data = thumbnails;
+    store_params.zip64 = true;
+    store_params.skip_static = false;
+
+    success = Slic3r::store_bbs_3mf(store_params);
 
     if (success)
         boost::nowide::cout << "File exported to " << path << std::endl;

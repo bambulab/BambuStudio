@@ -2069,6 +2069,8 @@ struct Plater::priv
     //BBS: add plate_id for thumbnail
     void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type);
     ThumbnailsList generate_thumbnails(const ThumbnailsParams& params, Camera::EType camera_type);
+    //BBS
+    void generate_calibration_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params);
 
     void bring_instance_forward() const;
 
@@ -5445,6 +5447,11 @@ ThumbnailsList Plater::priv::generate_thumbnails(const ThumbnailsParams& params,
     return thumbnails;
 }
 
+void Plater::priv::generate_calibration_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params)
+{
+    preview->get_canvas3d()->render_calibration_thumbnail(data, w, h, thumbnail_params);
+}
+
 wxString Plater::priv::get_project_filename(const wxString& extension) const
 {
     return m_project_filename.empty() ? "" : m_project_filename + extension;
@@ -7931,6 +7938,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
 
     //BBS: add plate logic for thumbnail generate
     std::vector<ThumbnailData*> thumbnails;
+    std::vector<ThumbnailData*> calibration_thumbnails;
     // BBS: backup
     if (!backup) {
         for (int i = 0; i < p->partplate_list.get_plate_count(); i++) {
@@ -7938,6 +7946,16 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
             const ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i };
             p->generate_thumbnail(*thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, thumbnail_params, Camera::EType::Ortho);
             thumbnails.push_back(thumbnail_data);
+        }
+
+        if (p->partplate_list.get_curr_plate()->is_slice_result_valid()) {
+            //BBS generate BBS calibration thumbnails
+            ThumbnailData* calibration_data = new ThumbnailData();
+            const ThumbnailsParams calibration_params = { {}, false, true, true, true, p->partplate_list.get_curr_plate_index() };
+            const int thumbnail_width = 2560;
+            const int thumbnail_height = 2560;
+            p->generate_calibration_thumbnail(*calibration_data, thumbnail_width, thumbnail_height, calibration_params);
+            calibration_thumbnails.push_back(calibration_data);
         }
     }
 
@@ -7954,7 +7972,23 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
     // BBS: backup
     PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
     std::vector<Preset*> project_presets = preset_bundle.get_current_project_embedded_presets();
-    if (Slic3r::store_bbs_3mf(path_u8.c_str(), &p->model, plate_data_list, project_presets, export_config ? &cfg : nullptr, full_pathnames, thumbnails, true /*zip64*/, backup, proFn, silence)) {
+
+
+    StoreParams store_params;
+    store_params.path  = path_u8.c_str();
+    store_params.model = &p->model;
+    store_params.plate_data_list = plate_data_list;
+    store_params.project_presets = project_presets;
+    store_params.config = export_config ? &cfg : nullptr;
+    store_params.thumbnail_data = thumbnails;
+    store_params.calibration_thumbnail_data = calibration_thumbnails;
+    store_params.proFn = proFn;
+    store_params.fullpath_sources = full_pathnames;
+    store_params.zip64 = true;
+    store_params.skip_static = backup;
+    store_params.silence = silence;
+    if (Slic3r::store_bbs_3mf(store_params)) {
+    //if (Slic3r::store_bbs_3mf(path_u8.c_str(), &p->model, plate_data_list, project_presets, export_config ? &cfg : nullptr, full_pathnames, thumbnails, true /*zip64*/, backup, proFn, silence)) {
         if (!silence) {
             // Success
             //p->statusbar()->set_status_text(format_wxstr(_L("3MF file exported to %s"), path));
@@ -7973,6 +8007,11 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
     for (unsigned int i = 0; i < thumbnails.size(); i++)
     {
         delete thumbnails[i];
+    }
+
+    for (unsigned int i = 0; i < calibration_thumbnails.size(); i++)
+    {
+        delete calibration_thumbnails[i];
     }
     thumbnails.clear();
     return 0;

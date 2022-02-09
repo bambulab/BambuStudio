@@ -1232,6 +1232,7 @@ namespace Slic3r {
         j["profile_config"] = false;
         j["profile_thumbnail"] = false;
         j["profile_gcode"] = false;
+        j["profile_pattern"] = true;
         if (!task->task_gcode_in_3mf.empty()) {
             j["profile_files"] = json::array({task->task_gcode_in_3mf});
         }
