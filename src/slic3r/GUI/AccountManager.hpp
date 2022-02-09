@@ -291,6 +291,8 @@ public:
     int request_user_unbind(std::string device_id, ResultFn fn);
     void clean_user_data();
     void user_check_report(int* query_task_id, bool* printable);
+    // put notification after upload a 3mf file
+    void put_notification(BBLProfile* profile, int &err_code, std::string &error);
 
     /* myBindList */
     std::mutex listMutex;
@@ -327,6 +329,8 @@ public:
     int request_task_id(BBLTask* task, ResultFn resFn = nullptr);
     // request a sub task id, project_id, profile_id -> subtask_id, sync
     int request_subtask_id(BBLSubTask* task, ResultFn resFn = nullptr);
+    // upload 3mf to oss
+    int upload_3mf_to_oss(BBLProfile* profile, ResultFn resFn, Http::ProgressFn proFn);
     // upload 3mf for project and profile
     int upload_3mf(BBLProfile* profile, ResultFn resFn = nullptr, Http::ProgressFn proFn = nullptr);
     // poll_3mf for project model only, sync

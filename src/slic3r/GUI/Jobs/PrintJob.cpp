@@ -1,5 +1,4 @@
 #include "PrintJob.hpp"
-
 #include "libslic3r/MTUtils.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -29,6 +28,7 @@ void PrintJob::on_exception(const std::exception_ptr &eptr)
 
 void PrintJob::process()
 {
+    wxString msg;
     int res = -1;
     Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
     Slic3r::DeviceManager* d  = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -54,9 +54,7 @@ void PrintJob::process()
     }
 
     // save project, profile, task, subtask info to local, default_output_file as project name
-    std::string project_name;
-    if (c->get_default_project())
-        std::string project_name = c->get_default_project()->project_name;
+    std::string project_name = wxGetApp().plater()->get_project_name().ToUTF8().data();
     BBLProject* project = new BBLProject(project_name, BBLProject::ProjectType::PROJECT_3MF);
     project->project_3mf_file = job_data._3mf_path.string();
     project->project_path = fs::path(project->project_3mf_file);
@@ -76,6 +74,7 @@ void PrintJob::process()
     BBLProfile* profile = new BBLProfile(project);
     // set current print preset to profile_name
     profile->profile_name = wxGetApp().preset_bundle->prints.get_selected_preset_name();
+    profile->upload_filename = project->project_path.filename().string();
     
     BOOST_LOG_TRIVIAL(trace) << "print_job: request profile id";
     res = c->request_profile_id(profile,
@@ -103,9 +102,9 @@ void PrintJob::process()
         return;
     }
 
-    /* upload and poll */
+    /* upload and poll */    
     BOOST_LOG_TRIVIAL(trace) << "print_job: start to uploading...";
-    res = c->upload_3mf(profile,
+    res = c->upload_3mf_to_oss(profile,
         //ResultFn
         [this](int result, std::string info) {
             if (result == 0) {
@@ -141,9 +140,13 @@ void PrintJob::process()
         return;
     }
 
-    if (res < 0) {
-        update_status(10, "3mf uploading failed");
-        return;
+    /* put notifications */
+    int err_code;
+    std::string err_msg;
+    c->put_notification(profile, err_code, err_msg);
+    if (err_code != 0) {
+        msg = wxString::Format("error code: %d, error msg: %s", err_code, err_msg);
+        update_status(10, msg);
     }
 
     /* create Task */
@@ -181,7 +184,7 @@ void PrintJob::process()
 
             subTask->task_partplate_idx = std::to_string(curr_plate_idx);
             subTask->task_printer_dev_id = m_dev_id;
-            subTask->task_name = (boost::format("%1%_P%2%") % project->project_name % curr_plate_idx).str();
+            subTask->task_name = (boost::format(SUBTASK_NAME_FORMAT) % project->project_name % curr_plate_idx).str();
 
             task->subtasks.push_back(subTask);
 
@@ -213,7 +216,7 @@ void PrintJob::process()
         subTask->task_gcode_in_3mf = (boost::format(GCODE_FILE_FORMAT) % (curr_plate_idx)).str();
         subTask->task_partplate_idx = std::to_string(curr_plate_idx);
         subTask->task_printer_dev_id = m_dev_id;
-        subTask->task_name = (boost::format("%1%_P%2%_T%3%") % profile->profile_name % curr_plate_idx % total_subtask_num).str();
+        subTask->task_name = (boost::format(SUBTASK_NAME_FORMAT) % project->project_name % curr_plate_idx).str();
 
         task->subtasks.push_back(subTask);
 

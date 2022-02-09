@@ -617,6 +617,37 @@ namespace Slic3r {
             .perform_sync();
     }
 
+    void AccountManager::put_notification(BBLProfile* profile, int &err_code, std::string &error)
+    {
+        std::string url = (boost::format("%1%/iot-service/api/user/notification") % host).str();
+        Http http = Http::put2(std::move(url));
+
+        json j;
+        j["upload"]["ticket"] = profile->upload_ticket;
+        j["upload"]["origin_file_name"] = profile->upload_filename;
+
+        http.header("accept", "application/json")
+            .header("Authorization", get_token_str())
+            .header("Content-Type", "application/json")
+            .set_post_body(j.dump())
+            .on_complete([&err_code, &error](std::string body, unsigned) {
+                BOOST_LOG_TRIVIAL(trace) << "user_put_notification: body = " << body;
+                json jj = json::parse(body);
+                try {
+                    std::string message = jj["message"].get<std::string>();
+                    if (!jj["code"].is_null())
+                        err_code = jj["code"].get<int>();
+                    if (!jj["error"].is_null())
+                        error = jj["error"].get<std::string>();
+                } catch(...) {
+                    ;
+                }
+            }).on_error([&error](std::string body, std::string error_str, unsigned status) {
+                error = (boost::format("status:%1%, body:%2%") % status % body).str();
+                BOOST_LOG_TRIVIAL(trace) << "user_put_notification: on_error" << error_str;
+            }).perform_sync();
+    }
+
     int AccountManager::user_register(std::string account, std::string password)
     {
         Http http = Http::post(std::move(_get_register_url()));
@@ -1329,29 +1360,27 @@ namespace Slic3r {
             .set_post_body(request_str)
             .on_complete(
                 [this, profile, resFn](std::string body, unsigned) {
-                    BOOST_LOG_TRIVIAL(trace) << "request profile id, body=" << body;
-                    std::stringstream ss(body);
-                    pt::ptree root;
-                    pt::read_json(ss, root);
-                    boost::optional<std::string> message = root.get_optional<std::string>("message");
-                    boost::optional<std::string> profile_id = root.get_optional<std::string>("profile_id");
-                    if (message.has_value()) {
-                        if (message.value().compare(MSG_SUCCESS) == 0) {
-                            if (profile_id.has_value()) {
-                                profile->profile_id = profile_id.value();
-                                if (resFn) {
-                                    resFn(0, "");
-                                }
-                                // success return
-                                return;
-                            }
-                        }
-                    }
+                    try {
+                        BOOST_LOG_TRIVIAL(trace) << "request profile id, body=" << body;
+                        json j = json::parse(body);
+                        std::string message = j["message"].get<std::string>();
 
-                    if (resFn) {
-                        resFn(-1, "get profile id failed! body=" + body);
+                        if (message == MSG_SUCCESS) {
+                            profile->profile_id = j["profile_id"].get<std::string>();
+                            profile->upload_url = j["upload_url"].get<std::string>();
+                            profile->upload_ticket = j["upload_ticket"].get<std::string>();
+                            if (resFn)
+                                resFn(0, "");
+                            return;
+                        }
+                        if (resFn) {
+                            resFn(-1, "get profile id failed! body=" + body);
+                        }
+                        return;
                     }
-                    return;
+                    catch(...) {
+                        ;
+                    }
                 }
             )
             .on_error(
@@ -1466,6 +1495,42 @@ namespace Slic3r {
             )
             .perform_sync();
         return 0;
+    }
+
+    int AccountManager::upload_3mf_to_oss(BBLProfile* profile, ResultFn resFn, Http::ProgressFn proFn)
+    {
+        if (!profile || !profile->project_) return -1;
+        int result = 0;
+
+        std::string upload_url = profile->upload_url;
+        Http http_put = Http::put2(upload_url);
+
+        boost::system::error_code ec;
+        boost::uintmax_t filesize = file_size(profile->project_->project_path, ec);
+
+        http_put.set_put_body(profile->project_->project_path)
+                .on_complete(
+                    [this, resFn, &result](std::string body, unsigned int status) {
+                        BOOST_LOG_TRIVIAL(trace) << "body = " << body << ", status = " << status;
+                        result = 0;
+                        if (resFn)
+                            resFn(0, "");
+                    }
+                )
+                .on_progress(proFn)
+                .on_error(
+                    [this, resFn, &result](std::string body, std::string error, unsigned status) {
+                        BOOST_LOG_TRIVIAL(info) << "create_project, upload project failed! body=" << body;
+                        if (resFn) {
+                            std::string info("upload project failed!");
+                            info += " body=" + body;
+                            resFn(-1, info);
+                        }
+                        result = -1;
+                    }
+                );
+        http_put.perform_sync();
+        return result;
     }
 
     int AccountManager::upload_3mf(BBLProfile* profile, ResultFn resFn, Http::ProgressFn proFn)

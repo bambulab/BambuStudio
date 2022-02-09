@@ -6644,7 +6644,7 @@ void Plater::import_model_id(const std::string& model_id, const std::string& pro
         msg = _L("prepare 3mf file...");
         BBLProfile* profile = new BBLProfile(project);
         profile->profile_id = profile_id;
-
+         
         c->poll_3mf(project, profile->profile_id,
             cancel,
             [&msg](std::string body, std::string error, unsigned int status)
@@ -6699,6 +6699,9 @@ void Plater::import_model_id(const std::string& model_id, const std::string& pro
                 download_ok = true;
             })
             .perform_sync();
+
+        // for break while
+        cont = false;
     });
 
     while(cont && cont_dlg) {
@@ -6870,6 +6873,12 @@ void Plater::refresh_print()
 }
 
 // BBS
+wxString Plater::get_project_name()
+{
+    return p->get_project_name();
+}
+
+//BBS
 void Plater::show_object_info()
 {
     p->show_object_info();

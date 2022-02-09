@@ -10,6 +10,9 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem.hpp>
 
+
+#define SUBTASK_NAME_FORMAT     "%1%_P%2%"      // %1%: project name, %2% plate idx
+
 namespace fs = boost::filesystem;
 
 namespace Slic3r {
@@ -167,6 +170,9 @@ public:
     std::string             profile_name;
     std::string             profile_content;
     std::string             project_id;         /* parent project_id */
+    std::string             upload_url;         /* url for upload 3mf */
+    std::string             upload_ticket;      /* ticket for notification */
+    std::string             upload_filename;    /* filename of uploaded */
     BBLProject*             project_;
     std::map<std::string, BBLSliceInfo*>    slice_info; /* key: plate_idx, start at 1, 2, 3, etc. */
     BBLSliceInfo* get_slice_info(std::string plate_idx);

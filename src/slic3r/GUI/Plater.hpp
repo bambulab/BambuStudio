@@ -225,6 +225,7 @@ public:
     void refresh_print();
 
     // BBS
+    wxString get_project_name();
     void show_object_info();
     void show_sliced_info(const bool show);
     void update_sliced_info();
