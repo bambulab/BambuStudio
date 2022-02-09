@@ -2267,9 +2267,20 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
         return;
     }
     // adds objects' volumes 
-    int object_id = 0;
+    // BBS: fix the issue that object_idx is not assigned as index of Model.objects array
+    int object_count = 0;
+    const ModelObjectPtrs& model_objs = wxGetApp().model().objects;
     for (const PrintObject* obj : print.objects()) {
         const ModelObject* model_obj = obj->model_object();
+
+        int object_idx = -1;
+        for (int idx = 0; idx < model_objs.size(); idx++) {
+            if (model_objs[idx]->id() == model_obj->id()) {
+                object_idx = idx;
+                break;
+            }
+        }
+        assert(object_idx != -1);
 
         std::vector<int> instance_ids(model_obj->instances.size());
         //BBS: only add the printable instance
@@ -2282,7 +2293,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
         instance_ids.resize(instance_index);
 
         size_t current_volumes_count = m_shells.volumes.volumes.size();
-        m_shells.volumes.load_object(model_obj, object_id, instance_ids, "object", initialized);
+        m_shells.volumes.load_object(model_obj, object_idx, instance_ids, "object", initialized);
 
         // adjust shells' z if raft is present
         const SlicingParameters& slicing_parameters = obj->slicing_parameters();
@@ -2294,7 +2305,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
             }
         }
 
-        ++object_id;
+        object_count++;
     }
 
     if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF) {
@@ -2337,7 +2348,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
     m_shells.print_id = print.id().id;
     m_shells.print_modify_count = print.get_modified_count();
     m_shells.previewing = true;
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": shell loaded, id change to %1%, modify_count %2%, object count %3%") % m_shells.print_id %m_shells.print_modify_count %object_id;
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": shell loaded, id change to %1%, modify_count %2%, object count %3%") % m_shells.print_id % m_shells.print_modify_count % object_count;
 }
 
 void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const
