@@ -2309,10 +2309,23 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
     }
 
     if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF) {
+        // BBS
         // adds wipe tower's volume
+        std::vector<int> print_extruders;
+        for (auto print_obj : print.objects()) {
+            ModelObject* mo = print_obj->model_object();
+            for (ModelVolume* mv : mo->volumes) {
+                std::vector<int> volume_extruders = mv->get_extruders();
+                print_extruders.insert(print_extruders.end(), volume_extruders.begin(), volume_extruders.end());
+            }
+        }
+        std::sort(print_extruders.begin(), print_extruders.end());
+        auto it_end = std::unique(print_extruders.begin(), print_extruders.end());
+        print_extruders.resize(std::distance(print_extruders.begin(), it_end));
+        int extruders_count = print_extruders.size();
+
         const double max_z = print.objects()[0]->model_object()->get_model()->bounding_box().max(2);
         const PrintConfig& config = print.config();
-        const size_t extruders_count = config.nozzle_diameter.size();
         if (extruders_count > 1 && config.wipe_tower && !config.complete_objects) {
             const float depth = print.wipe_tower_data(extruders_count).depth;
             const float brim_width = print.wipe_tower_data(extruders_count).brim_width;

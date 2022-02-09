@@ -764,8 +764,10 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              wipe_tower_rotation_angle))
     ((ConfigOptionFloat,              wipe_tower_brim_width))
     ((ConfigOptionFloat,              wipe_tower_bridging))
-    ((ConfigOptionFloats,             wiping_volumes_matrix))
-    ((ConfigOptionFloats,             wiping_volumes_extruders))
+    ((ConfigOptionFloats,             flush_volumes_matrix))
+    ((ConfigOptionFloats,             flush_volumes_vector))
+    // BBS: wipe tower is only used for priming
+    ((ConfigOptionFloat,              wiping_volume))
     ((ConfigOptionFloat,              z_offset))
 )
 

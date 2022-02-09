@@ -192,7 +192,13 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "wipe_tower_brim_width"
             || opt_key == "wipe_tower_bridging"
             || opt_key == "wipe_tower_no_sparse_layers"
-            || opt_key == "wiping_volumes_matrix"
+            || opt_key == "flush_volumes_matrix"
+            // BBS
+            || opt_key == "wiping_volume"
+            || opt_key == "parking_pos_retraction"
+            || opt_key == "cooling_tube_retraction"
+            || opt_key == "cooling_tube_length"
+            || opt_key == "extra_loading_move"
             || opt_key == "travel_speed"
             || opt_key == "travel_speed_z"
             || opt_key == "first_layer_speed"
@@ -1370,11 +1376,11 @@ const WipeTowerData& Print::wipe_tower_data(size_t extruders_cnt) const
 {
     // If the wipe tower wasn't created yet, make sure the depth and brim_width members are set to default.
     if (! is_step_done(psWipeTower) && extruders_cnt !=0) {
-
-        float width = float(m_config.wipe_tower_width);
-
-        // BBS: actual wiping is done above recycle bin, so reduce the estimated depth
-        const_cast<Print*>(this)->m_wipe_tower_data.depth = (200.f/width) * float(extruders_cnt - 1);
+        // BBS
+        double width = m_config.wipe_tower_width;
+        double layer_height = 0.08f; // hard code layer height
+        double wipe_volume = m_config.wiping_volume;
+        const_cast<Print*>(this)->m_wipe_tower_data.depth = wipe_volume * (extruders_cnt - 1) / (layer_height * width);
         const_cast<Print*>(this)->m_wipe_tower_data.brim_width = m_config.wipe_tower_brim_width;
     }
 
@@ -1388,12 +1394,16 @@ void Print::_make_wipe_tower()
         return;
 
     // Get wiping matrix to get number of extruders and convert vector<double> to vector<float>:
-    std::vector<float> wiping_matrix(cast<float>(m_config.wiping_volumes_matrix.values));
+    std::vector<float> flush_matrix(cast<float>(m_config.flush_volumes_matrix.values));
+
+    // BBS
+    const unsigned int number_of_extruders = (unsigned int)(sqrt(flush_matrix.size()) + EPSILON);
+#if 0
     // Extract purging volumes for each extruder pair:
     std::vector<std::vector<float>> wipe_volumes;
-    const unsigned int number_of_extruders = (unsigned int)(sqrt(wiping_matrix.size())+EPSILON);
     for (unsigned int i = 0; i<number_of_extruders; ++i)
-        wipe_volumes.push_back(std::vector<float>(wiping_matrix.begin()+i*number_of_extruders, wiping_matrix.begin()+(i+1)*number_of_extruders));
+        wipe_volumes.push_back(std::vector<float>(flush_matrix.begin()+i*number_of_extruders, flush_matrix.begin()+(i+1)*number_of_extruders));
+#endif
 
     // Let the ToolOrdering class know there will be initial priming extrusions at the start of the print.
     // BBS: priming logic is removed, so don't consider it in tool ordering
@@ -1441,7 +1451,8 @@ void Print::_make_wipe_tower()
     this->throw_if_canceled();
 
     // Initialize the wipe tower.
-    WipeTower wipe_tower(m_config, m_plate_index, m_origin, wipe_volumes, m_wipe_tower_data.tool_ordering.first_extruder());
+    // BBS: in BBL machine, wipe tower is only use to prime extruder. So just use a global wipe volume.
+    WipeTower wipe_tower(m_config, m_plate_index, m_origin, m_config.wiping_volume, m_wipe_tower_data.tool_ordering.first_extruder());
 
     //wipe_tower.set_retract();
     //wipe_tower.set_zhop();
@@ -1466,7 +1477,8 @@ void Print::_make_wipe_tower()
             for (const auto extruder_id : layer_tools.extruders) {
                 // BBS: priming logic is removed, so no need to do toolchange for first extruder
                 if (/*(first_layer && extruder_id == m_wipe_tower_data.tool_ordering.all_extruders().back()) || */extruder_id != current_extruder_id) {
-                    float volume_to_wipe = wipe_volumes[current_extruder_id][extruder_id];             // total volume to wipe after this toolchange
+                    // BBS: in BBL machine, wipe tower is only use to prime extruder. So just use a global wipe volume.
+                    float volume_to_wipe = m_config.wiping_volume;
                     // Not all of that can be used for infill purging:
                     volume_to_wipe -= (float)m_config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
 

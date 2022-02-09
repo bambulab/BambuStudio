@@ -2330,25 +2330,23 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         bool co = dynamic_cast<const ConfigOptionBool*>(m_config->option("complete_objects"))->value;
 
         if (extruders_count > 1 && wt && !co) {
-            // Height of a print (Show at least a slab)
-            double height = std::max(m_model->bounding_box().max(2), 10.0);
-            
-            
             for (int plate_id = 0; plate_id < n_plates; plate_id++) {
                 float x = dynamic_cast<const ConfigOptionFloats*>(m_config->option("wipe_tower_x"))->get_at(plate_id);
                 float y = dynamic_cast<const ConfigOptionFloats*>(m_config->option("wipe_tower_y"))->get_at(plate_id);
                 float w = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_width"))->value;
                 float a = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_rotation_angle"))->value;
+                // BBS
+                float v = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wiping_volume"))->value;
                 Vec3d plate_origin = ppl.get_plate(plate_id)->get_origin();
 
                 const Print* print = m_process->fff_print();
-
                 float depth = print->wipe_tower_data(extruders_count).depth;
                 float brim_width = print->wipe_tower_data(extruders_count).brim_width;
-
+                Vec3d wipe_tower_size = ppl.get_plate(plate_id)->estimate_wipe_tower_size(w, v);
                 int volume_idx_wipe_tower_new = m_volumes.load_wipe_tower_preview(
-                    1000 + plate_id, x + plate_origin(0), y + plate_origin(1), w, depth, (float)height, a,
-                    !print->is_step_done(psWipeTower), brim_width, m_initialized);
+                    1000 + plate_id, x + plate_origin(0), y + plate_origin(1),
+                    (float)wipe_tower_size(0), (float)wipe_tower_size(1), (float)wipe_tower_size(2), a,
+                    /*!print->is_step_done(psWipeTower)*/ true, brim_width, m_initialized);
                 int volume_idx_wipe_tower_old = volume_idxs_wipe_tower_old[plate_id];
                 if (volume_idx_wipe_tower_old != -1)
                     map_glvolume_old_to_new[volume_idx_wipe_tower_old] = volume_idx_wipe_tower_new;

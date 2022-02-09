@@ -31,8 +31,10 @@ namespace Slic3r {
 
 static std::vector<std::string> s_project_options {
     "colorprint_heights",
-    "wiping_volumes_extruders",
-    "wiping_volumes_matrix"
+    "flush_volumes_vector",
+    "flush_volumes_matrix",
+    // BBS
+    "wiping_volume"
 };
 
 //BBS: add BBL as default
@@ -1818,12 +1820,12 @@ void PresetBundle::update_multi_material_filament_presets()
     // Append the rest of filament presets.
     this->filament_presets.resize(num_extruders, this->filament_presets.empty() ? this->filaments.first_visible().name : this->filament_presets.back());
 
-    // Now verify if wiping_volumes_matrix has proper size (it is used to deduce number of extruders in wipe tower generator):
-    std::vector<double> old_matrix = this->project_config.option<ConfigOptionFloats>("wiping_volumes_matrix")->values;
+    // Now verify if flush_volumes_matrix has proper size (it is used to deduce number of extruders in wipe tower generator):
+    std::vector<double> old_matrix = this->project_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values;
     size_t old_number_of_extruders = size_t(sqrt(old_matrix.size())+EPSILON);
     if (num_extruders != old_number_of_extruders) {
             // First verify if purging volumes presets for each extruder matches number of extruders
-            std::vector<double>& extruders = this->project_config.option<ConfigOptionFloats>("wiping_volumes_extruders")->values;
+            std::vector<double>& extruders = this->project_config.option<ConfigOptionFloats>("flush_volumes_vector")->values;
             while (extruders.size() < 2*num_extruders) {
                 extruders.push_back(extruders.size()>1 ? extruders[0] : 50.);  // copy the values from the first extruder
                 extruders.push_back(extruders.size()>1 ? extruders[1] : 50.);
@@ -1842,7 +1844,7 @@ void PresetBundle::update_multi_material_filament_presets()
                 else
                     new_matrix.push_back( i==j ? 0. : extruders[2*i]+extruders[2*j+1]); // so it matches new extruder volumes
             }
-		this->project_config.option<ConfigOptionFloats>("wiping_volumes_matrix")->values = new_matrix;
+		this->project_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values = new_matrix;
     }
 }
 

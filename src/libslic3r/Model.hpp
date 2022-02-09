@@ -675,6 +675,10 @@ public:
     // List of mesh facets painted for MMU segmentation.
     FacetsAnnotation    mmu_segmentation_facets;
 
+    // BBS: quick access for volume extruders, 1 based
+    mutable std::vector<int> mmuseg_extruders;
+    mutable Timestamp        mmuseg_ts;
+
     // List of exterior faces
     FacetsAnnotation    exterior_facets;
 
@@ -697,6 +701,9 @@ public:
     int                 extruder_id() const;
 
     bool                is_splittable() const;
+
+    // BBS
+    std::vector<int>    get_extruders() const;
 
     // Split this volume, append the result to the object owning this volume.
     // Return the number of volumes created from this one.

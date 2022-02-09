@@ -275,7 +275,8 @@ public:
     GLVolume(float r = 1.f, float g = 1.f, float b = 1.f, float a = 1.f);
     GLVolume(const std::array<float, 4>& rgba) : GLVolume(rgba[0], rgba[1], rgba[2], rgba[3]) {}
 
-private:
+    // BBS
+protected:
     Geometry::Transformation m_instance_transformation;
     Geometry::Transformation m_volume_transformation;
     // BBS
@@ -502,8 +503,8 @@ public:
 
     void                set_range(double low, double high);
 
-    //BBS: add outline related logic
-    void                render(bool with_outline = false) const;
+    //BBS: add outline related logic and add virtual specifier
+    virtual void        render(bool with_outline = false) const;
 
     void                finalize_geometry(bool opengl_initialized) { this->indexed_vertex_array.finalize_geometry(opengl_initialized); }
     void                release_geometry() { this->indexed_vertex_array.release_geometry(); }
@@ -529,6 +530,18 @@ public:
     // Return an estimate of the memory held by GPU vertex buffers.
     size_t 				gpu_memory_used() const { return this->indexed_vertex_array.gpu_memory_used(); }
     size_t 				total_memory_used() const { return this->cpu_memory_used() + this->gpu_memory_used(); }
+};
+
+// BBS
+class GLWipeTowerVolume : public GLVolume {
+public:
+    GLWipeTowerVolume(const std::vector<std::array<float, 4>>& colors);
+    virtual void render(bool with_outline = false) const;
+
+    std::vector<GLIndexedVertexArray> iva_per_colors;
+
+private:
+    std::vector<std::array<float, 4>> m_colors;
 };
 
 typedef std::vector<GLVolume*> GLVolumePtrs;

@@ -194,13 +194,15 @@ public:
     ModelInstance* get_instance(int obj_id, int instance_id);
 
     Vec3d get_origin() { return m_origin; }
+    Vec3d estimate_wipe_tower_size(const double w, const double wipe_volume) const;
+    std::vector<int> get_extruders() const;
 
     /* instance related operations*/
     //judge whether instance is bound in plate or not
     bool contain_instance(int obj_id, int instance_id);
-    bool contain_instance_totally(ModelObject* object, int instance_id);
+    bool contain_instance_totally(ModelObject* object, int instance_id) const;
     //judge whether instance is totally included in plate or not
-    bool contain_instance_totally(int obj_id, int instance_id);
+    bool contain_instance_totally(int obj_id, int instance_id) const;
 
     //judge whether the plate's origin is at the left of instance or not
     bool is_left_top_of(int obj_id, int instance_id);

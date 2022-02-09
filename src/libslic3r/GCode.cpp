@@ -329,6 +329,15 @@ namespace Slic3r {
                 int new_filament_temp = full_config.temperature.get_at(new_extruder_id);
                 Vec3d nozzle_pos = gcode_writer.get_position();
 
+                std::vector<float> flush_matrix(cast<float>(full_config.flush_volumes_matrix.values));
+                const unsigned int number_of_extruders = (unsigned int)(sqrt(flush_matrix.size()) + EPSILON);
+                assert(previous_extruder_id < number_of_extruders);
+                assert(new_extruder_id < number_of_extruders);
+
+                float wipe_volume = flush_matrix[previous_extruder_id * number_of_extruders + new_extruder_id];
+                float filament_area = float((M_PI / 4.f) * pow(full_config.filament_diameter.get_at(new_extruder_id), 2));
+                float wipe_length = wipe_volume / filament_area;
+
                 config.set_key_value("max_layer_z", new ConfigOptionFloat(gcodegen.m_max_layer_z));
                 config.set_key_value("use_relative_e_distances", new ConfigOptionBool(full_config.use_relative_e_distances.value));
                 config.set_key_value("toolchange_count", new ConfigOptionInt((int)gcodegen.m_toolchange_count));
@@ -342,6 +351,8 @@ namespace Slic3r {
                 config.set_key_value("x_after_toolchange", new ConfigOptionFloat(start_pos(0)));
                 config.set_key_value("y_after_toolchange", new ConfigOptionFloat(start_pos(1)));
                 config.set_key_value("z_after_toolchange", new ConfigOptionFloat(nozzle_pos(2)));
+                config.set_key_value("first_flush_volume", new ConfigOptionFloat(wipe_length / 2.f));
+                config.set_key_value("second_flush_volume", new ConfigOptionFloat(wipe_length / 2.f));
             }
             toolchange_gcode_str = gcodegen.placeholder_parser_process("toolchange_gcode", toolchange_gcode, new_extruder_id, &config);
             check_add_eol(toolchange_gcode_str);
@@ -3601,13 +3612,33 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
 
     // BBS
     unsigned int fan_speed = m_writer.get_fan();
-    float old_retract_length = m_writer.extruder() != nullptr ? m_config.retract_length.get_at(m_writer.extruder()->id()) : 0;
     float new_retract_length = m_config.retract_length.get_at(extruder_id);
-    float old_retract_length_toolchange = m_writer.extruder() != nullptr ? m_config.retract_length_toolchange.get_at(m_writer.extruder()->id()) : 0;
     float new_retract_length_toolchange = m_config.retract_length_toolchange.get_at(extruder_id);
-    int old_filament_temp = m_writer.extruder() != nullptr ? m_config.temperature.get_at(m_writer.extruder()->id()) : 210;
     int new_filament_temp = m_config.temperature.get_at(extruder_id);
     Vec3d nozzle_pos = m_writer.get_position();
+    float old_retract_length, old_retract_length_toolchange, wipe_volume;
+    int old_filament_temp;
+
+    if (m_writer.extruder() != nullptr) {
+        std::vector<float> flush_matrix(cast<float>(m_config.flush_volumes_matrix.values));
+        const unsigned int number_of_extruders = (unsigned int)(sqrt(flush_matrix.size()) + EPSILON);
+        assert(m_writer.extruder()->id() < number_of_extruders);
+        assert(new_retract_length < number_of_extruders);
+
+        int previous_extruder_id = m_writer.extruder()->id();
+        old_retract_length = m_config.retract_length.get_at(previous_extruder_id);
+        old_retract_length_toolchange = m_config.retract_length_toolchange.get_at(previous_extruder_id);
+        old_filament_temp = m_config.temperature.get_at(previous_extruder_id);
+        wipe_volume = flush_matrix[previous_extruder_id * number_of_extruders + extruder_id];
+    }
+    else {
+        old_retract_length = 0.f;
+        old_retract_length_toolchange = 0.f;
+        old_filament_temp = 0;
+        wipe_volume = 0.f;
+    }
+    float filament_area = float((M_PI / 4.f) * pow(m_config.filament_diameter.get_at(extruder_id), 2));
+    float wipe_length = wipe_volume / filament_area;
 
     DynamicConfig dyn_config;
     dyn_config.set_key_value("previous_extruder", new ConfigOptionInt((int)(m_writer.extruder() != nullptr ? m_writer.extruder()->id() : -1)));
@@ -3627,6 +3658,8 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     dyn_config.set_key_value("x_after_toolchange", new ConfigOptionFloat(nozzle_pos(0)));
     dyn_config.set_key_value("y_after_toolchange", new ConfigOptionFloat(nozzle_pos(1)));
     dyn_config.set_key_value("z_after_toolchange", new ConfigOptionFloat(nozzle_pos(2)));
+    dyn_config.set_key_value("first_flush_volume", new ConfigOptionFloat(wipe_length / 2.f));
+    dyn_config.set_key_value("second_flush_volume", new ConfigOptionFloat(wipe_length / 2.f));
 
     // Process the custom toolchange_gcode.
     const std::string& toolchange_gcode = m_config.toolchange_gcode.value;

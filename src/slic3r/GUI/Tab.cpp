@@ -1809,6 +1809,7 @@ void TabPrint::build()
         //optgroup->append_single_option_line("wipe_tower_x");
         //optgroup->append_single_option_line("wipe_tower_y");
         optgroup->append_single_option_line("wipe_tower_width");
+        optgroup->append_single_option_line("wiping_volume");
 
         // BBS
 #if 0
@@ -2701,7 +2702,7 @@ void TabPrinter::extruders_count_changed(size_t extruders_count)
         is_count_changed = true;
     }
     else if (m_extruders_count == 1 &&
-             m_preset_bundle->project_config.option<ConfigOptionFloats>("wiping_volumes_matrix")->values.size()>1)
+             m_preset_bundle->project_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values.size()>1)
         m_preset_bundle->update_multi_material_filament_presets();
 
     /* This function should be call in any case because of correct updating/rebuilding

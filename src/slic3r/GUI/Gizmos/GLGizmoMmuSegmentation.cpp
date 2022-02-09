@@ -557,6 +557,8 @@ void GLGizmoMmuSegmentation::update_model_object()
         // BBS: backup
         Slic3r::save_object_mesh(*mo);
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+        // BBS
+        m_parent.post_event(SimpleEvent(EVT_GLCANVAS_FORCE_UPDATE));
     }
 }
 

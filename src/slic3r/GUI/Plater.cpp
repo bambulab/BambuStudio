@@ -509,8 +509,8 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
         m_wiping_dialog_button->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent& e)
         {
             auto &project_config = wxGetApp().preset_bundle->project_config;
-            const std::vector<double> &init_matrix = (project_config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values;
-            const std::vector<double> &init_extruders = (project_config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values;
+            const std::vector<double> &init_matrix = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
+            const std::vector<double> &init_extruders = (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values;
 
             const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
 
@@ -519,8 +519,8 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
             if (dlg.ShowModal() == wxID_OK) {
                 std::vector<float> matrix = dlg.get_matrix();
                 std::vector<float> extruders = dlg.get_extruders();
-                (project_config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values = std::vector<double>(matrix.begin(), matrix.end());
-                (project_config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values = std::vector<double>(extruders.begin(), extruders.end());
+                (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values = std::vector<double>(matrix.begin(), matrix.end());
+                (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values = std::vector<double>(extruders.begin(), extruders.end());
                 wxGetApp().plater()->update_project_dirty_from_presets();
                 wxPostEvent(parent, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, parent));
             }
@@ -996,6 +996,7 @@ Sidebar::Sidebar(Plater *parent)
 
     scrolled_sizer->Add(p->m_panel_filament_content, 0, wxALL | wxEXPAND, 0);
 
+    // BBS
     // add wiping dialog
     ScalableButton* wiping_dialog_button = new ScalableButton(p->scrolled, wxID_ANY, "", _L("Purging volumes"));
     //wiping_dialog_button->SetFont(wxGetApp().normal_font());
@@ -1003,8 +1004,8 @@ Sidebar::Sidebar(Plater *parent)
     wiping_dialog_button->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent& e)
         {
             auto& project_config = wxGetApp().preset_bundle->project_config;
-            const std::vector<double>& init_matrix = (project_config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values;
-            const std::vector<double>& init_extruders = (project_config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values;
+            const std::vector<double>& init_matrix = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
+            const std::vector<double>& init_extruders = (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values;
 
             const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
 
@@ -1013,8 +1014,8 @@ Sidebar::Sidebar(Plater *parent)
             if (dlg.ShowModal() == wxID_OK) {
                 std::vector<float> matrix = dlg.get_matrix();
                 std::vector<float> extruders = dlg.get_extruders();
-                (project_config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values = std::vector<double>(matrix.begin(), matrix.end());
-                (project_config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values = std::vector<double>(extruders.begin(), extruders.end());
+                (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values = std::vector<double>(matrix.begin(), matrix.end());
+                (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values = std::vector<double>(extruders.begin(), extruders.end());
                 wxGetApp().plater()->update_project_dirty_from_presets();
                 wxPostEvent(parent, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, parent));
             }
@@ -2141,7 +2142,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
         "bed_shape", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "complete_objects", "duplicate_distance", "extruder_clearance_radius", "skirts", "skirt_distance",
         "brim_width", "brim_separation", "brim_type", "nozzle_diameter", "single_extruder_multi_material",
-        "wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_brim_width",
+        "wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_brim_width", "wiping_volume",
         "extruder_colour", "filament_colour", "material_colour", "max_print_height", "printer_model", "printer_technology",
         // These values are necessary to construct SlicingParameters by the Canvas3D variable layer height editor.
         "layer_height", "first_layer_height", "min_layer_height", "max_layer_height",
@@ -8505,7 +8506,9 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         }
         else if (boost::starts_with(opt_key, "wipe_tower") ||
             // opt_key == "filament_minimal_purge_on_wipe_tower" // ? #ys_FIXME
-            opt_key == "single_extruder_multi_material") {
+            opt_key == "single_extruder_multi_material" ||
+            // BBS
+            opt_key == "wiping_volume") {
             update_scheduled = true;
         }
         else if(opt_key == "extruder_colour") {

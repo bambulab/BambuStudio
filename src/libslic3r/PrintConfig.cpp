@@ -3075,26 +3075,34 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("wiping_volumes_extruders", coFloats);
+    def = this->add("flush_volumes_vector", coFloats);
     def->label = L("Purging volumes - load/unload volumes");
     def->tooltip = L("This vector saves required volumes to change from/to each tool used on the "
                      "wipe tower. These values are used to simplify creation of the full purging "
                      "volumes below.");
 
-    // BBS: change 70.f => 7.5f
-    def->set_default_value(new ConfigOptionFloats { 7.5f, 7.5f, 7.5f, 7.5f, 7.5f, 7.5f, 7.5f, 7.5f, 7.5f, 7.5f  });
+    // BBS: change 70.f => 140.f
+    def->set_default_value(new ConfigOptionFloats { 140.f, 140.f, 140.f, 140.f, 140.f, 140.f, 140.f, 140.f });
 
-    def = this->add("wiping_volumes_matrix", coFloats);
+    def = this->add("flush_volumes_matrix", coFloats);
     def->label = L("Purging volumes - matrix");
     def->tooltip = L("This matrix describes volumes (in cubic milimetres) required to purge the"
                      " new filament on the wipe tower for any given pair of tools.");
 
-    // BBS: change 140.f => 15.f
-    def->set_default_value(new ConfigOptionFloats {   0.f, 15.f, 15.f, 15.f, 15.f,
-                                                     15.f,  0.f, 15.f, 15.f, 15.f,
-                                                     15.f, 15.f,  0.f, 15.f, 15.f,
-                                                     15.f, 15.f, 15.f,  0.f, 15.f,
-                                                     15.f, 15.f, 15.f, 15.f,  0.f });
+    // BBS: change 140.f => 280.f
+    def->set_default_value(new ConfigOptionFloats {   0.f, 280.f, 280.f, 280.f,
+                                                    280.f,   0.f, 280.f, 280.f,
+                                                    280.f, 280.f,   0.f, 280.f,
+                                                    280.f, 280.f, 280.f,   0.f });
+
+    // BBS
+    def = this->add("wiping_volume", coFloat);
+    def->label = L("Wipe volume");
+    def->tooltip = L("It describes the volume to prime extruder on wipe tower.");
+    def->sidetext = L("mm³");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(15.));
 
     def = this->add("wipe_tower_x", coFloats);
     def->label = L("Position X");

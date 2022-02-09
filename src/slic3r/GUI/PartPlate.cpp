@@ -638,6 +638,52 @@ void PartPlate::release_opengl_resource()
 	}
 }
 
+std::vector<int> PartPlate::get_extruders() const
+{
+	std::vector<int> plate_extruders;
+
+	for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
+		if (!contain_instance_totally(obj_idx, 0))
+			continue;
+
+		ModelObject* mo = m_model->objects[obj_idx];
+		for (ModelVolume* mv : mo->volumes) {
+			std::vector<int> volume_extruders = mv->get_extruders();
+			plate_extruders.insert(plate_extruders.end(), volume_extruders.begin(), volume_extruders.end());
+		}
+	}
+
+	std::sort(plate_extruders.begin(), plate_extruders.end());
+	auto it_end = std::unique(plate_extruders.begin(), plate_extruders.end());
+	plate_extruders.resize(std::distance(plate_extruders.begin(), it_end));
+	return plate_extruders;
+}
+
+Vec3d PartPlate::estimate_wipe_tower_size(const double w, const double wipe_volume) const
+{
+	Vec3d wipe_tower_size;
+	std::vector<int> plate_extruders = get_extruders();
+	double layer_height = 0.08f; // hard code layer height
+	double max_height = 0.f;
+	wipe_tower_size.setZero();
+	wipe_tower_size(0) = w;
+
+	// empty plate
+	if (plate_extruders.empty())
+		return wipe_tower_size;
+
+	wipe_tower_size(1) = wipe_volume * (plate_extruders.size() - 1) / (layer_height * w);
+	for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
+		if (!contain_instance_totally(obj_idx, 0))
+			continue;
+
+		BoundingBoxf3 bbox = m_model->objects[obj_idx]->bounding_box();
+		max_height = std::max(bbox.size().z(), max_height);
+	}
+	wipe_tower_size(2) = max_height;
+	return wipe_tower_size;
+}
+
 bool PartPlate::operator<(PartPlate& plate) const
 {
 	int index = plate.get_index();
@@ -803,7 +849,7 @@ bool PartPlate::contain_instance(int obj_id, int instance_id)
 }
 
 //judge whether instance is bound in plate or not
-bool PartPlate::contain_instance_totally(ModelObject* object, int instance_id)
+bool PartPlate::contain_instance_totally(ModelObject* object, int instance_id) const
 {
 	bool result = false;
 	int obj_id = -1;
@@ -824,7 +870,7 @@ bool PartPlate::contain_instance_totally(ModelObject* object, int instance_id)
 }
 
 //judge whether instance is totally included in plate or not
-bool PartPlate::contain_instance_totally(int obj_id, int instance_id)
+bool PartPlate::contain_instance_totally(int obj_id, int instance_id) const
 {
 	bool result = false;
 	std::set<std::pair<int, int>>::iterator it;

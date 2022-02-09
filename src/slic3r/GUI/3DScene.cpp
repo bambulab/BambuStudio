@@ -842,6 +842,38 @@ void GLVolume::render_sinking_contours()
     m_sinking_contours.render();
 }
 
+GLWipeTowerVolume::GLWipeTowerVolume(const std::vector<std::array<float, 4>>& colors)
+    : GLVolume()
+{
+    m_colors = colors;
+}
+
+void GLWipeTowerVolume::render(bool with_outline) const
+{
+    if (!is_active)
+        return;
+
+    if (m_colors.size() == 0 || m_colors.size() != iva_per_colors.size())
+        return;
+
+    if (this->is_left_handed())
+        glFrontFace(GL_CW);
+    glsafe(::glCullFace(GL_BACK));
+    glsafe(::glPushMatrix());
+    glsafe(::glMultMatrixd(world_matrix().data()));
+
+    GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
+    for (int i = 0; i < m_colors.size(); i++) {
+        if (shader)
+            shader->set_uniform("uniform_color", m_colors[i]);
+        this->iva_per_colors[i].render();
+    }
+
+    glsafe(::glPopMatrix());
+    if (this->is_left_handed())
+        glFrontFace(GL_CCW);
+}
+
 std::vector<int> GLVolumeCollection::load_object(
     const ModelObject       *model_object,
     int                      obj_idx,
@@ -945,64 +977,41 @@ int GLVolumeCollection::load_wipe_tower_preview(
     int obj_idx, float pos_x, float pos_y, float width, float depth, float height,
     float rotation_angle, bool size_unknown, float brim_width, bool opengl_initialized)
 {
+    int plate_idx = obj_idx - 1000;
+
     if (depth < 0.01f)
         return int(this->volumes.size() - 1);
     if (height == 0.0f)
         height = 0.1f;
 
-    TriangleMesh mesh;
-    std::array<float, 4> color = { 0.5f, 0.5f, 0.0f, 1.0f };
-
-    // In case we don't know precise dimensions of the wipe tower yet, we'll draw
-    // the box with different color with one side jagged:
-    if (size_unknown) {
-        color[0] = 0.9f;
-        color[1] = 0.6f;
-
-        // Too narrow tower would interfere with the teeth. The estimate is not precise anyway.
-        depth = std::max(depth, 10.f);
-        float min_width = 30.f;
-        // We'll now create the box with jagged edge. y-coordinates of the pre-generated model
-        // are shifted so that the front edge has y=0 and centerline of the back edge has y=depth:
-        float out_points_idx[][3] = { { 0, -depth, 0 }, { 0, 0, 0 }, { 38.453f, 0, 0 }, { 61.547f, 0, 0 }, { 100.0f, 0, 0 }, { 100.0f, -depth, 0 }, { 55.7735f, -10.0f, 0 }, { 44.2265f, 10.0f, 0 },
-        { 38.453f, 0, 1 }, { 0, 0, 1 }, { 0, -depth, 1 }, { 100.0f, -depth, 1 }, { 100.0f, 0, 1 }, { 61.547f, 0, 1 }, { 55.7735f, -10.0f, 1 }, { 44.2265f, 10.0f, 1 } };
-        static constexpr const int out_facets_idx[][3] = { 
-            { 0, 1, 2 }, { 3, 4, 5 }, { 6, 5, 0 }, { 3, 5, 6 }, { 6, 2, 7 }, { 6, 0, 2 }, { 8, 9, 10 }, { 11, 12, 13 }, { 10, 11, 14 }, { 14, 11, 13 }, { 15, 8, 14 },
-            { 8, 10, 14 }, { 3, 12, 4 }, { 3, 13, 12 }, { 6, 13, 3 }, { 6, 14, 13 }, { 7, 14, 6 }, { 7, 15, 14 }, { 2, 15, 7 }, { 2, 8, 15 }, { 1, 8, 2 }, { 1, 9, 8 },
-            { 0, 9, 1 }, { 0, 10, 9 }, { 5, 10, 0 }, { 5, 11, 10 }, { 4, 11, 5 }, { 4, 12, 11 } };
-        indexed_triangle_set its;
-        for (int i = 0; i < 16; ++i)
-            its.vertices.emplace_back(out_points_idx[i][0] / (100.f / min_width),
-                                      out_points_idx[i][1] + depth, out_points_idx[i][2]);
-        its.indices.reserve(28);
-        for (const int *face : out_facets_idx)
-            its.indices.emplace_back(face);
-        TriangleMesh tooth_mesh(std::move(its));
-
-        // We have the mesh ready. It has one tooth and width of min_width. We will now
-        // append several of these together until we are close to the required width
-        // of the block. Than we can scale it precisely.
-        size_t n = std::max(1, int(width / min_width)); // How many shall be merged?
-        for (size_t i = 0; i < n; ++i) {
-            mesh.merge(tooth_mesh);
-            tooth_mesh.translate(min_width, 0.f, 0.f);
-        }
-
-        mesh.scale(Vec3f(width / (n * min_width), 1.f, height)); // Scaling to proper width
+    std::vector<std::array<float, 4>> extruder_colors = get_extruders_colors();
+    std::vector<std::array<float, 4>> colors;
+    GUI::PartPlateList& ppl = GUI::wxGetApp().plater()->get_partplate_list();
+    std::vector<int> plate_extruders = ppl.get_plate(plate_idx)->get_extruders();
+    TriangleMesh wipe_tower_shell = make_cube(width, depth, height);
+    for (int extruder_id : plate_extruders) {
+        colors.push_back(extruder_colors[extruder_id - 1]);
     }
-    else
-        mesh = make_cube(width, depth, height);
 
+#if 0
     // We'll make another mesh to show the brim (fixed layer height):
     TriangleMesh brim_mesh = make_cube(width + 2.f * brim_width, depth + 2.f * brim_width, 0.2f);
     brim_mesh.translate(-brim_width, -brim_width, 0.f);
     mesh.merge(brim_mesh);
+#endif
 
-    volumes.emplace_back(new GLVolume(color));
-    GLVolume& v = *volumes.back();
-    v.indexed_vertex_array.load_mesh(mesh);
-    v.set_convex_hull(mesh.convex_hull_3d());
+    volumes.emplace_back(new GLWipeTowerVolume(colors));
+    GLWipeTowerVolume& v = *dynamic_cast<GLWipeTowerVolume*>(volumes.back());
+    v.iva_per_colors.resize(colors.size());
+    for (int i = 0; i < colors.size(); i++) {
+        TriangleMesh color_part = make_cube(width, depth / colors.size(), height);
+        color_part.translate({ 0.f, depth * i / colors.size(), 0. });
+        v.iva_per_colors[i].load_mesh(color_part);
+        v.iva_per_colors[i].finalize_geometry(opengl_initialized);
+    }
+    v.indexed_vertex_array.load_mesh(wipe_tower_shell);
     v.indexed_vertex_array.finalize_geometry(opengl_initialized);
+    v.set_convex_hull(wipe_tower_shell);
     v.set_volume_offset(Vec3d(pos_x, pos_y, 0.0));
     v.set_volume_rotation(Vec3d(0., 0., (M_PI / 180.) * rotation_angle));
     v.composite_id = GLVolume::CompositeID(obj_idx, 0, 0);

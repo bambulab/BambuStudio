@@ -2149,6 +2149,32 @@ bool ModelVolume::is_splittable() const
     return m_is_splittable == 1;
 }
 
+// BBS
+std::vector<int> ModelVolume::get_extruders() const
+{
+    if (mmu_segmentation_facets.timestamp() != mmuseg_ts) {
+        std::vector<indexed_triangle_set> its_per_type;
+        mmuseg_extruders.clear();
+        mmuseg_ts = mmu_segmentation_facets.timestamp();
+        mmu_segmentation_facets.get_facets(*this, its_per_type);
+        for (int idx = 1; idx < its_per_type.size(); idx++) {
+            indexed_triangle_set& its = its_per_type[idx];
+            if (its.indices.empty())
+                continue;
+
+            mmuseg_extruders.push_back(idx);
+        }
+    }
+
+    std::vector<int> volume_extruders = mmuseg_extruders;
+    if (this->extruder_id() == 0)
+        volume_extruders.push_back(this->object->config.opt_int("extruder"));
+    else
+        volume_extruders.push_back(this->extruder_id());
+
+    return volume_extruders;
+}
+
 void ModelVolume::center_geometry_after_creation(bool update_source_offset)
 {
     Vec3d shift = this->mesh().bounding_box().center();
