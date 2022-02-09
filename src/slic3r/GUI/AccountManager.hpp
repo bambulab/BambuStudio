@@ -16,7 +16,7 @@
 #define BBL_INTERNAL_TEST
 #define BBL_CHECK_USER_REPORT
 
-#define MY_MODEL_PUBLISH_URL_FORMAT     "https://portal-qa.bambu-lab.com/my/models/%s/publish?project_id=%s"
+#define MY_MODEL_PUBLISH_URL_FORMAT     "https://portal-qa.bambu-lab.com/my/models/%s/publish?project_id=%s&profile_id=%s"
 #define MY_COLLECTIONS_URL              "https://portal-qa.bambu-lab.com/my/collections"
 #define MY_PROJECT_LIST_URL             "https://portal-qa.bambu-lab.com/my/projects"
 #define MODEL_STORE_URL                 "https://portal-qa.bambu-lab.com/designs"
@@ -331,7 +331,7 @@ public:
     int upload_3mf(BBLProfile* profile, ResultFn resFn = nullptr, Http::ProgressFn proFn = nullptr);
     // poll_3mf for project model only, sync
     int poll_3mf(BBLProject* project);
-    int poll_3mf(BBLProject* project, std::string profile_id, Http::ErrorFn errFn = nullptr);
+    int poll_3mf(BBLProject* project, std::string profile_id, bool& cancel, Http::ErrorFn errFn = nullptr);
     // poll_3mf for project and profile, sync
     int poll_3mf(BBLProfile* profile);
     // poll_3mf for task, sync
@@ -396,7 +396,7 @@ public:
     std::string handle_web_request(std::string cmd);
     void handle_http_error(unsigned int status, std::string body);
 
-    void request_model_download(std::string model_id);
+    void request_model_download(std::string model_id, std::string profile_id);
     void request_project_download(std::string project_id);
     void request_open_project(std::string project_id);
 };

@@ -378,17 +378,28 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
         [this](wxCommandEvent&) {
             /* upload project first and publish */
             Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
-            MainFrame* main_frame = dynamic_cast<MainFrame*>(m_frame);
-            Plater* plater = main_frame->plater();
-            plater->upload_3mf();
-            BBLProject* project = c->get_default_project();
-            if (!project) return;
 
-            wxString url = wxString::Format(MY_MODEL_PUBLISH_URL_FORMAT,
-                project->project_model_id,
-                project->project_id);
-            GUI::wxGetApp().load_url(url);
+            // BBS confirm to upload and publish model
+            wxMessageDialog dialog(this, "Confirm to upload and publish your designs",
+                "Confirm Dialog",
+                wxCENTER | wxYES_DEFAULT | wxYES_NO
+                );
+            wxString content = _L("Press confrim  to upload the current project and slice configuration");
+            dialog.SetYesNoLabels("Confirm", "Cancel");
+            dialog.SetExtendedMessage(content);
 
+            switch (dialog.ShowModal())
+            {
+            case wxID_YES: {
+                MainFrame* main_frame = dynamic_cast<MainFrame*>(m_frame);
+                Plater* plater = main_frame->plater();
+                plater->publish_project();
+            }
+            case wxID_NO:
+                break;
+            default:
+                break;
+            }
         }, "upload_queue", nullptr,
         [this] (){
             if (GUI::wxGetApp().plater()->model().objects.empty()) return false;

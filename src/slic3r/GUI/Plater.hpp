@@ -209,9 +209,9 @@ public:
     void load_project(wxString const & filename = "", wxString const & originfile = "-");
     int save_project(bool saveAs = false);
     //BBS download project by project id
-    void import_model_id(const wxString& model_id);
+    void import_model_id(const std::string& model_id, const std::string& profile_id);
     void download_project(const wxString& project_id);
-    void request_model_download(std::string model_id);
+    void request_model_download(std::string model_id, std::string profile_id);
     void request_download_project(std::string project_id);
     // BBS: check snapshot
     bool up_to_date(bool saved, bool backup);
@@ -304,7 +304,9 @@ public:
     // BBS: backup
     int export_3mf(const boost::filesystem::path& output_path = boost::filesystem::path(), bool silence = false, bool backup = false, int export_plate_idx = -1, Export3mfProgressFn proFn = nullptr, bool with_gcode = true);
 
-    void upload_3mf();
+    //BBS
+    void publish_project();
+
     void reload_from_disk();
     void replace_with_stl();
     void reload_all_from_disk();

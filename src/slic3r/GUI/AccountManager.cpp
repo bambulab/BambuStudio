@@ -1202,7 +1202,7 @@ namespace Slic3r {
     {
         json j;
         j["base_model"] = true;
-        j["profile_config"] = false;
+        j["profile_config"] = true;
         j["profile_thumbnail"] = false;
         j["profile_gcode"] = false;
         j["profile_files"] = json::array();
@@ -1589,7 +1589,7 @@ namespace Slic3r {
     }
 
     // poll 3mf must have a profile id
-    int AccountManager::poll_3mf(BBLProject* project, std::string profile_id, Http::ErrorFn errFn)
+    int AccountManager::poll_3mf(BBLProject* project, std::string profile_id, bool& cancel, Http::ErrorFn errFn)
     {
         if (!project || project->project_id.empty()) return -1;
 
@@ -1656,11 +1656,18 @@ namespace Slic3r {
         ).on_error(errFn);
 
         while (project->project_url.empty() && retry_ < retry_max) {
-                http.perform_sync();
-                retry_++;
-                BOOST_LOG_TRIVIAL(trace) << "download project failed, retry=" << retry_;
-                boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
+            // cancelled
+            if (cancel) {
+                BOOST_LOG_TRIVIAL(trace) << "download project cancelled";
+                return -1;
+            }
+
+            http.perform_sync();
+            retry_++;
+            BOOST_LOG_TRIVIAL(trace) << "download project failed, retry=" << retry_;
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
         }
+
         if (retry_ == retry_max) {
             BOOST_LOG_TRIVIAL(trace) << "download project failed, retry_max";
             return -1;
@@ -2840,6 +2847,17 @@ namespace Slic3r {
     std::string AccountManager::handle_web_request(std::string cmd)
     {
         try {
+            //BBS use nlohmann json format
+            json j = json::parse(cmd);
+
+            std::string web_cmd = j["command"].get<std::string>();
+            if (web_cmd == "request_model_download") {
+                json j_data = j["data"];
+                std::string model_id = j["data"]["model_id"].get<std::string>();
+                std::string profile_id = j["data"]["profile_id"].get<std::string>();
+                this->request_model_download(model_id, profile_id);
+            }
+
             std::stringstream ss(cmd), oss;
             pt::ptree root, response;
             pt::read_json(ss, root);
@@ -2863,15 +2881,6 @@ namespace Slic3r {
                         root.put_child("response", response);
                         pt::write_json(oss, root, false);
                         return oss.str();
-                    }
-                }
-                else if (command_str.compare("request_model_download") == 0) {
-                    if (root.get_child_optional("data") != boost::none) {
-                        pt::ptree data_node = root.get_child("data");
-                        boost::optional<std::string> model_id = data_node.get_optional<std::string>("model_id");
-                        if (model_id.has_value()) {
-                            this->request_model_download(model_id.value());
-                        }
                     }
                 }
                 else if (command_str.compare("request_project_download") == 0) {
@@ -2906,13 +2915,13 @@ namespace Slic3r {
         GUI::wxGetApp().handle_http_error(status, body);
     }
 
-    void AccountManager::request_model_download(std::string model_id)
+    void AccountManager::request_model_download(std::string model_id, std::string profile_id)
     {
         if (!is_user_login()) {
             GUI::wxGetApp().request_login();
             return;
         }
-        GUI::wxGetApp().request_model_download(model_id);
+        GUI::wxGetApp().request_model_download(model_id, profile_id);
     }
 
     void AccountManager::request_project_download(std::string project_id)

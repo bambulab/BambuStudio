@@ -1727,11 +1727,6 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(); }, "menu_save", nullptr,
             [this](){return m_plater != nullptr && can_save(); }, this);
 
-        //BBS upload project
-        append_menu_item(fileMenu, wxID_ANY, _L("Upload Project(Debug)") + "\tCtrl+U", _L("Upload current project file"),
-            [this](wxCommandEvent&) { if (m_plater) { m_plater->upload_3mf(); } }, "menu_save", nullptr,
-            [this]() {return m_plater != nullptr && can_upload(); }, this);
-
 #ifdef __APPLE__
         append_menu_item(fileMenu, wxID_ANY, _L("Save Project &as") + dots + "\tCtrl+Shift+S", _L("Save current project file as"),
 #else
