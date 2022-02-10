@@ -254,6 +254,8 @@ static t_config_option_keys print_config_diffs(
                     if (value_old != value_new)
                         print_diff.emplace_back(opt_key);
                 }
+                else if ((plate_index < option_new->values.size())||(plate_index < option_old->values.size()))
+                    print_diff.emplace_back(opt_key);
             }
             else
                 print_diff.emplace_back(opt_key);
@@ -283,6 +285,8 @@ static t_config_option_keys full_print_config_diffs(const DynamicPrintConfig &cu
                     if (value_old != value_new)
                         full_config_diff.emplace_back(opt_key);
                 }
+                else if ((plate_index < option_new->values.size())||(plate_index < option_old->values.size()))
+                    full_config_diff.emplace_back(opt_key);
             }
             else
                 full_config_diff.emplace_back(opt_key);

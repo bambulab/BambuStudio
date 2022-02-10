@@ -2130,6 +2130,13 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 	{
 		object = m_model->objects[obj_id];
 	}
+	else if (obj_id >= 1000 && obj_id < 1000 + m_plate_count) {
+		//wipe tower updates
+		PartPlate* plate = m_plate_list[obj_id - 1000];
+		plate->update_slice_result_valid_state( false );
+
+		return 0;
+	}
     else
 		return -1;
 
