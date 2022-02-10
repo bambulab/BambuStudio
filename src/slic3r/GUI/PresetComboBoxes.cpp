@@ -619,8 +619,12 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
     // BBS
     if (m_type == Preset::TYPE_FILAMENT) {
         int em = wxGetApp().em_unit();
-        clr_picker = new wxButton(parent, wxID_ANY, "", wxDefaultPosition, wxSize(20 * em / 10, 20 * em / 10), wxBU_NOTEXT | wxBU_EXACTFIT | wxBORDER_NONE);
-        clr_picker->SetToolTip(_L("Click to  pick filament color"));
+        //clr_picker = new wxButton(parent, wxID_ANY, "", wxDefaultPosition, wxSize(20 * em / 10, 20 * em / 10), wxBU_NOTEXT | wxBU_EXACTFIT | wxBORDER_NONE);
+        clr_picker = new Button(parent, "");
+        clr_picker->SetMinSize(wxSize(20 * em / 10, 20 * em / 10));
+        clr_picker->SetCornerRadius(0);
+        clr_picker->SetBorderColor(0x6E6E6E);
+        clr_picker->SetToolTip(_L("Click to pick filament color"));
         clr_picker->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
             m_clrData.SetColour(clr_picker->GetBackgroundColour());
             m_clrData.SetChooseFull(true);
@@ -631,7 +635,7 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
             if ( dialog.ShowModal() == wxID_OK )
             {
                 m_clrData = dialog.GetColourData();
-                clr_picker->SetBackgroundColour(m_clrData.GetColour());
+                clr_picker->SetBackgroundColor(m_clrData.GetColour());
                 // get current color
                 DynamicPrintConfig* cfg = wxGetApp().get_tab(Preset::TYPE_PRINTER)->get_config();
                 auto colors = static_cast<ConfigOptionStrings*>(cfg->option("extruder_colour")->clone());
