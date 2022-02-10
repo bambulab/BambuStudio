@@ -275,13 +275,11 @@ void PhysicalPrinterDialog::update_printers()
 void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgroup)
 {
     m_optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
-        if (opt_key == "host_type" || opt_key == "printhost_authorization_type")
+        if (opt_key == "printhost_authorization_type")
             this->update();
         if (opt_key == "print_host")
             this->update_printhost_buttons();
     };
-
-    m_optgroup->append_single_option_line("host_type");
 
     auto create_sizer_with_btn = [](wxWindow* parent, ScalableButton** btn, const std::string& icon_name, const wxString& label) {
         *btn = new ScalableButton(parent, wxID_ANY, icon_name, label, wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT);
@@ -477,29 +475,13 @@ void PhysicalPrinterDialog::update(bool printer_change)
     // Only offer the host type selection for FFF, for SLA it's always the SL1 printer (at the moment)
     bool supports_multiple_printers = false;
     if (tech == ptFFF) {
-        update_host_type(printer_change);
-        const auto opt = m_config->option<ConfigOptionEnum<PrintHostType>>("host_type");
-        m_optgroup->show_field("host_type");
-        if (opt->value == htPrusaLink)
-        {
-            m_optgroup->show_field("printhost_authorization_type");
-            AuthorizationType auth_type = m_config->option<ConfigOptionEnum<AuthorizationType>>("printhost_authorization_type")->value;
-            m_optgroup->show_field("printhost_apikey", auth_type == AuthorizationType::atKeyPassword);
-            for (const char* opt_key : { "printhost_user", "printhost_password" })
-                m_optgroup->show_field(opt_key, auth_type == AuthorizationType::atUserPassword);
-        } else {
-            m_optgroup->hide_field("printhost_authorization_type");
-            m_optgroup->show_field("printhost_apikey", true);
-            for (const std::string& opt_key : std::vector<std::string>{ "printhost_user", "printhost_password" })
-                m_optgroup->hide_field(opt_key);
-            supports_multiple_printers = opt && opt->value == htRepetier;
-        }
-        
+
+        m_optgroup->hide_field("printhost_authorization_type");
+        m_optgroup->show_field("printhost_apikey", true);
+        for (const std::string& opt_key : std::vector<std::string>{ "printhost_user", "printhost_password" })
+            m_optgroup->hide_field(opt_key);
     }
     else {
-        m_optgroup->set_value("host_type", int(PrintHostType::htOctoPrint), false);
-        m_optgroup->hide_field("host_type");
-
         m_optgroup->show_field("printhost_authorization_type");
 
         AuthorizationType auth_type = m_config->option<ConfigOptionEnum<AuthorizationType>>("printhost_authorization_type")->value;
@@ -517,63 +499,6 @@ void PhysicalPrinterDialog::update(bool printer_change)
     this->SetSize(this->GetBestSize());
     this->Layout();
 }
-
-void PhysicalPrinterDialog::update_host_type(bool printer_change)
-{
-    if (m_presets.empty())
-        return;
-    bool all_presets_are_from_mk3_family = true;
-
-    for (PresetForPrinter* prstft : m_presets) {
-        std::string preset_name = prstft->get_preset_name();
-        if (Preset* preset = wxGetApp().preset_bundle->printers.find_preset(preset_name)) {
-            std::string model_id = preset->config.opt_string("printer_model");
-            auto model_supports_prusalink = [](const std::string &model) {
-                return model.size() >= 3 &&
-                    ((boost::starts_with(model, "MK") && model[2] > '2' && model[2] <= '9') ||
-                      boost::starts_with(model, "MINI"));
-            };
-            if (preset->vendor) {
-                if (preset->vendor->name == "Prusa Research") {
-                    const std::vector<VendorProfile::PrinterModel>& models = preset->vendor->models;
-                    auto it = std::find_if(models.begin(), models.end(),
-                        [model_id](const VendorProfile::PrinterModel& model) { return model.id == model_id; });
-                    if (it != models.end() && model_supports_prusalink(it->family))
-                        continue;
-                }
-            } else if (model_supports_prusalink(model_id))
-                continue;
-        }
-        all_presets_are_from_mk3_family = false;
-        break;
-    }
-
-    Field* ht = m_optgroup->get_field("host_type");
-
-    wxArrayString types;
-    // Append localized enum_labels
-    assert(ht->m_opt.enum_labels.size() == ht->m_opt.enum_values.size());
-    for (size_t i = 0; i < ht->m_opt.enum_labels.size(); i++) {
-        if (ht->m_opt.enum_values[i] == "prusalink" && !all_presets_are_from_mk3_family)
-            continue;
-        types.Add(_(ht->m_opt.enum_labels[i]));
-    }
-
-    Choice* choice = dynamic_cast<Choice*>(ht);
-    choice->set_values(types);
-    auto set_to_choice_and_config = [this, choice](PrintHostType type) {
-        choice->set_value(static_cast<int>(type));
-        m_config->set_key_value("host_type", new ConfigOptionEnum<PrintHostType>(type));
-    };
-    if ((printer_change && all_presets_are_from_mk3_family) || (!had_all_mk3 && all_presets_are_from_mk3_family))
-        set_to_choice_and_config(htPrusaLink);  
-    else if ((printer_change && !all_presets_are_from_mk3_family) || (!all_presets_are_from_mk3_family && m_config->option<ConfigOptionEnum<PrintHostType>>("host_type")->value == htPrusaLink))
-        set_to_choice_and_config(htOctoPrint);
-    else
-        choice->set_value(m_config->option("host_type")->getInt());
-    had_all_mk3 = all_presets_are_from_mk3_family;
-}
-
 
 wxString PhysicalPrinterDialog::get_printer_name()
 {
@@ -710,8 +635,6 @@ void PhysicalPrinterDialog::AddPreset(wxEvent& event)
     m_presets_sizer->Add(m_presets.back()->sizer(), 1, wxEXPAND | wxTOP, BORDER_W);
     update_full_printer_names();
     this->Fit();
-
-    update_host_type(true);
 }
 
 void PhysicalPrinterDialog::DeletePreset(PresetForPrinter* preset_for_printer)
@@ -740,7 +663,6 @@ void PhysicalPrinterDialog::DeletePreset(PresetForPrinter* preset_for_printer)
     this->Layout();
     this->Fit();
 
-    update_host_type(true);
 }
 
 }}    // namespace Slic3r::GUI

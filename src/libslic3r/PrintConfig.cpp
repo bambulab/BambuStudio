@@ -59,17 +59,6 @@ static t_config_enum_values s_keys_map_GCodeFlavor {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GCodeFlavor)
 
-static t_config_enum_values s_keys_map_PrintHostType {
-    { "prusalink",      htPrusaLink },
-    { "octoprint",      htOctoPrint },
-    { "duet",           htDuet },
-    { "flashair",       htFlashAir },
-    { "astrobox",       htAstroBox },
-    { "repetier",       htRepetier },
-    { "mks",            htMKS }
-};
-CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrintHostType)
-
 static t_config_enum_values s_keys_map_AuthorizationType {
     { "key",            atKeyPassword },
     { "user",           atUserPassword }
@@ -661,23 +650,6 @@ void PrintConfigDef::init_fff_params()
                    "and fan speed according to layer printing time.");
     def->set_default_value(new ConfigOptionBools { true });
 
-    def = this->add("cooling_tube_retraction", coFloat);
-    def->label = L("Cooling tube position");
-    def->tooltip = L("Distance of the center-point of the cooling tube from the extruder tip.");
-    def->sidetext = L("mm");
-    def->min = 0;
-    //BBS
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(91.5));
-
-    def = this->add("cooling_tube_length", coFloat);
-    def->label = L("Cooling tube length");
-    def->tooltip = L("Length of the cooling tube to limit space for cooling moves inside it.");
-    def->sidetext = L("mm");
-    def->min = 0;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(5.));
-
     def = this->add("default_acceleration", coFloat);
     def->label = L("Default");
     def->tooltip = L("This is the acceleration your printer will be reset to after "
@@ -984,66 +956,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0. });
 
-    def = this->add("filament_loading_speed", coFloats);
-    def->label = L("Loading speed");
-    def->tooltip = L("Speed used for loading the filament on the wipe tower.");
-    def->sidetext = L("mm/s");
-    def->min = 0;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats { 28. });
-
-    def = this->add("filament_loading_speed_start", coFloats);
-    def->label = L("Loading speed at the start");
-    def->tooltip = L("Speed used at the very beginning of loading phase.");
-    def->sidetext = L("mm/s");
-    def->min = 0;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats { 3. });
-
-    def = this->add("filament_unloading_speed", coFloats);
-    def->label = L("Unloading speed");
-    def->tooltip = L("Speed used for unloading the filament on the wipe tower (does not affect "
-                      " initial part of unloading just after ramming).");
-    def->sidetext = L("mm/s");
-    def->min = 0;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats { 90. });
-
-    def = this->add("filament_unloading_speed_start", coFloats);
-    def->label = L("Unloading speed at the start");
-    def->tooltip = L("Speed used for unloading the tip of the filament immediately after ramming.");
-    def->sidetext = L("mm/s");
-    def->min = 0;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats { 100. });
-
-    def = this->add("filament_toolchange_delay", coFloats);
-    def->label = L("Delay after unloading");
-    def->tooltip = L("Time to wait after the filament is unloaded. "
-                   "May help to get reliable toolchanges with flexible materials "
-                   "that may need more time to shrink to original dimensions.");
-    def->sidetext = L("s");
-    def->min = 0;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats { 0. });
-
-    def = this->add("filament_cooling_moves", coInts);
-    def->label = L("Number of cooling moves");
-    def->tooltip = L("Filament is cooled by being moved back and forth in the "
-                   "cooling tubes. Specify desired number of these moves.");
-    def->max = 0;
-    def->max = 20;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionInts { 4 });
-
-    def = this->add("filament_cooling_initial_speed", coFloats);
-    def->label = L("Speed of the first cooling move");
-    def->tooltip = L("Cooling moves are gradually accelerating beginning at this speed.");
-    def->sidetext = L("mm/s");
-    def->min = 0;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats { 2.2 });
-
     def = this->add("filament_minimal_purge_on_wipe_tower", coFloats);
     def->label = L("Minimal purge on wipe tower");
     def->tooltip = L("After a tool change, the exact position of the newly loaded filament inside "
@@ -1055,14 +967,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 15. });
 
-    def = this->add("filament_cooling_final_speed", coFloats);
-    def->label = L("Speed of the last cooling move");
-    def->tooltip = L("Cooling moves are gradually accelerating towards this speed.");
-    def->sidetext = L("mm/s");
-    def->min = 0;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats { 3.4 });
-
     def = this->add("filament_load_time", coFloats);
     def->label = L("Filament load time");
     def->tooltip = L("Time for the printer firmware (or the Multi Material Unit 2.0) to load a new filament during a tool change (when executing the T code). This time is added to the total print time by the G-code time estimator.");
@@ -1070,13 +974,6 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0.0 });
-
-    def = this->add("filament_ramming_parameters", coStrings);
-    def->label = L("Ramming parameters");
-    def->tooltip = L("This string is edited by RammingDialog and contains ramming specific parameters.");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionStrings { "120 100 6.6 6.8 7.2 7.6 7.9 8.2 8.7 9.4 9.9 10.0|"
-       " 0.05 6.6 0.45 6.8 0.95 7.8 1.45 8.3 1.95 9.7 2.45 10 2.95 7.6 3.45 7.6 3.95 7.6 4.45 7.6 4.95 7.6" });
 
     def = this->add("filament_unload_time", coFloats);
     def->label = L("Filament unload time");
@@ -1503,14 +1400,6 @@ void PrintConfigDef::init_fff_params()
                    " which is useful for the Octoprint CancelObject plugin. This settings is NOT compatible with "
                    "Single Extruder Multi Material setup and Wipe into Object / Wipe into Infill.");
     //BBS
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(0));
-
-    def = this->add("high_current_on_filament_swap", coBool);
-    def->label = L("High extruder current on filament swap");
-    def->tooltip = L("It may be beneficial to increase the extruder motor current during the filament exchange"
-                   " sequence to allow for rapid ramming feed rates and to overcome resistance when loading"
-                   " a filament with an ugly shaped tip.");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(0));
 
@@ -1986,29 +1875,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats { 0.4 });
 
-    def = this->add("host_type", coEnum);
-    def->label = L("Host Type");
-    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field must contain "
-                   "the kind of the host.");
-    def->enum_keys_map = &ConfigOptionEnum<PrintHostType>::get_enum_values();
-    def->enum_values.push_back("prusalink");
-    def->enum_values.push_back("octoprint");
-    def->enum_values.push_back("duet");
-    def->enum_values.push_back("flashair");
-    def->enum_values.push_back("astrobox");
-    def->enum_values.push_back("repetier");
-    def->enum_values.push_back("mks");
-    def->enum_labels.push_back("PrusaLink");
-    def->enum_labels.push_back("OctoPrint");
-    def->enum_labels.push_back("Duet");
-    def->enum_labels.push_back("FlashAir");
-    def->enum_labels.push_back("AstroBox");
-    def->enum_labels.push_back("Repetier");
-    def->enum_labels.push_back("MKS");
-    def->mode = comAdvanced;
-    def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionEnum<PrintHostType>(htOctoPrint));
-
     def = this->add("only_retract_when_crossing_perimeters", coBool);
     def->label = L("Only retract when crossing perimeters");
     def->tooltip = L("Disables retraction when the travel path does not exceed the upper layer's perimeters "
@@ -2044,24 +1910,6 @@ void PrintConfigDef::init_fff_params()
                    "to apply bridge speed to them and enable fan.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
-
-    def = this->add("parking_pos_retraction", coFloat);
-    def->label = L("Filament parking position");
-    def->tooltip = L("Distance of the extruder tip from the position where the filament is parked "
-                      "when unloaded. This should match the value in printer firmware.");
-    def->sidetext = L("mm");
-    def->min = 0;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(92.));
-
-    def = this->add("extra_loading_move", coFloat);
-    def->label = L("Extra loading distance");
-    def->tooltip = L("When set to zero, the distance the filament is moved from parking position during load "
-                      "is exactly the same as it was moved back during unload. When positive, it is loaded further, "
-                      " if negative, the loading move is shorter than unloading.");
-    def->sidetext = L("mm");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(-2.));
 
     def = this->add("perimeter_acceleration", coFloat);
     def->label = L("Perimeters");

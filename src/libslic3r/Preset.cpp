@@ -557,9 +557,8 @@ static std::vector<std::string> s_Preset_print_options {
 
 static std::vector<std::string> s_Preset_filament_options {
     "filament_colour", "filament_diameter", "filament_type", "filament_soluble", "filament_max_volumetric_speed",
-    "extrusion_multiplier", "filament_density", "filament_cost", "filament_spool_weight", "filament_loading_speed", "filament_loading_speed_start", "filament_load_time",
-    "filament_unloading_speed", "filament_unloading_speed_start", "filament_unload_time", "filament_toolchange_delay", "filament_cooling_moves",
-    "filament_cooling_initial_speed", "filament_cooling_final_speed", "filament_ramming_parameters", "filament_minimal_purge_on_wipe_tower",
+    "extrusion_multiplier", "filament_density", "filament_cost", "filament_spool_weight", "filament_load_time",
+    "filament_unload_time", "filament_minimal_purge_on_wipe_tower",
     "temperature", "first_layer_temperature", "bed_temperature", "first_layer_bed_temperature",
     //BBS:temperature_vitrification
     "temperature_vitrification", "fan_always_on", "cooling", "min_fan_speed",
@@ -587,11 +586,10 @@ static std::vector<std::string> s_Preset_printer_options {
     "bed_shape", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "z_offset", "gcode_flavor", "use_relative_e_distances",
     "use_firmware_retraction",
     //FIXME the print host keys are left here just for conversion from the Printer preset to Physical Printer preset.
-    "host_type", "print_host", "printhost_apikey", "printhost_cafile",
+    "print_host", "printhost_apikey", "printhost_cafile",
     "single_extruder_multi_material", "start_gcode", "end_gcode", "before_layer_gcode", "layer_gcode", "toolchange_gcode",
     "color_change_gcode", "pause_print_gcode", "template_custom_gcode",
-    "between_objects_gcode", "printer_vendor", "printer_model", "printer_variant", "cooling_tube_retraction",
-    "cooling_tube_length", "high_current_on_filament_swap", "parking_pos_retraction", "extra_loading_move", "max_print_height",
+    "between_objects_gcode", "printer_vendor", "printer_model", "printer_variant", "max_print_height",
     "default_print_profile", "inherits",
     "silent_mode",
     "thumbnails",
@@ -1924,7 +1922,6 @@ static std::vector<std::string> s_PhysicalPrinter_opts {
     "preset_name", // temporary option to compatibility with older Slicer
     "preset_names",
     "printer_technology",
-    "host_type",
     "print_host",
     "printhost_apikey",
     "printhost_cafile",

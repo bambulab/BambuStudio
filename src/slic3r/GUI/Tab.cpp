@@ -619,7 +619,7 @@ void Tab::update_label_colours()
             else
                 color = &m_modified_label_clr;
         }
-        if (opt.first == "bed_shape"            || opt.first == "filament_ramming_parameters" || 
+        if (opt.first == "bed_shape"            ||
             opt.first == "compatible_prints"    || opt.first == "compatible_printers"           ) {
             if (m_colored_Label_colors.find(opt.first) != m_colored_Label_colors.end())
                 m_colored_Label_colors.at(opt.first) = *color;
@@ -661,7 +661,7 @@ void Tab::decorate()
         Field*      field = nullptr;
         wxColour*   colored_label_clr = nullptr;
 
-        if (opt.first == "bed_shape" || opt.first == "filament_ramming_parameters" ||
+        if (opt.first == "bed_shape" ||
             opt.first == "compatible_prints" || opt.first == "compatible_printers")
             colored_label_clr = (m_colored_Label_colors.find(opt.first) == m_colored_Label_colors.end()) ? nullptr : &m_colored_Label_colors.at(opt.first);
 
@@ -866,9 +866,6 @@ void Tab::update_changed_tree_ui()
                     get_sys_and_mod_flags(opt_key, sys_page, modified_page);
                 }
             }
-            if (m_type == Preset::TYPE_FILAMENT && page->title() == "Advanced") {
-                get_sys_and_mod_flags("filament_ramming_parameters", sys_page, modified_page);
-            }
             if (page->title() == "Dependencies") {
                 if (m_type == Slic3r::Preset::TYPE_PRINTER) {
                     sys_page = m_presets->get_selected_preset_parent() != nullptr;
@@ -950,10 +947,6 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
                 to_sys ? group->back_to_sys_value("bed_shape") : group->back_to_initial_value("bed_shape");
                 load_key_value("bed_shape", true/*some value*/, true);
             }
-        }
-        if (group->title == "Toolchange parameters with single extruder MM printers") {
-            if ((m_options_list["filament_ramming_parameters"] & os) == 0)
-                to_sys ? group->back_to_sys_value("filament_ramming_parameters") : group->back_to_initial_value("filament_ramming_parameters");
         }
         if (group->title == "Profile dependencies") {
             // "compatible_printers" option doesn't exists in Printer Settimgs Tab
@@ -2218,34 +2211,8 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
 
         optgroup = page->new_optgroup(L("Toolchange parameters with single extruder MM printers"));
-        optgroup->append_single_option_line("filament_loading_speed_start");
-        optgroup->append_single_option_line("filament_loading_speed");
-        optgroup->append_single_option_line("filament_unloading_speed_start");
-        optgroup->append_single_option_line("filament_unloading_speed");
         optgroup->append_single_option_line("filament_load_time");
         optgroup->append_single_option_line("filament_unload_time");
-        optgroup->append_single_option_line("filament_toolchange_delay");
-        optgroup->append_single_option_line("filament_cooling_moves");
-        optgroup->append_single_option_line("filament_cooling_initial_speed");
-        optgroup->append_single_option_line("filament_cooling_final_speed");
-
-        create_line_with_widget(optgroup.get(), "filament_ramming_parameters", "", [this](wxWindow* parent) {
-            auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
-            wxGetApp().UpdateDarkUI(ramming_dialog_btn);
-            ramming_dialog_btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
-            ramming_dialog_btn->SetSize(ramming_dialog_btn->GetBestSize());
-            auto sizer = new wxBoxSizer(wxHORIZONTAL);
-            sizer->Add(ramming_dialog_btn);
-
-            ramming_dialog_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
-                RammingDialog dlg(this,(m_config->option<ConfigOptionStrings>("filament_ramming_parameters"))->get_at(0));
-                if (dlg.ShowModal() == wxID_OK) {
-                    load_key_value("filament_ramming_parameters", dlg.get_parameters());
-                    update_changed_ui();
-                }
-            });
-            return sizer;
-        });
 
         const int gcode_field_height = 15; // 150
 
@@ -2869,16 +2836,16 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             }
         m_has_single_extruder_MM_page = false;
     }
+
+    //BBS: please add our single extruder multimaterial parameters here. Currently
+    //comment this part because we have no such config in this page.
+#if 0
     if (from_initial_build ||
         (m_extruders_count > 1 && m_config->opt_bool("single_extruder_multi_material") && !m_has_single_extruder_MM_page)) {
         // create a page, but pretend it's an extruder page, so we can add it to m_pages ourselves
         auto page = add_options_page(L("Single extruder MM setup"), "printer", true);
         auto optgroup = page->new_optgroup(L("Single extruder multimaterial parameters"));
-        optgroup->append_single_option_line("cooling_tube_retraction");
-        optgroup->append_single_option_line("cooling_tube_length");
-        optgroup->append_single_option_line("parking_pos_retraction");
-        optgroup->append_single_option_line("extra_loading_move");
-        optgroup->append_single_option_line("high_current_on_filament_swap");
+        
         if (from_initial_build)
             page->clear();
         else {
@@ -2886,6 +2853,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             m_has_single_extruder_MM_page = true;
         }
     }
+#endif
 
     // BBS. Just create one extruder page because BBL machine has only on physical extruder.
     // Build missed extruder pages

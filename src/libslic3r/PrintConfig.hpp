@@ -36,10 +36,6 @@ enum GCodeFlavor : unsigned char {
     gcfSmoothie, gcfNoExtrusion,
 };
 
-enum PrintHostType {
-    htPrusaLink, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS
-};
-
 enum AuthorizationType {
     atKeyPassword, atUserPassword
 };
@@ -136,7 +132,6 @@ enum DraftShield {
 
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PrinterTechnology)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(GCodeFlavor)
-CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PrintHostType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(AuthorizationType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FuzzySkinType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(InfillPattern)
@@ -648,18 +643,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInts,                temperature_vitrification))  //BBS
     ((ConfigOptionFloats,              filament_spool_weight))
     ((ConfigOptionFloats,              filament_max_volumetric_speed))
-    ((ConfigOptionFloats,              filament_loading_speed))
-    ((ConfigOptionFloats,              filament_loading_speed_start))
     ((ConfigOptionFloats,              filament_load_time))
-    ((ConfigOptionFloats,              filament_unloading_speed))
-    ((ConfigOptionFloats,              filament_unloading_speed_start))
-    ((ConfigOptionFloats,              filament_toolchange_delay))
     ((ConfigOptionFloats,              filament_unload_time))
-    ((ConfigOptionInts,                filament_cooling_moves))
-    ((ConfigOptionFloats,              filament_cooling_initial_speed))
     ((ConfigOptionFloats,              filament_minimal_purge_on_wipe_tower))
-    ((ConfigOptionFloats,              filament_cooling_final_speed))
-    ((ConfigOptionStrings,             filament_ramming_parameters))
     ((ConfigOptionBool,                gcode_comments))
     // BBS
     ((ConfigOptionBool,                scan_first_layer))
@@ -695,12 +681,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               travel_speed_z))
     ((ConfigOptionBool,                use_firmware_retraction))
     ((ConfigOptionBool,                use_relative_e_distances))
-    ((ConfigOptionFloat,               cooling_tube_retraction))
-    ((ConfigOptionFloat,               cooling_tube_length))
-    ((ConfigOptionBool,                high_current_on_filament_swap))
-    ((ConfigOptionFloat,               parking_pos_retraction))
     ((ConfigOptionBool,                silent_mode))
-    ((ConfigOptionFloat,               extra_loading_move))
     ((ConfigOptionString,              color_change_gcode))
     ((ConfigOptionString,              pause_print_gcode))
     ((ConfigOptionString,              template_custom_gcode))

@@ -83,7 +83,7 @@ PresetBundle::PresetBundle() :
             "printer_settings_id", "printer_vendor", "printer_model", "printer_variant", "thumbnails",
             //FIXME the following keys are only created here for compatibility to be able to parse legacy Printer profiles.
             // These keys are converted to Physical Printer profile. After the conversion, they shall be removed.
-            "host_type", "print_host", "printhost_apikey", "printhost_cafile"})
+            "print_host", "printhost_apikey", "printhost_cafile"})
             preset.config.optptr(key, true);
         if (i == 0) {
             preset.config.optptr("default_print_profile", true);

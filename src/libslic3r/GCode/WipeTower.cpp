@@ -529,6 +529,8 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
 
     // If this is a single extruder MM printer, we will use all the SE-specific config values.
     // Otherwise, the defaults will be used to turn off the SE stuff.
+    // BBS: remove useless config
+#if 0
     if (m_semm) {
         m_cooling_tube_retraction = float(config.cooling_tube_retraction);
         m_cooling_tube_length     = float(config.cooling_tube_length);
@@ -536,6 +538,7 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
         m_extra_loading_move      = float(config.extra_loading_move);
         m_set_extruder_trimpot    = config.high_current_on_filament_swap;
     }
+#endif
     // Calculate where the priming lines should be - very naive test not detecting parallelograms etc.
     const std::vector<Vec2d>& bed_points = config.bed_shape.values;
     BoundingBoxf bb(bed_points);
@@ -573,6 +576,8 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
 
     // If this is a single extruder MM printer, we will use all the SE-specific config values.
     // Otherwise, the defaults will be used to turn off the SE stuff.
+    // BBS: remove useless config
+#if 0
     if (m_semm) {
         m_filpar[idx].loading_speed           = float(config.filament_loading_speed.get_at(idx));
         m_filpar[idx].loading_speed_start     = float(config.filament_loading_speed_start.get_at(idx));
@@ -583,6 +588,7 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
         m_filpar[idx].cooling_initial_speed   = float(config.filament_cooling_initial_speed.get_at(idx));
         m_filpar[idx].cooling_final_speed     = float(config.filament_cooling_final_speed.get_at(idx));
     }
+#endif
 
     m_filpar[idx].filament_area = float((M_PI/4.f) * pow(config.filament_diameter.get_at(idx), 2)); // all extruders are assumed to have the same filament diameter at this point
     float nozzle_diameter = float(config.nozzle_diameter.get_at(idx));
@@ -593,7 +599,8 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
         m_filpar[idx].max_e_speed = (max_vol_speed / filament_area());
 
     m_perimeter_width = nozzle_diameter * Width_To_Nozzle_Ratio; // all extruders are now assumed to have the same diameter
-
+    // BBS: remove useless config
+#if 0
     if (m_semm) {
         std::istringstream stream{config.filament_ramming_parameters.get_at(idx)};
         float speed = 0.f;
@@ -603,6 +610,7 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
         while (stream >> speed)
             m_filpar[idx].ramming_speed.push_back(speed);
     }
+#endif
 
     m_used_filament_length.resize(std::max(m_used_filament_length.size(), idx + 1)); // makes sure that the vector is big enough so we don't have to check later
 }
@@ -657,8 +665,9 @@ std::vector<WipeTower::ToolChangeResult> WipeTower::prime(
                   .speed_override(100)
                   .set_initial_position(Vec2f::Zero())	// Always move to the starting position
                   .travel(cleaning_box.ld, 7200);
-            if (m_set_extruder_trimpot)
-                writer.set_extruder_trimpot(750); 			// Increase the extruder driver current to allow fast ramming.
+            //BBS
+            //if (m_set_extruder_trimpot)
+            //    writer.set_extruder_trimpot(750); 			// Increase the extruder driver current to allow fast ramming.
         }
         else
             writer.set_initial_position(results.back().end_pos);
@@ -691,8 +700,9 @@ std::vector<WipeTower::ToolChangeResult> WipeTower::prime(
         // This is the last priming toolchange - finish priming
         if (idx_tool+1 == tools.size()) {
             // Reset the extruder current to a normal value.
-            if (m_set_extruder_trimpot)
-                writer.set_extruder_trimpot(550);
+            // BBS
+            //if (m_set_extruder_trimpot)
+            //    writer.set_extruder_trimpot(550);
             writer.speed_override_restore()
                   .feedrate(m_travel_speed * 60.f)
                   .flush_planner_queue()
@@ -758,8 +768,9 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool)
     writer.set_initial_position(initial_position, m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
 
     // Increase the extruder driver current to allow fast ramming.
-	if (m_set_extruder_trimpot)
-		writer.set_extruder_trimpot(750);
+    //BBS
+	//if (m_set_extruder_trimpot)
+	//	writer.set_extruder_trimpot(750);
 
     // Ram the hot material out of the melt zone, retract the filament into the cooling tubes and let it cool.
     if (tool != (unsigned int)-1){ 			// This is not the last change.
@@ -776,8 +787,9 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool)
 
     m_depth_traversed += wipe_area;
 
-	if (m_set_extruder_trimpot)
-		writer.set_extruder_trimpot(550);    // Reset the extruder current to a normal value.
+    //BBS
+	//if (m_set_extruder_trimpot)
+	//	writer.set_extruder_trimpot(550);    // Reset the extruder current to a normal value.
 	writer.speed_override_restore();
     writer.feedrate(m_travel_speed * 60.f)
           .flush_planner_queue()

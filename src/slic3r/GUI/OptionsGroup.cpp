@@ -635,7 +635,7 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
 	}
     else if (m_opt_map.find(opt_key) == m_opt_map.end() ||
 		    // This option don't have corresponded field
-		     opt_key == "bed_shape"				|| opt_key == "filament_ramming_parameters" ||
+		     opt_key == "bed_shape"				||
 		     opt_key == "compatible_printers"	|| opt_key == "compatible_prints" ) {
         value = get_config_value(config, opt_key);
         this->change_opt_value(opt_key, value);
@@ -925,10 +925,6 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 			ret = config.option<ConfigOptionStrings>(opt_key)->values;
 			break;
 		}
-		if (opt_key == "filament_ramming_parameters") {
-			ret = config.opt_string(opt_key, static_cast<unsigned int>(idx));
-			break;
-		}
 		if (config.option<ConfigOptionStrings>(opt_key)->values.empty())
 			ret = text_value;
 		else if (opt->gui_flags == "serialized") {
@@ -1038,10 +1034,6 @@ boost::any ConfigOptionsGroup::get_config_value2(const DynamicPrintConfig& confi
     case coStrings:
         if (opt_key == "compatible_printers" || opt_key == "compatible_prints") {
             ret = config.option<ConfigOptionStrings>(opt_key)->values;
-            break;
-        }
-        if (opt_key == "filament_ramming_parameters") {
-            ret = config.opt_string(opt_key, static_cast<unsigned int>(idx));
             break;
         }
         if (config.option<ConfigOptionStrings>(opt_key)->values.empty())
