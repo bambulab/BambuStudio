@@ -80,7 +80,7 @@ public:
     // Keeping the state is left to the CoolingBuffer, which runs asynchronously on another thread.
     std::string set_fan(unsigned int speed) const;
     //BBS: set additional fan speed for BBS machine only
-    static std::string set_additional_fan(const GCodeFlavor gcode_flavor, bool gcode_comments, unsigned int speed);
+    static std::string set_additional_fan(bool gcode_comments, unsigned int speed);
     std::string set_additional_fan(unsigned int speed) const;
 
 private:

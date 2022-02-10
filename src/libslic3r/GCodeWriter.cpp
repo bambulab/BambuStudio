@@ -578,7 +578,7 @@ std::string GCodeWriter::set_fan(unsigned int speed) const
 }
 
 //BBS: set additional fan speed for BBS machine only
-std::string GCodeWriter::set_additional_fan(const GCodeFlavor gcode_flavor, bool gcode_comments, unsigned int speed)
+std::string GCodeWriter::set_additional_fan(bool gcode_comments, unsigned int speed)
 {
     std::ostringstream gcode;
 
@@ -595,7 +595,7 @@ std::string GCodeWriter::set_additional_fan(const GCodeFlavor gcode_flavor, bool
 
 std::string GCodeWriter::set_additional_fan(unsigned int speed) const
 {
-    return GCodeWriter::set_additional_fan(this->config.gcode_flavor, this->config.gcode_comments, speed);
+    return GCodeWriter::set_additional_fan(this->config.gcode_comments, speed);
 }
 
 void GCodeFormatter::emit_axis(const char axis, const double v, size_t digits) {

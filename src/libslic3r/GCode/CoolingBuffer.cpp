@@ -37,6 +37,7 @@ void CoolingBuffer::reset(const Vec3d &position)
     m_current_pos[2] = float(position.z());
     m_current_pos[4] = float(m_config.travel_speed.value);
     m_fan_speed = -1;
+    m_additional_fan_speed = -1;
 }
 
 struct CoolingLine
@@ -717,9 +718,7 @@ std::string CoolingBuffer::apply_layer_cooldown(
     new_gcode.reserve(gcode.size() * 2);
     bool bridge_fan_control = false;
     int  bridge_fan_speed   = 0;
-    // BBS
-    int  additional_fan_speed = -1;
-    auto change_extruder_set_fan = [ this, layer_id, layer_time, &new_gcode, &bridge_fan_control, &bridge_fan_speed, &additional_fan_speed]() {
+    auto change_extruder_set_fan = [ this, layer_id, layer_time, &new_gcode, &bridge_fan_control, &bridge_fan_speed]() {
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_current_extruder)
         int min_fan_speed = EXTRUDER_CONFIG(min_fan_speed);
         int fan_speed_new = EXTRUDER_CONFIG(fan_always_on) ? min_fan_speed : 0;
@@ -769,9 +768,9 @@ std::string CoolingBuffer::apply_layer_cooldown(
             new_gcode  += GCodeWriter::set_fan(m_config.gcode_flavor, m_config.gcode_comments, m_fan_speed);
         }
         //BBS
-        if (additional_fan_speed_new != additional_fan_speed) {
-            additional_fan_speed = additional_fan_speed_new;
-            new_gcode += GCodeWriter::set_additional_fan(m_config.gcode_flavor, m_config.gcode_comments, additional_fan_speed);
+        if (additional_fan_speed_new != m_additional_fan_speed) {
+            m_additional_fan_speed = additional_fan_speed_new;
+            new_gcode += GCodeWriter::set_additional_fan(m_config.gcode_comments, m_additional_fan_speed);
         }
     };
 
