@@ -5486,11 +5486,11 @@ bool GLCanvas3D::_init_main_toolbar()
     item.tooltip = _utf8(L("Orient")) + " [O]\n"
         + _utf8(L("Click right mouse button to show auto-orientation options"));
     item.sprite_id++;
-    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ORIENT)); };
+    item.left.action_callback = []() {};
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };
-    item.right.toggable = true;  // allow right mouse click
+    item.left.toggable = true;  // allow right mouse click
     //BBS: GUI refactor: adjust the main toolbar position
-    item.right.render_callback = [this](float left, float right, float bottom, float top) {
+    item.left.render_callback = [this](float left, float right, float bottom, float top) {
         if (m_canvas != nullptr)
         {
             _render_orient_menu(left, right, bottom, top);
@@ -5504,11 +5504,11 @@ bool GLCanvas3D::_init_main_toolbar()
     item.icon_filename = "toolbar_arrange.svg";
     item.tooltip = _utf8(L("Arrange")) + " [A]\n" + _utf8(L("Click right mouse button to show arrangement options"));
     item.sprite_id++;
-    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ARRANGE)); };
+    item.left.action_callback = []() {};
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };
-    item.right.toggable = true;
+    item.left.toggable = true;
     //BBS: GUI refactor: adjust the main toolbar position
-    item.right.render_callback = [this](float left, float right, float bottom, float top) {
+    item.left.render_callback = [this](float left, float right, float bottom, float top) {
         if (m_canvas != nullptr)
         {
             _render_arrange_menu(left, right, bottom, top);
