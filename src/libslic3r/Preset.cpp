@@ -386,7 +386,7 @@ void Preset::save_info(std::string file)
         return;
     if (file.empty()) {
         fs::path idx_file(this->file);
-        idx_file.replace_extension(".idx");
+        idx_file.replace_extension(".info");
         file = idx_file.string();
     }
 
@@ -407,7 +407,7 @@ void Preset::remove_files()
     // Erase the preset file.
     boost::nowide::remove(this->file.c_str());
     fs::path idx_path(this->file);
-    idx_path.replace_extension(".idx");
+    idx_path.replace_extension(".info");
     if (fs::exists(idx_path))
         boost::nowide::remove(idx_path.string().c_str());
 }
@@ -417,9 +417,21 @@ void Preset::save()
     //BBS: add project embedded preset logic
     if (this->is_project_embedded)
         return;
-    this->config.save(this->file);
+    //BBS: change to json format
+    //this->config.save(this->file);
+    std::string from_str;
+    if (this->is_user())
+        from_str = std::string("User");
+    else if (this->is_project_embedded)
+        from_str = std::string("Project");
+    else if (this->is_system)
+        from_str = std::string("System");
+    else
+        from_str = std::string("Default");
+    this->config.save_to_json(this->file, this->name, from_str, std::string(SLIC3R_RC_VERSION));
+
     fs::path idx_file(this->file);
-    idx_file.replace_extension(".idx");
+    idx_file.replace_extension(".info");
     this->save_info(idx_file.string());
 }
 
@@ -784,18 +796,24 @@ void PresetCollection::load_presets(
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, load presets from %1%, current type %2%")%dir %Preset::get_type_string(m_type);
     //BBS do not parse folder if not exists
-    if (!fs::exists(dir)) return;
-
     m_dir_path = dir.string();
+    if (!fs::exists(dir)) {
+        fs::create_directory(dir);
+        return;
+    }
+
     std::string errors_cummulative;
     // Store the loaded presets into a new vector, otherwise the binary search for already existing presets would be broken.
     // (see the "Preset already present, not loading" message).
     std::deque<Preset> presets_loaded;
+    //BBS: change to json format
     for (auto &dir_entry : boost::filesystem::directory_iterator(dir))
-        if (Slic3r::is_ini_file(dir_entry)) {
-            std::string name = dir_entry.path().filename().string();
+    {
+        std::string file_name = dir_entry.path().filename().string();
+        //if (Slic3r::is_ini_file(dir_entry)) {
+        if (Slic3r::is_json_file(file_name)) {
             // Remove the .ini suffix.
-            name.erase(name.size() - 4);
+            std::string name = file_name.erase(file_name.size() - 5);
             if (this->find_preset(name, false)) {
                 // This happens when there's is a preset (most likely legacy one) with the same name as a system preset
                 // that's already been loaded from a bundle.
@@ -808,12 +826,14 @@ void PresetCollection::load_presets(
                 // Load the preset file, apply preset values on top of defaults.
                 try {
                     fs::path idx_path(preset.file);
-                    idx_path.replace_extension(".idx");
+                    idx_path.replace_extension(".info");
                     if (fs::exists(idx_path)) {
                         preset.load_info(idx_path.string());
                     }
                     DynamicPrintConfig config;
-                    ConfigSubstitutions config_substitutions = config.load_from_ini(preset.file, substitution_rule);
+                    //BBS: change to json format
+                    //ConfigSubstitutions config_substitutions = config.load_from_ini(preset.file, substitution_rule);
+                    ConfigSubstitutions config_substitutions = config.load_from_json(preset.file, substitution_rule);
                     if (! config_substitutions.empty())
                         substitutions.push_back({ preset.name, m_type, PresetConfigSubstitutions::Source::UserFile, preset.file, std::move(config_substitutions) });
                     // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
@@ -840,7 +860,9 @@ void PresetCollection::load_presets(
                 errors_cummulative += "\n";
             }
         }
-    m_presets.insert(m_presets.end(), std::make_move_iterator(presets_loaded.begin()), std::make_move_iterator(presets_loaded.end()));
+    }
+    if (presets_loaded.size() > 0)
+        m_presets.insert(m_presets.end(), std::make_move_iterator(presets_loaded.begin()), std::make_move_iterator(presets_loaded.end()));
     std::sort(m_presets.begin() + m_num_default_presets, m_presets.end());
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": loaded %1% presets from %2%, type %3%")%presets_loaded.size() %dir %Preset::get_type_string(m_type);
@@ -984,7 +1006,7 @@ int PresetCollection::get_user_presets(std::vector<Preset>& result_presets)
 
 
 //BBS: save user presets to local
-void PresetCollection::save_user_presets(std::map<std::string, Preset*> my_presets, const std::string& dir_path, const std::string& type)
+void PresetCollection::save_user_presets(const std::string& dir_path, const std::string& type)
 {
     boost::filesystem::path dir = boost::filesystem::absolute(boost::filesystem::path(dir_path) / type).make_preferred();
 
@@ -992,10 +1014,10 @@ void PresetCollection::save_user_presets(std::map<std::string, Preset*> my_prese
         fs::create_directory(dir);
 
     m_dir_path = dir.string();
-    std::map<std::string, Preset*>::iterator it;
-    for (it = my_presets.begin(); it != my_presets.end(); it++) {
-        if (it->second->type != Preset::get_type_from_string(type)) continue;
-        Preset* preset = it->second;
+    //std::map<std::string, Preset*>::iterator it;
+    //for (it = my_presets.begin(); it != my_presets.end(); it++) {
+    for (auto it = m_presets.begin(); it != m_presets.end(); it++) {
+        Preset* preset = &m_presets[it - m_presets.begin()];
         if (!preset->is_user()) continue;
         preset->file = path_from_name(preset->name);
         preset->save();
@@ -1008,17 +1030,20 @@ void PresetCollection::load_user_presets(std::map<std::string, Preset*> my_prese
     std::string errors_cummulative;
     // Store the loaded presets into a new vector, otherwise the binary search for already existing presets would be broken.
     // (see the "Preset already present, not loading" message).
-    std::deque<Preset> presets_loaded;
+    //std::deque<Preset> presets_loaded;
+    int count = 0;
 
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, type %1% , total preset counts %2%")%Preset::get_type_string(m_type) %my_presets.size();
 
+    lock();
     std::map<std::string, Preset*>::iterator it;
     for (it = my_presets.begin(); it != my_presets.end(); it++) {
         if (it->second->type != Preset::get_type_from_string(type)) continue;
         Preset* preset = it->second;
         if (!preset->is_user()) continue;
         std::string name = preset->name;
-        if (this->find_preset(name, false)) {
+        auto iter = this->find_preset_internal(name);
+        if ((iter != m_presets.end()) && (iter->name == name)) {
             BOOST_LOG_TRIVIAL(warning) << "Preset already present, not loading: " << name;
             continue;
         }
@@ -1038,7 +1063,9 @@ void PresetCollection::load_user_presets(std::map<std::string, Preset*> my_prese
                 BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" <<
                     preset->name << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
             preset->loaded = true;
-            presets_loaded.emplace_back(*it->second);
+            m_presets.insert(iter, *it->second);
+            count++;
+            //presets_loaded.emplace_back(*it->second);
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", %1% got preset, name %2%, path %3%, is_system %4%, is_default %5% is_visible %6%")%Preset::get_type_string(m_type) %preset->name %preset->file %preset->is_system %preset->is_default %preset->is_visible;
         } catch (const std::runtime_error &err) {
             errors_cummulative += err.what();
@@ -1046,11 +1073,13 @@ void PresetCollection::load_user_presets(std::map<std::string, Preset*> my_prese
         }
     }
    
-    m_presets.insert(m_presets.end(), std::make_move_iterator(presets_loaded.begin()), std::make_move_iterator(presets_loaded.end()));
+    //m_presets.insert(m_presets.end(), std::make_move_iterator(presets_loaded.begin()), std::make_move_iterator(presets_loaded.end()));
     std::sort(m_presets.begin() + m_num_default_presets, m_presets.end());
     this->select_preset(first_visible_idx());
 
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished, %1% got %2% presets, errors_cummulative %3%")%Preset::get_type_string(m_type) %presets_loaded.size() %errors_cummulative;
+    unlock();
+
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished, %1% got %2% presets, errors_cummulative %3%")%Preset::get_type_string(m_type) %count %errors_cummulative;
     if (! errors_cummulative.empty())
         throw Slic3r::RuntimeError(errors_cummulative);
 }
@@ -1308,6 +1337,8 @@ Preset& PresetCollection::load_preset(const std::string &path, const std::string
 //BBS: add project embedded preset logic
 void PresetCollection::save_current_preset(const std::string &new_name, bool detach, bool save_to_project)
 {
+    //BBS: add lock logic for sync preset in background
+    lock();
     // 1) Find the preset with a new_name or create a new one,
     // initialize it with the edited config.
     auto it = this->find_preset_internal(new_name);
@@ -1315,10 +1346,13 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
         // Preset with the same name found.
         Preset &preset = *it;
         //BBS: add project embedded preset logic
-        if (preset.is_default || preset.is_system)
+        if (preset.is_default || preset.is_system) {
         //if (preset.is_default || preset.is_external || preset.is_system)
             // Cannot overwrite the default preset.
+            //BBS: add lock logic for sync preset in background
+            unlock();
             return;
+        }
         // Overwriting an existing preset.
         preset.config = std::move(m_edited_preset.config);
         // The newly saved preset will be activated -> make it visible.
@@ -1330,9 +1364,9 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
 			preset.alias.clear();
 			preset.renamed_from.clear();
         }
-    } else {
         //BBS: add lock logic for sync preset in background
-        lock();
+        unlock();
+    } else {
         // Creating a new preset.
         Preset       &preset   = *m_presets.insert(it, m_edited_preset);
         std::string  &inherits = preset.inherits();
@@ -1365,15 +1399,15 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
         //BBS: add project embedded preset logic
         if (save_to_project) {
             preset.is_project_embedded = true;
-            if (m_type == Preset::TYPE_PRINT)
-                preset.config.option<ConfigOptionString >("print_settings_id", true)->value  = preset.name;
-            else if (m_type == Preset::TYPE_FILAMENT)
-                preset.config.option<ConfigOptionStrings>("filament_settings_id", true)->values[0] = preset.name;
-            else if (m_type == Preset::TYPE_PRINTER)
-                preset.config.option<ConfigOptionString>("printer_settings_id", true)->value = preset.name;
         }
         else
             preset.is_project_embedded = false;
+        if (m_type == Preset::TYPE_PRINT)
+            preset.config.option<ConfigOptionString >("print_settings_id", true)->value  = preset.name;
+        else if (m_type == Preset::TYPE_FILAMENT)
+            preset.config.option<ConfigOptionStrings>("filament_settings_id", true)->values[0] = preset.name;
+        else if (m_type == Preset::TYPE_PRINTER)
+            preset.config.option<ConfigOptionString>("printer_settings_id", true)->value = preset.name;
         //BBS: add lock logic for sync preset in background
         unlock();
     }
@@ -1843,14 +1877,15 @@ std::string PresetCollection::name() const
     }
 }
 
+//BBS: change directoties by design
 std::string PresetCollection::section_name() const
 {
     switch (this->type()) {
-    case Preset::TYPE_PRINT:        return "print";
-    case Preset::TYPE_FILAMENT:     return "filament";
-    case Preset::TYPE_SLA_PRINT:    return "sla_print";
-    case Preset::TYPE_SLA_MATERIAL: return "sla_material";
-    case Preset::TYPE_PRINTER:      return "printer";
+    case Preset::TYPE_PRINT:        return PRESET_SLICING_DIR;
+    case Preset::TYPE_FILAMENT:     return PRESET_FILAMENT_DIR;
+    case Preset::TYPE_SLA_PRINT:    return PRESET_SLA_SLICING_DIR;
+    case Preset::TYPE_SLA_MATERIAL: return PRESET_SLA_SLICING_DIR;
+    case Preset::TYPE_PRINTER:      return PRESET_SLA_FILAMENT_DIR;
     default:                        return "invalid";
     }
 }
@@ -1877,7 +1912,9 @@ std::vector<std::string> PresetCollection::system_preset_names() const
 // Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
 std::string PresetCollection::path_from_name(const std::string &new_name) const
 {
-    std::string file_name = boost::iends_with(new_name, ".ini") ? new_name : (new_name + ".ini");
+     //BBS: change to json format
+    //std::string file_name = boost::iends_with(new_name, ".ini") ? new_name : (new_name + ".ini");
+    std::string file_name = boost::iends_with(new_name, ".json") ? new_name : (new_name + ".json");
     return (boost::filesystem::path(m_dir_path) / file_name).make_preferred().string();
 }
 
@@ -2008,7 +2045,9 @@ void PhysicalPrinter::save(const std::string& file_name_from, const std::string&
     boost::nowide::rename(file_name_from.data(), file_name_to.data());
     this->file = file_name_to;
     // save configuration
-    this->config.save(this->file);
+    //BBS: change to save
+    //this->config.save(this->file);
+    this->config.save_to_json(this->file, std::string("Physical_Printer"), std::string("User"), std::string(SLIC3R_RC_VERSION));
 }
 
 void PhysicalPrinter::update_from_preset(const Preset& preset)
@@ -2116,11 +2155,14 @@ void PhysicalPrinterCollection::load_printers(
     std::string errors_cummulative;
     // Store the loaded printers into a new vector, otherwise the binary search for already existing presets would be broken.
     std::deque<PhysicalPrinter> printers_loaded;
+    //BBS: change to json format
     for (auto& dir_entry : boost::filesystem::directory_iterator(dir))
-        if (Slic3r::is_ini_file(dir_entry)) {
-            std::string name = dir_entry.path().filename().string();
-            // Remove the .ini suffix.
-            name.erase(name.size() - 4);
+    {
+        std::string file_name = dir_entry.path().filename().string();
+        //if (Slic3r::is_ini_file(dir_entry)) {
+        if (Slic3r::is_json_file(file_name)) {
+            // Remove the .json suffix.
+            std::string name = file_name.erase(file_name.size() - 5);
             if (this->find_printer(name, false)) {
                 // This happens when there's is a preset (most likely legacy one) with the same name as a system preset
                 // that's already been loaded from a bundle.
@@ -2133,7 +2175,8 @@ void PhysicalPrinterCollection::load_printers(
                 // Load the preset file, apply preset values on top of defaults.
                 try {
                     DynamicPrintConfig config;
-                    ConfigSubstitutions config_substitutions = config.load_from_ini(printer.file, substitution_rule);
+                    //ConfigSubstitutions config_substitutions = config.load_from_ini(printer.file, substitution_rule);
+                    ConfigSubstitutions config_substitutions = config.load_from_json(printer.file, substitution_rule);
                     if (! config_substitutions.empty())
                         substitutions.push_back({ name, Preset::TYPE_PHYSICAL_PRINTER, PresetConfigSubstitutions::Source::UserFile, printer.file, std::move(config_substitutions) });
                     printer.update_from_config(config);
@@ -2152,6 +2195,7 @@ void PhysicalPrinterCollection::load_printers(
                 errors_cummulative += "\n";
             }
         }
+    }
     m_printers.insert(m_printers.end(), std::make_move_iterator(printers_loaded.begin()), std::make_move_iterator(printers_loaded.end()));
     std::sort(m_printers.begin(), m_printers.end());
     if (!errors_cummulative.empty())
@@ -2273,7 +2317,9 @@ PhysicalPrinter* PhysicalPrinterCollection::find_printer_with_same_config(const 
 // Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
 std::string PhysicalPrinterCollection::path_from_name(const std::string& new_name) const
 {
-    std::string file_name = boost::iends_with(new_name, ".ini") ? new_name : (new_name + ".ini");
+    //BBS: change to json format
+    //std::string file_name = boost::iends_with(new_name, ".ini") ? new_name : (new_name + ".ini");
+    std::string file_name = boost::iends_with(new_name, ".json") ? new_name : (new_name + ".json");
     return (boost::filesystem::path(m_dir_path) / file_name).make_preferred().string();
 }
 

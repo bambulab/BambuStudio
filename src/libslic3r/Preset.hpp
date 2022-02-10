@@ -12,6 +12,16 @@
 #include "Semver.hpp"
 #include "ProjectTask.hpp"
 
+//BBS: change system directories
+#define PRESET_SYSTEM_DIR      "system"
+#define PRESET_USER_DIR        "user"
+#define PRESET_FILAMENT_DIR    "filament"
+#define PRESET_SLICING_DIR     "print"
+#define PRESET_PRINTER_DIR     "printer"
+#define PRESET_SLA_SLICING_DIR  "sla_slicing"
+#define PRESET_SLA_FILAMENT_DIR "sla_filament"
+
+
 namespace Slic3r {
 
 class AppConfig;
@@ -346,7 +356,7 @@ public:
     void            load_presets(const std::string &dir_path, const std::string &subdir, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule);
 
     //BBS Load user presets
-    void            save_user_presets(std::map<std::string, Preset*> my_presets, const std::string& dir_path, const std::string& type);
+    void            save_user_presets(const std::string& dir_path, const std::string& type);
     void            load_user_presets(std::map<std::string, Preset*> my_presets, const std::string& type, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule);
     //BBS: get user presets
     int             get_user_presets(std::vector<Preset>& result_presets);
@@ -712,7 +722,9 @@ public:
     bool                has_empty_config() const;
     void                update_preset_names_in_config();
 
-    void                save() { this->config.save(this->file); }
+    //BBS: change to json format
+    //void                save() { this->config.save(this->file); }
+    void                save() { this->config.save_to_json(this->file, std::string("Physical_Printer"), std::string("User"), std::string(SLIC3R_RC_VERSION)); }
     void                save(const std::string& file_name_from, const std::string& file_name_to);
 
     void                update_from_preset(const Preset& preset);

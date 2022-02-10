@@ -41,7 +41,7 @@ public:
 
     // BBS Load user presets
     PresetsConfigSubstitutions load_user_presets(AppConfig &config, std::map<std::string, Preset*> my_presets, ForwardCompatibilitySubstitutionRule rule);
-    void save_user_presets(AppConfig& config, std::map<std::string, Preset*> my_presets);
+    void save_user_presets(AppConfig& config);
     void remove_users_preset(AppConfig &config);
 
     //BBS: add API to get previous machine

@@ -867,6 +867,12 @@ bool is_gcode_file(const std::string &path)
 		   boost::iends_with(path, ".g")     || boost::iends_with(path, ".ngc");
 }
 
+//BBS: add json support
+bool is_json_file(const std::string& path)
+{
+	return boost::iends_with(path, ".json");
+}
+
 bool is_img_file(const std::string &path)
 {
 	return boost::iends_with(path, ".png") || boost::iends_with(path, ".svg");

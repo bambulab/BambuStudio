@@ -2211,7 +2211,7 @@ void GUI_App::reload_settings()
 {
     if (preset_bundle && m_account_manager) {
         preset_bundle->load_user_presets(*app_config, m_account_manager->my_presets, ForwardCompatibilitySubstitutionRule::Enable);
-        preset_bundle->save_user_presets(*app_config, m_account_manager->my_presets);
+        preset_bundle->save_user_presets(*app_config);
     }
 }
 

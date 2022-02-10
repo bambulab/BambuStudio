@@ -140,6 +140,8 @@ extern bool is_img_file(const std::string& path);
 extern bool is_gallery_file(const boost::filesystem::directory_entry& path, char const* type);
 extern bool is_gallery_file(const std::string& path, char const* type);
 extern bool is_shapes_dir(const std::string& dir);
+//BBS: add json support
+extern bool is_json_file(const std::string& path);
 
 // File path / name / extension splitting utilities, working with UTF-8,
 // to be published to Perl.

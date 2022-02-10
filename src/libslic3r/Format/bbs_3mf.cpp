@@ -79,6 +79,7 @@ const std::string THUMBNAIL_FILE = "Metadata/thumbnail";
 const std::string PRINT_CONFIG_FILE = "Metadata/Slic3r_PE.config";
 const std::string MODEL_CONFIG_FILE = "Metadata/Slic3r_PE_model.config";
 const std::string BBS_PRINT_CONFIG_FILE = "Metadata/print_profile.config";
+const std::string BBS_PROJECT_CONFIG_FILE = "Metadata/project_settings.config";
 const std::string BBS_MODEL_CONFIG_FILE = "Metadata/model_settings.config";
 const std::string SLICE_INFO_CONFIG_FILE = "Metadata/slice_info.config";
 const std::string LAYER_HEIGHTS_PROFILE_FILE = "Metadata/Slic3r_PE_layer_heights_profile.txt";
@@ -88,8 +89,9 @@ const std::string SLA_DRAIN_HOLES_FILE = "Metadata/Slic3r_PE_sla_drain_holes.txt
 const std::string CUSTOM_GCODE_PER_PRINT_Z_FILE = "Metadata/Prusa_Slicer_custom_gcode_per_print_z.xml";
 const std::string AUXILIARY_DIR = "Auxiliaries/";
 const std::string PROJECT_EMBEDDED_PRINT_PRESETS_FILE = "Metadata/print_setting_";
-const std::string PROJECT_EMBEDDED_FILAMENT_PRESETS_FILE = "Metadata/filament_setting_";
-const std::string PROJECT_EMBEDDED_PRINTER_PRESETS_FILE = "Metadata/printer_setting_";
+const std::string PROJECT_EMBEDDED_SLICE_PRESETS_FILE = "Metadata/slice_settings_";
+const std::string PROJECT_EMBEDDED_FILAMENT_PRESETS_FILE = "Metadata/filament_settings_";
+const std::string PROJECT_EMBEDDED_PRINTER_PRESETS_FILE = "Metadata/printer_settings_";
 
 
 const unsigned int AUXILIARY_STR_LEN = 12;
@@ -580,8 +582,10 @@ namespace Slic3r {
 
         void _extract_print_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, DynamicPrintConfig& config, ConfigSubstitutionContext& subs_context, const std::string& archive_filename);
         bool _extract_model_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model);
+        //BBS: add project config file logic
+        void _extract_project_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, DynamicPrintConfig& config, ConfigSubstitutionContext& subs_context, Model& model);
         //BBS: extract project embedded presets
-        void _extract_project_embedded_presets_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, std::vector<Preset*>&project_presets, Model& model, Preset::Type type);
+        void _extract_project_embedded_presets_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, std::vector<Preset*>&project_presets, Model& model, Preset::Type type, bool use_json = true);
 
         void _extract_auxiliary_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model);
         void _extract_gcode_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model, std::string& name);
@@ -929,12 +933,21 @@ namespace Slic3r {
                     // extract sla support points file
                     _extract_sla_drain_holes_from_archive(archive, stat);
                 }*/
-                else if ((boost::algorithm::iequals(name, PRINT_CONFIG_FILE))||(boost::algorithm::iequals(name, BBS_PRINT_CONFIG_FILE))) {
+                //BBS: project setting file
+                else if (boost::algorithm::iequals(name, BBS_PRINT_CONFIG_FILE)) {
                     // extract slic3r print config file
                     _extract_print_config_from_archive(archive, stat, config, config_substitutions, filename);
                 }
+                else if (boost::algorithm::iequals(name, BBS_PROJECT_CONFIG_FILE)) {
+                    // extract slic3r print config file
+                    _extract_project_config_from_archive(archive, stat, config, config_substitutions, model);
+                }
                 //BBS: project embedded presets
                 else if (boost::algorithm::istarts_with(name, PROJECT_EMBEDDED_PRINT_PRESETS_FILE)) {
+                    // extract slic3r layer config ranges file
+                    _extract_project_embedded_presets_from_archive(archive, stat, project_presets, model, Preset::TYPE_PRINT, false);
+                }
+                else if (boost::algorithm::istarts_with(name, PROJECT_EMBEDDED_SLICE_PRESETS_FILE)) {
                     // extract slic3r layer config ranges file
                     _extract_project_embedded_presets_from_archive(archive, stat, project_presets, model, Preset::TYPE_PRINT);
                 }
@@ -1358,8 +1371,31 @@ namespace Slic3r {
         }
     }
 
+    //BBS: extract project config from json files
+    void _BBS_3MF_Importer::_extract_project_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, Model& model)
+    {
+        if (stat.m_uncomp_size > 0) {
+            const std::string& temp_path = model.get_backup_path();
+
+            std::string dest_file = temp_path + std::string("/") + "_temp_3.config";;
+            std::string dest_zip_file = encode_path(dest_file.c_str());
+            mz_bool res = mz_zip_reader_extract_file_to_file(&archive, stat.m_filename, dest_zip_file.c_str(), 0);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % dest_file % stat.m_filename % res;
+            if (res == 0) {
+                add_error("Error while extract project config file to file");
+                return;
+            }
+            int ret = config.load_from_json(dest_file, config_substitutions);
+            if (ret) {
+                add_error("Error load config from json");
+                return;
+            }
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", load project config file successfully from %1%\n") %dest_file;
+        }
+    }
+
     //BBS: extract project embedded presets
-    void _BBS_3MF_Importer::_extract_project_embedded_presets_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, std::vector<Preset*>&project_presets, Model& model, Preset::Type type)
+    void _BBS_3MF_Importer::_extract_project_embedded_presets_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, std::vector<Preset*>&project_presets, Model& model, Preset::Type type, bool use_json)
     {
         if (stat.m_uncomp_size > 0) {
             const std::string& temp_path = model.get_backup_path();
@@ -1379,7 +1415,8 @@ namespace Slic3r {
             }
             //load presets
             DynamicPrintConfig config;
-            ConfigSubstitutions config_substitutions = config.load_from_ini(dest_file, Enable);
+            //ConfigSubstitutions config_substitutions = config.load_from_ini(dest_file, Enable);
+            ConfigSubstitutions config_substitutions = use_json? config.load_from_json(dest_file, Enable) : config.load_from_ini(dest_file, Enable);
             ConfigOptionString* print_name;
             ConfigOptionStrings* filament_names;
             std::string preset_name;
@@ -3024,6 +3061,8 @@ namespace Slic3r {
         bool _add_sla_support_points_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_sla_drain_holes_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_print_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config);
+        //BBS: add project config file logic for json format
+        bool _add_project_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config, Model& model);
         //BBS: add project embedded preset files
         bool _add_project_embedded_presets_to_archive(mz_zip_archive& archive, Model& model, std::vector<Preset*> project_presets);
         bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const IdToObjectDataMap &objects_data);
@@ -3312,7 +3351,9 @@ namespace Slic3r {
         // Adds slic3r print config file ("Metadata/Slic3r_PE.config").
         // This file contains the content of FullPrintConfing / SLAFullPrintConfig.
         if (config != nullptr) {
-            if (!_add_print_config_file_to_archive(archive, *config)) {
+            //BBS: change to json format
+            //if (!_add_print_config_file_to_archive(archive, *config)) {
+            if (!_add_project_config_file_to_archive(archive, *config, model)) {
                 close_zip_writer(&archive);
                 boost::filesystem::remove(filename);
                 return false;
@@ -4158,6 +4199,26 @@ namespace Slic3r {
         return true;
     }
 
+    //BBS: add project config file logic for new json format
+    bool _BBS_3MF_Exporter::_add_project_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config, Model& model)
+    {
+        bool result = true;
+
+        const std::string& temp_path = model.get_backup_path();
+        std::string temp_file = temp_path + std::string("/") + "_temp_1.config";
+
+        config.save_to_json(temp_file, std::string("project_settings"), std::string("project"), std::string(SLIC3R_RC_VERSION));
+
+        std::string src_file = encode_path(temp_file.c_str());
+        result = mz_zip_writer_add_file(&archive, BBS_PROJECT_CONFIG_FILE.c_str(), src_file.c_str(), "", 0, MZ_DEFAULT_COMPRESSION);
+        if (!result) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", Unable to add project config file %1% to archive %2%\n")%src_file %BBS_PROJECT_CONFIG_FILE;
+        }
+        else
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", add project config file %1% to archive %2%\n")%src_file %BBS_PROJECT_CONFIG_FILE;
+        return true;
+    }
+
     //BBS: add project embedded preset files
     bool _BBS_3MF_Exporter::_add_project_embedded_presets_to_archive(mz_zip_archive& archive, Model& model, std::vector<Preset*> project_presets)
     {
@@ -4175,7 +4236,8 @@ namespace Slic3r {
             if (preset) {
                 preset->file = temp_path + std::string("/") + "_temp_1.config";
                 DynamicPrintConfig& config = preset->config;
-                config.save(preset->file);
+                //config.save(preset->file);
+                config.save_to_json(preset->file, preset->name, std::string("project"), std::string(SLIC3R_RC_VERSION));
 
                 std::string src_file = encode_path(preset->file.c_str());
                 std::string dest_file;

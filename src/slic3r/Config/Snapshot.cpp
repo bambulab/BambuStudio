@@ -242,7 +242,9 @@ void Snapshot::export_vendor_configs(AppConfig &config) const
     config.set_vendors(std::move(vendors));
 }
 
-static constexpr auto snapshot_subdirs = { "print", "sla_print", "filament", "sla_material", "printer", "physical_printer", "vendor" };
+//BBS: change directories by desigh
+static constexpr auto snapshot_subdirs = { PRESET_SLICING_DIR, PRESET_SLA_SLICING_DIR, PRESET_FILAMENT_DIR, PRESET_SLA_FILAMENT_DIR, PRESET_PRINTER_DIR, "physical_printer", PRESET_SYSTEM_DIR };
+//static constexpr auto snapshot_subdirs = { "print", "sla_print", "filament", "sla_material", "printer", "physical_printer", "vendor" };
 
 // Perform a deep compare of the active print / sla_print / filament / sla_material / printer / physical_printer / vendor directories.
 // Return true if the content of the current print / sla_print / filament / sla_material / printer / physical_printer / vendor directories
@@ -424,7 +426,8 @@ const Snapshot&	SnapshotDB::take_snapshot(const AppConfig &app_config, Snapshot:
                 ++ it;
         // Read the active config bundle, parse the config version.
         PresetBundle bundle;
-        bundle.load_configbundle((data_dir / "vendor" / (cfg.name + ".ini")).string(), PresetBundle::LoadConfigBundleAttribute::LoadVendorOnly, ForwardCompatibilitySubstitutionRule::EnableSilent);
+        //BBS: change directoties by design
+        bundle.load_configbundle((data_dir / PRESET_SYSTEM_DIR / (cfg.name + ".ini")).string(), PresetBundle::LoadConfigBundleAttribute::LoadVendorOnly, ForwardCompatibilitySubstitutionRule::EnableSilent);
         for (const auto &vp : bundle.vendors)
             if (vp.second.id == cfg.name)
                 cfg.version.config_version = vp.second.config_version;
@@ -432,7 +435,7 @@ const Snapshot&	SnapshotDB::take_snapshot(const AppConfig &app_config, Snapshot:
         try {
             // Load the config index for the vendor.
             Index index;
-            index.load(data_dir / "vendor" / (cfg.name + ".idx"));
+            index.load(data_dir / PRESET_SYSTEM_DIR / (cfg.name + ".idx"));
             auto it = index.find(cfg.version.config_version);
             if (it != index.end()) {
                 cfg.version.min_slic3r_version = it->min_slic3r_version;

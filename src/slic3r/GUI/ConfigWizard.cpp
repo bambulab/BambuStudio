@@ -106,7 +106,8 @@ BundleMap BundleMap::load()
 {
     BundleMap res;
 
-    const auto vendor_dir = (boost::filesystem::path(Slic3r::data_dir()) / "vendor").make_preferred();
+    //BBS: change directories by design
+    const auto vendor_dir = (boost::filesystem::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR).make_preferred();
     const auto rsrc_vendor_dir = (boost::filesystem::path(resources_dir()) / "profiles").make_preferred();
 
     //BBS: add BBL as default
@@ -1915,7 +1916,8 @@ void ConfigWizard::priv::load_vendors()
         appconfig_new.set_vendors(*app_config);
     } else {
         // In case of legacy datadir, try to guess the preference based on the printer preset files that are present
-        const auto printer_dir = fs::path(Slic3r::data_dir()) / "printer";
+        //BBS: change directories by design
+        const auto printer_dir = fs::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR / "printer";
         for (auto &dir_entry : boost::filesystem::directory_iterator(printer_dir))
             if (Slic3r::is_ini_file(dir_entry)) {
                 auto needle = legacy_preset_map.find(dir_entry.path().filename().string());

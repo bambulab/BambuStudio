@@ -77,6 +77,7 @@ class ParamsPanel : public wxPanel
         wxBoxSizer* m_page_sizer { nullptr };
 
         ScalableButton*		m_search_btn { nullptr };
+        ScalableButton*		m_compare_btn { nullptr };
 
         wxBitmap m_toggle_on_icon;
         wxBitmap m_toggle_off_icon;

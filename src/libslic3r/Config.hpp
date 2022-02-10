@@ -902,6 +902,14 @@ public:
     
     std::vector<std::string> vserialize() const override
     {
+        //BBS: add serialize
+        /*std::vector<std::string> result;
+        result.resize(this->values.size());
+        for (int i = 0; i < this->values.size(); i++)
+        {
+            result[i] = escape_string_cstyle(this->values[i]);
+        }
+        return result;*/
         return this->values;
     }
     
@@ -1268,7 +1276,11 @@ public:
         std::vector<std::string> vv;
         for (Pointfs::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
             std::ostringstream ss;
-            ss << *it;
+            //BBS: add json format
+            //ss << *it;
+            ss << (*it)(0);
+            ss << "x";
+            ss << (*it)(1);
             vv.push_back(ss.str());
         }
         return vv;
@@ -2017,6 +2029,9 @@ public:
     ConfigSubstitutions load(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule);
     //BBS support load from ini string
     ConfigSubstitutions load_string_map(std::map<std::string, std::string> &key_values, ForwardCompatibilitySubstitutionRule compatibility_rule);
+    //BBS: add json support
+    int load_from_json(const std::string &file, ConfigSubstitutionContext& substitutions);
+    ConfigSubstitutions load_from_json(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule);
 
     ConfigSubstitutions load_from_ini(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule);
     ConfigSubstitutions load_from_ini_string(const std::string &data, ForwardCompatibilitySubstitutionRule compatibility_rule);
@@ -2026,6 +2041,9 @@ public:
     ConfigSubstitutions load_from_gcode_file(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule);
     ConfigSubstitutions load(const boost::property_tree::ptree &tree, ForwardCompatibilitySubstitutionRule compatibility_rule);
     void save(const std::string &file) const;
+
+    //BBS: add json support
+    void save_to_json(const std::string &file, const std::string &name, const std::string &from, const std::string &version) const;
 
 	// Set all the nullable values to nils.
     void null_nullables();

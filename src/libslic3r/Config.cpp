@@ -22,12 +22,24 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/format.hpp>
 #include <string.h>
+//BBS: add json support
+#include "nlohmann/json.hpp"
+
+using namespace nlohmann;
 
 //FIXME for GCodeFlavor and gcfMarlin (for forward-compatibility conversion)
 // This is not nice, likely it would be better to pass the ConfigSubstitutionContext to handle_legacy().
 #include "PrintConfig.hpp"
 
 namespace Slic3r {
+
+//BBS: add json support
+static const std::string CONFIG_VERSION_KEY = "Version";
+static const std::string CONFIG_NAME_KEY = "Name";
+static const std::string CONFIG_URL_KEY = "Url";
+static const std::string CONFIG_TYPE_KEY = "Type";
+static const std::string CONFIG_FROM_KEY = "From";
+
 
 // Escape \n, \r and backslash
 std::string escape_string_cstyle(const std::string &str)
@@ -574,6 +586,7 @@ bool ConfigBase::set_deserialize_raw(const t_config_option_key &opt_key_src, con
     	success     = result != ConfigHelpers::DeserializationResult::Failed;
     	substituted = result == ConfigHelpers::DeserializationResult::Substituted;
     } else {
+		//bool test = (opt_key == "end_filament_gcode");
 		success = opt->deserialize(value, append);
 	    if (! success && substitutions_ctxt.rule != ForwardCompatibilitySubstitutionRule::Disable &&
 	        // Only allow substitutions of an enum value by another enum value or a boolean value with an enum value.
@@ -676,11 +689,126 @@ ConfigSubstitutions ConfigBase::load_string_map(std::map<std::string, std::strin
     return std::move(substitutions_ctxt.substitutions);
 }
 
+//BBS: add json support
 ConfigSubstitutions ConfigBase::load(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule)
 {
-    return is_gcode_file(file) ? 
-        this->load_from_gcode_file(file, compatibility_rule) :
-        this->load_from_ini(file, compatibility_rule);
+    if (is_gcode_file(file))
+        return this->load_from_gcode_file(file, compatibility_rule);
+    else if (is_json_file(file))
+        return this->load_from_json(file, compatibility_rule);
+    else
+        return this->load_from_ini(file, compatibility_rule);
+}
+
+//BBS: add json support
+ConfigSubstitutions ConfigBase::load_from_json(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule)
+{
+    int ret = 0;
+    ConfigSubstitutionContext substitutions_ctxt(compatibility_rule);
+
+    ret = load_from_json(file, substitutions_ctxt);
+    return std::move(substitutions_ctxt.substitutions);
+}
+
+int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContext& substitution_context)
+{
+    json j;
+    try {
+        boost::nowide::ifstream ifs(file);
+        ifs >> j;
+
+        const ConfigDef* config_def = this->def();
+        if (config_def == nullptr) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": no config defs!";
+            return -1;
+        }
+        //parse the json elements
+        for (auto it = j.begin(); it != j.end(); it++) {
+            if (it.key() == CONFIG_VERSION_KEY) {
+            }
+            else if (it.key() == CONFIG_NAME_KEY) {
+            }
+            else if (it.key() == CONFIG_URL_KEY) {
+            }
+            else if (it.key() == CONFIG_TYPE_KEY) {
+            }
+            else if (it.key() == CONFIG_FROM_KEY) {
+            }
+            else {
+                t_config_option_key opt_key = it.key();
+                std::string value_str;
+                if (it.value().is_string()) {
+                    //bool test1 = (it.key() == std::string("end_gcode"));
+                    this->set_deserialize(opt_key, it.value(), substitution_context);
+                }
+                else if (it.value().is_array()) {
+                    bool valid = true, first = true, use_comma = true;
+                    //bool test2 = (it.key() == std::string("end_filament_gcode"));
+                    const ConfigOptionDef* optdef = config_def->get(opt_key);
+                    if (optdef == nullptr) {
+                        // If we didn't find an option, look for any other option having this as an alias.
+                        for (const auto& opt : config_def->options) {
+                            for (const t_config_option_key& opt_key2 : opt.second.aliases) {
+                                if (opt_key2 == opt_key) {
+                                    opt_key = opt.first;
+                                    optdef = &opt.second;
+                                    break;
+                                }
+                            }
+                            if (optdef != nullptr)
+                                break;
+                        }
+                    }
+
+                    if (optdef && optdef->type == coStrings) {
+                        use_comma = false;
+                    }
+                    for (auto iter = it.value().begin(); iter != it.value().end(); iter++) {
+                        if (iter.value().is_string()) {
+                            if (!first) {
+                                if (use_comma)
+                                    value_str += ",";
+                                else
+                                    value_str += ";";
+                            }
+                            else
+                                first = false;
+
+                            if (use_comma)
+                                value_str += iter.value();
+                            else {
+                                value_str += "\"";
+                                value_str += escape_string_cstyle(iter.value());
+                                value_str += "\"";
+                            }
+                        }
+                        else {
+                            //should not happen
+                            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" error, invalid json array for " << it.key();
+                            valid = false;
+                            break;
+                        }
+                    }
+                    if (valid)
+                        this->set_deserialize(opt_key, value_str, substitution_context);
+                }
+                else {
+                    //should not happen
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" error, invalid json type for " << it.key();
+                }
+            }
+        }
+        return 0;
+    }
+    catch (const ConfigurationError &e) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" got a ConfigurationError, reason = " << e.what();
+        throw ConfigurationError(format("Failed loading configuration file \"%1%\": %2%", file, e.what()));
+    }
+    catch(nlohmann::detail::parse_error &err) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" got a nlohmann::detail::parse_error, reason = " << err.what();
+        throw ConfigurationError(format("Failed loading configuration file \"%1%\": %2%", file, err.what()));
+    }
+    return -1;
 }
 
 ConfigSubstitutions ConfigBase::load_from_ini(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule)
@@ -1017,6 +1145,51 @@ ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, Fo
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  finished to parse_file %1%") % file.c_str();
     return std::move(substitutions_ctxt.substitutions);
+}
+
+//BBS: add json support
+void ConfigBase::save_to_json(const std::string &file, const std::string &name, const std::string &from, const std::string &version) const
+{
+    json j;
+
+    //record the headers
+    j[CONFIG_VERSION_KEY] = version;
+    j[CONFIG_NAME_KEY] = name;
+    j[CONFIG_FROM_KEY] = from;
+
+    //record all the key-values
+    for (const std::string &opt_key : this->keys())
+    {
+        const ConfigOption* opt = this->option(opt_key);
+        if ( opt->is_scalar() ) {
+            if (opt->type() == coString)
+                //keep \n, \r, \t
+                j[opt_key] = (dynamic_cast<const ConfigOptionString *>(opt))->value;
+            else
+                j[opt_key] = opt->serialize();
+        }
+        else {
+            const ConfigOptionVectorBase *vec = static_cast<const ConfigOptionVectorBase*>(opt);
+            //if (!vec->empty())
+            std::vector<std::string> string_values = vec->vserialize();
+
+            /*for (int i = 0; i < string_values.size(); i++)
+            {
+                std::string string_value = escape_string_cstyle(string_values[i]);
+                j[opt_key][i] = string_value;
+            }*/
+
+            json j_array(string_values);
+            j[opt_key] = j_array;
+        }
+    }
+
+    boost::nowide::ofstream c;
+    c.open(file, std::ios::out | std::ios::trunc);
+    c << std::setw(4) << j << std::endl;
+    c.close();
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", saved config to %1%\n")%file;
 }
 
 void ConfigBase::save(const std::string &file) const

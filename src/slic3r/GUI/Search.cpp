@@ -366,6 +366,9 @@ Option OptionsSearcher::get_option(const std::string& opt_key, const wxString& l
 {
     std::string key = get_key(opt_key, type);
     auto it = std::lower_bound(options.begin(), options.end(), Option({ boost::nowide::widen(key) }));
+    //BBS: return the 0th option when not found in searcher caused by mode difference
+    if (it == options.end())
+        return options[0];
     if(it->key == boost::nowide::widen(key))
         return options[it - options.begin()];
     if (groups_and_categories.find(key) == groups_and_categories.end()) {

@@ -172,10 +172,11 @@ struct PresetUpdater::priv
 	void set_waiting_updates(Updates u);
 };
 
+//BBS: change directories by design
 PresetUpdater::priv::priv()
 	: cache_path(fs::path(Slic3r::data_dir()) / "cache")
 	, rsrc_path(fs::path(resources_dir()) / "profiles")
-	, vendor_path(fs::path(Slic3r::data_dir()) / "vendor")
+	, vendor_path(fs::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR)
 	, cancel(false)
 {
 	set_download_prefs(GUI::wxGetApp().app_config);
@@ -730,6 +731,7 @@ PresetUpdater::~PresetUpdater()
 	}
 }
 
+//BBS: change directories by design
 void PresetUpdater::sync(PresetBundle *preset_bundle)
 {
 	//BBS: disable online update currently
@@ -748,7 +750,7 @@ void PresetUpdater::sync(PresetBundle *preset_bundle)
 		this->p->sync_config(std::move(vendors));
     });
 #else
-	const auto vendor_dir = (boost::filesystem::path(Slic3r::data_dir()) / "vendor").make_preferred();
+	const auto vendor_dir = (boost::filesystem::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR).make_preferred();
 	const auto rsrc_vendor_dir = (boost::filesystem::path(resources_dir()) / "profiles").make_preferred();
 	auto vendor_file = (vendor_dir / PresetBundle::BBL_BUNDLE).replace_extension(".ini");
 	auto rsrc_vendor_file = (rsrc_vendor_dir / PresetBundle::BBL_BUNDLE).replace_extension(".ini");

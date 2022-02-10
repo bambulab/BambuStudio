@@ -65,6 +65,10 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
     m_search_btn->SetBackgroundColour("#FFFFFF");
     m_search_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().plater()->search(false); });
     //m_search_button = new wxBitmapButton( this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|0 );
+    m_compare_btn = new ScalableButton(m_mode_panel, wxID_ANY, "compare", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+    m_compare_btn->SetToolTip(_L("Compare this preset with some another"));
+    m_compare_btn->SetBackgroundColour("#FFFFFF");
+    m_compare_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { wxGetApp().mainframe->diff_dialog.show(); }));
 
     m_staticline_filament = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
     m_staticline_print = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
@@ -136,6 +140,8 @@ void ParamsPanel::create_layout()
     m_mode_sizer->AddSpacer(9);
     m_mode_sizer->Add( m_mode_status, 0, wxALIGN_CENTER );
     m_mode_sizer->AddStretchSpacer(1);
+    m_mode_sizer->Add( m_compare_btn, 0, wxALIGN_CENTER );
+    m_mode_sizer->AddSpacer(16);
     m_mode_sizer->Add( m_search_btn, 0, wxALIGN_CENTER );
     m_mode_sizer->AddSpacer(16);
     m_mode_sizer->SetMinSize(-1, 3 * em_unit(this));
