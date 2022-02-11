@@ -181,8 +181,9 @@ void GLGizmoPainterBase::render_cursor_circle() const
     center = center * inv_zoom;
 
     glsafe(::glLineWidth(1.5f));
-    static const std::array<float, 3> color = {0.f, 1.f, 0.3f};
-    glsafe(::glColor3fv(color.data()));
+    // BBS
+    const std::array<float, 4> color = this->get_cursor_hover_color();
+    glsafe(::glColor4fv(color.data()));
     glsafe(::glDisable(GL_DEPTH_TEST));
 
     glsafe(::glPushMatrix());
@@ -223,7 +224,8 @@ void GLGizmoPainterBase::render_cursor_sphere(const Transform3d& trafo) const
     if (is_left_handed)
         glFrontFace(GL_CW);
 
-    std::array<float, 4> render_color = {0.f, 0.f, 0.f, 0.25f};
+    // BBS
+    std::array<float, 4> render_color = this->get_cursor_hover_color();
     if (m_button_down == Button::Left)
         render_color = this->get_cursor_sphere_left_button_color();
     else if (m_button_down == Button::Right)

@@ -99,12 +99,17 @@ public:
 
     const float get_cursor_radius_min() const override { return CursorRadiusMin; }
 
+    // BBS
+    bool on_number_key_down(int number);
+
 protected:
     std::array<float, 4> get_cursor_sphere_left_button_color() const override;
     std::array<float, 4> get_cursor_sphere_right_button_color() const override;
+    // BBS
+    std::array<float, 4> get_cursor_hover_color() const override;
 
-    EnforcerBlockerType get_left_button_state_type() const override { return EnforcerBlockerType(m_first_selected_extruder_idx + 1); }
-    EnforcerBlockerType get_right_button_state_type() const override { return EnforcerBlockerType(m_second_selected_extruder_idx + 1); }
+    EnforcerBlockerType get_left_button_state_type() const override { return EnforcerBlockerType(m_selected_extruder_idx + 1); }
+    EnforcerBlockerType get_right_button_state_type() const override { return EnforcerBlockerType::NONE; }
 
     void on_render_input_window(float x, float y, float bottom_limit) override;
     std::string on_get_name() const override;
@@ -120,6 +125,8 @@ protected:
 
     size_t                            m_first_selected_extruder_idx  = 0;
     size_t                            m_second_selected_extruder_idx = 1;
+    // BBS
+    size_t                            m_selected_extruder_idx = 0;
     std::vector<std::string>          m_original_extruders_names;
     std::vector<std::array<float, 4>> m_original_extruders_colors;
     std::vector<std::array<float, 4>> m_modified_extruders_colors;

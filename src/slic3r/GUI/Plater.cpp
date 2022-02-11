@@ -934,10 +934,10 @@ Sidebar::Sidebar(Plater *parent)
             return;
 
         size_t new_extruder_count = p->combos_filament.size() - 1;
-        update_objects_list_extruder_column(new_extruder_count);
-        on_extruders_change(new_extruder_count);
         wxGetApp().preset_bundle->printers.get_edited_preset().set_num_extruders(new_extruder_count);
         wxGetApp().preset_bundle->update_multi_material_filament_presets();
+        on_extruders_change(new_extruder_count);
+        update_objects_list_extruder_column(new_extruder_count);
     });
 
     bSizer39->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, 5 * em / 10);

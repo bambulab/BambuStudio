@@ -969,6 +969,12 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
                 if (gizmo_event(SLAGizmoEventType::AltUp) || (is_editing && is_rectangle_dragging))
                     processed = true;
             }
+
+            // BBS
+            if (m_current == MmuSegmentation && keyCode > '0' && keyCode <= '9') {
+                // capture number key
+                processed = true;
+            }
         }
 
 //        if (processed)
@@ -1003,6 +1009,12 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
             GLGizmoSimplify *simplify = dynamic_cast<GLGizmoSimplify *>(get_current());
             if (simplify != nullptr) 
                 processed = simplify->on_esc_key_down();
+        }
+        // BBS
+        else if (m_current == MmuSegmentation && keyCode > '0' && keyCode <= '9') {
+            GLGizmoMmuSegmentation* mmu_seg = dynamic_cast<GLGizmoMmuSegmentation*>(get_current());
+            if (mmu_seg != nullptr)
+                processed = mmu_seg->on_number_key_down(keyCode - '0');
         }
     }
 

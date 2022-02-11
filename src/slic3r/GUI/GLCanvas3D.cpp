@@ -2784,7 +2784,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case '7':
         case '8':
         case '9': {
-            obj_list->set_extruder_for_selected_items(keyCode - '0');
+            if (m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation)
+                obj_list->set_extruder_for_selected_items(keyCode - '0');
             break;
         }
 

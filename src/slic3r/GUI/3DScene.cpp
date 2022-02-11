@@ -678,7 +678,10 @@ void GLVolume::render(bool with_outline) const
                         shader->set_uniform("uniform_color", colors[extruder_id - 1]);
                     }
                     else {
-                        shader->set_uniform("uniform_color", colors[idx - 1]);
+                        if (idx <= colors.size())
+                            shader->set_uniform("uniform_color", colors[idx - 1]);
+                        else
+                            shader->set_uniform("uniform_color", colors[0]);
                     }
                 }
                 iva.render(this->tverts_range, this->qverts_range);
@@ -990,7 +993,10 @@ int GLVolumeCollection::load_wipe_tower_preview(
     std::vector<int> plate_extruders = ppl.get_plate(plate_idx)->get_extruders();
     TriangleMesh wipe_tower_shell = make_cube(width, depth, height);
     for (int extruder_id : plate_extruders) {
-        colors.push_back(extruder_colors[extruder_id - 1]);
+        if (extruder_id <= extruder_colors.size())
+            colors.push_back(extruder_colors[extruder_id - 1]);
+        else
+            colors.push_back(extruder_colors[0]);
     }
 
 #if 0
