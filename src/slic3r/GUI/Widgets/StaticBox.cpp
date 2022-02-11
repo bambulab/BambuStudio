@@ -1,4 +1,5 @@
 #include "StaticBox.hpp"
+#include <wx/dcgraph.h>
 
 BEGIN_EVENT_TABLE(StaticBox, wxPanel)
 
@@ -62,16 +63,31 @@ void StaticBox::paintEvent(wxPaintEvent& evt)
  */
 void StaticBox::render(wxDC& dc)
 {
-    int states = state_handler.states();
-    dc.SetPen(wxPen(border_color.colorForStates(states)));
-    dc.SetBrush(wxBrush(background_color.colorForStates(states)));
-    if (GetWindowStyle() & wxBORDER_NONE)
-        dc.SetPen(wxPen(background_color.colorForStates(states)));
+	wxSize size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap img(size.x, size.y);
+    memdc.SelectObject(img);
+    memdc.SetPen(GetParent()->GetBackgroundColour());
+    memdc.SetBrush(GetParent()->GetBackgroundColour());
+    memdc.DrawRectangle(0, 0, size.x, size.y);
 
-    wxSize size = GetSize();
-    if (radius == 0)
-        dc.DrawRectangle(0, 0, size.x, size.y);
-    else
-        dc.DrawRoundedRectangle(0, 0, size.x, size.y, radius);
-    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    wxGCDC dc2(memdc);
+
+    int states = state_handler.states();
+    dc2.SetPen(wxPen(border_color.colorForStates(states)));
+    dc2.SetBrush(wxBrush(background_color.colorForStates(states)));
+	if (GetWindowStyle() & wxBORDER_NONE)
+        dc2.SetPen(wxPen(background_color.colorForStates(states)));
+
+	if (radius == 0) {
+        dc2.DrawRectangle(0, 0, size.x, size.y);
+	}
+	else {
+
+        dc2.DrawRoundedRectangle(0, 0, size.x, size.y, radius);
+	}
+
+    memdc.SetPen(wxNullPen);
+    memdc.SelectObject(wxNullBitmap);
+	dc.DrawBitmap(img, 0, 0);
 }

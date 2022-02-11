@@ -35,6 +35,7 @@
 #include "Widgets/AxisCtrlButton.hpp"
 #include "Widgets/TextInput.hpp"
 #include "Widgets/StaticLine.hpp"
+#include "wxMediaCtrl2.h"
 
 ///////////////////////////////////////////////////////////////////////////
 class wxMediaCtrl2;
@@ -117,7 +118,6 @@ namespace Slic3r
 			wxPanel* m_panel_separotor_left;
 			wxPanel* m_panel_monitoring_title;
 			wxStaticText* m_staticText_monitoring;
-			//wxStaticBitmap* m_bitmap_live_default;
 			wxMediaCtrl2* m_media_ctrl;
 			MediaPlayCtrl* m_media_play_ctrl;
 			wxPanel* m_panel_separotor1;
@@ -203,6 +203,7 @@ namespace Slic3r
 			Button* m_button_extruder_feed;
 			Button* m_button_extruder_back;
 			wxPanel* m_panel_separator_right;
+			wxPanel* m_panel_separotor_bottom;
 
 			// Virtual event handlers, override them in your derived class
 			virtual void on_subtask_report(wxCommandEvent& event) { event.Skip(); }

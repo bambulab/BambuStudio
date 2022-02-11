@@ -11,24 +11,21 @@
 class AxisCtrlButton : public wxWindow
 {
     wxSize minSize;
+    double
+        stretch_x,
+        stretch_y,
+        r_outer,
+        r_inner,
+        r_blank,
+        gap;
+	wxPoint center;
 
     StateHandler    state_handler;
-    StateColor      text_color;
     StateColor      border_color;
     StateColor      background_color;
 	StateColor      inner_background_color;
 
 	bool pressedDown = false;
-
-    double
-        stretch_x,
-        stretch_y,
-        r,
-        r_inner,
-        r_blank,
-        space;
-
-	wxPoint circle_center_pos;
 
     unsigned char last_pos;
     unsigned char current_pos;
@@ -47,15 +44,9 @@ class AxisCtrlButton : public wxWindow
 public:
     AxisCtrlButton(wxWindow* parent, long style = 0);
 
-    bool SetForegroundColour(wxColour const& colour) override;
-
-    bool SetBackgroundColour(wxColour const& color) override;
-
     void SetMinSize(const wxSize& size) override;
 
     void SetBorderColor(StateColor const& color);
-
-    void SetForegroundColor(StateColor const& color);
 
     void SetBackgroundColor(StateColor const& color);
 
@@ -67,8 +58,6 @@ private:
     void paintEvent(wxPaintEvent& evt);
 
     void render(wxDC& dc);
-
-    void measureSize();
 
     void mouseDown(wxMouseEvent& event);
     void mouseReleased(wxMouseEvent& event);
