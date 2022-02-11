@@ -332,9 +332,16 @@ protected:
             // already processed bigger items.
             // No need to play around with the anchor points, the center will be
             // just fine for small items
-            score = 0.5*norm(pl::distance(ibb.center(), bigbb.center())) + 0.5*norm(pl::distance(ibb.center(), origin_pack));
             if (m_pconf.starting_point == PConfig::Alignment::BOTTOM_LEFT)
                 score = dist_for_BOTTOM_LEFT(ibb, origin_pack);
+            else {
+                // Align mainly around existing items
+                //score = 0.8 * norm(pl::distance(ibb.center(), bigbb.center()))+ 0.2*norm(pl::distance(ibb.center(), origin_pack));
+                // Align to 135 degree line {calc distance to the line x+y-(xc+yc)=0}
+                auto ic = ibb.center(), bigbbc = bigbb.center();
+                score = norm(std::abs(ic.x() + ic.y() - bigbbc.x() - bigbbc.y()));
+            }
+
             break;
         }            
         }

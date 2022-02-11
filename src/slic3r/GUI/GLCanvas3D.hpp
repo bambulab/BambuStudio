@@ -457,7 +457,7 @@ public:
 //        float distance_seq_print = 6.;    // Used when sequential print is ON
 //        float distance_sla       = 6.;
         float accuracy           = 0.65f; // Unused currently
-        bool  enable_rotation    = false;
+        bool  enable_rotation    = true;
         bool  allow_multi_materials_on_same_plate = true;
         //BBS: add more arrangeSettings
         bool is_seq_print        = false;

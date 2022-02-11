@@ -114,7 +114,7 @@ public:
                     score = result.score();
                     score_all_plates = std::accumulate(placers.begin(), placers.begin() + j, score,
                         [](double sum, const Placer& elem) { return sum + elem.score(); });
-                    if(score > 0 && score < LARGE_COST_TO_REJECT) {
+                    if(score >= 0 && score < LARGE_COST_TO_REJECT) {
                         if (bed_id_firstfit == -1) {
                             bed_id_firstfit = j;
                             result_firstfit = result;
