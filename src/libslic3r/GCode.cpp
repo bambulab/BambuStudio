@@ -3705,6 +3705,10 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     if (m_ooze_prevention.enable)
         gcode += m_ooze_prevention.post_toolchange(*this);
 
+    //BBS: don't do slope travel after tool change
+    //Because gcode writer don't know where is the real position of extruder after inserting a user-defined gcode
+    m_writer.set_current_position_clear(false);
+
     return gcode;
 }
 

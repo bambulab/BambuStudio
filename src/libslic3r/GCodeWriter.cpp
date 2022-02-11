@@ -298,6 +298,36 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
             dest_point(2) = m_to_lift + m_pos(2);
         }
         m_to_lift = 0.;
+
+        std::string slop_move;
+        //BBS: minus plate offset
+        Vec3d target = { dest_point(0) - m_x_offset, dest_point(1) - m_y_offset, dest_point(2) };
+        if (this->is_current_position_clear()) {  //BBS: don'need slope travel because we don't know where is the source position the first time
+            //BBS: minus plate offset
+            Vec3d source = { m_pos(0) - m_x_offset, m_pos(1) - m_y_offset, m_pos(2) };
+            Vec3d delta = target - source;
+            Vec3d delta_no_z = { delta(0), delta(1), 0 };
+            //BBS: check whether we need to make a travel like
+            //   _____
+            //  /       to make the z list early to avoid to hit some warping place when travel is long.
+            const double slope_threshold = 5 * PI / 180;
+            if (delta(2) > EPSILON && atan2(delta(2), delta_no_z.norm()) < slope_threshold) {
+                Vec3d temp = delta_no_z.normalized() * delta(2) / tan(slope_threshold);
+                Vec3d slope_top_point = Vec3d(temp(0), temp(1), delta(2)) + source;
+                GCodeG1Formatter w0;
+                w0.emit_xyz(slope_top_point);
+                w0.emit_f(this->config.travel_speed.value * 60.0);
+                w0.emit_comment(this->config.gcode_comments, comment);
+                slop_move = w0.string();
+            }
+        }
+        m_pos = dest_point;
+        this->set_current_position_clear(true);
+        GCodeG1Formatter w1;
+        w1.emit_xyz(target);
+        w1.emit_f(this->config.travel_speed.value * 60.0);
+        w1.emit_comment(this->config.gcode_comments, comment);
+        return slop_move + w1.string();
     }
     else if (!this->will_move_z(point(2))) {
         double nominal_z = m_pos(2) - m_lifted;
@@ -306,6 +336,8 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
         // and a retract could be skipped
         if (std::abs(m_lifted) < EPSILON)
             m_lifted = 0.;
+        //BBS
+        this->set_current_position_clear(true);
         return this->travel_to_xy(to_2d(point));
     }
     else {
@@ -316,6 +348,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
     }
     
     //BBS: take plate offset into consider
+    this->set_current_position_clear(true);
     Vec3d point_on_plate = { dest_point(0) - m_x_offset, dest_point(1) - m_y_offset, dest_point(2) };
     m_pos = dest_point;
 

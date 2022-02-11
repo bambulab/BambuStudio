@@ -83,6 +83,11 @@ public:
     static std::string set_additional_fan(bool gcode_comments, unsigned int speed);
     std::string set_additional_fan(unsigned int speed) const;
 
+    //BBS:
+    void set_current_position_clear(bool clear) { m_is_current_pos_clear = clear; };
+    bool is_current_position_clear() const { return m_is_current_pos_clear; };
+
+
 private:
 	// Extruders are sorted by their ID, so that binary search is possible.
     std::vector<Extruder> m_extruders;
@@ -102,6 +107,10 @@ private:
     // BBS
     double          m_to_lift;
     Vec3d           m_pos = Vec3d::Zero();
+    //BBS: this flag is used to indicate whether the m_pos is real.
+    //A example that of the first move, the m_pos is zero, but the real position of extruder doesn't
+    //Pos must be clear after the first xyz travel move
+    bool            m_is_current_pos_clear = false;
     //BBS: x, y offset for gcode generated
     double          m_x_offset{ 0 };
     double          m_y_offset{ 0 };
