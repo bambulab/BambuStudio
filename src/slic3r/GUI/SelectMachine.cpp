@@ -678,6 +678,21 @@ void SelectMachineDialog::on_ok(wxCommandEvent& event)
         return;
     }
 
+#ifdef BBL_CHECK_USER_REPORT
+    int task_id = 0;
+    bool printable = true;
+    c->user_check_report(&task_id, &printable);
+    if (task_id != 0 && !printable) {
+        m_status_bar->set_status_text(_L("Please fill report first!"));
+        std::string report_url = (boost::format("https://autotest.bambu-lab.com/slicerAddReport?task_id=%1%&token=%2%")
+            % task_id
+            % c->get_curr_user()->m_autotest_token
+            ).str();
+        wxLaunchDefaultBrowser(report_url);
+        return;
+    }
+#endif
+
     m_need_disable_btn_ensure = true;
     m_button_ensure->Disable();
 

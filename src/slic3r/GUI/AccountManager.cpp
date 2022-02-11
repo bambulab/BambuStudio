@@ -1215,7 +1215,7 @@ namespace Slic3r {
         json j;
         j["base_model"] = false;
         j["profile_config"] = false;
-        j["profile_thumbnail"] = false;
+        j["profile_thumbnail"] = true;
         j["profile_gcode"] = false;
         j["profile_pattern"] = true;
         if (!task->task_gcode_in_3mf.empty()) {
