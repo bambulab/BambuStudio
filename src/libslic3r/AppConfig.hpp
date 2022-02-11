@@ -93,7 +93,7 @@ public:
 	void			    set(const std::string &key, const std::string &value)
 		{ this->set("app", key, value);  }
 
-	void                set(const std::string &key, const bool &value)
+	void                set_bool(const std::string &key, const bool &value)
 		{
 			this->set("app", key, value);
 		}

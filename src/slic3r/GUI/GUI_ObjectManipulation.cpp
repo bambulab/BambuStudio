@@ -418,7 +418,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
     m_check_inch->SetValue(m_imperial_units);
     m_check_inch->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
-        wxGetApp().app_config->set("use_inches", m_check_inch->GetValue());
+        wxGetApp().app_config->set_bool("use_inches", m_check_inch->GetValue());
         wxGetApp().sidebar().update_ui_from_settings();
     });
 

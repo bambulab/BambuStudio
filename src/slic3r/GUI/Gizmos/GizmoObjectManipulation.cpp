@@ -539,7 +539,7 @@ void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper
     {
         //will set in update_ui_from_settings
         //this->m_imperial_units = imperial_units;
-        wxGetApp().app_config->set("use_inches", imperial_units);
+        wxGetApp().app_config->set_bool("use_inches", imperial_units);
         wxGetApp().sidebar().update_ui_from_settings();
     }
 

@@ -1567,7 +1567,7 @@ static wxMenu* generate_help_menu()
     // BBS tips
     append_menu_check_item(helpMenu, wxID_ANY, _L("Tips"), _L("Show daily tips(TODO)"),
         [](wxCommandEvent& evt) {
-            wxGetApp().app_config->set("show_daily_tips", evt.GetInt() == 1);
+            wxGetApp().app_config->set_bool("show_daily_tips", evt.GetInt() == 1);
         }, nullptr, []() {return true; }, []() {return wxGetApp().app_config->get("show_daily_tips").compare("true") == 0; }, nullptr);
     // shortcut key
     append_menu_item(helpMenu, wxID_ANY, _L("Keyboard Shortcuts") + sep + "&?", _L("Show the list of the keyboard shortcuts"),
@@ -1929,16 +1929,16 @@ void MainFrame::init_menubar_as_editor()
         editMenu->AppendSeparator();
         append_menu_check_item(editMenu, wxID_ANY, _L("Show Model Mesh(TODO)"),
             _L("Display triangles of models"), [this](wxCommandEvent& evt) {
-                wxGetApp().app_config->set("show_model_mesh", evt.GetInt() == 1);
+                wxGetApp().app_config->set_bool("show_model_mesh", evt.GetInt() == 1);
             }, nullptr, [this]() {return can_select(); }, [this]() { return wxGetApp().app_config->get("show_model_mesh").compare("true") == 0; }, this);
         append_menu_check_item(editMenu, wxID_ANY, _L("Show Model Shadow(TODO)"), _L("Display shadow of models"),
             [this](wxCommandEvent& evt) {
-                wxGetApp().app_config->set("show_model_shadow", evt.GetInt() == 1);
+                wxGetApp().app_config->set_bool("show_model_shadow", evt.GetInt() == 1);
             }, nullptr, [this]() {return can_select(); }, [this]() { return wxGetApp().app_config->get("show_model_shadow").compare("true") == 0; }, this);
         editMenu->AppendSeparator();
         append_menu_check_item(editMenu, wxID_ANY, _L("Show Printable Box(TODO)"), _L("Display printable box"),
             [this](wxCommandEvent& evt) {
-                wxGetApp().app_config->set("show_printable_box", evt.GetInt() == 1);
+                wxGetApp().app_config->set_bool("show_printable_box", evt.GetInt() == 1);
             }, nullptr, [this]() {return can_select(); }, [this]() { return wxGetApp().app_config->get("show_printable_box").compare("true") == 0; }, this);
 
 #if 0
@@ -2032,13 +2032,13 @@ void MainFrame::init_menubar_as_editor()
         wxWindowID camera_id_base = wxWindow::NewControlId(int(wxID_CAMERA_COUNT));
         auto perspective_item = append_menu_radio_item(viewMenu, wxID_CAMERA_PERSPECTIVE + camera_id_base, _L("Use Perspective View"), _L("Use perspective view  camera"),
             [this](wxCommandEvent&) {
-                wxGetApp().app_config->set("is_perspective", true);
+                wxGetApp().app_config->set_bool("is_perspective", true);
                 wxGetApp().update_ui_from_settings();
             }, nullptr);
         //BBS orthogonal view
         auto orthogonal_item = append_menu_radio_item(viewMenu, wxID_CAMERA_ORTHOGONAL + camera_id_base, _L("Use Orthogonal View"), _L("Use orthogonal view camera"),
             [this](wxCommandEvent&) {
-                wxGetApp().app_config->set("is_perspective", false);
+                wxGetApp().app_config->set_bool("is_perspective", false);
                 wxGetApp().update_ui_from_settings();
             }, nullptr);
         if (wxGetApp().app_config->get("is_perspective").compare("true") == 0)

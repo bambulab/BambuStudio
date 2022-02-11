@@ -55,28 +55,28 @@ void AppConfig::set_defaults()
 #ifdef SUPPORT_AUTO_CENTER
         // Reset the empty fields to defaults.
         if (get("autocenter").empty())
-            set("autocenter", true);
+            set_bool("autocenter", true);
 #endif
 
 #ifdef SUPPORT_BACKGROUND_PROCESSING
         // Disable background processing by default as it is not stable.
         if (get("background_processing").empty())
-            set("background_processing", false);
+            set_bool("background_processing", false);
 #endif
 
 #ifdef SUPPORT_SHOW_DROP_PROJECT
         if (get("show_drop_project_dialog").empty())
-            set("show_drop_project_dialog", true);
+            set_bool("show_drop_project_dialog", true);
 #endif
 
         if (get("drop_project_action").empty())
-            set("drop_project_action", true);
+            set_bool("drop_project_action", true);
 
 #ifdef _WIN32
         if (get("associate_3mf").empty())
-            set("associate_3mf", false);
+            set_bool("associate_3mf", false);
         if (get("associate_stl").empty())
-            set("associate_stl", false);
+            set_bool("associate_stl", false);
 
 #endif // _WIN32
 
@@ -86,11 +86,11 @@ void AppConfig::set_defaults()
 
 #ifdef __APPLE__
         if (get("use_retina_opengl").empty())
-            set("use_retina_opengl", true);
+            set_bool("use_retina_opengl", true);
 #endif
 
         if (get("single_instance").empty())
-            set("single_instance", 
+            set_bool("single_instance",
 #ifdef __APPLE__
                 true
 #else // __APPLE__
@@ -100,10 +100,10 @@ void AppConfig::set_defaults()
 
 #ifdef SUPPORT_REMEMBER_OUTPUT_PATH
         if (get("remember_output_path").empty())
-            set("remember_output_path", true);
+            set_bool("remember_output_path", true);
 
         if (get("remember_output_path_removable").empty())
-            set("remember_output_path_removable", true);
+            set_bool("remember_output_path_removable", true);
 #endif
         if (get("toolkit_size").empty())
             set("toolkit_size", "100");
@@ -114,31 +114,31 @@ void AppConfig::set_defaults()
 #endif // ENABLE_ENVIRONMENT_MAP
 
         if (get("use_inches").empty())
-            set("use_inches", false);
+            set_bool("use_inches", false);
     }
     else {
 #ifdef _WIN32
         if (get("associate_gcode").empty())
-            set("associate_gcode", false);
+            set_bool("associate_gcode", false);
 #endif // _WIN32
     }
 
     if (get("is_perspective").empty())
-        set("is_perspective", true);
+        set_bool("is_perspective", true);
 
 #ifdef SUPPORT_FREE_CAMERA
     if (get("use_free_camera").empty())
-        set("use_free_camera", false);
+        set_bool("use_free_camera", false);
 #endif
 
 #ifdef SUPPORT_REVERSE_MOUSE_ZOOM
     if (get("reverse_mouse_wheel_zoom").empty())
-        set("reverse_mouse_wheel_zoom", false);
+        set_bool("reverse_mouse_wheel_zoom", false);
 #endif
 
 #ifdef SUPPORT_SHOW_HINTS
     if (get("show_hints").empty())
-        set("show_hints", true);
+        set_bool("show_hints", true);
 #endif
 
 
@@ -146,26 +146,26 @@ void AppConfig::set_defaults()
 
 #ifdef SUPPORT_3D_CONNEXION
     if (get("use_legacy_3DConnexion").empty())
-        set("use_legacy_3DConnexion", false);
+        set_bool("use_legacy_3DConnexion", false);
 #endif
 
 #ifdef SUPPORT_DARK_MODE
     if (get("dark_color_mode").empty())
-        set("dark_color_mode", false);
+        set_bool("dark_color_mode", false);
 #endif
 
 #ifdef SUPPORT_SYS_MENU
     if (get("sys_menu_enabled").empty())
-        set("sys_menu_enabled", true);
+        set_bool("sys_menu_enabled", true);
 #endif
 #endif // _WIN32
 
     // BBS
     /*if (get("3mf_include_gcode").empty())
-        set("3mf_include_gcode", true);*/
+        set_bool("3mf_include_gcode", true);*/
 
     if (get("developer_mode").empty())
-        set("developer_mode", false);
+        set_bool("developer_mode", false);
 
     // BBS
     if (get("preset_folder").empty())
@@ -178,23 +178,23 @@ void AppConfig::set_defaults()
     }
 
     if (get("show_model_mesh").empty()) {
-        set("show_model_mesh", false);
+        set_bool("show_model_mesh", false);
     }
 
     if (get("show_model_shadow").empty()) {
-        set("show_model_shadow", true);
+        set_bool("show_model_shadow", true);
     }
 
     if (get("show_build_edges").empty()) {
-        set("show_build_edgets", false);
+        set_bool("show_build_edgets", false);
     }
 
     if (get("show_daily_tips").empty()) {
-        set("show_daily_tips", true);
+        set_bool("show_daily_tips", true);
     }
 
     if (get("show_printable_box").empty()) {
-        set("show_printable_box", true);
+        set_bool("show_printable_box", true);
     }
 
     // Remove legacy window positions/sizes
