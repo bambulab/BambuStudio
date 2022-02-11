@@ -36,7 +36,7 @@ namespace pt = boost::property_tree;
 #include <expat.h>
 #include <Eigen/Dense>
 #include "miniz_extension.hpp"
-
+#include "nlohmann/json.hpp"
 #include <fast_float/fast_float.h>
 
 // Slightly faster than sprintf("%.9g"), but there is an issue with the karma floating point formatter,
@@ -3045,12 +3045,14 @@ namespace Slic3r {
             const DynamicPrintConfig* config,
             const std::vector<ThumbnailData*>& thumbnail_data,
             Export3mfProgressFn proFn,
-            const std::vector<ThumbnailData*>& calibration_data);
+            const std::vector<ThumbnailData*>& calibration_data,
+            const std::vector<PlateBBoxData*>& id_bboxes);
 
         bool _add_content_types_file_to_archive(mz_zip_archive& archive);
 
         bool _add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data, int index);
         bool _add_calibration_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data, int index);
+        bool _add_bbox_file_to_archive(mz_zip_archive& archive, const PlateBBoxData& id_bboxes, int index);
         bool _add_relationships_file_to_archive(mz_zip_archive& archive);
         bool _add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data, Export3mfProgressFn proFn = nullptr);
         bool _add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int& object_id, ModelObject& object, BuildItemsList& build_items, VolumeToOffsetsMap& volumes_offsets);
@@ -3122,7 +3124,7 @@ namespace Slic3r {
         boost::filesystem::remove(filename + ".tmp", ec);
 
         bool result = _save_model_to_file(filename + ".tmp", *store_params.model, store_params.plate_data_list, store_params.project_presets, store_params.config,
-            store_params.thumbnail_data, store_params.proFn, store_params.calibration_thumbnail_data);
+            store_params.thumbnail_data, store_params.proFn, store_params.calibration_thumbnail_data, store_params.id_bboxes);
         if (result) {
             boost::filesystem::rename(filename + ".tmp", filename, ec);
             if (!store_params.silence)
@@ -3155,7 +3157,8 @@ namespace Slic3r {
         const DynamicPrintConfig* config,
         const std::vector<ThumbnailData*>& thumbnail_data,
         Export3mfProgressFn proFn,
-        const std::vector<ThumbnailData*>& calibration_data)
+        const std::vector<ThumbnailData*>& calibration_data,
+        const std::vector<PlateBBoxData*>& id_bboxes)
     {
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
@@ -3231,6 +3234,14 @@ namespace Slic3r {
                 if (calibration_data[index]->is_valid())
                 {
                     if (!_add_calibration_file_to_archive(archive, *calibration_data[index], index)) {
+                        close_zip_writer(&archive);
+                        boost::filesystem::remove(filename);
+                        return false;
+                    }
+                }
+                //BBS: save bounding box to json
+                if (id_bboxes[index]->is_valid()) {
+                    if (!_add_bbox_file_to_archive(archive, *id_bboxes[index], index)) {
                         close_zip_writer(&archive);
                         boost::filesystem::remove(filename);
                         return false;
@@ -3527,6 +3538,23 @@ namespace Slic3r {
         }
 
         return res;
+    }
+
+    bool _BBS_3MF_Exporter::_add_bbox_file_to_archive(mz_zip_archive& archive, const PlateBBoxData& id_bboxes, int index)
+    {
+        bool res = false;
+        nlohmann::json j;
+        id_bboxes.to_json(j);
+        std::string out = j.dump();
+
+        std::string json_file_name = (boost::format("Metadata/plate_%1%.json") % (index + 1)).str();
+        if (!mz_zip_writer_add_mem(&archive, json_file_name.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
+            add_error("Unable to add json file to archive");
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add json file to archive\n");
+            return false;
+        }
+
+        return true;
     }
 
     bool _BBS_3MF_Exporter::_add_relationships_file_to_archive(mz_zip_archive& archive)

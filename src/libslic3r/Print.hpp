@@ -369,6 +369,9 @@ public:
     // Helpers to project custom facets on slices
     void project_and_append_custom_facets(bool seam, EnforcerBlockerType type, std::vector<Polygons>& expolys) const;
 
+    //BBS
+    BoundingBox get_first_layer_bbox(float& area);
+
 private:
     // to be called from Print only.
     friend class Print;

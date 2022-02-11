@@ -54,7 +54,7 @@ public:
     double radius() const;
     double area() const { return double(this->max(0) - this->min(0)) * (this->max(1) - this->min(1));    } // BBS
     void translate(coordf_t x, coordf_t y) { assert(this->defined); PointClass v(x, y); this->min += v; this->max += v; }
-    void translate(const Vec2d &v) { this->min += v; this->max += v; }
+    void translate(const Vec2d& v0) { PointClass v(v0.x(), v0.y()); this->min += v; this->max += v; }
     void offset(coordf_t delta);
     BoundingBoxBase<PointClass> inflated(coordf_t delta) const throw() { BoundingBoxBase<PointClass> out(*this); out.offset(delta); return out; }
     PointClass center() const;

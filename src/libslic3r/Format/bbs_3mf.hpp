@@ -1,6 +1,7 @@
 #ifndef BBS_3MF_hpp_
 #define BBS_3MF_hpp_
 
+#include "../GCode/ThumbnailData.hpp"
 #include <functional>
 
 namespace Slic3r {
@@ -104,6 +105,7 @@ struct StoreParams
     bool skip_static = false;
     bool silence = true;
     Export3mfProgressFn proFn = nullptr;
+    std::vector<PlateBBoxData*> id_bboxes;
 
     StoreParams() {}
 };

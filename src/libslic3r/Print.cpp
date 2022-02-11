@@ -984,6 +984,26 @@ void PrintObject::autoBrimConfigWidth(double flowWidth)
         BOOST_LOG_TRIVIAL(debug) << "brim_width_map: " << this->id().id << ", " << brim_width;
     }
 }
+// BBS
+BoundingBox PrintObject::get_first_layer_bbox(float& a)
+{
+    BoundingBox bbox;
+    a = 0;
+    if (layer_count() > 0) {
+        auto layer = get_layer(0);
+        // only work for object with single instance
+        auto shift = instances()[0].shift;
+        for (auto bb : layer->lslices_bboxes)
+        {
+            bb.translate(shift.x(), shift.y());
+            bbox.merge(bb);
+        }
+        for (auto slice : layer->lslices) {
+            a += area(slice);
+        }
+    }
+    return bbox;
+}
 
 // BBS: map print object with its first layer's first extruder
 std::map<ObjectID, unsigned int> getObjectExtruderMap(const Print& print) {

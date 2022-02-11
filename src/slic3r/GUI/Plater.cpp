@@ -2077,6 +2077,7 @@ struct Plater::priv
     ThumbnailsList generate_thumbnails(const ThumbnailsParams& params, Camera::EType camera_type);
     //BBS
     void generate_calibration_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params);
+    PlateBBoxData generate_first_layer_bbox();
 
     void bring_instance_forward() const;
 
@@ -5463,6 +5464,36 @@ void Plater::priv::generate_calibration_thumbnail(ThumbnailData& data, unsigned 
     preview->get_canvas3d()->render_calibration_thumbnail(data, w, h, thumbnail_params);
 }
 
+PlateBBoxData Plater::priv::generate_first_layer_bbox()
+{
+    PlateBBoxData bboxdata;
+    std::vector<BBoxData>& id_bboxes = bboxdata.bbox_objs;
+    BoundingBox bbox_all;
+    //PrintObjectPtrs objects;
+    //if (this->printer_technology == ptFFF) {
+    //    objects = this->background_process.m_fff_print->objects().vector();
+    //}
+    //else {
+    //    objects = this->background_process.m_sla_print->objects();
+    //}
+    auto objects = this->background_process.m_fff_print->objects();
+
+    for (auto obj : objects)
+    {
+        BBoxData data;
+        auto bb_scaled = (obj->get_first_layer_bbox(data.area));
+        bbox_all.merge(bb_scaled);
+        auto bb = unscaled(bb_scaled);
+        data.area *= (SCALING_FACTOR * SCALING_FACTOR); // unscale area
+        data.id = obj->id().id;
+        data.bbox = { bb.min.x(),bb.min.y(),bb.max.x(),bb.max.y() };
+        id_bboxes.emplace_back(std::move(data));
+    }
+    auto bbox_all_unscaled = unscaled(bbox_all);
+    bboxdata.bbox_all = { bbox_all_unscaled.min.x(),bbox_all_unscaled.min.y(),bbox_all_unscaled.max.x(),bbox_all_unscaled.max.y() };
+    return bboxdata;
+}
+
 wxString Plater::priv::get_project_filename(const wxString& extension) const
 {
     return m_project_filename.empty() ? "" : m_project_filename + extension;
@@ -7843,6 +7874,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
     //BBS: add plate logic for thumbnail generate
     std::vector<ThumbnailData*> thumbnails;
     std::vector<ThumbnailData*> calibration_thumbnails;
+    std::vector<PlateBBoxData*> plate_bboxes;
     // BBS: backup
     if (!backup) {
         for (int i = 0; i < p->partplate_list.get_plate_count(); i++) {
@@ -7850,16 +7882,20 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
             const ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i };
             p->generate_thumbnail(*thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, thumbnail_params, Camera::EType::Ortho);
             thumbnails.push_back(thumbnail_data);
+            
+            calibration_thumbnails.push_back(new ThumbnailData());
+            plate_bboxes.push_back(new PlateBBoxData());
         }
 
         if (p->partplate_list.get_curr_plate()->is_slice_result_valid()) {
             //BBS generate BBS calibration thumbnails
-            ThumbnailData* calibration_data = new ThumbnailData();
+            int index = p->partplate_list.get_curr_plate_index();
+            ThumbnailData* calibration_data = calibration_thumbnails[index];
             const ThumbnailsParams calibration_params = { {}, false, true, true, true, p->partplate_list.get_curr_plate_index() };
             const int thumbnail_width = 2560;
             const int thumbnail_height = 2560;
             p->generate_calibration_thumbnail(*calibration_data, thumbnail_width, thumbnail_height, calibration_params);
-            calibration_thumbnails.push_back(calibration_data);
+            *plate_bboxes[index] = p->generate_first_layer_bbox();
         }
     }
 
@@ -7876,8 +7912,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
     // BBS: backup
     PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
     std::vector<Preset*> project_presets = preset_bundle.get_current_project_embedded_presets();
-
-
+    
     StoreParams store_params;
     store_params.path  = path_u8.c_str();
     store_params.model = &p->model;
@@ -7891,6 +7926,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
     store_params.zip64 = true;
     store_params.skip_static = backup;
     store_params.silence = silence;
+    store_params.id_bboxes = plate_bboxes;//BBS
     if (Slic3r::store_bbs_3mf(store_params)) {
     //if (Slic3r::store_bbs_3mf(path_u8.c_str(), &p->model, plate_data_list, project_presets, export_config ? &cfg : nullptr, full_pathnames, thumbnails, true /*zip64*/, backup, proFn, silence)) {
         if (!silence) {
@@ -7917,6 +7953,8 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
     {
         delete calibration_thumbnails[i];
     }
+    for (int i = 0; i < plate_bboxes.size(); i++)
+        delete plate_bboxes[i];
     thumbnails.clear();
     return 0;
 }
