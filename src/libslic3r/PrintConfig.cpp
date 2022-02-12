@@ -1242,6 +1242,16 @@ void PrintConfigDef::init_fff_params()
     def->max_literal = 20;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(30, false));
+    //BBS
+    def = this->add("speed_initial_layer_infill", coFloat);
+    def->label = L("Speed of initial layer infill");
+    def->tooltip = L("Speed of infill of first layer in mm/s, this speed will be applied to solid infill part of "
+                      "initial layer.");
+    def->sidetext = L("mm/s");
+    def->min = 1;
+    def->max = 100;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(60.0));
 
     def = this->add("first_layer_speed_over_raft", coFloatOrPercent);
     def->label = L("Speed of object first layer over raft interface");

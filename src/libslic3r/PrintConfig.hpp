@@ -722,6 +722,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloatOrPercent,     first_layer_extrusion_width))
     ((ConfigOptionFloatOrPercent,     first_layer_height))
     ((ConfigOptionFloatOrPercent,     first_layer_speed))
+    //BBS
+    ((ConfigOptionFloat,              speed_initial_layer_infill))
     ((ConfigOptionInts,               first_layer_temperature))
     ((ConfigOptionInts,               full_fan_speed_layer))
     ((ConfigOptionFloat,              infill_acceleration))

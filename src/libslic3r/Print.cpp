@@ -195,10 +195,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "flush_volumes_matrix"
             // BBS
             || opt_key == "wiping_volume"
-            || opt_key == "parking_pos_retraction"
-            || opt_key == "cooling_tube_retraction"
-            || opt_key == "cooling_tube_length"
-            || opt_key == "extra_loading_move"
+            || opt_key == "speed_initial_layer_infill"
             || opt_key == "travel_speed"
             || opt_key == "travel_speed_z"
             || opt_key == "first_layer_speed"

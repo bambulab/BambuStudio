@@ -1770,6 +1770,8 @@ void TabPrint::build()
         //BBS
         optgroup = page->new_optgroup(L("First layer"));
         optgroup->append_single_option_line("first_layer_speed");
+        //BBS
+        optgroup->append_single_option_line("speed_initial_layer_infill");
         optgroup->append_single_option_line("first_layer_speed_over_raft");
 
         optgroup = page->new_optgroup(L("Acceleration control (advanced)"));
