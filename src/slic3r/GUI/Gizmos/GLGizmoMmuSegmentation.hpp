@@ -81,8 +81,7 @@ private:
 class GLGizmoMmuSegmentation : public GLGizmoPainterBase
 {
 public:
-    GLGizmoMmuSegmentation(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
-        : GLGizmoPainterBase(parent, icon_filename, sprite_id) {}
+    GLGizmoMmuSegmentation(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
     ~GLGizmoMmuSegmentation() override = default;
 
     void render_painter_gizmo() const override;
@@ -131,6 +130,10 @@ protected:
     std::vector<std::array<float, 4>> m_original_extruders_colors;
     std::vector<std::array<float, 4>> m_modified_extruders_colors;
     std::vector<int>                  m_original_volumes_extruder_idxs;
+
+    // BBS
+    wchar_t                           m_current_tool = 0;
+    bool                              m_detect_geometry_edge = true;
 
     static const constexpr float      CursorRadiusMin = 0.1f; // cannot be zero
 

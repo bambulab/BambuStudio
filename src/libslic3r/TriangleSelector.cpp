@@ -442,7 +442,8 @@ void TriangleSelector::append_touching_edges(int itriangle, int vertexi, int ver
         process_subtriangle(touching.second, Partition::Second);
 }
 
-void TriangleSelector::bucket_fill_select_triangles(const Vec3f& hit, int facet_start, const ClippingPlane &clp, bool propagate, bool force_reselection)
+// BBS: add seed_fill_angle parameter
+void TriangleSelector::bucket_fill_select_triangles(const Vec3f& hit, int facet_start, const ClippingPlane &clp, float seed_fill_angle, bool propagate, bool force_reselection)
 {
     int start_facet_idx = select_unsplit_triangle(hit, facet_start);
     assert(start_facet_idx != -1);
@@ -458,6 +459,9 @@ void TriangleSelector::bucket_fill_select_triangles(const Vec3f& hit, int facet_
         m_triangles[start_facet_idx].select_by_seed_fill();
         return;
     }
+
+    // seed_fill_angle < 0.f to disable edge detection
+    const double facet_angle_limit = (seed_fill_angle < 0.f ? -1.f : cos(Geometry::deg2rad(seed_fill_angle))) - EPSILON;
 
     auto get_all_touching_triangles = [this](int facet_idx, const Vec3i &neighbors, const Vec3i &neighbors_propagated) -> std::vector<int> {
         assert(facet_idx != -1 && facet_idx < int(m_triangles.size()));
@@ -491,6 +495,11 @@ void TriangleSelector::bucket_fill_select_triangles(const Vec3f& hit, int facet_
             std::vector<int> touching_triangles = get_all_touching_triangles(current_facet, neighbors[current_facet], neighbors_propagated[current_facet]);
             for(const int tr_idx : touching_triangles) {
                 if (tr_idx < 0 || visited[tr_idx] || m_triangles[tr_idx].get_state() != start_facet_state || is_facet_clipped(tr_idx, clp))
+                    continue;
+
+                const Vec3f& n1 = m_face_normals[m_triangles[tr_idx].source_triangle];
+                const Vec3f& n2 = m_face_normals[m_triangles[current_facet].source_triangle];
+                if (seed_fill_angle >= -EPSILON && std::clamp(n1.dot(n2), 0.f, 1.f) < facet_angle_limit)
                     continue;
 
                 assert(!m_triangles[tr_idx].is_split());

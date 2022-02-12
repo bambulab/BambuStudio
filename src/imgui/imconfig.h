@@ -156,6 +156,11 @@ namespace ImGui
     const wchar_t InfoMarker               = 0x2603;
     const wchar_t SliderFloatEditBtnIcon   = 0x2604;
 
+    // BBS
+    const wchar_t SphereButtonIcon         = 0x3000;
+    const wchar_t TriangleButtonIcon       = 0x3001;
+    const wchar_t FillButtonIcon           = 0x3002;
+
 //    void MyFunction(const char* name, const MyMatrix44& v);
 }
 

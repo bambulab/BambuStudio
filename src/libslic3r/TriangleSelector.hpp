@@ -214,6 +214,7 @@ public:
     void bucket_fill_select_triangles(const Vec3f         &hit,                        // point where to start
                                       int                  facet_start,                // facet of the original mesh (unsplit) that the hit point belongs to
                                       const ClippingPlane &clp,                        // Clipping plane to limit painting to not clipped facets only
+                                      float                seed_fill_angle,            // BBS: the maximal angle between two facets to be painted by the same color
                                       bool                 propagate,                  // if bucket fill is propagated to neighbor faces or if it fills the only facet of the modified mesh that the hit point belongs to.
                                       bool                 force_reselection = false); // force reselection of the triangle mesh even in cases that mouse is pointing on the selected triangle
 

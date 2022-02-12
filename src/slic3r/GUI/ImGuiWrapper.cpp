@@ -56,6 +56,9 @@ static const std::map<const wchar_t, std::string> font_icons = {
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     {ImGui::SliderFloatEditBtnIcon, "edit_button"                    },
 #endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+    {ImGui::SphereButtonIcon       , "sphere_paint"                  },
+    {ImGui::TriangleButtonIcon     , "Triangle_paint"                },
+    {ImGui::FillButtonIcon         , "fill_paint"                    },
 };
 static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::CloseNotifButton        , "notification_close"              },
