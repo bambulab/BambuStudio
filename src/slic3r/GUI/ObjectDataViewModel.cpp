@@ -936,11 +936,15 @@ wxDataViewItem ObjectDataViewModel::Delete(const wxDataViewItem &item)
 #endif //__WXGTK__
             ItemDeleted(parent, wxDataViewItem(last_child_node));
 
+            // BBS: Current object is already removed in model.objects,
+            // but it is still exists in m_objects at the moment.
+            // So the object index calculated here is not valid.
+#if 0
             wxCommandEvent event(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED);
             auto it = find(m_objects.begin(), m_objects.end(), node_parent);
             event.SetInt(it == m_objects.end() ? -1 : it - m_objects.begin());
             wxPostEvent(m_ctrl, event);
-
+#endif
             ret_item = parent;
 
             return ret_item;

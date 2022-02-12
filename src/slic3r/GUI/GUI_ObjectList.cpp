@@ -249,7 +249,8 @@ ObjectList::ObjectList(wxWindow* parent) :
 
     Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, &ObjectList::ItemValueChanged,  this);
 
-    Bind(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, [this](wxCommandEvent& e)   { last_volume_is_deleted(e.GetInt()); });
+    // BBS: dont need to do extra setting for a deleted object
+    //Bind(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, [this](wxCommandEvent& e)   { last_volume_is_deleted(e.GetInt()); });
 
     Bind(wxEVT_SIZE, ([this](wxSizeEvent &e) { 
 #ifdef __WXGTK__
@@ -4136,7 +4137,8 @@ void ObjectList::change_part_type()
 
 void ObjectList::last_volume_is_deleted(const int obj_idx)
 {
-
+    // BBS: object (obj_idx calc in obj list) is already removed from m_objects in Plater::priv::remove().
+#if 0
     if (obj_idx < 0 || size_t(obj_idx) >= m_objects->size() || (*m_objects)[obj_idx]->volumes.size() != 1)
         return;
 
@@ -4148,6 +4150,7 @@ void ObjectList::last_volume_is_deleted(const int obj_idx)
     // set a default extruder value, since user can't add it manually
     // BBS
     volume->config.set_key_value("extruder", new ConfigOptionInt(1));
+#endif
 }
 
 void ObjectList::update_and_show_object_settings_item()
