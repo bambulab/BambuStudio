@@ -2614,7 +2614,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("The extruder to use when printing support material, raft and skirt "
                    "(1+, 0 to use the current extruder to minimize tool changes).");
     def->min = 0;
-    def->mode = comAdvanced;
+    //BBS
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionInt(1));
 
     def = this->add("support_material_extrusion_width", coFloatOrPercent);
@@ -2654,7 +2655,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("The extruder to use when printing support material interface "
                    "(1+, 0 to use the current extruder to minimize tool changes). This affects raft too.");
     def->min = 0;
-    def->mode = comAdvanced;
+    //BBS
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionInt(1));
 
     auto support_material_interface_layers = def = this->add("support_material_interface_layers", coInt);
@@ -3072,7 +3074,8 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Enable");
     def->tooltip = L("Multi material printers may need to prime or purge extruders on tool changes. "
                    "Extrude the excess material into the wipe tower.");
-    def->mode = comAdvanced;
+    //BBS
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("flush_volumes_vector", coFloats);
@@ -3101,7 +3104,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("It describes the volume to prime extruder on wipe tower.");
     def->sidetext = L("mm³");
     def->min = 0;
-    def->mode = comAdvanced;
+    //BBS
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(15.));
 
     def = this->add("wipe_tower_x", coFloats);
@@ -3124,7 +3128,8 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Width");
     def->tooltip = L("Width of a wipe tower");
     def->sidetext = L("mm");
-    def->mode = comAdvanced;
+    //BBS
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(25.));
 
     def = this->add("wipe_tower_rotation_angle", coFloat);

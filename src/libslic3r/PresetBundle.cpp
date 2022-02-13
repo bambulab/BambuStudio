@@ -32,9 +32,7 @@ namespace Slic3r {
 static std::vector<std::string> s_project_options {
     "colorprint_heights",
     "flush_volumes_vector",
-    "flush_volumes_matrix",
-    // BBS
-    "wiping_volume"
+    "flush_volumes_matrix"
 };
 
 //BBS: add BBL as default
