@@ -22,7 +22,12 @@ void AuxiliaryModel::Init(wxString aux_path)
 
     if (wxDirExists(m_root_dir)) {
         fs::path path_to_del(m_root_dir.ToStdWstring());
-        fs::remove_all(path_to_del);
+        try {
+            fs::remove_all(path_to_del);
+        }
+        catch (...) {
+            BOOST_LOG_TRIVIAL(error) << "Failed  removing the auxiliary directory " << m_root_dir.c_str();
+        }
     }
 
     fs::path top_dir_path(m_root_dir.ToStdWstring());
@@ -36,7 +41,12 @@ AuxiliaryModel::~AuxiliaryModel()
 {
     if (wxDirExists(m_root_dir)) {
         fs::path path_to_del(m_root_dir.ToStdWstring());
-        fs::remove_all(path_to_del);
+        try {
+            fs::remove_all(path_to_del);
+        }
+        catch (...) {
+            BOOST_LOG_TRIVIAL(error) << "Failed  removing the auxiliary directory " << m_root_dir.c_str();
+        }
         m_root_dir = "";
     }
     delete m_root;
@@ -48,7 +58,13 @@ void AuxiliaryModel::Reload(wxString aux_path)
     fs::path new_aux_path(aux_path.ToStdWstring());
 
     // Clean
-    fs::remove_all(fs::path(m_root_dir.ToStdWstring()));
+    try {
+        fs::remove_all(fs::path(m_root_dir.ToStdWstring()));
+    }
+    catch (...) {
+        BOOST_LOG_TRIVIAL(error) << "Failed  removing the auxiliary directory " << m_root_dir.c_str();
+    }
+
     if (m_root) {
         delete m_root;
         m_root = nullptr;
@@ -268,9 +284,14 @@ wxDataViewItem AuxiliaryModel::CreateFolder(wxString name)
     // Create folder in file system
     fs::path bfs_path((m_root_dir + "\\" + folder_name).ToStdWstring());
     if (fs::exists(bfs_path)) {
-        bool is_done = fs::remove_all(bfs_path);
-        if (!is_done)
-            return wxDataViewItem(nullptr);
+        try {
+            bool is_done = fs::remove_all(bfs_path);
+            if (!is_done)
+                return wxDataViewItem(nullptr);
+        }
+        catch (...) {
+            BOOST_LOG_TRIVIAL(error) << "Failed  removing the auxiliary directory " << m_root_dir.c_str();
+        }
     }
     fs::create_directory(bfs_path);
 
@@ -339,7 +360,12 @@ void AuxiliaryModel::Delete(const wxDataViewItem& item)
     bool is_done = false;
     if (node->IsContainer()) {
         fs::path bfs_path((m_root_dir + "\\" + node->name).ToStdWstring());
-        is_done = fs::remove_all(bfs_path);
+        try {
+            is_done = fs::remove_all(bfs_path);
+        }
+        catch (...) {
+            BOOST_LOG_TRIVIAL(error) << "Failed  removing the auxiliary directory " << m_root_dir.c_str();
+        }
     }
     else {
         fs::path bfs_path(node->path.ToStdWstring());
