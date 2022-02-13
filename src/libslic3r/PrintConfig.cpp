@@ -1358,6 +1358,28 @@ void PrintConfigDef::init_fff_params()
     //BBS
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(0));
+
+    //BBS
+    def = this->add("remove_freq_sweep", coBool);
+    def->label = L("Remove frequency sweep gcode");
+    def->tooltip = L("Enable this to skip frequency sweep when start printing.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(0));
+
+    //BBS
+    def = this->add("remove_bed_leveling", coBool);
+    def->label = L("Remove bed leveling gcode");
+    def->tooltip = L("Enable this to skip bed leveling when start printing.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(0));
+
+    //BBS
+    def = this->add("remove_extrusion_calibration", coBool);
+    def->label = L("Remove extrusion calibration gcode");
+    def->tooltip = L("Enable this to skip extrusion calibration when start printing.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(0));
+
     // BBS
     def = this->add("scan_first_layer", coBool);
     def->label = L("Scan first layer");

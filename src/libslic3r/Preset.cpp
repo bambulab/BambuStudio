@@ -565,7 +565,7 @@ static std::vector<std::string> s_Preset_print_options {
      "gcode_add_line_number", "enable_arc_fitting", "infill_combination", "adaptive_layer_height",
      "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod", "support_sharp_tails","remove_small_overhangs", "support_transition_speed","support_transition_extrusion_width",
      "support_material_bottom_interface_spacing", "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed",
-     "speed_initial_layer_infill"
+     "speed_initial_layer_infill", "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration"
 };
 
 static std::vector<std::string> s_Preset_filament_options {

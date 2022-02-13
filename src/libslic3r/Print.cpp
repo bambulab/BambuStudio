@@ -139,7 +139,10 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "use_relative_e_distances",
         "wipe",
         // BBS
-        "wipe_distance"
+        "wipe_distance",
+        "remove_freq_sweep",
+        "remove_bed_leveling",
+        "remove_extrusion_calibration"
     };
 
     static std::unordered_set<std::string> steps_ignore;

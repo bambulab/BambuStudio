@@ -1863,6 +1863,10 @@ void TabPrint::build()
         Option option = optgroup->get_option("output_filename_format");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
+        //BBS
+        optgroup->append_single_option_line("remove_freq_sweep");
+        optgroup->append_single_option_line("remove_bed_leveling");
+        optgroup->append_single_option_line("remove_extrusion_calibration");
 
         optgroup = page->new_optgroup(L("Post-processing scripts"), 0);
         line = { "", "" };
@@ -2734,8 +2738,6 @@ PageShp TabPrinter::build_kinematics_page()
 {
     auto page = add_options_page(L("Machine limits"), "cog", true);
 
-    auto optgroup = page->new_optgroup(L("General"));
-
     if (m_use_silent_mode) {
         // Legend for OptionsGroups
         auto optgroup = page->new_optgroup("");
@@ -2761,7 +2763,7 @@ PageShp TabPrinter::build_kinematics_page()
     }
 
     const std::vector<std::string> axes{ "x", "y", "z", "e" };
-    optgroup = page->new_optgroup(L("Maximum feedrates"));
+    auto optgroup = page->new_optgroup(L("Maximum feedrates"));
         for (const std::string &axis : axes)	{
             append_option_line(optgroup, "machine_max_feedrate_" + axis);
         }

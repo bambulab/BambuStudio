@@ -651,6 +651,10 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                scan_first_layer))
     ((ConfigOptionBool,                enable_spaghetti_detector))
     ((ConfigOptionBool,                gcode_add_line_number))
+    ((ConfigOptionBool,                remove_freq_sweep))
+    ((ConfigOptionBool,                remove_bed_leveling))
+    ((ConfigOptionBool,                remove_extrusion_calibration))
+
     ((ConfigOptionEnum<GCodeFlavor>,   gcode_flavor))
     ((ConfigOptionBool,                gcode_label_objects))
     ((ConfigOptionString,              layer_gcode))
