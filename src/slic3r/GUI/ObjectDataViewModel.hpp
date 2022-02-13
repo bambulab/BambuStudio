@@ -425,7 +425,8 @@ public:
 
     bool        UpdateColumValues(unsigned col);
     void        UpdateExtruderBitmap(wxDataViewItem item);
-    void        UpdateVolumesExtruderBitmap(wxDataViewItem object_item);
+    // BBS: add use_obj_extruder
+    void        UpdateVolumesExtruderBitmap(wxDataViewItem object_item, bool use_obj_extruder = false);
     int         GetDefaultExtruderIdx(wxDataViewItem item);
 
     // BBS

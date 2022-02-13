@@ -773,6 +773,15 @@ void ObjectList::update_extruder_in_config(const wxDataViewItem& item)
     const int extruder = m_objects_model->GetExtruderNumber(item);
     m_config->set_key_value("extruder", new ConfigOptionInt(extruder));
 
+    // BBS
+    if (item_type & itObject) {
+        const int obj_idx = m_objects_model->GetIdByItem(item);
+        for (ModelVolume* mv : (*m_objects)[obj_idx]->volumes) {
+            if (mv->config.has("extruder"))
+                mv->config.erase("extruder");
+        }
+    }
+
     // update scene
     wxGetApp().plater()->update();
 }
@@ -4568,7 +4577,7 @@ void ObjectList::ItemValueChanged(wxDataViewEvent &event)
     else if (event.GetColumn() == colExtruder) {
         wxDataViewItem item = event.GetItem();
         if (m_objects_model->GetItemType(item) == itObject)
-            m_objects_model->UpdateVolumesExtruderBitmap(item);
+            m_objects_model->UpdateVolumesExtruderBitmap(item, true);
         update_extruder_in_config(item);
     }
 }
@@ -4619,33 +4628,32 @@ void ObjectList::set_extruder_for_selected_items(const int extruder)
 
     take_snapshot(_L("Change Extruders"));
 
-    for (const wxDataViewItem& item : sels)
+    for (const wxDataViewItem& sel_item : sels)
     {
-        ModelConfig& config = get_item_config(item);
-        
-        if (config.has("extruder")) {
-            if (extruder == 0)
-                config.erase("extruder");
-            else
-                config.set("extruder", extruder);
-        }
-        else if (extruder > 0)
-            config.set_key_value("extruder", new ConfigOptionInt(extruder));
-
-        const wxString extruder_str = extruder == 0 ? wxString (_(L("default"))) : 
-                                      wxString::Format("%d", config.extruder());
-
-        auto const type = m_objects_model->GetItemType(item);
-
         /* We can change extruder for Object/Volume only.
          * So, if Instance is selected, get its Object item and change it
          */
-        m_objects_model->SetExtruder(extruder_str, type & itInstance ? m_objects_model->GetObject(item) : item);
+        ItemType sel_item_type = m_objects_model->GetItemType(sel_item);
+        wxDataViewItem item = (sel_item_type & itInstance) ? m_objects_model->GetObject(item) : sel_item;
+        ItemType type = m_objects_model->GetItemType(item);
 
-        const int obj_idx = type & itObject ? m_objects_model->GetIdByItem(item) :
-                            m_objects_model->GetIdByItem(m_objects_model->GetObject(item));
+        ModelConfig& config = get_item_config(item);
+        if (config.has("extruder"))
+            config.set("extruder", extruder);
+        else
+            config.set_key_value("extruder", new ConfigOptionInt(extruder));
 
-        wxGetApp().plater()->canvas3D()->ensure_on_bed(obj_idx, printer_technology() != ptSLA);
+        // for object, clear all its volume's extruder config
+        if (type & itObject) {
+            ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
+            for (ModelVolume* mv : node->m_model_object->volumes) {
+                if (mv->config.has("extruder"))
+                    mv->config.erase("extruder");
+            }
+        }
+
+        const wxString extruder_str = wxString::Format("%d", extruder);
+        m_objects_model->SetExtruder(extruder_str, item);
     }
 
     // update scene

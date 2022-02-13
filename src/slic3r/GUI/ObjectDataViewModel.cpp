@@ -1332,14 +1332,15 @@ void ObjectDataViewModel::UpdateItemNames()
     ItemsChanged(changed_items);
 }
 
-void ObjectDataViewModel::UpdateVolumesExtruderBitmap(wxDataViewItem obj_item)
+// BBS: add use_obj_extruder
+void ObjectDataViewModel::UpdateVolumesExtruderBitmap(wxDataViewItem obj_item, bool use_obj_extruder)
 {
     if (!obj_item.IsOk() || GetItemType(obj_item) != itObject)
         return;
     ObjectDataViewModelNode* obj_node = static_cast<ObjectDataViewModelNode*>(obj_item.GetID());
     for (auto child : obj_node->GetChildren())
         if (child->GetVolumeType() == ModelVolumeType::MODEL_PART)
-            child->UpdateExtruderAndColorIcon();
+            child->UpdateExtruderAndColorIcon(use_obj_extruder ? obj_node->GetExtruder() : "");
 }
 
 int ObjectDataViewModel::GetDefaultExtruderIdx(wxDataViewItem item)
@@ -1535,7 +1536,7 @@ void ObjectDataViewModel::SetExtruder(const wxString& extruder, wxDataViewItem i
 
     node->UpdateExtruderAndColorIcon(extruder);
     if (node->GetType() == itObject)
-        UpdateVolumesExtruderBitmap(item);
+        UpdateVolumesExtruderBitmap(item, true);
 
     // BBS
     ItemChanged(item);
