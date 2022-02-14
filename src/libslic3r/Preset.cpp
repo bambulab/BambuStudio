@@ -531,7 +531,7 @@ static std::vector<std::string> s_Preset_print_options {
     "top_solid_layers", "top_solid_min_thickness", "bottom_solid_layers", "bottom_solid_min_thickness",
     "extra_perimeters", "ensure_vertical_shell_thickness", "avoid_crossing_perimeters", "thin_walls", "overhangs",
     "seam_position", "external_perimeters_first", "fill_density", "fill_pattern", "top_fill_pattern", "bottom_fill_pattern",
-    "infill_only_where_needed", "solid_infill_every_layers", "solid_infill_every_layers", "fill_angle", "bridge_angle",
+    "infill_only_where_needed", "solid_infill_every_layers", "solid_infill_every_layers", "fill_angle",
     "solid_infill_below_area", "only_retract_when_crossing_perimeters", "infill_first",
     "ironing", "ironing_type", "ironing_flowrate", "ironing_speed", "ironing_spacing",
     "max_print_speed", "max_volumetric_speed", "avoid_crossing_perimeters_max_detour",
@@ -541,8 +541,8 @@ static std::vector<std::string> s_Preset_print_options {
 #endif /* HAS_PRESSURE_EQUALIZER */
     "perimeter_speed", "small_perimeter_speed", "external_perimeter_speed", "infill_speed", "solid_infill_speed",
     "top_solid_infill_speed", "support_material_speed", "support_material_xy_spacing", "support_material_interface_speed",
-    "bridge_speed", "gap_fill_speed", "gap_fill_enabled", "travel_speed", "travel_speed_z", "first_layer_speed", "first_layer_speed_over_raft", "perimeter_acceleration", "infill_acceleration",
-    "bridge_acceleration", "first_layer_acceleration", "first_layer_acceleration_over_raft", "default_acceleration", "skirts", "skirt_distance", "skirt_height", "draft_shield",
+    "bridge_speed", "gap_fill_speed", "gap_fill_enabled", "travel_speed", "travel_speed_z", "first_layer_speed",
+    "first_layer_acceleration", "default_acceleration", "skirts", "skirt_distance", "skirt_height", "draft_shield",
     "min_skirt_length", "brim_width", "brim_separation", "brim_type", "support_material", "support_type", "support_material_threshold", "support_material_enforce_layers",
     "raft_layers", "raft_first_layer_density", "raft_first_layer_expansion", "raft_contact_distance", "raft_expansion",
     "support_material_pattern", "support_material_with_sheath", "support_material_spacing", "support_material_closing_radius", "support_material_style",
@@ -550,12 +550,12 @@ static std::vector<std::string> s_Preset_print_options {
     "support_material_interface_pattern", "support_material_interface_spacing", "support_material_interface_contact_loops", 
     "support_material_contact_distance", "support_material_bottom_contact_distance",
     "support_material_buildplate_only", "dont_support_bridges", "thick_bridges", "complete_objects", "extruder_clearance_radius",
-    "gcode_comments", "gcode_label_objects", "output_filename_format", "post_process", "perimeter_extruder",
+    "gcode_label_objects", "output_filename_format", "post_process", "perimeter_extruder",
     "infill_extruder", "solid_infill_extruder", "support_material_extruder", "support_material_interface_extruder",
     "ooze_prevention", "standby_temperature_delta", "interface_shells", "extrusion_width", "first_layer_extrusion_width",
     "perimeter_extrusion_width", "external_perimeter_extrusion_width", "infill_extrusion_width", "solid_infill_extrusion_width",
     "top_infill_extrusion_width", "support_material_extrusion_width", "infill_overlap", "infill_anchor", "infill_anchor_max", "bridge_flow_ratio", "clip_multipart_objects",
-    "elefant_foot_compensation", "xy_size_compensation", "threads", "resolution", "gcode_resolution", "wipe_tower", "wipe_tower_x", "wipe_tower_y",
+    "elefant_foot_compensation", "xy_size_compensation", "gcode_resolution", "wipe_tower", "wipe_tower_x", "wipe_tower_y",
     "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_brim_width", "wipe_tower_bridging", "wiping_volume", "single_extruder_multi_material_priming", "mmu_segmented_region_max_width",
     "wipe_tower_no_sparse_layers", "compatible_printers", "compatible_printers_condition", "inherits",
     // BBS
@@ -578,7 +578,7 @@ static std::vector<std::string> s_Preset_filament_options {
     "max_fan_speed", "bridge_fan_speed", "disable_fan_first_layers", "full_fan_speed_layer", "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed",
     "start_filament_gcode", "end_filament_gcode",
     // Retract overrides
-    "filament_retract_length", "filament_retract_lift", "filament_retract_lift_above", "filament_retract_lift_below", "filament_retract_speed", "filament_deretract_speed", "filament_retract_restart_extra", "filament_retract_before_travel",
+    "filament_retract_length", "filament_retract_lift", "filament_retract_speed", "filament_deretract_speed", "filament_retract_restart_extra", "filament_retract_before_travel",
     "filament_retract_layer_change", "filament_wipe", "filament_retract_before_wipe",
     // Profile compatibility
     "filament_vendor", "compatible_prints", "compatible_prints_condition", "compatible_printers", "compatible_printers_condition", "inherits",
@@ -597,11 +597,9 @@ static std::vector<std::string> s_Preset_machine_limits_options {
 static std::vector<std::string> s_Preset_printer_options {
     "printer_technology",
     "bed_shape", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "z_offset", "gcode_flavor", "use_relative_e_distances",
-    "use_firmware_retraction",
     //FIXME the print host keys are left here just for conversion from the Printer preset to Physical Printer preset.
     "print_host", "printhost_apikey", "printhost_cafile",
     "single_extruder_multi_material", "start_gcode", "end_gcode", "before_layer_gcode", "layer_gcode", "toolchange_gcode",
-    "color_change_gcode", "pause_print_gcode", "template_custom_gcode",
     "between_objects_gcode", "printer_vendor", "printer_model", "printer_variant", "max_print_height",
     "default_print_profile", "inherits",
     "silent_mode",

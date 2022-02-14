@@ -666,8 +666,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "infill_extruder"
             || opt_key == "solid_infill_extruder"
             || opt_key == "infill_extrusion_width"
-            || opt_key == "ensure_vertical_shell_thickness"
-            || opt_key == "bridge_angle") {
+            || opt_key == "ensure_vertical_shell_thickness") {
             steps.emplace_back(posPrepareInfill);
         } else if (
                opt_key == "top_fill_pattern"
@@ -734,11 +733,14 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "solid_infill_speed"
             || opt_key == "top_solid_infill_speed") {
             invalidated |= m_print->invalidate_step(psGCodeExport);
+//BBS
+#if 0
         } else if (
                opt_key == "wipe_into_infill"
             || opt_key == "wipe_into_objects") {
             invalidated |= m_print->invalidate_step(psWipeTower);
             invalidated |= m_print->invalidate_step(psGCodeExport);
+#endif
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
             this->invalidate_all_steps();

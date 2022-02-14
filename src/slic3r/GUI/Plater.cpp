@@ -2985,8 +2985,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 }
                             }*/
 
-                            if (printer_technology == ptFFF)
-                                CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, &preset_bundle->project_config);
+                            //BBS
+                            //if (printer_technology == ptFFF)
+                            //    CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, &preset_bundle->project_config);
 
                             // For exporting from the amf/3mf we shouldn't check printer_presets for the containing information about "Print Host upload"
                             //BBS: add preset combo box re-active logic

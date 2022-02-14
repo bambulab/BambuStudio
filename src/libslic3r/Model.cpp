@@ -176,7 +176,8 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     if (options & LoadAttribute::AddDefaultInstances)
         model.add_default_instances();
 
-    CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, config);
+    //BBS
+    //CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, config);
     CustomGCode::check_mode_for_custom_gcode_per_print_z(model.custom_gcode_per_print_z);
 
     sort_remove_duplicates(config_substitutions->substitutions);
@@ -227,7 +228,8 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
         }
     }
 
-    CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, config);
+    //BBS
+    //CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, config);
     
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_UPDATE_GCODE\n");
     if (proFn) {

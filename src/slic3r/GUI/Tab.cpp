@@ -1582,7 +1582,6 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Precision"));
         optgroup->append_single_option_line("slice_closing_radius");
         optgroup->append_single_option_line("slicing_mode");
-        optgroup->append_single_option_line("resolution");
         optgroup->append_single_option_line("gcode_resolution");
         optgroup->append_single_option_line("enable_arc_fitting");
         optgroup = page->new_optgroup(L("Compensation"));
@@ -1669,7 +1668,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("solid_infill_every_layers", category_path + "solid-infill-every-x-layers");
         optgroup->append_single_option_line("fill_angle", category_path + "fill-angle");
         optgroup->append_single_option_line("solid_infill_below_area", category_path + "solid-infill-threshold-area");
-        optgroup->append_single_option_line("bridge_angle");
         optgroup->append_single_option_line("only_retract_when_crossing_perimeters");
         optgroup->append_single_option_line("infill_first");
     //BBS
@@ -1772,14 +1770,9 @@ void TabPrint::build()
         optgroup->append_single_option_line("first_layer_speed");
         //BBS
         optgroup->append_single_option_line("speed_initial_layer_infill");
-        optgroup->append_single_option_line("first_layer_speed_over_raft");
 
-        optgroup = page->new_optgroup(L("Acceleration control (advanced)"));
-        optgroup->append_single_option_line("perimeter_acceleration");
-        optgroup->append_single_option_line("infill_acceleration");
-        optgroup->append_single_option_line("bridge_acceleration");
+        optgroup = page->new_optgroup(L("Acceleration"));
         optgroup->append_single_option_line("first_layer_acceleration");
-        optgroup->append_single_option_line("first_layer_acceleration_over_raft");
         optgroup->append_single_option_line("default_acceleration");
 
         optgroup = page->new_optgroup(L("Autospeed (advanced)"));
@@ -1856,7 +1849,6 @@ void TabPrint::build()
 
     page = add_options_page(L("Other"), "output+page_white");
         optgroup = page->new_optgroup(L("Output file"));
-        optgroup->append_single_option_line("gcode_comments");
         // BBS
         optgroup->append_single_option_line("gcode_add_line_number");
         optgroup->append_single_option_line("gcode_label_objects");
@@ -2019,13 +2011,8 @@ void TabFilament::add_filament_overrides_page()
     auto append_single_option_line = [optgroup, this](const std::string& opt_key, int opt_index)
     {
         Line line {"",""};
-        if (opt_key == "filament_retract_lift_above" || opt_key == "filament_retract_lift_below") {
-            Option opt = optgroup->get_option(opt_key);
-            opt.opt.label = opt.opt.full_label;
-            line = optgroup->create_single_option_line(opt);
-        }
-        else
-            line = optgroup->create_single_option_line(optgroup->get_option(opt_key));
+        //BBS
+        line = optgroup->create_single_option_line(optgroup->get_option(opt_key));
 
         //BBS: filament_retract serial parameter is shown on page directly,
         //and isn't controlled by check box
@@ -2055,8 +2042,6 @@ void TabFilament::add_filament_overrides_page()
 
     for (const std::string opt_key : {  "filament_retract_length",
                                         "filament_retract_lift",
-                                        "filament_retract_lift_above",
-                                        "filament_retract_lift_below",
                                         "filament_retract_speed",
                                         "filament_deretract_speed",
                                         "filament_retract_restart_extra",
@@ -2091,8 +2076,6 @@ void TabFilament::update_filament_overrides_page()
 
     std::vector<std::string> opt_keys = {   "filament_retract_length",
                                             "filament_retract_lift",
-                                            "filament_retract_lift_above",
-                                            "filament_retract_lift_below",
                                             "filament_retract_speed",
                                             "filament_deretract_speed",
                                             "filament_retract_restart_extra",
@@ -2535,7 +2518,6 @@ void TabPrinter::build_fff()
 
         optgroup = page->new_optgroup(L("Advanced"));
         optgroup->append_single_option_line("use_relative_e_distances");
-        optgroup->append_single_option_line("use_firmware_retraction");
         //BBS
         optgroup->append_single_option_line("scan_first_layer");
         optgroup->append_single_option_line("enable_spaghetti_detector");
@@ -2598,33 +2580,6 @@ void TabPrinter::build_fff()
         };
         option = optgroup->get_option("between_objects_gcode");
         option.opt.full_width = true;
-        option.opt.is_code = true;
-        option.opt.height = gcode_field_height;//150;
-        optgroup->append_single_option_line(option);
-
-        optgroup = page->new_optgroup(L("Color Change G-code"), 0);
-        optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
-            validate_custom_gcode_cb(this, optgroup, opt_key, value);
-        };
-        option = optgroup->get_option("color_change_gcode");
-        option.opt.is_code = true;
-        option.opt.height = gcode_field_height;//150;
-        optgroup->append_single_option_line(option);
-
-        optgroup = page->new_optgroup(L("Pause Print G-code"), 0);
-        optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
-            validate_custom_gcode_cb(this, optgroup, opt_key, value);
-        };
-        option = optgroup->get_option("pause_print_gcode");
-        option.opt.is_code = true;
-        option.opt.height = gcode_field_height;//150;
-        optgroup->append_single_option_line(option);
-
-        optgroup = page->new_optgroup(L("Template Custom G-code"), 0);
-        optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
-            validate_custom_gcode_cb(this, optgroup, opt_key, value);
-        };
-        option = optgroup->get_option("template_custom_gcode");
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
@@ -2931,12 +2886,6 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             optgroup = page->new_optgroup(L("Retraction"));
             optgroup->append_single_option_line("retract_length", "", extruder_idx);
             optgroup->append_single_option_line("retract_lift", "", extruder_idx);
-                Line line = { L("Only lift Z"), "" };
-                line.append_option(optgroup->get_option("retract_lift_above", extruder_idx));
-                line.append_option(optgroup->get_option("retract_lift_below", extruder_idx));
-                optgroup->append_line(line);
-            optgroup->append_single_option_line("dont_lift_for_single_material", "", extruder_idx);
-
             optgroup->append_single_option_line("retract_speed", "", extruder_idx);
             optgroup->append_single_option_line("deretract_speed", "", extruder_idx);
             optgroup->append_single_option_line("retract_restart_extra", "", extruder_idx);
@@ -2976,7 +2925,8 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
 
                 return sizer;
             };
-            line = optgroup->create_single_option_line("extruder_colour", "", extruder_idx);
+            //BBS
+            Line line = optgroup->create_single_option_line("extruder_colour", "", extruder_idx);
             line.append_widget(reset_to_filament_color);
             optgroup->append_line(line);
     }
@@ -3105,57 +3055,31 @@ void TabPrinter::toggle_options()
         size_t i = size_t(val - 1);
         bool have_retract_length = m_config->opt_float("retract_length", i) > 0;
 
-        // when using firmware retraction, firmware decides retraction length
-        bool use_firmware_retraction = m_config->opt_bool("use_firmware_retraction");
-        toggle_option("retract_length", !use_firmware_retraction, i);
-
         // user can customize travel length if we have retraction length or we"re using
         // firmware retraction
-        toggle_option("retract_before_travel", have_retract_length || use_firmware_retraction, i);
+        toggle_option("retract_before_travel", have_retract_length, i);
 
         // user can customize other retraction options if retraction is enabled
-        bool retraction = (have_retract_length || use_firmware_retraction);
+        //BBS
+        bool retraction = have_retract_length;
         std::vector<std::string> vec = { "retract_lift", "retract_layer_change" };
         for (auto el : vec)
             toggle_option(el, retraction, i);
 
         // retract lift above / below only applies if using retract lift
         vec.resize(0);
-        // BBS
-        vec = { "retract_lift_above", "retract_lift_below", "dont_lift_for_single_material" };
-        for (auto el : vec)
-            toggle_option(el, retraction && (m_config->opt_float("retract_lift", i) > 0), i);
 
         // some options only apply when not using firmware retraction
         vec.resize(0);
         vec = { "retract_speed", "deretract_speed", "retract_before_wipe", "retract_restart_extra", "wipe", "wipe_distance" };
         for (auto el : vec)
-            toggle_option(el, retraction && !use_firmware_retraction, i);
+            //BBS
+            toggle_option(el, retraction, i);
 
         bool wipe = m_config->opt_bool("wipe", i);
         toggle_option("retract_before_wipe", wipe, i);
         // BBS
         toggle_option("wipe_distance", i);
-
-        if (use_firmware_retraction && wipe) {
-            //wxMessageDialog dialog(parent(),
-            MessageDialog dialog(parent(),
-                _(L("The Wipe option is not available when using the Firmware Retraction mode.\n"
-                    "\nShall I disable it in order to enable Firmware Retraction?")),
-                _(L("Firmware Retraction")), wxICON_WARNING | wxYES | wxNO);
-
-            DynamicPrintConfig new_conf = *m_config;
-            if (dialog.ShowModal() == wxID_YES) {
-                auto wipe = static_cast<ConfigOptionBools*>(m_config->option("wipe")->clone());
-                for (size_t w = 0; w < wipe->values.size(); w++)
-                    wipe->values[w] = false;
-                new_conf.set_key_value("wipe", wipe);
-            }
-            else {
-                new_conf.set_key_value("use_firmware_retraction", new ConfigOptionBool(false));
-            }
-            load_config(new_conf);
-        }
 
         toggle_option("retract_length_toolchange", have_multiple_extruders, i);
 

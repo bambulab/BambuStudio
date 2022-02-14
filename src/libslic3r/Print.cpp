@@ -67,9 +67,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "bed_temperature",
         "before_layer_gcode",
         "between_objects_gcode",
-        "bridge_acceleration",
         "bridge_fan_speed",
-        "colorprint_heights",
         "cooling",
         "default_acceleration",
         "deretract_speed",
@@ -92,14 +90,10 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "filament_cost",
         "filament_spool_weight",
         "first_layer_acceleration",
-        "first_layer_acceleration_over_raft",
         "first_layer_bed_temperature",
-        "first_layer_speed_over_raft",
-        "gcode_comments",
         // BBS
         "gcode_add_line_number",
         "gcode_label_objects",
-        "infill_acceleration",
         "layer_gcode",
         "min_fan_speed",
         "max_fan_speed",
@@ -113,7 +107,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
 #endif /* HAS_PRESSURE_EQUALIZER */
         "only_retract_when_crossing_perimeters",
         "output_filename_format",
-        "perimeter_acceleration",
         "post_process",
         "retract_before_travel",
         "retract_before_wipe",
@@ -121,10 +114,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "retract_length",
         "retract_length_toolchange",
         "retract_lift",
-        // BBS
-        "dont_lift_for_single_material",
-        "retract_lift_above",
-        "retract_lift_below",
         "retract_restart_extra",
         "retract_restart_extra_toolchange",
         "retract_speed",
@@ -134,8 +123,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "start_gcode",
         "start_filament_gcode",
         "toolchange_gcode",
-        "threads",
-        "use_firmware_retraction",
         "use_relative_e_distances",
         "wipe",
         // BBS
@@ -172,13 +159,10 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         } else if (
                opt_key == "first_layer_height"
             || opt_key == "nozzle_diameter"
-            || opt_key == "resolution"
             // Spiral Vase forces different kind of slicing than the normal model:
             // In Spiral Vase mode, holes are closed and only the largest area contour is kept at each layer.
             // Therefore toggling the Spiral Vase on / off requires complete reslicing.
-            || opt_key == "spiral_vase"
-            //BBS: when enable arc fitting, we must re-slicing the model
-            || opt_key == "enable_arc_fitting") {
+            || opt_key == "spiral_vase") {
             osteps.emplace_back(posSlice);
         } else if (
                opt_key == "complete_objects"
@@ -215,7 +199,9 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
                opt_key == "first_layer_extrusion_width" 
             || opt_key == "min_layer_height"
             || opt_key == "max_layer_height"
-            || opt_key == "gcode_resolution") {
+            || opt_key == "gcode_resolution"
+            //BBS: when enable arc fitting, we must re-generate perimeter
+            || opt_key == "enable_arc_fitting") {
             osteps.emplace_back(posPerimeters);
             osteps.emplace_back(posInfill);
             osteps.emplace_back(posSupportMaterial);

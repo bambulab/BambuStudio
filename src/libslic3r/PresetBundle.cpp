@@ -30,7 +30,6 @@
 namespace Slic3r {
 
 static std::vector<std::string> s_project_options {
-    "colorprint_heights",
     "flush_volumes_vector",
     "flush_volumes_matrix"
 };

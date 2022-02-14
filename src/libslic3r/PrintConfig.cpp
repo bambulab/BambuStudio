@@ -448,29 +448,6 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(0.));
 
-    def = this->add("bridge_acceleration", coFloat);
-    def->label = L("Bridge");
-    def->tooltip = L("This is the acceleration your printer will use for bridges. "
-                   "Set zero to disable acceleration control for bridges.");
-    def->sidetext = L("mm/s²");
-    def->min = 0;
-    //BBS
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(0));
-
-    def = this->add("bridge_angle", coFloat);
-    def->label = L("Bridging angle");
-    def->category = L("Infill");
-    def->tooltip = L("Bridging angle override. If left to zero, the bridging angle will be calculated "
-                   "automatically. Otherwise the provided angle will be used for all bridges. "
-                   "Use 180° for zero angle.");
-    def->sidetext = L("°");
-    def->min = 0;
-    def->max = 180;
-    //BBS
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(0.));
-
     def = this->add("bridge_fan_speed", coInts);
     def->label = L("Bridges fan speed");
     def->tooltip = L("This fan speed is enforced during all bridges and overhangs.");
@@ -590,11 +567,6 @@ void PrintConfigDef::init_fff_params()
                    "(2nd part will be clipped by the 1st, 3rd part will be clipped by the 1st and 2nd etc).");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(true));
-
-    def = this->add("colorprint_heights", coFloats);
-    def->label = L("Colorprint height");
-    def->tooltip = L("Heights at which a filament change is to occur.");
-    def->set_default_value(new ConfigOptionFloats { });
 
     def = this->add("compatible_printers", coStrings);
     def->label = L("Compatible printers");
@@ -1178,15 +1150,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloat(0));
 
-    def = this->add("first_layer_acceleration_over_raft", coFloat);
-    def->label = L("First object layer over raft interface");
-    def->tooltip = L("This is the acceleration your printer will use for first layer of object above raft interface. Set zero "
-                   "to disable acceleration control for first layer of object above raft interface.");
-    def->sidetext = L("mm/s²");
-    def->min = 0;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(0));
-
     def = this->add("first_layer_bed_temperature", coInts);
     def->label = L("First layer");
     def->full_label = L("First layer bed temperature");
@@ -1252,16 +1215,6 @@ void PrintConfigDef::init_fff_params()
     def->max = 100;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(60.0));
-
-    def = this->add("first_layer_speed_over_raft", coFloatOrPercent);
-    def->label = L("Speed of object first layer over raft interface");
-    def->tooltip = L("If expressed as absolute value in mm/s, this speed will be applied to all the print moves "
-                   "of the first object layer above raft interface, regardless of their type. If expressed as a percentage "
-                   "(for example: 40%) it will scale the default speeds.");
-    def->sidetext = L("mm/s or %");
-    def->min = 0;
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(30, false));
 
     def = this->add("first_layer_temperature", coInts);
     def->label = L("First layer");
@@ -1334,15 +1287,6 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(20));
-
-    def = this->add("gcode_comments", coBool);
-    def->label = L("Verbose G-code");
-    def->tooltip = L("Enable this to get a commented G-code file, with each line explained by a descriptive text. "
-                   "If you print from SD card, the additional weight of the file could make your firmware "
-                   "slow down.");
-    //BBS
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(0));
 
     // BBS
     def = this->add("enable_arc_fitting", coBool);
@@ -1434,16 +1378,6 @@ void PrintConfigDef::init_fff_params()
     //BBS
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(0));
-
-    def = this->add("infill_acceleration", coFloat);
-    def->label = L("Infill");
-    def->tooltip = L("This is the acceleration your printer will use for infill. Set zero to disable "
-                   "acceleration control for infill.");
-    def->sidetext = L("mm/s²");
-    def->min = 0;
-    //BBS
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(0));
 
     //BBS
     def = this->add("infill_combination", coBool);
@@ -1943,15 +1877,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
-    def = this->add("perimeter_acceleration", coFloat);
-    def->label = L("Perimeters");
-    def->tooltip = L("This is the acceleration your printer will use for perimeters. "
-                     "Set zero to disable acceleration control for perimeters.");
-    def->sidetext = L("mm/s²");
-    //BBS
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(0));
-
     def = this->add("perimeter_extruder", coInt);
     def->label = L("Perimeter");
     def->category = L("Extruders");
@@ -2094,17 +2019,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(0));
 
-    def = this->add("resolution", coFloat);
-    def->label = L("Slice resolution");
-    def->tooltip = L("Minimum detail resolution, used to simplify the input file for speeding up "
-                   "the slicing job and reducing memory usage. High-resolution models often carry "
-                   "more detail than printers can render. Set to zero to disable any simplification "
-                   "and use full resolution from input.");
-    def->sidetext = L("mm");
-    def->min = 0;
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0));
-
     def = this->add("gcode_resolution", coFloat);
     def->label = L("G-code resolution");
     def->tooltip = L("Maximum deviation of exported G-code paths from their full resolution counterparts. "
@@ -2168,33 +2082,6 @@ void PrintConfigDef::init_fff_params()
                    "will be considered.");
     def->sidetext = L("mm");
     //BBS
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats { 0. });
-
-    // BBS
-    def = this->add("dont_lift_for_single_material", coBools);
-    def->label = L("Dont lift for single material");
-    def->tooltip = L("If enabled, retract lift will not perform when only one material is used in the project.");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBools{ false });
-
-    def = this->add("retract_lift_above", coFloats);
-    def->label = L("Above Z");
-    def->full_label = L("Only lift Z above");
-    def->tooltip = L("If you set this to a positive value, Z lift will only take place above the specified "
-                   "absolute Z. You can tune this setting for skipping lift on the first layers.");
-    def->sidetext = L("mm");
-    //BBS
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats { 0. });
-
-    def = this->add("retract_lift_below", coFloats);
-    def->label = L("Below Z");
-    def->full_label = L("Only lift Z below");
-    def->tooltip = L("If you set this to a positive value, Z lift will only take place below "
-                   "the specified absolute Z. You can tune this setting for limiting lift "
-                   "to the first layers.");
-    def->sidetext = L("mm");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats { 0. });
 
@@ -2461,33 +2348,6 @@ void PrintConfigDef::init_fff_params()
     def->height = 12;
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionStrings { "; Filament gcode\n" });
-
-    def = this->add("color_change_gcode", coString);
-    def->label = L("Color change G-code");
-    def->tooltip = L("This G-code will be used as a code for the color change");
-    def->multiline = true;
-    def->full_width = true;
-    def->height = 12;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionString("M600"));
-
-    def = this->add("pause_print_gcode", coString);
-    def->label = L("Pause Print G-code");
-    def->tooltip = L("This G-code will be used as a code for the pause print");
-    def->multiline = true;
-    def->full_width = true;
-    def->height = 12;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionString("M601"));
-
-    def = this->add("template_custom_gcode", coString);
-    def->label = L("Custom G-code");
-    def->tooltip = L("This G-code will be used as a custom code");
-    def->multiline = true;
-    def->full_width = true;
-    def->height = 12;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("single_extruder_multi_material", coBool);
     def->label = L("Single Extruder Multi Material");
@@ -2976,18 +2836,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(true));
 
-    def = this->add("threads", coInt);
-    def->label = L("Threads");
-    def->tooltip = L("Threads are used to parallelize long-running tasks. Optimal threads number "
-                   "is slightly above the number of available cores/processors.");
-    def->readonly = true;
-    def->min = 1;
-    {
-        int threads = (unsigned int)boost::thread::hardware_concurrency();
-        def->set_default_value(new ConfigOptionInt(threads > 0 ? threads : 2));
-        def->cli = ConfigOptionDef::nocli;
-    }
-
     def = this->add("toolchange_gcode", coString);
     def->label = L("Tool change G-code");
     def->tooltip = L("This custom code is inserted before every toolchange. Placeholder variables for all BambuStudio settings "
@@ -3068,14 +2916,6 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
-
-    def = this->add("use_firmware_retraction", coBool);
-    def->label = L("Use firmware retraction");
-    def->tooltip = L("This experimental setting uses G10 and G11 commands to have the firmware "
-                   "handle the retraction. This is only supported in recent Marlin.");
-    //BBS
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("use_relative_e_distances", coBool);
     def->label = L("Use relative E distances");
@@ -3178,7 +3018,8 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->min = 0.;
     def->set_default_value(new ConfigOptionFloat(2.));
-
+//BBS
+#if 0
     def = this->add("wipe_into_infill", coBool);
     def->category = L("Wipe options");
     def->label = L("Wipe into this object's infill");
@@ -3194,6 +3035,7 @@ void PrintConfigDef::init_fff_params()
                      "that would otherwise end up in the wipe tower and decrease print time. "
                      "Colours of the objects will be mixed as a result.");
     def->set_default_value(new ConfigOptionBool(false));
+#endif
 
     def = this->add("wipe_tower_bridging", coFloat);
     def->label = L("Maximal bridging distance");
@@ -3226,11 +3068,9 @@ void PrintConfigDef::init_fff_params()
     // Declare retract values for filament profile, overriding the printer's extruder profile.
     for (const char *opt_key : {
         // floats
-        "retract_length", "retract_lift", "retract_lift_above", "retract_lift_below", "retract_speed", "deretract_speed", "retract_restart_extra", "retract_before_travel",
+        "retract_length", "retract_lift", "retract_speed", "deretract_speed", "retract_restart_extra", "retract_before_travel",
         // BBS: floats
         "wipe_distance",
-        // BBS: bools
-        "dont_lift_for_single_material",
         // bools
         "retract_layer_change", "wipe",
         // percents
@@ -3246,9 +3086,6 @@ void PrintConfigDef::init_fff_params()
         if ((strcmp(opt_key, "retract_length") == 0) ||
             (strcmp(opt_key, "retract_lift") == 0))
             def->mode       = comSimple;
-        else if ((strcmp(opt_key, "retract_lift_above") == 0) || 
-                 (strcmp(opt_key, "retract_lift_below") == 0))
-            def->mode       = comDevelop;
         else
             def->mode       = comAdvanced;
         switch (def->type) {
@@ -3275,9 +3112,7 @@ void PrintConfigDef::init_extruder_option_keys()
     // ConfigOptionFloats, ConfigOptionPercents, ConfigOptionBools, ConfigOptionStrings
     m_extruder_option_keys = {
         "nozzle_diameter", "min_layer_height", "max_layer_height", "extruder_offset",
-        "retract_length", "retract_lift", "retract_lift_above", "retract_lift_below", "retract_speed", "deretract_speed",
-        // BBS
-        "dont_lift_for_single_material",
+        "retract_length", "retract_lift", "retract_speed", "deretract_speed",
         "retract_before_wipe", "retract_restart_extra", "retract_before_travel", "wipe", "wipe_distance",
         "retract_layer_change", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
         "default_filament_profile"
@@ -3285,15 +3120,11 @@ void PrintConfigDef::init_extruder_option_keys()
 
     m_extruder_retract_keys = {
         "deretract_speed",
-        // BBS
-        "dont_lift_for_single_material",
         "retract_before_travel",
         "retract_before_wipe",
         "retract_layer_change",
         "retract_length",
         "retract_lift",
-        "retract_lift_above",
-        "retract_lift_below",
         "retract_restart_extra",
         "retract_speed",
         "wipe",
@@ -4011,21 +3842,16 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     } else if (opt_key == "randomize_start" && value == "1") {
         opt_key = "seam_position";
         value = "random";
-    } else if (opt_key == "bed_size" && !value.empty()) {
+    }
+    else if (opt_key == "bed_size" && !value.empty()) {
         opt_key = "bed_shape";
         ConfigOptionPoint p;
         p.deserialize(value, ForwardCompatibilitySubstitutionRule::Disable);
         std::ostringstream oss;
         oss << "0x0," << p.value(0) << "x0," << p.value(0) << "x" << p.value(1) << ",0x" << p.value(1);
         value = oss.str();
-    } else if ((opt_key == "perimeter_acceleration" && value == "25")
-        || (opt_key == "infill_acceleration" && value == "50")) {
-        /*  For historical reasons, the world's full of configs having these very low values;
-            to avoid unexpected behavior we need to ignore them. Banning these two hard-coded
-            values is a dirty hack and will need to be removed sometime in the future, but it
-            will avoid lots of complaints for now. */
-        value = "0";
-    } else if (opt_key == "support_material_pattern" && value == "pillars") {
+    }
+    else if (opt_key == "support_material_pattern" && value == "pillars") {
         // Slic3r PE does not support the pillars. They never worked well.
         value = "rectilinear";
     } else if (opt_key == "skirt_height" && value == "-1") {
@@ -4062,7 +3888,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "standby_temperature", "scale", "rotate", "duplicate", "duplicate_grid",
         "start_perimeters_at_concave_points", "start_perimeters_at_non_overhang", "randomize_start",
         "seal_position", "vibration_limit", "bed_size",
-        "print_center", "g0", "threads", "pressure_advance", "wipe_tower_per_color_wipe"
+        "print_center", "g0", "pressure_advance", "wipe_tower_per_color_wipe"
 #ifndef HAS_PRESSURE_EQUALIZER
         , "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative",
 #endif /* HAS_PRESSURE_EQUALIZER */
@@ -4263,21 +4089,6 @@ std::string validate(const FullPrintConfig &cfg)
         return "Invalid value for --top-solid-layers";
     if (cfg.bottom_solid_layers < 0)
         return "Invalid value for --bottom-solid-layers";
-
-    if (cfg.use_firmware_retraction.value &&
-        cfg.gcode_flavor.value != gcfSmoothie &&
-        cfg.gcode_flavor.value != gcfRepRapSprinter &&
-        cfg.gcode_flavor.value != gcfRepRapFirmware &&
-        cfg.gcode_flavor.value != gcfMarlinLegacy &&
-        cfg.gcode_flavor.value != gcfMarlinFirmware &&
-        cfg.gcode_flavor.value != gcfMachinekit &&
-        cfg.gcode_flavor.value != gcfRepetier)
-        return "--use-firmware-retraction is only supported by Marlin, Smoothie, RepRapFirmware, Repetier and Machinekit firmware";
-
-    if (cfg.use_firmware_retraction.value)
-        for (unsigned char wipe : cfg.wipe.values)
-             if (wipe)
-                return "--use-firmware-retraction is not compatible with --wipe";
 
     // --gcode-flavor
     if (! print_config_def.get("gcode_flavor")->has_enum_value(cfg.gcode_flavor.serialize()))

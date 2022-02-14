@@ -1311,10 +1311,10 @@ bool store_amf(const char* path, Model* model, const DynamicPrintConfig* config,
             code_tree.put("<xmlattr>.color"     , code.color    );
             code_tree.put("<xmlattr>.extra"     , code.extra    );
 
-            // add gcode field data for the old version of the PrusaSlicer
-            std::string gcode = code.type == CustomGCode::ColorChange ? config->opt_string("color_change_gcode")    :
-                                code.type == CustomGCode::PausePrint  ? config->opt_string("pause_print_gcode")     :
-                                code.type == CustomGCode::Template    ? config->opt_string("template_custom_gcode") :
+            //BBS
+            std::string gcode = //code.type == CustomGCode::ColorChange ? config->opt_string("color_change_gcode")    :
+                                //code.type == CustomGCode::PausePrint  ? config->opt_string("pause_print_gcode")     :
+                                //code.type == CustomGCode::Template    ? config->opt_string("template_custom_gcode") :
                                 code.type == CustomGCode::ToolChange  ? "tool_change"   : code.extra; 
             code_tree.put("<xmlattr>.gcode"     , gcode   );
         }

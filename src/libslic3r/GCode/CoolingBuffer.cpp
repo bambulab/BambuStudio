@@ -765,12 +765,13 @@ std::string CoolingBuffer::apply_layer_cooldown(
         }
         if (fan_speed_new != m_fan_speed) {
             m_fan_speed = fan_speed_new;
-            new_gcode  += GCodeWriter::set_fan(m_config.gcode_flavor, m_config.gcode_comments, m_fan_speed);
+            //BBS
+            new_gcode  += GCodeWriter::set_fan(m_config.gcode_flavor, m_fan_speed);
         }
         //BBS
         if (additional_fan_speed_new != m_additional_fan_speed) {
             m_additional_fan_speed = additional_fan_speed_new;
-            new_gcode += GCodeWriter::set_additional_fan(m_config.gcode_comments, m_additional_fan_speed);
+            new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed);
         }
     };
 
@@ -791,10 +792,12 @@ std::string CoolingBuffer::apply_layer_cooldown(
             new_gcode.append(line_start, line_end - line_start);
         } else if (line->type & CoolingLine::TYPE_BRIDGE_FAN_START) {
             if (bridge_fan_control)
-                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_config.gcode_comments, bridge_fan_speed);
+                //BBS
+                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, bridge_fan_speed);
         } else if (line->type & CoolingLine::TYPE_BRIDGE_FAN_END) {
             if (bridge_fan_control)
-                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_config.gcode_comments, m_fan_speed);
+                //BBS
+                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_fan_speed);
         } else if (line->type & CoolingLine::TYPE_EXTRUDE_END) {
             // Just remove this comment.
         } else if (line->type & (CoolingLine::TYPE_ADJUSTABLE | CoolingLine::TYPE_EXTERNAL_PERIMETER | CoolingLine::TYPE_WIPE | CoolingLine::TYPE_HAS_F)) {

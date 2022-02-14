@@ -56,8 +56,9 @@ static SettingsFactory::Bundle FREQ_SETTINGS_BUNDLE_FFF =
     // BBS
     { L("Support material")     , { "support_material", "support_type", "support_material_threshold",
                                     "support_material_pattern", "support_material_buildplate_only",
-                                    "support_material_spacing" } },
-    { L("Wipe options")         , { "wipe_into_infill", "wipe_into_objects" } }
+                                    "support_material_spacing" } }
+    //BBS
+    //{ L("Wipe options")         , { "wipe_into_infill", "wipe_into_objects" } }
 };
 
 // pt_SLA

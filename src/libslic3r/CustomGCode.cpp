@@ -7,6 +7,8 @@ namespace Slic3r {
 
 namespace CustomGCode {
 
+//BBS: useless config and function
+#if 0
 // If loaded configuration has a "colorprint_heights" option (if it was imported from older Slicer), 
 // and if CustomGCode::Info.gcodes is empty (there is no color print data available in a new format
 // then CustomGCode::Info.gcodes should be updated considering this option.
@@ -32,6 +34,7 @@ extern void update_custom_gcode_per_print_z_from_config(Info& info, DynamicPrint
 	// to a new format and therefore it shall be erased.
     config->erase("colorprint_heights");
 }
+#endif
 
 // If information for custom Gcode per print Z was imported from older Slicer, mode will be undefined.
 // So, we should set CustomGCode::Info.mode should be updated considering code values from items.

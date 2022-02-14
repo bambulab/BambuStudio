@@ -75,18 +75,18 @@ public:
     unsigned int get_fan() { return m_last_fan_speed; }
 
     // To be called by the CoolingBuffer from another thread.
-    static std::string set_fan(const GCodeFlavor gcode_flavor, bool gcode_comments, unsigned int speed);
+    static std::string set_fan(const GCodeFlavor gcode_flavor, unsigned int speed);
     // To be called by the main thread. It always emits the G-code, it does not remember the previous state.
     // Keeping the state is left to the CoolingBuffer, which runs asynchronously on another thread.
     std::string set_fan(unsigned int speed) const;
     //BBS: set additional fan speed for BBS machine only
-    static std::string set_additional_fan(bool gcode_comments, unsigned int speed);
-    std::string set_additional_fan(unsigned int speed) const;
+    static std::string set_additional_fan(unsigned int speed);
 
     //BBS:
     void set_current_position_clear(bool clear) { m_is_current_pos_clear = clear; };
     bool is_current_position_clear() const { return m_is_current_pos_clear; };
-
+    //BBS:
+    static const bool full_gcode_comment;
 
 private:
 	// Extruders are sorted by their ID, so that binary search is possible.

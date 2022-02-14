@@ -459,8 +459,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                dont_support_bridges))
     ((ConfigOptionFloat,               elefant_foot_compensation))
     ((ConfigOptionFloatOrPercent,      extrusion_width))
-    ((ConfigOptionFloat,               first_layer_acceleration_over_raft))
-    ((ConfigOptionFloatOrPercent,      first_layer_speed_over_raft))
     ((ConfigOptionBool,                infill_only_where_needed))
     // Force the generation of solid shells between adjacent materials/volumes.
     ((ConfigOptionBool,                interface_shells))
@@ -512,7 +510,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatOrPercent,      support_material_xy_spacing))
     ((ConfigOptionBool,                thick_bridges))
     ((ConfigOptionFloat,               xy_size_compensation))
-    ((ConfigOptionBool,                wipe_into_objects))
+    //BBS
+    //((ConfigOptionBool,                wipe_into_objects))
     // BBS
     ((ConfigOptionFloat,              tree_support_branch_angle))
     ((ConfigOptionFloat,              tree_support_branch_distance))
@@ -532,7 +531,6 @@ PRINT_CONFIG_CLASS_DEFINE(
 PRINT_CONFIG_CLASS_DEFINE(
     PrintRegionConfig,
 
-    ((ConfigOptionFloat,                bridge_angle))
     ((ConfigOptionInt,                  bottom_solid_layers))
     ((ConfigOptionFloat,                bottom_solid_min_thickness))
     ((ConfigOptionFloat,                bridge_flow_ratio))
@@ -585,7 +583,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,                  top_solid_layers))
     ((ConfigOptionFloat,                top_solid_min_thickness))
     ((ConfigOptionFloatOrPercent,       top_solid_infill_speed))
-    ((ConfigOptionBool,                 wipe_into_infill))
+    //BBS
+    //((ConfigOptionBool,                 wipe_into_infill))
     //BBS
     ((ConfigOptionFloat,                overhang_1_4_speed))
     ((ConfigOptionFloat,                overhang_2_4_speed))
@@ -646,7 +645,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,              filament_load_time))
     ((ConfigOptionFloats,              filament_unload_time))
     ((ConfigOptionFloats,              filament_minimal_purge_on_wipe_tower))
-    ((ConfigOptionBool,                gcode_comments))
     // BBS
     ((ConfigOptionBool,                scan_first_layer))
     ((ConfigOptionBool,                enable_spaghetti_detector))
@@ -668,10 +666,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,              retract_length))
     ((ConfigOptionFloats,              retract_length_toolchange))
     ((ConfigOptionFloats,              retract_lift))
-    // BBS
-    ((ConfigOptionBools,                dont_lift_for_single_material))
-    ((ConfigOptionFloats,              retract_lift_above))
-    ((ConfigOptionFloats,              retract_lift_below))
     ((ConfigOptionFloats,              retract_restart_extra))
     ((ConfigOptionFloats,              retract_restart_extra_toolchange))
     ((ConfigOptionFloats,              retract_speed))
@@ -683,12 +677,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionString,              toolchange_gcode))
     ((ConfigOptionFloat,               travel_speed))
     ((ConfigOptionFloat,               travel_speed_z))
-    ((ConfigOptionBool,                use_firmware_retraction))
     ((ConfigOptionBool,                use_relative_e_distances))
     ((ConfigOptionBool,                silent_mode))
-    ((ConfigOptionString,              color_change_gcode))
-    ((ConfigOptionString,              pause_print_gcode))
-    ((ConfigOptionString,              template_custom_gcode))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.
@@ -704,10 +694,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     //BBS: add bed_exclude_area
     ((ConfigOptionPoints,             bed_exclude_area))
     ((ConfigOptionInts,               bed_temperature))
-    ((ConfigOptionFloat,              bridge_acceleration))
     ((ConfigOptionInts,               bridge_fan_speed))
     ((ConfigOptionBool,               complete_objects))
-    ((ConfigOptionFloats,             colorprint_heights))
     ((ConfigOptionBools,              cooling))
     ((ConfigOptionFloat,              default_acceleration))
     ((ConfigOptionInts,               disable_fan_first_layers))
@@ -730,7 +718,6 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              speed_initial_layer_infill))
     ((ConfigOptionInts,               first_layer_temperature))
     ((ConfigOptionInts,               full_fan_speed_layer))
-    ((ConfigOptionFloat,              infill_acceleration))
     ((ConfigOptionBool,               infill_first))
     ((ConfigOptionInts,               max_fan_speed))
     ((ConfigOptionFloats,             max_layer_height))
@@ -743,10 +730,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,               only_retract_when_crossing_perimeters))
     ((ConfigOptionBool,               ooze_prevention))
     ((ConfigOptionString,             output_filename_format))
-    ((ConfigOptionFloat,              perimeter_acceleration))
     ((ConfigOptionStrings,            post_process))
     ((ConfigOptionString,             printer_model))
-    ((ConfigOptionFloat,              resolution))
     ((ConfigOptionFloat,              gcode_resolution))
     ((ConfigOptionFloats,             retract_before_travel))
     ((ConfigOptionBools,              retract_layer_change))
@@ -757,7 +742,6 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,               spiral_vase))
     ((ConfigOptionInt,                standby_temperature_delta))
     ((ConfigOptionInts,               temperature))
-    ((ConfigOptionInt,                threads))
     ((ConfigOptionBools,              wipe))
     // BBS
     ((ConfigOptionFloats,             wipe_distance))

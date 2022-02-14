@@ -15,6 +15,8 @@
 
 namespace Slic3r {
 
+const bool GCodeWriter::full_gcode_comment = false;
+
 void GCodeWriter::apply_print_config(const PrintConfig &print_config)
 {
     this->config.apply(print_config, true);
@@ -165,7 +167,8 @@ std::string GCodeWriter::set_acceleration(unsigned int acceleration)
     if (FLAVOR_IS(gcfRepetier)) {
         // M201: Set max printing acceleration
         gcode << "M201 X" << acceleration << " Y" << acceleration;
-        if (this->config.gcode_comments) gcode << " ; adjust acceleration";
+        //BBS
+        if (GCodeWriter::full_gcode_comment) gcode << " ; adjust acceleration";
         gcode << "\n";
         // M202: Set max travel acceleration
         gcode << "M202 X" << acceleration << " Y" << acceleration;
@@ -180,7 +183,8 @@ std::string GCodeWriter::set_acceleration(unsigned int acceleration)
         // M204: Set default acceleration
         gcode << "M204 S" << acceleration;
     }
-    if (this->config.gcode_comments) gcode << " ; adjust acceleration";
+    //BBS
+    if (GCodeWriter::full_gcode_comment) gcode << " ; adjust acceleration";
     gcode << "\n";
     
     return gcode.str();
@@ -202,7 +206,8 @@ std::string GCodeWriter::reset_e(bool force)
     if (! this->config.use_relative_e_distances) {
         std::ostringstream gcode;
         gcode << "G92 E0";
-        if (this->config.gcode_comments) gcode << " ; reset extrusion distance";
+        //BBS
+        if (GCodeWriter::full_gcode_comment) gcode << " ; reset extrusion distance";
         gcode << "\n";
         return gcode.str();
     } else {
@@ -220,7 +225,8 @@ std::string GCodeWriter::update_progress(unsigned int num, unsigned int tot, boo
     
     std::ostringstream gcode;
     gcode << "M73 P" << percent;
-    if (this->config.gcode_comments) gcode << " ; update progress";
+    //BBS
+    if (GCodeWriter::full_gcode_comment) gcode << " ; update progress";
     gcode << "\n";
     return gcode.str();
 }
@@ -243,7 +249,8 @@ std::string GCodeWriter::toolchange(unsigned int extruder_id)
     std::ostringstream gcode;
     if (this->multiple_extruders) {
         gcode << this->toolchange_prefix() << extruder_id;
-        if (this->config.gcode_comments)
+        //BBS
+        if (GCodeWriter::full_gcode_comment)
             gcode << " ; change extruder";
         gcode << "\n";
         gcode << this->reset_e(true);
@@ -258,7 +265,8 @@ std::string GCodeWriter::set_speed(double F, const std::string &comment, const s
 
     GCodeG1Formatter w;
     w.emit_f(F);
-    w.emit_comment(this->config.gcode_comments, comment);
+    //BBS
+    w.emit_comment(GCodeWriter::full_gcode_comment, comment);
     w.emit_string(cooling_marker);
     return w.string();
 }
@@ -274,7 +282,8 @@ std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &com
     GCodeG1Formatter w;
     w.emit_xy(point_on_plate);
     w.emit_f(this->config.travel_speed.value * 60.0);
-    w.emit_comment(this->config.gcode_comments, comment);
+    //BBS
+    w.emit_comment(GCodeWriter::full_gcode_comment, comment);
     return w.string();
 }
 
@@ -317,7 +326,8 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
                 GCodeG1Formatter w0;
                 w0.emit_xyz(slope_top_point);
                 w0.emit_f(this->config.travel_speed.value * 60.0);
-                w0.emit_comment(this->config.gcode_comments, comment);
+                //BBS
+                w0.emit_comment(GCodeWriter::full_gcode_comment, comment);
                 slop_move = w0.string();
             }
         }
@@ -326,7 +336,8 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
         GCodeG1Formatter w1;
         w1.emit_xyz(target);
         w1.emit_f(this->config.travel_speed.value * 60.0);
-        w1.emit_comment(this->config.gcode_comments, comment);
+        //BBS
+        w1.emit_comment(GCodeWriter::full_gcode_comment, comment);
         return slop_move + w1.string();
     }
     else if (!this->will_move_z(point(2))) {
@@ -355,7 +366,8 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
     GCodeG1Formatter w;
     w.emit_xyz(point_on_plate);
     w.emit_f(this->config.travel_speed.value * 60.0);
-    w.emit_comment(this->config.gcode_comments, comment);
+    //BBS
+    w.emit_comment(GCodeWriter::full_gcode_comment, comment);
     return w.string();
 }
 
@@ -389,7 +401,8 @@ std::string GCodeWriter::_travel_to_z(double z, const std::string &comment)
     GCodeG1Formatter w;
     w.emit_z(z);
     w.emit_f(speed * 60.0);
-    w.emit_comment(this->config.gcode_comments, comment);
+    //BBS
+    w.emit_comment(GCodeWriter::full_gcode_comment, comment);
     return w.string();
 }
 
@@ -422,7 +435,8 @@ std::string GCodeWriter::extrude_to_xy(const Vec2d &point, double dE, const std:
     GCodeG1Formatter w;
     w.emit_xy(point_on_plate);
     w.emit_e(m_extruder->E());
-    w.emit_comment(this->config.gcode_comments, comment);
+    //BBS
+    w.emit_comment(GCodeWriter::full_gcode_comment, comment);
     return w.string();
 }
 
@@ -441,7 +455,8 @@ std::string GCodeWriter::extrude_arc_to_xy(const Vec2d& point, const Vec2d& cent
     w.emit_xy(point_on_plate);
     w.emit_ij(center_offset);
     w.emit_e(m_extruder->E());
-    w.emit_comment(this->config.gcode_comments, comment);
+    //BBS
+    w.emit_comment(GCodeWriter::full_gcode_comment, comment);
     return w.string();
 }
 
@@ -457,7 +472,8 @@ std::string GCodeWriter::extrude_to_xyz(const Vec3d &point, double dE, const std
     GCodeG1Formatter w;
     w.emit_xyz(point_on_plate);
     w.emit_e(m_extruder->E());
-    w.emit_comment(this->config.gcode_comments, comment);
+    //BBS
+    w.emit_comment(GCodeWriter::full_gcode_comment, comment);
     return w.string();
 }
 
@@ -485,23 +501,15 @@ std::string GCodeWriter::retract_for_toolchange(bool before_wipe)
 
 std::string GCodeWriter::_retract(double length, double restart_extra, const std::string &comment)
 {
-    /*  If firmware retraction is enabled, we use a fake value of 1
-        since we ignore the actual configured retract_length which 
-        might be 0, in which case the retraction logic gets skipped. */
-    if (this->config.use_firmware_retraction)
-        length = 1;
-
     std::string gcode;
     if (double dE = m_extruder->retract(length, restart_extra);  dE != 0) {
-        if (this->config.use_firmware_retraction) {
-            gcode = FLAVOR_IS(gcfMachinekit) ? "G22 ; retract\n" : "G10 ; retract\n";
-        } else {
-            GCodeG1Formatter w;
-            w.emit_e(m_extruder->E());
-            w.emit_f(m_extruder->retract_speed() * 60.);
-            w.emit_comment(this->config.gcode_comments, comment);
-            gcode = w.string();
-        }
+        //BBS
+        GCodeG1Formatter w;
+        w.emit_e(m_extruder->E());
+        w.emit_f(m_extruder->retract_speed() * 60.);
+        //BBS
+        w.emit_comment(GCodeWriter::full_gcode_comment, comment);
+        gcode = w.string();
     }
     
     if (FLAVOR_IS(gcfMakerWare))
@@ -518,17 +526,14 @@ std::string GCodeWriter::unretract()
         gcode = "M101 ; extruder on\n";
     
     if (double dE = m_extruder->unretract(); dE != 0) {
-        if (this->config.use_firmware_retraction) {
-            gcode += FLAVOR_IS(gcfMachinekit) ? "G23 ; unretract\n" : "G11 ; unretract\n";
-            gcode += this->reset_e();
-        } else {
-            // use G1 instead of G0 because G0 will blend the restart with the previous travel move
-            GCodeG1Formatter w;
-            w.emit_e(m_extruder->E());
-            w.emit_f(m_extruder->deretract_speed() * 60.);
-            w.emit_comment(this->config.gcode_comments, " ; unretract");
-            gcode += w.string();
-        }
+        //BBS
+        // use G1 instead of G0 because G0 will blend the restart with the previous travel move
+        GCodeG1Formatter w;
+        w.emit_e(m_extruder->E());
+        w.emit_f(m_extruder->deretract_speed() * 60.);
+        //BBS
+        w.emit_comment(GCodeWriter::full_gcode_comment, " ; unretract");
+        gcode += w.string();
     }
     
     return gcode;
@@ -542,10 +547,8 @@ std::string GCodeWriter::lift(bool lazy_lift)
     // check whether the above/below conditions are met
     double target_lift = 0;
     {
-        double above = this->config.retract_lift_above.get_at(m_extruder->id());
-        double below = this->config.retract_lift_below.get_at(m_extruder->id());
-        if (m_pos(2) >= above && (below == 0 || m_pos(2) <= below))
-            target_lift = this->config.retract_lift.get_at(m_extruder->id());
+        //BBS
+        target_lift = this->config.retract_lift.get_at(m_extruder->id());
     }
     // BBS
     if (m_lifted == 0 && m_to_lift == 0 && target_lift > 0) {
@@ -571,7 +574,7 @@ std::string GCodeWriter::unlift()
     return gcode;
 }
 
-std::string GCodeWriter::set_fan(const GCodeFlavor gcode_flavor, bool gcode_comments, unsigned int speed)
+std::string GCodeWriter::set_fan(const GCodeFlavor gcode_flavor, unsigned int speed)
 {
     std::ostringstream gcode;
     if (speed == 0) {
@@ -584,7 +587,7 @@ std::string GCodeWriter::set_fan(const GCodeFlavor gcode_flavor, bool gcode_comm
         default:
             gcode << "M107";    break;
         }
-        if (gcode_comments)
+        if (GCodeWriter::full_gcode_comment)
             gcode << " ; disable fan";
         gcode << "\n";
     } else {
@@ -598,7 +601,7 @@ std::string GCodeWriter::set_fan(const GCodeFlavor gcode_flavor, bool gcode_comm
         default:
             gcode << "M106 S" << 255.0 * speed / 100.0; break;
         }
-        if (gcode_comments) 
+        if (GCodeWriter::full_gcode_comment) 
             gcode << " ; enable fan";
         gcode << "\n";
     }
@@ -607,16 +610,17 @@ std::string GCodeWriter::set_fan(const GCodeFlavor gcode_flavor, bool gcode_comm
 
 std::string GCodeWriter::set_fan(unsigned int speed) const
 {
-    return GCodeWriter::set_fan(this->config.gcode_flavor, this->config.gcode_comments, speed);
+    //BBS
+    return GCodeWriter::set_fan(this->config.gcode_flavor, speed);
 }
 
 //BBS: set additional fan speed for BBS machine only
-std::string GCodeWriter::set_additional_fan(bool gcode_comments, unsigned int speed)
+std::string GCodeWriter::set_additional_fan(unsigned int speed)
 {
     std::ostringstream gcode;
 
     gcode << "M106 " << "P2 " << "S" << (int)(255.0 * speed / 100.0);
-    if (gcode_comments) {
+    if (GCodeWriter::full_gcode_comment) {
         if (speed == 0)
             gcode << " ; disable additional fan ";
         else
@@ -624,11 +628,6 @@ std::string GCodeWriter::set_additional_fan(bool gcode_comments, unsigned int sp
     }
     gcode << "\n";
     return gcode.str();
-}
-
-std::string GCodeWriter::set_additional_fan(unsigned int speed) const
-{
-    return GCodeWriter::set_additional_fan(this->config.gcode_comments, speed);
 }
 
 void GCodeFormatter::emit_axis(const char axis, const double v, size_t digits) {

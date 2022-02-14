@@ -807,9 +807,10 @@ namespace DoExport {
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("After layer change G-code")), config.layer_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Tool change G-code")), config.toolchange_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Between objects G-code (for sequential printing)")), config.between_objects_gcode.value);
-        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Color Change G-code")), config.color_change_gcode.value);
-        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Pause Print G-code")), config.pause_print_gcode.value);
-        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Template Custom G-code")), config.template_custom_gcode.value);
+        //BBS
+        //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Color Change G-code")), config.color_change_gcode.value);
+        //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Pause Print G-code")), config.pause_print_gcode.value);
+        //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Template Custom G-code")), config.template_custom_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) {
             for (const std::string& value : config.start_filament_gcode.values) {
                 check(_(L("Filament Start G-code")), value);
@@ -1997,7 +1998,8 @@ namespace ProcessLayer
                 m600_extruder_before_layer = custom_gcode->extruder - 1;
             else if (gcode_type == CustomGCode::PausePrint)
                 pause_print_msg = custom_gcode->extra;
-
+            //BBS: inserting color gcode, pause gcode and template_custom_gcode is removed
+#if 0
             // we should add or not colorprint_change in respect to nozzle_diameter count instead of really used extruders count
             if (color_change || tool_change)
             {
@@ -2046,6 +2048,7 @@ namespace ProcessLayer
                 }
                 gcode += "\n";
             }
+#endif
         }
 
         return gcode;
@@ -3227,14 +3230,16 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         double acceleration;
         if (this->on_first_layer() && m_config.first_layer_acceleration.value > 0) {
             acceleration = m_config.first_layer_acceleration.value;
+#if 0
         } else if (this->object_layer_over_raft() && m_config.first_layer_acceleration_over_raft.value > 0) {
             acceleration = m_config.first_layer_acceleration_over_raft.value;
-        } else if (m_config.perimeter_acceleration.value > 0 && is_perimeter(path.role())) {
-            acceleration = m_config.perimeter_acceleration.value;
         } else if (m_config.bridge_acceleration.value > 0 && is_bridge(path.role())) {
             acceleration = m_config.bridge_acceleration.value;
+        } else if (m_config.perimeter_acceleration.value > 0 && is_perimeter(path.role())) {
+            acceleration = m_config.perimeter_acceleration.value;
         } else if (m_config.infill_acceleration.value > 0 && is_infill(path.role())) {
             acceleration = m_config.infill_acceleration.value;
+#endif
         } else {
             acceleration = m_config.default_acceleration.value;
         }
@@ -3299,8 +3304,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         else
             speed = m_config.get_abs_value("first_layer_speed", speed);
     }
-    else if (this->object_layer_over_raft())
-        speed = m_config.get_abs_value("first_layer_speed_over_raft", speed);
+    //BBS: remove this config
+    //else if (this->object_layer_over_raft())
+    //    speed = m_config.get_abs_value("first_layer_speed_over_raft", speed);
     if (m_config.max_volumetric_speed.value > 0) {
         // cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
         speed = std::min(
@@ -3379,7 +3385,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     gcode += m_writer.set_speed(F, "", comment);
     double path_length = 0.;
     {
-        std::string comment = m_config.gcode_comments ? description : "";
+        std::string comment = GCodeWriter::full_gcode_comment ? description : "";
         //BBS: use G1 if not enable arc fitting or has no arc fitting result or in spiral_vase mode
         //Attention: G2 and G3 is not supported in spiral_vase mode
         if (!m_config.enable_arc_fitting ||
@@ -3561,10 +3567,11 @@ std::string GCode::retract(bool toolchange)
     gcode += toolchange ? m_writer.retract_for_toolchange() : m_writer.retract();
 
     gcode += m_writer.reset_e();
-    if (m_writer.extruder()->retract_length() > 0 || m_config.use_firmware_retraction) {
+    //BBS
+    if (m_writer.extruder()->retract_length() > 0) {
         // BBS: don't do lazy_lift when enable spiral vase
         size_t extruder_id = m_writer.extruder()->id();
-        if (! m_config.dont_lift_for_single_material.get_at(extruder_id) || m_toolchange_count > 0)
+        if (m_toolchange_count > 0)
             gcode += m_writer.lift(!m_spiral_vase);
     }
 

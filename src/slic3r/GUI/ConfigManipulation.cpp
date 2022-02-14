@@ -334,7 +334,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
                     "solid_infill_extrusion_width", "solid_infill_speed" })
         toggle_field(el, has_solid_infill);
 
-    for (auto el : { "fill_angle", "bridge_angle", "infill_extrusion_width",
+    for (auto el : { "fill_angle", "infill_extrusion_width",
                     "infill_speed", "bridge_speed" })
         toggle_field(el, have_infill || has_solid_infill);
 
@@ -348,8 +348,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
         toggle_field(el, has_top_solid_infill || (has_spiral_vase && has_bottom_solid_infill));
 
     bool have_default_acceleration = config->opt_float("default_acceleration") > 0;
-    for (auto el : { "perimeter_acceleration", "infill_acceleration",
-                    "bridge_acceleration", "first_layer_acceleration" })
+    //BBS
+    for (auto el : { "first_layer_acceleration" })
         toggle_field(el, have_default_acceleration);
 
     bool have_skirt = config->opt_int("skirts") > 0;
@@ -397,7 +397,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     toggle_field("support_material_speed", have_support_material || have_brim || have_skirt);
 
     toggle_field("raft_contact_distance", have_raft && !have_support_soluble);
-    for (auto el : { "raft_expansion", "first_layer_acceleration_over_raft", "first_layer_speed_over_raft" })
+    for (auto el : { "raft_expansion" })
         toggle_field(el, have_raft);
 
     bool has_ironing = config->opt_bool("ironing");

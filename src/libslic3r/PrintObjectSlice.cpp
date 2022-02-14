@@ -142,7 +142,8 @@ static std::vector<VolumeSlices> slice_volumes_inner(
     params_base.closing_radius = print_object_config.slice_closing_radius.value;
     params_base.extra_offset   = 0;
     params_base.trafo          = object_trafo;
-    params_base.resolution     = print_config.resolution.value;
+    //BBS: should not simplify when slicing mesh
+    params_base.resolution     = 0.0;
 
     switch (print_object_config.slicing_mode.value) {
     case SlicingMode::Regular:    params_base.mode = MeshSlicingParams::SlicingMode::Regular; break;

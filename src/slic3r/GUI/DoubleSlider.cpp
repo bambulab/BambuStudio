@@ -52,9 +52,10 @@ static std::string gcode(Type type)
 {
     const PrintConfig& config = GUI::wxGetApp().plater()->fff_print().config();
     switch (type) {
-    case ColorChange: return config.color_change_gcode;
-    case PausePrint:  return config.pause_print_gcode;
-    case Template:    return config.template_custom_gcode;
+    //BBS
+    //case ColorChange: return config.color_change_gcode;
+    //case PausePrint:  return config.pause_print_gcode;
+    //case Template:    return config.template_custom_gcode;
     default:          return "";
     }
 }
