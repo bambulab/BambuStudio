@@ -3181,7 +3181,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     model.set_backup_path("");
                     load_auxiliary_files();
                 }
-                auto loaded_idxs = load_model_objects(model.objects, is_project_file);
+                //BBS: don't allow negative_z when load model objects
+                //auto loaded_idxs = load_model_objects(model.objects, is_project_file);
+                auto loaded_idxs = load_model_objects(model.objects);
                 obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
 
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_LOAD_MODEL_OBJECTS \n");
@@ -3767,7 +3769,7 @@ void Plater::priv::split_object()
         // load all model objects at once, otherwise the plate would be rearranged after each one
         // causing original positions not to be kept
         //BBS: set split_object to true to avoid re-compute assemble matrix
-        std::vector<size_t> idxs = load_model_objects(new_objects, true);
+        std::vector<size_t> idxs = load_model_objects(new_objects, false, true);
 
         // select newly added objects
         for (size_t idx : idxs)

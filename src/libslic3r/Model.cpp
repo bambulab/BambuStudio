@@ -1931,11 +1931,26 @@ double ModelObject::get_instance_min_z(size_t instance_idx) const
 
         const Transform3d mv = mi * v->get_matrix();
         const TriangleMesh& hull = v->get_convex_hull();
-        for (const stl_triangle_vertex_indices& facet : hull.its.indices)
-			for (int i = 0; i < 3; ++ i)
-				min_z = std::min(min_z, (mv * hull.its.vertices[facet[i]].cast<double>()).z());
+        //BBS: in some case the convex hull is empty due to the qhull algo
+        //use the original mesh instead
+        //TODO: when the vertex's x/y/z are all the same, the run_qhull can not get correct result
+        //we need to find another algo then
+        if (hull.its.indices.size() == 0) {
+            const TriangleMesh& mesh = v->mesh();
+            for (const stl_triangle_vertex_indices& facet : mesh.its.indices)
+                for (int i = 0; i < 3; ++i)
+                    min_z = std::min(min_z, (mv * mesh.its.vertices[facet[i]].cast<double>()).z());
+        }
+        else {
+            for (const stl_triangle_vertex_indices& facet : hull.its.indices)
+                for (int i = 0; i < 3; ++i)
+                    min_z = std::min(min_z, (mv * hull.its.vertices[facet[i]].cast<double>()).z());
+        }
     }
 
+    //BBS: add some logic to avoid wrong compute for min_z
+    if (min_z == DBL_MAX)
+        min_z = 0;
     return min_z + inst->get_offset(Z);
 }
 
