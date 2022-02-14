@@ -300,6 +300,8 @@ ModelObject* Model::add_object(const ModelObject &other)
 {
 	ModelObject* new_object = ModelObject::new_clone(other);
     new_object->set_model(this);
+    // BBS: set extruder id to 1
+    new_object->config.set_key_value("extruder", new ConfigOptionInt(1));
     this->objects.push_back(new_object);
     if (need_backup) {
         Slic3r::save_object_mesh(*new_object, other.id().id);
@@ -2135,7 +2137,7 @@ int ModelVolume::extruder_id() const
         const ConfigOption *opt = this->config.option("extruder");
         if ((opt == nullptr) || (opt->getInt() == 0))
             opt = this->object->config.option("extruder");
-        extruder_id = (opt == nullptr) ? 0 : opt->getInt();
+        extruder_id = (opt == nullptr) ? 1 : opt->getInt();
     }
     return extruder_id;
 }
@@ -2167,10 +2169,7 @@ std::vector<int> ModelVolume::get_extruders() const
     }
 
     std::vector<int> volume_extruders = mmuseg_extruders;
-    if (this->extruder_id() == 0)
-        volume_extruders.push_back(this->object->config.opt_int("extruder"));
-    else
-        volume_extruders.push_back(this->extruder_id());
+    volume_extruders.push_back(this->extruder_id());
 
     return volume_extruders;
 }

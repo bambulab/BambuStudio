@@ -800,7 +800,8 @@ void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
     int initial_extruder = -1; // negative value for multiple object/part selection
     if (sels.Count() == 1) {
         const ModelConfig& config = obj_list()->get_item_config(sels[0]);
-        initial_extruder = config.has("extruder") ? config.extruder() : 0;
+        // BBS: set default extruder to 1
+        initial_extruder = config.has("extruder") ? config.extruder() : 1;
     }
 
     for (int i = 0; i <= extruders_cnt; i++)
@@ -1482,7 +1483,8 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu, int insert_pos)
     int initial_extruder = -1; // negative value for multiple object/part selection
     if (sels.Count() == 1) {
         const ModelConfig& config = obj_list()->get_item_config(sels[0]);
-        initial_extruder = config.has("extruder") ? config.extruder() : 0;
+        // BBS: set default extruder to 1
+        initial_extruder = config.has("extruder") ? config.extruder() : 1;
     }
 
     for (int i = 0; i <= extruders_cnt; i++)
