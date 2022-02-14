@@ -46,6 +46,9 @@ public:
 	// Does this config need to be saved?
 	bool 				dirty() const { return m_dirty; }
 
+
+	void				set_dirty() { m_dirty = true; }
+
 	// Const accessor, it will return false if a section or a key does not exist.
 	bool get(const std::string &section, const std::string &key, std::string &value) const
 	{

@@ -357,7 +357,7 @@ void PreferencesDialog::accept(wxEvent&)
 	if (auto it = m_values.find("developer_mode"); it != m_values.end()) {
 		m_develop_mode_changed = !app_config->get("developer_mode").empty() || app_config->get("developer_mode") != it->second;
 		if (m_develop_mode_changed) {
-			if (it->second.compare("true") == 0) {
+			if (it->second.compare("true") == 0 || it->second.compare("1") == 0) {
 				Slic3r::GUI::wxGetApp().save_mode(comDevelop);
 			}
 			else {

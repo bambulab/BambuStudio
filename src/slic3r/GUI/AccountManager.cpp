@@ -171,7 +171,7 @@ namespace Slic3r {
         config->set("user", "user_id", m_user_id);
         config->set("user", "login_status", std::to_string((int)m_login_status));
         config->set("user", "autotest_token", m_autotest_token);
-        config->save();
+        config->set_dirty();
         return 0;
     }
 
