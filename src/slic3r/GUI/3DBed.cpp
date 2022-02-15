@@ -182,6 +182,7 @@ bool Bed3D::set_shape(const Pointfs& bed_shape, const double max_print_height, c
         return false;
 
     //BBS: add part plate logic, apply position to bed shape
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":current position {%1%,%2%}, new position {%3%, %4%}") % m_position.x() % m_position.y() % position.x() % position.y();
     m_position = position;
     m_bed_shape = bed_shape;
     if ((position(0) != 0) || (position(1) != 0)) {

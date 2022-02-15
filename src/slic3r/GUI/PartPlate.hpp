@@ -425,6 +425,7 @@ public:
     PartPlate* get_selected_plate();
 
     Vec3d get_current_plate_origin() { return compute_origin(m_current_plate, m_plate_cols); }
+    Vec2d get_current_shape_position() { return compute_shape_position(m_current_plate, m_plate_cols); }
 
     //select plate
     int select_plate(int index);

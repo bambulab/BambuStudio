@@ -5847,7 +5847,9 @@ bool Plater::priv::can_reload_from_disk() const
 //BBS: add bed exclude area
 void Plater::priv::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_areas, const double max_print_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom)
 {
-    bool new_shape = bed.set_shape(shape, max_print_height, custom_texture, custom_model, force_as_custom);
+    //BBS: add shape position
+    Vec2d shape_position = partplate_list.get_current_shape_position();
+    bool new_shape = bed.set_shape(shape, max_print_height, custom_texture, custom_model, force_as_custom, shape_position);
     if (new_shape) {
         if (view3D) view3D->bed_shape_changed();
         if (preview) preview->bed_shape_changed();
