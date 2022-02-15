@@ -530,29 +530,7 @@ void MenuFactory::append_menu_items_add_volume(wxMenu* menu)
             menu->Destroy(settings_id);
     }
 
-    //BBS set mode to advanced by default
-    const ConfigOptionMode mode = comAdvanced;
-
-    if (mode == comAdvanced) {
-        append_menu_item(menu, wxID_ANY, _(ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::MODEL_PART)].first), "",
-            [](wxCommandEvent&) { obj_list()->load_subobject(ModelVolumeType::MODEL_PART); },
-            ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::MODEL_PART)].second, nullptr,
-            []() { return obj_list()->is_instance_or_object_selected(); }, m_parent);
-    }
-    if (mode == comSimple) {
-        append_menu_item(menu, wxID_ANY, _(ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::SUPPORT_ENFORCER)].first), "",
-            [](wxCommandEvent&) { obj_list()->load_generic_subobject(L("Box"), ModelVolumeType::SUPPORT_ENFORCER); },
-            ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::SUPPORT_ENFORCER)].second, nullptr,
-            []() { return obj_list()->is_instance_or_object_selected(); }, m_parent);
-        append_menu_item(menu, wxID_ANY, _(ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::SUPPORT_BLOCKER)].first), "",
-            [](wxCommandEvent&) { obj_list()->load_generic_subobject(L("Box"), ModelVolumeType::SUPPORT_BLOCKER); },
-            ADD_VOLUME_MENU_ITEMS[int(ModelVolumeType::SUPPORT_BLOCKER)].second, nullptr,
-            []() { return obj_list()->is_instance_or_object_selected(); }, m_parent);
-
-        return;
-    }
-
-    for (size_t type = (mode == comAdvanced ? 0 : 1); type < ADD_VOLUME_MENU_ITEMS.size(); type++)
+    for (size_t type = 0; type < ADD_VOLUME_MENU_ITEMS.size(); type++)
     {
         auto& item = ADD_VOLUME_MENU_ITEMS[type];
 
