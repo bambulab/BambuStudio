@@ -6442,6 +6442,7 @@ void Plater::new_project()
 
     get_partplate_list().reinit();
     get_partplate_list().update_slice_context_to_current_plate(p->background_process);
+    p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
     reset();
     reset_project_dirty_initial_presets();
     wxGetApp().update_saved_preset_from_current_preset();
