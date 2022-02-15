@@ -1748,7 +1748,6 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     const coordf_t circle_side_length = 2 * branch_radius * sin(M_PI / CIRCLE_RESOLUTION); //Side length of a regular polygon.
     const coordf_t layer_height = config.layer_height.value;
     const size_t bottom_interface_layers = config.support_material_bottom_interface_layers.value;
-    const size_t up_interface_layers = config.support_material_interface_layers.value;
     const size_t tip_layers = branch_radius / layer_height; //The number of layers to be shrinking the circle to create a tip. This produces a 45 degree angle.
     const double diameter_angle_scale_factor = sin(config.tree_support_branch_diameter_angle.value * M_PI / 180.) * layer_height / branch_radius; //Scale factor per layer to produce the desired angle.
     const coordf_t line_width = config.support_material_extrusion_width.get_abs_value(layer_height);
@@ -2375,7 +2374,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
     const coordf_t layer_height = config.layer_height.value;
     const coordf_t z_distance_top = config.support_material_contact_distance.value;
     const size_t z_distance_top_layers = round_up_divide(scale_(z_distance_top), scale_(layer_height)) + 1; //Support must always be 1 layer below overhang.
-    const size_t support_roof_layers = config.support_material_interface_layers.value;
+    const size_t support_roof_layers = config.support_material_interface_layers.value + 1; // BBS: add a normal support layer below interface
     coordf_t half_overhang_distance = 0.;
     if (config.support_material_threshold.value < EPSILON) {
         half_overhang_distance = tan(30. * M_PI / 180.0) * layer_height / 2;
