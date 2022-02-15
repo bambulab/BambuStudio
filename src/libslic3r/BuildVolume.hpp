@@ -98,7 +98,7 @@ private:
     // Source definition of the print bed geometry (PrintConfig::bed_shape)
     std::vector<Vec2d>  m_bed_shape;
     // Source definition of the print volume height (PrintConfig::max_print_height)
-    double              m_max_print_height;
+    double              m_max_print_height { 0.f };
 
     // Derived values.
     Type                m_type { Type::Invalid };
