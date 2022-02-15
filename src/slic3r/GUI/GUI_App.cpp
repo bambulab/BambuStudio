@@ -1042,9 +1042,11 @@ GUI_App::GUI_App(EAppMode mode)
     //BBS
     this->init_http_extra_header();
 
+    /* set default host
     std::string domain = wxGetApp().app_config->get("api_dev_domain") == "1" ? DEFAULT_HOST :
             wxGetApp().app_config->get("api_rel_domain") == "1" ? "api.bambulab.com" : DEFAULT_HOST;
-    m_account_manager->set_host(domain);
+    */
+    m_account_manager->set_host(DEFAULT_HOST);
 }
 
 GUI_App::~GUI_App()

@@ -181,7 +181,7 @@ void PrintJob::process()
 
             subTask->task_partplate_idx = std::to_string(curr_plate_idx);
             subTask->task_printer_dev_id = m_dev_id;
-            subTask->task_name = (boost::format("%1%_P%2%_T%3%") % profile->profile_name % curr_plate_idx %total_plate_num).str();
+            subTask->task_name = (boost::format("%1%_P%2%") % project->project_name % curr_plate_idx).str();
 
             task->subtasks.push_back(subTask);
 

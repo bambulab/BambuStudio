@@ -2085,6 +2085,11 @@ struct Plater::priv
     // extension should contain the leading dot, i.e.: ".3mf"
     wxString get_project_filename(const wxString& extension = wxEmptyString) const;
     void set_project_filename(const wxString& filename);
+
+    //BBS store bbs project name
+    wxString get_project_name();
+    void set_project_name(const wxString& project_name);
+
     // Call after plater and Canvas#D is initialized
     void init_notification_manager();
 
@@ -2115,6 +2120,7 @@ private:
 
     // path to project file stored with no extension
     wxString 					m_project_filename;
+    wxString                    m_project_name;
     Slic3r::UndoRedo::Stack 	m_undo_redo_stack_main;
     Slic3r::UndoRedo::Stack 	m_undo_redo_stack_gizmos;
     Slic3r::UndoRedo::Stack    *m_undo_redo_stack_active = &m_undo_redo_stack_main;
@@ -5499,6 +5505,19 @@ wxString Plater::priv::get_project_filename(const wxString& extension) const
     return m_project_filename.empty() ? "" : m_project_filename + extension;
 }
 
+wxString Plater::priv::get_project_name()
+{
+    return m_project_name;
+}
+
+//BBS
+void Plater::priv::set_project_name(const wxString& project_name)
+{
+    m_project_name = project_name;
+    //update project name
+    wxGetApp().mainframe->topbar()->SetProjectName(m_project_name);
+}
+
 void Plater::priv::set_project_filename(const wxString& filename)
 {
     boost::filesystem::path full_path = into_path(filename);
@@ -5516,16 +5535,14 @@ void Plater::priv::set_project_filename(const wxString& filename)
     }
 
     m_project_filename = from_path(full_path);
+
+    //BBS
+    set_project_name(full_path.filename().generic_wstring());
+    
     wxGetApp().mainframe->update_title();
 
     if (!filename.empty())
         wxGetApp().mainframe->add_to_recent_projects(filename);
-
-    // BBS
-    wxGetApp().mainframe->topbar()->SetProjectName(full_path.filename().generic_wstring());
-
-    //BBS
-    //acc_->get_default_project()->set_name(full_path.filename().string());
 }
 
 void Plater::priv::init_notification_manager()
@@ -6481,6 +6498,9 @@ void Plater::new_project()
     reset_project_dirty_initial_presets();
     wxGetApp().update_saved_preset_from_current_preset();
     update_project_dirty_from_presets();
+
+    //set project name
+    p->set_project_name(_L("Untitled"));
 
     Model m;
     model().set_backup_path(m.get_backup_path()); // new id avoid same path name
@@ -7963,10 +7983,10 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
 
 void Plater::publish_project()
 {
-    int res = 0;
     bool cont = true;
-    bool* cont_ptr = &cont;
+    bool cont_dlg = true;
     int percent = 0;
+    bool upload_finish = false;
 
     // upload project first and publish
     wxString msg;
@@ -7999,73 +8019,84 @@ void Plater::publish_project()
         return;
     }
 
-    msg = _L("preparing your designs, reqeust project id...");
-    cont = dlg.Pulse(msg);
-
+    /* create project */
     Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
-    std::string project_name = get_project_filename().ToStdString();
+    std::string project_name = std::string(p->get_project_name().mb_str(wxConvUTF8));
     BBLProject* project = new BBLProject(project_name, BBLProject::ProjectType::PROJECT_3MF);
     project->project_3mf_file = temp_path.string();
     project->project_path = temp_path;
 
-    // move to thread and join
-    res = c->request_project_id(project);
-
-
-
-    if (res != 0 || project->project_id.empty()) {
-        msg = _L("preparing, request project id failed!");
-        cont = dlg.Update(percent, msg);
-        return;
-    }
-
     BBLProfile* profile = new BBLProfile(project);
     profile->profile_name = wxGetApp().preset_bundle->prints.get_edited_preset().name;
 
-    msg = _L("preparing, request profile id");
-    dlg.Update(percent, msg);
-    c->request_profile_id(profile);
+    boost::thread upload_thread = Slic3r::create_thread([c, &msg, &cont, &project, &profile, &percent, &upload_finish, temp_path] {
+        msg = _L("preparing your designs, reqeust project id...");
 
-    if (res != 0 || profile->profile_id.empty())
-    {
-        msg = _L("preparing, request profile id failed");
-        cont = dlg.Update(percent, msg);
-        return;
+        // move to thread and join
+        int res = c->request_project_id(project);
+        if (res != 0 || project->project_id.empty()) {
+            msg = _L("preparing, request project id failed!");
+            cont = false;
+            return;
+        }
+
+        // set project id
+        profile->project_id = project->project_id;
+
+        msg = _L("preparing, request profile id");
+        res = c->request_profile_id(profile);
+
+        if (res != 0 || profile->profile_id.empty())
+        {
+            msg = _L("preparing, request profile id failed");
+            cont = false;
+            return;
+        }
+
+        msg = _L("uploading...");
+
+        res = c->upload_3mf(profile, nullptr,
+            [&percent, &cont, &msg](Http::Progress progress, bool& cancel) {
+                if (!cont) cancel = true;
+
+                int percent = 0;
+                if (progress.ultotal != 0) {
+                    progress.ulnow / progress.ultotal;
+                }
+                msg = wxString::Format("uploaded %d", percent);
+            });
+        if (res == 0) {
+            upload_finish = true;
+        }
+
+        cont = false;
+    });
+
+    while (cont && cont_dlg) {
+        wxMilliSleep(50);
+        cont_dlg = dlg.Update(percent, msg);
+        if (!cont_dlg) {
+            cont = cont_dlg;
+        }
     }
 
-    msg = _L("uploading...");
-    cont = dlg.Update(percent, msg);
+    if (upload_thread.joinable())
+        upload_thread.join();
 
-    c->upload_3mf(profile, nullptr,
-        [this, progress_dlg, cont_ptr](Http::Progress progress, bool &cancel) {
-            bool skip = false;
-            int percent = 0;
-            if (progress.ultotal != 0) {
-                progress.ulnow / progress.ultotal;
-            }
-            wxString msg = wxString::Format("uploaded %d", percent);
-            *cont_ptr = progress_dlg->Update(percent, msg, &skip);
-            if (!*cont_ptr)
-            {
-                if (wxMessageBox("Do you really want to cancel?",
-                    "Progress dialog question",  // caption
-                    wxYES_NO | wxICON_QUESTION) == wxYES) {
-                    cancel = true;
-                    return;
-                }
+    cont_dlg = true;
 
-                *cont_ptr = true;
-                progress_dlg->Resume();
-            }
-        });
-
-    dlg.Close();
-
-    wxString url = wxString::Format(MY_MODEL_PUBLISH_URL_FORMAT,
-        project->project_model_id,
-        project->project_id,
-        profile->profile_id);
-    GUI::wxGetApp().load_url(url);
+    if (upload_finish) {
+        wxString url = wxString::Format(MY_MODEL_PUBLISH_URL_FORMAT,
+            project->project_model_id,
+            project->project_id,
+            profile->profile_id);
+        GUI::wxGetApp().load_url(url);
+    } else {
+        while(cont_dlg) {
+            wxMilliSleep(50);
+            cont_dlg = dlg.Update(percent, msg);
+        }
+    }
 
     if (project)
         delete project;
