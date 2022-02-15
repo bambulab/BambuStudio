@@ -19,6 +19,8 @@
 //use wxGridWindow to compute position
 //#include "wx/generic/private/grid.h"
 
+#define HAS_COL_HEADER  1
+
 namespace Slic3r {
 namespace GUI {
 static const int grid_cell_border_width = 2;
@@ -481,6 +483,7 @@ wxBEGIN_EVENT_TABLE( ObjectGrid, wxGrid )
     EVT_KEY_DOWN( ObjectGrid::OnKeyDown )
     EVT_KEY_UP( ObjectGrid::OnKeyUp )
     EVT_CHAR ( ObjectGrid::OnChar )
+    EVT_GRID_LABEL_LEFT_CLICK ( ObjectGrid::OnColHeadLeftClick )
 wxEND_EVENT_TABLE()
 
 bool ObjectGrid::OnCellLeftClick(wxGridEvent& event, int row, int col, ConfigOptionType type)
@@ -499,7 +502,14 @@ bool ObjectGrid::OnCellLeftClick(wxGridEvent& event, int row, int col, ConfigOpt
     wxPoint position = CalcGridWindowUnscrolledPosition(event.GetPosition(), gridWindow);*/
 
     //compute the position considering the scrolled rows
+#if HAS_COL_HEADER
+    wxPoint event_position = event.GetPosition();
+    event_position.y -= m_colLabelHeight;
+
+    wxPoint position = CalcGridWindowUnscrolledPosition(event_position, nullptr);
+#else
     wxPoint position = CalcGridWindowUnscrolledPosition(event.GetPosition(), nullptr);
+#endif
 
     int col_right_pos = GetColRight(col);
     int row_up_pos = GetRowTop(row);
@@ -561,6 +571,23 @@ bool ObjectGrid::OnCellLeftClick(wxGridEvent& event, int row, int col, ConfigOpt
         }
     }
     return consumed;
+}
+
+void ObjectGrid::OnColHeadLeftClick(wxGridEvent& event)
+{
+    bool consumed = false;
+    int col = event.GetCol();
+
+    ObjectGridTable *table = dynamic_cast<ObjectGridTable *>(this->GetTable());
+
+    if (table) {
+        table->sort_by_col(col);
+        consumed = true;
+    }
+    if (!consumed)
+        event.Skip();
+    else
+        Refresh();
 }
 
 void ObjectGrid::OnKeyDown( wxKeyEvent& event )
@@ -780,6 +807,54 @@ void ObjectGrid::OnChar( wxKeyEvent& event )
 {
     event.Skip();
 }
+
+void ObjectGrid::DrawColLabels( wxDC& dc,const wxArrayInt& cols )
+{
+    wxGrid::DrawColLabels( dc, cols );
+}
+
+void ObjectGrid::DrawColLabel(wxDC& dc, int col)
+{
+    if ( GetColWidth(col) <= 0 || m_colLabelHeight <= 0 )
+        return;
+
+    ObjectGridTable *table = dynamic_cast<ObjectGridTable *>(this->GetTable());
+
+    if (table) {
+        ObjectGridTable::ObjectGridCol* grid_col = table->get_grid_col(col);
+        if (grid_col->b_icon)
+            return;
+        ObjectGridTable::ObjectGridCol* grid_next_col = table->get_grid_col(col+1);
+        int colLeft = GetColLeft(col);
+        int colWidth;
+
+        if (grid_next_col&&grid_next_col->b_icon)
+            colWidth = GetColWidth(col) + GetColWidth(col + 1);
+        else
+            colWidth = GetColWidth(col);
+
+        wxRect rect(colLeft, 0, colWidth, m_colLabelHeight);
+        wxGridColumnHeaderRendererDefault render;
+
+        // It is reported that we need to erase the background to avoid display
+        // artefacts, see #12055.
+        {
+            wxDCBrushChanger setBrush(dc, m_colLabelWin->GetBackgroundColour());
+            wxDCPenChanger setPen(dc, *wxTRANSPARENT_PEN);
+            dc.DrawRectangle(rect);
+        }
+
+        //render.DrawBorder(*this, dc, rect);
+
+        int hAlign, vAlign;
+        GetColLabelAlignment(&hAlign, &vAlign);
+        const int orient = GetColLabelTextOrientation();
+
+        render.DrawLabel(*this, dc, GetColLabelValue(col), rect, hAlign, vAlign, orient);
+    }
+}
+
+
 // ----------------------------------------------------------------------------
 // ObjectGridTable
 // ----------------------------------------------------------------------------
@@ -1326,6 +1401,36 @@ void ObjectGridTable::SetValueAsDouble(int row, int col, double value)
     return;
 }
 
+void ObjectGridTable::SetColLabelValue( int col, const wxString& value )
+{
+    if ( col > (int)(m_colLabels.GetCount()) - 1 )
+    {
+        int n = m_colLabels.GetCount();
+        int i;
+
+        for ( i = n; i <= col; i++ )
+        {
+            m_colLabels.Add( wxGridTableBase::GetColLabelValue(i) );
+        }
+    }
+
+    m_colLabels[col] = value;
+}
+
+wxString ObjectGridTable::GetColLabelValue( int col )
+{
+    if ( col > (int)(m_colLabels.GetCount()) - 1 )
+    {
+        // using default label
+        //
+        return wxGridTableBase::GetColLabelValue( col );
+    }
+    else
+    {
+        return m_colLabels[col];
+    }
+}
+
 void ObjectGridTable::release_object_configs()
 {
     if (m_grid_data.size() > 0)
@@ -1391,15 +1496,15 @@ void ObjectGridTable::init_cols()
     const float font_size = 1.5f * wxGetApp().em_unit();
 
     //first column for plate_index
-    ObjectGridCol* col = new ObjectGridCol(coString, "plate_index", L(" "), true, false, false, false, wxALIGN_RIGHT); //bool only_object, bool icon, bool edit, bool config
+    ObjectGridCol* col = new ObjectGridCol(coString, "plate_index", L(" "), true, false, false, false, wxALIGN_LEFT); //bool only_object, bool icon, bool edit, bool config
     m_col_data.push_back(col);
 
     //second column for module name
-    col = new ObjectGridCol(coString, "assemble_name", ObjectGridTable::category_all, true, false, true, false, wxALIGN_RIGHT);
+    col = new ObjectGridCol(coString, "assemble_name", ObjectGridTable::category_all, true, false, true, false, wxALIGN_LEFT);
     m_col_data.push_back(col);
 
     //3th column: for object/volume name
-    col = new ObjectGridCol(coString, "name", ObjectGridTable::category_all, false, false, true, false, wxALIGN_RIGHT);
+    col = new ObjectGridCol(coString, "name", ObjectGridTable::category_all, false, false, true, false, wxALIGN_LEFT);
     m_col_data.push_back(col);
 
     //unprintable for object
@@ -1920,110 +2025,118 @@ void ObjectGridTable::sort_row_data(compare_row_func sort_func)
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" finished, this %1%, row_data size %2%") %this % m_grid_data.size();
 }
 
+void ObjectGridTable::sort_by_col(int col)
+{
+    //handle the sort logic
+    if (col == col_name) {
+        if (m_sort_col == col) {
+            auto sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
+                return (row2->name.value.compare(row1->name.value) < 0);
+            };
+            //sort_by_name();
+            sort_row_data(sort_func);
+            m_sort_col = -1;
+        }
+        else {
+            auto sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
+                return (row1->name.value.compare(row2->name.value) < 0);
+            };
+            //sort_by_name();
+            sort_row_data(sort_func);
+            m_sort_col = col;
+        }
+    }
+    else if (col == col_assemble_name) {
+        if (m_sort_col == col) {
+            compare_row_func sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
+                //wxString string1 = GUI::from_u8(row1->assemble_name.value);
+                //wxString string2 = GUI::from_u8(row2->assemble_name.value);
+                //return (string1.compare(string2) <= 0);
+                return (row2->assemble_name.value.compare(row1->assemble_name.value) < 0);
+            };
+            sort_row_data(sort_func);
+            m_sort_col = -1;
+        }
+        else {
+            compare_row_func sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
+                //wxString string1 = GUI::from_u8(row1->assemble_name.value);
+                //wxString string2 = GUI::from_u8(row2->assemble_name.value);
+                //return (string1.compare(string2) <= 0);
+                return (row1->assemble_name.value.compare(row2->assemble_name.value) < 0);
+            };
+            sort_row_data(sort_func);
+            m_sort_col = col;
+        }
+    }
+    else if (col == col_plate_index) {
+        if (m_sort_col == col) {
+            compare_row_func sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
+                int plate_1, plate_2;
+                std::string row1_plate = row1->plate_index.value;
+                std::string row2_plate = row2->plate_index.value;
+                bool result = false;
+
+                if (row1_plate == ObjectGridTable::plate_outside)
+                    plate_1 = 100;
+                else
+                    plate_1 = std::atoi(row1_plate.c_str());
+                if (row2_plate == ObjectGridTable::plate_outside)
+                    plate_2 = 100;
+                else
+                    plate_2 = std::atoi(row2_plate.c_str());
+
+                if (plate_2 < plate_1)
+                    result = true;
+                else if (plate_1 == plate_2) {
+                    std::string row1_name = row1->name.value;
+                    std::string row2_name = row2->name.value;
+                    result = (row2_name < row1_name);
+                }
+                return result;
+            };
+            sort_row_data(sort_func);
+            m_sort_col = -1;
+        }
+        else {
+            compare_row_func sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
+                int plate_1, plate_2;
+                std::string row1_plate = row1->plate_index.value;
+                std::string row2_plate = row2->plate_index.value;
+                bool result = false;
+
+                if (row1_plate == ObjectGridTable::plate_outside)
+                    plate_1 = 100;
+                else
+                    plate_1 = std::atoi(row1_plate.c_str());
+                if (row2_plate == ObjectGridTable::plate_outside)
+                    plate_2 = 100;
+                else
+                    plate_2 = std::atoi(row2_plate.c_str());
+
+                if (plate_1 < plate_2)
+                    result = true;
+                else if (plate_1 == plate_2) {
+                    std::string row1_name = row1->name.value;
+                    std::string row2_name = row2->name.value;
+                    result = (row1_name < row2_name);
+                }
+                return result;
+            };
+            sort_row_data(sort_func);
+            m_sort_col = col;
+        }
+    }
+
+    return;
+}
+
+
 bool ObjectGridTable::OnCellLeftClick(int row, int col, ConfigOptionType &type)
 {
     bool consumed = false;
 
     if (row == 0) {
-        //handle the sort logic
-        if (col == col_name) {
-            if (m_sort_col == col) {
-                auto sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
-                    return (row2->name.value.compare(row1->name.value) < 0);
-                };
-                //sort_by_name();
-                sort_row_data(sort_func);
-                m_sort_col = -1;
-            }
-            else {
-                auto sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
-                    return (row1->name.value.compare(row2->name.value) < 0);
-                };
-                //sort_by_name();
-                sort_row_data(sort_func);
-                m_sort_col = col;
-            }
-        }
-        else if (col == col_assemble_name) {
-            if (m_sort_col == col) {
-                compare_row_func sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
-                    //wxString string1 = GUI::from_u8(row1->assemble_name.value);
-                    //wxString string2 = GUI::from_u8(row2->assemble_name.value);
-                    //return (string1.compare(string2) <= 0);
-                    return (row2->assemble_name.value.compare(row1->assemble_name.value) < 0);
-                };
-                sort_row_data(sort_func);
-                m_sort_col = -1;
-            }
-            else {
-                compare_row_func sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
-                    //wxString string1 = GUI::from_u8(row1->assemble_name.value);
-                    //wxString string2 = GUI::from_u8(row2->assemble_name.value);
-                    //return (string1.compare(string2) <= 0);
-                    return (row1->assemble_name.value.compare(row2->assemble_name.value) < 0);
-                };
-                sort_row_data(sort_func);
-                m_sort_col = col;
-            }
-        }
-        else if (col == col_plate_index) {
-            if (m_sort_col == col) {
-                compare_row_func sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
-                    int plate_1, plate_2;
-                    std::string row1_plate = row1->plate_index.value;
-                    std::string row2_plate = row2->plate_index.value;
-                    bool result = false;
-
-                    if (row1_plate == ObjectGridTable::plate_outside)
-                        plate_1 = 100;
-                    else
-                        plate_1 = std::atoi(row1_plate.c_str());
-                    if (row2_plate == ObjectGridTable::plate_outside)
-                        plate_2 = 100;
-                    else
-                        plate_2 = std::atoi(row2_plate.c_str());
-
-                    if (plate_2 < plate_1)
-                        result = true;
-                    else if (plate_1 == plate_2) {
-                        std::string row1_name = row1->name.value;
-                        std::string row2_name = row2->name.value;
-                        result = (row2_name < row1_name);
-                    }
-                    return result;
-                };
-                sort_row_data(sort_func);
-                m_sort_col = -1;
-            }
-            else {
-                compare_row_func sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
-                    int plate_1, plate_2;
-                    std::string row1_plate = row1->plate_index.value;
-                    std::string row2_plate = row2->plate_index.value;
-                    bool result = false;
-
-                    if (row1_plate == ObjectGridTable::plate_outside)
-                        plate_1 = 100;
-                    else
-                        plate_1 = std::atoi(row1_plate.c_str());
-                    if (row2_plate == ObjectGridTable::plate_outside)
-                        plate_2 = 100;
-                    else
-                        plate_2 = std::atoi(row2_plate.c_str());
-
-                    if (plate_1 < plate_2)
-                        result = true;
-                    else if (plate_1 == plate_2) {
-                        std::string row1_name = row1->name.value;
-                        std::string row2_name = row2->name.value;
-                        result = (row1_name < row2_name);
-                    }
-                    return result;
-                };
-                sort_row_data(sort_func);
-                m_sort_col = col;
-            }
-        }
+        sort_by_col(col);
     }
     else if (col >= col_assemble_name) {
         ObjectGridRow* grid_row = m_grid_data[row - 1];
@@ -2368,7 +2481,30 @@ void ObjectTablePanel::load_data()
 
     //construct tables
     //m_object_grid->CreateGrid(rows, cols, wxGridSelectCells);
+#if HAS_COL_HEADER
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_plate_index, "Plate");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_assemble_name, "Module");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_name, "Name");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_unprintable, "Unprintable");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_unprintable_reset, "");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments, "Filaments");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments_reset, "");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_layer_height, "Layer height");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_layer_height_reset, "");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_perimeters, "Perimeter");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_perimeters_reset, "");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_fill_density, "Infill density(%)");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_fill_density_reset, "");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_support_material, "Support");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_support_material_reset, "");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_brim_type, "Brim");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_brim_type_reset, "");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_speed_perimeter, "Perimeter speed");
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_speed_perimeter_reset, "");
+    m_object_grid->SetLabelFont(Label::Body_14); 
+#else
     m_object_grid->HideColLabels();
+#endif
     m_object_grid->HideRowLabels();
     m_object_grid->EnableGridLines (true);
 
@@ -2376,11 +2512,15 @@ void ObjectTablePanel::load_data()
     //format
     wxGridCellAttr *attr;
     attr = new wxGridCellAttr;
-    attr->SetBackgroundColour(wxColour(191, 191, 255));
+    //attr->SetBackgroundColour(wxColour(191, 191, 255));
+    attr->SetBackgroundColour(wxColour(255, 255, 255));
     attr->SetTextColour(*wxBLACK);
     attr->SetAlignment(wxALIGN_CENTRE, wxALIGN_CENTRE);
     attr->SetReadOnly(true);
     m_object_grid->SetRowAttr (0, attr);
+#if HAS_COL_HEADER
+    m_object_grid->SetRowSize(0, 0);
+#endif
     //merges
     m_object_grid->SetCellSize(0, ObjectGridTable::col_assemble_name, 1, 1);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_name, 1, 1);
@@ -2413,7 +2553,8 @@ void ObjectTablePanel::load_data()
 
             m_object_grid->SetCellAlignment(row, col, grid_col->horizontal_align, wxALIGN_CENTRE );
             m_object_grid->SetCellOverflow(row, col, false);
-            m_object_grid->SetCellBackgroundColour (row, col, *wxLIGHT_GREY);
+            //m_object_grid->SetCellBackgroundColour (row, col, *wxLIGHT_GREY);
+            m_object_grid->SetCellBackgroundColour (row, col, *wxWHITE);
             //set the render and editor
             if (grid_col->b_icon) {
                 m_object_grid->SetCellRenderer(row, col, new GridCellIconRenderer());

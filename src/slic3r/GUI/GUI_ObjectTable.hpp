@@ -178,6 +178,10 @@ public:
     }*/
 
     bool OnCellLeftClick(wxGridEvent& event, int row, int col, ConfigOptionType type);
+    void OnColHeadLeftClick(wxGridEvent& event);
+
+    virtual void DrawColLabels( wxDC& dc, const wxArrayInt& cols );
+    virtual void DrawColLabel( wxDC& dc, int col );
 
     //set ObjectGridTable and ObjectTablePanel as friend
     friend class     ObjectGridTable;
@@ -372,6 +376,9 @@ public:
     virtual void SetValueAsBool( int row, int col, bool value ) wxOVERRIDE;
     virtual void SetValueAsDouble (int row, int col, double value) wxOVERRIDE;
 
+    void SetColLabelValue( int col, const wxString& ) wxOVERRIDE;
+    wxString GetColLabelValue( int col ) wxOVERRIDE;
+
     template<typename TYPE> const TYPE* get_object_config_value(const DynamicPrintConfig& global_config, ModelConfig* obj_config, std::string& config_option)
     {
         if (obj_config->has(config_option))
@@ -417,6 +424,7 @@ public:
     void SetSelection(int object_id, int volume_id);
     //sort the table row datas by default
     void sort_by_default();
+    void sort_by_col(int col);
 
     //reload data caused by settings in the side window
     void reload_object_data(ObjectGridRow* grid_row, const std::string& category, DynamicPrintConfig&  global_config);
@@ -444,6 +452,8 @@ private:
     void update_row_properties();
     int m_current_row {-1};
     int m_current_col {-1};
+
+    wxArrayString     m_colLabels;
 };
 
 
