@@ -917,13 +917,15 @@ void TreeSupport::detect_object_overhangs()
 
                     TreeSupportLayer* ts_layer = m_object.get_tree_support_layer(layer_nr + m_raft_layers);
                     for (ExPolygon& poly : overhang_areas) {
-#if 1
+                        // NOTE: must push something into ts_layer->overhang_areas, can't be empty for any layer,
+                        // otherwise remove_small_overhangs can't correctly cluster overhangs
+#if 0
                         ExPolygons poly_simp = poly.simplify(scale_(radius_sample_resolution));
                         // simplify method may delete the entire polygon which is unwanted
                         if(!poly_simp.empty())
                             append(ts_layer->overhang_areas, poly_simp);
-                        //else
-                        //    ts_layer->overhang_areas.emplace_back(poly);
+                        else
+                            ts_layer->overhang_areas.emplace_back(poly);
 #else
                         ts_layer->overhang_areas.emplace_back(poly);
 #endif

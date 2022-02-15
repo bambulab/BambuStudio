@@ -1545,14 +1545,17 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
                 //FIXME cache the lower layer offset if this layer has multiple regions.
 
                 // BBS: Filter out polygons that will not be extruded.
-                for (Polygon& poly : lower_layer_polygons) {
-                    if (offset(poly, -0.5f * fw).empty())
-                        poly = Polygon();
-                }
-                for (Polygon& poly : layerm_polygons) {
-                    if (offset(poly, -0.5f * fw).empty())
-                        poly = Polygon();
-                }
+                // TODO: adding this part may miss supports at thin edges (black_gun_body.stl 0.16mm),
+                //       but deleting it is not OK either, as the gap between model and support is too
+                //       large.
+                // for (Polygon& poly : lower_layer_polygons) {
+                //     if (offset(poly, -0.5f * fw).empty())
+                //         poly = Polygon();
+                // }
+                // for (Polygon& poly : layerm_polygons) {
+                //     if (offset(poly, -0.5f * fw).empty())
+                //         poly = Polygon();
+                // }
 #if 0
                 //FIXME this solution will trigger stupid supports for sharp corners, see GH #4874
                 diff_polygons = opening(
