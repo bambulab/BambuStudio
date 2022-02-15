@@ -270,7 +270,8 @@ ModelObject* Model::add_object(const char *name, const char *path, const Triangl
     new_volume->source.object_idx = (int)this->objects.size() - 1;
     new_volume->source.volume_idx = (int)new_object->volumes.size() - 1;
     // BBS: set extruder id to 1
-    new_object->config.set_key_value("extruder", new ConfigOptionInt(1));
+    if (!new_object->config.has("extruder") || new_object->config.extruder() == 0)
+        new_object->config.set_key_value("extruder", new ConfigOptionInt(1));
     new_object->invalidate_bounding_box();
     // BBS: backup
     Slic3r::save_object_mesh(*new_object);
@@ -288,8 +289,9 @@ ModelObject* Model::add_object(const char *name, const char *path, TriangleMesh 
     new_volume->source.input_file = path;
     new_volume->source.object_idx = (int)this->objects.size() - 1;
     new_volume->source.volume_idx = (int)new_object->volumes.size() - 1;
-    // BBS: set extruder id to 1
-    new_object->config.set_key_value("extruder", new ConfigOptionInt(1));
+    // BBS: set default extruder id to 1
+    if (!new_object->config.has("extruder") || new_object->config.extruder() == 0)
+        new_object->config.set_key_value("extruder", new ConfigOptionInt(1));
     new_object->invalidate_bounding_box();
     // BBS: backup
     Slic3r::save_object_mesh(*new_object);
@@ -300,8 +302,9 @@ ModelObject* Model::add_object(const ModelObject &other)
 {
 	ModelObject* new_object = ModelObject::new_clone(other);
     new_object->set_model(this);
-    // BBS: set extruder id to 1
-    new_object->config.set_key_value("extruder", new ConfigOptionInt(1));
+    // BBS: set default extruder id to 1
+    if (!new_object->config.has("extruder") || new_object->config.extruder() == 0)
+        new_object->config.set_key_value("extruder", new ConfigOptionInt(1));
     this->objects.push_back(new_object);
     if (need_backup) {
         Slic3r::save_object_mesh(*new_object, other.id().id);

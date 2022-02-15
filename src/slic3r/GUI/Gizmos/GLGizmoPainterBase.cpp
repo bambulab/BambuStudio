@@ -659,9 +659,14 @@ bool GLGizmoPainterBase::on_is_activable() const
         || !selection.is_single_full_instance()/* || wxGetApp().get_mode() == comSimple*/)
         return false;
 
+    // BBS
+#if 0
     // Check that none of the selected volumes is outside. Only SLA auxiliaries (supports) are allowed outside.
     const Selection::IndicesList& list = selection.get_volume_idxs();
     return std::all_of(list.cbegin(), list.cend(), [&selection](unsigned int idx) { return !selection.get_volume(idx)->is_outside; });
+#else
+    return true;
+#endif
 }
 
 bool GLGizmoPainterBase::on_is_selectable() const

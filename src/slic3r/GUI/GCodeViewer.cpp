@@ -2613,7 +2613,10 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
                 break;
             }
         }
-        assert(object_idx != -1);
+
+        // BBS: object may be deleted when this method is called when deleting an object
+        if (object_idx == -1)
+            continue;
 
         std::vector<int> instance_ids(model_obj->instances.size());
         //BBS: only add the printable instance
