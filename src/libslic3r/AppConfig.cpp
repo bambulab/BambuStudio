@@ -78,6 +78,9 @@ void AppConfig::set_defaults()
         if (get("associate_stl").empty())
             set_bool("associate_stl", false);
 
+        if (get("associate_step").empty()) 
+            set("associate_step", "0");
+
 #endif // _WIN32
 
         // remove old 'use_legacy_opengl' parameter from this config, if present
@@ -193,9 +196,69 @@ void AppConfig::set_defaults()
         set_bool("show_daily_tips", true);
     }
 
+    if (get("show_home_page").empty()) { 
+        set("show_home_page", "1"); 
+    }
+
+
     if (get("show_printable_box").empty()) {
         set_bool("show_printable_box", true);
     }
+
+     if (get("currency").empty()) { 
+         set("currency", "imperial"); 
+     }
+
+     if (get("currency_supported").empty()) { 
+         set("currency_supported", "metric/imperial/more");
+     }
+
+     if (get("user_sync_switch").empty()) { 
+         set("user_sync_switch", "0"); 
+     }
+
+     if (get("preset_sync_switch").empty()) { 
+         set("preset_sync_switch", "0"); 
+     }
+
+     if (get("preferences_sync_switch").empty()) { 
+         set("preferences_sync_switch", "0"); 
+     }
+
+     if (get("keyboard_supported").empty()) { 
+         set("keyboard_supported", std::string("none/alt/control/shift")); 
+     }
+
+      if (get("mouse_supported").empty()) { 
+          set("mouse_supported", "mouse left/mouse middle/mouse right"); 
+      }
+
+      if (get("rotate_view").empty()) { 
+          set("rotate_view", "none/mouse left"); 
+      }
+
+      if (get("move_view").empty()) { 
+          set("move_view", "none/mouse left"); 
+      }
+
+      if (get("zoom_view").empty()) { 
+          set("zoom_view", "none/mouse left"); 
+      }
+
+      if (get("precise_control").empty()) { 
+          set("precise_control", "none/mouse left"); 
+      }
+
+       if (get("mouse_wheel").empty()) { 
+           set("mouse_wheel", "0"); 
+       }
+
+       if (get("backup_interval").empty()) {
+           set("backup_interval", "10"); 
+       }
+
+
+
 
     // Remove legacy window positions/sizes
     erase("app", "main_frame_maximized");
@@ -225,7 +288,7 @@ static std::string appconfig_md5_hash_line(const std::string_view data)
     assert(md5_digest_str.size() == 32);
     // This line will be emited at the end of the file.
     return "# MD5 checksum " + md5_digest_str + "\n";
-};
+}
 
 // Assume that the last line with the comment inside the config file contains a checksum and that the user didn't modify the config file.
 static bool verify_config_file_checksum(boost::nowide::ifstream &ifs)
