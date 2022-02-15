@@ -207,7 +207,6 @@ SubTaskPanel::SubTaskPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
     bSizer_top->Add(m_bitmap_subtask, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
     m_bitmap_prediction = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-    m_bitmap_prediction->SetMinSize(wxSize(18, 18));
 
     bSizer_top->Add(m_bitmap_prediction, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 12);
 
@@ -221,7 +220,6 @@ SubTaskPanel::SubTaskPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
     bSizer_top->Add(17, 0, 0, wxEXPAND, 0);
 
     m_bitmap_weight = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-    m_bitmap_weight->SetMinSize(wxSize(18, 18));
 
     bSizer_top->Add(m_bitmap_weight, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
 
@@ -235,7 +233,6 @@ SubTaskPanel::SubTaskPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
     bSizer_top->Add(63, 0, 0, wxEXPAND, 0);
 
     m_bpButton_print = new wxBitmapButton(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | 0);
-    m_bpButton_print->SetMinSize(wxSize(18, 18));
 
     bSizer_top->Add(m_bpButton_print, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
 
@@ -248,9 +245,9 @@ SubTaskPanel::SubTaskPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
     bSizer_top->Fit(this);
 
 
-    time_bmp = create_scaled_bitmap("monitor_tasklist_time", nullptr, 15);
-    weight_bmp = create_scaled_bitmap("monitor_tasklist_weight", nullptr, 15);
-    printing_bmp = create_scaled_bitmap("monitor_tasklist_print", nullptr, 15);
+    time_bmp = create_scaled_bitmap("monitor_tasklist_time", nullptr, FromDIP(15));
+    weight_bmp = create_scaled_bitmap("monitor_tasklist_weight", nullptr, FromDIP(15));
+    printing_bmp = create_scaled_bitmap("monitor_tasklist_print", nullptr, FromDIP(15));
     m_bitmap_prediction->SetBitmap(time_bmp);
     m_bitmap_weight->SetBitmap(weight_bmp);
     m_bpButton_print->SetBitmap(printing_bmp);
@@ -260,7 +257,7 @@ SubTaskPanel::SubTaskPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos,
     // Connect Events
     m_bitmap_subtask->Connect( wxEVT_ENTER_WINDOW, wxMouseEventHandler( SubTaskPanel::on_thumbnail_enter ), NULL, this );
     m_bitmap_subtask->Connect( wxEVT_LEAVE_WINDOW, wxMouseEventHandler( SubTaskPanel::on_thumbnail_leave ), NULL, this );
-	m_bpButton_print->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( SubTaskPanel::on_subtask_print ), NULL, this );
+    m_bpButton_print->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( SubTaskPanel::on_subtask_print ), NULL, this );
 }
 
 SubTaskPanel::~SubTaskPanel()
@@ -268,7 +265,7 @@ SubTaskPanel::~SubTaskPanel()
     // Disconnect Events
     m_bitmap_subtask->Disconnect( wxEVT_ENTER_WINDOW, wxMouseEventHandler( SubTaskPanel::on_thumbnail_enter ), NULL, this );
     m_bitmap_subtask->Disconnect( wxEVT_LEAVE_WINDOW, wxMouseEventHandler( SubTaskPanel::on_thumbnail_leave ), NULL, this );
-	m_bpButton_print->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( SubTaskPanel::on_subtask_print ), NULL, this );
+    m_bpButton_print->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( SubTaskPanel::on_subtask_print ), NULL, this );
 }
 
 void SubTaskPanel::on_subtask_print(wxCommandEvent& evt)
@@ -379,12 +376,22 @@ void SubTaskPanel::on_webrequest_state(wxWebRequestEvent& evt)
 TaskListPanel::TaskListPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name)
     : TaskListBasePanel(parent, id, pos, size, style)
 {
-    m_bitmap_task->SetBitmap(create_scaled_bitmap("tasklist_default",nullptr,80));
+    m_bitmap_task->SetBitmap(create_scaled_bitmap("tasklist_default",nullptr,FromDIP(80)));
+
+    obj = nullptr;
 
     Bind(wxEVT_WEBREQUEST_STATE, &TaskListPanel::on_webrequest_state, this);
 }
 
 TaskListPanel::~TaskListPanel(){}
+
+void TaskListPanel::msw_rescale() {
+    m_bitmap_task->SetBitmap(wxBitmap(m_bitmap_task->GetBitmap().ConvertToImage().Scale(FromDIP(70), FromDIP(70))));
+    //TODO:rescale subtaskpanel
+
+    Layout();
+    Refresh();
+}
 
 void TaskListPanel::update_tasklist(MachineObject* obj)
 {
@@ -472,22 +479,36 @@ VideoPanel::~VideoPanel(){}
 StatusPanel::StatusPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name)
     : StatusBasePanel(parent, id, pos, size, style)
 {
-    int bitmap_temp_size = 24;
-    m_lamp_img = create_scaled_bitmap("monitor_lamp", nullptr, 18);
-    m_fan_img = create_scaled_bitmap("monitor_fan", nullptr, 18);
-    m_bed_img = create_scaled_bitmap("monitor_bed_temp", nullptr, bitmap_temp_size);
-    m_nozzle_img = create_scaled_bitmap("monitor_nozzle_temp", nullptr, bitmap_temp_size);
-    m_pocket_img = create_scaled_bitmap("monitor_volume_temp", nullptr, bitmap_temp_size);
-    m_thumbnail_placeholder = create_scaled_bitmap("monitor_placeholder", nullptr, 170);
-    m_bitmap_lamp->SetBitmap(m_lamp_img);
-    m_bitmap_fan_big->SetBitmap(m_fan_img);
-    m_bitmap_fan_nozzle->SetBitmap(m_fan_img);
-    m_bitmap_fan_case->SetBitmap(m_fan_img);
-    m_bitmap_fan_printing->SetBitmap(m_fan_img);
-    m_bitmap_bed->SetBitmap(m_bed_img);
-    m_bitmap_nozzle->SetBitmap(m_nozzle_img);
-    m_bitmap_pocket->SetBitmap(m_pocket_img);
+    init_scaled_bitmap();
+    m_thumbnail_placeholder = create_scaled_bitmap("monitor_placeholder", nullptr, (170));
     m_bitmap_thumbnail->SetBitmap(m_thumbnail_placeholder);
+    init_scaled_buttons();
+
+    m_buttons.push_back(m_button_report);
+    m_buttons.push_back(m_button_pause_resume);
+    m_buttons.push_back(m_button_abort);
+    m_buttons.push_back(m_bpButton_home_x);
+    m_buttons.push_back(m_bpButton_home_y);
+    m_buttons.push_back(m_bpButton_home_z);
+    m_buttons.push_back(m_bpButton_home);
+    m_buttons.push_back(m_bpButton_z_10);
+    m_buttons.push_back(m_bpButton_z_1);
+    m_buttons.push_back(m_bpButton_z_0_1);
+    m_buttons.push_back(m_bpButton_z_down_0_1);
+    m_buttons.push_back(m_bpButton_z_down_1);
+    m_buttons.push_back(m_bpButton_z_down_10);
+    m_buttons.push_back(m_bpButton_e_10);
+    m_buttons.push_back(m_bpButton_e_1);
+    m_buttons.push_back(m_bpButton_e_down_1);
+    m_buttons.push_back(m_bpButton_e_down_10);
+    m_buttons.push_back(m_bpButton_extruder_1);
+    m_buttons.push_back(m_bpButton_extruder_2);
+    m_buttons.push_back(m_bpButton_extruder_3);
+    m_buttons.push_back(m_bpButton_extruder_4);
+    m_buttons.push_back(m_button_extruder_feed);
+    m_buttons.push_back(m_button_extruder_back);
+
+    obj = nullptr;
 
     /* set default values */
     m_bmToggleBtn_lamp->SetValue(false);
@@ -498,12 +519,6 @@ StatusPanel::StatusPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
     m_button_pause_resume->Enable(false);
     m_button_abort->Enable(false);
 
-    m_bitmap_thumbnail->Bind(wxEVT_LEFT_UP, [this](auto& e) {
-        if (m_media_file_panel == NULL) {
-            m_media_file_panel = (new MediaFileFrame(this))->filePanel();
-        }
-        m_media_file_panel->GetParent()->Show();
-    });
     Bind(wxEVT_WEBREQUEST_STATE, &StatusPanel::on_webrequest_state, this);
    
     // Connect Events
@@ -580,6 +595,67 @@ StatusPanel::~StatusPanel(){
     m_button_extruder_back->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_extruder_back), NULL, this);
 }
 
+void StatusPanel::init_scaled_bitmap() {
+    m_bitmap_lamp->SetBitmap(create_scaled_bitmap("monitor_lamp", nullptr, FromDIP(18)));
+    m_bitmap_bed->SetBitmap(create_scaled_bitmap("monitor_bed_temp", nullptr, FromDIP(24)));
+    m_bitmap_nozzle->SetBitmap(create_scaled_bitmap("monitor_nozzle_temp", nullptr, FromDIP(24)));
+    m_bitmap_pocket->SetBitmap(create_scaled_bitmap("monitor_volume_temp", nullptr, FromDIP(24)));
+    m_bitmap_fan_nozzle->SetBitmap(create_scaled_bitmap("monitor_fan", nullptr, FromDIP(18)));
+    m_bitmap_fan_printing->SetBitmap(create_scaled_bitmap("monitor_fan", nullptr, FromDIP(18)));
+    m_bitmap_fan_big->SetBitmap(create_scaled_bitmap("monitor_fan", nullptr, FromDIP(18)));
+    m_bitmap_fan_case->SetBitmap(create_scaled_bitmap("monitor_fan", nullptr, FromDIP(18)));
+}
+
+void StatusPanel::init_scaled_buttons() {
+    m_button_report->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
+    m_button_report->SetCornerRadius(FromDIP(12));
+    m_button_pause_resume->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
+    m_button_pause_resume->SetCornerRadius(FromDIP(12));
+    m_button_abort->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
+    m_button_abort->SetCornerRadius(FromDIP(12));
+    m_bpButton_home_x->SetMinSize(wxSize(FromDIP(48), FromDIP(48)));
+    m_bpButton_home_x->SetCornerRadius(FromDIP(24));
+    m_bpButton_home_y->SetMinSize(wxSize(FromDIP(48), FromDIP(48)));
+    m_bpButton_home_y->SetCornerRadius(FromDIP(24));
+    m_bpButton_home_z->SetMinSize(wxSize(FromDIP(48), FromDIP(48)));
+    m_bpButton_home_z->SetCornerRadius(FromDIP(24));
+    m_bpButton_home->SetMinSize(wxSize(FromDIP(48), FromDIP(48)));
+    m_bpButton_home->SetCornerRadius(FromDIP(24));
+    m_bpButton_z_10->SetMinSize(wxSize(FromDIP(48), FromDIP(40)));
+    m_bpButton_z_10->SetCornerRadius(0);
+    m_bpButton_z_1->SetMinSize(wxSize(FromDIP(48), FromDIP(40)));
+    m_bpButton_z_1->SetCornerRadius(0);
+    m_bpButton_z_0_1->SetMinSize(wxSize(FromDIP(48), FromDIP(40)));
+    m_bpButton_z_0_1->SetCornerRadius(0);
+    m_bpButton_z_down_0_1->SetMinSize(wxSize(FromDIP(48), FromDIP(40)));
+    m_bpButton_z_down_0_1->SetCornerRadius(0);
+    m_bpButton_z_down_1->SetMinSize(wxSize(FromDIP(48), FromDIP(40)));
+    m_bpButton_z_down_1->SetCornerRadius(0);
+    m_bpButton_z_down_10->SetMinSize(wxSize(FromDIP(48), FromDIP(40)));
+    m_bpButton_z_down_10->SetCornerRadius(0);
+    m_bpButton_e_10->SetMinSize(wxSize(FromDIP(45), FromDIP(45)));
+    m_bpButton_e_10->SetCornerRadius(FromDIP(5));
+    m_bpButton_e_1->SetMinSize(wxSize(FromDIP(45), FromDIP(45)));
+    m_bpButton_e_1->SetCornerRadius(FromDIP(5));
+    m_bpButton_e_down_1->SetMinSize(wxSize(FromDIP(45), FromDIP(45)));
+    m_bpButton_e_down_1->SetCornerRadius(FromDIP(5));
+    m_bpButton_e_down_10->SetMinSize(wxSize(FromDIP(45), FromDIP(45)));
+    m_bpButton_e_down_10->SetCornerRadius(FromDIP(5));
+    m_bpButton_extruder_1->SetMinSize(wxSize(FromDIP(50), FromDIP(66)));
+    m_bpButton_extruder_1->SetCornerRadius(0);
+    m_bpButton_extruder_2->SetMinSize(wxSize(FromDIP(50), FromDIP(66)));
+    m_bpButton_extruder_2->SetCornerRadius(0);
+    m_bpButton_extruder_3->SetMinSize(wxSize(FromDIP(50), FromDIP(66)));
+    m_bpButton_extruder_3->SetCornerRadius(0);
+    m_bpButton_extruder_4->SetMinSize(wxSize(FromDIP(50), FromDIP(66)));
+    m_bpButton_extruder_4->SetCornerRadius(0);
+    m_button_extruder_feed->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));;
+    m_button_extruder_feed->SetCornerRadius(FromDIP(12));
+    m_button_extruder_back->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));;
+    m_button_extruder_back->SetCornerRadius(FromDIP(12));
+
+}
+
 void StatusPanel::on_subtask_report(wxCommandEvent& event)
 {
     if (obj) {
@@ -641,6 +717,8 @@ void StatusPanel::on_webrequest_state(wxWebRequestEvent& evt)
 
 void StatusPanel::update_temp_ctrl(MachineObject* obj) 
 {
+    if (!obj) return;
+
     // update temprature if not input temp target
     if (!bed_temp_input) {
         wxString bed_temp_curr_text = wxString::Format("%-0.0f", obj->bed_temp_target);
@@ -788,59 +866,59 @@ void StatusPanel::reset_printing_values()
 void StatusPanel::on_axis_ctrl_x_home(wxCommandEvent& event)
 {
     //TODO
-	if (obj)
-		obj->command_go_home();
+    if (obj)
+        obj->command_go_home();
 }
 
 void StatusPanel::on_axis_ctrl_y_home(wxCommandEvent& event)
 {
     //TODO
-	if (obj)
-		obj->command_go_home();
+    if (obj)
+        obj->command_go_home();
 }
 
 void StatusPanel::on_axis_ctrl_z_home(wxCommandEvent& event)
 {
     //TODO
-	if (obj)
-		obj->command_go_home();
+    if (obj)
+        obj->command_go_home();
 }
 
 void StatusPanel::on_axis_ctrl_home(wxCommandEvent& event)
 {
     //TODO
-	if (obj)
-		obj->command_go_home();
+    if (obj)
+        obj->command_go_home();
 }
 
 void StatusPanel::on_axis_ctrl_xy(wxCommandEvent& event)
 {
-	if (!obj)
-		return;
-	if (event.GetInt() == 0) {
-		obj->command_axis_control("Y", 1.0, 10.0f, 3000);
-	}
-	if (event.GetInt() == 1) {
-		obj->command_axis_control("X", 1.0, -10.0f, 3000);
-	}
-	if (event.GetInt() == 2) {
-		obj->command_axis_control("Y", 1.0, -10.0f, 3000);
-	}
-	if (event.GetInt() == 3) {
-		obj->command_axis_control("X", 1.0, 10.0f, 3000);
-	}
-	if (event.GetInt() == 4) {
-		obj->command_axis_control("Y", 1.0, 1.0f, 3000);
-	}
-	if (event.GetInt() == 5) {
-		obj->command_axis_control("X", 1.0, -1.0f, 3000);
-	}
-	if (event.GetInt() == 6) {
-		obj->command_axis_control("Y", 1.0, -1.0f, 3000);
-	}
-	if (event.GetInt() == 7) {
-		obj->command_axis_control("X", 1.0, 1.0f, 3000);
-	}
+    if (!obj)
+        return;
+    if (event.GetInt() == 0) {
+        obj->command_axis_control("Y", 1.0, 10.0f, 3000);
+    }
+    if (event.GetInt() == 1) {
+        obj->command_axis_control("X", 1.0, -10.0f, 3000);
+    }
+    if (event.GetInt() == 2) {
+        obj->command_axis_control("Y", 1.0, -10.0f, 3000);
+    }
+    if (event.GetInt() == 3) {
+        obj->command_axis_control("X", 1.0, 10.0f, 3000);
+    }
+    if (event.GetInt() == 4) {
+        obj->command_axis_control("Y", 1.0, 1.0f, 3000);
+    }
+    if (event.GetInt() == 5) {
+        obj->command_axis_control("X", 1.0, -1.0f, 3000);
+    }
+    if (event.GetInt() == 6) {
+        obj->command_axis_control("Y", 1.0, -1.0f, 3000);
+    }
+    if (event.GetInt() == 7) {
+        obj->command_axis_control("X", 1.0, 1.0f, 3000);
+    }
 }
 
 
@@ -1078,6 +1156,24 @@ void StatusPanel::on_xyz_abs(wxCommandEvent& event)
         obj->command_xyz_abs();
 }
 
+void StatusPanel::msw_rescale() {
+    for (Button* btn : m_buttons) {
+        btn->Rescale();
+    }
+    init_scaled_buttons();
+
+    m_bpButton_xy->Rescale();
+
+    m_bmToggleBtn_lamp->Rescale();
+    m_bmToggleBtn_nozzle_fan->Rescale();
+    m_bmToggleBtn_printing_fan->Rescale();
+
+    init_scaled_bitmap();
+
+    Layout();
+    Refresh();
+}
+
 MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : MonitorBasePanel(parent, id, pos, size, style)
 {
@@ -1086,14 +1182,8 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
 #endif //__WINDOWS__
 
     init_bitmap();
-    /* set bitmap image, set font */
+
     // TODO add translations for m_staticText_current_unit and m_staticText_target_unit    
-    m_bitmap_printer->SetBitmap(m_printer_img);
-    m_bitmap_arrow1->SetBitmap(m_arrow1_img);
-    m_bitmap_arrow2->SetBitmap(m_arrow2_img);
-    m_bitmap_arrow3->SetBitmap(m_arrow3_img);
-    m_bitmap_arrow4->SetBitmap(m_arrow4_img);
-    m_bitmap_arrow5->SetBitmap(m_arrow5_img);
 
     init_timer();
 
@@ -1112,14 +1202,14 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
     m_media_file_panel->Show(false);
     m_video_panel->Show(false);
     m_task_list_panel->Show(false);
-    m_panel_splitter_right->SetSizer(bSizer_right);
+    m_panel_splitter_right->SetSizerAndFit(bSizer_right);
     bSizer_right->Fit(m_panel_splitter_right);
     select_tab(m_panel_status_tab);
     show_panel(m_status_panel);
 
     Bind(wxEVT_SIZE, &MonitorPanel::on_size, this);
     Bind(wxEVT_TIMER, &MonitorPanel::on_timer, this);
-    Bind(wxEVT_COMMAND_CHOICE_SELECTED, &MonitorPanel::on_select, this);
+    Bind(wxEVT_COMMAND_CHOICE_SELECTED, &MonitorPanel::on_select_printer, this);
 
     // Connect Events
     m_bitmap_printer->Connect(wxEVT_LEFT_UP, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
@@ -1141,6 +1231,18 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
 
 void MonitorPanel::on_size(wxSizeEvent& event)
 {
+    GetParent()->GetParent()->SetMinSize(wxSize(FromDIP(1500), FromDIP(960)));
+    Layout();
+    Refresh();
+}
+
+void MonitorPanel::msw_rescale() {
+    init_bitmap();
+
+    m_status_panel->msw_rescale();
+    m_media_file_panel->Rescale();
+    m_task_list_panel->msw_rescale();
+
     Layout();
     Refresh();
 }
@@ -1154,18 +1256,22 @@ MonitorPanel::~MonitorPanel()
 
 void MonitorPanel::init_bitmap()
 {
-    int bitmap_size = 40;
-    int bitmap_temp_size = 24;
+    m_signal_strong_img = create_scaled_bitmap("monitor_signal_strong", nullptr, FromDIP(18));
+    m_signal_middle_img = create_scaled_bitmap("monitor_signal_middle", nullptr, FromDIP(18));
+    m_signal_weak_img = create_scaled_bitmap("monitor_signal_weak", nullptr, FromDIP(18));
+    m_printer_img = create_scaled_bitmap("monitor_printer", nullptr, FromDIP(18));
+    m_arrow1_img = create_scaled_bitmap("monitor_arrow",nullptr, FromDIP(20));
+    m_arrow2_img = create_scaled_bitmap("monitor_arrow",nullptr, FromDIP(20));
+    m_arrow3_img = create_scaled_bitmap("monitor_arrow",nullptr, FromDIP(20));
+    m_arrow4_img = create_scaled_bitmap("monitor_arrow",nullptr, FromDIP(20));
+    m_arrow5_img = create_scaled_bitmap("monitor_arrow",nullptr, FromDIP(20));
 
-    m_signal_strong_img = create_scaled_bitmap("monitor_signal_strong", nullptr, 18);
-    m_signal_middle_img = create_scaled_bitmap("monitor_signal_middle", nullptr, 18);
-    m_signal_weak_img = create_scaled_bitmap("monitor_signal_weak", nullptr, 18);
-    m_printer_img = create_scaled_bitmap("monitor_printer", nullptr, 16);
-    m_arrow1_img = create_scaled_bitmap("monitor_arrow",nullptr,20);
-    m_arrow2_img = create_scaled_bitmap("monitor_arrow",nullptr,20);
-    m_arrow3_img = create_scaled_bitmap("monitor_arrow",nullptr,20);
-    m_arrow4_img = create_scaled_bitmap("monitor_arrow",nullptr,20);
-    m_arrow5_img = create_scaled_bitmap("monitor_arrow",nullptr,20);
+    m_bitmap_printer->SetBitmap(m_printer_img);
+    m_bitmap_arrow1->SetBitmap(m_arrow1_img);
+    m_bitmap_arrow2->SetBitmap(m_arrow2_img);
+    m_bitmap_arrow3->SetBitmap(m_arrow3_img);
+    m_bitmap_arrow4->SetBitmap(m_arrow4_img);
+    m_bitmap_arrow5->SetBitmap(m_arrow5_img);
 }
 
 void MonitorPanel::init_timer()
@@ -1175,7 +1281,6 @@ void MonitorPanel::init_timer()
     m_refresh_timer->Start(REFRESH_INTERVAL);
     wxPostEvent(this, wxTimerEvent());
 }
-
 
 bool MonitorPanel::Show(bool show)
 {
@@ -1195,16 +1300,14 @@ void MonitorPanel::Reset()
 {
     obj = nullptr;
 
-    m_status_panel->last_subtask = nullptr;
-    m_task_list_panel->last_task = nullptr;
-    m_task_list_panel->last_profile = nullptr;
-
-
     /* set default value */
     m_staticText_machine_name->SetLabelText("N/A");
     m_staticText_capacity_val->SetLabelText("N/A");
 
     /* reset status panel*/
+    m_status_panel->obj = nullptr;
+    m_status_panel->m_media_play_ctrl->SetMachineObject(nullptr);
+    m_status_panel->last_subtask = nullptr;
     m_status_panel->reset_printing_values();
     m_status_panel->m_staticText_bed_current->SetLabelText("N/A");
     m_status_panel->m_staticText_nozzle_current->SetLabelText("N/A");
@@ -1220,6 +1323,9 @@ void MonitorPanel::Reset()
     m_media_file_panel->SetMachineObject(nullptr);
 
     /* reset task list */
+    m_task_list_panel->obj = nullptr;
+    m_task_list_panel->last_task = nullptr;
+    m_task_list_panel->last_profile = nullptr;
     for (auto it = m_task_list_panel->task_panels.begin(); it != m_task_list_panel->task_panels.end(); it++) {
         delete it->second;
     }
@@ -1277,12 +1383,12 @@ void MonitorPanel::update_status(MachineObject* obj)
 
 void MonitorPanel::on_timer(wxTimerEvent& event)
 {
-    //Freeze();
+    Freeze();
     update_all();
     
     Layout();
     Refresh();
-    //Thaw(); // will cause media ctrl period flush
+    Thaw(); // will cause media ctrl period flush
 }
 
 void MonitorPanel::update_all()
@@ -1296,12 +1402,13 @@ void MonitorPanel::update_all()
     }
 
     obj = account_manager->get_default_machine();
-    m_status_panel->m_media_play_ctrl->SetMachineObject(obj);
-    if (m_media_file_panel)
-        m_media_file_panel->SetMachineObject(obj);
-    if (!obj) return;
+
     m_status_panel->obj = obj;
+    m_status_panel->m_media_play_ctrl->SetMachineObject(obj);
+    m_media_file_panel->SetMachineObject(obj);
     m_task_list_panel->obj = obj;
+
+    if (!obj) return;
 
     update_status(obj);
 
@@ -1371,7 +1478,7 @@ void MonitorPanel::show_panel(wxPanel* panel)
     Thaw();
 }
 
-void MonitorPanel::on_select(wxCommandEvent& event)
+void MonitorPanel::on_select_printer(wxCommandEvent& event)
 {
     Reset();
     update_all();

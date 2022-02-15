@@ -46,7 +46,6 @@ AxisCtrlButton::AxisCtrlButton(wxWindow* parent, long stlye)
 }
 
 void AxisCtrlButton::updateParams() {
-    double stretch = std::min(stretch_x, stretch_y);
 	r_outer *= stretch;
     r_inner *= stretch;
     r_blank *= stretch;
@@ -55,25 +54,24 @@ void AxisCtrlButton::updateParams() {
 
 void AxisCtrlButton::SetMinSize(const wxSize& size)
 {
+	wxSize cur_size = GetSize();
     if (size.GetWidth() > 0 && size.GetHeight() > 0) {
-        stretch_x = size.GetWidth() / 212.0;
-        stretch_y = size.GetHeight() / 212.0;
+        stretch = std::min((double)size.GetWidth() / cur_size.x,(double)size.GetHeight() / cur_size.y);
 		minSize = size;
         updateParams();
     }
     else if (size.GetWidth() > 0) {
-        stretch_x = size.GetWidth() / 212.0;
+		stretch = (double)size.GetWidth() / cur_size.x;
 		minSize.x = size.x;
         updateParams();
     }
     else if (size.GetHeight() > 0) {
-        stretch_y = size.GetHeight() / 212.0;
+		stretch = (double)size.GetHeight() / cur_size.y;
 		minSize.y = size.y;
         updateParams();
     }
     else {
-        stretch_x = 1.0;
-        stretch_y = 1.0;
+		stretch = 1.0;
         minSize = wxSize(212, 212);
     }
     wxWindow::SetMinSize(minSize);
@@ -99,6 +97,12 @@ void AxisCtrlButton::SetInnerBackgroundColor(StateColor const& color)
     inner_background_color = color;
     state_handler.update_binds();
     Refresh();
+}
+
+void AxisCtrlButton::Rescale() {
+	int em = em_unit(this);
+	SetMinSize(wxSize(212, 212) * em / 10);
+	Refresh();
 }
 
 void AxisCtrlButton::paintEvent(wxPaintEvent& evt)

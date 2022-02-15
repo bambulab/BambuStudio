@@ -276,7 +276,7 @@ public:
     BBLTopbar*            m_topbar{ nullptr };
     Plater*               m_plater { nullptr };
     //BBS: GUI refactor
-    wxPanel*              m_monitor{ nullptr };
+    MonitorPanel*              m_monitor{ nullptr };
     DebugToolDialog*      m_debug_tool_dlg{ nullptr };
     // BBS
     //wxBookCtrlBase*       m_tabpanel { nullptr };

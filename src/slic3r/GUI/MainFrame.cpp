@@ -263,7 +263,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(m_topbar, 0, wxEXPAND);
     sizer->Add(m_main_sizer, 1, wxEXPAND);
-    SetSizer(sizer);
+    SetSizerAndFit(sizer);
     // initialize layout from config
     update_layout();
     sizer->SetSizeHints(this);
@@ -1472,6 +1472,8 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
 #endif
 
     // BBS
+    m_topbar->Rescale();
+
     m_tabpanel->Rescale();
 
     update_side_button_style();
@@ -1490,6 +1492,8 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     m_param_panel->msw_rescale();
         for (auto tab : wxGetApp().tabs_list)
             tab->msw_rescale();
+
+    m_monitor->msw_rescale();
 
     // BBS
 #if 0

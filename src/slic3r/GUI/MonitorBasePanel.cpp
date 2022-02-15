@@ -6,10 +6,7 @@
 ///////////////////////////////////////////////////////////////////////////
 
 #include "MonitorBasePanel.h"
-#include "MediaPlayCtrl.h"
 #include "Printer/PrinterFileSystem.h"
-#include "Widgets/SwitchButton.hpp"
-#include "wxMediaCtrl2.h"
 #include "Widgets/Label.hpp"
 
 ///////////////////////////////////////////////////////////////////////////
@@ -29,24 +26,20 @@ MonitorBasePanel::MonitorBasePanel(wxWindow* parent, wxWindowID id, const wxPoin
 	m_splitter->SetMinimumPaneSize(182);
 
 	m_panel_splitter_left = new wxPanel(m_splitter, wxID_ANY, wxDefaultPosition, wxSize(182, -1), wxTAB_TRAVERSAL);
-	m_panel_splitter_left->SetMaxSize(wxSize(400, -1));
 	m_panel_splitter_left->SetBackgroundColour(wxColour(255, 255, 255));
 
 	wxBoxSizer* bSizer_left_top;
 	bSizer_left_top = new wxBoxSizer(wxHORIZONTAL);
 
-	bSizer_left_top->SetMinSize(wxSize(182, 833));
 	wxBoxSizer* bSizerleft;
 	bSizerleft = new wxBoxSizer(wxVERTICAL);
 
 	bSizerleft->SetMinSize(wxSize(182, 833));
-	m_panel_printer = new wxPanel(m_panel_splitter_left, wxID_ANY, wxDefaultPosition, wxSize(-1, -1), wxTAB_TRAVERSAL);
+	m_panel_printer = new wxPanel(m_panel_splitter_left, wxID_ANY, wxDefaultPosition, wxSize(182, 87), wxTAB_TRAVERSAL);
 	m_panel_printer->SetBackgroundColour(wxColour(255, 255, 255));
 
 	wxBoxSizer* bSizer_printer_top;
 	bSizer_printer_top = new wxBoxSizer(wxVERTICAL);
-
-	bSizer_printer_top->SetMinSize(wxSize(-1, 87));
 
 	bSizer_printer_top->AddStretchSpacer();
 
@@ -58,7 +51,6 @@ MonitorBasePanel::MonitorBasePanel(wxWindow* parent, wxWindowID id, const wxPoin
 	bSizer_printer->Add(23, 0, 0, wxEXPAND, 0);
 
 	m_bitmap_printer = new wxStaticBitmap(m_panel_printer, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(-1, -1), 0);
-	m_bitmap_printer->SetMinSize(wxSize(18, 18));
 
 	bSizer_printer->Add(m_bitmap_printer, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
 
@@ -66,7 +58,6 @@ MonitorBasePanel::MonitorBasePanel(wxWindow* parent, wxWindowID id, const wxPoin
 	bSizer_printer->Add(3, 0, 0, wxEXPAND, 0);
 
 	m_bitmap_arrow1 = new wxStaticBitmap(m_panel_printer, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(-1, -1), 0);
-	m_bitmap_arrow1->SetMinSize(wxSize(14, 14));
 
 	bSizer_printer->Add(m_bitmap_arrow1, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
 
@@ -110,13 +101,11 @@ MonitorBasePanel::MonitorBasePanel(wxWindow* parent, wxWindowID id, const wxPoin
 	m_staticline1->SetLineColour(wxColour(0xEEEEEE));
 	bSizerleft->Add(m_staticline1, 0, wxEXPAND | wxRIGHT | wxLEFT, 14);
 
-	m_panel_status_tab = new wxPanel(m_panel_splitter_left, wxID_ANY, wxDefaultPosition, wxSize(-1, -1), wxTAB_TRAVERSAL);
+	m_panel_status_tab = new wxPanel(m_panel_splitter_left, wxID_ANY, wxDefaultPosition, wxSize(182, 52), wxTAB_TRAVERSAL);
 	m_panel_status_tab->SetBackgroundColour(wxColour(255, 255, 255));
 
 	wxBoxSizer* bSizer_status_caption;
 	bSizer_status_caption = new wxBoxSizer(wxHORIZONTAL);
-
-	bSizer_status_caption->SetMinSize(wxSize(-1, 52));
 
 	bSizer_status_caption->Add(28, 0, 0, 0, 0);
 
@@ -128,7 +117,6 @@ MonitorBasePanel::MonitorBasePanel(wxWindow* parent, wxWindowID id, const wxPoin
 	bSizer_status_caption->Add(m_staticText_status, 0, wxALIGN_CENTER_VERTICAL | wxBOTTOM | wxLEFT, 0);
 
 	m_bitmap_signal = new wxStaticBitmap(m_panel_status_tab, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(-1, -1), 0);
-	m_bitmap_signal->SetMinSize(wxSize(19, 19));
 
 	bSizer_status_caption->Add(m_bitmap_signal, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
 
@@ -136,7 +124,6 @@ MonitorBasePanel::MonitorBasePanel(wxWindow* parent, wxWindowID id, const wxPoin
 	bSizer_status_caption->AddStretchSpacer();
 
 	m_bitmap_arrow2 = new wxStaticBitmap(m_panel_status_tab, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(-1, -1), 0);
-	m_bitmap_arrow2->SetMinSize(wxSize(14, 14));
 
 	bSizer_status_caption->Add(m_bitmap_arrow2, 0, wxALIGN_CENTER_VERTICAL, 26);
 
@@ -151,13 +138,11 @@ MonitorBasePanel::MonitorBasePanel(wxWindow* parent, wxWindowID id, const wxPoin
 	m_staticline2->SetLineColour(wxColour(0xEEEEEE));
 	bSizerleft->Add(m_staticline2, 0, wxEXPAND | wxRIGHT | wxLEFT, 14);
 
-	m_panel_time_lapse_tab = new wxPanel(m_panel_splitter_left, wxID_ANY, wxDefaultPosition, wxSize(-1, -1), wxTAB_TRAVERSAL);
+	m_panel_time_lapse_tab = new wxPanel(m_panel_splitter_left, wxID_ANY, wxDefaultPosition, wxSize(182, 52), wxTAB_TRAVERSAL);
 	m_panel_time_lapse_tab->SetBackgroundColour(wxColour(255, 255, 255));
 
 	wxBoxSizer* bSizer_time_lapse_caption;
 	bSizer_time_lapse_caption = new wxBoxSizer(wxHORIZONTAL);
-
-	bSizer_time_lapse_caption->SetMinSize(wxSize(-1, 52));
 
 	bSizer_time_lapse_caption->Add(28, 0, 0, wxALL, 0);
 
@@ -172,7 +157,6 @@ MonitorBasePanel::MonitorBasePanel(wxWindow* parent, wxWindowID id, const wxPoin
 	bSizer_time_lapse_caption->AddStretchSpacer();
 
 	m_bitmap_arrow3 = new wxStaticBitmap(m_panel_time_lapse_tab, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(-1, -1), 0);
-	m_bitmap_arrow3->SetMinSize(wxSize(14, 14));
 
 	bSizer_time_lapse_caption->Add(m_bitmap_arrow3, 0, wxALIGN_CENTER_VERTICAL, 26);
 
@@ -187,13 +171,11 @@ MonitorBasePanel::MonitorBasePanel(wxWindow* parent, wxWindowID id, const wxPoin
 	m_staticline3->SetLineColour(wxColour(0xEEEEEE));
 	bSizerleft->Add(m_staticline3, 0, wxEXPAND | wxRIGHT | wxLEFT, 14);
 
-	m_panel_video_tab = new wxPanel(m_panel_splitter_left, wxID_ANY, wxDefaultPosition, wxSize(-1, -1), wxTAB_TRAVERSAL);
+	m_panel_video_tab = new wxPanel(m_panel_splitter_left, wxID_ANY, wxDefaultPosition, wxSize(182, 52), wxTAB_TRAVERSAL);
 	m_panel_video_tab->SetBackgroundColour(wxColour(255, 255, 255));
 
 	wxBoxSizer* bSizer_video_monitoring_caption;
 	bSizer_video_monitoring_caption = new wxBoxSizer(wxHORIZONTAL);
-
-	bSizer_video_monitoring_caption->SetMinSize(wxSize(-1, 52));
 
 	bSizer_video_monitoring_caption->Add(28, 0, 0, wxALL, 0);
 
@@ -208,7 +190,6 @@ MonitorBasePanel::MonitorBasePanel(wxWindow* parent, wxWindowID id, const wxPoin
 	bSizer_video_monitoring_caption->AddStretchSpacer();
 
 	m_bitmap_arrow4 = new wxStaticBitmap(m_panel_video_tab, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(-1, -1), 0);
-	m_bitmap_arrow4->SetMinSize(wxSize(14, 14));
 
 	bSizer_video_monitoring_caption->Add(m_bitmap_arrow4, 0, wxALIGN_CENTER_VERTICAL, 26);
 
@@ -224,13 +205,11 @@ MonitorBasePanel::MonitorBasePanel(wxWindow* parent, wxWindowID id, const wxPoin
 
 	bSizerleft->Add(m_staticline4, 0, wxEXPAND | wxRIGHT | wxLEFT, 14);
 
-	m_panel_task_list_tab = new wxPanel(m_panel_splitter_left, wxID_ANY, wxDefaultPosition, wxSize(-1, -1), wxTAB_TRAVERSAL);
+	m_panel_task_list_tab = new wxPanel(m_panel_splitter_left, wxID_ANY, wxDefaultPosition, wxSize(182, 52), wxTAB_TRAVERSAL);
 	m_panel_task_list_tab->SetBackgroundColour(wxColour(255, 255, 255));
 
 	wxBoxSizer* bSizer_tasklist_caption;
 	bSizer_tasklist_caption = new wxBoxSizer(wxHORIZONTAL);
-
-	bSizer_tasklist_caption->SetMinSize(wxSize(-1, 52));
 
 	bSizer_tasklist_caption->Add(28, 0, 0, wxALL, 0);
 
@@ -245,7 +224,6 @@ MonitorBasePanel::MonitorBasePanel(wxWindow* parent, wxWindowID id, const wxPoin
 	bSizer_tasklist_caption->AddStretchSpacer();
 
 	m_bitmap_arrow5 = new wxStaticBitmap(m_panel_task_list_tab, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(-1, -1), 0);
-	m_bitmap_arrow5->SetMinSize(wxSize(14, 14));
 
 	bSizer_tasklist_caption->Add(m_bitmap_arrow5, 0, wxALIGN_CENTER_VERTICAL, 26);
 
@@ -267,14 +245,14 @@ MonitorBasePanel::MonitorBasePanel(wxWindow* parent, wxWindowID id, const wxPoin
 	m_panel_splitter_left->SetSizer(bSizer_left_top);
 	m_panel_splitter_left->Layout();
 	bSizer_left_top->Fit(m_panel_splitter_left);
-	m_panel_splitter_right = new wxPanel(m_splitter, wxID_ANY, wxDefaultPosition, wxSize(1258, -1), wxTAB_TRAVERSAL);
+	m_panel_splitter_right = new wxPanel(m_splitter, wxID_ANY, wxDefaultPosition, wxSize(1258, 900), wxTAB_TRAVERSAL);
 	m_panel_splitter_right->SetBackgroundColour(wxColour(255, 255, 255));
 
 	m_splitter->SplitVertically(m_panel_splitter_left, m_panel_splitter_right, 182);
 	bSizer_top->Add(m_splitter, 1, wxALL | wxEXPAND, 0);
 
 
-	this->SetSizer(bSizer_top);
+	this->SetSizerAndFit(bSizer_top);
 	this->Layout();
 
 	// Connect Events
@@ -327,13 +305,12 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 	wxBoxSizer* bSizer_left;
 	bSizer_left = new wxBoxSizer(wxVERTICAL);
 
-	m_panel_monitoring_title = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+	m_panel_monitoring_title = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 48), wxTAB_TRAVERSAL);
 	m_panel_monitoring_title->SetBackgroundColour(wxColour(248, 248, 248));
 
 	wxBoxSizer* bSizer_monitoring_title;
 	bSizer_monitoring_title = new wxBoxSizer(wxHORIZONTAL);
 
-	bSizer_monitoring_title->SetMinSize(wxSize(-1, 48));
 	m_staticText_monitoring = new wxStaticText(m_panel_monitoring_title, wxID_ANY, wxT("Monitoring"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
 	m_staticText_monitoring->Wrap(-1);
 	m_staticText_monitoring->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxT("HarmonyOS Sans SC")));
@@ -378,13 +355,12 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 
 	bSizer_left->Add(bSizer_separator1, 0, wxEXPAND, 0);
 
-	m_panel_printing_title = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+	m_panel_printing_title = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 48), wxTAB_TRAVERSAL);
 	m_panel_printing_title->SetBackgroundColour(wxColour(248, 248, 248));
 
 	wxBoxSizer* bSizer_printing_title;
 	bSizer_printing_title = new wxBoxSizer(wxHORIZONTAL);
 
-	bSizer_printing_title->SetMinSize(wxSize(-1, 48));
 	m_staticText_printing = new wxStaticText(m_panel_printing_title, wxID_ANY, wxT("Printing Progress"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
 	m_staticText_printing->Wrap(-1);
 	m_staticText_printing->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxT("HarmonyOS Sans SC")));
@@ -402,8 +378,6 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 
 	bSizer_printing->SetMinSize(wxSize(566, 210));
 	m_bitmap_thumbnail = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(-1, -1), 0);
-	m_bitmap_thumbnail->SetBackgroundColour(wxColour(190, 190, 190));
-	m_bitmap_thumbnail->SetMinSize(wxSize(170, 145));
 
 	bSizer_printing->Add(m_bitmap_thumbnail, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxLEFT, 15);
 
@@ -479,7 +453,6 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 	bSizer_task_btn->Add(0, 0, 1, wxEXPAND, 0);
 
 	m_button_report = new Button(this, wxT("Report"));
-	m_button_report->SetCornerRadius(12);
 	StateColor report_bg(
 		std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
 		std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
@@ -502,7 +475,6 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 	m_button_report->SetTextColor(report_text);
 
 	m_button_report->SetFont(Label::Body_10);
-	m_button_report->SetMinSize(wxSize(48, 24));
 
 	bSizer_task_btn->Add(m_button_report, 0, wxALIGN_CENTER | wxALL, 0);
 
@@ -510,7 +482,6 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 	bSizer_task_btn->Add(20, 0, 0, wxEXPAND, 0);
 
 	m_button_pause_resume = new Button(this, wxT("Pause"));
-	m_button_pause_resume->SetCornerRadius(12);
 
 	StateColor pause_resume_bg (
 		std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
@@ -534,7 +505,6 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 	m_button_pause_resume->SetTextColor(pause_resume_text);
 
 	m_button_pause_resume->SetFont(Label::Body_10);
-	m_button_pause_resume->SetMinSize(wxSize(48, 24));
 
 	bSizer_task_btn->Add(m_button_pause_resume, 0, wxALIGN_CENTER | wxALL, 0);
 
@@ -542,7 +512,6 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 	bSizer_task_btn->Add(20, 0, 0, wxEXPAND, 0);
 
 	m_button_abort = new Button(this, wxT("Abort"));
-	m_button_abort->SetCornerRadius(12);
 
 	StateColor abort_bg(
 		std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
@@ -566,7 +535,6 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 	m_button_abort->SetTextColor(abort_text);
 
 	m_button_abort->SetFont(Label::Body_10);
-	m_button_abort->SetMinSize(wxSize(48, 24));
 
 	bSizer_task_btn->Add(m_button_abort, 0, wxALIGN_CENTER | wxALL, 0);
 
@@ -598,24 +566,23 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 
 	bSizer_left->Add(bSizer_separator2, 0, wxEXPAND, 0);
 
-	m_panel_calibration_titile = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-	m_panel_calibration_titile->SetBackgroundColour(wxColour(248, 248, 248));
+	m_panel_calibration_title = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 48), wxTAB_TRAVERSAL);
+	m_panel_calibration_title->SetBackgroundColour(wxColour(248, 248, 248));
 
 	wxBoxSizer* bSizer_calibration_title;
 	bSizer_calibration_title = new wxBoxSizer(wxHORIZONTAL);
 
-	bSizer_calibration_title->SetMinSize(wxSize(-1, 48));
-	m_staticText_calbration = new wxStaticText(m_panel_calibration_titile, wxID_ANY, wxT("Machine Calibration"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+	m_staticText_calbration = new wxStaticText(m_panel_calibration_title, wxID_ANY, wxT("Machine Calibration"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
 	m_staticText_calbration->Wrap(-1);
 	m_staticText_calbration->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxT("HarmonyOS Sans SC")));
 
 	bSizer_calibration_title->Add(m_staticText_calbration, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 23);
 
 
-	m_panel_calibration_titile->SetSizer(bSizer_calibration_title);
-	m_panel_calibration_titile->Layout();
-	bSizer_calibration_title->Fit(m_panel_calibration_titile);
-	bSizer_left->Add(m_panel_calibration_titile, 0, wxEXPAND | wxALL, 0);
+	m_panel_calibration_title->SetSizer(bSizer_calibration_title);
+	m_panel_calibration_title->Layout();
+	bSizer_calibration_title->Fit(m_panel_calibration_title);
+	bSizer_left->Add(m_panel_calibration_title, 0, wxEXPAND | wxALL, 0);
 
 	wxBoxSizer* bSizer_calibration;
 	bSizer_calibration = new wxBoxSizer(wxHORIZONTAL);
@@ -646,13 +613,12 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 	bSizer_right = new wxBoxSizer(wxVERTICAL);
 
 	bSizer_right->SetMinSize(wxSize(-1, 834));
-	m_panel_control_title = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+	m_panel_control_title = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 48), wxTAB_TRAVERSAL);
 	m_panel_control_title->SetBackgroundColour(wxColour(248, 248, 248));
 
 	wxBoxSizer* bSizer_control_title;
 	bSizer_control_title = new wxBoxSizer(wxHORIZONTAL);
 
-	bSizer_control_title->SetMinSize(wxSize(-1, 48));
 	m_staticText_control = new wxStaticText(m_panel_control_title, wxID_ANY, wxT("Machine Control"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
 	m_staticText_control->Wrap(-1);
 	m_staticText_control->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxT("HarmonyOS Sans SC")));
@@ -661,8 +627,6 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 	bSizer_control_title->Add(m_staticText_control, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, 23);
 
 	m_bitmap_lamp = new wxStaticBitmap(m_panel_control_title, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(-1, -1), 0);
-	m_bitmap_lamp->SetMinSize(wxSize(13, 18));
-
 	bSizer_control_title->Add(m_bitmap_lamp, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
 
 	m_staticText_lamp = new wxStaticText(m_panel_control_title, wxID_ANY, wxT("Lamp"), wxDefaultPosition, wxDefaultSize, 0);
@@ -695,11 +659,11 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 	m_staticText_temp_caption->Wrap(-1);
 	m_staticText_temp_caption->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxT("HarmonyOS Sans SC")));
 
-	bSizer_temp_caption->Add(m_staticText_temp_caption, 0, wxLEFT, 42);
+	bSizer_temp_caption->Add(m_staticText_temp_caption, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 42);
 
 	m_staticline1 = new StaticLine(this);
 	m_staticline1->SetLineColour(wxColour(0xCECECE));
-	bSizer_temp_caption->Add(m_staticline1, 1, wxALL | wxALIGN_CENTER_VERTICAL, 11);
+	bSizer_temp_caption->Add(m_staticline1, 1, wxRIGHT | wxLEFT | wxALIGN_CENTER_VERTICAL, 11);
 	bSizer_temp_caption->Add(52, 0, 0, wxEXPAND, 0);
 
 
@@ -918,11 +882,11 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 	m_staticText_ctrl_caption->Wrap(-1);
 	m_staticText_ctrl_caption->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxT("HarmonyOS Sans SC")));
 
-	bSizer_axis_ctrl_caption->Add(m_staticText_ctrl_caption, 0, wxLEFT, 42);
+	bSizer_axis_ctrl_caption->Add(m_staticText_ctrl_caption, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 42);
 
 	m_staticline2 = new StaticLine(this);
 	m_staticline2->SetLineColour(wxColour(0xCECECE));
-	bSizer_axis_ctrl_caption->Add(m_staticline2, 1, wxALL | wxALIGN_CENTER_VERTICAL, 11);
+	bSizer_axis_ctrl_caption->Add(m_staticline2, 1, wxRIGHT | wxLEFT | wxALIGN_CENTER_VERTICAL, 11);
 	bSizer_axis_ctrl_caption->Add(52, 0, 0, wxEXPAND, 0);
 
 
@@ -950,34 +914,26 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 		std::pair<wxColour, int>(wxColour(237, 237, 237), StateColor::Normal)
 	);
 	m_bpButton_home_x = new Button(this, wxT(""), "axis_x_home", 0, 28);
-	m_bpButton_home_x->SetCornerRadius(24);
 	m_bpButton_home_x->SetBackgroundColor(axis_ctrl_home_bg);
 	m_bpButton_home_x->SetBorderColor(axis_ctrl_home_bd);
-	m_bpButton_home_x->SetMinSize(wxSize(48, 48));
 	gbSizer_control->Add(m_bpButton_home_x, wxGBPosition(1, 0), wxGBSpan(2, 2), 0, 0);
 
 	m_bpButton_xy = new AxisCtrlButton(this);
 	gbSizer_control->Add(m_bpButton_xy, wxGBPosition(2, 2), wxGBSpan(7, 7), 0, 0);
 
 	m_bpButton_home_y = new Button(this, wxT(""), "axis_y_home", 0, 28);
-	m_bpButton_home_y->SetCornerRadius(24);
 	m_bpButton_home_y->SetBackgroundColor(axis_ctrl_home_bg);
 	m_bpButton_home_y->SetBorderColor(axis_ctrl_home_bd);
-	m_bpButton_home_y->SetMinSize(wxSize(48, 48));
 	gbSizer_control->Add(m_bpButton_home_y, wxGBPosition(8, 0), wxGBSpan(2, 2), 0, 0);
 
 	m_bpButton_home_z = new Button(this, wxT(""), "axis_z_home", 0, 28);
-	m_bpButton_home_z->SetCornerRadius(24);
 	m_bpButton_home_z->SetBackgroundColor(axis_ctrl_home_bg);
 	m_bpButton_home_z->SetBorderColor(axis_ctrl_home_bd);
-	m_bpButton_home_z->SetMinSize(wxSize(48, 48));
 	gbSizer_control->Add(m_bpButton_home_z, wxGBPosition(1, 10), wxGBSpan(2, 2), 0, 0);
 
 	m_bpButton_home = new Button(this, wxT(""), "axis_home", 0, 28);
-	m_bpButton_home->SetCornerRadius(24);
 	m_bpButton_home->SetBackgroundColor(axis_ctrl_home_bg);
 	m_bpButton_home->SetBorderColor(axis_ctrl_home_bd);
-	m_bpButton_home->SetMinSize(wxSize(48, 48));
 	gbSizer_control->Add(m_bpButton_home, wxGBPosition(8, 9), wxGBSpan(2, 2), wxRIGHT, 16);
 
 
@@ -1001,10 +957,8 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 		std::pair<wxColour, int>(wxColour(196, 196, 196), StateColor::Normal)
 	);
 	m_bpButton_z_10 = new Button(this, wxT("+10"));
-	m_bpButton_z_10->SetCornerRadius(0);
 	m_bpButton_z_10->SetBackgroundColor(z_10_ctrl_bg);
 	m_bpButton_z_10->SetBorderColor(z_10_ctrl_bd);
-	m_bpButton_z_10->SetMinSize(wxSize(48, 40));
 
 	bSizer_z_ctrl->Add(m_bpButton_z_10, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
 
@@ -1017,10 +971,8 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 		std::pair<wxColour, int>(wxColour(209, 209, 209), StateColor::Normal)
 	);
 	m_bpButton_z_1 = new Button(this, wxT("+1"));
-	m_bpButton_z_1->SetCornerRadius(0);
 	m_bpButton_z_1->SetBackgroundColor(z_1_ctrl_bg);
 	m_bpButton_z_1->SetBorderColor(z_1_ctrl_bd);
-	m_bpButton_z_1->SetMinSize(wxSize(48, 40));
 
 	bSizer_z_ctrl->Add(m_bpButton_z_1, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
 
@@ -1033,10 +985,8 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 		std::pair<wxColour, int>(wxColour(229, 229, 229), StateColor::Normal)
 	);
 	m_bpButton_z_0_1 = new Button(this, wxT("+0.1"));
-	m_bpButton_z_0_1->SetCornerRadius(0);
 	m_bpButton_z_0_1->SetBackgroundColor(z_0_1_ctrl_bg);
 	m_bpButton_z_0_1->SetBorderColor(z_0_1_ctrl_bd);
-	m_bpButton_z_0_1->SetMinSize(wxSize(48, 40));
 
 	bSizer_z_ctrl->Add(m_bpButton_z_0_1, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
 
@@ -1052,10 +1002,8 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 		std::pair<wxColour, int>(wxColour(229, 229, 229), StateColor::Normal)
 	);
 	m_bpButton_z_down_0_1 = new Button(this, wxT("-0.1"));
-	m_bpButton_z_down_0_1->SetCornerRadius(0);
 	m_bpButton_z_down_0_1->SetBackgroundColor(z__down_0_1_ctrl_bg);
 	m_bpButton_z_down_0_1->SetBorderColor(z_down_0_1_ctrl_bd);
-	m_bpButton_z_down_0_1->SetMinSize(wxSize(48, 40));
 
 	bSizer_z_ctrl->Add(m_bpButton_z_down_0_1, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
 
@@ -1068,10 +1016,8 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 		std::pair<wxColour, int>(wxColour(209, 209, 209), StateColor::Normal)
 	);
 	m_bpButton_z_down_1 = new Button(this, wxT("-1"));
-	m_bpButton_z_down_1->SetCornerRadius(0);
 	m_bpButton_z_down_1->SetBackgroundColor(z_down_1_ctrl_bg);
 	m_bpButton_z_down_1->SetBorderColor(z_down_1_ctrl_bd);
-	m_bpButton_z_down_1->SetMinSize(wxSize(48, 40));
 
 	bSizer_z_ctrl->Add(m_bpButton_z_down_1, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
 
@@ -1084,10 +1030,8 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 		std::pair<wxColour, int>(wxColour(196, 196, 196), StateColor::Normal)
 	);
 	m_bpButton_z_down_10 = new Button(this, wxT("-10"));
-	m_bpButton_z_down_10->SetCornerRadius(0);
 	m_bpButton_z_down_10->SetBackgroundColor(z_down_10_ctrl_bg);
 	m_bpButton_z_down_10->SetBorderColor(z_down_10_ctrl_bd);
-	m_bpButton_z_down_10->SetMinSize(wxSize(48, 40));
 
 	bSizer_z_ctrl->Add(m_bpButton_z_down_10, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
 
@@ -1130,10 +1074,8 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 		std::pair<wxColour, int>(parent->GetBackgroundColour(), StateColor::Normal)
 	);
 	m_bpButton_e_10 = new Button(m_panel_e_ctrl, wxT("+10"));
-	m_bpButton_e_10->SetCornerRadius(5);
 	m_bpButton_e_10->SetBackgroundColor(e_ctrl_bg);
 	m_bpButton_e_10->SetBorderColor(e_ctrl_bd);
-	m_bpButton_e_10->SetMinSize(wxSize(45, 45));
 
 	bSizer_e_ctrl_internal->Add(m_bpButton_e_10, 0, wxALIGN_CENTER_HORIZONTAL | wxRIGHT | wxLEFT, 12);
 
@@ -1141,10 +1083,8 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 	bSizer_e_ctrl_internal->Add(0, 5, 0, wxEXPAND, 0);
 
 	m_bpButton_e_1 = new Button(m_panel_e_ctrl, wxT("+1"));
-	m_bpButton_e_1->SetCornerRadius(5);
 	m_bpButton_e_1->SetBackgroundColor(e_ctrl_bg);
 	m_bpButton_e_1->SetBorderColor(e_ctrl_bd);
-	m_bpButton_e_1->SetMinSize(wxSize(45, 45));
 
 	bSizer_e_ctrl_internal->Add(m_bpButton_e_1, 0, wxALIGN_CENTER_HORIZONTAL | wxRIGHT | wxLEFT, 12);
 
@@ -1152,10 +1092,8 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 	bSizer_e_ctrl_internal->Add(0, 42, 0, wxEXPAND, 0);
 
 	m_bpButton_e_down_1 = new Button(m_panel_e_ctrl, wxT("-1"));
-	m_bpButton_e_down_1->SetCornerRadius(5);
 	m_bpButton_e_down_1->SetBackgroundColor(e_ctrl_bg);
 	m_bpButton_e_down_1->SetBorderColor(e_ctrl_bd);
-	m_bpButton_e_down_1->SetMinSize(wxSize(45, 45));
 
 	bSizer_e_ctrl_internal->Add(m_bpButton_e_down_1, 0, wxALIGN_CENTER_HORIZONTAL | wxRIGHT | wxLEFT, 12);
 
@@ -1163,10 +1101,8 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 	bSizer_e_ctrl_internal->Add(0, 5, 0, wxEXPAND, 0);
 
 	m_bpButton_e_down_10 = new Button(m_panel_e_ctrl, wxT("-10"));
-	m_bpButton_e_down_10->SetCornerRadius(5);
 	m_bpButton_e_down_10->SetBackgroundColor(e_ctrl_bg);
 	m_bpButton_e_down_10->SetBorderColor(e_ctrl_bd);
-	m_bpButton_e_down_10->SetMinSize(wxSize(45, 45));
 
 	bSizer_e_ctrl_internal->Add(m_bpButton_e_down_10, 0, wxALIGN_CENTER_HORIZONTAL | wxRIGHT | wxLEFT, 12);
 
@@ -1192,11 +1128,11 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 	m_staticText_extruder_ctrl_caption->Wrap(-1);
 	m_staticText_extruder_ctrl_caption->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD, false, wxT("HarmonyOS Sans SC")));
 
-	bSizer_extruder_ctrl_caption->Add(m_staticText_extruder_ctrl_caption, 0, wxLEFT, 42);
+	bSizer_extruder_ctrl_caption->Add(m_staticText_extruder_ctrl_caption, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 42);
 
 	m_staticline3 = new StaticLine(this);
 	m_staticline3->SetLineColour(wxColour(0xCECECE));
-	bSizer_extruder_ctrl_caption->Add(m_staticline3, 1, wxALIGN_CENTER_VERTICAL | wxALL, 11);
+	bSizer_extruder_ctrl_caption->Add(m_staticline3, 1, wxRIGHT | wxLEFT | wxALIGN_CENTER_VERTICAL, 11);
 	bSizer_extruder_ctrl_caption->Add(52, 0, 0, wxEXPAND, 0);
 
 
@@ -1221,10 +1157,8 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 		std::pair<wxColour, int>(wxColour(246, 246, 246), StateColor::Normal)
 	);
 	m_bpButton_extruder_1 = new Button(this, wxT(""), "extruder_material", 0, 26);
-	m_bpButton_extruder_1->SetCornerRadius(0);
 	m_bpButton_extruder_1->SetBackgroundColor(extruder_material_bg);
 	m_bpButton_extruder_1->SetBorderColor(extruder_material_bd);
-	m_bpButton_extruder_1->SetMinSize(wxSize(50, 66));
 
 	bSizer_material->Add(m_bpButton_extruder_1, 0, wxALL, 0);
 
@@ -1233,10 +1167,8 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 	bSizer_material->Add(m_staticline4, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND | wxALL, 0);
 
 	m_bpButton_extruder_2 = new Button(this, wxT(""), "extruder_material", 0, 26);
-	m_bpButton_extruder_2->SetCornerRadius(0);
 	m_bpButton_extruder_2->SetBackgroundColor(extruder_material_bg);
 	m_bpButton_extruder_2->SetBorderColor(extruder_material_bd);
-	m_bpButton_extruder_2->SetMinSize(wxSize(50, 66));
 
 	bSizer_material->Add(m_bpButton_extruder_2, 0, wxALL, 0);
 
@@ -1245,10 +1177,8 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 	bSizer_material->Add(m_staticline5, 0, wxEXPAND | wxALL, 0);
 
 	m_bpButton_extruder_3 = new Button(this, wxT(""), "extruder_material", 0, 26);
-	m_bpButton_extruder_3->SetCornerRadius(0);
 	m_bpButton_extruder_3->SetBackgroundColor(extruder_material_bg);
 	m_bpButton_extruder_3->SetBorderColor(extruder_material_bd);
-	m_bpButton_extruder_3->SetMinSize(wxSize(50, 66));
 
 	bSizer_material->Add(m_bpButton_extruder_3, 0, wxALL, 0);
 
@@ -1257,10 +1187,8 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 	bSizer_material->Add(m_staticline6, 0, wxEXPAND | wxALL, 0);
 
 	m_bpButton_extruder_4 = new Button(this, wxT(""), "extruder_material", 0, 26);
-	m_bpButton_extruder_4->SetCornerRadius(0);
 	m_bpButton_extruder_4->SetBackgroundColor(extruder_material_bg);
 	m_bpButton_extruder_4->SetBorderColor(extruder_material_bd);
-	m_bpButton_extruder_4->SetMinSize(wxSize(50, 66));
 
 	bSizer_material->Add(m_bpButton_extruder_4, 0, wxALL, 0);
 
@@ -1293,9 +1221,7 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 	m_button_extruder_feed = new Button(this, wxT("Feed"));
 	m_button_extruder_feed->SetBackgroundColor(extruder_bg);
 	m_button_extruder_feed->SetBorderColor(extruder_bd);
-	m_button_extruder_feed->SetCornerRadius(12);
 	m_button_extruder_feed->SetFont(Label::Body_10);
-	m_button_extruder_feed->SetMinSize(wxSize(48, 24));
 
 	bSizer_feed_back->Add(m_button_extruder_feed, 0, wxALL, 5);
 
@@ -1305,9 +1231,7 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 	m_button_extruder_back = new Button(this, wxT("Back"));
 	m_button_extruder_back->SetBackgroundColor(extruder_bg);
 	m_button_extruder_back->SetBorderColor(extruder_bd);
-	m_button_extruder_back->SetCornerRadius(12);
 	m_button_extruder_back->SetFont(Label::Body_10);
-	m_button_extruder_back->SetMinSize(wxSize(48, 24));
 
 	bSizer_feed_back->Add(m_button_extruder_back, 0, wxALL, 5);
 
@@ -1359,9 +1283,8 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 	bSizer_status->Add(bSizer_separator_bottom, 0, wxEXPAND, 5);
 
 
-	this->SetSizer(bSizer_status);
+	this->SetSizerAndFit(bSizer_status);
 	this->Layout();
-	bSizer_status->Fit(this);
 	// Connect Events
 }
 
@@ -1406,13 +1329,11 @@ TaskListBasePanel::TaskListBasePanel(wxWindow* parent, wxWindowID id, const wxPo
 	bSizer_model_name = new wxBoxSizer(wxVERTICAL);
 
 	bSizer_model_name->SetMinSize(wxSize(496, 245));
-	m_panel_model_name_caption = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+	m_panel_model_name_caption = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(496, 48), wxTAB_TRAVERSAL);
 	m_panel_model_name_caption->SetBackgroundColour(wxColour(248, 248, 248));
 
 	wxBoxSizer* bSizer_model_name_caption;
 	bSizer_model_name_caption = new wxBoxSizer(wxHORIZONTAL);
-
-	bSizer_model_name_caption->SetMinSize(wxSize(496, 48));
 
 	bSizer_model_name_caption->Add(23, 0, 0, wxEXPAND, 0);
 
@@ -1428,7 +1349,7 @@ TaskListBasePanel::TaskListBasePanel(wxWindow* parent, wxWindowID id, const wxPo
 	bSizer_model_name_caption->Fit(m_panel_model_name_caption);
 	bSizer_model_name->Add(m_panel_model_name_caption, 0, wxALL | wxEXPAND, 0);
 
-	m_panel_model_name_content = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+	m_panel_model_name_content = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(496, 197), wxTAB_TRAVERSAL);
 	m_panel_model_name_content->SetBackgroundColour(wxColour(255, 255, 255));
 
 	wxBoxSizer* bSizer_model_name_content;
@@ -1441,7 +1362,6 @@ TaskListBasePanel::TaskListBasePanel(wxWindow* parent, wxWindowID id, const wxPo
 	bSizer11 = new wxBoxSizer(wxHORIZONTAL);
 
 	m_bitmap_task = new wxStaticBitmap(m_panel_model_name_content, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-	m_bitmap_task->SetMinSize(wxSize(80, 80));
 
 	bSizer11->Add(m_bitmap_task, 0, wxALL, 5);
 
@@ -1470,7 +1390,7 @@ TaskListBasePanel::TaskListBasePanel(wxWindow* parent, wxWindowID id, const wxPo
 	bSizer11->Add(bSizer12, 1, 0, 5);
 
 
-	bSizer_model_name_content->Add(bSizer11, 1, wxLEFT | wxEXPAND, 46);
+	bSizer_model_name_content->Add(bSizer11, 1, wxLEFT | wxRIGHT | wxEXPAND, 46);
 
 
 	m_panel_model_name_content->SetSizer(bSizer_model_name_content);
@@ -1484,14 +1404,12 @@ TaskListBasePanel::TaskListBasePanel(wxWindow* parent, wxWindowID id, const wxPo
 	wxBoxSizer* bSizer_plater;
 	bSizer_plater = new wxBoxSizer(wxVERTICAL);
 
-	bSizer_plater->SetMinSize(wxSize(496, 437));
-	m_panel_plater_caption = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+	bSizer_plater->SetMinSize(wxSize(496, -1));
+	m_panel_plater_caption = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(496, 48), wxTAB_TRAVERSAL);
 	m_panel_plater_caption->SetBackgroundColour(wxColour(248, 248, 248));
 
 	wxBoxSizer* bSizer_plater_caption;
 	bSizer_plater_caption = new wxBoxSizer(wxHORIZONTAL);
-
-	bSizer_plater_caption->SetMinSize(wxSize(-1, 48));
 
 	bSizer_plater_caption->Add(23, 0, 0, wxEXPAND, 0);
 
@@ -1507,12 +1425,11 @@ TaskListBasePanel::TaskListBasePanel(wxWindow* parent, wxWindowID id, const wxPo
 	bSizer_plater_caption->Fit(m_panel_plater_caption);
 	bSizer_plater->Add(m_panel_plater_caption, 0, wxEXPAND | wxALL, 0);
 
-	m_panel_plater_content = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+	m_panel_plater_content = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(496, 439), wxTAB_TRAVERSAL);
 	m_panel_plater_content->SetBackgroundColour(wxColour(255, 255, 255));
 
 	wxBoxSizer* bSizer_tasklist;
 	bSizer_tasklist = new wxBoxSizer(wxVERTICAL);
-	bSizer_tasklist->SetMinSize(wxSize(-1, 439));
 
 	fgSizer_subtask = new wxFlexGridSizer(100, 1, 10, 0);
 	fgSizer_subtask->SetFlexibleDirection(wxBOTH);

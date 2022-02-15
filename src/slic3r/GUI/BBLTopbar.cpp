@@ -17,8 +17,10 @@ using namespace Slic3r;
 enum CUSTOM_ID
 {
     ID_TOP_MENU_TOOL = 3100,
+    ID_LOGO,
     ID_TOP_FILE_MENU,
     ID_TOP_DROPDOWN_MENU,
+    ID_TITLE,
     ID_ACCOUNT,
     ID_MODEL_STORE,
     ID_TOOL_BAR = 3200,
@@ -181,7 +183,7 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     this->AddSpacer(5);
 
     wxBitmap logo_bitmap = create_scaled_bitmap("topbar_logo", nullptr, FromDIP(topbar_icon_size));
-    wxAuiToolBarItem* logo_item = this->AddTool(wxID_ANY, "", logo_bitmap);
+    wxAuiToolBarItem* logo_item = this->AddTool(ID_LOGO, "", logo_bitmap);
     logo_item->SetHoverBitmap(logo_bitmap);
     logo_item->SetActive(false);
 
@@ -221,7 +223,7 @@ BBLTopbar::BBLTopbar(wxFrame* parent)
     this->AddSpacer(10);
     this->AddStretchSpacer(1);
 
-    m_title_item = this->AddLabel(wxID_ANY, "", 300);
+    m_title_item = this->AddLabel(ID_TITLE, "", 300);
     m_title_item->SetAlignment(wxALIGN_CENTER);
 
     this->AddSpacer(10);
@@ -463,6 +465,60 @@ void BBLTopbar::SetWindowSize()
 void BBLTopbar::UpdateToolbarWidth(int width)
 {
     this->SetSize(width, m_toolbar_h);
+}
+
+void BBLTopbar::Rescale() {
+    int em = em_unit(this);
+    wxAuiToolBarItem* item;
+
+    item = this->FindTool(ID_LOGO);
+    item->SetBitmap(create_scaled_bitmap("topbar_logo", nullptr, (18 * em / 10)));
+
+    item = this->FindTool(ID_TOP_FILE_MENU);
+    item->SetBitmap(create_scaled_bitmap("topbar_file", nullptr, (18 * em / 10)));
+
+    item = this->FindTool(ID_TOP_DROPDOWN_MENU);
+    item->SetBitmap(create_scaled_bitmap("topbar_dropdown", nullptr, (18 * em / 10)));
+
+    item = this->FindTool(wxID_OPEN);
+	item->SetBitmap(create_scaled_bitmap("topbar_open", nullptr, (18 * em / 10)));
+
+	item = this->FindTool(wxID_SAVE);
+	item->SetBitmap(create_scaled_bitmap("topbar_save", nullptr, (18 * em / 10)));
+
+	item = this->FindTool(wxID_UNDO);
+	item->SetBitmap(create_scaled_bitmap("topbar_undo", nullptr, (18 * em / 10)));
+
+	item = this->FindTool(wxID_REDO);
+	item->SetBitmap(create_scaled_bitmap("topbar_redo", nullptr, (18 * em / 10)));
+
+	item = this->FindTool(ID_TITLE);
+	//item = this->AddLabel(ID_TITLE, item->GetLabel(), 300 * em /10);
+	m_title_item->SetMinSize(wxSize(300 * em / 10, -1));
+
+	item = this->FindTool(ID_MODEL_STORE);
+	item->SetBitmap(create_scaled_bitmap("topbar_store", nullptr, (18 * em / 10)));
+
+	item = this->FindTool(ID_ACCOUNT);
+	item->SetBitmap(create_scaled_bitmap("topbar_account", nullptr, (18 * em / 10)));
+
+	item = this->FindTool(wxID_ICONIZE_FRAME);
+	item->SetBitmap(create_scaled_bitmap("topbar_min", nullptr, (18 * em / 10)));
+
+	item = this->FindTool(wxID_MAXIMIZE_FRAME);
+	maximize_bitmap = create_scaled_bitmap("topbar_max", nullptr, (18 * em / 10));
+	window_bitmap = create_scaled_bitmap("topbar_win", nullptr, (18 * em / 10));
+	if (m_frame->IsMaximized()) {
+		item->SetBitmap(window_bitmap);
+	}
+	else {
+		item->SetBitmap(maximize_bitmap);
+	}
+
+	item = this->FindTool(wxID_CLOSE_FRAME);
+	item->SetBitmap(create_scaled_bitmap("topbar_close", nullptr, (18 * em / 10)));
+
+	Realize();
 }
 
 void BBLTopbar::OnIconize(wxAuiToolBarEvent& event)

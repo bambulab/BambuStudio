@@ -15,6 +15,7 @@ public:
     BBLTopbar(wxFrame* parent);
     ~BBLTopbar();
     void UpdateToolbarWidth(int width);
+    void Rescale();
     void OnIconize(wxAuiToolBarEvent& event);
     void OnFullScreen(wxAuiToolBarEvent& event);
     void OnCloseFrame(wxAuiToolBarEvent& event);

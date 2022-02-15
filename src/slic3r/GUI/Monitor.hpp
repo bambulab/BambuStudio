@@ -34,7 +34,6 @@
 #include <wx/spinctrl.h>
 #include <wx/artprov.h>
 #include <wx/webrequest.h>
-
 #include <map>
 #include <vector>
 #include <memory>
@@ -162,11 +161,13 @@ public:
 
 	TaskListPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(1258, 834), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString);
 	~TaskListPanel();
+
 	MachineObject* obj;
 	wxObjectDataPtr<SubTaskListModel>   subtask_model;
 	BBLTask* last_task{ nullptr };
 	BBLProfile* last_profile{ nullptr };
 
+	void msw_rescale();
 };
 
 
@@ -226,6 +227,10 @@ protected:
 	bool nozzle_temp_input = false;
 
 	std::map<wxString, wxImage> img_list;	// key: url, value: wxBitmap png Image
+	std::vector<Button*> m_buttons;
+	
+	void init_scaled_bitmap();
+	void init_scaled_buttons();
 
 	void on_subtask_report(wxCommandEvent& event);
 	void on_subtask_pause_resume(wxCommandEvent& event);
@@ -282,8 +287,11 @@ public:
 
 	StatusPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(1258, 834), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString);
 	~StatusPanel();
+
 	MachineObject* obj;
 	BBLSubTask* last_subtask{ nullptr };
+
+	void msw_rescale();
 };
 
 
@@ -314,9 +322,11 @@ protected:
 	wxBitmap m_arrow4_img;
 	wxBitmap m_arrow5_img;
 
-	void on_select(wxCommandEvent& event);
 	void on_timer(wxTimerEvent& event);
 	void on_size(wxSizeEvent& event);
+
+	void on_printer_clicked(wxMouseEvent& event);
+	void on_select_printer(wxCommandEvent& event);
 
 	void on_status(wxMouseEvent& event);
 	void on_timelapse(wxMouseEvent& event);
@@ -324,7 +334,6 @@ protected:
 	void on_tasklist(wxMouseEvent& event);
 	void select_tab(wxPanel* panel);
 	void show_panel(wxPanel* panel);
-	void on_printer_clicked(wxMouseEvent& event);
 
 	void init_bitmap();
 	void init_timer();
@@ -349,6 +358,8 @@ public:
 
 	bool Show(bool show);
 	void Reset();
+
+	void msw_rescale();
 };
 
 } // GUI

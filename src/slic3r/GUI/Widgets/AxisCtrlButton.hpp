@@ -12,8 +12,7 @@ class AxisCtrlButton : public wxWindow
 {
     wxSize minSize;
     double
-        stretch_x,
-        stretch_y,
+        stretch,
         r_outer,
         r_inner,
         r_blank,
@@ -51,6 +50,8 @@ public:
     void SetBackgroundColor(StateColor const& color);
 
     void SetInnerBackgroundColor(StateColor const& color);
+
+    void Rescale();
 
 private:
     void updateParams();

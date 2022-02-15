@@ -29,25 +29,20 @@
 #include <wx/tglbtn.h>
 #include <wx/gbsizer.h>
 #include <wx/splitter.h>
-#include <wx/mediactrl.h>
 #include "Widgets/Button.hpp"
 #include "Widgets/SwitchButton.hpp"
 #include "Widgets/AxisCtrlButton.hpp"
 #include "Widgets/TextInput.hpp"
 #include "Widgets/StaticLine.hpp"
 #include "wxMediaCtrl2.h"
+#include "MediaPlayCtrl.h"
 
 ///////////////////////////////////////////////////////////////////////////
-class wxMediaCtrl2;
 
 namespace Slic3r
 {
 	namespace GUI
 	{
-
-		class MediaPlayCtrl;
-		class MediaFilePanel;
-
 		///////////////////////////////////////////////////////////////////////////////
 		/// Class MonitorBasePanel
 		///////////////////////////////////////////////////////////////////////////////
@@ -113,7 +108,6 @@ namespace Slic3r
 		private:
 
 		protected:
-			MediaFilePanel* m_media_file_panel = NULL;
 			wxPanel* m_panel_separotor_top;
 			wxPanel* m_panel_separotor_left;
 			wxPanel* m_panel_monitoring_title;
@@ -133,7 +127,7 @@ namespace Slic3r
 			Button* m_button_pause_resume;
 			Button* m_button_abort;
 			wxPanel* m_panel_separotor2;
-			wxPanel* m_panel_calibration_titile;
+			wxPanel* m_panel_calibration_title;
 			wxStaticText* m_staticText_calbration;
 			wxPanel* m_panel_separator_middle;
 			wxPanel* m_panel_control_title;
@@ -248,6 +242,12 @@ namespace Slic3r
 			~StatusBasePanel();
 
 		};
+
+		///////////////////////////////////////////////////////////////////////////////
+		/// Class MediaFilePanel
+		///////////////////////////////////////////////////////////////////////////////
+		class MediaFilePanel;
+
 		///////////////////////////////////////////////////////////////////////////////
 		/// Class VideoMonitoringBasePanel
 		///////////////////////////////////////////////////////////////////////////////
