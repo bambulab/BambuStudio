@@ -1647,18 +1647,14 @@ void GLCanvas3D::render()
     _render_background();
 
     //BBS add partplater rendering logic
-    bool only_current = false, only_body = false, show_axes = true;
+    bool only_current = false, only_body = false, show_axes = true, no_partplate = false;
     GLGizmosManager::EType gizmo_type = m_gizmos.get_current_type();
-    if (!m_main_toolbar.is_enabled()
-        || gizmo_type == GLGizmosManager::FdmSupports
-        || gizmo_type == GLGizmosManager::Seam)
-    {
-        only_current = true;
+    if (!m_main_toolbar.is_enabled()) {
         only_body = true;
-        //don't show axes in z-seam and support
-        if ((gizmo_type == GLGizmosManager::FdmSupports) || (gizmo_type == GLGizmosManager::Seam))
-            show_axes = false;
+        only_current = true;
     }
+    else if ((gizmo_type == GLGizmosManager::FdmSupports) || (gizmo_type == GLGizmosManager::Seam) || (gizmo_type == GLGizmosManager::MmuSegmentation))
+        no_partplate = true;
 
     /* view3D render*/
     if (m_canvas_type == ECanvasType::CanvasView3D) {
@@ -1666,10 +1662,12 @@ void GLCanvas3D::render()
         _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
         _render_sla_slices();
         _render_selection();
-        _render_bed(!camera.is_looking_downward(), show_axes);
+        if (!no_partplate)
+            _render_bed(!camera.is_looking_downward(), show_axes);
         //BBS: add outline logic
         _render_objects(GLVolumeCollection::ERenderType::Transparent, !m_gizmos.is_running());
-        _render_platelist(!camera.is_looking_downward(), only_current, only_body);
+        if (!no_partplate)
+            _render_platelist(!camera.is_looking_downward(), only_current, only_body);
     }
     /* preview render */
     else if (m_canvas_type == ECanvasType::CanvasPreview) {
