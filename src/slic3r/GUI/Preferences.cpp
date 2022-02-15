@@ -168,14 +168,15 @@ wxWindow *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pare
 
     auto checkbox = new ::CheckBox(item);
     checkbox->SetPosition(wxPoint(padding_left, (item->GetSize().GetHeight() - checkbox->GetSize().GetHeight()) / 2));
-    checkbox->SetValue((app_config->get(param) == "1") ? true : false);
+    auto a = app_config->get(param);
+    checkbox->SetValue((app_config->get(param) == "true") ? true : false);
 
     wxStaticText *text = new wxStaticText(item, wxID_ANY, title, wxDefaultPosition, wxDefaultSize);
     text->SetPosition(wxPoint(padding_left + checkbox->GetSize().GetWidth() + 10, (item->GetSize().GetHeight() - text->GetSize().GetHeight()) / 2 + 1));
 
     // save config
     checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param](wxCommandEvent &e) {
-        app_config->set(param, checkbox->GetValue() ? "1" : "0");
+        app_config->set_bool(param, checkbox->GetValue());
         app_config->save();
         e.Skip();
     });
@@ -573,7 +574,7 @@ void PreferencesDialog::create_debug_page()
 
         //bbs  developer mode 
         auto developer_mode = app_config->get("developer_mode");
-        if (developer_mode == "1") { 
+        if (developer_mode == "true") { 
             Slic3r::GUI::wxGetApp().save_mode(comDevelop);
         } else {
             Slic3r::GUI::wxGetApp().save_mode(comAdvanced);

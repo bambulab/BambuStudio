@@ -77,9 +77,8 @@ void AppConfig::set_defaults()
             set_bool("associate_3mf", false);
         if (get("associate_stl").empty())
             set_bool("associate_stl", false);
-
         if (get("associate_step").empty()) 
-            set("associate_step", "0");
+            set_bool("associate_step", false);
 
 #endif // _WIN32
 
@@ -197,7 +196,7 @@ void AppConfig::set_defaults()
     }
 
     if (get("show_home_page").empty()) { 
-        set("show_home_page", "1"); 
+        set_bool("show_home_page", true); 
     }
 
 
@@ -214,15 +213,15 @@ void AppConfig::set_defaults()
      }
 
      if (get("user_sync_switch").empty()) { 
-         set("user_sync_switch", "0"); 
+         set_bool("user_sync_switch", false); 
      }
 
      if (get("preset_sync_switch").empty()) { 
-         set("preset_sync_switch", "0"); 
+         set_bool("preset_sync_switch", false); 
      }
 
      if (get("preferences_sync_switch").empty()) { 
-         set("preferences_sync_switch", "0"); 
+         set_bool("preferences_sync_switch", false); 
      }
 
      if (get("keyboard_supported").empty()) { 

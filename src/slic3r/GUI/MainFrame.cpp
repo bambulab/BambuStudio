@@ -2167,7 +2167,7 @@ void MainFrame::init_menubar_as_editor()
         m_topbar->AddDropDownSubMenu(viewMenu, _L("&View"));
     //BBS add Preference
     m_topbar->AddDropDownMenuItem(preference_item);
-    m_topbar->AddDropDownMenuItem(language_item);
+    //m_topbar->AddDropDownMenuItem(language_item);
     m_topbar->AddDropDownMenuItem(config_item);
     m_topbar->AddDropDownSubMenu(helpMenu, _L("&Help"));
 
