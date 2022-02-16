@@ -971,12 +971,14 @@ void PrintObject::autoBrimConfigWidth(double flowWidth)
     }
 }
 // BBS
-BoundingBox PrintObject::get_first_layer_bbox(float& a)
+BoundingBox PrintObject::get_first_layer_bbox(float& a, float& layer_height, std::string& name)
 {
     BoundingBox bbox;
     a = 0;
+    name = this->model_object()->name;
     if (layer_count() > 0) {
         auto layer = get_layer(0);
+        layer_height = layer->height;
         // only work for object with single instance
         auto shift = instances()[0].shift;
         for (auto bb : layer->lslices_bboxes)
@@ -988,6 +990,8 @@ BoundingBox PrintObject::get_first_layer_bbox(float& a)
             a += area(slice);
         }
     }
+    if (has_brim())
+        bbox = firstLayerObjectBrimBoundingBox;
     return bbox;
 }
 

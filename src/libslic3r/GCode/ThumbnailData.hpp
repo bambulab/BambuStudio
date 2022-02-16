@@ -40,13 +40,23 @@ struct BBoxData
     int id;  // object id
     std::vector<coordf_t> bbox; // first layer bounding box: min.{x,y}, max.{x,y}
     float area;  // first layer area
+    float layer_height;
+    std::string name;
     void to_json(nlohmann::json& j) const{
-        j = nlohmann::json{ {"id",id},{"bbox",bbox},{"area",area} };
+        j = nlohmann::json{
+            {"id",id},
+            {"bbox",bbox},
+            {"area",area},
+            {"layer_height",layer_height},
+            {"name",name}
+        };
     }
     void from_json(const nlohmann::json& j) {
         j.at("id").get_to(id);
         j.at("bbox").get_to(bbox);
         j.at("area").get_to(area);
+        j.at("layer_height").get_to(layer_height);
+        j.at("name").get_to(name);
     }
 };
 

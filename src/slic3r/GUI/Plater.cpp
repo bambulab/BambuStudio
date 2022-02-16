@@ -5488,7 +5488,7 @@ PlateBBoxData Plater::priv::generate_first_layer_bbox()
     for (auto obj : objects)
     {
         BBoxData data;
-        auto bb_scaled = (obj->get_first_layer_bbox(data.area));
+        auto bb_scaled = obj->get_first_layer_bbox(data.area, data.layer_height, data.name);
         bbox_all.merge(bb_scaled);
         auto bb = unscaled(bb_scaled);
         data.area *= (SCALING_FACTOR * SCALING_FACTOR); // unscale area
