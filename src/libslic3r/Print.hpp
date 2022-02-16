@@ -373,6 +373,8 @@ public:
     //BBS
     BoundingBox get_first_layer_bbox(float& area);
 
+    // BBS: Boundingbox of the first layer
+    BoundingBox                 firstLayerObjectBrimBoundingBox;
 private:
     // to be called from Print only.
     friend class Print;

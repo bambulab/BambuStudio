@@ -1307,10 +1307,27 @@ void make_brim(const Print& print, PrintTryCancel try_cancel, Polygons& islands_
     ExPolygons           islands_area_ex = outer_inner_brim_area(print, top_level_objects_with_brim,
         float(flow.scaled_spacing()), brimAreaMap, supportBrimAreaMap, objPrintVec, printExtruders);
 
-    /*islands_area_ex = top_level_outer_brim_area(print, top_level_objects_with_brim, float(flow.scaled_spacing()),
-        brim_width_max, brim_width_map, brimAreaMap, supportBrimAreaMap, objPrintVec);
-    make_inner_brim(print, top_level_objects_with_brim, brimAreaMap, supportBrimAreaMap, objPrintVec);
-    */
+    // BBS: Find boundingbox of the first layer
+    for (const ObjectID printObjID : print.print_object_ids()) {
+        BoundingBox bbx;
+        PrintObject* object = const_cast<PrintObject*>(print.get_object(printObjID));
+        for (const ExPolygon& ex_poly : object->layers().front()->lslices)
+            for (const PrintInstance& instance : object->instances()) {
+                auto ex_poly_translated = ex_poly;
+                ex_poly_translated.translate(instance.shift.x(), instance.shift.y());
+                bbx.merge(get_extents(ex_poly_translated.contour));
+            }
+            
+        if (supportBrimAreaMap.find(printObjID) != supportBrimAreaMap.end()) {
+            for (const ExPolygon& ex_poly : supportBrimAreaMap.at(printObjID))
+                bbx.merge(get_extents(ex_poly.contour));
+        }
+        if (brimAreaMap.find(printObjID) != brimAreaMap.end()) {
+            for (const ExPolygon& ex_poly : brimAreaMap.at(printObjID))
+                bbx.merge(get_extents(ex_poly.contour));
+        }
+        object->firstLayerObjectBrimBoundingBox = bbx;
+    }
 
     islands_area = to_polygons(islands_area_ex);
     for (auto iter = brimAreaMap.begin(); iter != brimAreaMap.end(); ++iter) {
