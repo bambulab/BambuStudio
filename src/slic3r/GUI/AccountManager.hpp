@@ -339,6 +339,7 @@ public:
     // get task info
     void get_task(BBLTask* &task);
     void get_subtask(BBLSubTask* &subtask);
+    int get_subtask_3mf(BBLSubTask* &subtask, CancelFn fn);
     void get_subtask_report(BBLSubTask*& subtask);
     void get_profile(BBLProject*& project, BBLProfile*& profile);
 

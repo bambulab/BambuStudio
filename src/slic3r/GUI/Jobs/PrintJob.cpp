@@ -241,7 +241,7 @@ void PrintJob::process()
     if (!curr_subtask) return;
 
     BOOST_LOG_TRIVIAL(trace) << "print_job: poll task 3mf";
-    res = c->poll_3mf(curr_subtask,
+    res = c->get_subtask_3mf(curr_subtask,
         [this]() {
             return was_canceled();
         }

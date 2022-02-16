@@ -1925,6 +1925,83 @@ namespace Slic3r {
 #endif
     }
 
+    int AccountManager::get_subtask_3mf(BBLSubTask* &subtask, CancelFn fn)
+    {
+        int retry_ = 0;
+        int retry_max = POLL_3MF_TIMEOUT;
+        assert(!subtask->task_partplate_idx.empty());
+
+        json j;
+        j["base_model"] = false;
+        j["profile_config"] = false;
+        j["profile_thumbnail"] = true;
+        j["profile_gcode"] = false;
+        j["profile_plate"] = std::stoi(subtask->task_partplate_idx);
+        j["profile_pattern"] = true;
+        j["profile_files"] = json::array();
+
+        std::string gather = Http::url_encode(j.dump());
+
+        std::string url = (boost::format("%1%/iot-service/api/user/task/%2%?gather=%3%") % host % subtask->task_id % gather).str();
+        Http http = Http::get(url);
+        http.header("accept", "application/json")
+            .header("Authorization", get_token_str())
+            .on_complete(
+                [this, subtask](std::string body, unsigned) {
+                    std::stringstream ss(body);
+                    pt::ptree root;
+                    pt::read_json(ss, root);
+                    boost::optional<std::string> message = root.get_optional<std::string>("message");
+                    if (message.has_value()) {
+                        if (message.value().compare("ready") == 0) {
+                            BOOST_LOG_TRIVIAL(info) << "get_project_info ok!";
+                            boost::optional<std::string> url = root.get_optional<std::string>("url");
+                            if (url.has_value()) {
+                                // check valid url
+                                if (url.value().compare("null") != 0) {
+                                    subtask->task_url = url.value();
+                                }
+                            }
+                            boost::optional<std::string> md5 = root.get_optional<std::string>("md5");
+                            if (md5.has_value()) {
+                                if (md5.value().compare("null") != 0) {
+                                    subtask->task_url_md5 = md5.value();
+                                }
+                            }
+                            //success
+                            return;
+                        }
+                    }
+                    //failed
+                    return;
+                }
+            )
+            .on_error(
+                [this](std::string body, std::string error, unsigned status) {
+                    BOOST_LOG_TRIVIAL(info) << "get_task info failed! body=" << body;
+                }
+            )
+            .perform_sync();
+
+            while ((subtask->task_url.empty() || subtask->task_url.compare("null") == 0) && retry_ < retry_max) {
+                http.perform_sync();
+                if (fn) {
+                    if (fn()) {
+                        BOOST_LOG_TRIVIAL(trace) << "poll 3mf is cancelled";
+                        return -1;
+                    }
+                }
+                retry_++;
+                BOOST_LOG_TRIVIAL(trace) << "get_task_url, retry=" << retry_;
+                boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
+            }
+            if (retry_ == retry_max) {
+                BOOST_LOG_TRIVIAL(trace) << "get_task_url, retry_max";
+                return -1;
+            }
+            return 0;
+    }
+
     void AccountManager::get_machine_last_report_url(std::string dev_id, std::string& last_url)
     {
         std::string* return_url = new std::string();
