@@ -4748,6 +4748,12 @@ bool GLCanvas3D::_render_orient_menu(float left, float right, float bottom, floa
 
     ImGui::Separator();
 
+    if (imgui->button(_L("Orient"))) {
+        wxGetApp().plater()->orient();
+    }
+
+    ImGui::SameLine();
+
     if (imgui->button(_L("Reset"))) {
         settings_out = OrientSettings{};
         settings_out.overhang_angle = 60.f;
@@ -4755,12 +4761,6 @@ bool GLCanvas3D::_render_orient_menu(float left, float right, float bottom, floa
         appcfg->set("orient", rot_key, settings_out.enable_rotation ? "1" : "0");
         appcfg->set("orient", key_min_area, settings_out.min_area? "1" : "0");
         settings_changed = true;
-    }
-
-    ImGui::SameLine();
-
-    if (imgui->button(_L("Orient"))) {
-        wxGetApp().plater()->orient();
     }
 
     imgui->end();
@@ -4863,6 +4863,12 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
 
     ImGui::Separator();
 
+    if (imgui->button(_L("Arrange"))) {
+        wxGetApp().plater()->arrange();
+    }
+
+    ImGui::SameLine();
+
     if (imgui->button(_L("Reset"))) {
         settings_out = ArrangeSettings{};
         settings_out.distance = std::max(dist_min, settings_out.distance);
@@ -4871,12 +4877,6 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
         appcfg->set("arrange", dist_key.c_str(), float_to_string_decimal_point(settings_out.distance));
         appcfg->set("arrange", rot_key.c_str(), settings_out.enable_rotation? "1" : "0");
         settings_changed = true;
-    }
-
-    ImGui::SameLine();
-
-    if (imgui->button(_L("Arrange"))) {
-        wxGetApp().plater()->arrange();
     }
 
     imgui->end();
