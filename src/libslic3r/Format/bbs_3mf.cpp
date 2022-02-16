@@ -1498,7 +1498,8 @@ namespace Slic3r {
                 add_error("Error while extract project config file to file");
                 return;
             }
-            int ret = config.load_from_json(dest_file, config_substitutions);
+            std::map<std::string, std::string> key_values;
+            int ret = config.load_from_json(dest_file, config_substitutions, true, key_values);
             if (ret) {
                 add_error("Error load config from json");
                 return;
@@ -1528,7 +1529,8 @@ namespace Slic3r {
             //load presets
             DynamicPrintConfig config;
             //ConfigSubstitutions config_substitutions = config.load_from_ini(dest_file, Enable);
-            ConfigSubstitutions config_substitutions = use_json? config.load_from_json(dest_file, Enable) : config.load_from_ini(dest_file, Enable);
+            std::map<std::string, std::string> key_values;
+            ConfigSubstitutions config_substitutions = use_json? config.load_from_json(dest_file, Enable, key_values) : config.load_from_ini(dest_file, Enable);
             ConfigOptionString* print_name;
             ConfigOptionStrings* filament_names;
             std::string preset_name;

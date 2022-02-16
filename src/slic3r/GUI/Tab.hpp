@@ -411,7 +411,7 @@ class TabPrint : public Tab
 public:
 	//BBS: GUI refactor
 	TabPrint(ParamsPanel* parent) :
-        Tab(parent, _(L("Slicing")), Slic3r::Preset::TYPE_PRINT) {}
+        Tab(parent, _(L("Process")), Slic3r::Preset::TYPE_PRINT) {}
 	~TabPrint() {}
 
 	void		build() override;

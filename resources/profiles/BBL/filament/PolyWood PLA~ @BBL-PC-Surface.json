@@ -1,0 +1,29 @@
+{
+    "type": "filament",
+    "name": "PolyWood PLA~ @BBL-PC-Surface",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pla",
+    "filament_vendor": "Polymaker",
+    "filament_cost": [
+        "25.4"
+    ],
+    "filament_density": [
+        "1.24"
+    ],
+    "temperature": [
+        "210"
+    ],
+    "bed_temperature": [
+        "55"
+    ],
+    "first_layer_bed_temperature": [
+        "60"
+    ],
+    "first_layer_temperature": [
+        "220"
+    ],
+    "filament_max_volumetric_speed": [
+        "23.2"
+    ]
+}

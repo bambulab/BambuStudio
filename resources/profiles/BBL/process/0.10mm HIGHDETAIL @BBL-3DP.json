@@ -1,0 +1,9 @@
+{
+    "type": "process",
+    "name": "0.10mm HIGHDETAIL @BBL-3DP",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_process_bbl_0.10",
+    "renamed_from": "0.10mm HIGHDETAIL @BBL001",
+    "compatible_printers_condition": "printer_model=~/(BBL-3DP).*/ and nozzle_diameter[0]==0.4"
+}

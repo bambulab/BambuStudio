@@ -1,0 +1,25 @@
+{
+    "type": "filament",
+    "name": "Generic TPU87 @BBL-PC-Surface",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_tpu",
+    "temperature": [
+        "240"
+    ],
+    "bed_temperature": [
+        "35"
+    ],
+    "first_layer_bed_temperature": [
+        "35"
+    ],
+    "first_layer_temperature": [
+        "220"
+    ],
+    "filament_max_volumetric_speed": [
+        "3.2"
+    ],
+    "filament_retract_length": [
+        "0"
+    ]
+}

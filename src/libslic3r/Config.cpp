@@ -2,6 +2,7 @@
 #include "format.hpp"
 #include "Utils.hpp"
 #include "LocalesUtils.hpp"
+#include "Preset.hpp"
 
 #include <assert.h>
 #include <fstream>
@@ -34,12 +35,13 @@ using namespace nlohmann;
 namespace Slic3r {
 
 //BBS: add json support
-static const std::string CONFIG_VERSION_KEY = "Version";
-static const std::string CONFIG_NAME_KEY = "Name";
-static const std::string CONFIG_URL_KEY = "Url";
-static const std::string CONFIG_TYPE_KEY = "Type";
-static const std::string CONFIG_FROM_KEY = "From";
-
+//static const std::string CONFIG_VERSION_KEY = "version";
+//static const std::string CONFIG_NAME_KEY = "name";
+//static const std::string CONFIG_URL_KEY = "url";
+//static const std::string CONFIG_TYPE_KEY = "type";
+//static const std::string CONFIG_FROM_KEY = "from";
+//static const std::string CONFIG_INHERITS_KEY = "inherits";
+//static const std::string CONFIG_INSTANT_KEY = "instantiation";
 
 // Escape \n, \r and backslash
 std::string escape_string_cstyle(const std::string &str)
@@ -692,25 +694,26 @@ ConfigSubstitutions ConfigBase::load_string_map(std::map<std::string, std::strin
 //BBS: add json support
 ConfigSubstitutions ConfigBase::load(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule)
 {
+    std::map<std::string, std::string> key_values;
     if (is_gcode_file(file))
         return this->load_from_gcode_file(file, compatibility_rule);
     else if (is_json_file(file))
-        return this->load_from_json(file, compatibility_rule);
+        return this->load_from_json(file, compatibility_rule, key_values);
     else
         return this->load_from_ini(file, compatibility_rule);
 }
 
 //BBS: add json support
-ConfigSubstitutions ConfigBase::load_from_json(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule)
+ConfigSubstitutions ConfigBase::load_from_json(const std::string &file, ForwardCompatibilitySubstitutionRule compatibility_rule, std::map<std::string, std::string>& key_values)
 {
     int ret = 0;
     ConfigSubstitutionContext substitutions_ctxt(compatibility_rule);
 
-    ret = load_from_json(file, substitutions_ctxt);
+    ret = load_from_json(file, substitutions_ctxt, true, key_values);
     return std::move(substitutions_ctxt.substitutions);
 }
 
-int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContext& substitution_context)
+int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContext& substitution_context, bool load_inherits_to_config, std::map<std::string, std::string>& key_values)
 {
     json j;
     try {
@@ -724,22 +727,42 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
         }
         //parse the json elements
         for (auto it = j.begin(); it != j.end(); it++) {
-            if (it.key() == CONFIG_VERSION_KEY) {
+            if (boost::iequals(it.key(),BBL_JSON_KEY_VERSION)) {
+                key_values.emplace(BBL_JSON_KEY_VERSION, it.value());
             }
-            else if (it.key() == CONFIG_NAME_KEY) {
+            else if (boost::iequals(it.key(), BBL_JSON_KEY_NAME)) {
+                key_values.emplace(BBL_JSON_KEY_NAME, it.value());
             }
-            else if (it.key() == CONFIG_URL_KEY) {
+            else if (boost::iequals(it.key(), BBL_JSON_KEY_URL)) {
+                key_values.emplace(BBL_JSON_KEY_URL, it.value());
             }
-            else if (it.key() == CONFIG_TYPE_KEY) {
+            else if (boost::iequals(it.key(), BBL_JSON_KEY_TYPE)) {
+                key_values.emplace(BBL_JSON_KEY_TYPE, it.value());
             }
-            else if (it.key() == CONFIG_FROM_KEY) {
+            else if (boost::iequals(it.key(), BBL_JSON_KEY_FROM)) {
+                key_values.emplace(BBL_JSON_KEY_FROM, it.value());
+            }
+            else if (boost::iequals(it.key(), BBL_JSON_KEY_INSTANTIATION)) {
+                key_values.emplace(BBL_JSON_KEY_INSTANTIATION, it.value());
+            }
+            else if (!load_inherits_to_config && boost::iequals(it.key(), BBL_JSON_KEY_INHERITS)) {
+                key_values.emplace(BBL_JSON_KEY_INHERITS, it.value());
             }
             else {
                 t_config_option_key opt_key = it.key();
                 std::string value_str;
                 if (it.value().is_string()) {
                     //bool test1 = (it.key() == std::string("end_gcode"));
-                    this->set_deserialize(opt_key, it.value(), substitution_context);
+                    if (boost::iequals(opt_key, BBL_JSON_KEY_INHERITS)) {
+                        //BBS: TODO, currently use '~' insteadof '*'
+                        std::string value = it.value();
+                        size_t pos = value.find_first_of('*');
+                        if (pos != std::string::npos)
+                            value.replace(pos, 1, 1, '~');
+                        this->set_deserialize(opt_key, value, substitution_context);
+                    }
+                    else
+                        this->set_deserialize(opt_key, it.value(), substitution_context);
                 }
                 else if (it.value().is_array()) {
                     bool valid = true, first = true, use_comma = true;
@@ -1153,9 +1176,9 @@ void ConfigBase::save_to_json(const std::string &file, const std::string &name, 
     json j;
 
     //record the headers
-    j[CONFIG_VERSION_KEY] = version;
-    j[CONFIG_NAME_KEY] = name;
-    j[CONFIG_FROM_KEY] = from;
+    j[BBL_JSON_KEY_VERSION] = version;
+    j[BBL_JSON_KEY_NAME] = name;
+    j[BBL_JSON_KEY_FROM] = from;
 
     //record all the key-values
     for (const std::string &opt_key : this->keys())

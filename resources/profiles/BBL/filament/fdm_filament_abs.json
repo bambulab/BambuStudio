@@ -1,0 +1,65 @@
+{
+    "type": "filament",
+    "name": "fdm_filament_abs",
+    "from": "system",
+    "instantiation": "false",
+    "inherits": "fdm_filament_common",
+    "bed_temperature": [
+        "85"
+    ],
+    "cooling": [
+        "1"
+    ],
+    "disable_fan_first_layers": [
+        "3"
+    ],
+    "fan_below_layer_time": [
+        "50"
+    ],
+    "filament_colour": [
+        "#DDDDDD"
+    ],
+    "filament_max_volumetric_speed": [
+        "28.6"
+    ],
+    "filament_type": [
+        "ABS"
+    ],
+    "filament_density": [
+        "1.04"
+    ],
+    "filament_cost": [
+        "20"
+    ],
+    "first_layer_bed_temperature": [
+        "70"
+    ],
+    "first_layer_temperature": [
+        "250"
+    ],
+    "fan_always_on": [
+        "0"
+    ],
+    "max_fan_speed": [
+        "50"
+    ],
+    "min_fan_speed": [
+        "30"
+    ],
+    "bridge_fan_speed": [
+        "50"
+    ],
+    "top_fan_speed": "0",
+    "temperature": [
+        "245"
+    ],
+    "temperature_vitrification": [
+        "100"
+    ],
+    "min_print_speed": [
+        "20"
+    ],
+    "slowdown_below_layer_time": [
+        "3"
+    ]
+}

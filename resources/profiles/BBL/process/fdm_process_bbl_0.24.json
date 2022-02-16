@@ -1,0 +1,11 @@
+{
+    "type": "process",
+    "name": "fdm_process_bbl_0.24",
+    "from": "system",
+    "instantiation": "false",
+    "inherits": "fdm_process_bbl_common",
+    "layer_height": "0.24",
+    "top_infill_extrusion_width": "0.45",
+    "bottom_solid_layers": "3",
+    "top_solid_layers": "4"
+}

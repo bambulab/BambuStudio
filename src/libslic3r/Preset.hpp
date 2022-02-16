@@ -15,11 +15,31 @@
 //BBS: change system directories
 #define PRESET_SYSTEM_DIR      "system"
 #define PRESET_USER_DIR        "user"
-#define PRESET_FILAMENT_DIR    "filament"
-#define PRESET_SLICING_DIR     "print"
-#define PRESET_PRINTER_DIR     "printer"
-#define PRESET_SLA_SLICING_DIR  "sla_slicing"
-#define PRESET_SLA_FILAMENT_DIR "sla_filament"
+#define PRESET_FILAMENT_NAME    "filament"
+#define PRESET_PRINT_NAME     "process"
+#define PRESET_PRINTER_NAME     "machine"
+#define PRESET_SLA_PRINT_NAME  "sla_print"
+#define PRESET_SLA_MATERIALS_NAME "sla_materials"
+
+//BBS: add json support
+#define BBL_JSON_KEY_VERSION        "version"
+#define BBL_JSON_KEY_URL            "url"
+#define BBL_JSON_KEY_NAME           "name"
+#define BBL_JSON_KEY_MACHINE_MODEL_LIST     "machine_model_list"
+#define BBL_JSON_KEY_PROCESS_LIST   "process_list"
+#define BBL_JSON_KEY_SUB_PATH       "sub_path"
+#define BBL_JSON_KEY_FILAMENT_LIST  "filament_list"
+#define BBL_JSON_KEY_MACHINE_LIST   "machine_list"
+#define BBL_JSON_KEY_TYPE           "type"
+#define BBL_JSON_KEY_FROM           "from"
+#define BBL_JSON_KEY_INHERITS       "inherits"
+#define BBL_JSON_KEY_INSTANTIATION  "instantiation"
+#define BBL_JSON_KEY_NOZZLE_DIAMETER            "nozzle_diameter"
+#define BBL_JSON_KEY_PRINTER_TECH                 "machine_tech"
+#define BBL_JSON_KEY_FAMILY                     "family"
+#define BBL_JSON_KEY_BED_MODEL                  "bed_model"
+#define BBL_JSON_KEY_BED_TEXTURE                "bed_texture"
+#define BBL_JSON_KEY_DEFAULT_MATERIALS          "default_materials"
 
 
 namespace Slic3r {

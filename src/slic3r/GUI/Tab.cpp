@@ -147,11 +147,11 @@ Tab::Tab(ParamsPanel* parent, const wxString& title, Preset::Type type) :
 
 void Tab::set_type()
 {
-    if (m_name == "print")              { m_type = Slic3r::Preset::TYPE_PRINT; }
+    if (m_name == PRESET_PRINT_NAME)              { m_type = Slic3r::Preset::TYPE_PRINT; }
     else if (m_name == "sla_print")     { m_type = Slic3r::Preset::TYPE_SLA_PRINT; }
-    else if (m_name == "filament")      { m_type = Slic3r::Preset::TYPE_FILAMENT; }
+    else if (m_name == PRESET_FILAMENT_NAME)      { m_type = Slic3r::Preset::TYPE_FILAMENT; }
     else if (m_name == "sla_material")  { m_type = Slic3r::Preset::TYPE_SLA_MATERIAL; }
-    else if (m_name == "printer")       { m_type = Slic3r::Preset::TYPE_PRINTER; }
+    else if (m_name == PRESET_PRINTER_NAME)       { m_type = Slic3r::Preset::TYPE_PRINTER; }
     else                                { m_type = Slic3r::Preset::TYPE_INVALID; assert(false); }
 }
 

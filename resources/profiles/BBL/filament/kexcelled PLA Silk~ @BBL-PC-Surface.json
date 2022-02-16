@@ -1,0 +1,29 @@
+{
+    "type": "filament",
+    "name": "kexcelled PLA Silk~ @BBL-PC-Surface",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pla",
+    "filament_vendor": "kexcelled",
+    "filament_cost": [
+        "25.4"
+    ],
+    "filament_density": [
+        "1.24"
+    ],
+    "filament_max_volumetric_speed": [
+        "7.2"
+    ],
+    "filament_retract_length": [
+        "0.5"
+    ],
+    "first_layer_temperature": [
+        "220"
+    ],
+    "temperature": [
+        "220"
+    ],
+    "start_filament_gcode": [
+        "; Filament gcode\nM106 P3 S255;Prevent PLA SILK from jamming"
+    ]
+}

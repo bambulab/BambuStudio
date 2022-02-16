@@ -1,0 +1,129 @@
+{
+    "type": "filament",
+    "name": "fdm_filament_common",
+    "from": "system",
+    "instantiation": "false",
+    "bed_temperature": [
+        "60"
+    ],
+    "bridge_fan_speed": [
+        "100"
+    ],
+    "coasting_enable": "0",
+    "coasting_length": "3",
+    "cooling": [
+        "1"
+    ],
+    "disable_fan_first_layers": [
+        "3"
+    ],
+    "end_filament_gcode": [
+        "; Filament-specific end gcode \n;END gcode for filament\nM106 P3 S0\n"
+    ],
+    "extrusion_multiplier": [
+        "1"
+    ],
+    "fan_always_on": [
+        "0"
+    ],
+    "fan_below_layer_time": [
+        "60"
+    ],
+    "filament_colour": [
+        "#29B2B2"
+    ],
+    "filament_cost": [
+        "0"
+    ],
+    "filament_density": [
+        "0"
+    ],
+    "filament_deretract_speed": [
+        "30"
+    ],
+    "filament_diameter": [
+        "1.75"
+    ],
+    "filament_load_time": [
+        "7"
+    ],
+    "filament_max_volumetric_speed": [
+        "0"
+    ],
+    "filament_minimal_purge_on_wipe_tower": [
+        "15"
+    ],
+    "filament_retract_before_travel": [
+        "1"
+    ],
+    "filament_retract_before_wipe": [
+        "70%"
+    ],
+    "filament_retract_layer_change": [
+        "1"
+    ],
+    "filament_retract_length": [
+        "0.8"
+    ],
+    "filament_retract_lift": [
+        "0.4"
+    ],
+    "filament_retract_restart_extra": [
+        "0"
+    ],
+    "filament_retract_speed": [
+        "30"
+    ],
+    "filament_settings_id": [
+        ""
+    ],
+    "filament_soluble": [
+        "0"
+    ],
+    "filament_spool_weight": [
+        "0"
+    ],
+    "filament_type": [
+        "PLA"
+    ],
+    "filament_unload_time": [
+        "7"
+    ],
+    "filament_vendor": "(Unknown)",
+    "filament_wipe": [
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "5"
+    ],
+    "first_layer_bed_temperature": [
+        "60"
+    ],
+    "first_layer_temperature": [
+        "200"
+    ],
+    "full_fan_speed_layer": [
+        "0"
+    ],
+    "max_fan_speed": [
+        "100"
+    ],
+    "min_fan_speed": [
+        "35"
+    ],
+    "min_print_speed": [
+        "10"
+    ],
+    "slowdown_below_layer_time": [
+        "8"
+    ],
+    "start_filament_gcode": [
+        "; Filament gcode\n"
+    ],
+    "temperature": [
+        "200"
+    ],
+    "temperature_vitrification": [
+        "100"
+    ]
+}

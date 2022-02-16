@@ -67,6 +67,32 @@ void copy_file_fix(const fs::path &source, const fs::path &target)
 	fs::permissions(target, perms);
 }
 
+//BBS: add directory copy
+void copy_directory_fix(const fs::path &source, const fs::path &target)
+{
+    BOOST_LOG_TRIVIAL(debug) << format("PresetUpdater: Copying %1% -> %2%", source, target);
+    std::string error_message;
+
+    if (!fs::exists(target)) {
+        fs::create_directory(target);
+    }
+    for (auto &dir_entry : boost::filesystem::directory_iterator(source))
+    {
+        std::string source_file = dir_entry.path().string();
+        std::string name = dir_entry.path().filename().string();
+        std::string target_file = target.string() + "/" + name;
+
+        CopyFileResult cfr = copy_file(source_file, target_file, error_message, false);
+        if (cfr != CopyFileResult::SUCCESS) {
+        BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message;
+                throw Slic3r::CriticalException(GUI::format(
+                        _L("Copying directory %1% to %2% failed: %3%"),
+                        source, target, error_message));
+        }
+    }
+    return;
+}
+
 struct Update
 {
 	fs::path source;
@@ -77,20 +103,30 @@ struct Update
 	std::string changelog_url;
 
 	bool forced_update;
+    //BBS: add directory support
+    bool is_directory {false};
 
 	Update() {}
-	Update(fs::path &&source, fs::path &&target, const Version &version, std::string vendor, std::string changelog_url, bool forced = false)
+    //BBS: add directory support
+	Update(fs::path &&source, fs::path &&target, const Version &version, std::string vendor, std::string changelog_url, bool forced = false, bool is_dir = false)
 		: source(std::move(source))
 		, target(std::move(target))
 		, version(version)
 		, vendor(std::move(vendor))
 		, changelog_url(std::move(changelog_url))
 		, forced_update(forced)
+		, is_directory(is_dir)
 	{}
 
+    //BBS: add directory support
 	void install() const
 	{
-		copy_file_fix(source, target);
+	    if (is_directory) {
+            copy_directory_fix(source, target);
+        }
+        else {
+            copy_file_fix(source, target);
+        }
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, const Update &self)
@@ -636,8 +672,11 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
 	return updates;
 }
 
+//BBS: switch to new BBL.json configs
 bool PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) const
 {
+    std::string vendor_path;
+    std::string vendor_name;
 	if (updates.incompats.size() > 0) {
 		if (snapshot) {
 			BOOST_LOG_TRIVIAL(info) << "Taking a snapshot...";
@@ -669,41 +708,29 @@ bool PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
 			BOOST_LOG_TRIVIAL(info) << '\t' << update;
 
 			update.install();
-
-			PresetBundle bundle;
-			// Throw when parsing invalid configuration. Only valid configuration is supposed to be provided over the air.
-			bundle.load_configbundle(update.source.string(), PresetBundle::LoadConfigBundleAttribute::LoadSystem, ForwardCompatibilitySubstitutionRule::Disable);
-
-			BOOST_LOG_TRIVIAL(info) << format("Deleting %1% conflicting presets", bundle.prints.size() + bundle.filaments.size() + bundle.printers.size());
-
-			auto preset_remover = [](const Preset &preset) {
-				BOOST_LOG_TRIVIAL(info) << '\t' << preset.file;
-				fs::remove(preset.file);
-			};
-
-			for (const auto &preset : bundle.prints)    { preset_remover(preset); }
-			for (const auto &preset : bundle.filaments) { preset_remover(preset); }
-			for (const auto &preset : bundle.printers)  { preset_remover(preset); }
-
-			// Also apply the `obsolete_presets` property, removing obsolete ini files
-
-			BOOST_LOG_TRIVIAL(info) << format("Deleting %1% obsolete presets",
-				bundle.obsolete_presets.prints.size() + bundle.obsolete_presets.filaments.size() + bundle.obsolete_presets.printers.size());
-
-			auto obsolete_remover = [](const char *subdir, const std::string &preset) {
-				auto path = fs::path(Slic3r::data_dir()) / subdir / preset;
-				path += ".ini";
-				BOOST_LOG_TRIVIAL(info) << '\t' << path.string();
-				fs::remove(path);
-			};
-
-			for (const auto &name : bundle.obsolete_presets.prints)    { obsolete_remover("print", name); }
-			for (const auto &name : bundle.obsolete_presets.filaments) { obsolete_remover("filament", name); }
-			for (const auto &name : bundle.obsolete_presets.sla_prints) { obsolete_remover("sla_print", name); } 
-			for (const auto &name : bundle.obsolete_presets.sla_materials/*filaments*/) { obsolete_remover("sla_material", name); } 
-			for (const auto &name : bundle.obsolete_presets.printers)  { obsolete_remover("printer", name); }
+            if (!update.is_directory) {
+                vendor_path = update.source.parent_path().string();
+                vendor_name = update.vendor;
+            }
 		}
-	}
+
+        if (!vendor_path.empty()) {
+            PresetBundle bundle;
+            // Throw when parsing invalid configuration. Only valid configuration is supposed to be provided over the air.
+            bundle.load_vendor_configs_from_json(vendor_path, vendor_name, PresetBundle::LoadConfigBundleAttribute::LoadSystem, ForwardCompatibilitySubstitutionRule::Disable);
+
+            BOOST_LOG_TRIVIAL(info) << format("Deleting %1% conflicting presets", bundle.prints.size() + bundle.filaments.size() + bundle.printers.size());
+
+            /*auto preset_remover = [](const Preset& preset) {
+                BOOST_LOG_TRIVIAL(info) << '\t' << preset.file;
+                fs::remove(preset.file);
+            };
+
+            for (const auto &preset : bundle.prints)    { preset_remover(preset); }
+            for (const auto &preset : bundle.filaments) { preset_remover(preset); }
+            for (const auto &preset : bundle.printers)  { preset_remover(preset); }*/
+        }
+    }
 
 	return true;
 }
@@ -750,13 +777,13 @@ void PresetUpdater::sync(PresetBundle *preset_bundle)
 		this->p->sync_config(std::move(vendors));
     });
 #else
-	const auto vendor_dir = (boost::filesystem::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR).make_preferred();
+	/*const auto vendor_dir = (boost::filesystem::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR).make_preferred();
 	const auto rsrc_vendor_dir = (boost::filesystem::path(resources_dir()) / "profiles").make_preferred();
 	auto vendor_file = (vendor_dir / PresetBundle::BBL_BUNDLE).replace_extension(".ini");
 	auto rsrc_vendor_file = (rsrc_vendor_dir / PresetBundle::BBL_BUNDLE).replace_extension(".ini");
 	if (boost::filesystem::exists(rsrc_vendor_dir)) {
 		copy_file_fix(rsrc_vendor_file, vendor_file);
-	}
+	}*/
 #endif
 }
 
@@ -909,6 +936,7 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
 	return R_NOOP;
 }
 
+//BBS: add json related logic
 bool PresetUpdater::install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot) const
 {
 	Updates updates;
@@ -916,9 +944,34 @@ bool PresetUpdater::install_bundles_rsrc(std::vector<std::string> bundles, bool 
 	BOOST_LOG_TRIVIAL(info) << format("Installing %1% bundles from resources ...", bundles.size());
 
 	for (const auto &bundle : bundles) {
-		auto path_in_rsrc = (p->rsrc_path / bundle).replace_extension(".ini");
-		auto path_in_vendors = (p->vendor_path / bundle).replace_extension(".ini");
-		updates.updates.emplace_back(std::move(path_in_rsrc), std::move(path_in_vendors), Version(), "", "");
+		auto path_in_rsrc = (p->rsrc_path / bundle).replace_extension(".json");
+		auto path_in_vendors = (p->vendor_path / bundle).replace_extension(".json");
+		updates.updates.emplace_back(std::move(path_in_rsrc), std::move(path_in_vendors), Version(), bundle, "");
+
+        //BBS: add directory support
+        auto print_in_rsrc = (p->rsrc_path / bundle / PRESET_PRINT_NAME);
+		auto print_in_vendors = (p->vendor_path / bundle / PRESET_PRINT_NAME);
+        fs::path print_folder(print_in_vendors);
+        if (fs::exists(print_folder))
+            fs::remove_all(print_folder);
+        fs::create_directories(print_folder);
+		updates.updates.emplace_back(std::move(print_in_rsrc), std::move(print_in_vendors), Version(), bundle, "", false, true);
+
+        auto filament_in_rsrc = (p->rsrc_path / bundle / PRESET_FILAMENT_NAME);
+		auto filament_in_vendors = (p->vendor_path / bundle / PRESET_FILAMENT_NAME);
+        fs::path filament_folder(filament_in_vendors);
+        if (fs::exists(filament_folder))
+            fs::remove_all(filament_folder);
+        fs::create_directories(filament_folder);
+		updates.updates.emplace_back(std::move(filament_in_rsrc), std::move(filament_in_vendors), Version(), bundle, "", false, true);
+
+        auto machine_in_rsrc = (p->rsrc_path / bundle / PRESET_PRINTER_NAME);
+		auto machine_in_vendors = (p->vendor_path / bundle / PRESET_PRINTER_NAME);
+        fs::path machine_folder(machine_in_vendors);
+        if (fs::exists(machine_folder))
+            fs::remove_all(machine_folder);
+        fs::create_directories(machine_folder);
+		updates.updates.emplace_back(std::move(machine_in_rsrc), std::move(machine_in_vendors), Version(), bundle, "", false, true);
 	}
 
 	return p->perform_updates(std::move(updates), snapshot);

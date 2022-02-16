@@ -1,0 +1,58 @@
+{
+    "type": "filament",
+    "name": "fdm_filament_pet",
+    "from": "system",
+    "instantiation": "false",
+    "inherits": "fdm_filament_common",
+    "bed_temperature": [
+        "60"
+    ],
+    "cooling": [
+        "1"
+    ],
+    "disable_fan_first_layers": [
+        "1"
+    ],
+    "fan_below_layer_time": [
+        "20"
+    ],
+    "filament_colour": [
+        "#DDDDDD"
+    ],
+    "filament_max_volumetric_speed": [
+        "8"
+    ],
+    "filament_type": [
+        "PET"
+    ],
+    "filament_density": [
+        "1.27"
+    ],
+    "filament_cost": [
+        "30"
+    ],
+    "first_layer_bed_temperature": [
+        "60"
+    ],
+    "first_layer_temperature": [
+        "240"
+    ],
+    "fan_always_on": [
+        "1"
+    ],
+    "max_fan_speed": [
+        "100"
+    ],
+    "min_fan_speed": [
+        "20"
+    ],
+    "bridge_fan_speed": [
+        "100"
+    ],
+    "temperature": [
+        "240"
+    ],
+    "temperature_vitrification": [
+        "80"
+    ]
+}

@@ -71,9 +71,20 @@ bool Bundle::load(fs::path source_path, bool ais_in_resources, bool ais_bbl_bund
     this->is_bbl_bundle = ais_bbl_bundle;
 
     std::string path_string = source_path.string();
+    std::string parent_path = source_path.parent_path().string();
+    //BBS: add json logic for vendor bundles
+    std::string vendor_name = source_path.filename().string();
+    if (Slic3r::is_json_file(path_string)) {
+        // Remove the .json suffix.
+        vendor_name.erase(vendor_name.size() - 5);
+    }
+    else
+        return false;
+
     // Throw when parsing invalid configuration. Only valid configuration is supposed to be provided over the air.
-    auto [config_substitutions, presets_loaded] = preset_bundle->load_configbundle(
-        path_string, PresetBundle::LoadConfigBundleAttribute::LoadSystem, ForwardCompatibilitySubstitutionRule::Disable);
+    //BBS: add json logic for vendor bundles
+    auto [config_substitutions, presets_loaded] = preset_bundle->load_vendor_configs_from_json(
+        parent_path, vendor_name, PresetBundle::LoadConfigBundleAttribute::LoadVendorOnly, ForwardCompatibilitySubstitutionRule::Disable);
     UNUSED(config_substitutions);
     // No substitutions shall be reported when loading a system config bundle, no substitutions are allowed.
     assert(config_substitutions.empty());
@@ -111,10 +122,11 @@ BundleMap BundleMap::load()
     const auto rsrc_vendor_dir = (boost::filesystem::path(resources_dir()) / "profiles").make_preferred();
 
     //BBS: add BBL as default
-    auto bbl_bundle_path = (vendor_dir / PresetBundle::BBL_BUNDLE).replace_extension(".ini");
+    //BBS: add json logic for vendor bundle
+    auto bbl_bundle_path = (vendor_dir / PresetBundle::BBL_BUNDLE).replace_extension(".json");
     auto bbl_bundle_rsrc = false;
     if (!boost::filesystem::exists(bbl_bundle_path)) {
-        bbl_bundle_path = (rsrc_vendor_dir / PresetBundle::BBL_BUNDLE).replace_extension(".ini");
+        bbl_bundle_path = (rsrc_vendor_dir / PresetBundle::BBL_BUNDLE).replace_extension(".json");
         bbl_bundle_rsrc = true;
     }
     {
@@ -128,8 +140,9 @@ BundleMap BundleMap::load()
     bool is_in_resources = false;
     for (auto dir : { &vendor_dir, &rsrc_vendor_dir }) {
         for (const auto &dir_entry : boost::filesystem::directory_iterator(*dir)) {
-            if (Slic3r::is_ini_file(dir_entry)) {
-                std::string id = dir_entry.path().stem().string();  // stem() = filename() without the trailing ".ini" part
+            //BBS: add json logic for vendor bundle
+            if (Slic3r::is_json_file(dir_entry.path().string())) {
+                std::string id = dir_entry.path().stem().string();  // stem() = filename() without the trailing ".json" part
 
                 // Don't load this bundle if we've already loaded it.
                 if (res.find(id) != res.end()) { continue; }
@@ -1917,7 +1930,7 @@ void ConfigWizard::priv::load_vendors()
     } else {
         // In case of legacy datadir, try to guess the preference based on the printer preset files that are present
         //BBS: change directories by design
-        const auto printer_dir = fs::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR / "printer";
+        const auto printer_dir = fs::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR / PRESET_PRINTER_NAME;
         for (auto &dir_entry : boost::filesystem::directory_iterator(printer_dir))
             if (Slic3r::is_ini_file(dir_entry)) {
                 auto needle = legacy_preset_map.find(dir_entry.path().filename().string());

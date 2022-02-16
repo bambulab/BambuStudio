@@ -169,7 +169,7 @@ VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem
             }
 
             model.family = section.second.get<std::string>("family", std::string());
-            if (model.family.empty() && res.name == "Bambu Research") {
+            if (model.family.empty() && res.name == "BBL") {
                 // If no family is specified, it can be inferred for known printers
                 const auto from_pre_map = pre_family_model_map.find(model.id);
                 if (from_pre_map != pre_family_model_map.end()) { model.family = from_pre_map->second; }
@@ -330,11 +330,11 @@ std::string  Preset::get_type_string(Preset::Type type)
 {
     switch (type) {
         case Preset::Type::TYPE_FILAMENT:
-            return "filament";
+            return PRESET_FILAMENT_NAME;
         case Preset::Type::TYPE_PRINT:
-            return "print";
+            return PRESET_PRINT_NAME;
         case Preset::Type::TYPE_PRINTER:
-            return "printer";
+            return PRESET_PRINTER_NAME;
         case Preset::Type::TYPE_PHYSICAL_PRINTER:
             return "physical_printer";
         case Preset::Type::TYPE_INVALID:
@@ -346,11 +346,11 @@ std::string  Preset::get_type_string(Preset::Type type)
 
 Preset::Type Preset::get_type_from_string(std::string type_str)
 {
-    if (type_str.compare("print") == 0)
+    if (type_str.compare(PRESET_PRINT_NAME) == 0)
         return Preset::Type::TYPE_PRINT;
-    else if (type_str.compare("filament") == 0)
+    else if (type_str.compare(PRESET_FILAMENT_NAME) == 0)
         return Preset::Type::TYPE_FILAMENT;
-    else if (type_str.compare("printer") == 0)
+    else if (type_str.compare(PRESET_PRINTER_NAME) == 0)
         return Preset::Type::TYPE_PRINTER;
     else
         return Preset::Type::TYPE_INVALID;
@@ -831,7 +831,8 @@ void PresetCollection::load_presets(
                     DynamicPrintConfig config;
                     //BBS: change to json format
                     //ConfigSubstitutions config_substitutions = config.load_from_ini(preset.file, substitution_rule);
-                    ConfigSubstitutions config_substitutions = config.load_from_json(preset.file, substitution_rule);
+                    std::map<std::string, std::string> key_values;
+                    ConfigSubstitutions config_substitutions = config.load_from_json(preset.file, substitution_rule, key_values);
                     if (! config_substitutions.empty())
                         substitutions.push_back({ preset.name, m_type, PresetConfigSubstitutions::Source::UserFile, preset.file, std::move(config_substitutions) });
                     // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
@@ -1050,6 +1051,19 @@ void PresetCollection::load_user_presets(std::map<std::string, Preset*> my_prese
             ConfigSubstitutions config_substitutions = config.load_string_map(it->second->key_values, rule);
             if (! config_substitutions.empty())
                 substitutions.push_back({ preset->name, m_type, PresetConfigSubstitutions::Source::UserCloud, preset->name, std::move(config_substitutions) });
+
+            //BBS: TODO, currently use '~' insteadof '*'
+            ConfigOption* inherits_config = config.option(BBL_JSON_KEY_INHERITS);
+            if (inherits_config) {
+                ConfigOptionString * option_str = dynamic_cast<ConfigOptionString *> (inherits_config);
+                std::string inherits_value = option_str->value;
+                size_t pos = inherits_value.find_first_of('*');
+                if (pos != std::string::npos) {
+                    inherits_value.replace(pos, 1, 1, '~');
+                    option_str->value = inherits_value;
+                }
+            }
+
             // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
             const Preset &default_preset = this->default_preset_for(config);
             preset->config = default_preset.config;
@@ -1244,18 +1258,19 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     // The external preset does not match an internal preset, load the external preset.
     std::string new_name;
     //BBS: add project embedded preset logic
+    //BBS: refine the name logic
     for (size_t idx = 0;; ++ idx) {
-        std::string suffix;
+        std::string prefix;
         if (original_name.empty()) {
             if (!inherits.empty()) {
                 if (idx == 0)
-                    suffix = " (" + inherits + ")";
+                    prefix = inherits;
                 else
-                    suffix = " (" + inherits + "-" + std::to_string(idx) + ")";
+                    prefix = inherits + "-" + std::to_string(idx);
             }
             else {
                 if (idx > 0)
-                    suffix = " (" + std::to_string(idx) + ")";
+                    prefix =  std::to_string(idx);
             }
         } else {
             std::string reduced_name = original_name;
@@ -1267,11 +1282,12 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
             //}
 
             if (idx == 0)
-                suffix = " (" + reduced_name + ")";
+                prefix = reduced_name;
             else
-                suffix = " (" + reduced_name + "-" + std::to_string(idx) + ")";
+                prefix = reduced_name + "-" + std::to_string(idx) ;
         }
-        new_name = name + suffix;
+        //new_name = name + suffix;
+        new_name = prefix + "(" + name + ")";
         it = this->find_preset_internal(new_name);
         if (it == m_presets.end() || it->name != new_name)
             // Unique profile name. Insert a new profile.
@@ -1866,11 +1882,11 @@ void PresetCollection::update_map_system_profile_renamed()
 std::string PresetCollection::name() const
 {
     switch (this->type()) {
-    case Preset::TYPE_PRINT:        return L("print");
-    case Preset::TYPE_FILAMENT:     return L("filament");
+    case Preset::TYPE_PRINT:        return L(PRESET_PRINT_NAME);
+    case Preset::TYPE_FILAMENT:     return L(PRESET_FILAMENT_NAME);
     case Preset::TYPE_SLA_PRINT:    return L("SLA print");
     case Preset::TYPE_SLA_MATERIAL: return L("SLA material");
-    case Preset::TYPE_PRINTER:      return L("printer");
+    case Preset::TYPE_PRINTER:      return L(PRESET_PRINTER_NAME);
     default:                        return "invalid";
     }
 }
@@ -1879,11 +1895,11 @@ std::string PresetCollection::name() const
 std::string PresetCollection::section_name() const
 {
     switch (this->type()) {
-    case Preset::TYPE_PRINT:        return PRESET_SLICING_DIR;
-    case Preset::TYPE_FILAMENT:     return PRESET_FILAMENT_DIR;
-    case Preset::TYPE_SLA_PRINT:    return PRESET_SLA_SLICING_DIR;
-    case Preset::TYPE_SLA_MATERIAL: return PRESET_SLA_FILAMENT_DIR;
-    case Preset::TYPE_PRINTER:      return PRESET_PRINTER_DIR;
+    case Preset::TYPE_PRINT:        return PRESET_PRINT_NAME;
+    case Preset::TYPE_FILAMENT:     return PRESET_FILAMENT_NAME;
+    case Preset::TYPE_SLA_PRINT:    return PRESET_SLA_PRINT_NAME;
+    case Preset::TYPE_SLA_MATERIAL: return PRESET_SLA_MATERIALS_NAME;
+    case Preset::TYPE_PRINTER:      return PRESET_PRINTER_NAME;
     default:                        return "invalid";
     }
 }
@@ -2174,7 +2190,8 @@ void PhysicalPrinterCollection::load_printers(
                 try {
                     DynamicPrintConfig config;
                     //ConfigSubstitutions config_substitutions = config.load_from_ini(printer.file, substitution_rule);
-                    ConfigSubstitutions config_substitutions = config.load_from_json(printer.file, substitution_rule);
+                    std::map<std::string, std::string> key_values;
+                    ConfigSubstitutions config_substitutions = config.load_from_json(printer.file, substitution_rule, key_values);
                     if (! config_substitutions.empty())
                         substitutions.push_back({ name, Preset::TYPE_PHYSICAL_PRINTER, PresetConfigSubstitutions::Source::UserFile, printer.file, std::move(config_substitutions) });
                     printer.update_from_config(config);

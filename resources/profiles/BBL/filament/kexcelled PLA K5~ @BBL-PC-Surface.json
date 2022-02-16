@@ -1,0 +1,29 @@
+{
+    "type": "filament",
+    "name": "kexcelled PLA K5~ @BBL-PC-Surface",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pla",
+    "filament_vendor": "kexcelled",
+    "filament_cost": [
+        "25.4"
+    ],
+    "filament_density": [
+        "1.24"
+    ],
+    "temperature": [
+        "220"
+    ],
+    "bed_temperature": [
+        "45"
+    ],
+    "first_layer_bed_temperature": [
+        "45"
+    ],
+    "first_layer_temperature": [
+        "220"
+    ],
+    "filament_max_volumetric_speed": [
+        "26.8"
+    ]
+}

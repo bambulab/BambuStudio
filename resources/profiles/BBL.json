@@ -1,0 +1,353 @@
+{
+    "name": "Bambulab",
+    "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
+    "version": "0.0.1",
+    "machine_model_list": [
+        {
+            "name": "BBL-3DP-V4NORMAL",
+            "sub_path": "machine/BBL-3DP-V4NORMAL.json"
+        },
+        {
+            "name": "BBL-3DP-V5NORMAL",
+            "sub_path": "machine/BBL-3DP-V5NORMAL.json"
+        }
+    ],
+    "process_list": [
+        {
+            "name": "fdm_process_common",
+            "sub_path": "process/fdm_process_common.json"
+        },
+        {
+            "name": "fdm_process_bbl_common",
+            "sub_path": "process/fdm_process_bbl_common.json"
+        },
+        {
+            "name": "fdm_process_bbl_0.08",
+            "sub_path": "process/fdm_process_bbl_0.08.json"
+        },
+        {
+            "name": "fdm_process_bbl_0.10",
+            "sub_path": "process/fdm_process_bbl_0.10.json"
+        },
+        {
+            "name": "fdm_process_bbl_0.12",
+            "sub_path": "process/fdm_process_bbl_0.12.json"
+        },
+        {
+            "name": "fdm_process_bbl_0.16",
+            "sub_path": "process/fdm_process_bbl_0.16.json"
+        },
+        {
+            "name": "fdm_process_bbl_0.20",
+            "sub_path": "process/fdm_process_bbl_0.20.json"
+        },
+        {
+            "name": "fdm_process_bbl_0.24",
+            "sub_path": "process/fdm_process_bbl_0.24.json"
+        },
+        {
+            "name": "fdm_process_bbl_0.28",
+            "sub_path": "process/fdm_process_bbl_0.28.json"
+        },
+        {
+            "name": "0.08mm SUPERDETAIL @BBL-3DP",
+            "sub_path": "process/0.08mm SUPERDETAIL @BBL-3DP.json"
+        },
+        {
+            "name": "0.10mm HIGHDETAIL @BBL-3DP",
+            "sub_path": "process/0.10mm HIGHDETAIL @BBL-3DP.json"
+        },
+        {
+            "name": "0.12mm DETAIL @BBL-3DP",
+            "sub_path": "process/0.12mm DETAIL @BBL-3DP.json"
+        },
+        {
+            "name": "0.16mm OPTIMAL @BBL-3DP",
+            "sub_path": "process/0.16mm OPTIMAL @BBL-3DP.json"
+        },
+        {
+            "name": "0.20mm NORMAL @BBL-3DP",
+            "sub_path": "process/0.20mm NORMAL @BBL-3DP.json"
+        },
+        {
+            "name": "0.24mm DRAFT @BBL-3DP",
+            "sub_path": "process/0.24mm DRAFT @BBL-3DP.json"
+        },
+        {
+            "name": "0.28mm SUPERDRAFT @BBL-3DP",
+            "sub_path": "process/0.28mm SUPERDRAFT @BBL-3DP.json"
+        },
+        {
+            "name": "0.20mm TreeSupport @BBL-3DP",
+            "sub_path": "process/0.20mm TreeSupport @BBL-3DP.json"
+        },
+        {
+            "name": "0.20mm PolySupport @BBL-3DP",
+            "sub_path": "process/0.20mm PolySupport @BBL-3DP.json"
+        }
+    ],
+    "filament_list": [
+        {
+            "name": "fdm_filament_common",
+            "sub_path": "filament/fdm_filament_common.json"
+        },
+        {
+            "name": "fdm_filament_pla",
+            "sub_path": "filament/fdm_filament_pla.json"
+        },
+        {
+            "name": "fdm_filament_tpu",
+            "sub_path": "filament/fdm_filament_tpu.json"
+        },
+        {
+            "name": "fdm_filament_pet",
+            "sub_path": "filament/fdm_filament_pet.json"
+        },
+        {
+            "name": "fdm_filament_abs",
+            "sub_path": "filament/fdm_filament_abs.json"
+        },
+        {
+            "name": "fdm_filament_pc",
+            "sub_path": "filament/fdm_filament_pc.json"
+        },
+        {
+            "name": "fdm_filament_pa6+cf",
+            "sub_path": "filament/fdm_filament_pa6+cf.json"
+        },
+        {
+            "name": "Generic PLA @BBL-PC-Surface",
+            "sub_path": "filament/Generic PLA @BBL-PC-Surface.json"
+        },
+        {
+            "name": "ALL PLA Silk with Glue @BBL-PC-Surface",
+            "sub_path": "filament/ALL PLA Silk with Glue @BBL-PC-Surface.json"
+        },
+        {
+            "name": "ALL PLA EXP.Silk with Glue @BBL-PC-Surface",
+            "sub_path": "filament/ALL PLA EXP.Silk with Glue @BBL-PC-Surface.json"
+        },
+        {
+            "name": "Generic TPU83 @BBL-PC-Surface",
+            "sub_path": "filament/Generic TPU83 @BBL-PC-Surface.json"
+        },
+        {
+            "name": "Generic TPU87 @BBL-PC-Surface",
+            "sub_path": "filament/Generic TPU87 @BBL-PC-Surface.json"
+        },
+        {
+            "name": "Generic TPU90 @BBL-PC-Surface",
+            "sub_path": "filament/Generic TPU90 @BBL-PC-Surface.json"
+        },
+        {
+            "name": "Generic TPU95 @BBL-PC-Surface",
+            "sub_path": "filament/Generic TPU95 @BBL-PC-Surface.json"
+        },
+        {
+            "name": "Generic PETG @BBL-PC-Surface",
+            "sub_path": "filament/Generic PETG @BBL-PC-Surface.json"
+        },
+        {
+            "name": "Generic ABS @BBL-PC-Surface",
+            "sub_path": "filament/Generic ABS @BBL-PC-Surface.json"
+        },
+        {
+            "name": "Generic TPU @BBL-PC-Surface",
+            "sub_path": "filament/Generic TPU @BBL-PC-Surface.json"
+        },
+        {
+            "name": "PolyFlex TPU95HF @BBL-PC-Surface",
+            "sub_path": "filament/PolyFlex TPU95HF @BBL-PC-Surface.json"
+        },
+        {
+            "name": "PolyTerra PLA~ @BBL-PC-Surface",
+            "sub_path": "filament/PolyTerra PLA~ @BBL-PC-Surface.json"
+        },
+        {
+            "name": "PolyLite PLA~ @BBL-PC-Surface",
+            "sub_path": "filament/PolyLite PLA~ @BBL-PC-Surface.json"
+        },
+        {
+            "name": "PolyLite PLA Pro~ @BBL-PC-Surface",
+            "sub_path": "filament/PolyLite PLA Pro~ @BBL-PC-Surface.json"
+        },
+        {
+            "name": "PolyLite PLA Silk~ @BBL-PC-Surface",
+            "sub_path": "filament/PolyLite PLA Silk~ @BBL-PC-Surface.json"
+        },
+        {
+            "name": "PolyMax PLA~ @BBL-PC-Surface",
+            "sub_path": "filament/PolyMax PLA~ @BBL-PC-Surface.json"
+        },
+        {
+            "name": "PolyWood PLA~ @BBL-PC-Surface",
+            "sub_path": "filament/PolyWood PLA~ @BBL-PC-Surface.json"
+        },
+        {
+            "name": "Rock PLA @BBL-PC-Surface",
+            "sub_path": "filament/Rock PLA @BBL-PC-Surface.json"
+        },
+        {
+            "name": "kexcelled PLA K5 Sparkle @BBL-PC-Surface",
+            "sub_path": "filament/kexcelled PLA K5 Sparkle @BBL-PC-Surface.json"
+        },
+        {
+            "name": "kexcelled PLA Silk~ @BBL-PC-Surface",
+            "sub_path": "filament/kexcelled PLA Silk~ @BBL-PC-Surface.json"
+        },
+        {
+            "name": "kexcelled PLA K5~ @BBL-PC-Surface",
+            "sub_path": "filament/kexcelled PLA K5~ @BBL-PC-Surface.json"
+        },
+        {
+            "name": "kexcelled PLA K6~ @BBL-PC-Surface",
+            "sub_path": "filament/kexcelled PLA K6~ @BBL-PC-Surface.json"
+        },
+        {
+            "name": "kexcelled PLA K6CF~ @BBL-PC-Surface",
+            "sub_path": "filament/kexcelled PLA K6CF~ @BBL-PC-Surface.json"
+        },
+        {
+            "name": "kexcelled PLA K5M~ @BBL-PC-Surface",
+            "sub_path": "filament/kexcelled PLA K5M~ @BBL-PC-Surface.json"
+        },
+        {
+            "name": "kexcelled PLA K5P~ @BBL-PC-Surface",
+            "sub_path": "filament/kexcelled PLA K5P~ @BBL-PC-Surface.json"
+        },
+        {
+            "name": "esun PLA @BBL-PC-Surface",
+            "sub_path": "filament/esun PLA @BBL-PC-Surface.json"
+        },
+        {
+            "name": "esun PLA+~ @BBL-PC-Surface",
+            "sub_path": "filament/esun PLA+~ @BBL-PC-Surface.json"
+        },
+        {
+            "name": "esun PLA Matte~ @BBL-PC-Surface",
+            "sub_path": "filament/esun PLA Matte~ @BBL-PC-Surface.json"
+        },
+        {
+            "name": "esun PLA Silk~ @BBL-PC-Surface",
+            "sub_path": "filament/esun PLA Silk~ @BBL-PC-Surface.json"
+        },
+        {
+            "name": "esun PLA ST @BBL-PC-Surface",
+            "sub_path": "filament/esun PLA ST @BBL-PC-Surface.json"
+        },
+        {
+            "name": "PolyLite ABS @BBL-PC-Surface",
+            "sub_path": "filament/PolyLite ABS @BBL-PC-Surface.json"
+        },
+        {
+            "name": "PolyLite ASA @BBL-PC-Surface",
+            "sub_path": "filament/PolyLite ASA @BBL-PC-Surface.json"
+        },
+        {
+            "name": "kexcelled ABS K5 @BBL-PC-Surface",
+            "sub_path": "filament/kexcelled ABS K5 @BBL-PC-Surface.json"
+        },
+        {
+            "name": "kexcelled ASA K5 @BBL-PC-Surface",
+            "sub_path": "filament/kexcelled ASA K5 @BBL-PC-Surface.json"
+        },
+        {
+            "name": "kexcelled ABS K5T @BBL-PC-Surface",
+            "sub_path": "filament/kexcelled ABS K5T @BBL-PC-Surface.json"
+        },
+        {
+            "name": "esun ABS @BBL-PC-Surface",
+            "sub_path": "filament/esun ABS @BBL-PC-Surface.json"
+        },
+        {
+            "name": "esun ABS+ @BBL-PC-Surface",
+            "sub_path": "filament/esun ABS+ @BBL-PC-Surface.json"
+        },
+        {
+            "name": "kexcelled PETG K5 @BBL-PC-Surface",
+            "sub_path": "filament/kexcelled PETG K5 @BBL-PC-Surface.json"
+        },
+        {
+            "name": "kexcelled PETG K6 @BBL-PC-Surface",
+            "sub_path": "filament/kexcelled PETG K6 @BBL-PC-Surface.json"
+        },
+        {
+            "name": "PolyMax PETG @BBL-PC-Surface",
+            "sub_path": "filament/PolyMax PETG @BBL-PC-Surface.json"
+        },
+        {
+            "name": "PolyLite PETG @BBL-PC-Surface",
+            "sub_path": "filament/PolyLite PETG @BBL-PC-Surface.json"
+        },
+        {
+            "name": "esun PETG @BBL-PC-Surface",
+            "sub_path": "filament/esun PETG @BBL-PC-Surface.json"
+        },
+        {
+            "name": "PolySupport @BBL-PC-Surface",
+            "sub_path": "filament/PolySupport @BBL-PC-Surface.json"
+        },
+        {
+            "name": "PolyDissolve @BBL-PC-Surface",
+            "sub_path": "filament/PolyDissolve @BBL-PC-Surface.json"
+        },
+        {
+            "name": "PolyMide PA6-CF @BBL-EP-Surface",
+            "sub_path": "filament/PolyMide PA6-CF @BBL-EP-Surface.json"
+        },
+        {
+            "name": "PolyMide PA12-CF @BBL-EP-Surface",
+            "sub_path": "filament/PolyMide PA12-CF @BBL-EP-Surface.json"
+        },
+        {
+            "name": "PolyMide PA6-GF @BBL-EP-Surface",
+            "sub_path": "filament/PolyMide PA6-GF @BBL-EP-Surface.json"
+        },
+        {
+            "name": "PolyMide CoPA @BBL-EP-Surface",
+            "sub_path": "filament/PolyMide CoPA @BBL-EP-Surface.json"
+        },
+        {
+            "name": "kexcelled PET K7CF @BBL-EP-Surface",
+            "sub_path": "filament/kexcelled PET K7CF @BBL-EP-Surface.json"
+        },
+        {
+            "name": "kexcelled PAHT K7CFLM @BBL-EP-Surface",
+            "sub_path": "filament/kexcelled PAHT K7CFLM @BBL-EP-Surface.json"
+        },
+        {
+            "name": "BBL PA-CF @BBL-EP-Surface",
+            "sub_path": "filament/BBL PA-CF @BBL-EP-Surface.json"
+        },
+        {
+            "name": "kexcelled PC K7 @BBL-EP-Surface",
+            "sub_path": "filament/kexcelled PC K7 @BBL-EP-Surface.json"
+        },
+        {
+            "name": "PolyLite PC @BBL-EP-Surface",
+            "sub_path": "filament/PolyLite PC @BBL-EP-Surface.json"
+        },
+        {
+            "name": "PolyMax PC @BBL-EP-Surface",
+            "sub_path": "filament/PolyMax PC @BBL-EP-Surface.json"
+        }
+    ],
+    "machine_list": [
+        {
+            "name": "fdm_machine_common",
+            "sub_path": "machine/fdm_machine_common.json"
+        },
+        {
+            "name": "fdm_bbl_3dp_001_common",
+            "sub_path": "machine/fdm_bbl_3dp_001_common.json"
+        },
+        {
+            "name": "Bambulab BBL-3DP-001-V4-normal",
+            "sub_path": "machine/Bambulab BBL-3DP-001-V4-normal.json"
+        },
+        {
+            "name": "Bambulab BBL-3DP-001-V5-normal",
+            "sub_path": "machine/Bambulab BBL-3DP-001-V5-normal.json"
+        }
+    ]
+}

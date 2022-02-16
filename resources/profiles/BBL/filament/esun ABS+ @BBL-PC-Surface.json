@@ -1,0 +1,12 @@
+{
+    "type": "filament",
+    "name": "esun ABS+ @BBL-PC-Surface",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_abs",
+    "filament_vendor": "esun",
+    "temperature": [
+        "250"
+    ],
+    "compatible_printers_condition": "nozzle_diameter[0]!=0.8"
+}

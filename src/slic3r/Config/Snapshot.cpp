@@ -17,6 +17,8 @@
 #include "libslic3r/Config.hpp"
 #include "libslic3r/FileParserError.hpp"
 #include "libslic3r/Utils.hpp"
+//BBS
+#include "libslic3r/Preset.hpp"
 
 #include "../GUI/GUI.hpp"
 #include "../GUI/GUI_App.hpp"
@@ -105,11 +107,11 @@ void Snapshot::load_ini(const std::string &path)
     	} else if (section.first == "presets") {
             // Load the names of the active presets.
             for (auto &kvp : section.second) {
-                if (kvp.first == "print") {
+                if (kvp.first == PRESET_PRINT_NAME) {
                     this->print = kvp.second.data();
                 } else if (kvp.first == "sla_print") {
                     this->sla_print = kvp.second.data();
-                } else if (boost::starts_with(kvp.first, "filament")) {
+                } else if (boost::starts_with(kvp.first, PRESET_FILAMENT_NAME)) {
                     int idx = 0;
                     if (kvp.first == "filament" || sscanf(kvp.first.c_str(), "filament_%d", &idx) == 1) {
                         if (int(this->filaments.size()) <= idx)
@@ -118,7 +120,7 @@ void Snapshot::load_ini(const std::string &path)
                     }
                 } else if (kvp.first == "sla_material") {
                     this->sla_material = kvp.second.data();
-                } else if (kvp.first == "printer") {
+                } else if (kvp.first == PRESET_PRINTER_NAME) {
                     this->printer = kvp.second.data();
                 } else if (kvp.first == "physical_printer") {
                     this->physical_printer = kvp.second.data();
@@ -221,16 +223,16 @@ void Snapshot::export_selections(AppConfig &config) const
 {
     assert(filaments.size() >= 1);
     config.clear_section("presets");
-    config.set("presets", "print",     print);
+    config.set("presets", PRESET_PRINT_NAME,     print);
     config.set("presets", "sla_print", sla_print);
-    config.set("presets", "filament",  filaments.front());
+    config.set("presets", PRESET_FILAMENT_NAME,  filaments.front());
     for (unsigned i = 1; i < filaments.size(); ++i) {
         char name[64];
         sprintf(name, "filament_%u", i);
         config.set("presets", name, filaments[i]);
     }
     config.set("presets", "sla_material",     sla_material);
-    config.set("presets", "printer",          printer);
+    config.set("presets", PRESET_PRINTER_NAME,          printer);
     config.set("presets", "physical_printer", physical_printer);
 }
 
@@ -243,7 +245,7 @@ void Snapshot::export_vendor_configs(AppConfig &config) const
 }
 
 //BBS: change directories by desigh
-static constexpr auto snapshot_subdirs = { PRESET_SLICING_DIR, PRESET_SLA_SLICING_DIR, PRESET_FILAMENT_DIR, PRESET_SLA_FILAMENT_DIR, PRESET_PRINTER_DIR, "physical_printer", PRESET_SYSTEM_DIR };
+static constexpr auto snapshot_subdirs = { PRESET_PRINT_NAME, PRESET_SLA_PRINT_NAME, PRESET_FILAMENT_NAME, PRESET_SLA_MATERIALS_NAME, PRESET_PRINTER_NAME, "physical_printer", PRESET_SYSTEM_DIR };
 //static constexpr auto snapshot_subdirs = { "print", "sla_print", "filament", "sla_material", "printer", "physical_printer", "vendor" };
 
 // Perform a deep compare of the active print / sla_print / filament / sla_material / printer / physical_printer / vendor directories.
@@ -401,11 +403,11 @@ const Snapshot&	SnapshotDB::take_snapshot(const AppConfig &app_config, Snapshot:
 	snapshot.comment 				 = comment;
 	snapshot.reason 				 = reason;
 	// Active presets at the time of the snapshot.
-    snapshot.print                   = app_config.get("presets", "print");
+    snapshot.print                   = app_config.get("presets", PRESET_PRINT_NAME);
     snapshot.sla_print               = app_config.get("presets", "sla_print");
-    snapshot.filaments.emplace_back(app_config.get("presets", "filament"));
+    snapshot.filaments.emplace_back(app_config.get("presets", PRESET_FILAMENT_NAME));
     snapshot.sla_material            = app_config.get("presets", "sla_material");
-    snapshot.printer                 = app_config.get("presets", "printer");
+    snapshot.printer                 = app_config.get("presets", PRESET_PRINTER_NAME);
     snapshot.physical_printer        = app_config.get("presets", "physical_printer");
     for (unsigned i = 1; i < 1000; ++ i) {
         char name[64];
