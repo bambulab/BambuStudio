@@ -177,8 +177,8 @@ public:
     enum TabPosition
     {
         tp3DEditor = 0,
-        tpPreview = 1,
-        tpSettings = 2,
+        tpSettings = 1,
+        tpPreview = 2,
         tpMonitor = 3,
     };
 
