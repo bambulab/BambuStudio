@@ -179,15 +179,21 @@ namespace Slic3r {
     {
         try {
             AppConfig* config = GUI::wxGetApp().app_config;
-            std::string account = config->get("user", "account");
-            std::string token = config->get("user", "token");
-            std::string user_id = config->get("user", "user_id");
-            std::string autotest_token = config->get("user", "autotest_token");
-            AccountInfo::LoginStatus status = (AccountInfo::LoginStatus)std::stoi(config->get("user", "login_status"));
-            AccountInfo* info = new AccountInfo(account, user_id, status);
-            info->m_autotest_token = autotest_token;
-            info->set_token(token);
-            return info;
+            if (config->has_section("user")) {
+                std::string account = config->get("user", "account");
+                std::string token = config->get("user", "token");
+                std::string user_id = config->get("user", "user_id");
+                std::string autotest_token = config->get("user", "autotest_token");
+                AccountInfo::LoginStatus status = AccountInfo::LoginStatus::STATUS_LOGOUT;
+                if (!config->get("user", "login_status").empty())
+                    status = (AccountInfo::LoginStatus)std::stoi(config->get("user", "login_status"));
+                AccountInfo* info = new AccountInfo(account, user_id, status);
+                info->m_autotest_token = autotest_token;
+                info->set_token(token);
+                return info;
+            } else {
+                return nullptr;
+            }
         }
         catch (std::exception& e)
         {
