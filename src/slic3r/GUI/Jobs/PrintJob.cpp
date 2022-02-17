@@ -55,7 +55,7 @@ void PrintJob::process()
 
     // save project, profile, task, subtask info to local, default_output_file as project name
     std::string project_name = wxGetApp().plater()->get_project_name().ToUTF8().data();
-    BBLProject* project = new BBLProject(project_name, BBLProject::ProjectType::PROJECT_3MF);
+    BBLProject* project = new BBLProject(project_name);
     project->project_3mf_file = job_data._3mf_path.string();
     project->project_path = fs::path(project->project_3mf_file);
 
@@ -74,7 +74,6 @@ void PrintJob::process()
     BBLProfile* profile = new BBLProfile(project);
     // set current print preset to profile_name
     profile->profile_name = wxGetApp().preset_bundle->prints.get_selected_preset_name();
-    profile->upload_filename = project->project_path.filename().string();
     
     BOOST_LOG_TRIVIAL(trace) << "print_job: request profile id";
     res = c->request_profile_id(profile,
@@ -143,7 +142,7 @@ void PrintJob::process()
     /* put notifications */
     int err_code;
     std::string err_msg;
-    c->put_notification(profile, err_code, err_msg);
+    c->put_notification(profile, project->project_path.filename().string(), err_code, err_msg);
     if (err_code != 0) {
         msg = wxString::Format("error code: %d, error msg: %s", err_code, err_msg);
         update_status(10, msg);

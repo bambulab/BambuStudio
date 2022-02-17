@@ -2104,6 +2104,9 @@ struct Plater::priv
     bool                        inside_snapshot_capture() { return m_prevent_snapshots != 0; }
     bool                        process_completed_with_error { false };
    
+    //BBS: project
+    BBLProject                  project;
+
     //BBS: add print project related logic
     void update_fff_scene_only_shells(bool only_shells = true);
     //BBS: add popup object table logic
@@ -2118,9 +2121,12 @@ private:
     void undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator it_snapshot);
     void update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bool temp_snapshot_was_taken = false);
 
-    // path to project file stored with no extension
-    wxString 					m_project_filename;
+    // path to project folder stored with no extension
+    boost::filesystem::path     m_project_folder;
+
+    /* display project name */
     wxString                    m_project_name;
+
     Slic3r::UndoRedo::Stack 	m_undo_redo_stack_main;
     Slic3r::UndoRedo::Stack 	m_undo_redo_stack_gizmos;
     Slic3r::UndoRedo::Stack    *m_undo_redo_stack_active = &m_undo_redo_stack_main;
@@ -2173,7 +2179,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     // BBS
     //, view_toolbar(GLToolbar::Radio, "View")
     , collapse_toolbar(GLToolbar::Normal, "Collapse")
-    //, m_project_filename(DEFAULT_PROJECT_NAME) // BBS no project name
     //BBS :partplatelist construction
     , partplate_list(this->q, &model)
     // BBS
@@ -5503,7 +5508,8 @@ PlateBBoxData Plater::priv::generate_first_layer_bbox()
 
 wxString Plater::priv::get_project_filename(const wxString& extension) const
 {
-    return m_project_filename.empty() ? "" : m_project_filename + extension;
+    auto full_filename = m_project_folder / std::string((m_project_name + extension).mb_str(wxConvUTF8));
+    return m_project_folder.empty() ? "" : from_path(full_filename);
 }
 
 wxString Plater::priv::get_project_name()
@@ -5535,7 +5541,7 @@ void Plater::priv::set_project_filename(const wxString& filename)
         full_path.replace_extension("");
     }
 
-    m_project_filename = from_path(full_path);
+    m_project_folder = full_path.parent_path();
 
     //BBS
     set_project_name(full_path.filename().generic_wstring());
@@ -6628,13 +6634,13 @@ void Plater::import_model_id(const std::string& model_id, const std::string& pro
 
     boost::filesystem::path target_path;
 
+    BBLProject* project = &p->project;
+    project->project_model_id = model_id;
+
     /* prepare project and profile */
-    boost::thread import_thread = Slic3r::create_thread([&percent, &cont, &cancel, &msg, &target_path, &download_ok, model_id, profile_id]{
+    boost::thread import_thread = Slic3r::create_thread([&project, &percent, &cont, &cancel, &msg, &target_path, &download_ok, model_id, profile_id]{
         Slic3r::AccountManager* c = wxGetApp().getAccountManager();
-        BBLProject* project = new BBLProject();
-        //TODO give a project name
-        project->project_name = "bbl_import_project_name";
-        project->project_model_id = model_id;
+
         c->request_project_id(project);
         if (project->project_id.empty()) {
             cont = false;
@@ -6722,7 +6728,9 @@ void Plater::import_model_id(const std::string& model_id, const std::string& pro
 
     if (download_ok) {
         BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << target_path.string();
+        /* load project */
         this->load_project(encode_path(target_path.string().c_str()));
+        p->set_project_name(from_u8(project->project_name));
     }
 }
 
@@ -7959,6 +7967,8 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, bool silence,
     store_params.skip_static = backup;
     store_params.silence = silence;
     store_params.id_bboxes = plate_bboxes;//BBS
+    store_params.project = &p->project;
+
     if (Slic3r::store_bbs_3mf(store_params)) {
     //if (Slic3r::store_bbs_3mf(path_u8.c_str(), &p->model, plate_data_list, project_presets, export_config ? &cfg : nullptr, full_pathnames, thumbnails, true /*zip64*/, backup, proFn, silence)) {
         if (!silence) {
@@ -8031,8 +8041,8 @@ void Plater::publish_project()
 
     /* create project */
     Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
-    std::string project_name = std::string(p->get_project_name().mb_str(wxConvUTF8));
-    BBLProject* project = new BBLProject(project_name, BBLProject::ProjectType::PROJECT_3MF);
+    BBLProject* project = &p->project;
+    project->project_name = std::string(p->get_project_name().mb_str(wxConvUTF8));
     project->project_3mf_file = temp_path.string();
     project->project_path = temp_path;
 
@@ -8040,14 +8050,16 @@ void Plater::publish_project()
     profile->profile_name = wxGetApp().preset_bundle->prints.get_edited_preset().name;
 
     boost::thread upload_thread = Slic3r::create_thread([c, &msg, &cont, &project, &profile, &percent, &upload_finish, temp_path] {
+        int res = 0;
         msg = _L("preparing your designs, reqeust project id...");
 
-        // move to thread and join
-        int res = c->request_project_id(project);
-        if (res != 0 || project->project_id.empty()) {
-            msg = _L("preparing, request project id failed!");
-            cont = false;
-            return;
+        if (project->project_id.empty()) {
+            res = c->request_project_id(project);
+            if (res != 0 || project->project_id.empty()) {
+                msg = _L("preparing, request project id failed!");
+                cont = false;
+                return;
+            }
         }
 
         // set project id
@@ -8065,7 +8077,7 @@ void Plater::publish_project()
 
         msg = _L("uploading...");
 
-        res = c->upload_3mf(profile, nullptr,
+        res = c->upload_3mf_to_oss(profile, nullptr,
             [&percent, &cont, &msg](Http::Progress progress, bool& cancel) {
                 if (!cont) cancel = true;
 
@@ -8075,10 +8087,24 @@ void Plater::publish_project()
                 }
                 msg = wxString::Format("uploaded %d", percent);
             });
-        if (res == 0) {
-            upload_finish = true;
+
+        if (res < 0) {
+            msg = _L("upload 3mf failed!");
+            cont = false;
+            return;
         }
 
+        int err_code = 0;
+        std::string err_msg;
+        std::string upload_filename = (boost::format("%1%.3mf") % project->project_name).str();
+        c->put_notification(profile, upload_filename, err_code, err_msg);
+        if (err_code != 0) {
+            msg = wxString::Format("error code: %d, error msg: %s", err_code, err_msg);
+            cont = false;
+            return;
+        }
+
+        upload_finish = true;
         cont = false;
     });
 
@@ -8095,11 +8121,15 @@ void Plater::publish_project()
 
     cont_dlg = true;
 
+    /* set project to curr plater project, save project model id */
+    p->project.project_model_id = project->project_model_id;
+
     if (upload_finish) {
         wxString url = wxString::Format(MY_MODEL_PUBLISH_URL_FORMAT,
             project->project_model_id,
             project->project_id,
             profile->profile_id);
+        url = wxString(wxGetApp().app_config->get_web_host_url()) + url;
         GUI::wxGetApp().load_url(url);
     } else {
         while(cont_dlg) {
@@ -8108,8 +8138,6 @@ void Plater::publish_project()
         }
     }
 
-    if (project)
-        delete project;
     if (profile)
         delete profile;
 }

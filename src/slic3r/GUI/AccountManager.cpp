@@ -669,14 +669,16 @@ namespace Slic3r {
             .perform_sync();
     }
 
-    void AccountManager::put_notification(BBLProfile* profile, int &err_code, std::string &error)
+    void AccountManager::put_notification(BBLProfile* profile, std::string upload_filename, int &err_code, std::string &error)
     {
+        assert(!upload_filename.empty());
+
         std::string url = (boost::format("%1%/iot-service/api/user/notification") % host).str();
         Http http = Http::put2(std::move(url));
 
         json j;
         j["upload"]["ticket"] = profile->upload_ticket;
-        j["upload"]["origin_file_name"] = profile->upload_filename;
+        j["upload"]["origin_file_name"] = upload_filename;
 
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
@@ -1418,24 +1420,13 @@ namespace Slic3r {
                 [this, project, resFn](std::string body, unsigned) {
                     try {
                         BOOST_LOG_TRIVIAL(trace) << "AccountManager::request_project_id, body=" << body;
-                        std::stringstream ss(body);
-                        pt::ptree root;
-                        pt::read_json(ss, root);
-                        boost::optional<std::string> message = root.get_optional<std::string>("message");
-                        boost::optional<std::string> project_id = root.get_optional<std::string>("project_id");
-                        boost::optional<std::string> model_id = root.get_optional<std::string>("model_id");
-                        if (message.has_value()) {
-                            if (message.value().compare(MSG_SUCCESS) == 0) {
-                                if (project_id.has_value() && model_id.has_value()) {
-                                    project->project_id = project_id.value();
-                                    project->project_model_id = model_id.value();
-                                    if (resFn) {
-                                        resFn(0, "");
-                                    }
-                                    //success return
-                                    return;
-                                }
-                            }
+
+                        json j = json::parse(body);
+
+                        if (j["message"].get<std::string>() == MSG_SUCCESS) {
+                            project->project_id = j["project_id"].get<std::string>();
+                            project->project_model_id = j["model_id"].get<std::string>();
+                            project->project_name = j["name"].get<std::string>();
                         }
 
                         // failed return

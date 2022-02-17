@@ -66,6 +66,7 @@ const unsigned int MM_PAINTING_VERSION           = 1;
 const std::string SLIC3RPE_FDM_SUPPORTS_PAINTING_VERSION = "slic3rpe:FdmSupportsPaintingVersion";
 const std::string SLIC3RPE_SEAM_PAINTING_VERSION         = "slic3rpe:SeamPaintingVersion";
 const std::string SLIC3RPE_MM_PAINTING_VERSION           = "slic3rpe:MmPaintingVersion";
+const std::string BBL_MODEL_ID_TAG                       = "model_id";
 
 const std::string MODEL_FOLDER = "3D/";
 const std::string MODEL_EXTENSION = ".model";
@@ -512,6 +513,7 @@ namespace Slic3r {
         unsigned int m_fdm_supports_painting_version = 0;
         unsigned int m_seam_painting_version         = 0;
         unsigned int m_mm_painting_version           = 0;
+        std::string  m_model_id;
 
         XML_Parser m_xml_parser;
         // Error code returned by the application side of the parser. In that case the expat may not reliably deliver the error state
@@ -552,7 +554,9 @@ namespace Slic3r {
 
         //BBS: add plate data related logic
         // add backup & restore logic
-        bool load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version, bool& is_bbl_3mf, bool load_aux, bool load_restore, Import3mfProgressFn proFn = nullptr);
+        bool load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets,
+            DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version, bool& is_bbl_3mf, bool load_aux,
+            bool load_restore, Import3mfProgressFn proFn, BBLProject *project = nullptr);
         unsigned int version() const { return m_version; }
 
     private:
@@ -570,7 +574,14 @@ namespace Slic3r {
 
         //BBS: add plate data related logic
         // add backup & restore logic
-        bool _load_model_from_file(std::string filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, Import3mfProgressFn proFn = nullptr);
+        bool _load_model_from_file(std::string filename,
+            Model& model,
+            PlateDataPtrs& plate_data_list,
+            std::vector<Preset*>& project_presets,
+            DynamicPrintConfig& config,
+            ConfigSubstitutionContext& config_substitutions,
+            Import3mfProgressFn proFn,
+            BBLProject* project = nullptr);
         bool _extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         bool _extract_model_from_file(std::string const& file); // mesh only file -- backup & restore logic
         void _extract_layer_heights_profile_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
@@ -712,7 +723,9 @@ namespace Slic3r {
 
     //BBS: add plate data related logic
         // add backup & restore logic
-    bool _BBS_3MF_Importer::load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version, bool& is_bbl_3mf, bool load_aux, bool load_restore, Import3mfProgressFn proFn)
+    bool _BBS_3MF_Importer::load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets,
+        DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, bool check_version,bool& is_bbl_3mf, bool load_aux, bool load_restore,
+        Import3mfProgressFn proFn, BBLProject *project)
     {
         m_version = 0;
         m_fdm_supports_painting_version = 0;
@@ -752,7 +765,7 @@ namespace Slic3r {
                 model.get_backup_path() + "/lock.txt",
                 boost::lexical_cast<std::string>(get_current_pid()));
         }
-        bool result = _load_model_from_file(filename, model, plate_data_list, project_presets, config, config_substitutions, proFn);
+        bool result = _load_model_from_file(filename, model, plate_data_list, project_presets, config, config_substitutions, proFn, project);
         is_bbl_3mf = m_is_bbl_3mf;
         // save for restore
         if (result && load_aux && !load_restore) {
@@ -782,7 +795,15 @@ namespace Slic3r {
     }
 
     //BBS: add plate data related logic
-    bool _BBS_3MF_Importer::_load_model_from_file(std::string filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, Import3mfProgressFn proFn)
+    bool _BBS_3MF_Importer::_load_model_from_file(
+        std::string filename,
+        Model& model,
+        PlateDataPtrs& plate_data_list,
+        std::vector<Preset*>& project_presets,
+        DynamicPrintConfig& config,
+        ConfigSubstitutionContext& config_substitutions,
+        Import3mfProgressFn proFn,
+        BBLProject *project)
     {
         bool cb_cancel = false;
         //BBS progress point
@@ -878,6 +899,9 @@ namespace Slic3r {
                             close_zip_reader(&archive);
                             add_error("Archive does not contain a valid model");
                             return false;
+                        }
+                        if (project) {
+                            project->project_model_id = m_model_id;
                         }
                     }
                     catch (const std::exception& e)
@@ -2469,6 +2493,8 @@ namespace Slic3r {
             m_mm_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
             check_painting_version(m_mm_painting_version, MM_PAINTING_VERSION,
                 _(L("The selected 3MF contains multi-material painted object using a newer version of BambuStudio and is not compatible.")));
+        } else if (m_curr_metadata_name == BBL_MODEL_ID_TAG) {
+            m_model_id = m_curr_characters;
         }
 
         return true;
@@ -3046,7 +3072,8 @@ namespace Slic3r {
             const std::vector<ThumbnailData*>& thumbnail_data,
             Export3mfProgressFn proFn,
             const std::vector<ThumbnailData*>& calibration_data,
-            const std::vector<PlateBBoxData*>& id_bboxes);
+            const std::vector<PlateBBoxData*>& id_bboxes,
+            BBLProject* project = nullptr);
 
         bool _add_content_types_file_to_archive(mz_zip_archive& archive);
 
@@ -3054,7 +3081,7 @@ namespace Slic3r {
         bool _add_calibration_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data, int index);
         bool _add_bbox_file_to_archive(mz_zip_archive& archive, const PlateBBoxData& id_bboxes, int index);
         bool _add_relationships_file_to_archive(mz_zip_archive& archive);
-        bool _add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data, Export3mfProgressFn proFn = nullptr);
+        bool _add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data, Export3mfProgressFn proFn = nullptr, BBLProject* project = nullptr);
         bool _add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int& object_id, ModelObject& object, BuildItemsList& build_items, VolumeToOffsetsMap& volumes_offsets);
         bool _add_mesh_to_object_stream(std::function<bool(std::string&, bool)> const& flush, ModelObject& object, VolumeToOffsetsMap& volumes_offsets);
         bool _add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items);
@@ -3124,7 +3151,7 @@ namespace Slic3r {
         boost::filesystem::remove(filename + ".tmp", ec);
 
         bool result = _save_model_to_file(filename + ".tmp", *store_params.model, store_params.plate_data_list, store_params.project_presets, store_params.config,
-            store_params.thumbnail_data, store_params.proFn, store_params.calibration_thumbnail_data, store_params.id_bboxes);
+            store_params.thumbnail_data, store_params.proFn, store_params.calibration_thumbnail_data, store_params.id_bboxes, store_params.project);
         if (result) {
             boost::filesystem::rename(filename + ".tmp", filename, ec);
             if (!store_params.silence)
@@ -3158,7 +3185,8 @@ namespace Slic3r {
         const std::vector<ThumbnailData*>& thumbnail_data,
         Export3mfProgressFn proFn,
         const std::vector<ThumbnailData*>& calibration_data,
-        const std::vector<PlateBBoxData*>& id_bboxes)
+        const std::vector<PlateBBoxData*>& id_bboxes,
+        BBLProject* project)
     {
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
@@ -3278,7 +3306,7 @@ namespace Slic3r {
         // Adds model file ("3D/3dmodel.model").
         // This is the one and only file that contains all the geometry (vertices and triangles) of all ModelVolumes.
         IdToObjectDataMap objects_data;
-        if (!_add_model_file_to_archive(filename, archive, model, objects_data, proFn)) {
+        if (!_add_model_file_to_archive(filename, archive, model, objects_data, proFn, project)) {
             close_zip_writer(&archive);
             boost::filesystem::remove(filename);
             return false;
@@ -3588,7 +3616,7 @@ namespace Slic3r {
         stream << std::setprecision(std::numeric_limits<float>::max_digits10);
     }
 
-    bool _BBS_3MF_Exporter::_add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data, Export3mfProgressFn proFn)
+    bool _BBS_3MF_Exporter::_add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data, Export3mfProgressFn proFn, BBLProject* project)
     {
         mz_zip_writer_staged_context context;
         if (!mz_zip_writer_add_staged_open(&archive, &context, MODEL_FILE.c_str(), 
@@ -3628,6 +3656,11 @@ namespace Slic3r {
             stream << " <" << METADATA_TAG << " name=\"Copyright\">" << "</" << METADATA_TAG << ">\n";
             stream << " <" << METADATA_TAG << " name=\"LicenseTerms\">" << "</" << METADATA_TAG << ">\n";
             stream << " <" << METADATA_TAG << " name=\"Rating\">" << "</" << METADATA_TAG << ">\n";
+
+            /* save model info */
+            if (project)
+                stream << " <" << METADATA_TAG << " name=\"" << BBL_MODEL_ID_TAG << "\">" << project->project_model_id << "</" << METADATA_TAG << ">\n";
+
             std::string date = Slic3r::Utils::utc_timestamp(Slic3r::Utils::get_current_time_utc());
             // keep only the date part of the string
             date = date.substr(0, 10);
@@ -5019,7 +5052,9 @@ private:
 
 
 //BBS: add plate data list related logic
-bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, std::vector<Preset*>* project_presets, bool check_version, bool* is_bbl_3mf, bool load_aux, bool load_restore, Import3mfProgressFn proFn)
+bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions,
+    Model* model, PlateDataPtrs* plate_data_list, std::vector<Preset*>* project_presets, bool check_version, bool* is_bbl_3mf,
+    bool load_aux, bool load_restore, Import3mfProgressFn proFn, BBLProject *project)
 {
     if (path == nullptr || config == nullptr || model == nullptr)
         return false;
@@ -5027,7 +5062,7 @@ bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstituti
     // All import should use "C" locales for number formatting.
     CNumericLocalesSetter locales_setter;
     _BBS_3MF_Importer importer;
-    bool res = importer.load_model_from_file(path, *model, *plate_data_list, *project_presets, *config, *config_substitutions, check_version, *is_bbl_3mf, load_aux, load_restore, proFn);
+    bool res = importer.load_model_from_file(path, *model, *plate_data_list, *project_presets, *config, *config_substitutions, check_version, *is_bbl_3mf, load_aux, load_restore, proFn, project);
     importer.log_errors();
     handle_legacy_project_loaded(importer.version(), *config);
     return res;

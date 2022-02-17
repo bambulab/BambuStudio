@@ -121,7 +121,7 @@ void GcodePrintJob::process()
         return;
     }
 
-    BBLProject* project = new BBLProject("gcode_project", BBLProject::ProjectType::PROJECT_3MF);
+    BBLProject* project = new BBLProject("gcode_project");
     project->project_3mf_file = _3mf_file_str;
     project->project_path = fs::path(project->project_3mf_file);
 
@@ -167,7 +167,8 @@ void GcodePrintJob::process()
     /* upload and poll */
     BOOST_LOG_TRIVIAL(trace) << "print_job: start to uploading...";
     int* result_ptr = &res;
-    res = account_manager->upload_3mf(profile,
+
+    res = account_manager->upload_3mf_to_oss(profile,
     [this, result_ptr](int result, std::string info) {
             *result_ptr = result;
         if (result == 0) {
@@ -198,6 +199,15 @@ void GcodePrintJob::process()
     if (was_canceled()) {
         update_status(0, "job is canceled");
         return;
+    }
+
+    /* put notifications */
+    int err_code;
+    std::string err_msg;
+    account_manager->put_notification(profile, project->project_path.filename().string(), err_code, err_msg);
+    if (err_code != 0) {
+        wxString msg = wxString::Format("error code: %d, error msg: %s", err_code, err_msg);
+        update_status(10, msg);
     }
 
     /* create Task */

@@ -2,6 +2,7 @@
 #define BBS_3MF_hpp_
 
 #include "../GCode/ThumbnailData.hpp"
+#include "libslic3r/ProjectTask.hpp"
 #include <functional>
 
 namespace Slic3r {
@@ -106,6 +107,8 @@ struct StoreParams
     bool silence = true;
     Export3mfProgressFn proFn = nullptr;
     std::vector<PlateBBoxData*> id_bboxes;
+    BBLProject* project = nullptr;
+    BBLProfile* profile = nullptr;
 
     StoreParams() {}
 };
@@ -114,7 +117,8 @@ struct StoreParams
 //BBS: add plate data list related logic
 // add restore logic
 // Load the content of a 3mf file into the given model and preset bundle.
-extern bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, std::vector<Preset*>* project_presets, bool check_version, bool* is_bbl_3mf, bool load_aux, bool load_restore, Import3mfProgressFn proFn = nullptr);
+extern bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model,
+    PlateDataPtrs* plate_data_list, std::vector<Preset*>* project_presets, bool check_version, bool* is_bbl_3mf, bool load_aux, bool load_restore, Import3mfProgressFn proFn, BBLProject *project = nullptr);
 
 //BBS: add plate data list related logic
 // add backup logic

@@ -923,6 +923,20 @@ void AppConfig::update_last_backup_dir(const std::string& dir)
     this->save();
 }
 
+std::string AppConfig::get_web_host_url()
+{
+    std::string sel = get("iot_environment");
+    if (sel == "0") {
+        return DEV_WEB_HOST_URL;
+    } else if (sel == "1") {
+        return QAT_WEB_HOST_URL;
+    } else if (sel == "2") {
+        return PRE_WEB_HOST_URL;
+    } else {
+        return QAT_WEB_HOST_URL;
+    }
+}
+
 
 void AppConfig::reset_selections()
 {

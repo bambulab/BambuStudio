@@ -16,6 +16,10 @@ using namespace nlohmann;
 #define QAT_HOST_URL    "https://api-qa.bambu-lab.com/v1"
 #define PRE_HOST_URL    "https://api-pre.bambu-lab.com/v1"
 
+#define DEV_WEB_HOST_URL "https://portal-dev.bambu-lab.com"
+#define QAT_WEB_HOST_URL "https://portal-qa.bambu-lab.com"
+#define PRE_WEB_HOST_URL "https://portal-pre.bambu-lab.com"
+
 namespace Slic3r {
 
 class AppConfig
@@ -154,6 +158,8 @@ public:
 	// BBS: backup & restore
 	std::string 		get_last_backup_dir() const;
 	void                update_last_backup_dir(const std::string &dir);
+
+	std::string			get_web_host_url();
 
 	// reset the current print / filament / printer selections, so that 
 	// the  PresetBundle::load_selections(const AppConfig &config) call will select

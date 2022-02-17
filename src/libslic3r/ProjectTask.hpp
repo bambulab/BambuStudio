@@ -172,7 +172,6 @@ public:
     std::string             project_id;         /* parent project_id */
     std::string             upload_url;         /* url for upload 3mf */
     std::string             upload_ticket;      /* ticket for notification */
-    std::string             upload_filename;    /* filename of uploaded */
     BBLProject*             project_;
     std::map<std::string, BBLSliceInfo*>    slice_info; /* key: plate_idx, start at 1, 2, 3, etc. */
     BBLSliceInfo* get_slice_info(std::string plate_idx);
@@ -180,22 +179,16 @@ public:
 
 class BBLProject {
 public:
-    enum ProjectType {
-        PROJECT_3MF = 0,
-        PROJECT_GCODE = 1,
-    };
     BBLProject() {
         /* give a default project name */
         project_name = "Untitled";
     }
-    BBLProject(std::string name, ProjectType type = PROJECT_3MF) {
-        project_type = type;
+    BBLProject(std::string name) {
         project_name = name;
     }
 
-    ProjectType     project_type;
     std::string     project_id;
-    std::string     project_model_id;
+    std::string     project_model_id;       /* model id */
     std::string     project_status;
     std::string     project_create_time;    /* created by cloud */
     std::string     project_url;            /* url storage on cloud */

@@ -16,10 +16,10 @@
 #define BBL_INTERNAL_TEST
 #define BBL_CHECK_USER_REPORT
 
-#define MY_MODEL_PUBLISH_URL_FORMAT     "https://portal-qa.bambu-lab.com/my/models/%s/publish?project_id=%s&profile_id=%s"
-#define MY_COLLECTIONS_URL              "https://portal-qa.bambu-lab.com/my/collections"
-#define MY_PROJECT_LIST_URL             "https://portal-qa.bambu-lab.com/my/projects"
-#define MODEL_STORE_URL                 "https://portal-qa.bambu-lab.com/designs"
+#define MY_MODEL_PUBLISH_URL_FORMAT     "/my/models/%s/publish?project_id=%s&profile_id=%s"
+#define MY_COLLECTIONS_URL              "/my/collections"
+#define MY_PROJECT_LIST_URL             "/my/projects"
+#define MODEL_STORE_URL                 "/designs"
 
 #define POLL_3MF_TIMEOUT    60
 #define DEFAULT_BBL_SETTING_VERSION     "00.00.00.01"
@@ -294,7 +294,7 @@ public:
     void clean_user_data();
     void user_check_report(int* query_task_id, bool* printable);
     // put notification after upload a 3mf file
-    void put_notification(BBLProfile* profile, int &err_code, std::string &error);
+    void put_notification(BBLProfile* profile, std::string upload_filename, int &err_code, std::string &error);
 
     /* myBindList */
     std::mutex listMutex;
