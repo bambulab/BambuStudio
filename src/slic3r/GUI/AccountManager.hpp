@@ -187,15 +187,13 @@ public:
 
 class MachineObject;
 
-#define DEFAULT_HOST "https://api-qa.bambu-lab.com/v1"
-
 class AccountManager
 {
 private:
     AccountInfo* m_curr_user;
 
     std::string m_user_info_filename;
-    std::string host = DEFAULT_HOST;
+    std::string host = "";
     std::string test_host = "https://autotest.bambooolab.com";
     std::string MSG_SUCCESS = "success";
 

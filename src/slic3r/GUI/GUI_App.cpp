@@ -1042,11 +1042,22 @@ GUI_App::GUI_App(EAppMode mode)
     //BBS
     this->init_http_extra_header();
 
-    /* set default host
-    std::string domain = wxGetApp().app_config->get("api_dev_domain") == "1" ? DEFAULT_HOST :
-            wxGetApp().app_config->get("api_rel_domain") == "1" ? "api.bambulab.com" : DEFAULT_HOST;
-    */
-    m_account_manager->set_host(DEFAULT_HOST);
+    if (!app_config->get("iot_environment_custom").empty()) {
+        m_account_manager->set_host(app_config->get("custom_iot_environment"));
+    } else if (!app_config->get("iot_environment").empty()) {
+        std::string sel = app_config->get("iot_environment");
+        if (sel == "0") {
+            m_account_manager->set_host(DEV_HOST_URL);
+        } else if (sel == "1") {
+            m_account_manager->set_host(QAT_HOST_URL);
+        } else if (sel == "2") {
+            m_account_manager->set_host(PRE_HOST_URL);
+        } else {
+            m_account_manager->set_host(QAT_HOST_URL);
+        }
+    } else {
+        m_account_manager->set_host(QAT_HOST_URL);
+    }
 }
 
 GUI_App::~GUI_App()

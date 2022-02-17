@@ -12,6 +12,10 @@
 
 using namespace nlohmann;
 
+#define DEV_HOST_URL    "https://api-dev.bambu-lab.com/v1"
+#define QAT_HOST_URL    "https://api-qa.bambu-lab.com/v1"
+#define PRE_HOST_URL    "https://api-pre.bambu-lab.com/v1"
+
 namespace Slic3r {
 
 class AppConfig

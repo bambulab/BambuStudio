@@ -547,11 +547,18 @@ void PreferencesDialog::create_debug_page()
     wxWindow *item_devlop_mode     = create_item_checkbox(L("devlop mode"), m_panel_debug, L("devlop mode"), 50, "developer_mode");
     wxWindow *item_backup_interval = create_item_input(L("backup_interval"), m_panel_debug, L("backup_interval"), 50, "backup_interval");
 
-    auto radio1 = create_item_radiobox(_L("host: api-qa.bambu-lab.com/v2(develop)"), m_panel_debug, _L("host: api-qa.bambu-lab.com/v2(develop)"), 50, 1, wxString("api_dev_domain"));
-    auto radio2 = create_item_radiobox(_L("host: api.bambulab.com(release)"), m_panel_debug, _L("host: api.bambulab.com(release)"), 50, 1, wxString("api_rel_domain"));
+    auto radio1 = create_item_radiobox(_L("DEV host: api-dev.bambu-lab.com/v1"), m_panel_debug, "", 50, 1, wxString("dev_host"));
+    auto radio2 = create_item_radiobox(_L("QA  host: api-qa.bambu-lab.com/v1"),   m_panel_debug, "", 50, 1, wxString("qa_host"));
+    auto radio3 = create_item_radiobox(_L("PRE host: api-pre.bambu-lab.com/v1"),  m_panel_debug, "", 50, 1, wxString("pre_host"));
     
-    auto radio_select = app_config->get("api_dev_domain") == "1" ? "api_dev_domain":"api_rel_domain";
-    on_select_radio(wxString(radio_select));
+    std::string sel = app_config->get("iot_environment");
+    if (sel == "0") {
+        on_select_radio(wxString("dev_host"));
+    } else if (sel == "1") {
+        on_select_radio(wxString("qa_host"));
+    } else if (sel == "2") {
+        on_select_radio(wxString("pre_host"));
+    }
 
     wxButton *debug_button = new wxButton(m_panel_debug, wxID_ANY, wxT("debug save button"), wxDefaultPosition, wxDefaultSize, 0);
     debug_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
@@ -560,11 +567,23 @@ void PreferencesDialog::create_debug_page()
         auto param = get_select_radio(1);
         AccountManager *manager = wxGetApp().getAccountManager();
         manager->user_logout();
-        std::string domain = param == "api_dev_domain" ? DEFAULT_HOST:"https://api.bambulab.com";
-        app_config->set("api_dev_domain", param == "api_dev_domain" ? "1": "0");
-        app_config->set("api_rel_domain", param == "api_rel_domain" ? "1": "0");
-        manager->set_host(domain);
 
+        std::string old_sel = app_config->get("iot_environment");
+
+        if (param == "dev_host") {
+            app_config->set("iot_environment", "0");
+            manager->set_host(DEV_HOST_URL);
+        } else if (param == "qa_host") {
+            app_config->set("iot_environment", "1");
+            manager->set_host(QAT_HOST_URL);
+        } else if (param == "pre_host") {
+            app_config->set("iot_environment", "2");
+            manager->set_host(PRE_HOST_URL);
+        }
+
+        if (old_sel != app_config->get("iot_environment")) {
+            wxMessageBox(_L("swith cloud environment, please log in again!"));
+        }
 
         // bbs  backup
         app_config->set("backup_interval", std::string(m_backup_interval_time.mb_str()));
@@ -587,6 +606,7 @@ void PreferencesDialog::create_debug_page()
     bSizer->Add(item_backup_interval, 0, wxTOP, 20);
     bSizer->Add(radio1, 0, wxTOP, 20);
     bSizer->Add(radio2, 0, wxTOP, 5);
+    bSizer->Add(radio3, 0, wxTOP, 5);
     bSizer->Add(debug_button, 0, wxALL, 50);
 
     m_panel_debug->SetSizer(bSizer);

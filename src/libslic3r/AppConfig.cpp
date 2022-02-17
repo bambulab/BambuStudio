@@ -256,8 +256,9 @@ void AppConfig::set_defaults()
            set("backup_interval", "10"); 
        }
 
-
-
+    if (get("iot_environment").empty()) {
+        set("iot_environment", "1");
+    }
 
     // Remove legacy window positions/sizes
     erase("app", "main_frame_maximized");

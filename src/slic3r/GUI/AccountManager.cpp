@@ -336,17 +336,21 @@ namespace Slic3r {
 
     int AccountManager::disconnect_mqtt()
     {
-        if (mqtt_cli) {
-            mqtt_cli->stop_consuming();
-            if (mqtt_cli->is_connected()) {
-                mqtt_cli->disconnect();
+        try{
+            if (mqtt_cli) {
+                mqtt_cli->stop_consuming();
+                if (mqtt_cli->is_connected()) {
+                    mqtt_cli->disconnect();
+                }
+                delete mqtt_cli;
+                mqtt_cli = nullptr;
+                reconn_thread.interrupt();
+                if (reconn_thread.joinable()) {
+                    reconn_thread.join();
+                }
             }
-            delete mqtt_cli;
-            mqtt_cli = nullptr;
-            reconn_thread.interrupt();
-            if (reconn_thread.joinable()) {
-                reconn_thread.join();
-            }
+        } catch(...) {
+            ;
         }
         return 0;
     }
@@ -2846,6 +2850,9 @@ namespace Slic3r {
 
     void AccountManager::set_host(std::string host_url)
     {
+        /* invalid token and logout */
+        user_logout();
+
         BOOST_LOG_TRIVIAL(trace) << "set host to " << host_url;
         host = host_url;
     }
