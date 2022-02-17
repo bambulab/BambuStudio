@@ -38,6 +38,7 @@
 // BBS
 #include "PartPlate.hpp"
 #include "Preferences.hpp"
+//#include "Widgets/ProgressDialog.hpp"
 
 #include <fstream>
 #include <string_view>
@@ -140,6 +141,12 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     , m_settings_dialog(this)
     , diff_dialog(this)
 {
+    //reset developer_mode to false  and user_mode to comAdvanced
+    wxGetApp().app_config->set_bool("developer_mode", false);
+    if (wxGetApp().app_config->get("user_mode") == "develop") { 
+        wxGetApp().app_config->set("user_mode", "advanced");
+     }
+
     // BBS
     m_recent_projects.SetMenuPathStyle(wxFH_PATH_SHOW_ALWAYS);
 
