@@ -1884,8 +1884,8 @@ std::string PresetCollection::section_name() const
     case Preset::TYPE_PRINT:        return PRESET_SLICING_DIR;
     case Preset::TYPE_FILAMENT:     return PRESET_FILAMENT_DIR;
     case Preset::TYPE_SLA_PRINT:    return PRESET_SLA_SLICING_DIR;
-    case Preset::TYPE_SLA_MATERIAL: return PRESET_SLA_SLICING_DIR;
-    case Preset::TYPE_PRINTER:      return PRESET_SLA_FILAMENT_DIR;
+    case Preset::TYPE_SLA_MATERIAL: return PRESET_SLA_FILAMENT_DIR;
+    case Preset::TYPE_PRINTER:      return PRESET_PRINTER_DIR;
     default:                        return "invalid";
     }
 }
