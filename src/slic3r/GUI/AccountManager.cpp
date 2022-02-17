@@ -51,9 +51,6 @@ namespace Slic3r {
         if (successFn) {
             successFn(cli_.get_client_id());
         }
-        AccountManager* manager = (AccountManager*)context_;
-
-        boost::thread update_thread = Slic3r::create_thread([manager] { manager->update_subscription(); });
     }
 
     void cloud_conn_callback::on_failure(const mqtt::token& tok)
@@ -83,43 +80,43 @@ namespace Slic3r {
         AccountManager* manager = (AccountManager*)context_;
         if (manager) {
             std::string topic = msg->get_topic();
-            std::map<std::string, MachineObject*>::iterator it = manager->mqtt_topics.find(topic);
-            if (it != manager->mqtt_topics.end()) {
-                std::string json_str;
-                if (it->second) {
-                    try {
-                        // BBS check valid json
-                        char head = *msg->get_payload_ref().c_str();
-                        if (head == '{') {
-                            json j = json::parse(msg->get_payload_str());
-                            if (j.is_null()) return;
-                            json_str = msg->get_payload_str();
-                            BOOST_LOG_TRIVIAL(trace) << "message topic:" << msg->get_topic() << ", payload=" << json_str;
-                        } else {
-                            int result = 0;
-                            lzo_out_len = LZO_OUT_MAX_LEN;
-                            result = lzo_decompress((unsigned char*)msg->get_payload_ref().data(), msg->get_payload().length(), lzo_out, &lzo_out_len);
-                            if (result == 0) {
-                                json_str = std::string((char*)lzo_out, lzo_out_len);
-                                BOOST_LOG_TRIVIAL(trace) << "message topic:" << msg->get_topic() << ", decompress payload=" << json_str;
-                            } else {
-                                BOOST_LOG_TRIVIAL(trace) << "message_arrived: invalid json and decompress failed, result = " << result;
-                            }
+            std::vector<std::string> params;
+            boost::split(params, topic, boost::is_any_of("/"));
+            //BBS device, dev_id, report at least 3 params
+            if (params.size() <= 2) return;
+
+            /* params[1] is dev id, topic is : device/[dev_id]/report */
+            std::map<std::string, MachineObject*>::iterator it = manager->myBindMachineList.find(params[1]);
+            std::string json_str;
+            if (it->second) {
+                try {
+                    // BBS check valid json
+                    char head = *msg->get_payload_ref().c_str();
+                    if (head == '{') {
+                        json j = json::parse(msg->get_payload_str());
+                        if (j.is_null()) return;
+                        json_str = msg->get_payload_str();
+                        BOOST_LOG_TRIVIAL(trace) << "message topic:" << msg->get_topic() << ", payload=" << json_str;
+                    }
+                    else {
+                        int result = 0;
+                        lzo_out_len = LZO_OUT_MAX_LEN;
+                        result = lzo_decompress((unsigned char*)msg->get_payload_ref().data(), msg->get_payload().length(), lzo_out, &lzo_out_len);
+                        if (result == 0) {
+                            json_str = std::string((char*)lzo_out, lzo_out_len);
+                            BOOST_LOG_TRIVIAL(trace) << "message topic:" << msg->get_topic() << ", decompress payload=" << json_str;
+                        }
+                        else {
+                            BOOST_LOG_TRIVIAL(trace) << "message_arrived: invalid json and decompress failed, result = " << result;
                         }
                     }
-                    catch (...) {
-                        ;
-                    }
+                }
+                catch (...) {
+                    ;
                 }
                 if (json_str.empty()) return;
 
                 it->second->parse_json(msg->get_topic(), json_str);
-
-                // update my bind list machine
-                std::map<std::string, MachineObject*>::iterator iter = manager->myBindMachineList.find(it->second->dev_id);
-                if (iter != manager->myBindMachineList.end()) {
-                    iter->second->parse_json(msg->get_topic(), json_str);
-                }
             }
         }
     }
@@ -266,7 +263,6 @@ namespace Slic3r {
         BOOST_LOG_TRIVIAL(info) << "set_preset: set preset_folder = " << get_curr_user()->get_user_id();
         GUI::wxGetApp().app_config->set("preset_folder", get_curr_user()->get_user_id());
         connect_mqtt();
-        request_bind_list();
  
         if (online_login)
             GUI::wxGetApp().reload_user_presets();
@@ -396,6 +392,27 @@ namespace Slic3r {
         }
     }
 
+    void AccountManager::add_subscribe(std::string dev_id)
+    {
+        std::string report_topic = (boost::format("device/%1%/report") % dev_id).str();
+        try {
+            if (mqtt_cli && mqtt_cli->is_connected()) {
+                action_listener* sub_listener = new action_listener("MQTT_Subscriber_" + report_topic, this);
+                mqtt_cli->subscribe(report_topic, 0, this, *sub_listener);
+            }
+            else {
+                BOOST_LOG_TRIVIAL(trace) << "add_subscribe failed, topic=" << report_topic << ", mqtt_cli is disconnect or invalid!";
+            }
+        }
+        catch (mqtt::exception& e) {
+            BOOST_LOG_TRIVIAL(trace) << "add_subscribe exception, topic=" << report_topic << ", exception error_str=" << e.get_error_str() << ", message=" << e.get_message();
+        }
+        catch (...) {
+            BOOST_LOG_TRIVIAL(trace) << "add_subscribe exception, topic=" << report_topic;
+        }
+    }
+
+
     void AccountManager::del_subscribe(MachineObject* obj)
     {
         std::string report_topic = (boost::format("device/%1%/report") % obj->dev_id).str();
@@ -419,6 +436,23 @@ namespace Slic3r {
         }
     }
 
+    void AccountManager::del_subscribe(std::string dev_id)
+    {
+        std::string report_topic = (boost::format("device/%1%/report") % dev_id).str();
+        try {
+            if (mqtt_cli && mqtt_cli->is_connected()) {
+                BOOST_LOG_TRIVIAL(trace) << "del_subscribe topic=" << report_topic;
+                mqtt_cli->unsubscribe(report_topic);
+            }
+        }
+        catch(mqtt::exception& e) {
+            BOOST_LOG_TRIVIAL(trace) << "del_subscribe exception, topic=" << report_topic << ", exception error_str=" << e.get_error_str() << ", message=" << e.get_message();
+        }
+        catch(...) {
+            BOOST_LOG_TRIVIAL(trace) << "del_subscribe exception, topic=" << report_topic;
+        }
+    }
+
     void AccountManager::update_subscription()
     {
         std::map<std::string, MachineObject*>::iterator it;
@@ -426,6 +460,20 @@ namespace Slic3r {
         for (it = myBindMachineList.begin(); it != myBindMachineList.end(); it++) {
             add_subscribe(it->second);
         }
+    }
+
+    void AccountManager::set_monitor_machine(std::string dev_id)
+    {
+        std::string old_dev_id = this->default_machine;
+
+        this->default_machine = dev_id;
+        //unsubscribe old machine
+        if (!old_dev_id.empty()) {
+            this->del_subscribe(old_dev_id);
+        }
+
+        //subscribe new machine
+        this->add_subscribe(dev_id);
     }
 
     bool AccountManager::is_user_login()
@@ -686,8 +734,90 @@ namespace Slic3r {
         return 0;
     }
 
-    MachineObject* AccountManager::get_default_machine()
+    /* print apis */
+    int AccountManager::get_print_info(std::string& result, int& err_code, std::string err_msg, bool sync)
     {
+        std::string message;
+        std::string url = (boost::format("%1%/iot-service/api/user/print?device_id=") % host).str();
+        Http http  = Http::get(url);
+        http.header("accept", "application/json")
+            .header("Authorization", get_token_str())
+            .header("Content-Type", "application/json")
+            .on_complete([&result, &err_code, &err_msg, &message](std::string body, unsigned status) {
+                try {
+                    json j = json::parse(body);
+                    result = body;
+                    message = j["message"];
+                    if (!j["code"].is_null())
+                        err_code = j["code"].get<int>();
+                    if (!j["error"].is_null())
+                        err_msg = j["error"].get<std::string>();
+                }
+                catch(...) {
+                    ;
+                }
+            })
+            .on_error([&err_code, &err_msg](std::string body, std::string error, unsigned status) {
+                err_msg = (boost::format("status=%1%, body=%2%") % status %body).str();
+            }).perform_sync();
+        if (sync) {
+            http.perform_sync();
+            if (message == MSG_SUCCESS) {
+                return 0;
+            }
+            return -1;
+        } else {
+            http.perform();
+            return 0;
+        }
+        return 0;
+    }
+
+    void AccountManager::update_my_machine_list_info(int &err_code, std::string &err_msg, bool sync)
+    {
+        std::vector<MachineObject*>  show_list;
+        std::string print_info;
+        int result = get_print_info(print_info, err_code, err_msg, sync);
+        if (result == 0) {
+            try {
+                json j = json::parse(print_info);
+                if (!j["devices"].is_null() && j["devices"].is_array()) {
+                    for (auto& elem : j["devices"]) {
+                        MachineObject* obj = new MachineObject(*this, "", "", "");
+                        obj->dev_id = elem["dev_id"];
+                        obj->dev_name = elem["dev_name"];
+                        obj->is_online = elem["dev_online"].get<bool>();
+                        obj->mc_print_percent = elem["progress"].get<int>();
+                        obj->iot_printing_taskname = elem["task_name"].get<std::string>();
+                        obj->iot_task_id = elem["task_id"].get<std::string>();
+                        obj->iot_profile_id = elem["profile_id"].get<std::string>();
+                        obj->iot_project_id = elem["project_id"].get<std::string>();
+                        obj->iot_task_status = elem["task_status"].get<std::string>();
+                        show_list.push_back(obj);
+                    }
+                }
+            }
+            catch (...) {
+                ;
+            }
+        }
+        else {
+            // get empty list set empty list
+        }
+
+        update_my_machine_list(show_list);
+    }
+
+    void AccountManager::update_my_machine_list(std::vector<MachineObject*> list)
+    {
+        myBindMachineList.clear();
+        for(auto obj: list) {
+            myBindMachineList.emplace(std::make_pair(obj->dev_id, obj));
+        }
+    }
+
+    MachineObject* AccountManager::get_default_machine()
+    {   
         std::map<std::string, MachineObject*>::iterator it;
         if (default_machine.empty() && !myBindMachineList.empty()) {
             it = myBindMachineList.begin();
@@ -696,7 +826,6 @@ namespace Slic3r {
             return it->second;
         }
 
-        /* find in local list */
         it = myBindMachineList.find(default_machine);
         if (it != myBindMachineList.end()) {
             return it->second;
@@ -817,7 +946,6 @@ namespace Slic3r {
                         }
                     }
                 }).on_error([&, device_list, errFn](std::string body, std::string error, unsigned status) {
-                    BOOST_LOG_TRIVIAL(trace) << "Query bind device list Error! error = " << body;
                     if (errFn) {
                         errFn(status, error, body);
                     }
@@ -1098,14 +1226,14 @@ namespace Slic3r {
                 if (message.has_value()) {
                     if (message.value().compare(MSG_SUCCESS) == 0) {
                         /* clear my bind machine list */
-                        this->update_my_bind_list(body);
+                        //this->update_my_bind_list(body);
                         if (fn) {
                             fn(0, "get bind list ok");
                         }
                         return;
                     }
                     else if (message.value().compare("nodev") == 0) {
-                        this->update_my_bind_list(body);
+                        //this->update_my_bind_list(body);
                         if (fn) {
                             fn(0, "get bind list ok");
                         }

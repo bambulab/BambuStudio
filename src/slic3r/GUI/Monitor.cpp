@@ -1398,6 +1398,7 @@ void MonitorPanel::update_all()
     //BBS check user login status
     if (!account_manager->is_user_login()) {
         Reset();
+        //TODO set to default page
         return;
     }
 
@@ -1409,6 +1410,10 @@ void MonitorPanel::update_all()
     m_task_list_panel->obj = obj;
 
     if (!obj) return;
+
+    if (!obj->is_connected()) {
+        //TODO set to disconnected page
+    }
 
     update_status(obj);
 
@@ -1423,6 +1428,7 @@ void MonitorPanel::update_all()
 
 void MonitorPanel::on_printer_clicked(wxMouseEvent& event)
 {
+    /* query print info */
     SelectMachinePopup* m_select_machine = new SelectMachinePopup(this, true);
 
     wxPoint pos = m_bitmap_printer->ClientToScreen(wxPoint(0, 0));

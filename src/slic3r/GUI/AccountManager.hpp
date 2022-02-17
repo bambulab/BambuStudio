@@ -276,7 +276,11 @@ public:
     void check_mqtt_connection();
     void add_subscribe(MachineObject* obj);
     void del_subscribe(MachineObject* obj);
+    void add_subscribe(std::string dev_id);
+    void del_subscribe(std::string dev_id);
     void update_subscription();
+
+    void set_monitor_machine(std::string dev_id);
 
     /* user login register apis */
     bool is_user_login();
@@ -312,6 +316,11 @@ public:
     int request_bind(std::string device_id, ResultFn fn);
     int request_unbind(std::string device_id, ResultFn fn);
     int request_bind_list(ResultFn fn = nullptr);
+
+    /* print apis */
+    int get_print_info(std::string &result, int &err_code, std::string err_msg, bool sync = true);
+    void update_my_machine_list_info(int& err_code, std::string& err_msg, bool sync = true);
+    void update_my_machine_list(std::vector<MachineObject*> list);
 
     /* project apis */
     BBLProject* get_default_project() { return default_project; }

@@ -2,6 +2,7 @@
 #include "I18N.hpp"
 
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Thread.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
@@ -10,12 +11,14 @@
 #include <wx/progdlg.h>
 #include <wx/clipbrd.h>
 
+#include <algorithm>
+
 namespace Slic3r { 
 namespace GUI {
 
 #define INITIAL_NUMBER_OF_MACHINES      0
-#define LIST_REFRESH_INTERVAL           2000
-#define MACHINE_LIST_REFRESH_INTERVAL   2000
+#define LIST_REFRESH_INTERVAL           3000
+#define MACHINE_LIST_REFRESH_INTERVAL   100
 
 MachineListModel::MachineListModel() :
     wxDataViewVirtualListModel(INITIAL_NUMBER_OF_MACHINES)
@@ -25,37 +28,37 @@ MachineListModel::MachineListModel() :
 
 void MachineListModel::display_machines(std::map<std::string, MachineObject*> list)
 {
-    m_nameColValues.clear();
-    m_snColValues.clear();
-    m_bindColValues.clear();
-    m_connectionColValues.clear();
+    for (int i = 0; i < Col_Max; i++) {
+        m_values[i].clear();
+    }
 
+    std::vector<MachineObject*> list_array;
     std::map<std::string, MachineObject*>::iterator it;
     for (it = list.begin(); it != list.end(); it++) {
-        MachineObject* obj = it->second;
-        m_nameColValues.Add(obj->dev_name);
-        m_snColValues.Add(obj->dev_id);
-        m_bindColValues.Add(obj->get_bind_str());
-        if (obj->dev_ip.empty()) {
-            wxString conn_str = wxString::Format("WAN: %s", obj->is_online ? "Online" : "Offline");
-            m_connectionColValues.Add(conn_str);
-        }
-        else {
-            wxString conn_str = wxString::Format("LAN: %s", obj->dev_ip);
-            m_connectionColValues.Add(conn_str);
-        }
+        list_array.push_back(it->second);
     }
-    Reset(list.size());
+
+    std::sort(list_array.begin(), list_array.end(), [](MachineObject* obj1, MachineObject* obj2) {
+        return obj1->dev_name < obj2->dev_name;
+    });
+
+    std::vector<MachineObject*>::iterator iter;
+    for (iter = list_array.begin(); iter != list_array.end(); iter++) {
+        this->add_machine(*iter, false);
+    }
+    Reset(list_array.size());
 }
 
-void MachineListModel::add_machine(MachineObject* obj)
+void MachineListModel::add_machine(MachineObject* obj, bool reset)
 {
-    //TODO convert string to wxString
-    m_nameColValues.Add(obj->dev_name);
-    m_snColValues.Add(obj->dev_id);
-    m_bindColValues.Add(obj->get_bind_str());
-    m_connectionColValues.Add(obj->dev_ip);
-    Reset(m_nameColValues.GetCount());
+    m_values[Col_MachineName].Add(from_u8(obj->dev_name));
+    m_values[Col_MachineSN].Add(from_u8(obj->dev_id));
+    m_values[Col_MachinePrintingStatus].Add(from_u8(obj->iot_task_status));
+    m_values[Col_MachineTaskName].Add(from_u8(obj->iot_printing_taskname));
+    m_values[Col_MachineIPAddress].Add(from_u8(obj->dev_ip));
+    m_values[Col_MachineConnection].Add(obj->is_online ? _L("Online") : _L("Offline"));
+    if (reset)
+        Reset(m_values[Col_MachineName].GetCount());
 }
 
 int MachineListModel::find_row_by_sn(wxString sn)
@@ -74,34 +77,10 @@ int MachineListModel::find_row_by_sn(wxString sn)
 void MachineListModel::GetValueByRow(wxVariant& variant,
     unsigned int row, unsigned int col) const
 {
-    switch (col) {
-    case Col_MachineName:
-        if (row >= m_nameColValues.GetCount())
-            variant = wxString::Format("virtual row %d", row);
-        else
-            variant = m_nameColValues[row];
-        break;
-    case Col_MachineSN:
-        if (row >= m_snColValues.GetCount())
-            variant = wxString::Format("virtual row %d", row);
-        else
-            variant = m_snColValues[row];
-        break;
-    case Col_MachineBind:
-        if (row >= m_bindColValues.GetCount())
-            variant = wxString::Format("virtual row %d", row);
-        else
-            variant = m_bindColValues[row];
-        break;
-    case Col_MachineConnection:
-        if (row >= m_connectionColValues.GetCount())
-            variant = wxString::Format("virtual row %d", row);
-        else
-            variant = m_connectionColValues[row];
-        break;
-    default:
-        break;
-    }
+    if (row > m_values[col].GetCount())
+        variant = wxString::Format("virtual row %d", row);
+    else
+        variant = m_values[col][row];
 }
 
 bool MachineListModel::GetAttrByRow(unsigned int row, unsigned int col,
@@ -113,32 +92,10 @@ bool MachineListModel::GetAttrByRow(unsigned int row, unsigned int col,
 bool MachineListModel::SetValueByRow(const wxVariant& variant,
     unsigned int row, unsigned int col)
 {
-    switch (col)
-    {
-    case Col_MachineName:
-        if (row >= m_nameColValues.GetCount())
-            return false;
-        m_nameColValues[row] = variant.GetString();
-        return true;
-    case Col_MachineSN:
-        if (row >= m_snColValues.GetCount())
-            return false;
-        m_snColValues[row] = variant.GetString();
-        return true;
-    case Col_MachineBind:
-        if (row >= m_bindColValues.GetCount())
-            return false;
-        m_bindColValues[row] = variant.GetString();
-        return true;
-    case Col_MachineConnection:
-        if (row >= m_connectionColValues.GetCount())
-            return false;
-        m_connectionColValues[row] = variant.GetString();
-        return true;
-    default:
-        break;
-    }
-    return false;
+    if (row >= m_values[col].GetCount())
+        return false;
+    m_values[col][row] = variant.GetString();
+    return true;
 }
 
 
@@ -201,15 +158,6 @@ MachineObjectPanel::MachineObjectPanel( wxWindow* parent, wxWindowID id, const w
 	wxBoxSizer* bSizer_ams;
 	bSizer_ams = new wxBoxSizer( wxVERTICAL );
 
-	m_bitmap_ams = new wxStaticBitmap( this, wxID_ANY, ams_placeholder_img, wxDefaultPosition, wxSize( 32,32 ), 0 );
-	m_bitmap_ams->SetMinSize( wxSize( 32,32 ) );
-
-	bSizer_ams->Add( m_bitmap_ams, 0, wxALIGN_CENTER|wxALL, 5 );
-
-
-	bSizer_bottom->Add( bSizer_ams, 0, wxALL, 5 );
-
-
 	bSizer_middle->Add( bSizer_bottom, 0, wxALL|wxEXPAND, 0 );
 
 
@@ -229,7 +177,6 @@ MachineObjectPanel::MachineObjectPanel( wxWindow* parent, wxWindowID id, const w
     m_bitmap_type->Bind(wxEVT_ENTER_WINDOW,         &MachineObjectPanel::on_mouse_enter, this);
     m_bitmap_info->Bind(wxEVT_ENTER_WINDOW,         &MachineObjectPanel::on_mouse_enter, this);
     m_bitmap_bind->Bind(wxEVT_ENTER_WINDOW,         &MachineObjectPanel::on_mouse_enter, this);
-    m_bitmap_ams->Bind(wxEVT_ENTER_WINDOW,         &MachineObjectPanel::on_mouse_enter, this);
     m_staticText_printing->Bind(wxEVT_ENTER_WINDOW, &MachineObjectPanel::on_mouse_enter, this);
 	m_staticText_bind_info->Bind(wxEVT_ENTER_WINDOW,&MachineObjectPanel::on_mouse_enter, this);
     this->Bind(wxEVT_ENTER_WINDOW,                  &MachineObjectPanel::on_mouse_enter, this);
@@ -238,7 +185,6 @@ MachineObjectPanel::MachineObjectPanel( wxWindow* parent, wxWindowID id, const w
     m_bitmap_type->Bind(wxEVT_LEFT_UP,              &MachineObjectPanel::on_mouse_left_up, this);
     m_bitmap_info->Bind(wxEVT_LEFT_UP,              &MachineObjectPanel::on_mouse_left_up, this);
     m_bitmap_bind->Bind(wxEVT_LEFT_UP,              &MachineObjectPanel::on_mouse_left_up, this);
-    m_bitmap_ams->Bind(wxEVT_LEFT_UP,              &MachineObjectPanel::on_mouse_left_up, this);
     m_staticText_printing->Bind(wxEVT_LEFT_UP,      &MachineObjectPanel::on_mouse_left_up, this);
 	m_staticText_bind_info->Bind(wxEVT_LEFT_UP,     &MachineObjectPanel::on_mouse_left_up, this);
     this->Bind(wxEVT_LEFT_UP,                       &MachineObjectPanel::on_mouse_left_up, this);
@@ -246,7 +192,7 @@ MachineObjectPanel::MachineObjectPanel( wxWindow* parent, wxWindowID id, const w
 
 void MachineObjectPanel::init_bitmap()
 {
-    ams_placeholder_img = create_scaled_bitmap("machine_object_ams", nullptr, 27);
+    //ams_placeholder_img = create_scaled_bitmap("machine_object_ams", nullptr, 27);
     printing_img = create_scaled_bitmap("machine_object_printing", nullptr, 8);
     owner_img = create_scaled_bitmap("machine_object_owner", nullptr, 8);
 }
@@ -255,35 +201,21 @@ MachineObjectPanel::~MachineObjectPanel()
 {
 }
 
-void MachineObjectPanel::update_machine_info(MachineObject* obj)
+void MachineObjectPanel::update_machine_info(std::string dev_id, wxString dev_name, int progress, wxString owner)
 {
-    if (!obj) return;
+    m_dev_id = dev_id;
 
-    obj_ = obj;
-
-    wxString machine_name_text = wxString::Format("%s", obj->dev_name);
+    wxString machine_name_text = wxString::Format("%s", dev_name);
     m_staticText_printer->SetLabelText(machine_name_text);
 
-    BBLSubTask* subtask = obj->get_subtask();
-    if (subtask) {
-        int left_progress = std::max(100 - subtask->task_progress, 0);
-        int left_second = 0;
-        if (!subtask->task_prediction.empty()) {
-            left_second = stoi(subtask->task_prediction) * left_progress / 100;
-        }
-        std::string left_str = left_second == 0 ? "N/A" : get_time_dhms(left_second);
-        wxString printing_text = wxString::Format("%s Left, %d%%", left_str, subtask->task_progress);
-        m_staticText_printing->SetLabelText(printing_text);
-    }
+    wxString printing_text = wxString::Format("%d%% (SN: %s)", progress, dev_id);
+    m_staticText_printing->SetLabelText(printing_text);
 
-    wxString bind_text = wxString::Format("%s", obj->get_bind_str());
+    wxString bind_text = wxString::Format("%s", owner);
     m_staticText_bind_info->SetLabelText(bind_text);
 
     wxBitmap machine_type_img = create_scaled_bitmap("machine_obejct_type", nullptr, 21);
     m_bitmap_type->SetBitmap(machine_type_img);
-
-    wxBitmap machine_ams = create_scaled_bitmap("machine_object_ams", nullptr, 32);
-    m_bitmap_ams->SetBitmap(machine_ams);
 
     this->Fit();
     this->Layout();
@@ -303,9 +235,12 @@ void MachineObjectPanel::on_mouse_leave(wxMouseEvent& evt)
 
 void MachineObjectPanel::on_mouse_left_up(wxMouseEvent& evt)
 {
+    /* switch to machine */
     Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
-    c->default_machine = obj_->dev_id;
-    wxGetApp().mainframe->jump_to_monitor(obj_->dev_id);       
+    c->set_monitor_machine(m_dev_id);
+
+    /* set monitor page to current device */
+    wxGetApp().mainframe->jump_to_monitor(m_dev_id);
 }
 
 
@@ -396,10 +331,21 @@ bool SelectMachinePopup::ProcessLeftDown(wxMouseEvent& event)
 }
 bool SelectMachinePopup::Show( bool show )
 {
-    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-    std::vector<MachineObject*> show_list = account_manager->get_select_machine_list();
-    update_machine_list(show_list);
-    account_manager->request_bind_list();
+    if (show) {
+        /* create thread to get print info */
+        
+        get_print_info_thread = Slic3r::create_thread([this] {
+            Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
+            int err_code;
+            std::string err_msg;
+            c->update_my_machine_list_info(err_code, err_msg);
+            this->update = true;
+        });
+    } else {
+        get_print_info_thread.interrupt();
+        if (get_print_info_thread.joinable())
+            get_print_info_thread.join();
+    }
 
     return wxPopupTransientWindow::Show(show);
 }
@@ -434,7 +380,8 @@ void SelectMachinePopup::update_machine_list(std::vector<MachineObject*> obj_lis
     } else {
         for (int i = 0; i < obj_list.size(); i++) {
             MachineObjectPanel* obj_panel = obj_panels[i];
-            obj_panel->update_machine_info(obj_list[i]);
+            obj_panel->update_machine_info(obj_list[i]->dev_id, from_u8(obj_list[i]->dev_name), obj_list[i]->mc_print_percent, from_u8(obj_list[i]->iot_printing_taskname));
+
             wxStaticLine* m_staticline = new wxStaticLine(m_panel, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxLI_HORIZONTAL);
             m_staticline->SetBackgroundColour(wxColour(115, 115, 115));
             topSizer->Add(m_staticline, 0, wxEXPAND | wxALL, 5);
@@ -507,10 +454,15 @@ void SelectMachinePopup::OnLeftUp(wxMouseEvent& event)
 
 void SelectMachinePopup::on_timer(wxTimerEvent& event)
 {
-    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
-    std::vector<MachineObject*> show_list = account_manager->get_select_machine_list();
-    update_machine_list(show_list);
-    account_manager->request_bind_list();
+    if (update) {
+        Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
+        std::vector<MachineObject*> show_list;
+        for (auto& elem: c->myBindMachineList) {
+            show_list.push_back(elem.second);
+        }
+        update_machine_list(show_list);
+        update = false;
+    }
 }
 
 SelectMachineDialog::SelectMachineDialog(Plater* plater, int print_plate_idx)
@@ -617,9 +569,16 @@ void SelectMachineDialog::init_model()
         wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_NOT,
         wxDATAVIEW_COL_RESIZABLE);
-    
-    m_dataViewListCtrl_machines->AppendTextColumn("Owner",
-        MachineListModel::Col_MachineBind,
+
+    m_dataViewListCtrl_machines->AppendTextColumn("Status",
+        MachineListModel::Col_MachinePrintingStatus,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_NOT,
+        wxDATAVIEW_COL_RESIZABLE);
+
+    m_dataViewListCtrl_machines->AppendTextColumn("TaskName",
+        MachineListModel::Col_MachineTaskName,
         wxDATAVIEW_CELL_INERT,
         wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_NOT,
@@ -673,10 +632,12 @@ void SelectMachineDialog::on_ok(wxCommandEvent& event)
         return;
     }
 
-    if (!it->second->can_print()) {
+    // TODO check printing status
+    /* if (!it->second->can_print()) {
         m_status_bar->set_status_text("current printer is busy! please select another!");
         return;
     }
+    */
 
 #ifdef BBL_CHECK_USER_REPORT
     int task_id = 0;
@@ -733,22 +694,22 @@ void SelectMachineDialog::on_timer(wxTimerEvent& event)
 
     // update machine list, collections of bind list and local free
     Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
-    Slic3r::DeviceManager* d = Slic3r::GUI::wxGetApp().getDeviceManager();
     std::map<std::string, MachineObject*> list;
 
     if (c->is_user_login()) {
-        c->request_bind_list();
-        d->query_bind_status(nullptr, nullptr);
+        boost::thread get_print_info_thread = Slic3r::create_thread([this] {
+            Slic3r::AccountManager* acc = Slic3r::GUI::wxGetApp().getAccountManager();
+            int err_code;
+            std::string err_msg;
+            acc->update_my_machine_list_info(err_code, err_msg, true);
+            });
     }
     
     // same machine only appear once
     std::map<std::string, MachineObject*>::iterator it;
     for (it = c->myBindMachineList.begin(); it != c->myBindMachineList.end(); it++) {
-        if (it->second->is_online) {
-            list.insert(std::make_pair(it->first, it->second));
-        }
+        list.insert(std::make_pair(it->first, it->second));
     }
-    list.merge(d->get_user_machine_list());
 
     machine_model->display_machines(list);
 

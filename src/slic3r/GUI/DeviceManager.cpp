@@ -463,13 +463,12 @@ int MachineObject::reconnect()
 
 bool MachineObject::is_connected()
 {
-    if (mqtt_cli) {
-        return mqtt_cli->is_connected();
-    }
-    else {
+    std::chrono::system_clock::time_point curr_time = std::chrono::system_clock::now();
+    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_update_time);
+    if (diff.count() > DISCONNECT_TIMEOUT) {
         return false;
     }
-    return false;
+    return true;
 }
 
 int MachineObject::publish_json(std::string json_str, ResultFn resFn, int qos)
@@ -516,6 +515,10 @@ int MachineObject::parse_json(std::string topic, std::string payload)
         json j = json::parse(payload);
 
         if (j.contains(JSON_CMD_PRINT)) {
+
+            /* update last received time */
+            last_update_time = std::chrono::system_clock::now();
+
             json jj = j[JSON_CMD_PRINT];
             if (jj.contains(JSON_MC_REMAIN_TIME)) {
                 if (jj[JSON_MC_REMAIN_TIME].is_string())
@@ -866,10 +869,10 @@ int MachineObject::parse_json(std::string topic, std::string payload)
             boost::optional<std::string> event_str = event_node.get_optional<std::string>("event");
             if (event_str.has_value()) {
                 if (event_str.value().compare("client.disconnected") == 0) {
-                    acc_.request_bind_list();
+                    //BBL handle disconnected event
                 }
                 else if (event_str.value().compare("client.connected") == 0) {
-                    acc_.request_bind_list();
+                    //BBL handle connected event
                 }
                 else {
                     ;
@@ -878,6 +881,7 @@ int MachineObject::parse_json(std::string topic, std::string payload)
             /* fields: client_id, username, peername, proto_name, proto_ver, connected_at, timestamp, etc */
             BOOST_LOG_TRIVIAL(trace) << "parse_json, event topic=" << topic << ", payload = " << payload;
         }
+
         else if (root.get_child_optional("bind") != boost::none) {
             pt::ptree bind = root.get_child("bind");
             boost::optional<std::string> command = bind.get_optional<std::string>("command");

@@ -5,11 +5,14 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <chrono>
 #include <boost/thread.hpp>
 #include "mqtt/async_client.h"
 #include "CommuBackend.hpp"
 #include "AccountManager.hpp"
 #include "libslic3r/ProjectTask.hpp"
+
+#define DISCONNECT_TIMEOUT      10000.f     // milliseconds
 
 namespace Slic3r {
 
@@ -143,9 +146,10 @@ public:
     MachineBindStatus dev_bind_status;
     std::string bind_user_name;
     std::string bind_user_id;
-    bool is_alive;      /* local alive */
+    bool is_alive;          /* local alive */
     time_t last_alive;
-    bool is_online;     /* wan online */
+    bool is_online;         /* wan online */
+    std::chrono::system_clock::time_point   last_update_time;   /* last received print data from machine */
 
     /* Ams Properties */
     std::map<std::string, Ams*> amsList;
@@ -190,6 +194,13 @@ public:
     int     mc_print_line_number;
     int     mc_print_percent;       /* left print progess in percent */
     int     mc_left_time;           /* left time in seconds */
+
+    /* iot printing status */
+    std::string iot_printing_taskname;
+    std::string iot_task_id;
+    std::string iot_profile_id;
+    std::string iot_project_id;
+    std::string iot_task_status;
 
     std::string print_status;   /* enum string: FINISH, RUNNING, PAUSE, INIT, FAILED */
 
@@ -271,6 +282,7 @@ public:
     int disconnect();
     int reconnect();
     bool is_connected();
+
     void set_msg_send_fn(MsgFn fn) { msg_send_fn = std::move(fn); }
     void set_msg_recv_fn(MsgFn fn) { msg_recv_fn = std::move(fn); }
     int publish_json(std::string json_str, ResultFn resFn = nullptr, int qos = 0);

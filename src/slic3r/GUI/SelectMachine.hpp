@@ -38,11 +38,14 @@ class MachineListModel : public wxDataViewVirtualListModel
 public:
     enum
     {
-        Col_MachineName,
-        Col_MachineSN,
-        Col_MachineBind,
-        Col_MachineConnection,
-        Col_Max
+        Col_MachineName = 0,
+        Col_MachineSN = 1,
+        Col_MachineBind = 2,
+        Col_MachinePrintingStatus = 3,
+        Col_MachineIPAddress = 4,
+        Col_MachineConnection = 5,
+        Col_MachineTaskName = 6,
+        Col_Max = 7
     };
     MachineListModel();
 
@@ -65,14 +68,18 @@ public:
 
 
     void display_machines(std::map<std::string, MachineObject*> list);
-    void add_machine(MachineObject* obj);
+    void add_machine(MachineObject* obj, bool reset = true);
     int find_row_by_sn(wxString sn);
 
 private:
+    wxArrayString    m_values[Col_Max];
+
     wxArrayString    m_nameColValues;
     wxArrayString    m_snColValues;
     wxArrayString    m_bindColValues;
     wxArrayString    m_connectionColValues;
+    wxArrayString    m_printingStatusValues;
+    wxArrayString    m_ipAddressValues;
 };
 
 
@@ -82,8 +89,7 @@ class MachineObjectPanel : public wxPanel
         wxColour m_bg_colour;
         wxColour m_hover_colour;
 
-        MachineObject* obj_;
-        wxBitmap ams_placeholder_img;
+        std::string m_dev_id;
         wxBitmap printing_img;
         wxBitmap owner_img;
         void init_bitmap();
@@ -95,14 +101,14 @@ class MachineObjectPanel : public wxPanel
 		wxStaticText* m_staticText_printing;
 		wxStaticBitmap* m_bitmap_bind;
 		wxStaticText* m_staticText_bind_info;
-		wxStaticBitmap* m_bitmap_ams;
 
 	public:
 		MachineObjectPanel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 240,100 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
 
 		~MachineObjectPanel();
 
-        void update_machine_info(MachineObject* obj);
+        //void update_machine_info(MachineObject* obj);
+        void update_machine_info(std::string dev_id, wxString dev_name, int progress, wxString owner);
         void on_mouse_enter(wxMouseEvent& evt);
         void on_mouse_leave(wxMouseEvent& evt);
         void on_mouse_left_up(wxMouseEvent& evt);
@@ -123,7 +129,7 @@ public:
     void update_machine_list(std::vector<MachineObject*> obj_list);
 
 private:
-    const int POPUP_WIDTH   = 211;
+    const int POPUP_WIDTH   = 350;
     const int POPUP_HEIGHT  = 326;
     wxColour m_bg_colour;
     wxColour m_hover_colour;
@@ -134,6 +140,10 @@ private:
     wxTimer*             m_refresh_timer;
     std::vector<MachineObjectPanel*> obj_panels;
     std::vector<MachineObject*>     m_obj_list;
+
+    bool update = false;
+
+    boost::thread get_print_info_thread;
 
 private:
     void OnMouse( wxMouseEvent &event );
