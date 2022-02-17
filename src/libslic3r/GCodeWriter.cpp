@@ -310,7 +310,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
             //BBS: check whether we need to make a travel like
             //   _____
             //  /       to make the z list early to avoid to hit some warping place when travel is long.
-            const double slope_threshold = 5 * PI / 180;
+            const double slope_threshold = 3 * PI / 180;
             if (delta(2) > EPSILON && atan2(delta(2), delta_no_z.norm()) < slope_threshold) {
                 Vec3d temp = delta_no_z.normalized() * delta(2) / tan(slope_threshold);
                 Vec3d slope_top_point = Vec3d(temp(0), temp(1), delta(2)) + source;

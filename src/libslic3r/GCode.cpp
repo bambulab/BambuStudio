@@ -359,6 +359,8 @@ namespace Slic3r {
 
             // retract before toolchange
             toolchange_gcode_str = toolchange_retract_str + toolchange_gcode_str;
+            //BBS: current position is unclear after interting toolchange_gcode
+            gcodegen.writer().set_current_position_clear(false);
 
             // move to start_pos for wiping after toolchange
             std::string start_pos_str;
