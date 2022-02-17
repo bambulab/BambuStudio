@@ -33,6 +33,7 @@ class SupportLayer;
 // BBS
 class TreeSupportLayer;
 class TreeSupportData;
+class TreeSupport;
 
 namespace FillAdaptive {
     struct Octree;
@@ -434,7 +435,8 @@ private:
     SupportLayerPtrs                        m_support_layers;
     // BBS
     TreeSupportLayerPtrs                    m_tree_support_layers;
-    TreeSupportData* m_tree_support_preview_cache;
+    TreeSupportData                         * m_tree_support_preview_cache;
+    TreeSupport                             *m_tree_support;
 
     // this is set to true when LayerRegion->slices is split in top/internal/bottom
     // so that next call to make_perimeters() performs a union() before computing loops

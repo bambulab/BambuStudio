@@ -403,11 +403,18 @@ void PrintObject::generate_support_material()
         this->clear_support_layers();
         this->clear_tree_support_layers();
 
+        m_tree_support = new TreeSupport(*this, m_slicing_params);
+        m_tree_support->detect_object_overhangs();
+
         if ((this->has_support() && m_layers.size() > 1) || (this->has_raft() && ! m_layers.empty())) {
             m_print->set_status(85, L("Generating support material"));    
             this->_generate_support_material();
             m_print->throw_if_canceled();
         } else {
+            // BBS: pop a warning if objects have significant amount of overhangs but support material is not enabled
+            if(m_tree_support->total_overhang_area>10 || m_tree_support->total_overhang_layer_cnt>10)
+                this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL,
+                    "It seems model "+ this->model_object()->name + " needs support to print!Please enable support material.");
 #if 0
             // Printing without supports. Empty layer means some objects or object parts are levitating,
             // therefore they cannot be printed without supports.
@@ -416,6 +423,7 @@ void PrintObject::generate_support_material()
                     throw Slic3r::SlicingError("Levitating objects cannot be printed without supports.");
 #endif
         }
+        delete m_tree_support;
         this->set_done(posSupportMaterial);
     }
 }
@@ -2203,8 +2211,7 @@ void PrintObject::_generate_support_material()
     PrintObjectSupportMaterial support_material(this, m_slicing_params);
     support_material.generate(*this);
 
-    TreeSupport tree_support(*this, m_slicing_params);
-    tree_support.generate_support_areas();
+    m_tree_support->generate_support_areas();
 }
 
 static void project_triangles_to_slabs(ConstLayerPtrsAdaptor layers, const indexed_triangle_set &custom_facets, const Transform3f &tr, bool seam, std::vector<Polygons> &out)

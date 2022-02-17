@@ -189,6 +189,8 @@ public:
      */
     void generate_support_areas();
 
+    void detect_object_overhangs();
+
     enum NodeType {
         eCircle,
         eSquare,
@@ -297,6 +299,8 @@ public:
         }
     };
 
+    float           total_overhang_area;
+    size_t          total_overhang_layer_cnt;
 private:
     /*!
      * \brief Generator for model collision, avoidance and internal guide volumes
@@ -305,7 +309,7 @@ private:
      *  \warning This class is NOT currently thread-safe and should not be accessed in OpenMP blocks
      */
     TreeSupportData* m_ts_data;
-    PrintObject&    m_object;
+    PrintObject    *m_object;
     SlicingParameters m_slicing_params;
     size_t          m_raft_layers;
     size_t          m_highest_overhang_layer;
@@ -359,7 +363,6 @@ private:
      * If a node is already at that position in the layer, the nodes are merged.
      */
     void insert_dropped_node(std::vector<Node*>& nodes_layer, Node* node);
-    void detect_object_overhangs();
     void create_tree_support_layers();
     void generate_toolpaths();
     Polygons spanning_tree_to_polygon(const std::vector<MinimumSpanningTree>& spanning_trees, Polygons layer_contours, int layer_nr);
