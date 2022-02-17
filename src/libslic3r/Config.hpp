@@ -189,6 +189,8 @@ enum ConfigOptionType {
     coBools         = coBool + coVectorType,
     // a generic enum
     coEnum          = 9,
+    // BBS: vector of enums
+    coEnums         = coEnum + coVectorType,
 };
 
 enum ConfigOptionMode {
@@ -1636,6 +1638,92 @@ private:
 	template<class Archive> void serialize(Archive& ar) { ar(cereal::base_class<ConfigOptionInt>(this)); }
 };
 
+// BBS
+class ConfigOptionEnumsGeneric : public ConfigOptionInts
+{
+public:
+    ConfigOptionEnumsGeneric(const t_config_enum_values* keys_map = nullptr) : keys_map(keys_map) {}
+    explicit ConfigOptionEnumsGeneric(const t_config_enum_values* keys_map, size_t size, int value) : ConfigOptionInts(size, value), keys_map(keys_map) {}
+    explicit ConfigOptionEnumsGeneric(std::initializer_list<int> il) : ConfigOptionInts(std::move(il)), keys_map(keys_map) {}
+
+    const t_config_enum_values* keys_map = nullptr;
+
+    static ConfigOptionType     static_type() { return coEnums; }
+    ConfigOptionType            type()  const override { return static_type(); }
+    ConfigOption* clone() const override { return new ConfigOptionEnumsGeneric(*this); }
+    ConfigOptionEnumsGeneric& operator= (const ConfigOption* opt) { this->set(opt); return *this; }
+    bool                        operator< (const ConfigOptionIntsTempl& rhs) const throw() { return this->values < rhs.values; }
+
+    bool                        operator==(const ConfigOptionIntsTempl& rhs) const throw()
+    {
+        if (rhs.type() != this->type())
+            throw ConfigurationError("ConfigOptionEnumsGeneric: Comparing incompatible types");
+        return this->values == rhs.values;
+    }
+
+    void set(const ConfigOption* rhs) override {
+        if (rhs->type() != this->type())
+            throw ConfigurationError("ConfigOptionEnumGeneric: Assigning an incompatible type");
+        // rhs could be of the following type: ConfigOptionEnumsGeneric
+        this->values = dynamic_cast<const ConfigOptionEnumsGeneric*>(rhs)->values;
+    }
+
+    std::string serialize() const override
+    {
+        std::ostringstream ss;
+        for (const int& v : this->values) {
+            if (&v != &this->values.front())
+                ss << ",";
+            serialize_single_value(ss, v);
+        }
+        return ss.str();
+    }
+
+    std::vector<std::string> vserialize() const override
+    {
+        std::vector<std::string> vv;
+        vv.reserve(this->values.size());
+        for (const int v : this->values) {
+            std::ostringstream ss;
+            serialize_single_value(ss, v);
+            vv.push_back(ss.str());
+        }
+        return vv;
+    }
+
+    bool deserialize(const std::string& str, bool append = false) override
+    {
+        if (!append)
+            this->values.clear();
+        std::istringstream is(str);
+        std::string item_str;
+        while (std::getline(is, item_str, ',')) {
+            boost::trim(item_str);
+            if (item_str == "nil") {
+                throw ConfigurationError("Deserializing nil into a non-nullable object");
+            }
+            else {
+                auto it = this->keys_map->find(item_str);
+                if (it == this->keys_map->end())
+                    throw ConfigurationError(std::string("Unknown enum type: ") + item_str);
+                this->values.push_back(it->second);
+            }
+        }
+        return true;
+    }
+
+private:
+    void serialize_single_value(std::ostringstream& ss, const int v) const
+    {
+        for (const auto& kvp : *this->keys_map)
+            if (kvp.second == v)
+                ss << kvp.first;
+    }
+
+    friend class cereal::access;
+    template<class Archive> void serialize(Archive& ar) { ar(cereal::base_class<ConfigOptionVector<int>>(this)); }
+};
+
 // Definition of a configuration value for the purpose of GUI presentation, editing, value mapping and config file handling.
 class ConfigOptionDef
 {
@@ -1700,6 +1788,8 @@ public:
 		    case coBool:            { auto opt = new ConfigOptionBool(); 			archive(*opt); return opt; }
 		    case coBools:           { auto opt = new ConfigOptionBools(); 			archive(*opt); return opt; }
 		    case coEnum:            { auto opt = new ConfigOptionEnumGeneric(this->enum_keys_map); archive(*opt); return opt; }
+            // BBS
+            case coEnums:           { auto opt = new ConfigOptionEnumsGeneric(this->enum_keys_map); archive(*opt); return opt; }
 		    default:                throw ConfigurationError(std::string("ConfigOptionDef::load_option_from_archive(): Unknown option type for option ") + this->opt_key);
 		    }
 		}
@@ -1731,6 +1821,8 @@ public:
 		    case coBool:            archive(*static_cast<const ConfigOptionBool*>(opt)); 			break;
 		    case coBools:           archive(*static_cast<const ConfigOptionBools*>(opt)); 			break;
 		    case coEnum:            archive(*static_cast<const ConfigOptionEnumGeneric*>(opt)); 	break;
+            // BBS
+            case coEnums:           archive(*static_cast<const ConfigOptionEnumsGeneric*>(opt));    break;
 		    default:                throw ConfigurationError(std::string("ConfigOptionDef::save_option_to_archive(): Unknown option type for option ") + this->opt_key);
 		    }
 		}
@@ -2208,6 +2300,8 @@ public:
     // Thus the virtual method getInt() is used to retrieve the enum value.
     template<typename ENUM>
     ENUM                opt_enum(const t_config_option_key &opt_key) const                      { return static_cast<ENUM>(this->option(opt_key)->getInt()); }
+    // BBS
+    int                 opt_enum(const t_config_option_key &opt_key, unsigned int idx) const    { return dynamic_cast<const ConfigOptionEnumsGeneric*>(this->option(opt_key))->get_at(idx); }
 
     bool                opt_bool(const t_config_option_key &opt_key) const                      { return this->option<ConfigOptionBool>(opt_key)->value != 0; }
     bool                opt_bool(const t_config_option_key &opt_key, unsigned int idx) const    { return this->option<ConfigOptionBools>(opt_key)->get_at(idx) != 0; }

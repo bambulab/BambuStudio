@@ -6,10 +6,10 @@
     "inherits": "fdm_filament_pla",
     "filament_vendor": "esun",
     "bed_temperature": [
-        "30"
+        "30,0,60"
     ],
     "first_layer_bed_temperature": [
-        "30"
+        "30,0,60"
     ],
     "temperature": [
         "215"

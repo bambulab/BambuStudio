@@ -2645,15 +2645,19 @@ void Plater::setExtruderParams(std::map<size_t, Slic3r::ExtruderParams>& extPara
     int numExtruders = dynamic_cast<ConfigOptionFloats*>(config.option("nozzle_diameter"))->values.size();
     for (unsigned int i = 0; i != numExtruders; ++i) {
         std::string matName = "";
-        double bedTemp, endTemp;
+        // BBS
+        std::array<double, BedType::btCount> bedTemp;
+        double endTemp = 0.f;
         if (config.has("filament_type")) {
             matName = config.opt_string("filament_type", i);
         }
         if (config.has("temperature")) {
             endTemp = config.opt_int("temperature", i);
         }
+        
         if (config.has("bed_temperature")) {
-            bedTemp = config.opt_int("bed_temperature", i);
+            for (int type = 0; type < BedType::btCount; type++)
+                bedTemp[type] = config.opt_int("bed_temperature", i * BedType::btCount + type);
         }
         if (i == 0) extParas.insert({ i,{matName, bedTemp, endTemp} });
         extParas.insert({ i + 1,{matName, bedTemp, endTemp} });

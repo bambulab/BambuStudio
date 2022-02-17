@@ -20,7 +20,7 @@ public:
         multiple_extruders(false), m_extruder(nullptr),
         m_single_extruder_multi_material(false),
         m_last_acceleration(0), m_max_acceleration(0), m_last_fan_speed(0),
-        m_last_bed_temperature(0), m_last_bed_temperature_reached(true), 
+        /*m_last_bed_temperature(0), */m_last_bed_temperature_reached(true),
         m_lifted(0),
         m_to_lift(0)
         {}
@@ -41,7 +41,8 @@ public:
     std::string preamble();
     std::string postamble() const;
     std::string set_temperature(unsigned int temperature, bool wait = false, int tool = -1) const;
-    std::string set_bed_temperature(unsigned int temperature, bool wait = false);
+    // BBS
+    std::string set_bed_temperature(std::vector<int> temps_per_bed, int default_temp, bool wait = false);
     std::string set_acceleration(unsigned int acceleration);
     std::string reset_e(bool force = false);
     std::string update_progress(unsigned int num, unsigned int tot, bool allow_100 = false) const;
@@ -100,7 +101,8 @@ private:
     unsigned int    m_last_fan_speed;
     //BBS
     unsigned int    m_last_additional_fan_speed;
-    unsigned int    m_last_bed_temperature;
+    // BBS
+    std::vector<int> m_last_bed_temperature;
     bool            m_last_bed_temperature_reached;
     double          m_lifted;
 

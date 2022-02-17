@@ -189,6 +189,13 @@ static const t_config_enum_values s_keys_map_ForwardCompatibilitySubstitutionRul
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ForwardCompatibilitySubstitutionRule)
 
+// BBS
+static const t_config_enum_values s_keys_map_BedType = {
+    { "Cool Plate",  btPC },
+    { "Functional Plate",  btEP  },
+    { "HT Plate", btPEI  }
+};
+
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
 {
     for (std::pair<const t_config_option_key, ConfigOptionDef> &kvp : options)
@@ -403,6 +410,20 @@ void PrintConfigDef::init_fff_params()
     //BBS
     def->max = 120;
     def->set_default_value(new ConfigOptionInts { 0 });
+
+    // BBS
+    def = this->add("bed_type", coEnums);
+    def->label = L("Bed Type");
+    def->tooltip = L("Bed types supported by the printer.");
+    def->mode = comSimple;
+    def->enum_keys_map = &s_keys_map_BedType;
+    def->enum_values.emplace_back("Cool Plate");
+    def->enum_values.emplace_back("Functional Plate");
+    def->enum_values.emplace_back("HT Plate");
+    def->enum_labels.emplace_back(L("Cool Plate"));
+    def->enum_labels.emplace_back(L("Functional Plate"));
+    def->enum_labels.emplace_back(L("HT Plate"));
+    def->set_default_value(new ConfigOptionEnumsGeneric{ (int)btPC });
 
     def = this->add("before_layer_gcode", coString);
     def->label = L("Before layer change G-code");
@@ -1150,6 +1171,16 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloat(0));
 
+    def = this->add("first_layer_bed_temperature ", coInts);
+    def = this->add("first_layer_acceleration_over_raft", coFloat);
+    def->label = L("First object layer over raft interface");
+    def->tooltip = L("This is the acceleration your printer will use for first layer of object above raft interface. Set zero "
+                   "to disable acceleration control for first layer of object above raft interface.");
+    def->sidetext = L("mm/s²");
+    def->min = 0;
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionFloat(0));
+
     def = this->add("first_layer_bed_temperature", coInts);
     def->label = L("First layer");
     def->full_label = L("First layer bed temperature");
@@ -1299,8 +1330,14 @@ void PrintConfigDef::init_fff_params()
     def = this->add("gcode_add_line_number", coBool);
     def->label = L("Add line number");
     def->tooltip = L("Enable this to add line number(Nx) at the beginning of each G-Code line.");
-    //BBS
     def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionBool(0));
+
+    // BBS
+    def = this->add("bbl_bed_temperature_gcode", coBool);
+    def->label = L("BBL private bed temperature");
+    def->tooltip = L("Use BBL private temperature gcode instead of standard M140/M190.");
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(0));
 
     //BBS

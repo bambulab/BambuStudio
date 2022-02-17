@@ -1512,6 +1512,8 @@ PageTemperatures::PageTemperatures(ConfigWizard *parent)
     , spin_extr(new SpinCtrlDouble(this))
     , spin_bed (new SpinCtrlDouble(this))
 {
+    // BBS: FIXME
+#if 0
     spin_extr->SetIncrement(5.0);
     const auto &def_extr = *print_config_def.get("temperature");
     spin_extr->SetRange(def_extr.min, def_extr.max);
@@ -1526,6 +1528,7 @@ PageTemperatures::PageTemperatures(ConfigWizard *parent)
 
     append_text(_L("Enter the temperature needed for extruding your filament."));
     append_text(_L("A rule of thumb is 160 to 230 °C for PLA, and 215 to 250 °C for ABS."));
+#endif
 
     auto *sizer_extr = new wxFlexGridSizer(3, 5, 5);
     auto *text_extr = new wxStaticText(this, wxID_ANY, _L("Extrusion Temperature:"));
@@ -1553,6 +1556,8 @@ PageTemperatures::PageTemperatures(ConfigWizard *parent)
 
 void PageTemperatures::apply_custom_config(DynamicPrintConfig &config)
 {
+    // BBS
+#if 0
     auto *opt_extr = new ConfigOptionInts(1, spin_extr->GetValue());
     config.set_key_value("temperature", opt_extr);
     auto *opt_extr1st = new ConfigOptionInts(1, spin_extr->GetValue());
@@ -1561,6 +1566,7 @@ void PageTemperatures::apply_custom_config(DynamicPrintConfig &config)
     config.set_key_value("bed_temperature", opt_bed);
     auto *opt_bed1st = new ConfigOptionInts(1, spin_bed->GetValue());
     config.set_key_value("first_layer_bed_temperature", opt_bed1st);
+#endif
 }
 
 

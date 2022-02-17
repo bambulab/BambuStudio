@@ -788,6 +788,8 @@ void TabPrinter::init_options_list()
         case coStrings:	add_correct_opts_to_options_list<ConfigOptionStrings	>(opt_key, m_options_list, this, m_opt_status_value);	break;
         case coPercents:add_correct_opts_to_options_list<ConfigOptionPercents	>(opt_key, m_options_list, this, m_opt_status_value);	break;
         case coPoints:	add_correct_opts_to_options_list<ConfigOptionPoints		>(opt_key, m_options_list, this, m_opt_status_value);	break;
+        // BBS
+        case coEnums:   add_correct_opts_to_options_list<ConfigOptionInts       >(opt_key, m_options_list, this, m_opt_status_value);   break;
         default:		m_options_list.emplace(opt_key, m_opt_status_value);		break;
         }
     }
@@ -826,6 +828,8 @@ void TabSLAMaterial::init_options_list()
         case coStrings:	add_correct_opts_to_options_list<ConfigOptionStrings	>(opt_key, m_options_list, this, m_opt_status_value);	break;
         case coPercents:add_correct_opts_to_options_list<ConfigOptionPercents	>(opt_key, m_options_list, this, m_opt_status_value);	break;
         case coPoints:	add_correct_opts_to_options_list<ConfigOptionPoints		>(opt_key, m_options_list, this, m_opt_status_value);	break;
+        // BBS
+        case coEnums:	add_correct_opts_to_options_list<ConfigOptionInts		>(opt_key, m_options_list, this, m_opt_status_value);	break;
         default:		m_options_list.emplace(opt_key, m_opt_status_value);		break;
         }
     }
@@ -1851,6 +1855,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Output file"));
         // BBS
         optgroup->append_single_option_line("gcode_add_line_number");
+        optgroup->append_single_option_line("bbl_bed_temperature_gcode");
         optgroup->append_single_option_line("gcode_label_objects");
         Option option = optgroup->get_option("output_filename_format");
         option.opt.full_width = true;
@@ -2128,18 +2133,6 @@ void TabFilament::build()
         //BBS
         optgroup->append_single_option_line("temperature_vitrification");
 
-        optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value)
-        {
-            update_dirty();
-            if (opt_key == "filament_spool_weight") {
-                // BBS
-                // Change of this option influences for an update of "Sliced Info"
-                wxGetApp().plater()->update_sliced_info();
-            }
-            else
-                on_value_change(opt_key, value);
-        };
-
         optgroup = page->new_optgroup(L("Temperature"));
         Line line = { L("Nozzle"), "" };
         line.append_option(optgroup->get_option("first_layer_temperature"));
@@ -2147,9 +2140,44 @@ void TabFilament::build()
         optgroup->append_line(line);
 
         line = { L("Bed"), "" };
+        // BBS
+        line.append_option(optgroup->get_option("bed_type"));
         line.append_option(optgroup->get_option("first_layer_bed_temperature"));
         line.append_option(optgroup->get_option("bed_temperature"));
         optgroup->append_line(line);
+
+        optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value)
+        {
+            DynamicPrintConfig& filament_config1 = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+
+            update_dirty();
+            if (opt_key == "filament_spool_weight") {
+                // BBS
+                // Change of this option influences for an update of "Sliced Info"
+                wxGetApp().plater()->update_sliced_info();
+            }
+            else if (opt_key == "bed_type") {
+                int bed_type = boost::any_cast<int>(value);
+                DynamicPrintConfig& filament_config = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+                int bed_temp = filament_config.opt_int("bed_temperature", bed_type);
+                int first_layer_bed_temp = filament_config.opt_int("first_layer_bed_temperature", bed_type);
+                this->get_field("bed_temperature")->set_value(bed_temp, true);
+                this->get_field("first_layer_bed_temperature")->set_value(first_layer_bed_temp, true);
+                on_value_change(opt_key, value);
+            }
+            else if (opt_key == "bed_temperature" || opt_key == "first_layer_bed_temperature") {
+                DynamicPrintConfig& filament_config = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+                ConfigOptionInts* bed_temps_opt = dynamic_cast<ConfigOptionInts*>(filament_config.option(opt_key));
+                ConfigOptionInt temp_opt(boost::any_cast<int>(value));
+                int bed_type = filament_config.opt_enum("bed_type", 0);
+                bed_temps_opt->set_at(&temp_opt, bed_type, 0);
+                // update dirty after value change
+                update_dirty();
+                on_value_change(opt_key, value);
+            }
+            else
+                on_value_change(opt_key, value);
+        };
 
         //BBS
         optgroup = page->new_optgroup(L("Print speed override"));

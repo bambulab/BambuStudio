@@ -103,7 +103,9 @@ void Field::PostInitialize()
 	case coFloats:
 	case coStrings:
 	case coBools:
-	case coInts: {
+	case coInts:
+    // BBS
+    case coEnums: {
 		auto tag_pos = m_opt_id.find("#");
 		if (tag_pos != std::string::npos)
 			m_opt_idx = stoi(m_opt_id.substr(tag_pos + 1, m_opt_id.size()));
@@ -164,7 +166,7 @@ void Field::on_kill_focus()
 void Field::on_change_field()
 {
 //       std::cerr << "calling Field::_on_change \n";
-    if (m_on_change != nullptr  && !m_disable_change_event)
+    if (m_on_change != nullptr && !m_disable_change_event)
         m_on_change(m_opt_id, get_value());
 }
 
@@ -1067,15 +1069,21 @@ void Choice::set_selection()
     /* To prevent earlier control updating under OSX set m_disable_change_event to true
      * (under OSX wxBitmapComboBox send wxEVT_COMBOBOX even after SetSelection())
      */
-    m_disable_change_event = true;
+    //m_disable_change_event = true;
 
 	wxString text_value = wxString("");
 
     choice_ctrl* field = dynamic_cast<choice_ctrl*>(window);
 	switch (m_opt.type) {
 	case coEnum:{
-		int id_value = m_opt.get_default_value<ConfigOptionEnum<SeamPosition>>()->value; //!!
-        field->SetSelection(id_value);
+        if (m_opt.get_default_value<ConfigOptionEnum<SeamPosition>>()) {
+            int id_value = m_opt.get_default_value<ConfigOptionEnum<SeamPosition>>()->value; //!!
+            field->SetSelection(id_value);
+        }
+        else if (m_opt.get_default_value<ConfigOptionEnum<BedType>>()) {
+            int id_value = m_opt.get_default_value<ConfigOptionEnum<BedType>>()->value; //!!
+            field->SetSelection(id_value);
+        }
 		break;
 	}
 	case coFloat:
@@ -1177,7 +1185,9 @@ void Choice::set_value(const boost::any& value, bool change_event)
 
 		break;
 	}
-	case coEnum: {
+	case coEnum:
+    // BBS
+    case coEnums: {
 		int val = boost::any_cast<int>(value);
 
 		if (m_opt_id == "top_fill_pattern" || m_opt_id == "bottom_fill_pattern" || m_opt_id == "fill_pattern")
@@ -1256,7 +1266,8 @@ boost::any& Choice::get_value()
 		if (m_opt_id == rp_option)
 			return m_value = boost::any(ret_str);
 
-	if (m_opt.type == coEnum)
+    // BBS
+	if (m_opt.type == coEnum || m_opt.type == coEnums)
 	{
 		if (m_opt_id == "top_fill_pattern" || m_opt_id == "bottom_fill_pattern" || m_opt_id == "fill_pattern") {
 			const std::string& key = m_opt.enum_values[field->GetSelection()];

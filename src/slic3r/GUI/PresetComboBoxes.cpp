@@ -228,6 +228,8 @@ static std::string suffix(Preset* preset)
 wxString PresetComboBox::get_tooltip(const Preset& preset)
 {
     wxString tooltip = from_u8(preset.name);
+    // BBS: FIXME
+#if 0
     if (m_type == Preset::TYPE_FILAMENT) {
         int temperature[4] = { 0,0,0,0 };
         if (preset.config.has("first_layer_temperature")) //get the first_layer_temperature
@@ -242,6 +244,7 @@ wxString PresetComboBox::get_tooltip(const Preset& preset)
         tooltip += wxString::Format("\nNozzle First Layer:%d, Other Layer:%d\n Bed First Layer:%d, Other Layers:%d",
             temperature[0], temperature[1], temperature[2], temperature[3]);
     }
+#endif
     return tooltip;
 }
 

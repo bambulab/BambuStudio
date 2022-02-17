@@ -279,6 +279,9 @@ void Preset::normalize(DynamicPrintConfig &config)
         for (const std::string &key : Preset::filament_options()) {
             if (key == "compatible_prints" || key == "compatible_printers")
                 continue;
+            // BBS
+            if (key == "bed_temperature" || key == "first_layer_bed_temperature")
+                continue;
             auto *opt = config.option(key, false);
             /*assert(opt != nullptr);
             assert(opt->is_vector());*/
@@ -562,7 +565,7 @@ static std::vector<std::string> s_Preset_print_options {
     "tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter", "tree_support_with_infill",
     "tree_support_branch_diameter_angle", "tree_support_collision_resolution", "tree_support_wall_count",
      "detect_narrow_internal_solid_infill",
-     "gcode_add_line_number", "enable_arc_fitting", "infill_combination", "adaptive_layer_height",
+     "gcode_add_line_number", "bbl_bed_temperature_gcode", "enable_arc_fitting", "infill_combination", "adaptive_layer_height",
      "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod", "support_sharp_tails","remove_small_overhangs", "support_transition_speed","support_transition_extrusion_width",
      "support_material_bottom_interface_spacing", "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed",
      "speed_initial_layer_infill", "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration"
@@ -572,7 +575,9 @@ static std::vector<std::string> s_Preset_filament_options {
     "filament_colour", "filament_diameter", "filament_type", "filament_soluble", "filament_max_volumetric_speed",
     "extrusion_multiplier", "filament_density", "filament_cost", "filament_spool_weight", "filament_load_time",
     "filament_unload_time", "filament_minimal_purge_on_wipe_tower",
-    "temperature", "first_layer_temperature", "bed_temperature", "first_layer_bed_temperature",
+    "temperature", "first_layer_temperature",
+    // BBS
+    "bed_temperature", "first_layer_bed_temperature", "bed_type",
     //BBS:temperature_vitrification
     "temperature_vitrification", "fan_always_on", "cooling", "min_fan_speed",
     "max_fan_speed", "bridge_fan_speed", "disable_fan_first_layers", "full_fan_speed_layer", "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed",
@@ -1702,6 +1707,8 @@ inline t_config_option_keys deep_diff(const ConfigBase &config_this, const Confi
                 case coStrings: add_correct_opts_to_diff<ConfigOptionStrings    >(opt_key, diff, config_other, config_this);  break;
                 case coPercents:add_correct_opts_to_diff<ConfigOptionPercents   >(opt_key, diff, config_other, config_this);  break;
                 case coPoints:  add_correct_opts_to_diff<ConfigOptionPoints     >(opt_key, diff, config_other, config_this);  break;
+                // BBS
+                case coEnums:   add_correct_opts_to_diff<ConfigOptionInts       >(opt_key, diff, config_other, config_this);  break;
                 default:        diff.emplace_back(opt_key);     break;
                 }
             }

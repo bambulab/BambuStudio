@@ -986,11 +986,16 @@ bool UnsavedChangesDialog::save(PresetCollection* dependent_presets, bool show_s
     return true;
 }
 
-wxString get_string_from_enum(const std::string& opt_key, const DynamicPrintConfig& config, bool is_infill = false)
+wxString get_string_from_enum(const std::string& opt_key, const DynamicPrintConfig& config, bool is_infill = false, int idx = -1)
 {
     const ConfigOptionDef& def = config.def()->options.at(opt_key);
     const std::vector<std::string>& names = def.enum_labels;//ConfigOptionEnum<T>::get_enum_names();
-    int val = config.option(opt_key)->getInt();
+    int val = 0;
+
+    if (idx >= 0)
+        val = dynamic_cast<const ConfigOptionInts*>(config.option(opt_key))->get_at(idx);
+    else
+        val = config.option(opt_key)->getInt();
 
     // Each infill doesn't use all list of infill declared in PrintConfig.hpp.
     // So we should "convert" val to the correct one
@@ -1131,6 +1136,13 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
             opt_key == "top_fill_pattern" ||
             opt_key == "bottom_fill_pattern" ||
             opt_key == "fill_pattern");
+    }
+    case coEnums: {
+        return get_string_from_enum(opt_key, config,
+            opt_key == "top_fill_pattern" ||
+            opt_key == "bottom_fill_pattern" ||
+            opt_key == "fill_pattern",
+            opt_idx);
     }
     case coPoints: {
         //BBS: add bed_exclude_area

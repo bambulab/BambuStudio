@@ -4,8 +4,11 @@
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
+    "bed_type": [
+        "Cool Plate"
+    ],
     "bed_temperature": [
-        "35"
+        "35,0,60"
     ],
     "fan_below_layer_time": [
         "100"
@@ -26,7 +29,7 @@
         "20"
     ],
     "first_layer_bed_temperature": [
-        "35"
+        "35,0,60"
     ],
     "first_layer_temperature": [
         "220"

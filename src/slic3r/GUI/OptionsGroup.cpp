@@ -74,6 +74,7 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
                 m_fields.emplace(id, SpinCtrl::Create<SpinCtrl>(this->ctrl_parent(), opt, id));
 				break;
             case coEnum:
+            case coEnums:
                 m_fields.emplace(id, Choice::Create<Choice>(this->ctrl_parent(), opt, id));
 				break;
             case coPoints:
@@ -600,6 +601,14 @@ void ConfigOptionsGroup::on_change_OG(const t_config_option_key& opt_id, const b
 			return;
 		}
 
+        // BBS
+        if (opt_id == "bed_temperature" || opt_id == "first_layer_bed_temperature") {
+            if (m_modelconfig)
+                m_modelconfig->touch();
+            OptionsGroup::on_change_OG(opt_id, value);
+            return;
+        }
+
 		auto 				itOption  = it->second;
 		const std::string  &opt_key   = itOption.first;
 		int 			    opt_index = itOption.second;
@@ -633,6 +642,12 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
 		auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(config.option("nozzle_diameter"));
 		value = int(nozzle_diameter->values.size());
 	}
+    // BBS
+    else if (opt_key == "bed_temperature" || opt_key == "first_layer_bed_temperature") {
+        int bed_type = config.opt_enum("bed_type", 0);
+        const ConfigOptionInts* bed_temps = dynamic_cast<const ConfigOptionInts*>(config.option(opt_key));
+        value = bed_type < bed_temps->size() ? bed_temps->get_at(bed_type) : 0;
+    }
     else if (m_opt_map.find(opt_key) == m_opt_map.end() ||
 		    // This option don't have corresponded field
 		     opt_key == "bed_shape"				||
@@ -678,6 +693,9 @@ void ConfigOptionsGroup::reload_config()
 		// index in the vector option, zero for scalars
 		int 			   opt_index = kvp.second.second;
 		const ConfigOptionDef &option = m_options.at(opt_id).opt;
+        // BBS
+        if (opt_id == "bed_temperature" || opt_id == "first_layer_bed_temperature")
+            opt_index = (int)m_config->opt_enum("bed_type", 0);
 		this->set_value(opt_id, config_value(opt_key, opt_index, option.gui_flags == "serialized"));
 	}
 }
@@ -952,6 +970,10 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 	case coEnum:
         ret = config.option(opt_key)->getInt();
 		break;
+    // BBS
+    case coEnums:
+        ret = config.opt_int(opt_key, idx);
+        break;
 	case coPoints:
 		if (opt_key == "bed_shape")
 			ret = config.option<ConfigOptionPoints>(opt_key)->values;
@@ -1058,6 +1080,9 @@ boost::any ConfigOptionsGroup::get_config_value2(const DynamicPrintConfig& confi
         break;
     case coEnum:
         ret = config.option(opt_key)->getInt();
+        break;
+    case coEnums:
+        ret = config.opt_int(opt_key, idx);
         break;
     case coPoints:
         if (opt_key == "bed_shape")

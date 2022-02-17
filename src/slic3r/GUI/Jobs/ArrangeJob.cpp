@@ -100,11 +100,11 @@ ArrangePolygon ArrangeJob::prepare_arrange_polygon(void* model_instance)
     ArrangePolygon ap = get_arrange_poly(PtrWrapper{ instance }, m_plater);
     //BBS: add temperature information
     if (config.has("bed_temperature")) //get the bed temperature
-        ap.bed_temp = config.opt_int("bed_temperature", ap.extrude_id - 1);
+        ap.bed_temp = config.opt_int("bed_temperature", (ap.extrude_id - 1) * BedType::btCount);
     if (config.has("temperature")) //get the print temperature
         ap.print_temp = config.opt_int("temperature", ap.extrude_id - 1);
     if (config.has("first_layer_bed_temperature")) //get the first_layer_bed_temperature
-        ap.first_bed_temp = config.opt_int("first_layer_bed_temperature", ap.extrude_id - 1);
+        ap.first_bed_temp = config.opt_int("first_layer_bed_temperature", (ap.extrude_id - 1) * BedType::btCount);
     if (config.has("first_layer_temperature")) //get the first_layer_temperature
         ap.first_print_temp = config.opt_int("first_layer_temperature", ap.extrude_id - 1);
     if (config.has("temperature_vitrification"))

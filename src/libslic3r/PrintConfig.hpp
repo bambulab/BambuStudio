@@ -126,6 +126,36 @@ enum DraftShield {
     dsDisabled, dsLimited, dsEnabled
 };
 
+// BBS
+enum BedType {
+    btPC = 0,
+    btEP,
+    btPEI,
+    btCount
+};
+
+static std::string bed_type_to_gcode_string(const BedType type)
+{
+    std::string type_str;
+
+    switch (type) {
+    case btPC:
+        type_str = "cool_plate";
+        break;
+    case btEP:
+        type_str = "functional_plate";
+        break;
+    case btPEI:
+        type_str = "ht_plate";
+        break;
+    default:
+        type_str = "unknown";
+        break;
+    }
+
+    return type_str;
+}
+
 #define CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(NAME) \
     template<> const t_config_enum_names& ConfigOptionEnum<NAME>::get_enum_names(); \
     template<> const t_config_enum_values& ConfigOptionEnum<NAME>::get_enum_values();
@@ -649,6 +679,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                scan_first_layer))
     ((ConfigOptionBool,                enable_spaghetti_detector))
     ((ConfigOptionBool,                gcode_add_line_number))
+    ((ConfigOptionBool,                bbl_bed_temperature_gcode))
     ((ConfigOptionBool,                remove_freq_sweep))
     ((ConfigOptionBool,                remove_bed_leveling))
     ((ConfigOptionBool,                remove_extrusion_calibration))
@@ -693,6 +724,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionPoints,             bed_shape))
     //BBS: add bed_exclude_area
     ((ConfigOptionPoints,             bed_exclude_area))
+    // BBS
+    ((ConfigOptionEnumsGeneric,       bed_type))
     ((ConfigOptionInts,               bed_temperature))
     ((ConfigOptionInts,               bridge_fan_speed))
     ((ConfigOptionBool,               complete_objects))
@@ -710,6 +743,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInts,               fan_below_layer_time))
     ((ConfigOptionStrings,            filament_colour))
     ((ConfigOptionFloat,              first_layer_acceleration))
+    // BBS
     ((ConfigOptionInts,               first_layer_bed_temperature))
     ((ConfigOptionFloatOrPercent,     first_layer_extrusion_width))
     ((ConfigOptionFloatOrPercent,     first_layer_height))

@@ -188,6 +188,12 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 			config.set_key_value(opt_key, opt);
 			}
 			break;
+		// BBS
+		case coEnums:{
+			ConfigOptionEnumsGeneric* vec_new = new ConfigOptionEnumsGeneric{ boost::any_cast<int>(value) };
+			config.option<ConfigOptionEnumsGeneric>(opt_key)->set_at(vec_new, opt_index, 0);
+			}
+			break;
 		case coPoints:{
 			if (opt_key == "bed_shape" || opt_key == "thumbnails") {
 				config.option<ConfigOptionPoints>(opt_key)->values = boost::any_cast<std::vector<Vec2d>>(value);

@@ -93,6 +93,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "first_layer_bed_temperature",
         // BBS
         "gcode_add_line_number",
+        "bbl_bed_temperature_gcode",
         "gcode_label_objects",
         "layer_gcode",
         "min_fan_speed",
@@ -886,6 +887,8 @@ void Print::auto_assign_extruders(ModelObject* model_object) const
 }
 //BBS maximum temperature difference from print object class
 double getTemperatureFromExtruder(const PrintObject *printObject) {
+    // BBS: FIXME
+#if 0
     auto print = printObject -> print();
     std::vector<size_t> extrudersFirstLayer;
     auto firstLayerRegions = printObject->layers().front()->regions();
@@ -902,6 +905,9 @@ double getTemperatureFromExtruder(const PrintObject *printObject) {
             maxDeltaTemp = print->config().bed_temperature.get_at(extruderID - 1);
     }
     return maxDeltaTemp;
+#else
+    return 0.f;
+#endif
 }
 //BBS adhesion coefficients from print object class
 double getadhesionCoeff(const PrintObject* printObject)

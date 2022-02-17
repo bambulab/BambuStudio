@@ -2701,6 +2701,8 @@ double getadhesionCoeff(const ModelVolumePtrs objectVolumes)
 
 //BBS maximum temperature difference from model object class
 double getTemperatureFromExtruder(const ModelVolumePtrs objectVolumes) {
+    // BBS: FIXME
+#if 0
     std::vector<size_t> extruders;
     for (const ModelVolume* modelVolume : objectVolumes) {
         if (modelVolume->extruder_id() >= 0)
@@ -2713,6 +2715,9 @@ double getTemperatureFromExtruder(const ModelVolumePtrs objectVolumes) {
             maxDeltaTemp = std::max(maxDeltaTemp, Model::extruderParamsMap.at(extruderID).bedTemp);
     }
     return maxDeltaTemp;
+#else
+    return 0.f;
+#endif
 }
 
 void ModelInstance::get_arrange_polygon(void* ap) const

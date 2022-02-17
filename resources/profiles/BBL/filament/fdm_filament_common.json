@@ -4,7 +4,7 @@
     "from": "system",
     "instantiation": "false",
     "bed_temperature": [
-        "60"
+        "60,60,60"
     ],
     "bridge_fan_speed": [
         "100"
@@ -96,8 +96,11 @@
     "filament_wipe_distance": [
         "5"
     ],
+    "bed_type": [
+        "Cool Plate"
+    ],
     "first_layer_bed_temperature": [
-        "60"
+        "60,60,60"
     ],
     "first_layer_temperature": [
         "200"

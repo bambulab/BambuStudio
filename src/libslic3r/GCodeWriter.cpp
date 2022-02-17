@@ -116,39 +116,46 @@ std::string GCodeWriter::set_temperature(unsigned int temperature, bool wait, in
     return gcode.str();
 }
 
-std::string GCodeWriter::set_bed_temperature(unsigned int temperature, bool wait)
+// BBS
+std::string GCodeWriter::set_bed_temperature(std::vector<int> temps_per_bed, int default_temp, bool wait)
 {
-    if (temperature == m_last_bed_temperature && (! wait || m_last_bed_temperature_reached))
+    if (temps_per_bed == m_last_bed_temperature && (! wait || m_last_bed_temperature_reached))
         return std::string();
 
-    m_last_bed_temperature = temperature;
+    bool target_temp_changed = (temps_per_bed != m_last_bed_temperature);
+    m_last_bed_temperature = temps_per_bed;
     m_last_bed_temperature_reached = wait;
 
     std::string code, comment;
-    if (wait && FLAVOR_IS_NOT(gcfTeacup)) {
-        if (FLAVOR_IS(gcfMakerWare) || FLAVOR_IS(gcfSailfish)) {
-            code = "M109";
-        } else {
-            code = "M190";
-        }
+    std::ostringstream gcode;
+
+    if (wait) {
+        code = "M190";
         comment = "set bed temperature and wait for it to be reached";
-    } else {
+    }
+    else {
         code = "M140";
         comment = "set bed temperature";
     }
-    
-    std::ostringstream gcode;
-    gcode << code << " ";
-    if (FLAVOR_IS(gcfMach3) || FLAVOR_IS(gcfMachinekit)) {
-        gcode << "P";
-    } else {
-        gcode << "S";
+
+    if (!this->config.bbl_bed_temperature_gcode) {
+        gcode << code << " S" << default_temp << " ; " << comment << "\n";
     }
-    gcode << temperature << " ; " << comment << "\n";
-    
-    if (FLAVOR_IS(gcfTeacup) && wait)
-        gcode << "M116 ; wait for bed temperature to be reached\n";
-    
+    else {
+        if (target_temp_changed) {
+            gcode << "M1002 set_heatbed_surface_temp:";
+            for (int bed_type = 0; bed_type < temps_per_bed.size(); bed_type++) {
+                gcode << bed_type_to_gcode_string((BedType)bed_type) << "=" << temps_per_bed[bed_type];
+                if (bed_type == temps_per_bed.size() - 1)
+                    gcode << ";" << "config bed temps" << "\n";
+                else
+                    gcode << ",";
+            }
+        }
+
+        gcode << code << " A" << " S" << default_temp << ";" << comment << "\n";
+    }
+
     return gcode.str();
 }
 

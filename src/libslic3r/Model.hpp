@@ -1165,7 +1165,7 @@ private:
 struct ExtruderParams
 {
     std::string materialName;
-    double bedTemp;
+    std::array<double, BedType::btCount> bedTemp;
     double heatEndTemp;
 };
 

@@ -283,6 +283,8 @@ ConfigOption* ConfigOptionDef::create_empty_option() const
 	    case coBool:            return new ConfigOptionBool();
 	    case coBools:           return new ConfigOptionBools();
 	    case coEnum:            return new ConfigOptionEnumGeneric(this->enum_keys_map);
+        // BBS
+        case coEnums:           return new ConfigOptionEnumsGeneric(this->enum_keys_map);
 	    default:                throw ConfigurationError(std::string("Unknown option type for option ") + this->label);
 	    }
 	}
@@ -290,11 +292,19 @@ ConfigOption* ConfigOptionDef::create_empty_option() const
 
 ConfigOption* ConfigOptionDef::create_default_option() const
 {
-    if (this->default_value)
-        return (this->default_value->type() == coEnum) ?
-            // Special case: For a DynamicConfig, convert a templated enum to a generic enum.
-            new ConfigOptionEnumGeneric(this->enum_keys_map, this->default_value->getInt()) :
-            this->default_value->clone();
+    if (this->default_value) {
+        ConfigOptionType type = this->default_value->type();
+        if (type == coEnum)
+            return new ConfigOptionEnumGeneric(this->enum_keys_map, this->default_value->getInt());
+
+        if (type == coEnums) {
+            ConfigOptionEnumsGeneric* opt = dynamic_cast<ConfigOptionEnumsGeneric*>(this->default_value->clone());
+            opt->keys_map = this->enum_keys_map;
+            return opt;
+        }
+
+        return this->default_value->clone();
+    }
     return this->create_empty_option();
 }
 
