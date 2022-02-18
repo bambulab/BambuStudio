@@ -7,6 +7,7 @@
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
 #include "format.hpp"
+#include "Widgets/ProgressDialog.hpp"
 
 #include <wx/progdlg.h>
 #include <wx/clipbrd.h>
@@ -657,7 +658,7 @@ void SelectMachineDialog::on_ok(wxCommandEvent& event)
     m_need_disable_btn_ensure = true;
     m_button_ensure->Disable();
 
-    wxProgressDialog* progress_dlg = new wxProgressDialog("Creating 3mf file", "", 100, this, wxPD_AUTO_HIDE | wxPD_CAN_ABORT);
+    ProgressDialog* progress_dlg = new ProgressDialog("Creating 3mf file", "", 100, this, wxPD_AUTO_HIDE | wxPD_CAN_ABORT);
     
     m_plater->send_gcode(m_print_plate_idx,
         [this, progress_dlg](int export_stage, int current, int total, bool& cancel) {

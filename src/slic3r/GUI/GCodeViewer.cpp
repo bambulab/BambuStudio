@@ -23,6 +23,7 @@
 #include "GLToolbar.hpp"
 #include "GUI_Preview.hpp"
 #include "GUI_ObjectManipulation.hpp"
+#include "Widgets/ProgressDialog.hpp"
 
 #include <imgui/imgui_internal.h>
 
@@ -1874,8 +1875,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
 
     unsigned int progress_count = 0;
     static const unsigned int progress_threshold = 1000;
-    wxProgressDialog* progress_dialog = wxGetApp().is_gcode_viewer() ?
-        new wxProgressDialog(_L("Generating toolpaths"), "...",
+    ProgressDialog *          progress_dialog    = wxGetApp().is_gcode_viewer() ?
+        new ProgressDialog(_L("Generating toolpaths"), "...",
             100, wxGetApp().mainframe, wxPD_AUTO_HIDE | wxPD_APP_MODAL) : nullptr;
 
     wxBusyCursor busy;

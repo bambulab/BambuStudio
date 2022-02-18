@@ -38,7 +38,7 @@
 // BBS
 #include "PartPlate.hpp"
 #include "Preferences.hpp"
-//#include "Widgets/ProgressDialog.hpp"
+#include "Widgets/ProgressDialog.hpp"
 
 #include <fstream>
 #include <string_view>
@@ -2403,7 +2403,7 @@ void MainFrame::quick_slice(const int qs)
     }
 
     // show processbar dialog
-    m_progress_dialog = new wxProgressDialog(_L("Slicing") + dots,
+    m_progress_dialog = new ProgressDialog(_L("Slicing") + dots,
         // TRN "Processing input_file_basename"
         from_u8((boost::format(_utf8(L("Processing %s"))) % (input_file_basename + dots)).str()),
         100, nullptr, wxPD_AUTO_HIDE);

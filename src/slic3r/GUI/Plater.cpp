@@ -102,6 +102,7 @@
 #include "Gizmos/GLGizmoSimplify.hpp" // create suggestion notification
 
 // BBS
+#include "Widgets/ProgressDialog.hpp"
 #include "BBLStatusBar.hpp"
 #include "BitmapCache.hpp"
 #include "Widgets/Label.hpp"
@@ -2789,8 +2790,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": load_model %1%, load_config %2%, load_restore %3%, input_files size %4%")%load_model %load_config %load_restore %input_files.size();
 
     const auto loading = _L("Loading") + dots;
-    wxProgressDialog dlg(loading, "", 100, find_toplevel_parent(q), wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_APP_MODAL);
-    wxProgressDialog* progress_dlg = &dlg;
+    ProgressDialog dlg(loading, "", 100, find_toplevel_parent(q), wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_APP_MODAL);
+    ProgressDialog* progress_dlg = &dlg;
     wxBusyCursor busy;
 
     auto *new_model = (!load_model || one_by_one) ? nullptr : new Slic3r::Model();
@@ -6622,13 +6623,13 @@ void Plater::import_model_id(const std::string& model_id, const std::string& pro
     wxString msg;
     wxString dlg_title = wxString::Format("Importing Model");
     int percent = 1;
-    wxGenericProgressDialog dlg(dlg_title,
+    ProgressDialog dlg(dlg_title,
                             wxString(' ', 100) + "\n\n\n\n",
                             100,    // range
                             this,   // parent
                             wxPD_CAN_ABORT |
                             wxPD_APP_MODAL |
-                            wxPD_ELAPSED_TIME |
+                            //wxPD_ELAPSED_TIME |
                             wxPD_AUTO_HIDE |
                             wxPD_SMOOTH);
 
@@ -8011,8 +8012,8 @@ void Plater::publish_project()
     // upload project first and publish
     wxString msg;
     wxString title = _L("Upload and publish your design");
-    wxProgressDialog dlg(title, "", 100, this, wxPD_CAN_ABORT | wxPD_APP_MODAL);
-    wxProgressDialog* progress_dlg = &dlg;
+    ProgressDialog dlg(title, "", 100, this, wxPD_CAN_ABORT | wxPD_APP_MODAL);
+    ProgressDialog* progress_dlg = &dlg;
 
     // export 3mf to temp folder
     msg = _L("preparing your designs");

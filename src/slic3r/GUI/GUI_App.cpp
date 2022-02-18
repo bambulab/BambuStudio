@@ -79,6 +79,7 @@
 #include "BitmapCache.hpp"
 #include "Notebook.hpp"
 #include "Widgets/Label.hpp"
+#include "Widgets/ProgressDialog.hpp"
 
 //BBS: DailyTip and UserGuide Dialog
 #include "WebDailytipDialog.hpp"
@@ -1964,7 +1965,7 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 
     mainframe->shutdown();
 
-    wxProgressDialog dlg(msg_name, msg_name, 100, nullptr, wxPD_AUTO_HIDE);
+    ProgressDialog dlg(msg_name, msg_name, 100, nullptr, wxPD_AUTO_HIDE);
     dlg.Pulse();
     dlg.Update(10, _L("Recreating") + dots);
 
