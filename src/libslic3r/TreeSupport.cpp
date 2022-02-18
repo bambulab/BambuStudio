@@ -25,9 +25,6 @@
 #ifndef SIGN
 #define SIGN(x) (x>=0?1:-1)
 #endif
-#ifndef SQ
-#define SQ(x) ((x)*(x))
-#endif
 #define TAU (2.0 * M_PI)
 #define NO_INDEX (std::numeric_limits<unsigned int>::max())
 
@@ -658,11 +655,12 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
 }
 
 #define SUPPORT_SURFACES_OFFSET_PARAMETERS ClipperLib::jtSquare, 0.
-static void remove_bridges_from_contacts(
+static ExPolygons remove_bridges_from_contacts(
     const Layer* lower_layer,
     const Layer* current_layer,
     float extrusion_width,
-    ExPolygons& overhang_regions)
+    ExPolygons& overhang_regions,
+    float max_bridge_length=scale_(10))
 {
     // Extrusion width accounts for the roundings of the extrudates.
     // It is the maximum widh of the extrudate.
@@ -671,6 +669,7 @@ static void remove_bridges_from_contacts(
     auto layer_regions = current_layer->regions();
     Polygons lower_layer_polygons = to_polygons(lower_layer->lslices);
 
+    ExPolygons all_bridges;
     for (LayerRegion* layerm : layer_regions)
     {
         Polygons bridges;
@@ -699,9 +698,22 @@ static void remove_bridges_from_contacts(
                     for (int j = 0; j < 2; ++j)
                         if (!supported[j] && lower_layer->lslices_bboxes[i].contains(pts[j]) && lower_layer->lslices[i].contains(pts[j]))
                             supported[j] = true;
-                if (supported[0] && supported[1])
+                if (supported[0] && supported[1]) {
+                    Polylines lines;
+                    if (polyline.length() > max_bridge_length+10) {
+                        // equally divide the polyline
+                        float len = polyline.length() / ceil(polyline.length() / max_bridge_length);
+                        lines = polyline.equally_spaced_lines(len);
+                    for (auto& line : lines) {
+                        line.clip_start(fw);
+                        line.clip_end(fw);
+                    }
+                    }
+                    else
+                        lines.push_back(polyline);
                     // Offset a polyline into a thick line.
-                    polygons_append(bridges, offset(polyline, 0.5f * w + 10.f));
+                    polygons_append(bridges, offset(lines, 0.5f * w + 10.f));
+                }
             }
         bridges = union_(bridges);
 
@@ -718,8 +730,9 @@ static void remove_bridges_from_contacts(
             // Offset unsupported edges into polygons.
             offset(layerm->unsupported_bridge_edges, scale_(SUPPORT_MATERIAL_MARGIN), SUPPORT_SURFACES_OFFSET_PARAMETERS));
 
-        overhang_regions = diff_ex(overhang_regions, to_expolygons(bridges));
+        append(all_bridges, to_expolygons(bridges));
     }
+    return all_bridges;
 }
 
 void TreeSupport::detect_object_overhangs()
@@ -746,6 +759,7 @@ void TreeSupport::detect_object_overhangs()
     const double length_thresh_well_supported = scale_(4);  // min: 4x4=16mm^2
     // a region is considered well supported if the number of layers below it exceeds this threshold
     const int thresh_layers_below = 10 / config.layer_height;
+    const coordf_t max_bridge_length = scale_(20);
     double obj_height = m_object->size().z();
     bool is_auto = (stype == stTreeAuto || stype == stHybridAuto);
 
@@ -839,6 +853,7 @@ void TreeSupport::detect_object_overhangs()
         }
     };
 
+    std::map<int, ExPolygons> all_bridges;
     if (std::set<SupportType>{stTreeAuto, stHybridAuto, stTree}.count(stype))// == stTreeAuto || stype == stHybridAuto || stype == stTree)
     {
         double threshold_rad = (config.support_material_threshold.value < EPSILON ? 30 : config.support_material_threshold.value+1) * M_PI / 180.;
@@ -921,7 +936,8 @@ void TreeSupport::detect_object_overhangs()
 
 
                     if (dont_support_bridges && overhang_areas.size()>0) {
-                        remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, overhang_areas);
+                        auto bridge = remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, overhang_areas, max_bridge_length);
+                        all_bridges.emplace(layer_nr, bridge);
                     }
 
                     TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_nr + m_raft_layers);
@@ -996,17 +1012,35 @@ void TreeSupport::detect_object_overhangs()
         if (blockers.size() < m_object->layer_count())
             blockers.resize(m_object->layer_count());
         for (auto& cluster : overhangClusters) {
-            auto erode1 = offset_ex(cluster.merged_poly, -extrusion_width_scaled);//DEBUG
+            auto erode1 = offset_ex(cluster.merged_poly, -1.5*extrusion_width_scaled);
+            //DEBUG
+            bool save_poly = false;
+            if (save_poly) {
+                erode1 = offset_ex(cluster.merged_poly, -1*extrusion_width_scaled);
+                double a = area(erode1);
+                erode1[0].contour.remove_duplicate_points();
+                a = area(erode1);
+                auto tmp = offset_ex(erode1, extrusion_width_scaled);
+                SVG svg("SVG/merged_poly_"+std::to_string(cluster.min_layer)+".svg", m_object->bounding_box());
+                if (svg.is_opened()) {
+                    svg.draw_outline(cluster.merged_poly, "yellow");
+                    svg.draw_outline(erode1, "yellow");
+                }
+            }
+
             auto bbox_size = get_extents(cluster.merged_poly).size();
             if ((bbox_size.x() < 3*extrusion_width_scaled && bbox_size.y() < 3*extrusion_width_scaled)
-                || offset_ex(cluster.merged_poly, -1.5*extrusion_width_scaled).empty()) {
+                || area(erode1)<SQ(scale_(0.1))) {
                 for (auto it = cluster.layer_overhangs.begin(); it != cluster.layer_overhangs.end(); it++) {
                     int layer_nr = it->first;
                     auto p_overhang = it->second;
                     auto dilate1 = offset_ex(*p_overhang, extrusion_width_scaled);
                     Layer* layer = m_object->get_layer(layer_nr);
                     auto inter_with_others = intersection_ex(dilate1, diff_ex(layer->lslices, *p_overhang));
-                    if (!inter_with_others.empty())
+                    // the following two cases are small overhangs:
+                    // 1) overhang is single line (dilate1.empty()==true)
+                    // 2) overhang is not island (intersects with others)
+                    if (dilate1.empty() || !inter_with_others.empty())
                         blockers[layer_nr].push_back(p_overhang->contour);
                 }
             }
@@ -1017,6 +1051,12 @@ void TreeSupport::detect_object_overhangs()
     total_overhang_layer_cnt = 0;
     for (int layer_nr = 0; layer_nr < m_object->layer_count(); layer_nr++) {
         TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_nr + m_raft_layers);
+
+        auto it = all_bridges.find(layer_nr);
+        if (it != all_bridges.end()) {
+            ts_layer->overhang_areas = diff_ex(ts_layer->overhang_areas, it->second);
+        }
+
         if (layer_nr < enforcers.size()) {
             Polygons& enforcer = enforcers[layer_nr];
             // coconut: enforcer can't do offset2_ex, otherwise faces with angle near 90 degrees can't have enforcers, which
@@ -1090,7 +1130,6 @@ static inline BoundingBox fill_expolygon_generate_paths(
     ExPolygon              &&expolygon,
     Fill                    *filler,
     const FillParams        &fill_params,
-    float                    density,
     ExtrusionRole            role,
     const Flow              &flow)
 {
@@ -1118,7 +1157,6 @@ static inline std::vector<BoundingBox> fill_expolygons_generate_paths(
     ExPolygons            &&expolygons,
     Fill                   *filler,
     const FillParams       &fill_params,
-    float                   density,
     ExtrusionRole           role,
     const Flow             &flow)
 {
@@ -1126,7 +1164,7 @@ static inline std::vector<BoundingBox> fill_expolygons_generate_paths(
     filler->set_bounding_box(bbox_object);
     std::vector<BoundingBox> fill_boxes;
     for (ExPolygon& expoly : expolygons) {
-        auto box = fill_expolygon_generate_paths(dst, std::move(expoly), filler, fill_params, density, role, flow);
+        auto box = fill_expolygon_generate_paths(dst, std::move(expoly), filler, fill_params, role, flow);
         fill_boxes.emplace_back(box);
     }
     return fill_boxes;
@@ -1179,7 +1217,7 @@ static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& pr
     fill_params.density = support_density;
     fill_params.dont_adjust = true;
     ExPolygons to_infill = offset_ex(support_area, -0.5f * float(flow.scaled_spacing()), jtSquare);
-    std::vector<BoundingBox> fill_boxes = fill_expolygons_generate_paths(dst, std::move(to_infill), filler_support, fill_params, support_density, role, flow);
+    std::vector<BoundingBox> fill_boxes = fill_expolygons_generate_paths(dst, std::move(to_infill), filler_support, fill_params, role, flow);
 
     // allow wall_count to be zero, which means only draw infill
     if (wall_count == 0) {
@@ -1322,7 +1360,7 @@ void TreeSupport::generate_toolpaths()
         fill_params.dont_adjust = true;
 
         fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(offset_ex(raft_areas, scale_(expand_offset))),
-            filler_interface, fill_params, interface_density, erSupportMaterial, support_flow);
+            filler_interface, fill_params, erSupportMaterial, support_flow);
     }
 
     for (size_t layer_nr = m_slicing_params.base_raft_layers;
@@ -1342,7 +1380,7 @@ void TreeSupport::generate_toolpaths()
         fill_params.dont_adjust = true;
 
         fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(offset_ex(raft_areas, scale_(expand_offset))),
-            filler_interface, fill_params, interface_density, erSupportMaterialInterface, support_flow);
+            filler_interface, fill_params, erSupportMaterialInterface, support_flow);
     }
 
     auto obj_size = m_object->size();
@@ -1359,7 +1397,7 @@ void TreeSupport::generate_toolpaths()
                 Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
                 Flow transition_flow(support_transition_extrusion_width, ts_layer->height, nozzle_diameter);
                 Fill* filler_interface = Fill::new_from_type(ipRectilinear);
-                filler_interface->angle = (1 - obj_is_vertical) * M_PI_2;//((1-obj_is_vertical) + int(layer_id / num_layers_to_change_infill_direction)) * M_PI_2;;//layer_id % 2 ? 0 : M_PI_2;
+                filler_interface->angle = Geometry::deg2rad(object_config.support_material_angle.value + 90.);//(1 - obj_is_vertical) * M_PI_2;//((1-obj_is_vertical) + int(layer_id / num_layers_to_change_infill_direction)) * M_PI_2;;//layer_id % 2 ? 0 : M_PI_2;
 
                 // int is type of area: 0: base; 1:interface (roof and floor); 2: the layer just below roof
                 std::vector<std::pair<ExPolygon*, int>> area_groups;
@@ -1403,21 +1441,25 @@ void TreeSupport::generate_toolpaths()
                     }
                     if (area_group.second == 3) {
                         // roof_1st_layer
-                        filler_interface->spacing = interface_spacing;
+                        fill_params.density = interface_density;
+                        // Note: spacing means the separation between two lines as if they are tightly extruded
+                        filler_interface->spacing = m_support_material_interface_flow.spacing();
                         fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(polys),
-                            filler_interface, fill_params, interface_density, erSupportMaterial, m_support_material_interface_flow);
+                            filler_interface, fill_params, erSupportMaterial, m_support_material_interface_flow);
                     }
                     else if (area_group.second == 2) {
                         // floor_areas
-                        filler_interface->spacing = bottom_interface_spacing;
+                        fill_params.density = bottom_interface_density;
+                        filler_interface->spacing = m_support_material_interface_flow.spacing();
                         fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(polys),
-                            filler_interface, fill_params, bottom_interface_density, erSupportMaterialInterface, m_support_material_interface_flow);
+                            filler_interface, fill_params, erSupportMaterialInterface, m_support_material_interface_flow);
                     }
                     else if (area_group.second==1) {
                         // roof_areas
-                        filler_interface->spacing = interface_spacing;
+                        fill_params.density = interface_density;
+                        filler_interface->spacing = m_support_material_interface_flow.spacing();
                         fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(polys),
-                            filler_interface, fill_params, interface_density, erSupportMaterialInterface, m_support_material_interface_flow);
+                            filler_interface, fill_params, erSupportMaterialInterface, m_support_material_interface_flow);
                     }
                     else {
                         // base_areas
@@ -1430,11 +1472,11 @@ void TreeSupport::generate_toolpaths()
                         if (with_infill && layer_id > 0) {
                             if (filler_type == ipRectilinear) {
                                 role = erSupportMaterial;// layer_id% num_layers_to_change_infill_direction == 0 ? erSupportTransition : erSupportMaterial;
-                                filler_support->angle = obj_is_vertical * M_PI_2;// (obj_is_vertical + int(layer_id / num_layers_to_change_infill_direction))* M_PI_2;
+                                filler_support->angle = Geometry::deg2rad(object_config.support_material_angle.value);// obj_is_vertical* M_PI_2;// (obj_is_vertical + int(layer_id / num_layers_to_change_infill_direction))* M_PI_2;
                             }
                             else {
                                 role = erSupportMaterial;
-                                filler_support->angle = obj_is_vertical * M_PI_2 + (float)layer_id / num_layers_to_change_infill_direction * M_PI_4;
+                                filler_support->angle = Geometry::deg2rad(object_config.support_material_angle.value);// obj_is_vertical * M_PI_2 + (float)layer_id / num_layers_to_change_infill_direction * M_PI_4;
                             }
                             // allow infill-only mode if support is thick enough
                             if (offset(poly, -scale_(support_spacing * 1.5)).empty() == false)

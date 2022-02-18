@@ -113,7 +113,7 @@
     "support_material_synchronize_layers": "0",
     "support_material_threshold": "30",
     "support_material_with_sheath": "0",
-    "support_material_xy_spacing": "1",
+    "support_material_xy_spacing": "0.35",
     "tree_support_branch_angle": "30",
     "tree_support_branch_distance": "1",
     "tree_support_branch_diameter": "5",

@@ -412,7 +412,7 @@ void PrintObject::generate_support_material()
             m_print->throw_if_canceled();
         } else {
             // BBS: pop a warning if objects have significant amount of overhangs but support material is not enabled
-            if(m_tree_support->total_overhang_area>10 || m_tree_support->total_overhang_layer_cnt>10)
+            if(m_tree_support->total_overhang_area>SQ(scale_(10)) || m_tree_support->total_overhang_layer_cnt>10)
                 this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL,
                     "It seems model "+ this->model_object()->name + " needs support to print!Please enable support material.");
 #if 0

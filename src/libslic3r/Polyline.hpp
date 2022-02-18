@@ -81,6 +81,8 @@ public:
     std::vector<PathFittingData> fitting_result;
     //BBS: simplify points by arc fitting
     void simplify_by_fitting_arc(double tolerance);
+    //BBS: 
+    Polylines equally_spaced_lines(double distance) const;
 };
 
 inline bool operator==(const Polyline &lhs, const Polyline &rhs) { return lhs.points == rhs.points; }

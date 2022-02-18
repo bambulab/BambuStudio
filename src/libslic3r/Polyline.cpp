@@ -112,6 +112,47 @@ void Polyline::simplify_by_fitting_arc(double tolerance)
     ArcFitter::do_arc_fitting_and_simplify(this->points, fitting_result, tolerance);
 }
 
+Polylines Polyline::equally_spaced_lines(double distance) const
+{
+    Polylines lines;
+    Polyline line;
+    line.points.emplace_back(this->first_point());
+    double len = 0;
+
+    for (Points::const_iterator it = this->points.begin() + 1; it != this->points.end(); ++it) {
+        Vec2d  p1 = line.points.back().cast<double>();
+        Vec2d  v = it->cast<double>() - p1;
+        double segment_length = v.norm();
+        len += segment_length;
+        if (len < distance)
+            continue;
+        if (len == distance) {
+            line.points.emplace_back(*it);
+            lines.emplace_back(line);
+            
+            line.clear();
+            line.points.push_back(*it);
+            len = 0;
+            continue;
+        }
+        double take = distance;  // how much we take of this segment
+        line.points.emplace_back((p1 + v * (take / v.norm())).cast<coord_t>());
+        lines.emplace_back(line);
+
+        line.clear();
+        line.points.push_back(lines.back().points.back());
+        --it;
+        len = -take;
+    }
+    // add the last reminder
+    if (line.points.size() == 1) {
+        line.points.push_back(this->points.back());
+        if(line.first_point()!=line.last_point())
+            lines.emplace_back(line);
+    }
+    return lines;
+}
+
 #if 0
 // This method simplifies all *lines* contained in the supplied area
 template <class T>

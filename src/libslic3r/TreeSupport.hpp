@@ -9,6 +9,10 @@
 #include "MinimumSpanningTree.hpp"
 #include "tbb/concurrent_unordered_map.h"
 
+#ifndef SQ
+#define SQ(x) ((x)*(x))
+#endif
+
 namespace Slic3r
 {
 class PrintObject;
