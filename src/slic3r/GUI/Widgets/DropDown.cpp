@@ -206,6 +206,7 @@ void DropDown::render(wxDC &dc)
         int    height = rowSize.y * texts.size();
         wxRect rect = {size.x - 6, -offset.y * size.y / height, 4,
                        size.y * size.y / height};
+        dc.SetPen(wxPen(border_color.defaultColor()));
         dc.SetBrush(wxBrush(*wxLIGHT_GREY));
         dc.DrawRoundedRectangle(rect, 2);
         rcContent.width -= 6;
@@ -282,7 +283,8 @@ void DropDown::messureSize()
     szContent.y += 10;
     if (GetParent()) szContent.x = GetParent()->GetSize().x;
     rowSize = szContent;
-    szContent.y *= texts.size();
+    szContent.y *= std::min((size_t)15, texts.size());
+    szContent.y += texts.size() > 15 ? rowSize.y / 2 : 0;
     wxWindow::SetSize(szContent);
     need_sync = false;
 }
@@ -296,7 +298,8 @@ void DropDown::autoPosition()
     Position(pos, {0, GetParent()->GetSize().y + 12});
     if (old != GetPosition()) {
         size = rowSize;
-        size.y *= texts.size();
+        size.y *= std::min((size_t)15, texts.size());
+        size.y += texts.size() > 15 ? rowSize.y / 2 : 0;
         if (size != GetSize()) {
             wxWindow::SetSize(size);
             offset = wxPoint();

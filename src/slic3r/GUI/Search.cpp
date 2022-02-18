@@ -652,6 +652,7 @@ void SearchDialog::update_list()
     if (search_list_model->GetCount() > 0)
         search_list->Select(search_list_model->GetItem(0));
     prevent_list_events = false;
+    Refresh();
 }
 
 void SearchDialog::OnCheck(wxCommandEvent& event)
