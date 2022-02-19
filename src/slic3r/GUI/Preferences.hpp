@@ -10,6 +10,8 @@
 #include <list>
 #include <map>
 #include "Widgets/ComboBox.hpp"
+#include "Widgets/CheckBox.hpp"
+#include "Widgets/TextInput.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -34,9 +36,13 @@ public:
 };
 WX_DECLARE_LIST(RadioSelector, RadioSelectorList);
 
-#define DESIGN_RESOUTION_PREFERENCES wxSize(618, 466)
+#define DESIGN_RESOUTION_PREFERENCES wxSize(618, 520)
 #define DESIGN_SELECTOR_NOMORE_COLOR wxColour(248, 248, 248)
 #define DESIGN_SELECTOR_SELECTED_COLOR wxColour(255, 255, 255)
+
+
+class CheckBox;
+class TextInput;
 
 class PreferencesDialog : public DPIDialog
 {
@@ -80,6 +86,14 @@ public:
      ~PreferencesDialog();
     void Init();
     wxString          m_backup_interval_time;
+
+    //debug mode
+    ::CheckBox*       m_developer_mode_ckeckbox;
+    ::TextInput*      m_backup_interval_textinput;
+
+    wxString          m_developer_mode_def;
+    wxString          m_backup_interval_def;
+
 
     SelectorHash      m_hash_selector;
     RadioSelectorList m_radio_group;

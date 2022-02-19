@@ -69,36 +69,29 @@ wxWindow *PreferencesDialog::create_item_language_combobox(
     wxStaticText *text = new wxStaticText(item, wxID_ANY, title, wxDefaultPosition, wxDefaultSize);
     text->SetPosition(wxPoint(padding_left, (item->GetSize().GetHeight() - text->GetSize().GetHeight()) / 2));
 
-    //app_config->set("language", "zh_CN");
-    //app_config->save();
+    // app_config->set("language", "zh_CN");
+    // app_config->save();
     auto current_language = app_config->get(param);
-    auto combobox = new ::ComboBox(item, wxID_ANY, wxString(""), wxDefaultPosition, wxSize(150, 24), 0, nullptr, wxCB_READONLY);
+    auto combobox         = new ::ComboBox(item, wxID_ANY, wxString(""), wxDefaultPosition, wxSize(150, 24), 0, nullptr, wxCB_READONLY);
 
-
-    for (size_t i = 0; i < vlist.size(); ++i) 
-    { 
-        combobox->Append(vlist[i]->Description); 
-        if (current_language == vlist[i]->CanonicalName) {
-            combobox->SetValue(vlist[i]->Description);
-        }
-        
+    for (size_t i = 0; i < vlist.size(); ++i) {
+        combobox->Append(vlist[i]->Description);
+        if (current_language == vlist[i]->CanonicalName) { combobox->SetValue(vlist[i]->Description); }
     }
     combobox->SetPosition(wxPoint(item->GetSize().GetWidth() - combobox->GetSize().GetWidth() - 60, (item->GetSize().GetHeight() - combobox->GetSize().GetHeight()) / 2));
 
     // save config
     combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, param, vlist](wxCommandEvent &e) {
-         for (size_t i = 0; i < vlist.size(); ++i) {
-            if (e.GetString().mb_str() != app_config->get(param)) 
-            {
-                if (e.GetString().mb_str() == vlist[i]->Description) 
-                {
-                     app_config->set(param, vlist[i]->CanonicalName.ToUTF8().data());
-                     app_config->save();
+        for (size_t i = 0; i < vlist.size(); ++i) {
+            if (e.GetString().mb_str() != app_config->get(param)) {
+                if (e.GetString().mb_str() == vlist[i]->Description) {
+                    app_config->set(param, vlist[i]->CanonicalName.ToUTF8().data());
+                    app_config->save();
 
-                     wxGetApp().load_language(vlist[i]->CanonicalName, false);
-                     Close();
-                     wxGetApp().recreate_GUI(_L("Changing of an application language"));
-                     break;
+                    wxGetApp().load_language(vlist[i]->CanonicalName, false);
+                    Close();
+                    wxGetApp().recreate_GUI(_L("Changing of an application language"));
+                    break;
                 }
             }
         }
@@ -122,7 +115,7 @@ wxWindow *PreferencesDialog::create_item_multiple_combobox(
     Split(app_config->get(param), "/", params);
 
     std::vector<wxString>::iterator iter;
-    auto                            combobox_right = new ::ComboBox(item, wxID_ANY, wxString(""), wxDefaultPosition, wxSize(120, 24), 0, nullptr, wxCB_READONLY);
+    auto                            combobox_right = new ::ComboBox(item, wxID_ANY, wxString(""), wxDefaultPosition, wxSize(140, 24), 0, nullptr, wxCB_READONLY);
     for (iter = vlistb.begin(); iter != vlistb.end(); iter++) { combobox_right->Append(*iter); }
 
     auto pad_right = item->GetSize().GetWidth() - combobox_right->GetSize().GetWidth();
@@ -134,7 +127,7 @@ wxWindow *PreferencesDialog::create_item_multiple_combobox(
     pad_right -= plus->GetSize().GetWidth();
     plus->SetPosition(wxPoint(pad_right, (item->GetSize().GetHeight() - plus->GetSize().GetHeight()) / 2));
 
-    auto combobox_left = new ::ComboBox(item, wxID_ANY, wxString(""), wxDefaultPosition, wxSize(120, 24), 0, nullptr, wxCB_READONLY);
+    auto combobox_left = new ::ComboBox(item, wxID_ANY, wxString(""), wxDefaultPosition, wxSize(100, 24), 0, nullptr, wxCB_READONLY);
     for (iter = vlista.begin(); iter != vlista.end(); iter++) { combobox_left->Append(*iter); }
 
     pad_right -= combobox_left->GetSize().GetWidth();
@@ -181,6 +174,9 @@ wxWindow *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pare
         e.Skip();
     });
 
+    //for debug mode
+    if (param == "developer_mode") { m_developer_mode_ckeckbox = checkbox;}
+
     checkbox->SetToolTip(tooltip);
     text->SetToolTip(tooltip);
     return item;
@@ -201,11 +197,16 @@ wxWindow *PreferencesDialog::create_item_input(wxString title, wxWindow *parent,
     input->SetPosition(wxPoint(item->GetSize().GetWidth() - input->GetSize().GetWidth() - 20, (item->GetSize().GetHeight() - input->GetSize().GetHeight()) / 2));
 
     // save config
-    input->GetTextCtrl()->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this, param, input](wxCommandEvent &e) { 
-        auto a = input->GetTextCtrl()->GetValue();
+    input->GetTextCtrl()->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this, param, input](wxCommandEvent &e) {
+        auto a                 = input->GetTextCtrl()->GetValue();
         m_backup_interval_time = input->GetTextCtrl()->GetValue();
         e.Skip();
     });
+
+    //for debug mode
+    if (param == "backup_interval") { 
+        m_backup_interval_textinput = input;
+    }
 
     text->SetToolTip(tooltip);
     return item;
@@ -246,10 +247,9 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
 }
 
 void PreferencesDialog::Init()
-{
-    app_config = get_app_config();
+{    
+    app_config             = get_app_config();
     m_backup_interval_time = app_config->get("backup_interval");
-
 
     Bind(wxEVT_PAINT, &PreferencesDialog::OnPaint, this);
 
@@ -540,18 +540,24 @@ void PreferencesDialog::create_shortcuts_page()
 
 void PreferencesDialog::create_debug_page()
 {
+    
+    m_developer_mode_def = app_config->get("developer_mode");
+    m_backup_interval_def = app_config->get("backup_interval");
+
+
     wxBoxSizer *bSizer;
     bSizer = new wxBoxSizer(wxVERTICAL);
 
     wxWindow *title_devlop_mode    = create_item_title(L("devlop mode"), m_panel_debug, wxString("devlop mode"));
     wxWindow *item_devlop_mode     = create_item_checkbox(L("devlop mode"), m_panel_debug, L("devlop mode"), 50, "developer_mode");
-    wxWindow *item_backup_interval = create_item_input(L("backup_interval"), m_panel_debug, L("backup_interval"), 50, "backup_interval");
+    wxWindow *item_backup_interval = create_item_input(L("backup interval"), m_panel_debug, L("backup_interval"), 50, "backup_interval");
 
     auto radio1 = create_item_radiobox(_L("DEV host: api-dev.bambu-lab.com/v1"), m_panel_debug, "", 50, 1, wxString("dev_host"));
-    auto radio2 = create_item_radiobox(_L("QA  host: api-qa.bambu-lab.com/v1"),   m_panel_debug, "", 50, 1, wxString("qa_host"));
-    auto radio3 = create_item_radiobox(_L("PRE host: api-pre.bambu-lab.com/v1"),  m_panel_debug, "", 50, 1, wxString("pre_host"));
-    
+    auto radio2 = create_item_radiobox(_L("QA  host: api-qa.bambu-lab.com/v1"), m_panel_debug, "", 50, 1, wxString("qa_host"));
+    auto radio3 = create_item_radiobox(_L("PRE host: api-pre.bambu-lab.com/v1"), m_panel_debug, "", 50, 1, wxString("pre_host"));
+
     std::string sel = app_config->get("iot_environment");
+
     if (sel == "0") {
         on_select_radio(wxString("dev_host"));
     } else if (sel == "1") {
@@ -562,44 +568,70 @@ void PreferencesDialog::create_debug_page()
 
     wxButton *debug_button = new wxButton(m_panel_debug, wxID_ANY, wxT("debug save button"), wxDefaultPosition, wxDefaultSize, 0);
     debug_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+        // success message box
+        wxMessageDialog dialog(this, _T("save debug settings"), _T("DEBUG settings have saved successfully!"), wxNO_DEFAULT | wxYES_NO | wxICON_INFORMATION);
+        switch (dialog.ShowModal()) {
+        case wxID_NO: {
+            if (m_developer_mode_def != app_config->get("developer_mode")) { 
+                app_config->set_bool("developer_mode", m_developer_mode_def == "true"?true: false); 
+                m_developer_mode_ckeckbox->SetValue(m_developer_mode_def == "true" ? true : false);
+            }
 
-        // bbs  domain changed
-        auto param = get_select_radio(1);
-        AccountManager *manager = wxGetApp().getAccountManager();
-        manager->user_logout();
+            if (m_backup_interval_def != m_backup_interval_time) { 
+                m_backup_interval_textinput->GetTextCtrl()->SetValue(m_backup_interval_def); 
+            }
 
-        std::string old_sel = app_config->get("iot_environment");
+            auto sel = app_config->get("iot_environment");
+            if (sel == "0") {
+                    on_select_radio(wxString("dev_host"));
+            } else if (sel == "1") {
+                    on_select_radio(wxString("qa_host"));
+            } else if (sel == "2") {
+                    on_select_radio(wxString("pre_host"));
+            }
 
-        if (param == "dev_host") {
-            app_config->set("iot_environment", "0");
-            manager->set_host(DEV_HOST_URL);
-        } else if (param == "qa_host") {
-            app_config->set("iot_environment", "1");
-            manager->set_host(QAT_HOST_URL);
-        } else if (param == "pre_host") {
-            app_config->set("iot_environment", "2");
-            manager->set_host(PRE_HOST_URL);
+            break;
         }
 
-        if (old_sel != app_config->get("iot_environment")) {
-            wxMessageBox(_L("swith cloud environment, please log in again!"));
+        case wxID_YES: {
+            // bbs  domain changed
+            auto            param   = get_select_radio(1);
+            AccountManager *manager = wxGetApp().getAccountManager();
+            manager->user_logout();
+
+            std::string old_sel = app_config->get("iot_environment");
+
+            if (param == "dev_host") {
+                app_config->set("iot_environment", "0");
+                manager->set_host(DEV_HOST_URL);
+            } else if (param == "qa_host") {
+                app_config->set("iot_environment", "1");
+                manager->set_host(QAT_HOST_URL);
+            } else if (param == "pre_host") {
+                app_config->set("iot_environment", "2");
+                manager->set_host(PRE_HOST_URL);
+            }
+
+            if (old_sel != app_config->get("iot_environment")) { wxMessageBox(_L("swith cloud environment, please log in again!")); }
+
+            // bbs  backup
+            app_config->set("backup_interval", std::string(m_backup_interval_time.mb_str()));
+            app_config->save();
+            Slic3r::set_backup_interval(boost::lexical_cast<long>(app_config->get("backup_interval")));
+
+            // bbs  developer mode
+            auto developer_mode = app_config->get("developer_mode");
+            if (developer_mode == "true") {
+                Slic3r::GUI::wxGetApp().save_mode(comDevelop);
+            } else {
+                Slic3r::GUI::wxGetApp().save_mode(comAdvanced);
+            }
+
+            this->Destroy();
+            break;
         }
-
-        // bbs  backup
-        app_config->set("backup_interval", std::string(m_backup_interval_time.mb_str()));
-        app_config->save();
-        Slic3r::set_backup_interval(boost::lexical_cast<long>(app_config->get("backup_interval")));
-
-
-        //bbs  developer mode 
-        auto developer_mode = app_config->get("developer_mode");
-        if (developer_mode == "true") { 
-            Slic3r::GUI::wxGetApp().save_mode(comDevelop);
-        } else {
-            Slic3r::GUI::wxGetApp().save_mode(comAdvanced);
         }
     });
-    
 
     bSizer->Add(title_devlop_mode, 0, wxTOP, 20);
     bSizer->Add(item_devlop_mode, 0, wxTOP, 20);
@@ -612,7 +644,6 @@ void PreferencesDialog::create_debug_page()
     m_panel_debug->SetSizer(bSizer);
     bSizer->Fit(m_panel_debug);
 }
- 
 
 void PreferencesDialog::on_select_radio(wxString param)
 {
@@ -639,10 +670,7 @@ wxString PreferencesDialog::get_select_radio(int groupid)
     RadioSelectorList::Node *node = m_radio_group.GetFirst();
     while (node) {
         RadioSelector *rs = node->GetData();
-        if (rs->m_groupid == groupid && rs->m_radiobox->GetValue())
-        {
-            return rs->m_param_name;
-        }
+        if (rs->m_groupid == groupid && rs->m_radiobox->GetValue()) { return rs->m_param_name; }
         node = node->GetNext();
     }
 
