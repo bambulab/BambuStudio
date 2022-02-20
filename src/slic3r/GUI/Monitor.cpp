@@ -1383,12 +1383,12 @@ void MonitorPanel::update_status(MachineObject* obj)
 
 void MonitorPanel::on_timer(wxTimerEvent& event)
 {
-    Freeze();
+    //Freeze();
     update_all();
     
     Layout();
     Refresh();
-    Thaw(); // will cause media ctrl period flush
+    //Thaw(); // will cause media ctrl period flush
 }
 
 void MonitorPanel::update_all()
