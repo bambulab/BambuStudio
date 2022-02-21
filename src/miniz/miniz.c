@@ -4156,6 +4156,8 @@ static mz_bool mz_zip_file_stat_internal(mz_zip_archive *pZip, mz_uint file_inde
     pStat->m_is_directory = mz_zip_reader_is_file_a_directory(pZip, file_index);
     pStat->m_is_encrypted = mz_zip_reader_is_file_encrypted(pZip, file_index);
     pStat->m_is_supported = mz_zip_reader_is_file_supported(pZip, file_index);
+    // BBS
+    pStat->m_is_utf8 = pStat->m_bit_flag & MZ_ZIP_GENERAL_PURPOSE_BIT_FLAG_UTF8;
 
     /* See if we need to read any zip64 extended information fields. */
     /* Confusingly, these zip64 fields can be present even on non-zip64 archives (Debian zip on a huge files from stdin piped to stdout creates them). */
@@ -6985,7 +6987,14 @@ mz_bool mz_zip_writer_add_cfile(mz_zip_archive *pZip, const char *pArchive_name,
 		user_extra_data, user_extra_data_len, user_extra_data_central, user_extra_data_central_len);
 }
 
+// BBS: support storage path with unicode path extra
 mz_bool mz_zip_writer_add_file(mz_zip_archive *pZip, const char *pArchive_name, const char *pSrc_filename, const void *pComment, mz_uint16 comment_size, mz_uint level_and_flags)
+{
+    return mz_zip_writer_add_file_ex(pZip, pArchive_name, pSrc_filename, pComment, comment_size, level_and_flags, NULL, 0, NULL, 0);
+}
+
+mz_bool mz_zip_writer_add_file_ex(mz_zip_archive *pZip, const char *pArchive_name, const char *pSrc_filename, const void *pComment, mz_uint16 comment_size, mz_uint level_and_flags, 
+    const char *user_extra_data, mz_uint user_extra_data_len, const char *user_extra_data_central, mz_uint user_extra_data_central_len)
 {
     MZ_FILE *pSrc_file = NULL;
     mz_uint64 uncomp_size = 0;
@@ -7009,7 +7018,8 @@ mz_bool mz_zip_writer_add_file(mz_zip_archive *pZip, const char *pArchive_name, 
     uncomp_size = MZ_FTELL64(pSrc_file);
     MZ_FSEEK64(pSrc_file, 0, SEEK_SET);
 
-    status = mz_zip_writer_add_cfile(pZip, pArchive_name, pSrc_file, uncomp_size, pFile_time, pComment, comment_size, level_and_flags, NULL, 0, NULL, 0);
+    // BBS
+    status = mz_zip_writer_add_cfile(pZip, pArchive_name, pSrc_file, uncomp_size, pFile_time, pComment, comment_size, level_and_flags, user_extra_data, user_extra_data_len, user_extra_data_central, user_extra_data_central_len);
 
     MZ_FCLOSE(pSrc_file);
 
@@ -7920,6 +7930,30 @@ mz_uint mz_zip_reader_get_filename(mz_zip_archive *pZip, mz_uint file_index, cha
         pFilename[n] = '\0';
     }
     return n + 1;
+}
+
+// BBS
+mz_uint mz_zip_reader_get_extra(mz_zip_archive* pZip, mz_uint file_index, char* pExtra, mz_uint extra_buf_size)
+{
+    mz_uint nf;
+    mz_uint ne;
+    const mz_uint8 *p = mz_zip_get_cdh(pZip, file_index);
+    if (!p)
+    {
+        if (extra_buf_size)
+            pExtra[0] = '\0';
+        mz_zip_set_error(pZip, MZ_ZIP_INVALID_PARAMETER);
+        return 0;
+    }
+    nf = MZ_READ_LE16(p + MZ_ZIP_CDH_FILENAME_LEN_OFS);
+    ne = MZ_READ_LE16(p + MZ_ZIP_CDH_EXTRA_LEN_OFS);
+    if (extra_buf_size)
+    {
+        ne = MZ_MIN(ne, extra_buf_size - 1);
+        memcpy(pExtra, p + MZ_ZIP_CENTRAL_DIR_HEADER_SIZE + nf, ne);
+        pExtra[ne] = '\0';
+    }
+    return ne + 1;
 }
 
 mz_bool mz_zip_reader_file_stat(mz_zip_archive *pZip, mz_uint file_index, mz_zip_archive_file_stat *pStat)

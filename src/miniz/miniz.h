@@ -966,6 +966,9 @@ typedef struct
     /* MZ_TRUE if the file is not encrypted, a patch file, and if it uses a compression method we support. */
     mz_bool m_is_supported;
 
+    // BBS
+    mz_bool m_is_utf8;
+
     /* Filename. If string ends in '/' it's a subdirectory entry. */
     /* Guaranteed to be zero terminated, may be truncated to fit. */
     char m_filename[MZ_ZIP_MAX_ARCHIVE_FILENAME_SIZE];
@@ -1159,6 +1162,8 @@ mz_bool mz_zip_reader_is_file_supported(mz_zip_archive *pZip, mz_uint file_index
 /* Retrieves the filename of an archive file entry. */
 /* Returns the number of bytes written to pFilename, or if filename_buf_size is 0 this function returns the number of bytes needed to fully store the filename. */
 mz_uint mz_zip_reader_get_filename(mz_zip_archive *pZip, mz_uint file_index, char *pFilename, mz_uint filename_buf_size);
+// BBS
+mz_uint mz_zip_reader_get_extra(mz_zip_archive *pZip, mz_uint file_index, char *pExtra, mz_uint extra_buf_size);
 
 /* Attempts to locates a file in the archive's central directory. */
 /* Valid flags: MZ_ZIP_FLAG_CASE_SENSITIVE, MZ_ZIP_FLAG_IGNORE_PATH */
@@ -1290,6 +1295,9 @@ mz_bool mz_zip_writer_add_read_buf_callback(mz_zip_archive *pZip, const char *pA
 /* Adds the contents of a disk file to an archive. This function also records the disk file's modified time into the archive. */
 /* level_and_flags - compression level (0-10, see MZ_BEST_SPEED, MZ_BEST_COMPRESSION, etc.) logically OR'd with zero or more mz_zip_flags, or just set to MZ_DEFAULT_COMPRESSION. */
 mz_bool mz_zip_writer_add_file(mz_zip_archive *pZip, const char *pArchive_name, const char *pSrc_filename, const void *pComment, mz_uint16 comment_size, mz_uint level_and_flags);
+// BBS: support storage path with unicode path extra
+mz_bool mz_zip_writer_add_file_ex(mz_zip_archive *pZip, const char *pArchive_name, const char *pSrc_filename, const void *pComment, mz_uint16 comment_size, mz_uint level_and_flags,
+    const char *user_extra_data, mz_uint user_extra_data_len, const char *user_extra_data_central, mz_uint user_extra_data_central_len);
 
 /* Like mz_zip_writer_add_file(), except the file data is read from the specified FILE stream. */
 mz_bool mz_zip_writer_add_cfile(mz_zip_archive *pZip, const char *pArchive_name, MZ_FILE *pSrc_file, mz_uint64 size_to_add,

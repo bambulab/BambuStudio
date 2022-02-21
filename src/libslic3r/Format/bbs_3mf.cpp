@@ -48,6 +48,43 @@ namespace pt = boost::property_tree;
 // The code is left here for the ocasion boost guys improve.
 #define EXPORT_3MF_USE_SPIRIT_KARMA_FP 0
 
+#define WRITE_ZIP_LANGUAGE_ENCODING 1
+
+// @see https://commons.apache.org/proper/commons-compress/apidocs/src-html/org/apache/commons/compress/archivers/zip/AbstractUnicodeExtraField.html
+struct ZipUnicodePathExtraField
+{
+    static std::string encode(std::string const& u8path, std::string const& path) {
+        std::string extra;
+        if (u8path != path) {
+            // 0x7075 - for Unicode filenames
+            extra.push_back('\x75');
+            extra.push_back('\x70');
+            boost::uint16_t len = 5 + u8path.length();
+            extra.push_back((char)(len & 0xff));
+            extra.push_back((char)(len >> 8));
+            auto crc = mz_crc32(0, (unsigned char *) path.c_str(), path.length());
+            extra.push_back('\x01'); // version 1
+            extra.append((char *)&crc, (char *)&crc + 4); // Little Endian
+            extra.append(u8path);
+        }
+        return extra;
+    }
+    static std::string decode(std::string const& extra, std::string const& path = {}) {
+        char const * p = extra.data();
+        char const * e = p + extra.length();
+        while (p + 4 < e) {
+            boost::uint16_t len = ((boost::uint16_t)p[2]) | ((boost::uint16_t)p[3] << 8);
+            if (p[0] == '\x75' && p[1] == '\x70' && len >= 5 && p + 4 + len < e && p[4] == '\x01') {
+                return std::string(p + 9, p + 4 + len);
+            }
+            else {
+                p += 4 + len;
+            }
+        }
+        return Slic3r::decode_path(path.c_str());
+    }
+};
+
 // VERSION NUMBERS
 // 0 : .3mf, files saved by older slic3r or other applications. No version definition in them.
 // 1 : Introduction of 3mf versioning. No other change in data saved into 3mf files.
@@ -1265,8 +1302,24 @@ namespace Slic3r {
         mz_zip_archive_file_stat stat;
         std::string path2 = path;
         if (path2.front() == '/') path2 = path2.substr(1);
-        // TODO: path is uft-8, but zip filename maybe not
+        // try utf8 encoding
         int index = mz_zip_reader_locate_file(&archive, path2.c_str(), nullptr, 0);
+        if (index < 0) {
+            // try native encoding
+            std::string native_path = encode_path(path2.c_str());
+            index = mz_zip_reader_locate_file(&archive, native_path.c_str(), nullptr, 0);
+        }
+        if (index < 0) {
+            // try unicode path extra
+            std::string extra(1024, 0);
+            for (mz_uint i = 0; i < archive.m_total_files; ++i) {
+                size_t n = mz_zip_reader_get_extra(&archive, i, extra.data(), extra.size());
+                if (n > 0 && path2 == ZipUnicodePathExtraField::decode(extra.substr(0, n))) {
+                    index = i;
+                    break;
+                }
+            }
+        }
         if (index < 0 || !mz_zip_reader_file_stat(&archive, index, &stat)) {
             if (m_load_restore) {
                 std::vector<std::string> paths = {m_backup_path + path};
@@ -1405,7 +1458,7 @@ namespace Slic3r {
             std::string path = std::string("/") + stat.m_filename;
             if (std::find(m_encrypted_paths.begin(), m_encrypted_paths.end(), path) != m_encrypted_paths.end()) {
                 std::string userkey, iv;
-                if (!decrypt.open(stat.m_uncomp_size, callback, opaque) || !m_key_store->setup(path, decrypt, false)) {
+                if (!m_key_store->setup(path, decrypt, false) || !decrypt.open(stat.m_uncomp_size, callback, opaque)) {
                     add_error("Can't decrypt " + path + "without match key");
                     return false;
                 }
@@ -1559,31 +1612,31 @@ namespace Slic3r {
     {
         if (stat.m_uncomp_size > 0) {
             std::string dest_file;
-            std::string src_file = decode_path(stat.m_filename);
+            if (stat.m_is_utf8) {
+                dest_file = stat.m_filename;
+            } else {
+                std::string extra(1024, 0);
+                size_t n = mz_zip_reader_get_extra(&archive, stat.m_file_index, extra.data(), extra.size());
+                dest_file = ZipUnicodePathExtraField::decode(extra.substr(0, n), stat.m_filename);
+            }
             std::string temp_path = model.get_auxiliary_file_temp_path();
             //aux directory from model
             boost::filesystem::path dir = boost::filesystem::path(temp_path);
-            if (!boost::filesystem::exists(dir))
-            {
-                boost::filesystem::create_directory(dir);
-            }
-            std::size_t found = src_file.find(AUXILIARY_DIR);
+            std::size_t found = dest_file.find(AUXILIARY_DIR);
             if (found != std::string::npos)
-                src_file = src_file.substr(found + AUXILIARY_STR_LEN);
+                dest_file = dest_file.substr(found + AUXILIARY_STR_LEN);
             else
                 return;
-            if (src_file.find('/') != std::string::npos)
-            {
-                boost::filesystem::path src_path = boost::filesystem::path(src_file);
+            if (dest_file.find('/') != std::string::npos) {
+                boost::filesystem::path src_path = boost::filesystem::path(dest_file);
                 boost::filesystem::path parent_path = src_path.parent_path();
                 std::string temp_path = dir.string() + std::string("/") + parent_path.string();
                 boost::filesystem::path parent_full_path =  boost::filesystem::path(temp_path);
                 if (!boost::filesystem::exists(parent_full_path))
-                    boost::filesystem::create_directory(parent_full_path);
+                    boost::filesystem::create_directories(parent_full_path);
             }
-            dest_file = dir.string() + std::string("/") + src_file;
+            dest_file = dir.string() + std::string("/") + dest_file;
             std::string dest_zip_file = encode_path(dest_file.c_str());
-            //std::string src_zip_file = encode_path(stat.m_filename);
             mz_bool res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % dest_file % stat.m_filename % res;
             if (res == 0) {
@@ -3130,6 +3183,8 @@ namespace Slic3r {
             const std::vector<PlateBBoxData*>& id_bboxes,
             BBLProject* project = nullptr);
 
+        bool _add_file_to_archive(mz_zip_archive& archive, const std::string & path_in_zip, const std::string & file_path);
+
         bool _add_content_types_file_to_archive(mz_zip_archive& archive);
 
         bool _add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data, int index);
@@ -3536,6 +3591,27 @@ namespace Slic3r {
         return true;
     }
 
+    bool _BBS_3MF_Exporter::_add_file_to_archive(mz_zip_archive& archive, const std::string& path_in_zip, const std::string& src_file_path)
+    {
+        static std::string const nocomp_exts[] = {".png", ".jpg", ".mp4", ".jpeg", ".zip", ".3mf"};
+        auto end = nocomp_exts + sizeof(nocomp_exts) / sizeof(nocomp_exts[0]);
+        bool nocomp = std::find_if(nocomp_exts, end, [&path_in_zip](auto & ext) { return boost::algorithm::ends_with(path_in_zip, ext); }) != end;
+#if WRITE_ZIP_LANGUAGE_ENCODING
+        bool result = mz_zip_writer_add_file(&archive, path_in_zip.c_str(), encode_path(src_file_path.c_str()).c_str(), NULL, 0, nocomp ? MZ_NO_COMPRESSION : MZ_DEFAULT_LEVEL);
+#else
+        std::string native_path = encode_path(path_in_zip.c_str());
+        std::string extra = ZipUnicodePathExtraField::encode(path_in_zip, native_path);
+        bool result = mz_zip_writer_add_file_ex(&archive, native_path.c_str(), encode_path(src_file_path.c_str()).c_str(), NULL, 0, nocomp ? MZ_ZIP_FLAG_ASCII_FILENAME : MZ_DEFAULT_COMPRESSION, 
+                extra.c_str(), extra.length(), extra.c_str(), extra.length());
+#endif
+        if (!result) {
+            add_error("Unable to add file " + src_file_path + " to archive");
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", Unable to add file %1% to archive %2%\n") % src_file_path % path_in_zip;
+        } else {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", add file %1% to archive %2%\n") % src_file_path % path_in_zip;
+        }
+        return result;
+    }
 
     bool _BBS_3MF_Exporter::_add_content_types_file_to_archive(mz_zip_archive& archive)
     {
@@ -3565,7 +3641,7 @@ namespace Slic3r {
         bool res = false;
 
         size_t png_size = 0;
-        void* png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)thumbnail_data.pixels.data(), thumbnail_data.width, thumbnail_data.height, 4, &png_size, MZ_DEFAULT_LEVEL, 1);
+        void* png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)thumbnail_data.pixels.data(), thumbnail_data.width, thumbnail_data.height, 4, &png_size, MZ_DEFAULT_COMPRESSION, 1);
         if (png_data != nullptr) {
             std::string thumbnail_name = (boost::format("Metadata/plate_%1%.png") % (index + 1)).str();
             res = mz_zip_writer_add_mem(&archive, thumbnail_name.c_str(), (const void*)png_data, png_size, MZ_NO_COMPRESSION);
@@ -3585,7 +3661,7 @@ namespace Slic3r {
         bool res = false;
 
         size_t png_size = 0;
-        void* png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)thumbnail_data.pixels.data(), thumbnail_data.width, thumbnail_data.height, 4, &png_size, MZ_DEFAULT_LEVEL, 1);
+        void* png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)thumbnail_data.pixels.data(), thumbnail_data.width, thumbnail_data.height, 4, &png_size, MZ_DEFAULT_COMPRESSION, 1);
         if (png_data != nullptr) {
             std::string thumbnail_name = (boost::format("Metadata/plate_%1%_pattern_layer_0.png") % (index + 1)).str();
             res = mz_zip_writer_add_mem(&archive, thumbnail_name.c_str(), (const void*)png_data, png_size, MZ_NO_COMPRESSION);
@@ -3687,8 +3763,14 @@ namespace Slic3r {
         bool sub_model = !objects_data.empty();
         bool write_object = sub_model || !m_split_model;
 
+#if WRITE_ZIP_LANGUAGE_ENCODING
+        auto & zip_filename = filename;
+#else
+        std::string zip_filename = encode_path(filename.c_str());
+        std::string extra = sub_model ? ZipUnicodePathExtraField::encode(filename, zip_filename) : "";
+#endif
         mz_zip_writer_staged_context context;
-        if (!mz_zip_writer_add_staged_open(&archive, &context, sub_model ? filename.c_str() : MODEL_FILE.c_str(), 
+        if (!mz_zip_writer_add_staged_open(&archive, &context, sub_model ? zip_filename.c_str() : MODEL_FILE.c_str(), 
             m_zip64 ? 
                 // Maximum expected and allowed 3MF file size is 16GiB.
                 // This switches the ZIP file to a 64bit mode, which adds a tiny bit of overhead to file records.
@@ -3696,7 +3778,11 @@ namespace Slic3r {
                 // Maximum expected 3MF file size is 4GB-1. This is a workaround for interoperability with Windows 10 3D model fixing API, see
                 // GH issue #6193.
                 (uint64_t(1) << 32) - 1,
-            nullptr, nullptr, 0, sub_model && m_key_store ? MZ_BEST_SPEED : MZ_DEFAULT_COMPRESSION, nullptr, 0, nullptr, 0)) {
+#if WRITE_ZIP_LANGUAGE_ENCODING
+            nullptr, nullptr, 0, sub_model && m_key_store ? MZ_BEST_SPEED : MZ_DEFAULT_LEVEL, nullptr, 0, nullptr, 0)) {
+#else
+            nullptr, nullptr, 0, sub_model && m_key_store ? MZ_BEST_SPEED | MZ_ZIP_FLAG_ASCII_FILENAME : MZ_DEFAULT_COMPRESSION, extra.c_str(), extra.length(), extra.c_str(), extra.length())) {
+#endif
             add_error("Unable to add model file to archive");
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add model file to archive\n");
             return false;
@@ -3714,9 +3800,9 @@ namespace Slic3r {
         std::string path = "/" + filename;
         if (sub_model && m_key_store) {
             std::string userkey, iv;
-            if (!encrypt.open(context))
-                return false;
             if (!m_key_store->setup(path, encrypt, true))
+                return false;
+            if (!encrypt.open(context))
                 return false;
         }
 
@@ -4409,27 +4495,15 @@ namespace Slic3r {
     //BBS: add project config file logic for new json format
     bool _BBS_3MF_Exporter::_add_project_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config, Model& model)
     {
-        bool result = true;
-
         const std::string& temp_path = model.get_backup_path();
         std::string temp_file = temp_path + std::string("/") + "_temp_1.config";
-
         config.save_to_json(temp_file, std::string("project_settings"), std::string("project"), std::string(SLIC3R_RC_VERSION));
-
-        std::string src_file = encode_path(temp_file.c_str());
-        result = mz_zip_writer_add_file(&archive, BBS_PROJECT_CONFIG_FILE.c_str(), src_file.c_str(), "", 0, MZ_DEFAULT_COMPRESSION);
-        if (!result) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", Unable to add project config file %1% to archive %2%\n")%src_file %BBS_PROJECT_CONFIG_FILE;
-        }
-        else
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", add project config file %1% to archive %2%\n")%src_file %BBS_PROJECT_CONFIG_FILE;
-        return true;
+        return _add_file_to_archive(archive, BBS_PROJECT_CONFIG_FILE, temp_file);
     }
 
     //BBS: add project embedded preset files
     bool _BBS_3MF_Exporter::_add_project_embedded_presets_to_archive(mz_zip_archive& archive, Model& model, std::vector<Preset*> project_presets)
     {
-        bool result = true;
         char buffer[1024];
         sprintf(buffer, "; %s\n\n", header_slic3r_generated().c_str());
         std::string out = buffer;
@@ -4446,7 +4520,6 @@ namespace Slic3r {
                 //config.save(preset->file);
                 config.save_to_json(preset->file, preset->name, std::string("project"), std::string(SLIC3R_RC_VERSION));
 
-                std::string src_file = encode_path(preset->file.c_str());
                 std::string dest_file;
                 if (preset->type == Preset::TYPE_PRINT) {
                     dest_file = (boost::format(EMBEDDED_PRINT_FILE_FORMAT) % (print_count + 1)).str();
@@ -4463,12 +4536,7 @@ namespace Slic3r {
                 else
                     continue;
 
-                result = mz_zip_writer_add_file(&archive, dest_file.c_str(), src_file.c_str(), "", 0, MZ_DEFAULT_COMPRESSION);
-                if (!result) {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", Unable to add embedded preset %1% to archive %2%, type %3%\n")%preset->file %dest_file %Preset::get_type_string(preset->type);
-                }
-                else
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", add embedded print preset %1% to archive %2%, type %3%\n")%preset->file %dest_file %Preset::get_type_string(preset->type);
+                _add_file_to_archive(archive, dest_file, preset->file);
             }
         }
 
@@ -4756,8 +4824,8 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
                 std::string path = "/" + gcode_in_3mf;
                 if (m_key_store && !encrypted) {
                     std::string userkey, iv;
-                    encrypt.open(context);
                     m_key_store->setup(path, encrypt, true);
+                    encrypt.open(context);
                 }
                 boost::filesystem::ifstream ifs(src_gcode_file, std::ios::binary);
                 std::string buf(64 * 1024, 0);
@@ -4881,13 +4949,7 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive& archive, c
                 dst_in_3mf.replace(0, root_dir_len, AUXILIARY_DIR);
                 std::replace(dst_in_3mf.begin(), dst_in_3mf.end(), '\\', '/');
 
-                std::string dest_zip_file = encode_path(dst_in_3mf.c_str());
-                std::string src_zip_file = encode_path(src_file.c_str());
-
-                auto end = nocomp_exts + sizeof(nocomp_exts) / sizeof(nocomp_exts[0]);
-                bool nocomp = std::find_if(nocomp_exts, end, [&dst_in_3mf](auto & ext) { return boost::algorithm::ends_with(dst_in_3mf, ext); }) != end;
-                result = result & mz_zip_writer_add_file(&archive, dest_zip_file.c_str(), src_zip_file.c_str(), "", 0, nocomp ? MZ_NO_COMPRESSION : MZ_DEFAULT_LEVEL);
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", store  %1% to 3mf %2%, result %3%\n") % src_file % dst_in_3mf % result;
+                result &= _add_file_to_archive(archive, dst_in_3mf, src_file);
             }
         }
     }
@@ -5028,11 +5090,11 @@ private:
     };
     struct Task {
         TaskType type;
-        size_t id;
+        size_t id = 0;
         std::string path;
-        size_t id2;
-        ModelObject* object;
-        size_t delay; // delay sequence, only last task is delayed
+        size_t id2 = 0;
+        ModelObject* object = nullptr;
+        size_t delay = 0; // delay sequence, only last task is delayed
         friend bool operator==(Task const& l, Task const& r) {
             return l.type == r.type && l.id == r.id;
         }
