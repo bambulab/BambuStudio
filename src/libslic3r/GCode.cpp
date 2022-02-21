@@ -2187,7 +2187,10 @@ GCode::LayerResult GCode::process_layer(
 
     // Extract 1st object_layer and support_layer of this set of layers with an equal print_z.
     coordf_t             print_z       = layer.print_z;
-    bool                 first_layer   = layer.id() == 0;
+    //BBS: using layer id to judge whether the layer is first layer is wrong. Because if the normal
+    //support is attached above the object, and support layers has independent layer height, then the lowest support
+    //interface layer id is 0.
+    bool                 first_layer   = (layer.id() == 0 && abs(layer.bottom_z()) < EPSILON);
     unsigned int         first_extruder_id = layer_tools.extruders.front();
 
     // Initialize config with the 1st object to be printed at this layer.
@@ -2256,32 +2259,31 @@ GCode::LayerResult GCode::process_layer(
     }
 
     //BBS
-    if (print.config().scan_first_layer.value) {
-        if (first_layer) {
+    if (first_layer) {
+        //BBS: scan bed before print first layer
+        if (print.config().scan_first_layer.value) {
             gcode += ";scan bed before print first layer\n";
             gcode += "M973 S3 P0\nM400 S5\nM973 S2 P5000\nM400 S3\n";
             gcode += "M960 S0 P0\nM400 S3\nM960 S1 P1\nM400 S3\nM976 S2 P1\nM400 S10\n";
         }
-    }
-    //BBS: open spaghetti detector from second layer
-    if (print.config().enable_spaghetti_detector.value) {
-        if (layer.id() == 1) {
-            gcode += ";open spaghetti detector after first layer\n";
-            gcode += "M981 S1 P20000\n";
+        //BBS: set first layer global acceleration
+        if (m_config.default_acceleration.value > 0 && m_config.first_layer_acceleration.value > 0) {
+            double acceleration = m_config.first_layer_acceleration.value;
+            gcode += m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
         }
     }
 
-    //BBS: set first layer global acceleration and reset at second layer
-    if (layer.id() < 2 && m_config.default_acceleration.value > 0 && m_config.first_layer_acceleration.value > 0) {
-        double acceleration = 0;
-        if (this->on_first_layer())
-            acceleration = m_config.first_layer_acceleration.value;
-        else if (this->on_second_layer())
-            acceleration = m_config.default_acceleration.value;
-        gcode += m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
-    }
-
     if (! first_layer && ! m_second_layer_things_done) {
+        //BBS: open spaghetti detector at second layer
+        if (print.config().enable_spaghetti_detector.value) {
+            gcode += ";open spaghetti detector after first layer\n";
+            gcode += "M981 S1 P20000\n";
+        }
+        //BBS:  reset acceleration at sencond layer
+        if (m_config.default_acceleration.value > 0 && m_config.first_layer_acceleration.value > 0) {
+            double acceleration = m_config.default_acceleration.value;
+            gcode += m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
+        }
         // Transition from 1st to 2nd layer. Adjust nozzle temperatures as prescribed by the nozzle dependent
         // first_layer_temperature vs. temperature settings.
         for (const Extruder &extruder : m_writer.extruders()) {
