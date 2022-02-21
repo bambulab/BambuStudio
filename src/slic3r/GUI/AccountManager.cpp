@@ -740,7 +740,7 @@ namespace Slic3r {
     int AccountManager::get_print_info(std::string& result, int& err_code, std::string err_msg, bool sync)
     {
         std::string message;
-        std::string url = (boost::format("%1%/iot-service/api/user/print?device_id=") % host).str();
+        std::string url = (boost::format("%1%/iot-service/api/user/print?force=true&device_id=") % host).str();
         Http http  = Http::get(url);
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
@@ -789,12 +789,18 @@ namespace Slic3r {
                         obj->dev_id = elem["dev_id"];
                         obj->dev_name = elem["dev_name"];
                         obj->is_online = elem["dev_online"].get<bool>();
-                        obj->mc_print_percent = elem["progress"].get<int>();
-                        obj->iot_printing_taskname = elem["task_name"].get<std::string>();
-                        obj->iot_task_id = elem["task_id"].get<std::string>();
-                        obj->iot_profile_id = elem["profile_id"].get<std::string>();
-                        obj->iot_project_id = elem["project_id"].get<std::string>();
-                        obj->iot_task_status = elem["task_status"].get<std::string>();
+                        if (!elem["progress"].is_null())
+                            obj->mc_print_percent = elem["progress"].get<int>();
+                        if (!elem["task_name"].is_null())
+                            obj->iot_printing_taskname = elem["task_name"].get<std::string>();
+                        if (!elem["task_id"].is_null())
+                            obj->iot_task_id = elem["task_id"].get<std::string>();
+                        if (!elem["profile_id"].is_null())
+                            obj->iot_profile_id = elem["profile_id"].get<std::string>();
+                        if (!elem["project_id"].is_null())
+                            obj->iot_project_id = elem["project_id"].get<std::string>();
+                        if (!elem["task_status"].is_null())
+                            obj->iot_task_status = elem["task_status"].get<std::string>();
                         show_list.push_back(obj);
                     }
                 }
