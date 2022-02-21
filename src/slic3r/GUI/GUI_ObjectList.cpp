@@ -8,7 +8,6 @@
 #include "I18N.hpp"
 #include "Plater.hpp"
 #include "BitmapComboBox.hpp"
-#include "GalleryDialog.hpp"
 #include "MainFrame.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
 
@@ -1681,7 +1680,7 @@ void ObjectList::load_modifier(ModelObject& model_object, std::vector<ModelVolum
 
     wxArrayString input_files;
 
-    if (from_galery) {
+    /*if (from_galery) {
         GalleryDialog dlg(this);
         if (dlg.ShowModal() == wxID_CLOSE)
             return;
@@ -1689,8 +1688,8 @@ void ObjectList::load_modifier(ModelObject& model_object, std::vector<ModelVolum
         if (input_files.IsEmpty())
             return;
     }
-    else
-        wxGetApp().import_model(parent, input_files);
+    else*/
+    wxGetApp().import_model(parent, input_files);
 
     ProgressDialog dlg(_L("Loading") + dots, "", 100, wxGetApp().mainframe, wxPD_AUTO_HIDE);
     wxBusyCursor busy;
@@ -1901,6 +1900,8 @@ void ObjectList::load_shape_object(const std::string& type_name)
 
 void ObjectList::load_shape_object_from_gallery()
 {
+    return;
+    /*
     if (wxGetApp().plater()->canvas3D()->get_selection().get_object_idx() != -1)
         return;// Add nothing if something is selected on 3DScene
 
@@ -1912,6 +1913,7 @@ void ObjectList::load_shape_object_from_gallery()
     if (input_files.IsEmpty())
         return;
     load_shape_object_from_gallery(input_files);
+    */
 }
 
 void ObjectList::load_shape_object_from_gallery(const wxArrayString& input_files)

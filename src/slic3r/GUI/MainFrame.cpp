@@ -49,7 +49,6 @@
 #include "Notebook.hpp"
 #include "GUI_Factories.hpp"
 #include "GUI_ObjectList.hpp"
-#include "GalleryDialog.hpp"
 #include "NotificationManager.hpp"
 
 #ifdef _WIN32
