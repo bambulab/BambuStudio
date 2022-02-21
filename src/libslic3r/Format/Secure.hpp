@@ -225,11 +225,26 @@ namespace Slic3r {
 
         static KeyStore* create(std::string const& keyid);
 
+        void save(std::ostream & stream) const;
+
         bool setup(std::string const& path, EVP_Cipher& cipher, bool encode = false);
 
         bool finalize(std::string const& path, EVP_Cipher& encrypt);
 
         bool rename(std::string const& path_from, std::string const& path_to);
+    };
+
+    class KeyStoreLoader
+    {
+    public:
+        static KeyStoreLoader * create(KeyStore* key_store);
+
+    public:
+        virtual bool handle_start_xml_element(const char* name, const char** attributes) = 0;
+
+        virtual bool handle_xml_characters(char const * s, int len) = 0;
+
+        virtual bool handle_end_xml_element(const char* name) = 0;
     };
 
 } // namespace Slic3r

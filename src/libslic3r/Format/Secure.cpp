@@ -5,6 +5,7 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/beast/core/detail/base64.hpp>
+#include <boost/spirit/include/qi_int.hpp>
 
 namespace Slic3r {
 
@@ -412,6 +413,48 @@ namespace Slic3r {
         return ks;
     }
 
+    void KeyStore::save(std::ostream& stream) const
+    {
+        stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+        stream << "<keystore xmlns=\"http://schemas.microsoft.com/3dmanufacturing/securecontent/2019/04\" xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\" xmlns:xenc=\"http://www.w3.org/2001/04/xmlenc#\" UUID=\"" << UUID << "\">\n";
+        for (auto & c : consumers) {
+            stream << " <consumer consumerid=\"" << c.consumerid;
+            if (!c.keyid.empty()) stream << "\" keyid=\"" << c.keyid;
+            stream << "\">\n";
+            if (!c.keyvalue.empty())
+                stream << "  <keyvalue>" << c.keyvalue << "</keyvalue>\n";
+            stream << " </consumer>\n";
+        }
+        for (auto & g : resourcedatagroups) {
+            stream << " <resourcedatagroup keyuuid=\"" << g.keyuuid << "\">\n";
+            for (auto & a : g.accessrights) {
+                stream << "  <accessright consumerindex=\"" << a.consumerindex << "\">\n";
+                stream << "   <kekparams wrappingalgorithm=\"" << a.kekparams.wrappingalgorithm;
+                if (!a.kekparams.mgfalgorithm.empty()) stream << "\" mgfalgorithm=\"" << a.kekparams.mgfalgorithm;
+                if (!a.kekparams.digestmethod.empty()) stream << "\" digestmethod=\"" << a.kekparams.digestmethod;
+                stream << "\"/>\n";
+                stream << "   <cipherdata>\n    <xenc:CipherValue>" << base64_encode(std::string("%3McF\x00\x00\x00\x0c\x00\x00\x00", 12) + a.cipherdata) << "</xenc:CipherValue>\n   </cipherdata>\n";
+                stream << "  </accessright>\n";
+            }
+            for (auto & d : g.resourcedatas) {
+                stream << "  <resourcedata path=\"" << d.path << "\">\n";
+                stream << "   <cekparams encryptionalgorithm=\"" << d.cekparams.encryptionalgorithm;
+                if (!d.cekparams.compression.empty()) stream << "\" compression=\"" << d.cekparams.compression;
+                stream << "\">\n";
+                if (!d.cekparams.iv.empty())
+                    stream << "    <iv>" << base64_encode(d.cekparams.iv) << "</iv>\n";
+                if (!d.cekparams.tag.empty())
+                    stream << "    <tag>" << base64_encode(d.cekparams.tag) << "</tag>\n";
+                if (!d.cekparams.aad.empty())
+                    stream << "    <aad>" << base64_encode(d.cekparams.aad) << "</aad>\n";
+                stream << "   </cekparams>\n";
+                stream << "  </resourcedata>\n";
+            }
+            stream << " </resourcedatagroup>\n";
+        }
+        stream << "</keystore>";
+    }
+
     static std::string algorithm_name(std::string algorithm) {
         size_t n = algorithm.find_last_of('#');
         if (n != std::string::npos)
@@ -495,6 +538,227 @@ namespace Slic3r {
             }
         }
         return false;
+    }
+
+    static constexpr const char* KEYSTORE_TAG = "keystore";
+    static constexpr const char* CONSUMER_TAG = "consumer";
+    static constexpr const char* KEYVALUE_TAG = "keyvalue";
+    static constexpr const char* CEKPARAMS_TAG = "cekparams";
+    static constexpr const char* IV_TAG = "iv";
+    static constexpr const char* TAG_TAG = "tag";
+    static constexpr const char* AAD_TAG = "aad";
+    static constexpr const char* KEKPARAMS_TAG = "kekparams";
+    static constexpr const char* ACCESSRIGHT_TAG = "accessright";
+    static constexpr const char* CIPHERDATA_TAG = "cipherdata";
+    static constexpr const char* CIPHERVALUE_TAG = "xenc:CipherValue";
+    static constexpr const char* RESOURCEDATA_TAG = "resourcedata";
+    static constexpr const char* RESOURCEDATAGROUP_TAG = "resourcedatagroup";
+    static constexpr const char* UUID_ATTR = "UUID";
+    static constexpr const char* CONSUMERID_ATTR = "consumerid";
+    static constexpr const char* KEYID_ATTR = "keyid";
+    static constexpr const char* KEYUUID_ATTR = "keyuuid";
+    static constexpr const char* PATH_ATTR = "path";
+    static constexpr const char* ENCRYPTIONALGORITHM_ATTR = "encryptionalgorithm";
+    static constexpr const char* COMPRESSION_ATTR = "compression";
+    static constexpr const char* CONSUMERINDEX_ATTR = "consumerindex";
+    static constexpr const char* WRAPPINGALGORITHM_ATTR = "wrappingalgorithm";
+    static constexpr const char* MGFALGORITHM_ATTR = "mgfalgorithm";
+    static constexpr const char* DIGESTMETHOD_ATTR = "digestmethod";
+
+    /* KeyStoreLoader */
+
+    struct KeyStoreLoaderImpl : KeyStoreLoader
+    {
+        KeyStoreLoaderImpl(KeyStore * key_store) : key_store(key_store) {}
+
+        virtual bool handle_start_xml_element(const char* name, const char** attributes) override
+        {
+            bool res = true;
+
+            if (::strcmp(KEYSTORE_TAG, name) == 0)
+                res = handle_start_keystore(attributes);
+            else if (::strcmp(CONSUMER_TAG, name) == 0)
+                res = handle_start_consumer(attributes);
+            else if (::strcmp(RESOURCEDATAGROUP_TAG, name) == 0)
+                res = handle_start_resourcedatagroup(attributes);
+            else if (::strcmp(ACCESSRIGHT_TAG, name) == 0)
+                res = handle_start_accessright(attributes);
+            else if (::strcmp(KEKPARAMS_TAG, name) == 0)
+                res = handle_start_kekparams(attributes);
+            else if (::strcmp(RESOURCEDATA_TAG, name) == 0)
+                res = handle_start_resourcedata(attributes);
+            else if (::strcmp(CEKPARAMS_TAG, name) == 0)
+                res = handle_start_cekparams(attributes);
+
+            characters.clear();
+            return res;
+        }
+
+        virtual bool handle_xml_characters(char const* s, int len) override
+        {
+            characters = std::string(s, len);
+            return true;
+        }
+        virtual bool handle_end_xml_element(const char* name) override
+        {
+            bool res = true;
+
+            if (::strcmp(CIPHERVALUE_TAG, name) == 0)
+                res = handle_end_CipherValue();
+            else if (::strcmp(KEYVALUE_TAG, name) == 0)
+                res = handle_end_keyvalue();
+            else if (::strcmp(IV_TAG, name) == 0)
+                res = handle_end_iv();
+            else if (::strcmp(TAG_TAG, name) == 0)
+                res = handle_end_tag();
+            else if (::strcmp(AAD_TAG, name) == 0)
+                res = handle_end_aad();
+
+            return res;
+        }
+
+        bool handle_start_keystore(const char** attributes)
+        {
+            key_store->UUID = get_attribute_value_string(attributes, UUID_ATTR);
+            return true;
+        }
+
+        bool handle_start_consumer(const char** attributes)
+        {
+            KeyStore::Consumer c;
+            c.consumerid = get_attribute_value_string(attributes, CONSUMERID_ATTR);
+            c.keyid = get_attribute_value_string(attributes, KEYID_ATTR);
+            key_store->consumers.push_back(c);
+            return true;
+        }
+
+        bool handle_start_resourcedatagroup(const char** attributes)
+        {
+            KeyStore::ResourceDataGroup g;
+            g.keyuuid = get_attribute_value_string(attributes, KEYUUID_ATTR);
+            key_store->resourcedatagroups.push_back(g);
+            return true;
+        }
+
+        bool handle_start_accessright(const char** attributes)
+        {
+            KeyStore::ResourceDataGroup & g = key_store->resourcedatagroups.back();
+            KeyStore::AccessRight a;
+            a.consumerindex = get_attribute_value_int(attributes, CONSUMERINDEX_ATTR);
+            g.accessrights.push_back(a);
+            return true;
+        }
+
+        bool handle_start_kekparams(const char** attributes)
+        {
+            KeyStore::ResourceDataGroup & g = key_store->resourcedatagroups.back();
+            KeyStore::AccessRight & a = g.accessrights.back();
+            KeyStore::KEKParams & k = a.kekparams;
+            k.wrappingalgorithm = get_attribute_value_string(attributes, WRAPPINGALGORITHM_ATTR);
+            k.mgfalgorithm = get_attribute_value_string(attributes, MGFALGORITHM_ATTR);
+            k.digestmethod = get_attribute_value_string(attributes, DIGESTMETHOD_ATTR);
+            return true;
+        }
+
+        bool handle_start_resourcedata(const char** attributes)
+        {
+            KeyStore::ResourceDataGroup & g = key_store->resourcedatagroups.back();
+            KeyStore::ResourceData r;
+            r.path = get_attribute_value_string(attributes, PATH_ATTR);
+            g.resourcedatas.push_back(r);
+            return true;
+        }
+
+        bool handle_start_cekparams(const char** attributes)
+        {
+            KeyStore::ResourceDataGroup & g = key_store->resourcedatagroups.back();
+            KeyStore::ResourceData & r = g.resourcedatas.back();
+            KeyStore::CEKParams & c = r.cekparams;
+            c.encryptionalgorithm = get_attribute_value_string(attributes, ENCRYPTIONALGORITHM_ATTR);
+            c.compression = get_attribute_value_string(attributes, COMPRESSION_ATTR);
+            return true;
+        }
+
+        bool handle_end_keyvalue()
+        {
+            KeyStore::Consumer & c = key_store->consumers.back();
+            c.keyvalue = characters; // only for public key
+            return true;
+        }
+
+        bool handle_end_iv()
+        {
+            KeyStore::ResourceDataGroup & g = key_store->resourcedatagroups.back();
+            KeyStore::ResourceData & r = g.resourcedatas.back();
+            KeyStore::CEKParams & c = r.cekparams;
+            c.iv = base64_decode(characters);
+            return true;
+        }
+
+        bool handle_end_tag()
+        {
+            KeyStore::ResourceDataGroup & g = key_store->resourcedatagroups.back();
+            KeyStore::ResourceData & r = g.resourcedatas.back();
+            KeyStore::CEKParams & c = r.cekparams;
+            c.tag = base64_decode(characters);
+            return true;
+        }
+
+        bool handle_end_aad()
+        {
+            KeyStore::ResourceDataGroup & g = key_store->resourcedatagroups.back();
+            KeyStore::ResourceData & r = g.resourcedatas.back();
+            KeyStore::CEKParams & c = r.cekparams;
+            c.aad = base64_decode(characters);
+            return true;
+        }
+
+        bool handle_end_CipherValue()
+        {
+            KeyStore::ResourceDataGroup & g = key_store->resourcedatagroups.back();
+            KeyStore::AccessRight & a = g.accessrights.back();
+            a.cipherdata = base64_decode(characters);
+            if (boost::algorithm::starts_with(a.cipherdata, "%3McF\x00\x00\x00") && a.cipherdata.length() > 12) {
+                boost::uint32_t head_len;
+                memcpy(&head_len, a.cipherdata.data() + 8, 4);
+                if (head_len < a.cipherdata.length())
+                    a.cipherdata = a.cipherdata.substr(head_len);
+            }
+            return true;
+        }
+
+        static const char*  get_attribute_value_charptr(const char** attributes, const char* attribute_key)
+        {
+            if ((attributes == nullptr) || (attribute_key == nullptr))
+                return nullptr;
+            for (unsigned int a = 0; attributes[a]; a += 2) {
+                if (::strcmp(attributes[a], attribute_key) == 0)
+                    return attributes[a + 1];
+            }
+            return nullptr;
+        }
+
+        static std::string get_attribute_value_string(const char** attributes, const char* attribute_key)
+        {
+            const char* text = get_attribute_value_charptr(attributes, attribute_key);
+            return (text != nullptr) ? text : "";
+        }
+
+        static int get_attribute_value_int(const char** attributes, const char* attribute_key)
+        {
+            int value = 0;
+            if (const char *text = get_attribute_value_charptr(attributes, attribute_key); text != nullptr)
+                boost::spirit::qi::parse(text, text + strlen(text), boost::spirit::qi::int_, value);
+            return value;
+        }
+
+        std::string characters;
+        KeyStore* key_store;
+    };
+
+    KeyStoreLoader* KeyStoreLoader::create(KeyStore* key_store)
+    {
+        return new KeyStoreLoaderImpl(key_store);
     }
 
 } // namespace Slic3r

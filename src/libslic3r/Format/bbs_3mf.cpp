@@ -140,32 +140,6 @@ static constexpr const char* BUILD_UUID_SUFFIX = "-b1ec-4553-aec9-835e5b724bb4";
 static constexpr const char* TARGET_ATTR = "Target";
 static constexpr const char* RELS_TYPE_ATTR = "Type";
 
-// BBS: encrypt
-static constexpr const char* KEYSTORE_TAG = "keystore";
-static constexpr const char* CONSUMER_TAG = "consumer";
-static constexpr const char* KEYVALUE_TAG = "keyvalue";
-static constexpr const char* CEKPARAMS_TAG = "cekparams";
-static constexpr const char* IV_TAG = "iv";
-static constexpr const char* TAG_TAG = "tag";
-static constexpr const char* AAD_TAG = "aad";
-static constexpr const char* KEKPARAMS_TAG = "kekparams";
-static constexpr const char* ACCESSRIGHT_TAG = "accessright";
-static constexpr const char* CIPHERDATA_TAG = "cipherdata";
-static constexpr const char* CIPHERVALUE_TAG = "xenc:CipherValue";
-static constexpr const char* RESOURCEDATA_TAG = "resourcedata";
-static constexpr const char* RESOURCEDATAGROUP_TAG = "resourcedatagroup";
-static constexpr const char* UUID_ATTR = "UUID";
-static constexpr const char* CONSUMERID_ATTR = "consumerid";
-static constexpr const char* KEYID_ATTR = "keyid";
-static constexpr const char* KEYUUID_ATTR = "keyuuid";
-static constexpr const char* PATH_ATTR = "path";
-static constexpr const char* ENCRYPTIONALGORITHM_ATTR = "encryptionalgorithm";
-static constexpr const char* COMPRESSION_ATTR = "compression";
-static constexpr const char* CONSUMERINDEX_ATTR = "consumerindex";
-static constexpr const char* WRAPPINGALGORITHM_ATTR = "wrappingalgorithm";
-static constexpr const char* MGFALGORITHM_ATTR = "mgfalgorithm";
-static constexpr const char* DIGESTMETHOD_ATTR = "digestmethod";
-
 static constexpr const char* UNIT_ATTR = "unit";
 static constexpr const char* NAME_ATTR = "name";
 static constexpr const char* TYPE_ATTR = "type";
@@ -615,6 +589,7 @@ namespace Slic3r {
 
         // BBS: encrypt
         std::shared_ptr<KeyStore> m_key_store;
+        KeyStoreLoader * m_key_store_loader = nullptr;
 
     public:
         _BBS_3MF_Importer();
@@ -753,22 +728,8 @@ namespace Slic3r {
         // BBS: encrypt key store
         static void XMLCALL _handle_start_key_store_element(void* userData, const char* name, const char** attributes);
         static void XMLCALL _handle_end_key_store_element(void* userData, const char* name);
-
         void _handle_start_key_store_element(const char* name, const char** attributes);
         void _handle_end_key_store_element(const char* name);
-
-        bool _handle_start_keystore(const char** attributes, unsigned int num_attributes);
-        bool _handle_start_consumer(const char** attributes, unsigned int num_attributes);
-        bool _handle_start_resourcedatagroup(const char** attributes, unsigned int num_attributes);
-        bool _handle_start_accessright(const char** attributes, unsigned int num_attributes);
-        bool _handle_start_kekparams(const char** attributes, unsigned int num_attributes);
-        bool _handle_start_resourcedata(const char** attributes, unsigned int num_attributes);
-        bool _handle_start_cekparams(const char** attributes, unsigned int num_attributes);
-        bool _handle_end_keyvalue();
-        bool _handle_end_iv();
-        bool _handle_end_tag();
-        bool _handle_end_aad();
-        bool _handle_end_CipherValue();
 
         bool _generate_volumes(ModelObject& object, const Geometry& geometry, const ObjectMetadata::VolumeMetadataList& volumes, ConfigSubstitutionContext& config_substitutions);
 
@@ -797,6 +758,7 @@ namespace Slic3r {
 
     _BBS_3MF_Importer::~_BBS_3MF_Importer()
     {
+        delete m_key_store_loader;
         _destroy_xml_parser();
 
         std::map<int, PlateData*>::iterator it = m_plater_data.begin();
@@ -950,6 +912,7 @@ namespace Slic3r {
                     return false;
             }
             m_key_store.reset(new KeyStore);
+            m_key_store_loader = KeyStoreLoader::create(m_key_store.get());
             if (!_extract_xml_from_archive(archive, m_key_store_path, _handle_start_key_store_element, _handle_end_key_store_element))
                 return false;
             m_model->set_key_store(m_key_store);
@@ -2883,162 +2846,23 @@ namespace Slic3r {
 
     void _BBS_3MF_Importer::_handle_start_key_store_element(const char* name, const char** attributes)
     {
-        if (m_xml_parser == nullptr)
+        if (m_xml_parser == nullptr || m_key_store_loader == nullptr)
             return;
 
-        bool res = true;
-        unsigned int num_attributes = (unsigned int)XML_GetSpecifiedAttributeCount(m_xml_parser);
-
-        if (::strcmp(KEYSTORE_TAG, name) == 0)
-            res = _handle_start_keystore(attributes, num_attributes);
-        else if (::strcmp(CONSUMER_TAG, name) == 0)
-            res = _handle_start_consumer(attributes, num_attributes);
-        else if (::strcmp(RESOURCEDATAGROUP_TAG, name) == 0)
-            res = _handle_start_resourcedatagroup(attributes, num_attributes);
-        else if (::strcmp(ACCESSRIGHT_TAG, name) == 0)
-            res = _handle_start_accessright(attributes, num_attributes);
-        else if (::strcmp(KEKPARAMS_TAG, name) == 0)
-            res = _handle_start_kekparams(attributes, num_attributes);
-        else if (::strcmp(RESOURCEDATA_TAG, name) == 0)
-            res = _handle_start_resourcedata(attributes, num_attributes);
-        else if (::strcmp(CEKPARAMS_TAG, name) == 0)
-            res = _handle_start_cekparams(attributes, num_attributes);
-
-        m_curr_characters.clear();
+        bool res = m_key_store_loader->handle_start_xml_element(name, attributes);
         if (!res)
             _stop_xml_parser();
     }
 
     void _BBS_3MF_Importer::_handle_end_key_store_element(const char* name)
     {
-        if (m_xml_parser == nullptr)
+        if (m_xml_parser == nullptr || m_key_store_loader == nullptr)
             return;
 
-        bool res = true;
-
-        if (::strcmp(CIPHERVALUE_TAG, name) == 0)
-            res = _handle_end_CipherValue();
-        else if (::strcmp(KEYVALUE_TAG, name) == 0)
-            res = _handle_end_keyvalue();
-        else if (::strcmp(IV_TAG, name) == 0)
-            res = _handle_end_iv();
-        else if (::strcmp(TAG_TAG, name) == 0)
-            res = _handle_end_tag();
-        else if (::strcmp(AAD_TAG, name) == 0)
-            res = _handle_end_aad();
+        bool res = m_key_store_loader->handle_end_xml_element(name);
 
         if (!res)
             _stop_xml_parser();
-    }
-
-    bool _BBS_3MF_Importer::_handle_start_keystore(const char** attributes, unsigned int num_attributes)
-    {
-        m_key_store->UUID = bbs_get_attribute_value_string(attributes, num_attributes, UUID_ATTR);
-        return true;
-    }
-
-    bool _BBS_3MF_Importer::_handle_start_consumer(const char** attributes, unsigned int num_attributes)
-    {
-        KeyStore::Consumer c;
-        c.consumerid = bbs_get_attribute_value_string(attributes, num_attributes, CONSUMERID_ATTR);
-        c.keyid = bbs_get_attribute_value_string(attributes, num_attributes, KEYID_ATTR);
-        m_key_store->consumers.push_back(c);
-        return true;
-    }
-
-    bool _BBS_3MF_Importer::_handle_start_resourcedatagroup(const char** attributes, unsigned int num_attributes)
-    {
-        KeyStore::ResourceDataGroup g;
-        g.keyuuid = bbs_get_attribute_value_string(attributes, num_attributes, KEYUUID_ATTR);
-        m_key_store->resourcedatagroups.push_back(g);
-        return true;
-    }
-
-    bool _BBS_3MF_Importer::_handle_start_accessright(const char** attributes, unsigned int num_attributes)
-    {
-        KeyStore::ResourceDataGroup & g = m_key_store->resourcedatagroups.back();
-        KeyStore::AccessRight a;
-        a.consumerindex = bbs_get_attribute_value_int(attributes, num_attributes, CONSUMERINDEX_ATTR);
-        g.accessrights.push_back(a);
-        return true;
-    }
-
-    bool _BBS_3MF_Importer::_handle_start_kekparams(const char** attributes, unsigned int num_attributes)
-    {
-        KeyStore::ResourceDataGroup & g = m_key_store->resourcedatagroups.back();
-        KeyStore::AccessRight & a = g.accessrights.back();
-        KeyStore::KEKParams & k = a.kekparams;
-        k.wrappingalgorithm = bbs_get_attribute_value_string(attributes, num_attributes, WRAPPINGALGORITHM_ATTR);
-        k.mgfalgorithm = bbs_get_attribute_value_string(attributes, num_attributes, MGFALGORITHM_ATTR);
-        k.digestmethod = bbs_get_attribute_value_string(attributes, num_attributes, DIGESTMETHOD_ATTR);
-        return true;
-    }
-
-    bool _BBS_3MF_Importer::_handle_start_resourcedata(const char** attributes, unsigned int num_attributes)
-    {
-        KeyStore::ResourceDataGroup & g = m_key_store->resourcedatagroups.back();
-        KeyStore::ResourceData r;
-        r.path = bbs_get_attribute_value_string(attributes, num_attributes, PATH_ATTR);
-        g.resourcedatas.push_back(r);
-        return true;
-    }
-
-    bool _BBS_3MF_Importer::_handle_start_cekparams(const char** attributes, unsigned int num_attributes)
-    {
-        KeyStore::ResourceDataGroup & g = m_key_store->resourcedatagroups.back();
-        KeyStore::ResourceData & r = g.resourcedatas.back();
-        KeyStore::CEKParams & c = r.cekparams;
-        c.encryptionalgorithm = bbs_get_attribute_value_string(attributes, num_attributes, ENCRYPTIONALGORITHM_ATTR);
-        c.compression = bbs_get_attribute_value_string(attributes, num_attributes, COMPRESSION_ATTR);
-        return true;
-    }
-
-    bool _BBS_3MF_Importer::_handle_end_keyvalue()
-    {
-        KeyStore::Consumer & c = m_key_store->consumers.back();
-        c.keyvalue = m_curr_characters; // only for public key
-        return true;
-    }
-
-    bool _BBS_3MF_Importer::_handle_end_iv()
-    {
-        KeyStore::ResourceDataGroup & g = m_key_store->resourcedatagroups.back();
-        KeyStore::ResourceData & r = g.resourcedatas.back();
-        KeyStore::CEKParams & c = r.cekparams;
-        c.iv = base64_decode(m_curr_characters);
-        return true;
-    }
-
-    bool _BBS_3MF_Importer::_handle_end_tag()
-    {
-        KeyStore::ResourceDataGroup & g = m_key_store->resourcedatagroups.back();
-        KeyStore::ResourceData & r = g.resourcedatas.back();
-        KeyStore::CEKParams & c = r.cekparams;
-        c.tag = base64_decode(m_curr_characters);
-        return true;
-    }
-
-    bool _BBS_3MF_Importer::_handle_end_aad()
-    {
-        KeyStore::ResourceDataGroup & g = m_key_store->resourcedatagroups.back();
-        KeyStore::ResourceData & r = g.resourcedatas.back();
-        KeyStore::CEKParams & c = r.cekparams;
-        c.aad = base64_decode(m_curr_characters);
-        return true;
-    }
-
-    bool _BBS_3MF_Importer::_handle_end_CipherValue()
-    {
-        KeyStore::ResourceDataGroup & g = m_key_store->resourcedatagroups.back();
-        KeyStore::AccessRight & a = g.accessrights.back();
-        a.cipherdata = base64_decode(m_curr_characters);
-        if (boost::algorithm::starts_with(a.cipherdata, "%3McF\x00\x00\x00") && a.cipherdata.length() > 12) {
-            boost::uint32_t head_len;
-            memcpy(&head_len, a.cipherdata.data() + 8, 4);
-            if (head_len < a.cipherdata.length())
-                a.cipherdata = a.cipherdata.substr(head_len);
-        }
-        return true;
     }
 
     bool _BBS_3MF_Importer::_generate_volumes(ModelObject& object, const Geometry& geometry, const ObjectMetadata::VolumeMetadataList& volumes, ConfigSubstitutionContext& config_substitutions)
@@ -3488,7 +3312,7 @@ namespace Slic3r {
         }
 
         //BBS add calibration thumbnail for each plate
-        if (!m_skip_static && thumbnail_data.size() > 0) {
+        if (!m_skip_static && calibration_data.size() > 0) {
             // Adds the file Metadata/calibration_p[X].png.
             for (unsigned int index = 0; index < calibration_data.size(); index++)
             {
@@ -3830,45 +3654,7 @@ namespace Slic3r {
     bool _BBS_3MF_Exporter::_add_key_store_to_archive(mz_zip_archive& archive, KeyStore const & store)
     {
         std::stringstream stream;
-        stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-        stream << "<keystore xmlns=\"http://schemas.microsoft.com/3dmanufacturing/securecontent/2019/04\" xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\" xmlns:xenc=\"http://www.w3.org/2001/04/xmlenc#\" UUID=\"" << store.UUID << "\">\n";
-        for (auto & c : store.consumers) {
-            stream << " <consumer consumerid=\"" << c.consumerid;
-            if (!c.keyid.empty()) stream << "\" keyid=\"" << c.keyid;
-            stream << "\">\n";
-            if (!c.keyvalue.empty())
-                stream << "  <keyvalue>" << c.keyvalue << "</keyvalue>\n";
-            stream << " </consumer>\n";
-        }
-        for (auto & g : store.resourcedatagroups) {
-            stream << " <resourcedatagroup keyuuid=\"" << g.keyuuid << "\">\n";
-            for (auto & a : g.accessrights) {
-                stream << "  <accessright consumerindex=\"" << a.consumerindex << "\">\n";
-                stream << "   <kekparams wrappingalgorithm=\"" << a.kekparams.wrappingalgorithm;
-                if (!a.kekparams.mgfalgorithm.empty()) stream << "\" mgfalgorithm=\"" << a.kekparams.mgfalgorithm;
-                if (!a.kekparams.digestmethod.empty()) stream << "\" digestmethod=\"" << a.kekparams.digestmethod;
-                stream << "\"/>\n";
-                stream << "   <cipherdata>\n    <xenc:CipherValue>" << base64_encode(std::string("%3McF\x00\x00\x00\x0c\x00\x00\x00", 12) + a.cipherdata) << "</xenc:CipherValue>\n   </cipherdata>\n";
-                stream << "  </accessright>\n";
-            }
-            for (auto & d : g.resourcedatas) {
-                stream << "  <resourcedata path=\"" << d.path << "\">\n";
-                stream << "   <cekparams encryptionalgorithm=\"" << d.cekparams.encryptionalgorithm;
-                if (!d.cekparams.compression.empty()) stream << "\" compression=\"" << d.cekparams.compression;
-                stream << "\">\n";
-                if (!d.cekparams.iv.empty())
-                    stream << "    <iv>" << base64_encode(d.cekparams.iv) << "</iv>\n";
-                if (!d.cekparams.tag.empty())
-                    stream << "    <tag>" << base64_encode(d.cekparams.tag) << "</tag>\n";
-                if (!d.cekparams.aad.empty())
-                    stream << "    <aad>" << base64_encode(d.cekparams.aad) << "</aad>\n";
-                stream << "   </cekparams>\n";
-                stream << "  </resourcedata>\n";
-            }
-            stream << " </resourcedatagroup>\n";
-        }
-        stream << "</keystore>";
-
+        m_key_store->save(stream);
         std::string out = stream.str();
 
         if (!mz_zip_writer_add_mem(&archive, KEYSTORE_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
