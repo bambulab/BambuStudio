@@ -1317,7 +1317,20 @@ void make_brim(const Print& print, PrintTryCancel try_cancel, Polygons& islands_
                 ex_poly_translated.translate(instance.shift.x(), instance.shift.y());
                 bbx.merge(get_extents(ex_poly_translated.contour));
             }
-            
+        if (!object->support_layers().empty())
+        for (const Polygon& support_contour : object->support_layers().front()->support_fills.polygons_covered_by_spacing())
+            for (const PrintInstance& instance : object->instances()) {
+                auto ex_poly_translated = support_contour;
+                ex_poly_translated.translate(instance.shift.x(), instance.shift.y());
+                bbx.merge(get_extents(ex_poly_translated));
+            }
+        if (!object->tree_support_layers().empty())
+        for (const Polygon& ex_poly : object->tree_support_layers().front()->support_fills.polygons_covered_by_spacing())
+            for (const PrintInstance& instance : object->instances()) {
+                auto ex_poly_translated = ex_poly;
+                ex_poly_translated.translate(instance.shift.x(), instance.shift.y());
+                bbx.merge(get_extents(ex_poly_translated));
+            }
         if (supportBrimAreaMap.find(printObjID) != supportBrimAreaMap.end()) {
             for (const ExPolygon& ex_poly : supportBrimAreaMap.at(printObjID))
                 bbx.merge(get_extents(ex_poly.contour));
