@@ -59,6 +59,7 @@ set(SLIC3R_GUI_SOURCES
     GUI/3DScene.cpp
     GUI/3DScene.hpp
     GUI/format.hpp
+    GUI/BBLShaderPrograms.hpp
     GUI/GLShadersManager.hpp
     GUI/GLShadersManager.cpp
     GUI/GLShader.cpp

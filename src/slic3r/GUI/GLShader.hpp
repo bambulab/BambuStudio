@@ -6,6 +6,8 @@
 #include <string_view>
 
 #include "libslic3r/Point.hpp"
+#include "BBLShaderPrograms.hpp"
+
 
 namespace Slic3r {
 
