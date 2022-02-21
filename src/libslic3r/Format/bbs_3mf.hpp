@@ -78,10 +78,10 @@ inline SaveStrategy operator | (SaveStrategy lhs, SaveStrategy rhs)
     return static_cast<SaveStrategy>(static_cast<T>(lhs) | static_cast<T>(rhs));
 }
 
-inline bool operator & (SaveStrategy lhs, SaveStrategy rhs)
+inline bool operator & (SaveStrategy & lhs, SaveStrategy rhs)
 {
     using T = std::underlying_type_t <SaveStrategy>;
-    return static_cast<T>(lhs) & static_cast<T>(rhs);
+    return ((static_cast<T>(lhs) & static_cast<T>(rhs))) == static_cast<T>(rhs);
 }
 
 enum class LoadStrategy
@@ -100,10 +100,10 @@ inline LoadStrategy operator | (LoadStrategy lhs, LoadStrategy rhs)
     return static_cast<LoadStrategy>(static_cast<T>(lhs) | static_cast<T>(rhs));
 }
 
-inline bool operator & (LoadStrategy lhs, LoadStrategy rhs)
+inline bool operator & (LoadStrategy & lhs, LoadStrategy rhs)
 {
     using T = std::underlying_type_t <LoadStrategy>;
-    return static_cast<T>(lhs) & static_cast<T>(rhs);
+    return (static_cast<T>(lhs) & static_cast<T>(rhs)) == static_cast<T>(rhs);
 }
 
 const int EXPORT_STAGE_OPEN_3MF         = 0;
