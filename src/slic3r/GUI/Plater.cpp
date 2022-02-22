@@ -6509,6 +6509,8 @@ void Plater::new_project()
     wxGetApp().update_saved_preset_from_current_preset();
     update_project_dirty_from_presets();
 
+    //reset project
+    p->project.reset();
     //set project name
     p->set_project_name(_L("Untitled"));
 

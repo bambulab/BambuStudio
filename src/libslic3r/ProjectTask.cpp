@@ -239,4 +239,18 @@ namespace Slic3r {
         return oss.str();
     }
 
+    void BBLProject::reset()
+    {
+        project_model_id.clear();
+        project_name.clear();
+        project_id.clear();
+        project_status.clear();
+        project_create_time.clear();
+        project_url.clear();
+        project_url_md5.clear();
+        project_3mf_file.clear();
+        project_path.clear();
+        project_content.clear();
+    }
+
 } // namespace Slic3r

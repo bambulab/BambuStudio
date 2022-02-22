@@ -204,6 +204,8 @@ public:
     /* deprecated apis */
     std::string build_content_json();
     void set_name(std::string name) { project_name = name; }
+
+    void reset();
 };
 
 } // namespace Slic3r
