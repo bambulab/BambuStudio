@@ -968,22 +968,19 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
     BoundingBoxf3 plate_box = plate->get_bounding_box(false);
     plate_box.min.z() = 0.0;
     plate_box.max.z() = 0.0;
-
-    double near_z = -1.0;
-    double far_z = -1.0;
+    Vec3d center = plate_box.center();
 
 #if 1
     std::array<float, 4> light_intensity = { 0.75f, 0.75f, 0.75f, 0.75f };
     Camera camera;
     camera.apply_viewport(0,0,thumbnail_data.width, thumbnail_data.height);
     camera.set_scene_box(plate_box);
-    camera.zoom_to_box(plate_box, 1.0f);
+    camera.set_type(Camera::EType::Ortho);
+    camera.set_target(center);
     camera.select_view("top");
-    camera.set_type("1");
-    double zoom = camera.get_zoom();
-    const std::array<int, 4>& viewport = camera.get_viewport();
-    float near_plane_height = camera.get_type() == Camera::EType::Perspective ? static_cast<float>(viewport[3]) / (2.0f * static_cast<float>(2.0 * std::tan(0.5 * Geometry::deg2rad(camera.get_fov())))) :
-        static_cast<float>(viewport[3]) * 0.0005;
+    camera.apply_view_matrix();
+    camera.zoom_to_box(plate_box, 1.0f);
+    camera.apply_projection(plate_box);
 
     auto render_as_triangles = [
 #if ENABLE_GCODE_VIEWER_STATISTICS
