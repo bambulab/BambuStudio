@@ -1174,6 +1174,75 @@ void StatusPanel::msw_rescale() {
     Refresh();
 }
 
+AddMachinePanel::AddMachinePanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name)
+    : wxPanel(parent, id, pos, size, style)
+{
+    this->SetBackgroundColour(0xEEEEEE);
+
+    wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
+
+    topsizer->AddStretchSpacer();
+
+    m_bitmap_empty = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
+    m_bitmap_empty->SetBitmap(create_scaled_bitmap("monitor_status_empty", nullptr, FromDIP(250)));
+    topsizer->Add(m_bitmap_empty, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
+
+    topsizer->AddSpacer(46);
+
+    wxBoxSizer* horiz_sizer = new wxBoxSizer(wxHORIZONTAL);
+    horiz_sizer->Add(0, 0, 538, 0, 0);
+
+    wxBoxSizer* btn_sizer = new wxBoxSizer(wxVERTICAL);
+    m_button_add_machine = new Button(this, "", "monitor_add_machine", FromDIP(23));
+    m_button_add_machine->SetCornerRadius(10);
+    StateColor button_bg(
+        std::pair<wxColour, int>(0xCECECE, StateColor::Pressed),
+        std::pair<wxColour, int>(0xCECECE, StateColor::Hovered),
+        std::pair<wxColour, int>(this->GetBackgroundColour(), StateColor::Normal)
+    );
+    m_button_add_machine->SetBackgroundColor(button_bg);
+    m_button_add_machine->SetBorderColor(0x909090);
+    m_button_add_machine->SetMinSize(wxSize(96, 39));
+    btn_sizer->Add(m_button_add_machine, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 5);
+    m_staticText_add_machine = new wxStaticText(this, wxID_ANY, wxT("click to add machine"), wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_add_machine->Wrap(-1);
+    m_staticText_add_machine->SetForegroundColour(0x909090);
+    btn_sizer->Add(m_staticText_add_machine, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 5);
+
+    horiz_sizer->Add(btn_sizer);
+    horiz_sizer->Add(0, 0, 624, 0, 0);
+
+    topsizer->Add(horiz_sizer, 0, wxEXPAND, 0);
+
+    topsizer->AddStretchSpacer();
+
+    this->SetSizer(topsizer);
+    this->Layout();
+
+    // Connect Events
+    m_button_add_machine->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AddMachinePanel::on_add_machine), NULL, this);
+}
+
+void AddMachinePanel::msw_rescale() {
+
+}
+
+void AddMachinePanel::on_add_machine(wxCommandEvent& event) {
+    /* query print info */
+    SelectMachinePopup* m_select_machine = new SelectMachinePopup(this, true);
+
+    wxPoint pos = m_button_add_machine->ClientToScreen(wxPoint(0, 0));
+    pos.y += m_button_add_machine->GetRect().height;
+
+    m_select_machine->Position(pos, wxSize(0, 0));
+    m_select_machine->Popup();
+}
+
+AddMachinePanel::~AddMachinePanel() {
+    m_button_add_machine->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AddMachinePanel::on_add_machine), NULL, this);
+}
+
+
 MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : MonitorBasePanel(parent, id, pos, size, style)
 {
@@ -1192,18 +1261,20 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
     m_media_file_panel = new MediaFilePanel(m_panel_splitter_right);
     m_video_panel = new VideoPanel(m_panel_splitter_right);
     m_task_list_panel = new TaskListPanel(m_panel_splitter_right);
+    m_status_add_machine_panel = new AddMachinePanel(m_panel_splitter_right);
     wxBoxSizer* bSizer_right;
     bSizer_right = new wxBoxSizer(wxVERTICAL);
     bSizer_right->Add(m_status_panel, 1, wxEXPAND | wxALL, 0);
     bSizer_right->Add(m_media_file_panel, 1, wxEXPAND | wxALL, 0);
     bSizer_right->Add(m_video_panel, 1, wxEXPAND | wxALL, 0);
     bSizer_right->Add(m_task_list_panel, 1, wxEXPAND | wxALL, 0);
+    bSizer_right->Add(m_status_add_machine_panel, 1, wxEXPAND | wxALL, 0);
     m_status_panel->Show(false);
     m_media_file_panel->Show(false);
     m_video_panel->Show(false);
     m_task_list_panel->Show(false);
+    m_status_add_machine_panel->Show(false);
     m_panel_splitter_right->SetSizerAndFit(bSizer_right);
-    bSizer_right->Fit(m_panel_splitter_right);
     select_tab(m_panel_status_tab);
     show_panel(m_status_panel);
 
@@ -1400,7 +1471,22 @@ void MonitorPanel::update_all()
     if (!account_manager->is_user_login()) {
         Reset();
         //TODO set to default page
+        m_staticText_machine_name->SetLabel(wxT("No printer has been added"));
+        if (last_panel == m_status_panel) {
+            show_panel(m_status_add_machine_panel);
+            m_jump_to_add_machine = true;
+        }
+        if (last_panel == m_media_file_panel) {
+            //TODO:show local video files panel
+        }
         return;
+    }
+    else {
+        if (last_panel == m_status_add_machine_panel) {
+            show_panel(m_status_panel);
+            m_jump_to_add_machine = false;
+        }
+        //TODO: if(last_panel == local video files panel) show_panel(m_media_file_panel);
     }
 
     obj = account_manager->get_default_machine();
@@ -1443,13 +1529,19 @@ void MonitorPanel::on_printer_clicked(wxMouseEvent& event)
 void MonitorPanel::on_status(wxMouseEvent& event) 
 {
     select_tab(m_panel_status_tab);
-    show_panel(m_status_panel);
+    if (m_jump_to_add_machine) {
+        show_panel(m_status_add_machine_panel);
+    }
+    else {
+        show_panel(m_status_panel);
+    }
 }
 
 void MonitorPanel::on_timelapse(wxMouseEvent& event)
 {
     select_tab(m_panel_time_lapse_tab);
     show_panel(m_media_file_panel);
+    
 }
 
 void MonitorPanel::on_video(wxMouseEvent& event)
@@ -1470,7 +1562,8 @@ void MonitorPanel::select_tab(wxPanel* tab)
     if (last_tab)
         last_tab->SetBackgroundColour(wxColour(255, 255, 255));
     last_tab = tab;
-    tab->SetBackgroundColour(wxColour(237, 250, 242));
+    if (tab)
+        tab->SetBackgroundColour(wxColour(237, 250, 242));
     Thaw();
 }
 

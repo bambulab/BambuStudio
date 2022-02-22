@@ -283,6 +283,13 @@ protected:
 	void reset_printing_values();
 	void on_webrequest_state(wxWebRequestEvent& evt);
 
+	/* empty panel */
+	Button* m_button_add_machine;
+	wxStaticText* m_staticText_add_machine;
+	wxStaticBitmap* m_bitmap_empty;
+
+	void on_add_machine(wxCommandEvent& event);
+
 public:
 
 	StatusPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(1258, 834), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString);
@@ -290,6 +297,32 @@ public:
 
 	MachineObject* obj;
 	BBLSubTask* last_subtask{ nullptr };
+
+	void msw_rescale();
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class StatusEmptyPanel
+///////////////////////////////////////////////////////////////////////////////
+class AddMachinePanel : public wxPanel
+{
+private:
+
+	friend class MonitorPanel;
+
+protected:
+
+	Button* m_button_add_machine;
+	wxStaticText* m_staticText_add_machine;
+	wxStaticBitmap* m_bitmap_empty;
+
+	void on_add_machine(wxCommandEvent& event);
+
+public:
+
+	AddMachinePanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(1258, 834), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString);
+	~AddMachinePanel();
 
 	void msw_rescale();
 };
@@ -306,11 +339,14 @@ private:
 	MediaFilePanel* m_media_file_panel;
 	TaskListPanel* m_task_list_panel;
 	VideoPanel* m_video_panel;
+	AddMachinePanel* m_status_add_machine_panel;
 	wxPanel* last_panel = nullptr;
 	wxPanel* last_tab = nullptr;
 
-protected:
+	bool m_jump_to_add_machine = false;
 
+protected:
+	
 	wxTimer* m_refresh_timer;
 	wxBitmap m_signal_strong_img;
 	wxBitmap m_signal_middle_img;
