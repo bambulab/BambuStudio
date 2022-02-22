@@ -46,8 +46,11 @@ private:
 
     wxMediaCtrl2 * m_media_ctrl;
     wxMediaState m_last_state = MEDIASTATE_IDLE;
-    MachineObject* m_machine = nullptr;
+    std::string m_machine;
     wxString m_url;
+
+    int m_failed_retry = 0;
+    wxDateTime m_next_retry;
 
     ::Button * m_button_play;
     ::Label * m_label_status;

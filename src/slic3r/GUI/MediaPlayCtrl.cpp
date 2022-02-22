@@ -32,17 +32,26 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow * parent, wxMediaCtrl2* media_ctrl)
 
 void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
 {
-    if (obj == m_machine)
+    std::string machine = obj ? obj->dev_id : "";
+    if (machine == m_machine) {
+        if (m_last_state == MEDIASTATE_IDLE && wxDateTime::Now() >= m_next_retry)
+            Play();
         return;
-    m_machine = obj;
+    }
+    m_machine = machine;
+    m_failed_retry = 0;
     if (m_last_state != MEDIASTATE_IDLE)
         Stop();
+    Play();
 }
 
 void MediaPlayCtrl::Play()
 {
-    if (m_machine == nullptr) {
+    if (m_machine.empty()) {
         SetStatus(L"Initialize failed (No Device)!");
+        return;
+    }
+    if (m_last_state != MEDIASTATE_IDLE) {
         return;
     }
     m_last_state = MEDIASTATE_INITIALIZING;
@@ -50,7 +59,7 @@ void MediaPlayCtrl::Play()
     SetStatus(L"Initializing...");
     wxGetApp()
         .getAccountManager()
-        ->get_camera_url(m_machine->dev_id, [this](std::string url) {
+        ->get_camera_url(m_machine, [this](std::string url) {
         BOOST_LOG_TRIVIAL(info) << "camera_url: " << url;
         CallAfter([this, url] {
             m_url = url;
@@ -77,6 +86,8 @@ void MediaPlayCtrl::Stop()
     }
     m_last_state = MEDIASTATE_IDLE;
     SetStatus(L"Stopped.");
+    ++m_failed_retry;
+    m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(5 * m_failed_retry);
 }
 
 void MediaPlayCtrl::TogglePlay()
@@ -87,9 +98,11 @@ void MediaPlayCtrl::TogglePlay()
         Play();
 }
 
-void MediaPlayCtrl::SetStatus(wxString const& msg)
+void MediaPlayCtrl::SetStatus(wxString const& msg2)
 {
-    m_label_status->SetLabel(wxString::Format(msg, m_media_ctrl->GetLastError()));
+    auto msg = wxString::Format(msg2, m_media_ctrl->GetLastError());
+    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::SetStatus: " << msg.ToUTF8().data();
+    m_label_status->SetLabel(msg);
     m_label_status->SetForegroundColour(!msg.EndsWith("!") ? 0x42AE00 : 0x3B65E9);
     Layout();
 }
@@ -114,6 +127,7 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
         if (size.GetWidth() > 1000) {
             m_media_ctrl->Play();
             SetStatus(L"Playing...");
+            m_failed_retry = 0;
             m_last_state = m_media_ctrl->GetState();
         }
         else {

@@ -1292,6 +1292,7 @@ bool MonitorPanel::Show(bool show)
     }
     else {
         m_refresh_timer->Stop();
+        m_status_panel->m_media_play_ctrl->SetMachineObject(nullptr);
     }
     return wxPanel::Show(show);
 }
@@ -1405,7 +1406,7 @@ void MonitorPanel::update_all()
     obj = account_manager->get_default_machine();
 
     m_status_panel->obj = obj;
-    m_status_panel->m_media_play_ctrl->SetMachineObject(obj);
+    m_status_panel->m_media_play_ctrl->SetMachineObject(IsShown() ? obj : nullptr);
     m_media_file_panel->SetMachineObject(obj);
     m_task_list_panel->obj = obj;
 
