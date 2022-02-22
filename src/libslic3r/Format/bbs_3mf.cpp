@@ -968,15 +968,15 @@ namespace Slic3r {
                 proFn(IMPORT_STAGE_READ_FILES, index + 1, 3 + m_sub_model_paths.size(), cb_cancel);
                 if (cb_cancel)
                     return false;
-                m_sub_model_path = path;
-                if (!_extract_from_archive(archive, path, [this] (mz_zip_archive& archive, const mz_zip_archive_file_stat& stat) {
-                    return _extract_model_from_archive(archive, stat);
-                })) {
-                    add_error("Archive does not contain a valid model");
-                    return false;
-                }
-                m_sub_model_path.clear();
             }
+            m_sub_model_path = path;
+            if (!_extract_from_archive(archive, path, [this] (mz_zip_archive& archive, const mz_zip_archive_file_stat& stat) {
+                return _extract_model_from_archive(archive, stat);
+            })) {
+                add_error("Archive does not contain a valid model");
+                return false;
+            }
+            m_sub_model_path.clear();
         }
         // BBS: load root model
         if (proFn) {
