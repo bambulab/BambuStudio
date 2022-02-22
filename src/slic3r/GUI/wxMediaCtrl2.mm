@@ -34,6 +34,9 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow * parent)
 {
     NSView * imageView = (NSView *) GetHandle();
     imageView.layer = [[CALayer alloc] init];
+    CGColorRef color = CGColorCreateGenericRGB(0, 0, 0, 1.0f);
+    imageView.layer.backgroundColor = color;
+    CGColorRelease(color);
     imageView.wantsLayer = YES;
     TutkPlayer * player = [[TutkPlayer alloc] initWithImageView: imageView];
     [player setLogger: tutk_log withContext: &m_error];
@@ -80,6 +83,8 @@ wxMediaState wxMediaCtrl2::GetState() const
 
 wxSize wxMediaCtrl2::DoGetBestSize() const
 {
+    if (m_state == wxMEDIASTATE_STOPPED)
+        return {-1, -1};
     TutkPlayer * player2 = (TutkPlayer *) m_player;
     NSSize size = [player2 videoSize];
     return {(int) size.width, (int) size.height};
