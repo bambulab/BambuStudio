@@ -4952,7 +4952,7 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
         for (int i = range.begin(); i < range.end(); ++i) {
             PlateData* plate_data = plate_data_list2[i];
             auto src_gcode_file = plate_data->gcode_file;
-            std::string gcode_in_3mf = m_skip_static ? src_gcode_file : (boost::format(GCODE_FILE_FORMAT) % (i + 1)).str();
+            std::string gcode_in_3mf = m_skip_static ? src_gcode_file : (boost::format(GCODE_FILE_FORMAT) % (plate_data->plate_index + 1)).str();
             bool encrypted = boost::algorithm::ends_with(src_gcode_file, "_encrypted.gcode");
             if (m_key_store && !(m_skip_static && encrypted))
                 gcode_in_3mf.insert(gcode_in_3mf.length() - 6, "_encrypted");
@@ -5432,7 +5432,6 @@ public:
     }
 
 private:
-    boost::thread m_thread;
     boost::mutex m_mutex;
     boost::condition_variable m_cond;
     std::deque<Task> m_tasks;
@@ -5447,6 +5446,7 @@ private:
     bool m_other_changes = false; // visit only in main thread
     bool m_other_changes_backup = false; // visit only in main thread
     std::vector<std::pair<ModelObject*, size_t>> m_gaurd_objects;
+    boost::thread m_thread;
 };
 
 
