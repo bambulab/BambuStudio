@@ -786,9 +786,12 @@ namespace Slic3r {
                 if (!j["devices"].is_null() && j["devices"].is_array()) {
                     for (auto& elem : j["devices"]) {
                         MachineObject* obj = new MachineObject(*this, "", "", "");
-                        obj->dev_id = elem["dev_id"];
-                        obj->dev_name = elem["dev_name"];
-                        obj->is_online = elem["dev_online"].get<bool>();
+                        if (!elem["dev_id"].is_null())
+                            obj->dev_id = elem["dev_id"];
+                        if (!elem["dev_name"].is_null())
+                            obj->dev_name = elem["dev_name"];
+                        if (!elem["dev_online"].is_null())
+                            obj->is_online = elem["dev_online"].get<bool>();
                         if (!elem["progress"].is_null())
                             obj->mc_print_percent = elem["progress"].get<int>();
                         if (!elem["task_name"].is_null())
@@ -1430,9 +1433,12 @@ namespace Slic3r {
                         json j = json::parse(body);
 
                         if (j["message"].get<std::string>() == MSG_SUCCESS) {
-                            project->project_id = j["project_id"].get<std::string>();
-                            project->project_model_id = j["model_id"].get<std::string>();
-                            project->project_name = j["name"].get<std::string>();
+                            if (!j["project_id"].is_null())
+                                project->project_id = j["project_id"].get<std::string>();
+                            if (!j["model_id"].is_null())
+                                project->project_model_id = j["model_id"].get<std::string>();
+                            if (!j["name"].is_null())
+                                project->project_name = j["name"].get<std::string>();
                         }
 
                         // failed return
