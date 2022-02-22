@@ -278,6 +278,9 @@ void PrintJob::process()
         }
         update_status(100, "send task ok!");
 
+        // set current monitor machine
+        c->set_monitor_machine(m_dev_id);
+
         // add to user project
         c->myProjectList.insert(std::make_pair(project->project_id, project));
         m_plater->print_job_finished();

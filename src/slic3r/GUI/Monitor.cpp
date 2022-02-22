@@ -1413,6 +1413,7 @@ void MonitorPanel::update_all()
 
     if (!obj->is_connected()) {
         //TODO set to disconnected page
+        return;
     }
 
     update_status(obj);
@@ -1486,6 +1487,9 @@ void MonitorPanel::show_panel(wxPanel* panel)
 
 void MonitorPanel::on_select_printer(wxCommandEvent& event)
 {
+    Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
+    c->set_monitor_machine(event.GetString().ToStdString());
+
     Reset();
     update_all();
 
@@ -1498,12 +1502,6 @@ void MonitorPanel::select_machine(std::string machine_sn)
     wxCommandEvent* event = new wxCommandEvent(wxEVT_COMMAND_CHOICE_SELECTED);
     event->SetString(machine_sn);
     wxQueueEvent(this, event);
-}
-
-void MonitorPanel::set_machine(std::string machine_sn)
-{
-    this->machine_sn = machine_sn;
-    this->Reset();
 }
 
 

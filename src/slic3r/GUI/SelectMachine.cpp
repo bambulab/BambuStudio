@@ -41,7 +41,7 @@ void MachineListModel::display_machines(std::map<std::string, MachineObject*> li
 
     std::sort(list_array.begin(), list_array.end(), [](MachineObject* obj1, MachineObject* obj2) {
         return obj1->dev_name < obj2->dev_name;
-    });
+        });
 
     std::vector<MachineObject*>::iterator iter;
     for (iter = list_array.begin(); iter != list_array.end(); iter++) {
@@ -236,10 +236,6 @@ void MachineObjectPanel::on_mouse_leave(wxMouseEvent& evt)
 
 void MachineObjectPanel::on_mouse_left_up(wxMouseEvent& evt)
 {
-    /* switch to machine */
-    Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
-    c->set_monitor_machine(m_dev_id);
-
     /* set monitor page to current device */
     wxGetApp().mainframe->jump_to_monitor(m_dev_id);
 }
@@ -458,7 +454,7 @@ void SelectMachinePopup::on_timer(wxTimerEvent& event)
     if (update) {
         Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
         std::vector<MachineObject*> show_list;
-        for (auto& elem: c->myBindMachineList) {
+        for (auto& elem : c->myBindMachineList) {
             show_list.push_back(elem.second);
         }
         update_machine_list(show_list);
@@ -705,7 +701,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent& event)
             acc->update_my_machine_list_info(err_code, err_msg, true);
             });
     }
-    
+
     // same machine only appear once
     std::map<std::string, MachineObject*>::iterator it;
     for (it = c->myBindMachineList.begin(); it != c->myBindMachineList.end(); it++) {

@@ -353,7 +353,6 @@ public:
 	MachineObject* obj;
 	int last_wifi_signal = -1;
 
-	void set_machine(std::string machine_sn);
 	void select_machine(std::string machine_sn);
 
 	bool Show(bool show);

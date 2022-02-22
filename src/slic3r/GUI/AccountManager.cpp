@@ -822,7 +822,7 @@ namespace Slic3r {
     void AccountManager::update_my_machine_list(std::vector<MachineObject*> list)
     {
         myBindMachineList.clear();
-        for(auto obj: list) {
+        for (auto obj : list) {
             myBindMachineList.emplace(std::make_pair(obj->dev_id, obj));
         }
     }
