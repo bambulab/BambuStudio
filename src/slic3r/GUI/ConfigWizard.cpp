@@ -84,7 +84,7 @@ bool Bundle::load(fs::path source_path, bool ais_in_resources, bool ais_bbl_bund
     // Throw when parsing invalid configuration. Only valid configuration is supposed to be provided over the air.
     //BBS: add json logic for vendor bundles
     auto [config_substitutions, presets_loaded] = preset_bundle->load_vendor_configs_from_json(
-        parent_path, vendor_name, PresetBundle::LoadConfigBundleAttribute::LoadVendorOnly, ForwardCompatibilitySubstitutionRule::Disable);
+        parent_path, vendor_name, PresetBundle::LoadConfigBundleAttribute::LoadSystem, ForwardCompatibilitySubstitutionRule::Disable);
     UNUSED(config_substitutions);
     // No substitutions shall be reported when loading a system config bundle, no substitutions are allowed.
     assert(config_substitutions.empty());

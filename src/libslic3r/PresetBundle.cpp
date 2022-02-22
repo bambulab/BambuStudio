@@ -791,7 +791,7 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
         if (printer_technology == ptFFF && ! preferred_selection.filament.empty()) {
             std::string preferred_preset_name = get_preset_name_by_alias(Preset::Type::TYPE_FILAMENT, preferred_selection.filament);
             if (auto it = filaments.find_preset_internal(preferred_preset_name); 
-                it != filaments.end() && it->is_visible && it->is_compatible) {
+                it != filaments.end() && (it->name == preferred_preset_name ) && it->is_visible && it->is_compatible) {
                 filaments.select_preset_by_name_strict(preferred_preset_name);
                 this->filament_presets.front() = filaments.get_selected_preset_name();
             }

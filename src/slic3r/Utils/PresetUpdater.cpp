@@ -675,8 +675,8 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
 //BBS: switch to new BBL.json configs
 bool PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) const
 {
-    std::string vendor_path;
-    std::string vendor_name;
+    //std::string vendor_path;
+    //std::string vendor_name;
 	if (updates.incompats.size() > 0) {
 		if (snapshot) {
 			BOOST_LOG_TRIVIAL(info) << "Taking a snapshot...";
@@ -708,28 +708,28 @@ bool PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
 			BOOST_LOG_TRIVIAL(info) << '\t' << update;
 
 			update.install();
-            if (!update.is_directory) {
+            /*if (!update.is_directory) {
                 vendor_path = update.source.parent_path().string();
                 vendor_name = update.vendor;
-            }
+            }*/
 		}
 
-        if (!vendor_path.empty()) {
+        /*if (!vendor_path.empty()) {
             PresetBundle bundle;
             // Throw when parsing invalid configuration. Only valid configuration is supposed to be provided over the air.
             bundle.load_vendor_configs_from_json(vendor_path, vendor_name, PresetBundle::LoadConfigBundleAttribute::LoadSystem, ForwardCompatibilitySubstitutionRule::Disable);
 
             BOOST_LOG_TRIVIAL(info) << format("Deleting %1% conflicting presets", bundle.prints.size() + bundle.filaments.size() + bundle.printers.size());
 
-            /*auto preset_remover = [](const Preset& preset) {
+            auto preset_remover = [](const Preset& preset) {
                 BOOST_LOG_TRIVIAL(info) << '\t' << preset.file;
                 fs::remove(preset.file);
             };
 
             for (const auto &preset : bundle.prints)    { preset_remover(preset); }
             for (const auto &preset : bundle.filaments) { preset_remover(preset); }
-            for (const auto &preset : bundle.printers)  { preset_remover(preset); }*/
-        }
+            for (const auto &preset : bundle.printers)  { preset_remover(preset); }
+        }*/
     }
 
 	return true;
@@ -777,13 +777,10 @@ void PresetUpdater::sync(PresetBundle *preset_bundle)
 		this->p->sync_config(std::move(vendors));
     });
 #else
-	/*const auto vendor_dir = (boost::filesystem::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR).make_preferred();
-	const auto rsrc_vendor_dir = (boost::filesystem::path(resources_dir()) / "profiles").make_preferred();
-	auto vendor_file = (vendor_dir / PresetBundle::BBL_BUNDLE).replace_extension(".ini");
-	auto rsrc_vendor_file = (rsrc_vendor_dir / PresetBundle::BBL_BUNDLE).replace_extension(".ini");
-	if (boost::filesystem::exists(rsrc_vendor_dir)) {
-		copy_file_fix(rsrc_vendor_file, vendor_file);
-	}*/
+    //BBS: todo, force copy the resource to vendor at the beginning
+    std::vector<std::string> bundles;
+    bundles.push_back(std::string(PresetBundle::BBL_BUNDLE));
+    install_bundles_rsrc(bundles, false);
 #endif
 }
 
