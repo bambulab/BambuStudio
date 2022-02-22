@@ -3279,6 +3279,7 @@ namespace Slic3r {
         bool m_production_ext { false }; // save with Production Extention
         bool m_skip_static{ false }; // not save mesh and other big static contents
         bool m_split_model { false }; // save object per file with Production Extention
+        bool m_save_gcode { false }; //whether to save gcode for normal save
         std::shared_ptr<KeyStore> m_key_store; // save object encrypted with Secure Content Extention
 
     public:
@@ -3358,6 +3359,7 @@ namespace Slic3r {
         }
         m_skip_static = store_params.strategy & SaveStrategy::SkipStatic;
         m_split_model = store_params.strategy & SaveStrategy::SplitModel;
+        m_save_gcode = store_params.strategy & SaveStrategy::WithGcode;
         if (store_params.strategy & SaveStrategy::SecureContentExt) {
             if (!m_key_store)
                 m_key_store.reset(KeyStore::create(""));
@@ -3641,7 +3643,8 @@ namespace Slic3r {
 
         // Adds gcode files ("Metadata/plate_1.gcode, plate_2.gcode, ...)
         // Before _add_model_config_file_to_archive, because we modify plate_data
-        if (!m_skip_static && !_add_gcode_file_to_archive(archive, model, plate_data_list, proFn)) {
+        //if (!m_skip_static && !_add_gcode_file_to_archive(archive, model, plate_data_list, proFn)) {
+        if (!m_skip_static && m_save_gcode && !_add_gcode_file_to_archive(archive, model, plate_data_list, proFn)) {
             return false;
         }
 

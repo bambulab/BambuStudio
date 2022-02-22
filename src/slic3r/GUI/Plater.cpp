@@ -4930,7 +4930,7 @@ void Plater::priv::on_export_finished(wxCommandEvent& evt)
     fs::path gcode_path(gcode_path_str);
 
     if (q) {
-        q->export_3mf(gcode_path.replace_extension(".3mf"), SaveStrategy::Silence | SaveStrategy::WithGcode); // BBS: silence
+        q->export_3mf(gcode_path.replace_extension(".3mf"), SaveStrategy::Silence); // BBS: silence
     }
 }
 
@@ -6600,7 +6600,7 @@ int Plater::save_project(bool saveAs)
         return wxID_CANCEL;
 
     //BBS export 3mf without gcode
-    export_3mf(into_path(filename), SaveStrategy::SplitModel | SaveStrategy::WithGcode);
+    export_3mf(into_path(filename), SaveStrategy::SplitModel);
 
     Slic3r::remove_backup(model(), false);
 
@@ -8019,7 +8019,7 @@ void Plater::publish_project()
     temp_path /= (boost::format(".%1%.3mf") % unique).str();
     BOOST_LOG_TRIVIAL(debug) << "publish_project: export to temp 3mf: " << temp_path.string();
 
-    int result = export_3mf(temp_path, SaveStrategy::Silence | SaveStrategy::WithGcode, -1,
+    int result = export_3mf(temp_path, SaveStrategy::Silence|SaveStrategy::WithGcode, -1,
         [this, progress_dlg](int export_stage, int current, int total, bool& cancel) {
             wxString msg = wxString::Format("preparing... exporting stage %d %d/%d", export_stage, current, total);
             bool skip = false;

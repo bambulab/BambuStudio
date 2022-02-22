@@ -1222,6 +1222,7 @@ bool CLI::export_project(Model *model, PlateDataPtrs &partplate_data, std::vecto
     store_params.project_presets = project_presets;
     store_params.config = (DynamicPrintConfig*)config;
     store_params.thumbnail_data = thumbnails;
+    store_params.strategy = store_params.strategy|SaveStrategy::WithGcode;
 
     success = Slic3r::store_bbs_3mf(store_params);
 
