@@ -1,0 +1,23 @@
+{
+    "type": "filament",
+    "name": "PolyMide PA12-CF",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pa6+cf",
+    "filament_vendor": "Polymaker",
+    "filament_type": [
+        "PA6+CF"
+    ],
+    "first_layer_temperature": [
+        "280"
+    ],
+    "temperature": [
+        "270"
+    ],
+    "bed_temperature": [
+        "0,100,100"
+    ],
+    "first_layer_bed_temperature": [
+        "0,100,100"
+    ]
+}

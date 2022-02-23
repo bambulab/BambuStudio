@@ -940,7 +940,10 @@ void PlaterPresetComboBox::update()
                                 single_bar, filament_rgb, extruder_rgb, material_rgb);
         assert(bmp);
 
-        const std::string name = preset.alias.empty() ? preset.name : preset.alias;
+        // BBS
+        std::string name = preset.alias.empty() ? preset.name : preset.alias;
+        name += preset.filament_vendor_suffix();
+
         if (preset.is_default || preset.is_system) {
             //BBS: move system to the end
             system_presets.emplace(wxString::FromUTF8((name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), bmp);
@@ -1126,7 +1129,7 @@ void TabPresetComboBox::OnSelect(wxCommandEvent &evt)
 
 wxString TabPresetComboBox::get_preset_name(const Preset& preset)
 {
-    return from_u8(preset.name + suffix(preset));
+    return from_u8(preset.name + preset.filament_vendor_suffix() + suffix(preset));
 }
 
 // Update the choice UI from the list of presets.
@@ -1179,11 +1182,13 @@ void TabPresetComboBox::update()
         wxBitmap* bmp = get_bmp(bitmap_key, main_icon_name, "lock_closed", is_enabled, preset.is_compatible, preset.is_system || preset.is_default);
         assert(bmp);
 
+        // BBS: add filament vendor suffix to "selected" string
+        std::string vendor_suffix = preset.filament_vendor_suffix();
         if (preset.is_default || preset.is_system) {
             //BBS: move system to the end
-            system_presets.emplace(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), std::pair<wxBitmap*, bool>(bmp, is_enabled));
+            system_presets.emplace(wxString::FromUTF8((preset.name + vendor_suffix + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), std::pair<wxBitmap*, bool>(bmp, is_enabled));
             if (i == idx_selected)
-                selected = wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str());
+                selected = wxString::FromUTF8((preset.name + vendor_suffix + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str());
             //int item_id = Append(get_preset_name(preset), *bmp);
             //if (!is_enabled)
             //    set_label_marker(item_id, LABEL_ITEM_DISABLED);
@@ -1193,9 +1198,9 @@ void TabPresetComboBox::update()
         else if (preset.is_project_embedded)
         {
             //std::pair<wxBitmap*, bool> pair(bmp, is_enabled);
-            project_embedded_presets.emplace(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), std::pair<wxBitmap*, bool>(bmp, is_enabled));
+            project_embedded_presets.emplace(wxString::FromUTF8((preset.name + vendor_suffix +(preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), std::pair<wxBitmap*, bool>(bmp, is_enabled));
             if (i == idx_selected)
-                selected = wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str());
+                selected = wxString::FromUTF8((preset.name + vendor_suffix +(preset.is_dirty ? Preset::suffix_modified() : "")).c_str());
         }
         else
         {

@@ -1,0 +1,35 @@
+{
+    "type": "filament",
+    "name": "ALL PLA Silk",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pla",
+    "filament_vendor": "ALL",
+    "filament_cost": [
+        "25.4"
+    ],
+    "filament_density": [
+        "1.24"
+    ],
+    "filament_max_volumetric_speed": [
+        "7.5"
+    ],
+    "filament_retract_length": [
+        "0.5"
+    ],
+    "temperature": [
+        "220"
+    ],
+    "bed_temperature": [
+        "45,0,0"
+    ],
+    "first_layer_bed_temperature": [
+        "45,0,0"
+    ],
+    "first_layer_temperature": [
+        "220"
+    ],
+    "start_filament_gcode": [
+        "; Filament gcode\nM106 P3 S255;Prevent PLA SILK from jamming"
+    ]
+}

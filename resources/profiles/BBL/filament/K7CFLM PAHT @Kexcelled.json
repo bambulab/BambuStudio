@@ -1,0 +1,14 @@
+{
+    "type": "filament",
+    "name": "K7CFLM PAHT",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pa6+cf",
+    "filament_vendor": "Kexcelled",
+    "temperature": [
+        "280"
+    ],
+    "first_layer_temperature": [
+        "270"
+    ]
+}

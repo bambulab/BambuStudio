@@ -1,0 +1,32 @@
+{
+    "type": "filament",
+    "name": "K7CF PETG",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pet",
+    "filament_vendor": "Kexcelled",
+    "filament_type": [
+        "PET"
+    ],
+    "first_layer_temperature": [
+        "280"
+    ],
+    "temperature": [
+        "280"
+    ],
+    "cooling": [
+        "1"
+    ],
+    "fan_always_on": [
+        "0"
+    ],
+    "fan_below_layer_time": [
+        "4"
+    ],
+    "min_print_speed": [
+        "20"
+    ],
+    "slowdown_below_layer_time": [
+        "2"
+    ]
+}

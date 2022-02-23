@@ -1,0 +1,14 @@
+{
+    "type": "filament",
+    "name": "eSUN PLA ST",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pla",
+    "filament_vendor": "eSUN",
+    "temperature": [
+        "215"
+    ],
+    "filament_max_volumetric_speed": [
+        "28.6"
+    ]
+}

@@ -1,0 +1,13 @@
+{
+    "type": "filament",
+    "name": "Generic PLA",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pla",
+    "filament_cost": [
+        "25.4"
+    ],
+    "filament_density": [
+        "1.24"
+    ]
+}

@@ -1,0 +1,19 @@
+{
+    "type": "filament",
+    "name": "Generic TPU83",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_tpu",
+    "temperature": [
+        "240"
+    ],
+    "first_layer_temperature": [
+        "220"
+    ],
+    "filament_max_volumetric_speed": [
+        "3.2"
+    ],
+    "filament_retract_length": [
+        "0"
+    ]
+}

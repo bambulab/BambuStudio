@@ -1,0 +1,14 @@
+{
+    "type": "filament",
+    "name": "Generic ABS",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_abs",
+    "filament_cost": [
+        "27.82"
+    ],
+    "filament_density": [
+        "1.04"
+    ],
+    "compatible_printers_condition": "nozzle_diameter[0]!=0.8"
+}

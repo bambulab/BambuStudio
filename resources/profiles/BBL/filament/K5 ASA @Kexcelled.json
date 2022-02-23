@@ -1,0 +1,9 @@
+{
+    "type": "filament",
+    "name": "K5 ASA",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_abs",
+    "filament_vendor": "Kexcelled",
+    "compatible_printers_condition": "nozzle_diameter[0]!=0.8"
+}

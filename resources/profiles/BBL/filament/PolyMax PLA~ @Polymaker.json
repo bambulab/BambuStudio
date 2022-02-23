@@ -1,0 +1,23 @@
+{
+    "type": "filament",
+    "name": "PolyMax PLA~",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pla",
+    "filament_vendor": "Polymaker",
+    "filament_cost": [
+        "25.4"
+    ],
+    "filament_density": [
+        "1.24"
+    ],
+    "temperature": [
+        "215"
+    ],
+    "first_layer_temperature": [
+        "220"
+    ],
+    "filament_max_volumetric_speed": [
+        "21.4"
+    ]
+}

@@ -264,6 +264,25 @@ std::string Preset::remove_suffix_modified(const std::string &name)
         name;
 }
 
+// BBS
+std::string Preset::filament_vendor_suffix() const
+{
+    std::string vendor_suffix;
+    if (type == TYPE_FILAMENT && this->config.has("filament_vendor")) {
+        std::string vendor_name = this->config.opt_string("filament_vendor");
+        if (vendor_name.size() > 0 && vendor_name.find("Unknown") == std::string::npos)
+            vendor_suffix = "@" + vendor_name;
+    }
+
+    return vendor_suffix;
+}
+
+std::string Preset::remove_filament_vendor_suffix(const std::string& name)
+{
+    size_t end_pos = name.rfind('@');
+    return end_pos != std::string::npos ? name.substr(0, end_pos) : name;
+}
+
 // Update new extruder fields at the printer profile.
 void Preset::normalize(DynamicPrintConfig &config)
 {
