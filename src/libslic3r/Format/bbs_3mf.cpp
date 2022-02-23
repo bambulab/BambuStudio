@@ -5220,6 +5220,8 @@ private:
             case RemoveBackup: {
                 try {
                     boost::filesystem::remove(t.path + "/.3mf");
+                    // We Saved with SplitModel now, so we can safe delete these sub models.
+                    boost::filesystem::remove_all(t.path + "/3D/Objects");
                 }
                 catch (...) {}
             }
