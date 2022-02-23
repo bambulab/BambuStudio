@@ -14,7 +14,7 @@ PrinterFileSystem::PrinterFileSystem(std::string const &url, void *logger)
     : url(url), recv_thread(&PrinterFileSystem::RecvMessageThread, this)
 {
     if (!default_thumbnail.IsOk())
-        default_thumbnail= wxImage(Slic3r::var("live_stream_default.png"));
+        default_thumbnail= wxImage(Slic3r::encode_path(Slic3r::var("live_stream_default.png").c_str()));
     session.logger = logger;
     auto time = wxDateTime::Now();
     for (int i = 0; i < 240; ++i) {
