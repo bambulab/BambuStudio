@@ -332,12 +332,12 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 	m_media_ctrl = new wxMediaCtrl2(this);
 #else
 	m_media_ctrl = new wxMediaCtrl2();
-	m_media_ctrl->Create(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(528, 297), wxMEDIACTRLPLAYERCONTROLS_NONE);
+	m_media_ctrl->Create(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(16, 9), wxMEDIACTRLPLAYERCONTROLS_NONE);
 #endif
-	m_media_ctrl->SetMinSize(wxSize(528, 297));
+	//m_media_ctrl->SetMinSize(wxSize(528, 297));
 	m_media_play_ctrl = new MediaPlayCtrl(this, m_media_ctrl);
 
-	bSizer_monitoring->Add(m_media_ctrl, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP | wxRIGHT | wxLEFT | wxSHAPED, 15);
+	bSizer_monitoring->Add(m_media_ctrl, 1, wxALIGN_CENTER_HORIZONTAL | wxTOP | wxRIGHT | wxLEFT | wxSHAPED, 15);
 	bSizer_monitoring->Add(m_media_play_ctrl, 0, wxALL | wxEXPAND, 5);
 
 	bSizer_left->Add(bSizer_monitoring, 1, wxEXPAND | wxALL, 0);
