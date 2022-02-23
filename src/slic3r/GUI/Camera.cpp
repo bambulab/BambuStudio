@@ -54,7 +54,9 @@ void Camera::select_next_type()
 
 void Camera::set_target(const Vec3d& target)
 {
-    const Vec3d new_target = validate_target(target);
+    //BBS do not check validation
+    //const Vec3d new_target = validate_target(target);
+    const Vec3d new_target = target;
     const Vec3d new_displacement = new_target - m_target;
     if (!new_displacement.isApprox(Vec3d::Zero())) {
         m_target = new_target;
