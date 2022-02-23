@@ -9,7 +9,6 @@
 #include "wxExtensions.hpp"
 #include "BitmapComboBox.hpp"
 #include "Widgets/ComboBox.hpp"
-#include "Widgets/Button.hpp"
 #include "GUI_Utils.hpp"
 
 class wxString;
@@ -151,7 +150,7 @@ public:
     ScalableButton* edit_btn { nullptr };
 
     // BBS
-    Button* clr_picker { nullptr };
+    wxButton* clr_picker { nullptr };
     wxColourData m_clrData;
 
     wxColor get_color() { return m_color; }

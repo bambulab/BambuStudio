@@ -969,13 +969,13 @@ Sidebar::Sidebar(Plater *parent)
     combo_and_btn_sizer->Add(p->combos_filament[0], 1, wxALL | wxEXPAND, 5 * em / 10);
     if (p->combos_filament[0]->clr_picker) {
         Slic3r::DynamicPrintConfig* config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({ "extruder_colour" }));
-        const std::string& txt_color = "#808000";//config->opt_string("extruder_colour", (unsigned int)0);
+        const std::string& txt_color = config->opt_string("extruder_colour", (unsigned int)0);
         wxColor color;
         unsigned char rgb[3];
         if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb))
         {
             color.Set(rgb[0], rgb[1], rgb[2]);
-            p->combos_filament[0]->clr_picker->SetBackgroundColor(color);
+            p->combos_filament[0]->clr_picker->SetBackgroundColour(color);
         }
         combo_and_btn_sizer->Add(p->combos_filament[0]->clr_picker, 0, wxALIGN_CENTER_VERTICAL, 5 * em / 10);
     }
@@ -1111,7 +1111,7 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int extr_i
     if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb))
     {
         color.Set(rgb[0], rgb[1], rgb[2]);
-        (*combo)->clr_picker->SetBackgroundColor(color);
+        (*combo)->clr_picker->SetBackgroundColour(color);
     }
 
     combo_and_btn_sizer->Add((*combo)->clr_picker, 0, wxALIGN_CENTER_VERTICAL, 5 * em / 10);
