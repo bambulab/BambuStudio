@@ -7674,7 +7674,7 @@ void Plater::export_gcode_3mf()
         //BBS do not save last output path
         //p->last_output_path = output_path.string();
         p->last_output_dir_path = output_path.parent_path().string();
-        export_3mf(output_path, SaveStrategy::Silence | SaveStrategy::WithGcode); // BBS: silence
+        export_3mf(output_path, SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode); // BBS: silence
         // update lost output dir
         appconfig.update_last_output_dir(output_path.parent_path().string(), false);
     }
@@ -7994,7 +7994,7 @@ void Plater::publish_project()
     temp_path /= (boost::format(".%1%.3mf") % unique).str();
     BOOST_LOG_TRIVIAL(debug) << "publish_project: export to temp 3mf: " << temp_path.string();
 
-    int result = export_3mf(temp_path, SaveStrategy::Silence|SaveStrategy::WithGcode, -1,
+    int result = export_3mf(temp_path, SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode, -1,
         [this, progress_dlg](int export_stage, int current, int total, bool& cancel) {
             wxString msg = wxString::Format("preparing... exporting stage %d %d/%d", export_stage, current, total);
             bool skip = false;
@@ -8360,7 +8360,7 @@ void Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
     catch (std::exception& e) {
         BOOST_LOG_TRIVIAL(trace) << "generate 3mf path failed";
     }
-    export_3mf(p->m_print_job_data._3mf_path, SaveStrategy::Silence | SaveStrategy::WithGcode, -1, proFn);
+    export_3mf(p->m_print_job_data._3mf_path, SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode, -1, proFn);
 
     // Repetier specific: Query the server for the list of file groups.
     /* BBS
