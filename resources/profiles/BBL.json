@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "0.0.1",
+    "version": "0.0.02",
     "machine_model_list": [
         {
             "name": "BBL-3DP-V4NORMAL",
