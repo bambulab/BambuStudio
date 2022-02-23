@@ -86,4 +86,58 @@ void duplicate_objects(Model &model, size_t copies_num)
     }
 }
 
+// Set up arrange polygon for a ModelInstance and Wipe tower
+template<class T>
+arrangement::ArrangePolygon get_arrange_poly(T obj)
+{
+    //BBS update extruder params and speed table before arranging
+    //Plater::setExtruderParams(Slic3r::Model::extruderParamsMap);
+    //Plater::setPrintSpeedTable(Slic3r::Model::printSpeedMap);
+
+    ArrangePolygon ap = obj.get_arrange_polygon();
+    //BBS: always set bed_idx to 0 to use original transforms with no bed_idx
+    //if this object is not arranged, it can keep the original transforms
+    //ap.bed_idx        = ap.translation.x() / bed_stride_x(plater);
+    ap.bed_idx = 0;
+    ap.setter = [obj](const ArrangePolygon& p) {
+        if (p.is_arranged()) {
+            Vec2d t = p.translation.cast<double>();
+            //BBS: change to sudoku-style computation, do it in partplate list
+            //t.x() += p.bed_idx * bed_stride(plater);
+            //t.x() += col * bed_stride_x(plater);
+            //t.y() -= row * bed_stride_y(plater);
+            T{ obj }.apply_arrange_result(t, p.rotation, p.itemid);
+        }
+    };
+
+    return ap;
+}
+
+template<>
+arrangement::ArrangePolygon get_arrange_poly(ModelInstance* inst)
+{
+    return get_arrange_poly(PtrWrapper{ inst });
+}
+
+ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const Slic3r::DynamicPrintConfig& config)
+{
+    ArrangePolygon ap = get_arrange_poly(PtrWrapper{ instance });
+    
+    //BBS: add temperature information
+    if (config.has("bed_temperature")) //get the bed temperature
+        ap.bed_temp = config.opt_int("bed_temperature", (ap.extrude_id - 1) * BedType::btCount);
+    if (config.has("temperature")) //get the print temperature
+        ap.print_temp = config.opt_int("temperature", ap.extrude_id - 1);
+    if (config.has("first_layer_bed_temperature")) //get the first_layer_bed_temperature
+        ap.first_bed_temp = config.opt_int("first_layer_bed_temperature", (ap.extrude_id - 1) * BedType::btCount);
+    if (config.has("first_layer_temperature")) //get the first_layer_temperature
+        ap.first_print_temp = config.opt_int("first_layer_temperature", ap.extrude_id - 1);
+    if (config.has("temperature_vitrification"))
+        ap.vitrify_temp = config.opt_int("temperature_vitrification", ap.extrude_id - 1);
+
+    ap.height = instance->get_object()->bounding_box().size().z();
+    ap.name = instance->get_object()->name;
+    return ap;
+}
+
 } // namespace Slic3r

@@ -2,7 +2,7 @@
 
 #include "libslic3r/Model.hpp"
 #include "libslic3r/ClipperUtils.hpp"
-
+#include "libslic3r/ModelArrange.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
@@ -50,7 +50,7 @@ void FillBedJob::prepare()
         {
             bool selected = (oidx == m_object_idx);
 
-            ArrangePolygon ap = get_arrange_poly(PtrWrapper{ mo->instances[inst_idx] }, m_plater);
+            ArrangePolygon ap = get_arrange_poly(mo->instances[inst_idx]);
             BoundingBox ap_bb = ap.transformed_poly().contour.bounding_box();
             ap.height = 1;
             ap.name = mo->name;
@@ -107,7 +107,7 @@ void FillBedJob::prepare()
     /*
     for (ModelInstance *inst : model_object->instances)
         if (inst->printable) {
-            ArrangePolygon ap = get_arrange_poly(PtrWrapper{inst}, m_plater);
+            ArrangePolygon ap = get_arrange_poly(inst);
             // Existing objects need to be included in the result. Only
             // the needed amount of object will be added, no more.
             ++ap.priority;
@@ -127,7 +127,7 @@ void FillBedJob::prepare()
     for (size_t idx = 0; idx < objects.size(); ++idx)
         if (int(idx) != m_object_idx)
             for (ModelInstance *mi : objects[idx]->instances) {
-                ArrangePolygon ap = get_arrange_poly(PtrWrapper{mi}, m_plater);
+                ArrangePolygon ap = get_arrange_poly(mi);
                 auto ap_bb = ap.transformed_poly().contour.bounding_box();
 
                 if (ap.bed_idx == 0 && !bedbb.contains(ap_bb))
@@ -161,7 +161,7 @@ void FillBedJob::prepare()
     // if the selection is not a single instance, choose the first as template
     //sel_id = std::max(sel_id, 0);
     ModelInstance *mi = model_object->instances[sel_id];
-    ArrangePolygon template_ap = get_arrange_poly(PtrWrapper{mi}, m_plater);
+    ArrangePolygon template_ap = get_arrange_poly(mi);
 
     for (int i = 0; i < needed_items; ++i) {
         ArrangePolygon ap = template_ap;

@@ -5,6 +5,7 @@
 #include "libslic3r/MTUtils.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/ModelArrange.hpp"
 
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/PartPlate.hpp"
@@ -71,6 +72,14 @@ static WipeTower get_wipe_tower(const Plater &plater, int plate_idx)
     return WipeTower{plater.canvas3D()->get_wipe_tower_info(plate_idx)};
 }
 
+arrangement::ArrangePolygon get_wipetower_arrange_poly(WipeTower* tower)
+{
+    ArrangePolygon ap = tower->get_arrange_polygon();
+    ap.bed_idx = 0;
+    ap.setter = NULL; // do not move wipe tower
+    return ap;
+}
+
 void ArrangeJob::clear_input()
 {
     const Model &model = m_plater->model();
@@ -96,23 +105,7 @@ ArrangePolygon ArrangeJob::prepare_arrange_polygon(void* model_instance)
 {
     ModelInstance* instance = (ModelInstance*)model_instance;
     const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
-
-    ArrangePolygon ap = get_arrange_poly(PtrWrapper{ instance }, m_plater);
-    //BBS: add temperature information
-    if (config.has("bed_temperature")) //get the bed temperature
-        ap.bed_temp = config.opt_int("bed_temperature", (ap.extrude_id - 1) * BedType::btCount);
-    if (config.has("temperature")) //get the print temperature
-        ap.print_temp = config.opt_int("temperature", ap.extrude_id - 1);
-    if (config.has("first_layer_bed_temperature")) //get the first_layer_bed_temperature
-        ap.first_bed_temp = config.opt_int("first_layer_bed_temperature", (ap.extrude_id - 1) * BedType::btCount);
-    if (config.has("first_layer_temperature")) //get the first_layer_temperature
-        ap.first_print_temp = config.opt_int("first_layer_temperature", ap.extrude_id - 1);
-    if (config.has("temperature_vitrification"))
-        ap.vitrify_temp = config.opt_int("temperature_vitrification", ap.extrude_id - 1);
-
-    ap.height = instance->get_object()->bounding_box().size().z();
-    ap.name = instance->get_object()->name;
-    return ap;
+    return get_instance_arrange_poly(instance, config);
 }
 
 void ArrangeJob::prepare_selected() {
@@ -176,7 +169,7 @@ void ArrangeJob::prepare_selected() {
     // BBS: prepare wipe tower for all possible plates
     for (int bedid = 0; bedid < MAX_NUM_PLATES; bedid++)
         if (auto wti = get_wipe_tower(*m_plater, bedid)) {
-            ArrangePolygon&& ap = get_arrange_poly(wti, m_plater);
+            ArrangePolygon&& ap = get_wipetower_arrange_poly(&wti);
             ap.bed_idx = bedid;
             m_unselected.emplace_back(std::move(ap));
         }
@@ -190,7 +183,7 @@ void ArrangeJob::prepare_selected() {
 
 arrangement::ArrangePolygon ArrangeJob::get_arrange_poly_(ModelInstance *mi)
 {
-    arrangement::ArrangePolygon ap = get_arrange_poly(mi, m_plater);
+    arrangement::ArrangePolygon ap = get_arrange_poly(mi);
 
     auto setter = ap.setter;
     ap.setter = [this, setter, mi](const arrangement::ArrangePolygon &set_ap) {
@@ -252,7 +245,7 @@ void ArrangeJob::prepare_partplate() {
 
     // BBS
     if (auto wti = get_wipe_tower(*m_plater, current_plate_index)) {
-        ArrangePolygon&& ap = get_arrange_poly(wti, m_plater);
+        ArrangePolygon&& ap = get_wipetower_arrange_poly(&wti);
         m_unselected.emplace_back(std::move(ap));
     }
 
@@ -586,7 +579,7 @@ get_wipe_tower_arrangepoly(const Plater &plater)
 {
     // BBS FIXME: use actual plate_idx
     if (auto wti = get_wipe_tower(plater, 0))
-        return get_arrange_poly(wti, &plater);
+        return get_wipetower_arrange_poly(&wti);
 
     return {};
 }
@@ -602,12 +595,6 @@ double bed_stride_y(const Plater* plater) {
     return scaled<double>((1. + LOGICAL_BED_GAP) * beddepth);
 }
 
-template<>
-arrangement::ArrangePolygon get_arrange_poly(ModelInstance *inst,
-                                             const Plater * plater)
-{
-    return get_arrange_poly(PtrWrapper{inst}, plater);
-}
 
 arrangement::ArrangeParams get_arrange_params(Plater *p)
 {

@@ -116,13 +116,13 @@ int CLI::run(int argc, char **argv)
         boost::nowide::cout << "index="<< index <<", arg is "<< argv[index] <<std::endl;
     /*int debug_argc = 7;
     char *debug_argv[] = {
-        "D:\work\Projects\prusa_git_test\bamboo_slicer\build\src\RelWithDebInfo\bambu-studio.exe",
+        "D:\slicer\bamboo_slicer\build\src\Release\bambu-studio.exe",
         "--slice",
-        "--output=test_linux",
+        "--output=test_linux2",
         "--export-3mf",
-        "e699867b0f86c91908b93333872e4d4f_123.3mf",
-        "--load",
-        "0.08mm SUPERDETAIL @BBL-3DP.ini"
+        "test_linux.3mf",
+        "--arrange",
+        "1"
         };
 	if (! this->setup(debug_argc, debug_argv))*/
     if (!this->setup(argc, argv))
@@ -661,34 +661,8 @@ int CLI::run(int argc, char **argv)
                 for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
                 {
                     ModelInstance* minst = mo->instances[inst_idx];
-                    ArrangePolygon ap;
+                    ArrangePolygon ap = get_instance_arrange_poly(minst, m_print_config);
 
-                    minst->get_arrange_polygon((void *)&ap);
-
-                    ap.bed_idx        = 0;
-                    ap.setter         = [minst, plate_stride](const ArrangePolygon &p) {
-                        if (p.is_arranged()) {
-                            Vec2d t = p.translation.cast<double>();
-                            //BBS: change to sudoku-style computation, do it in partplate list
-                            //t.x() += p.bed_idx * bed_stride(plater);
-                            //t.x() += col * bed_stride_x(plater);
-                            //t.y() -= row * bed_stride_y(plater);
-                            minst->apply_arrange_result(t, p.rotation);
-                            boost::nowide::cout << "instance id=" << minst->id().id <<", after apply_arrange_result, trans-x= "<<minst->get_transformation().get_offset().x()
-                                <<",t.x()="<<t.x()<<", bed_idx="<< p.bed_idx <<", plate_stride="<< plate_stride<<"\n";
-                        }
-                    };
-                    ap.bed_temp = m_print_config.opt_int("bed_temperature", ap.extrude_id - 1);
-                    ap.print_temp = m_print_config.opt_int("temperature", ap.extrude_id - 1);
-                    ap.first_bed_temp = m_print_config.opt_int("first_layer_bed_temperature", ap.extrude_id - 1);
-                    ap.first_print_temp = m_print_config.opt_int("first_layer_temperature", ap.extrude_id - 1);
-                    //ap.height = minst->get_object()->bounding_box().size().z();
-                    ap.height = 1;
-                    ap.name = minst->get_object()->name;
-                    boost::nowide::cout << "arrange object "<<ap.name<<",bed_temp="<<ap.bed_temp<<",print_temp="<< ap.print_temp <<",first_bed_temp=" << ap.first_bed_temp <<",first_print_temp="<< ap.first_print_temp  <<"\n";
-                    boost::nowide::cout << "extrude_id=" << ap.extrude_id <<",trans_x "<<ap.translation.x()<<",trans_y="<<ap.translation.y()<<"\n";
-                    boost::nowide::cout << "instance z=" << minst->get_transformation().get_offset().z()<< ",object min_z=" <<mo->get_min_z()<<"\n";
-                
                     //preprocess by partplate list
                     //remove the locked plate's instances, neither in selected, nor in un-selected
                     bool locked = partplate_list.preprocess_arrange_polygon(oidx, inst_idx, ap, true);
@@ -715,20 +689,28 @@ int CLI::run(int argc, char **argv)
 
             //Step-2:prepare the arrange params
             arrange_cfg.allow_rotations  = false;
-            arrange_cfg.min_obj_distance = scaled(12.0);
+            arrange_cfg.min_obj_distance = scaled(6.0);
             //BBS: add specific params
             arrange_cfg.is_seq_print = false;
             arrange_cfg.bed_shrink_x = 0;
             arrange_cfg.bed_shrink_y = 0;
+            double skirt_distance = m_print_config.opt_float("skirt_distance");
+            double brim_width = m_print_config.opt_float("brim_width");
+            arrange_cfg.brim_skirt_distance = skirt_distance + brim_width;
+            boost::nowide::cout << boost::format("Arrange Params: brim_skirt_distance=%1%, min_obj_distance=%2%, is_seq_print=%3%\n") %  arrange_cfg.brim_skirt_distance % arrange_cfg.min_obj_distance % arrange_cfg.is_seq_print;
+
+            // Note: skirt_distance is now defined between outermost brim and skirt, not the object and skirt.
+            // So we can't do max but do adding instead.
+            arrange_cfg.bed_shrink_x += arrange_cfg.brim_skirt_distance;
+            arrange_cfg.bed_shrink_y += arrange_cfg.brim_skirt_distance;
             // shrink bed
             beds[0] += Point(scaled(arrange_cfg.bed_shrink_x), scaled(arrange_cfg.bed_shrink_y));
             beds[1] += Point(-scaled(arrange_cfg.bed_shrink_x), scaled(arrange_cfg.bed_shrink_y));
             beds[2] += Point(-scaled(arrange_cfg.bed_shrink_x), -scaled(arrange_cfg.bed_shrink_y));
-            beds[3] += Point(scaled(arrange_cfg.bed_shrink_x), -scaled(arrange_cfg.bed_shrink_y)); 
-            double skirt_distance = m_print_config.opt_float("skirt_distance");
-            double brim_width = m_print_config.opt_float("brim_width");
-            arrange_cfg.brim_skirt_distance = std::max(skirt_distance, brim_width);
-            boost::nowide::cout << boost::format("Arrange Params: brim_skirt_distance=%1%, min_obj_distance=%2%, is_seq_print=%3%\n") %  arrange_cfg.brim_skirt_distance % arrange_cfg.min_obj_distance % arrange_cfg.is_seq_print;
+            beds[3] += Point(scaled(arrange_cfg.bed_shrink_x), -scaled(arrange_cfg.bed_shrink_y));
+
+            // do not inflate brim_width. Objects are allowed to have overlapped brim.
+            std::for_each(selected.begin(), selected.end(), [&](auto& ap) {ap.inflation = arrange_cfg.min_obj_distance / 2; });
 
             //Step-3:do the arrange
             arrangement::arrange(selected, unselected, beds, arrange_cfg);

@@ -72,56 +72,6 @@ static const constexpr double LOGICAL_BED_GAP = 1. / 5.;
 double bed_stride_x(const Plater* plater);
 double bed_stride_y(const Plater* plater);
 
-template<class T> struct PtrWrapper
-{
-    T *ptr;
-
-    explicit PtrWrapper(T *p) : ptr{p} {}
-
-    arrangement::ArrangePolygon get_arrange_polygon() const
-    {
-        arrangement::ArrangePolygon ap;
-        ptr->get_arrange_polygon(&ap);
-        return ap;
-    }
-
-    void apply_arrange_result(const Vec2d &t, double rot, int item_id)
-    {
-        ptr->apply_arrange_result(t, rot);
-        ptr->arrange_order = item_id;
-    }
-};
-
-// Set up arrange polygon for a ModelInstance and Wipe tower
-template<class T>
-arrangement::ArrangePolygon get_arrange_poly(T obj, const Plater *plater)
-{
-    using ArrangePolygon = arrangement::ArrangePolygon;
-    //BBS update extruder params and speed table before arranging
-    Plater::setExtruderParams(Slic3r::Model::extruderParamsMap);
-    Plater::setPrintSpeedTable(Slic3r::Model::printSpeedMap);
-    ArrangePolygon ap = obj.get_arrange_polygon();
-    //BBS: always set bed_idx to 0 to use original transforms with no bed_idx
-    //if this object is not arranged, it can keep the original transforms
-    //ap.bed_idx        = ap.translation.x() / bed_stride_x(plater);
-    ap.bed_idx        = 0;
-    ap.setter         = [obj, plater](const ArrangePolygon &p) {
-        if (p.is_arranged()) {
-            Vec2d t = p.translation.cast<double>();
-            //BBS: change to sudoku-style computation, do it in partplate list
-            //t.x() += p.bed_idx * bed_stride(plater);
-            //t.x() += col * bed_stride_x(plater);
-            //t.y() -= row * bed_stride_y(plater);
-            T{obj}.apply_arrange_result(t, p.rotation, p.itemid);
-        }
-    };
-
-    return ap;
-}
-
-template<>
-arrangement::ArrangePolygon get_arrange_poly(ModelInstance *inst,
-                                             const Plater * plater);
 
 arrangement::ArrangeParams get_arrange_params(Plater *p);
 

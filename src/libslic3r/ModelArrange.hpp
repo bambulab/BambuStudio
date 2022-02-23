@@ -2,11 +2,10 @@
 #define MODELARRANGE_HPP
 
 #include <libslic3r/Arrange.hpp>
+#include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/Model.hpp"
 
 namespace Slic3r {
-
-class Model;
-class ModelInstance;
 using ModelInstancePtrs = std::vector<ModelInstance*>;
 
 using arrangement::ArrangePolygon;
@@ -66,6 +65,33 @@ void duplicate_objects(Model &              model,
     arrange_objects(model, bed, params, vfn);
 }
 
+template<class T> struct PtrWrapper
+{
+    T* ptr;
+
+    explicit PtrWrapper(T* p) : ptr{ p } {}
+
+    arrangement::ArrangePolygon get_arrange_polygon() const
+    {
+        arrangement::ArrangePolygon ap;
+        ptr->get_arrange_polygon(&ap);
+        return ap;
+    }
+
+    void apply_arrange_result(const Vec2d& t, double rot, int item_id)
+    {
+        ptr->apply_arrange_result(t, rot);
+        ptr->arrange_order = item_id;
+    }
+};
+
+template<class T>
+arrangement::ArrangePolygon get_arrange_poly(T obj);
+
+template<>
+arrangement::ArrangePolygon get_arrange_poly(ModelInstance* inst);
+
+ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const Slic3r::DynamicPrintConfig& config);
 }
 
 #endif // MODELARRANGE_HPP
