@@ -284,6 +284,7 @@ public:
     bool            load_language(wxString language, bool initial);
 
     Tab*            get_tab(Preset::Type type);
+    Tab*            get_model_tab(bool part = false);
     ConfigOptionMode get_mode();
     void            save_mode(const /*ConfigOptionMode*/int mode) ;
     void            update_mode();
@@ -353,6 +354,7 @@ public:
     int             filaments_cnt() const;
 
     std::vector<Tab *>      tabs_list;
+    std::vector<Tab *>      model_tabs_list;
 
 	RemovableDriveManager* removable_drive_manager() { return m_removable_drive_manager.get(); }
 	OtherInstanceMessageHandler* other_instance_message_handler() { return m_other_instance_message_handler.get(); }

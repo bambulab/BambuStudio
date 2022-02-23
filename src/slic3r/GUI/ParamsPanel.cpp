@@ -72,6 +72,8 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
 
     m_staticline_filament = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
     m_staticline_print = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+    m_staticline_print_object = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+    m_staticline_print_part = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
     m_staticline_printer = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
     // BBS: new layout
     m_staticline_buttons = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
@@ -148,22 +150,38 @@ void ParamsPanel::create_layout()
     m_mode_panel->SetSizer(m_mode_sizer);
     m_left_sizer->Add( m_mode_panel, 0, wxEXPAND );
 
-    m_left_sizer->Add( m_staticline_print, 0, wxEXPAND );
-    //m_print_sizer = new wxBoxSizer( wxHORIZONTAL );
-    //m_print_sizer->Add( m_tab_print, 1, wxEXPAND | wxALL, 5 );
-    //m_left_sizer->Add( m_print_sizer, 1, wxEXPAND, 5 );
-    m_left_sizer->Add( m_tab_print, 0, wxEXPAND );
+    if (m_tab_print) {
+        m_left_sizer->Add( m_staticline_print, 0, wxEXPAND );
+        //m_print_sizer = new wxBoxSizer( wxHORIZONTAL );
+        //m_print_sizer->Add( m_tab_print, 1, wxEXPAND | wxALL, 5 );
+        //m_left_sizer->Add( m_print_sizer, 1, wxEXPAND, 5 );
+        m_left_sizer->Add( m_tab_print, 0, wxEXPAND );
+    }
 
-    m_left_sizer->Add( m_staticline_filament, 0, wxEXPAND );
-    //m_filament_sizer = new wxBoxSizer( wxVERTICAL );
-    //m_filament_sizer->Add( m_tab_filament, 1, wxEXPAND | wxALL, 5 );
-   // m_left_sizer->Add( m_filament_sizer, 1, wxEXPAND, 5 );
-    m_left_sizer->Add( m_tab_filament, 0, wxEXPAND );
+    if (m_tab_print_object) {
+        m_left_sizer->Add( m_staticline_print_object, 0, wxEXPAND );
+        m_left_sizer->Add( m_tab_print_object, 0, wxEXPAND );
+    }
 
-    m_left_sizer->Add( m_staticline_printer, 0, wxEXPAND );
-    //m_printer_sizer = new wxBoxSizer( wxVERTICAL );
-    //m_printer_sizer->Add( m_tab_printer, 1, wxEXPAND | wxALL, 5 );
-    m_left_sizer->Add( m_tab_printer, 0, wxEXPAND );
+    if (m_tab_print_part) {
+        m_left_sizer->Add( m_staticline_print_part, 0, wxEXPAND );
+        m_left_sizer->Add( m_tab_print_part, 0, wxEXPAND );
+    }
+
+    if (m_tab_filament) {
+        m_left_sizer->Add( m_staticline_filament, 0, wxEXPAND );
+        //m_filament_sizer = new wxBoxSizer( wxVERTICAL );
+        //m_filament_sizer->Add( m_tab_filament, 1, wxEXPAND | wxALL, 5 );
+       // m_left_sizer->Add( m_filament_sizer, 1, wxEXPAND, 5 );
+        m_left_sizer->Add( m_tab_filament, 0, wxEXPAND );
+    }
+
+    if (m_tab_printer) {
+        m_left_sizer->Add( m_staticline_printer, 0, wxEXPAND );
+        //m_printer_sizer = new wxBoxSizer( wxVERTICAL );
+        //m_printer_sizer->Add( m_tab_printer, 1, wxEXPAND | wxALL, 5 );
+        m_left_sizer->Add( m_tab_printer, 0, wxEXPAND );
+    }
 
     //m_left_sizer->Add( m_printer_sizer, 1, wxEXPAND, 1 );
 
@@ -229,6 +247,8 @@ void ParamsPanel::refresh_tabs()
                     break;
             }
         }
+    m_tab_print_object = wxGetApp().get_model_tab();
+    m_tab_print_part = wxGetApp().get_model_tab(true);
     return;
 }
 
@@ -284,7 +304,8 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": set current to %1%, type=%2%") % cur_tab % cur_tab?cur_tab->type():-1;
 
     // BBS: open/close tab
-    for (auto t : { m_tab_print , m_tab_filament, m_tab_printer }) {
+    for (auto t : { m_tab_print , m_tab_print_object , m_tab_print_part , m_tab_filament, m_tab_printer }) {
+        if (!t) continue;
         dynamic_cast<Tab*> (t)->set_expanded(tab == t);
         //m_left_sizer->GetItem(t)->SetProportion(tab == t ? 1 : 0);
     }
@@ -372,6 +393,18 @@ void ParamsPanel::delete_subwindows()
     {
         delete m_staticline_print;
         m_staticline_print = nullptr;
+    }
+
+    if (m_staticline_print_part)
+    {
+        delete m_staticline_print_part;
+        m_staticline_print_part = nullptr;
+    }
+
+    if (m_staticline_print_object)
+    {
+        delete m_staticline_print_object;
+        m_staticline_print_object = nullptr;
     }
 
     if (m_staticline_filament)

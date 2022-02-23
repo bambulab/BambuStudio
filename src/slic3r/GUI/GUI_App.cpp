@@ -2640,6 +2640,11 @@ Tab* GUI_App::get_tab(Preset::Type type)
     return nullptr;
 }
 
+Tab* GUI_App::get_model_tab(bool part)
+{
+    return model_tabs_list[part ? 1 : 0];
+}
+
 ConfigOptionMode GUI_App::get_mode()
 {
     if (!app_config->has("user_mode"))
@@ -2677,6 +2682,8 @@ void GUI_App::update_mode()
 #endif
 
     for (auto tab : tabs_list)
+        tab->update_mode();
+    for (auto tab : model_tabs_list)
         tab->update_mode();
 
     //BBS plater()->update_menus();
@@ -3137,7 +3144,8 @@ bool GUI_App::check_print_host_queue()
 bool GUI_App::checked_tab(Tab* tab)
 {
     bool ret = true;
-    if (find(tabs_list.begin(), tabs_list.end(), tab) == tabs_list.end())
+    if (find(tabs_list.begin(), tabs_list.end(), tab) == tabs_list.end() &&
+        find(model_tabs_list.begin(), model_tabs_list.end(), tab) == model_tabs_list.end())
         ret = false;
     return ret;
 }
@@ -3165,6 +3173,11 @@ void GUI_App::load_current_presets(bool active_preset_combox/*= false*/, bool ch
 			if (active_preset_combox)
 				tab->reactive_preset_combo_box();
 		}
+    // BBS: model config
+    for (Tab *tab : model_tabs_list)
+		if (tab->supports_printer_technology(printer_technology)) {
+            tab->rebuild_page_tree();
+        }
 }
 
 bool GUI_App::OnExceptionInMainLoop()

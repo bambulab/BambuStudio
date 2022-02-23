@@ -50,6 +50,7 @@
 #include "GUI_Factories.hpp"
 #include "GUI_ObjectList.hpp"
 #include "NotificationManager.hpp"
+#include "MarkdownTip.hpp"
 
 #ifdef _WIN32
 #include <dbt.h>
@@ -1000,6 +1001,8 @@ void MainFrame::create_preset_tabs()
     m_param_panel = new ParamsPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
 
     add_created_tab(new TabPrint(m_param_panel), "cog");
+    add_created_tab(new TabPrintObject(m_param_panel), "cog");
+    add_created_tab(new TabPrintPart(m_param_panel), "cog");
     add_created_tab(new TabFilament(m_param_panel), "spool");
     /* BBS work around to avoid appearance bug */
     //add_created_tab(new TabSLAPrint(m_param_panel));
@@ -1014,6 +1017,12 @@ void MainFrame::create_preset_tabs()
 void MainFrame::add_created_tab(Tab* panel,  const std::string& bmp_name /*= ""*/)
 {
     panel->create_preset_tab();
+
+    // BBS: model config
+    if (panel->type() == Preset::TYPE_MODEL) {
+        wxGetApp().tabs_list.pop_back();
+        wxGetApp().model_tabs_list.push_back(panel);
+    }
 
     //BBS: GUI refactor
 //    const auto printer_tech = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
@@ -1520,8 +1529,10 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     //BBS GUI refactor: remove unused layout new/dlg
     //if (m_layout != ESettingsLayout::Dlg) // Do not update tabs if the Settings are in the separated dialog
     m_param_panel->msw_rescale();
-        for (auto tab : wxGetApp().tabs_list)
-            tab->msw_rescale();
+    for (auto tab : wxGetApp().tabs_list)
+        tab->msw_rescale();
+    for (auto tab : wxGetApp().model_tabs_list)
+        tab->msw_rescale();
 
     m_monitor->msw_rescale();
 
@@ -1577,6 +1588,8 @@ void MainFrame::on_sys_color_changed()
 
     // update Tabs
     for (auto tab : wxGetApp().tabs_list)
+        tab->sys_color_changed();
+    for (auto tab : wxGetApp().model_tabs_list)
         tab->sys_color_changed();
 
     MenuFactory::sys_color_changed(m_menubar);

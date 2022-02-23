@@ -43,6 +43,10 @@
 class TabCtrl;
 
 namespace Slic3r {
+
+class ModelConfig;
+class ObjectBase;
+
 namespace GUI {
 
 class TabPresetComboBox;
@@ -125,7 +129,7 @@ protected:
     Preset::Type        m_type;
 	std::string			m_name;
 	const wxString		m_title;
-	TabPresetComboBox*	m_presets_choice;
+	TabPresetComboBox*	m_presets_choice { nullptr };
 	
 	//BBS: GUI refactor
 	wxPanel*			m_top_panel;
@@ -266,7 +270,7 @@ protected:
 public:
 	PresetBundle*		m_preset_bundle;
 	bool				m_show_btn_incompatible_presets = false;
-	PresetCollection*	m_presets;
+	PresetCollection*	m_presets = nullptr;
 	DynamicPrintConfig*	m_config;
 	ogStaticText*		m_parent_preset_description_line = nullptr;
 	ScalableButton*		m_detach_preset_btn	= nullptr;
@@ -368,7 +372,7 @@ public:
 	DynamicPrintConfig*	get_config() { return m_config; }
 	PresetCollection*	get_presets() { return m_presets; }
 
-	void			on_value_change(const std::string& opt_key, const boost::any& value);
+	virtual void    on_value_change(const std::string& opt_key, const boost::any& value);
 
     void            update_wiping_button_visibility();
 	void			activate_option(const std::string& opt_key, const wxString& category);
@@ -412,8 +416,8 @@ class TabPrint : public Tab
 {
 public:
 	//BBS: GUI refactor
-	TabPrint(ParamsPanel* parent) :
-        Tab(parent, _(L("Process")), Slic3r::Preset::TYPE_PRINT) {}
+	TabPrint(ParamsPanel* parent, Preset::Type type = Preset::TYPE_PRINT) :
+        Tab(parent, _(L("Process")), type) {}
 	~TabPrint() {}
 
 	void		build() override;
@@ -428,6 +432,56 @@ private:
 	ogStaticText*	m_recommended_thin_wall_thickness_description_line = nullptr;
 	ogStaticText*	m_top_bottom_shell_thickness_explanation = nullptr;
 	ogStaticText*	m_post_process_explanation = nullptr;
+};
+
+class TabPrintModel : public TabPrint
+{
+public:
+	//BBS: GUI refactor
+	TabPrintModel(ParamsPanel* parent, std::vector<std::string> const & keys);
+	~TabPrintModel() {}
+
+	void build() override;
+
+	void set_model_config(ObjectBase * object, ModelConfig * config);
+
+	ModelConfig * get_model_config() { return m_model_config; }
+
+	void update_model_config();
+
+	void reset_model_config();
+
+protected:
+	virtual void    on_value_change(const std::string& opt_key, const boost::any& value) override;
+
+	virtual void    notify_changed() = 0;
+
+protected:
+	std::vector<std::string> const keys;
+	PresetCollection m_prints;
+	Tab * m_parent_tab;
+	ObjectBase * m_object = nullptr;
+	ModelConfig * m_model_config = nullptr;
+};
+
+class TabPrintObject : public TabPrintModel
+{
+public:
+	//BBS: GUI refactor
+	TabPrintObject(ParamsPanel* parent);
+	~TabPrintObject() {}
+protected:
+	virtual void    notify_changed() override;
+};
+
+class TabPrintPart : public TabPrintModel
+{
+public:
+	//BBS: GUI refactor
+	TabPrintPart(ParamsPanel* parent);
+	~TabPrintPart() {}
+protected:
+	virtual void    notify_changed() override;
 };
 
 class TabFilament : public Tab

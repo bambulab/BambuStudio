@@ -191,20 +191,23 @@ void Tab::create_preset_tab()
     panel->SetSizer(sizer);
 #endif //__WXOSX__*/
 
-    // preset chooser
-    m_presets_choice = new TabPresetComboBox(panel, m_type);
-    // m_presets_choice->SetFont(Label::Body_10); // BBS
-    m_presets_choice->set_selection_changed_function([this](int selection) {
-        if (!m_presets_choice->selection_is_changed_according_to_physical_printers())
-        {
-            if (m_type == Preset::TYPE_PRINTER && !m_presets_choice->is_selected_physical_printer())
-                m_preset_bundle->physical_printers.unselect_printer();
+    // BBS: model config
+    if (m_type < Preset::TYPE_COUNT) {
+        // preset chooser
+        m_presets_choice = new TabPresetComboBox(panel, m_type);
+        // m_presets_choice->SetFont(Label::Body_10); // BBS
+        m_presets_choice->set_selection_changed_function([this](int selection) {
+            if (!m_presets_choice->selection_is_changed_according_to_physical_printers())
+            {
+                if (m_type == Preset::TYPE_PRINTER && !m_presets_choice->is_selected_physical_printer())
+                    m_preset_bundle->physical_printers.unselect_printer();
 
-            // select preset
-            std::string preset_name = m_presets_choice->GetString(selection).ToUTF8().data();
-            select_preset(Preset::remove_suffix_modified(preset_name));
-        }
-    });
+                // select preset
+                std::string preset_name = m_presets_choice->GetString(selection).ToUTF8().data();
+                select_preset(Preset::remove_suffix_modified(preset_name));
+            }
+        });
+    }
 
     auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
@@ -305,7 +308,9 @@ void Tab::create_preset_tab()
     m_top_panel->SetSizer(m_top_sizer);
     m_main_sizer->Add(m_top_panel, 0, wxEXPAND, 0 );
 
-    m_main_sizer->Add(m_presets_choice, 0, wxEXPAND | wxALL, 10 );
+    // BBS: model config
+    if (m_presets_choice)
+        m_main_sizer->Add(m_presets_choice, 0, wxEXPAND | wxALL, 10 );
 
 #if 0
 #ifdef _MSW_DARK_MODE
@@ -998,14 +1003,18 @@ void Tab::update_dirty()
     if (m_postpone_update_ui)
         return;
 
-    m_presets_choice->update_dirty();
+    if (m_presets_choice)
+        m_presets_choice->update_dirty();
+    else
+        m_presets->update_dirty();
     on_presets_changed();
     update_changed_ui();
 }
 
 void Tab::update_tab_ui(bool update_plater_presets)
 {
-    m_presets_choice->update();
+    if (m_presets_choice)
+        m_presets_choice->update();
     if (update_plater_presets)
         on_presets_changed();
 }
@@ -1074,7 +1083,8 @@ void Tab::msw_rescale()
     //BBS: GUI refactor
     //if (m_mode_sizer)
     //    m_mode_sizer->msw_rescale();
-    m_presets_choice->msw_rescale();
+    if (m_presets_choice)
+        m_presets_choice->msw_rescale();
 
     m_tabctrl->SetMinSize(wxSize(20 * m_em_unit, -1));
 
@@ -1108,7 +1118,8 @@ void Tab::msw_rescale()
 
 void Tab::sys_color_changed()
 {
-    m_presets_choice->sys_color_changed();
+    if (m_presets_choice)
+        m_presets_choice->sys_color_changed();
 
     // update buttons and cached bitmaps
     for (const auto btn : m_scaled_buttons)
@@ -1203,7 +1214,8 @@ void Tab::load_key_value(const std::string& opt_key, const boost::any& value, bo
         // Don't select another profile if this profile happens to become incompatible.
         m_preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
     }
-    m_presets_choice->update_dirty();
+    if (m_presets_choice)
+        m_presets_choice->update_dirty();
     on_presets_changed();
     update();
 }
@@ -1573,7 +1585,8 @@ void Tab::update_frequently_changed_parameters()
 //BBS: BBS new parameter list
 void TabPrint::build()
 {
-    m_presets = &m_preset_bundle->prints;
+    if (m_presets == nullptr)
+        m_presets = &m_preset_bundle->prints;
     load_initial_data();
 
     auto page = add_options_page(L("Quality"), "layers");
@@ -1872,7 +1885,7 @@ void TabPrint::update()
 
         // update() could be called during undo/redo execution
         // Update of objectList can cause a crash in this case (because m_objects doesn't match ObjectList) 
-        if (!wxGetApp().plater()->inside_snapshot_capture())
+        if (m_type != Preset::TYPE_MODEL && !wxGetApp().plater()->inside_snapshot_capture())
             wxGetApp().obj_list()->update_and_show_object_settings_item();
 
         wxGetApp().mainframe->on_config_changed(m_config);
@@ -1886,6 +1899,136 @@ void TabPrint::clear_pages()
     m_recommended_thin_wall_thickness_description_line = nullptr;
     m_top_bottom_shell_thickness_explanation = nullptr;
     m_post_process_explanation = nullptr;
+}
+
+
+//BBS: GUI refactor
+
+static std::vector<std::string> intersect(std::vector<std::string> const& l, std::vector<std::string> const& r)
+{
+    std::vector<std::string> t;
+    std::copy_if(r.begin(), r.end(), std::back_inserter(t), [&l](auto & e) { return std::find(l.begin(), l.end(), e) != l.end(); });
+    return t;
+}
+
+static std::vector<std::string> concat(std::vector<std::string> const& l, std::vector<std::string> const& r)
+{
+    std::vector<std::string> t;
+    std::set_union(l.begin(), l.end(), r.begin(), r.end(), std::back_inserter(t));
+    return t;
+}
+
+TabPrintModel::TabPrintModel(ParamsPanel* parent, std::vector<std::string> const & keys)
+    : TabPrint(parent, Preset::TYPE_MODEL)
+    , keys(intersect(Preset::print_options(), keys))
+    , m_prints(Preset::TYPE_MODEL, Preset::print_options(), static_cast<const PrintRegionConfig&>(FullPrintConfig::defaults()))
+{
+    m_opt_status_value = osInitValue;
+}
+
+void TabPrintModel::build()
+{
+    m_presets = &m_prints;
+    TabPrint::build();
+
+    for (auto p : m_pages) {
+        for (auto g : p->m_optgroups) {
+            auto & lines = const_cast<std::vector<Line>&>(g->get_lines());
+            for (auto & l : lines) {
+                auto & opts = const_cast<std::vector<Option>&>(l.get_options());
+                opts.erase(std::remove_if(opts.begin(), opts.end(), [this](auto & o) {
+                    return std::find(keys.begin(), keys.end(), o.opt.opt_key) == keys.end();
+                }), opts.end());
+            }
+            lines.erase(std::remove_if(lines.begin(), lines.end(), [](auto & l) {
+                return l.get_options().empty();
+            }), lines.end());
+            // TODO: remove items from g->m_options;
+        }
+        p->m_optgroups.erase(std::remove_if(p->m_optgroups.begin(), p->m_optgroups.end(), [](auto & g) {
+            return g->get_lines().empty();
+        }), p->m_optgroups.end());
+    }
+    m_pages.erase(std::remove_if(m_pages.begin(), m_pages.end(), [](auto & p) {
+        return p->m_optgroups.empty();
+    }), m_pages.end());
+}
+
+void TabPrintModel::set_model_config(ObjectBase * object, ModelConfig * config)
+{
+    if (m_model_config == config) {
+        update_model_config();
+        return;
+    }
+    m_object = object;
+    m_model_config = config;
+    m_prints.get_selected_preset().config.apply(*m_parent_tab->m_config);
+    update_model_config();
+}
+
+void TabPrintModel::update_model_config()
+{
+    m_config->apply(*m_parent_tab->m_config);
+    if (m_model_config != nullptr) {
+        m_config->apply(m_model_config->get());
+    }
+    update_dirty();
+    reload_config();
+    update();
+}
+
+void TabPrintModel::reset_model_config()
+{
+    if (m_model_config == nullptr) return;
+    wxGetApp().plater()->take_snapshot(from_u8(L("Reset Options")));
+    auto rmkeys = intersect(keys, m_model_config->keys());
+    for (auto & k : rmkeys)
+        m_model_config->erase(k);
+    update_model_config();
+    notify_changed();
+}
+
+void TabPrintModel::on_value_change(const std::string& opt_key, const boost::any& value)
+{
+    // TODO: support opt_index
+    if (m_model_config && std::find(keys.begin(), keys.end(), opt_key) != keys.end()) {
+        wxGetApp().plater()->take_snapshot(from_u8((boost::format(_utf8(L("Change Option %s"))) % opt_key).str()));
+        if (m_options_list[opt_key] & osInitValue)
+            m_model_config->erase(opt_key);
+        else
+            m_model_config->apply_only(*m_config, {opt_key});
+        m_model_config->touch();
+        notify_changed();
+    }
+    TabPrint::on_value_change(opt_key, value);
+}
+
+//BBS: GUI refactor
+
+TabPrintObject::TabPrintObject(ParamsPanel* parent) :
+    TabPrintModel(parent, concat(PrintObjectConfig().keys(), PrintRegionConfig().keys()))
+{
+    m_parent_tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
+}
+
+void TabPrintObject::notify_changed()
+{
+    auto obj = dynamic_cast<ModelObject*>(m_object);
+    wxGetApp().obj_list()->object_config_options_changed({obj, nullptr});
+}
+
+//BBS: GUI refactor
+
+TabPrintPart::TabPrintPart(ParamsPanel* parent) :
+    TabPrintModel(parent, PrintRegionConfig().keys())
+{
+    m_parent_tab = wxGetApp().get_model_tab();
+}
+
+void TabPrintPart::notify_changed()
+{
+    auto vol = dynamic_cast<ModelVolume*>(m_object);
+    wxGetApp().obj_list()->object_config_options_changed({vol->get_object(), vol});
 }
 
 bool Tab::validate_custom_gcode(const wxString& title, const std::string& gcode)
@@ -3092,6 +3235,7 @@ void Tab::update_ui_items_related_on_parent_preset(const Preset* selected_preset
 //BBS: reactive the preset combo box
 void Tab::reactive_preset_combo_box()
 {
+    if (!m_presets_choice) return;
     //BBS: add workaround to fix the issue caused by wxwidget 3.15 upgrading
     m_presets_choice->Enable(false);
     m_presets_choice->Enable(true);
@@ -3194,7 +3338,6 @@ void Tab::load_current_preset()
             if (m_type == Preset::TYPE_SLA_PRINT || m_type == Preset::TYPE_PRINT)
                 update_frequently_changed_parameters();
         }
-
         m_opt_status_value = (m_presets->get_selected_preset_parent() ? osSystemValue : 0) | osInitValue;
         init_options_list();
         update_visibility();
@@ -3273,7 +3416,8 @@ void Tab::update_btns_enabling()
 
 void Tab::update_preset_choice()
 {
-    m_presets_choice->update();
+    if (m_presets_choice)
+        m_presets_choice->update();
     update_btns_enabling();
 }
 
@@ -3575,12 +3719,14 @@ void Tab::unselect_tree_item()
 void Tab::set_expanded(bool value)
 {
     if (value) {
-        m_main_sizer->Show(m_presets_choice);
+        if (m_presets_choice)
+            m_main_sizer->Show(m_presets_choice);
         m_main_sizer->Show(m_tabctrl);
     }
     else {
         m_active_page = NULL;
-        m_main_sizer->Hide(m_presets_choice);
+        if (m_presets_choice)
+            m_main_sizer->Hide(m_presets_choice);
         m_main_sizer->Hide(m_tabctrl);
     }
 }
@@ -4015,7 +4161,8 @@ void Tab::delete_preset()
 void Tab::toggle_show_hide_incompatible()
 {
     m_show_incompatible_presets = !m_show_incompatible_presets;
-    m_presets_choice->set_show_incompatible_presets(m_show_incompatible_presets);
+    if (m_presets_choice)
+        m_presets_choice->set_show_incompatible_presets(m_show_incompatible_presets);
     update_show_hide_incompatible_button();
     update_tab_ui();
 }

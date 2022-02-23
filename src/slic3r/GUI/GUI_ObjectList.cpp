@@ -2799,8 +2799,10 @@ void ObjectList::part_selection_changed()
         }
     }
 
+#if !NEW_OBJECT_SETTING
     if (update_and_show_settings)
         wxGetApp().obj_settings()->get_og()->set_name(" " + og_name + " ");
+#endif
 
     if (printer_technology() == ptSLA)
         update_and_show_layers = false;

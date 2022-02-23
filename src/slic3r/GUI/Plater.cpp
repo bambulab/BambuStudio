@@ -1085,7 +1085,10 @@ Sidebar::Sidebar(Plater *parent)
 
     // Frequently Object Settings
     p->object_settings = new ObjectSettings(p->scrolled);
+#if !NEW_OBJECT_SETTING
     p->object_settings->Hide();
+    p->sizer_params->Add(p->object_settings->get_sizer(), 0, wxEXPAND | wxTOP, 5 * em / 10);
+#endif
 
     // Object Layers
     p->object_layers = new ObjectLayers(p->scrolled);
