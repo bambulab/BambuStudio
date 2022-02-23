@@ -1243,7 +1243,6 @@ void PrintConfigDef::init_fff_params()
                       "initial layer.");
     def->sidetext = L("mm/s");
     def->min = 1;
-    def->max = 100;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(60.0));
 
