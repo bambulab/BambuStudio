@@ -644,7 +644,10 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
 	}
     // BBS
     else if (opt_key == "bed_temperature" || opt_key == "first_layer_bed_temperature") {
-        int bed_type = config.opt_enum("bed_type", 0);
+        // BBS: config is preset initial value, not presets.m_edited_preset,
+        // so bed_type value does not contains modification.
+        //int bed_type = config.opt_enum("bed_type", 0);
+        int bed_type = boost::any_cast<int>(this->get_field("bed_type")->get_value());
         const ConfigOptionInts* bed_temps = dynamic_cast<const ConfigOptionInts*>(config.option(opt_key));
         value = bed_type < bed_temps->size() ? bed_temps->get_at(bed_type) : 0;
     }
