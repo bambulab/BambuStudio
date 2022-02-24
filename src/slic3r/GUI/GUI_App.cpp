@@ -1409,7 +1409,8 @@ bool GUI_App::on_init_inner()
         }
     }
 
-    // Set language and color mode before check_older_app_config() call
+    // !!! Initialization of UI settings as a language, application color mode, fonts... have to be done before first UI action.
+    // Like here, before the show InfoDialog in check_older_app_config()
 
     // If load_language() fails, the application closes.
     load_language(wxString(), true);
@@ -1418,6 +1419,10 @@ bool GUI_App::on_init_inner()
     NppDarkMode::InitDarkMode(app_config->get("dark_color_mode") == "1", app_config->get("sys_menu_enabled") == "1");
 #endif
 #endif
+
+    // initialize label colors and fonts
+    init_label_colours();
+    init_fonts();
 
     if (m_last_config_version) {
         if (*m_last_config_version < *Semver::parse(SLIC3R_VERSION))
@@ -1524,10 +1529,6 @@ bool GUI_App::on_init_inner()
             associate_gcode_files();
 #endif // __WXMSW__
     }
-
-    // initialize label colors and fonts
-    init_label_colours();
-    init_fonts();
 
     // Suppress the '- default -' presets.
     preset_bundle->set_default_suppressed(true);

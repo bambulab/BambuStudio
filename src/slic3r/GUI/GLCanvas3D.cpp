@@ -2148,11 +2148,21 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 if (m_canvas_type != ECanvasType::CanvasAssembleView) {
                     volume->set_instance_transformation(mvs->model_volume->get_object()->instances[mvs->composite_id.instance_id]->get_transformation());
                     volume->set_volume_transformation(mvs->model_volume->get_transformation());
+                    // updates volumes convex hull
+                    if (mvs->model_volume->is_model_part() && ! volume->convex_hull())
+                        // Model volume was likely changed from modifier or support blocker / enforcer to a model part.
+                        // Only model parts require convex hulls.
+                        volume->set_convex_hull(mvs->model_volume->get_convex_hull_shared_ptr());
                     volume->set_offset_to_assembly(Vec3d(0, 0, 0));
                 }
                 else {
                     volume->set_instance_transformation(mvs->model_volume->get_object()->instances[mvs->composite_id.instance_id]->get_assemble_transformation());
                     volume->set_volume_transformation(mvs->model_volume->get_transformation());
+                    // updates volumes convex hull
+                    if (mvs->model_volume->is_model_part() && ! volume->convex_hull())
+                        // Model volume was likely changed from modifier or support blocker / enforcer to a model part.
+                        // Only model parts require convex hulls.
+                        volume->set_convex_hull(mvs->model_volume->get_convex_hull_shared_ptr());
                     volume->set_offset_to_assembly(mvs->model_volume->get_object()->instances[mvs->composite_id.instance_id]->get_offset_to_assembly());
                 }
             }
