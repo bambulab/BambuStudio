@@ -1289,10 +1289,10 @@ public:
     std::string   get_auxiliary_file_temp_path();
     // BBS: backup
     std::string   get_backup_path();
-    void   set_backup_path(const std::string &path) { backup_path = path; }
-    void load_from(Model & model);
-    bool is_need_backup() { return need_backup;  }
-    void set_need_backup();
+    void          set_backup_path(const std::string &path);
+    void          load_from(Model & model);
+    bool          is_need_backup() { return need_backup;  }
+    void          set_need_backup();
     std::shared_ptr<KeyStore> get_key_store() { return key_store; }
     void   set_key_store(std::shared_ptr<KeyStore> ks) { key_store = ks; }
 

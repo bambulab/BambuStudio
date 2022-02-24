@@ -747,9 +747,18 @@ std::string Model::get_backup_path()
     return backup_path;
 }
 
+void Model::set_backup_path(std::string const& path)
+{
+    if (backup_path == path)
+        return;
+    if (!backup_path.empty())
+        Slic3r::remove_backup(*this, true);
+    backup_path = path;
+}
+
 void Model::load_from(Model& model)
 {
-    backup_path = model.get_backup_path();
+    set_backup_path(model.get_backup_path());
     model.backup_path.clear();
     object_backup_id_map = model.object_backup_id_map;
     next_object_backup_id = model.next_object_backup_id;

@@ -1879,7 +1879,7 @@ struct Plater::priv
     BoundingBox scaled_bed_shape_bb() const;
 
     // BBS: backup & restore
-    std::vector<size_t> load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool load_restore = false, bool used_inches = false);
+    std::vector<size_t> load_files(const std::vector<fs::path>& input_files, LoadStrategy strategy);
     std::vector<size_t> load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z = false, bool split_object = false);
 
     fs::path get_export_file_path(GUI::FileType file_type);
@@ -2774,7 +2774,7 @@ BoundingBox Plater::priv::scaled_bed_shape_bb() const
 }
 
 // BBS: backup & restore
-std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool load_restore, bool imperial_units/* = false*/)
+std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_files, LoadStrategy strategy)
 {
     std::vector<size_t> empty_result;
     bool dlg_cont = true;
@@ -2793,7 +2793,12 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         }
     }
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": load_model %1%, load_config %2%, load_restore %3%, input_files size %4%")%load_model %load_config %load_restore %input_files.size();
+    bool load_model = strategy & LoadStrategy::LoadModel;
+    bool load_config = strategy & LoadStrategy::LoadConfig;
+    bool imperial_units = strategy & LoadStrategy::ImperialUnits;
+    bool silence = strategy & LoadStrategy::Silence;
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": load_model %1%, load_config %2%, input_files size %3%")%load_model %load_config %input_files.size();
 
     const auto loading = _L("Loading") + dots;
     ProgressDialog dlg(loading, "", 100, find_toplevel_parent(q), wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_APP_MODAL);
@@ -2832,12 +2837,12 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
         Slic3r::Model model;
         //BBS: add auxiliary files related logic
-        bool load_aux = false, load_old_project = false;
+        bool load_aux = strategy & LoadStrategy::LoadAuxiliary, load_old_project = false;
         if (load_model && load_config && type_3mf)
         {
             load_aux = true;
+            strategy = strategy | LoadStrategy::LoadAuxiliary;
         }
-        LoadStrategy strategy = LoadStrategy::Default;
         if (load_config) strategy = strategy | LoadStrategy::CheckVersion;
         bool is_project_file = type_prusa;
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": is_project_file %1%, type_3mf %2%, type_prusa %3%")%is_project_file %type_3mf %type_prusa;
@@ -2853,8 +2858,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     ConfigSubstitutionContext config_substitutions{ ForwardCompatibilitySubstitutionRule::Enable };
                     std::vector<Preset*> project_presets;
                     // BBS: backup & restore
-                    if (load_restore) strategy = strategy | LoadStrategy::Restore;
-                    if (load_aux) strategy = strategy | LoadStrategy::WithAuxiliary;
                     model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, strategy, &plate_data, &project_presets, &is_bbs_3mf,
                         [this, progress_dlg, filename, progress_percent](int import_stage, int current, int total, bool& cancel) {
                             bool cont = true;
@@ -3015,7 +3018,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             is_project_file = true;
                         }
                     }
-                    wxGetApp().app_config->update_config_dir(path.parent_path().string());
+                    if (!silence) wxGetApp().app_config->update_config_dir(path.parent_path().string());
                 }
             }
             else {
@@ -3255,7 +3258,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     }
 
     if (load_model) {
-        wxGetApp().app_config->update_skein_dir(input_files[input_files.size() - 1].parent_path().make_preferred().string());
+        if (!silence) wxGetApp().app_config->update_skein_dir(input_files[input_files.size() - 1].parent_path().make_preferred().string());
         // XXX: Plater.pm had @loaded_files, but didn't seem to fill them with the filenames...
 //        statusbar()->set_status_text(_L("Loaded"));
     }
@@ -3436,6 +3439,9 @@ fs::path Plater::priv::get_export_file_path(GUI::FileType file_type)
     if (file_type == FT_3MF)
         // for 3mf take the path from the project filename, if any
         output_file = into_path(get_project_filename(".3mf"));
+
+    if (output_file.empty())
+        output_file = into_path(get_project_name() + ".3mf");
 
     if (output_file.empty())
     {
@@ -4832,6 +4838,8 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     // So, set the focus to the combobox explicitly
     combo->SetFocus();
 #endif
+    // BBS: log modify of filament selection
+    Slic3r::put_other_changes();
 }
 
 void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
@@ -5568,7 +5576,7 @@ void Plater::priv::set_project_filename(const wxString& filename)
     
     wxGetApp().mainframe->update_title();
 
-    if (!filename.empty())
+    if (!m_project_folder.empty())
         wxGetApp().mainframe->add_to_recent_projects(filename);
 }
 
@@ -6568,7 +6576,13 @@ void Plater::load_project(wxString const& filename2,
     }
 
     auto path = into_path(filename);
-    bool load_restore = originfile != "-";
+    auto strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig;
+    if (originfile == "<silence>") {
+        strategy = strategy | LoadStrategy::Silence;
+    } else if (originfile != "-") {
+        strategy = strategy | LoadStrategy::Restore;
+    }
+    bool load_restore = strategy & LoadStrategy::Restore;
 
     // Take the Undo / Redo snapshot.
     Plater::TakeSnapshot snapshot(this, _L("Load Project"), UndoRedo::SnapshotType::ProjectSeparator);
@@ -6577,13 +6591,13 @@ void Plater::load_project(wxString const& filename2,
     std::vector<fs::path> input_paths;
     input_paths.push_back(path);
 
-    std::vector<size_t> res = load_files(input_paths, true, true, load_restore);
+    std::vector<size_t> res = load_files(input_paths, strategy);
 
     reset_project_dirty_initial_presets();
     update_project_dirty_from_presets();
 
     // if res is empty no data has been loaded
-    if (!res.empty()) {
+    if (!res.empty() && !(strategy & LoadStrategy::Silence)) {
         p->set_project_filename(load_restore ? originfile : filename);
     }
 
@@ -6593,7 +6607,7 @@ void Plater::load_project(wxString const& filename2,
     p->camera.requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
 
     wxGetApp().app_config->update_last_backup_dir(model().get_backup_path());
-    if (load_restore) {
+    if (load_restore && !originfile.empty()) {
         wxGetApp().app_config->update_skein_dir(into_path(originfile).parent_path().string());
         wxGetApp().app_config->update_config_dir(into_path(originfile).parent_path().string());
     }
@@ -6755,8 +6769,9 @@ void Plater::import_model_id(const std::string& model_id, const std::string& pro
     if (download_ok) {
         BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << target_path.string();
         /* load project */
-        this->load_project(encode_path(target_path.string().c_str()));
-        p->set_project_name(from_u8(project->project_name));
+        this->load_project(encode_path(target_path.string().c_str()), "<silence>");
+        // show save new project
+        p->set_project_filename(project->project_name.empty() ? L("Import Model") : from_u8(project->project_name));
     }
 }
 
@@ -6819,7 +6834,9 @@ void Plater::add_model(bool imperial_units/* = false*/)
     }
 
     Plater::TakeSnapshot snapshot(this, snapshot_label);
-    if (!load_files(paths, true, false, imperial_units).empty()) {
+    auto strategy = LoadStrategy::LoadModel;
+    if (imperial_units) strategy = strategy | LoadStrategy::ImperialUnits;
+    if (!load_files(paths, strategy).empty()) {
         wxGetApp().mainframe->update_title();
     }
 }
@@ -6836,7 +6853,7 @@ void Plater::extract_config_from_project()
     wxGetApp().load_project(this, input_file);
 
     if (! input_file.empty())
-        load_files({ into_path(input_file) }, false, true);
+        load_files({ into_path(input_file) }, LoadStrategy::LoadConfig);
 }
 
 void Plater::load_gcode()
@@ -6945,16 +6962,16 @@ void Plater::update_platplate_thumbnails()
 }
 
 // BBS: backup
-std::vector<size_t> Plater::load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool load_restore, bool imperial_units /*= false*/) { return p->load_files(input_files, load_model, load_config, load_restore, imperial_units); }
+std::vector<size_t> Plater::load_files(const std::vector<fs::path>& input_files, LoadStrategy strategy) { return p->load_files(input_files, strategy); }
 
 // To be called when providing a list of files to the GUI slic3r on command line.
-std::vector<size_t> Plater::load_files(const std::vector<std::string>& input_files, bool load_model, bool load_config, bool imperial_units /*= false*/)
+std::vector<size_t> Plater::load_files(const std::vector<std::string>& input_files, LoadStrategy strategy)
 {
     std::vector<fs::path> paths;
     paths.reserve(input_files.size());
     for (const std::string& path : input_files)
         paths.emplace_back(path);
-    return p->load_files(paths, load_model, load_config, imperial_units);
+    return p->load_files(paths, strategy);
 }
 
 enum class LoadType : unsigned char
@@ -7174,11 +7191,11 @@ bool Plater::load_files(const wxArrayString& filenames)
             }
             case LoadType::LoadGeometry: {
                 Plater::TakeSnapshot snapshot(this, _L("Import Object"));
-                load_files({ *it }, true, false);
+                load_files({ *it }, LoadStrategy::LoadModel);
                 break;
             }
             case LoadType::LoadConfig: {
-                load_files({ *it }, false, true);
+                load_files({ *it }, LoadStrategy::LoadConfig);
                 break;
             }
             case LoadType::Unknown : {
@@ -7209,7 +7226,7 @@ bool Plater::load_files(const wxArrayString& filenames)
         }
     }
     Plater::TakeSnapshot snapshot(this, snapshot_label);
-    load_files(paths, true, false);
+    load_files(paths, LoadStrategy::LoadModel);
 
     return true;
 }
@@ -7269,7 +7286,7 @@ int GUI::Plater::close_with_confirm(std::function<bool(bool)> second_check)
 {
     if (up_to_date(false, false)) {
         if (second_check && !second_check(true)) return wxID_CANCEL;
-        Slic3r::remove_backup(model(), true);
+        model().set_backup_path("");
         return wxID_NO;
     }
 
@@ -7285,7 +7302,7 @@ int GUI::Plater::close_with_confirm(std::function<bool(bool)> second_check)
 
     if (second_check && !second_check(result == wxID_YES)) return wxID_CANCEL;
 
-    Slic3r::remove_backup(model(), true);
+    model().set_backup_path("");
     up_to_date(true, false);
     up_to_date(true, true);
 

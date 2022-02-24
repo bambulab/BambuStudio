@@ -1701,8 +1701,10 @@ void MainFrame::init_menubar_as_editor()
             size_t file_id = evt.GetId() - wxID_FILE1;
             wxString filename = m_recent_projects.GetHistoryFile(file_id);
             if (wxFileExists(filename)) {
-                if (wxGetApp().can_load_project())
-                    m_plater->load_project(filename);
+                wxGetApp().CallAfter([this, filename] {
+                    if (wxGetApp().can_load_project())
+                        m_plater->load_project(filename);
+                });
             }
             else
             {

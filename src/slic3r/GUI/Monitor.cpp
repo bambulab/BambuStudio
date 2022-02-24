@@ -1378,7 +1378,6 @@ void MonitorPanel::Reset()
 
     /* reset status panel*/
     m_status_panel->obj = nullptr;
-    m_status_panel->m_media_play_ctrl->SetMachineObject(nullptr);
     m_status_panel->last_subtask = nullptr;
     m_status_panel->reset_printing_values();
     m_status_panel->m_staticText_bed_current->SetLabelText("N/A");

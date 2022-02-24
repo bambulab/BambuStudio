@@ -89,9 +89,13 @@ enum class LoadStrategy
     Default = 0,
     AddDefaultInstances = 1,
     CheckVersion = 2, 
-    WithAuxiliary = 8,
+    LoadModel = 4,
+    LoadConfig = 8,
+    LoadAuxiliary = 16,
+    Silence = 32,
+    ImperialUnits = 64,
 
-    Restore = 0x10000,
+    Restore = 0x10000 | LoadModel | LoadConfig | LoadAuxiliary | Silence,
 };
 
 inline LoadStrategy operator | (LoadStrategy lhs, LoadStrategy rhs)

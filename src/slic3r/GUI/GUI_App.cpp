@@ -960,7 +960,7 @@ void GUI_App::post_init()
             this->mainframe->load_config_file(this->init_params->load_configs.back());
         // If loading a 3MF file, the config is loaded from the last one.
         if (!this->init_params->input_files.empty()) {
-            const std::vector<size_t> res = this->plater()->load_files(this->init_params->input_files, true, true);
+            const std::vector<size_t> res = this->plater()->load_files(this->init_params->input_files);
             if (!res.empty() && this->init_params->input_files.size() == 1) {
                 // Update application titlebar when opening a project file
                 const std::string& filename = this->init_params->input_files.front();

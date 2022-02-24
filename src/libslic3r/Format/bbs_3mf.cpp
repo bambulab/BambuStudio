@@ -817,7 +817,7 @@ namespace Slic3r {
         m_mm_painting_version = 0;
         m_check_version = strategy & LoadStrategy::CheckVersion;
         //BBS: auxiliary data
-        m_load_aux = strategy & LoadStrategy::WithAuxiliary;
+        m_load_aux = strategy & LoadStrategy::LoadAuxiliary;
         m_load_restore = strategy & LoadStrategy::Restore;
         m_model = &model;
         m_unit_factor = 1.0f;
@@ -965,7 +965,7 @@ namespace Slic3r {
         for (auto path : m_sub_model_paths) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_READ_FILES\n");
             if (proFn) {
-                proFn(IMPORT_STAGE_READ_FILES, index + 1, 3 + m_sub_model_paths.size(), cb_cancel);
+                proFn(IMPORT_STAGE_READ_FILES, ++index, 3 + m_sub_model_paths.size(), cb_cancel);
                 if (cb_cancel)
                     return false;
             }
@@ -5228,6 +5228,7 @@ private:
                     boost::filesystem::remove(t.path + "/.3mf");
                     // We Saved with SplitModel now, so we can safe delete these sub models.
                     boost::filesystem::remove_all(t.path + "/3D/Objects");
+                    boost::filesystem::create_directory(t.path + "/3D/Objects");
                 }
                 catch (...) {}
             }
@@ -5322,26 +5323,6 @@ bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstituti
     handle_legacy_project_loaded(importer.version(), *config);
     return res;
 }
-
-//BBS: add plate data list related logic
-/*
-bool store_bbs_3mf(const char* path, Model* model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, const DynamicPrintConfig* config, bool fullpath_sources, const std::vector<ThumbnailData*>& thumbnail_data, bool zip64, bool skip_static, Export3mfProgressFn proFn, bool silence)
-{
-    // All export should use "C" locales for number formatting.
-    CNumericLocalesSetter locales_setter;
-
-    if (path == nullptr || model == nullptr)
-        return false;
-
-    _BBS_3MF_Exporter exporter;
-    bool res = exporter.save_model_to_file(path, *model, plate_data_list, project_presets, config, strategy, thumbnail_data, proFn);
-    if (!res)
-        exporter.log_errors();
-
-    return res;
-}
-*/
-
 
 bool store_bbs_3mf(StoreParams& store_params)
 {
