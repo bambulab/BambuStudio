@@ -329,7 +329,7 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 	bSizer_monitoring->SetMinSize(wxSize(-1, -1));
 
 #ifdef __WXMAC__
-	m_media_ctrl = new wxMediaCtrl2(this);
+	m_media_ctrl = new wxMediaCtrl2(this, wxSize(16, 9));
 #else
 	m_media_ctrl = new wxMediaCtrl2();
 	m_media_ctrl->Create(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(16, 9), wxMEDIACTRLPLAYERCONTROLS_NONE);

@@ -29,8 +29,8 @@ static void tutk_log(void const * ctx, int level, char const * msg)
     BOOST_LOG_TRIVIAL(info) << msg;
 }
 
-wxMediaCtrl2::wxMediaCtrl2(wxWindow * parent)
-    : wxWindow(parent, wxID_ANY)
+wxMediaCtrl2::wxMediaCtrl2(wxWindow * parent, wxSize const & size)
+    : wxWindow(parent, wxID_ANY, wxDefaultPosition, size)
 {
     NSView * imageView = (NSView *) GetHandle();
     imageView.layer = [[CALayer alloc] init];
@@ -83,8 +83,6 @@ wxMediaState wxMediaCtrl2::GetState() const
 
 wxSize wxMediaCtrl2::DoGetBestSize() const
 {
-    if (m_state == wxMEDIASTATE_STOPPED)
-        return {-1, -1};
     TutkPlayer * player2 = (TutkPlayer *) m_player;
     NSSize size = [player2 videoSize];
     return {(int) size.width, (int) size.height};
