@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "name": "K5 Sparkle PLA",
+    "name": "K5 Sparkle PLA @Kexcelled",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",

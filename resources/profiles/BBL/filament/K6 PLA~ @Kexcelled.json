@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "name": "K6 PLA~",
+    "name": "K6 PLA~ @Kexcelled",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",

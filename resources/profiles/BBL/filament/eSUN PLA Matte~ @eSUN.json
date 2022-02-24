@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "name": "eSUN PLA Matte~",
+    "name": "eSUN PLA Matte~ @eSUN",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",

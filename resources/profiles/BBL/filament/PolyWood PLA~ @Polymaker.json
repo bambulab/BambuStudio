@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "name": "PolyWood PLA~",
+    "name": "PolyWood PLA~ @Polymaker",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",

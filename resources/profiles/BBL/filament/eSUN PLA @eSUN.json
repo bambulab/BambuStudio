@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "name": "eSUN PLA",
+    "name": "eSUN PLA @eSUN",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",

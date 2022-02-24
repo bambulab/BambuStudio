@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "name": "PolyLite PETG",
+    "name": "PolyLite PETG @Polymaker",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pet",

@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "name": "eSUN ABS",
+    "name": "eSUN ABS @eSUN",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_abs",

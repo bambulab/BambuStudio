@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "name": "K5 PETG",
+    "name": "K5 PETG @Kexcelled",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pet",

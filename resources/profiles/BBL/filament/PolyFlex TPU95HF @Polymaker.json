@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "name": "PolyFlex TPU95HF",
+    "name": "PolyFlex TPU95HF @Polymaker",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_tpu",

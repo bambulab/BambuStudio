@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "name": "PolyLite PLA Pro~",
+    "name": "PolyLite PLA Pro~ @Polymaker",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",

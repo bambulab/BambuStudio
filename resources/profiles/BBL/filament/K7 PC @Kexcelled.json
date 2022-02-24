@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "name": "K7 PC",
+    "name": "K7 PC @Kexcelled",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pa6+cf",

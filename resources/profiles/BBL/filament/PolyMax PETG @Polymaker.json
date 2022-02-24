@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "name": "PolyMax PETG",
+    "name": "PolyMax PETG @Polymaker",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pet",

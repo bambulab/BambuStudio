@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "name": "PolyLite ASA",
+    "name": "PolyLite ASA @Polymaker",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_abs",

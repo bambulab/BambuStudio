@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "name": "PolyMide CoPA",
+    "name": "PolyMide CoPA @Polymaker",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pa6+cf",

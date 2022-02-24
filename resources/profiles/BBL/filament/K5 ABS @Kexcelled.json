@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "name": "K5 ABS",
+    "name": "K5 ABS @Kexcelled",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_abs",

@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "name": "PolyLite PC",
+    "name": "PolyLite PC @Polymaker",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pa6+cf",
