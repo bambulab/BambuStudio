@@ -4789,9 +4789,6 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     std::string preset_name = wxGetApp().preset_bundle->get_preset_name_by_alias(preset_type, 
         Preset::remove_suffix_modified(combo->GetString(selection).ToUTF8().data()));
 
-    // BBS
-    preset_name = Preset::remove_filament_vendor_suffix(preset_name);
-
     if (preset_type == Preset::TYPE_FILAMENT) {
         wxGetApp().preset_bundle->set_filament_preset(idx, preset_name);
     }

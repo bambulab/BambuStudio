@@ -200,10 +200,7 @@ void Tab::create_preset_tab()
 
             // select preset
             std::string preset_name = m_presets_choice->GetString(selection).ToUTF8().data();
-            // BBS
-            preset_name = Preset::remove_suffix_modified(preset_name);
-            preset_name = Preset::remove_filament_vendor_suffix(preset_name);
-            select_preset(preset_name);
+            select_preset(Preset::remove_suffix_modified(preset_name));
         }
     });
 
