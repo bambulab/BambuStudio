@@ -198,6 +198,8 @@ semver_parse_version (const char *str, semver_t *ver) {
       case 1: ver->major = value; break;
       case 2: ver->minor = value; break;
       case 3: ver->patch = value; break;
+      //BBS: add convert for AA.BB.CC.DD
+      case 4: ver->patch = (ver->patch*100)+value; break;
     }
 
     /* Continue with the next slice */
@@ -208,7 +210,7 @@ semver_parse_version (const char *str, semver_t *ver) {
   }
 
   // Major and minor versions are mandatory, patch version is not mandatory.
-  return (index == 2 || index == 3) ? 0 : -1;
+  return (index == 2 || index == 3 || index == 4) ? 0 : -1;
 }
 
 static int
