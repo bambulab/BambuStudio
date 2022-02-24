@@ -80,6 +80,7 @@ void PartPlate::init()
 	m_locked = false;
 	m_ready_for_slice = false;
 	m_slice_result_valid = false;
+	m_slice_percent = 0.0f;
 	m_hover_id = -1;
 	m_selected = false;
 	//m_quadric = ::gluNewQuadric();
@@ -705,7 +706,7 @@ void PartPlate::clear()
 	obj_to_instance_set.clear();
 	instance_outside_set.clear();
 	m_ready_for_slice = true;
-	m_slice_result_valid = false;
+	update_slice_result_valid_state(false);
 
 	return;
 }
@@ -1378,7 +1379,7 @@ int PartPlate::load_gcode_from_file(const std::string& filename)
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": from %1% to %2%, finished") % filename.c_str() % filename.c_str();
 	}
 
-	m_slice_result_valid = true;
+	update_slice_result_valid_state(true);
 	m_ready_for_slice = true;
 	return ret;
 }
@@ -2934,7 +2935,7 @@ int PartPlateList::rebuild_plates_after_deserialize(std::vector<bool>& previous_
 		//check the previous sliced result
 		if (m_plate_list[i]->m_slice_result_valid) {
 			if ((i >= previous_sliced_result.size()) || !previous_sliced_result[i])
-				m_plate_list[i]->m_slice_result_valid = false;
+				m_plate_list[i]->update_slice_result_valid_state(false);
 		}
 
 		std::map<int, PrintBase*>::iterator it = m_print_list.find(m_plate_list[i]->m_print_index);

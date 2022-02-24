@@ -986,7 +986,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
     //BBS: GUI refactor: GLToolbar
     , m_print_flow_toolbar(GLToolbar::Normal, "Print_Flow")
     , m_print_select_toolbar(GLToolbar::Normal, "Print_Select")
-    , m_select_plate_toolbar(GLToolbar::Normal, "Slect_Plate")
+    , m_sel_plate_toolbar()
     , m_assemble_view_toolbar(GLToolbar::Normal, "Assemble_View")
     , m_return_toolbar(GLToolbar::Normal, "Return")
     , m_undoredo_toolbar(GLToolbar::Normal, "Undo_Redo")
@@ -1436,7 +1436,7 @@ void GLCanvas3D::enable_print_select_toolbar(bool enable)
 
 void GLCanvas3D::enable_select_plate_toolbar(bool enable)
 {
-    m_select_plate_toolbar.set_enabled(enable);
+    m_sel_plate_toolbar.set_enabled(enable);
 }
 
 void GLCanvas3D::enable_assemble_view_toolbar(bool enable)
@@ -1574,10 +1574,10 @@ void GLCanvas3D::render()
         m_gcode_viewer.init();
 
     // BBS update plate number
-    if (m_select_plate_toolbar.is_enabled()) {
+    if (m_sel_plate_toolbar.is_enabled()) {
         PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
-        if (plate_list.get_plate_count() != m_select_plate_toolbar.get_items_count()) {
-            _update_select_plate_toolbar();
+        if (plate_list.get_plate_count() != m_sel_plate_toolbar.get_items_count()) {
+            _update_imgui_select_plate_toolbar();
         }
     }
 
@@ -1764,9 +1764,6 @@ void GLCanvas3D::render()
 
         if (tooltip.empty())
             tooltip = m_print_select_toolbar.get_tooltip();
-
-        if (tooltip.empty())
-            tooltip = m_select_plate_toolbar.get_tooltip();
 
         if (tooltip.empty())
             tooltip = m_assemble_view_toolbar.get_tooltip();
@@ -2581,7 +2578,6 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     //BBS: GUI refactor: GLToolbar
     m_dirty |= m_print_flow_toolbar.update_items_state();
     m_dirty |= m_print_select_toolbar.update_items_state();
-    m_dirty |= m_select_plate_toolbar.update_items_state();
     m_dirty |= m_assemble_view_toolbar.update_items_state();
     m_dirty |= m_undoredo_toolbar.update_items_state();
     m_dirty |= m_return_toolbar.update_items_state();
@@ -3364,13 +3360,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         return;
     }
 
-    if (m_select_plate_toolbar.on_mouse(evt, *this)) {
-        if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
-            mouse_up_cleanup();
-        m_mouse.set_start_position_3D_as_invalid();
-        return;
-    }
-
     if (m_assemble_view_toolbar.on_mouse(evt, *this)) {
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
@@ -3867,7 +3856,7 @@ void GLCanvas3D::on_set_focus(wxFocusEvent& evt)
 {
     m_tooltip_enabled = false;
     if (m_canvas_type == ECanvasType::CanvasPreview) {
-        _update_select_plate_toolbar();
+        _update_imgui_select_plate_toolbar();
     }
     _refresh_if_shown_on_screen();
     m_tooltip_enabled = true;
@@ -5980,105 +5969,31 @@ bool GLCanvas3D::_init_print_select_toolbar()
 
 bool GLCanvas3D::_init_select_plate_toolbar()
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": enter,  m_select_plate_toolbar.is_enabled=" << m_select_plate_toolbar.is_enabled();
-    if (!m_select_plate_toolbar.is_enabled())
-        return true;
-
-    BackgroundTexture::Metadata background_data;
-    background_data.filename = "select_platertoolbar_background.png";
-    background_data.left = 16;
-    background_data.top = 16;
-    background_data.right = 16;
-    background_data.bottom = 16;
-
-    if (!m_select_plate_toolbar.init(background_data))
-    {
-        // unable to init the toolbar texture, disable it
-        m_select_plate_toolbar.set_enabled(false);
-        return true;
-    }
-
-    m_select_plate_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
-    m_select_plate_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Left);
-    m_select_plate_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
-    m_select_plate_toolbar.set_border(5.0f);
-    m_select_plate_toolbar.set_separator_size(10);
-    m_select_plate_toolbar.set_gap_size(4);
-    m_select_plate_toolbar.set_text_size(15);
-    m_select_plate_toolbar.set_icons_size(GLToolbar::Default_Icons_Size * 2.0f);
-    
-
-    return _update_select_plate_toolbar();
+    return true;
 }
 
-bool GLCanvas3D::_update_select_plate_toolbar()
+bool GLCanvas3D::_update_imgui_select_plate_toolbar()
 {
-    if (!m_select_plate_toolbar.is_enabled()) return false;
+    bool result = true;
+    if (!m_sel_plate_toolbar.is_enabled()) return false;
 
-    m_select_plate_toolbar.del_all_item();
+    m_sel_plate_toolbar.del_all_item();
 
     PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
-
     for (int i = 0; i < plate_list.get_plate_count(); i++) {
-        GLToolbarItem::Data item;
-        item.name = (boost::format("plate %1%") % (i + 1)).str();
-        item.tooltip = (boost::format("plate %1%") % (i + 1)).str();
-        item.sprite_id = i;
-        item.left.toggable = false;
-        item.left.action_callback = [this, i]() {
-            wxCommandEvent* evt = new wxCommandEvent(EVT_GLTOOLBAR_SELECT_SLICED_PLATE);
-            evt->SetInt(i);
-            wxQueueEvent(wxGetApp().plater(), evt);
-        };
-        item.left.render_callback   = GLToolbarItem::Default_Render_Callback;
-        item.visible = true;
-        item.visibility_callback = []()->bool { return true; };
-        item.enabling_callback = [this]()->bool { return (m_process&&m_process->idle()); };
-        item.extra_size_ratio = 0.25f;
-        item.button_text = (boost::format("%1%") % (i + 1)).str();
+        IMToolbarItem* item = new IMToolbarItem();
         PartPlate* plate = plate_list.get_plate(i);
         if (plate && plate->thumbnail_data.is_valid()) {
-            item.image_data = plate->thumbnail_data.pixels;
-            item.image_width = plate->thumbnail_data.width;
-            item.image_height = plate->thumbnail_data.height;
+            PartPlate* plate = plate_list.get_plate(i);
+            item->image_data = plate->thumbnail_data.pixels;
+            item->image_width = plate->thumbnail_data.width;
+            item->image_height = plate->thumbnail_data.height;
+            result = item->generate_texture();
         }
-        else {
-            item.image_data.clear();
-        }
-
-        if (!m_select_plate_toolbar.add_item(item, GLToolbarItem::ActionWithTextImage))
-            return false;
+        m_sel_plate_toolbar.m_items.push_back(item);
     }
-
-#ifdef __WXMSW__
-    // set scaled application normal font as default font 
-    wxFont font = wxGetApp().small_font();
-#else
-    // select default font
-    float scale = this->get_canvas_size().get_scale_factor();
-#if ENABLE_RETINA_GL
-    // For non-visible or non-created window getBackingScaleFactor function return 0.0 value.
-    // And using of the zero scale causes a crash, when we trying to draw text to the (0,0) rectangle
-    if (scale <= 0.0f)
-        scale = 1.0;
-#endif
-    wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Scale(scale);
-#endif
-
-    if (m_select_plate_toolbar.generate_button_text_textures(font))
-    {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": generate texture failed\n";
-        return false;
-    }
-
-    if (m_select_plate_toolbar.generate_image_textures())
-    {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": generate image texture failed";
-        return false;
-    }
-
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Finished Successfully\n";
-    return true;
+    m_sel_plate_toolbar.is_display_scrollbar = false;
+    return result;
 }
 
 //BBS: GUI refactor
@@ -6956,14 +6871,12 @@ void GLCanvas3D::_render_overlays()
 #else
     const float size = int(GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale(/*true*/));
     const float gizmo_size = int(GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale());
-    const float select_plate_size = int(GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale(/*true*/) * 2.0f);
     //BBS: GUI refactor: GLToolbar
     m_main_toolbar.set_icons_size(gizmo_size);
     m_print_flow_toolbar.set_icons_size(size);
     m_print_select_toolbar.set_icons_size(size);
     m_assemble_view_toolbar.set_icons_size(gizmo_size);
     m_undoredo_toolbar.set_icons_size(size);
-    m_select_plate_toolbar.set_icons_size(select_plate_size);
     wxGetApp().plater()->get_collapse_toolbar().set_icons_size(size);
     m_gizmos.set_overlay_icon_size(gizmo_size);
 #endif // ENABLE_RETINA_GL
@@ -6971,7 +6884,7 @@ void GLCanvas3D::_render_overlays()
     _render_main_toolbar();
     //BBS: GUI refactor: GLToolbar
     _render_print_toolbar();
-    _render_select_plate_toolbar();
+    _render_imgui_select_plate_toolbar();
     _render_undoredo_toolbar();
     _render_collapse_toolbar();
     _render_assemble_view_toolbar();
@@ -7142,18 +7055,143 @@ void GLCanvas3D::_render_print_toolbar() const
     }
 }
 
-void GLCanvas3D::_render_select_plate_toolbar() const
+void GLCanvas3D::_render_imgui_select_plate_toolbar() const
 {
-    if (!m_select_plate_toolbar.is_enabled())
+    if (!m_sel_plate_toolbar.is_enabled())
         return;
+
+    PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
+    for (int i = 0; i < plate_list.get_plate_count(); i++) {
+        if (i < m_sel_plate_toolbar.m_items.size()) {
+            if (i == plate_list.get_curr_plate_index())
+                m_sel_plate_toolbar.m_items[i]->selected = true;
+            else
+                m_sel_plate_toolbar.m_items[i]->selected = false;
+
+            m_sel_plate_toolbar.m_items[i]->percent = plate_list.get_plate(i)->get_slicing_percent();
+            if (plate_list.get_plate(i)->is_slice_result_valid()) {
+                m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICED;
+                continue;
+            }
+            if (plate_list.get_plate(i)->get_slicing_percent() < 0.0f)
+                m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::UNSLICED;
+            else
+                m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICING;
+        }
+    }
 
     // places the toolbar on the top_left corner of the 3d scene
     Size cnv_size = get_canvas_size();
-        float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
-    float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
-    float left = -0.5f * cnv_size.get_width() * inv_zoom;
-    m_select_plate_toolbar.set_position(top, left);
-    m_select_plate_toolbar.render(*this);
+    auto canvas_w = float(cnv_size.get_width());
+    auto canvas_h = float(cnv_size.get_height());
+
+    bool is_hovered = false;
+
+    float button_width = m_sel_plate_toolbar.icon_width;
+    float button_height = m_sel_plate_toolbar.icon_height;
+    float frame_padding = 1.0f;
+    float margin_size = 4.0f;
+    float button_margin = frame_padding;
+
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    int item_count = m_sel_plate_toolbar.m_items.size();
+    bool show_scroll = item_count * (button_height + frame_padding * 2.0f + button_margin) - button_margin + 22.0f > canvas_h ? true: false;
+    show_scroll = m_sel_plate_toolbar.is_display_scrollbar && show_scroll;
+    float window_height = std::min(item_count * (button_height + (frame_padding + margin_size) * 2.0f + button_margin) - button_margin + 28.0f, canvas_h);
+    float window_width = m_sel_plate_toolbar.icon_width + margin_size * 2 + (show_scroll ? 28.0f : 20.0f);
+
+    ImVec4 window_bg = ImVec4(0.82f, 0.82f, 0.82f, 0.5f);
+    ImVec4 button_active = ImVec4(0.12f, 0.56f, 0.92, 1.0f);
+    ImVec4 button_hover = ImVec4(0.67f, 0.67f, 0.67, 1.0f);
+    ImVec4 scroll_col = ImVec4(0.77f, 0.77f, 0.77f, 1.0f);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.f, 0.f, 0.f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, window_bg);
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, window_bg);
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, scroll_col);
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, scroll_col);
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, scroll_col);
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, button_active);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, button_hover);
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(128.0f, 128.0f, 128.0f, 0.0f));
+
+    ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 10.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f);
+
+    imgui.set_next_window_pos(canvas_w * 0, canvas_h * 0, ImGuiCond_Always, 0, 0);
+    imgui.set_next_window_size(window_width, window_height, ImGuiCond_Always);
+
+    if (show_scroll)
+        imgui.begin(_L("Select Plate"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse);
+    else
+        imgui.begin(_L("Select Plate"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse);
+    ImGui::SetWindowFontScale(1.2f);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+
+    ImVec2 size = ImVec2(button_width, button_height); // Size of the image we want to make visible
+    ImVec4 bg_col = ImVec4(128.0f, 128.0f, 128.0f, 0.0f);
+    ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);               // No tint
+    ImVec2 margin = ImVec2(margin_size, margin_size);
+
+    for (int i = 0; i < item_count; i++) {
+        IMToolbarItem* item = m_sel_plate_toolbar.m_items[i];
+
+        // draw image
+        ImVec2 button_start_pos = ImGui::GetCursorScreenPos();
+        ImGui::PushID(i);
+        ImVec2 uv0 = ImVec2(0.0f, button_height / item->image_height);  // UV coordinates for lower-left
+        ImVec2 uv1 = ImVec2(button_width / item->image_width, 0.0f);    // UV coordinates in our texture
+
+        if (item->selected) {
+            ImGui::PushStyleColor(ImGuiCol_Button, button_active);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, button_active);
+        } else
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.42f, 0.42f, 0.42f, 1.0f));
+
+        if (ImGui::ImageButton2(item->texture_id, size, uv0, uv1, frame_padding, bg_col, tint_col, margin)) {
+            // begin to slicing plate
+            wxCommandEvent* evt = new wxCommandEvent(EVT_GLTOOLBAR_SELECT_SLICED_PLATE);
+            evt->SetInt(i);
+            wxQueueEvent(wxGetApp().plater(), evt);
+        }
+
+        if (item->selected)
+            ImGui::PopStyleColor(2);
+        else
+            ImGui::PopStyleColor(1);
+
+        ImVec2 start_pos = ImVec2(button_start_pos.x + frame_padding + margin.x, button_start_pos.y + frame_padding + margin.y);
+        if (item->slice_state == IMToolbarItem::SliceState::UNSLICED) {
+            ImVec2 size = ImVec2(button_width, button_height);
+            ImVec2 end_pos = ImVec2(start_pos.x + size.x, start_pos.y + size.y);
+            ImGui::GetForegroundDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(0, 0, 0, 80));
+            
+        } else if (item->slice_state == IMToolbarItem::SliceState::SLICING) {
+            ImVec2 size = ImVec2(button_width, button_height * item->percent / 100.0f);
+            ImVec2 rect_start_pos = ImVec2(start_pos.x, start_pos.y + size.y);
+            ImVec2 rect_end_pos = ImVec2(start_pos.x + button_width, start_pos.y + button_height);
+            ImGui::GetForegroundDrawList()->AddRectFilled(rect_start_pos, rect_end_pos, IM_COL32(0, 0, 0, 80));
+        }
+
+        // draw text
+        ImVec2 text_start_pos = ImVec2(start_pos.x + 10.0f, start_pos.y + 8.0f);
+        ImGui::RenderText(text_start_pos, std::to_string(i + 1).c_str());
+
+        ImGui::PopID();
+    }
+    ImGui::SetWindowFontScale(1.0f);
+    ImGui::PopStyleColor(9);
+    ImGui::PopStyleVar(5);
+
+    if (ImGui::IsWindowHovered() || is_hovered) {
+        m_sel_plate_toolbar.is_display_scrollbar = true;
+    } else {
+        m_sel_plate_toolbar.is_display_scrollbar = false;
+    }
+
+    imgui.end();
 }
 
 //BBS: GUI refactor: GLToolbar adjust

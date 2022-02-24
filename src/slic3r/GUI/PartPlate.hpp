@@ -86,6 +86,7 @@ class PartPlate : public ObjectBase
     bool m_locked;
     bool m_ready_for_slice;
     bool m_slice_result_valid;
+    float m_slice_percent;
 
     Print *m_print; //Print reference, not own it, no need to serialize
     GCodeProcessorResult *m_gcode_result;
@@ -285,7 +286,18 @@ public:
     void update_slice_result_valid_state(bool valid = false)
     {
         m_slice_result_valid = valid;
+        if (valid)
+            m_slice_percent = 100.0f;
+        else
+            m_slice_percent = -1.0f;
     }
+
+    void update_slicing_percent(float percent)
+    {
+        m_slice_percent = percent;
+    }
+
+    float get_slicing_percent() { return m_slice_percent; }
 
     /*slice related functions*/
     //update current slice context into backgroud slicing process

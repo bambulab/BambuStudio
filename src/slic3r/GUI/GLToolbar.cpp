@@ -360,7 +360,6 @@ void GLToolbar::set_scale(float scale)
 //BBS: GUI refactor: GLToolbar
 bool GLToolbar::add_item(const GLToolbarItem::Data& data, GLToolbarItem::EType type)
 {
-    //GLToolbarItem* item = new GLToolbarItem(GLToolbarItem::Action, data);
     GLToolbarItem* item = new GLToolbarItem(type, data);
     if (item == nullptr)
         return false;
@@ -372,6 +371,10 @@ bool GLToolbar::add_item(const GLToolbarItem::Data& data, GLToolbarItem::EType t
 
 bool GLToolbar::del_all_item()
 {
+    for (int i = 0; i < m_items.size(); i++) {
+        delete m_items[i];
+        m_items[i] = nullptr;
+    }
     m_items.clear();
     m_layout.dirty = true;
     return true;

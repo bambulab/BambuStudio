@@ -16,6 +16,7 @@
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "GCodeViewer.hpp"
 #include "Camera.hpp"
+#include "IMToolbar.hpp"
 
 #include "libslic3r/Slicing.hpp"
 
@@ -511,7 +512,7 @@ private:
     GLToolbar m_undoredo_toolbar;
     mutable GLToolbar m_print_flow_toolbar;
     mutable GLToolbar m_print_select_toolbar;
-    mutable GLToolbar m_select_plate_toolbar;
+    mutable IMToolbar m_sel_plate_toolbar;
     mutable GLToolbar m_assemble_view_toolbar;
     mutable GLToolbar m_return_toolbar;
     mutable int m_print_select{ ePrintAll };
@@ -1020,7 +1021,7 @@ private:
     bool _init_print_flow_toolbar();
     bool _init_print_select_toolbar();
     bool _init_select_plate_toolbar();
-    bool _update_select_plate_toolbar();
+    bool _update_imgui_select_plate_toolbar();
     bool _init_assemble_view_toolbar();
     bool _init_return_toolbar();
     bool _init_undoredo_toolbar();
@@ -1066,7 +1067,7 @@ private:
     void _render_main_toolbar();
     //BBS: GUI refactor: GLToolbar
     void _render_print_toolbar() const;
-    void _render_select_plate_toolbar() const;
+    void _render_imgui_select_plate_toolbar() const;
     void _render_assemble_view_toolbar() const;
     void _render_return_toolbar() const;
     void _render_undoredo_toolbar();
