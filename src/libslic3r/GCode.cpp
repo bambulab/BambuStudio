@@ -1865,7 +1865,7 @@ void GCode::print_machine_envelope(GCodeOutputStream &file, Print &print)
 void GCode::get_bed_temperature(const int extruder_id, const bool is_first_layer, std::vector<int>& temps_per_bed, int& default_temp) const
 {
     const ConfigOptionInts& bed_temp_opt = is_first_layer ? m_config.first_layer_bed_temperature : m_config.bed_temperature;
-    int sel_bed_type = bed_temp_opt.get_at(extruder_id);
+    int sel_bed_type = m_config.bed_type.get_at(extruder_id);
 
     temps_per_bed.resize((int)BedType::btCount, 0);
     for (int bed_type = 0; bed_type < BedType::btCount; bed_type++) {
