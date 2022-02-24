@@ -5487,7 +5487,8 @@ PlateBBoxData Plater::priv::generate_first_layer_bbox()
 {
     PlateBBoxData bboxdata;
     std::vector<BBoxData>& id_bboxes = bboxdata.bbox_objs;
-    BoundingBox bbox_all;
+    BoundingBoxf bbox_all;
+    bool is_seq_print = this->background_process.m_fff_print->config().complete_objects.value;
     //PrintObjectPtrs objects;
     //if (this->printer_technology == ptFFF) {
     //    objects = this->background_process.m_fff_print->objects().vector();
@@ -5496,20 +5497,23 @@ PlateBBoxData Plater::priv::generate_first_layer_bbox()
     //    objects = this->background_process.m_sla_print->objects();
     //}
     auto objects = this->background_process.m_fff_print->objects();
+    auto orig = this->partplate_list.get_curr_plate()->get_origin();
+    Vec2d orig2d = { orig[0], orig[1] };
 
     for (auto obj : objects)
     {
         BBoxData data;
         auto bb_scaled = obj->get_first_layer_bbox(data.area, data.layer_height, data.name);
-        bbox_all.merge(bb_scaled);
         auto bb = unscaled(bb_scaled);
+        bb.min -= orig2d;
+        bb.max -= orig2d;
+        bbox_all.merge(bb);
         data.area *= (SCALING_FACTOR * SCALING_FACTOR); // unscale area
         data.id = obj->id().id;
         data.bbox = { bb.min.x(),bb.min.y(),bb.max.x(),bb.max.y() };
         id_bboxes.emplace_back(std::move(data));
     }
-    auto bbox_all_unscaled = unscaled(bbox_all);
-    bboxdata.bbox_all = { bbox_all_unscaled.min.x(),bbox_all_unscaled.min.y(),bbox_all_unscaled.max.x(),bbox_all_unscaled.max.y() };
+    bboxdata.bbox_all = { bbox_all.min.x(),bbox_all.min.y(),bbox_all.max.x(),bbox_all.max.y() };
     return bboxdata;
 }
 
