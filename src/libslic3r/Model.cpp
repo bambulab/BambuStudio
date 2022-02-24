@@ -261,8 +261,6 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
 ModelObject* Model::add_object()
 {
     this->objects.emplace_back(new ModelObject(this));
-    // BBS: backup
-    Slic3r::save_object_mesh(*this->objects.back());
     return this->objects.back();
 }
 
@@ -281,8 +279,6 @@ ModelObject* Model::add_object(const char *name, const char *path, const Triangl
     if (!new_object->config.has("extruder") || new_object->config.extruder() == 0)
         new_object->config.set_key_value("extruder", new ConfigOptionInt(1));
     new_object->invalidate_bounding_box();
-    // BBS: backup
-    Slic3r::save_object_mesh(*new_object);
     return new_object;
 }
 
@@ -301,8 +297,6 @@ ModelObject* Model::add_object(const char *name, const char *path, TriangleMesh 
     if (!new_object->config.has("extruder") || new_object->config.extruder() == 0)
         new_object->config.set_key_value("extruder", new ConfigOptionInt(1));
     new_object->invalidate_bounding_box();
-    // BBS: backup
-    Slic3r::save_object_mesh(*new_object);
     return new_object;
 }
 
@@ -1021,6 +1015,9 @@ ModelInstance* ModelObject::add_instance()
     ModelInstance* i = new ModelInstance(this);
     this->instances.push_back(i);
     this->invalidate_bounding_box();
+    // BBS: backup: do not save
+    if (this->instances.size() == 1)
+        Slic3r::save_object_mesh(*this);
     return i;
 }
 

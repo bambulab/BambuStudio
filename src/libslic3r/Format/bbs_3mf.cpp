@@ -5370,7 +5370,7 @@ void save_object_mesh(ModelObject& object, size_t originId)
 {
     if (!object.get_model() || !object.get_model()->is_need_backup())
         return;
-    if (object.volumes.empty())
+    if (object.volumes.empty() || object.instances.empty())
         return;
     _BBS_Backup_Manager::get().add_object_mesh(object, originId);
 }
