@@ -1330,9 +1330,7 @@ namespace Slic3r {
                         mz_zip_archive archive;
                         mz_zip_zero_struct(&archive);
                         if (open_zip_reader(&archive, path2)) {
-                            m_load_restore = false;
                             result = _extract_from_archive(archive, path, extract);
-                            m_load_restore = true;
                             close_zip_reader(&archive);
                         }
                     }
@@ -2236,8 +2234,11 @@ namespace Slic3r {
             std::string uuid = bbs_get_attribute_value_string(attributes, num_attributes, PUUID_ATTR);
             if (m_is_bbl_3mf && boost::ends_with(uuid, OBJECT_UUID_SUFFIX)) {
                 std::istringstream iss(uuid); int backup_id;
-                if (iss >> std::hex >> backup_id)
+                if (iss >> std::hex >> backup_id) {
                     m_model->set_object_backup_id(*m_curr_object.object, backup_id);
+                    if (m_load_restore) // backup with backup_id
+                        m_curr_object.id = backup_id;
+                }
             }
         }
 
@@ -4687,9 +4688,14 @@ namespace Slic3r {
                         stream << "    <" << INSTANCE_TAG << ">\n";
                         int obj_id = plate_data->objects_and_instances[j].first;
                         int inst_id = plate_data->objects_and_instances[j].second;
-
-                        stream << "      <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << OBJECT_ID_ATTR << "\" " << VALUE_ATTR << "=\"" << convert_instance_id_to_resource_id(model, obj_id, 0) << "\"/>\n";
-                        stream << "      <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << INSTANCEID_ATTR << "\" " << VALUE_ATTR << "=\"" << convert_instance_id_to_resource_id(model, obj_id, inst_id) << "\"/>\n";
+                        if (m_skip_static) {
+                            obj_id = inst_id = model.get_object_backup_id(*model.objects[obj_id]);
+                        } else {
+                            inst_id = convert_instance_id_to_resource_id(model, obj_id, inst_id);
+                            obj_id = convert_instance_id_to_resource_id(model, obj_id, 0);
+                        }
+                        stream << "      <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << OBJECT_ID_ATTR << "\" " << VALUE_ATTR << "=\"" << obj_id << "\"/>\n";
+                        stream << "      <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << INSTANCEID_ATTR << "\" " << VALUE_ATTR << "=\"" << inst_id << "\"/>\n";
                         stream << "    </" << INSTANCE_TAG << ">\n";
                     }
                 }
