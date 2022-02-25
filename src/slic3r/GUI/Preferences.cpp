@@ -596,23 +596,24 @@ void PreferencesDialog::create_debug_page()
         case wxID_YES: {
             // bbs  domain changed
             auto            param   = get_select_radio(1);
-            AccountManager *manager = wxGetApp().getAccountManager();
-            manager->user_logout();
-
             std::string old_sel = app_config->get("iot_environment");
-
-            if (param == "dev_host") {
-                app_config->set("iot_environment", "0");
-                manager->set_host(DEV_HOST_URL);
-            } else if (param == "qa_host") {
-                app_config->set("iot_environment", "1");
-                manager->set_host(QAT_HOST_URL);
-            } else if (param == "pre_host") {
-                app_config->set("iot_environment", "2");
-                manager->set_host(PRE_HOST_URL);
+            if (old_sel != app_config->get("iot_environment")) {
+                AccountManager* manager = wxGetApp().getAccountManager();
+                if (param == "dev_host") {
+                    app_config->set("iot_environment", "0");
+                    manager->set_host(DEV_HOST_URL);
+                }
+                else if (param == "qa_host") {
+                    app_config->set("iot_environment", "1");
+                    manager->set_host(QAT_HOST_URL);
+                }
+                else if (param == "pre_host") {
+                    app_config->set("iot_environment", "2");
+                    manager->set_host(PRE_HOST_URL);
+                }
+                manager->user_logout();
+                wxMessageBox(_L("swith cloud environment, please log in again!"));
             }
-
-            if (old_sel != app_config->get("iot_environment")) { wxMessageBox(_L("swith cloud environment, please log in again!")); }
 
             // bbs  backup
             app_config->set("backup_interval", std::string(m_backup_interval_time.mb_str()));
