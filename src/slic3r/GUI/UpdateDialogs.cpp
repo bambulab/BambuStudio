@@ -109,6 +109,8 @@ MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates, bool force_
 	const auto lang_code = wxGetApp().current_language_code_safe().ToStdString();
 
 	auto *versions = new wxBoxSizer(wxVERTICAL);
+	//BBS: use changelog string instead of url
+	wxTextCtrl* changelog_textctrl = nullptr;
 	for (const auto &update : updates) {
 		auto *flex = new wxFlexGridSizer(2, 0, VERT_SPACING);
 
@@ -117,8 +119,9 @@ MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates, bool force_
 		flex->Add(text_vendor);
 		flex->Add(new wxStaticText(this, wxID_ANY, update.version.to_string()));
 
+		//BBS: use changelog string instead of url
 		if (! update.comment.empty()) {
-			flex->Add(new wxStaticText(this, wxID_ANY, _(L("Comment:"))), 0, wxALIGN_RIGHT);
+			flex->Add(new wxStaticText(this, wxID_ANY, _(L("Description:"))), 0, wxALIGN_RIGHT);
 			auto *update_comment = new wxStaticText(this, wxID_ANY, from_u8(update.comment));
 			update_comment->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
 			flex->Add(update_comment);
@@ -126,17 +129,27 @@ MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates, bool force_
 
 		versions->Add(flex);
 
-		if (! update.changelog_url.empty() && update.version.prerelease() == nullptr) {
-			auto *line = new wxBoxSizer(wxHORIZONTAL);
-			auto changelog_url = (boost::format(update.changelog_url) % lang_code).str();
-			line->AddSpacer(3*VERT_SPACING);
-			line->Add(new wxHyperlinkCtrl(this, wxID_ANY, _(L("Open changelog page")), changelog_url));
-			versions->Add(line);
+        //BBS: use changelog string instead of url
+		if (! update.change_log.empty()) {
+			if (!changelog_textctrl)
+				changelog_textctrl = new wxTextCtrl(this, wxID_ANY, from_u8(update.change_log), wxDefaultPosition,  wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxHSCROLL);
+			else
+				changelog_textctrl->AppendText(from_u8(update.change_log));
 		}
+        /*if (! update.changelog_url.empty() && update.version.prerelease() == nullptr) {
+            auto *line = new wxBoxSizer(wxHORIZONTAL);
+            auto changelog_url = (boost::format(update.changelog_url) % lang_code).str();
+            line->AddSpacer(3*VERT_SPACING);
+            line->Add(new wxHyperlinkCtrl(this, wxID_ANY, _(L("Open changelog page")), changelog_url));
+            versions->Add(line);
+        }*/
 	}
 
 	content_sizer->Add(versions);
-	content_sizer->AddSpacer(2*VERT_SPACING);
+	//BBS: use changelog string instead of url
+	//content_sizer->AddSpacer(2*VERT_SPACING);
+	if (changelog_textctrl)
+		content_sizer->Add(changelog_textctrl, 1, wxEXPAND);
 
 	add_button(wxID_OK, true, force_before_wizard ? _L("Install") : "OK");
 	if (force_before_wizard) {
@@ -170,30 +183,43 @@ MsgUpdateForced::MsgUpdateForced(const std::vector<Update>& updates) :
 	const auto lang_code = wxGetApp().current_language_code_safe().ToStdString();
 
 	auto* versions = new wxFlexGridSizer(2, 0, VERT_SPACING);
+	//BBS: use changelog string instead of url
+	wxTextCtrl* changelog_textctrl = nullptr;
 	for (const auto& update : updates) {
 		auto* text_vendor = new wxStaticText(this, wxID_ANY, update.vendor);
 		text_vendor->SetFont(boldfont);
 		versions->Add(text_vendor);
 		versions->Add(new wxStaticText(this, wxID_ANY, update.version.to_string()));
 
+		//BBS: use changelog string instead of url
 		if (!update.comment.empty()) {
-			versions->Add(new wxStaticText(this, wxID_ANY, _(L("Comment:")))/*, 0, wxALIGN_RIGHT*/);//uncoment if align to right (might not look good if 1  vedor name is longer than other names)
+			versions->Add(new wxStaticText(this, wxID_ANY, _(L("Description:")))/*, 0, wxALIGN_RIGHT*/);//uncoment if align to right (might not look good if 1  vedor name is longer than other names)
 			auto* update_comment = new wxStaticText(this, wxID_ANY, from_u8(update.comment));
 			update_comment->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
 			versions->Add(update_comment);
 		}
+		//BBS: use changelog string instead of url
+		if (! update.change_log.empty()) {
+			if (!changelog_textctrl)
+				changelog_textctrl = new wxTextCtrl(this, wxID_ANY, from_u8(update.change_log), wxDefaultPosition,  wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY|wxHSCROLL);
+			else
+				changelog_textctrl->AppendText(from_u8(update.change_log));
+		}
 
-		if (!update.changelog_url.empty() && update.version.prerelease() == nullptr) {
+		/*if (!update.changelog_url.empty() && update.version.prerelease() == nullptr) {
 			auto* line = new wxBoxSizer(wxHORIZONTAL);
 			auto changelog_url = (boost::format(update.changelog_url) % lang_code).str();
 			line->AddSpacer(3 * VERT_SPACING);
 			line->Add(new wxHyperlinkCtrl(this, wxID_ANY, _(L("Open changelog page")), changelog_url));
 			versions->Add(line);
-		}
+		}*/
 	}
 
 	content_sizer->Add(versions);
-	content_sizer->AddSpacer(2 * VERT_SPACING);
+	//BBS: use changelog string instead of url
+	//content_sizer->AddSpacer(2 * VERT_SPACING);
+	if (changelog_textctrl)
+		content_sizer->Add(changelog_textctrl);
 
 	add_button(wxID_EXIT, false, wxString::Format(_L("Exit %s"), SLIC3R_APP_NAME));
 	for (auto ID : { wxID_EXIT, wxID_OK })

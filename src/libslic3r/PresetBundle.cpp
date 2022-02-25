@@ -158,7 +158,7 @@ void PresetBundle::setup_directories()
     //BBS: change directoties by design
     std::initializer_list<boost::filesystem::path> paths = { 
         data_dir,
-        data_dir / "cache",
+        data_dir / "ota",
 		data_dir / PRESET_SYSTEM_DIR,
         data_dir / PRESET_USER_DIR,
         // Store the print/filament/printer presets at the same location as the upstream Slic3r.
@@ -1940,6 +1940,10 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
                 //get url
                 vendor_profile.config_update_url = it.value();
             }
+            else if (boost::iequals(it.key(), BBL_JSON_KEY_DESCRIPTION)) {
+                //get description
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": parse "<<root_file<<", got description:  " << it.value();
+            }
             else if (boost::iequals(it.key(), BBL_JSON_KEY_NAME)) {
                 //get name
                 vendor_profile.name = it.value();
@@ -2036,8 +2040,8 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             }
         }
         catch(nlohmann::detail::parse_error &err) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<root_file<<" got a nlohmann::detail::parse_error, reason = " << err.what();
-            throw ConfigurationError(format("Failed loading configuration file \"%1%\": %2%", root_file, err.what()));
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<< subfile <<" got a nlohmann::detail::parse_error, reason = " << err.what();
+            throw ConfigurationError(format("Failed loading configuration file \"%1%\": %2%", subfile, err.what()));
         }
 
         if (! model.id.empty() && ! model.variants.empty())

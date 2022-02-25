@@ -25,6 +25,7 @@
 #define BBL_JSON_KEY_VERSION        "version"
 #define BBL_JSON_KEY_URL            "url"
 #define BBL_JSON_KEY_NAME           "name"
+#define BBL_JSON_KEY_DESCRIPTION    "description"
 #define BBL_JSON_KEY_MACHINE_MODEL_LIST     "machine_model_list"
 #define BBL_JSON_KEY_PROCESS_LIST   "process_list"
 #define BBL_JSON_KEY_SUB_PATH       "sub_path"
@@ -54,6 +55,11 @@ enum ConfigFileType
     CONFIG_FILE_TYPE_CONFIG,
     CONFIG_FILE_TYPE_CONFIG_BUNDLE,
 };
+
+//BBS: add a function to load the version from xxx.json
+extern Semver get_version_from_json(std::string file_path);
+//BBS: add a function to load the key-values from xxx.json
+extern int get_values_from_json(std::string file_path, std::vector<std::string>& keys, std::map<std::string, std::string>& key_values);
 
 extern ConfigFileType guess_config_file_type(const boost::property_tree::ptree &tree);
 

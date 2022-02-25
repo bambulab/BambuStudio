@@ -385,6 +385,7 @@ public:
     VersionInfo version_info;
     void check_new_version(bool show_tips = false);
     void check_update(bool show_tips = false);
+    std::string get_slicer_info_url() { return _get_slicer_info_url(); }
 
     /* common apis */
     AccountInfo* get_curr_user() { return m_curr_user; }

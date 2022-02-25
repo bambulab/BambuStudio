@@ -306,7 +306,7 @@ Index::const_iterator Index::recommended() const
 
 std::vector<Index> Index::load_db()
 {
-    boost::filesystem::path cache_dir = boost::filesystem::path(Slic3r::data_dir()) / "cache";
+    boost::filesystem::path cache_dir = boost::filesystem::path(Slic3r::data_dir()) / "ota";
 
     std::vector<Index> index_db;
     std::string errors_cummulative;

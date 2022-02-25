@@ -31,6 +31,7 @@
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Config/Version.hpp"
 #include "slic3r/Config/Snapshot.hpp"
+#include "libslic3r/miniz_extension.hpp"
 
 namespace fs = boost::filesystem;
 using Slic3r::GUI::Config::Index;
@@ -47,7 +48,7 @@ namespace Slic3r {
 
 
 static const char *INDEX_FILENAME = "index.idx";
-static const char *TMP_EXTENSION = ".download";
+static const char *TMP_EXTENSION = ".data";
 
 
 void copy_file_fix(const fs::path &source, const fs::path &target)
@@ -73,9 +74,9 @@ void copy_directory_fix(const fs::path &source, const fs::path &target)
     BOOST_LOG_TRIVIAL(debug) << format("PresetUpdater: Copying %1% -> %2%", source, target);
     std::string error_message;
 
-    if (!fs::exists(target)) {
-        fs::create_directory(target);
-    }
+    if (fs::exists(target))
+        fs::remove_all(target);
+    fs::create_directories(target);
     for (auto &dir_entry : boost::filesystem::directory_iterator(source))
     {
         std::string source_file = dir_entry.path().string();
@@ -100,25 +101,29 @@ struct Update
 
 	Version version;
 	std::string vendor;
-	std::string changelog_url;
+	//BBS: use changelog string instead of url
+	std::string change_log;
+	std::string descriptions;
 
 	bool forced_update;
-    //BBS: add directory support
-    bool is_directory {false};
+	//BBS: add directory support
+	bool is_directory {false};
 
 	Update() {}
-    //BBS: add directory support
-	Update(fs::path &&source, fs::path &&target, const Version &version, std::string vendor, std::string changelog_url, bool forced = false, bool is_dir = false)
+	//BBS: add directory support
+	//BBS: use changelog string instead of url
+	Update(fs::path &&source, fs::path &&target, const Version &version, std::string vendor, std::string changelog, std::string description, bool forced = false, bool is_dir = false)
 		: source(std::move(source))
 		, target(std::move(target))
 		, version(version)
 		, vendor(std::move(vendor))
-		, changelog_url(std::move(changelog_url))
+		, change_log(std::move(changelog))
+		, descriptions(std::move(description))
 		, forced_update(forced)
 		, is_directory(is_dir)
 	{}
 
-    //BBS: add directory support
+	//BBS: add directory support
 	void install() const
 	{
 	    if (is_directory) {
@@ -153,7 +158,8 @@ struct Incompat
 		fs::remove(bundle);
 
 		// Look for an installed index and remove it too if any
-		const fs::path installed_idx = bundle.replace_extension("idx");
+		//BBS: set to json for configs
+		const fs::path installed_idx = bundle.replace_extension("json");
 		if (fs::exists(installed_idx)) {
 			fs::remove(installed_idx);
 		}
@@ -197,12 +203,16 @@ struct PresetUpdater::priv
 
 	void set_download_prefs(AppConfig *app_config);
 	bool get_file(const std::string &url, const fs::path &target_path) const;
+	//BBS: refine preset update logic
+	bool extract_file(const fs::path &source_path);
 	void prune_tmps() const;
 	void sync_version() const;
 	void parse_version_string(const std::string& body) const;
 	void sync_config(const VendorMap vendors);
 
-	void check_install_indices() const;
+	//BBS: refine preset update logic
+	bool install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot) const;
+	void check_installed_vendor_profiles() const;
 	Updates get_config_updates(const Semver& old_slic3r_version) const;
 	bool perform_updates(Updates &&updates, bool snapshot = true) const;
 	void set_waiting_updates(Updates u);
@@ -210,25 +220,32 @@ struct PresetUpdater::priv
 
 //BBS: change directories by design
 PresetUpdater::priv::priv()
-	: cache_path(fs::path(Slic3r::data_dir()) / "cache")
+	: cache_path(fs::path(Slic3r::data_dir()) / "ota")
 	, rsrc_path(fs::path(resources_dir()) / "profiles")
 	, vendor_path(fs::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR)
 	, cancel(false)
 {
+	//BBS: refine preset updater logic
+	enabled_version_check = true;
 	set_download_prefs(GUI::wxGetApp().app_config);
 	// Install indicies from resources. Only installs those that are either missing or older than in resources.
-	check_install_indices();
+	check_installed_vendor_profiles();
 	// Load indices from the cache directory.
-	index_db = Index::load_db();
+	//index_db = Index::load_db();
 }
 
 // Pull relevant preferences from AppConfig
 void PresetUpdater::priv::set_download_prefs(AppConfig *app_config)
 {
 	version_check_url = app_config->version_check_url();
-	enabled_config_update = true;
+	//TODO: for debug currently
+	if (version_check_url.empty())
+		enabled_config_update = true;
+	else
+		enabled_config_update = false;
 }
 
+//BBS: refine the Preset Updater logic
 // Downloads a file (http get operation). Cancels if the Updater is being destroyed.
 bool PresetUpdater::priv::get_file(const std::string &url, const fs::path &target_path) const
 {
@@ -236,7 +253,7 @@ bool PresetUpdater::priv::get_file(const std::string &url, const fs::path &targe
 	fs::path tmp_path = target_path;
 	tmp_path += format(".%1%%2%", get_current_pid(), TMP_EXTENSION);
 
-	BOOST_LOG_TRIVIAL(info) << format("Get: `%1%`\n\t-> `%2%`\n\tvia tmp path `%3%`",
+	BOOST_LOG_TRIVIAL(info) << format("[BBS Updater]download file `%1%`, stored to `%2%`, tmp path `%3%`",
 		url,
 		target_path.string(),
 		tmp_path.string());
@@ -247,7 +264,7 @@ bool PresetUpdater::priv::get_file(const std::string &url, const fs::path &targe
 		})
 		.on_error([&](std::string body, std::string error, unsigned http_status) {
 			(void)body;
-			BOOST_LOG_TRIVIAL(error) << format("Error getting: `%1%`: HTTP %2%, %3%",
+			BOOST_LOG_TRIVIAL(error) << format("[BBS Updater]getting: `%1%`: http status %2%, %3%",
 				url,
 				http_status,
 				error);
@@ -264,23 +281,83 @@ bool PresetUpdater::priv::get_file(const std::string &url, const fs::path &targe
 	return res;
 }
 
+//BBS: refine preset update logic
+bool PresetUpdater::priv::extract_file(const fs::path &source_path)
+{
+    bool res = true;
+    std::string file_path = source_path.string();
+    std::string parent_path = source_path.parent_path().string();
+    mz_zip_archive archive;
+    mz_zip_zero_struct(&archive);
+
+    if (!open_zip_reader(&archive, file_path))
+    {
+        BOOST_LOG_TRIVIAL(error) << "Unable to open zip reader for "<<file_path;
+        return false;
+    }
+
+    mz_uint num_entries = mz_zip_reader_get_num_files(&archive);
+
+    mz_zip_archive_file_stat stat;
+    // we first loop the entries to read from the archive the .amf file only, in order to extract the version from it
+    for (mz_uint i = 0; i < num_entries; ++i)
+    {
+        if (mz_zip_reader_file_stat(&archive, i, &stat))
+        {
+            std::string dest_file = parent_path+"/"+stat.m_filename;
+            if (stat.m_is_directory) {
+                fs::path dest_path(dest_file);
+                if (!fs::exists(dest_path))
+                    fs::create_directories(dest_path);
+				continue;
+            }
+            else if (stat.m_uncomp_size == 0) {
+                BOOST_LOG_TRIVIAL(warning) << "[BBL Updater]Unzip: invalid size for file "<<stat.m_filename;
+                continue;
+            }
+            try
+            {
+                res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_file.c_str(), 0);
+                if (!res) {
+                    BOOST_LOG_TRIVIAL(error) << "[BBL Updater]extract file "<<stat.m_filename<<" to dest "<<dest_file<<" failed";
+                    close_zip_reader(&archive);
+                    return res;
+                }
+            }
+            catch (const std::exception& e)
+            {
+                // ensure the zip archive is closed and rethrow the exception
+                close_zip_reader(&archive);
+                BOOST_LOG_TRIVIAL(error) << "[BBL Updater]Archive read exception:"<<e.what();
+                return false;
+            }
+        }
+        else {
+            BOOST_LOG_TRIVIAL(warning) << "[BBL Updater]Unzip: read file stat failed";
+        }
+    }
+    close_zip_reader(&archive);
+
+	return true;
+}
+
 // Remove leftover paritally downloaded files, if any.
 void PresetUpdater::priv::prune_tmps() const
 {
     for (auto &dir_entry : boost::filesystem::directory_iterator(cache_path))
 		if (is_plain_file(dir_entry) && dir_entry.path().extension() == TMP_EXTENSION) {
-			BOOST_LOG_TRIVIAL(debug) << "Cache prune: " << dir_entry.path().string();
+			BOOST_LOG_TRIVIAL(debug) << "[BBL Updater]remove old cached files: " << dir_entry.path().string();
 			fs::remove(dir_entry.path());
 		}
 }
 
+//BBS: refine the Preset Updater logic
 // Get Slic3rPE version available online, save in AppConfig.
 void PresetUpdater::priv::sync_version() const
 {
 	if (! enabled_version_check) { return; }
 
-	BOOST_LOG_TRIVIAL(info) << format("Downloading %1% online version from: `%2%`", SLIC3R_APP_NAME, version_check_url);
-
+#if 0
 	Http::get(version_check_url)
 		.size_limit(SLIC3R_VERSION_BODY_MAX)
 		.on_progress([this](Http::Progress, bool &cancel) {
@@ -298,6 +375,7 @@ void PresetUpdater::priv::sync_version() const
 			parse_version_string(body);
 		})
 		.perform_sync();
+#endif
 }
 
 // Parses version string obtained in sync_version() and sends events to UI thread.
@@ -369,305 +447,346 @@ void PresetUpdater::priv::parse_version_string(const std::string& body) const
 	}
 }
 
+//BBS: refine the Preset Updater logic
 // Download vendor indices. Also download new bundles if an index indicates there's a new one available.
 // Both are saved in cache.
 void PresetUpdater::priv::sync_config(const VendorMap vendors)
 {
-	BOOST_LOG_TRIVIAL(info) << "Syncing configuration cache";
+    std::map<std::string, std::pair<Semver, std::string>> vendor_list;
+    std::map<std::string, std::string> vendor_descriptions;
+	BOOST_LOG_TRIVIAL(info) << "[BBL Updater]: Syncing configuration cache";
 
 	if (!enabled_config_update) { return; }
 
-	// Donwload vendor preset bundles
-	// Over all indices from the cache directory:
-	for (auto &index : index_db) {
-		if (cancel) { return; }
+    Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
+    if (!account_manager) {
+        BOOST_LOG_TRIVIAL(error) << "[BBL Updater]: can not get account manager";
+        return;
+    }
 
-		const auto vendor_it = vendors.find(index.vendor());
-		if (vendor_it == vendors.end()) {
-			BOOST_LOG_TRIVIAL(warning) << "No such vendor: " << index.vendor();
+    BOOST_LOG_TRIVIAL(info) << format("[BBL Updater]: get preferred setting version for app version %1%, url: `%2%`", SLIC3R_APP_NAME, version_check_url);
+
+    std::string query_params = "?";
+    bool first = true;
+    for (auto vendor_it :vendors) {
+        if (cancel) { return; }
+
+        const VendorProfile& vendor_profile = vendor_it.second;
+        std::string vendor_name = vendor_profile.id;
+        boost::to_lower(vendor_name);
+
+        std::string query_vendor = (boost::format("slicer/settings/%1%=%2%")
+            % vendor_name
+            % VersionInfo::convert_full_version("00.00.00.00")
+            ).str();
+        if (!first)
+            query_params += "&";
+        query_params += query_vendor;
+    }
+
+    std::string url = account_manager->get_slicer_info_url();
+    //std::string url = (boost::format("%1%/iot-service/api/slicer/resource") % DEV_HOST_URL).str();
+    url += query_params;
+    Http http = Http::get(url);
+    /*http.header("accept", "application/json")
+        .header("client-type", "slicer")
+        .header("os-type", "windows")
+        .header("client-version", SLIC3R_RC_VERSION)*/
+	http.on_complete(
+        [this, &vendor_list, &vendor_descriptions, vendors](std::string body, unsigned) {
+            try {
+                BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]: AccountManager::request_project_id, body=" << body;
+
+                json j = json::parse(body);
+                std::string message = j["message"].get<std::string>();
+
+                if (message == "success") {
+                    json resource =j.at("resources");
+                    if (resource.is_array()) {
+                        for (auto iter = resource.begin(); iter != resource.end(); iter++) {
+                            Semver version;
+                            std::string url;
+                            std::string type;
+                            std::string vendor;
+                            std::string description;
+                            for (auto sub_iter = iter.value().begin(); sub_iter != iter.value().end(); sub_iter++) {
+                                if (boost::iequals(sub_iter.key(),"type")) {
+                                    type = sub_iter.value();
+                                    BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]: get version of settings's type, " << sub_iter.value();
+                                }
+                                else if (boost::iequals(sub_iter.key(),"version")) {
+                                    version = *(Semver::parse(sub_iter.value()));
+                                }
+                                else if (boost::iequals(sub_iter.key(),"description")) {
+                                    description = sub_iter.value();
+                                }
+                                else if (boost::iequals(sub_iter.key(),"url")) {
+                                    url = sub_iter.value();
+                                }
+                            }
+                            BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]: get type "<< type <<", version "<<version.to_string()<<", url " << url;
+
+                            for (auto vendor_it :vendors) {
+                                const VendorProfile& vendor_profile = vendor_it.second;
+                                std::string vendor_name = vendor_profile.id;
+                                boost::to_lower(vendor_name);
+                                if (type.find(vendor_name) != std::string::npos) {
+                                    vendor = vendor_profile.id;
+                                    break;
+                                }
+                            }
+                            if (!vendor.empty()) {
+                                vendor_list.emplace(vendor, std::pair<Semver, std::string>(version, url));
+                                vendor_descriptions.emplace(vendor, description);
+                            }
+                        }
+                    }
+                }
+                else {
+                    BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]: get version of settings failed, body=" << body;
+                }
+            }
+            catch (std::exception& e) {
+                BOOST_LOG_TRIVIAL(trace) << (boost::format("[BBL Updater]: get version of settings failed, exception=%1% body=%2%")
+                    % e.what()
+                    % body).str();
+            }
+            catch (...) {
+                BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]: get version of settings failed,, body=" << body;
+            }
+        }
+    )
+    .on_error([&](std::string body, std::string error, unsigned status) {
+            BOOST_LOG_TRIVIAL(trace) << boost::format("[BBL Updater]: status=%1%, error=%2%, body=%3%")
+                % status
+                % error
+                % body;
+        }
+    )
+    .perform_sync();
+
+    for (auto vendor_it :vendors) {
+        if (cancel) { return; }
+
+        const VendorProfile& vendor_profile = vendor_it.second;
+        std::string vendor_name = vendor_profile.id;
+        auto vendor_update = vendor_list.find(vendor_name);
+        if (vendor_update == vendor_list.end()) {
+			BOOST_LOG_TRIVIAL(info) << "[BBL Updater]Vendor " << vendor_name << " can not get setting versions online";
 			continue;
 		}
+        Semver online_version = vendor_update->second.first;
+        //Semver current_version = get_version_from_json(vendor_root_config.string());
+        Semver current_version = vendor_profile.config_version;
+        if (current_version < online_version) {
+            auto cache_file = cache_path / (vendor_name+".json");
+            auto cache_print_dir = (cache_path / vendor_name / PRESET_PRINT_NAME);
+            auto cache_filament_dir = (cache_path / vendor_name / PRESET_FILAMENT_NAME);
+            auto cache_machine_dir = (cache_path / vendor_name / PRESET_PRINTER_NAME);
 
-		const VendorProfile &vendor = vendor_it->second;
-		if (vendor.config_update_url.empty()) {
-			BOOST_LOG_TRIVIAL(info) << "Vendor has no config_update_url: " << vendor.name;
-			continue;
-		}
+            if (( fs::exists(cache_file))
+                &&( fs::exists(cache_print_dir))
+                &&( fs::exists(cache_filament_dir))
+                &&( fs::exists(cache_machine_dir))) {
+                Semver version = get_version_from_json(cache_file.string());
+                if (version >= online_version) {
+                    //already downloaded before
+                    BOOST_LOG_TRIVIAL(info) << "[BBL Updater]Vendor " << vendor_name << ", already cached a version "<<version.to_string();
+                    continue;
+                }
+            }
+            if (cancel) { return; }
 
-		// Download a fresh index
-		BOOST_LOG_TRIVIAL(info) << "Downloading index for vendor: " << vendor.name;
-		const auto idx_url = vendor.config_update_url + "/" + INDEX_FILENAME;
-		const std::string idx_path = (cache_path / (vendor.id + ".idx")).string();
-		const std::string idx_path_temp = idx_path + "-update";
-		//check if idx_url is leading to our site 
-		if (! boost::starts_with(idx_url, "") &&
-		    ! boost::starts_with(idx_url, ""))
-		{
-			BOOST_LOG_TRIVIAL(warning) << "unsafe url path for vendor \"" << vendor.name << "\" rejected: " << idx_url;
-			continue;
-		}
-		if (!get_file(idx_url, idx_path_temp)) { continue; }
-		if (cancel) { return; }
+            //need to download the online files
+            std::string online_url = vendor_update->second.second;
+            std::string cache_file_path = (cache_path / (vendor_name + TMP_EXTENSION)).string();
+            BOOST_LOG_TRIVIAL(info) << "[BBL Updater]Downloading online settings for vendor: " << vendor_name<<", version "<<online_version.to_string();
+            if (!get_file(online_url, cache_file_path)) {
+                BOOST_LOG_TRIVIAL(warning) << "[BBL Updater]download settings for vendor "<<vendor_name<<" failed, url: " << online_url;
+                continue;
+            }
+		    if (cancel) { return; }
 
-		// Load the fresh index up
-		{
-			Index new_index;
-			try {
-				new_index.load(idx_path_temp);
-			} catch (const std::exception & /* err */) {
-				BOOST_LOG_TRIVIAL(error) << format("Could not load downloaded index %1% for vendor %2%: invalid index?", idx_path_temp, vendor.name);
-				continue;
-			}
-			if (new_index.version() < index.version()) {
-				BOOST_LOG_TRIVIAL(warning) << format("The downloaded index %1% for vendor %2% is older than the active one. Ignoring the downloaded index.", idx_path_temp, vendor.name);
-				continue;
-			}
-			Slic3r::rename_file(idx_path_temp, idx_path);
-			//if we rename path we need to change it in Index object too or create the object again
-			//index = std::move(new_index);
-			try {
-				index.load(idx_path);
-			}
-			catch (const std::exception& /* err */) {
-				BOOST_LOG_TRIVIAL(error) << format("Could not load downloaded index %1% for vendor %2%: invalid index?", idx_path, vendor.name);
-				continue;
-			}
-			if (cancel)
-				return;
-		}
+            //remove previous files before
+            if (fs::exists(cache_print_dir))
+                fs::remove_all(cache_print_dir);
+            if (fs::exists(cache_filament_dir))
+                fs::remove_all(cache_filament_dir);
+            if (fs::exists(cache_machine_dir))
+                fs::remove_all(cache_machine_dir);
+            //extract the file downloaded
+            BOOST_LOG_TRIVIAL(info) << "[BBL Updater]start to unzip the downloaded file "<< cache_file_path;
+            if (!extract_file(cache_file_path)) {
+                BOOST_LOG_TRIVIAL(warning) << "[BBL Updater]extract settings for vendor "<<vendor_name<<" failed, path: " << cache_file_path;
+                continue;
+            }
+            BOOST_LOG_TRIVIAL(info) << "[BBL Updater]finished unzip the downloaded file "<< cache_file_path;
 
-		// See if a there's a new version to download
-		const auto recommended_it = index.recommended();
-		if (recommended_it == index.end()) {
-			BOOST_LOG_TRIVIAL(error) << format("No recommended version for vendor: %1%, invalid index?", vendor.name);
-			continue;
-		}
+            auto vendor_description = vendor_descriptions.find(vendor_name);
+            if (vendor_description != vendor_descriptions.end()) {
+                //save the description to disk
+                std::string changelog_file = (cache_path / (vendor_name + ".changelog")).string();
 
-		const auto recommended = recommended_it->config_version;
-
-		BOOST_LOG_TRIVIAL(debug) << format("Got index for vendor: %1%: current version: %2%, recommended version: %3%",
-			vendor.name,
-			vendor.config_version.to_string(),
-			recommended.to_string());
-
-		if (vendor.config_version >= recommended) { continue; }
-
-		// Download a fresh bundle
-		BOOST_LOG_TRIVIAL(info) << "Downloading new bundle for vendor: " << vendor.name;
-		const auto bundle_url = format("%1%/%2%.ini", vendor.config_update_url, recommended.to_string());
-		const auto bundle_path = cache_path / (vendor.id + ".ini");
-		if (! get_file(bundle_url, bundle_path)) { continue; }
-		if (cancel) { return; }
-	}
+                boost::nowide::ofstream c;
+                c.open(changelog_file, std::ios::out | std::ios::trunc);
+                c << vendor_description->second << std::endl;
+                c.close();
+            }
+        }
+    }
 }
 
-// Install indicies from resources. Only installs those that are either missing or older than in resources.
-void PresetUpdater::priv::check_install_indices() const
+bool PresetUpdater::priv::install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot) const
 {
-	BOOST_LOG_TRIVIAL(info) << "Checking if indices need to be installed from resources...";
+	Updates updates;
 
-    for (auto &dir_entry : boost::filesystem::directory_iterator(rsrc_path))
-		if (is_idx_file(dir_entry)) {
-			const auto &path = dir_entry.path();
-			const auto path_in_cache = cache_path / path.filename();
+	BOOST_LOG_TRIVIAL(info) << format("Installing %1% bundles from resources ...", bundles.size());
 
-			if (! fs::exists(path_in_cache)) {
-				BOOST_LOG_TRIVIAL(info) << "Install index from resources: " << path.filename();
-				copy_file_fix(path, path_in_cache);
-			} else {
-				Index idx_rsrc, idx_cache;
-				idx_rsrc.load(path);
-				idx_cache.load(path_in_cache);
+	for (const auto &bundle : bundles) {
+		auto path_in_rsrc = (this->rsrc_path / bundle).replace_extension(".json");
+		auto path_in_vendors = (this->vendor_path / bundle).replace_extension(".json");
+		updates.updates.emplace_back(std::move(path_in_rsrc), std::move(path_in_vendors), Version(), bundle, "", "");
 
-				if (idx_cache.version() < idx_rsrc.version()) {
-					BOOST_LOG_TRIVIAL(info) << "Update index from resources: " << path.filename();
-					copy_file_fix(path, path_in_cache);
-				}
-			}
-		}
+        //BBS: add directory support
+        auto print_in_rsrc = (this->rsrc_path / bundle / PRESET_PRINT_NAME);
+		auto print_in_vendors = (this->vendor_path / bundle / PRESET_PRINT_NAME);
+        fs::path print_folder(print_in_vendors);
+        if (fs::exists(print_folder))
+            fs::remove_all(print_folder);
+        fs::create_directories(print_folder);
+		updates.updates.emplace_back(std::move(print_in_rsrc), std::move(print_in_vendors), Version(), bundle, "", "", false, true);
+
+        auto filament_in_rsrc = (this->rsrc_path / bundle / PRESET_FILAMENT_NAME);
+		auto filament_in_vendors = (this->vendor_path / bundle / PRESET_FILAMENT_NAME);
+        fs::path filament_folder(filament_in_vendors);
+        if (fs::exists(filament_folder))
+            fs::remove_all(filament_folder);
+        fs::create_directories(filament_folder);
+		updates.updates.emplace_back(std::move(filament_in_rsrc), std::move(filament_in_vendors), Version(), bundle, "", "", false, true);
+
+        auto machine_in_rsrc = (this->rsrc_path / bundle / PRESET_PRINTER_NAME);
+		auto machine_in_vendors = (this->vendor_path / bundle / PRESET_PRINTER_NAME);
+        fs::path machine_folder(machine_in_vendors);
+        if (fs::exists(machine_folder))
+            fs::remove_all(machine_folder);
+        fs::create_directories(machine_folder);
+		updates.updates.emplace_back(std::move(machine_in_rsrc), std::move(machine_in_vendors), Version(), bundle, "", "", false, true);
+	}
+
+	return perform_updates(std::move(updates), snapshot);
+}
+
+
+//BBS: refine preset update logic
+// Install indicies from resources. Only installs those that are either missing or older than in resources.
+void PresetUpdater::priv::check_installed_vendor_profiles() const
+{
+    BOOST_LOG_TRIVIAL(info) << "[BBL Updater]:Checking whether the profile from resource is newer";
+
+    //BBS: refine the init check logic
+    std::vector<std::string> bundles;
+    for (auto &dir_entry : boost::filesystem::directory_iterator(rsrc_path)) {
+        const auto &path = dir_entry.path();
+        std::string file_path = path.string();
+        if (is_json_file(file_path)) {
+            const auto path_in_vendor = vendor_path / path.filename();
+            std::string vendor_name = path.filename().string();
+            // Remove the .json suffix.
+            vendor_name.erase(vendor_name.size() - 5);
+            if (enabled_config_update) {
+                if ( fs::exists(path_in_vendor)) {
+                    Semver resource_ver = get_version_from_json(file_path);
+                    Semver vendor_ver = get_version_from_json(path_in_vendor.string());
+
+                    if (vendor_ver < resource_ver) {
+                        BOOST_LOG_TRIVIAL(info) << "[BBL Updater]:found vendor "<<vendor_name<<" newer version "<<resource_ver.to_string() <<" from resource, old version "<<vendor_ver.to_string();
+                        bundles.push_back(vendor_name);
+                    }
+                }
+            }
+            else //always update configs from resource to vendor
+                bundles.push_back(vendor_name);
+        }
+    }
+
+    if (bundles.size() > 0)
+        install_bundles_rsrc(bundles, false);
 }
 
 // Generates a list of bundle updates that are to be performed.
 // Version of slic3r that was running the last time and which was read out from BambuStudio.ini is provided
 // as a parameter.
+//BBS: refine the Preset Updater logic
 Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version) const
 {
 	Updates updates;
 
 	BOOST_LOG_TRIVIAL(info) << "Checking for cached configuration updates...";
 
-	// Over all indices from the cache directory:
-    for (const Index& idx : index_db) {
-		auto bundle_path = vendor_path / (idx.vendor() + ".ini");
-		auto bundle_path_idx = vendor_path / idx.path().filename();
+    for (auto &dir_entry : boost::filesystem::directory_iterator(cache_path)) {
+        const auto &path = dir_entry.path();
+        std::string file_path = path.string();
+        if (is_json_file(file_path)) {
+            const auto path_in_vendor = vendor_path / path.filename();
+            std::string vendor_name = path.filename().string();
+            // Remove the .json suffix.
+            vendor_name.erase(vendor_name.size() - 5);
+            auto print_in_cache = (cache_path / vendor_name / PRESET_PRINT_NAME);
+            auto filament_in_cache = (cache_path / vendor_name / PRESET_FILAMENT_NAME);
+            auto machine_in_cache = (cache_path / vendor_name / PRESET_PRINTER_NAME);
 
-		if (! fs::exists(bundle_path)) {
-			BOOST_LOG_TRIVIAL(info) << format("Confing bundle not installed for vendor %1%, skipping: ", idx.vendor());
-			continue;
-		}
+            if (( fs::exists(path_in_vendor))
+                &&( fs::exists(print_in_cache))
+                &&( fs::exists(filament_in_cache))
+                &&( fs::exists(machine_in_cache))) {
+                Semver vendor_ver = get_version_from_json(path_in_vendor.string());
 
-		// Perform a basic load and check the version of the installed preset bundle.
-		auto vp = VendorProfile::from_ini(bundle_path, false);
+                std::map<std::string, std::string> key_values;
+                std::vector<std::string> keys(2);
+				Semver cache_ver;
+                keys[0] = BBL_JSON_KEY_VERSION;
+                keys[1] = BBL_JSON_KEY_DESCRIPTION;
+                get_values_from_json(file_path, keys, key_values);
+                std::string description = key_values[BBL_JSON_KEY_DESCRIPTION];
+                auto config_version = Semver::parse(key_values[BBL_JSON_KEY_VERSION]);
+                if (config_version)
+                    cache_ver = *config_version;
 
-		// Getting a recommended version from the latest index, wich may have been downloaded
-		// from the internet, or installed / updated from the installation resources.
-		auto recommended = idx.recommended();
-		if (recommended == idx.end()) {
-			BOOST_LOG_TRIVIAL(error) << format("No recommended version for vendor: %1%, invalid index? Giving up.", idx.vendor());
-			// XXX: what should be done here?
-			continue;
-		}
+                std::string changelog;
+                std::string changelog_file = (cache_path / (vendor_name + ".changelog")).string();
+                boost::nowide::ifstream ifs(changelog_file);
+                if (ifs) {
+                    std::ostringstream oss; 
+                    oss<< ifs.rdbuf();
+                    changelog = oss.str();
+                    //ifs>>changelog;
+                    ifs.close();
+                }
 
-		const auto ver_current = idx.find(vp.config_version);
-		const bool ver_current_found = ver_current != idx.end();
+                if (vendor_ver < cache_ver) {
+                    Semver app_ver = *Semver::parse(SLIC3R_VERSION);
+                    if (cache_ver.maj() == app_ver.maj()){
+                        BOOST_LOG_TRIVIAL(info) << "[BBL Updater]:need to update settings from "<<vendor_ver.to_string()<<" to newer version "<<cache_ver.to_string() <<", app version "<<SLIC3R_VERSION;
+                        Version version;
+                        version.config_version = cache_ver;
+                        version.comment = description;
 
-		BOOST_LOG_TRIVIAL(debug) << format("Vendor: %1%, version installed: %2%%3%, version cached: %4%",
-			vp.name,
-			vp.config_version.to_string(),
-			(ver_current_found ? "" : " (not found in index!)"),
-			recommended->config_version.to_string());
+                        updates.updates.emplace_back(std::move(file_path), std::move(path_in_vendor.string()), std::move(version), vendor_name, changelog, description);
 
-		if (! ver_current_found) {
-			// Any published config shall be always found in the latest config index.
-			auto message = format("Preset bundle `%1%` version not found in index: %2%", idx.vendor(), vp.config_version.to_string());
-			BOOST_LOG_TRIVIAL(error) << message;
-			GUI::show_error(nullptr, message);
-			continue;
-		}
+                        //BBS: add directory support
+                        auto print_in_vendors = (vendor_path / vendor_name / PRESET_PRINT_NAME);
+                        updates.updates.emplace_back(std::move(print_in_cache), std::move(print_in_vendors.string()), Version(), vendor_name, "", "", false, true);
 
-		bool current_not_supported = false; //if slcr is incompatible but situation is not downgrade, we do forced updated and this bool is information to do it 
+                        auto filament_in_vendors = (vendor_path / vendor_name / PRESET_FILAMENT_NAME);
+                        updates.updates.emplace_back(std::move(filament_in_cache), std::move(filament_in_vendors.string()), Version(), vendor_name, "", "", false, true);
 
-		if (ver_current_found && !ver_current->is_current_slic3r_supported()){
-			if(ver_current->is_current_slic3r_downgrade()) {
-				// "Reconfigure" situation.
-				BOOST_LOG_TRIVIAL(warning) << "Current Slic3r incompatible with installed bundle: " << bundle_path.string();
-				updates.incompats.emplace_back(std::move(bundle_path), *ver_current, vp.name);
-				continue;
-			}
-		current_not_supported = true;
-		}
-
-		if (recommended->config_version < vp.config_version) {
-			BOOST_LOG_TRIVIAL(warning) << format("Recommended config version for the currently running BambuStudio is older than the currently installed config for vendor %1%. This should not happen.", idx.vendor());
-			continue;
-		}
-
-		if (recommended->config_version == vp.config_version) {
-			// The recommended config bundle is already installed.
-			continue;
-		}
-
-		// Config bundle update situation. The recommended config bundle version for this BambuStudio version from the index from the cache is newer
-		// than the version of the currently installed config bundle.
-
-		// The config index inside the cache directory (given by idx.path()) is one of the following:
-		// 1) The last config index downloaded by any previously running BambuStudio instance
-		// 2) The last config index installed by any previously running BambuStudio instance (older or newer) from its resources.
-		// 3) The last config index installed by the currently running BambuStudio instance from its resources.
-		// The config index is always the newest one (given by its newest config bundle referenced), and older config indices shall fully contain
-		// the content of the older config indices.
-
-		// Config bundle inside the cache directory.
-		fs::path path_in_cache 		= cache_path / (idx.vendor() + ".ini");
-		// Config bundle inside the resources directory.
-		fs::path path_in_rsrc 		= rsrc_path  / (idx.vendor() + ".ini");
-		// Config index inside the resources directory.
-		fs::path path_idx_in_rsrc 	= rsrc_path  / (idx.vendor() + ".idx");
-
-		// Search for a valid config bundle in the cache directory.
-		bool 		found = false;
-		Update    	new_update;
-		fs::path 	bundle_path_idx_to_install;
-		if (fs::exists(path_in_cache)) {
-			try {
-				VendorProfile new_vp = VendorProfile::from_ini(path_in_cache, false);
-				if (new_vp.config_version == recommended->config_version) {
-					// The config bundle from the cache directory matches the recommended version of the index from the cache directory.
-					// This is the newest known recommended config. Use it.
-					new_update = Update(std::move(path_in_cache), std::move(bundle_path), *recommended, vp.name, vp.changelog_url, current_not_supported);
-					// and install the config index from the cache into vendor's directory.
-					bundle_path_idx_to_install = idx.path();
-					found = true;
-				}
-			} catch (const std::exception &ex) {
-				BOOST_LOG_TRIVIAL(info) << format("Failed to load the config bundle `%1%`: %2%", path_in_cache.string(), ex.what());
-			}
-		}
-
-		// Keep the rsrc_idx outside of the next block, as we will reference the "recommended" version by an iterator.
-		Index rsrc_idx;
-		if (! found && fs::exists(path_in_rsrc) && fs::exists(path_idx_in_rsrc)) {
-			// Trying the config bundle from resources (from the installation).
-			// In that case, the recommended version number has to be compared against the recommended version reported by the config index from resources as well, 
-			// as the config index in the cache directory may already be newer, recommending a newer config bundle than available in cache or resources.
-			VendorProfile rsrc_vp;
-			try {
-				rsrc_vp = VendorProfile::from_ini(path_in_rsrc, false);
-			} catch (const std::exception &ex) {
-				BOOST_LOG_TRIVIAL(info) << format("Cannot load the config bundle at `%1%`: %2%", path_in_rsrc.string(), ex.what());
-			}
-			if (rsrc_vp.valid()) {
-				try {
-					rsrc_idx.load(path_idx_in_rsrc);
-				} catch (const std::exception &ex) {
-					BOOST_LOG_TRIVIAL(info) << format("Cannot load the config index at `%1%`: %2%", path_idx_in_rsrc.string(), ex.what());
-				}
-				recommended = rsrc_idx.recommended();
-				if (recommended != rsrc_idx.end() && recommended->config_version == rsrc_vp.config_version && recommended->config_version > vp.config_version) {
-					new_update = Update(std::move(path_in_rsrc), std::move(bundle_path), *recommended, vp.name, vp.changelog_url, current_not_supported);
-					bundle_path_idx_to_install = path_idx_in_rsrc;
-					found = true;
-				} else {
-					BOOST_LOG_TRIVIAL(warning) << format("The recommended config version for vendor `%1%` in resources does not match the recommended\n"
-			                                             " config version for this version of BambuStudio. Corrupted installation?", idx.vendor());
-				}
-			}
-		}
-
-		if (found) {
-			// Load 'installed' idx, if any.
-			// 'Installed' indices are kept alongside the bundle in the `vendor` subdir
-			// for bookkeeping to remember a cancelled update and not offer it again.
-			if (fs::exists(bundle_path_idx)) {
-				Index existing_idx;
-				try {
-					existing_idx.load(bundle_path_idx);
-					// Find a recommended config bundle version for the slic3r version last executed. This makes sure that a config bundle update will not be missed
-					// when upgrading an application. On the other side, the user will be bugged every time he will switch between slic3r versions.
-                    /*const auto existing_recommended = existing_idx.recommended(old_slic3r_version);
-                    if (existing_recommended != existing_idx.end() && recommended->config_version == existing_recommended->config_version) {
-						// The user has already seen (and presumably rejected) this update
-						BOOST_LOG_TRIVIAL(info) << format("Downloaded index for `%1%` is the same as installed one, not offering an update.",idx.vendor());
-						continue;
-					}*/
-				} catch (const std::exception &err) {
-					BOOST_LOG_TRIVIAL(error) << format("Cannot load the installed index at `%1%`: %2%", bundle_path_idx, err.what());
-				}
-			}
-
-			// Check if the update is already present in a snapshot
-			if(!current_not_supported)
-			{
-				const auto recommended_snap = SnapshotDB::singleton().snapshot_with_vendor_preset(vp.name, recommended->config_version);
-				if (recommended_snap != SnapshotDB::singleton().end()) {
-					BOOST_LOG_TRIVIAL(info) << format("Bundle update %1% %2% already found in snapshot %3%, skipping...",
-						vp.name,
-						recommended->config_version.to_string(),
-						recommended_snap->id);
-					continue;
-				}
-			}
-
-			updates.updates.emplace_back(std::move(new_update));
-			// 'Install' the index in the vendor directory. This is used to memoize
-			// offered updates and to not offer the same update again if it was cancelled by the user.
-			copy_file_fix(bundle_path_idx_to_install, bundle_path_idx);
-		} else {
-			BOOST_LOG_TRIVIAL(warning) << format("Index for vendor %1% indicates update (%2%) but the new bundle was found neither in cache nor resources",
-				idx.vendor(),
-				recommended->config_version.to_string());
-		}
-	}
+                        auto machine_in_vendors = (vendor_path / vendor_name / PRESET_PRINTER_NAME);
+                        updates.updates.emplace_back(std::move(machine_in_cache), std::move(machine_in_vendors.string()), Version(), vendor_name, "", "", false, true);
+                    }
+                }
+            }
+        }
+    }
 
 	return updates;
 }
@@ -678,12 +797,12 @@ bool PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
     //std::string vendor_path;
     //std::string vendor_name;
 	if (updates.incompats.size() > 0) {
-		if (snapshot) {
+		/*if (snapshot) {
 			BOOST_LOG_TRIVIAL(info) << "Taking a snapshot...";
 			if (! GUI::Config::take_config_snapshot_cancel_on_error(*GUI::wxGetApp().app_config, Snapshot::SNAPSHOT_DOWNGRADE, "",
 				_u8L("Continue and install configuration updates?")))
 				return false;
-		}
+		}*/
 		
 		BOOST_LOG_TRIVIAL(info) << format("Deleting %1% incompatible bundles", updates.incompats.size());
 
@@ -694,13 +813,12 @@ bool PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
 
 		
 	} else if (updates.updates.size() > 0) {
-		
-		if (snapshot) {
+		/*if (snapshot) {
 			BOOST_LOG_TRIVIAL(info) << "Taking a snapshot...";
 			if (! GUI::Config::take_config_snapshot_cancel_on_error(*GUI::wxGetApp().app_config, Snapshot::SNAPSHOT_UPGRADE, "",
 				_u8L("Continue and install configuration updates?")))
 				return false;
-		}
+		}*/
 
 		BOOST_LOG_TRIVIAL(info) << format("Performing %1% updates", updates.updates.size());
 
@@ -759,11 +877,10 @@ PresetUpdater::~PresetUpdater()
 }
 
 //BBS: change directories by design
+//BBS: refine the preset updater logic
 void PresetUpdater::sync(PresetBundle *preset_bundle)
 {
-	//BBS: disable online update currently
-#if 0
-	p->set_download_prefs(GUI::wxGetApp().app_config);
+	//p->set_download_prefs(GUI::wxGetApp().app_config);
 	if (!p->enabled_version_check && !p->enabled_config_update) { return; }
 
 	// Copy the whole vendors data for use in the background thread
@@ -776,12 +893,6 @@ void PresetUpdater::sync(PresetBundle *preset_bundle)
 		this->p->sync_version();
 		this->p->sync_config(std::move(vendors));
     });
-#else
-    //BBS: todo, force copy the resource to vendor at the beginning
-    std::vector<std::string> bundles;
-    bundles.push_back(std::string(PresetBundle::BBL_BUNDLE));
-    install_bundles_rsrc(bundles, false);
-#endif
 }
 
 void PresetUpdater::slic3r_update_notify()
@@ -809,11 +920,9 @@ static bool reload_configs_update_gui()
 	return true;
 }
 
+//BBS: refine the preset updater logic
 PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3r_version, UpdateParams params) const
 {
-	//BBS disable PresetUpdater
-	return R_NOOP;
-
  	if (! p->enabled_config_update) { return R_NOOP; }
 
 	auto updates = p->get_config_updates(old_slic3r_version);
@@ -873,8 +982,11 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
 
 			std::vector<GUI::MsgUpdateForced::Update> updates_msg;
 			for (const auto& update : updates.updates) {
-				std::string changelog_url = update.version.config_version.prerelease() == nullptr ? update.changelog_url : std::string();
-				updates_msg.emplace_back(update.vendor, update.version.config_version, update.version.comment, std::move(changelog_url));
+				//BBS: skip directory
+				if (update.is_directory)
+					continue;
+				std::string changelog = update.change_log;
+				updates_msg.emplace_back(update.vendor, update.version.config_version, update.descriptions, std::move(changelog));
 			}
 
 			GUI::MsgUpdateForced dlg(updates_msg);
@@ -903,8 +1015,11 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
 
 			std::vector<GUI::MsgUpdateConfig::Update> updates_msg;
 			for (const auto& update : updates.updates) {
-				std::string changelog_url = update.version.config_version.prerelease() == nullptr ? update.changelog_url : std::string();
-				updates_msg.emplace_back(update.vendor, update.version.config_version, update.version.comment, std::move(changelog_url));
+				//BBS: skip directory
+				if (update.is_directory)
+					continue;
+				std::string changelog = update.change_log;
+				updates_msg.emplace_back(update.vendor, update.version.config_version, update.descriptions, std::move(changelog));
 			}
 
 			GUI::MsgUpdateConfig dlg(updates_msg, params == UpdateParams::FORCED_BEFORE_WIZARD);
@@ -936,42 +1051,7 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
 //BBS: add json related logic
 bool PresetUpdater::install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot) const
 {
-	Updates updates;
-
-	BOOST_LOG_TRIVIAL(info) << format("Installing %1% bundles from resources ...", bundles.size());
-
-	for (const auto &bundle : bundles) {
-		auto path_in_rsrc = (p->rsrc_path / bundle).replace_extension(".json");
-		auto path_in_vendors = (p->vendor_path / bundle).replace_extension(".json");
-		updates.updates.emplace_back(std::move(path_in_rsrc), std::move(path_in_vendors), Version(), bundle, "");
-
-        //BBS: add directory support
-        auto print_in_rsrc = (p->rsrc_path / bundle / PRESET_PRINT_NAME);
-		auto print_in_vendors = (p->vendor_path / bundle / PRESET_PRINT_NAME);
-        fs::path print_folder(print_in_vendors);
-        if (fs::exists(print_folder))
-            fs::remove_all(print_folder);
-        fs::create_directories(print_folder);
-		updates.updates.emplace_back(std::move(print_in_rsrc), std::move(print_in_vendors), Version(), bundle, "", false, true);
-
-        auto filament_in_rsrc = (p->rsrc_path / bundle / PRESET_FILAMENT_NAME);
-		auto filament_in_vendors = (p->vendor_path / bundle / PRESET_FILAMENT_NAME);
-        fs::path filament_folder(filament_in_vendors);
-        if (fs::exists(filament_folder))
-            fs::remove_all(filament_folder);
-        fs::create_directories(filament_folder);
-		updates.updates.emplace_back(std::move(filament_in_rsrc), std::move(filament_in_vendors), Version(), bundle, "", false, true);
-
-        auto machine_in_rsrc = (p->rsrc_path / bundle / PRESET_PRINTER_NAME);
-		auto machine_in_vendors = (p->vendor_path / bundle / PRESET_PRINTER_NAME);
-        fs::path machine_folder(machine_in_vendors);
-        if (fs::exists(machine_folder))
-            fs::remove_all(machine_folder);
-        fs::create_directories(machine_folder);
-		updates.updates.emplace_back(std::move(machine_in_rsrc), std::move(machine_in_vendors), Version(), bundle, "", false, true);
-	}
-
-	return p->perform_updates(std::move(updates), snapshot);
+	return p->install_bundles_rsrc(bundles, snapshot);
 }
 
 void PresetUpdater::on_update_notification_confirm()
@@ -982,8 +1062,11 @@ void PresetUpdater::on_update_notification_confirm()
 
 	std::vector<GUI::MsgUpdateConfig::Update> updates_msg;
 	for (const auto& update : p->waiting_updates.updates) {
-		std::string changelog_url = update.version.config_version.prerelease() == nullptr ? update.changelog_url : std::string();
-		updates_msg.emplace_back(update.vendor, update.version.config_version, update.version.comment, std::move(changelog_url));
+		//BBS: skip directory
+		if (update.is_directory)
+			continue;
+		std::string changelog = update.change_log;
+		updates_msg.emplace_back(update.vendor, update.version.config_version, update.descriptions, std::move(changelog));
 	}
 
 	GUI::MsgUpdateConfig dlg(updates_msg);

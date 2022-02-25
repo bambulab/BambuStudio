@@ -46,13 +46,15 @@ public:
 		std::string vendor;
 		Semver version;
 		std::string comment;
-		std::string changelog_url;
+		//BBS: use changelog string instead of url
+		std::string change_log;
 
-		Update(std::string vendor, Semver version, std::string comment, std::string changelog_url)
+        //BBS: use changelog string instead of url
+		Update(std::string vendor, Semver version, std::string comment, std::string changelog)
 			: vendor(std::move(vendor))
 			, version(std::move(version))
 			, comment(std::move(comment))
-			, changelog_url(std::move(changelog_url))
+			, change_log(std::move(changelog))
 		{}
 	};
 
@@ -74,13 +76,15 @@ public:
 		std::string vendor;
 		Semver version;
 		std::string comment;
-		std::string changelog_url;
+		//BBS: use changelog string instead of url
+		std::string change_log;
 
-		Update(std::string vendor, Semver version, std::string comment, std::string changelog_url)
+		//BBS: use changelog string instead of url
+		Update(std::string vendor, Semver version, std::string comment, std::string changelog)
 			: vendor(std::move(vendor))
 			, version(std::move(version))
 			, comment(std::move(comment))
-			, changelog_url(std::move(changelog_url))
+			, change_log(std::move(changelog))
 		{}
 	};
 

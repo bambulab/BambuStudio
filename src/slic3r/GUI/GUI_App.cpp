@@ -990,9 +990,7 @@ void GUI_App::post_init()
         CallAfter([this] {
             bool cw_showed = this->config_wizard_startup();
 
-            //BBS: TODO: workaround solution currently, move it before load_preset
-            //need to move back to here later
-            //this->preset_updater->sync(preset_bundle);
+            this->preset_updater->sync(preset_bundle);
             if (! cw_showed) {
                 // The CallAfter is needed as well, without it, GL extensions did not show.
                 // Also, we only want to show this when the wizard does not, so the new user
@@ -1180,6 +1178,10 @@ void GUI_App::init_app_config()
 // returns true if found newer version and user agreed to use it
 bool GUI_App::check_older_app_config(Semver current_version, bool backup)
 {
+#if 1
+    //BBS: current no need these logic
+    return false;
+#else
     // If the config folder is redefined - do not check
     if (m_datadir_redefined)
         return false;
@@ -1278,6 +1280,7 @@ bool GUI_App::check_older_app_config(Semver current_version, bool backup)
         return true;
     }
     return false;
+#endif
 }
 
 void GUI_App::copy_older_config()
@@ -1519,9 +1522,6 @@ bool GUI_App::on_init_inner()
                 }
             }
             });*/
-        //BBS: TODO: workaround solution currently, always update bbl.ini from resource to vendor to make sure the modification valid after software upgrade
-        //currently do it before preset_bundle->load_presets, need to move back later
-        preset_updater->sync(preset_bundle);
     }
     else {
 #ifdef __WXMSW__ 

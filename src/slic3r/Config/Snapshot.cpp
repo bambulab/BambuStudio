@@ -370,6 +370,8 @@ void SnapshotDB::update_slic3r_versions(std::vector<Index> &index_db)
 
 static void copy_config_dir_single_level(const boost::filesystem::path &path_src, const boost::filesystem::path &path_dst)
 {
+//BBS: remove snapshots function currently
+#if 0
     if (! boost::filesystem::is_directory(path_dst) && 
         ! boost::filesystem::create_directory(path_dst))
         throw Slic3r::RuntimeError(std::string("BambuStudio was unable to create a directory at ") + path_dst.string());
@@ -378,15 +380,19 @@ static void copy_config_dir_single_level(const boost::filesystem::path &path_src
         if (Slic3r::is_ini_file(dir_entry))
             if (std::string error_message; copy_file(dir_entry.path().string(), (path_dst / dir_entry.path().filename()).string(), error_message, false) != SUCCESS)
                 throw Slic3r::RuntimeError(format("Failed copying \"%1%\" to \"%2%\": %3%", path_src.string(), path_dst.string(), error_message));
+#endif
 }
 
 static void delete_existing_ini_files(const boost::filesystem::path &path)
 {
+//BBS: remove snapshots function currently
+#if 0
     if (! boost::filesystem::is_directory(path))
     	return;
     for (auto &dir_entry : boost::filesystem::directory_iterator(path))
         if (boost::filesystem::is_regular_file(dir_entry.status()) && boost::algorithm::iends_with(dir_entry.path().filename().string(), ".ini"))
 		    boost::filesystem::remove(dir_entry.path());
+#endif
 }
 
 const Snapshot&	SnapshotDB::take_snapshot(const AppConfig &app_config, Snapshot::Reason reason, const std::string &comment)
@@ -429,22 +435,11 @@ const Snapshot&	SnapshotDB::take_snapshot(const AppConfig &app_config, Snapshot:
         // Read the active config bundle, parse the config version.
         PresetBundle bundle;
         //BBS: change directoties by design
-        bundle.load_configbundle((data_dir / PRESET_SYSTEM_DIR / (cfg.name + ".ini")).string(), PresetBundle::LoadConfigBundleAttribute::LoadVendorOnly, ForwardCompatibilitySubstitutionRule::EnableSilent);
+        //bundle.load_configbundle((data_dir / PRESET_SYSTEM_DIR / (cfg.name + ".ini")).string(), PresetBundle::LoadConfigBundleAttribute::LoadVendorOnly, ForwardCompatibilitySubstitutionRule::EnableSilent);
+        bundle.load_vendor_configs_from_json((data_dir/PRESET_SYSTEM_DIR).string(), cfg.name, PresetBundle::LoadConfigBundleAttribute::LoadVendorOnly, ForwardCompatibilitySubstitutionRule::EnableSilent);
         for (const auto &vp : bundle.vendors)
             if (vp.second.id == cfg.name)
                 cfg.version.config_version = vp.second.config_version;
-        // Fill-in the min/max slic3r version from the config index, if possible.
-        try {
-            // Load the config index for the vendor.
-            Index index;
-            index.load(data_dir / PRESET_SYSTEM_DIR / (cfg.name + ".idx"));
-            auto it = index.find(cfg.version.config_version);
-            if (it != index.end()) {
-                cfg.version.min_slic3r_version = it->min_slic3r_version;
-                cfg.version.max_slic3r_version = it->max_slic3r_version;
-            }
-        } catch (const std::runtime_error & /* err */) {
-        }
         snapshot.vendor_configs.emplace_back(std::move(cfg));
     }
 

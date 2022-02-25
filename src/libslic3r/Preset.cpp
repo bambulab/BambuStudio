@@ -49,6 +49,51 @@ using boost::property_tree::ptree;
 
 namespace Slic3r {
 
+//BBS: add a function to load the version from xxx.json
+Semver get_version_from_json(std::string file_path)
+{
+    try {
+        boost::nowide::ifstream ifs(file_path);
+        json j;
+        ifs >> j;
+        std::string version_str = j.at(BBL_JSON_KEY_VERSION);
+
+        auto config_version = Semver::parse(version_str);
+        if (! config_version) {
+            return Semver();
+        } else {
+            return *config_version;
+        }
+    }
+    catch(nlohmann::detail::parse_error &err) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file_path<<" got a nlohmann::detail::parse_error, reason = " << err.what();
+        throw ConfigurationError(format("Failed loading configuration file \"%1%\": %2%", file_path, err.what()));
+    }
+}
+
+//BBS: add a function to load the key-values from xxx.json
+int get_values_from_json(std::string file_path, std::vector<std::string>& keys, std::map<std::string, std::string>& key_values)
+{
+    try {
+        boost::nowide::ifstream ifs(file_path);
+        json j;
+        ifs >> j;
+
+        for (int i=0; i < keys.size(); i++)
+        {
+            if (j.contains(keys[i])) {
+                std::string value = j.at(keys[i]);
+                key_values.emplace(keys[i], value);
+            }
+        }
+    }
+    catch(nlohmann::detail::parse_error &err) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file_path<<" got a nlohmann::detail::parse_error, reason = " << err.what();
+        throw ConfigurationError(format("Failed loading json file \"%1%\": %2%", file_path, err.what()));
+    }
+    return key_values.size();
+}
+
 ConfigFileType guess_config_file_type(const ptree &tree)
 {
     size_t app_config   = 0;
