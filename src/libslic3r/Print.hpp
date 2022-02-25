@@ -35,6 +35,13 @@ class TreeSupportLayer;
 class TreeSupportData;
 class TreeSupport;
 
+// BBS: move from PrintObjectSlice.cpp
+struct VolumeSlices
+{
+    ObjectID                volume_id;
+    std::vector<ExPolygons> slices;
+};
+
 namespace FillAdaptive {
     struct Octree;
     struct OctreeDeleter;
@@ -292,6 +299,7 @@ public:
 
     // BBS
     void generate_support_preview();
+    const std::vector<VolumeSlices>& firstLayerObjSlice() const { return firstLayerObjSliceByVolume; }
 
     bool                         has_brim() const       {
         return ((this->config().brim_type != btNoBrim && this->config().brim_width.value > 0.) || this->config().brim_type == btAutoBrim)
@@ -443,6 +451,8 @@ private:
     // this is set to true when LayerRegion->slices is split in top/internal/bottom
     // so that next call to make_perimeters() performs a union() before computing loops
     bool                    				m_typed_slices = false;
+    // BBS: first layer slices sorted by volume
+    std::vector < VolumeSlices >            firstLayerObjSliceByVolume;
 };
 
 struct WipeTowerData

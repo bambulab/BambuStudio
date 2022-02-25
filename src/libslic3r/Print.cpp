@@ -874,97 +874,7 @@ void Print::auto_assign_extruders(ModelObject* model_object) const
             volume->config.set("extruder", int(volume_id + 1));
     }
 }
-//BBS maximum temperature difference from print object class
-double getTemperatureFromExtruder(const PrintObject *printObject) {
-    // BBS: FIXME
-#if 0
-    auto print = printObject -> print();
-    std::vector<size_t> extrudersFirstLayer;
-    auto firstLayerRegions = printObject->layers().front()->regions();
-    if (!firstLayerRegions.empty()) {
-        for (const LayerRegion* regionPtr : firstLayerRegions) {
-            if (regionPtr->has_extrusions())
-                extrudersFirstLayer.push_back(regionPtr->region().extruder(frExternalPerimeter));
-        }
-    }
-    
-    double maxDeltaTemp = 0;
-    for (auto extruderID : extrudersFirstLayer) {
-        if (print->config().bed_temperature.get_at(extruderID-1) > maxDeltaTemp)
-            maxDeltaTemp = print->config().bed_temperature.get_at(extruderID - 1);
-    }
-    return maxDeltaTemp;
-#else
-    return 0.f;
-#endif
-}
-//BBS adhesion coefficients from print object class
-double getadhesionCoeff(const PrintObject* printObject)
-{
-    auto& insts = printObject->instances();
-    auto objectVolumes = insts[0].model_instance->get_object()->volumes;
 
-    auto print = printObject->print();
-    std::vector<size_t> extrudersFirstLayer;
-    auto firstLayerRegions = printObject->layers().front()->regions();
-    if (!firstLayerRegions.empty()) {
-        for (const LayerRegion* regionPtr : firstLayerRegions) {
-            if (regionPtr->has_extrusions())
-                extrudersFirstLayer.push_back(regionPtr->region().extruder(frExternalPerimeter));
-        }
-    }
-    auto temp3 = Model::extruderParamsMap;
-    double adhesionCoeff = 1;
-    for (const ModelVolume* modelVolume : objectVolumes) {
-        for (auto iter = extrudersFirstLayer.begin(); iter != extrudersFirstLayer.end(); iter++)
-            if (modelVolume->extruder_id() == *iter) {
-                if (Model::extruderParamsMap.find(modelVolume->extruder_id())!= Model::extruderParamsMap.end())
-                    if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PET"){
-                        adhesionCoeff = 2;
-                    }else if(Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU"){
-                        adhesionCoeff = 0.5;
-                    }
-            }
-    }
-
-    return adhesionCoeff;
-	/*
-   def->enum_values.push_back("PLA");
-   def->enum_values.push_back("PET");
-   def->enum_values.push_back("ABS");
-   def->enum_values.push_back("ASA");
-   def->enum_values.push_back("TPU");//BBS
-   def->enum_values.push_back("FLEX");
-   def->enum_values.push_back("HIPS");
-   def->enum_values.push_back("EDGE");
-   def->enum_values.push_back("NGEN");
-   def->enum_values.push_back("NYLON");
-   def->enum_values.push_back("PVA");
-   def->enum_values.push_back("PC");
-   def->enum_values.push_back("PP");
-   def->enum_values.push_back("PEI");
-   def->enum_values.push_back("PEEK");
-   def->enum_values.push_back("PEKK");
-   def->enum_values.push_back("POM");
-   def->enum_values.push_back("PSU");
-   def->enum_values.push_back("PVDF");
-   def->enum_values.push_back("SCAFF");
-   */
-}
-// BBS: auto assign brimWidth obj by objs
-void PrintObject::autoBrimConfigWidth(double flowWidth)
-{
-    bool has_brim_auto = this->config().brim_type == btAutoBrim;
-    if (has_brim_auto){
-        double deltaT = getTemperatureFromExtruder(this);
-        double adhension = getadhesionCoeff(this);
-        auto &insts = this->instances();
-        double brim_width = insts[0].model_instance->get_auto_brim_width(deltaT, adhension);
-        brim_width = floor(brim_width / flowWidth / 2) * flowWidth * 2;
-        this->configBrimWidth(brim_width);
-        BOOST_LOG_TRIVIAL(debug) << "brim_width_map: " << this->id().id << ", " << brim_width;
-    }
-}
 // BBS
 BoundingBox PrintObject::get_first_layer_bbox(float& a, float& layer_height, std::string& name)
 {
@@ -1037,11 +947,6 @@ void Print::process()
         }
         this->set_done(psWipeTower);
     }
-    //BBS: set brim width by boundingbox
-    double flowWidth = brim_flow().scaled_spacing() * SCALING_FACTOR;
-    for (PrintObject* obj : m_objects)
-        obj->autoBrimConfigWidth(flowWidth); // set brimwidth for each print objects
-
     if (this->set_started(psSkirtBrim)) {
         this->set_status(88, L("Generating skirt and brim"));
 
@@ -1063,6 +968,8 @@ void Print::process()
         bool         has_wipe_tower = false;
         std::vector<const PrintInstance*> 					print_object_instances_ordering;
         std::vector<const PrintInstance*>::const_iterator 	print_object_instance_sequential_active;
+        std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> layers_to_print = GCode::collect_layers_to_print(*this);
+        std::vector<unsigned int> printExtruders;
         if (this->config().complete_objects.value) {
             // Order object instances for sequential print.
             print_object_instances_ordering = sort_object_instances_by_model_order(*this);
@@ -1070,8 +977,9 @@ void Print::process()
             print_object_instance_sequential_active = print_object_instances_ordering.begin();
             for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++print_object_instance_sequential_active) {
                 tool_ordering = ToolOrdering(*(*print_object_instance_sequential_active)->print_object, initial_extruder_id);
-                if ((initial_extruder_id = tool_ordering.first_extruder()) != static_cast<unsigned int>(-1))
-                    break;
+                if ((initial_extruder_id = tool_ordering.first_extruder()) != static_cast<unsigned int>(-1)) {
+                    append(printExtruders, tool_ordering.tools_for_layer(layers_to_print.front().first).extruders);
+                }
             }
         }
         else {
@@ -1084,10 +992,8 @@ void Print::process()
                 // Don't skip the priming towers.
                 tool_ordering.first_extruder();
             print_object_instances_ordering = chain_print_object_instances(*this);
+            append(printExtruders, tool_ordering.tools_for_layer(layers_to_print.front().first).extruders);
         }
-        // BBS: get the actural tool ordering
-        std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> layers_to_print = GCode::collect_layers_to_print(*this);
-        auto printExtruders = tool_ordering.tools_for_layer(layers_to_print.front().first).extruders;
 
         auto objectExtruderMap = getObjectExtruderMap(*this);
         std::vector<std::pair<ObjectID, unsigned int>> objPrintVec;

@@ -594,6 +594,224 @@ static ExPolygons inner_brim_area(const Print& print, const ConstPrintObjectPtrs
     append(no_brim_area, brim_area);
     return no_brim_area;
 }
+
+//BBS maximum temperature difference from print object class
+double getTemperatureFromExtruder(const PrintObject* printObject) {
+    auto print = printObject->print();
+    std::vector<size_t> extrudersFirstLayer;
+    auto firstLayerRegions = printObject->layers().front()->regions();
+    if (!firstLayerRegions.empty()) {
+        for (const LayerRegion* regionPtr : firstLayerRegions) {
+            if (regionPtr->has_extrusions())
+                extrudersFirstLayer.push_back(regionPtr->region().extruder(frExternalPerimeter));
+        }
+    }
+
+    double maxDeltaTemp = 0;
+    for (auto extruderID : extrudersFirstLayer) {
+        int bedTemp = 0;
+        for (int i = 0; i != BedType::btCount; ++i) {
+            if (print->config().bed_temperature.get_at((extruderID - 1) * BedType::btCount + i) != 0) {
+                bedTemp = print->config().bed_temperature.get_at((extruderID - 1) * BedType::btCount + i);
+                break;
+            }
+        }
+        if (bedTemp > maxDeltaTemp)
+            maxDeltaTemp = bedTemp;
+    }
+    return maxDeltaTemp;
+}
+//BBS adhesion coefficients from print object class
+double getadhesionCoeff(const PrintObject* printObject)
+{
+    auto& insts = printObject->instances();
+    auto objectVolumes = insts[0].model_instance->get_object()->volumes;
+
+    auto print = printObject->print();
+    std::vector<size_t> extrudersFirstLayer;
+    auto firstLayerRegions = printObject->layers().front()->regions();
+    if (!firstLayerRegions.empty()) {
+        for (const LayerRegion* regionPtr : firstLayerRegions) {
+            if (regionPtr->has_extrusions())
+                extrudersFirstLayer.push_back(regionPtr->region().extruder(frExternalPerimeter));
+        }
+    }
+    double adhesionCoeff = 1;
+    for (const ModelVolume* modelVolume : objectVolumes) {
+        for (auto iter = extrudersFirstLayer.begin(); iter != extrudersFirstLayer.end(); iter++)
+            if (modelVolume->extruder_id() == *iter) {
+                if (Model::extruderParamsMap.find(modelVolume->extruder_id()) != Model::extruderParamsMap.end())
+                    if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PET") {
+                        adhesionCoeff = 2;
+                    }
+                    else if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU") {
+                        adhesionCoeff = 0.5;
+                    }
+            }
+    }
+
+    return adhesionCoeff;
+    /*
+   def->enum_values.push_back("PLA");
+   def->enum_values.push_back("PET");
+   def->enum_values.push_back("ABS");
+   def->enum_values.push_back("ASA");
+   def->enum_values.push_back("TPU");//BBS
+   def->enum_values.push_back("FLEX");
+   def->enum_values.push_back("HIPS");
+   def->enum_values.push_back("EDGE");
+   def->enum_values.push_back("NGEN");
+   def->enum_values.push_back("NYLON");
+   def->enum_values.push_back("PVA");
+   def->enum_values.push_back("PC");
+   def->enum_values.push_back("PP");
+   def->enum_values.push_back("PEI");
+   def->enum_values.push_back("PEEK");
+   def->enum_values.push_back("PEKK");
+   def->enum_values.push_back("POM");
+   def->enum_values.push_back("PSU");
+   def->enum_values.push_back("PVDF");
+   def->enum_values.push_back("SCAFF");
+   */
+}
+// update the maxSpeed of an object if it is different from the global configuration
+double findMaxSpeed(const ModelObject* object) {
+    auto objectKeys = object->config.keys();
+    double objMaxSpeed = Model::printSpeedMap.maxSpeed;
+    if (objectKeys.empty())
+        return objMaxSpeed;
+    for (std::string objectKey : objectKeys) {
+        if (objectKey == "perimeter_speed" || objectKey== "infill_speed" || objectKey == "support_material_speed")
+            objMaxSpeed = std::max(object->config.opt_float(objectKey), objMaxSpeed);
+        else if (objectKey == "external_perimeter_speed") {
+            objMaxSpeed = std::max(object->config.get().get_abs_value(objectKey, Model::printSpeedMap.perimeterSpeed), objMaxSpeed);
+        }
+        else if (objectKey == "solid_infill_speed" || objectKey == "top_solid_infill_speed") {
+            objMaxSpeed = std::max(object->config.get().get_abs_value(objectKey, Model::printSpeedMap.infillSpeed), objMaxSpeed);
+        }
+    }
+    return objMaxSpeed;
+}
+// BBS: second moment of area of a polygon
+bool compSecondMoment(Polygon poly, Vec2d& sm)
+{
+    if (poly.is_clockwise())
+        poly.make_counter_clockwise();
+
+    sm = Vec2d(0., 0.);
+    if (poly.points.size() >= 3) {
+        Vec2d p1 = poly.points.back().cast<double>();
+        for (const Point& p : poly.points) {
+            Vec2d p2 = p.cast<double>();
+            double a = cross2(p1, p2);
+
+            sm += Vec2d((p1.y() * p1.y() + p1.y() * p2.y() + p2.y() * p2.y()), (p1.x() * p1.x() + p1.x() * p2.x() + p2.x() * p2.x())) * a / 12;
+            p1 = p2;
+        }
+        return true;
+    }
+    return false;
+}
+// BBS: properties of an expolygon
+struct ExPolyProp
+{
+    double aera = 0;
+    Vec2d  centroid;
+    Vec2d  secondMomentOfAreaRespectToCentroid;
+
+};
+// BBS: second moment of area of an expolyon
+bool compSecondMoment(const ExPolygon& expoly, ExPolyProp& expolyProp)
+{
+    double aera = expoly.contour.area();
+    Vec2d cent = expoly.contour.centroid().cast<double>() * aera;
+    Vec2d sm;
+    compSecondMoment(expoly.contour, sm);
+
+    for (auto& hole : expoly.holes) {
+        double a = hole.area();
+        aera += hole.area();
+        cent += hole.centroid().cast<double>() * a;
+        Vec2d smh;
+        compSecondMoment(hole, smh);
+        sm += -smh;
+    }
+
+    cent = cent / aera;
+    sm = sm - Vec2d(cent.y() * cent.y(), cent.x() * cent.x()) * aera;
+    expolyProp.aera = aera;
+    expolyProp.centroid = cent;
+    expolyProp.secondMomentOfAreaRespectToCentroid = sm;
+    return true;
+}
+
+// BBS: second moment of area of expolygons
+bool compSecondMoment(const ExPolygons& expolys, double& smExpolysX, double& smExpolysY)
+{
+    if (expolys.empty()) return false;
+    std::vector<ExPolyProp> props;
+    for (const ExPolygon& expoly : expolys) {
+        ExPolyProp prop;
+        compSecondMoment(expoly, prop);
+        props.push_back(prop);
+    }
+    double totalArea = 0.;
+    Vec2d staticMoment(0., 0.);
+    for (const ExPolyProp& prop : props) {
+        totalArea += prop.aera;
+        staticMoment += prop.centroid * prop.aera;
+    }
+    double totalCentroidX = staticMoment.x() / totalArea;
+    double totalCentroidY = staticMoment.y() / totalArea;
+
+    smExpolysX = 0;
+    smExpolysY = 0;
+    for (const ExPolyProp& prop : props) {
+        double deltaX = prop.centroid.x() - totalCentroidX;
+        double deltaY = prop.centroid.y() - totalCentroidY;
+        smExpolysX += prop.secondMomentOfAreaRespectToCentroid.x() + prop.aera * deltaY * deltaY;
+        smExpolysY += prop.secondMomentOfAreaRespectToCentroid.y() + prop.aera * deltaX * deltaX;
+    }
+
+    return true;
+}
+
+//BBS: config brimwidth by volumes
+double configBrimWidthByVolumes(double deltaT, double adhension, double maxSpeed, const ModelVolume* modelVolumePtr, const ExPolygons& expolys)
+{
+    // height of a volume
+    double height = 0;
+    if (modelVolumePtr->is_model_part()) {
+        auto rawBoundingbox = modelVolumePtr->mesh().transformed_bounding_box(modelVolumePtr->get_matrix());
+        auto bbox = modelVolumePtr->get_object()->instances.front()->transform_bounding_box(rawBoundingbox);
+        auto bbox_size = bbox.size();
+        height = bbox_size(2);
+    }
+
+    // sencond moment of the expolygons of the first layer of the volume
+    double Ixx, Iyy;
+    if (!expolys.empty()) {
+        compSecondMoment(expolys, Ixx, Iyy);
+    }
+    Ixx = Ixx * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR;
+    Iyy = Iyy * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR;
+
+    // bounding box of the expolygons of the first layer of the volume
+    BoundingBox bbox2;
+    for (const auto& expoly : expolys)
+        bbox2.merge(get_extents(expoly.contour));
+    double thermalLength = std::max(bbox2.size()(0), bbox2.size()(1)) * SCALING_FACTOR;
+
+    double height_to_area = std::max(height / Ixx * (bbox2.size()(1) * SCALING_FACTOR), height / Iyy * (bbox2.size()(0) * SCALING_FACTOR));
+    double brim_width = adhension * std::min(std::min(std::max(height_to_area * maxSpeed / 24, (deltaT - 30) / 75 * thermalLength * 0.15), 18.), 1.5 * thermalLength);
+    // small brims are omitted
+    if (brim_width < 5 && brim_width < 1.5 * thermalLength)
+        brim_width = 0;
+    // large brims are omitted
+    if (brim_width > 18) brim_width = 18.;
+
+    return brim_width;
+}
 //BBS: create all brims
 static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObjectPtrs& top_level_objects_with_brim,
     const float no_brim_offset, std::map<ObjectID, ExPolygons>& brimAreaMap,
@@ -633,13 +851,15 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
         for (const auto& objectWithExtruder : objPrintVec) {
             const PrintObject* object = print.get_object(objectWithExtruder.first);
             const BrimType     brim_type = object->config().brim_type.value;
-            const float        brim_offset = scale_(object->config().brim_object_gap.value);
+            float              brim_offset = scale_(object->config().brim_object_gap.value);
             double             flowWidth = print.brim_flow().scaled_spacing() * SCALING_FACTOR;
-            const float        brim_width = scale_(floor(object->config().brim_width.value / flowWidth / 2) * flowWidth * 2);
+            float              brim_width = scale_(floor(object->config().brim_width.value / flowWidth / 2) * flowWidth * 2);
             const bool         top_outer_brim = top_level_objects_idx.find(object->id().id) != top_level_objects_idx.end();
             const float        scaled_flow_width = print.brim_flow().scaled_spacing();
             const float        scaled_additional_brim_width = scale_(floor(5 / flowWidth / 2) * flowWidth * 2);
             const float        scaled_half_min_adh_length = scale_(1.1);
+            bool               has_brim_auto = object->config().brim_type == btAutoBrim;
+
             ExPolygons         brim_area_object;
             ExPolygons         no_brim_area_object;
             ExPolygons         brim_area_support;
@@ -647,21 +867,51 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
             Polygons           holes_object;
             Polygons           holes_support;
             if (objectWithExtruder.second == extruderNo && brimToWrite.at(object->id()).obj) {
-                for (const ExPolygon& ex_poly : object->layers().front()->lslices) {
-                    // BBS: additional brim width will be added if part's adhension area is too small and brim is not generated 
-                    float brim_width_mod = ex_poly.area() / ex_poly.contour.length() < scaled_half_min_adh_length
-                        && brim_width < scaled_flow_width ? brim_width + scaled_additional_brim_width : brim_width;
-                    brim_width_mod = floor(brim_width_mod / scaled_flow_width / 2) * scaled_flow_width * 2;
-                    if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner || brim_type == BrimType::btAutoBrim) {
-                        append(brim_area_object, diff_ex(offset_ex(ex_poly.contour, brim_width_mod + brim_offset, jtRound, SCALED_RESOLUTION), offset_ex(ex_poly.contour, brim_offset)));
+                double             deltaT = getTemperatureFromExtruder(object);
+                double             adhension = getadhesionCoeff(object);
+                double             maxSpeed = findMaxSpeed(object->model_object());
+                // BBS brims are generated by volumes
+                for (const auto& volumeSlices : object->firstLayerObjSlice()) {
+                    ModelVolume* currentModelVolumePtr = nullptr;
+                    for (auto volumePtr : object->model_object()->volumes) {
+                        if (volumePtr->id() == volumeSlices.volume_id) {
+                            currentModelVolumePtr = volumePtr;
+                            break;
+                        }
                     }
-                    if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btOuterAndInner)
-                        append(brim_area_object, diff_ex(offset_ex(ex_poly.holes, -brim_offset), offset_ex(ex_poly.holes, -brim_width - brim_offset)));
-                    if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btNoBrim)
-                        append(no_brim_area_object, diff_ex(offset(ex_poly.contour, no_brim_offset), ex_poly.holes));
-                    if (brim_type == BrimType::btNoBrim)
-                        append(no_brim_area_object, offset_ex(ex_poly.holes, -no_brim_offset));
-                    append(holes_object, ex_poly.holes);
+                    if (currentModelVolumePtr == nullptr) continue;
+                    double brimWidthRaw = configBrimWidthByVolumes(deltaT, adhension, maxSpeed, currentModelVolumePtr, volumeSlices.slices.front());
+                    if (has_brim_auto){
+                        brim_width = scale_(floor(brimWidthRaw / flowWidth / 2) * flowWidth * 2);
+                        brim_offset = 0.;
+                    }
+                    for (const ExPolygon& ex_poly : volumeSlices.slices.front()) {
+                        // BBS: additional brim width will be added if part's adhension area is too small and brim is not generated
+                        float brim_width_mod;
+                        if (brim_width < scale_(5.)) {
+                            brim_width_mod = ex_poly.area() / ex_poly.contour.length() < scaled_half_min_adh_length
+                                && brim_width < scaled_flow_width ? brim_width + scaled_additional_brim_width : brim_width;
+                        }
+                        else {
+                            brim_width_mod = brim_width;
+                        }
+                        brim_width_mod = floor(brim_width_mod / scaled_flow_width / 2) * scaled_flow_width * 2;
+                        // After prusa 2.4 offset and shrink don't work with CW polygons (holes), so let's make it CCW.
+                        Polygons ex_poly_holes_reversed = ex_poly.holes;
+                        polygons_reverse(ex_poly_holes_reversed);
+
+                        if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner || brim_type == BrimType::btAutoBrim) {
+                            append(brim_area_object, diff_ex(offset_ex(ex_poly.contour, brim_width_mod + brim_offset, jtRound, SCALED_RESOLUTION), offset_ex(ex_poly.contour, brim_offset)));
+                        }
+                        if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btOuterAndInner) {
+                            append(brim_area_object, diff_ex(offset_ex(ex_poly_holes_reversed, -brim_offset), offset_ex(ex_poly_holes_reversed, -brim_width - brim_offset)));
+                        }
+                        if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btNoBrim)
+                            append(no_brim_area_object, diff_ex(offset(ex_poly.contour, no_brim_offset), ex_poly_holes_reversed));
+                        if (brim_type == BrimType::btNoBrim)
+                            append(no_brim_area_object, offset_ex(ex_poly_holes_reversed, -no_brim_offset));
+                        append(holes_object, ex_poly_holes_reversed);
+                    }
                 }
                 append(no_brim_area_object, offset_ex(object->layers().front()->lslices, brim_offset));
                 brimToWrite.at(object->id()).obj = false;

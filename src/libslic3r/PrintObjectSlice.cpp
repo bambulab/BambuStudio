@@ -103,13 +103,6 @@ static std::vector<ExPolygons> slice_volume(
     }
     return out;
 }
-
-struct VolumeSlices
-{
-    ObjectID                volume_id;
-    std::vector<ExPolygons> slices;
-};
-
 static inline bool model_volume_needs_slicing(const ModelVolume &mv)
 {
     ModelVolumeType type = mv.type();
@@ -716,8 +709,13 @@ void PrintObject::slice_volumes()
         for (const std::unique_ptr<PrintRegion> &pr : m_shared_regions->all_regions)
             layer->m_regions.emplace_back(new LayerRegion(layer, pr.get()));
     }
-
+    // BBS: first layer slices are sorted by volume
     std::vector<float>                   slice_zs      = zs_from_layers(m_layers);
+    if (!slice_zs.empty()) {
+        firstLayerObjSliceByVolume = slice_volumes_inner(
+            print->config(), this->config(), this->trafo_centered(),
+            this->model_object()->volumes, m_shared_regions->layer_ranges, {slice_zs.front()}, throw_on_cancel_callback);
+    }
     std::vector<std::vector<ExPolygons>> region_slices = slices_to_regions(this->model_object()->volumes, *m_shared_regions, slice_zs,
         slice_volumes_inner(
             print->config(), this->config(), this->trafo_centered(),
