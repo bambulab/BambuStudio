@@ -147,7 +147,7 @@ void PrintObject::make_perimeters()
     // hollow objects
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         const PrintRegion &region = this->printing_region(region_id);
-        if (! region.config().extra_perimeters || region.config().perimeters == 0 || region.config().fill_density == 0 || this->layer_count() < 2)
+        if (! region.config().extra_perimeters || region.config().perimeters == 0 || region.config().sparse_infill_density == 0 || this->layer_count() < 2)
             continue;
 
         BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id << " in parallel - start";
@@ -549,24 +549,24 @@ bool PrintObject::invalidate_state_by_config_options(
     bool invalidated = false;
     for (const t_config_option_key &opt_key : opt_keys) {
         if (   opt_key == "brim_width"
-            || opt_key == "brim_separation"
+            || opt_key == "brim_object_gap"
             || opt_key == "brim_type") {
             // Brim is printed below supports, support invalidates brim and skirt.
             steps.emplace_back(posSupportMaterial);
         } else if (
                opt_key == "perimeters"
             || opt_key == "extra_perimeters"
-            || opt_key == "first_layer_extrusion_width"
+            || opt_key == "initial_layer_line_width"
             || opt_key == "perimeter_extrusion_width"
-            || opt_key == "infill_overlap"
+            || opt_key == "infill_wall_overlap"
             || opt_key == "external_perimeters_first") {
             steps.emplace_back(posPerimeters);
         } else if (
                opt_key == "gap_fill_enabled"
-            || opt_key == "gap_fill_speed") {
+            || opt_key == "gap_infill_speed") {
             // Return true if gap-fill speed has changed from zero value to non-zero or from non-zero value to zero.
             auto is_gap_fill_changed_state_due_to_speed = [&opt_key, &old_config, &new_config]() -> bool {
-                if (opt_key == "gap_fill_speed") {
+                if (opt_key == "gap_infill_speed") {
                     const auto *old_gap_fill_speed = old_config.option<ConfigOptionFloat>(opt_key);
                     const auto *new_gap_fill_speed = new_config.option<ConfigOptionFloat>(opt_key);
                     assert(old_gap_fill_speed && new_gap_fill_speed);
@@ -578,8 +578,8 @@ bool PrintObject::invalidate_state_by_config_options(
 
             // Filtering of unprintable regions in multi-material segmentation depends on if gap-fill is enabled or not.
             // So step posSlice is invalidated when gap-fill was enabled/disabled by option "gap_fill_enabled" or by
-            // changing "gap_fill_speed" to force recomputation of the multi-material segmentation.
-            if (this->is_mm_painted() && (opt_key == "gap_fill_enabled" || (opt_key == "gap_fill_speed" && is_gap_fill_changed_state_due_to_speed())))
+            // changing "gap_infill_speed" to force recomputation of the multi-material segmentation.
+            if (this->is_mm_painted() && (opt_key == "gap_fill_enabled" || (opt_key == "gap_infill_speed" && is_gap_fill_changed_state_due_to_speed())))
                 steps.emplace_back(posSlice);
             steps.emplace_back(posPerimeters);
         } else if (
@@ -634,8 +634,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "raft_expansion"
             || opt_key == "raft_first_layer_density"
             || opt_key == "raft_first_layer_expansion"
-            || opt_key == "dont_support_bridges"
-            || opt_key == "first_layer_extrusion_width"
+            || opt_key == "bridge_no_support"
+            || opt_key == "initial_layer_line_width"
             || opt_key == "tree_support_branch_angle"
             || opt_key == "tree_support_branch_distance"
             || opt_key == "tree_support_branch_diameter"
@@ -646,7 +646,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "remove_small_overhangs"
             || opt_key == "tree_support_wall_count") {
             steps.emplace_back(posSupportMaterial);
-        } else if (opt_key == "bottom_solid_layers") {
+        } else if (opt_key == "bottom_shell_layers") {
             steps.emplace_back(posPrepareInfill);
             if (m_print->config().spiral_vase) {
                 // Changing the number of bottom layers when a spiral vase is enabled requires re-slicing the object again.
@@ -659,27 +659,27 @@ bool PrintObject::invalidate_state_by_config_options(
             //BBS
             || opt_key == "infill_combination"
             || opt_key == "solid_infill_every_layers"
-            || opt_key == "bottom_solid_min_thickness"
+            || opt_key == "bottom_shell_thickness"
             || opt_key == "top_solid_layers"
             || opt_key == "top_solid_min_thickness"
             || opt_key == "solid_infill_below_area"
             || opt_key == "infill_extruder"
             || opt_key == "solid_infill_extruder"
-            || opt_key == "infill_extrusion_width"
+            || opt_key == "sparse_infill_line_width"
             || opt_key == "ensure_vertical_shell_thickness") {
             steps.emplace_back(posPrepareInfill);
         } else if (
                opt_key == "top_fill_pattern"
-            || opt_key == "bottom_fill_pattern"
+            || opt_key == "bottom_surface_pattern"
             || opt_key == "external_fill_link_max_length"
-            || opt_key == "fill_angle"
-            || opt_key == "fill_pattern"
+            || opt_key == "infill_angle"
+            || opt_key == "sparse_infill_pattern"
             || opt_key == "infill_anchor"
             || opt_key == "infill_anchor_max"
-            || opt_key == "top_infill_extrusion_width"
-            || opt_key == "first_layer_extrusion_width") {
+            || opt_key == "top_surface_line_width"
+            || opt_key == "initial_layer_line_width") {
             steps.emplace_back(posInfill);
-        } else if (opt_key == "fill_density") {
+        } else if (opt_key == "sparse_infill_density") {
             // One likely wants to reslice only when switching between zero infill to simulate boolean difference (subtracting volumes),
             // normal infill and 100% (solid) infill.
             const auto *old_density = old_config.option<ConfigOptionPercent>(opt_key);
@@ -690,16 +690,16 @@ bool PrintObject::invalidate_state_by_config_options(
                 is_approx(new_density->value, 0.) || is_approx(new_density->value, 100.))
                 steps.emplace_back(posPerimeters);
             steps.emplace_back(posPrepareInfill);
-        } else if (opt_key == "solid_infill_extrusion_width") {
+        } else if (opt_key == "internal_solid_infill_line_width") {
             // This value is used for calculating perimeter - infill overlap, thus perimeters need to be recalculated.
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posPrepareInfill);
         } else if (
-               opt_key == "external_perimeter_extrusion_width"
+               opt_key == "outer_wall_line_width"
             || opt_key == "perimeter_extruder"
             || opt_key == "fuzzy_skin"
             || opt_key == "fuzzy_skin_thickness"
-            || opt_key == "fuzzy_skin_point_dist"
+            || opt_key == "fuzzy_skin_point_distance"
             || opt_key == "overhangs"
             || opt_key == "thin_walls"
             || opt_key == "thick_bridges") {
@@ -726,12 +726,12 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "overhang_3_4_speed"
             || opt_key == "overhang_4_4_speed"
             || opt_key == "bridge_speed"
-            || opt_key == "external_perimeter_speed"
-            || opt_key == "infill_speed"
+            || opt_key == "outer_wall_speed"
+            || opt_key == "sparse_infill_speed"
             || opt_key == "perimeter_speed"
             || opt_key == "small_perimeter_speed"
-            || opt_key == "solid_infill_speed"
-            || opt_key == "top_solid_infill_speed") {
+            || opt_key == "internal_solid_infill_speed"
+            || opt_key == "top_surface_speed") {
             invalidated |= m_print->invalidate_step(psGCodeExport);
 //BBS
 #if 0
@@ -814,7 +814,7 @@ void PrintObject::detect_surfaces_type()
     // should be visible.
     bool spiral_vase      = this->print()->config().spiral_vase.value;
     bool interface_shells = ! spiral_vase && m_config.interface_shells.value;
-    size_t num_layers     = spiral_vase ? std::min(size_t(this->printing_region(0).config().bottom_solid_layers), m_layers.size()) : m_layers.size();
+    size_t num_layers     = spiral_vase ? std::min(size_t(this->printing_region(0).config().bottom_shell_layers), m_layers.size()) : m_layers.size();
 
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << region_id << " in parallel - start";
@@ -1012,7 +1012,7 @@ void PrintObject::process_external_surfaces()
     // over voids, which are supported by the layer below.
     bool 				  has_voids = false;
 	for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id)
-		if (this->printing_region(region_id).config().fill_density == 0) {
+		if (this->printing_region(region_id).config().sparse_infill_density == 0) {
 			has_voids = true;
 			break;
 		}
@@ -1048,7 +1048,7 @@ void PrintObject::process_external_surfaces()
 		                m_print->throw_if_canceled();
 		                Polygons voids;
 		                for (const LayerRegion *layerm : m_layers[layer_idx]->regions()) {
-		                	if (layerm->region().config().fill_density.value == 0.)
+		                	if (layerm->region().config().sparse_infill_density.value == 0.)
 		                		for (const Surface &surface : layerm->fill_surfaces.surfaces)
 		                			// Shrink the holes, let the layer above expand slightly inside the unsupported areas.
 		                			polygons_append(voids, offset(surface.expolygon, unsupported_width));
@@ -1094,7 +1094,7 @@ void PrintObject::discover_vertical_shells()
         Polygons    holes;
     };
     bool     spiral_vase      = this->print()->config().spiral_vase.value;
-    size_t   num_layers       = spiral_vase ? std::min(size_t(this->printing_region(0).config().bottom_solid_layers), m_layers.size()) : m_layers.size();
+    size_t   num_layers       = spiral_vase ? std::min(size_t(this->printing_region(0).config().bottom_shell_layers), m_layers.size()) : m_layers.size();
     coordf_t min_layer_height = this->slicing_parameters().min_layer_height;
     // Does this region possibly produce more than 1 top or bottom layer?
     auto has_extra_layers_fn = [min_layer_height](const PrintRegionConfig &config) {
@@ -1106,7 +1106,7 @@ void PrintObject::discover_vertical_shells()
 	    	return std::max(n, n2 - 1);
 	    };
     	return num_extra_layers(config.top_solid_layers, config.top_solid_min_thickness) +
-	    	   num_extra_layers(config.bottom_solid_layers, config.bottom_solid_min_thickness) > 0;
+	    	   num_extra_layers(config.bottom_shell_layers, config.bottom_shell_thickness) > 0;
     };
     std::vector<DiscoverVerticalShellsCacheEntry> cache_top_botom_regions(num_layers, DiscoverVerticalShellsCacheEntry());
     bool top_bottom_surfaces_all_regions = this->num_printing_regions() > 1 && ! m_config.interface_shells.value;
@@ -1314,13 +1314,13 @@ void PrintObject::discover_vertical_shells()
 	                           }
 	                        }
 	                    }
-	                    if (int n_bottom_layers = region_config.bottom_solid_layers.value; n_bottom_layers > 0) {
+	                    if (int n_bottom_layers = region_config.bottom_shell_layers.value; n_bottom_layers > 0) {
                             // Gather bottom regions projected to this layer.
                             coordf_t bottom_z = layer->bottom_z();
 	                        for (int i = int(idx_layer) - 1;
 	                        	i >= 0 &&
 	                        		(i > int(idx_layer) - n_bottom_layers ||
-	                        		 bottom_z - m_layers[i]->bottom_z() < region_config.bottom_solid_min_thickness - EPSILON);
+	                        		 bottom_z - m_layers[i]->bottom_z() < region_config.bottom_shell_thickness - EPSILON);
 	                        	-- i) {
 	                            const DiscoverVerticalShellsCacheEntry &cache = cache_top_botom_regions[i];
 								if (! holes.empty())
@@ -1494,7 +1494,7 @@ void PrintObject::bridge_over_infill()
         const PrintRegion &region = this->printing_region(region_id);
         
         // skip bridging in case there are no voids
-        if (region.config().fill_density.value == 100)
+        if (region.config().sparse_infill_density.value == 100)
             continue;
 
 		for (LayerPtrs::iterator layer_it = m_layers.begin(); layer_it != m_layers.end(); ++ layer_it) {
@@ -1682,13 +1682,13 @@ PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &defau
     clamp_exturder_to_default(config.infill_extruder,       num_extruders);
     clamp_exturder_to_default(config.perimeter_extruder,    num_extruders);
     clamp_exturder_to_default(config.solid_infill_extruder, num_extruders);
-    if (config.fill_density.value < 0.00011f)
+    if (config.sparse_infill_density.value < 0.00011f)
         // Switch of infill for very low infill rates, also avoid division by zero in infill generator for these very low rates.
         // See GH issue #5910.
-        config.fill_density.value = 0;
+        config.sparse_infill_density.value = 0;
     else 
-        config.fill_density.value = std::min(config.fill_density.value, 100.);
-    if (config.fuzzy_skin.value != FuzzySkinType::None && (config.fuzzy_skin_point_dist.value < 0.01 || config.fuzzy_skin_thickness.value < 0.001))
+        config.sparse_infill_density.value = std::min(config.sparse_infill_density.value, 100.);
+    if (config.fuzzy_skin.value != FuzzySkinType::None && (config.fuzzy_skin_point_distance.value < 0.01 || config.fuzzy_skin_thickness.value < 0.001))
         config.fuzzy_skin.value = FuzzySkinType::None;
     return config;
 }
@@ -1822,7 +1822,7 @@ void PrintObject::clip_fill_surfaces()
         return;
     bool has_infill = false;
     for (size_t i = 0; i < this->num_printing_regions(); ++ i)
-        if (this->printing_region(i).config().fill_density > 0) {
+        if (this->printing_region(i).config().sparse_infill_density > 0) {
             has_infill = true;
             break;
         }
@@ -1882,7 +1882,7 @@ void PrintObject::clip_fill_surfaces()
             lower_layer_internal_surfaces);
         // Apply new internal infill to regions.
         for (LayerRegion *layerm : lower_layer->m_regions) {
-            if (layerm->region().config().fill_density.value == 0)
+            if (layerm->region().config().sparse_infill_density.value == 0)
                 continue;
             SurfaceType internal_surface_types[] = { stInternal, stInternalVoid };
             Polygons internal;
@@ -1913,10 +1913,10 @@ void PrintObject::discover_horizontal_shells()
             Layer 					*layer  = m_layers[i];
             LayerRegion             *layerm = layer->regions()[region_id];
             const PrintRegionConfig &region_config = layerm->region().config();
-            if (region_config.solid_infill_every_layers.value > 0 && region_config.fill_density.value > 0 &&
+            if (region_config.solid_infill_every_layers.value > 0 && region_config.sparse_infill_density.value > 0 &&
                 (i % region_config.solid_infill_every_layers) == 0) {
                 // Insert a solid internal layer. Mark stInternal surfaces as stInternalSolid or stInternalBridge.
-                SurfaceType type = (region_config.fill_density == 100 || region_config.solid_infill_every_layers == 1) ? stInternalSolid : stInternalBridge;
+                SurfaceType type = (region_config.sparse_infill_density == 100 || region_config.solid_infill_every_layers == 1) ? stInternalSolid : stInternalBridge;
                 for (Surface &surface : layerm->fill_surfaces.surfaces)
                     if (surface.surface_type == stInternal)
                         surface.surface_type = type;
@@ -1931,7 +1931,7 @@ void PrintObject::discover_horizontal_shells()
             for (size_t idx_surface_type = 0; idx_surface_type < 3; ++ idx_surface_type) {
                 m_print->throw_if_canceled();
                 SurfaceType type = (idx_surface_type == 0) ? stTop : (idx_surface_type == 1) ? stBottom : stBottomBridge;
-                int num_solid_layers = (type == stTop) ? region_config.top_solid_layers.value : region_config.bottom_solid_layers.value;
+                int num_solid_layers = (type == stTop) ? region_config.top_solid_layers.value : region_config.bottom_shell_layers.value;
                 if (num_solid_layers == 0)
                 	continue;
                 // Find slices of current type for current layer.
@@ -1965,7 +1965,7 @@ void PrintObject::discover_horizontal_shells()
                 		(n >= 0                   && (int(i) - n < num_solid_layers || 
                 								 	  print_z - m_layers[n]->print_z < region_config.top_solid_min_thickness.value - EPSILON)) :
                 		(n < int(m_layers.size()) && (n - int(i) < num_solid_layers ||
-                									  m_layers[n]->bottom_z() - bottom_z < region_config.bottom_solid_min_thickness.value - EPSILON));
+                									  m_layers[n]->bottom_z() - bottom_z < region_config.bottom_shell_thickness.value - EPSILON));
                 	(type == stTop) ? -- n : ++ n)
                 {
 //                    Slic3r::debugf "  looking for neighbors on layer %d...\n", $n;                  
@@ -1994,7 +1994,7 @@ void PrintObject::discover_horizontal_shells()
                         // No internal solid needed on this layer. In order to decide whether to continue
                         // searching on the next neighbor (thus enforcing the configured number of solid
                         // layers, use different strategies according to configured infill density:
-                        if (region_config.fill_density.value == 0) {
+                        if (region_config.sparse_infill_density.value == 0) {
                             // If user expects the object to be void (for example a hollow sloping vase),
                             // don't continue the search. In this case, we only generate the external solid
                             // shell if the object would otherwise show a hole (gap between perimeters of 
@@ -2007,7 +2007,7 @@ void PrintObject::discover_horizontal_shells()
                         }
                     }
                     
-                    if (region_config.fill_density.value == 0) {
+                    if (region_config.sparse_infill_density.value == 0) {
                         // if we're printing a hollow object we discard any solid shell thinner
                         // than a perimeter width, since it's probably just crossing a sloping wall
                         // and it's not wanted in a hollow print even if it would make sense when
@@ -2106,7 +2106,7 @@ void PrintObject::combine_infill()
         const PrintRegion &region = this->printing_region(region_id);
         //BBS
         const bool enable_combine_infill = region.config().infill_combination.value;
-        if (enable_combine_infill == false || region.config().fill_density == 0.)
+        if (enable_combine_infill == false || region.config().sparse_infill_density == 0.)
             continue;
         // Limit the number of combined layers to the maximum height allowed by this regions' nozzle.
         //FIXME limit the layer height to max_layer_height
@@ -2177,11 +2177,11 @@ void PrintObject::combine_infill()
                 0.5f * layerms.back()->flow(frPerimeter).scaled_width() +
              // Because fill areas for rectilinear and honeycomb are grown 
              // later to overlap perimeters, we need to counteract that too.
-                ((region.config().fill_pattern == ipRectilinear   ||
-                  region.config().fill_pattern == ipMonotonic     ||
-                  region.config().fill_pattern == ipGrid          ||
-                  region.config().fill_pattern == ipLine          ||
-                  region.config().fill_pattern == ipHoneycomb) ? 1.5f : 0.5f) * 
+                ((region.config().sparse_infill_pattern == ipRectilinear   ||
+                  region.config().sparse_infill_pattern == ipMonotonic     ||
+                  region.config().sparse_infill_pattern == ipGrid          ||
+                  region.config().sparse_infill_pattern == ipLine          ||
+                  region.config().sparse_infill_pattern == ipHoneycomb) ? 1.5f : 0.5f) * 
                     layerms.back()->flow(frSolidInfill).scaled_width();
             for (ExPolygon &expoly : intersection)
                 polygons_append(intersection_with_clearance, offset(expoly, clearance_offset));

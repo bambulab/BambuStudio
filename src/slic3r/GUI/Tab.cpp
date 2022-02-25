@@ -619,7 +619,7 @@ void Tab::update_label_colours()
             else
                 color = &m_modified_label_clr;
         }
-        if (opt.first == "bed_shape"            ||
+        if (opt.first == "printable_area"            ||
             opt.first == "compatible_prints"    || opt.first == "compatible_printers"           ) {
             if (m_colored_Label_colors.find(opt.first) != m_colored_Label_colors.end())
                 m_colored_Label_colors.at(opt.first) = *color;
@@ -661,7 +661,7 @@ void Tab::decorate()
         Field*      field = nullptr;
         wxColour*   colored_label_clr = nullptr;
 
-        if (opt.first == "bed_shape" ||
+        if (opt.first == "printable_area" ||
             opt.first == "compatible_prints" || opt.first == "compatible_printers")
             colored_label_clr = (m_colored_Label_colors.find(opt.first) == m_colored_Label_colors.end()) ? nullptr : &m_colored_Label_colors.at(opt.first);
 
@@ -776,7 +776,7 @@ void TabPrinter::init_options_list()
 
     for (const std::string& opt_key : m_config->keys())
     {
-        if (opt_key == "bed_shape" || opt_key == "thumbnails") {
+        if (opt_key == "printable_area" || opt_key == "thumbnails") {
             m_options_list.emplace(opt_key, m_opt_status_value);
             continue;
         }
@@ -865,7 +865,7 @@ void Tab::update_changed_tree_ui()
             bool sys_page = true;
             bool modified_page = false;
             if (page->title() == "General") {
-                std::initializer_list<const char*> optional_keys{ "extruders_count", "bed_shape" };
+                std::initializer_list<const char*> optional_keys{ "extruders_count", "printable_area" };
                 for (auto &opt_key : optional_keys) {
                     get_sys_and_mod_flags(opt_key, sys_page, modified_page);
                 }
@@ -947,9 +947,9 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
                 to_sys ? group->back_to_sys_value("extruders_count") : group->back_to_initial_value("extruders_count");
         }
         if (group->title == "Size and coordinates") {
-            if ((m_options_list["bed_shape"] & os) == 0) {
-                to_sys ? group->back_to_sys_value("bed_shape") : group->back_to_initial_value("bed_shape");
-                load_key_value("bed_shape", true/*some value*/, true);
+            if ((m_options_list["printable_area"] & os) == 0) {
+                to_sys ? group->back_to_sys_value("printable_area") : group->back_to_initial_value("printable_area");
+                load_key_value("printable_area", true/*some value*/, true);
             }
         }
         if (group->title == "Profile dependencies") {
@@ -1246,7 +1246,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     ConfigOptionsGroup* og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params(is_fff);
     //BBS: GUI refactor
     if (og_freq_chng_params) {
-        if (opt_key == "fill_density" || opt_key == "pad_enable")
+        if (opt_key == "sparse_infill_density" || opt_key == "pad_enable")
         {
             boost::any val = og_freq_chng_params->get_config_value(*m_config, opt_key);
             og_freq_chng_params->set_value(opt_key, val);
@@ -1556,7 +1556,7 @@ void Tab::update_frequently_changed_parameters()
     if (! is_fff)
         og_freq_chng_params->set_value("pad", pad_combo_value_for_config(*m_config));
 
-    const std::string updated_value_key = is_fff ? "fill_density" : "pad_enable";
+    const std::string updated_value_key = is_fff ? "sparse_infill_density" : "pad_enable";
 
     const boost::any val = og_freq_chng_params->get_config_value(*m_config, updated_value_key);
     og_freq_chng_params->set_value(updated_value_key, val);
@@ -1576,17 +1576,17 @@ void TabPrint::build()
     auto page = add_options_page(L("Quality"), "layers");
         auto optgroup = page->new_optgroup(L("Layer height"));
         optgroup->append_single_option_line("layer_height");
-        optgroup->append_single_option_line("first_layer_height");
+        optgroup->append_single_option_line("initial_layer_print_height");
         optgroup->append_single_option_line("adaptive_layer_height");
 
         optgroup = page->new_optgroup(L("Extrusion width"));
         optgroup->append_single_option_line("extrusion_width");
-        optgroup->append_single_option_line("first_layer_extrusion_width");
-        optgroup->append_single_option_line("external_perimeter_extrusion_width");
+        optgroup->append_single_option_line("initial_layer_line_width");
+        optgroup->append_single_option_line("outer_wall_line_width");
         optgroup->append_single_option_line("perimeter_extrusion_width");
-        optgroup->append_single_option_line("infill_extrusion_width");
-        optgroup->append_single_option_line("solid_infill_extrusion_width");
-        optgroup->append_single_option_line("top_infill_extrusion_width");
+        optgroup->append_single_option_line("sparse_infill_line_width");
+        optgroup->append_single_option_line("internal_solid_infill_line_width");
+        optgroup->append_single_option_line("top_surface_line_width");
         optgroup->append_single_option_line("support_material_extrusion_width");
         optgroup->append_single_option_line("support_transition_extrusion_width");
 
@@ -1595,7 +1595,7 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Precision"));
         optgroup->append_single_option_line("slice_closing_radius");
-        optgroup->append_single_option_line("gcode_resolution");
+        optgroup->append_single_option_line("resolution");
         optgroup->append_single_option_line("enable_arc_fitting");
         optgroup->append_single_option_line("xy_size_compensation");
         optgroup->append_single_option_line("elefant_foot_compensation");
@@ -1604,7 +1604,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("ironing");
         optgroup->append_single_option_line("ironing_type");
         optgroup->append_single_option_line("ironing_speed");
-        optgroup->append_single_option_line("ironing_flowrate");
+        optgroup->append_single_option_line("ironing_flow");
         optgroup->append_single_option_line("ironing_spacing");
 
         optgroup = page->new_optgroup(L("Advanced"));
@@ -1612,8 +1612,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("infill_first");
         optgroup->append_single_option_line("bridge_flow_ratio");
         optgroup->append_single_option_line("overhangs");
-        optgroup->append_single_option_line("avoid_crossing_perimeters");
-        optgroup->append_single_option_line("avoid_crossing_perimeters_max_detour");
+        optgroup->append_single_option_line("reduce_crossing_wall");
+        optgroup->append_single_option_line("max_travel_detour_distance");
         //optgroup->append_single_option_line("thick_bridges");
         //optgroup->append_single_option_line("gap_fill_enabled");
 
@@ -1626,19 +1626,19 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Top/bottom shells"));
         optgroup->append_single_option_line("top_solid_layers");
         optgroup->append_single_option_line("top_solid_min_thickness");
-        optgroup->append_single_option_line("bottom_solid_layers");
-        optgroup->append_single_option_line("bottom_solid_min_thickness");
+        optgroup->append_single_option_line("bottom_shell_layers");
+        optgroup->append_single_option_line("bottom_shell_thickness");
 
         optgroup = page->new_optgroup(L("Infill"));
-        optgroup->append_single_option_line("fill_density");
-        optgroup->append_single_option_line("fill_pattern");
+        optgroup->append_single_option_line("sparse_infill_density");
+        optgroup->append_single_option_line("sparse_infill_pattern");
         optgroup->append_single_option_line("top_fill_pattern");
-        optgroup->append_single_option_line("bottom_fill_pattern");
+        optgroup->append_single_option_line("bottom_surface_pattern");
 
         optgroup = page->new_optgroup(L("Advanced"));
         optgroup->append_single_option_line("infill_combination");
-        optgroup->append_single_option_line("infill_overlap");
-        optgroup->append_single_option_line("fill_angle");
+        optgroup->append_single_option_line("infill_wall_overlap");
+        optgroup->append_single_option_line("infill_angle");
         optgroup->append_single_option_line("solid_infill_below_area");
         optgroup->append_single_option_line("detect_narrow_internal_solid_infill");
         optgroup->append_single_option_line("only_retract_when_crossing_perimeters");
@@ -1650,7 +1650,7 @@ void TabPrint::build()
         //optgroup->append_single_option_line("draft_shield");
         optgroup->append_single_option_line("brim_type");
         optgroup->append_single_option_line("brim_width");
-        optgroup->append_single_option_line("brim_separation");
+        optgroup->append_single_option_line("brim_object_gap");
         optgroup->append_single_option_line("raft_layers");
         //optgroup->append_single_option_line("raft_first_layer_density");
         //optgroup->append_single_option_line("raft_first_layer_expansion");
@@ -1694,22 +1694,22 @@ void TabPrint::build()
         //optgroup->append_single_option_line("support_material_interface_contact_loops");
         
         optgroup->append_single_option_line("support_material_xy_spacing");
-        optgroup->append_single_option_line("dont_support_bridges");
+        optgroup->append_single_option_line("bridge_no_support");
         //optgroup->append_single_option_line("support_sharp_tails");
         //optgroup->append_single_option_line("remove_small_overhangs");
         optgroup->append_single_option_line("independent_support_layer_height");
 
     page = add_options_page(L("Speed"), "time");
         optgroup = page->new_optgroup(L("Initial layer speed"));
-        optgroup->append_single_option_line("first_layer_speed");
+        optgroup->append_single_option_line("initial_layer_speed");
         optgroup->append_single_option_line("speed_initial_layer_infill");
         optgroup = page->new_optgroup(L("Other layers speed"));
-        optgroup->append_single_option_line("external_perimeter_speed");
+        optgroup->append_single_option_line("outer_wall_speed");
         optgroup->append_single_option_line("perimeter_speed");
         //optgroup->append_single_option_line("small_perimeter_speed");
-        optgroup->append_single_option_line("infill_speed");
-        optgroup->append_single_option_line("top_solid_infill_speed");
-        optgroup->append_single_option_line("solid_infill_speed");
+        optgroup->append_single_option_line("sparse_infill_speed");
+        optgroup->append_single_option_line("top_surface_speed");
+        optgroup->append_single_option_line("internal_solid_infill_speed");
         Line line = { L("Overhang"), "" };
         line.append_option(optgroup->get_option("overhang_1_4_speed"));
         line.append_option(optgroup->get_option("overhang_2_4_speed"));
@@ -1717,7 +1717,7 @@ void TabPrint::build()
         line.append_option(optgroup->get_option("overhang_4_4_speed"));
         optgroup->append_line(line);
         optgroup->append_single_option_line("bridge_speed");
-        optgroup->append_single_option_line("gap_fill_speed");
+        optgroup->append_single_option_line("gap_infill_speed");
         optgroup->append_single_option_line("support_material_speed");
         optgroup->append_single_option_line("support_material_interface_speed");
         optgroup->append_single_option_line("support_transition_speed");
@@ -1726,7 +1726,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("travel_speed");
 
         optgroup = page->new_optgroup(L("Acceleration"));
-        optgroup->append_single_option_line("first_layer_acceleration");
+        optgroup->append_single_option_line("initial_layer_acceleration");
         optgroup->append_single_option_line("default_acceleration");
 
 #ifdef HAS_PRESSURE_EQUALIZER
@@ -1758,7 +1758,7 @@ void TabPrint::build()
         optgroup->append_line(line);
 #endif
         optgroup->append_single_option_line("fuzzy_skin");
-        optgroup->append_single_option_line("fuzzy_skin_point_dist");
+        optgroup->append_single_option_line("fuzzy_skin_point_distance");
         optgroup->append_single_option_line("fuzzy_skin_thickness");
 
 
@@ -2036,20 +2036,19 @@ void TabFilament::build()
         optgroup->append_single_option_line("extrusion_multiplier");
         optgroup->append_single_option_line("filament_density");
         optgroup->append_single_option_line("filament_cost");
-        optgroup->append_single_option_line("filament_spool_weight");
         //BBS
         optgroup->append_single_option_line("temperature_vitrification");
 
         optgroup = page->new_optgroup(L("Temperature"));
         Line line = { L("Nozzle"), "" };
-        line.append_option(optgroup->get_option("first_layer_temperature"));
+        line.append_option(optgroup->get_option("nozzle_temperature_initial_layer"));
         line.append_option(optgroup->get_option("temperature"));
         optgroup->append_line(line);
 
         line = { L("Bed"), "" };
         // BBS
         line.append_option(optgroup->get_option("bed_type"));
-        line.append_option(optgroup->get_option("first_layer_bed_temperature"));
+        line.append_option(optgroup->get_option("bed_temperature_initial_layer"));
         line.append_option(optgroup->get_option("bed_temperature"));
         optgroup->append_line(line);
 
@@ -2058,21 +2057,16 @@ void TabFilament::build()
             DynamicPrintConfig& filament_config1 = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
 
             update_dirty();
-            if (opt_key == "filament_spool_weight") {
-                // BBS
-                // Change of this option influences for an update of "Sliced Info"
-                wxGetApp().plater()->update_sliced_info();
-            }
-            else if (opt_key == "bed_type") {
+            if (opt_key == "bed_type") {
                 int bed_type = boost::any_cast<int>(value);
                 DynamicPrintConfig& filament_config = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
                 int bed_temp = filament_config.opt_int("bed_temperature", bed_type);
-                int first_layer_bed_temp = filament_config.opt_int("first_layer_bed_temperature", bed_type);
+                int first_layer_bed_temp = filament_config.opt_int("bed_temperature_initial_layer", bed_type);
                 this->get_field("bed_temperature")->set_value(bed_temp, true);
-                this->get_field("first_layer_bed_temperature")->set_value(first_layer_bed_temp, true);
+                this->get_field("bed_temperature_initial_layer")->set_value(first_layer_bed_temp, true);
                 on_value_change(opt_key, value);
             }
-            else if (opt_key == "bed_temperature" || opt_key == "first_layer_bed_temperature") {
+            else if (opt_key == "bed_temperature" || opt_key == "bed_temperature_initial_layer") {
                 DynamicPrintConfig& filament_config = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
                 ConfigOptionInts* bed_temps_opt = dynamic_cast<ConfigOptionInts*>(filament_config.option(opt_key));
                 ConfigOptionInt temp_opt(boost::any_cast<int>(value));
@@ -2120,7 +2114,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("additional_cooling_fan_speed");
 
         optgroup->append_single_option_line("bridge_fan_speed", category_path + "fan-settings");
-        optgroup->append_single_option_line("disable_fan_first_layers", category_path + "fan-settings");
+        optgroup->append_single_option_line("close_fan_the_first_x_layers", category_path + "fan-settings");
         optgroup->append_single_option_line("full_fan_speed_layer", category_path + "fan-settings");
 
         optgroup = page->new_optgroup(L("Cooling thresholds"), 25);
@@ -2146,7 +2140,7 @@ void TabFilament::build()
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
-        option = optgroup->get_option("start_filament_gcode");
+        option = optgroup->get_option("filament_start_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;// 150;
@@ -2156,7 +2150,7 @@ void TabFilament::build()
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
-        option = optgroup->get_option("end_filament_gcode");
+        option = optgroup->get_option("filament_end_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;// 150;
@@ -2231,7 +2225,7 @@ void TabFilament::toggle_options()
         for (auto el : { "max_fan_speed", "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed" })
             toggle_option(el, cooling);
         //BBS
-        for (auto el : { "additional_cooling_fan_speed", "min_fan_speed", "disable_fan_first_layers", "full_fan_speed_layer" })
+        for (auto el : { "additional_cooling_fan_speed", "min_fan_speed", "close_fan_the_first_x_layers", "full_fan_speed_layer" })
             toggle_option(el, fan_always_on);
     }
 
@@ -2346,7 +2340,7 @@ void TabPrinter::build_fff()
 
         auto optgroup = page->new_optgroup(L("Printable space"));
 
-        create_line_with_widget(optgroup.get(), "bed_shape", "custom-svg-and-png-bed-textures_124612", [this](wxWindow* parent) {
+        create_line_with_widget(optgroup.get(), "printable_area", "custom-svg-and-png-bed-textures_124612", [this](wxWindow* parent) {
             return 	create_bed_shape_widget(parent);
         });
 
@@ -2457,7 +2451,7 @@ void TabPrinter::build_fff()
         //optgroup->append_single_option_line("use_relative_e_distances");
         //BBS
         optgroup->append_single_option_line("scan_first_layer");
-        optgroup->append_single_option_line("enable_spaghetti_detector");
+        optgroup->append_single_option_line("spaghetti_detector");
 
     const int gcode_field_height = 15; // 150
     page = add_options_page(L("Machine gcode"), "cog");
@@ -2475,7 +2469,7 @@ void TabPrinter::build_fff()
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
-        option = optgroup->get_option("end_gcode");
+        option = optgroup->get_option("machine_end_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
@@ -2485,7 +2479,7 @@ void TabPrinter::build_fff()
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
-        option = optgroup->get_option("before_layer_gcode");
+        option = optgroup->get_option("before_layer_change_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
@@ -2496,7 +2490,7 @@ void TabPrinter::build_fff()
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
-        option = optgroup->get_option("layer_gcode");
+        option = optgroup->get_option("layer_change_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
@@ -2538,7 +2532,7 @@ void TabPrinter::build_sla()
     auto page = add_options_page(L("General"), "printer");
     auto optgroup = page->new_optgroup(L("Size and coordinates"));
 
-    create_line_with_widget(optgroup.get(), "bed_shape", "custom-svg-and-png-bed-textures_124612", [this](wxWindow* parent) {
+    create_line_with_widget(optgroup.get(), "printable_area", "custom-svg-and-png-bed-textures_124612", [this](wxWindow* parent) {
         return 	create_bed_shape_widget(parent);
     });
     optgroup->append_single_option_line("max_print_height");
@@ -2656,13 +2650,19 @@ PageShp TabPrinter::build_kinematics_page()
         optgroup->append_line(line);
     }
 
-    const std::vector<std::string> axes{ "x", "y", "z", "e" };
-    auto optgroup = page->new_optgroup(L("Maximum feedrates"));
-        for (const std::string &axis : axes)	{
-            append_option_line(optgroup, "machine_max_feedrate_" + axis);
+    const std::vector<std::string> speed_axes{
+        "machine_max_speed_x",
+        "machine_max_speed_y",
+        "machine_max_speed_z",
+        "machine_max_speed_e"
+    };
+    auto optgroup = page->new_optgroup(L("Speed limitation"));
+        for (const std::string &speed_axis : speed_axes)	{
+            append_option_line(optgroup, speed_axis);
         }
 
-    optgroup = page->new_optgroup(L("Maximum accelerations"));
+    const std::vector<std::string> axes{ "x", "y", "z", "e" };
+    optgroup = page->new_optgroup(L("Acceleration limitation"));
         for (const std::string &axis : axes)	{
             append_option_line(optgroup, "machine_max_acceleration_" + axis);
         }
@@ -2671,7 +2671,7 @@ PageShp TabPrinter::build_kinematics_page()
         if (m_supports_travel_acceleration)
             append_option_line(optgroup, "machine_max_acceleration_travel");
 
-    optgroup = page->new_optgroup(L("Jerk limits"));
+    optgroup = page->new_optgroup(L("Jerk limitation"));
         for (const std::string &axis : axes)	{
             append_option_line(optgroup, "machine_max_jerk_" + axis);
         }
@@ -4149,7 +4149,7 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
     btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
         {
             BedShapeDialog dlg(this);
-            dlg.build_dialog(*m_config->option<ConfigOptionPoints>("bed_shape"),
+            dlg.build_dialog(*m_config->option<ConfigOptionPoints>("printable_area"),
                 *m_config->option<ConfigOptionString>("bed_custom_texture"),
                 *m_config->option<ConfigOptionString>("bed_custom_model"));
             if (dlg.ShowModal() == wxID_OK) {
@@ -4158,7 +4158,7 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
                 const std::string& custom_model = dlg.get_custom_model();
                 if (!shape.empty())
                 {
-                    load_key_value("bed_shape", shape);
+                    load_key_value("printable_area", shape);
                     load_key_value("bed_custom_texture", custom_texture);
                     load_key_value("bed_custom_model", custom_model);
                     update_changed_ui();
@@ -4167,10 +4167,10 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
         }));
 
     // may be it is not a best place, but 
-    // add information about Category/Grope for "bed_custom_texture" and "bed_custom_model" as a copy from "bed_shape" option
+    // add information about Category/Grope for "bed_custom_texture" and "bed_custom_model" as a copy from "printable_area" option
     {
         Search::OptionsSearcher& searcher = wxGetApp().sidebar().get_searcher();
-        const Search::GroupAndCategory& gc = searcher.get_group_and_category("bed_shape");
+        const Search::GroupAndCategory& gc = searcher.get_group_and_category("printable_area");
         searcher.add_key("bed_custom_texture", m_type, gc.group, gc.category);
         searcher.add_key("bed_custom_model", m_type, gc.group, gc.category);
     }

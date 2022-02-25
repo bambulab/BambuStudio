@@ -139,7 +139,7 @@ void Bed3D::Axes::render() const
 }
 
 //BBS: add part plate logic
-bool Bed3D::set_shape(const Pointfs& bed_shape, const double max_print_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom,
+bool Bed3D::set_shape(const Pointfs& printable_area, const double max_print_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom,
     const Vec2d position, bool with_reset)
 {
     auto check_texture = [](const std::string& texture) {
@@ -158,7 +158,7 @@ bool Bed3D::set_shape(const Pointfs& bed_shape, const double max_print_height, c
     if (force_as_custom)
         type = Type::Custom;
     else {
-        auto [new_type, system_model, system_texture] = detect_type(bed_shape);
+        auto [new_type, system_model, system_texture] = detect_type(printable_area);
         type = new_type;
         model = system_model;
         texture = system_texture;
@@ -177,14 +177,14 @@ bool Bed3D::set_shape(const Pointfs& bed_shape, const double max_print_height, c
     }
 
     //BBS: add position related logic
-    if (m_bed_shape == bed_shape && m_build_volume.max_print_height() == max_print_height && m_type == type && m_texture_filename == texture_filename && m_model_filename == model_filename && position == m_position)
+    if (m_bed_shape == printable_area && m_build_volume.max_print_height() == max_print_height && m_type == type && m_texture_filename == texture_filename && m_model_filename == model_filename && position == m_position)
         // No change, no need to update the UI.
         return false;
 
     //BBS: add part plate logic, apply position to bed shape
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":current position {%1%,%2%}, new position {%3%, %4%}") % m_position.x() % m_position.y() % position.x() % position.y();
     m_position = position;
-    m_bed_shape = bed_shape;
+    m_bed_shape = printable_area;
     if ((position(0) != 0) || (position(1) != 0)) {
         Pointfs new_bed_shape;
         for (const Vec2d& p : m_bed_shape) {
@@ -194,7 +194,7 @@ bool Bed3D::set_shape(const Pointfs& bed_shape, const double max_print_height, c
         m_build_volume = BuildVolume { new_bed_shape, max_print_height };
     }
     else
-        m_build_volume = BuildVolume { bed_shape, max_print_height };
+        m_build_volume = BuildVolume { printable_area, max_print_height };
     m_type = type;
     m_texture_filename = texture_filename;
     m_model_filename = model_filename;
@@ -203,10 +203,10 @@ bool Bed3D::set_shape(const Pointfs& bed_shape, const double max_print_height, c
 
     //BBS: add part plate logic
 #if 0
-    ExPolygon poly{ Polygon::new_scale(bed_shape) };
+    ExPolygon poly{ Polygon::new_scale(printable_area) };
 #else
     ExPolygon poly;
-    for (const Vec2d& p : bed_shape) {
+    for (const Vec2d& p : printable_area) {
         poly.contour.append(Point(scale_(p(0) + m_position.x()), scale_(p(1) + m_position.y())));
     }
 #endif
@@ -367,8 +367,8 @@ std::tuple<Bed3D::Type, std::string, std::string> Bed3D::detect_type(const Point
     if (bundle != nullptr) {
         const Preset* curr = &bundle->printers.get_selected_preset();
         while (curr != nullptr) {
-            if (curr->config.has("bed_shape")) {
-                if (shape == dynamic_cast<const ConfigOptionPoints*>(curr->config.option("bed_shape"))->values) {
+            if (curr->config.has("printable_area")) {
+                if (shape == dynamic_cast<const ConfigOptionPoints*>(curr->config.option("printable_area"))->values) {
                     std::string model_filename = PresetUtils::system_printer_bed_model(*curr);
                     std::string texture_filename = PresetUtils::system_printer_bed_texture(*curr);
                     if (!model_filename.empty() && !texture_filename.empty())

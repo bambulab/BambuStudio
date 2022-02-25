@@ -121,24 +121,24 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         is_msg_dlg_already_exist = false;
     }
 
-    if (config->option<ConfigOptionFloatOrPercent>("first_layer_height")->value < EPSILON)
+    if (config->option<ConfigOptionFloatOrPercent>("initial_layer_print_height")->value < EPSILON)
     {
         const wxString msg_text = _(L("First layer height is not valid.\n\nThe first layer height will be reset to 0.01."));
         MessageDialog dialog(m_msg_dlg_parent, msg_text, _(L("First layer height")), wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist = true;
         dialog.ShowModal();
-        new_conf.set_key_value("first_layer_height", new ConfigOptionFloatOrPercent(0.01, false));
+        new_conf.set_key_value("initial_layer_print_height", new ConfigOptionFloatOrPercent(0.01, false));
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
 
-    double fill_density = config->option<ConfigOptionPercent>("fill_density")->value;
+    double sparse_infill_density = config->option<ConfigOptionPercent>("sparse_infill_density")->value;
 
     if (config->opt_bool("spiral_vase") &&
         ! (config->opt_int("perimeters") == 1 && 
            config->opt_int("top_solid_layers") == 0 &&
-           fill_density == 0 &&
+           sparse_infill_density == 0 &&
            ! config->opt_bool("support_material") &&
            config->opt_int("support_material_enforce_layers") == 0 &&
            config->opt_bool("ensure_vertical_shell_thickness") &&
@@ -161,12 +161,12 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         if (!is_global_config || answer == wxID_YES) {
             new_conf.set_key_value("perimeters", new ConfigOptionInt(1));
             new_conf.set_key_value("top_solid_layers", new ConfigOptionInt(0));
-            new_conf.set_key_value("fill_density", new ConfigOptionPercent(0));
+            new_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
             new_conf.set_key_value("support_material", new ConfigOptionBool(false));
             new_conf.set_key_value("support_material_enforce_layers", new ConfigOptionInt(0));
             new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(true));
             new_conf.set_key_value("thin_walls", new ConfigOptionBool(false));            
-            fill_density = 0;
+            sparse_infill_density = 0;
             support = false;
         }
         else {
@@ -174,7 +174,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         }
         apply(config, &new_conf);
         if (cb_value_change) {
-            cb_value_change("fill_density", fill_density);
+            cb_value_change("sparse_infill_density", sparse_infill_density);
             if (!support)
                 cb_value_change("support_material", false);
         }
@@ -242,15 +242,15 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         m_support_material_overhangs_queried = false;
     }
 
-    if (config->option<ConfigOptionPercent>("fill_density")->value == 100) {
-        std::string  fill_pattern            = config->option<ConfigOptionEnum<InfillPattern>>("fill_pattern")->serialize();
+    if (config->option<ConfigOptionPercent>("sparse_infill_density")->value == 100) {
+        std::string  sparse_infill_pattern            = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->serialize();
         const auto  &top_fill_pattern_values = config->def()->get("top_fill_pattern")->enum_values;
-        bool correct_100p_fill = std::find(top_fill_pattern_values.begin(), top_fill_pattern_values.end(), fill_pattern) != top_fill_pattern_values.end();
+        bool correct_100p_fill = std::find(top_fill_pattern_values.begin(), top_fill_pattern_values.end(), sparse_infill_pattern) != top_fill_pattern_values.end();
         if (!correct_100p_fill) {
-            // get fill_pattern name from enum_labels for using this one at dialog_msg
-            const ConfigOptionDef *fill_pattern_def = config->def()->get("fill_pattern");
+            // get sparse_infill_pattern name from enum_labels for using this one at dialog_msg
+            const ConfigOptionDef *fill_pattern_def = config->def()->get("sparse_infill_pattern");
             assert(fill_pattern_def != nullptr);
-            auto it_pattern = std::find(fill_pattern_def->enum_values.begin(), fill_pattern_def->enum_values.end(), fill_pattern);
+            auto it_pattern = std::find(fill_pattern_def->enum_values.begin(), fill_pattern_def->enum_values.end(), sparse_infill_pattern);
             assert(it_pattern != fill_pattern_def->enum_values.end());
             if (it_pattern != fill_pattern_def->enum_values.end()) {
                 wxString msg_text = GUI::format_wxstr(_L("The %1% infill pattern is not supposed to work at 100%% density."), 
@@ -262,15 +262,15 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                 DynamicPrintConfig new_conf = *config;
                 auto answer = dialog.ShowModal();
                 if (!is_global_config || answer == wxID_YES) {
-                    new_conf.set_key_value("fill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
-                    fill_density = 100;
+                    new_conf.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
+                    sparse_infill_density = 100;
                 }
                 else
-                    fill_density = wxGetApp().preset_bundle->prints.get_selected_preset().config.option<ConfigOptionPercent>("fill_density")->value;
-                new_conf.set_key_value("fill_density", new ConfigOptionPercent(fill_density));
+                    sparse_infill_density = wxGetApp().preset_bundle->prints.get_selected_preset().config.option<ConfigOptionPercent>("sparse_infill_density")->value;
+                new_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(sparse_infill_density));
                 apply(config, &new_conf);
                 if (cb_value_change)
-                    cb_value_change("fill_density", fill_density);
+                    cb_value_change("sparse_infill_density", sparse_infill_density);
             }
         }
     }
@@ -280,13 +280,13 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
 {
     bool have_perimeters = config->opt_int("perimeters") > 0;
     for (auto el : { "extra_perimeters", "ensure_vertical_shell_thickness", "thin_walls", "overhangs",
-                    "seam_position", "external_perimeters_first", "external_perimeter_extrusion_width",
-                    "perimeter_speed", "small_perimeter_speed", "external_perimeter_speed" })
+                    "seam_position", "external_perimeters_first", "outer_wall_line_width",
+                    "perimeter_speed", "small_perimeter_speed", "outer_wall_speed" })
         toggle_field(el, have_perimeters);
 
-    bool have_infill = config->option<ConfigOptionPercent>("fill_density")->value > 0;
+    bool have_infill = config->option<ConfigOptionPercent>("sparse_infill_density")->value > 0;
     // infill_extruder uses the same logic as in Print::extruders()
-    for (auto el : { "fill_pattern", "infill_combination", "infill_only_where_needed",
+    for (auto el : { "sparse_infill_pattern", "infill_combination", "infill_only_where_needed",
                     "solid_infill_every_layers", "solid_infill_below_area", "infill_extruder", "infill_anchor_max" })
         toggle_field(el, have_infill);
     // Only allow configuration of open anchors if the anchoring is enabled.
@@ -295,29 +295,29 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
 
     bool has_spiral_vase         = config->opt_bool("spiral_vase");
     bool has_top_solid_infill 	 = config->opt_int("top_solid_layers") > 0;
-    bool has_bottom_solid_infill = config->opt_int("bottom_solid_layers") > 0;
+    bool has_bottom_solid_infill = config->opt_int("bottom_shell_layers") > 0;
     bool has_solid_infill 		 = has_top_solid_infill || has_bottom_solid_infill;
     // solid_infill_extruder uses the same logic as in Print::extruders()
-    for (auto el : { "top_fill_pattern", "bottom_fill_pattern", "infill_first", "solid_infill_extruder",
-                    "solid_infill_extrusion_width", "solid_infill_speed" })
+    for (auto el : { "top_fill_pattern", "bottom_surface_pattern", "infill_first", "solid_infill_extruder",
+                    "internal_solid_infill_line_width", "internal_solid_infill_speed" })
         toggle_field(el, has_solid_infill);
 
-    for (auto el : { "fill_angle", "infill_extrusion_width",
-                    "infill_speed", "bridge_speed" })
+    for (auto el : { "infill_angle", "sparse_infill_line_width",
+                    "sparse_infill_speed", "bridge_speed" })
         toggle_field(el, have_infill || has_solid_infill);
 
     toggle_field("top_solid_min_thickness", ! has_spiral_vase && has_top_solid_infill);
-    toggle_field("bottom_solid_min_thickness", ! has_spiral_vase && has_bottom_solid_infill);
+    toggle_field("bottom_shell_thickness", ! has_spiral_vase && has_bottom_solid_infill);
 
     // Gap fill is newly allowed in between perimeter lines even for empty infill (see GH #1476).
-    toggle_field("gap_fill_speed", have_perimeters);
+    toggle_field("gap_infill_speed", have_perimeters);
 
-    for (auto el : { "top_infill_extrusion_width", "top_solid_infill_speed" })
+    for (auto el : { "top_surface_line_width", "top_surface_speed" })
         toggle_field(el, has_top_solid_infill || (has_spiral_vase && has_bottom_solid_infill));
 
     bool have_default_acceleration = config->opt_float("default_acceleration") > 0;
     //BBS
-    for (auto el : { "first_layer_acceleration" })
+    for (auto el : { "initial_layer_acceleration" })
         toggle_field(el, have_default_acceleration);
 
     bool have_skirt = config->opt_int("skirts") > 0;
@@ -326,7 +326,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
         toggle_field(el, have_skirt);
 
     bool have_brim = (config->opt_enum<BrimType>("brim_type") != btNoBrim) && config->opt_enum<BrimType>("brim_type") != btAutoBrim;
-    for (auto el : { "brim_width", "brim_separation" })
+    for (auto el : { "brim_width", "brim_object_gap" })
         toggle_field(el, have_brim);
     // perimeter_extruder uses the same logic as in Print::extruders()
     toggle_field("perimeter_extruder", have_perimeters || have_brim);
@@ -341,7 +341,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     for (auto el : { "support_material_style", "support_material_pattern", "support_material_with_sheath",
                     "support_material_spacing", "support_material_angle", 
                     "support_material_interface_pattern", "support_material_interface_layers", "support_material_bottom_interface_layers",
-                    "dont_support_bridges", "support_material_extrusion_width", "support_material_contact_distance",
+                    "bridge_no_support", "support_material_extrusion_width", "support_material_contact_distance",
                      //BBS: add more support params to dependent of support_material
                     "support_sharp_tails","remove_small_overhangs","support_type","support_material_buildplate_only",
                     "support_material_xy_spacing", "support_transition_extrusion_width" })
@@ -371,7 +371,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
         toggle_field(el, have_raft);
 
     bool has_ironing = config->opt_bool("ironing");
-    for (auto el : { "ironing_type", "ironing_flowrate", "ironing_spacing", "ironing_speed" })
+    for (auto el : { "ironing_type", "ironing_flow", "ironing_spacing", "ironing_speed" })
     	toggle_field(el, has_ironing);
 
     bool have_sequential_printing = config->opt_bool("complete_objects");
@@ -386,8 +386,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
                      "wipe_tower_bridging", "wipe_tower_no_sparse_layers", "single_extruder_multi_material_priming", "wiping_volume"})
         toggle_field(el, have_wipe_tower);
 
-    bool have_avoid_crossing_perimeters = config->opt_bool("avoid_crossing_perimeters");
-    toggle_field("avoid_crossing_perimeters_max_detour", have_avoid_crossing_perimeters);
+    bool have_avoid_crossing_perimeters = config->opt_bool("reduce_crossing_wall");
+    toggle_field("max_travel_detour_distance", have_avoid_crossing_perimeters);
 
     // BBS
     int filament_count = wxGetApp().preset_bundle->filament_presets.size();

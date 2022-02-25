@@ -2623,16 +2623,16 @@ double findMaxSpeed(ModelObject* object) {
     for (std::string objectKey : objectKeys) {
         if (objectKey == "perimeter_speed")
             objMaxSpeed = std::max(object->config.opt_float("perimeter_speed"), objMaxSpeed);
-        if (objectKey == "external_perimeter_speed") {
-            objMaxSpeed = std::max(object->config.get().get_abs_value("external_perimeter_speed", Model::printSpeedMap.perimeterSpeed), objMaxSpeed);
+        if (objectKey == "outer_wall_speed") {
+            objMaxSpeed = std::max(object->config.get().get_abs_value("outer_wall_speed", Model::printSpeedMap.perimeterSpeed), objMaxSpeed);
         }     
-        if (objectKey == "infill_speed")
-            objMaxSpeed = std::max(object->config.opt_float("infill_speed"), objMaxSpeed);
-        if (objectKey == "solid_infill_speed") {
-            objMaxSpeed = std::max(object->config.get().get_abs_value("solid_infill_speed", Model::printSpeedMap.infillSpeed), objMaxSpeed);
+        if (objectKey == "sparse_infill_speed")
+            objMaxSpeed = std::max(object->config.opt_float("sparse_infill_speed"), objMaxSpeed);
+        if (objectKey == "internal_solid_infill_speed") {
+            objMaxSpeed = std::max(object->config.get().get_abs_value("internal_solid_infill_speed", Model::printSpeedMap.infillSpeed), objMaxSpeed);
         }
-        if (objectKey == "top_solid_infill_speed") {
-            objMaxSpeed = std::max(object->config.get().get_abs_value("top_solid_infill_speed", Model::printSpeedMap.infillSpeed), objMaxSpeed);
+        if (objectKey == "top_surface_speed") {
+            objMaxSpeed = std::max(object->config.get().get_abs_value("top_surface_speed", Model::printSpeedMap.infillSpeed), objMaxSpeed);
         }
         if (objectKey == "support_material_speed")
             objMaxSpeed = std::max(object->config.opt_float("support_material_speed"), objMaxSpeed);

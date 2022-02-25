@@ -24,18 +24,18 @@ Flow PrintRegion::flow(const PrintObject &object, FlowRole role, double layer_he
     ConfigOptionFloatOrPercent  config_width;
     // Get extrusion width from configuration.
     // (might be an absolute value, or a percent value, or zero for auto)
-    if (first_layer && print_config.first_layer_extrusion_width.value > 0) {
-        config_width = print_config.first_layer_extrusion_width;
+    if (first_layer && print_config.initial_layer_line_width.value > 0) {
+        config_width = print_config.initial_layer_line_width;
     } else if (role == frExternalPerimeter) {
-        config_width = m_config.external_perimeter_extrusion_width;
+        config_width = m_config.outer_wall_line_width;
     } else if (role == frPerimeter) {
         config_width = m_config.perimeter_extrusion_width;
     } else if (role == frInfill) {
-        config_width = m_config.infill_extrusion_width;
+        config_width = m_config.sparse_infill_line_width;
     } else if (role == frSolidInfill) {
-        config_width = m_config.solid_infill_extrusion_width;
+        config_width = m_config.internal_solid_infill_line_width;
     } else if (role == frTopSolidInfill) {
-        config_width = m_config.top_infill_extrusion_width;
+        config_width = m_config.top_surface_line_width;
     } else {
         throw Slic3r::InvalidArgument("Unknown role");
     }
@@ -71,9 +71,9 @@ void PrintRegion::collect_object_printing_extruders(const PrintConfig &print_con
     };
     if (region_config.perimeters.value > 0 || has_brim)
     	emplace_extruder(region_config.perimeter_extruder);
-    if (region_config.fill_density.value > 0)
+    if (region_config.sparse_infill_density.value > 0)
     	emplace_extruder(region_config.infill_extruder);
-    if (region_config.top_solid_layers.value > 0 || region_config.bottom_solid_layers.value > 0)
+    if (region_config.top_solid_layers.value > 0 || region_config.bottom_shell_layers.value > 0)
     	emplace_extruder(region_config.solid_infill_extruder);
 }
 

@@ -1134,19 +1134,19 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
     case coEnum: {
         return get_string_from_enum(opt_key, config, 
             opt_key == "top_fill_pattern" ||
-            opt_key == "bottom_fill_pattern" ||
-            opt_key == "fill_pattern");
+            opt_key == "bottom_surface_pattern" ||
+            opt_key == "sparse_infill_pattern");
     }
     case coEnums: {
         return get_string_from_enum(opt_key, config,
             opt_key == "top_fill_pattern" ||
-            opt_key == "bottom_fill_pattern" ||
-            opt_key == "fill_pattern",
+            opt_key == "bottom_surface_pattern" ||
+            opt_key == "sparse_infill_pattern",
             opt_idx);
     }
     case coPoints: {
         //BBS: add bed_exclude_area
-        if (opt_key == "bed_shape") {
+        if (opt_key == "printable_area") {
             BedShape shape(*config.option<ConfigOptionPoints>(opt_key));
             return shape.get_full_name_with_params();
         }

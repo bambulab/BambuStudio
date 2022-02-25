@@ -51,8 +51,8 @@ static SettingsFactory::Bundle FREQ_SETTINGS_BUNDLE_FFF =
 {
     //BBS
     { L("Quality"), { "layer_height" , "adaptive_layer_height" } },
-    { L("Shell"), { "perimeters", "top_solid_layers", "bottom_solid_layers"} },
-    { L("Infill")               , { "fill_density", "fill_pattern" } },
+    { L("Shell"), { "perimeters", "top_solid_layers", "bottom_shell_layers"} },
+    { L("Infill")               , { "sparse_infill_density", "sparse_infill_pattern" } },
     // BBS
     { L("Support material")     , { "support_material", "support_type", "support_material_threshold",
                                     "support_material_pattern", "support_material_buildplate_only",
@@ -70,7 +70,7 @@ static SettingsFactory::Bundle FREQ_SETTINGS_BUNDLE_SLA =
 //BBS: add setting data for table
 std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_CATEGORY_SETTINGS=
 {
-    { L("Quality"), {{"layer_height", "",1},{"first_layer_height", "",2},{"adaptive_layer_height", "",3},{"seam_position", "",4},
+    { L("Quality"), {{"layer_height", "",1},{"initial_layer_print_height", "",2},{"adaptive_layer_height", "",3},{"seam_position", "",4},
                     {"xy_size_compensation", "",5},{"elefant_foot_compensation", "",6},{"support_material_extrusion_width", "",12},
                     {"support_transition_extrusion_width", "",12}
                     }},
@@ -80,22 +80,22 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
                             {"support_material_interface_layers", "",11},{"support_material_bottom_interface_layers", "",12},{"support_material_interface_spacing", "",13},{"support_material_bottom_interface_spacing", "",14},
                             {"support_material_xy_spacing", "",15}
                             }},
-    { L("Bed adhension"), {{"brim_type", "",1},{"brim_width", "",1},{"brim_separation", "",1},{"raft_layers", "",1}}}
+    { L("Bed adhension"), {{"brim_type", "",1},{"brim_width", "",1},{"brim_object_gap", "",1},{"raft_layers", "",1}}}
 };
 
 std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CATEGORY_SETTINGS=
 {
-    { L("Quality"), {{"external_perimeters_first", "",13},{"ironing", "",7},{"ironing_type", "",8},{"perimeter_extrusion_width", "",9},{"external_perimeter_extrusion_width", "",10},
-                    {"top_infill_extrusion_width", "",11}
+    { L("Quality"), {{"external_perimeters_first", "",13},{"ironing", "",7},{"ironing_type", "",8},{"perimeter_extrusion_width", "",9},{"outer_wall_line_width", "",10},
+                    {"top_surface_line_width", "",11}
                     }},
-    { L("Shell"), {{"perimeters", "",1},{"ensure_vertical_shell_thickness", "",1},{"top_solid_layers", L("Top Solid Layers"),1},{"bottom_solid_layers", L("Bottom Solid Layers"),1},
-                    {"top_solid_min_thickness", L("Top Minimum Shell Thickness"),1}, {"bottom_solid_min_thickness", L("Bottom Minimum Shell Thickness"),1}
+    { L("Shell"), {{"perimeters", "",1},{"ensure_vertical_shell_thickness", "",1},{"top_solid_layers", L("Top Solid Layers"),1},{"bottom_shell_layers", L("Bottom Solid Layers"),1},
+                    {"top_solid_min_thickness", L("Top Minimum Shell Thickness"),1}, {"bottom_shell_thickness", L("Bottom Minimum Shell Thickness"),1}
                     }},
-    { L("Infill"), {{"fill_density", "",1},{"fill_pattern", "",1},{"top_fill_pattern", "",1},{"bottom_fill_pattern", "",1},
-                    {"infill_combination", "",1}, {"fill_angle", "",1}, {"infill_overlap", "",1}
+    { L("Infill"), {{"sparse_infill_density", "",1},{"sparse_infill_pattern", "",1},{"top_fill_pattern", "",1},{"bottom_surface_pattern", "",1},
+                    {"infill_combination", "",1}, {"infill_angle", "",1}, {"infill_wall_overlap", "",1}
                     }},
-    { L("Speed"), {{"perimeter_speed", "",1},{"external_perimeter_speed", "",1},{"infill_speed", "",1},{"solid_infill_speed", "",1},
-                    {"top_solid_infill_speed", "",1}, {"gap_fill_speed", "",1}
+    { L("Speed"), {{"perimeter_speed", "",1},{"outer_wall_speed", "",1},{"sparse_infill_speed", "",1},{"internal_solid_infill_speed", "",1},
+                    {"top_surface_speed", "",1}, {"gap_infill_speed", "",1}
                     }}
 };
 
@@ -122,18 +122,18 @@ std::vector<SimpleSettingData> SettingsFactory::get_visible_options(const std::s
 {
     /*t_config_option_keys options = {
         //Quality
-        "external_perimeters_first", "ironing_type", "perimeter_extrusion_width", "external_perimeter_extrusion_width", "top_infill_extrusion_width",
+        "external_perimeters_first", "ironing_type", "perimeter_extrusion_width", "outer_wall_line_width", "top_surface_line_width",
         //Shell
-        "perimeters", "ensure_vertical_shell_thickness", "top_solid_layers", "bottom_solid_layers", "top_solid_min_thickness", "bottom_solid_min_thickness",
+        "perimeters", "ensure_vertical_shell_thickness", "top_solid_layers", "bottom_shell_layers", "top_solid_min_thickness", "bottom_shell_thickness",
         //Infill
-        "fill_density", "fill_pattern", "top_fill_pattern", "bottom_fill_pattern", "infill_combination", "fill_angle", "infill_overlap",
+        "sparse_infill_density", "sparse_infill_pattern", "top_fill_pattern", "bottom_surface_pattern", "infill_combination", "infill_angle", "infill_wall_overlap",
         //speed
-        "perimeter_speed", "external_perimeter_speed", "infill_speed", "solid_infill_speed", "top_solid_infill_speed", "gap_fill_speed"
+        "perimeter_speed", "outer_wall_speed", "sparse_infill_speed", "internal_solid_infill_speed", "top_surface_speed", "gap_infill_speed"
         };
 
     t_config_option_keys object_options = {
         //Quality
-        "layer_height", "first_layer_height", "adaptive_layer_height", "seam_position", "xy_size_compensation", "elefant_foot_compensation", "support_material_extrusion_width",
+        "layer_height", "initial_layer_print_height", "adaptive_layer_height", "seam_position", "xy_size_compensation", "elefant_foot_compensation", "support_material_extrusion_width",
         //Support
         "support_material", "support_type", "support_material_threshold", "support_material_buildplate_only", "support_material_enforce_layers",
         //tree support
@@ -141,7 +141,7 @@ std::vector<SimpleSettingData> SettingsFactory::get_visible_options(const std::s
         //support
         "support_material_contact_distance", "support_material_pattern", "support_material_spacing", "support_material_interface_layers", "support_material_bottom_interface_layers", "support_material_interface_spacing", "support_material_bottom_interface_spacing", "support_material_xy_spacing",
         //adhesion
-        "brim_type", "brim_width", "brim_separation", "raft_layers"
+        "brim_type", "brim_width", "brim_object_gap", "raft_layers"
         };*/
     std::vector<SimpleSettingData> options;
     std::map<std::string, std::vector<SimpleSettingData>>::iterator it;

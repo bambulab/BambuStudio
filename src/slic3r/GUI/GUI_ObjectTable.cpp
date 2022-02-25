@@ -1543,7 +1543,7 @@ void ObjectGridTable::init_cols()
     m_col_data.push_back(col);
 
     //object/volume fill density
-    col = new ObjectGridCol(coPercent, "fill_density", L("Infill"), false, false, true, true, wxALIGN_RIGHT);
+    col = new ObjectGridCol(coPercent, "sparse_infill_density", L("Infill"), false, false, true, true, wxALIGN_RIGHT);
     m_col_data.push_back(col);
 
     //reset icon for fill density
@@ -1636,7 +1636,7 @@ void ObjectGridTable::construct_object_configs ()
         object_grid->ori_layer_height = *(global_config.option<ConfigOptionFloat>(m_col_data[col_layer_height]->key));
         object_grid->perimeters = *(get_object_config_value<ConfigOptionInt>(global_config, object_grid->config, m_col_data[col_perimeters]->key));
         object_grid->ori_perimeters = *(global_config.option<ConfigOptionInt>(m_col_data[col_perimeters]->key));
-        object_grid->fill_density = *(get_object_config_value<ConfigOptionPercent>(global_config, object_grid->config, m_col_data[col_fill_density]->key));
+        object_grid->sparse_infill_density = *(get_object_config_value<ConfigOptionPercent>(global_config, object_grid->config, m_col_data[col_fill_density]->key));
         object_grid->ori_fill_density = *(global_config.option<ConfigOptionPercent>(m_col_data[col_fill_density]->key));
         object_grid->support_material = *(get_object_config_value<ConfigOptionBool>(global_config, object_grid->config, m_col_data[col_support_material]->key));
         object_grid->ori_support_material = *(global_config.option<ConfigOptionBool>(m_col_data[col_support_material]->key));
@@ -1685,8 +1685,8 @@ void ObjectGridTable::construct_object_configs ()
             volume_grid->ori_layer_height = object_grid->layer_height;
             volume_grid->perimeters = *(get_volume_config_value<ConfigOptionInt>(global_config, object_grid->config, volume_grid->config, m_col_data[col_perimeters]->key));
             volume_grid->ori_perimeters = object_grid->perimeters;
-            volume_grid->fill_density = *(get_volume_config_value<ConfigOptionPercent>(global_config, object_grid->config, volume_grid->config, m_col_data[col_fill_density]->key));
-            volume_grid->ori_fill_density = object_grid->fill_density;
+            volume_grid->sparse_infill_density = *(get_volume_config_value<ConfigOptionPercent>(global_config, object_grid->config, volume_grid->config, m_col_data[col_fill_density]->key));
+            volume_grid->ori_fill_density = object_grid->sparse_infill_density;
             volume_grid->support_material = *(get_volume_config_value<ConfigOptionBool>(global_config, object_grid->config, volume_grid->config, m_col_data[col_support_material]->key));
             volume_grid->ori_support_material = object_grid->support_material;
             volume_grid->brim_type = *(get_volume_config_value<ConfigOptionEnum<BrimType>>(global_config, object_grid->config, volume_grid->config, m_col_data[col_brim_type]->key));
@@ -1731,7 +1731,7 @@ void ObjectGridTable::reload_object_data(ObjectGridRow* grid_row, const std::str
         grid_row->ori_layer_height = *(global_config.option<ConfigOptionFloat>(m_col_data[col_layer_height]->key));
         grid_row->perimeters = *(get_object_config_value<ConfigOptionInt>(global_config, grid_row->config, m_col_data[col_perimeters]->key));
         grid_row->ori_perimeters = *(global_config.option<ConfigOptionInt>(m_col_data[col_perimeters]->key));
-        grid_row->fill_density = *(get_object_config_value<ConfigOptionPercent>(global_config, grid_row->config, m_col_data[col_fill_density]->key));
+        grid_row->sparse_infill_density = *(get_object_config_value<ConfigOptionPercent>(global_config, grid_row->config, m_col_data[col_fill_density]->key));
         grid_row->ori_fill_density = *(global_config.option<ConfigOptionPercent>(m_col_data[col_fill_density]->key));
         grid_row->support_material = *(get_object_config_value<ConfigOptionBool>(global_config, grid_row->config, m_col_data[col_support_material]->key));
         grid_row->ori_support_material = *(global_config.option<ConfigOptionBool>(m_col_data[col_support_material]->key));
@@ -1749,7 +1749,7 @@ void ObjectGridTable::reload_object_data(ObjectGridRow* grid_row, const std::str
         grid_row->ori_perimeters = *(global_config.option<ConfigOptionInt>(m_col_data[col_perimeters]->key));
     }
     else if (category == L("Infill")) {
-        grid_row->fill_density = *(get_object_config_value<ConfigOptionPercent>(global_config, grid_row->config, m_col_data[col_fill_density]->key));
+        grid_row->sparse_infill_density = *(get_object_config_value<ConfigOptionPercent>(global_config, grid_row->config, m_col_data[col_fill_density]->key));
         grid_row->ori_fill_density = *(global_config.option<ConfigOptionPercent>(m_col_data[col_fill_density]->key));
     }
     else if (category == L("Support material")) {
@@ -1773,8 +1773,8 @@ void ObjectGridTable::reload_part_data(ObjectGridRow* volume_row, ObjectGridRow*
         volume_row->ori_layer_height = object_row->layer_height;
         volume_row->perimeters = *(get_volume_config_value<ConfigOptionInt>(global_config, object_row->config, volume_row->config, m_col_data[col_perimeters]->key));
         volume_row->ori_perimeters = object_row->perimeters;
-        volume_row->fill_density = *(get_volume_config_value<ConfigOptionPercent>(global_config, object_row->config, volume_row->config, m_col_data[col_fill_density]->key));
-        volume_row->ori_fill_density = object_row->fill_density;
+        volume_row->sparse_infill_density = *(get_volume_config_value<ConfigOptionPercent>(global_config, object_row->config, volume_row->config, m_col_data[col_fill_density]->key));
+        volume_row->ori_fill_density = object_row->sparse_infill_density;
         volume_row->support_material = *(get_volume_config_value<ConfigOptionBool>(global_config, object_row->config, volume_row->config, m_col_data[col_support_material]->key));
         volume_row->ori_support_material = object_row->support_material;
         volume_row->brim_type = *(get_volume_config_value<ConfigOptionEnum<BrimType>>(global_config, object_row->config, volume_row->config, m_col_data[col_brim_type]->key));
@@ -1797,11 +1797,11 @@ void ObjectGridTable::reload_part_data(ObjectGridRow* volume_row, ObjectGridRow*
         volume_row->ori_perimeters = object_row->perimeters;
     }
     else if (category == L("Infill")) {
-        volume_row->fill_density = *(get_volume_config_value<ConfigOptionPercent>(global_config, object_row->config, volume_row->config, m_col_data[col_fill_density]->key));
-        if (volume_row->fill_density == object_row->fill_density) {
+        volume_row->sparse_infill_density = *(get_volume_config_value<ConfigOptionPercent>(global_config, object_row->config, volume_row->config, m_col_data[col_fill_density]->key));
+        if (volume_row->sparse_infill_density == object_row->sparse_infill_density) {
             volume_row->config->erase(m_col_data[col_fill_density]->key);
         }
-        volume_row->ori_fill_density = object_row->fill_density;
+        volume_row->ori_fill_density = object_row->sparse_infill_density;
     }
     else if (category == L("Support material")) {
         volume_row->support_material = *(get_volume_config_value<ConfigOptionBool>(global_config, object_row->config, volume_row->config, m_col_data[col_support_material]->key));

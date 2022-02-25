@@ -128,10 +128,10 @@ ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const Slic3r::
         ap.bed_temp = config.opt_int("bed_temperature", (ap.extrude_id - 1) * BedType::btCount);
     if (config.has("temperature")) //get the print temperature
         ap.print_temp = config.opt_int("temperature", ap.extrude_id - 1);
-    if (config.has("first_layer_bed_temperature")) //get the first_layer_bed_temperature
-        ap.first_bed_temp = config.opt_int("first_layer_bed_temperature", (ap.extrude_id - 1) * BedType::btCount);
-    if (config.has("first_layer_temperature")) //get the first_layer_temperature
-        ap.first_print_temp = config.opt_int("first_layer_temperature", ap.extrude_id - 1);
+    if (config.has("bed_temperature_initial_layer")) //get the bed_temperature_initial_layer
+        ap.first_bed_temp = config.opt_int("bed_temperature_initial_layer", (ap.extrude_id - 1) * BedType::btCount);
+    if (config.has("nozzle_temperature_initial_layer")) //get the nozzle_temperature_initial_layer
+        ap.first_print_temp = config.opt_int("nozzle_temperature_initial_layer", ap.extrude_id - 1);
     if (config.has("temperature_vitrification"))
         ap.vitrify_temp = config.opt_int("temperature_vitrification", ap.extrude_id - 1);
 

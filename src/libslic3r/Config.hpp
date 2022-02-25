@@ -1859,7 +1859,7 @@ public:
     // Set for type == coFloatOrPercent.
     // It provides a link to a configuration value, of which this option provides a ratio.
     // For example, 
-    // For example external_perimeter_speed may be defined as a fraction of perimeter_speed.
+    // For example outer_wall_speed may be defined as a fraction of perimeter_speed.
     t_config_option_key                 ratio_over;
     // True for multiline strings.
     bool                                multiline       = false;
@@ -1885,7 +1885,7 @@ public:
     // Used when parsing legacy configuration file.
     std::vector<t_config_option_key>    aliases;
     // Sometimes a single value may well define multiple values in a "beginner" mode.
-    // Currently used for aliasing "solid_layers" to "top_solid_layers", "bottom_solid_layers".
+    // Currently used for aliasing "solid_layers" to "top_solid_layers", "bottom_shell_layers".
     std::vector<t_config_option_key>    shortcut;
     // Definition of values / labels for a combo box.
     // Mostly used for enums (when type == coEnum), but may be used for ints resp. floats, if gui_type is set to "i_enum_open" resp. "f_enum_open".

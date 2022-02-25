@@ -482,11 +482,11 @@ protected: \
 PRINT_CONFIG_CLASS_DEFINE(
     PrintObjectConfig,
 
-    ((ConfigOptionFloat,               brim_separation))
+    ((ConfigOptionFloat,               brim_object_gap))
     ((ConfigOptionEnum<BrimType>,      brim_type))
     ((ConfigOptionFloat,               brim_width))
     ((ConfigOptionBool,                clip_multipart_objects))
-    ((ConfigOptionBool,                dont_support_bridges))
+    ((ConfigOptionBool,                bridge_no_support))
     ((ConfigOptionFloat,               elefant_foot_compensation))
     ((ConfigOptionFloatOrPercent,      extrusion_width))
     ((ConfigOptionBool,                infill_only_where_needed))
@@ -562,37 +562,37 @@ PRINT_CONFIG_CLASS_DEFINE(
 PRINT_CONFIG_CLASS_DEFINE(
     PrintRegionConfig,
 
-    ((ConfigOptionInt,                  bottom_solid_layers))
-    ((ConfigOptionFloat,                bottom_solid_min_thickness))
+    ((ConfigOptionInt,                  bottom_shell_layers))
+    ((ConfigOptionFloat,                bottom_shell_thickness))
     ((ConfigOptionFloat,                bridge_flow_ratio))
     ((ConfigOptionFloat,                bridge_speed))
     ((ConfigOptionBool,                 ensure_vertical_shell_thickness))
     ((ConfigOptionEnum<InfillPattern>,  top_fill_pattern))
-    ((ConfigOptionEnum<InfillPattern>,  bottom_fill_pattern))
-    ((ConfigOptionFloatOrPercent,       external_perimeter_extrusion_width))
-    ((ConfigOptionFloatOrPercent,       external_perimeter_speed))
+    ((ConfigOptionEnum<InfillPattern>,  bottom_surface_pattern))
+    ((ConfigOptionFloatOrPercent,       outer_wall_line_width))
+    ((ConfigOptionFloatOrPercent,       outer_wall_speed))
     ((ConfigOptionBool,                 external_perimeters_first))
     ((ConfigOptionBool,                 extra_perimeters))
-    ((ConfigOptionFloat,                fill_angle))
-    ((ConfigOptionPercent,              fill_density))
-    ((ConfigOptionEnum<InfillPattern>,  fill_pattern))
+    ((ConfigOptionFloat,                infill_angle))
+    ((ConfigOptionPercent,              sparse_infill_density))
+    ((ConfigOptionEnum<InfillPattern>,  sparse_infill_pattern))
     ((ConfigOptionEnum<FuzzySkinType>,  fuzzy_skin))
     ((ConfigOptionFloat,                fuzzy_skin_thickness))
-    ((ConfigOptionFloat,                fuzzy_skin_point_dist))
+    ((ConfigOptionFloat,                fuzzy_skin_point_distance))
     ((ConfigOptionBool,                 gap_fill_enabled))
-    ((ConfigOptionFloat,                gap_fill_speed))
+    ((ConfigOptionFloat,                gap_infill_speed))
     ((ConfigOptionFloatOrPercent,       infill_anchor))
     ((ConfigOptionFloatOrPercent,       infill_anchor_max))
     ((ConfigOptionInt,                  infill_extruder))
-    ((ConfigOptionFloatOrPercent,       infill_extrusion_width))
-    ((ConfigOptionFloatOrPercent,       infill_overlap))
-    ((ConfigOptionFloat,                infill_speed))
+    ((ConfigOptionFloatOrPercent,       sparse_infill_line_width))
+    ((ConfigOptionFloatOrPercent,       infill_wall_overlap))
+    ((ConfigOptionFloat,                sparse_infill_speed))
     //BBS
     ((ConfigOptionBool,                 infill_combination))
     // Ironing options
     ((ConfigOptionBool,                 ironing))
     ((ConfigOptionEnum<IroningType>,    ironing_type))
-    ((ConfigOptionPercent,              ironing_flowrate))
+    ((ConfigOptionPercent,              ironing_flow))
     ((ConfigOptionFloat,                ironing_spacing))
     ((ConfigOptionFloat,                ironing_speed))
     // Detect bridging perimeters
@@ -605,15 +605,15 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatOrPercent,       small_perimeter_speed))
     ((ConfigOptionFloat,                solid_infill_below_area))
     ((ConfigOptionInt,                  solid_infill_extruder))
-    ((ConfigOptionFloatOrPercent,       solid_infill_extrusion_width))
+    ((ConfigOptionFloatOrPercent,       internal_solid_infill_line_width))
     ((ConfigOptionInt,                  solid_infill_every_layers))
-    ((ConfigOptionFloatOrPercent,       solid_infill_speed))
+    ((ConfigOptionFloatOrPercent,       internal_solid_infill_speed))
     // Detect thin walls.
     ((ConfigOptionBool,                 thin_walls))
-    ((ConfigOptionFloatOrPercent,       top_infill_extrusion_width))
+    ((ConfigOptionFloatOrPercent,       top_surface_line_width))
     ((ConfigOptionInt,                  top_solid_layers))
     ((ConfigOptionFloat,                top_solid_min_thickness))
-    ((ConfigOptionFloatOrPercent,       top_solid_infill_speed))
+    ((ConfigOptionFloatOrPercent,       top_surface_speed))
     //BBS
     //((ConfigOptionBool,                 wipe_into_infill))
     //BBS
@@ -632,10 +632,10 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,               machine_max_acceleration_z))
     ((ConfigOptionFloats,               machine_max_acceleration_e))
     // M203 X... Y... Z... E... [mm/sec]
-    ((ConfigOptionFloats,               machine_max_feedrate_x))
-    ((ConfigOptionFloats,               machine_max_feedrate_y))
-    ((ConfigOptionFloats,               machine_max_feedrate_z))
-    ((ConfigOptionFloats,               machine_max_feedrate_e))
+    ((ConfigOptionFloats,               machine_max_speed_x))
+    ((ConfigOptionFloats,               machine_max_speed_y))
+    ((ConfigOptionFloats,               machine_max_speed_z))
+    ((ConfigOptionFloats,               machine_max_speed_e))
 
     // M204 P... R... T...[mm/sec^2]
     ((ConfigOptionFloats,               machine_max_acceleration_extruding))
@@ -657,13 +657,13 @@ PRINT_CONFIG_CLASS_DEFINE(
 PRINT_CONFIG_CLASS_DEFINE(
     GCodeConfig,
 
-    ((ConfigOptionString,              before_layer_gcode))
+    ((ConfigOptionString,              before_layer_change_gcode))
     ((ConfigOptionString,              between_objects_gcode))
     ((ConfigOptionFloats,              deretract_speed))
     //BBS
     ((ConfigOptionBool,                enable_arc_fitting))
-    ((ConfigOptionString,              end_gcode))
-    ((ConfigOptionStrings,             end_filament_gcode))
+    ((ConfigOptionString,              machine_end_gcode))
+    ((ConfigOptionStrings,             filament_end_gcode))
     ((ConfigOptionFloats,              extrusion_multiplier))
     ((ConfigOptionFloats,              filament_diameter))
     ((ConfigOptionFloats,              filament_density))
@@ -671,14 +671,13 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBools,               filament_soluble))
     ((ConfigOptionFloats,              filament_cost))
     ((ConfigOptionInts,                temperature_vitrification))  //BBS
-    ((ConfigOptionFloats,              filament_spool_weight))
     ((ConfigOptionFloats,              filament_max_volumetric_speed))
     ((ConfigOptionFloats,              filament_load_time))
     ((ConfigOptionFloats,              filament_unload_time))
     ((ConfigOptionFloats,              filament_minimal_purge_on_wipe_tower))
     // BBS
     ((ConfigOptionBool,                scan_first_layer))
-    ((ConfigOptionBool,                enable_spaghetti_detector))
+    ((ConfigOptionBool,                spaghetti_detector))
     ((ConfigOptionBool,                gcode_add_line_number))
     ((ConfigOptionBool,                bbl_bed_temperature_gcode))
     ((ConfigOptionBool,                remove_freq_sweep))
@@ -687,7 +686,7 @@ PRINT_CONFIG_CLASS_DEFINE(
 
     ((ConfigOptionEnum<GCodeFlavor>,   gcode_flavor))
     ((ConfigOptionBool,                gcode_label_objects))
-    ((ConfigOptionString,              layer_gcode))
+    ((ConfigOptionString,              layer_change_gcode))
     ((ConfigOptionFloat,               max_print_speed))
     ((ConfigOptionFloat,               max_volumetric_speed))
 //#ifdef HAS_PRESSURE_EQUALIZER
@@ -702,7 +701,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,              retract_restart_extra_toolchange))
     ((ConfigOptionFloats,              retract_speed))
     ((ConfigOptionString,              start_gcode))
-    ((ConfigOptionStrings,             start_filament_gcode))
+    ((ConfigOptionStrings,             filament_start_gcode))
     ((ConfigOptionBool,                single_extruder_multi_material))
     ((ConfigOptionBool,                single_extruder_multi_material_priming))
     ((ConfigOptionBool,                wipe_tower_no_sparse_layers))
@@ -720,9 +719,9 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
 
     //BBS
     ((ConfigOptionInts,               additional_cooling_fan_speed))
-    ((ConfigOptionBool,               avoid_crossing_perimeters))
-    ((ConfigOptionFloatOrPercent,     avoid_crossing_perimeters_max_detour))
-    ((ConfigOptionPoints,             bed_shape))
+    ((ConfigOptionBool,               reduce_crossing_wall))
+    ((ConfigOptionFloatOrPercent,     max_travel_detour_distance))
+    ((ConfigOptionPoints,             printable_area))
     //BBS: add bed_exclude_area
     ((ConfigOptionPoints,             bed_exclude_area))
     // BBS
@@ -732,7 +731,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,               complete_objects))
     ((ConfigOptionBools,              cooling))
     ((ConfigOptionFloat,              default_acceleration))
-    ((ConfigOptionInts,               disable_fan_first_layers))
+    ((ConfigOptionInts,               close_fan_the_first_x_layers))
     ((ConfigOptionEnum<DraftShield>,  draft_shield))
     ((ConfigOptionFloat,              duplicate_distance))
     ((ConfigOptionFloat,              extruder_clearance_height_to_rod))//BBs
@@ -743,15 +742,15 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBools,              fan_always_on))
     ((ConfigOptionInts,               fan_below_layer_time))
     ((ConfigOptionStrings,            filament_colour))
-    ((ConfigOptionFloat,              first_layer_acceleration))
+    ((ConfigOptionFloat,              initial_layer_acceleration))
     // BBS
-    ((ConfigOptionInts,               first_layer_bed_temperature))
-    ((ConfigOptionFloatOrPercent,     first_layer_extrusion_width))
-    ((ConfigOptionFloatOrPercent,     first_layer_height))
-    ((ConfigOptionFloatOrPercent,     first_layer_speed))
+    ((ConfigOptionInts,               bed_temperature_initial_layer))
+    ((ConfigOptionFloatOrPercent,     initial_layer_line_width))
+    ((ConfigOptionFloatOrPercent,     initial_layer_print_height))
+    ((ConfigOptionFloatOrPercent,     initial_layer_speed))
     //BBS
     ((ConfigOptionFloat,              speed_initial_layer_infill))
-    ((ConfigOptionInts,               first_layer_temperature))
+    ((ConfigOptionInts,               nozzle_temperature_initial_layer))
     ((ConfigOptionInts,               full_fan_speed_layer))
     ((ConfigOptionBool,               infill_first))
     ((ConfigOptionInts,               max_fan_speed))
@@ -767,7 +766,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionString,             output_filename_format))
     ((ConfigOptionStrings,            post_process))
     ((ConfigOptionString,             printer_model))
-    ((ConfigOptionFloat,              gcode_resolution))
+    ((ConfigOptionFloat,              resolution))
     ((ConfigOptionFloats,             retract_before_travel))
     ((ConfigOptionBools,              retract_layer_change))
     ((ConfigOptionFloat,              skirt_distance))
@@ -976,7 +975,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     SLAPrinterConfig,
 
     ((ConfigOptionEnum<PrinterTechnology>,    printer_technology))
-    ((ConfigOptionPoints,                     bed_shape))
+    ((ConfigOptionPoints,                     printable_area))
     ((ConfigOptionFloat,                      max_print_height))
     ((ConfigOptionFloat,                      display_width))
     ((ConfigOptionFloat,                      display_height))

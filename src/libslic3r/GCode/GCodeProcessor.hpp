@@ -130,7 +130,7 @@ namespace Slic3r {
         std::vector<MoveVertex> moves;
         // Positions of ends of lines of the final G-code this->filename after TimeProcessor::post_process() finalizes the G-code.
         std::vector<size_t> lines_ends;
-        Pointfs bed_shape;
+        Pointfs printable_area;
         //BBS: add bed exclude area
         Pointfs bed_exclude_area;
         //BBS: add toolpath_outside
@@ -157,7 +157,7 @@ namespace Slic3r {
             id = other.id;
             moves = other.moves;
             lines_ends = other.lines_ends;
-            bed_shape = other.bed_shape;
+            printable_area = other.printable_area;
             bed_exclude_area = other.bed_exclude_area;
             toolpath_outside = other.toolpath_outside;
             max_print_height = other.max_print_height;

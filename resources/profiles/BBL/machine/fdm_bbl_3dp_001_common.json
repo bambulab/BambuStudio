@@ -5,7 +5,7 @@
     "instantiation": "false",
     "bed_custom_model": "",
     "bed_custom_texture": "",
-    "bed_shape": [
+    "printable_area": [
         "0x0",
         "256x0",
         "256x256",
@@ -21,7 +21,7 @@
         "8x256",
         "0x256"
     ],
-    "before_layer_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\n\n",
+    "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\n\n",
     "between_objects_gcode": "",
     "default_filament_profile": [
         "Generic PLA @BBL-PC-Surface",
@@ -36,7 +36,7 @@
         "0",
         "0"
     ],
-    "end_gcode": "M400 ; wait for buffer to clear\nG92 E0 ; zero the extruder\nG1 E-4.0 F3600 ; retract \nG91\nG1 Z3;\nM104 S0 ; turn off hotend\nM140 S0 ; turn off bed\nM106 S0 ; turn off fan\nG90\nG0 X110 Y200 F3600",
+    "machine_end_gcode": "M400 ; wait for buffer to clear\nG92 E0 ; zero the extruder\nG1 E-4.0 F3600 ; retract \nG91\nG1 Z3;\nM104 S0 ; turn off hotend\nM140 S0 ; turn off bed\nM106 S0 ; turn off fan\nG90\nG0 X110 Y200 F3600",
     "extruder_colour": [
         "#808000",
         "#FFFF00",
@@ -51,7 +51,7 @@
     ],
     "gcode_flavor": "marlin",
     "inherits": "fdm_machine_common",
-    "layer_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
+    "layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
     "machine_max_acceleration_e": [
         "5000",
         "5000"
@@ -80,19 +80,19 @@
         "500",
         "200"
     ],
-    "machine_max_feedrate_e": [
+    "machine_max_speed_e": [
         "100",
         "100"
     ],
-    "machine_max_feedrate_x": [
+    "machine_max_speed_x": [
         "500",
         "200"
     ],
-    "machine_max_feedrate_y": [
+    "machine_max_speed_y": [
         "500",
         "200"
     ],
-    "machine_max_feedrate_z": [
+    "machine_max_speed_z": [
         "12",
         "12"
     ],

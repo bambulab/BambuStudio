@@ -8,7 +8,7 @@
     "temperature": [
         "280"
     ],
-    "first_layer_temperature": [
+    "nozzle_temperature_initial_layer": [
         "270"
     ]
 }

@@ -396,7 +396,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
         Tab* tab_print = wxGetApp().get_tab(Preset::TYPE_PRINT);
         if (!tab_print) return;
 
-        if (opt_key == "fill_density") {
+        if (opt_key == "sparse_infill_density") {
             tab_print->update_dirty();
             tab_print->reload_config();
             tab_print->update();
@@ -489,7 +489,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
 
     line = Line { "", "" };
 
-    option = m_og->get_option("fill_density");
+    option = m_og->get_option("sparse_infill_density");
     option.opt.label = L("Infill");
     option.opt.width = 8;
     option.opt.sidetext = "   ";
@@ -2162,13 +2162,13 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     , acc_(acc)
     //BBS: add bed_exclude_area
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
-        "bed_shape", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "complete_objects", "duplicate_distance", "extruder_clearance_radius", "skirts", "skirt_distance",
-        "brim_width", "brim_separation", "brim_type", "nozzle_diameter", "single_extruder_multi_material",
+        "printable_area", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "complete_objects", "duplicate_distance", "extruder_clearance_radius", "skirts", "skirt_distance",
+        "brim_width", "brim_object_gap", "brim_type", "nozzle_diameter", "single_extruder_multi_material",
         "wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_brim_width", "wiping_volume",
         "extruder_colour", "filament_colour", "material_colour", "max_print_height", "printer_model", "printer_technology",
         // These values are necessary to construct SlicingParameters by the Canvas3D variable layer height editor.
-        "layer_height", "first_layer_height", "min_layer_height", "max_layer_height",
-        "brim_width", "perimeters", "perimeter_extruder", "fill_density", "infill_extruder", "top_solid_layers", 
+        "layer_height", "initial_layer_print_height", "min_layer_height", "max_layer_height",
+        "brim_width", "perimeters", "perimeter_extruder", "sparse_infill_density", "infill_extruder", "top_solid_layers", 
         "support_material", "support_material_extruder", "support_material_interface_extruder", 
         "support_material_contact_distance", "support_material_bottom_contact_distance", "raft_layers"
         }))
@@ -2608,22 +2608,22 @@ void Plater::setPrintSpeedTable(GlobalSpeedMap &printSpeedMap) {
         if (printSpeedMap.perimeterSpeed > printSpeedMap.maxSpeed)
             printSpeedMap.maxSpeed = printSpeedMap.perimeterSpeed;
     }
-    if (config.has("external_perimeter_speed")) {
-        printSpeedMap.externalPerimeterSpeed = config.get_abs_value("external_perimeter_speed", printSpeedMap.perimeterSpeed);
+    if (config.has("outer_wall_speed")) {
+        printSpeedMap.externalPerimeterSpeed = config.get_abs_value("outer_wall_speed", printSpeedMap.perimeterSpeed);
         printSpeedMap.maxSpeed = std::max(printSpeedMap.maxSpeed, printSpeedMap.externalPerimeterSpeed);
     }
-    if (config.has("infill_speed")) {
-        printSpeedMap.infillSpeed = config.opt_float("infill_speed");
+    if (config.has("sparse_infill_speed")) {
+        printSpeedMap.infillSpeed = config.opt_float("sparse_infill_speed");
         if (printSpeedMap.infillSpeed > printSpeedMap.maxSpeed)
             printSpeedMap.maxSpeed = printSpeedMap.infillSpeed;
     }
-    if (config.has("solid_infill_speed")) {
-        printSpeedMap.solidInfillSpeed = config.get_abs_value("solid_infill_speed", printSpeedMap.infillSpeed);
+    if (config.has("internal_solid_infill_speed")) {
+        printSpeedMap.solidInfillSpeed = config.get_abs_value("internal_solid_infill_speed", printSpeedMap.infillSpeed);
         if (printSpeedMap.solidInfillSpeed > printSpeedMap.maxSpeed)
             printSpeedMap.maxSpeed = printSpeedMap.solidInfillSpeed;
     }
-    if (config.has("top_solid_infill_speed")) {
-        printSpeedMap.topSolidInfillSpeed = config.get_abs_value("top_solid_infill_speed", printSpeedMap.infillSpeed);
+    if (config.has("top_surface_speed")) {
+        printSpeedMap.topSolidInfillSpeed = config.get_abs_value("top_surface_speed", printSpeedMap.infillSpeed);
         if (printSpeedMap.topSolidInfillSpeed > printSpeedMap.maxSpeed)
             printSpeedMap.maxSpeed = printSpeedMap.topSolidInfillSpeed;
     }
@@ -2634,9 +2634,9 @@ void Plater::setPrintSpeedTable(GlobalSpeedMap &printSpeedMap) {
             printSpeedMap.maxSpeed = printSpeedMap.supportSpeed;
     }
 
-    /*        "perimeter_speed", "small_perimeter_speed", "external_perimeter_speed", "infill_speed", "solid_infill_speed",
-        "top_solid_infill_speed", "support_material_speed", "support_material_xy_spacing", "support_material_interface_speed",
-        "bridge_speed", "gap_fill_speed", "travel_speed", "first_layer_speed"*/
+    /*        "perimeter_speed", "small_perimeter_speed", "outer_wall_speed", "sparse_infill_speed", "internal_solid_infill_speed",
+        "top_surface_speed", "support_material_speed", "support_material_xy_spacing", "support_material_interface_speed",
+        "bridge_speed", "gap_infill_speed", "travel_speed", "initial_layer_speed"*/
 }
 
 // find temperature of heatend and bed and matierial of an given extruder
@@ -2768,9 +2768,9 @@ BoundingBoxf Plater::priv::bed_shape_bb() const
 
 BoundingBox Plater::priv::scaled_bed_shape_bb() const
 {
-    const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
-    const auto bed_shape = Slic3r::Polygon::new_scale(bed_shape_opt->values);
-    return bed_shape.bounding_box();
+    const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("printable_area");
+    const auto printable_area = Slic3r::Polygon::new_scale(bed_shape_opt->values);
+    return printable_area.bounding_box();
 }
 
 // BBS: backup & restore
@@ -3364,7 +3364,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
 #if 0
     // FIXME distance should be a config value /////////////////////////////////
     auto min_obj_distance = static_cast<coord_t>(6/SCALING_FACTOR);
-    const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
+    const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("printable_area");
     assert(bed_shape_opt);
     auto& bedpoints = bed_shape_opt->values;
     Polyline bed; bed.points.reserve(bedpoints.size());
@@ -8525,7 +8525,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             p->partplate_list.invalid_all_slice_result();
         }
         //BBS: add bed_exclude_area
-        else if (opt_key == "bed_shape" || opt_key == "bed_exclude_area" || opt_key == "bed_custom_texture" || opt_key == "bed_custom_model") {
+        else if (opt_key == "printable_area" || opt_key == "bed_exclude_area" || opt_key == "bed_custom_texture" || opt_key == "bed_custom_model") {
             bed_shape_changed = true;
             update_scheduled = true;
         }
@@ -8564,7 +8564,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 
 void Plater::set_bed_shape() const
 {
-    set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values,
+    set_bed_shape(p->config->option<ConfigOptionPoints>("printable_area")->values,
         //BBS: add bed exclude areas
         p->config->option<ConfigOptionPoints>("bed_exclude_area")->values,
         p->config->option<ConfigOptionFloat>("max_print_height")->value,

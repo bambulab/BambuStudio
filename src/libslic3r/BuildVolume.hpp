@@ -33,11 +33,11 @@ public:
 
     // Initialized to empty, all zeros, Invalid.
     BuildVolume() {}
-    // Initialize from PrintConfig::bed_shape and PrintConfig::max_print_height
-    BuildVolume(const std::vector<Vec2d> &bed_shape, const double max_print_height);
+    // Initialize from PrintConfig::printable_area and PrintConfig::max_print_height
+    BuildVolume(const std::vector<Vec2d> &printable_area, const double max_print_height);
 
     // Source data, unscaled coordinates.
-    const std::vector<Vec2d>&   bed_shape()         const { return m_bed_shape; }
+    const std::vector<Vec2d>&   printable_area()         const { return m_bed_shape; }
     double                      max_print_height()  const { return m_max_print_height; }
     
     // Derived data
@@ -46,11 +46,11 @@ public:
     static std::string_view     type_name(Type type);
     std::string_view            type_name()         const { return type_name(m_type); }
     bool                        valid()             const { return m_type != Type::Invalid; }
-    // Same as bed_shape(), but scaled coordinates.
+    // Same as printable_area(), but scaled coordinates.
     const Polygon&              polygon()           const { return m_polygon; }
     // Bounding box of polygon(), scaled.
     const BoundingBox&          bounding_box()      const { return m_bbox; }
-    // Bounding volume of bed_shape(), max_print_height(), unscaled.
+    // Bounding volume of printable_area(), max_print_height(), unscaled.
     const BoundingBoxf3&        bounding_volume()   const { return m_bboxf; }
     BoundingBoxf                bounding_volume2d() const { return { to_2d(m_bboxf.min), to_2d(m_bboxf.max) }; }
 
@@ -95,7 +95,7 @@ public:
     bool         all_paths_inside_vertices_and_normals_interleaved(const std::vector<float>& paths, const Eigen::AlignedBox<float, 3>& bbox, bool ignore_bottom = true) const;
 
 private:
-    // Source definition of the print bed geometry (PrintConfig::bed_shape)
+    // Source definition of the print bed geometry (PrintConfig::printable_area)
     std::vector<Vec2d>  m_bed_shape;
     // Source definition of the print volume height (PrintConfig::max_print_height)
     double              m_max_print_height { 0.f };

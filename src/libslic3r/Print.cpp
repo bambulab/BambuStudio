@@ -59,22 +59,22 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
     static std::unordered_set<std::string> steps_gcode = {
         //BBS
         "additional_cooling_fan_speed",
-        "avoid_crossing_perimeters",
-        "avoid_crossing_perimeters_max_detour",
-        "bed_shape",
+        "reduce_crossing_wall",
+        "max_travel_detour_distance",
+        "printable_area",
         //BBS: add bed_exclude_area
         "bed_exclude_area",
         "bed_temperature",
-        "before_layer_gcode",
+        "before_layer_change_gcode",
         "between_objects_gcode",
         "bridge_fan_speed",
         "cooling",
         "default_acceleration",
         "deretract_speed",
-        "disable_fan_first_layers",
+        "close_fan_the_first_x_layers",
         "duplicate_distance",
-        "end_gcode",
-        "end_filament_gcode",
+        "machine_end_gcode",
+        "filament_end_gcode",
         "extruder_clearance_height_to_rod",
         "extruder_clearance_height_to_lid",
         "extruder_clearance_radius",
@@ -88,14 +88,13 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "filament_diameter",
         "filament_density",
         "filament_cost",
-        "filament_spool_weight",
-        "first_layer_acceleration",
-        "first_layer_bed_temperature",
+        "initial_layer_acceleration",
+        "bed_temperature_initial_layer",
         // BBS
         "gcode_add_line_number",
         "bbl_bed_temperature_gcode",
         "gcode_label_objects",
-        "layer_gcode",
+        "layer_change_gcode",
         "min_fan_speed",
         "max_fan_speed",
         "max_print_height",
@@ -122,7 +121,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "slowdown_below_layer_time",
         "standby_temperature_delta",
         "start_gcode",
-        "start_filament_gcode",
+        "filament_start_gcode",
         "toolchange_gcode",
         "use_relative_e_distances",
         "wipe",
@@ -158,7 +157,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "wipe_tower_rotation_angle") {
             steps.emplace_back(psSkirtBrim);
         } else if (
-               opt_key == "first_layer_height"
+               opt_key == "initial_layer_print_height"
             || opt_key == "nozzle_diameter"
             // Spiral Vase forces different kind of slicing than the normal model:
             // In Spiral Vase mode, holes are closed and only the largest area contour is kept at each layer.
@@ -168,7 +167,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         } else if (
                opt_key == "complete_objects"
             || opt_key == "filament_type"
-            || opt_key == "first_layer_temperature"
+            || opt_key == "nozzle_temperature_initial_layer"
             || opt_key == "filament_minimal_purge_on_wipe_tower"
             || opt_key == "filament_max_volumetric_speed"
             || opt_key == "gcode_flavor"
@@ -186,7 +185,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "speed_initial_layer_infill"
             || opt_key == "travel_speed"
             || opt_key == "travel_speed_z"
-            || opt_key == "first_layer_speed"
+            || opt_key == "initial_layer_speed"
             || opt_key == "z_offset") {
             steps.emplace_back(psWipeTower);
             steps.emplace_back(psSkirtBrim);
@@ -197,10 +196,10 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             //FIXME Killing supports on any change of "filament_soluble" is rough. We should check for each object whether that is necessary.
             osteps.emplace_back(posSupportMaterial);
         } else if (
-               opt_key == "first_layer_extrusion_width" 
+               opt_key == "initial_layer_line_width" 
             || opt_key == "min_layer_height"
             || opt_key == "max_layer_height"
-            || opt_key == "gcode_resolution"
+            || opt_key == "resolution"
             //BBS: when enable arc fitting, we must re-generate perimeter
             || opt_key == "enable_arc_fitting") {
             osteps.emplace_back(posPerimeters);
@@ -707,9 +706,9 @@ std::string Print::validate(std::string* warning) const
                 }
             }
 
-            // validate first_layer_height
-            assert(! m_config.first_layer_height.percent);
-            double first_layer_height = m_config.first_layer_height.value;
+            // validate initial_layer_print_height
+            assert(! m_config.initial_layer_print_height.percent);
+            double initial_layer_print_height = m_config.initial_layer_print_height.value;
             double first_layer_min_nozzle_diameter;
             if (object->has_raft()) {
                 // if we have raft layers, only support material extruder is used on first layer
@@ -723,7 +722,7 @@ std::string Print::validate(std::string* warning) const
                 // if we don't have raft layers, any nozzle diameter is potentially used in first layer
                 first_layer_min_nozzle_diameter = min_nozzle_diameter;
             }
-            if (first_layer_height > first_layer_min_nozzle_diameter)
+            if (initial_layer_print_height > first_layer_min_nozzle_diameter)
                 return L("First layer height can't be greater than nozzle diameter");
             
             // validate layer_height
@@ -741,7 +740,7 @@ std::string Print::validate(std::string* warning) const
                     || !validate_extrusion_width(object->config(), "support_transition_extrusion_width", layer_height, err_msg))
                     return err_msg;
             }
-            for (const char *opt_key : { "perimeter_extrusion_width", "external_perimeter_extrusion_width", "infill_extrusion_width", "solid_infill_extrusion_width", "top_infill_extrusion_width" })
+            for (const char *opt_key : { "perimeter_extrusion_width", "outer_wall_line_width", "sparse_infill_line_width", "internal_solid_infill_line_width", "top_surface_line_width" })
 				for (const PrintRegion &region : object->all_regions())
             		if (! validate_extrusion_width(region.config(), opt_key, layer_height, err_msg))
 		            	return err_msg;
@@ -810,13 +809,13 @@ BoundingBox Print::total_bounding_box() const
 
 double Print::skirt_first_layer_height() const
 {
-    assert(! m_config.first_layer_height.percent);
-    return m_config.first_layer_height.value;
+    assert(! m_config.initial_layer_print_height.percent);
+    return m_config.initial_layer_print_height.value;
 }
 
 Flow Print::brim_flow() const
 {
-    ConfigOptionFloatOrPercent width = m_config.first_layer_extrusion_width;
+    ConfigOptionFloatOrPercent width = m_config.initial_layer_line_width;
     if (width.value == 0) 
         width = m_print_regions.front()->config().perimeter_extrusion_width;
     if (width.value == 0) 
@@ -836,7 +835,7 @@ Flow Print::brim_flow() const
 
 Flow Print::skirt_flow() const
 {
-    ConfigOptionFloatOrPercent width = m_config.first_layer_extrusion_width;
+    ConfigOptionFloatOrPercent width = m_config.initial_layer_line_width;
     if (width.value == 0) 
         width = m_print_regions.front()->config().perimeter_extrusion_width;
     if (width.value == 0)
@@ -1234,7 +1233,7 @@ void Print::_make_skirt()
     // Skirt may be printed on several layers, having distinct layer heights,
     // but loops must be aligned so can't vary width/spacing
     // TODO: use each extruder's own flow
-    double first_layer_height = this->skirt_first_layer_height();
+    double initial_layer_print_height = this->skirt_first_layer_height();
     Flow   flow = this->skirt_flow();
     float  spacing = flow.spacing();
     double mm3_per_mm = flow.mm3_per_mm();
@@ -1283,7 +1282,7 @@ void Print::_make_skirt()
                 erSkirt,
                 (float)mm3_per_mm,         // this will be overridden at G-code export time
                 flow.width(),
-				(float)first_layer_height  // this will be overridden at G-code export time
+				(float)initial_layer_print_height  // this will be overridden at G-code export time
             )));
         eloop.paths.back().polyline = loop.split_at_first_point();
         m_skirt.append(eloop);

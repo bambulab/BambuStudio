@@ -188,7 +188,7 @@ public:
 	// Returns gcode to prime the nozzles at the front edge of the print bed.
 	std::vector<ToolChangeResult> prime(
 		// print_z of the first layer.
-		float 						first_layer_height, 
+		float 						initial_layer_print_height, 
 		// Extruder indices, in the order to be primed. The last extruder will later print the wipe tower brim, print brim and the object.
 		const std::vector<unsigned int> &tools,
 		// If true, the last priming are will be the same as the other priming areas, and the rest of the wipe will be performed inside the wipe tower.
@@ -215,7 +215,7 @@ public:
         std::string 	    material = "PLA";
         bool                is_soluble = false;
         int  			    temperature = 0;
-        int  			    first_layer_temperature = 0;
+        int  			    nozzle_temperature_initial_layer = 0;
         // BBS: remove useless config
         //float               loading_speed = 0.f;
         //float               loading_speed_start = 0.f;

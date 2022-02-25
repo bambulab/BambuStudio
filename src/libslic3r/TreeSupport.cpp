@@ -751,7 +751,7 @@ void TreeSupport::detect_object_overhangs()
     const coordf_t radius_sample_resolution = m_ts_data->m_radius_sample_resolution;
     const coordf_t extrusion_width = config.extrusion_width.value;
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
-    const bool dont_support_bridges = config.dont_support_bridges.value;
+    const bool bridge_no_support = config.bridge_no_support.value;
     const bool support_sharp_tails = config.support_sharp_tails.value;
     const bool remove_small_overhangs = config.remove_small_overhangs.value;
     const int support_material_enforce_layers = config.support_material_enforce_layers.value;
@@ -935,7 +935,7 @@ void TreeSupport::detect_object_overhangs()
                         overhang_areas = union_ex(overhang_areas, overhangs_sharp_tail);
 
 
-                    if (dont_support_bridges && overhang_areas.size()>0) {
+                    if (bridge_no_support && overhang_areas.size()>0) {
                         auto bridge = remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, overhang_areas, max_bridge_length);
                         all_bridges.emplace(layer_nr, bridge);
                     }
@@ -1938,7 +1938,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 m_object->print()->set_status(95, "Support: draw_circles at layer " + std::to_string(layer_nr));
 
                 // let supports touch objects when brim is on
-                auto avoid_region = m_ts_data->get_collision((layer_nr == 0 && has_brim) ? config.brim_separation : m_ts_data->m_xy_distance, layer_nr);
+                auto avoid_region = m_ts_data->get_collision((layer_nr == 0 && has_brim) ? config.brim_object_gap : m_ts_data->m_xy_distance, layer_nr);
                 auto avoid_region_interface = m_ts_data->get_collision(config.support_material_contact_distance, layer_nr);
                 Polygons layer_contours = std::move(m_ts_data->get_contours_with_holes(layer_nr));
                 base_areas = std::move(diff_ex(base_areas, avoid_region));

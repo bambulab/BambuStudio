@@ -910,7 +910,7 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
             } else {
                 // BBS
                 ConfigOptionVectorBase* opt_vec_dst = static_cast<ConfigOptionVectorBase*>(opt_dst);
-                if (key == "bed_temperature" || key == "first_layer_bed_temperature") {
+                if (key == "bed_temperature" || key == "bed_temperature_initial_layer") {
                     for (size_t i = 0; i < num_extruders; i++) {
                         const ConfigOptionInts* bed_temp_opt = dynamic_cast<const ConfigOptionInts*>(filament_configs[i]->option(key));
                         for (size_t type = 0; type < (size_t)BedType::btCount; type++) {
@@ -1226,7 +1226,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                         configs[i].option(key, false)->set(other_opt);
                 }
                 // BBS
-                else if (key == "bed_temperature" || key == "first_layer_bed_temperature") {
+                else if (key == "bed_temperature" || key == "bed_temperature_initial_layer") {
                     const ConfigOptionInts* other_matrix_opt = dynamic_cast<const ConfigOptionInts*>(config.option(key));
                     int n_old_bed_types = other_matrix_opt->size() / num_extruders;
                     assert(n_old_bed_types <= BedType::btCount);

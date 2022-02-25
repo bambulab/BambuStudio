@@ -54,7 +54,7 @@ private:
     bool           m_use_external_mp { false };
     // just for the next travel move
     bool           m_use_external_mp_once { false };
-    // this flag disables avoid_crossing_perimeters just for the next travel move
+    // this flag disables reduce_crossing_wall just for the next travel move
     // we enable it by default for the first travel move in print
     bool           m_disabled_once { true };
 

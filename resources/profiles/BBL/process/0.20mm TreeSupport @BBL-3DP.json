@@ -6,14 +6,14 @@
     "inherits": "fdm_process_bbl_0.20",
     "compatible_printers_condition": "printer_model=~/(BBL-3DP).*/ and nozzle_diameter[0]==0.4",
     "solid_infill_below_area": "60",
-    "fill_density": "15%",
+    "sparse_infill_density": "15%",
     "support_material": "1",
     "tree_support_branch_distance": "2",
     "tree_support_branch_diameter": "5",
     "tree_support_wall_count": "0",
     "tree_support_with_infill": "1",
     "support_material_interface_layers": "2",
-    "dont_support_bridges": "1",
+    "bridge_no_support": "1",
     "perimeter_speed": "200",
-    "infill_speed": "200"
+    "sparse_infill_speed": "200"
 }

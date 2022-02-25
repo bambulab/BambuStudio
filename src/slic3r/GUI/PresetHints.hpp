@@ -24,7 +24,7 @@ public:
     // from the provided number of perimeters and the external / internal perimeter width.
     static std::string recommended_thin_wall_thickness(const PresetBundle &preset_bundle);
 
-    // Produce a textual explanation of the combined effects of the top/bottom_solid_layers
+    // Produce a textual explanation of the combined effects of the top/bottom_shell_layers
     // versus top/bottom_min_shell_thickness. Which of the two values wins depends
     // on the active layer height.
     static std::string top_bottom_shell_thickness_explanation(const PresetBundle &preset_bundle);    

@@ -124,7 +124,7 @@ ExPolygons Layer::merged(float offset_scaled) const
 	for (LayerRegion *layerm : m_regions) {
 		const PrintRegionConfig &config = layerm->region().config();
 		// Our users learned to bend Slic3r to produce empty volumes to act as subtracters. Only add the region if it is non-empty.
-		if (config.bottom_solid_layers > 0 || config.top_solid_layers > 0 || config.fill_density > 0. || config.perimeters > 0)
+		if (config.bottom_shell_layers > 0 || config.top_solid_layers > 0 || config.sparse_infill_density > 0. || config.perimeters > 0)
 			append(polygons, offset(layerm->slices.surfaces, offset_scaled));
 	}
     ExPolygons out = union_ex(polygons);
@@ -166,17 +166,17 @@ void Layer::make_perimeters()
 		            if (config.perimeter_extruder             == other_config.perimeter_extruder
 		                && config.perimeters                  == other_config.perimeters
 		                && config.perimeter_speed             == other_config.perimeter_speed
-		                && config.external_perimeter_speed    == other_config.external_perimeter_speed
-		                && (config.gap_fill_enabled ? config.gap_fill_speed.value : 0.) == 
-                           (other_config.gap_fill_enabled ? other_config.gap_fill_speed.value : 0.)
+		                && config.outer_wall_speed    == other_config.outer_wall_speed
+		                && (config.gap_fill_enabled ? config.gap_infill_speed.value : 0.) == 
+                           (other_config.gap_fill_enabled ? other_config.gap_infill_speed.value : 0.)
 		                && config.overhangs                   == other_config.overhangs
 		                && config.opt_serialize("perimeter_extrusion_width") == other_config.opt_serialize("perimeter_extrusion_width")
 		                && config.thin_walls                  == other_config.thin_walls
 		                && config.external_perimeters_first   == other_config.external_perimeters_first
-		                && config.infill_overlap              == other_config.infill_overlap
+		                && config.infill_wall_overlap              == other_config.infill_wall_overlap
                         && config.fuzzy_skin                  == other_config.fuzzy_skin
                         && config.fuzzy_skin_thickness        == other_config.fuzzy_skin_thickness
-                        && config.fuzzy_skin_point_dist       == other_config.fuzzy_skin_point_dist)
+                        && config.fuzzy_skin_point_distance       == other_config.fuzzy_skin_point_distance)
 		            {
 			 			other_layerm->perimeters.clear();
 			 			other_layerm->fills.clear();
@@ -200,7 +200,7 @@ void Layer::make_perimeters()
 	                for (LayerRegion *layerm : layerms) {
 	                    for (const Surface &surface : layerm->slices.surfaces)
 	                        slices[surface.extra_perimeters].emplace_back(surface);
-	                    if (layerm->region().config().fill_density > layerm_config->region().config().fill_density)
+	                    if (layerm->region().config().sparse_infill_density > layerm_config->region().config().sparse_infill_density)
 	                    	layerm_config = layerm;
 	                }
 	                // merge the surfaces assigned to each group

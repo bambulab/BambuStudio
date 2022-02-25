@@ -569,7 +569,7 @@ bool ConfigBase::set_deserialize_raw(const t_config_option_key &opt_key_src, con
     }
     
     if (! optdef->shortcut.empty()) {
-        // Aliasing for example "solid_layers" to "top_solid_layers" and "bottom_solid_layers".
+        // Aliasing for example "solid_layers" to "top_solid_layers" and "bottom_shell_layers".
         for (const t_config_option_key &shortcut : optdef->shortcut)
             // Recursive call.
             if (! this->set_deserialize_raw(shortcut, value, substitutions_ctxt, append))
@@ -598,7 +598,7 @@ bool ConfigBase::set_deserialize_raw(const t_config_option_key &opt_key_src, con
     	success     = result != ConfigHelpers::DeserializationResult::Failed;
     	substituted = result == ConfigHelpers::DeserializationResult::Substituted;
     } else {
-		//bool test = (opt_key == "end_filament_gcode");
+		//bool test = (opt_key == "filament_end_gcode");
 		success = opt->deserialize(value, append);
 	    if (! success && substitutions_ctxt.rule != ForwardCompatibilitySubstitutionRule::Disable &&
 	        // Only allow substitutions of an enum value by another enum value or a boolean value with an enum value.
@@ -776,7 +776,7 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                 }
                 else if (it.value().is_array()) {
                     bool valid = true, first = true, use_comma = true;
-                    //bool test2 = (it.key() == std::string("end_filament_gcode"));
+                    //bool test2 = (it.key() == std::string("filament_end_gcode"));
                     const ConfigOptionDef* optdef = config_def->get(opt_key);
                     if (optdef == nullptr) {
                         // If we didn't find an option, look for any other option having this as an alias.

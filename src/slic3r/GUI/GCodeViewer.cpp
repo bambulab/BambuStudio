@@ -731,15 +731,15 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
         //load_shells(print, initialized);
     }
     else {
-        Pointfs bed_shape;
+        Pointfs printable_area;
         //BBS: add bed exclude area
         Pointfs bed_exclude_area = Pointfs();
         std::string texture;
         std::string model;
 
-        if (!gcode_result.bed_shape.empty()) {
+        if (!gcode_result.printable_area.empty()) {
             // bed shape detected in the gcode
-            bed_shape = gcode_result.bed_shape;
+            printable_area = gcode_result.printable_area;
             const auto bundle = wxGetApp().preset_bundle;
             if (bundle != nullptr && !m_settings_ids.printer.empty()) {
                 const Preset* preset = bundle->printers.find_preset(m_settings_ids.printer);
@@ -756,7 +756,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
             const Vec2d max(m_paths_bounding_box.max.x() + margin, m_paths_bounding_box.max.y() + margin);
 
             const Vec2d size = max - min;
-            bed_shape = {
+            printable_area = {
                 { min.x(), min.y() },
                 { max.x(), min.y() },
                 { max.x(), min.y() + 0.442265 * size.y()},
@@ -774,7 +774,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
         //BBS: add bed exclude area
         if (!gcode_result.bed_exclude_area.empty())
             bed_exclude_area = gcode_result.bed_exclude_area;
-        wxGetApp().plater()->set_bed_shape(bed_shape, bed_exclude_area, gcode_result.max_print_height, texture, model, gcode_result.bed_shape.empty());
+        wxGetApp().plater()->set_bed_shape(printable_area, bed_exclude_area, gcode_result.max_print_height, texture, model, gcode_result.printable_area.empty());
     }
 
     m_print_statistics = gcode_result.print_statistics;

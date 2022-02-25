@@ -28,10 +28,10 @@
     "filament_cost": [
         "20"
     ],
-    "first_layer_bed_temperature": [
+    "bed_temperature_initial_layer": [
         "35,0,60"
     ],
-    "first_layer_temperature": [
+    "nozzle_temperature_initial_layer": [
         "220"
     ],
     "fan_always_on": [
@@ -49,7 +49,7 @@
     "bridge_fan_speed": [
         "100"
     ],
-    "disable_fan_first_layers": [
+    "close_fan_the_first_x_layers": [
         "1"
     ],
     "temperature": [
@@ -67,7 +67,7 @@
     "additional_cooling_fan_speed": [
         "100"
     ],
-    "start_filament_gcode": [
-        "; Filament gcode\n{if (bed_temperature[current_extruder] >=45)||(first_layer_bed_temperature[current_extruder] >=45)}M106 P3 S255\n{endif};Prevent PLA from jamming"
+    "filament_start_gcode": [
+        "; Filament gcode\n{if (bed_temperature[current_extruder] >=45)||(bed_temperature_initial_layer[current_extruder] >=45)}M106 P3 S255\n{endif};Prevent PLA from jamming"
     ]
 }

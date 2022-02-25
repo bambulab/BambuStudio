@@ -65,7 +65,7 @@ public:
     bool        update_settings_list(bool is_object, bool is_multiple_selection, ModelObject* object, ModelConfig* config, const std::string& category);
     /* Additional check for override options: Add options, if its needed.
      * Example: if Infill is set to 100%, and Fill Pattern is missed in config_to,
-     * we should add fill_pattern to avoid endless loop in update
+     * we should add sparse_infill_pattern to avoid endless loop in update
      */
     bool        add_missed_options(ModelConfig *config_to, const DynamicPrintConfig &config_from);
     //return visible count

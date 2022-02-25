@@ -65,9 +65,9 @@ SlicingParameters SlicingParameters::create_from_config(
 	coordf_t				 object_height,
 	const std::vector<unsigned int> &object_extruders)
 {
-    assert(! print_config.first_layer_height.percent);
-    coordf_t first_layer_height                      = (print_config.first_layer_height.value <= 0) ? 
-        object_config.layer_height.value : print_config.first_layer_height.value;
+    assert(! print_config.initial_layer_print_height.percent);
+    coordf_t initial_layer_print_height                      = (print_config.initial_layer_print_height.value <= 0) ? 
+        object_config.layer_height.value : print_config.initial_layer_print_height.value;
     // If object_config.support_material_extruder == 0 resp. object_config.support_material_interface_extruder == 0,
     // print_config.nozzle_diameter.get_at(size_t(-1)) returns the 0th nozzle diameter,
     // which is consistent with the requirement that if support_material_extruder == 0 resp. support_material_interface_extruder == 0,
@@ -79,8 +79,8 @@ SlicingParameters SlicingParameters::create_from_config(
 
     SlicingParameters params;
     params.layer_height = object_config.layer_height.value;
-    params.first_print_layer_height = first_layer_height;
-    params.first_object_layer_height = first_layer_height;
+    params.first_print_layer_height = initial_layer_print_height;
+    params.first_object_layer_height = initial_layer_print_height;
     params.object_print_z_min = 0.;
     params.object_print_z_max = object_height;
     params.base_raft_layers = object_config.raft_layers.value;
@@ -137,13 +137,13 @@ SlicingParameters SlicingParameters::create_from_config(
         //FIXME The last raft layer is the contact layer, which shall be printed with a bridging flow for ease of separation. Currently it is not the case.
 		if (params.raft_layers() == 1) {
             // There is only the contact layer.
-            params.contact_raft_layer_height = first_layer_height;
-            params.raft_contact_top_z        = first_layer_height;
+            params.contact_raft_layer_height = initial_layer_print_height;
+            params.raft_contact_top_z        = initial_layer_print_height;
 		} else {
             assert(params.base_raft_layers > 0);
             assert(params.interface_raft_layers > 0);
             // Number of the base raft layers is decreased by the first layer.
-            params.raft_base_top_z       = first_layer_height + coordf_t(params.base_raft_layers - 1) * params.base_raft_layer_height;
+            params.raft_base_top_z       = initial_layer_print_height + coordf_t(params.base_raft_layers - 1) * params.base_raft_layer_height;
             // Number of the interface raft layers is decreased by the contact layer.
             params.raft_interface_top_z  = params.raft_base_top_z + coordf_t(params.interface_raft_layers - 1) * params.interface_raft_layer_height;
 			params.raft_contact_top_z    = params.raft_interface_top_z + params.contact_raft_layer_height;

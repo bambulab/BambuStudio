@@ -1181,7 +1181,7 @@ void Selection::scale_to_fit_print_volume(const DynamicPrintConfig& config)
     // adds 1/100th of a mm on all sides to avoid false out of print volume detections due to floating-point roundings
     Vec3d box_size = get_bounding_box().size() + 0.01 * Vec3d::Ones();
 
-    const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(config.option("bed_shape"));
+    const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(config.option("printable_area"));
     if (opt != nullptr) {
         BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
         BoundingBoxf3 print_volume({ unscale<double>(bed_box_2D.min(0)), unscale<double>(bed_box_2D.min(1)), 0.0 }, { unscale<double>(bed_box_2D.max(0)), unscale<double>(bed_box_2D.max(1)), config.opt_float("max_print_height") });

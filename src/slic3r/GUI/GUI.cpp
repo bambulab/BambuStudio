@@ -195,7 +195,7 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 			}
 			break;
 		case coPoints:{
-			if (opt_key == "bed_shape" || opt_key == "thumbnails") {
+			if (opt_key == "printable_area" || opt_key == "thumbnails") {
 				config.option<ConfigOptionPoints>(opt_key)->values = boost::any_cast<std::vector<Vec2d>>(value);
 				break;
 			}
@@ -279,8 +279,8 @@ static void add_config_substitutions(const ConfigSubstitutions& conf_substitutio
 			int val = conf_substitution.new_value->getInt();
 
 			bool is_infill = def->opt_key == "top_fill_pattern"	   ||
-							 def->opt_key == "bottom_fill_pattern" ||
-							 def->opt_key == "fill_pattern";
+							 def->opt_key == "bottom_surface_pattern" ||
+							 def->opt_key == "sparse_infill_pattern";
 
 			// Each infill doesn't use all list of infill declared in PrintConfig.hpp.
 			// So we should "convert" val to the correct one

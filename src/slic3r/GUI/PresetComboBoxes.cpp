@@ -232,13 +232,13 @@ wxString PresetComboBox::get_tooltip(const Preset& preset)
 #if 0
     if (m_type == Preset::TYPE_FILAMENT) {
         int temperature[4] = { 0,0,0,0 };
-        if (preset.config.has("first_layer_temperature")) //get the first_layer_temperature
-            temperature[0] = preset.config.opt_int("first_layer_temperature", 0);
-        if (preset.config.has("temperature")) //get the first_layer_temperature
+        if (preset.config.has("nozzle_temperature_initial_layer")) //get the nozzle_temperature_initial_layer
+            temperature[0] = preset.config.opt_int("nozzle_temperature_initial_layer", 0);
+        if (preset.config.has("temperature")) //get the temperature
             temperature[1] = preset.config.opt_int("temperature", 0);
-        if (preset.config.has("first_layer_bed_temperature")) //get the first_layer_temperature
-            temperature[2] = preset.config.opt_int("first_layer_bed_temperature", 0);
-        if (preset.config.has("bed_temperature")) //get the first_layer_temperature
+        if (preset.config.has("bed_temperature_initial_layer")) //get the bed_temperature_initial_layer
+            temperature[2] = preset.config.opt_int("bed_temperature_initial_layer", 0);
+        if (preset.config.has("bed_temperature")) //get the bed_temperature
             temperature[3] = preset.config.opt_int("bed_temperature", 0);
 
         tooltip += wxString::Format("\nNozzle First Layer:%d, Other Layer:%d\n Bed First Layer:%d, Other Layers:%d",

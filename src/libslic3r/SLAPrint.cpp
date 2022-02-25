@@ -839,7 +839,7 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
     };
 
     static std::unordered_set<std::string> steps_ignore = {
-        "bed_shape",
+        "printable_area",
         "max_print_height",
         "printer_technology",
         "output_filename_format",

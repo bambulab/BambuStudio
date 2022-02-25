@@ -8,7 +8,7 @@
     "filament_type": [
         "PA6+CF"
     ],
-    "first_layer_temperature": [
+    "nozzle_temperature_initial_layer": [
         "280"
     ],
     "temperature": [
@@ -17,7 +17,7 @@
     "bed_temperature": [
         "0,100,100"
     ],
-    "first_layer_bed_temperature": [
+    "bed_temperature_initial_layer": [
         "0,100,100"
     ]
 }

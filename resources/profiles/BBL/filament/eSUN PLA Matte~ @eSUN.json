@@ -8,7 +8,7 @@
     "bed_temperature": [
         "30,0,60"
     ],
-    "first_layer_bed_temperature": [
+    "bed_temperature_initial_layer": [
         "30,0,60"
     ],
     "temperature": [

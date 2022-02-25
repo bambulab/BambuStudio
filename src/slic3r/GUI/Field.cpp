@@ -299,7 +299,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
 	case coString:
 	case coStrings:
     case coFloatOrPercent: {
-        if (m_opt.type == coFloatOrPercent && m_opt.opt_key == "first_layer_height" && !str.IsEmpty() && str.Last() == '%') {
+        if (m_opt.type == coFloatOrPercent && m_opt.opt_key == "initial_layer_print_height" && !str.IsEmpty() && str.Last() == '%') {
             // Workaroud to avoid of using of the % for first layer height
             wxString label = m_opt.full_label.empty() ? _(m_opt.label) : _(m_opt.full_label);
             show_error(m_parent, from_u8((boost::format(_utf8(L("%s doesn't support percentage"))) % label).str()));
@@ -1175,7 +1175,7 @@ void Choice::set_value(const boost::any& value, bool change_event)
         else
 			field->SetSelection(idx);
 
-        if (!m_value.empty() && m_opt.opt_key == "fill_density") {
+        if (!m_value.empty() && m_opt.opt_key == "sparse_infill_density") {
             // If m_value was changed before, then update m_value here too to avoid case 
             // when control's value is already changed from the ConfigManipulation::update_print_fff_config(),
             // but m_value doesn't respect it.
@@ -1190,7 +1190,7 @@ void Choice::set_value(const boost::any& value, bool change_event)
     case coEnums: {
 		int val = boost::any_cast<int>(value);
 
-		if (m_opt_id == "top_fill_pattern" || m_opt_id == "bottom_fill_pattern" || m_opt_id == "fill_pattern")
+		if (m_opt_id == "top_fill_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "sparse_infill_pattern")
 		{
 			std::string key;
 			const t_config_enum_values& map_names = ConfigOptionEnum<InfillPattern>::get_enum_values();
@@ -1269,7 +1269,7 @@ boost::any& Choice::get_value()
     // BBS
 	if (m_opt.type == coEnum || m_opt.type == coEnums)
 	{
-		if (m_opt_id == "top_fill_pattern" || m_opt_id == "bottom_fill_pattern" || m_opt_id == "fill_pattern") {
+		if (m_opt_id == "top_fill_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "sparse_infill_pattern") {
 			const std::string& key = m_opt.enum_values[field->GetSelection()];
 			m_value = int(ConfigOptionEnum<InfillPattern>::get_enum_values().at(key));
 		}

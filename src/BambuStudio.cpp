@@ -171,7 +171,7 @@ int CLI::run(int argc, char **argv)
         try {
             boost::nowide::cout << "load config file "<< file << ", with rule "<< config_substitution_rule << std::endl;
             config_substitutions = config.load(file, config_substitution_rule);
-            //boost::nowide::cout << "got bed_shape "<< config.option("bed_shape")->serialize() << std::endl;
+            //boost::nowide::cout << "got printable_area "<< config.option("printable_area")->serialize() << std::endl;
         } catch (std::exception &ex) {
             boost::nowide::cerr << "Error while reading config file \"" << file << "\": " << ex.what() << std::endl;
             flush_and_exit(1);
@@ -359,7 +359,7 @@ int CLI::run(int argc, char **argv)
         // and not the fff defaults.
         double w = sla_print_config.display_width.getFloat();
         double h = sla_print_config.display_height.getFloat();
-        sla_print_config.bed_shape.values = { Vec2d(0, 0), Vec2d(w, 0), Vec2d(w, h), Vec2d(0, h) };
+        sla_print_config.printable_area.values = { Vec2d(0, 0), Vec2d(w, 0), Vec2d(w, h), Vec2d(0, h) };
         
         sla_print_config.apply(m_print_config, true);
         m_print_config.apply(sla_print_config, true);
@@ -374,7 +374,7 @@ int CLI::run(int argc, char **argv)
     //BBS: partplate list
     Slic3r::GUI::PartPlateList partplate_list(NULL, m_models.data(), printer_technology);
     //use Pointfs insteadof Points
-    Pointfs bedfs = m_print_config.opt<ConfigOptionPoints>("bed_shape")->values;
+    Pointfs bedfs = m_print_config.opt<ConfigOptionPoints>("printable_area")->values;
     Pointfs excluse_areas = m_print_config.opt<ConfigOptionPoints>("bed_exclude_area")->values;
     //update part plate's size
     double z = m_print_config.opt_float("max_print_height");

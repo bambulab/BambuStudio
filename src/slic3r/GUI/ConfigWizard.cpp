@@ -1361,7 +1361,7 @@ PageBedShape::PageBedShape(ConfigWizard *parent)
 {
     append_text(_L("Set the shape of your printer's bed."));
 
-    shape_panel->build_panel(*wizard_p()->custom_config->option<ConfigOptionPoints>("bed_shape"),
+    shape_panel->build_panel(*wizard_p()->custom_config->option<ConfigOptionPoints>("printable_area"),
         *wizard_p()->custom_config->option<ConfigOptionString>("bed_custom_texture"),
         *wizard_p()->custom_config->option<ConfigOptionString>("bed_custom_model"));
 
@@ -1373,7 +1373,7 @@ void PageBedShape::apply_custom_config(DynamicPrintConfig &config)
     const std::vector<Vec2d>& points = shape_panel->get_shape();
     const std::string& custom_texture = shape_panel->get_custom_texture();
     const std::string& custom_model = shape_panel->get_custom_model();
-    config.set_key_value("bed_shape", new ConfigOptionPoints(points));
+    config.set_key_value("printable_area", new ConfigOptionPoints(points));
     config.set_key_value("bed_custom_texture", new ConfigOptionString(custom_texture));
     config.set_key_value("bed_custom_model", new ConfigOptionString(custom_model));
 }
@@ -1478,14 +1478,14 @@ void PageDiameters::apply_custom_config(DynamicPrintConfig &config)
 
     set_extrusion_width("support_material_extrusion_width", 0.35);
     set_extrusion_width("support_transition_extrusion_width", 0.60); // BBS
-    set_extrusion_width("top_infill_extrusion_width",		  0.40);
-    set_extrusion_width("first_layer_extrusion_width",		  0.42);
+    set_extrusion_width("top_surface_line_width",		  0.40);
+    set_extrusion_width("initial_layer_line_width",		  0.42);
 
     set_extrusion_width("extrusion_width",					  0.45);
     set_extrusion_width("perimeter_extrusion_width",		  0.45);
-    set_extrusion_width("external_perimeter_extrusion_width", 0.45);
-    set_extrusion_width("infill_extrusion_width",			  0.45);
-    set_extrusion_width("solid_infill_extrusion_width",       0.45);
+    set_extrusion_width("outer_wall_line_width", 0.45);
+    set_extrusion_width("sparse_infill_line_width",			  0.45);
+    set_extrusion_width("internal_solid_infill_line_width",       0.45);
 }
 
 class SpinCtrlDouble: public wxSpinCtrlDouble
@@ -1561,11 +1561,11 @@ void PageTemperatures::apply_custom_config(DynamicPrintConfig &config)
     auto *opt_extr = new ConfigOptionInts(1, spin_extr->GetValue());
     config.set_key_value("temperature", opt_extr);
     auto *opt_extr1st = new ConfigOptionInts(1, spin_extr->GetValue());
-    config.set_key_value("first_layer_temperature", opt_extr1st);
+    config.set_key_value("nozzle_temperature_initial_layer", opt_extr1st);
     auto *opt_bed = new ConfigOptionInts(1, spin_bed->GetValue());
     config.set_key_value("bed_temperature", opt_bed);
     auto *opt_bed1st = new ConfigOptionInts(1, spin_bed->GetValue());
-    config.set_key_value("first_layer_bed_temperature", opt_bed1st);
+    config.set_key_value("bed_temperature_initial_layer", opt_bed1st);
 #endif
 }
 
@@ -2792,7 +2792,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     p->load_vendors();
     //BBS: add bed exclude areas
     p->custom_config.reset(DynamicPrintConfig::new_from_defaults_keys({
-        "gcode_flavor", "bed_shape", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "nozzle_diameter", "filament_diameter", "temperature", "bed_temperature",
+        "gcode_flavor", "printable_area", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "nozzle_diameter", "filament_diameter", "temperature", "bed_temperature",
     }));
 
     p->index = new ConfigWizardIndex(this);

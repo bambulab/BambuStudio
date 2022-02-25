@@ -251,7 +251,7 @@ public:
         ConfigOptionFloat           ori_layer_height;
         ConfigOptionInt             perimeters;
         ConfigOptionInt             ori_perimeters;
-        ConfigOptionPercent         fill_density;
+        ConfigOptionPercent         sparse_infill_density;
         ConfigOptionPercent         ori_fill_density;
         ConfigOptionBool            support_material;
         ConfigOptionBool            ori_support_material;
@@ -295,7 +295,7 @@ public:
                 case col_perimeters_reset:
                     return ori_perimeters;
                 case col_fill_density:
-                    return fill_density;
+                    return sparse_infill_density;
                 case col_fill_density_reset:
                     return ori_fill_density;
                 case col_support_material:

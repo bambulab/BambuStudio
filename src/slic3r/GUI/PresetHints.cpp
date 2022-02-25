@@ -48,16 +48,16 @@ std::string PresetHints::cooling_description(const Preset &preset)
         out += "\n";
     }
 	if (preset.config.opt_bool("fan_always_on", 0)) {
-		int 	disable_fan_first_layers 	= preset.config.opt_int("disable_fan_first_layers", 0);
+		int 	close_fan_the_first_x_layers 	= preset.config.opt_int("close_fan_the_first_x_layers", 0);
 		int 	min_fan_speed 				= preset.config.opt_int("min_fan_speed", 0);
 
-        if (full_fan_speed_layer > disable_fan_first_layers + 1)
-            out += GUI::format(_L("Fan speed will be ramped from zero at layer %1% to %2%%% at layer %3%."), disable_fan_first_layers, min_fan_speed, full_fan_speed_layer);
+        if (full_fan_speed_layer > close_fan_the_first_x_layers + 1)
+            out += GUI::format(_L("Fan speed will be ramped from zero at layer %1% to %2%%% at layer %3%."), close_fan_the_first_x_layers, min_fan_speed, full_fan_speed_layer);
         else {
             out += GUI::format(cooling ? _L("During the other layers, fan will always run at %1%%%") : _L("Fan will always run at %1%%%"), min_fan_speed) + " ";
-            if (disable_fan_first_layers > 1)
-                out += GUI::format(_L("except for the first %1% layers."), disable_fan_first_layers);
-            else if (disable_fan_first_layers == 1)
+            if (close_fan_the_first_x_layers > 1)
+                out += GUI::format(_L("except for the first %1% layers."), close_fan_the_first_x_layers);
+            else if (close_fan_the_first_x_layers == 1)
             	out += GUI::format(_L("except for the first layer."));
         }
     } else
@@ -92,34 +92,34 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
 
     // Print config values
     double layer_height                     = print_config.opt_float("layer_height");
-    assert(! print_config.option<ConfigOptionFloatOrPercent>("first_layer_height")->percent);
-    double first_layer_height               = print_config.opt_float("first_layer_height");
+    assert(! print_config.option<ConfigOptionFloatOrPercent>("initial_layer_print_height")->percent);
+    double initial_layer_print_height               = print_config.opt_float("initial_layer_print_height");
     double support_material_speed           = print_config.opt_float("support_material_speed");
     double support_material_interface_speed = print_config.get_abs_value("support_material_interface_speed", support_material_speed);
     double bridge_speed                     = print_config.opt_float("bridge_speed");
     double bridge_flow_ratio                = print_config.opt_float("bridge_flow_ratio");
     double perimeter_speed                  = print_config.opt_float("perimeter_speed");
-    double external_perimeter_speed         = print_config.get_abs_value("external_perimeter_speed", perimeter_speed);
-    // double gap_fill_speed                   = print_config.opt_bool("gap_fill_enabled") ? print_config.opt_float("gap_fill_speed") : 0.;
-    double infill_speed                     = print_config.opt_float("infill_speed");
+    double outer_wall_speed         = print_config.get_abs_value("outer_wall_speed", perimeter_speed);
+    // double gap_infill_speed                   = print_config.opt_bool("gap_fill_enabled") ? print_config.opt_float("gap_infill_speed") : 0.;
+    double sparse_infill_speed                     = print_config.opt_float("sparse_infill_speed");
     double small_perimeter_speed            = print_config.get_abs_value("small_perimeter_speed", perimeter_speed);
-    double solid_infill_speed               = print_config.get_abs_value("solid_infill_speed", infill_speed);
-    double top_solid_infill_speed           = print_config.get_abs_value("top_solid_infill_speed", solid_infill_speed);
+    double internal_solid_infill_speed               = print_config.get_abs_value("internal_solid_infill_speed", sparse_infill_speed);
+    double top_surface_speed           = print_config.get_abs_value("top_surface_speed", internal_solid_infill_speed);
     // Maximum print speed when auto-speed is enabled by setting any of the above speed values to zero.
     double max_print_speed                  = print_config.opt_float("max_print_speed");
     // Maximum volumetric speed allowed for the print profile.
     double max_volumetric_speed             = print_config.opt_float("max_volumetric_speed");
 
     const auto &extrusion_width                     = *print_config.option<ConfigOptionFloatOrPercent>("extrusion_width");
-    const auto &external_perimeter_extrusion_width  = *print_config.option<ConfigOptionFloatOrPercent>("external_perimeter_extrusion_width");
-    const auto &first_layer_extrusion_width         = *print_config.option<ConfigOptionFloatOrPercent>("first_layer_extrusion_width");
-    const auto &infill_extrusion_width              = *print_config.option<ConfigOptionFloatOrPercent>("infill_extrusion_width");
+    const auto &outer_wall_line_width  = *print_config.option<ConfigOptionFloatOrPercent>("outer_wall_line_width");
+    const auto &initial_layer_line_width         = *print_config.option<ConfigOptionFloatOrPercent>("initial_layer_line_width");
+    const auto &sparse_infill_line_width              = *print_config.option<ConfigOptionFloatOrPercent>("sparse_infill_line_width");
     const auto &perimeter_extrusion_width           = *print_config.option<ConfigOptionFloatOrPercent>("perimeter_extrusion_width");
-    const auto &solid_infill_extrusion_width        = *print_config.option<ConfigOptionFloatOrPercent>("solid_infill_extrusion_width");
+    const auto &internal_solid_infill_line_width        = *print_config.option<ConfigOptionFloatOrPercent>("internal_solid_infill_line_width");
     const auto& support_material_extrusion_width    = *print_config.option<ConfigOptionFloatOrPercent>("support_material_extrusion_width");
     const auto &support_transition_extrusion_width  = *print_config.option<ConfigOptionFloatOrPercent>("support_transition_extrusion_width");//BBS
-    const auto &top_infill_extrusion_width          = *print_config.option<ConfigOptionFloatOrPercent>("top_infill_extrusion_width");
-    const auto &first_layer_speed                   = *print_config.option<ConfigOptionFloatOrPercent>("first_layer_speed");
+    const auto &top_surface_line_width          = *print_config.option<ConfigOptionFloatOrPercent>("top_surface_line_width");
+    const auto &initial_layer_speed                   = *print_config.option<ConfigOptionFloatOrPercent>("initial_layer_speed");
 
     // Index of an extruder assigned to a feature. If set to 0, an active extruder will be used for a multi-material print.
     // If different from idx_extruder, it will not be taken into account for this hint.
@@ -140,19 +140,19 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
 //    double filament_max_volumetric_speed    = filament_config.opt_float("filament_max_volumetric_speed", 0);
 
     std::string out;
-    for (size_t idx_type = (first_layer_extrusion_width.value == 0) ? 1 : 0; idx_type < 3; ++ idx_type) {
+    for (size_t idx_type = (initial_layer_line_width.value == 0) ? 1 : 0; idx_type < 3; ++ idx_type) {
         // First test the maximum volumetric extrusion speed for non-bridging extrusions.
         bool first_layer = idx_type == 0;
         bool bridging    = idx_type == 2;
-		const ConfigOptionFloatOrPercent *first_layer_extrusion_width_ptr = (first_layer && first_layer_extrusion_width.value > 0) ?
-			&first_layer_extrusion_width : nullptr;
-        const float                       lh  = float(first_layer ? first_layer_height : layer_height);
+		const ConfigOptionFloatOrPercent *first_layer_extrusion_width_ptr = (first_layer && initial_layer_line_width.value > 0) ?
+			&initial_layer_line_width : nullptr;
+        const float                       lh  = float(first_layer ? initial_layer_print_height : layer_height);
         double                            max_flow = 0.;
         std::string                       max_flow_extrusion_type;
-        auto                              limit_by_first_layer_speed = [&first_layer_speed, first_layer](double speed_normal, double speed_max) {
-            if (first_layer && first_layer_speed.value > 0)
+        auto                              limit_by_first_layer_speed = [&initial_layer_speed, first_layer](double speed_normal, double speed_max) {
+            if (first_layer && initial_layer_speed.value > 0)
                 // Apply the first layer limit.
-                speed_normal = first_layer_speed.get_abs_value(speed_normal);
+                speed_normal = initial_layer_speed.get_abs_value(speed_normal);
             return (speed_normal > 0.) ? speed_normal : speed_max;
         };
         auto test_flow =
@@ -168,21 +168,21 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
             }
         };
         if (perimeter_extruder_active) {
-            test_flow(frExternalPerimeter, external_perimeter_extrusion_width, std::max(external_perimeter_speed, small_perimeter_speed), L("external perimeters"));
+            test_flow(frExternalPerimeter, outer_wall_line_width, std::max(outer_wall_speed, small_perimeter_speed), L("external perimeters"));
             test_flow(frPerimeter,         perimeter_extrusion_width,          std::max(perimeter_speed,          small_perimeter_speed), L("perimeters"));
         }
         if (! bridging && infill_extruder_active)
-            test_flow(frInfill, infill_extrusion_width, infill_speed, L("infill"));
+            test_flow(frInfill, sparse_infill_line_width, sparse_infill_speed, L("infill"));
         if (solid_infill_extruder_active) {
-            test_flow(frInfill, solid_infill_extrusion_width, solid_infill_speed, L("solid infill"));
+            test_flow(frInfill, internal_solid_infill_line_width, internal_solid_infill_speed, L("solid infill"));
             if (! bridging)
-                test_flow(frInfill, top_infill_extrusion_width, top_solid_infill_speed, L("top solid infill"));
+                test_flow(frInfill, top_surface_line_width, top_surface_speed, L("top solid infill"));
         }
         if (! bridging && support_material_extruder_active)
             test_flow(frSupportMaterial, support_material_extrusion_width, support_material_speed, L("support"));
         if (support_material_interface_extruder_active)
             test_flow(frSupportMaterialInterface, support_material_extrusion_width, support_material_interface_speed, L("support interface"));
-        //FIXME handle gap_fill_speed
+        //FIXME handle gap_infill_speed
         if (! out.empty())
             out += "\n";
         out += (first_layer ? _utf8(L("First layer volumetric")) : (bridging ? _utf8(L("Bridging volumetric")) : _utf8(L("Volumetric"))));
@@ -224,7 +224,7 @@ std::string PresetHints::recommended_thin_wall_thickness(const PresetBundle &pre
         try {
             Flow external_perimeter_flow = Flow::new_from_config_width(
                 frExternalPerimeter, 
-                *print_config.opt<ConfigOptionFloatOrPercent>("external_perimeter_extrusion_width"), 
+                *print_config.opt<ConfigOptionFloatOrPercent>("outer_wall_line_width"), 
                 nozzle_diameter, layer_height);
             Flow perimeter_flow          = Flow::new_from_config_width(
                 frPerimeter, 
@@ -245,7 +245,7 @@ std::string PresetHints::recommended_thin_wall_thickness(const PresetBundle &pre
 }
 
 
-// Produce a textual explanation of the combined effects of the top/bottom_solid_layers
+// Produce a textual explanation of the combined effects of the top/bottom_shell_layers
 // versus top/bottom_min_shell_thickness. Which of the two values wins depends
 // on the active layer height.
 std::string PresetHints::top_bottom_shell_thickness_explanation(const PresetBundle &preset_bundle)
@@ -256,11 +256,11 @@ std::string PresetHints::top_bottom_shell_thickness_explanation(const PresetBund
     std::string out;
 
     int 	top_solid_layers                = print_config.opt_int("top_solid_layers");
-    int 	bottom_solid_layers             = print_config.opt_int("bottom_solid_layers");
+    int 	bottom_shell_layers             = print_config.opt_int("bottom_shell_layers");
     bool    has_top_layers 					= top_solid_layers > 0;
-    bool    has_bottom_layers 				= bottom_solid_layers > 0;
+    bool    has_bottom_layers 				= bottom_shell_layers > 0;
     double  top_solid_min_thickness        	= print_config.opt_float("top_solid_min_thickness");
-    double  bottom_solid_min_thickness  	= print_config.opt_float("bottom_solid_min_thickness");
+    double  bottom_shell_thickness  	= print_config.opt_float("bottom_shell_thickness");
     double  layer_height                    = print_config.opt_float("layer_height");
     //FIXME the following line takes into account the 1st extruder only.
     double  min_layer_height				= Slicing::min_layer_height_from_nozzle(printer_config, 1);
@@ -290,14 +290,14 @@ std::string PresetHints::top_bottom_shell_thickness_explanation(const PresetBund
     out += "\n";
 
     if (has_bottom_layers) {
-    	double bottom_shell_thickness = bottom_solid_layers * layer_height;
-    	if (bottom_shell_thickness < bottom_solid_min_thickness) {
+    	double bottom_shell_thickness = bottom_shell_layers * layer_height;
+    	if (bottom_shell_thickness < bottom_shell_thickness) {
     		// bottom_solid_min_shell_thickness triggers even in case of normal layer height. Round the bottom_shell_thickness up
     		// to an integer multiply of layer_height.
-    		double n = ceil(bottom_solid_min_thickness / layer_height);
+    		double n = ceil(bottom_shell_thickness / layer_height);
     		bottom_shell_thickness = n * layer_height;
     	}
-    	double bottom_shell_thickness_minimum = std::max(bottom_solid_min_thickness, bottom_solid_layers * min_layer_height);
+    	double bottom_shell_thickness_minimum = std::max(bottom_shell_thickness, bottom_shell_layers * min_layer_height);
         out += (boost::format(_utf8(L("Bottom shell is %1% mm thick for layer height %2% mm."))) % bottom_shell_thickness % layer_height).str();
         if (bottom_shell_thickness_minimum < bottom_shell_thickness) {
         	out += " ";

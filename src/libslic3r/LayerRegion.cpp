@@ -73,8 +73,8 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
     // This needs to be in sync with PrintObject::_slice() slicing_mode_normal_below_layer!
     bool spiral_vase = print_config.spiral_vase &&
         //FIXME account for raft layers.
-        (this->layer()->id() >= size_t(region_config.bottom_solid_layers.value) &&
-         this->layer()->print_z >= region_config.bottom_solid_min_thickness - EPSILON);
+        (this->layer()->id() >= size_t(region_config.bottom_shell_layers.value) &&
+         this->layer()->print_z >= region_config.bottom_shell_thickness - EPSILON);
 
     PerimeterGenerator g(
         // input:
@@ -113,7 +113,7 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
 
 void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Polygons *lower_layer_covered)
 {
-    const bool      has_infill = this->region().config().fill_density.value > 0.;
+    const bool      has_infill = this->region().config().sparse_infill_density.value > 0.;
     const float		margin 	   = float(scale_(EXTERNAL_INFILL_MARGIN));
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
@@ -392,14 +392,14 @@ void LayerRegion::prepare_fill_surfaces()
             if (surface.is_top())
                 surface.surface_type = this->layer()->object()->config().infill_only_where_needed ? stInternalVoid : stInternal;
     }
-    if (this->region().config().bottom_solid_layers == 0) {
+    if (this->region().config().bottom_shell_layers == 0) {
         for (Surface &surface : this->fill_surfaces.surfaces)
             if (surface.is_bottom()) // (surface.surface_type == stBottom)
                 surface.surface_type = stInternal;
     }
 
     // turn too small internal regions into solid regions according to the user setting
-    if (! spiral_vase && this->region().config().fill_density.value > 0) {
+    if (! spiral_vase && this->region().config().sparse_infill_density.value > 0) {
         // scaling an area requires two calls!
         double min_area = scale_(scale_(this->region().config().solid_infill_below_area.value));
         for (Surface &surface : this->fill_surfaces.surfaces)

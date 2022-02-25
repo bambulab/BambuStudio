@@ -5,7 +5,7 @@
     "instantiation": "true",
     "inherits": "fdm_filament_pet",
     "filament_vendor": "eSUN",
-    "first_layer_temperature": [
+    "nozzle_temperature_initial_layer": [
         "230"
     ],
     "temperature": [
@@ -35,7 +35,7 @@
     "slowdown_below_layer_time": [
         "8"
     ],
-    "start_filament_gcode": [
-        "; Filament gcode\n{if (bed_temperature[current_extruder] > 60)||(first_layer_bed_temperature[current_extruder] >60)}M106 P3 S255\n{endif};Prevent PETG from jamming"
+    "filament_start_gcode": [
+        "; Filament gcode\n{if (bed_temperature[current_extruder] > 60)||(bed_temperature_initial_layer[current_extruder] >60)}M106 P3 S255\n{endif};Prevent PETG from jamming"
     ]
 }

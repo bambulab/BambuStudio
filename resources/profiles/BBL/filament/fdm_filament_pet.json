@@ -13,7 +13,7 @@
     "cooling": [
         "1"
     ],
-    "disable_fan_first_layers": [
+    "close_fan_the_first_x_layers": [
         "1"
     ],
     "fan_below_layer_time": [
@@ -34,10 +34,10 @@
     "filament_cost": [
         "30"
     ],
-    "first_layer_bed_temperature": [
+    "bed_temperature_initial_layer": [
         "60,70,60"
     ],
-    "first_layer_temperature": [
+    "nozzle_temperature_initial_layer": [
         "240"
     ],
     "fan_always_on": [

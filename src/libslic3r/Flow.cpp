@@ -40,15 +40,15 @@ static inline FlowRole opt_key_to_flow_role(const std::string &opt_key)
 {
  	if (opt_key == "perimeter_extrusion_width" || 
  		// or all the defaults:
- 		opt_key == "extrusion_width" || opt_key == "first_layer_extrusion_width")
+ 		opt_key == "extrusion_width" || opt_key == "initial_layer_line_width")
         return frPerimeter;
-    else if (opt_key == "external_perimeter_extrusion_width")
+    else if (opt_key == "outer_wall_line_width")
         return frExternalPerimeter;
-    else if (opt_key == "infill_extrusion_width")
+    else if (opt_key == "sparse_infill_line_width")
         return frInfill;
-    else if (opt_key == "solid_infill_extrusion_width")
+    else if (opt_key == "internal_solid_infill_line_width")
         return frSolidInfill;
-	else if (opt_key == "top_infill_extrusion_width")
+	else if (opt_key == "top_surface_line_width")
 		return frTopSolidInfill;
 	else if (opt_key == "support_material_extrusion_width")
     	return frSupportMaterial;
@@ -73,7 +73,7 @@ double Flow::extrusion_width(const std::string& opt_key, const ConfigOptionFloat
 #if 0
 // This is the logic used for skit / brim, but not for the rest of the 1st layer.
 	if (opt->value == 0. && first_layer) {
-		// The "first_layer_extrusion_width" was set to zero, try a substitute.
+		// The "initial_layer_line_width" was set to zero, try a substitute.
 		opt = config.option<ConfigOptionFloatOrPercent>("perimeter_extrusion_width");
 		if (opt == nullptr)
     		throw_on_missing_variable(opt_key, "perimeter_extrusion_width");
@@ -85,12 +85,12 @@ double Flow::extrusion_width(const std::string& opt_key, const ConfigOptionFloat
 		opt = config.option<ConfigOptionFloatOrPercent>("extrusion_width");
 		if (opt == nullptr)
     		throw_on_missing_variable(opt_key, "extrusion_width");
-    	// Use the "layer_height" instead of "first_layer_height".
+    	// Use the "layer_height" instead of "initial_layer_print_height".
     	first_layer = false;
 	}
 
 	if (opt->percent) {
-		auto opt_key_layer_height = first_layer ? "first_layer_height" : "layer_height";
+		auto opt_key_layer_height = first_layer ? "initial_layer_print_height" : "layer_height";
         auto opt_layer_height = config.option(opt_key_layer_height);
     	if (opt_layer_height == nullptr)
     		throw_on_missing_variable(opt_key, opt_key_layer_height);
@@ -245,13 +245,13 @@ Flow support_transition_flow(const PrintObject* object, float layer_height)
 Flow support_material_1st_layer_flow(const PrintObject *object, float layer_height)
 {
     const PrintConfig &print_config = object->print()->config();
-    const auto &width = (print_config.first_layer_extrusion_width.value > 0) ? print_config.first_layer_extrusion_width : object->config().support_material_extrusion_width;
+    const auto &width = (print_config.initial_layer_line_width.value > 0) ? print_config.initial_layer_line_width : object->config().support_material_extrusion_width;
     return Flow::new_from_config_width(
         frSupportMaterial,
         // The width parameter accepted by new_from_config_width is of type ConfigOptionFloatOrPercent, the Flow class takes care of the percent to value substitution.
         (width.value > 0) ? width : object->config().extrusion_width,
         float(print_config.nozzle_diameter.get_at(object->config().support_material_extruder-1)),
-        (layer_height > 0.f) ? layer_height : float(print_config.first_layer_height.get_abs_value(object->config().layer_height.value)));
+        (layer_height > 0.f) ? layer_height : float(print_config.initial_layer_print_height.get_abs_value(object->config().layer_height.value)));
 }
 
 Flow support_material_interface_flow(const PrintObject *object, float layer_height)

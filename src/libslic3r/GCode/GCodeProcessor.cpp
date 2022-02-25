@@ -818,7 +818,7 @@ void GCodeProcessorResult::reset() {
     lock();
 
     moves = std::vector<GCodeProcessorResult::MoveVertex>();
-    bed_shape = Pointfs();
+    printable_area = Pointfs();
     //BBS: add bed exclude area
     bed_exclude_area = Pointfs();
     //BBS: add toolpath_outside
@@ -842,7 +842,7 @@ void GCodeProcessorResult::reset() {
 
     moves.clear();
     lines_ends.clear();
-    bed_shape = Pointfs();
+    printable_area = Pointfs();
     //BBS: add bed exclude area
     bed_exclude_area = Pointfs();
     //BBS: add toolpath_outside
@@ -995,9 +995,9 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         m_time_processor.machines[i].travel_acceleration = (max_travel_acceleration > 0.0f) ? max_travel_acceleration : DEFAULT_TRAVEL_ACCELERATION;
     }
 
-    const ConfigOptionFloatOrPercent* first_layer_height = config.option<ConfigOptionFloatOrPercent>("first_layer_height");
-    if (first_layer_height != nullptr)
-        m_first_layer_height = std::abs(first_layer_height->value);
+    const ConfigOptionFloatOrPercent* initial_layer_print_height = config.option<ConfigOptionFloatOrPercent>("initial_layer_print_height");
+    if (initial_layer_print_height != nullptr)
+        m_first_layer_height = std::abs(initial_layer_print_height->value);
 
     m_result.max_print_height = config.max_print_height;
 }
@@ -1010,9 +1010,9 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     if (gcode_flavor != nullptr)
         m_flavor = gcode_flavor->value;
 
-    const ConfigOptionPoints* bed_shape = config.option<ConfigOptionPoints>("bed_shape");
-    if (bed_shape != nullptr)
-        m_result.bed_shape = bed_shape->values;
+    const ConfigOptionPoints* printable_area = config.option<ConfigOptionPoints>("printable_area");
+    if (printable_area != nullptr)
+        m_result.printable_area = printable_area->values;
 
     //BBS: add bed_exclude_area
     const ConfigOptionPoints* bed_exclude_area = config.option<ConfigOptionPoints>("bed_exclude_area");
@@ -1144,21 +1144,21 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         if (machine_max_acceleration_e != nullptr)
             m_time_processor.machine_limits.machine_max_acceleration_e.values = machine_max_acceleration_e->values;
 
-        const ConfigOptionFloats* machine_max_feedrate_x = config.option<ConfigOptionFloats>("machine_max_feedrate_x");
-        if (machine_max_feedrate_x != nullptr)
-            m_time_processor.machine_limits.machine_max_feedrate_x.values = machine_max_feedrate_x->values;
+        const ConfigOptionFloats* machine_max_speed_x = config.option<ConfigOptionFloats>("machine_max_speed_x");
+        if (machine_max_speed_x != nullptr)
+            m_time_processor.machine_limits.machine_max_speed_x.values = machine_max_speed_x->values;
 
-        const ConfigOptionFloats* machine_max_feedrate_y = config.option<ConfigOptionFloats>("machine_max_feedrate_y");
-        if (machine_max_feedrate_y != nullptr)
-            m_time_processor.machine_limits.machine_max_feedrate_y.values = machine_max_feedrate_y->values;
+        const ConfigOptionFloats* machine_max_speed_y = config.option<ConfigOptionFloats>("machine_max_speed_y");
+        if (machine_max_speed_y != nullptr)
+            m_time_processor.machine_limits.machine_max_speed_y.values = machine_max_speed_y->values;
 
-        const ConfigOptionFloats* machine_max_feedrate_z = config.option<ConfigOptionFloats>("machine_max_feedrate_z");
-        if (machine_max_feedrate_z != nullptr)
-            m_time_processor.machine_limits.machine_max_feedrate_z.values = machine_max_feedrate_z->values;
+        const ConfigOptionFloats* machine_max_speed_z = config.option<ConfigOptionFloats>("machine_max_speed_z");
+        if (machine_max_speed_z != nullptr)
+            m_time_processor.machine_limits.machine_max_speed_z.values = machine_max_speed_z->values;
 
-        const ConfigOptionFloats* machine_max_feedrate_e = config.option<ConfigOptionFloats>("machine_max_feedrate_e");
-        if (machine_max_feedrate_e != nullptr)
-            m_time_processor.machine_limits.machine_max_feedrate_e.values = machine_max_feedrate_e->values;
+        const ConfigOptionFloats* machine_max_speed_e = config.option<ConfigOptionFloats>("machine_max_speed_e");
+        if (machine_max_speed_e != nullptr)
+            m_time_processor.machine_limits.machine_max_speed_e.values = machine_max_speed_e->values;
 
         const ConfigOptionFloats* machine_max_jerk_x = config.option<ConfigOptionFloats>("machine_max_jerk_x");
         if (machine_max_jerk_x != nullptr)
@@ -1222,9 +1222,9 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         }
     }
 
-    const ConfigOptionFloatOrPercent* first_layer_height = config.option<ConfigOptionFloatOrPercent>("first_layer_height");
-    if (first_layer_height != nullptr)
-        m_first_layer_height = std::abs(first_layer_height->value);
+    const ConfigOptionFloatOrPercent* initial_layer_print_height = config.option<ConfigOptionFloatOrPercent>("initial_layer_print_height");
+    if (initial_layer_print_height != nullptr)
+        m_first_layer_height = std::abs(initial_layer_print_height->value);
 
     const ConfigOptionFloat* max_print_height = config.option<ConfigOptionFloat>("max_print_height");
     if (max_print_height != nullptr)
@@ -1633,7 +1633,7 @@ void GCodeProcessor::apply_config_simplify3d(const std::string& filename)
         m_result.extruders_count = std::max<size_t>(1, std::min(m_result.filament_diameters.size(), m_result.filament_densities.size()));
 
     if (bed_size.is_defined()) {
-        m_result.bed_shape = {
+        m_result.printable_area = {
             { 0.0, 0.0 },
             { bed_size.x, 0.0 },
             { bed_size.x, bed_size.y },
@@ -3513,16 +3513,16 @@ void GCodeProcessor::process_M203(const GCodeReader::GCodeLine& line)
         if (static_cast<PrintEstimatedStatistics::ETimeMode>(i) == PrintEstimatedStatistics::ETimeMode::Normal ||
             m_time_processor.machine_envelope_processing_enabled) {
             if (line.has_x())
-                set_option_value(m_time_processor.machine_limits.machine_max_feedrate_x, i, line.x() * factor);
+                set_option_value(m_time_processor.machine_limits.machine_max_speed_x, i, line.x() * factor);
 
             if (line.has_y())
-                set_option_value(m_time_processor.machine_limits.machine_max_feedrate_y, i, line.y() * factor);
+                set_option_value(m_time_processor.machine_limits.machine_max_speed_y, i, line.y() * factor);
 
             if (line.has_z())
-                set_option_value(m_time_processor.machine_limits.machine_max_feedrate_z, i, line.z() * factor);
+                set_option_value(m_time_processor.machine_limits.machine_max_speed_z, i, line.z() * factor);
 
             if (line.has_e())
-                set_option_value(m_time_processor.machine_limits.machine_max_feedrate_e, i, line.e() * factor);
+                set_option_value(m_time_processor.machine_limits.machine_max_speed_e, i, line.e() * factor);
         }
     }
 }
@@ -3798,10 +3798,10 @@ float GCodeProcessor::get_axis_max_feedrate(PrintEstimatedStatistics::ETimeMode 
 {
     switch (axis)
     {
-    case X: { return get_option_value(m_time_processor.machine_limits.machine_max_feedrate_x, static_cast<size_t>(mode)); }
-    case Y: { return get_option_value(m_time_processor.machine_limits.machine_max_feedrate_y, static_cast<size_t>(mode)); }
-    case Z: { return get_option_value(m_time_processor.machine_limits.machine_max_feedrate_z, static_cast<size_t>(mode)); }
-    case E: { return get_option_value(m_time_processor.machine_limits.machine_max_feedrate_e, static_cast<size_t>(mode)); }
+    case X: { return get_option_value(m_time_processor.machine_limits.machine_max_speed_x, static_cast<size_t>(mode)); }
+    case Y: { return get_option_value(m_time_processor.machine_limits.machine_max_speed_y, static_cast<size_t>(mode)); }
+    case Z: { return get_option_value(m_time_processor.machine_limits.machine_max_speed_z, static_cast<size_t>(mode)); }
+    case E: { return get_option_value(m_time_processor.machine_limits.machine_max_speed_e, static_cast<size_t>(mode)); }
     default: { return 0.0f; }
     }
 }

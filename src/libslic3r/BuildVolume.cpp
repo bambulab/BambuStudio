@@ -8,37 +8,37 @@
 
 namespace Slic3r {
 
-BuildVolume::BuildVolume(const std::vector<Vec2d> &bed_shape, const double max_print_height) : m_bed_shape(bed_shape), m_max_print_height(max_print_height)
+BuildVolume::BuildVolume(const std::vector<Vec2d> &printable_area, const double max_print_height) : m_bed_shape(printable_area), m_max_print_height(max_print_height)
 {
     assert(max_print_height >= 0);
 
-    m_polygon     = Polygon::new_scale(bed_shape);
+    m_polygon     = Polygon::new_scale(printable_area);
 
     // Calcuate various metrics of the input polygon.
     m_convex_hull = Geometry::convex_hull(m_polygon.points);
     m_bbox        = get_extents(m_convex_hull);
     m_area        = m_polygon.area();
 
-    BoundingBoxf bboxf = get_extents(bed_shape);
+    BoundingBoxf bboxf = get_extents(printable_area);
     m_bboxf = BoundingBoxf3{ to_3d(bboxf.min, 0.), to_3d(bboxf.max, max_print_height) };
 
-    if (bed_shape.size() >= 4 && std::abs((m_area - double(m_bbox.size().x()) * double(m_bbox.size().y()))) < sqr(SCALED_EPSILON)) {
+    if (printable_area.size() >= 4 && std::abs((m_area - double(m_bbox.size().x()) * double(m_bbox.size().y()))) < sqr(SCALED_EPSILON)) {
         // Square print bed, use the bounding box for collision detection.
         m_type = Type::Rectangle;
         m_circle.center = 0.5 * (m_bbox.min.cast<double>() + m_bbox.max.cast<double>());
         m_circle.radius = 0.5 * m_bbox.size().cast<double>().norm();
-    } else if (bed_shape.size() > 3) {
+    } else if (printable_area.size() > 3) {
         // Circle was discretized, formatted into text with limited accuracy, thus the circle was deformed.
         // RANSAC is slightly more accurate than the iterative Taubin / Newton method with such an input.
-//        m_circle = Geometry::circle_taubin_newton(bed_shape);
-        m_circle = Geometry::circle_ransac(bed_shape);
+//        m_circle = Geometry::circle_taubin_newton(printable_area);
+        m_circle = Geometry::circle_ransac(printable_area);
         bool is_circle = true;
 #ifndef NDEBUG
         // Measuring maximum absolute error of interpolating an input polygon with circle.
         double max_error = 0;
 #endif // NDEBUG
-        Vec2d prev = bed_shape.back();
-        for (const Vec2d &p : bed_shape) {
+        Vec2d prev = printable_area.back();
+        for (const Vec2d &p : printable_area) {
 #ifndef NDEBUG
             max_error = std::max(max_error, std::abs((p - m_circle.center).norm() - m_circle.radius));
 #endif // NDEBUG
@@ -58,7 +58,7 @@ BuildVolume::BuildVolume(const std::vector<Vec2d> &bed_shape, const double max_p
         }
     }
 
-    if (bed_shape.size() >= 3 && m_type == Type::Invalid) {
+    if (printable_area.size() >= 3 && m_type == Type::Invalid) {
         // Circle check is not used for Convex / Custom shapes, fill it with something reasonable.
         m_circle = Geometry::smallest_enclosing_circle_welzl(m_convex_hull.points);
         m_type   = (m_convex_hull.area() - m_area) < sqr(SCALED_EPSILON) ? Type::Convex : Type::Custom;
@@ -75,7 +75,7 @@ BuildVolume::BuildVolume(const std::vector<Vec2d> &bed_shape, const double max_p
         m_top_bottom_convex_hull_decomposition_bed   = convex_decomposition(m_convex_hull, BedEpsilon);
     }
 
-    BOOST_LOG_TRIVIAL(debug) << "BuildVolume bed_shape clasified as: " << this->type_name();
+    BOOST_LOG_TRIVIAL(debug) << "BuildVolume printable_area clasified as: " << this->type_name();
 }
 
 #if 0

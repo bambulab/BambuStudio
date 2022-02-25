@@ -8,7 +8,7 @@
     "filament_type": [
         "PET"
     ],
-    "first_layer_temperature": [
+    "nozzle_temperature_initial_layer": [
         "280"
     ],
     "temperature": [

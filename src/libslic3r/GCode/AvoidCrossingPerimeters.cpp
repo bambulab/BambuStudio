@@ -1167,7 +1167,7 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
         travel_intersection_count = 0;
     }
 
-    const ConfigOptionFloatOrPercent &opt_max_detour             = gcodegen.config().avoid_crossing_perimeters_max_detour;
+    const ConfigOptionFloatOrPercent &opt_max_detour             = gcodegen.config().max_travel_detour_distance;
     bool                              max_detour_length_exceeded = false;
     if (opt_max_detour.value > 0) {
         double direct_length     = travel.length();
@@ -1443,7 +1443,7 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
     }
 
     Line travel(start, end);
-    double max_detour_length scale_(gcodegen.config().avoid_crossing_perimeters_max_detour);
+    double max_detour_length scale_(gcodegen.config().max_travel_detour_distance);
     if (max_detour_length > 0 && (result_pl.length() - travel.length()) > max_detour_length)
         result_pl = {start, end};
 
