@@ -269,40 +269,42 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     static float last_window_width = 0.0f;
     static size_t last_text_length = 0;
 
-    ImGuiWrapper& imgui = *wxGetApp().imgui();
-    //BBS: GUI refactor: add canvas size from parameters
-    //Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
-    //imgui.set_next_window_pos(0.5f * static_cast<float>(cnv_size.get_width()), static_cast<float>(cnv_size.get_height()), ImGuiCond_Always, 0.5f, 1.0f);
-    imgui.set_next_window_pos(0.5f * static_cast<float>(canvas_width), static_cast<float>(canvas_height), ImGuiCond_Always, 0.5f, 1.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-    ImGui::SetNextWindowBgAlpha(0.25f);
-    imgui.begin(std::string("ToolPosition"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-    imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Tool position") + ":");
-    ImGui::SameLine();
-    char buf[1024];
-    //BBS: minus the plate offset when show tool position
-    PartPlateList& partplate_list = wxGetApp().plater()->get_partplate_list();
-    PartPlate* plate = partplate_list.get_curr_plate();
-    const Vec3f position = m_world_position + m_world_offset;
-    sprintf(buf, "X: %.3f, Y: %.3f, Z: %.3f", position.x() - plate->get_origin().x(), position.y() - plate->get_origin().y(), position.z());
-    imgui.text(std::string(buf));
+    if (wxGetApp().get_mode() == ConfigOptionMode::comDevelop) {
+        ImGuiWrapper& imgui = *wxGetApp().imgui();
+        //BBS: GUI refactor: add canvas size from parameters
+        //Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
+        //imgui.set_next_window_pos(0.5f * static_cast<float>(cnv_size.get_width()), static_cast<float>(cnv_size.get_height()), ImGuiCond_Always, 0.5f, 1.0f);
+        imgui.set_next_window_pos(0.5f * static_cast<float>(canvas_width), static_cast<float>(canvas_height), ImGuiCond_Always, 0.5f, 1.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::SetNextWindowBgAlpha(0.25f);
+        imgui.begin(std::string("ToolPosition"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+        imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Tool position") + ":");
+        ImGui::SameLine();
+        char buf[1024];
+        //BBS: minus the plate offset when show tool position
+        PartPlateList& partplate_list = wxGetApp().plater()->get_partplate_list();
+        PartPlate* plate = partplate_list.get_curr_plate();
+        const Vec3f position = m_world_position + m_world_offset;
+        sprintf(buf, "X: %.3f, Y: %.3f, Z: %.3f", position.x() - plate->get_origin().x(), position.y() - plate->get_origin().y(), position.z());
+        imgui.text(std::string(buf));
 
-    // force extra frame to automatically update window size
-    float width = ImGui::GetWindowWidth();
-    size_t length = strlen(buf);
-    if (width != last_window_width || length != last_text_length) {
-        last_window_width = width;
-        last_text_length = length;
-#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
-        imgui.set_requires_extra_frame();
-#else
-        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
-        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
-#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+        // force extra frame to automatically update window size
+        float width = ImGui::GetWindowWidth();
+        size_t length = strlen(buf);
+        if (width != last_window_width || length != last_text_length) {
+            last_window_width = width;
+            last_text_length = length;
+    #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+            imgui.set_requires_extra_frame();
+    #else
+            wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
+            wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+    #endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+        }
+
+        imgui.end();
+        ImGui::PopStyleVar();
     }
-
-    imgui.end();
-    ImGui::PopStyleVar();
 }
 
 void GCodeViewer::SequentialView::GCodeWindow::load_gcode(const std::string& filename, std::vector<size_t> &&lines_ends)

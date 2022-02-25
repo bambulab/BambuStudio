@@ -1662,7 +1662,7 @@ struct Plater::priv
     MenuFactory menus;
 
     // BBS
-    std::shared_ptr<BBLStatusBar> m_statusbar;
+    //std::shared_ptr<BBLStatusBar> m_statusbar;
 
     // Data
     Slic3r::DynamicPrintConfig *config;        // FIXME: leak?
@@ -2182,8 +2182,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     , collapse_toolbar(GLToolbar::Normal, "Collapse")
     //BBS :partplatelist construction
     , partplate_list(this->q, &model)
-    // BBS
-    , m_statusbar(std::make_shared<BBLStatusBar>(q))
+    // BBS hide status bar
+    //, m_statusbar(std::make_shared<BBLStatusBar>(q))
 {
     this->q->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
@@ -2243,10 +2243,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     // BBS
     wxPanel* statusbar_panel = nullptr;
     //m_statusbar = std::make_shared<BBLStatusBar>(q);
-    m_statusbar->set_font(GUI::wxGetApp().normal_font());
-    if (wxGetApp().is_editor()) {
+    //BBS
+    //m_statusbar->set_font(GUI::wxGetApp().normal_font());
+    /*if (wxGetApp().is_editor()) {
         statusbar_panel = m_statusbar->get_panel();
-    }
+    }*/
 
     //BBS remove this tips
     /* m_statusbar->set_status_text(_L("Version") + " " +
@@ -2264,7 +2265,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     panel_sizer->Add(preview, 1, wxEXPAND | wxALL, 0);
     panel_sizer->Add(assemble_view, 1, wxEXPAND | wxALL, 0);
     vsizer->Add(panel_sizer, 1, wxEXPAND | wxALL, 0);
-    vsizer->Add(statusbar_panel, 0, wxEXPAND | wxALL, 0);
+    //vsizer->Add(statusbar_panel, 0, wxEXPAND | wxALL, 0);
     hsizer->Add(vsizer, 1, wxEXPAND | wxALL, 0);
 
     
@@ -2750,7 +2751,8 @@ void Plater::priv::update_main_toolbar_tooltips()
 // BBS
 std::shared_ptr<BBLStatusBar> Plater::priv::statusbar()
 {
-    return m_statusbar;
+    return nullptr;
+    //BBS return m_statusbar;
 }
 
 std::string Plater::priv::get_config(const std::string &key) const
@@ -5135,8 +5137,9 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     if (is_finished)
     {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":finished, reload print soon");
-        this->statusbar()->reset_cancel_callback();
-        this->statusbar()->stop_busy();
+        //BBS
+        //this->statusbar()->reset_cancel_callback();
+        //this->statusbar()->stop_busy();
         m_is_slicing = false;
         this->preview->reload_print(false);
     }
@@ -7032,7 +7035,8 @@ void Plater::priv::show_object_info()
     // BBS
     if (!q->is_single_full_object_selection() ||
         q->model().objects.empty()) {
-        m_statusbar->set_object_info("");
+        //BBS
+        //m_statusbar->set_object_info("");
         return;
     }
 
@@ -7042,10 +7046,13 @@ void Plater::priv::show_object_info()
     // hack to avoid crash when deleting the last object on the bed
     if (model_object->volumes.empty())
     {
-        m_statusbar->set_object_info("");
+        //BBS
+        //m_statusbar->set_object_info("");
         return;
     }
 
+    //BBS display object_info
+    /*
     wxString object_info;
     bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
     double koef = imperial_units ? ObjectManipulation::mm_to_in : 1.0f;
@@ -7062,76 +7069,20 @@ void Plater::priv::show_object_info()
 
     //object_info += errors > 0 ? _L("No") : _L("Yes");
 
-    m_statusbar->set_object_info(object_info);
+    //m_statusbar->set_object_info(object_info);
+    */
 }
 
 void Plater::priv::update_sliced_info()
 {
-    // BBS
-    if (m_statusbar->is_slice_info_shown()) {
-        wxString sliced_info;
-        if (q->printer_technology() == ptSLA)
-        {
-            // TODO:
-        }
-        else
-        {
-            //BBS: use current plater's print statistics
-            //const PrintStatistics& ps = p->plater->fff_print().print_statistics();
-            const PrintStatistics& ps = q->get_partplate_list().get_current_fff_print().print_statistics();
-            const bool is_wipe_tower = ps.total_wipe_tower_filament > 0;
-
-            bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
-            double koef = imperial_units ? ObjectManipulation::in_to_mm : 1000.0;
-            sliced_info += _L("Used Filament: ");
-            sliced_info += wxString::Format("%.2f", ps.total_used_filament / /*1000*/koef);
-            sliced_info += imperial_units ? _L("(in)") : _L("(m)");
-            sliced_info += "   ";
-
-#if 0
-            koef = imperial_units ? pow(ObjectManipulation::mm_to_in, 3) : 1.0f;
-            sliced_info += wxString::Format("%.2f", imperial_units ? ps.total_extruded_volume * koef : ps.total_extruded_volume);
-            sliced_info += imperial_units ? _L("(in³)") : _L("(mm³)");
-            sliced_info += "   ";
-#endif
-
-            if (ps.total_weight != 0.0)
-            {
-                sliced_info += wxString::Format("%.2f", ps.total_weight);
-                sliced_info += _L("(g)");
-                sliced_info += "   ";
-                // TODO: add multiple extruder filament costs
-            }
-
-#if 0
-            sliced_info += _L("Cost:");
-            sliced_info += ps.total_cost == 0.0 ? "N/A" : wxString::Format("%.2f", ps.total_cost);
-            sliced_info += "   ";
-#endif
-            sliced_info += _L("Print time:");
-            if (ps.estimated_normal_print_time == "N/A") {
-                sliced_info += "N/A";
-            }
-            else {
-                sliced_info += format_wxstr("%1%", short_time(ps.estimated_normal_print_time));
-            }
-        }
-        m_statusbar->set_slice_info(sliced_info);
-    }
+    //BBS do not update sliced info in m_statusbar
+    return;
 }
 
 void Plater::priv::show_sliced_info(const bool show)
 {
-    //wxWindowUpdateLocker freeze_guard(this);
-
-    // BBS
-    if (!show) {
-        m_statusbar->show_slice_info(false);
-    }
-    else {
-        m_statusbar->show_slice_info(true);
-        update_sliced_info();
-    }
+    //BBS do not show sliced info in m_statusbar
+    return;
 }
 
 
@@ -9444,7 +9395,9 @@ void Plater::init_notification_manager()
 
 void Plater::show_status_message(std::string s)
 {
-    p->statusbar()->set_status_text(s);
+    BOOST_LOG_TRIVIAL(trace) << "show_status_message:" << s;
+    //BBS
+    //p->statusbar()->set_status_text(s);
 }
 
 bool Plater::can_delete() const { return p->can_delete(); }
