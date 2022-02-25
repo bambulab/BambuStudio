@@ -3661,8 +3661,7 @@ std::string GCode::retract(bool toolchange)
     if (m_writer.extruder()->retract_length() > 0) {
         // BBS: don't do lazy_lift when enable spiral vase
         size_t extruder_id = m_writer.extruder()->id();
-        if (m_toolchange_count > 0)
-            gcode += m_writer.lift(!m_spiral_vase);
+        gcode += m_writer.lift(!m_spiral_vase);
     }
 
     return gcode;
