@@ -898,15 +898,11 @@ namespace Slic3r {
                     obj->is_online = online.compare("true") == 0 ? true : false;
                     obj->set_bind_status(this->get_user_name());
                     myBindMachineList.insert(std::make_pair(dev_id, obj));
-
-                    /* insert a new machine event */
-                    this->add_subscribe(obj);
                 }
             }
             std::map<std::string, MachineObject*>::iterator iterat;
             for (iterat = myBindMachineList.begin(); iterat != myBindMachineList.end(); ) {
                 if (new_list.find(iterat->first) == new_list.end()) {
-                    this->del_subscribe(iterat->second);
                     iterat = myBindMachineList.erase(iterat);
                 } else {
                     iterat++;

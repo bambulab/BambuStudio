@@ -151,7 +151,6 @@ MachineObject::MachineObject(AccountManager& acc, std::string name, std::string 
     dev_name(name),
     dev_id(id),
     dev_ip(ip),
-    dev_bind_status(MACHINE_BIND_UNKOWN),
     conn_type(CONNECTION_LAN),
     project_(nullptr),
     profile_(nullptr),
@@ -401,17 +400,18 @@ int MachineObject::connect()
 
     try {
         if (acc_.is_user_login()) {
-            if (is_connected()) {
-                if (successFn) {
-                    successFn("Already Connected!");
+            if (mqtt_cli != nullptr) {
+                if (mqtt_cli->is_connected()) {
+                    if (successFn) {
+                        successFn("Already Connected!");
+                    }
+                } else {
+                    if (failedFn) {
+                        failedFn("Connecting state!");
+                        return -1;
+                    }
                 }
                 return 0;
-            }
-            if (mqtt_cli != nullptr) {
-                if (failedFn) {
-                    failedFn("Connecting state!");
-                    return -1;
-                }
             }
 
             /* lan mqtt connection */
@@ -1198,22 +1198,7 @@ void MachineObject::request_unbind(ResultFn fn)
 
 void MachineObject::set_bind_status(std::string status)
 {
-    if (status.compare("free") == 0) {
-        dev_bind_status = MACHINE_BIND_FREE;
-        bind_user_name = "";
-    }
-    else if (status.compare("self") == 0) {
-        dev_bind_status = MACHINE_BIND_SELF;
-        bind_user_name = "";
-    }
-    else if (status.compare("other") == 0) {
-        dev_bind_status = MACHINE_BIND_OHTER;
-        bind_user_name = "";
-    }
-    else {
-        dev_bind_status = MACHINE_BIND_OHTER;
-        bind_user_name = status;
-    }
+    bind_user_name = status;
 }
 
 void MachineObject::set_connect_state(CONNECTION_STATE state)
@@ -1388,20 +1373,6 @@ std::map<std::string ,MachineObject*> DeviceManager::get_all_machine_list()
         }
     }
     
-    return result;
-}
-
-std::map<std::string, MachineObject*> DeviceManager::get_free_machine_list()
-{
-    std::map<std::string, MachineObject*> result;
-    std::map<std::string, MachineObject*>::iterator it;
-
-    for (it = localMachineList.begin(); it != localMachineList.end(); it++) {
-        if (it->second->is_alive && it->second->dev_bind_status == MachineObject::MACHINE_BIND_FREE) {
-            result.insert(std::make_pair(it->first, it->second));
-        }
-    }
-
     return result;
 }
 

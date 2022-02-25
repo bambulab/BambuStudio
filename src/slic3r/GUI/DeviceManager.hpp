@@ -108,14 +108,6 @@ public:
     typedef std::function<void(std::string body)> CompletedFn;
     typedef std::function<void(int result, std::string info)> ResultFn;
 
-    enum MachineBindStatus {
-        MACHINE_BIND_UNKOWN = 0,
-        MACHINE_BIND_FREE = 1,
-        MACHINE_BIND_SELF = 2,
-        MACHINE_BIND_OHTER = 3,
-        MACHINE_BIND_ERROR = 4
-    };
-
     enum CONNECTION_TYPE {
         CONNECTION_DEFAULT = 0,
         CONNECTION_LAN = 1,
@@ -143,7 +135,6 @@ public:
     std::string dev_ip;
     std::string dev_id;
 
-    MachineBindStatus dev_bind_status;
     std::string bind_user_name;
     std::string bind_user_id;
     bool is_alive;          /* local alive */
@@ -348,7 +339,6 @@ public:
 
     MachineObject* get_default();   /* return default machine */
     std::map<std::string, MachineObject*> get_all_machine_list();
-    std::map<std::string, MachineObject*> get_free_machine_list();
     std::map<std::string, MachineObject*> get_user_machine_list();
 
 

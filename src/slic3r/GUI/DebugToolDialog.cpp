@@ -1111,8 +1111,12 @@ void DebugToolDialog::init()
     
 
     m_bpButton_search->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-            search_dialog->Show();
-            search_dialog->SetFocus();
+            if (btn_connect->IsEnabled()) {
+                search_dialog->Show();
+                search_dialog->SetFocus();
+            } else {
+                wxMessageBox("Please Disconnected First!");
+            }
         });
 
     m_radioBox_chamber_light->Bind(wxEVT_RADIOBOX, [this](wxCommandEvent& evt) {
@@ -1389,6 +1393,7 @@ void DebugToolDialog::on_update_list(SimpleEvent& evt)
     std::string last_dev_id;
     if (last_device_selection < machine_list_items.size()) {
         last_dev_id = machine_list_items[last_device_selection];
+        BOOST_LOG_TRIVIAL(trace) << "last_dev_id = " << last_dev_id;
     }
 
     /* dislay list */
@@ -1401,12 +1406,12 @@ void DebugToolDialog::on_update_list(SimpleEvent& evt)
     // coconut: sort the device list by: 1) own device first, then free, then others; 2) small dev_id (MAC address) (or may be dev_ip?)
     std::transform(list.begin(), list.end(), std::back_inserter(display_list), [](auto& a) {return a.second; });
     username = username.substr(0, username.find_first_of("@"));
-    std::sort(display_list.begin(), display_list.end(), [&](auto a, auto b)
-        {
+    std::sort(display_list.begin(), display_list.end(), [&](auto a, auto b) {
             auto priority = [&](auto a, auto b) {
-                return (a->bind_user_name.compare(username) == 0) * 100
-                    + (a->dev_bind_status == MachineObject::MachineBindStatus::MACHINE_BIND_FREE) * 10
-                    + (a->dev_id < b->dev_id) * 1;
+                int f = a->bind_user_name.compare(username) == 0 ? 1: 0;
+                int c = a->bind_user_name.compare("null") == 0 ? 1: 0;
+                int d = a->dev_id < b->dev_id ? 1: 0;
+                return f * 100 + c * 10 + d * 1;
             };
             return priority(a, b) > priority(b, a);
         });
