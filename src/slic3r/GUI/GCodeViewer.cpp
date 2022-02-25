@@ -702,9 +702,11 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     m_last_result_id = gcode_result.id;
     m_gcode_result = &gcode_result;
 
-    m_sequential_view.gcode_window.load_gcode(gcode_result.filename,
-        // Stealing out lines_ends should be safe because this gcode_result is processed only once (see the 1st if in this function).
-        std::move(const_cast<std::vector<size_t>&>(gcode_result.lines_ends)));
+    if (wxGetApp().get_mode() == ConfigOptionMode::comDevelop) {
+        m_sequential_view.gcode_window.load_gcode(gcode_result.filename,
+            // Stealing out lines_ends should be safe because this gcode_result is processed only once (see the 1st if in this function).
+            std::move(const_cast<std::vector<size_t>&>(gcode_result.lines_ends)));
+    }
 
     if (wxGetApp().is_gcode_viewer())
         m_custom_gcode_per_print_z = gcode_result.custom_gcode_per_print_z;
@@ -940,10 +942,13 @@ void GCodeViewer::render(int canvas_width, int canvas_height)
     //render_shells();
     float legend_height = 0.0f;
     render_legend(legend_height, canvas_width, canvas_height);
-    if (m_sequential_view.current.last != m_sequential_view.endpoints.last) {
-        m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
-        m_sequential_view.marker.set_world_offset(m_sequential_view.current_offset);
-        m_sequential_view.render(legend_height, canvas_width, canvas_height);
+    //BBS move to developer mode
+    if (wxGetApp().get_mode() == ConfigOptionMode::comDevelop) {
+        if (m_sequential_view.current.last != m_sequential_view.endpoints.last) {
+            m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
+            m_sequential_view.marker.set_world_offset(m_sequential_view.current_offset);
+            m_sequential_view.render(legend_height, canvas_width, canvas_height);
+        }
     }
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
@@ -3994,12 +3999,12 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
                 const std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(i, custom_gcode_per_print_z);
                 const int items_cnt = static_cast<int>(cp_values.size());
                 if (items_cnt == 0) { // There are no color changes, but there are some pause print or custom Gcode
-                    append_item(EItemType::Rect, m_tool_colors[i], _u8L("Extruder") + " " + std::to_string(i + 1) + " " + _u8L("default color"));
+                    append_item(EItemType::Rect, m_tool_colors[i], _u8L("Filament") + " " + std::to_string(i + 1));
                 }
                 else {
                     for (int j = items_cnt; j >= 0; --j) {
                         // create label for color change item
-                        std::string label = _u8L("Extruder") + " " + std::to_string(i + 1);
+                        std::string label = _u8L("Filament") + " " + std::to_string(i + 1);
                         if (j == 0) {
                             label += " " + upto_label(cp_values.front().second.first);
                             append_item(EItemType::Rect, m_tool_colors[i], label);

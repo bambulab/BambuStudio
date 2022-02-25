@@ -253,6 +253,9 @@ public:
     void    SetDrawMode(bool is_sla_print, bool is_sequential_print);
     void    SetDrawMode(DrawMode mode) { m_draw_mode = mode; }
 
+    //BBS
+    void    SetExtraStyle(long style) { m_extra_style = style; }
+
     void    SetManipulationMode(Mode mode)  { m_mode = mode; }
     Mode    GetManipulationMode() const     { return m_mode; }
     void    SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, const int only_extruder);
@@ -299,6 +302,9 @@ public:
     void show_edit_context_menu();
     void show_cog_icon_context_menu();
     void auto_color_change();
+    void show_lower_thumb(bool show) { m_display_lower = show; }
+    void show_higher_thumb(bool show) { m_display_higher = show; }
+    void show_cog_icon(bool show) { m_enable_cog_icon = show; }
 
     ExtrudersSequence m_extruders_sequence;
 
@@ -394,7 +400,11 @@ private:
     bool        m_is_focused = false;
     bool        m_force_mode_apply = true;
     bool        m_enable_action_icon = true;
+    bool        m_enable_cog_icon = false;
     bool        m_is_wipe_tower = false; //This flag indicates that there is multiple extruder print with wipe tower
+    bool        m_display_lower = true;
+    bool        m_display_higher = true;
+    bool        m_draw_focus_rect = false;
 
     DrawMode    m_draw_mode = dmRegular;
 

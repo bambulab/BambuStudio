@@ -322,6 +322,8 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Model* model)
 
     m_moves_slider = new DoubleSlider::Control(m_bottom_toolbar_panel, wxID_ANY, 0, 0, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
     m_moves_slider->SetDrawMode(DoubleSlider::dmSequentialGCodeView);
+    //BBS do not show lower thumb in HORIZONTAL double slider
+    m_moves_slider->show_lower_thumb(false);
 
     wxBoxSizer* bottom_toolbar_sizer = new wxBoxSizer(wxHORIZONTAL);
     bottom_toolbar_sizer->AddSpacer(5);
@@ -1092,6 +1094,10 @@ void Preview::load_print_as_sla()
 
 void Preview::on_layers_slider_scroll_changed(wxCommandEvent& event)
 {
+    if (wxGetApp().get_mode() == ConfigOptionMode::comDevelop) {
+        m_layers_slider->show_cog_icon(true);
+    }
+
     if (IsShown()) {
         PrinterTechnology tech = m_process->current_printer_technology();
         if (tech == ptFFF) {

@@ -54,6 +54,7 @@ static std::string gcode(Type type)
     switch (type) {
     //BBS
     //case ColorChange: return config.color_change_gcode;
+    //TODO add PausePrint back
     //case PausePrint:  return config.pause_print_gcode;
     //case Template:    return config.template_custom_gcode;
     default:          return "";
@@ -77,7 +78,8 @@ Control::Control( wxWindow *parent,
     m_min_value(minValue), 
     m_max_value(maxValue),
     m_style(style == wxSL_HORIZONTAL || style == wxSL_VERTICAL ? style: wxSL_HORIZONTAL),
-    m_extra_style(style == wxSL_VERTICAL ? wxSL_AUTOTICKS | wxSL_VALUE_LABEL : 0)
+    //BBS set to none style by default
+    m_extra_style(style == wxSL_VERTICAL ? 0 : 0)
 {
 #ifdef __WXOSX__ 
     is_osx = true;
@@ -115,7 +117,7 @@ Control::Control( wxWindow *parent,
     this->Bind(wxEVT_CHAR,        &Control::OnChar,     this);
     this->Bind(wxEVT_LEFT_DOWN,   &Control::OnLeftDown, this);
     this->Bind(wxEVT_MOTION,      &Control::OnMotion,   this);
-    this->Bind(wxEVT_LEFT_UP,     &Control::OnLeftUp,   this);
+    this->Bind(wxEVT_LEFT_UP,     &Control::OnLeftUp,  this);
     this->Bind(wxEVT_MOUSEWHEEL,  &Control::OnWheel,    this);
     this->Bind(wxEVT_ENTER_WINDOW,&Control::OnEnterWin, this);
     this->Bind(wxEVT_LEAVE_WINDOW,&Control::OnLeaveWin, this);
@@ -512,8 +514,11 @@ void Control::render()
     GUI::wxGetApp().UpdateDarkUI(this);
 #else
     SetBackgroundColour(GetParent()->GetBackgroundColour());
-#endif // _WIN32 
-    draw_focus_rect();
+#endif // _WIN32
+
+    //BBS do not draw focus rect
+    if (m_draw_focus_rect)
+        draw_focus_rect();
 
     wxPaintDC dc(this);
     dc.SetFont(m_font);
@@ -538,14 +543,18 @@ void Control::render()
         // draw both sliders
         draw_thumbs(dc, lower_pos, higher_pos);
 
-        // draw lock/unlock
-        draw_one_layer_icon(dc);
+        if (!is_horizontal()) {
+            // draw lock/unlock
+            draw_one_layer_icon(dc);
+        }
 
         // draw revert bitmap (if it's shown)
         draw_revert_icon(dc);
 
-        // draw cog bitmap (if it's shown)
-        draw_cog_icon(dc);
+        if (m_enable_cog_icon) {
+            // draw cog bitmap (if it's shown)
+            draw_cog_icon(dc);
+        }
 
         // draw mouse position
         draw_tick_on_mouse_position(dc);
@@ -752,8 +761,12 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
         return size_t(it - m_layers_values.begin());
     };
 
-    if (m_draw_mode == dmSequentialGCodeView)
-        return wxString::Format("%lu", static_cast<unsigned long>(m_alternate_values[value]));
+    if (m_draw_mode == dmSequentialGCodeView) {
+        // BBS display tick count ( step )
+        //return wxString::Format("%lu", static_cast<unsigned long>(m_alternate_values[value]));
+        return wxString::Format("%lu", tick);
+        
+    }
     else {
         if (label_type == ltEstimatedTime) {
             if (m_is_wipe_tower) {
@@ -769,7 +782,7 @@ wxString Control::get_label(int tick, LabelType label_type/* = ltHeightWithLayer
             return str;
         if (label_type == ltHeightWithLayer) {
             size_t layer_number = m_is_wipe_tower ? get_layer_number(value, label_type) + 1 : (m_values.empty() ? value : value + 1);
-            return format_wxstr("%1%\n(%2%)", str, layer_number);
+            return wxString::Format("%5s\n%5s", wxString::Format("%d", layer_number), str);
         }
     }
 
@@ -858,20 +871,23 @@ void Control::draw_thumbs(wxDC& dc, const wxCoord& lower_pos, const wxCoord& hig
     const wxPoint pos_l = is_horizontal() ? wxPoint(lower_pos, height*0.5) : wxPoint(0.5*width, lower_pos);
     const wxPoint pos_h = is_horizontal() ? wxPoint(higher_pos, height*0.5) : wxPoint(0.5*width, higher_pos);
 
-    // Draw lower thumb
-    draw_thumb_item(dc, pos_l, ssLower);
-    // Draw lower info_line
-    draw_info_line_with_icon(dc, pos_l, ssLower);
+    if (m_display_lower) {
+        // Draw lower thumb
+        draw_thumb_item(dc, pos_l, ssLower);
+        // Draw lower info_line
+        draw_info_line_with_icon(dc, pos_l, ssLower);
+        // Draw lower thumb text
+        draw_thumb_text(dc, pos_l, ssLower);
+    }
 
-    // Draw higher thumb
-    draw_thumb_item(dc, pos_h, ssHigher);
-    // Draw higher info_line
-    draw_info_line_with_icon(dc, pos_h, ssHigher);
-    // Draw higher thumb text
-    draw_thumb_text(dc, pos_h, ssHigher);
-
-    // Draw lower thumb text
-    draw_thumb_text(dc, pos_l, ssLower);
+    if (m_display_higher) {
+        // Draw higher thumb
+        draw_thumb_item(dc, pos_h, ssHigher);
+        // Draw higher info_line
+        draw_info_line_with_icon(dc, pos_h, ssHigher);
+        // Draw higher thumb text
+        draw_thumb_text(dc, pos_h, ssHigher);
+    }
 }
 
 void Control::draw_ticks_pair(wxDC& dc, wxCoord pos, wxCoord mid, int tick_len)
@@ -1598,7 +1614,7 @@ void Control::append_change_extruder_menu_item(wxMenu* menu, bool switch_current
 
         for (int i = 1; i <= extruders_cnt; i++) {
             const bool is_active_extruder = i == active_extruders[0] || i == active_extruders[1];
-            const wxString item_name = wxString::Format(_L("Extruder %d"), i) +
+            const wxString item_name = wxString::Format(_L("Filament %d"), i) +
                                        (is_active_extruder ? " (" + _L("active") + ")" : "");
 
             if (m_mode == MultiAsSingle)
@@ -1608,10 +1624,10 @@ void Control::append_change_extruder_menu_item(wxMenu* menu, bool switch_current
         }
 
         const wxString change_extruder_menu_name = m_mode == MultiAsSingle ? 
-                                                   (switch_current_code ? _L("Switch code to Change extruder") : _L("Change extruder") ) : 
-                                                   _L("Change extruder (N/A)");
+                                                   (switch_current_code ? _L("Switch code to Change Filament") : _L("Change Filament") ) : 
+                                                   _L("Change Filament (N/A)");
 
-        append_submenu(menu, change_extruder_menu, wxID_ANY, change_extruder_menu_name, _L("Use another extruder"),
+        append_submenu(menu, change_extruder_menu, wxID_ANY, change_extruder_menu_name, _L("Use another filament"),
             active_extruders[1] > 0 ? "edit_uni" : "change_extruder",
             [this]() {return m_mode == MultiAsSingle && !GUI::wxGetApp().obj_list()->has_paint_on_segmentation(); }, GUI::wxGetApp().plater());
     }
@@ -1971,7 +1987,8 @@ void Control::show_add_context_menu()
     }
     else {
         append_change_extruder_menu_item(&menu);
-        append_add_color_change_menu_item(&menu);
+        //BBS
+        //append_add_color_change_menu_item(&menu);
     }
 
     if (!gcode(PausePrint).empty())
@@ -1982,8 +1999,9 @@ void Control::show_add_context_menu()
         append_menu_item(&menu, wxID_ANY, _L("Add custom template") + " (" + gcode(Template) + ")", "",
             [this](wxCommandEvent&) { add_code_as_tick(Template); }, "edit_gcode", &menu);
 
+    /* BBS do not show custom gcode
     append_menu_item(&menu, wxID_ANY, _L("Add custom G-code"), "",
-        [this](wxCommandEvent&) { add_code_as_tick(Custom); }, "edit_gcode", &menu);
+        [this](wxCommandEvent&) { add_code_as_tick(Custom); }, "edit_gcode", &menu);*/
 
     GUI::wxGetApp().plater()->PopupMenu(&menu);
 }
@@ -2142,8 +2160,10 @@ void Control::OnRightUp(wxMouseEvent& event)
         if (edited_tick >= 0)
             edit_tick(edited_tick);
     }
-    else if (m_mouse == maAddMenu)
-        show_add_context_menu();
+    //BBL do not show menu when right click add icon
+    /* else if (m_mouse == maAddMenu)
+     show_add_context_menu();
+     */
     else if (m_mouse == maEditMenu)
         show_edit_context_menu();
     else if (m_mouse == maCogIconMenu)
@@ -2310,30 +2330,31 @@ void Control::add_current_tick(bool call_from_keyboard /*= false*/)
         add_code_as_tick(ColorChange);
     else
     {
-        wxMenu menu;
+        show_add_context_menu();
+        // BBL display menu
+        //wxMenu menu;
+        //if (m_mode == MultiAsSingle)
+        //    append_change_extruder_menu_item(&menu);
+        //else
+        //    append_add_color_change_menu_item(&menu);
 
-        if (m_mode == MultiAsSingle)
-            append_change_extruder_menu_item(&menu);
-        else
-            append_add_color_change_menu_item(&menu);
+        //wxPoint pos = wxDefaultPosition; 
+        ///* Menu position will be calculated from mouse click position, but...
+        // * if function is called from keyboard (pressing "+"), we should to calculate it
+        // * */
+        //if (call_from_keyboard) {
+        //    int width, height;
+        //    get_size(&width, &height);
 
-        wxPoint pos = wxDefaultPosition; 
-        /* Menu position will be calculated from mouse click position, but...
-         * if function is called from keyboard (pressing "+"), we should to calculate it
-         * */
-        if (call_from_keyboard) {
-            int width, height;
-            get_size(&width, &height);
+        //    const wxCoord coord = 0.75 * (is_horizontal() ? height : width);
+        //    this->GetPosition(&width, &height);
 
-            const wxCoord coord = 0.75 * (is_horizontal() ? height : width);
-            this->GetPosition(&width, &height);
+        //    pos = is_horizontal() ? 
+        //          wxPoint(get_position_from_value(tick), height + coord) :
+        //          wxPoint(width + coord, get_position_from_value(tick));
+        //}
 
-            pos = is_horizontal() ? 
-                  wxPoint(get_position_from_value(tick), height + coord) :
-                  wxPoint(width + coord, get_position_from_value(tick));
-        }
-
-        GUI::wxGetApp().plater()->PopupMenu(&menu, pos);
+        //GUI::wxGetApp().plater()->PopupMenu(&menu, pos);
     }
 }
 
