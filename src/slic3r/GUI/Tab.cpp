@@ -1697,7 +1697,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("dont_support_bridges");
         //optgroup->append_single_option_line("support_sharp_tails");
         //optgroup->append_single_option_line("remove_small_overhangs");
-        optgroup->append_single_option_line("support_material_synchronize_layers");
+        optgroup->append_single_option_line("independent_support_layer_height");
 
     page = add_options_page(L("Speed"), "time");
         optgroup = page->new_optgroup(L("Initial layer speed"));
@@ -1736,7 +1736,8 @@ void TabPrint::build()
 
     page = add_options_page(L("Others"), "advanced");
         optgroup = page->new_optgroup(L("Wipe tower"));
-        optgroup->append_single_option_line("wipe_tower");
+        // BBS
+        //optgroup->append_single_option_line("wipe_tower");
         optgroup->append_single_option_line("wipe_tower_width");
         optgroup->append_single_option_line("wiping_volume");
 

@@ -533,7 +533,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               support_material_spacing))
     ((ConfigOptionFloat,               support_material_speed))
     ((ConfigOptionEnum<SupportMaterialStyle>, support_material_style))
-    ((ConfigOptionBool,                support_material_synchronize_layers))
+    // BBS
+    ((ConfigOptionBool,                independent_support_layer_height))
     // Overhang angle threshold.
     ((ConfigOptionInt,                 support_material_threshold))
     ((ConfigOptionBool,                support_material_with_sheath))

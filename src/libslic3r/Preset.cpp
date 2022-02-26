@@ -549,7 +549,7 @@ static std::vector<std::string> s_Preset_print_options {
     "min_skirt_length", "brim_width", "brim_separation", "brim_type", "support_material", "support_type", "support_material_threshold", "support_material_enforce_layers",
     "raft_layers", "raft_first_layer_density", "raft_first_layer_expansion", "raft_contact_distance", "raft_expansion",
     "support_material_pattern", "support_material_with_sheath", "support_material_spacing", "support_material_closing_radius", "support_material_style",
-    "support_material_synchronize_layers", "support_material_angle", "support_material_interface_layers", "support_material_bottom_interface_layers",
+    "independent_support_layer_height", "support_material_angle", "support_material_interface_layers", "support_material_bottom_interface_layers",
     "support_material_interface_pattern", "support_material_interface_spacing", "support_material_interface_contact_loops", 
     "support_material_contact_distance", "support_material_bottom_contact_distance",
     "support_material_buildplate_only", "dont_support_bridges", "thick_bridges", "complete_objects", "extruder_clearance_radius",

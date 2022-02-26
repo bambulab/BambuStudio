@@ -2482,8 +2482,10 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
+    // BBS: change type to common float.
+    // It may be rounded to mulitple layer height when independent_support_layer_height is false.
     def = this->add("support_material_contact_distance", coFloat);
-    def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
+    //def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
     def->label = L("Top Z distance");
     def->category = L("Support material");
     def->tooltip = L("The vertical distance between object and support material interface. "
@@ -2491,23 +2493,28 @@ void PrintConfigDef::init_fff_params()
                    "for the first object layer.");
     def->sidetext = L("mm");
 //    def->min = 0;
+#if 0
     def->enum_values.push_back("0");
     def->enum_values.push_back("0.1");
     def->enum_values.push_back("0.2");
     def->enum_labels.push_back(L("0 (soluble)"));
     def->enum_labels.push_back(L("0.1 (semi-detachable)"));
     def->enum_labels.push_back(L("0.2 (detachable)"));
+#endif
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.2));
 
+    // BBS: change type to common float.
+    // It may be rounded to mulitple layer height when independent_support_layer_height is false.
     def = this->add("support_material_bottom_contact_distance", coFloat);
-    def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
+    //def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
     def->label = L("Bottom contact Z distance");
     def->category = L("Support material");
     def->tooltip = L("The vertical distance between the object top surface and the support material interface. "
                    "If set to zero, support_material_contact_distance will be used for both top and bottom contact Z distances.");
     def->sidetext = L("mm");
 //    def->min = 0;
+#if 0
     def->enum_values.push_back("0");
     def->enum_values.push_back("0.1");
     def->enum_values.push_back("0.2");
@@ -2515,6 +2522,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Same as top"));
     def->enum_labels.push_back("0.1");
     def->enum_labels.push_back("0.2");
+#endif
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
@@ -2730,11 +2738,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SupportMaterialStyle>(smsGrid));
 
-    def = this->add("support_material_synchronize_layers", coBool);
-    def->label = L("Synchronize with object layers");
+    // BBS
+    def = this->add("independent_support_layer_height", coBool);
+    def->label = L("Independent support layer height");
     def->category = L("Support material");
-    def->tooltip = L("Synchronize support layers with the object print layers. This is useful "
-                   "with multi-material printers, where the extruder switch is expensive.");
+    def->tooltip = L("Support layer uses layer height independent with object layer. This is to support custom support gap,"
+                   "but may cause extra extruder switches if support is specified as different extruder with object.");
     //BBS
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));

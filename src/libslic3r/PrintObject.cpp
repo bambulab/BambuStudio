@@ -628,7 +628,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_material_xy_spacing"
             || opt_key == "support_material_spacing"
             || opt_key == "support_material_closing_radius"
-            || opt_key == "support_material_synchronize_layers"
+            || opt_key == "independent_support_layer_height" // BBS
             || opt_key == "support_material_threshold"
             || opt_key == "support_material_with_sheath"
             || opt_key == "raft_expansion"
