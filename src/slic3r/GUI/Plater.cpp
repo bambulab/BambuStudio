@@ -6937,6 +6937,9 @@ void Plater::update_platplate_thumbnails()
         if (!plate->empty()) {
             ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i};
             get_current_canvas3D()->render_thumbnail(plate->thumbnail_data, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params, Camera::EType::Ortho);
+        } else {
+            // make thumbnail_data invalid
+            plate->thumbnail_data.reset();
         }
     }
 }
