@@ -21,7 +21,7 @@
 #define MY_PROJECT_LIST_URL             "/my/projects"
 #define MODEL_STORE_URL                 "/designs"
 
-#define POLL_3MF_TIMEOUT    60
+#define POLL_3MF_TIMEOUT                180
 #define DEFAULT_BBL_SETTING_VERSION     "00.00.00.01"
 
 namespace pt = boost::property_tree;
