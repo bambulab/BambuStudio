@@ -6655,6 +6655,8 @@ void Plater::import_model_id(const std::string& model_id, const std::string& pro
 
     boost::filesystem::path target_path;
 
+    //reset params
+    p->project.reset();
     BBLProject* project = &p->project;
     project->project_model_id = model_id;
 
@@ -6696,7 +6698,10 @@ void Plater::import_model_id(const std::string& model_id, const std::string& pro
         bool res = false;
         /* save to temp folder 3mf file*/
         target_path = wxStandardPaths::Get().GetTempDir().utf8_str().data();
-        target_path /= (boost::format("import_project.%1%.3mf") % get_current_pid()).str();
+        boost::uuids::uuid uuid = boost::uuids::random_generator()();
+        std::string unique = to_string(uuid).substr(0, 6);
+
+        target_path /= (boost::format("import.%1%_%2%_%3%.3mf") % project->project_name % get_current_pid() % unique).str();
         fs::path tmp_path = target_path;
         tmp_path += format(".%1%", ".download");
 
