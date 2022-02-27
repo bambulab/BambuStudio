@@ -29,7 +29,7 @@ Flow PrintRegion::flow(const PrintObject &object, FlowRole role, double layer_he
     } else if (role == frExternalPerimeter) {
         config_width = m_config.outer_wall_line_width;
     } else if (role == frPerimeter) {
-        config_width = m_config.perimeter_extrusion_width;
+        config_width = m_config.inner_wall_line_width;
     } else if (role == frInfill) {
         config_width = m_config.sparse_infill_line_width;
     } else if (role == frSolidInfill) {

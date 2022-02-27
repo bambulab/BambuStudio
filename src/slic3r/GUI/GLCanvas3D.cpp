@@ -1147,7 +1147,7 @@ BoundingBoxf3 GLCanvas3D::_get_current_partplate_print_volume()
     if (m_process && m_config)
     {
         BoundingBoxf3 plate_bb = m_process->get_current_plate()->get_bounding_box(false);
-        BoundingBoxf3 print_volume({ plate_bb.min(0), plate_bb.min(1), 0.0 }, { plate_bb.max(0), plate_bb.max(1), m_config->opt_float("max_print_height") });
+        BoundingBoxf3 print_volume({ plate_bb.min(0), plate_bb.min(1), 0.0 }, { plate_bb.max(0), plate_bb.max(1), m_config->opt_float("printable_height") });
         // Allow the objects to protrude below the print bed
         print_volume.min(2) = -1e10;
         print_volume.min(0) -= Slic3r::BuildVolume::BedEpsilon;
@@ -1310,7 +1310,7 @@ BoundingBoxf3 GLCanvas3D::scene_bounding_box() const
 {
     BoundingBoxf3 bb = volumes_bounding_box();
     bb.merge(m_bed.extended_bounding_box());
-    double h = m_bed.build_volume().max_print_height();
+    double h = m_bed.build_volume().printable_height();
     //FIXME why -h?
     bb.min.z() = std::min(bb.min.z(), -h);
     bb.max.z() = std::max(bb.max.z(), h);
@@ -1330,7 +1330,7 @@ BoundingBoxf3 GLCanvas3D::plate_scene_bounding_box(int plate_idx) const
 
     BoundingBoxf3 bb = plate->get_bounding_box(true);
     if (m_config != nullptr) {
-        double h = m_config->opt_float("max_print_height");
+        double h = m_config->opt_float("printable_height");
         bb.min(2) = std::min(bb.min(2), -h);
         bb.max(2) = std::max(bb.max(2), h);
     }
@@ -4996,7 +4996,7 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const
     PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
     BoundingBoxf3 bb = plate->get_bounding_box(false);
     if (m_config != nullptr) {
-        double h = m_config->opt_float("max_print_height");
+        double h = m_config->opt_float("printable_height");
         bb.min(2) = std::min(bb.min(2), -h);
         bb.max(2) = std::max(bb.max(2), h);
     }
@@ -6624,13 +6624,13 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
             const BoundingBox3Base<Vec3d> bed_bb = build_volume.bounding_volume().inflated(BuildVolume::SceneEpsilon);
             m_volumes.set_print_volume({ 0, // circle
                 { float(bed_bb.min.x()), float(bed_bb.min.y()), float(bed_bb.max.x()), float(bed_bb.max.y()) },
-                { 0.0f, float(build_volume.max_print_height()) } });
+                { 0.0f, float(build_volume.printable_height()) } });
             break;
         }
         case BuildVolume::Type::Circle: {
             m_volumes.set_print_volume({ 1, // rectangle
                 { unscaled<float>(build_volume.circle().center.x()), unscaled<float>(build_volume.circle().center.y()), unscaled<float>(build_volume.circle().radius + BuildVolume::SceneEpsilon), 0.0f },
-                { 0.0f, float(build_volume.max_print_height() + BuildVolume::SceneEpsilon) } });
+                { 0.0f, float(build_volume.printable_height() + BuildVolume::SceneEpsilon) } });
             break;
         }
         default:

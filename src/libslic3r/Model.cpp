@@ -2621,8 +2621,8 @@ double findMaxSpeed(ModelObject* object) {
     if (objectKeys.empty())
         return objMaxSpeed;
     for (std::string objectKey : objectKeys) {
-        if (objectKey == "perimeter_speed")
-            objMaxSpeed = std::max(object->config.opt_float("perimeter_speed"), objMaxSpeed);
+        if (objectKey == "inner_wall_speed")
+            objMaxSpeed = std::max(object->config.opt_float("inner_wall_speed"), objMaxSpeed);
         if (objectKey == "outer_wall_speed") {
             objMaxSpeed = std::max(object->config.get().get_abs_value("outer_wall_speed", Model::printSpeedMap.perimeterSpeed), objMaxSpeed);
         }     

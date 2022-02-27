@@ -219,7 +219,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             fuzzified = loop.polygon;
             fuzzy_polygon(fuzzified, scaled<float>(perimeter_generator.config->fuzzy_skin_thickness.value), scaled<float>(perimeter_generator.config->fuzzy_skin_point_distance.value));
         }
-        if (perimeter_generator.config->overhangs && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers
+        if (perimeter_generator.config->detect_overhang_wall && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers
             && ! ((perimeter_generator.object_config->support_material || perimeter_generator.object_config->support_material_enforce_layers > 0) && 
                   perimeter_generator.object_config->support_material_contact_distance.value == 0)) {
             // get non 100% overhang paths by intersecting this loop with the grown lower slices

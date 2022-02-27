@@ -25,36 +25,36 @@ std::string PresetHints::cooling_description(const Preset &preset)
 
     if (cooling) {
 		int 	slowdown_below_layer_time 	= preset.config.opt_int("slowdown_below_layer_time", 0);
-		int 	min_fan_speed 				= preset.config.opt_int("min_fan_speed", 0);
-		int 	max_fan_speed 				= preset.config.opt_int("max_fan_speed", 0);
+		int 	fan_min_speed 				= preset.config.opt_int("fan_min_speed", 0);
+		int 	fan_max_speed 				= preset.config.opt_int("fan_max_speed", 0);
 		int 	min_print_speed				= int(preset.config.opt_float("min_print_speed", 0) + 0.5);
 
         out += GUI::format(_L("If estimated layer time is below ~%1%s, "
                               "fan will run at %2%%% and print speed will be reduced "
                               "so that no less than %3%s are spent on that layer "
                               "(however, speed will never be reduced below %4%mm/s)."),
-                              slowdown_below_layer_time, max_fan_speed, slowdown_below_layer_time, min_print_speed);
+                              slowdown_below_layer_time, fan_max_speed, slowdown_below_layer_time, min_print_speed);
         if (fan_below_layer_time > slowdown_below_layer_time) {
             out += "\n";
-            if (min_fan_speed != max_fan_speed)
+            if (fan_min_speed != fan_max_speed)
                 out += GUI::format(_L("If estimated layer time is greater, but still below ~%1%s, "
                                "fan will run at a proportionally decreasing speed between %2%%% and %3%%%."),
-                               fan_below_layer_time, max_fan_speed, min_fan_speed);
+                               fan_below_layer_time, fan_max_speed, fan_min_speed);
             else
                 out += GUI::format(_L("If estimated layer time is greater, but still below ~%1%s, "
                                "fan will run at %2%%%"),
-                               fan_below_layer_time, min_fan_speed);
+                               fan_below_layer_time, fan_min_speed);
         }
         out += "\n";
     }
 	if (preset.config.opt_bool("fan_always_on", 0)) {
 		int 	close_fan_the_first_x_layers 	= preset.config.opt_int("close_fan_the_first_x_layers", 0);
-		int 	min_fan_speed 				= preset.config.opt_int("min_fan_speed", 0);
+		int 	fan_min_speed 				= preset.config.opt_int("fan_min_speed", 0);
 
         if (full_fan_speed_layer > close_fan_the_first_x_layers + 1)
-            out += GUI::format(_L("Fan speed will be ramped from zero at layer %1% to %2%%% at layer %3%."), close_fan_the_first_x_layers, min_fan_speed, full_fan_speed_layer);
+            out += GUI::format(_L("Fan speed will be ramped from zero at layer %1% to %2%%% at layer %3%."), close_fan_the_first_x_layers, fan_min_speed, full_fan_speed_layer);
         else {
-            out += GUI::format(cooling ? _L("During the other layers, fan will always run at %1%%%") : _L("Fan will always run at %1%%%"), min_fan_speed) + " ";
+            out += GUI::format(cooling ? _L("During the other layers, fan will always run at %1%%%") : _L("Fan will always run at %1%%%"), fan_min_speed) + " ";
             if (close_fan_the_first_x_layers > 1)
                 out += GUI::format(_L("except for the first %1% layers."), close_fan_the_first_x_layers);
             else if (close_fan_the_first_x_layers == 1)
@@ -98,11 +98,11 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
     double support_material_interface_speed = print_config.get_abs_value("support_material_interface_speed", support_material_speed);
     double bridge_speed                     = print_config.opt_float("bridge_speed");
     double bridge_flow_ratio                = print_config.opt_float("bridge_flow_ratio");
-    double perimeter_speed                  = print_config.opt_float("perimeter_speed");
-    double outer_wall_speed         = print_config.get_abs_value("outer_wall_speed", perimeter_speed);
+    double inner_wall_speed                  = print_config.opt_float("inner_wall_speed");
+    double outer_wall_speed         = print_config.get_abs_value("outer_wall_speed", inner_wall_speed);
     // double gap_infill_speed                   = print_config.opt_bool("gap_fill_enabled") ? print_config.opt_float("gap_infill_speed") : 0.;
     double sparse_infill_speed                     = print_config.opt_float("sparse_infill_speed");
-    double small_perimeter_speed            = print_config.get_abs_value("small_perimeter_speed", perimeter_speed);
+    double small_perimeter_speed            = print_config.get_abs_value("small_perimeter_speed", inner_wall_speed);
     double internal_solid_infill_speed               = print_config.get_abs_value("internal_solid_infill_speed", sparse_infill_speed);
     double top_surface_speed           = print_config.get_abs_value("top_surface_speed", internal_solid_infill_speed);
     // Maximum print speed when auto-speed is enabled by setting any of the above speed values to zero.
@@ -114,7 +114,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
     const auto &outer_wall_line_width  = *print_config.option<ConfigOptionFloatOrPercent>("outer_wall_line_width");
     const auto &initial_layer_line_width         = *print_config.option<ConfigOptionFloatOrPercent>("initial_layer_line_width");
     const auto &sparse_infill_line_width              = *print_config.option<ConfigOptionFloatOrPercent>("sparse_infill_line_width");
-    const auto &perimeter_extrusion_width           = *print_config.option<ConfigOptionFloatOrPercent>("perimeter_extrusion_width");
+    const auto &inner_wall_line_width           = *print_config.option<ConfigOptionFloatOrPercent>("inner_wall_line_width");
     const auto &internal_solid_infill_line_width        = *print_config.option<ConfigOptionFloatOrPercent>("internal_solid_infill_line_width");
     const auto& support_material_extrusion_width    = *print_config.option<ConfigOptionFloatOrPercent>("support_material_extrusion_width");
     const auto &support_transition_extrusion_width  = *print_config.option<ConfigOptionFloatOrPercent>("support_transition_extrusion_width");//BBS
@@ -169,7 +169,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
         };
         if (perimeter_extruder_active) {
             test_flow(frExternalPerimeter, outer_wall_line_width, std::max(outer_wall_speed, small_perimeter_speed), L("external perimeters"));
-            test_flow(frPerimeter,         perimeter_extrusion_width,          std::max(perimeter_speed,          small_perimeter_speed), L("perimeters"));
+            test_flow(frPerimeter,         inner_wall_line_width,          std::max(inner_wall_speed,          small_perimeter_speed), L("perimeters"));
         }
         if (! bridging && infill_extruder_active)
             test_flow(frInfill, sparse_infill_line_width, sparse_infill_speed, L("infill"));
@@ -228,7 +228,7 @@ std::string PresetHints::recommended_thin_wall_thickness(const PresetBundle &pre
                 nozzle_diameter, layer_height);
             Flow perimeter_flow          = Flow::new_from_config_width(
                 frPerimeter, 
-                *print_config.opt<ConfigOptionFloatOrPercent>("perimeter_extrusion_width"), 
+                *print_config.opt<ConfigOptionFloatOrPercent>("inner_wall_line_width"), 
                 nozzle_diameter, layer_height);
 	        double width = external_perimeter_flow.width() + external_perimeter_flow.spacing();
 	        for (int i = 2; i <= num_lines; thin_walls ? ++ i : i += 2) {

@@ -353,7 +353,7 @@ int CLI::run(int argc, char **argv)
         m_print_config.apply(fff_print_config, true);
     } else {
         assert(printer_technology == ptSLA);
-        sla_print_config.output_filename_format.value = "[input_filename_base].sl1";
+        sla_print_config.filename_format.value = "[input_filename_base].sl1";
         
         // The default bed shape should reflect the default display parameters
         // and not the fff defaults.
@@ -377,7 +377,7 @@ int CLI::run(int argc, char **argv)
     Pointfs bedfs = m_print_config.opt<ConfigOptionPoints>("printable_area")->values;
     Pointfs excluse_areas = m_print_config.opt<ConfigOptionPoints>("bed_exclude_area")->values;
     //update part plate's size
-    double z = m_print_config.opt_float("max_print_height");
+    double z = m_print_config.opt_float("printable_height");
     double plate_stride;
     if (m_models.size() > 0)
     {
@@ -889,10 +889,10 @@ int CLI::run(int argc, char **argv)
                         for (auto* mo : model.objects)
                             (dynamic_cast<Print*>(print))->auto_assign_extruders(mo);
                     } else {
-                        // The default for "output_filename_format" is good for FDM: "[input_filename_base].gcode"
+                        // The default for "filename_format" is good for FDM: "[input_filename_base].gcode"
                         // Replace it with a reasonable SLA default.
-                        std::string &format = m_print_config.opt_string("output_filename_format", true);
-                        if (format == static_cast<const ConfigOptionString*>(m_print_config.def()->get("output_filename_format")->default_value.get())->value)
+                        std::string &format = m_print_config.opt_string("filename_format", true);
+                        if (format == static_cast<const ConfigOptionString*>(m_print_config.def()->get("filename_format")->default_value.get())->value)
                             format = "[input_filename_base].SL1";
                     }
                     print->apply(model, m_print_config);

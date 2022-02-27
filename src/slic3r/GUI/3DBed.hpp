@@ -105,7 +105,7 @@ public:
     //FIXME if the build volume max print height is updated, this function still returns zero
     // as this class does not use it, thus there is no need to update the UI.
     // BBS
-    bool set_shape(const Pointfs& printable_area, const double max_print_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom = false,
+    bool set_shape(const Pointfs& printable_area, const double printable_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom = false,
         const Vec2d position = Vec2d::Zero(), bool with_reset = true);
 
     void set_position(Vec2d& position);

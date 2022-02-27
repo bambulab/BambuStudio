@@ -16,10 +16,10 @@
     "bridge_fan_speed": [
         "80"
     ],
-    "max_fan_speed": [
+    "fan_max_speed": [
         "60"
     ],
-    "min_fan_speed": [
+    "fan_min_speed": [
         "40"
     ],
     "min_print_speed": [

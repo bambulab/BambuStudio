@@ -1859,7 +1859,7 @@ public:
     // Set for type == coFloatOrPercent.
     // It provides a link to a configuration value, of which this option provides a ratio.
     // For example, 
-    // For example outer_wall_speed may be defined as a fraction of perimeter_speed.
+    // For example outer_wall_speed may be defined as a fraction of inner_wall_speed.
     t_config_option_key                 ratio_over;
     // True for multiline strings.
     bool                                multiline       = false;

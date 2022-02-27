@@ -14,6 +14,6 @@
     "tree_support_with_infill": "1",
     "support_material_interface_layers": "2",
     "bridge_no_support": "1",
-    "perimeter_speed": "200",
+    "inner_wall_speed": "200",
     "sparse_infill_speed": "200"
 }

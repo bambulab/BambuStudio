@@ -612,7 +612,7 @@ void SLAPrint::finalize()
 std::string SLAPrint::output_filename(const std::string &filename_base) const
 {
     DynamicConfig config = this->finished() ? this->print_statistics().config() : this->print_statistics().placeholders();
-    return this->PrintBase::output_filename(m_print_config.output_filename_format.value, ".sl1", filename_base, &config);
+    return this->PrintBase::output_filename(m_print_config.filename_format.value, ".sl1", filename_base, &config);
 }
 
 std::string SLAPrint::validate(std::string*) const
@@ -840,9 +840,9 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
 
     static std::unordered_set<std::string> steps_ignore = {
         "printable_area",
-        "max_print_height",
+        "printable_height",
         "printer_technology",
-        "output_filename_format",
+        "filename_format",
         "fast_tilt_time",
         "slow_tilt_time",
         "area_fill",

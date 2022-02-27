@@ -43,10 +43,10 @@
     "fan_always_on": [
         "0"
     ],
-    "max_fan_speed": [
+    "fan_max_speed": [
         "45"
     ],
-    "min_fan_speed": [
+    "fan_min_speed": [
         "0"
     ],
     "bridge_fan_speed": [

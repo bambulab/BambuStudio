@@ -596,10 +596,10 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                ironing_spacing))
     ((ConfigOptionFloat,                ironing_speed))
     // Detect bridging perimeters
-    ((ConfigOptionBool,                 overhangs))
+    ((ConfigOptionBool,                 detect_overhang_wall))
     ((ConfigOptionInt,                  perimeter_extruder))
-    ((ConfigOptionFloatOrPercent,       perimeter_extrusion_width))
-    ((ConfigOptionFloat,                perimeter_speed))
+    ((ConfigOptionFloatOrPercent,       inner_wall_line_width))
+    ((ConfigOptionFloat,                inner_wall_speed))
     // Total number of perimeters.
     ((ConfigOptionInt,                  perimeters))
     ((ConfigOptionFloatOrPercent,       small_perimeter_speed))
@@ -753,17 +753,17 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInts,               nozzle_temperature_initial_layer))
     ((ConfigOptionInts,               full_fan_speed_layer))
     ((ConfigOptionBool,               infill_first))
-    ((ConfigOptionInts,               max_fan_speed))
+    ((ConfigOptionInts,               fan_max_speed))
     ((ConfigOptionFloats,             max_layer_height))
-    ((ConfigOptionInts,               min_fan_speed))
+    ((ConfigOptionInts,               fan_min_speed))
     ((ConfigOptionFloats,             min_layer_height))
-    ((ConfigOptionFloat,              max_print_height))
+    ((ConfigOptionFloat,              printable_height))
     ((ConfigOptionFloats,             min_print_speed))
     ((ConfigOptionFloat,              min_skirt_length))
     ((ConfigOptionFloats,             nozzle_diameter))
-    ((ConfigOptionBool,               only_retract_when_crossing_perimeters))
+    ((ConfigOptionBool,               reduce_infill_retraction))
     ((ConfigOptionBool,               ooze_prevention))
-    ((ConfigOptionString,             output_filename_format))
+    ((ConfigOptionString,             filename_format))
     ((ConfigOptionStrings,            post_process))
     ((ConfigOptionString,             printer_model))
     ((ConfigOptionFloat,              resolution))
@@ -806,7 +806,7 @@ std::string validate(const FullPrintConfig &config);
 
 PRINT_CONFIG_CLASS_DEFINE(
     SLAPrintConfig,
-    ((ConfigOptionString,     output_filename_format))
+    ((ConfigOptionString,     filename_format))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(
@@ -976,7 +976,7 @@ PRINT_CONFIG_CLASS_DEFINE(
 
     ((ConfigOptionEnum<PrinterTechnology>,    printer_technology))
     ((ConfigOptionPoints,                     printable_area))
-    ((ConfigOptionFloat,                      max_print_height))
+    ((ConfigOptionFloat,                      printable_height))
     ((ConfigOptionFloat,                      display_width))
     ((ConfigOptionFloat,                      display_height))
     ((ConfigOptionInt,                        display_pixels_x))

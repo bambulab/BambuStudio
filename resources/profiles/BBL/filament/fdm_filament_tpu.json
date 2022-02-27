@@ -40,10 +40,10 @@
     "cooling": [
         "1"
     ],
-    "max_fan_speed": [
+    "fan_max_speed": [
         "100"
     ],
-    "min_fan_speed": [
+    "fan_min_speed": [
         "100"
     ],
     "bridge_fan_speed": [

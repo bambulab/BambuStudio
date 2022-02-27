@@ -38,7 +38,7 @@ float Flow::auto_extrusion_width(FlowRole role, float nozzle_diameter)
 // and to provide reasonable values to the PlaceholderParser.
 static inline FlowRole opt_key_to_flow_role(const std::string &opt_key)
 {
- 	if (opt_key == "perimeter_extrusion_width" || 
+ 	if (opt_key == "inner_wall_line_width" || 
  		// or all the defaults:
  		opt_key == "extrusion_width" || opt_key == "initial_layer_line_width")
         return frPerimeter;
@@ -74,9 +74,9 @@ double Flow::extrusion_width(const std::string& opt_key, const ConfigOptionFloat
 // This is the logic used for skit / brim, but not for the rest of the 1st layer.
 	if (opt->value == 0. && first_layer) {
 		// The "initial_layer_line_width" was set to zero, try a substitute.
-		opt = config.option<ConfigOptionFloatOrPercent>("perimeter_extrusion_width");
+		opt = config.option<ConfigOptionFloatOrPercent>("inner_wall_line_width");
 		if (opt == nullptr)
-    		throw_on_missing_variable(opt_key, "perimeter_extrusion_width");
+    		throw_on_missing_variable(opt_key, "inner_wall_line_width");
 	}
 #endif
 

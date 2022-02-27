@@ -720,8 +720,8 @@ std::string CoolingBuffer::apply_layer_cooldown(
     int  bridge_fan_speed   = 0;
     auto change_extruder_set_fan = [ this, layer_id, layer_time, &new_gcode, &bridge_fan_control, &bridge_fan_speed]() {
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_current_extruder)
-        int min_fan_speed = EXTRUDER_CONFIG(min_fan_speed);
-        int fan_speed_new = EXTRUDER_CONFIG(fan_always_on) ? min_fan_speed : 0;
+        int fan_min_speed = EXTRUDER_CONFIG(fan_min_speed);
+        int fan_speed_new = EXTRUDER_CONFIG(fan_always_on) ? fan_min_speed : 0;
         //BBS
         int additional_fan_speed_new = (EXTRUDER_CONFIG(fan_always_on) || EXTRUDER_CONFIG(cooling)) ?
                                         EXTRUDER_CONFIG(additional_cooling_fan_speed) : 0;
@@ -734,18 +734,18 @@ std::string CoolingBuffer::apply_layer_cooldown(
             close_fan_the_first_x_layers = 1;
         }
         if (int(layer_id) >= close_fan_the_first_x_layers) {
-            int   max_fan_speed             = EXTRUDER_CONFIG(max_fan_speed);
+            int   fan_max_speed             = EXTRUDER_CONFIG(fan_max_speed);
             float slowdown_below_layer_time = float(EXTRUDER_CONFIG(slowdown_below_layer_time));
             float fan_below_layer_time      = float(EXTRUDER_CONFIG(fan_below_layer_time));
             if (EXTRUDER_CONFIG(cooling)) {
                 if (layer_time < slowdown_below_layer_time) {
                     // Layer time very short. Enable the fan to a full throttle.
-                    fan_speed_new = max_fan_speed;
+                    fan_speed_new = fan_max_speed;
                 } else if (layer_time < fan_below_layer_time) {
                     // Layer time quite short. Enable the fan proportionally according to the current layer time.
                     assert(layer_time >= slowdown_below_layer_time);
                     double t = (layer_time - slowdown_below_layer_time) / (fan_below_layer_time - slowdown_below_layer_time);
-                    fan_speed_new = int(floor(t * min_fan_speed + (1. - t) * max_fan_speed) + 0.5);
+                    fan_speed_new = int(floor(t * fan_min_speed + (1. - t) * fan_max_speed) + 0.5);
                 }
             }
             bridge_fan_speed   = EXTRUDER_CONFIG(bridge_fan_speed);

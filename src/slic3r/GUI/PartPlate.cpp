@@ -3000,7 +3000,7 @@ int PartPlateList::rebuild_plates_after_deserialize(std::vector<bool>& previous_
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": jump to the first init state, need to re-set size!");
 		Vec3d max = m_plater->get_bed().get_bounding_box(false).max;
 		Vec3d min = m_plater->get_bed().get_bounding_box(false).min;
-		double z = m_plater->config()->opt_float("max_print_height");
+		double z = m_plater->config()->opt_float("printable_height");
 		reset_size(max.x() - min.x(), max.y() - min.y(), z);
 	}*/
 	return ret;

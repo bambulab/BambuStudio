@@ -85,7 +85,7 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
 
 std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CATEGORY_SETTINGS=
 {
-    { L("Quality"), {{"external_perimeters_first", "",13},{"ironing", "",7},{"ironing_type", "",8},{"perimeter_extrusion_width", "",9},{"outer_wall_line_width", "",10},
+    { L("Quality"), {{"external_perimeters_first", "",13},{"ironing", "",7},{"ironing_type", "",8},{"inner_wall_line_width", "",9},{"outer_wall_line_width", "",10},
                     {"top_surface_line_width", "",11}
                     }},
     { L("Shell"), {{"perimeters", "",1},{"ensure_vertical_shell_thickness", "",1},{"top_solid_layers", L("Top Solid Layers"),1},{"bottom_shell_layers", L("Bottom Solid Layers"),1},
@@ -94,7 +94,7 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CAT
     { L("Infill"), {{"sparse_infill_density", "",1},{"sparse_infill_pattern", "",1},{"top_fill_pattern", "",1},{"bottom_surface_pattern", "",1},
                     {"infill_combination", "",1}, {"infill_angle", "",1}, {"infill_wall_overlap", "",1}
                     }},
-    { L("Speed"), {{"perimeter_speed", "",1},{"outer_wall_speed", "",1},{"sparse_infill_speed", "",1},{"internal_solid_infill_speed", "",1},
+    { L("Speed"), {{"inner_wall_speed", "",1},{"outer_wall_speed", "",1},{"sparse_infill_speed", "",1},{"internal_solid_infill_speed", "",1},
                     {"top_surface_speed", "",1}, {"gap_infill_speed", "",1}
                     }}
 };
@@ -122,13 +122,13 @@ std::vector<SimpleSettingData> SettingsFactory::get_visible_options(const std::s
 {
     /*t_config_option_keys options = {
         //Quality
-        "external_perimeters_first", "ironing_type", "perimeter_extrusion_width", "outer_wall_line_width", "top_surface_line_width",
+        "external_perimeters_first", "ironing_type", "inner_wall_line_width", "outer_wall_line_width", "top_surface_line_width",
         //Shell
         "perimeters", "ensure_vertical_shell_thickness", "top_solid_layers", "bottom_shell_layers", "top_solid_min_thickness", "bottom_shell_thickness",
         //Infill
         "sparse_infill_density", "sparse_infill_pattern", "top_fill_pattern", "bottom_surface_pattern", "infill_combination", "infill_angle", "infill_wall_overlap",
         //speed
-        "perimeter_speed", "outer_wall_speed", "sparse_infill_speed", "internal_solid_infill_speed", "top_surface_speed", "gap_infill_speed"
+        "inner_wall_speed", "outer_wall_speed", "sparse_infill_speed", "internal_solid_infill_speed", "top_surface_speed", "gap_infill_speed"
         };
 
     t_config_option_keys object_options = {

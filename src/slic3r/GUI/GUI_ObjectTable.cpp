@@ -1570,7 +1570,7 @@ void ObjectGridTable::init_cols()
     m_col_data.push_back(col);
 
     //object/volume speed
-    col = new ObjectGridCol(coFloat, "perimeter_speed", L("Speed"), false, false, true, true, wxALIGN_RIGHT);
+    col = new ObjectGridCol(coFloat, "inner_wall_speed", L("Speed"), false, false, true, true, wxALIGN_RIGHT);
     m_col_data.push_back(col);
 
     //reset icon for speed

@@ -1155,10 +1155,10 @@ void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
         if (circle_radius == 0.0 || max_z == 0.0)
             return;
 
-        const double s = std::min(print_circle_radius / circle_radius, volume.max_print_height() / max_z);
+        const double s = std::min(print_circle_radius / circle_radius, volume.printable_height() / max_z);
         const Vec3d sel_center = get_bounding_box().center();
         const Vec3d offset = s * (Vec3d(unscale<double>(circle.center.x()), unscale<double>(circle.center.y()), 0.5 * max_z) - sel_center);
-        const Vec3d print_center = { unscale<double>(print_circle.center.x()), unscale<double>(print_circle.center.y()), 0.5 * volume.max_print_height() };
+        const Vec3d print_center = { unscale<double>(print_circle.center.x()), unscale<double>(print_circle.center.y()), 0.5 * volume.printable_height() };
         fit(s, print_center - (sel_center + offset));
     };
 
@@ -1184,7 +1184,7 @@ void Selection::scale_to_fit_print_volume(const DynamicPrintConfig& config)
     const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(config.option("printable_area"));
     if (opt != nullptr) {
         BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
-        BoundingBoxf3 print_volume({ unscale<double>(bed_box_2D.min(0)), unscale<double>(bed_box_2D.min(1)), 0.0 }, { unscale<double>(bed_box_2D.max(0)), unscale<double>(bed_box_2D.max(1)), config.opt_float("max_print_height") });
+        BoundingBoxf3 print_volume({ unscale<double>(bed_box_2D.min(0)), unscale<double>(bed_box_2D.min(1)), 0.0 }, { unscale<double>(bed_box_2D.max(0)), unscale<double>(bed_box_2D.max(1)), config.opt_float("printable_height") });
         Vec3d print_volume_size = print_volume.size();
         double sx = (box_size(0) != 0.0) ? print_volume_size(0) / box_size(0) : 0.0;
         double sy = (box_size(1) != 0.0) ? print_volume_size(1) / box_size(1) : 0.0;

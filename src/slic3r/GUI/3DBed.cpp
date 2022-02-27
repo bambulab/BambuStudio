@@ -139,7 +139,7 @@ void Bed3D::Axes::render() const
 }
 
 //BBS: add part plate logic
-bool Bed3D::set_shape(const Pointfs& printable_area, const double max_print_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom,
+bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom,
     const Vec2d position, bool with_reset)
 {
     auto check_texture = [](const std::string& texture) {
@@ -177,7 +177,7 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double max_print_heig
     }
 
     //BBS: add position related logic
-    if (m_bed_shape == printable_area && m_build_volume.max_print_height() == max_print_height && m_type == type && m_texture_filename == texture_filename && m_model_filename == model_filename && position == m_position)
+    if (m_bed_shape == printable_area && m_build_volume.printable_height() == printable_height && m_type == type && m_texture_filename == texture_filename && m_model_filename == model_filename && position == m_position)
         // No change, no need to update the UI.
         return false;
 
@@ -191,10 +191,10 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double max_print_heig
             Vec2d point(p(0) + m_position.x(), p(1) + m_position.y());
             new_bed_shape.push_back(point);
         }
-        m_build_volume = BuildVolume { new_bed_shape, max_print_height };
+        m_build_volume = BuildVolume { new_bed_shape, printable_height };
     }
     else
-        m_build_volume = BuildVolume { printable_area, max_print_height };
+        m_build_volume = BuildVolume { printable_area, printable_height };
     m_type = type;
     m_texture_filename = texture_filename;
     m_model_filename = model_filename;
@@ -239,7 +239,7 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double max_print_heig
 //BBS: add api to set position for partplate related bed
 void Bed3D::set_position(Vec2d& position)
 {
-    set_shape(m_bed_shape, m_build_volume.max_print_height(), m_texture_filename, m_model_filename, false, position, false);
+    set_shape(m_bed_shape, m_build_volume.printable_height(), m_texture_filename, m_model_filename, false, position, false);
 }
 
 void Bed3D::set_axes_mode(bool origin)

@@ -557,7 +557,7 @@ bool PrintObject::invalidate_state_by_config_options(
                opt_key == "perimeters"
             || opt_key == "extra_perimeters"
             || opt_key == "initial_layer_line_width"
-            || opt_key == "perimeter_extrusion_width"
+            || opt_key == "inner_wall_line_width"
             || opt_key == "infill_wall_overlap"
             || opt_key == "external_perimeters_first") {
             steps.emplace_back(posPerimeters);
@@ -700,7 +700,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "fuzzy_skin"
             || opt_key == "fuzzy_skin_thickness"
             || opt_key == "fuzzy_skin_point_distance"
-            || opt_key == "overhangs"
+            || opt_key == "detect_overhang_wall"
             || opt_key == "thin_walls"
             || opt_key == "thick_bridges") {
             steps.emplace_back(posPerimeters);
@@ -728,7 +728,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "bridge_speed"
             || opt_key == "outer_wall_speed"
             || opt_key == "sparse_infill_speed"
-            || opt_key == "perimeter_speed"
+            || opt_key == "inner_wall_speed"
             || opt_key == "small_perimeter_speed"
             || opt_key == "internal_solid_infill_speed"
             || opt_key == "top_surface_speed") {

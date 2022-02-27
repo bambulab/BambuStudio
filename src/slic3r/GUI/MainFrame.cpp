@@ -2380,7 +2380,7 @@ void MainFrame::quick_slice(const int qs)
             output_file = m_qs_last_output_file;
     } 
     else if (qs & qsSaveAs) {
-        // The following line may die if the output_filename_format template substitution fails.
+        // The following line may die if the filename_format template substitution fails.
         wxFileDialog dlg(this, from_u8((boost::format(_utf8(L("Save %s file as:"))) % ((qs & qsExportSVG) ? _L("SVG") : _L("G-code"))).str()),
             wxGetApp().app_config->get_last_output_dir(get_dir_name(output_file)), get_base_name(input_file), 
             qs & qsExportSVG ? file_wildcards(FT_SVG) : file_wildcards(FT_GCODE),

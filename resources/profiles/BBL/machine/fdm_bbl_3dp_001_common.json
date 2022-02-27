@@ -126,7 +126,7 @@
         "0.28",
         "0.28"
     ],
-    "max_print_height": "250",
+    "printable_height": "250",
     "min_layer_height": [
         "0.08",
         "0.08",

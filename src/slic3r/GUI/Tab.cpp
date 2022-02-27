@@ -1583,7 +1583,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("extrusion_width");
         optgroup->append_single_option_line("initial_layer_line_width");
         optgroup->append_single_option_line("outer_wall_line_width");
-        optgroup->append_single_option_line("perimeter_extrusion_width");
+        optgroup->append_single_option_line("inner_wall_line_width");
         optgroup->append_single_option_line("sparse_infill_line_width");
         optgroup->append_single_option_line("internal_solid_infill_line_width");
         optgroup->append_single_option_line("top_surface_line_width");
@@ -1611,7 +1611,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("external_perimeters_first");
         optgroup->append_single_option_line("infill_first");
         optgroup->append_single_option_line("bridge_flow_ratio");
-        optgroup->append_single_option_line("overhangs");
+        optgroup->append_single_option_line("detect_overhang_wall");
         optgroup->append_single_option_line("reduce_crossing_wall");
         optgroup->append_single_option_line("max_travel_detour_distance");
         //optgroup->append_single_option_line("thick_bridges");
@@ -1641,7 +1641,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("infill_angle");
         optgroup->append_single_option_line("solid_infill_below_area");
         optgroup->append_single_option_line("detect_narrow_internal_solid_infill");
-        optgroup->append_single_option_line("only_retract_when_crossing_perimeters");
+        optgroup->append_single_option_line("reduce_infill_retraction");
 
     page = add_options_page(L("Support"), "support");
         optgroup = page->new_optgroup(L("Bed adhension"));
@@ -1705,7 +1705,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("speed_initial_layer_infill");
         optgroup = page->new_optgroup(L("Other layers speed"));
         optgroup->append_single_option_line("outer_wall_speed");
-        optgroup->append_single_option_line("perimeter_speed");
+        optgroup->append_single_option_line("inner_wall_speed");
         //optgroup->append_single_option_line("small_perimeter_speed");
         optgroup->append_single_option_line("sparse_infill_speed");
         optgroup->append_single_option_line("top_surface_speed");
@@ -1765,7 +1765,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Output file"));
         optgroup->append_single_option_line("gcode_add_line_number");
         optgroup->append_single_option_line("bbl_bed_temperature_gcode");
-        Option option = optgroup->get_option("output_filename_format");
+        Option option = optgroup->get_option("filename_format");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
         optgroup->append_single_option_line("remove_freq_sweep");
@@ -1854,7 +1854,7 @@ void TabPrint::update()
     {
         const Preset& selected_preset = m_preset_bundle->prints.get_selected_preset();
         bool is_user_and_saved_preset = !selected_preset.is_system && !selected_preset.is_dirty;
-        bool support_material_overhangs_queried = m_config->opt_bool("support_material") && !m_config->opt_bool("overhangs");
+        bool support_material_overhangs_queried = m_config->opt_bool("support_material") && !m_config->opt_bool("detect_overhang_wall");
         m_config_manipulation.initialize_support_material_overhangs_queried(is_user_and_saved_preset && support_material_overhangs_queried);
     }
 
@@ -2107,8 +2107,8 @@ void TabFilament::build()
         optgroup = page->new_optgroup(L("Fan settings"));
         line = { L("Fan speed"), "" };
         line.label_path = category_path + "fan-settings";
-        line.append_option(optgroup->get_option("min_fan_speed"));
-        line.append_option(optgroup->get_option("max_fan_speed"));
+        line.append_option(optgroup->get_option("fan_min_speed"));
+        line.append_option(optgroup->get_option("fan_max_speed"));
         optgroup->append_line(line);
         //BBS
         optgroup->append_single_option_line("additional_cooling_fan_speed");
@@ -2222,10 +2222,10 @@ void TabFilament::toggle_options()
         bool cooling = m_config->opt_bool("cooling", 0);
         bool fan_always_on = cooling || m_config->opt_bool("fan_always_on", 0);
 
-        for (auto el : { "max_fan_speed", "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed" })
+        for (auto el : { "fan_max_speed", "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed" })
             toggle_option(el, cooling);
         //BBS
-        for (auto el : { "additional_cooling_fan_speed", "min_fan_speed", "close_fan_the_first_x_layers", "full_fan_speed_layer" })
+        for (auto el : { "additional_cooling_fan_speed", "fan_min_speed", "close_fan_the_first_x_layers", "full_fan_speed_layer" })
             toggle_option(el, fan_always_on);
     }
 
@@ -2344,7 +2344,7 @@ void TabPrinter::build_fff()
             return 	create_bed_shape_widget(parent);
         });
 
-        optgroup->append_single_option_line("max_print_height");
+        optgroup->append_single_option_line("printable_height");
         // BBS
 #if 0
         optgroup->append_single_option_line("z_offset");
@@ -2535,7 +2535,7 @@ void TabPrinter::build_sla()
     create_line_with_widget(optgroup.get(), "printable_area", "custom-svg-and-png-bed-textures_124612", [this](wxWindow* parent) {
         return 	create_bed_shape_widget(parent);
     });
-    optgroup->append_single_option_line("max_print_height");
+    optgroup->append_single_option_line("printable_height");
 
     optgroup = page->new_optgroup(L("Display"));
     optgroup->append_single_option_line("display_width");
@@ -4691,7 +4691,7 @@ void TabSLAPrint::build()
 
     page = add_options_page(L("Output options"), "output+page_white");
     optgroup = page->new_optgroup(L("Output file"));
-    Option option = optgroup->get_option("output_filename_format");
+    Option option = optgroup->get_option("filename_format");
     option.opt.full_width = true;
     optgroup->append_single_option_line(option);
 

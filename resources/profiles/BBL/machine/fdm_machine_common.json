@@ -72,7 +72,7 @@
     "min_layer_height": [
         "0.08"
     ],
-    "max_print_height": "250",
+    "printable_height": "250",
     "nozzle_diameter": [
         "0.4"
     ],

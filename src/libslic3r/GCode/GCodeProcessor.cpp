@@ -823,7 +823,7 @@ void GCodeProcessorResult::reset() {
     bed_exclude_area = Pointfs();
     //BBS: add toolpath_outside
     toolpath_outside = false;
-    max_print_height = 0.0f;
+    printable_height = 0.0f;
     settings_ids.reset();
     extruders_count = 0;
     extruder_colors = std::vector<std::string>();
@@ -847,7 +847,7 @@ void GCodeProcessorResult::reset() {
     bed_exclude_area = Pointfs();
     //BBS: add toolpath_outside
     toolpath_outside = false;
-    max_print_height = 0.0f;
+    printable_height = 0.0f;
     settings_ids.reset();
     extruders_count = 0;
     extruder_colors = std::vector<std::string>();
@@ -999,7 +999,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     if (initial_layer_print_height != nullptr)
         m_first_layer_height = std::abs(initial_layer_print_height->value);
 
-    m_result.max_print_height = config.max_print_height;
+    m_result.printable_height = config.printable_height;
 }
 
 void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
@@ -1226,9 +1226,9 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     if (initial_layer_print_height != nullptr)
         m_first_layer_height = std::abs(initial_layer_print_height->value);
 
-    const ConfigOptionFloat* max_print_height = config.option<ConfigOptionFloat>("max_print_height");
-    if (max_print_height != nullptr)
-        m_result.max_print_height = max_print_height->value;
+    const ConfigOptionFloat* printable_height = config.option<ConfigOptionFloat>("printable_height");
+    if (printable_height != nullptr)
+        m_result.printable_height = printable_height->value;
 }
 
 void GCodeProcessor::enable_stealth_time_estimator(bool enabled)

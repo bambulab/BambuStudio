@@ -2924,7 +2924,7 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                             some_region_overlaps = true;
                             polygons_append(polygons_trimming, 
                                 offset(region->fill_surfaces.filter_by_type(stBottomBridge), gap_xy_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS));
-                            if (region->region().config().overhangs.value)
+                            if (region->region().config().detect_overhang_wall.value)
                                 // Add bridging perimeters.
                                 SupportMaterialInternal::collect_bridging_perimeter_areas(region->perimeters, gap_xy_scaled, polygons_trimming);
                         }

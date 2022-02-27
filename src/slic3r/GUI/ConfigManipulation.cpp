@@ -221,7 +221,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         // Ask only once.
         if (!m_support_material_overhangs_queried) {
             m_support_material_overhangs_queried = true;
-            if (!config->opt_bool("overhangs")/* != 1*/) {
+            if (!config->opt_bool("detect_overhang_wall")/* != 1*/) {
                 wxString msg_text = _(L("Supports work better, if the following feature is enabled:\n"
                                         "- Detect bridging perimeters"));
                 if (is_global_config)
@@ -231,7 +231,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                 auto answer = dialog.ShowModal();
                 if (answer == wxID_YES) {
                     // Enable "detect bridging perimeters".
-                    new_conf.set_key_value("overhangs", new ConfigOptionBool(true));
+                    new_conf.set_key_value("detect_overhang_wall", new ConfigOptionBool(true));
                 }
                 //else Do nothing, leave supports on and "detect bridging perimeters" off.
                 apply(config, &new_conf);
@@ -279,9 +279,9 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
 {
     bool have_perimeters = config->opt_int("perimeters") > 0;
-    for (auto el : { "extra_perimeters", "ensure_vertical_shell_thickness", "thin_walls", "overhangs",
+    for (auto el : { "extra_perimeters", "ensure_vertical_shell_thickness", "thin_walls", "detect_overhang_wall",
                     "seam_position", "external_perimeters_first", "outer_wall_line_width",
-                    "perimeter_speed", "small_perimeter_speed", "outer_wall_speed" })
+                    "inner_wall_speed", "small_perimeter_speed", "outer_wall_speed" })
         toggle_field(el, have_perimeters);
 
     bool have_infill = config->option<ConfigOptionPercent>("sparse_infill_density")->value > 0;
@@ -362,7 +362,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     // BBS
     //toggle_field("support_material_synchronize_layers", have_support_soluble);
 
-    toggle_field("perimeter_extrusion_width", have_perimeters || have_skirt || have_brim);
+    toggle_field("inner_wall_line_width", have_perimeters || have_skirt || have_brim);
     toggle_field("support_material_extruder", have_support_material || have_skirt);
     toggle_field("support_material_speed", have_support_material || have_brim || have_skirt);
 

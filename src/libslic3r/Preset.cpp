@@ -532,17 +532,17 @@ void Preset::set_visible_from_appconfig(const AppConfig &app_config)
 static std::vector<std::string> s_Preset_print_options {
     "layer_height", "initial_layer_print_height", "perimeters", "spiral_vase", "slice_closing_radius", "slicing_mode",
     "top_solid_layers", "top_solid_min_thickness", "bottom_shell_layers", "bottom_shell_thickness",
-    "extra_perimeters", "ensure_vertical_shell_thickness", "reduce_crossing_wall", "thin_walls", "overhangs",
+    "extra_perimeters", "ensure_vertical_shell_thickness", "reduce_crossing_wall", "thin_walls", "detect_overhang_wall",
     "seam_position", "external_perimeters_first", "sparse_infill_density", "sparse_infill_pattern", "top_fill_pattern", "bottom_surface_pattern",
     "infill_only_where_needed", "solid_infill_every_layers", "solid_infill_every_layers", "infill_angle",
-    "solid_infill_below_area", "only_retract_when_crossing_perimeters", "infill_first",
+    "solid_infill_below_area", "reduce_infill_retraction", "infill_first",
     "ironing", "ironing_type", "ironing_flow", "ironing_speed", "ironing_spacing",
     "max_print_speed", "max_volumetric_speed", "max_travel_detour_distance",
     "fuzzy_skin", "fuzzy_skin_thickness", "fuzzy_skin_point_distance",
 #ifdef HAS_PRESSURE_EQUALIZER
     "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative",
 #endif /* HAS_PRESSURE_EQUALIZER */
-    "perimeter_speed", "small_perimeter_speed", "outer_wall_speed", "sparse_infill_speed", "internal_solid_infill_speed",
+    "inner_wall_speed", "small_perimeter_speed", "outer_wall_speed", "sparse_infill_speed", "internal_solid_infill_speed",
     "top_surface_speed", "support_material_speed", "support_material_xy_spacing", "support_material_interface_speed",
     "bridge_speed", "gap_infill_speed", "gap_fill_enabled", "travel_speed", "travel_speed_z", "initial_layer_speed",
     "initial_layer_acceleration", "default_acceleration", "skirts", "skirt_distance", "skirt_height", "draft_shield",
@@ -553,10 +553,10 @@ static std::vector<std::string> s_Preset_print_options {
     "support_material_interface_pattern", "support_material_interface_spacing", "support_material_interface_contact_loops", 
     "support_material_contact_distance", "support_material_bottom_contact_distance",
     "support_material_buildplate_only", "bridge_no_support", "thick_bridges", "complete_objects", "extruder_clearance_radius",
-    "gcode_label_objects", "output_filename_format", "post_process", "perimeter_extruder",
+    "gcode_label_objects", "filename_format", "post_process", "perimeter_extruder",
     "infill_extruder", "solid_infill_extruder", "support_material_extruder", "support_material_interface_extruder",
     "ooze_prevention", "standby_temperature_delta", "interface_shells", "extrusion_width", "initial_layer_line_width",
-    "perimeter_extrusion_width", "outer_wall_line_width", "sparse_infill_line_width", "internal_solid_infill_line_width",
+    "inner_wall_line_width", "outer_wall_line_width", "sparse_infill_line_width", "internal_solid_infill_line_width",
     "top_surface_line_width", "support_material_extrusion_width", "infill_wall_overlap", "infill_anchor", "infill_anchor_max", "bridge_flow_ratio", "clip_multipart_objects",
     "elefant_foot_compensation", "xy_size_compensation", "resolution", "wipe_tower", "wipe_tower_x", "wipe_tower_y",
     "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_brim_width", "wipe_tower_bridging", "wiping_volume", "single_extruder_multi_material_priming", "mmu_segmented_region_max_width",
@@ -579,8 +579,8 @@ static std::vector<std::string> s_Preset_filament_options {
     // BBS
     "bed_temperature", "bed_temperature_initial_layer", "bed_type",
     //BBS:temperature_vitrification
-    "temperature_vitrification", "fan_always_on", "cooling", "min_fan_speed",
-    "max_fan_speed", "bridge_fan_speed", "close_fan_the_first_x_layers", "full_fan_speed_layer", "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed",
+    "temperature_vitrification", "fan_always_on", "cooling", "fan_min_speed",
+    "fan_max_speed", "bridge_fan_speed", "close_fan_the_first_x_layers", "full_fan_speed_layer", "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed",
     "filament_start_gcode", "filament_end_gcode",
     // Retract overrides
     "filament_retract_length", "filament_retract_lift", "filament_retract_speed", "filament_deretract_speed", "filament_retract_restart_extra", "filament_retract_before_travel",
@@ -605,7 +605,7 @@ static std::vector<std::string> s_Preset_printer_options {
     //FIXME the print host keys are left here just for conversion from the Printer preset to Physical Printer preset.
     "print_host", "printhost_apikey", "printhost_cafile",
     "single_extruder_multi_material", "start_gcode", "machine_end_gcode", "before_layer_change_gcode", "layer_change_gcode", "toolchange_gcode",
-    "between_objects_gcode", "printer_vendor", "printer_model", "printer_variant", "max_print_height",
+    "between_objects_gcode", "printer_vendor", "printer_model", "printer_variant", "printable_height",
     "default_print_profile", "inherits",
     "silent_mode",
     "thumbnails",
@@ -654,7 +654,7 @@ static std::vector<std::string> s_Preset_sla_print_options {
     "hollowing_min_thickness",
     "hollowing_quality",
     "hollowing_closing_distance",
-    "output_filename_format",
+    "filename_format",
     "default_sla_print_profile",
     "compatible_printers",
     "compatible_printers_condition",
@@ -684,7 +684,7 @@ static std::vector<std::string> s_Preset_sla_material_options {
 
 static std::vector<std::string> s_Preset_sla_printer_options {
     "printer_technology",
-    "printable_area", "bed_custom_texture", "bed_custom_model", "max_print_height",
+    "printable_area", "bed_custom_texture", "bed_custom_model", "printable_height",
     "display_width", "display_height", "display_pixels_x", "display_pixels_y",
     "display_mirror_x", "display_mirror_y",
     "display_orientation",

@@ -165,12 +165,12 @@ void Layer::make_perimeters()
 		            const PrintRegionConfig &other_config = other_layerm->region().config();
 		            if (config.perimeter_extruder             == other_config.perimeter_extruder
 		                && config.perimeters                  == other_config.perimeters
-		                && config.perimeter_speed             == other_config.perimeter_speed
+		                && config.inner_wall_speed             == other_config.inner_wall_speed
 		                && config.outer_wall_speed    == other_config.outer_wall_speed
 		                && (config.gap_fill_enabled ? config.gap_infill_speed.value : 0.) == 
                            (other_config.gap_fill_enabled ? other_config.gap_infill_speed.value : 0.)
-		                && config.overhangs                   == other_config.overhangs
-		                && config.opt_serialize("perimeter_extrusion_width") == other_config.opt_serialize("perimeter_extrusion_width")
+		                && config.detect_overhang_wall                   == other_config.detect_overhang_wall
+		                && config.opt_serialize("inner_wall_line_width") == other_config.opt_serialize("inner_wall_line_width")
 		                && config.thin_walls                  == other_config.thin_walls
 		                && config.external_perimeters_first   == other_config.external_perimeters_first
 		                && config.infill_wall_overlap              == other_config.infill_wall_overlap

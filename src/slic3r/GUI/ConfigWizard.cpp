@@ -1482,7 +1482,7 @@ void PageDiameters::apply_custom_config(DynamicPrintConfig &config)
     set_extrusion_width("initial_layer_line_width",		  0.42);
 
     set_extrusion_width("extrusion_width",					  0.45);
-    set_extrusion_width("perimeter_extrusion_width",		  0.45);
+    set_extrusion_width("inner_wall_line_width",		  0.45);
     set_extrusion_width("outer_wall_line_width", 0.45);
     set_extrusion_width("sparse_infill_line_width",			  0.45);
     set_extrusion_width("internal_solid_infill_line_width",       0.45);

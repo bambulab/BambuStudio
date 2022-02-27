@@ -135,7 +135,7 @@ namespace Slic3r {
         Pointfs bed_exclude_area;
         //BBS: add toolpath_outside
         bool toolpath_outside;
-        float max_print_height;
+        float printable_height;
         SettingsIds settings_ids;
         size_t extruders_count;
         std::vector<std::string> extruder_colors;
@@ -160,7 +160,7 @@ namespace Slic3r {
             printable_area = other.printable_area;
             bed_exclude_area = other.bed_exclude_area;
             toolpath_outside = other.toolpath_outside;
-            max_print_height = other.max_print_height;
+            printable_height = other.printable_height;
             settings_ids = other.settings_ids;
             extruders_count = other.extruders_count;
             extruder_colors = other.extruder_colors;

@@ -95,9 +95,9 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "bbl_bed_temperature_gcode",
         "gcode_label_objects",
         "layer_change_gcode",
-        "min_fan_speed",
-        "max_fan_speed",
-        "max_print_height",
+        "fan_min_speed",
+        "fan_max_speed",
+        "printable_height",
         "min_print_speed",
         "max_print_speed",
         "max_volumetric_speed",
@@ -105,8 +105,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "max_volumetric_extrusion_rate_slope_positive",
         "max_volumetric_extrusion_rate_slope_negative",
 #endif /* HAS_PRESSURE_EQUALIZER */
-        "only_retract_when_crossing_perimeters",
-        "output_filename_format",
+        "reduce_infill_retraction",
+        "filename_format",
         "post_process",
         "retract_before_travel",
         "retract_before_wipe",
@@ -740,7 +740,7 @@ std::string Print::validate(std::string* warning) const
                     || !validate_extrusion_width(object->config(), "support_transition_extrusion_width", layer_height, err_msg))
                     return err_msg;
             }
-            for (const char *opt_key : { "perimeter_extrusion_width", "outer_wall_line_width", "sparse_infill_line_width", "internal_solid_infill_line_width", "top_surface_line_width" })
+            for (const char *opt_key : { "inner_wall_line_width", "outer_wall_line_width", "sparse_infill_line_width", "internal_solid_infill_line_width", "top_surface_line_width" })
 				for (const PrintRegion &region : object->all_regions())
             		if (! validate_extrusion_width(region.config(), opt_key, layer_height, err_msg))
 		            	return err_msg;
@@ -817,7 +817,7 @@ Flow Print::brim_flow() const
 {
     ConfigOptionFloatOrPercent width = m_config.initial_layer_line_width;
     if (width.value == 0) 
-        width = m_print_regions.front()->config().perimeter_extrusion_width;
+        width = m_print_regions.front()->config().inner_wall_line_width;
     if (width.value == 0) 
         width = m_objects.front()->config().extrusion_width;
     
@@ -837,7 +837,7 @@ Flow Print::skirt_flow() const
 {
     ConfigOptionFloatOrPercent width = m_config.initial_layer_line_width;
     if (width.value == 0) 
-        width = m_print_regions.front()->config().perimeter_extrusion_width;
+        width = m_print_regions.front()->config().inner_wall_line_width;
     if (width.value == 0)
         width = m_objects.front()->config().extrusion_width;
     
@@ -1133,13 +1133,13 @@ void Print::process()
 }
 
 // G-code export process, running at a background thread.
-// The export_gcode may die for various reasons (fails to process output_filename_format,
+// The export_gcode may die for various reasons (fails to process filename_format,
 // write error into the G-code, cannot execute post-processing scripts).
 // It is up to the caller to show an error message.
 std::string Print::export_gcode(const std::string& path_template, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb)
 {
     // output everything to a G-code file
-    // The following call may die if the output_filename_format template substitution fails.
+    // The following call may die if the filename_format template substitution fails.
     std::string path = this->output_filepath(path_template);
     std::string message;
     if (!path.empty() && result == nullptr) {
@@ -1546,7 +1546,7 @@ std::string Print::output_filename(const std::string &filename_base) const
     // These values will be just propagated into the output file name.
     DynamicConfig config = this->finished() ? this->print_statistics().config() : this->print_statistics().placeholders();
     config.set_key_value("num_extruders", new ConfigOptionInt((int)m_config.nozzle_diameter.size()));
-    return this->PrintBase::output_filename(m_config.output_filename_format.value, ".gcode", filename_base, &config);
+    return this->PrintBase::output_filename(m_config.filename_format.value, ".gcode", filename_base, &config);
 }
 
 //BBS: add gcode file preload logic

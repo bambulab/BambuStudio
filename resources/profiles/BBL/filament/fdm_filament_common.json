@@ -105,10 +105,10 @@
     "full_fan_speed_layer": [
         "0"
     ],
-    "max_fan_speed": [
+    "fan_max_speed": [
         "100"
     ],
-    "min_fan_speed": [
+    "fan_min_speed": [
         "35"
     ],
     "min_print_speed": [

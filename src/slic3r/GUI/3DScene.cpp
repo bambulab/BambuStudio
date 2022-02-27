@@ -1215,7 +1215,7 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
 
     GUI::PartPlate* curr_plate = GUI::wxGetApp().plater()->get_partplate_list().get_selected_plate();
     const Pointfs& pp_bed_shape = curr_plate->get_shape();
-    BuildVolume plate_build_volume(pp_bed_shape, build_volume.max_print_height());
+    BuildVolume plate_build_volume(pp_bed_shape, build_volume.printable_height());
     const std::vector<BoundingBoxf3>& exclude_areas = curr_plate->get_exclude_areas();
 
     for (GLVolume* volume : this->volumes)

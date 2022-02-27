@@ -276,7 +276,7 @@ void PrintConfigDef::init_common_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(0.3));
 
-    def = this->add("max_print_height", coFloat);
+    def = this->add("printable_height", coFloat);
     def->label = L("Printable height");
     def->tooltip = L("Set this to the maximum height that can be reached by your extruder while printing.");
     def->sidetext = L("mm");
@@ -792,7 +792,7 @@ void PrintConfigDef::init_fff_params()
                    "If expressed as percentage (for example: 80%) it will be calculated "
                    "on the perimeters speed setting above. Set to zero for auto.");
     def->sidetext = L("mm/s or %");
-    def->ratio_over = "perimeter_speed";
+    def->ratio_over = "inner_wall_speed";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(50, true));
@@ -1504,7 +1504,7 @@ void PrintConfigDef::init_fff_params()
                    "Theoretically this shouldn't be needed, but backlash might cause gaps. If expressed "
                    "as percentage (example: 15%) it is calculated over perimeter extrusion width.");
     def->sidetext = L("mm or %");
-    def->ratio_over = "perimeter_extrusion_width";
+    def->ratio_over = "inner_wall_line_width";
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(25, true));
 
@@ -1745,7 +1745,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
 
-    def = this->add("max_fan_speed", coInts);
+    def = this->add("fan_max_speed", coInts);
     def->label = L("Max");
     def->tooltip = L("This setting represents the maximum speed of your fan.");
     def->sidetext = L("%");
@@ -1810,7 +1810,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(0));
 #endif /* HAS_PRESSURE_EQUALIZER */
 
-    def = this->add("min_fan_speed", coInts);
+    def = this->add("fan_min_speed", coInts);
     def->label = L("Min");
     def->tooltip = L("This setting represents the minimum PWM your fan needs to work.");
     def->sidetext = L("%");
@@ -1862,7 +1862,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats { 0.4 });
 
-    def = this->add("only_retract_when_crossing_perimeters", coBool);
+    def = this->add("reduce_infill_retraction", coBool);
     def->label = L("Reduce infill retraction");
     def->tooltip = L("Disables retraction when the travel path does not exceed the upper layer's perimeters "
                    "(and thus any ooze will be probably invisible).");
@@ -1879,8 +1879,8 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("output_filename_format", coString);
-    def->label = L("Output filename format");
+    def = this->add("filename_format", coString);
+    def->label = L("Filename format");
     def->tooltip = L("You can use all configuration options as variables inside this template. "
                    "For example: [layer_height], [sparse_infill_density] etc. You can also use [timestamp], "
                    "[year], [month], [day], [hour], [minute], [second], [version], [input_filename], "
@@ -1889,7 +1889,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString("[input_filename_base].gcode"));
 
-    def = this->add("overhangs", coBool);
+    def = this->add("detect_overhang_wall", coBool);
     def->label = L("Detect overhang wall");
     //BBS: change category from "Layers and Perimeters" to "Quality"
     def->category = L("Quality");
@@ -1908,7 +1908,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInt(1));
 
-    def = this->add("perimeter_extrusion_width", coFloatOrPercent);
+    def = this->add("inner_wall_line_width", coFloatOrPercent);
     def->label = L("Inner wall");
     def->category = L("Extrusion Width");
     def->tooltip = L("Set this to a non-zero value to set a manual extrusion width for perimeters. "
@@ -1922,7 +1922,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
-    def = this->add("perimeter_speed", coFloat);
+    def = this->add("inner_wall_speed", coFloat);
     def->label = L("Inner wall");
     def->category = L("Speed");
     def->tooltip = L("Speed for perimeters (contours, aka vertical shells). Set to zero for auto.");
@@ -2240,7 +2240,7 @@ void PrintConfigDef::init_fff_params()
                    "(usually holes). If expressed as percentage (for example: 80%) it will be calculated "
                    "on the perimeters speed setting above. Set to zero for auto.");
     def->sidetext = L("mm/s or %");
-    def->ratio_over = "perimeter_speed";
+    def->ratio_over = "inner_wall_speed";
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(15, false));
@@ -4191,7 +4191,7 @@ std::string validate(const FullPrintConfig &cfg)
             max_nozzle_diameter = std::max(max_nozzle_diameter, dmr);
         const char *widths[] = { 
             "outer_wall_line_width",
-            "perimeter_extrusion_width",
+            "inner_wall_line_width",
             "sparse_infill_line_width",
             "internal_solid_infill_line_width",
             "top_surface_line_width",

@@ -711,7 +711,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     if (wxGetApp().is_gcode_viewer())
         m_custom_gcode_per_print_z = gcode_result.custom_gcode_per_print_z;
 
-    m_max_print_height = gcode_result.max_print_height;
+    m_max_print_height = gcode_result.printable_height;
 
     load_toolpaths(gcode_result);
 
@@ -774,7 +774,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
         //BBS: add bed exclude area
         if (!gcode_result.bed_exclude_area.empty())
             bed_exclude_area = gcode_result.bed_exclude_area;
-        wxGetApp().plater()->set_bed_shape(printable_area, bed_exclude_area, gcode_result.max_print_height, texture, model, gcode_result.printable_area.empty());
+        wxGetApp().plater()->set_bed_shape(printable_area, bed_exclude_area, gcode_result.printable_height, texture, model, gcode_result.printable_area.empty());
     }
 
     m_print_statistics = gcode_result.print_statistics;

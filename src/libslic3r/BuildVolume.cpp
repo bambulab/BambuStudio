@@ -8,9 +8,9 @@
 
 namespace Slic3r {
 
-BuildVolume::BuildVolume(const std::vector<Vec2d> &printable_area, const double max_print_height) : m_bed_shape(printable_area), m_max_print_height(max_print_height)
+BuildVolume::BuildVolume(const std::vector<Vec2d> &printable_area, const double printable_height) : m_bed_shape(printable_area), m_max_print_height(printable_height)
 {
-    assert(max_print_height >= 0);
+    assert(printable_height >= 0);
 
     m_polygon     = Polygon::new_scale(printable_area);
 
@@ -20,7 +20,7 @@ BuildVolume::BuildVolume(const std::vector<Vec2d> &printable_area, const double 
     m_area        = m_polygon.area();
 
     BoundingBoxf bboxf = get_extents(printable_area);
-    m_bboxf = BoundingBoxf3{ to_3d(bboxf.min, 0.), to_3d(bboxf.max, max_print_height) };
+    m_bboxf = BoundingBoxf3{ to_3d(bboxf.min, 0.), to_3d(bboxf.max, printable_height) };
 
     if (printable_area.size() >= 4 && std::abs((m_area - double(m_bbox.size().x()) * double(m_bbox.size().y()))) < sqr(SCALED_EPSILON)) {
         // Square print bed, use the bounding box for collision detection.

@@ -965,7 +965,7 @@ namespace DoExport {
 	            const PrintRegion &region = object->printing_region(region_id);
 	            for (auto layer : object->layers()) {
 	                const LayerRegion* layerm = layer->regions()[region_id];
-	                if (region.config().get_abs_value("perimeter_speed") == 0 ||
+	                if (region.config().get_abs_value("inner_wall_speed") == 0 ||
                         // BBS: remove small small_perimeter_speed config, and will absolutely
                         // remove related code if no other issue in the coming release.
 	                    //region.config().get_abs_value("small_perimeter_speed") == 0 ||
@@ -2943,7 +2943,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     // remove related code if no other issue in the coming release.
     // apply the small perimeter speed
     //if (is_perimeter(paths.front().role()) && loop.length() <= SMALL_PERIMETER_LENGTH && speed == -1)
-    //    speed = m_config.small_perimeter_speed.get_abs_value(m_config.perimeter_speed);
+    //    speed = m_config.small_perimeter_speed.get_abs_value(m_config.inner_wall_speed);
 
     // extrude along the path
     std::string gcode;
@@ -3344,7 +3344,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     if (speed == -1) {
         int overhang_degree = path.get_overhang_degree();
         if (path.role() == erPerimeter) {
-            speed = m_config.get_abs_value("perimeter_speed");
+            speed = m_config.get_abs_value("inner_wall_speed");
             if (overhang_degree > 0 && overhang_degree <= 4) {
                 double new_speed = m_config.get_abs_value(overhang_speed_key_map[overhang_degree].c_str());
                 speed = new_speed == 0.0 ? speed : new_speed;
@@ -3626,14 +3626,14 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role)
     }
 
     //BBS: need retract when long moving to print perimeter to avoid dropping of material
-    if (!is_perimeter(role) && m_config.only_retract_when_crossing_perimeters && m_layer != nullptr &&
+    if (!is_perimeter(role) && m_config.reduce_infill_retraction && m_layer != nullptr &&
         m_config.sparse_infill_density.value > 0 && m_layer->any_internal_region_slice_contains(travel))
         // Skip retraction if travel is contained in an internal slice *and*
         // internal infill is enabled (so that stringing is entirely not visible).
         //FIXME any_internal_region_slice_contains() is potentionally very slow, it shall test for the bounding boxes first.
         return false;
 
-    // retract if only_retract_when_crossing_perimeters is disabled or doesn't apply when role is perimeter
+    // retract if reduce_infill_retraction is disabled or doesn't apply when role is perimeter
     return true;
 }
 
