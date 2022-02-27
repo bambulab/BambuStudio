@@ -536,6 +536,52 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 if (jj[JSON_MC_PRINT_SUB_STAGE].is_number_integer())
                     mc_print_sub_stage = j[JSON_CMD_PRINT][JSON_MC_PRINT_SUB_STAGE].get<int>();
             }
+
+            /* temperature */
+            if (jj.contains("bed_temper")) {
+                if (jj["bed_temper"].is_number_float()) {
+                    bed_temp = jj["bed_temper"].get<float>();
+                }
+            }
+            if (jj.contains("bed_target_temper")) {
+                if (jj["bed_target_temper"].is_number_float()) {
+                    bed_temp_target = jj["bed_target_temper"].get<float>();
+                }
+            }
+            if (jj.contains("frame_temper")) {
+                if (jj["frame_temper"].is_number_float()) {
+                    frame_temp = jj["frame_temper"].get<float>();
+                }
+            }
+            if (jj.contains("nozzle_temper")) {
+                if (jj["nozzle_temper"].is_number_float()) {
+                    nozzle_temp = jj["nozzle_temper"].get<float>();
+                }
+            }
+            if (jj.contains("nozzle_target_temper")) {
+                if (jj["nozzle_target_temper"].is_number_float()) {
+                    nozzle_temp_target = jj["nozzle_target_temper"].get<float>();
+                }
+            }
+            if (jj.contains("chamber_temper")) {
+                if (jj["chamber_temper"].is_number_float()) {
+                    chamber_temp = jj["chamber_temper"].get<float>();
+                }
+            }
+
+            /* cooling */
+            if (jj.contains("cooling_fan_speed")) {
+                cooling_fan_speed = stoi(jj["cooling_fan_speed"].get<std::string>());
+            }
+            if (jj.contains("big_fan1_speed")) {
+                big_fan1_speed = stoi(jj["big_fan1_speed"].get<std::string>());
+            }
+            if (jj.contains("big_fan2_speed")) {
+                big_fan2_speed = stoi(jj["big_fan2_speed"].get<std::string>());
+            }
+            if (jj.contains("heatbreak_fan_speed")) {
+                heatbreak_fan_speed = stoi(jj["heatbreak_fan_speed"].get<std::string>());
+            }
         }
 
         std::stringstream ss(payload);
@@ -627,63 +673,6 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                     }
                 }
 
-                /* temperature */
-                boost::optional<std::string> nozzle_temp_raw        = print.get_optional<std::string>("nozzle_temp_raw");
-                boost::optional<std::string> nozzle_temp_target_raw = print.get_optional<std::string>("nozzle_target_temp_raw");
-                boost::optional<std::string> bed_temp_raw           = print.get_optional<std::string>("bed_temp_raw");
-                boost::optional<std::string> bed_temp_target_raw    = print.get_optional<std::string>("bed_target_temp_raw");
-                boost::optional<std::string> chamber_temper         = print.get_optional<std::string>("chamber_temper");
-                boost::optional<std::string> frame_temper_str       = print.get_optional<std::string>("frame_temper");
-
-                // old chamber style, to be removed
-                boost::optional<std::string> chamber_temp_old       = print.get_optional<std::string>("chamber_temp");
-                
-                double temp_scale = 32.0f;
-                if (nozzle_temp_raw.has_value())
-                    nozzle_temp = (float)std::stoi(nozzle_temp_raw.value()) / temp_scale;
-
-                if (nozzle_temp_target_raw.has_value())
-                    nozzle_temp_target = (float)std::stoi(nozzle_temp_target_raw.value()) / temp_scale;
-
-                if (bed_temp_raw.has_value())
-                    bed_temp = (float)std::stoi(bed_temp_raw.value()) / temp_scale;
-
-                if (bed_temp_target_raw.has_value())
-                    bed_temp_target = (float)std::stoi(bed_temp_target_raw.value()) / temp_scale;
-
-                if (chamber_temper.has_value()) {
-                    chamber_temp = (float)std::stod(chamber_temper.value());
-                }
-                else if (chamber_temp_old.has_value()) {
-                    std::string chamber_temp_str = chamber_temp_old.value().substr(0, chamber_temp_old.value().length() - 1);
-                    chamber_temp = (float)std::stod(chamber_temp_str);
-                }
-
-                if (frame_temper_str.has_value())
-                    frame_temp = (float)std::stod(frame_temper_str.value());
-
-
-                /* cooling */
-                boost::optional<int> cooling_fan_speed_str      = print.get_optional<int>("cooling_fan_speed");
-                boost::optional<int> big_fan1_speed_str         = print.get_optional<int>("big_fan1_speed");
-                boost::optional<int> big_fan2_speed_str         = print.get_optional<int>("big_fan2_speed");
-                boost::optional<int> heatbreak_fan_speed_str    = print.get_optional<int>("heatbreak_fan_speed");
-                if (cooling_fan_speed_str.has_value()) {
-                    cooling_fan_speed = cooling_fan_speed_str.value();
-                }
-
-                if (big_fan1_speed_str.has_value()) {
-                    big_fan1_speed = big_fan1_speed_str.value();
-                }
-
-                if (big_fan2_speed_str.has_value()) {
-                    big_fan2_speed = big_fan2_speed_str.value();
-                }
-
-                if (heatbreak_fan_speed_str.has_value()) {
-                    heatbreak_fan_speed = heatbreak_fan_speed_str.value();
-                }
-
 
                 /* printing */
                 boost::optional<int> mc_print_stage_str        = print.get_optional<int>("mc_print_stage");
@@ -702,12 +691,6 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                 if (gcode_state.has_value()) {
                     this->set_print_state(gcode_state.value());
                 }
-
-                /* positions */
-                boost::optional<std::string> pos_x = print.get_optional<std::string>("pos_x");
-                boost::optional<std::string> pos_y = print.get_optional<std::string>("pos_y");
-                boost::optional<std::string> pos_z = print.get_optional<std::string>("pos_z");
-                boost::optional<std::string> pos_e = print.get_optional<std::string>("pos_e");
 
                 /* signals */
                 boost::optional<std::string> link_th        = print.get_optional<std::string>("link_th_state");
