@@ -249,11 +249,11 @@ public:
         ConfigOptionInt             ori_filaments;
         ConfigOptionFloat           layer_height;
         ConfigOptionFloat           ori_layer_height;
-        ConfigOptionInt             perimeters;
+        ConfigOptionInt             wall_loops;
         ConfigOptionInt             ori_perimeters;
         ConfigOptionPercent         sparse_infill_density;
         ConfigOptionPercent         ori_fill_density;
-        ConfigOptionBool            support_material;
+        ConfigOptionBool            enable_support;
         ConfigOptionBool            ori_support_material;
         ConfigOptionEnum<BrimType>  brim_type;
         ConfigOptionEnum<BrimType>  ori_brim_type;
@@ -291,7 +291,7 @@ public:
                 case col_layer_height_reset:
                     return ori_layer_height;
                 case col_perimeters:
-                    return perimeters;
+                    return wall_loops;
                 case col_perimeters_reset:
                     return ori_perimeters;
                 case col_fill_density:
@@ -299,7 +299,7 @@ public:
                 case col_fill_density_reset:
                     return ori_fill_density;
                 case col_support_material:
-                    return support_material;
+                    return enable_support;
                 case col_support_material_reset:
                     return ori_support_material;
                 case col_brim_type:

@@ -118,12 +118,12 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "retract_restart_extra_toolchange",
         "retract_speed",
         "single_extruder_multi_material_priming",
-        "slowdown_below_layer_time",
+        "slow_down_below_layer_time",
         "standby_temperature_delta",
-        "start_gcode",
+        "machine_start_gcode",
         "filament_start_gcode",
-        "toolchange_gcode",
-        "use_relative_e_distances",
+        "tool_change_gcode",
+        "relative_e_axis",
         "wipe",
         // BBS
         "wipe_distance",
@@ -146,7 +146,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         } else if (steps_ignore.find(opt_key) != steps_ignore.end()) {
             // These steps have no influence on the G-code whatsoever. Just ignore them.
         } else if (
-               opt_key == "skirts"
+               opt_key == "skirt_loops"
             || opt_key == "skirt_height"
             || opt_key == "draft_shield"
             || opt_key == "skirt_distance"
@@ -162,7 +162,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             // Spiral Vase forces different kind of slicing than the normal model:
             // In Spiral Vase mode, holes are closed and only the largest area contour is kept at each layer.
             // Therefore toggling the Spiral Vase on / off requires complete reslicing.
-            || opt_key == "spiral_vase") {
+            || opt_key == "spiral_mode") {
             osteps.emplace_back(posSlice);
         } else if (
                opt_key == "complete_objects"
@@ -174,7 +174,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "infill_first"
             || opt_key == "single_extruder_multi_material"
             || opt_key == "temperature"
-            || opt_key == "wipe_tower"
+            || opt_key == "enable_wipe_tower"
             || opt_key == "wipe_tower_width"
             || opt_key == "wipe_tower_brim_width"
             || opt_key == "wipe_tower_bridging"
@@ -329,12 +329,12 @@ std::vector<ObjectID> Print::print_object_ids() const
 
 bool Print::has_infinite_skirt() const
 {
-    return (m_config.draft_shield == dsEnabled && m_config.skirts > 0) || (m_config.ooze_prevention && this->extruders().size() > 1);
+    return (m_config.draft_shield == dsEnabled && m_config.skirt_loops > 0) || (m_config.ooze_prevention && this->extruders().size() > 1);
 }
 
 bool Print::has_skirt() const
 {
-    return (m_config.skirt_height > 0 && m_config.skirts > 0) || m_config.draft_shield != dsDisabled;
+    return (m_config.skirt_height > 0 && m_config.skirt_loops > 0) || m_config.draft_shield != dsDisabled;
 }
 
 bool Print::has_brim() const
@@ -557,7 +557,7 @@ std::string Print::validate(std::string* warning) const
         }
     }
 
-    if (m_config.spiral_vase) {
+    if (m_config.spiral_mode) {
         size_t total_copies_count = 0;
         for (const PrintObject *object : m_objects)
             total_copies_count += object->instances().size();
@@ -587,8 +587,8 @@ std::string Print::validate(std::string* warning) const
         if (m_config.gcode_flavor != gcfRepRapSprinter && m_config.gcode_flavor != gcfRepRapFirmware &&
             m_config.gcode_flavor != gcfRepetier && m_config.gcode_flavor != gcfMarlinLegacy && m_config.gcode_flavor != gcfMarlinFirmware)
             return L("The Wipe Tower is currently only supported for the Marlin, RepRap/Sprinter, RepRapFirmware and Repetier G-code flavors.");
-        if (! m_config.use_relative_e_distances)
-            return L("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).");
+        if (! m_config.relative_e_axis)
+            return L("The Wipe Tower is currently only supported with the relative extruder addressing (relative_e_axis=1).");
         if (m_config.ooze_prevention)
             return L("Ooze prevention is currently not supported with the wipe tower enabled.");
         if (m_config.complete_objects && extruders.size() > 1)
@@ -618,7 +618,7 @@ std::string Print::validate(std::string* warning) const
                     return L("The Wipe Tower is only supported for multiple objects if they are printed over an equal number of raft layers");
                 if (slicing_params0.gap_object_support != slicing_params.gap_object_support ||
                     slicing_params0.gap_support_object != slicing_params.gap_support_object)
-                    return L("The Wipe Tower is only supported for multiple objects if they are printed with the same support_material_contact_distance");
+                    return L("The Wipe Tower is only supported for multiple objects if they are printed with the same support_top_z_distance");
                 if (! equal_layering(slicing_params, slicing_params0))
                     return L("The Wipe Tower is only supported for multiple objects if they are sliced equally.");
                 if (has_custom_layering) {
@@ -734,10 +734,10 @@ std::string Print::validate(std::string* warning) const
             std::string err_msg;
             if (! validate_extrusion_width(object->config(), "extrusion_width", layer_height, err_msg))
             	return err_msg;
-            //BBS: add support_transition_extrusion_width check
+            //BBS: add support_transition_line_width check
             if (object->has_support() || object->has_raft()) {
-                if (!validate_extrusion_width(object->config(), "support_material_extrusion_width", layer_height, err_msg)
-                    || !validate_extrusion_width(object->config(), "support_transition_extrusion_width", layer_height, err_msg))
+                if (!validate_extrusion_width(object->config(), "support_line_width", layer_height, err_msg)
+                    || !validate_extrusion_width(object->config(), "support_transition_line_width", layer_height, err_msg))
                     return err_msg;
             }
             for (const char *opt_key : { "inner_wall_line_width", "outer_wall_line_width", "sparse_infill_line_width", "internal_solid_infill_line_width", "top_surface_line_width" })
@@ -788,7 +788,7 @@ BoundingBox Print::total_bounding_box() const
         extra = std::max(extra, m_config.brim_width.value + brim_flow.width/2);
     }
     if (this->has_skirt()) {
-        int skirts = m_config.skirts.value;
+        int skirts = m_config.skirt_loops.value;
         if (skirts == 0 && this->has_infinite_skirt()) skirts = 1;
         Flow skirt_flow = this->skirt_flow();
         extra = std::max(
@@ -1251,7 +1251,7 @@ void Print::_make_skirt()
     }
 
     // Number of skirt loops per skirt layer.
-    size_t n_skirts = m_config.skirts.value;
+    size_t n_skirts = m_config.skirt_loops.value;
     if (this->has_infinite_skirt() && n_skirts == 0)
         n_skirts = 1;
 
@@ -1375,8 +1375,8 @@ void Print::finalize_first_layer_convex_hull()
 bool Print::has_wipe_tower() const
 {
     return 
-        ! m_config.spiral_vase.value &&
-        m_config.wipe_tower.value && 
+        ! m_config.spiral_mode.value &&
+        m_config.enable_wipe_tower.value && 
         m_config.nozzle_diameter.values.size() > 1;
 }
 

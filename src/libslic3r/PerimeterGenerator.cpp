@@ -220,8 +220,8 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             fuzzy_polygon(fuzzified, scaled<float>(perimeter_generator.config->fuzzy_skin_thickness.value), scaled<float>(perimeter_generator.config->fuzzy_skin_point_distance.value));
         }
         if (perimeter_generator.config->detect_overhang_wall && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers
-            && ! ((perimeter_generator.object_config->support_material || perimeter_generator.object_config->support_material_enforce_layers > 0) && 
-                  perimeter_generator.object_config->support_material_contact_distance.value == 0)) {
+            && ! ((perimeter_generator.object_config->enable_support || perimeter_generator.object_config->support_material_enforce_layers > 0) && 
+                  perimeter_generator.object_config->support_top_z_distance.value == 0)) {
             // get non 100% overhang paths by intersecting this loop with the grown lower slices
             Polylines remain_polines;
             for (auto it = lower_polygons_series->begin();
@@ -381,7 +381,7 @@ void PerimeterGenerator::process()
     double surface_simplify_resolution = (print_config->enable_arc_fitting) ? 0.1 * m_scaled_resolution : m_scaled_resolution;
     for (const Surface &surface : this->slices->surfaces) {
         // detect how many perimeters must be generated for this island
-        int        loop_number = this->config->perimeters + surface.extra_perimeters - 1;  // 0-indexed loops
+        int        loop_number = this->config->wall_loops + surface.extra_perimeters - 1;  // 0-indexed loops
         ExPolygons last        = union_ex(surface.expolygon.simplify_p(surface_simplify_resolution));
         ExPolygons gaps;
         if (loop_number >= 0) {
@@ -396,7 +396,7 @@ void PerimeterGenerator::process()
                 ExPolygons offsets_with_smaller_width;
                 if (i == 0) {
                     // look for thin walls
-                    if (this->config->thin_walls) {
+                    if (this->config->detect_thin_wall) {
                         // the minimum thickness of a single loop is:
                         // ext_width/2 + ext_spacing/2 + spacing/2 + width/2
                         offsets = offset2_ex(last,

@@ -145,8 +145,8 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		            params.density = 100.f;
 					//FIXME for non-thick bridges, shall we allow a bottom surface pattern?
 		            params.pattern = (surface.is_external() && ! is_bridge) ? 
-						(surface.is_top() ? region_config.top_fill_pattern.value : region_config.bottom_surface_pattern.value) :
-		                region_config.top_fill_pattern == ipMonotonic ? ipMonotonic : ipRectilinear;
+						(surface.is_top() ? region_config.top_surface_pattern.value : region_config.bottom_surface_pattern.value) :
+		                region_config.top_surface_pattern == ipMonotonic ? ipMonotonic : ipRectilinear;
 		        } else if (params.density <= 0)
 		            continue;
 
@@ -287,7 +287,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 	        if (internal_solid_fill == nullptr) {
 	        	// Produce another solid fill.
 		        params.extruder 	 = layerm.region().extruder(frSolidInfill);
-	            params.pattern 		 = layerm.region().config().top_fill_pattern == ipMonotonic ? ipMonotonic : ipRectilinear;
+	            params.pattern 		 = layerm.region().config().top_surface_pattern == ipMonotonic ? ipMonotonic : ipRectilinear;
 	            params.density 		 = 100.f;
 		        params.extrusion_role = erInternalInfill;
 		        params.angle 		= float(Geometry::deg2rad(layerm.region().config().infill_angle.value));
@@ -543,10 +543,10 @@ void Layer::make_ironing()
 			const PrintRegionConfig &config = layerm->region().config();
 			if (config.ironing && 
 				(config.ironing_type == IroningType::AllSolid ||
-				 	(config.top_solid_layers > 0 && 
+				 	(config.top_shell_layers > 0 && 
 						(config.ironing_type == IroningType::TopSurfaces ||
 					 	(config.ironing_type == IroningType::TopmostOnly && layerm->layer()->upper_layer == nullptr))))) {
-				if (config.perimeter_extruder == config.solid_infill_extruder || config.perimeters == 0) {
+				if (config.perimeter_extruder == config.solid_infill_extruder || config.wall_loops == 0) {
 					// Iron the whole face.
 					ironing_params.extruder = config.solid_infill_extruder;
 				} else {

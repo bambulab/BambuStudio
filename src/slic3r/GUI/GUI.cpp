@@ -278,7 +278,7 @@ static void add_config_substitutions(const ConfigSubstitutions& conf_substitutio
 			const std::vector<std::string>& values = def->enum_values;
 			int val = conf_substitution.new_value->getInt();
 
-			bool is_infill = def->opt_key == "top_fill_pattern"	   ||
+			bool is_infill = def->opt_key == "top_surface_pattern"	   ||
 							 def->opt_key == "bottom_surface_pattern" ||
 							 def->opt_key == "sparse_infill_pattern";
 

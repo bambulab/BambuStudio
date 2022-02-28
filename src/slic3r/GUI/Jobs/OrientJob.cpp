@@ -185,11 +185,11 @@ orientation::OrientMesh OrientJob::get_orient_mesh(ModelInstance* instance, cons
     auto obj = instance->get_object();
     om.name = obj->name;
     om.mesh = obj->mesh(); // don't know the difference to obj->raw_mesh(). Both seem OK
-    if (obj->config.has("support_material_threshold"))
-        om.overhang_angle = obj->config.opt_int("support_material_threshold");
+    if (obj->config.has("support_threshold_angle"))
+        om.overhang_angle = obj->config.opt_int("support_threshold_angle");
     else {
         const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
-        om.overhang_angle = config.opt_int("support_material_threshold");
+        om.overhang_angle = config.opt_int("support_threshold_angle");
     }
 
     om.setter = [instance, plater](const OrientMesh& p) {

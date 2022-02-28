@@ -124,7 +124,7 @@ ExPolygons Layer::merged(float offset_scaled) const
 	for (LayerRegion *layerm : m_regions) {
 		const PrintRegionConfig &config = layerm->region().config();
 		// Our users learned to bend Slic3r to produce empty volumes to act as subtracters. Only add the region if it is non-empty.
-		if (config.bottom_shell_layers > 0 || config.top_solid_layers > 0 || config.sparse_infill_density > 0. || config.perimeters > 0)
+		if (config.bottom_shell_layers > 0 || config.top_shell_layers > 0 || config.sparse_infill_density > 0. || config.wall_loops > 0)
 			append(polygons, offset(layerm->slices.surfaces, offset_scaled));
 	}
     ExPolygons out = union_ex(polygons);
@@ -164,14 +164,14 @@ void Layer::make_perimeters()
 		            LayerRegion* other_layerm = *it;
 		            const PrintRegionConfig &other_config = other_layerm->region().config();
 		            if (config.perimeter_extruder             == other_config.perimeter_extruder
-		                && config.perimeters                  == other_config.perimeters
+		                && config.wall_loops                  == other_config.wall_loops
 		                && config.inner_wall_speed             == other_config.inner_wall_speed
 		                && config.outer_wall_speed    == other_config.outer_wall_speed
 		                && (config.gap_fill_enabled ? config.gap_infill_speed.value : 0.) == 
                            (other_config.gap_fill_enabled ? other_config.gap_infill_speed.value : 0.)
 		                && config.detect_overhang_wall                   == other_config.detect_overhang_wall
 		                && config.opt_serialize("inner_wall_line_width") == other_config.opt_serialize("inner_wall_line_width")
-		                && config.thin_walls                  == other_config.thin_walls
+		                && config.detect_thin_wall                  == other_config.detect_thin_wall
 		                && config.external_perimeters_first   == other_config.external_perimeters_first
 		                && config.infill_wall_overlap              == other_config.infill_wall_overlap
                         && config.fuzzy_skin                  == other_config.fuzzy_skin

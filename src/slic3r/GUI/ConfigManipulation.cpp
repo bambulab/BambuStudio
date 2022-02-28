@@ -135,14 +135,14 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     double sparse_infill_density = config->option<ConfigOptionPercent>("sparse_infill_density")->value;
 
-    if (config->opt_bool("spiral_vase") &&
-        ! (config->opt_int("perimeters") == 1 && 
-           config->opt_int("top_solid_layers") == 0 &&
+    if (config->opt_bool("spiral_mode") &&
+        ! (config->opt_int("wall_loops") == 1 && 
+           config->opt_int("top_shell_layers") == 0 &&
            sparse_infill_density == 0 &&
-           ! config->opt_bool("support_material") &&
+           ! config->opt_bool("enable_support") &&
            config->opt_int("support_material_enforce_layers") == 0 &&
            config->opt_bool("ensure_vertical_shell_thickness") &&
-           ! config->opt_bool("thin_walls")))
+           ! config->opt_bool("detect_thin_wall")))
     {
         wxString msg_text = _(L("The Spiral Vase mode requires:\n"
                                 "- one perimeter\n"
@@ -159,36 +159,36 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         auto answer = dialog.ShowModal();
         bool support = true;
         if (!is_global_config || answer == wxID_YES) {
-            new_conf.set_key_value("perimeters", new ConfigOptionInt(1));
-            new_conf.set_key_value("top_solid_layers", new ConfigOptionInt(0));
+            new_conf.set_key_value("wall_loops", new ConfigOptionInt(1));
+            new_conf.set_key_value("top_shell_layers", new ConfigOptionInt(0));
             new_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
-            new_conf.set_key_value("support_material", new ConfigOptionBool(false));
+            new_conf.set_key_value("enable_support", new ConfigOptionBool(false));
             new_conf.set_key_value("support_material_enforce_layers", new ConfigOptionInt(0));
             new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(true));
-            new_conf.set_key_value("thin_walls", new ConfigOptionBool(false));            
+            new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));            
             sparse_infill_density = 0;
             support = false;
         }
         else {
-            new_conf.set_key_value("spiral_vase", new ConfigOptionBool(false));
+            new_conf.set_key_value("spiral_mode", new ConfigOptionBool(false));
         }
         apply(config, &new_conf);
         if (cb_value_change) {
             cb_value_change("sparse_infill_density", sparse_infill_density);
             if (!support)
-                cb_value_change("support_material", false);
+                cb_value_change("enable_support", false);
         }
     }
 
     // BBS
     int filament_count = wxGetApp().preset_bundle->filament_presets.size();
-    if (filament_count > 1 != config->opt_bool("wipe_tower")) {
+    if (filament_count > 1 != config->opt_bool("enable_wipe_tower")) {
         DynamicPrintConfig new_conf = *config;
-        new_conf.set_key_value("wipe_tower", new ConfigOptionBool(filament_count > 1));
+        new_conf.set_key_value("enable_wipe_tower", new ConfigOptionBool(filament_count > 1));
         apply(config, &new_conf);
     }
 
-    if (config->opt_bool("wipe_tower")) {
+    if (config->opt_bool("enable_wipe_tower")) {
         DynamicPrintConfig new_conf = *config;
         if (config->opt_bool("adaptive_layer_height"))
             new_conf.set_key_value("adaptive_layer_height", new ConfigOptionBool(false));
@@ -200,24 +200,24 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     // BBS
-    if (config->opt_bool("support_material") && !config->opt_bool("independent_support_layer_height")) {
+    if (config->opt_bool("enable_support") && !config->opt_bool("independent_support_layer_height")) {
         double layer_height = config->opt_float("layer_height");
-        double top_gap_raw = config->opt_float("support_material_contact_distance");
-        double bottom_gap_raw = config->opt_float("support_material_bottom_contact_distance");
+        double top_gap_raw = config->opt_float("support_top_z_distance");
+        double bottom_gap_raw = config->opt_float("support_bottom_z_distance");
         double top_gap = std::round(top_gap_raw / layer_height) * layer_height;
         double bottom_gap = std::round(bottom_gap_raw / layer_height) * layer_height;
         if (top_gap != top_gap_raw || bottom_gap != bottom_gap_raw) {
             DynamicPrintConfig new_conf = *config;
-            new_conf.set_key_value("support_material_contact_distance", new ConfigOptionFloat(top_gap));
-            new_conf.set_key_value("support_material_bottom_contact_distance", new ConfigOptionFloat(bottom_gap));
+            new_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(top_gap));
+            new_conf.set_key_value("support_bottom_z_distance", new ConfigOptionFloat(bottom_gap));
             apply(config, &new_conf);
 
             wxMessageBox("Support top/bottom Z distance is automatically changed to multiple of layer height.");
         }
     }
 
-    // Check "support_material" and "overhangs" relations only on global settings level
-    if (is_global_config && config->opt_bool("support_material")) {
+    // Check "enable_support" and "overhangs" relations only on global settings level
+    if (is_global_config && config->opt_bool("enable_support")) {
         // Ask only once.
         if (!m_support_material_overhangs_queried) {
             m_support_material_overhangs_queried = true;
@@ -244,7 +244,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     if (config->option<ConfigOptionPercent>("sparse_infill_density")->value == 100) {
         std::string  sparse_infill_pattern            = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->serialize();
-        const auto  &top_fill_pattern_values = config->def()->get("top_fill_pattern")->enum_values;
+        const auto  &top_fill_pattern_values = config->def()->get("top_surface_pattern")->enum_values;
         bool correct_100p_fill = std::find(top_fill_pattern_values.begin(), top_fill_pattern_values.end(), sparse_infill_pattern) != top_fill_pattern_values.end();
         if (!correct_100p_fill) {
             // get sparse_infill_pattern name from enum_labels for using this one at dialog_msg
@@ -278,8 +278,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
 void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
 {
-    bool have_perimeters = config->opt_int("perimeters") > 0;
-    for (auto el : { "extra_perimeters", "ensure_vertical_shell_thickness", "thin_walls", "detect_overhang_wall",
+    bool have_perimeters = config->opt_int("wall_loops") > 0;
+    for (auto el : { "extra_perimeters", "ensure_vertical_shell_thickness", "detect_thin_wall", "detect_overhang_wall",
                     "seam_position", "external_perimeters_first", "outer_wall_line_width",
                     "inner_wall_speed", "small_perimeter_speed", "outer_wall_speed" })
         toggle_field(el, have_perimeters);
@@ -287,18 +287,18 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     bool have_infill = config->option<ConfigOptionPercent>("sparse_infill_density")->value > 0;
     // infill_extruder uses the same logic as in Print::extruders()
     for (auto el : { "sparse_infill_pattern", "infill_combination", "infill_only_where_needed",
-                    "solid_infill_every_layers", "solid_infill_below_area", "infill_extruder", "infill_anchor_max" })
+                    "minimum_sparse_infill_area", "infill_extruder", "infill_anchor_max" })
         toggle_field(el, have_infill);
     // Only allow configuration of open anchors if the anchoring is enabled.
     bool has_infill_anchors = have_infill && config->option<ConfigOptionFloatOrPercent>("infill_anchor_max")->value > 0;
     toggle_field("infill_anchor", has_infill_anchors);
 
-    bool has_spiral_vase         = config->opt_bool("spiral_vase");
-    bool has_top_solid_infill 	 = config->opt_int("top_solid_layers") > 0;
+    bool has_spiral_vase         = config->opt_bool("spiral_mode");
+    bool has_top_solid_infill 	 = config->opt_int("top_shell_layers") > 0;
     bool has_bottom_solid_infill = config->opt_int("bottom_shell_layers") > 0;
     bool has_solid_infill 		 = has_top_solid_infill || has_bottom_solid_infill;
     // solid_infill_extruder uses the same logic as in Print::extruders()
-    for (auto el : { "top_fill_pattern", "bottom_surface_pattern", "infill_first", "solid_infill_extruder",
+    for (auto el : { "top_surface_pattern", "bottom_surface_pattern", "infill_first", "solid_infill_extruder",
                     "internal_solid_infill_line_width", "internal_solid_infill_speed" })
         toggle_field(el, has_solid_infill);
 
@@ -306,7 +306,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
                     "sparse_infill_speed", "bridge_speed" })
         toggle_field(el, have_infill || has_solid_infill);
 
-    toggle_field("top_solid_min_thickness", ! has_spiral_vase && has_top_solid_infill);
+    toggle_field("top_shell_thickness", ! has_spiral_vase && has_top_solid_infill);
     toggle_field("bottom_shell_thickness", ! has_spiral_vase && has_bottom_solid_infill);
 
     // Gap fill is newly allowed in between perimeter lines even for empty infill (see GH #1476).
@@ -320,7 +320,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     for (auto el : { "initial_layer_acceleration" })
         toggle_field(el, have_default_acceleration);
 
-    bool have_skirt = config->opt_int("skirts") > 0;
+    bool have_skirt = config->opt_int("skirt_loops") > 0;
     toggle_field("skirt_height", have_skirt && config->opt_enum<DraftShield>("draft_shield") != dsEnabled);
     for (auto el : { "skirt_distance", "draft_shield", "min_skirt_length" })
         toggle_field(el, have_skirt);
@@ -332,30 +332,30 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     toggle_field("perimeter_extruder", have_perimeters || have_brim);
 
     bool have_raft = config->opt_int("raft_layers") > 0;
-    bool have_support_material = config->opt_bool("support_material") || have_raft;
+    bool have_support_material = config->opt_bool("enable_support") || have_raft;
     // BBS
     SupportType support_type = config->opt_enum<SupportType>("support_type");
-    bool have_support_interface = config->opt_int("support_material_interface_layers") > 0 || config->opt_int("support_material_bottom_interface_layers") > 0;
-    bool have_support_soluble = have_support_material && config->opt_float("support_material_contact_distance") == 0;
+    bool have_support_interface = config->opt_int("support_interface_top_layers") > 0 || config->opt_int("support_interface_bottom_layers") > 0;
+    bool have_support_soluble = have_support_material && config->opt_float("support_top_z_distance") == 0;
     auto support_material_style = config->opt_enum<SupportMaterialStyle>("support_material_style");
-    for (auto el : { "support_material_style", "support_material_pattern", "support_material_with_sheath",
-                    "support_material_spacing", "support_material_angle", 
-                    "support_material_interface_pattern", "support_material_interface_layers", "support_material_bottom_interface_layers",
-                    "bridge_no_support", "support_material_extrusion_width", "support_material_contact_distance",
-                     //BBS: add more support params to dependent of support_material
-                    "support_sharp_tails","remove_small_overhangs","support_type","support_material_buildplate_only",
-                    "support_material_xy_spacing", "support_transition_extrusion_width" })
+    for (auto el : { "support_material_style", "support_base_pattern", "support_material_with_sheath",
+                    "support_base_pattern_spacing", "support_material_angle", 
+                    "support_material_pattern", "support_interface_top_layers", "support_interface_bottom_layers",
+                    "bridge_no_support", "support_line_width", "support_top_z_distance",
+                     //BBS: add more support params to dependent of enable_support
+                    "support_sharp_tails","remove_small_overhangs","support_type","support_on_build_plate_only",
+                    "support_object_xy_distance", "support_transition_line_width" })
         toggle_field(el, have_support_material);
-    toggle_field("support_material_threshold", have_support_material && (support_type == stNormalAuto || support_type == stTreeAuto || support_type==stHybridAuto));
-    toggle_field("support_material_bottom_contact_distance", have_support_material && ! have_support_soluble);
+    toggle_field("support_threshold_angle", have_support_material && (support_type == stNormalAuto || support_type == stTreeAuto || support_type==stHybridAuto));
+    toggle_field("support_bottom_z_distance", have_support_material && ! have_support_soluble);
     toggle_field("support_material_closing_radius", have_support_material && support_material_style == smsSnug);
 
     for (auto el : { "tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter",
                     "tree_support_branch_diameter_angle", "tree_support_collision_resolution", "tree_support_wall_count", "tree_support_with_infill" })
-        toggle_field(el, config->opt_bool("support_material") && (support_type == stTreeAuto || support_type == stTree || support_type == stHybridAuto));
+        toggle_field(el, config->opt_bool("enable_support") && (support_type == stTreeAuto || support_type == stTree || support_type == stHybridAuto));
 
-    for (auto el : { "support_material_interface_spacing", "support_material_interface_extruder",
-                    "support_material_interface_speed", "support_material_interface_contact_loops",
+    for (auto el : { "support_interface_spacing", "support_material_interface_extruder",
+                    "support_interface_speed", "support_material_interface_contact_loops",
                     "support_transition_speed","support_material_bottom_interface_spacing" })
         toggle_field(el, have_support_material && have_support_interface);
 
@@ -364,7 +364,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
 
     toggle_field("inner_wall_line_width", have_perimeters || have_skirt || have_brim);
     toggle_field("support_material_extruder", have_support_material || have_skirt);
-    toggle_field("support_material_speed", have_support_material || have_brim || have_skirt);
+    toggle_field("support_speed", have_support_material || have_brim || have_skirt);
 
     toggle_field("raft_contact_distance", have_raft && !have_support_soluble);
     for (auto el : { "raft_expansion" })
@@ -381,7 +381,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     bool have_ooze_prevention = config->opt_bool("ooze_prevention");
     toggle_field("standby_temperature_delta", have_ooze_prevention);
 
-    bool have_wipe_tower = config->opt_bool("wipe_tower");
+    bool have_wipe_tower = config->opt_bool("enable_wipe_tower");
     for (auto el : { "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_brim_width",
                      "wipe_tower_bridging", "wipe_tower_no_sparse_layers", "single_extruder_multi_material_priming", "wiping_volume"})
         toggle_field(el, have_wipe_tower);

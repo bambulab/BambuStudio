@@ -61,7 +61,7 @@
     "min_print_speed": [
         "20"
     ],
-    "slowdown_below_layer_time": [
+    "slow_down_below_layer_time": [
         "2"
     ],
     "additional_cooling_fan_speed": [

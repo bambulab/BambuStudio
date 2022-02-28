@@ -1313,9 +1313,9 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
     int granularity = 1;
     for (size_t i = 0; i < print_object.num_printing_regions(); ++ i) {
         const PrintRegionConfig &config = print_object.printing_region(i).config();
-        max_top_layers    = std::max(max_top_layers, config.top_solid_layers.value);
+        max_top_layers    = std::max(max_top_layers, config.top_shell_layers.value);
         max_bottom_layers = std::max(max_bottom_layers, config.bottom_shell_layers.value);
-        granularity       = std::max(granularity, std::max(config.top_solid_layers.value, config.bottom_shell_layers.value) - 1);
+        granularity       = std::max(granularity, std::max(config.top_shell_layers.value, config.bottom_shell_layers.value) - 1);
     }
 
     // Project upwards pointing painted triangles over top surfaces,
@@ -1431,7 +1431,7 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
         // Minimum radius of a region to be printable. Used to filter regions by morphological opening.
         float   small_region_threshold  { 0.f };
         // Maximum number of top layers for a queried color.
-        int     top_solid_layers        { 0 };
+        int     top_shell_layers        { 0 };
         // Maximum number of bottom layers for a queried color.
         int     bottom_shell_layers     { 0 };
     };
@@ -1444,7 +1444,7 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                 // As this region may split existing regions, we collect statistics over all regions for color_idx == 0.
                 color_idx == 0 || config.perimeter_extruder == int(color_idx)) {
                 out.extrusion_width     = std::max<float>(out.extrusion_width, float(config.inner_wall_line_width));
-                out.top_solid_layers    = std::max<int>(out.top_solid_layers, config.top_solid_layers);
+                out.top_shell_layers    = std::max<int>(out.top_shell_layers, config.top_shell_layers);
                 out.bottom_shell_layers = std::max<int>(out.bottom_shell_layers, config.bottom_shell_layers);
                 out.small_region_threshold = config.gap_fill_enabled.value && config.gap_infill_speed.value > 0 ?
                                              // Gap fill enabled. Enable a single line of 1/2 extrusion width.
@@ -1475,7 +1475,7 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                             append(triangles_by_color_top[color_idx][layer_idx + layer_idx_offset], top_ex);
                             float offset = 0.f;
                             ExPolygons layer_slices_trimmed = input_expolygons[layer_idx];
-                            for (int last_idx = int(layer_idx) - 1; last_idx >= std::max(int(layer_idx - stat.top_solid_layers), int(0)); --last_idx) {
+                            for (int last_idx = int(layer_idx) - 1; last_idx >= std::max(int(layer_idx - stat.top_shell_layers), int(0)); --last_idx) {
                                 offset -= stat.extrusion_width;
                                 layer_slices_trimmed = intersection_ex(layer_slices_trimmed, input_expolygons[last_idx]);
                                 ExPolygons last = opening_ex(intersection_ex(top_ex, offset_ex(layer_slices_trimmed, offset)), stat.small_region_threshold);

@@ -147,7 +147,7 @@ void PrintObject::make_perimeters()
     // hollow objects
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         const PrintRegion &region = this->printing_region(region_id);
-        if (! region.config().extra_perimeters || region.config().perimeters == 0 || region.config().sparse_infill_density == 0 || this->layer_count() < 2)
+        if (! region.config().extra_perimeters || region.config().wall_loops == 0 || region.config().sparse_infill_density == 0 || this->layer_count() < 2)
             continue;
 
         BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id << " in parallel - start";
@@ -171,7 +171,7 @@ void PrintObject::make_perimeters()
                         for (;;) {
                             // compute the total thickness of perimeters
                             const coord_t perimeters_thickness = ext_perimeter_width/2 + ext_perimeter_spacing/2
-                                + (region.config().perimeters-1 + slice.extra_perimeters) * perimeter_spacing;
+                                + (region.config().wall_loops-1 + slice.extra_perimeters) * perimeter_spacing;
                             // define a critical area where we don't want the upper slice to fall into
                             // (it should either lay over our perimeters or outside this area)
                             const coord_t critical_area_depth = coord_t(perimeter_spacing * 1.5);
@@ -491,9 +491,9 @@ TreeSupportData* PrintObject::alloc_tree_support_preview_cache()
 {
     if (m_tree_support_preview_cache == nullptr) {
         const coordf_t layer_height = m_config.layer_height.value;
-        const coordf_t line_width = m_config.support_material_extrusion_width.get_abs_value(layer_height);
-        // FIXME: currently use support_material_extrusion_width to replace support_material_external_perimeter_width
-        const coordf_t xy_distance = m_config.support_material_xy_spacing.get_abs_value(line_width);
+        const coordf_t line_width = m_config.support_line_width.get_abs_value(layer_height);
+        // FIXME: currently use support_line_width to replace support_material_external_perimeter_width
+        const coordf_t xy_distance = m_config.support_object_xy_distance.get_abs_value(line_width);
         const double angle = m_config.tree_support_branch_angle.value * M_PI / 180.;
         const coordf_t max_move_distance
             = (angle < M_PI / 2) ? (coordf_t)(tan(angle) * layer_height) : std::numeric_limits<coordf_t>::max();
@@ -554,7 +554,7 @@ bool PrintObject::invalidate_state_by_config_options(
             // Brim is printed below supports, support invalidates brim and skirt.
             steps.emplace_back(posSupportMaterial);
         } else if (
-               opt_key == "perimeters"
+               opt_key == "wall_loops"
             || opt_key == "extra_perimeters"
             || opt_key == "initial_layer_line_width"
             || opt_key == "inner_wall_line_width"
@@ -595,12 +595,12 @@ bool PrintObject::invalidate_state_by_config_options(
 		} else if (
                opt_key == "clip_multipart_objects"
             || opt_key == "elefant_foot_compensation"
-            || opt_key == "support_material_contact_distance" 
+            || opt_key == "support_top_z_distance" 
             || opt_key == "xy_size_compensation") {
             steps.emplace_back(posSlice);
-        } else if (opt_key == "support_material") {
+        } else if (opt_key == "enable_support") {
             steps.emplace_back(posSupportMaterial);
-            if (m_config.support_material_contact_distance == 0.) {
+            if (m_config.support_top_z_distance == 0.) {
             	// Enabling / disabling supports while soluble support interface is enabled.
             	// This changes the bridging logic (bridging enabled without supports, disabled with supports).
             	// Reset everything.
@@ -610,26 +610,26 @@ bool PrintObject::invalidate_state_by_config_options(
         } else if (
         	   opt_key == "support_type"
             || opt_key == "support_material_angle"
-            || opt_key == "support_material_buildplate_only"
+            || opt_key == "support_on_build_plate_only"
             || opt_key == "support_material_enforce_layers"
             || opt_key == "support_material_extruder"
-            || opt_key == "support_material_extrusion_width"
-            || opt_key == "support_transition_extrusion_width"
-            || opt_key == "support_material_bottom_contact_distance"
-            || opt_key == "support_material_interface_layers"
-            || opt_key == "support_material_bottom_interface_layers"
-            || opt_key == "support_material_interface_pattern"
+            || opt_key == "support_line_width"
+            || opt_key == "support_transition_line_width"
+            || opt_key == "support_bottom_z_distance"
+            || opt_key == "support_interface_top_layers"
+            || opt_key == "support_interface_bottom_layers"
+            || opt_key == "support_material_pattern"
             || opt_key == "support_material_interface_contact_loops"
             || opt_key == "support_material_interface_extruder"
-            || opt_key == "support_material_interface_spacing"
+            || opt_key == "support_interface_spacing"
             || opt_key == "support_material_bottom_interface_spacing" //BBS
-            || opt_key == "support_material_pattern"
+            || opt_key == "support_base_pattern"
             || opt_key == "support_material_style"
-            || opt_key == "support_material_xy_spacing"
-            || opt_key == "support_material_spacing"
+            || opt_key == "support_object_xy_distance"
+            || opt_key == "support_base_pattern_spacing"
             || opt_key == "support_material_closing_radius"
             || opt_key == "independent_support_layer_height" // BBS
-            || opt_key == "support_material_threshold"
+            || opt_key == "support_threshold_angle"
             || opt_key == "support_material_with_sheath"
             || opt_key == "raft_expansion"
             || opt_key == "raft_first_layer_density"
@@ -648,7 +648,7 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posSupportMaterial);
         } else if (opt_key == "bottom_shell_layers") {
             steps.emplace_back(posPrepareInfill);
-            if (m_print->config().spiral_vase) {
+            if (m_print->config().spiral_mode) {
                 // Changing the number of bottom layers when a spiral vase is enabled requires re-slicing the object again.
                 // Otherwise, holes in the bottom layers could be filled, as is reported in GH #5528.
                 steps.emplace_back(posSlice);
@@ -656,20 +656,18 @@ bool PrintObject::invalidate_state_by_config_options(
         } else if (
                opt_key == "interface_shells"
             || opt_key == "infill_only_where_needed"
-            //BBS
             || opt_key == "infill_combination"
-            || opt_key == "solid_infill_every_layers"
             || opt_key == "bottom_shell_thickness"
-            || opt_key == "top_solid_layers"
-            || opt_key == "top_solid_min_thickness"
-            || opt_key == "solid_infill_below_area"
+            || opt_key == "top_shell_layers"
+            || opt_key == "top_shell_thickness"
+            || opt_key == "minimum_sparse_infill_area"
             || opt_key == "infill_extruder"
             || opt_key == "solid_infill_extruder"
             || opt_key == "sparse_infill_line_width"
             || opt_key == "ensure_vertical_shell_thickness") {
             steps.emplace_back(posPrepareInfill);
         } else if (
-               opt_key == "top_fill_pattern"
+               opt_key == "top_surface_pattern"
             || opt_key == "bottom_surface_pattern"
             || opt_key == "external_fill_link_max_length"
             || opt_key == "infill_angle"
@@ -701,14 +699,14 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "fuzzy_skin_thickness"
             || opt_key == "fuzzy_skin_point_distance"
             || opt_key == "detect_overhang_wall"
-            || opt_key == "thin_walls"
+            || opt_key == "detect_thin_wall"
             || opt_key == "thick_bridges") {
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posSupportMaterial);
-        } else if (opt_key == "bridge_flow_ratio") {
-            if (m_config.support_material_contact_distance > 0.) {
+        } else if (opt_key == "bridge_flow") {
+            if (m_config.support_top_z_distance > 0.) {
             	// Only invalidate due to bridging if bridging is enabled.
-            	// If later "support_material_contact_distance" is modified, the complete PrintObject is invalidated anyway.
+            	// If later "support_top_z_distance" is modified, the complete PrintObject is invalidated anyway.
             	steps.emplace_back(posPerimeters);
             	steps.emplace_back(posInfill);
 	            steps.emplace_back(posSupportMaterial);
@@ -717,8 +715,8 @@ bool PrintObject::invalidate_state_by_config_options(
                opt_key == "seam_position"
             || opt_key == "seam_preferred_direction"
             || opt_key == "seam_preferred_direction_jitter"
-            || opt_key == "support_material_speed"
-            || opt_key == "support_material_interface_speed"
+            || opt_key == "support_speed"
+            || opt_key == "support_interface_speed"
             //BBS
             || opt_key == "support_transition_speed"
             || opt_key == "overhang_1_4_speed"
@@ -812,9 +810,9 @@ void PrintObject::detect_surfaces_type()
     // are completely hidden inside a collective body of intersecting parts.
     // This is useful if one of the parts is to be dissolved, or if it is transparent and the internal shells
     // should be visible.
-    bool spiral_vase      = this->print()->config().spiral_vase.value;
-    bool interface_shells = ! spiral_vase && m_config.interface_shells.value;
-    size_t num_layers     = spiral_vase ? std::min(size_t(this->printing_region(0).config().bottom_shell_layers), m_layers.size()) : m_layers.size();
+    bool spiral_mode      = this->print()->config().spiral_mode.value;
+    bool interface_shells = ! spiral_mode && m_config.interface_shells.value;
+    size_t num_layers     = spiral_mode ? std::min(size_t(this->printing_region(0).config().bottom_shell_layers), m_layers.size()) : m_layers.size();
 
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << region_id << " in parallel - start";
@@ -831,7 +829,7 @@ void PrintObject::detect_surfaces_type()
 
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, 
-            	spiral_vase ?
+            	spiral_mode ?
             		// In spiral vase mode, reserve the last layer for the top surface if more than 1 layer is planned for the vase bottom.
             		((num_layers > 1) ? num_layers - 1 : num_layers) :
             		// In non-spiral vase mode, go over all layers.
@@ -840,7 +838,7 @@ void PrintObject::detect_surfaces_type()
                 // If we have soluble support material, don't bridge. The overhang will be squished against a soluble layer separating
                 // the support from the print.
                 SurfaceType surface_type_bottom_other =
-                    (this->has_support() && m_config.support_material_contact_distance.value == 0) ?
+                    (this->has_support() && m_config.support_top_z_distance.value == 0) ?
                     stBottom : stBottomBridge;
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                     m_print->throw_if_canceled();
@@ -972,7 +970,7 @@ void PrintObject::detect_surfaces_type()
                 m_layers[idx_layer]->m_regions[region_id]->slices.surfaces = std::move(surfaces_new[idx_layer]);
         }
 
-        if (spiral_vase) {
+        if (spiral_mode) {
         	if (num_layers > 1)
 	        	// Turn the last bottom layer infill to a top infill, so it will be extruded with a proper pattern.
 	        	m_layers[num_layers - 1]->m_regions[region_id]->slices.set_type(stTop);
@@ -1093,8 +1091,8 @@ void PrintObject::discover_vertical_shells()
         Polygons    bottom_surfaces;
         Polygons    holes;
     };
-    bool     spiral_vase      = this->print()->config().spiral_vase.value;
-    size_t   num_layers       = spiral_vase ? std::min(size_t(this->printing_region(0).config().bottom_shell_layers), m_layers.size()) : m_layers.size();
+    bool     spiral_mode      = this->print()->config().spiral_mode.value;
+    size_t   num_layers       = spiral_mode ? std::min(size_t(this->printing_region(0).config().bottom_shell_layers), m_layers.size()) : m_layers.size();
     coordf_t min_layer_height = this->slicing_parameters().min_layer_height;
     // Does this region possibly produce more than 1 top or bottom layer?
     auto has_extra_layers_fn = [min_layer_height](const PrintRegionConfig &config) {
@@ -1105,7 +1103,7 @@ void PrintObject::discover_vertical_shells()
 	    	int n2 = int(ceil(min_shell_thickness / min_layer_height));
 	    	return std::max(n, n2 - 1);
 	    };
-    	return num_extra_layers(config.top_solid_layers, config.top_solid_min_thickness) +
+    	return num_extra_layers(config.top_shell_layers, config.top_shell_thickness) +
 	    	   num_extra_layers(config.bottom_shell_layers, config.bottom_shell_thickness) > 0;
     };
     std::vector<DiscoverVerticalShellsCacheEntry> cache_top_botom_regions(num_layers, DiscoverVerticalShellsCacheEntry());
@@ -1158,7 +1156,7 @@ void PrintObject::discover_vertical_shells()
                         unsigned int perimeters = 0;
                         for (Surface &s : layerm.slices.surfaces)
                             perimeters = std::max<unsigned int>(perimeters, s.extra_perimeters);
-                        perimeters += layerm.region().config().perimeters.value;
+                        perimeters += layerm.region().config().wall_loops.value;
                         // Then calculate the infill offset.
                         if (perimeters > 0) {
                             Flow extflow = layerm.flow(frExternalPerimeter);
@@ -1295,13 +1293,13 @@ void PrintObject::discover_vertical_shells()
                         }
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 			        	polygons_append(holes, cache_top_botom_regions[idx_layer].holes);
-			        	if (int n_top_layers = region_config.top_solid_layers.value; n_top_layers > 0) {
+			        	if (int n_top_layers = region_config.top_shell_layers.value; n_top_layers > 0) {
                             // Gather top regions projected to this layer.
                             coordf_t print_z = layer->print_z;
 	                        for (int i = int(idx_layer) + 1; 
 	                        	i < int(cache_top_botom_regions.size()) && 
 	                        		(i < int(idx_layer) + n_top_layers ||
-	                        		 m_layers[i]->print_z - print_z < region_config.top_solid_min_thickness - EPSILON);
+	                        		 m_layers[i]->print_z - print_z < region_config.top_shell_thickness - EPSILON);
 	                        	++ i) {
 	                            const DiscoverVerticalShellsCacheEntry &cache = cache_top_botom_regions[i];
 								if (! holes.empty())
@@ -1913,6 +1911,7 @@ void PrintObject::discover_horizontal_shells()
             Layer 					*layer  = m_layers[i];
             LayerRegion             *layerm = layer->regions()[region_id];
             const PrintRegionConfig &region_config = layerm->region().config();
+#if 0
             if (region_config.solid_infill_every_layers.value > 0 && region_config.sparse_infill_density.value > 0 &&
                 (i % region_config.solid_infill_every_layers) == 0) {
                 // Insert a solid internal layer. Mark stInternal surfaces as stInternalSolid or stInternalBridge.
@@ -1921,6 +1920,7 @@ void PrintObject::discover_horizontal_shells()
                     if (surface.surface_type == stInternal)
                         surface.surface_type = type;
             }
+#endif
 
             // If ensure_vertical_shell_thickness, then the rest has already been performed by discover_vertical_shells().
             if (region_config.ensure_vertical_shell_thickness.value)
@@ -1931,7 +1931,7 @@ void PrintObject::discover_horizontal_shells()
             for (size_t idx_surface_type = 0; idx_surface_type < 3; ++ idx_surface_type) {
                 m_print->throw_if_canceled();
                 SurfaceType type = (idx_surface_type == 0) ? stTop : (idx_surface_type == 1) ? stBottom : stBottomBridge;
-                int num_solid_layers = (type == stTop) ? region_config.top_solid_layers.value : region_config.bottom_shell_layers.value;
+                int num_solid_layers = (type == stTop) ? region_config.top_shell_layers.value : region_config.bottom_shell_layers.value;
                 if (num_solid_layers == 0)
                 	continue;
                 // Find slices of current type for current layer.
@@ -1963,7 +1963,7 @@ void PrintObject::discover_horizontal_shells()
                 for (int n = (type == stTop) ? int(i) - 1 : int(i) + 1;
                 	(type == stTop) ?
                 		(n >= 0                   && (int(i) - n < num_solid_layers || 
-                								 	  print_z - m_layers[n]->print_z < region_config.top_solid_min_thickness.value - EPSILON)) :
+                								 	  print_z - m_layers[n]->print_z < region_config.top_shell_thickness.value - EPSILON)) :
                 		(n < int(m_layers.size()) && (n - int(i) < num_solid_layers ||
                 									  m_layers[n]->bottom_z() - bottom_z < region_config.bottom_shell_thickness.value - EPSILON));
                 	(type == stTop) ? -- n : ++ n)

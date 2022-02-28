@@ -212,8 +212,8 @@ struct PerExtruderAdjustments
     unsigned int                extruder_id         = 0;
     // Is the cooling slow down logic enabled for this extruder's material?
     bool                        cooling_slow_down_enabled = false;
-    // Slow down the print down to min_print_speed if the total layer time is below slowdown_below_layer_time.
-    float                       slowdown_below_layer_time = 0.f;
+    // Slow down the print down to min_print_speed if the total layer time is below slow_down_below_layer_time.
+    float                       slow_down_below_layer_time = 0.f;
     // Minimum print speed allowed for this extruder.
     float                       min_print_speed     = 0.f;
 
@@ -322,7 +322,7 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
         unsigned int            extruder_id = m_extruder_ids[i];
         adj.extruder_id               = extruder_id;
         adj.cooling_slow_down_enabled = m_config.cooling.get_at(extruder_id);
-        adj.slowdown_below_layer_time = float(m_config.slowdown_below_layer_time.get_at(extruder_id));
+        adj.slow_down_below_layer_time = float(m_config.slow_down_below_layer_time.get_at(extruder_id));
         adj.min_print_speed           = float(m_config.min_print_speed.get_at(extruder_id));
         map_extruder_to_per_extruder_adjustment[extruder_id] = i;
     }
@@ -399,7 +399,7 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
             }
             if ((line.type & CoolingLine::TYPE_G92) == 0) {
                 //BBS: G0, G1, G2, G3. Calculate the duration.
-                if (m_config.use_relative_e_distances.value)
+                if (m_config.relative_e_axis.value)
                     // Reset extruder accumulator.
                     current_pos[3] = 0.f;
                 float dif[4];
@@ -494,7 +494,7 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
     return per_extruder_adjustments;
 }
 
-// Slow down an extruder range proportionally down to slowdown_below_layer_time.
+// Slow down an extruder range proportionally down to slow_down_below_layer_time.
 // Return the total time for the complete layer.
 static inline float extruder_range_slow_down_proportional(
     std::vector<PerExtruderAdjustments*>::iterator it_begin,
@@ -504,7 +504,7 @@ static inline float extruder_range_slow_down_proportional(
     // Initial total elapsed time before slow down.
     float elapsed_time_before_slowdown,
     // Target time for the complete layer (all extruders applied).
-    float slowdown_below_layer_time)
+    float slow_down_below_layer_time)
 {
     // Total layer time after the slow down has been applied.
     float total_after_slowdown = elapsed_time_before_slowdown;
@@ -512,7 +512,7 @@ static inline float extruder_range_slow_down_proportional(
     float max_time_nep = elapsed_time_total0;
     for (auto it = it_begin; it != it_end; ++ it)
         max_time_nep += (*it)->maximum_time_after_slowdown(false);
-    if (max_time_nep > slowdown_below_layer_time) {
+    if (max_time_nep > slow_down_below_layer_time) {
         // It is sufficient to slow down the non-external perimeter moves to reach the target layer time.
         // Slow down the non-external perimeters proportionally.
         float non_adjustable_time = elapsed_time_total0;
@@ -521,12 +521,12 @@ static inline float extruder_range_slow_down_proportional(
         // The following step is a linear programming task due to the minimum movement speeds of the print moves.
         // Run maximum 5 iterations until a good enough approximation is reached.
         for (size_t iter = 0; iter < 5; ++ iter) {
-            float factor = (slowdown_below_layer_time - non_adjustable_time) / (total_after_slowdown - non_adjustable_time);
+            float factor = (slow_down_below_layer_time - non_adjustable_time) / (total_after_slowdown - non_adjustable_time);
             assert(factor > 1.f);
             total_after_slowdown = elapsed_time_total0;
             for (auto it = it_begin; it != it_end; ++ it)
                 total_after_slowdown += (*it)->slow_down_proportional(factor, false);
-            if (total_after_slowdown > 0.95f * slowdown_below_layer_time)
+            if (total_after_slowdown > 0.95f * slow_down_below_layer_time)
                 break;
         }
     } else {
@@ -538,19 +538,19 @@ static inline float extruder_range_slow_down_proportional(
         for (auto it = it_begin; it != it_end; ++ it)
             non_adjustable_time += (*it)->non_adjustable_time(true);
         for (size_t iter = 0; iter < 5; ++ iter) {
-            float factor = (slowdown_below_layer_time - non_adjustable_time) / (total_after_slowdown - non_adjustable_time);
+            float factor = (slow_down_below_layer_time - non_adjustable_time) / (total_after_slowdown - non_adjustable_time);
             assert(factor > 1.f);
             total_after_slowdown = elapsed_time_total0;
             for (auto it = it_begin; it != it_end; ++ it)
                 total_after_slowdown += (*it)->slow_down_proportional(factor, true);
-            if (total_after_slowdown > 0.95f * slowdown_below_layer_time)
+            if (total_after_slowdown > 0.95f * slow_down_below_layer_time)
                 break;
         }
     }
     return total_after_slowdown;
 }
 
-// Slow down an extruder range to slowdown_below_layer_time.
+// Slow down an extruder range to slow_down_below_layer_time.
 // Return the total time for the complete layer.
 static inline void extruder_range_slow_down_non_proportional(
     std::vector<PerExtruderAdjustments*>::iterator it_begin,
@@ -632,9 +632,9 @@ static inline void extruder_range_slow_down_non_proportional(
 // Calculate slow down for all the extruders.
 float CoolingBuffer::calculate_layer_slowdown(std::vector<PerExtruderAdjustments> &per_extruder_adjustments)
 {
-    // Sort the extruders by an increasing slowdown_below_layer_time.
-    // The layers with a lower slowdown_below_layer_time are slowed down
-    // together with all the other layers with slowdown_below_layer_time above.
+    // Sort the extruders by an increasing slow_down_below_layer_time.
+    // The layers with a lower slow_down_below_layer_time are slowed down
+    // together with all the other layers with slow_down_below_layer_time above.
     std::vector<PerExtruderAdjustments*> by_slowdown_time;
     by_slowdown_time.reserve(per_extruder_adjustments.size());
     // Only insert entries, which are adjustable (have cooling enabled and non-zero stretchable time).
@@ -655,7 +655,7 @@ float CoolingBuffer::calculate_layer_slowdown(std::vector<PerExtruderAdjustments
     }
     std::sort(by_slowdown_time.begin(), by_slowdown_time.end(),
         [](const PerExtruderAdjustments *adj1, const PerExtruderAdjustments *adj2)
-            { return adj1->slowdown_below_layer_time < adj2->slowdown_below_layer_time; });
+            { return adj1->slow_down_below_layer_time < adj2->slow_down_below_layer_time; });
 
     for (auto cur_begin = by_slowdown_time.begin(); cur_begin != by_slowdown_time.end(); ++ cur_begin) {
         PerExtruderAdjustments &adj = *(*cur_begin);
@@ -663,20 +663,20 @@ float CoolingBuffer::calculate_layer_slowdown(std::vector<PerExtruderAdjustments
         float total = elapsed_time_total0;
         for (auto it = cur_begin; it != by_slowdown_time.end(); ++ it)
             total += (*it)->time_total;
-        float slowdown_below_layer_time = adj.slowdown_below_layer_time * 1.001f;
-        if (total > slowdown_below_layer_time) {
+        float slow_down_below_layer_time = adj.slow_down_below_layer_time * 1.001f;
+        if (total > slow_down_below_layer_time) {
             // The current total time is above the minimum threshold of the rest of the extruders, don't adjust anything.
         } else {
-            // Adjust this and all the following (higher m_config.slowdown_below_layer_time) extruders.
+            // Adjust this and all the following (higher m_config.slow_down_below_layer_time) extruders.
             // Sum maximum slow down time as if everything was slowed down including the external perimeters.
             float max_time = elapsed_time_total0;
             for (auto it = cur_begin; it != by_slowdown_time.end(); ++ it)
                 max_time += (*it)->time_maximum;
-            if (max_time > slowdown_below_layer_time) {
+            if (max_time > slow_down_below_layer_time) {
                 if (m_cooling_logic_proportional)
-                    extruder_range_slow_down_proportional(cur_begin, by_slowdown_time.end(), elapsed_time_total0, total, slowdown_below_layer_time);
+                    extruder_range_slow_down_proportional(cur_begin, by_slowdown_time.end(), elapsed_time_total0, total, slow_down_below_layer_time);
                 else
-                    extruder_range_slow_down_non_proportional(cur_begin, by_slowdown_time.end(), slowdown_below_layer_time - total);
+                    extruder_range_slow_down_non_proportional(cur_begin, by_slowdown_time.end(), slow_down_below_layer_time - total);
             } else {
                 // Slow down to maximum possible.
                 for (auto it = cur_begin; it != by_slowdown_time.end(); ++ it)
@@ -735,16 +735,16 @@ std::string CoolingBuffer::apply_layer_cooldown(
         }
         if (int(layer_id) >= close_fan_the_first_x_layers) {
             int   fan_max_speed             = EXTRUDER_CONFIG(fan_max_speed);
-            float slowdown_below_layer_time = float(EXTRUDER_CONFIG(slowdown_below_layer_time));
+            float slow_down_below_layer_time = float(EXTRUDER_CONFIG(slow_down_below_layer_time));
             float fan_below_layer_time      = float(EXTRUDER_CONFIG(fan_below_layer_time));
             if (EXTRUDER_CONFIG(cooling)) {
-                if (layer_time < slowdown_below_layer_time) {
+                if (layer_time < slow_down_below_layer_time) {
                     // Layer time very short. Enable the fan to a full throttle.
                     fan_speed_new = fan_max_speed;
                 } else if (layer_time < fan_below_layer_time) {
                     // Layer time quite short. Enable the fan proportionally according to the current layer time.
-                    assert(layer_time >= slowdown_below_layer_time);
-                    double t = (layer_time - slowdown_below_layer_time) / (fan_below_layer_time - slowdown_below_layer_time);
+                    assert(layer_time >= slow_down_below_layer_time);
+                    double t = (layer_time - slow_down_below_layer_time) / (fan_below_layer_time - slow_down_below_layer_time);
                     fan_speed_new = int(floor(t * fan_min_speed + (1. - t) * fan_max_speed) + 0.5);
                 }
             }

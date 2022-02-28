@@ -339,7 +339,7 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
     for (auto layer : m_object->layers())
         m_support_params.support_layer_height_min = std::min(m_support_params.support_layer_height_min, std::max(0.01, layer->height));
 
-    if (m_object_config->support_material_interface_layers.value == 0) {
+    if (m_object_config->support_interface_top_layers.value == 0) {
         // No interface layers allowed, print everything with the base support pattern.
         m_support_params.support_material_interface_flow = m_support_params.support_material_flow;
     }
@@ -347,18 +347,18 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
     // Evaluate the XY gap between the object outer perimeters and the support structures.
     // Evaluate the XY gap between the object outer perimeters and the support structures.
     coordf_t external_perimeter_width = 0.;
-    coordf_t bridge_flow_ratio = 0;
+    coordf_t bridge_flow = 0;
     for (size_t region_id = 0; region_id < object->num_printing_regions(); ++ region_id) {
         const PrintRegion &region = object->printing_region(region_id);
         external_perimeter_width = std::max(external_perimeter_width, coordf_t(region.flow(*object, frExternalPerimeter, slicing_params.layer_height).width()));
-        bridge_flow_ratio += region.config().bridge_flow_ratio;
+        bridge_flow += region.config().bridge_flow;
     }
-    m_support_params.gap_xy = m_object_config->support_material_xy_spacing.get_abs_value(external_perimeter_width);
-    bridge_flow_ratio /= object->num_printing_regions();
+    m_support_params.gap_xy = m_object_config->support_object_xy_distance.get_abs_value(external_perimeter_width);
+    bridge_flow /= object->num_printing_regions();
 
     m_support_params.support_material_bottom_interface_flow = m_slicing_params.soluble_interface || ! m_object_config->thick_bridges ?
-        m_support_params.support_material_interface_flow.with_flow_ratio(bridge_flow_ratio) :
-        Flow::bridging_flow(bridge_flow_ratio * m_support_params.support_material_interface_flow.nozzle_diameter(), m_support_params.support_material_interface_flow.nozzle_diameter());
+        m_support_params.support_material_interface_flow.with_flow_ratio(bridge_flow) :
+        Flow::bridging_flow(bridge_flow * m_support_params.support_material_interface_flow.nozzle_diameter(), m_support_params.support_material_interface_flow.nozzle_diameter());
 
     m_support_params.can_merge_support_regions = m_object_config->support_material_extruder.value == m_object_config->support_material_interface_extruder.value;
     if (!m_support_params.can_merge_support_regions && (m_object_config->support_material_extruder.value == 0 || m_object_config->support_material_interface_extruder.value == 0)) {
@@ -373,25 +373,25 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
 
     m_support_params.base_angle         = Geometry::deg2rad(float(m_object_config->support_material_angle.value));
     m_support_params.interface_angle    = Geometry::deg2rad(float(m_object_config->support_material_angle.value + 90.));
-    m_support_params.interface_spacing  = m_object_config->support_material_interface_spacing.value + m_support_params.support_material_interface_flow.spacing();
+    m_support_params.interface_spacing  = m_object_config->support_interface_spacing.value + m_support_params.support_material_interface_flow.spacing();
     m_support_params.interface_density  = std::min(1., m_support_params.support_material_interface_flow.spacing() / m_support_params.interface_spacing);
-    m_support_params.support_spacing    = m_object_config->support_material_spacing.value + m_support_params.support_material_flow.spacing();
+    m_support_params.support_spacing    = m_object_config->support_base_pattern_spacing.value + m_support_params.support_material_flow.spacing();
     m_support_params.support_density    = std::min(1., m_support_params.support_material_flow.spacing() / m_support_params.support_spacing);
-    if (m_object_config->support_material_interface_layers.value == 0) {
+    if (m_object_config->support_interface_top_layers.value == 0) {
         // No interface layers allowed, print everything with the base support pattern.
         m_support_params.interface_spacing = m_support_params.support_spacing;
         m_support_params.interface_density = m_support_params.support_density;
     }
 
-    SupportMaterialPattern  support_pattern = m_object_config->support_material_pattern;
+    SupportMaterialPattern  support_pattern = m_object_config->support_base_pattern;
     m_support_params.with_sheath            = m_object_config->support_material_with_sheath;
     m_support_params.base_fill_pattern      = 
         support_pattern == smpHoneycomb ? ipHoneycomb :
         m_support_params.support_density > 0.95 || m_support_params.with_sheath ? ipRectilinear : ipSupportBase;
     m_support_params.interface_fill_pattern = (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
     m_support_params.contact_fill_pattern   =
-        (m_object_config->support_material_interface_pattern == smipAuto && m_slicing_params.soluble_interface) ||
-        m_object_config->support_material_interface_pattern == smipConcentric ?
+        (m_object_config->support_material_pattern == smipAuto && m_slicing_params.soluble_interface) ||
+        m_object_config->support_material_pattern == smipConcentric ?
         ipConcentric :
         (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
 }
@@ -726,7 +726,7 @@ Polygons collect_slices_outer(const Layer &layer)
 struct SupportGridParams {
     SupportGridParams(const PrintObjectConfig &object_config, const Flow &support_material_flow) :
         style(object_config.support_material_style.value),
-        grid_resolution(object_config.support_material_spacing.value + support_material_flow.spacing()),
+        grid_resolution(object_config.support_base_pattern_spacing.value + support_material_flow.spacing()),
         support_angle(Geometry::deg2rad(object_config.support_material_angle.value)),
         extrusion_width(support_material_flow.spacing()),
         support_material_closing_radius(object_config.support_material_closing_radius.value),
@@ -1469,8 +1469,8 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
     const bool   buildplate_only = ! annotations.buildplate_covered.empty();
     // If user specified a custom angle threshold, convert it to radians.
     // Zero means automatic overhang detection.
-    const double threshold_rad   = (object_config.support_material_threshold.value > 0) ?
-        M_PI * double(object_config.support_material_threshold.value + 1) / 180. : // +1 makes the threshold inclusive
+    const double threshold_rad   = (object_config.support_threshold_angle.value > 0) ?
+        M_PI * double(object_config.support_threshold_angle.value + 1) / 180. : // +1 makes the threshold inclusive
         0.;
     float        no_interface_offset = 0.f;
 
@@ -1996,7 +1996,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
 
     // BBS: tree support is selected so normal supports need not be generated.
     // Note we still need to go through the following steps if support is disabled but raft is enabled.
-    if (m_object_config->support_material.value && (m_object_config->support_type.value == stTreeAuto || m_object_config->support_type.value == stTree || m_object_config->support_type.value == stHybridAuto)) {
+    if (m_object_config->enable_support.value && (m_object_config->support_type.value == stTreeAuto || m_object_config->support_type.value == stTree || m_object_config->support_type.value == stHybridAuto)) {
         return MyLayersPtr();
     }
 
@@ -2839,7 +2839,7 @@ void PrintObjectSupportMaterial::generate_base_layers(
                 layer_intermediate.layer_type = sltBase;
 
         #if 0
-                    // coordf_t fillet_radius_scaled = scale_(m_object_config->support_material_spacing);
+                    // coordf_t fillet_radius_scaled = scale_(m_object_config->support_base_pattern_spacing);
                     // Fillet the base polygons and trim them again with the top, interface and contact layers.
                     $base->{$i} = diff(
                         offset2(
@@ -3101,8 +3101,8 @@ std::pair<PrintObjectSupportMaterial::MyLayersPtr, PrintObjectSupportMaterial::M
     MyLayersPtr &base_interface_layers  = base_and_interface_layers.second;
 
     // distinguish between interface and base interface layers
-    // Contact layer is considered an interface layer, therefore run the following block only if support_material_interface_layers > 1.
-    // Contact layer needs a base_interface layer, therefore run the following block if support_material_interface_layers > 0, has soluble support and extruders are different.
+    // Contact layer is considered an interface layer, therefore run the following block only if support_interface_top_layers > 1.
+    // Contact layer needs a base_interface layer, therefore run the following block if support_interface_top_layers > 0, has soluble support and extruders are different.
     bool   soluble_interface_non_soluble_base =
         // Zero z-gap between the overhangs and the support interface.
         m_slicing_params.soluble_interface && 
@@ -3111,15 +3111,15 @@ std::pair<PrintObjectSupportMaterial::MyLayersPtr, PrintObjectSupportMaterial::M
         // Base extruder: Either "print with active extruder" not soluble.
         (m_object_config->support_material_extruder.value == 0 || ! m_print_config->filament_soluble.get_at(m_object_config->support_material_extruder.value - 1));
     bool   snug_supports                 = m_object_config->support_material_style.value == smsSnug;
-    int num_interface_layers_top         = m_object_config->support_material_interface_layers;
-    int num_interface_layers_bottom      = m_object_config->support_material_bottom_interface_layers;
+    int num_interface_layers_top         = m_object_config->support_interface_top_layers;
+    int num_interface_layers_bottom      = m_object_config->support_interface_bottom_layers;
     if (num_interface_layers_bottom < 0)
         num_interface_layers_bottom = num_interface_layers_top;
     int num_base_interface_layers_top    = soluble_interface_non_soluble_base ? std::min(num_interface_layers_top / 2, 2) : 0;
     int num_base_interface_layers_bottom = soluble_interface_non_soluble_base ? std::min(num_interface_layers_bottom / 2, 2) : 0;
 
     if (! intermediate_layers.empty() && (num_interface_layers_top > 1 || num_interface_layers_bottom > 1)) {
-        // For all intermediate layers, collect top contact surfaces, which are not further than support_material_interface_layers.
+        // For all intermediate layers, collect top contact surfaces, which are not further than support_interface_top_layers.
         BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::generate_interface_layers() in parallel - start";
         // Since the intermediate layer index starts at zero the number of interface layer needs to be reduced by 1.
         -- num_interface_layers_top;
@@ -3935,7 +3935,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
     loop_interface_processor.n_contact_loops = this->has_contact_loops() ? 1 : 0;
 
     std::vector<float>      angles { m_support_params.base_angle };
-    if (m_object_config->support_material_pattern == smpRectilinearGrid)
+    if (m_object_config->support_base_pattern == smpRectilinearGrid)
         angles.push_back(m_support_params.interface_angle);
 
     BoundingBox bbox_object(Point(-scale_(1.), -scale_(1.0)), Point(scale_(1.), scale_(1.)));
@@ -4131,7 +4131,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
             if (idx_layer_intermediate < intermediate_layers.size() && intermediate_layers[idx_layer_intermediate]->print_z < support_layer.print_z + EPSILON)
                 base_layer.layer = intermediate_layers[idx_layer_intermediate];
 
-            if (m_object_config->support_material_interface_layers == 0) {
+            if (m_object_config->support_interface_top_layers == 0) {
                 // If no top interface layers were requested, we treat the contact layer exactly as a generic base layer.
                 if (m_support_params.can_merge_support_regions) {
                     if (base_layer.could_merge(top_contact_layer)) 
@@ -4147,7 +4147,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                 if (top_contact_layer.could_merge(interface_layer))
                     top_contact_layer.merge(std::move(interface_layer));
             } 
-            if ((m_object_config->support_material_interface_layers == 0 || m_object_config->support_material_bottom_interface_layers == 0) && m_support_params.can_merge_support_regions) {
+            if ((m_object_config->support_interface_top_layers == 0 || m_object_config->support_interface_bottom_layers == 0) && m_support_params.can_merge_support_regions) {
                 if (base_layer.could_merge(bottom_contact_layer))
                     base_layer.merge(std::move(bottom_contact_layer));
                 else if (base_layer.empty() && ! bottom_contact_layer.empty() && ! bottom_contact_layer.layer->bridging)
@@ -4174,8 +4174,8 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                 MyLayerExtruded &layer_ex = (i == 0) ? top_contact_layer : (i == 1 ? bottom_contact_layer : interface_layer);
                 if (layer_ex.empty() || layer_ex.polygons_to_extrude().empty())
                     continue;
-                bool interface_as_base = m_object_config->support_material_interface_layers.value == 0 || 
-                    (m_object_config->support_material_bottom_interface_layers == 0 && &layer_ex == &bottom_contact_layer);
+                bool interface_as_base = m_object_config->support_interface_top_layers.value == 0 || 
+                    (m_object_config->support_interface_bottom_layers == 0 && &layer_ex == &bottom_contact_layer);
                 //FIXME Bottom interfaces are extruded with the briding flow. Some bridging layers have its height slightly reduced, therefore
                 // the bridging flow does not quite apply. Reduce the flow to area of an ellipse? (A = pi * a * b)
                 auto interface_flow = layer_ex.layer->bridging ?

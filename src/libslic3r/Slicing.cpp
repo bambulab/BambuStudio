@@ -75,7 +75,7 @@ SlicingParameters SlicingParameters::create_from_config(
     // In that case all the nozzles have to be of the same diameter.
     coordf_t support_material_extruder_dmr           = print_config.nozzle_diameter.get_at(object_config.support_material_extruder.value - 1);
     coordf_t support_material_interface_extruder_dmr = print_config.nozzle_diameter.get_at(object_config.support_material_interface_extruder.value - 1);
-    bool     soluble_interface                       = object_config.support_material_contact_distance.value == 0.;
+    bool     soluble_interface                       = object_config.support_top_z_distance.value == 0.;
 
     SlicingParameters params;
     params.layer_height = object_config.layer_height.value;
@@ -91,7 +91,7 @@ SlicingParameters SlicingParameters::create_from_config(
     // Miniumum/maximum of the minimum layer height over all extruders.
     params.min_layer_height = MIN_LAYER_HEIGHT;
     params.max_layer_height = std::numeric_limits<double>::max();
-    if (object_config.support_material.value || params.base_raft_layers > 0 || object_config.support_material_enforce_layers > 0) {
+    if (object_config.enable_support.value || params.base_raft_layers > 0 || object_config.support_material_enforce_layers > 0) {
         // Has some form of support. Add the support layers to the minimum / maximum layer height limits.
         params.min_layer_height = std::max(
             min_layer_height_from_nozzle(print_config, object_config.support_material_extruder), 
@@ -115,8 +115,8 @@ SlicingParameters SlicingParameters::create_from_config(
 
     if (! soluble_interface) {
         params.gap_raft_object    = object_config.raft_contact_distance.value;
-        params.gap_object_support = object_config.support_material_bottom_contact_distance.value;
-        params.gap_support_object = object_config.support_material_contact_distance.value;
+        params.gap_object_support = object_config.support_bottom_z_distance.value;
+        params.gap_support_object = object_config.support_top_z_distance.value;
         if (params.gap_object_support <= 0)
             params.gap_object_support = params.gap_support_object;
     }

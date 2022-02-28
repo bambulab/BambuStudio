@@ -36,10 +36,10 @@ Flow LayerRegion::bridging_flow(FlowRole role) const
         // Here this->extruder(role) - 1 may underflow to MAX_INT, but then the get_at() will follback to zero'th element, so everything is all right.
         auto nozzle_diameter = float(print_object.print()->config().nozzle_diameter.get_at(region.extruder(role) - 1));
         // Applies default bridge spacing.
-        return Flow::bridging_flow(float(sqrt(region_config.bridge_flow_ratio)) * nozzle_diameter, nozzle_diameter);
+        return Flow::bridging_flow(float(sqrt(region_config.bridge_flow)) * nozzle_diameter, nozzle_diameter);
     } else {
-        // The same way as other slicers: Use normal extrusions. Apply bridge_flow_ratio while maintaining the original spacing.
-        return this->flow(role).with_flow_ratio(region_config.bridge_flow_ratio);
+        // The same way as other slicers: Use normal extrusions. Apply bridge_flow while maintaining the original spacing.
+        return this->flow(role).with_flow_ratio(region_config.bridge_flow);
     }
 }
 
@@ -71,7 +71,7 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
     const PrintConfig       &print_config  = this->layer()->object()->print()->config();
     const PrintRegionConfig &region_config = this->region().config();
     // This needs to be in sync with PrintObject::_slice() slicing_mode_normal_below_layer!
-    bool spiral_vase = print_config.spiral_vase &&
+    bool spiral_mode = print_config.spiral_mode &&
         //FIXME account for raft layers.
         (this->layer()->id() >= size_t(region_config.bottom_shell_layers.value) &&
          this->layer()->print_z >= region_config.bottom_shell_thickness - EPSILON);
@@ -84,7 +84,7 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
         &region_config,
         &this->layer()->object()->config(),
         &print_config,
-        spiral_vase,
+        spiral_mode,
         
         // output:
         &this->perimeters,
@@ -384,10 +384,10 @@ void LayerRegion::prepare_fill_surfaces()
         alter fill_surfaces boundaries on which our idempotency relies since that's
         the only meaningful information returned by psPerimeters. */
     
-    bool spiral_vase = this->layer()->object()->print()->config().spiral_vase;
+    bool spiral_mode = this->layer()->object()->print()->config().spiral_mode;
 
     // if no solid layers are requested, turn top/bottom surfaces to internal
-    if (! spiral_vase && this->region().config().top_solid_layers == 0) {
+    if (! spiral_mode && this->region().config().top_shell_layers == 0) {
         for (Surface &surface : this->fill_surfaces.surfaces)
             if (surface.is_top())
                 surface.surface_type = this->layer()->object()->config().infill_only_where_needed ? stInternalVoid : stInternal;
@@ -399,9 +399,9 @@ void LayerRegion::prepare_fill_surfaces()
     }
 
     // turn too small internal regions into solid regions according to the user setting
-    if (! spiral_vase && this->region().config().sparse_infill_density.value > 0) {
+    if (! spiral_mode && this->region().config().sparse_infill_density.value > 0) {
         // scaling an area requires two calls!
-        double min_area = scale_(scale_(this->region().config().solid_infill_below_area.value));
+        double min_area = scale_(scale_(this->region().config().minimum_sparse_infill_area.value));
         for (Surface &surface : this->fill_surfaces.surfaces)
             if (surface.surface_type == stInternal && surface.area() <= min_area)
                 surface.surface_type = stInternalSolid;

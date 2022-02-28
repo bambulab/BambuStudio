@@ -569,7 +569,7 @@ bool ConfigBase::set_deserialize_raw(const t_config_option_key &opt_key_src, con
     }
     
     if (! optdef->shortcut.empty()) {
-        // Aliasing for example "solid_layers" to "top_solid_layers" and "bottom_shell_layers".
+        // Aliasing for example "solid_layers" to "top_shell_layers" and "bottom_shell_layers".
         for (const t_config_option_key &shortcut : optdef->shortcut)
             // Recursive call.
             if (! this->set_deserialize_raw(shortcut, value, substitutions_ctxt, append))

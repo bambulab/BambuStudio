@@ -2337,7 +2337,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         // Should the wipe tower be visualized ?
         unsigned int extruders_count = (unsigned int)dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"))->values.size();
 
-        bool wt = dynamic_cast<const ConfigOptionBool*>(m_config->option("wipe_tower"))->value;
+        bool wt = dynamic_cast<const ConfigOptionBool*>(m_config->option("enable_wipe_tower"))->value;
         bool co = dynamic_cast<const ConfigOptionBool*>(m_config->option("complete_objects"))->value;
 
         if (extruders_count > 1 && wt && !co) {

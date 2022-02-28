@@ -856,7 +856,7 @@ void TreeSupport::detect_object_overhangs()
     std::map<int, ExPolygons> all_bridges;
     if (std::set<SupportType>{stTreeAuto, stHybridAuto, stTree}.count(stype))// == stTreeAuto || stype == stHybridAuto || stype == stTree)
     {
-        double threshold_rad = (config.support_material_threshold.value < EPSILON ? 30 : config.support_material_threshold.value+1) * M_PI / 180.;
+        double threshold_rad = (config.support_threshold_angle.value < EPSILON ? 30 : config.support_threshold_angle.value+1) * M_PI / 180.;
         ExPolygons regions_well_supported; // regions on buildplate or well supported
         std::map<ExPolygon, int, ExPolygonComp> region_layers_below;  // regions and the number of layers below
         ExPolygons lower_overhang_dilated;  // for small overhang
@@ -1288,8 +1288,8 @@ void TreeSupport::generate_toolpaths()
 {
     const PrintConfig &print_config = m_object->print()->config();
     const PrintObjectConfig &object_config = m_object->config();
-    coordf_t support_extrusion_width = object_config.support_material_extrusion_width.value > 0 ? object_config.support_material_extrusion_width : object_config.extrusion_width;
-    coordf_t support_transition_extrusion_width = object_config.support_transition_extrusion_width.value > 0 ? object_config.support_transition_extrusion_width : object_config.extrusion_width;
+    coordf_t support_extrusion_width = object_config.support_line_width.value > 0 ? object_config.support_line_width : object_config.extrusion_width;
+    coordf_t support_transition_line_width = object_config.support_transition_line_width.value > 0 ? object_config.support_transition_line_width : object_config.extrusion_width;
     coordf_t nozzle_diameter = print_config.nozzle_diameter.get_at(object_config.support_material_extruder - 1);
 
     const size_t wall_count = object_config.tree_support_wall_count.value;
@@ -1298,11 +1298,11 @@ void TreeSupport::generate_toolpaths()
 
     // coconut: use same intensity settings as SupportMaterial.cpp
     auto m_support_material_interface_flow = support_material_interface_flow(m_object, float(m_slicing_params.layer_height));
-    coordf_t interface_spacing = object_config.support_material_interface_spacing.value + m_support_material_interface_flow.spacing();
+    coordf_t interface_spacing = object_config.support_interface_spacing.value + m_support_material_interface_flow.spacing();
     coordf_t bottom_interface_spacing = object_config.support_material_bottom_interface_spacing.value + m_support_material_interface_flow.spacing();
     coordf_t interface_density = std::min(1., m_support_material_interface_flow.spacing() / interface_spacing);
     coordf_t bottom_interface_density = std::min(1., m_support_material_interface_flow.spacing() / bottom_interface_spacing);
-    coordf_t support_spacing = object_config.support_material_spacing.value + m_support_material_flow.spacing();
+    coordf_t support_spacing = object_config.support_base_pattern_spacing.value + m_support_material_flow.spacing();
     coordf_t support_density = std::min(1., m_support_material_flow.spacing() / support_spacing);
 
     if (m_object->tree_support_layers().empty())
@@ -1395,7 +1395,7 @@ void TreeSupport::generate_toolpaths()
             for (size_t layer_id = range.begin(); layer_id < range.end(); layer_id++) {
                 TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_id);
                 Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
-                Flow transition_flow(support_transition_extrusion_width, ts_layer->height, nozzle_diameter);
+                Flow transition_flow(support_transition_line_width, ts_layer->height, nozzle_diameter);
                 Fill* filler_interface = Fill::new_from_type(ipRectilinear);
                 filler_interface->angle = Geometry::deg2rad(object_config.support_material_angle.value + 90.);//(1 - obj_is_vertical) * M_PI_2;//((1-obj_is_vertical) + int(layer_id / num_layers_to_change_infill_direction)) * M_PI_2;;//layer_id % 2 ? 0 : M_PI_2;
 
@@ -1709,7 +1709,7 @@ Polygons TreeSupport::contact_nodes_to_polygon(const std::vector<Node*>& contact
 void TreeSupport::generate_support_areas()
 {
     const PrintObjectConfig &config = m_object->config();
-    bool tree_support_enable = config.support_material.value &&
+    bool tree_support_enable = config.enable_support.value &&
         (config.support_type.value == stTreeAuto || config.support_type.value == stTree || config.support_type.value == stHybridAuto);
     if (!tree_support_enable)
         return;
@@ -1804,10 +1804,10 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     // generate areas
     const coordf_t circle_side_length = 2 * branch_radius * sin(M_PI / CIRCLE_RESOLUTION); //Side length of a regular polygon.
     const coordf_t layer_height = config.layer_height.value;
-    const size_t bottom_interface_layers = config.support_material_bottom_interface_layers.value;
+    const size_t bottom_interface_layers = config.support_interface_bottom_layers.value;
     const size_t tip_layers = branch_radius / layer_height; //The number of layers to be shrinking the circle to create a tip. This produces a 45 degree angle.
     const double diameter_angle_scale_factor = sin(config.tree_support_branch_diameter_angle.value * M_PI / 180.) * layer_height / branch_radius; //Scale factor per layer to produce the desired angle.
-    const coordf_t line_width = config.support_material_extrusion_width.get_abs_value(layer_height);
+    const coordf_t line_width = config.support_line_width.get_abs_value(layer_height);
 
     // coconut: previously std::unordered_map in m_collision_cache is not multi-thread safe which may cause programs stuck, here we change to tbb::concurrent_unordered_map
     tbb::parallel_for(
@@ -1917,7 +1917,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                         if (layer_nr < brim_skirt_layers)
                             ts_layer->lslices.emplace_back(line_expanded[0]);
 
-                        //if (radius > config.support_material_spacing * 2)
+                        //if (radius > config.support_base_pattern_spacing * 2)
                         //    ts_layer->need_infill = true;
                     }
 
@@ -1939,12 +1939,12 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 
                 // let supports touch objects when brim is on
                 auto avoid_region = m_ts_data->get_collision((layer_nr == 0 && has_brim) ? config.brim_object_gap : m_ts_data->m_xy_distance, layer_nr);
-                auto avoid_region_interface = m_ts_data->get_collision(config.support_material_contact_distance, layer_nr);
+                auto avoid_region_interface = m_ts_data->get_collision(config.support_top_z_distance, layer_nr);
                 Polygons layer_contours = std::move(m_ts_data->get_contours_with_holes(layer_nr));
                 base_areas = std::move(diff_ex(base_areas, avoid_region));
                 roof_areas = std::move(diff_ex(roof_areas, avoid_region_interface));
                 roof_1st_layer = std::move(diff_ex(roof_1st_layer, avoid_region_interface));
-                double contact_dist_scaled = scale_(config.support_material_contact_distance);
+                double contact_dist_scaled = scale_(config.support_top_z_distance);
                 roof_areas = std::move(offset2_ex(roof_areas, contact_dist_scaled, -contact_dist_scaled));
                 roof_1st_layer = std::move(offset2_ex(roof_1st_layer, contact_dist_scaled, -contact_dist_scaled));
                 // roof_1st_layer and roof_areas may intersect, so need to subtract roof_areas from roof_1st_layer
@@ -1998,9 +1998,9 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
     const size_t tip_layers = branch_radius / layer_height; //The number of layers to be shrinking the circle to create a tip. This produces a 45 degree angle.
     const double diameter_angle_scale_factor = sin(config.tree_support_branch_diameter_angle.value * M_PI / 180.) * layer_height / branch_radius; //Scale factor per layer to produce the desired angle.
     const coordf_t radius_sample_resolution = m_ts_data->m_radius_sample_resolution;
-    const bool support_on_buildplate_only = config.support_material_buildplate_only.value;
-    const size_t bottom_interface_layers = config.support_material_bottom_interface_layers.value;
-    const size_t top_interface_layers = config.support_material_interface_layers.value;
+    const bool support_on_buildplate_only = config.support_on_build_plate_only.value;
+    const size_t bottom_interface_layers = config.support_interface_bottom_layers.value;
+    const size_t top_interface_layers = config.support_interface_top_layers.value;
 
     std::unordered_set<Node*> to_free_node_set;
     m_spanning_trees.resize(contact_nodes.size());
@@ -2429,15 +2429,15 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
     }
 
     const coordf_t layer_height = config.layer_height.value;
-    const coordf_t z_distance_top = config.support_material_contact_distance.value;
+    const coordf_t z_distance_top = config.support_top_z_distance.value;
     const size_t z_distance_top_layers = round_up_divide(scale_(z_distance_top), scale_(layer_height)) + 1; //Support must always be 1 layer below overhang.
-    const size_t support_roof_layers = config.support_material_interface_layers.value + 1; // BBS: add a normal support layer below interface
+    const size_t support_roof_layers = config.support_interface_top_layers.value + 1; // BBS: add a normal support layer below interface
     coordf_t half_overhang_distance = 0.;
-    if (config.support_material_threshold.value < EPSILON) {
+    if (config.support_threshold_angle.value < EPSILON) {
         half_overhang_distance = tan(30. * M_PI / 180.0) * layer_height / 2;
     }
     else {
-        half_overhang_distance = tan((double)config.support_material_threshold.value * M_PI / 180.0) * layer_height / 2;
+        half_overhang_distance = tan((double)config.support_threshold_angle.value * M_PI / 180.0) * layer_height / 2;
     }
     half_overhang_distance = scale_(half_overhang_distance);
 

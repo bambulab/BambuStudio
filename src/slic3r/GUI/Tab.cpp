@@ -1210,8 +1210,8 @@ void Tab::load_key_value(const std::string& opt_key, const boost::any& value, bo
 
 static wxString support_combo_value_for_config(const DynamicPrintConfig &config, bool is_fff)
 {
-    const std::string support         = is_fff ? "support_material"                 : "supports_enable";
-    const std::string buildplate_only = is_fff ? "support_material_buildplate_only" : "support_buildplate_only";
+    const std::string support         = is_fff ? "enable_support"                 : "supports_enable";
+    const std::string buildplate_only = is_fff ? "support_on_build_plate_only" : "support_buildplate_only";
 
     // BBS
 #if 0
@@ -1260,7 +1260,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
 
         if (is_fff ?
-            (opt_key == "support_material" || opt_key == "support_type" || opt_key == "support_material_buildplate_only") :
+            (opt_key == "enable_support" || opt_key == "support_type" || opt_key == "support_on_build_plate_only") :
             (opt_key == "supports_enable" || opt_key == "support_buildplate_only"))
             og_freq_chng_params->set_value("support", support_combo_value_for_config(*m_config, is_fff));
 
@@ -1274,7 +1274,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
-    if (opt_key == "wipe_tower" || opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
+    if (opt_key == "enable_wipe_tower" || opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
         update_wiping_button_visibility();
 
     if (opt_key == "extruders_count")
@@ -1293,7 +1293,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 void Tab::update_wiping_button_visibility() {
     if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
         return; // ys_FIXME
-    bool wipe_tower_enabled = dynamic_cast<ConfigOptionBool*>(  (m_preset_bundle->prints.get_edited_preset().config  ).option("wipe_tower"))->value;
+    bool wipe_tower_enabled = dynamic_cast<ConfigOptionBool*>(  (m_preset_bundle->prints.get_edited_preset().config  ).option("enable_wipe_tower"))->value;
     bool multiple_extruders = dynamic_cast<ConfigOptionFloats*>((m_preset_bundle->printers.get_edited_preset().config).option("nozzle_diameter"))->values.size() > 1;
 
     auto wiping_dialog_button = wxGetApp().sidebar().get_wiping_dialog_button();
@@ -1587,8 +1587,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("sparse_infill_line_width");
         optgroup->append_single_option_line("internal_solid_infill_line_width");
         optgroup->append_single_option_line("top_surface_line_width");
-        optgroup->append_single_option_line("support_material_extrusion_width");
-        optgroup->append_single_option_line("support_transition_extrusion_width");
+        optgroup->append_single_option_line("support_line_width");
+        optgroup->append_single_option_line("support_transition_line_width");
 
         optgroup = page->new_optgroup(L("Seam"));
         optgroup->append_single_option_line("seam_position");
@@ -1610,7 +1610,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Advanced"));
         optgroup->append_single_option_line("external_perimeters_first");
         optgroup->append_single_option_line("infill_first");
-        optgroup->append_single_option_line("bridge_flow_ratio");
+        optgroup->append_single_option_line("bridge_flow");
         optgroup->append_single_option_line("detect_overhang_wall");
         optgroup->append_single_option_line("reduce_crossing_wall");
         optgroup->append_single_option_line("max_travel_detour_distance");
@@ -1619,33 +1619,33 @@ void TabPrint::build()
 
     page = add_options_page(L("Strength"), "wrench");
         optgroup = page->new_optgroup(L("Walls"));
-        optgroup->append_single_option_line("perimeters");
+        optgroup->append_single_option_line("wall_loops");
         optgroup->append_single_option_line("ensure_vertical_shell_thickness");
-        optgroup->append_single_option_line("thin_walls");
+        optgroup->append_single_option_line("detect_thin_wall");
 
         optgroup = page->new_optgroup(L("Top/bottom shells"));
-        optgroup->append_single_option_line("top_solid_layers");
-        optgroup->append_single_option_line("top_solid_min_thickness");
+        optgroup->append_single_option_line("top_shell_layers");
+        optgroup->append_single_option_line("top_shell_thickness");
         optgroup->append_single_option_line("bottom_shell_layers");
         optgroup->append_single_option_line("bottom_shell_thickness");
 
         optgroup = page->new_optgroup(L("Infill"));
         optgroup->append_single_option_line("sparse_infill_density");
         optgroup->append_single_option_line("sparse_infill_pattern");
-        optgroup->append_single_option_line("top_fill_pattern");
+        optgroup->append_single_option_line("top_surface_pattern");
         optgroup->append_single_option_line("bottom_surface_pattern");
 
         optgroup = page->new_optgroup(L("Advanced"));
         optgroup->append_single_option_line("infill_combination");
         optgroup->append_single_option_line("infill_wall_overlap");
         optgroup->append_single_option_line("infill_angle");
-        optgroup->append_single_option_line("solid_infill_below_area");
+        optgroup->append_single_option_line("minimum_sparse_infill_area");
         optgroup->append_single_option_line("detect_narrow_internal_solid_infill");
         optgroup->append_single_option_line("reduce_infill_retraction");
 
     page = add_options_page(L("Support"), "support");
         optgroup = page->new_optgroup(L("Bed adhension"));
-        optgroup->append_single_option_line("skirts");
+        optgroup->append_single_option_line("skirt_loops");
         optgroup->append_single_option_line("skirt_distance");
         //optgroup->append_single_option_line("draft_shield");
         optgroup->append_single_option_line("brim_type");
@@ -1656,10 +1656,10 @@ void TabPrint::build()
         //optgroup->append_single_option_line("raft_first_layer_expansion");
 
         optgroup = page->new_optgroup(L("Support"));
-        optgroup->append_single_option_line("support_material");
+        optgroup->append_single_option_line("enable_support");
         optgroup->append_single_option_line("support_type");
-        optgroup->append_single_option_line("support_material_threshold");
-        optgroup->append_single_option_line("support_material_buildplate_only");
+        optgroup->append_single_option_line("support_threshold_angle");
+        optgroup->append_single_option_line("support_on_build_plate_only");
         //optgroup->append_single_option_line("support_material_enforce_layers");
 
         optgroup = page->new_optgroup(L("Material for support"));
@@ -1679,21 +1679,21 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Advanced"));
         optgroup->append_single_option_line("tree_support_wall_count");
         optgroup->append_single_option_line("tree_support_with_infill");
-        optgroup->append_single_option_line("support_material_contact_distance");
-        //optgroup->append_single_option_line("support_material_bottom_contact_distance");
-        optgroup->append_single_option_line("support_material_pattern");
+        optgroup->append_single_option_line("support_top_z_distance");
+        //optgroup->append_single_option_line("support_bottom_z_distance");
+        optgroup->append_single_option_line("support_base_pattern");
         //optgroup->append_single_option_line("support_material_with_sheath");
-        optgroup->append_single_option_line("support_material_spacing");
+        optgroup->append_single_option_line("support_base_pattern_spacing");
         //optgroup->append_single_option_line("support_material_angle");
         //optgroup->append_single_option_line("support_material_closing_radius");
-        optgroup->append_single_option_line("support_material_interface_layers");
-        optgroup->append_single_option_line("support_material_bottom_interface_layers");
-        //optgroup->append_single_option_line("support_material_interface_pattern");
-        optgroup->append_single_option_line("support_material_interface_spacing");
+        optgroup->append_single_option_line("support_interface_top_layers");
+        optgroup->append_single_option_line("support_interface_bottom_layers");
+        //optgroup->append_single_option_line("support_material_pattern");
+        optgroup->append_single_option_line("support_interface_spacing");
         optgroup->append_single_option_line("support_material_bottom_interface_spacing");
         //optgroup->append_single_option_line("support_material_interface_contact_loops");
         
-        optgroup->append_single_option_line("support_material_xy_spacing");
+        optgroup->append_single_option_line("support_object_xy_distance");
         optgroup->append_single_option_line("bridge_no_support");
         //optgroup->append_single_option_line("support_sharp_tails");
         //optgroup->append_single_option_line("remove_small_overhangs");
@@ -1718,8 +1718,8 @@ void TabPrint::build()
         optgroup->append_line(line);
         optgroup->append_single_option_line("bridge_speed");
         optgroup->append_single_option_line("gap_infill_speed");
-        optgroup->append_single_option_line("support_material_speed");
-        optgroup->append_single_option_line("support_material_interface_speed");
+        optgroup->append_single_option_line("support_speed");
+        optgroup->append_single_option_line("support_interface_speed");
         optgroup->append_single_option_line("support_transition_speed");
 
         optgroup = page->new_optgroup(L("Travel speed"));
@@ -1737,12 +1737,12 @@ void TabPrint::build()
     page = add_options_page(L("Others"), "advanced");
         optgroup = page->new_optgroup(L("Wipe tower"));
         // BBS
-        //optgroup->append_single_option_line("wipe_tower");
+        //optgroup->append_single_option_line("enable_wipe_tower");
         optgroup->append_single_option_line("wipe_tower_width");
         optgroup->append_single_option_line("wiping_volume");
 
         optgroup = page->new_optgroup(L("Special mode"));
-        optgroup->append_single_option_line("spiral_vase");
+        optgroup->append_single_option_line("spiral_mode");
         optgroup->append_single_option_line("complete_objects");
         //BBS: todo remove clearance to machine
 #if 0
@@ -1846,15 +1846,15 @@ void TabPrint::update()
     m_update_cnt++;
 
     // ysFIXME: It's temporary workaround and should be clewer reworked:
-    // Note: This workaround works till "support_material" and "overhangs" is exclusive sets of mutually no-exclusive parameters.
+    // Note: This workaround works till "enable_support" and "overhangs" is exclusive sets of mutually no-exclusive parameters.
     // But it should be corrected when we will have more such sets.
-    // Disable check of the compatibility of the "support_material" and "overhangs" options for saved user profile
+    // Disable check of the compatibility of the "enable_support" and "overhangs" options for saved user profile
     // NOTE: Initialization of the support_material_overhangs_queried value have to be processed just ones
     if (!m_config_manipulation.is_initialized_support_material_overhangs_queried())
     {
         const Preset& selected_preset = m_preset_bundle->prints.get_selected_preset();
         bool is_user_and_saved_preset = !selected_preset.is_system && !selected_preset.is_dirty;
-        bool support_material_overhangs_queried = m_config->opt_bool("support_material") && !m_config->opt_bool("detect_overhang_wall");
+        bool support_material_overhangs_queried = m_config->opt_bool("enable_support") && !m_config->opt_bool("detect_overhang_wall");
         m_config_manipulation.initialize_support_material_overhangs_queried(is_user_and_saved_preset && support_material_overhangs_queried);
     }
 
@@ -2119,12 +2119,12 @@ void TabFilament::build()
 
         optgroup = page->new_optgroup(L("Cooling thresholds"), 25);
         optgroup->append_single_option_line("fan_below_layer_time", category_path + "cooling-thresholds");
-        optgroup->append_single_option_line("slowdown_below_layer_time", category_path + "cooling-thresholds");
+        optgroup->append_single_option_line("slow_down_below_layer_time", category_path + "cooling-thresholds");
         optgroup->append_single_option_line("min_print_speed", category_path + "cooling-thresholds");
 
         //BBS
         add_filament_overrides_page();
-
+#if 0
     page = add_options_page(L("Advanced"), "advanced");
         optgroup = page->new_optgroup(L("Wipe tower parameters"));
         optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
@@ -2132,6 +2132,7 @@ void TabFilament::build()
         optgroup = page->new_optgroup(L("Toolchange parameters with single extruder MM printers"));
         optgroup->append_single_option_line("filament_load_time");
         optgroup->append_single_option_line("filament_unload_time");
+#endif
 
         const int gcode_field_height = 15; // 150
 
@@ -2222,7 +2223,7 @@ void TabFilament::toggle_options()
         bool cooling = m_config->opt_bool("cooling", 0);
         bool fan_always_on = cooling || m_config->opt_bool("fan_always_on", 0);
 
-        for (auto el : { "fan_max_speed", "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed" })
+        for (auto el : { "fan_max_speed", "fan_below_layer_time", "slow_down_below_layer_time", "min_print_speed" })
             toggle_option(el, cooling);
         //BBS
         for (auto el : { "additional_cooling_fan_speed", "fan_min_speed", "close_fan_the_first_x_layers", "full_fan_speed_layer" })
@@ -2448,7 +2449,7 @@ void TabPrinter::build_fff()
 #endif
 
         optgroup = page->new_optgroup(L("Advanced"));
-        //optgroup->append_single_option_line("use_relative_e_distances");
+        //optgroup->append_single_option_line("relative_e_axis");
         //BBS
         optgroup->append_single_option_line("scan_first_layer");
         optgroup->append_single_option_line("spaghetti_detector");
@@ -2459,7 +2460,7 @@ void TabPrinter::build_fff()
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
-        Option option = optgroup->get_option("start_gcode");
+        Option option = optgroup->get_option("machine_start_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
@@ -2500,7 +2501,7 @@ void TabPrinter::build_fff()
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
-        option = optgroup->get_option("toolchange_gcode");
+        option = optgroup->get_option("tool_change_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
@@ -2975,7 +2976,7 @@ void TabPrinter::toggle_options()
 
     bool have_multiple_extruders = m_extruders_count > 1;
     if (m_active_page->title() == "Custom G-code") {
-        toggle_option("toolchange_gcode", have_multiple_extruders);
+        toggle_option("tool_change_gcode", have_multiple_extruders);
     }
     if (m_active_page->title() == "General") {
         toggle_option("single_extruder_multi_material", have_multiple_extruders);

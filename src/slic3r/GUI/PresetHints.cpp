@@ -24,7 +24,7 @@ std::string PresetHints::cooling_description(const Preset &preset)
     int  full_fan_speed_layer = preset.config.opt_int("full_fan_speed_layer", 0);
 
     if (cooling) {
-		int 	slowdown_below_layer_time 	= preset.config.opt_int("slowdown_below_layer_time", 0);
+		int 	slow_down_below_layer_time 	= preset.config.opt_int("slow_down_below_layer_time", 0);
 		int 	fan_min_speed 				= preset.config.opt_int("fan_min_speed", 0);
 		int 	fan_max_speed 				= preset.config.opt_int("fan_max_speed", 0);
 		int 	min_print_speed				= int(preset.config.opt_float("min_print_speed", 0) + 0.5);
@@ -33,8 +33,8 @@ std::string PresetHints::cooling_description(const Preset &preset)
                               "fan will run at %2%%% and print speed will be reduced "
                               "so that no less than %3%s are spent on that layer "
                               "(however, speed will never be reduced below %4%mm/s)."),
-                              slowdown_below_layer_time, fan_max_speed, slowdown_below_layer_time, min_print_speed);
-        if (fan_below_layer_time > slowdown_below_layer_time) {
+                              slow_down_below_layer_time, fan_max_speed, slow_down_below_layer_time, min_print_speed);
+        if (fan_below_layer_time > slow_down_below_layer_time) {
             out += "\n";
             if (fan_min_speed != fan_max_speed)
                 out += GUI::format(_L("If estimated layer time is greater, but still below ~%1%s, "
@@ -94,10 +94,10 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
     double layer_height                     = print_config.opt_float("layer_height");
     assert(! print_config.option<ConfigOptionFloatOrPercent>("initial_layer_print_height")->percent);
     double initial_layer_print_height               = print_config.opt_float("initial_layer_print_height");
-    double support_material_speed           = print_config.opt_float("support_material_speed");
-    double support_material_interface_speed = print_config.get_abs_value("support_material_interface_speed", support_material_speed);
+    double support_speed           = print_config.opt_float("support_speed");
+    double support_interface_speed = print_config.get_abs_value("support_interface_speed", support_speed);
     double bridge_speed                     = print_config.opt_float("bridge_speed");
-    double bridge_flow_ratio                = print_config.opt_float("bridge_flow_ratio");
+    double bridge_flow                = print_config.opt_float("bridge_flow");
     double inner_wall_speed                  = print_config.opt_float("inner_wall_speed");
     double outer_wall_speed         = print_config.get_abs_value("outer_wall_speed", inner_wall_speed);
     // double gap_infill_speed                   = print_config.opt_bool("gap_fill_enabled") ? print_config.opt_float("gap_infill_speed") : 0.;
@@ -116,8 +116,8 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
     const auto &sparse_infill_line_width              = *print_config.option<ConfigOptionFloatOrPercent>("sparse_infill_line_width");
     const auto &inner_wall_line_width           = *print_config.option<ConfigOptionFloatOrPercent>("inner_wall_line_width");
     const auto &internal_solid_infill_line_width        = *print_config.option<ConfigOptionFloatOrPercent>("internal_solid_infill_line_width");
-    const auto& support_material_extrusion_width    = *print_config.option<ConfigOptionFloatOrPercent>("support_material_extrusion_width");
-    const auto &support_transition_extrusion_width  = *print_config.option<ConfigOptionFloatOrPercent>("support_transition_extrusion_width");//BBS
+    const auto& support_line_width    = *print_config.option<ConfigOptionFloatOrPercent>("support_line_width");
+    const auto &support_transition_line_width  = *print_config.option<ConfigOptionFloatOrPercent>("support_transition_line_width");//BBS
     const auto &top_surface_line_width          = *print_config.option<ConfigOptionFloatOrPercent>("top_surface_line_width");
     const auto &initial_layer_speed                   = *print_config.option<ConfigOptionFloatOrPercent>("initial_layer_speed");
 
@@ -156,11 +156,11 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
             return (speed_normal > 0.) ? speed_normal : speed_max;
         };
         auto test_flow =
-            [first_layer_extrusion_width_ptr, extrusion_width, nozzle_diameter, lh, bridging, bridge_speed, bridge_flow_ratio, limit_by_first_layer_speed, max_print_speed, &max_flow, &max_flow_extrusion_type]
+            [first_layer_extrusion_width_ptr, extrusion_width, nozzle_diameter, lh, bridging, bridge_speed, bridge_flow, limit_by_first_layer_speed, max_print_speed, &max_flow, &max_flow_extrusion_type]
             (FlowRole flow_role, const ConfigOptionFloatOrPercent &this_extrusion_width, double speed, const char *err_msg) {
             Flow flow = bridging ?
                 Flow::new_from_config_width(flow_role, first_positive(first_layer_extrusion_width_ptr, this_extrusion_width, extrusion_width), nozzle_diameter, lh) :
-                Flow::bridging_flow(nozzle_diameter * bridge_flow_ratio, nozzle_diameter);
+                Flow::bridging_flow(nozzle_diameter * bridge_flow, nozzle_diameter);
             double volumetric_flow = flow.mm3_per_mm() * (bridging ? bridge_speed : limit_by_first_layer_speed(speed, max_print_speed));
             if (max_flow < volumetric_flow) {
                 max_flow = volumetric_flow;
@@ -179,9 +179,9 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
                 test_flow(frInfill, top_surface_line_width, top_surface_speed, L("top solid infill"));
         }
         if (! bridging && support_material_extruder_active)
-            test_flow(frSupportMaterial, support_material_extrusion_width, support_material_speed, L("support"));
+            test_flow(frSupportMaterial, support_line_width, support_speed, L("support"));
         if (support_material_interface_extruder_active)
-            test_flow(frSupportMaterialInterface, support_material_extrusion_width, support_material_interface_speed, L("support interface"));
+            test_flow(frSupportMaterialInterface, support_line_width, support_interface_speed, L("support interface"));
         //FIXME handle gap_infill_speed
         if (! out.empty())
             out += "\n";
@@ -207,8 +207,8 @@ std::string PresetHints::recommended_thin_wall_thickness(const PresetBundle &pre
     const DynamicPrintConfig &printer_config  = preset_bundle.printers .get_edited_preset().config;
 
     float   layer_height                        = float(print_config.opt_float("layer_height"));
-    int     num_perimeters                      = print_config.opt_int("perimeters");
-    bool    thin_walls                          = print_config.opt_bool("thin_walls");
+    int     num_perimeters                      = print_config.opt_int("wall_loops");
+    bool    thin_walls                          = print_config.opt_bool("detect_thin_wall");
     float   nozzle_diameter                     = float(printer_config.opt_float("nozzle_diameter", 0));
     
     std::string out;
@@ -255,11 +255,11 @@ std::string PresetHints::top_bottom_shell_thickness_explanation(const PresetBund
 
     std::string out;
 
-    int 	top_solid_layers                = print_config.opt_int("top_solid_layers");
+    int 	top_shell_layers                = print_config.opt_int("top_shell_layers");
     int 	bottom_shell_layers             = print_config.opt_int("bottom_shell_layers");
-    bool    has_top_layers 					= top_solid_layers > 0;
+    bool    has_top_layers 					= top_shell_layers > 0;
     bool    has_bottom_layers 				= bottom_shell_layers > 0;
-    double  top_solid_min_thickness        	= print_config.opt_float("top_solid_min_thickness");
+    double  top_shell_thickness        	= print_config.opt_float("top_shell_thickness");
     double  bottom_shell_thickness  	= print_config.opt_float("bottom_shell_thickness");
     double  layer_height                    = print_config.opt_float("layer_height");
     //FIXME the following line takes into account the 1st extruder only.
@@ -271,14 +271,14 @@ std::string PresetHints::top_bottom_shell_thickness_explanation(const PresetBund
 	}
 
     if (has_top_layers) {
-    	double top_shell_thickness = top_solid_layers * layer_height;
-    	if (top_shell_thickness < top_solid_min_thickness) {
+    	double top_shell_thickness = top_shell_layers * layer_height;
+    	if (top_shell_thickness < top_shell_thickness) {
     		// top_solid_min_shell_thickness triggers even in case of normal layer height. Round the top_shell_thickness up
     		// to an integer multiply of layer_height.
-    		double n = ceil(top_solid_min_thickness / layer_height);
+    		double n = ceil(top_shell_thickness / layer_height);
     		top_shell_thickness = n * layer_height;
     	}
-    	double top_shell_thickness_minimum = std::max(top_solid_min_thickness, top_solid_layers * min_layer_height);
+    	double top_shell_thickness_minimum = std::max(top_shell_thickness, top_shell_layers * min_layer_height);
         out += (boost::format(_utf8(L("Top shell is %1% mm thick for layer height %2% mm."))) % top_shell_thickness % layer_height).str();
         if (top_shell_thickness_minimum < top_shell_thickness) {
         	out += " ";

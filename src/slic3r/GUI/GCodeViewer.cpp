@@ -2681,7 +2681,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
 
         const double max_z = print.objects()[0]->model_object()->get_model()->bounding_box().max(2);
         const PrintConfig& config = print.config();
-        if (extruders_count > 1 && config.wipe_tower && !config.complete_objects) {
+        if (extruders_count > 1 && config.enable_wipe_tower && !config.complete_objects) {
             const float depth = print.wipe_tower_data(extruders_count).depth;
             const float brim_width = print.wipe_tower_data(extruders_count).brim_width;
 

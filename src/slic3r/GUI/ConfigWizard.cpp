@@ -1476,8 +1476,8 @@ void PageDiameters::apply_custom_config(DynamicPrintConfig &config)
         config.set_key_value(key, new ConfigOptionFloatOrPercent(atof(buf), false));
     };
 
-    set_extrusion_width("support_material_extrusion_width", 0.35);
-    set_extrusion_width("support_transition_extrusion_width", 0.60); // BBS
+    set_extrusion_width("support_line_width", 0.35);
+    set_extrusion_width("support_transition_line_width", 0.60); // BBS
     set_extrusion_width("top_surface_line_width",		  0.40);
     set_extrusion_width("initial_layer_line_width",		  0.42);
 

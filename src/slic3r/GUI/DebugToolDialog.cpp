@@ -1612,7 +1612,7 @@ std::string DebugToolDialog::switch_ams_gcode(std::string t)
     dyn_config.set_key_value("layer_num",         new ConfigOptionInt(0));
     dyn_config.set_key_value("layer_z",           new ConfigOptionFloat(0.3));
     dyn_config.set_key_value("max_layer_z",       new ConfigOptionFloat(10.));
-    dyn_config.set_key_value("use_relative_e_distances", new ConfigOptionBool(1));
+    dyn_config.set_key_value("relative_e_axis", new ConfigOptionBool(1));
     dyn_config.set_key_value("toolchange_count", new ConfigOptionInt(1));
     dyn_config.set_key_value("fan_speed", new ConfigOptionInt(0));
     dyn_config.set_key_value("old_retract_length", new ConfigOptionFloat(2.));
@@ -1628,7 +1628,7 @@ std::string DebugToolDialog::switch_ams_gcode(std::string t)
     dyn_config.set_key_value("second_flush_volume", new ConfigOptionFloat(5.f));
 
     try {
-        std::string parsed_command = m_placeholder_parser.process(print_config.toolchange_gcode.value, std::stoi(t.c_str()), &dyn_config, &m_placeholder_parser_context);
+        std::string parsed_command = m_placeholder_parser.process(print_config.tool_change_gcode.value, std::stoi(t.c_str()), &dyn_config, &m_placeholder_parser_context);
         // config xyz coordinate mode
         std::string auto_home_command = cbox_ams_auto_home->GetValue() ? "G28 X\n" : "";
         parsed_command = "G90\n" + auto_home_command + parsed_command;

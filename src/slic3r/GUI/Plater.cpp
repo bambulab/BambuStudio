@@ -424,18 +424,18 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
                 const wxString& selection = boost::any_cast<wxString>(value);
                 PrinterTechnology printer_technology = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
 
-                auto support_material = selection == _("None") ? false : true;
-                new_conf.set_key_value("support_material", new ConfigOptionBool(support_material));
+                auto enable_support = selection == _("None") ? false : true;
+                new_conf.set_key_value("enable_support", new ConfigOptionBool(enable_support));
 
                 if (selection == _("Everywhere")) {
-                    new_conf.set_key_value("support_material_buildplate_only", new ConfigOptionBool(false));
+                    new_conf.set_key_value("support_on_build_plate_only", new ConfigOptionBool(false));
                     // BBS
 #if 0
                     if (printer_technology == ptFFF)
                         new_conf.set_key_value("support_material_auto", new ConfigOptionBool(true));
 #endif
                 } else if (selection == _("Support on build plate only")) {
-                    new_conf.set_key_value("support_material_buildplate_only", new ConfigOptionBool(true));
+                    new_conf.set_key_value("support_on_build_plate_only", new ConfigOptionBool(true));
                     // BBS
 #if 0
                     if (printer_technology == ptFFF)
@@ -443,7 +443,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
 #endif
                 } else if (selection == _("For support enforcers only")) {
                     assert(printer_technology == ptFFF);
-                    new_conf.set_key_value("support_material_buildplate_only", new ConfigOptionBool(false));
+                    new_conf.set_key_value("support_on_build_plate_only", new ConfigOptionBool(false));
                     // BBS
 #if 0
                     new_conf.set_key_value("support_material_auto", new ConfigOptionBool(false));
@@ -2162,15 +2162,15 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     , acc_(acc)
     //BBS: add bed_exclude_area
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
-        "printable_area", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "complete_objects", "duplicate_distance", "extruder_clearance_radius", "skirts", "skirt_distance",
+        "printable_area", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "complete_objects", "duplicate_distance", "extruder_clearance_radius", "skirt_loops", "skirt_distance",
         "brim_width", "brim_object_gap", "brim_type", "nozzle_diameter", "single_extruder_multi_material",
-        "wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_brim_width", "wiping_volume",
+        "enable_wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_brim_width", "wiping_volume",
         "extruder_colour", "filament_colour", "material_colour", "printable_height", "printer_model", "printer_technology",
         // These values are necessary to construct SlicingParameters by the Canvas3D variable layer height editor.
         "layer_height", "initial_layer_print_height", "min_layer_height", "max_layer_height",
-        "brim_width", "perimeters", "perimeter_extruder", "sparse_infill_density", "infill_extruder", "top_solid_layers", 
-        "support_material", "support_material_extruder", "support_material_interface_extruder", 
-        "support_material_contact_distance", "support_material_bottom_contact_distance", "raft_layers"
+        "brim_width", "wall_loops", "perimeter_extruder", "sparse_infill_density", "infill_extruder", "top_shell_layers", 
+        "enable_support", "support_material_extruder", "support_material_interface_extruder", 
+        "support_top_z_distance", "support_bottom_z_distance", "raft_layers"
         }))
     , sidebar(new Sidebar(q))
     , notification_manager(std::make_unique<NotificationManager>(q))
@@ -2627,15 +2627,15 @@ void Plater::setPrintSpeedTable(GlobalSpeedMap &printSpeedMap) {
         if (printSpeedMap.topSolidInfillSpeed > printSpeedMap.maxSpeed)
             printSpeedMap.maxSpeed = printSpeedMap.topSolidInfillSpeed;
     }
-    if (config.has("support_material_speed")) {
-        printSpeedMap.supportSpeed = config.opt_float("support_material_speed");
+    if (config.has("support_speed")) {
+        printSpeedMap.supportSpeed = config.opt_float("support_speed");
 
         if (printSpeedMap.supportSpeed > printSpeedMap.maxSpeed)
             printSpeedMap.maxSpeed = printSpeedMap.supportSpeed;
     }
 
     /*        "inner_wall_speed", "small_perimeter_speed", "outer_wall_speed", "sparse_infill_speed", "internal_solid_infill_speed",
-        "top_surface_speed", "support_material_speed", "support_material_xy_spacing", "support_material_interface_speed",
+        "top_surface_speed", "support_speed", "support_object_xy_distance", "support_interface_speed",
         "bridge_speed", "gap_infill_speed", "travel_speed", "initial_layer_speed"*/
 }
 
@@ -3855,9 +3855,9 @@ void Plater::priv::process_validation_warning(const std::string& warning) const
                 Tab* print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
                 assert(print_tab);
                 DynamicPrintConfig& config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-                config.set_key_value("support_material", new ConfigOptionBool(true));
+                config.set_key_value("enable_support", new ConfigOptionBool(true));
                 config.set_key_value("auto_support_type", new ConfigOptionEnum<SupportType>(stNormalAuto));
-                print_tab->on_value_change("support_material", config.opt_bool("support_material"));
+                print_tab->on_value_change("enable_support", config.opt_bool("enable_support"));
                 print_tab->on_value_change("support_material_auto", config.opt_bool("support_material_auto"));
                 return true;
             };
@@ -3926,7 +3926,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         }
         // In FDM mode, we need to reload the 3D scene because of the wipe tower preview box.
         // In SLA mode, we need to reload the 3D scene every time to show the support structures.
-        if (printer_technology == ptSLA || (printer_technology == ptFFF && config->opt_bool("wipe_tower")))
+        if (printer_technology == ptSLA || (printer_technology == ptFFF && config->opt_bool("enable_wipe_tower")))
             return_state |= UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE;
 
         notification_manager->set_slicing_progress_hidden();
@@ -8546,7 +8546,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             bed_shape_changed = true;
             update_scheduled = true;
         }
-        else if (boost::starts_with(opt_key, "wipe_tower") ||
+        else if (boost::starts_with(opt_key, "enable_wipe_tower") ||
             // opt_key == "filament_minimal_purge_on_wipe_tower" // ? #ys_FIXME
             opt_key == "single_extruder_multi_material" ||
             // BBS

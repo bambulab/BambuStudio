@@ -530,12 +530,12 @@ void Preset::set_visible_from_appconfig(const AppConfig &app_config)
 }
 
 static std::vector<std::string> s_Preset_print_options {
-    "layer_height", "initial_layer_print_height", "perimeters", "spiral_vase", "slice_closing_radius", "slicing_mode",
-    "top_solid_layers", "top_solid_min_thickness", "bottom_shell_layers", "bottom_shell_thickness",
-    "extra_perimeters", "ensure_vertical_shell_thickness", "reduce_crossing_wall", "thin_walls", "detect_overhang_wall",
-    "seam_position", "external_perimeters_first", "sparse_infill_density", "sparse_infill_pattern", "top_fill_pattern", "bottom_surface_pattern",
-    "infill_only_where_needed", "solid_infill_every_layers", "solid_infill_every_layers", "infill_angle",
-    "solid_infill_below_area", "reduce_infill_retraction", "infill_first",
+    "layer_height", "initial_layer_print_height", "wall_loops", "spiral_mode", "slice_closing_radius", "slicing_mode",
+    "top_shell_layers", "top_shell_thickness", "bottom_shell_layers", "bottom_shell_thickness",
+    "extra_perimeters", "ensure_vertical_shell_thickness", "reduce_crossing_wall", "detect_thin_wall", "detect_overhang_wall",
+    "seam_position", "external_perimeters_first", "sparse_infill_density", "sparse_infill_pattern", "top_surface_pattern", "bottom_surface_pattern",
+    "infill_only_where_needed", "infill_angle",
+    "minimum_sparse_infill_area", "reduce_infill_retraction", "infill_first",
     "ironing", "ironing_type", "ironing_flow", "ironing_speed", "ironing_spacing",
     "max_print_speed", "max_volumetric_speed", "max_travel_detour_distance",
     "fuzzy_skin", "fuzzy_skin_thickness", "fuzzy_skin_point_distance",
@@ -543,22 +543,22 @@ static std::vector<std::string> s_Preset_print_options {
     "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative",
 #endif /* HAS_PRESSURE_EQUALIZER */
     "inner_wall_speed", "small_perimeter_speed", "outer_wall_speed", "sparse_infill_speed", "internal_solid_infill_speed",
-    "top_surface_speed", "support_material_speed", "support_material_xy_spacing", "support_material_interface_speed",
+    "top_surface_speed", "support_speed", "support_object_xy_distance", "support_interface_speed",
     "bridge_speed", "gap_infill_speed", "gap_fill_enabled", "travel_speed", "travel_speed_z", "initial_layer_speed",
-    "initial_layer_acceleration", "default_acceleration", "skirts", "skirt_distance", "skirt_height", "draft_shield",
-    "min_skirt_length", "brim_width", "brim_object_gap", "brim_type", "support_material", "support_type", "support_material_threshold", "support_material_enforce_layers",
+    "initial_layer_acceleration", "default_acceleration", "skirt_loops", "skirt_distance", "skirt_height", "draft_shield",
+    "min_skirt_length", "brim_width", "brim_object_gap", "brim_type", "enable_support", "support_type", "support_threshold_angle", "support_material_enforce_layers",
     "raft_layers", "raft_first_layer_density", "raft_first_layer_expansion", "raft_contact_distance", "raft_expansion",
-    "support_material_pattern", "support_material_with_sheath", "support_material_spacing", "support_material_closing_radius", "support_material_style",
-    "independent_support_layer_height", "support_material_angle", "support_material_interface_layers", "support_material_bottom_interface_layers",
-    "support_material_interface_pattern", "support_material_interface_spacing", "support_material_interface_contact_loops", 
-    "support_material_contact_distance", "support_material_bottom_contact_distance",
-    "support_material_buildplate_only", "bridge_no_support", "thick_bridges", "complete_objects", "extruder_clearance_radius",
+    "support_base_pattern", "support_material_with_sheath", "support_base_pattern_spacing", "support_material_closing_radius", "support_material_style",
+    "independent_support_layer_height", "support_material_angle", "support_interface_top_layers", "support_interface_bottom_layers",
+    "support_material_pattern", "support_interface_spacing", "support_material_interface_contact_loops", 
+    "support_top_z_distance", "support_bottom_z_distance",
+    "support_on_build_plate_only", "bridge_no_support", "thick_bridges", "complete_objects", "extruder_clearance_radius",
     "gcode_label_objects", "filename_format", "post_process", "perimeter_extruder",
     "infill_extruder", "solid_infill_extruder", "support_material_extruder", "support_material_interface_extruder",
     "ooze_prevention", "standby_temperature_delta", "interface_shells", "extrusion_width", "initial_layer_line_width",
     "inner_wall_line_width", "outer_wall_line_width", "sparse_infill_line_width", "internal_solid_infill_line_width",
-    "top_surface_line_width", "support_material_extrusion_width", "infill_wall_overlap", "infill_anchor", "infill_anchor_max", "bridge_flow_ratio", "clip_multipart_objects",
-    "elefant_foot_compensation", "xy_size_compensation", "resolution", "wipe_tower", "wipe_tower_x", "wipe_tower_y",
+    "top_surface_line_width", "support_line_width", "infill_wall_overlap", "infill_anchor", "infill_anchor_max", "bridge_flow", "clip_multipart_objects",
+    "elefant_foot_compensation", "xy_size_compensation", "resolution", "enable_wipe_tower", "wipe_tower_x", "wipe_tower_y",
     "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_brim_width", "wipe_tower_bridging", "wiping_volume", "single_extruder_multi_material_priming", "mmu_segmented_region_max_width",
     "wipe_tower_no_sparse_layers", "compatible_printers", "compatible_printers_condition", "inherits",
     // BBS
@@ -566,7 +566,7 @@ static std::vector<std::string> s_Preset_print_options {
     "tree_support_branch_diameter_angle", "tree_support_collision_resolution", "tree_support_wall_count",
      "detect_narrow_internal_solid_infill",
      "gcode_add_line_number", "bbl_bed_temperature_gcode", "enable_arc_fitting", "infill_combination", "adaptive_layer_height",
-     "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod", "support_sharp_tails","remove_small_overhangs", "support_transition_speed","support_transition_extrusion_width",
+     "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod", "support_sharp_tails","remove_small_overhangs", "support_transition_speed","support_transition_line_width",
      "support_material_bottom_interface_spacing", "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed",
      "speed_initial_layer_infill", "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration"
 };
@@ -580,7 +580,7 @@ static std::vector<std::string> s_Preset_filament_options {
     "bed_temperature", "bed_temperature_initial_layer", "bed_type",
     //BBS:temperature_vitrification
     "temperature_vitrification", "fan_always_on", "cooling", "fan_min_speed",
-    "fan_max_speed", "bridge_fan_speed", "close_fan_the_first_x_layers", "full_fan_speed_layer", "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed",
+    "fan_max_speed", "bridge_fan_speed", "close_fan_the_first_x_layers", "full_fan_speed_layer", "fan_below_layer_time", "slow_down_below_layer_time", "min_print_speed",
     "filament_start_gcode", "filament_end_gcode",
     // Retract overrides
     "filament_retract_length", "filament_retract_lift", "filament_retract_speed", "filament_deretract_speed", "filament_retract_restart_extra", "filament_retract_before_travel",
@@ -601,10 +601,10 @@ static std::vector<std::string> s_Preset_machine_limits_options {
 
 static std::vector<std::string> s_Preset_printer_options {
     "printer_technology",
-    "printable_area", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "z_offset", "gcode_flavor", "use_relative_e_distances",
+    "printable_area", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "z_offset", "gcode_flavor", "relative_e_axis",
     //FIXME the print host keys are left here just for conversion from the Printer preset to Physical Printer preset.
     "print_host", "printhost_apikey", "printhost_cafile",
-    "single_extruder_multi_material", "start_gcode", "machine_end_gcode", "before_layer_change_gcode", "layer_change_gcode", "toolchange_gcode",
+    "single_extruder_multi_material", "machine_start_gcode", "machine_end_gcode", "before_layer_change_gcode", "layer_change_gcode", "tool_change_gcode",
     "between_objects_gcode", "printer_vendor", "printer_model", "printer_variant", "printable_height",
     "default_print_profile", "inherits",
     "silent_mode",

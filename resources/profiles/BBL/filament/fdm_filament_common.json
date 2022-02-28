@@ -114,7 +114,7 @@
     "min_print_speed": [
         "10"
     ],
-    "slowdown_below_layer_time": [
+    "slow_down_below_layer_time": [
         "8"
     ],
     "filament_start_gcode": [

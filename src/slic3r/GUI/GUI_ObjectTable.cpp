@@ -1535,7 +1535,7 @@ void ObjectGridTable::init_cols()
     m_col_data.push_back(col);
 
     //object/volume perimeters
-    col = new ObjectGridCol(coInt, "perimeters", L("Shell"), false, false, true, true, wxALIGN_RIGHT);
+    col = new ObjectGridCol(coInt, "wall_loops", L("Shell"), false, false, true, true, wxALIGN_RIGHT);
     m_col_data.push_back(col);
 
     //reset icon for perimeters
@@ -1551,7 +1551,7 @@ void ObjectGridTable::init_cols()
     m_col_data.push_back(col);
 
     //support material
-    col = new ObjectGridCol(coBool, "support_material", L("Support material"), true, false, true, true, wxALIGN_RIGHT);
+    col = new ObjectGridCol(coBool, "enable_support", L("Support material"), true, false, true, true, wxALIGN_RIGHT);
     m_col_data.push_back(col);
 
     //reset icon for support material
@@ -1634,11 +1634,11 @@ void ObjectGridTable::construct_object_configs ()
 
         object_grid->layer_height = *(get_object_config_value<ConfigOptionFloat>(global_config, object_grid->config, m_col_data[col_layer_height]->key));
         object_grid->ori_layer_height = *(global_config.option<ConfigOptionFloat>(m_col_data[col_layer_height]->key));
-        object_grid->perimeters = *(get_object_config_value<ConfigOptionInt>(global_config, object_grid->config, m_col_data[col_perimeters]->key));
+        object_grid->wall_loops = *(get_object_config_value<ConfigOptionInt>(global_config, object_grid->config, m_col_data[col_perimeters]->key));
         object_grid->ori_perimeters = *(global_config.option<ConfigOptionInt>(m_col_data[col_perimeters]->key));
         object_grid->sparse_infill_density = *(get_object_config_value<ConfigOptionPercent>(global_config, object_grid->config, m_col_data[col_fill_density]->key));
         object_grid->ori_fill_density = *(global_config.option<ConfigOptionPercent>(m_col_data[col_fill_density]->key));
-        object_grid->support_material = *(get_object_config_value<ConfigOptionBool>(global_config, object_grid->config, m_col_data[col_support_material]->key));
+        object_grid->enable_support = *(get_object_config_value<ConfigOptionBool>(global_config, object_grid->config, m_col_data[col_support_material]->key));
         object_grid->ori_support_material = *(global_config.option<ConfigOptionBool>(m_col_data[col_support_material]->key));
         object_grid->brim_type = *(get_object_config_value<ConfigOptionEnum<BrimType>>(global_config, object_grid->config, m_col_data[col_brim_type]->key));
         object_grid->ori_brim_type = *(global_config.option<ConfigOptionEnum<BrimType>>(m_col_data[col_brim_type]->key));
@@ -1683,12 +1683,12 @@ void ObjectGridTable::construct_object_configs ()
             volume_grid->ori_filaments = object_grid->filaments;
             volume_grid->layer_height = *(get_volume_config_value<ConfigOptionFloat>(global_config, object_grid->config, volume_grid->config, m_col_data[col_layer_height]->key));
             volume_grid->ori_layer_height = object_grid->layer_height;
-            volume_grid->perimeters = *(get_volume_config_value<ConfigOptionInt>(global_config, object_grid->config, volume_grid->config, m_col_data[col_perimeters]->key));
-            volume_grid->ori_perimeters = object_grid->perimeters;
+            volume_grid->wall_loops = *(get_volume_config_value<ConfigOptionInt>(global_config, object_grid->config, volume_grid->config, m_col_data[col_perimeters]->key));
+            volume_grid->ori_perimeters = object_grid->wall_loops;
             volume_grid->sparse_infill_density = *(get_volume_config_value<ConfigOptionPercent>(global_config, object_grid->config, volume_grid->config, m_col_data[col_fill_density]->key));
             volume_grid->ori_fill_density = object_grid->sparse_infill_density;
-            volume_grid->support_material = *(get_volume_config_value<ConfigOptionBool>(global_config, object_grid->config, volume_grid->config, m_col_data[col_support_material]->key));
-            volume_grid->ori_support_material = object_grid->support_material;
+            volume_grid->enable_support = *(get_volume_config_value<ConfigOptionBool>(global_config, object_grid->config, volume_grid->config, m_col_data[col_support_material]->key));
+            volume_grid->ori_support_material = object_grid->enable_support;
             volume_grid->brim_type = *(get_volume_config_value<ConfigOptionEnum<BrimType>>(global_config, object_grid->config, volume_grid->config, m_col_data[col_brim_type]->key));
             volume_grid->ori_brim_type = object_grid->brim_type;
             volume_grid->speed_perimeter = *(get_volume_config_value<ConfigOptionFloat>(global_config, object_grid->config, volume_grid->config, m_col_data[col_speed_perimeter]->key));
@@ -1729,11 +1729,11 @@ void ObjectGridTable::reload_object_data(ObjectGridRow* grid_row, const std::str
     if (category == ObjectGridTable::category_all) {
         grid_row->layer_height = *(get_object_config_value<ConfigOptionFloat>(global_config, grid_row->config, m_col_data[col_layer_height]->key));
         grid_row->ori_layer_height = *(global_config.option<ConfigOptionFloat>(m_col_data[col_layer_height]->key));
-        grid_row->perimeters = *(get_object_config_value<ConfigOptionInt>(global_config, grid_row->config, m_col_data[col_perimeters]->key));
+        grid_row->wall_loops = *(get_object_config_value<ConfigOptionInt>(global_config, grid_row->config, m_col_data[col_perimeters]->key));
         grid_row->ori_perimeters = *(global_config.option<ConfigOptionInt>(m_col_data[col_perimeters]->key));
         grid_row->sparse_infill_density = *(get_object_config_value<ConfigOptionPercent>(global_config, grid_row->config, m_col_data[col_fill_density]->key));
         grid_row->ori_fill_density = *(global_config.option<ConfigOptionPercent>(m_col_data[col_fill_density]->key));
-        grid_row->support_material = *(get_object_config_value<ConfigOptionBool>(global_config, grid_row->config, m_col_data[col_support_material]->key));
+        grid_row->enable_support = *(get_object_config_value<ConfigOptionBool>(global_config, grid_row->config, m_col_data[col_support_material]->key));
         grid_row->ori_support_material = *(global_config.option<ConfigOptionBool>(m_col_data[col_support_material]->key));
         grid_row->brim_type = *(get_object_config_value<ConfigOptionEnum<BrimType>>(global_config, grid_row->config, m_col_data[col_brim_type]->key));
         grid_row->ori_brim_type = *(global_config.option<ConfigOptionEnum<BrimType>>(m_col_data[col_brim_type]->key));
@@ -1745,7 +1745,7 @@ void ObjectGridTable::reload_object_data(ObjectGridRow* grid_row, const std::str
         grid_row->ori_layer_height = *(global_config.option<ConfigOptionFloat>(m_col_data[col_layer_height]->key));
     }
     else if (category == L("Shell")) {
-        grid_row->perimeters = *(get_object_config_value<ConfigOptionInt>(global_config, grid_row->config, m_col_data[col_perimeters]->key));
+        grid_row->wall_loops = *(get_object_config_value<ConfigOptionInt>(global_config, grid_row->config, m_col_data[col_perimeters]->key));
         grid_row->ori_perimeters = *(global_config.option<ConfigOptionInt>(m_col_data[col_perimeters]->key));
     }
     else if (category == L("Infill")) {
@@ -1753,7 +1753,7 @@ void ObjectGridTable::reload_object_data(ObjectGridRow* grid_row, const std::str
         grid_row->ori_fill_density = *(global_config.option<ConfigOptionPercent>(m_col_data[col_fill_density]->key));
     }
     else if (category == L("Support material")) {
-        grid_row->support_material = *(get_object_config_value<ConfigOptionBool>(global_config, grid_row->config, m_col_data[col_support_material]->key));
+        grid_row->enable_support = *(get_object_config_value<ConfigOptionBool>(global_config, grid_row->config, m_col_data[col_support_material]->key));
         grid_row->ori_support_material = *(global_config.option<ConfigOptionBool>(m_col_data[col_support_material]->key));
     }
     else if (category == L("Bed adhension")) {
@@ -1771,12 +1771,12 @@ void ObjectGridTable::reload_part_data(ObjectGridRow* volume_row, ObjectGridRow*
     if (category == ObjectGridTable::category_all) {
         volume_row->layer_height = *(get_volume_config_value<ConfigOptionFloat>(global_config, object_row->config, volume_row->config, m_col_data[col_layer_height]->key));
         volume_row->ori_layer_height = object_row->layer_height;
-        volume_row->perimeters = *(get_volume_config_value<ConfigOptionInt>(global_config, object_row->config, volume_row->config, m_col_data[col_perimeters]->key));
-        volume_row->ori_perimeters = object_row->perimeters;
+        volume_row->wall_loops = *(get_volume_config_value<ConfigOptionInt>(global_config, object_row->config, volume_row->config, m_col_data[col_perimeters]->key));
+        volume_row->ori_perimeters = object_row->wall_loops;
         volume_row->sparse_infill_density = *(get_volume_config_value<ConfigOptionPercent>(global_config, object_row->config, volume_row->config, m_col_data[col_fill_density]->key));
         volume_row->ori_fill_density = object_row->sparse_infill_density;
-        volume_row->support_material = *(get_volume_config_value<ConfigOptionBool>(global_config, object_row->config, volume_row->config, m_col_data[col_support_material]->key));
-        volume_row->ori_support_material = object_row->support_material;
+        volume_row->enable_support = *(get_volume_config_value<ConfigOptionBool>(global_config, object_row->config, volume_row->config, m_col_data[col_support_material]->key));
+        volume_row->ori_support_material = object_row->enable_support;
         volume_row->brim_type = *(get_volume_config_value<ConfigOptionEnum<BrimType>>(global_config, object_row->config, volume_row->config, m_col_data[col_brim_type]->key));
         volume_row->ori_brim_type = object_row->brim_type;
         volume_row->speed_perimeter = *(get_volume_config_value<ConfigOptionFloat>(global_config, object_row->config, volume_row->config, m_col_data[col_speed_perimeter]->key));
@@ -1790,11 +1790,11 @@ void ObjectGridTable::reload_part_data(ObjectGridRow* volume_row, ObjectGridRow*
         volume_row->ori_layer_height = object_row->layer_height;
     }
     else if (category == L("Shell")) {
-        volume_row->perimeters = *(get_volume_config_value<ConfigOptionInt>(global_config, object_row->config, volume_row->config, m_col_data[col_perimeters]->key));
-        if (volume_row->perimeters == object_row->perimeters) {
+        volume_row->wall_loops = *(get_volume_config_value<ConfigOptionInt>(global_config, object_row->config, volume_row->config, m_col_data[col_perimeters]->key));
+        if (volume_row->wall_loops == object_row->wall_loops) {
             volume_row->config->erase(m_col_data[col_perimeters]->key);
         }
-        volume_row->ori_perimeters = object_row->perimeters;
+        volume_row->ori_perimeters = object_row->wall_loops;
     }
     else if (category == L("Infill")) {
         volume_row->sparse_infill_density = *(get_volume_config_value<ConfigOptionPercent>(global_config, object_row->config, volume_row->config, m_col_data[col_fill_density]->key));
@@ -1804,11 +1804,11 @@ void ObjectGridTable::reload_part_data(ObjectGridRow* volume_row, ObjectGridRow*
         volume_row->ori_fill_density = object_row->sparse_infill_density;
     }
     else if (category == L("Support material")) {
-        volume_row->support_material = *(get_volume_config_value<ConfigOptionBool>(global_config, object_row->config, volume_row->config, m_col_data[col_support_material]->key));
-        if (volume_row->support_material == object_row->support_material) {
+        volume_row->enable_support = *(get_volume_config_value<ConfigOptionBool>(global_config, object_row->config, volume_row->config, m_col_data[col_support_material]->key));
+        if (volume_row->enable_support == object_row->enable_support) {
             volume_row->config->erase(m_col_data[col_support_material]->key);
         }
-        volume_row->ori_support_material = object_row->support_material;
+        volume_row->ori_support_material = object_row->enable_support;
     }
     else if (category == L("Bed adhension")) {
         volume_row->brim_type = *(get_volume_config_value<ConfigOptionEnum<BrimType>>(global_config, object_row->config, volume_row->config, m_col_data[col_brim_type]->key));

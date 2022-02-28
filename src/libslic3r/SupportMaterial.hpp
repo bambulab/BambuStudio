@@ -158,8 +158,8 @@ public:
 	// Is raft enabled?
 	bool 		has_raft() 					const { return m_slicing_params.has_raft(); }
 	// Has any support?
-	bool 		has_support()				const { return m_object_config->support_material.value || m_object_config->support_material_enforce_layers; }
-	bool 		build_plate_only() 			const { return this->has_support() && m_object_config->support_material_buildplate_only.value; }
+	bool 		has_support()				const { return m_object_config->enable_support.value || m_object_config->support_material_enforce_layers; }
+	bool 		build_plate_only() 			const { return this->has_support() && m_object_config->support_on_build_plate_only.value; }
 	// BBS
 	bool 		synchronize_layers()		const { return m_slicing_params.soluble_interface && !m_object_config->independent_support_layer_height.value; }
 	bool 		has_contact_loops() 		const { return m_object_config->support_material_interface_contact_loops.value; }

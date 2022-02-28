@@ -1190,7 +1190,7 @@ void Choice::set_value(const boost::any& value, bool change_event)
     case coEnums: {
 		int val = boost::any_cast<int>(value);
 
-		if (m_opt_id == "top_fill_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "sparse_infill_pattern")
+		if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "sparse_infill_pattern")
 		{
 			std::string key;
 			const t_config_enum_values& map_names = ConfigOptionEnum<InfillPattern>::get_enum_values();
@@ -1269,7 +1269,7 @@ boost::any& Choice::get_value()
     // BBS
 	if (m_opt.type == coEnum || m_opt.type == coEnums)
 	{
-		if (m_opt_id == "top_fill_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "sparse_infill_pattern") {
+		if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "sparse_infill_pattern") {
 			const std::string& key = m_opt.enum_values[field->GetSelection()];
 			m_value = int(ConfigOptionEnum<InfillPattern>::get_enum_values().at(key));
 		}

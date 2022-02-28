@@ -2643,8 +2643,8 @@ double findMaxSpeed(ModelObject* object) {
         if (objectKey == "top_surface_speed") {
             objMaxSpeed = std::max(object->config.get().get_abs_value("top_surface_speed", Model::printSpeedMap.infillSpeed), objMaxSpeed);
         }
-        if (objectKey == "support_material_speed")
-            objMaxSpeed = std::max(object->config.opt_float("support_material_speed"), objMaxSpeed);
+        if (objectKey == "support_speed")
+            objMaxSpeed = std::max(object->config.opt_float("support_speed"), objMaxSpeed);
     }
     return objMaxSpeed;
 }

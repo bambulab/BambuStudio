@@ -64,7 +64,7 @@ private:
     GCodeConfig *m_config;
     // Print-wide global ID of this extruder.
     unsigned int m_id;
-    // Current state of the extruder axis, may be resetted if use_relative_e_distances.
+    // Current state of the extruder axis, may be resetted if relative_e_axis.
     double       m_E;
     // Current state of the extruder tachometer, used to output the extruded_volume() and used_filament() statistics.
     double       m_absolute_E;

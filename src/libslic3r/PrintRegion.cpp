@@ -58,7 +58,7 @@ coordf_t PrintRegion::nozzle_dmr_avg(const PrintConfig &print_config) const
 
 coordf_t PrintRegion::bridging_height_avg(const PrintConfig &print_config) const
 {
-    return this->nozzle_dmr_avg(print_config) * sqrt(m_config.bridge_flow_ratio.value);
+    return this->nozzle_dmr_avg(print_config) * sqrt(m_config.bridge_flow.value);
 }
 
 void PrintRegion::collect_object_printing_extruders(const PrintConfig &print_config, const PrintRegionConfig &region_config, const bool has_brim, std::vector<unsigned int> &object_extruders)
@@ -69,11 +69,11 @@ void PrintRegion::collect_object_printing_extruders(const PrintConfig &print_con
     	int i = std::max(0, extruder_id - 1);
         object_extruders.emplace_back((i >= num_extruders) ? 0 : i);
     };
-    if (region_config.perimeters.value > 0 || has_brim)
+    if (region_config.wall_loops.value > 0 || has_brim)
     	emplace_extruder(region_config.perimeter_extruder);
     if (region_config.sparse_infill_density.value > 0)
     	emplace_extruder(region_config.infill_extruder);
-    if (region_config.top_solid_layers.value > 0 || region_config.bottom_shell_layers.value > 0)
+    if (region_config.top_shell_layers.value > 0 || region_config.bottom_shell_layers.value > 0)
     	emplace_extruder(region_config.solid_infill_extruder);
 }
 

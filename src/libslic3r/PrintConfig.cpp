@@ -475,8 +475,8 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInts { 100 });
 
-    def = this->add("bridge_flow_ratio", coFloat);
-    def->label = L("Bridge flow rate");
+    def = this->add("bridge_flow", coFloat);
+    def->label = L("Bridge flow");
     def->category = L("Advanced");
     def->tooltip = L("This factor affects the amount of plastic for bridging. "
                    "You can decrease it slightly to pull the extrudates and prevent sagging, "
@@ -738,7 +738,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
-    auto def_top_fill_pattern = def = this->add("top_fill_pattern", coEnum);
+    auto def_top_fill_pattern = def = this->add("top_surface_pattern", coEnum);
     def->label = L("Top surface pattern");
     def->category = L("Strength");
     def->tooltip = L("Fill pattern for top infill. This only affects the top visible layer, and not its adjacent solid shells.");
@@ -758,7 +758,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Hilbert Curve"));
     def->enum_labels.push_back(L("Archimedean Chords"));
     def->enum_labels.push_back(L("Octagram Spiral"));
-    // solid_fill_pattern is an obsolete equivalent to top_fill_pattern/bottom_surface_pattern.
+    // solid_fill_pattern is an obsolete equivalent to top_surface_pattern/bottom_surface_pattern.
     def->aliases = { "solid_fill_pattern", "external_fill_pattern" };
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipMonotonic));
 
@@ -1932,7 +1932,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(60));
 
-    def = this->add("perimeters", coInt);
+    def = this->add("wall_loops", coInt);
     def->label = L("Wall loops");
     def->category = L("Strength");
     def->tooltip = L("This option sets the number of perimeters to generate for each layer. "
@@ -2212,7 +2212,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionEnum<DraftShield>(dsDisabled));
 
-    def = this->add("skirts", coInt);
+    def = this->add("skirt_loops", coInt);
     def->label = L("Skirt loops");
     def->full_label = L("Skirt Loops");
     def->tooltip = L("Number of loops for the skirt. If the Minimum Extrusion Length option is set, "
@@ -2223,7 +2223,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInt(1));
 
-    def = this->add("slowdown_below_layer_time", coInts);
+    def = this->add("slow_down_below_layer_time", coInts);
     def->label = L("Slow down if layer print time is below");
     def->tooltip = L("If layer print time is estimated below this number of seconds, print moves "
                    "speed will be scaled down to extend duration to this value.");
@@ -2245,7 +2245,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(15, false));
 
-    def = this->add("solid_infill_below_area", coFloat);
+    def = this->add("minimum_sparse_infill_area", coFloat);
     def->label = L("Minimum sparse infill threshold");
     def->category = L("Strength");
     def->tooltip = L("Force solid infill for regions having a smaller area than the specified threshold.");
@@ -2261,19 +2261,6 @@ void PrintConfigDef::init_fff_params()
     def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(1));
-
-    def = this->add("solid_infill_every_layers", coInt);
-    def->label = L("Solid infill every");
-    def->category = L("Infill");
-    def->tooltip = L("This feature allows to force a solid layer every given number of layers. "
-                   "Zero to disable. You can set this to any value (for example 9999); "
-                   "Slic3r will automatically choose the maximum possible number of layers "
-                   "to combine according to nozzle diameter and layer height.");
-    def->sidetext = L("layers");
-    def->min = 0;
-    //BBS
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("internal_solid_infill_line_width", coFloatOrPercent);
     def->label = L("Internal solid infill");
@@ -2305,7 +2292,7 @@ void PrintConfigDef::init_fff_params()
     //BBS: add category as Shell
     def->category = L("Shell");
     def->tooltip = L("Number of solid layers to generate on top and bottom surfaces.");
-    def->shortcut.push_back("top_solid_layers");
+    def->shortcut.push_back("top_shell_layers");
     def->shortcut.push_back("bottom_shell_layers");
     def->min = 0;
 
@@ -2313,11 +2300,11 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Minimum thickness of a top / bottom shell");
     //BBS: add category as Shell
     def->tooltip = L("Minimum thickness of a top / bottom shell");
-    def->shortcut.push_back("top_solid_min_thickness");
+    def->shortcut.push_back("top_shell_thickness");
     def->shortcut.push_back("bottom_shell_thickness");
     def->min = 0;
 
-    def = this->add("spiral_vase", coBool);
+    def = this->add("spiral_mode", coBool);
     def->label = L("Spiral vase");
     def->tooltip = L("This feature will raise Z gradually while printing a single-walled object "
                    "in order to remove any visible seam. This option requires a single perimeter, "
@@ -2338,7 +2325,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInt(-5));
 
-    def = this->add("start_gcode", coString);
+    def = this->add("machine_start_gcode", coString);
     def->label = L("Start G-code");
     def->tooltip = L("This start procedure is inserted at the beginning, after bed has reached "
                    "the target temperature and extruder just started heating, and before extruder "
@@ -2414,7 +2401,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SlicingMode>(SlicingMode::Regular));
 
-    def = this->add("support_material", coBool);
+    def = this->add("enable_support", coBool);
     //BBS: remove material behind support
     def->label = L("Enable support");
     def->category = L("Support material");
@@ -2440,7 +2427,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<SupportType>(stTreeAuto));
 
-    def = this->add("support_material_xy_spacing", coFloatOrPercent);
+    def = this->add("support_object_xy_distance", coFloatOrPercent);
     def->label = L("XY separation between an object and its support");
     def->category = L("Support material");
     def->tooltip = L("XY separation between an object and its support. If expressed as percentage "
@@ -2464,7 +2451,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloat(0));
 
-    def = this->add("support_material_buildplate_only", coBool);
+    def = this->add("support_on_build_plate_only", coBool);
     def->label = L("On build plate only");
     def->category = L("Support material");
     def->tooltip = L("Only create support if it lies on a build plate. Don't create support on a print.");
@@ -2473,7 +2460,7 @@ void PrintConfigDef::init_fff_params()
 
     // BBS: change type to common float.
     // It may be rounded to mulitple layer height when independent_support_layer_height is false.
-    def = this->add("support_material_contact_distance", coFloat);
+    def = this->add("support_top_z_distance", coFloat);
     //def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
     def->label = L("Top Z distance");
     def->category = L("Support material");
@@ -2495,12 +2482,12 @@ void PrintConfigDef::init_fff_params()
 
     // BBS: change type to common float.
     // It may be rounded to mulitple layer height when independent_support_layer_height is false.
-    def = this->add("support_material_bottom_contact_distance", coFloat);
+    def = this->add("support_bottom_z_distance", coFloat);
     //def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
     def->label = L("Bottom contact Z distance");
     def->category = L("Support material");
     def->tooltip = L("The vertical distance between the object top surface and the support material interface. "
-                   "If set to zero, support_material_contact_distance will be used for both top and bottom contact Z distances.");
+                   "If set to zero, support_top_z_distance will be used for both top and bottom contact Z distances.");
     def->sidetext = L("mm");
 //    def->min = 0;
 #if 0
@@ -2539,7 +2526,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInt(1));
 
-    def = this->add("support_material_extrusion_width", coFloatOrPercent);
+    def = this->add("support_line_width", coFloatOrPercent);
     def->label = L("Support");
     def->category = L("Extrusion Width");
     def->tooltip = L("Set this to a non-zero value to set a manual extrusion width for support material. "
@@ -2551,7 +2538,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
-    def = this->add("support_transition_extrusion_width", coFloatOrPercent);
+    def = this->add("support_transition_line_width", coFloatOrPercent);
     def->label = L("Support transition");
     def->category = L("Extrusion Width");
     def->tooltip = L("Set this to a non-zero value to set a manual extrusion width for support transition. "
@@ -2580,7 +2567,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInt(1));
 
-    auto support_material_interface_layers = def = this->add("support_material_interface_layers", coInt);
+    auto support_interface_top_layers = def = this->add("support_interface_top_layers", coInt);
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = L("Top interface layers");
     def->category = L("Support material");
@@ -2598,19 +2585,19 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(3));
 
-    def = this->add("support_material_bottom_interface_layers", coInt);
+    def = this->add("support_interface_bottom_layers", coInt);
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = L("Bottom interface layers");
     def->category = L("Support material");
     def->tooltip = L("Number of interface layers to insert between the object(s) and support material. "
-                     "Set to -1 to use support_material_interface_layers");
+                     "Set to -1 to use support_interface_top_layers");
     def->sidetext = L("layers");
     def->min = -1;
     def->enum_values.push_back("-1");
-    append(def->enum_values, support_material_interface_layers->enum_values);
+    append(def->enum_values, support_interface_top_layers->enum_values);
     //TRN To be shown in Print Settings "Bottom interface layers". Have to be as short as possible
     def->enum_labels.push_back(L("Same as top"));
-    append(def->enum_labels, support_material_interface_layers->enum_labels);
+    append(def->enum_labels, support_interface_top_layers->enum_labels);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(0));
 
@@ -2624,7 +2611,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(2));
 
-    def = this->add("support_material_interface_spacing", coFloat);
+    def = this->add("support_interface_spacing", coFloat);
     def->label = L("Top interface spacing");
     def->category = L("Support material");
     def->tooltip = L("Spacing between interface lines. Set zero to get a solid interface.");
@@ -2643,13 +2630,13 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.5));
 
-    def = this->add("support_material_interface_speed", coFloatOrPercent);
+    def = this->add("support_interface_speed", coFloatOrPercent);
     def->label = L("Support interface");
     def->category = L("Support material");
     def->tooltip = L("Speed for printing support material interface layers. If expressed as percentage "
                    "(for example 50%) it will be calculated over support material speed.");
     def->sidetext = L("mm/s or %");
-    def->ratio_over = "support_material_speed";
+    def->ratio_over = "support_speed";
     def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
@@ -2660,12 +2647,12 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Speed for printing support transition layers in which support infill direction is changed."
         "If expressed as percentage (for example 50%) it will be calculated over support material speed.");
     def->sidetext = L("mm/s or %");
-    def->ratio_over = "support_material_speed";
+    def->ratio_over = "support_speed";
     def->min = 0;
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloatOrPercent(50, true));
 
-    def = this->add("support_material_pattern", coEnum);
+    def = this->add("support_base_pattern", coEnum);
     def->label = L("Base pattern");
     def->category = L("Support material");
     def->tooltip = L("Pattern used to generate support material.");
@@ -2679,7 +2666,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SupportMaterialPattern>(smpRectilinear));
 
-    def = this->add("support_material_interface_pattern", coEnum);
+    def = this->add("support_material_pattern", coEnum);
     def->label = L("Interface pattern");
     def->category = L("Support material");
     def->tooltip = L("Pattern used to generate support material interface. "
@@ -2695,7 +2682,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SupportMaterialInterfacePattern>(smipRectilinear));
 
-    def = this->add("support_material_spacing", coFloat);
+    def = this->add("support_base_pattern_spacing", coFloat);
     def->label = L("Base pattern spacing");
     def->category = L("Support material");
     def->tooltip = L("Spacing between support material lines.");
@@ -2704,7 +2691,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(2.5));
 
-    def = this->add("support_material_speed", coFloat);
+    def = this->add("support_speed", coFloat);
     def->label = L("Support");
     def->category = L("Support material");
     def->tooltip = L("Speed for printing support material.");
@@ -2737,7 +2724,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("support_material_threshold", coInt);
+    def = this->add("support_threshold_angle", coInt);
     def->label = L("Threshold angle");
     def->category = L("Support material");
     def->tooltip = L("Support material will not be generated for overhangs whose slope angle "
@@ -2856,7 +2843,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
-    def = this->add("thin_walls", coBool);
+    def = this->add("detect_thin_wall", coBool);
     def->label = L("Detect thin wall");
     def->category = L("Strength");
     def->tooltip = L("Detect single-width walls (parts where two extrusions don't fit and we need "
@@ -2865,7 +2852,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(true));
 
-    def = this->add("toolchange_gcode", coString);
+    def = this->add("tool_change_gcode", coString);
     def->label = L("Tool change G-code");
     def->tooltip = L("This custom code is inserted before every toolchange. Placeholder variables for all BambuStudio settings "
                      "as well as {toolchange_z}, {previous_extruder} and {next_extruder} can be used. When a tool-changing command "
@@ -2905,7 +2892,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(15, false));
 
-    def = this->add("top_solid_layers", coInt);
+    def = this->add("top_shell_layers", coInt);
     def->label = L("Top shell layers");
     def->category = L("Strength");
     def->tooltip = L("Number of solid layers to generate on top surfaces.");
@@ -2913,10 +2900,10 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionInt(3));
 
-    def = this->add("top_solid_min_thickness", coFloat);
+    def = this->add("top_shell_thickness", coFloat);
     def->label = L("Top shell thickness");
     def->category = L("Strength");
-    def->tooltip = L("The number of top solid layers is increased above top_solid_layers if necessary to satisfy "
+    def->tooltip = L("The number of top solid layers is increased above top_shell_layers if necessary to satisfy "
     				 "minimum thickness of top shell."
     				 " This is useful to prevent pillowing effect when printing with variable layer height.");
     def->full_label = L("Minimum top shell thickness");
@@ -2942,13 +2929,13 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
 
-    def = this->add("use_relative_e_distances", coBool);
+    def = this->add("relative_e_axis", coBool);
     def->label = L("Use relative E distances");
     def->tooltip = L("If your firmware requires relative E values, check this, "
                    "otherwise leave it unchecked. Most firmwares use absolute values.");
     //BBS
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("wipe", coBools);
     def->label = L("Wipe while retracting");
@@ -2967,7 +2954,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats { 5. });
 
-    def = this->add("wipe_tower", coBool);
+    def = this->add("enable_wipe_tower", coBool);
     def->label = L("Enable");
     def->tooltip = L("Multi material printers may need to prime or purge extruders on tool changes. "
                    "Extrude the excess material into the wipe tower.");
@@ -3876,7 +3863,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         oss << "0x0," << p.value(0) << "x0," << p.value(0) << "x" << p.value(1) << ",0x" << p.value(1);
         value = oss.str();
     }
-    else if (opt_key == "support_material_pattern" && value == "pillars") {
+    else if (opt_key == "support_base_pattern" && value == "pillars") {
         // Slic3r PE does not support the pillars. They never worked well.
         value = "rectilinear";
     } else if (opt_key == "skirt_height" && value == "-1") {
@@ -3923,7 +3910,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     };
 
     // In BambuStudio 2.3.0-alpha0 the "monotonous" infill was introduced, which was later renamed to "monotonic".
-    if (value == "monotonous" && (opt_key == "top_fill_pattern" || opt_key == "bottom_surface_pattern" || opt_key == "sparse_infill_pattern"))
+    if (value == "monotonous" && (opt_key == "top_surface_pattern" || opt_key == "bottom_surface_pattern" || opt_key == "sparse_infill_pattern"))
         value = "monotonic";
 
     if (ignore.find(opt_key) != ignore.end()) {
@@ -4004,7 +3991,7 @@ void DynamicPrintConfig::normalize_fdm()
     if (!this->has("solid_infill_extruder") && this->has("infill_extruder"))
         this->option("solid_infill_extruder", true)->setInt(this->option("infill_extruder")->getInt());
 
-    if (this->has("spiral_vase") && this->opt<ConfigOptionBool>("spiral_vase", true)->value) {
+    if (this->has("spiral_mode") && this->opt<ConfigOptionBool>("spiral_mode", true)->value) {
         {
             // this should be actually done only on the spiral layers instead of all
             auto* opt = this->opt<ConfigOptionBools>("retract_layer_change", true);
@@ -4014,8 +4001,8 @@ void DynamicPrintConfig::normalize_fdm()
             opt_n->values.assign(opt_n->values.size(), false);  // Set all values to false.
         }
         {
-            this->opt<ConfigOptionInt>("perimeters", true)->value       = 1;
-            this->opt<ConfigOptionInt>("top_solid_layers", true)->value = 0;
+            this->opt<ConfigOptionInt>("wall_loops", true)->value       = 1;
+            this->opt<ConfigOptionInt>("top_shell_layers", true)->value = 0;
             this->opt<ConfigOptionPercent>("sparse_infill_density", true)->value = 0;
         }
     }
@@ -4106,11 +4093,11 @@ std::string validate(const FullPrintConfig &cfg)
             return "Invalid value for --nozzle-diameter";
 
     // --perimeters
-    if (cfg.perimeters.value < 0)
-        return "Invalid value for --perimeters";
+    if (cfg.wall_loops.value < 0)
+        return "Invalid value for --wall_loops";
 
     // --solid-layers
-    if (cfg.top_solid_layers < 0)
+    if (cfg.top_shell_layers < 0)
         return "Invalid value for --top-solid-layers";
     if (cfg.bottom_shell_layers < 0)
         return "Invalid value for --bottom-solid-layers";
@@ -4124,7 +4111,7 @@ std::string validate(const FullPrintConfig &cfg)
         return "Invalid value for --fill-pattern";
 
     // --top-fill-pattern
-    if (! print_config_def.get("top_fill_pattern")->has_enum_value(cfg.top_fill_pattern.serialize()))
+    if (! print_config_def.get("top_surface_pattern")->has_enum_value(cfg.top_surface_pattern.serialize()))
         return "Invalid value for --top-fill-pattern";
 
     // --bottom-fill-pattern
@@ -4133,7 +4120,7 @@ std::string validate(const FullPrintConfig &cfg)
 
     // --fill-density
     if (fabs(cfg.sparse_infill_density.value - 100.) < EPSILON &&
-        ! print_config_def.get("top_fill_pattern")->has_enum_value(cfg.sparse_infill_pattern.serialize()))
+        ! print_config_def.get("top_surface_pattern")->has_enum_value(cfg.sparse_infill_pattern.serialize()))
         return "The selected fill pattern is not supposed to work at 100% density";
 
     // --skirt-height
@@ -4141,7 +4128,7 @@ std::string validate(const FullPrintConfig &cfg)
         return "Invalid value for --skirt-height";
 
     // --bridge-flow-ratio
-    if (cfg.bridge_flow_ratio <= 0)
+    if (cfg.bridge_flow <= 0)
         return "Invalid value for --bridge-flow-ratio";
 
     // extruder clearance
@@ -4169,18 +4156,18 @@ std::string validate(const FullPrintConfig &cfg)
     //    return "Invalid zero value for --default-acceleration when using other acceleration settings";
 
     // --spiral-vase
-    if (cfg.spiral_vase) {
+    if (cfg.spiral_mode) {
         // Note that we might want to have more than one perimeter on the bottom
         // solid layers.
-        if (cfg.perimeters > 1)
+        if (cfg.wall_loops > 1)
             return "Can't make more than one perimeter when spiral vase mode is enabled";
-        else if (cfg.perimeters < 1)
+        else if (cfg.wall_loops < 1)
             return "Can't make less than one perimeter when spiral vase mode is enabled";
         if (cfg.sparse_infill_density > 0)
             return "Spiral vase mode can only print hollow objects, so you need to set Fill density to 0";
-        if (cfg.top_solid_layers > 0)
+        if (cfg.top_shell_layers > 0)
             return "Spiral vase mode is not compatible with top solid layers";
-        if (cfg.support_material || cfg.support_material_enforce_layers > 0)
+        if (cfg.enable_support || cfg.support_material_enforce_layers > 0)
             return "Spiral vase mode is not compatible with support material";
     }
 
@@ -4195,8 +4182,8 @@ std::string validate(const FullPrintConfig &cfg)
             "sparse_infill_line_width",
             "internal_solid_infill_line_width",
             "top_surface_line_width",
-            "support_material_extrusion_width",
-            "support_transition_extrusion_width",
+            "support_line_width",
+            "support_transition_line_width",
             "initial_layer_line_width" };
         for (size_t i = 0; i < sizeof(widths) / sizeof(widths[i]); ++ i) {
             std::string key(widths[i]);
