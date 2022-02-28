@@ -15,6 +15,7 @@
 #include "Widgets/RadioBox.hpp"
 #include "Widgets/TextInput.hpp"
 #include <wx/listimpl.cpp>
+#include <map>
 
 namespace Slic3r { namespace GUI {
 
@@ -543,7 +544,7 @@ void PreferencesDialog::create_debug_page()
     
     m_developer_mode_def = app_config->get("developer_mode");
     m_backup_interval_def = app_config->get("backup_interval");
-
+    m_iot_environment_def= app_config->get("iot_environment");
 
     wxBoxSizer *bSizer;
     bSizer = new wxBoxSizer(wxVERTICAL);
@@ -556,13 +557,13 @@ void PreferencesDialog::create_debug_page()
     auto radio2 = create_item_radiobox(_L("QA  host: api-qa.bambu-lab.com/v1"), m_panel_debug, "", 50, 1, wxString("qa_host"));
     auto radio3 = create_item_radiobox(_L("PRE host: api-pre.bambu-lab.com/v1"), m_panel_debug, "", 50, 1, wxString("pre_host"));
 
-    std::string sel = app_config->get("iot_environment");
+   
 
-    if (sel == "0") {
+    if (m_iot_environment_def == "0") {
         on_select_radio(wxString("dev_host"));
-    } else if (sel == "1") {
+    } else if (m_iot_environment_def == "1") {
         on_select_radio(wxString("qa_host"));
-    } else if (sel == "2") {
+    } else if (m_iot_environment_def == "2") {
         on_select_radio(wxString("pre_host"));
     }
 
@@ -581,12 +582,11 @@ void PreferencesDialog::create_debug_page()
                 m_backup_interval_textinput->GetTextCtrl()->SetValue(m_backup_interval_def); 
             }
 
-            auto sel = app_config->get("iot_environment");
-            if (sel == "0") {
+            if (m_iot_environment_def == "0") {
                     on_select_radio(wxString("dev_host"));
-            } else if (sel == "1") {
+            } else if (m_iot_environment_def == "1") {
                     on_select_radio(wxString("qa_host"));
-            } else if (sel == "2") {
+            } else if (m_iot_environment_def == "2") {
                     on_select_radio(wxString("pre_host"));
             }
 
@@ -596,8 +596,13 @@ void PreferencesDialog::create_debug_page()
         case wxID_YES: {
             // bbs  domain changed
             auto            param   = get_select_radio(1);
-            std::string old_sel = app_config->get("iot_environment");
-            if (old_sel != app_config->get("iot_environment")) {
+            
+            std::map<wxString, wxString> iot_environment_map;
+            iot_environment_map["dev_host"]  = "0";
+            iot_environment_map["qa_host"]   = "1";
+            iot_environment_map["pre_host"]  = "2";
+
+            if (iot_environment_map[param] != m_iot_environment_def) {
                 AccountManager* manager = wxGetApp().getAccountManager();
                 if (param == "dev_host") {
                     app_config->set("iot_environment", "0");
