@@ -132,7 +132,7 @@ void ParamsPanel::create_layout()
 
     m_left_sizer = new wxBoxSizer( wxVERTICAL );
     // BBS: new layout
-    m_left_sizer->SetMinSize( wxSize( 30 * em_unit(this), -1 ) );
+    m_left_sizer->SetMinSize( wxSize( 40 * em_unit(this), -1 ) );
 
     m_mode_sizer = new wxBoxSizer( wxHORIZONTAL );
     m_mode_sizer->AddSpacer(22);
@@ -286,7 +286,7 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
     // BBS: open/close tab
     for (auto t : { m_tab_print , m_tab_filament, m_tab_printer }) {
         dynamic_cast<Tab*> (t)->set_expanded(tab == t);
-        m_left_sizer->GetItem(t)->SetProportion(tab == t ? 1 : 0);
+        //m_left_sizer->GetItem(t)->SetProportion(tab == t ? 1 : 0);
     }
     m_left_sizer->Layout();
 }
@@ -324,7 +324,7 @@ void ParamsPanel::update_mode()
 
 void ParamsPanel::msw_rescale()
 {
-    m_left_sizer->SetMinSize(wxSize(30 * em_unit(this), -1));
+    m_left_sizer->SetMinSize(wxSize(40 * em_unit(this), -1));
     m_mode_sizer->SetMinSize(-1, 3 * em_unit(this));
     ((SwitchButton* )m_mode_status)->Rescale();
     ((Button*)m_export_to_file)->Rescale();

@@ -45,6 +45,7 @@
 #include "Notebook.hpp"
 
 #include "Widgets/Label.hpp"
+#include "Widgets/TabCtrl.hpp"
 #include "MarkdownTip.hpp"
 
 #ifdef WIN32
@@ -112,6 +113,7 @@ Tab::Tab(ParamsPanel* parent, const wxString& title, Preset::Type type) :
     this->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
     wxGetApp().UpdateDarkUI(this);
+    SetBackgroundColour(*wxWHITE);
 
     m_compatible_printers.type			= Preset::TYPE_PRINTER;
     m_compatible_printers.key_list		= "compatible_printers";
@@ -356,41 +358,39 @@ void Tab::create_preset_tab()
     m_hsizer->Add(m_left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
 #endif
     // tree
-    m_treectrl = new wxTreeCtrl(panel, wxID_ANY, wxDefaultPosition, wxSize(20 * m_em_unit, -1),
+    m_tabctrl = new TabCtrl(panel, wxID_ANY, wxDefaultPosition, wxSize(20 * m_em_unit, -1),
         wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_NONE | wxWANTS_CHARS | wxTR_FULL_ROW_HIGHLIGHT);
-    m_treectrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable right select
-    m_treectrl->SetFont(Label::Body_14);
-    //m_left_sizer->Add(m_treectrl, 1, wxEXPAND);
+    m_tabctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable right select
+    m_tabctrl->SetFont(Label::Body_14);
+    //m_left_sizer->Add(m_tabctrl, 1, wxEXPAND);
     const int img_sz = int(32 * scale_factor + 0.5f);
     m_icons = new wxImageList(img_sz, img_sz, false, 1);
     // Index of the last icon inserted into $self->{icons}.
     m_icon_count = -1;
-    m_treectrl->AssignImageList(m_icons);
-    m_treectrl->AddRoot("root");
-    m_treectrl->SetIndent(0);
-    wxGetApp().UpdateDarkUI(m_treectrl);
+    m_tabctrl->AssignImageList(m_icons);
+    wxGetApp().UpdateDarkUI(m_tabctrl);
 
     // Delay processing of the following handler until the message queue is flushed.
     // This helps to process all the cursor key events on Windows in the tree control,
     // so that the cursor jumps to the last item.
     // BBS: bold selection
-    m_treectrl->Bind(wxEVT_TREE_SEL_CHANGING, [this](wxTreeEvent& event) {
+    m_tabctrl->Bind(wxEVT_TAB_SEL_CHANGING, [this](wxCommandEvent& event) {
         if (m_disable_tree_sel_changed_event)
             return;
-        const auto sel_item = m_treectrl->GetSelection();
-        //OutputDebugStringA("wxEVT_TREE_SEL_CHANGING ");
+        const auto sel_item = m_tabctrl->GetSelection();
+        //OutputDebugStringA("wxEVT_TAB_SEL_CHANGING ");
         //OutputDebugStringA(m_title.c_str());
-        //const auto selection = sel_item ? m_treectrl->GetItemText(sel_item) : "";
+        //const auto selection = sel_item >= 0 ? m_tabctrl->GetItemText(sel_item) : "";
         //OutputDebugString(selection);
         //OutputDebugStringA("\n");
-        m_treectrl->SetItemBold(sel_item, false);
+        m_tabctrl->SetItemBold(sel_item, false);
         });
-    m_treectrl->Bind(wxEVT_TREE_SEL_CHANGED, [this](wxTreeEvent& event) {
+    m_tabctrl->Bind(wxEVT_TAB_SEL_CHANGED, [this](wxCommandEvent& event) {
 #ifdef __linux__
-        // Events queue is opposite On Linux. wxEVT_SET_FOCUS invokes after wxEVT_TREE_SEL_CHANGED,
+        // Events queue is opposite On Linux. wxEVT_SET_FOCUS invokes after wxEVT_TAB_SEL_CHANGED,
         // and a result wxEVT_KILL_FOCUS doesn't invoke for the TextCtrls.
         // So, call SetFocus explicitly for this control before changing of the selection
-        m_treectrl->SetFocus();
+        m_tabctrl->SetFocus();
 #endif
             if (!m_disable_tree_sel_changed_event && !m_pages.empty()) {
                 if (m_page_switch_running)
@@ -399,16 +399,16 @@ void Tab::create_preset_tab()
                     m_page_switch_running = true;
                     do {
                         m_page_switch_planned = false;
-                        m_treectrl->Update();
+                        m_tabctrl->Update();
                     } while (this->tree_sel_change_delayed(event));
                     m_page_switch_running = false;
                 }
             }
         });
 
-    m_treectrl->Bind(wxEVT_KEY_DOWN, &Tab::OnKeyDown, this);
+    m_tabctrl->Bind(wxEVT_KEY_DOWN, &Tab::OnKeyDown, this);
 
-    m_main_sizer->Add(m_treectrl, 1, wxEXPAND | wxALL, 10 );
+    m_main_sizer->Add(m_tabctrl, 1, wxEXPAND | wxALL, 10 );
 
     this->SetSizer(m_main_sizer);
     //this->Layout();
@@ -447,7 +447,7 @@ void Tab::create_preset_tab()
 
     // ys_FIXME: Following should not be needed, the function will be called later
     // (update_mode->update_visibility->rebuild_page_tree). This does not work, during the
-    // second call of rebuild_page_tree m_treectrl->GetFirstVisibleItem(); returns zero
+    // second call of rebuild_page_tree m_tabctrl->GetFirstVisibleItem(); returns zero
     // for some unknown reason (and the page is not refreshed until user does a selection).
     rebuild_page_tree();
 
@@ -554,13 +554,13 @@ void Tab::OnActivate()
     // and if the Tab was later reparented back to MainFrame, the tooltip was displayed
     // at an incorrect position, therefore it is safer to just discard the tooltip control
     // altogether.
-    HWND hwnd_tt = TreeView_GetToolTips(m_treectrl->GetHandle());
+    HWND hwnd_tt = TreeView_GetToolTips(m_tabctrl->GetHandle());
     if (hwnd_tt) {
-	    HWND hwnd_toplevel 	= find_toplevel_parent(m_treectrl)->GetHandle();
+	    HWND hwnd_toplevel 	= find_toplevel_parent(m_tabctrl)->GetHandle();
 	    HWND hwnd_parent 	= ::GetParent(hwnd_tt);
 	    if (hwnd_parent != hwnd_toplevel) {
 	    	::DestroyWindow(hwnd_tt);
-			TreeView_SetToolTips(m_treectrl->GetHandle(), nullptr);
+			TreeView_SetToolTips(m_tabctrl->GetHandle(), nullptr);
 	    }
     }
 #endif
@@ -631,11 +631,11 @@ void Tab::update_label_colours()
         field->set_label_colour(color);
     }
 
-    auto cur_item = m_treectrl->GetFirstVisibleItem();
-    if (!cur_item || !m_treectrl->IsVisible(cur_item))
+    auto cur_item = m_tabctrl->GetFirstVisibleItem();
+    if (cur_item < 0 || !m_tabctrl->IsVisible(cur_item))
         return;
-    while (cur_item) {
-        auto title = m_treectrl->GetItemText(cur_item);
+    while (cur_item >= 0) {
+        auto title = m_tabctrl->GetItemText(cur_item);
         for (auto page : m_pages)
         {
             if (translate_category(page->title(), m_type) != title)
@@ -645,10 +645,10 @@ void Tab::update_label_colours()
                 page->m_is_modified_values ? &m_modified_label_clr :
                 &m_default_text_clr;
 
-            m_treectrl->SetItemTextColour(cur_item, *clr);
+            m_tabctrl->SetItemTextColour(cur_item, *clr);
             break;
         }
-        cur_item = m_treectrl->GetNextVisible(cur_item);
+        cur_item = m_tabctrl->GetNextVisible(cur_item);
     }
 
     decorate();
@@ -849,15 +849,15 @@ void Tab::update_changed_tree_ui()
 {
     if (m_options_list.empty())
         return;
-    auto cur_item = m_treectrl->GetFirstVisibleItem();
-    if (!cur_item || !m_treectrl->IsVisible(cur_item))
+    auto cur_item = m_tabctrl->GetFirstVisibleItem();
+    if (cur_item < 0 || !m_tabctrl->IsVisible(cur_item))
         return;
 
-    auto selected_item = m_treectrl->GetSelection();
-    auto selection = selected_item ? m_treectrl->GetItemText(selected_item) : "";
+    auto selected_item = m_tabctrl->GetSelection();
+    auto selection = selected_item >= 0 ? m_tabctrl->GetItemText(selected_item) : "";
 
-    while (cur_item) {
-        auto title = m_treectrl->GetItemText(cur_item);
+    while (cur_item >= 0) {
+        auto title = m_tabctrl->GetItemText(cur_item);
         for (auto page : m_pages)
         {
             if (translate_category(page->title(), m_type) != title)
@@ -895,7 +895,7 @@ void Tab::update_changed_tree_ui()
                                                     &m_default_text_clr;
 
             if (page->set_item_colour(clr))
-                m_treectrl->SetItemTextColour(cur_item, *clr);
+                m_tabctrl->SetItemTextColour(cur_item, *clr);
 
             page->m_is_nonsys_values = !sys_page;
             page->m_is_modified_values = modified_page;
@@ -906,7 +906,7 @@ void Tab::update_changed_tree_ui()
             }
             break;
         }
-        auto next_item = m_treectrl->GetNextVisible(cur_item);
+        auto next_item = m_tabctrl->GetNextVisible(cur_item);
         cur_item = next_item;
     }
 }
@@ -1076,7 +1076,7 @@ void Tab::msw_rescale()
     //    m_mode_sizer->msw_rescale();
     m_presets_choice->msw_rescale();
 
-    m_treectrl->SetMinSize(wxSize(20 * m_em_unit, -1));
+    m_tabctrl->SetMinSize(wxSize(20 * m_em_unit, -1));
 
     // rescale buttons and cached bitmaps
     for (const auto btn : m_scaled_buttons)
@@ -1095,7 +1095,7 @@ void Tab::msw_rescale()
     m_icons = new wxImageList(m_scaled_icons_list.front().bmp().GetWidth(), m_scaled_icons_list.front().bmp().GetHeight(), false);
     for (ScalableBitmap& bmp : m_scaled_icons_list)
         m_icons->Add(bmp.bmp());
-    m_treectrl->AssignImageList(m_icons);
+    m_tabctrl->AssignImageList(m_icons);
 
     // rescale options_groups
     if (m_active_page)
@@ -1126,7 +1126,7 @@ void Tab::sys_color_changed()
     m_icons = new wxImageList(m_scaled_icons_list.front().bmp().GetWidth(), m_scaled_icons_list.front().bmp().GetHeight(), false);
     for (ScalableBitmap& bmp : m_scaled_icons_list)
         m_icons->Add(bmp.bmp());
-    m_treectrl->AssignImageList(m_icons);
+    m_tabctrl->AssignImageList(m_icons);
 
     // Colors for ui "decoration"
     update_label_colours();
@@ -1136,7 +1136,7 @@ void Tab::sys_color_changed()
     //if (m_mode_sizer)
     //    m_mode_sizer->msw_rescale();
     wxGetApp().UpdateDarkUI(this);
-    wxGetApp().UpdateDarkUI(m_treectrl);
+    wxGetApp().UpdateDarkUI(m_tabctrl);
 #endif
     update_changed_tree_ui();
 
@@ -1310,8 +1310,8 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
 {
     wxString page_title = translate_category(category, m_type);
 
-    auto cur_item = m_treectrl->GetFirstVisibleItem();
-    if (!cur_item)
+    auto cur_item = m_tabctrl->GetFirstVisibleItem();
+    if (cur_item < 0)
         return;
 
     // We should to activate a tab with searched option, if it doesn't.
@@ -1320,14 +1320,14 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
     //wxGetApp().mainframe->select_tab(this);
     wxGetApp().mainframe->select_tab((wxPanel*)m_parent);
 
-    while (cur_item) {
-        auto title = m_treectrl->GetItemText(cur_item);
+    while (cur_item >= 0) {
+        auto title = m_tabctrl->GetItemText(cur_item);
         if (page_title != title) {
-            cur_item = m_treectrl->GetNextVisible(cur_item);
+            cur_item = m_tabctrl->GetNextVisible(cur_item);
             continue;
         }
 
-        m_treectrl->SelectItem(cur_item);
+        m_tabctrl->SelectItem(cur_item);
         break;
     }
 
@@ -3209,36 +3209,35 @@ void Tab::load_current_preset()
 void Tab::rebuild_page_tree()
 {
     // get label of the currently selected item
-    auto sel_item = m_treectrl->GetSelection();
-    const auto rootItem = m_treectrl->GetRootItem();
+    auto sel_item = m_tabctrl->GetSelection();
     // BBS: fix new layout, record last select
-    if (!sel_item || sel_item == rootItem)
+    if (sel_item < 0)
         sel_item = m_last_select_item;
-    const auto selected = sel_item ? m_treectrl->GetItemText(sel_item) : "";
+    const auto selected = sel_item >= 0 ? m_tabctrl->GetItemText(sel_item) : "";
 
-    wxTreeItemId item;
+    int item = -1;
 
-    // Delete/Append events invoke wxEVT_TREE_SEL_CHANGED event.
+    // Delete/Append events invoke wxEVT_TAB_SEL_CHANGED event.
     // To avoid redundant clear/activate functions call
     // suppress activate page before page_tree rebuilding
     m_disable_tree_sel_changed_event = true;
-    m_treectrl->DeleteChildren(rootItem);
+    m_tabctrl->DeleteAllItems();
 
     for (auto p : m_pages)
     {
         if (!p->get_show())
             continue;
-        auto itemId = m_treectrl->AppendItem(rootItem, translate_category(p->title(), m_type), p->iconID());
-        m_treectrl->SetItemTextColour(itemId, p->get_item_colour());
+        auto itemId = m_tabctrl->AppendItem(translate_category(p->title(), m_type), p->iconID());
+        m_tabctrl->SetItemTextColour(itemId, p->get_item_colour());
         if (translate_category(p->title(), m_type) == selected)
             item = itemId;
     }
     // BBS: on mac, root is selected, this fix it
-    m_treectrl->Unselect();
+    m_tabctrl->Unselect();
     // BBS: not select on hide tab
-    if (!item && m_parent->is_active_and_shown_tab(this)) {
+    if (item == -1 && m_parent->is_active_and_shown_tab(this)) {
         // this is triggered on first load, so we don't disable the sel change event
-        item = m_treectrl->GetFirstVisibleItem();
+        item = m_tabctrl->GetFirstVisibleItem();
     }
     // BBS: fix new layout, record last select
     if (sel_item == m_last_select_item)
@@ -3249,13 +3248,13 @@ void Tab::rebuild_page_tree()
     // allow activate page before selection of a page_tree item
     m_disable_tree_sel_changed_event = false;
     //BBS: GUI refactor
-    if (item)
+    if (item >= 0)
     {
         bool ret = update_current_page_in_background(item);
         //if m_active_page is changed in update_current_page_in_background
         //will just update the selected item of the treectrl
          if (m_parent->is_active_and_shown_tab(this)) // FIX: modify state not update
-            m_treectrl->SelectItem(item);
+            m_tabctrl->SelectItem(item);
     }
 }
 
@@ -3565,10 +3564,10 @@ void Tab::clear_pages()
 void Tab::unselect_tree_item()
 {
     // BBS: bold selection
-    const auto sel_item = m_treectrl->GetSelection();
+    const auto sel_item = m_tabctrl->GetSelection();
     m_last_select_item = sel_item;
-    m_treectrl->SetItemBold(sel_item, false);
-    m_treectrl->Unselect();
+    m_tabctrl->SetItemBold(sel_item, false);
+    m_tabctrl->Unselect();
     m_active_page = nullptr;
 }
 
@@ -3577,12 +3576,12 @@ void Tab::set_expanded(bool value)
 {
     if (value) {
         m_main_sizer->Show(m_presets_choice);
-        m_main_sizer->Show(m_treectrl);
+        m_main_sizer->Show(m_tabctrl);
     }
     else {
         m_active_page = NULL;
         m_main_sizer->Hide(m_presets_choice);
-        m_main_sizer->Hide(m_treectrl);
+        m_main_sizer->Hide(m_tabctrl);
     }
 }
 
@@ -3590,9 +3589,9 @@ void Tab::set_expanded(bool value)
 void Tab::restore_last_select_item()
 {
     auto item = m_last_select_item;
-    if (!item)  
-        item = m_treectrl->GetFirstVisibleItem();
-    m_treectrl->SelectItem(item);
+    if (item == -1)  
+        item = m_tabctrl->GetFirstVisibleItem();
+    m_tabctrl->SelectItem(item);
 }
 
 void Tab::update_description_lines()
@@ -3613,11 +3612,11 @@ void Tab::activate_selected_page(std::function<void()> throw_if_canceled)
 }
 
 //BBS: GUI refactor
-bool Tab::update_current_page_in_background(wxTreeItemId& item)
+bool Tab::update_current_page_in_background(int& item)
 {
     Page* page = nullptr;
 
-    const auto selection = item ? m_treectrl->GetItemText(item) : "";
+    const auto selection = item >= 0 ? m_tabctrl->GetItemText(item) : "";
     for (auto p : m_pages)
         if (translate_category(p->title(), m_type) == selection)
         {
@@ -3654,7 +3653,7 @@ bool Tab::update_current_page_in_background(wxTreeItemId& item)
         // BBS: this is not used, because we not SelectItem in background
         //todo: update selected item of tree_ctrl
         // wxTreeItemData item_data;
-        // m_treectrl->SetItemData(item, &item_data);
+        // m_tabctrl->SetItemData(item, &item_data);
 
         return false;
     }
@@ -3663,7 +3662,7 @@ bool Tab::update_current_page_in_background(wxTreeItemId& item)
 }
 
 //BBS: GUI refactor
-bool Tab::tree_sel_change_delayed(wxTreeEvent& event)
+bool Tab::tree_sel_change_delayed(wxCommandEvent& event)
 {
     // The issue apparently manifests when Show()ing a window with overlay scrollbars while the UI is frozen. For this reason,
     // we will Thaw the UI prematurely on Linux. This means destroing the no_updates object prematurely.
@@ -3681,12 +3680,12 @@ bool Tab::tree_sel_change_delayed(wxTreeEvent& event)
 
     //BBS: GUI refactor
     Page* page = nullptr;
-    const auto sel_item = m_treectrl->GetSelection();
+    const auto sel_item = m_tabctrl->GetSelection();
     // BBS: bold selection
     //OutputDebugStringA("tree_sel_change_delayed ");
     //OutputDebugStringA(m_title.c_str());
-    m_treectrl->SetItemBold(sel_item, true);
-    const auto selection = sel_item ? m_treectrl->GetItemText(sel_item) : "";
+    m_tabctrl->SetItemBold(sel_item, true);
+    const auto selection = sel_item >= 0 ? m_tabctrl->GetItemText(sel_item) : "";
     //OutputDebugString(selection);
     //OutputDebugStringA("\n");
     for (auto p : m_pages)
@@ -3704,11 +3703,11 @@ bool Tab::tree_sel_change_delayed(wxTreeEvent& event)
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("can not find page with current selection %1%\n") % selection;
         return false;
     }
-    wxTreeItemData* item_data = m_treectrl->GetItemData(sel_item);
+    void* item_data = m_tabctrl->GetItemData(sel_item);
     if (item_data)
     {
         //from update_current_page_in_background in not active tab
-        m_treectrl->SetItemData(sel_item, NULL);
+        m_tabctrl->SetItemData(sel_item, NULL);
         return false;
     }
 
@@ -3744,7 +3743,7 @@ bool Tab::tree_sel_change_delayed(wxTreeEvent& event)
             //BBS: GUI refactor
             //TODO: remove this call currently, after refactor, there is Paint event in the queue
             //this call will cause OnPaint immediately, which will cause crash
-            //wxCheckForInterrupt(m_treectrl);
+            //wxCheckForInterrupt(m_tabctrl);
             if (m_page_switch_planned)
                 throw UIBuildCanceled();
 #else // WIN32
@@ -3790,7 +3789,7 @@ bool Tab::tree_sel_change_delayed(wxTreeEvent& event)
 void Tab::OnKeyDown(wxKeyEvent& event)
 {
     if (event.GetKeyCode() == WXK_TAB)
-        m_treectrl->Navigate(event.ShiftDown() ? wxNavigationKeyEvent::IsBackward : wxNavigationKeyEvent::IsForward);
+        m_tabctrl->Navigate(event.ShiftDown() ? wxNavigationKeyEvent::IsBackward : wxNavigationKeyEvent::IsForward);
     else
         event.Skip();
 }
@@ -3811,7 +3810,7 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
     // since buttons(and choices too) don't get focus on Mac, we set focus manually
     // to the treectrl so that the EVT_* events are fired for the input field having
     // focus currently.is there anything better than this ?
-//!	m_treectrl->OnSetFocus();
+//!	m_tabctrl->OnSetFocus();
 
     if (name.empty()) {
         SavePresetDialog dlg(m_parent, m_type, detach ? _u8L("Detached") : "");

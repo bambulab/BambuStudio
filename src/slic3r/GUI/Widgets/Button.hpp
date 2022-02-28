@@ -8,6 +8,7 @@ class Button : public StaticBox
 {
     wxSize textSize;
     wxSize minSize; // set by outer
+    wxSize paddingSize;
     ScalableBitmap icon;
 
     StateColor   text_color;
@@ -18,13 +19,19 @@ class Button : public StaticBox
     static const int buttonHeight = 50;
 
 public:
+    Button();
+
     Button(wxWindow* parent, wxString text, wxString icon = "", long style = 0, int iconSize = 0);
+
+    bool Create(wxWindow* parent, wxString text, wxString icon = "", long style = 0, int iconSize = 0);
 
     void SetLabel(const wxString& label);
 
     void SetIcon(const wxString& icon);
 
     void SetMinSize(const wxSize& size) override;
+    
+    void SetPaddingSize(const wxSize& size);
     
     void SetTextColor(StateColor const &color);
 

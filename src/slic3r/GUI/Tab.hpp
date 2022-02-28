@@ -40,6 +40,8 @@
 #include "Notebook.hpp"
 #include "ParamsPanel.hpp"
 
+class TabCtrl;
+
 namespace Slic3r {
 namespace GUI {
 
@@ -142,7 +144,7 @@ protected:
 	//ScalableButton*		m_btn_hide_incompatible_presets;
 	//wxBoxSizer*			m_hsizer;
 	//wxBoxSizer*			m_left_sizer;
-	wxTreeCtrl*			m_treectrl;
+	TabCtrl*			m_tabctrl;
 	wxImageList*		m_icons;
 
 	wxScrolledWindow*	m_page_view {nullptr};
@@ -220,7 +222,7 @@ protected:
 	Page*				m_active_page {nullptr};
 	bool				m_disable_tree_sel_changed_event {false};
 	bool				m_show_incompatible_presets;
-	wxTreeItemId		m_last_select_item;
+	int					m_last_select_item = -1;
 
     std::vector<Preset::Type>	m_dependent_tabs;
 	enum OptStatus { osSystemValue = 1, osInitValue = 2 };
@@ -313,7 +315,7 @@ public:
     virtual void    update_description_lines();
     virtual void    activate_selected_page(std::function<void()> throw_if_canceled);
 
-	void		OnTreeSelChange(wxTreeEvent& event);
+	void		OnTreeSelChange(wxCommandEvent& event);
 	void		OnKeyDown(wxKeyEvent& event);
 
 	void		compare_preset();
@@ -376,7 +378,7 @@ public:
 
 	const std::map<wxString, std::string>& get_category_icon_map() { return m_category_icon; }
 	//BBS: GUI refactor
-	bool update_current_page_in_background(wxTreeItemId& item);
+	bool update_current_page_in_background(int& item);
 	void unselect_tree_item();
 	// BBS: new layout
 	void set_expanded(bool value);
@@ -394,7 +396,7 @@ protected:
 
 	//BBS: GUI refactor
 	// return true if cancelled
-	bool			tree_sel_change_delayed(wxTreeEvent& event);
+	bool			tree_sel_change_delayed(wxCommandEvent& event);
 	void			on_presets_changed();
 	void			build_preset_description_line(ConfigOptionsGroup* optgroup);
 	void			update_preset_description_line();

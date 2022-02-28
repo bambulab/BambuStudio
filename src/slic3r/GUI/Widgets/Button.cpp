@@ -3,7 +3,7 @@
 
 #include <wx/dcgraph.h>
 
-BEGIN_EVENT_TABLE(Button, wxPanel)
+BEGIN_EVENT_TABLE(Button, StaticBox)
 
 EVT_LEFT_DOWN(Button::mouseDown)
 EVT_LEFT_UP(Button::mouseReleased)
@@ -19,14 +19,25 @@ END_EVENT_TABLE()
  * calling Refresh()/Update().
  */
 
-    Button::Button(wxWindow* parent, wxString text, wxString icon, long stlye, int iconSize)
-    : StaticBox(parent, stlye)
+Button::Button()
+    : paddingSize(10, 8)
     , text_color(*wxBLACK)
 {
     background_color = StateColor(
         std::make_pair(*wxLIGHT_GREY, (int) StateColor::Checked),
         std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered),
         std::make_pair(*wxWHITE, (int) StateColor::Normal));
+}
+
+Button::Button(wxWindow* parent, wxString text, wxString icon, long style, int iconSize)
+    : Button()
+{
+    Create(parent, text, icon, style, iconSize);
+}
+
+bool Button::Create(wxWindow* parent, wxString text, wxString icon, long style, int iconSize)
+{
+    StaticBox::Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, style);
     state_handler.attach({&text_color});
     state_handler.update_binds();
     //BBS set default font
@@ -37,6 +48,7 @@ END_EVENT_TABLE()
         this->icon = ScalableBitmap(this, icon.ToStdString(), iconSize > 0 ? iconSize : 20);
     }
     messureSize();
+    return true;
 }
 
 void Button::SetLabel(const wxString& label)
@@ -62,6 +74,12 @@ void Button::SetIcon(const wxString& icon)
 void Button::SetMinSize(const wxSize& size)
 {
     minSize = size;
+    messureSize();
+}
+
+void Button::SetPaddingSize(const wxSize& size)
+{
+    paddingSize = size;
     messureSize();
 }
 
@@ -145,7 +163,8 @@ void Button::render(wxDC& dc)
 
 void Button::messureSize()
 {
-    textSize = GetTextExtent(GetLabel());
+    wxClientDC dc(this);
+    textSize = dc.GetTextExtent(GetLabel());
     if (minSize.GetWidth() > 0) {
         wxWindow::SetMinSize(minSize);
         return;
@@ -161,7 +180,7 @@ void Button::messureSize()
         if (szIcon.y > szContent.y)
             szContent.y = szIcon.y;
     }
-    wxWindow::SetMinSize(szContent + wxSize{ 20, 16 });
+    wxWindow::SetMinSize(szContent + paddingSize * 2);
 }
 
 void Button::mouseDown(wxMouseEvent& event)

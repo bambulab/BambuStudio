@@ -16,7 +16,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
 {
     SetBackgroundColour(0xEEEEEE);
 
-    m_tab_panel = new ::StaticBox(this, wxBORDER_NONE);
+    m_tab_panel = new ::StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_tab_panel->SetCornerRadius(5);
     m_tab_panel->SetMinSize({-1, 48 * em_unit(this) / 10});
     m_tab_button_year = new ::Button(m_tab_panel, _L("Year"), "", wxBORDER_NONE);
