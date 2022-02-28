@@ -1579,8 +1579,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("initial_layer_print_height");
         optgroup->append_single_option_line("adaptive_layer_height");
 
-        optgroup = page->new_optgroup(L("Extrusion width"));
-        optgroup->append_single_option_line("extrusion_width");
+        optgroup = page->new_optgroup(L("Line width"));
+        optgroup->append_single_option_line("line_width");
         optgroup->append_single_option_line("initial_layer_line_width");
         optgroup->append_single_option_line("outer_wall_line_width");
         optgroup->append_single_option_line("inner_wall_line_width");
@@ -1597,11 +1597,11 @@ void TabPrint::build()
         optgroup->append_single_option_line("slice_closing_radius");
         optgroup->append_single_option_line("resolution");
         optgroup->append_single_option_line("enable_arc_fitting");
-        optgroup->append_single_option_line("xy_size_compensation");
+        optgroup->append_single_option_line("xy_hole_compensation");
+        optgroup->append_single_option_line("xy_contour_compensation");
         optgroup->append_single_option_line("elefant_foot_compensation");
 
         optgroup = page->new_optgroup(L("Ironing"));
-        optgroup->append_single_option_line("ironing");
         optgroup->append_single_option_line("ironing_type");
         optgroup->append_single_option_line("ironing_speed");
         optgroup->append_single_option_line("ironing_flow");
@@ -1702,7 +1702,7 @@ void TabPrint::build()
     page = add_options_page(L("Speed"), "time");
         optgroup = page->new_optgroup(L("Initial layer speed"));
         optgroup->append_single_option_line("initial_layer_speed");
-        optgroup->append_single_option_line("speed_initial_layer_infill");
+        optgroup->append_single_option_line("initial_layer_infill_speed");
         optgroup = page->new_optgroup(L("Other layers speed"));
         optgroup->append_single_option_line("outer_wall_speed");
         optgroup->append_single_option_line("inner_wall_speed");
@@ -1742,8 +1742,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("wiping_volume");
 
         optgroup = page->new_optgroup(L("Special mode"));
-        optgroup->append_single_option_line("spiral_mode");
         optgroup->append_single_option_line("complete_objects");
+        optgroup->append_single_option_line("spiral_mode");
         //BBS: todo remove clearance to machine
 #if 0
         line = { L("Extruder radius"), "" };
@@ -2449,8 +2449,6 @@ void TabPrinter::build_fff()
 #endif
 
         optgroup = page->new_optgroup(L("Advanced"));
-        //optgroup->append_single_option_line("relative_e_axis");
-        //BBS
         optgroup->append_single_option_line("scan_first_layer");
         optgroup->append_single_option_line("spaghetti_detector");
 

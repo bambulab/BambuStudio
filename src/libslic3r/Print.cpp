@@ -123,7 +123,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "machine_start_gcode",
         "filament_start_gcode",
         "tool_change_gcode",
-        "relative_e_axis",
         "wipe",
         // BBS
         "wipe_distance",
@@ -182,7 +181,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "flush_volumes_matrix"
             // BBS
             || opt_key == "wiping_volume"
-            || opt_key == "speed_initial_layer_infill"
+            || opt_key == "initial_layer_infill_speed"
             || opt_key == "travel_speed"
             || opt_key == "travel_speed_z"
             || opt_key == "initial_layer_speed"
@@ -587,8 +586,6 @@ std::string Print::validate(std::string* warning) const
         if (m_config.gcode_flavor != gcfRepRapSprinter && m_config.gcode_flavor != gcfRepRapFirmware &&
             m_config.gcode_flavor != gcfRepetier && m_config.gcode_flavor != gcfMarlinLegacy && m_config.gcode_flavor != gcfMarlinFirmware)
             return L("The Wipe Tower is currently only supported for the Marlin, RepRap/Sprinter, RepRapFirmware and Repetier G-code flavors.");
-        if (! m_config.relative_e_axis)
-            return L("The Wipe Tower is currently only supported with the relative extruder addressing (relative_e_axis=1).");
         if (m_config.ooze_prevention)
             return L("Ooze prevention is currently not supported with the wipe tower enabled.");
         if (m_config.complete_objects && extruders.size() > 1)
@@ -732,7 +729,7 @@ std::string Print::validate(std::string* warning) const
 
             // Validate extrusion widths.
             std::string err_msg;
-            if (! validate_extrusion_width(object->config(), "extrusion_width", layer_height, err_msg))
+            if (! validate_extrusion_width(object->config(), "line_width", layer_height, err_msg))
             	return err_msg;
             //BBS: add support_transition_line_width check
             if (object->has_support() || object->has_raft()) {
@@ -819,7 +816,7 @@ Flow Print::brim_flow() const
     if (width.value == 0) 
         width = m_print_regions.front()->config().inner_wall_line_width;
     if (width.value == 0) 
-        width = m_objects.front()->config().extrusion_width;
+        width = m_objects.front()->config().line_width;
     
     /* We currently use a random region's perimeter extruder.
        While this works for most cases, we should probably consider all of the perimeter
@@ -839,7 +836,7 @@ Flow Print::skirt_flow() const
     if (width.value == 0) 
         width = m_print_regions.front()->config().inner_wall_line_width;
     if (width.value == 0)
-        width = m_objects.front()->config().extrusion_width;
+        width = m_objects.front()->config().line_width;
     
     /* We currently use a random object's support material extruder.
        While this works for most cases, we should probably consider all of the support material

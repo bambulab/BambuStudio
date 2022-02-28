@@ -541,7 +541,7 @@ void Layer::make_ironing()
 		if (! layerm->slices.empty()) {
 			IroningParams ironing_params;
 			const PrintRegionConfig &config = layerm->region().config();
-			if (config.ironing && 
+			if (config.ironing_type != IroningType::NoIroning &&
 				(config.ironing_type == IroningType::AllSolid ||
 				 	(config.top_shell_layers > 0 && 
 						(config.ironing_type == IroningType::TopSurfaces ||

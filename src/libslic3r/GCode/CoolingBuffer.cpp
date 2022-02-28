@@ -399,7 +399,7 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
             }
             if ((line.type & CoolingLine::TYPE_G92) == 0) {
                 //BBS: G0, G1, G2, G3. Calculate the duration.
-                if (m_config.relative_e_axis.value)
+                if (RELATIVE_E_AXIS)
                     // Reset extruder accumulator.
                     current_pos[3] = 0.f;
                 float dif[4];

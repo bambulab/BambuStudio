@@ -340,7 +340,7 @@ namespace Slic3r {
                 float wipe_length = wipe_volume / filament_area;
 
                 config.set_key_value("max_layer_z", new ConfigOptionFloat(gcodegen.m_max_layer_z));
-                config.set_key_value("relative_e_axis", new ConfigOptionBool(full_config.relative_e_axis.value));
+                config.set_key_value("relative_e_axis", new ConfigOptionBool(RELATIVE_E_AXIS));
                 config.set_key_value("toolchange_count", new ConfigOptionInt((int)gcodegen.m_toolchange_count));
                 config.set_key_value("fan_speed", new ConfigOptionInt((int)fan_speed));
                 config.set_key_value("old_retract_length", new ConfigOptionFloat(old_retract_length));
@@ -3390,7 +3390,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         //BBS: for solid infill of initial layer, speed can be higher as long as
         //wall lines have be attached
         if (path.role() == erSolidInfill)
-            speed = m_config.speed_initial_layer_infill.value;
+            speed = m_config.initial_layer_infill_speed.value;
         else
             speed = m_config.get_abs_value("initial_layer_speed", speed);
     }
@@ -3750,7 +3750,7 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     dyn_config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
     dyn_config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
     dyn_config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
-    dyn_config.set_key_value("relative_e_axis", new ConfigOptionBool(m_config.relative_e_axis.value));
+    dyn_config.set_key_value("relative_e_axis", new ConfigOptionBool(RELATIVE_E_AXIS));
     dyn_config.set_key_value("toolchange_count", new ConfigOptionInt((int)m_toolchange_count));
     dyn_config.set_key_value("fan_speed", new ConfigOptionInt((int)fan_speed));
     dyn_config.set_key_value("old_retract_length", new ConfigOptionFloat(old_retract_length));

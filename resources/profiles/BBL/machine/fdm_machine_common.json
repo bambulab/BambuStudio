@@ -21,16 +21,16 @@
         "5000"
     ],
     "machine_max_acceleration_extruding": [
-        "500"
+        "10000"
     ],
     "machine_max_acceleration_retracting": [
         "1000"
     ],
     "machine_max_acceleration_x": [
-        "500"
+        "10000"
     ],
     "machine_max_acceleration_y": [
-        "500"
+        "10000"
     ],
     "machine_max_acceleration_z": [
         "100"
@@ -107,7 +107,6 @@
     ],
     "single_extruder_multi_material": "0",
     "tool_change_gcode": "",
-    "relative_e_axis": "1",
     "wipe": [
         "1"
     ],

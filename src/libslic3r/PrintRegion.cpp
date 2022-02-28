@@ -41,7 +41,7 @@ Flow PrintRegion::flow(const PrintObject &object, FlowRole role, double layer_he
     }
 
     if (config_width.value == 0)
-        config_width = object.config().extrusion_width;
+        config_width = object.config().line_width;
     
     // Get the configured nozzle_diameter for the extruder associated to the flow role requested.
     // Here this->extruder(role) - 1 may underflow to MAX_INT, but then the get_at() will follback to zero'th element, so everything is all right.

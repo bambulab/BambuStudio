@@ -155,7 +155,7 @@ static std::vector<VolumeSlices> slice_volumes_inner(
 
     const size_t num_extruders = print_config.nozzle_diameter.size();
     const bool   is_mm_painted = num_extruders > 1 && std::any_of(model_volumes.cbegin(), model_volumes.cend(), [](const ModelVolume *mv) { return mv->is_mm_painted(); });
-    const auto   extra_offset  = is_mm_painted ? 0.f : std::max(0.f, float(print_object_config.xy_size_compensation.value));
+    const auto   extra_offset  = is_mm_painted ? 0.f : std::max(0.f, float(print_object_config.xy_contour_compensation.value));
 
     for (const ModelVolume *model_volume : model_volumes)
         if (model_volume_needs_slicing(*model_volume)) {
@@ -417,7 +417,7 @@ std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std
     // BBS: get largest external perimenter width of all layers
     auto get_ext_peri_width = [](Layer* layer) {return layer->m_regions.empty() ? 0 : layer->m_regions[0]->flow(frExternalPerimeter).scaled_width(); };
     auto it = std::max_element(layers.begin(), layers.end(), [get_ext_peri_width](auto& a, auto& b) {return get_ext_peri_width(a) < get_ext_peri_width(b); });
-    coord_t thresh = get_ext_peri_width(*it) * 0.5;// half of external perimeter width  // 0.5 * scale_(this->config().extrusion_width);
+    coord_t thresh = get_ext_peri_width(*it) * 0.5;// half of external perimeter width  // 0.5 * scale_(this->config().line_width);
     for (size_t idx_layer = 0; idx_layer < layers.size(); ++idx_layer) {
         // BBS: detect empty layers (layers with very small regions) and mark them as problematic, then these layers will copy the nearest good layer
         auto layer = layers[idx_layer];
@@ -751,7 +751,7 @@ void PrintObject::slice_volumes()
 
         // If XY Size compensation is also enabled, notify the user that XY Size compensation
         // would not be used because the object is multi-material painted.
-        if (m_config.xy_size_compensation.value != 0.f) {
+        if (m_config.xy_hole_compensation.value != 0.f || m_config.xy_contour_compensation.value != 0.f) {
             this->active_step_add_warning(
                 PrintStateBase::WarningLevel::CRITICAL,
                 L("An object has enabled XY Size compensation which will not be used because it is also multi-material painted.\nXY Size "
@@ -768,7 +768,8 @@ void PrintObject::slice_volumes()
     {
         // Compensation value, scaled. Only applying the negative scaling here, as the positive scaling has already been applied during slicing.
         const size_t num_extruders = print->config().nozzle_diameter.size();
-        const auto   xy_compensation_scaled            = (num_extruders > 1 && this->is_mm_painted()) ? scaled<float>(0.f) : scaled<float>(std::min(m_config.xy_size_compensation.value, 0.));
+        const auto   xy_hole_scaled            = (num_extruders > 1 && this->is_mm_painted()) ? scaled<float>(0.f) : scaled<float>(std::min(m_config.xy_hole_compensation.value, 0.));
+        const auto   xy_contour_scaled            = (num_extruders > 1 && this->is_mm_painted()) ? scaled<float>(0.f) : scaled<float>(std::min(m_config.xy_contour_compensation.value, 0.));
         const float  elephant_foot_compensation_scaled = (m_config.raft_layers == 0) ?
         	// Only enable Elephant foot compensation if printing directly on the print bed.
             float(scale_(m_config.elefant_foot_compensation.value)) :
@@ -777,7 +778,7 @@ void PrintObject::slice_volumes()
 	    ExPolygons  lslices_1st_layer;
 	    tbb::parallel_for(
 	        tbb::blocked_range<size_t>(0, m_layers.size()),
-			[this, xy_compensation_scaled, elephant_foot_compensation_scaled, &lslices_1st_layer](const tbb::blocked_range<size_t>& range) {
+			[this, xy_hole_scaled, xy_contour_scaled, elephant_foot_compensation_scaled, &lslices_1st_layer](const tbb::blocked_range<size_t>& range) {
 	            for (size_t layer_id = range.begin(); layer_id < range.end(); ++ layer_id) {
 	                m_print->throw_if_canceled();
 	                Layer *layer = m_layers[layer_id];
@@ -790,7 +791,7 @@ void PrintObject::slice_volumes()
 	                    if (elfoot > 0) {
 		                    // Apply the elephant foot compensation and store the 1st layer slices without the Elephant foot compensation applied.
 		                    lslices_1st_layer = to_expolygons(std::move(layerm->slices.surfaces));
-		                    float delta = xy_compensation_scaled;
+		                    float delta = xy_contour_scaled;
 	                        if (delta > elfoot) {
 	                            delta -= elfoot;
 	                            elfoot = 0.f;
@@ -802,25 +803,25 @@ void PrintObject::slice_volumes()
 										(delta == 0.f) ? lslices_1st_layer : offset_ex(lslices_1st_layer, delta), 
 	                            		layerm->flow(frExternalPerimeter), unscale<double>(elfoot))),
 								stInternal);
-							if (xy_compensation_scaled < 0.f)
-								lslices_1st_layer = offset_ex(std::move(lslices_1st_layer), xy_compensation_scaled);
-	                    } else if (xy_compensation_scaled < 0.f) {
+							if (xy_contour_scaled < 0.f)
+								lslices_1st_layer = offset_ex(std::move(lslices_1st_layer), xy_contour_scaled);
+	                    } else if (xy_contour_scaled < 0.f) {
 	                        // Apply the XY compensation.
 	                        layerm->slices.set(
-                                offset_ex(to_expolygons(std::move(layerm->slices.surfaces)), xy_compensation_scaled),
+                                offset_ex(to_expolygons(std::move(layerm->slices.surfaces)), xy_contour_scaled),
 	                            stInternal);
 	                    }
 	                } else {
-	                    if (xy_compensation_scaled < 0.f || elfoot > 0.f) {
+	                    if (xy_contour_scaled < 0.f || elfoot > 0.f) {
 	                        // Apply the negative XY compensation.
 	                        Polygons trimming;
 	                        static const float eps = float(scale_(m_config.slice_closing_radius.value) * 1.5);
 	                        if (elfoot > 0.f) {
-	                        	lslices_1st_layer = offset_ex(layer->merged(eps), std::min(xy_compensation_scaled, 0.f) - eps);
+	                        	lslices_1st_layer = offset_ex(layer->merged(eps), std::min(xy_contour_scaled, 0.f) - eps);
 								trimming = to_polygons(Slic3r::elephant_foot_compensation(lslices_1st_layer,
 									layer->m_regions.front()->flow(frExternalPerimeter), unscale<double>(elfoot)));
 	                        } else
-		                        trimming = offset(layer->merged(float(SCALED_EPSILON)), xy_compensation_scaled - float(SCALED_EPSILON));
+		                        trimming = offset(layer->merged(float(SCALED_EPSILON)), xy_contour_scaled - float(SCALED_EPSILON));
 	                        for (size_t region_id = 0; region_id < layer->m_regions.size(); ++ region_id)
 	                            layer->m_regions[region_id]->trim_surfaces(trimming);
 	                    }

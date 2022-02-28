@@ -11,7 +11,7 @@
     "clip_multipart_objects": "1",
     "compatible_printers": [],
     "complete_objects": "0",
-    "default_acceleration": "500",
+    "default_acceleration": "10000",
     "bridge_no_support": "1",
     "elefant_foot_compensation": "0.1",
     "ensure_vertical_shell_thickness": "1",
@@ -22,7 +22,7 @@
     "extra_perimeters": "0",
     "extruder_clearance_height": "34",
     "extruder_clearance_radius": "47",
-    "extrusion_width": "0.45",
+    "line_width": "0.45",
     "infill_angle": "45",
     "sparse_infill_density": "15%",
     "sparse_infill_pattern": "grid",
@@ -57,7 +57,7 @@
     "seam_position": "nearest",
     "single_extruder_multi_material_priming": "0",
     "skirt_loops": "1",
-    "skirt_distance": "3",
+    "skirt_distance": "2",
     "skirt_height": "2",
     "small_perimeter_speed": "25",
     "minimum_sparse_infill_area": "0",
@@ -89,7 +89,7 @@
     "detect_thin_wall": "0",
     "top_surface_line_width": "0.4",
     "top_surface_speed": "30",
-    "travel_speed": "250",
+    "travel_speed": "400",
     "enable_wipe_tower": "0",
     "wipe_tower_bridging": "10",
     "wipe_tower_rotation_angle": "0",
@@ -100,5 +100,6 @@
     "wipe_tower_y": [
         "140"
     ],
-    "xy_size_compensation": "0"
+    "xy_hole_compensation": "0",
+    "xy_contour_compensation": "0"
 }

@@ -82,7 +82,7 @@ const char* GCodeReader::parse_line_internal(const char *ptr, const char *end, G
         }
     }
     
-    if (gline.has(E) && m_config.relative_e_axis)
+    if (gline.has(E) && RELATIVE_E_AXIS)
         m_position[E] = 0;
 
     // Skip the rest of the line.

@@ -58,6 +58,7 @@ ipCount,
 };
 
 enum class IroningType {
+    NoIroning,
     TopSurfaces,
     TopmostOnly,
     AllSolid,
@@ -488,7 +489,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                clip_multipart_objects))
     ((ConfigOptionBool,                bridge_no_support))
     ((ConfigOptionFloat,               elefant_foot_compensation))
-    ((ConfigOptionFloatOrPercent,      extrusion_width))
+    ((ConfigOptionFloatOrPercent,      line_width))
     ((ConfigOptionBool,                infill_only_where_needed))
     // Force the generation of solid shells between adjacent materials/volumes.
     ((ConfigOptionBool,                interface_shells))
@@ -540,7 +541,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                support_material_with_sheath))
     ((ConfigOptionFloatOrPercent,      support_object_xy_distance))
     ((ConfigOptionBool,                thick_bridges))
-    ((ConfigOptionFloat,               xy_size_compensation))
+    ((ConfigOptionFloat,               xy_hole_compensation))
+    ((ConfigOptionFloat,               xy_contour_compensation))
     //BBS
     //((ConfigOptionBool,                wipe_into_objects))
     // BBS
@@ -590,7 +592,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     //BBS
     ((ConfigOptionBool,                 infill_combination))
     // Ironing options
-    ((ConfigOptionBool,                 ironing))
     ((ConfigOptionEnum<IroningType>,    ironing_type))
     ((ConfigOptionPercent,              ironing_flow))
     ((ConfigOptionFloat,                ironing_spacing))
@@ -707,7 +708,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionString,              tool_change_gcode))
     ((ConfigOptionFloat,               travel_speed))
     ((ConfigOptionFloat,               travel_speed_z))
-    ((ConfigOptionBool,                relative_e_axis))
     ((ConfigOptionBool,                silent_mode))
 )
 
@@ -748,7 +748,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloatOrPercent,     initial_layer_print_height))
     ((ConfigOptionFloatOrPercent,     initial_layer_speed))
     //BBS
-    ((ConfigOptionFloat,              speed_initial_layer_infill))
+    ((ConfigOptionFloat,              initial_layer_infill_speed))
     ((ConfigOptionInts,               nozzle_temperature_initial_layer))
     ((ConfigOptionInts,               full_fan_speed_layer))
     ((ConfigOptionBool,               infill_first))

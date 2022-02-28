@@ -749,7 +749,7 @@ void TreeSupport::detect_object_overhangs()
     const PrintObjectConfig& config = m_object->config();
     SupportType stype = config.support_type.value;
     const coordf_t radius_sample_resolution = m_ts_data->m_radius_sample_resolution;
-    const coordf_t extrusion_width = config.extrusion_width.value;
+    const coordf_t extrusion_width = config.line_width.value;
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     const bool bridge_no_support = config.bridge_no_support.value;
     const bool support_sharp_tails = config.support_sharp_tails.value;
@@ -1288,8 +1288,8 @@ void TreeSupport::generate_toolpaths()
 {
     const PrintConfig &print_config = m_object->print()->config();
     const PrintObjectConfig &object_config = m_object->config();
-    coordf_t support_extrusion_width = object_config.support_line_width.value > 0 ? object_config.support_line_width : object_config.extrusion_width;
-    coordf_t support_transition_line_width = object_config.support_transition_line_width.value > 0 ? object_config.support_transition_line_width : object_config.extrusion_width;
+    coordf_t support_extrusion_width = object_config.support_line_width.value > 0 ? object_config.support_line_width : object_config.line_width;
+    coordf_t support_transition_line_width = object_config.support_transition_line_width.value > 0 ? object_config.support_transition_line_width : object_config.line_width;
     coordf_t nozzle_diameter = print_config.nozzle_diameter.get_at(object_config.support_material_extruder - 1);
 
     const size_t wall_count = object_config.tree_support_wall_count.value;

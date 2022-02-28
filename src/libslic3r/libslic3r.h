@@ -67,6 +67,10 @@ static constexpr double EXTERNAL_INFILL_MARGIN = 1;
 //inline coord_t scale_(coordf_t v) { return coord_t(floor(v / SCALING_FACTOR + 0.5f)); }
 #define scale_(val) ((val) / SCALING_FACTOR)
 
+//BBS: BBS only support relative E and can't been changed by user at the moment. because
+//BBS need to support skip object when printing.
+static constexpr bool RELATIVE_E_AXIS = 1;
+
 #define SCALED_EPSILON scale_(EPSILON)
 
 #ifndef UNUSED

@@ -97,6 +97,7 @@ static t_config_enum_values s_keys_map_InfillPattern {
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InfillPattern)
 
 static t_config_enum_values s_keys_map_IroningType {
+    { "no ironing",     int(IroningType::NoIroning) },
     { "top",            int(IroningType::TopSurfaces) },
     { "topmost",        int(IroningType::TopmostOnly) },
     { "solid",          int(IroningType::AllSolid) }
@@ -897,7 +898,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 1. });
 
-    def = this->add("extrusion_width", coFloatOrPercent);
+    def = this->add("line_width", coFloatOrPercent);
     def->label = L("Default");
     def->category = L("Extrusion Width");
     def->tooltip = L("Set this to a non-zero value to allow a manual extrusion width. "
@@ -909,7 +910,7 @@ void PrintConfigDef::init_fff_params()
     def->max = 1000;
     def->max_literal = 50;
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
+    def->set_default_value(new ConfigOptionFloatOrPercent(0.45, false));
 
     def = this->add("fan_always_on", coBools);
     def->label = L("Keep fan always on");
@@ -1222,7 +1223,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(30, false));
     //BBS
-    def = this->add("speed_initial_layer_infill", coFloat);
+    def = this->add("initial_layer_infill_speed", coFloat);
     def->label = L("Initial layer infill");
     def->tooltip = L("Speed of infill of first layer in mm/s, this speed will be applied to solid infill part of "
                       "initial layer.");
@@ -1552,57 +1553,52 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
 
-    def = this->add("ironing", coBool);
-    def->label = L("Enable ironing");
-    def->tooltip = L("Enable ironing of the top layers with the hot print head for smooth surface");
-    def->category = L("Ironing");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
-
     def = this->add("ironing_type", coEnum);
     def->label = L("Ironing Type");
     def->category = L("Ironing");
     def->tooltip = L("Ironing Type");
     def->enum_keys_map = &ConfigOptionEnum<IroningType>::get_enum_values();
+    def->enum_values.push_back("no ironing");
     def->enum_values.push_back("top");
     def->enum_values.push_back("topmost");
     def->enum_values.push_back("solid");
+    def->enum_labels.push_back(L("No ironing"));
     def->enum_labels.push_back(L("All top surfaces"));
     def->enum_labels.push_back(L("Topmost surface only"));
     def->enum_labels.push_back(L("All solid surfaces"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<IroningType>(IroningType::TopSurfaces));
+    def->set_default_value(new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
 
     def = this->add("ironing_flow", coPercent);
-    def->label = L("Flow rate");
+    def->label = L("Ironing flow");
     def->category = L("Ironing");
     def->tooltip = L("Percent of a flow rate relative to object's normal layer height.");
     def->sidetext = L("%");
     def->ratio_over = "layer_height";
     def->min = 0;
     def->max = 100;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionPercent(15));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(10));
 
     def = this->add("ironing_spacing", coFloat);
-    def->label = L("Spacing between ironing passes");
+    def->label = L("Ironing spacing");
     def->category = L("Ironing");
     def->tooltip = L("Distance between ironing lines");
     def->sidetext = L("mm");
     def->min = 0;
     def->max = 2;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(0.1));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.15));
 
     def = this->add("ironing_speed", coFloat);
-    def->label = L("Ironing");
+    def->label = L("Ironing speed");
     def->category = L("Ironing");
     def->tooltip = L("Ironing");
     def->sidetext = L("mm/s");
     def->min = 0;
     //BBS
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(15));
+    def->set_default_value(new ConfigOptionFloat(30));
 
     def = this->add("layer_change_gcode", coString);
     def->label = L("After layer change G-code");
@@ -2185,8 +2181,8 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->max = 50;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(6));
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionFloat(2));
 
     def = this->add("skirt_height", coInt);
     def->label = L("Skirt height");
@@ -2220,7 +2216,7 @@ void PrintConfigDef::init_fff_params()
                    "to disable skirt completely.");
     def->min = 0;
     def->max = 50;
-    def->mode = comDevelop;
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionInt(1));
 
     def = this->add("slow_down_below_layer_time", coInts);
@@ -2305,7 +2301,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
 
     def = this->add("spiral_mode", coBool);
-    def->label = L("Spiral vase");
+    def->label = L("Spiral mode");
     def->tooltip = L("This feature will raise Z gradually while printing a single-walled object "
                    "in order to remove any visible seam. This option requires a single perimeter, "
                    "no infill, no top solid layers and no support material. You can still set "
@@ -2929,14 +2925,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
 
-    def = this->add("relative_e_axis", coBool);
-    def->label = L("Use relative E distances");
-    def->tooltip = L("If your firmware requires relative E values, check this, "
-                   "otherwise leave it unchecked. Most firmwares use absolute values.");
-    //BBS
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(true));
-
     def = this->add("wipe", coBools);
     def->label = L("Wipe while retracting");
     def->tooltip = L("This flag will move the nozzle while retracting to minimize the possible blob "
@@ -3056,12 +3044,22 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(10.));
 
-    def = this->add("xy_size_compensation", coFloat);
-    def->label = L("X-Y compensation");
+    def = this->add("xy_hole_compensation", coFloat);
+    def->label = L("X-Y hole compensation");
     def->category = L("Advanced");
-    def->tooltip = L("The object will be grown/shrunk in the XY plane by the configured value "
-                   "(negative = inwards, positive = outwards). This might be useful "
-                   "for fine-tuning hole sizes.");
+    def->tooltip = L("Attention this config has not been implemented!!!"
+                    "The hole of object will be grown/shrunk in the XY plane by the configured value."
+                    "Negative means bigger hole. And positive means smaller hole.");
+    def->sidetext = L("mm");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def = this->add("xy_contour_compensation", coFloat);
+    def->label = L("X-Y contour compensation");
+    def->category = L("Advanced");
+    def->tooltip = L( "Attention this config is implemented for hole and contour together and will be modified in the future!!!"
+                    "The contour of object will be grown/shrunk in the XY plane by the configured value."
+                    "Negative means smaller contour. And positive means bigger counter.");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));

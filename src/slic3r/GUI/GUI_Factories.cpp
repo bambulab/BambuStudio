@@ -71,7 +71,7 @@ static SettingsFactory::Bundle FREQ_SETTINGS_BUNDLE_SLA =
 std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_CATEGORY_SETTINGS=
 {
     { L("Quality"), {{"layer_height", "",1},{"initial_layer_print_height", "",2},{"adaptive_layer_height", "",3},{"seam_position", "",4},
-                    {"xy_size_compensation", "",5},{"elefant_foot_compensation", "",6},{"support_line_width", "",12},
+                    {"xy_hole_compensation", "",5}, {"xy_contour_compensation", "",6}, {"elefant_foot_compensation", "",7},{"support_line_width", "",12},
                     {"support_transition_line_width", "",12}
                     }},
     { L("Support material"), {{"enable_support", "",1},{"support_type", "",2},{"support_threshold_angle", "",3},{"support_on_build_plate_only", "",4},{"support_material_enforce_layers", "",5},
@@ -85,7 +85,7 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
 
 std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CATEGORY_SETTINGS=
 {
-    { L("Quality"), {{"external_perimeters_first", "",13},{"ironing", "",7},{"ironing_type", "",8},{"inner_wall_line_width", "",9},{"outer_wall_line_width", "",10},
+    { L("Quality"), {{"external_perimeters_first", "",13},{"ironing_type", "",8},{"inner_wall_line_width", "",9},{"outer_wall_line_width", "",10},
                     {"top_surface_line_width", "",11}
                     }},
     { L("Shell"), {{"wall_loops", "",1},{"ensure_vertical_shell_thickness", "",1},{"top_shell_layers", L("Top Solid Layers"),1},{"bottom_shell_layers", L("Bottom Solid Layers"),1},
@@ -133,7 +133,7 @@ std::vector<SimpleSettingData> SettingsFactory::get_visible_options(const std::s
 
     t_config_option_keys object_options = {
         //Quality
-        "layer_height", "initial_layer_print_height", "adaptive_layer_height", "seam_position", "xy_size_compensation", "elefant_foot_compensation", "support_line_width",
+        "layer_height", "initial_layer_print_height", "adaptive_layer_height", "seam_position", "xy_hole_compensation", "xy_contour_compensation", "elefant_foot_compensation", "support_line_width",
         //Support
         "enable_support", "support_type", "support_threshold_angle", "support_on_build_plate_only", "support_material_enforce_layers",
         //tree support

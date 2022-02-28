@@ -1612,7 +1612,7 @@ std::string DebugToolDialog::switch_ams_gcode(std::string t)
     dyn_config.set_key_value("layer_num",         new ConfigOptionInt(0));
     dyn_config.set_key_value("layer_z",           new ConfigOptionFloat(0.3));
     dyn_config.set_key_value("max_layer_z",       new ConfigOptionFloat(10.));
-    dyn_config.set_key_value("relative_e_axis", new ConfigOptionBool(1));
+    dyn_config.set_key_value("relative_e_axis", new ConfigOptionBool(RELATIVE_E_AXIS));
     dyn_config.set_key_value("toolchange_count", new ConfigOptionInt(1));
     dyn_config.set_key_value("fan_speed", new ConfigOptionInt(0));
     dyn_config.set_key_value("old_retract_length", new ConfigOptionFloat(2.));

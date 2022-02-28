@@ -110,7 +110,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
     // Maximum volumetric speed allowed for the print profile.
     double max_volumetric_speed             = print_config.opt_float("max_volumetric_speed");
 
-    const auto &extrusion_width                     = *print_config.option<ConfigOptionFloatOrPercent>("extrusion_width");
+    const auto &extrusion_width                     = *print_config.option<ConfigOptionFloatOrPercent>("line_width");
     const auto &outer_wall_line_width  = *print_config.option<ConfigOptionFloatOrPercent>("outer_wall_line_width");
     const auto &initial_layer_line_width         = *print_config.option<ConfigOptionFloatOrPercent>("initial_layer_line_width");
     const auto &sparse_infill_line_width              = *print_config.option<ConfigOptionFloatOrPercent>("sparse_infill_line_width");

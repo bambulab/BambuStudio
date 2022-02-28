@@ -647,9 +647,14 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
         // BBS: config is preset initial value, not presets.m_edited_preset,
         // so bed_type value does not contains modification.
         //int bed_type = config.opt_enum("bed_type", 0);
-        int bed_type = boost::any_cast<int>(this->get_field("bed_type")->get_value());
-        const ConfigOptionInts* bed_temps = dynamic_cast<const ConfigOptionInts*>(config.option(opt_key));
-        value = bed_type < bed_temps->size() ? bed_temps->get_at(bed_type) : 0;
+        if (!this->get_field("bed_type")) {
+            value = 0;
+            throw Slic3r::InvalidArgument("Too old 3MF which has no bed_type field.");
+        } else {
+            int bed_type = boost::any_cast<int>(this->get_field("bed_type")->get_value());
+            const ConfigOptionInts* bed_temps = dynamic_cast<const ConfigOptionInts*>(config.option(opt_key));
+            value = bed_type < bed_temps->size() ? bed_temps->get_at(bed_type) : 0;
+        }
     }
     else if (m_opt_map.find(opt_key) == m_opt_map.end() ||
 		    // This option don't have corresponded field
