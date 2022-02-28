@@ -4230,7 +4230,8 @@ void GCodeViewer::render_legend(float& legend_height, int canvas_width, int canv
             PartialTimes items;
 
             std::vector<CustomGCode::Item> custom_gcode_per_print_z = wxGetApp().is_editor() ? wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes : m_custom_gcode_per_print_z;
-            int extruders_count = wxGetApp().extruders_edited_cnt();
+            // BBS
+            int extruders_count = wxGetApp().filaments_cnt();
             std::vector<Color> last_color(extruders_count);
             for (int i = 0; i < extruders_count; ++i) {
                 last_color[i] = m_tools.m_tool_colors[i];

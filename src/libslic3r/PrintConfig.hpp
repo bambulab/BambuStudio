@@ -213,6 +213,10 @@ public:
     // (then the key is further prefixed with the "filament_" prefix).
     const std::vector<std::string>& extruder_retract_keys() const { return m_extruder_retract_keys; }
 
+    // BBS
+    const std::vector<std::string>& filament_option_keys() const { return m_filament_option_keys; }
+    const std::vector<std::string>& filament_retract_keys() const { return m_filament_retract_keys; }
+
 private:
     void init_common_params();
     void init_fff_params();
@@ -221,6 +225,12 @@ private:
 
     std::vector<std::string>    m_extruder_option_keys;
     std::vector<std::string>    m_extruder_retract_keys;
+
+    // BBS
+    void init_filament_option_keys();
+
+    std::vector<std::string>    m_filament_option_keys;
+    std::vector<std::string>    m_filament_retract_keys;
 };
 
 // The one and only global definition of SLic3r configuration options.
@@ -259,6 +269,9 @@ public:
     void                normalize_fdm();
 
     void                set_num_extruders(unsigned int num_extruders);
+
+    // BBS
+    void                set_num_filaments(unsigned int num_filaments);
 
     // Validate the PrintConfig. Returns an empty string on success, otherwise an error message is returned.
     std::string         validate();
@@ -806,6 +819,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     // BBS: wipe tower is only used for priming
     ((ConfigOptionFloat,              wiping_volume))
     ((ConfigOptionFloat,              z_offset))
+    // BBS: project filaments
+    ((ConfigOptionFloats,             filament_colour_new))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Full.

@@ -634,20 +634,21 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
             if ( dialog.ShowModal() == wxID_OK )
             {
                 m_clrData = dialog.GetColourData();
-                clr_picker->SetBackgroundColour(m_clrData.GetColour());
+
                 // get current color
-                DynamicPrintConfig* cfg = wxGetApp().get_tab(Preset::TYPE_PRINTER)->get_config();
-                auto colors = static_cast<ConfigOptionStrings*>(cfg->option("extruder_colour")->clone());
+                DynamicPrintConfig* cfg = &wxGetApp().preset_bundle->project_config;
+                auto colors = static_cast<ConfigOptionStrings*>(cfg->option("filament_colour")->clone());
                 wxColour clr(colors->values[m_extruder_idx]);
                 if (!clr.IsOk())
                     clr = wxColour(0, 0, 0); // Don't set alfa to transparence
 
                 colors->values[m_extruder_idx] = m_clrData.GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
                 DynamicPrintConfig cfg_new = *cfg;
-                cfg_new.set_key_value("extruder_colour", colors);
+                cfg_new.set_key_value("filament_colour", colors);
 
-                wxGetApp().get_tab(Preset::TYPE_PRINTER)->load_config(cfg_new);
-                this->update();
+                //wxGetApp().get_tab(Preset::TYPE_PRINTER)->load_config(cfg_new);
+                cfg->apply(cfg_new);
+                update();
                 wxGetApp().plater()->on_config_change(cfg_new);
             }
         });
@@ -763,8 +764,8 @@ void PlaterPresetComboBox::switch_to_tab()
 void PlaterPresetComboBox::change_extruder_color()
 {
     // get current color
-    DynamicPrintConfig* cfg = wxGetApp().get_tab(Preset::TYPE_PRINTER)->get_config();
-    auto colors = static_cast<ConfigOptionStrings*>(cfg->option("extruder_colour")->clone());
+    DynamicPrintConfig* cfg = &wxGetApp().preset_bundle->project_config;
+    auto colors = static_cast<ConfigOptionStrings*>(cfg->option("filament_colour")->clone());
     wxColour clr(colors->values[m_extruder_idx]);
     if (!clr.IsOk())
         clr = wxColour(0, 0, 0); // Don't set alfa to transparence
@@ -780,7 +781,7 @@ void PlaterPresetComboBox::change_extruder_color()
         colors->values[m_extruder_idx] = dialog.GetColourData().GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
 
         DynamicPrintConfig cfg_new = *cfg;
-        cfg_new.set_key_value("extruder_colour", colors);
+        cfg_new.set_key_value("filament_colour", colors);
 
         wxGetApp().get_tab(Preset::TYPE_PRINTER)->load_config(cfg_new);
         this->update();
@@ -864,16 +865,16 @@ void PlaterPresetComboBox::update()
     invalidate_selection();
 
     const Preset* selected_filament_preset = nullptr;
-    std::string extruder_color;
+    std::string filament_color;
     if (m_type == Preset::TYPE_FILAMENT)
     {
         unsigned char rgb[3];
-        extruder_color = m_preset_bundle->printers.get_edited_preset().config.opt_string("extruder_colour", (unsigned int)m_extruder_idx);
-        if (!bitmap_cache().parse_color(extruder_color, rgb))
+        filament_color = m_preset_bundle->project_config.opt_string("filament_colour", (unsigned int)m_extruder_idx);
+        if (!bitmap_cache().parse_color(filament_color, rgb))
             // Extruder color is not defined.
-            extruder_color.clear();
+            filament_color.clear();
         // BBS
-        clr_picker->SetBackgroundColour(wxColor(extruder_color));
+        clr_picker->SetBackgroundColour(wxColor(filament_color));
         selected_filament_preset = m_collection->find_preset(m_preset_bundle->filament_presets[m_extruder_idx]);
         if (!selected_filament_preset) {
             //can not find this filament, should be caused by project embedded presets, will be updated later
@@ -921,13 +922,15 @@ void PlaterPresetComboBox::update()
         bool single_bar = false;
         if (m_type == Preset::TYPE_FILAMENT)
         {
+#if 0
             // Assign an extruder color to the selected item if the extruder color is defined.
             filament_rgb = is_selected ? selected_filament_preset->config.opt_string("filament_colour", 0) : 
                                          preset.config.opt_string("filament_colour", 0);
-            extruder_rgb = (is_selected && !extruder_color.empty()) ? extruder_color : filament_rgb;
+            extruder_rgb = (is_selected && !filament_color.empty()) ? filament_color : filament_rgb;
             single_bar = filament_rgb == extruder_rgb;
 
             bitmap_key += single_bar ? filament_rgb : filament_rgb + extruder_rgb;
+#endif
         }
         else if (m_type == Preset::TYPE_SLA_MATERIAL) {
             material_rgb = is_selected ? m_preset_bundle->sla_materials.get_edited_preset().config.opt_string("material_colour") : preset.config.opt_string("material_colour");

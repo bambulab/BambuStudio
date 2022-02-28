@@ -2365,14 +2365,15 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 				volume->set_sla_shift_z(shift_zs[volume->object_idx()]);
     }
 
-    if (printer_technology == ptFFF && m_config->has("nozzle_diameter")) {
+    // BBS
+    if (printer_technology == ptFFF && m_config->has("filament_colour")) {
         // Should the wipe tower be visualized ?
-        unsigned int extruders_count = (unsigned int)dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"))->values.size();
+        unsigned int filaments_count = (unsigned int)dynamic_cast<const ConfigOptionStrings*>(m_config->option("filament_colour"))->values.size();
 
         bool wt = dynamic_cast<const ConfigOptionBool*>(m_config->option("enable_wipe_tower"))->value;
         auto co = dynamic_cast<const ConfigOptionEnum<PrintSequence>*>(m_config->option<ConfigOptionEnum<PrintSequence>>("print_sequence"));
 
-        if (extruders_count > 1 && wt && co != nullptr && co->value != PrintSequence::ByObject) {
+        if (filaments_count > 1 && wt && co != nullptr && co->value != PrintSequence::ByObject) {
             for (int plate_id = 0; plate_id < n_plates; plate_id++) {
                 float x = dynamic_cast<const ConfigOptionFloats*>(m_config->option("wipe_tower_x"))->get_at(plate_id);
                 float y = dynamic_cast<const ConfigOptionFloats*>(m_config->option("wipe_tower_y"))->get_at(plate_id);
@@ -2383,8 +2384,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 Vec3d plate_origin = ppl.get_plate(plate_id)->get_origin();
 
                 const Print* print = m_process->fff_print();
-                float depth = print->wipe_tower_data(extruders_count).depth;
-                float brim_width = print->wipe_tower_data(extruders_count).brim_width;
+                float depth = print->wipe_tower_data(filaments_count).depth;
+                float brim_width = print->wipe_tower_data(filaments_count).brim_width;
                 Vec3d wipe_tower_size = ppl.get_plate(plate_id)->estimate_wipe_tower_size(w, v);
                 int volume_idx_wipe_tower_new = m_volumes.load_wipe_tower_preview(
                     1000 + plate_id, x + plate_origin(0), y + plate_origin(1),
@@ -7959,7 +7960,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         bool                         has_support;
         const std::vector<std::array<float, 4>>* tool_colors;
         bool                         is_single_material_print;
-        int                          extruders_cnt;
+        int                          filaments_cnt;
         const std::vector<CustomGCode::Item>*   color_print_values;
 
         static const std::array<float, 4>& color_perimeters() { static std::array<float, 4> color = { 1.0f, 1.0f, 0.0f, 1.f }; return color; } // yellow
@@ -8020,7 +8021,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                     return get_color_idx_for_tool_change(it, extruder);
             }
 
-            return std::min<int>(extruders_cnt - 1, std::max<int>(extruder - 1, 0));;
+            return std::min<int>(filaments_cnt - 1, std::max<int>(extruder - 1, 0));;
         }
 
     private:
@@ -8032,14 +8033,14 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                 if (it->type == CustomGCode::ColorChange)
                     shift++;
             }
-            return extruders_cnt + shift;
+            return filaments_cnt + shift;
         }
 
         int get_color_idx_for_tool_change(std::vector<CustomGCode::Item>::const_iterator it, const int extruder) const
         {
             const int current_extruder = it->extruder == 0 ? extruder : it->extruder;
-            if (number_tools() == size_t(extruders_cnt + 1)) // there is no one "M600"
-                return std::min<int>(extruders_cnt - 1, std::max<int>(current_extruder - 1, 0));
+            if (number_tools() == size_t(filaments_cnt + 1)) // there is no one "M600"
+                return std::min<int>(filaments_cnt - 1, std::max<int>(current_extruder - 1, 0));
 
             auto it_n = it;
             while (it_n != color_print_values->begin()) {
@@ -8048,12 +8049,12 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                     return get_m600_color_idx(it_n);
             }
 
-            return std::min<int>(extruders_cnt - 1, std::max<int>(current_extruder - 1, 0));
+            return std::min<int>(filaments_cnt - 1, std::max<int>(current_extruder - 1, 0));
         }
 
         int get_color_idx_for_color_change(std::vector<CustomGCode::Item>::const_iterator it, const int extruder) const
         {
-            if (extruders_cnt == 1)
+            if (filaments_cnt == 1)
                 return get_m600_color_idx(it);
 
             auto it_n = it;
@@ -8081,7 +8082,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
     ctxt.tool_colors = tool_colors.empty() ? nullptr : &tool_colors;
     ctxt.color_print_values = color_print_values.empty() ? nullptr : &color_print_values;
     ctxt.is_single_material_print = this->fff_print()->extruders().size()==1;
-    ctxt.extruders_cnt = wxGetApp().extruders_edited_cnt();
+    ctxt.filaments_cnt = wxGetApp().filaments_cnt();
 
     ctxt.shifted_copies = &print_object.instances();
 

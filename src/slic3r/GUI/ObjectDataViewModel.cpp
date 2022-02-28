@@ -265,7 +265,7 @@ bool ObjectDataViewModelNode::SetValue(const wxVariant& variant, unsigned col)
         m_bmp = data.GetBitmap();
         m_name = data.GetText();
         return true; }
-    case colExtruder: {
+    case colFilament: {
         DataViewBitmapText data;
         data << variant;
         m_extruder_bmp = data.GetBitmap();
@@ -1275,7 +1275,7 @@ bool ObjectDataViewModel::UpdateColumValues(unsigned col)
     case colName:
     case colEditing:
         return true;
-    case colExtruder:
+    case colFilament:
     {
         wxDataViewItemArray items;
         GetAllChildren(wxDataViewItem(nullptr), items);
@@ -1475,7 +1475,7 @@ int ObjectDataViewModel::GetExtruderNumber(const wxDataViewItem& item) const
 
 wxString ObjectDataViewModel::GetColumnType(unsigned int col) const
 {
-    if (col == colName || col == colExtruder)
+    if (col == colName || col == colFilament)
         return wxT("DataViewBitmapText");
     // BBS
     if (/*col == colPrint || */col == colEditing)
@@ -1496,7 +1496,7 @@ void ObjectDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem &ite
 	case colName:
         variant << DataViewBitmapText(node->m_name, node->m_bmp);
 		break;
-	case colExtruder:
+	case colFilament:
 		variant << DataViewBitmapText(node->m_extruder, node->m_extruder_bmp);
 		break;
 	case colEditing:
@@ -1680,7 +1680,7 @@ bool ObjectDataViewModel::IsEnabled(const wxDataViewItem &item, unsigned int col
     ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode*>(item.GetID());
 
     // disable extruder selection for the non "itObject|itVolume" item
-    ret = !(col == colExtruder && node->m_extruder.IsEmpty());
+    ret = !(col == colFilament && node->m_extruder.IsEmpty());
     return ret;
 }
 

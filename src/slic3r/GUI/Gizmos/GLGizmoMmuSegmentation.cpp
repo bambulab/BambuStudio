@@ -30,7 +30,7 @@ static inline void show_notification_extruders_limit_exceeded()
 
 void GLGizmoMmuSegmentation::on_opening()
 {
-    if (wxGetApp().extruders_edited_cnt() > int(GLGizmoMmuSegmentation::EXTRUDERS_LIMIT))
+    if (wxGetApp().filaments_cnt() > int(GLGizmoMmuSegmentation::EXTRUDERS_LIMIT))
         show_notification_extruders_limit_exceeded();
 }
 
@@ -48,12 +48,12 @@ std::string GLGizmoMmuSegmentation::on_get_name() const
 bool GLGizmoMmuSegmentation::on_is_selectable() const
 {
     return (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF
-            && /*wxGetApp().get_mode() != comSimple && */wxGetApp().extruders_edited_cnt() > 1);
+            && /*wxGetApp().get_mode() != comSimple && */wxGetApp().filaments_cnt() > 1);
 }
 
 bool GLGizmoMmuSegmentation::on_is_activable() const
 {
-    return GLGizmoPainterBase::on_is_activable() && wxGetApp().extruders_edited_cnt() > 1;
+    return GLGizmoPainterBase::on_is_activable() && wxGetApp().filaments_cnt() > 1;
 }
 
 static std::vector<std::array<float, 4>> get_extruders_colors()
@@ -72,13 +72,13 @@ static std::vector<std::array<float, 4>> get_extruders_colors()
 
 static std::vector<std::string> get_extruders_names()
 {
-    size_t                   extruders_count = wxGetApp().extruders_edited_cnt();
-    std::vector<std::string> extruders_out;
-    extruders_out.reserve(extruders_count);
-    for (size_t extruder_idx = 1; extruder_idx <= extruders_count; ++extruder_idx)
-        extruders_out.emplace_back("Extruder " + std::to_string(extruder_idx));
+    size_t                   filaments_count = wxGetApp().filaments_cnt();
+    std::vector<std::string> filaments_out;
+    filaments_out.reserve(filaments_count);
+    for (size_t filament_id = 1; filament_id <= filaments_count; ++filament_id)
+        filaments_out.emplace_back("Filament " + std::to_string(filament_id));
 
-    return extruders_out;
+    return filaments_out;
 }
 
 static std::vector<int> get_extruder_id_for_volumes(const ModelObject &model_object)
@@ -173,18 +173,18 @@ void GLGizmoMmuSegmentation::set_painter_gizmo_data(const Selection &selection)
 {
     GLGizmoPainterBase::set_painter_gizmo_data(selection);
 
-    if (m_state != On || wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptFFF || wxGetApp().extruders_edited_cnt() <= 1)
+    if (m_state != On || wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptFFF || wxGetApp().filaments_cnt() <= 1)
         return;
 
     ModelObject *model_object         = m_c->selection_info()->model_object();
     if (int prev_extruders_count = int(m_original_extruders_colors.size());
-        prev_extruders_count != wxGetApp().extruders_edited_cnt() || get_extruders_colors() != m_original_extruders_colors) {
-        if (wxGetApp().extruders_edited_cnt() > int(GLGizmoMmuSegmentation::EXTRUDERS_LIMIT))
+        prev_extruders_count != wxGetApp().filaments_cnt() || get_extruders_colors() != m_original_extruders_colors) {
+        if (wxGetApp().filaments_cnt() > int(GLGizmoMmuSegmentation::EXTRUDERS_LIMIT))
             show_notification_extruders_limit_exceeded();
 
         this->init_extruders_data();
         // Reinitialize triangle selectors because of change of extruder count need also change the size of GLIndexedVertexArray
-        if (prev_extruders_count != wxGetApp().extruders_edited_cnt())
+        if (prev_extruders_count != wxGetApp().filaments_cnt())
             this->init_model_triangle_selectors();
     } else if (model_object != nullptr && get_extruder_id_for_volumes(*model_object) != m_original_volumes_extruder_idxs) {
         this->init_model_triangle_selectors();
@@ -547,7 +547,7 @@ void GLGizmoMmuSegmentation::update_from_model_object(bool first_update)
     // Extruder colors need to be reloaded before calling init_model_triangle_selectors to render painted triangles
     // using colors from loaded 3MF and not from printer profile in Slicer.
     if (int prev_extruders_count = int(m_original_extruders_colors.size());
-        prev_extruders_count != wxGetApp().extruders_edited_cnt() || get_extruders_colors() != m_original_extruders_colors)
+        prev_extruders_count != wxGetApp().filaments_cnt() || get_extruders_colors() != m_original_extruders_colors)
         this->init_extruders_data();
 
     this->init_model_triangle_selectors();

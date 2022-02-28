@@ -1277,8 +1277,11 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "enable_wipe_tower" || opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
         update_wiping_button_visibility();
 
+    // BBS
+#if 0
     if (opt_key == "extruders_count")
         wxGetApp().plater()->on_extruders_change(boost::any_cast<size_t>(value));
+#endif
 
     if (m_postpone_update_ui) {
         // It means that not all values are rolled to the system/last saved values jet.
@@ -2327,7 +2330,8 @@ void TabPrinter::build_fff()
 
     auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
     m_initial_extruders_count = m_extruders_count = nozzle_diameter->values.size();
-    wxGetApp().sidebar().update_objects_list_extruder_column(m_initial_extruders_count);
+    // BBS
+    //wxGetApp().obj_list()->update_objects_list_filament_column(m_initial_extruders_count);
 
     const Preset* parent_preset = m_printer_technology == ptSLA ? nullptr // just for first build, if SLA printer preset is selected 
                                   : m_presets->get_selected_preset_parent();
@@ -2593,9 +2597,12 @@ void TabPrinter::extruders_count_changed(size_t extruders_count)
         m_preset_bundle->update_multi_material_filament_presets();
         is_count_changed = true;
     }
+    // BBS
+#if 0
     else if (m_extruders_count == 1 &&
              m_preset_bundle->project_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values.size()>1)
         m_preset_bundle->update_multi_material_filament_presets();
+#endif
 
     /* This function should be call in any case because of correct updating/rebuilding
      * of unregular pages of a Printer Settings
@@ -2604,7 +2611,8 @@ void TabPrinter::extruders_count_changed(size_t extruders_count)
 
     if (is_count_changed) {
         on_value_change("extruders_count", extruders_count);
-        wxGetApp().sidebar().update_objects_list_extruder_column(extruders_count);
+        // BBS
+        //wxGetApp().obj_list()->update_objects_list_filament_column(extruders_count);
     }
 }
 
@@ -2898,11 +2906,14 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
 // this gets executed after preset is loaded and before GUI fields are updated
 void TabPrinter::on_preset_loaded()
 {
+    // BBS
+#if 0
     // update the extruders count field
     auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
     size_t extruders_count = nozzle_diameter->values.size();
     // update the GUI field according to the number of nozzle diameters supplied
     extruders_count_changed(extruders_count);
+#endif
 }
 
 void TabPrinter::update_pages()
@@ -2935,7 +2946,7 @@ void TabPrinter::update_pages()
         else
             m_pages.swap(m_pages_fff);
 
-         wxGetApp().sidebar().update_objects_list_extruder_column(m_extruders_count);
+         wxGetApp().obj_list()->update_objects_list_filament_column(m_extruders_count);
     }
     else
         m_pages_sla.empty() ? build_sla() : m_pages.swap(m_pages_sla);
@@ -3102,7 +3113,7 @@ void Tab::load_current_preset()
         if (preset.printer_technology() == ptFFF)
             on_preset_loaded();
         else
-            wxGetApp().sidebar().update_objects_list_extruder_column(1);
+            wxGetApp().obj_list()->update_objects_list_filament_column(1);
     }
     // Reload preset pages with the new configuration values.
     reload_config();

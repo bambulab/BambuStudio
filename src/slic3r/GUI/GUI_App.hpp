@@ -349,6 +349,9 @@ public:
     int             extruders_cnt() const;
     int             extruders_edited_cnt() const;
 
+    // BBS
+    int             filaments_cnt() const;
+
     std::vector<Tab *>      tabs_list;
 
 	RemovableDriveManager* removable_drive_manager() { return m_removable_drive_manager.get(); }

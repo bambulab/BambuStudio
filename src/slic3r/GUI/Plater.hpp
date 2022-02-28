@@ -107,7 +107,7 @@ public:
     Sidebar &operator=(const Sidebar &) = delete;
     ~Sidebar();
 
-    void init_filament_combo(PlaterPresetComboBox **combo, const int extr_idx);
+    void init_filament_combo(PlaterPresetComboBox **combo, const int filament_idx);
     void remove_unused_filament_combos(const size_t current_extruder_count);
     void update_all_preset_comboboxes();
     //void update_partplate(PartPlateList& list);
@@ -122,8 +122,8 @@ public:
     void search();
     void jump_to_option(size_t selected);
     void jump_to_option(const std::string& opt_key, Preset::Type type, const std::wstring& category);
-    // BBS. Add on_extruders_change() method.
-    void on_extruders_change(size_t num_extruders);
+    // BBS. Add on_filaments_change() method.
+    void on_filaments_change(size_t num_filaments);
 
     // BBS
     //ObjectManipulation*     obj_manipul();
@@ -141,7 +141,7 @@ public:
 
     ConfigOptionsGroup*     og_freq_chng_params(const bool is_fff);
     wxButton*               get_wiping_dialog_button();
-    void                    update_objects_list_extruder_column(size_t extruders_count);
+
     // BBS
     //void                    show_object_info();
     //void                    show_sliced_info(const bool show);
@@ -353,7 +353,7 @@ public:
     // BBS: return false if not changed
     bool leave_gizmos_stack();
 
-    void on_extruders_change(size_t extruders_count);
+    void on_filaments_change(size_t extruders_count);
     bool update_filament_colors_in_full_config();
     void on_config_change(const DynamicPrintConfig &config);
     void force_filament_colors_update();

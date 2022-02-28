@@ -85,7 +85,8 @@ public:
         m_final_purge(final_purge),
         m_layer_idx(-1),
         m_tool_change_idx(0),
-        m_plate_origin(plate_origin)
+        m_plate_origin(plate_origin),
+        m_single_extruder_multi_material(print_config.single_extruder_multi_material)
     {}
 
     std::string prime(GCode &gcodegen);
@@ -119,6 +120,7 @@ private:
 
     // BBS
     Vec3d                                                        m_plate_origin;
+    bool                                                         m_single_extruder_multi_material;
 };
 
 class ColorPrintColors

@@ -55,6 +55,9 @@ public:
     // Export selections (current print, current filaments, current printer) into config.ini
     void            export_selections(AppConfig &config);
 
+    // BBS
+    void            set_num_filaments(unsigned int n);
+
     PresetCollection            prints;
     PresetCollection            sla_prints;
     PresetCollection            filaments;

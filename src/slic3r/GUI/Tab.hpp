@@ -439,6 +439,7 @@ private:
 	void 			update_volumetric_flow_preset_hints();
 
     std::map<std::string, wxCheckBox*> m_overrides_options;
+
 public:
 	//BBS: GUI refactor
 	TabFilament(ParamsPanel* parent) :

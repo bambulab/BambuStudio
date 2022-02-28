@@ -3310,6 +3310,12 @@ int GUI_App::extruders_edited_cnt() const
            preset.config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 }
 
+// BBS
+int GUI_App::filaments_cnt() const
+{
+    return preset_bundle->filament_presets.size();
+}
+
 wxString GUI_App::current_language_code_safe() const
 {
 	// Translate the language code to a code, for which Bambu Research maintains translations.

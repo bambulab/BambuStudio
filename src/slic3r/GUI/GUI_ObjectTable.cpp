@@ -1245,7 +1245,7 @@ void ObjectGridTable::SetValue( int row, int col, const wxString& value )
             option_value.value = enum_value + 1;
             update_filament_to_config(grid_row->config, grid_col->key, option_value, option_ori_value, (grid_row->row_type == row_object));
             update_volume_values_from_object(row, col);
-            wxGetApp().obj_list()->update_extruder_values_for_items(m_panel->m_filaments_count);
+            wxGetApp().obj_list()->update_filament_values_for_items(m_panel->m_filaments_count);
             //m_panel->m_plater->update();
         }
     }
@@ -2160,7 +2160,7 @@ bool ObjectGridTable::OnCellLeftClick(int row, int col, ConfigOptionType &type)
                     object_volume_id.object = m_panel->m_model->objects[grid_row->object_id];
                     object_volume_id.volume = (grid_row->row_type == row_object) ? nullptr : object_volume_id.object->volumes[grid_row->volume_id];
                     if (col == col_filaments_reset)
-                        wxGetApp().obj_list()->update_extruder_values_for_items(m_panel->m_filaments_count);
+                        wxGetApp().obj_list()->update_filament_values_for_items(m_panel->m_filaments_count);
                     else
                         wxGetApp().obj_list()->object_config_options_changed(object_volume_id);
 
@@ -2429,14 +2429,14 @@ int ObjectTablePanel::init_filaments_and_colors()
         return -1;
     }
 
-    const ConfigOptionStrings* extruders_opt = dynamic_cast<const ConfigOptionStrings*>(global_config->option("extruder_colour"));
-    if (extruders_opt == nullptr) {
+    const ConfigOptionStrings* filament_opt = dynamic_cast<const ConfigOptionStrings*>(global_config->option("filament_colour"));
+    if (filament_opt == nullptr) {
         set_default_filaments_and_colors();
         return -1;
     }
     m_filaments_colors.resize(m_filaments_count);
     m_filaments_name.resize(m_filaments_count);
-    unsigned int color_count = extruders_opt->values.size();
+    unsigned int color_count = filament_opt->values.size();
     if (color_count != m_filaments_count) {
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", invalid color count:%1%, extruder count: %2%") %color_count %m_filaments_count;
     }
@@ -2444,7 +2444,7 @@ int ObjectTablePanel::init_filaments_and_colors()
     unsigned int i = 0;
     unsigned char rgb[3];
     while (i < m_filaments_count) {
-        const std::string& txt_color = global_config->opt_string("extruder_colour", i);
+        const std::string& txt_color = global_config->opt_string("filament_colour", i);
         if (i < color_count) {
             if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb))
             {

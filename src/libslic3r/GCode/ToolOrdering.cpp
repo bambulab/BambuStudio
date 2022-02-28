@@ -160,12 +160,14 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
 	// Use the extruder switches from Model::custom_gcode_per_print_z to override the extruder to print the object.
 	// Do it only if all the objects were configured to be printed with a single extruder.
 	std::vector<std::pair<double, unsigned int>> per_layer_extruder_switches;
-	if (auto num_extruders = unsigned(print.config().nozzle_diameter.size());
-		num_extruders > 1 && print.object_extruders().size() == 1 && // the current Print's configuration is CustomGCode::MultiAsSingle
+
+    // BBS
+	if (auto num_filaments = unsigned(print.config().filament_diameter.size());
+		num_filaments > 1 && print.object_extruders().size() == 1 && // the current Print's configuration is CustomGCode::MultiAsSingle
 		print.model().custom_gcode_per_print_z.mode == CustomGCode::MultiAsSingle) {
 		// Printing a single extruder platter on a printer with more than 1 extruder (or single-extruder multi-material).
 		// There may be custom per-layer tool changes available at the model.
-		per_layer_extruder_switches = custom_tool_changes(print.model().custom_gcode_per_print_z, num_extruders);
+		per_layer_extruder_switches = custom_tool_changes(print.model().custom_gcode_per_print_z, num_filaments);
 	}
 
     // Collect extruders reuqired to print the layers.
@@ -703,12 +705,13 @@ void ToolOrdering::assign_custom_gcodes(const Print &print)
 	if (custom_gcode_per_print_z.gcodes.empty())
 		return;
 
-	auto 						num_extruders = unsigned(print.config().nozzle_diameter.size());
+    // BBS
+	auto 						num_filaments = unsigned(print.config().filament_diameter.size());
 	CustomGCode::Mode 			mode          =
-		(num_extruders == 1) ? CustomGCode::SingleExtruder :
+		(num_filaments == 1) ? CustomGCode::SingleExtruder :
 		print.object_extruders().size() == 1 ? CustomGCode::MultiAsSingle : CustomGCode::MultiExtruder;
 	CustomGCode::Mode           model_mode    = print.model().custom_gcode_per_print_z.mode;
-	std::vector<unsigned char> 	extruder_printing_above(num_extruders, false);
+	std::vector<unsigned char> 	extruder_printing_above(num_filaments, false);
 	auto 						custom_gcode_it = custom_gcode_per_print_z.gcodes.rbegin();
 	// Tool changes and color changes will be ignored, if the model's tool/color changes were entered in mm mode and the print is in non mm mode
 	// or vice versa.
@@ -740,9 +743,10 @@ void ToolOrdering::assign_custom_gcodes(const Print &print)
 			bool pause_or_custom_gcode = ! color_change && ! tool_change;
 			bool apply_color_change = ! ignore_tool_and_color_changes &&
 				// If it is color change, it will actually be useful as the exturder above will print.
+                // BBS
 				(color_change ? 
 					mode == CustomGCode::SingleExtruder || 
-						(custom_gcode.extruder <= int(num_extruders) && extruder_printing_above[unsigned(custom_gcode.extruder - 1)]) :
+						(custom_gcode.extruder <= int(num_filaments) && extruder_printing_above[unsigned(custom_gcode.extruder - 1)]) :
 				 	tool_change && tool_changes_as_color_changes);
 			if (pause_or_custom_gcode || apply_color_change)
         		lt.custom_gcode = &custom_gcode;

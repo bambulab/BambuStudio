@@ -29,15 +29,15 @@ static PrinterTechnology printer_technology()
     return wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology();
 }
 
-static int extruders_count()
+static int filaments_count()
 {
-    return wxGetApp().extruders_edited_cnt();
+    return wxGetApp().filaments_cnt();
 }
 
-static bool is_improper_category(const std::string& category, const int extruders_cnt, const bool is_object_settings = true)
+static bool is_improper_category(const std::string& category, const int filaments_cnt, const bool is_object_settings = true)
 {
     return  category.empty() ||
-        (extruders_cnt == 1 && (category == "Extruders" || category == "Wipe options")) ||
+        (filaments_cnt == 1 && (category == "Extruders" || category == "Wipe options")) ||
         (!is_object_settings && category == "Support material");
 }
 
@@ -211,13 +211,13 @@ SettingsFactory::Bundle SettingsFactory::get_bundle(const DynamicPrintConfig* co
     if (opt_keys.empty())
         return Bundle();
 
-    const int extruders_cnt = wxGetApp().extruders_edited_cnt();
+    const int filaments_cnt = wxGetApp().filaments_cnt();
 
     Bundle bundle;
     for (auto& opt_key : opt_keys)
     {
         auto category = config->def()->get(opt_key)->category;
-        if (is_improper_category(category, extruders_cnt, is_object_settings))
+        if (is_improper_category(category, filaments_cnt, is_object_settings))
             continue;
 
         std::vector< std::string > new_category;
@@ -303,14 +303,14 @@ static void get_full_settings_hierarchy(FullSettingsHierarchy& settings_menu, co
 {
     auto options = SettingsFactory::get_options(is_part);
 
-    const int extruders_cnt = extruders_count();
+    const int filaments_cnt = filaments_count();
 
     DynamicPrintConfig config;
     for (auto& option : options)
     {
         auto const opt = config.def()->get(option);
         auto category = opt->category;
-        if (is_improper_category(category, extruders_cnt, !is_part))
+        if (is_improper_category(category, filaments_cnt, !is_part))
             continue;
 
         const std::string& label = !opt->full_label.empty() ? opt->full_label : opt->label;
@@ -422,10 +422,10 @@ static void create_freq_settings_popupmenu(wxMenu* menu, const bool is_object_se
     // Add default settings bundles
     const SettingsFactory::Bundle& bundle = printer_technology() == ptFFF ? FREQ_SETTINGS_BUNDLE_FFF : FREQ_SETTINGS_BUNDLE_SLA;
 
-    const int extruders_cnt = extruders_count();
+    const int filaments_cnt = filaments_count();
 
     for (auto& category : bundle) {
-        if (is_improper_category(category.first, extruders_cnt, is_object_settings))
+        if (is_improper_category(category.first, filaments_cnt, is_object_settings))
             continue;
 
         append_menu_item(menu, wxID_ANY, _(category.first), "",
@@ -457,7 +457,7 @@ static void create_freq_settings_popupmenu(wxMenu* menu, const bool is_object_se
     const SettingsFactory::Bundle& bundle_quick = printer_technology() == ptFFF ? m_freq_settings_fff : m_freq_settings_sla;
 
     for (auto& category : bundle_quick) {
-        if (is_improper_category(category.first, extruders_cnt))
+        if (is_improper_category(category.first, filaments_cnt))
             continue;
 
         append_menu_item(menu, wxID_ANY, from_u8((boost::format(_utf8(L("Quick Add Settings (%s)"))) % _(it.first)).str()), "",
@@ -763,8 +763,8 @@ void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
             menu->Destroy(item_id);
     }
 
-    const int extruders_cnt = extruders_count();
-    if (extruders_cnt <= 1)
+    const int filaments_cnt = filaments_count();
+    if (filaments_cnt <= 1)
         return;
 
     wxDataViewItemArray sels;
@@ -783,12 +783,12 @@ void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
         initial_extruder = config.has("extruder") ? config.extruder() : 1;
     }
 
-    for (int i = 0; i <= extruders_cnt; i++)
+    for (int i = 0; i <= filaments_cnt; i++)
     {
         bool is_active_extruder = i == initial_extruder;
         int icon_idx = i == 0 ? 0 : i - 1;
 
-        const wxString& item_name = (i == 0 ? _L("Default") : wxString::Format(_L("Extruder %d"), i)) +
+        const wxString& item_name = (i == 0 ? _L("Default") : wxString::Format(_L("Filament %d"), i)) +
             (is_active_extruder ? " (" + _L("active") + ")" : "");
 
 
@@ -1446,8 +1446,8 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu, int insert_pos)
             menu->Destroy(item_id);
     }
 
-    const int extruders_cnt = extruders_count();
-    if (extruders_cnt <= 1)
+    const int filaments_cnt = filaments_count();
+    if (filaments_cnt <= 1)
         return;
 
     wxDataViewItemArray sels;
@@ -1466,7 +1466,7 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu, int insert_pos)
         initial_extruder = config.has("extruder") ? config.extruder() : 1;
     }
 
-    for (int i = 0; i <= extruders_cnt; i++)
+    for (int i = 0; i <= filaments_cnt; i++)
     {
         bool is_active_extruder = i == initial_extruder;
         int icon_idx = i == 0 ? 0 : i - 1;

@@ -146,7 +146,8 @@ static std::vector<VolumeSlices> slice_volumes_inner(
 
     params_base.mode_below     = params_base.mode;
 
-    const size_t num_extruders = print_config.nozzle_diameter.size();
+    // BBS
+    const size_t num_extruders = print_config.filament_diameter.size();
     const bool   is_mm_painted = num_extruders > 1 && std::any_of(model_volumes.cbegin(), model_volumes.cend(), [](const ModelVolume *mv) { return mv->is_mm_painted(); });
     const auto   extra_offset  = is_mm_painted ? 0.f : std::max(0.f, float(print_object_config.xy_contour_compensation.value));
 
@@ -573,7 +574,8 @@ static inline void apply_mm_segmentation(PrintObject &print_object, ThrowOnCance
             const auto  &layer_ranges   = print_object.shared_regions()->layer_ranges;
             double       z              = print_object.get_layer(range.begin())->slice_z;
             auto         it_layer_range = layer_range_first(layer_ranges, z);
-            const size_t num_extruders = print_object.print()->config().nozzle_diameter.size();
+            // BBS
+            const size_t num_extruders = print_object.print()->config().filament_diameter.size();
             struct ByExtruder {
                 ExPolygons  expolygons;
                 BoundingBox bbox;
@@ -744,7 +746,7 @@ void PrintObject::slice_volumes()
 
     // Is any ModelVolume MMU painted?
     if (const auto& volumes = this->model_object()->volumes;
-        m_print->config().nozzle_diameter.size() > 1 &&
+        m_print->config().filament_diameter.size() > 1 && // BBS
         std::find_if(volumes.begin(), volumes.end(), [](const ModelVolume* v) { return !v->mmu_segmentation_facets.empty(); }) != volumes.end()) {
 
         // If XY Size compensation is also enabled, notify the user that XY Size compensation
@@ -765,7 +767,7 @@ void PrintObject::slice_volumes()
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - make_slices in parallel - begin";
     {
         // Compensation value, scaled. Only applying the negative scaling here, as the positive scaling has already been applied during slicing.
-        const size_t num_extruders = print->config().nozzle_diameter.size();
+        const size_t num_extruders = print->config().filament_diameter.size();
         const auto   xy_hole_scaled            = (num_extruders > 1 && this->is_mm_painted()) ? scaled<float>(0.f) : scaled<float>(std::min(m_config.xy_hole_compensation.value, 0.));
         const auto   xy_contour_scaled            = (num_extruders > 1 && this->is_mm_painted()) ? scaled<float>(0.f) : scaled<float>(std::min(m_config.xy_contour_compensation.value, 0.));
         const float  elephant_foot_compensation_scaled = (m_config.raft_layers == 0) ?

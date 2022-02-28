@@ -1303,7 +1303,8 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                                                                                           const std::vector<ExPolygons> &input_expolygons,
                                                                                           const std::function<void()>   &throw_on_cancel_callback)
 {
-    const size_t num_extruders = print_object.print()->config().nozzle_diameter.size() + 1;
+    // BBS
+    const size_t num_extruders = print_object.print()->config().filament_colour.size() + 1;
     const size_t num_layers    = input_expolygons.size();
     const ConstLayerPtrsAdaptor layers = print_object.layers();
 
@@ -1678,7 +1679,7 @@ static bool has_layer_only_one_color(const std::vector<std::vector<ColoredLine>>
 
 std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(const PrintObject &print_object, const std::function<void()> &throw_on_cancel_callback)
 {
-    const size_t                          num_extruders = print_object.print()->config().nozzle_diameter.size();
+    const size_t                          num_extruders = print_object.print()->config().filament_colour.size();
     const size_t                          num_layers    = print_object.layers().size();
     std::vector<std::vector<ExPolygons>>  segmented_regions(num_layers);
     segmented_regions.assign(num_layers, std::vector<ExPolygons>(num_extruders + 1));

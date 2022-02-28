@@ -38,7 +38,7 @@ enum ColumnNumber
 {
     colName         = 0,    // item name
     colPrint           ,    // printable property
-    colExtruder        ,    // extruder selection
+    colFilament        ,    // extruder selection
     colEditing         ,    // item editing
 };
 

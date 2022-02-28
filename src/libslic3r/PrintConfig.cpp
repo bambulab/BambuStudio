@@ -959,7 +959,7 @@ void PrintConfigDef::init_fff_params()
     def->gui_type = ConfigOptionDef::GUIType::color;
     //BBS
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionStrings { "#29B2B2" });
+    def->set_default_value(new ConfigOptionStrings{ "#00AE42" });
 
     def = this->add("filament_max_volumetric_speed", coFloats);
     def->label = L("Max volumetric speed");
@@ -3162,6 +3162,31 @@ void PrintConfigDef::init_extruder_option_keys()
     assert(std::is_sorted(m_extruder_retract_keys.begin(), m_extruder_retract_keys.end()));
 }
 
+void PrintConfigDef::init_filament_option_keys()
+{
+    m_filament_option_keys = {
+        "filament_diameter", "min_layer_height", "max_layer_height",
+        "retraction_length", "z_hop", "retraction_speed", "deretraction_speed",
+        "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
+        "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "filament_colour",
+        "default_filament_profile"
+    };
+
+    m_filament_retract_keys = {
+        "deretraction_speed",
+        "retract_before_wipe",
+        "retract_restart_extra",
+        "retract_when_changing_layer",
+        "retraction_length",
+        "retraction_minimum_travel",
+        "retraction_speed",
+        "wipe",
+        "wipe_distance",
+        "z_hop"
+    };
+    assert(std::is_sorted(m_filament_retract_keys.begin(), m_filament_retract_keys.end()));
+}
+
 void PrintConfigDef::init_sla_params()
 {
     ConfigOptionDef* def;
@@ -4064,6 +4089,23 @@ void DynamicPrintConfig::set_num_extruders(unsigned int num_extruders)
         assert(opt->is_vector());
         if (opt != nullptr && opt->is_vector())
             static_cast<ConfigOptionVectorBase*>(opt)->resize(num_extruders, defaults.option(key));
+    }
+}
+
+// BBS
+void DynamicPrintConfig::set_num_filaments(unsigned int num_filaments)
+{
+    const auto& defaults = FullPrintConfig::defaults();
+    for (const std::string& key : print_config_def.filament_option_keys()) {
+        if (key == "default_filament_profile")
+            // Don't resize this field, as it is presented to the user at the "Dependencies" page of the Printer profile and we don't want to present
+            // empty fields there, if not defined by the system profile.
+            continue;
+        auto* opt = this->option(key, false);
+        assert(opt != nullptr);
+        assert(opt->is_vector());
+        if (opt != nullptr && opt->is_vector())
+            static_cast<ConfigOptionVectorBase*>(opt)->resize(num_filaments, defaults.option(key));
     }
 }
 

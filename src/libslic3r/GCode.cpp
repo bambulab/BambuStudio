@@ -431,7 +431,11 @@ namespace Slic3r {
     // Starting position has to be supplied explicitely (otherwise it would fail in case first G1 command only contained one coordinate)
     std::string WipeTowerIntegration::post_process_wipe_tower_moves(const WipeTower::ToolChangeResult& tcr, const Vec2f& translation, float angle) const
     {
-        Vec2f extruder_offset = m_extruder_offsets[tcr.initial_tool].cast<float>();
+        Vec2f extruder_offset; 
+        if (m_single_extruder_multi_material)
+            extruder_offset = m_extruder_offsets[0].cast<float>();
+        else
+            extruder_offset = m_extruder_offsets[tcr.initial_tool].cast<float>();
 
         std::istringstream gcode_str(tcr.gcode);
         std::string gcode_out;
@@ -485,16 +489,19 @@ namespace Slic3r {
 
             // If this was a toolchange command, we should change current extruder offset
             if (line == "[tool_change_gcode]") {
-                extruder_offset = m_extruder_offsets[tcr.new_tool].cast<float>();
+                // BBS
+                if (!m_single_extruder_multi_material) {
+                    extruder_offset = m_extruder_offsets[tcr.new_tool].cast<float>();
 
-                // If the extruder offset changed, add an extra move so everything is continuous
-                if (extruder_offset != m_extruder_offsets[tcr.initial_tool].cast<float>()) {
-                    std::ostringstream oss;
-                    oss << std::fixed << std::setprecision(3)
-                        << "G1 X" << transformed_pos.x() - extruder_offset.x()
-                        << " Y" << transformed_pos.y() - extruder_offset.y()
-                        << "\n";
-                    gcode_out += oss.str();
+                    // If the extruder offset changed, add an extra move so everything is continuous
+                    if (extruder_offset != m_extruder_offsets[tcr.initial_tool].cast<float>()) {
+                        std::ostringstream oss;
+                        oss << std::fixed << std::setprecision(3)
+                            << "G1 X" << transformed_pos.x() - extruder_offset.x()
+                            << " Y" << transformed_pos.y() - extruder_offset.y()
+                            << "\n";
+                        gcode_out += oss.str();
+                    }
                 }
             }
         }
@@ -2029,7 +2036,8 @@ namespace ProcessLayer
         const PrintConfig                                       &config)
     {
         std::string gcode;
-        bool single_extruder_printer = config.nozzle_diameter.size() == 1;
+        // BBS
+        bool single_filament_print = config.filament_diameter.size() == 1;
 
         if (custom_gcode != nullptr) {
             // Extruder switches are processed by LayerTools, they should be filtered out.
@@ -2039,7 +2047,7 @@ namespace ProcessLayer
             bool  				color_change = gcode_type == CustomGCode::ColorChange;
             bool 				tool_change  = gcode_type == CustomGCode::ToolChange;
             // Tool Change is applied as Color Change for a single extruder printer only.
-            assert(! tool_change || single_extruder_printer);
+            assert(! tool_change || single_filament_print);
 
             std::string pause_print_msg;
             int m600_extruder_before_layer = -1;
@@ -2057,7 +2065,7 @@ namespace ProcessLayer
                 // add tag for processor
                 gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Color_Change) + ",T" + std::to_string(m600_extruder_before_layer) + "," + custom_gcode->color + "\n";
 
-                if (!single_extruder_printer && m600_extruder_before_layer >= 0 && first_extruder_id != (unsigned)m600_extruder_before_layer
+                if (!single_filament_print && m600_extruder_before_layer >= 0 && first_extruder_id != (unsigned)m600_extruder_before_layer
                     // && !MMU1
                     ) {
                     //! FIXME_in_fw show message during print pause

@@ -836,7 +836,8 @@ void Preview::update_layers_slider_mode()
     // extruder used for whole model for multi-extruder printer profile
     int     only_extruder = -1; 
 
-    if (wxGetApp().extruders_edited_cnt() > 1)
+    // BBS
+    if (wxGetApp().filaments_cnt() > 1)
     {
         const ModelObjectPtrs& objects = wxGetApp().plater()->model().objects;
 

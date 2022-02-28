@@ -1604,15 +1604,15 @@ void Control::OnMotion(wxMouseEvent& event)
 
 void Control::append_change_extruder_menu_item(wxMenu* menu, bool switch_current_code/* = false*/)
 {
-    const int extruders_cnt = GUI::wxGetApp().extruders_edited_cnt();
-    if (extruders_cnt > 1) {
+    const int filaments_cnt = GUI::wxGetApp().filaments_cnt();
+    if (filaments_cnt > 1) {
         std::array<int, 2> active_extruders = get_active_extruders_for_tick(m_selection == ssLower ? m_lower_value : m_higher_value);
 
         std::vector<wxBitmap*> icons = get_extruder_color_icons(true);
 
         wxMenu* change_extruder_menu = new wxMenu();
 
-        for (int i = 1; i <= extruders_cnt; i++) {
+        for (int i = 1; i <= filaments_cnt; i++) {
             const bool is_active_extruder = i == active_extruders[0] || i == active_extruders[1];
             const wxString item_name = wxString::Format(_L("Filament %d"), i) +
                                        (is_active_extruder ? " (" + _L("active") + ")" : "");
@@ -1635,14 +1635,14 @@ void Control::append_change_extruder_menu_item(wxMenu* menu, bool switch_current
 
 void Control::append_add_color_change_menu_item(wxMenu* menu, bool switch_current_code/* = false*/)
 {
-    const int extruders_cnt = GUI::wxGetApp().extruders_edited_cnt();
-    if (extruders_cnt > 1) {
+    const int filaments_cnt = GUI::wxGetApp().filaments_cnt();
+    if (filaments_cnt > 1) {
         int tick = m_selection == ssLower ? m_lower_value : m_higher_value; 
         std::set<int> used_extruders_for_tick = m_ticks.get_used_extruders_for_tick(tick, m_only_extruder, m_values[tick]);
 
         wxMenu* add_color_change_menu = new wxMenu();
 
-        for (int i = 1; i <= extruders_cnt; i++) {
+        for (int i = 1; i <= filaments_cnt; i++) {
             const bool is_used_extruder = used_extruders_for_tick.empty() ? true : // #ys_FIXME till used_extruders_for_tick doesn't filled correct for mmMultiExtruder
                                           used_extruders_for_tick.find(i) != used_extruders_for_tick.end();
             const wxString item_name = wxString::Format(_L("Extruder %d"), i) +
@@ -2108,7 +2108,7 @@ void Control::auto_color_change()
         m_ticks.ticks.clear();
     }
 
-    int extruders_cnt = GUI::wxGetApp().extruders_edited_cnt();
+    int filaments_cnt = GUI::wxGetApp().filaments_cnt();
 //    int extruder = 2;
 
     const Print& print = GUI::wxGetApp().plater()->fff_print();  
@@ -2116,7 +2116,7 @@ void Control::auto_color_change()
         if (object->layer_count() == 0)
             continue;
 
-        check_color_change(object, 1, object->layers().size(), false, [this, extruders_cnt](Layer* layer)
+        check_color_change(object, 1, object->layers().size(), false, [this, filaments_cnt](Layer* layer)
         {
             int tick = get_tick_from_value(layer->print_z);
             if (tick >= 0 && !m_ticks.has_tick(tick)) {
@@ -2130,7 +2130,7 @@ void Control::auto_color_change()
                         auto it = m_ticks.ticks.end();
                         it--;
                         extruder = it->extruder + 1;
-                        if (extruder > extruders_cnt)
+                        if (extruder > filaments_cnt)
                             extruder = 1;
                     }
                     m_ticks.add_tick(tick, ToolChange, extruder, layer->print_z);

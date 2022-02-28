@@ -262,7 +262,8 @@ std::vector<unsigned int> Print::support_material_extruders() const
 {
     std::vector<unsigned int> extruders;
     bool support_uses_current_extruder = false;
-    auto num_extruders = (unsigned int)m_config.nozzle_diameter.size();
+    // BBS
+    auto num_extruders = (unsigned int)m_config.filament_diameter.size();
 
     for (PrintObject *object : m_objects) {
         if (object->has_support_material()) {
@@ -904,7 +905,8 @@ BoundingBox PrintObject::get_first_layer_bbox(float& a, float& layer_height, std
 std::map<ObjectID, unsigned int> getObjectExtruderMap(const Print& print) {
     std::map<ObjectID, unsigned int> objectExtruderMap;
     for (const PrintObject* object : print.objects()) {
-        unsigned int objectFirstLayerFirstExtruder = print.config().nozzle_diameter.size();
+        // BBS
+        unsigned int objectFirstLayerFirstExtruder = print.config().filament_diameter.size();
         auto firstLayerRegions = object->layers().front()->regions();
         if (!firstLayerRegions.empty()) {
             for (const LayerRegion* regionPtr : firstLayerRegions) {
@@ -1280,18 +1282,18 @@ bool Print::has_wipe_tower() const
     return 
         ! m_config.spiral_mode.value &&
         m_config.enable_wipe_tower.value && 
-        m_config.nozzle_diameter.values.size() > 1;
+        m_config.filament_diameter.values.size() > 1;
 }
 
-const WipeTowerData& Print::wipe_tower_data(size_t extruders_cnt) const
+const WipeTowerData& Print::wipe_tower_data(size_t filaments_cnt) const
 {
     // If the wipe tower wasn't created yet, make sure the depth and brim_width members are set to default.
-    if (! is_step_done(psWipeTower) && extruders_cnt !=0) {
+    if (! is_step_done(psWipeTower) && filaments_cnt !=0) {
         // BBS
         double width = m_config.wipe_tower_width;
         double layer_height = 0.08f; // hard code layer height
         double wipe_volume = m_config.wiping_volume;
-        const_cast<Print*>(this)->m_wipe_tower_data.depth = wipe_volume * (extruders_cnt - 1) / (layer_height * width);
+        const_cast<Print*>(this)->m_wipe_tower_data.depth = wipe_volume * (filaments_cnt - 1) / (layer_height * width);
         const_cast<Print*>(this)->m_wipe_tower_data.brim_width = m_config.wipe_tower_brim_width;
     }
 
@@ -1448,7 +1450,7 @@ std::string Print::output_filename(const std::string &filename_base) const
     // Set the placeholders for the data know first after the G-code export is finished.
     // These values will be just propagated into the output file name.
     DynamicConfig config = this->finished() ? this->print_statistics().config() : this->print_statistics().placeholders();
-    config.set_key_value("num_extruders", new ConfigOptionInt((int)m_config.nozzle_diameter.size()));
+    config.set_key_value("num_filaments", new ConfigOptionInt((int)m_config.nozzle_diameter.size()));
     return this->PrintBase::output_filename(m_config.filename_format.value, ".gcode", filename_base, &config);
 }
 

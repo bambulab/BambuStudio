@@ -58,9 +58,9 @@ static DynamicPrintConfig& printer_config()
     return wxGetApp().preset_bundle->printers.get_edited_preset().config;
 }
 
-static int extruders_count()
+static int filaments_count()
 {
-    return wxGetApp().extruders_edited_cnt();
+    return wxGetApp().filaments_cnt();
 }
 
 static void take_snapshot(const wxString& snapshot_name) 
@@ -219,7 +219,7 @@ ObjectList::ObjectList(wxWindow* parent) :
         
         for (int i = 0; i < 10; i++)
             this->Bind(wxEVT_MENU, [this, i](wxCommandEvent &evt) {
-                if (extruders_count() > 1 && i <= extruders_count())
+                if (filaments_count() > 1 && i <= filaments_count())
                     this->set_extruder_for_selected_items(i);
             }, wxID_LAST+i+1);
     }
@@ -342,7 +342,7 @@ void ObjectList::create_objects_ctrl()
         return m_objects_model->GetDefaultExtruderIdx(GetSelection());
     });
     AppendColumn(new wxDataViewColumn(_L("Filament"), bmp_choice_renderer,
-        colExtruder, 8 * em, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE));
+        colFilament, 8 * em, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE));
 
     // column ItemEditing of the view control:
     AppendBitmapColumn(_L("Editing"), colEditing, wxDATAVIEW_CELL_INERT, 3*em,
@@ -354,7 +354,7 @@ void ObjectList::create_objects_ctrl()
     {
         GetColumn(colName)->SetWidth(20*em);
         GetColumn(colPrint)->SetWidth(3*em);
-        GetColumn(colExtruder)->SetWidth(8*em);
+        GetColumn(colFilament)->SetWidth(8*em);
         GetColumn(colEditing) ->SetWidth(7*em);
     }
 }
@@ -561,7 +561,7 @@ ModelConfig& ObjectList::get_item_config(const wxDataViewItem& item) const
                             (*m_objects)[obj_idx]->config;
 }
 
-void ObjectList::update_extruder_values_for_items(const size_t max_extruder)
+void ObjectList::update_filament_values_for_items(const size_t filaments_count)
 {
     for (size_t i = 0; i < m_objects->size(); ++i)
     {
@@ -570,13 +570,13 @@ void ObjectList::update_extruder_values_for_items(const size_t max_extruder)
             
         auto object = (*m_objects)[i];
         wxString extruder;
-        if (!object->config.has("extruder") ||
-            size_t(object->config.extruder()) > max_extruder)
-            //extruder = _(L("default"));
+        if (!object->config.has("extruder") || size_t(object->config.extruder()) > filaments_count) {
             extruder = "1";
-        else
+            object->config.set_key_value("extruder", new ConfigOptionInt(1));
+        }
+        else {
             extruder = wxString::Format("%d", object->config.extruder());
-
+        }
         m_objects_model->SetExtruder(extruder, item);
 
         if (object->volumes.size() > 1) {
@@ -584,7 +584,7 @@ void ObjectList::update_extruder_values_for_items(const size_t max_extruder)
                 item = m_objects_model->GetItemByVolumeId(i, id);
                 if (!item) continue;
                 if (!object->volumes[id]->config.has("extruder") ||
-                    size_t(object->volumes[id]->config.extruder()) > max_extruder) {
+                    size_t(object->volumes[id]->config.extruder()) > filaments_count) {
                     extruder = wxString::Format("%d", object->config.extruder());
                 }
                 else {
@@ -711,40 +711,42 @@ void ObjectList::printable_state_changed(const std::vector<ObjectVolumeID>& ov_i
     wxGetApp().plater()->update();
 }
 
-void ObjectList::update_objects_list_extruder_column(size_t extruders_count)
+void ObjectList::update_objects_list_filament_column(size_t filaments_count)
 {
+    assert(filaments_count >= 1);
+
     if (printer_technology() == ptSLA)
-        extruders_count = 1;
+        filaments_count = 1;
 
-    m_prevent_update_extruder_in_config = true;
+    m_prevent_update_filament_in_config = true;
 
-    // BBS: update extruder values even when extruders_count is 1, because it may be reduced from value greater than 1
-    if (m_objects && extruders_count >= 1)
-        update_extruder_values_for_items(extruders_count);
+    // BBS: update extruder values even when filaments_count is 1, because it may be reduced from value greater than 1
+    if (m_objects)
+        update_filament_values_for_items(filaments_count);
 
-    update_extruder_colors();
+    update_filament_colors();
 
     // set show/hide for this column 
-    set_extruder_column_hidden(extruders_count <= 1);
+    set_filament_column_hidden(filaments_count == 1);
     //a workaround for a wrong last column width updating under OSX 
     GetColumn(colEditing)->SetWidth(25);
 
-    m_prevent_update_extruder_in_config = false;
+    m_prevent_update_filament_in_config = false;
 }
 
-void ObjectList::update_extruder_colors()
+void ObjectList::update_filament_colors()
 {
-    m_objects_model->UpdateColumValues(colExtruder);
+    m_objects_model->UpdateColumValues(colFilament);
 }
 
-void ObjectList::set_extruder_column_hidden(const bool hide) const
+void ObjectList::set_filament_column_hidden(const bool hide) const
 {
-    GetColumn(colExtruder)->SetHidden(hide);
+    GetColumn(colFilament)->SetHidden(hide);
 }
 
-void ObjectList::update_extruder_in_config(const wxDataViewItem& item)
+void ObjectList::update_filament_in_config(const wxDataViewItem& item)
 {
-    if (m_prevent_update_extruder_in_config)
+    if (m_prevent_update_filament_in_config)
         return;
 
     const ItemType item_type = m_objects_model->GetItemType(item);
@@ -1143,7 +1145,7 @@ void ObjectList::extruder_editing()
     if (!item || !(m_objects_model->GetItemType(item) & (itVolume | itObject)))
         return;
 
-    const int column_width = GetColumn(colExtruder)->GetWidth() + wxSystemSettings::GetMetric(wxSYS_VSCROLL_X) + 5;
+    const int column_width = GetColumn(colFilament)->GetWidth() + wxSystemSettings::GetMetric(wxSYS_VSCROLL_X) + 5;
 
     wxPoint pos = this->get_mouse_position_in_control();
     wxSize size = wxSize(column_width, -1);
@@ -1165,7 +1167,7 @@ void ObjectList::extruder_editing()
             m_objects_model->SetExtruder(m_extruder_editor->GetString(selection), item);
 
         m_extruder_editor->Hide();
-        update_extruder_in_config(item);
+        update_filament_in_config(item);
     };
 
     // to avoid event propagation to other sidebar items
@@ -1272,13 +1274,13 @@ void ObjectList::key_event(wxKeyEvent& event)
         decrease_instances();
     else if (event.GetUnicodeKey() == 'p')
         toggle_printable_state();
-    else if (extruders_count() > 1) {
+    else if (filaments_count() > 1) {
         std::vector<wxChar> numbers = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
         wxChar key_char = event.GetUnicodeKey();
         if (std::find(numbers.begin(), numbers.end(), key_char) != numbers.end()) {
             long extruder_number;
             if (wxNumberFormatter::FromString(wxString(key_char), &extruder_number) &&
-                extruders_count() >= extruder_number)
+                filaments_count() >= extruder_number)
                 set_extruder_for_selected_items(int(extruder_number));
         }
         else
@@ -2217,8 +2219,9 @@ void ObjectList::split()
     ModelVolume* volume;
     if (!get_volume_by_item(item, volume)) return;
     DynamicPrintConfig&	config = printer_config();
-	const ConfigOption *nozzle_dmtrs_opt = config.option("nozzle_diameter", false);
-	const auto nozzle_dmrs_cnt = (nozzle_dmtrs_opt == nullptr) ? size_t(1) : dynamic_cast<const ConfigOptionFloats*>(nozzle_dmtrs_opt)->values.size();
+    // BBS
+    const ConfigOptionStrings* filament_colors = config.option<ConfigOptionStrings>("filament_colour", false);
+    const auto filament_cnt = (filament_colors == nullptr) ? size_t(1) : filament_colors->size();
     if (!volume->is_splittable()) {
         wxMessageBox(_(L("The selected object couldn't be split because it contains only one part.")));
         return;
@@ -2226,7 +2229,7 @@ void ObjectList::split()
 
     take_snapshot(_(L("Split to Parts")));
 
-    volume->split(nozzle_dmrs_cnt);
+    volume->split(filament_cnt);
 
     wxBusyCursor wait;
 
@@ -4560,7 +4563,7 @@ void ObjectList::msw_rescale()
 
     GetColumn(colName    )->SetWidth(20 * em);
     GetColumn(colPrint   )->SetWidth( 3 * em);
-    GetColumn(colExtruder)->SetWidth( 8 * em);
+    GetColumn(colFilament)->SetWidth( 8 * em);
     GetColumn(colEditing )->SetWidth( 3 * em);
 
     // rescale/update existing items with bitmaps
@@ -4580,11 +4583,11 @@ void ObjectList::ItemValueChanged(wxDataViewEvent &event)
 {
     if (event.GetColumn() == colName)
         update_name_in_model(event.GetItem());
-    else if (event.GetColumn() == colExtruder) {
+    else if (event.GetColumn() == colFilament) {
         wxDataViewItem item = event.GetItem();
         if (m_objects_model->GetItemType(item) == itObject)
             m_objects_model->UpdateVolumesExtruderBitmap(item, true);
-        update_extruder_in_config(item);
+        update_filament_in_config(item);
     }
 }
 
