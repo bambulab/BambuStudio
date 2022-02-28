@@ -34,10 +34,13 @@ class GLCanvas3D;
 class ImGuiWrapper;
 enum class InfoItemType;
 
+#define BBL_NOTICE_PLATEINFO_OBJID      1024+1
+#define BBL_NOTICE_OBJECTS_OBJID        1024+2
+
 enum class NotificationType
 {
 	CustomNotification,
-//	SlicingNotPossible,
+        //	SlicingNotPossible,
 	// Notification on end of export to a removable media, with hyperling to eject the external media.
 	// Obsolete by ExportFinished
 //	ExportToRemovableFinished,
@@ -49,13 +52,13 @@ enum class NotificationType
 	Mouse3dDisconnected,
 //	Mouse3dConnected,
 //	NewPresetsAviable,
-	// Notification on the start of BambuStudio, when a new BambuStudio version is published.
-	// Contains a hyperlink to open a web browser pointing to the BambuStudio download location.
+	// Notification on the start of BambuSlicer, when a new BambuSlicer version is published.
+	// Contains a hyperlink to open a web browser pointing to the BambuSlicer download location.
 	NewAppAvailable,
 	// Like NewAppAvailable but with text and link for alpha / bet release
 	NewAlphaAvailable,
 	NewBetaAvailable,
-	// Notification on the start of BambuStudio, when updates of system profiles are detected.
+	// Notification on the start of BambuSlicer, when updates of system profiles are detected.
 	// Contains a hyperlink to execute installation of the new system profiles.
 	PresetUpdateAvailable,
 //	LoadingFailed,
@@ -115,6 +118,16 @@ enum class NotificationType
 	ExportOngoing,
 	// BBS: Short meesage to fill space between start and finish of arranging
 	ArrangeOngoing,
+	// BBL: Plate Info ,Design For @YangLeDuo
+	BBLPlateInfo,
+	// BBL: Some Objects Info, Design For @YangLeDuo
+	BBLObjectInfo,
+	// BBL: Objects have empty layer when Slicing
+	BBLSliceEmptyLayer,
+	// BBL: model need support
+	BBLNeedSupportON,
+	// BBL: Gcode overlap
+	BBLGcodeOverlap,
 };
 
 class NotificationManager
@@ -186,6 +199,7 @@ public:
 	// Object warning with ObjectID, closes when object is deleted. ID used is of object not print like in slicing warning.
 	void push_simplify_suggestion_notification(const std::string& text, ObjectID object_id, const std::string& hypertext = "",
 		std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>());
+    void set_simplify_suggestion_multiline(const ObjectID oid, bool bMulti);
 	// Close object warnings, whose ObjectID is not in the list.
 	// living_oids is expected to be sorted.
 	void remove_simplify_suggestion_of_released_objects(const std::vector<ObjectID>& living_oids);
@@ -250,6 +264,32 @@ public:
 	bool update_notifications(GLCanvas3D& canvas);
 	// returns number of all notifications shown
 	size_t get_notification_count() const;
+
+
+	//BBS Notice
+
+	//BBS--plateinfo
+    void bbl_show_plateinfo_notification(const std::string &text);
+    void bbl_close_plateinfo_notification();
+
+	//BBS--Objects Info
+	void bbl_show_objectsinfo_notification(const std::string &text);
+    void bbl_close_objectsinfo_notification();
+
+	//BBS--EmptyLayer
+	void bbl_show_slice_emptylayer_notification(const std::string &text, bool bOverride = true);
+
+	//BBS--App has NewVersion
+	void bbl_show_app_newversion_notification();
+
+	//BBS--model need support on
+	void bbl_show_need_support_on_notification();
+    void bbl_close_need_support_on_notification();
+
+	//BBS--gcode overlap
+    void bbl_show_gcode_overlap_notification();
+    void bbl_close_gcode_overlap_notification();
+
 private:
 	// duration 0 means not disapearing
 	struct NotificationData {
@@ -312,6 +352,7 @@ private:
 		float                  get_current_top() const { return m_top_y; }
 		const NotificationType get_type() const { return m_data.type; }
 		const NotificationData& get_data() const { return m_data; }
+        std::string             get_text1() const { return m_text1; }
 		const bool             is_gray() const { return m_is_gray; }
 		void                   set_gray(bool g) { m_is_gray = g; }
 		virtual bool           compare_text(const std::string& text) const;
@@ -324,6 +365,7 @@ private:
 		void				   set_hovered() { if (m_state != EState::Finished && m_state != EState::ClosePending && m_state != EState::Hidden && m_state != EState::Unknown) m_state = EState::Hovered; }
 		// set start of notification to now. Used by delayed notifications
 		void                   reset_timer() { m_notification_start = GLCanvas3D::timestamp_now(); m_state = EState::Shown; }
+        void set_Multiline(bool Multi) { m_multiline = Multi; }
 	protected:
 		// Call after every size change
 		virtual void init();
@@ -335,11 +377,14 @@ private:
 		virtual void render_close_button(ImGuiWrapper& imgui,
 			                             const float win_size_x, const float win_size_y,
 			                             const float win_pos_x , const float win_pos_y);
+        //void render_multiline(ImGuiWrapper &imgui, const float win_pos_x, const float win_pos_y);
 		virtual void render_hypertext(ImGuiWrapper& imgui,
 			                          const float text_x, const float text_y,
 		                              const std::string text,
 		                              bool more = false);
 		// Left sign could be error or warning sign
+        virtual void bbl_render_left_sign(ImGuiWrapper &imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y);
+
 		virtual void render_left_sign(ImGuiWrapper& imgui);
 		virtual void render_minimize_button(ImGuiWrapper& imgui,
 			                                const float win_pos_x, const float win_pos_y);
@@ -360,6 +405,33 @@ private:
 		// For reusing ImGUI windows.
 		NotificationIDProvider &m_id_provider;
 		int              m_id{ 0 };
+
+		//BBS: Custom Theme
+        struct ImGUITheme
+        {
+            ImVec2 mWindowPadding;
+            ImVec4 mWindowBkg;
+            ImVec4 mBorderColor;
+            ImVec4 mTextColor;
+            float  mWindowRound;
+        };
+
+	    ImGUITheme m_DefaultTheme;
+
+		ImVec4     m_WindowBkgColor;
+        ImVec4     m_TextColor;
+
+		ImVec4     m_HyperTextColor;
+
+        ImVec4     m_ErrorColor;
+        ImVec4     m_WarnColor;
+        ImVec4     m_NormalColor;
+		ImVec4     m_CurrentColor;
+
+        float      m_WindowRadius;
+        
+		void use_bbl_theme();
+        void restore_default_theme();
 
 		// State for rendering
 		EState           m_state                { EState::Unknown };
@@ -774,11 +846,11 @@ private:
 	{NotificationType::UndoDesktopIntegrationFail, NotificationLevel::WarningNotificationLevel, 10,
 		_u8L("Undo desktop integration failed.") },
 	{NotificationType::ExportOngoing, NotificationLevel::RegularNotificationLevel, 0, _u8L("Exporting.") },
-			//{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotificationLevel, 20,  _u8L("New version is available."),  _u8L("See Releases page."), [](wxEvtHandler* evnthndlr) {
-			//	//BBS set feishu release page by default
-			//	wxGetApp().open_browser_with_warning_dialog("https://m70ogef77f.feishu.cn/docs/doccnfHafqLqleIQAjFrzMqFMgb"); return true;
-			// }},
-			//{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotificationLevel, 20,  _u8L("New vesion of BambuStudio is available.",  _u8L("Download page.") },
+			{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotificationLevel, 20,  _u8L("New version is available."),  _u8L("See Releases page."), [](wxEvtHandler* evnthndlr) {
+				//BBS set feishu release page by default
+				wxGetApp().open_browser_with_warning_dialog("https://www.thingiverse.com/"); return true;
+			 }},
+			//{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotificationLevel, 20,  _u8L("New vesion of BambuSlicer is available.",  _u8L("Download page.") },
 			//{NotificationType::LoadingFailed, NotificationLevel::RegularNotificationLevel, 20,  _u8L("Loading of model has Failed") },
 			//{NotificationType::DeviceEjected, NotificationLevel::RegularNotificationLevel, 10,  _u8L("Removable device has been safely ejected")} // if we want changeble text (like here name of device), we need to do it as CustomNotification
 	};
