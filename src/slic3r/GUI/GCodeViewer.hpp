@@ -5,6 +5,7 @@
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "GLModel.hpp"
+#include "I18N.hpp"
 
 #include <boost/iostreams/device/mapped_file.hpp>
 
@@ -682,9 +683,15 @@ public:
         void render(float legend_height, int canvas_width, int canvas_height) const;
     };
 
+    struct ETools
+    {
+        std::vector<Color> m_tool_colors;
+        std::vector<bool>  m_tool_visibles;
+    };
+
     enum class EViewType : unsigned char
     {
-        FeatureType,
+        FeatureType = 0,
         Height,
         Width,
         Feedrate,
@@ -695,6 +702,32 @@ public:
         ColorPrint,
         Count
     };
+
+    //BBS translation of EViewType
+    const std::string EViewType_Map[(int)EViewType::Count] = {
+        _u8L("Line Type"),
+        _u8L("Layer Height"),
+        _u8L("Line Width"),
+        _u8L("Speed"),
+        _u8L("Fan Speed"),
+        _u8L("Temperature"),
+        _u8L("Flow"),
+        _u8L("Tool"),
+        _u8L("Filament")
+    };
+
+    /*
+    get_option_type_string(OptionType::Travel) + "|0|" +
+    get_option_type_string(OptionType::Wipe) + "|0|" +
+    get_option_type_string(OptionType::Retractions) + "|0|" +
+    get_option_type_string(OptionType::Unretractions) + "|0|" +
+    get_option_type_string(OptionType::Seams) + "|0|" +
+
+    get_option_type_string(OptionType::ToolChanges) + "|0|" +
+    get_option_type_string(OptionType::ColorChanges) + "|0|" +
+    get_option_type_string(OptionType::ToolMarker) + "|1|" +
+    get_option_type_string(OptionType::Legend) + "|1"
+    */
 
 private:
     bool m_gl_data_initialized{ false };
@@ -710,7 +743,11 @@ private:
     // bounding box of toolpaths + marker tools
     BoundingBoxf3 m_max_bounding_box;
     float m_max_print_height{ 0.0f };
-    std::vector<Color> m_tool_colors;
+
+    //BBS save m_tools_color and m_tools_visible
+    ETools m_tools;
+    ConfigOptionMode m_user_mode;
+
     Layers m_layers;
     std::array<unsigned int, 2> m_layers_z_range;
     std::vector<ExtrusionRole> m_roles;
@@ -721,7 +758,13 @@ private:
     Extrusions m_extrusions;
     SequentialView m_sequential_view;
     Shells m_shells;
+    /*BBS GUI refactor, store displayed items in color scheme combobox */
+    std::vector<EViewType> view_type_items;
+    std::vector<std::string> view_type_items_str;
+    int       m_view_type_sel = 0;
     EViewType m_view_type{ EViewType::FeatureType };
+    std::vector<EMoveType> options_items;
+
     bool m_legend_enabled{ true };
     PrintEstimatedStatistics m_print_statistics;
     PrintEstimatedStatistics::ETimeMode m_time_estimate_mode{ PrintEstimatedStatistics::ETimeMode::Normal };
@@ -741,6 +784,7 @@ public:
     ~GCodeViewer() { reset(); }
 
     void init();
+    void update_by_mode(ConfigOptionMode mode);
 
     // extract rendering data from the given parameters
     void load(const GCodeProcessorResult& gcode_result, const Print& print, bool initialized);
@@ -777,8 +821,17 @@ public:
     void set_view_type(EViewType type) {
         if (type == EViewType::Count)
             type = EViewType::FeatureType;
-
-        m_view_type = type;
+        m_view_type = (EViewType)type;
+    }
+    void reset_visible(EViewType type) {
+        if (type == EViewType::FeatureType) {
+            for (size_t i = 0; i < m_roles.size(); ++i) {
+                ExtrusionRole role = m_roles[i];
+                m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags | (1 << role);
+            }
+        } else if (type == EViewType::ColorPrint){
+            for(auto item: m_tools.m_tool_visibles) item = true;
+        }
     }
 
     bool is_toolpath_move_type_visible(EMoveType type) const;
