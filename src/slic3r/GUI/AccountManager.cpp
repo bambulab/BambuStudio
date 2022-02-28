@@ -3,6 +3,7 @@
 #include "DeviceManager.hpp"
 #include "libslic3r/Time.hpp"
 #include "libslic3r/Thread.hpp"
+#include "libslic3r/Format/Secure.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
@@ -263,7 +264,12 @@ namespace Slic3r {
         BOOST_LOG_TRIVIAL(info) << "set_preset: set preset_folder = " << get_curr_user()->get_user_id();
         GUI::wxGetApp().app_config->set("preset_folder", get_curr_user()->get_user_id());
         connect_mqtt();
- 
+
+        KeyStore::global_consumers.clear();
+        auto kek = m_curr_user->get_user_id();
+        kek.resize(32, '0');
+        KeyStore::global_consumers.push_back({ m_curr_user->get_user_id(), "",  kek});
+
         if (online_login)
             GUI::wxGetApp().reload_user_presets();
     }

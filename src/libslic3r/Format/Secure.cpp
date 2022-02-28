@@ -48,9 +48,11 @@ namespace Slic3r {
     {
         auto cipher = EVP_get_cipherbyname(algorithm.c_str());
         assert(userkey.size() == EVP_CIPHER_key_length(cipher));
+        if (userkey.size() != EVP_CIPHER_key_length(cipher))
+            return false;
         int ivl = EVP_CIPHER_iv_length(cipher);
         assert(iv.empty() || iv.size() == ivl);
-        if (userkey.size() != EVP_CIPHER_key_length(cipher) || (!iv.empty() && iv.size() != ivl))
+        if (!iv.empty() && iv.size() != ivl)
             return false;
         EVP_CipherInit(ctx, cipher, NULL, NULL, encode ? 1 : 0);
         int ret = EVP_CipherInit(ctx, NULL, (unsigned char *) userkey.data(), iv.empty() ? in : (unsigned char*)iv.data(), -1);
@@ -200,6 +202,16 @@ namespace Slic3r {
         return EVP_Cipher::finalize();
     }
 
+    bool DeflateEncrypt::output_internal(unsigned char const* data, int len)
+    {
+        if (!header_output) {
+            if (!EVP_Cipher::output_internal((unsigned char *)"%3McF\x00\x00\x00\x0c\x00\x00\x00", 12))
+                return false;
+            header_output = true;
+        }
+        return EVP_Cipher::output_internal(data, len);
+    }
+
     bool DeflateEncrypt::deflate_callback(unsigned char const * data, int len)
     {
         // data from compressor, pass to encrypt
@@ -228,6 +240,22 @@ namespace Slic3r {
     {
         tinfl_init(&inflator);
         buffer_inflate.resize(TINFL_LZ_DICT_SIZE);
+        return true;
+    }
+
+    bool DecryptInflate::update(unsigned char const* data, int len)
+    {
+        boost::uint32_t head_len = 0;
+        if (read_buf_ofs == 0 && len >= 12 && memcmp(data, "%3McF\x00\x00\x00", 8) == 0) {
+            memcpy(&head_len, (char const *)data + 8, 4);
+            if (head_len > len) return false;
+            data += head_len;
+            len -= head_len;
+            read_buf_ofs = head_len;
+        }
+        if (!EVP_Cipher::update(data, len))
+            return false;
+        read_buf_ofs += len;
         return true;
     }
 
@@ -344,7 +372,8 @@ namespace Slic3r {
     size_t ZipDecrypt::static_callback(void* pOpaque, mz_uint64 file_ofs, const void* pBuf, size_t n)
     {
         ZipDecrypt * decrypt = (ZipDecrypt *) pOpaque;
-        decrypt->update((unsigned char *) pBuf, n);
+        if (!decrypt->update((unsigned char *) pBuf, n))
+            return 0;
         if (file_ofs + n >= decrypt->size) {
             decrypt->close();
         }
@@ -400,11 +429,10 @@ namespace Slic3r {
                 break;
             }
         }
-        if (ks->consumers.empty() || kek.size() != 32) return nullptr;
+        if (ks->consumers.empty()/*|| kek.size() != 32*/) return nullptr;
         // Random CEK
-        std::string cek;
-        cek.resize(32, 'a');
-        // RAND_bytes((unsigned char *)cek.data(), 32);
+        std::string cek(32, 0);
+        RAND_bytes((unsigned char *)cek.data(), cek.size());
         std::string uuid = boost::uuids::to_string(boost::uuids::random_generator()());
         // Encrypt CEK with user KEK
         std::string cipher = cipher_encrypt("aes-256-gcm", kek, cek);
@@ -413,7 +441,7 @@ namespace Slic3r {
         return ks;
     }
 
-    void KeyStore::save(std::ostream& stream) const
+    void KeyStore::save(std::ostream& stream, std::vector<std::string> const & paths) const
     {
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         stream << "<keystore xmlns=\"http://schemas.microsoft.com/3dmanufacturing/securecontent/2019/04\" xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\" xmlns:xenc=\"http://www.w3.org/2001/04/xmlenc#\" UUID=\"" << UUID << "\">\n";
@@ -437,6 +465,7 @@ namespace Slic3r {
                 stream << "  </accessright>\n";
             }
             for (auto & d : g.resourcedatas) {
+                if (std::find(paths.begin(), paths.end(), d.path) == paths.end()) continue;
                 stream << "  <resourcedata path=\"" << d.path << "\">\n";
                 stream << "   <cekparams encryptionalgorithm=\"" << d.cekparams.encryptionalgorithm;
                 if (!d.cekparams.compression.empty()) stream << "\" compression=\"" << d.cekparams.compression;

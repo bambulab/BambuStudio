@@ -87,8 +87,11 @@ namespace Slic3r {
     protected:
         friend class ZipEncrypt;
         tdefl_compressor compressor;
+        bool header_output = false;
 
     private:
+        virtual bool output_internal(unsigned char const * data, int len) override;
+
         bool deflate_callback(unsigned char const * data, int len);
 
         static mz_bool static_deflate_callback(void const * data, int len, void * thiz);
@@ -103,12 +106,13 @@ namespace Slic3r {
 
         bool setup_inflate();
 
+        virtual bool update(unsigned char const * data, int len) override;
+
         virtual bool finalize() override;
 
     protected:
         tinfl_decompressor inflator;
         // callback mode
-        size_t size;
         std::vector<unsigned char> buffer_inflate;
         size_t read_buf_ofs = 0;
         size_t out_buf_ofs = 0;
@@ -133,7 +137,7 @@ namespace Slic3r {
         mz_zip_writer_staged_context * input_context = nullptr;
         mz_zip_writer_staged_context output_context;
 
-    private:
+    protected:
         virtual bool output(unsigned char const * data, int len) override;
     };
 
@@ -225,7 +229,7 @@ namespace Slic3r {
 
         static KeyStore* create(std::string const& keyid);
 
-        void save(std::ostream & stream) const;
+        void save(std::ostream & stream, std::vector<std::string> const & paths) const;
 
         bool setup(std::string const& path, EVP_Cipher& cipher, bool encode = false);
 

@@ -123,6 +123,7 @@ const std::string MODEL_CONFIG_FILE = "Metadata/Slic3r_PE_model.config";
 const std::string BBS_PRINT_CONFIG_FILE = "Metadata/print_profile.config";
 const std::string BBS_PROJECT_CONFIG_FILE = "Metadata/project_settings.config";
 const std::string BBS_MODEL_CONFIG_FILE = "Metadata/model_settings.config";
+const std::string BBS_MODEL_CONFIG_RELS_FILE = "Metadata/_rels/model_settings.config.rels";
 const std::string SLICE_INFO_CONFIG_FILE = "Metadata/slice_info.config";
 const std::string LAYER_HEIGHTS_PROFILE_FILE = "Metadata/Slic3r_PE_layer_heights_profile.txt";
 const std::string LAYER_CONFIG_RANGES_FILE = "Metadata/Prusa_Slicer_layer_config_ranges.xml";
@@ -957,6 +958,8 @@ namespace Slic3r {
             if (!_extract_xml_from_archive(archive, m_key_store_path, _handle_start_key_store_element, _handle_end_key_store_element))
                 return false;
             m_model->set_key_store(m_key_store);
+            delete m_key_store_loader;
+            m_key_store_loader = nullptr;
         }
         if (m_start_part_path.empty())
             return false;
@@ -1461,7 +1464,7 @@ namespace Slic3r {
             if (std::find(m_encrypted_paths.begin(), m_encrypted_paths.end(), path) != m_encrypted_paths.end()) {
                 std::string userkey, iv;
                 if (!m_key_store->setup(path, decrypt, false) || !decrypt.open(stat.m_uncomp_size, callback, opaque)) {
-                    add_error("Can't decrypt " + path + "without match key");
+                    add_error("Can't decrypt " + path + " without match key");
                     return false;
                 }
                 data.decrypt = &decrypt;
@@ -2102,6 +2105,10 @@ namespace Slic3r {
 
     void _BBS_3MF_Importer::_handle_xml_characters(const XML_Char* s, int len)
     {
+        if (m_key_store_loader) {
+            m_key_store_loader->handle_xml_characters(s, len);
+            return;
+        }
         m_curr_characters.append(s, len);
     }
 
@@ -3176,6 +3183,7 @@ namespace Slic3r {
         bool m_split_model { false }; // save object per file with Production Extention
         bool m_save_gcode { false }; //whether to save gcode for normal save
         std::shared_ptr<KeyStore> m_key_store; // save object encrypted with Secure Content Extention
+        std::vector<std::string> m_encrypted_paths;
 
     public:
         //BBS: add plate data related logic
@@ -3206,7 +3214,7 @@ namespace Slic3r {
         bool _add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data, int index);
         bool _add_calibration_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data, int index);
         bool _add_bbox_file_to_archive(mz_zip_archive& archive, const PlateBBoxData& id_bboxes, int index);
-        bool _add_relationships_file_to_archive(mz_zip_archive& archive, std::vector<std::string> const & submodels = {}) const;
+        bool _add_relationships_file_to_archive(mz_zip_archive& archive, std::string const & from = {}, std::vector<std::string> const & targets = {}, std::vector<std::string> const & types = {}) const;
         bool _add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data, Export3mfProgressFn proFn = nullptr, BBLProject* project = nullptr) const;
         bool _add_key_store_to_archive(mz_zip_archive& archive, KeyStore const & store);
         bool _add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int object_id, ModelObject const & object, unsigned int backup_id, VolumeToOffsetsMap& volumes_offsets) const;
@@ -3637,6 +3645,7 @@ namespace Slic3r {
         stream << " <Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>\n";
         stream << " <Default Extension=\"model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>\n";
         stream << " <Default Extension=\"png\" ContentType=\"image/png\"/>\n";
+        stream << " <Default Extension=\"gcode\" ContentType=\"text/x.gcode\"/>\n";
         if (m_key_store)
             stream << " <Override ContentType=\"application/vnd.ms-package.3dmanufacturing-keystore+xml\" PartName=\"/" << KEYSTORE_FILE << "\"/>\n";
         stream << "</Types>";
@@ -3709,12 +3718,12 @@ namespace Slic3r {
         return true;
     }
 
-    bool _BBS_3MF_Exporter::_add_relationships_file_to_archive(mz_zip_archive& archive, std::vector<std::string> const & submodels) const
+    bool _BBS_3MF_Exporter::_add_relationships_file_to_archive(mz_zip_archive& archive, std::string const & from, std::vector<std::string> const & targets, std::vector<std::string> const & types) const
     {
         std::stringstream stream;
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         stream << "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">\n";
-        if (submodels.empty()) {
+        if (from.empty()) {
             stream << " <Relationship Target=\"/" << MODEL_FILE << "\" Id=\"rel-1\" Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\"/>\n";
             stream << " <Relationship Target=\"/" << THUMBNAIL_FILE << "\" Id=\"rel-2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail\"/>\n";
             if (m_key_store) {
@@ -3722,19 +3731,25 @@ namespace Slic3r {
                 stream << " <Relationship Target=\"/" << KEYSTORE_FILE << "\" Id=\"rel-3\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/mustpreserve\"/>\n";
             }
         }
+        else if (targets.empty()) {
+            return false;
+        }
         else {
             int i = 0;
-            for (auto & path : submodels) {
-                stream << " <Relationship Target=\"/" << path << "\" Id=\"rel-" << boost::to_string(++i) << "\" Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\"/>\n";
-                if (m_key_store)
+            for (auto & path : targets) {
+                for (auto & type : types)
+                    stream << " <Relationship Target=\"/" << path << "\" Id=\"rel-" << boost::to_string(++i) << "\" Type=\"" << type << "\"/>\n";
+                if (m_key_store) {
                     stream << " <Relationship Target=\"/" << path << "\" Id=\"rel-" << boost::to_string(++i) << "\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/encryptedfile\"/>\n";
+                    const_cast<std::vector<std::string>&>(m_encrypted_paths).push_back("/" + path);
+                }
             }
         }
         stream << "</Relationships>";
 
         std::string out = stream.str();
 
-        if (!mz_zip_writer_add_mem(&archive, submodels.empty() ? RELATIONSHIPS_FILE.c_str() : MODEL_RELS_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
+        if (!mz_zip_writer_add_mem(&archive, from.empty() ? RELATIONSHIPS_FILE.c_str() : from.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
             add_error("Unable to add relationships file to archive");
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add relationships file to archive\n");
             return false;
@@ -3746,7 +3761,7 @@ namespace Slic3r {
     bool _BBS_3MF_Exporter::_add_key_store_to_archive(mz_zip_archive& archive, KeyStore const & store)
     {
         std::stringstream stream;
-        m_key_store->save(stream);
+        m_key_store->save(stream, m_encrypted_paths);
         std::string out = stream.str();
 
         if (!mz_zip_writer_add_mem(&archive, KEYSTORE_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
@@ -3960,7 +3975,7 @@ namespace Slic3r {
         if (write_object) return true;
 
         // write model rels
-        _add_relationships_file_to_archive(archive, object_paths);
+        _add_relationships_file_to_archive(archive, MODEL_RELS_FILE, object_paths, {"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"});
 
         if (m_skip_static) {
             for (ModelObject* obj : model.objects) {
@@ -4671,6 +4686,7 @@ namespace Slic3r {
         }
 
         //BBS: store plate related logic
+        std::vector<std::string> gcode_paths;
         for (unsigned int i = 0; i < (unsigned int)plate_data_list.size(); ++i)
         {
             PlateData* plate_data = plate_data_list[i];
@@ -4681,7 +4697,10 @@ namespace Slic3r {
                 //plate index
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PLATERID_ATTR << "\" " << VALUE_ATTR << "=\"" << i + 1 << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << LOCK_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->locked<< "\"/>\n";
-                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << GCODE_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->gcode_file<< "\"/>\n";
+                if (!plate_data->gcode_file.empty()) {
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << GCODE_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->gcode_file<< "\"/>\n";
+                    gcode_paths.push_back(plate_data->gcode_file);
+                }
                 if (instance_size > 0)
                 {
                     for (unsigned int j = 0; j < instance_size; ++j)
@@ -4700,10 +4719,11 @@ namespace Slic3r {
                         stream << "    </" << INSTANCE_TAG << ">\n";
                     }
                 }
-
                 stream << "  </" << PLATE_TAG << ">\n"; 
             }
         }
+        // write model rels
+        _add_relationships_file_to_archive(archive, BBS_MODEL_CONFIG_RELS_FILE, gcode_paths, {"http://schemas.bambulab.com/package/2021/gcode"});
 
         //BBS: store assemble related info
         stream << "  <" << ASSEMBLE_TAG << ">\n";
@@ -4810,14 +4830,15 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
             plate_data_list2.push_back(plate_data);
         }
     }
+
     boost::mutex mutex;
     tbb::parallel_for(tbb::blocked_range<size_t>(0, plate_data_list2.size(), 1), [this, &plate_data_list2, &root_archive = archive, &mutex](const tbb::blocked_range<size_t>& range) {
         for (int i = range.begin(); i < range.end(); ++i) {
             PlateData* plate_data = plate_data_list2[i];
             auto src_gcode_file = plate_data->gcode_file;
-            std::string gcode_in_3mf = m_skip_static ? src_gcode_file : (boost::format(GCODE_FILE_FORMAT) % (plate_data->plate_index + 1)).str();
             bool encrypted = boost::algorithm::ends_with(src_gcode_file, "_encrypted.gcode");
-            if (m_key_store && !(m_skip_static && encrypted))
+            std::string gcode_in_3mf = (boost::format(GCODE_FILE_FORMAT) % (plate_data->plate_index + 1)).str();
+            if (m_key_store)
                 gcode_in_3mf.insert(gcode_in_3mf.length() - 6, "_encrypted");
             plate_data->gcode_file = gcode_in_3mf;
             mz_zip_archive archive;
