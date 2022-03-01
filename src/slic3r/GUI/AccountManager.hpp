@@ -41,10 +41,19 @@ private:
     void* context_;
 
     void on_failure(const mqtt::token& tok) override {
-        BOOST_LOG_TRIVIAL(trace) << "subscribe failed";
+        for (int i = 0; i < tok.get_topics()->size(); i++) {
+            BOOST_LOG_TRIVIAL(trace) << "subscribe topic:" << (*tok.get_topics())[i].c_str() << " failed";
+        }
+        BOOST_LOG_TRIVIAL(trace) << "subscribe return code: " << tok.get_return_code();
+        BOOST_LOG_TRIVIAL(trace) << "subscribe reason code: " << tok.get_reason_code();
     }
     void on_success(const mqtt::token& tok) override {
-        BOOST_LOG_TRIVIAL(trace) << "subscribe success";
+        for (int i = 0; i < tok.get_topics()->size(); i++) {
+            BOOST_LOG_TRIVIAL(trace) << "subscribe topic:" << (*tok.get_topics())[i].c_str() << " success";
+        }
+        
+        BOOST_LOG_TRIVIAL(trace) << "subscribe return code: " << tok.get_return_code();
+        BOOST_LOG_TRIVIAL(trace) << "subscribe reason code: " << tok.get_reason_code();
     }
 public:
     action_listener(const std::string& name, void* context) : name_(name), context_(context) {}
