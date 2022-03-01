@@ -31,6 +31,7 @@
 #include <wx/debug.h>
 #include <wx/busyinfo.h>
 #include <wx/event.h>
+#include <wx/wrapsizer.h>
 #ifdef _WIN32
 #include <wx/richtooltip.h>
 #include <wx/custombgwin.h>
@@ -106,6 +107,11 @@
 #include "BBLStatusBar.hpp"
 #include "BitmapCache.hpp"
 #include "Widgets/Label.hpp"
+#include "Widgets/RoundedRectangle.hpp"
+#include "Widgets/RadioBox.hpp"
+#include "Widgets/CheckBox.hpp"
+#include "Widgets/Button.hpp"
+
 #include "GUI_ObjectTable.hpp"
 #include "libslic3r/Thread.hpp"
 
@@ -6982,68 +6988,303 @@ enum class LoadType : unsigned char
     LoadConfig
 };
 
+class RadioBox;
+class RadioSelector
+{
+public:
+    int       m_select_id;
+    int       m_groupid;
+    RadioBox *m_radiobox;
+};
+WX_DECLARE_LIST(RadioSelector, RadioSelectorList);
+
 class ProjectDropDialog : public DPIDialog
 {
-    int m_action { 0 };
-public:
-    ProjectDropDialog(const std::string& filename);
+private:
+    wxColour          m_def_color = wxColour(255, 255, 255);
+    RadioSelectorList m_radio_group;
+    int               m_action{1};
+    bool              m_show_again;
 
-    int get_action() const { return m_action + 1; }
+public:
+    ProjectDropDialog(const std::string &filename);
+
+    void      select_radio(int index);
+    void      on_select_radio(wxMouseEvent &event);
+    void      on_select_ok(wxMouseEvent &event);
+    void      on_select_cancel(wxMouseEvent &event);
+
+    int       get_select_radio(int groupid);
+    int       get_action() const { return m_action; }
+    void      set_action(int index) { m_action = index; }
+
+    wxWindow *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param);
+    wxWindow *create_item_radiobox(wxString title, wxWindow *parent, int select_id, int groupid);
 
 protected:
-    void on_dpi_changed(const wxRect& suggested_rect) override;
+    void on_dpi_changed(const wxRect &suggested_rect) override;
 };
 
-ProjectDropDialog::ProjectDropDialog(const std::string& filename)
-    : DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY,
-        from_u8((boost::format(_utf8(L("%s - Drop project file"))) % SLIC3R_APP_NAME).str()), wxDefaultPosition,
-        wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
+ProjectDropDialog::ProjectDropDialog(const std::string &filename)
+    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe),
+                wxID_ANY,
+                from_u8((boost::format(_utf8(L("%s - Drop project file"))) % SLIC3R_APP_NAME).str()),
+                wxDefaultPosition,
+                wxDefaultSize,
+                wxCAPTION | wxCLOSE_BOX)
 {
+    // def setting
+    SetBackgroundColour(m_def_color);
     SetFont(wxGetApp().normal_font());
 
-    wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
+    // icon
+    std::string icon_path = (boost::format("%1%/icons/BambuStudio.ico") % resources_dir()).str();
+    SetIcon(wxIcon(icon_path, wxBITMAP_TYPE_ICO));
 
-    const wxString choices[] = { _L("Open as project"),
-                                 _L("Import geometry only"),
-                                 _L("Import config only") };
+    const auto m_panel_info_def_width = 350;
+    this->SetSizeHints(wxDefaultSize, wxDefaultSize);
+    wxBoxSizer *m_bSizer_main = new wxBoxSizer(wxVERTICAL);
 
-    main_sizer->Add(new wxStaticText(this, wxID_ANY,
-        _L("Select an action to apply to the file") + ": " + from_u8(filename)), 0, wxEXPAND | wxALL, 10);
+    // topline
+    auto m_top_line = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+    m_top_line->SetForegroundColour(wxColour(166, 169, 170));
+    m_top_line->SetBackgroundColour(wxColour(166, 169, 170));
 
-    m_action = static_cast<int>(LoadType::OpenProject);
+    m_bSizer_main->Add(m_top_line, 0, wxBOTTOM | wxEXPAND, 20);
 
-    wxStaticBox* action_stb = new wxStaticBox(this, wxID_ANY, _L("Action"));
-    if (!wxOSX) action_stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
-    action_stb->SetFont(wxGetApp().normal_font());
+    // info
+    wxBoxSizer *m_Sizer_name;
+    m_Sizer_name = new wxBoxSizer(wxVERTICAL);
 
-    wxStaticBoxSizer* stb_sizer = new wxStaticBoxSizer(action_stb, wxVERTICAL);
-    int id = 0;
-    for (const wxString& label : choices) {
-        wxRadioButton* btn = new wxRadioButton(this, wxID_ANY, label, wxDefaultPosition, wxDefaultSize, id == 0 ? wxRB_GROUP : 0);
-        btn->SetValue(id == m_action);
-        btn->Bind(wxEVT_RADIOBUTTON, [this, id](wxCommandEvent&) { m_action = id; });
-        stb_sizer->Add(btn, 0, wxEXPAND | wxTOP, 5);
-        id++;
+    wxBoxSizer *m_bSizer_fline = new wxBoxSizer(wxHORIZONTAL);
+    m_bSizer_fline->SetMinSize(wxSize(m_panel_info_def_width, -1));
+
+    auto m_fname_title = new wxStaticText(this, wxID_ANY, _L("Select an action to apply to the file"), wxDefaultPosition, wxDefaultSize, 0);
+    m_bSizer_fline->Add(m_fname_title, 0, wxRIGHT, 10);
+
+    auto m_fname_f = new wxStaticText(this, wxID_ANY, _L(""), wxDefaultPosition, wxSize(m_panel_info_def_width - m_fname_title->GetSize().GetWidth() - 10, -1), 0);
+    m_fname_f->SetFont(wxGetApp().bold_font());
+    m_bSizer_fline->Add(m_fname_f, 0, wxEXPAND, 0);
+
+    m_Sizer_name->Add(m_bSizer_fline, 0, wxEXPAND, 0);
+
+    auto m_fname_s = new wxStaticText(this, wxID_ANY, _L(""), wxDefaultPosition, wxSize(m_panel_info_def_width, -1), wxST_ELLIPSIZE_MIDDLE);
+    m_fname_s->SetFont(wxGetApp().bold_font());
+    m_Sizer_name->Add(m_fname_s, 0, wxEXPAND, 0);
+
+    m_bSizer_main->Add(m_Sizer_name, 0, wxEXPAND | wxLEFT | wxRIGHT, 30);
+
+    auto limit_width   = m_fname_f->GetSize().GetWidth() - 2;
+    auto current_width = 0;
+    auto cut_index     = 0;
+    auto fstring       = wxString("");
+    auto bstring       = wxString("");
+
+    auto file_name = from_u8(filename);
+    for (int x = 0; x < file_name.length(); x++) {
+        current_width += m_fname_s->GetTextExtent(file_name[x]).GetWidth();
+        cut_index = x;
+
+        if (current_width > limit_width) {
+            bstring += file_name[x];
+        } else {
+            fstring += file_name[x];
+        }
     }
-    main_sizer->Add(stb_sizer, 1, wxEXPAND | wxRIGHT | wxLEFT, 10);
 
-    wxBoxSizer* bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
-#ifdef SUPPORT_SHOW_DROP_PROJECT
-    wxCheckBox* check = new wxCheckBox(this, wxID_ANY, _L("Don't show again"));
-    check->Bind(wxEVT_CHECKBOX, [](wxCommandEvent& evt) {
-        wxGetApp().app_config->set("show_drop_project_dialog", evt.IsChecked() ? "0" : "1");
-        });
+    m_fname_f->SetLabel(fstring);
+    m_fname_s->SetLabel(bstring);
 
-    bottom_sizer->Add(check, 0, wxEXPAND | wxRIGHT, 5);
-#endif
-    bottom_sizer->Add(CreateStdDialogButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT, 5);
-    main_sizer->Add(bottom_sizer, 0, wxEXPAND | wxALL, 10);
+    // block
+    auto block = new wxWindow(this, -1);
+    block->SetBackgroundColour(m_def_color);
 
-    SetSizer(main_sizer);
-    main_sizer->SetSizeHints(this);
+    // select
+    auto        m_panel_select = new RoundedRectangle(this, wxColour(248, 248, 248), wxDefaultPosition, wxDefaultSize, 8);
+    wxBoxSizer *m_bSizer_select;
+    m_bSizer_select = new wxBoxSizer(wxVERTICAL);
 
-    // Update DarkUi just for buttons
-    wxGetApp().UpdateDlgDarkUI(this, true);
+    auto select_f = create_item_radiobox(_L("Open as project"), m_panel_select, 1, 0);
+    auto select_s = create_item_radiobox(_L("Import geometry only"), m_panel_select, 2, 0);
+    auto select_t = create_item_radiobox(_L("Import config only"), m_panel_select,3, 0);
+
+    select_radio(2);
+
+    m_bSizer_select->Add(select_f, 0, wxEXPAND | wxTOP, 15);
+    m_bSizer_select->Add(select_s, 0, wxEXPAND, 0);
+    m_bSizer_select->Add(select_t, 0, wxEXPAND | wxBOTTOM, 15);
+
+    m_panel_select->SetSizer(m_bSizer_select);
+    m_panel_select->Layout();
+    m_bSizer_select->Fit(m_panel_select);
+
+    m_bSizer_main->Add(block, 0, wxEXPAND | wxTOP, 10);
+    m_bSizer_main->Add(m_panel_select, 0, wxEXPAND | wxLEFT | wxRIGHT, 30);
+
+    // button
+    wxBoxSizer *m_bSizer_control;
+    m_bSizer_control = new wxBoxSizer(wxHORIZONTAL);
+
+    auto dont_show_again = create_item_checkbox(_L("Don't show again"), this, _L("Don't show again"), "show_drop_project_dialog");
+    m_bSizer_control->Add(dont_show_again, 0, wxLEFT, 30);
+
+    m_bSizer_control->Add(0, 0, 1, wxEXPAND, 0);
+
+    auto       confirm = new Button(this, _L("OK"));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+    
+    confirm->SetBackgroundColor(btn_bg_green);
+    confirm->SetBorderColor(wxColour(0, 174, 66));
+    confirm->SetTextColor(wxColour(255, 255, 255));
+    confirm->SetMinSize(wxSize(48, 24));
+    confirm->SetCornerRadius(12);
+    confirm->Bind(wxEVT_LEFT_DOWN, &ProjectDropDialog::on_select_ok, this);
+    m_bSizer_control->Add(confirm, 0, wxTop, 5);
+
+    auto block_middle = new wxWindow(this, -1);
+    block_middle->SetBackgroundColour(m_def_color);
+    m_bSizer_control->Add(block_middle, 0, wxRIGHT, 10);
+
+    auto cancel = new Button(this, _L("Cancel"));
+    cancel->SetMinSize(wxSize(48, 24));
+    cancel->SetCornerRadius(12);
+    cancel->Bind(wxEVT_LEFT_DOWN, &ProjectDropDialog::on_select_cancel, this);
+    m_bSizer_control->Add(cancel, 0, wxTop, 5);
+
+    auto block_right = new wxWindow(this, -1);
+    block_right->SetBackgroundColour(m_def_color);
+    m_bSizer_control->Add(block_right, 0, wxRIGHT, 40);
+
+    m_bSizer_main->Add(m_bSizer_control, 0, wxBOTTOM | wxEXPAND | wxTOP, 20);
+
+    this->SetSizer(m_bSizer_main);
+    this->Layout();
+    m_bSizer_main->Fit(this);
+
+    this->Centre(wxBOTH);
+}
+
+wxWindow *ProjectDropDialog ::create_item_radiobox(wxString title, wxWindow *parent, int select_id, int groupid)
+{
+    wxWindow *item = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, 30), wxTAB_TRAVERSAL);
+    item->SetBackgroundColour(wxColour(248, 248, 248));
+    wxBoxSizer *body_bSizer;
+     body_bSizer = new wxBoxSizer(wxHORIZONTAL);
+
+     RadioBox *radiobox = new RadioBox(item);
+     body_bSizer->Add(radiobox, 0, wxEXPAND | wxLEFT, 22);
+
+     wxStaticText *text = new wxStaticText(item, wxID_ANY, title, wxDefaultPosition, wxDefaultSize);
+     body_bSizer->Add(text, 0, wxEXPAND | wxLEFT | wxTOP ,  (30 - text->GetSize().GetHeight()) / 2);
+     radiobox->Bind(wxEVT_LEFT_DOWN, &ProjectDropDialog::on_select_radio, this);
+
+     RadioSelector *rs = new RadioSelector;
+     rs->m_groupid     = groupid;
+     rs->m_radiobox    = radiobox;
+     rs->m_select_id   = select_id;
+     m_radio_group.Append(rs);
+
+     item->SetSizer(body_bSizer);
+     item->Layout();
+     body_bSizer->Fit(item);
+     return item;
+}
+
+wxWindow *ProjectDropDialog::create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param)
+{
+    wxWindow *item = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, 30), wxTAB_TRAVERSAL);
+    item->SetBackgroundColour(wxColour(255,255,255));
+    wxBoxSizer *body_bSizer;
+    body_bSizer = new wxBoxSizer(wxHORIZONTAL);
+
+    ::CheckBox* checkbox = new ::CheckBox(item);
+    body_bSizer->Add(checkbox, 0, wxEXPAND | wxLEFT, 5);
+
+    wxStaticText *text = new wxStaticText(item, wxID_ANY, title, wxDefaultPosition, wxDefaultSize);
+    body_bSizer->Add(text, 0, wxEXPAND | wxLEFT | wxTOP, (30 - text->GetSize().GetHeight()) / 2);
+
+    m_show_again = wxGetApp().app_config->get(param) == "true"?true:false;
+    checkbox->SetValue(m_show_again);
+
+    checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param](wxCommandEvent &e) {
+        //wxGetApp().app_config->set_bool(param, checkbox->GetValue());
+         //wxGetApp().app_config->save();
+        m_show_again = m_show_again ? false : true;
+         e.Skip();
+    });
+
+    item->SetSizer(body_bSizer);
+    item->Layout();
+    body_bSizer->Fit(item);
+    return item;
+}
+
+void ProjectDropDialog::select_radio(int index)
+{
+    RadioSelectorList::Node *node    = m_radio_group.GetFirst();
+    auto                     groupid = 0;
+
+    while (node) {
+        RadioSelector *rs = node->GetData();
+        if (rs->m_select_id == index) groupid = rs->m_groupid;
+        node = node->GetNext();
+    }
+
+    node = m_radio_group.GetFirst();
+    while (node) {
+        RadioSelector *rs = node->GetData();
+        if (rs->m_groupid == groupid && rs->m_select_id == index) rs->m_radiobox->SetValue(true);
+        if (rs->m_groupid == groupid && rs->m_select_id != index) rs->m_radiobox->SetValue(false);
+        node = node->GetNext();
+    }
+}
+
+int ProjectDropDialog::get_select_radio(int groupid)
+{
+    RadioSelectorList::Node *node = m_radio_group.GetFirst();
+    while (node) {
+        RadioSelector *rs = node->GetData();
+        if (rs->m_groupid == groupid && rs->m_radiobox->GetValue()) { return rs->m_select_id; }
+        node = node->GetNext();
+    }
+
+    return 0;
+}
+void ProjectDropDialog::on_select_radio(wxMouseEvent &event)
+{
+    RadioSelectorList::Node *node    = m_radio_group.GetFirst();
+    auto                     groupid = 0;
+
+    while (node) {
+        RadioSelector *rs = node->GetData();
+        if (rs->m_radiobox->GetId() == event.GetId()) groupid = rs->m_groupid;
+        node = node->GetNext();
+    }
+
+    node = m_radio_group.GetFirst();
+    while (node) {
+        RadioSelector *rs = node->GetData();
+        if (rs->m_groupid == groupid && rs->m_radiobox->GetId() == event.GetId()) { 
+            set_action(rs->m_select_id);
+            rs->m_radiobox->SetValue(true); 
+        }
+           
+
+        if (rs->m_groupid == groupid && rs->m_radiobox->GetId() != event.GetId()) rs->m_radiobox->SetValue(false);
+        node = node->GetNext();
+    }
+}
+
+void ProjectDropDialog::on_select_ok(wxMouseEvent &event) 
+{ 
+    wxGetApp().app_config->set_bool("show_drop_project_dialog", m_show_again);
+    EndModal(wxID_OK);
+}
+
+void ProjectDropDialog::on_select_cancel(wxMouseEvent &event) 
+{ 
+    EndModal(wxID_CANCEL); 
 }
 
 void ProjectDropDialog::on_dpi_changed(const wxRect& suggested_rect)

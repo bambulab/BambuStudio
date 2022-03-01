@@ -18,6 +18,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/RadioBox.cpp
     GUI/Widgets/ProgressDialog.hpp
     GUI/Widgets/ProgressDialog.cpp
+    GUI/Widgets/RoundedRectangle.hpp
+    GUI/Widgets/RoundedRectangle.cpp
     GUI/Widgets/ComboBox.cpp
     GUI/Widgets/ComboBox.hpp
     GUI/Widgets/SideButton.hpp
