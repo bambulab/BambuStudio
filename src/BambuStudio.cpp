@@ -211,6 +211,7 @@ int CLI::run(int argc, char **argv)
     PlateDataPtrs plate_data;
     int arrange_option;
     bool first_file = true, is_bbl_3mf = false, need_arrange = true;
+    Semver file_version;
     std::map<size_t, bool> orients_requirement;
     std::vector<Preset*> project_presets;
 
@@ -244,7 +245,7 @@ int CLI::run(int argc, char **argv)
                 // BBS: adjust whebackup
                 LoadStrategy strategy = LoadStrategy::AddDefaultInstances;
                 if (load_aux) strategy = strategy | LoadStrategy::LoadAuxiliary;
-                model = Model::read_from_file(file, &config, &config_substitutions, strategy, &plate_data, &project_presets, &is_bbl_3mf);
+                model = Model::read_from_file(file, &config, &config_substitutions, strategy, &plate_data, &project_presets, &is_bbl_3mf, &file_version);
                 if (is_bbl_3mf)
                 {
                     if (!first_file)

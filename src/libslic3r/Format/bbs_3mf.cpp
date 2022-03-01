@@ -634,7 +634,7 @@ namespace Slic3r {
 
         //BBS: add plate data related logic
         // add backup & restore logic
-        bool load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, LoadStrategy strategy, bool& is_bbl_3mf, Import3mfProgressFn proFn = nullptr, BBLProject *project = nullptr);
+        bool load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, LoadStrategy strategy, bool& is_bbl_3mf, Semver& file_version, Import3mfProgressFn proFn = nullptr, BBLProject *project = nullptr);
         unsigned int version() const { return m_version; }
 
     private:
@@ -809,7 +809,7 @@ namespace Slic3r {
 
     //BBS: add plate data related logic
         // add backup & restore logic
-    bool _BBS_3MF_Importer::load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, LoadStrategy strategy, bool& is_bbl_3mf, Import3mfProgressFn proFn, BBLProject *project)
+    bool _BBS_3MF_Importer::load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, LoadStrategy strategy, bool& is_bbl_3mf, Semver& file_version, Import3mfProgressFn proFn, BBLProject *project)
     {
         m_version = 0;
         m_fdm_supports_painting_version = 0;
@@ -857,6 +857,8 @@ namespace Slic3r {
         }
         bool result = _load_model_from_file(filename, model, plate_data_list, project_presets, config, config_substitutions, proFn, project);
         is_bbl_3mf = m_is_bbl_3mf;
+        if (m_bambuslicer_generator_version)
+            file_version = *m_bambuslicer_generator_version;
         // save for restore
         if (result && m_load_aux && !m_load_restore) {
             boost::filesystem::save_string_file(model.get_backup_path() + "/origin.txt", filename);
@@ -2983,12 +2985,12 @@ namespace Slic3r {
                         tri_id -= min_id;
             }
 
-            if (m_bambuslicer_generator_version && 
+            /*if (m_bambuslicer_generator_version && 
                 *m_bambuslicer_generator_version >= *Semver::parse("2.4.0-alpha1") &&
                 *m_bambuslicer_generator_version < *Semver::parse("2.4.0-alpha3"))
                 // BambuStudio 2.4.0-alpha2 contained a bug, where all vertices of a single object were saved for each volume the object contained.
                 // Remove the vertices, that are not referenced by any face.
-                its_compactify_vertices(its, true);
+                its_compactify_vertices(its, true);*/
 
             TriangleMesh triangle_mesh(std::move(its), volume_data.mesh_stats);
 
@@ -5310,7 +5312,7 @@ private:
 
 
 //BBS: add plate data list related logic
-bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, std::vector<Preset*>* project_presets, bool* is_bbl_3mf, Import3mfProgressFn proFn, LoadStrategy strategy, BBLProject *project)
+bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, std::vector<Preset*>* project_presets, bool* is_bbl_3mf, Semver* file_version, Import3mfProgressFn proFn, LoadStrategy strategy, BBLProject *project)
 {
     if (path == nullptr || config == nullptr || model == nullptr)
         return false;
@@ -5318,7 +5320,7 @@ bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstituti
     // All import should use "C" locales for number formatting.
     CNumericLocalesSetter locales_setter;
     _BBS_3MF_Importer importer;
-    bool res = importer.load_model_from_file(path, *model, *plate_data_list, *project_presets, *config, *config_substitutions, strategy, *is_bbl_3mf, proFn, project);
+    bool res = importer.load_model_from_file(path, *model, *plate_data_list, *project_presets, *config, *config_substitutions, strategy, *is_bbl_3mf, *file_version, proFn, project);
     importer.log_errors();
     handle_legacy_project_loaded(importer.version(), *config);
     return res;

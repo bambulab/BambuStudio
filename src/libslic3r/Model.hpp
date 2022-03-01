@@ -1221,14 +1221,14 @@ public:
         const std::string& input_file, 
         DynamicPrintConfig* config = nullptr, ConfigSubstitutionContext* config_substitutions = nullptr,
         LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr,
-        std::vector<Preset*>* project_presets = nullptr, bool* is_bbl_3mf = nullptr, Import3mfProgressFn proFn = nullptr,
+        std::vector<Preset*>* project_presets = nullptr, bool* is_bbl_3mf = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr,
         ImportStepProgressFn stepFn = nullptr, StepIsUtf8Fn stepIsUtf8Fn = nullptr, BBLProject* project = nullptr);
 
     // BBS: backup
     static Model read_from_archive(
         const std::string& input_file, 
         DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions,
-        LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr, std::vector<Preset*>* project_presets = nullptr, bool* is_bbl_3mf = nullptr, Import3mfProgressFn proFn = nullptr, BBLProject* project = nullptr);
+        LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr, std::vector<Preset*>* project_presets = nullptr, bool* is_bbl_3mf = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr, BBLProject* project = nullptr);
 
     // Add a new ModelObject to this Model, generate a new ID for this ModelObject.
     ModelObject* add_object();

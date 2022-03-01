@@ -2864,7 +2864,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     ConfigSubstitutionContext config_substitutions{ ForwardCompatibilitySubstitutionRule::Enable };
                     std::vector<Preset*> project_presets;
                     // BBS: backup & restore
-                    model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, strategy, &plate_data, &project_presets, &is_bbs_3mf,
+                    Semver file_version;
+                    model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, strategy, &plate_data, &project_presets, &is_bbs_3mf, &file_version,
                         [this, progress_dlg, filename, progress_percent](int import_stage, int current, int total, bool& cancel) {
                             bool cont = true;
                             wxString msg = wxString::Format("Loading file: %s, stage %d, %d/%d", from_path(filename), import_stage, current, total);
@@ -2889,6 +2890,25 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         }
                         else {
                             partplate_list.reload_all_objects();
+                        }
+                    }
+
+                    //BBS: version check
+                    Semver app_version = *(Semver::parse(SLIC3R_VERSION));
+                    if (file_version.maj() != app_version.maj()) {
+                        //version mismatch, only load geometries
+                        load_config = false;
+                        load_old_project = true;
+                        //select view to 3D
+                        q->select_view_3D("3D");
+                        //select plate 0 as default
+                        q->select_plate(0);
+                        show_info(q, "this 3MF's version is not compatible with current app, only load geometry files!", "Incompatible 3mfs");
+                        for (ModelObject *model_object : model.objects) {
+                            model_object->config.reset();
+                            // Is there any modifier or advanced config data?
+                            for (ModelVolume* model_volume : model_object->volumes)
+                                model_volume->config.reset();
                         }
                     }
 
@@ -3033,8 +3053,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 //BBS: project embedded settings
                 std::vector<Preset*> project_presets;
                 bool is_bbs_3mf;
+                Semver file_version;
                 model = Slic3r::Model::read_from_file(path.string(), nullptr, nullptr, strategy, &plate_data, &project_presets,
-                &is_bbs_3mf, nullptr,
+                &is_bbs_3mf, &file_version, nullptr,
                 [progress_dlg, filename, progress_percent](int import_stage, int current, int total, bool &cancel) {
                     bool cont = true;
                     wxString msg = wxString::Format("Loading file: %s, stage %d, %d/%d", from_path(filename), import_stage, current, total);
