@@ -1152,7 +1152,7 @@ namespace Slic3r {
         platform = "linux";
 #endif
         std::string query_params = (boost::format("?name=slicer&&version=%1%&&platform=%2%&&guide_version=%3%")
-            % VersionInfo::convert_full_version(SLIC3R_RC_VERSION)
+            % VersionInfo::convert_full_version(SLIC3R_VERSION)
             % platform
             % VersionInfo::convert_full_version("0.0.0.1")
             ).str();
@@ -1197,11 +1197,11 @@ namespace Slic3r {
         if (version_info.version_str.empty()) return;
         if (version_info.url.empty()) return;
 
-        if (version_info.compare(SLIC3R_RC_VERSION) > 0) {
+        if (version_info.compare(SLIC3R_VERSION) > 0) {
             GUI::wxGetApp().request_new_version();
         }
         // Same Version
-        else if (version_info.compare(SLIC3R_RC_VERSION) == 0) {
+        else if (version_info.compare(SLIC3R_VERSION) == 0) {
             GUI::wxGetApp().no_new_version();
         }
     }

@@ -20,7 +20,7 @@ namespace GUI {
 WebFrame::WebFrame(wxString& url) :
     wxFrame(NULL, wxID_ANY, "BambuStudio")
 {
-    m_bbl_user_agent = wxString::Format("BBL-Slicer/v%s", SLIC3R_RC_VERSION);
+    m_bbl_user_agent = wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION);
 
     // set the frame icon
     SetTitle("BambuStudio");
@@ -118,7 +118,7 @@ WebFrame::WebFrame(wxString& url) :
     m_browser = wxWebView::New();
     if (m_browser) {
 #ifdef __WIN32__
-        m_browser->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_RC_VERSION));
+        m_browser->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION));
         m_browser->Create(this, wxID_ANY, url, wxDefaultPosition, wxDefaultSize);
         //We register the wxfs:// protocol for testing purposes
         m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("bbl")));
@@ -130,7 +130,7 @@ WebFrame::WebFrame(wxString& url) :
         // And the memory: file system
         m_browser->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewFSHandler("memory")));
         m_browser->Create(this, wxID_ANY, url, wxDefaultPosition, wxDefaultSize);
-        m_browser->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_RC_VERSION));
+        m_browser->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION));
 #endif
         if (!m_browser->AddScriptMessageHandler("wx"))
             wxLogError("Could not add script message handler");

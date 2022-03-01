@@ -476,7 +476,7 @@ void Preset::save()
         from_str = std::string("System");
     else
         from_str = std::string("Default");
-    this->config.save_to_json(this->file, this->name, from_str, std::string(SLIC3R_RC_VERSION));
+    this->config.save_to_json(this->file, this->name, from_str, std::string(SLIC3R_VERSION));
 
     fs::path idx_file(this->file);
     idx_file.replace_extension(".info");
@@ -2113,7 +2113,7 @@ void PhysicalPrinter::save(const std::string& file_name_from, const std::string&
     // save configuration
     //BBS: change to save
     //this->config.save(this->file);
-    this->config.save_to_json(this->file, std::string("Physical_Printer"), std::string("User"), std::string(SLIC3R_RC_VERSION));
+    this->config.save_to_json(this->file, std::string("Physical_Printer"), std::string("User"), std::string(SLIC3R_VERSION));
 }
 
 void PhysicalPrinter::update_from_preset(const Preset& preset)

@@ -40,7 +40,7 @@ GuideFrame::GuideFrame(GUI_App *pGUI)
 
     m_MainPtr = pGUI;
 
-    m_bbl_user_agent = wxString::Format("BBL-Slicer/v%s", SLIC3R_RC_VERSION);
+    m_bbl_user_agent = wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION);
 
     // set the frame icon
     SetTitle("BambuStudio");
@@ -63,7 +63,7 @@ GuideFrame::GuideFrame(GUI_App *pGUI)
     m_browser = wxWebView::New();
     if (m_browser) {
         m_browser->SetUserAgent(
-            wxString::Format("BBL-Slicer/v%s", SLIC3R_RC_VERSION));
+            wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION));
 
 #ifndef __WXMAC__
         // We register the wxfs:// protocol for testing purposes

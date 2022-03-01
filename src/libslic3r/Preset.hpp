@@ -750,7 +750,7 @@ public:
 
     //BBS: change to json format
     //void                save() { this->config.save(this->file); }
-    void                save() { this->config.save_to_json(this->file, std::string("Physical_Printer"), std::string("User"), std::string(SLIC3R_RC_VERSION)); }
+    void                save() { this->config.save_to_json(this->file, std::string("Physical_Printer"), std::string("User"), std::string(SLIC3R_VERSION)); }
     void                save(const std::string& file_name_from, const std::string& file_name_to);
 
     void                update_from_preset(const Preset& preset);

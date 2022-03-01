@@ -491,7 +491,7 @@ void PresetUpdater::priv::sync_config(const VendorMap vendors)
     /*http.header("accept", "application/json")
         .header("client-type", "slicer")
         .header("os-type", "windows")
-        .header("client-version", SLIC3R_RC_VERSION)*/
+        .header("client-version", SLIC3R_VERSION)*/
 	http.on_complete(
         [this, &vendor_list, &vendor_descriptions, vendors](std::string body, unsigned) {
             try {

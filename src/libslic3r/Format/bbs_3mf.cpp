@@ -4498,7 +4498,7 @@ namespace Slic3r {
     {
         const std::string& temp_path = model.get_backup_path();
         std::string temp_file = temp_path + std::string("/") + "_temp_1.config";
-        config.save_to_json(temp_file, std::string("project_settings"), std::string("project"), std::string(SLIC3R_RC_VERSION));
+        config.save_to_json(temp_file, std::string("project_settings"), std::string("project"), std::string(SLIC3R_VERSION));
         return _add_file_to_archive(archive, BBS_PROJECT_CONFIG_FILE, temp_file);
     }
 
@@ -4519,7 +4519,7 @@ namespace Slic3r {
                 preset->file = temp_path + std::string("/") + "_temp_1.config";
                 DynamicPrintConfig& config = preset->config;
                 //config.save(preset->file);
-                config.save_to_json(preset->file, preset->name, std::string("project"), std::string(SLIC3R_RC_VERSION));
+                config.save_to_json(preset->file, preset->name, std::string("project"), std::string(SLIC3R_VERSION));
 
                 std::string dest_file;
                 if (preset->type == Preset::TYPE_PRINT) {
@@ -4760,7 +4760,7 @@ namespace Slic3r {
         // save slice header for debug
         stream << "  <" << SLICE_HEADER_TAG << ">\n";
         stream << "    <" << SLICE_HEADER_ITEM_TAG << " " << KEY_ATTR << "=\"" << "X-BBL-Client-Type"    << "\" " << VALUE_ATTR << "=\"" << "slicer" << "\"/>\n";
-        stream << "    <" << SLICE_HEADER_ITEM_TAG << " " << KEY_ATTR << "=\"" << "X-BBL-Client-Version" << "\" " << VALUE_ATTR << "=\"" << convert_to_full_version(SLIC3R_RC_VERSION) << "\"/>\n";
+        stream << "    <" << SLICE_HEADER_ITEM_TAG << " " << KEY_ATTR << "=\"" << "X-BBL-Client-Version" << "\" " << VALUE_ATTR << "=\"" << convert_to_full_version(SLIC3R_VERSION) << "\"/>\n";
         stream << "  </" << SLICE_HEADER_TAG << ">\n";
 
         for (unsigned int i = 0; i < (unsigned int)plate_data_list.size(); ++i)

@@ -113,7 +113,7 @@ public:
     static std::string convert_full_version(std::string short_version);
     static std::string convert_short_version(std::string full_version);
     static std::string get_full_version() {
-        return convert_full_version(SLIC3R_RC_VERSION);
+        return convert_full_version(SLIC3R_VERSION);
     }
 
     static std::string get_preset_version() {

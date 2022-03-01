@@ -777,7 +777,7 @@ int CLI::run(int argc, char **argv)
             //FIXME check for mixing the FFF / SLA parameters.
             // or better save fff_print_config vs. sla_print_config
             //m_print_config.save(m_config.opt_string("save"));
-            m_print_config.save_to_json(m_config.opt_string("save"), std::string("project_settings"), std::string("project"), std::string(SLIC3R_RC_VERSION));
+            m_print_config.save_to_json(m_config.opt_string("save"), std::string("project_settings"), std::string("project"), std::string(SLIC3R_VERSION));
         } else if (opt_key == "info") {
             // --info works on unrepaired model
             for (Model &model : m_models) {

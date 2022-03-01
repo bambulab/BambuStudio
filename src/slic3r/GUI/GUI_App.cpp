@@ -305,7 +305,7 @@ private:
             title = wxGetApp().is_editor() ? SLIC3R_APP_NAME : GCODEVIEWER_APP_NAME;
 
             // dynamically get the version to display
-            version = _L("V") + " " + std::string(SLIC3R_RC_VERSION);
+            version = _L("V") + " " + std::string(SLIC3R_VERSION);
 
             // credits infornation
             credits = "";
@@ -1293,7 +1293,7 @@ void GUI_App::init_http_extra_header()
 {
     std::map<std::string, std::string> extra_headers;
     extra_headers.insert(std::make_pair("X-BBL-Client-Type", "slicer"));
-    extra_headers.insert(std::make_pair("X-BBL-Client-Version", VersionInfo::convert_full_version(SLIC3R_RC_VERSION)));
+    extra_headers.insert(std::make_pair("X-BBL-Client-Version", VersionInfo::convert_full_version(SLIC3R_VERSION)));
 #if defined(__WINDOWS__)
     extra_headers.insert(std::make_pair("X-BBL-OS-Type", "windows"));
 #elif defined(__APPLE__)

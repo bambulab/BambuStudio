@@ -229,11 +229,11 @@ wxWebView* MarkdownTip::CreateTipView(wxWindow* parent)
     set_var_dir(old);
 
 #ifdef __WIN32__
-    tipView->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_RC_VERSION));
+    tipView->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION));
     tipView->Create(parent, wxID_ANY, url, wxDefaultPosition, { 400, 300 }, wxBORDER_NONE);
 #else
     tipView->Create(parent, wxID_ANY, url, wxDefaultPosition, { 400, 300 }, wxBORDER_NONE);
-    tipView->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_RC_VERSION));
+    tipView->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION));
 #endif
     tipView->Bind(wxEVT_WEBVIEW_LOADED, &MarkdownTip::OnLoaded, this);
     tipView->Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &MarkdownTip::OnTitleChanged, this);

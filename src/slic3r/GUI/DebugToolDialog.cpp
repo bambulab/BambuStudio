@@ -1531,7 +1531,7 @@ void DebugToolDialog::on_print_end(wxCommandEvent& evt)
     MachineObject* obj = device_manager->get_default();
     if (obj) {
         /* get slicer version */
-        summary->slicer_version = SLIC3R_RC_VERSION;
+        summary->slicer_version = SLIC3R_VERSION;
 
         /* get device_id */
         summary->device_id = obj->dev_id;

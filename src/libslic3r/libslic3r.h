@@ -4,7 +4,7 @@
 #include "libslic3r_version.h"
 #define GCODEVIEWER_APP_NAME "BambuStudio G-code Viewer"
 #define GCODEVIEWER_APP_KEY  "BambuStudioGcodeViewer"
-#define GCODEVIEWER_BUILD_ID std::string("BambuStudio G-code Viewer-") + std::string(SLIC3R_VERSION) + std::string("-UNKNOWN")
+#define GCODEVIEWER_BUILD_ID std::string("BambuStudio G-code Viewer-") + std::string(SLIC3R_VERSION) + std::string("-RC")
 
 // this needs to be included early for MSVC (listing it in Build.PL is not enough)
 #include <memory>
