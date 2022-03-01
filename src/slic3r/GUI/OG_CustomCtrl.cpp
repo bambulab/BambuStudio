@@ -17,12 +17,13 @@ namespace Slic3r { namespace GUI {
 
  // BBS: modify param ui style
     constexpr int titleWidth = 20;
-    constexpr int ctrlWidth = 70;
+    constexpr int ctrlWidth = 50;
 
 #define DISABLE_BLINKING
 #define DISABLE_UNDO_SYS
 #define SPLIT_MULTI_LINES 1
 #define OPTION_LABEL_AT_RIGHT 1
+#define BUTTONS_AT_RIGHT 0
 
 static bool is_point_in_rect(const wxPoint& pt, const wxRect& rect)
 {
@@ -145,6 +146,45 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
         }
     };
 
+    auto add_label_width = [&h_pos, this] (Option & opt, bool is_multioption_line) {
+        ConfigOptionDef option = opt.opt;
+        // add label if any
+        if (is_multioption_line && !option.label.empty()) {
+            //!            To correct translation by context have to use wxGETTEXT_IN_CONTEXT macro from wxWidget 3.1.1
+            auto label = (option.label == L_CONTEXT("Top", "Layers") || option.label == L_CONTEXT("Bottom", "Layers")) ?
+                _CTX(option.label, "Layers") : _(option.label);
+            label += ":";
+
+            wxCoord label_w, label_h;
+#ifdef __WXMSW__
+            // when we use 2 monitors with different DPIs, GetTextExtent() return value for the primary display
+            // so, use dc.GetMultiLineTextExtent on Windows 
+            wxClientDC dc(this);
+            dc.SetFont(m_font);
+            dc.GetMultiLineTextExtent(label, &label_w, &label_h);
+#else
+            GetTextExtent(label, &label_w, &label_h, 0, 0, &m_font);
+#endif //__WXMSW__
+            h_pos += label_w + 1 + m_h_gap;
+        }                
+    };
+
+    auto add_buttons_width = [&h_pos, this] (int blinking_button_width) {
+#ifndef DISABLE_BLINKING
+#  ifndef DISABLE_UNDO_SYS
+        h_pos += 3 * blinking_button_width;
+#  else
+        h_pos += 2 * blinking_button_width;
+#  endif
+#else
+#  ifndef DISABLE_UNDO_SYS
+        h_pos += 2 * blinking_button_width;
+#  else
+        h_pos += 1 * blinking_button_width;
+#  endif
+#endif
+    };
+
     for (CtrlLine& ctrl_line : ctrl_lines) {
         if (&ctrl_line.og_line == &line)
         {
@@ -175,6 +215,9 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
                 break;
             }
 
+#if !BUTTONS_AT_RIGHT // BBS: position buttons at right
+            add_buttons_width(blinking_button_width);
+#endif
             // If we have a single option with no sidetext
             const std::vector<Option>& option_set = line.get_options();
             if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
@@ -194,26 +237,7 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
                 correct_line_height(ctrl_line.height, field->getWindow());
 
 #if !OPTION_LABEL_AT_RIGHT // BBS: position option label at right
-                ConfigOptionDef option = opt.opt;
-                // add label if any
-                if (is_multioption_line && !option.label.empty()) {
-                    //!            To correct translation by context have to use wxGETTEXT_IN_CONTEXT macro from wxWidget 3.1.1
-                    label = (option.label == L_CONTEXT("Top", "Layers") || option.label == L_CONTEXT("Bottom", "Layers")) ?
-                        _CTX(option.label, "Layers") : _(option.label);
-                    label += ":";
-
-                    wxCoord label_w, label_h;
-#ifdef __WXMSW__
-                    // when we use 2 monitors with different DPIs, GetTextExtent() return value for the primary display
-                    // so, use dc.GetMultiLineTextExtent on Windows 
-                    wxClientDC dc(this);
-                    dc.SetFont(m_font);
-                    dc.GetMultiLineTextExtent(label, &label_w, &label_h);
-#else
-                    GetTextExtent(label, &label_w, &label_h, 0, 0, &m_font);
-#endif //__WXMSW__
-                    h_pos += label_w + 1 + m_h_gap;
-                }                
+                add_label_width(opt, is_multioption_line);
 #endif
 
                 if (field == field_in) {
@@ -225,20 +249,7 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 #else
                 // BBS: new layout
                 h_pos += field->getWindow()->GetSize().x;
-#ifndef DISABLE_BLINKING
-#  ifndef DISABLE_UNDO_SYS
-                h_pos += 3 * blinking_button_width;
-#  else
-                h_pos += 2 * blinking_button_width;
-#  endif
-#else
-#  ifndef DISABLE_UNDO_SYS
-                h_pos += 2 * blinking_button_width;
-#  else
-                h_pos += 1 * blinking_button_width;
-#  endif
-#endif
-
+                add_buttons_width(blinking_button_width)
                 if (option_set.size() == 1 && option_set.front().opt.full_width)
                     break;
 
@@ -320,10 +331,12 @@ void OG_CustomCtrl::OnPaint(wxPaintEvent&)
     wxCoord h_pos = get_title_width() * m_em_unit;
     wxCoord v_pos = 0;
     // BBS: new layout
-    dc.SetFont(Label::Head_16);
-    wxColour color("#283436");
-    draw_title(dc, {0, v_pos}, GetLabel(), &color, h_pos);
-    dc.SetFont(m_font);
+    if (!GetLabel().IsEmpty()) {
+        dc.SetFont(Label::Head_16);
+        wxColour color("#283436");
+        draw_title(dc, {0, v_pos}, GetLabel(), &color, h_pos);
+        dc.SetFont(m_font);
+    }
     for (CtrlLine& line : ctrl_lines) {
         if (!line.is_visible)
             continue;
@@ -354,7 +367,8 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
             tooltip += line.og_line.label_tooltip;
             // BBS: markdown tip
             focusedLine = &line;
-            markdowntip = line.og_line.label_path;
+            markdowntip = line.og_line.label_path.empty() 
+                ? line.og_line.get_options().front().opt_id : line.og_line.label_path;
             markdowntip.erase(0, markdowntip.find_last_of('#') + 1);
             // BBS
             break;
@@ -385,7 +399,7 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
     if (!markdowntip.empty()) {
         wxWindow* window = GetGrandParent();
         assert(focusedLine);
-        wxPoint pos2 = { 150, focusedLine->rect_label.y };
+        wxPoint pos2 = { 350, focusedLine->rect_label.y };
         pos2 = ClientToScreen(pos2);
         if (MarkdownTip::ShowTip(markdowntip, pos2)) {
             tooltip.clear();
@@ -448,7 +462,7 @@ void OG_CustomCtrl::OnLeaveWin(wxMouseEvent& event)
 bool OG_CustomCtrl::update_visibility(ConfigOptionMode mode)
 {
     // BBS: new layout
-    wxCoord    h_pos = ctrlWidth * m_em_unit;
+    wxCoord    h_pos = (ctrlWidth + get_title_width() - titleWidth) * m_em_unit;
     wxCoord    h_pos2 = get_title_width() * m_em_unit;
     wxCoord    v_pos = 0;
 
@@ -529,7 +543,7 @@ int OG_CustomCtrl::get_title_width()
     if (!GetLabel().IsEmpty())
         return titleWidth;
     else
-        return 0;
+        return 1;
 }
 
 void OG_CustomCtrl::set_max_win_width(int max_win_width)
@@ -561,7 +575,7 @@ void OG_CustomCtrl::msw_rescale()
 
     m_max_win_width = 0;
 
-    wxCoord    h_pos = ctrlWidth * m_em_unit;
+    wxCoord    h_pos = (ctrlWidth + get_title_width() - titleWidth) * m_em_unit;
     wxCoord    h_pos2 = get_title_width() * m_em_unit;
     wxCoord    v_pos = 0;
     for (CtrlLine& line : ctrl_lines) {
@@ -759,12 +773,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
     // If we're here, we have more than one option or a single option with sidetext
     // so we need a horizontal sizer to arrange these things
 
-    wxCoord h_pos2 = h_pos;
-    // If we have a single option with no sidetext just add it directly to the grid sizer
-    if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
-        option_set.front().side_widget == nullptr && og_line.get_extra_widgets().size() == 0)
-    {
-        // BBS: new layout
+    auto add_field_width = [&h_pos, this] (Field* field) {
         if (field) {
             if (field->getSizer())
             {
@@ -777,11 +786,30 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
                 h_pos += field->getWindow()->GetSize().x + ctrl->m_h_gap;
             }
         }
-        wxCoord h_pos3 = h_pos;
-        if (field && field->undo_to_sys_bitmap())
-            h_pos = draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink()) + ctrl->m_h_gap;
+    };
+
+    auto draw_buttons = [&h_pos, &dc, &v_pos, this](Field* field, size_t bmp_rect_id = 0) {
+        if (field && field->undo_to_sys_bitmap()) {
+            h_pos = draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink(), bmp_rect_id++);
+        }
         else if (field && !field->undo_to_sys_bitmap() && field->blink()) 
             draw_blinking_bmp(dc, wxPoint(h_pos, v_pos), field->blink());
+    };
+
+    wxCoord h_pos2 = h_pos;
+    // If we have a single option with no sidetext just add it directly to the grid sizer
+    if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
+        option_set.front().side_widget == nullptr && og_line.get_extra_widgets().size() == 0)
+    {
+        // BBS: new layout
+#if !BUTTONS_AT_RIGHT
+        draw_buttons(field);
+#endif
+        add_field_width(field);
+        wxCoord h_pos3 = h_pos;
+#if BUTTONS_AT_RIGHT
+        draw_buttons(field, v_pos);
+#endif
         // update width for full_width fields
         if (option_set.front().opt.full_width && field && field->getWindow())
             field->getWindow()->SetSize(ctrl->GetSize().x - h_pos2 + h_pos3 - h_pos, -1);
@@ -793,18 +821,11 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
     for (const Option& opt : option_set) {
         field = ctrl->opt_group->get_field(opt.opt_id);
         ConfigOptionDef option = opt.opt;
+#if !BUTTONS_AT_RIGHT
+        draw_buttons(field, bmp_rect_id++);
+#endif
 #if OPTION_LABEL_AT_RIGHT // BBS
-        if (field) {
-            if (field->getSizer()) {
-                auto children = field->getSizer()->GetChildren();
-                for (auto child : children)
-                    if (child->IsWindow())
-                        h_pos += child->GetWindow()->GetSize().x +
-                                 ctrl->m_h_gap;
-            } else if (field->getWindow())
-                h_pos += field->getWindow()->GetSize().x + ctrl->m_h_gap;
-            h_pos += em_unit(ctrl);
-        }
+        add_field_width(field);
 #endif
         // add label if any
         if (is_multioption_line && !option.label.empty()) {
@@ -827,17 +848,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
         if (option_set.size() == 1 && option_set.front().opt.full_width)
             break;
 #if !OPTION_LABEL_AT_RIGHT // BBS
-        if (field) {
-            if (field->getSizer())
-            {
-                auto children = field->getSizer()->GetChildren();
-                for (auto child : children)
-                    if (child->IsWindow())
-                        h_pos += child->GetWindow()->GetSize().x + ctrl->m_h_gap;
-            }
-            else if (field->getWindow())
-                h_pos += field->getWindow()->GetSize().x + ctrl->m_h_gap;
-        }
+        add_field_width(field);
 #endif
         // add sidetext if any
         // BBS: new layout
@@ -847,13 +858,12 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
             h_pos = draw_text(dc, wxPoint(h_pos, v_pos), _(option.sidetext), nullptr, ctrl->opt_group->sidetext_width * ctrl->m_em_unit);
             offset = h_pos - h_pos2;
         }
-
         // BBS: new layout
-        if (field && field->undo_to_sys_bitmap()) {
-            offset -= ctrl->m_h_gap;
-            h_pos = draw_act_bmps(dc, wxPoint(h_pos - offset, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink(), bmp_rect_id++);
-            h_pos += offset;
-        }
+#if BUTTONS_AT_RIGHT
+        offset -= ctrl->m_h_gap; h_pos -= offset;
+        draw_buttons(field, bmp_rect_id++);
+        h_pos += offset;
+#endif
 
         if (opt.opt_id != option_set.back().opt_id) //! istead of (opt != option_set.back())
             h_pos += lround(0.6 * ctrl->m_em_unit);

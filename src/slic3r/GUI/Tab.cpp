@@ -217,7 +217,7 @@ void Tab::create_preset_tab()
 
     m_top_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     // BBS: open this tab by select first
-    m_top_panel->SetBackgroundColour("#E9E9E9");
+    m_top_panel->SetBackgroundColour(*wxWHITE);
     m_top_panel->Bind(wxEVT_LEFT_UP, [this](auto & e) {
         restore_last_select_item();
     });
@@ -277,40 +277,39 @@ void Tab::create_preset_tab()
 
     m_main_sizer = new wxBoxSizer( wxVERTICAL );
     m_top_sizer = new wxBoxSizer( wxHORIZONTAL );
-    m_top_sizer->AddSpacer(22);
+    // BBS: model config
+    if (m_presets_choice) {
+        m_top_sizer->Add(m_presets_choice, 1, wxEXPAND | wxALL, 10 );
+    } else {
+        m_top_sizer->AddSpacer(10);
+        m_top_sizer->AddStretchSpacer(1);
+    }
 
-    m_static_title = new Label(Label::Body_14, m_title, m_top_panel);
-    m_static_title->Wrap( -1 );
-    // BBS: open this tab by select first
-    m_static_title->Bind(wxEVT_LEFT_UP, [this](auto& e) {
-        restore_last_select_item();
-        });
-    m_top_sizer->Add( m_static_title, 0, wxALIGN_CENTER_VERTICAL);
-
-    m_top_sizer->AddStretchSpacer(1);
-    
     const float scale_factor = /*wxGetApp().*/em_unit(this)*0.1;// GetContentScaleFactor();
 #ifndef DISABLE_UNDO_SYS
     m_top_sizer->Add( m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
     m_top_sizer->AddSpacer(8);
 #endif
     m_top_sizer->Add( m_undo_btn, 0, wxALIGN_CENTER_VERTICAL);
-    m_top_sizer->AddSpacer(8);
-    m_top_sizer->Add( m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL );
-    m_top_sizer->AddSpacer(8);
-    //m_top_right_sizer->AddSpacer(int(4*scale_factor));
-    m_top_sizer->Add( m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL);
-    //m_top_right_sizer->AddSpacer(int(4*scale_factor));
+    m_top_sizer->Add( m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8  );
+    m_top_sizer->Add( m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
 
-    m_top_sizer->AddSpacer(16);
+    m_static_title = new Label(Label::Body_14, _L("Advance"), m_top_panel);
+    m_static_title->Wrap( -1 );
+    // BBS: open this tab by select first
+    m_static_title->Bind(wxEVT_LEFT_UP, [this](auto& e) {
+        restore_last_select_item();
+    });
+    m_top_sizer->Add( m_static_title, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
+    m_mode_status = new SwitchButton(m_top_panel, wxID_ABOUT);
+    m_top_sizer->AddSpacer(4);
+    m_top_sizer->Add( m_mode_status, 0, wxALIGN_CENTER_VERTICAL);
+
+    m_top_sizer->AddSpacer(10);
 
     m_top_sizer->SetMinSize(-1, 3 * m_em_unit);
     m_top_panel->SetSizer(m_top_sizer);
     m_main_sizer->Add(m_top_panel, 0, wxEXPAND, 0 );
-
-    // BBS: model config
-    if (m_presets_choice)
-        m_main_sizer->Add(m_presets_choice, 0, wxEXPAND | wxALL, 10 );
 
 #if 0
 #ifdef _MSW_DARK_MODE
@@ -413,7 +412,7 @@ void Tab::create_preset_tab()
 
     m_tabctrl->Bind(wxEVT_KEY_DOWN, &Tab::OnKeyDown, this);
 
-    m_main_sizer->Add(m_tabctrl, 1, wxEXPAND | wxALL, 10 );
+    m_main_sizer->Add(m_tabctrl, 1, wxEXPAND | wxALL, 0 );
 
     this->SetSizer(m_main_sizer);
     //this->Layout();
@@ -466,7 +465,7 @@ void Tab::add_scaled_button(wxWindow* parent,
                             long style /*= wxBU_EXACTFIT | wxNO_BORDER*/)
 {
     *btn = new ScalableButton(parent, wxID_ANY, icon_name, label, wxDefaultSize, wxDefaultPosition, style, true);
-    (*btn)->SetBackgroundColour("#E9E9E9");
+    (*btn)->SetBackgroundColour(parent->GetBackgroundColour());
     m_scaled_buttons.push_back(*btn);
 }
 
@@ -1094,6 +1093,8 @@ void Tab::msw_rescale()
     for (const auto bmp : m_scaled_bitmaps)
         bmp->msw_rescale();
 
+    m_mode_status->Rescale();
+
     if (m_detach_preset_btn)
         m_detach_preset_btn->msw_rescale();
 
@@ -1110,6 +1111,8 @@ void Tab::msw_rescale()
     // rescale options_groups
     if (m_active_page)
         m_active_page->msw_rescale();
+
+    m_tabctrl->Rescale();
 
     //BBS: GUI refactor
     //Layout();
@@ -4450,7 +4453,7 @@ Page::Page(wxWindow* parent, const wxString& title, int iconID, wxPanel* tab_own
         m_title(title),
         m_iconID(iconID)
 {
-    m_vsizer = (wxBoxSizer*)parent->GetSizer()->GetItem(1)->GetSizer();
+    m_vsizer = (wxBoxSizer*)parent->GetSizer();
     m_page_title = NULL;
     m_item_color = &wxGetApp().get_label_clr_default();
 }
@@ -4464,18 +4467,22 @@ void Page::reload_config()
 void Page::update_visibility(ConfigOptionMode mode, bool update_contolls_visibility)
 {
     bool ret_val = false;
+#if HIDE_FIRST_SPLIT_LINE
     // BBS: no line spliter for first group
     bool first = true;
+#endif
     for (auto group : m_optgroups) {
         ret_val = (update_contolls_visibility     ? 
                    group->update_visibility(mode) :  // update visibility for all controlls in group
                    group->is_visible(mode)           // just detect visibility for the group
                    ) || ret_val;
+#if HIDE_FIRST_SPLIT_LINE
         // BBS: no line spliter for first group
         if (update_contolls_visibility && ret_val && first) {
             if (group->stb) group->stb->Hide();
             first = false;
         }
+#endif
     }
 
     m_show = ret_val;
@@ -4493,15 +4500,19 @@ void Page::activate(ConfigOptionMode mode, std::function<void()> throw_if_cancel
 #else
     m_vsizer->AddSpacer(20);
 #endif
+#if HIDE_FIRST_SPLIT_LINE
     // BBS: no line spliter for first group
     bool first = true;
+#endif
     for (auto group : m_optgroups) {
         if (!group->activate(throw_if_canceled))
             continue;
         m_vsizer->Add(group->sizer, 0, wxEXPAND | (group->is_legend_line() ? (wxLEFT|wxTOP) : wxALL), 10);
         group->update_visibility(mode);
+#if HIDE_FIRST_SPLIT_LINE
         if (first) group->stb->Hide();
         first = false;
+#endif
         group->reload_config();
         throw_if_canceled();
     }

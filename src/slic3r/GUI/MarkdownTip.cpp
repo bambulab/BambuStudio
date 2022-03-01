@@ -70,8 +70,8 @@ MarkdownTip::MarkdownTip()
 {
     wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
 
-    //_tipView = CreateTipView(this);
-    //topsizer->Add(_tipView, wxSizerFlags().Expand().Proportion(1));
+    _tipView = CreateTipView(this);
+    topsizer->Add(_tipView, wxSizerFlags().Expand().Proportion(1));
 
     SetSizer(topsizer);
 
@@ -109,6 +109,8 @@ bool MarkdownTip::ShowTip(wxPoint pos, std::string const& tip)
             RunScript(script);
         }
         _lastTip = tip;
+        if (_tipView->GetParent() == this)
+            this->Hide();
     }
     if (_tipView->GetParent() == this) {
         wxSize size = wxDisplay(wxDisplay::GetFromWindow(this)).GetClientArea().GetSize();
@@ -117,7 +119,7 @@ bool MarkdownTip::ShowTip(wxPoint pos, std::string const& tip)
             pos.y = size.y - this->GetSize().y;
         this->SetPosition(pos);
         _hide = false;
-        this->Show();
+        _timer->Start(500, true);
     }
     return true;
 }
@@ -286,6 +288,8 @@ void MarkdownTip::OnTimer(wxTimerEvent& event)
             return;
         }
         this->Hide();
+    } else {
+        this->Show();
     }
 }
 
@@ -298,6 +302,11 @@ MarkdownTip& MarkdownTip::markdownTip()
 bool MarkdownTip::ShowTip(std::string const& tip, wxPoint pos)
 {
     return markdownTip().ShowTip(pos, tip);
+}
+
+void MarkdownTip::ExitTip()
+{
+    markdownTip().Destroy();
 }
 
 wxWindow* MarkdownTip::AttachTo(wxWindow* parent)

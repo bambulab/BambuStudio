@@ -153,7 +153,7 @@ void Field::PostInitialize()
 
 // Values of width to alignments of fields
 int Field::def_width()			{ return 8; }
-int Field::def_width_wider()	{ return 16; }
+int Field::def_width_wider()	{ return 12; }
 int Field::def_width_thinner()	{ return 4; }
 
 void Field::on_kill_focus()

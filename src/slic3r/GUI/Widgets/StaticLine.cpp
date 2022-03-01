@@ -2,14 +2,36 @@
 
 #include <wx/dcgraph.h>
 
-StaticLine::StaticLine(wxWindow* parent, bool vertical)
+BEGIN_EVENT_TABLE(StaticLine, wxWindow)
+
+// catch paint events
+EVT_PAINT(StaticLine::paintEvent)
+
+END_EVENT_TABLE()
+
+StaticLine::StaticLine(wxWindow* parent, bool vertical, const wxString& label)
     : wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+    , vertical(vertical)
 {
+    wxWindow::SetBackgroundColour(parent->GetBackgroundColour());
     this->pen = wxPen(wxColour("#C4C4C4"));
+    SetLabel(label);
+}
+
+void StaticLine::SetLabel(const wxString& label)
+{
+    wxWindow::SetLabel(label);
+    int s = 1;
+    if (!label.IsEmpty()) {
+        wxClientDC dc(this);
+        auto size = dc.GetTextExtent(label);
+        s = vertical ? size.x : size.y;
+    }
     if (vertical)
-        SetMinSize({1, -1});
+        SetMinSize({s, -1});
     else
-        SetMinSize({-1, 1});
+        SetMinSize({-1, s});
+    Refresh();
 }
 
 void StaticLine::SetLineColour(wxColour color)
@@ -31,6 +53,23 @@ void StaticLine::paintEvent(wxPaintEvent& evt)
  */
 void StaticLine::render(wxDC& dc)
 {
+    wxSize size = GetSize();
+    wxSize size2 {0, 0};
+    auto label = GetLabel();
+    if (!label.IsEmpty()) {
+        size2 = dc.GetTextExtent(label);
+        dc.DrawText(label, 0, 0);
+        if (vertical)
+            size2.y += 5;
+        else
+            size2.x += 5;
+    }
     dc.SetPen(pen);
-    dc.DrawLine(0, 0, GetSize().x, 0);
+    if (vertical) {
+        size.x /= 2;
+        dc.DrawLine(size.x, size2.y, size.x, size.y);
+    } else {
+        size.y /= 2;
+        dc.DrawLine(size2.x, size.y, size.x, size.y);
+    }
 }

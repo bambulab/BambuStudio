@@ -260,7 +260,7 @@ void OptionsGroup::activate_line(Line& line)
     if (!custom_ctrl && m_use_custom_ctrl) {
         custom_ctrl = new OG_CustomCtrl(is_legend_line || !staticbox ? this->parent() : static_cast<wxWindow*>(this->stb), this);
 		// BBS: new layout
-		custom_ctrl->SetLabel(_(title));
+		custom_ctrl->SetLabel("");
 		if (is_legend_line)
 			sizer->Add(custom_ctrl, 0, wxEXPAND | wxLEFT, wxOSX ? 0 : 10);
 		else
@@ -460,10 +460,10 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled/* = [](){}*/
 		}
 		else {
 			// BBS: new layout
-			::StaticLine* stl = new ::StaticLine(m_parent);
+			::StaticLine* stl = new ::StaticLine(m_parent, false, _(title));
 			sizer = new wxBoxSizer(wxVERTICAL);
 			sizer->Add(stl, 0, wxEXPAND);
-			sizer->AddSpacer(16);
+			sizer->AddSpacer(8);
 			this->stb = stl;
 		}
 

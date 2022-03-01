@@ -13,6 +13,8 @@ class MarkdownTip : public wxFrame
 public:
     static bool ShowTip(std::string const & tip, wxPoint pos);
 
+    static void ExitTip();
+
     static wxWindow* AttachTo(wxWindow * parent);
 
     static wxWindow* DetachFrom(wxWindow * parent);

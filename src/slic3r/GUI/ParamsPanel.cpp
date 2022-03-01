@@ -16,7 +16,6 @@
 #include "Widgets/Label.hpp"
 #include "Widgets/SwitchButton.hpp"
 #include "Widgets/Button.hpp"
-#include "MarkdownTip.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -25,8 +24,8 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
     : wxPanel( parent, id, pos, size, style, name )
 {
     // BBS: new layout
-    SetBackgroundColour("white");
-#ifdef __WXOSX__
+    SetBackgroundColour(*wxWHITE);
+#if __WXOSX__
     m_top_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_top_sizer->SetSizeHints(this);
     this->SetSizer(m_top_sizer);
@@ -34,7 +33,6 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
     // Create additional panel to Fit() it from OnActivate()
     // It's needed for tooltip showing on OSX
     m_tmp_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
-    auto panel = m_tmp_panel;
     auto  sizer = new wxBoxSizer(wxHORIZONTAL);
     m_tmp_panel->SetSizer(sizer);
     m_tmp_panel->Layout();
@@ -46,29 +44,35 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
     panel->SetSizer(m_top_sizer);
 #endif //__WXOSX__
 
+    wxColor mode_color(0xF8F8F8);
     // BBS: new layout
     m_mode_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition);
-    m_mode_panel->SetBackgroundColour("#FFFFFF");
-    m_mode_text = new Label(wxT("Advanced Mode"), m_mode_panel);
-    m_mode_text->SetFont(Label::Body_14);
+    m_mode_panel->SetBackgroundColour(mode_color);
+    m_mode_text = new Label(Label::Body_14, wxT("Print Settings"), m_mode_panel);
+    //m_mode_text->SetFont(Label::Body_14);
     m_mode_text->Wrap( -1 );
 
     //int width, height;
     // BBS: new layout
     m_mode_status = new SwitchButton(m_mode_panel);
-    update_mode();
+    m_mode_status->SetLabels(wxT("Global"), wxT("Parts"));
     //m_mode_status->GetSize(&width, &height);
 
     // BBS: new layout
     m_search_btn = new ScalableButton(m_mode_panel, wxID_ANY, "search", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
     m_search_btn->SetToolTip(format_wxstr(_L("Search in settings [%1%]"), "Ctrl+F"));
-    m_search_btn->SetBackgroundColour("#FFFFFF");
+    m_search_btn->SetBackgroundColour(mode_color);
     m_search_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().plater()->search(false); });
     //m_search_button = new wxBitmapButton( this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|0 );
     m_compare_btn = new ScalableButton(m_mode_panel, wxID_ANY, "compare", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
     m_compare_btn->SetToolTip(_L("Compare this preset with some another"));
-    m_compare_btn->SetBackgroundColour("#FFFFFF");
+    m_compare_btn->SetBackgroundColour(mode_color);
     m_compare_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { wxGetApp().mainframe->diff_dialog.show(); }));
+
+    m_setting_btn = new ScalableButton(m_mode_panel, wxID_ANY, "table", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+    m_setting_btn->SetToolTip(_L("View all object's settings"));
+    m_setting_btn->SetBackgroundColour(mode_color);
+    m_setting_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().plater()->PopupObjectTable(-1, -1, {0, 0}); });
 
     m_staticline_filament = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
     m_staticline_print = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
@@ -76,14 +80,14 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
     m_staticline_print_part = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
     m_staticline_printer = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
     // BBS: new layout
-    m_staticline_buttons = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
-    m_staticline_middle = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL);
+    //m_staticline_buttons = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+    //m_staticline_middle = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL);
 
-    m_export_to_file = new Button( this, wxT("Export To File"), "");
-    m_import_from_file = new Button( this, wxT("Import From File") );
+    //m_export_to_file = new Button( this, wxT("Export To File"), "");
+    //m_import_from_file = new Button( this, wxT("Import From File") );
 
     // Initialize the page.
-#ifdef __WXOSX__
+#if __WXOSX__
     auto page_parent = m_tmp_panel;
 #else
     auto page_parent = this;
@@ -98,8 +102,10 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
                                wxID_ANY,
                                wxDefaultPosition,
                                wxDefaultSize,
-                               wxVSCROLL | wxHSCROLL) // hide hori-bar will cause hidden field mis-position
-        {}
+                               wxVSCROLL) // hide hori-bar will cause hidden field mis-position
+        {
+            // ShowScrollBar(GetHandle(), SB_BOTH, FALSE);
+        }
         virtual bool ShouldScrollToChildOnFocus(wxWindow *child)
         {
             return false;
@@ -107,22 +113,17 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
     };
 
     m_page_view = new PageScrolledWindow(page_parent);
-    // BBS: center content view and add marktip at right side
-    m_page_view->SetBackgroundColour("##FAFAFA");
-    wxBoxSizer * page_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_page_view->SetBackgroundColour(*wxWHITE);
     m_page_sizer = new wxBoxSizer(wxVERTICAL);
-    page_sizer->AddStretchSpacer(1.0);
-    page_sizer->Add(m_page_sizer);
-    page_sizer->AddStretchSpacer(1.0);
-    page_sizer->Add(MarkdownTip::AttachTo(m_page_view), 0, wxEXPAND);
 
-    m_page_view->SetSizer(page_sizer);
+    m_page_view->SetSizer(m_page_sizer);
     m_page_view->SetScrollbars(1, 20, 1, 2);
     //m_page_view->SetScrollRate( 5, 5 );
 
     m_mode_status->Bind(wxEVT_TOGGLEBUTTON, &ParamsPanel::OnToggled, this);
-    m_export_to_file->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().mainframe->export_config(); });
-    m_import_from_file->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().mainframe->load_config_file(); });
+    Bind(wxEVT_TOGGLEBUTTON, &ParamsPanel::OnToggled, this); // For Tab's mode switch
+    //m_export_to_file->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().mainframe->export_config(); });
+    //m_import_from_file->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().mainframe->load_config_file(); });
 }
 
 void ParamsPanel::create_layout()
@@ -142,11 +143,13 @@ void ParamsPanel::create_layout()
     m_mode_sizer->AddSpacer(9);
     m_mode_sizer->Add( m_mode_status, 0, wxALIGN_CENTER );
     m_mode_sizer->AddStretchSpacer(1);
+    m_mode_sizer->Add( m_setting_btn, 0, wxALIGN_CENTER );
+    m_mode_sizer->AddSpacer(16);
     m_mode_sizer->Add( m_compare_btn, 0, wxALIGN_CENTER );
     m_mode_sizer->AddSpacer(16);
     m_mode_sizer->Add( m_search_btn, 0, wxALIGN_CENTER );
     m_mode_sizer->AddSpacer(16);
-    m_mode_sizer->SetMinSize(-1, 3 * em_unit(this));
+    m_mode_sizer->SetMinSize(-1, 4 * em_unit(this));
     m_mode_panel->SetSizer(m_mode_sizer);
     m_left_sizer->Add( m_mode_panel, 0, wxEXPAND );
 
@@ -185,17 +188,17 @@ void ParamsPanel::create_layout()
 
     //m_left_sizer->Add( m_printer_sizer, 1, wxEXPAND, 1 );
 
-    m_button_sizer = new wxBoxSizer( wxHORIZONTAL );
+    //m_button_sizer = new wxBoxSizer( wxHORIZONTAL );
 
-    m_button_sizer->Add( m_export_to_file, 0, wxALL, 5 );
+    //m_button_sizer->Add( m_export_to_file, 0, wxALL, 5 );
 
-    m_button_sizer->Add( m_import_from_file, 0, wxALL, 5 );
+    //m_button_sizer->Add( m_import_from_file, 0, wxALL, 5 );
 
-    m_left_sizer->Add( m_staticline_buttons, 0, wxEXPAND );
-    m_left_sizer->Add( m_button_sizer, 0, wxALIGN_CENTER, 5 );
+    //m_left_sizer->Add( m_staticline_buttons, 0, wxEXPAND );
+    //m_left_sizer->Add( m_button_sizer, 0, wxALIGN_CENTER, 5 );
 
     m_top_sizer->Add(m_left_sizer, 0, wxEXPAND);
-    m_top_sizer->Add(m_staticline_middle, 0, wxEXPAND, 0);
+    //m_top_sizer->Add(m_staticline_middle, 0, wxEXPAND, 0);
 
     //m_right_sizer = new wxBoxSizer( wxVERTICAL );
 
@@ -203,11 +206,11 @@ void ParamsPanel::create_layout()
 
     //m_top_sizer->Add( m_right_sizer, 1, wxEXPAND, 5 );
     // BBS: new layout
-#ifdef __WXOSX__
-    m_top_sizer->Add(m_tmp_panel, 1, wxEXPAND | wxALL, 0);
+#if __WXOSX__
+    m_left_sizer->Add(m_tmp_panel, 1, wxEXPAND | wxALL, 0);
     m_tmp_panel->GetSizer()->Add( m_page_view, 1, wxEXPAND );
 #else
-    m_top_sizer->Add( m_page_view, 1, wxEXPAND );
+    m_left_sizer->Add( m_page_view, 1, wxEXPAND );
 #endif
 
     //this->SetSizer( m_top_sizer );
@@ -276,7 +279,18 @@ void ParamsPanel::OnActivate()
 
 void ParamsPanel::OnToggled(wxCommandEvent& event)
 {
-    bool value = m_mode_status->GetValue();
+    if (m_mode_status->GetId() == event.GetId()) {
+        set_active_tab(nullptr);
+        event.Skip();
+        return;
+    }
+
+    if (wxID_ABOUT != event.GetId()) {
+        return;
+    }
+
+    // this is from tab's mode switch
+    bool value = dynamic_cast<SwitchButton*>(event.GetEventObject())->GetValue();
     int mode_id;
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": Advanced mode toogle to %1%") % value;
@@ -300,13 +314,36 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
 {
     Tab* cur_tab = dynamic_cast<Tab *> (tab);
 
+    if (cur_tab == nullptr) {
+        if (!m_mode_status->GetValue()) {
+            cur_tab = (Tab*) m_tab_print;
+        } else if (m_tab_print_part && ((TabPrintModel*) m_tab_print_part)->get_model_config()) {
+            cur_tab = (Tab*) m_tab_print_part;
+        } else if (m_tab_print_object && ((TabPrintModel*) m_tab_print_object)->get_model_config()) {
+            cur_tab = (Tab*) m_tab_print_object;
+        }
+        if (m_current_tab == cur_tab)
+            return;
+        if (cur_tab)
+            cur_tab->restore_last_select_item();
+        Show(cur_tab != nullptr);
+        return;
+    }
+
     m_current_tab = tab;
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": set current to %1%, type=%2%") % cur_tab % cur_tab?cur_tab->type():-1;
+    update_mode();
 
     // BBS: open/close tab
-    for (auto t : { m_tab_print , m_tab_print_object , m_tab_print_part , m_tab_filament, m_tab_printer }) {
-        if (!t) continue;
-        dynamic_cast<Tab*> (t)->set_expanded(tab == t);
+    for (auto t : std::vector<std::pair<wxPanel*, wxStaticLine*>>({
+            {m_tab_print, m_staticline_print}, 
+            {m_tab_print_object, m_staticline_print_object}, 
+            {m_tab_print_part, m_staticline_print_part}, 
+            {m_tab_filament, m_staticline_filament}, 
+            {m_tab_printer, m_staticline_printer}})) {
+        if (!t.first) continue;
+        t.first->Show(tab == t.first);
+        t.second->Show(tab == t.first);
         //m_left_sizer->GetItem(t)->SetProportion(tab == t ? 1 : 0);
     }
     m_left_sizer->Layout();
@@ -323,33 +360,35 @@ bool ParamsPanel::is_active_and_shown_tab(wxPanel* tab)
 void ParamsPanel::update_mode()
 {
     int app_mode = Slic3r::GUI::wxGetApp().get_mode();
+    SwitchButton * mode_status = m_current_tab ? dynamic_cast<Tab*>(m_current_tab)->m_mode_status : nullptr;
+    if (mode_status == nullptr) return;
 
     //BBS: disable the mode tab and return directly when enable develop mode
     if (app_mode == comDevelop)
     {
-        m_mode_status->Disable();
+        mode_status->Disable();
         return;
     }
-    if (!m_mode_status->IsEnabled())
-        m_mode_status->Enable();
+    if (!mode_status->IsEnabled())
+        mode_status->Enable();
 
     if (app_mode == comAdvanced)
     {
-        m_mode_status->SetValue(true);
+        mode_status->SetValue(true);
     }
     else
     {
-        m_mode_status->SetValue(false);
+        mode_status->SetValue(false);
     }
 }
 
 void ParamsPanel::msw_rescale()
 {
     m_left_sizer->SetMinSize(wxSize(40 * em_unit(this), -1));
-    m_mode_sizer->SetMinSize(-1, 3 * em_unit(this));
+    m_mode_sizer->SetMinSize(-1, 4 * em_unit(this));
     ((SwitchButton* )m_mode_status)->Rescale();
-    ((Button*)m_export_to_file)->Rescale();
-    ((Button*)m_import_from_file)->Rescale();
+    //((Button*)m_export_to_file)->Rescale();
+    //((Button*)m_import_from_file)->Rescale();
 }
 
 void ParamsPanel::free_sizers()
@@ -361,11 +400,11 @@ void ParamsPanel::free_sizers()
     }
 
     m_left_sizer = nullptr;
-    m_right_sizer = nullptr;
+    //m_right_sizer = nullptr;
     m_mode_sizer = nullptr;
-    m_print_sizer = nullptr;
-    m_filament_sizer = nullptr;
-    m_printer_sizer = nullptr;
+    //m_print_sizer = nullptr;
+    //m_filament_sizer = nullptr;
+    //m_printer_sizer = nullptr;
     m_button_sizer = nullptr;
 }
 
@@ -419,18 +458,18 @@ void ParamsPanel::delete_subwindows()
         m_staticline_printer = nullptr;
     }
 
-    // BBS: new layout
-    if (m_staticline_buttons)
-    {
-        delete m_staticline_buttons;
-        m_staticline_buttons = nullptr;
-    }
+    //// BBS: new layout
+    //if (m_staticline_buttons)
+    //{
+    //    delete m_staticline_buttons;
+    //    m_staticline_buttons = nullptr;
+    //}
 
-    if (m_staticline_middle)
-    {
-        delete m_staticline_middle;
-        m_staticline_middle = nullptr;
-    }
+    //if (m_staticline_middle)
+    //{
+    //    delete m_staticline_middle;
+    //    m_staticline_middle = nullptr;
+    //}
 
     if (m_export_to_file)
     {
@@ -463,8 +502,6 @@ ParamsPanel::~ParamsPanel()
     Tab* cur_tab = dynamic_cast<Tab*> (m_current_tab);
     if (cur_tab)
         cur_tab->clear_pages();
-
-    MarkdownTip::DetachFrom(m_page_view);
 }
 
 } // GUI

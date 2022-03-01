@@ -285,6 +285,8 @@ public:
     // 3. propagate changed configuration to the Plater when (m_update_cnt == 0) only
     int                 m_update_cnt = 0;
 
+	SwitchButton *		m_mode_status;
+
 public:
 	// BBS
 	Tab(ParamsPanel* parent, const wxString& title, Preset::Type type);

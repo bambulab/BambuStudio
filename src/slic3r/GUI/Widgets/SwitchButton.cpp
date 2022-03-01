@@ -1,40 +1,111 @@
 #include "SwitchButton.hpp"
+#include "Label.hpp"
 
 #include "../wxExtensions.hpp"
 
-SwitchButton::SwitchButton(wxWindow* parent, bool isBlue)
-	: wxBitmapToggleButton(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+#include <wx/dcgraph.h>
+
+SwitchButton::SwitchButton(wxWindow* parent, wxWindowID id)
+	: wxBitmapToggleButton(parent, id, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE | wxBU_EXACTFIT)
 	, m_on(this, "toggle_on", 16)
 	, m_off(this, "toggle_off", 16)
-	, m_on_monitor(this, "monitor_toggle_on", 16)
-	, m_off_monitor(this, "monitor_toggle_off", 16)
+	, text_color(std::pair{0x323A3D, (int) StateColor::Checked}, std::pair{0xF8F8F8, (int) StateColor::Normal})
+	, track_color(0xD9D9D9)
+	, thumb_color(std::pair{0xF8F8F8, (int) StateColor::Checked}, std::pair{0xD9D9D9, (int) StateColor::Normal})
 {
-	//SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
 	if (parent)
 		SetBackgroundColour(parent->GetBackgroundColour());
 	Bind(wxEVT_TOGGLEBUTTON, [this](auto& e) { update(); e.Skip(); });
-	SetSize(m_on.GetBmpSize());
-	color = isBlue;
-	update();
+	SetFont(Label::Body_12);
+	Rescale();
+}
+
+void SwitchButton::SetLabels(wxString const& lbl_on, wxString const& lbl_off)
+{
+	labels[0] = lbl_on;
+	labels[1] = lbl_off;
+	Rescale();
+}
+
+void SwitchButton::SetTextColor(StateColor const& color)
+{
+	text_color = color;
+}
+
+void SwitchButton::SetTrackColor(StateColor const& color)
+{
+	track_color = color;
+}
+
+void SwitchButton::SetThumbColor(StateColor const& color)
+{
+	thumb_color = color;
 }
 
 void SwitchButton::SetValue(bool value)
 {
+	if (value == GetValue())
+		return;
 	wxBitmapToggleButton::SetValue(value);
 	update();
 }
 
 void SwitchButton::Rescale()
 {
-	m_on.msw_rescale();
-	m_off.msw_rescale();
-	m_on_monitor.msw_rescale();
-	m_off_monitor.msw_rescale();
+	if (labels[0].IsEmpty()) {
+		m_on.msw_rescale();
+		m_off.msw_rescale();
+	}
+	else {
+		constexpr int BS = 1;
+		wxSize thumbSize;
+		wxSize trackSize;
+		wxClientDC dc(this);
+		wxSize textSize[2];
+		{
+			wxMemoryDC memdc(&dc);
+			textSize[0] = memdc.GetTextExtent(labels[0]);
+			textSize[1] = memdc.GetTextExtent(labels[1]);
+		}
+		{
+			thumbSize = textSize[0];
+			auto size = textSize[1];
+			if (size.x > thumbSize.x) thumbSize.x = size.x;
+			else size.x = thumbSize.x;
+			thumbSize.x += 12;
+			thumbSize.y += 2;
+			trackSize.x = thumbSize.x + size.x + 10;
+			trackSize.y = thumbSize.y + BS * 2;
+		}
+		for (int i = 0; i < 2; ++i) {
+			wxMemoryDC memdc(&dc);
+			wxBitmap bmp(trackSize.x, trackSize.y);
+			memdc.SelectObject(bmp);
+			memdc.SetBackground(wxBrush(GetBackgroundColour()));
+			memdc.Clear();
+			{
+				wxGCDC dc2(memdc);
+				auto state = i == 0 ? StateColor::Enabled : (StateColor::Checked | StateColor::Enabled);
+				dc2.SetBrush(wxBrush(track_color.colorForStates(state)));
+				dc2.SetPen(wxPen(track_color.colorForStates(state)));
+				dc2.DrawRoundedRectangle(wxRect({0, 0}, trackSize), trackSize.y / 2);
+				dc2.SetBrush(wxBrush(thumb_color.colorForStates(StateColor::Checked | StateColor::Enabled)));
+				dc2.SetPen(wxPen(thumb_color.colorForStates(StateColor::Checked | StateColor::Enabled)));
+				dc2.DrawRoundedRectangle(wxRect({ i == 0 ? BS : (trackSize.x - thumbSize.x - BS), BS}, thumbSize), thumbSize.y / 2);
+				dc2.SetTextForeground(text_color.colorForStates(state ^ StateColor::Checked));
+				dc2.DrawText(labels[0], {BS + (thumbSize.x - textSize[0].x) / 2, BS + (thumbSize.y - textSize[0].y) / 2});
+				dc2.SetTextForeground(text_color.colorForStates(state));
+				dc2.DrawText(labels[1], {trackSize.x - thumbSize.x - BS + (thumbSize.x - textSize[1].x) / 2, BS + (thumbSize.y - textSize[1].y) / 2});
+			}
+			memdc.SelectObject(wxNullBitmap);
+			(i == 0 ? m_off : m_on).bmp() = bmp;
+		}
+	}
 	SetSize(m_on.GetBmpSize());
 	update();
 }
 
 void SwitchButton::update()
 {
-	color ? SetBitmap((GetValue() ? m_on : m_off).bmp()): SetBitmap((GetValue() ? m_on_monitor : m_off_monitor).bmp());
+	SetBitmap((GetValue() ? m_on : m_off).bmp());
 }

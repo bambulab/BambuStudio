@@ -635,7 +635,7 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 
 	bSizer_control_title->Add(m_staticText_lamp, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxLEFT, 7);
 
-	m_bmToggleBtn_lamp = new SwitchButton(m_panel_control_title, false);
+	m_bmToggleBtn_lamp = new SwitchButton(m_panel_control_title);
 	m_bmToggleBtn_lamp->SetMinSize(wxSize(45, -1));
 	bSizer_control_title->Add(m_bmToggleBtn_lamp, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 28);
 
@@ -777,7 +777,7 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 
 	bSizer_nozzle_fan->Add(25, 0, 0, wxEXPAND, 0);
 
-	m_bmToggleBtn_nozzle_fan = new SwitchButton(this, false);
+	m_bmToggleBtn_nozzle_fan = new SwitchButton(this);
 	m_bmToggleBtn_nozzle_fan->SetMinSize(wxSize(45, -1));
 
 	bSizer_nozzle_fan->Add(m_bmToggleBtn_nozzle_fan, 0, wxALIGN_CENTER | wxALL, 5);
@@ -804,7 +804,7 @@ StatusBasePanel::StatusBasePanel(wxWindow* parent, wxWindowID id, const wxPoint&
 
 	bSizer_printing_fan->Add(25, 0, 0, wxEXPAND, 0);
 
-	m_bmToggleBtn_printing_fan = new SwitchButton(this, false);
+	m_bmToggleBtn_printing_fan = new SwitchButton(this);
 	m_bmToggleBtn_printing_fan->SetValue(true);
 	m_bmToggleBtn_printing_fan->SetMinSize(wxSize(45, -1));
 

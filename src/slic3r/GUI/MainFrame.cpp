@@ -354,6 +354,8 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             return;
         }*/
 
+        MarkdownTip::ExitTip();
+
         m_plater->reset();
         this->shutdown();
         // propagate event

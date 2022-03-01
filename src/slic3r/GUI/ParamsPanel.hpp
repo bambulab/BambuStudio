@@ -27,6 +27,8 @@
 
 #include "wxExtensions.hpp"
 
+class SwitchButton;
+
 namespace Slic3r {
 namespace GUI {
 
@@ -38,8 +40,8 @@ namespace GUI {
 ///////////////////////////////////////////////////////////////////////////////
 class ParamsPanel : public wxPanel
 {
-#ifdef __WXOSX__
-    wxPanel*            m_tmp_panel;
+#if __WXOSX__
+    wxWindow*            m_tmp_panel;
     int                 m_size_move = -1;
 #endif // __WXOSX__
 
@@ -55,31 +57,32 @@ class ParamsPanel : public wxPanel
         // // BBS: new layout
         wxPanel* m_mode_panel{ nullptr };
         wxStaticText* m_mode_text{ nullptr };
-        wxBitmapToggleButton* m_mode_status { nullptr };
+        SwitchButton* m_mode_status { nullptr };
         //wxBitmapButton* m_search_button { nullptr };
         wxStaticLine* m_staticline_print { nullptr };
-        wxBoxSizer* m_print_sizer { nullptr };
+        //wxBoxSizer* m_print_sizer { nullptr };
         wxPanel* m_tab_print { nullptr };
         wxPanel* m_tab_print_object { nullptr };
         wxStaticLine* m_staticline_print_object { nullptr };
         wxPanel* m_tab_print_part { nullptr };
         wxStaticLine* m_staticline_print_part { nullptr };
         wxStaticLine* m_staticline_filament { nullptr };
-        wxBoxSizer* m_filament_sizer { nullptr };
+        //wxBoxSizer* m_filament_sizer { nullptr };
         wxPanel* m_tab_filament { nullptr };
         wxStaticLine* m_staticline_printer { nullptr };
-        wxBoxSizer* m_printer_sizer { nullptr };
+        //wxBoxSizer* m_printer_sizer { nullptr };
         wxPanel* m_tab_printer { nullptr };
-        wxStaticLine* m_staticline_buttons { nullptr };
+        //wxStaticLine* m_staticline_buttons { nullptr };
         // BBS: new layout
         wxBoxSizer* m_button_sizer { nullptr };
         wxWindow* m_export_to_file { nullptr };
         wxWindow* m_import_from_file { nullptr };
-        wxStaticLine* m_staticline_middle{ nullptr };
-        wxBoxSizer* m_right_sizer { nullptr };
+        //wxStaticLine* m_staticline_middle{ nullptr };
+        //wxBoxSizer* m_right_sizer { nullptr };
         wxScrolledWindow* m_page_view { nullptr };
         wxBoxSizer* m_page_sizer { nullptr };
 
+        ScalableButton*		m_setting_btn { nullptr };
         ScalableButton*		m_search_btn { nullptr };
         ScalableButton*		m_compare_btn { nullptr };
 
@@ -103,6 +106,8 @@ class ParamsPanel : public wxPanel
         bool is_active_and_shown_tab(wxPanel*tab);
         void update_mode();
         void msw_rescale();
+
+        wxPanel* get_mode_panel() { return m_mode_panel; }
 
         wxPanel* filament_panel() { return m_tab_filament; }
 

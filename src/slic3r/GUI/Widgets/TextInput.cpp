@@ -231,7 +231,7 @@ void TextInput::render(wxDC& dc)
 
 void TextInput::messureSize()
 {
-    wxSize size     = GetSize();
+    wxSize size = GetSize();
     wxSize textSize = text_ctrl->GetSize();
     wxClientDC dc(this);
     labelSize  = dc.GetMultiLineTextExtent(wxWindow::GetLabel());
@@ -242,8 +242,10 @@ void TextInput::messureSize()
     } else if (size.y > h) {
         textSize.y = size.y * 14 / 24;
     }
+    wxSize minSize = size;
+    minSize.x = GetMinWidth();
+    SetMinSize(minSize);
     SetSize(size);
-    SetMinSize(size);
 }
 
 void TextInput::mouseEnterWindow(wxMouseEvent& event)
