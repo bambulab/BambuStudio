@@ -35,6 +35,9 @@
 // Enable rendering markers for options in preview as fixed screen size points
 #define ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS 1
 
+// Enable style editor in develop mode
+#define ENABLE_IMGUI_STYLE_EDITOR	1
+
 
 //====================
 // 2.4.0.beta1 techs

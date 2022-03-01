@@ -39,6 +39,14 @@ public:
 
 class Bed3D
 {
+public:
+    static std::array<float, 4> AXIS_X_COLOR;
+    static std::array<float, 4> AXIS_Y_COLOR;
+    static std::array<float, 4> AXIS_Z_COLOR;
+
+    static void update_render_colors();
+    static void load_render_colors();
+
     class Axes
     {
     public:

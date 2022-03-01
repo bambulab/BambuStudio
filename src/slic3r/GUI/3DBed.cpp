@@ -10,6 +10,7 @@
 #include "libslic3r/PresetBundle.hpp"
 
 #include "GUI_App.hpp"
+#include "GUI_Colors.hpp"
 #include "GLCanvas3D.hpp"
 
 #include <GL/glew.h>
@@ -100,6 +101,24 @@ const float Bed3D::Axes::DefaultStemLength = 25.0f;
 const float Bed3D::Axes::DefaultTipRadius = 2.5f * Bed3D::Axes::DefaultStemRadius;
 const float Bed3D::Axes::DefaultTipLength = 5.0f;
 
+std::array<float, 4> Bed3D::AXIS_X_COLOR = { 0.75f, 0.0f, 0.0f, 1.0f };
+std::array<float, 4> Bed3D::AXIS_Y_COLOR = { 0.0f, 0.75f, 0.0f, 1.0f };
+std::array<float, 4> Bed3D::AXIS_Z_COLOR = { 0.0f, 0.0f, 0.75f, 1.0f };
+
+void Bed3D::update_render_colors()
+{
+    Bed3D::AXIS_X_COLOR = GLColor(RenderColor::colors[RenderCol_Axis_X]);
+    Bed3D::AXIS_Y_COLOR = GLColor(RenderColor::colors[RenderCol_Axis_Y]);
+    Bed3D::AXIS_Z_COLOR = GLColor(RenderColor::colors[RenderCol_Axis_Z]);
+}
+
+void Bed3D::load_render_colors()
+{
+    RenderColor::colors[RenderCol_Axis_X] = IMColor(Bed3D::AXIS_X_COLOR);
+    RenderColor::colors[RenderCol_Axis_Y] = IMColor(Bed3D::AXIS_Y_COLOR);
+    RenderColor::colors[RenderCol_Axis_Z] = IMColor(Bed3D::AXIS_Z_COLOR);
+}
+
 void Bed3D::Axes::render() const
 {
     auto render_axis = [this](const Transform3f& transform) {
@@ -122,15 +141,15 @@ void Bed3D::Axes::render() const
     shader->set_uniform("emission_factor", 0.0f);
 
     // x axis
-    const_cast<GLModel*>(&m_arrow)->set_color(-1, { 0.75f, 0.0f, 0.0f, 1.0f });
+    const_cast<GLModel*>(&m_arrow)->set_color(-1, AXIS_X_COLOR);
     render_axis(Geometry::assemble_transform(m_origin, { 0.0, 0.5 * M_PI, 0.0 }).cast<float>());
 
     // y axis
-    const_cast<GLModel*>(&m_arrow)->set_color(-1, { 0.0f, 0.75f, 0.0f, 1.0f });
+    const_cast<GLModel*>(&m_arrow)->set_color(-1, AXIS_Y_COLOR);
     render_axis(Geometry::assemble_transform(m_origin, { -0.5 * M_PI, 0.0, 0.0 }).cast<float>());
 
     // z axis
-    const_cast<GLModel*>(&m_arrow)->set_color(-1, { 0.0f, 0.0f, 0.75f, 1.0f });
+    const_cast<GLModel*>(&m_arrow)->set_color(-1, AXIS_Z_COLOR);
     render_axis(Geometry::assemble_transform(m_origin).cast<float>());
 
     shader->stop_using();

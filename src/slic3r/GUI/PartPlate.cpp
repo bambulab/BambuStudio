@@ -34,6 +34,7 @@
 #include "3DBed.hpp"
 #include "PartPlate.hpp"
 #include "Camera.hpp"
+#include "GUI_Colors.hpp"
 #include "GUI_ObjectList.hpp"
 #include "Tab.hpp"
 #include <imgui/imgui_internal.h>
@@ -51,6 +52,32 @@ namespace Slic3r {
 namespace GUI {
 
 class Bed3D;
+
+std::array<float, 4> PartPlate::SELECT_COLOR		= { 0.765f, 0.765f, 0.765f, 1.0f };
+std::array<float, 4> PartPlate::UNSELECT_COLOR		= { 0.765f, 0.765f, 0.765f, 1.0f };
+std::array<float, 4> PartPlate::DEFAULT_COLOR		= { 0.5f, 0.5f, 0.5f, 1.0f };
+std::array<float, 4> PartPlate::LINE_TOP_COLOR		= { 0.6f, 0.6f, 0.6f, 0.6f };
+std::array<float, 4> PartPlate::LINE_BOTTOM_COLOR	= { 1.0f, 1.0f, 1.0f, 1.0f };
+
+
+void PartPlate::update_render_colors()
+{
+	PartPlate::SELECT_COLOR			= GLColor(RenderColor::colors[RenderCol_Plate_Selected]);
+	PartPlate::UNSELECT_COLOR		= GLColor(RenderColor::colors[RenderCol_Plate_Unselected]);
+	PartPlate::DEFAULT_COLOR		= GLColor(RenderColor::colors[RenderCol_Plate_Default]);
+	PartPlate::LINE_TOP_COLOR		= GLColor(RenderColor::colors[RenderCol_Plate_Line_Top]);
+	PartPlate::LINE_BOTTOM_COLOR	= GLColor(RenderColor::colors[RenderCol_Plate_Line_Bottom]);
+}
+
+void PartPlate::load_render_colors()
+{
+	RenderColor::colors[RenderCol_Plate_Selected] = IMColor(SELECT_COLOR);
+	RenderColor::colors[RenderCol_Plate_Unselected] = IMColor(UNSELECT_COLOR);
+	RenderColor::colors[RenderCol_Plate_Default] = IMColor(DEFAULT_COLOR);
+	RenderColor::colors[RenderCol_Plate_Line_Top] = IMColor(LINE_TOP_COLOR);
+	RenderColor::colors[RenderCol_Plate_Line_Bottom] = IMColor(LINE_BOTTOM_COLOR);
+}
+
 
 PartPlate::PartPlate()
 	: ObjectBase(-1), m_plater(nullptr), m_model(nullptr), m_quadric(nullptr)
@@ -201,14 +228,14 @@ void PartPlate::render_background(bool force_default_color) const {
 	
 	if (!force_default_color) {
 		if (m_selected) {
-			glsafe(::glColor4fv(m_select_color.data()));
+			glsafe(::glColor4fv(PartPlate::SELECT_COLOR.data()));
 		}
 		else {
-			glsafe(::glColor4fv(m_unselect_color.data()));
+			glsafe(::glColor4fv(PartPlate::UNSELECT_COLOR.data()));
 		}
 	}
 	else {
-		glsafe(::glColor4fv(m_default_color.data()));
+		glsafe(::glColor4fv(PartPlate::DEFAULT_COLOR.data()));
 	}
 	glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
 	glsafe(::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_vertices_data()));
@@ -260,9 +287,9 @@ void PartPlate::render_grid(bool bottom) const {
 	// draw grid
 	glsafe(::glLineWidth(1.5f * m_scale_factor));
 	if (bottom)
-		glsafe(::glColor4f(1.0f, 1.0f, 1.0f, 1.0f));
+		glsafe(::glColor4fv(LINE_BOTTOM_COLOR.data()));
 	else
-		glsafe(::glColor4f(0.6f, 0.6f, 0.6f, 0.6f));
+		glsafe(::glColor4fv(LINE_TOP_COLOR.data()));
 	glsafe(::glVertexPointer(3, GL_FLOAT, m_gridlines.get_vertex_data_size(), (GLvoid*)m_gridlines.get_vertices_data()));
 	glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_gridlines.get_vertices_count()));
 }

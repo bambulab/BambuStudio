@@ -2162,7 +2162,10 @@ void Selection::render_bounding_box(const BoundingBoxf3& box, float* color) cons
 
 static std::array<float, 4> get_color(Axis axis)
 {
-    return { AXES_COLOR[axis][0], AXES_COLOR[axis][1], AXES_COLOR[axis][2], AXES_COLOR[axis][3] };
+    return { GLGizmoBase::AXES_COLOR[axis][0],
+            GLGizmoBase::AXES_COLOR[axis][1],
+            GLGizmoBase::AXES_COLOR[axis][2],
+            GLGizmoBase::AXES_COLOR[axis][3] };
 };
 
 void Selection::render_sidebar_position_hints(const std::string& sidebar_field) const

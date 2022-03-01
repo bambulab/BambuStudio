@@ -31,6 +31,7 @@
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
+#include "GUI_Colors.hpp"
 #include "Mouse3DController.hpp"
 #include "I18N.hpp"
 #include "NotificationManager.hpp"
@@ -72,10 +73,25 @@
 
 static constexpr const float TRACKBALLSIZE = 0.8f;
 
-static constexpr const float DEFAULT_BG_DARK_COLOR[3] = { 0.478f, 0.478f, 0.478f };
-static constexpr const float DEFAULT_BG_LIGHT_COLOR[3] = { 0.906f, 0.906f, 0.906f };    // #E8E8E8
-static constexpr const float ERROR_BG_DARK_COLOR[3] = { 0.478f, 0.192f, 0.039f };
-static constexpr const float ERROR_BG_LIGHT_COLOR[3] = { 0.753f, 0.192f, 0.039f };
+
+float GLCanvas3D::DEFAULT_BG_LIGHT_COLOR[3] = { 0.906f, 0.906f, 0.906f };
+float GLCanvas3D::ERROR_BG_LIGHT_COLOR[3] = { 0.753f, 0.192f, 0.039f };
+
+void GLCanvas3D::update_render_colors()
+{
+    GLCanvas3D::DEFAULT_BG_LIGHT_COLOR[0] = RenderColor::colors[RenderCol_3D_Background].x;
+    GLCanvas3D::DEFAULT_BG_LIGHT_COLOR[1] = RenderColor::colors[RenderCol_3D_Background].y;
+    GLCanvas3D::DEFAULT_BG_LIGHT_COLOR[2] = RenderColor::colors[RenderCol_3D_Background].z;
+}
+
+void GLCanvas3D::load_render_colors()
+{
+    RenderColor::colors[RenderCol_3D_Background] = ImVec4(GLCanvas3D::DEFAULT_BG_LIGHT_COLOR[0],
+                                                          GLCanvas3D::DEFAULT_BG_LIGHT_COLOR[1],
+                                                          GLCanvas3D::DEFAULT_BG_LIGHT_COLOR[2],
+                                                          1.0f);
+}
+
 //static constexpr const float AXES_COLOR[3][3] = { { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } };
 
 // Number of floats
@@ -1108,6 +1124,16 @@ bool GLCanvas3D::init()
     if (m_selection.is_enabled() && !m_selection.init())
         return false;
 
+
+#if ENABLE_IMGUI_STYLE_EDITOR
+    //BBS load render color for style editor
+    GLVolume::load_render_colors();
+    PartPlate::load_render_colors();
+    GLGizmoBase::load_render_colors();
+    GLCanvas3D::load_render_colors();
+    Bed3D::load_render_colors();
+#endif
+
     m_initialized = true;
 
     return true;
@@ -1743,6 +1769,12 @@ void GLCanvas3D::render()
 #if ENABLE_CAMERA_STATISTICS
     camera.debug_render();
 #endif // ENABLE_CAMERA_STATISTICS
+
+#if ENABLE_IMGUI_STYLE_EDITOR
+    if (wxGetApp().get_mode() == ConfigOptionMode::comDevelop)
+        _render_style_editor();
+#endif
+        
 
     std::string tooltip;
 
@@ -6922,6 +6954,99 @@ void GLCanvas3D::_render_overlays()
     m_labels.render(sorted_instances);
 
     glsafe(::glPopMatrix());
+}
+
+void GLCanvas3D::_render_style_editor()
+{
+    bool show_style_editor = true;
+    ImGui::Begin("ImGui Style Editor", &show_style_editor);
+    // You can pass in a reference ImGuiStyle structure to compare to, revert to and save to
+    // (without a reference style pointer, we will use one compared locally as a reference)
+
+    ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.50f);
+    ImGui::ShowFontSelector("Fonts##Selector");
+    ImGui::Separator();
+
+    if (ImGui::BeginTabBar("##tabs", ImGuiTabBarFlags_None))
+    {
+        if (ImGui::BeginTabItem("Colors"))
+        {
+            static int output_dest = 0;
+            static bool output_only_modified = false;
+            if (ImGui::Button("Export"))
+            {
+                if (output_dest == 0)
+                    ImGui::LogToClipboard();
+                else
+                    ImGui::LogToTTY();
+
+                ImGui::LogText("RenderColors:" IM_NEWLINE);
+                for (int i = 0; i < RenderCol_Count; i++)
+                {
+                    const ImVec4& col = RenderColor::colors[i];
+                    const char* name = GetRenderColName(i);
+                    if (!output_only_modified || memcmp(&col, &RenderColor::colors[i], sizeof(ImVec4)) != 0)
+                        ImGui::LogText("RenderColor::colors[%s]%*s= ImVec4(%.2ff, %.2ff, %.2ff, %.2ff);" IM_NEWLINE,
+                            name, 23 - (int)strlen(name), "", col.x, col.y, col.z, col.w);
+                }
+                ImGui::LogFinish();
+            }
+            ImGui::SameLine(); ImGui::SetNextItemWidth(120); ImGui::Combo("##output_type", &output_dest, "To Clipboard\0To TTY\0");
+            ImGui::SameLine(); ImGui::Checkbox("Only Modified Colors", &output_only_modified);
+
+            static ImGuiTextFilter filter;
+            filter.Draw("Filter colors", ImGui::GetFontSize() * 16);
+
+            static ImGuiColorEditFlags alpha_flags = 0;
+            if (ImGui::RadioButton("Opaque", alpha_flags == ImGuiColorEditFlags_None)) { alpha_flags = ImGuiColorEditFlags_None; } ImGui::SameLine();
+            if (ImGui::RadioButton("Alpha", alpha_flags == ImGuiColorEditFlags_AlphaPreview)) { alpha_flags = ImGuiColorEditFlags_AlphaPreview; } ImGui::SameLine();
+            if (ImGui::RadioButton("Both", alpha_flags == ImGuiColorEditFlags_AlphaPreviewHalf)) { alpha_flags = ImGuiColorEditFlags_AlphaPreviewHalf; } ImGui::SameLine();
+            ImGui::TextDisabled("(?)");
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::BeginTooltip();
+                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+                ImGui::TextUnformatted("In the color list:\n"
+                "Left-click on color square to open color picker,\n"
+                    "Right-click to open edit options menu.");
+                ImGui::PopTextWrapPos();
+                ImGui::EndTooltip();
+            }
+            ImGui::BeginChild("##colors", ImVec2(0, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar | ImGuiWindowFlags_NavFlattened);
+            ImGui::PushItemWidth(-160);
+            for (int i = 0; i < RenderCol_Count; i++)
+            {
+                const char* name = GetRenderColName(i);
+                if (!filter.PassFilter(name))
+                    continue;
+                ImGui::PushID(i);
+                ImGui::ColorEdit4("##color", (float*)&RenderColor::colors[i], ImGuiColorEditFlags_AlphaBar | alpha_flags);
+                // Tips: in a real user application, you may want to merge and use an icon font into the main font,
+                // so instead of "Save"/"Revert" you'd use icons!
+                // Read the FAQ and docs/FONTS.md about using icon fonts. It's really easy and super convenient!
+                ImGui::SameLine(0.0f, 3.0f);
+                if (ImGui::Button("Set")) {
+                    GLVolume::update_render_colors();
+                    PartPlate::update_render_colors();
+                    GLGizmoBase::update_render_colors();
+                    GLCanvas3D::update_render_colors();
+                    Bed3D::update_render_colors();
+                }
+                ImGui::SameLine(0.0f, 3.0f);
+                ImGui::TextUnformatted(name);
+                ImGui::PopID();
+            }
+            ImGui::PopItemWidth();
+            ImGui::EndChild();
+
+            ImGui::EndTabItem();
+        }
+
+        ImGui::EndTabBar();
+    }
+
+    ImGui::PopItemWidth();
+    ImGui::End();
 }
 
 void GLCanvas3D::_render_volumes_for_picking() const

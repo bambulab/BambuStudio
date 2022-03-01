@@ -75,9 +75,9 @@ void GLGizmoFlatten::on_render()
             update_planes();
         for (int i = 0; i < (int)m_planes.size(); ++i) {
             if (i == m_hover_id)
-                glsafe(::glColor4f(0.9f, 0.9f, 0.9f, 0.75f));
+                glsafe(::glColor4fv(GLGizmoBase::FLATTEN_HOVER_COLOR.data()));
             else
-                glsafe(::glColor4f(0.9f, 0.9f, 0.9f, 0.5f));
+                glsafe(::glColor4fv(GLGizmoBase::FLATTEN_COLOR.data()));
 
             if (m_planes[i].vbo.has_VBOs())
                 m_planes[i].vbo.render();

@@ -199,6 +199,13 @@ class GLCanvas3D
     static const double DefaultCameraZoomToBedMarginFactor;
     static const double DefaultCameraZoomToPlateMarginFactor;
 
+    
+    static float DEFAULT_BG_LIGHT_COLOR[3];
+    static float ERROR_BG_LIGHT_COLOR[3];
+
+    static void update_render_colors();
+    static void load_render_colors();
+
     class LayersEditing
     {
     public:
@@ -1061,6 +1068,7 @@ private:
 #endif // ENABLE_RENDER_SELECTION_CENTER
     void _check_and_update_toolbar_icon_scale();
     void _render_overlays();
+    void _render_style_editor();
     void _render_volumes_for_picking() const;
     void _render_current_gizmo() const;
     void _render_gizmos_overlay();

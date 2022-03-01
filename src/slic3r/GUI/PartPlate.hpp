@@ -120,9 +120,7 @@ class PartPlate : public ObjectBase
     GeometryBuffer m_plate_idx_icon;
     mutable unsigned int m_plate_idx_vbo_id{ 0 };
     GLTexture m_texture;
-    std::array<float, 4> m_select_color{ 0.367f, 0.367f, 0.367f, 1.0f };
-    std::array<float, 4> m_unselect_color{ 0.765f, 0.765f, 0.765f, 1.0f };
-    std::array<float, 4> m_default_color{ 0.5f, 0.5f, 0.5f, 1.0f };
+
     mutable float m_grabber_color[4];
     float m_scale_factor{ 1.0f };
     GLUquadricObject* m_quadric;
@@ -156,6 +154,15 @@ class PartPlate : public ObjectBase
 public:
     static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
     static const unsigned int GRABBER_COUNT = 4;
+
+    static std::array<float, 4> SELECT_COLOR;
+    static std::array<float, 4> UNSELECT_COLOR;
+    static std::array<float, 4> DEFAULT_COLOR;
+    static std::array<float, 4> LINE_BOTTOM_COLOR;
+    static std::array<float, 4> LINE_TOP_COLOR;
+
+    static void update_render_colors();
+    static void load_render_colors();
 
     PartPlate();
     PartPlate(PartPlateList *partplate_list, Vec3d origin, int width, int depth, int height, Plater* platerObj, Model* modelObj, bool printable=true, PrinterTechnology tech = ptFFF);

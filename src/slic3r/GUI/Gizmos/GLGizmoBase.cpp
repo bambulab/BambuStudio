@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/GUI_Colors.hpp"
 
 // TODO: Display tooltips quicker on Linux
 
@@ -13,6 +14,40 @@ namespace GUI {
 const float GLGizmoBase::Grabber::SizeFactor = 0.05f;
 const float GLGizmoBase::Grabber::MinHalfSize = 1.5f;
 const float GLGizmoBase::Grabber::DraggingScaleFactor = 1.25f;
+
+std::array<float, 4> GLGizmoBase::DEFAULT_BASE_COLOR = { 0.625f, 0.625f, 0.625f, 1.0f };
+std::array<float, 4> GLGizmoBase::DEFAULT_DRAG_COLOR = { 1.0f, 1.0f, 1.0f, 1.0f };
+std::array<float, 4> GLGizmoBase::DEFAULT_HIGHLIGHT_COLOR = { 1.0f, 0.38f, 0.0f, 1.0f };
+std::array<std::array<float, 4>, 3> GLGizmoBase::AXES_COLOR = { {
+                                                                { 0.75f, 0.0f, 0.0f, 1.0f },
+                                                                { 0.0f, 0.75f, 0.0f, 1.0f },
+                                                                { 0.0f, 0.0f, 0.75f, 1.0f }
+                                                                }};
+
+std::array<float, 4> GLGizmoBase::CONSTRAINED_COLOR = { 0.5f, 0.5f, 0.5f, 1.0f };
+std::array<float, 4> GLGizmoBase::FLATTEN_COLOR = { 0.9f, 0.9f, 0.9f, 0.5f };
+std::array<float, 4> GLGizmoBase::FLATTEN_HOVER_COLOR = { 0.9f, 0.9f, 0.9f, 0.75f };
+
+void GLGizmoBase::update_render_colors()
+{
+    GLGizmoBase::AXES_COLOR = { {
+                                GLColor(RenderColor::colors[RenderCol_Grabber_X]),
+                                GLColor(RenderColor::colors[RenderCol_Grabber_Y]),
+                                GLColor(RenderColor::colors[RenderCol_Grabber_Z])
+                                } };
+
+    GLGizmoBase::FLATTEN_COLOR = GLColor(RenderColor::colors[RenderCol_Flatten_Plane]);
+    GLGizmoBase::FLATTEN_HOVER_COLOR = GLColor(RenderColor::colors[RenderCol_Flatten_Plane_Hover]);
+}
+
+void GLGizmoBase::load_render_colors()
+{
+    RenderColor::colors[RenderCol_Grabber_X] = IMColor(GLGizmoBase::AXES_COLOR[0]);
+    RenderColor::colors[RenderCol_Grabber_Y] = IMColor(GLGizmoBase::AXES_COLOR[1]);
+    RenderColor::colors[RenderCol_Grabber_Z] = IMColor(GLGizmoBase::AXES_COLOR[2]);
+    RenderColor::colors[RenderCol_Flatten_Plane] = IMColor(GLGizmoBase::FLATTEN_COLOR);
+    RenderColor::colors[RenderCol_Flatten_Plane_Hover] = IMColor(GLGizmoBase::FLATTEN_HOVER_COLOR);
+}
 
 GLGizmoBase::Grabber::Grabber()
     : center(Vec3d::Zero())

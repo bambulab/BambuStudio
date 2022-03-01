@@ -18,15 +18,7 @@ class ModelObject;
 
 namespace GUI {
 
-static const std::array<float, 4> DEFAULT_BASE_COLOR = { 0.625f, 0.625f, 0.625f, 1.0f };
-static const std::array<float, 4> DEFAULT_DRAG_COLOR = { 1.0f, 1.0f, 1.0f, 1.0f };
-static const std::array<float, 4> DEFAULT_HIGHLIGHT_COLOR = { 1.0f, 0.38f, 0.0f, 1.0f };
-static const std::array<std::array<float, 4>, 3> AXES_COLOR = {{
-                                                                { 0.75f, 0.0f, 0.0f, 1.0f },
-                                                                { 0.0f, 0.75f, 0.0f, 1.0f },
-                                                                { 0.0f, 0.0f, 0.75f, 1.0f }
-                                                              }};
-static const std::array<float, 4> CONSTRAINED_COLOR = { 0.5f, 0.5f, 0.5f, 1.0f };
+
 
 class ImGuiWrapper;
 class GLCanvas3D;
@@ -40,6 +32,18 @@ public:
     // Starting value for ids to avoid clashing with ids used by GLVolumes
     // (254 is choosen to leave some space for forward compatibility)
     static const unsigned int BASE_ID = 255 * 255 * 254;
+
+    //BBS colors
+    static std::array<float, 4> DEFAULT_BASE_COLOR;
+    static std::array<float, 4> DEFAULT_DRAG_COLOR;
+    static std::array<float, 4> DEFAULT_HIGHLIGHT_COLOR;
+    static std::array<std::array<float, 4>, 3> AXES_COLOR;
+    static std::array<float, 4> CONSTRAINED_COLOR;
+    static std::array<float, 4> FLATTEN_COLOR;
+    static std::array<float, 4> FLATTEN_HOVER_COLOR;
+
+    static void update_render_colors();
+    static void load_render_colors();
 
 protected:
     struct Grabber
