@@ -7137,7 +7137,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
     confirm->SetBackgroundColor(btn_bg_green);
     confirm->SetBorderColor(wxColour(0, 174, 66));
     confirm->SetTextColor(wxColour(255, 255, 255));
-    confirm->SetMinSize(wxSize(48, 24));
+    confirm->SetMinSize(wxSize(60, 24));
     confirm->SetCornerRadius(12);
     confirm->Bind(wxEVT_LEFT_DOWN, &ProjectDropDialog::on_select_ok, this);
     m_bSizer_control->Add(confirm, 0, wxTop, 5);
@@ -7147,7 +7147,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
     m_bSizer_control->Add(block_middle, 0, wxRIGHT, 10);
 
     auto cancel = new Button(this, _L("Cancel"));
-    cancel->SetMinSize(wxSize(48, 24));
+    cancel->SetMinSize(wxSize(60, 24));
     cancel->SetCornerRadius(12);
     cancel->Bind(wxEVT_LEFT_DOWN, &ProjectDropDialog::on_select_cancel, this);
     m_bSizer_control->Add(cancel, 0, wxTop, 5);

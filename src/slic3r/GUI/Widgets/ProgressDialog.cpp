@@ -221,8 +221,16 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
     auto m_block_gauge = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxSize(0, 0));
     sizerTop->Add(m_block_gauge, 0, wxEXPAND | wxTOP, 2);
 
+
     m_gauge = new wxGauge(this, wxID_ANY, maximum, wxDefaultPosition, wxSize(def_size_width, 6), gauge_style);
-    sizerTop->Add(m_gauge, 0, wxLEFT | wxRIGHT | wxBottom | wxEXPAND, 2 * LAYOUT_MARGIN);
+    
+    auto block_left = new wxWindow(m_gauge, -1, wxPoint(0, 0), wxSize(2, m_gauge->GetSize().GetHeight()));
+    block_left->SetBackgroundColour(wxColor(255, 255, 255));
+
+    auto block_right = new wxWindow(m_gauge, -1, wxPoint(m_gauge->GetSize().GetWidth() - 2, 0), wxSize(2, m_gauge->GetSize().GetHeight()));
+    block_right->SetBackgroundColour(wxColor(255, 255, 255));
+
+    sizerTop->Add(m_gauge, 0, wxLEFT | wxRIGHT | wxBottom, 2 * LAYOUT_MARGIN);
     m_gauge->SetValue(0);
 
     m_elapsed = m_estimated = m_remaining = NULL;
@@ -296,7 +304,7 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
         m_btnAbort->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ProgressDialog::OnCancel, this);*/
 
         m_button_calcel = new Button(m_button_sizer, _T("Cancel"));
-        m_button_calcel->SetSize(54, 26);
+        m_button_calcel->SetSize(60, 24);
         m_button_calcel->SetPosition(wxPoint(m_button_sizer->GetSize().GetWidth() - m_button_calcel->GetSize().GetWidth(), 0));
 
         m_button_calcel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {
@@ -432,7 +440,6 @@ bool ProgressDialog::Update(int value, const wxString &newmsg, bool *skip)
 #endif // __WXMSW__
 
     wxASSERT_MSG(value <= m_maximum, wxT("invalid progress value"));
-
     m_gauge->SetValue(value);
 
     UpdateMessage(newmsg);
