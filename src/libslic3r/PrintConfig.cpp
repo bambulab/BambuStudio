@@ -192,9 +192,9 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ForwardCompatibilitySubstitutionRule)
 
 // BBS
 static const t_config_enum_values s_keys_map_BedType = {
-    { "Cool Plate",  btPC },
-    { "Functional Plate",  btEP  },
-    { "HT Plate", btPEI  }
+    { "Cool Plate",         btPC },
+    { "Engineering Plate",  btEP  },
+    { "High Temp Plate",    btPEI  }
 };
 
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
@@ -419,11 +419,11 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->enum_keys_map = &s_keys_map_BedType;
     def->enum_values.emplace_back("Cool Plate");
-    def->enum_values.emplace_back("Functional Plate");
-    def->enum_values.emplace_back("HT Plate");
+    def->enum_values.emplace_back("Engineering Plate");
+    def->enum_values.emplace_back("High Temp Plate");
     def->enum_labels.emplace_back(L("Cool Plate"));
-    def->enum_labels.emplace_back(L("Functional Plate"));
-    def->enum_labels.emplace_back(L("HT Plate"));
+    def->enum_labels.emplace_back(L("Engineering Plate"));
+    def->enum_labels.emplace_back(L("High Temp Plate"));
     def->set_default_value(new ConfigOptionEnumsGeneric{ (int)btPC });
 
     def = this->add("before_layer_change_gcode", coString);
