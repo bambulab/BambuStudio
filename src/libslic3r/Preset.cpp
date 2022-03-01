@@ -578,9 +578,9 @@ static std::vector<std::string> s_Preset_print_options {
     "layer_height", "initial_layer_print_height", "wall_loops", "spiral_mode", "slice_closing_radius", "slicing_mode",
     "top_shell_layers", "top_shell_thickness", "bottom_shell_layers", "bottom_shell_thickness",
     "extra_perimeters", "ensure_vertical_shell_thickness", "reduce_crossing_wall", "detect_thin_wall", "detect_overhang_wall",
-    "seam_position", "external_perimeters_first", "sparse_infill_density", "sparse_infill_pattern", "top_surface_pattern", "bottom_surface_pattern",
+    "seam_position", "wall_infill_order", "sparse_infill_density", "sparse_infill_pattern", "top_surface_pattern", "bottom_surface_pattern",
     "infill_only_where_needed", "infill_angle",
-    "minimum_sparse_infill_area", "reduce_infill_retraction", "infill_first",
+    "minimum_sparse_infill_area", "reduce_infill_retraction",
     "ironing_type", "ironing_flow", "ironing_speed", "ironing_spacing",
     "max_print_speed", "max_volumetric_speed", "max_travel_detour_distance",
     "fuzzy_skin", "fuzzy_skin_thickness", "fuzzy_skin_point_distance",
@@ -597,7 +597,7 @@ static std::vector<std::string> s_Preset_print_options {
     "independent_support_layer_height", "support_material_angle", "support_interface_top_layers", "support_interface_bottom_layers",
     "support_material_pattern", "support_interface_spacing", "support_material_interface_contact_loops", 
     "support_top_z_distance", "support_bottom_z_distance",
-    "support_on_build_plate_only", "bridge_no_support", "thick_bridges", "complete_objects", "extruder_clearance_radius",
+    "support_on_build_plate_only", "bridge_no_support", "thick_bridges", "print_sequence", "extruder_clearance_radius",
     "gcode_label_objects", "filename_format", "post_process", "perimeter_extruder",
     "infill_extruder", "solid_infill_extruder", "support_material_extruder", "support_material_interface_extruder",
     "ooze_prevention", "standby_temperature_delta", "interface_shells", "line_width", "initial_layer_line_width",
@@ -620,16 +620,16 @@ static std::vector<std::string> s_Preset_filament_options {
     "filament_colour", "filament_diameter", "filament_type", "filament_soluble", "filament_max_volumetric_speed",
     "extrusion_multiplier", "filament_density", "filament_cost", "filament_load_time",
     "filament_unload_time", "filament_minimal_purge_on_wipe_tower",
-    "temperature", "nozzle_temperature_initial_layer",
+    "nozzle_temperature", "nozzle_temperature_initial_layer",
     // BBS
     "bed_temperature", "bed_temperature_initial_layer", "bed_type",
     //BBS:temperature_vitrification
-    "temperature_vitrification", "fan_always_on", "cooling", "fan_min_speed",
-    "fan_max_speed", "bridge_fan_speed", "close_fan_the_first_x_layers", "full_fan_speed_layer", "fan_below_layer_time", "slow_down_below_layer_time", "min_print_speed",
+    "temperature_vitrification", "reduce_fan_stop_start_freq", "cooling", "fan_min_speed",
+    "fan_max_speed", "bridge_fan_speed", "close_fan_the_first_x_layers", "full_fan_speed_layer", "fan_cooling_layer_time", "slow_down_layer_time", "slow_down_min_speed",
     "filament_start_gcode", "filament_end_gcode",
     // Retract overrides
-    "filament_retract_length", "filament_retract_lift", "filament_retract_speed", "filament_deretract_speed", "filament_retract_restart_extra", "filament_retract_before_travel",
-    "filament_retract_layer_change", "filament_wipe", "filament_retract_before_wipe",
+    "filament_retraction_length", "filament_z_hop", "filament_retraction_speed", "filament_deretraction_speed", "filament_retract_restart_extra", "filament_retraction_minimum_travel",
+    "filament_retract_when_changing_layer", "filament_wipe", "filament_retract_before_wipe",
     // Profile compatibility
     "filament_vendor", "compatible_prints", "compatible_prints_condition", "compatible_printers", "compatible_printers_condition", "inherits",
     //BBS

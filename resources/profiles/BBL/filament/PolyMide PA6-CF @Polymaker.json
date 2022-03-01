@@ -11,7 +11,7 @@
     "nozzle_temperature_initial_layer": [
         "290"
     ],
-    "temperature": [
+    "nozzle_temperature": [
         "280"
     ],
     "bed_temperature": [

@@ -604,8 +604,8 @@ private:
         if (ptech == ptSLA) {
             ptr = &self->m_arrange_settings_sla;
         } else if (ptech == ptFFF) {
-            auto co_opt = self->m_config->template option<ConfigOptionBool>("complete_objects");
-            if (co_opt && co_opt->value)
+            auto co_opt = self->m_config->template option<ConfigOptionEnum<PrintSequence>>("print_sequence");
+            if (co_opt && (co_opt->value == PrintSequence::ByObject))
                 ptr = &self->m_arrange_settings_fff_seq_print;
             else
                 ptr = &self->m_arrange_settings_fff;

@@ -10,7 +10,7 @@
     "brim_width": "0",
     "clip_multipart_objects": "1",
     "compatible_printers": [],
-    "complete_objects": "0",
+    "print_sequence": "by layer",
     "default_acceleration": "10000",
     "bridge_no_support": "1",
     "elefant_foot_compensation": "0.1",

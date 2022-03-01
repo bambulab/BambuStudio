@@ -10,7 +10,7 @@
     "bed_temperature": [
         "35,0,60"
     ],
-    "fan_below_layer_time": [
+    "fan_cooling_layer_time": [
         "100"
     ],
     "filament_colour": [
@@ -34,7 +34,7 @@
     "nozzle_temperature_initial_layer": [
         "220"
     ],
-    "fan_always_on": [
+    "reduce_fan_stop_start_freq": [
         "1"
     ],
     "cooling": [
@@ -52,16 +52,16 @@
     "close_fan_the_first_x_layers": [
         "1"
     ],
-    "temperature": [
+    "nozzle_temperature": [
         "220"
     ],
     "temperature_vitrification": [
         "60"
     ],
-    "min_print_speed": [
+    "slow_down_min_speed": [
         "20"
     ],
-    "slow_down_below_layer_time": [
+    "slow_down_layer_time": [
         "2"
     ],
     "additional_cooling_fan_speed": [

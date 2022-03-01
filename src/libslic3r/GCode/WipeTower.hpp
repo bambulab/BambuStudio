@@ -214,7 +214,7 @@ public:
     struct FilamentParameters {
         std::string 	    material = "PLA";
         bool                is_soluble = false;
-        int  			    temperature = 0;
+        int  			    nozzle_temperature = 0;
         int  			    nozzle_temperature_initial_layer = 0;
         // BBS: remove useless config
         //float               loading_speed = 0.f;

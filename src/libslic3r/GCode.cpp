@@ -153,7 +153,7 @@ namespace Slic3r {
     {
         return (gcodegen.layer() != NULL && gcodegen.layer()->id() == 0)
             ? gcodegen.config().nozzle_temperature_initial_layer.get_at(gcodegen.writer().extruder()->id())
-            : gcodegen.config().temperature.get_at(gcodegen.writer().extruder()->id());
+            : gcodegen.config().nozzle_temperature.get_at(gcodegen.writer().extruder()->id());
     }
 
     std::string Wipe::wipe(GCode& gcodegen, bool toolchange)
@@ -167,14 +167,14 @@ namespace Slic3r {
         // get the retraction length
         double length = toolchange
             ? gcodegen.writer().extruder()->retract_length_toolchange()
-            : gcodegen.writer().extruder()->retract_length();
+            : gcodegen.writer().extruder()->retraction_length();
         // Shorten the retraction length by the amount already retracted before wipe.
         length *= (1. - gcodegen.writer().extruder()->retract_before_wipe());
 
         if (length > 0) {
             /*  Calculate how long we need to travel in order to consume the required
                 amount of retraction. In other words, how far do we move in XY at wipe_speed
-                for the time needed to consume retract_length at retract_speed?  */
+                for the time needed to consume retraction_length at retraction_speed?  */
             // BBS
             double wipe_dist = scale_(gcodegen.config().wipe_distance.get_at(gcodegen.writer().extruder()->id()));
 
@@ -322,12 +322,12 @@ namespace Slic3r {
                 GCodeWriter& gcode_writer = gcodegen.m_writer;
                 FullPrintConfig& full_config = gcodegen.m_config;
                 unsigned int fan_speed = gcode_writer.get_fan();
-                float old_retract_length = gcode_writer.extruder() != nullptr ? full_config.retract_length.get_at(previous_extruder_id) : 0;
-                float new_retract_length = full_config.retract_length.get_at(new_extruder_id);
+                float old_retract_length = gcode_writer.extruder() != nullptr ? full_config.retraction_length.get_at(previous_extruder_id) : 0;
+                float new_retract_length = full_config.retraction_length.get_at(new_extruder_id);
                 float old_retract_length_toolchange = gcode_writer.extruder() != nullptr ? full_config.retract_length_toolchange.get_at(previous_extruder_id) : 0;
                 float new_retract_length_toolchange = full_config.retract_length_toolchange.get_at(new_extruder_id);
-                int old_filament_temp = gcode_writer.extruder() != nullptr ? full_config.temperature.get_at(previous_extruder_id) : 210;
-                int new_filament_temp = full_config.temperature.get_at(new_extruder_id);
+                int old_filament_temp = gcode_writer.extruder() != nullptr ? full_config.nozzle_temperature.get_at(previous_extruder_id) : 210;
+                int new_filament_temp = full_config.nozzle_temperature.get_at(new_extruder_id);
                 Vec3d nozzle_pos = gcode_writer.get_position();
 
                 std::vector<float> flush_matrix(cast<float>(full_config.flush_volumes_matrix.values));
@@ -1208,7 +1208,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // How many times will be change_layer() called?
     // change_layer() in turn increments the progress bar status.
     m_layer_count = 0;
-    if (print.config().complete_objects.value) {
+    if (print.config().print_sequence == PrintSequence::ByObject) {
         // Add each of the object's layers separately.
         for (auto object : print.objects()) {
             std::vector<coordf_t> zs;
@@ -1309,7 +1309,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     bool         has_wipe_tower      = false;
     std::vector<const PrintInstance*> 					print_object_instances_ordering;
     std::vector<const PrintInstance*>::const_iterator 	print_object_instance_sequential_active;
-    if (print.config().complete_objects.value) {
+    if (print.config().print_sequence == PrintSequence::ByObject) {
         // Order object instances for sequential print.
         print_object_instances_ordering = sort_object_instances_by_model_order(print);
 //        print_object_instances_ordering = sort_object_instances_by_max_z(print);
@@ -1481,7 +1481,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     if (this->m_objsWithBrim.empty() && this->m_objSupportsWithBrim.empty()) m_brim_done = true;
 
     // Do all objects for each layer.
-    if (print.config().complete_objects.value) {
+    if (print.config().print_sequence == PrintSequence::ByObject) {
         size_t finished_objects = 0;
         const PrintObject *prev_object = (*print_object_instance_sequential_active)->print_object;
         for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++ print_object_instance_sequential_active) {
@@ -2282,7 +2282,7 @@ GCode::LayerResult GCode::process_layer(
     m_max_layer_z  = std::max(m_max_layer_z, m_last_layer_z);
     m_last_height = height;
 
-    // Set new layer - this will change Z and force a retraction if retract_layer_change is enabled.
+    // Set new layer - this will change Z and force a retraction if retract_when_changing_layer is enabled.
     if (! print.config().before_layer_change_gcode.value.empty()) {
         DynamicConfig config;
         config.set_key_value("layer_num",   new ConfigOptionInt(m_layer_index + 1));
@@ -2339,7 +2339,7 @@ GCode::LayerResult GCode::process_layer(
             if (print.config().single_extruder_multi_material.value && extruder.id() != m_writer.extruder()->id())
                 // In single extruder multi material mode, set the temperature for the current extruder only.
                 continue;
-            int temperature = print.config().temperature.get_at(extruder.id());
+            int temperature = print.config().nozzle_temperature.get_at(extruder.id());
             if (temperature > 0 && temperature != print.config().nozzle_temperature_initial_layer.get_at(extruder.id()))
                 gcode += m_writer.set_temperature(temperature, false, extruder.id());
         }
@@ -2706,7 +2706,9 @@ GCode::LayerResult GCode::process_layer(
                     m_last_obj_copy = this_object_copy;
                     this->set_origin(unscale(offset));
                     //FIXME the following code prints regions in the order they are defined, the path is not optimized in any way.
-                    if (print.config().infill_first) {
+                    bool is_infill_first = print.config().wall_infill_order == WallInfillOrder::InfillInnerOuter ||
+                                           print.config().wall_infill_order == WallInfillOrder::InfillOuterInner;
+                    if (is_infill_first) {
                         gcode += this->extrude_infill(print, by_region_specific, false);
                         gcode += this->extrude_perimeters(print, by_region_specific, lower_layer_edge_grids[instance_to_print.layer_id]);
                     } else {
@@ -2762,8 +2764,8 @@ GCode::LayerResult GCode::process_layer(
     //BBS: close spaghetti detector after printing last layer of object
     if (print.config().spaghetti_detector.value) {
         //BBS: don't need to close if the object has only one layer.
-        //complete_objects mode has different judgement for last layer
-        if (print.config().complete_objects.value) {
+        //by object mode has different judgement for last layer
+        if (print.config().print_sequence == PrintSequence::ByObject) {
             const PrintObject* object = layer.object();
             if (!first_layer && object && (object->layer_count() == layer.id() + 1)) {
                 gcode += ";close spaghetti detector\n";
@@ -2859,7 +2861,7 @@ std::string GCode::change_layer(coordf_t print_z, bool lazy_raise)
         // Increment a progress bar indicator.
         gcode += m_writer.update_progress(++ m_layer_index, m_layer_count);
     coordf_t z = print_z + m_config.z_offset.value;  // in unscaled coordinates
-    if (EXTRUDER_CONFIG(retract_layer_change) && m_writer.will_move_z(z))
+    if (EXTRUDER_CONFIG(retract_when_changing_layer) && m_writer.will_move_z(z))
         gcode += this->retract();
 
     if (!lazy_raise) {
@@ -2923,9 +2925,14 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     if (m_config.spiral_mode) {
         loop.split_at(last_pos, false);
     }
-    else
-        m_seam_placer.place_seam(loop, this->last_pos(), m_config.external_perimeters_first,
-                                 EXTRUDER_CONFIG(nozzle_diameter), lower_layer_edge_grid ? lower_layer_edge_grid->get() : nullptr);
+    else {
+        //BBS
+        bool is_outer_wall_first = 
+                m_config.wall_infill_order == WallInfillOrder::OuterInnerInfill ||
+                m_config.wall_infill_order == WallInfillOrder::InfillOuterInner;
+        m_seam_placer.place_seam(loop, this->last_pos(), is_outer_wall_first,
+            EXTRUDER_CONFIG(nozzle_diameter), lower_layer_edge_grid ? lower_layer_edge_grid->get() : nullptr);
+    }
 
     // clip the path to avoid the extruder to get exactly on the first point of the loop;
     // if polyline was shorter than the clipping distance we'd get a null polyline, so
@@ -3339,7 +3346,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     // calculate extrusion length per distance unit
     double e_per_mm = m_writer.extruder()->e_per_mm3() * path.mm3_per_mm;
 
-    double min_speed = double(m_config.min_print_speed.get_at(m_writer.extruder()->id()));
+    double min_speed = double(m_config.slow_down_min_speed.get_at(m_writer.extruder()->id()));
     // set speed
     if (speed == -1) {
         int overhang_degree = path.get_overhang_degree();
@@ -3610,7 +3617,7 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
 
 bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role)
 {
-    if (travel.length() < scale_(EXTRUDER_CONFIG(retract_before_travel))) {
+    if (travel.length() < scale_(EXTRUDER_CONFIG(retraction_minimum_travel))) {
         // skip retraction if the move is shorter than the configured threshold
         return false;
     }
@@ -3658,7 +3665,7 @@ std::string GCode::retract(bool toolchange)
 
     gcode += m_writer.reset_e();
     //BBS
-    if (m_writer.extruder()->retract_length() > 0) {
+    if (m_writer.extruder()->retraction_length() > 0) {
         // BBS: don't do lazy_lift when enable spiral vase
         size_t extruder_id = m_writer.extruder()->id();
         gcode += m_writer.lift(!m_spiral_vase);
@@ -3716,9 +3723,9 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
 
     // BBS
     unsigned int fan_speed = m_writer.get_fan();
-    float new_retract_length = m_config.retract_length.get_at(extruder_id);
+    float new_retract_length = m_config.retraction_length.get_at(extruder_id);
     float new_retract_length_toolchange = m_config.retract_length_toolchange.get_at(extruder_id);
-    int new_filament_temp = m_config.temperature.get_at(extruder_id);
+    int new_filament_temp = m_config.nozzle_temperature.get_at(extruder_id);
     Vec3d nozzle_pos = m_writer.get_position();
     float old_retract_length, old_retract_length_toolchange, wipe_volume;
     int old_filament_temp;
@@ -3730,9 +3737,9 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
         assert(new_retract_length < number_of_extruders);
 
         int previous_extruder_id = m_writer.extruder()->id();
-        old_retract_length = m_config.retract_length.get_at(previous_extruder_id);
+        old_retract_length = m_config.retraction_length.get_at(previous_extruder_id);
         old_retract_length_toolchange = m_config.retract_length_toolchange.get_at(previous_extruder_id);
-        old_filament_temp = m_config.temperature.get_at(previous_extruder_id);
+        old_filament_temp = m_config.nozzle_temperature.get_at(previous_extruder_id);
         wipe_volume = flush_matrix[previous_extruder_id * number_of_extruders + extruder_id];
     }
     else {
@@ -3791,7 +3798,7 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     // Set the temperature if the wipe tower didn't (not needed for non-single extruder MM)
     if (m_config.single_extruder_multi_material && !m_config.enable_wipe_tower) {
         int temp = (m_layer_index <= 0 ? m_config.nozzle_temperature_initial_layer.get_at(extruder_id) :
-                                         m_config.temperature.get_at(extruder_id));
+                                         m_config.nozzle_temperature.get_at(extruder_id));
 
         gcode += m_writer.set_temperature(temp, false);
     }

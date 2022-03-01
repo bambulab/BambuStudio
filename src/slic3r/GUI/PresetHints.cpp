@@ -20,34 +20,34 @@ std::string PresetHints::cooling_description(const Preset &preset)
 	std::string out;
 
     bool cooling              = preset.config.opt_bool("cooling", 0);
-    int  fan_below_layer_time = preset.config.opt_int("fan_below_layer_time", 0);
+    int  fan_cooling_layer_time = preset.config.opt_int("fan_cooling_layer_time", 0);
     int  full_fan_speed_layer = preset.config.opt_int("full_fan_speed_layer", 0);
 
     if (cooling) {
-		int 	slow_down_below_layer_time 	= preset.config.opt_int("slow_down_below_layer_time", 0);
+		int 	slow_down_layer_time 	= preset.config.opt_int("slow_down_layer_time", 0);
 		int 	fan_min_speed 				= preset.config.opt_int("fan_min_speed", 0);
 		int 	fan_max_speed 				= preset.config.opt_int("fan_max_speed", 0);
-		int 	min_print_speed				= int(preset.config.opt_float("min_print_speed", 0) + 0.5);
+		int 	slow_down_min_speed				= int(preset.config.opt_float("slow_down_min_speed", 0) + 0.5);
 
         out += GUI::format(_L("If estimated layer time is below ~%1%s, "
                               "fan will run at %2%%% and print speed will be reduced "
                               "so that no less than %3%s are spent on that layer "
                               "(however, speed will never be reduced below %4%mm/s)."),
-                              slow_down_below_layer_time, fan_max_speed, slow_down_below_layer_time, min_print_speed);
-        if (fan_below_layer_time > slow_down_below_layer_time) {
+                              slow_down_layer_time, fan_max_speed, slow_down_layer_time, slow_down_min_speed);
+        if (fan_cooling_layer_time > slow_down_layer_time) {
             out += "\n";
             if (fan_min_speed != fan_max_speed)
                 out += GUI::format(_L("If estimated layer time is greater, but still below ~%1%s, "
                                "fan will run at a proportionally decreasing speed between %2%%% and %3%%%."),
-                               fan_below_layer_time, fan_max_speed, fan_min_speed);
+                               fan_cooling_layer_time, fan_max_speed, fan_min_speed);
             else
                 out += GUI::format(_L("If estimated layer time is greater, but still below ~%1%s, "
                                "fan will run at %2%%%"),
-                               fan_below_layer_time, fan_min_speed);
+                               fan_cooling_layer_time, fan_min_speed);
         }
         out += "\n";
     }
-	if (preset.config.opt_bool("fan_always_on", 0)) {
+	if (preset.config.opt_bool("reduce_fan_stop_start_freq", 0)) {
 		int 	close_fan_the_first_x_layers 	= preset.config.opt_int("close_fan_the_first_x_layers", 0);
 		int 	fan_min_speed 				= preset.config.opt_int("fan_min_speed", 0);
 

@@ -943,9 +943,9 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
     out.erase("compatible_printers_condition");
     out.erase("inherits");
     
-    static const char *keys[] = { "support_material", "support_material_interface" };
+    static const char *keys[] = { "support_material_extruder", "support_material_interface_extruder" };
     for (size_t i = 0; i < sizeof(keys) / sizeof(keys[0]); ++ i) {
-        std::string key = std::string(keys[i]) + "_extruder";
+        std::string key = std::string(keys[i]);
         auto *opt = dynamic_cast<ConfigOptionInt*>(out.option(key, false));
         assert(opt != nullptr);
         opt->value = boost::algorithm::clamp<int>(opt->value, 0, int(num_extruders));

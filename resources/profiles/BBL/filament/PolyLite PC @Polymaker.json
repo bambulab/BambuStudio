@@ -5,7 +5,7 @@
     "instantiation": "true",
     "inherits": "fdm_filament_pa6+cf",
     "filament_vendor": "Polymaker",
-    "temperature": [
+    "nozzle_temperature": [
         "270"
     ],
     "nozzle_temperature_initial_layer": [

@@ -14,13 +14,13 @@
     "filament_max_volumetric_speed": [
         "7.2"
     ],
-    "filament_retract_length": [
+    "filament_retraction_length": [
         "0.5"
     ],
     "nozzle_temperature_initial_layer": [
         "220"
     ],
-    "temperature": [
+    "nozzle_temperature": [
         "220"
     ],
     "filament_start_gcode": [

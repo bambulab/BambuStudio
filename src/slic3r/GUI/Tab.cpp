@@ -1608,8 +1608,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("ironing_spacing");
 
         optgroup = page->new_optgroup(L("Advanced"));
-        optgroup->append_single_option_line("external_perimeters_first");
-        optgroup->append_single_option_line("infill_first");
+        optgroup->append_single_option_line("wall_infill_order");
         optgroup->append_single_option_line("bridge_flow");
         optgroup->append_single_option_line("detect_overhang_wall");
         optgroup->append_single_option_line("reduce_crossing_wall");
@@ -1742,7 +1741,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("wiping_volume");
 
         optgroup = page->new_optgroup(L("Special mode"));
-        optgroup->append_single_option_line("complete_objects");
+        optgroup->append_single_option_line("print_sequence");
         optgroup->append_single_option_line("spiral_mode");
         //BBS: todo remove clearance to machine
 #if 0
@@ -1952,13 +1951,13 @@ void TabFilament::add_filament_overrides_page()
 
     const int extruder_idx = 0; // #ys_FIXME
 
-    for (const std::string opt_key : {  "filament_retract_length",
-                                        "filament_retract_lift",
-                                        "filament_retract_speed",
-                                        "filament_deretract_speed",
-                                        "filament_retract_restart_extra",
-                                        "filament_retract_before_travel",
-                                        "filament_retract_layer_change",
+    for (const std::string opt_key : {  "filament_retraction_length",
+                                        "filament_z_hop",
+                                        "filament_retraction_speed",
+                                        "filament_deretraction_speed",
+                                        //"filament_retract_restart_extra",
+                                        "filament_retraction_minimum_travel",
+                                        "filament_retract_when_changing_layer",
                                         "filament_wipe",
                                         //BBS
                                         "filament_wipe_distance",
@@ -1986,13 +1985,13 @@ void TabFilament::update_filament_overrides_page()
         return;
     ConfigOptionsGroupShp optgroup = *og_it;
 
-    std::vector<std::string> opt_keys = {   "filament_retract_length",
-                                            "filament_retract_lift",
-                                            "filament_retract_speed",
-                                            "filament_deretract_speed",
+    std::vector<std::string> opt_keys = {   "filament_retraction_length",
+                                            "filament_z_hop",
+                                            "filament_retraction_speed",
+                                            "filament_deretraction_speed",
                                             "filament_retract_restart_extra",
-                                            "filament_retract_before_travel",
-                                            "filament_retract_layer_change",
+                                            "filament_retraction_minimum_travel",
+                                            "filament_retract_when_changing_layer",
                                             "filament_wipe",
                                             //BBS
                                             "filament_wipe_distance",
@@ -2001,12 +2000,12 @@ void TabFilament::update_filament_overrides_page()
 
     const int extruder_idx = 0; // #ys_FIXME
 
-    const bool have_retract_length = m_config->option("filament_retract_length")->is_nil() ||
-                                     m_config->opt_float("filament_retract_length", extruder_idx) > 0;
+    const bool have_retract_length = m_config->option("filament_retraction_length")->is_nil() ||
+                                     m_config->opt_float("filament_retraction_length", extruder_idx) > 0;
 
     for (const std::string& opt_key : opt_keys)
     {
-        bool is_checked = opt_key=="filament_retract_length" ? true : have_retract_length;
+        bool is_checked = opt_key=="filament_retraction_length" ? true : have_retract_length;
         m_overrides_options[opt_key]->Enable(is_checked);
 
         is_checked &= !m_config->option(opt_key)->is_nil();
@@ -2042,7 +2041,7 @@ void TabFilament::build()
         optgroup = page->new_optgroup(L("Temperature"));
         Line line = { L("Nozzle"), "" };
         line.append_option(optgroup->get_option("nozzle_temperature_initial_layer"));
-        line.append_option(optgroup->get_option("temperature"));
+        line.append_option(optgroup->get_option("nozzle_temperature"));
         optgroup->append_line(line);
 
         line = { L("Bed"), "" };
@@ -2094,7 +2093,7 @@ void TabFilament::build()
     page = add_options_page(L("Cooling"), "cooling");
         std::string category_path = "cooling_127569#";
         optgroup = page->new_optgroup(L("Enable"));
-        optgroup->append_single_option_line("fan_always_on");
+        optgroup->append_single_option_line("reduce_fan_stop_start_freq");
         optgroup->append_single_option_line("cooling");
 
         line = { "", "" };
@@ -2118,9 +2117,9 @@ void TabFilament::build()
         optgroup->append_single_option_line("full_fan_speed_layer", category_path + "fan-settings");
 
         optgroup = page->new_optgroup(L("Cooling thresholds"), 25);
-        optgroup->append_single_option_line("fan_below_layer_time", category_path + "cooling-thresholds");
-        optgroup->append_single_option_line("slow_down_below_layer_time", category_path + "cooling-thresholds");
-        optgroup->append_single_option_line("min_print_speed", category_path + "cooling-thresholds");
+        optgroup->append_single_option_line("fan_cooling_layer_time", category_path + "cooling-thresholds");
+        optgroup->append_single_option_line("slow_down_layer_time", category_path + "cooling-thresholds");
+        optgroup->append_single_option_line("slow_down_min_speed", category_path + "cooling-thresholds");
 
         //BBS
         add_filament_overrides_page();
@@ -2136,7 +2135,7 @@ void TabFilament::build()
 
         const int gcode_field_height = 15; // 150
 
-    page = add_options_page(L("Custom G-code"), "cog");
+    page = add_options_page(L("Advanced"), "advanced");
         optgroup = page->new_optgroup(L("Start G-code"), 0);
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
@@ -2221,13 +2220,13 @@ void TabFilament::toggle_options()
     if (m_active_page->title() == "Cooling")
     {
         bool cooling = m_config->opt_bool("cooling", 0);
-        bool fan_always_on = cooling || m_config->opt_bool("fan_always_on", 0);
+        bool reduce_fan_stop_start_freq = cooling || m_config->opt_bool("reduce_fan_stop_start_freq", 0);
 
-        for (auto el : { "fan_max_speed", "fan_below_layer_time", "slow_down_below_layer_time", "min_print_speed" })
+        for (auto el : { "fan_max_speed", "fan_cooling_layer_time", "slow_down_layer_time", "slow_down_min_speed" })
             toggle_option(el, cooling);
         //BBS
         for (auto el : { "additional_cooling_fan_speed", "fan_min_speed", "close_fan_the_first_x_layers", "full_fan_speed_layer" })
-            toggle_option(el, fan_always_on);
+            toggle_option(el, reduce_fan_stop_start_freq);
     }
 
     //BBS: filament_retract serial parameter is shown on page directly without being controlled by check box
@@ -2816,27 +2815,29 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             optgroup->append_single_option_line("min_layer_height", "", extruder_idx);
             optgroup->append_single_option_line("max_layer_height", "", extruder_idx);
 
-
+#if 0
             optgroup = page->new_optgroup(L("Position (for multi-extruder printers)"), -1, true);
             optgroup->append_single_option_line("extruder_offset", "", extruder_idx);
+#endif
 
             //BBS: don't show retract related config menu in machine page
             optgroup = page->new_optgroup(L("Retraction"));
-            optgroup->append_single_option_line("retract_length", "", extruder_idx);
-            optgroup->append_single_option_line("retract_lift", "", extruder_idx);
-            optgroup->append_single_option_line("retract_speed", "", extruder_idx);
-            optgroup->append_single_option_line("deretract_speed", "", extruder_idx);
-            optgroup->append_single_option_line("retract_restart_extra", "", extruder_idx);
-            optgroup->append_single_option_line("retract_before_travel", "", extruder_idx);
-            optgroup->append_single_option_line("retract_layer_change", "", extruder_idx);
+            optgroup->append_single_option_line("retraction_length", "", extruder_idx);
+            optgroup->append_single_option_line("z_hop", "", extruder_idx);
+            optgroup->append_single_option_line("retraction_speed", "", extruder_idx);
+            optgroup->append_single_option_line("deretraction_speed", "", extruder_idx);
+            //optgroup->append_single_option_line("retract_restart_extra", "", extruder_idx);
+            optgroup->append_single_option_line("retraction_minimum_travel", "", extruder_idx);
+            optgroup->append_single_option_line("retract_when_changing_layer", "", extruder_idx);
             optgroup->append_single_option_line("wipe", "", extruder_idx);
             optgroup->append_single_option_line("wipe_distance", "", extruder_idx);
             optgroup->append_single_option_line("retract_before_wipe", "", extruder_idx);
 
-            optgroup = page->new_optgroup(L("Retraction when tool is disabled (advanced settings for multi-extruder setups)"), -1, true);
+            optgroup = page->new_optgroup(L("Retraction when switching material"), -1, true);
             optgroup->append_single_option_line("retract_length_toolchange", "", extruder_idx);
             optgroup->append_single_option_line("retract_restart_extra_toolchange", "", extruder_idx);
 
+#if 0
             optgroup = page->new_optgroup(L("Preview"), -1, true);
 
             auto reset_to_filament_color = [this, extruder_idx](wxWindow* parent) {
@@ -2867,6 +2868,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             Line line = optgroup->create_single_option_line("extruder_colour", "", extruder_idx);
             line.append_widget(reset_to_filament_color);
             optgroup->append_line(line);
+#endif
     }
 
     // BBS. No extra extruder page for single physical extruder machine
@@ -2991,16 +2993,16 @@ void TabPrinter::toggle_options()
         val > 0 && (size_t)val <= m_extruders_count)
     {
         size_t i = size_t(val - 1);
-        bool have_retract_length = m_config->opt_float("retract_length", i) > 0;
+        bool have_retract_length = m_config->opt_float("retraction_length", i) > 0;
 
         // user can customize travel length if we have retraction length or we"re using
         // firmware retraction
-        toggle_option("retract_before_travel", have_retract_length, i);
+        toggle_option("retraction_minimum_travel", have_retract_length, i);
 
         // user can customize other retraction options if retraction is enabled
         //BBS
         bool retraction = have_retract_length;
-        std::vector<std::string> vec = { "retract_lift", "retract_layer_change" };
+        std::vector<std::string> vec = { "z_hop", "retract_when_changing_layer" };
         for (auto el : vec)
             toggle_option(el, retraction, i);
 
@@ -3009,7 +3011,7 @@ void TabPrinter::toggle_options()
 
         // some options only apply when not using firmware retraction
         vec.resize(0);
-        vec = { "retract_speed", "deretract_speed", "retract_before_wipe", "retract_restart_extra", "wipe", "wipe_distance" };
+        vec = { "retraction_speed", "deretraction_speed", "retract_before_wipe", "retract_restart_extra", "wipe", "wipe_distance" };
         for (auto el : vec)
             //BBS
             toggle_option(el, retraction, i);

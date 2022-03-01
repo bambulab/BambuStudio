@@ -4,7 +4,7 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_tpu",
-    "temperature": [
+    "nozzle_temperature": [
         "240"
     ],
     "nozzle_temperature_initial_layer": [
@@ -13,7 +13,7 @@
     "filament_max_volumetric_speed": [
         "3.2"
     ],
-    "filament_retract_length": [
+    "filament_retraction_length": [
         "0"
     ]
 }

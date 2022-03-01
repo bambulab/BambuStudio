@@ -65,6 +65,21 @@ enum class IroningType {
     Count,
 };
 
+//BBS
+enum class WallInfillOrder {
+    InnerOuterInfill,
+    OuterInnerInfill,
+    InfillInnerOuter,
+    InfillOuterInner,
+    Count,
+};
+//BBS
+enum class PrintSequence {
+    ByLayer,
+    ByObject,
+    Count,
+};
+
 enum class SlicingMode
 {
     // Regular, applying ClipperLib::pftNonZero rule when creating ExPolygons.
@@ -573,7 +588,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<InfillPattern>,  bottom_surface_pattern))
     ((ConfigOptionFloatOrPercent,       outer_wall_line_width))
     ((ConfigOptionFloatOrPercent,       outer_wall_speed))
-    ((ConfigOptionBool,                 external_perimeters_first))
     ((ConfigOptionBool,                 extra_perimeters))
     ((ConfigOptionFloat,                infill_angle))
     ((ConfigOptionPercent,              sparse_infill_density))
@@ -659,7 +673,7 @@ PRINT_CONFIG_CLASS_DEFINE(
 
     ((ConfigOptionString,              before_layer_change_gcode))
     ((ConfigOptionString,              between_objects_gcode))
-    ((ConfigOptionFloats,              deretract_speed))
+    ((ConfigOptionFloats,              deretraction_speed))
     //BBS
     ((ConfigOptionBool,                enable_arc_fitting))
     ((ConfigOptionString,              machine_end_gcode))
@@ -694,12 +708,12 @@ PRINT_CONFIG_CLASS_DEFINE(
 //    ((ConfigOptionFloat,               max_volumetric_extrusion_rate_slope_negative))
 //#endif
     ((ConfigOptionPercents,            retract_before_wipe))
-    ((ConfigOptionFloats,              retract_length))
+    ((ConfigOptionFloats,              retraction_length))
     ((ConfigOptionFloats,              retract_length_toolchange))
-    ((ConfigOptionFloats,              retract_lift))
+    ((ConfigOptionFloats,              z_hop))
     ((ConfigOptionFloats,              retract_restart_extra))
     ((ConfigOptionFloats,              retract_restart_extra_toolchange))
-    ((ConfigOptionFloats,              retract_speed))
+    ((ConfigOptionFloats,              retraction_speed))
     ((ConfigOptionString,              machine_start_gcode))
     ((ConfigOptionStrings,             filament_start_gcode))
     ((ConfigOptionBool,                single_extruder_multi_material))
@@ -727,7 +741,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionEnumsGeneric,       bed_type))
     ((ConfigOptionInts,               bed_temperature))
     ((ConfigOptionInts,               bridge_fan_speed))
-    ((ConfigOptionBool,               complete_objects))
+    ((ConfigOptionEnum<PrintSequence>,print_sequence))
     ((ConfigOptionBools,              cooling))
     ((ConfigOptionFloat,              default_acceleration))
     ((ConfigOptionInts,               close_fan_the_first_x_layers))
@@ -738,8 +752,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              extruder_clearance_radius))
     ((ConfigOptionStrings,            extruder_colour))
     ((ConfigOptionPoints,             extruder_offset))
-    ((ConfigOptionBools,              fan_always_on))
-    ((ConfigOptionInts,               fan_below_layer_time))
+    ((ConfigOptionBools,              reduce_fan_stop_start_freq))
+    ((ConfigOptionInts,               fan_cooling_layer_time))
     ((ConfigOptionStrings,            filament_colour))
     ((ConfigOptionFloat,              initial_layer_acceleration))
     // BBS
@@ -751,13 +765,13 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              initial_layer_infill_speed))
     ((ConfigOptionInts,               nozzle_temperature_initial_layer))
     ((ConfigOptionInts,               full_fan_speed_layer))
-    ((ConfigOptionBool,               infill_first))
+    ((ConfigOptionEnum<WallInfillOrder>,wall_infill_order))
     ((ConfigOptionInts,               fan_max_speed))
     ((ConfigOptionFloats,             max_layer_height))
     ((ConfigOptionInts,               fan_min_speed))
     ((ConfigOptionFloats,             min_layer_height))
     ((ConfigOptionFloat,              printable_height))
-    ((ConfigOptionFloats,             min_print_speed))
+    ((ConfigOptionFloats,             slow_down_min_speed))
     ((ConfigOptionFloat,              min_skirt_length))
     ((ConfigOptionFloats,             nozzle_diameter))
     ((ConfigOptionBool,               reduce_infill_retraction))
@@ -766,15 +780,15 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionStrings,            post_process))
     ((ConfigOptionString,             printer_model))
     ((ConfigOptionFloat,              resolution))
-    ((ConfigOptionFloats,             retract_before_travel))
-    ((ConfigOptionBools,              retract_layer_change))
+    ((ConfigOptionFloats,             retraction_minimum_travel))
+    ((ConfigOptionBools,              retract_when_changing_layer))
     ((ConfigOptionFloat,              skirt_distance))
     ((ConfigOptionInt,                skirt_height))
     ((ConfigOptionInt,                skirt_loops))
-    ((ConfigOptionInts,               slow_down_below_layer_time))
+    ((ConfigOptionInts,               slow_down_layer_time))
     ((ConfigOptionBool,               spiral_mode))
     ((ConfigOptionInt,                standby_temperature_delta))
-    ((ConfigOptionInts,               temperature))
+    ((ConfigOptionInts,               nozzle_temperature))
     ((ConfigOptionBools,              wipe))
     // BBS
     ((ConfigOptionFloats,             wipe_distance))

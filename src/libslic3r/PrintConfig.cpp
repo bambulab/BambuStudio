@@ -104,6 +104,22 @@ static t_config_enum_values s_keys_map_IroningType {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(IroningType)
 
+//BBS
+static t_config_enum_values s_keys_map_WallInfillOrder {
+    { "inner wall/outer wall/infill",     int(WallInfillOrder::InnerOuterInfill) },
+    { "outer wall/inner wall/infill",     int(WallInfillOrder::OuterInnerInfill) },
+    { "infill/inner wall/outer wall",     int(WallInfillOrder::InfillInnerOuter) },
+    { "infill/outer wall/inner wall",     int(WallInfillOrder::InfillOuterInner) }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WallInfillOrder)
+
+//BBS
+static t_config_enum_values s_keys_map_PrintSequence {
+    { "by layer",     int(PrintSequence::ByLayer) },
+    { "by object",    int(PrintSequence::ByObject) }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrintSequence)
+
 static t_config_enum_values s_keys_map_SlicingMode {
     { "regular",        int(SlicingMode::Regular) },
     { "even_odd",       int(SlicingMode::EvenOdd) },
@@ -625,14 +641,16 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionStrings());
     def->cli = ConfigOptionDef::nocli;
 
-    def = this->add("complete_objects", coBool);
-    def->label = L("Complete individual objects");
-    def->tooltip = L("When printing multiple objects or copies, this feature will complete "
-                   "each object before moving onto next one (and starting it from its bottom layer). "
-                   "This feature is useful to avoid the risk of ruined prints. "
-                   "Slic3r should warn and prevent you from extruder collisions, but beware.");
+    def = this->add("print_sequence", coEnum);
+    def->label = L("Print sequence");
+    def->tooltip = L("Print sequence, by layer or by object");
+    def->enum_keys_map = &ConfigOptionEnum<PrintSequence>::get_enum_values();
+    def->enum_values.push_back("by layer");
+    def->enum_values.push_back("by object");
+    def->enum_labels.push_back(L("By layer"));
+    def->enum_labels.push_back(L("By object"));
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionEnum<PrintSequence>(PrintSequence::ByLayer));
 
     def = this->add("cooling", coBools);
     def->label = L("Enable auto cooling");
@@ -714,7 +732,7 @@ void PrintConfigDef::init_fff_params()
     def->full_width = true;
     def->height = 12;
     //BBS
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString("M104 S0 ; turn off temperature\nG28 X0  ; home X axis\nM84     ; disable motors\n"));
 
     def = this->add("filament_end_gcode", coStrings);
@@ -798,14 +816,21 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(50, true));
 
-    def = this->add("external_perimeters_first", coBool);
-    def->label = L("External perimeters first");
-    //BBS: change category from "Layers and Perimeters" to "Quality"
+    def = this->add("wall_infill_order", coEnum);
+    def->label = L("Order of inner wall/outer wall/infil");
     def->category = L("Quality");
-    def->tooltip = L("Print contour perimeters from the outermost one to the innermost one "
-                   "instead of the default inverse order.");
+    def->tooltip = L("Print sequence of inner wall, outer wall and infill. ");
+    def->enum_keys_map = &ConfigOptionEnum<WallInfillOrder>::get_enum_values();
+    def->enum_values.push_back("inner wall/outer wall/infill");
+    def->enum_values.push_back("outer wall/inner wall/infill");
+    def->enum_values.push_back("infill/inner wall/outer wall");
+    def->enum_values.push_back("infill/outer wall/inner wall");
+    def->enum_labels.push_back(L("inner/outer/infill"));
+    def->enum_labels.push_back(L("outer/inner/infill"));
+    def->enum_labels.push_back(L("infill/inner/outer"));
+    def->enum_labels.push_back(L("infill/outer/inner"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionEnum<WallInfillOrder>(WallInfillOrder::InnerOuterInfill));
 
     def = this->add("extra_perimeters", coBool);
     def->label = L("Extra perimeters if needed");
@@ -912,13 +937,13 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloatOrPercent(0.45, false));
 
-    def = this->add("fan_always_on", coBools);
+    def = this->add("reduce_fan_stop_start_freq", coBools);
     def->label = L("Keep fan always on");
     def->tooltip = L("If this is enabled, fan will never be disabled and will be kept running at least "
                    "at its minimum speed. Useful for PLA, harmful for ABS.");
     def->set_default_value(new ConfigOptionBools { false });
 
-    def = this->add("fan_below_layer_time", coInts);
+    def = this->add("fan_cooling_layer_time", coInts);
     def->label = L("Enable fan if layer print time is below");
     def->tooltip = L("If layer print time is estimated below this number of seconds, fan will be enabled "
                    "and its speed will be calculated by interpolating the minimum and maximum speeds.");
@@ -993,7 +1018,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloats { 0. });
 
     def = this->add("filament_type", coStrings);
-    def->label = L("Filament type");
+    def->label = L("Type");
     def->tooltip = L("The filament material type for use in custom G-codes.");
     def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
     def->gui_flags = "show_value";
@@ -1035,7 +1060,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInts{ 100 });
 
     def = this->add("filament_cost", coFloats);
-    def->label = L("Cost");
+    def->label = L("Price");
     def->tooltip = L("Enter your filament cost per kg here. This is only for statistical information.");
     def->sidetext = L("money/kg");
     def->min = 0;
@@ -1483,12 +1508,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
-    def = this->add("infill_first", coBool);
-    def->label = L("Infill before perimeters");
-    def->tooltip = L("This option will switch the print order of perimeters and infill, making the latter first.");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
-
     def = this->add("infill_only_where_needed", coBool);
     def->label = L("Infill support");
     def->category = L("Infill");
@@ -1609,7 +1628,7 @@ void PrintConfigDef::init_fff_params()
     def->multiline = true;
     def->full_width = true;
     def->height = 5;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("silent_mode", coBool);
@@ -1833,7 +1852,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats { 0.07 });
 
-    def = this->add("min_print_speed", coFloats);
+    def = this->add("slow_down_min_speed", coFloats);
     def->label = L("Min print speed");
     def->tooltip = L("Slic3r will not scale speed down below this speed.");
     def->sidetext = L("mm/s");
@@ -2047,7 +2066,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.0125));
 
-    def = this->add("retract_before_travel", coFloats);
+    def = this->add("retraction_minimum_travel", coFloats);
     def->label = L("Minimum travel after retraction");
     def->tooltip = L("Retraction is not triggered when travel moves are shorter than this length.");
     def->sidetext = L("mm");
@@ -2064,14 +2083,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionPercents { 0. });
 
-    def = this->add("retract_layer_change", coBools);
+    def = this->add("retract_when_changing_layer", coBools);
     def->label = L("Retract on layer change");
     def->tooltip = L("This flag enforces a retraction whenever a Z move is done.");
     //BBS
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBools { false });
 
-    def = this->add("retract_length", coFloats);
+    def = this->add("retraction_length", coFloats);
     def->label = L("Length");
     def->full_label = L("Retraction Length");
     def->tooltip = L("When retraction is triggered, filament is pulled back by the specified amount "
@@ -2079,7 +2098,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm (zero to disable)");
     //BBS
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats { 2. });
+    def->set_default_value(new ConfigOptionFloats { 0.5 });
 
     def = this->add("retract_length_toolchange", coFloats);
     def->label = L("Length");
@@ -2091,7 +2110,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats { 10. });
 
-    def = this->add("retract_lift", coFloats);
+    def = this->add("z_hop", coFloats);
     def->label = L("Lift Z");
     def->tooltip = L("If you set this to a positive value, Z is quickly raised every time a retraction "
                    "is triggered. When using multiple extruders, only the setting for the first extruder "
@@ -2099,7 +2118,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     //BBS
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats { 0. });
+    def->set_default_value(new ConfigOptionFloats { 0.4 });
 
     def = this->add("retract_restart_extra", coFloats);
     def->label = L("Extra length on restart");
@@ -2117,7 +2136,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats { 0. });
 
-    def = this->add("retract_speed", coFloats);
+    def = this->add("retraction_speed", coFloats);
     def->label = L("Retraction Speed");
     def->full_label = L("Retraction Speed");
     def->tooltip = L("The speed for retractions (it only applies to the extruder motor).");
@@ -2126,7 +2145,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats { 40. });
 
-    def = this->add("deretract_speed", coFloats);
+    def = this->add("deretraction_speed", coFloats);
     def->label = L("Deretraction Speed");
     def->full_label = L("Deretraction Speed");
     def->tooltip = L("The speed for loading of a filament into extruder after retraction "
@@ -2219,7 +2238,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInt(1));
 
-    def = this->add("slow_down_below_layer_time", coInts);
+    def = this->add("slow_down_layer_time", coInts);
     def->label = L("Slow down if layer print time is below");
     def->tooltip = L("If layer print time is estimated below this number of seconds, print moves "
                    "speed will be scaled down to extend duration to this value.");
@@ -2333,7 +2352,7 @@ void PrintConfigDef::init_fff_params()
     def->multiline = true;
     def->full_width = true;
     def->height = 12;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString("G28 ; home all axes\nG1 Z5 F5000 ; lift nozzle\n"));
 
     def = this->add("filament_start_gcode", coStrings);
@@ -2821,7 +2840,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("temperature", coInts);
+    def = this->add("nozzle_temperature", coInts);
     def->label = L("Other layers");
     def->tooltip = L("Nozzle temperature for layers after the first one. Set this to zero to disable "
                      "temperature control commands in the output G-code.");
@@ -2858,7 +2877,7 @@ void PrintConfigDef::init_fff_params()
     def->full_width = true;
     def->height = 5;
     //BBS
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("top_surface_line_width", coFloatOrPercent);
@@ -3078,11 +3097,11 @@ void PrintConfigDef::init_fff_params()
     // Declare retract values for filament profile, overriding the printer's extruder profile.
     for (const char *opt_key : {
         // floats
-        "retract_length", "retract_lift", "retract_speed", "deretract_speed", "retract_restart_extra", "retract_before_travel",
+        "retraction_length", "z_hop", "retraction_speed", "deretraction_speed", "retract_restart_extra", "retraction_minimum_travel",
         // BBS: floats
         "wipe_distance",
         // bools
-        "retract_layer_change", "wipe",
+        "retract_when_changing_layer", "wipe",
         // percents
         "retract_before_wipe"}) {
         auto it_opt = options.find(opt_key);
@@ -3093,8 +3112,8 @@ void PrintConfigDef::init_fff_params()
         def->tooltip 	= it_opt->second.tooltip;
         def->sidetext   = it_opt->second.sidetext;
         //BBS: shown specific filament retract config because we hide the machine retract into comDevelop mode
-        if ((strcmp(opt_key, "retract_length") == 0) ||
-            (strcmp(opt_key, "retract_lift") == 0))
+        if ((strcmp(opt_key, "retraction_length") == 0) ||
+            (strcmp(opt_key, "z_hop") == 0))
             def->mode       = comSimple;
         else
             def->mode       = comAdvanced;
@@ -3122,23 +3141,23 @@ void PrintConfigDef::init_extruder_option_keys()
     // ConfigOptionFloats, ConfigOptionPercents, ConfigOptionBools, ConfigOptionStrings
     m_extruder_option_keys = {
         "nozzle_diameter", "min_layer_height", "max_layer_height", "extruder_offset",
-        "retract_length", "retract_lift", "retract_speed", "deretract_speed",
-        "retract_before_wipe", "retract_restart_extra", "retract_before_travel", "wipe", "wipe_distance",
-        "retract_layer_change", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
+        "retraction_length", "z_hop", "retraction_speed", "deretraction_speed",
+        "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
+        "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
         "default_filament_profile"
     };
 
     m_extruder_retract_keys = {
-        "deretract_speed",
-        "retract_before_travel",
+        "deretraction_speed",
         "retract_before_wipe",
-        "retract_layer_change",
-        "retract_length",
-        "retract_lift",
         "retract_restart_extra",
-        "retract_speed",
+        "retract_when_changing_layer",
+        "retraction_length",
+        "retraction_minimum_travel",
+        "retraction_speed",
         "wipe",
-        "wipe_distance"
+        "wipe_distance",
+        "z_hop"
     };
     assert(std::is_sorted(m_extruder_retract_keys.begin(), m_extruder_retract_keys.end()));
 }
@@ -3952,13 +3971,13 @@ double min_object_distance(const ConfigBase &cfg)
     else {
         auto ecr_opt = cfg.option<ConfigOptionFloat>("extruder_clearance_radius");
         auto dd_opt  = cfg.option<ConfigOptionFloat>("duplicate_distance");
-        auto co_opt  = cfg.option<ConfigOptionBool>("complete_objects");
+        auto co_opt  = cfg.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
 
         if (!ecr_opt || !dd_opt || !co_opt) 
             ret = 0.;
         else {
             // min object distance is max(duplicate_distance, clearance_radius)
-            ret = (co_opt->value && ecr_opt->value > dd_opt->value) ?
+            ret = ((co_opt->value == PrintSequence::ByObject) && ecr_opt->value > dd_opt->value) ?
                       ecr_opt->value : dd_opt->value;
         }
     }
@@ -3992,10 +4011,10 @@ void DynamicPrintConfig::normalize_fdm()
     if (this->has("spiral_mode") && this->opt<ConfigOptionBool>("spiral_mode", true)->value) {
         {
             // this should be actually done only on the spiral layers instead of all
-            auto* opt = this->opt<ConfigOptionBools>("retract_layer_change", true);
+            auto* opt = this->opt<ConfigOptionBools>("retract_when_changing_layer", true);
             opt->values.assign(opt->values.size(), false);  // set all values to false
             // Disable retract on layer change also for filament overrides.
-            auto* opt_n = this->opt<ConfigOptionBoolsNullable>("filament_retract_layer_change", true);
+            auto* opt_n = this->opt<ConfigOptionBoolsNullable>("filament_retract_when_changing_layer", true);
             opt_n->values.assign(opt_n->values.size(), false);  // Set all values to false.
         }
         {

@@ -587,7 +587,10 @@ void PerimeterGenerator::process()
             // if brim will be printed, reverse the order of perimeters so that
             // we continue inwards after having finished the brim
             // TODO: add test for perimeter order
-            if (this->config->external_perimeters_first || 
+            bool is_outer_wall_first = 
+                this->print_config->wall_infill_order == WallInfillOrder::OuterInnerInfill ||
+                this->print_config->wall_infill_order == WallInfillOrder::InfillOuterInner;
+            if (is_outer_wall_first || 
                 (this->layer_id == 0 && this->object_config->brim_width.value > 0))
                 entities.reverse();
             // append perimeters for this slice as a collection

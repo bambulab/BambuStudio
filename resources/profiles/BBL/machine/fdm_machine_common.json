@@ -6,7 +6,7 @@
     "printer_technology": "FFF",
     "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\n\n",
     "between_objects_gcode": "",
-    "deretract_speed": [
+    "deretraction_speed": [
         "40"
     ],
     "extruder_colour": [
@@ -78,22 +78,22 @@
     ],
     "printer_settings_id": "",
     "printer_variant": "0.4",
-    "retract_before_travel": [
+    "retraction_minimum_travel": [
         "2"
     ],
     "retract_before_wipe": [
         "70%"
     ],
-    "retract_layer_change": [
+    "retract_when_changing_layer": [
         "1"
     ],
-    "retract_length": [
+    "retraction_length": [
         "5"
     ],
     "retract_length_toolchange": [
         "1"
     ],
-    "retract_lift": [
+    "z_hop": [
         "0"
     ],
     "retract_restart_extra": [
@@ -102,7 +102,7 @@
     "retract_restart_extra_toolchange": [
         "0"
     ],
-    "retract_speed": [
+    "retraction_speed": [
         "60"
     ],
     "single_extruder_multi_material": "0",

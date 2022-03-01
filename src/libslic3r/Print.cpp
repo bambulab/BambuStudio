@@ -70,7 +70,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "bridge_fan_speed",
         "cooling",
         "default_acceleration",
-        "deretract_speed",
+        "deretraction_speed",
         "close_fan_the_first_x_layers",
         "duplicate_distance",
         "machine_end_gcode",
@@ -81,8 +81,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "extruder_colour",
         "extruder_offset",
         "extrusion_multiplier",
-        "fan_always_on",
-        "fan_below_layer_time",
+        "reduce_fan_stop_start_freq",
+        "fan_cooling_layer_time",
         "full_fan_speed_layer",
         "filament_colour",
         "filament_diameter",
@@ -98,7 +98,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "fan_min_speed",
         "fan_max_speed",
         "printable_height",
-        "min_print_speed",
+        "slow_down_min_speed",
         "max_print_speed",
         "max_volumetric_speed",
 #ifdef HAS_PRESSURE_EQUALIZER
@@ -108,17 +108,17 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "reduce_infill_retraction",
         "filename_format",
         "post_process",
-        "retract_before_travel",
+        "retraction_minimum_travel",
         "retract_before_wipe",
-        "retract_layer_change",
-        "retract_length",
+        "retract_when_changing_layer",
+        "retraction_length",
         "retract_length_toolchange",
-        "retract_lift",
+        "z_hop",
         "retract_restart_extra",
         "retract_restart_extra_toolchange",
-        "retract_speed",
+        "retraction_speed",
         "single_extruder_multi_material_priming",
-        "slow_down_below_layer_time",
+        "slow_down_layer_time",
         "standby_temperature_delta",
         "machine_start_gcode",
         "filament_start_gcode",
@@ -164,15 +164,14 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "spiral_mode") {
             osteps.emplace_back(posSlice);
         } else if (
-               opt_key == "complete_objects"
+               opt_key == "print_sequence"
             || opt_key == "filament_type"
             || opt_key == "nozzle_temperature_initial_layer"
             || opt_key == "filament_minimal_purge_on_wipe_tower"
             || opt_key == "filament_max_volumetric_speed"
             || opt_key == "gcode_flavor"
-            || opt_key == "infill_first"
             || opt_key == "single_extruder_multi_material"
-            || opt_key == "temperature"
+            || opt_key == "nozzle_temperature"
             || opt_key == "enable_wipe_tower"
             || opt_key == "wipe_tower_width"
             || opt_key == "wipe_tower_brim_width"
@@ -200,7 +199,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "max_layer_height"
             || opt_key == "resolution"
             //BBS: when enable arc fitting, we must re-generate perimeter
-            || opt_key == "enable_arc_fitting") {
+            || opt_key == "enable_arc_fitting"
+            || opt_key == "wall_infill_order") {
             osteps.emplace_back(posPerimeters);
             osteps.emplace_back(posInfill);
             osteps.emplace_back(posSupportMaterial);
@@ -543,7 +543,7 @@ std::string Print::validate(std::string* warning) const
     if (extruders.empty())
         return L("The supplied settings will cause an empty print.");
 
-    if (m_config.complete_objects) {
+    if (m_config.print_sequence == PrintSequence::ByObject) {
         std::string ret = sequential_print_clearance_valid(*this);
     	if (!ret.empty())
             return L(ret);
@@ -561,9 +561,9 @@ std::string Print::validate(std::string* warning) const
         for (const PrintObject *object : m_objects)
             total_copies_count += object->instances().size();
         // #4043
-        if (total_copies_count > 1 && ! m_config.complete_objects.value)
+        if (total_copies_count > 1 && m_config.print_sequence != PrintSequence::ByObject)
             return L("Only a single object may be printed at a time in Spiral Vase mode. "
-                     "Either remove all but the last object, or enable sequential mode by \"complete_objects\".");
+                     "Either remove all but the last object, or enable by object mode by \"print_sequence\".");
         assert(m_objects.size() == 1);
         if (m_objects.front()->all_regions().size() > 1)
             return L("The Spiral Vase option can only be used when printing single material objects.");
@@ -588,7 +588,7 @@ std::string Print::validate(std::string* warning) const
             return L("The Wipe Tower is currently only supported for the Marlin, RepRap/Sprinter, RepRapFirmware and Repetier G-code flavors.");
         if (m_config.ooze_prevention)
             return L("Ooze prevention is currently not supported with the wipe tower enabled.");
-        if (m_config.complete_objects && extruders.size() > 1)
+        if ((m_config.print_sequence == PrintSequence::ByObject) && extruders.size() > 1)
             return L("The Wipe Tower is currently not supported for multimaterial sequential prints.");
         
         if (m_objects.size() > 1) {
@@ -939,7 +939,7 @@ void Print::process()
         if (this->has_wipe_tower()) {
             //this->set_status(95, L("Generating wipe tower"));
             this->_make_wipe_tower();
-        } else if (! this->config().complete_objects.value) {
+        } else if (this->config().print_sequence != PrintSequence::ByObject) {
         	// Initialize the tool ordering, so it could be used by the G-code preview slider for planning tool changes and filament switches.
         	m_tool_ordering = ToolOrdering(*this, -1, false);
             if (m_tool_ordering.empty() || m_tool_ordering.last_extruder() == unsigned(-1))
@@ -970,7 +970,7 @@ void Print::process()
         std::vector<const PrintInstance*>::const_iterator 	print_object_instance_sequential_active;
         std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> layers_to_print = GCode::collect_layers_to_print(*this);
         std::vector<unsigned int> printExtruders;
-        if (this->config().complete_objects.value) {
+        if (this->config().print_sequence == PrintSequence::ByObject) {
             // Order object instances for sequential print.
             print_object_instances_ordering = sort_object_instances_by_model_order(*this);
             //        print_object_instances_ordering = sort_object_instances_by_max_z(print);

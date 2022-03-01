@@ -558,8 +558,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "extra_perimeters"
             || opt_key == "initial_layer_line_width"
             || opt_key == "inner_wall_line_width"
-            || opt_key == "infill_wall_overlap"
-            || opt_key == "external_perimeters_first") {
+            || opt_key == "infill_wall_overlap") {
             steps.emplace_back(posPerimeters);
         } else if (
                opt_key == "gap_fill_enabled"

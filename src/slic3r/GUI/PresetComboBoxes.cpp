@@ -234,8 +234,8 @@ wxString PresetComboBox::get_tooltip(const Preset& preset)
         int temperature[4] = { 0,0,0,0 };
         if (preset.config.has("nozzle_temperature_initial_layer")) //get the nozzle_temperature_initial_layer
             temperature[0] = preset.config.opt_int("nozzle_temperature_initial_layer", 0);
-        if (preset.config.has("temperature")) //get the temperature
-            temperature[1] = preset.config.opt_int("temperature", 0);
+        if (preset.config.has("nozzle_temperature")) //get the nozzle temperature
+            temperature[1] = preset.config.opt_int("nozzle_temperature", 0);
         if (preset.config.has("bed_temperature_initial_layer")) //get the bed_temperature_initial_layer
             temperature[2] = preset.config.opt_int("bed_temperature_initial_layer", 0);
         if (preset.config.has("bed_temperature")) //get the bed_temperature

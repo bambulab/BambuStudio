@@ -85,7 +85,7 @@ static double calc_max_layer_height(const PrintConfig &config, double max_object
 }
 
 // For the use case when each object is printed separately
-// (print.config().complete_objects is true).
+// (print->config().print_sequence == PrintSequence::ByObject is true).
 ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extruder, bool prime_multi_material)
 {
     if (object.layers().empty())
@@ -123,7 +123,7 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
 }
 
 // For the use case when all objects are printed at once.
-// (print.config().complete_objects is false).
+// (print->config().print_sequence == PrintSequence::ByObject is false).
 ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool prime_multi_material)
 {
     m_print_config_ptr = &print.config();
@@ -335,7 +335,7 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
             if (! layerm->perimeters.entities.empty()) {
                 bool something_nonoverriddable = true;
 
-                if (m_print_config_ptr) { // in this case complete_objects is false (see ToolOrdering constructors)
+                if (m_print_config_ptr) { // in this case print->config().print_sequence != PrintSequence::ByObject (see ToolOrdering constructors)
                     something_nonoverriddable = false;
                     for (const auto& eec : layerm->perimeters.entities) // let's check if there are nonoverriddable entities
                         if (!layer_tools.wiping_extrusions().is_overriddable_and_mark(dynamic_cast<const ExtrusionEntityCollection&>(*eec), *m_print_config_ptr, object, region))
@@ -697,7 +697,7 @@ void ToolOrdering::mark_skirt_layers(const PrintConfig &config, coordf_t max_lay
 void ToolOrdering::assign_custom_gcodes(const Print &print)
 {
 	// Only valid for non-sequential print.
-	assert(! print.config().complete_objects.value);
+	assert(print.config().print_sequence == PrintSequence::ByLayer);
 
 	const CustomGCode::Info	&custom_gcode_per_print_z = print.model().custom_gcode_per_print_z;
 	if (custom_gcode_per_print_z.gcodes.empty())
@@ -873,14 +873,17 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
                 //BBS
                 //bool wipe_into_infill_only = ! object->config().wipe_into_objects && region.config().wipe_into_infill;
                 bool wipe_into_infill_only = false;
-                if (print.config().infill_first != perimeters_done || wipe_into_infill_only) {
+                //BBS
+                bool is_infill_first = print.config().wall_infill_order == WallInfillOrder::InfillInnerOuter ||
+                                       print.config().wall_infill_order == WallInfillOrder::InfillOuterInner;
+                if (is_infill_first != perimeters_done || wipe_into_infill_only) {
                     for (const ExtrusionEntity* ee : layerm->fills.entities) {                      // iterate through all infill Collections
                         auto* fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
 
                         if (!is_overriddable(*fill, print.config(), *object, region))
                             continue;
 
-                        if (wipe_into_infill_only && ! print.config().infill_first)
+                        if (wipe_into_infill_only && ! is_infill_first)
                             // In this case we must check that the original extruder is used on this layer before the one we are overridding
                             // (and the perimeters will be finished before the infill is printed):
                             if (!lt.is_extruder_order(lt.perimeter_extruder(region), new_extruder))
@@ -948,6 +951,8 @@ void WipingExtrusions::ensure_perimeters_infills_order(const Print& print)
                 //if (!region.config().wipe_into_infill && !object->config().wipe_into_objects)
                     continue;
 
+                bool is_infill_first = print.config().wall_infill_order == WallInfillOrder::InfillInnerOuter ||
+                                           print.config().wall_infill_order == WallInfillOrder::InfillOuterInner;
                 for (const ExtrusionEntity* ee : layerm->fills.entities) {                      // iterate through all infill Collections
                     auto* fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
 
@@ -959,12 +964,13 @@ void WipingExtrusions::ensure_perimeters_infills_order(const Print& print)
                     // printed before its perimeter, or not be printed at all (in case its original extruder has
                     // not been added to LayerTools
                     // Either way, we will now force-override it with something suitable:
-                    if (print.config().infill_first
+                    //BBS
+                    if (is_infill_first
                     //BBS
                     //|| object->config().wipe_into_objects  // in this case the perimeter is overridden, so we can override by the last one safely
                     || lt.is_extruder_order(lt.perimeter_extruder(region), last_nonsoluble_extruder    // !infill_first, but perimeter is already printed when last extruder prints
                     || ! lt.has_extruder(lt.infill_extruder(region)))) // we have to force override - this could violate infill_first (FIXME)
-                        set_extruder_override(fill, copy, (print.config().infill_first ? first_nonsoluble_extruder : last_nonsoluble_extruder), num_of_copies);
+                        set_extruder_override(fill, copy, (is_infill_first ? first_nonsoluble_extruder : last_nonsoluble_extruder), num_of_copies);
                     else {
                         // In this case we can (and should) leave it to be printed normally.
                         // Force overriding would mean it gets printed before its perimeter.
@@ -975,7 +981,7 @@ void WipingExtrusions::ensure_perimeters_infills_order(const Print& print)
                 for (const ExtrusionEntity* ee : layerm->perimeters.entities) {                      // iterate through all perimeter Collections
                     auto* fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
                     if (is_overriddable(*fill, print.config(), *object, region) && ! is_entity_overridden(fill, copy))
-                        set_extruder_override(fill, copy, (print.config().infill_first ? last_nonsoluble_extruder : first_nonsoluble_extruder), num_of_copies);
+                        set_extruder_override(fill, copy, (is_infill_first ? last_nonsoluble_extruder : first_nonsoluble_extruder), num_of_copies);
                 }
             }
         }

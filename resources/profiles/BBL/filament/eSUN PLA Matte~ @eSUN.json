@@ -11,7 +11,7 @@
     "bed_temperature_initial_layer": [
         "30,0,60"
     ],
-    "temperature": [
+    "nozzle_temperature": [
         "215"
     ],
     "filament_max_volumetric_speed": [

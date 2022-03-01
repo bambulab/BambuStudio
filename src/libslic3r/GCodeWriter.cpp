@@ -82,14 +82,14 @@ std::string GCodeWriter::set_temperature(unsigned int temperature, bool wait, in
     std::string code, comment;
     if (wait && FLAVOR_IS_NOT(gcfTeacup) && FLAVOR_IS_NOT(gcfRepRapFirmware)) {
         code = "M109";
-        comment = "set temperature and wait for it to be reached";
+        comment = "set nozzle temperature and wait for it to be reached";
     } else {
         if (FLAVOR_IS(gcfRepRapFirmware)) { // M104 is deprecated on RepRapFirmware
             code = "G10";
         } else {
             code = "M104";
         }
-        comment = "set temperature";
+        comment = "set nozzle temperature";
     }
     
     std::ostringstream gcode;
@@ -350,7 +350,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
     else if (!this->will_move_z(point(2))) {
         double nominal_z = m_pos(2) - m_lifted;
         m_lifted -= (point(2) - nominal_z);
-        // In case that retract_lift == layer_height we could end up with almost zero in_m_lifted
+        // In case that z_hop == layer_height we could end up with almost zero in_m_lifted
         // and a retract could be skipped
         if (std::abs(m_lifted) < EPSILON)
             m_lifted = 0.;
@@ -489,7 +489,7 @@ std::string GCodeWriter::retract(bool before_wipe)
     double factor = before_wipe ? m_extruder->retract_before_wipe() : 1.;
     assert(factor >= 0. && factor <= 1. + EPSILON);
     return this->_retract(
-        factor * m_extruder->retract_length(),
+        factor * m_extruder->retraction_length(),
         factor * m_extruder->retract_restart_extra(),
         "retract"
     );
@@ -555,7 +555,7 @@ std::string GCodeWriter::lift(bool lazy_lift)
     double target_lift = 0;
     {
         //BBS
-        target_lift = this->config.retract_lift.get_at(m_extruder->id());
+        target_lift = this->config.z_hop.get_at(m_extruder->id());
     }
     // BBS
     if (m_lifted == 0 && m_to_lift == 0 && target_lift > 0) {

@@ -125,11 +125,11 @@ public:
     ToolOrdering() = default;
 
     // For the use case when each object is printed separately
-    // (print.config.complete_objects is true).
+    // (print->config().print_sequence == PrintSequence::ByObject is true).
     ToolOrdering(const PrintObject &object, unsigned int first_extruder, bool prime_multi_material = false);
 
     // For the use case when all objects are printed at once.
-    // (print.config.complete_objects is false).
+    // (print->config().print_sequence == PrintSequence::ByObject is false).
     ToolOrdering(const Print& print, unsigned int first_extruder, bool prime_multi_material = false);
 
     void 				clear() { m_layer_tools.clear(); }

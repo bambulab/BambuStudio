@@ -924,7 +924,7 @@ static ExPolygons outer_inner_brim_area(const Print& print, const ConstPrintObje
                 if (brimAreaMap.find(object->id()) != brimAreaMap.end())
                     expolygons_append(brim_area, brimAreaMap[object->id()]);
             }
-            if (print.config().complete_objects.value && top_level_objects_with_brim.front()->config().support_material_extruder == 0)
+            if ((print.config().print_sequence == PrintSequence::ByObject) && top_level_objects_with_brim.front()->config().support_material_extruder == 0)
                 support_material_extruder = objectWithExtruder.second;
             if (support_material_extruder == extruderNo && brimToWrite.at(object->id()).sup) {
                 if (!object->support_layers().empty()) {

@@ -11,22 +11,22 @@
     "nozzle_temperature_initial_layer": [
         "280"
     ],
-    "temperature": [
+    "nozzle_temperature": [
         "280"
     ],
     "cooling": [
         "1"
     ],
-    "fan_always_on": [
+    "reduce_fan_stop_start_freq": [
         "0"
     ],
-    "fan_below_layer_time": [
+    "fan_cooling_layer_time": [
         "4"
     ],
-    "min_print_speed": [
+    "slow_down_min_speed": [
         "20"
     ],
-    "slow_down_below_layer_time": [
+    "slow_down_layer_time": [
         "2"
     ]
 }

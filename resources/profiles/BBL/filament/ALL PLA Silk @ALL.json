@@ -14,10 +14,10 @@
     "filament_max_volumetric_speed": [
         "7.5"
     ],
-    "filament_retract_length": [
+    "filament_retraction_length": [
         "0.5"
     ],
-    "temperature": [
+    "nozzle_temperature": [
         "220"
     ],
     "bed_temperature": [

@@ -126,8 +126,8 @@ ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const Slic3r::
     //BBS: add temperature information
     if (config.has("bed_temperature")) //get the bed temperature
         ap.bed_temp = config.opt_int("bed_temperature", (ap.extrude_id - 1) * BedType::btCount);
-    if (config.has("temperature")) //get the print temperature
-        ap.print_temp = config.opt_int("temperature", ap.extrude_id - 1);
+    if (config.has("nozzle_temperature")) //get the print temperature
+        ap.print_temp = config.opt_int("nozzle_temperature", ap.extrude_id - 1);
     if (config.has("bed_temperature_initial_layer")) //get the bed_temperature_initial_layer
         ap.first_bed_temp = config.opt_int("bed_temperature_initial_layer", (ap.extrude_id - 1) * BedType::btCount);
     if (config.has("nozzle_temperature_initial_layer")) //get the nozzle_temperature_initial_layer

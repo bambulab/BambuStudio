@@ -23,10 +23,10 @@
     "extrusion_multiplier": [
         "1"
     ],
-    "fan_always_on": [
+    "reduce_fan_stop_start_freq": [
         "0"
     ],
-    "fan_below_layer_time": [
+    "fan_cooling_layer_time": [
         "60"
     ],
     "filament_colour": [
@@ -38,7 +38,7 @@
     "filament_density": [
         "0"
     ],
-    "filament_deretract_speed": [
+    "filament_deretraction_speed": [
         "30"
     ],
     "filament_diameter": [
@@ -53,25 +53,25 @@
     "filament_minimal_purge_on_wipe_tower": [
         "15"
     ],
-    "filament_retract_before_travel": [
+    "filament_retraction_minimum_travel": [
         "1"
     ],
     "filament_retract_before_wipe": [
         "70%"
     ],
-    "filament_retract_layer_change": [
+    "filament_retract_when_changing_layer": [
         "1"
     ],
-    "filament_retract_length": [
+    "filament_retraction_length": [
         "0.8"
     ],
-    "filament_retract_lift": [
+    "filament_z_hop": [
         "0.4"
     ],
     "filament_retract_restart_extra": [
         "0"
     ],
-    "filament_retract_speed": [
+    "filament_retraction_speed": [
         "30"
     ],
     "filament_settings_id": [
@@ -111,16 +111,16 @@
     "fan_min_speed": [
         "35"
     ],
-    "min_print_speed": [
+    "slow_down_min_speed": [
         "10"
     ],
-    "slow_down_below_layer_time": [
+    "slow_down_layer_time": [
         "8"
     ],
     "filament_start_gcode": [
         "; Filament gcode\n"
     ],
-    "temperature": [
+    "nozzle_temperature": [
         "200"
     ],
     "temperature_vitrification": [

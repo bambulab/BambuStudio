@@ -280,7 +280,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
 {
     bool have_perimeters = config->opt_int("wall_loops") > 0;
     for (auto el : { "extra_perimeters", "ensure_vertical_shell_thickness", "detect_thin_wall", "detect_overhang_wall",
-                    "seam_position", "external_perimeters_first", "outer_wall_line_width",
+                    "seam_position", "wall_infill_order", "outer_wall_line_width",
                     "inner_wall_speed", "small_perimeter_speed", "outer_wall_speed" })
         toggle_field(el, have_perimeters);
 
@@ -298,7 +298,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     bool has_bottom_solid_infill = config->opt_int("bottom_shell_layers") > 0;
     bool has_solid_infill 		 = has_top_solid_infill || has_bottom_solid_infill;
     // solid_infill_extruder uses the same logic as in Print::extruders()
-    for (auto el : { "top_surface_pattern", "bottom_surface_pattern", "infill_first", "solid_infill_extruder",
+    for (auto el : { "top_surface_pattern", "bottom_surface_pattern", "solid_infill_extruder",
                     "internal_solid_infill_line_width", "internal_solid_infill_speed" })
         toggle_field(el, has_solid_infill);
 
@@ -374,7 +374,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     for (auto el : { "ironing_flow", "ironing_spacing", "ironing_speed" })
     	toggle_field(el, has_ironing);
 
-    bool have_sequential_printing = config->opt_bool("complete_objects");
+    bool have_sequential_printing = (config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject);
     for (auto el : { "extruder_clearance_radius", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })
         toggle_field(el, have_sequential_printing);
 

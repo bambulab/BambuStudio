@@ -11,7 +11,7 @@
     "filament_density": [
         "1.24"
     ],
-    "temperature": [
+    "nozzle_temperature": [
         "215"
     ],
     "bed_temperature": [

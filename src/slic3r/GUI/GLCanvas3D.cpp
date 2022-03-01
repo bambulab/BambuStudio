@@ -2338,9 +2338,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         unsigned int extruders_count = (unsigned int)dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"))->values.size();
 
         bool wt = dynamic_cast<const ConfigOptionBool*>(m_config->option("enable_wipe_tower"))->value;
-        bool co = dynamic_cast<const ConfigOptionBool*>(m_config->option("complete_objects"))->value;
+        auto co = dynamic_cast<const ConfigOptionEnum<PrintSequence>*>(m_config->option<ConfigOptionEnum<PrintSequence>>("print_sequence"));
 
-        if (extruders_count > 1 && wt && !co) {
+        if (extruders_count > 1 && wt && co != nullptr && co->value != PrintSequence::ByObject) {
             for (int plate_id = 0; plate_id < n_plates; plate_id++) {
                 float x = dynamic_cast<const ConfigOptionFloats*>(m_config->option("wipe_tower_x"))->get_at(plate_id);
                 float y = dynamic_cast<const ConfigOptionFloats*>(m_config->option("wipe_tower_y"))->get_at(plate_id);
@@ -3435,7 +3435,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.set_start_position_3D_as_invalid();
         m_mouse.position = pos.cast<double>();
 
-        if (evt.Dragging() && current_printer_technology() == ptFFF && fff_print()->config().complete_objects) {
+        if (evt.Dragging() && current_printer_technology() == ptFFF && (fff_print()->config().print_sequence == PrintSequence::ByObject)) {
             switch (m_gizmos.get_current_type())
             {
             case GLGizmosManager::EType::Move:
@@ -3634,7 +3634,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 }
 
                 m_selection.translate(cur_pos - m_mouse.drag.start_position_3D);
-                if (current_printer_technology() == ptFFF && fff_print()->config().complete_objects)
+                if (current_printer_technology() == ptFFF && (fff_print()->config().print_sequence == PrintSequence::ByObject))
                     update_sequential_clearance();
                 // BBS
                 //wxGetApp().obj_manipul()->set_dirty();
@@ -4480,7 +4480,7 @@ void GLCanvas3D::mouse_up_cleanup()
 
 void GLCanvas3D::update_sequential_clearance()
 {
-    if (current_printer_technology() != ptFFF || !fff_print()->config().complete_objects)
+    if (current_printer_technology() != ptFFF || (fff_print()->config().print_sequence == PrintSequence::ByLayer))
         return;
 
     if (m_layers_editing.is_enabled() || m_gizmos.is_dragging())
@@ -4810,8 +4810,8 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
         dist_min     = 0.1f;
         postfix      = "_sla";
     } else if (ptech == ptFFF) {
-        auto co_opt = m_config->option<ConfigOptionBool>("complete_objects");
-        if (co_opt && co_opt->value) {
+        auto co_opt = m_config->option<ConfigOptionEnum<PrintSequence>>("print_sequence");
+        if (co_opt && (co_opt->value == PrintSequence::ByObject)) {
             dist_min     = float(min_object_distance(*m_config));
             postfix      = "_fff_seq_print";
             //BBS:
@@ -6910,8 +6910,8 @@ void GLCanvas3D::_render_overlays()
     if (m_layers_editing.last_object_id >= 0 && m_layers_editing.object_max_z() > 0.0f)
         m_layers_editing.render_overlay(*this);
 
-    const ConfigOptionBool* opt = dynamic_cast<const ConfigOptionBool*>(m_config->option("complete_objects"));
-    bool sequential_print = opt != nullptr && opt->value;
+    const ConfigOptionEnum<PrintSequence>* opt = dynamic_cast<const ConfigOptionEnum<PrintSequence>*>(m_config->option<ConfigOptionEnum<PrintSequence>>("print_sequence"));
+    bool sequential_print = opt != nullptr && (opt->value == PrintSequence::ByObject);
     std::vector<const ModelInstance*> sorted_instances;
     if (sequential_print) {
         for (ModelObject* model_object : m_model->objects)

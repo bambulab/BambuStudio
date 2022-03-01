@@ -572,7 +572,7 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
 
     m_filpar[idx].material = config.filament_type.get_at(idx);
     m_filpar[idx].is_soluble = config.filament_soluble.get_at(idx);
-    m_filpar[idx].temperature = config.temperature.get_at(idx);
+    m_filpar[idx].nozzle_temperature = config.nozzle_temperature.get_at(idx);
     m_filpar[idx].nozzle_temperature_initial_layer = config.nozzle_temperature_initial_layer.get_at(idx);
 
     // If this is a single extruder MM printer, we will use all the SE-specific config values.
@@ -776,7 +776,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool)
     // Ram the hot material out of the melt zone, retract the filament into the cooling tubes and let it cool.
     if (tool != (unsigned int)-1){ 			// This is not the last change.
         toolchange_Unload(writer, cleaning_box, m_filpar[m_current_tool].material,
-                          is_first_layer() ? m_filpar[tool].nozzle_temperature_initial_layer : m_filpar[tool].temperature);
+                          is_first_layer() ? m_filpar[tool].nozzle_temperature_initial_layer : m_filpar[tool].nozzle_temperature);
         toolchange_Change(writer, tool, m_filpar[tool].material); // Change the tool, set a speed override for soluble and flex materials.
         toolchange_Load(writer, cleaning_box);
         // BBS
@@ -784,7 +784,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool)
         toolchange_Wipe(writer, cleaning_box, wipe_volume);     // Wipe the newly loaded filament until the end of the assigned wipe area.
         ++ m_num_tool_changes;
     } else
-        toolchange_Unload(writer, cleaning_box, m_filpar[m_current_tool].material, m_filpar[m_current_tool].temperature);
+        toolchange_Unload(writer, cleaning_box, m_filpar[m_current_tool].material, m_filpar[m_current_tool].nozzle_temperature);
 
     m_depth_traversed += wipe_area;
 

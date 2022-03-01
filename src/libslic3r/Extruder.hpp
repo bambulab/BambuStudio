@@ -48,7 +48,7 @@ public:
     double filament_cost() const;
     double extrusion_multiplier() const;
     double retract_before_wipe() const;
-    double retract_length() const;
+    double retraction_length() const;
     double retract_lift() const;
     int    retract_speed() const;
     int    deretract_speed() const;

@@ -2162,7 +2162,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     , acc_(acc)
     //BBS: add bed_exclude_area
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
-        "printable_area", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "complete_objects", "duplicate_distance", "extruder_clearance_radius", "skirt_loops", "skirt_distance",
+        "printable_area", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "print_sequence", "duplicate_distance", "extruder_clearance_radius", "skirt_loops", "skirt_distance",
         "brim_width", "brim_object_gap", "brim_type", "nozzle_diameter", "single_extruder_multi_material",
         "enable_wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_brim_width", "wiping_volume",
         "extruder_colour", "filament_colour", "material_colour", "printable_height", "printer_model", "printer_technology",
@@ -2652,8 +2652,8 @@ void Plater::setExtruderParams(std::map<size_t, Slic3r::ExtruderParams>& extPara
         if (config.has("filament_type")) {
             matName = config.opt_string("filament_type", i);
         }
-        if (config.has("temperature")) {
-            endTemp = config.opt_int("temperature", i);
+        if (config.has("nozzle_temperature")) {
+            endTemp = config.opt_int("nozzle_temperature", i);
         }
         
         if (config.has("bed_temperature")) {
@@ -3965,7 +3965,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
             if (printer_technology == ptFFF) {
                 const Print* print = background_process.fff_print();
                 Polygons polygons;
-                if (print->config().complete_objects)
+                if (print->config().print_sequence == PrintSequence::ByObject)
                     Print::sequential_print_clearance_valid(*print, &polygons);
                 view3D->get_canvas3d()->set_sequential_print_clearance_visible(true);
                 view3D->get_canvas3d()->set_sequential_print_clearance_render_fill(true);
@@ -5505,7 +5505,7 @@ PlateBBoxData Plater::priv::generate_first_layer_bbox()
     PlateBBoxData bboxdata;
     std::vector<BBoxData>& id_bboxes = bboxdata.bbox_objs;
     BoundingBoxf bbox_all;
-    bboxdata.is_seq_print = this->background_process.m_fff_print->config().complete_objects.value;
+    bboxdata.is_seq_print = (this->background_process.m_fff_print->config().print_sequence == PrintSequence::ByObject);
     //PrintObjectPtrs objects;
     //if (this->printer_technology == ptFFF) {
     //    objects = this->background_process.m_fff_print->objects().vector();

@@ -1515,7 +1515,7 @@ PageTemperatures::PageTemperatures(ConfigWizard *parent)
     // BBS: FIXME
 #if 0
     spin_extr->SetIncrement(5.0);
-    const auto &def_extr = *print_config_def.get("temperature");
+    const auto &def_extr = *print_config_def.get("nozzle_temperature");
     spin_extr->SetRange(def_extr.min, def_extr.max);
     auto *default_extr = def_extr.get_default_value<ConfigOptionInts>();
     spin_extr->SetValue(default_extr != nullptr && default_extr->size() > 0 ? default_extr->get_at(0) : 200);
@@ -1526,7 +1526,7 @@ PageTemperatures::PageTemperatures(ConfigWizard *parent)
     auto *default_bed = def_bed.get_default_value<ConfigOptionInts>();
     spin_bed->SetValue(default_bed != nullptr && default_bed->size() > 0 ? default_bed->get_at(0) : 0);
 
-    append_text(_L("Enter the temperature needed for extruding your filament."));
+    append_text(_L("Enter the nozzle_temperature needed for extruding your filament."));
     append_text(_L("A rule of thumb is 160 to 230 °C for PLA, and 215 to 250 °C for ABS."));
 #endif
 
@@ -1559,7 +1559,7 @@ void PageTemperatures::apply_custom_config(DynamicPrintConfig &config)
     // BBS
 #if 0
     auto *opt_extr = new ConfigOptionInts(1, spin_extr->GetValue());
-    config.set_key_value("temperature", opt_extr);
+    config.set_key_value("nozzle_temperature", opt_extr);
     auto *opt_extr1st = new ConfigOptionInts(1, spin_extr->GetValue());
     config.set_key_value("nozzle_temperature_initial_layer", opt_extr1st);
     auto *opt_bed = new ConfigOptionInts(1, spin_bed->GetValue());
@@ -2793,7 +2793,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     p->load_vendors();
     //BBS: add bed exclude areas
     p->custom_config.reset(DynamicPrintConfig::new_from_defaults_keys({
-        "gcode_flavor", "printable_area", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "nozzle_diameter", "filament_diameter", "temperature", "bed_temperature",
+        "gcode_flavor", "printable_area", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "nozzle_diameter", "filament_diameter", "nozzle_temperature", "bed_temperature",
     }));
 
     p->index = new ConfigWizardIndex(this);

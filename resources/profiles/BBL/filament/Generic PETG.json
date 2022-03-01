@@ -4,13 +4,13 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pet",
-    "fan_always_on": [
+    "reduce_fan_stop_start_freq": [
         "1"
     ],
     "cooling": [
         "1"
     ],
-    "fan_below_layer_time": [
+    "fan_cooling_layer_time": [
         "20"
     ],
     "bridge_fan_speed": [
@@ -22,10 +22,10 @@
     "fan_min_speed": [
         "40"
     ],
-    "min_print_speed": [
+    "slow_down_min_speed": [
         "40"
     ],
-    "slow_down_below_layer_time": [
+    "slow_down_layer_time": [
         "8"
     ],
     "filament_start_gcode": [
