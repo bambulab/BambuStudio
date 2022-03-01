@@ -5505,7 +5505,7 @@ PlateBBoxData Plater::priv::generate_first_layer_bbox()
     PlateBBoxData bboxdata;
     std::vector<BBoxData>& id_bboxes = bboxdata.bbox_objs;
     BoundingBoxf bbox_all;
-    bool is_seq_print = this->background_process.m_fff_print->config().complete_objects.value;
+    bboxdata.is_seq_print = this->background_process.m_fff_print->config().complete_objects.value;
     //PrintObjectPtrs objects;
     //if (this->printer_technology == ptFFF) {
     //    objects = this->background_process.m_fff_print->objects().vector();
