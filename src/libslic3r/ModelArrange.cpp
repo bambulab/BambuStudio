@@ -124,12 +124,20 @@ ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const Slic3r::
     ArrangePolygon ap = get_arrange_poly(PtrWrapper{ instance });
     
     //BBS: add temperature information
-    if (config.has("bed_temperature")) //get the bed temperature
-        ap.bed_temp = config.opt_int("bed_temperature", (ap.extrude_id - 1) * BedType::btCount);
+    if (config.has("bed_temperature")) { //get the bed temperature
+        ap.bed_temp = 0;
+        for (int i = 0; i < BedType::btCount; i++)
+            ap.bed_temp += config.opt_int("bed_temperature", (ap.extrude_id - 1) * BedType::btCount + i)
+            * pow(100, BedType::btCount - i - 1);
+    }
+    if (config.has("bed_temperature_initial_layer")) { //get the bed_temperature_initial_layer
+        ap.first_bed_temp = 0;
+        for (int i = 0; i < BedType::btCount; i++)
+            ap.first_bed_temp += config.opt_int("bed_temperature_initial_layer", (ap.extrude_id - 1) * BedType::btCount + i)
+            * pow(100, BedType::btCount - i - 1);
+    }
     if (config.has("nozzle_temperature")) //get the print temperature
         ap.print_temp = config.opt_int("nozzle_temperature", ap.extrude_id - 1);
-    if (config.has("bed_temperature_initial_layer")) //get the bed_temperature_initial_layer
-        ap.first_bed_temp = config.opt_int("bed_temperature_initial_layer", (ap.extrude_id - 1) * BedType::btCount);
     if (config.has("nozzle_temperature_initial_layer")) //get the nozzle_temperature_initial_layer
         ap.first_print_temp = config.opt_int("nozzle_temperature_initial_layer", ap.extrude_id - 1);
     if (config.has("temperature_vitrification"))

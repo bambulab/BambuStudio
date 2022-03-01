@@ -773,7 +773,7 @@ static void process_arrangeable(const ArrangePolygon &arrpoly,
     //BBS: add virtual object logic
     item.is_virt_object = arrpoly.is_virt_object;
     item.is_wipe_tower = arrpoly.is_wipe_tower;
-    item.bed_temp = arrpoly.bed_temp;
+    item.bed_temp = arrpoly.first_bed_temp;
     item.print_temp = arrpoly.print_temp;
     item.vitrify_temp = arrpoly.vitrify_temp;
     item.inflation(arrpoly.inflation);
