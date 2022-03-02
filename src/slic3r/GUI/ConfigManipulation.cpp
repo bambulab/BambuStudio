@@ -181,20 +181,40 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     // BBS
-    int filament_count = wxGetApp().preset_bundle->filament_presets.size();
-    if (filament_count > 1 != config->opt_bool("enable_wipe_tower")) {
-        DynamicPrintConfig new_conf = *config;
-        new_conf.set_key_value("enable_wipe_tower", new ConfigOptionBool(filament_count > 1));
-        apply(config, &new_conf);
-    }
+    if (config->opt_bool("enable_wipe_tower") && (config->opt_bool("adaptive_layer_height") || config->opt_bool("independent_support_layer_height"))) {
+        wxString msg_text;
+        if (config->opt_bool("adaptive_layer_height") && config->opt_bool("independent_support_layer_height")) {
+            msg_text = _(L("Wipe tower does not work when Adaptive Layer Height or Independent Support Layer Height is on.\n"
+                "Which do you want to keep?\n"
+                "YES - Keep Wipe Tower\n"
+                "NO  - Keep Adaptive Layer Height and Independent Support Layer Height"));
+        }
+        else if (config->opt_bool("adaptive_layer_height")) {
+            msg_text = _(L("Wipe tower does not work when Adaptive Layer Height is on.\n"
+                "Which do you want to keep?\n"
+                "YES - Keep Wipe Tower\n"
+                "NO  - Keep Adaptive Layer Height"));
+        }
+        else {
+            msg_text = _(L("Wipe tower does not work when Independent Support Layer Height is on.\n"
+                "Which do you want to keep?\n"
+                "YES - Keep Wipe Tower\n"
+                "NO  - Keep Independent Support Layer Height"));
+        }
 
-    if (config->opt_bool("enable_wipe_tower")) {
-        DynamicPrintConfig new_conf = *config;
-        if (config->opt_bool("adaptive_layer_height"))
-            new_conf.set_key_value("adaptive_layer_height", new ConfigOptionBool(false));
+        MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxYES | wxNO);
+        auto answer = dialog.ShowModal();
 
-        if (config->opt_bool("independent_support_layer_height"))
-            new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
+        DynamicPrintConfig new_conf = *config;
+        if (answer == wxID_YES) {
+            if (config->opt_bool("adaptive_layer_height"))
+                 new_conf.set_key_value("adaptive_layer_height", new ConfigOptionBool(false));
+
+            if (config->opt_bool("independent_support_layer_height"))
+                new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
+        }
+        else
+            new_conf.set_key_value("enable_wipe_tower", new ConfigOptionBool(false));
 
         apply(config, &new_conf);
     }
@@ -388,11 +408,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
 
     bool have_avoid_crossing_perimeters = config->opt_bool("reduce_crossing_wall");
     toggle_field("max_travel_detour_distance", have_avoid_crossing_perimeters);
-
-    // BBS
-    int filament_count = wxGetApp().preset_bundle->filament_presets.size();
-    toggle_field("adaptive_layer_height", filament_count == 1);
-    toggle_field("independent_support_layer_height", filament_count == 1);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

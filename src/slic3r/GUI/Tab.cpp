@@ -1738,8 +1738,7 @@ void TabPrint::build()
 
     page = add_options_page(L("Others"), "advanced");
         optgroup = page->new_optgroup(L("Wipe tower"));
-        // BBS
-        //optgroup->append_single_option_line("enable_wipe_tower");
+        optgroup->append_single_option_line("enable_wipe_tower");
         optgroup->append_single_option_line("wipe_tower_width");
         optgroup->append_single_option_line("wiping_volume");
 

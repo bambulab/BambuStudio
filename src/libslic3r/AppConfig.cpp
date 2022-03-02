@@ -367,6 +367,8 @@ std::string AppConfig::load()
             } else if (it.key() == "presets") {
                 for (auto iter = it.value().begin(); iter != it.value().end(); iter++) {
                     if (iter.key() == "filaments") {
+                        // BBS: filament presets is now considered as project config instead of app config
+#if 0
                         int idx = 0;
                         for(auto& element: iter.value()) {
                             if (idx == 0)
@@ -375,6 +377,7 @@ std::string AppConfig::load()
                                 m_storage[it.key()]["filament_" + std::to_string(idx)] = element;
                             idx++;
                         }
+#endif
                     } else {
                         m_storage[it.key()][iter.key()] = iter.value().get<std::string>();
                     }
