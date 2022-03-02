@@ -1293,7 +1293,7 @@ public:
     void          load_from(Model & model);
     bool          is_need_backup() { return need_backup;  }
     void          set_need_backup();
-    std::shared_ptr<KeyStore> get_key_store() { return key_store; }
+    std::shared_ptr<KeyStore> get_key_store() const { return key_store; }
     void   set_key_store(std::shared_ptr<KeyStore> ks) { key_store = ks; }
 
     // Checks if any of objects is painted using the fdm support painting gizmo.

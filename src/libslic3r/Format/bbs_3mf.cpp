@@ -3152,13 +3152,9 @@ namespace Slic3r {
 
         struct ObjectData
         {
-            ModelObject* object;
+            ModelObject const * object;
+            int backup_id;
             VolumeToOffsetsMap volumes_offsets;
-
-            explicit ObjectData(ModelObject* object)
-                : object(object)
-            {
-            }
         };
 
         typedef std::vector<BuildItem> BuildItemsList;
@@ -3180,7 +3176,7 @@ namespace Slic3r {
 
         bool save_model_to_file(StoreParams& store_params);
         // add backup logic
-        bool save_object_mesh(const std::string& temp_path, ModelObject& object, int obj_id);
+        bool save_object_mesh(const std::string& temp_path, ModelObject const & object, int obj_id);
 
     private:
         //BBS: add plate data related logic
@@ -3204,8 +3200,8 @@ namespace Slic3r {
         bool _add_relationships_file_to_archive(mz_zip_archive& archive, std::vector<std::string> const & submodels = {}) const;
         bool _add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data, Export3mfProgressFn proFn = nullptr, BBLProject* project = nullptr) const;
         bool _add_key_store_to_archive(mz_zip_archive& archive, KeyStore const & store);
-        bool _add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int object_id, ModelObject& object, VolumeToOffsetsMap& volumes_offsets) const;
-        bool _add_mesh_to_object_stream(std::function<bool(std::string&, bool)> const& flush, ModelObject& object, VolumeToOffsetsMap& volumes_offsets) const;
+        bool _add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int object_id, ModelObject const & object, unsigned int backup_id, VolumeToOffsetsMap& volumes_offsets) const;
+        bool _add_mesh_to_object_stream(std::function<bool(std::string&, bool)> const& flush, ModelObject const & object, VolumeToOffsetsMap& volumes_offsets) const;
         bool _add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items) const;
         bool _add_layer_height_profile_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_layer_config_ranges_file_to_archive(mz_zip_archive& archive, Model& model);
@@ -3272,10 +3268,10 @@ namespace Slic3r {
     }
 
     // backup mesh-only
-    bool _BBS_3MF_Exporter::save_object_mesh(const std::string& temp_path, ModelObject& object, int obj_id)
+    bool _BBS_3MF_Exporter::save_object_mesh(const std::string& temp_path, ModelObject const & object, int obj_id)
     {
         m_production_ext = true;
-        Model & model = *object.get_model();
+        Model const & model = *object.get_model();
         m_key_store = model.get_key_store();
 
         mz_zip_archive archive;
@@ -3290,7 +3286,7 @@ namespace Slic3r {
         }
 
         IdToObjectDataMap objects_data;
-        objects_data.emplace(std::make_pair(obj_id, ObjectData(&object)));
+        objects_data.insert({obj_id, {&object, obj_id}});
         _add_model_file_to_archive(filename.str(), archive, model, objects_data);
 
         mz_zip_writer_finalize_archive(&archive);
@@ -3889,17 +3885,20 @@ namespace Slic3r {
             if (obj == nullptr)
                 continue;
             
-            // For backup, use backup id as object id
-            if (m_skip_static) object_id = model.get_object_backup_id(*obj);
-
             // Index of an object in the 3MF file corresponding to the 1st instance of a ModelObject.
-            IdToObjectDataMap::iterator object_it = sub_model ? objects_data.begin() : objects_data.insert({ object_id, ObjectData(obj) }).first;
+            IdToObjectDataMap::iterator object_it = objects_data.begin();
+            if (!sub_model) {
+                // For backup, use backup id as object id
+                int backup_id = const_cast<Model&>(model).get_object_backup_id(*obj);
+                if (m_skip_static) object_id = backup_id;
+                object_it = objects_data.insert({ (int) object_id, {obj, backup_id} }).first;
+            }
 
             if (write_object) {
                 // Store geometry of all ModelVolumes contained in a single ModelObject into a single 3MF indexed triangle set object.
                 // object_it->second.volumes_offsets will contain the offsets of the ModelVolumes in that single indexed triangle set.
                 // object_id will be increased to point to the 1st instance of the next ModelObject.
-                if (!_add_object_to_model_stream(context, object_it->first, *obj, object_it->second.volumes_offsets)) {
+                if (!_add_object_to_model_stream(context, object_it->first, *obj, object_it->second.backup_id, object_it->second.volumes_offsets)) {
                     add_error("Unable to add object to archive");
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add object to archive\n");
                     return false;
@@ -3916,7 +3915,7 @@ namespace Slic3r {
                 Transform3d t = instance->get_matrix();
                 // instance_id is just a 1 indexed index in build_items.
                 assert(m_skip_static || curr_id == build_items.size() + 1);
-                auto filename = boost::format(m_key_store ? "3D/Objects/%s_%d_encrypted.model" :  "3D/Objects/%s_%d.model") % obj->name % const_cast<Model&>(model).get_object_backup_id(*obj);
+                auto filename = boost::format(m_key_store ? "3D/Objects/%s_%d_encrypted.model" :  "3D/Objects/%s_%d.model") % obj->name % object_it->second.backup_id;
                 object_paths.push_back(filename.str());
                 build_items.emplace_back(m_split_model ? "/" + filename.str() : "", curr_id++, t, instance->printable);
             }
@@ -3958,7 +3957,7 @@ namespace Slic3r {
             for (ModelObject* obj : model.objects) {
                 if (obj == nullptr)
                     continue;
-                int object_id = model.get_object_backup_id(*obj);
+                int object_id = obj->get_backup_id();
                 auto & volumes_offsets = objects_data.find(object_id)->second.volumes_offsets;
                 unsigned int vertices_count = 0;
                 unsigned int triangles_count = 0;
@@ -4006,7 +4005,7 @@ namespace Slic3r {
         return true;
     }
 
-    bool _BBS_3MF_Exporter::_add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int object_id, ModelObject& object, VolumeToOffsetsMap& volumes_offsets) const
+    bool _BBS_3MF_Exporter::_add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int object_id, ModelObject const & object, unsigned int backup_id, VolumeToOffsetsMap& volumes_offsets) const
     {
         std::stringstream stream;
         reset_stream(stream);
@@ -4019,7 +4018,7 @@ namespace Slic3r {
             unsigned int instance_id = object_id + id;
             stream << "  <" << OBJECT_TAG << " id=\"" << instance_id;
             if (m_production_ext)
-                stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{(boost::uint32_t)object.get_backup_id()} << OBJECT_UUID_SUFFIX;
+                stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{(boost::uint32_t)backup_id} << OBJECT_UUID_SUFFIX;
             stream << "\" type=\"model\">\n";
 
             if (id == 0) {
@@ -4079,7 +4078,7 @@ namespace Slic3r {
     using coordinate_type_scientific = boost::spirit::karma::real_generator<float, coordinate_policy_scientific<float>>;
 #endif // EXPORT_3MF_USE_SPIRIT_KARMA_FP
 
-    bool _BBS_3MF_Exporter::_add_mesh_to_object_stream(std::function<bool(std::string &,bool)> const & flush, ModelObject& object, VolumeToOffsetsMap& volumes_offsets) const
+    bool _BBS_3MF_Exporter::_add_mesh_to_object_stream(std::function<bool(std::string &,bool)> const & flush, ModelObject const & object, VolumeToOffsetsMap& volumes_offsets) const
     {
         std::string output_buffer;
 
@@ -4699,7 +4698,7 @@ namespace Slic3r {
                         int obj_id = plate_data->objects_and_instances[j].first;
                         int inst_id = plate_data->objects_and_instances[j].second;
                         if (m_skip_static) {
-                            obj_id = inst_id = model.get_object_backup_id(*model.objects[obj_id]);
+                            obj_id = inst_id = model.objects[obj_id]->get_backup_id();
                         } else {
                             inst_id = convert_instance_id_to_resource_id(model, obj_id, inst_id);
                             obj_id = convert_instance_id_to_resource_id(model, obj_id, 0);
@@ -5023,7 +5022,7 @@ public:
             add_object_mesh(*object.first);
     }
 
-    void add_object_mesh(ModelObject& object, size_t originId = 0) {
+    void add_object_mesh(ModelObject& object) {
         for (auto& g : m_gaurd_objects) {
             if (g.first == &object) {
                 ++g.second;
@@ -5035,7 +5034,7 @@ public:
         auto o = m_temp_model.add_object(object);
         m_temp_model.set_key_store(model->get_key_store());
         int backup_id = model->get_object_backup_id(object);
-        push_task({ AddObject, (size_t) backup_id, object.get_model()->get_backup_path(), originId, o, originId == 0 ? size_t(1) : size_t(0) });
+        push_task({ AddObject, (size_t) backup_id, object.get_model()->get_backup_path(), o, 1 });
     }
 
     void remove_object_mesh(ModelObject& object) {
@@ -5045,7 +5044,7 @@ public:
     void backup_soon() {
         boost::lock_guard lock(m_mutex);
         m_other_changes_backup = true;
-        m_tasks.push_back({ Backup, 0, std::string(), ++m_task_seq });
+        m_tasks.push_back({ Backup, 0, std::string(), nullptr, ++m_task_seq });
         m_cond.notify_all();
     }
 
@@ -5108,9 +5107,11 @@ private:
         TaskType type;
         size_t id = 0;
         std::string path;
-        size_t id2 = 0;
         ModelObject* object = nullptr;
+        union {
         size_t delay = 0; // delay sequence, only last task is delayed
+        size_t sequence;
+        };
         friend bool operator==(Task const& l, Task const& r) {
             return l.type == r.type && l.id == r.id;
         }
@@ -5124,8 +5125,7 @@ private:
             std::ostringstream os;
             os << "{ type:" << type_names[type] << ", id:" << id
                << ", path:" << path
-               << ", id2:" << id2
-               << ", object:" << (object ? object->id().id : 0) << ", delay:" << delay << "}";
+               << ", object:" << (object ? object->id().id : 0) << ", extra:" << delay << "}";
             return os.str();
         }
     };
@@ -5181,9 +5181,9 @@ private:
                     break;
                 std::function<void(int)> callback;
                 boost::unique_lock lock(m_mutex);
-                if (m_task_seq != t.id2) {
+                if (m_task_seq != t.sequence) {
                     if (find(m_tasks.begin(), m_tasks.end(), Task{ Backup }) == m_tasks.end()) {
-                        t.id2 = ++m_task_seq; // may has pending tasks, retry later
+                        t.sequence = ++m_task_seq; // may has pending tasks, retry later
                         m_tasks.push_back(t);
                         m_cond.notify_all();
                     }
@@ -5253,7 +5253,7 @@ public:
             while (m_tasks.empty()) {
                 m_cond.timed_wait(lock, m_next_backup);
                 if (m_interval > 0 && boost::get_system_time() > m_next_backup) {
-                    m_tasks.push_back({ Backup, 0, std::string(), ++m_task_seq });
+                    m_tasks.push_back({ Backup, 0, std::string(), nullptr, ++m_task_seq });
                     m_next_backup += boost::posix_time::seconds(m_interval);
                 }
             }
@@ -5365,13 +5365,13 @@ void release_PlateData_list(PlateDataPtrs& plate_data_list)
 
 // backup interface
 
-void save_object_mesh(ModelObject& object, size_t originId)
+void save_object_mesh(ModelObject& object)
 {
     if (!object.get_model() || !object.get_model()->is_need_backup())
         return;
     if (object.volumes.empty() || object.instances.empty())
         return;
-    _BBS_Backup_Manager::get().add_object_mesh(object, originId);
+    _BBS_Backup_Manager::get().add_object_mesh(object);
 }
 
 void delete_object_mesh(ModelObject& object)

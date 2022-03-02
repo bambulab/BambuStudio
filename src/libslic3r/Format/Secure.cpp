@@ -433,7 +433,7 @@ namespace Slic3r {
                 if (!a.kekparams.mgfalgorithm.empty()) stream << "\" mgfalgorithm=\"" << a.kekparams.mgfalgorithm;
                 if (!a.kekparams.digestmethod.empty()) stream << "\" digestmethod=\"" << a.kekparams.digestmethod;
                 stream << "\"/>\n";
-                stream << "   <cipherdata>\n    <xenc:CipherValue>" << base64_encode(std::string("%3McF\x00\x00\x00\x0c\x00\x00\x00", 12) + a.cipherdata) << "</xenc:CipherValue>\n   </cipherdata>\n";
+                stream << "   <cipherdata>\n    <xenc:CipherValue>" << base64_encode(a.cipherdata) << "</xenc:CipherValue>\n   </cipherdata>\n";
                 stream << "  </accessright>\n";
             }
             for (auto & d : g.resourcedatas) {

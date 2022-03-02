@@ -6538,7 +6538,7 @@ void Plater::load_project(wxString const& filename2,
     update_project_dirty_from_presets();
 
     // if res is empty no data has been loaded
-    if (!res.empty() && !(strategy & LoadStrategy::Silence)) {
+    if (!res.empty() && (load_restore || !(strategy & LoadStrategy::Silence))) {
         p->set_project_filename(load_restore ? originfile : filename);
     }
 

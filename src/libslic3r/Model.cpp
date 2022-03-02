@@ -905,7 +905,7 @@ void ModelObject::assign_new_unique_ids_recursive()
 
 
 // BBS: production extension
-int ModelObject::get_backup_id() const { return m_model ? m_model->get_object_backup_id(*this) : -1; }
+int ModelObject::get_backup_id() const { return m_model ? get_model()->get_object_backup_id(*this) : -1; }
 
 ModelVolume* ModelObject::add_volume(const TriangleMesh &mesh)
 {

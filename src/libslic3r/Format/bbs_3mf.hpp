@@ -196,7 +196,7 @@ extern void release_PlateData_list(PlateDataPtrs& plate_data_list);
 
 // backup & restore project 
 
-extern void save_object_mesh(ModelObject& object, size_t originId = 0);
+extern void save_object_mesh(ModelObject& object);
 
 extern void delete_object_mesh(ModelObject& object);
 
