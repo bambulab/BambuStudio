@@ -2385,38 +2385,37 @@ const TriangleMesh& ModelVolume::get_convex_hull() const
     return *m_convex_hull.get();
 }
 
+//BBS: refine the model part names
 ModelVolumeType ModelVolume::type_from_string(const std::string &s)
 {
-    // Legacy support
-    if (s == "1")
-		return ModelVolumeType::PARAMETER_MODIFIER;
     // New type (supporting the support enforcers & blockers)
-    if (s == "ModelPart")
+    if (s == "normal_part")
 		return ModelVolumeType::MODEL_PART;
-    if (s == "NegativeVolume")
+    if (s == "negative_part")
         return ModelVolumeType::NEGATIVE_VOLUME;
-    if (s == "ParameterModifier")
+    if (s == "modifier_part")
 		return ModelVolumeType::PARAMETER_MODIFIER;
-    if (s == "SupportEnforcer")
+    if (s == "support_enforcer")
 		return ModelVolumeType::SUPPORT_ENFORCER;
-    if (s == "SupportBlocker")
+    if (s == "support_blocker")
 		return ModelVolumeType::SUPPORT_BLOCKER;
-    assert(s == "0");
+    //assert(s == "0");
     // Default value if invalud type string received.
 	return ModelVolumeType::MODEL_PART;
 }
 
+//BBS: refine the model part names
 std::string ModelVolume::type_to_string(const ModelVolumeType t)
 {
     switch (t) {
-	case ModelVolumeType::MODEL_PART:         return "ModelPart";
-    case ModelVolumeType::NEGATIVE_VOLUME:    return "NegativeVolume";
-	case ModelVolumeType::PARAMETER_MODIFIER: return "ParameterModifier";
-	case ModelVolumeType::SUPPORT_ENFORCER:   return "SupportEnforcer";
-	case ModelVolumeType::SUPPORT_BLOCKER:    return "SupportBlocker";
+	case ModelVolumeType::MODEL_PART:         return "normal_part";
+    case ModelVolumeType::NEGATIVE_VOLUME:    return "negative_part";
+	case ModelVolumeType::PARAMETER_MODIFIER: return "modifier_part";
+	case ModelVolumeType::SUPPORT_ENFORCER:   return "support_enforcer";
+	case ModelVolumeType::SUPPORT_BLOCKER:    return "support_blocker";
     default:
         assert(false);
-        return "ModelPart";
+        return "normal_part";
     }
 }
 

@@ -219,7 +219,6 @@ static constexpr const char* VOLUME_TYPE = "volume";
 static constexpr const char* PART_TYPE = "part";
 
 static constexpr const char* NAME_KEY = "name";
-static constexpr const char* MODIFIER_KEY = "modifier";
 static constexpr const char* VOLUME_TYPE_KEY = "volume_type";
 static constexpr const char* PART_TYPE_KEY = "part_type";
 static constexpr const char* MATRIX_KEY = "matrix";
@@ -543,14 +542,17 @@ namespace Slic3r {
         {
             struct VolumeMetadata
             {
+                //BBS: refine the part logic
                 unsigned int first_triangle_id;
                 unsigned int last_triangle_id;
                 MetadataList metadata;
                 RepairedMeshErrors mesh_stats;
+                ModelVolumeType part_type;
 
-                VolumeMetadata(unsigned int first_triangle_id, unsigned int last_triangle_id)
+                VolumeMetadata(unsigned int first_triangle_id, unsigned int last_triangle_id, ModelVolumeType type = ModelVolumeType::MODEL_PART)
                     : first_triangle_id(first_triangle_id)
                     , last_triangle_id(last_triangle_id)
+                    , part_type(type)
                 {
                 }
             };
@@ -1127,7 +1129,7 @@ namespace Slic3r {
                     }
 
                     // use the geometry to create the volumes in the new model objects
-                    ObjectMetadata::VolumeMetadataList volumes(1, { 0, (unsigned int)geometry->triangles.size() - 1 });
+                    ObjectMetadata::VolumeMetadataList volumes(1, { 0, (unsigned int)geometry->triangles.size() - 1});
 
                     // for each instance after the 1st, create a new model object containing only that instance
                     // and copy into it the geometry
@@ -2615,7 +2617,11 @@ namespace Slic3r {
         unsigned int first_triangle_id = (unsigned int)bbs_get_attribute_value_int(attributes, num_attributes, FIRST_TRIANGLE_ID_ATTR);
         unsigned int last_triangle_id = (unsigned int)bbs_get_attribute_value_int(attributes, num_attributes, LAST_TRIANGLE_ID_ATTR);
 
-        object->second.volumes.emplace_back(first_triangle_id, last_triangle_id);
+        //BBS: refine the part type logic
+        std::string subtype_str = bbs_get_attribute_value_string(attributes, num_attributes, SUBTYPE_ATTR);
+        ModelVolumeType type = ModelVolume::type_from_string(subtype_str);
+
+        object->second.volumes.emplace_back(first_triangle_id, last_triangle_id, type);
         return true;
     }
 
@@ -3041,13 +3047,16 @@ namespace Slic3r {
             volume->seam_facets.shrink_to_fit();
             volume->mmu_segmentation_facets.shrink_to_fit();
 
+            volume->set_type(volume_data.part_type);
+
             // apply the remaining volume's metadata
             for (const Metadata& metadata : volume_data.metadata) {
                 if (metadata.key == NAME_KEY)
                     volume->name = metadata.value;
-                else if ((metadata.key == MODIFIER_KEY) && (metadata.value == "1"))
-					volume->set_type(ModelVolumeType::PARAMETER_MODIFIER);
-                else if (metadata.key == VOLUME_TYPE_KEY)
+                //else if ((metadata.key == MODIFIER_KEY) && (metadata.value == "1"))
+				//	volume->set_type(ModelVolumeType::PARAMETER_MODIFIER);
+				//for old format
+                else if ((metadata.key == VOLUME_TYPE_KEY) || (metadata.key == PART_TYPE_KEY))
                     volume->set_type(ModelVolume::type_from_string(metadata.value));
                 else if (metadata.key == SOURCE_FILE_KEY)
                     volume->source.input_file = metadata.value;
@@ -3443,7 +3452,7 @@ namespace Slic3r {
         }*/
 
         //BBS progress point
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_LAYER_RANGE\n");
+        /*BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_LAYER_RANGE\n");
         if (proFn) {
             proFn(EXPORT_STAGE_ADD_LAYER_RANGE, 0, 1, cb_cancel);
             if (cb_cancel)
@@ -3455,10 +3464,10 @@ namespace Slic3r {
         // The index differes from the index of an object ID of an object instance of a 3MF file!
         if (!_add_layer_config_ranges_file_to_archive(archive, model)) {
             return false;
-        }
+        }*/
 
         //BBS progress point
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_SUPPORT\n");
+        /*BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_SUPPORT\n");
         if (proFn) {
             proFn(EXPORT_STAGE_ADD_SUPPORT, 0, 1, cb_cancel);
             if (cb_cancel)
@@ -3474,7 +3483,7 @@ namespace Slic3r {
         
         if (!_add_sla_drain_holes_file_to_archive(archive, model)) {
             return false;
-        }
+        }*/
 
         //BBS progress point
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("export 3mf EXPORT_STAGE_ADD_CUSTOM_GCODE\n");
@@ -4587,29 +4596,12 @@ namespace Slic3r {
                         VolumeToOffsetsMap::const_iterator it = offsets.find(volume);
                         if (it != offsets.end()) {
                             // stores volume's offsets
-                            stream << "    <" << VOLUME_TAG << " ";
+                            stream << "    <" << PART_TAG << " ";
                             stream << FIRST_TRIANGLE_ID_ATTR << "=\"" << it->second.first_triangle_id << "\" ";
-                            stream << LAST_TRIANGLE_ID_ATTR << "=\"" << it->second.last_triangle_id << "\">\n";
+                            stream << LAST_TRIANGLE_ID_ATTR << "=\"" << it->second.last_triangle_id << "\" ";
 
-                            // stores volume's id and subtype
-                            /*std::string subtype;
-                            switch (volume->type())
-                            {
-                            case ModelVolumeType::MODEL_PART:
-                            default:
-                                subtype = "normal";
-                                break;
-                            case ModelVolumeType::PARAMETER_MODIFIER:
-                                subtype = "modifier";
-                                break;
-                            case ModelVolumeType::SUPPORT_BLOCKER:
-                                subtype = "support_blocker";
-                                break;
-                            case ModelVolumeType::SUPPORT_ENFORCER:
-                                subtype = "support_enforcer";
-                                break;
-                            }
-                            stream << "    <" << PART_TAG << " " << ID_ATTR << "=\"" << it->second << "\" " << SUBTYPE_ATTR << "=\"" << subtype << "\">\n";*/
+                            stream << SUBTYPE_ATTR << "=\"" << ModelVolume::type_to_string(volume->type()) << "\">\n";
+                            //stream << "    <" << PART_TAG << " " << ID_ATTR << "=\"" << it->second << "\" " << SUBTYPE_ATTR << "=\"" << ModelVolume::type_to_string(volume->type()) << "\">\n";
 
                             // stores volume's name
                             if (!volume->name.empty())
@@ -4617,11 +4609,11 @@ namespace Slic3r {
                                 //stream << "      <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << NAME_KEY << "\" " << VALUE_ATTR << "=\"" << xml_escape(volume->name) << "\"/>\n";
 
                             // stores volume's modifier field (legacy, to support old slicers)
-                            if (volume->is_modifier())
+                            /*if (volume->is_modifier())
                                 stream << "      <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << PART_TYPE << "\" " << KEY_ATTR << "=\"" << MODIFIER_KEY << "\" " << VALUE_ATTR << "=\"1\"/>\n";
                             // stores volume's type (overrides the modifier field above)
                             stream << "      <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << PART_TYPE << "\" " << KEY_ATTR << "=\"" << PART_TYPE_KEY << "\" " <<
-                                VALUE_ATTR << "=\"" << ModelVolume::type_to_string(volume->type()) << "\"/>\n";
+                                VALUE_ATTR << "=\"" << ModelVolume::type_to_string(volume->type()) << "\"/>\n";*/
 
                             // stores volume's local matrix
                             stream << "      <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << PART_TYPE << "\" " << KEY_ATTR << "=\"" << MATRIX_KEY << "\" " << VALUE_ATTR << "=\"";
@@ -4657,24 +4649,24 @@ namespace Slic3r {
 
                             // stores volume's config data
                             for (const std::string& key : volume->config.keys()) {
-                                stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << PART_TYPE << "\" " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << volume->config.opt_serialize(key) << "\"/>\n";
+                                stream << "      <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << PART_TYPE << "\" " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << volume->config.opt_serialize(key) << "\"/>\n";
                             }
 
                             // stores mesh's statistics
                             const RepairedMeshErrors& stats = volume->mesh().stats().repaired_errors;
-                            stream << "   <" << MESH_TAG << " ";
+                            stream << "      <" << MESH_TAG << " ";
                             stream << MESH_STAT_EDGES_FIXED        << "=\"" << stats.edges_fixed        << "\" ";
                             stream << MESH_STAT_DEGENERATED_FACETS << "=\"" << stats.degenerate_facets  << "\" ";
                             stream << MESH_STAT_FACETS_REMOVED     << "=\"" << stats.facets_removed     << "\" ";
                             stream << MESH_STAT_FACETS_RESERVED    << "=\"" << stats.facets_reversed    << "\" ";
                             stream << MESH_STAT_BACKWARDS_EDGES    << "=\"" << stats.backwards_edges    << "\"/>\n";
 
-                            stream << "  </" << VOLUME_TAG << ">\n";
+                            stream << "    </" << PART_TAG << ">\n";
                         }
                     }
                 }
 
-                stream << " </" << OBJECT_TAG << ">\n";
+                stream << "  </" << OBJECT_TAG << ">\n";
             }
         }
 
