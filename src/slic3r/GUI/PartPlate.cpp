@@ -53,7 +53,7 @@ namespace GUI {
 
 class Bed3D;
 
-std::array<float, 4> PartPlate::SELECT_COLOR		= { 0.765f, 0.765f, 0.765f, 1.0f };
+std::array<float, 4> PartPlate::SELECT_COLOR		= { 0.367f, 0.367f, 0.367f, 1.0f };
 std::array<float, 4> PartPlate::UNSELECT_COLOR		= { 0.765f, 0.765f, 0.765f, 1.0f };
 std::array<float, 4> PartPlate::DEFAULT_COLOR		= { 0.5f, 0.5f, 0.5f, 1.0f };
 std::array<float, 4> PartPlate::LINE_TOP_COLOR		= { 0.6f, 0.6f, 0.6f, 0.6f };

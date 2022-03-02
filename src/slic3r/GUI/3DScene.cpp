@@ -349,6 +349,7 @@ std::array<float, 4> GLVolume::DISABLED_COLOR    = { 0.25f, 0.25f, 0.25f, 1.0f }
 std::array<float, 4> GLVolume::SLA_SUPPORT_COLOR = { 0.75f, 0.75f, 0.75f, 1.0f };
 std::array<float, 4> GLVolume::SLA_PAD_COLOR     = { 0.0f, 0.2f, 0.0f, 1.0f };
 std::array<float, 4> GLVolume::NEUTRAL_COLOR     = { 0.9f, 0.9f, 0.9f, 1.0f };
+std::array<float, 4> GLVolume::UNPRINTABLE_COLOR = { 0.0f, 0.0f, 0.0f, 0.5f };
 
 std::array<std::array<float, 4>, 5> GLVolume::MODEL_COLOR = { {
     { 1.0f, 1.0f, 0.0f, 1.f },
@@ -366,6 +367,7 @@ void GLVolume::update_render_colors()
     GLVolume::MODEL_COLOR[1]    = GLColor(RenderColor::colors[RenderCol_Negtive_Volume]);
     GLVolume::MODEL_COLOR[2]    = GLColor(RenderColor::colors[RenderCol_Support_Enforcer]);
     GLVolume::MODEL_COLOR[3]    = GLColor(RenderColor::colors[RenderCol_Support_Blocker]);
+    GLVolume::UNPRINTABLE_COLOR = GLColor(RenderColor::colors[RenderCol_Model_Unprintable]);
 
 }
 
@@ -377,7 +379,7 @@ void GLVolume::load_render_colors()
     RenderColor::colors[RenderCol_Negtive_Volume]   = IMColor(GLVolume::MODEL_COLOR[1]);
     RenderColor::colors[RenderCol_Support_Enforcer] = IMColor(GLVolume::MODEL_COLOR[2]);
     RenderColor::colors[RenderCol_Support_Blocker]  = IMColor(GLVolume::MODEL_COLOR[3]);
-
+    RenderColor::colors[RenderCol_Model_Unprintable]= IMColor(GLVolume::UNPRINTABLE_COLOR);
 }
 
 GLVolume::GLVolume(float r, float g, float b, float a)
@@ -470,10 +472,10 @@ void GLVolume::set_render_color()
 
     //BBS set unprintable color
     if (!printable) {
-        render_color[0] = RenderColor::colors[RenderCol_Model_Unprintable].x;
-        render_color[1] = RenderColor::colors[RenderCol_Model_Unprintable].y;
-        render_color[2] = RenderColor::colors[RenderCol_Model_Unprintable].z;
-        render_color[3] = RenderColor::colors[RenderCol_Model_Unprintable].w;
+        render_color[0] = UNPRINTABLE_COLOR[0];
+        render_color[1] = UNPRINTABLE_COLOR[1];
+        render_color[2] = UNPRINTABLE_COLOR[2];
+        render_color[3] = UNPRINTABLE_COLOR[3];
     }
 }
 

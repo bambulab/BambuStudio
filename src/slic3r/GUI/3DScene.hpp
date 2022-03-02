@@ -252,15 +252,11 @@ class GLVolume {
 public:
     std::string name;
 
-    static std::array<float, 4> SELECTED_COLOR;
-    static std::array<float, 4> HOVER_SELECT_COLOR;
-    static std::array<float, 4> HOVER_DESELECT_COLOR;
-    static std::array<float, 4> OUTSIDE_COLOR;
-    static std::array<float, 4> SELECTED_OUTSIDE_COLOR;
     static std::array<float, 4> DISABLED_COLOR;
     static std::array<float, 4> SLA_SUPPORT_COLOR;
     static std::array<float, 4> SLA_PAD_COLOR;
     static std::array<float, 4> NEUTRAL_COLOR;
+    static std::array<float, 4> UNPRINTABLE_COLOR;
     static std::array<std::array<float, 4>, 5> MODEL_COLOR;
 
     static void update_render_colors();
