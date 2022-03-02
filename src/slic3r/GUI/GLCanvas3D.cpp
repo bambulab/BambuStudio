@@ -7287,10 +7287,12 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar() const
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.42f, 0.42f, 0.42f, 1.0f));
 
         if (ImGui::ImageButton2(item->texture_id, size, uv0, uv1, frame_padding, bg_col, tint_col, margin)) {
-            // begin to slicing plate
-            wxCommandEvent* evt = new wxCommandEvent(EVT_GLTOOLBAR_SELECT_SLICED_PLATE);
-            evt->SetInt(i);
-            wxQueueEvent(wxGetApp().plater(), evt);
+            if (m_process && m_process->idle()) {
+                // begin to slicing plate
+                wxCommandEvent* evt = new wxCommandEvent(EVT_GLTOOLBAR_SELECT_SLICED_PLATE);
+                evt->SetInt(i);
+                wxQueueEvent(wxGetApp().plater(), evt);
+            }
         }
 
         if (item->selected)
