@@ -167,18 +167,28 @@ private:
     void init_model();
     void init_bind();
     void init_timer();
+
+    int             m_print_plate_idx;
+    Plater*         m_plater { nullptr };
+
 public:
-    SelectMachineDialog(Plater* plater = nullptr, int print_plate_idx = 0);
+    SelectMachineDialog(Plater* plater = nullptr);
     ~SelectMachineDialog();
+
+    void prepare(int print_plate_idx) {
+        m_print_plate_idx = print_plate_idx;
+        reset();
+    }
+    bool Show(bool show);
+    void reset();
 
     /* model */
     wxObjectDataPtr<MachineListModel> machine_model;
     wxString        machine_sn;
     wxString        current_dev_id;
-    Plater*         m_plater;
+
     std::shared_ptr<BBLStatusBar> m_status_bar;
     bool            m_export_3mf_cancel{ false };
-    int             m_print_plate_idx;
 
 protected:
     wxDataViewCtrl* m_dataViewListCtrl_machines;

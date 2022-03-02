@@ -149,6 +149,8 @@ wxDEFINE_EVENT(EVT_IMPORT_MODEL_ID,                 wxCommandEvent);
 wxDEFINE_EVENT(EVT_DOWNLOAD_PROJECT,                wxCommandEvent);
 // BBS: backup & restore
 wxDEFINE_EVENT(EVT_RESTORE_PROJECT,                 wxCommandEvent);
+wxDEFINE_EVENT(EVT_PRINT_FINISHED,                  wxCommandEvent);
+
 
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
 {
@@ -1593,8 +1595,6 @@ void Sidebar::update_ui_from_settings()
 {
     // BBS
     //p->object_manipulation->update_ui_from_settings();
-    p->plater->show_object_info();
-    p->plater->update_sliced_info();
     // update Cut gizmo, if it's open
     p->plater->canvas3D()->update_gizmos_on_off_state();
     p->plater->set_current_canvas_as_dirty();
@@ -1666,6 +1666,8 @@ struct Plater::priv
 
     // BBS
     //std::shared_ptr<BBLStatusBar> m_statusbar;
+
+    std::shared_ptr<SelectMachineDialog> m_select_machine_dlg;
 
     // Data
     Slic3r::DynamicPrintConfig *config;        // FIXME: leak?
@@ -1856,13 +1858,10 @@ struct Plater::priv
     void reset_canvas_volumes();
 
     // BBS
-    //bool init_view_toolbar();
     bool init_collapse_toolbar();
 
     // BBS
-    void show_object_info();
-    void show_sliced_info(const bool show);
-    void update_sliced_info();
+    void hide_select_machine_dlg() { m_select_machine_dlg->EndModal(wxID_OK); }
 
     void update_preview_bottom_toolbar();
     void update_preview_moves_slider();
@@ -2187,6 +2186,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     , partplate_list(this->q, &model)
     // BBS hide status bar
     //, m_statusbar(std::make_shared<BBLStatusBar>(q))
+    , m_select_machine_dlg(std::make_shared<SelectMachineDialog>(q))
 {
     this->q->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
@@ -2243,21 +2243,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
 
     update();
 
-    // BBS
-    wxPanel* statusbar_panel = nullptr;
-    //m_statusbar = std::make_shared<BBLStatusBar>(q);
-    //BBS
-    //m_statusbar->set_font(GUI::wxGetApp().normal_font());
-    /*if (wxGetApp().is_editor()) {
-        statusbar_panel = m_statusbar->get_panel();
-    }*/
-
-    //BBS remove this tips
-    /* m_statusbar->set_status_text(_L("Version") + " " +
-        SLIC3R_VERSION + " - " +
-        _L("Remember to check for updates"));
-    */
-
     auto* hsizer = new wxBoxSizer(wxHORIZONTAL);
     auto* vsizer = new wxBoxSizer(wxVERTICAL);
 
@@ -2268,7 +2253,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     panel_sizer->Add(preview, 1, wxEXPAND | wxALL, 0);
     panel_sizer->Add(assemble_view, 1, wxEXPAND | wxALL, 0);
     vsizer->Add(panel_sizer, 1, wxEXPAND | wxALL, 0);
-    //vsizer->Add(statusbar_panel, 0, wxEXPAND | wxALL, 0);
     hsizer->Add(vsizer, 1, wxEXPAND | wxALL, 0);
 
     
@@ -2418,6 +2402,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
         q->Bind(EVT_GLCANVAS_PLATE_SELECT, &priv::on_plate_selected, this);
         q->Bind(EVT_DOWNLOAD_PROJECT, &priv::on_action_download_project, this);
         q->Bind(EVT_IMPORT_MODEL_ID, &priv::on_action_request_model_id, this);
+        q->Bind(EVT_PRINT_FINISHED, [q](wxCommandEvent &evt) { q->print_job_finished(evt); });
         //q->Bind(EVT_GLVIEWTOOLBAR_ASSEMBLE, [q](SimpleEvent&) { q->select_view_3D("Assemble"); });
     }
 
@@ -3692,10 +3677,6 @@ void Plater::priv::delete_all_objects_from_model()
     sidebar->obj_list()->delete_all_objects_from_list();
     object_list_changed();
 
-    // BBS
-    // The hiding of the slicing results, if shown, is not taken care by the background process, so we do it here
-    show_sliced_info(false);
-
     model.custom_gcode_per_print_z.gcodes.clear();
 }
 
@@ -3731,10 +3712,6 @@ void Plater::priv::reset()
         sidebar->obj_list()->delete_all_objects_from_list();
         object_list_changed();
     }
-
-    // BBS
-    // The hiding of the slicing results, if shown, is not taken care by the background process, so we do it here
-    show_sliced_info(false);
 
     // BBS reset project
     acc_->reset_project();
@@ -3933,10 +3910,6 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         view3D->get_canvas3d()->reset_sequential_print_clearance();
 
     if (invalidated == Print::APPLY_STATUS_INVALIDATED) {
-        // BBS
-        // Some previously calculated data on the Print was invalidated.
-        // Hide the slicing results, as the current slicing status is no more valid.
-        this->show_sliced_info(false);
         //BBS: update current plater's slicer result to invalid
         this->background_process.get_current_plate()->update_slice_result_valid_state(false);
         //no need, should be done in background_process.apply
@@ -5109,10 +5082,6 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     //BBS: update the action button according to the current plate's status
     bool ready_to_slice = !this->partplate_list.get_curr_plate()->is_slice_result_valid();
 
-    if ((!ready_to_slice)&& is_finished)
-        // BBS
-        this->show_sliced_info(evt.success());
-
     // BBS
 #if 0
     this->sidebar->show_sliced_info_sizer(evt.success());
@@ -5271,9 +5240,10 @@ void Plater::priv::on_action_print_plate(SimpleEvent&)
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received print plate event\n" ;
     }
+
     //BBS
-    SelectMachineDialog dlg(q, PLATE_CURRENT_IDX);
-    dlg.ShowModal();
+    m_select_machine_dlg->prepare(PLATE_CURRENT_IDX);
+    m_select_machine_dlg->ShowModal();
 }
 
 void Plater::priv::on_action_select_sliced_plate(wxCommandEvent &evt)
@@ -5290,8 +5260,8 @@ void Plater::priv::on_action_print_all(SimpleEvent&)
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received print all event\n" ;
     }
     //BBS
-    SelectMachineDialog dlg(q, PLATE_ALL_IDX);
-    dlg.ShowModal();
+    m_select_machine_dlg->prepare(PLATE_ALL_IDX);
+    m_select_machine_dlg->ShowModal();
 }
 
 void Plater::priv::on_action_export_gcode(SimpleEvent&)
@@ -5645,6 +5615,10 @@ void Plater::get_print_job_data(PrintPrepareData* data)
         data->_3mf_path = p->m_print_job_data._3mf_path;
     }
 }
+int Plater::get_print_finished_event()
+{
+    return EVT_PRINT_FINISHED;
+}
 
 void Plater::priv::set_current_canvas_as_dirty()
 {
@@ -5689,64 +5663,6 @@ void Plater::priv::reset_canvas_volumes()
     if (preview != nullptr)
         preview->get_canvas3d()->reset_volumes();
 }
-
-#if 0
-bool Plater::priv::init_view_toolbar()
-{
-    if (wxGetApp().is_gcode_viewer())
-        return true;
-
-    if (view_toolbar.get_items_count() > 0)
-        // already initialized
-        return true;
-
-    BackgroundTexture::Metadata background_data;
-    background_data.filename = "toolbar_background.png";
-    background_data.left = 16;
-    background_data.top = 16;
-    background_data.right = 16;
-    background_data.bottom = 16;
-
-    if (!view_toolbar.init(background_data))
-        return false;
-
-    view_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Left);
-    view_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Bottom);
-    view_toolbar.set_border(5.0f);
-    view_toolbar.set_gap_size(1.0f);
-
-    GLToolbarItem::Data item;
-
-    item.name = "3D";
-    item.icon_filename = "editor.svg";
-    item.tooltip = _utf8(L("3D editor view")) + " [" + GUI::shortkey_ctrl_prefix() + "5]";
-    item.sprite_id = 0;
-    item.left.action_callback = [this]() { if (this->q != nullptr) wxPostEvent(this->q, SimpleEvent(EVT_GLVIEWTOOLBAR_3D)); };
-    if (!view_toolbar.add_item(item))
-        return false;
-
-    item.name = "Preview";
-    item.icon_filename = "preview.svg";
-    item.tooltip = _utf8(L("Preview")) + " [" + GUI::shortkey_ctrl_prefix() + "6]";
-    item.sprite_id = 1;
-    item.left.action_callback = [this]() { if (this->q != nullptr) wxPostEvent(this->q, SimpleEvent(EVT_GLVIEWTOOLBAR_PREVIEW)); };
-    if (!view_toolbar.add_item(item))
-        return false;
-
-    item.name = "Assemble";
-    item.icon_filename = "assemble.svg";
-    item.tooltip = _utf8(L("Assemble")) + " [" + GUI::shortkey_ctrl_prefix() + "7]";
-    item.sprite_id = 2;
-    item.left.action_callback = [this]() { if (this->q != nullptr) wxPostEvent(this->q, SimpleEvent(EVT_GLVIEWTOOLBAR_ASSEMBLE)); };
-    if (!view_toolbar.add_item(item))
-        return false;
-
-    view_toolbar.select_item("3D");
-    view_toolbar.set_enabled(true);
-
-    return true;
-}
-#endif
 
 bool Plater::priv::init_collapse_toolbar()
 {
@@ -6959,22 +6875,6 @@ wxString Plater::get_project_name()
     return p->get_project_name();
 }
 
-//BBS
-void Plater::show_object_info()
-{
-    p->show_object_info();
-}
-
-void Plater::show_sliced_info(const bool show)
-{
-    p->show_sliced_info(show);
-}
-
-void Plater::update_sliced_info()
-{
-    p->update_sliced_info();
-}
-
 void Plater::update_platplate_thumbnails()
 {
     for (int i = 0; i < get_partplate_list().get_plate_count(); i++)
@@ -7318,63 +7218,6 @@ void ProjectDropDialog::on_dpi_changed(const wxRect& suggested_rect)
     Fit();
     Refresh();
 }
-
-// BBS
-void Plater::priv::show_object_info()
-{
-    // BBS
-    if (!q->is_single_full_object_selection() ||
-        q->model().objects.empty()) {
-        //BBS
-        //m_statusbar->set_object_info("");
-        return;
-    }
-
-    int obj_idx = q->get_selected_object_idx();
-
-    const ModelObject* model_object = q->model().objects[obj_idx];
-    // hack to avoid crash when deleting the last object on the bed
-    if (model_object->volumes.empty())
-    {
-        //BBS
-        //m_statusbar->set_object_info("");
-        return;
-    }
-
-    //BBS display object_info
-    /*
-    wxString object_info;
-    bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
-    double koef = imperial_units ? ObjectManipulation::mm_to_in : 1.0f;
-
-    auto size = model_object->bounding_box().size();
-    object_info += wxString::Format("Size: %.2f x %.2f x %.2f   ", size(0) * koef, size(1) * koef, size(2) * koef);
-    //object_info += wxString::Format("Material: %d   ", static_cast<int>(model_object->materials_count()));
-    const auto& stats = model_object->get_object_stl_stats();//model_object->volumes.front()->mesh.stl.stats;
-    object_info += wxString::Format("Volume: %.2f", stats.volume * pow(koef, 3));
-    //object_info += wxString::Format(_L("%d (%d shells)"), static_cast<int>(model_object->facets_count()), stats.number_of_parts);
-
-    //int errors = stats.degenerate_facets + stats.edges_fixed + stats.facets_removed +
-    //    stats.facets_added + stats.facets_reversed + stats.backwards_edges;
-
-    //object_info += errors > 0 ? _L("No") : _L("Yes");
-
-    //m_statusbar->set_object_info(object_info);
-    */
-}
-
-void Plater::priv::update_sliced_info()
-{
-    //BBS do not update sliced info in m_statusbar
-    return;
-}
-
-void Plater::priv::show_sliced_info(const bool show)
-{
-    //BBS do not show sliced info in m_statusbar
-    return;
-}
-
 
 bool Plater::load_files(const wxArrayString& filenames)
 {
@@ -8661,10 +8504,12 @@ void Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
     */
 }
 
-
 //BBS
-void Plater::print_job_finished()
+void Plater::print_job_finished(wxCommandEvent &evt)
 {
+    Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
+    c->set_monitor_machine(evt.GetString().ToStdString());
+    p->hide_select_machine_dlg();
     p->main_frame->request_select_tab(MainFrame::TabPosition::tpMonitor);
 }
 
@@ -8790,7 +8635,6 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             this->set_printer_technology(config.opt_enum<PrinterTechnology>(opt_key));
             // print technology is changed, so we should to update a search list
             p->sidebar->update_searcher();
-            p->show_sliced_info(false);
             p->reset_gcode_toolpaths();
             p->view3D->get_canvas3d()->reset_sequential_print_clearance();
             //BBS: invalid all the slice results
@@ -9340,7 +9184,6 @@ int Plater::select_plate(int plate_index, bool need_slice)
                 if (invalidated & PrintBase::APPLY_STATUS_INVALIDATED)
                 {
                     part_plate->update_slice_result_valid_state(false);
-                    p->show_sliced_info(false);
                     // BBS
                     //p->show_action_buttons(true);
                     p->ready_to_slice = true;
@@ -9348,7 +9191,6 @@ int Plater::select_plate(int plate_index, bool need_slice)
                 }
                 else
                 {
-                    p->show_sliced_info(true);
                     // BBS
                     //p->show_action_buttons(false);
                     p->ready_to_slice = false;
@@ -9370,8 +9212,6 @@ int Plater::select_plate(int plate_index, bool need_slice)
             }
             else
             {
-                // BBS
-                p->show_sliced_info(false);
                 //check inside status
                 bool model_fits = p->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
                 //BBS: add partplate logic
@@ -9454,7 +9294,6 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
                 {
                     part_plate->update_slice_result_valid_state(false);
 
-                    p->show_sliced_info(false);
                     // BBS
                     //p->show_action_buttons(true);
                     p->ready_to_slice = true;
@@ -9462,7 +9301,6 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
                 }
                 else
                 {
-                    p->show_sliced_info(true);
                     // BBS
                     //p->show_action_buttons(false);
                     p->ready_to_slice = false;
@@ -9473,8 +9311,6 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
             }
             else
             {
-                // BBS
-                p->show_sliced_info(false);
                 //check inside status
                 bool model_fits = p->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
                 //BBS: add partplate logic

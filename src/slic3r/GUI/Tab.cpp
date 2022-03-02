@@ -4537,7 +4537,6 @@ void TabSLAMaterial::build()
 
         // BBS
         // Change of any from those options influences for an update of "Sliced Info"
-        wxGetApp().plater()->update_sliced_info();
         //wxGetApp().sidebar().Layout();
     };
 

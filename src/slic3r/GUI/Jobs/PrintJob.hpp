@@ -24,6 +24,7 @@ class PrintJob : public PlaterJob
     PrintPrepareData    job_data;
     std::string         m_dev_id;
     bool                m_job_finished{ false };
+    int                 m_print_job_completed_id = 0;
 
 protected:
 
@@ -31,10 +32,7 @@ protected:
 
     void on_exception(const std::exception_ptr &) override;
 public:
-    PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater, std::string dev_id = "")
-        : PlaterJob{std::move(pri), plater},
-        m_dev_id(dev_id)
-    {}
+    PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater, std::string dev_id = "");
 
     int status_range() const override
     {
@@ -42,6 +40,7 @@ public:
     }
 
     bool is_finished() { return m_job_finished;  }
+    void set_print_job_finished_event(int event_id) { m_print_job_completed_id = event_id; }
 
     void process() override;
     void finalize() override;

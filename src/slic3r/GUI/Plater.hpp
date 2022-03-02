@@ -143,9 +143,6 @@ public:
     wxButton*               get_wiping_dialog_button();
 
     // BBS
-    //void                    show_object_info();
-    //void                    show_sliced_info(const bool show);
-    //void                    update_sliced_info();
     void                    enable_buttons(bool enable);
     void                    set_btn_label(const ActionButtonType btn_type, const wxString& label) const;
     bool                    show_reslice(bool show) const;
@@ -226,9 +223,6 @@ public:
 
     // BBS
     wxString get_project_name();
-    void show_object_info();
-    void show_sliced_info(const bool show);
-    void update_sliced_info();
     void update_platplate_thumbnails();
     //BBS static functions that update extruder params and speed table
     static void setPrintSpeedTable(Slic3r::GlobalSpeedMap& printSpeedMap);
@@ -330,7 +324,7 @@ public:
      * -2: send all gcode to target machine */
     void send_gcode(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
     //BBS jump to nonitor after print job finished
-    void print_job_finished();
+    void print_job_finished(wxCommandEvent &evt);
 	void eject_drive();
 
     void take_snapshot(const std::string &snapshot_name);
@@ -388,6 +382,7 @@ public:
     int get_prepare_state();
     //BBS: add print job releated functions
     void get_print_job_data(PrintPrepareData* data);
+    int get_print_finished_event();
 
     void set_current_canvas_as_dirty();
     void unbind_canvas_event_handlers();

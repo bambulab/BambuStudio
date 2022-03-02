@@ -462,11 +462,10 @@ void SelectMachinePopup::on_timer(wxTimerEvent& event)
     }
 }
 
-SelectMachineDialog::SelectMachineDialog(Plater* plater, int print_plate_idx)
+SelectMachineDialog::SelectMachineDialog(Plater* plater)
 	: DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("Send Task to"), wxDefaultPosition,
 	wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
     m_plater(plater),
-    m_print_plate_idx(print_plate_idx),
     m_export_3mf_cancel(false)
 {
     /* auto created by wxFormBuilder */
@@ -520,9 +519,6 @@ SelectMachineDialog::SelectMachineDialog(Plater* plater, int print_plate_idx)
 
 	bSizer_buttons->Add( 0, 0, 1, wxEXPAND, 5 );
 
-	m_button_cancel = new wxButton( this, wxID_ANY, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer_buttons->Add( m_button_cancel, 0, wxALIGN_CENTER|wxALL, 5 );
-
 	m_button_ensure = new wxButton( this, wxID_ANY, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer_buttons->Add( m_button_ensure, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -538,7 +534,6 @@ SelectMachineDialog::SelectMachineDialog(Plater* plater, int print_plate_idx)
     this->SetSizeHints(wxSize(550, 480), wxSize(1920, 1280));
 
     // Connect Events
-    m_button_cancel->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(SelectMachineDialog::on_cancel), NULL, this);
     m_button_ensure->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(SelectMachineDialog::on_ok), NULL, this);
 
     init_model();
@@ -600,8 +595,6 @@ void SelectMachineDialog::init_timer()
 {
     m_refresh_timer = new wxTimer();
     m_refresh_timer->SetOwner(this);
-    m_refresh_timer->Start(LIST_REFRESH_INTERVAL);
-    wxPostEvent(this, wxTimerEvent());
 }
 
 void SelectMachineDialog::on_cancel(wxCommandEvent& event)
@@ -612,6 +605,12 @@ void SelectMachineDialog::on_cancel(wxCommandEvent& event)
         m_print_job->join();
     }
     this->EndModal(wxID_CANCEL);
+}
+
+void SelectMachineDialog::reset()
+{
+    m_status_bar->set_status_text("");
+    m_button_ensure->Enable();
 }
 
 void SelectMachineDialog::on_ok(wxCommandEvent& event)
@@ -654,18 +653,17 @@ void SelectMachineDialog::on_ok(wxCommandEvent& event)
     m_need_disable_btn_ensure = true;
     m_button_ensure->Disable();
 
-    ProgressDialog* progress_dlg = new ProgressDialog("Creating 3mf file", "", 100, this, wxPD_AUTO_HIDE | wxPD_CAN_ABORT);
+    ProgressDialog dlg("Creating 3mf file", "", 100, this, wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_APP_MODAL);
     
     m_plater->send_gcode(m_print_plate_idx,
-        [this, progress_dlg](int export_stage, int current, int total, bool& cancel) {
+        [this, &dlg](int export_stage, int current, int total, bool& cancel) {
             bool cont = true;
             wxString msg = wxString::Format("exporting 3mf stage %d, %d/%d", export_stage, current, total);
-            cont = progress_dlg->Pulse(msg);
+            cont = dlg.Pulse(msg);
             this->m_export_3mf_cancel = cancel = !cont;
         }
     );
 
-    delete progress_dlg;
     if (this->m_export_3mf_cancel) {
         this->m_status_bar->set_status_text("exporting 3mf was cancelled");
         return;
@@ -737,20 +735,19 @@ void SelectMachineDialog::on_dpi_changed(const wxRect& suggested_rect)
 	Refresh();
 }
 
+bool SelectMachineDialog::Show(bool show)
+{
+    if (show) {
+        m_refresh_timer->Start(LIST_REFRESH_INTERVAL);
+        wxPostEvent(this, wxTimerEvent());
+    } else {
+        m_refresh_timer->Stop();
+    }
+    return DPIDialog::Show(show);
+}
+
 SelectMachineDialog::~SelectMachineDialog()
 {
-    if (m_refresh_timer) {
-        m_refresh_timer->Stop();
-        delete m_refresh_timer;
-    }
-
-    if (m_print_job && m_print_job->is_running()) {
-        m_print_job->cancel();
-        m_print_job->join(10 * 1000);
-    }
-
-    // Disconnect Events
-    m_button_cancel->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(SelectMachineDialog::on_cancel), NULL, this);
     m_button_ensure->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(SelectMachineDialog::on_ok), NULL, this);
 }
 

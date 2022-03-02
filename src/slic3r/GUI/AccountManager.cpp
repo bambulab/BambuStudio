@@ -468,7 +468,7 @@ namespace Slic3r {
 
         this->default_machine = dev_id;
         //unsubscribe old machine
-        if (!old_dev_id.empty()) {
+        if (!old_dev_id.empty() && old_dev_id.compare(dev_id) != 0) {
             this->del_subscribe(old_dev_id);
         }
 

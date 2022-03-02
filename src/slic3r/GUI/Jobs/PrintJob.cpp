@@ -10,6 +10,12 @@
 
 namespace Slic3r { namespace GUI {
 
+PrintJob::PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater* plater, std::string dev_id)
+: PlaterJob{ std::move(pri), plater },
+    m_dev_id(dev_id)
+{
+    m_print_job_completed_id = plater->get_print_finished_event();
+}
 
 void PrintJob::prepare()
 {
@@ -278,12 +284,12 @@ void PrintJob::process()
         }
         update_status(100, "send task ok!");
 
-        // set current monitor machine
-        c->set_monitor_machine(m_dev_id);
-
         // add to user project
         c->myProjectList.insert(std::make_pair(project->project_id, project));
-        m_plater->print_job_finished();
+
+        wxCommandEvent evt(m_print_job_completed_id);
+        evt.SetString(m_dev_id);
+        wxQueueEvent(m_plater, evt.Clone());
 
         m_job_finished = true;
     }
