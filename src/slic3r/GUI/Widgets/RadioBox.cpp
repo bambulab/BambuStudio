@@ -18,7 +18,6 @@ RadioBox::RadioBox(wxWindow *parent)
 void RadioBox::SetValue(bool value)
 {
     wxBitmapToggleButton::SetValue(value);
-    SetBackgroundColour(wxColor(255,255,255));
     update();
 }
 

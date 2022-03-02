@@ -102,7 +102,7 @@ wxString ProgressDialog::FormatString(wxString title)
         if (current_width >= limit_width && (title.length() - x) > 10) {
             m_mode = 1;
 
-            auto flag_set = x;
+           /* auto flag_set = x;
             for (int i = 20; i >= 0; i--) {
                 if (title[flag_set] == (0x20)) {
                     title.insert(x - (20 - i), "\n");
@@ -124,8 +124,11 @@ wxString ProgressDialog::FormatString(wxString title)
                     title.insert(x - (20 - i), "\n");
                     break;
                 }
+
+                title.insert(x, "\n");
                 flag_set--;
-            }
+            }*/
+            title.insert(x, "\n");
 
             break;
         }
@@ -187,10 +190,11 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
     sizerTop->Add(m_message_area, 0, wxLEFT | wxRIGHT | wxBottom | wxEXPAND, 2 * LAYOUT_MARGIN);
 
     // 1 line mode
-    m_msg = new wxStaticText(m_message_area, wxID_ANY, wxString(""), wxPoint(0, 10), wxSize(def_size_width, 19), wxST_ELLIPSIZE_END);
+    m_msg = new wxStaticText(m_message_area, wxID_ANY, wxString(""), wxPoint(0, 10), wxSize(def_size_width, 20), wxST_ELLIPSIZE_END);
+    m_msg->SetForegroundColour(wxColour(107, 107, 107));
     m_msg->SetBackgroundColour(DESIGN_RESOUTION_DEF_BK_COLOR);
-    m_msg->SetMinSize(wxSize(def_size_width, 19));
-    m_msg->SetMaxSize(wxSize(def_size_width, 19));
+    m_msg->SetMinSize(wxSize(def_size_width, 20));
+    m_msg->SetMaxSize(wxSize(def_size_width, 20));
     // sizerTop->Add(m_msg, 0, wxLEFT | wxRIGHT, 2 * LAYOUT_MARGIN);
 
     /* m_block_text_bottom = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxSize(def_size_width, 10));
@@ -198,10 +202,11 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
       m_block_text_bottom->SetBackgroundColour(wxColor(DESIGN_RESOUTION_DEF_BK_COLOR));*/
 
     // 2 line mode
-    m_msg_2line = new wxStaticText(m_message_area, wxID_ANY, wxString(""), wxPoint(0, 0), wxSize(def_size_width, 38), wxST_ELLIPSIZE_END);
+    m_msg_2line = new wxStaticText(m_message_area, wxID_ANY, wxString(""), wxPoint(0, 0), wxSize(def_size_width, 40), wxST_ELLIPSIZE_END);
+    m_msg_2line->SetForegroundColour(wxColour(107, 107, 107));
     m_msg_2line->SetBackgroundColour(DESIGN_RESOUTION_DEF_BK_COLOR);
-    m_msg_2line->SetMinSize(wxSize(def_size_width, 38));
-    m_msg_2line->SetMaxSize(wxSize(def_size_width, 38));
+    m_msg_2line->SetMinSize(wxSize(def_size_width, 40));
+    m_msg_2line->SetMaxSize(wxSize(def_size_width, 40));
     // sizerTop->Add(m_msg_2line, 0, wxLEFT | wxRIGHT, 2 * LAYOUT_MARGIN);
 
     // m_msg->SetSize(wxSize(305, 19));
@@ -304,6 +309,7 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
         m_btnAbort->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ProgressDialog::OnCancel, this);*/
 
         m_button_calcel = new Button(m_button_sizer, _T("Cancel"));
+        m_button_calcel->SetTextColor(wxColour(107, 107, 107));
         m_button_calcel->SetSize(60, 24);
         m_button_calcel->SetPosition(wxPoint(m_button_sizer->GetSize().GetWidth() - m_button_calcel->GetSize().GetWidth(), 0));
 
