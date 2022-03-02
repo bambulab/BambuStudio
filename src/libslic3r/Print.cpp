@@ -592,6 +592,19 @@ std::string Print::validate(std::string* warning) const
         if ((m_config.print_sequence == PrintSequence::ByObject) && extruders.size() > 1)
             return L("The Wipe Tower is currently not supported for multimaterial sequential prints.");
         
+        // BBS: When wipe tower is on, object layer and support layer must be aligned. So support gap should be multiple of object layer height.
+        for (size_t i = 0; i < m_objects.size(); i++) {
+            const PrintObject* object = m_objects[i];
+            const SlicingParameters& slicing_params = object->slicing_parameters();
+            if (!object->config().enable_support)
+                continue;
+
+            double gap_layers = slicing_params.gap_object_support / slicing_params.layer_height;
+            if (gap_layers - (int)gap_layers > EPSILON) {
+                return L("The Wipe Tower is only supported for support gap if it is multiple of layer height");
+            }
+        }
+
         if (m_objects.size() > 1) {
             bool                                has_custom_layering = false;
             std::vector<std::vector<coordf_t>>  layer_height_profiles;
@@ -614,9 +627,12 @@ std::string Print::validate(std::string* warning) const
                     return L("The Wipe Tower is only supported for multiple objects if they have equal layer heights");
                 if (slicing_params.raft_layers() != slicing_params0.raft_layers())
                     return L("The Wipe Tower is only supported for multiple objects if they are printed over an equal number of raft layers");
+                // BBS: support gap can be multiple of object layer height
+#if 0
                 if (slicing_params0.gap_object_support != slicing_params.gap_object_support ||
                     slicing_params0.gap_support_object != slicing_params.gap_support_object)
                     return L("The Wipe Tower is only supported for multiple objects if they are printed with the same support_top_z_distance");
+#endif
                 if (! equal_layering(slicing_params, slicing_params0))
                     return L("The Wipe Tower is only supported for multiple objects if they are sliced equally.");
                 if (has_custom_layering) {
