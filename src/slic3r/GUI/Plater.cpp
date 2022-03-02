@@ -7960,10 +7960,6 @@ void Plater::export_stl(bool extended, bool selection_only)
 {
     if (p->model.objects.empty()) { return; }
 
-    wxString path = p->get_export_file(FT_STL);
-    if (path.empty()) { return; }
-    const std::string path_u8 = into_u8(path);
-
     wxBusyCursor wait;
 
     const auto &selection = p->get_selection();
@@ -7976,9 +7972,16 @@ void Plater::export_stl(bool extended, bool selection_only)
     if (selection_only && selection.is_wipe_tower())
         return;
 
-    // only support selection single full object and mulitiple full object
-    if (!selection.is_single_full_object() && !selection.is_multiple_full_object())
-        return;
+    //BBS
+    if (selection_only) {
+        // only support selection single full object and mulitiple full object
+        if (!selection.is_single_full_object() && !selection.is_multiple_full_object())
+            return;
+    }
+
+    wxString path = p->get_export_file(FT_STL);
+    if (path.empty()) { return; }
+    const std::string path_u8 = into_u8(path);
 
 
     // Following lambda generates a combined mesh for export with normals pointing outwards.
