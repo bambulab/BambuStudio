@@ -705,7 +705,9 @@ void SelectMachineDialog::on_timer(wxTimerEvent& event)
     // same machine only appear once
     std::map<std::string, MachineObject*>::iterator it;
     for (it = c->myBindMachineList.begin(); it != c->myBindMachineList.end(); it++) {
-        list.insert(std::make_pair(it->first, it->second));
+        if (it->second && it->second->is_online) {
+            list.insert(std::make_pair(it->first, it->second));
+        }
     }
 
     machine_model->display_machines(list);
