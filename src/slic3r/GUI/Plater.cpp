@@ -2807,7 +2807,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
     const auto loading = _L("Loading") + dots;
     ProgressDialog dlg(loading, "", 100, find_toplevel_parent(q), wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_APP_MODAL);
-    ProgressDialog* progress_dlg = &dlg;
     wxBusyCursor busy;
 
     auto *new_model = (!load_model || one_by_one) ? nullptr : new Slic3r::Model();
@@ -2865,10 +2864,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     // BBS: backup & restore
                     Semver file_version;
                     model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, strategy, &plate_data, &project_presets, &is_bbs_3mf, &file_version,
-                        [this, progress_dlg, filename, progress_percent](int import_stage, int current, int total, bool& cancel) {
+                        [this, &dlg, filename, progress_percent](int import_stage, int current, int total, bool& cancel) {
                             bool cont = true;
                             wxString msg = wxString::Format("Loading file: %s, stage %d, %d/%d", from_path(filename), import_stage, current, total);
-                            cont = progress_dlg->Update(progress_percent, msg);
+                            cont = dlg.Update(progress_percent, msg);
                             cancel = !cont;
                         }
                         );
@@ -3055,10 +3054,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 Semver file_version;
                 model = Slic3r::Model::read_from_file(path.string(), nullptr, nullptr, strategy, &plate_data, &project_presets,
                 &is_bbs_3mf, &file_version, nullptr,
-                [progress_dlg, filename, progress_percent](int import_stage, int current, int total, bool &cancel) {
+                [&dlg, filename, progress_percent](int import_stage, int current, int total, bool &cancel) {
                     bool cont = true;
                     wxString msg = wxString::Format("Loading file: %s, stage %d, %d/%d", from_path(filename), import_stage, current, total);
-                    cont = progress_dlg->Update(progress_percent, msg);
+                    cont = dlg.Update(progress_percent, msg);
                     cancel = !cont;
                 },
                 [](int isUtf8StepFile) {
@@ -6793,6 +6792,7 @@ void Plater::import_model_id(const std::string& model_id, const std::string& pro
         import_thread.join();
 
     if (download_ok) {
+        dlg.Close();
         BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << target_path.string();
         /* load project */
         this->load_project(encode_path(target_path.string().c_str()), "<silence>");
@@ -8262,7 +8262,6 @@ void Plater::publish_project()
     wxString msg;
     wxString title = _L("Upload and publish your design");
     ProgressDialog dlg(title, "", 100, this, wxPD_CAN_ABORT | wxPD_APP_MODAL);
-    ProgressDialog* progress_dlg = &dlg;
 
     // export 3mf to temp folder
     msg = _L("preparing your designs");
@@ -8275,10 +8274,10 @@ void Plater::publish_project()
     BOOST_LOG_TRIVIAL(debug) << "publish_project: export to temp 3mf: " << temp_path.string();
 
     int result = export_3mf(temp_path, SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode, -1,
-        [this, progress_dlg](int export_stage, int current, int total, bool& cancel) {
+        [this, &dlg](int export_stage, int current, int total, bool& cancel) {
             wxString msg = wxString::Format("preparing... exporting stage %d %d/%d", export_stage, current, total);
             bool skip = false;
-            progress_dlg->Pulse(msg, &skip);
+            dlg.Pulse(msg, &skip);
             cancel = skip;
         });
 
@@ -8330,12 +8329,10 @@ void Plater::publish_project()
         res = c->upload_3mf_to_oss(profile, nullptr,
             [&percent, &cont, &msg](Http::Progress progress, bool& cancel) {
                 if (!cont) cancel = true;
-
-                int percent = 0;
                 if (progress.ultotal != 0) {
-                    progress.ulnow / progress.ultotal;
+                    percent = progress.ulnow * 100 / progress.ultotal;
                 }
-                msg = wxString::Format("uploaded %d", percent);
+                msg = wxString::Format("uploaded %d%%", percent);
             });
 
         if (res < 0) {

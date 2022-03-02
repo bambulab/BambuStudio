@@ -696,7 +696,8 @@ namespace Slic3r {
                 } catch(...) {
                     ;
                 }
-            }).on_error([&error](std::string body, std::string error_str, unsigned status) {
+            }).on_error([&err_code, &error](std::string body, std::string error_str, unsigned status) {
+                err_code = -1;
                 error = (boost::format("status:%1%, body:%2%") % status % body).str();
                 BOOST_LOG_TRIVIAL(trace) << "user_put_notification: on_error" << error_str;
             }).perform_sync();
