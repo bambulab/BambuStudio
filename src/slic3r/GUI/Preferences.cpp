@@ -243,6 +243,7 @@ wxWindow *PreferencesDialog ::create_item_radiobox(wxString title, wxWindow *par
 PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &pos, const wxSize &size, long style)
     : DPIDialog(parent, id, _L("Preferences"), pos, size, style)
 {
+    SetBackgroundColour(DESIGN_SELECTOR_SELECTED_COLOR);
     SetFont(wxGetApp().normal_font());
     Init();
 }

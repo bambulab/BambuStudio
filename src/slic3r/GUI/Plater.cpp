@@ -7242,6 +7242,7 @@ wxWindow *ProjectDropDialog::create_item_checkbox(wxString title, wxWindow *pare
 
 void ProjectDropDialog::select_radio(int index)
 {
+    m_action                         = index;
     RadioSelectorList::Node *node    = m_radio_group.GetFirst();
     auto                     groupid = 0;
 
