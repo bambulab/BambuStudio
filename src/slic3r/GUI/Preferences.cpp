@@ -279,8 +279,7 @@ void PreferencesDialog::Init()
     m_fgSizer_body->Add(m_panel_selects, 1, wxEXPAND, 0);
 
     m_panel_content = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(493, 430), wxTAB_TRAVERSAL);
-    m_panel_content->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
-    m_panel_content->SetBackgroundColour(wxColour(255, 255, 255));
+    m_panel_content->SetBackgroundColour(DESIGN_SELECTOR_SELECTED_COLOR);
 
     // general tab
     m_panel_general = new wxPanel(m_panel_content, wxID_ANY, wxDefaultPosition, m_panel_content->GetSize());
@@ -549,8 +548,8 @@ void PreferencesDialog::create_debug_page()
     wxBoxSizer *bSizer;
     bSizer = new wxBoxSizer(wxVERTICAL);
 
-    wxWindow *title_devlop_mode    = create_item_title(L("devlop mode"), m_panel_debug, wxString("devlop mode"));
-    wxWindow *item_devlop_mode     = create_item_checkbox(L("devlop mode"), m_panel_debug, L("devlop mode"), 50, "developer_mode");
+    wxWindow *title_develop_mode    = create_item_title(L("develop mode"), m_panel_debug, wxString("develop mode"));
+    wxWindow *item_develop_mode     = create_item_checkbox(L("develop mode"), m_panel_debug, L("develop mode"), 50, "developer_mode");
     wxWindow *item_backup_interval = create_item_input(L("backup interval"), m_panel_debug, L("backup_interval"), 50, "backup_interval");
 
     auto radio1 = create_item_radiobox(_L("DEV host: api-dev.bambu-lab.com/v1"), m_panel_debug, "", 50, 1, wxString("dev_host"));
@@ -639,8 +638,8 @@ void PreferencesDialog::create_debug_page()
         }
     });
 
-    bSizer->Add(title_devlop_mode, 0, wxTOP, 20);
-    bSizer->Add(item_devlop_mode, 0, wxTOP, 20);
+    bSizer->Add(title_develop_mode, 0, wxTOP, 20);
+    bSizer->Add(item_develop_mode, 0, wxTOP, 20);
     bSizer->Add(item_backup_interval, 0, wxTOP, 20);
     bSizer->Add(radio1, 0, wxTOP, 20);
     bSizer->Add(radio2, 0, wxTOP, 5);

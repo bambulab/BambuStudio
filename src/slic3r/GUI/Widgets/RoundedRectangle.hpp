@@ -6,11 +6,12 @@
 class RoundedRectangle : public wxWindow
 {
 public:
-    RoundedRectangle(wxWindow *parent, wxColour col, wxPoint pos, wxSize size, double radius);
+    RoundedRectangle(wxWindow *parent, wxColour col, wxPoint pos, wxSize size, double radius, int type = 0);
     ~RoundedRectangle(){};
 
 private:
     double m_radius;
+    int      m_type;
     wxColour m_color;
 
 public:

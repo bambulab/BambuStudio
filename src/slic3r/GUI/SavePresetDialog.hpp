@@ -6,14 +6,16 @@
 #include "libslic3r/Preset.hpp"
 #include "wxExtensions.hpp"
 #include "GUI_Utils.hpp"
+#include "Widgets/RadioBox.hpp"
 
 class wxString;
 class wxStaticText;
 class wxComboBox;
 class wxStaticBitmap;
 
-namespace Slic3r {
+#define DEF_BK_COLOR wxColour(255, 255, 255)
 
+namespace Slic3r {
 namespace GUI {
 
 class SavePresetDialog : public DPIDialog
@@ -38,7 +40,7 @@ class SavePresetDialog : public DPIDialog
         Item(Preset::Type type, const std::string& suffix, wxBoxSizer* sizer, SavePresetDialog* parent);
 
         void            update_valid_bmp();
-        void            accept();
+        void accept();
 
         bool            is_valid()      const { return m_valid_type != NoValid; }
         Preset::Type    type()          const { return m_type; }
@@ -54,13 +56,14 @@ class SavePresetDialog : public DPIDialog
         SavePresetDialog*   m_parent        {nullptr};
         wxStaticBitmap*     m_valid_bmp     {nullptr};
         wxComboBox*         m_combo         {nullptr};
+        wxTextCtrl*         m_input_ctrl    {nullptr};
         wxStaticText*       m_valid_label   {nullptr};
 
         PresetCollection*   m_presets       {nullptr};
 
         //BBS: add project embedded preset relate logic
-        wxRadioButton*      m_radio_user {nullptr};
-        wxRadioButton*      m_radio_project {nullptr};
+        RadioBox *          m_radio_user{nullptr};
+        RadioBox *          m_radio_project{nullptr};
         bool                m_save_to_project {false};
 
         void update();
@@ -77,8 +80,7 @@ class SavePresetDialog : public DPIDialog
     std::string         m_old_preset_name;
 
 public:
-
-    SavePresetDialog(wxWindow* parent, Preset::Type type, std::string suffix = "");
+    SavePresetDialog(wxWindow *parent, Preset::Type type, std::string suffix = "");
     SavePresetDialog(wxWindow* parent, std::vector<Preset::Type> types, std::string suffix = "");
     ~SavePresetDialog();
 
@@ -100,8 +102,9 @@ protected:
 
 private:
     void build(std::vector<Preset::Type> types, std::string suffix = "");
-    void update_physical_printers(const std::string& preset_name);
-    void accept();
+    void on_select_cancel(wxMouseEvent &event);
+    void update_physical_printers(const std::string &preset_name);
+    void accept(wxMouseEvent &event);
 };
 
 } // namespace GUI
