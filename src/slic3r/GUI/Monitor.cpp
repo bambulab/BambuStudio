@@ -1515,6 +1515,14 @@ void MonitorPanel::update_all()
 
 void MonitorPanel::on_printer_clicked(wxMouseEvent& event)
 {
+    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+
+    //BBS check user login status
+    if (!account_manager->is_user_login()) {
+        //tips to login
+        return;
+    }
+
     /* query print info */
     SelectMachinePopup* m_select_machine = new SelectMachinePopup(this, true);
 
