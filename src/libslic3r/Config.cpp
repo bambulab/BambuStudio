@@ -1108,7 +1108,6 @@ ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, Fo
         }
     }
 
-    auto                      header_end_pos = ifs.tellg();
     ConfigSubstitutionContext substitutions_ctxt(compatibility_rule);
     size_t                    key_value_pairs = 0;
 
@@ -1159,6 +1158,7 @@ ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, Fo
     }
     else
     {
+        auto                      header_end_pos = ifs.tellg();
         // Slicer older than 2.4.0-alpha0 do not emit any delimiter.
         // Try a heuristics reading the G-code from back.
         ifs.seekg(0, ifs.end);
