@@ -1747,23 +1747,34 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
     std::vector<Transform3d> all_transfos;
     std::vector<std::pair<int, int>> volume_mesh_counts;
     all_meshes.reserve(this->volumes.size() * 5);
+    bool is_multi_volume_object = (this->volumes.size() > 1);
 
     for (int volume_idx = 0; volume_idx < this->volumes.size(); volume_idx++) {
         ModelVolume* volume = this->volumes[volume_idx];
         if (volume->type() != ModelVolumeType::MODEL_PART)
             continue;
 
-        std::vector<TriangleMesh> volume_meshes = volume->mesh().split();
-        int mesh_count = 0;
-        for (TriangleMesh& mesh : volume_meshes) {
-            if (mesh.facets_count() < 3)
-                continue;
+        if (!is_multi_volume_object) {
+            //BBS: not multi volume object, then split mesh.
+            std::vector<TriangleMesh> volume_meshes = volume->mesh().split();
+            int mesh_count = 0;
+            for (TriangleMesh& mesh : volume_meshes) {
+                if (mesh.facets_count() < 3)
+                    continue;
 
-            all_meshes.emplace_back(std::move(mesh));
-            all_transfos.emplace_back(volume->get_matrix());
-            mesh_count++;
+                all_meshes.emplace_back(std::move(mesh));
+                all_transfos.emplace_back(volume->get_matrix());
+                mesh_count++;
+            }
+            volume_mesh_counts.push_back({ volume_idx, mesh_count });
+        } else {
+            //BBS: multi volume object, then only split to volume
+            if (volume->mesh().facets_count() >= 3) {
+                all_meshes.emplace_back(std::move(volume->mesh()));
+                all_transfos.emplace_back(volume->get_matrix());
+                volume_mesh_counts.push_back({ volume_idx, 1 });
+            }
         }
-        volume_mesh_counts.push_back({ volume_idx, mesh_count });
     }
 
     FaceDetector face_detector(all_meshes, all_transfos, 1.0);
