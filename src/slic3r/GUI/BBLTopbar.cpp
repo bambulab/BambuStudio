@@ -445,9 +445,9 @@ wxMenu *BBLTopbar::GetTopMenu()
     return &m_top_menu;
 }
 
-void BBLTopbar::SetProjectName(wxString project_name)
+void BBLTopbar::SetTitle(wxString title)
 {
-    m_title_item->SetLabel(project_name);
+    m_title_item->SetLabel(title);
     m_title_item->SetAlignment(wxALIGN_CENTRE_HORIZONTAL);
     this->Refresh();
 }

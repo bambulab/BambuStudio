@@ -5574,8 +5574,8 @@ wxString Plater::priv::get_project_name()
 void Plater::priv::set_project_name(const wxString& project_name)
 {
     m_project_name = project_name;
-    //update project name
-    wxGetApp().mainframe->topbar()->SetProjectName(m_project_name);
+    //update topbar title
+    wxGetApp().mainframe->topbar()->SetTitle(m_project_name);
 }
 
 void Plater::priv::set_project_filename(const wxString& filename)
@@ -6674,6 +6674,9 @@ void Plater::import_model_id(const std::string& model_id, const std::string& pro
 {
     bool download_ok = false;
     /* save to a file */
+
+    /* jump to 3D eidtor */
+    wxGetApp().mainframe->select_tab((size_t)MainFrame::TabPosition::tp3DEditor);
 
     /* prepare progress dialog */
     bool cont = true;

@@ -41,7 +41,7 @@ public:
     void AddDropDownSubMenu(wxMenu* sub_menu, const wxString& title);
     void AddDropDownMenuItem(wxMenuItem* menu_item);
     wxMenu *GetTopMenu();
-    void SetProjectName(wxString project_name);
+    void SetTitle(wxString title);
     void SetMaximizedSize();
     void SetWindowSize();
 
