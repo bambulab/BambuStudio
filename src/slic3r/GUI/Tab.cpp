@@ -3856,7 +3856,6 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
             new_preset->user_id = acc->get_curr_user()->get_user_id();
         BOOST_LOG_TRIVIAL(info) << "sync_preset: create preset = " << new_preset->name;
     }
-    new_preset->version = DEFAULT_BBL_SETTING_VERSION;
     new_preset->save_info();
 
     // Mark the print & filament enabled if they are compatible with the currently selected preset.

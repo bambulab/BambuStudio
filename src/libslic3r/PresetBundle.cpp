@@ -1128,7 +1128,7 @@ ConfigSubstitutions PresetBundle::load_config_file(const std::string &path, Forw
 
 // Load a config file from a boost property_tree. This is a private method called from load_config_file.
 // is_external == false on if called from ConfigWizard
-void PresetBundle::load_config_file_config(const std::string &name_or_path, bool is_external, DynamicPrintConfig &&config)
+void PresetBundle::load_config_file_config(const std::string &name_or_path, bool is_external, DynamicPrintConfig &&config, Semver file_version)
 {
     PrinterTechnology printer_technology = Preset::printer_technology(config);
 
@@ -1192,7 +1192,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 		[&config, &inherits, &inherits_values, 
          &compatible_printers_condition, &compatible_printers_condition_values, 
          &compatible_prints_condition, &compatible_prints_condition_values, 
-         is_external, &name, &name_or_path]
+         is_external, &name, &name_or_path, file_version]
 		(PresetCollection &presets, size_t idx, const std::string &key) {
 		// Split the "compatible_printers_condition" and "inherits" values one by one from a single vector to the print & printer profiles.
 		inherits = inherits_values[idx];
@@ -1202,7 +1202,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         //BBS: add config related logs
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": , name %1%, is_external %2%, inherits %3%")%name %is_external %inherits;
 		if (is_external)
-			presets.load_external_preset(name_or_path, name, config.opt_string(key, true), config);
+			presets.load_external_preset(name_or_path, name, config.opt_string(key, true), config, PresetCollection::LoadAndSelect::Always, file_version);
 		else
 			presets.load_preset(presets.path_from_name(name), name, config).save();
 	};
@@ -1236,7 +1236,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             //BBS: add config related logs
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": load single filament preset from filament_settings_id");
             if (is_external)
-                loaded = this->filaments.load_external_preset(name_or_path, name, old_filament_profile_names->values.front(), config).first;
+                loaded = this->filaments.load_external_preset(name_or_path, name, old_filament_profile_names->values.front(), config, PresetCollection::LoadAndSelect::Always, file_version).first;
             else {
                 // called from Config Wizard.
 				loaded= &this->filaments.load_preset(this->filaments.path_from_name(name), name, config);
@@ -1304,7 +1304,8 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                         PresetCollection::LoadAndSelect::Always : 
                     any_modified ?
                         PresetCollection::LoadAndSelect::Never :
-                        PresetCollection::LoadAndSelect::OnlyIfModified);
+                        PresetCollection::LoadAndSelect::OnlyIfModified,
+                    file_version);
                 any_modified |= modified;
                 this->filament_presets[i] = loaded->name;
             }
@@ -2204,6 +2205,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
         if (flags.has(LoadConfigBundleAttribute::LoadSystem)) {
             loaded.is_system = true;
             loaded.vendor = current_vendor_profile;
+            loaded.version = current_vendor_profile->config_version;
         }
 
         // Derive the profile logical name aka alias from the preset name if the alias was not stated explicitely.

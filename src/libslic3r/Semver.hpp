@@ -131,7 +131,12 @@ public:
 
 	// Conversion
 	std::string to_string() const {
-		auto res = (boost::format("%1%.%2%.%3%") % ver.major % ver.minor % ver.patch).str();
+		//BBS: version format
+		std::string res;
+		int patch_1 = ver.patch/100;
+		int patch_2 = ver.patch%100;
+		res = (boost::format("%1%.%2%.%3%.%4%") % ver.major % ver.minor % patch_1 % patch_2).str();
+
 		if (ver.prerelease != nullptr) { res += '-'; res += ver.prerelease; }
 		if (ver.metadata != nullptr)   { res += '+'; res += ver.metadata; }
 		return res;

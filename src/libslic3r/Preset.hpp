@@ -203,7 +203,7 @@ public:
     std::vector<std::string> renamed_from;
 
     //BBS
-    std::string         version;         // version of preset
+    Semver              version;         // version of preset
     std::string         ini_str;         // ini string of preset
     std::string         setting_id;      // setting id in cloud database
     std::string         user_id;         // preset user_id
@@ -419,7 +419,8 @@ public:
         // Config to initialize the preset from.
         const DynamicPrintConfig    &config,
         // Select the preset after loading?
-        LoadAndSelect                select = LoadAndSelect::Always);
+        LoadAndSelect                select = LoadAndSelect::Always,
+        const Semver                file_version = Semver());
 
     // Save the preset under a new name. If the name is different from the old one,
     // a new preset is stored into the list of presets.

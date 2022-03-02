@@ -2853,6 +2853,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         try {
             if (type_3mf || type_zip_amf) {
                 DynamicPrintConfig config;
+                Semver file_version;
                 {
                     DynamicPrintConfig config_loaded;
 
@@ -2862,7 +2863,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     ConfigSubstitutionContext config_substitutions{ ForwardCompatibilitySubstitutionRule::Enable };
                     std::vector<Preset*> project_presets;
                     // BBS: backup & restore
-                    Semver file_version;
                     model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, strategy, &plate_data, &project_presets, &is_bbs_3mf, &file_version,
                         [this, &dlg, filename, progress_percent](int import_stage, int current, int total, bool& cancel) {
                             bool cont = true;
@@ -2980,7 +2980,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             }
                         }
                         else {
-                            preset_bundle->load_config_model(filename.string(), std::move(config));
+                            preset_bundle->load_config_model(filename.string(), std::move(config), file_version);
                             //BBS: moved this logic to presetcollection
                             /*{
                                 // After loading of the presets from project, check if they are visible.

@@ -1590,6 +1590,14 @@ namespace Slic3r {
             preset->is_project_embedded = true;
             preset->is_external = true;
             preset->is_dirty = false;
+
+            std::string version_str = key_values[BBL_JSON_KEY_VERSION];
+            boost::optional<Semver> version = Semver::parse(version_str);
+            if (version) {
+                preset->version = *version;
+            }
+            else
+                preset->version = this->m_bambuslicer_generator_version?*this->m_bambuslicer_generator_version: Semver();
             /*for (int i = 0; i < config_substitutions.size(); i++)
             {
                 //ConfigSubstitution config_substitution;
@@ -4521,7 +4529,7 @@ namespace Slic3r {
                 preset->file = temp_path + std::string("/") + "_temp_1.config";
                 DynamicPrintConfig& config = preset->config;
                 //config.save(preset->file);
-                config.save_to_json(preset->file, preset->name, std::string("project"), std::string(SLIC3R_VERSION));
+                config.save_to_json(preset->file, preset->name, std::string("project"), preset->version.to_string());
 
                 std::string dest_file;
                 if (preset->type == Preset::TYPE_PRINT) {

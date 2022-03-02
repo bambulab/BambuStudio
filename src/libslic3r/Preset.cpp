@@ -415,9 +415,7 @@ void Preset::load_info(const std::string& file)
         boost::property_tree::read_ini(ifs, tree);
         if (tree.empty()) return;
         for (const boost::property_tree::ptree::value_type &v : tree) {
-            if (v.first.compare("version") == 0)
-                this->version = v.second.get_value<std::string>();
-            else if (v.first.compare("sync_info") == 0)
+            if (v.first.compare("sync_info") == 0)
                 this->sync_info = v.second.get_value<std::string>();
             else if (v.first.compare("user_id") == 0)
                 this->user_id = v.second.get_value<std::string>();
@@ -443,7 +441,6 @@ void Preset::save_info(std::string file)
 
     boost::nowide::ofstream c;
     c.open(file, std::ios::out | std::ios::trunc);
-    c << "version" << " = " << this->version << std::endl;
     c << "sync_info" << " = " << this->sync_info << std::endl;
     c << "user_id" << " = " << this->user_id << std::endl;
     c << "setting_id" << " = " << this->setting_id << std::endl;
@@ -479,7 +476,8 @@ void Preset::save()
         from_str = std::string("System");
     else
         from_str = std::string("Default");
-    this->config.save_to_json(this->file, this->name, from_str, std::string(SLIC3R_VERSION));
+
+    this->config.save_to_json(this->file, this->name, from_str, this->version.to_string());
 
     fs::path idx_file(this->file);
     idx_file.replace_extension(".info");
@@ -888,6 +886,17 @@ void PresetCollection::load_presets(
                     ConfigSubstitutions config_substitutions = config.load_from_json(preset.file, substitution_rule, key_values);
                     if (! config_substitutions.empty())
                         substitutions.push_back({ preset.name, m_type, PresetConfigSubstitutions::Source::UserFile, preset.file, std::move(config_substitutions) });
+
+                    std::string version_str = key_values[BBL_JSON_KEY_VERSION];
+                    boost::optional<Semver> version = Semver::parse(version_str);
+                    if (!version) continue;
+                    Semver app_version = *(Semver::parse(SLIC3R_VERSION));
+                    if ( version->maj() !=  app_version.maj()) {
+                        BOOST_LOG_TRIVIAL(warning) << "Preset incompatibla, not loading: " << name;
+                        continue;
+                    }
+                    preset.version = *version;
+
                     // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
                     const Preset &default_preset = this->default_preset_for(config);
                     preset.config = default_preset.config;
@@ -1093,6 +1102,18 @@ void PresetCollection::load_user_presets(std::map<std::string, Preset*> my_prese
         if (it->second->type != Preset::get_type_from_string(type)) continue;
         Preset* preset = it->second;
         if (!preset->is_user()) continue;
+
+        //if the version is not matching, skip it
+        std::string version_str = preset->key_values[BBL_JSON_KEY_VERSION];
+        boost::optional<Semver> version = Semver::parse(version_str);
+        if (!version) continue;
+        Semver app_version = *(Semver::parse(SLIC3R_VERSION));
+        if ( version->maj() !=  app_version.maj()) {
+            BOOST_LOG_TRIVIAL(warning) << "Preset incompatibla, not loading: " << preset->name;
+            continue;
+        }
+        preset->version = *version;
+
         std::string name = preset->name;
         auto iter = this->find_preset_internal(name);
         if ((iter != m_presets.end()) && (iter->name == name)) {
@@ -1215,7 +1236,8 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     // Config to initialize the preset from. It may contain configs of all presets merged in a single dictionary!
     const DynamicPrintConfig    &combined_config,
     // Select the preset after loading?
-    LoadAndSelect                select)
+    LoadAndSelect                select,
+    const Semver                file_version)
 {
     // Load the preset over a default preset, so that the missing fields are filled in from the default preset.
     DynamicPrintConfig cfg(this->default_preset_for(combined_config).config);
@@ -1366,6 +1388,7 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
         cfg.option<ConfigOptionString>("printer_settings_id", true)->value = new_name;
     Preset &preset = this->load_preset(path, new_name, std::move(cfg), select == LoadAndSelect::Always);
     preset.is_external = true;
+    preset.version = file_version;
     if (from_project) {
         preset.is_project_embedded = true;
     }

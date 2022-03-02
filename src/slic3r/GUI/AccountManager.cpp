@@ -1343,10 +1343,7 @@ namespace Slic3r {
         json j;
 
         j["public"] = preset->is_system ? true : false;
-        if (!preset->version.empty())
-            j["version"] = preset->version;
-        else
-            j["version"] = DEFAULT_BBL_SETTING_VERSION;
+        j["version"] = preset->version.to_string();
         j["type"] = Preset::get_type_string(preset->type);
         j["name"] = preset->name;
         if (!preset->base_id.empty()) {
@@ -1361,10 +1358,7 @@ namespace Slic3r {
         if (!preset) return "";
 
         pt::ptree root, setting_node;
-        if (!preset->version.empty())
-            root.put("version", preset->version);
-        else
-            root.put("version", DEFAULT_BBL_SETTING_VERSION);
+        root.put("version", preset->version.to_string());
         root.put("name", preset->name);
         for (const std::string &opt_key : preset->config.keys()) {
             setting_node.put(opt_key, preset->config.opt_serialize(opt_key));
