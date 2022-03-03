@@ -1883,7 +1883,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
 void ObjectList::load_shape_object(const std::string& type_name)
 {
     const Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
-    assert(selection.get_object_idx() == -1); // Add nothing is something is selected on 3DScene
+    //assert(selection.get_object_idx() == -1); // Add nothing is something is selected on 3DScene
     if (selection.get_object_idx() != -1)
         return;
 

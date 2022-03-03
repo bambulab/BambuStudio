@@ -2878,7 +2878,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                     //BBS: version check
                     Semver app_version = *(Semver::parse(SLIC3R_VERSION));
-                    if (file_version.maj() != app_version.maj()) {
+                    if (load_config && (file_version.maj() != app_version.maj())){
                         //version mismatch, only load geometries
                         load_config = false;
                         load_old_project = true;

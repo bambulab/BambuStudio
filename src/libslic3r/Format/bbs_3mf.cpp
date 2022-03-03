@@ -94,8 +94,8 @@ struct ZipUnicodePathExtraField
 const unsigned int VERSION_BBS_3MF = 1;
 // Allow loading version 2 file as well.
 const unsigned int VERSION_BBS_3MF_COMPATIBLE = 2;
-const char* BBS_3MF_VERSION = "bamboo_slicer:Version3mf"; // definition of the metadata name saved into .model file
-const char* BBS_PRUSA_VERSION = "slic3rpe:Version3mf"; //compatible with prusa currently
+const char* BBS_3MF_VERSION1 = "bamboo_slicer:Version3mf"; // definition of the metadata name saved into .model file
+const char* BBS_3MF_VERSION = "BambuStudio:3mfVersion"; //compatible with prusa currently
 // Painting gizmos data version numbers
 // 0 : 3MF files saved by older BambuStudio or the painting gizmo wasn't used. No version definition in them.
 // 1 : Introduction of painting gizmos data versioning. No other changes in painting gizmos data.
@@ -118,17 +118,17 @@ const std::string GCODE_EXTENSION = ".gcode";
 const std::string CONTENT_TYPES_FILE = "[Content_Types].xml";
 const std::string RELATIONSHIPS_FILE = "_rels/.rels";
 const std::string THUMBNAIL_FILE = "Metadata/thumbnail";
-const std::string PRINT_CONFIG_FILE = "Metadata/Slic3r_PE.config";
-const std::string MODEL_CONFIG_FILE = "Metadata/Slic3r_PE_model.config";
+//const std::string PRINT_CONFIG_FILE = "Metadata/Slic3r_PE.config";
+//const std::string MODEL_CONFIG_FILE = "Metadata/Slic3r_PE_model.config";
 const std::string BBS_PRINT_CONFIG_FILE = "Metadata/print_profile.config";
 const std::string BBS_PROJECT_CONFIG_FILE = "Metadata/project_settings.config";
 const std::string BBS_MODEL_CONFIG_FILE = "Metadata/model_settings.config";
 const std::string BBS_MODEL_CONFIG_RELS_FILE = "Metadata/_rels/model_settings.config.rels";
 const std::string SLICE_INFO_CONFIG_FILE = "Metadata/slice_info.config";
-const std::string LAYER_HEIGHTS_PROFILE_FILE = "Metadata/Slic3r_PE_layer_heights_profile.txt";
+/*const std::string LAYER_HEIGHTS_PROFILE_FILE = "Metadata/Slic3r_PE_layer_heights_profile.txt";
 const std::string LAYER_CONFIG_RANGES_FILE = "Metadata/Prusa_Slicer_layer_config_ranges.xml";
 const std::string SLA_SUPPORT_POINTS_FILE = "Metadata/Slic3r_PE_sla_support_points.txt";
-const std::string SLA_DRAIN_HOLES_FILE = "Metadata/Slic3r_PE_sla_drain_holes.txt";
+const std::string SLA_DRAIN_HOLES_FILE = "Metadata/Slic3r_PE_sla_drain_holes.txt";*/
 const std::string CUSTOM_GCODE_PER_PRINT_Z_FILE = "Metadata/Prusa_Slicer_custom_gcode_per_print_z.xml";
 const std::string AUXILIARY_DIR = "Auxiliaries/";
 const std::string PROJECT_EMBEDDED_PRINT_PRESETS_FILE = "Metadata/print_setting_";
@@ -147,6 +147,7 @@ static constexpr const char* MODEL_TAG = "model";
 static constexpr const char* RESOURCES_TAG = "resources";
 static constexpr const char* OBJECT_TAG = "object";
 static constexpr const char* MESH_TAG = "mesh";
+static constexpr const char* MESH_STAT_TAG = "mesh_stat";
 static constexpr const char* VERTICES_TAG = "vertices";
 static constexpr const char* VERTEX_TAG = "vertex";
 static constexpr const char* TRIANGLES_TAG = "triangles";
@@ -239,18 +240,18 @@ static constexpr const char* MESH_STAT_FACETS_RESERVED      = "facets_reversed";
 static constexpr const char* MESH_STAT_BACKWARDS_EDGES      = "backwards_edges";
 
 
-const unsigned int BBS_VALID_OBJECT_TYPES_COUNT = 1;
+const unsigned int BBS_VALID_OBJECT_TYPES_COUNT = 2;
 const char* BBS_VALID_OBJECT_TYPES[] =
 {
-    "model"
+    "model",
+    "other"
 };
 
 const char* BBS_INVALID_OBJECT_TYPES[] =
 {
     "solidsupport",
     "support",
-    "surface",
-    "other"
+    "surface"
 };
 
 template <typename T>
@@ -431,18 +432,20 @@ namespace Slic3r {
 
     class _BBS_3MF_Importer : public _BBS_3MF_Base
     {
+        typedef std::pair<std::string, int> Id; // BBS: encrypt
+
         struct Component
         {
-            int object_id;
+            Id object_id;
             Transform3d transform;
 
-            explicit Component(int object_id)
+            explicit Component(Id object_id)
                 : object_id(object_id)
                 , transform(Transform3d::Identity())
             {
             }
 
-            Component(int object_id, const Transform3d& transform)
+            Component(Id object_id, const Transform3d& transform)
                 : object_id(object_id)
                 , transform(transform)
             {
@@ -490,6 +493,12 @@ namespace Slic3r {
             ModelObject* object;
             ComponentsList components;
 
+            //BBS: sub object id
+            //int subobject_id;
+            std::string name;
+            std::string uuid;
+            //bool is_model_object;
+
             CurrentObject() { reset(); }
 
             void reset() {
@@ -498,13 +507,16 @@ namespace Slic3r {
                 geometry.reset();
                 object = nullptr;
                 components.clear();
+                //BBS: sub object id
+                uuid.clear();
+                name.clear();
             }
         };
 
         struct CurrentConfig
         {
-            int object_id;
-            int volume_id;
+            int object_id {-1};
+            int volume_id {-1};
         };
 
         struct CurrentInstance
@@ -546,6 +558,7 @@ namespace Slic3r {
                 //BBS: refine the part logic
                 unsigned int first_triangle_id;
                 unsigned int last_triangle_id;
+                int subobject_id;
                 MetadataList metadata;
                 RepairedMeshErrors mesh_stats;
                 ModelVolumeType part_type;
@@ -554,6 +567,15 @@ namespace Slic3r {
                     : first_triangle_id(first_triangle_id)
                     , last_triangle_id(last_triangle_id)
                     , part_type(type)
+                    , subobject_id(-1)
+                {
+                }
+
+                VolumeMetadata(int sub_id, ModelVolumeType type = ModelVolumeType::MODEL_PART)
+                    : subobject_id(sub_id)
+                    , part_type(type)
+                    , first_triangle_id(0)
+                    , last_triangle_id(0)
                 {
                 }
             };
@@ -565,16 +587,18 @@ namespace Slic3r {
         };
 
         // Map from a 1 based 3MF object ID to a 0 based ModelObject index inside m_model->objects.
-        typedef std::pair<std::string, int> Id; // BBS: encrypt
+        //typedef std::pair<std::string, int> Id; // BBS: encrypt
+        typedef std::map<Id, CurrentObject> IdToCurrentObjectMap;
+        typedef std::map<int, std::string> IndexToPathMap;
         typedef std::map<Id, int> IdToModelObjectMap;
-        typedef std::map<Id, ComponentsList> IdToAliasesMap;
+        //typedef std::map<Id, ComponentsList> IdToAliasesMap;
         typedef std::vector<Instance> InstancesList;
         typedef std::map<int, ObjectMetadata> IdToMetadataMap;
-        typedef std::map<Id, Geometry> IdToGeometryMap;
-        typedef std::map<int, std::vector<coordf_t>> IdToLayerHeightsProfileMap;
+        //typedef std::map<Id, Geometry> IdToGeometryMap;
+        /*typedef std::map<int, std::vector<coordf_t>> IdToLayerHeightsProfileMap;
         typedef std::map<int, t_layer_config_ranges> IdToLayerConfigRangesMap;
         typedef std::map<int, std::vector<sla::SupportPoint>> IdToSlaSupportPointsMap;
-        typedef std::map<int, std::vector<sla::DrainHole>> IdToSlaDrainHolesMap;
+        typedef std::map<int, std::vector<sla::DrainHole>> IdToSlaDrainHolesMap;*/
 
         // Version of the 3mf file
         unsigned int m_version;
@@ -598,18 +622,20 @@ namespace Slic3r {
         std::string m_parse_error_message;
         Model* m_model;
         float m_unit_factor;
-        CurrentObject m_curr_object;
+        CurrentObject* m_curr_object{nullptr};
+        IdToCurrentObjectMap m_current_objects;
+        IndexToPathMap       m_index_paths;
         IdToModelObjectMap m_objects;
-        IdToAliasesMap m_objects_aliases;
+        //IdToAliasesMap m_objects_aliases;
         InstancesList m_instances;
-        IdToGeometryMap m_geometries;
-        IdToGeometryMap m_orig_geometries; // backup & restore
+        //IdToGeometryMap m_geometries;
+        //IdToGeometryMap m_orig_geometries; // backup & restore
         CurrentConfig m_curr_config;
         IdToMetadataMap m_objects_metadata;
-        IdToLayerHeightsProfileMap m_layer_heights_profiles;
+        /*IdToLayerHeightsProfileMap m_layer_heights_profiles;
         IdToLayerConfigRangesMap m_layer_config_ranges;
         IdToSlaSupportPointsMap m_sla_support_points;
-        IdToSlaDrainHolesMap    m_sla_drain_holes;
+        IdToSlaDrainHolesMap    m_sla_drain_holes;*/
         std::string m_curr_metadata_name;
         std::string m_curr_characters;
         std::string m_name;
@@ -771,6 +797,8 @@ namespace Slic3r {
         void _handle_start_key_store_element(const char* name, const char** attributes);
         void _handle_end_key_store_element(const char* name);
 
+        void _generate_current_object_list(std::vector<Id> &sub_objects, Id object_id, IdToCurrentObjectMap current_objects);
+        bool _generate_volumes_new(ModelObject& object, const std::vector<Id> &sub_objects, const ObjectMetadata::VolumeMetadataList& volumes, ConfigSubstitutionContext& config_substitutions);
         bool _generate_volumes(ModelObject& object, const Geometry& geometry, const ObjectMetadata::VolumeMetadataList& volumes, ConfigSubstitutionContext& config_substitutions);
 
         // callbacks to parse the .model file
@@ -798,8 +826,22 @@ namespace Slic3r {
 
     _BBS_3MF_Importer::~_BBS_3MF_Importer()
     {
-        delete m_key_store_loader;
+        if (m_key_store_loader)
+            delete m_key_store_loader;
         _destroy_xml_parser();
+        clear_errors();
+
+        if (m_curr_object) {
+            delete m_curr_object;
+            m_curr_object = nullptr;
+        }
+        m_current_objects.clear();
+        m_index_paths.clear();
+        m_objects.clear();
+        m_instances.clear();
+        m_objects_metadata.clear();
+        m_curr_metadata_name.clear();
+        m_curr_characters.clear();
 
         std::map<int, PlateData*>::iterator it = m_plater_data.begin();
         while (it != m_plater_data.end())
@@ -824,17 +866,19 @@ namespace Slic3r {
         m_load_restore = strategy & LoadStrategy::Restore;
         m_model = &model;
         m_unit_factor = 1.0f;
-        m_curr_object.reset();
+        m_curr_object = nullptr;
+        m_current_objects.clear();
+        m_index_paths.clear();
         m_objects.clear();
-        m_objects_aliases.clear();
+        //m_objects_aliases.clear();
         m_instances.clear();
-        m_geometries.clear();
+        //m_geometries.clear();
         m_curr_config.object_id = -1;
         m_curr_config.volume_id = -1;
         m_objects_metadata.clear();
-        m_layer_heights_profiles.clear();
-        m_layer_config_ranges.clear();
-        m_sla_support_points.clear();
+        //m_layer_heights_profiles.clear();
+        //m_layer_config_ranges.clear();
+        //m_sla_support_points.clear();
         m_curr_metadata_name.clear();
         m_curr_characters.clear();
         //BBS: plater data init
@@ -967,36 +1011,50 @@ namespace Slic3r {
         std::string sub_rels = m_start_part_path;
         sub_rels.insert(boost::find_last(sub_rels, "/").end() - sub_rels.begin(), "_rels/");
         sub_rels.append(".rels");
-        _extract_xml_from_archive(archive, sub_rels, _handle_start_relationships_element, _handle_end_relationships_element);
-        int index = 0;
-        for (auto path : m_sub_model_paths) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_READ_FILES\n");
+        if (sub_rels.front() == '/') sub_rels = sub_rels.substr(1);
+
+        //check whether sub relation file is exist or not
+        int sub_index = mz_zip_reader_locate_file(&archive, sub_rels.c_str(), nullptr, 0);
+        if (sub_index == -1) {
+            //no submodule files found, use only one 3dmodel.model
+        }
+        else {
+            _extract_xml_from_archive(archive, sub_rels, _handle_start_relationships_element, _handle_end_relationships_element);
+            int index = 0;
+
+            for (auto path : m_sub_model_paths) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_READ_FILES\n");
+                if (proFn) {
+                    proFn(IMPORT_STAGE_READ_FILES, ++index, 3 + m_sub_model_paths.size(), cb_cancel);
+                    if (cb_cancel)
+                        return false;
+                }
+                m_sub_model_path = path;
+                if (!_extract_from_archive(archive, path, [this] (mz_zip_archive& archive, const mz_zip_archive_file_stat& stat) {
+                    return _extract_model_from_archive(archive, stat);
+                })) {
+                    add_error("Archive does not contain a valid model");
+                    return false;
+                }
+                m_sub_model_path.clear();
+            }
+            // BBS: load root model
             if (proFn) {
-                proFn(IMPORT_STAGE_READ_FILES, ++index, 3 + m_sub_model_paths.size(), cb_cancel);
+                proFn(IMPORT_STAGE_READ_FILES, 2, 3, cb_cancel);
                 if (cb_cancel)
                     return false;
             }
-            m_sub_model_path = path;
-            if (!_extract_from_archive(archive, path, [this] (mz_zip_archive& archive, const mz_zip_archive_file_stat& stat) {
-                return _extract_model_from_archive(archive, stat);
-            })) {
-                add_error("Archive does not contain a valid model");
-                return false;
-            }
-            m_sub_model_path.clear();
         }
-        // BBS: load root model
-        if (proFn) {
-            proFn(IMPORT_STAGE_READ_FILES, 2, 3, cb_cancel);
-            if (cb_cancel)
-                return false;
-        }
+
+        //extract model files
         if (!_extract_from_archive(archive, m_start_part_path, [this] (mz_zip_archive& archive, const mz_zip_archive_file_stat& stat) {
                     return _extract_model_from_archive(archive, stat);
-                })) {
-                add_error("Archive does not contain a valid model");
-                return false;
-            }
+            })) {
+            add_error("Archive does not contain a valid model");
+            return false;
+        }
+
+        //got project id
         if (project) {
             project->project_model_id = m_model_id;
         }
@@ -1074,7 +1132,7 @@ namespace Slic3r {
                     // extract slic3r layer config ranges file
                     _extract_custom_gcode_per_print_z_from_archive(archive, stat);
                 }*/
-                else if ((boost::algorithm::iequals(name, MODEL_CONFIG_FILE))||(boost::algorithm::iequals(name, BBS_MODEL_CONFIG_FILE))) {
+                else if (boost::algorithm::iequals(name, BBS_MODEL_CONFIG_FILE)) {
                     // extract slic3r model config file
                     if (!_extract_xml_from_archive(archive, stat, _handle_start_config_xml_element, _handle_end_config_xml_element)) {
                         close_zip_reader(&archive);
@@ -1105,43 +1163,32 @@ namespace Slic3r {
         if (m_version == 0) {
             // if the 3mf was not produced by BambuStudio and there is more than one instance,
             // split the object in as many objects as instances
-            size_t curr_models_count = m_model->objects.size();
-            size_t i = 0;
-            while (i < curr_models_count) {
-                ModelObject* model_object = m_model->objects[i];
+            for (const IdToModelObjectMap::value_type& object : m_objects) {
+                if (object.second >= int(m_model->objects.size())) {
+                    add_error("3rd 3mf, invalid object, id: "+std::to_string(object.first.second));
+                    return false;
+                }
+                ModelObject* model_object = m_model->objects[object.second];
                 if (model_object->instances.size() > 1) {
-                    // select the geometry associated with the original model object
-                    const Geometry* geometry = nullptr;
-                    int object_idx = 0;
-                    for (const IdToModelObjectMap::value_type& object : m_objects) {
-                        if (object.second == int(i)) {
-                            IdToGeometryMap::const_iterator obj_geometry = m_geometries.find(object.first);
-                            if (obj_geometry == m_geometries.end()) {
-                                add_error("Unable to find object geometry");
-                                return false;
-                            }
-
-                            //BBS progress point
-                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_LOADING_OBJECTS\n");
-                            if (proFn) {
-                                proFn(IMPORT_STAGE_LOADING_OBJECTS, object_idx, m_objects.size(), cb_cancel);
-                                if (cb_cancel)
-                                    return false;
-                            }
-                            object_idx++;
-
-                            geometry = &obj_geometry->second;
-                            break;
-                        }
-                    }
-
-                    if (geometry == nullptr) {
-                        add_error("Unable to find object geometry");
+                    IdToCurrentObjectMap::const_iterator current_object = m_current_objects.find(object.first);
+                    if (current_object == m_current_objects.end()) {
+                        add_error("3rd 3mf, can not find object, id " + std::to_string(object.first.second));
                         return false;
                     }
+                    std::vector<Id> object_id_list;
+                    _generate_current_object_list(object_id_list, object.first, m_current_objects);
 
-                    // use the geometry to create the volumes in the new model objects
-                    ObjectMetadata::VolumeMetadataList volumes(1, { 0, (unsigned int)geometry->triangles.size() - 1});
+                    ObjectMetadata::VolumeMetadataList volumes;
+                    ObjectMetadata::VolumeMetadataList* volumes_ptr = nullptr;
+
+                    for (int k = 0; k < object_id_list.size(); k++)
+                    {
+                        Id object_id = object_id_list[k];
+                        volumes.emplace_back(object_id.second);
+                    }
+
+                    // select as volumes
+                    volumes_ptr = &volumes;
 
                     // for each instance after the 1st, create a new model object containing only that instance
                     // and copy into it the geometry
@@ -1150,28 +1197,27 @@ namespace Slic3r {
                         new_model_object->clear_instances();
                         new_model_object->add_instance(*model_object->instances.back());
                         model_object->delete_last_instance();
-                        if (!_generate_volumes(*new_model_object, *geometry, volumes, config_substitutions))
+                        if (!_generate_volumes_new(*new_model_object, object_id_list, *volumes_ptr, config_substitutions))
                             return false;
                     }
                 }
-                ++i;
             }
         }
 
         for (const IdToModelObjectMap::value_type& object : m_objects) {
             if (object.second >= int(m_model->objects.size())) {
-                add_error("Unable to find object");
+                add_error("invalid object, id: "+std::to_string(object.first.second));
                 return false;
             }
             ModelObject* model_object = m_model->objects[object.second];
-            IdToGeometryMap::const_iterator obj_geometry = m_geometries.find(object.first);
+            /*IdToGeometryMap::const_iterator obj_geometry = m_geometries.find(object.first);
             if (obj_geometry == m_geometries.end()) {
                 add_error("Unable to find object geometry");
                 return false;
-            }
+            }*/
 
             // m_layer_heights_profiles are indexed by a 1 based model object index.
-            IdToLayerHeightsProfileMap::iterator obj_layer_heights_profile = m_layer_heights_profiles.find(object.second + 1);
+            /*IdToLayerHeightsProfileMap::iterator obj_layer_heights_profile = m_layer_heights_profiles.find(object.second + 1);
             if (obj_layer_heights_profile != m_layer_heights_profiles.end())
                 model_object->layer_height_profile.set(std::move(obj_layer_heights_profile->second));
 
@@ -1190,7 +1236,10 @@ namespace Slic3r {
             IdToSlaDrainHolesMap::iterator obj_drain_holes = m_sla_drain_holes.find(object.second + 1);
             if (obj_drain_holes != m_sla_drain_holes.end() && !obj_drain_holes->second.empty()) {
                 model_object->sla_drain_holes = std::move(obj_drain_holes->second);
-            }
+            }*/
+
+            std::vector<Id> object_id_list;
+            _generate_current_object_list(object_id_list, object.first, m_current_objects);
 
             ObjectMetadata::VolumeMetadataList volumes;
             ObjectMetadata::VolumeMetadataList* volumes_ptr = nullptr;
@@ -1217,13 +1266,18 @@ namespace Slic3r {
                 // config data not found, this model was not saved using slic3r pe
 
                 // add the entire geometry as the single volume to generate
-                volumes.emplace_back(0, (int)obj_geometry->second.triangles.size() - 1);
+                //volumes.emplace_back(0, (int)obj_geometry->second.triangles.size() - 1);
+                for (int k = 0; k < object_id_list.size(); k++)
+                {
+                    Id object_id = object_id_list[k];
+                    volumes.emplace_back(object_id.second);
+                }
 
                 // select as volumes
                 volumes_ptr = &volumes;
             }
 
-            if (!_generate_volumes(*model_object, obj_geometry->second, *volumes_ptr, config_substitutions))
+            if (!_generate_volumes_new(*model_object, object_id_list, *volumes_ptr, config_substitutions))
                 return false;
         }
 
@@ -1689,7 +1743,7 @@ namespace Slic3r {
         return ;
     }
 
-    void _BBS_3MF_Importer::_extract_layer_heights_profile_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)
+    /*void _BBS_3MF_Importer::_extract_layer_heights_profile_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)
     {
         if (stat.m_uncomp_size > 0) {
             std::string buffer((size_t)stat.m_uncomp_size, 0);
@@ -1974,7 +2028,7 @@ namespace Slic3r {
                     m_sla_drain_holes.insert({ object_id, sla_drain_holes });
             }
         }
-    }
+    }*/
 
     void _BBS_3MF_Importer::_extract_custom_gcode_per_print_z_from_archive(::mz_zip_archive &archive, const mz_zip_archive_file_stat &stat)
     {
@@ -2137,7 +2191,7 @@ namespace Slic3r {
             res = _handle_start_config_volume(attributes, num_attributes);
         else if (::strcmp(PART_TAG, name) == 0)
             res = _handle_start_config_volume(attributes, num_attributes);
-        else if (::strcmp(MESH_TAG, name) == 0)
+        else if (::strcmp(MESH_STAT_TAG, name) == 0)
             res = _handle_start_config_volume_mesh(attributes, num_attributes);
         else if (::strcmp(METADATA_TAG, name) == 0)
             res = _handle_start_config_metadata(attributes, num_attributes);
@@ -2169,7 +2223,7 @@ namespace Slic3r {
             res = _handle_end_config_volume();
         else if (::strcmp(PART_TAG, name) == 0)
             res = _handle_end_config_volume();
-        else if (::strcmp(MESH_TAG, name) == 0)
+        else if (::strcmp(MESH_STAT_TAG, name) == 0)
             res = _handle_end_config_volume_mesh();
         else if (::strcmp(METADATA_TAG, name) == 0)
             res = _handle_end_config_metadata();
@@ -2189,6 +2243,7 @@ namespace Slic3r {
     bool _BBS_3MF_Importer::_handle_start_model(const char** attributes, unsigned int num_attributes)
     {
         m_unit_factor = bbs_get_unit_factor(bbs_get_attribute_value_string(attributes, num_attributes, UNIT_ATTR));
+
         return true;
     }
 
@@ -2240,34 +2295,38 @@ namespace Slic3r {
 
     bool _BBS_3MF_Importer::_handle_start_object(const char** attributes, unsigned int num_attributes)
     {
-        // reset current data
-        m_curr_object.reset();
+        // reset current object data
+        if (m_curr_object) {
+            delete m_curr_object;
+            m_curr_object = nullptr;
+        }
 
-        if (bbs_is_valid_object_type(bbs_get_attribute_value_string(attributes, num_attributes, TYPE_ATTR))) {
-            // create new object (it may be removed later if no instances are generated from it)
-            m_curr_object.model_object_idx = (int)m_model->objects.size();
-            m_curr_object.object = m_model->add_object();
-            if (m_curr_object.object == nullptr) {
-                add_error("Unable to create object");
-                return false;
+        std::string object_type = bbs_get_attribute_value_string(attributes, num_attributes, TYPE_ATTR);
+
+        if (bbs_is_valid_object_type(object_type)) {
+            if (!m_curr_object) {
+                m_curr_object = new CurrentObject();
+                // create new object (it may be removed later if no instances are generated from it)
+                /*m_curr_object->model_object_idx = (int)m_model->objects.size();
+                m_curr_object.object = m_model->add_object();
+                if (m_curr_object.object == nullptr) {
+                    add_error("Unable to create object");
+                    return false;
+                }*/
             }
 
-            // set object data
-            m_curr_object.object->name = bbs_get_attribute_value_string(attributes, num_attributes, NAME_ATTR);
-            if (m_curr_object.object->name.empty())
-                m_curr_object.object->name = m_name + "_" + std::to_string(m_model->objects.size());
+            m_curr_object->id = bbs_get_attribute_value_int(attributes, num_attributes, ID_ATTR);
+            m_curr_object->name = bbs_get_attribute_value_string(attributes, num_attributes, NAME_ATTR);
 
-            m_curr_object.id = bbs_get_attribute_value_int(attributes, num_attributes, ID_ATTR);
-
-            std::string uuid = bbs_get_attribute_value_string(attributes, num_attributes, PUUID_ATTR);
-            if (m_is_bbl_3mf && boost::ends_with(uuid, OBJECT_UUID_SUFFIX)) {
-                std::istringstream iss(uuid); int backup_id;
+            m_curr_object->uuid = bbs_get_attribute_value_string(attributes, num_attributes, PUUID_ATTR);
+            /*if (m_is_bbl_3mf && boost::ends_with(current_object.uuid, OBJECT_UUID_SUFFIX)) {
+                std::istringstream iss(current_object.uuid);
+                int backup_id;
                 if (iss >> std::hex >> backup_id) {
-                    m_model->set_object_backup_id(*m_curr_object.object, backup_id);
-                    if (m_load_restore) // backup with backup_id
-                        m_curr_object.id = backup_id;
-                }
-            }
+                    if (m_load_restore) {// backup with backup_id
+                        m_curr_object->id = backup_id;
+                    }
+            }*/
         }
 
         return true;
@@ -2275,42 +2334,66 @@ namespace Slic3r {
 
     bool _BBS_3MF_Importer::_handle_end_object()
     {
-        if (m_curr_object.object != nullptr) {
-            Id id = std::make_pair(m_sub_model_path, m_curr_object.id);
-            if (m_curr_object.geometry.empty()) {
-                // no geometry defined
-                // remove the object from the model
-                m_model->delete_object(m_curr_object.object);
-
-                if (m_curr_object.components.empty()) {
-                    // no components defined -> invalid object, delete it
-                    IdToModelObjectMap::iterator object_item = m_objects.find(id);
-                    if (object_item != m_objects.end())
-                        m_objects.erase(object_item);
-
-                    IdToAliasesMap::iterator alias_item = m_objects_aliases.find(id);
-                    if (alias_item != m_objects_aliases.end())
-                        m_objects_aliases.erase(alias_item);
-                }
-                else
-                    // adds components to aliases
-                    m_objects_aliases.insert({ id, m_curr_object.components });
+        if (!m_curr_object || (m_curr_object->id == -1)) {
+            add_error("Found invalid object");
+            return false;
+        }
+        else {
+            Id id = std::make_pair(m_sub_model_path, m_curr_object->id);
+            if (m_current_objects.find(id) == m_current_objects.end()) {
+                m_index_paths.insert({m_curr_object->id, m_sub_model_path});
+                m_current_objects.insert({ id, std::move(*m_curr_object) });
+                delete m_curr_object;
+                m_curr_object = nullptr;
             }
             else {
-                // geometry defined, store it for later use
-                m_geometries.insert({ id, std::move(m_curr_object.geometry) });
-
-                // stores the object for later use
-                if (m_objects.find(id) == m_objects.end()) {
-                    m_objects.insert({ id, m_curr_object.model_object_idx });
-                    m_objects_aliases.insert({ id, { 1, Component(m_curr_object.id) } }); // aliases itself
-                }
-                else {
-                    add_error("Found object with duplicate id");
-                    return false;
-                }
+                add_error("Found object with duplicate id");
+                delete m_curr_object;
+                m_curr_object = nullptr;
+                return false;
             }
         }
+
+        /*if (m_curr_object.object != nullptr) {
+            if (m_curr_object.id != -1) {
+                if (m_curr_object.geometry.empty()) {
+                    // no geometry defined
+                    // remove the object from the model
+                    m_model->delete_object(m_curr_object.object);
+
+                    if (m_curr_object.components.empty()) {
+                        // no components defined -> invalid object, delete it
+                        IdToModelObjectMap::iterator object_item = m_objects.find(id);
+                        if (object_item != m_objects.end())
+                            m_objects.erase(object_item);
+
+                        IdToAliasesMap::iterator alias_item = m_objects_aliases.find(id);
+                        if (alias_item != m_objects_aliases.end())
+                            m_objects_aliases.erase(alias_item);
+                    }
+                    else
+                        // adds components to aliases
+                        m_objects_aliases.insert({ id, m_curr_object.components });
+                }
+                else {
+                    // geometry defined, store it for later use
+                    m_geometries.insert({ id, std::move(m_curr_object.geometry) });
+
+                    // stores the object for later use
+                    if (m_objects.find(id) == m_objects.end()) {
+                        m_objects.insert({ id, m_curr_object.model_object_idx });
+                        m_objects_aliases.insert({ id, { 1, Component(m_curr_object.id) } }); // aliases itself
+                    }
+                    else {
+                        add_error("Found object with duplicate id");
+                        return false;
+                    }
+                }
+            }
+            else {
+                //sub objects
+            }
+        }*/
 
         return true;
     }
@@ -2318,7 +2401,8 @@ namespace Slic3r {
     bool _BBS_3MF_Importer::_handle_start_mesh(const char** attributes, unsigned int num_attributes)
     {
         // reset current geometry
-        m_curr_object.geometry.reset();
+        if (m_curr_object)
+            m_curr_object->geometry.reset();
         return true;
     }
 
@@ -2331,7 +2415,8 @@ namespace Slic3r {
     bool _BBS_3MF_Importer::_handle_start_vertices(const char** attributes, unsigned int num_attributes)
     {
         // reset current vertices
-        m_curr_object.geometry.vertices.clear();
+        if (m_curr_object)
+            m_curr_object->geometry.vertices.clear();
         return true;
     }
 
@@ -2345,10 +2430,11 @@ namespace Slic3r {
     {
         // appends the vertex coordinates
         // missing values are set equal to ZERO
-        m_curr_object.geometry.vertices.emplace_back(
-            m_unit_factor * bbs_get_attribute_value_float(attributes, num_attributes, X_ATTR),
-            m_unit_factor * bbs_get_attribute_value_float(attributes, num_attributes, Y_ATTR),
-            m_unit_factor * bbs_get_attribute_value_float(attributes, num_attributes, Z_ATTR));
+        if (m_curr_object)
+            m_curr_object->geometry.vertices.emplace_back(
+                m_unit_factor * bbs_get_attribute_value_float(attributes, num_attributes, X_ATTR),
+                m_unit_factor * bbs_get_attribute_value_float(attributes, num_attributes, Y_ATTR),
+                m_unit_factor * bbs_get_attribute_value_float(attributes, num_attributes, Z_ATTR));
         return true;
     }
 
@@ -2361,7 +2447,8 @@ namespace Slic3r {
     bool _BBS_3MF_Importer::_handle_start_triangles(const char** attributes, unsigned int num_attributes)
     {
         // reset current triangles
-        m_curr_object.geometry.triangles.clear();
+        if (m_curr_object)
+            m_curr_object->geometry.triangles.clear();
         return true;
     }
 
@@ -2382,16 +2469,18 @@ namespace Slic3r {
 
         // appends the triangle's vertices indices
         // missing values are set equal to ZERO
-        m_curr_object.geometry.triangles.emplace_back(
-            bbs_get_attribute_value_int(attributes, num_attributes, V1_ATTR),
-            bbs_get_attribute_value_int(attributes, num_attributes, V2_ATTR),
-            bbs_get_attribute_value_int(attributes, num_attributes, V3_ATTR));
+        if (m_curr_object) {
+            m_curr_object->geometry.triangles.emplace_back(
+                bbs_get_attribute_value_int(attributes, num_attributes, V1_ATTR),
+                bbs_get_attribute_value_int(attributes, num_attributes, V2_ATTR),
+                bbs_get_attribute_value_int(attributes, num_attributes, V3_ATTR));
 
-        m_curr_object.geometry.custom_supports.push_back(bbs_get_attribute_value_string(attributes, num_attributes, CUSTOM_SUPPORTS_ATTR));
-        m_curr_object.geometry.custom_seam.push_back(bbs_get_attribute_value_string(attributes, num_attributes, CUSTOM_SEAM_ATTR));
-        m_curr_object.geometry.mmu_segmentation.push_back(bbs_get_attribute_value_string(attributes, num_attributes, MMU_SEGMENTATION_ATTR));
-        // BBS
-        m_curr_object.geometry.face_properties.push_back(bbs_get_attribute_value_string(attributes, num_attributes, FACE_PROPERTY_ATTR));
+            m_curr_object->geometry.custom_supports.push_back(bbs_get_attribute_value_string(attributes, num_attributes, CUSTOM_SUPPORTS_ATTR));
+            m_curr_object->geometry.custom_seam.push_back(bbs_get_attribute_value_string(attributes, num_attributes, CUSTOM_SEAM_ATTR));
+            m_curr_object->geometry.mmu_segmentation.push_back(bbs_get_attribute_value_string(attributes, num_attributes, MMU_SEGMENTATION_ATTR));
+            // BBS
+            m_curr_object->geometry.face_properties.push_back(bbs_get_attribute_value_string(attributes, num_attributes, FACE_PROPERTY_ATTR));
+        }
         return true;
     }
 
@@ -2404,7 +2493,8 @@ namespace Slic3r {
     bool _BBS_3MF_Importer::_handle_start_components(const char** attributes, unsigned int num_attributes)
     {
         // reset current components
-        m_curr_object.components.clear();
+        if (m_curr_object)
+            m_curr_object->components.clear();
         return true;
     }
 
@@ -2419,7 +2509,7 @@ namespace Slic3r {
         int object_id = bbs_get_attribute_value_int(attributes, num_attributes, OBJECTID_ATTR);
         Transform3d transform = bbs_get_transform_from_3mf_specs_string(bbs_get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR));
 
-        Id id = std::make_pair(m_sub_model_path, object_id);
+        /*Id id = std::make_pair(m_sub_model_path, object_id);
         IdToModelObjectMap::iterator object_item = m_objects.find(id);
         if (object_item == m_objects.end()) {
             IdToAliasesMap::iterator alias_item = m_objects_aliases.find(id);
@@ -2427,9 +2517,12 @@ namespace Slic3r {
                 add_error("Found component with invalid object id");
                 return false;
             }
-        }
+        }*/
 
-        m_curr_object.components.emplace_back(object_id, transform);
+        if (m_curr_object) {
+            Id id = std::make_pair(m_sub_model_path, object_id);
+            m_curr_object->components.emplace_back(id, transform);
+        }
 
         return true;
     }
@@ -2494,16 +2587,15 @@ namespace Slic3r {
 
     bool _BBS_3MF_Importer::_handle_end_metadata()
     {
-        if ((m_curr_metadata_name == BBS_3MF_VERSION)||(m_curr_metadata_name == BBS_PRUSA_VERSION)) {
-            if (m_curr_metadata_name == BBS_3MF_VERSION)
-                m_is_bbl_3mf = true;
+        if ((m_curr_metadata_name == BBS_3MF_VERSION)||(m_curr_metadata_name == BBS_3MF_VERSION1)) {
+            m_is_bbl_3mf = true;
             m_version = (unsigned int)atoi(m_curr_characters.c_str());
-            if (m_check_version && (m_version > VERSION_BBS_3MF_COMPATIBLE)) {
+            /*if (m_check_version && (m_version > VERSION_BBS_3MF_COMPATIBLE)) {
                 // std::string msg = _(L("The selected 3mf file has been saved with a newer version of " + std::string(SLIC3R_APP_NAME) + " and is not compatible."));
                 // throw version_error(msg.c_str());
                 const std::string msg = (boost::format(_(L("The selected 3mf file has been saved with a newer version of %1% and is not compatible."))) % std::string(SLIC3R_APP_NAME)).str();
                 throw version_error(msg);
-            }
+            }*/
         } else if (m_curr_metadata_name == "Application") {
             // Generator application of the 3MF.
             // SLIC3R_APP_KEY - SLIC3R_VERSION
@@ -2539,13 +2631,72 @@ namespace Slic3r {
         }
 
         Id id{path, object_id};
-        IdToAliasesMap::iterator it = m_objects_aliases.find(id);
-        if (it == m_objects_aliases.end()) {
-            add_error("Found item with invalid object id " + std::to_string(object_id));
+        IdToCurrentObjectMap::iterator it = m_current_objects.find(id);
+        if (it == m_current_objects.end()) {
+            add_error("can not find object id " + std::to_string(object_id) + " to builditem");
             return false;
         }
 
-        if (it->second.size() == 1 && it->second[0].object_id == object_id) {
+        IdToModelObjectMap::iterator object_item = m_objects.find(id);
+        if (object_item == m_objects.end()) {
+            //add object
+            CurrentObject& current_object = it->second;
+            int object_index =  (int)m_model->objects.size();
+            ModelObject* model_object = m_model->add_object();
+            if (model_object == nullptr) {
+                add_error("Unable to create object for builditem, id " + std::to_string(object_id));
+                return false;
+            }
+            m_objects.insert({ id, object_index });
+            current_object.model_object_idx = object_index;
+            current_object.object = model_object;
+
+            ModelInstance* instance = m_model->objects[object_index]->add_instance();
+            if (instance == nullptr) {
+                add_error("error when add object instance for id " + std::to_string(object_id));
+                return false;
+            }
+            instance->printable = printable;
+
+            m_instances.emplace_back(instance, transform);
+
+            if (m_is_bbl_3mf && boost::ends_with(current_object.uuid, OBJECT_UUID_SUFFIX)) {
+                std::istringstream iss(current_object.uuid);
+                int backup_id;
+                if (iss >> std::hex >> backup_id) {
+                    m_model->set_object_backup_id(*model_object, backup_id);
+                    //if (m_load_restore) {// backup with backup_id
+                    //    current_object.id = backup_id;
+                    //}
+                }
+            }
+            /*if (!current_object.geometry.empty()) {
+            }
+            else if (!current_object.components.empty()) {
+                 // recursively process nested components
+                for (const Component& component : it->second) {
+                    if (!_create_object_instance(path, component.object_id, transform * component.transform, printable, recur_counter + 1))
+                        return false;
+                }
+            }
+            else {
+                add_error("can not construct build items with invalid object, id " + std::to_string(object_id));
+                return false;
+            }*/
+        }
+        else {
+            //add instance
+            ModelInstance* instance = m_model->objects[object_item->second]->add_instance();
+            if (instance == nullptr) {
+                add_error("error when add object instance for id " + std::to_string(object_id));
+                return false;
+            }
+            instance->printable = printable;
+
+            m_instances.emplace_back(instance, transform);
+        }
+
+        /*if (it->second.size() == 1 && it->second[0].object_id == object_id) {
             // aliasing to itself
 
             IdToModelObjectMap::iterator object_item = m_objects.find(id);
@@ -2570,7 +2721,7 @@ namespace Slic3r {
                 if (!_create_object_instance(path, component.object_id, transform * component.transform, printable, recur_counter + 1))
                     return false;
             }
-        }
+        }*/
 
         return true;
     }
@@ -2602,7 +2753,7 @@ namespace Slic3r {
         int object_id = bbs_get_attribute_value_int(attributes, num_attributes, ID_ATTR);
         IdToMetadataMap::iterator object_item = m_objects_metadata.find(object_id);
         if (object_item != m_objects_metadata.end()) {
-            add_error("Found duplicated object id");
+            add_error("Duplicated object id: " + std::to_string(object_id) + " in model_settings.config");
             return false;
         }
 
@@ -2616,7 +2767,7 @@ namespace Slic3r {
 
     bool _BBS_3MF_Importer::_handle_end_config_object()
     {
-        // do nothing
+        m_curr_config.object_id = -1;
         return true;
     }
 
@@ -2624,7 +2775,7 @@ namespace Slic3r {
     {
         IdToMetadataMap::iterator object = m_objects_metadata.find(m_curr_config.object_id);
         if (object == m_objects_metadata.end()) {
-            add_error("Cannot assign volume to a valid object");
+            add_error("can not find object for part, id " + std::to_string(m_curr_config.object_id) );
             return false;
         }
 
@@ -2637,7 +2788,12 @@ namespace Slic3r {
         std::string subtype_str = bbs_get_attribute_value_string(attributes, num_attributes, SUBTYPE_ATTR);
         ModelVolumeType type = ModelVolume::type_from_string(subtype_str);
 
-        object->second.volumes.emplace_back(first_triangle_id, last_triangle_id, type);
+        int subbject_id = bbs_get_attribute_value_int(attributes, num_attributes, ID_ATTR);
+
+        if (last_triangle_id > 0)
+            object->second.volumes.emplace_back(first_triangle_id, last_triangle_id, type);
+        else
+            object->second.volumes.emplace_back(subbject_id, type);
         return true;
     }
 
@@ -2645,15 +2801,15 @@ namespace Slic3r {
     {
         IdToMetadataMap::iterator object = m_objects_metadata.find(m_curr_config.object_id);
         if (object == m_objects_metadata.end()) {
-            add_error("Cannot assign volume mesh to a valid object");
+            add_error("can not find object for mesh_stats, id " + std::to_string(m_curr_config.object_id) );
             return false;
         }
-        if (object->second.volumes.empty()) {
-            add_error("Cannot assign mesh to a valid olume");
+        if ((m_curr_config.volume_id == -1) || ((object->second.volumes.size() - 1) < m_curr_config.volume_id)) {
+            add_error("can not find part for mesh_stats");
             return false;
         }
 
-        ObjectMetadata::VolumeMetadata& volume = object->second.volumes.back();
+        ObjectMetadata::VolumeMetadata& volume = object->second.volumes[m_curr_config.volume_id];
 
         int edges_fixed         = bbs_get_attribute_value_int(attributes, num_attributes, MESH_STAT_EDGES_FIXED       );
         int degenerate_facets   = bbs_get_attribute_value_int(attributes, num_attributes, MESH_STAT_DEGENERATED_FACETS);
@@ -2668,7 +2824,7 @@ namespace Slic3r {
 
     bool _BBS_3MF_Importer::_handle_end_config_volume()
     {
-        // do nothing
+        m_curr_config.volume_id = -1;
         return true;
     }
 
@@ -2680,7 +2836,7 @@ namespace Slic3r {
 
     bool _BBS_3MF_Importer::_handle_start_config_metadata(const char** attributes, unsigned int num_attributes)
     {
-        std::string type = bbs_get_attribute_value_string(attributes, num_attributes, TYPE_ATTR);
+        //std::string type = bbs_get_attribute_value_string(attributes, num_attributes, TYPE_ATTR);
         std::string key = bbs_get_attribute_value_string(attributes, num_attributes, KEY_ATTR);
         std::string value = bbs_get_attribute_value_string(attributes, num_attributes, VALUE_ATTR);
 
@@ -2688,22 +2844,14 @@ namespace Slic3r {
         {
             IdToMetadataMap::iterator object = m_objects_metadata.find(m_curr_config.object_id);
             if (object == m_objects_metadata.end()) {
-                add_error("Cannot assign metadata to valid object id");
+                add_error("Cannot find object for metadata, id " + std::to_string(m_curr_config.object_id));
                 return false;
             }
-            if (type == OBJECT_TYPE)
+            if (m_curr_config.volume_id == -1)
                 object->second.metadata.emplace_back(key, value);
-            else if (type == VOLUME_TYPE) {
-                if (size_t(m_curr_config.volume_id) < object->second.volumes.size())
-                    object->second.volumes[m_curr_config.volume_id].metadata.emplace_back(key, value);
-            }
-            else if (type == PART_TYPE) {
-                if (size_t(m_curr_config.volume_id) < object->second.volumes.size())
-                    object->second.volumes[m_curr_config.volume_id].metadata.emplace_back(key, value);
-            }
             else {
-                add_error("Found invalid metadata type");
-                return false;
+                if (size_t(m_curr_config.volume_id) < object->second.volumes.size())
+                    object->second.volumes[m_curr_config.volume_id].metadata.emplace_back(key, value);
             }
         }
         else
@@ -2729,13 +2877,18 @@ namespace Slic3r {
             {
                 int obj_id = atoi(value.c_str());
                 m_curr_instance.object_id = -1;
-                // only compare id, path is ignored
-                for (auto & obj : m_objects) {
-                    if (obj.first.second == obj_id) {
-                        m_curr_instance.object_id = obj.second; // index
-                        break;
-                    }
+                IndexToPathMap::iterator index_iter = m_index_paths.find(obj_id);
+                if (index_iter == m_index_paths.end()) {
+                    add_error("can not find object for plate's item, id= " + std::to_string(obj_id));
+                    return false;
                 }
+                Id temp_id = std::make_pair(index_iter->second, index_iter->first);
+                IdToModelObjectMap::iterator object_item = m_objects.find(temp_id);
+                if (object_item == m_objects.end()) {
+                    add_error("can not find object for assemble item, id= " + std::to_string(obj_id));
+                    return false;
+                }
+                m_curr_instance.object_id = object_item->second;
             }
             else if (key == PLATE_IDX_ATTR)
             {
@@ -2835,15 +2988,21 @@ namespace Slic3r {
     bool _BBS_3MF_Importer::_handle_start_assemble_item(const char** attributes, unsigned int num_attributes)
     {
         int object_id = bbs_get_attribute_value_int(attributes, num_attributes, OBJECT_ID_ATTR);
-        int instance_id = bbs_get_attribute_value_int(attributes, num_attributes, INSTANCEID_ATTR) - object_id;
+        int instance_id = bbs_get_attribute_value_int(attributes, num_attributes, INSTANCEID_ATTR);
 
-        // only compare id, path is ignored
-        for (auto & obj : m_objects) {
-            if (obj.first.second == object_id) {
-                object_id = obj.second; // index
-                break;
-            }
+        IndexToPathMap::iterator index_iter = m_index_paths.find(object_id);
+        if (index_iter == m_index_paths.end()) {
+            add_error("can not find object for assemble item, id= " + std::to_string(object_id));
+            return false;
         }
+        Id temp_id = std::make_pair(index_iter->second, index_iter->first);
+        IdToModelObjectMap::iterator object_item = m_objects.find(temp_id);
+        if (object_item == m_objects.end()) {
+            add_error("can not find object for assemble item, id= " + std::to_string(object_id));
+            return false;
+        }
+        object_id = object_item->second;
+
         Transform3d transform = bbs_get_transform_from_3mf_specs_string(bbs_get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR));
         Vec3d ofs2ass = bbs_get_offset_from_3mf_specs_string(bbs_get_attribute_value_string(attributes, num_attributes, OFFSET_ATTR));
         if (object_id < m_model->objects.size()) {
@@ -2949,6 +3108,189 @@ namespace Slic3r {
 
         if (!res)
             _stop_xml_parser();
+    }
+
+    void _BBS_3MF_Importer::_generate_current_object_list(std::vector<Id> &sub_objects, Id object_id, IdToCurrentObjectMap current_objects)
+    {
+        std::list<Id> id_list;
+        id_list.push_back(object_id);
+
+        while (!id_list.empty())
+        {
+            Id current_id = id_list.front();
+            id_list.pop_front();
+            IdToCurrentObjectMap::iterator current_object = current_objects.find(current_id);
+            if (current_object != current_objects.end()) {
+                //found one
+                if (!current_object->second.components.empty()) {
+                    for (const Component& comp: current_object->second.components)
+                    {
+                        id_list.push_back(comp.object_id);
+                    }
+                }
+                else if (!(current_object->second.geometry.empty())) {
+                    //CurrentObject* ptr = &(current_objects[current_id]);
+                    //CurrentObject* ptr2 = &(current_object->second);
+                    sub_objects.push_back(current_object->first);
+                }
+            }
+        }
+    }
+
+    bool _BBS_3MF_Importer::_generate_volumes_new(ModelObject& object, const std::vector<Id> &sub_objects, const ObjectMetadata::VolumeMetadataList& volumes, ConfigSubstitutionContext& config_substitutions)
+    {
+        if (!object.volumes.empty()) {
+            add_error("object already built with parts");
+            return false;
+        }
+
+        //unsigned int geo_tri_count = (unsigned int)geometry.triangles.size();
+        unsigned int renamed_volumes_count = 0;
+
+        for (unsigned int index = 0; index < sub_objects.size(); index++)
+        {
+            //find the volume metadata firstly
+            Id object_id = sub_objects[index];
+            IdToCurrentObjectMap::iterator current_object = m_current_objects.find(object_id);
+            if (current_object == m_current_objects.end()) {
+                add_error("sub_objects can not be found, id=" + std::to_string(object_id.second));
+                return false;
+            }
+            CurrentObject* sub_object = &(current_object->second);
+
+            const ObjectMetadata::VolumeMetadata* volume_data = nullptr;
+            ObjectMetadata::VolumeMetadata default_volume_data(sub_object->id);
+            for (const ObjectMetadata::VolumeMetadata& volume_iter : volumes) {
+                if (volume_iter.subobject_id == sub_object->id) {
+                    volume_data = &volume_iter;
+                    break;
+                }
+            }
+
+            Transform3d volume_matrix_to_object = Transform3d::Identity();
+            bool        has_transform 		    = false;
+            if (volume_data)
+            {
+                // extract the volume transformation from the volume's metadata, if present
+                for (const Metadata& metadata : volume_data->metadata) {
+                    if (metadata.key == MATRIX_KEY) {
+                        volume_matrix_to_object = Slic3r::Geometry::transform3d_from_string(metadata.value);
+                        has_transform 			= ! volume_matrix_to_object.isApprox(Transform3d::Identity(), 1e-10);
+                        break;
+                    }
+                }
+            }
+            else {
+                //create a volume_data
+                volume_data = &default_volume_data;
+            }
+            // splits volume out of imported geometry
+            indexed_triangle_set its;
+            its.indices.assign(sub_object->geometry.triangles.begin(), sub_object->geometry.triangles.end());
+            const size_t triangles_count = its.indices.size();
+            if (triangles_count == 0) {
+                add_error("found no trianges in the object " + std::to_string(sub_object->id));
+                return false;
+            }
+            for (const Vec3i& face : its.indices) {
+                for (const int tri_id : face) {
+                    if (tri_id < 0 || tri_id >= int(sub_object->geometry.vertices.size())) {
+                        add_error("invalid vertex id in object " + std::to_string(sub_object->id));
+                        return false;
+                    }
+                }
+            }
+
+            its.vertices.assign(sub_object->geometry.vertices.begin(), sub_object->geometry.vertices.end());
+
+            // BBS
+            for (const std::string prop_str : sub_object->geometry.face_properties) {
+                FaceProperty face_prop;
+                face_prop.from_string(prop_str);
+                its.properties.push_back(face_prop);
+            }
+
+            TriangleMesh triangle_mesh(std::move(its), volume_data->mesh_stats);
+
+            if (m_version == 0) {
+                // if the 3mf was not produced by BambuStudio and there is only one instance,
+                // bake the transformation into the geometry to allow the reload from disk command
+                // to work properly
+                if (object.instances.size() == 1) {
+                    triangle_mesh.transform(object.instances.front()->get_transformation().get_matrix(), false);
+                    object.instances.front()->set_transformation(Slic3r::Geometry::Transformation());
+                    //FIXME do the mesh fixing?
+                }
+            }
+            if (triangle_mesh.volume() < 0)
+                triangle_mesh.flip_triangles();
+
+			ModelVolume* volume = object.add_volume(std::move(triangle_mesh));
+            // stores the volume matrix taken from the metadata, if present
+            if (has_transform)
+                volume->source.transform = Slic3r::Geometry::Transformation(volume_matrix_to_object);
+            volume->calculate_convex_hull();
+
+            // recreate custom supports, seam and mmu segmentation from previously loaded attribute
+            volume->supported_facets.reserve(triangles_count);
+            volume->seam_facets.reserve(triangles_count);
+            volume->mmu_segmentation_facets.reserve(triangles_count);
+            for (size_t i=0; i<triangles_count; ++i) {
+                assert(i < sub_object->geometry.custom_supports.size());
+                assert(i < sub_object->geometry.custom_seam.size());
+                assert(i < sub_object->geometry.mmu_segmentation.size());
+                if (! sub_object->geometry.custom_supports[i].empty())
+                    volume->supported_facets.set_triangle_from_string(i, sub_object->geometry.custom_supports[i]);
+                if (! sub_object->geometry.custom_seam[i].empty())
+                    volume->seam_facets.set_triangle_from_string(i, sub_object->geometry.custom_seam[i]);
+                if (! sub_object->geometry.mmu_segmentation[i].empty())
+                    volume->mmu_segmentation_facets.set_triangle_from_string(i, sub_object->geometry.mmu_segmentation[i]);
+            }
+            volume->supported_facets.shrink_to_fit();
+            volume->seam_facets.shrink_to_fit();
+            volume->mmu_segmentation_facets.shrink_to_fit();
+
+            volume->set_type(volume_data->part_type);
+
+            // apply the remaining volume's metadata
+            for (const Metadata& metadata : volume_data->metadata) {
+                if (metadata.key == NAME_KEY)
+                    volume->name = metadata.value;
+                //else if ((metadata.key == MODIFIER_KEY) && (metadata.value == "1"))
+				//	volume->set_type(ModelVolumeType::PARAMETER_MODIFIER);
+				//for old format
+                else if ((metadata.key == VOLUME_TYPE_KEY) || (metadata.key == PART_TYPE_KEY))
+                    volume->set_type(ModelVolume::type_from_string(metadata.value));
+                else if (metadata.key == SOURCE_FILE_KEY)
+                    volume->source.input_file = metadata.value;
+                else if (metadata.key == SOURCE_OBJECT_ID_KEY)
+                    volume->source.object_idx = ::atoi(metadata.value.c_str());
+                else if (metadata.key == SOURCE_VOLUME_ID_KEY)
+                    volume->source.volume_idx = ::atoi(metadata.value.c_str());
+                else if (metadata.key == SOURCE_OFFSET_X_KEY)
+                    volume->source.mesh_offset(0) = ::atof(metadata.value.c_str());
+                else if (metadata.key == SOURCE_OFFSET_Y_KEY)
+                    volume->source.mesh_offset(1) = ::atof(metadata.value.c_str());
+                else if (metadata.key == SOURCE_OFFSET_Z_KEY)
+                    volume->source.mesh_offset(2) = ::atof(metadata.value.c_str());
+                else if (metadata.key == SOURCE_IN_INCHES)
+                    volume->source.is_converted_from_inches = metadata.value == "1";
+                else if (metadata.key == SOURCE_IN_METERS)
+                    volume->source.is_converted_from_meters = metadata.value == "1";
+                else
+                    volume->config.set_deserialize(metadata.key, metadata.value, config_substitutions);
+            }
+
+            // this may happen for 3mf saved by 3rd part softwares
+            if (volume->name.empty()) {
+                volume->name = object.name;
+                if (renamed_volumes_count > 0)
+                    volume->name += "_" + std::to_string(renamed_volumes_count + 1);
+                ++renamed_volumes_count;
+            }
+        }
+
+        return true;
     }
 
     bool _BBS_3MF_Importer::_generate_volumes(ModelObject& object, const Geometry& geometry, const ObjectMetadata::VolumeMetadataList& volumes, ConfigSubstitutionContext& config_substitutions)
@@ -3159,7 +3501,8 @@ namespace Slic3r {
             }
         };
 
-        struct Offsets
+        //BBS: change volume to seperate objects
+        /*struct Offsets
         {
             unsigned int first_vertex_id;
             unsigned int first_triangle_id;
@@ -3171,15 +3514,16 @@ namespace Slic3r {
                 , last_triangle_id(-1)
             {
             }
-        };
+        };*/
 
-        typedef std::map<const ModelVolume*, Offsets> VolumeToOffsetsMap;
+        //typedef std::map<const ModelVolume*, Offsets> VolumeToOffsetsMap;
+        typedef std::map<const ModelVolume*, int> VolumeToObjectIDMap;
 
         struct ObjectData
         {
             ModelObject const * object;
             int backup_id;
-            VolumeToOffsetsMap volumes_offsets;
+            VolumeToObjectIDMap volumes_objectID;
         };
 
         typedef std::vector<BuildItem> BuildItemsList;
@@ -3226,8 +3570,9 @@ namespace Slic3r {
         bool _add_relationships_file_to_archive(mz_zip_archive& archive, std::string const & from = {}, std::vector<std::string> const & targets = {}, std::vector<std::string> const & types = {}) const;
         bool _add_model_file_to_archive(const std::string& filename, mz_zip_archive& archive, const Model& model, IdToObjectDataMap& objects_data, Export3mfProgressFn proFn = nullptr, BBLProject* project = nullptr) const;
         bool _add_key_store_to_archive(mz_zip_archive& archive, KeyStore const & store);
-        bool _add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int object_id, ModelObject const & object, unsigned int backup_id, VolumeToOffsetsMap& volumes_offsets) const;
-        bool _add_mesh_to_object_stream(std::function<bool(std::string&, bool)> const& flush, ModelObject const & object, VolumeToOffsetsMap& volumes_offsets) const;
+        bool _add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int object_id, ModelObject const & object, unsigned int backup_id, VolumeToObjectIDMap& volumes_objectID) const;
+        //BBS: change volume to seperate objects
+        bool _add_mesh_to_object_stream(std::function<bool(std::string&, bool)> const& flush, ModelObject const & object, unsigned int backup_id, VolumeToObjectIDMap& volumes_objectID, unsigned int& obj_idx) const;
         bool _add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items) const;
         bool _add_layer_height_profile_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_layer_config_ranges_file_to_archive(mz_zip_archive& archive, Model& model);
@@ -3250,10 +3595,10 @@ namespace Slic3r {
 
             for (int i = 0; i < obj_id; ++i)
             {
-                resource_id += model.objects[i]->instances.size();
+                resource_id += model.objects[i]->volumes.size() + 1;
             }
 
-            resource_id += instance_id;
+            resource_id += model.objects[obj_id]->volumes.size();
 
             return resource_id;
         }
@@ -3905,19 +4250,18 @@ namespace Slic3r {
         std::vector<unsigned int> object_ids;
         std::vector<std::string> object_paths;
         for (ModelObject* obj : model.objects) {
-
             if (sub_model && obj != objects_data.begin()->second.object) continue;
 
             if (proFn) {
-                proFn(EXPORT_STAGE_ADD_GCODE, obj_idx, model.objects.size(), cb_cancel);
+                proFn(EXPORT_STAGE_ADD_MODELS, obj_idx, model.objects.size(), cb_cancel);
                 if (cb_cancel)
                     return false;
                 obj_idx++;
             }
-            
+
             if (obj == nullptr)
                 continue;
-            
+
             // Index of an object in the 3MF file corresponding to the 1st instance of a ModelObject.
             IdToObjectDataMap::iterator object_it = objects_data.begin();
             if (!sub_model) {
@@ -3929,9 +4273,9 @@ namespace Slic3r {
 
             if (write_object) {
                 // Store geometry of all ModelVolumes contained in a single ModelObject into a single 3MF indexed triangle set object.
-                // object_it->second.volumes_offsets will contain the offsets of the ModelVolumes in that single indexed triangle set.
+                // object_it->second.volumes_objectID will contain the offsets of the ModelVolumes in that single indexed triangle set.
                 // object_id will be increased to point to the 1st instance of the next ModelObject.
-                if (!_add_object_to_model_stream(context, object_it->first, *obj, object_it->second.backup_id, object_it->second.volumes_offsets)) {
+                if (!_add_object_to_model_stream(context, object_it->first, *obj, object_it->second.backup_id, object_it->second.volumes_objectID)) {
                     add_error("Unable to add object to archive");
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add object to archive\n");
                     return false;
@@ -3941,18 +4285,20 @@ namespace Slic3r {
             if (sub_model) break;
 
             object_ids.push_back(object_id);
-            unsigned int curr_id = object_id;
-            object_id += obj->instances.size();
+            unsigned int curr_id =  object_id + obj->volumes.size();
+            object_id = object_id + obj->volumes.size() + 1;
 
+            unsigned int count = 0;
             for (const ModelInstance* instance : obj->instances) {
                 Transform3d t = instance->get_matrix();
                 // instance_id is just a 1 indexed index in build_items.
-                assert(m_skip_static || curr_id == build_items.size() + 1);
+                //assert(m_skip_static || curr_id == build_items.size() + 1);
                 auto filename = boost::format(m_key_store ? "3D/Objects/%s_%d_encrypted.model" :  "3D/Objects/%s_%d.model") % obj->name % object_it->second.backup_id;
-                object_paths.push_back(filename.str());
-                build_items.emplace_back(m_split_model ? "/" + filename.str() : "", curr_id++, t, instance->printable);
+                if (count == 0)
+                    object_paths.push_back(filename.str());
+                build_items.emplace_back(m_split_model ? "/" + filename.str() : "", curr_id, t, instance->printable);
+                count++;
             }
-
         }
 
         {
@@ -3991,18 +4337,20 @@ namespace Slic3r {
                 if (obj == nullptr)
                     continue;
                 int object_id = obj->get_backup_id();
-                auto & volumes_offsets = objects_data.find(object_id)->second.volumes_offsets;
-                unsigned int vertices_count = 0;
-                unsigned int triangles_count = 0;
+                auto & volumes_objectID = objects_data.find(object_id)->second.volumes_objectID;
+                //unsigned int vertices_count = 0;
+                //unsigned int triangles_count = 0;
+                unsigned int volume_count = 0;
                 for (ModelVolume* volume : obj->volumes) {
                     if (volume == nullptr)
                         continue;
-                    VolumeToOffsetsMap::iterator volume_it = volumes_offsets.insert({ volume, Offsets(vertices_count) }).first;
-                    const indexed_triangle_set &its = volume->mesh().its;
-                    vertices_count += (int)its.vertices.size();
-                    volume_it->second.first_triangle_id = triangles_count;
-                    triangles_count += (int)its.indices.size();
-                    volume_it->second.last_triangle_id = triangles_count - 1;
+                    VolumeToObjectIDMap::iterator volume_it = volumes_objectID.insert({ volume, object_id + volume_count }).first;
+                    volume_count++;
+                    //const indexed_triangle_set &its = volume->mesh().its;
+                    //vertices_count += (int)its.vertices.size();
+                    //volume_it->second.first_triangle_id = triangles_count;
+                    //triangles_count += (int)its.indices.size();
+                    //volume_it->second.last_triangle_id = triangles_count - 1;
                 }
             }
             return true;
@@ -4038,21 +4386,21 @@ namespace Slic3r {
         return true;
     }
 
-    bool _BBS_3MF_Exporter::_add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int object_id, ModelObject const & object, unsigned int backup_id, VolumeToOffsetsMap& volumes_offsets) const
+    bool _BBS_3MF_Exporter::_add_object_to_model_stream(mz_zip_writer_staged_context &context, unsigned int object_id, ModelObject const & object, unsigned int backup_id, VolumeToObjectIDMap& volumes_objectID) const
     {
         std::stringstream stream;
         reset_stream(stream);
         unsigned int id = 0;
+        unsigned int volume_start_id = object_id;
         for (const ModelInstance* instance : object.instances) {
 			assert(instance != nullptr);
             if (instance == nullptr)
                 continue;
 
-            unsigned int instance_id = object_id + id;
-            stream << "  <" << OBJECT_TAG << " id=\"" << instance_id;
-            if (m_production_ext)
-                stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{(boost::uint32_t)backup_id} << OBJECT_UUID_SUFFIX;
-            stream << "\" type=\"model\">\n";
+            //stream << "  <" << OBJECT_TAG << " id=\"" << instance_id;
+            //if (m_production_ext)
+            //    stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{(boost::uint32_t)backup_id} << OBJECT_UUID_SUFFIX;
+            //stream << "\" type=\"model\">\n";
 
             if (id == 0) {
                 std::string buf = stream.str();
@@ -4070,17 +4418,26 @@ namespace Slic3r {
                     return true;
                 };
                 if ((! buf.empty() && ! mz_zip_writer_add_staged_data(&context, buf.data(), buf.size())) || 
-                    ! _add_mesh_to_object_stream(flush, object, volumes_offsets)) {
+                    ! _add_mesh_to_object_stream(flush, object, backup_id, volumes_objectID, volume_start_id)) {
                     add_error("Unable to add mesh to archive");
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add mesh to archive\n");
                     return false;
                 }
             }
-            else {
-                stream << "   <" << COMPONENTS_TAG << ">\n";
-                stream << "    <" << COMPONENT_TAG << " objectid=\"" << object_id << "\"/>\n";
-                stream << "   </" << COMPONENTS_TAG << ">\n";
+
+            stream << "  <" << OBJECT_TAG << " id=\"" << volume_start_id+id;
+            if ((id == 0) && m_production_ext)
+                stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{(boost::uint32_t)backup_id} << OBJECT_UUID_SUFFIX;
+            stream << "\" type=\"model\">\n";
+            stream << "   <" << COMPONENTS_TAG << ">\n";
+            if (id == 0) {
+                for (unsigned int index = object_id; index < volume_start_id; index ++)
+                    stream << "    <" << COMPONENT_TAG << " objectid=\"" << index << "\"/>\n";
             }
+            else {
+                stream << "    <" << COMPONENT_TAG << " objectid=\"" << volume_start_id << "\"/>\n";
+            }
+            stream << "   </" << COMPONENTS_TAG << ">\n";
 
             stream << "  </" << OBJECT_TAG << ">\n";
 
@@ -4111,7 +4468,8 @@ namespace Slic3r {
     using coordinate_type_scientific = boost::spirit::karma::real_generator<float, coordinate_policy_scientific<float>>;
 #endif // EXPORT_3MF_USE_SPIRIT_KARMA_FP
 
-    bool _BBS_3MF_Exporter::_add_mesh_to_object_stream(std::function<bool(std::string &,bool)> const & flush, ModelObject const & object, VolumeToOffsetsMap& volumes_offsets) const
+    //BBS: change volume to seperate objects
+    bool _BBS_3MF_Exporter::_add_mesh_to_object_stream(std::function<bool(std::string &,bool)> const & flush, ModelObject const & object, unsigned int backup_id, VolumeToObjectIDMap& volumes_objectID, unsigned int& obj_idx) const
     {
         std::string output_buffer;
 
@@ -4129,11 +4487,11 @@ namespace Slic3r {
         };
 #endif
 
-        output_buffer += "   <";
+        /*output_buffer += "   <";
         output_buffer += MESH_TAG;
         output_buffer += ">\n    <";
         output_buffer += VERTICES_TAG;
-        output_buffer += ">\n";
+        output_buffer += ">\n";*/
 
         auto format_coordinate = [](float f, char *buf) -> char* {
             assert(is_decimal_separator_point());
@@ -4167,14 +4525,15 @@ namespace Slic3r {
 
         char buf[256];
         unsigned int vertices_count = 0;
+        //unsigned int triangles_count = 0;
         for (ModelVolume* volume : object.volumes) {
             if (volume == nullptr)
                 continue;
 
 			//if (!volume->mesh().stats().repaired())
 			//	throw Slic3r::FileIOError("store_3mf() requires repair()");
-
-            volumes_offsets.insert({ volume, Offsets(vertices_count) });
+			unsigned int first_vertex_id = 0;
+            volumes_objectID.insert({ volume, obj_idx });
 
             const indexed_triangle_set &its = volume->mesh().its;
             if (its.vertices.empty()) {
@@ -4182,6 +4541,32 @@ namespace Slic3r {
                 BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Found invalid mesh\n");
                 return false;
             }
+
+            std::string type = (volume->type() == ModelVolumeType::MODEL_PART)?"model":"other";
+
+            output_buffer += "  <";
+            output_buffer += OBJECT_TAG;
+            output_buffer += " id=\"";
+            output_buffer += std::to_string(obj_idx);
+            /*if (m_production_ext) {
+                std::stringstream stream;
+                reset_stream(stream);
+                stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{(boost::uint32_t)backup_id} << OBJECT_UUID_SUFFIX;
+                //output_buffer += "\" ";
+                //output_buffer += PUUID_ATTR;
+                //output_buffer += "=\"";
+                //output_buffer += std::to_string(hex_wrap<boost::uint32_t>{(boost::uint32_t)backup_id});
+                //output_buffer += OBJECT_UUID_SUFFIX;
+                output_buffer += stream.str();
+            }*/
+            output_buffer += "\" type=\"";
+            output_buffer += type;
+            output_buffer += "\">\n";
+            output_buffer += "   <";
+            output_buffer += MESH_TAG;
+            output_buffer += ">\n    <";
+            output_buffer += VERTICES_TAG;
+            output_buffer += ">\n";
 
             vertices_count += (int)its.vertices.size();
 
@@ -4202,29 +4587,28 @@ namespace Slic3r {
                 if (!flush(output_buffer, false))
                     return false;
             }
-        }
+        //}
 
-        output_buffer += "    </";
-        output_buffer += VERTICES_TAG;
-        output_buffer += ">\n    <";
-        output_buffer += TRIANGLES_TAG;
-        output_buffer += ">\n";
+            output_buffer += "    </";
+            output_buffer += VERTICES_TAG;
+            output_buffer += ">\n    <";
+            output_buffer += TRIANGLES_TAG;
+            output_buffer += ">\n";
 
-        unsigned int triangles_count = 0;
-        for (ModelVolume* volume : object.volumes) {
-            if (volume == nullptr)
-                continue;
+        //for (ModelVolume* volume : object.volumes) {
+        //    if (volume == nullptr)
+        //        continue;
 
             bool is_left_handed = volume->is_left_handed();
-            VolumeToOffsetsMap::iterator volume_it = volumes_offsets.find(volume);
-            assert(volume_it != volumes_offsets.end());
+            //VolumeToOffsetsMap::iterator volume_it = volumes_objectID.find(volume);
+            //assert(volume_it != volumes_objectID.end());
 
-            const indexed_triangle_set &its = volume->mesh().its;
+            //const indexed_triangle_set &its = volume->mesh().its;
 
             // updates triangle offsets
-            volume_it->second.first_triangle_id = triangles_count;
-            triangles_count += (int)its.indices.size();
-            volume_it->second.last_triangle_id = triangles_count - 1;
+            //unsigned int first_triangle_id = triangles_count;
+            //triangles_count += (int)its.indices.size();
+            //unsigned int last_triangle_id = triangles_count - 1;
 
             for (int i = 0; i < int(its.indices.size()); ++ i) {
                 {
@@ -4234,9 +4618,9 @@ namespace Slic3r {
                         " v1=\"" << boost::spirit::int_ <<
                         "\" v2=\"" << boost::spirit::int_ <<
                         "\" v3=\"" << boost::spirit::int_ << "\"",
-                        idx[is_left_handed ? 2 : 0] + volume_it->second.first_vertex_id,
-                        idx[1] + volume_it->second.first_vertex_id,
-                        idx[is_left_handed ? 0 : 2] + volume_it->second.first_vertex_id);
+                        idx[is_left_handed ? 2 : 0] + first_vertex_id,
+                        idx[1] + first_vertex_id,
+                        idx[is_left_handed ? 0 : 2] + first_vertex_id);
                     *ptr = '\0';
                     output_buffer += buf;
                 }
@@ -4285,13 +4669,16 @@ namespace Slic3r {
                 if (! flush(output_buffer, false))
                     return false;
             }
+            output_buffer += "    </";
+            output_buffer += TRIANGLES_TAG;
+            output_buffer += ">\n   </";
+            output_buffer += MESH_TAG;
+            output_buffer += ">\n";
+            output_buffer +=  "  </";
+            output_buffer += OBJECT_TAG;
+            output_buffer += ">\n";
+            obj_idx++;
         }
-
-        output_buffer += "    </";
-        output_buffer += TRIANGLES_TAG;
-        output_buffer += ">\n   </";
-        output_buffer += MESH_TAG;
-        output_buffer += ">\n";
 
         // Force flush.
         return flush(output_buffer, true);
@@ -4331,7 +4718,7 @@ namespace Slic3r {
         return true;
     }
 
-    bool _BBS_3MF_Exporter::_add_layer_height_profile_file_to_archive(mz_zip_archive& archive, Model& model)
+    /*bool _BBS_3MF_Exporter::_add_layer_height_profile_file_to_archive(mz_zip_archive& archive, Model& model)
     {
         assert(is_decimal_separator_point());
         std::string out = "";
@@ -4511,7 +4898,7 @@ namespace Slic3r {
             }
         }
         return true;
-    }
+    }*/
 
     bool _BBS_3MF_Exporter::_add_print_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config)
     {
@@ -4599,37 +4986,39 @@ namespace Slic3r {
             const ModelObject* obj = obj_metadata.second.object;
             if (obj != nullptr) {
                 // Output of instances count added because of github #3435, currently not used by BambuStudio
-                stream << "  <"  << OBJECT_TAG << " " << ID_ATTR << "=\"" << obj_metadata.first << "\" " << INSTANCESCOUNT_ATTR << "=\"" << obj->instances.size() << "\">\n";
+                //stream << "  <"  << OBJECT_TAG << " " << ID_ATTR << "=\"" << obj_metadata.first << "\" " << INSTANCESCOUNT_ATTR << "=\"" << obj->instances.size() << "\">\n";
+                stream << "  <"  << OBJECT_TAG << " " << ID_ATTR << "=\"" << obj_metadata.first + obj->volumes.size() << "\">\n";
 
                 // stores object's name
                 if (!obj->name.empty())
-                    stream << "    <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << OBJECT_TYPE << "\" " << KEY_ATTR << "=\"name\" " << VALUE_ATTR << "=\"" << xml_escape(obj->name) << "\"/>\n";
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"name\" " << VALUE_ATTR << "=\"" << xml_escape(obj->name) << "\"/>\n";
 
                 //BBS: store object's module name
                 if (!obj->module_name.empty())
-                    stream << "    <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << OBJECT_TYPE << "\" " << KEY_ATTR << "=\"module\" " << VALUE_ATTR << "=\"" << xml_escape(obj->module_name) << "\"/>\n";
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"module\" " << VALUE_ATTR << "=\"" << xml_escape(obj->module_name) << "\"/>\n";
 
                 // stores object's config data
                 for (const std::string& key : obj->config.keys()) {
-                    stream << "    <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << OBJECT_TYPE << "\" " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << obj->config.opt_serialize(key) << "\"/>\n";
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << obj->config.opt_serialize(key) << "\"/>\n";
                 }
 
                 for (const ModelVolume* volume : obj_metadata.second.object->volumes) {
                     if (volume != nullptr) {
-                        const VolumeToOffsetsMap& offsets = obj_metadata.second.volumes_offsets;
-                        VolumeToOffsetsMap::const_iterator it = offsets.find(volume);
-                        if (it != offsets.end()) {
+                        const VolumeToObjectIDMap& objectIDs = obj_metadata.second.volumes_objectID;
+                        VolumeToObjectIDMap::const_iterator it = objectIDs.find(volume);
+                        if (it != objectIDs.end()) {
                             // stores volume's offsets
                             stream << "    <" << PART_TAG << " ";
-                            stream << FIRST_TRIANGLE_ID_ATTR << "=\"" << it->second.first_triangle_id << "\" ";
-                            stream << LAST_TRIANGLE_ID_ATTR << "=\"" << it->second.last_triangle_id << "\" ";
+                            //stream << FIRST_TRIANGLE_ID_ATTR << "=\"" << it->second.first_triangle_id << "\" ";
+                            //stream << LAST_TRIANGLE_ID_ATTR << "=\"" << it->second.last_triangle_id << "\" ";
+                            stream << ID_ATTR << "=\"" << it->second << "\" ";
 
                             stream << SUBTYPE_ATTR << "=\"" << ModelVolume::type_to_string(volume->type()) << "\">\n";
                             //stream << "    <" << PART_TAG << " " << ID_ATTR << "=\"" << it->second << "\" " << SUBTYPE_ATTR << "=\"" << ModelVolume::type_to_string(volume->type()) << "\">\n";
 
                             // stores volume's name
                             if (!volume->name.empty())
-                                stream << "      <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << PART_TYPE << "\" " << KEY_ATTR << "=\"" << NAME_KEY << "\" " << VALUE_ATTR << "=\"" << xml_escape(volume->name) << "\"/>\n";
+                                stream << "      <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << NAME_KEY << "\" " << VALUE_ATTR << "=\"" << xml_escape(volume->name) << "\"/>\n";
                                 //stream << "      <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << NAME_KEY << "\" " << VALUE_ATTR << "=\"" << xml_escape(volume->name) << "\"/>\n";
 
                             // stores volume's modifier field (legacy, to support old slicers)
@@ -4640,7 +5029,7 @@ namespace Slic3r {
                                 VALUE_ATTR << "=\"" << ModelVolume::type_to_string(volume->type()) << "\"/>\n";*/
 
                             // stores volume's local matrix
-                            stream << "      <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << PART_TYPE << "\" " << KEY_ATTR << "=\"" << MATRIX_KEY << "\" " << VALUE_ATTR << "=\"";
+                            stream << "      <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << MATRIX_KEY << "\" " << VALUE_ATTR << "=\"";
                             Transform3d matrix = volume->get_matrix() * volume->source.transform.get_matrix();
                             for (int r = 0; r < 4; ++r) {
                                 for (int c = 0; c < 4; ++c) {
@@ -4655,7 +5044,7 @@ namespace Slic3r {
                             {
                                 std::string input_file = xml_escape(m_fullpath_sources ? volume->source.input_file : boost::filesystem::path(volume->source.input_file).filename().string());
                                 //std::string prefix = std::string("      <") + METADATA_TAG + " " + KEY_ATTR + "=\"";
-                                std::string prefix = std::string("      <") + METADATA_TAG + " " + TYPE_ATTR + "=\"" + PART_TYPE + "\" " + KEY_ATTR + "=\"";
+                                std::string prefix = std::string("      <") + METADATA_TAG + " " + KEY_ATTR + "=\"";
                                 if (! volume->source.input_file.empty()) {
                                     stream << prefix << SOURCE_FILE_KEY      << "\" " << VALUE_ATTR << "=\"" << input_file << "\"/>\n";
                                     stream << prefix << SOURCE_OBJECT_ID_KEY << "\" " << VALUE_ATTR << "=\"" << volume->source.object_idx << "\"/>\n";
@@ -4673,12 +5062,12 @@ namespace Slic3r {
 
                             // stores volume's config data
                             for (const std::string& key : volume->config.keys()) {
-                                stream << "      <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << PART_TYPE << "\" " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << volume->config.opt_serialize(key) << "\"/>\n";
+                                stream << "      <" << METADATA_TAG << " "<< KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << volume->config.opt_serialize(key) << "\"/>\n";
                             }
 
                             // stores mesh's statistics
                             const RepairedMeshErrors& stats = volume->mesh().stats().repaired_errors;
-                            stream << "      <" << MESH_TAG << " ";
+                            stream << "      <" << MESH_STAT_TAG << " ";
                             stream << MESH_STAT_EDGES_FIXED        << "=\"" << stats.edges_fixed        << "\" ";
                             stream << MESH_STAT_DEGENERATED_FACETS << "=\"" << stats.degenerate_facets  << "\" ";
                             stream << MESH_STAT_FACETS_REMOVED     << "=\"" << stats.facets_removed     << "\" ";
@@ -4720,7 +5109,7 @@ namespace Slic3r {
                         if (m_skip_static) {
                             obj_id = inst_id = model.objects[obj_id]->get_backup_id();
                         } else {
-                            inst_id = convert_instance_id_to_resource_id(model, obj_id, inst_id);
+                            //inst_id = convert_instance_id_to_resource_id(model, obj_id, inst_id);
                             obj_id = convert_instance_id_to_resource_id(model, obj_id, 0);
                         }
                         stream << "      <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << OBJECT_ID_ATTR << "\" " << VALUE_ATTR << "=\"" << obj_id << "\"/>\n";
@@ -4741,8 +5130,8 @@ namespace Slic3r {
             if (obj != nullptr) {
                 for (int instance_idx = 0; instance_idx < obj->instances.size(); ++instance_idx) {
                     if (obj->instances[instance_idx]->is_assemble_initialized()) {
-                        stream << "   <" << ASSEMBLE_ITEM_TAG << " " << OBJECT_ID_ATTR << "=\"" << obj_metadata.first << "\" ";
-                        stream << INSTANCEID_ATTR << "=\"" << obj_metadata.first + instance_idx << "\" " << TRANSFORM_ATTR << "=\"";
+                        stream << "   <" << ASSEMBLE_ITEM_TAG << " " << OBJECT_ID_ATTR << "=\"" << obj_metadata.first  + obj->volumes.size() << "\" ";
+                        stream << INSTANCEID_ATTR << "=\"" << instance_idx << "\" " << TRANSFORM_ATTR << "=\"";
                             for (unsigned c = 0; c < 4; ++c) {
                                 for (unsigned r = 0; r < 3; ++r) {
                                     const Transform3d assemble_trans = obj->instances[instance_idx]->get_assemble_transformation().get_matrix();
