@@ -6,6 +6,7 @@
 #include "Print.hpp"
 #include "ShortestPath.hpp"
 #include "libslic3r.h"
+#include "PrintConfig.hpp"
 
 #include <algorithm>
 #include <numeric>
@@ -726,15 +727,16 @@ bool compSecondMoment(const ExPolygon& expoly, ExPolyProp& expolyProp)
     double aera = expoly.contour.area();
     Vec2d cent = expoly.contour.centroid().cast<double>() * aera;
     Vec2d sm;
-    compSecondMoment(expoly.contour, sm);
+    if (!compSecondMoment(expoly.contour, sm))
+        return false;
 
     for (auto& hole : expoly.holes) {
         double a = hole.area();
         aera += hole.area();
         cent += hole.centroid().cast<double>() * a;
         Vec2d smh;
-        compSecondMoment(hole, smh);
-        sm += -smh;
+        if (compSecondMoment(hole, smh))
+            sm += -smh;
     }
 
     cent = cent / aera;
@@ -752,9 +754,11 @@ bool compSecondMoment(const ExPolygons& expolys, double& smExpolysX, double& smE
     std::vector<ExPolyProp> props;
     for (const ExPolygon& expoly : expolys) {
         ExPolyProp prop;
-        compSecondMoment(expoly, prop);
-        props.push_back(prop);
+        if (compSecondMoment(expoly, prop))
+            props.push_back(prop);
     }
+    if (props.empty())
+        return false;
     double totalArea = 0.;
     Vec2d staticMoment(0., 0.);
     for (const ExPolyProp& prop : props) {
@@ -789,9 +793,10 @@ double configBrimWidthByVolumes(double deltaT, double adhension, double maxSpeed
     }
 
     // sencond moment of the expolygons of the first layer of the volume
-    double Ixx, Iyy;
+    double Ixx = -1.e30, Iyy = -1.e30;
     if (!expolys.empty()) {
-        compSecondMoment(expolys, Ixx, Iyy);
+        if (!compSecondMoment(expolys, Ixx, Iyy))
+            Ixx = Iyy = -1.e30;
     }
     Ixx = Ixx * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR;
     Iyy = Iyy * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR;

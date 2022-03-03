@@ -564,7 +564,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = 100;
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionFloat(0));
+    def->set_default_value(new ConfigOptionFloat(0.));
 
     def = this->add("brim_type", coEnum);
     def->label = L("Brim type");
@@ -592,7 +592,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = 2;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0.1));
+    def->set_default_value(new ConfigOptionFloat(0.));
 
     def = this->add("clip_multipart_objects", coBool);
     def->label = L("Clip multi-part objects");
