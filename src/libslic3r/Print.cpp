@@ -1103,8 +1103,10 @@ void Print::_make_skirt()
     
     // Collect points from all layers contained in skirt height.
     Points points;
+
     // BBS
-    for (const PrintObject *object : m_objects) {
+    std::map<PrintObject*, Polygon> object_convex_hulls;
+    for (PrintObject *object : m_objects) {
         Points object_points;
         // Get object layers up to skirt_height_z.
         for (const Layer *layer : object->m_layers) {
@@ -1127,6 +1129,8 @@ void Print::_make_skirt()
 
             layer->support_fills.collect_points(object_points);
         }
+
+        object_convex_hulls.insert({ object, Slic3r::Geometry::convex_hull(object_points) });
 
         // Repeat points for each object copy.
         for (const PrintInstance &instance : object->instances()) {
@@ -1231,6 +1235,37 @@ void Print::_make_skirt()
     // Remember the outer edge of the last skirt line extruded as m_skirt_convex_hull.
     for (Polygon &poly : offset(convex_hull, distance + 0.5f * float(scale_(spacing)), ClipperLib::jtRound, float(scale_(0.1))))
         append(m_skirt_convex_hull, std::move(poly.points));
+
+    // BBS
+    const int n_object_skirts = 1;
+    const double object_skirt_distance = scale_(1.0);
+    for (auto obj_cvx_hull : object_convex_hulls) {
+        PrintObject* object = obj_cvx_hull.first;
+        for (int i = 0; i < n_object_skirts; i++) {
+            distance += float(scale_(spacing));
+            Polygon loop;
+            {
+                // BBS. skirt_distance is defined as the gap between skirt and outer most brim, so no need to add max_brim_width
+                Polygons loops = offset(obj_cvx_hull.second, object_skirt_distance, ClipperLib::jtRound, float(scale_(0.1)));
+                Geometry::simplify_polygons(loops, scale_(0.05), &loops);
+                if (loops.empty())
+                    break;
+                loop = loops.front();
+            }
+
+            // Extrude the skirt loop.
+            ExtrusionLoop eloop(elrSkirt);
+            eloop.paths.emplace_back(ExtrusionPath(
+                ExtrusionPath(
+                    erSkirt,
+                    (float)mm3_per_mm,         // this will be overridden at G-code export time
+                    flow.width(),
+                    (float)initial_layer_print_height  // this will be overridden at G-code export time
+                )));
+            eloop.paths.back().polyline = loop.split_at_first_point();
+            object->m_skirt.append(std::move(eloop));
+        }
+    }
 }
 
 Polygons Print::first_layer_islands() const

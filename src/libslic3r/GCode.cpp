@@ -1505,6 +1505,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             }
             print.throw_if_canceled();
             this->set_origin(unscale((*print_object_instance_sequential_active)->shift));
+
+            // BBS: prime extruder if extruder change happens before this object instance
+            bool prime_extruder = false;
             if (finished_objects > 0) {
                 // Move to the origin position for the copy we're going to print.
                 // This happens before Z goes down to layer 0 again, so that no collision happens hopefully.
@@ -1515,6 +1518,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                     const PrintObjectConfig& object_config = object.config();
                     coordf_t initial_layer_print_height = print.config().initial_layer_print_height.get_abs_value(object_config.layer_height.value);
                     file.write(this->set_extruder(initial_extruder_id, initial_layer_print_height));
+                    prime_extruder = true;
                 }
                 else {
                     file.write(this->retract());
@@ -1540,7 +1544,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             // Process all layers of a single object instance (sequential mode) with a parallel pipeline:
             // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
             // and export G-code into file.
-            this->process_layers(print, tool_ordering, collect_layers_to_print(object), *print_object_instance_sequential_active - object.instances().data(), file);
+            this->process_layers(print, tool_ordering, collect_layers_to_print(object), *print_object_instance_sequential_active - object.instances().data(), file, prime_extruder);
 #ifdef HAS_PRESSURE_EQUALIZER
             if (m_pressure_equalizer)
                 file.write(m_pressure_equalizer->process("", true));
@@ -1717,19 +1721,21 @@ void GCode::process_layers(
     const ToolOrdering                      &tool_ordering,
     std::vector<LayerToPrint>                layers_to_print,
     const size_t                             single_object_idx,
-    GCodeOutputStream                       &output_stream)
+    GCodeOutputStream                       &output_stream,
+    // BBS
+    const bool                               prime_extruder)
 {
     // The pipeline is variable: The vase mode filter is optional.
     size_t layer_to_print_idx = 0;
     const auto generator = tbb::make_filter<void, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order,
-        [this, &print, &tool_ordering, &layers_to_print, &layer_to_print_idx, single_object_idx](tbb::flow_control& fc) -> GCode::LayerResult {
+        [this, &print, &tool_ordering, &layers_to_print, &layer_to_print_idx, single_object_idx, prime_extruder](tbb::flow_control& fc) -> GCode::LayerResult {
             if (layer_to_print_idx == layers_to_print.size()) {
                 fc.stop();
                 return {};
             } else {
                 LayerToPrint &layer = layers_to_print[layer_to_print_idx ++];
                 print.throw_if_canceled();
-                return this->process_layer(print, { std::move(layer) }, tool_ordering.tools_for_layer(layer.print_z()), &layer == &layers_to_print.back(), nullptr, single_object_idx);
+                return this->process_layer(print, { std::move(layer) }, tool_ordering.tools_for_layer(layer.print_z()), &layer == &layers_to_print.back(), nullptr, single_object_idx, prime_extruder);
             }
         });
     const auto spiral_mode = tbb::make_filter<GCode::LayerResult, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order,
@@ -2197,7 +2203,9 @@ GCode::LayerResult GCode::process_layer(
     const std::vector<const PrintInstance*> *ordering,
     // If set to size_t(-1), then print all copies of all objects.
     // Otherwise print a single copy of a single object.
-    const size_t                     		 single_object_instance_idx)
+    const size_t                     		 single_object_instance_idx,
+    // BBS
+    const bool                               prime_extruder)
 {
     assert(! layers.empty());
     // Either printing all copies of all objects, or just a single copy of a single object.
@@ -2617,12 +2625,30 @@ GCode::LayerResult GCode::process_layer(
                 m_avoid_crossing_perimeters.disable_once();
         }
 
-
         auto objects_by_extruder_it = by_extruder.find(extruder_id);
         if (objects_by_extruder_it == by_extruder.end())
             continue;
 
         std::vector<InstanceToPrint> instances_to_print = sort_print_object_instances(objects_by_extruder_it->second, layers, ordering, single_object_instance_idx);
+
+        // BBS
+        if (print.config().print_sequence == PrintSequence::ByObject && prime_extruder && first_layer && extruder_id == first_extruder_id) {
+            for (InstanceToPrint& instance_to_print : instances_to_print) {
+                if (this->m_objSupportsWithBrim.find(instance_to_print.print_object.id()) != this->m_objSupportsWithBrim.end() &&
+                    print.m_supportBrimMap.at(instance_to_print.print_object.id()).entities.size() > 0)
+                    continue;
+
+                if (this->m_objsWithBrim.find(instance_to_print.print_object.id()) != this->m_objsWithBrim.end() &&
+                    print.m_brimMap.at(instance_to_print.print_object.id()).entities.size() > 0)
+                    continue;
+
+                const Point& offset = instance_to_print.print_object.instances()[instance_to_print.instance_id].shift;
+                set_origin(unscaled(offset));
+                for (ExtrusionEntity* ee : layer.object()->object_skirt().entities)
+                    //FIXME using the support_speed of the 1st object printed.
+                    gcode += this->extrude_entity(*ee, "skirt", m_config.support_speed.value);
+            }
+        }
 
         // We are almost ready to print. However, we must go through all the objects twice to print the the overridden extrusions first (infill/perimeter wiping feature):
         std::vector<ObjectByExtruder::Island::Region> by_region_per_copy_cache;

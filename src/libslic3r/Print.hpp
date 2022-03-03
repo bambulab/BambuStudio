@@ -306,6 +306,11 @@ public:
             && ! this->has_raft();
     }
 
+    // BBS
+    const ExtrusionEntityCollection& object_skirt() const {
+        return m_skirt;
+    }
+
     // This is the *total* layer count (including support layers)
     // this value is not supposed to be compared with Layer::id
     // since they have different semantics.
@@ -453,6 +458,9 @@ private:
     bool                    				m_typed_slices = false;
     // BBS: first layer slices sorted by volume
     std::vector < VolumeSlices >            firstLayerObjSliceByVolume;
+
+    // BBS: per object skirt
+    ExtrusionEntityCollection               m_skirt;
 };
 
 struct WipeTowerData

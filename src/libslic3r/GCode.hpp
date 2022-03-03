@@ -292,7 +292,9 @@ private:
 		const std::vector<const PrintInstance*> *ordering,
         // If set to size_t(-1), then print all copies of all objects.
         // Otherwise print a single copy of a single object.
-        const size_t                     single_object_idx = size_t(-1));
+        const size_t                     single_object_idx = size_t(-1),
+        // BBS
+        const bool                       prime_extruder = false);
     // Process all layers of all objects (non-sequential mode) with a parallel pipeline:
     // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
     // and export G-code into file.
@@ -310,7 +312,9 @@ private:
         const ToolOrdering                      &tool_ordering,
         std::vector<LayerToPrint>                layers_to_print,
         const size_t                             single_object_idx,
-        GCodeOutputStream                       &output_stream);
+        GCodeOutputStream                       &output_stream,
+        // BBS
+        const bool                               prime_extruder = false);
 
     void            set_last_pos(const Point &pos) { m_last_pos = pos; m_last_pos_defined = true; }
     bool            last_pos_defined() const { return m_last_pos_defined; }
