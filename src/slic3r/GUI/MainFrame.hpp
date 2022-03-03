@@ -180,6 +180,8 @@ public:
         tpSettings = 1,
         tpPreview = 2,
         tpMonitor = 3,
+        toDebugTool = 4,
+        toWebView = 5, 
     };
 
     //BBS: add slice&&print status update logic
@@ -278,13 +280,13 @@ public:
     //BBS: GUI refactor
     MonitorPanel*              m_monitor{ nullptr };
     DebugToolDialog*      m_debug_tool_dlg{ nullptr };
+    WebViewPanel *             m_webview{nullptr};
     // BBS
     //wxBookCtrlBase*       m_tabpanel { nullptr };
     Notebook*             m_tabpanel{ nullptr };
     wxBoxSizer*           m_side_tools{ nullptr };
     ParamsPanel*          m_param_panel{ nullptr };
     //BBS
-    std::shared_ptr<WebFrame> m_webview;
     
     SettingsDialog        m_settings_dialog;
     DiffPresetDialog      diff_dialog;

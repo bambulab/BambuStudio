@@ -23,7 +23,7 @@
 #include "wx/fs_arc.h"
 #include "wx/fs_mem.h"
 #include "wx/stdpaths.h"
-#include <wx/frame.h>
+#include <wx/panel.h>
 #include <wx/tbarbase.h>
 #include "wx/textctrl.h"
 
@@ -35,11 +35,11 @@ namespace GUI {
 WX_DECLARE_HASH_MAP(int, wxSharedPtr<wxWebViewHistoryItem>,
     wxIntegerHash, wxIntegerEqual, wxMenuHistoryMap);
 
-class WebFrame : public wxFrame
+class WebViewPanel : public wxPanel
 {
 public:
-    WebFrame(wxString& url);
-    virtual ~WebFrame();
+    WebViewPanel(wxWindow *parent, wxString url);
+    virtual ~WebViewPanel();
 
     void load_url(wxString& url);
 
@@ -113,16 +113,18 @@ public:
     void OnEnableDevTools(wxCommandEvent& evt);
     void OnClose(wxCloseEvent& evt);
 
-private:
-    wxTextCtrl* m_url;
-    wxWebView* m_browser;
 
-    wxToolBar* m_toolbar;
-    wxToolBarToolBase* m_toolbar_back;
-    wxToolBarToolBase* m_toolbar_forward;
-    wxToolBarToolBase* m_toolbar_stop;
-    wxToolBarToolBase* m_toolbar_reload;
-    wxToolBarToolBase* m_toolbar_tools;
+
+private:
+
+    wxWebView* m_browser;
+    wxBoxSizer *bSizer_toolbar;
+    wxButton *  m_button_back;
+    wxButton *  m_button_forward;
+    wxButton *  m_button_stop;
+    wxButton *  m_button_reload;
+    wxTextCtrl *m_url;
+    wxButton *  m_button_tools;
 
     wxToolBarToolBase* m_find_toolbar_done;
     wxToolBarToolBase* m_find_toolbar_next;

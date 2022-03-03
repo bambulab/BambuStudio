@@ -901,6 +901,9 @@ void MainFrame::init_tabpanel()
         m_tabpanel->AddPage(m_monitor, "Monitor", "notebook_monitor_active");
         m_debug_tool_dlg = new DebugToolDialog(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
         m_tabpanel->AddPage(m_debug_tool_dlg, "DebugTool", "debugtool");
+
+        m_webview = new WebViewPanel(m_tabpanel, "https://portal-qa.bambu-lab.com/designs");
+        m_tabpanel->AddPage(m_webview, "Home", "notebook_home_active");
         //m_tabpanel->InsertPage(tpMonitor, m_plater, _L("Monitor"), std::string("monitor"));
     }
 
@@ -2888,14 +2891,8 @@ void MainFrame::add_to_recent_projects(const wxString& filename)
 
 void MainFrame::load_url(wxString url)
 {
-    if (!m_webview) {
-        m_webview = std::make_shared<WebFrame>(url);
-        m_webview->Show();
-    }
-    else {
-        m_webview->load_url(url);
-        m_webview->Show();
-    }
+    select_tab(MainFrame::toWebView);
+    m_webview->load_url(url);
 }
 
 void MainFrame::technology_changed()
