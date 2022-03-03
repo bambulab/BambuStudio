@@ -28,13 +28,27 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow * parent, wxMediaCtrl2* media_ctrl)
     SetSizer(sizer);
 
     SetMinSize({400, 60});
+
+    m_thread = boost::thread([this] {
+        media_proc();
+    });
+}
+
+MediaPlayCtrl::~MediaPlayCtrl()
+{
+    {
+        boost::unique_lock lock(m_mutex);
+        m_tasks.push_back("<exit>");
+        m_cond.notify_all();
+    }
+    m_thread.join();
 }
 
 void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
 {
     std::string machine = obj ? obj->dev_id : "";
     if (machine == m_machine) {
-        if (m_last_state == MEDIASTATE_IDLE && wxDateTime::Now() >= m_next_retry)
+        if (m_last_state == MEDIASTATE_IDLE && m_next_retry.IsValid() && wxDateTime::Now() >= m_next_retry)
             Play();
         return;
     }
@@ -42,7 +56,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     m_failed_retry = 0;
     if (m_last_state != MEDIASTATE_IDLE)
         Stop();
-    Play();
+    //Play();
 }
 
 void MediaPlayCtrl::Play()
@@ -63,31 +77,35 @@ void MediaPlayCtrl::Play()
         BOOST_LOG_TRIVIAL(info) << "camera_url: " << url;
         CallAfter([this, url] {
             m_url = url;
-            if (m_last_state != MEDIASTATE_INITIALIZING)
-                return;
-            if (url.empty()) {
-                Stop();
-                SetStatus(L"Initialize failed [%d]!");
-            } else {
-                m_last_state = MEDIASTATE_LOADING;
-                m_media_ctrl->Load(wxURI(url));
-                SetStatus(L"Connecting...");
+            if (m_last_state == MEDIASTATE_INITIALIZING) {
+                if (url.empty()) {
+                    Stop();
+                    SetStatus(L"Initialize failed [%d]!");
+                } else {
+                    m_last_state = MEDIASTATE_LOADING;
+                    SetStatus(L"Connecting...");
+                    boost::unique_lock lock(m_mutex);
+                    m_tasks.push_back(url);
+                    m_cond.notify_all();
+                }
             }
-         });
+        });
     });
 }
 
 void MediaPlayCtrl::Stop()
 {
     if (m_last_state != MEDIASTATE_IDLE) {
-        m_media_ctrl->Stop();
         m_media_ctrl->InvalidateBestSize();
         m_button_play->SetIcon("media_play");
+        boost::unique_lock lock(m_mutex);
+        m_tasks.push_back("");
+        m_cond.notify_all();
     }
     m_last_state = MEDIASTATE_IDLE;
     SetStatus(L"Stopped.");
     ++m_failed_retry;
-    m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(5 * m_failed_retry);
+    //m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(5 * m_failed_retry);
 }
 
 void MediaPlayCtrl::TogglePlay()
@@ -105,6 +123,27 @@ void MediaPlayCtrl::SetStatus(wxString const& msg2)
     m_label_status->SetLabel(msg);
     m_label_status->SetForegroundColour(!msg.EndsWith("!") ? 0x42AE00 : 0x3B65E9);
     Layout();
+}
+
+void MediaPlayCtrl::media_proc()
+{
+    boost::unique_lock lock(m_mutex);
+    while (true) {
+        while (m_tasks.empty()) {
+            m_cond.wait(lock);
+        }
+        wxString url = m_tasks.front();
+        m_tasks.pop_front();
+        if (url.IsEmpty()) {
+            m_media_ctrl->Stop();
+        }
+        else if (url == "<exit>") {
+            break;
+        }
+        else {
+            m_media_ctrl->Load(wxURI(url));
+        }
+    }
 }
 
 void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
