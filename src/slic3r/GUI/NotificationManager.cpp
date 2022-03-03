@@ -714,12 +714,12 @@ void NotificationManager::ExportFinishedNotification::count_spaces()
 	m_line_height = ImGui::CalcTextSize("A").y;
 
 	m_left_indentation = m_line_height;
-	if (m_data.level == NotificationLevel::ErrorNotificationLevel || m_data.level == NotificationLevel::WarningNotificationLevel) {
-		std::string text;
-		text = (m_data.level == NotificationLevel::ErrorNotificationLevel ? ImGui::ErrorMarker : ImGui::WarningMarker);
-		float picture_width = ImGui::CalcTextSize(text.c_str()).x;
-		m_left_indentation = picture_width + m_line_height / 2;
-	}
+	//if (m_data.level == NotificationLevel::ErrorNotificationLevel || m_data.level == NotificationLevel::WarningNotificationLevel) {
+	//	std::string text;
+	//	text = (m_data.level == NotificationLevel::ErrorNotificationLevel ? ImGui::ErrorMarker : ImGui::WarningMarker);
+	//	float picture_width = ImGui::CalcTextSize(text.c_str()).x;
+	//	m_left_indentation = picture_width + m_line_height / 2;
+	//}
 	//TODO count this properly
 	m_window_width_offset = m_left_indentation + m_line_height * (m_to_removable ? 6.f : 3.f);
 	m_window_width = m_line_height * 25;
@@ -924,12 +924,12 @@ void NotificationManager::PrintHostUploadNotification::count_spaces()
 	m_line_height = ImGui::CalcTextSize("A").y;
 
 	m_left_indentation = m_line_height;
-	if (m_uj_state == UploadJobState::PB_ERROR) {
-		std::string text;
-		text = (m_data.level == NotificationLevel::ErrorNotificationLevel ? ImGui::ErrorMarker : ImGui::WarningMarker);
-		float picture_width = ImGui::CalcTextSize(text.c_str()).x;
-		m_left_indentation = picture_width + m_line_height / 2;
-	}
+	//if (m_uj_state == UploadJobState::PB_ERROR) {
+	//	std::string text;
+	//	text = (m_data.level == NotificationLevel::ErrorNotificationLevel ? ImGui::ErrorMarker : ImGui::WarningMarker);
+	//	float picture_width = ImGui::CalcTextSize(text.c_str()).x;
+	//	m_left_indentation = picture_width + m_line_height / 2;
+	//}
 	m_window_width_offset = m_line_height * 6; //(m_has_cancel_button ? 6 : 4);
 	m_window_width = m_line_height * 25;
 }
@@ -1060,10 +1060,11 @@ void NotificationManager::UpdatedItemsInfoNotification::count_spaces()
 	//determine line width 
 	m_line_height = ImGui::CalcTextSize("A").y;
 
-	std::string text;
-	text =  ImGui::WarningMarker;
-	float picture_width = ImGui::CalcTextSize(text.c_str()).x;
-	m_left_indentation = picture_width + m_line_height / 2;
+	//std::string text;
+	//text =  ImGui::WarningMarker;
+	//float picture_width = ImGui::CalcTextSize(text.c_str()).x;
+	//m_left_indentation = picture_width + m_line_height / 2;
+    m_left_indentation = m_line_height;
 
 	m_window_width_offset = m_left_indentation + m_line_height * 3.f;
 	m_window_width = m_line_height * 25;
