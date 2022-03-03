@@ -6,7 +6,7 @@
 #include <functional>
 #include <boost/filesystem/path.hpp>
 
-#define MAX_SIZE_TO_FILE    5*1024
+#define MAX_SIZE_TO_FILE    3*1024
 
 namespace Slic3r {
 

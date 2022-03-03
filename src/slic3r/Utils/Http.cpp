@@ -167,8 +167,6 @@ static int log_trace(CURL *handle, curl_infotype type,
  
 	switch(type) {
 		case CURLINFO_TEXT:
-		//fprintf(stderr, "== Info: %s", data);
-		/* FALLTHROUGH */
 		default: /* in case a new one is introduced to shock us */
 		return 0;
 		case CURLINFO_HEADER_OUT:
@@ -178,8 +176,7 @@ static int log_trace(CURL *handle, curl_infotype type,
 		text = "=> Send data";
 		break;
 		case CURLINFO_SSL_DATA_OUT:
-		text = "=> Send SSL data";
-		break;
+		return 0;
 		case CURLINFO_HEADER_IN:
 		text = "<= Recv header";
 		break;
@@ -187,12 +184,11 @@ static int log_trace(CURL *handle, curl_infotype type,
 		text = "<= Recv data";
 		break;
 		case CURLINFO_SSL_DATA_IN:
-		text = "<= Recv SSL data";
-		break;
+		return 0;
 	}
 
 	if (size > MAX_SIZE_TO_FILE) {
-		size = MAX_SIZE_TO_FILE;
+		return 0;
 	}
  
 	dump(text, g_http_log_file, (unsigned char *)data, size, 1);
