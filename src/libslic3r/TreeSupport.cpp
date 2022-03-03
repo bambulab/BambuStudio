@@ -1305,6 +1305,9 @@ void TreeSupport::generate_toolpaths()
     coordf_t support_spacing = object_config.support_base_pattern_spacing.value + m_support_material_flow.spacing();
     coordf_t support_density = std::min(1., m_support_material_flow.spacing() / support_spacing);
 
+    const coordf_t branch_radius = object_config.tree_support_branch_diameter.value / 2;
+    const coordf_t branch_radius_scaled = scale_(branch_radius);
+
     if (m_object->tree_support_layers().empty())
         return;
 
@@ -1478,8 +1481,14 @@ void TreeSupport::generate_toolpaths()
                                 role = erSupportMaterial;
                                 filler_support->angle = Geometry::deg2rad(object_config.support_material_angle.value);// obj_is_vertical * M_PI_2 + (float)layer_id / num_layers_to_change_infill_direction * M_PI_4;
                             }
+                            // only wall at the top of tree branch
+                            if (offset(poly, -branch_radius_scaled*1.5).empty())
+                            {
+                                make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object->print(), poly,
+                                    wall_count, flow, false);
+                            }
                             // allow infill-only mode if support is thick enough
-                            if (offset(poly, -scale_(support_spacing * 1.5)).empty() == false)
+                            else if (offset(poly, -scale_(support_spacing * 1.5)).empty() == false)
                             {
                                 make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object->print(), poly, wall_count, flow, role, filler_support, support_density);
                             }
