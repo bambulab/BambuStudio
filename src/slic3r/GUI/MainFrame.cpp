@@ -857,6 +857,7 @@ void MainFrame::init_tabpanel()
         if (panel == m_plater) {
             if (sel == tp3DEditor) {
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
+                m_param_panel->OnActivate();
             }
             else if (sel == tpPreview) {
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLVIEWTOOLBAR_PREVIEW));
@@ -897,6 +898,10 @@ void MainFrame::init_tabpanel()
             m_topbar->DisableUndoRedoItems();
         }
     });
+
+    if (wxGetApp().is_editor()) {
+        m_param_panel = new ParamsPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
+    }
 
     m_plater = new Plater(this, this, wxGetApp().getAccountManager());
     m_plater->Hide();
@@ -1000,7 +1005,7 @@ void MainFrame::create_preset_tabs()
     wxGetApp().update_label_colours_from_appconfig();
 
     //BBS: GUI refactor
-    m_param_panel = new ParamsPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
+    //m_param_panel = new ParamsPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
 
     add_created_tab(new TabPrint(m_param_panel), "cog");
     add_created_tab(new TabPrintObject(m_param_panel), "cog");
@@ -1012,8 +1017,9 @@ void MainFrame::create_preset_tabs()
     add_created_tab(new TabPrinter(m_param_panel), "printer");
 
     m_param_panel->rebuild_panels();
-    m_tabpanel->AddPage(m_param_panel, "Parameters", "notebook_presets_active");
+    //m_tabpanel->AddPage(m_param_panel, "Parameters", "notebook_presets_active");
     //m_tabpanel->InsertPage(tpSettings, m_param_panel, _L("Parameters"), std::string("cog"));
+    m_plater->sidebar();
 }
 
 void MainFrame::add_created_tab(Tab* panel,  const std::string& bmp_name /*= ""*/)
@@ -1040,9 +1046,10 @@ void MainFrame::add_created_tab(Tab* panel,  const std::string& bmp_name /*= ""*
 
 bool MainFrame::is_active_and_shown_tab(wxPanel* panel)
 {
-    int page_id = m_tabpanel->FindPage(panel);
+    if (panel == m_param_panel)
+        panel = m_plater;
 
-    if (m_tabpanel->GetSelection() != page_id)
+    if (m_tabpanel->GetCurrentPage() != panel)
         return false;
 
 //BBS GUI refactor: remove unused layout new/dlg

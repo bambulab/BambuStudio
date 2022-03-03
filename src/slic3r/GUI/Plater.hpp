@@ -157,6 +157,7 @@ public:
     void                    collapse(bool collapse);
     void                    update_searcher();
     void                    update_ui_from_settings();
+	bool                    show_object_list(bool show) const;
 
 #ifdef _MSW_DARK_MODE
     void                    show_mode_sizer(bool show);

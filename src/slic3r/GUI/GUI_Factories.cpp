@@ -1159,14 +1159,6 @@ void MenuFactory::create_plate_menu()
     append_submenu(menu, sub_menu, wxID_ANY, _L("Add Shape"), "", "add_part",
         []() {return true; }, m_parent);
 
-    m_parent->Bind(wxEVT_UPDATE_UI, [](wxUpdateUIEvent& evt) {
-        PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
-        assert(plate);
-        bool check = plate->is_locked();
-        evt.Check(check);
-        plater()->set_current_canvas_as_dirty();
-        }, wxID_ANY);
-    
     return;
 }
 
@@ -1512,11 +1504,19 @@ void MenuFactory::append_menu_item_locked(wxMenu* menu, int insert_pos)
     assert(plate);
     wxString lock_text = plate->is_locked() ? names[0] : names[1];
 
-    append_menu_item(menu, wxID_ANY, lock_text, "",
+    auto item = append_menu_item(menu, wxID_ANY, lock_text, "",
         [plate](wxCommandEvent&) {
             bool lock = plate->is_locked();
             plate->lock(!lock);
         }, "", nullptr, []() { return true; }, m_parent, insert_pos);
+
+    m_parent->Bind(wxEVT_UPDATE_UI, [](wxUpdateUIEvent& evt) {
+        PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
+        assert(plate);
+        bool check = plate->is_locked();
+        evt.Check(check);
+        plater()->set_current_canvas_as_dirty();
+    }, item->GetId());
 }
 
 

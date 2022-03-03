@@ -309,7 +309,10 @@ void Tab::create_preset_tab()
 
     m_top_sizer->SetMinSize(-1, 3 * m_em_unit);
     m_top_panel->SetSizer(m_top_sizer);
-    m_main_sizer->Add(m_top_panel, 0, wxEXPAND, 0 );
+    if (m_presets_choice)
+        m_main_sizer->Add(m_top_panel, 0, wxEXPAND, 0 );
+    else
+        m_top_panel->Hide();
 
 #if 0
 #ifdef _MSW_DARK_MODE

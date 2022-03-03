@@ -151,7 +151,7 @@ void ParamsPanel::create_layout()
     m_mode_sizer->AddSpacer(16);
     m_mode_sizer->SetMinSize(-1, 4 * em_unit(this));
     m_mode_panel->SetSizer(m_mode_sizer);
-    m_left_sizer->Add( m_mode_panel, 0, wxEXPAND );
+    //m_left_sizer->Add( m_mode_panel, 0, wxEXPAND );
 
     if (m_tab_print) {
         m_left_sizer->Add( m_staticline_print, 0, wxEXPAND );
@@ -327,6 +327,7 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
         if (cur_tab)
             cur_tab->restore_last_select_item();
         Show(cur_tab != nullptr);
+        wxGetApp().sidebar().show_object_list(m_mode_status->GetValue());
         return;
     }
 

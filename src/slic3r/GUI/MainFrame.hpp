@@ -177,11 +177,11 @@ public:
     enum TabPosition
     {
         tp3DEditor = 0,
-        tpSettings = 1,
-        tpPreview = 2,
-        tpMonitor = 3,
-        toDebugTool = 4,
-        toWebView = 5, 
+        //tpSettings = 1,
+        tpPreview = 1,
+        tpMonitor = 2,
+        toDebugTool = 3,
+        toWebView = 4, 
     };
 
     //BBS: add slice&&print status update logic

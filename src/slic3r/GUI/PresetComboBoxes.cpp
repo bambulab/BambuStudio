@@ -394,6 +394,7 @@ void PresetComboBox::update_from_bundle()
 void PresetComboBox::msw_rescale()
 {
     m_em_unit = em_unit(this);
+    Rescale();
 
     m_bitmapIncompatible.msw_rescale();
     m_bitmapCompatible.msw_rescale();
@@ -622,7 +623,7 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
     // BBS
     if (m_type == Preset::TYPE_FILAMENT) {
         int em = wxGetApp().em_unit();
-        clr_picker = new wxButton(parent, wxID_ANY, "", wxDefaultPosition, wxSize(20 * em / 10, 20 * em / 10), wxBU_NOTEXT | wxBU_EXACTFIT | wxBORDER_NONE);
+        clr_picker = new wxButton(parent, wxID_ANY, "", wxDefaultPosition, wxSize(20 * em / 10, 20 * em / 10), wxBU_EXACTFIT | wxBORDER_NONE);
         clr_picker->SetToolTip(_L("Click to  pick filament color"));
         clr_picker->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
             m_clrData.SetColour(clr_picker->GetBackgroundColour());
@@ -724,7 +725,7 @@ void PlaterPresetComboBox::switch_to_tab()
         return;
 
     //BBS  Select NoteBook Tab params
-    wxGetApp().mainframe->select_tab(MainFrame::tpSettings);
+    wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
     tab->restore_last_select_item();
 
     const Preset* selected_filament_preset = nullptr;
@@ -874,7 +875,9 @@ void PlaterPresetComboBox::update()
             // Extruder color is not defined.
             filament_color.clear();
         // BBS
-        clr_picker->SetBackgroundColour(wxColor(filament_color));
+        wxColor clr(filament_color);
+        clr_picker->SetBackgroundColour(clr);
+        clr_picker->SetForegroundColour(wxColor(~clr.GetRGB()));
         selected_filament_preset = m_collection->find_preset(m_preset_bundle->filament_presets[m_extruder_idx]);
         if (!selected_filament_preset) {
             //can not find this filament, should be caused by project embedded presets, will be updated later
@@ -1059,8 +1062,8 @@ void PlaterPresetComboBox::update()
 #ifdef __WXMSW__
     // Use this part of code just on Windows to avoid of some layout issues on Linux
     // Update control min size after rescale (changed Display DPI under MSW)
-    if (GetMinWidth() != 20 * m_em_unit)
-        SetMinSize(wxSize(20 * m_em_unit, GetSize().GetHeight()));
+    if (GetMinWidth() != 10 * m_em_unit)
+        SetMinSize(wxSize(10 * m_em_unit, GetSize().GetHeight()));
 #endif //__WXMSW__
 }
 
@@ -1068,6 +1071,8 @@ void PlaterPresetComboBox::msw_rescale()
 {
     PresetComboBox::msw_rescale();
 
+    if (clr_picker)
+        clr_picker->SetSize(20 * m_em_unit / 10, 20 * m_em_unit / 10);
     // BBS
     if (edit_btn != nullptr)
         edit_btn->msw_rescale();

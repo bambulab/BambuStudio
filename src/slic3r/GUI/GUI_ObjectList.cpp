@@ -74,11 +74,7 @@ static void take_snapshot(const wxString& snapshot_name)
 #define ID_OBJECT_ORG_MENU_ITEM_PLATE 11001
 
 ObjectList::ObjectList(wxWindow* parent) :
-    wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 
-#ifdef _WIN32
-        wxBORDER_SIMPLE | 
-#endif
-        wxDV_MULTIPLE)
+    wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE)
 {
     wxGetApp().UpdateDVCDarkUI(this, true);
 
