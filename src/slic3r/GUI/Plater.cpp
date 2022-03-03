@@ -9163,7 +9163,7 @@ int Plater::select_plate(int plate_index, bool need_slice)
         //always apply the current plate's print
         invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config());
 
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: after apply, invalidated= %2%, previous result_valid %3% ")%__LINE__ % invalidated %result_valid;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: plate %2%, after apply, invalidated= %3%, previous result_valid %4% ")%__LINE__ %plate_index  %invalidated %result_valid;
         if (result_valid)
         {
             if (is_preview_shown())
@@ -9238,14 +9238,14 @@ int Plater::select_plate(int plate_index, bool need_slice)
             }
         }
     }
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: return %2%")%__LINE__ % ret;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: plate %2%, return %3%")%__LINE__ %plate_index %ret;
     return ret;
 }
 
 int Plater::select_sliced_plate(int plate_index)
 {
     int ret = 0;
-    BOOST_LOG_TRIVIAL(trace) << "select_sliced_plate plate_idx=" << plate_index;
+    BOOST_LOG_TRIVIAL(info) << "select_sliced_plate plate_idx=" << plate_index;
 
     Freeze();
     ret = select_plate(plate_index, true);
@@ -9270,6 +9270,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
     plate_index = hover_id / PartPlate::GRABBER_COUNT;
     action = hover_id % PartPlate::GRABBER_COUNT;
 
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": enter, hover_id %1%, plate_index %2%, action %3%")%hover_id % plate_index %action;
     if (action == 0)
     {
         //select plate
