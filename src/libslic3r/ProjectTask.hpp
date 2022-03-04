@@ -189,6 +189,7 @@ public:
 
     std::string     project_id;
     std::string     project_model_id;       /* model id */
+    std::string     project_design_id;      /* design_id */
     std::string     project_status;
     std::string     project_create_time;    /* created by cloud */
     std::string     project_url;            /* url storage on cloud */

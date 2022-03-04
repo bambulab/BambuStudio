@@ -265,7 +265,7 @@ public:
     void            ShowDailyTip();
     //BBS
     void            request_login();
-    void            request_model_download(std::string model_id, std::string profile_id);
+    void            request_model_download(std::string import_json);
     void            download_project(std::string project_id);
     void            handle_http_error(unsigned int status, std::string body);
     void            request_new_version();

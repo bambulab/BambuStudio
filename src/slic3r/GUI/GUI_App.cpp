@@ -2181,10 +2181,10 @@ void GUI_App::request_login()
     wxMessageBox(_L("Please login first!"));
 }
 
-void GUI_App::request_model_download(std::string model_id, std::string profile_id)
+void GUI_App::request_model_download(std::string import_json)
 {
     if (plater_) {
-        plater_->request_model_download(model_id, profile_id);
+        plater_->request_model_download(import_json);
     }
 }
 

@@ -1791,6 +1791,34 @@ namespace Slic3r {
         return 0;
     }
 
+    void AccountManager::query_design_info(std::string model_id, std::string& design_id, int& err_code, std::string& err_msg)
+    {
+        std::string url = (boost::format("%1%/design-service/model/%2%") % host % model_id).str();
+        Http http = Http::get(url);
+        http.header("accept", "application/json")
+            .header("Authorization", get_token_str())
+            .on_complete([this, &design_id, &err_code, &err_msg](std::string body, unsigned status) {
+                try {
+                    json j = json::parse(body);
+                    if (j.contains("id") && !j["id"].is_null())
+                        design_id = std::to_string(j["id"].get<int>());
+                } catch(...) {
+                    ;
+                }
+            })
+            .on_error(
+                [this, &err_code, &err_msg](std::string body, std::string error, unsigned status) {
+                    if (status == 404)
+                        err_code = -1;
+                    else {
+                        err_msg = (boost::format("err_msg: %1%, status = %2%") % body % status).str();
+                        BOOST_LOG_TRIVIAL(info) << "get_design info failed! err_msg" << err_msg;
+                    }
+                }
+            )
+            .perform_sync();
+    }
+
     // poll 3mf must have a profile id
     int AccountManager::poll_3mf(BBLProject* project, std::string profile_id, bool& cancel, Http::ErrorFn errFn)
     {
@@ -3136,9 +3164,13 @@ namespace Slic3r {
             std::string web_cmd = j["command"].get<std::string>();
             if (web_cmd == "request_model_download") {
                 json j_data = j["data"];
-                std::string model_id = j["data"]["model_id"].get<std::string>();
-                std::string profile_id = j["data"]["profile_id"].get<std::string>();
-                this->request_model_download(model_id, profile_id);
+                json import_j;
+                import_j["model_id"]    = j["data"]["model_id"].get<std::string>();
+                import_j["profile_id"] = j["data"]["profile_id"].get<std::string>();
+                import_j["design_id"] = "";
+                if (j["data"].contains("design_id"))
+                    import_j["design_id"] = j["data"]["design_id"].get<std::string>();
+                this->request_model_download(import_j.dump());
             }
 
             std::stringstream ss(cmd), oss;
@@ -3198,13 +3230,13 @@ namespace Slic3r {
         GUI::wxGetApp().handle_http_error(status, body);
     }
 
-    void AccountManager::request_model_download(std::string model_id, std::string profile_id)
+    void AccountManager::request_model_download(std::string import_json)
     {
         if (!is_user_login()) {
             GUI::wxGetApp().request_login();
             return;
         }
-        GUI::wxGetApp().request_model_download(model_id, profile_id);
+        GUI::wxGetApp().request_model_download(import_json);
     }
 
     void AccountManager::request_project_download(std::string project_id)

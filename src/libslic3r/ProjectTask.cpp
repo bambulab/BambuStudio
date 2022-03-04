@@ -244,6 +244,7 @@ namespace Slic3r {
         project_model_id.clear();
         project_name.clear();
         project_id.clear();
+        project_design_id.clear();
         project_status.clear();
         project_create_time.clear();
         project_url.clear();

@@ -5290,11 +5290,8 @@ void Plater::priv::on_plate_selected(SimpleEvent&)
 void Plater::priv::on_action_request_model_id(wxCommandEvent& evt)
 {
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received import model id event\n" ;
-    json j = json::parse(evt.GetString().ToStdString());
-    std::string model_id = j["model_id"];
-    std::string profile_id = j["profile_id"];
     if (q != nullptr) {
-        q->import_model_id(model_id, profile_id);
+        q->import_model_id(evt.GetString().ToStdString());
     }
 }
 
@@ -6586,8 +6583,25 @@ int Plater::save_project(bool saveAs)
 }
 
 //BBS import model by model id
-void Plater::import_model_id(const std::string& model_id, const std::string& profile_id)
+void Plater::import_model_id(const std::string& import_json)
 {
+    json j;
+    std::string model_id;
+    std::string profile_id;
+    std::string design_id;
+    try {
+        j = json::parse(import_json);
+        model_id = j["model_id"].get<std::string>();
+        profile_id = j["profile_id"].get<std::string>();
+        if (j.contains("design_id") && !j["design_id"].is_null())
+            design_id = j["design_id"].get<std::string>();
+    }
+    catch(...)
+    {
+        BOOST_LOG_TRIVIAL(trace) << "import_model_id failed, json = " << import_json;
+        return;
+    }
+
     bool download_ok = false;
     /* save to a file */
 
@@ -6607,7 +6621,6 @@ void Plater::import_model_id(const std::string& model_id, const std::string& pro
                             this,   // parent
                             wxPD_CAN_ABORT |
                             wxPD_APP_MODAL |
-                            //wxPD_ELAPSED_TIME |
                             wxPD_AUTO_HIDE |
                             wxPD_SMOOTH);
 
@@ -6617,6 +6630,7 @@ void Plater::import_model_id(const std::string& model_id, const std::string& pro
     p->project.reset();
     BBLProject* project = &p->project;
     project->project_model_id = model_id;
+    project->project_design_id = design_id;
 
     /* prepare project and profile */
     boost::thread import_thread = Slic3r::create_thread([&project, &percent, &cont, &cancel, &msg, &target_path, &download_ok, model_id, profile_id]{
@@ -6726,13 +6740,10 @@ void Plater::download_project(const wxString& project_id)
     ;
 }
 
-void Plater::request_model_download(std::string model_id, std::string profile_id)
+void Plater::request_model_download(std::string import_json)
 {
     wxCommandEvent* event = new wxCommandEvent(EVT_IMPORT_MODEL_ID);
-    json j;
-    j["model_id"] = model_id;
-    j["profile_id"] = profile_id;
-    event->SetString(j.dump());
+    event->SetString(wxString(import_json));
     wxQueueEvent(this, event);
 }
 
@@ -8107,6 +8118,8 @@ void Plater::publish_project()
     bool cont_dlg = true;
     int percent = 0;
     bool upload_finish = false;
+    bool publish_profile = false;
+    std::string design_id;
 
     // upload project first and publish
     wxString msg;
@@ -8148,10 +8161,24 @@ void Plater::publish_project()
     BBLProfile* profile = new BBLProfile(project);
     profile->profile_name = wxGetApp().preset_bundle->prints.get_edited_preset().name;
 
-    boost::thread upload_thread = Slic3r::create_thread([c, &msg, &cont, &project, &profile, &percent, &upload_finish, temp_path] {
+    boost::thread upload_thread = Slic3r::create_thread([c, &msg, &cont, &project, &profile, &percent, &upload_finish, temp_path, &design_id, &publish_profile] {
         int res = 0;
         msg = _L("preparing your designs, reqeust project id...");
 
+        // query design id
+        if (!project->project_model_id.empty()) {
+            int err_code = 0;
+            std::string err_msg;
+            c->query_design_info(project->project_model_id, design_id, err_code, err_msg);
+            if (!design_id.empty() && err_code == 0) {
+                publish_profile = true;
+            } else {
+                msg = _L("query design info failed!");
+                cont = false;
+                return;
+            }
+        }
+        
         if (project->project_id.empty()) {
             res = c->request_project_id(project);
             if (res != 0 || project->project_id.empty()) {
@@ -8223,11 +8250,22 @@ void Plater::publish_project()
     p->project.project_model_id = project->project_model_id;
 
     if (upload_finish) {
-        wxString url = wxString::Format(MY_MODEL_PUBLISH_URL_FORMAT,
-            project->project_model_id,
-            project->project_id,
-            profile->profile_id);
+        wxString url;
+        if (!publish_profile) {
+            url = wxString::Format(MY_MODEL_PUBLISH_URL_FORMAT,
+                    project->project_model_id,
+                    project->project_id,
+                    profile->profile_id,
+                    project->project_design_id);
+        } else {
+            url = wxString::Format(MY_PROFILE_PUBLISH_URL_FORMAT,
+                profile->profile_id,
+                project->project_id,
+                project->project_design_id);
+        }
+
         url = wxString(wxGetApp().app_config->get_web_host_url()) + url;
+
         GUI::wxGetApp().load_url(url);
     } else {
         while(cont_dlg) {

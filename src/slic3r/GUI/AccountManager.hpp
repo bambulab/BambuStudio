@@ -16,7 +16,8 @@
 #define BBL_INTERNAL_TEST
 #define BBL_CHECK_USER_REPORT
 
-#define MY_MODEL_PUBLISH_URL_FORMAT     "/my/models/%s/publish?project_id=%s&profile_id=%s"
+#define MY_MODEL_PUBLISH_URL_FORMAT     "/my/models/%s/publish?project_id=%s&profile_id=%s&design_id=%s"
+#define MY_PROFILE_PUBLISH_URL_FORMAT   "/my/profiles/%s/publish?project_id=%s&design_id=%s"
 #define MY_COLLECTIONS_URL              "/my/collections"
 #define MY_PROJECT_LIST_URL             "/my/projects"
 #define MODEL_STORE_URL                 "/designs"
@@ -356,6 +357,9 @@ public:
     int poll_3mf(BBLProfile* profile);
     // poll_3mf for task, sync
     int poll_3mf(BBLSubTask* task, CancelFn  fn = nullptr);
+
+    void query_design_info(std::string model_id, std::string &design_id, int &err_code, std::string &err_msg);
+
     // get task info
     void get_task(BBLTask* &task);
     void get_subtask(BBLSubTask* &subtask);
@@ -370,7 +374,7 @@ public:
     void get_profile_info(BBLProject* &project, BBLProfile* &profile);
     void create_task(BBLProject* project, BBLTask* task, ResultFn resFn);
     void post_task(BBLSubTask* task, ResultFn resFn, ProgressFn proFn);
-
+;
     bool can_publish();
     
     /* preset settings api */
@@ -418,7 +422,7 @@ public:
     std::string handle_web_request(std::string cmd);
     void handle_http_error(unsigned int status, std::string body);
 
-    void request_model_download(std::string model_id, std::string profile_id);
+    void request_model_download(std::string import_json);
     void request_project_download(std::string project_id);
     void request_open_project(std::string project_id);
 };

@@ -376,45 +376,62 @@ void BBLTopbar::OnAccountClicked(wxAuiToolBarEvent& event)
             return account_manager->is_user_login();
             },
         this);
-    append_menu_item(accountMenu, wxID_ANY, _L("Upload/Publish Model"), _L("Please slice all plates before upload"),
-        [this](wxCommandEvent&) {
-            /* upload project first and publish */
-            Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
 
-            // BBS confirm to upload and publish model
-            wxMessageDialog dialog(this, "Confirm to upload and publish your designs",
-                "Confirm Dialog",
-                wxCENTER | wxYES_DEFAULT | wxYES_NO
-                );
-            wxString content = _L("Press confrim  to upload the current project and slice configuration");
-            dialog.SetYesNoLabels("Confirm", "Cancel");
-            dialog.SetExtendedMessage(content);
+    auto publish_model_and_profile = [this](wxCommandEvent&) {
+        /* upload project first and publish */
+        Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
 
-            switch (dialog.ShowModal())
-            {
+        // BBS confirm to upload and publish model
+        wxMessageDialog dialog(this, "Confirm to upload and publish your designs",
+            "Confirm Dialog",
+            wxCENTER | wxYES_DEFAULT | wxYES_NO
+        );
+        wxString content = _L("Press confrim  to upload the current project and slice configuration");
+        dialog.SetYesNoLabels("Confirm", "Cancel");
+        dialog.SetExtendedMessage(content);
+
+        switch (dialog.ShowModal())
+        {
             case wxID_YES: {
                 MainFrame* main_frame = dynamic_cast<MainFrame*>(m_frame);
                 Plater* plater = main_frame->plater();
                 plater->publish_project();
+                break;
             }
             case wxID_NO:
                 break;
             default:
                 break;
-            }
-        }, "upload_queue", nullptr,
-        [this] (){
-            if (GUI::wxGetApp().plater()->model().objects.empty()) return false;
+        }
+    };
 
-            //BBS check gcode validation
-            GUI::PartPlateList& part_plate_list = GUI::wxGetApp().plater()->get_partplate_list();
-            bool publish_enable = part_plate_list.is_all_slice_results_ready_for_print();
-            if (!publish_enable) return false;
+    auto cond_publish_model = [this]() {
+        if (GUI::wxGetApp().plater()->model().objects.empty()) return false;
 
-            Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
-            return account_manager->can_publish();
-            },
-        this);
+        //BBS check gcode validation
+        GUI::PartPlateList& part_plate_list = GUI::wxGetApp().plater()->get_partplate_list();
+        bool publish_enable = part_plate_list.is_all_slice_results_ready_for_print();
+        if (!publish_enable) return false;
+
+        Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
+        return account_manager->can_publish();
+    };
+
+    auto cond_publish_profile = [this]() {
+        bool result = true;
+        if (GUI::wxGetApp().plater()->model().objects.empty()) return false;
+
+        //BBS check gcode validation
+        GUI::PartPlateList& part_plate_list = GUI::wxGetApp().plater()->get_partplate_list();
+        bool publish_enable = part_plate_list.is_all_slice_results_ready_for_print();
+        if (!publish_enable) return false;
+
+        Slic3r::AccountManager* account_manager = GUI::wxGetApp().getAccountManager();
+        return account_manager->can_publish();
+    };
+
+    append_menu_item(accountMenu, wxID_ANY, _L("Publish Model/Profile"), _L("Please slice all plates before upload"),
+        publish_model_and_profile, "upload_queue", nullptr, cond_publish_model, this);
 
     wxRect rect = this->GetToolRect(m_account_item->GetId());
     this->PopupMenu(accountMenu, rect.x, rect.y + this->GetSize().GetHeight() - 5);
