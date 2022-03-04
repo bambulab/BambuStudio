@@ -102,6 +102,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent, wxString url)
         }
         else {
             wxLogError("Could not init m_browser");
+            return;
         }
 
         SetSizer(topsizer);

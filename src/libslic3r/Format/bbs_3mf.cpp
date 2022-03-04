@@ -1001,6 +1001,15 @@ namespace Slic3r {
             project->project_model_id = m_model_id;
         }
 
+        //BBS: version check
+        bool b_incorrect_version = false;
+        if (m_bambuslicer_generator_version) {
+            Semver app_version = *(Semver::parse(SLIC3R_VERSION));
+            Semver file_version = *m_bambuslicer_generator_version;
+            if (file_version.maj() != app_version.maj())
+                b_incorrect_version = true;
+        }
+
         // we then loop again the entries to read other files stored in the archive
         for (mz_uint i = 0; i < num_entries; ++i) {
             if (mz_zip_reader_file_stat(&archive, i, &stat)) {
@@ -1021,11 +1030,11 @@ namespace Slic3r {
                     // extract slic3r layer heights profile file
                     _extract_layer_heights_profile_config_from_archive(archive, stat);
                 }
-                else */
+                else 
                 if (boost::algorithm::iequals(name, LAYER_CONFIG_RANGES_FILE)) {
                     // extract slic3r layer config ranges file
                     _extract_layer_config_ranges_from_archive(archive, stat, config_substitutions);
-                }
+                }*/
                 //BBS: disable SLA related files currently
                 /*else if (boost::algorithm::iequals(name, SLA_SUPPORT_POINTS_FILE)) {
                     // extract sla support points file
@@ -1036,35 +1045,35 @@ namespace Slic3r {
                     _extract_sla_drain_holes_from_archive(archive, stat);
                 }*/
                 //BBS: project setting file
-                else if (boost::algorithm::iequals(name, BBS_PRINT_CONFIG_FILE)) {
+                if (!b_incorrect_version && boost::algorithm::iequals(name, BBS_PRINT_CONFIG_FILE)) {
                     // extract slic3r print config file
                     _extract_print_config_from_archive(archive, stat, config, config_substitutions, filename);
                 }
-                else if (boost::algorithm::iequals(name, BBS_PROJECT_CONFIG_FILE)) {
+                else if (!b_incorrect_version && boost::algorithm::iequals(name, BBS_PROJECT_CONFIG_FILE)) {
                     // extract slic3r print config file
                     _extract_project_config_from_archive(archive, stat, config, config_substitutions, model);
                 }
                 //BBS: project embedded presets
-                else if (boost::algorithm::istarts_with(name, PROJECT_EMBEDDED_PRINT_PRESETS_FILE)) {
+                else if (!b_incorrect_version && boost::algorithm::istarts_with(name, PROJECT_EMBEDDED_PRINT_PRESETS_FILE)) {
                     // extract slic3r layer config ranges file
                     _extract_project_embedded_presets_from_archive(archive, stat, project_presets, model, Preset::TYPE_PRINT, false);
                 }
-                else if (boost::algorithm::istarts_with(name, PROJECT_EMBEDDED_SLICE_PRESETS_FILE)) {
+                else if (!b_incorrect_version && boost::algorithm::istarts_with(name, PROJECT_EMBEDDED_SLICE_PRESETS_FILE)) {
                     // extract slic3r layer config ranges file
                     _extract_project_embedded_presets_from_archive(archive, stat, project_presets, model, Preset::TYPE_PRINT);
                 }
-                else if (boost::algorithm::istarts_with(name, PROJECT_EMBEDDED_FILAMENT_PRESETS_FILE)) {
+                else if (!b_incorrect_version && boost::algorithm::istarts_with(name, PROJECT_EMBEDDED_FILAMENT_PRESETS_FILE)) {
                     // extract slic3r layer config ranges file
                     _extract_project_embedded_presets_from_archive(archive, stat, project_presets, model, Preset::TYPE_FILAMENT);
                 }
-                else if (boost::algorithm::istarts_with(name, PROJECT_EMBEDDED_PRINTER_PRESETS_FILE)) {
+                else if (!b_incorrect_version && boost::algorithm::istarts_with(name, PROJECT_EMBEDDED_PRINTER_PRESETS_FILE)) {
                     // extract slic3r layer config ranges file
                     _extract_project_embedded_presets_from_archive(archive, stat, project_presets, model, Preset::TYPE_PRINTER);
                 }
-                else if (boost::algorithm::iequals(name, CUSTOM_GCODE_PER_PRINT_Z_FILE)) {
+                /*else if (!b_incorrect_version && boost::algorithm::iequals(name, CUSTOM_GCODE_PER_PRINT_Z_FILE)) {
                     // extract slic3r layer config ranges file
                     _extract_custom_gcode_per_print_z_from_archive(archive, stat);
-                }
+                }*/
                 else if ((boost::algorithm::iequals(name, MODEL_CONFIG_FILE))||(boost::algorithm::iequals(name, BBS_MODEL_CONFIG_FILE))) {
                     // extract slic3r model config file
                     if (!_extract_xml_from_archive(archive, stat, _handle_start_config_xml_element, _handle_end_config_xml_element)) {
@@ -1073,7 +1082,7 @@ namespace Slic3r {
                         return false;
                     }
                 }
-                else if (boost::algorithm::iequals(name, SLICE_INFO_CONFIG_FILE)) {
+                else if (!b_incorrect_version && boost::algorithm::iequals(name, SLICE_INFO_CONFIG_FILE)) {
                     m_parsing_slice_info = true;
                     //extract slice info from archive
                     _extract_xml_from_archive(archive, stat, _handle_start_config_xml_element, _handle_end_config_xml_element);
@@ -1084,7 +1093,7 @@ namespace Slic3r {
                     if (m_load_aux && !m_load_restore)
                         _extract_auxiliary_file_from_archive(archive, stat, model);
                 }
-                else if (boost::algorithm::istarts_with(name, METADATA_DIR) && boost::algorithm::iends_with(name, GCODE_EXTENSION)) {
+                else if (!b_incorrect_version && boost::algorithm::istarts_with(name, METADATA_DIR) && boost::algorithm::iends_with(name, GCODE_EXTENSION)) {
                     //load gcode files
                     _extract_gcode_file_from_archive(archive, stat);
                 }
