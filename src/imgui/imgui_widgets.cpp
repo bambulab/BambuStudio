@@ -1117,6 +1117,51 @@ bool ImGui::ImageButton2(ImTextureID user_texture_id, const ImVec2& size, const 
     return ImageButtonEx2(id, user_texture_id, size, uv0, uv1, padding, bg_col, tint_col, margin);
 }
 
+
+bool ImGui::ImageTextButton(const ImVec2& button_size, const char* text, ImTextureID user_texture_id, const ImVec2& image_size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col, const ImVec4& tint_col, const ImVec2& margin)
+{
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = g.CurrentWindow;
+    if (window->SkipItems)
+        return false;
+
+    // Default to using texture ID as ID. User can still push string/integer prefixes.
+    PushID((void*)(intptr_t)user_texture_id);
+    const ImGuiID id = window->GetID("#image");
+    PopID();
+
+    const ImVec2 padding = (frame_padding >= 0) ? ImVec2((float)frame_padding, (float)frame_padding) : g.Style.FramePadding;
+
+    const ImVec2 label_size = CalcTextSize(text, NULL, true);
+    ImVec2 calc_button_size = ImVec2(image_size.x + label_size.x + padding.x * 2 + margin.x * 2 + margin.y, button_size.y);
+    ImVec2 calc_image_offset = ImVec2(margin.x, (button_size.y - image_size.y) / 2 - padding.y);
+
+    const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + calc_button_size);
+    ItemSize(bb);
+    if (!ItemAdd(bb, id))
+        return false;
+
+    bool hovered, held;
+    bool pressed = ButtonBehavior(bb, id, &hovered, &held);
+
+    // Render
+    const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+    RenderNavHighlight(bb, id);
+    //RenderFrame(bb.Min, bb.Max, col, true, ImClamp((float)ImMin(padding.x, padding.y), 0.0f, g.Style.FrameRounding));
+    RenderFrame(bb.Min, bb.Max, col, true, g.Style.FrameRounding);
+    if (bg_col.w > 0.0f)
+        window->DrawList->AddRectFilled(bb.Min + padding, bb.Max - padding, GetColorU32(bg_col));
+
+    window->DrawList->AddImage(user_texture_id, bb.Min + padding + calc_image_offset, bb.Min + padding + image_size + calc_image_offset, uv0, uv1, GetColorU32(tint_col));
+
+    ImVec2 text_pos = ImVec2(margin.x + image_size.x + margin.y, (button_size.y - label_size.y) / 2 - padding.y);
+
+    window->DrawList->AddText(bb.Min + padding + text_pos, GetColorU32(ImGuiCol_Text), text);
+
+    return pressed;
+
+}
+
 bool ImGui::Checkbox(const char* label, bool* v)
 {
     ImGuiWindow* window = GetCurrentWindow();

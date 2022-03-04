@@ -521,7 +521,7 @@ private:
     mutable GLToolbar m_print_select_toolbar;
     mutable IMToolbar m_sel_plate_toolbar;
     mutable GLToolbar m_assemble_view_toolbar;
-    mutable GLToolbar m_return_toolbar;
+    mutable IMReturnToolbar m_return_toolbar;
     mutable int m_print_select{ ePrintAll };
     mutable int m_slice_select{ eSliceAll };
     //BBS: add canvas type for assemble view usage

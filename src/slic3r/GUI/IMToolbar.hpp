@@ -67,6 +67,21 @@ public:
     int get_items_count() { return m_items.size();  }
 };
 
+class IMReturnToolbar {
+private:
+    bool m_enabled{ false };
+    ImTextureID texture_id;
+    GLTexture   return_textrue;
+
+public:
+    IMReturnToolbar() {}
+
+    bool init();
+    bool is_enabled() const { return m_enabled; }
+    void set_enabled(bool enable) { m_enabled = enable; }
+    ImTextureID get_return_texture_id() { return texture_id; }
+};
+
 } // namespace GUI
 } // namespace Slic3r
 

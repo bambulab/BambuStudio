@@ -1004,7 +1004,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
     , m_print_select_toolbar(GLToolbar::Normal, "Print_Select")
     , m_sel_plate_toolbar()
     , m_assemble_view_toolbar(GLToolbar::Normal, "Assemble_View")
-    , m_return_toolbar(GLToolbar::Normal, "Return")
+    , m_return_toolbar()
     , m_undoredo_toolbar(GLToolbar::Normal, "Undo_Redo")
     , m_canvas_type(ECanvasType::CanvasView3D)
     , m_gizmos(*this)
@@ -1802,9 +1802,6 @@ void GLCanvas3D::render()
 
 	    if (tooltip.empty())
 	        tooltip = m_undoredo_toolbar.get_tooltip();
-
-        if (tooltip.empty())
-            tooltip = m_return_toolbar.get_tooltip();
 
 	    if (tooltip.empty())
             tooltip = wxGetApp().plater()->get_collapse_toolbar().get_tooltip();
@@ -2623,7 +2620,6 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     m_dirty |= m_print_select_toolbar.update_items_state();
     m_dirty |= m_assemble_view_toolbar.update_items_state();
     m_dirty |= m_undoredo_toolbar.update_items_state();
-    m_dirty |= m_return_toolbar.update_items_state();
     // BBS
     //m_dirty |= wxGetApp().plater()->get_view_toolbar().update_items_state();
     m_dirty |= wxGetApp().plater()->get_collapse_toolbar().update_items_state();
@@ -3411,13 +3407,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
 
     if (m_undoredo_toolbar.on_mouse(evt, *this)) {
-        if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
-            mouse_up_cleanup();
-        m_mouse.set_start_position_3D_as_invalid();
-        return;
-    }
-
-    if (m_return_toolbar.on_mouse(evt, *this)) {
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
         m_mouse.set_start_position_3D_as_invalid();
@@ -6229,31 +6218,7 @@ bool GLCanvas3D::_init_return_toolbar()
     if (!m_return_toolbar.is_enabled())
         return true;
 
-    BackgroundTexture::Metadata background_data;
-    background_data.filename = "toolbar_background.png";
-    background_data.left = 16;
-    background_data.top = 16;
-    background_data.right = 16;
-    background_data.bottom = 16;
-
-    if (!m_return_toolbar.init(background_data))
-        return false;
-
-    m_return_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Right);
-    m_return_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
-    m_return_toolbar.set_border(5.0f);
-    m_return_toolbar.set_gap_size(1.0f);
-
-    GLToolbarItem::Data item;
-
-    item.name = "Return";
-    item.icon_filename = "return.svg";
-    item.tooltip = _utf8(L("Return 3D View"));
-    item.sprite_id = 0;
-    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_3D)); };
-    if (!m_return_toolbar.add_item(item))
-        return false;
-    return true;
+    return m_return_toolbar.init();
 }
 
 
@@ -7367,27 +7332,47 @@ void GLCanvas3D::_render_return_toolbar() const
     if (!m_return_toolbar.is_enabled())
         return;
 
-#if ENABLE_RETINA_GL
-    const float scale = m_retina_helper->get_scale_factor() * wxGetApp().toolbar_icon_scale();
-#if __APPLE__
-    m_return_toolbar.set_scale(scale);
-#else // if GTK3
-    const float size = int(GLGizmosManager::Default_Icons_Size * scale);
-    m_return_toolbar.set_icons_size(size);
-#endif // __APPLE__
-#else
-    const float size = int(GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale());
-    m_return_toolbar.set_icons_size(size);
-#endif // ENABLE_RETINA_GL
-
     Size cnv_size = get_canvas_size();
-    float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
+    auto canvas_w = float(cnv_size.get_width());
+    auto canvas_h = float(cnv_size.get_height());
+    float window_width = 120.0f;
+    float window_height = 60.0f;
+    float window_pos_x = 30.0f;
+    float window_pos_y = 14.0f;
 
-    float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
-    float left = (0.5f * (float)cnv_size.get_width() - m_return_toolbar.get_width()) * inv_zoom;
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
 
-    m_return_toolbar.set_position(top, left);
-    m_return_toolbar.render(*this);
+    imgui.set_next_window_pos(window_pos_x, window_pos_y, ImGuiCond_Always, 0, 0);
+    imgui.set_next_window_size(window_width, window_height, ImGuiCond_Always);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 18.0f);
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.149f, 0.180f, 0.188f, 0.3f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.149f, 0.180f, 0.188f, 0.15f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.149f, 0.180f, 0.188f, 0.5f));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+    imgui.begin(_L("Assemble Return"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground
+        | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse);
+
+    float button_width = 20;
+    float button_height = 20;
+    ImVec2 size = ImVec2(button_width, button_height); // Size of the image we want to make visible
+    ImVec2 uv0 = ImVec2(0.0f, 0.0f);
+    ImVec2 uv1 = ImVec2(1.0f, 1.0f);
+
+    ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+    ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+    ImVec2 margin = ImVec2(10.0f, 5.0f);
+    
+    if (ImGui::ImageTextButton(ImVec2(74.0f, 30.0f), "return", m_return_toolbar.get_return_texture_id(), ImVec2(20.0f, 20.0f), uv0, uv1, -1, bg_col, tint_col, margin)) {
+        if (m_canvas != nullptr)
+            wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
+    }
+    ImGui::PopStyleColor(5);
+    ImGui::PopStyleVar(1);
+    
+    imgui.end();
 }
 
 void GLCanvas3D::_render_undoredo_toolbar()
@@ -7569,9 +7554,12 @@ void GLCanvas3D::_render_assemble_info() const
     if (m_canvas_type != ECanvasType::CanvasAssembleView) {
         return;
     }
+
     ImGuiWrapper* imgui = wxGetApp().imgui();
     auto canvas_w = float(get_canvas_size().get_width());
     auto canvas_h = float(get_canvas_size().get_height());
+    float window_width = 300.0f;
+    float window_height = 130.0f;
     float space_size = imgui->get_style_scaling() * 8.0f;
     float caption_max = imgui->calc_text_size(_L("total Volume:")).x + 2 * space_size;
     ImGuiIO& io = ImGui::GetIO();
@@ -7580,9 +7568,10 @@ void GLCanvas3D::_render_assemble_info() const
     font->Scale = 1.2;
     ImGui::PushFont(font);
     ImGui::PopFont();
-    imgui->set_next_window_pos(canvas_w * 0, canvas_h * 0, ImGuiCond_Always, 0, 0);
+    imgui->set_next_window_pos(canvas_w - window_width, 0.0f, ImGuiCond_Always, 0, 0);
+    imgui->set_next_window_size(window_width, window_height, ImGuiCond_Always);
     ImGuiWrapper::push_toolbar_style();
-    imgui->begin(_L("Bounding Boxes"), ImGuiWindowFlags_NoCollapse);
+    imgui->begin(_L("Assemble Info"), ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
     font->Scale = origScale;
     ImGui::PushFont(font);
     ImGui::PopFont();
