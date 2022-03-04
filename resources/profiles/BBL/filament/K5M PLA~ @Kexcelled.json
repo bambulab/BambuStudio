@@ -12,15 +12,15 @@
         "1.24"
     ],
     "nozzle_temperature": [
-        "240"
+        "230"
     ],
     "nozzle_temperature_initial_layer": [
-        "210"
+        "220"
     ],
     "filament_max_volumetric_speed": [
         "30.4"
     ],
     "additional_cooling_fan_speed": [
-        "0"
+        "50"
     ]
 }

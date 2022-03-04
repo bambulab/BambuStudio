@@ -38,7 +38,7 @@
         "70,100,100"
     ],
     "nozzle_temperature_initial_layer": [
-        "250"
+        "260"
     ],
     "reduce_fan_stop_start_freq": [
         "0"

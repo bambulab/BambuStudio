@@ -6,10 +6,10 @@
     "inherits": "fdm_filament_pla",
     "filament_vendor": "eSUN",
     "bed_temperature": [
-        "30,0,60"
+        "35,0,60"
     ],
     "bed_temperature_initial_layer": [
-        "30,0,60"
+        "35,0,60"
     ],
     "nozzle_temperature": [
         "215"
