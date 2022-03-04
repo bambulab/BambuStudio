@@ -653,17 +653,17 @@ void SelectMachineDialog::on_ok(wxCommandEvent& event)
     m_need_disable_btn_ensure = true;
     m_button_ensure->Disable();
 
-    ProgressDialog dlg("Creating 3mf file", "", 100, this, wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_APP_MODAL);
-    
+    ProgressDialog* progress_dlg = new ProgressDialog("Creating 3mf file", "", 100, this, wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_APP_MODAL);
+
     m_plater->send_gcode(m_print_plate_idx,
-        [this, &dlg](int export_stage, int current, int total, bool& cancel) {
+        [this, progress_dlg](int export_stage, int current, int total, bool& cancel) {
             bool cont = true;
             wxString msg = wxString::Format("exporting 3mf stage %d, %d/%d", export_stage, current, total);
-            cont = dlg.Pulse(msg);
+            cont = progress_dlg->Pulse(msg);
             this->m_export_3mf_cancel = cancel = !cont;
         }
     );
-
+    delete progress_dlg;
     if (this->m_export_3mf_cancel) {
         this->m_status_bar->set_status_text("exporting 3mf was cancelled");
         return;
