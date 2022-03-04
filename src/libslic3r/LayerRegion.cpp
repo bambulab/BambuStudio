@@ -390,7 +390,9 @@ void LayerRegion::prepare_fill_surfaces()
     if (! spiral_mode && this->region().config().top_shell_layers == 0) {
         for (Surface &surface : this->fill_surfaces.surfaces)
             if (surface.is_top())
-                surface.surface_type = this->layer()->object()->config().infill_only_where_needed ? stInternalVoid : stInternal;
+                //BBS
+                //surface.surface_type = this->layer()->object()->config().infill_only_where_needed ? stInternalVoid : stInternal;
+                surface.surface_type = PrintObject::infill_only_where_needed ? stInternalVoid : stInternal;
     }
     if (this->region().config().bottom_shell_layers == 0) {
         for (Surface &surface : this->fill_surfaces.surfaces)

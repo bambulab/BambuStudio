@@ -16,6 +16,10 @@
 
 namespace Slic3r {
 
+bool PrintObject::clip_multipart_objects = true;
+bool PrintObject::infill_only_where_needed = false;
+bool PrintObject::ensure_vertical_shell_thickness = true;
+
 LayerPtrs new_layers(
     PrintObject                 *print_object,
     // Object layers (pairs of bottom/top Z coordinate), without the raft.
@@ -722,7 +726,7 @@ void PrintObject::slice_volumes()
         slice_volumes_inner(
             print->config(), this->config(), this->trafo_centered(),
             this->model_object()->volumes, m_shared_regions->layer_ranges, slice_zs, throw_on_cancel_callback),
-        m_config.clip_multipart_objects,
+        PrintObject::clip_multipart_objects,
         throw_on_cancel_callback);
 
     for (size_t region_id = 0; region_id < region_slices.size(); ++ region_id) {

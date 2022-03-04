@@ -35,6 +35,9 @@ template class PrintState<PrintObjectStep, posCount>;
 PrintRegion::PrintRegion(const PrintRegionConfig &config) : PrintRegion(config, config.hash()) {}
 PrintRegion::PrintRegion(PrintRegionConfig &&config) : PrintRegion(std::move(config), config.hash()) {}
 
+//BBS
+float Print::min_skirt_length = 0;
+
 void Print::clear() 
 {
 	std::scoped_lock<std::mutex> lock(this->state_mutex());
@@ -66,7 +69,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "bed_exclude_area",
         "bed_temperature",
         "before_layer_change_gcode",
-        "between_objects_gcode",
+        "printing_by_object_gcode",
         "bridge_fan_speed",
         "cooling",
         "default_acceleration",
@@ -149,7 +152,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "skirt_height"
             || opt_key == "draft_shield"
             || opt_key == "skirt_distance"
-            || opt_key == "min_skirt_length"
             || opt_key == "ooze_prevention"
             || opt_key == "wipe_tower_x"
             || opt_key == "wipe_tower_y"
@@ -183,8 +185,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "initial_layer_infill_speed"
             || opt_key == "travel_speed"
             || opt_key == "travel_speed_z"
-            || opt_key == "initial_layer_speed"
-            || opt_key == "z_offset") {
+            || opt_key == "initial_layer_speed") {
+            //|| opt_key == "z_offset") {
             steps.emplace_back(psWipeTower);
             steps.emplace_back(psSkirtBrim);
         } else if (opt_key == "filament_soluble") {
@@ -1211,15 +1213,15 @@ void Print::_make_skirt()
             )));
         eloop.paths.back().polyline = loop.split_at_first_point();
         m_skirt.append(eloop);
-        if (m_config.min_skirt_length.value > 0) {
+        if (Print::min_skirt_length > 0) {
             // The skirt length is limited. Sum the total amount of filament length extruded, in mm.
             extruded_length[extruder_idx] += unscale<double>(loop.length()) * extruders_e_per_mm[extruder_idx];
-            if (extruded_length[extruder_idx] < m_config.min_skirt_length.value) {
+            if (extruded_length[extruder_idx] < Print::min_skirt_length) {
                 // Not extruded enough yet with the current extruder. Add another loop.
                 if (i == 1)
                     ++ i;
             } else {
-                assert(extruded_length[extruder_idx] >= m_config.min_skirt_length.value);
+                assert(extruded_length[extruder_idx] >= Print::min_skirt_length);
                 // Enough extruded with the current extruder. Extrude with the next one,
                 // until the prescribed number of skirt loops is extruded.
                 if (extruder_idx + 1 < extruders.size())

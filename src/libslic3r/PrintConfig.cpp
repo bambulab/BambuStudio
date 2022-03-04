@@ -255,18 +255,6 @@ void PrintConfigDef::init_common_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionPoints{});
 
-    def = this->add("bed_custom_texture", coString);
-    def->label = L("Bed custom texture");
-    //BBS
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionString(""));
-
-    def = this->add("bed_custom_model", coString);
-    def->label = L("Bed custom model");
-    //BBS
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionString(""));
-
     def = this->add("elefant_foot_compensation", coFloat);
     def->label = L("Elephant foot compensation");
     def->category = L("Advanced");
@@ -454,7 +442,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionString(""));
 
-    def = this->add("between_objects_gcode", coString);
+    def = this->add("printing_by_object_gcode", coString);
     def->label = L("Between objects G-code");
     def->tooltip = L("This code is inserted between objects when using sequential printing. By default extruder and bed temperature are reset using non-wait command; however if M104, M109, M140 or M190 are detected in this custom code, Slic3r will not add temperature commands. Note that you can use placeholder variables for all Slic3r settings, so you can put a \"M109 S[nozzle_temperature_initial_layer]\" command wherever you want.");
     def->multiline = true;
@@ -593,14 +581,6 @@ void PrintConfigDef::init_fff_params()
     def->max = 2;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
-
-    def = this->add("clip_multipart_objects", coBool);
-    def->label = L("Clip multi-part objects");
-    def->tooltip = L("When printing multi-material objects, this settings will make Slic3r "
-                   "to clip the overlapping object parts one by the other "
-                   "(2nd part will be clipped by the 1st, 3rd part will be clipped by the 1st and 2nd etc).");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("compatible_printers", coStrings);
     def->label = L("Compatible printers");
@@ -747,15 +727,6 @@ void PrintConfigDef::init_fff_params()
     //BBS
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionStrings { "; Filament-specific end gcode \n;END gcode for filament\n" });
-
-    def = this->add("ensure_vertical_shell_thickness", coBool);
-    def->label = L("Ensure vertical shell thickness");
-    //BBS: change category from "Layers and Perimeters" to "Shell"
-    def->category = L("Strength");
-    def->tooltip = L("Add solid infill near sloping surfaces to guarantee the vertical shell thickness "
-                   "(top+bottom solid layers).");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(false));
 
     auto def_top_fill_pattern = def = this->add("top_surface_pattern", coEnum);
     def->label = L("Top surface pattern");
@@ -982,21 +953,21 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 15. });
 
-    def = this->add("filament_load_time", coFloats);
+    def = this->add("machine_load_filament_time", coFloat);
     def->label = L("Filament load time");
-    def->tooltip = L("Time for the printer firmware (or the Multi Material Unit 2.0) to load a new filament during a tool change (when executing the T code). This time is added to the total print time by the G-code time estimator.");
+    def->tooltip = L("Time to load new filament");
     def->sidetext = L("s");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats { 0.0 });
+    def->set_default_value(new ConfigOptionFloat(0.0));
 
-    def = this->add("filament_unload_time", coFloats);
+    def = this->add("machine_unload_filament_time", coFloat);
     def->label = L("Filament unload time");
-    def->tooltip = L("Time for the printer firmware (or the Multi Material Unit 2.0) to unload a filament during a tool change (when executing the T code). This time is added to the total print time by the G-code time estimator.");
+    def->tooltip = L("Time to unload old filament.");
     def->sidetext = L("s");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats { 0.0 });
+    def->set_default_value(new ConfigOptionFloat(0.0));
 
     def = this->add("filament_diameter", coFloats);
     def->label = L("Diameter");
@@ -1508,15 +1479,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
-    def = this->add("infill_only_where_needed", coBool);
-    def->label = L("Infill support");
-    def->category = L("Infill");
-    def->tooltip = L("This option will limit infill to the areas actually needed for supporting ceilings "
-                   "(it will act as internal support material). If enabled, slows down the G-code generation "
-                   "due to the multiple checks involved.");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
-
     def = this->add("infill_wall_overlap", coFloatOrPercent);
     def->label = L("Infill overlap");
     def->category = L("Strength");
@@ -1860,16 +1822,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 10. });
 
-    def = this->add("min_skirt_length", coFloat);
-    def->label = L("Minimal filament extrusion length");
-    def->tooltip = L("Generate no less than the number of skirt loops required to consume "
-                   "the specified amount of filament on the bottom layer. For multi-extruder machines, "
-                   "this minimum applies to each extruder.");
-    def->sidetext = L("mm");
-    def->min = 0;
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0));
-
     def = this->add("nozzle_diameter", coFloats);
     def->label = L("Nozzle diameter");
     def->tooltip = L("This is the diameter of your extruder nozzle (for example: 0.5, 0.35 etc.)");
@@ -1977,12 +1929,6 @@ void PrintConfigDef::init_fff_params()
     def = this->add("printer_model", coString);
     def->label = L("Printer type");
     def->tooltip = L("Type of the printer.");
-    def->set_default_value(new ConfigOptionString());
-    def->cli = ConfigOptionDef::nocli;
-
-    def = this->add("printer_vendor", coString);
-    def->label = L("Printer vendor");
-    def->tooltip = L("Name of the printer vendor.");
     def->set_default_value(new ConfigOptionString());
     def->cli = ConfigOptionDef::nocli;
 
@@ -3082,7 +3028,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
-
+#if 0
     def = this->add("z_offset", coFloat);
     def->label = L("Z offset");
     def->tooltip = L("This value will be added (or subtracted) from all the Z coordinates "
@@ -3093,6 +3039,7 @@ void PrintConfigDef::init_fff_params()
     //BBS
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloat(0));
+#endif
 
     // Declare retract values for filament profile, overriding the printer's extruder profile.
     for (const char *opt_key : {

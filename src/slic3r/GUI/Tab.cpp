@@ -1622,7 +1622,6 @@ void TabPrint::build()
     page = add_options_page(L("Strength"), "wrench");
         optgroup = page->new_optgroup(L("Walls"));
         optgroup->append_single_option_line("wall_loops");
-        optgroup->append_single_option_line("ensure_vertical_shell_thickness");
         optgroup->append_single_option_line("detect_thin_wall");
 
         optgroup = page->new_optgroup(L("Top/bottom shells"));
@@ -2130,16 +2129,12 @@ void TabFilament::build()
     page = add_options_page(L("Advanced"), "advanced");
         optgroup = page->new_optgroup(L("Wipe tower parameters"));
         optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
-
-        optgroup = page->new_optgroup(L("Toolchange parameters with single extruder MM printers"));
-        optgroup->append_single_option_line("filament_load_time");
-        optgroup->append_single_option_line("filament_unload_time");
 #endif
 
         const int gcode_field_height = 15; // 150
 
     page = add_options_page(L("Advanced"), "advanced");
-        optgroup = page->new_optgroup(L("Start G-code"), 0);
+        optgroup = page->new_optgroup(L("Filament start gcode"), 0);
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
@@ -2149,7 +2144,7 @@ void TabFilament::build()
         option.opt.height = gcode_field_height;// 150;
         optgroup->append_single_option_line(option);
 
-        optgroup = page->new_optgroup(L("End G-code"), 0);
+        optgroup = page->new_optgroup(L("Filament end gcode"), 0);
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
@@ -2454,6 +2449,8 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Advanced"));
         optgroup->append_single_option_line("scan_first_layer");
         optgroup->append_single_option_line("spaghetti_detector");
+        optgroup->append_single_option_line("machine_load_filament_time");
+        optgroup->append_single_option_line("machine_unload_filament_time");
 
     const int gcode_field_height = 15; // 150
     page = add_options_page(L("Machine gcode"), "cog");
@@ -2507,17 +2504,17 @@ void TabPrinter::build_fff()
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
-#if 0
-        optgroup = page->new_optgroup(L("Between objects G-code (for sequential printing)"), 0);
+
+        optgroup = page->new_optgroup(L("Printing by object gcode"), 0);
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
-        option = optgroup->get_option("between_objects_gcode");
+        option = optgroup->get_option("printing_by_object_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
-
+#if 0
     page = add_options_page(L("Dependencies"), "advanced");
         optgroup = page->new_optgroup(L("Profile dependencies"));
 
@@ -4160,30 +4157,20 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
     btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
         {
             BedShapeDialog dlg(this);
-            dlg.build_dialog(*m_config->option<ConfigOptionPoints>("printable_area"),
-                *m_config->option<ConfigOptionString>("bed_custom_texture"),
-                *m_config->option<ConfigOptionString>("bed_custom_model"));
+            dlg.build_dialog(*m_config->option<ConfigOptionPoints>("printable_area"), {}, {});
             if (dlg.ShowModal() == wxID_OK) {
                 const std::vector<Vec2d>& shape = dlg.get_shape();
-                const std::string& custom_texture = dlg.get_custom_texture();
-                const std::string& custom_model = dlg.get_custom_model();
                 if (!shape.empty())
                 {
                     load_key_value("printable_area", shape);
-                    load_key_value("bed_custom_texture", custom_texture);
-                    load_key_value("bed_custom_model", custom_model);
                     update_changed_ui();
                 }
             }
         }));
 
-    // may be it is not a best place, but 
-    // add information about Category/Grope for "bed_custom_texture" and "bed_custom_model" as a copy from "printable_area" option
     {
         Search::OptionsSearcher& searcher = wxGetApp().sidebar().get_searcher();
         const Search::GroupAndCategory& gc = searcher.get_group_and_category("printable_area");
-        searcher.add_key("bed_custom_texture", m_type, gc.group, gc.category);
-        searcher.add_key("bed_custom_model", m_type, gc.group, gc.category);
     }
 
     return sizer;

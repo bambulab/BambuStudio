@@ -53,7 +53,7 @@ PresetBundle::PresetBundle() :
     //
     // "compatible_printers", "compatible_printers_condition", "inherits",
     // "print_settings_id", "filament_settings_id", "printer_settings_id", "printer_settings_id"
-    // "printer_vendor", "printer_model", "printer_variant", "default_print_profile", "default_filament_profile"
+    // "printer_model", "printer_variant", "default_print_profile", "default_filament_profile"
 
     // Create the ID config keys, as they are not part of the Static print config classes.
     this->prints.default_preset().config.optptr("print_settings_id", true);
@@ -81,7 +81,7 @@ PresetBundle::PresetBundle() :
 		// The following ugly switch is to avoid printers.preset(0) to return the edited instance, as the 0th default is the current one.
 		Preset &preset = this->printers.default_preset(i);
         for (const char *key : { 
-            "printer_settings_id", "printer_vendor", "printer_model", "printer_variant", "thumbnails",
+            "printer_settings_id", "printer_model", "printer_variant", "thumbnails",
             //FIXME the following keys are only created here for compatibility to be able to parse legacy Printer profiles.
             // These keys are converted to Physical Printer profile. After the conversion, they shall be removed.
             "print_host", "printhost_apikey", "printhost_cafile"})

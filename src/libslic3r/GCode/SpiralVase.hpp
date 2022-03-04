@@ -10,7 +10,9 @@ class SpiralVase {
 public:
     SpiralVase(const PrintConfig &config) : m_config(config)
     {
-        m_reader.z() = (float)m_config.z_offset;
+        //BBS
+        //m_reader.z() = (float)m_config.z_offset;
+        m_reader.z() = 0.0f;
         m_reader.apply_config(m_config);
     };
 

@@ -88,7 +88,7 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CAT
     { L("Quality"), {{"wall_infill_order", "",13},{"ironing_type", "",8},{"inner_wall_line_width", "",9},{"outer_wall_line_width", "",10},
                     {"top_surface_line_width", "",11}
                     }},
-    { L("Shell"), {{"wall_loops", "",1},{"ensure_vertical_shell_thickness", "",1},{"top_shell_layers", L("Top Solid Layers"),1},{"bottom_shell_layers", L("Bottom Solid Layers"),1},
+    { L("Shell"), {{"wall_loops", "",1},{"top_shell_layers", L("Top Solid Layers"),1},{"bottom_shell_layers", L("Bottom Solid Layers"),1},
                     {"top_shell_thickness", L("Top Minimum Shell Thickness"),1}, {"bottom_shell_thickness", L("Bottom Minimum Shell Thickness"),1}
                     }},
     { L("Infill"), {{"sparse_infill_density", "",1},{"sparse_infill_pattern", "",1},{"top_surface_pattern", "",1},{"bottom_surface_pattern", "",1},
@@ -124,7 +124,7 @@ std::vector<SimpleSettingData> SettingsFactory::get_visible_options(const std::s
         //Quality
         "wall_infill_order", "ironing_type", "inner_wall_line_width", "outer_wall_line_width", "top_surface_line_width",
         //Shell
-        "wall_loops", "ensure_vertical_shell_thickness", "top_shell_layers", "bottom_shell_layers", "top_shell_thickness", "bottom_shell_thickness",
+        "wall_loops", "top_shell_layers", "bottom_shell_layers", "top_shell_thickness", "bottom_shell_thickness",
         //Infill
         "sparse_infill_density", "sparse_infill_pattern", "top_surface_pattern", "bottom_surface_pattern", "infill_combination", "infill_angle", "infill_wall_overlap",
         //speed

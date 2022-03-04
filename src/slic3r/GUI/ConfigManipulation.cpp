@@ -141,15 +141,13 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
            sparse_infill_density == 0 &&
            ! config->opt_bool("enable_support") &&
            config->opt_int("support_material_enforce_layers") == 0 &&
-           config->opt_bool("ensure_vertical_shell_thickness") &&
            ! config->opt_bool("detect_thin_wall")))
     {
-        wxString msg_text = _(L("The Spiral Vase mode requires:\n"
+        wxString msg_text = _(L("Spiral mode requires:\n"
                                 "- one perimeter\n"
                                 "- no top solid layers\n"
                                 "- 0% fill density\n"
                                 "- no support material\n"
-                                "- Ensure vertical shell thickness enabled\n"
                					"- Detect thin walls disabled"));
         if (is_global_config)
             msg_text += "\n\n" + _(L("Shall I adjust those settings in order to enable Spiral Vase?"));
@@ -164,7 +162,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             new_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
             new_conf.set_key_value("enable_support", new ConfigOptionBool(false));
             new_conf.set_key_value("support_material_enforce_layers", new ConfigOptionInt(0));
-            new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(true));
             new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));            
             sparse_infill_density = 0;
             support = false;
@@ -299,14 +296,14 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
 {
     bool have_perimeters = config->opt_int("wall_loops") > 0;
-    for (auto el : { "extra_perimeters", "ensure_vertical_shell_thickness", "detect_thin_wall", "detect_overhang_wall",
+    for (auto el : { "extra_perimeters", "detect_thin_wall", "detect_overhang_wall",
                     "seam_position", "wall_infill_order", "outer_wall_line_width",
                     "inner_wall_speed", "small_perimeter_speed", "outer_wall_speed" })
         toggle_field(el, have_perimeters);
 
     bool have_infill = config->option<ConfigOptionPercent>("sparse_infill_density")->value > 0;
     // infill_extruder uses the same logic as in Print::extruders()
-    for (auto el : { "sparse_infill_pattern", "infill_combination", "infill_only_where_needed",
+    for (auto el : { "sparse_infill_pattern", "infill_combination",
                     "minimum_sparse_infill_area", "infill_extruder", "infill_anchor_max" })
         toggle_field(el, have_infill);
     // Only allow configuration of open anchors if the anchoring is enabled.
@@ -342,7 +339,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
 
     bool have_skirt = config->opt_int("skirt_loops") > 0;
     toggle_field("skirt_height", have_skirt && config->opt_enum<DraftShield>("draft_shield") != dsEnabled);
-    for (auto el : { "skirt_distance", "draft_shield", "min_skirt_length" })
+    for (auto el : { "skirt_distance", "draft_shield"})
         toggle_field(el, have_skirt);
 
     bool have_brim = (config->opt_enum<BrimType>("brim_type") != btNoBrim) && config->opt_enum<BrimType>("brim_type") != btAutoBrim;

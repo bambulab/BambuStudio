@@ -41,9 +41,6 @@
     "filament_diameter": [
         "1.75"
     ],
-    "filament_load_time": [
-        "7"
-    ],
     "filament_max_volumetric_speed": [
         "0"
     ],
@@ -79,9 +76,6 @@
     ],
     "filament_type": [
         "PLA"
-    ],
-    "filament_unload_time": [
-        "7"
     ],
     "filament_vendor": "(Unknown)",
     "filament_wipe": [

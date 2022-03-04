@@ -461,6 +461,14 @@ private:
 
     // BBS: per object skirt
     ExtrusionEntityCollection               m_skirt;
+
+ public:
+    //BBS: When printing multi-material objects, this settings will make slicer to clip the overlapping object parts one by the other.
+    //(2nd part will be clipped by the 1st, 3rd part will be clipped by the 1st and 2nd etc).
+    // This was a per-object setting and now we default enable it.
+    static bool clip_multipart_objects;
+    static bool infill_only_where_needed;
+    static bool ensure_vertical_shell_thickness;
 };
 
 struct WipeTowerData
@@ -718,6 +726,10 @@ private:
     friend class GCode;
     // Allow PrintObject to access m_mutex and m_cancel_callback.
     friend class PrintObject;
+
+public:
+    //BBS: this was a print config and now seems to be useless so we move it to here
+    static float min_skirt_length;
 };
 
 } /* slic3r_Print_hpp_ */
