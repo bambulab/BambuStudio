@@ -47,7 +47,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(PartPlate* part_plate, wxString
     m_container(true)
 {
     m_plate_idx = part_plate ? part_plate->get_index() : -1;
-    set_action_icon();
+    set_action_icon(false);
     init_container();
 }
 
@@ -165,7 +165,7 @@ bool ObjectDataViewModelNode::valid()
 
 void ObjectDataViewModelNode::set_action_and_extruder_icons()
 {
-    set_action_icon();
+    set_action_icon(false);
 
     // set extruder bitmap
     set_extruder_icon();
@@ -187,11 +187,13 @@ void ObjectDataViewModelNode::set_printable_icon(PrintIndicator printable)
                        create_scaled_bitmap(m_printable == piPrintable ? "eye_open.png" : "eye_closed.png");
 }
 
-void ObjectDataViewModelNode::set_action_icon()
+void ObjectDataViewModelNode::set_action_icon(bool enable)
 {
-    m_action_icon_name = m_type & itPlate ? "advanced_plus" :
-                         m_type & itObject ? "advanced_plus" :
-                         m_type & (itVolume | itLayer) ? "cog" : /*m_type & itInstance*/ "set_separate_obj";
+    m_action_enable = enable;
+    auto undo = enable ? "undo" : "dot";
+    m_action_icon_name = m_type & itPlate ? "dot" :
+                         m_type & itObject ? undo :
+                         m_type & (itVolume | itLayer) ? undo : /*m_type & itInstance*/ "set_separate_obj";
     m_action_icon = create_scaled_bitmap(m_action_icon_name);    // FIXME: pass window ptr
 }
 
@@ -1097,8 +1099,11 @@ void ObjectDataViewModel::DeleteSettings(const wxDataViewItem& parent)
 {
     ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode*>(parent.GetID());
     if (!node) return;
-
-    // if volume has a "settings"item, than delete it before volume deleting
+#if NEW_OBJECT_SETTING
+    node->set_action_icon(false);
+    ItemChanged(parent);
+#else
+     if volume has a "settings"item, than delete it before volume deleting
     if (node->GetChildCount() > 0 && node->GetNthChild(0)->GetType() == itSettings) {
         auto settings_node = node->GetNthChild(0);
         auto settings_item = wxDataViewItem(settings_node);
@@ -1110,6 +1115,7 @@ void ObjectDataViewModel::DeleteSettings(const wxDataViewItem& parent)
         }
         ItemDeleted(parent, settings_item);
     }
+#endif
 }
 
 wxDataViewItem ObjectDataViewModel::GetItemById(int obj_idx)

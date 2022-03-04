@@ -6583,6 +6583,7 @@ int Plater::save_project(bool saveAs)
 
     up_to_date(true, false);
     up_to_date(true, true);
+    p->dirty_state.reset_after_save();
     return wxID_OK;
 }
 

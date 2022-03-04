@@ -325,13 +325,13 @@ void ObjectList::create_objects_ctrl()
     });
 
     wxDataViewColumn* name_col = new wxDataViewColumn(_L("Name"), bmp_text_renderer,
-        colName, 20 * em, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
+        colName, 28 * em, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
     //name_col->SetBitmap(create_scaled_bitmap("organize", nullptr, FromDIP(18)));
     AppendColumn(name_col);
 
     // column PrintableProperty (Icon) of the view control:
     AppendBitmapColumn(" ", colPrint, wxDATAVIEW_CELL_INERT, 3*em,
-        wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
+        wxALIGN_CENTER_HORIZONTAL, 0);
 
     // column Extruder of the view control:
     BitmapChoiceRenderer* bmp_choice_renderer = new BitmapChoiceRenderer();
@@ -342,20 +342,20 @@ void ObjectList::create_objects_ctrl()
         return m_objects_model->GetDefaultExtruderIdx(GetSelection());
     });
     AppendColumn(new wxDataViewColumn(_L("Filament"), bmp_choice_renderer,
-        colFilament, 8 * em, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE));
+        colFilament, 8 * em, wxALIGN_CENTER_HORIZONTAL, 0));
 
     // column ItemEditing of the view control:
-    AppendBitmapColumn(_L("Editing"), colEditing, wxDATAVIEW_CELL_INERT, 3*em,
-        wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
+    AppendBitmapColumn("  ", colEditing, wxDATAVIEW_CELL_INERT, 3*em,
+        wxALIGN_CENTER_HORIZONTAL, 0);
 
     // For some reason under OSX on 4K(5K) monitors in wxDataViewColumn constructor doesn't set width of column.
     // Therefore, force set column width.
     if (wxOSX)
     {
-        GetColumn(colName)->SetWidth(20*em);
+        GetColumn(colName)->SetWidth(28*em);
         GetColumn(colPrint)->SetWidth(3*em);
         GetColumn(colFilament)->SetWidth(8*em);
-        GetColumn(colEditing) ->SetWidth(7*em);
+        GetColumn(colEditing) ->SetWidth(3*em);
     }
 }
 
@@ -509,17 +509,17 @@ void ObjectList::set_tooltip_for_item(const wxPoint& pt)
 
     wxString tooltip = "";
 
-    if (col->GetTitle() == _(L("Editing")))
+    if (col->GetTitle() == _(L("  ")))
 #ifdef __WXOSX__
-        tooltip = _(L("Right button click the icon to change the object settings"));
+        tooltip = _(L("Right button click the icon to drop the object settings"));
 #else
-        tooltip = _(L("Click the icon to change the object settings"));
+        tooltip = _(L("Click the icon to drop the object settings"));
 #endif //__WXMSW__
     else if (col->GetTitle() == " ")
 #ifdef __WXOSX__
-        tooltip = _(L("Right button click the icon to change the object printable property"));
+        tooltip = _(L("Right button click the icon to drop the object printable property"));
 #else
-        tooltip = _(L("Click the icon to change the object printable property"));
+        tooltip = _(L("Click the icon to drop the object printable property"));
 #endif //__WXMSW__
     else if (col->GetTitle() == _("Name") && (pt.x >= 2 * wxGetApp().em_unit() && pt.x <= 4 * wxGetApp().em_unit()))
     {
@@ -742,6 +742,8 @@ void ObjectList::update_filament_colors()
 void ObjectList::set_filament_column_hidden(const bool hide) const
 {
     GetColumn(colFilament)->SetHidden(hide);
+    auto em = em_unit(const_cast<ObjectList*>(this));
+    GetColumn(colName)->SetWidth(hide ? 36 * em : 28 * em);
 }
 
 void ObjectList::update_filament_in_config(const wxDataViewItem& item)
@@ -1080,12 +1082,13 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
 	    const wxString title = col->GetTitle();
 	    if (title == " ")
 	        toggle_printable_state();
-        else if (title == _("Editing")) {
+        else if (title == _("  ")) {
             //show_context_menu(evt_context_menu);
             int obj_idx, vol_idx;
 
             get_selected_item_indexes(obj_idx, vol_idx, item);
-            wxGetApp().plater()->PopupObjectTable(obj_idx, vol_idx, mouse_pos);
+            //wxGetApp().plater()->PopupObjectTable(obj_idx, vol_idx, mouse_pos);
+            dynamic_cast<TabPrintModel*>(wxGetApp().get_model_tab(vol_idx >= 0))->reset_model_config();
         }
         else if (title == _("Name"))
         {
@@ -2742,6 +2745,9 @@ void ObjectList::part_selection_changed()
                     case InfoItemType::Sinking: { break; }
                     default: { break; }
                     }
+                } else {
+                    m_config = &(*m_objects)[obj_idx]->config;
+                    update_and_show_settings = true;
                 }
             }
             else {
@@ -2766,6 +2772,8 @@ void ObjectList::part_selection_changed()
                     volume_id = m_objects_model->GetVolumeIdByItem(item);
                     m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
                     update_and_show_manipulations = true;
+                    m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
+                    update_and_show_settings = true;
                 }
                 else if (type & itInstance) {
                     og_name = _L("Instance manipulation");
@@ -2840,8 +2848,16 @@ wxDataViewItem ObjectList::add_settings_item(wxDataViewItem parent_item, const D
     }
 
     SettingsFactory::Bundle cat_options = SettingsFactory::get_bundle(config, is_object_settings);
-    if (cat_options.empty())
+    if (cat_options.empty()) {
+#if NEW_OBJECT_SETTING
+        ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode*>(parent_item.GetID());
+        if (node) node->set_action_icon(false);
+        m_objects_model->ItemChanged(parent_item);
+        return parent_item;
+#else
         return ret;
+#endif
+    }
 
     std::vector<std::string> categories;
     categories.reserve(cat_options.size());
@@ -2851,6 +2867,12 @@ wxDataViewItem ObjectList::add_settings_item(wxDataViewItem parent_item, const D
     if (m_objects_model->GetItemType(parent_item) & itInstance)
         parent_item = m_objects_model->GetObject(parent_item);
 
+#if NEW_OBJECT_SETTING
+    ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode*>(parent_item.GetID());
+    if (node) node->set_action_icon(true);
+    m_objects_model->ItemChanged(parent_item);
+    return parent_item;
+#else
     ret = m_objects_model->IsSettingsItem(parent_item) ? parent_item : m_objects_model->GetSettingsItem(parent_item);
 
     if (!ret) ret = m_objects_model->AddSettingsChild(parent_item);
@@ -2859,6 +2881,7 @@ wxDataViewItem ObjectList::add_settings_item(wxDataViewItem parent_item, const D
     Expand(parent_item);
 
     return ret;
+#endif
 }
 
 

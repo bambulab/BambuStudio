@@ -88,6 +88,7 @@ class ObjectDataViewModelNode
     std::string                     m_action_icon_name = "";
     ModelVolumeType                 m_volume_type;
     InfoItemType                    m_info_item_type {InfoItemType::Undef};
+    bool                            m_action_enable = false; // can undo all settings
 
 public:
     PartPlate*                      m_part_plate;
@@ -248,7 +249,7 @@ public:
     void        set_extruder_icon();
 	// Set printable icon for node
     void        set_printable_icon(PrintIndicator printable);
-    void        set_action_icon();
+    void        set_action_icon(bool enable);
     // Set warning icon for node
     void        set_warning_icon(const std::string& warning_icon);
 
