@@ -223,6 +223,9 @@ public:
 #ifdef _WIN32
     void        show_tabs_menu(bool show);
 #endif
+    //BBS
+    void        show_log_window();
+
     void        update_ui_from_settings();
     //BBS
     void        update_presets_ui();
@@ -278,9 +281,10 @@ public:
     BBLTopbar*            m_topbar{ nullptr };
     Plater*               m_plater { nullptr };
     //BBS: GUI refactor
-    MonitorPanel*              m_monitor{ nullptr };
+    MonitorPanel*         m_monitor{ nullptr };
     DebugToolDialog*      m_debug_tool_dlg{ nullptr };
-    WebViewPanel *             m_webview{nullptr};
+    WebViewPanel*         m_webview { nullptr };
+    wxLogWindow*          m_log_window { nullptr };
     // BBS
     //wxBookCtrlBase*       m_tabpanel { nullptr };
     Notebook*             m_tabpanel{ nullptr };

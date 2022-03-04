@@ -8,9 +8,6 @@
 #include "wx/settings.h"
 #include "wx/webview.h"
 
-#if wxUSE_WEBVIEW_IE
-#include "wx/msw/webview_ie.h"
-#endif
 #if wxUSE_WEBVIEW_EDGE
 #include "wx/msw/webview_edge.h"
 #endif
@@ -31,9 +28,6 @@
 namespace Slic3r {
 namespace GUI {
 
-//We map menu items to their history items
-WX_DECLARE_HASH_MAP(int, wxSharedPtr<wxWebViewHistoryItem>,
-    wxIntegerHash, wxIntegerEqual, wxMenuHistoryMap);
 
 class WebViewPanel : public wxPanel
 {
@@ -50,36 +44,22 @@ public:
     void OnForward(wxCommandEvent& evt);
     void OnStop(wxCommandEvent& evt);
     void OnReload(wxCommandEvent& evt);
-    void OnClearHistory(wxCommandEvent& evt);
-    void OnEnableHistory(wxCommandEvent& evt);
     void OnNavigationRequest(wxWebViewEvent& evt);
     void OnNavigationComplete(wxWebViewEvent& evt);
     void OnDocumentLoaded(wxWebViewEvent& evt);
     void OnNewWindow(wxWebViewEvent& evt);
-    void OnTitleChanged(wxWebViewEvent& evt);
-    void OnFullScreenChanged(wxWebViewEvent& evt);
     void OnScriptMessage(wxWebViewEvent& evt);
     void OnScriptResponseMessage(wxCommandEvent& evt);
-    void OnSetPage(wxCommandEvent& evt);
     void OnViewSourceRequest(wxCommandEvent& evt);
     void OnViewTextRequest(wxCommandEvent& evt);
     void OnToolsClicked(wxCommandEvent& evt);
-    void OnSetZoom(wxCommandEvent& evt);
     void OnError(wxWebViewEvent& evt);
-    void OnPrint(wxCommandEvent& evt);
     void OnCut(wxCommandEvent& evt);
     void OnCopy(wxCommandEvent& evt);
     void OnPaste(wxCommandEvent& evt);
     void OnUndo(wxCommandEvent& evt);
     void OnRedo(wxCommandEvent& evt);
     void OnMode(wxCommandEvent& evt);
-    void OnZoomLayout(wxCommandEvent& evt);
-    void OnZoomCustom(wxCommandEvent& evt);
-    void OnHistory(wxCommandEvent& evt);
-    void OnScrollLineUp(wxCommandEvent&) { m_browser->LineUp(); }
-    void OnScrollLineDown(wxCommandEvent&) { m_browser->LineDown(); }
-    void OnScrollPageUp(wxCommandEvent&) { m_browser->PageUp(); }
-    void OnScrollPageDown(wxCommandEvent&) { m_browser->PageDown(); }
     void RunScript(const wxString& javascript);
     void OnRunScriptString(wxCommandEvent& evt);
     void OnRunScriptInteger(wxCommandEvent& evt);
@@ -91,11 +71,6 @@ public:
     void OnRunScriptUndefined(wxCommandEvent& evt);
     void OnRunScriptNull(wxCommandEvent& evt);
     void OnRunScriptDate(wxCommandEvent& evt);
-#if wxUSE_WEBVIEW_IE
-    void OnRunScriptObjectWithEmulationLevel(wxCommandEvent& evt);
-    void OnRunScriptDateWithEmulationLevel(wxCommandEvent& evt);
-    void OnRunScriptArrayWithEmulationLevel(wxCommandEvent& evt);
-#endif
     void OnRunScriptMessage(wxCommandEvent& evt);
     void OnRunScriptCustom(wxCommandEvent& evt);
     void OnAddUserScript(wxCommandEvent& evt);
@@ -105,10 +80,6 @@ public:
     void OnSelectAll(wxCommandEvent& evt);
     void OnLoadScheme(wxCommandEvent& evt);
     void OnUseMemoryFS(wxCommandEvent& evt);
-    void OnFind(wxCommandEvent& evt);
-    void OnFindDone(wxCommandEvent& evt);
-    void OnFindText(wxCommandEvent& evt);
-    void OnFindOptions(wxCommandEvent& evt);
     void OnEnableContextMenu(wxCommandEvent& evt);
     void OnEnableDevTools(wxCommandEvent& evt);
     void OnClose(wxCloseEvent& evt);
@@ -126,27 +97,9 @@ private:
     wxTextCtrl *m_url;
     wxButton *  m_button_tools;
 
-    wxToolBarToolBase* m_find_toolbar_done;
-    wxToolBarToolBase* m_find_toolbar_next;
-    wxToolBarToolBase* m_find_toolbar_previous;
-    wxToolBarToolBase* m_find_toolbar_options;
-    wxMenuItem* m_find_toolbar_wrap;
-    wxMenuItem* m_find_toolbar_highlight;
-    wxMenuItem* m_find_toolbar_matchcase;
-    wxMenuItem* m_find_toolbar_wholeword;
-
     wxMenu* m_tools_menu;
-    wxMenu* m_tools_history_menu;
-    wxMenuItem* m_tools_layout;
-    wxMenuItem* m_tools_tiny;
-    wxMenuItem* m_tools_small;
-    wxMenuItem* m_tools_medium;
-    wxMenuItem* m_tools_large;
-    wxMenuItem* m_tools_largest;
-    wxMenuItem* m_tools_custom;
     wxMenuItem* m_tools_handle_navigation;
     wxMenuItem* m_tools_handle_new_window;
-    wxMenuItem* m_tools_enable_history;
     wxMenuItem* m_edit_cut;
     wxMenuItem* m_edit_copy;
     wxMenuItem* m_edit_paste;
@@ -167,27 +120,16 @@ private:
     wxMenuItem* m_script_undefined;
     wxMenuItem* m_script_null;
     wxMenuItem* m_script_date;
-#if wxUSE_WEBVIEW_IE
-    wxMenuItem* m_script_object_el;
-    wxMenuItem* m_script_date_el;
-    wxMenuItem* m_script_array_el;
-#endif
     wxMenuItem* m_script_message;
     wxMenuItem* m_script_custom;
     wxMenuItem* m_selection_clear;
     wxMenuItem* m_selection_delete;
-    wxMenuItem* m_find;
     wxMenuItem* m_context_menu;
     wxMenuItem* m_dev_tools;
 
     wxInfoBar *m_info;
     wxStaticText* m_info_text;
-    wxTextCtrl* m_find_ctrl;
-    wxToolBar* m_find_toolbar;
 
-    wxMenuHistoryMap m_histMenuItems;
-    wxString m_findText;
-    int m_findFlags, m_findCount;
     long m_zoomFactor;
 
     // Last executed JavaScript snippet, for convenience.

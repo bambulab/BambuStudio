@@ -1,6 +1,7 @@
 #include "Preferences.hpp"
 #include "OptionsGroup.hpp"
 #include "GUI_App.hpp"
+#include "MainFrame.hpp"
 #include "Plater.hpp"
 #include "MsgDialog.hpp"
 #include "I18N.hpp"
@@ -629,6 +630,7 @@ void PreferencesDialog::create_debug_page()
             auto developer_mode = app_config->get("developer_mode");
             if (developer_mode == "true") {
                 Slic3r::GUI::wxGetApp().save_mode(comDevelop);
+                Slic3r::GUI::wxGetApp().mainframe->show_log_window();
             } else {
                 Slic3r::GUI::wxGetApp().save_mode(comAdvanced);
             }

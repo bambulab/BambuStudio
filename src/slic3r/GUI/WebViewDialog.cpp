@@ -52,10 +52,6 @@ WebViewPanel::WebViewPanel(wxWindow *parent, wxString url)
     m_button_tools = new wxButton(this, wxID_ANY, wxT("Tools"), wxDefaultPosition, wxDefaultSize, 0);
     bSizer_toolbar->Add(m_button_tools, 0, wxALL, 5);
 
-    // Set find values.
-    m_findFlags = wxWEBVIEW_FIND_DEFAULT;
-    m_findCount = 0;
-
     // Create panel for find toolbar.
     wxPanel* panel = new wxPanel(this);
     topsizer->Add(bSizer_toolbar, 0, wxEXPAND, 0);
@@ -65,40 +61,9 @@ WebViewPanel::WebViewPanel(wxWindow *parent, wxString url)
     wxBoxSizer* panel_sizer = new wxBoxSizer(wxVERTICAL);
     panel->SetSizer(panel_sizer);
 
-    // Create the find toolbar.
-    m_find_toolbar = new wxToolBar(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_HORIZONTAL | wxTB_TEXT | wxTB_HORZ_LAYOUT);
-    m_find_toolbar->Hide();
-    panel_sizer->Add(m_find_toolbar);
-
-    // Create find control.
-    m_find_ctrl = new wxTextCtrl(m_find_toolbar, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(140, -1), wxTE_PROCESS_ENTER);
-
-
-    //Find options menu
-    wxMenu* findmenu = new wxMenu;
-    m_find_toolbar_wrap = findmenu->AppendCheckItem(wxID_ANY, "Wrap");
-    m_find_toolbar_matchcase = findmenu->AppendCheckItem(wxID_ANY, "Match Case");
-    m_find_toolbar_wholeword = findmenu->AppendCheckItem(wxID_ANY, "Entire Word");
-    m_find_toolbar_highlight = findmenu->AppendCheckItem(wxID_ANY, "Highlight");
-    // Add find toolbar tools.
-    m_find_toolbar->SetToolSeparation(7);
-    m_find_toolbar_done = m_find_toolbar->AddTool(wxID_ANY, "Close", wxArtProvider::GetBitmap(wxART_CROSS_MARK));
-    m_find_toolbar->AddSeparator();
-    m_find_toolbar->AddControl(m_find_ctrl, "Find");
-    m_find_toolbar->AddSeparator();
-    m_find_toolbar_next = m_find_toolbar->AddTool(wxID_ANY, "Next", wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_TOOLBAR, wxSize(16, 16)));
-    m_find_toolbar_previous = m_find_toolbar->AddTool(wxID_ANY, "Previous", wxArtProvider::GetBitmap(wxART_GO_UP, wxART_TOOLBAR, wxSize(16, 16)));
-    m_find_toolbar->AddSeparator();
-    m_find_toolbar_options = m_find_toolbar->AddTool(wxID_ANY, "Options", wxArtProvider::GetBitmap(wxART_PLUS, wxART_TOOLBAR, wxSize(16, 16)), "", wxITEM_DROPDOWN);
-    m_find_toolbar_options->SetDropdownMenu(findmenu);
-    m_find_toolbar->Realize();
-
     // Create the info panel
     m_info = new wxInfoBar(this);
     topsizer->Add(m_info, wxSizerFlags().Expand());
-
-    // Create a log window
-    new wxLogWindow(this, _L("Logging"), true, false);
 
 #if wxUSE_WEBVIEW_EDGE
     // Check if a fixed version of edge is present in
@@ -109,7 +74,8 @@ WebViewPanel::WebViewPanel(wxWindow *parent, wxString url)
     if (edgeFixedDir.DirExists())
     {
         wxWebViewEdge::MSWSetBrowserExecutableDir(edgeFixedDir.GetFullPath());
-        wxLogMessage("Using fixed edge version");
+        if (wxGetApp().get_mode() == comDevelop)
+            wxLogMessage("Using fixed edge version");
     }
 
 #endif
@@ -143,42 +109,22 @@ WebViewPanel::WebViewPanel(wxWindow *parent, wxString url)
         topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
 
         // Log backend information
-        wxLogMessage(wxWebView::GetBackendVersionInfo().ToString());
-        wxLogMessage("Backend: %s Version: %s", m_browser->GetClassInfo()->GetClassName(),
-            wxWebView::GetBackendVersionInfo().ToString());
-        wxLogMessage("User Agent: %s", m_browser->GetUserAgent());
+        if (wxGetApp().get_mode() == comDevelop) {
+            wxLogMessage(wxWebView::GetBackendVersionInfo().ToString());
+            wxLogMessage("Backend: %s Version: %s", m_browser->GetClassInfo()->GetClassName(),
+                wxWebView::GetBackendVersionInfo().ToString());
+            wxLogMessage("User Agent: %s", m_browser->GetUserAgent());
+        }
 
 
     // Create the Tools menu
     m_tools_menu = new wxMenu();
-    wxMenuItem* print = m_tools_menu->Append(wxID_ANY, _L("Print"));
-    wxMenuItem* setPage = m_tools_menu->Append(wxID_ANY, _L("Set page text"));
     wxMenuItem* viewSource = m_tools_menu->Append(wxID_ANY, _L("View Source"));
     wxMenuItem* viewText = m_tools_menu->Append(wxID_ANY, _L("View Text"));
-    m_tools_menu->AppendSeparator();
-    m_tools_layout = m_tools_menu->AppendRadioItem(wxID_ANY, _L("Use Layout Zoom"));
-    m_tools_tiny = m_tools_menu->AppendRadioItem(wxID_ANY, _L("Tiny"));
-    m_tools_small = m_tools_menu->AppendRadioItem(wxID_ANY, _L("Small"));
-    m_tools_medium = m_tools_menu->AppendRadioItem(wxID_ANY, _L("Medium"));
-    m_tools_large = m_tools_menu->AppendRadioItem(wxID_ANY, _L("Large"));
-    m_tools_largest = m_tools_menu->AppendRadioItem(wxID_ANY, _L("Largest"));
-    m_tools_custom = m_tools_menu->AppendRadioItem(wxID_ANY, _L("Custom Size"));
     m_tools_menu->AppendSeparator();
     m_tools_handle_navigation = m_tools_menu->AppendCheckItem(wxID_ANY, _L("Handle Navigation"));
     m_tools_handle_new_window = m_tools_menu->AppendCheckItem(wxID_ANY, _L("Handle New Windows"));
     m_tools_menu->AppendSeparator();
-
-    //Find
-    m_find = m_tools_menu->Append(wxID_ANY, _L("Find"));
-    m_tools_menu->AppendSeparator();
-
-    //History menu
-    m_tools_history_menu = new wxMenu();
-    wxMenuItem* clearhist = m_tools_history_menu->Append(wxID_ANY, _L("Clear History"));
-    m_tools_enable_history = m_tools_history_menu->AppendCheckItem(wxID_ANY, _L("Enable History"));
-    m_tools_history_menu->AppendSeparator();
-
-    m_tools_menu->AppendSubMenu(m_tools_history_menu, "History");
 
     //Create an editing menu
     wxMenu* editmenu = new wxMenu();
@@ -190,16 +136,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent, wxString url)
     m_edit_redo = editmenu->Append(wxID_ANY, _L("Redo"));
     editmenu->AppendSeparator();
     m_edit_mode = editmenu->AppendCheckItem(wxID_ANY, _L("Edit Mode"));
-
-    m_tools_menu->AppendSeparator();
     m_tools_menu->AppendSubMenu(editmenu, "Edit");
-
-    wxMenu* scroll_menu = new wxMenu;
-    m_scroll_line_up = scroll_menu->Append(wxID_ANY, "Line &up");
-    m_scroll_line_down = scroll_menu->Append(wxID_ANY, "Line &down");
-    m_scroll_page_up = scroll_menu->Append(wxID_ANY, "Page u&p");
-    m_scroll_page_down = scroll_menu->Append(wxID_ANY, "Page d&own");
-    m_tools_menu->AppendSubMenu(scroll_menu, "Scroll");
 
     wxMenu* script_menu = new wxMenu;
     m_script_string = script_menu->Append(wxID_ANY, "Return String");
@@ -212,14 +149,6 @@ WebViewPanel::WebViewPanel(wxWindow *parent, wxString url)
     m_script_undefined = script_menu->Append(wxID_ANY, "Return undefined");
     m_script_null = script_menu->Append(wxID_ANY, "Return null");
     m_script_date = script_menu->Append(wxID_ANY, "Return Date");
-#if wxUSE_WEBVIEW_IE
-    if (!wxWebView::IsBackendAvailable(wxWebViewBackendEdge))
-    {
-        m_script_object_el = script_menu->Append(wxID_ANY, "Return JSON object changing emulation level");
-        m_script_date_el = script_menu->Append(wxID_ANY, "Return Date changing emulation level");
-        m_script_array_el = script_menu->Append(wxID_ANY, "Return array changing emulation level");
-    }
-#endif
     m_script_message = script_menu->Append(wxID_ANY, "Send script message");
     m_script_custom = script_menu->Append(wxID_ANY, "Custom script");
     m_tools_menu->AppendSubMenu(script_menu, _L("Run Script"));
@@ -243,14 +172,9 @@ WebViewPanel::WebViewPanel(wxWindow *parent, wxString url)
     //By default we want to handle navigation and new windows
     m_tools_handle_navigation->Check();
     m_tools_handle_new_window->Check();
-    m_tools_enable_history->Check();
 
     //Zoom
     m_zoomFactor = 100;
-    m_tools_medium->Check();
-
-    if (!m_browser->CanSetZoomType(wxWEBVIEW_ZOOM_TYPE_LAYOUT))
-        m_tools_layout->Enable(false);
 
     // Connect the button events
     Bind(wxEVT_BUTTON, &WebViewPanel::OnBack, this, m_button_back->GetId());
@@ -260,50 +184,24 @@ WebViewPanel::WebViewPanel(wxWindow *parent, wxString url)
     Bind(wxEVT_BUTTON, &WebViewPanel::OnToolsClicked, this, m_button_tools->GetId());
     Bind(wxEVT_TEXT_ENTER, &WebViewPanel::OnUrl, this, m_url->GetId());
 
-    // Connect find toolbar events.
-    Bind(wxEVT_TOOL, &WebViewPanel::OnFindDone, this, m_find_toolbar_done->GetId());
-    Bind(wxEVT_TOOL, &WebViewPanel::OnFindText, this, m_find_toolbar_next->GetId());
-    Bind(wxEVT_TOOL, &WebViewPanel::OnFindText, this, m_find_toolbar_previous->GetId());
-
-    // Connect find control events.
-    Bind(wxEVT_TEXT, &WebViewPanel::OnFindText, this, m_find_ctrl->GetId());
-    Bind(wxEVT_TEXT_ENTER, &WebViewPanel::OnFindText, this, m_find_ctrl->GetId());
-
     // Connect the webview events
     Bind(wxEVT_WEBVIEW_NAVIGATING, &WebViewPanel::OnNavigationRequest, this, m_browser->GetId());
     Bind(wxEVT_WEBVIEW_NAVIGATED, &WebViewPanel::OnNavigationComplete, this, m_browser->GetId());
     Bind(wxEVT_WEBVIEW_LOADED, &WebViewPanel::OnDocumentLoaded, this, m_browser->GetId());
     Bind(wxEVT_WEBVIEW_ERROR, &WebViewPanel::OnError, this, m_browser->GetId());
     Bind(wxEVT_WEBVIEW_NEWWINDOW, &WebViewPanel::OnNewWindow, this, m_browser->GetId());
-    Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &WebViewPanel::OnTitleChanged, this, m_browser->GetId());
-    Bind(wxEVT_WEBVIEW_FULLSCREEN_CHANGED, &WebViewPanel::OnFullScreenChanged, this, m_browser->GetId());
     Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &WebViewPanel::OnScriptMessage, this, m_browser->GetId());
     Bind(EVT_RESPONSE_MESSAGE, &WebViewPanel::OnScriptResponseMessage, this);
 
     // Connect the menu events
-    Bind(wxEVT_MENU, &WebViewPanel::OnSetPage, this, setPage->GetId());
     Bind(wxEVT_MENU, &WebViewPanel::OnViewSourceRequest, this, viewSource->GetId());
     Bind(wxEVT_MENU, &WebViewPanel::OnViewTextRequest, this, viewText->GetId());
-    Bind(wxEVT_MENU, &WebViewPanel::OnPrint, this, print->GetId());
-    Bind(wxEVT_MENU, &WebViewPanel::OnZoomLayout, this, m_tools_layout->GetId());
-    Bind(wxEVT_MENU, &WebViewPanel::OnSetZoom, this, m_tools_tiny->GetId());
-    Bind(wxEVT_MENU, &WebViewPanel::OnSetZoom, this, m_tools_small->GetId());
-    Bind(wxEVT_MENU, &WebViewPanel::OnSetZoom, this, m_tools_medium->GetId());
-    Bind(wxEVT_MENU, &WebViewPanel::OnSetZoom, this, m_tools_large->GetId());
-    Bind(wxEVT_MENU, &WebViewPanel::OnSetZoom, this, m_tools_largest->GetId());
-    Bind(wxEVT_MENU, &WebViewPanel::OnSetZoom, this, m_tools_custom->GetId());
-    Bind(wxEVT_MENU, &WebViewPanel::OnClearHistory, this, clearhist->GetId());
-    Bind(wxEVT_MENU, &WebViewPanel::OnEnableHistory, this, m_tools_enable_history->GetId());
     Bind(wxEVT_MENU, &WebViewPanel::OnCut, this, m_edit_cut->GetId());
     Bind(wxEVT_MENU, &WebViewPanel::OnCopy, this, m_edit_copy->GetId());
     Bind(wxEVT_MENU, &WebViewPanel::OnPaste, this, m_edit_paste->GetId());
     Bind(wxEVT_MENU, &WebViewPanel::OnUndo, this, m_edit_undo->GetId());
     Bind(wxEVT_MENU, &WebViewPanel::OnRedo, this, m_edit_redo->GetId());
     Bind(wxEVT_MENU, &WebViewPanel::OnMode, this, m_edit_mode->GetId());
-    Bind(wxEVT_MENU, &WebViewPanel::OnScrollLineUp, this, m_scroll_line_up->GetId());
-    Bind(wxEVT_MENU, &WebViewPanel::OnScrollLineDown, this, m_scroll_line_down->GetId());
-    Bind(wxEVT_MENU, &WebViewPanel::OnScrollPageUp, this, m_scroll_page_up->GetId());
-    Bind(wxEVT_MENU, &WebViewPanel::OnScrollPageDown, this, m_scroll_page_down->GetId());
     Bind(wxEVT_MENU, &WebViewPanel::OnRunScriptString, this, m_script_string->GetId());
     Bind(wxEVT_MENU, &WebViewPanel::OnRunScriptInteger, this, m_script_integer->GetId());
     Bind(wxEVT_MENU, &WebViewPanel::OnRunScriptDouble, this, m_script_double->GetId());
@@ -314,14 +212,6 @@ WebViewPanel::WebViewPanel(wxWindow *parent, wxString url)
     Bind(wxEVT_MENU, &WebViewPanel::OnRunScriptUndefined, this, m_script_undefined->GetId());
     Bind(wxEVT_MENU, &WebViewPanel::OnRunScriptNull, this, m_script_null->GetId());
     Bind(wxEVT_MENU, &WebViewPanel::OnRunScriptDate, this, m_script_date->GetId());
-#if wxUSE_WEBVIEW_IE
-    if (!wxWebView::IsBackendAvailable(wxWebViewBackendEdge))
-    {
-        Bind(wxEVT_MENU, &WebViewPanel::OnRunScriptObjectWithEmulationLevel, this, m_script_object_el->GetId());
-        Bind(wxEVT_MENU, &WebViewPanel::OnRunScriptDateWithEmulationLevel, this, m_script_date_el->GetId());
-        Bind(wxEVT_MENU, &WebViewPanel::OnRunScriptArrayWithEmulationLevel, this, m_script_array_el->GetId());
-    }
-#endif
     Bind(wxEVT_MENU, &WebViewPanel::OnRunScriptMessage, this, m_script_message->GetId());
     Bind(wxEVT_MENU, &WebViewPanel::OnRunScriptCustom, this, m_script_custom->GetId());
     Bind(wxEVT_MENU, &WebViewPanel::OnAddUserScript, this, addUserScript->GetId());
@@ -331,7 +221,6 @@ WebViewPanel::WebViewPanel(wxWindow *parent, wxString url)
     Bind(wxEVT_MENU, &WebViewPanel::OnSelectAll, this, selectall->GetId());
     Bind(wxEVT_MENU, &WebViewPanel::OnLoadScheme, this, loadscheme->GetId());
     Bind(wxEVT_MENU, &WebViewPanel::OnUseMemoryFS, this, usememoryfs->GetId());
-    Bind(wxEVT_MENU, &WebViewPanel::OnFind, this, m_find->GetId());
     Bind(wxEVT_MENU, &WebViewPanel::OnEnableContextMenu, this, m_context_menu->GetId());
     Bind(wxEVT_MENU, &WebViewPanel::OnEnableDevTools, this, m_dev_tools->GetId());
 
@@ -351,7 +240,9 @@ void WebViewPanel::load_url(wxString& url)
     this->Show();
     this->Raise();
     m_url->SetLabelText(url);
-    wxLogMessage(m_url->GetValue());
+    
+    if (wxGetApp().get_mode() == comDevelop)
+        wxLogMessage(m_url->GetValue());
     m_browser->LoadURL(url);
     m_browser->SetFocus();
     UpdateState();
@@ -405,7 +296,8 @@ void WebViewPanel::OnIdle(wxIdleEvent& WXUNUSED(evt))
     */
 void WebViewPanel::OnUrl(wxCommandEvent& WXUNUSED(evt))
 {
-    wxLogMessage(m_url->GetValue());
+    if (wxGetApp().get_mode() == comDevelop)
+        wxLogMessage(m_url->GetValue());
     m_browser->LoadURL(m_url->GetValue());
     m_browser->SetFocus();
     UpdateState();
@@ -444,18 +336,6 @@ void WebViewPanel::OnStop(wxCommandEvent& WXUNUSED(evt))
 void WebViewPanel::OnReload(wxCommandEvent& WXUNUSED(evt))
 {
     m_browser->Reload();
-    UpdateState();
-}
-
-void WebViewPanel::OnClearHistory(wxCommandEvent& WXUNUSED(evt))
-{
-    m_browser->ClearHistory();
-    UpdateState();
-}
-
-void WebViewPanel::OnEnableHistory(wxCommandEvent& WXUNUSED(evt))
-{
-    m_browser->EnableHistory(m_tools_enable_history->IsChecked());
     UpdateState();
 }
 
@@ -526,72 +406,6 @@ void WebViewPanel::OnClose(wxCloseEvent& evt)
     this->Hide();
 }
 
-void WebViewPanel::OnFind(wxCommandEvent& WXUNUSED(evt))
-{
-    wxString value = m_browser->GetSelectedText();
-    if (value.Len() > 150)
-    {
-        value.Truncate(150);
-    }
-    m_find_ctrl->SetValue(value);
-    if (!m_find_toolbar->IsShown()) {
-        m_find_toolbar->Show(true);
-        SendSizeEvent();
-    }
-    m_find_ctrl->SelectAll();
-}
-
-void WebViewPanel::OnFindDone(wxCommandEvent& WXUNUSED(evt))
-{
-    m_browser->Find("");
-    m_find_toolbar->Show(false);
-    SendSizeEvent();
-}
-
-void WebViewPanel::OnFindText(wxCommandEvent& evt)
-{
-    int flags = 0;
-
-    if (m_find_toolbar_wrap->IsChecked())
-        flags |= wxWEBVIEW_FIND_WRAP;
-    if (m_find_toolbar_wholeword->IsChecked())
-        flags |= wxWEBVIEW_FIND_ENTIRE_WORD;
-    if (m_find_toolbar_matchcase->IsChecked())
-        flags |= wxWEBVIEW_FIND_MATCH_CASE;
-    if (m_find_toolbar_highlight->IsChecked())
-        flags |= wxWEBVIEW_FIND_HIGHLIGHT_RESULT;
-
-    if (m_find_toolbar_previous->GetId() == evt.GetId())
-        flags |= wxWEBVIEW_FIND_BACKWARDS;
-
-    wxString find_text = m_find_ctrl->GetValue();
-    long count = m_browser->Find(find_text, flags);
-
-    if (m_findText != find_text)
-    {
-        m_findCount = count;
-        m_findText = find_text;
-    }
-
-    if (count != wxNOT_FOUND || find_text.IsEmpty())
-    {
-        m_find_ctrl->SetBackgroundColour(*wxWHITE);
-    }
-    else
-    {
-        m_find_ctrl->SetBackgroundColour(wxColour(255, 101, 101));
-    }
-
-    m_find_ctrl->Refresh();
-
-    //Log the result, note that count is zero indexed.
-    if (count != m_findCount)
-    {
-        count++;
-    }
-    wxLogMessage("Searching for:%s  current match:%li/%i", m_findText, count, m_findCount);
-}
-
 /**
     * Callback invoked when there is a request to load a new page (for instance
     * when the user clicks a link)
@@ -603,8 +417,9 @@ void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
         m_info->Dismiss();
     }
 
-    wxLogMessage("%s", "Navigation request to '" + evt.GetURL() + "' (target='" +
-        evt.GetTarget() + "')");
+    if (wxGetApp().get_mode() == comDevelop)
+        wxLogMessage("%s", "Navigation request to '" + evt.GetURL() + "' (target='" +
+            evt.GetTarget() + "')");
 
     //If we don't want to handle navigation then veto the event and navigation
     //will not take place, we also need to stop the loading animation
@@ -624,7 +439,8 @@ void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
     */
 void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
 {
-    wxLogMessage("%s", "Navigation complete; url='" + evt.GetURL() + "'");
+    if (wxGetApp().get_mode() == comDevelop)
+        wxLogMessage("%s", "Navigation complete; url='" + evt.GetURL() + "'");
     UpdateState();
 }
 
@@ -636,7 +452,8 @@ void WebViewPanel::OnDocumentLoaded(wxWebViewEvent& evt)
     //Only notify if the document is the main frame, not a subframe
     if (evt.GetURL() == m_browser->GetCurrentURL())
     {
-        wxLogMessage("%s", "Document loaded; url='" + evt.GetURL() + "'");
+        if (wxGetApp().get_mode() == comDevelop)
+            wxLogMessage("%s", "Document loaded; url='" + evt.GetURL() + "'");
     }
     UpdateState();
 }
@@ -653,7 +470,8 @@ void WebViewPanel::OnNewWindow(wxWebViewEvent& evt)
         flag = " (user)";
     }
 
-    wxLogMessage("%s", "New window; url='" + evt.GetURL() + "'" + flag);
+    if (wxGetApp().get_mode() == comDevelop)
+        wxLogMessage("%s", "New window; url='" + evt.GetURL() + "'" + flag);
 
     //If we handle new window events then just load them in this window as we
     //are a single window browser
@@ -663,21 +481,10 @@ void WebViewPanel::OnNewWindow(wxWebViewEvent& evt)
     UpdateState();
 }
 
-void WebViewPanel::OnTitleChanged(wxWebViewEvent& evt)
-{
-    //SetTitle(evt.GetString());
-    wxLogMessage("%s", "Title changed; title='" + evt.GetString() + "'");
-}
-
-void WebViewPanel::OnFullScreenChanged(wxWebViewEvent& evt)
-{
-    wxLogMessage("Full screen changed; status = %d", evt.GetInt());
-    //ShowFullScreen(evt.GetInt() != 0);
-}
-
 void WebViewPanel::OnScriptMessage(wxWebViewEvent& evt)
 {
-    wxLogMessage("Script message received; value = %s, handler = %s", evt.GetString(), evt.GetMessageHandler());
+    if (wxGetApp().get_mode() == comDevelop)
+        wxLogMessage("Script message received; value = %s, handler = %s", evt.GetString(), evt.GetMessageHandler());
     Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
     std::string response = account_manager->handle_web_request(evt.GetString().ToStdString());
     if (response.empty()) return;
@@ -699,16 +506,6 @@ void WebViewPanel::OnScriptResponseMessage(wxCommandEvent& WXUNUSED(evt))
     if (!m_response_js.empty()) {
         RunScript(m_response_js);
     }
-}
-
-void WebViewPanel::OnSetPage(wxCommandEvent& WXUNUSED(evt))
-{
-    m_browser->SetPage
-    (
-        "<html><title>New Page</title>"
-        "<body>Created using <tt>SetPage()</tt> method.</body></html>",
-        wxString()
-    );
 }
 
 /**
@@ -762,112 +559,8 @@ void WebViewPanel::OnToolsClicked(wxCommandEvent& WXUNUSED(evt))
     m_context_menu->Check(m_browser->IsContextMenuEnabled());
     m_dev_tools->Check(m_browser->IsAccessToDevToolsEnabled());
 
-    //Firstly we clear the existing menu items, then we add the current ones
-    wxMenuHistoryMap::const_iterator it;
-    for (it = m_histMenuItems.begin(); it != m_histMenuItems.end(); ++it)
-    {
-        m_tools_history_menu->Destroy(it->first);
-    }
-    m_histMenuItems.clear();
-
-    wxVector<wxSharedPtr<wxWebViewHistoryItem> > back = m_browser->GetBackwardHistory();
-    wxVector<wxSharedPtr<wxWebViewHistoryItem> > forward = m_browser->GetForwardHistory();
-
-    wxMenuItem* item;
-
-    unsigned int i;
-    for (i = 0; i < back.size(); i++)
-    {
-        item = m_tools_history_menu->AppendRadioItem(wxID_ANY, back[i]->GetTitle());
-        m_histMenuItems[item->GetId()] = back[i];
-        Bind(wxEVT_MENU, &WebViewPanel::OnHistory, this, item->GetId());
-    }
-
-    wxString title = m_browser->GetCurrentTitle();
-    if (title.empty())
-        title = "(untitled)";
-    item = m_tools_history_menu->AppendRadioItem(wxID_ANY, title);
-    item->Check();
-
-    //No need to connect the current item
-    m_histMenuItems[item->GetId()] = wxSharedPtr<wxWebViewHistoryItem>(new wxWebViewHistoryItem(m_browser->GetCurrentURL(), m_browser->GetCurrentTitle()));
-
-    for (i = 0; i < forward.size(); i++)
-    {
-        item = m_tools_history_menu->AppendRadioItem(wxID_ANY, forward[i]->GetTitle());
-        m_histMenuItems[item->GetId()] = forward[i];
-        Bind(wxEVT_TOOL, &WebViewPanel::OnHistory, this, item->GetId());
-    }
-
     wxPoint position = ScreenToClient(wxGetMousePosition());
     PopupMenu(m_tools_menu, position.x, position.y);
-}
-
-/**
-    * Invoked when user selects the zoom size in the menu
-    */
-void WebViewPanel::OnSetZoom(wxCommandEvent& evt)
-{
-    if (evt.GetId() == m_tools_tiny->GetId())
-    {
-        m_browser->SetZoom(wxWEBVIEW_ZOOM_TINY);
-    }
-    else if (evt.GetId() == m_tools_small->GetId())
-    {
-        m_browser->SetZoom(wxWEBVIEW_ZOOM_SMALL);
-    }
-    else if (evt.GetId() == m_tools_medium->GetId())
-    {
-        m_browser->SetZoom(wxWEBVIEW_ZOOM_MEDIUM);
-    }
-    else if (evt.GetId() == m_tools_large->GetId())
-    {
-        m_browser->SetZoom(wxWEBVIEW_ZOOM_LARGE);
-    }
-    else if (evt.GetId() == m_tools_largest->GetId())
-    {
-        m_browser->SetZoom(wxWEBVIEW_ZOOM_LARGEST);
-    }
-    else if (evt.GetId() == m_tools_custom->GetId())
-    {
-        m_zoomFactor = m_browser->GetZoomFactor() * 100;
-        OnZoomCustom(evt);
-    }
-    else
-    {
-        wxFAIL;
-    }
-}
-
-void WebViewPanel::OnZoomLayout(wxCommandEvent& WXUNUSED(evt))
-{
-    if (m_tools_layout->IsChecked())
-        m_browser->SetZoomType(wxWEBVIEW_ZOOM_TYPE_LAYOUT);
-    else
-        m_browser->SetZoomType(wxWEBVIEW_ZOOM_TYPE_TEXT);
-}
-
-void WebViewPanel::OnZoomCustom(wxCommandEvent& WXUNUSED(evt))
-{
-    wxNumberEntryDialog dialog
-    (
-        this,
-        "Enter zoom factor as a percentage (10-10000)%",
-        "Zoom Factor:",
-        "Change Zoom Factor",
-        m_zoomFactor,
-        10, 10000
-    );
-    if (dialog.ShowModal() != wxID_OK)
-        return;
-
-    m_zoomFactor = dialog.GetValue();
-    m_browser->SetZoomFactor((float)m_zoomFactor / 100);
-}
-
-void WebViewPanel::OnHistory(wxCommandEvent& evt)
-{
-    m_browser->LoadHistoryItem(m_histMenuItems[evt.GetId()]);
 }
 
 void WebViewPanel::RunScript(const wxString& javascript)
@@ -876,7 +569,8 @@ void WebViewPanel::RunScript(const wxString& javascript)
     // the "Run Script" dialog box, it is shown there for convenient updating.
     m_javascript = javascript;
 
-    wxLogMessage("Running JavaScript:\n%s\n", javascript);
+    if (wxGetApp().get_mode() == comDevelop)
+        wxLogMessage("Running JavaScript:\n%s\n", javascript);
 
     if (!m_browser) return;
 
@@ -884,11 +578,13 @@ void WebViewPanel::RunScript(const wxString& javascript)
     try {
         if (m_browser->RunScript(javascript, &result))
         {
-            wxLogMessage("RunScript() returned \"%s\"", result);
+            if (wxGetApp().get_mode() == comDevelop)
+                wxLogMessage("RunScript() returned \"%s\"", result);
         }
         else
         {
-            wxLogWarning("RunScript() failed");
+            if (wxGetApp().get_mode() == comDevelop)
+                wxLogWarning("RunScript() failed");
         }
     }
     catch (std::exception& e) {
@@ -948,32 +644,6 @@ void WebViewPanel::OnRunScriptDate(wxCommandEvent& WXUNUSED(evt))
     var tzoffset = d.getTimezoneOffset() * 60000; \
     return new Date(d.getTime() - tzoffset);}f();");
 }
-
-#if wxUSE_WEBVIEW_IE
-void WebViewPanel::OnRunScriptObjectWithEmulationLevel(wxCommandEvent& WXUNUSED(evt))
-{
-    wxWebViewIE::MSWSetModernEmulationLevel();
-    RunScript("function f(){var person = new Object();person.name = 'Foo'; \
-    person.lastName = 'Bar';return person;}f();");
-    wxWebViewIE::MSWSetModernEmulationLevel(false);
-}
-
-void WebViewPanel::OnRunScriptDateWithEmulationLevel(wxCommandEvent& WXUNUSED(evt))
-{
-    wxWebViewIE::MSWSetModernEmulationLevel();
-    RunScript("function f(){var d = new Date('10/08/2017 21:30:40'); \
-    var tzoffset = d.getTimezoneOffset() * 60000; return \
-    new Date(d.getTime() - tzoffset);}f();");
-    wxWebViewIE::MSWSetModernEmulationLevel(false);
-}
-
-void WebViewPanel::OnRunScriptArrayWithEmulationLevel(wxCommandEvent& WXUNUSED(evt))
-{
-    wxWebViewIE::MSWSetModernEmulationLevel();
-    RunScript("function f(){ return [\"foo\", \"bar\"]; }f();");
-    wxWebViewIE::MSWSetModernEmulationLevel(false);
-}
-#endif
 
 void WebViewPanel::OnRunScriptMessage(wxCommandEvent& WXUNUSED(evt))
 {
@@ -1070,7 +740,8 @@ case type: \
         WX_ERROR_CASE(wxWEBVIEW_NAV_ERR_OTHER);
     }
 
-    wxLogMessage("%s", "Error; url='" + evt.GetURL() + "', error='" + category + " (" + evt.GetString() + ")'");
+    if (wxGetApp().get_mode() == comDevelop)
+        wxLogMessage("%s", "Error; url='" + evt.GetURL() + "', error='" + category + " (" + evt.GetString() + ")'");
 
     //Show the info bar with an error
     m_info->ShowMessage(_L("An error occurred loading ") + evt.GetURL() + "\n" +
@@ -1079,13 +750,6 @@ case type: \
     UpdateState();
 }
 
-   /**
-    * Invoked when user selects "Print" from the menu
-    */
-void WebViewPanel::OnPrint(wxCommandEvent& WXUNUSED(evt))
-{
-    m_browser->Print();
-}
 
 SourceViewDialog::SourceViewDialog(wxWindow* parent, wxString source) :
                   wxDialog(parent, wxID_ANY, "Source Code",

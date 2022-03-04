@@ -497,6 +497,13 @@ void MainFrame::show_tabs_menu(bool show)
 }
 #endif // _MSW_DARK_MODE
 
+
+void  MainFrame::show_log_window()
+{
+    m_log_window = new wxLogWindow(this, "Logging", true, false);
+    m_log_window->Show();
+}
+
 //BBS GUI refactor: remove unused layout new/dlg
 void MainFrame::update_layout()
 {
