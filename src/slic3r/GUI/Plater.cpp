@@ -8103,7 +8103,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
 
 void Plater::publish_project()
 {
-    bool cont = true;
+    bool cont = true, skip;
     bool cont_dlg = true;
     int percent = 0;
     bool upload_finish = false;
@@ -8111,7 +8111,7 @@ void Plater::publish_project()
     // upload project first and publish
     wxString msg;
     wxString title = _L("Upload and publish your design");
-    ProgressDialog dlg(title, "", 100, this, wxPD_CAN_ABORT | wxPD_APP_MODAL);
+    ProgressDialog dlg(title, "", 100, this, wxPD_CAN_ABORT | wxPD_AUTO_HIDE | wxPD_APP_MODAL);
 
     // export 3mf to temp folder
     msg = _L("preparing your designs");
@@ -8207,10 +8207,11 @@ void Plater::publish_project()
 
     while (cont && cont_dlg) {
         wxMilliSleep(50);
-        cont_dlg = dlg.Update(percent, msg);
+        cont_dlg = dlg.Update(percent, msg, &skip);
         if (!cont_dlg) {
             cont = cont_dlg;
         }
+        cont = cont && !skip;
     }
 
     if (upload_thread.joinable())

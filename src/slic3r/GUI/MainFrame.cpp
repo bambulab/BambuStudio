@@ -62,6 +62,7 @@ namespace GUI {
 wxDEFINE_EVENT(EVT_SELECT_TAB, wxCommandEvent);
 // BBS: backup
 wxDEFINE_EVENT(EVT_BACKUP_POST, wxCommandEvent);
+wxDEFINE_EVENT(EVT_LOAD_URL, wxCommandEvent);
 
 enum class ERescaleTarget
 {
@@ -902,7 +903,14 @@ void MainFrame::init_tabpanel()
         m_debug_tool_dlg = new DebugToolDialog(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
         m_tabpanel->AddPage(m_debug_tool_dlg, "DebugTool", "debugtool");
 
-        m_webview = new WebViewPanel(m_tabpanel, "https://portal-qa.bambu-lab.com/designs");
+        wxString home_url = wxString(wxGetApp().app_config->get_web_host_url()) + MODEL_STORE_URL;
+        m_webview = new WebViewPanel(m_tabpanel, home_url);
+        Bind(EVT_LOAD_URL, [this](wxCommandEvent& evt) {
+            wxString url = evt.GetString();
+            select_tab(MainFrame::toWebView);
+            m_webview->load_url(url);
+        });
+
         m_tabpanel->AddPage(m_webview, "Home", "notebook_home_active");
         //m_tabpanel->InsertPage(tpMonitor, m_plater, _L("Monitor"), std::string("monitor"));
     }
@@ -2891,8 +2899,9 @@ void MainFrame::add_to_recent_projects(const wxString& filename)
 
 void MainFrame::load_url(wxString url)
 {
-    select_tab(MainFrame::toWebView);
-    m_webview->load_url(url);
+    auto evt = new wxCommandEvent(EVT_LOAD_URL, this->GetId());
+    evt->SetString(url);
+    wxQueueEvent(this, evt);
 }
 
 void MainFrame::technology_changed()
