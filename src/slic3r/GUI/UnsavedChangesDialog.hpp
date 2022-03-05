@@ -8,6 +8,8 @@
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "Widgets/Button.hpp"
+#include "Widgets/ScrolledWindow.hpp"
 
 class ScalableButton;
 class wxStaticText;
@@ -230,14 +232,29 @@ public:
 //------------------------------------------
 //          UnsavedChangesDialog
 //------------------------------------------
+#define BOTH_SIDES_BORDER 25
+
+struct PresetItem
+{
+    Preset::Type type;
+    std::string  opt_key;
+    wxString     category_name;
+    wxString     group_name;
+    wxString     option_name;
+    wxString     old_value;
+    wxString     new_value;
+};
+
+
 class UnsavedChangesDialog : public DPIDialog
 {
-    DiffViewCtrl*           m_tree          { nullptr };
-    ScalableButton*         m_save_btn      { nullptr };
-    ScalableButton*         m_transfer_btn  { nullptr };
-    ScalableButton*         m_discard_btn   { nullptr };
+    //DiffViewCtrl*           m_tree          { nullptr };
+    Button*                 m_save_btn      { nullptr };
+    Button*                 m_transfer_btn  { nullptr };
+    Button*                 m_discard_btn   { nullptr };
     wxStaticText*           m_action_line   { nullptr };
     wxStaticText*           m_info_line     { nullptr };
+    ScrolledWindow*         m_scrolledWindow{ nullptr };
 
     bool                    m_has_long_strings  { false };
     int                     m_save_btn_id       { wxID_ANY };
@@ -275,6 +292,7 @@ public:
     };
 
 private:
+    std::vector<PresetItem> m_presetitems;
     // preset names which are modified in SavePresetDialog and related types
     std::vector<PresetData>  names_and_types;
     //std::vector<std::pair<std::string, Preset::Type>>  names_and_types;
@@ -298,6 +316,7 @@ public:
 
     void build(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset, const wxString& header = "");
     void update(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset, const wxString& header);
+    void update_list();
     void update_tree(Preset::Type type, PresetCollection *presets);
     void show_info_line(Action action, std::string preset_name = "");
     void update_config(Action action);
@@ -317,10 +336,30 @@ public:
     // short version of the previous function, for the case, when just one preset is modified
     std::string get_preset_name() { return names_and_types[0].name; }
 
-    std::vector<std::string> get_unselected_options(Preset::Type type)  { return m_tree->options(type, false); }
-    std::vector<std::string> get_selected_options  (Preset::Type type)  { return m_tree->options(type, true); }
-    std::vector<std::string> get_selected_options()                     { return m_tree->selected_options(); }
-    bool                     has_unselected_options()                   { return m_tree->has_unselected_options(); }
+    std::vector<std::string> get_unselected_options(Preset::Type type) { /* return m_tree->options(type, false);*/return std::vector<std::string>();}
+    std::vector<std::string> get_selected_options  (Preset::Type type)  { 
+        //return m_tree->options(type, true); 
+         std::vector<std::string> tmp;
+        for (int i = 0; i < m_presetitems.size(); i++) { 
+            if (m_presetitems[i].type == type) { 
+                tmp.push_back(m_presetitems[i].opt_key); 
+            }
+        }
+
+        return tmp;
+    }
+    std::vector<std::string> get_selected_options()                     { 
+        //return m_tree->selected_options();
+        
+        std::vector<std::string> tmp;
+        for (int i = 0; i < m_presetitems.size(); i++)
+        { 
+           tmp.push_back(m_presetitems[i].opt_key);
+        }
+
+        return tmp;
+    }
+    bool                     has_unselected_options()                   { /*return m_tree->has_unselected_options();*/return false;}
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;

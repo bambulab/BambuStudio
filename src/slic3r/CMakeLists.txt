@@ -30,6 +30,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/DropDown.hpp
     GUI/Widgets/Label.cpp
     GUI/Widgets/Label.hpp
+    GUI/Widgets/Scrollbar.cpp
+    GUI/Widgets/Scrollbar.hpp
+    GUI/Widgets/ScrolledWindow.cpp
+    GUI/Widgets/ScrolledWindow.hpp
     GUI/Widgets/StaticBox.cpp
     GUI/Widgets/StaticBox.hpp
     GUI/Widgets/SwitchButton.cpp
