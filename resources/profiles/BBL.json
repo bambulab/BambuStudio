@@ -121,12 +121,12 @@
             "sub_path": "filament/Generic PLA.json"
         },
         {
-            "name": "ALL PLA Silk @ALL",
-            "sub_path": "filament/ALL PLA Silk @ALL.json"
+            "name": "PLA with Glue except Silk @ALL",
+            "sub_path": "filament/PLA with Glue except Silk @ALL.json"
         },
         {
-            "name": "ALL PLA EXP.Silk @ALL",
-            "sub_path": "filament/ALL PLA EXP.Silk @ALL.json"
+            "name": "PLA Silk with Glue @ALL",
+            "sub_path": "filament/PLA Silk with Glue @ALL.json"
         },
         {
             "name": "Generic TPU83",
