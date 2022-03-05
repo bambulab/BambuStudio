@@ -26,6 +26,7 @@ const float GLGizmoRotate::ScaleLongTooth = 0.1f; // in percent of radius
 const unsigned int GLGizmoRotate::SnapRegionsCount = 8;
 const float GLGizmoRotate::GrabberOffset = 0.15f; // in percent of radius
 
+
 GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
     : GLGizmoBase(parent, "", -1)
     , m_axis(axis)
@@ -83,7 +84,12 @@ void GLGizmoRotate::on_start_dragging()
 {
     const BoundingBoxf3& box = m_parent.get_selection().get_bounding_box();
     m_center = box.center();
+    
+#if ENABLE_FIXED_GRABBER
+    m_radius = GLGizmoBase::Grabber::FixedRadiusSize;
+#else
     m_radius = Offset + box.radius();
+#endif
     m_snap_coarse_in_radius = m_radius / 3.0f;
     m_snap_coarse_out_radius = 2.0f * m_snap_coarse_in_radius;
     m_snap_fine_in_radius = m_radius;
@@ -135,7 +141,11 @@ void GLGizmoRotate::on_render()
 
     if (m_hover_id != 0 && !m_grabbers[0].dragging) {
         m_center = box.center();
+#if ENABLE_FIXED_GRABBER
+        m_radius = GLGizmoBase::Grabber::FixedRadiusSize;
+#else
         m_radius = Offset + box.radius();
+#endif
         m_snap_coarse_in_radius = m_radius / 3.0f;
         m_snap_coarse_out_radius = 2.0f * m_snap_coarse_in_radius;
         m_snap_fine_in_radius = m_radius;
@@ -307,7 +317,7 @@ void GLGizmoRotate::render_angle() const
 
 void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
 {
-    double grabber_radius = (double)m_radius * (1.0 + (double)GrabberOffset);
+    double grabber_radius = (double)m_radius * (1.0 + (double)GrabberOffset);    
     m_grabbers[0].center = Vec3d(::cos(m_angle) * grabber_radius, ::sin(m_angle) * grabber_radius, 0.0);
     m_grabbers[0].angles(2) = m_angle;
 
@@ -324,7 +334,11 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
 
 void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool picking) const
 {
+#if ENABLE_FIXED_GRABBER
+    float mean_size = (float)(GLGizmoBase::Grabber::FixedGrabberSize);
+#else
     float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
+#endif
     double size = m_dragging ? (double)m_grabbers[0].get_dragging_half_size(mean_size) : (double)m_grabbers[0].get_half_size(mean_size);
 
     std::array<float, 4> color = m_grabbers[0].color;

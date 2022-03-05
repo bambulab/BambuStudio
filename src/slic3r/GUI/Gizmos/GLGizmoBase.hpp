@@ -8,6 +8,8 @@
 
 #include <cereal/archives/binary.hpp>
 
+#define ENABLE_FIXED_GRABBER 1
+
 class wxWindow;
 
 namespace Slic3r {
@@ -51,6 +53,8 @@ protected:
         static const float SizeFactor;
         static const float MinHalfSize;
         static const float DraggingScaleFactor;
+        static const float FixedGrabberSize;
+        static const float FixedRadiusSize;
 
         Vec3d center;
         Vec3d angles;

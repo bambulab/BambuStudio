@@ -295,7 +295,11 @@ void GLGizmoAdvancedCut::on_render_for_picking()
     glsafe(::glDisable(GL_DEPTH_TEST));
 
     BoundingBoxf3 box = m_parent.get_selection().get_bounding_box();
-    float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
+#if ENABLE_FIXED_GRABBER
+    float mean_size = (float)(GLGizmoBase::Grabber::FixedGrabberSize);
+#else
+    float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
+#endif
 
     std::array<float, 4> color = picking_color_component(0);
     m_move_grabber.color[0] = color[0];

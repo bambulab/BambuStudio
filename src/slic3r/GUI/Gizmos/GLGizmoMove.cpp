@@ -14,7 +14,11 @@
 namespace Slic3r {
 namespace GUI {
 
+#if ENABLE_FIXED_GRABBER
+const double GLGizmoMove3D::Offset = 50.0;
+#else
 const double GLGizmoMove3D::Offset = 10.0;
+#endif
 
 //BBS: GUI refactor: add obj manipulation
 GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation)
@@ -104,6 +108,18 @@ void GLGizmoMove3D::on_render()
     const BoundingBoxf3& box = selection.get_bounding_box();
     const Vec3d& center = box.center();
 
+#if ENABLE_FIXED_GRABBER
+    m_grabbers[0].center = { center.x() + Offset, center.y(), center.z() };
+    m_grabbers[0].color = AXES_COLOR[0];
+
+    // y axis
+    m_grabbers[1].center = { center.x(), center.y() + Offset, center.z() };
+    m_grabbers[1].color = AXES_COLOR[1];
+
+    // z axis
+    m_grabbers[2].center = { center.x(), center.y(), center.z() + Offset };
+    m_grabbers[2].color = AXES_COLOR[2];
+#else
     // x axis
     m_grabbers[0].center = { box.max.x() + Offset, center.y(), center.z() };
     m_grabbers[0].color = AXES_COLOR[0];
@@ -115,6 +131,7 @@ void GLGizmoMove3D::on_render()
     // z axis
     m_grabbers[2].center = { center.x(), center.y(), box.max.z() + Offset };
     m_grabbers[2].color = AXES_COLOR[2];
+#endif
 
     glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
 
@@ -150,7 +167,11 @@ void GLGizmoMove3D::on_render()
             shader->start_using();
             shader->set_uniform("emission_factor", 0.1f);
             // draw grabber
+#if ENABLE_FIXED_GRABBER
+            float mean_size = (float)(GLGizmoBase::Grabber::FixedGrabberSize);
+#else
             float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
+#endif
             m_grabbers[m_hover_id].render(true, mean_size);
             shader->stop_using();
         }
@@ -205,7 +226,12 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
 
 void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking) const
 {
+#if ENABLE_FIXED_GRABBER
+    float mean_size = (float)(GLGizmoBase::Grabber::FixedGrabberSize);
+#else
     float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
+#endif
+
     double size = m_dragging ? (double)m_grabbers[axis].get_dragging_half_size(mean_size) : (double)m_grabbers[axis].get_half_size(mean_size);
 
     std::array<float, 4> color = m_grabbers[axis].color;

@@ -483,6 +483,7 @@ static const char* label_values[4][3] = {
 { "##scale_x", "##scale_y", "##scale_z"},
 { "##size_x", "##size_y", "##size_z"}
 };
+
 void GizmoObjectManipulation::do_render_input_window(ImGuiWrapper* imgui_wrapper, std::string window_name, float x, float y, float bottom_limit)
 {
     //static float last_y = 0.0f;

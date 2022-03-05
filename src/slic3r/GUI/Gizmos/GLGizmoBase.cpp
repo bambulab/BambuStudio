@@ -12,8 +12,11 @@ namespace Slic3r {
 namespace GUI {
 
 const float GLGizmoBase::Grabber::SizeFactor = 0.05f;
-const float GLGizmoBase::Grabber::MinHalfSize = 1.5f;
+const float GLGizmoBase::Grabber::MinHalfSize = 4.0f;
 const float GLGizmoBase::Grabber::DraggingScaleFactor = 1.25f;
+const float GLGizmoBase::Grabber::FixedGrabberSize = 35.0f;
+const float GLGizmoBase::Grabber::FixedRadiusSize = 55.0f;
+
 
 std::array<float, 4> GLGizmoBase::DEFAULT_BASE_COLOR = { 0.625f, 0.625f, 0.625f, 1.0f };
 std::array<float, 4> GLGizmoBase::DEFAULT_DRAG_COLOR = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -217,7 +220,11 @@ std::array<float, 4> GLGizmoBase::picking_color_component(unsigned int id) const
 
 void GLGizmoBase::render_grabbers(const BoundingBoxf3& box) const
 {
+#if ENABLE_FIXED_GRABBER
+    render_grabbers((float)(GLGizmoBase::Grabber::FixedGrabberSize));
+#else
     render_grabbers((float)((box.size().x() + box.size().y() + box.size().z()) / 3.0));
+#endif
 }
 
 void GLGizmoBase::render_grabbers(float size) const
@@ -236,7 +243,11 @@ void GLGizmoBase::render_grabbers(float size) const
 
 void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
 {
+#if ENABLE_FIXED_GRABBER
+    float mean_size = (float)(GLGizmoBase::Grabber::FixedGrabberSize);
+#else
     float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
+#endif
 
     for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i) {
         if (m_grabbers[i].enabled) {
