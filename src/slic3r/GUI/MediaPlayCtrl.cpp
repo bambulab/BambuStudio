@@ -83,7 +83,7 @@ void MediaPlayCtrl::Play()
                     SetStatus(L"Initialize failed [%d]!");
                 } else {
                     m_last_state = MEDIASTATE_LOADING;
-                    SetStatus(L"Connecting...");
+                    SetStatus(L"Loading...");
                     boost::unique_lock lock(m_mutex);
                     m_tasks.push_back(url);
                     m_cond.notify_all();
@@ -133,7 +133,7 @@ void MediaPlayCtrl::media_proc()
             m_cond.wait(lock);
         }
         wxString url = m_tasks.front();
-        m_tasks.pop_front();
+        lock.unlock();
         if (url.IsEmpty()) {
             m_media_ctrl->Stop();
         }
@@ -143,6 +143,10 @@ void MediaPlayCtrl::media_proc()
         else {
             m_media_ctrl->Load(wxURI(url));
         }
+        lock.lock();
+        m_tasks.pop_front();
+        wxMediaEvent theEvent(wxEVT_MEDIA_STATECHANGED, m_media_ctrl->GetId());
+        m_media_ctrl->GetEventHandler()->AddPendingEvent(theEvent);
     }
 }
 
@@ -150,8 +154,16 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
 {
     auto last_state = m_last_state;
     auto state = m_media_ctrl->GetState();
+    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: " << state << ", last_state: " << last_state;
     if ((int) state < 0)
         return;
+    {
+        boost::unique_lock lock(m_mutex);
+        if (!m_tasks.empty()) {
+            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: skip when task not finished";
+            return;
+        }
+    }
     if (last_state == MEDIASTATE_IDLE && state == wxMEDIASTATE_STOPPED) {
         return;
     }
@@ -171,7 +183,7 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
         }
         else {
             Stop();
-            SetStatus(L"Connect failed [%d]!");
+            SetStatus(L"Load failed [%d]!");
         }
     }
 }
