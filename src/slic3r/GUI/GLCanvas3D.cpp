@@ -4881,6 +4881,7 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
         settings_changed = true;
     }
 
+    /*
     if (imgui->slider_float(_L("bed_shrink_x"), &settings.bed_shrink_x, 0, 100.0f, "%.0f")) {
         settings_out.bed_shrink_x = settings.bed_shrink_x;
         appcfg->set("arrange", bed_shrink_x_key.c_str(), std::to_string(settings_out.bed_shrink_x));
@@ -4892,6 +4893,7 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
         appcfg->set("arrange", bed_shrink_y_key.c_str(), std::to_string(settings_out.bed_shrink_y));
         settings_changed = true;
     }
+    */
 
     ImGui::Separator();
 
@@ -5524,8 +5526,9 @@ bool GLCanvas3D::_init_main_toolbar()
     item.left.render_callback = [this](float left, float right, float bottom, float top) {
         if (m_canvas != nullptr)
         {
-            _render_orient_menu(left, right, bottom, top);
-            //_render_orient_menu(0.5f * (left + right));
+            wxGetApp().plater()->orient();
+            //BBS do not show orient menu
+            //_render_orient_menu(left, right, bottom, top);
         }
     };
     if (!m_main_toolbar.add_item(item))
