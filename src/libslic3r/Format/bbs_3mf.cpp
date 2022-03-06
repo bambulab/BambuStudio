@@ -195,9 +195,9 @@ static constexpr const char* TRANSFORM_ATTR = "transform";
 static constexpr const char* OFFSET_ATTR = "offset";
 static constexpr const char* PRINTABLE_ATTR = "printable";
 static constexpr const char* INSTANCESCOUNT_ATTR = "instances_count";
-static constexpr const char* CUSTOM_SUPPORTS_ATTR = "slic3rpe:custom_supports";
-static constexpr const char* CUSTOM_SEAM_ATTR = "slic3rpe:custom_seam";
-static constexpr const char* MMU_SEGMENTATION_ATTR = "slic3rpe:mmu_segmentation";
+static constexpr const char* CUSTOM_SUPPORTS_ATTR = "paint_supports";
+static constexpr const char* CUSTOM_SEAM_ATTR = "paint_seam";
+static constexpr const char* MMU_SEGMENTATION_ATTR = "paint_color";
 // BBS
 static constexpr const char* FACE_PROPERTY_ATTR = "bbs:face_property";
 
