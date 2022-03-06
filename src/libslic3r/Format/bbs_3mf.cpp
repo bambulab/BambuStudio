@@ -129,7 +129,7 @@ const std::string SLICE_INFO_CONFIG_FILE = "Metadata/slice_info.config";
 const std::string LAYER_CONFIG_RANGES_FILE = "Metadata/Prusa_Slicer_layer_config_ranges.xml";
 const std::string SLA_SUPPORT_POINTS_FILE = "Metadata/Slic3r_PE_sla_support_points.txt";
 const std::string SLA_DRAIN_HOLES_FILE = "Metadata/Slic3r_PE_sla_drain_holes.txt";*/
-const std::string CUSTOM_GCODE_PER_PRINT_Z_FILE = "Metadata/Prusa_Slicer_custom_gcode_per_print_z.xml";
+const std::string CUSTOM_GCODE_PER_PRINT_Z_FILE = "Metadata/custom_gcode_per_layer.xml";
 const std::string AUXILIARY_DIR = "Auxiliaries/";
 const std::string PROJECT_EMBEDDED_PRINT_PRESETS_FILE = "Metadata/print_setting_";
 const std::string PROJECT_EMBEDDED_SLICE_PRESETS_FILE = "Metadata/slice_settings_";
@@ -1128,10 +1128,10 @@ namespace Slic3r {
                     // extract slic3r layer config ranges file
                     _extract_project_embedded_presets_from_archive(archive, stat, project_presets, model, Preset::TYPE_PRINTER);
                 }
-                /*else if (!b_incorrect_version && boost::algorithm::iequals(name, CUSTOM_GCODE_PER_PRINT_Z_FILE)) {
+                else if (!b_incorrect_version && boost::algorithm::iequals(name, CUSTOM_GCODE_PER_PRINT_Z_FILE)) {
                     // extract slic3r layer config ranges file
                     _extract_custom_gcode_per_print_z_from_archive(archive, stat);
-                }*/
+                }
                 else if (boost::algorithm::iequals(name, BBS_MODEL_CONFIG_FILE)) {
                     // extract slic3r model config file
                     if (!_extract_xml_from_archive(archive, stat, _handle_start_config_xml_element, _handle_end_config_xml_element)) {
@@ -2044,7 +2044,7 @@ namespace Slic3r {
             pt::ptree main_tree;
             pt::read_xml(iss, main_tree);
 
-            if (main_tree.front().first != "custom_gcodes_per_print_z")
+            if (main_tree.front().first != "custom_gcodes_per_layer")
                 return;
             pt::ptree code_tree = main_tree.front().second;
 
@@ -2058,11 +2058,11 @@ namespace Slic3r {
                                                              mode == CustomGCode::MultiAsSingleMode  ? CustomGCode::Mode::MultiAsSingle  :
                                                              CustomGCode::Mode::MultiExtruder;
                 }
-                if (code.first != "code")
+                if (code.first != "layer")
                     continue;
 
                 pt::ptree tree = code.second;
-                double print_z          = tree.get<double>      ("<xmlattr>.print_z" );
+                double print_z          = tree.get<double>      ("<xmlattr>.top_z" );
                 int extruder            = tree.get<int>         ("<xmlattr>.extruder");
                 std::string color       = tree.get<std::string> ("<xmlattr>.color"   );
 
@@ -5289,13 +5289,13 @@ bool _BBS_3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_ar
 
     if (!model.custom_gcode_per_print_z.gcodes.empty()) {
         pt::ptree tree;
-        pt::ptree& main_tree = tree.add("custom_gcodes_per_print_z", "");
+        pt::ptree& main_tree = tree.add("custom_gcodes_per_layer", "");
 
         for (const CustomGCode::Item& code : model.custom_gcode_per_print_z.gcodes) {
-            pt::ptree& code_tree = main_tree.add("code", "");
+            pt::ptree& code_tree = main_tree.add("layer", "");
 
             // store data of custom_gcode_per_print_z
-            code_tree.put("<xmlattr>.print_z"   , code.print_z  );
+            code_tree.put("<xmlattr>.top_z"   , code.print_z  );
             code_tree.put("<xmlattr>.type"      , static_cast<int>(code.type));
             code_tree.put("<xmlattr>.extruder"  , code.extruder );
             code_tree.put("<xmlattr>.color"     , code.color    );
