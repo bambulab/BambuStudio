@@ -739,7 +739,12 @@ TriangleSelector::ClippingPlane GLGizmoPainterBase::get_clipping_plane_in_volume
 
 std::array<float, 4> TriangleSelectorGUI::get_seed_fill_color(const std::array<float, 4> &base_color)
 {
-    return {base_color[0] * 0.75f, base_color[1] * 0.75f, base_color[2] * 0.75f, 1.f};
+    // BBS
+    return {
+        base_color[0] * 1.25f < 1.f ? base_color[0] * 1.25f : 1.f,
+        base_color[1] * 1.25f < 1.f ? base_color[1] * 1.25f : 1.f,
+        base_color[2] * 1.25f < 1.f ? base_color[2] * 1.25f : 1.f,
+        1.f};
 }
 
 void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
