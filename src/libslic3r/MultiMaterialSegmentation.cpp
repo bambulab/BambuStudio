@@ -1677,6 +1677,50 @@ static bool has_layer_only_one_color(const std::vector<std::vector<ColoredLine>>
     return true;
 }
 
+// Remove nearly duplicate points. If a distance between two points is less than point_eps
+// and if the angle between its surrounding lines is less than max_angle, the point will be removed.
+void remove_duplicates_points(MutablePolygon& polygon, double point_eps, double max_angle)
+{
+    if (polygon.size() >= 3) {
+        auto eps2 = point_eps * point_eps;
+        auto begin = polygon.begin();
+        auto it = begin;
+        for (++it; it != begin;) {
+            auto prev = it.prev();
+            auto next = (it.next() == polygon.end() ? begin : it.next());
+            if ((*it - *prev).cast<double>().squaredNorm() < eps2) {
+                Vec2i64 vector1 = (*it - *prev).cast<int64_t>();
+                Vec2i64 vector2 = (*next - *prev).cast<int64_t>();
+                if (double angle = atan2(cross2(vector1, vector2), vector1.dot(vector2)); angle < max_angle) {
+                    it = it.remove();
+                    continue;
+                }
+            }
+            ++it;
+        }
+    }
+}
+
+// Remove nearly duplicate points. If a distance between two points is less than point_eps
+// and if the angle between its surrounding lines is less than max_angle, the point will be removed.
+inline ExPolygons remove_duplicates_points(ExPolygons expolygons, double point_eps, double max_angle)
+{
+    MutablePolygon mp;
+    for (ExPolygon& expolygon : expolygons) {
+        mp.assign(expolygon.contour, expolygon.contour.size() * 2);
+        remove_duplicates_points(mp, point_eps, max_angle);
+        mp.polygon(expolygon.contour);
+        for (Polygon& hole : expolygon.holes) {
+            mp.assign(hole, hole.size() * 2);
+            remove_duplicates_points(mp, point_eps, max_angle);
+            mp.polygon(hole);
+        }
+        expolygon.holes.erase(std::remove_if(expolygon.holes.begin(), expolygon.holes.end(), [](const auto& p) { return p.empty(); }), expolygon.holes.end());
+    }
+    expolygons.erase(std::remove_if(expolygons.begin(), expolygons.end(), [](const auto& p) { return p.empty(); }), expolygons.end());
+    return expolygons;
+}
+
 std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(const PrintObject &print_object, const std::function<void()> &throw_on_cancel_callback)
 {
     const size_t                          num_extruders = print_object.print()->config().filament_colour.size();
@@ -1712,7 +1756,7 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
             // Such close points sometimes caused that the Voronoi diagram has self-intersecting edges around these vertices.
             // This consequently leads to issues with the extraction of colored segments by function extract_colored_segments.
             // Calling expolygons_simplify fixed these issues.
-            input_expolygons[layer_idx] = smooth_outward(expolygons_simplify(offset_ex(ex_polygons, -10.f * float(SCALED_EPSILON)), 5 * SCALED_EPSILON), 10 * coord_t(SCALED_EPSILON));
+            input_expolygons[layer_idx] = remove_duplicates_points(expolygons_simplify(offset_ex(ex_polygons, -10.f * float(SCALED_EPSILON)), 5 * SCALED_EPSILON), scaled<double>(0.01), PI / 6);
 
 #ifdef MMU_SEGMENTATION_DEBUG_INPUT
             {
