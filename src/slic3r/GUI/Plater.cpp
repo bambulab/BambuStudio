@@ -5564,7 +5564,8 @@ void Plater::priv::set_project_filename(const wxString& filename)
     m_project_folder = full_path.parent_path();
 
     //BBS
-    set_project_name(full_path.filename().generic_wstring());
+    wxString project_name = from_u8(full_path.filename().string());
+    set_project_name(project_name);
     
     wxGetApp().mainframe->update_title();
 
