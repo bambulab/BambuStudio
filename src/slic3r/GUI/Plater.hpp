@@ -77,23 +77,6 @@ enum class ActionButtonType : int;
 //BBS: add EVT_SLICING_UPDATE declare here
 wxDECLARE_EVENT(EVT_SLICING_UPDATE, Slic3r::SlicingStatusEvent);
 
-class ProjectResource : public wxPanel
-{
-public:
-    ProjectResource(wxWindow *parent);
-    ~ProjectResource();
-    ObjectList* get_object_list() { return m_object_list; }
-    AuxiliaryList* get_auxiliary_list() { return m_auxiliary_list; }
-    wxPanel* get_object_panel() { return m_object_panel; }
-    wxPanel* get_auxiliary_panel () { return m_auxiliary_panel; }
-
-private:
-    ObjectList *m_object_list{ nullptr };
-    AuxiliaryList *m_auxiliary_list{ nullptr };
-    wxPanel *m_object_panel;
-    wxPanel *m_auxiliary_panel;
-};
-
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
 
 class Sidebar : public wxPanel
@@ -115,7 +98,7 @@ public:
     //BBS
     void update_presets_from_to(Slic3r::Preset::Type preset_type, std::string from, std::string to);
 
-    void change_top_border_for_mode_sizer(bool increase_border);
+    void change_top_border_for_mode_sizer(bool increase_border);    
     void update_reslice_btn_tooltip() const;
     void msw_rescale();
     void sys_color_changed();
@@ -134,10 +117,7 @@ public:
     wxPanel* print_panel();
     wxPanel* filament_panel();
 
-    // BBS
     AuxiliaryList*          aux_list();
-    //BBS: get project resource rectangle
-    wxRect                  get_project_resource_rect();
 
     ConfigOptionsGroup*     og_freq_chng_params(const bool is_fff);
     wxButton*               get_wiping_dialog_button();
@@ -158,6 +138,7 @@ public:
     void                    update_searcher();
     void                    update_ui_from_settings();
 	bool                    show_object_list(bool show) const;
+    bool                    show_auxiliary_dialog() const;
 
 #ifdef _MSW_DARK_MODE
     void                    show_mode_sizer(bool show);

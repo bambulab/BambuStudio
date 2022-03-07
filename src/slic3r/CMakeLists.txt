@@ -48,6 +48,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/TextInput.hpp
     GUI/AboutDialog.cpp
     GUI/AboutDialog.hpp
+    GUI/AuxiliaryDialog.cpp
+    GUI/AuxiliaryDialog.hpp
     GUI/SysInfoDialog.cpp
     GUI/SysInfoDialog.hpp
     GUI/KBShortcutsDialog.cpp

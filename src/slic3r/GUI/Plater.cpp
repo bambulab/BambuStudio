@@ -106,6 +106,7 @@
 #include "Widgets/ProgressDialog.hpp"
 #include "BBLStatusBar.hpp"
 #include "BitmapCache.hpp"
+#include "AuxiliaryDialog.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/RadioBox.hpp"
@@ -662,30 +663,6 @@ ConfigOptionsGroup* FreqChangedParams::get_og(const bool is_fff)
 
 static wxString temp_dir;
 
-// BBS. ProjectResource methods.
-// TODO: this is out-of-date, we don't need it anymore, remove it and get m_object_panel out
-ProjectResource::ProjectResource(wxWindow *parent)
-{
-    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-    m_object_panel = new wxPanel(parent);
-    m_object_list = new ObjectList(m_object_panel);
-    wxBoxSizer* object_sizer = new wxBoxSizer(wxVERTICAL);
-    object_sizer->Add(m_object_list, 1, wxEXPAND);
-    m_object_panel->SetSizer(object_sizer);
-
-    m_auxiliary_panel = new wxPanel(parent);
-    m_auxiliary_list = new AuxiliaryList(m_auxiliary_panel);
-    m_auxiliary_panel->SetSizer(m_auxiliary_list->get_top_sizer());
-    sizer->Add(m_object_panel, 1, wxEXPAND | wxALL);
-    sizer->Add(m_auxiliary_panel, 1, wxEXPAND | wxALL);
-    m_auxiliary_panel->Show(false);
-    this->SetSizer(sizer);
-}
-
-ProjectResource::~ProjectResource()
-{
-}
-
 // Sidebar / private
 
 enum class ActionButtonType : int {
@@ -720,10 +697,10 @@ struct Sidebar::priv
     wxScrolledWindow* m_scrolledWindow_filament_content;
     wxStaticLine* m_staticline2;
     wxPanel* m_panel_project_title;
-    wxStaticText* m_staticText_object_list;
-    wxStaticText* m_staticText_auxiliary_list;
 
-    ProjectResource     *project_resource{ nullptr };
+    ObjectList          *m_object_list{ nullptr };
+    wxPanel             *m_object_panel;
+    AuxiliaryDialog     *m_auxiliary_dialog;
     ObjectSettings      *object_settings{ nullptr };
     ObjectLayers        *object_layers{ nullptr };
 
@@ -760,8 +737,8 @@ Sidebar::priv::~priv()
     delete object_layers;
 
     // BBS
-    if (project_resource != nullptr)
-        delete project_resource;
+    if (m_object_panel != nullptr)
+        delete m_object_panel;
 }
 
 void Sidebar::priv::show_preset_comboboxes()
@@ -1034,44 +1011,7 @@ Sidebar::Sidebar(Plater *parent)
 
     scrolled_sizer->Add(p->m_staticline2, 0, wxEXPAND | wxALL, 0);
 
-
     //add project title
-    //p->m_panel_project_title = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxSize(-1, 36 * em / 10), wxTAB_TRAVERSAL);
-    //p->m_panel_project_title->SetBackgroundColour(title_bg);
-    //wxBoxSizer* bSizer_project_title;
-    //bSizer_project_title = new wxBoxSizer( wxHORIZONTAL );
-    //bSizer_project_title->Add( 18 * em / 10, 0, 0, wxEXPAND, 0 );
-    //p->m_staticText_object_list = new wxStaticText(p->m_panel_project_title, wxID_ANY, _L("Object List"), wxDefaultPosition, wxDefaultSize, 0 );
-    //p->m_staticText_object_list->Wrap( -1 );
-    //p->m_staticText_object_list->SetFont(Label::Body_14);
-    //p->m_staticText_object_list->Bind(wxEVT_LEFT_DOWN, [this, inactive_text, active_text](wxMouseEvent) {
-    //    p->project_resource->get_auxiliary_panel()->Show(false);
-    //    p->m_staticText_auxiliary_list->SetForegroundColour(inactive_text);
-    //    p->project_resource->get_object_panel()->Show(true);
-    //    p->m_staticText_object_list->SetForegroundColour(active_text);
-    //    p->m_panel_project_title->Refresh();
-    //    p->project_resource->Layout();
-    //});
-    //
-    //bSizer_project_title->Add(p->m_staticText_object_list, 0, wxALIGN_CENTER|wxALL, 5 * em / 10);
-    //bSizer_project_title->Add(22 * em / 10, 0, 0, wxEXPAND, 0);
-    //p->m_staticText_auxiliary_list = new wxStaticText( p->m_panel_project_title, wxID_ANY, _L("Auxiliary List"), wxDefaultPosition, wxDefaultSize, 0 );
-    //p->m_staticText_auxiliary_list->Wrap( -1 );
-    //p->m_staticText_auxiliary_list->SetFont(Label::Body_14);
-    //p->m_staticText_auxiliary_list->SetForegroundColour(inactive_text);
-    //p->m_staticText_auxiliary_list->Bind(wxEVT_LEFT_DOWN, [this, inactive_text, active_text](wxMouseEvent) {
-    //    p->project_resource->get_object_panel()->Show(false);
-    //    p->m_staticText_object_list->SetForegroundColour(inactive_text);
-    //    p->project_resource->get_auxiliary_panel()->Show(true);
-    //    p->m_staticText_auxiliary_list->SetForegroundColour(active_text);
-    //    p->m_panel_project_title->Refresh();
-    //    p->project_resource->Layout();
-    //});
-    //bSizer_project_title->Add(p->m_staticText_auxiliary_list, 0, wxALIGN_CENTER | wxALL, 5 * em / 10);
-    //p->m_panel_project_title->SetSizer( bSizer_project_title );
-    //p->m_panel_project_title->Layout();
-    //scrolled_sizer->Add(p->m_panel_project_title, 0, wxEXPAND | wxALL, 0 );
-
     auto params_panel = ((MainFrame*)parent->GetParent())->m_param_panel;
     if (params_panel) {
         params_panel->get_mode_panel()->Reparent(p->scrolled);
@@ -1080,10 +1020,16 @@ Sidebar::Sidebar(Plater *parent)
 
     //add project content
     p->sizer_params = new wxBoxSizer(wxVERTICAL);
-    p->project_resource = new ProjectResource(p->scrolled);
-    p->sizer_params->Add(p->project_resource->get_object_panel(), 1, wxEXPAND | wxTOP, 0);
+    p->m_object_panel = new wxPanel(p->scrolled);
+    p->m_object_list = new ObjectList(p->m_object_panel);
+    wxBoxSizer* object_sizer = new wxBoxSizer(wxVERTICAL);
+    object_sizer->Add(p->m_object_list, 1, wxEXPAND);
+    p->m_object_panel->SetSizer(object_sizer);
+    p->sizer_params->Add(p->m_object_panel, 1, wxEXPAND | wxTOP, 0);
     scrolled_sizer->Add(p->sizer_params, 2, wxEXPAND | wxLEFT, 0);
-    p->project_resource->get_object_panel()->Hide();
+    p->m_object_panel->Hide();
+
+    p->m_auxiliary_dialog = new AuxiliaryDialog(this);
 
     // Frequently Object Settings
     p->object_settings = new ObjectSettings(p->scrolled);
@@ -1470,18 +1416,12 @@ ObjectList* Sidebar::obj_list()
 {
     // BBS
     //return obj_list();
-    return p->project_resource->get_object_list();
+    return p->m_object_list;
 }
 
 AuxiliaryList* Sidebar::aux_list()
 {
-    return p->project_resource->get_auxiliary_list();
-}
-
-//BBS: get project resource rectangle
-wxRect Sidebar::get_project_resource_rect()
-{
-    return p->project_resource->GetRect();
+    return p->m_auxiliary_dialog->aux_list();
 }
 
 ObjectSettings* Sidebar::obj_settings()
@@ -1625,10 +1565,15 @@ void Sidebar::update_ui_from_settings()
 
 bool Sidebar::show_object_list(bool show) const
 {
-    if (!p->project_resource->get_object_panel()->Show(show))
+    if (!p->m_object_panel->Show(show))
         return false;
     p->scrolled->Layout();
     return true;
+}
+
+bool Sidebar::show_auxiliary_dialog() const
+{
+    return p->m_auxiliary_dialog->Show();
 }
 
 std::vector<PlaterPresetComboBox*>& Sidebar::combos_filament()
@@ -6394,7 +6339,6 @@ bool Plater::priv::PopupObjectTable(int object_id, int volume_id, const wxPoint&
     ObjectTableDialog table_dialog(q, q, &model, wxSize(max_width, max_height));
     //m_popup_table = new ObjectTableDialog(q, q,  &model);
 
-    //wxRect rect = sidebar->get_project_resource_rect();
     wxRect rect = sidebar->GetRect();
     wxPoint pos = sidebar->ClientToScreen(wxPoint(rect.x, rect.y));
 

@@ -1370,6 +1370,15 @@ wxBoxSizer* MainFrame::create_side_tools()
             p->Popup();
         }
     );
+
+    Button * aux_btn = new Button(this, _L("Auxiliary"));
+    aux_btn->SetBackgroundColour(0x3B4446);
+    aux_btn->Bind(wxEVT_BUTTON, [](auto e) {
+        wxGetApp().sidebar().show_auxiliary_dialog();
+    });
+    sizer->Add(aux_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1 * em / 10);
+    sizer->Add(19 * em / 10, 0, 0, 0, 0);
+
     return sizer;
 }
 
