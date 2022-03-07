@@ -94,7 +94,7 @@ class ParamsPanel : public wxPanel
         void OnToggled(wxCommandEvent& event);
 
 	public:
-		ParamsPanel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1800,1080 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
+		ParamsPanel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1800,1080 ), long style = wxTAB_TRAVERSAL, const wxString& type = wxEmptyString );
 		~ParamsPanel();
 
         void rebuild_panels();
@@ -106,6 +106,7 @@ class ParamsPanel : public wxPanel
         bool is_active_and_shown_tab(wxPanel*tab);
         void update_mode();
         void msw_rescale();
+        void switch_to_global();
 
         wxPanel* get_mode_panel() { return m_mode_panel; }
 

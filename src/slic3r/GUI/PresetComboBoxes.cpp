@@ -39,6 +39,7 @@
 #include "PhysicalPrinterDialog.hpp"
 #include "SavePresetDialog.hpp"
 #include "MsgDialog.hpp"
+#include "ParamsDialog.hpp"
 
 // A workaround for a set of issues related to text fitting into gtk widgets:
 #if defined(__WXGTK20__) || defined(__WXGTK3__)
@@ -725,7 +726,10 @@ void PlaterPresetComboBox::switch_to_tab()
         return;
 
     //BBS  Select NoteBook Tab params
-    wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+    if (tab->GetParent() == wxGetApp().params_panel())
+        wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+    else
+        wxGetApp().params_dialog()->Show();
     tab->restore_last_select_item();
 
     const Preset* selected_filament_preset = nullptr;

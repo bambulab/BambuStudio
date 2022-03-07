@@ -57,6 +57,7 @@ class Plater;
 class ParamsPanel;
 class NotificationManager;
 struct GUI_InitParams;
+class ParamsDialog;
 
 
 
@@ -330,6 +331,7 @@ public:
     Plater*              plater();
     const Plater*        plater() const;
     ParamsPanel*         params_panel();
+    ParamsDialog*        params_dialog();
     Model&      		 model();
     NotificationManager * notification_manager();
     //BBS

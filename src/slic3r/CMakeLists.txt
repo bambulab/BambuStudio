@@ -174,6 +174,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/MeshUtils.hpp
     GUI/Tab.cpp
     GUI/Tab.hpp
+    GUI/ParamsDialog.cpp
+    GUI/ParamsDialog.hpp
     GUI/ParamsPanel.cpp
     GUI/ParamsPanel.hpp
 	GUI/AmsWidgets.cpp

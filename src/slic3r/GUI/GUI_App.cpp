@@ -3287,6 +3287,11 @@ ParamsPanel* GUI_App::params_panel()
     return mainframe->m_param_panel;
 }
 
+ParamsDialog* GUI_App::params_dialog()
+{
+    return mainframe->m_param_dialog;
+}
+
 Model& GUI_App::model()
 {
     return plater_->model();

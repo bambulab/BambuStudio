@@ -24,6 +24,7 @@
 #include "Tab.hpp"
 #include "ProgressStatusBar.hpp"
 #include "3DScene.hpp"
+#include "ParamsDialog.hpp"
 #include "wxExtensions.hpp"
 #include "GUI_ObjectList.hpp"
 #include "Mouse3DController.hpp"
@@ -1006,17 +1007,19 @@ void MainFrame::create_preset_tabs()
 
     //BBS: GUI refactor
     //m_param_panel = new ParamsPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
+    m_param_dialog = new ParamsDialog(this);
 
     add_created_tab(new TabPrint(m_param_panel), "cog");
     add_created_tab(new TabPrintObject(m_param_panel), "cog");
     add_created_tab(new TabPrintPart(m_param_panel), "cog");
-    add_created_tab(new TabFilament(m_param_panel), "spool");
+    add_created_tab(new TabFilament(m_param_dialog->panel()), "spool");
     /* BBS work around to avoid appearance bug */
     //add_created_tab(new TabSLAPrint(m_param_panel));
     //add_created_tab(new TabSLAMaterial(m_param_panel));
-    add_created_tab(new TabPrinter(m_param_panel), "printer");
+    add_created_tab(new TabPrinter(m_param_dialog->panel()), "printer");
 
     m_param_panel->rebuild_panels();
+    m_param_dialog->panel()->rebuild_panels();
     //m_tabpanel->AddPage(m_param_panel, "Parameters", "notebook_presets_active");
     //m_tabpanel->InsertPage(tpSettings, m_param_panel, _L("Parameters"), std::string("cog"));
     m_plater->sidebar();
@@ -1048,6 +1051,8 @@ bool MainFrame::is_active_and_shown_tab(wxPanel* panel)
 {
     if (panel == m_param_panel)
         panel = m_plater;
+    else
+        return m_param_dialog->IsShown();
 
     if (m_tabpanel->GetCurrentPage() != panel)
         return false;
@@ -1538,10 +1543,6 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     //BBS GUI refactor: remove unused layout new/dlg
     //if (m_layout != ESettingsLayout::Dlg) // Do not update tabs if the Settings are in the separated dialog
     m_param_panel->msw_rescale();
-    for (auto tab : wxGetApp().tabs_list)
-        tab->msw_rescale();
-    for (auto tab : wxGetApp().model_tabs_list)
-        tab->msw_rescale();
 
     m_monitor->msw_rescale();
 
@@ -2740,6 +2741,13 @@ void MainFrame::select_tab(wxPanel* panel)
 {
     if (!panel)
         return;
+    if (panel == m_param_panel) {
+        panel = m_plater;
+        m_param_panel->switch_to_global();
+    } else if (dynamic_cast<ParamsPanel*>(panel)) {
+        wxGetApp().params_dialog()->Show();
+        return;
+    }
     int page_idx = m_tabpanel->FindPage(panel);
     //BBS GUI refactor: remove unused layout new/dlg
     /*if (page_idx != wxNOT_FOUND && m_layout == ESettingsLayout::Dlg)
