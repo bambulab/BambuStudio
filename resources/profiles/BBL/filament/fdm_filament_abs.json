@@ -19,9 +19,6 @@
     "fan_cooling_layer_time": [
         "50"
     ],
-    "filament_colour": [
-        "#DDDDDD"
-    ],
     "filament_max_volumetric_speed": [
         "28.6"
     ],

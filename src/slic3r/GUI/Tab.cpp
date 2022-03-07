@@ -2032,7 +2032,8 @@ void TabFilament::build()
         option.opt.width = Field::def_width();
         optgroup->append_single_option_line(option);
         optgroup->append_single_option_line("filament_soluble");
-        optgroup->append_single_option_line("filament_colour");
+        // BBS
+        //optgroup->append_single_option_line("filament_colour");
         optgroup->append_single_option_line("filament_diameter");
         optgroup->append_single_option_line("extrusion_multiplier");
         optgroup->append_single_option_line("filament_density");
