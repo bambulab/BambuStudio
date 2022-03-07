@@ -108,6 +108,17 @@ void AuxiliaryList::init_auxiliary()
 	m_auxiliary_model->Init(aux_path);
 }
 
+void AuxiliaryList::reload(wxString aux_path)
+{
+	m_auxiliary_model->Reload(aux_path);
+
+	wxDataViewItemArray items;
+	m_auxiliary_model->GetChildren(wxDataViewItem(nullptr), items);
+	for (wxDataViewItem item : items) {
+		Expand(item);
+	}
+}
+
 void AuxiliaryList::create_new_folder()
 {
 	wxDataViewItem folder_item = m_auxiliary_model->CreateFolder(wxEmptyString);

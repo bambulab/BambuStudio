@@ -20,6 +20,7 @@ public:
 	~AuxiliaryList();
 	wxSizer* get_top_sizer() { return m_sizer; }
 	void init_auxiliary();
+	void reload(wxString aux_path);
 
 private:
 	void do_import_file(AuxiliaryModelNode* folder);

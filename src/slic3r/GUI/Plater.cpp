@@ -3432,9 +3432,9 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
 // BBS
 void Plater::priv::load_auxiliary_files()
 {
-    AuxiliaryModel* aux_model = dynamic_cast<AuxiliaryModel*>(sidebar->aux_list()->GetModel());
+    AuxiliaryList* aux_list = dynamic_cast<AuxiliaryList*>(sidebar->aux_list());
     std::string auxiliary_path = encode_path(q->model().get_auxiliary_file_temp_path().c_str());
-    aux_model->Reload(auxiliary_path);
+    aux_list->reload(auxiliary_path);
 }
 
 fs::path Plater::priv::get_export_file_path(GUI::FileType file_type)
