@@ -97,15 +97,14 @@ const unsigned int VERSION_BBS_3MF_COMPATIBLE = 2;
 const char* BBS_3MF_VERSION1 = "bamboo_slicer:Version3mf"; // definition of the metadata name saved into .model file
 const char* BBS_3MF_VERSION = "BambuStudio:3mfVersion"; //compatible with prusa currently
 // Painting gizmos data version numbers
-// 0 : 3MF files saved by older BambuStudio or the painting gizmo wasn't used. No version definition in them.
-// 1 : Introduction of painting gizmos data versioning. No other changes in painting gizmos data.
-const unsigned int FDM_SUPPORTS_PAINTING_VERSION = 1;
-const unsigned int SEAM_PAINTING_VERSION         = 1;
-const unsigned int MM_PAINTING_VERSION           = 1;
+// 0 : initial version of fdm, seam, mm
+const unsigned int FDM_SUPPORTS_PAINTING_VERSION = 0;
+const unsigned int SEAM_PAINTING_VERSION         = 0;
+const unsigned int MM_PAINTING_VERSION           = 0;
 
-const std::string SLIC3RPE_FDM_SUPPORTS_PAINTING_VERSION = "slic3rpe:FdmSupportsPaintingVersion";
-const std::string SLIC3RPE_SEAM_PAINTING_VERSION         = "slic3rpe:SeamPaintingVersion";
-const std::string SLIC3RPE_MM_PAINTING_VERSION           = "slic3rpe:MmPaintingVersion";
+const std::string BBS_FDM_SUPPORTS_PAINTING_VERSION = "BambuStudio:FdmSupportsPaintingVersion";
+const std::string BBS_SEAM_PAINTING_VERSION         = "BambuStudio:SeamPaintingVersion";
+const std::string BBS_MM_PAINTING_VERSION           = "BambuStudio:MmPaintingVersion";
 const std::string BBL_MODEL_ID_TAG                       = "model_id";
 
 const std::string MODEL_FOLDER = "3D/";
@@ -2601,18 +2600,19 @@ namespace Slic3r {
             // SLIC3R_APP_KEY - SLIC3R_VERSION
             if (boost::starts_with(m_curr_characters, "BambuStudio-"))
                 m_bambuslicer_generator_version = Semver::parse(m_curr_characters.substr(12));
-        } else if (m_curr_metadata_name == SLIC3RPE_FDM_SUPPORTS_PAINTING_VERSION) {
+        //TODO: currently use version 0, no need to load&&save this string
+        /*} else if (m_curr_metadata_name == BBS_FDM_SUPPORTS_PAINTING_VERSION) {
             m_fdm_supports_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
             check_painting_version(m_fdm_supports_painting_version, FDM_SUPPORTS_PAINTING_VERSION,
                 _(L("The selected 3MF contains FDM supports painted object using a newer version of BambuStudio and is not compatible.")));
-        } else if (m_curr_metadata_name == SLIC3RPE_SEAM_PAINTING_VERSION) {
+        } else if (m_curr_metadata_name == BBS_SEAM_PAINTING_VERSION) {
             m_seam_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
             check_painting_version(m_seam_painting_version, SEAM_PAINTING_VERSION,
                 _(L("The selected 3MF contains seam painted object using a newer version of BambuStudio and is not compatible.")));
-        } else if (m_curr_metadata_name == SLIC3RPE_MM_PAINTING_VERSION) {
+        } else if (m_curr_metadata_name == BBS_MM_PAINTING_VERSION) {
             m_mm_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
             check_painting_version(m_mm_painting_version, MM_PAINTING_VERSION,
-                _(L("The selected 3MF contains multi-material painted object using a newer version of BambuStudio and is not compatible.")));
+                _(L("The selected 3MF contains multi-material painted object using a newer version of BambuStudio and is not compatible.")));*/
         } else if (m_curr_metadata_name == BBL_MODEL_ID_TAG) {
             m_model_id = m_curr_characters;
         }
@@ -4201,14 +4201,15 @@ namespace Slic3r {
             stream << ">\n";
             stream << " <" << METADATA_TAG << " name=\"" << BBS_3MF_VERSION << "\">" << VERSION_BBS_3MF << "</" << METADATA_TAG << ">\n";
 
-            if (model.is_fdm_support_painted())
-                stream << " <" << METADATA_TAG << " name=\"" << SLIC3RPE_FDM_SUPPORTS_PAINTING_VERSION << "\">" << FDM_SUPPORTS_PAINTING_VERSION << "</" << METADATA_TAG << ">\n";
+            //TODO: currently use version 0, no need to load&&save this string
+            /*if (model.is_fdm_support_painted())
+                stream << " <" << METADATA_TAG << " name=\"" << BBS_FDM_SUPPORTS_PAINTING_VERSION << "\">" << FDM_SUPPORTS_PAINTING_VERSION << "</" << METADATA_TAG << ">\n";
 
             if (model.is_seam_painted())
-                stream << " <" << METADATA_TAG << " name=\"" << SLIC3RPE_SEAM_PAINTING_VERSION << "\">" << SEAM_PAINTING_VERSION << "</" << METADATA_TAG << ">\n";
+                stream << " <" << METADATA_TAG << " name=\"" << BBS_SEAM_PAINTING_VERSION << "\">" << SEAM_PAINTING_VERSION << "</" << METADATA_TAG << ">\n";
 
             if (model.is_mm_painted())
-                stream << " <" << METADATA_TAG << " name=\"" << SLIC3RPE_MM_PAINTING_VERSION << "\">" << MM_PAINTING_VERSION << "</" << METADATA_TAG << ">\n";
+                stream << " <" << METADATA_TAG << " name=\"" << BBS_MM_PAINTING_VERSION << "\">" << MM_PAINTING_VERSION << "</" << METADATA_TAG << ">\n";*/
 
             std::string name = xml_escape(boost::filesystem::path(filename).stem().string());
             stream << " <" << METADATA_TAG << " name=\"Title\">" << name << "</" << METADATA_TAG << ">\n";
