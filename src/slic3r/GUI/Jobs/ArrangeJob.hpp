@@ -23,6 +23,7 @@ class ArrangeJob : public PlaterJob
     std::map<int, ArrangePolygons> m_selected_groups;   // groups of selected items for sequential printing
     arrangement::ArrangeParams params;
     int current_plate_index = 0;
+    Polygon bed_poly;
 
     // clear m_selected and m_unselected, reserve space for next usage
     void clear_input();

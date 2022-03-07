@@ -82,9 +82,13 @@ public:
     }
 
     double score() const { return score_; }
+    //BBS
+    void plateID(int id) { plate_id = id; }
+    int plateID() { return plate_id; }
 
 protected:
     double score_ = 0;
+    int plate_id = 0;   // BBS
 
     PackResult _trypack(Item& item) {
 

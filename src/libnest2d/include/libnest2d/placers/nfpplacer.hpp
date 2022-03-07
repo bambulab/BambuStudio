@@ -19,6 +19,7 @@
 
 // temporary
 //#include "../tools/svgtools.hpp"
+//#include <iomanip> // setprecision
 
 #include <libnest2d/parallel.hpp>
 
@@ -446,6 +447,7 @@ private:
     // Norming factor for the optimization function
     const double norm_;
     double score_ = 0;  // BBS: total costs of putting all the items
+    int plate_id = 0;   // BBS
     Pile merged_pile_;
 
 public:
@@ -468,6 +470,10 @@ public:
 #endif
 
     double score() const { return score_; }
+
+    //BBS
+    void plateID(int id) { plate_id = id; }
+    int plateID() { return plate_id; }
 
     static inline double overfit(const Box& bb, const RawShape& bin) {
         auto bbin = sl::boundingBox(bin);
@@ -733,14 +739,6 @@ private:
 
                 nfps = calcnfp(item, Lvl<MaxNfpLevel::value>());
 
-#ifdef SVGTOOLS_HPP
-                svg::SVGWriter<RawShape> svgwriter;
-                svgwriter.writeShape(nfps[0]);
-                svgwriter.writeItem(item,"none","red");
-                svgwriter.draw_text(20, 20, "trans:" + std::to_string(item.translation().X) +","+ std::to_string(item.translation().Y)
-                    + "; rot:" + std::to_string(item.rotation().toDegrees()), "blue", 20);
-                svgwriter.save("SVG/nfpplacer_"+item.name);
-#endif
 
                 auto iv = item.referenceVertex();
 
@@ -921,6 +919,31 @@ private:
             item.rotation(final_rot);
         }
 
+#ifdef SVGTOOLS_HPP
+        svg::SVGWriter<RawShape> svgwriter;
+        svgwriter.writeShape(box2RawShape(binbb), "none", "black");
+        for (int i = 0; i < nfps.size(); i++)
+            svgwriter.writeShape(nfps[i], "none", "blue");
+        for (int i = 0; i < items_.size(); i++)
+            svgwriter.writeItem(items_[i], "none", "black");
+        //for (int i = 0; i < merged_pile_.size(); i++)
+        //    svgwriter.writeShape(merged_pile_[i], "none", "yellow");
+
+        svgwriter.writeItem(item, "none", "red");
+        std::stringstream ss;
+        ss.setf(std::ios::fixed | std::ios::showpoint);
+        ss.precision(1);
+        ss << "trans=" << round(item.translation().x() / 1e6) << "," << round(item.translation().y() / 1e6)
+            << "-rot=" << round(item.rotation().toDegrees())
+            << "-score=" << round(global_score);
+        svgwriter.draw_text(20, 20, ss.str(), "blue", 20);
+        ss.str("");
+        ss << "items.size=" << items_.size()
+            << "-merged_pile.size=" << merged_pile_.size();
+        svgwriter.draw_text(20, 40, ss.str(), "blue", 20);
+        svgwriter.save("SVG/nfpplacer_" + std::to_string(plate_id) + "_" + item.name + "_" + ss.str());
+#endif
+
         if(can_pack) {
             ret = PackResult(item);
             ret.score_ = global_score;
@@ -930,6 +953,20 @@ private:
         }
 
         return ret;
+    }
+
+    RawShape box2RawShape(Box& bbin)
+    {
+        RawShape binrsh;
+        auto minx = getX(bbin.minCorner());
+        auto miny = getY(bbin.minCorner());
+        auto maxx = getX(bbin.maxCorner());
+        auto maxy = getY(bbin.maxCorner());
+        sl::addVertex(binrsh, {minx, miny});
+        sl::addVertex(binrsh, {maxx, miny});
+        sl::addVertex(binrsh, {maxx, maxy});
+        sl::addVertex(binrsh, {minx, maxy});
+        return binrsh;
     }
 #if 0
     Box inscribedBox(ClipperLib::Polygon bin_)

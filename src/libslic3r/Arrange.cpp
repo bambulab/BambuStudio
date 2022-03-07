@@ -324,7 +324,9 @@ protected:
             break;
         }
         case LAST_BIG_ITEM: {
-            score = norm(pl::distance(ibb.center(), m_pilebb.center()));
+            score = 0.5 * norm(pl::distance(ibb.center(), origin_pack));
+            if (m_pilebb.defined)
+                score += 0.5 * norm(pl::distance(ibb.center(), m_pilebb.center()));
             break;
         }
         case SMALL_ITEM: {
@@ -336,10 +338,10 @@ protected:
                 score = dist_for_BOTTOM_LEFT(ibb, origin_pack);
             else {
                 // Align mainly around existing items
-                //score = 0.8 * norm(pl::distance(ibb.center(), bigbb.center()))+ 0.2*norm(pl::distance(ibb.center(), origin_pack));
+                score = 0.8 * norm(pl::distance(ibb.center(), bigbb.center()))+ 0.2*norm(pl::distance(ibb.center(), origin_pack));
                 // Align to 135 degree line {calc distance to the line x+y-(xc+yc)=0}
-                auto ic = ibb.center(), bigbbc = bigbb.center();
-                score = norm(std::abs(ic.x() + ic.y() - bigbbc.x() - bigbbc.y()));
+                //auto ic = ibb.center(), bigbbc = origin_pack;// bigbb.center();
+                //score = norm(std::abs(ic.x() + ic.y() - bigbbc.x() - bigbbc.y()));
             }
 
             break;
@@ -428,7 +430,12 @@ public:
             m_merged_pile = merged_pile;
             m_remaining = remaining;
 
-            m_pilebb = sl::boundingBox(merged_pile);
+            m_pilebb.defined = false;
+            if (!merged_pile.empty())
+            {
+                m_pilebb = sl::boundingBox(merged_pile);
+                m_pilebb.defined = true;
+            }
 
             m_rtree.clear();
             m_smallsrtree.clear();
@@ -505,6 +512,7 @@ public:
         if (progressind) {
             m_pck.unfitIndicator([this, progressind](std::string name) {
                 progressind(100, name+" not fit!");
+                BOOST_LOG_TRIVIAL(debug) << "arrange " + name + " not fit!";
                 });
         }
 

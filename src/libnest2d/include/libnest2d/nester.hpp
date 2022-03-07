@@ -669,6 +669,9 @@ public:
 
     inline double score() const { return impl_.score(); }
 
+    inline void plateID(int id) { impl_.plateID(id); }
+    inline int plateID() { return impl_.plateID(); }
+
 };
 
 // The progress function will be called with the number of placed items

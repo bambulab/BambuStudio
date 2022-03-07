@@ -96,7 +96,7 @@ public:
 
     void draw_text(float x,float y, const std::string text, const std::string color, int font_size)
     {
-        char s[200];
+        char s[500];
         sprintf(s,
             "<text x=\"%f\" y=\"%f\" font-family=\"sans-serif\" font-size=\"%dpx\" fill=\"%s\">%s</text>\n",
             x,y, font_size, color.c_str(), text.c_str());

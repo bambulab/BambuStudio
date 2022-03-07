@@ -176,12 +176,13 @@ public:
 
     using Tag = BoxTag;
     using PointType = P;
+    bool defined = false;
 
     inline _Box(const P& center = {TCoord<P>(0), TCoord<P>(0)}):
         _Box(TCoord<P>(0), TCoord<P>(0), center) {}
     
     inline _Box(const P& p, const P& pp):
-        PointPair<P>({p, pp}) {}
+        PointPair<P>({ p, pp }) { defined = true; }
     
     inline _Box(TCoord<P> width, TCoord<P> height,
                 const P& p = {TCoord<P>(0), TCoord<P>(0)});/*:
@@ -933,6 +934,10 @@ inline _Box<TPoint<S>> boundingBox(const S& sh)
 
 template<class P> _Box<P> boundingBox(const _Box<P>& bb1, const _Box<P>& bb2 )
 {
+    if (!bb1.defined)
+        return bb2;
+    if (!bb2.defined)
+        return bb1;
     auto& pminc = bb1.minCorner();
     auto& pmaxc = bb1.maxCorner();
     auto& iminc = bb2.minCorner();

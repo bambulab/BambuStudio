@@ -276,16 +276,42 @@ void ArrangeJob::prepare()
     m_plater->get_partplate_list().preprocess_exclude_areas(m_unselected, MAX_NUM_PLATES);
 
 #if SAVE_ARRANGE_POLY
-    BoundingBox bbox = get_extents(m_selected.front().poly);
-    for (auto it = m_selected.begin(); it != m_selected.end(); it++) {
+    if (1)
+    { // subtract excluded region and get a polygon bed
+        auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
+        auto print_config = print.config();
+        bed_poly.points = get_bed_shape(*m_plater->config());
+        Pointfs excluse_area_points = print_config.bed_exclude_area.values;
+        Polygons exclude_polys;
+        Polygon exclude_poly;
+        for (int i = 0; i < excluse_area_points.size(); i++) {
+            auto pt = excluse_area_points[i];
+            exclude_poly.points.emplace_back(scale_(pt.x()), scale_(pt.y()));
+            if (i % 4 == 3) {  // exclude areas are always rectangle
+                exclude_polys.push_back(exclude_poly);
+                exclude_poly.points.clear();
+            }
+        }
+        bed_poly = diff({ bed_poly }, exclude_polys)[0];
+    }
+
+    BoundingBox bbox = bed_poly.bounding_box();
+    Point center = bbox.center();
+    auto polys_to_draw = m_selected;
+    for (auto it = polys_to_draw.begin(); it != polys_to_draw.end(); it++) {
+        it->poly.translate(center);
         bbox.merge(it->poly);
     }
     SVG svg("SVG/arrange_poly.svg", bbox);
     if (svg.is_opened()) {
+        svg.draw_outline(bed_poly);
+        //svg.draw_grid(bbox, "gray", scale_(0.05));
         std::vector<std::string> color_array = { "red","black","yellow","gree","blue" };
-        for (auto it = m_selected.begin(); it != m_selected.end(); it++) {
-            svg.draw_grid(bbox, "gray", scale_(0.05));
-            svg.draw_outline(it->poly, color_array[(it - m_selected.begin()) % color_array.size()]);
+        for (auto it = polys_to_draw.begin(); it != polys_to_draw.end(); it++) {
+            std::string color = color_array[(it - polys_to_draw.begin()) % color_array.size()];
+            svg.add_comment(it->name);
+            svg.draw_text(get_extents(it->poly).min, it->name.c_str(), color.c_str());
+            svg.draw_outline(it->poly, color);
         }
     }
 #endif
@@ -298,8 +324,14 @@ void ArrangeJob::check_unprintable()
     for (auto it = m_selected.begin(); it != m_selected.end();) {
         if (it->poly.area() < 0.001)
         {
+#if SAVE_ARRANGE_POLY
+            SVG svg("SVG/arrange_unprintable_"+it->name+".svg", get_extents(it->poly));
+            if (svg.is_opened())
+                svg.draw_outline(it->poly);
+#endif
+
             m_unprintable.push_back(*it);
-            wxGetApp().plater()->get_notification_manager()->push_plater_warning_notification((L("Object " + it->name + " has zero size and can't be printed!")));
+            wxGetApp().plater()->get_notification_manager()->push_plater_warning_notification((L("Object " + it->name + " has zero size and can't be arranged!")));
             it = m_selected.erase(it);
         }
         else
@@ -357,30 +389,11 @@ void ArrangeJob::process()
     std::for_each(m_selected.begin(), m_selected.end(), [&](auto& ap) {ap.inflation = params.min_obj_distance / 2; });
     std::for_each(m_unselected.begin(), m_unselected.end(), [&](auto& ap) {ap.inflation = ap.is_virt_object ? scaled(params.brim_skirt_distance) : params.min_obj_distance / 2; });
 
-    Points bedpts = get_bed_shape(*m_plater->config());
-
-    if(0)
-    { // subtract excluded region and get a polygon bed
-        auto print_config = print.config();
-        Pointfs excluse_area_points = print_config.bed_exclude_area.values;
-        Polygons exclude_polys;
-        Polygon exclude_poly;
-        for (int i = 0; i < excluse_area_points.size(); i++) {
-            auto pt = excluse_area_points[i];
-            exclude_poly.points.emplace_back(scale_(pt.x()), scale_(pt.y()));
-            if (i % 4 == 3) {  // exclude areas are always rectangle
-                exclude_polys.push_back(exclude_poly);
-                exclude_poly.points.clear();
-            }
-        }
-        Polygon bed_polygon(bedpts);
-        bed_polygon = diff({ bed_polygon }, exclude_polys)[0];
-        bedpts = bed_polygon.points;
-    }
      m_plater->get_partplate_list().preprocess_exclude_areas(params.excluded_regions, 1);
 
     // shrink bed by moving to center by dist
-    auto shrinkFun = [](Points& bedpts, double dist, int direction) {
+     Points bedpts = get_bed_shape(*m_plater->config());
+     auto shrinkFun = [](Points& bedpts, double dist, int direction) {
 #define SGN(x) ((x)>=0?1:-1)
         Point center = Polygon(bedpts).bounding_box().center();
         for (auto& pt : bedpts)
@@ -543,7 +556,7 @@ void ArrangeJob::finalize() {
         plate_list.postprocess_arrange_polygon(ap, true);
 
         ap.apply();
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":m_unprintable: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y));
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":m_unprintable: name: %4%, bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
     }
 
     m_plater->update();

@@ -322,6 +322,11 @@ void SVG::draw_grid(const BoundingBox& bbox, const std::string& stroke, coordf_t
     }
 }
 
+void SVG::add_comment(const std::string comment)
+{
+    fprintf(this->f, "<!-- %s -->\n", comment.c_str());
+}
+
 void SVG::Close()
 {
     fprintf(this->f, "</svg>\n");

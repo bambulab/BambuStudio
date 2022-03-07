@@ -45,6 +45,7 @@ public:
         double overfit() const { return overfit_; }
         double score_ = -1;
         double score() { return score_; }
+        int plate_id = 0;   // BBS
     };
 
     inline PlacerBoilerplate(const BinType& bin, unsigned cap = 50): bin_(bin)
