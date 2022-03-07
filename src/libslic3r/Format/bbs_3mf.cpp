@@ -2318,14 +2318,6 @@ namespace Slic3r {
             m_curr_object->name = bbs_get_attribute_value_string(attributes, num_attributes, NAME_ATTR);
 
             m_curr_object->uuid = bbs_get_attribute_value_string(attributes, num_attributes, PUUID_ATTR);
-            /*if (m_is_bbl_3mf && boost::ends_with(current_object.uuid, OBJECT_UUID_SUFFIX)) {
-                std::istringstream iss(current_object.uuid);
-                int backup_id;
-                if (iss >> std::hex >> backup_id) {
-                    if (m_load_restore) {// backup with backup_id
-                        m_curr_object->id = backup_id;
-                    }
-            }*/
         }
 
         return true;
@@ -2338,6 +2330,56 @@ namespace Slic3r {
             return false;
         }
         else {
+            if (m_is_bbl_3mf && boost::ends_with(m_curr_object->uuid, OBJECT_UUID_SUFFIX) && m_load_restore) {
+                std::istringstream iss(m_curr_object->uuid);
+                int backup_id;
+                bool need_replace = false;
+                if (iss >> std::hex >> backup_id) {
+                    need_replace = (m_curr_object->id != backup_id);
+                    m_curr_object->id = backup_id;
+                }
+                if (need_replace) {
+                    for (int index = 0; index < m_curr_object->components.size(); index++)
+                    {
+                        int temp_id = (index + 1) << 16 | backup_id;
+                        Component& component = m_curr_object->components[index];
+                        std::string new_path = component.object_id.first;
+                        Id new_id = std::make_pair(new_path, temp_id);
+                        IdToCurrentObjectMap::iterator current_object = m_current_objects.find(component.object_id);
+                        if (current_object != m_current_objects.end()) {
+                            CurrentObject new_object;
+                            new_object.geometry = std::move(current_object->second.geometry);
+                            new_object.id = temp_id;
+                            new_object.model_object_idx = current_object->second.model_object_idx;
+                            new_object.name = current_object->second.name;
+                            new_object.uuid = current_object->second.uuid;
+
+                            m_current_objects.erase(current_object);
+                            m_current_objects.insert({ new_id, std::move(new_object) });
+                        }
+                        else {
+                            add_error("can not find object for component, id=" + std::to_string(component.object_id.second));
+                            delete m_curr_object;
+                            m_curr_object = nullptr;
+                            return false;
+                        }
+
+                        IndexToPathMap::iterator current_index_map = m_index_paths.find(component.object_id.second);
+                        if (current_index_map != m_index_paths.end()) {
+                            m_index_paths.erase(current_index_map);
+                            m_index_paths.insert({ temp_id, new_path });
+                        }
+                        else {
+                            add_error("can not find object for index_map, id=" + std::to_string(component.object_id.second));
+                            delete m_curr_object;
+                            m_curr_object = nullptr;
+                            return false;
+                        }
+
+                        component.object_id.second = temp_id;
+                    }
+                }
+            }
             Id id = std::make_pair(m_sub_model_path, m_curr_object->id);
             if (m_current_objects.find(id) == m_current_objects.end()) {
                 m_index_paths.insert({m_curr_object->id, m_sub_model_path});
@@ -2665,9 +2707,6 @@ namespace Slic3r {
                 int backup_id;
                 if (iss >> std::hex >> backup_id) {
                     m_model->set_object_backup_id(*model_object, backup_id);
-                    //if (m_load_restore) {// backup with backup_id
-                    //    current_object.id = backup_id;
-                    //}
                 }
             }
             /*if (!current_object.geometry.empty()) {
@@ -3533,6 +3572,7 @@ namespace Slic3r {
         bool m_zip64 { true };
         bool m_production_ext { false }; // save with Production Extention
         bool m_skip_static{ false }; // not save mesh and other big static contents
+        bool m_from_backup_save{ false }; //the object save is from backup store
         bool m_split_model { false }; // save object per file with Production Extention
         bool m_save_gcode { false }; //whether to save gcode for normal save
         std::shared_ptr<KeyStore> m_key_store; // save object encrypted with Secure Content Extention
@@ -3642,6 +3682,7 @@ namespace Slic3r {
     bool _BBS_3MF_Exporter::save_object_mesh(const std::string& temp_path, ModelObject const & object, int obj_id)
     {
         m_production_ext = true;
+        m_from_backup_save = true;
         Model const & model = *object.get_model();
         m_key_store = model.get_key_store();
 
@@ -4286,7 +4327,12 @@ namespace Slic3r {
             if (sub_model) break;
 
             object_ids.push_back(object_id);
-            unsigned int curr_id =  object_id + obj->volumes.size();
+            unsigned int curr_id;
+            if (m_skip_static)
+                curr_id =  object_id;
+            else
+                curr_id =  object_id + obj->volumes.size();
+
             object_id = object_id + obj->volumes.size() + 1;
 
             unsigned int count = 0;
@@ -4345,7 +4391,7 @@ namespace Slic3r {
                 for (ModelVolume* volume : obj->volumes) {
                     if (volume == nullptr)
                         continue;
-                    VolumeToObjectIDMap::iterator volume_it = volumes_objectID.insert({ volume, object_id + volume_count }).first;
+                    VolumeToObjectIDMap::iterator volume_it = volumes_objectID.insert({ volume, (object_id | ((volume_count+1)<<16)) }).first;
                     volume_count++;
                     //const indexed_triangle_set &its = volume->mesh().its;
                     //vertices_count += (int)its.vertices.size();
@@ -4432,8 +4478,16 @@ namespace Slic3r {
             stream << "\" type=\"model\">\n";
             stream << "   <" << COMPONENTS_TAG << ">\n";
             if (id == 0) {
-                for (unsigned int index = object_id; index < volume_start_id; index ++)
-                    stream << "    <" << COMPONENT_TAG << " objectid=\"" << index << "\"/>\n";
+                if (m_from_backup_save) {
+                    for (unsigned int index = 1; index <= object.volumes.size(); index ++) {
+                        unsigned int ref_id = object_id | (index << 16);
+                        stream << "    <" << COMPONENT_TAG << " objectid=\"" << ref_id << "\"/>\n";
+                    }
+                }
+                else {
+                    for (unsigned int index = object_id; index < volume_start_id; index ++)
+                        stream << "    <" << COMPONENT_TAG << " objectid=\"" << index << "\"/>\n";
+                }
             }
             else {
                 stream << "    <" << COMPONENT_TAG << " objectid=\"" << volume_start_id << "\"/>\n";
@@ -4527,6 +4581,7 @@ namespace Slic3r {
         char buf[256];
         unsigned int vertices_count = 0;
         //unsigned int triangles_count = 0;
+        unsigned int volume_idx, volume_count = 0;
         for (ModelVolume* volume : object.volumes) {
             if (volume == nullptr)
                 continue;
@@ -4534,7 +4589,14 @@ namespace Slic3r {
 			//if (!volume->mesh().stats().repaired())
 			//	throw Slic3r::FileIOError("store_3mf() requires repair()");
 			unsigned int first_vertex_id = 0;
-            volumes_objectID.insert({ volume, obj_idx });
+            volume_count++;
+            if (m_from_backup_save)
+                volume_idx = (volume_count<<16 | obj_idx);
+            else {
+                volume_idx = obj_idx;
+                obj_idx++;
+            }
+            volumes_objectID.insert({ volume, volume_idx });
 
             const indexed_triangle_set &its = volume->mesh().its;
             if (its.vertices.empty()) {
@@ -4548,7 +4610,7 @@ namespace Slic3r {
             output_buffer += "  <";
             output_buffer += OBJECT_TAG;
             output_buffer += " id=\"";
-            output_buffer += std::to_string(obj_idx);
+            output_buffer += std::to_string(volume_idx);
             /*if (m_production_ext) {
                 std::stringstream stream;
                 reset_stream(stream);
@@ -4678,7 +4740,6 @@ namespace Slic3r {
             output_buffer +=  "  </";
             output_buffer += OBJECT_TAG;
             output_buffer += ">\n";
-            obj_idx++;
         }
 
         // Force flush.
@@ -4988,7 +5049,10 @@ namespace Slic3r {
             if (obj != nullptr) {
                 // Output of instances count added because of github #3435, currently not used by BambuStudio
                 //stream << "  <"  << OBJECT_TAG << " " << ID_ATTR << "=\"" << obj_metadata.first << "\" " << INSTANCESCOUNT_ATTR << "=\"" << obj->instances.size() << "\">\n";
-                stream << "  <"  << OBJECT_TAG << " " << ID_ATTR << "=\"" << obj_metadata.first + obj->volumes.size() << "\">\n";
+                if (m_skip_static)
+                    stream << "  <"  << OBJECT_TAG << " " << ID_ATTR << "=\"" << obj_metadata.first << "\">\n";
+                else
+                    stream << "  <"  << OBJECT_TAG << " " << ID_ATTR << "=\"" << obj_metadata.first + obj->volumes.size() << "\">\n";
 
                 // stores object's name
                 if (!obj->name.empty())
@@ -5108,7 +5172,7 @@ namespace Slic3r {
                         int obj_id = plate_data->objects_and_instances[j].first;
                         int inst_id = plate_data->objects_and_instances[j].second;
                         if (m_skip_static) {
-                            obj_id = inst_id = model.objects[obj_id]->get_backup_id();
+                            obj_id = model.objects[obj_id]->get_backup_id();
                         } else {
                             //inst_id = convert_instance_id_to_resource_id(model, obj_id, inst_id);
                             obj_id = convert_instance_id_to_resource_id(model, obj_id, 0);
@@ -5131,7 +5195,10 @@ namespace Slic3r {
             if (obj != nullptr) {
                 for (int instance_idx = 0; instance_idx < obj->instances.size(); ++instance_idx) {
                     if (obj->instances[instance_idx]->is_assemble_initialized()) {
-                        stream << "   <" << ASSEMBLE_ITEM_TAG << " " << OBJECT_ID_ATTR << "=\"" << obj_metadata.first  + obj->volumes.size() << "\" ";
+                        if (m_skip_static) 
+                            stream << "   <" << ASSEMBLE_ITEM_TAG << " " << OBJECT_ID_ATTR << "=\"" << obj_metadata.first << "\" ";
+                        else
+                            stream << "   <" << ASSEMBLE_ITEM_TAG << " " << OBJECT_ID_ATTR << "=\"" << obj_metadata.first  + obj->volumes.size() << "\" ";
                         stream << INSTANCEID_ATTR << "=\"" << instance_idx << "\" " << TRANSFORM_ATTR << "=\"";
                             for (unsigned c = 0; c < 4; ++c) {
                                 for (unsigned r = 0; r < 3; ++r) {
@@ -5153,7 +5220,6 @@ namespace Slic3r {
             }
         }
         stream << "  </" << ASSEMBLE_TAG << ">\n";
-
 
         stream << "</" << CONFIG_TAG << ">\n";
 
