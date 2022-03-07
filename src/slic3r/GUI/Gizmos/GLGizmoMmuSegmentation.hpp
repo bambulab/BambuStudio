@@ -5,6 +5,17 @@
 
 namespace Slic3r::GUI {
 
+struct TrianglePatch {
+    std::vector<int> triangle_indices;
+    std::vector<int> facet_indices;
+    EnforcerBlockerType type = EnforcerBlockerType::NONE;
+    std::set<EnforcerBlockerType> neighbor_types;
+    // if area is larger than TinyPatchAreaMax, stop accumulate left triangle areas to improve performance
+    float area = 0.f;
+
+    bool tiny_patch() const;
+};
+
 class GLMmSegmentationGizmo3DScene
 {
 public:
@@ -12,16 +23,13 @@ public:
 
     explicit GLMmSegmentationGizmo3DScene(size_t triangle_indices_buffers_count)
     {
-        this->triangle_indices         = std::vector<std::vector<int>>(triangle_indices_buffers_count);
-        this->triangle_indices_sizes   = std::vector<size_t>(triangle_indices_buffers_count);
-        this->triangle_indices_VBO_ids = std::vector<unsigned int>(triangle_indices_buffers_count);
     }
 
     virtual ~GLMmSegmentationGizmo3DScene() { release_geometry(); }
 
     [[nodiscard]] inline bool has_VBOs(size_t triangle_indices_idx) const
     {
-        assert(triangle_indices_idx < this->triangle_indices.size());
+        assert(triangle_indices_idx < this->triangle_patches.size());
         return this->triangle_indices_VBO_ids[triangle_indices_idx] != 0;
     }
 
@@ -37,17 +45,22 @@ public:
     void clear()
     {
         this->vertices.clear();
-        for (std::vector<int> &ti : this->triangle_indices)
-            ti.clear();
+        // BBS
+        this->triangle_indices_VBO_ids.clear();
+        this->triangle_indices_sizes.clear();
 
-        for (size_t &triangle_indices_size : this->triangle_indices_sizes)
-            triangle_indices_size = 0;
+        for (TrianglePatch& patch : this->triangle_patches)
+            patch.triangle_indices.clear();
+        this->triangle_patches.clear();
     }
 
     void render(size_t triangle_indices_idx) const;
 
     std::vector<float>            vertices;
-    std::vector<std::vector<int>> triangle_indices;
+    //std::vector<std::vector<int>> triangle_indices;
+
+    // BBS
+    std::vector<TrianglePatch>    triangle_patches;
 
     // When the triangle indices are loaded into the graphics card as Vertex Buffer Objects,
     // the above mentioned std::vectors are cleared and the following variables keep their original length.
@@ -69,6 +82,12 @@ public:
     // Render current selection. Transformation matrices are supposed
     // to be already set.
     void render(ImGuiWrapper* imgui) override;
+
+    // BBS
+    // TriangleSelector.m_triangles => m_gizmo_scene.triangle_patches
+    void update_triangle_patches();
+    // m_gizmo_scene.triangle_patches => TriangleSelector.m_triangles
+    void update_selector_triangles();
 
 private:
     void update_render_data();
@@ -100,6 +119,10 @@ public:
 
     // BBS
     bool on_number_key_down(int number);
+
+    constexpr static float TinyPatchAreaMin = 0.f;
+    constexpr static float TinyPatchAreaMax = 5.f;
+    static float tiny_patch_area;
 
 protected:
     std::array<float, 4> get_cursor_sphere_left_button_color() const override;

@@ -322,6 +322,10 @@ protected:
         int ref_cnt;
     };
 
+    void append_touching_subtriangles(int itriangle, int vertexi, int vertexj, std::vector<int>& touching_subtriangles_out) const;
+    bool verify_triangle_neighbors(const Triangle& tr, const Vec3i& neighbors) const;
+
+
     // Lists of vertices and triangles, both original and new
     std::vector<Vertex> m_vertices;
     std::vector<Triangle> m_triangles;
@@ -370,11 +374,11 @@ private:
     static std::pair<int, int> triangle_subtriangles(const Triangle &tr, int vertexi, int vertexj);
     std::pair<int, int>        triangle_subtriangles(int itriangle, int vertexi, int vertexj) const;
 
-    void append_touching_subtriangles(int itriangle, int vertexi, int vertexj, std::vector<int> &touching_subtriangles_out) const;
+    //void append_touching_subtriangles(int itriangle, int vertexi, int vertexj, std::vector<int> &touching_subtriangles_out) const;
     void append_touching_edges(int itriangle, int vertexi, int vertexj, std::vector<Vec2i> &touching_edges_out) const;
 
 #ifndef NDEBUG
-    bool verify_triangle_neighbors(const Triangle& tr, const Vec3i& neighbors) const;
+    //bool verify_triangle_neighbors(const Triangle& tr, const Vec3i& neighbors) const;
     bool verify_triangle_midpoints(const Triangle& tr) const;
 #endif // NDEBUG
 

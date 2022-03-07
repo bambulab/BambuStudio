@@ -518,7 +518,8 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 }
             }
 
-            m_triangle_selectors[mesh_idx]->request_update_render_data();
+            m_triangle_selectors[mesh_idx]->request_update_render_data(true);
+
             m_last_mouse_click = mouse_position;
         }
 

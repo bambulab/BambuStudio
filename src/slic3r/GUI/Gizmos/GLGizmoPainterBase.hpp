@@ -74,7 +74,12 @@ public:
     virtual void render(ImGuiWrapper *imgui);
     void         render() { this->render(nullptr); }
 
-    void request_update_render_data() { m_update_render_data = true; };
+    // BBS
+    void request_update_render_data(bool paint_changed = false)
+    {
+        m_update_render_data = true;
+        m_paint_changed = paint_changed;
+    };
 
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
     void render_debug(ImGuiWrapper* imgui);
@@ -84,6 +89,8 @@ public:
 
 protected:
     bool m_update_render_data = false;
+    // BBS
+    bool m_paint_changed = true;
 
     static std::array<float, 4> get_seed_fill_color(const std::array<float, 4> &base_color);
 
