@@ -1,7 +1,9 @@
 #include "MediaPlayCtrl.h"
 #include "Widgets/Button.hpp"
+#include "Widgets/CheckBox.hpp"
 #include "Widgets/Label.hpp"
 #include "GUI_App.hpp"
+#include "libslic3r/AppConfig.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -84,8 +86,12 @@ void MediaPlayCtrl::Play()
                 } else {
                     m_last_state = MEDIASTATE_LOADING;
                     SetStatus(L"Loading...");
+                    if (wxGetApp().app_config->get("dump_video") == "true") {
+                        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl dump video to " << boost::filesystem::current_path();
+                        m_url = m_url + "&dump=video.h264";
+                    }
                     boost::unique_lock lock(m_mutex);
-                    m_tasks.push_back(url);
+                    m_tasks.push_back(m_url);
                     m_cond.notify_all();
                 }
             }
@@ -121,7 +127,7 @@ void MediaPlayCtrl::SetStatus(wxString const& msg2)
     auto msg = wxString::Format(msg2, m_media_ctrl->GetLastError());
     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::SetStatus: " << msg.ToUTF8().data();
     m_label_status->SetLabel(msg);
-    m_label_status->SetForegroundColour(!msg.EndsWith("!") ? 0x42AE00 : 0x3B65E9);
+    //m_label_status->SetForegroundColour(!msg.EndsWith("!") ? 0x42AE00 : 0x3B65E9);
     Layout();
 }
 

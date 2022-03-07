@@ -148,6 +148,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     if (wxGetApp().app_config->get("user_mode") == "develop") { 
         wxGetApp().app_config->set("user_mode", "advanced");
      }
+    wxGetApp().app_config->set_bool("dump_video", false);
 
     // BBS
     m_recent_projects.SetMenuPathStyle(wxFH_PATH_SHOW_ALWAYS);

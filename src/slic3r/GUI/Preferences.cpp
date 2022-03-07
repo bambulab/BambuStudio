@@ -178,6 +178,7 @@ wxWindow *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pare
 
     //for debug mode
     if (param == "developer_mode") { m_developer_mode_ckeckbox = checkbox;}
+    if (param == "dump_video") { m_dump_video_ckeckbox = checkbox;}
 
     checkbox->SetToolTip(tooltip);
     text->SetToolTip(tooltip);
@@ -544,6 +545,7 @@ void PreferencesDialog::create_debug_page()
 {
     
     m_developer_mode_def = app_config->get("developer_mode");
+    m_dump_video_def = app_config->get("dump_video");
     m_backup_interval_def = app_config->get("backup_interval");
     m_iot_environment_def= app_config->get("iot_environment");
 
@@ -552,6 +554,7 @@ void PreferencesDialog::create_debug_page()
 
     wxWindow *title_develop_mode    = create_item_title(L("develop mode"), m_panel_debug, wxString("develop mode"));
     wxWindow *item_develop_mode     = create_item_checkbox(L("develop mode"), m_panel_debug, L("develop mode"), 50, "developer_mode");
+    wxWindow *item_dump_video     = create_item_checkbox(L("dump video"), m_panel_debug, L("dump video"), 50, "dump_video");
     wxWindow *item_backup_interval = create_item_input(L("backup interval"), m_panel_debug, L("backup_interval"), 50, "backup_interval");
 
     auto radio1 = create_item_radiobox(_L("DEV host: api-dev.bambu-lab.com/v1"), m_panel_debug, "", 50, 1, wxString("dev_host"));
@@ -577,6 +580,10 @@ void PreferencesDialog::create_debug_page()
             if (m_developer_mode_def != app_config->get("developer_mode")) { 
                 app_config->set_bool("developer_mode", m_developer_mode_def == "true"?true: false); 
                 m_developer_mode_ckeckbox->SetValue(m_developer_mode_def == "true" ? true : false);
+            }
+            if (m_dump_video_def != app_config->get("dump_video")) { 
+                app_config->set_bool("dump_video", m_dump_video_def == "true"?true: false); 
+                m_dump_video_ckeckbox->SetValue(m_dump_video_def == "true" ? true : false);
             }
 
             if (m_backup_interval_def != m_backup_interval_time) { 
@@ -643,6 +650,7 @@ void PreferencesDialog::create_debug_page()
 
     bSizer->Add(title_develop_mode, 0, wxTOP, 20);
     bSizer->Add(item_develop_mode, 0, wxTOP, 20);
+    bSizer->Add(item_dump_video, 0, wxTOP, 20);
     bSizer->Add(item_backup_interval, 0, wxTOP, 20);
     bSizer->Add(radio1, 0, wxTOP, 20);
     bSizer->Add(radio2, 0, wxTOP, 5);

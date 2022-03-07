@@ -89,9 +89,11 @@ public:
 
     //debug mode
     ::CheckBox*       m_developer_mode_ckeckbox;
+    ::CheckBox*       m_dump_video_ckeckbox;
     ::TextInput*      m_backup_interval_textinput;
 
     wxString          m_developer_mode_def;
+    wxString          m_dump_video_def;
     wxString          m_backup_interval_def;
     wxString          m_iot_environment_def;
 

@@ -171,6 +171,9 @@ void AppConfig::set_defaults()
     if (get("developer_mode").empty())
         set_bool("developer_mode", false);
 
+    if (get("dump_video").empty())
+        set_bool("dump_video", false);
+
     // BBS
     if (get("preset_folder").empty())
         set("preset_folder", "");
