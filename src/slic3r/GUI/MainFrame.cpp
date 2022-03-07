@@ -1249,13 +1249,18 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_print_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
     {
         //this->m_plater->select_view_3D("Preview");
-        if (m_print_select == ePrintAll)
+        if (m_print_select == ePrintAll || m_print_select == ePrintPlate)
         {
-            wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_ALL));
-        }
-        else if (m_print_select == ePrintPlate)
-        {
-            wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE));
+            m_plater->apply_background_progress();
+            // check valid of print
+            m_print_enable = get_enable_print_status();
+            m_print_btn->Enable(m_print_enable);
+            if (m_print_enable) {
+                if (m_print_select == ePrintAll)
+                    wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_ALL));
+                if (m_print_select == ePrintPlate)
+                    wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE));
+            }
         }
         else if (m_print_select == eExportGcode)
             wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_GCODE));

@@ -9175,6 +9175,23 @@ PartPlateList& Plater::get_partplate_list()
     return p->partplate_list;
 }
 
+void Plater::apply_background_progress()
+{
+    PartPlate* part_plate = p->partplate_list.get_curr_plate();
+    int plate_index = p->partplate_list.get_curr_plate_index();
+    bool result_valid = part_plate->is_slice_result_valid();
+    //always apply the current plate's print
+    Print::ApplyStatus invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config());
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: plate %2%, after apply, invalidated= %3%, previous result_valid %4% ") % __LINE__ % plate_index % invalidated % result_valid;
+    if (invalidated & PrintBase::APPLY_STATUS_INVALIDATED)
+    {
+        part_plate->update_slice_result_valid_state(false);
+        p->ready_to_slice = true;
+        p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, true);
+    }
+}
+
 //BBS: select Plate
 int Plater::select_plate(int plate_index, bool need_slice)
 {
@@ -9200,6 +9217,7 @@ int Plater::select_plate(int plate_index, bool need_slice)
         Print::ApplyStatus invalidated;
 
         part_plate->get_print(&print, &gcode_result, NULL);
+
         //always apply the current plate's print
         invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config());
 
