@@ -97,25 +97,31 @@ WebViewPanel::WebViewPanel(wxWindow *parent, wxString url)
         m_browser->Create(this, wxID_ANY, url, wxDefaultPosition, wxDefaultSize);
         m_browser->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION));
 #endif
+#ifdef __WXMAC__
+        wxGetApp().CallAfter([this] {
+#endif
         if (!m_browser->AddScriptMessageHandler("wx"))
             wxLogError("Could not add script message handler");
-        }
-        else {
-            wxLogError("Could not init m_browser");
-            return;
-        }
+#ifdef __WXMAC__
+                             });
+#endif
+    }
+    else {
+        wxLogError("Could not init m_browser");
+        return;
+    }
 
-        SetSizer(topsizer);
-        
-        topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
+    SetSizer(topsizer);
+    
+    topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
 
-        // Log backend information
-        if (wxGetApp().get_mode() == comDevelop) {
-            wxLogMessage(wxWebView::GetBackendVersionInfo().ToString());
-            wxLogMessage("Backend: %s Version: %s", m_browser->GetClassInfo()->GetClassName(),
-                wxWebView::GetBackendVersionInfo().ToString());
-            wxLogMessage("User Agent: %s", m_browser->GetUserAgent());
-        }
+    // Log backend information
+    if (wxGetApp().get_mode() == comDevelop) {
+        wxLogMessage(wxWebView::GetBackendVersionInfo().ToString());
+        wxLogMessage("Backend: %s Version: %s", m_browser->GetClassInfo()->GetClassName(),
+            wxWebView::GetBackendVersionInfo().ToString());
+        wxLogMessage("User Agent: %s", m_browser->GetUserAgent());
+    }
 
 
     // Create the Tools menu
