@@ -681,11 +681,11 @@ bool MedialAxis::validate_edge(const VD::edge_type* edge)
         if (w0 < SCALED_EPSILON || w1 < SCALED_EPSILON)
             return false;
     }
-    
-    if (w0 < this->min_width && w1 < this->min_width)
+    //BBS
+    if (w0 < this->min_width || w1 < this->min_width)
         return false;
-    
-    if (w0 > this->max_width && w1 > this->max_width)
+    //BBS
+    if (w0 > this->max_width || w1 > this->max_width)
         return false;
     
     this->thickness[edge]         = std::make_pair(w0, w1);
