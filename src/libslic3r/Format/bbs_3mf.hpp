@@ -13,9 +13,9 @@ class Preset;
 struct ThumbnailData;
 
 #define GCODE_FILE_FORMAT               "Metadata/plate_%1%.gcode"
-#define EMBEDDED_PRINT_FILE_FORMAT      "Metadata/slice_settings_%1%.config"
+#define EMBEDDED_PRINT_FILE_FORMAT      "Metadata/process_settings_%1%.config"
 #define EMBEDDED_FILAMENT_FILE_FORMAT      "Metadata/filament_settings_%1%.config"
-#define EMBEDDED_PRINTER_FILE_FORMAT      "Metadata/printer_settings_%1%.config"
+#define EMBEDDED_PRINTER_FILE_FORMAT      "Metadata/machine_settings_%1%.config"
 
 
 //BBS: define plate data list related structures

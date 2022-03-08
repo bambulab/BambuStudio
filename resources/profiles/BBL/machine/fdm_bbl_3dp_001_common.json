@@ -1,5 +1,5 @@
 {
-    "type": "printer",
+    "type": "machine",
     "name": "fdm_bbl_3dp_001_common",
     "from": "system",
     "instantiation": "false",

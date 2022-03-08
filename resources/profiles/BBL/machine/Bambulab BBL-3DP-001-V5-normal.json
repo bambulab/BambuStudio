@@ -1,5 +1,5 @@
 {
-    "type": "printer",
+    "type": "machine",
     "name": "Bambulab BBL-3DP-001-V5-normal",
     "from": "system",
     "instantiation": "true",
