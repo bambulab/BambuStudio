@@ -21,6 +21,12 @@
 #define PRESET_SLA_PRINT_NAME  "sla_print"
 #define PRESET_SLA_MATERIALS_NAME "sla_materials"
 
+//BBS: iot preset type strings
+#define PRESET_IOT_PRINTER_TYPE     "printer"
+#define PRESET_IOT_FILAMENT_TYPE    "filament"
+#define PRESET_IOT_PRINT_TYPE       "print"
+
+
 //BBS: add json support
 #define BBL_JSON_KEY_VERSION        "version"
 #define BBL_JSON_KEY_URL            "url"
@@ -212,6 +218,8 @@ public:
     std::map<std::string, std::string> key_values;
 
     static std::string  get_type_string(Preset::Type type);
+    // get string type for iot
+    static std::string  get_iot_type_string(Preset::Type type);
     static Preset::Type get_type_from_string(std::string type_str);
     void                load_info(const std::string& file);
     void                save_info(std::string file = "");

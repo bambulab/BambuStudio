@@ -1350,7 +1350,7 @@ namespace Slic3r {
 
         j["public"] = preset->is_system ? true : false;
         j["version"] = preset->version.to_string();
-        j["type"] = Preset::get_type_string(preset->type);
+        j["type"] = Preset::get_iot_type_string(preset->type);
         j["name"] = preset->name;
         if (!preset->base_id.empty()) {
             j["base_id"] = "";
@@ -2758,48 +2758,48 @@ namespace Slic3r {
                     if (root.empty()) return;
                     boost::optional<std::string> message = root.get_optional<std::string>("message");
                     if (message.has_value() && message.value().compare(MSG_SUCCESS) == 0) {
-                        if (root.get_child_optional("printer") != boost::none) {
-                            pt::ptree printer_node = root.get_child("printer");
+                        if (root.get_child_optional(PRESET_IOT_PRINTER_TYPE) != boost::none) {
+                            pt::ptree printer_node = root.get_child(PRESET_IOT_PRINTER_TYPE);
                             if (printer_node.get_child_optional("public") != boost::none) {
                                 pt::ptree public_node = printer_node.get_child("public");
                                 for (auto setting_item = public_node.begin(); setting_item != public_node.end(); ++setting_item) {
-                                    parse_setting(setting_item->second, "printer", "public");
+                                    parse_setting(setting_item->second, PRESET_IOT_PRINTER_TYPE, "public");
                                 }
                             }
                             if (printer_node.get_child_optional("private") != boost::none) {
                                     pt::ptree private_node = printer_node.get_child("private");
                                     for (auto setting_item = private_node.begin(); setting_item != private_node.end(); ++setting_item) {
-                                        parse_setting(setting_item->second, "printer", "private");
+                                        parse_setting(setting_item->second, PRESET_IOT_PRINTER_TYPE, "private");
                                     }
                                 }
                         }
-                        if (root.get_child_optional("filament") != boost::none) {
-                            pt::ptree filament_node = root.get_child("filament");
+                        if (root.get_child_optional(PRESET_IOT_FILAMENT_TYPE) != boost::none) {
+                            pt::ptree filament_node = root.get_child(PRESET_IOT_FILAMENT_TYPE);
                             if (filament_node.get_child_optional("public") != boost::none) {
                                 pt::ptree public_node = filament_node.get_child("public");
                                 for (auto setting_item = public_node.begin(); setting_item != public_node.end(); ++setting_item) {
-                                    parse_setting(setting_item->second, "filament", "public");
+                                    parse_setting(setting_item->second, PRESET_IOT_FILAMENT_TYPE, "public");
                                 }
                             }
                             if (filament_node.get_child_optional("private") != boost::none) {
                                 pt::ptree private_node = filament_node.get_child("private");
                                 for (auto setting_item = private_node.begin(); setting_item != private_node.end(); ++setting_item) {
-                                    parse_setting(setting_item->second, "filament", "private");
+                                    parse_setting(setting_item->second, PRESET_IOT_FILAMENT_TYPE, "private");
                                 }
                             }
                         }
-                        if (root.get_child_optional("print") != boost::none) {
-                            pt::ptree print_node = root.get_child("print");
+                        if (root.get_child_optional(PRESET_IOT_PRINT_TYPE) != boost::none) {
+                            pt::ptree print_node = root.get_child(PRESET_IOT_PRINT_TYPE);
                             if (print_node.get_child_optional("public") != boost::none) {
                                 pt::ptree public_node = print_node.get_child("public");
                                 for (auto setting_item = public_node.begin(); setting_item != public_node.end(); ++setting_item) {
-                                    parse_setting(setting_item->second, "print", "public");
+                                    parse_setting(setting_item->second, PRESET_IOT_PRINT_TYPE, "public");
                                 }
                             }
                             if (print_node.get_child_optional("private") != boost::none) {
                                 pt::ptree private_node = print_node.get_child("private");
                                 for (auto setting_item = private_node.begin(); setting_item != private_node.end(); ++setting_item) {
-                                    parse_setting(setting_item->second, "print", "private");
+                                    parse_setting(setting_item->second, PRESET_IOT_PRINT_TYPE, "private");
                                 }
                             }
                         }

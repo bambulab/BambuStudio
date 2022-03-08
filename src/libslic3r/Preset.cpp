@@ -395,17 +395,34 @@ std::string  Preset::get_type_string(Preset::Type type)
     }
 }
 
+std::string  Preset::get_iot_type_string(Preset::Type type)
+{
+    switch (type) {
+    case Preset::Type::TYPE_FILAMENT:
+        return PRESET_IOT_FILAMENT_TYPE;
+    case Preset::Type::TYPE_PRINT:
+        return PRESET_IOT_PRINT_TYPE;
+    case Preset::Type::TYPE_PRINTER:
+        return PRESET_IOT_PRINTER_TYPE;
+
+    default:
+        return "invalid";
+    }
+}
+
+//make the type string compatibility with local and iot type string
 Preset::Type Preset::get_type_from_string(std::string type_str)
 {
-    if (type_str.compare(PRESET_PRINT_NAME) == 0)
+    if (type_str.compare(PRESET_PRINT_NAME) == 0 || type_str.compare(PRESET_IOT_PRINT_TYPE) == 0)
         return Preset::Type::TYPE_PRINT;
-    else if (type_str.compare(PRESET_FILAMENT_NAME) == 0)
+    else if (type_str.compare(PRESET_FILAMENT_NAME) == 0 || type_str.compare(PRESET_IOT_FILAMENT_TYPE) == 0)
         return Preset::Type::TYPE_FILAMENT;
-    else if (type_str.compare(PRESET_PRINTER_NAME) == 0)
+    else if (type_str.compare(PRESET_PRINTER_NAME) == 0 || type_str.compare(PRESET_IOT_PRINTER_TYPE) == 0)
         return Preset::Type::TYPE_PRINTER;
     else
         return Preset::Type::TYPE_INVALID;
 }
+
 
 void Preset::load_info(const std::string& file)
 {
