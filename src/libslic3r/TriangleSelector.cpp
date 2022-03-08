@@ -242,7 +242,8 @@ void TriangleSelector::select_patch(int facet_start, std::unique_ptr<Cursor> &&c
     // It is necessary to compare the internal radius in m_cursor! radius is in
     // world coords and does not change after scaling.
     if (m_old_cursor_radius_sqr != m_cursor->radius_sqr) {
-        set_edge_limit(std::sqrt(m_cursor->radius_sqr) / 5.f);
+        // BBS: improve details for large cursor radius
+        set_edge_limit(std::min(std::sqrt(m_cursor->radius_sqr) / 5.f, 0.2f));
         m_old_cursor_radius_sqr = m_cursor->radius_sqr;
     }
 
