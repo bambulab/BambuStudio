@@ -2263,6 +2263,11 @@ namespace Slic3r {
                 m_model->delete_object(model_object);
         }
 
+        //construct the index maps
+        for (const IdToCurrentObjectMap::value_type& object : m_current_objects) {
+            m_index_paths.insert({ object.first.second, object.first.first});
+        }
+
         if (m_version == 0) {
             // if the 3mf was not produced by BambuStudio and there is only one object,
             // set the object name to match the filename
@@ -2364,25 +2369,12 @@ namespace Slic3r {
                             return false;
                         }
 
-                        IndexToPathMap::iterator current_index_map = m_index_paths.find(component.object_id.second);
-                        if (current_index_map != m_index_paths.end()) {
-                            m_index_paths.erase(current_index_map);
-                            m_index_paths.insert({ temp_id, new_path });
-                        }
-                        else {
-                            add_error("can not find object for index_map, id=" + std::to_string(component.object_id.second));
-                            delete m_curr_object;
-                            m_curr_object = nullptr;
-                            return false;
-                        }
-
                         component.object_id.second = temp_id;
                     }
                 }
             }
             Id id = std::make_pair(m_sub_model_path, m_curr_object->id);
             if (m_current_objects.find(id) == m_current_objects.end()) {
-                m_index_paths.insert({m_curr_object->id, m_sub_model_path});
                 m_current_objects.insert({ id, std::move(*m_curr_object) });
                 delete m_curr_object;
                 m_curr_object = nullptr;
