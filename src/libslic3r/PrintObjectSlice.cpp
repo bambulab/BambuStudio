@@ -429,13 +429,16 @@ std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std
         }
         if (lslices.empty()) {
             layer->slicing_errors = true;
-            //BBS
-            error_msg = object->model_object()->name + " has empty layers around "+ std::to_string(idx_layer) + "-th layer!"
-                + " They are replaced by nearest normal layers, but you may still want to check the result!";
         }
 
-        if (layers[idx_layer]->slicing_errors)
+        if (layers[idx_layer]->slicing_errors) {
             buggy_layers.push_back(idx_layer);
+            //BBS
+            error_msg = object->model_object()->name + " has empty layers around " + std::to_string(idx_layer) + "-th layer!"
+                + " They are replaced by nearest normal layers, but you may still want to check the result!";
+            }
+        else
+            break; // only detect empty layers near bed
     }
 
     BOOST_LOG_TRIVIAL(debug) << "Slicing objects - fixing slicing errors in parallel - begin";
@@ -445,6 +448,9 @@ std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std
             for (size_t buggy_layer_idx = range.begin(); buggy_layer_idx < range.end(); ++ buggy_layer_idx) {
                 throw_if_canceled();
                 size_t idx_layer = buggy_layers[buggy_layer_idx];
+                // BBS: only replace empty first layer
+                if (idx_layer > 0)
+                    continue;
                 Layer *layer     = layers[idx_layer];
                 assert(layer->slicing_errors);
                 // Try to repair the layer surfaces by merging all contours and all holes from neighbor layers.
@@ -454,12 +460,13 @@ std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std
                     // Find the first valid layer below / above the current layer.
                     const Surfaces *upper_surfaces = nullptr;
                     const Surfaces *lower_surfaces = nullptr;
-                    for (size_t j = idx_layer + 1; j < layers.size(); ++ j)
+                    //BBS: only repair first layer if the 2nd layer is Good
+                    for (size_t j = idx_layer + 1; j < /*layers.size()*/2; ++ j)
                         if (! layers[j]->slicing_errors) {
                             upper_surfaces = &layers[j]->regions()[region_id]->slices.surfaces;
                             break;
                         }
-                    for (int j = int(idx_layer) - 1; j >= 0; -- j)
+                    for (int j = /*int(idx_layer) -*/ 1; j >= 0; -- j)
                         if (! layers[j]->slicing_errors) {
                             lower_surfaces = &layers[j]->regions()[region_id]->slices.surfaces;
                             break;
