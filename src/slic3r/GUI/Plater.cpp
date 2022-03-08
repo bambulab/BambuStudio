@@ -5231,7 +5231,7 @@ void Plater::priv::on_action_print_plate(SimpleEvent&)
     }
 
     //BBS
-    m_select_machine_dlg->prepare(PLATE_CURRENT_IDX);
+    m_select_machine_dlg->prepare(partplate_list.get_curr_plate_index());
     m_select_machine_dlg->ShowModal();
 }
 
@@ -8542,7 +8542,7 @@ void Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
     catch (std::exception& e) {
         BOOST_LOG_TRIVIAL(trace) << "generate 3mf path failed";
     }
-    export_3mf(p->m_print_job_data._3mf_path, SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode, -1, proFn);
+    export_3mf(p->m_print_job_data._3mf_path, SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode, plate_idx, proFn);
 }
 
 //BBS

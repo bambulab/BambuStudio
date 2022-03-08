@@ -191,6 +191,14 @@ public:
     //set the print object, result and it's index
     void set_print(PrintBase *print, GCodeResult* result = nullptr, int index = -1);
 
+    //get gcode filename
+    std::string get_gcode_filename() {
+        if (is_slice_result_valid() && get_slice_result()) {
+            return m_gcode_result->filename;
+        }
+        return "";
+    }
+
     //get the plate's center point origin
     Vec3d get_center_origin();
     /* size and position related functions*/

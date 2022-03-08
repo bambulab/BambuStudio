@@ -61,6 +61,12 @@ void PrintJob::process()
         return;
     }
 
+    /* check gcode is valid */
+    if (plate->get_gcode_filename().empty()) {
+        update_status(curr_percent, "Internal error, no gcode in 3mf file!");
+        return;
+    }
+
     if (was_canceled()) {
         update_status(curr_percent, printjob_cancel_str);
         return;
