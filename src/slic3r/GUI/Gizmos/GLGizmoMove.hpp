@@ -9,6 +9,53 @@
 namespace Slic3r {
 namespace GUI {
 
+class GLGizmoMove : public GLGizmoBase
+{
+public:
+    enum Axis : unsigned char
+    {
+        X,
+        Y,
+        Z
+    };
+
+    static Vec3d m_displacement;
+
+private:
+    Axis m_axis;
+
+    static const double Offset;
+
+    double m_snap_step;
+
+    Vec3d m_starting_drag_position;
+    Vec3d m_starting_box_center;
+    Vec3d m_starting_box_bottom_center;
+
+    GLModel m_vbo_cone;
+
+public:
+    GLGizmoMove(GLCanvas3D& parent, Axis axis);
+    GLGizmoMove(const GLGizmoMove& other);
+    virtual ~GLGizmoMove() = default;
+
+    std::string get_tooltip() const override;
+
+    void render_grabbers_for_picking(const BoundingBoxf3& box) const;
+
+protected:
+    bool on_init() override;
+    std::string on_get_name() const override { return ""; }
+    void on_start_dragging() override;
+    void on_update(const UpdateData& data) override;
+    void on_render() override;
+    void on_render_for_picking() override;
+    void render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking) const;
+
+private:
+    double calc_projection(const UpdateData& data) const;
+};
+
 //BBS: GUI refactor: add object manipulation
 class GizmoObjectManipulation;
 class GLGizmoMove3D : public GLGizmoBase

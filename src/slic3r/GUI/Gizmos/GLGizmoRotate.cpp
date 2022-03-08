@@ -64,14 +64,16 @@ void GLGizmoRotate::set_angle(double angle)
 
 std::string GLGizmoRotate::get_tooltip() const
 {
-    std::string axis;
-    switch (m_axis)
-    {
-    case X: { axis = "X"; break; }
-    case Y: { axis = "Y"; break; }
-    case Z: { axis = "Z"; break; }
-    }
-    return (m_hover_id == 0 || m_grabbers[0].dragging) ? axis + ": " + format((float)Geometry::rad2deg(m_angle), 4) : "";
+    if (m_hover_id == -1) return "";
+
+    if (m_axis == X || m_grabbers[0].dragging)
+        return "X: " + format((float)Geometry::rad2deg(m_angle), 4);
+    else if (m_axis == Y || m_grabbers[0].dragging)
+        return "Y: " + format((float)Geometry::rad2deg(m_angle), 4);
+    else if (m_axis == Z || m_grabbers[0].dragging)
+        return "Z: " + format((float)Geometry::rad2deg(m_angle), 4);
+    else
+        return "";
 }
 
 bool GLGizmoRotate::on_init()
@@ -183,14 +185,22 @@ void GLGizmoRotate::on_render_for_picking()
 {
     const Selection& selection = m_parent.get_selection();
 
-    glsafe(::glDisable(GL_DEPTH_TEST));
-
+    glsafe(::glEnable(GL_DEPTH_TEST));
     glsafe(::glPushMatrix());
 
     transform_to_local(selection);
 
     const BoundingBoxf3& box = selection.get_bounding_box();
-    render_grabbers_for_picking(box);
+    //BBS do not render this for picking
+    //render_grabbers_for_picking(box);
+    // set grabber color
+    for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i) {
+        if (m_grabbers[i].enabled) {
+            std::array<float, 4> color = picking_color_component(i);
+            m_grabbers[i].color = color;
+        }
+    }
+
     render_grabber_extension(box, true);
 
     glsafe(::glPopMatrix());
@@ -321,15 +331,18 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
     m_grabbers[0].center = Vec3d(::cos(m_angle) * grabber_radius, ::sin(m_angle) * grabber_radius, 0.0);
     m_grabbers[0].angles(2) = m_angle;
 
+    /*
     glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color.data() : m_highlight_color.data()));
 
     ::glBegin(GL_LINES);
     ::glVertex3f(0.0f, 0.0f, 0.0f);
     ::glVertex3dv(m_grabbers[0].center.data());
     glsafe(::glEnd());
-
+    
     m_grabbers[0].color = m_highlight_color;
+    /* BBS do not render the grabber
     render_grabbers(box);
+     */
 }
 
 void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool picking) const

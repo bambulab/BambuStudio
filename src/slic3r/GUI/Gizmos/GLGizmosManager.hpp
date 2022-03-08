@@ -65,9 +65,8 @@ public:
     enum EType : unsigned char
     {
         // Order must match index in m_gizmos!
-        Move,
+        MoveRotate,
         Scale,
-        Rotate,
         Flatten,
         Cut,
         Hollow,
