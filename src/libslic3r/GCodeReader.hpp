@@ -58,9 +58,10 @@ public:
         bool  has_z() const { return this->has(Z); }
         bool  has_e() const { return this->has(E); }
         bool  has_f() const { return this->has(F); }
-        // BBS: add I J axis
+        // BBS: add I J P axis
         bool  has_i() const { return this->has(I); }
         bool  has_j() const { return this->has(J); }
+        bool  has_p() const { return this->has(P); }
 
         bool  has_unknown_axis() const { return this->has(UNKNOWN_AXIS); }
         float x() const { return m_axis[X]; }
@@ -68,9 +69,10 @@ public:
         float z() const { return m_axis[Z]; }
         float e() const { return m_axis[E]; }
         float f() const { return m_axis[F]; }
-        // BBS: add I J axis
+        // BBS: add I J P axis
         float i() const { return m_axis[I]; }
         float j() const { return m_axis[J]; }
+        float p() const { return m_axis[P]; }
 
         static bool cmd_is(const std::string &gcode_line, const char *cmd_test) {
             const char *cmd = GCodeReader::skip_whitespaces(gcode_line.c_str());

@@ -39,6 +39,7 @@ enum Axis {
     F,
     I,
     J,
+    P,
     NUM_AXES,
     UNKNOWN_AXIS = NUM_AXES,
 };

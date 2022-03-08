@@ -2893,8 +2893,10 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
     };
 
     auto move_type = [this](const float& delta_E) {
-        //BBS: currently arc move is only used for extrusion
-        return EMoveType::Extrude;
+        if (delta_E == 0.0f)
+            return EMoveType::Travel;
+        else
+            return EMoveType::Extrude;
     };
 
      auto arc_interpolation = [this](const Vec3f& start_pos, const Vec3f& end_pos, const Vec3f& center_pos, const bool is_ccw) {
@@ -2933,6 +2935,13 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
     //BBS: G2 G3 line but has no I and J axis, invalid G code format
     if (!line.has(I) && !line.has(J))
         return;
+    //BBS: P mode, but xy position is not same, or P is not 1, invalid G code format
+    if (line.has(P) &&
+        (m_start_position[X] != m_end_position[X] ||
+         m_start_position[Y] != m_end_position[Y] ||
+         ((int)line.p()) != 1))
+        return;
+
     m_arc_center = Vec3f(absolute_position(I, line),absolute_position(J, line),m_start_position[Z]);
     //BBS: G2 is CW direction, G3 is CCW direction
     const std::string_view cmd = line.cmd();
@@ -2940,7 +2949,12 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
     //BBS: get arc length,interpolation points and radian in X-Y plane
     Vec3f start_point = Vec3f(m_start_position[X], m_start_position[Y], m_start_position[Z]);
     Vec3f end_point = Vec3f(m_end_position[X], m_end_position[Y], m_end_position[Z]);
-    float arc_length = ArcSegment::calc_arc_length(start_point, end_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
+    float arc_length;
+    if (!line.has(P))
+        arc_length = ArcSegment::calc_arc_length(start_point, end_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
+    else
+        arc_length = ((int)line.p()) * 2 * PI * (start_point - m_arc_center).norm();
+    //BBS: Attention! arc_onterpolation does not support P mode while P is not 1.
     arc_interpolation(start_point, end_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
     float radian = ArcSegment::calc_arc_radian(start_point, end_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
     Vec3f start_dir = Circle::calc_tangential_vector(start_point, m_arc_center, (m_move_path_type == EMovePathType::Arc_move_ccw));
@@ -2957,13 +2971,13 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
     }
 
     //BBS: no displacement, return
-    if (arc_length == 0.0f && delta_pos[Z] == 0.0f && delta_pos[E] == 0.0f)
+    if (arc_length == 0.0f && delta_pos[Z] == 0.0f)
         return;
 
     EMoveType type = move_type(delta_pos[E]);
 
+    float delta_xyz = std::sqrt(sqr(arc_length) + sqr(delta_pos[Z]));
     if (type == EMoveType::Extrude) {
-        float delta_xyz = std::sqrt(sqr(arc_length) + sqr(delta_pos[Z]));
         float volume_extruded_filament = area_filament_cross_section * delta_pos[E];
         float area_toolpath_cross_section = volume_extruded_filament / delta_xyz;
 
@@ -3020,14 +3034,8 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
     }
 
     //BBS: time estimate section
-    auto move_length = [](const float& arc_length, const AxisCoords& delta_pos) {
-        float sq_xyz_length = sqr(arc_length) + sqr(delta_pos[Z]);
-        return (sq_xyz_length > 0.0f) ? std::sqrt(sq_xyz_length) : std::abs(delta_pos[E]);
-    };
-
-    float distance = move_length(arc_length, delta_pos);
-    assert(distance != 0.0f);
-    float inv_distance = 1.0f / distance;
+    assert(delta_xyz != 0.0f);
+    float inv_distance = 1.0f / delta_xyz;
     float radius = ArcSegment::calc_arc_radius(start_point, m_arc_center);
 
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
@@ -3039,7 +3047,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
         TimeMachine::State& prev = machine.prev;
         std::vector<TimeBlock>& blocks = machine.blocks;
 
-        curr.feedrate = (delta_pos[E] == 0.0f) ?
+        curr.feedrate = (type == EMoveType::Travel) ?
             minimum_travel_feedrate(static_cast<PrintEstimatedStatistics::ETimeMode>(i), m_feedrate) :
             minimum_feedrate(static_cast<PrintEstimatedStatistics::ETimeMode>(i), m_feedrate);
 
@@ -3050,15 +3058,15 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
         TimeBlock block;
         block.move_type = type;
         block.role = m_extrusion_role;
-        block.distance = distance;
+        block.distance = delta_xyz;
         block.g1_line_id = m_g1_line_id;
         block.layer_id = m_layer_id;
 
         // BBS: calculates block cruise feedrate
         // For arc move, we need to limite the cruise according to centripetal acceleration which is
-        // same with acceleration in x-y plane. Because arc move is only on x-y plane, we use acceleration directly
+        // same with acceleration in x-y plane. Because arc move part is only on x-y plane, we use x-y acceleration directly
         float centripetal_acceleration = get_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i));
-        float max_feedrate_by_centri_acc = sqrtf(centripetal_acceleration * radius);
+        float max_feedrate_by_centri_acc = sqrtf(centripetal_acceleration * radius) / (arc_length * inv_distance);
         curr.feedrate = std::min(curr.feedrate, max_feedrate_by_centri_acc);
 
         float min_feedrate_factor = 1.0f;
@@ -3066,9 +3074,9 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
             if (a == X || a == Y)
                 //BBS: use resultant feedrate in x-y plane
                 curr.axis_feedrate[a] = curr.feedrate * arc_length * inv_distance;
-            else
+            else if (a == Z)
                 curr.axis_feedrate[a] = curr.feedrate * delta_pos[a] * inv_distance;
-            if (a == E)
+            else
                 curr.axis_feedrate[a] *= machine.extrude_factor_override_percentage;
 
             curr.abs_axis_feedrate[a] = std::abs(curr.axis_feedrate[a]);
@@ -3080,7 +3088,6 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
         }
         curr.feedrate *= min_feedrate_factor;
         block.feedrate_profile.cruise = curr.feedrate;
-
         if (min_feedrate_factor < 1.0f) {
             for (unsigned char a = X; a <= E; ++a) {
                 curr.axis_feedrate[a] *= min_feedrate_factor;
@@ -3089,11 +3096,25 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
         }
 
         //BBS: calculates block acceleration
-        float acceleration = get_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i));
-        float axis_max_acceleration = get_axis_max_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(X));
-        if (acceleration > axis_max_acceleration)
-                acceleration = axis_max_acceleration;
-        block.acceleration = acceleration;
+        float acceleration = (type == EMoveType::Travel) ?
+                              get_travel_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i)) :
+                              get_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i));
+        float min_acc_factor = 1.0f;
+        AxisCoords axis_acc;
+        for (unsigned char a = X; a <= Z; ++a) {
+            if (a == X || a == Y)
+                //BBS: use resultant feedrate in x-y plane
+                axis_acc[a] = acceleration * arc_length * inv_distance;
+            else
+                axis_acc[a] = acceleration * std::abs(delta_pos[a]) * inv_distance;
+
+            if (axis_acc[a] != 0.0f) {
+                float axis_max_acceleration = get_axis_max_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a));
+                if (axis_max_acceleration != 0.0f && axis_acc[a] > axis_max_acceleration)
+                    min_acc_factor = std::min(min_acc_factor, axis_max_acceleration / axis_acc[a]);
+            }
+        }
+        block.acceleration = acceleration * min_acc_factor;
 
         //BBS: calculates block exit feedrate
         for (unsigned char a = X; a <= E; ++a) {
@@ -3717,7 +3738,7 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
             m_interpolation_points[i] =
                 Vec3f(m_interpolation_points[i].x() + m_x_offset,
                       m_interpolation_points[i].y() + m_y_offset,
-                      m_end_position[Z]) +
+                      m_interpolation_points[i].z()) +
                 m_extruder_offsets[m_extruder_id];
     }
 

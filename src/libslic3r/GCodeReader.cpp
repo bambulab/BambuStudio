@@ -57,6 +57,7 @@ const char* GCodeReader::parse_line_internal(const char *ptr, const char *end, G
             case 'I': axis = I; break;
             case 'J': axis = J; break;
             case 'E': axis = E; break;
+            case 'P': axis = P; break;
             default:
                 if (*c >= 'A' && *c <= 'Z')
                 	// Unknown axis, but we still want to remember that such a axis was seen.

@@ -11,6 +11,12 @@
 
 namespace Slic3r {
 
+enum class LiftType {
+    NormalLift,
+    LazyLift,
+    SpiralLift
+};
+
 class GCodeWriter {
 public:
     GCodeConfig config;
@@ -22,7 +28,8 @@ public:
         m_last_acceleration(0), m_max_acceleration(0), m_last_fan_speed(0),
         /*m_last_bed_temperature(0), */m_last_bed_temperature_reached(true),
         m_lifted(0),
-        m_to_lift(0)
+        m_to_lift(0),
+        m_to_lift_type(LiftType::NormalLift)
         {}
     Extruder*            extruder()             { return m_extruder; }
     const Extruder*      extruder()     const   { return m_extruder; }
@@ -67,7 +74,7 @@ public:
     std::string retract(bool before_wipe = false);
     std::string retract_for_toolchange(bool before_wipe = false);
     std::string unretract();
-    std::string lift(bool lazy_lift);
+    std::string lift(LiftType lift_type = LiftType::NormalLift);
     std::string unlift();
     Vec3d       get_position() const { return m_pos; }
 
@@ -108,6 +115,7 @@ private:
 
     // BBS
     double          m_to_lift;
+    LiftType        m_to_lift_type;
     Vec3d           m_pos = Vec3d::Zero();
     //BBS: this flag is used to indicate whether the m_pos is real.
     //A example that of the first move, the m_pos is zero, but the real position of extruder doesn't
@@ -117,7 +125,11 @@ private:
     double          m_x_offset{ 0 };
     double          m_y_offset{ 0 };
 
+    //Radian threshold of slope for lazy lift and spiral lift;
+    static const double slope_threshold;
+
     std::string _travel_to_z(double z, const std::string &comment);
+    std::string _spiral_travel_to_z(double z, const Vec2d &ij_offset, const std::string &comment);
     std::string _retract(double length, double restart_extra, const std::string &comment);
 };
 

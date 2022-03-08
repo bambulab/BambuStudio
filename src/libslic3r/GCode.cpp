@@ -1446,6 +1446,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     // Write the custom start G-code
     file.writeln(machine_start_gcode);
+    //BBS: gcode writer doesn't know where the real position of extruder is after inserting custom gcode
+    m_writer.set_current_position_clear(false);
 
     // Process filament-specific gcode.
    /* if (has_wipe_tower) {
@@ -3703,7 +3705,7 @@ std::string GCode::retract(bool toolchange)
     if (m_writer.extruder()->retraction_length() > 0) {
         // BBS: don't do lazy_lift when enable spiral vase
         size_t extruder_id = m_writer.extruder()->id();
-        gcode += m_writer.lift(!m_spiral_vase);
+        gcode += m_writer.lift(!m_spiral_vase ?  LiftType::SpiralLift : LiftType::NormalLift);
     }
 
     return gcode;
@@ -3850,10 +3852,6 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     // Set the new extruder to the operating temperature.
     if (m_ooze_prevention.enable)
         gcode += m_ooze_prevention.post_toolchange(*this);
-
-    //BBS: don't do slope travel after tool change
-    //Because gcode writer don't know where is the real position of extruder after inserting a user-defined gcode
-    m_writer.set_current_position_clear(false);
 
     return gcode;
 }

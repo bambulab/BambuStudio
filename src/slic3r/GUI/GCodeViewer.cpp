@@ -1635,44 +1635,49 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
 
     // format data into the buffers to be rendered as lines
     auto add_vertices_as_line = [](const GCodeProcessorResult::MoveVertex& prev, const GCodeProcessorResult::MoveVertex& curr, VertexBuffer& vertices) {
-        // x component of the normal to the current segment (the normal is parallel to the XY plane)
-        const Vec3f dir = (curr.position - prev.position).normalized();
-        Vec3f normal(dir.y(), -dir.x(), 0.0);
-        normal.normalize();
-
-        auto add_vertex = [&vertices, &normal](const GCodeProcessorResult::MoveVertex& vertex) {
+        auto add_vertex = [&vertices](const Vec3f& position, const Vec3f& normal) {
             // add position
-            vertices.push_back(vertex.position.x());
-            vertices.push_back(vertex.position.y());
-            vertices.push_back(vertex.position.z());
+            vertices.push_back(position.x());
+            vertices.push_back(position.y());
+            vertices.push_back(position.z());
             // add normal
             vertices.push_back(normal.x());
             vertices.push_back(normal.y());
             vertices.push_back(normal.z());
         };
-
-        // add previous vertex
-        add_vertex(prev);
-        // add current vertex
-        add_vertex(curr);
+        // x component of the normal to the current segment (the normal is parallel to the XY plane)
+        //BBS: Has modified a lot for this function to support arc move
+        size_t loop_num = curr.is_arc_move_with_interpolation_points() ? curr.interpolation_points.size() : 0;
+        for (size_t i = 0; i < loop_num + 1; i++) {
+            const Vec3f &previous = (i == 0? prev.position : curr.interpolation_points[i-1]);
+            const Vec3f &current = (i == loop_num? curr.position : curr.interpolation_points[i]);
+            const Vec3f dir = (current - previous).normalized();
+            Vec3f normal(dir.y(), -dir.x(), 0.0);
+            normal.normalize();
+            // add previous vertex
+            add_vertex(previous, normal);
+            // add current vertex
+            add_vertex(current, normal);
+        }
     };
+    //BBS: modify a lot to support arc travel
     auto add_indices_as_line = [](const GCodeProcessorResult::MoveVertex& prev, const GCodeProcessorResult::MoveVertex& curr, TBuffer& buffer,
-        unsigned int ibuffer_id, IndexBuffer& indices, size_t move_id) {
+        size_t& vbuffer_size, unsigned int ibuffer_id, IndexBuffer& indices, size_t move_id) {
+
             if (buffer.paths.empty() || prev.type != curr.type || !buffer.paths.back().matches(curr)) {
-                // add starting index
-                indices.push_back(static_cast<IBufferType>(indices.size()));
-                buffer.add_path(curr, ibuffer_id, indices.size() - 1, move_id - 1);
+                buffer.add_path(curr, ibuffer_id, indices.size(), move_id - 1);
                 buffer.paths.back().sub_paths.front().first.position = prev.position;
             }
 
             Path& last_path = buffer.paths.back();
-            if (last_path.sub_paths.front().first.i_id != last_path.sub_paths.back().last.i_id) {
-                // add previous index
+            size_t loop_num = curr.is_arc_move_with_interpolation_points() ? curr.interpolation_points.size() : 0;
+            for (size_t i = 0; i < loop_num + 1; i++) {
+                //BBS: add previous index
                 indices.push_back(static_cast<IBufferType>(indices.size()));
+                //BBS: add current index
+                indices.push_back(static_cast<IBufferType>(indices.size()));
+                vbuffer_size += buffer.max_vertices_per_segment();
             }
-
-            // add current index
-            indices.push_back(static_cast<IBufferType>(indices.size()));
             last_path.sub_paths.back().last = { ibuffer_id, indices.size() - 1, move_id, curr.position };
     };
 
@@ -2498,8 +2503,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
             break;
         }
         case TBuffer::ERenderPrimitiveType::Line: {
-            add_indices_as_line(prev, curr, t_buffer, static_cast<unsigned int>(i_multibuffer.size()) - 1, i_buffer, move_id);
-            curr_vertex_buffer.second += t_buffer.max_vertices_per_segment();
+            add_indices_as_line(prev, curr, t_buffer, curr_vertex_buffer.second, static_cast<unsigned int>(i_multibuffer.size()) - 1, i_buffer, move_id);
             break;
         }
         case TBuffer::ERenderPrimitiveType::Triangle: {
@@ -2960,8 +2964,16 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
                         const Path::Sub_Path& sub_path = path.sub_paths[sub_path_id];
                         unsigned int offset = static_cast<unsigned int>(m_sequential_view.current.last - sub_path.first.s_id);
                         if (offset > 0) {
-                            if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Line)
+                            if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Line) {
+                                for (size_t i = sub_path.first.s_id + 1; i < m_sequential_view.current.last + 1; i++) {
+                                    size_t move_id = m_ssid_to_moveid_map[i];
+                                    const GCodeProcessorResult::MoveVertex& curr = m_gcode_result->moves[move_id];
+                                    if (curr.is_arc_move()) {
+                                        offset += curr.interpolation_points.size();
+                                    }
+                                }
                                 offset = 2 * offset - 1;
+                            }
                             else if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::Triangle) {
                                 unsigned int indices_count = buffer.indices_per_segment();
                                 // BBS: modify to support moves which has internal point

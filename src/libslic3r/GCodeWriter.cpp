@@ -16,6 +16,7 @@
 namespace Slic3r {
 
 const bool GCodeWriter::full_gcode_comment = false;
+const double GCodeWriter::slope_threshold = 3 * PI / 180;
 
 void GCodeWriter::apply_print_config(const PrintConfig &print_config)
 {
@@ -283,6 +284,7 @@ std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &com
     m_pos(0) = point(0);
     m_pos(1) = point(1);
 
+    this->set_current_position_clear(true);
     //BBS: take plate offset into consider
     Vec2d point_on_plate = { point(0) - m_x_offset, point(1) - m_y_offset };
     
@@ -307,6 +309,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
         used for unlift. */
         // BBS
     Vec3d dest_point = point;
+    //BBS: a z_hop need to be handle when travel
     if (std::abs(m_to_lift) > EPSILON) {
         assert(std::abs(m_lifted) < EPSILON);
         if (m_to_lift + m_pos(2) > point(2)) {
@@ -317,18 +320,27 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
 
         std::string slop_move;
         //BBS: minus plate offset
+        Vec3d source = { m_pos(0) - m_x_offset, m_pos(1) - m_y_offset, m_pos(2) };
         Vec3d target = { dest_point(0) - m_x_offset, dest_point(1) - m_y_offset, dest_point(2) };
-        if (this->is_current_position_clear()) {  //BBS: don'need slope travel because we don't know where is the source position the first time
-            //BBS: minus plate offset
-            Vec3d source = { m_pos(0) - m_x_offset, m_pos(1) - m_y_offset, m_pos(2) };
-            Vec3d delta = target - source;
-            Vec3d delta_no_z = { delta(0), delta(1), 0 };
-            //BBS: check whether we need to make a travel like
-            //   _____
-            //  /       to make the z list early to avoid to hit some warping place when travel is long.
-            const double slope_threshold = 3 * PI / 180;
-            if (delta(2) > EPSILON && atan2(delta(2), delta_no_z.norm()) < slope_threshold) {
-                Vec3d temp = delta_no_z.normalized() * delta(2) / tan(slope_threshold);
+        Vec3d delta = target - source;
+        //BBS: don'need slope travel because we don't know where is the source position the first time
+        if (this->is_current_position_clear() && delta(2) > 0) {
+
+            Vec2d delta_no_z = { delta(0), delta(1) };
+            double radius = delta(2) / (2 * PI * atan(GCodeWriter::slope_threshold));
+            Vec2d ij_offset = radius * delta_no_z.normalized();
+            ij_offset = { -ij_offset(1), ij_offset(0) };
+            //BBS: SpiralLift
+            if (m_to_lift_type == LiftType::SpiralLift) {
+                //BBS: todo: check the arc move all in bed area, if not, then use lazy lift
+                slop_move = this->_spiral_travel_to_z(target(2), ij_offset, "spiral lift Z");
+            }
+            //BBS: LazyLift
+            else if (atan2(delta(2), delta_no_z.norm()) < GCodeWriter::slope_threshold) {
+                //BBS: check whether we can make a travel like
+                //   _____
+                //  /       to make the z list early to avoid to hit some warping place when travel is long.
+                Vec2d temp = delta_no_z.normalized() * delta(2) / tan(GCodeWriter::slope_threshold);
                 Vec3d slope_top_point = Vec3d(temp(0), temp(1), delta(2)) + source;
                 GCodeG1Formatter w0;
                 w0.emit_xyz(slope_top_point);
@@ -411,6 +423,24 @@ std::string GCodeWriter::_travel_to_z(double z, const std::string &comment)
     //BBS
     w.emit_comment(GCodeWriter::full_gcode_comment, comment);
     return w.string();
+}
+
+std::string GCodeWriter::_spiral_travel_to_z(double z, const Vec2d &ij_offset, const std::string &comment)
+{
+    m_pos(2) = z;
+
+    double speed = this->config.travel_speed_z.value;
+    if (speed == 0.)
+        speed = this->config.travel_speed.value;
+    
+    std::string output = "G17\n";
+    GCodeG2G3Formatter w(true);
+    w.emit_z(z);
+    w.emit_ij(ij_offset);
+    w.emit_string(" P1 ");
+    w.emit_f(speed * 60.0);
+    w.emit_comment(GCodeWriter::full_gcode_comment, comment);
+    return output + w.string();
 }
 
 bool GCodeWriter::will_move_z(double z) const
@@ -549,7 +579,7 @@ std::string GCodeWriter::unretract()
 /*  If this method is called more than once before calling unlift(),
     it will not perform subsequent lifts, even if Z was raised manually
     (i.e. with travel_to_z()) and thus _lifted was reduced. */
-std::string GCodeWriter::lift(bool lazy_lift)
+std::string GCodeWriter::lift(LiftType lift_type)
 {
     // check whether the above/below conditions are met
     double target_lift = 0;
@@ -559,12 +589,12 @@ std::string GCodeWriter::lift(bool lazy_lift)
     }
     // BBS
     if (m_lifted == 0 && m_to_lift == 0 && target_lift > 0) {
-        if (!lazy_lift) {
+        if (lift_type == LiftType::LazyLift || lift_type == LiftType::SpiralLift) {
+            m_to_lift = target_lift;
+            m_to_lift_type = lift_type;
+        } else  {
             m_lifted = target_lift;
             return this->_travel_to_z(m_pos(2) + target_lift, "lift Z");
-        }
-        else {
-            m_to_lift = target_lift;
         }
     }
     return "";

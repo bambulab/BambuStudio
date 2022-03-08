@@ -250,8 +250,7 @@ GCodeCheckResult GCodeChecker::parse_G2_G3(GCodeLine& gcode_line)
         return GCodeCheckResult::ParseFailed;
 
     //BBS: invalid G2_G3 command which has no axis or Z axis
-    if (!gcode_line.m_mask ||
-        gcode_line.has(Z)) {
+    if (!gcode_line.m_mask) {
         std::cout << "Invalid G2_G3 gcode because of no axis or has Z axis!" << std::endl;
         return GCodeCheckResult::ParseFailed;
     }
@@ -269,8 +268,10 @@ GCodeCheckResult GCodeChecker::parse_G2_G3(GCodeLine& gcode_line)
     //BBS: invalid G2_G3 command which has no X and Y axis at same time
     if (!gcode_line.has(X) &&
         !gcode_line.has(Y)) {
-        std::cout << "Invalid G2_G3 gcode because of no X and Y axis at same time!" << std::endl;
-        return GCodeCheckResult::ParseFailed;
+        if (!gcode_line.has(X) || !gcode_line.has(P) || (int)gcode_line.get(P) != 1) {
+            std::cout << "Invalid G2_G3 gcode because of no X and Y axis at same time!" << std::endl;
+            return GCodeCheckResult::ParseFailed;
+        }
     }
 
     return GCodeCheckResult::Success;
