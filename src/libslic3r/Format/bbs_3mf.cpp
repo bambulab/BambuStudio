@@ -682,7 +682,7 @@ namespace Slic3r {
         // add backup & restore logic
         bool _load_model_from_file(std::string filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, Import3mfProgressFn proFn = nullptr,
             BBLProject* project = nullptr);
-        bool _extract_from_archive(mz_zip_archive& archive, std::string const & path, std::function<bool (mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)>);
+        bool _extract_from_archive(mz_zip_archive& archive, std::string const & path, std::function<bool (mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)>, bool restore = false);
         bool _extract_xml_from_archive(mz_zip_archive& archive, std::string const & path, XML_StartElementHandler start_handler, XML_EndElementHandler end_handler);
         bool _extract_xml_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, XML_StartElementHandler start_handler, XML_EndElementHandler end_handler);
         bool _extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
@@ -910,7 +910,7 @@ namespace Slic3r {
             boost::filesystem::save_string_file(model.get_backup_path() + "/origin.txt", filename);
         }
         if (m_load_restore && !result) // not clear failed backup data for later analyze
-            model.set_backup_path("");
+            model.set_backup_path("detach");
         if (m_key_store)
             model.set_key_store(m_key_store);
         return result;
@@ -1031,7 +1031,7 @@ namespace Slic3r {
                 m_sub_model_path = path;
                 if (!_extract_from_archive(archive, path, [this] (mz_zip_archive& archive, const mz_zip_archive_file_stat& stat) {
                     return _extract_model_from_archive(archive, stat);
-                })) {
+                }), m_load_restore) {
                     add_error("Archive does not contain a valid model");
                     return false;
                 }
@@ -1365,7 +1365,7 @@ namespace Slic3r {
         return true;
     }
 
-    bool _BBS_3MF_Importer::_extract_from_archive(mz_zip_archive& archive, std::string const & path, std::function<bool (mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)> extract)
+    bool _BBS_3MF_Importer::_extract_from_archive(mz_zip_archive& archive, std::string const & path, std::function<bool (mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)> extract, bool restore)
     {
         mz_uint num_entries = mz_zip_reader_get_num_files(&archive);
         mz_zip_archive_file_stat stat;
@@ -1390,7 +1390,7 @@ namespace Slic3r {
             }
         }
         if (index < 0 || !mz_zip_reader_file_stat(&archive, index, &stat)) {
-            if (m_load_restore) {
+            if (restore) {
                 std::vector<std::string> paths = {m_backup_path + path};
                 if (!m_origin_file.empty()) paths.push_back(m_origin_file);
                 for (auto & path2 : paths) {

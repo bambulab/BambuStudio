@@ -758,6 +758,10 @@ void Model::set_backup_path(std::string const& path)
 {
     if (backup_path == path)
         return;
+    if ("detach" == path) {
+        backup_path.clear();
+        return;
+    }
     if (!backup_path.empty())
         Slic3r::remove_backup(*this, true);
     backup_path = path;
