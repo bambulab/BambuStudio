@@ -1345,6 +1345,17 @@ void PartPlate::update_states()
 }
 
 /*slice related functions*/
+//invalid sliced result
+void PartPlate::update_slice_result_valid_state(bool valid)
+{
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1% , update slice result from %2% to %3%") % m_plate_index %m_slice_result_valid %valid;
+    m_slice_result_valid = valid;
+    if (valid)
+        m_slice_percent = 100.0f;
+    else
+        m_slice_percent = -1.0f;
+}
+
 //update current slice context into backgroud slicing process
 void PartPlate::update_slice_context(BackgroundSlicingProcess & process)
 {
@@ -2863,7 +2874,7 @@ Print& PartPlateList::get_current_fff_print() const
 	Print* print;
 
 	current_plate = m_plate_list[m_current_plate];
-	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":m_current_plate %1%, current_plate %2%") % m_current_plate % current_plate;
+	//BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":m_current_plate %1%, current_plate %2%") % m_current_plate % current_plate;
 	assert(current_plate != NULL);
 
 	current_plate->get_print((PrintBase **)&print, nullptr, nullptr);

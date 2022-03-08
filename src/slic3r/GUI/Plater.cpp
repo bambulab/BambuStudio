@@ -8316,6 +8316,7 @@ void Plater::export_toolpaths_to_obj() const
 //BBS: add multiple plate reslice logic
 void Plater::reslice()
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: enter, process_completed_with_error=%2%")%__LINE__ %p->process_completed_with_error;
     // There is "invalid data" button instead "slice now"
     if (p->process_completed_with_error)
     {
@@ -8398,11 +8399,14 @@ void Plater::reslice()
     else {
         //BBS: add reset logic for empty plate
         PartPlate * current_plate = p->background_process.get_current_plate();
+        current_plate->update_slice_result_valid_state(true);
+        p->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, false);
+
         if (!current_plate->has_printable_instances())
             clean_gcode_toolpaths = true;
         else
             clean_gcode_toolpaths = false;
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": background process in idle state, use previous result, no need to reset_gcode_toolpaths");
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": background process in idle state, use previous result, clean_gcode_toolpaths=%1%")%clean_gcode_toolpaths;
     }
 
     if (clean_gcode_toolpaths)
@@ -9196,6 +9200,7 @@ void Plater::apply_background_progress()
 int Plater::select_plate(int plate_index, bool need_slice)
 {
     int ret;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: plate %2%, need_slice %3% ")%__LINE__ %plate_index  %need_slice;
     take_snapshot(_L("select partplate!"));
     ret = p->partplate_list.select_plate(plate_index);
     if (!ret) {

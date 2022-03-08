@@ -411,6 +411,7 @@ void Preview::load_print(bool keep_z_range)
 
 void Preview::reload_print(bool keep_volumes)
 {
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" %1%: enter, keep_volumes %2%")%__LINE__ %keep_volumes;
 #ifdef __linux__
     // We are getting mysterious crashes on Linux in gtk due to OpenGL context activation GH #1874 #1955.
     // So we are applying a workaround here: a delayed release of OpenGL vertex buffers.
@@ -427,7 +428,9 @@ void Preview::reload_print(bool keep_volumes)
         !keep_volumes)
     {
         m_canvas->reset_volumes();
-        m_loaded = false;
+        //BBS: add m_loaded_print logic
+        //m_loaded = false;
+        m_loaded_print = nullptr;
 #ifdef __linux__
         m_volumes_cleanup_required = false;
 #endif /* __linux__ */
@@ -438,12 +441,16 @@ void Preview::reload_print(bool keep_volumes)
 
 void Preview::refresh_print()
 {
-    m_loaded = false;
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" %1%: enter, current m_loaded_print %2%")%__LINE__ %m_loaded_print;
+    //BBS: add m_loaded_print logic
+    //m_loaded = false;
+    m_loaded_print = nullptr;
 
     if (!IsShown())
         return;
 
     load_print(true);
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" %1%: exit")%__LINE__;
 }
 
 //BBS: always load shell at preview
@@ -950,14 +957,18 @@ void Preview::load_print_as_fff(bool keep_z_range)
         // avoid processing while mainframe is being constructed
         return;
 
-    if (m_loaded || m_process->current_printer_technology() != ptFFF)
+    //BBS: add m_loaded_print logic
+    const Print *print = m_process->fff_print();
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" %1%: previous print %2%, new print %3%")%__LINE__ %m_loaded_print %print;
+    if ((m_loaded_print&&(m_loaded_print == print)) || m_process->current_printer_technology() != ptFFF) {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" %1%: already loaded before, return directly")%__LINE__;
         return;
+    }
 
     // we require that there's at least one object and the posSlice step
     // is performed on all of them(this ensures that _shifted_copies was
     // populated and we know the number of layers)
     bool has_layers = false;
-    const Print *print = m_process->fff_print();
     //BBS: always load shell at preview
     load_shells(*print, true);
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" %1%: print: %2%, gcode_result %3%, check started")%__LINE__ %print %m_gcode_result;
@@ -1031,7 +1042,9 @@ void Preview::load_print_as_fff(bool keep_z_range)
             m_canvas->set_shells_on_previewing(false);
             Refresh();
             zs = m_canvas->get_gcode_layers_zs();
-            m_loaded = true;
+            //BBS: add m_loaded_print logic
+            //m_loaded = true;
+            m_loaded_print = print;
         }
         else if (wxGetApp().is_editor()) {
             // Load the initial preview based on slices, not the final G-code.
@@ -1079,11 +1092,16 @@ void Preview::load_print_as_fff(bool keep_z_range)
 
 void Preview::load_print_as_sla()
 {
-    if (m_loaded || (m_process->current_printer_technology() != ptSLA))
+    //BBS: add m_loaded_print logic
+    const SLAPrint* print = m_process->sla_print();
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" %1%: previous print %2%, new print %3%")%__LINE__ %m_loaded_print %print;
+    if ((m_loaded_print&&(m_loaded_print == print)) || m_process->current_printer_technology() != ptSLA){
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" %1%: already loaded before, return directly")%__LINE__;
         return;
+    }
 
     unsigned int n_layers = 0;
-    const SLAPrint* print = m_process->sla_print();
+    //const SLAPrint* print = m_process->sla_print();
 
     std::vector<double> zs;
     double initial_layer_height = print->material_config().initial_layer_height.value;
@@ -1114,7 +1132,9 @@ void Preview::load_print_as_sla()
         if (n_layers > 0)
             update_layers_slider(zs);
 
-        m_loaded = true;
+        //BBS: add m_loaded_print logic
+        //m_loaded = true;
+        m_loaded_print = print;
     }
 }
 

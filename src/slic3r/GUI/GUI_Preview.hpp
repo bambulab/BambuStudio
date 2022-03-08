@@ -6,6 +6,9 @@
 #include "libslic3r/Point.hpp"
 #include "libslic3r/CustomGCode.hpp"
 
+//BBS: add print base
+#include "libslic3r/PrintBase.hpp"
+
 #include <string>
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 
@@ -114,7 +117,9 @@ class Preview : public wxPanel
     unsigned int m_number_extruders { 1 };
     bool m_keep_current_preview_type{ false };
 
-    bool m_loaded { false };
+    //bool m_loaded { false };
+    //BBS: add logic for preview print
+    const Slic3r::PrintBase* m_loaded_print { nullptr };
 
     DoubleSlider::Control* m_layers_slider{ nullptr };
     DoubleSlider::Control* m_moves_slider{ nullptr };
@@ -165,7 +170,8 @@ public:
     void move_layers_slider(wxKeyEvent& evt);
     void edit_layers_slider(wxKeyEvent& evt);
 
-    bool is_loaded() const { return m_loaded; }
+    //BBS: add m_loaded_print logic
+    bool is_loaded() const { return (m_loaded_print != nullptr); }
 
     void update_bottom_toolbar();
     void update_moves_slider();
