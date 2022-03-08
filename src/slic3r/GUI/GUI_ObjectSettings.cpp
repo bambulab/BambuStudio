@@ -188,35 +188,55 @@ bool ObjectSettings::update_settings_list()
 {
     auto objects_ctrl   = wxGetApp().obj_list();
     auto objects_model  = wxGetApp().obj_list()->GetModel();
-    auto config         = wxGetApp().obj_list()->config();
 
-    const auto item = objects_ctrl->GetSelection();
+    wxDataViewItemArray items;
+    objects_ctrl->GetSelections(items);
+
+    std::map<ObjectBase *, ModelConfig *> object_configs;
+    bool is_object_settings = true;
+    bool is_volume_settings = true;
+    ModelObject * parent_object = nullptr;
+    for (auto item : items) {
+        auto type = objects_model->GetItemType(item);
+        if (type != itObject && type != itVolume) {
+            return false;
+        }
+        const int obj_idx = objects_model->GetObjectIdByItem(item);
+        assert(obj_idx >= 0);
+        auto object = wxGetApp().model().objects[obj_idx];
+        if (type == itObject) {
+            if (!is_object_settings)
+                return false;
+            is_volume_settings = false;
+            object_configs.emplace(object, &object->config);
+        } else {
+            if (!is_volume_settings)
+                return false;
+            if (parent_object && parent_object != object)
+                return false;
+            parent_object = object;
+            is_object_settings = false;
+            const int vol_idx = objects_model->GetVolumeIdByItem(item);
+            assert(vol_idx >= 0);
+            auto volume = object->volumes[vol_idx];
+            object_configs.emplace(volume, &volume->config);
+        }
+    }
 
     auto tab_object = dynamic_cast<TabPrintModel*>(wxGetApp().get_model_tab());
     auto tab_volume = dynamic_cast<TabPrintModel*>(wxGetApp().get_model_tab(true));
 
-    if (!item || !config || objects_ctrl->multiple_selection()) {
-        tab_object->set_model_config(nullptr, nullptr);
-        tab_volume->set_model_config(nullptr, nullptr);
-        ((ParamsPanel*) tab_object->GetParent())->set_active_tab(nullptr);
-        return false;
-    }
-
-    const int obj_idx = objects_model->GetObjectIdByItem(item);
-    assert(obj_idx >= 0);
-    auto object = wxGetApp().model().objects[obj_idx];
-
-    const bool is_object_settings = objects_model->GetItemType(item) == itObject;
-    if (!is_object_settings) {
-        const int vol_idx = objects_model->GetVolumeIdByItem(item);
-        assert(vol_idx >= 0);
-        auto volume = object->volumes[vol_idx];
-        tab_object->set_model_config(object, &object->config);
-        tab_volume->set_model_config(volume, config);
+    if (is_volume_settings == is_object_settings) {
+        tab_object->set_model_config({});
+        tab_volume->set_model_config({});
+        m_tab_active = nullptr;
+    } else if (is_volume_settings) {
+        tab_object->set_model_config({{parent_object, &parent_object->config}});
+        tab_volume->set_model_config(object_configs);
         m_tab_active = tab_volume;
-    } else {
-        tab_object->set_model_config(object, config);
-        tab_volume->set_model_config(nullptr, nullptr);
+    } else if (is_object_settings) {
+        tab_object->set_model_config(object_configs);
+        tab_volume->set_model_config({});
         m_tab_active = tab_object;
     }
     ((ParamsPanel*) tab_object->GetParent())->set_active_tab(nullptr);

@@ -591,11 +591,13 @@ bool TextCtrl::value_was_changed()
 
 void TextCtrl::propagate_value()
 {
-    if (!is_defined_input_value<wxTextCtrl>(text_ctrl(), m_opt.type)) // BBS
+    
+    if (!is_defined_input_value<wxTextCtrl>(text_ctrl(), m_opt.type)) { // BBS
 		// on_kill_focus() cause a call of OptionsGroup::reload_config(),
 		// Thus, do it only when it's really needed (when undefined value was input)
-        on_kill_focus();
-	else if (value_was_changed())
+        if (!m_value.empty()) // BBS: null value
+            on_kill_focus();
+	} else if (value_was_changed())
         on_change_field();
 }
 
@@ -609,7 +611,7 @@ void TextCtrl::set_value(const boost::any& value, bool change_event/* = false*/)
                                             boost::any_cast<wxString>(value)); // BBS
     }
     else
-        text_ctrl()->SetValue(boost::any_cast<wxString>(value)); // BBS
+        text_ctrl()->SetValue(value.empty() ? "" : boost::any_cast<wxString>(value)); // BBS // BBS: null value
     m_disable_change_event = false;
 
     if (!change_event) {
@@ -741,8 +743,9 @@ void CheckBox::set_value(const boost::any& value, bool change_event)
             m_last_meaningful_value = value;
         dynamic_cast<::CheckBox*>(window)->SetValue(m_is_na_val ? false : boost::any_cast<unsigned char>(value) != 0); // BBS
     }
-    else
+    else if (!value.empty()) // BBS: null value
         dynamic_cast<::CheckBox*>(window)->SetValue(boost::any_cast<bool>(value)); // BBS
+    dynamic_cast<::CheckBox*>(window)->SetHalfChecked(value.empty());
     m_disable_change_event = false;
 }
 
@@ -911,7 +914,8 @@ void SpinCtrl::propagate_value()
 
     suppress_propagation = true;
     if (tmp_value == UNDEF_VALUE) {
-        on_kill_focus();
+        if (!m_value.empty()) // BBS: null value
+            on_kill_focus();
 	} else {
 #ifdef __WXOSX__
         // check input value for minimum
@@ -924,6 +928,20 @@ void SpinCtrl::propagate_value()
         on_change_field();
     }
     suppress_propagation = false;
+}
+
+void SpinCtrl::set_value(const boost::any& value, bool change_event) {
+    m_disable_change_event = !change_event;
+    m_value = value;
+    if (value.empty()) { // BBS: null value
+        dynamic_cast<SpinInput*>(window)->SetValue(m_opt.min);
+        dynamic_cast<SpinInput*>(window)->GetTextCtrl()->SetValue("");
+    }
+    else {
+        tmp_value = boost::any_cast<int>(value);
+        dynamic_cast<SpinInput*>(window)->SetValue(tmp_value);
+    }
+    m_disable_change_event = false;
 }
 
 void SpinCtrl::msw_rescale()
@@ -1055,7 +1073,7 @@ void Choice::propagate_value()
         }
         on_change_field();
     }
-    else
+    else if (!m_value.empty()) // BBS: null value
         on_kill_focus();
 }
 
@@ -1145,6 +1163,14 @@ void Choice::set_value(const boost::any& value, bool change_event)
 	m_disable_change_event = !change_event;
 
     choice_ctrl* field = dynamic_cast<choice_ctrl*>(window);
+
+    // BBS: null value
+    if (value.empty()) {
+        field->SetValue("");
+        m_value = value;
+        m_disable_change_event = false;
+        return;
+    }
 
 	switch (m_opt.type) {
 	case coInt:

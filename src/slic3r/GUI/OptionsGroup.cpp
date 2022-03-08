@@ -225,6 +225,14 @@ void OptionsGroup::append_separator()
     m_lines.emplace_back(Line());
 }
 
+// BBS: null value
+void OptionsGroup::set_null_value(const std::vector<std::string> fields)
+{
+    for (auto & f : fields) {
+        set_value(f, boost::any());
+    }
+}
+
 void OptionsGroup::activate_line(Line& line)
 {
     if (line.is_separator())

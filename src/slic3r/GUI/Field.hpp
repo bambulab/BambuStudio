@@ -321,13 +321,7 @@ public:
 		dynamic_cast<SpinInput*>(window)->SetValue(value);
 		m_disable_change_event = false;
     }
-    void			set_value(const boost::any& value, bool change_event = false) override {
-		m_disable_change_event = !change_event;
-		tmp_value = boost::any_cast<int>(value);
-        m_value = value;
-		dynamic_cast<SpinInput*>(window)->SetValue(tmp_value);
-		m_disable_change_event = false;
-	}
+	void			set_value(const boost::any& value, bool change_event = false) override;
 
 	boost::any&		get_value() override {
 		int value = static_cast<SpinInput*>(window)->GetValue();

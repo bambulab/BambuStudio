@@ -1924,9 +1924,16 @@ static std::vector<std::string> concat(std::vector<std::string> const& l, std::v
     return t;
 }
 
+static std::vector<std::string> substruct(std::vector<std::string> const& l, std::vector<std::string> const& r)
+{
+    std::vector<std::string> t;
+    std::copy_if(l.begin(), l.end(), std::back_inserter(t), [&r](auto & e) { return std::find(r.begin(), r.end(), e) == r.end(); });
+    return t;
+}
+
 TabPrintModel::TabPrintModel(ParamsPanel* parent, std::vector<std::string> const & keys)
     : TabPrint(parent, Preset::TYPE_MODEL)
-    , keys(intersect(Preset::print_options(), keys))
+    , m_keys(intersect(Preset::print_options(), keys))
     , m_prints(Preset::TYPE_MODEL, Preset::print_options(), static_cast<const PrintRegionConfig&>(FullPrintConfig::defaults()))
 {
     m_opt_status_value = osInitValue;
@@ -1943,7 +1950,7 @@ void TabPrintModel::build()
             for (auto & l : lines) {
                 auto & opts = const_cast<std::vector<Option>&>(l.get_options());
                 opts.erase(std::remove_if(opts.begin(), opts.end(), [this](auto & o) {
-                    return std::find(keys.begin(), keys.end(), o.opt.opt_key) == keys.end();
+                    return std::find(m_keys.begin(), m_keys.end(), o.opt.opt_key) == m_keys.end();
                 }), opts.end());
             }
             lines.erase(std::remove_if(lines.begin(), lines.end(), [](auto & l) {
@@ -1960,14 +1967,9 @@ void TabPrintModel::build()
     }), m_pages.end());
 }
 
-void TabPrintModel::set_model_config(ObjectBase * object, ModelConfig * config)
+void TabPrintModel::set_model_config(std::map<ObjectBase *, ModelConfig *> const & object_configs)
 {
-    if (m_model_config == config) {
-        update_model_config();
-        return;
-    }
-    m_object = object;
-    m_model_config = config;
+    m_object_configs = object_configs;
     m_prints.get_selected_preset().config.apply(*m_parent_tab->m_config);
     update_model_config();
 }
@@ -1975,38 +1977,81 @@ void TabPrintModel::set_model_config(ObjectBase * object, ModelConfig * config)
 void TabPrintModel::update_model_config()
 {
     m_config->apply(*m_parent_tab->m_config);
-    if (m_model_config != nullptr) {
-        m_config->apply(m_model_config->get());
+    m_null_keys.clear();
+    if (!m_object_configs.empty()) {
+        DynamicPrintConfig const & global_config= *m_config;
+        DynamicPrintConfig const & local_config = m_object_configs.begin()->second->get();
+        DynamicPrintConfig diff_config;
+        std::vector<std::string> all_keys = local_config.keys(); // at least one has these keys
+        std::vector<std::string> local_keys = intersect(m_keys, all_keys); // all equal on these keys
+        if (m_object_configs.size() > 1) {
+            std::vector<std::string> global_keys = m_keys; // all equal with global on these keys
+            for (auto & config : m_object_configs) {
+                auto equals = global_config.equal(config.second->get());
+                global_keys = intersect(global_keys, equals);
+                diff_config.apply_only(config.second->get(), substruct(config.second->keys(), equals));
+                if (&config.second->get() == &local_config) continue;
+                all_keys = concat(all_keys, config.second->keys());
+                local_keys = intersect(local_keys, local_config.equal(config.second->get()));
+            }
+            all_keys = intersect(all_keys, m_keys);
+            m_null_keys = substruct(substruct(all_keys, global_keys), local_keys);
+            m_config->apply(diff_config);
+        }
+        // except those than all equal on
+        m_config->apply_only(local_config, local_keys);
     }
     update_dirty();
     reload_config();
-    update();
+    //update();
+    if (!m_null_keys.empty()) {
+        if (m_active_page) {
+            for (auto g : m_active_page->m_optgroups) {
+                g->set_null_value(m_null_keys);
+            }
+        }
+    }
 }
 
 void TabPrintModel::reset_model_config()
 {
-    if (m_model_config == nullptr) return;
+    if (m_object_configs.empty()) return;
     wxGetApp().plater()->take_snapshot(from_u8(L("Reset Options")));
-    auto rmkeys = intersect(keys, m_model_config->keys());
-    for (auto & k : rmkeys)
-        m_model_config->erase(k);
+    for (auto config : m_object_configs) {
+        auto rmkeys = intersect(m_keys, config.second->keys());
+        for (auto & k : rmkeys)
+            config.second->erase(k);
+        notify_changed(config.first);
+    }
     update_model_config();
-    notify_changed();
+}
+
+void TabPrintModel::activate_selected_page(std::function<void()> throw_if_canceled)
+{
+    TabPrint::activate_selected_page(throw_if_canceled);
+    if (m_active_page) {
+        for (auto g : m_active_page->m_optgroups) {
+            g->set_null_value(m_null_keys);
+        }
+    }
 }
 
 void TabPrintModel::on_value_change(const std::string& opt_key, const boost::any& value)
 {
-    // TODO: support opt_index
-    if (m_model_config && std::find(keys.begin(), keys.end(), opt_key) != keys.end()) {
-        wxGetApp().plater()->take_snapshot(from_u8((boost::format(_utf8(L("Change Option %s"))) % opt_key).str()));
-        if (m_options_list[opt_key] & osInitValue)
-            m_model_config->erase(opt_key);
-        else
-            m_model_config->apply_only(*m_config, {opt_key});
-        m_model_config->touch();
-        notify_changed();
-    }
     TabPrint::on_value_change(opt_key, value);
+    // TODO: support opt_index, translate by OptionsGroup's m_opt_map
+    if (!m_object_configs.empty())
+        wxGetApp().plater()->take_snapshot(from_u8((boost::format(_utf8(L("Change Option %s"))) % opt_key).str()));
+    for (auto config : m_object_configs) {
+        if (std::find(m_keys.begin(), m_keys.end(), opt_key) != m_keys.end()) {
+            if (m_options_list[opt_key] & osInitValue)
+                config.second->erase(opt_key);
+            else
+                config.second->apply_only(*m_config, {opt_key});
+            config.second->touch();
+            notify_changed(config.first);
+        }
+    }
 }
 
 //BBS: GUI refactor
@@ -2017,9 +2062,9 @@ TabPrintObject::TabPrintObject(ParamsPanel* parent) :
     m_parent_tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
 }
 
-void TabPrintObject::notify_changed()
+void TabPrintObject::notify_changed(ObjectBase * object)
 {
-    auto obj = dynamic_cast<ModelObject*>(m_object);
+    auto obj = dynamic_cast<ModelObject*>(object);
     wxGetApp().obj_list()->object_config_options_changed({obj, nullptr});
 }
 
@@ -2031,9 +2076,9 @@ TabPrintPart::TabPrintPart(ParamsPanel* parent) :
     m_parent_tab = wxGetApp().get_model_tab();
 }
 
-void TabPrintPart::notify_changed()
+void TabPrintPart::notify_changed(ObjectBase * object)
 {
-    auto vol = dynamic_cast<ModelVolume*>(m_object);
+    auto vol = dynamic_cast<ModelVolume*>(object);
     wxGetApp().obj_list()->object_config_options_changed({vol->get_object(), vol});
 }
 

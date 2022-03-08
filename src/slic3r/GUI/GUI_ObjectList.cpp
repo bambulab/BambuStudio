@@ -2703,6 +2703,9 @@ void ObjectList::part_selection_changed()
         const Selection& selection = scene_selection();
         // don't show manipulation panel for case of all Object's parts selection 
         update_and_show_manipulations = !selection.is_single_full_instance();
+
+        // BBS: multi config editing
+        update_and_show_settings = true;
     }
     else {
         if (item) {
@@ -2742,6 +2745,7 @@ void ObjectList::part_selection_changed()
                     default: { break; }
                     }
                 } else {
+                    // BBS: select object to edit config
                     m_config = &(*m_objects)[obj_idx]->config;
                     update_and_show_settings = true;
                 }

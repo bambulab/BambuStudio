@@ -325,17 +325,17 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
     if (cur_tab == nullptr) {
         if (!m_mode_status->GetValue()) {
             cur_tab = (Tab*) m_tab_print;
-        } else if (m_tab_print_part && ((TabPrintModel*) m_tab_print_part)->get_model_config()) {
+        } else if (m_tab_print_part && ((TabPrintModel*) m_tab_print_part)->has_model_config()) {
             cur_tab = (Tab*) m_tab_print_part;
-        } else if (m_tab_print_object && ((TabPrintModel*) m_tab_print_object)->get_model_config()) {
+        } else if (m_tab_print_object && ((TabPrintModel*) m_tab_print_object)->has_model_config()) {
             cur_tab = (Tab*) m_tab_print_object;
         }
+        wxGetApp().sidebar().show_object_list(m_mode_status->GetValue());
+        Show(cur_tab != nullptr);
         if (m_current_tab == cur_tab)
             return;
         if (cur_tab)
             cur_tab->restore_last_select_item();
-        Show(cur_tab != nullptr);
-        wxGetApp().sidebar().show_object_list(m_mode_status->GetValue());
         return;
     }
 

@@ -445,25 +445,27 @@ public:
 
 	void build() override;
 
-	void set_model_config(ObjectBase * object, ModelConfig * config);
+	void set_model_config(std::map<ObjectBase *, ModelConfig *> const & object_configs);
 
-	ModelConfig * get_model_config() { return m_model_config; }
+	bool has_model_config() const { return !m_object_configs.empty(); }
 
 	void update_model_config();
 
 	void reset_model_config();
 
 protected:
+	virtual void    activate_selected_page(std::function<void()> throw_if_canceled);
+
 	virtual void    on_value_change(const std::string& opt_key, const boost::any& value) override;
 
-	virtual void    notify_changed() = 0;
+	virtual void    notify_changed(ObjectBase * object) = 0;
 
 protected:
-	std::vector<std::string> const keys;
+	std::vector<std::string> const m_keys;
 	PresetCollection m_prints;
 	Tab * m_parent_tab;
-	ObjectBase * m_object = nullptr;
-	ModelConfig * m_model_config = nullptr;
+	std::map<ObjectBase *, ModelConfig *> m_object_configs;
+	std::vector<std::string> m_null_keys;
 };
 
 class TabPrintObject : public TabPrintModel
@@ -473,7 +475,7 @@ public:
 	TabPrintObject(ParamsPanel* parent);
 	~TabPrintObject() {}
 protected:
-	virtual void    notify_changed() override;
+	virtual void    notify_changed(ObjectBase * object) override;
 };
 
 class TabPrintPart : public TabPrintModel
@@ -483,7 +485,7 @@ public:
 	TabPrintPart(ParamsPanel* parent);
 	~TabPrintPart() {}
 protected:
-	virtual void    notify_changed() override;
+	virtual void    notify_changed(ObjectBase * object) override;
 };
 
 class TabFilament : public Tab

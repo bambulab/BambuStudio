@@ -22,6 +22,12 @@ void CheckBox::SetValue(bool value)
 	update();
 }
 
+void CheckBox::SetHalfChecked(bool value)
+{
+	m_half_checked = value;
+	update();
+}
+
 void CheckBox::Rescale()
 {
 	m_on.msw_rescale();
@@ -32,5 +38,5 @@ void CheckBox::Rescale()
 
 void CheckBox::update()
 {
-	SetBitmap((GetValue() ? m_on : m_off).bmp());
+	SetBitmap((m_half_checked ? m_half : GetValue() ? m_on : m_off).bmp());
 }
