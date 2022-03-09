@@ -745,10 +745,14 @@ std::string Model::get_backup_path()
         {
             boost::filesystem::remove_all(temp_path);
         }
+    }
+    boost::filesystem::path temp_path(backup_path);
+    if (!boost::filesystem::exists(temp_path))
+    {
         boost::filesystem::create_directories(backup_path + "/3D/Objects/");
         boost::filesystem::create_directories(backup_path + "/Metadata");
         boost::filesystem::save_string_file(backup_path + "/lock.txt",
-                                            boost::lexical_cast<std::string>(get_current_pid()));
+            boost::lexical_cast<std::string>(get_current_pid()));
     }
 
     return backup_path;
