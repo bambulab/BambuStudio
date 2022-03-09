@@ -98,6 +98,11 @@ public:
     std::string     task_start_time;    /* time created by machine, seconds from 1970-01-01 */
     std::string     task_duration;      /* duration created by machine, unit seconds */
     std::string     task_report;        /* report of task */
+    /* user options */
+    std::string     task_bed_type;      /* bed_type of task */
+    bool            task_bed_leveling;  /* bed leveling of task */
+    bool            task_flow_cali;     /* flow calibration of task */
+    bool            task_vabration_cali;/* vabration calibration of task */
 
     // task of plate info
     std::string     task_prediction;    /* prediction printing time of plate, unit seconds */
@@ -115,7 +120,7 @@ public:
     std::string     parent_id;
 
     std::string build_content_json();
-    int parse_content_json(std::string json);
+    int parse_content_json(std::string json_str);
     bool is_report_done();
     static BBLSubTask::SubTaskStatus parse_status(std::string status);
 };

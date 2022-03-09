@@ -676,6 +676,7 @@ void SelectMachineDialog::on_ok(wxCommandEvent& event)
         }
     );
 
+    /* todo pass user options to subtask in print job */
     m_print_job = std::make_shared<PrintJob>(m_status_bar, m_plater, dev_id);
     m_print_job->start();
 }

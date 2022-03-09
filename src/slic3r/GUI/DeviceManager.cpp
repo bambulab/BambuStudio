@@ -1076,14 +1076,18 @@ int MachineObject::send_wan_print_subtask(BBLSubTask* task, UploadedFn uploadedF
 
     json j;
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-    j["print"]["command"]   = "project_file";
-    j["print"]["param"]     = task->task_gcode_in_3mf;
-    j["print"]["url"]       = task->task_url;
-    j["print"]["md5"]       = task->task_url_md5;
-    j["print"]["project_id"] = task->parent_task_->task_project_id;
-    j["print"]["profile_id"] = task->parent_task_->task_profile_id;
-    j["print"]["task_id"] = task->parent_task_->task_id;
-    j["print"]["subtask_id"] = task->task_id;
+    j["print"]["command"]       = "project_file";
+    j["print"]["param"]         = task->task_gcode_in_3mf;
+    j["print"]["url"]           = task->task_url;
+    j["print"]["md5"]           = task->task_url_md5;
+    j["print"]["project_id"]    = task->parent_task_->task_project_id;
+    j["print"]["profile_id"]    = task->parent_task_->task_profile_id;
+    j["print"]["task_id"]       = task->parent_task_->task_id;
+    j["print"]["subtask_id"]    = task->task_id;
+    j["print"]["bed_leveling"]      = task->task_bed_leveling;
+    j["print"]["bed_type"]          = task->task_bed_type;
+    j["print"]["flow_cali"]         = task->task_flow_cali;
+    j["print"]["vibration_cali"]    = task->task_vabration_cali;
 
     std::string json_str = j.dump();
     json_str.erase(std::remove(json_str.begin(), json_str.end(), '\\'), json_str.end());

@@ -15,6 +15,9 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include "nlohmann/json.hpp"
+
+using namespace nlohmann;
 
 namespace pt = boost::property_tree;
 
@@ -62,46 +65,61 @@ namespace Slic3r {
 
     std::string BBLSubTask::build_content_json()
     {
-        pt::ptree root, info;
-        info.put("name", task_name);
-        info.put("plate_idx", task_partplate_idx);
-        info.put("printer", task_printer_dev_id);
-        info.put("report_id", task_report);
-        root.put_child("info", info);
-        
-
-        std::stringstream oss;
-        pt::write_json(oss, root, false);
-        return oss.str();
-    }
-
-    int BBLSubTask::parse_content_json(std::string json)
-    {
         try {
-            std::stringstream ss(json);
-            pt::ptree root, info;
-            pt::read_json(ss, root);
-
-            info = root.get_child("info");
-
-            /* create subtasks */
-            boost::optional<std::string> subtask_name = info.get_optional<std::string>("name");
-            if (subtask_name.has_value()) task_name = subtask_name.value();
-
-            boost::optional<std::string> subtask_plate_idx = info.get_optional<std::string>("plate_idx");
-            if (subtask_plate_idx.has_value()) task_partplate_idx = subtask_plate_idx.value();
-
-            boost::optional<std::string> subtask_printer = info.get_optional<std::string>("printer");
-            if (subtask_printer.has_value()) task_printer_dev_id = subtask_printer.value();
-
-            boost::optional<std::string> subtask_report = info.get_optional<std::string>("report_id");
-            if (subtask_report.has_value()) task_report = subtask_report.value();
+            json j;
+            j["info"]["name"]           = task_name;
+            j["info"]["plate_idx"]      = task_partplate_idx;
+            j["info"]["printer"]        = task_printer_dev_id;
+            j["info"]["report_id"]      = task_report;
+            j["info"]["bed_type"]       = task_bed_type;
+            j["info"]["bed_leveling"]   = task_bed_leveling;
+            j["info"]["flow_cali"]      = task_flow_cali;
+            j["info"]["vibration_cali"] = task_vabration_cali;
+            return j.dump();
         }
         catch (...) {
-            BOOST_LOG_TRIVIAL(trace) << "parse_content_json failed! json=" << json;
+            return "";
+        }
+    }
+
+    int BBLSubTask::parse_content_json(std::string json_str)
+    {
+        try {
+            json j = json::parse(json_str);
+
+            if (j.contains("info") && !j["info"].is_null()) {
+                
+                if (j["info"].contains("name") && !j["info"]["name"].is_null())
+                    task_name = j["info"]["name"].get<std::string>();
+                if (j["info"].contains("plate_idx") && !j["info"]["plate_idx"].is_null())
+                    task_partplate_idx = j["info"]["plate_idx"].get<std::string>();
+
+                if (j["info"].contains("printer") && !j["info"]["printer"].is_null())
+                    task_printer_dev_id = j["info"]["printer"].get<std::string>();
+
+                if (j["info"].contains("report_id") && !j["info"]["report_id"].is_null())
+                    task_report = j["info"]["report_id"].get<std::string>();
+
+                if (j["info"].contains("bed_type") && !j["info"]["bed_type"].is_null())
+                    task_bed_type = j["info"]["bed_type"].get<std::string>();
+                if (j["info"].contains("bed_leveling") && !j["info"]["bed_leveling"].is_null())
+                    task_bed_leveling = j["info"]["bed_leveling"].get<bool>();
+
+                if (j["info"].contains("flow_cali") && !j["info"]["flow_cali"].is_null())
+                    task_flow_cali = j["info"]["flow_cali"].get<bool>();
+
+                if (j["info"].contains("vibration_cali") && !j["info"]["vibration_cali"].is_null())
+                    task_vabration_cali = j["info"]["vibration_cali"].get<bool>();
+
+                return 0;
+            }
+        }
+        catch (...) {
+            
             return -1;
         }
-        return 0;
+        BOOST_LOG_TRIVIAL(trace) << "parse_content_json failed! json=" << json_str;
+        return -1;
     }
 
     bool BBLSubTask::is_report_done()
