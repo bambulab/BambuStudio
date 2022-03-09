@@ -1031,7 +1031,7 @@ namespace Slic3r {
                 m_sub_model_path = path;
                 if (!_extract_from_archive(archive, path, [this] (mz_zip_archive& archive, const mz_zip_archive_file_stat& stat) {
                     return _extract_model_from_archive(archive, stat);
-                }), m_load_restore) {
+                }, m_load_restore)) {
                     add_error("Archive does not contain a valid model");
                     return false;
                 }
