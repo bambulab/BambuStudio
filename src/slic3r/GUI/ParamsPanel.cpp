@@ -45,11 +45,11 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
 #endif //__WXOSX__
 
     if (dynamic_cast<Notebook*>(parent)) {
-        wxColor mode_color(0xF8F8F8);
         // BBS: new layout
-        m_mode_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition);
-        m_mode_panel->SetBackgroundColour(mode_color);
-        m_mode_text = new Label(Label::Body_14, wxT("Print Settings"), m_mode_panel);
+        m_mode_panel = new StaticBox(this, wxID_ANY, wxDefaultPosition);
+        m_mode_panel->SetBackgroundColor(0xF8F8F8);
+        m_mode_panel->SetBackgroundColor2(0xF1F1F1);
+        m_mode_text = new Label(Label::Body_14, wxT("Process"), m_mode_panel);
         //m_mode_text->SetFont(Label::Body_14);
         m_mode_text->Wrap( -1 );
 
@@ -62,22 +62,19 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
         // BBS: new layout
         m_search_btn = new ScalableButton(m_mode_panel, wxID_ANY, "search", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
         m_search_btn->SetToolTip(format_wxstr(_L("Search in settings [%1%]"), "Ctrl+F"));
-        m_search_btn->SetBackgroundColour(mode_color);
         m_search_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().plater()->search(false); });
         //m_search_button = new wxBitmapButton( this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|0 );
         m_compare_btn = new ScalableButton(m_mode_panel, wxID_ANY, "compare", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
         m_compare_btn->SetToolTip(_L("Compare this preset with some another"));
-        m_compare_btn->SetBackgroundColour(mode_color);
         m_compare_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { wxGetApp().mainframe->diff_dialog.show(); }));
 
         m_setting_btn = new ScalableButton(m_mode_panel, wxID_ANY, "table", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
         m_setting_btn->SetToolTip(_L("View all object's settings"));
-        m_setting_btn->SetBackgroundColour(mode_color);
         m_setting_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().plater()->PopupObjectTable(-1, -1, {0, 0}); });
     }
 
     m_staticline_filament = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    m_staticline_print = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+    //m_staticline_print = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
     m_staticline_print_object = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
     m_staticline_print_part = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
     m_staticline_printer = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
@@ -159,7 +156,8 @@ void ParamsPanel::create_layout()
     }
 
     if (m_tab_print) {
-        m_left_sizer->Add( m_staticline_print, 0, wxEXPAND );
+        if (m_staticline_print)
+            m_left_sizer->Add( m_staticline_print, 0, wxEXPAND );
         //m_print_sizer = new wxBoxSizer( wxHORIZONTAL );
         //m_print_sizer->Add( m_tab_print, 1, wxEXPAND | wxALL, 5 );
         //m_left_sizer->Add( m_print_sizer, 1, wxEXPAND, 5 );
@@ -288,6 +286,7 @@ void ParamsPanel::OnActivate()
 void ParamsPanel::OnToggled(wxCommandEvent& event)
 {
     if (m_mode_status && m_mode_status->GetId() == event.GetId()) {
+        wxWindowUpdateLocker locker(GetParent());
         set_active_tab(nullptr);
         event.Skip();
         return;
@@ -330,8 +329,8 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
         } else if (m_tab_print_object && ((TabPrintModel*) m_tab_print_object)->has_model_config()) {
             cur_tab = (Tab*) m_tab_print_object;
         }
-        wxGetApp().sidebar().show_object_list(m_mode_status->GetValue());
         Show(cur_tab != nullptr);
+        wxGetApp().sidebar().show_object_list(m_mode_status->GetValue());
         if (m_current_tab == cur_tab)
             return;
         if (cur_tab)
@@ -352,6 +351,7 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
             {m_tab_printer, m_staticline_printer}})) {
         if (!t.first) continue;
         t.first->Show(tab == t.first);
+        if (!t.second) continue;
         t.second->Show(tab == t.first);
         //m_left_sizer->GetItem(t)->SetProportion(tab == t ? 1 : 0);
     }

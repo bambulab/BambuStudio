@@ -757,9 +757,17 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
     const std::vector<Option>& option_set = og_line.get_options();
 
     wxString label = og_line.label;
+    wxColour blink_color("#00AE42");
     bool is_url_string = false;
     if (ctrl->opt_group->label_width != 0 && !label.IsEmpty()) {
         const wxColour* text_clr = (option_set.size() == 1 && field ? field->label_color() : og_line.full_Label_color);
+        for (const Option& opt : option_set) {
+            Field* field = ctrl->opt_group->get_field(opt.opt_id);
+            if (field && field->blink()) {
+                text_clr = &blink_color;
+                break;
+            }
+        }
         is_url_string = !suppress_hyperlinks && !og_line.label_path.empty();
         h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label + ":", text_clr, ctrl->opt_group->label_width * ctrl->m_em_unit, is_url_string);
     }
@@ -840,7 +848,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
                 is_url_string = false;
             else if(opt == option_set.front())
                 is_url_string = !suppress_hyperlinks && !og_line.label_path.empty();
-            h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label, field ? field->label_color() : nullptr, ctrl->opt_group->sublabel_width * ctrl->m_em_unit, is_url_string);
+            h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label, field ? (field->blink() ? &blink_color : field->label_color()) : nullptr, ctrl->opt_group->sublabel_width * ctrl->m_em_unit, is_url_string);
         }
 
         // BBS: new layout

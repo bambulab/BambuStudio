@@ -12,6 +12,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow * parent, wxMediaCtrl2* media_ctrl)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
     , m_media_ctrl(media_ctrl)
 {
+    SetBackgroundColour(*wxWHITE);
     m_media_ctrl->Bind(wxEVT_MEDIA_STATECHANGED, &MediaPlayCtrl::onStateChanged, this);
 
     m_button_play = new Button(this, "", "media_play", wxBORDER_NONE);

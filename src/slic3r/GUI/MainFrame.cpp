@@ -1023,7 +1023,6 @@ void MainFrame::create_preset_tabs()
     m_param_dialog->panel()->rebuild_panels();
     //m_tabpanel->AddPage(m_param_panel, "Parameters", "notebook_presets_active");
     //m_tabpanel->InsertPage(tpSettings, m_param_panel, _L("Parameters"), std::string("cog"));
-    m_plater->sidebar();
 }
 
 void MainFrame::add_created_tab(Tab* panel,  const std::string& bmp_name /*= ""*/)

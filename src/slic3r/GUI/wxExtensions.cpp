@@ -16,6 +16,7 @@
 #include "Plater.hpp"
 #include "../Utils/MacDarkMode.hpp"
 #include "BitmapComboBox.hpp"
+#include "Widgets/StaticBox.hpp"
 
 #ifndef __linux__
 // msw_menuitem_bitmaps is used for MSW and OSX
@@ -843,6 +844,7 @@ ScalableButton::ScalableButton( wxWindow *          parent,
     m_px_cnt(bmp_px_cnt),
     m_has_border(!(style & wxNO_BORDER))
 {
+    SetBackgroundColour(StaticBox::GetParentBackgroundColor(parent));
     Create(parent, id, label, pos, size, style);
     Slic3r::GUI::wxGetApp().UpdateDarkUI(this);
 

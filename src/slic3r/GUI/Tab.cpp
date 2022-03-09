@@ -294,7 +294,7 @@ void Tab::create_preset_tab()
     m_top_sizer->Add( m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8  );
     m_top_sizer->Add( m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
 
-    m_static_title = new Label(Label::Body_14, _L("Advance"), m_top_panel);
+    m_static_title = new Label(Label::Body_12, _L("Advance"), m_top_panel);
     m_static_title->Wrap( -1 );
     // BBS: open this tab by select first
     m_static_title->Bind(wxEVT_LEFT_UP, [this](auto& e) {

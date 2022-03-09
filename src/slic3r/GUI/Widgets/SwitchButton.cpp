@@ -1,5 +1,6 @@
 #include "SwitchButton.hpp"
 #include "Label.hpp"
+#include "StaticBox.hpp"
 
 #include "../wxExtensions.hpp"
 
@@ -13,8 +14,7 @@ SwitchButton::SwitchButton(wxWindow* parent, wxWindowID id)
 	, track_color(0xD9D9D9)
 	, thumb_color(std::pair{0xF8F8F8, (int) StateColor::Checked}, std::pair{0xD9D9D9, (int) StateColor::Normal})
 {
-	if (parent)
-		SetBackgroundColour(parent->GetBackgroundColour());
+	SetBackgroundColour(StaticBox::GetParentBackgroundColor(parent));
 	Bind(wxEVT_TOGGLEBUTTON, [this](auto& e) { update(); e.Skip(); });
 	SetFont(Label::Body_12);
 	Rescale();

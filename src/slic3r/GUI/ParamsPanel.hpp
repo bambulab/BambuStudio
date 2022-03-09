@@ -28,6 +28,7 @@
 #include "wxExtensions.hpp"
 
 class SwitchButton;
+class StaticBox;
 
 namespace Slic3r {
 namespace GUI {
@@ -55,7 +56,7 @@ class ParamsPanel : public wxPanel
         wxBoxSizer* m_left_sizer { nullptr };
         wxBoxSizer* m_mode_sizer { nullptr };
         // // BBS: new layout
-        wxPanel* m_mode_panel{ nullptr };
+        StaticBox* m_mode_panel{ nullptr };
         wxStaticText* m_mode_text{ nullptr };
         SwitchButton* m_mode_status { nullptr };
         //wxBitmapButton* m_search_button { nullptr };
@@ -108,7 +109,7 @@ class ParamsPanel : public wxPanel
         void msw_rescale();
         void switch_to_global();
 
-        wxPanel* get_mode_panel() { return m_mode_panel; }
+        StaticBox* get_mode_panel() { return m_mode_panel; }
 
         wxPanel* filament_panel() { return m_tab_filament; }
 

@@ -5,12 +5,13 @@
 CheckBox::CheckBox(wxWindow* parent)
 	: wxBitmapToggleButton(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
 	, m_on(this, "check_on", 16)
+	, m_half(this, "check_half", 16)
 	, m_off(this, "check_off", 16)
 {
 	//SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
 	if (parent)
 		SetBackgroundColour(parent->GetBackgroundColour());
-	Bind(wxEVT_TOGGLEBUTTON, [this](auto& e) { update(); e.Skip(); });
+	Bind(wxEVT_TOGGLEBUTTON, [this](auto& e) { m_half_checked = false; update(); e.Skip(); });
 	SetSize(m_on.GetBmpSize());
 	SetMinSize(m_on.GetBmpSize());
 	update();

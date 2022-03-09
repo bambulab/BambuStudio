@@ -1,4 +1,5 @@
 #include "StaticBox.hpp"
+#include "../GUI.hpp"
 #include <wx/dcgraph.h>
 
 BEGIN_EVENT_TABLE(StaticBox, wxWindow)
@@ -35,12 +36,9 @@ StaticBox::StaticBox(wxWindow* parent,
 bool StaticBox::Create(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
 {
     wxWindow::Create(parent, id, pos, size, style);
-    state_handler.attach({&border_color, &background_color});
+    state_handler.attach({&border_color, &background_color, &background_color2});
     state_handler.update_binds();
-    if (auto box = dynamic_cast<StaticBox*>(parent))
-        wxWindow::SetBackgroundColour(box->background_color.defaultColor());
-    else if (parent)
-        wxWindow::SetBackgroundColour(parent->GetBackgroundColour());
+    SetBackgroundColour(GetParentBackgroundColor(parent));
     return true;
 }
 
@@ -68,6 +66,30 @@ void StaticBox::SetBackgroundColor(StateColor const &color)
     background_color = color;
     state_handler.update_binds();
     Refresh();
+}
+
+void StaticBox::SetBackgroundColor2(StateColor const &color)
+{
+    background_color2 = color;
+    state_handler.update_binds();
+    Refresh();
+}
+
+wxColor StaticBox::GetParentBackgroundColor(wxWindow* parent)
+{
+    if (auto box = dynamic_cast<StaticBox*>(parent)) {
+        if (box->background_color2.count() == 0)
+            return box->background_color.defaultColor();
+        auto s = box->background_color.defaultColor();
+        auto e = box->background_color2.defaultColor();
+        int r = (s.Red() + e.Red()) / 2;
+        int g = (s.Green() + e.Green()) / 2;
+        int b = (s.Blue() + e.Blue()) / 2;
+        return wxColor(r, g, b);
+    }
+    if (parent)
+        return parent->GetBackgroundColour();
+    return *wxWHITE;
 }
 
 void StaticBox::eraseEvent(wxEraseEvent& evt)
@@ -114,15 +136,30 @@ void StaticBox::doRender(wxDC& dc)
 {
     wxSize size = GetSize();
     int states = state_handler.states();
-    dc.SetPen(wxPen(border_color.colorForStates(states), border_width));
-    dc.SetBrush(wxBrush(background_color.colorForStates(states)));
-    if (GetWindowStyle() & wxBORDER_NONE)
-        dc.SetPen(wxPen(background_color.colorForStates(states)));
-
-    if (radius == 0) {
-        dc.DrawRectangle(0, 0, size.x, size.y);
+    if (background_color2.count() == 0) {
+        dc.SetPen(wxPen(border_color.colorForStates(states), border_width));
+        dc.SetBrush(wxBrush(background_color.colorForStates(states)));
+        if (GetWindowStyle() & wxBORDER_NONE)
+            dc.SetPen(wxPen(background_color.colorForStates(states)));
+        if (radius == 0) {
+            dc.DrawRectangle(0, 0, size.x, size.y);
+        }
+        else {
+            dc.DrawRoundedRectangle(0, 0, size.x, size.y, radius);
+        }
     }
     else {
-        dc.DrawRoundedRectangle(0, 0, size.x, size.y, radius);
+        wxColor start = background_color.colorForStates(states);
+        wxColor stop = background_color2.colorForStates(states);
+        int r = start.Red(), g = start.Green(), b = start.Blue();
+        int dr = (int) stop.Red() - r, dg = (int) stop.Green() - g, db = (int) stop.Blue() - b;
+        int lr = 0, lg = 0, lb = 0;
+        for (int y = 0; y < size.y; ++y) {
+            dc.SetPen(wxPen(wxColor(r, g, b)));
+            dc.DrawLine(0, y, size.x, y);
+            lr += dr; while (lr >= size.y) { ++r, lr -= size.y; } while (lr <= -size.y) { --r, lr += size.y; }
+            lg += dg; while (lg >= size.y) { ++g, lg -= size.y; } while (lg <= -size.y) { --g, lg += size.y; }
+            lb += db; while (lb >= size.y) { ++b, lb -= size.y; } while (lb <= -size.y) { --b, lb += size.y; }
+        }
     }
 }

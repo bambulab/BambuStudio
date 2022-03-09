@@ -14,6 +14,11 @@ END_EVENT_TABLE()
  * calling Refresh()/Update().
  */
 
+#define TAB_BUTTON_SPACE 2
+#define TAB_BUTTON_PADDING_X 4
+#define TAB_BUTTON_PADDING_Y 4
+#define TAB_BUTTON_PADDING TAB_BUTTON_PADDING_X, TAB_BUTTON_PADDING_Y
+
 TabCtrl::TabCtrl(wxWindow *      parent,
                    wxWindowID      id,
                    const wxPoint & pos,
@@ -24,10 +29,8 @@ TabCtrl::TabCtrl(wxWindow *      parent,
     radius = 5;
     SetBorderColor(0xcecece);
     sizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->AddSpacer(5);
-    auto sizer2 = new wxBoxSizer(wxVERTICAL);
-    sizer2->Add(sizer, 1, wxEXPAND | wxTOP | wxBOTTOM, 6);
-    SetSizer(sizer2);
+    sizer->AddSpacer(10);
+    SetSizer(sizer);
     Bind(wxEVT_COMMAND_BUTTON_CLICKED, &TabCtrl::buttonClicked, this);
     //wxString reason;
     //IsTransparentBackgroundSupported(&reason);
@@ -95,9 +98,9 @@ int TabCtrl::AppendItem(const wxString &item,
     //    std::make_pair(*wxLIGHT_GREY, (int) StateColor::Normal)));
     btn->SetBackgroundColor(GetBackgroundColour());
     btn->SetCornerRadius(0);
-    btn->SetPaddingSize({0, 0});
+    btn->SetPaddingSize({TAB_BUTTON_PADDING});
     btns.push_back(btn);
-    sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 10);
+    sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL | wxALL, TAB_BUTTON_SPACE * 2);
     return btns.size() - 1;
 }
 
@@ -109,6 +112,7 @@ bool TabCtrl::DeleteItem(int item)
 void TabCtrl::DeleteAllItems()
 {
     sizer->Clear(true);
+    sizer->AddSpacer(10);
     btns.clear();
     if (sel >= 0) {
         sel = -1;
@@ -200,10 +204,10 @@ void TabCtrl::doRender(wxDC& dc)
 
     auto x1 = btns[sel]->GetPosition().x;
     auto x2 = x1 + btns[sel]->GetSize().x;
-    x1 -= 5; x2 += 5;
+    x1 -= TAB_BUTTON_SPACE; x2 += TAB_BUTTON_SPACE;
     const int BS = border_width / 2;
     const int BS2 = (1 + border_width) / 2;
-    dc.DrawLine(0, size.y - BS2, x1, size.y - BS2);
+    dc.DrawLine(0, size.y - BS2, x1 - radius + BS2, size.y - BS2);
     dc.DrawArc(x1 - radius, size.y, x1, size.y - radius, x1 - radius, size.y - radius);
     dc.DrawLine(x1, size.y - radius, x1, radius);
     dc.DrawArc(x1 + radius, 0, x1, radius, x1 + radius, radius);
@@ -211,7 +215,7 @@ void TabCtrl::doRender(wxDC& dc)
     dc.DrawArc(x2, radius, x2 - radius, 0, x2 - radius, radius);
     dc.DrawLine(x2, radius, x2, size.y - radius);
     dc.DrawArc(x2, size.y - radius, x2 + radius, size.y, x2 + radius, size.y - radius);
-    dc.DrawLine(x2 + radius, size.y - BS2, size.x, size.y - BS2);
+    dc.DrawLine(x2 + radius - BS2, size.y - BS2, size.x, size.y - BS2);
 }
 
 bool TabCtrl::sendTabCtrlEvent(bool changing)

@@ -1,4 +1,5 @@
 #include "Label.hpp"
+#include "StaticBox.hpp"
 
 static wxFont sysFont(int size, bool bold) {
 #ifdef __linux__
@@ -31,19 +32,18 @@ wxFont Label::Body_12 = sysFont(12, false);
 wxFont Label::Body_10 = sysFont(10, false);
 
 Label::Label(wxString const & text, wxWindow* parent)
-	: wxStaticText(parent, wxID_ANY, text, wxDefaultPosition, wxDefaultSize, 0)
+	: Label(Body_16, text, parent)
 {
-	SetFont(Body_16);
 }
 
 Label::Label(wxFont const& font, wxWindow* parent)
-	: wxStaticText(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0)
+	: Label(font, "", parent)
 {
-	SetFont(font);
 }
 
 Label::Label(wxFont const& font, wxString const& text, wxWindow* parent)
 	: wxStaticText(parent, wxID_ANY, text, wxDefaultPosition, wxDefaultSize, 0)
 {
+	SetBackgroundColour(StaticBox::GetParentBackgroundColor(parent));
 	SetFont(font);
 }

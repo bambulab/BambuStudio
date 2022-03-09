@@ -107,6 +107,7 @@
 #include "BBLStatusBar.hpp"
 #include "BitmapCache.hpp"
 #include "AuxiliaryDialog.hpp"
+#include "ParamsDialog.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/RadioBox.hpp"
@@ -690,7 +691,7 @@ struct Sidebar::priv
     wxPanel* m_panel_print_content;
     wxComboBox* m_comboBox_print_preset;
     wxStaticLine* m_staticline1;
-    wxPanel* m_panel_filament_title;
+    StaticBox* m_panel_filament_title;
     wxStaticText* m_staticText_filament_settings;
     wxBitmapButton* m_bpButton_add_filament;
     wxPanel* m_panel_filament_content;
@@ -887,25 +888,33 @@ Sidebar::Sidebar(Plater *parent)
     //bSizer_print_content->Add(11 * em / 10, 0, 0, 0, 0);
 
     // add filament title
-    p->m_panel_filament_title = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxSize(-1, 36 * em / 10), wxTAB_TRAVERSAL);
-    p->m_panel_filament_title->SetBackgroundColour(title_bg);
+    p->m_panel_filament_title = new StaticBox(p->scrolled, wxID_ANY, wxDefaultPosition, wxSize(-1, 36 * em / 10), wxTAB_TRAVERSAL | wxBORDER_NONE);
+    p->m_panel_filament_title->SetBackgroundColor(title_bg);
+    p->m_panel_filament_title->SetBackgroundColor(0xF1F1F1);
 
     wxBoxSizer* bSizer39;
     bSizer39 = new wxBoxSizer( wxHORIZONTAL );
     bSizer39->Add( 22 * em / 10, 0, 0, 0, 0 );
-    p->m_staticText_filament_settings = new wxStaticText( p->m_panel_filament_title, wxID_ANY, wxT("Filament Settings"), wxDefaultPosition, wxDefaultSize, 0 );
+    p->m_staticText_filament_settings = new wxStaticText( p->m_panel_filament_title, wxID_ANY, wxT("Filament"), wxDefaultPosition, wxDefaultSize, 0 );
     p->m_staticText_filament_settings->Wrap( -1 );
     p->m_staticText_filament_settings->SetFont(Label::Body_14);
-    bSizer39->Add( p->m_staticText_filament_settings, 1, wxALIGN_CENTER|wxALL, 5 * em / 10 );
-
-    ScalableButton* add_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "add_filament");
-    add_btn->SetBackgroundColour(title_bg);
-    bSizer39->Add(add_btn, 0, wxALIGN_CENTER|wxALL, 5 * em / 10 );
+    bSizer39->Add( p->m_staticText_filament_settings, 0, wxALIGN_CENTER );
     bSizer39->Add( 10 * em / 10, 0, 0, 0, 0 );
+
     p->m_panel_filament_title->SetSizer( bSizer39 );
     p->m_panel_filament_title->Layout();
     scrolled_sizer->Add(p->m_panel_filament_title, 0, wxEXPAND | wxALL, 0);
 
+    ScalableButton* set_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "settings");
+    set_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
+        wxGetApp().params_dialog()->Show();
+        wxGetApp().get_tab(Preset::TYPE_FILAMENT)->restore_last_select_item();
+    });
+
+    bSizer39->Add(set_btn, 0, wxALIGN_CENTER|wxALL, 5 * em / 10 );
+    bSizer39->AddStretchSpacer(1);
+
+    ScalableButton* add_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "add_filament");
     add_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
         // BBS: limit filament choices to 16
         if (p->combos_filament.size() >= 16)
@@ -917,8 +926,10 @@ Sidebar::Sidebar(Plater *parent)
         wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
     });
 
+    bSizer39->Add(add_btn, 0, wxALIGN_CENTER|wxALL, 5 * em / 10 );
+    bSizer39->Add( 10 * em / 10, 0, 0, 0, 0 );
+
     ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "delete_filament");
-    del_btn->SetBackgroundColour(title_bg);
     del_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
         if (p->combos_filament.size() <= 1)
             return;
@@ -1006,10 +1017,10 @@ Sidebar::Sidebar(Plater *parent)
         }));
     scrolled_sizer->Add(wiping_dialog_button, 0, wxTOP | wxBOTTOM | wxEXPAND, 0);
 
-    p->m_staticline2 = new wxStaticLine( p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    p->m_staticline2->SetBackgroundColour( static_line_col );
+    //p->m_staticline2 = new wxStaticLine( p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+    //p->m_staticline2->SetBackgroundColour( static_line_col );
 
-    scrolled_sizer->Add(p->m_staticline2, 0, wxEXPAND | wxALL, 0);
+    //scrolled_sizer->Add(p->m_staticline2, 0, wxEXPAND | wxALL, 0);
 
     //add project title
     auto params_panel = ((MainFrame*)parent->GetParent())->m_param_panel;
@@ -1026,7 +1037,7 @@ Sidebar::Sidebar(Plater *parent)
     object_sizer->Add(p->m_object_list, 1, wxEXPAND);
     p->m_object_panel->SetSizer(object_sizer);
     p->sizer_params->Add(p->m_object_panel, 1, wxEXPAND | wxTOP, 0);
-    scrolled_sizer->Add(p->sizer_params, 2, wxEXPAND | wxLEFT, 0);
+    scrolled_sizer->Add(p->sizer_params, 3, wxEXPAND | wxLEFT, 0);
     p->m_object_panel->Hide();
 
     p->m_auxiliary_dialog = new AuxiliaryDialog(this);
@@ -1039,7 +1050,7 @@ Sidebar::Sidebar(Plater *parent)
 #else
     if (params_panel) {
         params_panel->Reparent(p->scrolled);
-        scrolled_sizer->Add(params_panel, 1, wxEXPAND);
+        scrolled_sizer->Add(params_panel, 2, wxEXPAND);
     }
 #endif
 
@@ -1257,7 +1268,7 @@ void Sidebar::update_reslice_btn_tooltip() const
 
 void Sidebar::msw_rescale()
 {
-    SetMinSize(wxSize(40 * wxGetApp().em_unit(), -1));
+    SetMinSize(wxSize(42 * wxGetApp().em_unit(), -1));
     //BBS
 #if 0
     if (p->mode_sizer)
