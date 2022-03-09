@@ -430,10 +430,7 @@ public:
     // Register a custom status callback.
     void                    set_status_callback(status_callback_type cb) { m_status_callback = cb; }
     // Calls a registered callback to update the status, or print out the default message.
-    void                    set_status(int percent, const std::string &message, unsigned int flags = SlicingStatus::DEFAULT, int warning_step = -1) {
-		if (m_status_callback) m_status_callback(SlicingStatus(percent, message, flags, warning_step));
-        else printf("%d => %s\n", percent, message.c_str());
-    }
+    void                    set_status(int percent, const std::string &message, unsigned int flags = SlicingStatus::DEFAULT, int warning_step = -1);
 
     typedef std::function<void()>  cancel_callback_type;
     // Various methods will call this callback to stop the background processing (the Print::process() call)

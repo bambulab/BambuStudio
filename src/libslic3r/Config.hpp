@@ -1856,6 +1856,8 @@ public:
     std::string                         sidetext;
     // Format of this parameter on a command line.
     std::string                         cli;
+    //BBS: add cli command line params
+    std::string                         cli_params;
     // Set for type == coFloatOrPercent.
     // It provides a link to a configuration value, of which this option provides a ratio.
     // For example, 

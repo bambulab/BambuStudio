@@ -307,6 +307,11 @@ public:
     //return the slice result
     GCodeProcessorResult* get_slice_result() { return m_gcode_result; }
     std::string             get_tmp_gcode_path();
+    //this API should only be used for command line usage
+    void set_tmp_gcode_path(std::string new_path)
+    {
+        m_tmp_gcode_path = new_path;
+    }
     //load gcode from file
     int load_gcode_from_file(const std::string& filename);
 

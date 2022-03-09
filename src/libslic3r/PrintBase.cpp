@@ -101,6 +101,15 @@ std::string PrintBase::output_filepath(const std::string &path, const std::strin
     return path;
 }
 
+//BBS: move set_status from hpp to cpp
+void  PrintBase::set_status(int percent, const std::string &message, unsigned int flags, int warning_step)
+{
+	if (m_status_callback)
+        m_status_callback(SlicingStatus(percent, message, flags, warning_step));
+    else
+        BOOST_LOG_TRIVIAL(info) <<boost::format("Percent %1%: %2%\n")%percent %message.c_str();
+}
+
 void PrintBase::status_update_warnings(int step, PrintStateBase::WarningLevel /* warning_level */, const std::string &message, const PrintObjectBase* print_object)
 {
     if (this->m_status_callback) {

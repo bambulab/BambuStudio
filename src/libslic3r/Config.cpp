@@ -378,16 +378,20 @@ std::ostream& ConfigDef::print_cli_help(std::ostream& out, bool show_defaults, s
 
             for (auto& arg : cli_args) {
                 arg.insert(0, (arg.size() == 1) ? "-" : "--");
-                if (def.type == coFloat || def.type == coInt || def.type == coFloatOrPercent
-                    || def.type == coFloats || def.type == coInts) {
-                    arg += " N";
+                //BBS: refine the print help format
+                if (!def.cli_params.empty())
+                    arg += " " + def.cli_params;
+                /*if ( def.type == coInt || def.type == coInts) {
+                    arg += " int_value";
+                } else if (def.type == coFloat ||  def.type == coFloatOrPercent || def.type == coFloats) {
+                    arg += " float_value";
                 } else if (def.type == coPoint) {
                     arg += " X,Y";
                 } else if (def.type == coPoint3) {
                     arg += " X,Y,Z";
                 } else if (def.type == coString || def.type == coStrings) {
-                    arg += " ABCD";
-                }
+                    arg += " filename_lists";
+                }*/
             }
             
             // left: command line options
@@ -1351,7 +1355,10 @@ bool DynamicConfig::read_cli(int argc, const char* const argv[], t_config_option
         auto it = opts.find(token);
         bool no = false;
         if (it == opts.end()) {
-            // Remove the "no-" prefix used to negate boolean options.
+            //BBS: don't use 'no-' for boolean options
+            boost::nowide::cerr << "Invalid option --" << token.c_str() << std::endl;
+            return false;
+            /* Remove the "no-" prefix used to negate boolean options.
             std::string yes_token;
             if (boost::starts_with(token, "no-")) {
                 yes_token = token.substr(3);
@@ -1359,11 +1366,11 @@ bool DynamicConfig::read_cli(int argc, const char* const argv[], t_config_option
                 no = true;
             }
             if (it == opts.end()) {
-                boost::nowide::cerr << "Unknown option --" << token.c_str() << std::endl;
+                boost::nowide::cerr << "Invalid option --" << token.c_str() << std::endl;
                 return false;
             }
             if (no)
-                token = yes_token;
+                token = yes_token;*/
         }
 
         const t_config_option_key &opt_key = it->second;
@@ -1373,19 +1380,19 @@ bool DynamicConfig::read_cli(int argc, const char* const argv[], t_config_option
         // look for it in the next token.
         if (value.empty() && optdef.type != coBool && optdef.type != coBools) {
             if (i == argc-1) {
-                boost::nowide::cerr << "No value supplied for --" << token.c_str() << std::endl;
+                boost::nowide::cerr << "Need values for option --" << token.c_str() << std::endl;
                 return false;
             }
             value = argv[++ i];
         }
 
-        if (no) {
+        /*if (no) {
             assert(optdef.type == coBool || optdef.type == coBools);
             if (! value.empty()) {
                 boost::nowide::cerr << "Boolean options negated by the --no- prefix cannot have a value." << std::endl;
                 return false;
             }
-        }
+        }*/
 
         // Store the option value.
         const bool               existing   = this->has(opt_key);
@@ -1422,7 +1429,7 @@ bool DynamicConfig::read_cli(int argc, const char* const argv[], t_config_option
             ConfigSubstitutionContext context(ForwardCompatibilitySubstitutionRule::Disable);
             // Any scalar value of a type different from Bool and String.
             if (! this->set_deserialize_nothrow(opt_key, value, context, false)) {
-				boost::nowide::cerr << "Invalid value supplied for --" << token.c_str() << std::endl;
+				boost::nowide::cerr << "Invalid value for option --" << token.c_str() << std::endl;
 				return false;
 			}
         }

@@ -4261,15 +4261,16 @@ PRINT_CONFIG_CACHE_INITIALIZE((
     SLAMaterialConfig, SLAPrintConfig, SLAPrintObjectConfig, SLAPrinterConfig, SLAFullPrintConfig))
 static int print_config_static_initialized = print_config_static_initializer();
 
+//BBS: remove unused command currently
 CLIActionsConfigDef::CLIActionsConfigDef()
 {
     ConfigOptionDef* def;
 
     // Actions:
-    def = this->add("export_obj", coBool);
+    /*def = this->add("export_obj", coBool);
     def->label = L("Export OBJ");
     def->tooltip = L("Export the model(s) as OBJ.");
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBool(false));*/
 
 /*
     def = this->add("export_svg", coBool);
@@ -4278,18 +4279,19 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->set_default_value(new ConfigOptionBool(false));
 */
 
-    def = this->add("export_sla", coBool);
+    /*def = this->add("export_sla", coBool);
     def->label = L("Export SLA");
     def->tooltip = L("Slice the model and export SLA printing layers as PNG.");
     def->cli = "export-sla|sla";
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBool(false));*/
 
-    def = this->add("export_3mf", coBool);
+    def = this->add("export_3mf", coString);
     def->label = L("Export 3MF");
-    def->tooltip = L("Export the model(s) as 3MF.");
-    def->set_default_value(new ConfigOptionBool(false));
+    def->tooltip = L("Export project as 3MF.");
+    def->cli_params = "filename.3mf";
+    def->set_default_value(new ConfigOptionString("output.3mf"));
 
-    def = this->add("export_amf", coBool);
+    /*def = this->add("export_amf", coBool);
     def->label = L("Export AMF");
     def->tooltip = L("Export the model(s) as AMF.");
     def->set_default_value(new ConfigOptionBool(false));
@@ -4303,7 +4305,7 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->label = L("Export G-code");
     def->tooltip = L("Slice the model and export toolpaths as G-code.");
     def->cli = "export-gcode|gcode|g";
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBool(false));*/
 
     def = this->add("gcodeviewer", coBool);
     def->label = L("G-code viewer");
@@ -4313,17 +4315,17 @@ CLIActionsConfigDef::CLIActionsConfigDef()
 
     def = this->add("slice", coBool);
     def->label = L("Slice");
-    def->tooltip = L("Slice the model as FFF or SLA based on the printer_technology configuration value.");
-    def->cli = "slice|s";
+    def->tooltip = L("Slice the models.");
+    def->cli = "slice";
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("help", coBool);
     def->label = L("Help");
-    def->tooltip = L("Show this help.");
+    def->tooltip = L("Show command help.");
     def->cli = "help|h";
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("help_fff", coBool);
+    /*def = this->add("help_fff", coBool);
     def->label = L("Help (FFF options)");
     def->tooltip = L("Show the full list of print/G-code configuration options.");
     def->set_default_value(new ConfigOptionBool(false));
@@ -4331,25 +4333,27 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def = this->add("help_sla", coBool);
     def->label = L("Help (SLA options)");
     def->tooltip = L("Show the full list of SLA print configuration options.");
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBool(false));*/
 
     def = this->add("info", coBool);
     def->label = L("Output Model Info");
-    def->tooltip = L("Write information about the model to the console.");
+    def->tooltip = L("Output the model's information.");
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("save", coString);
-    def->label = L("Save config file");
-    def->tooltip = L("Save configuration to the specified file.");
-    def->set_default_value(new ConfigOptionString());
+    def = this->add("export_settings", coString);
+    def->label = L("Export Settings");
+    def->tooltip = L("Export settings to a file.");
+    def->cli_params = "settings.json";
+    def->set_default_value(new ConfigOptionString("output.json"));
 }
 
+//BBS: remove unused command currently
 CLITransformConfigDef::CLITransformConfigDef()
 {
     ConfigOptionDef* def;
 
     // Transform options:
-    def = this->add("align_xy", coPoint);
+    /*def = this->add("align_xy", coPoint);
     def->label = L("Align XY");
     def->tooltip = L("Align the model to the given point.");
     def->set_default_value(new ConfigOptionPoint(Vec2d(100,100)));
@@ -4357,7 +4361,7 @@ CLITransformConfigDef::CLITransformConfigDef()
     def = this->add("cut", coFloat);
     def->label = L("Cut");
     def->tooltip = L("Cut model at the given Z.");
-    def->set_default_value(new ConfigOptionFloat(0));
+    def->set_default_value(new ConfigOptionFloat(0));*/
 
 /*
     def = this->add("cut_grid", coFloat);
@@ -4376,45 +4380,50 @@ CLITransformConfigDef::CLITransformConfigDef()
     def->set_default_value(new ConfigOptionFloat(0));
 */
 
-    def = this->add("center", coPoint);
+    /*def = this->add("center", coPoint);
     def->label = L("Center");
     def->tooltip = L("Center the print around the given center.");
-    def->set_default_value(new ConfigOptionPoint(Vec2d(100,100)));
+    def->set_default_value(new ConfigOptionPoint(Vec2d(100,100)));*/
 
     def = this->add("arrange", coInt);
     def->label = L("Arrange Options");
     def->tooltip = L("Arrange options: 0-disable, 1-enable, others-auto");
-    def->cli = "arrange|a";
+    def->cli_params = "option";
+    //def->cli = "arrange|a";
+    def->set_default_value(new ConfigOptionInt(0));
 
-    def = this->add("ensure_on_bed", coBool);
+    /*def = this->add("ensure_on_bed", coBool);
     def->label = L("Ensure on bed");
     def->tooltip = L("Lift the object above the bed when it is partially below. Enabled by default, use --no-ensure-on-bed to disable.");
     def->set_default_value(new ConfigOptionBool(true));
 
-    def = this->add("duplicate", coInt);
-    def->label = L("Duplicate");
-    def->tooltip =L("Multiply copies by this factor.");
+    def = this->add("copy", coInt);
+    def->label = L("Copy");
+    def->tooltip =L("Duplicate copies of model");
     def->min = 1;
+    def->set_default_value(new ConfigOptionInt(1));*/
 
-    def = this->add("duplicate_grid", coPoint);
+    /*def = this->add("duplicate_grid", coPoint);
     def->label = L("Duplicate by grid");
     def->tooltip = L("Multiply copies by creating a grid.");
 
     def = this->add("merge", coBool);
     def->label = L("Merge");
     def->tooltip = L("Arrange the supplied models in a plate and merge them in a single model in order to perform actions once.");
-    def->cli = "merge|m";
+    def->cli = "merge|m";*/
 
     def = this->add("orient", coBool);
     def->label = L("Orient");
-    def->tooltip = L("Orient the supplied models.");
-    def->cli = "orient|o";
+    def->tooltip = L("Orient the model");
+    //def->cli = "orient|o";
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("repair", coBool);
     def->label = L("Repair");
-    def->tooltip = L("Try to repair any non-manifold meshes (this option is implicitly added whenever we need to slice the model to perform the requested action).");
+    def->tooltip = L("Repair the model's meshes if it is non-manifold mesh");
+    def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("rotate", coFloat);
+    /*def = this->add("rotate", coFloat);
     def->label = L("Rotate");
     def->tooltip = L("Rotation angle around the Z axis in degrees.");
     def->set_default_value(new ConfigOptionFloat(0));
@@ -4427,28 +4436,29 @@ CLITransformConfigDef::CLITransformConfigDef()
     def = this->add("rotate_y", coFloat);
     def->label = L("Rotate around Y");
     def->tooltip = L("Rotation angle around the Y axis in degrees.");
-    def->set_default_value(new ConfigOptionFloat(0));
+    def->set_default_value(new ConfigOptionFloat(0));*/
 
-    def = this->add("scale", coFloatOrPercent);
+    def = this->add("scale", coFloat);
     def->label = L("Scale");
-    def->tooltip = L("Scaling factor or percentage.");
-    def->set_default_value(new ConfigOptionFloatOrPercent(1, false));
+    def->tooltip = L("Scale the model by a float factor");
+    def->cli_params = "factor";
+    def->set_default_value(new ConfigOptionFloat(1.f));
 
-    def = this->add("split", coBool);
+    /*def = this->add("split", coBool);
     def->label = L("Split");
     def->tooltip = L("Detect unconnected parts in the given model(s) and split them into separate objects.");
 
     def = this->add("scale_to_fit", coPoint3);
     def->label = L("Scale to Fit");
     def->tooltip = L("Scale to fit the given volume.");
-    def->set_default_value(new ConfigOptionPoint3(Vec3d(0,0,0)));
+    def->set_default_value(new ConfigOptionPoint3(Vec3d(0,0,0)));*/
 }
 
 CLIMiscConfigDef::CLIMiscConfigDef()
 {
     ConfigOptionDef* def;
 
-    def = this->add("ignore_nonexistent_config", coBool);
+    /*def = this->add("ignore_nonexistent_config", coBool);
     def->label = L("Ignore non-existent config files");
     def->tooltip = L("Do not fail if a file supplied to --load does not exist.");
 
@@ -4464,13 +4474,25 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->enum_labels.push_back(L("Bail out on unknown configuration values"));
     def->enum_labels.push_back(L("Enable reading unknown configuration values by verbosely substituting them with defaults."));
     def->enum_labels.push_back(L("Enable reading unknown configuration values by silently substituting them with defaults."));
-    def->set_default_value(new ConfigOptionEnum<ForwardCompatibilitySubstitutionRule>(ForwardCompatibilitySubstitutionRule::Enable));
+    def->set_default_value(new ConfigOptionEnum<ForwardCompatibilitySubstitutionRule>(ForwardCompatibilitySubstitutionRule::Enable));*/
 
-    def = this->add("load", coStrings);
+    /*def = this->add("load", coStrings);
     def->label = L("Load config file");
-    def->tooltip = L("Load configuration from the specified file. It can be used more than once to load options from multiple files.");
+    def->tooltip = L("Load configuration from the specified file. It can be used more than once to load options from multiple files.");*/
 
-    def = this->add("output", coString);
+    def = this->add("load_settings", coStrings);
+    def->label = L("Load General Settings");
+    def->tooltip = L("Load process/machine settings from the specified file");
+    def->cli_params = "\"setting1.json;setting2.json\"";
+    def->set_default_value(new ConfigOptionStrings());
+
+    def = this->add("load_filaments", coStrings);
+    def->label = L("Load Filament Settings");
+    def->tooltip = L("Load filament settings from the specified file list");
+    def->cli_params = "\"filament1.json;filament2.json;...\"";
+    def->set_default_value(new ConfigOptionStrings());
+
+    /*def = this->add("output", coString);
     def->label = L("Output File");
     def->tooltip = L("The file where the output will be written (if not specified, it will be based on the input file).");
     def->cli = "output|o";
@@ -4479,7 +4501,7 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->label = L("Single instance mode");
     def->tooltip = L("If enabled, the command line arguments are sent to an existing instance of GUI BambuStudio, "
                      "or an existing BambuStudio window is activated. "
-                     "Overrides the \"single_instance\" configuration value from application preferences.");
+                     "Overrides the \"single_instance\" configuration value from application preferences.");*/
 
 /*
     def = this->add("autosave", coString);
@@ -4487,21 +4509,24 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->tooltip = L("Automatically export current configuration to the specified file.");
 */
 
-    def = this->add("datadir", coString);
-    def->label = L("Data directory");
-    def->tooltip = L("Load and store settings at the given directory. This is useful for maintaining different profiles or including configurations from a network storage.");
+    def = this->add("outputdir", coString);
+    def->label = L("Output directory");
+    def->tooltip = L("Output directory for the exported files.");
+    def->cli_params = "dir";
+    def->set_default_value(new ConfigOptionString());
 
-    def = this->add("loglevel", coInt);
-    def->label = L("Logging level");
-    def->tooltip = L("Sets logging sensitivity. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:trace\n"
-                     "For example. loglevel=2 logs fatal, error and warning level messages.");
+    def = this->add("debug", coInt);
+    def->label = L("Debug level");
+    def->tooltip = L("Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:trace\n");
     def->min = 0;
+    def->cli_params = "level";
+    def->set_default_value(new ConfigOptionInt(1));
 
 #if (defined(_MSC_VER) || defined(__MINGW32__)) && defined(SLIC3R_GUI)
-    def = this->add("sw_renderer", coBool);
+    /*def = this->add("sw_renderer", coBool);
     def->label = L("Render with a software renderer");
     def->tooltip = L("Render with a software renderer. The bundled MESA software renderer is loaded instead of the default OpenGL driver.");
-    def->min = 0;
+    def->min = 0;*/
 #endif /* _MSC_VER */
 }
 
