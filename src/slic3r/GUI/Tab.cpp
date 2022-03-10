@@ -9,9 +9,7 @@
 
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/PrintHost.hpp"
-#include "BonjourDialog.hpp"
 #include "WipeTowerDialog.hpp"
-#include "ButtonsDescription.hpp"
 #include "Search.hpp"
 #include "OG_CustomCtrl.hpp"
 
@@ -255,7 +253,6 @@ void Tab::create_preset_tab()
     add_scaled_bitmap(this, m_bmp_value_revert, "undo");
     add_scaled_bitmap(this, m_bmp_white_bullet, "dot");
 
-    fill_icon_descriptions();
     set_tooltips_text();
 
     add_scaled_button(m_top_panel, &m_undo_btn,        m_bmp_white_bullet.name());
@@ -263,12 +260,7 @@ void Tab::create_preset_tab()
 
     m_undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_roll_back_value(); }));
     m_undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_roll_back_value(true); }));
-    /*m_question_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent) {
-        ButtonsDescription dlg(this, m_icon_descriptions);
-        if (dlg.ShowModal() == wxID_OK)
-            wxGetApp().update_label_colours();
-    });
-    m_search_btn->Bind(wxEVT_BUTTON, [](wxCommandEvent) { wxGetApp().plater()->search(false); });*/
+    /* m_search_btn->Bind(wxEVT_BUTTON, [](wxCommandEvent) { wxGetApp().plater()->search(false); });*/
 
     // Colors for ui "decoration"
     m_sys_label_clr			= wxGetApp().get_label_clr_sys();
@@ -4434,32 +4426,6 @@ void Tab::compatible_widget_reload(PresetDependencies &deps)
     deps.checkbox->SetValue(! has_any);
 
     field->toggle(! has_any);
-}
-
-void Tab::fill_icon_descriptions()
-{
-    m_icon_descriptions.emplace_back(&m_bmp_value_lock, L("LOCKED LOCK"),
-        // TRN Description for "LOCKED LOCK"
-        L("indicates that the settings are the same as the system (or default) values for the current option group"));
-
-    m_icon_descriptions.emplace_back(&m_bmp_value_unlock, L("UNLOCKED LOCK"),
-        // TRN Description for "UNLOCKED LOCK"
-        L("indicates that some settings were changed and are not equal to the system (or default) values for "
-        "the current option group.\n"
-        "Click the UNLOCKED LOCK icon to reset all settings for current option group to "
-        "the system (or default) values."));
-
-    m_icon_descriptions.emplace_back(&m_bmp_white_bullet, L("WHITE BULLET"),
-        // TRN Description for "WHITE BULLET"
-        L("for the left button: indicates a non-system (or non-default) preset,\n"
-          "for the right button: indicates that the settings hasn't been modified."));
-
-    m_icon_descriptions.emplace_back(&m_bmp_value_revert, L("BACK ARROW"),
-        // TRN Description for "BACK ARROW"
-        L("indicates that the settings were changed and are not equal to the last saved preset for "
-        "the current option group.\n"
-        "Click the BACK ARROW icon to reset all settings for the current option group to "
-        "the last saved preset."));
 }
 
 void Tab::set_tooltips_text()

@@ -2,12 +2,8 @@ src/slic3r/GUI/AboutDialog.cpp
 src/slic3r/GUI/BackgroundSlicingProcess.cpp
 src/slic3r/GUI/BedShapeDialog.cpp
 src/slic3r/GUI/BedShapeDialog.hpp
-src/slic3r/GUI/BonjourDialog.cpp
-src/slic3r/GUI/ButtonsDescription.cpp
 src/slic3r/GUI/ConfigManipulation.cpp
-src/slic3r/GUI/ConfigSnapshotDialog.cpp
 src/slic3r/GUI/ConfigWizard.cpp
-src/slic3r/GUI/DesktopIntegrationDialog.cpp
 src/slic3r/GUI/DoubleSlider.cpp
 src/slic3r/GUI/ExtraRenderers.cpp
 src/slic3r/GUI/ExtruderSequenceDialog.cpp
@@ -17,7 +13,6 @@ src/slic3r/GUI/GLCanvas3D.cpp
 src/slic3r/GUI/Gizmos/GLGizmoCut.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFlatten.cpp
-src/slic3r/GUI/Gizmos/GLGizmoHollow.cpp
 src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp
 src/slic3r/GUI/Gizmos/GLGizmoMove.cpp
 src/slic3r/GUI/Gizmos/GLGizmoRotate.cpp
@@ -35,7 +30,6 @@ src/slic3r/GUI/GUI_ObjectList.cpp
 src/slic3r/GUI/GUI_ObjectManipulation.cpp
 src/slic3r/GUI/GUI_ObjectSettings.cpp
 src/slic3r/GUI/GUI_Preview.cpp
-src/slic3r/GUI/HintNotification.cpp
 src/slic3r/GUI/ImGuiWrapper.cpp
 src/slic3r/GUI/Jobs/ArrangeJob.cpp
 src/slic3r/GUI/Jobs/FillBedJob.cpp

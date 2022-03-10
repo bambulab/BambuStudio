@@ -59,8 +59,6 @@
 #include "../Utils/Process.hpp"
 #include "../Utils/MacDarkMode.hpp"
 #include "slic3r/Config/Snapshot.hpp"
-#include "ConfigSnapshotDialog.hpp"
-//#include "FirmwareDialog.hpp"
 #include "Preferences.hpp"
 #include "Tab.hpp"
 #include "SysInfoDialog.hpp"
@@ -2771,33 +2769,7 @@ void GUI_App::add_config_menu(wxMenu *menu)
             }
             break;
         case ConfigMenuSnapshots:
-            if (check_and_save_current_preset_changes(_L("Loading a configuration snapshot"), "", false)) {
-                std::string on_snapshot;
-                if (Config::SnapshotDB::singleton().is_on_snapshot(*app_config))
-                    on_snapshot = app_config->get("on_snapshot");
-                ConfigSnapshotDialog dlg(Slic3r::GUI::Config::SnapshotDB::singleton(), on_snapshot);
-                dlg.ShowModal();
-                if (!dlg.snapshot_to_activate().empty()) {
-                    if (! Config::SnapshotDB::singleton().is_on_snapshot(*app_config) && 
-                        ! Config::take_config_snapshot_cancel_on_error(*app_config, Config::Snapshot::SNAPSHOT_BEFORE_ROLLBACK, "",
-                                GUI::format(_L("Continue to activate a configuration snapshot %1%?"), dlg.snapshot_to_activate())))
-                        break;
-                    try {
-                        app_config->set("on_snapshot", Config::SnapshotDB::singleton().restore_snapshot(dlg.snapshot_to_activate(), *app_config).id);
-                        // Enable substitutions, log both user and system substitutions. There should not be any substitutions performed when loading system
-                        // presets because compatibility of profiles shall be verified using the min_slic3r_version keys in config index, but users
-                        // are known to be creative and mess with the config files in various ways.
-                        if (PresetsConfigSubstitutions all_substitutions = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::Enable);
-                            ! all_substitutions.empty())
-                            show_substitutions_info(all_substitutions);
-
-                        // Load the currently selected preset into the GUI, update the preset selection box.
-                        load_current_presets();
-                    } catch (std::exception &ex) {
-                        GUI::show_error(nullptr, _L("Failed to activate configuration snapshot.") + "\n" + into_u8(ex.what()));
-                    }
-                }
-            }
+            //BBS do not support task snapshot
             break;
         case ConfigMenuPreferences:
         {

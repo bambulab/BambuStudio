@@ -30,7 +30,6 @@
 #include <memory>
 
 #include "BedShapeDialog.hpp"
-#include "ButtonsDescription.hpp"
 #include "Event.hpp"
 #include "wxExtensions.hpp"
 #include "ConfigManipulation.hpp"
@@ -233,8 +232,6 @@ protected:
 	std::map<std::string, int>	m_options_list;
 	int							m_opt_status_value = 0;
 
-	std::vector<ButtonsDescription::Entry>	m_icon_descriptions = {};
-
 	bool				m_is_modified_values{ false };
 	bool				m_is_nonsys_values{ true };
 	bool				m_postpone_update_ui {false};
@@ -407,7 +404,6 @@ protected:
 	void			build_preset_description_line(ConfigOptionsGroup* optgroup);
 	void			update_preset_description_line();
 	void			update_frequently_changed_parameters();
-	void			fill_icon_descriptions();
 	void			set_tooltips_text();
 
     ConfigManipulation m_config_manipulation;

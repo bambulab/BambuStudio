@@ -8,7 +8,6 @@
 #include "libslic3r/AppConfig.hpp"
 #include <wx/notebook.h>
 #include "Notebook.hpp"
-#include "ButtonsDescription.hpp"
 #include "OG_CustomCtrl.hpp"
 #include "wx/graphics.h"
 #include "Widgets/CheckBox.hpp"

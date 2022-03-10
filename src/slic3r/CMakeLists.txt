@@ -60,8 +60,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/BitmapCache.hpp
     GUI/ImageGrid.cpp
     GUI/ImageGrid.h
-    GUI/ConfigSnapshotDialog.cpp
-    GUI/ConfigSnapshotDialog.hpp
     GUI/3DScene.cpp
     GUI/3DScene.hpp
     GUI/format.hpp
@@ -180,8 +178,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ParamsDialog.hpp
     GUI/ParamsPanel.cpp
     GUI/ParamsPanel.hpp
-	GUI/AmsWidgets.cpp
-	GUI/AmsWidgets.hpp
+    GUI/AmsWidgets.cpp
+    GUI/AmsWidgets.hpp
     GUI/MediaFilePanel.cpp
     GUI/MediaFilePanel.h
     GUI/MediaPlayCtrl.cpp
@@ -226,10 +224,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/RemovableDriveManager.hpp
     GUI/SendSystemInfoDialog.cpp
     GUI/SendSystemInfoDialog.hpp
-    GUI/BonjourDialog.cpp
-    GUI/BonjourDialog.hpp
-    GUI/ButtonsDescription.cpp
-    GUI/ButtonsDescription.hpp
     GUI/ImGuiWrapper.hpp
     GUI/ImGuiWrapper.cpp
     GUI/DeviceManager.hpp

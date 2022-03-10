@@ -30,7 +30,6 @@
 #include "../Utils/UndoRedo.hpp"
 #include "RemovableDriveManager.hpp"
 #include "BitmapCache.hpp"
-#include "BonjourDialog.hpp"
 #include "MsgDialog.hpp"
 
 namespace Slic3r {
@@ -294,11 +293,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     {
         auto sizer = create_sizer_with_btn(parent, &m_printhost_browse_btn, "browse", _L("Browse") + " " + dots);
         m_printhost_browse_btn->Bind(wxEVT_BUTTON, [=](wxCommandEvent& e) {
-            BonjourDialog dialog(this, Preset::printer_technology(m_printer.config));
-            if (dialog.show_and_lookup()) {
-                m_optgroup->set_value("print_host", dialog.get_selected(), true);
-                m_optgroup->get_field("print_host")->field_changed();
-            }
+            //BBS remove BonjourDialog
         });
 
         return sizer;
