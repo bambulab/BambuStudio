@@ -270,27 +270,7 @@ SubTaskPanel::~SubTaskPanel()
 
 void SubTaskPanel::on_subtask_print(wxCommandEvent& evt)
 {
-    int result = -1;
-    Slic3r::AccountManager* c = Slic3r::GUI::wxGetApp().getAccountManager();
-    MachineObject* obj = c->get_default_machine();
-    if (!obj->can_print()) {
-        wxMessageBox("Current Printer is Busy!");
-        return;
-    }
-    result = c->poll_3mf(&m_subtask);
-    if (result < 0 || m_subtask.task_url.empty()
-        || m_subtask.task_url.compare("null") == 0
-        || m_subtask.task_url_md5.empty()) {
-        wxMessageBox("poll 3mf failed!");
-        return;
-    }  
-
-    result = obj->send_wan_print_subtask(&m_subtask);
-    if (result < 0)
-        wxMessageBox("Send Print Task Failed!");
-    else
-        wxMessageBox("Send Print Task Ok!");
-    
+    //TODO
 }
 
 void SubTaskPanel::on_thumbnail_enter(wxMouseEvent& event)

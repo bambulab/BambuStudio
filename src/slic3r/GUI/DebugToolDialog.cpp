@@ -79,17 +79,17 @@ void GcodePrintJob::on_exception(const std::exception_ptr &eptr)
 void GcodePrintJob::process()
 {
     /* print current gcode */
-    Slic3r::AccountManager* account_manager = Slic3r::GUI::wxGetApp().getAccountManager();
+    Slic3r::AccountManager* acc = Slic3r::GUI::wxGetApp().getAccountManager();
 
 #ifdef BBL_CHECK_USER_REPORT
     int task_id = 0;
     bool printable = true;
-    account_manager->user_check_report(&task_id, &printable);
+    acc->user_check_report(&task_id, &printable);
     if (task_id!=0 && !printable) {
         update_status(0, _L("Please fill report first!"));
         std::string report_url = (boost::format("https://autotest.bambu-lab.com/slicerAddReport?task_id=%1%&token=%2%")
             % task_id
-            % account_manager->get_curr_user()->m_autotest_token
+            % acc->get_curr_user()->m_autotest_token
             ).str();
         wxLaunchDefaultBrowser(report_url);
         return;
@@ -99,7 +99,6 @@ void GcodePrintJob::process()
     fs::path gcode_path(m_gcode_file_str);
     fs::path _3mf_path(wxStandardPaths::Get().GetTempDir().utf8_str().data());
     _3mf_path /= gcode_path.filename().string();
-
     std::string dst_gcode_file_str = "Metadata/" + gcode_path.filename().string();
 
     /* zip gcode to 3mf */
@@ -108,106 +107,127 @@ void GcodePrintJob::process()
     mz_zip_zero_struct(&archive);
     if (!open_zip_writer(&archive, _3mf_file_str)) {
         BOOST_LOG_TRIVIAL(trace) << "Unable to open the file";
+        update_status(0, _L("Unable to create zip file"));
         return;
     }
 
-    update_status(3, "prepare 3mf file");
+    int res = 0;
+    unsigned int http_code;
+    std::string http_body;
+    int curr_percent = 3;
+    wxString msg = "prepare 3mf file";
+
+    update_status(curr_percent, msg);
     std::string src_file_str = encode_path(m_gcode_file_str.c_str());
     bool result = mz_zip_writer_add_file(&archive, dst_gcode_file_str.c_str(), src_file_str.c_str(), "", 0, MZ_DEFAULT_LEVEL);
     result &= mz_zip_writer_finalize_archive(&archive);
     result &= close_zip_writer(&archive);
     if (!result) {
-        update_status(0, "create 3mf failed!");
+        update_status(curr_percent, "create 3mf failed!");
         return;
     }
-
+    curr_percent = 5;
     BBLProject* project = new BBLProject("gcode_project");
     project->project_3mf_file = _3mf_file_str;
     project->project_path = fs::path(project->project_3mf_file);
 
     if (!fs::exists(project->project_path)) {
-        update_status(3, "prepare 3mf failed!");
+        update_status(curr_percent, "prepare 3mf failed!");
         return;
     }
 
-    BOOST_LOG_TRIVIAL(trace) << "debug_print_job: request project id";
-    int res = account_manager->request_project_id(project);
-
+    /* request project id */
+    BOOST_LOG_TRIVIAL(trace) << "gcode_print_job: request project id";
+    res = acc->request_project_id(project, http_code, http_body);
     if (res == 0 && !project->project_id.empty()) {
-        update_status(5, "request project id ok!");
+        curr_percent = 10;
+        update_status(curr_percent, "request project id ok!");
     } else {
-        BOOST_LOG_TRIVIAL(trace) << "request project id failed!";
-        update_status(3, "reqeust project id failed!");
+        wxString error_msg = wxString::Format(_L("req_project,err:code=%u,msg=%s"), http_code, http_body);
+        update_status(curr_percent, error_msg);
+        BOOST_LOG_TRIVIAL(trace) << "gcode_print_job: request project id failed! error_msg=" << error_msg.ToStdString();
         return;
     }
 
     BBLProfile* profile = new BBLProfile(project);
     profile->profile_name = "gcode_profile";
-    
-    BOOST_LOG_TRIVIAL(trace) << "print_job: request profile id";
-    res = account_manager->request_profile_id(profile,
-        [this](int result, std::string info) {
-            if (result == 0) {
-                update_status(10, "request profile id ok!");
-            }
-            else {
-                update_status(5, "request profile id failed!");
-            }
-        }
-        );
 
-    if (res == 0 && !profile->profile_id.empty()) {
-        update_status(10, "request profile id ok!");
+    BOOST_LOG_TRIVIAL(trace) << "gcode_print_job: request profile id";
+    res = acc->request_profile_id(profile, http_code, http_body);
+    if (res == 0 && !profile->profile_id.empty()
+        && !profile->upload_ticket.empty()
+        && !profile->upload_url.empty()) {
+        update_status(curr_percent, "request profile id ok!");
     }
     else {
-        update_status(5, "request profile id failed!");
+        wxString error_msg = wxString::Format(_L("req_profile,err:code=%u,msg=%s"), http_code, http_body);
+        update_status(curr_percent, error_msg);
+        BOOST_LOG_TRIVIAL(trace) << "gcode_print_job: request profile id failed! error_msg=" << error_msg.ToStdString();
         return;
     }
 
     /* upload and poll */
     BOOST_LOG_TRIVIAL(trace) << "print_job: start to uploading...";
-    int* result_ptr = &res;
-
-    res = account_manager->upload_3mf_to_oss(profile,
-    [this, result_ptr](int result, std::string info) {
-            *result_ptr = result;
-        if (result == 0) {
-            update_status(80, "upload 3mf ok!");
-        }
-        else {
-            update_status(10, "upload 3mf failed!");
-        }
-    },
-    [this](Http::Progress progress, bool &cancel) {
-        int percent = 0;
-        if (was_canceled()) {
-            cancel = true;
-            return;
-        }
-        if (progress.ultotal != 0) {
-            percent = progress.ulnow / progress.ultotal;
-        }
-        percent = 10 + percent * 70 / 100;
-        update_status(percent, "3mf uploading...");
-    });
-
-    if (res < 0 || *result_ptr < 0) {
-        update_status(0, "3mf uploading failed!");
-        return;
-    }
+    res = acc->upload_3mf_to_oss(profile, http_code, http_body,
+        [this](Http::Progress progress, bool &cancel) {
+            int percent = 0;
+            if (was_canceled()) {
+                cancel = true;
+                return;
+            }
+            if (progress.ultotal != 0) {
+                percent = progress.ulnow / progress.ultotal;
+            }
+            percent = 10 + percent * 70 / 100;
+            update_status(percent, "3mf uploading...");
+        });
 
     if (was_canceled()) {
-        update_status(0, "job is canceled");
+        update_status(curr_percent, "canceled");
         return;
     }
 
+    if (res < 0) {
+        wxString error_msg = wxString::Format(_L("upload,err:code=%u,msg=%s"), http_code, http_body);
+        update_status(curr_percent, error_msg);
+        BOOST_LOG_TRIVIAL(trace) << "gcode_print_job: upload 3mf failed! error_msg=" << error_msg.ToStdString();
+        return;
+    }
+
+    curr_percent = 85;
+    msg = "put notification";
+    update_status(curr_percent, msg);
     /* put notifications */
-    int err_code;
-    std::string err_msg;
-    account_manager->put_notification(profile, project->project_path.filename().string(), err_code, err_msg);
-    if (err_code != 0) {
-        wxString msg = wxString::Format("error code: %d, error msg: %s", err_code, err_msg);
-        update_status(10, msg);
+    acc->put_notification(profile, project->project_path.filename().string(), http_code, http_body);
+    if (res < 0) {
+        wxString msg = wxString::Format(_L("Service Error: code=%u, error=%s"), http_code, http_body);
+        update_status(curr_percent, msg);
+        return;
+    }
+
+    /* get notifications */
+    bool cancel = false;
+    res = acc->get_notification(profile, http_code, http_body,
+        [this]() {
+            return was_canceled();
+        }
+    );
+
+    if (res == RET_POLLING_TIMEOUT) {
+        msg = "Uploading printing task timed out. Please try again!";
+        update_status(curr_percent, msg);
+        return;
+    }
+    else if (res == RET_POLLING_CANEL) {
+        msg = "print project cancelled!";
+        update_status(curr_percent, msg);
+        BOOST_LOG_TRIVIAL(trace) << "print_job: subtask is canceled when uploading...";
+        return;
+    }
+    else if (res < 0) {
+        wxString error_msg = wxString::Format(_L("get_no,err:code=%u,msg=%s"), http_code, http_body);
+        update_status(curr_percent, error_msg);
+        return;
     }
 
     /* create Task */
@@ -216,14 +236,14 @@ void GcodePrintJob::process()
 
     /* rqeust task id */
     BOOST_LOG_TRIVIAL(trace) << "print_job: start to request_task_id";
-    account_manager->request_task_id(task);
-
-    if (!task->task_id.empty()) {
-        update_status(85, "request task id ok!");
-    }
-    else {
-        update_status(80, "request task id failed!");
+    res = acc->request_task_id(task, http_code, http_body);
+    if (res < 0 || task->task_id.empty()) {
+        wxString error_msg = wxString::Format(_L("req_task_id,err:code=%u,msg=%s"), http_code, http_body);
+        update_status(curr_percent, error_msg);
         return;
+    } else {
+        curr_percent = 90;
+        update_status(curr_percent, "request task id ok!");
     }
 
     if (m_obj) {
@@ -235,29 +255,48 @@ void GcodePrintJob::process()
         subtask->task_partplate_idx = "1";
         subtask->task_printer_dev_id = m_obj->dev_id;
 
-        account_manager->request_subtask_id(subtask);
-        if (!subtask->task_id.empty()) {
-            update_status(90, "request subtask id ok!");
+        res = acc->request_subtask_id(subtask, http_code, http_body);
+        if (res != 0 && subtask->task_id.empty()) {
+            wxString error_msg = wxString::Format(_L("req_sibtask_id,err:code=%u,msg=%s"), http_code, http_body);
+            update_status(curr_percent, error_msg);
+            return;
+        } else {
+            update_status(curr_percent, "request subtask id ok!");
         }
-        else {
-            update_status(80, "request subtask id failed!");
+
+        res = acc->get_subtask_3mf(subtask,
+            [this]() {
+                return was_canceled();
+            });
+
+        if (res == RET_POLLING_CANEL) {
+            update_status(curr_percent, "cancelled!");
+            return;
+        }
+        else if (res == RET_POLLING_TIMEOUT) {
+            update_status(curr_percent, "Timeout to get 3mf of subtask");
             return;
         }
 
-        res = account_manager->poll_3mf(subtask);
-        if (!subtask->task_url.empty() && !subtask->task_url_md5.empty()) {
-            update_status(95, "poll 3mf of task ok!");
+        if (res == 0 && !subtask->task_url.empty()
+            && subtask->task_url.compare("null") != 0
+            && !subtask->task_url_md5.empty()) {
+            curr_percent = 95;
+            update_status(curr_percent, msg);
             BOOST_LOG_TRIVIAL(trace) << "get subtask url =" << subtask->task_url;
         }
         else {
-            update_status(90, "poll 3mf of task failed!");
+            wxString error_msg = wxString::Format(_L("pol_3mf,err:code=%u,msg=%s"), http_code, http_body);
+            update_status(curr_percent, error_msg);
             return;
         }
 
         BOOST_LOG_TRIVIAL(trace) << "print_job: send subtask";
-        // upload and send to machine
-        m_obj->send_wan_print_subtask(subtask);
-        update_status(100, "send task ok!");
+        res = m_obj->send_wan_print_subtask(subtask);
+        curr_percent = 100;
+        update_status(curr_percent, "send task ok!");
+    } else {
+        update_status(curr_percent, "Invernal Error, obj is null");
     }
 }
 

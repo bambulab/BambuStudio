@@ -23,7 +23,17 @@
 #define MODEL_STORE_URL                 "/designs"
 
 #define POLL_3MF_TIMEOUT                180
+#define POLL_3MF_INTERVAL               1
+#define POLL_NOTIFICATION_TIMEOUT       120
+#define POLL_NOTIFICATION_INTERVAL      2
+
 #define DEFAULT_BBL_SETTING_VERSION     "00.00.00.01"
+
+
+#define MSG_SUCCESS                     "success"
+
+#define RET_POLLING_CANEL               -2
+#define RET_POLLING_TIMEOUT             -3
 
 namespace pt = boost::property_tree;
 
@@ -205,7 +215,6 @@ private:
     std::string m_user_info_filename;
     std::string host = "";
     std::string test_host = "https://autotest.bambooolab.com";
-    std::string MSG_SUCCESS = "success";
 
     /* login, register */
     std::string _get_login_request(std::string account, std::string password);
@@ -303,8 +312,13 @@ public:
     int request_user_unbind(std::string device_id, ResultFn fn);
     void clean_user_data();
     void user_check_report(int* query_task_id, bool* printable);
-    // put notification after upload a 3mf file
-    void put_notification(BBLProfile* profile, std::string upload_filename, int &err_code, std::string &error);
+
+    // GET /api/user/notification
+    /* return: -1 : failed, 1 : success, -2: cancelled, -3: timeout */
+    int get_notification(BBLProfile* profile, unsigned int &http_code, std::string &http_body, CancelFn cancel_fn = nullptr);
+
+    // PUT /api/user/notification
+    int put_notification(BBLProfile* profile, std::string upload_filename, unsigned int &http_code, std::string &http_body);
 
     /* myBindList */
     std::mutex listMutex;
@@ -338,33 +352,36 @@ public:
     BBLProfile* get_default_profile() { return default_profile; }
     void set_default_profile(BBLProfile* profile) { default_profile = profile; }
 
-    // request a project id, project_name -> project_id, sync
-    int request_project_id(BBLProject* project, ResultFn resFn = nullptr);
-    // request a profile id, profile_name -> profile_id, sync
-    int request_profile_id(BBLProfile* profile, ResultFn resFn = nullptr);
-    // request a task id, project_id, profile_id -> task_id, sync
-    int request_task_id(BBLTask* task, ResultFn resFn = nullptr);
-    // request a sub task id, project_id, profile_id -> subtask_id, sync
-    int request_subtask_id(BBLSubTask* task, ResultFn resFn = nullptr);
-    // upload 3mf to oss
-    int upload_3mf_to_oss(BBLProfile* profile, ResultFn resFn, Http::ProgressFn proFn);
-    // upload 3mf for project and profile
-    int upload_3mf(BBLProfile* profile, ResultFn resFn = nullptr, Http::ProgressFn proFn = nullptr);
-    // poll_3mf for project model only, sync
-    int poll_3mf(BBLProject* project);
+    // POST /api/user/project
+    int request_project_id(BBLProject* project, unsigned int &http_code, std::string &http_body);
+    
+    // POST /api/user/project/[project_id]
+    int request_profile_id(BBLProfile* profile, unsigned int &http_code, std::string &http_body);
+
+    // POST /api/user/task
+    int request_task_id(BBLTask* task, unsigned int &http_code, std::string &http_body);
+
+    // POST /api/user/task
+    int request_subtask_id(BBLSubTask* task, unsigned int &http_code, std::string &http_body);
+
+    // PUT alibaba oss
+    int upload_3mf_to_oss(BBLProfile* profile, unsigned int &http_code, std::string & http_body, Http::ProgressFn proFn = nullptr);
+
+    // upload_3mf_to_oss + put_notification + get_notification
+    //int upload_3mf(BBLProfile* profile, unsigned int &http_code, std::string &http_body, Http::ProgressFn proFn = nullptr);
+
     int poll_3mf(BBLProject* project, std::string profile_id, bool& cancel, Http::ErrorFn errFn = nullptr);
-    // poll_3mf for project and profile, sync
-    int poll_3mf(BBLProfile* profile);
+
     // poll_3mf for task, sync
     int poll_3mf(BBLSubTask* task, CancelFn  fn = nullptr);
 
-    void query_design_info(std::string model_id, std::string &design_id, int &err_code, std::string &err_msg);
+    // GET /design-service/model/[model_id]
+    int get_design_info(std::string model_id, std::string &design_id, unsigned int &http_code, std::string &http_body);
 
     // get task info
     void get_task(BBLTask* &task);
     void get_subtask(BBLSubTask* &subtask);
-    int get_subtask_3mf(BBLSubTask* &subtask, CancelFn fn);
-    void get_subtask_report(BBLSubTask*& subtask);
+    int get_subtask_3mf(BBLSubTask* &subtask, CancelFn fn = nullptr);
     void get_profile(BBLProject*& project, BBLProfile*& profile);
 
     static void get_machine_last_report_url(std::string dev_id, std::string& last_url);

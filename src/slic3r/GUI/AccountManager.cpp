@@ -25,6 +25,11 @@
 
 using namespace nlohmann;
 
+inline bool is_valid_property(json &j, std::string prop)
+{
+    return j.contains(prop) && !j[prop].is_null();
+}
+
 void split_string(std::string s, std::vector<std::string>& v) {
 
     std::string t = "";
@@ -675,38 +680,103 @@ namespace Slic3r {
             .perform_sync();
     }
 
-    void AccountManager::put_notification(BBLProfile* profile, std::string upload_filename, int &err_code, std::string &error)
+    int AccountManager::get_notification(BBLProfile* profile, unsigned int& http_code, std::string& http_body, CancelFn cancel_fn)
     {
-        assert(!upload_filename.empty());
+        int result = -1;
+        if (!profile || profile->upload_ticket.empty()) return -1;
+
+        /* retry 120 seconds, 60 * 2 seconds */
+        int retry = 0, retry_max = POLL_NOTIFICATION_TIMEOUT / POLL_NOTIFICATION_INTERVAL;
+
+        std::string url = (boost::format("%1%/iot-service/api/user/notification?action=upload&ticket=%2%") % host % profile->upload_ticket).str();
+        Http http = Http::get(url);
+        http.header("accept", "application/json")
+            .header("Authorization", get_token_str())
+            .on_complete(
+                [this, &result, &http_code, &http_body](std::string body, unsigned status) {
+                    http_code = status;
+                    http_body = body;
+                    try {
+                        json j = json::parse(body);
+                        if (is_valid_property(j, "message")) {
+                            std::string message_str = j["message"].get<std::string>();
+                            if (message_str == MSG_SUCCESS)
+                                result = 1;
+                            else if (message_str == "running")
+                                result = 0;
+                            else
+                                result = -1;
+                        }
+                    }
+                    catch(...) {
+                        ;
+                    }
+                }
+            ).on_error(
+                [this, &result, &http_code, &http_body](std::string body, std::string error, unsigned status) {
+                    result = -1;
+                    http_code = status;
+                    http_body = body;
+                }
+            );
+
+        while (retry < retry_max) {
+            http.perform_sync();
+            /* failed */            
+            if (result == -1) return -1;
+
+            /* success */
+            if (result == 1) return 0;
+
+            if (cancel_fn) {
+                if (cancel_fn()) return RET_POLLING_CANEL;
+            }
+
+            retry++;
+            BOOST_LOG_TRIVIAL(trace) << "get notification, retry = " << retry;
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(POLL_NOTIFICATION_INTERVAL * 1000));
+        }
+        if (retry == retry_max) {
+            /* timeout */
+            return RET_POLLING_TIMEOUT;
+        }
+        return result;
+    }
+
+    int AccountManager::put_notification(BBLProfile* profile, std::string upload_filename, unsigned int &http_code, std::string &http_error)
+    {
+        int result = -1;
+        if (upload_filename.empty()) return -1;
+        if (profile->upload_ticket.empty()) return -1;
 
         std::string url = (boost::format("%1%/iot-service/api/user/notification") % host).str();
         Http http = Http::put2(std::move(url));
 
-        json j;
-        j["upload"]["ticket"] = profile->upload_ticket;
-        j["upload"]["origin_file_name"] = upload_filename;
+        json post_body_json;
+        post_body_json["upload"]["ticket"] = profile->upload_ticket;
+        post_body_json["upload"]["origin_file_name"] = upload_filename;
 
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
             .header("Content-Type", "application/json")
-            .set_post_body(j.dump())
-            .on_complete([&err_code, &error](std::string body, unsigned) {
-                BOOST_LOG_TRIVIAL(trace) << "user_put_notification: body = " << body;
-                json jj = json::parse(body);
+            .set_post_body(post_body_json.dump())
+            .on_complete([&result, &http_code, &http_error](std::string body, unsigned status) {
+                http_code = status;
+                http_error = body;
+                json j = json::parse(body);
                 try {
-                    std::string message = jj["message"].get<std::string>();
-                    if (!jj["code"].is_null())
-                        err_code = jj["code"].get<int>();
-                    if (!jj["error"].is_null())
-                        error = jj["error"].get<std::string>();
+                    if (is_valid_property(j, "message")) {
+                        if (j["message"].get<std::string>() == MSG_SUCCESS)
+                            result = 0;
+                    }
                 } catch(...) {
                     ;
                 }
-            }).on_error([&err_code, &error](std::string body, std::string error_str, unsigned status) {
-                err_code = -1;
-                error = (boost::format("status:%1%, body:%2%") % status % body).str();
-                BOOST_LOG_TRIVIAL(trace) << "user_put_notification: on_error" << error_str;
+            }).on_error([&http_code, &http_error](std::string body, std::string error_str, unsigned status) {
+                http_code = status;
+                http_error = body;
             }).perform_sync();
+        return result;
     }
 
     int AccountManager::user_register(std::string account, std::string password)
@@ -1276,22 +1346,15 @@ namespace Slic3r {
 
     std::string AccountManager::json_request_body_post_project(BBLProject* project)
     {
-        std::string project_name_str = project->project_name;
+        if (!project) return "";
 
-        pt::ptree root;
-        root.put("name", project_name_str);
-        /* optional model_id */
-        if (!project->project_model_id.empty()) {
-            root.put("model_id", project->project_model_id);
-        }
-        /* optional content */
-        if (!project->project_content.empty()) {
-            root.put("content", project->project_content);
-        }
-
-        std::stringstream oss;
-        pt::write_json(oss, root, false);
-        return oss.str();
+        json j;
+        j["name"] = project->project_name;
+        if (!project->project_model_id.empty())
+            j["model_id"] = project->project_model_id;
+        if (!project->project_content.empty())
+            j["content"] = project->project_content;
+        return j.dump();
     }
 
     std::string AccountManager::json_request_body_post_profile(BBLProfile* profile)
@@ -1308,37 +1371,39 @@ namespace Slic3r {
     std::string AccountManager::json_request_body_post_task(BBLTask* task)
     {
         if (!task) return "";
+        if (task->task_project_id.empty()) return "";
+        if (task->task_profile_id.empty()) return "";
 
-        std::string task_name_str = task->task_name;
-        pt::ptree root;
-        root.put<int>("parent", 0);
-        root.put("project_id", task->task_project_id);
-        root.put("profile_id", task->task_profile_id);
-        root.put("name", task_name_str);
-        root.put("content", task->build_content_json());
-        std::stringstream oss;
-        pt::write_json(oss, root, false);
-        return oss.str();
+        json j;
+        j["parent"] = 0;
+        j["project_id"] = task->task_project_id;
+        j["profile_id"] = task->task_profile_id;
+        j["name"] = task->task_name;
+        j["content"] = task->build_content_json();
+
+        return j.dump();
     }
 
     std::string AccountManager::json_request_body_post_task(BBLSubTask* task)
     {
         if (!task) return "";
 
-        std::string task_name_str = task->task_name;
-        pt::ptree root;
-        
+        if (task->task_printer_dev_id.empty()) return "";
+
+        json j;
         if (task->parent_task_) {
-            root.put("parent", task->parent_task_->task_id);
-            root.put("project_id", task->parent_task_->task_project_id);
-            root.put("profile_id", task->parent_task_->task_profile_id);
+            if (!task->parent_task_->task_id.empty())
+                j["parent"] = task->parent_task_->task_id;
+            if (!task->parent_task_->task_project_id.empty())
+                j["project_id"] = task->parent_task_->task_project_id;
+            if (!task->parent_task_->task_profile_id.empty())
+                j["profile_id"] = task->parent_task_->task_profile_id;
         }
-        root.put("dev_id", task->task_printer_dev_id);
-        root.put("name", task_name_str);
-        root.put("content", task->build_content_json());
-        std::stringstream oss;
-        pt::write_json(oss, root, false);
-        return oss.str();
+        j["dev_id"] = task->task_printer_dev_id;
+        j["name"] = task->task_name;
+        j["content"] = task->build_content_json();
+
+        return j.dump();
     }
 
     std::string AccountManager::json_request_body_post_setting(Preset* preset)
@@ -1404,15 +1469,10 @@ namespace Slic3r {
         return j.dump();
     }
 
-    int AccountManager::request_project_id(BBLProject* project, ResultFn resFn)
+    int AccountManager::request_project_id(BBLProject* project, unsigned int &http_code, std::string &http_body)
     {
-        int result = 0;
-        if (!project) {
-            if (resFn) {
-                resFn(-1, "Invalid Project");
-            }
-            return -1;
-        }
+        int result = -1;
+        if (!project) return -1;
 
         /* get a project id and model id */
         std::string json_str = json_request_body_post_project(project);
@@ -1423,62 +1483,43 @@ namespace Slic3r {
             .header("Content-Type", "application/json")
             .set_post_body(json_str)
             .on_complete(
-                [this, project, resFn](std::string body, unsigned) {
+                [this, project, &result, &http_code, &http_body](std::string body, unsigned int status) {
                     try {
+                        http_code = status;
+                        http_body = body;
                         BOOST_LOG_TRIVIAL(trace) << "AccountManager::request_project_id, body=" << body;
-
                         json j = json::parse(body);
-
-                        if (j["message"].get<std::string>() == MSG_SUCCESS) {
-                            if (!j["project_id"].is_null())
-                                project->project_id = j["project_id"].get<std::string>();
-                            if (!j["model_id"].is_null())
-                                project->project_model_id = j["model_id"].get<std::string>();
-                            if (!j["name"].is_null())
-                                project->project_name = j["name"].get<std::string>();
-                        }
-
-                        // failed return
-                        if (resFn) {
-                            resFn(-1, "get project id failed! body=" + body);
-                        }
-                    }
-                    catch (std::exception& e) {
-                        BOOST_LOG_TRIVIAL(trace) << (boost::format("AccountManager::create_project on_complete parsing failed, exception=%1% body=%2%")
-                            % e.what()
-                            % body).str();
-                        if (resFn) {
-                            resFn(-1, "get project id failed! body=" + body);
+                        if (is_valid_property(j, "message")) {
+                            if (j["message"].get<std::string>() == MSG_SUCCESS) {
+                                if (is_valid_property(j, "project_id"))
+                                    project->project_id = j["project_id"].get<std::string>();
+                                if (is_valid_property(j, "model_id"))
+                                    project->project_model_id = j["model_id"].get<std::string>();
+                                if (is_valid_property(j, "name"))
+                                    project->project_name = j["name"].get<std::string>();
+                                result = 0;
+                            }
                         }
                     }
                     catch (...) {
-                        BOOST_LOG_TRIVIAL(trace) << "AccountManager::create_project on_complete parsing failed, body=" << body;
-                        if (resFn) {
-                            resFn(-1, "get project id failed! body=" + body);
-                        }
+                        BOOST_LOG_TRIVIAL(trace) << "request_project_id: on_complete parsing failed, body=" << body;
                     }
                 }
             )
             .on_error(
-                [&, resFn](std::string body, std::string error, unsigned status) {
-                    BOOST_LOG_TRIVIAL(trace) << boost::format("status=%1%, error=%2%, body=%3%")
-                        % status
-                        % error
-                        % body;
-                    delete project;
-                    project = nullptr;
-                    if (resFn) {
-                        resFn(-1, "get project id failed! body=" + body);
-                    }
+                [&http_code, &http_body](std::string body, std::string error, unsigned status) {
+                    http_code = status;
+                    http_body = body;
                 }
             )
         .perform_sync();
-        return 0;
+        return result;
     }
 
-    int AccountManager::request_profile_id(BBLProfile* profile, ResultFn resFn)
+    int AccountManager::request_profile_id(BBLProfile* profile, unsigned int &http_code, std::string  &http_body)
     {
-        if (!profile) return -1;
+        int result = -1;
+        if (!profile || profile->project_id.empty()) return -1;
 
         std::string project_url = (boost::format("%1%/iot-service/api/user/project/%2%") % host % profile->project_id).str();
 
@@ -1491,24 +1532,22 @@ namespace Slic3r {
             .header("Content-Type", "application/json")
             .set_post_body(request_str)
             .on_complete(
-                [this, profile, resFn](std::string body, unsigned) {
+                [this, profile, &result, &http_code, &http_body](std::string body, unsigned status) {
                     try {
-                        BOOST_LOG_TRIVIAL(trace) << "request profile id, body=" << body;
+                        http_code = status;
+                        http_body = body;
                         json j = json::parse(body);
-                        std::string message = j["message"].get<std::string>();
+                        if (is_valid_property(j, "message")) {
+                            if (j["message"].get<std::string>() == MSG_SUCCESS) {
+                                if (is_valid_property(j, "profile_id") && is_valid_property(j, "upload_url") && is_valid_property(j, "upload_ticket")) {
+                                    profile->profile_id = j["profile_id"].get<std::string>();
+                                    profile->upload_url = j["upload_url"].get<std::string>();
+                                    profile->upload_ticket = j["upload_ticket"].get<std::string>();
+                                    result = 0;
+                                }
+                            }
 
-                        if (message == MSG_SUCCESS) {
-                            profile->profile_id = j["profile_id"].get<std::string>();
-                            profile->upload_url = j["upload_url"].get<std::string>();
-                            profile->upload_ticket = j["upload_ticket"].get<std::string>();
-                            if (resFn)
-                                resFn(0, "");
-                            return;
                         }
-                        if (resFn) {
-                            resFn(-1, "get profile id failed! body=" + body);
-                        }
-                        return;
                     }
                     catch(...) {
                         ;
@@ -1516,23 +1555,29 @@ namespace Slic3r {
                 }
             )
             .on_error(
-                [this, profile, resFn](std::string body, std::string error, unsigned status) {
-                    BOOST_LOG_TRIVIAL(trace) << "create_profile failed! body=" << body << ", status=" << status;
-                    if (resFn) {
-                        resFn(-1, "get profile id failed! body=" + body);
-                    }
+                [this, &result, &http_code, &http_body](std::string body, std::string error, unsigned status) {
+                    result = -1;
+                    http_code = status;
+                    http_body = body;
                 }
             )
             .perform_sync();
-        return 0;
+        return result;
     }
 
-    int AccountManager::request_task_id(BBLTask* task, ResultFn resFn)
+    int AccountManager::request_task_id(BBLTask* task, unsigned int& http_code, std::string& http_body)
     {
+        int result = -1;
+
         if (!task) return -1;
+
         std::string json_str = json_request_body_post_task(task);
+        if (json_str.empty()) {
+            BOOST_LOG_TRIVIAL(trace) << "reqeust_task_id failed, json_str is empty";
+            return -1;
+        }
+
         std::string url = (boost::format("%1%/iot-service/api/user/task") % host).str();
-        task->task_id.clear();
 
         Http http = Http::post(url);
         http.header("accept", "application/json")
@@ -1540,8 +1585,24 @@ namespace Slic3r {
             .header("Content-Type", "application/json")
             .set_post_body(json_str)
             .on_complete(
-                [this, task, resFn](std::string body, unsigned) {
-                    BOOST_LOG_TRIVIAL(trace) << "request task id, body=" << body;
+                [this, task, &result, &http_code, &http_body](std::string body, unsigned int status) {
+                    http_code = status;
+                    http_body = body;
+                    try {
+                        json j = json::parse(body);
+                        if (is_valid_property(j, "message")) {
+                            if (j["message"].get<std::string>() == MSG_SUCCESS) {
+                                if (is_valid_property(j, "task_id")) {
+                                    task->task_id = j["task_id"].get<std::string>();
+                                    result = 0;
+                                }
+                            }
+                        }
+                    }
+                    catch (...) {
+                        result = -1;
+                    }
+                    
                     std::stringstream ss(body);
                     pt::ptree root;
                     pt::read_json(ss, root);
@@ -1551,39 +1612,36 @@ namespace Slic3r {
                         if (message.value().compare(MSG_SUCCESS) == 0) {
                             if (task_id.has_value()) {
                                 task->task_id = task_id.value();
-                                if (resFn) {
-                                    resFn(0, "");
-                                }
-                                // success return
                                 return;
                             }
                         }
-                    }
-
-                    if (resFn) {
-                        resFn(-1, "get task id failed! body=" + body);
                     }
                     return;
                 }
             )
             .on_error(
-                [this, resFn](std::string body, std::string error, unsigned status) {
-                    BOOST_LOG_TRIVIAL(trace) << "create_profile failed! body=" << body << ", status=" << status;
-                    if (resFn) {
-                        resFn(-1, "get task id failed! body=" + body);
-                    }
+                [this, &result, &http_code, &http_body](std::string body, std::string error, unsigned status) {
+                    result = -1;
+                    http_code = status;
+                    http_body = error;
                 }
             )
             .perform_sync();
-        return 0;
+        return result;
     }
 
-    int AccountManager::request_subtask_id(BBLSubTask* task, ResultFn resFn)
+    int AccountManager::request_subtask_id(BBLSubTask* task, unsigned int &http_code, std::string &http_body)
     {
+        int result = -1;
         if (!task) return -1;
+
         std::string json_str = json_request_body_post_task(task);
+        if (json_str.empty()) {
+            BOOST_LOG_TRIVIAL(trace) << "reqeust_subtask_id json_str is empty";
+            return -1;
+        }
+
         std::string url = (boost::format("%1%/iot-service/api/user/task") % host).str();
-        task->task_id.clear();
 
         Http http = Http::post(url);
         http.header("accept", "application/json")
@@ -1591,134 +1649,62 @@ namespace Slic3r {
             .header("Content-Type", "application/json")
             .set_post_body(json_str)
             .on_complete(
-                [this, task, resFn](std::string body, unsigned) {
-                    BOOST_LOG_TRIVIAL(trace) << "request task id, body=" << body;
-                    std::stringstream ss(body);
-                    pt::ptree root;
-                    pt::read_json(ss, root);
-                    boost::optional<std::string> message = root.get_optional<std::string>("message");
-                    boost::optional<std::string> task_id = root.get_optional<std::string>("task_id");
-                    if (message.has_value()) {
-                        if (message.value().compare(MSG_SUCCESS) == 0) {
-                            if (task_id.has_value()) {
-                                task->task_id = task_id.value();
-                                if (resFn) {
-                                    resFn(0, "");
+                [this, task, &result, &http_code, &http_body](std::string body, unsigned status) {
+                    http_code = status;
+                    http_body = body;
+                    try {
+                        json j = json::parse(body);
+                        if (is_valid_property(j, "message")) {
+                            if (j["message"].get<std::string>() == MSG_SUCCESS) {
+                                if (is_valid_property(j, "task_id")) {
+                                    task->task_id = j["task_id"].get<std::string>();
+                                    result = 0;
                                 }
-                                // success return
-                                return;
                             }
                         }
+                    
+                    } catch(...) {
+                        ;
                     }
-
-                    if (resFn) {
-                        resFn(-1, "get task id failed! body=" + body);
-                    }
-                    return;
                 }
             )
             .on_error(
-                [this, resFn](std::string body, std::string error, unsigned status) {
-                    BOOST_LOG_TRIVIAL(trace) << "create_profile failed! body=" << body << ", status=" << status;
-                    if (resFn) {
-                        resFn(-1, "get task id failed! body=" + body);
-                    }
+                [this, &result, &http_code, &http_body](std::string body, std::string error, unsigned status) {
+                    result = -1;
+                    http_code = status;
+                    http_body = body;
                 }
             )
             .perform_sync();
-        return 0;
+        return result;
     }
 
-    int AccountManager::upload_3mf_to_oss(BBLProfile* profile, ResultFn resFn, Http::ProgressFn proFn)
+    int AccountManager::upload_3mf_to_oss(BBLProfile* profile, unsigned int &http_code, std::string &http_body, Http::ProgressFn proFn)
     {
+        int result = RET_POLLING_CANEL;
         if (!profile || !profile->project_) return -1;
-        int result = 0;
 
         std::string upload_url = profile->upload_url;
         Http http_put = Http::put2(upload_url);
 
-        boost::system::error_code ec;
-        boost::uintmax_t filesize = file_size(profile->project_->project_path, ec);
-
         http_put.set_put_body(profile->project_->project_path)
                 .on_complete(
-                    [this, resFn, &result](std::string body, unsigned int status) {
-                        BOOST_LOG_TRIVIAL(trace) << "body = " << body << ", status = " << status;
+                    [this, &result, &http_code, &http_body](std::string body, unsigned int status) {
                         result = 0;
-                        if (resFn)
-                            resFn(0, "");
+                        http_code = status;
+                        http_body = body;
                     }
                 )
                 .on_progress(proFn)
                 .on_error(
-                    [this, resFn, &result](std::string body, std::string error, unsigned status) {
-                        BOOST_LOG_TRIVIAL(info) << "create_project, upload project failed! body=" << body;
-                        if (resFn) {
-                            std::string info("upload project failed!");
-                            info += " body=" + body;
-                            resFn(-1, info);
-                        }
+                    [this, &result, &http_code, &http_body](std::string body, std::string error, unsigned status) {
+                        http_code = status;
+                        http_body = body;
                         result = -1;
                     }
                 );
         http_put.perform_sync();
         return result;
-    }
-
-    int AccountManager::upload_3mf(BBLProfile* profile, ResultFn resFn, Http::ProgressFn proFn)
-    {
-        int result = 0;
-        int* result_ptr = &result;
-
-        if (!profile || !profile->project_) return -1;
-
-        /* upload 3mf or gcode to cloud */
-        std::string project_url = (boost::format("%1%/iot-service/api/user/project/%2%") % host % profile->project_id).str();
-        std::string filename_str = profile->project_->project_path.filename().string();
-        std::string profile_id_str("profile_id");
-        std::string project_file = encode_path(profile->project_->project_path.generic_string().c_str());
-
-        Http http_put = Http::put2(project_url);
-        http_put.header("accept", "application/json")
-            .header("Authorization", get_token_str())
-            .header("Content-Type", "multipart/form-data")
-            .mime_form_add_file(filename_str, project_file.c_str())
-            .mime_form_add_text(profile_id_str, profile->profile_id)
-            .on_complete(
-                [this, resFn, result_ptr](std::string body, unsigned) {
-                    std::stringstream ss(body);
-                    pt::ptree root;
-                    pt::read_json(ss, root);
-                    boost::optional<std::string> message = root.get_optional<std::string>("message");
-                    if (message.has_value()) {
-                        if (message.value().compare(MSG_SUCCESS) == 0) {
-                            BOOST_LOG_TRIVIAL(info) << "create_project, upload project ok!";
-                            if (resFn) {
-                                resFn(0, "");
-                            }
-                            return;
-                        }
-                    }
-                    if (resFn) {
-                        resFn(-1, "upload_3mf_to_project failed! body=" + body);
-                    }
-                    *result_ptr = -1;
-                }
-            )
-            .on_progress(proFn)
-            .on_error(
-                [this, resFn, result_ptr](std::string body, std::string error, unsigned status) {
-                    BOOST_LOG_TRIVIAL(info) << "create_project, upload project failed! body=" << body;
-                    if (resFn) {
-                        std::string info("upload project failed!");
-                        info += " body=" + body;
-                        resFn(-1, info);
-                    }
-                    *result_ptr = -1;
-                }
-            );
-        http_put.perform_sync();
-        return *result_ptr;
     }
 
     int AccountManager::poll_3mf(BBLSubTask* task, CancelFn fn)
@@ -1791,32 +1777,43 @@ namespace Slic3r {
         return 0;
     }
 
-    void AccountManager::query_design_info(std::string model_id, std::string& design_id, int& err_code, std::string& err_msg)
+    int AccountManager::get_design_info(std::string model_id, std::string& design_id, unsigned int& http_code, std::string& http_body)
     {
+        int result = -1;
+        if (model_id.empty()) return -1;
+        design_id.clear();
+
         std::string url = (boost::format("%1%/design-service/model/%2%") % host % model_id).str();
+
         Http http = Http::get(url);
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
-            .on_complete([this, &design_id, &err_code, &err_msg](std::string body, unsigned status) {
+            .on_complete([this, &result, &design_id, &http_code, &http_body](std::string body, unsigned status) {
                 try {
+                    http_code = status;
+                    http_body = body;
                     json j = json::parse(body);
-                    if (j.contains("id") && !j["id"].is_null())
+                    if (is_valid_property(j, "id")) {
                         design_id = std::to_string(j["id"].get<int>());
+                        result = 0;
+                    }
                 } catch(...) {
                     ;
                 }
             })
             .on_error(
-                [this, &err_code, &err_msg](std::string body, std::string error, unsigned status) {
+                [this, &result, &http_code, &http_body](std::string body, std::string error, unsigned status) {
+                    http_code = status;
+                    http_body = body;
                     if (status == 404)
-                        err_code = -1;
+                        result = 0;
                     else {
-                        err_msg = (boost::format("err_msg: %1%, status = %2%") % body % status).str();
-                        BOOST_LOG_TRIVIAL(info) << "get_design info failed! err_msg" << err_msg;
+                        result = -1;
                     }
                 }
             )
             .perform_sync();
+        return result;
     }
 
     // poll 3mf must have a profile id
@@ -1901,82 +1898,6 @@ namespace Slic3r {
 
         if (retry_ == retry_max) {
             BOOST_LOG_TRIVIAL(trace) << "download project failed, retry_max";
-            return -1;
-        }
-        return 0;
-    }
-
-    int AccountManager::poll_3mf(BBLProfile* profile)
-    {
-        if (!profile) return -1;
-
-        std::string ticket = profile->profile_id;
-        std::string query_params = (boost::format("?profile_id=%1%&&ticket=%2%") % profile->profile_id % ticket).str();
-
-        std::string url = (boost::format("%1%/iot-service/api/user/project/%2%%3%") % host % profile->project_id % query_params).str();
-
-        BBLProject* project = profile->project_;
-
-        int retry_ = 0;
-        int retry_max = POLL_3MF_TIMEOUT;
-        
-        Http http = Http::get(url);
-        http.header("accept", "application/json")
-            .header("Authorization", get_token_str())
-            .on_complete(
-                [this, project](std::string body, unsigned) {
-                    std::stringstream ss(body);
-                    pt::ptree root;
-                    pt::read_json(ss, root);
-                    boost::optional<std::string> message = root.get_optional<std::string>("message");
-                    if (message.has_value()) {
-                        if (message.value().compare("ready") == 0) {
-                            BOOST_LOG_TRIVIAL(info) << "get_project_info ok!";
-                            boost::optional<std::string> status = root.get_optional<std::string>("status");
-                            boost::optional<std::string> model_id = root.get_optional<std::string>("model_id");
-                            if (model_id.has_value()) { project->project_model_id = model_id.value(); }
-                            boost::optional<std::string> name = root.get_optional<std::string>("name");
-                            if (name.has_value()) {
-                                project->project_name = name.value();
-                            }
-                            boost::optional<std::string> create_time = root.get_optional<std::string>("create_time");
-                            boost::optional<std::string> content = root.get_optional<std::string>("content");
-                            boost::optional<std::string> profiles = root.get_optional<std::string>("profiles");
-                            boost::optional<std::string> url = root.get_optional<std::string>("url");
-                            if (url.has_value()) {
-                                // check valid url
-                                if (url.value().compare("null") != 0) {
-                                    project->project_url = url.value();
-                                }
-                            }
-                            boost::optional<std::string> md5 = root.get_optional<std::string>("md5");
-                            if (md5.has_value()) {
-                                if (md5.value().compare("null") != 0) {
-                                    project->project_url_md5 = md5.value();
-                                }
-                            }
-                            //success
-                            return;
-                        }
-                    }
-                    //failed
-                    return;
-                }
-            )
-            .on_error(
-                [this](std::string body, std::string error, unsigned status) {
-                    BOOST_LOG_TRIVIAL(info) << "get_project_info failed! body=" << body;
-                });
-        
-
-        while (project->project_url.empty() && retry_ < retry_max) {
-                http.perform_sync();
-                retry_++;
-                BOOST_LOG_TRIVIAL(trace) << "get_profile_info, retry=" << retry_;
-                boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
-        }
-        if (retry_ == retry_max) {
-            BOOST_LOG_TRIVIAL(trace) << "get_profile_info, retry_max";
             return -1;
         }
         return 0;
@@ -2150,17 +2071,14 @@ namespace Slic3r {
                 }
             )
             .perform();
-
-#ifdef BBL_INTERNAL_TEST
-        get_subtask_report(subtask);
-#endif
     }
 
-    int AccountManager::get_subtask_3mf(BBLSubTask* &subtask, CancelFn fn)
+    int AccountManager::get_subtask_3mf(BBLSubTask* &subtask, CancelFn cancel_fn)
     {
-        int retry_ = 0;
-        int retry_max = POLL_3MF_TIMEOUT;
-        assert(!subtask->task_partplate_idx.empty());
+        int result = -1;
+        int retry_ = 0, retry_max = POLL_3MF_TIMEOUT / POLL_3MF_INTERVAL;
+        if (subtask->task_id.empty()) return -1;
+        if (subtask->task_partplate_idx.empty()) return -1;
 
         json j;
         j["base_model"] = false;
@@ -2168,8 +2086,9 @@ namespace Slic3r {
         j["profile_thumbnail"] = true;
         j["profile_gcode"] = false;
         j["profile_plate"] = std::stoi(subtask->task_partplate_idx);
-        j["profile_pattern"] = true;
-        j["profile_files"] = json::array();
+        if (!subtask->task_gcode_in_3mf.empty()) {
+            j["profile_files"] = json::array({ subtask->task_gcode_in_3mf });
+        }
 
         std::string gather = Http::url_encode(j.dump());
 
@@ -2178,59 +2097,49 @@ namespace Slic3r {
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
             .on_complete(
-                [this, subtask](std::string body, unsigned) {
-                    std::stringstream ss(body);
-                    pt::ptree root;
-                    pt::read_json(ss, root);
-                    boost::optional<std::string> message = root.get_optional<std::string>("message");
-                    if (message.has_value()) {
-                        if (message.value().compare("ready") == 0) {
-                            BOOST_LOG_TRIVIAL(info) << "get_project_info ok!";
-                            boost::optional<std::string> url = root.get_optional<std::string>("url");
-                            if (url.has_value()) {
-                                // check valid url
-                                if (url.value().compare("null") != 0) {
-                                    subtask->task_url = url.value();
+                [this, subtask, &result](std::string body, unsigned status) {
+                    try {
+                        json j = json::parse(body);
+                        if (is_valid_property(j, "message")) {
+                            if (j["message"].get<std::string>() == "ready") {
+                                if (is_valid_property(j, "url")) {
+                                    subtask->task_url = j["url"].get<std::string>();
                                 }
-                            }
-                            boost::optional<std::string> md5 = root.get_optional<std::string>("md5");
-                            if (md5.has_value()) {
-                                if (md5.value().compare("null") != 0) {
-                                    subtask->task_url_md5 = md5.value();
+                                if (is_valid_property(j, "md5")) {
+                                    subtask->task_url_md5 = j["md5"].get<std::string>();
                                 }
+                                result = 0;
                             }
-                            //success
-                            return;
                         }
                     }
-                    //failed
-                    return;
+                    catch (...) {
+                        ;
+                    }
                 }
             )
             .on_error(
-                [this](std::string body, std::string error, unsigned status) {
-                    BOOST_LOG_TRIVIAL(info) << "get_task info failed! body=" << body;
+                [this, &result](std::string body, std::string error, unsigned status) {
+                    result = -1;
                 }
             )
             .perform_sync();
 
-            while ((subtask->task_url.empty() || subtask->task_url.compare("null") == 0) && retry_ < retry_max) {
-                http.perform_sync();
-                if (fn) {
-                    if (fn()) {
-                        BOOST_LOG_TRIVIAL(trace) << "poll 3mf is cancelled";
-                        return -1;
-                    }
+        while ((subtask->task_url.empty() || subtask->task_url.compare("null") == 0) && retry_ < retry_max) {
+            http.perform_sync();
+            if (cancel_fn) {
+                if (cancel_fn()) {
+                    return RET_POLLING_CANEL;
                 }
-                retry_++;
-                BOOST_LOG_TRIVIAL(trace) << "get_task_url, retry=" << retry_;
-                boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
             }
-            if (retry_ == retry_max) {
-                BOOST_LOG_TRIVIAL(trace) << "get_task_url, retry_max";
-                return -1;
-            }
-            return 0;
+            retry_++;
+            BOOST_LOG_TRIVIAL(trace) << "get_task_url, retry=" << retry_;
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(POLL_3MF_INTERVAL * 1000));
+        }
+        if (retry_ == retry_max) {
+            BOOST_LOG_TRIVIAL(trace) << "get_task_url, retry_max";
+            return RET_POLLING_TIMEOUT;
+        }
+        return 0;
     }
 
     void AccountManager::get_machine_last_report_url(std::string dev_id, std::string& last_url)
@@ -2251,34 +2160,6 @@ namespace Slic3r {
         .perform_sync();
         last_url = *return_url;
         delete return_url;
-    }
-
-    void AccountManager::get_subtask_report(BBLSubTask*& subtask)
-    {
-
-        /*
-        std::string url = (boost::format("%1%/api/subtasks/%2%") % test_host % subtask->task_id).str();
-        Http http = Http::get(url);
-        http.header("accept", "application/json")
-            .header("Authorization", get_token_str())
-            .on_complete(
-                [this, subtask](std::string body, unsigned) {
-                    std::stringstream ss(body);
-                    pt::ptree root;
-                    pt::read_json(ss, root);
-                    boost::optional<std::string> task_report_id = root.get_optional<std::string>("task_report_id");
-                    boost::optional<std::string> task_printing_status = root.get_optional<std::string>("status");
-                    if (task_report_id.has_value())
-                        subtask->task_report = task_report_id.value();
-                }
-            )
-            .on_error(
-                [this](std::string body, std::string error, unsigned status) {
-                    BOOST_LOG_TRIVIAL(info) << "get_task info failed! body=" << body;
-                }
-            )
-            .perform();
-        */
     }
 
     void AccountManager::get_camera_url(

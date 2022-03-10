@@ -7,7 +7,8 @@
 
 namespace fs = boost::filesystem;
 
-namespace Slic3r { namespace GUI {
+namespace Slic3r {
+namespace GUI {
 
 class PrintPrepareData
 {

@@ -6620,7 +6620,10 @@ void Plater::import_model_id(const std::string& import_json)
     boost::thread import_thread = Slic3r::create_thread([&project, &percent, &cont, &cancel, &msg, &target_path, &download_ok, model_id, profile_id]{
         Slic3r::AccountManager* c = wxGetApp().getAccountManager();
 
-        c->request_project_id(project);
+        int res = 0;
+        unsigned int http_code;
+        std::string http_body;
+        res = c->request_project_id(project, http_code, http_body);
         if (project->project_id.empty()) {
             cont = false;
             msg = _L("request project id failed!");
@@ -6651,7 +6654,7 @@ void Plater::import_model_id(const std::string& import_json)
 
         msg = _L("downloading project ...");
 
-        bool res = false;
+
         /* save to temp folder 3mf file*/
         target_path = wxStandardPaths::Get().GetTempDir().utf8_str().data();
         boost::uuids::uuid uuid = boost::uuids::random_generator()();
@@ -8147,26 +8150,33 @@ void Plater::publish_project()
 
     boost::thread upload_thread = Slic3r::create_thread([c, &msg, &cont, &project, &profile, &percent, &upload_finish, temp_path, &design_id, &publish_profile] {
         int res = 0;
+        unsigned int http_code;
+        std::string http_body;
         msg = _L("preparing your designs, reqeust project id...");
 
         // query design id
         if (!project->project_model_id.empty()) {
-            int err_code = 0;
-            std::string err_msg;
-            c->query_design_info(project->project_model_id, design_id, err_code, err_msg);
-            if (!design_id.empty() && err_code == 0) {
-                publish_profile = true;
+            unsigned int http_code;
+            std::string http_body;
+            res = c->get_design_info(project->project_model_id, design_id, http_code, http_body);
+            if (res == 0) {
+                if (design_id.empty()) {
+                    publish_profile = true;
+                } else {
+                    publish_profile = false;
+                }
             } else {
-                msg = _L("query design info failed!");
+                msg = _L("Failed to get project info.");
                 cont = false;
                 return;
             }
         }
-        
+
         if (project->project_id.empty()) {
-            res = c->request_project_id(project);
+            res = c->request_project_id(project, http_code, http_body);
             if (res != 0 || project->project_id.empty()) {
-                msg = _L("preparing, request project id failed!");
+                wxString error_msg = wxString::Format(_L("req_pro,err:code=%u,msg=%s"), http_code, http_body);
+                msg = _L("Failed to publish. Please try again!") + error_msg;
                 cont = false;
                 return;
             }
@@ -8174,9 +8184,8 @@ void Plater::publish_project()
 
         // set project id
         profile->project_id = project->project_id;
-
         msg = _L("preparing, request profile id");
-        res = c->request_profile_id(profile);
+        res = c->request_profile_id(profile, http_code, http_body);
 
         if (res != 0 || profile->profile_id.empty())
         {
@@ -8187,7 +8196,7 @@ void Plater::publish_project()
 
         msg = _L("uploading...");
 
-        res = c->upload_3mf_to_oss(profile, nullptr,
+        res = c->upload_3mf_to_oss(profile, http_code, http_body,
             [&percent, &cont, &msg](Http::Progress progress, bool& cancel) {
                 if (!cont) cancel = true;
                 if (progress.ultotal != 0) {
@@ -8205,8 +8214,8 @@ void Plater::publish_project()
         int err_code = 0;
         std::string err_msg;
         std::string upload_filename = (boost::format("%1%.3mf") % project->project_name).str();
-        c->put_notification(profile, upload_filename, err_code, err_msg);
-        if (err_code != 0) {
+        res = c->put_notification(profile, upload_filename, http_code, http_body);
+        if (res < 0) {
             msg = wxString::Format("error code: %d, error msg: %s", err_code, err_msg);
             cont = false;
             return;
