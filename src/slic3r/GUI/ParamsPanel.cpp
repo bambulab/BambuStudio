@@ -56,7 +56,7 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
         //int width, height;
         // BBS: new layout
         m_mode_status = new SwitchButton(m_mode_panel);
-        m_mode_status->SetLabels(wxT("Global"), wxT("Parts"));
+        m_mode_status->SetLabels(wxT("Global"), wxT("Objects"));
         //m_mode_status->GetSize(&width, &height);
 
         // BBS: new layout
