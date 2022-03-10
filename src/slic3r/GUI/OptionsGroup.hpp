@@ -145,9 +145,6 @@ public:
     void		append_single_option_line(const Option& option, const std::string& path = std::string()) { append_line(create_single_option_line(option, path)); }
 	void		append_separator();
 
-	// BBS: null value
-	void		set_null_value(const std::vector<std::string> fields);
-
     // return a non-owning pointer reference 
     inline Field*	get_field(const t_config_option_key& id) const{
 							if (m_fields.find(id) == m_fields.end()) return nullptr;
@@ -269,7 +266,7 @@ public:
 		Option option = get_option(title, idx);
 		append_single_option_line(option, path);
 	}
-
+	
 	void		on_change_OG(const t_config_option_key& opt_id, const boost::any& value) override;
 	void		back_to_initial_value(const std::string& opt_key) override;
 	void		back_to_sys_value(const std::string& opt_key) override;

@@ -1025,8 +1025,8 @@ Sidebar::Sidebar(Plater *parent)
     //add project title
     auto params_panel = ((MainFrame*)parent->GetParent())->m_param_panel;
     if (params_panel) {
-        params_panel->get_mode_panel()->Reparent(p->scrolled);
-        scrolled_sizer->Add(params_panel->get_mode_panel(), 0, wxEXPAND);
+        params_panel->get_top_panel()->Reparent(p->scrolled);
+        scrolled_sizer->Add(params_panel->get_top_panel(), 0, wxEXPAND);
     }
 
     //add project content
@@ -1374,13 +1374,21 @@ void Sidebar::search()
 void Sidebar::jump_to_option(const std::string& opt_key, Preset::Type type, const std::wstring& category)
 {
     //const Search::Option& opt = p->searcher.get_option(opt_key, type);
+    if (type == Preset::TYPE_PRINT) {
+        auto tab = dynamic_cast<TabPrintModel*>(wxGetApp().params_panel()->get_current_tab());
+        if (tab && tab->has_key(opt_key)) {
+            tab->activate_option(opt_key, category);
+            return;
+        }
+        wxGetApp().params_panel()->switch_to_global();
+    }
     wxGetApp().get_tab(type)->activate_option(opt_key, category);
 }
 
 void Sidebar::jump_to_option(size_t selected)
 {
     const Search::Option& opt = p->searcher.get_option(selected);
-    wxGetApp().get_tab(opt.type)->activate_option(opt.opt_key(), boost::nowide::narrow(opt.category));
+    jump_to_option(opt.opt_key(), opt.type, opt.category);
 
     // Switch to the Settings NotePad
 //    wxGetApp().mainframe->select_tab();

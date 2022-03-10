@@ -399,7 +399,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("The maximum detour length for avoid crossing perimeters. "
                      "If the detour is longer than this value, avoid crossing perimeters is not applied for this travel path. "
                      "Detour length could be specified either as an absolute value or as percentage (for example 50%) of a direct travel path.");
-    def->sidetext = L("mm or % (zero to disable)");
+    def->sidetext = L("mm or %");
     def->min = 0;
     def->max_literal = 1000;
     def->mode = comDevelop;
@@ -918,7 +918,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Enable fan if layer print time is below");
     def->tooltip = L("If layer print time is estimated below this number of seconds, fan will be enabled "
                    "and its speed will be calculated by interpolating the minimum and maximum speeds.");
-    def->sidetext = L("approximate seconds");
+    def->sidetext = L("s");
     def->min = 0;
     def->max = 1000;
     def->mode = comAdvanced;
@@ -1528,7 +1528,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("mmu_segmented_region_max_width", coFloat);
     def->label = L("Maximum width of a segmented region");
     def->tooltip = L("Maximum width of a segmented region. Zero disables this feature.");
-    def->sidetext = L("mm (zero to disable)");
+    def->sidetext = L("mm");
     def->min = 0;
     def->category = L("Advanced");
     def->mode = comAdvanced;
@@ -2188,7 +2188,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Slow down if layer print time is below");
     def->tooltip = L("If layer print time is estimated below this number of seconds, print moves "
                    "speed will be scaled down to extend duration to this value.");
-    def->sidetext = L("approximate seconds");
+    def->sidetext = L("s");
     def->min = 0;
     def->max = 1000;
     def->mode = comAdvanced;

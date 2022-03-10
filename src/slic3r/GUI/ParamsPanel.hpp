@@ -56,9 +56,11 @@ class ParamsPanel : public wxPanel
         wxBoxSizer* m_left_sizer { nullptr };
         wxBoxSizer* m_mode_sizer { nullptr };
         // // BBS: new layout
-        StaticBox* m_mode_panel{ nullptr };
-        wxStaticText* m_mode_text{ nullptr };
-        SwitchButton* m_mode_status { nullptr };
+        StaticBox* m_top_panel{ nullptr };
+        wxStaticText* m_title_label { nullptr };
+        SwitchButton* m_mode_region { nullptr };
+        wxStaticText* m_title_view { nullptr };
+        SwitchButton* m_mode_view { nullptr };
         //wxBitmapButton* m_search_button { nullptr };
         wxStaticLine* m_staticline_print { nullptr };
         //wxBoxSizer* m_print_sizer { nullptr };
@@ -109,7 +111,7 @@ class ParamsPanel : public wxPanel
         void msw_rescale();
         void switch_to_global();
 
-        StaticBox* get_mode_panel() { return m_mode_panel; }
+        StaticBox* get_top_panel() { return m_top_panel; }
 
         wxPanel* filament_panel() { return m_tab_filament; }
 

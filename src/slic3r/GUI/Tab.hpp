@@ -176,6 +176,7 @@ protected:
 	ScalableButton*			m_undo_btn;
 	ScalableButton*			m_undo_to_sys_btn;
 	//ScalableButton*			m_question_btn;
+	ScalableButton*			m_btn_search;
 
 	// Cached bitmaps.
 	// A "flag" icon to be displayned next to the preset name in the Tab's combo box.
@@ -282,7 +283,7 @@ public:
     // 3. propagate changed configuration to the Plater when (m_update_cnt == 0) only
     int                 m_update_cnt = 0;
 
-	SwitchButton *		m_mode_status;
+	SwitchButton *		m_mode_view = nullptr;
 
 public:
 	// BBS
@@ -449,12 +450,16 @@ public:
 
 	void reset_model_config();
 
+	bool has_key(std::string const & key);
+
 protected:
 	virtual void    activate_selected_page(std::function<void()> throw_if_canceled);
 
 	virtual void    on_value_change(const std::string& opt_key, const boost::any& value) override;
 
 	virtual void    notify_changed(ObjectBase * object) = 0;
+
+	virtual void	reload_config();
 
 protected:
 	std::vector<std::string> const m_keys;

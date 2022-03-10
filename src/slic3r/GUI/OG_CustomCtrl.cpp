@@ -773,10 +773,12 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
     }
 
     // If there's a widget, build it and set result to the correct position.
+#ifndef DISABLE_BLINKING
     if (og_line.widget != nullptr) {
         draw_blinking_bmp(dc, wxPoint(h_pos, v_pos), og_line.blink);
         return;
     }
+#endif
 
     // If we're here, we have more than one option or a single option with sidetext
     // so we need a horizontal sizer to arrange these things
@@ -800,8 +802,10 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
         if (field && field->undo_to_sys_bitmap()) {
             h_pos = draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink(), bmp_rect_id++);
         }
+#ifndef DISABLE_BLINKING
         else if (field && !field->undo_to_sys_bitmap() && field->blink()) 
             draw_blinking_bmp(dc, wxPoint(h_pos, v_pos), field->blink());
+#endif
     };
 
     wxCoord h_pos2 = h_pos;

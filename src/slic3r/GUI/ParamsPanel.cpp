@@ -46,29 +46,31 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
 
     if (dynamic_cast<Notebook*>(parent)) {
         // BBS: new layout
-        m_mode_panel = new StaticBox(this, wxID_ANY, wxDefaultPosition);
-        m_mode_panel->SetBackgroundColor(0xF8F8F8);
-        m_mode_panel->SetBackgroundColor2(0xF1F1F1);
-        m_mode_text = new Label(Label::Body_14, wxT("Process"), m_mode_panel);
-        //m_mode_text->SetFont(Label::Body_14);
-        m_mode_text->Wrap( -1 );
+        m_top_panel = new StaticBox(this, wxID_ANY, wxDefaultPosition);
+        m_top_panel->SetBackgroundColor(0xF8F8F8);
+        m_top_panel->SetBackgroundColor2(0xF1F1F1);
+        m_title_label = new Label(Label::Body_14, wxT("Process"), m_top_panel);
+        m_title_label->Wrap( -1 );
 
         //int width, height;
         // BBS: new layout
-        m_mode_status = new SwitchButton(m_mode_panel);
-        m_mode_status->SetLabels(wxT("Global"), wxT("Objects"));
-        //m_mode_status->GetSize(&width, &height);
+        m_mode_region = new SwitchButton(m_top_panel);
+        m_mode_region->SetLabels(wxT("Global"), wxT("Objects"));
+        //m_mode_region->GetSize(&width, &height);
+        m_title_view = new Label(Label::Body_14, wxT("Advance"), m_top_panel);
+        m_title_view->Wrap( -1 );
+        m_mode_view = new SwitchButton(m_top_panel, wxID_ABOUT);
 
         // BBS: new layout
-        m_search_btn = new ScalableButton(m_mode_panel, wxID_ANY, "search", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
-        m_search_btn->SetToolTip(format_wxstr(_L("Search in settings [%1%]"), "Ctrl+F"));
-        m_search_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().plater()->search(false); });
-        //m_search_button = new wxBitmapButton( this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|0 );
-        m_compare_btn = new ScalableButton(m_mode_panel, wxID_ANY, "compare", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+        //m_search_btn = new ScalableButton(m_top_panel, wxID_ANY, "search", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+        //m_search_btn->SetToolTip(format_wxstr(_L("Search in settings [%1%]"), "Ctrl+F"));
+        //m_search_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().plater()->search(false); });
+
+        m_compare_btn = new ScalableButton(m_top_panel, wxID_ANY, "compare", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
         m_compare_btn->SetToolTip(_L("Compare this preset with some another"));
         m_compare_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { wxGetApp().mainframe->diff_dialog.show(); }));
 
-        m_setting_btn = new ScalableButton(m_mode_panel, wxID_ANY, "table", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+        m_setting_btn = new ScalableButton(m_top_panel, wxID_ANY, "table", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
         m_setting_btn->SetToolTip(_L("View all object's settings"));
         m_setting_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().plater()->PopupObjectTable(-1, -1, {0, 0}); });
     }
@@ -119,9 +121,12 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
     m_page_view->SetScrollbars(1, 20, 1, 2);
     //m_page_view->SetScrollRate( 5, 5 );
 
-    if (m_mode_status)
-        m_mode_status->Bind(wxEVT_TOGGLEBUTTON, &ParamsPanel::OnToggled, this);
+    if (m_mode_region)
+        m_mode_region->Bind(wxEVT_TOGGLEBUTTON, &ParamsPanel::OnToggled, this);
+    if (m_mode_view)
+        m_mode_view->Bind(wxEVT_TOGGLEBUTTON, &ParamsPanel::OnToggled, this);
     Bind(wxEVT_TOGGLEBUTTON, &ParamsPanel::OnToggled, this); // For Tab's mode switch
+    Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().plater()->search(false); }, wxID_FIND);
     //m_export_to_file->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().mainframe->export_config(); });
     //m_import_from_file->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().mainframe->load_config_file(); });
 }
@@ -137,22 +142,26 @@ void ParamsPanel::create_layout()
     // BBS: new layout
     m_left_sizer->SetMinSize( wxSize( 40 * em_unit(this), -1 ) );
 
-    if (m_mode_panel) {
+    if (m_top_panel) {
         m_mode_sizer = new wxBoxSizer( wxHORIZONTAL );
         m_mode_sizer->AddSpacer(22);
-        m_mode_sizer->Add( m_mode_text, 0, wxALIGN_CENTER );
+        m_mode_sizer->Add( m_title_label, 0, wxALIGN_CENTER );
         m_mode_sizer->AddSpacer(9);
-        m_mode_sizer->Add( m_mode_status, 0, wxALIGN_CENTER );
+        m_mode_sizer->Add( m_mode_region, 0, wxALIGN_CENTER );
         m_mode_sizer->AddStretchSpacer(1);
+        m_mode_sizer->Add( m_title_view, 0, wxALIGN_CENTER );
+        m_mode_sizer->AddSpacer(9);
+        m_mode_sizer->Add( m_mode_view, 0, wxALIGN_CENTER );
+        m_mode_sizer->AddSpacer(16);
         m_mode_sizer->Add( m_setting_btn, 0, wxALIGN_CENTER );
         m_mode_sizer->AddSpacer(16);
         m_mode_sizer->Add( m_compare_btn, 0, wxALIGN_CENTER );
         m_mode_sizer->AddSpacer(16);
-        m_mode_sizer->Add( m_search_btn, 0, wxALIGN_CENTER );
-        m_mode_sizer->AddSpacer(16);
+        //m_mode_sizer->Add( m_search_btn, 0, wxALIGN_CENTER );
+        //m_mode_sizer->AddSpacer(16);
         m_mode_sizer->SetMinSize(-1, 4 * em_unit(this));
-        m_mode_panel->SetSizer(m_mode_sizer);
-        //m_left_sizer->Add( m_mode_panel, 0, wxEXPAND );
+        m_top_panel->SetSizer(m_mode_sizer);
+        //m_left_sizer->Add( m_top_panel, 0, wxEXPAND );
     }
 
     if (m_tab_print) {
@@ -254,7 +263,7 @@ void ParamsPanel::refresh_tabs()
                     break;
             }
         }
-    if (m_mode_panel) {
+    if (m_top_panel) {
         m_tab_print_object = wxGetApp().get_model_tab();
         m_tab_print_part = wxGetApp().get_model_tab(true);
     }
@@ -285,7 +294,7 @@ void ParamsPanel::OnActivate()
 
 void ParamsPanel::OnToggled(wxCommandEvent& event)
 {
-    if (m_mode_status && m_mode_status->GetId() == event.GetId()) {
+    if (m_mode_region && m_mode_region->GetId() == event.GetId()) {
         wxWindowUpdateLocker locker(GetParent());
         set_active_tab(nullptr);
         event.Skip();
@@ -304,12 +313,12 @@ void ParamsPanel::OnToggled(wxCommandEvent& event)
 
     if (value)
     {
-        //m_mode_status->SetBitmap(m_toggle_on_icon);
+        //m_mode_region->SetBitmap(m_toggle_on_icon);
         mode_id = comAdvanced;
     }
     else
     {
-        //m_mode_status->SetBitmap(m_toggle_off_icon);
+        //m_mode_region->SetBitmap(m_toggle_off_icon);
         mode_id = comSimple;
     }
 
@@ -322,7 +331,7 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
     Tab* cur_tab = dynamic_cast<Tab *> (tab);
 
     if (cur_tab == nullptr) {
-        if (!m_mode_status->GetValue()) {
+        if (!m_mode_region->GetValue()) {
             cur_tab = (Tab*) m_tab_print;
         } else if (m_tab_print_part && ((TabPrintModel*) m_tab_print_part)->has_model_config()) {
             cur_tab = (Tab*) m_tab_print_part;
@@ -330,7 +339,7 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
             cur_tab = (Tab*) m_tab_print_object;
         }
         Show(cur_tab != nullptr);
-        wxGetApp().sidebar().show_object_list(m_mode_status->GetValue());
+        wxGetApp().sidebar().show_object_list(m_mode_region->GetValue());
         if (m_current_tab == cur_tab)
             return;
         if (cur_tab)
@@ -373,25 +382,26 @@ bool ParamsPanel::is_active_and_shown_tab(wxPanel* tab)
 void ParamsPanel::update_mode()
 {
     int app_mode = Slic3r::GUI::wxGetApp().get_mode();
-    SwitchButton * mode_status = m_current_tab ? dynamic_cast<Tab*>(m_current_tab)->m_mode_status : nullptr;
-    if (mode_status == nullptr) return;
+    SwitchButton * mode_view = m_current_tab ? dynamic_cast<Tab*>(m_current_tab)->m_mode_view : nullptr;
+    if (mode_view == nullptr) mode_view = m_mode_view;
+    if (mode_view == nullptr) return;
 
     //BBS: disable the mode tab and return directly when enable develop mode
     if (app_mode == comDevelop)
     {
-        mode_status->Disable();
+        mode_view->Disable();
         return;
     }
-    if (!mode_status->IsEnabled())
-        mode_status->Enable();
+    if (!mode_view->IsEnabled())
+        mode_view->Enable();
 
     if (app_mode == comAdvanced)
     {
-        mode_status->SetValue(true);
+        mode_view->SetValue(true);
     }
     else
     {
-        mode_status->SetValue(false);
+        mode_view->SetValue(false);
     }
 }
 
@@ -400,8 +410,10 @@ void ParamsPanel::msw_rescale()
     m_left_sizer->SetMinSize(wxSize(40 * em_unit(this), -1));
     if (m_mode_sizer)
         m_mode_sizer->SetMinSize(-1, 4 * em_unit(this));
-    if (m_mode_status)
-        ((SwitchButton* )m_mode_status)->Rescale();
+    if (m_mode_region)
+        ((SwitchButton* )m_mode_region)->Rescale();
+    if (m_mode_view)
+        ((SwitchButton* )m_mode_view)->Rescale();
     for (auto tab : {m_tab_print, m_tab_print_object, m_tab_print_part, m_tab_filament, m_tab_printer}) {
         if (tab) dynamic_cast<Tab*>(tab)->msw_rescale();
     }
@@ -411,7 +423,7 @@ void ParamsPanel::msw_rescale()
 
 void ParamsPanel::switch_to_global()
 {
-    m_mode_status->SetValue(false);
+    m_mode_region->SetValue(false);
     set_active_tab(nullptr);
 }
 
@@ -434,16 +446,28 @@ void ParamsPanel::free_sizers()
 
 void ParamsPanel::delete_subwindows()
 {
-    if (m_mode_text)
+    if (m_title_label)
     {
-        delete m_mode_text;
-        m_mode_text = nullptr;
+        delete m_title_label;
+        m_title_label = nullptr;
     }
 
-    if (m_mode_status)
+    if (m_mode_region)
     {
-        delete m_mode_status;
-        m_mode_status = nullptr;
+        delete m_mode_region;
+        m_mode_region = nullptr;
+    }
+
+    if (m_mode_view)
+    {
+        delete m_mode_view;
+        m_mode_view = nullptr;
+    }
+
+    if (m_title_view)
+    {
+        delete m_title_view;
+        m_title_view = nullptr;
     }
 
     if (m_search_btn)

@@ -280,7 +280,8 @@ void SpinInput::onTextLostFocus(wxEvent &event)
     timer.Stop();
     for (auto * child : GetChildren())
         if (auto btn = dynamic_cast<Button*>(child))
-            btn->ReleaseMouse();
+            if (btn->HasCapture())
+                btn->ReleaseMouse();
     wxCommandEvent e;
     onTextEnter(e);
     // pass to outer

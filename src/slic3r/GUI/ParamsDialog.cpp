@@ -28,7 +28,7 @@ ParamsDialog::ParamsDialog(wxWindow * parent)
 	topsizer->Add(-1, 5);
 
 	SetSizerAndFit(topsizer);
-	SetSize({80 * em_unit(), 50 * em_unit()});
+	SetSize({100 * em_unit(), 60 * em_unit()});
 
 	Layout();
 	Center();
@@ -53,7 +53,7 @@ void ParamsDialog::submit()
 void ParamsDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
 	Fit();
-	SetSize({80 * em_unit(), 50 * em_unit()});
+	SetSize({100 * em_unit(), 60 * em_unit()});
 	m_panel->msw_rescale();
 	Refresh();
 }

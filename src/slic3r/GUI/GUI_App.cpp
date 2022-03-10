@@ -73,6 +73,7 @@
 #include "PrintHostDialogs.hpp"
 #include "DesktopIntegrationDialog.hpp"
 #include "SendSystemInfoDialog.hpp"
+#include "ParamsDialog.hpp"
 
 #include "BitmapCache.hpp"
 #include "Notebook.hpp"
@@ -2673,6 +2674,8 @@ void GUI_App::update_mode()
     //BBS: GUI refactor
     if (mainframe->m_param_panel)
         mainframe->m_param_panel->update_mode();
+    if (mainframe->m_param_dialog)
+        mainframe->m_param_dialog->panel()->update_mode();
 
 #ifdef _MSW_DARK_MODE
     if (!wxGetApp().tabs_as_menu())

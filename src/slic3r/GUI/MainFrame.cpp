@@ -2760,12 +2760,13 @@ void MainFrame::select_tab(wxPanel* panel)
         return;
     if (panel == m_param_panel) {
         panel = m_plater;
-        m_param_panel->switch_to_global();
     } else if (dynamic_cast<ParamsPanel*>(panel)) {
         wxGetApp().params_dialog()->Show();
         return;
     }
     int page_idx = m_tabpanel->FindPage(panel);
+    if (page_idx == tp3DEditor && m_tabpanel->GetSelection() == tpPreview)
+        return;
     //BBS GUI refactor: remove unused layout new/dlg
     /*if (page_idx != wxNOT_FOUND && m_layout == ESettingsLayout::Dlg)
         page_idx++;*/

@@ -44,9 +44,8 @@ void SwitchButton::SetThumbColor(StateColor const& color)
 
 void SwitchButton::SetValue(bool value)
 {
-	if (value == GetValue())
-		return;
-	wxBitmapToggleButton::SetValue(value);
+	if (value != GetValue())
+		wxBitmapToggleButton::SetValue(value);
 	update();
 }
 

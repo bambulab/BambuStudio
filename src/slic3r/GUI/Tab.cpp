@@ -257,6 +257,8 @@ void Tab::create_preset_tab()
 
     add_scaled_button(m_top_panel, &m_undo_btn,        m_bmp_white_bullet.name());
     add_scaled_button(m_top_panel, &m_undo_to_sys_btn, m_bmp_white_bullet.name());
+    add_scaled_button(m_top_panel, &m_btn_search,      "search");
+    m_btn_search->SetId(wxID_FIND);
 
     m_undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_roll_back_value(); }));
     m_undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_roll_back_value(true); }));
@@ -285,17 +287,20 @@ void Tab::create_preset_tab()
     m_top_sizer->Add( m_undo_btn, 0, wxALIGN_CENTER_VERTICAL);
     m_top_sizer->Add( m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8  );
     m_top_sizer->Add( m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
+    m_top_sizer->Add( m_btn_search, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
 
-    m_static_title = new Label(Label::Body_12, _L("Advance"), m_top_panel);
-    m_static_title->Wrap( -1 );
-    // BBS: open this tab by select first
-    m_static_title->Bind(wxEVT_LEFT_UP, [this](auto& e) {
-        restore_last_select_item();
-    });
-    m_top_sizer->Add( m_static_title, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
-    m_mode_status = new SwitchButton(m_top_panel, wxID_ABOUT);
-    m_top_sizer->AddSpacer(4);
-    m_top_sizer->Add( m_mode_status, 0, wxALIGN_CENTER_VERTICAL);
+    if (dynamic_cast<TabPrint*>(this) == nullptr) {
+        m_static_title = new Label(Label::Body_12, _L("Advance"), m_top_panel);
+        m_static_title->Wrap( -1 );
+        // BBS: open this tab by select first
+        m_static_title->Bind(wxEVT_LEFT_UP, [this](auto& e) {
+            restore_last_select_item();
+        });
+        m_top_sizer->Add( m_static_title, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
+        m_mode_view = new SwitchButton(m_top_panel, wxID_ABOUT);
+        m_top_sizer->AddSpacer(4);
+        m_top_sizer->Add( m_mode_view, 0, wxALIGN_CENTER_VERTICAL);
+    }
 
     m_top_sizer->AddSpacer(10);
 
@@ -1088,7 +1093,8 @@ void Tab::msw_rescale()
     for (const auto bmp : m_scaled_bitmaps)
         bmp->msw_rescale();
 
-    m_mode_status->Rescale();
+    if (m_mode_view)
+        m_mode_view->Rescale();
 
     if (m_detach_preset_btn)
         m_detach_preset_btn->msw_rescale();
@@ -1936,13 +1942,24 @@ void TabPrintModel::build()
     m_presets = &m_prints;
     TabPrint::build();
 
+    auto page = add_options_page(L("Frequent"), "layers");
+        auto optgroup = page->new_optgroup(L("Quality"));
+            optgroup->append_single_option_line("layer_height");
+        optgroup = page->new_optgroup(L("Strength"));
+            optgroup->append_single_option_line("sparse_infill_density");
+            optgroup->append_single_option_line("wall_loops");
+        optgroup = page->new_optgroup(L("Support"));
+            optgroup->append_single_option_line("enable_support");
+    m_pages.pop_back();
+    m_pages.insert(m_pages.begin(), page);
+
     for (auto p : m_pages) {
         for (auto g : p->m_optgroups) {
             auto & lines = const_cast<std::vector<Line>&>(g->get_lines());
             for (auto & l : lines) {
                 auto & opts = const_cast<std::vector<Option>&>(l.get_options());
                 opts.erase(std::remove_if(opts.begin(), opts.end(), [this](auto & o) {
-                    return std::find(m_keys.begin(), m_keys.end(), o.opt.opt_key) == m_keys.end();
+                    return !has_key(o.opt.opt_key);
                 }), opts.end());
             }
             lines.erase(std::remove_if(lines.begin(), lines.end(), [](auto & l) {
@@ -1994,12 +2011,14 @@ void TabPrintModel::update_model_config()
         m_config->apply_only(local_config, local_keys);
     }
     update_dirty();
-    reload_config();
+    TabPrint::reload_config();
     //update();
     if (!m_null_keys.empty()) {
         if (m_active_page) {
-            for (auto g : m_active_page->m_optgroups) {
-                g->set_null_value(m_null_keys);
+            for (auto k : m_null_keys) {
+                auto f = m_active_page->get_field(k);
+                if (f)
+                    f->set_value(boost::any(), false);
             }
         }
     }
@@ -2018,24 +2037,31 @@ void TabPrintModel::reset_model_config()
     update_model_config();
 }
 
+bool TabPrintModel::has_key(std::string const& key)
+{
+    return std::find(m_keys.begin(), m_keys.end(), key) != m_keys.end();
+}
+
 void TabPrintModel::activate_selected_page(std::function<void()> throw_if_canceled)
 {
     TabPrint::activate_selected_page(throw_if_canceled);
     if (m_active_page) {
-        for (auto g : m_active_page->m_optgroups) {
-            g->set_null_value(m_null_keys);
+        for (auto k : m_null_keys) {
+            auto f = m_active_page->get_field(k);
+            if (f)
+                f->set_value(boost::any(), false);
         }
     }
 }
 
 void TabPrintModel::on_value_change(const std::string& opt_key, const boost::any& value)
 {
-    TabPrint::on_value_change(opt_key, value);
     // TODO: support opt_index, translate by OptionsGroup's m_opt_map
     if (!m_object_configs.empty())
         wxGetApp().plater()->take_snapshot(from_u8((boost::format(_utf8(L("Change Option %s"))) % opt_key).str()));
+    TabPrint::on_value_change(opt_key, value);
     for (auto config : m_object_configs) {
-        if (std::find(m_keys.begin(), m_keys.end(), opt_key) != m_keys.end()) {
+        if (has_key(opt_key)) {
             if (m_options_list[opt_key] & osInitValue)
                 config.second->erase(opt_key);
             else
@@ -2043,6 +2069,24 @@ void TabPrintModel::on_value_change(const std::string& opt_key, const boost::any
             config.second->touch();
             notify_changed(config.first);
         }
+    }
+}
+
+void TabPrintModel::reload_config()
+{
+    TabPrint::reload_config();
+    if (m_object_configs.size() != 1)
+        return; // TODO:
+    DynamicPrintConfig diff_config;
+    diff_config.apply(*m_parent_tab->m_config);
+    auto & config = m_object_configs.begin()->second;
+    diff_config.apply(config->get());
+    auto keys = diff_config.diff(*m_config);
+    for (auto & k : keys) {
+        if (m_options_list[k] & osInitValue)
+            config->erase(k);
+        else
+            config->apply_only(*m_config, {k});
     }
 }
 
