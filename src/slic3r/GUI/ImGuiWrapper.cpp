@@ -59,6 +59,7 @@ static const std::map<const wchar_t, std::string> font_icons = {
     {ImGui::SphereButtonIcon       , "sphere_paint"                  },
     {ImGui::TriangleButtonIcon     , "Triangle_paint"                },
     {ImGui::FillButtonIcon         , "fill_paint"                    },
+    {ImGui::HeightRangeIcon        , "height_range"                  },
 };
 static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::CloseNotifButton        , "notification_close"              },

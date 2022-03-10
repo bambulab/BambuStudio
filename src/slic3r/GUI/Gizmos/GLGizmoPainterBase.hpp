@@ -133,11 +133,18 @@ public:
     virtual const float get_cursor_radius_max() const { return CursorRadiusMax; }
     virtual const float get_cursor_radius_step() const { return CursorRadiusStep; }
 
+    // BBS: just for CursorType::HeightRange
+    virtual const float get_cursor_height_min() const { return CursorHeightMin; }
+    virtual const float get_cursor_height_max() const { return CursorHeightMax; }
+    virtual const float get_cursor_height_step() const { return CursorHeightStep; }
+
 protected:
     virtual void render_triangles(const Selection& selection) const;
     void render_cursor() const;
     void render_cursor_circle() const;
     void render_cursor_sphere(const Transform3d& trafo) const;
+    // BBS
+    void render_cursor_height_range(const Transform3d& trafo) const;
     //BBS: add logic to distinguish the first_time_update and later_update
     virtual void update_model_object() = 0;
     virtual void update_from_model_object(bool first_update) = 0;
@@ -151,9 +158,14 @@ protected:
     virtual EnforcerBlockerType get_right_button_state_type() const { return EnforcerBlockerType::BLOCKER; }
 
     float m_cursor_radius = 1.f;
+    // BBS
+    float m_cursor_height = 0.2f;
     static constexpr float CursorRadiusMin  = 0.4f; // cannot be zero
     static constexpr float CursorRadiusMax  = 8.f;
     static constexpr float CursorRadiusStep = 0.2f;
+    static constexpr float CursorHeightMin = 0.2f; // cannot be zero
+    static constexpr float CursorHeightMax = 8.f;
+    static constexpr float CursorHeightStep = 0.2f;
 
     // For each model-part volume, store status and division of the triangles.
     std::vector<std::unique_ptr<TriangleSelectorGUI>> m_triangle_selectors;
@@ -231,6 +243,22 @@ private:
         size_t facet;
     };
     mutable RaycastResult m_rr;
+
+    // BBS
+    struct CutContours
+    {
+        TriangleMesh mesh;
+        GLModel contours;
+        double cut_z{ 0.0 };
+        Vec3d position{ Vec3d::Zero() };
+        Vec3d shift{ Vec3d::Zero() };
+        ObjectID object_id;
+        int instance_idx{ -1 };
+    };
+    mutable CutContours m_cut_contours;
+
+    BoundingBoxf3 bounding_box() const;
+    void update_contours(float cursor_z, float max_z) const;
 
 protected:
     void on_set_state() override;

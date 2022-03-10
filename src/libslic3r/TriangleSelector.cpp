@@ -1061,6 +1061,29 @@ bool TriangleSelector::Circle::is_edge_inside_cursor(const Triangle &tr, const s
     return false;
 }
 
+// BBS
+bool TriangleSelector::HeightRange::is_mesh_point_inside(const Vec3f& point) const
+{
+    const Vec3f transformed_point = uniform_scaling ? point : Vec3f(trafo * point);
+
+    return transformed_point.z() > center.z() && transformed_point.z() < center.z() + m_height;
+}
+
+bool TriangleSelector::HeightRange::is_edge_inside_cursor(const Triangle& tr, const std::vector<Vertex>& vertices) const
+{
+    float top_z = center.z() + m_height;
+    float bot_z = center.z();
+    std::array<Vec3f, 3> pts;
+    for (int i = 0; i < 3; ++i) {
+        pts[i] = vertices[tr.verts_idxs[i]].v;
+        if (!this->uniform_scaling)
+            pts[i] = this->trafo * pts[i];
+    }
+
+    return !((pts[0].z() < bot_z && pts[1].z() < bot_z && pts[2].z() < bot_z) ||
+             (pts[0].z() > top_z && pts[1].z() > top_z && pts[2].z() > top_z));
+}
+
 // Recursively remove all subtriangles.
 void TriangleSelector::undivide_triangle(int facet_idx)
 {
