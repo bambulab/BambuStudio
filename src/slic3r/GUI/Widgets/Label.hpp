@@ -22,6 +22,7 @@ public:
 
 	static wxFont Body_16;
 	static wxFont Body_14;
+    static wxFont Body_13;
 	static wxFont Body_12;
 	static wxFont Body_10;
 };

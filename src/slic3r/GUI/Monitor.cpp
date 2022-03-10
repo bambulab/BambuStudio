@@ -1229,7 +1229,7 @@ void AddMachinePanel::msw_rescale() {
 
 void AddMachinePanel::on_add_machine(wxCommandEvent& event) {
     /* query print info */
-    SelectMachinePopup* m_select_machine = new SelectMachinePopup(this, true);
+    SelectMachinePopup* m_select_machine = new SelectMachinePopup(this);
 
     wxPoint pos = m_button_add_machine->ClientToScreen(wxPoint(0, 0));
     pos.y += m_button_add_machine->GetRect().height;
@@ -1524,7 +1524,7 @@ void MonitorPanel::on_printer_clicked(wxMouseEvent& event)
     }
 
     /* query print info */
-    SelectMachinePopup* m_select_machine = new SelectMachinePopup(this, true);
+    SelectMachinePopup* m_select_machine = new SelectMachinePopup(this);
 
     wxPoint pos = m_bitmap_printer->ClientToScreen(wxPoint(0, 0));
     pos.y += m_bitmap_printer->GetRect().height;

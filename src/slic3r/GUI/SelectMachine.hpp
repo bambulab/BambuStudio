@@ -28,6 +28,7 @@
 #include "Plater.hpp"
 #include "BBLStatusBar.hpp"
 
+#include "Widgets/ScrolledWindow.hpp"
 
 namespace Slic3r { 
 namespace GUI {
@@ -86,38 +87,42 @@ private:
 class MachineObjectPanel : public wxPanel
 {
 	private:
+        wxColour m_text_color;
         wxColour m_bg_colour;
         wxColour m_hover_colour;
+        wxColour m_leftdown_colour;
 
         std::string m_dev_id;
-        wxBitmap printing_img;
-        wxBitmap owner_img;
-        void init_bitmap();
+        wxBitmap    m_printing_img;
+        wxBitmap    m_owner_img;
 
 	protected:
-		wxStaticBitmap* m_bitmap_type;
-		wxStaticText* m_staticText_printer;
+        wxString    m_printer_name;
+        wxString    m_printer_time;
+        wxString    m_printer_task;
+
+		wxBitmap     m_bitmap_type;
 		wxStaticBitmap* m_bitmap_info;
-		wxStaticText* m_staticText_printing;
 		wxStaticBitmap* m_bitmap_bind;
-		wxStaticText* m_staticText_bind_info;
 
 	public:
-		MachineObjectPanel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 240,100 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
-
-		~MachineObjectPanel();
+		MachineObjectPanel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
+        ~MachineObjectPanel();
 
         //void update_machine_info(MachineObject* obj);
+        void OnPaint(wxPaintEvent &event);
+        void DrawTextString(wxDC &dc, const wxString &text, const wxPoint &pt, bool bold = false);
         void update_machine_info(std::string dev_id, wxString dev_name, int progress, wxString owner);
         void on_mouse_enter(wxMouseEvent& evt);
-        void on_mouse_leave(wxMouseEvent& evt);
-        void on_mouse_left_up(wxMouseEvent& evt);
+        void on_mouse_leave(wxMouseEvent &evt);
+        void on_mouse_left_down(wxMouseEvent &evt);
+        void on_mouse_left_up(wxMouseEvent &evt);
 };
 
 class SelectMachinePopup : public wxPopupTransientWindow
 {
 public:
-    SelectMachinePopup(wxWindow* parent, bool scrolled);
+    SelectMachinePopup(wxWindow* parent);
     ~SelectMachinePopup() {}
 
     // wxPopupTransientWindow virtual methods are all overridden to log them
@@ -129,14 +134,24 @@ public:
     void update_machine_list(std::vector<MachineObject*> obj_list);
 
 private:
-    const int POPUP_WIDTH   = 350;
-    const int POPUP_HEIGHT  = 326;
+    const int POPUP_WIDTH   = 25;
+    const int POPUP_HEIGHT  = 47;
+
     wxColour m_bg_colour;
     wxColour m_hover_colour;
+    wxColour m_bold_colour;
+    wxColour m_thumb_Ccolor;
 
-    wxScrolledWindow*    m_panel;
-    wxBoxSizer*          topSizer;
+    ScrolledWindow *     m_scrolledWindow{nullptr};
+    wxWindow *           m_border_panel;
+    wxWindow *           m_client_panel;
+
+
+    wxBoxSizer *         m_sizer_body;
+    wxBoxSizer*          m_sizer_main;
+    wxBoxSizer*          m_sizer_border;
     wxStaticText*        m_staticText_select;
+    wxWindow *           m_block_line;
     wxTimer*             m_refresh_timer;
     std::vector<MachineObjectPanel*> obj_panels;
     std::vector<MachineObject*>     m_obj_list;

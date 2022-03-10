@@ -46,6 +46,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/TabCtrl.hpp
     GUI/Widgets/TextInput.cpp
     GUI/Widgets/TextInput.hpp
+    GUI/Widgets/Scrollbar.cpp
+    GUI/Widgets/Scrollbar.hpp
+    GUI/Widgets/ScrolledWindow.cpp
+    GUI/Widgets/ScrolledWindow.hpp
     GUI/AboutDialog.cpp
     GUI/AboutDialog.hpp
     GUI/AuxiliaryDialog.cpp
