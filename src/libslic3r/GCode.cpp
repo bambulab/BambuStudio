@@ -1440,10 +1440,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // adds tag for processor
     file.write_format(";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
 
-    //BBS
-    if (print.config().scan_first_layer.value)
-        file.writeln("M977 S1 P60\nM400 S3\n");
-
     // Write the custom start G-code
     file.writeln(machine_start_gcode);
 
