@@ -178,7 +178,9 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     // BBS
-    if (config->opt_bool("enable_wipe_tower") && (config->opt_bool("adaptive_layer_height") || config->opt_bool("independent_support_layer_height"))) {
+    int filament_cnt = wxGetApp().preset_bundle->filament_presets.size();
+    bool has_wipe_tower = filament_cnt > 1 && config->opt_bool("enable_wipe_tower");
+    if (has_wipe_tower && (config->opt_bool("adaptive_layer_height") || config->opt_bool("independent_support_layer_height"))) {
         wxString msg_text;
         if (config->opt_bool("adaptive_layer_height") && config->opt_bool("independent_support_layer_height")) {
             msg_text = _(L("Wipe tower does not work when Adaptive Layer Height or Independent Support Layer Height is on.\n"
@@ -217,7 +219,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     // BBS
-    if (config->opt_bool("enable_support") && !config->opt_bool("independent_support_layer_height")) {
+    if (has_wipe_tower && config->opt_bool("enable_support") && !config->opt_bool("independent_support_layer_height")) {
         double layer_height = config->opt_float("layer_height");
         double top_gap_raw = config->opt_float("support_top_z_distance");
         double bottom_gap_raw = config->opt_float("support_bottom_z_distance");
@@ -229,7 +231,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             new_conf.set_key_value("support_bottom_z_distance", new ConfigOptionFloat(bottom_gap));
             apply(config, &new_conf);
 
-            wxMessageBox("Support top/bottom Z distance is automatically changed to multiple of layer height.");
+            //wxMessageBox(_L("Support top/bottom Z distance is automatically changed to multiple of layer height."));
         }
     }
 

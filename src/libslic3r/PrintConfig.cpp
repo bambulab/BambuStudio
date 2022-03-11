@@ -2426,8 +2426,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Top Z distance");
     def->category = L("Support material");
     def->tooltip = L("The vertical distance between object and support material interface. "
-                   "Setting this to 0 will also prevent Slic3r from using bridge flow and speed "
-                   "for the first object layer.");
+                     "It will be align to layer height if wipe tower is enabled in multi-material project.");
     def->sidetext = L("mm");
 //    def->min = 0;
 #if 0
