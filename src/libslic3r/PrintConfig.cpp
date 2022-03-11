@@ -621,6 +621,11 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionStrings());
     def->cli = ConfigOptionDef::nocli;
 
+    //BBS: add logic for checking between different system presets
+    def = this->add("different_settings_to_system", coStrings);
+    def->set_default_value(new ConfigOptionStrings());
+    def->cli = ConfigOptionDef::nocli;
+
     def = this->add("print_sequence", coEnum);
     def->label = L("Print sequence");
     def->tooltip = L("Print sequence, by layer or by object");

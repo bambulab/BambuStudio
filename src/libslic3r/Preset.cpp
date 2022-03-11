@@ -1251,6 +1251,8 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     const std::string           &original_name,
     // Config to initialize the preset from. It may contain configs of all presets merged in a single dictionary!
     const DynamicPrintConfig    &combined_config,
+    //different settings list
+    const std::set<std::string> &different_settings_list,
     // Select the preset after loading?
     LoadAndSelect                select,
     const Semver                file_version)
@@ -1260,6 +1262,46 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     const auto        &keys = cfg.keys();
     cfg.apply_only(combined_config, keys, true);
     std::string                 &inherits = Preset::inherits(cfg);
+
+    //BBS: add different settings check logic, replace the old system preset's default value with new system preset's default values
+    std::deque<Preset>::iterator it       = this->find_preset_internal(original_name);
+    bool                         found    = it != m_presets.end() && it->name == original_name;
+    if (! found) {
+        // Try to match the original_name against the "renamed_from" profile names of loaded system profiles.
+        it = this->find_preset_renamed(original_name);
+        found = it != m_presets.end();
+    }
+    if (!inherits.empty() && (different_settings_list.size() > 0)) {
+        auto iter = this->find_preset_internal(inherits);
+        if (iter != m_presets.end() && iter->name == inherits) {
+            //std::vector<std::string> dirty_options = cfg.diff(iter->config);
+            for (auto &opt : keys) {
+                if (different_settings_list.find(opt) != different_settings_list.end())
+                    continue;
+                ConfigOption *opt_src = iter->config.option(opt);
+                ConfigOption *opt_dst = cfg.option(opt);
+                if (opt_src && opt_dst && (*opt_src != *opt_dst)) {
+                    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" change key %1% from old_value %2% to inherit's value %3%, preset_name %4%, inherits_name %5%")
+                            %opt %(opt_dst->serialize()) %(opt_src->serialize()) %original_name %inherits;
+                    opt_dst->set(opt_src);
+                }
+            }
+        }
+    }
+    else if (found && it->is_system && (different_settings_list.size() > 0)) {
+        for (auto &opt : keys) {
+            if (different_settings_list.find(opt) != different_settings_list.end())
+                continue;
+            ConfigOption *opt_src = it->config.option(opt);
+            ConfigOption *opt_dst = cfg.option(opt);
+            if (opt_src && opt_dst && (*opt_src != *opt_dst)) {
+                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" change key %1% from old_value %2% to new_value %3%, preset_name %4%")
+                        %opt %(opt_dst->serialize()) %(opt_src->serialize()) %original_name;
+                opt_dst->set(opt_src);
+            }
+        }
+    }
+
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, type %1% , path %2%, name %3%, original_name %4%, inherits %5%")%Preset::get_type_string(m_type) %path %name %original_name %inherits;
     if (select == LoadAndSelect::Never) {
@@ -1274,13 +1316,13 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
         }
     }
     // Is there a preset already loaded with the name stored inside the config?
-    std::deque<Preset>::iterator it       = this->find_preset_internal(original_name);
+    /*std::deque<Preset>::iterator it       = this->find_preset_internal(original_name);
     bool                         found    = it != m_presets.end() && it->name == original_name;
     if (! found) {
-    	// Try to match the original_name against the "renamed_from" profile names of loaded system profiles.
-		it = this->find_preset_renamed(original_name);
-		found = it != m_presets.end();
-    }
+        // Try to match the original_name against the "renamed_from" profile names of loaded system profiles.
+        it = this->find_preset_renamed(original_name);
+        found = it != m_presets.end();
+    }*/
     if (found && profile_print_params_same(it->config, cfg)) {
         // The preset exists and it matches the values stored inside config.
         if (select == LoadAndSelect::Always)
@@ -1319,12 +1361,15 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
         }
     }
     if (found) {
-        if (select != LoadAndSelect::Never) {
+        //BBS: only select preset for always
+        //if (select != LoadAndSelect::Never) {
+        if (select == LoadAndSelect::Always) {
             // Select the existing preset and override it with new values, so that
             // the differences will be shown in the preset editor against the referenced profile.
             this->select_preset(it - m_presets.begin());
             // The source config may contain keys from many possible preset types. Just copy those that relate to this preset.
-            this->get_edited_preset().config.apply_only(combined_config, keys, true);
+            //this->get_edited_preset().config.apply_only(combined_config, keys, true);
+            this->get_edited_preset().config.apply_only(cfg, keys, true);
             this->update_dirty();
             update_saved_preset_from_current_preset();
             assert(this->get_edited_preset().is_dirty);
@@ -1338,6 +1383,15 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
             //BBS: add config related logs
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" Select the existing preset %1% and override it with new values")%it->name;
             return std::make_pair(&(*it), this->get_edited_preset().is_dirty);
+        }
+
+        //BBS: for other filaments under AMS
+        if (it->is_project_embedded) {
+            //update the properties back to the preset
+            it->config.apply_only(cfg, keys, true);
+            it->is_dirty = false;
+
+            return std::make_pair(&(*it), false);
         }
         if (inherits.empty()) {
             // Update the "inherits" field.
@@ -1836,6 +1890,35 @@ std::vector<std::string> PresetCollection::dirty_options(const Preset *edited, c
         for (auto &opt_key : optional_keys)
             if (reference->config.has(opt_key) != edited->config.has(opt_key))
                 changed.emplace_back(opt_key);
+    }
+    return changed;
+}
+
+//BBS: add function for dirty_options_without_option_list
+std::vector<std::string> PresetCollection::dirty_options_without_option_list(const Preset *edited, const Preset *reference, const std::set<std::string>& option_ignore_list, const bool deep_compare)
+{
+    std::vector<std::string> changed;
+    if (edited != nullptr && reference != nullptr) {
+        // Only compares options existing in both configs.
+        changed = deep_compare ?
+                deep_diff(edited->config, reference->config) :
+                reference->config.diff(edited->config);
+        // The "compatible_printers" option key is handled differently from the others:
+        // It is not mandatory. If the key is missing, it means it is compatible with any printer.
+        // If the key exists and it is empty, it means it is compatible with no printer.
+        for (auto &opt_key : optional_keys) {
+            if (reference->config.has(opt_key) != edited->config.has(opt_key))
+                changed.emplace_back(opt_key);
+        }
+        auto iter = changed.begin();
+        while (iter != changed.end()) {
+            if (option_ignore_list.find(*iter) != option_ignore_list.end()) {
+                iter = changed.erase(iter);
+            }
+            else {
+                ++iter;
+            }
+        }
     }
     return changed;
 }

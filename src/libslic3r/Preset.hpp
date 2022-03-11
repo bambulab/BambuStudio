@@ -428,6 +428,8 @@ public:
         const std::string           &original_name,
         // Config to initialize the preset from.
         const DynamicPrintConfig    &config,
+        //different settings list
+        const std::set<std::string> &different_settings_list,
         // Select the preset after loading?
         LoadAndSelect                select = LoadAndSelect::Always,
         const Semver                file_version = Semver());
@@ -666,6 +668,8 @@ private:
 public:
     static bool                     is_dirty(const Preset *edited, const Preset *reference);
     static std::vector<std::string> dirty_options(const Preset *edited, const Preset *reference, const bool deep_compare = false);
+    //BBS: add function for dirty_options_without_option_list
+    static std::vector<std::string> dirty_options_without_option_list(const Preset *edited, const Preset *reference, const std::set<std::string>& option_ignore_list, const bool deep_compare = false);
 private:
     // Type of this PresetCollection: TYPE_PRINT, TYPE_FILAMENT or TYPE_PRINTER.
     Preset::Type            m_type;

@@ -879,6 +879,11 @@ DynamicPrintConfig PresetBundle::full_config_secure() const
     return config;
 }
 
+const std::set<std::string> ignore_settings_list ={
+    "inherits",
+    "print_settings_id", "filament_settings_id", "printer_settings_id"
+};
+
 DynamicPrintConfig PresetBundle::full_fff_config() const
 {
     DynamicPrintConfig out;
@@ -896,30 +901,98 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
     std::vector<std::string> compatible_printers_condition;
     std::vector<std::string> compatible_prints_condition;
     std::vector<std::string> inherits;
+    //BBS: add logic for settings check between different system presets
+    std::vector<std::string> different_settings;
+    std::string different_print_settings, different_printer_settings;
     compatible_printers_condition.emplace_back(this->prints.get_edited_preset().compatible_printers_condition());
-    inherits                     .emplace_back(this->prints.get_edited_preset().inherits());
+    //BBS: add logic for settings check between different system presets
+    std::string print_inherits = this->prints.get_edited_preset().inherits();
+    inherits                     .emplace_back(print_inherits);
+    const Preset* print_parent_preset =  this->prints.get_selected_preset_parent();
+    if (print_parent_preset) {
+        std::vector<std::string> dirty_options = this->prints.dirty_options_without_option_list(&(this->prints.get_edited_preset()), print_parent_preset, ignore_settings_list, false);
+        if (!dirty_options.empty()) {
+            different_print_settings = Slic3r::escape_strings_cstyle(dirty_options);
+        }
+    }
+    different_settings.emplace_back(different_print_settings);
 
     if (num_filaments <= 1) {
         out.apply(this->filaments.get_edited_preset().config);
         compatible_printers_condition.emplace_back(this->filaments.get_edited_preset().compatible_printers_condition());
         compatible_prints_condition  .emplace_back(this->filaments.get_edited_preset().compatible_prints_condition());
-        inherits                     .emplace_back(this->filaments.get_edited_preset().inherits());
+        //BBS: add logic for settings check between different system presets
+        std::string filament_inherits = this->filaments.get_edited_preset().inherits();
+        inherits                     .emplace_back(filament_inherits);
+        std::string different_filament_settings;
+        const Preset* filament_parent_preset =  this->filaments.get_selected_preset_parent();
+        if (filament_parent_preset) {
+            std::vector<std::string> dirty_options = this->filaments.dirty_options_without_option_list(&(this->filaments.get_edited_preset()), filament_parent_preset, ignore_settings_list, false);
+            if (!dirty_options.empty()) {
+                different_filament_settings = Slic3r::escape_strings_cstyle(dirty_options);
+            }
+        }
+        different_settings.emplace_back(different_filament_settings);
     } else {
         // Retrieve filament presets and build a single config object for them.
         // First collect the filament configurations based on the user selection of this->filament_presets.
         // Here this->filaments.find_preset() and this->filaments.first_visible() return the edited copy of the preset if active.
         std::vector<const DynamicPrintConfig*> filament_configs;
+        std::vector<const Preset*> filament_presets;
         for (const std::string& filament_preset_name : this->filament_presets) {
-            filament_configs.emplace_back(&this->filaments.find_preset(filament_preset_name, true)->config);
+            const Preset* preset = this->filaments.find_preset(filament_preset_name, true);
+            filament_presets.emplace_back(preset);
+            filament_configs.emplace_back(&(preset->config));
         }
-		while (filament_configs.size() < num_filaments)
-            filament_configs.emplace_back(&this->filaments.first_visible().config);
-        for (const DynamicPrintConfig *cfg : filament_configs) {
+        while (filament_configs.size() < num_filaments) {
+            const Preset* preset = &this->filaments.first_visible();
+            filament_presets.emplace_back(preset);
+            filament_configs.emplace_back(&(preset->config));
+        }
+        for (int index = 0; index < num_filaments; index++) {
+            const DynamicPrintConfig *cfg = filament_configs[index];
+            const Preset *preset = filament_presets[index];
             // The compatible_prints/printers_condition() returns a reference to configuration key, which may not yet exist.
             DynamicPrintConfig &cfg_rw = *const_cast<DynamicPrintConfig*>(cfg);
             compatible_printers_condition.emplace_back(Preset::compatible_printers_condition(cfg_rw));
             compatible_prints_condition  .emplace_back(Preset::compatible_prints_condition(cfg_rw));
-            inherits                     .emplace_back(Preset::inherits(cfg_rw));
+
+            //BBS: add logic for settings check between different system presets
+            std::string filament_inherits = Preset::inherits(cfg_rw);
+            inherits                     .emplace_back(filament_inherits);
+            std::string different_filament_settings;
+
+            const Preset* filament_parent_preset = nullptr;
+            if (preset->is_system || preset->is_default) {
+                bool is_selected = this->filaments.get_selected_preset_name() == preset->name;
+                if (is_selected) {
+                    //use the real preset
+                    filament_parent_preset = const_cast<PresetBundle*>(this)->filaments.find_preset(preset->name, false, true);
+                }
+                else {
+                    filament_parent_preset = preset;
+                }
+            }
+            else if (!filament_inherits.empty())
+                filament_parent_preset =  const_cast<PresetBundle*>(this)->filaments.find_preset(filament_inherits, false, true);
+
+            if (filament_parent_preset) {
+                std::vector<std::string> dirty_options = cfg_rw.diff(filament_parent_preset->config);
+                if (!dirty_options.empty()) {
+                    auto iter = dirty_options.begin();
+                    while (iter != dirty_options.end()) {
+                        if (ignore_settings_list.find(*iter) != ignore_settings_list.end()) {
+                            iter = dirty_options.erase(iter);
+                        }
+                        else {
+                            ++iter;
+                        }
+                    }
+                    different_filament_settings = Slic3r::escape_strings_cstyle(dirty_options);
+                }
+            }
+
+            different_settings.emplace_back(different_filament_settings);
         }
 
         // loop through options and apply them to the resulting config.
@@ -959,8 +1032,18 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
         }
     }
 
-	// Don't store the "compatible_printers_condition" for the printer profile, there is none.
-    inherits.emplace_back(this->printers.get_edited_preset().inherits());
+    //BBS: add logic for settings check between different system presets
+    std::string printer_inherits = this->printers.get_edited_preset().inherits();
+    // Don't store the "compatible_printers_condition" for the printer profile, there is none.
+    inherits                     .emplace_back(printer_inherits);
+    const Preset* printer_parent_preset =  this->printers.get_selected_preset_parent();
+    if (printer_parent_preset) {
+        std::vector<std::string> dirty_options = this->printers.dirty_options_without_option_list(&(this->printers.get_edited_preset()), printer_parent_preset, ignore_settings_list, false);
+        if (!dirty_options.empty()) {
+            different_printer_settings = Slic3r::escape_strings_cstyle(dirty_options);
+        }
+    }
+    different_settings.emplace_back(different_printer_settings);
 
     // These value types clash between the print and filament profiles. They should be renamed.
     out.erase("compatible_prints");
@@ -968,6 +1051,8 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
     out.erase("compatible_printers");
     out.erase("compatible_printers_condition");
     out.erase("inherits");
+    //BBS: add logic for settings check between different system presets
+    out.erase("different_settings_to_system");
     
     static const char *keys[] = { "support_material_extruder", "support_material_interface_extruder" };
     for (size_t i = 0; i < sizeof(keys) / sizeof(keys[0]); ++ i) {
@@ -998,6 +1083,8 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
     add_if_some_non_empty(std::move(compatible_printers_condition), "compatible_printers_condition_cummulative");
     add_if_some_non_empty(std::move(compatible_prints_condition),   "compatible_prints_condition_cummulative");
     add_if_some_non_empty(std::move(inherits),                      "inherits_cummulative");
+    //BBS: add logic for settings check between different system presets
+    add_if_some_non_empty(std::move(different_settings),            "different_settings_to_system");
 
 	out.option<ConfigOptionEnumGeneric>("printer_technology", true)->value = ptFFF;
     return out;
@@ -1161,12 +1248,16 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     std::vector<std::string> compatible_printers_condition_values   = std::move(config.option<ConfigOptionStrings>("compatible_printers_condition_cummulative", true)->values);
     std::vector<std::string> compatible_prints_condition_values     = std::move(config.option<ConfigOptionStrings>("compatible_prints_condition_cummulative",   true)->values);
     std::vector<std::string> inherits_values                        = std::move(config.option<ConfigOptionStrings>("inherits_cummulative", true)->values);
+    //BBS: add different settings check logic
+    bool has_different_settings_to_system                           = config.option("different_settings_to_system")?true:false;
+    std::vector<std::string> different_values                       = std::move(config.option<ConfigOptionStrings>("different_settings_to_system", true)->values);
     std::string &compatible_printers_condition  = Preset::compatible_printers_condition(config);
     std::string &compatible_prints_condition    = Preset::compatible_prints_condition(config);
     std::string &inherits                       = Preset::inherits(config);
     compatible_printers_condition_values.resize(num_filaments + 2, std::string());
     compatible_prints_condition_values.resize(num_filaments, std::string());
     inherits_values.resize(num_filaments + 2, std::string());
+    different_values.resize(num_filaments + 2, std::string());
     // The "default_filament_profile" will be later extracted into the printer profile.
 	switch (printer_technology) {
 	case ptFFF:
@@ -1188,11 +1279,11 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     // First load the print and printer presets.
 
 	auto load_preset = 
-		[&config, &inherits, &inherits_values, 
+		[&config, &inherits, &inherits_values,
          &compatible_printers_condition, &compatible_printers_condition_values, 
          &compatible_prints_condition, &compatible_prints_condition_values, 
          is_external, &name, &name_or_path, file_version]
-		(PresetCollection &presets, size_t idx, const std::string &key) {
+		(PresetCollection &presets, size_t idx, const std::string &key, const std::set<std::string> &different_keys) {
 		// Split the "compatible_printers_condition" and "inherits" values one by one from a single vector to the print & printer profiles.
 		inherits = inherits_values[idx];
 		compatible_printers_condition = compatible_printers_condition_values[idx];
@@ -1201,7 +1292,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         //BBS: add config related logs
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": , name %1%, is_external %2%, inherits %3%")%name %is_external %inherits;
 		if (is_external)
-			presets.load_external_preset(name_or_path, name, config.opt_string(key, true), config, PresetCollection::LoadAndSelect::Always, file_version);
+			presets.load_external_preset(name_or_path, name, config.opt_string(key, true), config, different_keys, PresetCollection::LoadAndSelect::Always, file_version);
 		else
 			presets.load_preset(presets.path_from_name(name), name, config).save();
 	};
@@ -1209,12 +1300,31 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     switch (Preset::printer_technology(config)) {
     case ptFFF:
     {
-        //BBS: add config related logs
+        //BBS: add different settings logic
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": load print preset from print_settings_id");
-        load_preset(this->prints, 0, "print_settings_id");
+        std::vector<std::string> print_different_keys_vector;
+        std::string print_different_settings = different_values[0];
+        Slic3r::unescape_strings_cstyle(print_different_settings, print_different_keys_vector);
+        std::set<std::string> print_different_keys_set(print_different_keys_vector.begin(), print_different_keys_vector.end());
+        if (!has_different_settings_to_system) {
+            print_different_keys_set.clear();
+        }
+        else
+            print_different_keys_set.insert(ignore_settings_list.begin(), ignore_settings_list.end());
+        load_preset(this->prints, 0, "print_settings_id", print_different_keys_set);
+
+        std::vector<std::string> printer_different_keys_vector;
+        std::string printer_different_settings = different_values[num_filaments + 1];
+        Slic3r::unescape_strings_cstyle(printer_different_settings, printer_different_keys_vector);
+        std::set<std::string> printer_different_keys_set(printer_different_keys_vector.begin(), printer_different_keys_vector.end());
+        if (!has_different_settings_to_system) {
+            printer_different_keys_set.clear();
+        }
+        else
+            printer_different_keys_set.insert(ignore_settings_list.begin(), ignore_settings_list.end());
         //BBS: add config related logs
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": load printer preset from printer_settings_id");
-        load_preset(this->printers, num_filaments + 1, "printer_settings_id");
+        load_preset(this->printers, num_filaments + 1, "printer_settings_id", printer_different_keys_set);
 
         // 3) Now load the filaments. If there are multiple filament presets, split them and load them.
         auto old_filament_profile_names = config.option<ConfigOptionStrings>("filament_settings_id", true);
@@ -1232,10 +1342,21 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 			compatible_prints_condition   = compatible_prints_condition_values.front();
 			Preset                *loaded = nullptr;
 
+            //BBS: add different settings logic
+            std::vector<std::string> filament_different_keys_vector;
+            std::string filament_different_settings = different_values[1];
+            Slic3r::unescape_strings_cstyle(filament_different_settings, filament_different_keys_vector);
+            std::set<std::string> filament_different_keys_set(filament_different_keys_vector.begin(), filament_different_keys_vector.end());
+            if (!has_different_settings_to_system) {
+                filament_different_keys_set.clear();
+            }
+            else
+                filament_different_keys_set.insert(ignore_settings_list.begin(), ignore_settings_list.end());
+
             //BBS: add config related logs
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": load single filament preset from filament_settings_id");
             if (is_external)
-                loaded = this->filaments.load_external_preset(name_or_path, name, old_filament_profile_names->values.front(), config, PresetCollection::LoadAndSelect::Always, file_version).first;
+                loaded = this->filaments.load_external_preset(name_or_path, name, old_filament_profile_names->values.front(), config, filament_different_keys_set, PresetCollection::LoadAndSelect::Always, file_version).first;
             else {
                 // called from Config Wizard.
 				loaded= &this->filaments.load_preset(this->filaments.path_from_name(name), name, config);
@@ -1295,10 +1416,23 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                 if (pos != std::string::npos)
                     inherits_value.replace(pos, 1, 1, '~');
                 cfg.opt_string("inherits", true)                      = inherits_value;
+
+                //BBS: add different settings logic
+                std::vector<std::string> filament_different_keys_vector;
+                std::string filament_different_settings = different_values[i+1];
+                Slic3r::unescape_strings_cstyle(filament_different_settings, filament_different_keys_vector);
+                std::set<std::string> filament_different_keys_set(filament_different_keys_vector.begin(), filament_different_keys_vector.end());
+                if (!has_different_settings_to_system) {
+                    filament_different_keys_set.clear();
+                }
+                else
+                    filament_different_keys_set.insert(ignore_settings_list.begin(), ignore_settings_list.end());
+
                 // Load all filament presets, but only select the first one in the preset dialog.
                 auto [loaded, modified] = this->filaments.load_external_preset(name_or_path, name,
                     (i < int(old_filament_profile_names->values.size())) ? old_filament_profile_names->values[i] : "",
-                    std::move(cfg), 
+                    std::move(cfg),
+                    filament_different_keys_set,
                     i == 0 ? 
                         PresetCollection::LoadAndSelect::Always : 
                     any_modified ?
@@ -1316,10 +1450,13 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         break;
     }
     case ptSLA:
-        load_preset(this->sla_prints,    0, "sla_print_settings_id");
-        load_preset(this->sla_materials, 1, "sla_material_settings_id");
-        load_preset(this->printers,      2, "printer_settings_id");
+    {
+        std::set<std::string> different_keys_set;
+        load_preset(this->sla_prints, 0, "sla_print_settings_id", different_keys_set);
+        load_preset(this->sla_materials, 1, "sla_material_settings_id", different_keys_set);
+        load_preset(this->printers, 2, "printer_settings_id", different_keys_set);
         break;
+    }
     default:
         break;
     }
