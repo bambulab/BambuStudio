@@ -881,7 +881,9 @@ void PlaterPresetComboBox::update()
         // BBS
         wxColor clr(filament_color);
         clr_picker->SetBackgroundColour(clr);
-        clr_picker->SetForegroundColour(wxColor(~clr.GetRGB()));
+        auto style = clr_picker->GetWindowStyle() & ~(wxBORDER_NONE | wxBORDER_SIMPLE);
+        clr_picker->SetWindowStyle(clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224 ? (style | wxBORDER_SIMPLE) : (style | wxBORDER_NONE));
+        clr_picker->SetForegroundColour(clr.Red() < 128 && clr.Blue() < 128 && clr.Green() < 128 ? *wxWHITE : *wxBLACK);
         selected_filament_preset = m_collection->find_preset(m_preset_bundle->filament_presets[m_extruder_idx]);
         if (!selected_filament_preset) {
             //can not find this filament, should be caused by project embedded presets, will be updated later
