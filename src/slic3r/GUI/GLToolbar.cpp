@@ -86,7 +86,7 @@ GLToolbarItem::GLToolbarItem(GLToolbarItem::EType type, const GLToolbarItem::Dat
     , m_last_action_type(Undefined)
     , m_highlight_state(NotHighlighted)
 {
-    ;
+    render_left_pos = 0.0f;
 }
 
 bool GLToolbarItem::update_visibility()
@@ -1418,7 +1418,8 @@ void GLToolbar::render_horizontal(const GLCanvas3D& parent)
             left += separator_stride;
         else
         {
-            //BBS GUI refa
+            //BBS GUI refactor
+            item->render_left_pos = left;
             if (!item->is_action_with_text_image()) {
                 unsigned int tex_id = m_icons_texture.get_id();
                 int tex_width = m_icons_texture.get_width();

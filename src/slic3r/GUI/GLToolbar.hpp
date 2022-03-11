@@ -165,6 +165,9 @@ private:
     EActionType m_last_action_type;
     EHighlightState m_highlight_state;
 public:
+    // remember left position for rendering menu
+    mutable float render_left_pos;
+
     GLToolbarItem(EType type, const Data& data);
 
     EState get_state() const { return m_state; }
