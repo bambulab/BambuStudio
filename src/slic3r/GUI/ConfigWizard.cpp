@@ -1040,7 +1040,7 @@ void PageMaterials::update_lists(int sel_type, int sel_vendor, int last_selected
 					if (checked && !was_checked)
 						wizard_p()->update_presets_in_config(section, p->alias, true);
 					else if (!checked && was_checked)
-						wizard_p()->appconfig_new.set(section, p->name, "1");
+						wizard_p()->appconfig_new.set(section, p->name, "true");
 					});
 			}
             sort_list_data(list_profile, to_list);
@@ -1953,7 +1953,7 @@ void ConfigWizard::priv::load_vendors()
 		if (app_config->has_section(section_name)) {
 			const std::map<std::string, std::string> &section_old = app_config->get_section(section_name);
             for (const auto& material_name_and_installed : section_old)
-				if (material_name_and_installed.second == "1") {
+				if (material_name_and_installed.second == "true") {
 					// Material is installed. Resolve it in bundles.
                     size_t num_found = 0;
 					const std::string &material_name = material_name_and_installed.first;
@@ -1968,7 +1968,7 @@ void ConfigWizard::priv::load_vendors()
 				    	}
                         if (preset != nullptr) {
                             // Materal preset was found, mark it as installed.
-                            section_new[preset->name] = "1";
+                            section_new[preset->name] = "true";
                             ++ num_found;
                         }
 				    }
@@ -2267,7 +2267,7 @@ void ConfigWizard::priv::select_default_materials_for_printer_models(Technology 
             models_without_default.emplace_back(printer_model);
         } else {
             for (const std::string& material : printer_model->default_materials)
-                appconfig_new.set(appconfig_section, material, "1");
+                appconfig_new.set(appconfig_section, material, "true");
         }
     }
 
@@ -2743,7 +2743,7 @@ void ConfigWizard::priv::update_presets_in_config(const std::string& section, co
     auto update = [this, add](const std::string& s, const std::string& key) {
     	assert(! s.empty());
         if (add)
-            appconfig_new.set(s, key, "1");
+            appconfig_new.set(s, key, "true");
         else
             appconfig_new.erase(s, key); 
     };
