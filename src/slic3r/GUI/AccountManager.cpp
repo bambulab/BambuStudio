@@ -1471,6 +1471,9 @@ namespace Slic3r {
 
     int AccountManager::request_project_id(BBLProject* project, unsigned int &http_code, std::string &http_body)
     {
+        http_code = 0;
+        http_body = "";
+
         int result = -1;
         if (!project) return -1;
 
@@ -1683,6 +1686,10 @@ namespace Slic3r {
     {
         int result = RET_POLLING_CANEL;
         if (!profile || !profile->project_) return -1;
+        
+        // reset values
+        http_code = 0;
+        http_body = "";
 
         std::string upload_url = profile->upload_url;
         Http http_put = Http::put2(upload_url);
@@ -1707,78 +1714,10 @@ namespace Slic3r {
         return result;
     }
 
-    int AccountManager::poll_3mf(BBLSubTask* task, CancelFn fn)
-    {
-        if (!task) return -1;
-        if (task->parent_id.empty() || task->task_profile_id.empty() || task->task_project_id.empty()) return -1;
-
-        std::string ticket = (boost::format("%1%_%2%") % task->parent_id % task->task_id).str();
-        std::string gather = json_request_poll_3mf_gather(task);
-        gather = Http::url_encode(gather);
-        std::string query_params = (boost::format("?profile_id=%1%&&ticket=%2%&&gather=%3%") % task->task_profile_id % ticket % gather).str();
-        std::string url = (boost::format("%1%/iot-service/api/user/project/%2%%3%") % host % task->task_project_id % query_params).str();
-        
-        int retry_ = 0;
-        int retry_max = POLL_3MF_TIMEOUT;
-        
-        Http http = Http::get(url);
-        http.header("accept", "application/json")
-            .header("Authorization", get_token_str())
-            .on_complete(
-                [this, task](std::string body, unsigned) {
-                    std::stringstream ss(body);
-                    pt::ptree root;
-                    pt::read_json(ss, root);
-                    boost::optional<std::string> message = root.get_optional<std::string>("message");
-                    if (message.has_value()) {
-                        if (message.value().compare("ready") == 0) {
-                            BOOST_LOG_TRIVIAL(info) << "get_project_info ok!";
-                            boost::optional<std::string> url = root.get_optional<std::string>("url");
-                            if (url.has_value()) {
-                                // check valid url
-                                if (url.value().compare("null") != 0) {
-                                    task->task_url = url.value();
-                                }
-                            }
-                            boost::optional<std::string> md5 = root.get_optional<std::string>("md5");
-                            if (md5.has_value()) {
-                                if (md5.value().compare("null") != 0) {
-                                    task->task_url_md5 = md5.value();
-                                }
-                            }
-                            //success
-                            return;
-                        }
-                    }
-                    //failed
-                    return;
-                }
-            ).on_error(
-                [this](std::string body, std::string error, unsigned status) {
-                    BOOST_LOG_TRIVIAL(info) << "get_project_info failed! body=" << body;
-                });
-
-        while ((task->task_url.empty() || task->task_url.compare("null") == 0) && retry_ < retry_max) {
-            http.perform_sync();
-            if (fn) {
-                if (fn()) {
-                    BOOST_LOG_TRIVIAL(trace) << "poll 3mf is cancelled";
-                    return -1;
-                }
-            }
-            retry_++;
-            BOOST_LOG_TRIVIAL(trace) << "get_task_url, retry=" << retry_;
-            boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
-        }
-        if (retry_ == retry_max) {
-            BOOST_LOG_TRIVIAL(trace) << "get_task_url, retry_max";
-            return -1;
-        }
-        return 0;
-    }
-
     int AccountManager::get_design_info(std::string model_id, std::string& design_id, unsigned int& http_code, std::string& http_body)
     {
+        http_code = 0;
+        http_body = "";
         int result = -1;
         if (model_id.empty()) return -1;
         design_id.clear();

@@ -541,7 +541,6 @@ void Http::priv::http_perform()
 				}
 			}
 		}
-
 		//BBS check error http status code
 		else if (http_status >= 400) {
 			if (g_error_func) { g_error_func(buffer, std::string(), http_status); }

@@ -8111,8 +8111,10 @@ void Plater::publish_project()
     bool cont_dlg = true;
     int percent = 0;
     bool upload_finish = false;
-    bool publish_profile = false;
+    bool publish_project = true;
     std::string design_id;
+
+    wxString failed_to_publish_str = _L("Failed to publish your project. Please try agian!");
 
     // upload project first and publish
     wxString msg;
@@ -8122,11 +8124,12 @@ void Plater::publish_project()
     // export 3mf to temp folder
     msg = _L("preparing your designs");
     cont = dlg.Update(percent, msg);
+    
 
     boost::filesystem::path temp_path(wxStandardPaths::Get().GetTempDir().utf8_str().data());
     boost::uuids::uuid uuid = boost::uuids::random_generator()();
     std::string unique = to_string(uuid).substr(0, 6);
-    temp_path /= (boost::format(".%1%.3mf") % unique).str();
+    temp_path /= (boost::format("%1%.%2%.3mf") % std::string(p->get_project_name().mb_str(wxConvUTF8)) % unique).str();
     BOOST_LOG_TRIVIAL(debug) << "publish_project: export to temp 3mf: " << temp_path.string();
 
     int result = export_3mf(temp_path, SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode, -1,
@@ -8149,12 +8152,12 @@ void Plater::publish_project()
     BBLProject* project = &p->project;
     project->project_name = std::string(p->get_project_name().mb_str(wxConvUTF8));
     project->project_3mf_file = temp_path.string();
-    project->project_path = temp_path;
+    project->project_path = fs::path(project->project_3mf_file);
 
     BBLProfile* profile = new BBLProfile(project);
     profile->profile_name = wxGetApp().preset_bundle->prints.get_edited_preset().name;
 
-    boost::thread upload_thread = Slic3r::create_thread([c, &msg, &cont, &project, &profile, &percent, &upload_finish, temp_path, &design_id, &publish_profile] {
+    boost::thread upload_thread = Slic3r::create_thread([c, failed_to_publish_str, &msg, &cont, &project, &profile, &percent, &upload_finish, temp_path, &design_id, &publish_project] {
         int res = 0;
         unsigned int http_code;
         std::string http_body;
@@ -8165,37 +8168,39 @@ void Plater::publish_project()
             unsigned int http_code;
             std::string http_body;
             res = c->get_design_info(project->project_model_id, design_id, http_code, http_body);
-            if (res == 0) {
-                if (design_id.empty()) {
-                    publish_profile = true;
-                } else {
-                    publish_profile = false;
-                }
-            } else {
-                msg = _L("Failed to get project info.");
+            if (res < 0) {
+                wxString error_msg = wxString::Format(_L("get_des,err:code=%u,msg=%s"), http_code, http_body);
+                msg = failed_to_publish_str + error_msg;
+                BOOST_LOG_TRIVIAL(trace) << msg;
                 cont = false;
                 return;
+            } else {
+                if (design_id.empty()) {
+                    publish_project = true;
+                }
+                else {
+                    publish_project = false;
+                }
             }
         }
 
-        if (project->project_id.empty()) {
-            res = c->request_project_id(project, http_code, http_body);
-            if (res != 0 || project->project_id.empty()) {
-                wxString error_msg = wxString::Format(_L("req_pro,err:code=%u,msg=%s"), http_code, http_body);
-                msg = _L("Failed to publish. Please try again!") + error_msg;
-                cont = false;
-                return;
-            }
+        res = c->request_project_id(project, http_code, http_body);
+        if (res < 0 || project->project_id.empty()) {
+            wxString error_msg = wxString::Format(_L("req_proj,err:code=%u,msg=%s"), http_code, http_body);
+            msg = failed_to_publish_str + error_msg;
+            BOOST_LOG_TRIVIAL(trace) << msg;
+            cont = false;
+            return;
         }
 
         // set project id
         profile->project_id = project->project_id;
-        msg = _L("preparing, request profile id");
         res = c->request_profile_id(profile, http_code, http_body);
-
-        if (res != 0 || profile->profile_id.empty())
+        if (res < 0 || profile->profile_id.empty())
         {
-            msg = _L("preparing, request profile id failed");
+            wxString error_msg = wxString::Format(_L("req_prof,err:code=%u,msg=%s"), http_code, http_body);
+            msg = failed_to_publish_str + error_msg;
+            BOOST_LOG_TRIVIAL(trace) << msg;
             cont = false;
             return;
         }
@@ -8208,22 +8213,55 @@ void Plater::publish_project()
                 if (progress.ultotal != 0) {
                     percent = progress.ulnow * 100 / progress.ultotal;
                 }
-                msg = wxString::Format("uploaded %d%%", percent);
+                msg = wxString::Format("%d%% uploaded...", percent);
             });
 
+        if (!cont) {
+            msg = _L("Upload has been canceled.");
+            return;
+        }
+
         if (res < 0) {
-            msg = _L("upload 3mf failed!");
+            wxString error_msg = wxString::Format(_L("upload,err:code=%u,msg=%s"), http_code, http_body);
+            msg = failed_to_publish_str + error_msg;
+            BOOST_LOG_TRIVIAL(trace) << msg;
             cont = false;
             return;
         }
 
-        int err_code = 0;
-        std::string err_msg;
         std::string upload_filename = (boost::format("%1%.3mf") % project->project_name).str();
         res = c->put_notification(profile, upload_filename, http_code, http_body);
         if (res < 0) {
-            msg = wxString::Format("error code: %d, error msg: %s", err_code, err_msg);
+            wxString error_msg = wxString::Format(_L("put_no,err:code=%u,msg=%s"), http_code, http_body);
+            msg = _L("Failed to publish. Please try again!") + error_msg;
+            BOOST_LOG_TRIVIAL(trace) << msg;
             cont = false;
+            return;
+        }
+
+        /* get notifications */
+        bool cancel = false;
+        res = c->get_notification(profile, http_code, http_body,
+            [cont]() {
+                return cont;
+            }
+        );
+
+        if (res == RET_POLLING_TIMEOUT) {
+            msg = _L("Uploading is timed out. Please try again!");
+            BOOST_LOG_TRIVIAL(trace) << msg;
+            cont = false;
+            return;
+        }
+        else if (res == RET_POLLING_CANEL) {
+            msg = _L("Upload has been canceled.");
+            BOOST_LOG_TRIVIAL(trace) << msg;
+            return;
+        }
+        else if (res < 0) {
+            wxString error_msg = wxString::Format(_L("get_no,err:code=%u,msg=%s"), http_code, http_body);
+            msg = _L("Failed to publish. Please try again!") + error_msg;
+            BOOST_LOG_TRIVIAL(trace) << msg;
             return;
         }
 
@@ -8233,11 +8271,9 @@ void Plater::publish_project()
 
     while (cont && cont_dlg) {
         wxMilliSleep(50);
-        cont_dlg = dlg.Update(percent, msg, &skip);
-        if (!cont_dlg) {
+        cont_dlg = dlg.Update(percent, msg);
+        if (!cont_dlg)
             cont = cont_dlg;
-        }
-        cont = cont && !skip;
     }
 
     if (upload_thread.joinable())
@@ -8248,19 +8284,26 @@ void Plater::publish_project()
     /* set project to curr plater project, save project model id */
     p->project.project_model_id = project->project_model_id;
 
-    if (upload_finish) {
+    bool load_url = true;
+    if (design_id.empty() && !publish_project) {
+        msg = _L("Internal Error. design id is empty.");
+        BOOST_LOG_TRIVIAL(trace) << msg;
+        load_url = false;
+    }
+
+    if (upload_finish && load_url) {
         wxString url;
-        if (!publish_profile) {
+        if (publish_project) {
             url = wxString::Format(MY_MODEL_PUBLISH_URL_FORMAT,
                     project->project_model_id,
                     project->project_id,
                     profile->profile_id,
-                    project->project_design_id);
+                    "");
         } else {
             url = wxString::Format(MY_PROFILE_PUBLISH_URL_FORMAT,
                 profile->profile_id,
                 project->project_id,
-                project->project_design_id);
+                design_id);
         }
 
         url = wxString(wxGetApp().app_config->get_web_host_url()) + url;

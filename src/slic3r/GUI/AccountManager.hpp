@@ -372,9 +372,6 @@ public:
 
     int poll_3mf(BBLProject* project, std::string profile_id, bool& cancel, Http::ErrorFn errFn = nullptr);
 
-    // poll_3mf for task, sync
-    int poll_3mf(BBLSubTask* task, CancelFn  fn = nullptr);
-
     // GET /design-service/model/[model_id]
     int get_design_info(std::string model_id, std::string &design_id, unsigned int &http_code, std::string &http_body);
 
