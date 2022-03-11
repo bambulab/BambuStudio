@@ -293,6 +293,20 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             }
         }
     }
+
+    // BBS
+    static const char* keys[] = { "support_material_extruder", "support_material_interface_extruder"};
+    for (int i = 0; i < sizeof(keys) / sizeof(keys[0]); i++) {
+        std::string key = std::string(keys[i]);
+        auto* opt = dynamic_cast<ConfigOptionInt*>(config->option(key, false));
+        if (opt != nullptr) {
+            if (opt->getInt() > filament_cnt) {
+                DynamicPrintConfig new_conf = *config;
+                new_conf.set_key_value(key, new ConfigOptionInt(filament_cnt));
+                apply(config, &new_conf);
+            }
+        }
+    }
 }
 
 void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)

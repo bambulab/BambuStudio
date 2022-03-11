@@ -2763,8 +2763,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
     // BBS
     int filaments_cnt = config->opt<ConfigOptionStrings>("filament_colour")->values.size();
-
-    bool one_by_one = input_files.size() == 1 || printer_technology == ptSLA || filaments_cnt <= 1;
+    bool one_by_one = input_files.size() == 1 || printer_technology == ptSLA/* || filaments_cnt <= 1*/;
     if (! one_by_one) {
         for (const auto &path : input_files) {
             if (std::regex_match(path.string(), pattern_bundle)) {
@@ -3235,9 +3234,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     if (new_model != nullptr && new_model->objects.size() > 1) {
         //wxMessageDialog msg_dlg(q, _L(
         MessageDialog msg_dlg(q, _L(
-                "Multiple objects were loaded for a multi-material printer.\n"
-                "Instead of considering them as multiple objects, should I consider\n"
-                "these files to represent a single object having multiple parts?") + "\n",
+                "Load these files as a single object with multiple pars\n"
+                "instead of multiple independent objects?") + "\n",
                 _L("Multi-part object detected"), wxICON_WARNING | wxYES | wxNO);
         if (msg_dlg.ShowModal() == wxID_YES) {
             new_model->convert_multipart_object(filaments_cnt);

@@ -880,7 +880,7 @@ DynamicPrintConfig PresetBundle::full_config_secure() const
 }
 
 DynamicPrintConfig PresetBundle::full_fff_config() const
-{    
+{
     DynamicPrintConfig out;
     out.apply(FullPrintConfig::defaults());
     out.apply(this->prints.get_edited_preset().config);
@@ -892,7 +892,6 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
     // BBS
     size_t  num_filaments = this->filament_presets.size();
     auto* extruder_diameter = dynamic_cast<const ConfigOptionFloats*>(out.option("nozzle_diameter"));
-    size_t  num_extruders = extruder_diameter->values.size();
     // Collect the "compatible_printers_condition" and "inherits" values over all presets (print, filaments, printers) into a single vector.
     std::vector<std::string> compatible_printers_condition;
     std::vector<std::string> compatible_prints_condition;
@@ -975,7 +974,7 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
         std::string key = std::string(keys[i]);
         auto *opt = dynamic_cast<ConfigOptionInt*>(out.option(key, false));
         assert(opt != nullptr);
-        opt->value = boost::algorithm::clamp<int>(opt->value, 0, int(num_extruders));
+        opt->value = boost::algorithm::clamp<int>(opt->value, 0, int(num_filaments));
     }
 
     out.option<ConfigOptionString >("print_settings_id",    true)->value  = this->prints.get_selected_preset_name();
