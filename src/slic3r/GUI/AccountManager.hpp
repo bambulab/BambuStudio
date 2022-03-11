@@ -241,6 +241,7 @@ private:
     std::string json_request_body_post_profile(BBLProfile* profile);
     std::string json_request_body_post_task(BBLTask* task);
     std::string json_request_body_post_task(BBLSubTask* task);
+    std::string json_request_body_post_subtask(BBLProject* project, BBLProfile* profile, BBLSubTask* task);
     std::string json_request_body_post_setting(Preset* preset);
     std::string json_request_body_put_setting(Preset* preset);
     std::string json_request_poll_3mf_gather(BBLSubTask* task);
@@ -356,7 +357,7 @@ public:
     // POST /api/user/project
     int request_project_id(BBLProject* project, unsigned int &http_code, std::string &http_body);
     
-    // POST /api/user/project/[project_id]
+    // POST /api/user/project/{project_id}
     int request_profile_id(BBLProfile* profile, unsigned int &http_code, std::string &http_body);
 
     // POST /api/user/task
@@ -373,13 +374,15 @@ public:
 
     int poll_3mf(BBLProject* project, std::string profile_id, bool& cancel, Http::ErrorFn errFn = nullptr);
 
-    // GET /design-service/model/[model_id]
+    // GET /api/user/profile/{profile_id}
+    int get_profile_3mf(BBLProfile* profile, unsigned int &http_code, std::string http_body);
+
+    // GET /design-service/model/{model_id}
     int get_design_info(std::string model_id, std::string &design_id, unsigned int &http_code, std::string &http_body);
 
     // get task info
     void get_task(BBLTask* &task);
     void get_subtask(BBLSubTask* &subtask);
-    int get_subtask_3mf(BBLSubTask* &subtask, CancelFn fn = nullptr);
     void get_profile(BBLProject*& project, BBLProfile*& profile);
 
     static void get_machine_last_report_url(std::string dev_id, std::string& last_url);
@@ -387,8 +390,12 @@ public:
     // create a project 
     void get_project_info(BBLProject* project);
     void get_profile_info(BBLProject* &project, BBLProfile* &profile);
-    void create_task(BBLProject* project, BBLTask* task, ResultFn resFn);
-    void post_task(BBLSubTask* task, ResultFn resFn, ProgressFn proFn);
+
+    // POST /my/task
+    int post_task(BBLProject* project, BBLProfile* profile, BBLSubTask *task, unsigned &http_code, std::string &http_body);
+
+    // GET /my/tasks
+    int get_tasks(std::string dev_id, unsigned limit, unsigned &http_code, std::string &http_body);
 ;
     bool can_publish();
     

@@ -874,6 +874,30 @@ std::string Http::url_encode(const std::string &str)
 	return encoded;
 }
 
+std::string Http::url_decode(const std::string &str)
+{
+    ::CURL *curl = ::curl_easy_init();
+    if (curl == nullptr) { return str; }
+    int outlen = 0;
+    char *ce = ::curl_easy_unescape(curl, str.c_str(), str.length(), &outlen);
+    std::string dencoded = std::string(ce, outlen);
+
+    ::curl_free(ce);
+    ::curl_easy_cleanup(curl);
+
+    return dencoded;
+}
+
+std::string Http::get_filename_from_url(const std::string &url)
+{
+    int end_pos = url.find_first_of('?');
+	if (end_pos <= 0) return "";
+	std::string path_url = url.substr(0, end_pos);
+	int start_pos = path_url.find_last_of("/");
+	if (start_pos < 0) return "";
+	return path_url.substr(start_pos + 1, path_url.length() - start_pos - 1);
+}
+
 std::ostream& operator<<(std::ostream &os, const Http::Progress &progress)
 {
 	os << "Http::Progress("

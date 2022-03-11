@@ -10,9 +10,6 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem.hpp>
 
-
-#define SUBTASK_NAME_FORMAT     "%1%_P%2%"      // %1%: project name, %2% plate idx
-
 namespace fs = boost::filesystem;
 
 namespace Slic3r {
@@ -84,6 +81,11 @@ public:
         task_url            = obj.task_url;
         task_url_md5        = obj.task_url_md5;
         task_gcode_in_3mf   = obj.task_gcode_in_3mf;
+        task_timelapse      = obj.task_timelapse;
+        task_bed_type       = obj.task_bed_type;
+        task_bed_leveling   = obj.task_bed_leveling;
+        task_flow_cali      = obj.task_flow_cali;
+        task_vabration_cali = obj.task_vabration_cali;
     }
 
     std::string     task_id;            /* plate id */
@@ -98,6 +100,7 @@ public:
     std::string     task_start_time;    /* time created by machine, seconds from 1970-01-01 */
     std::string     task_duration;      /* duration created by machine, unit seconds */
     /* user options */
+    bool            task_timelapse;     /* timelapse settings */
     std::string     task_bed_type;      /* bed_type of task */
     bool            task_bed_leveling;  /* bed leveling of task */
     bool            task_flow_cali;     /* flow calibration of task */
@@ -168,14 +171,20 @@ public:
 class BBLProfile {
 public:
     BBLProfile(BBLProject* project = nullptr);
+    ~BBLProfile() {}
 
     std::vector<BBLTask*>   tasks;
     std::string             profile_id;
     std::string             profile_name;
     std::string             profile_content;
     std::string             project_id;         /* parent project_id */
+    std::string             model_id;           /* parent model_id */
     std::string             upload_url;         /* url for upload 3mf */
     std::string             upload_ticket;      /* ticket for notification */
+    std::string             url;                /* 3mf url */
+    std::string             md5;                /* 3mf md5 */
+    std::string             filename;           /* 3mf filename */
+    std::string             keystore_xml;       /* keystore_xml */
     BBLProject*             project_;
     std::map<std::string, BBLSliceInfo*>    slice_info; /* key: plate_idx, start at 1, 2, 3, etc. */
     BBLSliceInfo* get_slice_info(std::string plate_idx);

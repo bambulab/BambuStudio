@@ -60,7 +60,9 @@ namespace Slic3r {
             task_project_id = task->task_project_id;
             task_profile_id = task->task_profile_id;
         }
-        task_progress = 0;
+        task_progress  = 0;
+        task_timelapse = false;
+        task_bed_type  = "auto";
     }
 
     std::string BBLSubTask::build_content_json()

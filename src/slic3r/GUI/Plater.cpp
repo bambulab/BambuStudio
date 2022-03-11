@@ -5858,6 +5858,7 @@ void Plater::import_model_id(const std::string& import_json)
     bool cancel = false;
     wxString msg;
     wxString dlg_title = _L("Importing Model");
+    wxString filename;
     int percent = 1;
     ProgressDialog dlg(dlg_title,
                             wxString(' ', 100) + "\n\n\n\n",
@@ -5872,59 +5873,37 @@ void Plater::import_model_id(const std::string& import_json)
 
     //reset params
     p->project.reset();
-    BBLProject* project = &p->project;
-    project->project_model_id = model_id;
-    project->project_design_id = design_id;
 
     /* prepare project and profile */
-    boost::thread import_thread = Slic3r::create_thread([&project, &percent, &cont, &cancel, &msg, &target_path, &download_ok, model_id, profile_id]{
+    boost::thread import_thread = Slic3r::create_thread([&percent, &cont, &cancel, &msg, &target_path, &download_ok, model_id, profile_id, &filename] {
         Slic3r::AccountManager* c = wxGetApp().getAccountManager();
-
         int res = 0;
         unsigned int http_code;
         std::string http_body;
-        res = c->request_project_id(project, http_code, http_body);
-        if (project->project_id.empty()) {
-            cont = false;
-            msg = _L("request project id failed!");
-            return;
-        }
 
         msg = _L("prepare 3mf file...");
-        BBLProfile* profile = new BBLProfile(project);
+        BBLProfile *profile = new BBLProfile();
         profile->profile_id = profile_id;
-         
-        c->poll_3mf(project, profile->profile_id,
-            cancel,
-            [&msg](std::string body, std::string error, unsigned int status)
-            {
-                msg = wxString::Format("Download failed! body=%s, error=%s, status=%d", body, error, status);
-            });
-
-        if (project->project_url.empty()) {
-            cont = false;
-            msg = wxString::Format("Import model failed! project_url is empty!");
+        profile->model_id = model_id;
+        res = c->get_profile_3mf(profile, http_code, http_body);
+        if (res < 0 && profile->url.empty() && profile->md5.empty()) {
+            wxString error_msg = wxString::Format(_L("get_des,err:code=%u,msg=%s"), http_code, http_body);
+            msg = _L("Import project failed, Please try again!") + error_msg;
             return;
         }
-
-        if (cancel) {
-            BOOST_LOG_TRIVIAL(trace) << "import_model: skip";
-            return;
-        }
+        filename = from_u8(profile->filename);
 
         msg = _L("downloading project ...");
-
-
         /* save to temp folder 3mf file*/
         target_path = wxStandardPaths::Get().GetTempDir().utf8_str().data();
         boost::uuids::uuid uuid = boost::uuids::random_generator()();
         std::string unique = to_string(uuid).substr(0, 6);
 
-        target_path /= (boost::format("import.%1%_%2%_%3%.3mf") % project->project_name % get_current_pid() % unique).str();
+        target_path /= (boost::format("%1%_%2%.3mf") % profile->filename % unique).str();
         fs::path tmp_path = target_path;
         tmp_path += format(".%1%", ".download");
 
-        auto http = Http::get(project->project_url);
+        auto http = Http::get(profile->url);
         http.on_progress([&percent, &cont, &msg](Http::Progress progress, bool& cancel) {
             if (!cont) cancel = true;
                 if (progress.dltotal != 0) {
@@ -5978,11 +5957,11 @@ void Plater::import_model_id(const std::string& import_json)
         this->load_project(encode_path(target_path.string().c_str()), "<silence>");
 
         /*BBS set project info after load project, project info is reset in load project */
-        project->project_model_id  = model_id;
-        project->project_design_id = design_id;
+        p->project.project_model_id  = model_id;
+        p->project.project_design_id = design_id;
 
         // show save new project
-        p->set_project_filename(project->project_name.empty() ? L("Import Model") : from_u8(project->project_name));
+        p->set_project_filename(filename);
     }
 }
 
@@ -7375,7 +7354,7 @@ void Plater::publish_project()
     boost::filesystem::path temp_path(wxStandardPaths::Get().GetTempDir().utf8_str().data());
     boost::uuids::uuid uuid = boost::uuids::random_generator()();
     std::string unique = to_string(uuid).substr(0, 6);
-    temp_path /= (boost::format("%1%.%2%.3mf") % std::string(p->get_project_name().mb_str(wxConvUTF8)) % unique).str();
+    temp_path /= (boost::format("%1%_%2%.3mf") % std::string(p->get_project_name().mb_str(wxConvUTF8)) % unique).str();
     BOOST_LOG_TRIVIAL(debug) << "publish_project: export to temp 3mf: " << temp_path.string();
 
     int result = export_3mf(temp_path, SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode, -1,
@@ -7439,7 +7418,7 @@ void Plater::publish_project()
             return;
         }
 
-        // set project id
+        profile->project_   = project;
         profile->project_id = project->project_id;
         res = c->request_profile_id(profile, http_code, http_body);
         if (res < 0 || profile->profile_id.empty())

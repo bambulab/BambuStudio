@@ -230,73 +230,28 @@ void GcodePrintJob::process()
         return;
     }
 
-    /* create Task */
-    BBLTask* task = new BBLTask(profile);
-    task->task_name = "gcode_task";
 
-    /* rqeust task id */
-    BOOST_LOG_TRIVIAL(trace) << "print_job: start to request_task_id";
-    res = acc->request_task_id(task, http_code, http_body);
-    if (res < 0 || task->task_id.empty()) {
-        wxString error_msg = wxString::Format(_L("req_task_id,err:code=%u,msg=%s"), http_code, http_body);
-        update_status(curr_percent, error_msg);
+    /* post task */
+    BBLSubTask* subTask = new BBLSubTask();
+    subTask->task_path = _3mf_path;
+    subTask->task_name = gcode_path.filename().string();
+    subTask->task_gcode_in_3mf = dst_gcode_file_str;
+    subTask->task_partplate_idx = "1";
+    subTask->task_printer_dev_id = m_obj->dev_id;
+
+    if (project->project_name.empty())
+        subTask->task_name = wxString::Format(_L("Plate 1")).ToUTF8().data();
+    else
+        subTask->task_name = wxString::Format(_L("%s (Plate %d)"), from_u8(project->project_name), 1).ToUTF8().data();
+
+    res = acc->post_task(project, profile, subTask, http_code, http_body);
+    if (res < 0) {
+        wxString error_msg = wxString::Format(_L("pos_task,err:code=%u,msg=%s"), http_code, http_body);
+        update_status(curr_percent, _L("Failed to send printing task.") + error_msg);
         return;
     } else {
-        curr_percent = 90;
-        update_status(curr_percent, "request task id ok!");
-    }
-
-    if (m_obj) {
-        /* create subtask info */
-        BBLSubTask* subtask = new BBLSubTask(task);
-        subtask->task_path = _3mf_path;
-        subtask->task_name = gcode_path.filename().string();
-        subtask->task_gcode_in_3mf = dst_gcode_file_str;
-        subtask->task_partplate_idx = "1";
-        subtask->task_printer_dev_id = m_obj->dev_id;
-
-        res = acc->request_subtask_id(subtask, http_code, http_body);
-        if (res != 0 && subtask->task_id.empty()) {
-            wxString error_msg = wxString::Format(_L("req_sibtask_id,err:code=%u,msg=%s"), http_code, http_body);
-            update_status(curr_percent, error_msg);
-            return;
-        } else {
-            update_status(curr_percent, "request subtask id ok!");
-        }
-
-        res = acc->get_subtask_3mf(subtask,
-            [this]() {
-                return was_canceled();
-            });
-
-        if (res == RET_POLLING_CANEL) {
-            update_status(curr_percent, "cancelled!");
-            return;
-        }
-        else if (res == RET_POLLING_TIMEOUT) {
-            update_status(curr_percent, "Timeout to get 3mf of subtask");
-            return;
-        }
-
-        if (res == 0 && !subtask->task_url.empty()
-            && subtask->task_url.compare("null") != 0
-            && !subtask->task_url_md5.empty()) {
-            curr_percent = 95;
-            update_status(curr_percent, msg);
-            BOOST_LOG_TRIVIAL(trace) << "get subtask url =" << subtask->task_url;
-        }
-        else {
-            wxString error_msg = wxString::Format(_L("pol_3mf,err:code=%u,msg=%s"), http_code, http_body);
-            update_status(curr_percent, error_msg);
-            return;
-        }
-
-        BOOST_LOG_TRIVIAL(trace) << "print_job: send subtask";
-        res = m_obj->send_wan_print_subtask(subtask);
         curr_percent = 100;
         update_status(curr_percent, "send task ok!");
-    } else {
-        update_status(curr_percent, "Invernal Error, obj is null");
     }
 }
 
