@@ -853,6 +853,7 @@ void TreeSupport::detect_object_overhangs()
         }
     };
 
+    has_sharp_tail = false;
     std::map<int, ExPolygons> all_bridges;
     if (std::set<SupportType>{stTreeAuto, stHybridAuto, stTree}.count(stype))// == stTreeAuto || stype == stHybridAuto || stype == stTree)
     {
@@ -929,6 +930,8 @@ void TreeSupport::detect_object_overhangs()
                             overhangs_sharp_tail = std::move(offset2_ex(overhangs_sharp_tail, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
                             overhangs_sharp_tail = diff_ex(overhangs_sharp_tail, overhang_areas);
                         }
+                        if (!overhangs_sharp_tail.empty())
+                            has_sharp_tail = true;
                     }
 
                     if (support_sharp_tails)
@@ -1048,6 +1051,7 @@ void TreeSupport::detect_object_overhangs()
     }
 
     total_overhang_area = 0;
+    max_overhang_area = 0;
     total_overhang_layer_cnt = 0;
     for (int layer_nr = 0; layer_nr < m_object->layer_count(); layer_nr++) {
         TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_nr + m_raft_layers);
@@ -1073,7 +1077,9 @@ void TreeSupport::detect_object_overhangs()
         }
 
         if (!ts_layer->overhang_areas.empty()) {
-            total_overhang_area += area(ts_layer->overhang_areas);
+            float a = area(ts_layer->overhang_areas);
+            total_overhang_area += a;
+            max_overhang_area = std::max(max_overhang_area, a);
             total_overhang_layer_cnt++;
         }
     }

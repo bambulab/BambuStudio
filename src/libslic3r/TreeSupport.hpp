@@ -304,7 +304,9 @@ public:
     };
 
     float           total_overhang_area;
+    float           max_overhang_area;
     size_t          total_overhang_layer_cnt;
+    bool            has_sharp_tail;
 private:
     /*!
      * \brief Generator for model collision, avoidance and internal guide volumes

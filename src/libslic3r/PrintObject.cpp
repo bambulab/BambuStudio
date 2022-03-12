@@ -412,9 +412,10 @@ void PrintObject::generate_support_material()
             m_print->throw_if_canceled();
         } else {
             // BBS: pop a warning if objects have significant amount of overhangs but support material is not enabled
-            if(m_tree_support->total_overhang_area>SQ(scale_(10)) || m_tree_support->total_overhang_layer_cnt>10)
+            if (m_tree_support->max_overhang_area > SQ(scale_(20)) || m_tree_support->has_sharp_tail)
                 this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL,
-                    "It seems model "+ this->model_object()->name + " needs support to print! Please enable support material.");
+                    "It seems model " + this->model_object()->name + " needs support to print! Please enable support material.");
+                //+ " max_overhang_area="+ std::to_string(m_tree_support->max_overhang_area*SQ(SCALING_FACTOR))+", has_sharp_tail="+std::to_string(m_tree_support->has_sharp_tail));
             this->clear_tree_support_layers();
 #if 0
             // Printing without supports. Empty layer means some objects or object parts are levitating,
