@@ -26,8 +26,8 @@ enum class SLAGizmoEventType : unsigned char {
 } // namespace GUI
 } // namespace Slic3r
 
-#include "slic3r/GUI/Gizmos/GLGizmoMove.hpp"
-#include "slic3r/GUI/Gizmos/GLGizmoScale.hpp"
+// BBS
+#include "slic3r/GUI/Gizmos/GLGizmoMoveScale.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoRotate.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoFlatten.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSlaSupports.hpp"

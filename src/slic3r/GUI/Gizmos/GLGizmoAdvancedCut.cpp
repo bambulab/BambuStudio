@@ -324,7 +324,7 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
 
     // Movement input box
     double movement = m_movement;
-    m_imgui->text("Movement:");
+    m_imgui->text(_L("Movement:"));
     ImGui::SameLine(caption_size + space_size);
     ImGui::PushItemWidth(unit_size);
 

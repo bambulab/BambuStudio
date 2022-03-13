@@ -358,51 +358,6 @@ static wxMenu* create_settings_popupmenu(wxMenu* parent_menu, const bool is_obje
                 category_options[sel].second = true;
         }
         return category_options;
-
-#if 0
-        if (selections.size() > 0)
-        {
-            // Add selected items to the "Quick menu"
-            SettingsFactory::Bundle& freq_settings = printer_technology() == ptSLA ?
-                m_freq_settings_sla : m_freq_settings_fff;
-            bool changed_existing = false;
-
-            std::vector<std::string> tmp_freq_cat = {};
-
-            for (auto& cat : freq_settings)
-            {
-                if (_(cat.first) == category_name)
-                {
-                    std::vector<std::string>& freq_settings_category = cat.second;
-                    freq_settings_category.clear();
-                    freq_settings_category.reserve(selection_cnt);
-                    for (auto sel : selections)
-                        freq_settings_category.push_back((*settings_list)[sel].first);
-
-                    changed_existing = true;
-                    break;
-                }
-            }
-
-            if (!changed_existing)
-            {
-                // Create new "Quick menu" item
-                for (auto& cat : settings_menu)
-                {
-                    if (_(cat.first) == category_name)
-                    {
-                        freq_settings[cat.first] = std::vector<std::string>{};
-
-                        std::vector<std::string>& freq_settings_category = freq_settings.find(cat.first)->second;
-                        freq_settings_category.reserve(selection_cnt);
-                        for (auto sel : selections)
-                            freq_settings_category.push_back((*settings_list)[sel].first);
-                        break;
-                    }
-                }
-            }
-        }
-#endif
     };
 
     for (auto cat : categories) {
@@ -452,38 +407,6 @@ static void create_freq_settings_popupmenu(wxMenu* menu, const bool is_object_se
             SettingsFactory::get_category_bitmap(category.first), menu,
             []() { return true; }, plater());
     }
-#if 0
-    // Add "Quick" settings bundles
-    const SettingsFactory::Bundle& bundle_quick = printer_technology() == ptFFF ? m_freq_settings_fff : m_freq_settings_sla;
-
-    for (auto& category : bundle_quick) {
-        if (is_improper_category(category.first, filaments_cnt))
-            continue;
-
-        append_menu_item(menu, wxID_ANY, from_u8((boost::format(_utf8(L("Quick Add Settings (%s)"))) % _(it.first)).str()), "",
-            [menu, item, is_object_settings, bundle](wxCommandEvent& event) {
-                wxString category_name = menu->GetLabel(event.GetId());
-                std::vector<std::string> options;
-                for (auto& category : bundle)
-                    if (category_name == from_u8((boost::format(_L("Quick Add Settings (%s)")) % _(category.first)).str())) {
-                        options = category.second;
-                        break;
-                    }
-                if (options.empty())
-                    return;
-                // Because of we couldn't edited layer_height for ItVolume from settings list,
-                // correct options according to the selected item type : remove "layer_height" option
-                if (!is_object_settings) {
-                    const auto layer_height_it = std::find(options.begin(), options.end(), "layer_height");
-                    if (layer_height_it != options.end())
-                        options.erase(layer_height_it);
-                }
-                obj_list()->add_category_to_settings_from_frequent(options, item);
-            },
-            SettingsFactory::get_category_bitmap(category.first), menu,
-            [this]() { return true; }, plater());
-    }
-#endif
 }
 
 std::vector<wxBitmap> MenuFactory::get_volume_bitmaps()
@@ -570,20 +493,7 @@ wxMenuItem* MenuFactory::append_menu_item_settings(wxMenu* menu_)
         if (settings_id != wxNOT_FOUND)
             menu->Destroy(settings_id);
     }
-#if 0
-    for (auto& it : m_freq_settings_fff)
-    {
-        settings_id = menu->FindItem(from_u8((boost::format(_utf8(L("Quick Add Settings (%s)"))) % _(it.first)).str()));
-        if (settings_id != wxNOT_FOUND)
-            menu->Destroy(settings_id);
-    }
-    for (auto& it : m_freq_settings_sla)
-    {
-        settings_id = menu->FindItem(from_u8((boost::format(_utf8(L("Quick Add Settings (%s)"))) % _(it.first)).str()));
-        if (settings_id != wxNOT_FOUND)
-            menu->Destroy(settings_id);
-    }
-#endif
+
     menu->DestroySeparators(); // delete old separators
 
     // If there are selected more then one instance but not all of them
@@ -671,19 +581,6 @@ wxMenuItem* MenuFactory::append_menu_item_instance_to_object(wxMenu* menu)
 wxMenuItem* MenuFactory::append_menu_item_printable(wxMenu* menu)
 {
     // BBS: to be checked
-#if 0
-    return append_menu_check_item(menu, wxID_ANY, _L("Printable"), "", [](wxCommandEvent&) {
-        const Selection& selection = plater()->canvas3D()->get_selection();
-        wxDataViewItem item;
-        if (obj_list()->GetSelectedItemsCount() > 1 && selection.is_single_full_object())
-            item = obj_list()->GetModel()->GetItemById(selection.get_object_idx());
-        else
-            item = obj_list()->GetSelection();
-
-        if (item)
-            obj_list()->toggle_printable_state(item);
-        }, menu);
-#else
     wxMenuItem* menu_item_printable = append_menu_check_item(menu, wxID_ANY, _L("Printable"), "",
         [](wxCommandEvent&) { obj_list()->toggle_printable_state(); }, menu);
 
@@ -708,7 +605,6 @@ wxMenuItem* MenuFactory::append_menu_item_printable(wxMenu* menu)
         }, menu_item_printable->GetId());
 
     return menu_item_printable;
-#endif
 }
 
 void MenuFactory::append_menu_item_rename(wxMenu* menu)
@@ -930,11 +826,6 @@ void MenuFactory::create_common_object_menu(wxMenu* menu)
     menu->AppendSeparator();
 
     // BBS
-#if 0
-    wxMenuItem* menu_item_printable = append_menu_item_printable(menu);
-    menu->AppendSeparator();
-#endif
-
     append_menu_item_reload_from_disk(menu);
     append_menu_item_export_stl(menu);
     // "Scale to print volume" makes a sense just for whole object
@@ -942,19 +833,6 @@ void MenuFactory::create_common_object_menu(wxMenu* menu)
 
     append_menu_item_fix_through_netfabb(menu);
     append_menu_items_mirror(menu);
-
-    // BBS
-#if 0
-    m_parent->Bind(wxEVT_UPDATE_UI, [](wxUpdateUIEvent& evt) {
-        const Selection& selection = get_selection();
-        int instance_idx = selection.get_instance_idx();
-        evt.Enable(selection.is_single_full_instance() || selection.is_single_full_object());
-        if (instance_idx != -1) {
-            evt.Check(obj_list()->object(selection.get_object_idx())->instances[instance_idx]->printable);
-            plater()->set_current_canvas_as_dirty();//view3D->set_as_dirty();
-        }
-    }, menu_item_printable->GetId());
-#endif
 }
 
 void MenuFactory::create_object_menu()
@@ -1139,7 +1017,7 @@ void MenuFactory::create_plate_menu()
         }, "", nullptr, []() {return true; }, plater());
 
     // orient objects on current plate
-    append_menu_item(menu, wxID_ANY, _L("Auto Rotate"), _L("auto rorate current plate"),
+    append_menu_item(menu, wxID_ANY, _L("Auto Rotate"), _L("auto rotate current plate"),
         [](wxCommandEvent&) {
             PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
             assert(plate);
@@ -1329,64 +1207,13 @@ wxMenu* MenuFactory::assemble_part_menu()
     return &m_assemble_part_menu;
 }
 
-#if 0
-void MenuFactory::append_menu_items_instance_manipulation(wxMenu* menu)
-{
-    MenuType type = menu == &m_object_menu ? mtObjectFFF : mtObjectSLA;
-
-    items_increase[type]                = append_menu_item(menu, wxID_ANY, _L("Add instance") + "\t+", _L("Add one more instance of the selected object"),
-        [](wxCommandEvent&) { plater()->increase_instances();      }, "add_copies", nullptr, 
-        []() { return plater()->can_increase_instances(); }, m_parent);
-    items_decrease[type]                = append_menu_item(menu, wxID_ANY, _L("Remove instance") + "\t-", _L("Remove one instance of the selected object"),
-        [](wxCommandEvent&) { plater()->decrease_instances();      }, "remove_copies", nullptr, 
-        []() { return plater()->can_decrease_instances(); }, m_parent);
-    items_set_number_of_copies[type]    = append_menu_item(menu, wxID_ANY, _L("Set number of instances") + dots, _L("Change the number of instances of the selected object"),
-        [](wxCommandEvent&) { plater()->set_number_of_copies();    }, "number_of_copies", nullptr,
-        []() { return plater()->can_increase_instances(); }, m_parent);
-
-    append_menu_item(menu, wxID_ANY, _L("Fill bed with instances") + dots, _L("Fill the remaining area of bed with instances of the selected object"),
-        [](wxCommandEvent&) { plater()->fill_bed_with_instances();    }, "", nullptr, 
-        []() { return plater()->can_increase_instances(); }, m_parent);
-
-}
-
-void MenuFactory::update_menu_items_instance_manipulation(MenuType type)
-{
-    wxMenu* menu = type == mtObjectFFF ? &m_object_menu : type == mtObjectSLA ? &m_sla_object_menu : nullptr;
-    if (menu)
-        return;
-    // Remove/Prepend "increase/decrease instances" menu items according to the view mode.
-    // Suppress to show those items for a Simple mode
-    if (wxGetApp().get_mode() == comSimple) {
-        if (menu->FindItem(_L("Add instance")) != wxNOT_FOUND)
-        {
-            // Detach an items from the menu, but don't delete them
-            // so that they can be added back later
-            // (after switching to the Advanced/Expert mode)
-            menu->Remove(items_increase[type]);
-            menu->Remove(items_decrease[type]);
-            menu->Remove(items_set_number_of_copies[type]);
-        }
-    }
-    else {
-        if (menu->FindItem(_L("Add instance")) == wxNOT_FOUND)
-        {
-            // Prepend items to the menu, if those aren't not there
-            menu->Prepend(items_set_number_of_copies[type]);
-            menu->Prepend(items_decrease[type]);
-            menu->Prepend(items_increase[type]);
-        }
-    }
-}
-#endif
-
 void MenuFactory::append_menu_item_clone(wxMenu* menu)
 {
     append_menu_item(menu, wxID_ANY, _L("Clone") , "",
         [this](wxCommandEvent&) {
             long res = wxGetNumberFromUser("",
                     _L("Enter copies number:"),
-                    _L("Input Clone Selected Number"),
+                    _L("Input Clone Number"),
                     1, 0, 100, m_parent);
                 wxString msg;
                 if (res == -1) {

@@ -9,7 +9,6 @@
 
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/PrintHost.hpp"
-#include "WipeTowerDialog.hpp"
 #include "Search.hpp"
 #include "OG_CustomCtrl.hpp"
 

@@ -10,8 +10,6 @@
 #include "slic3r/Utils/UndoRedo.hpp"
 #include "slic3r/GUI/NotificationManager.hpp"
 
-#include "slic3r/GUI/Gizmos/GLGizmoMove.hpp"
-#include "slic3r/GUI/Gizmos/GLGizmoRotate.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoScale.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoMoveRotate.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoFlatten.hpp"

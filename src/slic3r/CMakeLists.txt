@@ -224,8 +224,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/ExtruderSequenceDialog.hpp
     GUI/WipeTowerDialog.cpp
     GUI/WipeTowerDialog.hpp
-    GUI/RammingChart.cpp
-    GUI/RammingChart.hpp
     GUI/RemovableDriveManager.cpp
     GUI/RemovableDriveManager.hpp
     GUI/SendSystemInfoDialog.cpp

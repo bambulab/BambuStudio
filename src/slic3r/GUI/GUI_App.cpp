@@ -475,12 +475,7 @@ private:
             version = _L("Version") + " " + std::string(SLIC3R_VERSION);
 
             // credits infornation
-            credits =   title + " " +
-                        _L("is based on Slic3r by Alessandro Ranellucci and the RepRap community.") + "\n" +
-                        _L("Developed by Bambu Research.")+ "\n\n" +
-                        title + " " + _L("is licensed under the") + " " + _L("GNU Affero General Public License, version 3") + "\n\n" +
-                        _L("Contributions by Vojtech Bubnik, Enrico Turri, Oleksandra Iushchenko, Tamas Meszaros, Lukas Matena, Vojtech Kral, David Kocik and numerous others.") + "\n\n" +
-                        _L("Artwork model by M Boyer");
+            credits =   title;
 
             title_font = version_font = credits_font = init_font;
         }
@@ -618,23 +613,7 @@ bool static check_old_linux_datadir(const wxString& app_name) {
     int file_count = std::distance(fs::directory_iterator(data_dir), fs::directory_iterator());
 
     if (file_count <= 1) { // just cache dir with an instance lock
-        std::string old_path = wxStandardPaths::Get().GetUserDataDir().ToUTF8().data();
-
-        if (fs::is_directory(old_path)) {
-            wxString msg = from_u8((boost::format(_u8L("Starting with %1% 2.3, configuration "
-                "directory on Linux has changed (according to XDG Base Directory Specification) to \n%2%.\n\n"
-                "This directory did not exist yet (maybe you run the new version for the first time).\nHowever, "
-                "an old %1% configuration directory was detected in \n%3%.\n\n"
-                "Consider moving the contents of the old directory to the new location in order to access "
-                "your profiles, etc.\nNote that if you decide to downgrade %1% in future, it will use the old "
-                "location again.\n\n"
-                "What do you want to do now?")) % SLIC3R_APP_NAME % new_path % old_path).str());
-            wxString caption = from_u8((boost::format(_u8L("%s - BREAKING CHANGE")) % SLIC3R_APP_NAME).str());
-            RichMessageDialog dlg(nullptr, msg, caption, wxYES_NO);
-            dlg.SetYesNoLabels(_L("Quit, I will move my data now"), _L("Start the application"));
-            if (dlg.ShowModal() != wxID_NO)
-                return false;
-        }
+        // BBS
     } else {
         // If the new directory exists, be silent. The user likely already saw the message.
     }
@@ -2153,7 +2132,7 @@ void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files) const
 {
     input_files.Clear();
     wxFileDialog dialog(parent ? parent : GetTopWindow(),
-        _L("Choose one or more files (STL/STEP/OBJ/AMF/3MF/Bambu):"),
+        _L("Choose one or more files (STL/STEP/OBJ/AMF/3MF):"),
         from_u8(app_config->get_last_dir()), "",
         file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
 
