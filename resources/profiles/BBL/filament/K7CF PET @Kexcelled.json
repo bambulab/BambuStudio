@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "name": "K7CF PETG @Kexcelled",
+    "name": "K7CF PET @Kexcelled",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pet",

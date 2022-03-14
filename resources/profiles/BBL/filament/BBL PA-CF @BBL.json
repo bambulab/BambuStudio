@@ -5,6 +5,9 @@
     "instantiation": "true",
     "inherits": "fdm_filament_pa6+cf",
     "filament_vendor": "BBL",
+	"filament_max_volumetric_speed": [
+        "6.4"
+    ],
     "nozzle_temperature": [
         "280"
     ],

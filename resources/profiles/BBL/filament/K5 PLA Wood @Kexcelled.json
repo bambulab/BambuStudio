@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "name": "PolyTerra PLA~ @Polymaker",
+    "name": "K5 PLA Wood @Kexcelled",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",
-    "filament_vendor": "Polymaker",
+    "filament_vendor": "Kexcelled",
     "filament_cost": [
         "25.4"
     ],
@@ -12,18 +12,18 @@
         "1.24"
     ],
     "nozzle_temperature": [
-        "215"
+        "220"
     ],
     "bed_temperature": [
-        "35,0,60"
+        "40,0,60"
     ],
     "bed_temperature_initial_layer": [
-        "35,0,60"
+        "40,0,60"
     ],
     "nozzle_temperature_initial_layer": [
-        "210"
+        "220"
     ],
     "filament_max_volumetric_speed": [
-        "28.6"
+        "21.4"
     ]
 }

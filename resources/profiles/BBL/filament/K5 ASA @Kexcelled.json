@@ -6,6 +6,9 @@
     "inherits": "fdm_filament_abs",
     "filament_vendor": "Kexcelled",
     "compatible_printers_condition": "nozzle_diameter[0]!=0.8",
+    "nozzle_temperature_initial_layer": [
+        "260"
+    ],
     "nozzle_temperature": [
         "260"
     ]
