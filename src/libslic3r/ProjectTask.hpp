@@ -97,7 +97,6 @@ public:
     std::string     task_update_time;   /* time updated by cloud */
     std::string     task_start_time;    /* time created by machine, seconds from 1970-01-01 */
     std::string     task_duration;      /* duration created by machine, unit seconds */
-    std::string     task_report;        /* report of task */
     /* user options */
     std::string     task_bed_type;      /* bed_type of task */
     bool            task_bed_leveling;  /* bed leveling of task */

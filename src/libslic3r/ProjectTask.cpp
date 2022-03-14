@@ -70,7 +70,6 @@ namespace Slic3r {
             j["info"]["name"]           = task_name;
             j["info"]["plate_idx"]      = task_partplate_idx;
             j["info"]["printer"]        = task_printer_dev_id;
-            j["info"]["report_id"]      = task_report;
             j["info"]["bed_type"]       = task_bed_type;
             j["info"]["bed_leveling"]   = task_bed_leveling;
             j["info"]["flow_cali"]      = task_flow_cali;
@@ -97,11 +96,9 @@ namespace Slic3r {
                 if (j["info"].contains("printer") && !j["info"]["printer"].is_null())
                     task_printer_dev_id = j["info"]["printer"].get<std::string>();
 
-                if (j["info"].contains("report_id") && !j["info"]["report_id"].is_null())
-                    task_report = j["info"]["report_id"].get<std::string>();
-
                 if (j["info"].contains("bed_type") && !j["info"]["bed_type"].is_null())
                     task_bed_type = j["info"]["bed_type"].get<std::string>();
+
                 if (j["info"].contains("bed_leveling") && !j["info"]["bed_leveling"].is_null())
                     task_bed_leveling = j["info"]["bed_leveling"].get<bool>();
 
@@ -115,18 +112,11 @@ namespace Slic3r {
             }
         }
         catch (...) {
-            
+            BOOST_LOG_TRIVIAL(trace) << "parse_content_json failed! json=" << json_str;
             return -1;
         }
         BOOST_LOG_TRIVIAL(trace) << "parse_content_json failed! json=" << json_str;
         return -1;
-    }
-
-    bool BBLSubTask::is_report_done()
-    {
-        if (task_report.empty() || task_report.compare("0") == 0)
-            return false;
-        return true;
     }
 
     BBLSubTask::SubTaskStatus BBLSubTask::parse_status(std::string status)
