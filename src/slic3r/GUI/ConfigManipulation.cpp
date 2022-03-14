@@ -377,7 +377,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
                     "bridge_no_support", "support_line_width", "support_top_z_distance",
                      //BBS: add more support params to dependent of enable_support
                     "support_sharp_tails","remove_small_overhangs","support_type","support_on_build_plate_only",
-                    "support_object_xy_distance", "support_transition_line_width" })
+                    "support_object_xy_distance", "support_transition_line_width", "independent_support_layer_height"})
         toggle_field(el, have_support_material);
     toggle_field("support_threshold_angle", have_support_material && (support_type == stNormalAuto || support_type == stTreeAuto || support_type==stHybridAuto));
     toggle_field("support_bottom_z_distance", have_support_material && ! have_support_soluble);

@@ -2081,11 +2081,22 @@ void TabPrintModel::reload_config()
     auto & config = m_object_configs.begin()->second;
     diff_config.apply(config->get());
     auto keys = diff_config.diff(*m_config);
+    bool super_changed = false;
     for (auto & k : keys) {
-        if (m_options_list[k] & osInitValue)
-            config->erase(k);
-        else
-            config->apply_only(*m_config, {k});
+        if (has_key(k)) {
+            if (m_options_list[k] & osInitValue)
+                config->erase(k);
+            else
+                config->apply_only(*m_config, {k});
+        } else {
+            m_parent_tab->m_config->apply_only(*m_config, {k});
+            super_changed = true;
+        }
+    }
+    if (super_changed) {
+        m_parent_tab->update_dirty();
+        m_parent_tab->reload_config();
+        m_parent_tab->update();
     }
 }
 
