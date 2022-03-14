@@ -41,6 +41,7 @@ src/slic3r/GUI/Jobs/PlaterJob.cpp
 src/slic3r/GUI/Jobs/RotoptimizeJob.cpp
 src/slic3r/GUI/KBShortcutsDialog.cpp
 src/slic3r/GUI/MainFrame.cpp
+src/slic3r/GUI/MediaPlayCtrl.cpp
 src/slic3r/GUI/Mouse3DController.cpp
 src/slic3r/GUI/MsgDialog.cpp
 src/slic3r/GUI/NotificationManager.hpp

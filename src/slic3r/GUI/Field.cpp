@@ -232,7 +232,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
             }
 
 			wxString label = m_opt.full_label.empty() ? _(m_opt.label) : _(m_opt.full_label);
-            show_error(m_parent, from_u8((boost::format(_utf8(L("%s doesn't support percentage"))) % label).str()));
+            show_error(m_parent, from_u8((boost::format(_utf8(L("%s can't be percentage"))) % into_u8(label)).str()));
 			set_value(double_to_string(m_opt.min), true);
 			m_value = double(m_opt.min);
 			break;
@@ -260,7 +260,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                     m_value.clear();
                     break;
                 }
-                show_error(m_parent, _(L("Invalid numeric input.")));
+                show_error(m_parent, _(L("Invalid numeric.")));
                 set_value(double_to_string(val), true);
             }
             if (m_opt.min > val || val > m_opt.max)
@@ -271,8 +271,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                 }
                 if (m_opt_id == "extrusion_multiplier") {
                     if (m_value.empty() || boost::any_cast<double>(m_value) != val) {
-                        wxString msg_text = format_wxstr(_L("Input value is out of range\n"
-                            "Are you sure that %s is a correct value and that you want to continue?"), str);
+                        wxString msg_text = format_wxstr(_L("Value is out of range, continue?"), str);
 //                        wxMessageDialog dialog(m_parent, msg_text, _L("Parameter validation") + ": " + m_opt_id, wxICON_WARNING | wxYES | wxNO);
                         WarningDialog dialog(m_parent, msg_text, _L("Parameter validation") + ": " + m_opt_id, wxYES | wxNO);
                         if (dialog.ShowModal() == wxID_NO) {
@@ -287,7 +286,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                     }
                 }
                 else {
-                    show_error(m_parent, _L("Input value is out of range"));
+                    show_error(m_parent, _L("Value is out of range."));
                     if (m_opt.min > val) val = m_opt.min;
                     if (val > m_opt.max) val = m_opt.max;
                     set_value(double_to_string(val), true);
@@ -302,7 +301,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
         if (m_opt.type == coFloatOrPercent && m_opt.opt_key == "initial_layer_print_height" && !str.IsEmpty() && str.Last() == '%') {
             // Workaroud to avoid of using of the % for first layer height
             wxString label = m_opt.full_label.empty() ? _(m_opt.label) : _(m_opt.full_label);
-            show_error(m_parent, from_u8((boost::format(_utf8(L("%s doesn't support percentage"))) % label).str()));
+            show_error(m_parent, from_u8((boost::format(_utf8(L("%s can't be percentage"))) % into_u8(label)).str()));
             const wxString stVal = double_to_string(0.01, 2);
             set_value(stVal, true);
             m_value = into_u8(stVal);;
@@ -328,7 +327,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                     m_value.clear();
                     break;
                 }
-                show_error(m_parent, _(L("Invalid numeric input.")));
+                show_error(m_parent, _L("Invalid numeric."));
                 set_value(double_to_string(val), true);
             }
             else if (((m_opt.sidetext.rfind("mm/s") != std::string::npos && val > m_opt.max) ||
@@ -344,9 +343,9 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
 
                 const std::string sidetext = m_opt.sidetext.rfind("mm/s") != std::string::npos ? "mm/s" : "mm";
                 const wxString stVal = double_to_string(val, 2);
-                const wxString msg_text = from_u8((boost::format(_utf8(L("Do you mean %s%% instead of %s %s?\n"
-                    "Select YES if you want to change this value to %s%%, \n"
-                    "or NO if you are sure that %s %s is a correct value."))) % stVal % stVal % sidetext % stVal % stVal % sidetext).str());
+                const wxString msg_text = from_u8((boost::format(_utf8(L("Is it %s%% or %s %s?\n"
+                    "YES for %s%%, \n"
+                    "NO for %s %s."))) % stVal % stVal % sidetext % stVal % stVal % sidetext).str());
                 WarningDialog dialog(m_parent, msg_text, _L("Parameter validation") + ": " + m_opt_id, wxYES | wxNO);
                 if ((!infill_anchors || val > 100) && dialog.ShowModal() == wxID_YES) {
                     set_value(from_u8((boost::format("%s%%") % stVal).str()), false/*true*/);
@@ -394,14 +393,14 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                 if (!m_value.empty())
                     text_value = get_thumbnails_string(boost::any_cast<std::vector<Vec2d>>(m_value));
                 set_value(text_value, true);
-                show_error(m_parent, _L("Input value is out of range"));
+                show_error(m_parent, _L("Value is out of range."));
             }
             else if (invalid_val) {
                 wxString text_value;
                 if (!m_value.empty())
                     text_value = get_thumbnails_string(boost::any_cast<std::vector<Vec2d>>(m_value));
                 set_value(text_value, true);
-                show_error(m_parent, format_wxstr(_L("Invalid input format. Expected vector of dimensions in the following format: \"%1%\""),"XxY, XxY, ..." ));
+                show_error(m_parent, format_wxstr(_L("Invalid format. Expected vector format: \"%1%\""),"XxY, XxY, ..." ));
             }
         }
 
@@ -1617,7 +1616,7 @@ boost::any& PointCtrl::get_value()
 		!y_textctrl->GetValue().ToDouble(&y))
 	{
 		set_value(m_value.empty() ? Vec2d(0.0, 0.0) : m_value, true);
-        show_error(m_parent, _L("Invalid numeric input."));
+        show_error(m_parent, _L("Invalid numeric."));
 	}
 	else
 	if (m_opt.min > x || x > m_opt.max ||
@@ -1629,7 +1628,7 @@ boost::any& PointCtrl::get_value()
 		if (y > m_opt.max) y = m_opt.max;
 		set_value(Vec2d(x, y), true);
 
-		show_error(m_parent, _L("Input value is out of range"));
+		show_error(m_parent, _L("Value is out of range."));
 	}
 
 	return m_value = Vec2d(x, y);

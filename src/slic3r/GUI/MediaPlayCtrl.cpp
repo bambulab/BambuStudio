@@ -4,6 +4,7 @@
 #include "Widgets/Label.hpp"
 #include "GUI_App.hpp"
 #include "libslic3r/AppConfig.hpp"
+#include "I18N.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -65,7 +66,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
 void MediaPlayCtrl::Play()
 {
     if (m_machine.empty()) {
-        SetStatus(L"Initialize failed (No Device)!");
+        SetStatus(_L("Initialize failed (No Device)!"));
         return;
     }
     if (m_last_state != MEDIASTATE_IDLE) {
@@ -73,7 +74,7 @@ void MediaPlayCtrl::Play()
     }
     m_last_state = MEDIASTATE_INITIALIZING;
     m_button_play->SetIcon("media_stop");
-    SetStatus(L"Initializing...");
+    SetStatus(_L("Initializing..."));
     wxGetApp()
         .getAccountManager()
         ->get_camera_url(m_machine, [this](std::string url) {
@@ -83,10 +84,10 @@ void MediaPlayCtrl::Play()
             if (m_last_state == MEDIASTATE_INITIALIZING) {
                 if (url.empty()) {
                     Stop();
-                    SetStatus(L"Initialize failed [%d]!");
+                    SetStatus(_L("Initialize failed [%d]!"));
                 } else {
                     m_last_state = MEDIASTATE_LOADING;
-                    SetStatus(L"Loading...");
+                    SetStatus(_L("Loading..."));
                     if (wxGetApp().app_config->get("dump_video") == "true") {
                         BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl dump video to " << boost::filesystem::current_path();
                         m_url = m_url + "&dump=video.h264";
@@ -110,7 +111,7 @@ void MediaPlayCtrl::Stop()
         m_cond.notify_all();
     }
     m_last_state = MEDIASTATE_IDLE;
-    SetStatus(L"Stopped.");
+    SetStatus(_L("Stopped."));
     ++m_failed_retry;
     //m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(5 * m_failed_retry);
 }
@@ -184,13 +185,13 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
         wxSize size = m_media_ctrl->GetBestSize();
         if (size.GetWidth() > 1000) {
             m_media_ctrl->Play();
-            SetStatus(L"Playing...");
+            SetStatus(_L("Playing..."));
             m_failed_retry = 0;
             m_last_state = m_media_ctrl->GetState();
         }
         else {
             Stop();
-            SetStatus(L"Load failed [%d]!");
+            SetStatus(_L("Load failed [%d]!"));
         }
     }
 }

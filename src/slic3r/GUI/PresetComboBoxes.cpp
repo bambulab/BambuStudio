@@ -355,7 +355,7 @@ bool PresetComboBox::del_physical_printer(const wxString& note_string/* = wxEmpt
     wxString msg;
     if (!note_string.IsEmpty())
         msg += note_string + "\n";
-    msg += format_wxstr(_L("Are you sure you want to delete \"%1%\" printer?"), printer_name);
+    msg += format_wxstr(_L("Are you sure to delete \"%1%\" printer?"), printer_name);
 
     //if (wxMessageDialog(this, msg, _L("Delete Physical Printer"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal() != wxID_YES)
     if (MessageDialog(this, msg, _L("Delete Physical Printer"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal() != wxID_YES)
@@ -625,7 +625,7 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
     if (m_type == Preset::TYPE_FILAMENT) {
         int em = wxGetApp().em_unit();
         clr_picker = new wxButton(parent, wxID_ANY, "", wxDefaultPosition, wxSize(20 * em / 10, 20 * em / 10), wxBU_EXACTFIT | wxBORDER_NONE);
-        clr_picker->SetToolTip(_L("Click to  pick filament color"));
+        clr_picker->SetToolTip(_L("Click to pick filament color"));
         clr_picker->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
             m_clrData.SetColour(clr_picker->GetBackgroundColour());
             m_clrData.SetChooseFull(true);
