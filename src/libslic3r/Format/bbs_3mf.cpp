@@ -5533,7 +5533,7 @@ public:
             m_tasks.clear();
             m_temp_model.set_key_store(nullptr);
         }
-        m_tasks.push_back({ RemoveBackup, removeAll, model.get_backup_path() });
+        m_tasks.push_back({ RemoveBackup, model.id().id, model.get_backup_path(), nullptr, removeAll });
         ++m_task_seq;
         m_other_changes = false;
         m_other_changes_backup = false;
@@ -5581,6 +5581,7 @@ private:
         union {
         size_t delay = 0; // delay sequence, only last task is delayed
         size_t sequence;
+        bool removeAll;
         };
         friend bool operator==(Task const& l, Task const& r) {
             return l.type == r.type && l.id == r.id;
@@ -5674,7 +5675,7 @@ private:
                 m_temp_model.delete_object(t.object);
                 break;
             case RemoveBackup:
-                if (t.id) { // remove all
+                if (t.removeAll) {
                     try {
                         boost::filesystem::remove(t.path + "/lock.txt");
                         boost::filesystem::remove_all(t.path);
@@ -5729,7 +5730,7 @@ public:
             }
             Task t = m_tasks.front();
             if (t.type == Exit) break;
-            if (t.delay) {
+            if (t.object && t.delay) {
                 if (!delay_task(t, lock))
                     continue;
             }
