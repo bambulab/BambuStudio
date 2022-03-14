@@ -385,19 +385,6 @@ public:
         CanvasAssembleView = 2,
     };
 
-    enum EPrintSelectType
-    {
-        ePrintAll = 0,
-        ePrintPlate = 1,
-        eExportGcode = 2,
-    };
-
-    enum ESliceSelectType
-    {
-        eSliceAll = 0,
-        eSlicePlate = 1,
-    };
-
 private:
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
@@ -412,14 +399,10 @@ private:
     GLGizmosManager m_gizmos;
     //BBS: GUI refactor: GLToolbar
     mutable GLToolbar m_main_toolbar;
-    GLToolbar m_undoredo_toolbar;
-    mutable GLToolbar m_print_flow_toolbar;
-    mutable GLToolbar m_print_select_toolbar;
     mutable IMToolbar m_sel_plate_toolbar;
     mutable GLToolbar m_assemble_view_toolbar;
     mutable IMReturnToolbar m_return_toolbar;
-    mutable int m_print_select{ ePrintAll };
-    mutable int m_slice_select{ eSliceAll };
+
     //BBS: add canvas type for assemble view usage
     ECanvasType m_canvas_type;
     std::array<ClippingPlane, 2> m_clipping_planes;
@@ -662,8 +645,6 @@ public:
     BoundingBoxf3 scene_bounding_box() const;
     BoundingBoxf3 plate_scene_bounding_box(int plate_idx) const;
 
-    bool is_search_pressed() const;
-
     bool is_reload_delayed() const;
 
     void enable_legend_texture(bool enable);
@@ -673,11 +654,8 @@ public:
     void enable_selection(bool enable);
     void enable_main_toolbar(bool enable);
     //BBS: GUI refactor: GLToolbar
-    void enable_print_flow_toolbar(bool enable);
-    void enable_print_select_toolbar(bool enable);
     void enable_select_plate_toolbar(bool enable);
     void enable_assemble_view_toolbar(bool enable);
-    void enable_undoredo_toolbar(bool enable);
     void enable_return_toolbar(bool enable);
     void enable_dynamic_background(bool enable);
     void enable_labels(bool enable) { m_labels.enable(enable); }
@@ -842,7 +820,6 @@ public:
     int get_main_toolbar_item_id(const std::string& name) const { return m_main_toolbar.get_item_id(name); }
     void force_main_toolbar_left_action(int item_id) { m_main_toolbar.force_left_action(item_id, *this); }
     void force_main_toolbar_right_action(int item_id) { m_main_toolbar.force_right_action(item_id, *this); }
-    void update_tooltip_for_settings_item_in_main_toolbar();
 
     bool has_toolpaths_to_export() const;
     void export_toolpaths_to_obj(const char* filename) const;
@@ -913,14 +890,10 @@ private:
 
     bool _init_toolbars();
     bool _init_main_toolbar();
-    //BBS: GUI refactor: GLToolbar
-    bool _init_print_flow_toolbar();
-    bool _init_print_select_toolbar();
     bool _init_select_plate_toolbar();
     bool _update_imgui_select_plate_toolbar();
     bool _init_assemble_view_toolbar();
     bool _init_return_toolbar();
-    bool _init_undoredo_toolbar();
     // BBS
     //bool _init_view_toolbar();
     bool _init_collapse_toolbar();
@@ -962,12 +935,9 @@ private:
     void _render_current_gizmo() const;
     void _render_gizmos_overlay();
     void _render_main_toolbar();
-    //BBS: GUI refactor: GLToolbar
-    void _render_print_toolbar() const;
     void _render_imgui_select_plate_toolbar() const;
     void _render_assemble_view_toolbar() const;
     void _render_return_toolbar() const;
-    void _render_undoredo_toolbar();
     void _render_collapse_toolbar() const;
     // BBS
     //void _render_view_toolbar() const;
@@ -979,8 +949,6 @@ private:
 #endif // ENABLE_SHOW_CAMERA_TARGET
     void _render_sla_slices();
     void _render_selection_sidebar_hints() const;
-    bool _render_undo_redo_stack(const bool is_undo, float pos_x);
-    bool _render_search_list(float pos_x);
     //BBS: GUI refactor: adjust main toolbar position
     bool _render_orient_menu(float left, float right, float bottom, float top);
     bool _render_arrange_menu(float left, float right, float bottom, float top);
@@ -991,10 +959,6 @@ private:
     void _render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, const GLVolumeCollection& volumes, Camera::EType camera_type);
     // render thumbnail using the default framebuffer
     void _render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, const GLVolumeCollection& volumes, Camera::EType camera_type);
-
-    //BBS: GUI refactor: GLToolbar
-    bool _render_slice_select(float left, float right, float bottom, float top, float text_scale_ratio, GLToolbar& print_toolbar);
-    bool _render_print_select(float left, float right, float bottom, float top, float text_scale_ratio, GLToolbar& print_toolbar);
 
     void _update_volumes_hover_state();
 
@@ -1035,9 +999,6 @@ private:
     // updates the selection from the content of m_hover_volume_idxs
     void _update_selection_from_hover();
 
-    bool _deactivate_undo_redo_toolbar_items();
-    bool _deactivate_search_toolbar_item();
-    bool _activate_search_toolbar_item();
     bool _deactivate_collapse_toolbar_items();
     bool _deactivate_arrange_menu();
     //BBS: add deactivate_orient_menu

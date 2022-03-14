@@ -350,12 +350,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         }
     #endif
 
-        //BBS: remove unused print host queue logic
-        /*if (event.CanVeto() && !wxGetApp().check_print_host_queue()) {
-            event.Veto();
-            return;
-        }*/
-
         MarkdownTip::ExitTip();
 
         m_plater->reset();
@@ -2032,62 +2026,6 @@ void MainFrame::init_menubar_as_editor()
     }
 
     // BBS
-#if 0
-    // Window menu
-    auto windowMenu = new wxMenu();
-    {
-        if (m_plater) {
-            append_menu_item(windowMenu, wxID_HIGHEST + 1, _L("&Plater Tab") + "\tCtrl+1", _L("Show the plater"),
-                [this](wxCommandEvent&) { select_tab(size_t(0)); }, "plater", nullptr,
-                []() {return true; }, this);
-            windowMenu->AppendSeparator();
-        }
-        append_menu_item(windowMenu, wxID_HIGHEST + 2, _L("P&rint Settings Tab") + "\tCtrl+2", _L("Show the print settings"),
-            [this/*, tab_offset*/](wxCommandEvent&) { select_tab(1); }, "cog", nullptr,
-            []() {return true; }, this);
-        wxMenuItem* item_material_tab = append_menu_item(windowMenu, wxID_HIGHEST + 3, _L("&Filament Settings Tab") + "\tCtrl+3", _L("Show the filament settings"),
-            [this/*, tab_offset*/](wxCommandEvent&) { select_tab(2); }, "spool", nullptr,
-            []() {return true; }, this);
-        m_changeable_menu_items.push_back(item_material_tab);
-        wxMenuItem* item_printer_tab = append_menu_item(windowMenu, wxID_HIGHEST + 4, _L("Print&er Settings Tab") + "\tCtrl+4", _L("Show the printer settings"),
-            [this/*, tab_offset*/](wxCommandEvent&) { select_tab(3); }, "printer", nullptr,
-            []() {return true; }, this);
-        m_changeable_menu_items.push_back(item_printer_tab);
-        if (m_plater) {
-            windowMenu->AppendSeparator();
-            append_menu_item(windowMenu, wxID_HIGHEST + 5, _L("3&D") + "\tCtrl+5", _L("Show the 3D editing view"),
-                [this](wxCommandEvent&) { m_plater->select_view_3D("3D"); }, "editor_menu", nullptr,
-                [this](){return can_change_view(); }, this);
-            append_menu_item(windowMenu, wxID_HIGHEST + 6, _L("Pre&view") + "\tCtrl+6", _L("Show the 3D slices preview"),
-                [this](wxCommandEvent&) { m_plater->select_view_3D("Preview"); }, "preview_menu", nullptr,
-                [this](){return can_change_view(); }, this);
-        }
-
-        windowMenu->AppendSeparator();
-        append_menu_item(windowMenu, wxID_ANY, _L("Shape Gallery"), _L("Open the dialog to modify shape gallery"),
-            [this](wxCommandEvent&) { 
-                GalleryDialog dlg(this, true);
-                if (dlg.ShowModal() == wxID_OK) {
-                    wxArrayString input_files;
-                    dlg.get_input_files(input_files);
-                    if (!input_files.IsEmpty())
-                        m_plater->sidebar().obj_list()->load_shape_object_from_gallery(input_files);
-                }
-            }, "shape_gallery", nullptr, []() {return true; }, this);
-        
-        windowMenu->AppendSeparator();
-        append_menu_item(windowMenu, wxID_ANY, _L("Print &Host Upload Queue") + "\tCtrl+J", _L("Display the Print Host Upload Queue window"),
-            [this](wxCommandEvent&) { m_printhost_queue_dlg->Show(); }, "upload_queue", nullptr, []() {return true; }, this);
-        
-        windowMenu->AppendSeparator();
-        append_menu_item(windowMenu, wxID_ANY, _L("Open New Instance") + "\tCtrl+Shift+I", _L("Open a new BambuStudio instance"),
-            [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr, [this]() {return m_plater != nullptr && wxGetApp().app_config->get("single_instance") != "1"; }, this);
-
-        windowMenu->AppendSeparator();
-        append_menu_item(windowMenu, wxID_ANY, _L("Compare Presets")/* + "\tCtrl+F"*/, _L("Compare presets"), 
-            [this](wxCommandEvent&) { diff_dialog.show();}, "compare", nullptr, []() {return true; }, this);
-    }
-#endif
 
     // View menu
     wxMenu* viewMenu = nullptr;

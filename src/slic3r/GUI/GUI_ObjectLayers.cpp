@@ -26,7 +26,7 @@ ObjectLayers::ObjectLayers(wxWindow* parent) :
     m_grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
 
     // Legend for object layers
-    for (const std::string col : { L("Start at height"), L("Stop at height"), L("Layer height") }) {
+    for (const std::string col : { L("From height"), L("To height"), L("Layer height") }) {
         auto temp = new wxStaticText(m_parent, wxID_ANY, _(col), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_MIDDLE);
         temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
         temp->SetFont(wxGetApp().bold_font());
@@ -157,11 +157,11 @@ void ObjectLayers::create_layers_list()
     for (const auto &layer : m_object->layer_config_ranges) {
         const t_layer_height_range& range = layer.first;
         auto del_btn = new PlusMinusButton(m_parent, m_bmp_delete, range);
-        del_btn->SetToolTip(_L("Remove layer range"));
+        del_btn->SetToolTip(_L("Remove height range"));
 
         auto add_btn = new PlusMinusButton(m_parent, m_bmp_add, range);
         wxString tooltip = wxGetApp().obj_list()->can_add_new_range_after_current(range);
-        add_btn->SetToolTip(tooltip.IsEmpty() ? _L("Add layer range") : tooltip);
+        add_btn->SetToolTip(tooltip.IsEmpty() ? _L("Add height range") : tooltip);
         add_btn->Enable(tooltip.IsEmpty());
 
         auto sizer = create_layer(range, del_btn, add_btn);

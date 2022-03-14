@@ -105,7 +105,8 @@ void GizmoObjectManipulation::update_settings_value(const Selection& selection)
 		}
 
         m_new_enabled  = true;
-        m_new_title_string = L("Instance Operations");
+        // BBS: change "Instance Operations" to "Object Operations"
+        m_new_title_string = L("Object Operations");
     }
     else if (selection.is_single_full_object() && obj_list->is_selected(itObject)) {
         const BoundingBoxf3& box = selection.get_bounding_box();
@@ -452,20 +453,8 @@ void GizmoObjectManipulation::set_uniform_scaling(const bool new_value)
         // Is the angle close to a multiple of 90 degrees?
 		if (! Geometry::is_rotation_ninety_degrees(volume->get_instance_rotation())) {
             // Cannot apply scaling in the world coordinate system.
-			wxMessageDialog dlg(GUI::wxGetApp().mainframe,
-                _L("The currently manipulated object is tilted (rotation angles are not multiples of 90°).\n"
-                    "Non-uniform scaling of tilted objects is only possible in the World coordinate system,\n"
-                    "once the rotation is embedded into the object coordinates.") + "\n" +
-                _L("This operation is irreversible.\n"
-                    "Do you want to proceed?"),
-                SLIC3R_APP_NAME,
-				wxYES_NO | wxCANCEL | wxCANCEL_DEFAULT | wxICON_QUESTION);
-            if (dlg.ShowModal() != wxID_YES) {
-                // Enforce uniform scaling.
-                //m_lock_bnt->SetLock(true);
-                m_uniform_scale = true;
-                return;
-            }
+            // BBS: remove tilt prompt dialog
+
             // Bake the rotation into the meshes of the object.
             wxGetApp().model().objects[volume->composite_id.object_id]->bake_xy_rotation_into_meshes(volume->composite_id.instance_id);
             // Update the 3D scene, selections etc.

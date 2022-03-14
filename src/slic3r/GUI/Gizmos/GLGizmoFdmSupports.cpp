@@ -76,7 +76,6 @@ bool GLGizmoFdmSupports::on_init()
     m_shortcut_key = WXK_CONTROL_L;
 
     m_desc["clipping_of_view"] = _L("Clipping of view") + ": ";
-    m_desc["reset_direction"]  = _L("Reset direction");
     m_desc["cursor_size"]      = _L("Brush size") + ": ";
     m_desc["cursor_type"]      = _L("Brush shape") + ": ";
     m_desc["enforce_caption"]  = _L("Left mouse button") + ": ";
@@ -158,8 +157,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
     //BBS: add overhang slider
     //const float overhang_slider_left = m_imgui->calc_text_size(m_desc.at("overhang_threshold")).x + m_imgui->scaled(1.5f);
-    const float clipping_slider_left           = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x,
-                                                          m_imgui->calc_text_size(m_desc.at("reset_direction")).x) + m_imgui->scaled(1.5f);
+    const float clipping_slider_left           = m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x + m_imgui->scaled(1.5f);
     const float cursor_slider_left             = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.f);
     const float smart_fill_slider_left         = m_imgui->calc_text_size(m_desc.at("smart_fill_angle")).x + m_imgui->scaled(1.f);
     const float autoset_slider_label_max_width = m_imgui->scaled(7.5f);

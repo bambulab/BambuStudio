@@ -19,7 +19,7 @@
 #include "slic3r/GUI/Gizmos/GLGizmoAdvancedCut.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoFaceDetector.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoHollow.hpp"
-#include "slic3r/GUI/Gizmos/GLGizmoSeam.hpp"
+//#include "slic3r/GUI/Gizmos/GLGizmoSeam.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSimplify.hpp"
 
@@ -135,17 +135,18 @@ bool GLGizmosManager::init()
 
     // Order of gizmos in the vector must match order in EType!
     //BBS: GUI refactor: add obj manipulation
-    m_gizmos.emplace_back(new GLGizmoMoveRotate3D(m_parent, "toolbar_move.svg", 0, &m_object_manipulation));
-    m_gizmos.emplace_back(new GLGizmoScale3D(m_parent, "toolbar_scale.svg", 1, &m_object_manipulation));
-    m_gizmos.emplace_back(new GLGizmoFlatten(m_parent, "toolbar_flatten.svg", 2));
-    m_gizmos.emplace_back(new GLGizmoAdvancedCut(m_parent, "toolbar_cut.svg", 3));
-    m_gizmos.emplace_back(new GLGizmoHollow(m_parent, "hollow.svg", 4));
-    m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", 5));
-    m_gizmos.emplace_back(new GLGizmoFdmSupports(m_parent, "toolbar_support.svg", 6));
-    m_gizmos.emplace_back(new GLGizmoSeam(m_parent, "toolbar_seam.svg", 7));
-    m_gizmos.emplace_back(new GLGizmoMmuSegmentation(m_parent, "mmu_segmentation.svg", 8));
-    m_gizmos.emplace_back(new GLGizmoSimplify(m_parent, "toolbar_cut.svg", 9));
-    m_gizmos.emplace_back(new GLGizmoFaceDetector(m_parent, "face recognition.svg", 10));
+    unsigned int sprite_id = 0;
+    m_gizmos.emplace_back(new GLGizmoMoveRotate3D(m_parent, "toolbar_move.svg", sprite_id++, &m_object_manipulation));
+    m_gizmos.emplace_back(new GLGizmoScale3D(m_parent, "toolbar_scale.svg", sprite_id++, &m_object_manipulation));
+    m_gizmos.emplace_back(new GLGizmoFlatten(m_parent, "toolbar_flatten.svg", sprite_id++));
+    m_gizmos.emplace_back(new GLGizmoAdvancedCut(m_parent, "toolbar_cut.svg", sprite_id++));
+    m_gizmos.emplace_back(new GLGizmoHollow(m_parent, "hollow.svg", sprite_id++));
+    m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", sprite_id++));
+    m_gizmos.emplace_back(new GLGizmoFdmSupports(m_parent, "toolbar_support.svg", sprite_id++));
+    //m_gizmos.emplace_back(new GLGizmoSeam(m_parent, "toolbar_seam.svg", sprite_id++));
+    m_gizmos.emplace_back(new GLGizmoMmuSegmentation(m_parent, "mmu_segmentation.svg", sprite_id++));
+    m_gizmos.emplace_back(new GLGizmoSimplify(m_parent, "toolbar_cut.svg", sprite_id++));
+    //m_gizmos.emplace_back(new GLGizmoFaceDetector(m_parent, "face recognition.svg", sprite_id++));
 
     m_common_gizmos_data.reset(new CommonGizmosDataPool(&m_parent));
 
@@ -235,8 +236,7 @@ bool GLGizmosManager::check_gizmos_closed_except(EType type) const
         wxGetApp().plater()->get_notification_manager()->push_notification(
                     NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
                     NotificationManager::NotificationLevel::PrintInfoNotificationLevel,
-                    _u8L("ERROR: Please close all manipulators available from "
-                         "the left toolbar first"));
+                    _u8L("Error: Please close all toolbar menus first"));
         return false;
     }
     return true;
@@ -482,7 +482,7 @@ void GLGizmosManager::set_painter_gizmo_data()
         return;
 
     dynamic_cast<GLGizmoFdmSupports*>(m_gizmos[FdmSupports].get())->set_painter_gizmo_data(m_parent.get_selection());
-    dynamic_cast<GLGizmoSeam*>(m_gizmos[Seam].get())->set_painter_gizmo_data(m_parent.get_selection());
+    //dynamic_cast<GLGizmoSeam*>(m_gizmos[Seam].get())->set_painter_gizmo_data(m_parent.get_selection());
     dynamic_cast<GLGizmoMmuSegmentation*>(m_gizmos[MmuSegmentation].get())->set_painter_gizmo_data(m_parent.get_selection());
 }
 
@@ -498,8 +498,8 @@ bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_p
         return dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else if (m_current == FdmSupports)
         return dynamic_cast<GLGizmoFdmSupports*>(m_gizmos[FdmSupports].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
-    else if (m_current == Seam)
-        return dynamic_cast<GLGizmoSeam*>(m_gizmos[Seam].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
+    //else if (m_current == Seam)
+    //    return dynamic_cast<GLGizmoSeam*>(m_gizmos[Seam].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else if (m_current == MmuSegmentation)
         return dynamic_cast<GLGizmoMmuSegmentation*>(m_gizmos[MmuSegmentation].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else
@@ -614,8 +614,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         }
         else if (is_dragging()) {
             switch (m_current) {
-            case Scale:  { m_parent.do_scale(L("Gizmo-Scale")); break; }
-            case MoveRotate: { m_parent.do_rotate(L("Gizmo-MoveRotate")); break; }
+            case Scale:  { m_parent.do_scale(L("Tool-Scale")); break; }
+            case MoveRotate: { m_parent.do_rotate(L("Tool-MoveRotate")); break; }
             default: break;
             }
 
@@ -726,7 +726,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
 
                 if (m_current == Flatten) {
                     // Rotate the object so the normal points downward:
-                    m_parent.do_flatten(get_flattening_normal(), L("Gizmo-Place on Face"));
+                    m_parent.do_flatten(get_flattening_normal(), L("Tool-Lay on Face"));
                     // BBS
                     //wxGetApp().obj_manipul()->set_dirty();
                 }
@@ -1397,13 +1397,7 @@ bool GLGizmosManager::is_in_editing_mode(bool error_notification) const
     if (m_current != SlaSupports || ! dynamic_cast<GLGizmoSlaSupports*>(get_current())->is_in_editing_mode())
         return false;
 
-    if (error_notification)
-        wxGetApp().plater()->get_notification_manager()->push_notification(
-                    NotificationType::QuitSLAManualMode,
-                    NotificationManager::NotificationLevel::ErrorNotificationLevel,
-                    _u8L("You are currently editing SLA support points. Please, "
-                         "apply or discard your changes first."));
-
+    // BBS: remove SLA editing notification
     return true;
 }
 

@@ -31,8 +31,8 @@ static inline void show_notification_extruders_limit_exceeded()
         .plater()
         ->get_notification_manager()
         ->push_notification(NotificationType::MmSegmentationExceededExtrudersLimit, NotificationManager::NotificationLevel::PrintInfoNotificationLevel,
-                            GUI::format(_L("Your printer has more extruders than the multi-material painting gizmo supports. For this reason, only the "
-                                           "first %1% extruders will be able to be used for painting."), GLGizmoMmuSegmentation::EXTRUDERS_LIMIT));
+                            GUI::format(_L("Filament count exceeds the maximum number that painting tool supports. only the "
+                                           "first %1% filaments will be available in painting tool."), GLGizmoMmuSegmentation::EXTRUDERS_LIMIT));
 }
 
 void GLGizmoMmuSegmentation::on_opening()
@@ -49,7 +49,7 @@ void GLGizmoMmuSegmentation::on_shutdown()
 
 std::string GLGizmoMmuSegmentation::on_get_name() const
 {
-    return _u8L("Multimaterial painting");
+    return _u8L("Color Painting");
 }
 
 bool GLGizmoMmuSegmentation::on_is_selectable() const
@@ -118,14 +118,8 @@ bool GLGizmoMmuSegmentation::on_init()
     m_shortcut_key = WXK_CONTROL_N;
 
     m_desc["clipping_of_view"]     = _L("Clipping of view") + ": ";
-    m_desc["cursor_size"]          = _L("Brush size") + ": ";
-    m_desc["cursor_type"]          = _L("Brush shape");
-    m_desc["first_color_caption"]  = _L("Left mouse button") + ": ";
-    m_desc["first_color"]          = _L("First color");
-    m_desc["second_color_caption"] = _L("Right mouse button") + ": ";
-    m_desc["second_color"]         = _L("Second color");
-    m_desc["remove_caption"]       = _L("Shift + Left mouse button") + ": ";
-    m_desc["remove"]               = _L("Remove painted color");
+    m_desc["cursor_size"]          = _L("Pen size") + ": ";
+    m_desc["cursor_type"]          = _L("Pen shape");
 
     // BBS
     m_desc["paint_caption"]        = _L("Left mouse button") + ": ";
@@ -812,7 +806,7 @@ wxString GLGizmoMmuSegmentation::handle_snapshot_action_name(bool shift_down, GL
         action_name = _L("Remove painted color");
     else {
         size_t extruder_id = (button_down == Button::Left ? m_first_selected_extruder_idx : m_second_selected_extruder_idx) + 1;
-        action_name        = GUI::format(_L("Painted using: Extruder %1%"), extruder_id);
+        action_name        = GUI::format(_L("Painted using: Filament %1%"), extruder_id);
     }
     return action_name;
 }

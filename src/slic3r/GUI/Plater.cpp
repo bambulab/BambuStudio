@@ -516,7 +516,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent) :
     line.append_option(option);
 
     auto wiping_dialog_btn = [this](wxWindow* parent) {
-        m_wiping_dialog_button = new wxButton(parent, wxID_ANY, _L("Purging volumes") + dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+        m_wiping_dialog_button = new wxButton(parent, wxID_ANY, _L("Filament change flushing") + dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
         m_wiping_dialog_button->SetFont(wxGetApp().normal_font());
         wxGetApp().UpdateDarkUI(m_wiping_dialog_button, true);
 
@@ -1860,7 +1860,6 @@ struct Plater::priv
     void reset_all_gizmos();
     void apply_free_camera_correction(bool apply = true);
     void update_ui_from_settings();
-    void update_main_toolbar_tooltips();
     // BBS
     //std::shared_ptr<ProgressStatusBar> statusbar();
     std::shared_ptr<BBLStatusBar> statusbar();
@@ -2707,13 +2706,6 @@ void Plater::priv::update_ui_from_settings()
     preview->get_canvas3d()->update_ui_from_settings();
 
     sidebar->update_ui_from_settings();
-}
-
-// Called after the print technology was changed.
-// Update the tooltips for "Switch to Settings" button in maintoolbar
-void Plater::priv::update_main_toolbar_tooltips()
-{
-    view3D->get_canvas3d()->update_tooltip_for_settings_item_in_main_toolbar();
 }
 
 // BBS
@@ -8799,8 +8791,6 @@ bool Plater::set_printer_technology(PrinterTechnology printer_technology)
 
     if (wxGetApp().mainframe != nullptr)
         wxGetApp().mainframe->update_menubar();
-
-    p->update_main_toolbar_tooltips();
 
     p->sidebar->get_searcher().set_printer_technology(printer_technology);
 

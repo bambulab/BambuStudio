@@ -72,11 +72,11 @@ public:
         Hollow,
         SlaSupports,
         FdmSupports,
-        Seam,
         MmuSegmentation,
         Simplify,
+        Seam,
         // BBS
-        FaceRecognition,
+        //FaceRecognition,
         Undefined,
     };
 

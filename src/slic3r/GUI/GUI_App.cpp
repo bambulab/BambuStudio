@@ -887,22 +887,20 @@ static void generic_exception_handle()
     } catch (const std::bad_alloc& ex) {
         // bad_alloc in main thread is most likely fatal. Report immediately to the user (wxLogError would be delayed)
         // and terminate the app so it is at least certain to happen now.
-        wxString errmsg = wxString::Format(_L("%s has encountered an error. It was likely caused by running out of memory. "
-                              "If you are sure you have enough RAM on your system, this may also be a bug and we would "
-                              "be glad if you reported it.\n\nThe application will now terminate."), SLIC3R_APP_NAME);
+        wxString errmsg = wxString::Format(_L("BambuStudio will terminate because of running out of memory."
+                                              "It may be a bug. It will be appreciated if you report the issue to our team."));
         wxMessageBox(errmsg + "\n\n" + wxString(ex.what()), _L("Fatal error"), wxOK | wxICON_ERROR);
         BOOST_LOG_TRIVIAL(error) << boost::format("std::bad_alloc exception: %1%") % ex.what();
         std::terminate();
     } catch (const boost::io::bad_format_string& ex) {
-        wxString errmsg = _L("BambuStudio has encountered a localization error. "
-                             "Please report to BambuStudio team, what language was active and in which scenario "
-                             "this issue happened. Thank you.\n\nThe application will now terminate.");
+        wxString errmsg = _L("BambuStudio will terminate because of a localization error. "
+                             "It will be appreciated if you report the specific scenario this issue happened.");
         wxMessageBox(errmsg + "\n\n" + wxString(ex.what()), _L("Critical error"), wxOK | wxICON_ERROR);
         BOOST_LOG_TRIVIAL(error) << boost::format("Uncaught exception: %1%") % ex.what();
         std::terminate();
         throw;
     } catch (const std::exception& ex) {
-        wxLogError(format_wxstr(_L("Internal error: %1%"), ex.what()));
+        wxLogError(format_wxstr(_L("Unhandled exception: %1%"), ex.what()));
         BOOST_LOG_TRIVIAL(error) << boost::format("Uncaught exception: %1%") % ex.what();
         throw;
     }
@@ -1134,18 +1132,10 @@ void GUI_App::init_app_config()
         std::string error = app_config->load();
         if (!error.empty()) {
             // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
-            if (is_editor()) {
-                throw Slic3r::RuntimeError(
-                    _u8L("Error parsing BambuStudio config file, it is probably corrupted. "
-                        "Try to manually delete the file to recover from the error. Your user profiles will not be affected.") +
-                    "\n\n" + app_config->config_path() + "\n\n" + error);
-            }
-            else {
-                throw Slic3r::RuntimeError(
-                    _u8L("Error parsing BambuGCodeViewer config file, it is probably corrupted. "
-                        "Try to manually delete the file to recover from the error.") +
-                    "\n\n" + app_config->config_path() + "\n\n" + error);
-            }
+            throw Slic3r::RuntimeError(
+                _u8L("BambuStudio configuration file may be corrupted and is not abled to be parsed."
+                     "Please delete the file and try again.") +
+                "\n\n" + app_config->config_path() + "\n\n" + error);
         }
         // Save orig_version here, so its empty if no app_config existed before this run.
         m_last_config_version = app_config->orig_version();//parse_semver_from_ini(app_config->config_path());
@@ -1155,109 +1145,8 @@ void GUI_App::init_app_config()
 // returns true if found newer version and user agreed to use it
 bool GUI_App::check_older_app_config(Semver current_version, bool backup)
 {
-#if 1
     //BBS: current no need these logic
     return false;
-#else
-    // If the config folder is redefined - do not check
-    if (m_datadir_redefined)
-        return false;
-
-    // find other version app config (alpha / beta / release)
-    std::string             config_path = app_config->config_path();
-    boost::filesystem::path parent_file_path(config_path);
-    std::string             filename = parent_file_path.filename().string();
-    parent_file_path.remove_filename().remove_filename();
-
-    std::vector<boost::filesystem::path> candidates;
-
-    if (SLIC3R_APP_KEY "-alpha" != GetAppName()) candidates.emplace_back(parent_file_path / SLIC3R_APP_KEY "-alpha" / filename);
-    if (SLIC3R_APP_KEY "-beta" != GetAppName())  candidates.emplace_back(parent_file_path / SLIC3R_APP_KEY "-beta" / filename);
-    if (SLIC3R_APP_KEY != GetAppName())          candidates.emplace_back(parent_file_path / SLIC3R_APP_KEY / filename);
-
-    Semver last_semver = current_version;
-    for (const auto& candidate : candidates) {
-        if (boost::filesystem::exists(candidate)) {
-            // parse
-            boost::optional<Semver>other_semver = parse_semver_from_ini(candidate.string());
-            if (other_semver && *other_semver > last_semver) {
-                last_semver = *other_semver;
-                m_older_data_dir_path = candidate.parent_path().string();
-            }
-        }
-    }
-    if (m_older_data_dir_path.empty())
-        return false;
-    BOOST_LOG_TRIVIAL(info) << "last app config file used: " << m_older_data_dir_path;
-    // ask about using older data folder
-
-    InfoDialog msg(nullptr
-        , format_wxstr(_L("You are opening %1% version %2%."), SLIC3R_APP_NAME, SLIC3R_VERSION)
-        , backup ? 
-        format_wxstr(_L(
-            "The active configuration was created by <b>%1% %2%</b>,"
-            "\nwhile a newer configuration was found in <b>%3%</b>"
-            "\ncreated by <b>%1% %4%</b>."
-            "\n\nShall the newer configuration be imported?"
-            "\nIf so, your active configuration will be backed up before importing the new configuration."
-        )
-            , SLIC3R_APP_NAME, current_version.to_string(), m_older_data_dir_path, last_semver.to_string())
-        : format_wxstr(_L(
-            "An existing configuration was found in <b>%3%</b>"
-            "\ncreated by <b>%1% %2%</b>."
-            "\n\nShall this configuration be imported?"
-        )
-            , SLIC3R_APP_NAME, last_semver.to_string(), m_older_data_dir_path)
-        , true, wxYES_NO);
-
-    if (backup) {
-        msg.SetButtonLabel(wxID_YES, _L("Import"));
-        msg.SetButtonLabel(wxID_NO, _L("Don't import"));
-    }
-
-    if (msg.ShowModal() == wxID_YES) {
-        std::string snapshot_id;
-        if (backup) {
-            // configuration snapshot
-            std::string comment;
-            if (const Config::Snapshot* snapshot = Config::take_config_snapshot_report_error(
-                    *app_config, 
-                    Config::Snapshot::SNAPSHOT_USER, 
-                    comment);
-                    snapshot != nullptr)
-                // Is thos correct? Save snapshot id for later, when new app config is loaded.
-                snapshot_id = snapshot->id;
-            else
-                BOOST_LOG_TRIVIAL(error) << "Failed to take congiguration snapshot: ";
-        }
-
-        // This will tell later (when config folder structure is sure to exists) to copy files from m_older_data_dir_path
-        m_init_app_config_from_older = true;
-        // load app config from older file
-        app_config->set_loading_path((boost::filesystem::path(m_older_data_dir_path) / filename).string());
-        std::string error = app_config->load();
-        if (!error.empty()) {
-            // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
-            if (is_editor()) {
-                throw Slic3r::RuntimeError(
-                    _u8L("Error parsing BambuStudio config file, it is probably corrupted. "
-                        "Try to manually delete the file to recover from the error. Your user profiles will not be affected.") +
-                    "\n\n" + app_config->config_path() + "\n\n" + error);
-            }
-            else {
-                throw Slic3r::RuntimeError(
-                    _u8L("Error parsing BambuGCodeViewer config file, it is probably corrupted. "
-                        "Try to manually delete the file to recover from the error.") +
-                    "\n\n" + app_config->config_path() + "\n\n" + error);
-            }
-        }
-        if (!snapshot_id.empty())
-            app_config->set("on_snapshot", snapshot_id);
-        m_app_conf_exists = true;
-        return true;
-    }
-    return false;
-#endif
 }
 
 void GUI_App::copy_older_config()
@@ -1318,17 +1207,8 @@ bool GUI_App::on_init_inner()
     wxInitAllImageHandlers();
 
 #if defined(_WIN32) && ! defined(_WIN64)
+    // BBS: remove 32bit build prompt
     // Win32 32bit build.
-    if (wxPlatformInfo::Get().GetArchName().substr(0, 2) == "64") {
-        RichMessageDialog dlg(nullptr,
-            _L("You are running a 32 bit build of BambuStudio on 64-bit Windows."
-                "\n32 bit build of BambuStudio will likely not be able to utilize all the RAM available in the system."
-                "\nPlease download and install a 64 bit build of BambuStudio from https://www.Bambu3d.cz/Bambuslicer/."
-                "\nDo you wish to continue?"),
-            "BambuStudio", wxICON_QUESTION | wxYES_NO);
-        if (dlg.ShowModal() != wxID_YES)
-            return false;
-    }
 #endif // _WIN64
 
     // Forcing back menu icons under gtk2 and gtk3. Solution is based on:
@@ -1484,21 +1364,6 @@ bool GUI_App::on_init_inner()
                 }
             }
             });
-        /* BBS Bind(EVT_SLIC3R_EXPERIMENTAL_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
-            app_config->save();
-            if (this->plater_ != nullptr) {
-                std::string evt_string = into_u8(evt.GetString());
-                if (*Semver::parse(SLIC3R_VERSION) < *Semver::parse(evt_string)) {
-                    auto notif_type = (evt_string.find("beta") != std::string::npos ? NotificationType::NewBetaAvailable : NotificationType::NewAlphaAvailable);
-                    this->plater_->get_notification_manager()->push_notification( notif_type
-                        , NotificationManager::NotificationLevel::ImportantNotificationLevel
-                        , Slic3r::format(_u8L("New prerelease version %1% is available."), evt_string)
-                        , _u8L("See Releases page.")
-                        , [](wxEvtHandler* evnthndlr) {wxGetApp().open_browser_with_warning_dialog("https://github.com/Bambu3d/BambuStudio/releases"); return true; }
-                    );
-                }
-            }
-            });*/
     }
     else {
 #ifdef __WXMSW__ 
@@ -1548,10 +1413,6 @@ bool GUI_App::on_init_inner()
 
     // Let the libslic3r know the callback, which will translate messages on demand.
     Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
-
-    // application frame
-    if (scrn && is_editor())
-        scrn->SetText(_L("Preparing settings tabs") + dots);
 
     mainframe = new MainFrame();
     // hide settings tabs after first Layout
@@ -1922,18 +1783,7 @@ void GUI_App::check_printer_presets()
     if (preset_names.empty())
         return;
 
-    wxString msg_text =  _L("You have the following presets with saved options for \"Print Host upload\"") + ":";
-    for (const std::string& preset_name : preset_names)
-        msg_text += "\n    \"" + from_u8(preset_name) + "\",";
-    msg_text.RemoveLast();
-    msg_text += "\n\n" + _L("But since this version of BambuStudio we don't show this information in Printer Settings anymore.\n"
-                            "Settings will be available in physical printers settings.") + "\n\n" +
-                         _L("By default new Printer devices will be named as \"Printer N\" during its creation.\n"
-                            "Note: This name can be changed later from the physical printers settings");
-
-    //wxMessageDialog(nullptr, msg_text, _L("Information"), wxOK | wxICON_INFORMATION).ShowModal();
-    MessageDialog(nullptr, msg_text, _L("Information"), wxOK | wxICON_INFORMATION).ShowModal();
-
+    // BBS: remove "print host upload" message dialog
     preset_bundle->physical_printers.load_printers_from_presets(preset_bundle->printers);
 }
 
@@ -1945,7 +1795,7 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 
     ProgressDialog dlg(msg_name, msg_name, 100, nullptr, wxPD_AUTO_HIDE);
     dlg.Pulse();
-    dlg.Update(10, _L("Recreating") + dots);
+    dlg.Update(10, _L("Rebuild") + dots);
 
     MainFrame *old_main_frame = mainframe;
     mainframe = new MainFrame();
@@ -1957,15 +1807,15 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
     sidebar().aux_list()->init_auxiliary();
     SetTopWindow(mainframe);
 
-    dlg.Update(30, _L("Recreating") + dots);
+    dlg.Update(30, _L("Rebuild") + dots);
     old_main_frame->Destroy();
 
-    dlg.Update(80, _L("Loading of current presets") + dots);
+    dlg.Update(80, _L("Loading current presets") + dots);
     //m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
     load_current_presets();
     mainframe->Show(true);
 
-    dlg.Update(90, _L("Loading of a mode view") + dots);
+    dlg.Update(90, _L("Loading a mode view") + dots);
 
     obj_list()->set_min_height();
     update_mode();
@@ -2119,7 +1969,7 @@ void GUI_App::load_project(wxWindow *parent, wxString& input_file) const
 {
     input_file.Clear();
     wxFileDialog dialog(parent ? parent : GetTopWindow(),
-        _L("Choose one file (3MF/AMF):"),
+        _L("Choose one file (3mf/amf):"),
         app_config->get_last_dir(), "",
         file_wildcards(FT_PROJECT), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
@@ -2131,7 +1981,7 @@ void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files) const
 {
     input_files.Clear();
     wxFileDialog dialog(parent ? parent : GetTopWindow(),
-        _L("Choose one or more files (STL/STEP/OBJ/AMF/3MF):"),
+        _L("Choose one or more files (3mf/step/stl/obj/amf):"),
         from_u8(app_config->get_last_dir()), "",
         file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
 
@@ -2143,7 +1993,7 @@ void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
 {
     input_file.Clear();
     wxFileDialog dialog(parent ? parent : GetTopWindow(),
-        _L("Choose one file (GCODE/.GCO/.G/.ngc/NGC):"),
+        _L("Choose one file (gcode/.gco/.g/.ngc/ngc):"),
         app_config->get_last_dir(), "",
         file_wildcards(FT_GCODE), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
@@ -2317,7 +2167,7 @@ void GUI_App::start_sync_service()
 bool GUI_App::switch_language()
 {
     if (select_language()) {
-        recreate_GUI(_L("Changing of an application language") + dots);
+        recreate_GUI(_L("Switching application language") + dots);
         return true;
     } else {
         return false;
@@ -2605,7 +2455,7 @@ bool GUI_App::load_language(wxString language, bool initial)
     m_imgui->set_language(into_u8(language_info->CanonicalName));
     //FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
     //wxSetlocale(LC_NUMERIC, "C");
-    Preset::update_suffix_modified((" (" + _L("modified") + ")").ToUTF8().data());
+    Preset::update_suffix_modified((" (" + _L("*") + ")").ToUTF8().data());
 	return true;
 }
 
@@ -2677,17 +2527,11 @@ void GUI_App::add_config_menu(wxMenu *menu)
     wxWindowID config_id_base = wxWindow::NewControlId(int(ConfigMenuCnt));
 
     const auto config_wizard_name = _(ConfigWizard::name(true));
-    const auto config_wizard_tooltip = from_u8((boost::format(_utf8(L("Run %s"))) % config_wizard_name).str());
+    const auto config_wizard_tooltip = from_u8((boost::format(_utf8(L("Open %s"))) % config_wizard_name).str());
     // Cmd+, is standard on OS X - what about other operating systems?
     if (is_editor()) {
         local_menu->Append(config_id_base + ConfigMenuWizard, config_wizard_name + dots, config_wizard_tooltip);
-        local_menu->Append(config_id_base + ConfigMenuSnapshots, _L("&Configuration Snapshots") + dots, _L("Inspect / activate configuration snapshots"));
-        local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _L("Take Configuration &Snapshot"), _L("Capture a configuration snapshot"));
-        local_menu->Append(config_id_base + ConfigMenuUpdate, _L("Check for Configuration Updates"), _L("Check for configuration updates"));
-#if defined(__linux__) && defined(SLIC3R_DESKTOP_INTEGRATION) 
-        //if (DesktopIntegrationDialog::integration_possible())
-        local_menu->Append(config_id_base + ConfigMenuDesktopIntegration, _L("Desktop Integration"), _L("Desktop Integration"));    
-#endif //(__linux__) && defined(SLIC3R_DESKTOP_INTEGRATION)        
+        local_menu->Append(config_id_base + ConfigMenuUpdate, _L("Check for Configuration Updates"), _L("Check for configuration updates"));     
         local_menu->AppendSeparator();
     }
     local_menu->Append(config_id_base + ConfigMenuPreferences, _L("&Preferences") + dots +
@@ -2701,20 +2545,17 @@ void GUI_App::add_config_menu(wxMenu *menu)
     if (is_editor()) {
         local_menu->AppendSeparator();
         mode_menu = new wxMenu();
-        mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple, _L("Simple"), _L("Simple View Mode"));
-        mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeAdvanced, _L("Advanced"), _L("Advanced View Mode"));
+        mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple, _L("Simple"), _L("Simple Mode"));
+        mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeAdvanced, _L("Advanced"), _L("Advanced Mode"));
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { if (get_mode() == comSimple) evt.Check(true); }, config_id_base + ConfigMenuModeSimple);
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { if (get_mode() == comAdvanced) evt.Check(true); }, config_id_base + ConfigMenuModeAdvanced);
 
-        local_menu->AppendSubMenu(mode_menu, _L("Mode"), wxString::Format(_L("%s View Mode"), SLIC3R_APP_NAME));
+        local_menu->AppendSubMenu(mode_menu, _L("Mode"), wxString::Format(_L("%s Mode"), SLIC3R_APP_NAME));
     }
     local_menu->AppendSeparator();
     local_menu->Append(config_id_base + ConfigMenuLanguage, _L("&Language"));
     if (is_editor()) {
         local_menu->AppendSeparator();
-        local_menu->Append(config_id_base + ConfigMenuFlashFirmware, _L("Flash Printer &Firmware"), _L("Upload a firmware image into an Arduino based printer"));
-        // TODO: for when we're able to flash dictionaries
-        // local_menu->Append(config_id_base + FirmwareMenuDict,  _L("Flash Language File"),    _L("Upload a language dictionary file into a Bambu printer"));
     }
 
     local_menu->Bind(wxEVT_MENU, [this, config_id_base](wxEvent &event) {
@@ -2730,25 +2571,6 @@ void GUI_App::add_config_menu(wxMenu *menu)
             show_desktop_integration_dialog();
             break;
 #endif
-        case ConfigMenuTakeSnapshot:
-            // Take a configuration snapshot.
-            if (wxString action_name = _L("Taking a configuration snapshot");
-                check_and_save_current_preset_changes(action_name, _L("Some presets are modified and the unsaved changes will not be captured by the configuration snapshot."), false, true)) {
-                wxTextEntryDialog dlg(nullptr, action_name, _L("Snapshot name"));
-                UpdateDlgDarkUI(&dlg);
-                
-                // set current normal font for dialog children, 
-                // because of just dlg.SetFont(normal_font()) has no result;
-                for (auto child : dlg.GetChildren())
-                    child->SetFont(normal_font());
-
-                if (dlg.ShowModal() == wxID_OK)
-                    if (const Config::Snapshot *snapshot = Config::take_config_snapshot_report_error(
-                            *app_config, Config::Snapshot::SNAPSHOT_USER, dlg.GetValue().ToUTF8().data());
-                        snapshot != nullptr)
-                        app_config->set("on_snapshot", snapshot->id);
-            }
-            break;
         case ConfigMenuSnapshots:
             //BBS do not support task snapshot
             break;
@@ -2803,12 +2625,11 @@ void GUI_App::add_config_menu(wxMenu *menu)
                 // or sometimes the application crashes into wxDialogBase() destructor
                 // so we put it into an inner scope
                 wxString title = is_editor() ? wxString(SLIC3R_APP_NAME) : wxString(GCODEVIEWER_APP_NAME);
-                title += " - " + _L("Language selection");
+                title += " - " + _L("Choose language");
                 //wxMessageDialog dialog(nullptr,
                 MessageDialog dialog(nullptr,
-                    _L("Switching the language will trigger application restart.\n"
-                        "You will lose content of the plater.") + "\n\n" +
-                    _L("Do you want to proceed?"),
+                    _L("Switching the language requires application restart.\n") + "\n\n" +
+                    _L("Do you want to continue?"),
                     title,
                     wxICON_QUESTION | wxOK | wxCANCEL);
                 if (dialog.ShowModal() == wxID_CANCEL)
@@ -2958,8 +2779,8 @@ bool GUI_App::check_and_save_current_preset_changes(const wxString& caption, con
             // synchronize config.ini with the current selections.
             preset_bundle->export_selections(*app_config);
 
-            MessageDialog(nullptr, _L_PLURAL("The preset modifications are successfully saved", 
-                                             "The presets modifications are successfully saved", dlg.get_names_and_types().size())).ShowModal();
+            MessageDialog(nullptr, _L_PLURAL("Modifications to the preset have been saved", 
+                                             "Modifications to the presets have been saved", dlg.get_names_and_types().size())).ShowModal();
         }
     }
 
@@ -3018,10 +2839,10 @@ bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, con
                 // synchronize config.ini with the current selections.
                 preset_bundle->export_selections(*app_config);
 
-                wxString text = _L_PLURAL("The preset modifications are successfully saved",
-                    "The presets modifications are successfully saved", preset_names_and_types.size());
+                wxString text = _L_PLURAL("Modifications to the preset have been saved",
+                    "Modifications to the presets have been saved", preset_names_and_types.size());
                 if (!is_called_from_configwizard)
-                    text += "\n\n" + _L("For new project all modifications will be reseted");
+                    text += "\n\n" + _L("All modifications will be discarded for new project.");
 
                 MessageDialog(nullptr, text).ShowModal();
                 reset_modifications();
@@ -3059,39 +2880,7 @@ bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, con
 
 bool GUI_App::can_load_project()
 {
-    // BBS
-    //int saved_project = plater()->save_project_if_dirty(_L("Loading a new project while the current project is modified."));
-    //if (saved_project == wxID_CANCEL ||
-    //    (plater()->is_project_dirty() && saved_project == wxID_NO && 
-    //     !check_and_save_current_preset_changes(_L("Project is loading"), _L("Opening new project while some presets are unsaved."))))
-    //    return false;
     return true;
-}
-
-bool GUI_App::check_print_host_queue()
-{
-    wxString dirty;
-    std::vector<std::pair<std::string, std::string>> jobs;
-    // Get ongoing jobs from dialog
-    // mainframe->m_printhost_queue_dlg->get_active_jobs(jobs);
-    if (jobs.empty())
-        return true;
-    // Show dialog
-    wxString job_string = wxString();
-    for (const auto& job : jobs) {
-        job_string += format_wxstr("   %1% : %2% \n", job.first, job.second);
-    }
-    wxString message;
-    message += _(L("The uploads are still ongoing")) + ":\n\n" + job_string +"\n" + _(L("Stop them and continue anyway?"));
-    //wxMessageDialog dialog(mainframe,
-    MessageDialog dialog(mainframe,
-        message,
-        wxString(SLIC3R_APP_NAME) + " - " + _(L("Ongoing uploads")),
-        wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
-    if (dialog.ShowModal() == wxID_YES)
-        return true;
-
-    return false;
 }
 
 bool GUI_App::checked_tab(Tab* tab)
@@ -3323,10 +3112,7 @@ void GUI_App::open_web_page_localized(const std::string &http_address)
 bool GUI_App::may_switch_to_SLA_preset(const wxString& caption)
 {
     if (model_has_multi_part_objects(model())) {
-        show_info(nullptr,
-            _L("It's impossible to print multi-part object(s) with SLA technology.") + "\n\n" +
-            _L("Please check your object list before preset changing."),
-            caption);
+        // BBS: remove SLA related message
         return false;
     }
     return true;
@@ -3347,9 +3133,7 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
     if (res) {
         load_current_presets();
 
-        // #ysFIXME - delete after testing: This part of code looks redundant. All checks are inside ConfigWizard::priv::apply_config() 
-        if (preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA)
-            may_switch_to_SLA_preset(_L("Configuration is editing from ConfigWizard"));
+        // BBS: remove SLA related message
     }
 
     return res;

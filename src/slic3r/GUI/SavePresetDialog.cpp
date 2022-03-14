@@ -158,55 +158,49 @@ void SavePresetDialog::Item::update()
     const std::string unusable_suffix = PresetCollection::get_suffix_modified(); //"(modified)";
     for (size_t i = 0; i < std::strlen(unusable_symbols); i++) {
         if (m_preset_name.find_first_of(unusable_symbols[i]) != std::string::npos) {
-            info_line    = _L("The supplied name is not valid;") + "\n" + _L("the following characters are not allowed:") + " " + unusable_symbols;
+            info_line    = _L("Name is invalid;") + "\n" + _L("illegal characters:") + " " + unusable_symbols;
             m_valid_type = NoValid;
             break;
         }
     }
 
     if (m_valid_type == Valid && m_preset_name.find(unusable_suffix) != std::string::npos) {
-        info_line    = _L("The supplied name is not valid;") + "\n" + _L("the following suffix is not allowed:") + "\n\t" + from_u8(PresetCollection::get_suffix_modified());
+        info_line    = _L("Name is invalid;") + "\n" + _L("illegal suffix:") + "\n\t" + from_u8(PresetCollection::get_suffix_modified());
         m_valid_type = NoValid;
     }
 
     if (m_valid_type == Valid && m_preset_name == "- default -") {
-        info_line    = _L("The supplied name is not available.");
+        info_line    = _L("Name is unavailable.");
         m_valid_type = NoValid;
     }
 
     const Preset *existing = m_presets->find_preset(m_preset_name, false);
     if (m_valid_type == Valid && existing && (existing->is_default || existing->is_system)) {
-        info_line    = _L("Cannot overwrite a system profile.");
+        info_line = _L("Overwrite a system profile is not allowed");
         m_valid_type = NoValid;
     }
 
-    // BBS: add project embedded preset logic and refine is_external
-    /*if (m_valid_type == Valid && existing && (existing->is_external)) {
-        info_line = _L("Cannot overwrite an external profile.");
-        m_valid_type = NoValid;
-    }*/
-
     if (m_valid_type == Valid && existing && m_preset_name != m_presets->get_selected_preset_name()) {
         if (existing->is_compatible)
-            info_line = from_u8((boost::format(_u8L("Preset with name \"%1%\" already exists.")) % m_preset_name).str());
+            info_line = from_u8((boost::format(_u8L("Preset \"%1%\" already exists.")) % m_preset_name).str());
         else
-            info_line = from_u8((boost::format(_u8L("Preset with name \"%1%\" already exists and is incompatible with selected printer.")) % m_preset_name).str());
-        info_line += "\n" + _L("Note: This preset will be replaced after saving");
+            info_line = from_u8((boost::format(_u8L("Preset \"%1%\" already exists and is incompatible with current printer.")) % m_preset_name).str());
+        info_line += "\n" + _L("Please note that saving action will replace this preset");
         m_valid_type = Warning;
     }
 
     if (m_valid_type == Valid && m_preset_name.empty()) {
-        info_line    = _L("The name cannot be empty.");
+        info_line    = _L("The name is not allowed to be empty.");
         m_valid_type = NoValid;
     }
 
     if (m_valid_type == Valid && m_preset_name.find_first_of(' ') == 0) {
-        info_line    = _L("The name cannot start with space character.");
+        info_line    = _L("The name is not allowed to start with space character.");
         m_valid_type = NoValid;
     }
 
     if (m_valid_type == Valid && m_preset_name.find_last_of(' ') == m_preset_name.length() - 1) {
-        info_line    = _L("The name cannot end with space character.");
+        info_line    = _L("The name is not allowed to end with space character.");
         m_valid_type = NoValid;
     }
 
@@ -392,8 +386,7 @@ void SavePresetDialog::add_info_for_edit_ph_printer(wxBoxSizer *sizer)
     m_ph_printer_name                   = printers.get_selected_printer_name();
     m_old_preset_name                   = printers.get_selected_printer_preset_name();
 
-    wxString msg_text = from_u8((boost::format(_u8L("You have selected physical printer \"%1%\" \n"
-                                                    "with related printer preset \"%2%\"")) %
+    wxString msg_text = from_u8((boost::format(_u8L("Printer \"%1%\" is selected with preset \"%2%\"")) %
                                  m_ph_printer_name % m_old_preset_name)
                                     .str());
     m_label           = new wxStaticText(this, wxID_ANY, msg_text);
@@ -432,12 +425,12 @@ void SavePresetDialog::update_info_for_edit_ph_printer(const std::string &preset
 
     if (wxSizerItem *sizer_item = m_radio_sizer->GetItem(size_t(0))) {
         if (wxStaticBoxSizer *stb_sizer = static_cast<wxStaticBoxSizer *>(sizer_item->GetSizer())) {
-            wxString msg_text = format_wxstr(_L("What would you like to do with \"%1%\" preset after saving?"), preset_name);
+            wxString msg_text = format_wxstr(_L("Please choose an action with \"%1%\" preset after saving."), preset_name);
             stb_sizer->GetStaticBox()->SetLabel(msg_text);
 
-            wxString choices[] = {format_wxstr(_L("Change \"%1%\" to \"%2%\" for this physical printer \"%3%\""), m_old_preset_name, preset_name, m_ph_printer_name),
-                                  format_wxstr(_L("Add \"%1%\" as a next preset for the the physical printer \"%2%\""), preset_name, m_ph_printer_name),
-                                  format_wxstr(_L("Just switch to \"%1%\" preset"), preset_name)};
+            wxString choices[] = {format_wxstr(_L("For \"%1%\", change \"%2%\" to \"%3%\" "), m_ph_printer_name, m_old_preset_name, preset_name),
+                                  format_wxstr(_L("For \"%1%\", add \"%2%\" as a new preset"), m_ph_printer_name, preset_name),
+                                  format_wxstr(_L("Simply switch to \"%1%\""), preset_name)};
 
             size_t n = 0;
             for (const wxString &label : choices) stb_sizer->GetItem(n++)->GetWindow()->SetLabel(label);

@@ -56,8 +56,6 @@ static choice_ctrl* create_word_local_combo(wxWindow *parent)
     temp->Append(_L("Local coordinates"));
     temp->SetSelection(0);
     temp->SetValue(temp->GetString(0));
-
-    temp->SetToolTip(_L("Select coordinate space, in which the transformation will be performed."));
 	return temp;
 }
 
@@ -249,7 +247,6 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
 
         // We will add a button to toggle mirroring to each axis:
         auto btn = new ScalableButton(parent, wxID_ANY, "mirroring_off", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER | wxTRANSPARENT_WINDOW);
-        btn->SetToolTip(wxString::Format(_L("Toggle %c axis mirroring"), (int)label));
         btn->SetBitmapDisabled_(m_mirror_bitmap_hidden);
 
         m_mirror_buttons[axis_idx].first = btn;
@@ -523,7 +520,7 @@ void ObjectManipulation::update_settings_value(const Selection& selection)
 {
 	m_new_move_label_string   = L("Position");
     m_new_rotate_label_string = L("Rotation");
-    m_new_scale_label_string  = L("Scale factors");
+    m_new_scale_label_string  = L("Scale ratios");
 
     if (wxGetApp().get_mode() == comSimple)
         m_world_coordinates = true;
@@ -640,7 +637,7 @@ void ObjectManipulation::update_if_dirty()
 
     if (selection.requires_uniform_scale()) {
         m_lock_bnt->SetLock(true);
-        m_lock_bnt->SetToolTip(_L("You cannot use non-uniform scaling mode for multiple objects/parts selection"));
+        m_lock_bnt->SetToolTip(_L("Non-uniform scaling is only supported for single object/part selection"));
         m_lock_bnt->disable();
     }
     else {
@@ -979,19 +976,7 @@ void ObjectManipulation::set_uniform_scaling(const bool new_value)
 		if (! Geometry::is_rotation_ninety_degrees(volume->get_instance_rotation())) {
             // Cannot apply scaling in the world coordinate system.
 			//wxMessageDialog dlg(GUI::wxGetApp().mainframe,
-			MessageDialog dlg(GUI::wxGetApp().mainframe,
-                _L("The currently manipulated object is tilted (rotation angles are not multiples of 90°).\n"
-                    "Non-uniform scaling of tilted objects is only possible in the World coordinate system,\n"
-                    "once the rotation is embedded into the object coordinates.") + "\n" +
-                _L("This operation is irreversible.\n"
-                    "Do you want to proceed?"),
-                SLIC3R_APP_NAME,
-				wxYES_NO | wxCANCEL | wxCANCEL_DEFAULT | wxICON_QUESTION);
-            if (dlg.ShowModal() != wxID_YES) {
-                // Enforce uniform scaling.
-                m_lock_bnt->SetLock(true);
-                return;
-            }
+			// BBS: remove tilt check
             // Bake the rotation into the meshes of the object.
             wxGetApp().model().objects[volume->composite_id.object_id]->bake_xy_rotation_into_meshes(volume->composite_id.instance_id);
             // Update the 3D scene, selections etc.

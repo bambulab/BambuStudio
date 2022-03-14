@@ -75,13 +75,10 @@ bool View3D::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig
     m_canvas->enable_selection(true);
     m_canvas->enable_main_toolbar(true);
     //BBS: GUI refactor: GLToolbar
-    m_canvas->enable_print_flow_toolbar(false);
-    m_canvas->enable_print_select_toolbar(false);
     if (wxGetApp().is_editor()) {
         m_canvas->enable_select_plate_toolbar(false);
     }
     m_canvas->enable_assemble_view_toolbar(true);
-    m_canvas->enable_undoredo_toolbar(false);
     m_canvas->enable_labels(true);
     m_canvas->enable_slope(true);
 
@@ -225,8 +222,6 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Model* model)
     m_canvas->enable_legend_texture(true);
     m_canvas->enable_dynamic_background(true);
     //BBS: GUI refactor: GLToolbar
-    m_canvas->enable_print_flow_toolbar(false);
-    m_canvas->enable_print_select_toolbar(false);
     if (wxGetApp().is_editor()) {
         m_canvas->enable_select_plate_toolbar(true);
     }
@@ -1207,12 +1202,9 @@ bool AssembleView::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrint
     m_canvas->enable_gizmos(false);
     m_canvas->enable_selection(true);
     m_canvas->enable_main_toolbar(false);
-    m_canvas->enable_undoredo_toolbar(false);
     m_canvas->enable_labels(false);
     m_canvas->enable_slope(false);
     //BBS: GUI refactor: GLToolbar
-    m_canvas->enable_print_flow_toolbar(false);
-    m_canvas->enable_print_select_toolbar(false);
     m_canvas->enable_assemble_view_toolbar(false);
     m_canvas->enable_return_toolbar(true);
 

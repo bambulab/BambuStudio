@@ -25,7 +25,7 @@ static void update_ui(wxWindow* window)
 
 // Parent dialog for purging volume adjustments - it fathers WipingPanel widget (that contains all controls) and a button to toggle simple/advanced mode:
 WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, const std::vector<std::string>& extruder_colours)
-: wxDialog(parent, wxID_ANY, _(L("Fialment Change - Purging volume adjustment")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE/* | wxRESIZE_BORDER*/)
+: wxDialog(parent, wxID_ANY, _(L("Flushing volumes for fialment change")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE/* | wxRESIZE_BORDER*/)
 {
     update_ui(this);
 
@@ -153,8 +153,8 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
 
 	// collect and format sizer
 	format_sizer(m_sizer_advanced, m_page_advanced, m_gridsizer_advanced,
-		_(L("Here you can adjust required purging volume (mm³) for any given pair of filaments.")),
-		_(L("Fiament changed to")));
+		_(L("Flushing volume (mm³) for each filament pair.")),
+		_(L("To")));
 
 	// Hide preview page before new page creating 
 	// It allows to do that from a beginning of the main panel
@@ -212,11 +212,6 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
         gridsizer_simple->Add(m_old.back(),0);
         gridsizer_simple->Add(m_new.back(),0);
 	}
-
-	// collect and format sizer
-	format_sizer(m_sizer_simple, m_page_simple, gridsizer_simple,
-		_(L("Total purging volume is calculated by summing two values below, depending on which filaments are loaded/unloaded.")),
-		_(L("Volume to purge (mm³) when the filament is being")), 50);
 
 	m_sizer = new wxBoxSizer(wxVERTICAL);
 	m_sizer->Add(m_page_simple, 0, wxEXPAND | wxALL, 25);
@@ -294,12 +289,6 @@ bool WipingPanel::advanced_matches_simple() {
 
 // Switches the dialog from simple to advanced mode and vice versa
 void WipingPanel::toggle_advanced(bool user_action) {
-    if (m_advanced && !advanced_matches_simple() && user_action) {
-//        if (wxMessageDialog(this,wxString(_(L("Switching to simple settings will discard changes done in the advanced mode!\n\nDo you want to proceed?"))),
-        if (Slic3r::GUI::MessageDialog(this, _L("Switching to simple settings will discard changes done in the advanced mode!\n\nDo you want to proceed?"),
-                            _L("Warning"),wxYES_NO|wxICON_EXCLAMATION).ShowModal() != wxID_YES)
-            return;
-    }
     if (user_action)
         m_advanced = !m_advanced;                // user demands a change -> toggle
     else {
@@ -311,7 +300,6 @@ void WipingPanel::toggle_advanced(bool user_action) {
     (m_advanced ? m_page_advanced : m_page_simple)->Show();
 	(!m_advanced ? m_page_advanced : m_page_simple)->Hide();
 
-    //m_widget_button->SetLabel(m_advanced ? _(L("Show simplified settings")) : _(L("Show advanced settings")));
     if (m_advanced)
         if (user_action) fill_in_matrix();  // otherwise keep values loaded from config
 

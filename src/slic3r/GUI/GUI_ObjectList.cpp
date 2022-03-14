@@ -425,7 +425,7 @@ MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol
 
     if (!stats.repaired() && stats.manifold()) {
         if (sidebar_info)
-            *sidebar_info = _L("No errors detected");
+            *sidebar_info = _L("No errors");
         return { {}, {} }; // hide tooltip
     }
 
@@ -434,21 +434,8 @@ MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol
     // Create tooltip string, if there are errors 
     if (stats.repaired()) {
         const int errors = get_repaired_errors_count(obj_idx, vol_idx);
-        auto_repaired_info = format_wxstr(_L_PLURAL("Auto-repaired %1$d error", "Auto-repaired %1$d errors", errors), errors);
-        tooltip += auto_repaired_info +":\n";
-
-        const RepairedMeshErrors& repaired = stats.repaired_errors;
-
-        if (repaired.degenerate_facets > 0)
-            tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d degenerate facet", "%1$d degenerate facets", repaired.degenerate_facets), repaired.degenerate_facets) + "\n";
-        if (repaired.edges_fixed > 0)
-            tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d edge fixed", "%1$d edges fixed", repaired.edges_fixed), repaired.edges_fixed) + "\n";
-        if (repaired.facets_removed > 0)
-            tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d facet removed", "%1$d facets removed", repaired.facets_removed), repaired.facets_removed) + "\n";
-        if (repaired.facets_reversed > 0)
-            tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d facet reversed", "%1$d facets reversed", repaired.facets_reversed), repaired.facets_reversed) + "\n";
-        if (repaired.backwards_edges > 0)
-            tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d backward edge", "%1$d backward edges", repaired.backwards_edges), repaired.backwards_edges) + "\n";
+        auto_repaired_info = format_wxstr(_L_PLURAL("%1$d error repaired", "%1$d errors repaired", errors), errors);
+        tooltip += auto_repaired_info + "\n";
     }
     if (!stats.manifold()) {
         remaining_info = format_wxstr(_L_PLURAL("%1$d open edge", "%1$d open edges", stats.open_edges), stats.open_edges);
@@ -461,7 +448,7 @@ MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol
         *sidebar_info = stats.manifold() ? auto_repaired_info : (remaining_info + (stats.repaired() ? ("\n" + auto_repaired_info) : ""));
 
     if (is_windows10() && !sidebar_info)
-        tooltip += "\n" + _L("Right button click the icon to fix STL through Netfabb");
+        tooltip += "\n" + _L("Right click the icon to fix model object");
 
     return { tooltip, get_warning_icon_name(stats) };
 }
@@ -509,13 +496,13 @@ void ObjectList::set_tooltip_for_item(const wxPoint& pt)
 #ifdef __WXOSX__
         tooltip = _(L("Right button click the icon to drop the object settings"));
 #else
-        tooltip = _(L("Click the icon to drop the object settings"));
+        tooltip = _(L("Click the icon to reset all settings of the object"));
 #endif //__WXMSW__
     else if (col->GetTitle() == " ")
 #ifdef __WXOSX__
         tooltip = _(L("Right button click the icon to drop the object printable property"));
 #else
-        tooltip = _(L("Click the icon to drop the object printable property"));
+        tooltip = _(L("Click the icon to reset printable property of the object"));
 #endif //__WXMSW__
     else if (col->GetTitle() == _("Name") && (pt.x >= 2 * wxGetApp().em_unit() && pt.x <= 4 * wxGetApp().em_unit()))
     {
@@ -792,7 +779,7 @@ void ObjectList::update_name_in_model(const wxDataViewItem& item) const
     if (obj_idx < 0) return;
     const int volume_id = m_objects_model->GetVolumeIdByItem(item);
 
-    take_snapshot(volume_id < 0 ? _(L("Rename Object")) : _(L("Rename Sub-object")));
+    take_snapshot(volume_id < 0 ? _(L("Rename Object")) : _(L("Rename Part")));
 
     ModelObject* obj = object(obj_idx);
     if (m_objects_model->GetItemType(item) & itObject) {
@@ -1419,13 +1406,14 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
 
     if (m_dragged_data.type() == itInstance)
     {
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(),_(L("Instances to Separated Objects")));
+        // BBS: remove snapshot name "Instances to Separated Objects"
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(),_(L("")));
         instances_to_separated_object(m_dragged_data.obj_idx(), m_dragged_data.inst_idxs());
         m_dragged_data.clear();
         return;
     }
 
-    take_snapshot(_((m_dragged_data.type() == itVolume) ? L("Volumes in Object reordered") : L("Object reordered")));
+    take_snapshot(_((m_dragged_data.type() == itVolume) ? L("Object parts order changed") : L("Object order changed")));
 
     if (m_dragged_data.type() & itVolume)
     {
@@ -1475,9 +1463,9 @@ void ObjectList::add_category_to_settings_from_selection(const std::vector< std:
     assert(m_config);
     auto opt_keys = m_config->keys();
 
-    const wxString snapshot_text =  item_type & itLayer   ? _L("Add Settings for Layers") :
-                                    item_type & itVolume  ? _L("Add Settings for Sub-object") :
-                                                            _L("Add Settings for Object");
+    const wxString snapshot_text =  item_type & itLayer   ? _L("Layer setting added") :
+                                    item_type & itVolume  ? _L("Part setting added") :
+                                                            _L("Object setting added");
     take_snapshot(snapshot_text);
 
     const DynamicPrintConfig& from_config = printer_technology() == ptFFF ? 
@@ -1516,9 +1504,9 @@ void ObjectList::add_category_to_settings_from_frequent(const std::vector<std::s
     assert(m_config);
     auto opt_keys = m_config->keys();
 
-    const wxString snapshot_text = item_type & itLayer  ? _L("Add Settings Bundle for Height range") :
-                                   item_type & itVolume ? _L("Add Settings Bundle for Sub-object") :
-                                                          _L("Add Settings Bundle for Object");
+    const wxString snapshot_text = item_type & itLayer  ? _L("Height range settings added") :
+                                   item_type & itVolume ? _L("Part settings added") :
+                                                          _L("Object settings added");
     take_snapshot(snapshot_text);
 
     const DynamicPrintConfig& from_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
@@ -1562,11 +1550,6 @@ bool ObjectList::is_instance_or_object_selected()
 
 void ObjectList::load_subobject(ModelVolumeType type, bool from_galery/* = false*/)
 {
-    if (type == ModelVolumeType::INVALID && from_galery) {
-        load_shape_object_from_gallery();
-        return;
-    }
-
     wxDataViewItem item = GetSelection();
     // we can add volumes for Object or Instance
     if (!item || !(m_objects_model->GetItemType(item)&(itObject|itInstance)))
@@ -1825,7 +1808,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     if (instance_idx == -1)
         return;
 
-    take_snapshot(_L("Add Generic Subobject"));
+    take_snapshot(_L("Add primitive"));
 
     // Selected object
     ModelObject  &model_object = *(*m_objects)[obj_idx];
@@ -1890,49 +1873,13 @@ void ObjectList::load_shape_object(const std::string& type_name)
     if (obj_idx < 0)
         return;
 
-    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Add Shape"));
+    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Add Primitive"));
 
     // Create mesh
     BoundingBoxf3 bb;
     TriangleMesh mesh = create_mesh(type_name, bb);
     load_mesh_object(mesh, _L("Shape") + "-" + _(type_name));
     wxGetApp().mainframe->update_title();
-}
-
-void ObjectList::load_shape_object_from_gallery()
-{
-    return;
-    /*
-    if (wxGetApp().plater()->canvas3D()->get_selection().get_object_idx() != -1)
-        return;// Add nothing if something is selected on 3DScene
-
-    wxArrayString input_files;
-    GalleryDialog gallery_dlg(this);
-    if (gallery_dlg.ShowModal() == wxID_CLOSE)
-        return;
-    gallery_dlg.get_input_files(input_files);
-    if (input_files.IsEmpty())
-        return;
-    load_shape_object_from_gallery(input_files);
-    */
-}
-
-void ObjectList::load_shape_object_from_gallery(const wxArrayString& input_files)
-{
-    std::vector<boost::filesystem::path> paths;
-    for (const auto& file : input_files)
-        paths.push_back(into_path(file));
-
-    assert(!paths.empty());
-    wxString snapshot_label = (paths.size() == 1 ? _L("Add Shape from Gallery") : _L("Add Shapes from Gallery")) + ": " +
-        wxString::FromUTF8(paths.front().filename().string().c_str());
-    for (size_t i = 1; i < paths.size(); ++i)
-        snapshot_label += ", " + wxString::FromUTF8(paths[i].filename().string().c_str());
-
-    Plater::TakeSnapshot snapshot(wxGetApp().plater(), snapshot_label);
-    if (!wxGetApp().plater()->load_files(paths, LoadStrategy::LoadModel).empty()) {
-        wxGetApp().mainframe->update_title();
-    }
 }
 
 void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center)
@@ -2038,31 +1985,20 @@ void ObjectList::del_info_item(const int obj_idx, InfoItemType type)
     switch (type) {
     case InfoItemType::CustomSupports:
         cnv->get_gizmos_manager().reset_all_states();
-        Plater::TakeSnapshot(plater, _L("Remove paint-on supports"));
+        Plater::TakeSnapshot(plater, _L("Remove support painting"));
         for (ModelVolume* mv : (*m_objects)[obj_idx]->volumes)
             mv->supported_facets.reset();
         break;
 
-    case InfoItemType::CustomSeam:
-        cnv->get_gizmos_manager().reset_all_states();
-        Plater::TakeSnapshot(plater, _L("Remove paint-on seam"));
-        for (ModelVolume* mv : (*m_objects)[obj_idx]->volumes)
-            mv->seam_facets.reset();
-        break;
-
+    // BBS: remove CustomSeam
     case InfoItemType::MmuSegmentation:
         cnv->get_gizmos_manager().reset_all_states();
-        Plater::TakeSnapshot(plater, _L("Remove Multi Material painting"));
+        Plater::TakeSnapshot(plater, _L("Remove color painting"));
         for (ModelVolume* mv : (*m_objects)[obj_idx]->volumes)
             mv->mmu_segmentation_facets.reset();
         break;
 
-    case InfoItemType::Sinking:
-        Plater::TakeSnapshot(plater, _L("Shift objects to bed"));
-        (*m_objects)[obj_idx]->ensure_on_bed();
-        cnv->reload_scene(true, true);
-        break;
-
+    // BBS: remove Sinking
     case InfoItemType::Undef : assert(false); break;
     }
     cnv->post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
@@ -2101,7 +2037,8 @@ void ObjectList::del_instances_from_object(const int obj_idx)
     if (instances.size() <= 1)
         return;
 
-    take_snapshot(_(L("Delete All Instances from Object")));
+    // BBS: remove snapshot name "Delete All Instances from Object"
+    take_snapshot(_(L("")));
 
     while ( instances.size()> 1)
         instances.pop_back();
@@ -2117,7 +2054,7 @@ void ObjectList::del_layer_from_object(const int obj_idx, const t_layer_height_r
     if (del_range == object(obj_idx)->layer_config_ranges.end())
         return;
 
-    take_snapshot(_(L("Delete Height Range")));
+    take_snapshot(_(L("Remove height range")));
         
     object(obj_idx)->layer_config_ranges.erase(del_range);
 
@@ -2152,11 +2089,11 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
             if (vol->is_model_part())
                 ++solid_cnt;
         if (volume->is_model_part() && solid_cnt == 1) {
-            Slic3r::GUI::show_error(nullptr, _L("From Object List You can't delete the last solid part from object."));
+            Slic3r::GUI::show_error(nullptr, _L("Deleting the last solid part is not allowed."));
             return false;
         }
 
-        take_snapshot(_L("Delete Subobject"));
+        take_snapshot(_L("Delete part"));
 
         object->delete_volume(idx);
 
@@ -2185,11 +2122,13 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
     }
     else if (type == itInstance) {
         if (object->instances.size() == 1) {
-            Slic3r::GUI::show_error(nullptr, _L("Last instance of an object cannot be deleted."));
+            // BBS: remove snapshot name "Last instance of an object cannot be deleted."
+            Slic3r::GUI::show_error(nullptr, _L(""));
             return false;
         }
 
-        take_snapshot(_L("Delete Instance"));
+        // BBS: remove snapshot name "Delete Instance"
+        take_snapshot(_L(""));
         object->delete_instance(idx);
     }
     else
@@ -2214,11 +2153,11 @@ void ObjectList::split()
     const ConfigOptionStrings* filament_colors = config.option<ConfigOptionStrings>("filament_colour", false);
     const auto filament_cnt = (filament_colors == nullptr) ? size_t(1) : filament_colors->size();
     if (!volume->is_splittable()) {
-        wxMessageBox(_(L("The selected object couldn't be split because it contains only one part.")));
+        wxMessageBox(_(L("The target object contains only one part and can not be splited.")));
         return;
     }
 
-    take_snapshot(_(L("Split to Parts")));
+    take_snapshot(_(L("Split to parts")));
 
     volume->split(filament_cnt);
 
@@ -2451,7 +2390,7 @@ void ObjectList::merge(bool to_multipart_object)
         if (obj_idx == -1)
             return;
 
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Merge all parts to the one single object"));
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Merge parts to an object"));
 
         ModelObject* model_object = (*m_objects)[obj_idx];
         model_object->merge();
@@ -2517,7 +2456,8 @@ void ObjectList::layers_editing()
 
         // set some default value
         if (ranges.empty()) {
-            take_snapshot(_(L("Add Layers")));
+            // BBS: remove snapshot name "Add layers"
+            take_snapshot(_(L("Add layers")));
             ranges[{ 0.0f, 2.0f }].assign_config(get_default_layer_config(obj_idx));
         }
 
@@ -2690,8 +2630,6 @@ void ObjectList::part_selection_changed()
         // TODO: og for plate
     }
     else if ( multiple_selection() || (item && m_objects_model->GetItemType(item) == itInstanceRoot )) {
-        og_name = _L("Group manipulation");
-
         const Selection& selection = scene_selection();
         // don't show manipulation panel for case of all Object's parts selection 
         update_and_show_manipulations = !selection.is_single_full_instance();
@@ -2708,7 +2646,6 @@ void ObjectList::part_selection_changed()
             obj_idx = m_objects_model->GetObjectIdByItem(item);
 
             if ((type & itObject) || type == itInfo) {
-                og_name = _L("Object manipulation");
                 m_config = &(*m_objects)[obj_idx]->config;
                 update_and_show_manipulations = true;
 
@@ -2740,22 +2677,18 @@ void ObjectList::part_selection_changed()
             else {
                 if (type & itSettings) {
                     if (parent_type & itObject) {
-                        og_name = _L("Object Settings to modify");
                         m_config = &(*m_objects)[obj_idx]->config;
                     }
                     else if (parent_type & itVolume) {
-                        og_name = _L("Part Settings to modify");
                         volume_id = m_objects_model->GetVolumeIdByItem(parent);
                         m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
                     }
                     else if (parent_type & itLayer) {
-                        og_name = _L("Layer range Settings to modify");
                         m_config = &get_item_config(parent);
                     }
                     update_and_show_settings = true;
                 }
                 else if (type & itVolume) {
-                    og_name = _L("Part manipulation");
                     volume_id = m_objects_model->GetVolumeIdByItem(item);
                     m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
                     update_and_show_manipulations = true;
@@ -2763,19 +2696,12 @@ void ObjectList::part_selection_changed()
                     update_and_show_settings = true;
                 }
                 else if (type & itInstance) {
-                    og_name = _L("Instance manipulation");
                     update_and_show_manipulations = true;
 
                     // fill m_config by object's values
                     m_config = &(*m_objects)[obj_idx]->config;
                 }
-                else if (type & (itLayerRoot|itLayer)) {
-                    og_name = type & itLayerRoot ? _L("Height ranges") : _L("Settings for height range");
-                    update_and_show_layers = true;
-
-                    if (type & itLayer)
-                        m_config = &get_item_config(item);
-                }
+                // BBS: remove height range logics
             }
         }
     }
@@ -2802,7 +2728,7 @@ void ObjectList::part_selection_changed()
     if (printer_technology() == ptSLA)
         update_and_show_layers = false;
     else if (update_and_show_layers)
-        wxGetApp().obj_layers()->get_og()->set_name(" " + og_name + " ");
+        wxGetApp().obj_layers()->get_og()->set_name(" ");
 
     update_min_height();
 
@@ -3033,7 +2959,7 @@ void ObjectList::delete_from_model_and_list(const ItemType type, const int obj_i
     if ( !(type&(itObject|itVolume|itInstance)) )
         return;
 
-    take_snapshot(_(L("Delete Selected Item")));
+    take_snapshot(_(L("Delete selected")));
 
     if (type&itObject) {
         del_object(obj_idx);
@@ -3238,7 +3164,7 @@ void ObjectList::remove()
         UnselectAll();
         update_selection(sels, sels_mode, m_objects_model);
 
-        Plater::TakeSnapshot snapshot = Plater::TakeSnapshot(wxGetApp().plater(), _(L("Delete Selected")));
+        Plater::TakeSnapshot snapshot = Plater::TakeSnapshot(wxGetApp().plater(), _(L("Delete selected")));
 
         for (auto& item : sels)
         {
@@ -3314,7 +3240,8 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range curren
     if (++ it_next_range == ranges.end())
     {
         // Adding a new layer height range after the last one.
-        take_snapshot(_(L("Add Height Range")));
+        // BBS: remove snapshot name "Add Height Range"
+        take_snapshot(_(L("")));
         changed = true;
 
         const t_layer_height_range new_range = { current_range.second, current_range.second + 2. };
@@ -3342,7 +3269,8 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range curren
                     	next_range.first + std::max(old_min_layer_height, 0.5 * delta);
                     t_layer_height_range new_range = { middle_layer_z, next_range.second };
 
-                    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Add Height Range")));
+                    // BBS: remove snapshot name "Add Height Range"
+                    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("")));
                     changed = true;
 
                     // create new 2 layers instead of deleted one
@@ -3362,7 +3290,8 @@ void ObjectList::add_layer_range_after_current(const t_layer_height_range curren
             else if (next_range.first - current_range.second >= get_min_layer_height(0) - EPSILON)
             {
                 // Filling in a gap between the current and a new layer height range with a new one.
-                take_snapshot(_(L("Add Height Range")));
+                // BBS: remove snapshot name "Add Height Range"
+                take_snapshot(_(L("")));
                 changed = true;
 
                 const t_layer_height_range new_range = { current_range.second, next_range.first };
@@ -3404,21 +3333,7 @@ wxString ObjectList::can_add_new_range_after_current(const t_layer_height_range 
     	// Adding a layer after the last layer is always possible.
         return "";
     
-    if (const std::pair<coordf_t, coordf_t>& next_range = it_next_range->first; current_range.second <= next_range.first)
-    {
-        if (current_range.second == next_range.first) {
-            if (next_range.second - next_range.first < get_min_layer_height(it_next_range->second.opt_int("extruder")) + get_min_layer_height(0) - EPSILON)
-                return _(L("Cannot insert a new layer range after the current layer range.\n"
-                	       "The next layer range is too thin to be split to two\n"
-                	       "without violating the minimum layer height."));
-        } else if (next_range.first - current_range.second < get_min_layer_height(0) - EPSILON) {
-            return _(L("Cannot insert a new layer range between the current and the next layer range.\n"
-            	       "The gap between the current layer range and the next layer range\n"
-            	       "is thinner than the minimum layer height allowed."));
-        }
-    } else
-	    return _(L("Cannot insert a new layer range after the current layer range.\n"
-	    		   "Current layer range overlaps with the next layer range."));
+    // BBS: remove all layer range message
 
 	// All right, new layer height range could be inserted.
 	return "";
@@ -3476,7 +3391,8 @@ bool ObjectList::edit_layer_range(const t_layer_height_range& range, const t_lay
     const int obj_idx = m_selected_object_id;
     if (obj_idx < 0) return false;
 
-    take_snapshot(_L("Edit Height Range"));
+    // BBS: remove snapeshot name "Edit Height Range"
+    take_snapshot(_L(""));
 
     const ItemType sel_type = m_objects_model->GetItemType(GetSelection());
 
@@ -3809,7 +3725,7 @@ void ObjectList::update_selections_on_canvas()
         volume_idxs = selection.get_missing_volume_idxs_from(volume_idxs);
         if (volume_idxs.size() > 0)
         {
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Selection-Remove from list!")), UndoRedo::SnapshotType::Selection);
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Remove selected from list")), UndoRedo::SnapshotType::Selection);
             selection.remove_volumes(mode, volume_idxs);
         }
     }
@@ -3821,7 +3737,7 @@ void ObjectList::update_selections_on_canvas()
         // OR there is no single selection
         if (selection.get_mode() == mode || !single_selection) 
             volume_idxs = selection.get_unselected_volume_idxs_from(volume_idxs);
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Selection-Add from list!")), UndoRedo::SnapshotType::Selection);
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Add selected to list")), UndoRedo::SnapshotType::Selection);
         selection.add_volumes(mode, volume_idxs, single_selection);
     }
 
@@ -4004,15 +3920,18 @@ bool ObjectList::check_last_selection(wxString& msg_str)
         )
     {
         // Inform user why selection isn't completed
-        const wxString item_type = m_selection_mode & smInstance ? _(L("Object or Instance")) : 
+        // BBS: change "Object or Instance" to "Object"
+        const wxString item_type = m_selection_mode & smInstance ? _(L("Object")) : 
                                    m_selection_mode & smVolume   ? _(L("Part")) : _(L("Layer"));
 
-        msg_str = wxString::Format( _(L("Unsupported selection")) + "\n\n" + 
-                                    _(L("You started your selection with %s Item.")) + "\n" +
-                                    _(L("In this mode you can select only other %s Items%s")), 
-                                    item_type, item_type,
-                                    m_selection_mode == smInstance ? "." : 
-                                                        " " + _(L("of a current Object")));
+        if (m_selection_mode == smInstance) {
+            msg_str = wxString::Format(_(L("Selection conflicts")) + "\n\n" +
+                _(L("If first selected item is an object, the second one should also be object.")) + "\n");
+        }
+        else {
+            msg_str = wxString::Format(_(L("Selection conflicts")) + "\n\n" +
+                _(L("If first selected item is a part, the second one should be part in the same object.")) + "\n");
+        }
 
         // Unselect last selected item, if selection is without SHIFT
         if (!is_shift_pressed) {
@@ -4139,18 +4058,18 @@ void ObjectList::change_part_type()
         }
 
         if (model_part_cnt == 1) {
-            Slic3r::GUI::show_error(nullptr, _(L("You can't change a type of the last solid part of the object.")));
+            Slic3r::GUI::show_error(nullptr, _(L("The type of the last solid object part is not to be changed.")));
             return;
         }
     }
 
-    const wxString names[] = { _L("Part"), _L("Negative Volume"), _L("Modifier"), _L("Support Blocker"), _L("Support Enforcer") };
-    auto new_type = ModelVolumeType(wxGetApp().GetSingleChoiceIndex(_L("Type:"), _L("Select type of part"), wxArrayString(5, names), int(type)));
+    const wxString names[] = { _L("Part"), _L("Negative Part"), _L("Modifier"), _L("Support Blocker"), _L("Support Enforcer") };
+    auto new_type = ModelVolumeType(wxGetApp().GetSingleChoiceIndex(_L("Type:"), _L("Choose part type"), wxArrayString(5, names), int(type)));
 
 	if (new_type == type || new_type == ModelVolumeType::INVALID)
         return;
 
-    take_snapshot(_L("Change Part Type"));
+    take_snapshot(_L("Change part type"));
 
     volume->set_type(new_type);
     wxDataViewItemArray sel = reorder_volumes_and_get_selection(obj_idx, [volume](const ModelVolume* vol) { return vol == volume; });
@@ -4449,7 +4368,7 @@ void ObjectList::fix_through_netfabb()
                                           std::vector<std::pair<std::string, std::string>>& failed_models)
     {
         const std::string& model_name = model_names[model_idx];
-        wxString msg = _L("Repairing model");
+        wxString msg = _L("Repairing model object");
         if (model_names.size() == 1)
             msg += ": " + from_u8(model_name) + "\n";
         else {
@@ -4478,10 +4397,10 @@ void ObjectList::fix_through_netfabb()
         return true;
     };
 
-    Plater::TakeSnapshot snapshot(plater, _L("Fix through NetFabb"));
+    Plater::TakeSnapshot snapshot(plater, _L("Repairing model object"));
 
     // Open a progress dialog.
-    ProgressDialog progress_dlg(_L("Fixing through NetFabb"), "", 100, find_toplevel_parent(plater),
+    ProgressDialog progress_dlg(_L("Repairing model object"), "", 100, find_toplevel_parent(plater),
                                     wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
     int model_idx{ 0 };
     if (vol_idxs.empty()) {
@@ -4511,13 +4430,13 @@ void ObjectList::fix_through_netfabb()
     wxString msg;
     wxString bullet_suf = "\n   - ";
     if (!succes_models.empty()) {
-        msg = _L_PLURAL("The following model was repaired successfully", "The following models were repaired successfully", succes_models.size()) + ":";
+        msg = _L_PLURAL("Following model object has been repaired", "Following model objects have been repaired", succes_models.size()) + ":";
         for (auto& model : succes_models)
             msg += bullet_suf + from_u8(model);
         msg += "\n\n";
     }
     if (!failed_models.empty()) {
-        msg += _L_PLURAL("Folowing model repair failed", "Folowing models repair failed", failed_models.size()) + ":\n";
+        msg += _L_PLURAL("Failed to repair folowing model object", "Failed to repair folowing model objects", failed_models.size()) + ":\n";
         for (auto& model : failed_models)
             msg += bullet_suf + from_u8(model.first) + ": " + _(model.second);
     }
@@ -4830,12 +4749,8 @@ void ObjectList::toggle_printable_state()
     int inst_idx = type == itObject ? 0 : m_objects_model->GetInstanceIdByItem(frst_item);
     bool printable = !object(obj_idx)->instances[inst_idx]->printable;
 
-    const wxString snapshot_text =  sels.Count() > 1 ? 
-                                    (printable ? _L("Set Printable group") : _L("Set Unprintable group")) :
-                                    object(obj_idx)->instances.size() == 1 ? 
-                                    format_wxstr("%1% %2%", (printable ? _L("Set Printable") : _L("Set Unprintable")), from_u8(object(obj_idx)->name)) :
-                                    (printable ? _L("Set Printable Instance") : _L("Set Unprintable Instance"));
-    take_snapshot(snapshot_text);
+    // BBS: remove snapshot name "Set Printable group", "Set Unprintable group", "Set Printable"...
+    take_snapshot("");
 
     std::vector<size_t> obj_idxs;
     for (auto item : sels)
