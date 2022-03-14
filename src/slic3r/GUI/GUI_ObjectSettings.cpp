@@ -186,6 +186,9 @@ bool ObjectSettings::update_settings_list()
 
 bool ObjectSettings::update_settings_list()
 {
+    if (!wxGetApp().is_editor())
+        return false;
+
     auto objects_ctrl   = wxGetApp().obj_list();
     auto objects_model  = wxGetApp().obj_list()->GetModel();
 
