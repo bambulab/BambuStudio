@@ -183,6 +183,7 @@ namespace Slic3r
 				wxButton* btn_send_gcode_7;
 				wxTextCtrl* txt_custom_gcode7;
 				wxPanel* m_panel_upgrade;
+				wxRadioBox* m_radioBox_server;
 				wxStaticText* m_staticText66;
 				wxComboBox* cb_upgrade_module;
 				wxStaticText* m_staticText67;

@@ -698,6 +698,17 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	wxBoxSizer* bSizer32;
 	bSizer32 = new wxBoxSizer( wxVERTICAL );
 
+	wxBoxSizer* bSizer40;
+	bSizer40 = new wxBoxSizer(wxVERTICAL);
+
+	wxString m_radioBox_serverChoices[] = { wxT("BBL Internal Server (192.168.0.12)"), wxT("Bambulab Web Server(OTA only)") };
+	int m_radioBox_serverNChoices = sizeof(m_radioBox_serverChoices) / sizeof(wxString);
+	m_radioBox_server = new wxRadioBox(m_panel_upgrade, wxID_ANY, wxT("Server Selection"), wxDefaultPosition, wxDefaultSize, m_radioBox_serverNChoices, m_radioBox_serverChoices, 1, wxRA_SPECIFY_ROWS);
+	m_radioBox_server->SetSelection(0);
+	bSizer40->Add(m_radioBox_server, 0, wxALL, 5);
+
+	bSizer32->Add(bSizer40, 0, wxEXPAND, 5);
+
 	wxBoxSizer* bSizer33;
 	bSizer33 = new wxBoxSizer( wxHORIZONTAL );
 

@@ -2146,6 +2146,41 @@ namespace Slic3r {
             .perform();
     }
 
+    int AccountManager::get_machine_version(std::string dev_id, unsigned &http_code, std::string &http_body)
+    {
+        if (dev_id.empty()) return -1;
+
+        int result = -1;
+        std::string url = (boost::format("%1%/iot-service/api/user/device/version?dev_id=%2%") % host % dev_id).str();
+        Http http = Http::get(url);
+        http.header("accept", "application/json")
+            .header("Authorization", get_token_str())
+            .header("Content-Type", "application/json")
+            .on_complete(
+                [&result, &http_code, &http_body](std::string body, unsigned status) {
+                    http_code = status;
+                    http_body = body;
+                    try {
+                        json j = json::parse(body);
+                        if (is_valid_property(j, "message")) {
+                            if (j["message"] == MSG_SUCCESS) {
+                                result = 0;
+                            }
+                        }
+                    } catch (...) {
+                    }
+                }
+            )
+            .on_error(
+                [&http_code, &http_body](std::string body, std::string error, unsigned status) {
+                    http_code = status;
+                    http_body = body;
+                }
+            )
+            .perform_sync();
+        return result;
+    }
+
     void AccountManager::get_profile(BBLProject*& project, BBLProfile*& profile)
     {
         if (!profile || !project) return;

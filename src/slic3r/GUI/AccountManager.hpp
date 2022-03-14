@@ -408,6 +408,8 @@ public:
     void get_camera_url(std::string const &              device,
                         std::function<void(std::string)> callback);
 
+    int get_machine_version(std::string dev_id, unsigned &http_code, std::string &http_body);
+
     /* slicer resources apis */
     VersionInfo version_info;
     void check_new_version(bool show_tips = false);

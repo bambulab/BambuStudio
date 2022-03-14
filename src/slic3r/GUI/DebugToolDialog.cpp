@@ -757,6 +757,20 @@ void DebugToolDialog::init()
         }
         });
 
+    m_radioBox_server->Bind(wxEVT_RADIOBOX, [this](wxCommandEvent &evt) {
+        if (m_radioBox_server->GetSelection() == 0) {
+            cb_upgrade_module->Enable();
+            cb_upgrade_mode->Enable();
+            cb_upgrade_version->Enable();
+        } else {
+            cb_upgrade_module->SetSelection((int) MODULE_OTA);
+            cb_upgrade_module->Disable();
+            cb_upgrade_mode->Disable();
+            cb_upgrade_version->Disable();
+        }
+    }
+    );
+
     last_upgrade_module_sel = cb_upgrade_module->GetSelection();
     cb_upgrade_module->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt)
     {
@@ -2219,63 +2233,111 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
         this->send_log_evt(log);
         return;
     }
-
     UPGRADE_MODULE upgrade_module = (UPGRADE_MODULE)cb_upgrade_module->GetCurrentSelection();
     UPGRADE_MODE upgrade_mode = (UPGRADE_MODE)cb_upgrade_mode->GetCurrentSelection();
     std::string hardware_version = cb_upgrade_version->GetCurrentSelection() == 0 ? "v5": "v4";
 
-    std::string url = (boost::format("%1%?module_name=%2%&build_type=%3%&hardware_version=%4%")
-                        % UPGRADE_URL
-                        % upgrade_post_url[upgrade_module]
-                        % upgrade_mode_name[upgrade_mode]
-                        % hardware_version).str();
-    Http http = Http::get(url);
-    http.auth_basic("slicer", "znFx94AAew8VVHv");
-    http.on_complete([this](std::string body, unsigned) {
-        try{
-            UPGRADE_MODULE upgrade_module = (UPGRADE_MODULE)cb_upgrade_module->GetCurrentSelection();
-            int version = cb_upgrade_version->GetCurrentSelection();
 
-            json j = json::parse(body);
-            for (json::iterator it = j.begin(); it != j.end(); ++it) {
-                if (upgrade_module == MODULE_MC || upgrade_module == MODULE_TH || upgrade_module == MODULE_AMS) {
-                    std::string item = (*it)["name"];
-                    if (version == 0 && boost::contains(item, "rev5")) {
-                        UpgradeItem item;
-                        item.name = (*it)["name"];
-                        item.version = (*it)["version"];
-                        item.url = (*it)["url"];
-                        upgrade_file_list.push_back((*it)["name"]);
-                        upgrade_img_list.push_back(item);
+    int server_sel = m_radioBox_server->GetSelection();
+    if (server_sel == 1) {
+        Slic3r::AccountManager* acc = Slic3r::GUI::wxGetApp().getAccountManager();
+        MachineObject* obj = dev_manager_.get_default();
+        if (!obj) {
+            this->send_log_evt("Please Select a printer");
+            return;
+        }
+        int result = 0;
+        unsigned int http_code;
+        std::string http_body;
+        result = acc->get_machine_version(obj->dev_id, http_code, http_body);
+        if (result < 0) {
+            std::string error = (boost::format("get upgrade list failed! code = %1%, body = %2%") % http_code % http_body).str();
+            this->send_log_evt(error);
+            return;
+        }
+        try {
+            json j = json::parse(http_body);
+            if (j.contains("devices") && !j["devices"].is_null()) {
+                for (json::iterator it = j["devices"].begin(); it != j["devices"].end(); it++) {
+                    if ((*it)["dev_id"].get<std::string>() == obj->dev_id) {
+                        json firmware = (*it)["firmware"];
+                        for (json::iterator firmware_it = firmware.begin(); firmware_it != firmware.end(); firmware_it++) {
+                            UpgradeItem item;
+                            item.version = (*firmware_it)["version"].get<std::string>();
+                            item.url     = (*firmware_it)["url"].get<std::string>();
+                            int name_start = item.url.find_last_of('/') + 1;
+                            if (name_start > 0) {
+                                item.name = item.url.substr(name_start, item.url.length() - name_start);
+                                upgrade_img_list.push_back(item);
+                                upgrade_file_list.push_back(item.name);
+                            } else {
+                                BOOST_LOG_TRIVIAL(trace) << "skip";
+                            }
+                        }
                     }
-                    else if (version == 1 && boost::contains(item, "rev4")) {
-                        UpgradeItem item;
-                        item.name = (*it)["name"];
-                        item.version = (*it)["version"];
-                        item.url = (*it)["url"];
-                        upgrade_file_list.push_back((*it)["name"]);
-                        upgrade_img_list.push_back(item);
-                    }
-                }
-                else {
-                    UpgradeItem item;
-                    item.name = (*it)["name"];
-                    item.version = (*it)["version"];
-                    item.url = (*it)["url"];
-                    upgrade_file_list.push_back((*it)["name"]);
-                    upgrade_img_list.push_back(item);
                 }
             }
-
             cb_upgrade_firmware->Set(upgrade_file_list);
             cb_upgrade_firmware->Select(0);
         }
-        catch (...) {
-            ;
+        catch(...) {
+            std::string error = (boost::format("get upgrade list failed! parse_error, code = %1%, body = %2%") % http_code % http_body).str();
+            this->send_log_evt(error);
         }
-        }).on_error([this](std::string body, std::string error, unsigned status) {
-            this->send_log_evt("Get Upgrade List Failed! error=" + error);
-        }).perform();
+    }
+    else if (server_sel == 0) {
+        std::string url = (boost::format("%1%?module_name=%2%&build_type=%3%&hardware_version=%4%")
+                            % UPGRADE_URL
+                            % upgrade_post_url[upgrade_module]
+                            % upgrade_mode_name[upgrade_mode]
+                            % hardware_version).str();
+        Http http = Http::get(url);
+        http.auth_basic("slicer", "znFx94AAew8VVHv");
+        http.on_complete([this](std::string body, unsigned) {
+            try{
+                UPGRADE_MODULE upgrade_module = (UPGRADE_MODULE)cb_upgrade_module->GetCurrentSelection();
+                int version = cb_upgrade_version->GetCurrentSelection();
+
+                json j = json::parse(body);
+                for (json::iterator it = j.begin(); it != j.end(); ++it) {
+                    if (upgrade_module == MODULE_MC || upgrade_module == MODULE_TH || upgrade_module == MODULE_AMS) {
+                        std::string item = (*it)["name"];
+                        if (version == 0 && boost::contains(item, "rev5")) {
+                            UpgradeItem item;
+                            item.name = (*it)["name"];
+                            item.version = (*it)["version"];
+                            item.url = (*it)["url"];
+                            upgrade_file_list.push_back((*it)["name"]);
+                            upgrade_img_list.push_back(item);
+                        }
+                        else if (version == 1 && boost::contains(item, "rev4")) {
+                            UpgradeItem item;
+                            item.name = (*it)["name"];
+                            item.version = (*it)["version"];
+                            item.url = (*it)["url"];
+                            upgrade_file_list.push_back((*it)["name"]);
+                            upgrade_img_list.push_back(item);
+                        }
+                    }
+                    else {
+                        UpgradeItem item;
+                        item.name = (*it)["name"];
+                        item.version = (*it)["version"];
+                        item.url = (*it)["url"];
+                        upgrade_file_list.push_back((*it)["name"]);
+                        upgrade_img_list.push_back(item);
+                    }
+                }
+            }
+            catch (...) {
+                ;
+            }
+            cb_upgrade_firmware->Set(upgrade_file_list);
+            cb_upgrade_firmware->Select(0);
+            }).on_error([this](std::string body, std::string error, unsigned status) {
+                this->send_log_evt("Get Upgrade List Failed! error=" + error);
+            }).perform();
+    }
 }
 
 void DebugToolDialog::send_log_evt(std::string info)
