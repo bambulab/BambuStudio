@@ -1279,11 +1279,14 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         [&file](const char* sz) { file.write(sz); },
         [&print]() { print.throw_if_canceled(); });
 
+
     // Write some terse information on the slicing parameters.
     const PrintObject *first_object         = print.objects().front();
     const double       layer_height         = first_object->config().layer_height.value;
     assert(! print.config().initial_layer_print_height.percent);
     const double       initial_layer_print_height   = print.config().initial_layer_print_height.value;
+    //BBS: remove useless information in gcode file
+#if 0
     for (size_t region_id = 0; region_id < print.num_print_regions(); ++ region_id) {
         const PrintRegion &region = print.get_print_region(region_id);
         file.write_format("; external perimeters extrusion width = %.2fmm\n", region.flow(*first_object, frExternalPerimeter, layer_height).width());
@@ -1298,6 +1301,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         file.write_format("\n");
     }
     print.throw_if_canceled();
+#endif
 
     // adds tags for time estimators
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::First_Line_M73_Placeholder).c_str());
@@ -3409,6 +3413,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             speed = m_config.get_abs_value("top_surface_speed");
         } else if (path.role() == erIroning) {
             speed = m_config.get_abs_value("ironing_speed");
+        } else if (path.role() == erBottomSurface) {
+            speed = m_config.get_abs_value("initial_layer_infill_speed");
         } else if (path.role() == erGapFill) {
             speed = m_config.get_abs_value("gap_infill_speed");
         // BBS: enable slow down option for support. Because only tree speed calculate the curvature, so this
@@ -3433,9 +3439,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     if (this->on_first_layer()) {
         //BBS: for solid infill of initial layer, speed can be higher as long as
         //wall lines have be attached
-        if (path.role() == erSolidInfill)
-            speed = m_config.initial_layer_infill_speed.value;
-        else
+        if (path.role() != erBottomSurface)
             speed = m_config.get_abs_value("initial_layer_speed", speed);
     }
     //BBS: remove this config

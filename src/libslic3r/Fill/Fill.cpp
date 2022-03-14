@@ -154,7 +154,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		            is_bridge ?
 		                erBridgeInfill :
 		                (surface.is_solid() ?
-		                    (surface.is_top() ? erTopSolidInfill : erSolidInfill) :
+		                    (surface.is_top() ? erTopSolidInfill : (surface.is_bottom()? erBottomSurface : erSolidInfill)) :
 		                    erInternalInfill);
 		        params.bridge_angle = float(surface.bridge_angle);
 		        params.angle 		= float(Geometry::deg2rad(region_config.infill_angle.value));

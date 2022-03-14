@@ -320,18 +320,19 @@ std::string ExtrusionEntity::role_to_string(ExtrusionRole role)
 {
     switch (role) {
         case erNone                         : return L("Unknown");
-        case erPerimeter                    : return L("Perimeter");
-        case erExternalPerimeter            : return L("External perimeter");
-        case erOverhangPerimeter            : return L("Overhang perimeter");
-        case erInternalInfill               : return L("Internal infill");
-        case erSolidInfill                  : return L("Solid infill");
-        case erTopSolidInfill               : return L("Top solid infill");
+        case erPerimeter                    : return L("Inner wall");
+        case erExternalPerimeter            : return L("Outer wall");
+        case erOverhangPerimeter            : return L("Overhang wall");
+        case erInternalInfill               : return L("Sparse infill");
+        case erSolidInfill                  : return L("Internal solid infill");
+        case erTopSolidInfill               : return L("Top surface");
+        case erBottomSurface                : return L("Bottom surface");
         case erIroning                      : return L("Ironing");
-        case erBridgeInfill                 : return L("Bridge infill");
-        case erGapFill                      : return L("Gap fill");
+        case erBridgeInfill                 : return L("Bridge");
+        case erGapFill                      : return L("Gap infill");
         case erSkirt                        : return L("Skirt/Brim");
-        case erSupportMaterial              : return L("Support material");
-        case erSupportMaterialInterface     : return L("Support material interface");
+        case erSupportMaterial              : return L("Support");
+        case erSupportMaterialInterface     : return L("Support interface");
         case erSupportTransition            : return L("Support transition");
         case erWipeTower                    : return L("Wipe tower");
         case erCustom                       : return L("Custom");
@@ -343,29 +344,31 @@ std::string ExtrusionEntity::role_to_string(ExtrusionRole role)
 
 ExtrusionRole ExtrusionEntity::string_to_role(const std::string_view role)
 {
-    if (role == L("Perimeter"))
+    if (role == L("Inner wall"))
         return erPerimeter;
-    else if (role == L("External perimeter"))
+    else if (role == L("Outer wall"))
         return erExternalPerimeter;
-    else if (role == L("Overhang perimeter"))
+    else if (role == L("Overhang wall"))
         return erOverhangPerimeter;
-    else if (role == L("Internal infill"))
+    else if (role == L("Sparse infill"))
         return erInternalInfill;
-    else if (role == L("Solid infill"))
+    else if (role == L("Internal solid infill"))
         return erSolidInfill;
-    else if (role == L("Top solid infill"))
+    else if (role == L("Top surface"))
         return erTopSolidInfill;
+    else if (role == L("Bottom surface"))
+        return erBottomSurface;
     else if (role == L("Ironing"))
         return erIroning;
-    else if (role == L("Bridge infill"))
+    else if (role == L("Bridge"))
         return erBridgeInfill;
-    else if (role == L("Gap fill"))
+    else if (role == L("Gap infill"))
         return erGapFill;
-    else if (role == L("Skirt") || role == L("Skirt/Brim")) // "Skirt" is for backward compatibility with 2.3.1 and earlier
+    else if (role == L("Skirt/Brim"))
         return erSkirt;
-    else if (role == L("Support material"))
+    else if (role == L("Support"))
         return erSupportMaterial;
-    else if (role == L("Support material interface"))
+    else if (role == L("Support interface"))
         return erSupportMaterialInterface;
     else if (role == L("Support transition"))
         return erSupportTransition;
