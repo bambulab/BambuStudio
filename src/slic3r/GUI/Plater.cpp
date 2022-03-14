@@ -3678,6 +3678,7 @@ void Plater::priv::reset()
 
     // BBS reset project
     acc_->reset_project();
+    project.reset();
 
     //BBS: reset all project embedded presets
     wxGetApp().preset_bundle->reset_project_embedded_presets();
