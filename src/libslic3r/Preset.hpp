@@ -217,6 +217,7 @@ public:
     std::string         user_id;         // preset user_id
     std::string         base_id;         // base id of preset
     std::string         sync_info;       // enum: "delete", "create", "update", ""
+    long long           updated_time{0};    //last updated time
     std::map<std::string, std::string> key_values;
 
     static std::string  get_type_string(Preset::Type type);
@@ -227,7 +228,9 @@ public:
     void                save_info(std::string file = "");
     void                remove_files();
 
-    void                save();
+    //BBS: add logic for only difference save
+    //if parent_config is null, save all keys, otherwise, only save difference
+    void                save(DynamicPrintConfig* parent_config);
 
     // Return a label of this preset, consisting of a name and a "(modified)" suffix, if this preset is dirty.
     std::string         label() const;
@@ -397,6 +400,10 @@ public:
     //BBS: get user presets
     int             get_user_presets(std::vector<Preset>& result_presets);
     void             set_sync_info_and_save(std::string name, std::string setting_id);
+
+    //BBS: add function to generate differed preset for save
+    //the pointer should be freed by the caller
+    Preset* get_preset_differed_for_save(Preset& preset);
 
     //BBS: add project embedded presets logic
     void load_project_embedded_presets(std::vector<Preset*>& project_presets, const std::string& type, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule);
@@ -765,7 +772,7 @@ public:
 
     //BBS: change to json format
     //void                save() { this->config.save(this->file); }
-    void                save() { this->config.save_to_json(this->file, std::string("Physical_Printer"), std::string("User"), std::string(SLIC3R_VERSION)); }
+    void                save(DynamicPrintConfig* parent_config) { this->config.save_to_json(this->file, std::string("Physical_Printer"), std::string("User"), std::string(SLIC3R_VERSION)); }
     void                save(const std::string& file_name_from, const std::string& file_name_to);
 
     void                update_from_preset(const Preset& preset);

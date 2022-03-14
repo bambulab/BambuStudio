@@ -131,9 +131,9 @@ const std::string SLA_DRAIN_HOLES_FILE = "Metadata/Slic3r_PE_sla_drain_holes.txt
 const std::string CUSTOM_GCODE_PER_PRINT_Z_FILE = "Metadata/custom_gcode_per_layer.xml";
 const std::string AUXILIARY_DIR = "Auxiliaries/";
 const std::string PROJECT_EMBEDDED_PRINT_PRESETS_FILE = "Metadata/print_setting_";
-const std::string PROJECT_EMBEDDED_SLICE_PRESETS_FILE = "Metadata/slice_settings_";
+const std::string PROJECT_EMBEDDED_SLICE_PRESETS_FILE = "Metadata/process_settings_";
 const std::string PROJECT_EMBEDDED_FILAMENT_PRESETS_FILE = "Metadata/filament_settings_";
-const std::string PROJECT_EMBEDDED_PRINTER_PRESETS_FILE = "Metadata/printer_settings_";
+const std::string PROJECT_EMBEDDED_PRINTER_PRESETS_FILE = "Metadata/machine_settings_";
 // BBS: encrypt
 const std::string KEYSTORE_FILE = "Secure/keystore.xml";
 

@@ -1373,17 +1373,6 @@ bool GUI_App::on_init_inner()
 
     // Suppress the '- default -' presets.
     preset_bundle->set_default_suppressed(true);
-    
-    //BBS loading user preset
-    scrn->SetText(_L("Loading user presets..."));
-    int loaded_preset_result = -1;
-    if (m_account_manager->is_user_login()) {
-        loaded_preset_result = m_account_manager->get_setting_list(
-            [this](std::string body, std::string error, unsigned http_status) {
-                BOOST_LOG_TRIVIAL(trace) << "load my settings failed! body = " << body;
-            }
-        );
-        }
 
     //BBS init account_manager
     m_account_manager->load_user_info();
@@ -1400,6 +1389,16 @@ bool GUI_App::on_init_inner()
             show_error(nullptr, ex.what());
         }
     //}
+    //BBS loading user preset
+    scrn->SetText(_L("Loading user presets..."));
+    int loaded_preset_result = -1;
+    if (m_account_manager->is_user_login()) {
+        loaded_preset_result = m_account_manager->get_setting_list(
+            [this](std::string body, std::string error, unsigned http_status) {
+                BOOST_LOG_TRIVIAL(trace) << "load my settings failed! body = " << body;
+            }
+        );
+    }
     //BBS
     start_sync_service();
 
@@ -2073,7 +2072,14 @@ void GUI_App::sync_preset(Preset* preset)
     if (preset->setting_id.empty() && preset->sync_info.empty()) {
         m_account_manager->request_setting_id(preset);
         if (!preset->setting_id.empty()) {
-            result = m_account_manager->put_setting(preset);
+            Preset* preset_to_upload = this->preset_bundle->get_preset_differed_for_save(*preset);
+            if (preset_to_upload) {
+                result = m_account_manager->put_setting(preset_to_upload);
+                delete preset_to_upload;
+            }
+            else {
+                BOOST_LOG_TRIVIAL(trace) << "sync_preset: can not generate differed preset";
+            }
         }
         else {
             BOOST_LOG_TRIVIAL(trace) << "sync_preset: request setting id failed";
@@ -2082,7 +2088,14 @@ void GUI_App::sync_preset(Preset* preset)
     else if (preset->sync_info.compare("create") == 0) {
         m_account_manager->request_setting_id(preset);
         if (!preset->setting_id.empty()) {
-            result = m_account_manager->put_setting(preset);
+            Preset* preset_to_upload = this->preset_bundle->get_preset_differed_for_save(*preset);
+            if (preset_to_upload) {
+                result = m_account_manager->put_setting(preset_to_upload);
+                delete preset_to_upload;
+            }
+            else {
+                BOOST_LOG_TRIVIAL(trace) << "sync_preset: can not generate differed preset";
+            }
         }
         else {
             BOOST_LOG_TRIVIAL(trace) << "sync_preset: request setting id failed";
@@ -2090,7 +2103,14 @@ void GUI_App::sync_preset(Preset* preset)
     }
     else if (preset->sync_info.compare("update") == 0) {
         if (!preset->setting_id.empty()) {
-            result = m_account_manager->put_setting(preset);
+            Preset* preset_to_upload = this->preset_bundle->get_preset_differed_for_save(*preset);
+            if (preset_to_upload) {
+                result = m_account_manager->put_setting(preset_to_upload);
+                delete preset_to_upload;
+            }
+            else {
+                BOOST_LOG_TRIVIAL(trace) << "sync_preset: can not generate differed preset";
+            }
         }
     }
 

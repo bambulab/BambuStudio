@@ -270,6 +270,30 @@ PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, Forward
     return substitutions;
 }
 
+//BBS: add function to generate differed preset for save
+//the pointer should be freed by the caller
+Preset* PresetBundle::get_preset_differed_for_save(Preset& preset)
+{
+    PresetCollection* preset_collection;
+
+    switch(preset.type) {
+        case Preset::TYPE_PRINT:
+            preset_collection = &(this->prints);
+            break;
+        case Preset::TYPE_PRINTER:
+            preset_collection = &(this->printers);
+            break;
+        case Preset::TYPE_FILAMENT:
+            preset_collection = &(this->filaments);
+            break;
+        default:
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" invalid type %1%, return directly")%preset.type;
+            return nullptr;
+    }
+
+    return preset_collection->get_preset_differed_for_save(preset);
+}
+
 //BBS: load project embedded presets
 PresetsConfigSubstitutions PresetBundle::load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule)
 {
@@ -1288,7 +1312,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 		if (is_external)
 			presets.load_external_preset(name_or_path, name, config.opt_string(key, true), config, different_keys, PresetCollection::LoadAndSelect::Always, file_version);
 		else
-			presets.load_preset(presets.path_from_name(name), name, config).save();
+			presets.load_preset(presets.path_from_name(name), name, config).save(nullptr);
 	};
 
     switch (Preset::printer_technology(config)) {
@@ -1354,7 +1378,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             else {
                 // called from Config Wizard.
 				loaded= &this->filaments.load_preset(this->filaments.path_from_name(name), name, config);
-				loaded->save();
+				loaded->save(nullptr);
 			}
             this->filament_presets.clear();
 			this->filament_presets.emplace_back(loaded->name);
@@ -1938,7 +1962,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_configbundle(
             // Load the preset into the list of presets, save it to disk.
             Preset &loaded = presets->load_preset(file_path.string(), preset_name, std::move(config), false);
             if (flags.has(LoadConfigBundleAttribute::SaveImported))
-                loaded.save();
+                loaded.save(nullptr);
             if (flags.has(LoadConfigBundleAttribute::LoadSystem)) {
                 loaded.is_system = true;
                 loaded.vendor = vendor_profile;

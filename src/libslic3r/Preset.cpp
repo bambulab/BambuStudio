@@ -43,6 +43,7 @@
 
 #include "libslic3r.h"
 #include "Utils.hpp"
+#include "Time.hpp"
 #include "PlaceholderParser.hpp"
 
 using boost::property_tree::ptree;
@@ -438,10 +439,22 @@ void Preset::load_info(const std::string& file)
                 this->user_id = v.second.get_value<std::string>();
             else if (v.first.compare("setting_id") == 0)
                 this->setting_id = v.second.get_value<std::string>();
+            else if (v.first.compare("updated_time") == 0) {
+                std::string time = v.second.get_value<std::string>();
+                this->updated_time = std::atoll(time.c_str());
+            }
         }
     }
     catch (...) {
         return;
+    }
+
+    //TODO: workaround for current info file convert, will remove it later
+    if (this->updated_time == 0) {
+        this->updated_time = (long long)Slic3r::Utils::get_current_time_utc();
+        //this->sync_info = "update";
+        BOOST_LOG_TRIVIAL(info) << boost::format("old info file, updated time to %1%") % this->updated_time;
+        save_info();
     }
 }
 
@@ -461,6 +474,7 @@ void Preset::save_info(std::string file)
     c << "sync_info" << " = " << this->sync_info << std::endl;
     c << "user_id" << " = " << this->user_id << std::endl;
     c << "setting_id" << " = " << this->setting_id << std::endl;
+    c << "updated_time" << " = " << std::to_string(this->updated_time) << std::endl;
     c.close();
 }
 
@@ -477,7 +491,8 @@ void Preset::remove_files()
         boost::nowide::remove(idx_path.string().c_str());
 }
 
-void Preset::save()
+//BBS: add logic for only difference save
+void Preset::save(DynamicPrintConfig* parent_config)
 {
     //BBS: add project embedded preset logic
     if (this->is_project_embedded)
@@ -494,7 +509,21 @@ void Preset::save()
     else
         from_str = std::string("Default");
 
-    this->config.save_to_json(this->file, this->name, from_str, this->version.to_string());
+    //BBS: only save difference if it has parent
+    if (parent_config) {
+        DynamicPrintConfig temp_config;
+        std::vector<std::string> dirty_options = config.diff(*parent_config);
+
+        for (auto option: dirty_options)
+        {
+            ConfigOption *opt_src = config.option(option);
+            ConfigOption *opt_dst = temp_config.option(option, true);
+            opt_dst->set(opt_src);
+        }
+        temp_config.save_to_json(this->file, this->name, from_str, this->version.to_string());
+    }
+    else
+        this->config.save_to_json(this->file, this->name, from_str, this->version.to_string());
 
     fs::path idx_file(this->file);
     idx_file.replace_extension(".info");
@@ -909,13 +938,27 @@ void PresetCollection::load_presets(
                     }
                     preset.version = *version;
 
-                    // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
-                    const Preset &default_preset = this->default_preset_for(config);
-                    preset.config = default_preset.config;
+                    //BBS: use inherit config as the base
+                    Preset* inherit_preset = nullptr;
+                    ConfigOption* inherits_config = config.option(BBL_JSON_KEY_INHERITS);
+                    if (inherits_config) {
+                        ConfigOptionString * option_str = dynamic_cast<ConfigOptionString *> (inherits_config);
+                        std::string inherits_value = option_str->value;
+
+                        inherit_preset = this->find_preset(inherits_value, false, true);
+                    }
+                    const Preset& default_preset = this->default_preset_for(config);
+                    if (inherit_preset) {
+                        preset.config = inherit_preset->config;
+                    }
+                    else {
+                        // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
+                        preset.config = default_preset.config;
+                    }
                     preset.config.apply(std::move(config));
                     Preset::normalize(preset.config);
                     // Report configuration fields, which are misplaced into a wrong group.
-                    std::string incorrect_keys = Preset::remove_invalid_keys(config, default_preset.config);
+                    std::string incorrect_keys = Preset::remove_invalid_keys(preset.config, default_preset.config);
                     if (! incorrect_keys.empty())
                         BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" <<
                             preset.file << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
@@ -942,6 +985,38 @@ void PresetCollection::load_presets(
     this->select_preset(first_visible_idx());
     if (! errors_cummulative.empty())
         throw Slic3r::RuntimeError(errors_cummulative);
+}
+
+//BBS: add function to generate differed preset for save
+//the pointer should be freed by the caller
+Preset* PresetCollection::get_preset_differed_for_save(Preset& preset)
+{
+    if (preset.is_system || preset.is_default)
+        return nullptr;
+
+    Preset* new_preset = new Preset();
+    *new_preset = preset;
+
+    //BBS: only save difference for user preset
+    std::string& inherits = preset.inherits();
+    Preset* parent_preset = nullptr;
+    if (!inherits.empty()) {
+        parent_preset = this->find_preset(inherits, false, true);
+    }
+    if (parent_preset) {
+        DynamicPrintConfig temp_config;
+        std::vector<std::string> dirty_options = preset.config.diff(parent_preset->config);
+
+        for (auto option: dirty_options)
+        {
+            ConfigOption *opt_src = preset.config.option(option);
+            ConfigOption *opt_dst = temp_config.option(option, true);
+            opt_dst->set(opt_src);
+        }
+        new_preset->config = temp_config;
+    }
+
+    return new_preset;
 }
 
 //BBS: save user presets to local
@@ -971,13 +1046,31 @@ void PresetCollection::load_project_embedded_presets(std::vector<Preset*>& proje
                 free(preset->loading_substitutions);
                 preset->loading_substitutions = NULL;
             }
-            // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
-            const Preset &default_preset = this->default_preset_for(config);
-            preset->config = default_preset.config;
+            //BBS: use inherit config as the base
+            Preset* inherit_preset = nullptr;
+            ConfigOption* inherits_config = config.option(BBL_JSON_KEY_INHERITS);
+            if (inherits_config) {
+                ConfigOptionString * option_str = dynamic_cast<ConfigOptionString *> (inherits_config);
+                std::string inherits_value = option_str->value;
+                /*size_t pos = inherits_value.find_first_of('*');
+                if (pos != std::string::npos) {
+                    inherits_value.replace(pos, 1, 1, '~');
+                    option_str->value = inherits_value;
+                }*/
+                inherit_preset = this->find_preset(inherits_value, false, true);
+            }
+            const Preset& default_preset = this->default_preset_for(config);
+            if (inherit_preset) {
+                preset->config = inherit_preset->config;
+            }
+            else {
+                // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
+                preset->config = default_preset.config;
+            }
             preset->config.apply(std::move(config));
             Preset::normalize(preset->config);
             // Report configuration fields, which are misplaced into a wrong group.
-            std::string incorrect_keys = Preset::remove_invalid_keys(config, default_preset.config);
+            std::string incorrect_keys = Preset::remove_invalid_keys(preset->config, default_preset.config);
             if (! incorrect_keys.empty())
                 BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" <<
                     preset->name << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
@@ -1011,7 +1104,9 @@ std::vector<Preset*> PresetCollection::get_project_embedded_presets()
         //if (preset.type != Preset::get_type_from_string(type)) continue;
         if (!preset.is_project_embedded) continue;
 
-        project_presets.push_back(&preset);
+        Preset* new_preset = get_preset_differed_for_save(preset);
+
+        project_presets.push_back(new_preset);
     }
     unlock();
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, type %1% , total preset counts %2%")%Preset::get_type_string(m_type) %project_presets.size();
@@ -1093,7 +1188,19 @@ void PresetCollection::save_user_presets(const std::string& dir_path, const std:
         Preset* preset = &m_presets[it - m_presets.begin()];
         if (!preset->is_user()) continue;
         preset->file = path_from_name(preset->name);
-        preset->save();
+
+        //BBS: only save difference for user preset
+        std::string inherits = Preset::inherits(preset->config);
+        if (inherits.empty()) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" can not find inherits for %1% , should not happen")%preset->name;
+            return;
+        }
+        Preset* parent_preset = this->find_preset(inherits, false, true);
+        if (!parent_preset) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" can not find parent preset for %1% , inherits %2%")%preset->name %inherits;
+            return;
+        }
+        preset->save(&(parent_preset->config));
     }
 }
 
@@ -1128,9 +1235,19 @@ void PresetCollection::load_user_presets(std::map<std::string, Preset*> my_prese
 
         std::string name = preset->name;
         auto iter = this->find_preset_internal(name);
+        bool need_update = false;
         if ((iter != m_presets.end()) && (iter->name == name)) {
             BOOST_LOG_TRIVIAL(warning) << "Preset already present, not loading: " << name;
-            continue;
+            //BBS: we should compare the time between cloud and local
+            if ((preset->updated_time == 0) || (preset->updated_time <= iter->updated_time)) {
+                if (preset->updated_time < iter->updated_time)
+                    iter->sync_info = "update";
+                continue;
+            }
+            else {
+                //update the one from cloud which is newer
+                need_update = true;
+            }
         }
         try {
             DynamicPrintConfig config;
@@ -1138,30 +1255,42 @@ void PresetCollection::load_user_presets(std::map<std::string, Preset*> my_prese
             if (! config_substitutions.empty())
                 substitutions.push_back({ preset->name, m_type, PresetConfigSubstitutions::Source::UserCloud, preset->name, std::move(config_substitutions) });
 
-            //BBS: TODO, currently use '~' insteadof '*'
+            //BBS: use inherit config as the base
+            Preset* inherit_preset = nullptr;
             ConfigOption* inherits_config = config.option(BBL_JSON_KEY_INHERITS);
             if (inherits_config) {
                 ConfigOptionString * option_str = dynamic_cast<ConfigOptionString *> (inherits_config);
                 std::string inherits_value = option_str->value;
-                size_t pos = inherits_value.find_first_of('*');
+                /*size_t pos = inherits_value.find_first_of('*');
                 if (pos != std::string::npos) {
                     inherits_value.replace(pos, 1, 1, '~');
                     option_str->value = inherits_value;
-                }
+                }*/
+                inherit_preset = this->find_preset(inherits_value, false, true);
             }
-
-            // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
-            const Preset &default_preset = this->default_preset_for(config);
-            preset->config = default_preset.config;
+            const Preset& default_preset = this->default_preset_for(config);
+            if (inherit_preset) {
+                preset->config = inherit_preset->config;
+            }
+            else {
+                // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
+                preset->config = default_preset.config;
+            }
             preset->config.apply(std::move(config));
             Preset::normalize(preset->config);
             // Report configuration fields, which are misplaced into a wrong group.
-            std::string incorrect_keys = Preset::remove_invalid_keys(config, default_preset.config);
+            std::string incorrect_keys = Preset::remove_invalid_keys(preset->config, default_preset.config);
             if (! incorrect_keys.empty())
                 BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" <<
                     preset->name << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
-            preset->loaded = true;
-            m_presets.insert(iter, *it->second);
+            if (need_update) {
+                iter->config = preset->config;
+                iter->updated_time = preset->updated_time;
+            }
+            else {
+                preset->loaded = true;
+                m_presets.insert(iter, *it->second);
+            }
             count++;
             //presets_loaded.emplace_back(*it->second);
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", %1% got preset, name %2%, path %3%, is_system %4%, is_default %5% is_visible %6%")%Preset::get_type_string(m_type) %preset->name %preset->file %preset->is_system %preset->is_default %preset->is_visible;
@@ -1177,7 +1306,7 @@ void PresetCollection::load_user_presets(std::map<std::string, Preset*> my_prese
 
     unlock();
 
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished, %1% got %2% presets, errors_cummulative %3%")%Preset::get_type_string(m_type) %count %errors_cummulative;
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished, %1% updated %2% presets, errors_cummulative %3%")%Preset::get_type_string(m_type) %count %errors_cummulative;
     if (! errors_cummulative.empty())
         throw Slic3r::RuntimeError(errors_cummulative);
 }
@@ -1460,7 +1589,9 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     else {
         //external config
         preset.file = path_from_name(preset.name);
-        preset.save();
+        //BBS: save full config here for external
+        //we can not reach here
+        preset.save(nullptr);
     }
     if (&this->get_selected_preset() == &preset)
         this->get_edited_preset().is_external = true;
@@ -1493,6 +1624,7 @@ Preset& PresetCollection::load_preset(const std::string &path, const std::string
 void PresetCollection::save_current_preset(const std::string &new_name, bool detach, bool save_to_project)
 {
     //BBS: add lock logic for sync preset in background
+    std::string final_inherits;
     lock();
     // 1) Find the preset with a new_name or create a new one,
     // initialize it with the edited config.
@@ -1520,6 +1652,7 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
 			preset.renamed_from.clear();
         }
         //BBS: add lock logic for sync preset in background
+        final_inherits = preset.inherits();
         unlock();
     } else {
         // Creating a new preset.
@@ -1564,12 +1697,22 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
         else if (m_type == Preset::TYPE_PRINTER)
             preset.config.option<ConfigOptionString>("printer_settings_id", true)->value = preset.name;
         //BBS: add lock logic for sync preset in background
+        final_inherits = inherits;
         unlock();
     }
     // 2) Activate the saved preset.
     this->select_preset_by_name(new_name, true);
     // 2) Store the active preset to disk.
-    this->get_selected_preset().save();
+    //BBS: only save difference for user preset
+    Preset* parent_preset = nullptr;
+    if (!final_inherits.empty()) {
+        parent_preset = this->find_preset(final_inherits, false, true);
+    }
+    this->get_selected_preset().updated_time = (long long)Slic3r::Utils::get_current_time_utc();
+    if (parent_preset)
+        this->get_selected_preset().save(&(parent_preset->config));
+    else
+        this->get_selected_preset().save(nullptr);
 }
 
 bool PresetCollection::delete_current_preset()
@@ -2388,7 +2531,7 @@ void PhysicalPrinterCollection::load_printer(const std::string& path, const std:
         this->select_printer(*it);
 
     if (save)
-        it->save();
+        it->save(nullptr);
 }
 
 // if there is saved user presets, contains information about "Print Host upload",
@@ -2423,7 +2566,7 @@ void PhysicalPrinterCollection::load_printers_from_presets(PrinterPresetCollecti
                 for (const char *opt : legacy_print_host_options)
                     config.opt_string(opt).clear();
                 // save changes for preset
-                preset.save();
+                preset.save(nullptr);
 
                 // update those changes for edited preset if it's equal to the preset
                 Preset& edited = printer_presets.get_edited_preset();
@@ -2514,7 +2657,7 @@ void PhysicalPrinterCollection::save_printer(PhysicalPrinter& edited_printer, co
         printer.file = this->path_from_name(printer.name);
 
     if (printer.file == this->path_from_name(printer.name))
-        printer.save();
+        printer.save(nullptr);
     else
         // if printer was renamed, we should rename a file and than save the config
         printer.save(printer.file, this->path_from_name(printer.name));

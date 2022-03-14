@@ -47,6 +47,10 @@ public:
     //BBS: add API to get previous machine
     bool validate_printers(const std::string &name, DynamicPrintConfig& config);
 
+    //BBS: add function to generate differed preset for save
+    //the pointer should be freed by the caller
+    Preset* get_preset_differed_for_save(Preset& preset);
+
     //BBS: project embedded preset logic
     PresetsConfigSubstitutions load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule);
     std::vector<Preset*> get_current_project_embedded_presets();

@@ -1434,6 +1434,7 @@ namespace Slic3r {
         for (const std::string &opt_key : preset->config.keys()) {
             setting_node.put(opt_key, preset->config.opt_serialize(opt_key));
         }
+        setting_node.put("updated_time", std::to_string(preset->updated_time));
         root.add_child("setting", setting_node);
         std::stringstream oss;
         pt::write_json(oss, root, false);
@@ -2696,7 +2697,10 @@ namespace Slic3r {
                         if (root.get_child_optional("setting") != boost::none) {
                             pt::ptree setting_node = root.get_child("setting");
                             for (auto item = setting_node.begin(); item != setting_node.end(); ++item) {
-                                preset->key_values.insert(std::make_pair(item->first, item->second.data()));
+                                if (item->first == "updated_time")
+                                    preset->updated_time = std::atoll(item->second.data().c_str());
+                                else
+                                    preset->key_values.insert(std::make_pair(item->first, item->second.data()));
                             }
                         }
                         if (version.has_value())

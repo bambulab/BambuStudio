@@ -2873,6 +2873,13 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         if (! preset_substitutions.empty())
                             show_substitutions_info(preset_substitutions);
                     }
+                    if (project_presets.size() > 0) {
+                        for (unsigned int i = 0; i < project_presets.size(); i++)
+                        {
+                            delete project_presets[i];
+                        }
+                        project_presets.clear();
+                    }
 
                     if (load_config && !config_loaded.empty()) {
 
@@ -3043,6 +3050,12 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     preset_substitutions = preset_bundle.load_project_embedded_presets(project_presets, ForwardCompatibilitySubstitutionRule::Enable);
                     if (! preset_substitutions.empty())
                         show_substitutions_info(preset_substitutions);
+
+                    for (unsigned int i = 0; i < project_presets.size(); i++)
+                    {
+                        delete project_presets[i];
+                    }
+                    project_presets.clear();
                 }
             }
         } catch (const ConfigurationError &e) {
@@ -7959,6 +7972,15 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
             //p->statusbar()->set_status_text(format_wxstr(_L("Error exporting 3MF file %s"), path));
         }
         return -1;
+    }
+
+    if (project_presets.size() > 0)
+    {
+        for (unsigned int i = 0; i < project_presets.size(); i++)
+        {
+            delete project_presets[i];
+        }
+        project_presets.clear();
     }
 
     release_PlateData_list(plate_data_list);
