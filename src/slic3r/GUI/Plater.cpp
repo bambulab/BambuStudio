@@ -1841,8 +1841,6 @@ struct Plater::priv
     bool is_sidebar_collapsed() const   { return sidebar->is_collapsed(); }
     void collapse_sidebar(bool collapse);
 
-    bool is_view3D_layers_editing_enabled() const { return (current_panel == view3D) && view3D->get_canvas3d()->is_layers_editing_enabled(); }
-
     void set_current_canvas_as_dirty();
     GLCanvas3D* get_current_canvas3D();
     void unbind_canvas_event_handlers();
@@ -1988,7 +1986,6 @@ struct Plater::priv
     void on_process_completed(SlicingProcessCompletedEvent&);
     void on_export_began(wxCommandEvent&);
     void on_export_finished(wxCommandEvent&);
-    void on_layer_editing_toggled(bool enable);
     void on_slicing_began();
 
     void clear_warnings();
@@ -2006,7 +2003,6 @@ struct Plater::priv
     void on_action_del_plate(SimpleEvent&);
     void on_action_split_objects(SimpleEvent&);
     void on_action_split_volumes(SimpleEvent&);
-    void on_action_layersediting(SimpleEvent&);
 
     void on_object_select(SimpleEvent&);
     void on_right_click(RBtnEvent&);
@@ -2051,7 +2047,6 @@ struct Plater::priv
     bool can_split_to_objects() const;
     bool can_split_to_volumes() const;
     bool can_arrange() const;
-    bool can_layers_editing() const;
     bool can_fix_through_netfabb() const;
     bool can_simplify() const;
     bool can_set_instance_to_object() const;
@@ -2107,8 +2102,6 @@ struct Plater::priv
     bool PopupObjectTable(int object_id, int volume_id, const wxPoint& position);
 
 private:
-    bool layers_height_allowed() const;
-
     void update_fff_scene();
     void update_sla_scene();
 
@@ -2304,9 +2297,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
         view3D_canvas->Bind(EVT_GLCANVAS_UNDO, [this](SimpleEvent&) { this->undo(); });
         view3D_canvas->Bind(EVT_GLCANVAS_REDO, [this](SimpleEvent&) { this->redo(); });
         view3D_canvas->Bind(EVT_GLCANVAS_COLLAPSE_SIDEBAR, [this](SimpleEvent&) { this->q->collapse_sidebar(!this->q->is_sidebar_collapsed());  });
-        view3D_canvas->Bind(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, [this](SimpleEvent&) { this->view3D->get_canvas3d()->reset_layer_height_profile(); });
-        view3D_canvas->Bind(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, [this](Event<float>& evt) { this->view3D->get_canvas3d()->adaptive_layer_height_profile(evt.data); });
-        view3D_canvas->Bind(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, [this](HeightProfileSmoothEvent& evt) { this->view3D->get_canvas3d()->smooth_layer_height_profile(evt.data); });
         view3D_canvas->Bind(EVT_GLCANVAS_RELOAD_FROM_DISK, [this](SimpleEvent&) { this->reload_all_from_disk(); });
 
         // 3DScene/Toolbar:
@@ -2333,7 +2323,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
         view3D_canvas->Bind(EVT_GLTOOLBAR_FEWER, [q](SimpleEvent&) { q->decrease_instances(); });
         view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_OBJECTS, &priv::on_action_split_objects, this);
         view3D_canvas->Bind(EVT_GLTOOLBAR_SPLIT_VOLUMES, &priv::on_action_split_volumes, this);
-        view3D_canvas->Bind(EVT_GLTOOLBAR_LAYERSEDITING, &priv::on_action_layersediting, this);
         //BBS: GUI refactor: GLToolbar
         view3D_canvas->Bind(EVT_GLTOOLBAR_OPEN_PROJECT, &priv::on_action_open_project, this);
         //view3D_canvas->Bind(EVT_GLTOOLBAR_SLICE_PLATE, &priv::on_action_slice_plate, this);
@@ -3560,12 +3549,6 @@ int Plater::priv::get_selected_volume_idx() const
 
 void Plater::priv::selection_changed()
 {
-    // if the selection is not valid to allow for layer editing, we need to turn off the tool if it is running
-    if (!layers_height_allowed() && view3D->is_layers_editing_enabled()) {
-        SimpleEvent evt(EVT_GLTOOLBAR_LAYERSEDITING);
-        on_action_layersediting(evt);
-    }
-
     // forces a frame render to update the view (to avoid a missed update if, for example, the context menu appears)
     view3D->render();
 }
@@ -3612,9 +3595,6 @@ void Plater::priv::deselect_all()
 
 void Plater::priv::remove(size_t obj_idx)
 {
-    if (view3D->is_layers_editing_enabled())
-        view3D->enable_layers_editing(false);
-
     m_ui_jobs.cancel_all();
     model.delete_object(obj_idx);
     //BBS: notify partplate the instance removed
@@ -3648,9 +3628,6 @@ void Plater::priv::delete_all_objects_from_model()
 {
     Plater::TakeSnapshot snapshot(q, _L("Delete All Objects"));
 
-    if (view3D->is_layers_editing_enabled())
-        view3D->enable_layers_editing(false);
-
     reset_gcode_toolpaths();
     gcode_result.reset();
 
@@ -3676,9 +3653,6 @@ void Plater::priv::reset()
     clear_warnings();
 
     set_project_filename("");
-
-    if (view3D->is_layers_editing_enabled())
-        view3D->enable_layers_editing(false);
 
     reset_gcode_toolpaths();
     //BBS: update gcode to current partplate's
@@ -3891,10 +3865,6 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
 
     //BBS: add slicing related logs
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": background process apply result=%1%")%invalidated;
-    // Just redraw the 3D canvas without reloading the scene to consume the update of the layer height profile.
-    if (view3D->is_layers_editing_enabled())
-        view3D->get_wxglcanvas()->Refresh();
-
     if (background_process.empty())
         view3D->get_canvas3d()->reset_sequential_print_clearance();
 
@@ -5149,12 +5119,6 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     }
 }
 
-void Plater::priv::on_layer_editing_toggled(bool enable)
-{
-    view3D->enable_layers_editing(enable);
-    view3D->set_as_dirty();
-}
-
 void Plater::priv::on_action_add(SimpleEvent&)
 {
     if (q != nullptr) {
@@ -5308,12 +5272,6 @@ void Plater::priv::on_action_split_objects(SimpleEvent&)
 void Plater::priv::on_action_split_volumes(SimpleEvent&)
 {
     split_volume();
-}
-
-void Plater::priv::on_action_layersediting(SimpleEvent&)
-{
-    view3D->enable_layers_editing(!view3D->is_layers_editing_enabled());
-    notification_manager->set_move_from_overlay(view3D->is_layers_editing_enabled());
 }
 
 void Plater::priv::on_object_select(SimpleEvent& evt)
@@ -5758,16 +5716,6 @@ bool Plater::priv::can_scale_to_print_volume() const
 }
 #endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
 
-bool Plater::priv::layers_height_allowed() const
-{
-    if (printer_technology != ptFFF)
-        return false;
-
-    int obj_idx = get_selected_object_idx();
-    return 0 <= obj_idx && obj_idx < (int)model.objects.size() && model.objects[obj_idx]->bounding_box().max.z() > SINKING_Z_THRESHOLD &&
-        view3D->is_layers_editing_allowed();
-}
-
 bool Plater::priv::can_mirror() const
 {
     return get_selection().is_from_single_instance();
@@ -5937,53 +5885,6 @@ bool Plater::priv::can_arrange() const
     return !model.objects.empty() && !m_ui_jobs.is_any_running();
 }
 
-bool Plater::priv::can_layers_editing() const
-{
-    return layers_height_allowed();
-}
-
-// BBS
-#if 0
-void Plater::priv::show_action_buttons(const bool ready_to_slice) const
-{
-    // Cache this value, so that the callbacks from the RemovableDriveManager may repeat that value when calling show_action_buttons().
-    this->ready_to_slice = ready_to_slice;
-
-    wxWindowUpdateLocker noUpdater(sidebar);
-
-    DynamicPrintConfig* selected_printer_config = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config();
-    const auto print_host_opt = selected_printer_config ? selected_printer_config->option<ConfigOptionString>("print_host") : nullptr;
-
-    //BBS always show send_gcode button
-    //const bool send_gcode_shown = print_host_opt != nullptr && !print_host_opt->value.empty();
-    const bool send_gcode_shown = true;
-    
-    // when a background processing is ON, export_btn and/or send_btn are showing
-    if (wxGetApp().app_config->get("background_processing") == "1")
-    {
-        RemovableDriveManager::RemovableDrivesStatus removable_media_status = wxGetApp().removable_drive_manager()->status();
-        if (sidebar->show_reslice(false) |
-            sidebar->show_export(true) |
-            sidebar->show_send(send_gcode_shown) |
-            sidebar->show_export_removable(removable_media_status.has_removable_drives))
-//			sidebar->show_eject(removable_media_status.has_eject))
-            sidebar->Layout();
-    }
-    else
-    {
-        RemovableDriveManager::RemovableDrivesStatus removable_media_status;
-        if (! ready_to_slice) 
-            removable_media_status = wxGetApp().removable_drive_manager()->status();
-        if (sidebar->show_reslice(ready_to_slice) |
-            sidebar->show_export(!ready_to_slice) |
-            sidebar->show_send(send_gcode_shown && !ready_to_slice) |
-            sidebar->show_export_removable(!ready_to_slice && removable_media_status.has_removable_drives))
-//            sidebar->show_eject(!ready_to_slice && removable_media_status.has_eject))
-            sidebar->Layout();
-    }
-}
-#endif
-
 void Plater::priv::enter_gizmos_stack()
 {
     assert(m_undo_redo_stack_active == &m_undo_redo_stack_main);
@@ -6028,8 +5929,6 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name, const UndoRed
     UndoRedo::SnapshotData snapshot_data;
     snapshot_data.snapshot_type      = snapshot_type;
     snapshot_data.printer_technology = this->printer_technology;
-    if (this->view3D->is_layers_editing_enabled())
-        snapshot_data.flags |= UndoRedo::SnapshotData::VARIABLE_LAYER_EDITING_ACTIVE;
     if (this->sidebar->obj_list()->is_selected(itSettings)) {
         snapshot_data.flags |= UndoRedo::SnapshotData::SELECTED_SETTINGS_ON_SIDEBAR;
         snapshot_data.layer_range_idx = this->sidebar->obj_list()->get_selected_layers_range_idx();
@@ -6175,8 +6074,6 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
     unsigned int new_flags = it_snapshot->snapshot_data.flags;
     UndoRedo::SnapshotData top_snapshot_data;
     top_snapshot_data.printer_technology = this->printer_technology;
-    if (this->view3D->is_layers_editing_enabled())
-        top_snapshot_data.flags |= UndoRedo::SnapshotData::VARIABLE_LAYER_EDITING_ACTIVE;
     if (this->sidebar->obj_list()->is_selected(itSettings)) {
         top_snapshot_data.flags |= UndoRedo::SnapshotData::SELECTED_SETTINGS_ON_SIDEBAR;
         top_snapshot_data.layer_range_idx = this->sidebar->obj_list()->get_selected_layers_range_idx();
@@ -6194,10 +6091,6 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
 
     if (this->view3D->get_canvas3d()->get_gizmos_manager().wants_reslice_supports_on_undo())
         top_snapshot_data.flags |= UndoRedo::SnapshotData::RECALCULATE_SLA_SUPPORTS;
-
-    // Disable layer editing before the Undo / Redo jump.
-    if (!new_variable_layer_editing_active && view3D->is_layers_editing_enabled())
-        view3D->get_canvas3d()->force_main_toolbar_left_action(view3D->get_canvas3d()->get_main_toolbar_item_id("layersediting"));
 
     // Make a copy of the snapshot, undo/redo could invalidate the iterator
     const UndoRedo::Snapshot snapshot_copy = *it_snapshot;
@@ -6275,9 +6168,6 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
             this->sidebar->obj_list()->set_selected_layers_range_idx(layer_range_idx);
 
         this->update_after_undo_redo(snapshot_copy, temp_snapshot_was_taken);
-        // Enable layer editing after the Undo / Redo jump.
-        if (! view3D->is_layers_editing_enabled() && this->layers_height_allowed() && new_variable_layer_editing_active)
-            view3D->get_canvas3d()->force_main_toolbar_left_action(view3D->get_canvas3d()->get_main_toolbar_item_id("layersediting"));
     }
 
     dirty_state.update_from_undo_redo_stack(m_undo_redo_stack_main.project_modified());
@@ -7375,8 +7265,6 @@ void Plater::show_view3D_labels(bool show) { p->show_view3D_labels(show); }
 bool Plater::is_sidebar_collapsed() const { return p->is_sidebar_collapsed(); }
 void Plater::collapse_sidebar(bool show) { p->collapse_sidebar(show); }
 
-bool Plater::is_view3D_layers_editing_enabled() const { return p->is_view3D_layers_editing_enabled(); }
-
 //BBS
 void Plater::select_curr_plate_all() { p->select_curr_plate_all(); }
 void Plater::remove_curr_plate_all() { p->remove_curr_plate_all(); }
@@ -7594,12 +7482,6 @@ void Plater::convert_unit(ConversionType conv_type)
         for (int vol_idx : volume_idxs)
             selection.add_volume(last_obj_idx, vol_idx, 0, false);
     }
-}
-
-void Plater::toggle_layers_editing(bool enable)
-{
-    if (canvas3D()->is_layers_editing_enabled() != enable)
-        canvas3D()->force_main_toolbar_left_action(canvas3D()->get_main_toolbar_item_id("layersediting"));
 }
 
 // BBS: replace z with plane_points
@@ -9580,7 +9462,6 @@ bool Plater::can_simplify() const { return p->can_simplify(); }
 bool Plater::can_split_to_objects() const { return p->can_split_to_objects(); }
 bool Plater::can_split_to_volumes() const { return p->can_split_to_volumes(); }
 bool Plater::can_arrange() const { return p->can_arrange(); }
-bool Plater::can_layers_editing() const { return p->can_layers_editing(); }
 bool Plater::can_paste_from_clipboard() const
 {
     const Selection& selection = p->view3D->get_canvas3d()->get_selection();

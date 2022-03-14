@@ -2063,14 +2063,6 @@ void ObjectList::del_info_item(const int obj_idx, InfoItemType type)
         cnv->reload_scene(true, true);
         break;
 
-    case InfoItemType::VariableLayerHeight:
-        Plater::TakeSnapshot(plater, _L("Remove variable layer height"));
-        (*m_objects)[obj_idx]->layer_height_profile.clear();
-        if (cnv->is_layers_editing_enabled())
-            //cnv->post_event(SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING));
-            cnv->force_main_toolbar_left_action(cnv->get_main_toolbar_item_id("layersediting"));
-        break;
-
     case InfoItemType::Undef : assert(false); break;
     }
     cnv->post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
@@ -2724,11 +2716,6 @@ void ObjectList::part_selection_changed()
                     InfoItemType info_type = m_objects_model->GetInfoItemType(item);
                     switch (info_type)
                     {
-                    case InfoItemType::VariableLayerHeight:
-                    {
-                        wxGetApp().plater()->toggle_layers_editing(true);
-                        break;
-                    }
                     case InfoItemType::CustomSupports:
                     case InfoItemType::CustomSeam:
                     case InfoItemType::MmuSegmentation:
@@ -2897,8 +2884,7 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selectio
     for (InfoItemType type : {InfoItemType::CustomSupports,
                               InfoItemType::CustomSeam,
                               InfoItemType::MmuSegmentation,
-                              InfoItemType::Sinking,
-                              InfoItemType::VariableLayerHeight}) {
+                              InfoItemType::Sinking}) {
         wxDataViewItem item = m_objects_model->GetInfoItemByType(item_obj, type);
         bool shows = item.IsOk();
         bool should_show = false;
@@ -2914,11 +2900,6 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selectio
                                                    type == InfoItemType::CustomSeam     ? mv->seam_facets.empty() :
                                                                                           mv->mmu_segmentation_facets.empty());
                                       });
-            break;
-
-        case InfoItemType::VariableLayerHeight :
-            should_show = printer_technology() == ptFFF
-                       && ! model_object->layer_height_profile.empty();
             break;
         case InfoItemType::Sinking:
         {

@@ -62,7 +62,6 @@ const std::map<InfoItemType, InfoItemAtributes> INFO_ITEMS{
             { InfoItemType::CustomSeam,          {L("Paint-on seam"),           "seam_" },             },
             { InfoItemType::MmuSegmentation,     {L("Multimaterial painting"),  "mmu_segmentation_"},  },
             { InfoItemType::Sinking,             {L("Sinking"),                 "sinking"},            },
-            { InfoItemType::VariableLayerHeight, {L("Variable layer height"),   "layers"},             },
 };
 
 ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode*   parent,

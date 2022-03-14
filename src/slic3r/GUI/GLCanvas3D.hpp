@@ -185,9 +185,6 @@ wxDECLARE_EVENT(EVT_GLCANVAS_JUMP_TO, wxKeyEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_UNDO, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_COLLAPSE_SIDEBAR, SimpleEvent);
-wxDECLARE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
-wxDECLARE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
-wxDECLARE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RELOAD_FROM_DISK, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RENDER_TIMER, wxTimerEvent/*RenderTimerEvent*/);
 wxDECLARE_EVENT(EVT_GLCANVAS_TOOLBAR_HIGHLIGHTER_TIMER, wxTimerEvent);
@@ -205,106 +202,6 @@ class GLCanvas3D
 
     static void update_render_colors();
     static void load_render_colors();
-
-    class LayersEditing
-    {
-    public:
-        enum EState : unsigned char
-        {
-            Unknown,
-            Editing,
-            Completed,
-            Num_States
-        };
-
-        static const float THICKNESS_BAR_WIDTH;
-    private:
-
-        bool                        m_enabled{ false };
-        unsigned int                m_z_texture_id{ 0 };
-        // Not owned by LayersEditing.
-        const DynamicPrintConfig   *m_config{ nullptr };
-        // ModelObject for the currently selected object (Model::objects[last_object_id]).
-        const ModelObject          *m_model_object{ nullptr };
-        // Maximum z of the currently selected object (Model::objects[last_object_id]).
-        float                       m_object_max_z{ 0.0f };
-        // Owned by LayersEditing.
-        SlicingParameters           *m_slicing_parameters{ nullptr };
-        std::vector<double>         m_layer_height_profile;
-        bool                        m_layer_height_profile_modified{ false };
-
-        mutable float               m_adaptive_quality{ 0.5f };
-        mutable HeightProfileSmoothingParams m_smooth_params;
-        
-        static float                s_overlay_window_width;
-
-        struct LayersTexture
-        {
-            // Texture data
-            std::vector<char>   data;
-            // Width of the texture, top level.
-            size_t              width{ 0 };
-            // Height of the texture, top level.
-            size_t              height{ 0 };
-            // For how many levels of detail is the data allocated?
-            size_t              levels{ 0 };
-            // Number of texture cells allocated for the height texture.
-            size_t              cells{ 0 };
-            // Does it need to be refreshed?
-            bool                valid{ false };
-        };
-        LayersTexture   m_layers_texture;
-
-    public:
-        EState state{ Unknown };
-        float band_width{ 2.0f };
-        float strength{ 0.005f };
-        int last_object_id{ -1 };
-        float last_z{ 0.0f };
-        LayerHeightEditActionType last_action{ LAYER_HEIGHT_EDIT_ACTION_INCREASE };
-
-        LayersEditing() = default;
-        ~LayersEditing();
-
-        void init();
-
-        void set_config(const DynamicPrintConfig* config);
-        void select_object(const Model &model, int object_id);
-
-        bool is_allowed() const;
-
-        bool is_enabled() const;
-        void set_enabled(bool enabled);
-
-        void render_overlay(const GLCanvas3D& canvas) const;
-        void render_volumes(const GLCanvas3D& canvas, const GLVolumeCollection& volumes);
-
-		void adjust_layer_height_profile();
-		void accept_changes(GLCanvas3D& canvas);
-        void reset_layer_height_profile(GLCanvas3D& canvas);
-        void adaptive_layer_height_profile(GLCanvas3D& canvas, float quality_factor);
-        void smooth_layer_height_profile(GLCanvas3D& canvas, const HeightProfileSmoothingParams& smoothing_params);
-
-        static float get_cursor_z_relative(const GLCanvas3D& canvas);
-        static bool bar_rect_contains(const GLCanvas3D& canvas, float x, float y);
-        static Rect get_bar_rect_screen(const GLCanvas3D& canvas);
-        static Rect get_bar_rect_viewport(const GLCanvas3D& canvas);
-        static float get_overlay_window_width() { return LayersEditing::s_overlay_window_width; }
-
-        float object_max_z() const { return m_object_max_z; }
-
-        std::string get_tooltip(const GLCanvas3D& canvas) const;
-
-    private:
-        bool is_initialized() const;
-        void generate_layer_height_texture();
-        void render_active_object_annotations(const GLCanvas3D& canvas, const Rect& bar_rect) const;
-        void render_profile(const Rect& bar_rect) const;
-        void update_slicing_parameters();
-
-        static float thickness_bar_width(const GLCanvas3D &canvas);
-        
-    };
 
     struct Mouse
     {
@@ -511,7 +408,6 @@ private:
     unsigned int m_last_w, m_last_h;
     bool m_in_render;
     wxTimer m_timer;
-    LayersEditing m_layers_editing;
     Mouse m_mouse;
     GLGizmosManager m_gizmos;
     //BBS: GUI refactor: GLToolbar
@@ -766,17 +662,10 @@ public:
     BoundingBoxf3 scene_bounding_box() const;
     BoundingBoxf3 plate_scene_bounding_box(int plate_idx) const;
 
-    bool is_layers_editing_enabled() const;
-    bool is_layers_editing_allowed() const;
     bool is_search_pressed() const;
-
-    void reset_layer_height_profile();
-    void adaptive_layer_height_profile(float quality_factor);
-    void smooth_layer_height_profile(const HeightProfileSmoothingParams& smoothing_params);
 
     bool is_reload_delayed() const;
 
-    void enable_layers_editing(bool enable);
     void enable_legend_texture(bool enable);
     void enable_picking(bool enable);
     void enable_moving(bool enable);
@@ -1109,8 +998,6 @@ private:
 
     void _update_volumes_hover_state();
 
-    void _perform_layer_editing_action(wxMouseEvent* evt = nullptr);
-
     // Convert the screen space coordinate to an object space coordinate.
     // If the Z screen space coordinate is not provided, a depth buffer value is substituted.
     Vec3d _mouse_to_3d(const Point& mouse_pos, float* z = nullptr);
@@ -1156,7 +1043,8 @@ private:
     //BBS: add deactivate_orient_menu
     bool _deactivate_orient_menu();
 
-    float get_overlay_window_width() { return LayersEditing::get_overlay_window_width(); }
+    // BBS FIXME
+    float get_overlay_window_width() { return 100.f; }
 
     static std::vector<std::array<float, 4>> _parse_colors(const std::vector<std::string>& colors);
 };

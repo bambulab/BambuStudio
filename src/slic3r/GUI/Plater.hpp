@@ -238,8 +238,6 @@ public:
     bool is_sidebar_collapsed() const;
     void collapse_sidebar(bool show);
 
-    bool is_view3D_layers_editing_enabled() const;
-
     // Called after the Preferences dialog is closed and the program settings are saved.
     // Update the UI based on the current preferences.
     void update_ui_from_settings();
@@ -264,7 +262,6 @@ public:
     bool is_selection_empty() const;
     void scale_selection_to_fit_print_volume();
     void convert_unit(ConversionType conv_type);
-    void toggle_layers_editing(bool enable);
 
     // BBS: replace z with plane_points
     void cut(size_t obj_idx, size_t instance_idx, std::array<Vec3d, 4> plane_points, ModelObjectCutAttributes attributes);
@@ -400,7 +397,6 @@ public:
     bool can_split_to_objects() const;
     bool can_split_to_volumes() const;
     bool can_arrange() const;
-    bool can_layers_editing() const;
     //BBS
     bool can_cut_to_clipboard() const;
     bool can_paste_from_clipboard() const;

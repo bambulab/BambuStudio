@@ -1089,7 +1089,6 @@ void NotificationManager::UpdatedItemsInfoNotification::add_type(InfoItemType ty
 		case InfoItemType::CustomSupports:      text += format(_L_PLURAL("%1$d Object was loaded with custom supports.",		"%1$d Objects were loaded with custom supports.",		(*it).second), (*it).second) + "\n"; break;
 		case InfoItemType::CustomSeam:          text += format(_L_PLURAL("%1$d Object was loaded with custom seam.",			"%1$d Objects were loaded with custom seam.",			(*it).second), (*it).second) + "\n"; break;
 		case InfoItemType::MmuSegmentation:     text += format(_L_PLURAL("%1$d Object was loaded with multimaterial painting.", "%1$d Objects were loaded with multimaterial painting.",(*it).second), (*it).second) + "\n"; break;
-		case InfoItemType::VariableLayerHeight: text += format(_L_PLURAL("%1$d Object was loaded with variable layer height.",	"%1$d Objects were loaded with variable layer height.", (*it).second), (*it).second) + "\n"; break;
 		case InfoItemType::Sinking:             text += format(_L_PLURAL("%1$d Object was loaded with partial sinking.",		"%1$d Objects were loaded with partial sinking.",		(*it).second), (*it).second) + "\n"; break;
 		default: BOOST_LOG_TRIVIAL(error) << "Unknown InfoItemType: " << (*it).second; break;
 		}
@@ -1098,25 +1097,7 @@ void NotificationManager::UpdatedItemsInfoNotification::add_type(InfoItemType ty
 	NotificationData data { get_data().type, get_data().level , get_data().duration, text };
 	update(data);
 }
-// Uncomment to have different icon for every type of info, otherwise it will have standart cube with i.
-/*
-void NotificationManager::UpdatedItemsInfoNotification::render_left_sign(ImGuiWrapper& imgui)
-{
-	std::string text;
-	InfoItemType type = (m_types_and_counts.empty() ? InfoItemType::CustomSupports : m_types_and_counts[0].first);
-	switch (type) {
-	case InfoItemType::CustomSupports:      text = ImGui::CustomSupportsMarker; break;
-	case InfoItemType::CustomSeam:          text = ImGui::CustomSeamMarker; break;
-	case InfoItemType::MmuSegmentation:     text = ImGui::MmuSegmentationMarker; break;
-	case InfoItemType::VariableLayerHeight: text = ImGui::VarLayerHeightMarker; break;
-	case InfoItemType::Sinking:             text = ImGui::SinkingObjectMarker; break;
-	default: break;
-	}
-	ImGui::SetCursorPosX(m_line_height / 3);
-	ImGui::SetCursorPosY(m_window_height / 2 - m_line_height);
-	imgui.text(text.c_str());
-}
-*/
+
 //------SlicingProgressNotification
 void NotificationManager::SlicingProgressNotification::init()
 {
