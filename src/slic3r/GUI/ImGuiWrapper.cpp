@@ -346,6 +346,56 @@ void ImGuiWrapper::set_next_window_size(float x, float y, ImGuiCond cond)
 	ImGui::SetNextWindowSize(ImVec2(x, y), cond);
 }
 
+/* BBL style widgets */
+bool ImGuiWrapper::bbl_input_double(const wxString& label, const double& value, const std::string& format)
+{
+    //return ImGui::InputDouble(label.c_str(), const_cast<double *>(&value), 0.0f, 0.0f, format.c_str(), ImGuiInputTextFlags_CharsDecimal);
+    return ImGui::InputDouble(label.c_str(), const_cast<double *>(&value), 0.0f, 0.0f, format.c_str(), ImGuiInputTextFlags_CharsDecimal);
+}
+
+bool ImGuiWrapper::bbl_slider_float(const std::string& label, float* v, float v_min, float v_max, const char* format, float power, bool clamp, const wxString& tooltip)
+{
+    const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
+
+    // let the label string start with "##" to hide the automatic label from ImGui::SliderFloat()
+    bool label_visible = !boost::algorithm::istarts_with(label, "##");
+    std::string str_label = label_visible ? std::string("##") + std::string(label) : std::string(label);
+
+    // removes 2nd evenience of "##", if present
+    std::string::size_type pos = str_label.find("##", 2);
+    if (pos != std::string::npos)
+        str_label = str_label.substr(0, pos) + str_label.substr(pos + 2);
+
+    bool ret = ImGui::BBLSliderFloat(str_label.c_str(), v, v_min, v_max, format, power);
+
+    m_last_slider_status.hovered = ImGui::IsItemHovered();
+    m_last_slider_status.clicked = ImGui::IsItemClicked();
+    m_last_slider_status.deactivated_after_edit = ImGui::IsItemDeactivatedAfterEdit();
+
+    if (!tooltip.empty() && ImGui::IsItemHovered())
+        this->tooltip(into_u8(tooltip).c_str(), max_tooltip_width);
+
+    if (clamp)
+        *v = std::clamp(*v, v_min, v_max);
+
+    const ImGuiStyle& style = ImGui::GetStyle();
+
+    if (label_visible) {
+        // if the label is visible, hide the part of it that should be hidden
+        std::string out_label = std::string(label);
+        std::string::size_type pos = out_label.find("##");
+        if (pos != std::string::npos)
+            out_label = out_label.substr(0, pos);
+
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 1, style.ItemSpacing.y });
+        ImGui::SameLine();
+        this->text(out_label.c_str());
+        ImGui::PopStyleVar();
+    }
+
+    return ret;
+}
+
 bool ImGuiWrapper::begin(const std::string &name, int flags)
 {
     return ImGui::Begin(name.c_str(), nullptr, (ImGuiWindowFlags)flags);

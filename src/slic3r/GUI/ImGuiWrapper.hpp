@@ -76,6 +76,10 @@ public:
     void set_next_window_bg_alpha(float alpha);
 	void set_next_window_size(float x, float y, ImGuiCond cond);
 
+    /* BBL style widgets */
+    bool bbl_input_double(const wxString &label, const double &value, const std::string &format = "%0.2f");
+    bool bbl_slider_float(const std::string &label, float* v, float v_min, float v_max, const char* format = "%.3f", float power = 1.0f, bool clamp = true, const wxString& tooltip = {});
+
     bool begin(const std::string &name, int flags = 0);
     bool begin(const wxString &name, int flags = 0);
     bool begin(const std::string& name, bool* close, int flags = 0);

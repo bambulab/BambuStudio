@@ -3129,6 +3129,81 @@ bool ImGui::SliderScalarN(const char* label, ImGuiDataType data_type, void* v, i
     return value_changed;
 }
 
+bool ImGui::BBLSliderScalar(const char *label, ImGuiDataType data_type, void *p_data, const void *p_min, const void *p_max, const char *format, ImGuiSliderFlags flags)
+{
+    ImGuiWindow *window = GetCurrentWindow();
+    if (window->SkipItems) return false;
+
+    ImGuiContext &    g     = *GImGui;
+    const ImGuiStyle &style = g.Style;
+    const ImGuiID     id    = window->GetID(label);
+    const float       w     = CalcItemWidth();
+
+    const ImVec2 label_size = CalcTextSize(label, NULL, true);
+    const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
+    const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
+
+    const bool temp_input_allowed = (flags & ImGuiSliderFlags_NoInput) == 0;
+    ItemSize(total_bb, style.FramePadding.y);
+    if (!ItemAdd(total_bb, id, &frame_bb, temp_input_allowed ? ImGuiItemAddFlags_Focusable : 0)) return false;
+
+    // Default format string when passing NULL
+    if (format == NULL)
+        format = DataTypeGetInfo(data_type)->PrintFmt;
+    else if (data_type == ImGuiDataType_S32 && strcmp(format, "%d") != 0) // (FIXME-LEGACY: Patch old "%.0f" format string to use "%d", read function more details.)
+        format = PatchFormatStringFloatToInt(format);
+
+    // Tabbing or CTRL-clicking on Slider turns it into an input box
+    const bool hovered              = ItemHoverable(frame_bb, id);
+    bool       temp_input_is_active = temp_input_allowed && TempInputIsActive(id);
+    if (!temp_input_is_active) {
+        const bool focus_requested = temp_input_allowed && (window->DC.LastItemStatusFlags & ImGuiItemStatusFlags_Focused) != 0;
+        const bool clicked         = (hovered && g.IO.MouseClicked[0]);
+        if (focus_requested || clicked || g.NavActivateId == id || g.NavInputId == id) {
+            SetActiveID(id, window);
+            SetFocusID(id, window);
+            FocusWindow(window);
+            g.ActiveIdUsingNavDirMask |= (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
+            if (temp_input_allowed && (focus_requested || (clicked && g.IO.KeyCtrl) || g.NavInputId == id)) temp_input_is_active = true;
+        }
+    }
+
+    if (temp_input_is_active) {
+        // Only clamp CTRL+Click input when ImGuiSliderFlags_AlwaysClamp is set
+        const bool is_clamp_input = (flags & ImGuiSliderFlags_AlwaysClamp) != 0;
+        return TempInputScalar(frame_bb, id, label, data_type, p_data, format, is_clamp_input ? p_min : NULL, is_clamp_input ? p_max : NULL);
+    }
+
+    // Draw frame
+    const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : g.HoveredId == id ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
+    RenderNavHighlight(frame_bb, id);
+    RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, g.Style.FrameRounding);
+
+    // Slider behavior
+    ImRect     grab_bb;
+    const bool value_changed = SliderBehavior(frame_bb, id, data_type, p_data, p_min, p_max, format, flags, &grab_bb);
+    if (value_changed) MarkItemEdited(id);
+
+    // Render grab
+    if (grab_bb.Max.x > grab_bb.Min.x) {
+        float  offset = 1.0f;
+        ImVec2 p1 = ImVec2((grab_bb.Min.x + grab_bb.Max.x) / 2, (grab_bb.Min.y + grab_bb.Max.y) / 2 - offset);
+        ImVec2 p2 = ImVec2(grab_bb.Min.x, grab_bb.Max.y);
+        ImVec2 p3 = ImVec2(grab_bb.Max.x, grab_bb.Max.y);
+        window->DrawList->AddTriangleFilled(p1, p2, p3, GetColorU32(ImGuiCol_SliderGrabActive));
+        ImVec2 start_pos = ImVec2(frame_bb.Min.x, frame_bb.GetCenter().y - offset);
+        ImVec2 curr_pos  = ImVec2(grab_bb.GetCenter().x, frame_bb.GetCenter().y + offset);
+        ImVec2 end_pos   = ImVec2(frame_bb.Max.x, frame_bb.GetCenter().y + offset);
+        window->DrawList->AddRectFilled(start_pos, curr_pos, GetColorU32(ImGuiCol_SliderGrabActive), style.GrabRounding);
+        window->DrawList->AddRectFilled(start_pos, end_pos, GetColorU32(ImGuiCol_SliderGrab), style.GrabRounding);
+    }
+
+    if (label_size.x > 0.0f) RenderText(ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x, frame_bb.Min.y + style.FramePadding.y), label);
+
+    IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.LastItemStatusFlags);
+    return value_changed;
+}
+
 bool ImGui::SliderFloat(const char* label, float* v, float v_min, float v_max, const char* format, ImGuiSliderFlags flags)
 {
     return SliderScalar(label, ImGuiDataType_Float, v, &v_min, &v_max, format, flags);
@@ -3271,6 +3346,16 @@ bool ImGui::SliderScalarN(const char* label, ImGuiDataType data_type, void* v, i
         slider_flags |= ImGuiSliderFlags_Logarithmic;   // Fallback for non-asserting paths
     }
     return SliderScalarN(label, data_type, v, components, v_min, v_max, format, slider_flags);
+}
+
+bool ImGui::BBLSliderFloat(const char *label, float *v, float v_min, float v_max, const char *format, float power)
+{
+    ImGuiSliderFlags slider_flags = ImGuiSliderFlags_None;
+    if (power != 1.0f) {
+        IM_ASSERT(power == 1.0f && "Call function with ImGuiSliderFlags_Logarithmic flags instead of using the old 'float power' function!");
+        slider_flags |= ImGuiSliderFlags_Logarithmic; // Fallback for non-asserting paths
+    }
+    return BBLSliderScalar(label, ImGuiDataType_Float, v, &v_min, &v_max, format, slider_flags);
 }
 
 #endif // IMGUI_DISABLE_OBSOLETE_FUNCTIONS
@@ -3432,6 +3517,89 @@ bool ImGui::TempInputScalar(const ImRect& bb, ImGuiID id, const char* label, ImG
 
 // Note: p_data, p_step, p_step_fast are _pointers_ to a memory address holding the data. For an Input widget, p_step and p_step_fast are optional.
 // Read code of e.g. InputFloat(), InputInt() etc. or examples in 'Demo->Widgets->Data Types' to understand how to use this function directly.
+bool ImGui::BBLInputScalar(const char *label, ImGuiDataType data_type, void *p_data, const void *p_step, const void *p_step_fast, const char *format, ImGuiInputTextFlags flags)
+{
+    ImGuiWindow *window = GetCurrentWindow();
+    if (window->SkipItems) return false;
+
+    ImGuiContext &g     = *GImGui;
+    ImGuiStyle &  style = g.Style;
+
+    /* get hover status */
+    const ImGuiID id = window->GetID(label);
+    const float   w  = CalcItemWidth();
+
+    const ImVec2 label_size = CalcTextSize(label, NULL, true);
+    const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
+    // Tabbing or CTRL-clicking on Drag turns it into an InputText
+    const bool hovered = ItemHoverable(frame_bb, id);
+    // We are only allowed to access the state if we are already the active widget.
+    ImGuiInputTextState *state = GetInputTextState(id);
+
+    bool push_color_count = 0;
+    if (hovered || g.ActiveId == id) {
+        ImGui::PushStyleColor(ImGuiCol_Border, GetColorU32(ImGuiCol_BorderActive));
+        push_color_count = 1;
+    }
+
+    if (format == NULL) format = DataTypeGetInfo(data_type)->PrintFmt;
+
+    char buf[64];
+    DataTypeFormatString(buf, IM_ARRAYSIZE(buf), data_type, p_data, format);
+
+    bool value_changed = false;
+    if ((flags & (ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsScientific)) == 0) flags |= ImGuiInputTextFlags_CharsDecimal;
+    flags |= ImGuiInputTextFlags_AutoSelectAll;
+    flags |= ImGuiInputTextFlags_NoMarkEdited; // We call MarkItemEdited() ourselves by comparing the actual data rather than the string.
+
+    if (p_step != NULL) {
+        const float button_size = GetFrameHeight();
+
+        BeginGroup(); // The only purpose of the group here is to allow the caller to query item data e.g. IsItemActive()
+        PushID(label);
+        SetNextItemWidth(ImMax(1.0f, CalcItemWidth() - (button_size + style.ItemInnerSpacing.x) * 2));
+        if (InputText("", buf, IM_ARRAYSIZE(buf), flags)) // PushId(label) + "" gives us the expected ID from outside point of view
+            value_changed = DataTypeApplyOpFromText(buf, g.InputTextState.InitialTextA.Data, data_type, p_data, format);
+
+        // Step buttons
+        const ImVec2 backup_frame_padding = style.FramePadding;
+        style.FramePadding.x              = style.FramePadding.y;
+        ImGuiButtonFlags button_flags     = ImGuiButtonFlags_Repeat | ImGuiButtonFlags_DontClosePopups;
+        if (flags & ImGuiInputTextFlags_ReadOnly) button_flags |= ImGuiButtonFlags_Disabled;
+        SameLine(0, style.ItemInnerSpacing.x);
+        if (ButtonEx("-", ImVec2(button_size, button_size), button_flags)) {
+            DataTypeApplyOp(data_type, '-', p_data, p_data, g.IO.KeyCtrl && p_step_fast ? p_step_fast : p_step);
+            value_changed = true;
+        }
+        SameLine(0, style.ItemInnerSpacing.x);
+        if (ButtonEx("+", ImVec2(button_size, button_size), button_flags)) {
+            DataTypeApplyOp(data_type, '+', p_data, p_data, g.IO.KeyCtrl && p_step_fast ? p_step_fast : p_step);
+            value_changed = true;
+        }
+
+        const char *label_end = FindRenderedTextEnd(label);
+        if (label != label_end) {
+            SameLine(0, style.ItemInnerSpacing.x);
+            TextEx(label, label_end);
+        }
+        style.FramePadding = backup_frame_padding;
+
+        PopID();
+        EndGroup();
+    } else {
+        if (InputText(label, buf, IM_ARRAYSIZE(buf), flags)) value_changed = DataTypeApplyOpFromText(buf, g.InputTextState.InitialTextA.Data, data_type, p_data, format);
+    }
+    if (value_changed) MarkItemEdited(window->DC.LastItemId);
+
+    if (push_color_count > 0) {
+        ImGui::PopStyleColor(push_color_count);
+    }
+
+    return value_changed;
+}
+
+// Note: p_data, p_step, p_step_fast are _pointers_ to a memory address holding the data. For an Input widget, p_step and p_step_fast are optional.
+// Read code of e.g. InputFloat(), InputInt() etc. or examples in 'Demo->Widgets->Data Types' to understand how to use this function directly.
 bool ImGui::InputScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_step, const void* p_step_fast, const char* format, ImGuiInputTextFlags flags)
 {
     ImGuiWindow* window = GetCurrentWindow();
@@ -3586,6 +3754,12 @@ bool ImGui::InputDouble(const char* label, double* v, double step, double step_f
 {
     flags |= ImGuiInputTextFlags_CharsScientific;
     return InputScalar(label, ImGuiDataType_Double, (void*)v, (void*)(step > 0.0 ? &step : NULL), (void*)(step_fast > 0.0 ? &step_fast : NULL), format, flags);
+}
+
+bool ImGui::BBLInputDouble(const char *label, double *v, double step, double step_fast, const char *format, ImGuiInputTextFlags flags)
+{
+    flags |= ImGuiInputTextFlags_CharsScientific;
+    return BBLInputScalar(label, ImGuiDataType_Double, (void *) v, (void *) (step > 0.0 ? &step : NULL), (void *) (step_fast > 0.0 ? &step_fast : NULL), format, flags);
 }
 
 //-------------------------------------------------------------------------
