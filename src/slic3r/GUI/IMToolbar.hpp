@@ -21,7 +21,8 @@ public:
     enum SliceState {
         UNSLICED = 0,
         SLICING = 1,
-        SLICED = 2
+        SLICED = 2,
+        SLICE_FAILED = 3,
     };
 
     bool selected{ false };

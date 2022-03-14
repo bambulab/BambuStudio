@@ -6604,7 +6604,10 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar() const
 
             m_sel_plate_toolbar.m_items[i]->percent = plate_list.get_plate(i)->get_slicing_percent();
             if (plate_list.get_plate(i)->is_slice_result_valid()) {
-                m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICED;
+                if (plate_list.get_plate(i)->is_slice_result_ready_for_print())
+                    m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICED;
+                else
+                    m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICE_FAILED;
                 continue;
             }
             if (plate_list.get_plate(i)->get_slicing_percent() < 0.0f)
@@ -6703,12 +6706,16 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar() const
             ImVec2 size = ImVec2(button_width, button_height);
             ImVec2 end_pos = ImVec2(start_pos.x + size.x, start_pos.y + size.y);
             ImGui::GetForegroundDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(0, 0, 0, 80));
-            
         } else if (item->slice_state == IMToolbarItem::SliceState::SLICING) {
             ImVec2 size = ImVec2(button_width, button_height * item->percent / 100.0f);
             ImVec2 rect_start_pos = ImVec2(start_pos.x, start_pos.y + size.y);
             ImVec2 rect_end_pos = ImVec2(start_pos.x + button_width, start_pos.y + button_height);
             ImGui::GetForegroundDrawList()->AddRectFilled(rect_start_pos, rect_end_pos, IM_COL32(0, 0, 0, 80));
+        } else if (item->slice_state == IMToolbarItem::SliceState::SLICE_FAILED) {
+            ImVec2 size    = ImVec2(button_width, button_height);
+            ImVec2 end_pos = ImVec2(start_pos.x + size.x, start_pos.y + size.y);
+            ImGui::GetForegroundDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(40, 1, 1, 64));
+            ImGui::GetForegroundDrawList()->AddRect(start_pos, end_pos, IM_COL32(208, 27, 27, 255), 0.0f, 0, 1.0f);
         }
 
         // draw text
