@@ -1148,10 +1148,13 @@ bool MainFrame::can_export_gcode() const
 
 bool MainFrame::can_send_gcode() const
 {
+//BBS
+#if 0
     if (m_plater && ! m_plater->model().objects.empty())
         if (const DynamicPrintConfig *cfg = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config(); cfg)
             if (const auto *print_host_opt = cfg->option<ConfigOptionString>("print_host"); print_host_opt)
                 return ! print_host_opt->value.empty();
+#endif
     return false;
 }
 

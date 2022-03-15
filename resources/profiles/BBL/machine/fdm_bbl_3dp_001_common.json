@@ -116,12 +116,9 @@
     "nozzle_diameter": [
         "0.4"
     ],
-    "print_host": "",
     "printer_settings_id": "",
     "printer_technology": "FFF",
     "printer_variant": "0.4",
-    "printhost_apikey": "",
-    "printhost_cafile": "",
     "retraction_minimum_travel": [
         "1"
     ],

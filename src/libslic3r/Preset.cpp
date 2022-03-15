@@ -664,8 +664,6 @@ static std::vector<std::string> s_Preset_machine_limits_options {
 static std::vector<std::string> s_Preset_printer_options {
     "printer_technology",
     "printable_area", "bed_exclude_area", "gcode_flavor",
-    //FIXME the print host keys are left here just for conversion from the Printer preset to Physical Printer preset.
-    "print_host", "printhost_apikey", "printhost_cafile",
     "single_extruder_multi_material", "machine_start_gcode", "machine_end_gcode", "before_layer_change_gcode", "layer_change_gcode", "tool_change_gcode",
     "printing_by_object_gcode", "printer_model", "printer_variant", "printable_height",
     "default_print_profile", "inherits",
@@ -761,8 +759,6 @@ static std::vector<std::string> s_Preset_sla_printer_options {
     "gamma_correction",
     "min_exposure_time", "max_exposure_time",
     "min_initial_exposure_time", "max_initial_exposure_time",
-    //FIXME the print host keys are left here just for conversion from the Printer preset to Physical Printer preset.
-    "print_host", "printhost_apikey", "printhost_cafile",
     "inherits"
 };
 
@@ -1230,9 +1226,8 @@ static bool profile_print_params_same(const DynamicPrintConfig &cfg_old, const D
     for (const char *key : { "compatible_prints", "compatible_prints_condition",
                              "compatible_printers", "compatible_printers_condition", "inherits",
                              "print_settings_id", "filament_settings_id", "sla_print_settings_id", "sla_material_settings_id", "printer_settings_id",
-                             "printer_model", "printer_variant", "default_print_profile", "default_filament_profile", "default_sla_print_profile", "default_sla_material_profile",
-                             //FIXME remove the print host keys?
-                             "print_host", "printhost_apikey", "printhost_cafile" })
+                             "printer_model", "printer_variant", "default_print_profile", "default_filament_profile", "default_sla_print_profile", "default_sla_material_profile"
+                             })
         diff.erase(std::remove(diff.begin(), diff.end(), key), diff.end());
     // Preset with the same name as stored inside the config exists.
     return diff.empty();
@@ -2151,9 +2146,6 @@ static std::vector<std::string> s_PhysicalPrinter_opts {
     "preset_name", // temporary option to compatibility with older Slicer
     "preset_names",
     "printer_technology",
-    "print_host",
-    "printhost_apikey",
-    "printhost_cafile",
     "printhost_port",
     "printhost_authorization_type",
     // HTTP digest authentization (RFC 2617)
@@ -2167,12 +2159,6 @@ const std::vector<std::string>& PhysicalPrinter::printer_options()
     return s_PhysicalPrinter_opts;
 }
 
-static constexpr auto legacy_print_host_options = {
-    "print_host",
-    "printhost_apikey",
-    "printhost_cafile",
-};
-
 std::vector<std::string> PhysicalPrinter::presets_with_print_host_information(const PrinterPresetCollection& printer_presets)
 {
     std::vector<std::string> presets;
@@ -2185,10 +2171,6 @@ std::vector<std::string> PhysicalPrinter::presets_with_print_host_information(co
 
 bool PhysicalPrinter::has_print_host_information(const DynamicPrintConfig& config)
 {
-    for (const char *opt : legacy_print_host_options)
-        if (!config.opt_string(opt).empty())
-            return true;
-
     return false;
 }
 
@@ -2199,10 +2181,7 @@ const std::set<std::string>& PhysicalPrinter::get_preset_names() const
 
 bool PhysicalPrinter::has_empty_config() const
 {
-    return  config.opt_string("print_host"        ).empty() &&
-            config.opt_string("printhost_apikey"  ).empty() &&
-            config.opt_string("printhost_cafile"  ).empty() &&
-            config.opt_string("printhost_port"    ).empty() &&
+    return  config.opt_string("printhost_port"    ).empty() &&
             config.opt_string("printhost_user"    ).empty() &&
             config.opt_string("printhost_password").empty();
 }
@@ -2417,6 +2396,8 @@ void PhysicalPrinterCollection::load_printer(const std::string& path, const std:
 // Note! "Print Host upload" options will be cleared after physical printer creations
 void PhysicalPrinterCollection::load_printers_from_presets(PrinterPresetCollection& printer_presets)
 {
+//BBS
+#if 0
     int cnt=0;
     for (Preset& preset: printer_presets) {
         DynamicPrintConfig& config = preset.config;
@@ -2455,6 +2436,7 @@ void PhysicalPrinterCollection::load_printers_from_presets(PrinterPresetCollecti
             }
         }
     }
+#endif
 }
 
 PhysicalPrinter* PhysicalPrinterCollection::find_printer( const std::string& name, bool case_sensitive_search)
@@ -2490,20 +2472,6 @@ std::deque<PhysicalPrinter>::iterator PhysicalPrinterCollection::find_printer_in
         return m_printers.end();
 
     return m_printers.begin() + i;
-}
-
-PhysicalPrinter* PhysicalPrinterCollection::find_printer_with_same_config(const DynamicPrintConfig& config)
-{
-    for (const PhysicalPrinter& printer :*this) {
-        bool is_equal = true;
-        for (const char *opt : legacy_print_host_options)
-            if (is_equal && printer.config.opt_string(opt) != config.opt_string(opt))
-                is_equal = false;
-
-        if (is_equal)
-            return find_printer(printer.name);
-    }
-    return nullptr;
 }
 
 // Generate a file path from a profile name. Add the ".ini" suffix if it is missing.

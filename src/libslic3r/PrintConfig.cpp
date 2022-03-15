@@ -290,37 +290,11 @@ void PrintConfigDef::init_common_params()
     //BBS
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloat(200.0));
-
-    def = this->add("print_host", coString);
-    def->label = L("Hostname, IP or URL");
-    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
-                   "the hostname, IP address or URL of the printer host instance. "
-                   "Print host behind HAProxy with basic auth enabled can be accessed by putting the user name and password into the URL "
-                   "in the following format: https://username:password@your-octopi-address/");
-    def->mode = comAdvanced;
-    def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionString(""));
-
-    def = this->add("printhost_apikey", coString);
-    def->label = L("API Key / Password");
-    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
-                   "the API Key or the password required for authentication.");
-    def->mode = comAdvanced;
-    def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionString(""));
     
     def = this->add("printhost_port", coString);
     def->label = L("Printer");
     def->tooltip = L("Name of the printer");
     def->gui_type = ConfigOptionDef::GUIType::select_open;
-    def->mode = comAdvanced;
-    def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionString(""));
-    
-    def = this->add("printhost_cafile", coString);
-    def->label = L("HTTPS CA File");
-    def->tooltip = L("Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. "
-                   "If left blank, the default OS CA certificate repository is used.");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
@@ -3867,12 +3841,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     } else if (opt_key == "draft_shield" && (value == "1" || value == "0")) {
         // draft_shield used to be a bool, it was turned into an enum in BambuStudio 2.4.0.
         value = value == "1" ? "enabled" : "disabled";
-    } else if (opt_key == "octoprint_host") {
-        opt_key = "print_host";
-    } else if (opt_key == "octoprint_cafile") {
-        opt_key = "printhost_cafile";
-    } else if (opt_key == "octoprint_apikey") {
-        opt_key = "printhost_apikey";
     } else if (opt_key == "preset_name") {
         opt_key = "preset_names";
     } /*else if (opt_key == "material_correction" || opt_key == "relative_correction") {

@@ -1775,12 +1775,15 @@ void GUI_App::set_auto_toolbar_icon_scale(float scale) const
 // check user printer_presets for the containing information about "Print Host upload"
 void GUI_App::check_printer_presets()
 {
+//BBS
+#if 0
     std::vector<std::string> preset_names = PhysicalPrinter::presets_with_print_host_information(preset_bundle->printers);
     if (preset_names.empty())
         return;
 
     // BBS: remove "print host upload" message dialog
     preset_bundle->physical_printers.load_printers_from_presets(preset_bundle->printers);
+#endif
 }
 
 void GUI_App::recreate_GUI(const wxString& msg_name)

@@ -915,8 +915,6 @@ private:
         return const_cast<PhysicalPrinterCollection*>(this)->find_printer_internal(name);
     }
 
-    PhysicalPrinter* find_printer_with_same_config( const DynamicPrintConfig &config);
-
     // List of printers
     // Use deque to force the container to allocate an object per each entry, 
     // so that the addresses of the presets don't change during resizing of the container.

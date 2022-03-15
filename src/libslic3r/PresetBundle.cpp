@@ -81,10 +81,7 @@ PresetBundle::PresetBundle() :
 		// The following ugly switch is to avoid printers.preset(0) to return the edited instance, as the 0th default is the current one.
 		Preset &preset = this->printers.default_preset(i);
         for (const char *key : { 
-            "printer_settings_id", "printer_model", "printer_variant", "thumbnails",
-            //FIXME the following keys are only created here for compatibility to be able to parse legacy Printer profiles.
-            // These keys are converted to Physical Printer profile. After the conversion, they shall be removed.
-            "print_host", "printhost_apikey", "printhost_cafile"})
+            "printer_settings_id", "printer_model", "printer_variant", "thumbnails"})
             preset.config.optptr(key, true);
         if (i == 0) {
             preset.config.optptr("default_print_profile", true);
@@ -872,10 +869,7 @@ DynamicPrintConfig PresetBundle::full_config() const
 DynamicPrintConfig PresetBundle::full_config_secure() const
 {
     DynamicPrintConfig config = this->full_config();
-    //FIXME legacy, the keys should not be there after conversion to a Physical Printer profile.
-    config.erase("print_host");
-    config.erase("printhost_apikey");
-    config.erase("printhost_cafile");
+    //BBS example: config.erase("print_host");
     return config;
 }
 
