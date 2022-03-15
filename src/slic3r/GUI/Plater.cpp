@@ -8589,6 +8589,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             update_scheduled = true;
         }
         else if (boost::starts_with(opt_key, "enable_wipe_tower") ||
+            boost::starts_with(opt_key, "wipe_tower") ||
             // opt_key == "filament_minimal_purge_on_wipe_tower" // ? #ys_FIXME
             opt_key == "single_extruder_multi_material" ||
             // BBS
