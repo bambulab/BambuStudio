@@ -42,6 +42,7 @@
 #include "Widgets/Label.hpp"
 #include "Widgets/TabCtrl.hpp"
 #include "MarkdownTip.hpp"
+#include "Search.hpp"
 
 #ifdef WIN32
 	#include <commctrl.h>
@@ -255,7 +256,70 @@ void Tab::create_preset_tab()
     add_scaled_button(m_top_panel, &m_undo_btn,        m_bmp_white_bullet.name());
     add_scaled_button(m_top_panel, &m_undo_to_sys_btn, m_bmp_white_bullet.name());
     add_scaled_button(m_top_panel, &m_btn_search,      "search");
-    m_btn_search->SetId(wxID_FIND);
+
+    //search input
+    m_search_item = new RoundedRectangle(m_top_panel, wxColour(238, 238, 238), wxDefaultPosition, wxSize(m_top_panel->GetSize().GetWidth(), 3 * wxGetApp().em_unit()), 8);
+    auto search_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_search_input = new wxTextCtrl(m_search_item, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 | wxBORDER_NONE);
+
+    m_search_input->SetBackgroundColour(wxColour(238, 238, 238));
+    m_search_input->SetForegroundColour(wxColour(43, 52, 54));
+    m_search_input->SetFont(wxGetApp().bold_font());
+
+    search_sizer->Add(new wxWindow(m_search_item, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND | wxLEFT, 16);
+    search_sizer->Add(m_search_input, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL | wxALL, wxGetApp().em_unit() / 2);
+    search_sizer->Add(new wxWindow(m_search_input, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND | wxLEFT, 16);
+
+
+     m_search_item->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+        m_search_input->SetFocus();
+    });
+  
+    m_search_input->Bind(wxCUSTOMEVT_EXIT_SEARCH, [this](wxCommandEvent &) {
+         Freeze();
+        if (m_presets_choice) m_presets_choice->Show();
+
+        m_btn_save_preset->Show();
+        m_btn_search->Show();
+        m_search_item->Hide();
+
+        m_search_item->Refresh();
+        m_search_item->Update();
+        m_search_item->Layout();
+
+        this->GetParent()->Refresh();
+        this->GetParent()->Update();
+        this->GetParent()->Layout();
+        Thaw();
+    });
+
+    m_search_item->SetSizer(search_sizer);
+    m_search_item->Layout();
+    search_sizer->Fit(m_search_item);
+
+    m_search_item->Hide();
+    //m_btn_search->SetId(wxID_FIND_PROCESS);
+
+    m_btn_search->Bind(
+        wxEVT_BUTTON,
+        [this](wxCommandEvent &) { 
+         Freeze();
+         if (m_presets_choice)
+             m_presets_choice->Hide();
+
+         m_btn_save_preset->Hide();
+         m_btn_search->Hide();
+         m_search_item->Show();
+
+         this->GetParent()->Refresh();
+         this->GetParent()->Update();
+         this->GetParent()->Layout();
+
+         wxGetApp().plater()->search(false, m_search_item, m_search_input, m_btn_search);
+         m_search_input->SetFocus();
+         Thaw();
+         
+        });
 
     m_undo_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_roll_back_value(); }));
     m_undo_to_sys_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent) { on_roll_back_value(true); }));
@@ -285,6 +349,7 @@ void Tab::create_preset_tab()
     m_top_sizer->Add( m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8  );
     m_top_sizer->Add( m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
     m_top_sizer->Add( m_btn_search, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
+    m_top_sizer->Add( m_search_item, 1, wxALIGN_CENTER_VERTICAL | wxALL, 10);
 
     if (dynamic_cast<TabPrint*>(this) == nullptr) {
         m_static_title = new Label(Label::Body_12, _L("Advance"), m_top_panel);
@@ -303,8 +368,8 @@ void Tab::create_preset_tab()
 
     m_top_sizer->SetMinSize(-1, 3 * m_em_unit);
     m_top_panel->SetSizer(m_top_sizer);
-    if (m_presets_choice)
-        m_main_sizer->Add(m_top_panel, 0, wxEXPAND, 0 );
+    if (m_presets_choice) 
+        m_main_sizer->Add(m_top_panel, 0, wxEXPAND, 0); 
     else
         m_top_panel->Hide();
 
