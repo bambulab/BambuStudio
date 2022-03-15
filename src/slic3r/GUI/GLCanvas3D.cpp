@@ -3325,7 +3325,7 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
         return;
 
     if (!snapshot_type.empty())
-        wxGetApp().plater()->take_snapshot(_(snapshot_type));
+        wxGetApp().plater()->take_snapshot(snapshot_type);
 
     std::set<std::pair<int, int>> done;  // keeps track of modified instances
     bool object_moved = false;
@@ -3421,7 +3421,7 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
         return;
 
     if (!snapshot_type.empty())
-        wxGetApp().plater()->take_snapshot(_(snapshot_type));
+        wxGetApp().plater()->take_snapshot(snapshot_type);
 
     //BBS: removing sinking logic
     // stores current min_z of instances
@@ -3508,7 +3508,7 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
         return;
 
     if (!snapshot_type.empty())
-        wxGetApp().plater()->take_snapshot(_(snapshot_type));
+        wxGetApp().plater()->take_snapshot(snapshot_type);
 
     //BBS: removing sinking logic
     // stores current min_z of instances
@@ -3587,7 +3587,7 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
 void GLCanvas3D::do_flatten(const Vec3d& normal, const std::string& snapshot_type)
 {
     if (!snapshot_type.empty())
-        wxGetApp().plater()->take_snapshot(_(snapshot_type));
+        wxGetApp().plater()->take_snapshot(snapshot_type);
 
     m_selection.flattening_rotate(normal);
     do_rotate(""); // avoid taking another snapshot
@@ -3599,7 +3599,7 @@ void GLCanvas3D::do_mirror(const std::string& snapshot_type)
         return;
 
     if (!snapshot_type.empty())
-        wxGetApp().plater()->take_snapshot(_(snapshot_type));
+        wxGetApp().plater()->take_snapshot(snapshot_type);
 
     //BBS: removing sinking logic
     // stores current min_z of instances
@@ -7050,7 +7050,7 @@ void GLCanvas3D::_update_selection_from_hover()
 
         // the selection is going to be modified (Add)
         if (!contains_all) {
-            wxGetApp().plater()->take_snapshot(_(L("Select by rectangle")), UndoRedo::SnapshotType::Selection);
+            wxGetApp().plater()->take_snapshot(std::string("Select by rectangle"), UndoRedo::SnapshotType::Selection);
             selection_changed = true;
         }
     }
@@ -7065,7 +7065,7 @@ void GLCanvas3D::_update_selection_from_hover()
 
         // the selection is going to be modified (Remove)
         if (contains_any) {
-            wxGetApp().plater()->take_snapshot(_(L("Unselect by rectangle")), UndoRedo::SnapshotType::Selection);
+            wxGetApp().plater()->take_snapshot(std::string("Unselect by rectangle"), UndoRedo::SnapshotType::Selection);
             selection_changed = true;
         }
     }

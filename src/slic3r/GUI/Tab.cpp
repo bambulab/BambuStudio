@@ -2024,7 +2024,7 @@ void TabPrintModel::update_model_config()
 void TabPrintModel::reset_model_config()
 {
     if (m_object_configs.empty()) return;
-    wxGetApp().plater()->take_snapshot(from_u8(L("Reset Options")));
+    wxGetApp().plater()->take_snapshot(std::string("Reset Options"));
     for (auto config : m_object_configs) {
         auto rmkeys = intersect(m_keys, config.second->keys());
         for (auto & k : rmkeys)
@@ -2055,7 +2055,7 @@ void TabPrintModel::on_value_change(const std::string& opt_key, const boost::any
 {
     // TODO: support opt_index, translate by OptionsGroup's m_opt_map
     if (!m_object_configs.empty())
-        wxGetApp().plater()->take_snapshot(from_u8((boost::format(_utf8(L("Change Option %s"))) % opt_key).str()));
+        wxGetApp().plater()->take_snapshot((boost::format("Change Option %s") % opt_key).str());
     TabPrint::on_value_change(opt_key, value);
     for (auto config : m_object_configs) {
         if (has_key(opt_key)) {

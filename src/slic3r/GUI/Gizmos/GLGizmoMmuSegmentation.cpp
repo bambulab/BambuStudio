@@ -493,7 +493,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     ImGui::Separator();
     if (m_imgui->button(m_desc.at("filter_tiny"))) {
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Reset selection"),
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Reset selection",
             UndoRedo::SnapshotType::GizmoAction);
 
         for (int i = 0; i < m_triangle_selectors.size(); i++) {
@@ -508,7 +508,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     ImGui::SameLine(filter_btn_width + m_imgui->scaled(1.f));
 
     if (m_imgui->button(m_desc.at("remove_all"))) {
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Reset selection"),
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Reset selection",
             UndoRedo::SnapshotType::GizmoAction);
         ModelObject* mo = m_c->selection_info()->model_object();
         int                  idx = -1;

@@ -2199,8 +2199,8 @@ std::string PresetCollection::name() const
     switch (this->type()) {
     case Preset::TYPE_PRINT:        return L(PRESET_PRINT_NAME);
     case Preset::TYPE_FILAMENT:     return L(PRESET_FILAMENT_NAME);
-    case Preset::TYPE_SLA_PRINT:    return L("SLA print");
-    case Preset::TYPE_SLA_MATERIAL: return L("SLA material");
+    //case Preset::TYPE_SLA_PRINT:    return L("SLA print");
+    //case Preset::TYPE_SLA_MATERIAL: return L("SLA material");
     case Preset::TYPE_PRINTER:      return L(PRESET_PRINTER_NAME);
     default:                        return "invalid";
     }
@@ -2212,8 +2212,8 @@ std::string PresetCollection::section_name() const
     switch (this->type()) {
     case Preset::TYPE_PRINT:        return PRESET_PRINT_NAME;
     case Preset::TYPE_FILAMENT:     return PRESET_FILAMENT_NAME;
-    case Preset::TYPE_SLA_PRINT:    return PRESET_SLA_PRINT_NAME;
-    case Preset::TYPE_SLA_MATERIAL: return PRESET_SLA_MATERIALS_NAME;
+    //case Preset::TYPE_SLA_PRINT:    return PRESET_SLA_PRINT_NAME;
+    //case Preset::TYPE_SLA_MATERIAL: return PRESET_SLA_MATERIALS_NAME;
     case Preset::TYPE_PRINTER:      return PRESET_PRINTER_NAME;
     default:                        return "invalid";
     }

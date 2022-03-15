@@ -110,7 +110,7 @@ public:
 };
 
 // Informs about a legacy data directory - an update from Slic3r PE < 1.40
-class MsgDataLegacy : public MsgDialog
+/*class MsgDataLegacy : public MsgDialog
 {
 public:
 	MsgDataLegacy();
@@ -119,7 +119,7 @@ public:
 	MsgDataLegacy &operator=(MsgDataLegacy &&) = delete;
 	MsgDataLegacy &operator=(const MsgDataLegacy &) = delete;
 	~MsgDataLegacy();
-};
+};*/
 
 // Informs about absence of bundles requiring update.
 class MsgNoUpdates : public MsgDialog

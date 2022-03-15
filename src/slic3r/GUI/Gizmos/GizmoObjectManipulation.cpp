@@ -436,7 +436,7 @@ void GizmoObjectManipulation::reset_rotation_value()
 
 void GizmoObjectManipulation::reset_scale_value()
 {
-    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Reset scale"));
+    Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Reset scale");
 
     change_scale_value(0, 100.);
     change_scale_value(1, 100.);

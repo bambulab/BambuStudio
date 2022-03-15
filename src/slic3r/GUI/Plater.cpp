@@ -1730,31 +1730,31 @@ struct Plater::priv
         
         void arrange()
         {
-            m->take_snapshot(_L("Arrange"));
+            m->take_snapshot("Arrange");
             start(m_arrange_id);
         }
 
         void orient()
         {
-            m->take_snapshot(_(L("Orient")));
+            m->take_snapshot("Orient");
             start(m_orient_id);
         }
 
         void fill_bed()
         {
-            m->take_snapshot(_L("Fill bed"));
+            m->take_snapshot("Fill bed");
             start(m_fill_bed_id);
         }
         
         void optimize_rotation()
         {
-            m->take_snapshot(_L("Optimize Rotation"));
+            m->take_snapshot("Optimize Rotation");
             start(m_rotoptimize_id);
         }
         
         void import_sla_arch()
         {
-            m->take_snapshot(_L("Import SLA archive"));
+            m->take_snapshot("Import SLA archive");
             start(m_sla_import_id);
         }
 
@@ -1904,8 +1904,8 @@ struct Plater::priv
     bool leave_gizmos_stack();
 
     void take_snapshot(const std::string& snapshot_name, UndoRedo::SnapshotType snapshot_type = UndoRedo::SnapshotType::Action);
-    void take_snapshot(const wxString& snapshot_name, UndoRedo::SnapshotType snapshot_type = UndoRedo::SnapshotType::Action)
-        { this->take_snapshot(std::string(snapshot_name.ToUTF8().data()), snapshot_type); }
+    /*void take_snapshot(const wxString& snapshot_name, UndoRedo::SnapshotType snapshot_type = UndoRedo::SnapshotType::Action)
+        { this->take_snapshot(std::string(snapshot_name.ToUTF8().data()), snapshot_type); }*/
     int  get_active_snapshot_index();
 
     void undo();
@@ -1969,7 +1969,7 @@ struct Plater::priv
     }
     void export_gcode(fs::path output_path, bool output_path_on_removable_media);
     void reload_from_disk();
-    bool replace_volume_with_stl(int object_idx, int volume_idx, const fs::path& new_path, const wxString& snapshot = "");
+    bool replace_volume_with_stl(int object_idx, int volume_idx, const fs::path& new_path, const std::string& snapshot = "");
     void replace_with_stl();
     void reload_all_from_disk();
 
@@ -2450,11 +2450,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     }
 
     // Initialize the Undo / Redo stack with a first snapshot.
-    //this->take_snapshot(_L("New Project"), UndoRedo::SnapshotType::ProjectSeparator);
+    //this->take_snapshot("New Project", UndoRedo::SnapshotType::ProjectSeparator);
     // Reset the "dirty project" flag.
     m_undo_redo_stack_main.mark_current_as_saved();
     dirty_state.update_from_undo_redo_stack(false);
-    //this->take_snapshot(_L("New Project"));
+    //this->take_snapshot("New Project");
     // BBS: save project confirm
     up_to_date(true, false);
     up_to_date(true, true);
@@ -3615,9 +3615,9 @@ void Plater::priv::remove(size_t obj_idx)
 
 void Plater::priv::delete_object_from_model(size_t obj_idx, bool refresh_immediately)
 {
-    wxString snapshot_label = _L("Delete Object");
+    std::string snapshot_label = "Delete Object";
     if (! model.objects[obj_idx]->name.empty())
-        snapshot_label += ": " + wxString::FromUTF8(model.objects[obj_idx]->name.c_str());
+        snapshot_label += ": " + model.objects[obj_idx]->name;
     Plater::TakeSnapshot snapshot(q, snapshot_label);
     m_ui_jobs.cancel_all();
     model.delete_object(obj_idx);
@@ -3633,7 +3633,7 @@ void Plater::priv::delete_object_from_model(size_t obj_idx, bool refresh_immedia
 
 void Plater::priv::delete_all_objects_from_model()
 {
-    Plater::TakeSnapshot snapshot(q, _L("Delete All Objects"));
+    Plater::TakeSnapshot snapshot(q, "Delete All Objects");
 
     reset_gcode_toolpaths();
     gcode_result.reset();
@@ -3655,7 +3655,7 @@ void Plater::priv::delete_all_objects_from_model()
 
 void Plater::priv::reset()
 {
-    Plater::TakeSnapshot snapshot(q, _L("Reset Project"), UndoRedo::SnapshotType::ProjectSeparator);
+    Plater::TakeSnapshot snapshot(q, "Reset Project", UndoRedo::SnapshotType::ProjectSeparator);
 
     clear_warnings();
 
@@ -3763,7 +3763,7 @@ void Plater::priv::split_object()
                 NotificationManager::NotificationLevel::PrintInfoNotificationLevel,
                 _u8L("All non-solid parts (modifiers) were deleted"));
 
-        Plater::TakeSnapshot snapshot(q, _L("Split to Objects"));
+        Plater::TakeSnapshot snapshot(q, "Split to Objects");
 
         remove(obj_idx);
 
@@ -4145,7 +4145,7 @@ void Plater::priv::update_sla_scene()
     this->update_restart_background_process(true, true);
 }
 
-bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const fs::path& new_path, const wxString& snapshot)
+bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const fs::path& new_path, const std::string& snapshot)
 {
     const std::string path = new_path.string();
     wxBusyCursor wait;
@@ -4249,7 +4249,7 @@ void Plater::priv::replace_with_stl()
         return;
     }
 
-    if (!replace_volume_with_stl(object_idx, volume_idx, out_path, _L("Replace with STL")))
+    if (!replace_volume_with_stl(object_idx, volume_idx, out_path, "Replace with STL"))
         return;
 
     // update 3D scene
@@ -4263,7 +4263,7 @@ void Plater::priv::replace_with_stl()
 
 void Plater::priv::reload_from_disk()
 {
-    Plater::TakeSnapshot snapshot(q, _L("Reload from disk"));
+    Plater::TakeSnapshot snapshot(q, "Reload from disk");
 
     const Selection& selection = get_selection();
 
@@ -4529,7 +4529,7 @@ void Plater::priv::reload_all_from_disk()
     if (model.objects.empty())
         return;
 
-    Plater::TakeSnapshot snapshot(q, _L("Reload all from disk"));
+    Plater::TakeSnapshot snapshot(q, "Reload all from disk");
     Plater::SuppressSnapshots suppress(q);
 
     Selection& selection = get_selection();
@@ -5138,7 +5138,7 @@ void Plater::priv::on_action_add(SimpleEvent&)
 void Plater::priv::on_action_add_plate(SimpleEvent&)
 {
     if (q != nullptr) {
-        take_snapshot(_L("add partplate"));
+        take_snapshot("add partplate");
         this->partplate_list.create_plate();
         update();
         // BBS set default view
@@ -6286,7 +6286,7 @@ void Plater::new_project()
     }
 
     p->select_view_3D("3D");
-    take_snapshot(_L("New Project"), UndoRedo::SnapshotType::ProjectSeparator);
+    take_snapshot("New Project", UndoRedo::SnapshotType::ProjectSeparator);
     Plater::SuppressSnapshots suppress(this);
     reset();
     reset_project_dirty_initial_presets();
@@ -6314,7 +6314,7 @@ void Plater::new_project()
     if ((result = close_with_confirm(check)) == wxID_CANCEL)
         return;
 
-    Plater::TakeSnapshot snapshot(this, _L("New Project"), UndoRedo::SnapshotType::ProjectSeparator);
+    Plater::TakeSnapshot snapshot(this, "New Project", UndoRedo::SnapshotType::ProjectSeparator);
 
     get_partplate_list().reinit();
     get_partplate_list().update_slice_context_to_current_plate(p->background_process);
@@ -6375,7 +6375,7 @@ void Plater::load_project(wxString const& filename2,
     bool load_restore = strategy & LoadStrategy::Restore;
 
     // Take the Undo / Redo snapshot.
-    Plater::TakeSnapshot snapshot(this, _L("Load Project"), UndoRedo::SnapshotType::ProjectSeparator);
+    Plater::TakeSnapshot snapshot(this, "Load Project", UndoRedo::SnapshotType::ProjectSeparator);
     reset();
 
     std::vector<fs::path> input_paths;
@@ -6629,19 +6629,19 @@ void Plater::add_model(bool imperial_units/* = false*/)
     for (const auto &file : input_files)
         paths.emplace_back(into_path(file));
 
-    wxString snapshot_label;
+    std::string snapshot_label;
     assert(! paths.empty());
     if (paths.size() == 1) {
-        snapshot_label = _L("Import Object");
+        snapshot_label = "Import Object";
         snapshot_label += ": ";
-        snapshot_label += wxString::FromUTF8(paths.front().filename().string().c_str());
+        snapshot_label += paths.front().filename().string().c_str();
     } else {
-        snapshot_label = _L("Import Objects");
+        snapshot_label = "Import Objects";
         snapshot_label += ": ";
-        snapshot_label += wxString::FromUTF8(paths.front().filename().string().c_str());
+        snapshot_label += paths.front().filename().string().c_str();
         for (size_t i = 1; i < paths.size(); ++ i) {
             snapshot_label += ", ";
-            snapshot_label += wxString::FromUTF8(paths[i].filename().string().c_str());
+            snapshot_label += paths[i].filename().string().c_str();
         }
     }
 
@@ -7169,7 +7169,7 @@ bool Plater::load_files(const wxArrayString& filenames)
                 break;
             }
             case LoadType::LoadGeometry: {
-                Plater::TakeSnapshot snapshot(this, _L("Import Object"));
+                Plater::TakeSnapshot snapshot(this, "Import Object");
                 load_files({ *it }, LoadStrategy::LoadModel);
                 break;
             }
@@ -7188,20 +7188,20 @@ bool Plater::load_files(const wxArrayString& filenames)
     }
 
     // other files
-    wxString snapshot_label;
+    std::string snapshot_label;
     assert(!paths.empty());
     if (paths.size() == 1) {
-        snapshot_label = _L("Load File");
+        snapshot_label = "Load File";
         snapshot_label += ": ";
-        snapshot_label += wxString::FromUTF8(paths.front().filename().string().c_str());
+        snapshot_label += paths.front().filename().string().c_str();
     }
     else {
-        snapshot_label = _L("Load Files");
+        snapshot_label = "Load Files";
         snapshot_label += ": ";
-        snapshot_label += wxString::FromUTF8(paths.front().filename().string().c_str());
+        snapshot_label += paths.front().filename().string().c_str();
         for (size_t i = 1; i < paths.size(); ++i) {
             snapshot_label += ", ";
-            snapshot_label += wxString::FromUTF8(paths[i].filename().string().c_str());
+            snapshot_label += paths[i].filename().string().c_str();
         }
     }
     Plater::TakeSnapshot snapshot(this, snapshot_label);
@@ -7298,7 +7298,7 @@ void Plater::remove_selected()
     if (!p->can_delete())
         return;
 
-    Plater::TakeSnapshot snapshot(this, _L("Delete Selected Objects"));
+    Plater::TakeSnapshot snapshot(this, "Delete Selected Objects");
     p->m_ui_jobs.cancel_all();
     p->view3D->delete_selected();
 }
@@ -7307,7 +7307,7 @@ void Plater::increase_instances(size_t num)
 {
     if (! can_increase_instances()) { return; }
 
-    Plater::TakeSnapshot snapshot(this, _L("Increase Instances"));
+    Plater::TakeSnapshot snapshot(this, "Increase Instances");
 
     int obj_idx = p->get_selected_object_idx();
 
@@ -7343,7 +7343,7 @@ void Plater::decrease_instances(size_t num)
 {
     if (! can_decrease_instances()) { return; }
 
-    Plater::TakeSnapshot snapshot(this, _L("Decrease Instances"));
+    Plater::TakeSnapshot snapshot(this, "Decrease Instances");
 
     int obj_idx = p->get_selected_object_idx();
 
@@ -7399,7 +7399,7 @@ void Plater::set_number_of_copies(/*size_t num*/)
     if (num < 0)
         return;
 
-    Plater::TakeSnapshot snapshot(this, wxString::Format(_L("Set numbers of copies to %d"), num));
+    Plater::TakeSnapshot snapshot(this, (boost::format("Set numbers of copies to %1%")%num).str());
 
     int diff = num - (int)model_object->instances.size();
     if (diff > 0)
@@ -7431,9 +7431,9 @@ void Plater::convert_unit(ConversionType conv_type)
     if (obj_idxs.empty() && volume_idxs.empty())
         return;
 
-    TakeSnapshot snapshot(this, conv_type == ConversionType::CONV_FROM_INCH  ? _L("Convert from imperial units") :
-                                conv_type == ConversionType::CONV_TO_INCH    ? _L("Revert conversion from imperial units") :
-                                conv_type == ConversionType::CONV_FROM_METER ? _L("Convert from meters") : _L("Revert conversion from meters"));
+    TakeSnapshot snapshot(this, conv_type == ConversionType::CONV_FROM_INCH  ? "Convert from imperial units" :
+                                conv_type == ConversionType::CONV_TO_INCH    ? "Revert conversion from imperial units" :
+                                conv_type == ConversionType::CONV_FROM_METER ? "Convert from meters" : "Revert conversion from meters");
     wxBusyCursor wait;
 
     ModelObjectPtrs objects;
@@ -7468,7 +7468,7 @@ void Plater::cut(size_t obj_idx, size_t instance_idx, std::array<Vec3d, 4> plane
     if (! attributes.has(ModelObjectCutAttribute::KeepUpper) && ! attributes.has(ModelObjectCutAttribute::KeepLower))
         return;
 
-    Plater::TakeSnapshot snapshot(this, _L("Cut by Plane"));
+    Plater::TakeSnapshot snapshot(this, "Cut by Plane");
 
     wxBusyCursor wait;
     // BBS: replace z with plane_points
@@ -7491,7 +7491,7 @@ void Plater::segment(size_t obj_idx, size_t instance_idx, double smoothing_alpha
 
     wxCHECK_RET(instance_idx < object->instances.size(), "instance_idx out of bounds");
 
-    Plater::TakeSnapshot snapshot(this, _L("Segment"));
+    Plater::TakeSnapshot snapshot(this, "Segment");
 
     wxBusyCursor wait;
     // real process
@@ -7517,7 +7517,7 @@ void Plater::merge(size_t obj_idx, std::vector<int>& vol_indeces)
     wxCHECK_RET(obj_idx < p->model.objects.size(), "obj_idx out of bounds");
     auto* object = p->model.objects[obj_idx];
 
-    Plater::TakeSnapshot snapshot(this, _L("Merge"));
+    Plater::TakeSnapshot snapshot(this, "Merge");
 
     wxBusyCursor wait;
     // real process
@@ -8424,9 +8424,9 @@ void Plater::eject_drive()
 }
 
 void Plater::take_snapshot(const std::string &snapshot_name) { p->take_snapshot(snapshot_name); }
-void Plater::take_snapshot(const wxString &snapshot_name) { p->take_snapshot(snapshot_name); }
+//void Plater::take_snapshot(const wxString &snapshot_name) { p->take_snapshot(snapshot_name); }
 void Plater::take_snapshot(const std::string &snapshot_name, UndoRedo::SnapshotType snapshot_type) { p->take_snapshot(snapshot_name, snapshot_type); }
-void Plater::take_snapshot(const wxString &snapshot_name, UndoRedo::SnapshotType snapshot_type) { p->take_snapshot(snapshot_name, snapshot_type); }
+//void Plater::take_snapshot(const wxString &snapshot_name, UndoRedo::SnapshotType snapshot_type) { p->take_snapshot(snapshot_name, snapshot_type); }
 void Plater::suppress_snapshots() { p->suppress_snapshots(); }
 void Plater::allow_snapshots() { p->allow_snapshots(); }
 // BBS: single snapshot
@@ -8918,7 +8918,7 @@ void Plater::fill_color(int extruder_id)
 //BBS
 void Plater::cut_selection_to_clipboard()
 {
-    Plater::TakeSnapshot snapshot(this, _L("Cut Selected Objects"));
+    Plater::TakeSnapshot snapshot(this, "Cut Selected Objects");
     if (can_cut_to_clipboard() && !p->sidebar->obj_list()->cut_to_clipboard()) {
         p->view3D->get_canvas3d()->get_selection().cut_to_clipboard();
     }
@@ -8938,7 +8938,7 @@ void Plater::paste_from_clipboard()
     if (!can_paste_from_clipboard())
         return;
 
-    Plater::TakeSnapshot snapshot(this, _L("Paste From Clipboard"));
+    Plater::TakeSnapshot snapshot(this, "Paste From Clipboard");
 
     // At first try to paste values from the ObjectList's clipboard
     // to check if Settings or Layers were copied
@@ -9054,7 +9054,7 @@ int Plater::select_plate(int plate_index, bool need_slice)
 {
     int ret;
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: plate %2%, need_slice %3% ")%__LINE__ %plate_index  %need_slice;
-    take_snapshot(_L("select partplate!"));
+    take_snapshot("select partplate!");
     ret = p->partplate_list.select_plate(plate_index);
     if (!ret) {
         if (is_view3D_shown())
@@ -9262,7 +9262,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
     else if ((action == 2)&&(!right_click))
     {
         //arrange the plate
-        take_snapshot(_L("select_arrange partplate"));
+        take_snapshot("select_arrange partplate");
         ret = select_plate(plate_index);
         if (!ret)
         {
@@ -9278,7 +9278,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
     else if ((action == 3)&&(!right_click))
     {
         //lock the plate
-        take_snapshot(_L("lock partplate"));
+        take_snapshot("lock partplate");
         ret = p->partplate_list.lock_plate(plate_index, !p->partplate_list.is_locked(plate_index));
     }
     else
@@ -9512,10 +9512,10 @@ bool Plater::is_render_statistic_dialog_visible() const
 }
 
 
-Plater::TakeSnapshot::TakeSnapshot(Plater *plater, const std::string &snapshot_name)
+/*Plater::TakeSnapshot::TakeSnapshot(Plater *plater, const std::string &snapshot_name)
 : TakeSnapshot(plater, from_u8(snapshot_name)) {}
 Plater::TakeSnapshot::TakeSnapshot(Plater* plater, const std::string& snapshot_name, UndoRedo::SnapshotType snapshot_type)
-: TakeSnapshot(plater, from_u8(snapshot_name), snapshot_type) {}
+: TakeSnapshot(plater, from_u8(snapshot_name), snapshot_type) {}*/
 
 
 // Wrapper around wxWindow::PopupMenu to suppress error messages popping out while tracking the popup menu.

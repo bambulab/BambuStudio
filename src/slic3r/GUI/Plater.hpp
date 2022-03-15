@@ -307,9 +307,9 @@ public:
 	void eject_drive();
 
     void take_snapshot(const std::string &snapshot_name);
-    void take_snapshot(const wxString &snapshot_name);
+    //void take_snapshot(const wxString &snapshot_name);
     void take_snapshot(const std::string &snapshot_name, UndoRedo::SnapshotType snapshot_type);
-    void take_snapshot(const wxString &snapshot_name, UndoRedo::SnapshotType snapshot_type);
+    //void take_snapshot(const wxString &snapshot_name, UndoRedo::SnapshotType snapshot_type);
 
     void undo();
     void redo();
@@ -510,18 +510,26 @@ public:
 	class TakeSnapshot
 	{
 	public:
-        TakeSnapshot(Plater *plater, const std::string &snapshot_name);
-		TakeSnapshot(Plater *plater, const wxString &snapshot_name) : m_plater(plater)
-		{
+        TakeSnapshot(Plater *plater, const std::string &snapshot_name) : m_plater(plater)
+        {
 			m_plater->take_snapshot(snapshot_name);
 			m_plater->suppress_snapshots();
 		}
-        TakeSnapshot(Plater* plater, const std::string& snapshot_name, UndoRedo::SnapshotType snapshot_type);
-        TakeSnapshot(Plater *plater, const wxString &snapshot_name, UndoRedo::SnapshotType snapshot_type) : m_plater(plater)
+		/*TakeSnapshot(Plater *plater, const wxString &snapshot_name) : m_plater(plater)
+		{
+			m_plater->take_snapshot(snapshot_name);
+			m_plater->suppress_snapshots();
+		}*/
+        TakeSnapshot(Plater* plater, const std::string& snapshot_name, UndoRedo::SnapshotType snapshot_type) : m_plater(plater)
         {
             m_plater->take_snapshot(snapshot_name, snapshot_type);
             m_plater->suppress_snapshots();
         }
+        /*TakeSnapshot(Plater *plater, const wxString &snapshot_name, UndoRedo::SnapshotType snapshot_type) : m_plater(plater)
+        {
+            m_plater->take_snapshot(snapshot_name, snapshot_type);
+            m_plater->suppress_snapshots();
+        }*/
 
 		~TakeSnapshot()
 		{

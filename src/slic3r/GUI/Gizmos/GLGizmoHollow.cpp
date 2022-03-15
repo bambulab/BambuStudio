@@ -283,7 +283,7 @@ bool GLGizmoHollow::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_pos
         if (m_selection_empty) {
             std::pair<Vec3f, Vec3f> pos_and_normal;
             if (unproject_on_mesh(mouse_position, pos_and_normal)) { // we got an intersection
-                Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Add drainage hole")));
+                Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Add drainage hole");
 
                 mo->sla_drain_holes.emplace_back(pos_and_normal.first,
                                                 -pos_and_normal.second, m_new_hole_radius, m_new_hole_height);
@@ -399,7 +399,7 @@ bool GLGizmoHollow::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_pos
 
 void GLGizmoHollow::delete_selected_points()
 {
-    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Delete drainage hole")));
+    Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Delete drainage hole");
     sla::DrainHoles& drain_holes = m_c->selection_info()->model_object()->sla_drain_holes;
 
     for (unsigned int idx=0; idx<drain_holes.size(); ++idx) {
@@ -593,7 +593,7 @@ RENDER_AGAIN:
             mo->config.set("hollowing_min_thickness", m_offset_stash);
             mo->config.set("hollowing_quality", m_quality_stash);
             mo->config.set("hollowing_closing_distance", m_closing_d_stash);
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Hollowing parameter change")));
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Hollowing parameter change");
         }
         mo->config.set("hollowing_min_thickness", offset);
         mo->config.set("hollowing_quality", quality);
@@ -670,7 +670,7 @@ RENDER_AGAIN:
                     break;
                 }
             }
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Change drainage hole diameter")));
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Change drainage hole diameter");
             m_new_hole_radius = backup_rad;
             m_new_hole_height = backup_hei;
             mo->sla_drain_holes = new_holes;
@@ -814,7 +814,7 @@ void GLGizmoHollow::on_stop_dragging()
          && backup != m_hole_before_drag) // and it was moved, not just selected
         {
             drain_holes[m_hover_id].pos = m_hole_before_drag;
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _(L("Move drainage hole")));
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Move drainage hole");
             drain_holes[m_hover_id].pos = backup;
         }
     }

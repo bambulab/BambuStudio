@@ -369,7 +369,7 @@ bool GLGizmoSlaSupports::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             if (m_selection_empty) {
                 std::pair<Vec3f, Vec3f> pos_and_normal;
                 if (unproject_on_mesh(mouse_position, pos_and_normal)) { // we got an intersection
-                    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Add support point"));
+                    Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Add support point");
                     m_editing_cache.emplace_back(sla::SupportPoint(pos_and_normal.first, m_new_point_head_diameter/2.f, false), false, pos_and_normal.second);
                     m_parent.set_as_dirty();
                     m_wait_for_up_event = true;
@@ -519,7 +519,7 @@ void GLGizmoSlaSupports::delete_selected_points(bool force)
         std::abort();
     }
 
-    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Delete support point"));
+    Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Delete support point");
 
     for (unsigned int idx=0; idx<m_editing_cache.size(); ++idx) {
         if (m_editing_cache[idx].selected && (!m_editing_cache[idx].support_point.is_new_island || !m_lock_unique_islands || force)) {
@@ -703,7 +703,7 @@ RENDER_AGAIN:
                     cache_entry.support_point.head_front_radius = m_old_point_head_diameter / 2.f;
             float backup = m_new_point_head_diameter;
             m_new_point_head_diameter = m_old_point_head_diameter;
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Change point head diameter"));
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Change point head diameter");
             m_new_point_head_diameter = backup;
             for (auto& cache_entry : m_editing_cache)
                 if (cache_entry.selected)
@@ -771,7 +771,7 @@ RENDER_AGAIN:
         if (slider_released) {
             mo->config.set("support_points_minimal_distance", m_minimal_point_distance_stash);
             mo->config.set("support_points_density_relative", (int)m_density_stash);
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Support parameter change"));
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Support parameter change");
             mo->config.set("support_points_minimal_distance", minimal_point_distance);
             mo->config.set("support_points_density_relative", (int)density);
             wxGetApp().obj_list()->update_and_show_object_settings_item();
@@ -959,7 +959,7 @@ void GLGizmoSlaSupports::on_stop_dragging()
          && backup.support_point.pos != m_point_before_drag.support_point.pos) // and it was moved, not just selected
         {
             m_editing_cache[m_hover_id] = m_point_before_drag;
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Move support point"));
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Move support point");
             m_editing_cache[m_hover_id] = backup;
         }
     }
@@ -1052,7 +1052,7 @@ void GLGizmoSlaSupports::editing_mode_apply_changes()
     disable_editing_mode(); // this leaves the editing mode undo/redo stack and must be done before the snapshot is taken
 
     if (unsaved_changes()) {
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Support points edit"));
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Support points edit");
 
         m_normal_cache.clear();
         for (const CacheEntry& ce : m_editing_cache)
@@ -1139,7 +1139,7 @@ void GLGizmoSlaSupports::auto_generate()
     ModelObject* mo = m_c->selection_info()->model_object();
 
     if (mo->sla_points_status != sla::PointsStatus::UserModified || m_normal_cache.empty() || dlg.ShowModal() == wxID_YES) {
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Autogenerate support points"));
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Autogenerate support points");
         wxGetApp().CallAfter([this]() { reslice_SLA_supports(); });
         mo->sla_points_status = sla::PointsStatus::Generating;
     }

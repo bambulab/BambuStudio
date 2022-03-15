@@ -233,7 +233,7 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
         for (auto& opt : cat.second)
             optgroup->get_field(opt.name)->m_on_change = [optgroup](const std::string& opt_id, const boost::any& value) {
                 // first of all take a snapshot and then change value in configuration
-                wxGetApp().plater()->take_snapshot(from_u8((boost::format(_utf8(L("Change Option %s"))) % opt_id).str()));
+                wxGetApp().plater()->take_snapshot((boost::format("Change Option %s") % opt_id).str());
                 optgroup->on_change_OG(opt_id, value);
             };
 

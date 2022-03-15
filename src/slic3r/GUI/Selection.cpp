@@ -168,7 +168,7 @@ void Selection::add(unsigned int volume_idx, bool as_single_selection, bool chec
     needs_reset |= is_any_modifier() && !volume->is_modifier;
 
     if (!already_contained || needs_reset) {
-        wxGetApp().plater()->take_snapshot(_L("Selection-Add!"), UndoRedo::SnapshotType::Selection);
+        wxGetApp().plater()->take_snapshot(std::string("Selection-Add!"), UndoRedo::SnapshotType::Selection);
 
         if (needs_reset)
             clear();
@@ -210,7 +210,7 @@ void Selection::remove(unsigned int volume_idx)
     if (!contains_volume(volume_idx))
         return;
 
-    wxGetApp().plater()->take_snapshot(_L("Selection-Remove!"), UndoRedo::SnapshotType::Selection);
+    wxGetApp().plater()->take_snapshot(std::string("Selection-Remove!"), UndoRedo::SnapshotType::Selection);
 
     GLVolume* volume = (*m_volumes)[volume_idx];
 
@@ -242,7 +242,7 @@ void Selection::add_object(unsigned int object_idx, bool as_single_selection)
         (as_single_selection && matches(volume_idxs)))
         return;
 
-    wxGetApp().plater()->take_snapshot(_L("Selection-Add Object"), UndoRedo::SnapshotType::Selection);
+    wxGetApp().plater()->take_snapshot(std::string("Selection-Add Object"), UndoRedo::SnapshotType::Selection);
 
     // resets the current list if needed
     if (as_single_selection)
@@ -261,7 +261,7 @@ void Selection::remove_object(unsigned int object_idx)
     if (!m_valid)
         return;
 
-    wxGetApp().plater()->take_snapshot(_L("Selection-Remove Object"), UndoRedo::SnapshotType::Selection);
+    wxGetApp().plater()->take_snapshot(std::string("Selection-Remove Object"), UndoRedo::SnapshotType::Selection);
 
     do_remove_object(object_idx);
 
@@ -279,7 +279,7 @@ void Selection::add_instance(unsigned int object_idx, unsigned int instance_idx,
         (as_single_selection && matches(volume_idxs)))
         return;
 
-    wxGetApp().plater()->take_snapshot(_L("Selection-Add Instance"), UndoRedo::SnapshotType::Selection);
+    wxGetApp().plater()->take_snapshot(std::string("Selection-Add Instance"), UndoRedo::SnapshotType::Selection);
 
     // resets the current list if needed
     if (as_single_selection)
@@ -298,7 +298,7 @@ void Selection::remove_instance(unsigned int object_idx, unsigned int instance_i
     if (!m_valid)
         return;
 
-    wxGetApp().plater()->take_snapshot(_L("Selection-Remove Instance"), UndoRedo::SnapshotType::Selection);
+    wxGetApp().plater()->take_snapshot(std::string("Selection-Remove Instance"), UndoRedo::SnapshotType::Selection);
 
     do_remove_instance(object_idx, instance_idx);
 
@@ -386,7 +386,7 @@ void Selection::add_curr_plate()
     if (!m_valid)
         return;
 
-    wxGetApp().plater()->take_snapshot(_(L("Selection-Add Curr Plate All!")));
+    wxGetApp().plater()->take_snapshot(std::string("Selection-Add Curr Plate All!"));
     m_mode = Instance;
     clear();
 
@@ -411,7 +411,7 @@ void Selection::remove_curr_plate()
     if (plate->empty())
         return;
 
-    wxGetApp().plater()->take_snapshot(_(L("Selection-Delete Curr Plate All")));
+    wxGetApp().plater()->take_snapshot(std::string("Selection-Delete Curr Plate All"));
     m_mode = Instance;
     clear();
 
@@ -451,7 +451,7 @@ void Selection::set_printable(bool printable)
         }
     }
 
-    wxString snapshot_text = from_u8((boost::format("%1%") % (printable ? _utf8(L("Set Selection Printable")) : _utf8(L("Set Selection Unprintable")))).str());
+    std::string snapshot_text = (boost::format("%1%") % (printable ? "Set Selection Printable" : "Set Selection Unprintable")).str();
     wxGetApp().plater()->take_snapshot(snapshot_text);
 
     // set printable value for all instances in object
@@ -484,7 +484,7 @@ void Selection::add_all()
     if ((unsigned int)m_list.size() == count)
         return;
     
-    wxGetApp().plater()->take_snapshot(_(L("Selection-Add All!")), UndoRedo::SnapshotType::Selection);
+    wxGetApp().plater()->take_snapshot(std::string("Selection-Add All!"), UndoRedo::SnapshotType::Selection);
 
     m_mode = Instance;
     clear();
@@ -509,7 +509,7 @@ void Selection::remove_all()
 // Not taking the snapshot with non-empty Redo stack will likely be more confusing than losing the Redo stack.
 // Let's wait for user feedback.
 //    if (!wxGetApp().plater()->can_redo())
-        wxGetApp().plater()->take_snapshot(_L("Selection-Remove All!"), UndoRedo::SnapshotType::Selection);
+        wxGetApp().plater()->take_snapshot(std::string("Selection-Remove All!"), UndoRedo::SnapshotType::Selection);
 
     m_mode = Instance;
     clear();
@@ -1090,7 +1090,7 @@ void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
         if (s <= 0.0 || s == 1.0)
             return;
 
-        wxGetApp().plater()->take_snapshot(_L("Scale To Fit"));
+        wxGetApp().plater()->take_snapshot(std::string("Scale To Fit"));
 
         TransformationType type;
         type.set_world();
@@ -1193,7 +1193,7 @@ void Selection::scale_to_fit_print_volume(const DynamicPrintConfig& config)
         {
             double s = std::min(sx, std::min(sy, sz));
             if (s != 1.0) {
-                wxGetApp().plater()->take_snapshot(_L("Scale To Fit"));
+                wxGetApp().plater()->take_snapshot("Scale To Fit");
 
                 TransformationType type;
                 type.set_world();

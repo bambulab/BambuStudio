@@ -332,7 +332,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
             const Geometry::Transformation& instance_trafo = volume->get_instance_transformation();
             const Vec3d diff = m_cache.position - instance_trafo.get_matrix(true).inverse() * Vec3d(0., 0., get_volume_min_z(*volume));
 
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Drop to bed"));
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Drop to bed");
             change_position_value(0, diff.x());
             change_position_value(1, diff.y());
             change_position_value(2, diff.z());
@@ -344,7 +344,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
                 const ModelObject* mo = wxGetApp().model().objects[idx];
                 const double min_z = mo->bounding_box().min.z();
                 if (std::abs(min_z) > SINKING_Z_THRESHOLD) {
-                    Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Drop to bed"));
+                    Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Drop to bed");
                     change_position_value(2, m_cache.position.z() - min_z);
                 }
             }
@@ -396,7 +396,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent) :
     m_reset_scale_button = new ScalableButton(parent, wxID_ANY, ScalableBitmap(parent, "undo"));
     m_reset_scale_button->SetToolTip(_L("Reset scale"));
     m_reset_scale_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Reset scale"));
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Reset scale");
         change_scale_value(0, 100.);
         change_scale_value(1, 100.);
         change_scale_value(2, 100.);

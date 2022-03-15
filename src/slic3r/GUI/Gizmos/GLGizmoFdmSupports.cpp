@@ -413,7 +413,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     ImGui::Separator();
     if (m_imgui->button(m_desc.at("remove_all"))) {
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), _L("Reset selection"), UndoRedo::SnapshotType::GizmoAction);
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Reset selection", UndoRedo::SnapshotType::GizmoAction);
         ModelObject         *mo  = m_c->selection_info()->model_object();
         int                  idx = -1;
         for (ModelVolume *mv : mo->volumes)
@@ -498,8 +498,8 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         }
     }
 
-    Plater::TakeSnapshot snapshot(wxGetApp().plater(), block ? _L("Block supports by angle")
-                                                    : _L("Add supports by angle"));
+    Plater::TakeSnapshot snapshot(wxGetApp().plater(), block ? "Block supports by angle"
+                                                    : "Add supports by angle");
     update_model_object();
     m_parent.set_as_dirty();
 }*/

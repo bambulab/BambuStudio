@@ -1838,7 +1838,7 @@ int PartPlateList::delete_plate(int index)
 	}
 
 	// BBS: erase unnecessary snapshot
-	m_plater->take_snapshot(_L("delete partplate"));
+	m_plater->take_snapshot("delete partplate");
 
 	// BBS: add wipe tower logic
 	if (m_plater) {
@@ -1972,7 +1972,7 @@ int PartPlateList::select_plate(int index)
 
 	// BBS: erase unnecessary snapshot
 	if (get_curr_plate_index() != index && m_intialized) {
-		m_plater->take_snapshot(_L("select partplate!"));
+		m_plater->take_snapshot("select partplate!");
 	}
 
 	std::vector<PartPlate *>::iterator it = m_plate_list.begin();

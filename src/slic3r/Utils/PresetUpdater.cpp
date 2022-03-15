@@ -477,7 +477,7 @@ void PresetUpdater::priv::sync_config(const VendorMap vendors)
 
         std::string query_vendor = (boost::format("slicer/settings/%1%=%2%")
             % vendor_name
-            % VersionInfo::convert_full_version("00.00.00.00")
+            % VersionInfo::convert_full_version(SLIC3R_VERSION)
             ).str();
         if (!first)
             query_params += "&";
@@ -721,7 +721,7 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
 {
 	Updates updates;
 
-	BOOST_LOG_TRIVIAL(info) << "Checking for cached configuration updates...";
+	BOOST_LOG_TRIVIAL(info) << "[BBL Updater]:Checking for cached configuration updates...";
 
     for (auto &dir_entry : boost::filesystem::directory_iterator(cache_path)) {
         const auto &path = dir_entry.path();
@@ -797,14 +797,14 @@ bool PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
     //std::string vendor_path;
     //std::string vendor_name;
 	if (updates.incompats.size() > 0) {
-		/*if (snapshot) {
-			BOOST_LOG_TRIVIAL(info) << "Taking a snapshot...";
-			if (! GUI::Config::take_config_snapshot_cancel_on_error(*GUI::wxGetApp().app_config, Snapshot::SNAPSHOT_DOWNGRADE, "",
-				_u8L("Continue and install configuration updates?")))
-				return false;
-		}*/
+		//if (snapshot) {
+		//	BOOST_LOG_TRIVIAL(info) << "Taking a snapshot...";
+		//	if (! GUI::Config::take_config_snapshot_cancel_on_error(*GUI::wxGetApp().app_config, Snapshot::SNAPSHOT_DOWNGRADE, "",
+		//		_u8L("Continue and install configuration updates?")))
+		//		return false;
+		//}
 		
-		BOOST_LOG_TRIVIAL(info) << format("Deleting %1% incompatible bundles", updates.incompats.size());
+		BOOST_LOG_TRIVIAL(info) << format("[BBL Updater]:Deleting %1% incompatible bundles", updates.incompats.size());
 
 		for (auto &incompat : updates.incompats) {
 			BOOST_LOG_TRIVIAL(info) << '\t' << incompat;
@@ -813,41 +813,41 @@ bool PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
 
 		
 	} else if (updates.updates.size() > 0) {
-		/*if (snapshot) {
-			BOOST_LOG_TRIVIAL(info) << "Taking a snapshot...";
-			if (! GUI::Config::take_config_snapshot_cancel_on_error(*GUI::wxGetApp().app_config, Snapshot::SNAPSHOT_UPGRADE, "",
-				_u8L("Continue and install configuration updates?")))
-				return false;
-		}*/
+		//if (snapshot) {
+		//	BOOST_LOG_TRIVIAL(info) << "Taking a snapshot...";
+		//	if (! GUI::Config::take_config_snapshot_cancel_on_error(*GUI::wxGetApp().app_config, Snapshot::SNAPSHOT_UPGRADE, "",
+		//		_u8L("Continue and install configuration updates?")))
+		//		return false;
+		//}
 
-		BOOST_LOG_TRIVIAL(info) << format("Performing %1% updates", updates.updates.size());
+		BOOST_LOG_TRIVIAL(info) << format("[BBL Updater]:Performing %1% updates", updates.updates.size());
 
 		for (const auto &update : updates.updates) {
 			BOOST_LOG_TRIVIAL(info) << '\t' << update;
 
 			update.install();
-            /*if (!update.is_directory) {
-                vendor_path = update.source.parent_path().string();
-                vendor_name = update.vendor;
-            }*/
+            //if (!update.is_directory) {
+            //    vendor_path = update.source.parent_path().string();
+            //    vendor_name = update.vendor;
+            //}
 		}
 
-        /*if (!vendor_path.empty()) {
-            PresetBundle bundle;
-            // Throw when parsing invalid configuration. Only valid configuration is supposed to be provided over the air.
-            bundle.load_vendor_configs_from_json(vendor_path, vendor_name, PresetBundle::LoadConfigBundleAttribute::LoadSystem, ForwardCompatibilitySubstitutionRule::Disable);
+        //if (!vendor_path.empty()) {
+        //    PresetBundle bundle;
+        //    // Throw when parsing invalid configuration. Only valid configuration is supposed to be provided over the air.
+        //    bundle.load_vendor_configs_from_json(vendor_path, vendor_name, PresetBundle::LoadConfigBundleAttribute::LoadSystem, ForwardCompatibilitySubstitutionRule::Disable);
 
-            BOOST_LOG_TRIVIAL(info) << format("Deleting %1% conflicting presets", bundle.prints.size() + bundle.filaments.size() + bundle.printers.size());
+        //    BOOST_LOG_TRIVIAL(info) << format("Deleting %1% conflicting presets", bundle.prints.size() + bundle.filaments.size() + bundle.printers.size());
 
-            auto preset_remover = [](const Preset& preset) {
-                BOOST_LOG_TRIVIAL(info) << '\t' << preset.file;
-                fs::remove(preset.file);
-            };
+        //    auto preset_remover = [](const Preset& preset) {
+        //        BOOST_LOG_TRIVIAL(info) << '\t' << preset.file;
+        //        fs::remove(preset.file);
+        //    };
 
-            for (const auto &preset : bundle.prints)    { preset_remover(preset); }
-            for (const auto &preset : bundle.filaments) { preset_remover(preset); }
-            for (const auto &preset : bundle.printers)  { preset_remover(preset); }
-        }*/
+        //    for (const auto &preset : bundle.prints)    { preset_remover(preset); }
+        //    for (const auto &preset : bundle.filaments) { preset_remover(preset); }
+        //    for (const auto &preset : bundle.printers)  { preset_remover(preset); }
+        //}
     }
 
 	return true;
@@ -903,9 +903,8 @@ void PresetUpdater::slic3r_update_notify()
 
 static bool reload_configs_update_gui()
 {
-	wxString header = _L("Configuration Updates causes a lost of preset modification.\n"
-						 "So, check unsaved changes and save them if necessary.");
-	if (!GUI::wxGetApp().check_and_save_current_preset_changes(_L("Updating"), header, false ))
+	wxString header = _L("Need to check the unsaved changes before configuration updates.");
+	if (!GUI::wxGetApp().check_and_save_current_preset_changes(_L("Configuration updates"), header, false ))
 		return false;
 
 	// Reload global configuration
@@ -926,47 +925,48 @@ PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3
  	if (! p->enabled_config_update) { return R_NOOP; }
 
 	auto updates = p->get_config_updates(old_slic3r_version);
-	if (updates.incompats.size() > 0) {
-		BOOST_LOG_TRIVIAL(info) << format("%1% bundles incompatible. Asking for action...", updates.incompats.size());
+	//if (updates.incompats.size() > 0) {
+	//	BOOST_LOG_TRIVIAL(info) << format("%1% bundles incompatible. Asking for action...", updates.incompats.size());
 
-		std::unordered_map<std::string, wxString> incompats_map;
-		for (const auto &incompat : updates.incompats) {
-			const auto min_slic3r = incompat.version.min_slic3r_version;
-			const auto max_slic3r = incompat.version.max_slic3r_version;
-			wxString restrictions;
-			if (min_slic3r != Semver::zero() && max_slic3r != Semver::inf()) {
-                restrictions = GUI::format_wxstr(_L("requires min. %s and max. %s"),
-                    min_slic3r.to_string(),
-                    max_slic3r.to_string());
-			} else if (min_slic3r != Semver::zero()) {
-				restrictions = GUI::format_wxstr(_L("requires min. %s"), min_slic3r.to_string());
-				BOOST_LOG_TRIVIAL(debug) << "Bundle is not downgrade, user will now have to do whole wizard. This should not happen.";
-			} else {
-                restrictions = GUI::format_wxstr(_L("requires max. %s"), max_slic3r.to_string());
-			}
+	//	std::unordered_map<std::string, wxString> incompats_map;
+	//	for (const auto &incompat : updates.incompats) {
+	//		const auto min_slic3r = incompat.version.min_slic3r_version;
+	//		const auto max_slic3r = incompat.version.max_slic3r_version;
+	//		wxString restrictions;
+	//		if (min_slic3r != Semver::zero() && max_slic3r != Semver::inf()) {
+ //               restrictions = GUI::format_wxstr(_L("requires min. %s and max. %s"),
+ //                   min_slic3r.to_string(),
+ //                   max_slic3r.to_string());
+	//		} else if (min_slic3r != Semver::zero()) {
+	//			restrictions = GUI::format_wxstr(_L("requires min. %s"), min_slic3r.to_string());
+	//			BOOST_LOG_TRIVIAL(debug) << "Bundle is not downgrade, user will now have to do whole wizard. This should not happen.";
+	//		} else {
+ //               restrictions = GUI::format_wxstr(_L("requires max. %s"), max_slic3r.to_string());
+	//		}
 
-			incompats_map.emplace(std::make_pair(incompat.vendor, std::move(restrictions)));
-		}
+	//		incompats_map.emplace(std::make_pair(incompat.vendor, std::move(restrictions)));
+	//	}
 
-		GUI::MsgDataIncompatible dlg(std::move(incompats_map));
-		const auto res = dlg.ShowModal();
-		if (res == wxID_REPLACE) {
-			BOOST_LOG_TRIVIAL(info) << "User wants to re-configure...";
+	//	GUI::MsgDataIncompatible dlg(std::move(incompats_map));
+	//	const auto res = dlg.ShowModal();
+	//	if (res == wxID_REPLACE) {
+	//		BOOST_LOG_TRIVIAL(info) << "User wants to re-configure...";
 
-			// This effectively removes the incompatible bundles:
-			// (snapshot is taken beforehand)
-			if (! p->perform_updates(std::move(updates)) ||
-				! GUI::wxGetApp().run_wizard(GUI::ConfigWizard::RR_DATA_INCOMPAT))
-				return R_INCOMPAT_EXIT;
+	//		// This effectively removes the incompatible bundles:
+	//		// (snapshot is taken beforehand)
+	//		if (! p->perform_updates(std::move(updates)) ||
+	//			! GUI::wxGetApp().run_wizard(GUI::ConfigWizard::RR_DATA_INCOMPAT))
+	//			return R_INCOMPAT_EXIT;
 
-			return R_INCOMPAT_CONFIGURED;
-		}
-		else {
-			BOOST_LOG_TRIVIAL(info) << "User wants to exit Slic3r, bye...";
-			return R_INCOMPAT_EXIT;
-		}
+	//		return R_INCOMPAT_CONFIGURED;
+	//	}
+	//	else {
+	//		BOOST_LOG_TRIVIAL(info) << "User wants to exit Slic3r, bye...";
+	//		return R_INCOMPAT_EXIT;
+	//	}
 
-	} else if (updates.updates.size() > 0) {
+	//} else 
+	if (updates.updates.size() > 0) {
 
 		bool incompatible_version = false;
 		for (const auto& update : updates.updates) {
