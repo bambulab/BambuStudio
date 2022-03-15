@@ -5,10 +5,6 @@
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
         {
-            "name": "BBL-3DP-V4NORMAL",
-            "sub_path": "machine/BBL-3DP-V4NORMAL.json"
-        },
-        {
             "name": "BBL-3DP-V5NORMAL",
             "sub_path": "machine/BBL-3DP-V5NORMAL.json"
         }
@@ -353,10 +349,6 @@
         {
             "name": "fdm_bbl_3dp_001_common",
             "sub_path": "machine/fdm_bbl_3dp_001_common.json"
-        },
-        {
-            "name": "Bambulab BBL-3DP-001-V4-normal",
-            "sub_path": "machine/Bambulab BBL-3DP-001-V4-normal.json"
         },
         {
             "name": "Bambulab BBL-3DP-001-V5-normal",
