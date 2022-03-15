@@ -2,7 +2,6 @@
 
 #include "GUI.hpp"
 #include "ImGuiWrapper.hpp"
-#include "PrintHostDialogs.hpp"
 #include "wxExtensions.hpp"
 #include "ObjectDataViewModel.hpp"
 #include "libslic3r/Config.hpp"

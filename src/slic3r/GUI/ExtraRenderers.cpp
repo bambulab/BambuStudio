@@ -1,7 +1,6 @@
 #include "ExtraRenderers.hpp"
 #include "wxExtensions.hpp"
 #include "GUI.hpp"
-#include "I18N.hpp"
 #include "BitmapComboBox.hpp"
 #include "Plater.hpp"
 
@@ -313,8 +312,6 @@ wxWindow* BitmapChoiceRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelR
         0, nullptr , wxCB_READONLY);
 
     // BBS
-    //int def_id = get_default_extruder_idx ? get_default_extruder_idx() : 0;
-    //c_editor->Append(_L("default"), def_id < 0 ? wxNullBitmap : *icons[def_id]);
     for (size_t i = 0; i < icons.size(); i++)
         c_editor->Append(wxString::Format("%d", i+1), *icons[i]);
 

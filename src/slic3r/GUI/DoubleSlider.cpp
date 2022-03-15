@@ -5,7 +5,6 @@
 #include "GUI_App.hpp"
 #include "Plater.hpp"
 #include "I18N.hpp"
-#include "ExtruderSequenceDialog.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "GUI_Utils.hpp"
@@ -2060,10 +2059,6 @@ void Control::show_cog_icon_context_menu()
             []() { return true; }, this);
     }
 
-    if (m_mode == MultiAsSingle && m_draw_mode == dmRegular)
-        append_menu_item(&menu, wxID_ANY, _L("Set extruder sequence for the entire print"), "",
-            [this](wxCommandEvent&) { edit_extruder_sequence(); }, "", &menu);
-
     if (GUI::wxGetApp().is_editor() && m_mode != MultiExtruder && m_draw_mode == dmRegular)
         append_menu_item(&menu, wxID_ANY, _L("Set auto color changes"), "",
             [this](wxCommandEvent&) { auto_color_change(); }, "", &menu);
@@ -2431,67 +2426,6 @@ void Control::move_current_thumb_to_pos(wxPoint pos)
             correct_higher_value();
         }
     }
-}
-
-void Control::edit_extruder_sequence()
-{
-    if (!check_ticks_changed_event(ToolChange))
-        return;
-
-    GUI::ExtruderSequenceDialog dlg(m_extruders_sequence);
-    if (dlg.ShowModal() != wxID_OK)
-        return;
-    m_extruders_sequence = dlg.GetValue();
-
-    m_ticks.erase_all_ticks_with_code(ToolChange);
-
-    const int extr_cnt = m_extruders_sequence.extruders.size();
-    if (extr_cnt == 1)
-        return;
-
-    int tick = 0;
-    double value = 0.0;
-    int extruder = -1;
-
-    std::random_device rd;  //Will be used to obtain a seed for the random number engine
-    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-    std::uniform_int_distribution<> distrib(0, extr_cnt-1);
-
-    while (tick <= m_max_value)
-    {
-        bool color_repetition = false;
-        if (m_extruders_sequence.random_sequence) {
-            int rand_extr = distrib(gen);
-            if (m_extruders_sequence.color_repetition)
-                color_repetition = rand_extr == extruder;
-            else
-                while (rand_extr == extruder)
-                    rand_extr = distrib(gen);
-            extruder = rand_extr;
-        }
-        else {
-            extruder++;
-            if (extruder == extr_cnt)
-                extruder = 0;
-        }
-
-        const int cur_extruder = m_extruders_sequence.extruders[extruder];
-
-        bool meaningless_tick = tick == 0.0 && cur_extruder == extruder;
-        if (!meaningless_tick && !color_repetition)
-            m_ticks.ticks.emplace(TickCode{tick, ToolChange,cur_extruder + 1, m_extruder_colors[cur_extruder]});
-
-        if (m_extruders_sequence.is_mm_intervals) {
-            value += m_extruders_sequence.interval_by_mm;
-            tick = get_tick_from_value(value, true);
-            if (tick < 0)
-                break;
-        }
-        else
-            tick += m_extruders_sequence.interval_by_layers;
-    }
-
-    post_ticks_changed_event(ToolChange);
 }
 
 void Control::jump_to_value()

@@ -35,7 +35,6 @@
 #include "Plater.hpp"
 #include "MainFrame.hpp"
 #include "format.hpp"
-#include "PhysicalPrinterDialog.hpp"
 #include "UnsavedChangesDialog.hpp"
 #include "SavePresetDialog.hpp"
 #include "MsgDialog.hpp"
@@ -4171,49 +4170,36 @@ void Tab::delete_preset()
 
     PhysicalPrinterCollection& physical_printers = m_preset_bundle->physical_printers;
     wxString msg;
-    if (m_presets_choice->is_selected_physical_printer())
-    {
-        PhysicalPrinter& printer = physical_printers.get_selected_printer();
-        if (printer.preset_names.size() == 1) {
-            if (m_presets_choice->del_physical_printer(_L("It's a last preset for this physical printer.")))
-                Layout();
-            return;
-        }
-        
-        msg = format_wxstr(_L("Are you sure you want to delete \"%1%\" preset from the physical printer \"%2%\"?"), current_preset.name, printer.name);
-    }
-    else
-    {
-        if (m_type == Preset::TYPE_PRINTER && !physical_printers.empty())
-        {
-            // Check preset for delete in physical printers
-            // Ask a customer about next action, if there is a printer with just one preset and this preset is equal to delete
-            std::vector<std::string> ph_printers        = physical_printers.get_printers_with_preset(current_preset.name);
-            std::vector<std::string> ph_printers_only   = physical_printers.get_printers_with_only_preset(current_preset.name);
 
-            if (!ph_printers.empty()) {
-                msg += _L_PLURAL("The physical printer below is based on the preset, you are going to delete.", 
-                                 "The physical printers below are based on the preset, you are going to delete.", ph_printers.size());
-                for (const std::string& printer : ph_printers)
-                    msg += "\n    \"" + from_u8(printer) + "\",";
-                msg.RemoveLast();
-                msg += "\n" + _L_PLURAL("Note, that the selected preset will be deleted from this printer too.", 
-                                        "Note, that the selected preset will be deleted from these printers too.", ph_printers.size()) + "\n\n";
-            }
+    if (m_type == Preset::TYPE_PRINTER && !physical_printers.empty())
+    {
+        // Check preset for delete in physical printers
+        // Ask a customer about next action, if there is a printer with just one preset and this preset is equal to delete
+        std::vector<std::string> ph_printers        = physical_printers.get_printers_with_preset(current_preset.name);
+        std::vector<std::string> ph_printers_only   = physical_printers.get_printers_with_only_preset(current_preset.name);
 
-            if (!ph_printers_only.empty()) {
-                msg += _L_PLURAL("The physical printer below is based only on the preset, you are going to delete.", 
-                                 "The physical printers below are based only on the preset, you are going to delete.", ph_printers_only.size());
-                for (const std::string& printer : ph_printers_only)
-                    msg += "\n    \"" + from_u8(printer) + "\",";
-                msg.RemoveLast();
-                msg += "\n" + _L_PLURAL("Note, that this printer will be deleted after deleting the selected preset.",
-                                        "Note, that these printers will be deleted after deleting the selected preset.", ph_printers_only.size()) + "\n\n";
-            }
+        if (!ph_printers.empty()) {
+            msg += _L_PLURAL("The physical printer below is based on the preset, you are going to delete.", 
+                                "The physical printers below are based on the preset, you are going to delete.", ph_printers.size());
+            for (const std::string& printer : ph_printers)
+                msg += "\n    \"" + from_u8(printer) + "\",";
+            msg.RemoveLast();
+            msg += "\n" + _L_PLURAL("Note, that the selected preset will be deleted from this printer too.", 
+                                    "Note, that the selected preset will be deleted from these printers too.", ph_printers.size()) + "\n\n";
         }
-    
-        msg += from_u8((boost::format(_u8L("Are you sure you want to %1% the selected preset?")) % action).str());
+
+        if (!ph_printers_only.empty()) {
+            msg += _L_PLURAL("The physical printer below is based only on the preset, you are going to delete.", 
+                                "The physical printers below are based only on the preset, you are going to delete.", ph_printers_only.size());
+            for (const std::string& printer : ph_printers_only)
+                msg += "\n    \"" + from_u8(printer) + "\",";
+            msg.RemoveLast();
+            msg += "\n" + _L_PLURAL("Note, that this printer will be deleted after deleting the selected preset.",
+                                    "Note, that these printers will be deleted after deleting the selected preset.", ph_printers_only.size()) + "\n\n";
+        }
     }
+
+    msg += from_u8((boost::format(_u8L("Are you sure you want to %1% the selected preset?")) % action).str());
 
     //BBS: add project embedded preset logic and refine is_external
     action =  _utf8(L("Delete"));

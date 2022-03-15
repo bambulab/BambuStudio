@@ -36,7 +36,6 @@
 #include "../Utils/FixModelByWin10.hpp"
 #include "../Utils/UndoRedo.hpp"
 #include "BitmapCache.hpp"
-#include "PhysicalPrinterDialog.hpp"
 #include "SavePresetDialog.hpp"
 #include "MsgDialog.hpp"
 #include "ParamsDialog.hpp"
@@ -328,52 +327,6 @@ void PresetComboBox::update(std::string select_preset_name)
 
     update_selection();
     Thaw();
-}
-
-void PresetComboBox::edit_physical_printer()
-{
-    if (!m_preset_bundle->physical_printers.has_selection())
-        return;
-
-    PhysicalPrinterDialog dlg(this->GetParent(),this->GetString(this->GetSelection()));
-    if (dlg.ShowModal() == wxID_OK)
-        update();
-}
-
-void PresetComboBox::add_physical_printer()
-{
-    if (PhysicalPrinterDialog(this->GetParent(), wxEmptyString).ShowModal() == wxID_OK)
-        update();
-}
-
-bool PresetComboBox::del_physical_printer(const wxString& note_string/* = wxEmptyString*/)
-{
-    const std::string& printer_name = m_preset_bundle->physical_printers.get_selected_full_printer_name();
-    if (printer_name.empty())
-        return false;
-
-    wxString msg;
-    if (!note_string.IsEmpty())
-        msg += note_string + "\n";
-    msg += format_wxstr(_L("Are you sure to delete \"%1%\" printer?"), printer_name);
-
-    //if (wxMessageDialog(this, msg, _L("Delete Physical Printer"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal() != wxID_YES)
-    if (MessageDialog(this, msg, _L("Delete Physical Printer"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal() != wxID_YES)
-        return false;
-
-    m_preset_bundle->physical_printers.delete_selected_printer();
-
-    this->update();
-
-    if (dynamic_cast<PlaterPresetComboBox*>(this) != nullptr)
-        wxGetApp().get_tab(m_type)->update_preset_choice();
-    else if (dynamic_cast<TabPresetComboBox*>(this) != nullptr)
-    {
-        wxGetApp().get_tab(m_type)->update_btns_enabling();
-        wxGetApp().plater()->sidebar().update_presets(m_type);
-    }
-
-    return true;
 }
 
 void PresetComboBox::show_all(bool show_all)
@@ -803,13 +756,6 @@ void PlaterPresetComboBox::show_add_menu()
             wxTheApp->CallAfter([]() { run_wizard(ConfigWizard::SP_PRINTERS); });
         }, "edit_uni", menu, []() { return true; }, wxGetApp().plater());
 
-    append_menu_item(menu, wxID_ANY, _L("Add physical printer"), "",
-        [this](wxCommandEvent&) {
-            PhysicalPrinterDialog dlg(this->GetParent(), wxEmptyString);
-            if (dlg.ShowModal() == wxID_OK)
-                update();
-        }, "edit_uni", menu, []() { return true; }, wxGetApp().plater());
-
     wxGetApp().plater()->PopupMenu(menu);
 }
 
@@ -830,21 +776,10 @@ void PlaterPresetComboBox::show_edit_menu()
     }
 #endif //__linux__
 
-    if (this->is_selected_physical_printer()) {
-        append_menu_item(menu, wxID_ANY, _L("Edit physical printer"), "",
-            [this](wxCommandEvent&) { this->edit_physical_printer(); }, "cog", menu, []() { return true; }, wxGetApp().plater());
-
-        append_menu_item(menu, wxID_ANY, _L("Delete physical printer"), "",
-            [this](wxCommandEvent&) { this->del_physical_printer(); }, "cross", menu, []() { return true; }, wxGetApp().plater());
-    }
-    else
-        append_menu_item(menu, wxID_ANY, _L("Add/Remove presets"), "",
-            [](wxCommandEvent&) {
-                wxTheApp->CallAfter([]() { run_wizard(ConfigWizard::SP_PRINTERS); });
-            }, "edit_uni", menu, []() { return true; }, wxGetApp().plater());
-
-    append_menu_item(menu, wxID_ANY, _L("Add physical printer"), "",
-        [this](wxCommandEvent&) { this->add_physical_printer(); }, "edit_uni", menu, []() { return true; }, wxGetApp().plater());
+    append_menu_item(menu, wxID_ANY, _L("Add/Remove presets"), "",
+        [](wxCommandEvent&) {
+            wxTheApp->CallAfter([]() { run_wizard(ConfigWizard::SP_PRINTERS); });
+        }, "edit_uni", menu, []() { return true; }, wxGetApp().plater());
 
     wxGetApp().plater()->PopupMenu(menu);
 }
@@ -1116,11 +1051,6 @@ void TabPresetComboBox::OnSelect(wxCommandEvent &evt)
         if (sp != ConfigWizard::SP_WELCOME) {
             wxTheApp->CallAfter([this, sp]() {
                 run_wizard(sp);
-
-                // update combobox if its parent is a PhysicalPrinterDialog
-                PhysicalPrinterDialog* parent = dynamic_cast<PhysicalPrinterDialog*>(this->GetParent());
-                if (parent != nullptr)
-                    update();
             });
         }
     }

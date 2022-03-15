@@ -64,10 +64,6 @@ public:
     // select preset which is selected in PreseBundle
     void update_from_bundle();
 
-    void edit_physical_printer();
-    void add_physical_printer();
-    bool del_physical_printer(const wxString& note_string = wxEmptyString);
-
     //BBS
     wxString get_tooltip(const Preset& preset);
 

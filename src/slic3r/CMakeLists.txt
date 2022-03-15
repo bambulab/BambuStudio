@@ -156,8 +156,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/BitmapComboBox.cpp
     GUI/SavePresetDialog.hpp
     GUI/SavePresetDialog.cpp
-    GUI/PhysicalPrinterDialog.hpp
-    GUI/PhysicalPrinterDialog.cpp
     GUI/GUI_Colors.hpp
     GUI/GUI_Colors.cpp
     GUI/GUI_Factories.cpp
@@ -220,8 +218,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/Camera.hpp
     GUI/wxExtensions.cpp
     GUI/wxExtensions.hpp
-    GUI/ExtruderSequenceDialog.cpp
-    GUI/ExtruderSequenceDialog.hpp
     GUI/WipeTowerDialog.cpp
     GUI/WipeTowerDialog.hpp
     GUI/RemovableDriveManager.cpp
@@ -244,9 +240,7 @@ set(SLIC3R_GUI_SOURCES
     GUI/MsgDialog.cpp
     GUI/MsgDialog.hpp
     GUI/UpdateDialogs.cpp
-    GUI/UpdateDialogs.hpp
-    GUI/PrintHostDialogs.cpp
-    GUI/PrintHostDialogs.hpp
+    GUI/UpdateDialogs.hpp    
     GUI/Jobs/Job.hpp
     GUI/Jobs/Job.cpp
     GUI/Jobs/PlaterJob.hpp

@@ -13,12 +13,6 @@
 
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Channel.hpp"
-//#include "Duet.hpp"
-//#include "FlashAir.hpp"
-//#include "AstroBox.hpp"
-//#include "Repetier.hpp"
-//#include "MKS.hpp"
-#include "../GUI/PrintHostDialogs.hpp"
 
 namespace fs = boost::filesystem;
 using boost::optional;
@@ -117,20 +111,17 @@ PrintHostJobQueue::~PrintHostJobQueue()
 
 void PrintHostJobQueue::priv::emit_progress(int progress)
 {
-    auto evt = new PrintHostQueueDialog::Event(GUI::EVT_PRINTHOST_PROGRESS, queue_dialog->GetId(), job_id, progress);
-    wxQueueEvent(queue_dialog, evt);
+    ;
 }
 
 void PrintHostJobQueue::priv::emit_error(wxString error)
 {
-    auto evt = new PrintHostQueueDialog::Event(GUI::EVT_PRINTHOST_ERROR, queue_dialog->GetId(), job_id, std::move(error));
-    wxQueueEvent(queue_dialog, evt);
+    ;
 }
 
 void PrintHostJobQueue::priv::emit_cancel(size_t id)
 {
-    auto evt = new PrintHostQueueDialog::Event(GUI::EVT_PRINTHOST_CANCEL, queue_dialog->GetId(), id);
-    wxQueueEvent(queue_dialog, evt);
+    ;
 }
 
 void PrintHostJobQueue::priv::start_bg_thread()
@@ -270,14 +261,12 @@ void PrintHostJobQueue::priv::perform_job(PrintHostJob the_job)
 
 void PrintHostJobQueue::enqueue(PrintHostJob job)
 {
-    p->start_bg_thread();
-    p->queue_dialog->append_job(job);
-    p->channel_jobs.push(std::move(job));
+    ;
 }
 
 void PrintHostJobQueue::cancel(size_t id)
 {
-    p->channel_cancels.push(id);
+    ;
 }
 
 }
