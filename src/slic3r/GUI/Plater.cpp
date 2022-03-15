@@ -8305,7 +8305,7 @@ void Plater::paste_from_clipboard()
         p->view3D->get_canvas3d()->get_selection().paste_from_clipboard();
 }
 
-void Plater::search(bool plater_is_active, wxWindow *tag, wxTextCtrl *etag, wxWindow* stag)
+void Plater::search(bool plater_is_active, Preset::Type type, wxWindow *tag, wxTextCtrl *etag, wxWindow *stag)
 {
     if (plater_is_active) {
         if (is_preview_shown())
@@ -8323,7 +8323,7 @@ void Plater::search(bool plater_is_active, wxWindow *tag, wxTextCtrl *etag, wxWi
         canvas3D()->on_char(evt);
     }
     else
-        p->sidebar->get_searcher().show_dialog(tag, etag, stag);
+        p->sidebar->get_searcher().show_dialog(type, tag, etag, stag);
 }
 
 void Plater::msw_rescale()

@@ -36,8 +36,8 @@ ScrolledWindow::ScrolledWindow(wxWindow *parent, wxWindowID id, wxPoint position
     if (bVertical) {
         m_verticalSplitter = new wxWindow(this, -1, position, vsSize);
         m_userPanel        = new wxPanel(m_verticalSplitter, -1, wxPoint(0, 0), wxSize(size.GetWidth() - marginWidth, size.GetHeight()));
-        auto scroll_win    = new wxWindow(m_verticalSplitter, -1, wxPoint(size.GetWidth() - marginWidth, 0), wxSize(marginWidth, size.GetHeight()));
-        m_rightScrollbar = new MyScrollbar(scroll_win, -1, wxPoint(0, 0), wxSize(scrollbarWidth, size.GetHeight()), this, wxVSCROLL, scrollbarWidth, tipLength);
+        m_scroll_win      = new wxWindow(m_verticalSplitter, -1, wxPoint(size.GetWidth() - marginWidth, 0), wxSize(marginWidth, size.GetHeight()));
+        m_rightScrollbar   = new MyScrollbar(m_scroll_win, -1, wxPoint(0, 0), wxSize(scrollbarWidth, size.GetHeight()), this, wxVSCROLL, scrollbarWidth, tipLength);
     } else if (bHorizontal) {
         m_horizontalSplitter = new wxSplitterWindow(this, -1, position, hsSize);
         m_userPanel          = new wxPanel(m_horizontalSplitter, -1, wxPoint(0, 0), wxSize(size.GetWidth() - marginWidth, size.GetHeight() - marginWidth));
@@ -127,6 +127,7 @@ void ScrolledWindow::SetBackgroundColour(wxColour color)
     wxWindow::SetBackgroundColour(color); 
     m_verticalSplitter->SetBackgroundColour(color); 
     m_userPanel->SetBackgroundColour(color);
+    m_scroll_win->SetBackgroundColour(color);
 }
 
 void ScrolledWindow::SetMarginColor(wxColour color)

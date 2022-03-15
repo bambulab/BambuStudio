@@ -162,9 +162,9 @@ static bool fuzzy_match(const std::wstring &search_pattern, const std::wstring &
         return false;
 }
 
-bool OptionsSearcher::search(const std::string &search, bool force /* = false*/)
+bool OptionsSearcher::search(const std::string &search, bool force /* = false*/, Preset::Type type/* = Preset::TYPE_INVALID*/)
 {
-    if (search_line == search && !force) return false;
+    if (search_line == search && search_type == type && !force) return false;
 
     found.clear();
 
@@ -206,7 +206,13 @@ bool OptionsSearcher::search(const std::string &search, bool force /* = false*/)
         const Option &opt = options[i];
         if (full_list) {
             std::string label = into_u8(get_label(opt));
-            found.emplace_back(FoundOption{label, label, boost::nowide::narrow(get_tooltip(opt)), i, 0});
+            //all
+            if (type == Preset::TYPE_INVALID) { 
+                found.emplace_back(FoundOption{label, label, boost::nowide::narrow(get_tooltip(opt)), i, 0});
+            } else if (type == opt.type){
+                found.emplace_back(FoundOption{label, label, boost::nowide::narrow(get_tooltip(opt)), i, 0});
+            }
+            
             continue;
         }
 
@@ -231,7 +237,7 @@ bool OptionsSearcher::search(const std::string &search, bool force /* = false*/)
         }
         if (score > 90 /*std::numeric_limits<int>::min()*/) {
             label = mark_string(label, matches, opt.type, printer_technology);
-            label += L"  [" + std::to_wstring(score) + L"]"; // add score value
+            //label += L"  [" + std::to_wstring(score) + L"]"; // add score value
             std::string label_u8    = into_u8(label);
             std::string label_plain = label_u8;
 
@@ -242,13 +248,20 @@ bool OptionsSearcher::search(const std::string &search, bool force /* = false*/)
             boost::erase_all(label_plain, std::string(1, char(ImGui::ColorMarkerStart)));
             boost::erase_all(label_plain, std::string(1, char(ImGui::ColorMarkerEnd)));
 #endif
-            found.emplace_back(FoundOption{label_plain, label_u8, boost::nowide::narrow(get_tooltip(opt)), i, score});
+
+            if (type == Preset::TYPE_INVALID) {
+                found.emplace_back(FoundOption{label_plain, label_u8, boost::nowide::narrow(get_tooltip(opt)), i, score});
+            } else if (type == opt.type) {
+                found.emplace_back(FoundOption{label_plain, label_u8, boost::nowide::narrow(get_tooltip(opt)), i, score});
+            }
+            
         }
     }
 
     if (!full_list) sort_found();
 
     if (search_line != search) search_line = search;
+    if (search_type != type) search_type = type;
 
     return true;
 }
@@ -263,7 +276,7 @@ void OptionsSearcher::init(std::vector<InputInfo> input_values)
     for (auto i : input_values) append_options(i.config, i.type, i.mode);
     sort_options();
 
-    search(search_line, true);
+    search(search_line, true, search_type);
 }
 
 void OptionsSearcher::apply(DynamicPrintConfig *config, Preset::Type type, ConfigOptionMode mode)
@@ -276,7 +289,7 @@ void OptionsSearcher::apply(DynamicPrintConfig *config, Preset::Type type, Confi
 
     sort_options();
 
-    search(search_line, true);
+    search(search_line, true, search_type);
 }
 
 const Option &OptionsSearcher::get_option(size_t pos_in_filter) const
@@ -345,10 +358,10 @@ Option OptionsSearcher::get_option(const std::string &opt_key, const wxString &l
     return create_option(opt_key, label, type, gc);
 }
 
-void OptionsSearcher::show_dialog(wxWindow *parent, wxTextCtrl *input, wxWindow* ssearch_btn)
+void OptionsSearcher::show_dialog(Preset::Type type, wxWindow *parent, wxTextCtrl *input, wxWindow* ssearch_btn)
 {
     if (parent == nullptr || input == nullptr) return;
-    auto    search_dialog = new SearchDialog(this, parent, input, ssearch_btn);
+    auto    search_dialog = new SearchDialog(this, type, parent, input, ssearch_btn);
     wxPoint pos = parent->ClientToScreen(wxPoint(0, 0));
     pos.y += parent->GetRect().height;
     search_dialog->SetPosition(pos);
@@ -505,11 +518,13 @@ static const std::map<const char, int> icon_idxs = {
     {ImGui::PrintIconMarker, 0}, {ImGui::PrinterIconMarker, 1}, {ImGui::PrinterSlaIconMarker, 2}, {ImGui::FilamentIconMarker, 3}, {ImGui::MaterialIconMarker, 4},
 };
 
-SearchDialog::SearchDialog(OptionsSearcher *searcher, wxWindow* parent, wxTextCtrl* input, wxWindow* search_btn) 
+SearchDialog::SearchDialog(OptionsSearcher *searcher, Preset::Type type, wxWindow *parent, wxTextCtrl *input, wxWindow *search_btn) 
     : wxPopupTransientWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS), searcher(searcher)
 {
     m_event_tag       = parent;
     search_line       = input;
+    search_type       = type;
+
     m_search_item_tag = search_btn;
 
     // set border color
@@ -651,7 +666,7 @@ void SearchDialog::OnInputText(wxCommandEvent &)
     search_line->SetInsertionPointEnd();
     wxString input_string = search_line->GetValue();
     if (input_string == default_string) input_string.Clear();
-    searcher->search(into_u8(input_string), true);
+    searcher->search(into_u8(input_string), true, search_type);
     update_list();
 }
 

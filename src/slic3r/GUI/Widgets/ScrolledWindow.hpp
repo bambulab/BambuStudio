@@ -31,6 +31,7 @@ public:
 
 private:
     wxPanel *    m_userPanel; // the panel targeted by the scrolled window
+    wxWindow *   m_scroll_win;
     MyScrollbar *m_rightScrollbar;
     MyScrollbar *m_bottomScrollbar;
     // wxSplitterWindow* m_verticalSplitter;

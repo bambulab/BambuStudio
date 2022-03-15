@@ -86,6 +86,8 @@ struct OptionViewParameters
 class OptionsSearcher
 {
     std::string                             search_line;
+    Preset::Type                            search_type = Preset::TYPE_INVALID;
+
     std::map<std::string, GroupAndCategory> groups_and_categories;
     PrinterTechnology                       printer_technology;
 
@@ -118,7 +120,7 @@ public:
     void init(std::vector<InputInfo> input_values);
     void apply(DynamicPrintConfig *config, Preset::Type type, ConfigOptionMode mode);
     bool search();
-    bool search(const std::string &search, bool force = false);
+    bool search(const std::string &search, bool force = false, Preset::Type type = Preset::TYPE_INVALID);
 
     void add_key(const std::string &opt_key, Preset::Type type, const wxString &group, const wxString &category);
 
@@ -141,7 +143,7 @@ public:
     }
     void sort_options_by_label() { sort_options(); }
 
-    void show_dialog(wxWindow *parent, wxTextCtrl *input, wxWindow *ssearch_btn);
+    void show_dialog(Preset::Type type, wxWindow *parent, wxTextCtrl *input, wxWindow *ssearch_btn);
     void dlg_sys_color_changed();
     void dlg_msw_rescale();
 };
@@ -203,6 +205,8 @@ public:
     const int POPUP_HEIGHT = 40;
 
     wxTextCtrl *     search_line{nullptr};
+    Preset::Type     search_type = Preset::TYPE_INVALID;
+
     wxDataViewCtrl * search_list{nullptr};
     ScrolledWindow * m_scrolledWindow{nullptr};
     SearchListModel *search_list_model{nullptr};
@@ -224,7 +228,7 @@ public:
     void update_list();
 
 public:
-    SearchDialog(OptionsSearcher *searcher, wxWindow *parent, wxTextCtrl *input, wxWindow *search_btn);
+    SearchDialog(OptionsSearcher *searcher, Preset::Type type, wxWindow *parent, wxTextCtrl *input, wxWindow *search_btn);
     ~SearchDialog();
 
     void MSWDismissUnfocusedPopup();
