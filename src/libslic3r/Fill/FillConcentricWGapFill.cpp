@@ -7,13 +7,17 @@
 
 namespace Slic3r {
 
+const float concentric_overlap_threshold = 0.02;
+
 void FillConcentricWGapFill::fill_surface_extrusion(const Surface* surface, const FillParams& params, ExtrusionEntitiesPtr& out)
 {
     //BBS: FillConcentricWGapFill.cpp is absolutely newly add by BBL for narrow internal solid infill area to reduce vibration
     // Because the area is narrow, we should not use the surface->expolygon which has overlap with perimeter, but
     // use no_overlap_expolygons instead to avoid overflow in narrow area.
     //Slic3r::ExPolygons expp = offset_ex(surface->expolygon, double(scale_(0 - 0.5 * this->spacing)));
-    Slic3r::ExPolygons expp = offset_ex(this->no_overlap_expolygons, double(scale_(0 - 0.5 * this->spacing)));
+    float min_spacing = this->spacing * (1 - concentric_overlap_threshold);
+    Slic3r::ExPolygons expp = offset2_ex(this->no_overlap_expolygons, -double(scale_(0.5 * this->spacing + 0.5 * min_spacing) - 1),
+                                         +double(scale_(0.5 * min_spacing) - 1));
     // Create the infills for each of the regions.
     Polylines polylines_out;
     for (size_t i = 0; i < expp.size(); ++i) {
