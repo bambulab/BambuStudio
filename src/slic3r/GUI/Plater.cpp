@@ -2392,7 +2392,13 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
 
     // updates camera type from .ini file
     camera.enable_update_config_on_type_change(true);
-    camera.set_type(get_config("is_perspective"));
+    // BBS set config
+    bool is_perspective = get_config("is_perspective").compare("true") == 0;
+    if (is_perspective) {
+        camera.set_type(Camera::EType::Perspective);
+    } else {
+        camera.set_type(Camera::EType::Ortho);
+    }
 
     // Load the 3DConnexion device database.
     mouse3d_controller.load_config(*wxGetApp().app_config);
@@ -2632,7 +2638,11 @@ void Plater::setExtruderParams(std::map<size_t, Slic3r::ExtruderParams>& extPara
 
 void Plater::priv::apply_free_camera_correction(bool apply/* = true*/)
 {
-    camera.set_type(wxGetApp().app_config->get("is_perspective"));
+    bool is_perspective = get_config("is_perspective").compare("true") == 0;
+    if (is_perspective)
+        camera.set_type(Camera::EType::Perspective);
+    else
+        camera.set_type(Camera::EType::Ortho);
     if (apply
 #ifdef SUPPORT_FREE_CAMERA
         && wxGetApp().app_config->get("use_free_camera") != "1"
