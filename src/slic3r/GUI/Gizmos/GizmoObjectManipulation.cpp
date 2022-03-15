@@ -644,7 +644,21 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     imgui_wrapper->text(_L(" "));
     ImGui::SameLine(caption_max);
     bool uniform_scale = this->m_uniform_scale;
-    imgui_wrapper->checkbox(_L("uniform scale"), uniform_scale);
+
+    const Selection &selection = m_glcanvas.get_selection();
+    bool uniform_scale_only = selection.is_multiple_full_object()
+        || selection.is_multiple_full_instance()
+        || selection.is_mixed()
+        || selection.is_multiple_volume()
+        || selection.is_multiple_modifier();
+    
+    if (uniform_scale_only) {
+        imgui_wrapper->disabled_begin(true);
+        imgui_wrapper->checkbox(_L("uniform scale"), uniform_scale_only);
+        imgui_wrapper->disabled_end();
+    } else {
+        imgui_wrapper->checkbox(_L("uniform scale"), uniform_scale);
+    }
     if (uniform_scale != this->m_uniform_scale)
     {
         this->set_uniform_scaling(uniform_scale);
