@@ -55,7 +55,6 @@
 #include "GLCanvas3D.hpp"
 
 #include "../Utils/PresetUpdater.hpp"
-#include "../Utils/PrintHost.hpp"
 #include "../Utils/Process.hpp"
 #include "../Utils/MacDarkMode.hpp"
 #include "slic3r/Config/Snapshot.hpp"
@@ -1427,9 +1426,6 @@ bool GUI_App::on_init_inner()
 
     plater_->init_notification_manager();
 
-    //BBS
-    // m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
-
     if (is_gcode_viewer()) {
         mainframe->update_layout();
         if (plater_ != nullptr)
@@ -1811,7 +1807,6 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
     old_main_frame->Destroy();
 
     dlg.Update(80, _L("Loading current presets") + dots);
-    //m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
     load_current_presets();
     mainframe->Show(true);
 

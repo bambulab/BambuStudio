@@ -37,7 +37,6 @@ class AppConfig;
 class PresetBundle;
 class PresetUpdater;
 class ModelObject;
-class PrintHostJobQueue;
 class Model;
 class CommuBackend;
 class DeviceManager;
@@ -166,7 +165,6 @@ private:
     std::unique_ptr<RemovableDriveManager> m_removable_drive_manager;
 
     std::unique_ptr<ImGuiWrapper> m_imgui;
-    std::unique_ptr<PrintHostJobQueue> m_printhost_job_queue;
 	std::unique_ptr <OtherInstanceMessageHandler> m_other_instance_message_handler;
     std::unique_ptr <wxSingleInstanceChecker> m_single_instance_checker;
     std::string m_instance_hash_string;
@@ -367,8 +365,6 @@ public:
 	size_t      get_instance_hash_int ()              { return m_instance_hash_int; }
 
     ImGuiWrapper* imgui() { return m_imgui.get(); }
-
-    PrintHostJobQueue& printhost_job_queue() { return *m_printhost_job_queue.get(); }
 
     void            open_web_page_localized(const std::string &http_address);
     bool            may_switch_to_SLA_preset(const wxString& caption);

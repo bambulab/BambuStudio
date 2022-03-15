@@ -8,7 +8,6 @@
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 
 #include "slic3r/Utils/Http.hpp"
-#include "slic3r/Utils/PrintHost.hpp"
 #include "Search.hpp"
 #include "OG_CustomCtrl.hpp"
 

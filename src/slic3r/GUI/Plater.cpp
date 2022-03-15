@@ -88,7 +88,6 @@
 #include "SelectMachine.hpp"
 #include "ConfigWizard.hpp"
 #include "../Utils/ASCIIFolding.hpp"
-#include "../Utils/PrintHost.hpp"
 #include "../Utils/FixModelByWin10.hpp"
 #include "../Utils/UndoRedo.hpp"
 #include "../Utils/PresetUpdater.hpp"
@@ -131,7 +130,6 @@ using boost::optional;
 namespace fs = boost::filesystem;
 using Slic3r::_3DScene;
 using Slic3r::Preset;
-using Slic3r::PrintHostJob;
 using Slic3r::GUI::format_wxstr;
 using namespace nlohmann;
 
@@ -1969,7 +1967,7 @@ struct Plater::priv
             GUI::show_error(this->q, msg);
         }
     }
-    void export_gcode(fs::path output_path, bool output_path_on_removable_media, PrintHostJob upload_job);
+    void export_gcode(fs::path output_path, bool output_path_on_removable_media);
     void reload_from_disk();
     bool replace_volume_with_stl(int object_idx, int volume_idx, const fs::path& new_path, const wxString& snapshot = "");
     void replace_with_stl();
@@ -4038,9 +4036,9 @@ bool Plater::priv::restart_background_process(unsigned int state)
     return false;
 }
 
-void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_removable_media, PrintHostJob upload_job)
+void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_removable_media)
 {
-    wxCHECK_RET(!(output_path.empty() && upload_job.empty()), "export_gcode: output_path and upload_job empty");
+    wxCHECK_RET(!(output_path.empty()), "export_gcode: output_path and upload_job empty");
 
     if (model.objects.empty())
         return;
@@ -4063,7 +4061,7 @@ void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_remova
         background_process.schedule_export(output_path.string(), output_path_on_removable_media);
         notification_manager->push_delayed_notification(NotificationType::ExportOngoing, []() {return true; }, 1000, 0);
     } else {
-        background_process.schedule_upload(std::move(upload_job));
+        BOOST_LOG_TRIVIAL(info) << "output_path  is empty";
     }
 
     // If the SLA processing of just a single object's supports is running, restart slicing for the whole object.
@@ -7632,7 +7630,7 @@ void Plater::export_gcode(bool prefer_removable)
         p->exporting_status = path_on_removable_media ? ExportingStatus::EXPORTING_TO_REMOVABLE : ExportingStatus::EXPORTING_TO_LOCAL;
         p->last_output_path = output_path.string();
         p->last_output_dir_path = output_path.parent_path().string();
-        p->export_gcode(output_path, path_on_removable_media, PrintHostJob());
+        p->export_gcode(output_path, path_on_removable_media);
         // Storing a path to AppConfig either as path to removable media or a path to internal media.
         // is_path_on_removable_drive() is called with the "true" parameter to update its internal database as the user may have shuffled the external drives
         // while the dialog was open.

@@ -6,7 +6,6 @@ src/slic3r/GUI/ConfigManipulation.cpp
 src/slic3r/GUI/ConfigWizard.cpp
 src/slic3r/GUI/DoubleSlider.cpp
 src/slic3r/GUI/ExtraRenderers.cpp
-src/slic3r/GUI/ExtruderSequenceDialog.cpp
 src/slic3r/GUI/Field.cpp
 src/slic3r/GUI/GCodeViewer.cpp
 src/slic3r/GUI/GLCanvas3D.cpp
@@ -49,12 +48,10 @@ src/slic3r/GUI/NotificationManager.cpp
 src/slic3r/GUI/ObjectDataViewModel.cpp
 src/slic3r/GUI/OpenGLManager.cpp
 src/slic3r/GUI/OptionsGroup.cpp
-src/slic3r/GUI/PhysicalPrinterDialog.cpp
 src/slic3r/GUI/Plater.cpp
 src/slic3r/GUI/Preferences.cpp
 src/slic3r/GUI/PresetComboBoxes.cpp
 src/slic3r/GUI/PresetHints.cpp
-src/slic3r/GUI/PrintHostDialogs.cpp
 src/slic3r/GUI/ProgressStatusBar.cpp
 src/slic3r/GUI/SavePresetDialog.cpp
 src/slic3r/GUI/Search.cpp
