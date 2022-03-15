@@ -231,73 +231,6 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Model* model)
 
     wxGetApp().UpdateDarkUI(m_bottom_toolbar_panel = new wxPanel(this));
 
-    /* BBS GUI refactor
-    m_label_view_type = new wxStaticText(m_bottom_toolbar_panel, wxID_ANY, _L("View"));
-#ifdef _WIN32
-    wxGetApp().UpdateDarkUI(m_choice_view_type = new BitmapComboBox(m_bottom_toolbar_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, NULL, wxCB_READONLY));
-#else
-    m_choice_view_type = new wxComboBox(m_bottom_toolbar_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, NULL, wxCB_READONLY);
-#endif
-    m_choice_view_type->Append(_L("Feature type"));
-    m_choice_view_type->Append(_L("Height"));
-    m_choice_view_type->Append(_L("Width"));
-    m_choice_view_type->Append(_L("Speed"));
-    m_choice_view_type->Append(_L("Fan speed"));
-    m_choice_view_type->Append(_L("Temperature"));
-    m_choice_view_type->Append(_L("Volumetric flow rate"));
-    m_choice_view_type->Append(_L("Tool"));
-    m_choice_view_type->Append(_L("Color Print"));
-    m_choice_view_type->SetSelection(0);
-
-    m_label_show = new wxStaticText(m_bottom_toolbar_panel, wxID_ANY, _L("Show"));
-
-#ifdef _WIN32
-    long combo_style = wxCB_READONLY | wxBORDER_SIMPLE; //set border allows use default color instead of theme color wich is allways light under MSW
-#else
-    long combo_style = wxCB_READONLY;
-#endif
-    m_combochecklist_features = new wxComboCtrl();
-    m_combochecklist_features->Create(m_bottom_toolbar_panel, wxID_ANY, _L("Feature types"), wxDefaultPosition, wxDefaultSize, combo_style);
-    std::string feature_items = GUI::into_u8(
-        _L("Unknown") + "|1|" +
-        _L("Perimeter") + "|1|" +
-        _L("External perimeter") + "|1|" +
-        _L("Overhang perimeter") + "|1|" +
-        _L("Internal infill") + "|1|" +
-        _L("Solid infill") + "|1|" +
-        _L("Top solid infill") + "|1|" +
-        _L("Ironing") + "|1|" +
-        _L("Bridge infill") + "|1|" +
-        _L("Gap fill") + "|1|" +
-        _L("Skirt/Brim") + "|1|" +
-        _L("Support material") + "|1|" +
-        _L("Support material interface") + "|1|" +
-        _L("Wipe tower") + "|1|" +
-        _L("Custom") + "|1"
-    );
-    Slic3r::GUI::create_combochecklist(m_combochecklist_features, GUI::into_u8(_L("Feature types")), feature_items);
-    */
-
-    /* BBS GUI refactor
-    m_combochecklist_options = new wxComboCtrl();
-    m_combochecklist_options->Create(m_bottom_toolbar_panel, wxID_ANY, _L("Options"), wxDefaultPosition, wxDefaultSize, combo_style);
-    std::string options_items = GUI::into_u8(
-        get_option_type_string(OptionType::Travel) + "|0|" +
-        get_option_type_string(OptionType::Wipe) + "|0|" +
-        get_option_type_string(OptionType::Retractions) + "|0|" +
-        get_option_type_string(OptionType::Unretractions) + "|0|" +
-        get_option_type_string(OptionType::Seams) + "|0|" +
-        get_option_type_string(OptionType::ToolChanges) + "|0|" +
-        get_option_type_string(OptionType::ColorChanges) + "|0|" +
-        get_option_type_string(OptionType::PausePrints) + "|0|" +
-        get_option_type_string(OptionType::CustomGCodes) + "|0|" +
-        get_option_type_string(OptionType::Shells) + "|0|" +
-        get_option_type_string(OptionType::ToolMarker) + "|1|" +
-        get_option_type_string(OptionType::Legend) + "|1"
-    );
-    Slic3r::GUI::create_combochecklist(m_combochecklist_options, GUI::into_u8(_L("Options")), options_items);
-    */
-
     m_left_sizer = new wxBoxSizer(wxVERTICAL);
     m_left_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);
 
@@ -310,19 +243,6 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Model* model)
     m_moves_slider->show_lower_thumb(false);
 
     wxBoxSizer* bottom_toolbar_sizer = new wxBoxSizer(wxHORIZONTAL);
-    /* BBS GUI refactor
-    bottom_toolbar_sizer->AddSpacer(5);
-    bottom_toolbar_sizer->Add(m_label_view_type, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
-    bottom_toolbar_sizer->Add(m_choice_view_type, 0, wxALIGN_CENTER_VERTICAL, 0);
-    bottom_toolbar_sizer->AddSpacer(5);
-    bottom_toolbar_sizer->Add(m_label_show, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
-    bottom_toolbar_sizer->Add(m_combochecklist_options, 0, wxALIGN_CENTER_VERTICAL, 0);
-    // change the following number if editing the layout of the bottom toolbar sizer. It is used into update_bottom_toolbar()
-    m_combochecklist_features_pos = 6;
-    bottom_toolbar_sizer->Add(m_combochecklist_features, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 5);
-    bottom_toolbar_sizer->Hide(m_combochecklist_features);
-    bottom_toolbar_sizer->AddSpacer(5);
-    */
     bottom_toolbar_sizer->Add(m_moves_slider, 1, wxALL | wxEXPAND, 0);
     m_bottom_toolbar_panel->SetSizer(bottom_toolbar_sizer);
 
@@ -384,7 +304,6 @@ void Preview::load_print(bool keep_z_range)
     else if (tech == ptSLA)
         load_print_as_sla();
 
-    update_bottom_toolbar();
     Layout();
 }
 
@@ -467,15 +386,6 @@ void Preview::sys_color_changed()
 {
 #ifdef _WIN32
     wxWindowUpdateLocker noUpdates(this);
-
-    /*
-    wxGetApp().UpdateAllStaticTextDarkUI(m_bottom_toolbar_panel);
-    wxGetApp().UpdateDarkUI(m_choice_view_type);
-    wxGetApp().UpdateDarkUI(m_combochecklist_features);
-    wxGetApp().UpdateDarkUI(static_cast<wxCheckListBoxComboPopup*>(m_combochecklist_features->GetPopupControl()));
-    wxGetApp().UpdateDarkUI(m_combochecklist_options);
-    wxGetApp().UpdateDarkUI(static_cast<wxCheckListBoxComboPopup*>(m_combochecklist_options->GetPopupControl()));
-    */
 #endif
 
     if (m_layers_slider != nullptr)
@@ -500,22 +410,12 @@ void Preview::edit_layers_slider(wxKeyEvent& evt)
 void Preview::bind_event_handlers()
 {
     this->Bind(wxEVT_SIZE, &Preview::on_size, this);
-    /* BBS GUI refactor
-    m_choice_view_type->Bind(wxEVT_COMBOBOX, &Preview::on_choice_view_type, this);
-    m_combochecklist_features->Bind(wxEVT_CHECKLISTBOX, &Preview::on_combochecklist_features, this);
-    m_combochecklist_options->Bind(wxEVT_CHECKLISTBOX, &Preview::on_combochecklist_options, this);
-    */
     m_moves_slider->Bind(wxEVT_SCROLL_CHANGED, &Preview::on_moves_slider_scroll_changed, this);
 }
 
 void Preview::unbind_event_handlers()
 {
     this->Unbind(wxEVT_SIZE, &Preview::on_size, this);
-    /* BBS GUI refactor
-    m_choice_view_type->Unbind(wxEVT_COMBOBOX, &Preview::on_choice_view_type, this);
-    m_combochecklist_features->Unbind(wxEVT_CHECKLISTBOX, &Preview::on_combochecklist_features, this);
-    m_combochecklist_options->Unbind(wxEVT_CHECKLISTBOX, &Preview::on_combochecklist_options, this);
-    */
     m_moves_slider->Unbind(wxEVT_SCROLL_CHANGED, &Preview::on_moves_slider_scroll_changed, this);
 }
 
@@ -534,81 +434,6 @@ void Preview::on_size(wxSizeEvent& evt)
 {
     evt.Skip();
     Refresh();
-}
-
-void Preview::on_choice_view_type(wxCommandEvent& evt)
-{
-    /* BBS GUI refactor
-    int selection = m_choice_view_type->GetCurrentSelection();
-    if (0 <= selection && selection < static_cast<int>(GCodeViewer::EViewType::Count)) {
-        m_canvas->set_toolpath_view_type(static_cast<GCodeViewer::EViewType>(selection));
-        m_keep_current_preview_type = true;
-    }
-    refresh_print();
-    */
-}
-
-void Preview::on_combochecklist_features(wxCommandEvent& evt)
-{
-    /* BBS GUI refactor
-    unsigned int flags = Slic3r::GUI::combochecklist_get_flags(m_combochecklist_features);
-    m_canvas->set_toolpath_role_visibility_flags(flags);
-    refresh_print();
-    */
-}
-
-void Preview::on_combochecklist_options(wxCommandEvent& evt)
-{
-    /* BBS GUI refactor
-    const unsigned int curr_flags = m_canvas->get_gcode_options_visibility_flags();
-    const unsigned int new_flags = Slic3r::GUI::combochecklist_get_flags(m_combochecklist_options);
-    if (curr_flags == new_flags)
-        return;
-
-    m_canvas->set_gcode_options_visibility_from_flags(new_flags);
-    if (m_canvas->get_gcode_view_type() == GCodeViewer::EViewType::Feedrate) {
-        const unsigned int diff_flags = curr_flags ^ new_flags;
-        if ((diff_flags & (1 << static_cast<unsigned int>(Preview::OptionType::Travel))) != 0)
-            refresh_print();
-        else
-            m_canvas->refresh_gcode_preview_render_paths();
-    }
-    else
-        m_canvas->refresh_gcode_preview_render_paths();
-
-    update_moves_slider();
-    */
-}
-
-void Preview::update_bottom_toolbar()
-{
-    /* BBS GUI refactor
-    combochecklist_set_flags(m_combochecklist_features, m_canvas->get_toolpath_role_visibility_flags());
-    combochecklist_set_flags(m_combochecklist_options, m_canvas->get_gcode_options_visibility_flags());
-
-    // updates visibility of features combobox
-    if (m_bottom_toolbar_panel->IsShown()) {
-        wxSizer* sizer = m_bottom_toolbar_panel->GetSizer();
-        bool show = !m_canvas->is_gcode_legend_enabled() || m_canvas->get_gcode_view_type() != GCodeViewer::EViewType::FeatureType;
-
-        if (show) {
-            if (sizer->GetItem(m_combochecklist_features) == nullptr) {
-                sizer->Insert(m_combochecklist_features_pos, m_combochecklist_features, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 5);
-                sizer->Show(m_combochecklist_features);
-                sizer->Layout();
-                Refresh();
-            }
-        }
-        else {
-            if (sizer->GetItem(m_combochecklist_features) != nullptr) {
-                sizer->Hide(m_combochecklist_features);
-                sizer->Detach(m_combochecklist_features);
-                sizer->Layout();
-                Refresh();
-            }
-        }
-    }
-    */
 }
 
 wxBoxSizer* Preview::create_layers_slider_sizer()
@@ -787,24 +612,6 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
             }
             if (i < min_solid_height)
                 continue;
-
-            if (DoubleSlider::check_color_change(object, i, num_layers, true, [this, object](Layer*) {
-                NotificationManager* notif_mngr = wxGetApp().plater()->get_notification_manager();
-                notif_mngr->push_notification(
-                    NotificationType::SignDetected, NotificationManager::NotificationLevel::PrintInfoNotificationLevel,
-                    _u8L("NOTE:") + "\n" +
-                    format(_u8L("Sliced object \"%1%\" looks like a logo or a sign"), object->model_object()->name) + "\n",
-                    _u8L("Apply color change automatically"),
-                    [this](wxEvtHandler*) {
-                        m_layers_slider->auto_color_change();
-                        return true;
-                    });
-
-                notif_mngr->apply_in_preview();
-                return true;
-            }) )
-                // first object with color chnages is found
-                break;
         }
     }
 
@@ -959,7 +766,7 @@ void Preview::load_print_as_fff(bool keep_z_range)
                 break;
             }
     }
-	if (print->is_step_done(posSupportMaterial)) {
+    if (print->is_step_done(posSupportMaterial)) {
         for (const PrintObject* print_object : print->objects())
             if (! print_object->support_layers().empty()) {
                 has_layers = true;
@@ -1043,21 +850,8 @@ void Preview::load_print_as_fff(bool keep_z_range)
                 wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes :
                 m_canvas->get_custom_gcode_per_print_z();
             const wxString choice = !gcodes.empty() ?
-                _L("Color Print") :
-                (number_extruders > 1) ? _L("Tool") : _L("Feature type");
-
-            /*
-            int type = m_choice_view_type->FindString(choice);
-            if (m_choice_view_type->GetSelection() != type) {
-                if (0 <= type && type < static_cast<int>(GCodeViewer::EViewType::Count)) {
-                    m_choice_view_type->SetSelection(type);
-                    m_canvas->set_gcode_view_preview_type(static_cast<GCodeViewer::EViewType>(type));
-                    if (wxGetApp().is_gcode_viewer())
-                        m_keep_current_preview_type = true;
-                    refresh_print();
-                }
-            }
-            */
+                _L("Multicolor Print") :
+                (number_extruders > 1) ? _L("Filaments") : _L("Line Type");
         }
 
         if (zs.empty()) {
@@ -1143,27 +937,6 @@ void Preview::on_moves_slider_scroll_changed(wxCommandEvent& event)
     m_canvas->update_gcode_sequential_view_current(static_cast<unsigned int>(m_moves_slider->GetLowerValueD() - 1.0), static_cast<unsigned int>(m_moves_slider->GetHigherValueD() - 1.0));
     m_canvas->render();
 }
-
-wxString Preview::get_option_type_string(OptionType type) const
-{
-    switch (type)
-    {
-    case OptionType::Travel:        { return _L("Travel"); }
-    case OptionType::Wipe:          { return _L("Wipe"); }
-    case OptionType::Retractions:   { return _L("Retractions"); }
-    case OptionType::Unretractions: { return _L("Deretractions"); }
-    case OptionType::Seams:         { return _L("Seams"); }
-    case OptionType::ToolChanges:   { return _L("Tool changes"); }
-    case OptionType::ColorChanges:  { return _L("Color changes"); }
-    case OptionType::PausePrints:   { return _L("Print pauses"); }
-    case OptionType::CustomGCodes:  { return _L("Custom G-codes"); }
-    case OptionType::Shells:        { return _L("Shells"); }
-    case OptionType::ToolMarker:    { return _L("Tool marker"); }
-    case OptionType::Legend:        { return _L("Legend/Estimated printing time"); }
-    default:                        { return ""; }
-    }
-}
-
 
 AssembleView::AssembleView(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
     : m_canvas_widget(nullptr)

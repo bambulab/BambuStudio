@@ -5633,7 +5633,7 @@ bool Plater::priv::init_collapse_toolbar()
 
 void Plater::priv::update_preview_bottom_toolbar()
 {
-    preview->update_bottom_toolbar();
+    ;
 }
 
 void Plater::priv::update_preview_moves_slider()

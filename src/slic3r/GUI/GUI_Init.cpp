@@ -1,11 +1,11 @@
 #include "GUI_Init.hpp"
 
-#include "libslic3r/AppConfig.hpp" 
+#include "libslic3r/AppConfig.hpp"
 
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/3DScene.hpp"
-#include "slic3r/GUI/InstanceCheck.hpp" 
+#include "slic3r/GUI/InstanceCheck.hpp"
 #include "slic3r/GUI/format.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 #include "slic3r/GUI/Plater.hpp"
@@ -55,17 +55,16 @@ int GUI_Run(GUI_InitParams &params)
         return wxEntry(params.argc, params.argv);
     /*} catch (const Slic3r::Exception &ex) {
         boost::nowide::cerr << ex.what() << std::endl;
-        wxMessageBox(boost::nowide::widen(ex.what()), _L("BambuStudio GUI initialization failed"), wxICON_STOP);
+        wxMessageBox(boost::nowide::widen(ex.what()), _L("Application initialization failed"), wxICON_STOP);
         throw;
     } catch (const std::exception &ex) {
         boost::nowide::cerr << "BambuStudio GUI initialization failed: " << ex.what() << std::endl;
-        wxMessageBox(format_wxstr(_L("Fatal error, exception catched: %1%"), ex.what()), _L("BambuStudio GUI initialization failed"), wxICON_STOP);
+        wxMessageBox(format_wxstr(_L("Fatal error, exception: %1%"), ex.what()), _L("Application initialization failed"), wxICON_STOP);
         throw;
     }*/
 
     // error
     return 1;
 }
-    
 }
 }

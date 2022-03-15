@@ -418,32 +418,9 @@ public:
 };
 #endif // _WIN32
 
-struct PageMode: ConfigWizardPage
-{
-    wxRadioButton *radio_simple;
-    wxRadioButton *radio_advanced;
-
-    wxCheckBox    *check_inch;
-
-    PageMode(ConfigWizard *parent);
-
-    void serialize_mode(AppConfig *app_config) const;
-
-    virtual void on_activate();
-};
-
 struct PageVendors: ConfigWizardPage
 {
     PageVendors(ConfigWizard *parent);
-};
-
-struct PageFirmware: ConfigWizardPage
-{
-    const ConfigOptionDef &gcode_opt;
-    wxChoice *gcode_picker;
-
-    PageFirmware(ConfigWizard *parent);
-    virtual void apply_custom_config(DynamicPrintConfig &config);
 };
 
 struct PageBedShape: ConfigWizardPage
@@ -568,7 +545,6 @@ struct ConfigWizard::priv
     wxButton *btn_finish = nullptr;
     wxButton *btn_cancel = nullptr;
 
-    PageWelcome      *page_welcome = nullptr;
     PagePrinters     *page_fff = nullptr;
     PagePrinters     *page_msla = nullptr;
     PageMaterials    *page_filaments = nullptr;
@@ -578,12 +554,10 @@ struct ConfigWizard::priv
 #ifdef _WIN32
     PageFilesAssociation* page_files_association = nullptr;
 #endif // _WIN32
-    PageMode         *page_mode = nullptr;
     PageVendors      *page_vendors = nullptr;
     Pages3rdparty     pages_3rdparty;
 
     // Custom setup pages
-    PageFirmware     *page_firmware = nullptr;
     PageBedShape     *page_bed = nullptr;
     PageDiameters    *page_diams = nullptr;
     PageTemperatures *page_temps = nullptr;

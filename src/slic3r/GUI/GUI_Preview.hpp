@@ -169,7 +169,6 @@ public:
     //BBS: add m_loaded_print logic
     bool is_loaded() const { return (m_loaded_print != nullptr); }
 
-    void update_bottom_toolbar();
     void update_moves_slider();
     void enable_moves_slider(bool enable);
     void move_moves_slider(wxKeyEvent& evt);
@@ -182,9 +181,6 @@ private:
     void unbind_event_handlers();
 
     void on_size(wxSizeEvent& evt);
-    void on_choice_view_type(wxCommandEvent& evt);
-    void on_combochecklist_features(wxCommandEvent& evt);
-    void on_combochecklist_options(wxCommandEvent& evt);
 
     // Create/Update/Reset double slider on 3dPreview
     wxBoxSizer* create_layers_slider_sizer();
@@ -201,7 +197,6 @@ private:
 
     void on_layers_slider_scroll_changed(wxCommandEvent& event);
     void on_moves_slider_scroll_changed(wxCommandEvent& event);
-    wxString get_option_type_string(OptionType type) const;
 };
 
 

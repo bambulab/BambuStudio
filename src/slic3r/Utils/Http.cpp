@@ -70,27 +70,20 @@ struct CurlGlobalInit
             }
 
             if (!bundle)
-                message = _u8L("Could not detect system SSL certificate store. "
-                               "BambuStudio will be unable to establish secure "
-                               "network connections.");
+                message = _u8L("Unable to get system certificate.");
             else
                 message = Slic3r::GUI::format(
-					_L("BambuStudio detected system SSL certificate store in: %1%"),
+                    _L("use system SSL certificate: %1%"),
                     bundle);
 
-            message += "\n" + Slic3r::GUI::format(
-				_L("To specify the system certificate store manually, please "
-                   "set the %1% environment variable to the correct CA bundle "
-                   "and restart the application."),
-                SSL_CA_FILE);
+             message += "\n" + Slic3r::GUI::format(_L("To manually specify the system certificate store, "
+                                                   "set the %1% environment variable to the correct CA and restart the application"),
+                                                   SSL_CA_FILE);
         }
-
 #endif // OPENSSL_CERT_OVERRIDE
 
         if (CURLcode ec = ::curl_global_init(CURL_GLOBAL_DEFAULT)) {
-            message += _u8L("CURL init has failed. BambuStudio will be unable to establish "
-                            "network connections. See logs for additional details.");
-
+            message += _u8L("CURL initialization failed. See the log for additional details.");
             BOOST_LOG_TRIVIAL(error) << ::curl_easy_strerror(ec);
         }
     }
@@ -99,7 +92,6 @@ struct CurlGlobalInit
 };
 
 std::unique_ptr<CurlGlobalInit> CurlGlobalInit::instance;
-
 
 //BBS
 FILE* g_http_log_file = nullptr;
@@ -454,7 +446,7 @@ void Http::priv::set_del_body(const std::string& body)
 
 std::string Http::priv::curl_error(CURLcode curlcode)
 {
-	return (boost::format("%1%:\n%2%\n[Error %3%]")
+	return (boost::format("curl:%1%:\n%2%\n[Error %3%]")
 		% ::curl_easy_strerror(curlcode)
 		% error_buffer.c_str()
 		% curlcode

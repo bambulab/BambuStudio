@@ -66,7 +66,7 @@ ObjectSettings::ObjectSettings(wxWindow* parent) :
 {
 #if !NEW_OBJECT_SETTING
     m_og->activate();
-    m_og->set_name(_(L("Additional Settings")));    
+    m_og->set_name(_(L("Additional process preset")));
 
     m_settings_list_sizer = new wxBoxSizer(wxVERTICAL);
     m_og->sizer->Add(m_settings_list_sizer, 1, wxEXPAND | wxLEFT, 5);
@@ -88,7 +88,7 @@ bool ObjectSettings::update_settings_list()
     auto config         = wxGetApp().obj_list()->config();
 
     const auto item = objects_ctrl->GetSelection();
-    
+
     if (!item || !objects_model->IsSettingsItem(item) || !config || objects_ctrl->multiple_selection())
         return false;
 
@@ -177,8 +177,7 @@ bool ObjectSettings::update_settings_list()
     {
         objects_ctrl->select_item(objects_model->Delete(item));
         return false;
-    } 
-            
+    }
     return true;
 }
 

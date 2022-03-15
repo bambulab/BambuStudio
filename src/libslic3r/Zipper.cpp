@@ -24,7 +24,7 @@ public:
 
     std::string formatted_errorstr() const
     {
-        return L("Error with zip archive") + " " + m_zipname + ": " +
+        return L("Error in zip archive") + " " + m_zipname + ": " +
                get_errorstr();
     }
 

@@ -108,8 +108,7 @@ void GUI::Job::start()
             m_thread = create_thread([this] { this->run(m_worker_error); });
         } catch (std::exception &) {
             update_status(status_range(),
-                          _(L("ERROR: not enough resources to "
-                              "execute a new job.")));
+                          _(L("Error! Unable to create thread!")));
         }
 
         // The state changes will be undone when the process hits the

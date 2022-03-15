@@ -53,6 +53,8 @@ extern "C"{
 
 namespace Slic3r {
 
+static std::string saving_failed_str = L("Saving objects into the 3MF failed.");
+
 HMODULE							s_hRuntimeObjectLibrary  = nullptr;
 FunctionRoInitialize			s_RoInitialize			 = nullptr;
 FunctionRoUninitialize			s_RoUninitialize		 = nullptr;
@@ -211,14 +213,14 @@ typedef std::function<void (const char * /* message */, unsigned /* progress */)
 void fix_model_by_win10_sdk(const std::string &path_src, const std::string &path_dst, ProgressFn on_progress, ThrowOnCancelFn throw_on_cancel)
 {
 	if (! is_windows10())
-		throw Slic3r::RuntimeError("fix_model_by_win10_sdk called on non Windows 10 system");
+		throw Slic3r::RuntimeError(L("Only Windows 10 is supported."));
 
 	if (! winrt_load_runtime_object_library())
-		throw Slic3r::RuntimeError("Failed to initialize the WinRT library.");
+		throw Slic3r::RuntimeError(L("Failed to initialize the WinRT library."));
 
 	HRESULT hr = (*s_RoInitialize)(RO_INIT_MULTITHREADED);
 	{
-		on_progress(L("Exporting source model"), 20);
+		on_progress(L("Exporting objects"), 20);
 
 		Microsoft::WRL::ComPtr<ABI::Windows::Storage::Streams::IRandomAccessStream>       fileStream;
 		hr = winrt_open_file_stream(boost::nowide::widen(path_src), ABI::Windows::Storage::FileAccessMode::FileAccessMode_Read, fileStream.GetAddressOf(), throw_on_cancel);
@@ -234,23 +236,21 @@ void fix_model_by_win10_sdk(const std::string &path_src, const std::string &path
 		if (status == AsyncStatus::Completed)
 			hr = modelAsync->GetResults(model.GetAddressOf());
 		else
-			throw Slic3r::RuntimeError(L("Failed loading the input model."));
+			throw Slic3r::RuntimeError(L("Failed loading objects."));
 
 		Microsoft::WRL::ComPtr<ABI::Windows::Foundation::Collections::IVector<ABI::Windows::Graphics::Printing3D::Printing3DMesh*>> meshes;
 		hr = model->get_Meshes(meshes.GetAddressOf());
 		unsigned num_meshes = 0;
 		hr = meshes->get_Size(&num_meshes);
-		
-		on_progress(L("Repairing model by the Netfabb service"), 40);
-		
+		on_progress(L("Repairing objects by the Netfabb service"), 40);
 		Microsoft::WRL::ComPtr<ABI::Windows::Foundation::IAsyncAction>					  repairAsync;
 		hr = model->RepairAsync(repairAsync.GetAddressOf());
 		status = winrt_async_await(repairAsync, throw_on_cancel);
 		if (status != AsyncStatus::Completed)
-			throw Slic3r::RuntimeError(L("Mesh repair failed."));
+			throw Slic3r::RuntimeError(L("Repair failed."));
 		repairAsync->GetResults();
 
-		on_progress(L("Loading repaired model"), 60);
+		on_progress(L("Loading repaired objects"), 60);
 
 		// Verify the number of meshes returned after the repair action.
 		meshes.Reset();
@@ -262,14 +262,14 @@ void fix_model_by_win10_sdk(const std::string &path_src, const std::string &path
 		hr = printing3d3mfpackage->SaveModelToPackageAsync(model.Get(), saveToPackageAsync.GetAddressOf());
 		status = winrt_async_await(saveToPackageAsync, throw_on_cancel);
 		if (status != AsyncStatus::Completed)
-			throw Slic3r::RuntimeError(L("Saving mesh into the 3MF container failed."));
+			throw Slic3r::RuntimeError(saving_failed_str);
 		hr = saveToPackageAsync->GetResults();
 
 		Microsoft::WRL::ComPtr<ABI::Windows::Foundation::IAsyncOperation<ABI::Windows::Storage::Streams::IRandomAccessStream*>> generatorStreamAsync;
 		hr = printing3d3mfpackage->SaveAsync(generatorStreamAsync.GetAddressOf());
 		status = winrt_async_await(generatorStreamAsync, throw_on_cancel);
 		if (status != AsyncStatus::Completed)
-			throw Slic3r::RuntimeError(L("Saving mesh into the 3MF container failed."));
+			throw Slic3r::RuntimeError(saving_failed_str);
 		Microsoft::WRL::ComPtr<ABI::Windows::Storage::Streams::IRandomAccessStream> generatorStream;
 		hr = generatorStreamAsync->GetResults(generatorStream.GetAddressOf());
 
@@ -301,7 +301,7 @@ void fix_model_by_win10_sdk(const std::string &path_src, const std::string &path
 			hr = inputStream->ReadAsync(buffer.Get(), 65536 * 2048, ABI::Windows::Storage::Streams::InputStreamOptions_ReadAhead, asyncRead.GetAddressOf());
 			status = winrt_async_await(asyncRead, throw_on_cancel);
 			if (status != AsyncStatus::Completed)
-				throw Slic3r::RuntimeError(L("Saving mesh into the 3MF container failed."));
+				throw Slic3r::RuntimeError(saving_failed_str);
 			hr = buffer->get_Length(&length);
 			if (length == 0)
 				break;
@@ -356,7 +356,7 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 			std::vector<TriangleMesh> meshes_repaired;
 			meshes_repaired.reserve(volumes.size());
 			for (; ivolume < volumes.size(); ++ ivolume) {
-				on_progress(L("Exporting source model"), 0);
+				on_progress(L("Exporting objects"), 0);
 				boost::filesystem::path path_src = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
 				path_src += ".3mf";
 				Model model;
@@ -373,7 +373,7 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
                 mo->add_instance();
 				if (!Slic3r::store_3mf(path_src.string().c_str(), &model, nullptr, false, nullptr, false)) {
 					boost::filesystem::remove(path_src);
-					throw Slic3r::RuntimeError(L("Export of a temporary 3mf file failed"));
+					throw Slic3r::RuntimeError(L("Exporting 3mf file failed"));
 				}
 				model.clear_objects();
 				model.clear_materials();
@@ -383,21 +383,21 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 					[&canceled]() { if (canceled) throw RepairCanceledException(); });
 				boost::filesystem::remove(path_src);
 	            // PresetBundle bundle;
-				on_progress(L("Loading repaired model"), 80);
+				on_progress(L("Loading repaired objects"), 80);
 				DynamicPrintConfig config;
 				ConfigSubstitutionContext config_substitutions{ ForwardCompatibilitySubstitutionRule::EnableSilent };
 				bool loaded = Slic3r::load_3mf(path_dst.string().c_str(), config, config_substitutions, &model, false);
 			    boost::filesystem::remove(path_dst);
 				if (! loaded)
-	 				throw Slic3r::RuntimeError(L("Import of the repaired 3mf file failed"));
+	 				throw Slic3r::RuntimeError(L("Import 3mf file failed"));
 	 			if (model.objects.size() == 0)
-	 				throw Slic3r::RuntimeError(L("Repaired 3MF file does not contain any object"));
+	 				throw Slic3r::RuntimeError(L("Repaired 3mf file does not contain any object"));
 	 			if (model.objects.size() > 1)
-	 				throw Slic3r::RuntimeError(L("Repaired 3MF file contains more than one object"));
+	 				throw Slic3r::RuntimeError(L("Repaired 3mf file contains more than one object"));
 	 			if (model.objects.front()->volumes.size() == 0)
-	 				throw Slic3r::RuntimeError(L("Repaired 3MF file does not contain any volume"));
+	 				throw Slic3r::RuntimeError(L("Repaired 3mf file does not contain any volume"));
 				if (model.objects.front()->volumes.size() > 1)
-	 				throw Slic3r::RuntimeError(L("Repaired 3MF file contains more than one volume"));
+	 				throw Slic3r::RuntimeError(L("Repaired 3mf file contains more than one volume"));
 	 			meshes_repaired.emplace_back(std::move(model.objects.front()->volumes.front()->mesh()));
 			}
 			for (size_t i = 0; i < volumes.size(); ++ i) {
@@ -407,13 +407,13 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 			}
 			model_object.invalidate_bounding_box();
 			-- ivolume;
-			on_progress(L("Model repair finished"), 100);
+			on_progress(L("Repair finished"), 100);
 			success  = true;
 			finished = true;
 		} catch (RepairCanceledException & /* ex */) {
 			canceled = true;
 			finished = true;
-			on_progress(L("Model repair canceled"), 100);
+			on_progress(L("Repair canceled"), 100);
 		} catch (std::exception &ex) {
 			success = false;
 			finished = true;

@@ -159,7 +159,7 @@ void start_new_gcodeviewer_open_file(wxWindow *parent)
         file_wildcards(FT_GCODE), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (dialog.ShowModal() == wxID_OK) {
         wxString path = dialog.GetPath();
-		start_new_gcodeviewer(&path);
+        start_new_gcodeviewer(&path);
     }
 }
 
