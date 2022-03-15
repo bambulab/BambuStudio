@@ -59,12 +59,6 @@ static t_config_enum_values s_keys_map_GCodeFlavor {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GCodeFlavor)
 
-static t_config_enum_values s_keys_map_AuthorizationType {
-    { "key",            atKeyPassword },
-    { "user",           atUserPassword }
-};
-CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(AuthorizationType)
-
 static t_config_enum_values s_keys_map_FuzzySkinType {
     { "none",           int(FuzzySkinType::None) },
     { "external",       int(FuzzySkinType::External) },
@@ -291,56 +285,13 @@ void PrintConfigDef::init_common_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloat(200.0));
     
-    def = this->add("printhost_port", coString);
-    def->label = L("Printer");
-    def->tooltip = L("Name of the printer");
-    def->gui_type = ConfigOptionDef::GUIType::select_open;
-    def->mode = comAdvanced;
-    def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionString(""));
-    
     // Options used by physical printers
-    
-    def = this->add("printhost_user", coString);
-    def->label = L("User");
-//    def->tooltip = L("");
-    def->mode = comAdvanced;
-    def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionString(""));
-    
-    def = this->add("printhost_password", coString);
-    def->label = L("Password");
-//    def->tooltip = L("");
-    def->mode = comAdvanced;
-    def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionString(""));
-
-    // Only available on Windows.
-    def = this->add("printhost_ssl_ignore_revoke", coBool);
-    def->label = L("Ignore HTTPS certificate revocation checks");
-    def->tooltip = L("Ignore HTTPS certificate revocation checks in case of missing or offline distribution points. "
-                     "One may want to enable this option for self signed certificates if connection fails.");
-    def->mode = comAdvanced;
-    def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionBool(false));
     
     def = this->add("preset_names", coStrings);
     def->label = L("Printer preset names");
     def->tooltip = L("Names of presets related to the physical printer");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings());
-
-    def = this->add("printhost_authorization_type", coEnum);
-    def->label = L("Authorization Type");
-//    def->tooltip = L("");
-    def->enum_keys_map = &ConfigOptionEnum<AuthorizationType>::get_enum_values();
-    def->enum_values.push_back("key");
-    def->enum_values.push_back("user");
-    def->enum_labels.push_back(L("API key"));
-    def->enum_labels.push_back(L("HTTP digest"));
-    def->mode = comAdvanced;
-    def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionEnum<AuthorizationType>(atKeyPassword));
 
     // temporary workaround for compatibility with older Slicer
     {
@@ -1926,10 +1877,6 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionString(""));
     //BBS: open this option to command line
     //def->cli = ConfigOptionDef::nocli;
-
-    def = this->add("physical_printer_settings_id", coString);
-    def->set_default_value(new ConfigOptionString(""));
-    def->cli = ConfigOptionDef::nocli;
 
     def = this->add("raft_contact_distance", coFloat);
     def->label = L("Raft contact Z distance");

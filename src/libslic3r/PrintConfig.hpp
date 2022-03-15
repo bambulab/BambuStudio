@@ -36,10 +36,6 @@ enum GCodeFlavor : unsigned char {
     gcfSmoothie, gcfNoExtrusion,
 };
 
-enum AuthorizationType {
-    atKeyPassword, atUserPassword
-};
-
 enum class FuzzySkinType {
     None,
     External,
@@ -178,7 +174,6 @@ static std::string bed_type_to_gcode_string(const BedType type)
 
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PrinterTechnology)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(GCodeFlavor)
-CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(AuthorizationType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FuzzySkinType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(InfillPattern)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(IroningType)

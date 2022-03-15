@@ -2289,12 +2289,6 @@ static std::vector<std::string> s_PhysicalPrinter_opts {
     "preset_name", // temporary option to compatibility with older Slicer
     "preset_names",
     "printer_technology",
-    "printhost_port",
-    "printhost_authorization_type",
-    // HTTP digest authentization (RFC 2617)
-    "printhost_user",
-    "printhost_password",
-    "printhost_ssl_ignore_revoke"
 };
 
 const std::vector<std::string>& PhysicalPrinter::printer_options()
@@ -2320,13 +2314,6 @@ bool PhysicalPrinter::has_print_host_information(const DynamicPrintConfig& confi
 const std::set<std::string>& PhysicalPrinter::get_preset_names() const
 {
     return preset_names;
-}
-
-bool PhysicalPrinter::has_empty_config() const
-{
-    return  config.opt_string("printhost_port"    ).empty() &&
-            config.opt_string("printhost_user"    ).empty() &&
-            config.opt_string("printhost_password").empty();
 }
 
 // temporary workaround for compatibility with older Slicer

@@ -1083,7 +1083,6 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
     out.option<ConfigOptionString >("print_settings_id",    true)->value  = this->prints.get_selected_preset_name();
     out.option<ConfigOptionStrings>("filament_settings_id", true)->values = this->filament_presets;
     out.option<ConfigOptionString >("printer_settings_id",  true)->value  = this->printers.get_selected_preset_name();
-    out.option<ConfigOptionString >("physical_printer_settings_id", true)->value = this->physical_printers.get_selected_printer_name();
 
     // Serialize the collected "compatible_printers_condition" and "inherits" fields.
     // There will be 1 + num_exturders fields for "inherits" and 2 + num_extruders for "compatible_printers_condition" stored.
@@ -1137,7 +1136,6 @@ DynamicPrintConfig PresetBundle::full_sla_config() const
     out.option<ConfigOptionString >("sla_print_settings_id",    true)->value  = this->sla_prints.get_selected_preset_name();
     out.option<ConfigOptionString >("sla_material_settings_id", true)->value  = this->sla_materials.get_selected_preset_name();
     out.option<ConfigOptionString >("printer_settings_id",      true)->value  = this->printers.get_selected_preset_name();
-    out.option<ConfigOptionString >("physical_printer_settings_id", true)->value = this->physical_printers.get_selected_printer_name();
 
     // Serialize the collected "compatible_printers_condition" and "inherits" fields.
     // There will be 1 + num_exturders fields for "inherits" and 2 + num_extruders for "compatible_printers_condition" stored.
@@ -1481,7 +1479,9 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 
 	this->update_compatible(PresetSelectCompatibleType::Never);
 
-    const std::string &physical_printer = config.option<ConfigOptionString>("physical_printer_settings_id", true)->value;
+    //BBS
+    //const std::string &physical_printer = config.option<ConfigOptionString>("physical_printer_settings_id", true)->value;
+    const std::string physical_printer;
     if (this->printers.get_edited_preset().is_external || physical_printer.empty()) {
         this->physical_printers.unselect_printer();
     } else {

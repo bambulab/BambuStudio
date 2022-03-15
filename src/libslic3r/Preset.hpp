@@ -767,7 +767,6 @@ public:
 
     const std::set<std::string>&            get_preset_names() const;
 
-    bool                has_empty_config() const;
     void                update_preset_names_in_config();
 
     //BBS: change to json format
