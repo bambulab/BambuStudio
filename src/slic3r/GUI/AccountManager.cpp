@@ -2604,7 +2604,8 @@ namespace Slic3r {
         std::string query_params = (boost::format("?version=%s") % version).str();
         std::string url = (boost::format("%1%/iot-service/api/slicer/setting%2%") % host % query_params).str();
         Http http = Http::get(url);
-        http.header("accept", "application/json")
+        http.timeout_max(10)
+            .header("accept", "application/json")
             .header("Authorization", get_token_str())
             .on_complete(
                 [this](std::string body, unsigned) {
