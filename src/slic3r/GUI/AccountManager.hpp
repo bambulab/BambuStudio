@@ -16,8 +16,8 @@
 #define BBL_INTERNAL_TEST
 #define BBL_CHECK_USER_REPORT
 
-#define MY_MODEL_PUBLISH_URL_FORMAT     "/my/models/%s/publish?project_id=%s&profile_id=%s&design_id=%s"
-#define MY_PROFILE_PUBLISH_URL_FORMAT   "/my/profiles/%s/publish?project_id=%s&design_id=%s"
+#define MY_MODEL_PUBLISH_URL_FORMAT     "/my/models/%1%/publish?project_id=%2%&profile_id=%3%&design_id="
+#define MY_PROFILE_PUBLISH_URL_FORMAT   "/my/profiles/%1%/publish?project_id=%2%&design_id=%3%"
 #define MY_COLLECTIONS_URL              "/my/collections"
 #define MY_PROJECT_LIST_URL             "/my/projects"
 #define MODEL_STORE_URL                 "/designs"

@@ -8196,23 +8196,21 @@ void Plater::publish_project()
     }
 
     if (upload_finish && load_url) {
-        wxString url;
+        std::string url;
         if (publish_project) {
-            url = wxString::Format(MY_MODEL_PUBLISH_URL_FORMAT,
-                    project->project_model_id,
-                    project->project_id,
-                    profile->profile_id,
-                    "");
+            url = (boost::format(MY_MODEL_PUBLISH_URL_FORMAT)
+                                % project->project_model_id
+                                % project->project_id
+                                % profile->profile_id).str();
         } else {
-            url = wxString::Format(MY_PROFILE_PUBLISH_URL_FORMAT,
-                profile->profile_id,
-                project->project_id,
-                design_id);
+            url = (boost::format(MY_PROFILE_PUBLISH_URL_FORMAT)
+                                % profile->profile_id
+                                % project->project_id
+                                % design_id).str();
         }
 
-        url = wxString(wxGetApp().app_config->get_web_host_url()) + url;
-
-        GUI::wxGetApp().load_url(url);
+        url = wxGetApp().app_config->get_web_host_url() + url;
+        GUI::wxGetApp().load_url(wxString(url));
     } else {
         while(cont_dlg) {
             wxMilliSleep(50);
