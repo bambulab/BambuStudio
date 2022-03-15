@@ -471,8 +471,6 @@ wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_MOVED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_ROTATED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_SCALED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_FORCE_UPDATE, SimpleEvent);
-wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, WipeTowerEvent);
-wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_ROTATED, WipeTowerEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 wxDEFINE_EVENT(EVT_GLCANVAS_MOUSE_DRAGGING_STARTED, SimpleEvent);
@@ -1830,8 +1828,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
         if (filaments_count > 1 && wt && co != nullptr && co->value != PrintSequence::ByObject) {
             for (int plate_id = 0; plate_id < n_plates; plate_id++) {
-                float x = dynamic_cast<const ConfigOptionFloats*>(m_config->option("wipe_tower_x"))->get_at(plate_id);
-                float y = dynamic_cast<const ConfigOptionFloats*>(m_config->option("wipe_tower_y"))->get_at(plate_id);
+                DynamicPrintConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
+                float x = dynamic_cast<const ConfigOptionFloats*>(proj_cfg.option("wipe_tower_x"))->get_at(plate_id);
+                float y = dynamic_cast<const ConfigOptionFloats*>(proj_cfg.option("wipe_tower_y"))->get_at(plate_id);
                 float w = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_width"))->value;
                 float a = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_rotation_angle"))->value;
                 // BBS
@@ -3399,7 +3398,16 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
         if (wipe_tower_origin == Vec3d::Zero())
             continue;
 
-        post_event(WipeTowerEvent(EVT_GLCANVAS_WIPETOWER_MOVED, { wipe_tower_origin, plate_id }));
+        PartPlateList& ppl = wxGetApp().plater()->get_partplate_list();
+        DynamicConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
+        Vec3d plate_origin = ppl.get_plate(plate_id)->get_origin();
+        ConfigOptionFloat wipe_tower_x(wipe_tower_origin(0) - plate_origin(0));
+        ConfigOptionFloat wipe_tower_y(wipe_tower_origin(1) - plate_origin(1));
+
+        ConfigOptionFloats* wipe_tower_x_opt = proj_cfg.option<ConfigOptionFloats>("wipe_tower_x", true);
+        ConfigOptionFloats* wipe_tower_y_opt = proj_cfg.option<ConfigOptionFloats>("wipe_tower_y", true);
+        wipe_tower_x_opt->set_at(&wipe_tower_x, plate_id, 0);
+        wipe_tower_y_opt->set_at(&wipe_tower_y, plate_id, 0);
     }
 
     reset_sequential_print_clearance();
@@ -3438,13 +3446,6 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
 
     for (const GLVolume* v : m_volumes.volumes) {
         int object_idx = v->object_idx();
-        // BBS: don't support wipe tower rotation
-#if 0
-        if (object_idx == 1000) { // the wipe tower
-            Vec3d offset = v->get_volume_offset();
-            post_event(Vec3dEvent(EVT_GLCANVAS_WIPETOWER_ROTATED, Vec3d(offset(0), offset(1), v->get_volume_rotation()(2))));
-        }
-#endif
         if (object_idx < 0 || (int)m_model->objects.size() <= object_idx)
             continue;
 
@@ -3736,8 +3737,9 @@ GLCanvas3D::WipeTowerInfo GLCanvas3D::get_wipe_tower_info(int plate_idx) const
 
     for (const GLVolume* vol : m_volumes.volumes) {
         if (vol->is_wipe_tower && vol->object_idx() - 1000 == plate_idx) {
-            wti.m_pos = Vec2d(m_config->opt<ConfigOptionFloats>("wipe_tower_x")->get_at(plate_idx),
-                              m_config->opt<ConfigOptionFloats>("wipe_tower_y")->get_at(plate_idx));
+            DynamicPrintConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
+            wti.m_pos = Vec2d(proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x")->get_at(plate_idx),
+                              proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y")->get_at(plate_idx));
             // BBS: don't support rotation
             //wti.m_rotation = (M_PI/180.) * m_config->opt_float("wipe_tower_rotation_angle");
             const BoundingBoxf3& bb = vol->bounding_box();
@@ -7160,20 +7162,17 @@ const SLAPrint* GLCanvas3D::sla_print() const
 void GLCanvas3D::WipeTowerInfo::apply_wipe_tower() const
 {
     // BBS: add partplate logic
-    Tab* tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
+    DynamicConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
     Vec3d plate_origin = wxGetApp().plater()->get_partplate_list().get_plate(m_plate_idx)->get_origin();
     ConfigOptionFloat wipe_tower_x(m_pos(X) - plate_origin(0));
     ConfigOptionFloat wipe_tower_y(m_pos(Y) - plate_origin(1));
 
-    DynamicPrintConfig cfg;
-    ConfigOptionFloats* wipe_tower_x_opt = cfg.option<ConfigOptionFloats>("wipe_tower_x", true);
-    ConfigOptionFloats* wipe_tower_y_opt = cfg.option<ConfigOptionFloats>("wipe_tower_y", true);
-    *wipe_tower_x_opt = tab->get_config()->opt<ConfigOptionFloats>("wipe_tower_x");
-    *wipe_tower_y_opt = tab->get_config()->opt<ConfigOptionFloats>("wipe_tower_y");
+    ConfigOptionFloats* wipe_tower_x_opt = proj_cfg.option<ConfigOptionFloats>("wipe_tower_x", true);
+    ConfigOptionFloats* wipe_tower_y_opt = proj_cfg.option<ConfigOptionFloats>("wipe_tower_y", true);
     wipe_tower_x_opt->set_at(&wipe_tower_x, m_plate_idx, 0);
     wipe_tower_y_opt->set_at(&wipe_tower_y, m_plate_idx, 0);
 
-    wxGetApp().get_tab(Preset::TYPE_PRINT)->load_config(cfg);
+    //q->update();
 }
 
 void GLCanvas3D::RenderTimer::Notify()

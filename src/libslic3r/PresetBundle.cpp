@@ -33,7 +33,10 @@ static std::vector<std::string> s_project_options {
     "flush_volumes_vector",
     "flush_volumes_matrix",
     // BBS
-    "filament_colour"
+    "filament_colour",
+    "wipe_tower_x",
+    "wipe_tower_y",
+    "wipe_tower_rotation_angle",
 };
 
 //BBS: add BBL as default
