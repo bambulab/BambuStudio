@@ -75,7 +75,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "default_acceleration",
         "deretraction_speed",
         "close_fan_the_first_x_layers",
-        "duplicate_distance",
         "machine_end_gcode",
         "filament_end_gcode",
         "extruder_clearance_height_to_rod",

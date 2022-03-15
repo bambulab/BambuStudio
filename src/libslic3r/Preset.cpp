@@ -700,7 +700,6 @@ static std::vector<std::string> s_Preset_printer_options {
     "printing_by_object_gcode", "printer_model", "printer_variant", "printable_height",
     "default_print_profile", "inherits",
     "silent_mode",
-    "thumbnails",
     // BBS
     "scan_first_layer", "spaghetti_detector", "machine_load_filament_time", "machine_unload_filament_time",
 };
@@ -1997,7 +1996,7 @@ inline t_config_option_keys deep_diff(const ConfigBase &config_this, const Confi
         if (this_opt != nullptr && other_opt != nullptr && *this_opt != *other_opt)
         {
             //BBS: add bed_exclude_area
-            if (opt_key == "printable_area" || opt_key == "bed_exclude_area" || opt_key == "thumbnails" || opt_key == "compatible_prints" || opt_key == "compatible_printers") {
+            if (opt_key == "printable_area" || opt_key == "bed_exclude_area" || opt_key == "compatible_prints" || opt_key == "compatible_printers") {
                 // Scalar variable, or a vector variable, which is independent from number of extruders,
                 // thus the vector is presented to the user as a single input.
                 diff.emplace_back(opt_key);

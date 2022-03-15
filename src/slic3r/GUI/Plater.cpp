@@ -1973,7 +1973,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     , acc_(acc)
     //BBS: add bed_exclude_area
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
-        "printable_area", "bed_exclude_area", "print_sequence", "duplicate_distance", "extruder_clearance_radius", "skirt_loops", "skirt_distance",
+        "printable_area", "bed_exclude_area", "print_sequence", "extruder_clearance_radius", "skirt_loops", "skirt_distance",
         "brim_width", "brim_object_gap", "brim_type", "nozzle_diameter", "single_extruder_multi_material",
         "enable_wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_brim_width", "wiping_volume",
         "extruder_colour", "filament_colour", "material_colour", "printable_height", "printer_model", "printer_technology",

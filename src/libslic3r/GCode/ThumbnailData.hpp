@@ -7,6 +7,9 @@
 
 namespace Slic3r {
 
+//BBS: thumbnail_size in gcode file
+static std::vector<Vec2d> THUMBNAIL_SIZE = { Vec2d(50, 50) };
+
 struct ThumbnailData
 {
     unsigned int width;

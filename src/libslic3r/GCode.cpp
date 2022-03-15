@@ -1275,7 +1275,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     }
 
     //BBS: add plate id into thumbnail render logic
-    DoExport::export_thumbnails_to_file(thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
+    DoExport::export_thumbnails_to_file(thumbnail_cb, print.get_plate_index(), THUMBNAIL_SIZE,
         [&file](const char* sz) { file.write(sz); },
         [&print]() { print.throw_if_canceled(); });
 

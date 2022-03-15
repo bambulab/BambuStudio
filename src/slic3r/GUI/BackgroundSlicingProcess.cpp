@@ -259,7 +259,7 @@ void BackgroundSlicingProcess::process_sla()
 
 			//BBS: add plate id for thumbnail generation
             ThumbnailsList thumbnails = this->render_thumbnails(
-            	ThumbnailsParams{current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, true, true, 0});
+				ThumbnailsParams{ THUMBNAIL_SIZE, true, true, true, true, 0 });
 
             Zipper zipper(export_path);
             m_sla_archive.export_print(zipper, *m_sla_print);																											         // true, false, true, true); // renders also supports and pad

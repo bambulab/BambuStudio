@@ -842,7 +842,7 @@ void TabPrinter::init_options_list()
 
     for (const std::string& opt_key : m_config->keys())
     {
-        if (opt_key == "printable_area" || opt_key == "thumbnails") {
+        if (opt_key == "printable_area") {
             m_options_list.emplace(opt_key, m_opt_status_value);
             continue;
         }
@@ -2718,11 +2718,6 @@ void TabPrinter::build_fff()
 
         optgroup = page->new_optgroup(L("Firmware"));
         optgroup->append_single_option_line("gcode_flavor");
-
-        // BBS
-        Option option = optgroup->get_option("thumbnails");
-        option.opt.full_width = true;
-        optgroup->append_single_option_line(option);
 
         optgroup->append_single_option_line("silent_mode");
 
