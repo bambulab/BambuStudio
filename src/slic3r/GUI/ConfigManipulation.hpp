@@ -34,6 +34,8 @@ class ConfigManipulation
     //ModelConfig* local_config = nullptr;
     wxWindow*    m_msg_dlg_parent {nullptr};
 
+    t_config_option_keys m_applying_keys;
+
 public:
     ConfigManipulation(std::function<void()> load_config,
         std::function<void(const std::string&, bool toggle, int opt_index)> cb_toggle_field,
@@ -54,12 +56,16 @@ public:
         cb_value_change = nullptr;
     }
 
+    bool    is_applying() const;
+
     void    apply(DynamicPrintConfig* config, DynamicPrintConfig* new_config);
+    t_config_option_keys const &applying_keys() const;
     void    toggle_field(const std::string& field_key, const bool toggle, int opt_index = -1);
 
     // FFF print
     void    update_print_fff_config(DynamicPrintConfig* config, const bool is_global_config = false);
     void    toggle_print_fff_options(DynamicPrintConfig* config);
+    void    apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys);
 
     // SLA print
     void    update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config = false);

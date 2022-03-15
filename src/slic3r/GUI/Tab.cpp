@@ -1937,7 +1937,7 @@ void TabPrint::update()
         m_config_manipulation.initialize_support_material_overhangs_queried(is_user_and_saved_preset && support_material_overhangs_queried);
     }
 
-    m_config_manipulation.update_print_fff_config(m_config, true);
+    m_config_manipulation.update_print_fff_config(m_config, m_type < Preset::TYPE_COUNT);
 
     update_description_lines();
     //BBS: GUI refactor
@@ -2047,6 +2047,9 @@ void TabPrintModel::set_model_config(std::map<ObjectBase *, ModelConfig *> const
 
 void TabPrintModel::update_model_config()
 {
+    if (m_config_manipulation.is_applying()) {
+        return;
+    }
     m_config->apply(*m_parent_tab->m_config);
     m_null_keys.clear();
     if (!m_object_configs.empty()) {
@@ -2071,6 +2074,7 @@ void TabPrintModel::update_model_config()
         }
         // except those than all equal on
         m_config->apply_only(local_config, local_keys);
+        m_config_manipulation.apply_null_fff_config(m_config, m_null_keys);
     }
     update_dirty();
     TabPrint::reload_config();
@@ -2119,42 +2123,44 @@ void TabPrintModel::activate_selected_page(std::function<void()> throw_if_cancel
 void TabPrintModel::on_value_change(const std::string& opt_key, const boost::any& value)
 {
     // TODO: support opt_index, translate by OptionsGroup's m_opt_map
+    if (m_config_manipulation.is_applying()) {
+        TabPrint::on_value_change(opt_key, value);
+        return;
+    }
     if (!m_object_configs.empty())
         wxGetApp().plater()->take_snapshot((boost::format("Change Option %s") % opt_key).str());
     TabPrint::on_value_change(opt_key, value);
+    if (!has_key(opt_key))
+        return;
+    m_null_keys.erase(std::remove(m_null_keys.begin(), m_null_keys.end(), opt_key), m_null_keys.end());
     for (auto config : m_object_configs) {
-        if (has_key(opt_key)) {
-            if (m_options_list[opt_key] & osInitValue)
-                config.second->erase(opt_key);
-            else
-                config.second->apply_only(*m_config, {opt_key});
-            config.second->touch();
-            notify_changed(config.first);
-        }
+        if (m_options_list[opt_key] & osInitValue)
+            config.second->erase(opt_key);
+        else
+            config.second->apply_only(*m_config, {opt_key});
+        config.second->touch();
+        notify_changed(config.first);
     }
 }
 
 void TabPrintModel::reload_config()
 {
     TabPrint::reload_config();
-    if (m_object_configs.size() != 1)
-        return; // TODO:
-    DynamicPrintConfig diff_config;
-    diff_config.apply(*m_parent_tab->m_config);
-    auto & config = m_object_configs.begin()->second;
-    diff_config.apply(config->get());
-    auto keys = diff_config.diff(*m_config);
+    auto keys = m_config_manipulation.applying_keys();
     bool super_changed = false;
     for (auto & k : keys) {
         if (has_key(k)) {
-            if (m_options_list[k] & osInitValue)
-                config->erase(k);
-            else
-                config->apply_only(*m_config, {k});
+            for (auto config : m_object_configs) {
+                if (m_options_list[k] & osInitValue)
+                    config.second->erase(k);
+                else
+                    config.second->apply_only(*m_config, {k});
+            }
         } else {
             m_parent_tab->m_config->apply_only(*m_config, {k});
             super_changed = true;
         }
+        m_null_keys = substruct(m_null_keys, keys);
     }
     if (super_changed) {
         m_parent_tab->update_dirty();

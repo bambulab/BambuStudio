@@ -15,13 +15,21 @@ namespace GUI {
 void ConfigManipulation::apply(DynamicPrintConfig* config, DynamicPrintConfig* new_config)
 {
     bool modified = false;
-    for (auto opt_key : config->diff(*new_config)) {
+    m_applying_keys = config->diff(*new_config);
+    for (auto opt_key : m_applying_keys) {
         config->set_key_value(opt_key, new_config->option(opt_key)->clone());
         modified = true;
     }
-
     if (modified && load_config != nullptr)
         load_config();
+    m_applying_keys.clear();
+}
+
+bool ConfigManipulation::is_applying() const { return is_msg_dlg_already_exist; }
+
+t_config_option_keys const &ConfigManipulation::applying_keys() const
+{
+    return m_applying_keys;
 }
 
 void ConfigManipulation::toggle_field(const std::string& opt_key, const bool toggle, int opt_index/* = -1*/)
@@ -154,6 +162,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         MessageDialog dialog(m_msg_dlg_parent, msg_text, _(L("Spiral Vase")),
                                wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK));
         DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist = true;
         auto answer = dialog.ShowModal();
         bool support = true;
         if (!is_global_config || answer == wxID_YES) {
@@ -175,6 +184,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             if (!support)
                 cb_value_change("enable_support", false);
         }
+        is_msg_dlg_already_exist = false;
     }
 
     // BBS
@@ -202,6 +212,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         }
 
         MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxYES | wxNO);
+        is_msg_dlg_already_exist = true;
         auto answer = dialog.ShowModal();
 
         DynamicPrintConfig new_conf = *config;
@@ -216,6 +227,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             new_conf.set_key_value("enable_wipe_tower", new ConfigOptionBool(false));
 
         apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
     }
 
     // BBS
@@ -247,6 +259,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                     msg_text += "\n\n" + _(L("Shall I adjust those settings for supports?"));
                 MessageDialog dialog(m_msg_dlg_parent, msg_text, _L("Support Generator"), wxICON_WARNING | wxYES | wxNO);
                 DynamicPrintConfig new_conf = *config;
+                is_msg_dlg_already_exist = true;
                 auto answer = dialog.ShowModal();
                 if (answer == wxID_YES) {
                     // Enable "detect bridging perimeters".
@@ -254,6 +267,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                 }
                 //else Do nothing, leave supports on and "detect bridging perimeters" off.
                 apply(config, &new_conf);
+                is_msg_dlg_already_exist = false;
             }
         }
     }
@@ -279,6 +293,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                 MessageDialog dialog(m_msg_dlg_parent, msg_text, _L("Infill"),
                                                   wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK) );
                 DynamicPrintConfig new_conf = *config;
+                is_msg_dlg_already_exist = true;
                 auto answer = dialog.ShowModal();
                 if (!is_global_config || answer == wxID_YES) {
                     new_conf.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
@@ -290,6 +305,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                 apply(config, &new_conf);
                 if (cb_value_change)
                     cb_value_change("sparse_infill_density", sparse_infill_density);
+                is_msg_dlg_already_exist = false;
             }
         }
     }
@@ -306,6 +322,24 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                 apply(config, &new_conf);
             }
         }
+    }
+}
+
+void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys)
+{
+    for (auto &k : keys) {
+        if (k == "adaptive_layer_height" || k == "independent_support_layer_height" || k == "enable_support" || k == "detect_thin_wall")
+            config->set_key_value(k, new ConfigOptionBool(true));
+        else if (k == "wall_loops")
+            config->set_key_value(k, new ConfigOptionInt(0));
+        else if (k == "top_shell_layers" || k == "support_material_enforce_layers")
+            config->set_key_value(k, new ConfigOptionInt(1));
+        else if (k == "sparse_infill_density")
+            config->set_key_value(k, new ConfigOptionPercent(100)); // sparse_infill_pattern
+        else if (k == "detect_overhang_wall")
+            config->set_key_value(k, new ConfigOptionBool(false));
+        else if (k == "sparse_infill_pattern")
+            config->set_key_value(k, new ConfigOptionEnum<InfillPattern>(ipGrid));
     }
 }
 
@@ -493,7 +527,6 @@ void ConfigManipulation::toggle_print_sla_options(DynamicPrintConfig* config)
     toggle_field("pad_object_connector_width", zero_elev);
     toggle_field("pad_object_connector_penetration", zero_elev);
 }
-
 
 } // GUI
 } // Slic3r
