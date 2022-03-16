@@ -6585,6 +6585,11 @@ void Plater::import_model_id(const std::string& import_json)
         BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << target_path.string();
         /* load project */
         this->load_project(encode_path(target_path.string().c_str()), "<silence>");
+
+        /*BBS set project info after load project, project info is reset in load project */
+        project->project_model_id  = model_id;
+        project->project_design_id = design_id;
+
         // show save new project
         p->set_project_filename(project->project_name.empty() ? L("Import Model") : from_u8(project->project_name));
     }
