@@ -255,6 +255,7 @@ struct Sidebar::priv
     wxScrolledWindow *scrolled;
     PlaterPresetComboBox *combo_print;
     std::vector<PlaterPresetComboBox*> combos_filament;
+    int editing_filament = -1;
     wxBoxSizer *sizer_filaments;
     PlaterPresetComboBox *combo_sla_print;
     PlaterPresetComboBox *combo_sla_material;
@@ -441,6 +442,7 @@ Sidebar::Sidebar(Plater *parent)
 
     ScalableButton* set_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "settings");
     set_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
+        p->editing_filament = -1;
         wxGetApp().params_dialog()->Show();
         wxGetApp().get_tab(Preset::TYPE_FILAMENT)->restore_last_select_item();
     });
@@ -509,6 +511,7 @@ Sidebar::Sidebar(Plater *parent)
     PlaterPresetComboBox* combobox = p->combos_filament[0];
     edit_btn->Bind(wxEVT_BUTTON, [this, combobox](wxCommandEvent)
         {
+            p->editing_filament = 0;
             combobox->switch_to_tab();
         });
     combobox->edit_btn = edit_btn;
@@ -631,8 +634,9 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     edit_btn->SetToolTip(_L("Click to edit preset"));
 
     PlaterPresetComboBox* combobox = (*combo);
-    edit_btn->Bind(wxEVT_BUTTON, [this, combobox](wxCommandEvent)
+    edit_btn->Bind(wxEVT_BUTTON, [this, combobox, filament_idx](wxCommandEvent)
         {
+            p->editing_filament = filament_idx;
             combobox->switch_to_tab();
         });
     combobox->edit_btn = edit_btn;
@@ -712,9 +716,11 @@ void Sidebar::update_presets(Preset::Type preset_type)
 #else
         const size_t filament_cnt = p->combos_filament.size();
 #endif
-        if (filament_cnt == 1) {
+        const std::string &name = preset_bundle.filaments.get_selected_preset_name();
+        if (p->editing_filament >= 0) {
+            preset_bundle.set_filament_preset(p->editing_filament, name);
+        } else if (filament_cnt == 1) {
             // Single filament printer, synchronize the filament presets.
-            const std::string &name = preset_bundle.filaments.get_selected_preset_name();
             preset_bundle.set_filament_preset(0, name);
         }
 
