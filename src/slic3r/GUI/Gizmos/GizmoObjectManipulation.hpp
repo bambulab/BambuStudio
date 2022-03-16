@@ -109,7 +109,7 @@ public:
     void on_change(const std::string& opt_key, int axis, double new_value);
     void do_render_input_window(ImGuiWrapper* imgui_wrapper, std::string window_name, float x, float y, float bottom_limit);
     void do_render_scale_input_window(ImGuiWrapper* imgui_wrapper, std::string window_name, float x, float y, float bottom_limit);
-    
+    bool reset_button(ImGuiWrapper *imgui_wrapper, float caption_max, float unit_size, float space_size, float end_text_size);
 
 private:
     void reset_settings_value();

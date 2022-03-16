@@ -14,7 +14,6 @@ namespace GUI {
 
 bool IMToolbarItem::generate_texture()
 {
-    bool compress = false;
     GLint last_texture;
     unsigned m_image_texture{ 0 };
     unsigned char* pixels = (unsigned char*)(&image_data[0]);
@@ -25,10 +24,7 @@ bool IMToolbarItem::generate_texture()
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     glsafe(::glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
-    if (compress && GLEW_EXT_texture_compression_s3tc)
-        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
-    else
-        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
+    glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
 
     // Store our identifier
     texture_id = (ImTextureID)(intptr_t)m_image_texture;

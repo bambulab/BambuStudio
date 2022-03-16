@@ -265,6 +265,20 @@ void ImGui::Text(const char* fmt, ...)
     va_end(args);
 }
 
+void ImGui::TextCentered(const char* text, ...)
+{
+
+    va_list vaList;
+    va_start(vaList,&text);
+
+    float font_size = ImGui::GetFontSize() * strlen(text) / 2;
+    ImGui::SameLine(ImGui::GetCursorPos().x / 2 - font_size + (font_size / 2));
+
+    ImGui::TextV(text, vaList);
+
+    va_end(vaList);
+}
+
 void ImGui::TextV(const char* fmt, va_list args)
 {
     ImGuiWindow* window = GetCurrentWindow();
@@ -1082,6 +1096,41 @@ bool ImGui::ImageButtonEx2(ImGuiID id, ImTextureID texture_id, const ImVec2& siz
     return pressed;
 }
 
+bool ImGui::ImageButtonEx3(ImGuiID id,ImTextureID   texture_id,ImTextureID   texture_id_hover, const ImVec2 &size,const ImVec2 &uv0,const ImVec2 &uv1,const ImVec2 &padding,const ImVec4 &bg_col,const ImVec4 &tint_col,const ImVec2 &margin)
+{
+    ImGuiContext &g      = *GImGui;
+    ImGuiWindow * window = GetCurrentWindow();
+    if (window->SkipItems) return false;
+
+    const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + size + padding * 2 + margin * 2);
+    ItemSize(bb);
+    if (!ItemAdd(bb, id)) return false;
+
+    bool hovered, held;
+    bool pressed = ButtonBehavior(bb, id, &hovered, &held);
+
+    // Render
+    const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+    RenderNavHighlight(bb, id);
+
+    const float border_size = g.Style.FrameBorderSize;
+    if (border_size > 0.0f) {
+        window->DrawList->AddRect(bb.Min + ImVec2(1, 1), bb.Max + ImVec2(1, 1), col, g.Style.FrameRounding, 0, border_size);
+        window->DrawList->AddRect(bb.Min, bb.Max, col, g.Style.FrameRounding, 0, border_size);
+    }
+
+    if (bg_col.w > 0.0f) window->DrawList->AddRectFilled(bb.Min + padding, bb.Max - padding, GetColorU32(bg_col));
+    if (hovered)
+    {
+        window->DrawList->AddImage(texture_id_hover, bb.Min + padding + margin, bb.Max - padding - margin, uv0, uv1, GetColorU32(tint_col));
+    } else {
+        window->DrawList->AddImage(texture_id, bb.Min + padding + margin, bb.Max - padding - margin, uv0, uv1, GetColorU32(tint_col));
+    }
+
+    return pressed;
+}
+
+
 bool ImGui::ImageButton(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col, const ImVec4& tint_col)
 {
     ImGuiContext& g = *GImGui;
@@ -1115,6 +1164,21 @@ bool ImGui::ImageButton2(ImTextureID user_texture_id, const ImVec2& size, const 
 
     const ImVec2 padding = (frame_padding >= 0) ? ImVec2((float)frame_padding, (float)frame_padding) : g.Style.FramePadding;
     return ImageButtonEx2(id, user_texture_id, size, uv0, uv1, padding, bg_col, tint_col, margin);
+}
+
+bool ImGui::ImageButton3(ImTextureID user_texture_id,ImTextureID user_texture_id_hover, const ImVec2 &size, const ImVec2 &uv0, const ImVec2 &uv1, int frame_padding, const ImVec4 &bg_col, const ImVec4 &tint_col, const ImVec2 &margin)
+{
+    ImGuiContext &g      = *GImGui;
+    ImGuiWindow * window = g.CurrentWindow;
+    if (window->SkipItems) return false;
+
+    // Default to using texture ID as ID. User can still push string/integer prefixes.
+    PushID((void *) (intptr_t) user_texture_id);
+    const ImGuiID id = window->GetID("#image");
+    PopID();
+
+    const ImVec2 padding = (frame_padding >= 0) ? ImVec2((float) frame_padding, (float) frame_padding) : g.Style.FramePadding;
+    return ImageButtonEx3(id, user_texture_id, user_texture_id_hover, size, uv0, uv1, padding, bg_col, tint_col, margin);
 }
 
 
@@ -1160,6 +1224,59 @@ bool ImGui::ImageTextButton(const ImVec2& button_size, const char* text, ImTextu
 
     return pressed;
 
+}
+
+bool ImGui::BBLCheckbox(const char *label, bool *v)
+{
+    ImGuiWindow *window = GetCurrentWindow();
+    if (window->SkipItems) return false;
+
+    ImGuiContext &    g          = *GImGui;
+    const ImGuiStyle &style      = g.Style;
+    const ImGuiID     id         = window->GetID(label);
+    const ImVec2      label_size = CalcTextSize(label, NULL, true);
+
+    const float  square_sz = 16.0;
+    const ImVec2 pos       = window->DC.CursorPos;
+    const ImRect total_bb(pos, pos + ImVec2(square_sz + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f), label_size.y + style.FramePadding.y * 2.0f));
+    ItemSize(total_bb, style.FramePadding.y);
+    if (!ItemAdd(total_bb, id)) {
+        IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.LastItemStatusFlags | ImGuiItemStatusFlags_Checkable | (*v ? ImGuiItemStatusFlags_Checked : 0));
+        return false;
+    }
+
+    bool hovered, held;
+    bool pressed = ButtonBehavior(total_bb, id, &hovered, &held);
+    if (pressed) {
+        *v = !(*v);
+        MarkItemEdited(id);
+    }
+
+    const ImRect check_bb(pos, pos + ImVec2(square_sz, square_sz));
+    RenderNavHighlight(total_bb, id);
+    RenderFrame(check_bb.Min, check_bb.Max,
+                GetColorU32((held && hovered) ? ImGuiCol_FrameBgActive :
+                            hovered           ? ImGuiCol_FrameBgHovered :
+                                                ImGuiCol_FrameBg),
+                true, style.FrameRounding);
+    ImU32 check_col   = GetColorU32(ImGuiCol_CheckMark);
+    bool  mixed_value = (g.CurrentItemFlags & ImGuiItemFlags_MixedValue) != 0;
+    if (mixed_value) {
+        // Undocumented tristate/mixed/indeterminate checkbox (#2644)
+        // This may seem awkwardly designed because the aim is to make ImGuiItemFlags_MixedValue supported by all widgets (not just checkbox)
+        ImVec2 pad(ImMax(1.0f, IM_FLOOR(square_sz / 3.6f)), ImMax(1.0f, IM_FLOOR(square_sz / 3.6f)));
+        window->DrawList->AddRectFilled(check_bb.Min + pad, check_bb.Max - pad, check_col, style.FrameRounding);
+    } else if (*v) {
+        const float pad = ImMax(1.0f, IM_FLOOR(square_sz / 6.0f));
+        RenderCheckMark(window->DrawList, check_bb.Min + ImVec2(pad, pad), check_col, square_sz - pad * 2.0f);
+    }
+
+    ImVec2 label_pos = ImVec2(check_bb.Max.x + style.ItemInnerSpacing.x, check_bb.Min.y);
+    if (g.LogEnabled) LogRenderedText(&label_pos, mixed_value ? "[~]" : *v ? "[x]" : "[ ]");
+    if (label_size.x > 0.0f) RenderText(label_pos, label);
+
+    IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.LastItemStatusFlags | ImGuiItemStatusFlags_Checkable | (*v ? ImGuiItemStatusFlags_Checked : 0));
+    return pressed;
 }
 
 bool ImGui::Checkbox(const char* label, bool* v)
@@ -2482,6 +2599,92 @@ bool ImGui::DragScalar(const char* label, ImGuiDataType data_type, void* p_data,
     return value_changed;
 }
 
+bool ImGui::BBLDragScalar(const char *label, ImGuiDataType data_type, void *p_data, float v_speed, const void *p_min, const void *p_max, const char *format, ImGuiSliderFlags flags)
+{
+    ImGuiWindow *window = GetCurrentWindow();
+    if (window->SkipItems) return false;
+
+    ImGuiContext &    g     = *GImGui;
+    const ImGuiStyle &style = g.Style;
+    const ImGuiID     id    = window->GetID(label);
+    const float       w     = CalcItemWidth();
+
+    const ImVec2 label_size = CalcTextSize(label, NULL, true);
+    const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
+    const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
+
+    const bool temp_input_allowed = (flags & ImGuiSliderFlags_NoInput) == 0;
+    ItemSize(total_bb, style.FramePadding.y);
+    if (!ItemAdd(total_bb, id, &frame_bb, temp_input_allowed ? ImGuiItemAddFlags_Focusable : 0)) return false;
+
+    // Default format string when passing NULL
+    if (format == NULL)
+        format = DataTypeGetInfo(data_type)->PrintFmt;
+    else if (data_type == ImGuiDataType_S32 && strcmp(format, "%d") != 0) // (FIXME-LEGACY: Patch old "%.0f" format string to use "%d", read function more details.)
+        format = PatchFormatStringFloatToInt(format);
+
+    // Tabbing or CTRL-clicking on Drag turns it into an InputText
+    const bool hovered = ItemHoverable(frame_bb, id);
+
+    bool temp_input_is_active = temp_input_allowed && TempInputIsActive(id);
+    if (!temp_input_is_active) {
+        const bool focus_requested = temp_input_allowed && (window->DC.LastItemStatusFlags & ImGuiItemStatusFlags_Focused) != 0;
+        const bool clicked         = (hovered && g.IO.MouseClicked[0]);
+        const bool double_clicked  = (hovered && g.IO.MouseDoubleClicked[0]);
+        if (focus_requested || clicked || double_clicked || g.NavActivateId == id || g.NavInputId == id) {
+            SetActiveID(id, window);
+            SetFocusID(id, window);
+            FocusWindow(window);
+            g.ActiveIdUsingNavDirMask = (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
+            if (temp_input_allowed && (focus_requested || (clicked && g.IO.KeyCtrl) || double_clicked || g.NavInputId == id)) temp_input_is_active = true;
+        }
+        // Experimental: simple click (without moving) turns Drag into an InputText
+        // FIXME: Currently polling ImGuiConfigFlags_IsTouchScreen, may either poll an hypothetical ImGuiBackendFlags_HasKeyboard and/or an explicit drag settings.
+        if (g.IO.ConfigDragClickToInputText && temp_input_allowed && !temp_input_is_active)
+            if (g.ActiveId == id && hovered && g.IO.MouseReleased[0] && !IsMouseDragPastThreshold(0, g.IO.MouseDragThreshold * DRAG_MOUSE_THRESHOLD_FACTOR)) {
+                g.NavInputId         = id;
+                temp_input_is_active = true;
+            }
+    }
+
+    if (temp_input_is_active) {
+        // Only clamp CTRL+Click input when ImGuiSliderFlags_AlwaysClamp is set
+        const bool is_clamp_input = (flags & ImGuiSliderFlags_AlwaysClamp) != 0 && (p_min == NULL || p_max == NULL || DataTypeCompare(data_type, p_min, p_max) < 0);
+        ImGui::PushStyleColor(ImGuiCol_Border, GetColorU32(ImGuiCol_BorderActive));
+        bool b_input_sclar = TempInputScalar(frame_bb, id, label, data_type, p_data, format, is_clamp_input ? p_min : NULL, is_clamp_input ? p_max : NULL);
+        ImGui::PopStyleColor(1);
+        return b_input_sclar;
+    }
+
+    /* get hover status */
+    bool push_color_count = false;
+    if (hovered || g.ActiveId == id) {
+        ImGui::PushStyleColor(ImGuiCol_Border, GetColorU32(ImGuiCol_BorderActive));
+        push_color_count = true;
+    }
+
+    // Draw frame
+    const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : g.HoveredId == id ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
+    RenderNavHighlight(frame_bb, id);
+    RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, style.FrameRounding);
+
+    // Drag behavior
+    const bool value_changed = DragBehavior(id, data_type, p_data, v_speed, p_min, p_max, format, flags);
+    if (value_changed) MarkItemEdited(id);
+
+    // Display value using user-provided display format so user can add prefix/suffix/decorations to the value.
+    char        value_buf[64];
+    const char *value_buf_end = value_buf + DataTypeFormatString(value_buf, IM_ARRAYSIZE(value_buf), data_type, p_data, format);
+    if (g.LogEnabled) LogSetNextTextDecoration("{", "}");
+    RenderTextClipped(frame_bb.Min, frame_bb.Max, value_buf, value_buf_end, NULL, ImVec2(0.5f, 0.5f));
+
+    if (label_size.x > 0.0f) RenderText(ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x, frame_bb.Min.y + style.FramePadding.y), label);
+    if (push_color_count) { ImGui::PopStyleColor(1); }
+
+    IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.LastItemStatusFlags);
+    return value_changed;
+}
+
 bool ImGui::DragScalarN(const char* label, ImGuiDataType data_type, void* p_data, int components, float v_speed, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags)
 {
     ImGuiWindow* window = GetCurrentWindow();
@@ -2520,6 +2723,16 @@ bool ImGui::DragScalarN(const char* label, ImGuiDataType data_type, void* p_data
 bool ImGui::DragFloat(const char* label, float* v, float v_speed, float v_min, float v_max, const char* format, ImGuiSliderFlags flags)
 {
     return DragScalar(label, ImGuiDataType_Float, v, v_speed, &v_min, &v_max, format, flags);
+}
+
+bool ImGui::BBLDragFloat(const char *label, float *v, float v_speed, float v_min, float v_max, const char *format, ImGuiSliderFlags flags)
+{
+    ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.00f, 0.68f, 0.26f, 0.00f));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.00f, 0.68f, 0.26f, 0.00f));
+    bool bbl_drag_scalar = BBLDragScalar(label, ImGuiDataType_Float, v, v_speed, &v_min, &v_max, format, flags);
+    ImGui::PopStyleColor(3);
+    return bbl_drag_scalar;
 }
 
 bool ImGui::DragFloat2(const char* label, float v[2], float v_speed, float v_min, float v_max, const char* format, ImGuiSliderFlags flags)
@@ -3758,8 +3971,11 @@ bool ImGui::InputDouble(const char* label, double* v, double step, double step_f
 
 bool ImGui::BBLInputDouble(const char *label, double *v, double step, double step_fast, const char *format, ImGuiInputTextFlags flags)
 {
+    ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
     flags |= ImGuiInputTextFlags_CharsScientific;
-    return BBLInputScalar(label, ImGuiDataType_Double, (void *) v, (void *) (step > 0.0 ? &step : NULL), (void *) (step_fast > 0.0 ? &step_fast : NULL), format, flags);
+    bool bbl_input_scalar = BBLInputScalar(label, ImGuiDataType_Double, (void *) v, (void *) (step > 0.0 ? &step : NULL), (void *) (step_fast > 0.0 ? &step_fast : NULL), format,flags);
+    ImGui::PopStyleColor(1);
+    return bbl_input_scalar;
 }
 
 //-------------------------------------------------------------------------

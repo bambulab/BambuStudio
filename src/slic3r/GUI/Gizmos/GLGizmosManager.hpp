@@ -139,10 +139,23 @@ private:
     bool m_serializing;
     std::unique_ptr<CommonGizmosDataPool> m_common_gizmos_data;
 
+    // key MENU_ICON_NAME, value = ImtextureID
+    std::map<int, void*> icon_list;
 public:
+
+    enum MENU_ICON_NAME {
+        IC_TOOLBAR_RESET            = 0,
+        IC_TOOLBAR_RESET_HOVER,
+        IC_TOOLBAR_TOOLTIP,
+        IC_TOOLBAR_TOOLTIP_HOVER,
+        IC_NAME_COUNT,
+    };
+
     explicit GLGizmosManager(GLCanvas3D& parent);
 
     bool init();
+
+    bool init_icon_textures();
 
     bool init_arrow(const BackgroundTexture::Metadata& arrow_texture);
 
@@ -222,6 +235,14 @@ public:
 
     // BBS
     void finish_cut_rotation();
+
+    //BBS
+    void* get_icon_texture_id(MENU_ICON_NAME icon) {
+        if (icon_list.find((int)icon) != icon_list.end())
+            return icon_list[icon];
+        else
+            return nullptr;
+    }
 
     Vec3d get_flattening_normal() const;
 

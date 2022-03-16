@@ -36,10 +36,10 @@
 #include "../Utils/MacDarkMode.hpp"
 #include "nanosvg/nanosvg.h"
 #include "nanosvg/nanosvgrast.h"
+#include "OpenGLManager.hpp"
 
 namespace Slic3r {
 namespace GUI {
-
 
 static const std::map<const wchar_t, std::string> font_icons = {
     {ImGui::PrintIconMarker       , "cog"                           },
@@ -70,6 +70,7 @@ static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::ErrorMarker             , "notification_error"              },
     {ImGui::CancelButton            , "notification_cancel"             },
     {ImGui::CancelHoverButton       , "notification_cancel_hover"       },
+
 //    {ImGui::SinkingObjectMarker     , "move"                            },
 //    {ImGui::CustomSupportsMarker    , "fdm_supports"                    },
 //    {ImGui::CustomSeamMarker        , "seam"                            },
@@ -78,7 +79,6 @@ static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::DocumentationButton     , "notification_documentation"      },
     {ImGui::DocumentationHoverButton, "notification_documentation_hover"},
     {ImGui::InfoMarker              , "notification_info"               },
-    
 };
 
 static const std::map<const wchar_t, std::string> font_icons_extra_large = {
@@ -91,18 +91,19 @@ const ImVec4 ImGuiWrapper::COL_GREY_LIGHT        = { 0.4f, 0.4f, 0.4f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_ORANGE_DARK       = { 0.757f, 0.404f, 0.216f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_ORANGE_LIGHT      = { 1.0f, 0.49f, 0.216f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_WINDOW_BACKGROUND = { 0.133f, 0.133f, 0.133f, 0.8f };
-const ImVec4 ImGuiWrapper::COL_BUTTON_BACKGROUND = COL_ORANGE_DARK; 
+const ImVec4 ImGuiWrapper::COL_BUTTON_BACKGROUND = COL_ORANGE_DARK;
 const ImVec4 ImGuiWrapper::COL_BUTTON_HOVERED    = COL_ORANGE_LIGHT;
 const ImVec4 ImGuiWrapper::COL_BUTTON_ACTIVE     = ImGuiWrapper::COL_BUTTON_HOVERED;
 
 //BBS
 
-const ImVec4 ImGuiWrapper::COL_BLUE_LIGHT        = ImVec4(0.122f, 0.557f, 0.918f, 1.00f);
+const ImVec4 ImGuiWrapper::COL_BLUE_LIGHT        = ImVec4(0.122f, 0.557f, 0.918f, 1.0f);
+const ImVec4 ImGuiWrapper::COL_GREEN_LIGHT       = ImVec4(0.86f, 0.99f, 0.91f, 1.0f);
 const ImVec4 ImGuiWrapper::COL_HOVER             = { 0.933f, 0.933f, 0.933f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_ACTIVE            = { 0.675f, 0.675f, 0.675f, 1.0f };
-const ImVec4 ImGuiWrapper::COL_SEPARATOR         = { 0.745f, 0.745f, 0.745f, 1.0f };
+const ImVec4 ImGuiWrapper::COL_SEPARATOR         = { 0.93f, 0.93f, 0.93f,1.0f };
 const ImVec4 ImGuiWrapper::COL_TITLE_BG          = { 0.745f, 0.745f, 0.745f, 1.0f };
-const ImVec4 ImGuiWrapper::COL_WINDOW_BG         = { 1.000f, 1.000f, 1.000f, 0.8f };
+const ImVec4 ImGuiWrapper::COL_WINDOW_BG         = { 1.000f, 1.000f, 1.000f, 0.95f };
 
 
 
@@ -478,6 +479,22 @@ bool ImGuiWrapper::checkbox(const wxString &label, bool &value)
 {
     auto label_utf8 = into_u8(label);
     return ImGui::Checkbox(label_utf8.c_str(), &value);
+}
+
+bool ImGuiWrapper::bbl_checkbox(const wxString &label, bool &value)
+{
+    bool result;
+    bool b_value = value;
+    if (b_value) {
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+    }
+    auto label_utf8 = into_u8(label);
+    result          = ImGui::BBLCheckbox(label_utf8.c_str(), &value);
+
+    if (b_value) { ImGui::PopStyleColor(3);}
+    return result;
 }
 
 void ImGuiWrapper::text(const char *label)
@@ -1153,7 +1170,11 @@ std::vector<unsigned char> ImGuiWrapper::load_svg(const std::string& bitmap_name
 //BBS
 void ImGuiWrapper::push_toolbar_style()
 {
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0f, 10.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 3.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 10.0f));
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(50/255.0f, 58/255.0f, 61/255.0f, 1.00f));       // 1
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImGuiWrapper::COL_WINDOW_BG);          // 2
     ImGui::PushStyleColor(ImGuiCol_TitleBg, ImGuiWrapper::COL_TITLE_BG);            // 3
@@ -1161,19 +1182,19 @@ void ImGuiWrapper::push_toolbar_style()
     ImGui::PushStyleColor(ImGuiCol_Separator, ImGuiWrapper::COL_SEPARATOR);         // 5
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));     // 6
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGuiWrapper::COL_HOVER);         // 7
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(238/255.0f, 238/255.0f, 238/255.0f, 1.00f)); // 8
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 1.00f)); // 8
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(238/255.0f, 238/255.0f, 238/255.0f, 1.00f));  // 9
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(238/255.0f, 238/255.0f, 238/255.0f, 1.00f));        // 10
-    ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, COL_BLUE_LIGHT);                 //11
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(238/255.0f, 238/255.0f, 238/255.0f, 0.00f));        // 10
+    ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, COL_GREEN_LIGHT);                                     // 11
+    ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));//12
 }
 
 void ImGuiWrapper::pop_toolbar_style()
 {
     // size in push toolbar style
-    ImGui::PopStyleColor(11);
-    ImGui::PopStyleVar(1);
+    ImGui::PopStyleColor(12);
+    ImGui::PopStyleVar(5);
 }
-
 
 void ImGuiWrapper::init_font(bool compress)
 {
@@ -1533,6 +1554,55 @@ void ImGuiWrapper::clipboard_set(void* /* user_data */, const char* text)
         wxTheClipboard->SetData(new wxTextDataObject(wxString::FromUTF8(text)));   // object owned by the clipboard
         wxTheClipboard->Close();
     }
+}
+
+bool IMTexture::load_from_svg_file(const std::string& filename, unsigned width, unsigned height, ImTextureID& texture_id)
+{
+    NSVGimage* image = nsvgParseFromFile(filename.c_str(), "px", 96.0f);
+    if (image == nullptr) {
+        return false;
+    }
+
+    float scale = (float)width / std::max(image->width, image->height);
+
+    int n_pixels = width * height;
+
+    if (n_pixels <= 0) {
+        nsvgDelete(image);
+        return false;
+    }
+
+    NSVGrasterizer* rast = nsvgCreateRasterizer();
+    if (rast == nullptr) {
+        nsvgDelete(image);
+        return false;
+    }
+    std::vector<unsigned char> data(n_pixels * 4, 0);
+    nsvgRasterize(rast, image, 0, 0, scale, data.data(), width, height, width * 4);
+
+    bool compress = false;
+    GLint last_texture;
+    unsigned m_image_texture{ 0 };
+    unsigned char* pixels = (unsigned char*)(&data[0]);
+
+    glsafe(::glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture));
+    glsafe(::glGenTextures(1, &m_image_texture));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, m_image_texture));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    glsafe(::glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
+    glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
+
+    // Store our identifier
+    texture_id = (ImTextureID)(intptr_t)m_image_texture;
+
+    // Restore state
+    glsafe(::glBindTexture(GL_TEXTURE_2D, last_texture));
+
+    nsvgDeleteRasterizer(rast);
+    nsvgDelete(image);
+
+    return true;
 }
 
 } // namespace GUI

@@ -8039,6 +8039,11 @@ void ImGui::BeginTooltip()
     BeginTooltipEx(ImGuiWindowFlags_None, ImGuiTooltipFlags_None);
 }
 
+void ImGui::BeginTooltip2(ImVec2 pos)
+{
+    BeginTooltipEx2(ImGuiWindowFlags_None, ImGuiTooltipFlags_None,pos);
+}
+
 void ImGui::BeginTooltipEx(ImGuiWindowFlags extra_flags, ImGuiTooltipFlags tooltip_flags)
 {
     ImGuiContext& g = *GImGui;
@@ -8071,6 +8076,14 @@ void ImGui::BeginTooltipEx(ImGuiWindowFlags extra_flags, ImGuiTooltipFlags toolt
     Begin(window_name, NULL, flags | extra_flags);
 }
 
+void  ImGui::BeginTooltipEx2(ImGuiWindowFlags extra_flags, ImGuiTooltipFlags tooltip_flags,ImVec2 pos)
+{
+     SetNextWindowPos(pos);
+     SetNextWindowSize(ImVec2(0.0,0.0));
+
+   ImGuiWindowFlags flags = ImGuiWindowFlags_Tooltip | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize;
+    Begin(" ", NULL, flags | extra_flags);
+}
 void ImGui::EndTooltip()
 {
     IM_ASSERT(GetCurrentWindowRead()->Flags & ImGuiWindowFlags_Tooltip);   // Mismatched BeginTooltip()/EndTooltip() calls

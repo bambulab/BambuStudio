@@ -121,6 +121,9 @@ size_t GLGizmosManager::get_gizmo_idx_from_mouse(const Vec2d& mouse_pos) const
 
 bool GLGizmosManager::init()
 {
+    bool result = init_icon_textures();
+    if (!result) return result;
+
     m_background_texture.metadata.filename = "toolbar_background.png";
     m_background_texture.metadata.left = 16;
     m_background_texture.metadata.top = 16;
@@ -161,6 +164,34 @@ bool GLGizmosManager::init()
     m_current = Undefined;
     m_hover = Undefined;
     m_highlight = std::pair<EType, bool>(Undefined, false);
+
+    return true;
+}
+
+bool GLGizmosManager::init_icon_textures()
+{
+    ImTextureID texture_id;
+
+    icon_list.clear();
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/toolbar_reset.svg", 14, 14, texture_id))
+        icon_list.insert(std::make_pair((int)IC_TOOLBAR_RESET, texture_id));
+    else
+        return false;
+
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/toolbar_reset_hover.svg", 14, 14, texture_id))
+        icon_list.insert(std::make_pair((int)IC_TOOLBAR_RESET_HOVER, texture_id));
+    else
+        return false;
+
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/toolbar_tooltip.svg", 30, 22, texture_id))
+        icon_list.insert(std::make_pair((int)IC_TOOLBAR_TOOLTIP, texture_id));
+    else
+        return false;
+
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/icons/toolbar_tooltip_hover.svg", 30, 22, texture_id))
+        icon_list.insert(std::make_pair((int)IC_TOOLBAR_TOOLTIP_HOVER, texture_id));
+    else
+        return false;
 
     return true;
 }

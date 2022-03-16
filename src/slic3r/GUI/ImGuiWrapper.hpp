@@ -94,6 +94,7 @@ public:
     bool input_double(const wxString &label, const double &value, const std::string &format = "%.3f");
     bool input_vec3(const std::string &label, const Vec3d &value, float width, const std::string &format = "%.3f");
     bool checkbox(const wxString &label, bool &value);
+    bool bbl_checkbox(const wxString &label, bool &value);
     void text(const char *label);
     void text(const std::string &label);
     void text(const wxString &label);
@@ -149,12 +150,13 @@ public:
 
     //BBS add more colors
     static const ImVec4 COL_BLUE_LIGHT;
+    static const ImVec4 COL_GREEN_LIGHT;
     static const ImVec4 COL_HOVER;
     static const ImVec4 COL_ACTIVE;
     static const ImVec4 COL_TITLE_BG;
     static const ImVec4 COL_WINDOW_BG;
     static const ImVec4 COL_SEPARATOR;
-    
+
     //BBS
     static void push_toolbar_style();
     static void pop_toolbar_style();
@@ -172,6 +174,14 @@ private:
     static void clipboard_set(void* user_data, const char* text);
 
     LastSliderStatus m_last_slider_status;
+};
+
+class IMTexture
+{
+public:
+    // load svg file to thumbnail data, specific width, height is thumbnailData width, height
+    static bool load_from_svg_file(const std::string& filename, unsigned width, unsigned height, ImTextureID &texture_id);
+
 };
 
 
