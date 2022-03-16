@@ -41,7 +41,7 @@ public:
 
     // BBS Load user presets
     PresetsConfigSubstitutions load_user_presets(AppConfig &config, std::map<std::string, Preset*> my_presets, ForwardCompatibilitySubstitutionRule rule);
-    void save_user_presets(AppConfig& config);
+    void save_user_presets(AppConfig& config, std::vector<std::string>& need_to_delete_list);
     void remove_users_preset(AppConfig &config);
 
     //BBS: add API to get previous machine
@@ -50,6 +50,9 @@ public:
     //BBS: add function to generate differed preset for save
     //the pointer should be freed by the caller
     Preset* get_preset_differed_for_save(Preset& preset);
+
+    //BBS: get vendor's current version
+    Semver get_vendor_profile_version(std::string vendor_name);
 
     //BBS: project embedded preset logic
     PresetsConfigSubstitutions load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule);

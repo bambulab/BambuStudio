@@ -11,6 +11,7 @@
 #include "mqtt/async_client.h"
 #include "libslic3r/ProjectTask.hpp"
 #include "libslic3r/Preset.hpp"
+#include "libslic3r/PresetBundle.hpp"
 #include "slic3r/Utils/Http.hpp"
 
 #define BBL_INTERNAL_TEST
@@ -398,8 +399,8 @@ public:
     int put_setting(Preset* preset);
     int del_setting(std::string setting_id);
 
-    void parse_setting(pt::ptree node, std::string type, std::string attr);
-    void _parse_preset_internal(std::map<std::string, Preset*>& presets, pt::ptree node, std::string type, std::string attr);
+    void parse_setting(PresetBundle* preset_bundle, pt::ptree node, std::string type, std::string attr);
+    void _parse_preset_internal(PresetBundle* preset_bundle, std::map<std::string, Preset*>& presets, pt::ptree node, std::string type, std::string attr);
 
     /* submit */
     int submit_print_result(std::string device_id, std::string json_str, ResultFn fn);

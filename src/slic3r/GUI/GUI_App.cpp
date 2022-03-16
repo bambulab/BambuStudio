@@ -2050,7 +2050,7 @@ void GUI_App::reload_settings()
 {
     if (preset_bundle && m_account_manager) {
         preset_bundle->load_user_presets(*app_config, m_account_manager->my_presets, ForwardCompatibilitySubstitutionRule::Enable);
-        preset_bundle->save_user_presets(*app_config);
+        preset_bundle->save_user_presets(*app_config, m_account_manager->need_delete_presets);
     }
 }
 
@@ -2069,12 +2069,13 @@ void GUI_App::sync_preset(Preset* preset)
     // only sync user's preset
     if (!preset->is_user()) return;
 
-    if (preset->setting_id.empty() && preset->sync_info.empty()) {
+    if (preset->setting_id.empty() && preset->sync_info.empty() && !preset->base_id.empty()) {
         m_account_manager->request_setting_id(preset);
         if (!preset->setting_id.empty()) {
             Preset* preset_to_upload = this->preset_bundle->get_preset_differed_for_save(*preset);
             if (preset_to_upload) {
-                result = m_account_manager->put_setting(preset_to_upload);
+                if (!preset_to_upload->base_id.empty())
+                    result = m_account_manager->put_setting(preset_to_upload);
                 delete preset_to_upload;
             }
             else {
@@ -2085,27 +2086,28 @@ void GUI_App::sync_preset(Preset* preset)
             BOOST_LOG_TRIVIAL(trace) << "sync_preset: request setting id failed";
         }
     }
-    else if (preset->sync_info.compare("create") == 0) {
-        m_account_manager->request_setting_id(preset);
-        if (!preset->setting_id.empty()) {
-            Preset* preset_to_upload = this->preset_bundle->get_preset_differed_for_save(*preset);
-            if (preset_to_upload) {
-                result = m_account_manager->put_setting(preset_to_upload);
-                delete preset_to_upload;
+    else if ((preset->sync_info.compare("create") == 0) && !preset->base_id.empty()) {
+        Preset* preset_to_upload = this->preset_bundle->get_preset_differed_for_save(*preset);
+        if (preset_to_upload) {
+            result = m_account_manager->request_setting_id(preset_to_upload);
+            if (!preset_to_upload->setting_id.empty()) {
+                preset->setting_id = preset_to_upload->setting_id;
             }
             else {
-                BOOST_LOG_TRIVIAL(trace) << "sync_preset: can not generate differed preset";
+                BOOST_LOG_TRIVIAL(trace) << "sync_preset: request_setting_id failed";
             }
+            delete preset_to_upload;
         }
         else {
-            BOOST_LOG_TRIVIAL(trace) << "sync_preset: request setting id failed";
+            BOOST_LOG_TRIVIAL(trace) << "sync_preset: can not generate differed preset";
         }
     }
-    else if (preset->sync_info.compare("update") == 0) {
+    else if ((preset->sync_info.compare("update") == 0) && !preset->base_id.empty()) {
         if (!preset->setting_id.empty()) {
             Preset* preset_to_upload = this->preset_bundle->get_preset_differed_for_save(*preset);
             if (preset_to_upload) {
-                result = m_account_manager->put_setting(preset_to_upload);
+                if (!preset_to_upload->base_id.empty())
+                    result = m_account_manager->put_setting(preset_to_upload);
                 delete preset_to_upload;
             }
             else {

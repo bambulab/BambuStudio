@@ -439,6 +439,8 @@ void Preset::load_info(const std::string& file)
                 this->user_id = v.second.get_value<std::string>();
             else if (v.first.compare("setting_id") == 0)
                 this->setting_id = v.second.get_value<std::string>();
+            else if (v.first.compare("base_id") == 0)
+                this->base_id = v.second.get_value<std::string>();
             else if (v.first.compare("updated_time") == 0) {
                 std::string time = v.second.get_value<std::string>();
                 this->updated_time = std::atoll(time.c_str());
@@ -474,6 +476,7 @@ void Preset::save_info(std::string file)
     c << "sync_info" << " = " << this->sync_info << std::endl;
     c << "user_id" << " = " << this->user_id << std::endl;
     c << "setting_id" << " = " << this->setting_id << std::endl;
+    c << "base_id" << " = " << this->base_id << std::endl;
     c << "updated_time" << " = " << std::to_string(this->updated_time) << std::endl;
     c.close();
 }
@@ -1174,7 +1177,7 @@ int PresetCollection::get_user_presets(std::vector<Preset>& result_presets)
 
 
 //BBS: save user presets to local
-void PresetCollection::save_user_presets(const std::string& dir_path, const std::string& type)
+void PresetCollection::save_user_presets(const std::string& dir_path, const std::string& type, std::vector<std::string>& need_to_delete_list)
 {
     boost::filesystem::path dir = boost::filesystem::absolute(boost::filesystem::path(dir_path) / type).make_preferred();
 
@@ -1182,6 +1185,8 @@ void PresetCollection::save_user_presets(const std::string& dir_path, const std:
         fs::create_directory(dir);
 
     m_dir_path = dir.string();
+
+    std::vector<std::string> delete_name_list;
     //std::map<std::string, Preset*>::iterator it;
     //for (it = my_presets.begin(); it != my_presets.end(); it++) {
     for (auto it = m_presets.begin(); it != m_presets.end(); it++) {
@@ -1193,15 +1198,30 @@ void PresetCollection::save_user_presets(const std::string& dir_path, const std:
         std::string inherits = Preset::inherits(preset->config);
         if (inherits.empty()) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" can not find inherits for %1% , should not happen")%preset->name;
-            return;
+            // BBS add sync info
+            preset->sync_info = "delete";
+            need_to_delete_list.push_back(preset->setting_id);
+            delete_name_list.push_back(preset->name);
+            continue;
         }
         Preset* parent_preset = this->find_preset(inherits, false, true);
         if (!parent_preset) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" can not find parent preset for %1% , inherits %2%")%preset->name %inherits;
-            return;
+            continue;
         }
+
+        if (preset->base_id.empty())
+            preset->base_id = parent_preset->setting_id;
         preset->save(&(parent_preset->config));
     }
+
+    for (auto delete_name: delete_name_list)
+    {
+        this->delete_preset(delete_name);
+    }
+    delete_name_list.clear();
+
+    return;
 }
 
 //BBS: load user presets from cloud side
@@ -1644,12 +1664,14 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
         preset.config = std::move(m_edited_preset.config);
         // The newly saved preset will be activated -> make it visible.
         preset.is_visible = true;
+        //TODO: remove the detach logic
         if (detach) {
             // Clear the link to the parent profile.
             preset.vendor = nullptr;
 			preset.inherits().clear();
 			preset.alias.clear();
 			preset.renamed_from.clear();
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": save preset %1% , with detach")%new_name;
         }
         //BBS: add lock logic for sync preset in background
         final_inherits = preset.inherits();
@@ -1667,6 +1689,7 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
         if (detach) {
         	// Clear the link to the parent profile.
         	inherits.clear();
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": save preset %1% , with detach")%new_name;
         } else if (preset.is_system) {
             // Inheriting from a system preset.
             inherits = /* preset.vendor->name + "/" + */ old_name;
@@ -1707,6 +1730,9 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
     Preset* parent_preset = nullptr;
     if (!final_inherits.empty()) {
         parent_preset = this->find_preset(final_inherits, false, true);
+        if (parent_preset && this->get_selected_preset().base_id.empty()) {
+            this->get_selected_preset().base_id = parent_preset->setting_id;
+        }
     }
     this->get_selected_preset().updated_time = (long long)Slic3r::Utils::get_current_time_utc();
     if (parent_preset)

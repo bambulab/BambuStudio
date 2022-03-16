@@ -1411,16 +1411,19 @@ namespace Slic3r {
         std::string result;
         if (!preset) return "";
 
-        json j;
+        json j, setting_node;
 
         j["public"] = preset->is_system ? true : false;
         j["version"] = preset->version.to_string();
         j["type"] = Preset::get_iot_type_string(preset->type);
         j["name"] = preset->name;
-        if (!preset->base_id.empty()) {
-            j["base_id"] = "";
-            j["setting"] = nullptr;
+        j["base_id"] = preset->base_id;
+        for (const std::string &opt_key : preset->config.keys()) {
+            setting_node[opt_key] = preset->config.opt_serialize(opt_key);
         }
+        setting_node["updated_time"] = std::to_string(preset->updated_time);
+        j["setting"] = setting_node;
+
         return j.dump();
     }
 
@@ -1431,6 +1434,7 @@ namespace Slic3r {
         pt::ptree root, setting_node;
         root.put("version", preset->version.to_string());
         root.put("name", preset->name);
+        root.put("base_id", preset->base_id);
         for (const std::string &opt_key : preset->config.keys()) {
             setting_node.put(opt_key, preset->config.opt_serialize(opt_key));
         }
@@ -2598,9 +2602,10 @@ namespace Slic3r {
     //BBS sync preset bundle when login
     int AccountManager::get_setting_list(Http::ErrorFn errFn)
     {
+        PresetBundle* preset_bundle = GUI::wxGetApp().preset_bundle;
         my_presets.clear();
 
-        std::string version = DEFAULT_BBL_SETTING_VERSION;
+        std::string version = preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE).to_string();
         std::string query_params = (boost::format("?version=%s") % version).str();
         std::string url = (boost::format("%1%/iot-service/api/slicer/setting%2%") % host % query_params).str();
         Http http = Http::get(url);
@@ -2608,7 +2613,7 @@ namespace Slic3r {
             .header("accept", "application/json")
             .header("Authorization", get_token_str())
             .on_complete(
-                [this](std::string body, unsigned) {
+                [this, preset_bundle](std::string body, unsigned) {
                     std::stringstream ss(body);
                     pt::ptree root;
                     pt::read_json(ss, root);
@@ -2620,13 +2625,13 @@ namespace Slic3r {
                             if (printer_node.get_child_optional("public") != boost::none) {
                                 pt::ptree public_node = printer_node.get_child("public");
                                 for (auto setting_item = public_node.begin(); setting_item != public_node.end(); ++setting_item) {
-                                    parse_setting(setting_item->second, PRESET_IOT_PRINTER_TYPE, "public");
+                                    parse_setting(preset_bundle, setting_item->second, PRESET_IOT_PRINTER_TYPE, "public");
                                 }
                             }
                             if (printer_node.get_child_optional("private") != boost::none) {
                                     pt::ptree private_node = printer_node.get_child("private");
                                     for (auto setting_item = private_node.begin(); setting_item != private_node.end(); ++setting_item) {
-                                        parse_setting(setting_item->second, PRESET_IOT_PRINTER_TYPE, "private");
+                                        parse_setting(preset_bundle, setting_item->second, PRESET_IOT_PRINTER_TYPE, "private");
                                     }
                                 }
                         }
@@ -2635,13 +2640,13 @@ namespace Slic3r {
                             if (filament_node.get_child_optional("public") != boost::none) {
                                 pt::ptree public_node = filament_node.get_child("public");
                                 for (auto setting_item = public_node.begin(); setting_item != public_node.end(); ++setting_item) {
-                                    parse_setting(setting_item->second, PRESET_IOT_FILAMENT_TYPE, "public");
+                                    parse_setting(preset_bundle, setting_item->second, PRESET_IOT_FILAMENT_TYPE, "public");
                                 }
                             }
                             if (filament_node.get_child_optional("private") != boost::none) {
                                 pt::ptree private_node = filament_node.get_child("private");
                                 for (auto setting_item = private_node.begin(); setting_item != private_node.end(); ++setting_item) {
-                                    parse_setting(setting_item->second, PRESET_IOT_FILAMENT_TYPE, "private");
+                                    parse_setting(preset_bundle, setting_item->second, PRESET_IOT_FILAMENT_TYPE, "private");
                                 }
                             }
                         }
@@ -2650,13 +2655,13 @@ namespace Slic3r {
                             if (print_node.get_child_optional("public") != boost::none) {
                                 pt::ptree public_node = print_node.get_child("public");
                                 for (auto setting_item = public_node.begin(); setting_item != public_node.end(); ++setting_item) {
-                                    parse_setting(setting_item->second, PRESET_IOT_PRINT_TYPE, "public");
+                                    parse_setting(preset_bundle, setting_item->second, PRESET_IOT_PRINT_TYPE, "public");
                                 }
                             }
                             if (print_node.get_child_optional("private") != boost::none) {
                                 pt::ptree private_node = print_node.get_child("private");
                                 for (auto setting_item = private_node.begin(); setting_item != private_node.end(); ++setting_item) {
-                                    parse_setting(setting_item->second, PRESET_IOT_PRINT_TYPE, "private");
+                                    parse_setting(preset_bundle, setting_item->second, PRESET_IOT_PRINT_TYPE, "private");
                                 }
                             }
                         }
@@ -2693,6 +2698,9 @@ namespace Slic3r {
                         boost::optional<std::string> version = root.get_optional<std::string>("version");
                         boost::optional<std::string> name = root.get_optional<std::string>("name");
                         boost::optional<std::string> type = root.get_optional<std::string>("type");
+                        boost::optional<std::string> base_id = root.get_optional<std::string>("base_id");
+
+                        if (base_id.has_value()) preset->base_id = base_id.value();
 
                         // check setting field and update setting field
                         if (root.get_child_optional("setting") != boost::none) {
@@ -2759,7 +2767,7 @@ namespace Slic3r {
         int* result_ptr = &result;
         std::string request_body = json_request_body_put_setting(preset);
         std::string url = (boost::format("%1%/iot-service/api/slicer/setting/%2%") % host % preset->setting_id).str();
-        Http http = Http::put2(url);
+        Http http = Http::patch(url);
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
             .header("Content-Type", "application/json")
@@ -2809,36 +2817,57 @@ namespace Slic3r {
         return result;
     }
 
-    void AccountManager::parse_setting(pt::ptree node, std::string type, std::string attr)
+    void AccountManager::parse_setting(PresetBundle* preset_bundle, pt::ptree node, std::string type, std::string attr)
     {
-        _parse_preset_internal(my_presets, node, type, attr);
+        _parse_preset_internal(preset_bundle, my_presets, node, type, attr);
     }
 
-    void AccountManager::_parse_preset_internal(std::map<std::string, Preset*>& presets, pt::ptree node, std::string type, std::string attr)
+    void AccountManager::_parse_preset_internal(PresetBundle* preset_bundle, std::map<std::string, Preset*>& presets, pt::ptree node, std::string type, std::string attr)
     {
         boost::optional<std::string> setting_id = node.get_optional<std::string>("setting_id");
         boost::optional<std::string> version = node.get_optional<std::string>("version");
         boost::optional<std::string> name = node.get_optional<std::string>("name");
 
         if (setting_id.has_value()) {
-            std::map<std::string, Preset*>::iterator it = presets.find(setting_id.value());
-            if (it == presets.end()) {
-                /* insert a new setting */
-                Preset::Type curr_type = Preset::get_type_from_string(type);
-                if (curr_type == Preset::Type::TYPE_INVALID) {
-                    BOOST_LOG_TRIVIAL(info) << "type is invalid";
-                    return;
+            bool is_system = attr.compare("public") == 0 ? true : false;
+            Preset::Type curr_type = Preset::get_type_from_string(type);
+            if (curr_type == Preset::Type::TYPE_INVALID) {
+                BOOST_LOG_TRIVIAL(info) << boost::format("type %1% is invalid")%type;
+                return;
+            }
+            if (is_system) {
+                PresetCollection* preset_collection = nullptr;
+                switch(curr_type) {
+                    case Preset::TYPE_FILAMENT:
+                        preset_collection = &(preset_bundle->filaments);
+                        break;
+                    case Preset::TYPE_PRINTER:
+                        preset_collection = &(preset_bundle->printers);
+                        break;
+                    case Preset::TYPE_PRINT:
+                    default:
+                        preset_collection = &(preset_bundle->prints);
+                        break;
                 }
-                Preset* preset = new Preset(curr_type, name.value(), false);
-                preset->setting_id = setting_id.value();
-                preset->is_system = attr.compare("public") == 0 ? true : false;
-                if (version.has_value()) {
-                    preset->version = version.value();
+                Preset* preset = preset_collection->find_preset(name.value(), false);
+                if (preset)
+                    preset->setting_id = setting_id.value();
+            }
+            else {
+                std::map<std::string, Preset*>::iterator it = presets.find(setting_id.value());
+                if (it == presets.end()) {
+                    /* insert a new setting */
+                    Preset* preset = new Preset(curr_type, name.value(), false);
+                    preset->setting_id = setting_id.value();
+                    preset->is_system = false;
+                    if (version.has_value()) {
+                        preset->version = version.value();
+                    }
+                    if (m_curr_user) {
+                        preset->user_id = m_curr_user->get_user_id();
+                    }
+                    presets.insert(std::make_pair(setting_id.value(), preset));
                 }
-                if (m_curr_user) {
-                    preset->user_id = m_curr_user->get_user_id();
-                }
-                presets.insert(std::make_pair(setting_id.value(), preset));
             }
         }
     }

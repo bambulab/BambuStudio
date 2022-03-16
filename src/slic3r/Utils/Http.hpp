@@ -57,6 +57,7 @@ public:
 
 	//BBS
 	static Http put2(std::string url);
+	static Http patch(std::string url);
 	//BBS save log to a file
 	static bool enable_log(std::string filename);
 	static bool disable_log();

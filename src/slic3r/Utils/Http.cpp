@@ -791,6 +791,13 @@ Http Http::put2(std::string url)
 	return http;
 }
 
+Http Http::patch(std::string url)
+{
+	Http http{ std::move(url) };
+	curl_easy_setopt(http.p->curl, CURLOPT_CUSTOMREQUEST, "PATCH");
+	return http;
+}
+
 Http Http::del(std::string url)
 {
 	Http http{ std::move(url) };

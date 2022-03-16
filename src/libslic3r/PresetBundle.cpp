@@ -297,6 +297,19 @@ Preset* PresetBundle::get_preset_differed_for_save(Preset& preset)
     return preset_collection->get_preset_differed_for_save(preset);
 }
 
+//BBS: get vendor's current version
+Semver PresetBundle::get_vendor_profile_version(std::string vendor_name)
+{
+    Semver result_ver;
+
+    auto vendor_profile = vendors.find(vendor_name);
+    if (vendor_profile != vendors.end()) {
+        result_ver = vendor_profile->second.config_version;
+    }
+
+    return result_ver;
+}
+
 //BBS: load project embedded presets
 PresetsConfigSubstitutions PresetBundle::load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule)
 {
@@ -406,7 +419,7 @@ PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &config, st
 }
 
 //BBS save user preset to user_id preset folder
-void PresetBundle::save_user_presets(AppConfig& config)
+void PresetBundle::save_user_presets(AppConfig& config, std::vector<std::string>& need_to_delete_list)
 {
     //BBS: change directory by design
     const std::string dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/"+ config.get("preset_folder");
@@ -416,9 +429,9 @@ void PresetBundle::save_user_presets(AppConfig& config)
     if (!fs::exists(folder))
         fs::create_directory(folder);
 
-    this->prints.save_user_presets(dir_user_presets, PRESET_PRINT_NAME);
-    this->filaments.save_user_presets(dir_user_presets, PRESET_FILAMENT_NAME);
-    this->printers.save_user_presets(dir_user_presets, PRESET_PRINTER_NAME);
+    this->prints.save_user_presets(dir_user_presets, PRESET_PRINT_NAME, need_to_delete_list);
+    this->filaments.save_user_presets(dir_user_presets, PRESET_FILAMENT_NAME, need_to_delete_list);
+    this->printers.save_user_presets(dir_user_presets, PRESET_PRINTER_NAME, need_to_delete_list);
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished");
 }
 
