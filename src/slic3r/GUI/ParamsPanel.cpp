@@ -427,6 +427,12 @@ void ParamsPanel::switch_to_global()
     set_active_tab(nullptr);
 }
 
+void ParamsPanel::switch_to_object()
+{
+    m_mode_region->SetValue(true);
+    set_active_tab(nullptr);
+}
+
 void ParamsPanel::free_sizers()
 {
     if (m_top_sizer)

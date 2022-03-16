@@ -16,7 +16,16 @@
 
 namespace Slic3r {
 
-class CanceledException : public std::exception {
+// BBS: error with object
+struct StringObjectException
+{
+    std::string string;
+    ObjectBase const *object = nullptr;
+    std::string opt_key;
+};
+
+class CanceledException : public std::exception
+{
 public:
    const char* what() const throw() { return "Background processing has been canceled"; }
 };
@@ -362,7 +371,7 @@ public:
     virtual std::vector<ObjectID> print_object_ids() const = 0;
 
     // Validate the print, return empty string if valid, return error if process() cannot (or should not) be started.
-    virtual std::string     validate(std::string* warning = nullptr) const { return std::string(); }
+    virtual StringObjectException validate(StringObjectException *warning = nullptr) const { return {}; }
 
     enum ApplyStatus {
         // No change after the Print::apply() call.

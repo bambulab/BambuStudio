@@ -629,7 +629,7 @@ bool BackgroundSlicingProcess::empty() const
 	return m_print->empty();
 }
 
-std::string BackgroundSlicingProcess::validate(std::string* warning)
+StringObjectException BackgroundSlicingProcess::validate(StringObjectException *warning)
 {
 	assert(m_print != nullptr);
     return m_print->validate(warning);

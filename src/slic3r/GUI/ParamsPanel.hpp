@@ -110,6 +110,7 @@ class ParamsPanel : public wxPanel
         void update_mode();
         void msw_rescale();
         void switch_to_global();
+        void switch_to_object();
 
         StaticBox* get_top_panel() { return m_top_panel; }
 

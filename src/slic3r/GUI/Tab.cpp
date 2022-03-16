@@ -1399,10 +1399,25 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
     wxGetApp().mainframe->select_tab((wxPanel*)m_parent);
 
     while (cur_item >= 0) {
-        auto title = m_tabctrl->GetItemText(cur_item);
-        if (page_title != title) {
-            cur_item = m_tabctrl->GetNextVisible(cur_item);
-            continue;
+        if (page_title.empty()) {
+            bool has = false;
+            for (auto &g : m_pages[cur_item]->m_optgroups) {
+                for (auto &l : g->get_lines()) {
+                    for (auto &o : l.get_options()) { if (o.opt.opt_key == opt_key) { has = true; break; } }
+                    if (has) break;
+                }
+                if (has) break;
+            }
+            if (!has) {
+                cur_item = m_tabctrl->GetNextVisible(cur_item);
+                continue;
+            }
+        } else {
+            auto title = m_tabctrl->GetItemText(cur_item);
+            if (page_title != title) {
+                cur_item = m_tabctrl->GetNextVisible(cur_item);
+                continue;
+            }
         }
 
         m_tabctrl->SelectItem(cur_item);

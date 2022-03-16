@@ -603,7 +603,7 @@ public:
     }
 
     // Returns an empty string if valid, otherwise returns an error message.
-    std::string         validate(std::string* warning = nullptr) const override;
+    StringObjectException validate(StringObjectException *warning = nullptr) const override;
     double              skirt_first_layer_height() const;
     Flow                brim_flow() const;
     Flow                skirt_flow() const;
@@ -673,7 +673,7 @@ public:
     int get_modified_count() const {return m_modified_count;}
 
     //BBS
-    static std::string sequential_print_clearance_valid(const Print& print, Polygons* polygons = nullptr);
+    static StringObjectException sequential_print_clearance_valid(const Print &print, Polygons *polygons = nullptr);
 
 protected:
     // Invalidates the step, and its depending steps in Print.

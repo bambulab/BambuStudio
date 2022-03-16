@@ -1759,7 +1759,7 @@ struct Plater::priv
         if (m_single == single) m_single = nullptr;
     }
 
-    void process_validation_warning(const std::string& warning) const;
+    void process_validation_warning(const std::string &warning, ObjectBase const *object = nullptr) const;
 
     bool background_processing_enabled() const {
 #ifdef SUPPORT_BACKGROUND_PROCESSING
@@ -3560,7 +3560,7 @@ void Plater::priv::update_print_volume_state()
     this->q->model().update_print_volume_state(build_volume);
 }
 
-void Plater::priv::process_validation_warning(const std::string& warning) const
+void Plater::priv::process_validation_warning(const std::string &warning, ObjectBase const *object) const
 {
     if (warning.empty())
         notification_manager->close_notification_of_type(NotificationType::ValidateWarning);
@@ -3654,11 +3654,11 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         // The state of the Print changed, and it is non-zero. Let's validate it and give the user feedback on errors.
 
         //BBS: add is_warning logic
-        std::string warning;
-        std::string err = background_process.validate(&warning);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": validate err=%1%, warning=%2%")%err%warning;
+        StringObjectException warning;
+        StringObjectException err = background_process.validate(&warning);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": validate err=%1%, warning=%2%")%err.string%warning.string;
 
-        if (err.empty()) {
+        if (err.string.empty()) {
             notification_manager->set_all_slicing_errors_gray(true);
             notification_manager->close_notification_of_type(NotificationType::ValidateError);
             if (invalidated != Print::APPLY_STATUS_UNCHANGED && background_processing_enabled())
@@ -3666,7 +3666,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
 
             // Pass a warning from validation and either show a notification,
             // or hide the old one.
-            process_validation_warning(warning);
+            process_validation_warning(warning.string, warning.object);
             if (printer_technology == ptFFF) {
                 view3D->get_canvas3d()->reset_sequential_print_clearance();
                 view3D->get_canvas3d()->set_as_dirty();

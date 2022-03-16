@@ -4,6 +4,8 @@
 #include "ImGuiWrapper.hpp"
 #include "wxExtensions.hpp"
 #include "ObjectDataViewModel.hpp"
+#include "GUI_ObjectList.hpp"
+#include "ParamsPanel.hpp"
 #include "libslic3r/Config.hpp"
 #include "format.hpp"
 
@@ -1370,9 +1372,26 @@ void NotificationManager::push_delayed_notification(const NotificationType type,
 		push_delayed_notification_data(std::make_unique<PopNotification>(*it, m_id_provider, m_evt_handler), condition_callback, initial_delay, delay_interval);
 }
 
-void NotificationManager::push_validate_error_notification(const std::string& text)
+void NotificationManager::push_validate_error_notification(StringObjectException const &error)
 {
-	push_notification_data({ NotificationType::ValidateError, NotificationLevel::ErrorNotificationLevel, 0,  _u8L("ERROR:") + "\n" + text }, 0);
+    auto po = dynamic_cast<PrintObjectBase const *>(error.object);
+    auto mo = po ? po->model_object() : dynamic_cast<ModelObject const *>(error.object);
+    auto callback = (mo || !error.opt_key.empty()) ? [id = mo ? mo->id() : 0, opt = error.opt_key](wxEvtHandler *) {
+		auto & objects = wxGetApp().model().objects;
+		auto iter = id.id ? std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; }) : objects.end();
+        if (iter != objects.end())
+			wxGetApp().obj_list()->select_items({{*iter, nullptr}});
+        if (!opt.empty()) {
+            if (iter != objects.end())
+				wxGetApp().params_panel()->switch_to_object();
+            wxGetApp().sidebar().jump_to_option(opt, Preset::TYPE_PRINT, L"");
+		}
+		return false;
+	} : std::function<bool(wxEvtHandler *)>();
+    auto link = (mo || !error.opt_key.empty()) ? _u8L("Jump to") : "";
+    if (mo) link += std::string(" [") + mo->name + "]";
+    if (!error.opt_key.empty()) link += std::string(" (") + error.opt_key + ")";
+    push_notification_data({NotificationType::ValidateError, NotificationLevel::ErrorNotificationLevel, 0, _u8L("ERROR:") + "\n" + error.string, link, callback}, 0);
 	set_slicing_progress_hidden();
 }
 

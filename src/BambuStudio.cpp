@@ -983,16 +983,16 @@ int CLI::run(int argc, char **argv)
                             format = "[input_filename_base].SL1";
                     }*/
                     print->apply(model, m_print_config);
-                    std::string warning;
-                    std::string err = print->validate(&warning);
-                    if (!err.empty()) {
-                        boost::nowide::cerr << err << std::endl;
+                    StringObjectException warning;
+                    auto err = print->validate(&warning);
+                    if (!err.string.empty()) {
+                        boost::nowide::cerr << err.string << std::endl;
                         //BBS: continue for other plates
                         continue;
                         //return 1;
                     }
-                    else if (!warning.empty())
-                        BOOST_LOG_TRIVIAL(info) << "got warnings: "<< warning << std::endl;
+                    else if (!warning.string.empty())
+                        BOOST_LOG_TRIVIAL(info) << "got warnings: "<< warning.string << std::endl;
 
                     if (print->empty())
                         BOOST_LOG_TRIVIAL(info) << "Nothing to print for " << outfile << " . Either the print is empty or no object is fully inside the print volume." << std::endl;
