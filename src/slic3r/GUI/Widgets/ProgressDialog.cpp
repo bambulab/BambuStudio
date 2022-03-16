@@ -488,7 +488,7 @@ bool ProgressDialog::Update(int value, const wxString &newmsg, bool *skip)
             // allow the window to repaint:
             // NOTE: since we yield only for UI events with this call, there
             //       should be no side-effects
-            wxEventLoopBase::GetActive()->YieldFor(wxEVT_CATEGORY_UI);
+            wxEventLoopBase::GetActive()->YieldFor(wxEVT_CATEGORY_UI | wxEVT_CATEGORY_USER_INPUT);
 
             // NOTE: this call results in a new event loop being created
             //       and to a call to ProcessPendingEvents() (which may generate
@@ -562,7 +562,7 @@ void ProgressDialog::DoAfterUpdate()
     // allow the window to repaint:
     // NOTE: since we yield only for UI events with this call, there
     //       should be no side-effects
-    wxEventLoopBase::GetActive()->YieldFor(wxEVT_CATEGORY_UI);
+    wxEventLoopBase::GetActive()->YieldFor(wxEVT_CATEGORY_UI | wxEVT_CATEGORY_USER_INPUT);
 }
 
 void ProgressDialog::Resume()
@@ -781,7 +781,7 @@ void ProgressDialog::UpdateMessage(const wxString &newmsg)
         // allow the window to repaint:
         // NOTE: since we yield only for UI events with this call, there
         //       should be no side-effects
-        wxEventLoopBase::GetActive()->YieldFor(wxEVT_CATEGORY_UI);
+        wxEventLoopBase::GetActive()->YieldFor(wxEVT_CATEGORY_UI | wxEVT_CATEGORY_USER_INPUT);
     }
 }
 }} // namespace Slic3r::GUI
