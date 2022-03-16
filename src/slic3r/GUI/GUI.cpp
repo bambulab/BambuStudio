@@ -248,7 +248,6 @@ void show_info(wxWindow* parent, const char* message, const char* title)
 
 void warning_catcher(wxWindow* parent, const wxString& message)
 {
-	//wxMessageDialog msg(parent, message, _L("Warning"), wxOK | wxICON_WARNING);
 	MessageDialog msg(parent, message, _L("Warning"), wxOK | wxICON_WARNING);
 	msg.ShowModal();
 }

@@ -109,9 +109,8 @@ class MainFrame : public DPIFrame
     bool can_export_toolpaths() const;
     bool can_export_supports() const;
     bool can_export_gcode() const;
-    bool can_send_gcode() const;
-	bool can_export_gcode_sd() const;
-	bool can_eject() const;
+    bool can_export_gcode_sd() const;
+    bool can_eject() const;
     bool can_slice() const;
     bool can_change_view() const;
     bool can_select() const;
@@ -237,9 +236,7 @@ public:
     //BBS GUI refactor: remove unused layout new/dlg
     //bool        is_dlg_layout() const { return m_layout == ESettingsLayout::Dlg; }
 
-//    void        quick_slice(const int qs = qsUndef);
     void        reslice_now();
-    void        repair_stl();
     void        export_config();
     // Query user for the config file and open it.
     void        load_config_file();
@@ -291,16 +288,13 @@ public:
     Notebook*             m_tabpanel{ nullptr };
     wxBoxSizer*           m_side_tools{ nullptr };
     ParamsPanel*          m_param_panel{ nullptr };
-    ParamsDialog*          m_param_dialog{ nullptr };
+    ParamsDialog*         m_param_dialog{ nullptr };
     //BBS
-    
     SettingsDialog        m_settings_dialog;
     DiffPresetDialog      diff_dialog;
     wxWindow*             m_plater_page{ nullptr };
-//    wxProgressDialog*     m_progress_dialog { nullptr };
 
     // BBS
-    //std::shared_ptr<ProgressStatusBar>  m_statusbar;
     mutable int m_print_select{ ePrintAll };
     mutable int m_slice_select{ eSliceAll };
     SideButton* m_slice_btn{ nullptr };
@@ -315,7 +309,6 @@ public:
     //BBS
     void update_side_button_style();
     void update_slice_print_status(SlicePrintEventType event, bool can_slice = true, bool can_print = true);
-    
 
 #ifdef __APPLE__
     std::unique_ptr<wxTaskBarIcon> m_taskbar_icon;

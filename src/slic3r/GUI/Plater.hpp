@@ -98,8 +98,7 @@ public:
     //BBS
     void update_presets_from_to(Slic3r::Preset::Type preset_type, std::string from, std::string to);
 
-    void change_top_border_for_mode_sizer(bool increase_border);    
-    void update_reslice_btn_tooltip() const;
+    void change_top_border_for_mode_sizer(bool increase_border);
     void msw_rescale();
     void sys_color_changed();
     void search();
