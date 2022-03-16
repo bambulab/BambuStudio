@@ -123,7 +123,8 @@ void Field::PostInitialize()
 
 	// For the mode, when settings are in non-modal dialog, neither dialog nor tabpanel doesn't receive wxEVT_KEY_UP event, when some field is selected.
 	// So, like a workaround check wxEVT_KEY_UP event for the Filed and switch between tabs if Ctrl+(1-4) was pressed
-	if (getWindow())
+    if (getWindow()) {
+        if (m_opt.readonly) getWindow()->Disable();
 		getWindow()->Bind(wxEVT_KEY_UP, [](wxKeyEvent& evt) {
 		    if ((evt.GetModifiers() & wxMOD_CONTROL) != 0) {
 			    int tab_id = -1;
@@ -149,6 +150,7 @@ void Field::PostInitialize()
 
 		    evt.Skip();
 	    });
+    }
 }
 
 // Values of width to alignments of fields
@@ -712,7 +714,6 @@ void CheckBox::BUILD() {
 	if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
 	temp->SetBackgroundColour(*wxWHITE);
 	temp->SetValue(check_value);
-	if (m_opt.readonly) temp->Disable();
 
 	temp->Bind(wxEVT_TOGGLEBUTTON, ([this](wxCommandEvent & e) {
         m_is_na_val = false;
