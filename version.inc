@@ -3,5 +3,4 @@
 
 set(SLIC3R_APP_NAME "BambuStudio")
 set(SLIC3R_APP_KEY "BambuStudio")
-set(SLIC3R_VERSION "01.00.00.00")
-set(SLIC3R_BUILD_ID "BambuStudio-${SLIC3R_VERSION}+RC")
+set(SLIC3R_VERSION "01.00.00.01")
