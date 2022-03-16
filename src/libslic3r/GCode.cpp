@@ -2332,8 +2332,7 @@ GCode::LayerResult GCode::process_layer(
         //BBS: scan bed before print first layer
         if (print.config().scan_first_layer.value) {
             gcode += ";scan bed before print first layer\n";
-            gcode += "M973 S3 P0\nM400 S5\nM973 S2 P5000\nM400 S3\n";
-            gcode += "M960 S0 P0\nM400 S3\nM960 S1 P1\nM400 S3\nM976 S2 P1\nM400 S10\n";
+            gcode += "M976 S2 P1\nM400 S5\n";
         }
         //BBS: set first layer global acceleration
         if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
@@ -2794,8 +2793,7 @@ GCode::LayerResult GCode::process_layer(
             //BBS: retract first to avoid droping when scan bed
             gcode += this->retract();
             gcode += ";scan bed after print first layer\n";
-            gcode += "M973 S3 P0\nM400 S5\nM973 S2 P5000\nM400 S5\n";
-            gcode += "M976 S1 P1\nM400 S5\nM960 S0 P0\nM400 S5\nM973 S4 P0\nM400 S5\n";
+            gcode += "M976 S1 P1\nM400 S5\n";
             gcode += this->unretract();
         }
     }
