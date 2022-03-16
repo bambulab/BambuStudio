@@ -13,8 +13,7 @@ namespace Slic3r::GUI {
 class GLGizmoFdmSupports : public GLGizmoPainterBase
 {
 public:
-    GLGizmoFdmSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
-        : GLGizmoPainterBase(parent, icon_filename, sprite_id) {}
+    GLGizmoFdmSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
 
     void render_painter_gizmo() const override;
 
@@ -28,6 +27,8 @@ public:
 protected:
     void on_render_input_window(float x, float y, float bottom_limit) override;
     std::string on_get_name() const override;
+    // BBS
+    void on_set_state() override;
 
     wxString handle_snapshot_action_name(bool shift_down, Button button_down) const override;
 
@@ -48,10 +49,11 @@ private:
     void on_shutdown() override;
     PainterGizmoType get_painter_type() const override;
 
-    //BBS: remove the select facets by angle
-    //void select_facets_by_angle(float threshold, bool block);
-    float m_angle_threshold_deg = 40.f;
-    bool m_volume_valid = false;
+    void select_facets_by_angle(float threshold, bool block);
+    // BBS
+    int get_selection_support_threshold_angle();
+
+    int m_support_threshold_angle = -1;
 
     //BBS: add support preview logic
     void init_print_instance();
@@ -60,6 +62,9 @@ private:
     bool need_regenerate_support_volumes();
     void generate_support_volume();
     void run_thread();
+    float m_angle_threshold_deg = 40.f;
+    bool m_volume_valid = false;
+
 
     GLVolume *m_support_volume = NULL;
     mutable bool m_volume_ready = false;

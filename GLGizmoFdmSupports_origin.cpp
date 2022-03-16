@@ -20,12 +20,7 @@
 
 namespace Slic3r::GUI {
 
-GLGizmoFdmSupports::GLGizmoFdmSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
-    : GLGizmoPainterBase(parent, icon_filename, sprite_id)
-{
-    m_tool_type = ToolType::BRUSH;
-    m_cursor_type = TriangleSelector::CursorType::CIRCLE;
-}
+
 
 void GLGizmoFdmSupports::on_shutdown()
 {
@@ -68,29 +63,51 @@ void GLGizmoFdmSupports::on_opening()
     m_volume_valid = false;
 }
 
+
 std::string GLGizmoFdmSupports::on_get_name() const
 {
     return _u8L("Paint-on supports");
 }
+
+
 
 bool GLGizmoFdmSupports::on_init()
 {
     m_shortcut_key = WXK_CONTROL_L;
 
     m_desc["clipping_of_view"] = _L("Clipping of view") + ": ";
-    m_desc["cursor_size"]      = _L("Pen size") + ": ";
+    m_desc["cursor_size"]      = _L("Brush size") + ": ";
+    m_desc["cursor_type"]      = _L("Brush shape") + ": ";
     m_desc["enforce_caption"]  = _L("Left mouse button") + ": ";
     m_desc["enforce"]          = _L("Enforce supports");
     m_desc["block_caption"]    = _L("Right mouse button") + ": ";
     m_desc["block"]            = _L("Block supports");
     m_desc["remove_caption"]   = _L("Shift + Left mouse button") + ": ";
-    m_desc["remove"]           = _L("Erase painting");
-    m_desc["remove_all"]       = _L("Erase all painting");
-    m_desc["highlight_by_angle"] = _L("Highlight overhang areas");
+    m_desc["remove"]           = _L("Remove selection");
+    m_desc["remove_all"]       = _L("Remove all selection");
+    m_desc["circle"]           = _L("Circle");
+    m_desc["sphere"]           = _L("Sphere");
+    m_desc["pointer"]          = _L("Triangles");
+    m_desc["highlight_by_angle"] = _L("Highlight overhang by angle");
+    m_desc["enforce_button"]   = _L("Enforce");
+    m_desc["cancel"]           = _L("Cancel");
 
+    m_desc["tool_type"]        = _L("Tool type") + ": ";
+    m_desc["tool_brush"]       = _L("Brush");
+    m_desc["tool_smart_fill"]  = _L("Smart fill");
+
+    m_desc["smart_fill_angle"] = _L("Smart fill angle");
+
+    m_desc["split_triangles"]   = _L("Split triangles");
+    m_desc["on_overhangs_only"] = _L("On overhangs only");
+    //BBS: use overhang_threashold in the same view
+    m_desc["overhang_threshold"] = _L("Overhang Threshold Angle") + ": ";
     memset(&m_print_instance, sizeof(m_print_instance), 0);
+
     return true;
 }
+
+
 
 void GLGizmoFdmSupports::render_painter_gizmo() const
 {
@@ -115,15 +132,7 @@ void GLGizmoFdmSupports::render_painter_gizmo() const
     glsafe(::glDisable(GL_BLEND));
 }
 
-// BBS
-void GLGizmoFdmSupports::on_set_state()
-{
-    GLGizmoPainterBase::on_set_state();
 
-    if (get_state() == On) {
-        m_support_threshold_angle = -1;
-    }
-}
 
 void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_limit)
 {
@@ -131,18 +140,14 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     if (! m_c->selection_info()->model_object())
         return;
 
-    // BBS
-    int support_threshold_angle = get_selection_support_threshold_angle();
-    // when support painting tool is on, reset highlight threshold angle
-    if (m_support_threshold_angle == -1) {
-        m_highlight_by_angle_threshold_deg = support_threshold_angle;
-        m_parent.set_slope_normal_angle(90.f - m_highlight_by_angle_threshold_deg);
-    }
-    m_support_threshold_angle = support_threshold_angle;
-
     const float approx_height = m_imgui->scaled(23.f);
     y = std::min(y, bottom_limit - approx_height);
+    //BBS: GUI refactor: move gizmo to the right
+#if BBS_TOOLBAR_ON_TOP
     m_imgui->set_next_window_pos(x, y, ImGuiCond_Always, 0.0f, 0.0f);
+#else
+    m_imgui->set_next_window_pos(x, y, ImGuiCond_Always, 1.0f, 0.0f);
+#endif
 
     //BBS
     ImGuiWrapper::push_toolbar_style();
@@ -150,13 +155,30 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     m_imgui->begin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
+    //BBS: add overhang slider
+    //const float overhang_slider_left = m_imgui->calc_text_size(m_desc.at("overhang_threshold")).x + m_imgui->scaled(1.5f);
     const float clipping_slider_left           = m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x + m_imgui->scaled(1.5f);
     const float cursor_slider_left             = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.f);
+    const float smart_fill_slider_left         = m_imgui->calc_text_size(m_desc.at("smart_fill_angle")).x + m_imgui->scaled(1.f);
     const float autoset_slider_label_max_width = m_imgui->scaled(7.5f);
-    const float autoset_slider_left = m_imgui->calc_text_size(m_desc.at("highlight_by_angle"), autoset_slider_label_max_width).x + m_imgui->scaled(1.f);
+    const float autoset_slider_left            = m_imgui->calc_text_size(m_desc.at("highlight_by_angle"), autoset_slider_label_max_width).x + m_imgui->scaled(1.f);
+
+    const float cursor_type_radio_circle  = m_imgui->calc_text_size(m_desc["circle"]).x + m_imgui->scaled(2.5f);
+    const float cursor_type_radio_sphere  = m_imgui->calc_text_size(m_desc["sphere"]).x + m_imgui->scaled(2.5f);
+    const float cursor_type_radio_pointer = m_imgui->calc_text_size(m_desc["pointer"]).x + m_imgui->scaled(2.5f);
+
     const float button_width = m_imgui->calc_text_size(m_desc.at("remove_all")).x + m_imgui->scaled(1.f);
-    const float tips_width = m_imgui->calc_text_size(_L("Auto support threshold angle: ") + " 90 ").x + m_imgui->scaled(1.f);
+    const float button_enforce_width = m_imgui->calc_text_size(m_desc.at("enforce_button")).x;
+    const float button_cancel_width = m_imgui->calc_text_size(m_desc.at("cancel")).x;
+    const float buttons_width = std::max(button_enforce_width, button_cancel_width) + m_imgui->scaled(0.5f);
     const float minimal_slider_width = m_imgui->scaled(4.f);
+
+    const float tool_type_radio_left       = m_imgui->calc_text_size(m_desc["tool_type"]).x + m_imgui->scaled(1.f);
+    const float tool_type_radio_brush      = m_imgui->calc_text_size(m_desc["tool_brush"]).x + m_imgui->scaled(2.5f);
+    const float tool_type_radio_smart_fill = m_imgui->calc_text_size(m_desc["tool_smart_fill"]).x + m_imgui->scaled(2.5f);
+
+    const float split_triangles_checkbox_width   = m_imgui->calc_text_size(m_desc["split_triangles"]).x + m_imgui->scaled(2.5f);
+    const float on_overhangs_only_checkbox_width = m_imgui->calc_text_size(m_desc["on_overhangs_only"]).x + m_imgui->scaled(2.5f);
 
     float caption_max    = 0.f;
     float total_text_max = 0.f;
@@ -167,13 +189,22 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     total_text_max += caption_max + m_imgui->scaled(1.f);
     caption_max    += m_imgui->scaled(1.f);
 
-    const float sliders_left_width = std::max(std::max(cursor_slider_left, clipping_slider_left), autoset_slider_left);
+    //BBS: consider overhang 
+    //const float sliders_left_width = std::max(std::max(autoset_slider_left, smart_fill_slider_left), std::max(std::max(cursor_slider_left, clipping_slider_left), overhang_slider_left));
+    const float sliders_left_width = std::max(std::max(autoset_slider_left, smart_fill_slider_left), std::max(cursor_slider_left, clipping_slider_left));
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     const float slider_icon_width  = m_imgui->get_slider_icon_size().x;
     float       window_width       = minimal_slider_width + sliders_left_width + slider_icon_width;
-
+#else
+    float       window_width       = minimal_slider_width + sliders_left_width;
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     window_width = std::max(window_width, total_text_max);
     window_width = std::max(window_width, button_width);
-    window_width = std::max(window_width, tips_width);
+    window_width = std::max(window_width, split_triangles_checkbox_width);
+    window_width = std::max(window_width, on_overhangs_only_checkbox_width);
+    window_width = std::max(window_width, cursor_type_radio_circle + cursor_type_radio_sphere + cursor_type_radio_pointer);
+    window_width = std::max(window_width, tool_type_radio_left + tool_type_radio_brush + tool_type_radio_smart_fill);
+    window_width = std::max(window_width, 2.f * buttons_width + m_imgui->scaled(1.f));
 
     auto draw_text_with_caption = [this, &caption_max](const wxString& caption, const wxString& text) {
         //BBS
@@ -187,17 +218,18 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     ImGui::Separator();
 
-    ImGui::AlignTextToFramePadding();
-    m_imgui->text(m_desc.at("cursor_size"));
-    ImGui::SameLine(sliders_left_width);
-    ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
-    m_imgui->slider_float("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true, _L("Alt + Mouse wheel"));
+    // BBS
+    const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
+    std::string format_str = std::string("%.f") + I18N::translate_utf8("°",
+        "Degree sign to use in the respective slider in FDM supports gizmo,"
+        "placed after the number with no whitespace in between.");
 
+#if 0
     float position_before_text_y = ImGui::GetCursorPos().y;
     ImGui::AlignTextToFramePadding();
     m_imgui->text_wrapped(m_desc["highlight_by_angle"] + ":", autoset_slider_label_max_width);
     ImGui::AlignTextToFramePadding();
-    float position_after_text_y = ImGui::GetCursorPos().y;
+    float position_after_text_y  = ImGui::GetCursorPos().y;
     ImGui::SameLine(sliders_left_width);
 
     float slider_height = m_imgui->get_slider_float_height();
@@ -205,21 +237,151 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     float slider_start_position_y = std::max(position_before_text_y, position_after_text_y - slider_height);
     ImGui::SetCursorPosY(slider_start_position_y);
 
-    std::string format_str = std::string("%.f");
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
-    wxString tooltip = _L("Highlight faces according to overhang angle.");
+    wxString tooltip = format_wxstr(_L("Preselects faces by overhang angle. It is possible to restrict paintable facets to only preselected faces when "
+            "the option \"%1%\" is enabled."), m_desc["on_overhangs_only"]);
     if (m_imgui->slider_float("##angle_threshold_deg", &m_highlight_by_angle_threshold_deg, 0.f, 90.f, format_str.data(), 1.0f, true, tooltip)) {
+#else
+    ImGui::PushItemWidth(window_width - sliders_left_width);
+    if (m_imgui->slider_float("##angle_threshold_deg", &m_highlight_by_angle_threshold_deg, 0.f, 90.f, format_str.data())) {
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
         m_parent.set_slope_normal_angle(90.f - m_highlight_by_angle_threshold_deg);
-        if (!m_parent.is_using_slope()) {
+        if (! m_parent.is_using_slope()) {
             m_parent.use_slope(true);
             m_parent.set_as_dirty();
         }
     }
 
-    if (m_support_threshold_angle != 0)
-        m_imgui->text(_L("Auto support threshold angle: ") + std::to_string(m_support_threshold_angle));
-    else
-        m_imgui->text(_L("No auto support"));
+    // Restores the cursor position to be below the multi-line text.
+    ImGui::SetCursorPosY(std::max(position_before_text_y + slider_height, position_after_text_y));
+
+#if !ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+    if (ImGui::IsItemHovered())
+        m_imgui->tooltip(format_wxstr(_L("Preselects faces by overhang angle. It is possible to restrict paintable facets to only preselected faces when "
+                                           "the option \"%1%\" is enabled."), m_desc["on_overhangs_only"]), max_tooltip_width);
+#endif // !ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+
+    m_imgui->disabled_begin(m_highlight_by_angle_threshold_deg == 0.f);
+    ImGui::NewLine();
+    ImGui::SameLine(window_width - 2.f*buttons_width - m_imgui->scaled(0.5f));
+    if (m_imgui->button(m_desc["enforce_button"], buttons_width, 0.f)) {
+        select_facets_by_angle(m_highlight_by_angle_threshold_deg, false);
+        m_highlight_by_angle_threshold_deg = 0.f;
+        m_parent.use_slope(false);
+    }
+    ImGui::SameLine(window_width - buttons_width);
+    if (m_imgui->button(m_desc["cancel"], buttons_width, 0.f)) {
+        m_highlight_by_angle_threshold_deg = 0.f;
+        m_parent.use_slope(false);
+    }
+    m_imgui->disabled_end();
+#endif
+
+    ImGui::Separator();
+
+    ImGui::AlignTextToFramePadding();
+    m_imgui->text(m_desc["tool_type"]);
+
+    float tool_type_offset = tool_type_radio_left + (window_width - tool_type_radio_left - tool_type_radio_brush - tool_type_radio_smart_fill + m_imgui->scaled(0.5f)) / 2.f;
+    ImGui::SameLine(tool_type_offset);
+    ImGui::PushItemWidth(tool_type_radio_brush);
+    if (m_imgui->radio_button(m_desc["tool_brush"], m_tool_type == ToolType::BRUSH))
+        m_tool_type = ToolType::BRUSH;
+
+
+    if (ImGui::IsItemHovered())
+        m_imgui->tooltip(_L("Paints facets according to the chosen painting brush."), max_tooltip_width);
+
+    ImGui::SameLine(tool_type_offset + tool_type_radio_brush);
+    ImGui::PushItemWidth(tool_type_radio_smart_fill);
+    if (m_imgui->radio_button(m_desc["tool_smart_fill"], m_tool_type == ToolType::SMART_FILL))
+        m_tool_type = ToolType::SMART_FILL;
+
+    if (ImGui::IsItemHovered())
+        m_imgui->tooltip(_L("Paints neighboring facets whose relative angle is less or equal to set angle."), max_tooltip_width);
+
+    m_imgui->checkbox(m_desc["on_overhangs_only"], m_paint_on_overhangs_only);
+    if (ImGui::IsItemHovered())
+        m_imgui->tooltip(format_wxstr(_L("Allows painting only on facets selected by: \"%1%\""), m_desc["highlight_by_angle"]), max_tooltip_width);
+
+    ImGui::Separator();
+
+    if (m_tool_type == ToolType::BRUSH) {
+        m_imgui->text(m_desc.at("cursor_type"));
+        ImGui::NewLine();
+
+        float cursor_type_offset = (window_width - cursor_type_radio_sphere - cursor_type_radio_circle - cursor_type_radio_pointer + m_imgui->scaled(1.5f)) / 2.f;
+        ImGui::SameLine(cursor_type_offset);
+        ImGui::PushItemWidth(cursor_type_radio_sphere);
+        if (m_imgui->radio_button(m_desc["sphere"], m_cursor_type == TriangleSelector::CursorType::SPHERE))
+            m_cursor_type = TriangleSelector::CursorType::SPHERE;
+
+        if (ImGui::IsItemHovered())
+            m_imgui->tooltip(_L("Paints all facets inside, regardless of their orientation."), max_tooltip_width);
+
+        ImGui::SameLine(cursor_type_offset + cursor_type_radio_sphere);
+        ImGui::PushItemWidth(cursor_type_radio_circle);
+
+        if (m_imgui->radio_button(m_desc["circle"], m_cursor_type == TriangleSelector::CursorType::CIRCLE))
+            m_cursor_type = TriangleSelector::CursorType::CIRCLE;
+
+        if (ImGui::IsItemHovered())
+            m_imgui->tooltip(_L("Ignores facets facing away from the camera."), max_tooltip_width);
+
+        ImGui::SameLine(cursor_type_offset + cursor_type_radio_sphere + cursor_type_radio_circle);
+        ImGui::PushItemWidth(cursor_type_radio_pointer);
+
+        if (m_imgui->radio_button(m_desc["pointer"], m_cursor_type == TriangleSelector::CursorType::POINTER))
+            m_cursor_type = TriangleSelector::CursorType::POINTER;
+
+        if (ImGui::IsItemHovered())
+            m_imgui->tooltip(_L("Paints only one facet."), max_tooltip_width);
+
+        m_imgui->disabled_begin(m_cursor_type != TriangleSelector::CursorType::SPHERE && m_cursor_type != TriangleSelector::CursorType::CIRCLE);
+
+        ImGui::AlignTextToFramePadding();
+        m_imgui->text(m_desc.at("cursor_size"));
+        ImGui::SameLine(sliders_left_width);
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+        ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
+        m_imgui->slider_float("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true, _L("Alt + Mouse wheel"));
+#else
+        ImGui::PushItemWidth(window_width - sliders_left_width);
+        m_imgui->slider_float("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f");
+        if (ImGui::IsItemHovered())
+            m_imgui->tooltip(_L("Alt + Mouse wheel"), max_tooltip_width);
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+
+        m_imgui->checkbox(m_desc["split_triangles"], m_triangle_splitting_enabled);
+
+        if (ImGui::IsItemHovered())
+            m_imgui->tooltip(_L("Splits bigger facets into smaller ones while the object is painted."), max_tooltip_width);
+
+        m_imgui->disabled_end();
+    } else {
+        assert(m_tool_type == ToolType::SMART_FILL);
+        ImGui::AlignTextToFramePadding();
+        m_imgui->text(m_desc["smart_fill_angle"] + ":");
+
+        ImGui::SameLine(sliders_left_width);
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+        ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
+        if (m_imgui->slider_float("##smart_fill_angle", &m_smart_fill_angle, SmartFillAngleMin, SmartFillAngleMax, format_str.data(), 1.0f, true, _L("Alt + Mouse wheel")))
+#else
+        ImGui::PushItemWidth(window_width - sliders_left_width);
+        if (m_imgui->slider_float("##smart_fill_angle", &m_smart_fill_angle, SmartFillAngleMin, SmartFillAngleMax, format_str.data()))
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+            for (auto &triangle_selector : m_triangle_selectors) {
+                triangle_selector->seed_fill_unselect_all_triangles();
+                triangle_selector->request_update_render_data();
+            }
+
+#if !ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+        if (ImGui::IsItemHovered())
+            m_imgui->tooltip(_L("Alt + Mouse wheel"), max_tooltip_width);
+#endif // !ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+    }
 
     ImGui::Separator();
     if (m_c->object_clipper()->get_position() == 0.f) {
@@ -236,9 +398,18 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     auto clp_dist = float(m_c->object_clipper()->get_position());
     ImGui::SameLine(sliders_left_width);
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
     if (m_imgui->slider_float("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true, _L("Ctrl + Mouse wheel")))
         m_c->object_clipper()->set_position(clp_dist, true);
+#else
+    ImGui::PushItemWidth(window_width - sliders_left_width);
+    if (m_imgui->slider_float("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f"))
+        m_c->object_clipper()->set_position(clp_dist, true);
+
+    if (ImGui::IsItemHovered())
+        m_imgui->tooltip(_L("Ctrl + Mouse wheel"), max_tooltip_width);
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
 
     ImGui::Separator();
     if (m_imgui->button(m_desc.at("remove_all"))) {
@@ -256,33 +427,46 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         m_parent.set_as_dirty();
     }
 
+    //BBS: add support preview button logic
+    ImGui::SameLine(window_width - button_width);
+    if (m_edit_state == state_idle)
+    {
+        if (m_imgui->button(_L("Support Preview"))) {
+            std::unique_lock<std::mutex> lck(m_mutex);
+            m_edit_state = state_generating;
+            lck.unlock();
+
+            update_support_volumes();
+            m_generate_count = 0;
+        }
+    }
+    else if (m_edit_state == state_generating)
+    {
+        if (m_imgui->button(_L(" Generating ... "))) {
+            m_generate_count++;
+        }
+    }
+    else
+    {
+        if (!m_volume_ready)
+            generate_support_volume();
+        if (m_imgui->button(_L(" Close Preview  "))) {
+            std::unique_lock<std::mutex> lck(m_mutex);
+            m_edit_state = state_idle;
+            m_volume_ready = false;
+            lck.unlock();
+        }
+    }
+
     m_imgui->end();
 
     //BBS
     ImGuiWrapper::pop_toolbar_style();
 }
 
-// BBS
-int GLGizmoFdmSupports::get_selection_support_threshold_angle()
-{
-    auto sel_info = m_c->selection_info();
-    if (sel_info == nullptr)
-        return -1;
 
-    const DynamicPrintConfig& obj_cfg = sel_info->model_object()->config.get();
-    const DynamicPrintConfig& glb_cfg = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-    bool enable_support = obj_cfg.option("enable_support") ? obj_cfg.opt_bool("enable_support") : glb_cfg.opt_bool("enable_support");
-    SupportType support_type = obj_cfg.option("support_type") ? obj_cfg.opt_enum<SupportType>("support_type") : glb_cfg.opt_enum<SupportType>("support_type");
-    int support_threshold_angle = obj_cfg.option("support_threshold_angle") ? obj_cfg.opt_int("support_threshold_angle") : glb_cfg.opt_int("support_threshold_angle");
-
-    bool auto_support = enable_support &&
-        (support_type == SupportType::stHybridAuto ||
-         support_type == SupportType::stTreeAuto ||
-         support_type == SupportType::stNormalAuto);
-    return auto_support ? support_threshold_angle : 0;
-}
-
-void GLGizmoFdmSupports::select_facets_by_angle(float threshold_deg, bool block)
+//BBS: remove the select facets by angle
+/*void GLGizmoFdmSupports::select_facets_by_angle(float threshold_deg, bool block)
 {
     float threshold = (float(M_PI)/180.f)*threshold_deg;
     const Selection& selection = m_parent.get_selection();
@@ -318,7 +502,7 @@ void GLGizmoFdmSupports::select_facets_by_angle(float threshold_deg, bool block)
                                                     : "Add supports by angle");
     update_model_object();
     m_parent.set_as_dirty();
-}
+}*/
 
 //BBS: remove const
 void GLGizmoFdmSupports::update_model_object()
@@ -457,7 +641,7 @@ void GLGizmoFdmSupports::init_print_instance()
     }
 
     const PrintObjectConfig& config = m_print_instance.print_object->config();
-    m_angle_threshold_deg = config.support_material_angle;
+    //m_angle_threshold_deg = config.support_material_angle;
     m_is_tree_support = config.enable_support.value &&
         (config.support_type.value == stTreeAuto || config.support_type.value == stTree || config.support_type.value==stHybridAuto);
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",get support_material_angle "<< m_angle_threshold_deg<<", is_tree "<<m_is_tree_support;
