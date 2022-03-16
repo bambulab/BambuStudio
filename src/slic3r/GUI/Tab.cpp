@@ -4620,6 +4620,15 @@ void Page::update_visibility(ConfigOptionMode mode, bool update_contolls_visibil
     }
 
     m_show = ret_val;
+#ifdef __WXMSW__
+    if (!m_show) return;
+    // BBS: fix field control position
+    wxTheApp->CallAfter([this]() {
+        for (auto group : m_optgroups) {
+            if (group->custom_ctrl) group->custom_ctrl->fixup_items_positions();
+        }
+    });
+#endif
 }
 
 void Page::activate(ConfigOptionMode mode, std::function<void()> throw_if_canceled)
