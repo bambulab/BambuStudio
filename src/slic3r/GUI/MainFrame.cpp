@@ -2170,6 +2170,9 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
     for (auto tab : wxGetApp().tabs_list) {
         tab->update_tab_ui();
     }
+
+    //BBS: update the preset
+    m_plater->sidebar().update_presets(Preset::TYPE_FILAMENT);
 }
 
 std::string MainFrame::get_base_name(const wxString &full_name, const char *extension) const 

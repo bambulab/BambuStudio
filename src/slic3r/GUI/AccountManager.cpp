@@ -2849,9 +2849,10 @@ namespace Slic3r {
                         preset_collection = &(preset_bundle->prints);
                         break;
                 }
-                Preset* preset = preset_collection->find_preset(name.value(), false);
-                if (preset)
+                Preset* preset = preset_collection->find_preset(name.value(), false, true);
+                if (preset) {
                     preset->setting_id = setting_id.value();
+                }
             }
             else {
                 std::map<std::string, Preset*>::iterator it = presets.find(setting_id.value());
