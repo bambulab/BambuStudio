@@ -1751,10 +1751,9 @@ int PartPlateList::create_plate(bool adjust_position)
 	// update wipe tower config
 	if (m_plater) {
 		// In GUI mode
-		Tab* tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
-		DynamicConfig* tab_cfg = tab->get_config();
-		ConfigOptionFloats* wipe_tower_x = tab_cfg->opt<ConfigOptionFloats>("wipe_tower_x");
-		ConfigOptionFloats* wipe_tower_y = tab_cfg->opt<ConfigOptionFloats>("wipe_tower_y");
+		DynamicConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
+		ConfigOptionFloats* wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
+		ConfigOptionFloats* wipe_tower_y = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");
 		wipe_tower_x->values.resize(m_plate_list.size(), wipe_tower_x->values.front());
 		wipe_tower_y->values.resize(m_plate_list.size(), wipe_tower_y->values.front());
 	}
@@ -1843,10 +1842,9 @@ int PartPlateList::delete_plate(int index)
 	// BBS: add wipe tower logic
 	if (m_plater) {
 		// In GUI mode
-		Tab* tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
-		DynamicConfig* tab_cfg = tab->get_config();
-		ConfigOptionFloats* wipe_tower_x = tab_cfg->opt<ConfigOptionFloats>("wipe_tower_x");
-		ConfigOptionFloats* wipe_tower_y = tab_cfg->opt<ConfigOptionFloats>("wipe_tower_y");
+		DynamicConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
+		ConfigOptionFloats* wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
+		ConfigOptionFloats* wipe_tower_y = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");
 		// wipe_tower_x and wip_tower_y may be less than plate count in the following case:
 		// 1. wipe_tower is enabled after creating new plates
 		// 2. wipe tower is not enabled
