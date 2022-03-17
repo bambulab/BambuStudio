@@ -925,6 +925,7 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	gSizer5->Add( txt_ams_flush_temp2, 0, wxALL, 5 );
 
 	cbox_ams_auto_home = new wxCheckBox( m_panel_ams, wxID_ANY, wxT("AMS Auto Home"), wxDefaultPosition, wxDefaultSize, 0 );
+    cbox_ams_auto_home->SetValue(true);
 	gSizer5->Add( cbox_ams_auto_home, 0, wxALIGN_RIGHT|wxLEFT|wxTOP, 5 );
 
 
