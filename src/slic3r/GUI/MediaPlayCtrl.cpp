@@ -149,11 +149,14 @@ void MediaPlayCtrl::media_proc()
             break;
         }
         else {
+            BOOST_LOG_TRIVIAL(info) <<  "MediaPlayCtrl: start load";
             m_media_ctrl->Load(wxURI(url));
+            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: end load";
         }
         lock.lock();
         m_tasks.pop_front();
         wxMediaEvent theEvent(wxEVT_MEDIA_STATECHANGED, m_media_ctrl->GetId());
+        theEvent.SetId(0);
         m_media_ctrl->GetEventHandler()->AddPendingEvent(theEvent);
     }
 }
@@ -189,9 +192,11 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
             m_failed_retry = 0;
             m_last_state = m_media_ctrl->GetState();
         }
-        else {
+        else if (event.GetId()) {
             Stop();
             SetStatus(_L("Load failed [%d]!"));
+        } else {
+            m_last_state = last_state;
         }
     }
 }
