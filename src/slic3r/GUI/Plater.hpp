@@ -150,6 +150,9 @@ public:
 private:
     struct priv;
     std::unique_ptr<priv> p;
+
+    wxBoxSizer* m_scrolled_sizer = nullptr;
+    ScalableButton* m_flushing_volume_btn = nullptr;
 };
 
 class Plater: public wxPanel

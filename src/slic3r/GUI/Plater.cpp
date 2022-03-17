@@ -407,7 +407,7 @@ Sidebar::Sidebar(Plater *parent)
     int em = wxGetApp().em_unit();
     //BBS refine layout and styles
     // Sizer in the scrolled area
-    auto *scrolled_sizer = new wxBoxSizer(wxVERTICAL);
+    auto* scrolled_sizer = m_scrolled_sizer = new wxBoxSizer(wxVERTICAL);
     p->scrolled->SetSizer(scrolled_sizer);
 
     wxColour title_bg = wxColour(248, 248, 248);
@@ -451,7 +451,7 @@ Sidebar::Sidebar(Plater *parent)
     bSizer39->AddStretchSpacer(1);
 
     ScalableButton* add_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "add_filament");
-    add_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
+    add_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent& e){
         // BBS: limit filament choices to 16
         if (p->combos_filament.size() >= 16)
             return;
@@ -466,7 +466,7 @@ Sidebar::Sidebar(Plater *parent)
     bSizer39->Add( 10 * em / 10, 0, 0, 0, 0 );
 
     ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "delete_filament");
-    del_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
+    del_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent& e){
         if (p->combos_filament.size() <= 1)
             return;
 
@@ -530,10 +530,10 @@ Sidebar::Sidebar(Plater *parent)
 
     // BBS
     // add wiping dialog
-    ScalableButton* wiping_dialog_button = new ScalableButton(p->scrolled, wxID_ANY, "", _L("Flushing volumes"));
+    m_flushing_volume_btn = new ScalableButton(p->scrolled, wxID_ANY, "", _L("Flushing volumes"));
     //wiping_dialog_button->SetFont(wxGetApp().normal_font());
 
-    wiping_dialog_button->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent& e)
+    m_flushing_volume_btn->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent& e)
         {
             auto& project_config = wxGetApp().preset_bundle->project_config;
             const std::vector<double>& init_matrix = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
@@ -552,7 +552,8 @@ Sidebar::Sidebar(Plater *parent)
                 wxPostEvent(parent, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, parent));
             }
         }));
-    scrolled_sizer->Add(wiping_dialog_button, 0, wxTOP | wxBOTTOM | wxEXPAND, 0);
+    scrolled_sizer->Add(m_flushing_volume_btn, 0, wxTOP | wxBOTTOM | wxEXPAND, 0);
+    scrolled_sizer->Hide(m_flushing_volume_btn);
 
     //p->m_staticline2 = new wxStaticLine( p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
     //p->m_staticline2->SetBackgroundColour( static_line_col );
@@ -946,6 +947,13 @@ void Sidebar::on_filaments_change(size_t num_filaments)
 
     // remove unused choices if any
     remove_unused_filament_combos(num_filaments);
+
+    if (m_flushing_volume_btn != nullptr && m_scrolled_sizer != nullptr) {
+        if (num_filaments > 1)
+            m_scrolled_sizer->Show(m_flushing_volume_btn);
+        else
+            m_scrolled_sizer->Hide(m_flushing_volume_btn);
+    }
 
     scrolled_panel()->Layout();
     scrolled_panel()->Refresh();
