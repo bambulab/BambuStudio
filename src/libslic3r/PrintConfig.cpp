@@ -931,8 +931,8 @@ void PrintConfigDef::init_fff_params()
     //BBS: open this option to command line
     //def->cli = ConfigOptionDef::nocli;
 
-    def = this->add("filament_vendor", coString);
-    def->set_default_value(new ConfigOptionString(L("(Unknown)")));
+    def = this->add("filament_vendor", coStrings);
+    def->set_default_value(new ConfigOptionStrings{L("(Unknown)")});
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("infill_angle", coFloat);

@@ -4,7 +4,9 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pet",
-    "filament_vendor": "Kexcelled",
+    "filament_vendor": [
+        "Kexcelled"
+    ],
     "nozzle_temperature_initial_layer": [
         "250"
     ],

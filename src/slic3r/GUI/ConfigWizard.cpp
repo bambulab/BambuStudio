@@ -1740,10 +1740,15 @@ const std::string& Materials::get_filament_type(const Preset *preset)
     }
 }
 
+//BBS: change filament_vendor to strings for multiple filaments case requirements
 const std::string& Materials::get_filament_vendor(const Preset *preset)
 {
-    const auto *opt = preset->config.opt<ConfigOptionString>("filament_vendor");
-    return opt != nullptr ? opt->value : UNKNOWN;
+    const auto *opt = preset->config.opt<ConfigOptionStrings>("filament_vendor");
+    if (opt != nullptr && opt->values.size() > 0) {
+        return opt->values[0];
+    } else {
+        return UNKNOWN;
+    }
 }
 
 const std::string& Materials::get_material_type(const Preset *preset)

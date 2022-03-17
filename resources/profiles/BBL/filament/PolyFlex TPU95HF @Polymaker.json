@@ -4,7 +4,9 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_tpu",
-    "filament_vendor": "Polymaker",
+    "filament_vendor": [
+        "Polymaker"
+    ],
     "nozzle_temperature": [
         "240"
     ],

@@ -4,7 +4,9 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_abs",
-    "filament_vendor": "eSUN",
+    "filament_vendor":  [
+        "eSUN"
+    ],
     "nozzle_temperature": [
         "250"
     ],

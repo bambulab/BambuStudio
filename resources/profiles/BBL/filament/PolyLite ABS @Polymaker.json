@@ -4,6 +4,8 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_abs",
-    "filament_vendor": "Polymaker",
+    "filament_vendor": [
+        "Polymaker"
+    ],
     "compatible_printers_condition": "nozzle_diameter[0]!=0.8"
 }
