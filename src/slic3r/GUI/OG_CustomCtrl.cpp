@@ -800,7 +800,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
 
     auto draw_buttons = [&h_pos, &dc, &v_pos, this](Field* field, size_t bmp_rect_id = 0) {
         if (field && field->undo_to_sys_bitmap()) {
-            h_pos = draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink(), bmp_rect_id++);
+            h_pos = draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink(), bmp_rect_id);
         }
 #ifndef DISABLE_BLINKING
         else if (field && !field->undo_to_sys_bitmap() && field->blink()) 
@@ -1011,10 +1011,10 @@ wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBi
 
     h_pos += bmp_dim + ctrl->m_h_gap;
 #endif
-    dc.DrawBitmap(bmp_undo, h_pos, v_pos);
+    dc.DrawBitmap(og_line.undo_to_sys ? bmp_undo_to_sys : bmp_undo, h_pos, v_pos);
 
     int bmp_dim2 = get_bitmap_size(bmp_undo).GetWidth();
-    rects_undo_icon[rect_id] = wxRect(h_pos, v_pos, bmp_dim2, bmp_dim2);
+    (og_line.undo_to_sys ? rects_undo_to_sys_icon[rect_id] : rects_undo_icon[rect_id]) = wxRect(h_pos, v_pos, bmp_dim2, bmp_dim2);
 
     h_pos += bmp_dim2 + ctrl->m_h_gap;
 

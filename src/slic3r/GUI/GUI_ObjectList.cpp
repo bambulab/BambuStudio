@@ -4097,11 +4097,12 @@ void ObjectList::last_volume_is_deleted(const int obj_idx)
 
 void ObjectList::update_and_show_object_settings_item()
 {
-    const wxDataViewItem item = GetSelection();
-    if (!item) return;
+    //const wxDataViewItem item = GetSelection();
+    //if (!item) return;
 
-    const wxDataViewItem& obj_item = m_objects_model->IsSettingsItem(item) ? m_objects_model->GetParent(item) : item;
-    select_item([this, obj_item](){ return add_settings_item(obj_item, &get_item_config(obj_item).get()); });
+    //const wxDataViewItem& obj_item = m_objects_model->IsSettingsItem(item) ? m_objects_model->GetParent(item) : item;
+    //select_item([this, obj_item](){ return add_settings_item(obj_item, &get_item_config(obj_item).get()); });
+    part_selection_changed();
 }
 
 // Update settings item for item had it

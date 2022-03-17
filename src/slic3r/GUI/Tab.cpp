@@ -709,7 +709,7 @@ void Tab::update_label_colours()
 
             const wxColor *clr = !page->m_is_nonsys_values ? &m_sys_label_clr :
                 page->m_is_modified_values ? &m_modified_label_clr :
-                &m_default_text_clr;
+                (m_type < Preset::TYPE_COUNT ? &m_default_text_clr : &m_modified_label_clr);
 
             m_tabctrl->SetItemTextColour(cur_item, *clr);
             break;
@@ -807,6 +807,8 @@ void Tab::update_changed_ui()
 
     for (auto opt_key : dirty_options)	m_options_list[opt_key] &= ~osInitValue;
     for (auto opt_key : nonsys_options)	m_options_list[opt_key] &= ~osSystemValue;
+
+    update_custom_dirty();
 
     decorate();
 
@@ -956,9 +958,9 @@ void Tab::update_changed_tree_ui()
                 }
             }
 
-            const wxColor *clr = sys_page		?	(m_is_default_preset ? &m_default_text_clr : &m_sys_label_clr) :
+            const wxColor *clr = sys_page      ? (m_is_default_preset ? &m_default_text_clr : &m_sys_label_clr) :
                                  modified_page	?	&m_modified_label_clr :
-                                                    &m_default_text_clr;
+                                                 (m_type < Preset::TYPE_COUNT ? &m_default_text_clr : &m_modified_label_clr);
 
             if (page->set_item_colour(clr))
                 m_tabctrl->SetItemTextColour(cur_item, *clr);
@@ -2011,7 +2013,8 @@ TabPrintModel::TabPrintModel(ParamsPanel* parent, std::vector<std::string> const
     , m_keys(intersect(Preset::print_options(), keys))
     , m_prints(Preset::TYPE_MODEL, Preset::print_options(), static_cast<const PrintRegionConfig&>(FullPrintConfig::defaults()))
 {
-    m_opt_status_value = osInitValue;
+    m_opt_status_value = osInitValue | osSystemValue;
+    m_is_default_preset = true;
 }
 
 void TabPrintModel::build()
@@ -2038,11 +2041,13 @@ void TabPrintModel::build()
                 opts.erase(std::remove_if(opts.begin(), opts.end(), [this](auto & o) {
                     return !has_key(o.opt.opt_key);
                 }), opts.end());
+                l.undo_to_sys = true;
             }
             lines.erase(std::remove_if(lines.begin(), lines.end(), [](auto & l) {
                 return l.get_options().empty();
             }), lines.end());
             // TODO: remove items from g->m_options;
+            g->have_sys_config = [this] { m_back_to_sys = true; return true; };
         }
         p->m_optgroups.erase(std::remove_if(p->m_optgroups.begin(), p->m_optgroups.end(), [](auto & g) {
             return g->get_lines().empty();
@@ -2087,6 +2092,7 @@ void TabPrintModel::update_model_config()
             m_null_keys = substruct(substruct(all_keys, global_keys), local_keys);
             m_config->apply(diff_config);
         }
+        m_all_keys = intersect(all_keys, m_keys);
         // except those than all equal on
         m_config->apply_only(local_config, local_keys);
         m_config_manipulation.apply_null_fff_config(m_config, m_null_keys, m_object_configs);
@@ -2138,24 +2144,36 @@ void TabPrintModel::activate_selected_page(std::function<void()> throw_if_cancel
 void TabPrintModel::on_value_change(const std::string& opt_key, const boost::any& value)
 {
     // TODO: support opt_index, translate by OptionsGroup's m_opt_map
+    auto k = opt_key;
     if (m_config_manipulation.is_applying()) {
         TabPrint::on_value_change(opt_key, value);
         return;
     }
-    if (!m_object_configs.empty())
-        wxGetApp().plater()->take_snapshot((boost::format("Change Option %s") % opt_key).str());
-    TabPrint::on_value_change(opt_key, value);
-    if (!has_key(opt_key))
+    if (!has_key(k))
         return;
-    m_null_keys.erase(std::remove(m_null_keys.begin(), m_null_keys.end(), opt_key), m_null_keys.end());
+    if (!m_object_configs.empty())
+        wxGetApp().plater()->take_snapshot((boost::format("Change Option %s") % k).str());
+    auto inull = std::find(m_null_keys.begin(), m_null_keys.end(), k);
+    bool set   = *m_config->option(k) != *m_prints.get_selected_preset().config.option(k) || inull != m_null_keys.end();
+    if (m_back_to_sys) {
+        for (auto config : m_object_configs)
+            config.second->erase(k);
+        m_all_keys.erase(std::remove(m_all_keys.begin(), m_all_keys.end(), k), m_all_keys.end());
+    } else if (set) {
+        for (auto config : m_object_configs)
+            config.second->apply_only(*m_config, {k});
+        m_all_keys = concat(m_all_keys, {k});
+    }
+    if (inull != m_null_keys.end())
+        m_null_keys.erase(inull);
+    if (m_back_to_sys || set) update_changed_ui();
+    m_back_to_sys = false;
+    TabPrint::on_value_change(k, value);
     for (auto config : m_object_configs) {
-        if (m_options_list[opt_key] & osInitValue)
-            config.second->erase(opt_key);
-        else
-            config.second->apply_only(*m_config, {opt_key});
         config.second->touch();
         notify_changed(config.first);
     }
+
 }
 
 void TabPrintModel::reload_config()
@@ -2165,23 +2183,30 @@ void TabPrintModel::reload_config()
     bool super_changed = false;
     for (auto & k : keys) {
         if (has_key(k)) {
-            for (auto config : m_object_configs) {
-                if (m_options_list[k] & osInitValue)
-                    config.second->erase(k);
-                else
+            auto inull = std::find(m_null_keys.begin(), m_null_keys.end(), k);
+            bool set   = *m_config->option(k) != *m_prints.get_selected_preset().config.option(k) || inull != m_null_keys.end();
+            if (set) {
+                for (auto config : m_object_configs)
                     config.second->apply_only(*m_config, {k});
+                m_all_keys = concat(m_all_keys, {k});
             }
+            if (inull != m_null_keys.end()) m_null_keys.erase(inull);
         } else {
             m_parent_tab->m_config->apply_only(*m_config, {k});
             super_changed = true;
         }
-        m_null_keys = substruct(m_null_keys, keys);
     }
     if (super_changed) {
         m_parent_tab->update_dirty();
         m_parent_tab->reload_config();
         m_parent_tab->update();
     }
+}
+
+void TabPrintModel::update_custom_dirty()
+{
+    for (auto k : m_null_keys) m_options_list[k] = 0;
+    for (auto k : m_all_keys) m_options_list[k] &= ~osSystemValue;
 }
 
 //BBS: GUI refactor

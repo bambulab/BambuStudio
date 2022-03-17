@@ -352,6 +352,7 @@ public:
 	virtual void	update() = 0;
 	virtual void	toggle_options() = 0;
 	virtual void	init_options_list();
+    virtual void    update_custom_dirty() {}
 	void			load_initial_data();
 	void			update_dirty();
 	//BBS update plater presets if update_plater_presets = true
@@ -464,12 +465,16 @@ protected:
 
 	virtual void	reload_config();
 
+	virtual void	update_custom_dirty() override;
+
 protected:
 	std::vector<std::string> const m_keys;
 	PresetCollection m_prints;
 	Tab * m_parent_tab;
 	std::map<ObjectBase *, ModelConfig *> m_object_configs;
+	std::vector<std::string> m_all_keys;
 	std::vector<std::string> m_null_keys;
+	bool m_back_to_sys = false;
 };
 
 class TabPrintObject : public TabPrintModel
