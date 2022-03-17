@@ -77,16 +77,18 @@ bool GLGizmoFdmSupports::on_init()
 {
     m_shortcut_key = WXK_CONTROL_L;
 
-    m_desc["clipping_of_view"] = _L("Clipping of view") + ": ";
-    m_desc["cursor_size"]      = _L("Pen size") + ": ";
-    m_desc["enforce_caption"]  = _L("Left mouse button") + ": ";
-    m_desc["enforce"]          = _L("Enforce supports");
-    m_desc["block_caption"]    = _L("Right mouse button") + ": ";
-    m_desc["block"]            = _L("Block supports");
-    m_desc["remove_caption"]   = _L("Shift + Left mouse button") + ": ";
-    m_desc["remove"]           = _L("Erase painting");
-    m_desc["remove_all"]       = _L("Erase all painting");
-    m_desc["highlight_by_angle"] = _L("Highlight overhang areas");
+    m_desc["clipping_of_view"]      = _L("Clipping of view") + ": ";
+    m_desc["cursor_size"]           = _L("Pen size") + ": ";
+    m_desc["enforce_caption"]       = _L("Left mouse button") + ": ";
+    m_desc["enforce"]               = _L("Enforce supports");
+    m_desc["block_caption"]         = _L("Right mouse button") + ": ";
+    m_desc["block"]                 = _L("Block supports");
+    m_desc["remove_caption"]        = _L("Shift + Left mouse button") + ": ";
+    m_desc["remove"]                = _L("Erase painting");
+    m_desc["remove_all"]            = _L("Erase all painting");
+    m_desc["highlight_by_angle"]    = _L("Highlight overhang areas");
+    m_desc["tiny_patch_filter"]     = _L("Tiny patch filter");
+    m_desc["filter_tiny"]           = _L("Filter tiny patch");
 
     memset(&m_print_instance, sizeof(m_print_instance), 0);
     return true;
@@ -116,6 +118,44 @@ void GLGizmoFdmSupports::render_painter_gizmo() const
 }
 
 // BBS
+void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
+{
+    ClippingPlaneDataWrapper clp_data = this->get_clipping_plane_data();
+    auto* shader = wxGetApp().get_shader("mm_gouraud");
+    if (!shader)
+        return;
+    shader->start_using();
+    shader->set_uniform("clipping_plane", clp_data.clp_dataf);
+    shader->set_uniform("z_range", clp_data.z_range);
+    ScopeGuard guard([shader]() { if (shader) shader->stop_using(); });
+
+    const ModelObject* mo = m_c->selection_info()->model_object();
+    int                mesh_id = -1;
+    for (const ModelVolume* mv : mo->volumes) {
+        if (!mv->is_model_part())
+            continue;
+
+        ++mesh_id;
+
+        const Transform3d trafo_matrix = mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix() * mv->get_matrix();
+
+        bool is_left_handed = trafo_matrix.matrix().determinant() < 0.;
+        if (is_left_handed)
+            glsafe(::glFrontFace(GL_CW));
+
+        glsafe(::glPushMatrix());
+        glsafe(::glMultMatrixd(trafo_matrix.data()));
+
+        shader->set_uniform("volume_world_matrix", trafo_matrix);
+        shader->set_uniform("volume_mirrored", is_left_handed);
+        m_triangle_selectors[mesh_id]->render(m_imgui);
+
+        glsafe(::glPopMatrix());
+        if (is_left_handed)
+            glsafe(::glFrontFace(GL_CCW));
+    }
+}
+
 void GLGizmoFdmSupports::on_set_state()
 {
     GLGizmoPainterBase::on_set_state();
@@ -150,13 +190,16 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     m_imgui->begin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
-    const float clipping_slider_left           = m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x + m_imgui->scaled(1.5f);
-    const float cursor_slider_left             = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.f);
-    const float autoset_slider_label_max_width = m_imgui->scaled(7.5f);
-    const float autoset_slider_left = m_imgui->calc_text_size(m_desc.at("highlight_by_angle"), autoset_slider_label_max_width).x + m_imgui->scaled(1.f);
-    const float button_width = m_imgui->calc_text_size(m_desc.at("remove_all")).x + m_imgui->scaled(1.f);
-    const float tips_width = m_imgui->calc_text_size(_L("Auto support threshold angle: ") + " 90 ").x + m_imgui->scaled(1.f);
-    const float minimal_slider_width = m_imgui->scaled(4.f);
+    const float clipping_slider_left            = m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x + m_imgui->scaled(1.5f);
+    const float cursor_slider_left              = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.5f);
+    const float tiny_filter_slider_left         = m_imgui->calc_text_size(m_desc.at("tiny_patch_filter")).x + m_imgui->scaled(1.5f);
+    const float highlight_slider_left           = m_imgui->calc_text_size(m_desc.at("highlight_by_angle")).x + m_imgui->scaled(1.5f);
+    const float remove_btn_width                = m_imgui->calc_text_size(m_desc.at("remove_all")).x + m_imgui->scaled(1.5f);
+    const float filter_btn_width                = m_imgui->calc_text_size(m_desc.at("filter_tiny")).x + m_imgui->scaled(1.5f);
+    const float buttons_width                   = remove_btn_width + filter_btn_width + m_imgui->scaled(1.5f);
+
+    const float tips_width                      = m_imgui->calc_text_size(_L("Auto support threshold angle: ") + " 90 ").x + m_imgui->scaled(1.5f);
+    const float minimal_slider_width            = m_imgui->scaled(4.f);
 
     float caption_max    = 0.f;
     float total_text_max = 0.f;
@@ -167,12 +210,12 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     total_text_max += caption_max + m_imgui->scaled(1.f);
     caption_max    += m_imgui->scaled(1.f);
 
-    const float sliders_left_width = std::max(std::max(cursor_slider_left, clipping_slider_left), autoset_slider_left);
+    const float sliders_left_width = std::max(std::max(cursor_slider_left, clipping_slider_left), std::max(highlight_slider_left, tiny_filter_slider_left));
     const float slider_icon_width  = m_imgui->get_slider_icon_size().x;
     float       window_width       = minimal_slider_width + sliders_left_width + slider_icon_width;
 
     window_width = std::max(window_width, total_text_max);
-    window_width = std::max(window_width, button_width);
+    window_width = std::max(window_width, buttons_width);
     window_width = std::max(window_width, tips_width);
 
     auto draw_text_with_caption = [this, &caption_max](const wxString& caption, const wxString& text) {
@@ -195,7 +238,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     float position_before_text_y = ImGui::GetCursorPos().y;
     ImGui::AlignTextToFramePadding();
-    m_imgui->text_wrapped(m_desc["highlight_by_angle"] + ":", autoset_slider_label_max_width);
+    m_imgui->text(m_desc["highlight_by_angle"] + ":");
     ImGui::AlignTextToFramePadding();
     float position_after_text_y = ImGui::GetCursorPos().y;
     ImGui::SameLine(sliders_left_width);
@@ -222,6 +265,15 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         m_imgui->text(_L("No auto support"));
 
     ImGui::Separator();
+    m_imgui->text(m_desc["tiny_patch_filter"] + ":");
+    ImGui::SameLine(sliders_left_width);
+    ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
+    format_str = std::string("%.2f") + I18N::translate_utf8("", "Triangle patch area threshold,"
+        "triangle patch will be merged to neighbor if its area is less than threshold");
+    m_imgui->slider_float("##tiny_patch_area", &TriangleSelectorPatch::tiny_patch_area, TriangleSelectorPatch::TinyPatchAreaMin,
+        TriangleSelectorPatch::TinyPatchAreaMax, format_str.data(), 1.0f, true, _L("Alt + Mouse wheel"));
+
+    ImGui::Separator();
     if (m_c->object_clipper()->get_position() == 0.f) {
         ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("clipping_of_view"));
@@ -241,6 +293,21 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         m_c->object_clipper()->set_position(clp_dist, true);
 
     ImGui::Separator();
+    if (m_imgui->button(m_desc.at("filter_tiny"))) {
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Reset selection",
+            UndoRedo::SnapshotType::GizmoAction);
+
+        for (int i = 0; i < m_triangle_selectors.size(); i++) {
+            TriangleSelectorPatch* ts_mm = dynamic_cast<TriangleSelectorPatch*>(m_triangle_selectors[i].get());
+            ts_mm->update_selector_triangles();
+            ts_mm->request_update_render_data(true);
+        }
+        update_model_object();
+        m_parent.set_as_dirty();
+    }
+
+    ImGui::SameLine(filter_btn_width + m_imgui->scaled(1.f));
+
     if (m_imgui->button(m_desc.at("remove_all"))) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Reset selection", UndoRedo::SnapshotType::GizmoAction);
         ModelObject         *mo  = m_c->selection_info()->model_object();
@@ -249,7 +316,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
             if (mv->is_model_part()) {
                 ++idx;
                 m_triangle_selectors[idx]->reset();
-                m_triangle_selectors[idx]->request_update_render_data();
+                m_triangle_selectors[idx]->request_update_render_data(true);
             }
 
         update_model_object();
@@ -357,6 +424,10 @@ void GLGizmoFdmSupports::update_from_model_object(bool first_update)
     m_volume_timestamps.clear();
 
     int volume_id = -1;
+    std::vector<std::array<float, 4>> ebt_colors;
+    ebt_colors.push_back(GLVolume::NEUTRAL_COLOR);
+    ebt_colors.push_back(TriangleSelectorGUI::enforcers_color);
+    ebt_colors.push_back(TriangleSelectorGUI::blockers_color);
     for (const ModelVolume* mv : mo->volumes) {
         if (! mv->is_model_part())
             continue;
@@ -365,8 +436,7 @@ void GLGizmoFdmSupports::update_from_model_object(bool first_update)
 
         // This mesh does not account for the possible Z up SLA offset.
         const TriangleMesh* mesh = &mv->mesh();
-
-        m_triangle_selectors.emplace_back(std::make_unique<TriangleSelectorGUI>(*mesh));
+        m_triangle_selectors.emplace_back(std::make_unique<TriangleSelectorPatch>(*mesh, ebt_colors));
         // Reset of TriangleSelector is done inside TriangleSelectorGUI's constructor, so we don't need it to perform it again in deserialize().
         m_triangle_selectors.back()->deserialize(mv->supported_facets.get_data(), false);
         m_triangle_selectors.back()->request_update_render_data();

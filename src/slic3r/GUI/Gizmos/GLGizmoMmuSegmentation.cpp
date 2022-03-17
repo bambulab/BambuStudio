@@ -18,13 +18,6 @@
 
 namespace Slic3r::GUI {
 
-bool TrianglePatch::tiny_patch() const
-{
-    return this->area < GLGizmoMmuSegmentation::tiny_patch_area;
-}
-
-float GLGizmoMmuSegmentation::tiny_patch_area = 0.f;
-
 static inline void show_notification_extruders_limit_exceeded()
 {
     wxGetApp()
@@ -77,17 +70,6 @@ static std::vector<std::array<float, 4>> get_extruders_colors()
     return colors_out;
 }
 
-static std::vector<std::string> get_extruders_names()
-{
-    size_t                   filaments_count = wxGetApp().filaments_cnt();
-    std::vector<std::string> filaments_out;
-    filaments_out.reserve(filaments_count);
-    for (size_t filament_id = 1; filament_id <= filaments_count; ++filament_id)
-        filaments_out.emplace_back("Filament " + std::to_string(filament_id));
-
-    return filaments_out;
-}
-
 static std::vector<int> get_extruder_id_for_volumes(const ModelObject &model_object)
 {
     std::vector<int> extruders_idx;
@@ -104,13 +86,8 @@ static std::vector<int> get_extruder_id_for_volumes(const ModelObject &model_obj
 
 void GLGizmoMmuSegmentation::init_extruders_data()
 {
-    m_original_extruders_names     = get_extruders_names();
-    m_original_extruders_colors    = get_extruders_colors();
-    m_modified_extruders_colors    = m_original_extruders_colors;
-    m_first_selected_extruder_idx  = 0;
-    m_second_selected_extruder_idx = 1;
-    // BBS
-    m_selected_extruder_idx        = 0;
+    m_extruders_colors = get_extruders_colors();
+    m_selected_extruder_idx = 0;
 }
 
 bool GLGizmoMmuSegmentation::on_init()
@@ -154,7 +131,7 @@ bool GLGizmoMmuSegmentation::on_init()
 }
 
 GLGizmoMmuSegmentation::GLGizmoMmuSegmentation(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
-    : GLGizmoPainterBase(parent, icon_filename, sprite_id), m_current_tool(ImGui::SphereButtonIcon)
+    : GLGizmoPainterBase(parent, icon_filename, sprite_id), m_current_tool(ImGui::CircleButtonIcon)
 {
 }
 
@@ -181,17 +158,22 @@ void GLGizmoMmuSegmentation::set_painter_gizmo_data(const Selection &selection)
     if (m_state != On || wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptFFF || wxGetApp().filaments_cnt() <= 1)
         return;
 
-    ModelObject *model_object         = m_c->selection_info()->model_object();
-    if (int prev_extruders_count = int(m_original_extruders_colors.size());
-        prev_extruders_count != wxGetApp().filaments_cnt() || get_extruders_colors() != m_original_extruders_colors) {
+    ModelObject* model_object = m_c->selection_info()->model_object();
+    int prev_extruders_count = int(m_extruders_colors.size());
+    if (prev_extruders_count != wxGetApp().filaments_cnt()) {
         if (wxGetApp().filaments_cnt() > int(GLGizmoMmuSegmentation::EXTRUDERS_LIMIT))
             show_notification_extruders_limit_exceeded();
 
         this->init_extruders_data();
         // Reinitialize triangle selectors because of change of extruder count need also change the size of GLIndexedVertexArray
         if (prev_extruders_count != wxGetApp().filaments_cnt())
-            this->init_model_triangle_selectors();
-    } else if (model_object != nullptr && get_extruder_id_for_volumes(*model_object) != m_original_volumes_extruder_idxs) {
+            this->init_model_triangle_selectors(); 
+    }
+    else if (get_extruders_colors() != m_extruders_colors) {
+        this->init_extruders_data();
+        this->update_triangle_selectors_colors();
+    }
+    else if (model_object != nullptr && get_extruder_id_for_volumes(*model_object) != m_volumes_extruder_idxs) {
         this->init_model_triangle_selectors();
     }
 }
@@ -238,7 +220,7 @@ void GLGizmoMmuSegmentation::render_triangles(const Selection &selection) const
 bool GLGizmoMmuSegmentation::on_number_key_down(int number)
 {
     int extruder_idx = number - 1;
-    if (extruder_idx < m_modified_extruders_colors.size())
+    if (extruder_idx < m_extruders_colors.size())
         m_selected_extruder_idx = extruder_idx;
 
     return true;
@@ -371,8 +353,8 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     ImGui::Separator();
 
-    for (int extruder_idx = 0; extruder_idx < m_modified_extruders_colors.size(); extruder_idx++) {
-        const std::array<float, 4>& extruder_color = m_modified_extruders_colors[extruder_idx];
+    for (int extruder_idx = 0; extruder_idx < m_extruders_colors.size(); extruder_idx++) {
+        const std::array<float, 4>& extruder_color = m_extruders_colors[extruder_idx];
         ImVec4 color_vec(extruder_color[0], extruder_color[1], extruder_color[2], extruder_color[3]);
         std::string color_label = std::string("##extruder color ") + std::to_string(extruder_idx);
         if (extruder_idx % max_filament_items_per_line != 0) {
@@ -396,7 +378,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     ImGui::Separator();
     m_imgui->text(m_desc.at("tool_type"));
 
-    std::array<wchar_t, 4> paint_icons = { ImGui::SphereButtonIcon, ImGui::TriangleButtonIcon, ImGui::HeightRangeIcon, ImGui::FillButtonIcon };
+    std::array<wchar_t, 4> paint_icons = { ImGui::CircleButtonIcon, ImGui::TriangleButtonIcon, ImGui::HeightRangeIcon, ImGui::FillButtonIcon };
     for (int i = 0; i < paint_icons.size(); i++) {
         std::string str_label = std::string("##");
         std::wstring btn_name = paint_icons[i] + boost::nowide::widen(str_label);
@@ -422,8 +404,8 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         }
     }
 
-    if (m_current_tool == ImGui::SphereButtonIcon) {
-        m_cursor_type = TriangleSelector::CursorType::SPHERE;
+    if (m_current_tool == ImGui::CircleButtonIcon) {
+        m_cursor_type = TriangleSelector::CursorType::CIRCLE;
         m_tool_type = ToolType::BRUSH;
 
         ImGui::AlignTextToFramePadding();
@@ -478,7 +460,8 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
     std::string format_str = std::string("%.2f") + I18N::translate_utf8("", "Triangle patch area threshold,"
         "triangle patch will be merged to neighbor if its area is less than threshold");
-    m_imgui->slider_float("##tiny_patch_area", &GLGizmoMmuSegmentation::tiny_patch_area, TinyPatchAreaMin, TinyPatchAreaMax, format_str.data(), 1.0f, true, _L("Alt + Mouse wheel"));
+    m_imgui->slider_float("##tiny_patch_area", &TriangleSelectorPatch::tiny_patch_area, TriangleSelectorPatch::TinyPatchAreaMin,
+        TriangleSelectorPatch::TinyPatchAreaMax, format_str.data(), 1.0f, true, _L("Alt + Mouse wheel"));
 
     ImGui::Separator();
 
@@ -497,7 +480,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             UndoRedo::SnapshotType::GizmoAction);
 
         for (int i = 0; i < m_triangle_selectors.size(); i++) {
-            TriangleSelectorMmGui* ts_mm = dynamic_cast<TriangleSelectorMmGui*>(m_triangle_selectors[i].get());
+            TriangleSelectorPatch* ts_mm = dynamic_cast<TriangleSelectorPatch*>(m_triangle_selectors[i].get());
             ts_mm->update_selector_triangles();
             ts_mm->request_update_render_data(true);
         }
@@ -516,7 +499,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             if (mv->is_model_part()) {
                 ++idx;
                 m_triangle_selectors[idx]->reset();
-                m_triangle_selectors[idx]->request_update_render_data();
+                m_triangle_selectors[idx]->request_update_render_data(true);
             }
 
         update_model_object();
@@ -559,23 +542,38 @@ void GLGizmoMmuSegmentation::init_model_triangle_selectors()
     m_triangle_selectors.clear();
 
     // Don't continue when extruders colors are not initialized
-    if(m_original_extruders_colors.empty())
+    if(m_extruders_colors.empty())
         return;
 
     for (const ModelVolume *mv : mo->volumes) {
         if (!mv->is_model_part())
             continue;
 
-        // This mesh does not account for the possible Z up SLA offset.
-        const TriangleMesh *mesh = &mv->mesh();
-
         int extruder_idx = (mv->extruder_id() > 0) ? mv->extruder_id() - 1 : 0;
-        m_triangle_selectors.emplace_back(std::make_unique<TriangleSelectorMmGui>(*mesh, m_modified_extruders_colors, m_original_extruders_colors[size_t(extruder_idx)]));
+        std::vector<std::array<float, 4>> ebt_colors;
+        ebt_colors.push_back(m_extruders_colors[size_t(extruder_idx)]);
+        ebt_colors.insert(ebt_colors.end(), m_extruders_colors.begin(), m_extruders_colors.end());
+
+        // This mesh does not account for the possible Z up SLA offset.
+        const TriangleMesh* mesh = &mv->mesh();
+        m_triangle_selectors.emplace_back(std::make_unique<TriangleSelectorPatch>(*mesh, ebt_colors));
         // Reset of TriangleSelector is done inside TriangleSelectorMmGUI's constructor, so we don't need it to perform it again in deserialize().
         m_triangle_selectors.back()->deserialize(mv->mmu_segmentation_facets.get_data(), false);
         m_triangle_selectors.back()->request_update_render_data();
+        m_volumes_extruder_idxs.push_back(extruder_idx);
     }
-    m_original_volumes_extruder_idxs = get_extruder_id_for_volumes(*mo);
+}
+
+void GLGizmoMmuSegmentation::update_triangle_selectors_colors()
+{
+    for (int i = 0; i < m_triangle_selectors.size(); i++) {
+        TriangleSelectorPatch* selector = dynamic_cast<TriangleSelectorPatch*>(m_triangle_selectors[i].get());
+        int extruder_idx = m_volumes_extruder_idxs[i];
+        std::vector<std::array<float, 4>> ebt_colors;
+        ebt_colors.push_back(m_extruders_colors[extruder_idx]);
+        ebt_colors.insert(ebt_colors.end(), m_extruders_colors.begin(), m_extruders_colors.end());
+        selector->set_ebt_colors(ebt_colors);
+    }
 }
 
 void GLGizmoMmuSegmentation::update_from_model_object(bool first_update)
@@ -584,8 +582,8 @@ void GLGizmoMmuSegmentation::update_from_model_object(bool first_update)
 
     // Extruder colors need to be reloaded before calling init_model_triangle_selectors to render painted triangles
     // using colors from loaded 3MF and not from printer profile in Slicer.
-    if (int prev_extruders_count = int(m_original_extruders_colors.size());
-        prev_extruders_count != wxGetApp().filaments_cnt() || get_extruders_colors() != m_original_extruders_colors)
+    if (int prev_extruders_count = int(m_extruders_colors.size());
+        prev_extruders_count != wxGetApp().filaments_cnt() || get_extruders_colors() != m_extruders_colors)
         this->init_extruders_data();
 
     this->init_model_triangle_selectors();
@@ -596,207 +594,13 @@ PainterGizmoType GLGizmoMmuSegmentation::get_painter_type() const
     return PainterGizmoType::MMU_SEGMENTATION;
 }
 
-std::array<float, 4> GLGizmoMmuSegmentation::get_cursor_sphere_left_button_color() const
-{
-    const std::array<float, 4> &color = m_modified_extruders_colors[m_first_selected_extruder_idx];
-    return {color[0], color[1], color[2], 0.25f};
-}
-
-std::array<float, 4> GLGizmoMmuSegmentation::get_cursor_sphere_right_button_color() const
-{
-    const std::array<float, 4> &color = m_modified_extruders_colors[m_second_selected_extruder_idx];
-    return {color[0], color[1], color[2], 0.25f};
-}
-
 // BBS
 std::array<float, 4> GLGizmoMmuSegmentation::get_cursor_hover_color() const
 {
-    if (m_selected_extruder_idx < m_modified_extruders_colors.size())
-        return m_modified_extruders_colors[m_selected_extruder_idx];
+    if (m_selected_extruder_idx < m_extruders_colors.size())
+        return m_extruders_colors[m_selected_extruder_idx];
     else
-        return m_modified_extruders_colors[0];
-}
-
-void TriangleSelectorMmGui::render(ImGuiWrapper *imgui)
-{
-    if (m_update_render_data)
-        update_render_data();
-
-    auto *shader = wxGetApp().get_current_shader();
-    if (!shader)
-        return;
-    assert(shader->get_name() == "mm_gouraud");
-
-    for (size_t buffer_idx = 0; buffer_idx < m_gizmo_scene.triangle_patches.size(); ++buffer_idx) {
-        if (m_gizmo_scene.has_VBOs(buffer_idx)) {
-            const TrianglePatch& patch = m_gizmo_scene.triangle_patches[buffer_idx];
-            std::array<float, 4> color;
-            if (patch.tiny_patch() && !patch.neighbor_types.empty()) {
-                size_t color_idx = (size_t)*patch.neighbor_types.begin();
-                color = (color_idx == 0 ? m_default_volume_color : m_colors[color_idx - 1]);
-                color[3] = 0.85;
-            }
-            else {
-                size_t color_idx = (size_t)patch.type;
-                color = (color_idx == 0 ? m_default_volume_color : m_colors[color_idx - 1]);
-            }
-            shader->set_uniform("uniform_color", color);
-            m_gizmo_scene.render(buffer_idx);
-        }
-    }
-
-    if (m_paint_contour.has_VBO()) {
-        ScopeGuard guard_mm_gouraud([shader]() { shader->start_using(); });
-        shader->stop_using();
-
-        auto *contour_shader = wxGetApp().get_shader("mm_contour");
-        contour_shader->start_using();
-
-        glsafe(::glDepthFunc(GL_LEQUAL));
-        m_paint_contour.render();
-        glsafe(::glDepthFunc(GL_LESS));
-
-        contour_shader->stop_using();
-    }
-
-    m_update_render_data = false;
-}
-
-void TriangleSelectorMmGui::update_render_data()
-{
-    if (m_paint_changed || m_gizmo_scene.vertices_VBO_id == 0) {
-        m_gizmo_scene.release_geometry();
-        m_vertices.reserve(m_vertices.size() * 3);
-        for (const Vertex& vr : m_vertices) {
-            m_gizmo_scene.vertices.emplace_back(vr.v.x());
-            m_gizmo_scene.vertices.emplace_back(vr.v.y());
-            m_gizmo_scene.vertices.emplace_back(vr.v.z());
-        }
-        m_gizmo_scene.finalize_vertices();
-
-        update_triangle_patches();
-        m_gizmo_scene.finalize_triangle_indices();
-
-        m_paint_changed = false;
-    }
-
-    m_paint_contour.release_geometry();
-    std::vector<Vec2i> contour_edges = this->get_seed_fill_contour();
-    m_paint_contour.contour_vertices.reserve(contour_edges.size() * 6);
-    for (const Vec2i &edge : contour_edges) {
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(0)].v.x());
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(0)].v.y());
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(0)].v.z());
-
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(1)].v.x());
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(1)].v.y());
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(1)].v.z());
-    }
-
-    m_paint_contour.contour_indices.assign(m_paint_contour.contour_vertices.size() / 3, 0);
-    std::iota(m_paint_contour.contour_indices.begin(), m_paint_contour.contour_indices.end(), 0);
-    m_paint_contour.contour_indices_size = m_paint_contour.contour_indices.size();
-
-    m_paint_contour.finalize_geometry();
-}
-
-void TriangleSelectorMmGui::update_triangle_patches()
-{
-    auto [neighbors, neighbors_propagated] = this->precompute_all_neighbors();
-    std::vector<bool>  visited(m_triangles.size(), false);
-
-    auto get_all_touching_triangles = [this](int facet_idx, const Vec3i& neighbors, const Vec3i& neighbors_propagated) -> std::vector<int> {
-        assert(facet_idx != -1 && facet_idx < int(m_triangles.size()));
-        assert(this->verify_triangle_neighbors(m_triangles[facet_idx], neighbors));
-        std::vector<int> touching_triangles;
-        Vec3i            vertices = { m_triangles[facet_idx].verts_idxs[0], m_triangles[facet_idx].verts_idxs[1], m_triangles[facet_idx].verts_idxs[2] };
-        append_touching_subtriangles(neighbors(0), vertices(1), vertices(0), touching_triangles);
-        append_touching_subtriangles(neighbors(1), vertices(2), vertices(1), touching_triangles);
-        append_touching_subtriangles(neighbors(2), vertices(0), vertices(2), touching_triangles);
-
-        for (int neighbor_idx : neighbors_propagated)
-            if (neighbor_idx != -1 && !m_triangles[neighbor_idx].is_split())
-                touching_triangles.emplace_back(neighbor_idx);
-
-        return touching_triangles;
-    };
-
-    auto calc_patch_area = [this](const TrianglePatch& patch, float max_limit_area) {
-        double total_area = 0.f;
-        const std::vector<int>& ti = patch.triangle_indices;
-        for (int i = 0; i < ti.size() / 3; i++) {
-            total_area += std::abs((m_vertices[ti[i]].v - m_vertices[ti[i + 1]].v)
-                .cross(m_vertices[ti[i]].v - m_vertices[ti[i + 2]].v).norm()) / 2;
-            if (total_area >= max_limit_area)
-                break;
-        }
-
-        return total_area;
-    };
-
-    int start_facet_idx = 0;
-    while (1) {
-        for (; start_facet_idx < visited.size(); start_facet_idx++) {
-            if (!visited[start_facet_idx] && m_triangles[start_facet_idx].valid() && !m_triangles[start_facet_idx].is_split())
-                break;
-        }
-
-        if (start_facet_idx >= m_triangles.size())
-            break;
-
-        EnforcerBlockerType start_facet_state = m_triangles[start_facet_idx].get_state();
-        TrianglePatch patch;
-        std::queue<int> facet_queue;
-        facet_queue.push(start_facet_idx);
-        while (!facet_queue.empty()) {
-            int current_facet = facet_queue.front();
-            facet_queue.pop();
-            assert(!m_triangles[current_facet].is_split());
-
-            if (!visited[current_facet]) {
-                Triangle& triangle = m_triangles[current_facet];
-                patch.triangle_indices.insert(patch.triangle_indices.end(), triangle.verts_idxs.begin(), triangle.verts_idxs.end());
-                patch.facet_indices.push_back(current_facet);
-
-                std::vector<int> touching_triangles = get_all_touching_triangles(current_facet, neighbors[current_facet], neighbors_propagated[current_facet]);
-                for (const int tr_idx : touching_triangles) {
-                    if (tr_idx < 0)
-                        continue;
-
-                    if (m_triangles[tr_idx].get_state() != start_facet_state) {
-                        patch.neighbor_types.insert(m_triangles[tr_idx].get_state());
-                        continue;
-                    }
-
-                    // should check visited state after color for neight types
-                    if (visited[tr_idx])
-                        continue;
-
-                    assert(!m_triangles[tr_idx].is_split());
-                    facet_queue.push(tr_idx);
-                }
-            }
-
-            visited[current_facet] = true;
-        }
-
-        patch.area = calc_patch_area(patch, GLGizmoMmuSegmentation::TinyPatchAreaMax);
-        patch.type = start_facet_state;
-        m_gizmo_scene.triangle_patches.emplace_back(std::move(patch));
-    }
-}
-
-void TriangleSelectorMmGui::update_selector_triangles()
-{
-    for (TrianglePatch& patch : m_gizmo_scene.triangle_patches) {
-        if (!patch.tiny_patch() || patch.neighbor_types.empty())
-            continue;
-
-        EnforcerBlockerType type = *patch.neighbor_types.begin();
-        for (int facet_idx : patch.facet_indices) {
-            m_triangles[facet_idx].set_state(type);
-        }
-    }
+        return m_extruders_colors[0];
 }
 
 wxString GLGizmoMmuSegmentation::handle_snapshot_action_name(bool shift_down, GLGizmoPainterBase::Button button_down) const
@@ -805,8 +609,7 @@ wxString GLGizmoMmuSegmentation::handle_snapshot_action_name(bool shift_down, GL
     if (shift_down)
         action_name = _L("Remove painted color");
     else {
-        size_t extruder_id = (button_down == Button::Left ? m_first_selected_extruder_idx : m_second_selected_extruder_idx) + 1;
-        action_name        = GUI::format(_L("Painted using: Filament %1%"), extruder_id);
+        action_name        = GUI::format(_L("Painted using: Filament %1%"), m_selected_extruder_idx);
     }
     return action_name;
 }

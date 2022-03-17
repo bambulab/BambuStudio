@@ -5,6 +5,7 @@
 
 namespace Slic3r::GUI {
 
+#if 0
 struct TrianglePatch {
     std::vector<int> triangle_indices;
     std::vector<int> facet_indices;
@@ -15,6 +16,7 @@ struct TrianglePatch {
 
     bool tiny_patch() const;
 };
+#endif
 
 class GLMmSegmentationGizmo3DScene
 {
@@ -72,31 +74,6 @@ public:
     std::vector<unsigned int> triangle_indices_VBO_ids;
 };
 
-class TriangleSelectorMmGui : public TriangleSelectorGUI {
-public:
-    // Plus 1 in the initialization of m_gizmo_scene is because the first position is allocated for non-painted triangles, and the indices above colors.size() are allocated for seed fill.
-    explicit TriangleSelectorMmGui(const TriangleMesh &mesh, const std::vector<std::array<float, 4>> &colors, const std::array<float, 4> &default_volume_color)
-        : TriangleSelectorGUI(mesh), m_colors(colors), m_default_volume_color(default_volume_color), m_gizmo_scene(2 * (colors.size() + 1)) {}
-    ~TriangleSelectorMmGui() override = default;
-
-    // Render current selection. Transformation matrices are supposed
-    // to be already set.
-    void render(ImGuiWrapper* imgui) override;
-
-    // BBS
-    // TriangleSelector.m_triangles => m_gizmo_scene.triangle_patches
-    void update_triangle_patches();
-    // m_gizmo_scene.triangle_patches => TriangleSelector.m_triangles
-    void update_selector_triangles();
-
-private:
-    void update_render_data();
-
-    const std::vector<std::array<float, 4>> &m_colors;
-    const std::array<float, 4>               m_default_volume_color;
-    GLMmSegmentationGizmo3DScene             m_gizmo_scene;
-};
-
 class GLGizmoMmuSegmentation : public GLGizmoPainterBase
 {
 public:
@@ -120,13 +97,7 @@ public:
     // BBS
     bool on_number_key_down(int number);
 
-    constexpr static float TinyPatchAreaMin = 0.f;
-    constexpr static float TinyPatchAreaMax = 5.f;
-    static float tiny_patch_area;
-
 protected:
-    std::array<float, 4> get_cursor_sphere_left_button_color() const override;
-    std::array<float, 4> get_cursor_sphere_right_button_color() const override;
     // BBS
     std::array<float, 4> get_cursor_hover_color() const override;
 
@@ -145,14 +116,10 @@ protected:
     std::string get_gizmo_leaving_text() const override { return _u8L("Leaving Multimaterial painting"); }
     std::string get_action_snapshot_name() override { return _u8L("Multimaterial painting editing"); }
 
-    size_t                            m_first_selected_extruder_idx  = 0;
-    size_t                            m_second_selected_extruder_idx = 1;
     // BBS
     size_t                            m_selected_extruder_idx = 0;
-    std::vector<std::string>          m_original_extruders_names;
-    std::vector<std::array<float, 4>> m_original_extruders_colors;
-    std::vector<std::array<float, 4>> m_modified_extruders_colors;
-    std::vector<int>                  m_original_volumes_extruder_idxs;
+    std::vector<std::array<float, 4>> m_extruders_colors;
+    std::vector<int>                  m_volumes_extruder_idxs;
 
     // BBS
     wchar_t                           m_current_tool = 0;
@@ -173,6 +140,9 @@ private:
     PainterGizmoType get_painter_type() const override;
 
     void init_model_triangle_selectors();
+
+    // BBS
+    void update_triangle_selectors_colors();
     void init_extruders_data();
 
     // This map holds all translated description texts, so they can be easily referenced during layout calculations

@@ -92,9 +92,9 @@ public:
                 return std::make_unique<TriangleSelector::Circle>(center, camera_pos, cursor_radius, trafo_matrix, clipping_plane);
         }
 
-        static std::unique_ptr<Cursor> cursor_factory(const Vec3f& center, const Vec3f& camera_pos, const float height, const Transform3d& trafo_matrix, const ClippingPlane& clipping_plane)
+        static std::unique_ptr<Cursor> cursor_factory(float z_world, const Vec3f& camera_pos, const float height, const Transform3d& trafo_matrix, const ClippingPlane& clipping_plane)
         {
-            return std::make_unique<TriangleSelector::HeightRange>(center, camera_pos, height, trafo_matrix, clipping_plane);
+            return std::make_unique<TriangleSelector::HeightRange>(z_world, camera_pos, height, trafo_matrix, clipping_plane);
         }
 
     protected:
@@ -162,8 +162,8 @@ public:
     public:
         HeightRange() = delete;
         // BBS: set cursor_radius to 0.1 for high smooth edge
-        explicit HeightRange(const Vec3f& center_, const Vec3f& source_, float height_, const Transform3d& trafo_, const ClippingPlane& clipping_plane_)
-            : SinglePointCursor(center_, source_, 1.f, trafo_, clipping_plane_), m_height(height_) {}
+        explicit HeightRange(float z_world_, const Vec3f& source_, float height_, const Transform3d& trafo_, const ClippingPlane& clipping_plane_)
+            : SinglePointCursor(center, source_, 1.f, trafo_, clipping_plane_), m_z_world(z_world_), m_height(height_) {}
         ~HeightRange() override = default;
 
         bool is_mesh_point_inside(const Vec3f& point) const override;
@@ -173,7 +173,9 @@ public:
             return true;
         }
     private:
+        float m_z_world;
         float m_height;
+        Vec3f center;
     };
 
     class Capsule3D : public DoublePointCursor

@@ -81,6 +81,9 @@ public:
         m_paint_changed = paint_changed;
     };
 
+    static constexpr std::array<float, 4> enforcers_color{ 0.47f, 0.47f, 1.f, 1.f };
+    static constexpr std::array<float, 4> blockers_color{ 1.f, 0.44f, 0.44f, 1.f };
+
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
     void render_debug(ImGuiWrapper* imgui);
     bool m_show_triangles{false};
@@ -104,6 +107,86 @@ private:
 
 protected:
     GLPaintContour                      m_paint_contour;
+};
+
+// BBS
+struct TrianglePatch {
+    std::vector<int> triangle_indices;
+    std::vector<int> facet_indices;
+    EnforcerBlockerType type = EnforcerBlockerType::NONE;
+    std::set<EnforcerBlockerType> neighbor_types;
+    // if area is larger than TinyPatchAreaMax, stop accumulate left triangle areas to improve performance
+    float area = 0.f;
+
+    bool tiny_patch() const;
+};
+
+class TriangleSelectorPatch : public TriangleSelectorGUI {
+public:
+    explicit TriangleSelectorPatch(const TriangleMesh& mesh, const std::vector<std::array<float, 4>> ebt_colors)
+        : TriangleSelectorGUI(mesh), m_ebt_colors(ebt_colors) {}
+    virtual ~TriangleSelectorPatch() = default;
+
+    // Render current selection. Transformation matrices are supposed
+    // to be already set.
+    void render(ImGuiWrapper* imgui) override;
+    // TriangleSelector.m_triangles => m_gizmo_scene.triangle_patches
+    void update_triangle_patches();
+    // m_gizmo_scene.triangle_patches => TriangleSelector.m_triangles
+    void update_selector_triangles();
+
+    void set_ebt_colors(const std::vector<std::array<float, 4>> ebt_colors) { m_ebt_colors = ebt_colors; }
+
+    constexpr static float TinyPatchAreaMin = 0.f;
+    constexpr static float TinyPatchAreaMax = 5.f;
+
+    // BBS: fix me
+    static float tiny_patch_area;
+
+protected:
+    // Release the geometry data, release OpenGL VBOs.
+    void release_geometry();
+    // Finalize the initialization of the geometry, upload the geometry to OpenGL VBO objects
+    // and possibly releasing it if it has been loaded into the VBOs.
+    void finalize_vertices();
+    // Finalize the initialization of the indices, upload the indices to OpenGL VBO objects
+    // and possibly releasing it if it has been loaded into the VBOs.
+    void finalize_triangle_indices();
+
+    void clear()
+    {
+        // BBS
+        this->m_triangle_indices_VBO_ids.clear();
+        this->m_triangle_indices_sizes.clear();
+
+        for (TrianglePatch& patch : this->m_triangle_patches)
+            patch.triangle_indices.clear();
+        this->m_triangle_patches.clear();
+    }
+
+    [[nodiscard]] inline bool has_VBOs(size_t triangle_indices_idx) const
+    {
+        assert(triangle_indices_idx < this->m_triangle_patches.size());
+        return this->m_triangle_indices_VBO_ids[triangle_indices_idx] != 0;
+    }
+
+    std::vector<float>          m_patch_vertices;
+    std::vector<TrianglePatch>  m_triangle_patches;
+
+    // When the triangle indices are loaded into the graphics card as Vertex Buffer Objects,
+    // the above mentioned std::vectors are cleared and the following variables keep their original length.
+    std::vector<size_t>         m_triangle_indices_sizes;
+
+    // IDs of the Vertex Array Objects, into which the geometry has been loaded.
+    // Zero if the VBOs are not sent to GPU yet.
+    unsigned int                m_vertices_VBO_id{ 0 };
+    std::vector<unsigned int>   m_triangle_indices_VBO_ids;
+
+    std::vector<std::array<float, 4>> m_ebt_colors;
+
+private:
+    void update_render_data();
+    void render(int buffer_idx);
 };
 
 
@@ -185,6 +268,14 @@ protected:
         size_t facet_idx;
     };
 
+    // BBS: projected result of mouse height range for a mesh
+    struct ProjectedHeightRange
+    {
+        float   z_world;
+        int     mesh_idx;
+        size_t  first_facet_idx;
+    };
+
     bool     m_triangle_splitting_enabled = true;
     ToolType m_tool_type                  = ToolType::BRUSH;
     float    m_smart_fill_angle           = 30.f;
@@ -218,6 +309,8 @@ protected:
 
 private:
     std::vector<std::vector<ProjectedMousePosition>> get_projected_mouse_positions(const Vec2d &mouse_position, double resolution, const std::vector<Transform3d> &trafo_matrices) const;
+
+    std::vector<ProjectedHeightRange> get_projected_height_range(const Vec2d& mouse_position, double resolution, const std::vector<const ModelVolume*>& part_volumes, const std::vector<Transform3d>& trafo_matrices) const;
 
     bool is_mesh_point_clipped(const Vec3d& point, const Transform3d& trafo) const;
     void update_raycast_cache(const Vec2d& mouse_position,

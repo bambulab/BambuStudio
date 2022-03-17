@@ -5273,6 +5273,9 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
         default:
         case GLVolumeCollection::ERenderType::Opaque:
         {
+            const GLGizmosManager& gm = get_gizmos_manager();
+            //                GLGizmosManager::EType type = gm.get_current_type();
+            if (dynamic_cast<GLGizmoPainterBase*>(gm.get_current()) == nullptr)
             {
                 //BBS:add assemble view related logic
                 // do not cull backfaces to show broken geometry, if any
@@ -5285,12 +5288,11 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                     }
                     }, with_outline);
             }
+            else {
+                // In case a painting gizmo is open, it should render the painted triangles
+                // before transparent objects are rendered. Otherwise they would not be
+                // visible when inside modifier meshes etc.
 
-            // In case a painting gizmo is open, it should render the painted triangles
-            // before transparent objects are rendered. Otherwise they would not be
-            // visible when inside modifier meshes etc.
-            {
-                const GLGizmosManager& gm = get_gizmos_manager();
 //                GLGizmosManager::EType type = gm.get_current_type();
                 if (dynamic_cast<GLGizmoPainterBase*>(gm.get_current())) {
                     shader->stop_using();
