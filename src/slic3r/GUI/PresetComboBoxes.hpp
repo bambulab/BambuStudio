@@ -64,7 +64,14 @@ public:
     // select preset which is selected in PreseBundle
     void update_from_bundle();
 
-    //BBS
+    // BBS: ams
+    void add_ams_filaments(std::string selected, bool alias_name = false);
+    int  selected_ams_filament() const;
+    
+    void set_filament_idx(const int extr_idx) { m_filament_idx = extr_idx; }
+    int  get_filament_idx() const { return m_filament_idx; }
+
+    // BBS
     wxString get_tooltip(const Preset& preset);
 
     static wxColor different_color(wxColor const & color);
@@ -99,6 +106,11 @@ protected:
     int m_em_unit;
     bool m_suppress_change { true };
 
+    // BBS: ams
+    int  m_filament_idx       = -1;
+    int m_first_ams_filament = 0;
+    int m_last_ams_filament = 0;
+
     // parameters for an icon's drawing
     int icon_height;
     int norm_icon_width;
@@ -113,6 +125,9 @@ protected:
     void invalidate_selection();
     void validate_selection(bool predicate = false);
     void update_selection();
+
+    // BBS: ams
+    int  update_ams_color();
 
 #ifdef __linux__
     static const char* separator_head() { return "------- "; }
@@ -153,9 +168,6 @@ public:
 
     wxColor get_color() { return m_color; }
 
-    void set_extruder_idx(const int extr_idx)   { m_extruder_idx = extr_idx; }
-    int  get_extruder_idx() const               { return m_extruder_idx; }
-
     void switch_to_tab();
     void change_extruder_color();
     void show_add_menu();
@@ -167,8 +179,6 @@ public:
     void OnSelect(wxCommandEvent& evt) override;
 
 private:
-    int     m_extruder_idx = -1;
-
     // BBS
     wxColor m_color;
 };

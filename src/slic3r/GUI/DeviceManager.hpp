@@ -67,18 +67,24 @@ public:
     }
 
     std::string     id;
-    std::string     last_color;
-    wxColour        wx_color;
-    std::string     sn;
-    bool            is_bbl;
-    std::string     meterial;
-    std::string     saturability;
-    std::string     smooth;
-    std::string     time;
-    std::string     transmittance;
+    std::string     tag_uid;    // tag_uid
+    std::string     setting_id; // tray_info_idx
+    std::string     type;
+    std::string     sub_brands;
+    std::string     color;
     std::string     weight;
-    std::string     manufacturer;
-    double          diameter;
+    std::string     diameter;
+    std::string     temp;
+    std::string     time;
+    std::string     bed_temp_type;
+    std::string     bed_temp;
+    std::string     hot_end_temp_max;
+    std::string     hot_end_temp_limit; // hot_endtemp_limit
+    std::string     xcam_info;
+    std::string     uuid;
+
+    wxColour        wx_color;
+    bool            is_bbl;
 
     void update_color_from_str(std::string color);
 };

@@ -1,4 +1,5 @@
 #include "StaticLine.hpp"
+#include "Label.hpp"
 
 #include <wx/dcgraph.h>
 
@@ -16,6 +17,7 @@ StaticLine::StaticLine(wxWindow* parent, bool vertical, const wxString& label)
     wxWindow::SetBackgroundColour(parent->GetBackgroundColour());
     this->pen = wxPen(wxColour("#C4C4C4"));
     SetLabel(label);
+    SetFont(Label::Body_14);
 }
 
 void StaticLine::SetLabel(const wxString& label)

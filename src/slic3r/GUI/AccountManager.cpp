@@ -125,6 +125,12 @@ namespace Slic3r {
                 if (json_str.empty()) return;
 
                 it->second->parse_json(msg->get_topic(), json_str);
+
+                if (it->second->is_ams_need_update)
+                    GUI::wxGetApp().CallAfter([manager, m = params[1]] {
+                        std::map<std::string, MachineObject *>::iterator it = manager->myBindMachineList.find(m);
+                        GUI::wxGetApp().sidebar().load_ams_list(it->second->amsList);
+                    });
             }
         }
     }
@@ -2709,14 +2715,14 @@ namespace Slic3r {
 
         std::map<std::string, Preset*>::iterator it;
         for (it = my_presets.begin(); it != my_presets.end(); it++) {
-            get_setting(it->second, true);
+            get_setting(it->second);
         }
 
         GUI::wxGetApp().reload_settings();
         return 0;
     }
 
-    void AccountManager::get_setting(Preset* &preset, bool sync)
+    void AccountManager::get_setting(Preset *&preset, std::function<void(void)> callback)
     {
         std::string url = (boost::format("%1%/iot-service/api/slicer/setting/%2%") % host % preset->setting_id).str();
         Http http = Http::get(url);
@@ -2724,7 +2730,7 @@ namespace Slic3r {
         http.header("accept", "application/json")
             .header("Authorization", get_token_str())
             .on_complete(
-                [this, preset](std::string body, unsigned) {
+                [this, preset, callback](std::string body, unsigned) {
                     std::stringstream ss(body);
                     pt::ptree root;
                     pt::read_json(ss, root);
@@ -2736,6 +2742,11 @@ namespace Slic3r {
                         boost::optional<std::string> name = root.get_optional<std::string>("name");
                         boost::optional<std::string> type = root.get_optional<std::string>("type");
                         boost::optional<std::string> base_id = root.get_optional<std::string>("base_id");
+
+                        if (name.has_value()) {
+                            if (preset->name.empty())
+                                preset->name = name.value();
+                        }
 
                         if (base_id.has_value()) {
                             preset->base_id = base_id.value();
@@ -2758,9 +2769,10 @@ namespace Slic3r {
                         if (m_curr_user)
                             preset->key_values.insert(std::make_pair("user_id", m_curr_user->get_user_id()));
                     }
+                    if (callback) callback();
                 }
         );
-        if (sync)
+        if (callback == nullptr)
             http.perform_sync();
         else
             http.perform();

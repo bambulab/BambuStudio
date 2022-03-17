@@ -45,13 +45,13 @@ const char *PresetBundle::BBL_DEFAULT_PRINTER_MODEL = "BBL-3DP-V5NORMAL";
 const char *PresetBundle::BBL_DEFAULT_PRINTER_VARIANT = "0.4";
 const char *PresetBundle::BBL_DEFAULT_FILAMENT = "Generic PLA";
 
-PresetBundle::PresetBundle() :
-    prints(Preset::TYPE_PRINT, Preset::print_options(), static_cast<const PrintRegionConfig&>(FullPrintConfig::defaults())),
-    filaments(Preset::TYPE_FILAMENT, Preset::filament_options(), static_cast<const PrintRegionConfig&>(FullPrintConfig::defaults())),
-    sla_materials(Preset::TYPE_SLA_MATERIAL, Preset::sla_material_options(), static_cast<const SLAMaterialConfig&>(SLAFullPrintConfig::defaults())), 
-    sla_prints(Preset::TYPE_SLA_PRINT, Preset::sla_print_options(), static_cast<const SLAPrintObjectConfig&>(SLAFullPrintConfig::defaults())),
-    printers(Preset::TYPE_PRINTER, Preset::printer_options(), static_cast<const PrintRegionConfig&>(FullPrintConfig::defaults()), "- default FFF -"),
-    physical_printers(PhysicalPrinter::printer_options())
+PresetBundle::PresetBundle()
+    : prints(Preset::TYPE_PRINT, Preset::print_options(), static_cast<const PrintRegionConfig &>(FullPrintConfig::defaults()))
+    , filaments(Preset::TYPE_FILAMENT, Preset::filament_options(), static_cast<const PrintRegionConfig &>(FullPrintConfig::defaults()))
+    , sla_materials(Preset::TYPE_SLA_MATERIAL, Preset::sla_material_options(), static_cast<const SLAMaterialConfig &>(SLAFullPrintConfig::defaults()))
+    , sla_prints(Preset::TYPE_SLA_PRINT, Preset::sla_print_options(), static_cast<const SLAPrintObjectConfig &>(SLAFullPrintConfig::defaults()))
+    , printers(Preset::TYPE_PRINTER, Preset::printer_options(), static_cast<const PrintRegionConfig &>(FullPrintConfig::defaults()), "- default FFF -")
+    , physical_printers(PhysicalPrinter::printer_options())
 {
     // The following keys are handled by the UI, they do not have a counterpart in any StaticPrintConfig derived classes,
     // therefore they need to be handled differently. As they have no counterpart in StaticPrintConfig, they are not being
@@ -66,11 +66,11 @@ PresetBundle::PresetBundle() :
     this->prints.default_preset().compatible_printers_condition();
     this->prints.default_preset().inherits();
 
-    this->filaments.default_preset().config.option<ConfigOptionStrings>("filament_settings_id", true)->values = { "" };
+    this->filaments.default_preset().config.option<ConfigOptionStrings>("filament_settings_id", true)->values = {""};
     this->filaments.default_preset().compatible_printers_condition();
     this->filaments.default_preset().inherits();
-	// Set all the nullable values to nils.
-	this->filaments.default_preset().config.null_nullables();
+    // Set all the nullable values to nils.
+    this->filaments.default_preset().config.null_nullables();
 
     this->sla_materials.default_preset().config.optptr("sla_material_settings_id", true);
     this->sla_materials.default_preset().compatible_printers_condition();
@@ -81,14 +81,12 @@ PresetBundle::PresetBundle() :
     this->sla_prints.default_preset().compatible_printers_condition();
     this->sla_prints.default_preset().inherits();
 
-    this->printers.add_default_preset(Preset::sla_printer_options(), static_cast<const SLAMaterialConfig&>(SLAFullPrintConfig::defaults()), "- default SLA -");
+    this->printers.add_default_preset(Preset::sla_printer_options(), static_cast<const SLAMaterialConfig &>(SLAFullPrintConfig::defaults()), "- default SLA -");
     this->printers.preset(1).printer_technology_ref() = ptSLA;
-    for (size_t i = 0; i < 2; ++ i) {
-		// The following ugly switch is to avoid printers.preset(0) to return the edited instance, as the 0th default is the current one.
-		Preset &preset = this->printers.default_preset(i);
-        for (const char *key : { 
-            "printer_settings_id", "printer_model", "printer_variant"})
-            preset.config.optptr(key, true);
+    for (size_t i = 0; i < 2; ++i) {
+        // The following ugly switch is to avoid printers.preset(0) to return the edited instance, as the 0th default is the current one.
+        Preset &preset = this->printers.default_preset(i);
+        for (const char *key : {"printer_settings_id", "printer_model", "printer_variant"}) preset.config.optptr(key, true);
         if (i == 0) {
             preset.config.optptr("default_print_profile", true);
             preset.config.option<ConfigOptionStrings>("default_filament_profile", true);
@@ -101,11 +99,11 @@ PresetBundle::PresetBundle() :
     }
 
     // Re-activate the default presets, so their "edited" preset copies will be updated with the additional configuration values above.
-    this->prints       .select_preset(0);
-    this->sla_prints   .select_preset(0);
-    this->filaments    .select_preset(0);
+    this->prints.select_preset(0);
+    this->sla_prints.select_preset(0);
+    this->filaments.select_preset(0);
     this->sla_materials.select_preset(0);
-    this->printers     .select_preset(0);
+    this->printers.select_preset(0);
 
     this->project_config.apply_only(FullPrintConfig::defaults(), s_project_options);
 }

@@ -215,6 +215,22 @@ void PresetComboBox::update_selection()
 #endif
 }
 
+int PresetComboBox::update_ams_color()
+{
+    if (m_filament_idx < 0) return -1;
+    int idx = selected_ams_filament();
+    if (idx < 0) return -1;
+    DynamicPrintConfig *cfg        = &wxGetApp().preset_bundle->project_config;
+    auto colors = static_cast<ConfigOptionStrings*>(cfg->option("filament_colour")->clone());
+    colors->values[m_filament_idx] = wxGetApp().preset_bundle->filament_ams_list[idx]
+        .opt_string("filament_colour", 0u);
+    DynamicPrintConfig new_cfg;
+    new_cfg.set_key_value("filament_colour", colors);
+    cfg->apply(new_cfg);
+    wxGetApp().plater()->on_config_change(new_cfg);
+    return idx;
+}
+
 static std::string suffix(const Preset& preset)
 {
     return (preset.is_dirty ? Preset::suffix_modified() : "");
@@ -349,6 +365,35 @@ void PresetComboBox::update()
 void PresetComboBox::update_from_bundle()
 {
     this->update(m_collection->get_selected_preset().name);
+}
+
+void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
+{
+    if (!m_preset_bundle->filament_ams_list.empty()) {
+        set_label_marker(Append(separator(L("AMS filaments")), wxNullBitmap));
+        m_first_ams_filament = GetCount();
+        for (auto &f : m_preset_bundle->filament_ams_list) {
+            std::string name   = f.opt_string("filament_settings_id", 0u);
+            auto preset = m_collection->find_preset(name);
+            if (!preset) continue;
+            preset->is_visible = true;
+            auto color = f.opt_string("filament_colour", 0u);
+            wxColour clr(color);
+            wxImage img(16, 16);
+            img.SetRGB(wxRect({0, 0}, img.GetSize()), clr.Red(), clr.Green(), clr.Blue());
+            int item_id = Append(get_preset_name(*preset), img);
+            //validate_selection(id->value == selected); // can not select
+        }
+        m_last_ams_filament = GetCount();
+    }
+}
+
+int PresetComboBox::selected_ams_filament() const
+{
+    if (m_first_ams_filament && m_last_selected >= m_first_ams_filament && m_last_selected < m_last_ams_filament) {
+        return m_last_selected - m_first_ams_filament;
+    }
+    return -1;
 }
 
 void PresetComboBox::msw_rescale()
@@ -557,7 +602,7 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
         // BBS: not show color picker
 #if 0
         Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {
-            const Preset* selected_preset = m_collection->find_preset(m_preset_bundle->filament_presets[m_extruder_idx]);
+            const Preset* selected_preset = m_collection->find_preset(m_preset_bundle->filament_presets[m_filament_idx]);
             // Wide icons are shown if the currently selected preset is not compatible with the current printer,
             // and red flag is drown in front of the selected preset.
             bool          wide_icons = selected_preset && !selected_preset->is_compatible;
@@ -601,11 +646,11 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
                 // get current color
                 DynamicPrintConfig* cfg = &wxGetApp().preset_bundle->project_config;
                 auto colors = static_cast<ConfigOptionStrings*>(cfg->option("filament_colour")->clone());
-                wxColour clr(colors->values[m_extruder_idx]);
+                wxColour clr(colors->values[m_filament_idx]);
                 if (!clr.IsOk())
                     clr = wxColour(0, 0, 0); // Don't set alfa to transparence
 
-                colors->values[m_extruder_idx] = m_clrData.GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+                colors->values[m_filament_idx] = m_clrData.GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
                 DynamicPrintConfig cfg_new = *cfg;
                 cfg_new.set_key_value("filament_colour", colors);
 
@@ -674,9 +719,11 @@ void PlaterPresetComboBox::OnSelect(wxCommandEvent &evt)
             wxTheApp->CallAfter([sp]() { run_wizard(sp); });
         }
         return;
-    }
-    else if (marker == LABEL_ITEM_PHYSICAL_PRINTER || m_last_selected != selected_item || m_collection->current_is_dirty())
+    } else if (marker == LABEL_ITEM_PHYSICAL_PRINTER || m_last_selected != selected_item || m_collection->current_is_dirty()) {
         m_last_selected = selected_item;
+        if (m_type == Preset::TYPE_FILAMENT)
+            update_ams_color();
+    }
         
     evt.Skip();
 }
@@ -702,6 +749,7 @@ void PlaterPresetComboBox::switch_to_tab()
         {
             const std::string& preset_name = wxGetApp().preset_bundle->filaments.get_preset_name_by_alias(selected_preset);
             wxGetApp().get_tab(m_type)->select_preset(preset_name);
+            wxGetApp().get_tab(m_type)->get_combo_box()->set_filament_idx(m_filament_idx);
         }
     }
 
@@ -733,7 +781,7 @@ void PlaterPresetComboBox::change_extruder_color()
     // get current color
     DynamicPrintConfig* cfg = &wxGetApp().preset_bundle->project_config;
     auto colors = static_cast<ConfigOptionStrings*>(cfg->option("filament_colour")->clone());
-    wxColour clr(colors->values[m_extruder_idx]);
+    wxColour clr(colors->values[m_filament_idx]);
     if (!clr.IsOk())
         clr = wxColour(0, 0, 0); // Don't set alfa to transparence
 
@@ -745,7 +793,7 @@ void PlaterPresetComboBox::change_extruder_color()
     dialog.CenterOnParent();
     if (dialog.ShowModal() == wxID_OK)
     {
-        colors->values[m_extruder_idx] = dialog.GetColourData().GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+        colors->values[m_filament_idx] = dialog.GetColourData().GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
 
         DynamicPrintConfig cfg_new = *cfg;
         cfg_new.set_key_value("filament_colour", colors);
@@ -805,7 +853,7 @@ void PlaterPresetComboBox::update()
 {
     if (m_type == Preset::TYPE_FILAMENT &&
         (m_preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA ||
-        m_preset_bundle->filament_presets.size() <= (size_t)m_extruder_idx) )
+        m_preset_bundle->filament_presets.size() <= (size_t)m_filament_idx) )
         return;
 
     // Otherwise fill in the list from scratch.
@@ -818,10 +866,10 @@ void PlaterPresetComboBox::update()
     if (m_type == Preset::TYPE_FILAMENT)
     {
         unsigned char rgb[3];
-        filament_color = m_preset_bundle->project_config.opt_string("filament_colour", (unsigned int)m_extruder_idx);
-        if (!bitmap_cache().parse_color(filament_color, rgb))
-            // Extruder color is not defined.
-            filament_color.clear();
+        filament_color = m_preset_bundle->project_config.opt_string("filament_colour", (unsigned int) m_filament_idx);
+        //if (!bitmap_cache().parse_color(filament_color, rgb))
+        //    // Extruder color is not defined.
+        //    filament_color.clear();
         // BBS
         wxColor clr(filament_color);
         clr_picker->SetBackgroundColour(clr);
@@ -829,7 +877,7 @@ void PlaterPresetComboBox::update()
         auto diff_clr = different_color(clr);
         clr_picker->SetWindowStyle(clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224 ? (style | wxBORDER_SIMPLE) : (style | wxBORDER_NONE));
         clr_picker->SetForegroundColour(diff_clr);
-        selected_filament_preset = m_collection->find_preset(m_preset_bundle->filament_presets[m_extruder_idx]);
+        selected_filament_preset = m_collection->find_preset(m_preset_bundle->filament_presets[m_filament_idx]);
         if (!selected_filament_preset) {
             //can not find this filament, should be caused by project embedded presets, will be updated later
             return;
@@ -862,7 +910,7 @@ void PlaterPresetComboBox::update()
     {
         const Preset& preset = presets[i];
         bool is_selected =  m_type == Preset::TYPE_FILAMENT ?
-                            m_preset_bundle->filament_presets[m_extruder_idx] == preset.name :
+                            m_preset_bundle->filament_presets[m_filament_idx] == preset.name :
                             // The case, when some physical printer is selected
                             m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection() ? false :
                             i == m_collection->get_selected_idx();
@@ -933,6 +981,10 @@ void PlaterPresetComboBox::update()
         //if (i + 1 == m_collection->num_default_presets())
         //    set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
     }
+
+    if (m_type == Preset::TYPE_FILAMENT)
+        add_ams_filaments(into_u8(selected_user_preset), true);
+
     //BBS: add project embedded preset logic
     if (!project_embedded_presets.empty())
     {
@@ -1066,6 +1118,8 @@ void TabPresetComboBox::OnSelect(wxCommandEvent &evt)
     }
     else if (on_selection_changed && (m_last_selected != selected_item || m_collection->current_is_dirty())) {
         m_last_selected = selected_item;
+        // BBS: ams
+        update_ams_color();
         on_selection_changed(selected_item);
     }
 
@@ -1162,6 +1216,10 @@ void TabPresetComboBox::update()
         //if (i + 1 == m_collection->num_default_presets())
         //    set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
     }
+
+    if (m_type == Preset::TYPE_FILAMENT)
+        add_ams_filaments(into_u8(selected));
+
     //BBS: add project embedded preset logic
     if (!project_embedded_presets.empty())
     {

@@ -14,7 +14,8 @@ class DropDown : public wxPopupTransientWindow
     int                         hover_item = -1;
 
     double radius = 0;
-    bool use_content_width = false;
+    bool   use_content_width = false;
+    bool   align_icon = false;
 
     wxSize textSize;
     wxSize iconSize;
@@ -60,6 +61,8 @@ public:
     void SetSelectorBackgroundColor(StateColor const &color);
 
     void SetUseContentWidth(bool use);
+
+    void SetAlignIcon(bool align);
     
 public:
     void Rescale();

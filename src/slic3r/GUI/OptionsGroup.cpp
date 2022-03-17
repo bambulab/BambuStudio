@@ -461,7 +461,8 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled/* = [](){}*/
 		else {
 			// BBS: new layout
 			::StaticLine* stl = new ::StaticLine(m_parent, false, _(title));
-			sizer = new wxBoxSizer(wxVERTICAL);
+            stl->SetFont(wxOSX ? wxGetApp().normal_font() : wxGetApp().bold_font());
+            sizer = new wxBoxSizer(wxVERTICAL);
 			sizer->Add(stl, 0, wxEXPAND);
 			sizer->AddSpacer(8);
 			this->stb = stl;

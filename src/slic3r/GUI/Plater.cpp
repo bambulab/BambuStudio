@@ -106,6 +106,7 @@
 #include "BitmapCache.hpp"
 #include "AuxiliaryDialog.hpp"
 #include "ParamsDialog.hpp"
+#include "Tab.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/RadioBox.hpp"
@@ -527,7 +528,7 @@ Sidebar::Sidebar(Plater *parent)
     combo_and_btn_sizer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 3 * em / 10);
     combo_and_btn_sizer->Add(8 * em / 10, 0, 0, 0, 0);
 
-    p->combos_filament[0]->set_extruder_idx(0);
+    p->combos_filament[0]->set_filament_idx(0);
     p->sizer_filaments->GetItem((size_t)0)->GetSizer()->Add(combo_and_btn_sizer, 1, wxEXPAND);
 
     bSizer_filament_content->Add(p->sizer_filaments, 1, wxALIGN_CENTER | wxALL);
@@ -619,7 +620,7 @@ Sidebar::~Sidebar() {}
 
 void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filament_idx) {
     *combo = new PlaterPresetComboBox(p->m_panel_filament_content, Slic3r::Preset::TYPE_FILAMENT);
-    (*combo)->set_extruder_idx(filament_idx);
+    (*combo)->set_filament_idx(filament_idx);
 
     auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -651,7 +652,7 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     PlaterPresetComboBox* combobox = (*combo);
     edit_btn->Bind(wxEVT_BUTTON, [this, combobox, filament_idx](wxCommandEvent)
         {
-            p->editing_filament = filament_idx;
+            p->editing_filament = filament_idx; // sync with TabPresetComboxBox's m_filament_idx
             combobox->switch_to_tab();
         });
     combobox->edit_btn = edit_btn;
@@ -976,6 +977,49 @@ void Sidebar::on_filaments_change(size_t num_filaments)
 
     scrolled_panel()->Layout();
     scrolled_panel()->Refresh();
+}
+
+void Sidebar::load_ams_list(std::map<std::string, Ams *> const &list)
+{
+    std::vector<DynamicPrintConfig> filament_ams_list;
+    for (auto ams : list) {
+        for (auto tray : ams.second->trayList) {
+            DynamicPrintConfig ams;
+            auto & filaments = wxGetApp().preset_bundle->filaments.get_presets();
+            auto iter = std::find_if(filaments.begin(), filaments.end(), 
+                [&tray](auto &f) { return f.setting_id == tray.second->setting_id; });
+            if (iter != filaments.end()) {
+                ams.set_key_value("filament_settings_id", new ConfigOptionStrings{iter->name});
+            } else {
+                std::shared_ptr<Preset *> preset(new Preset*(new Preset(Preset::TYPE_FILAMENT, {})));
+                tray.second->setting_id = "252860";
+                (*preset)->setting_id = tray.second->setting_id;
+                ams.set_key_value("filament_settings_id", new ConfigOptionStrings{tray.second->setting_id});
+                wxGetApp().getAccountManager()->get_setting(*preset, [preset] {
+                    wxGetApp().CallAfter([preset] {
+                        if ((*preset)->name.empty())
+                            return;
+                        PresetsConfigSubstitutions substitutions;
+                        wxGetApp().preset_bundle->filaments.load_user_presets({{(*preset)->name, *preset}}, 
+                                PRESET_FILAMENT_NAME, substitutions, ForwardCompatibilitySubstitutionRule::Enable);
+                        auto & ams_list = wxGetApp().preset_bundle->filament_ams_list;
+                        for (auto& ams : ams_list) {
+                            if (ams.opt_string("filament_settings_id", 0u) == (*preset)->setting_id) {
+                                ams.set_key_value("filament_settings_id", new ConfigOptionStrings{(*preset)->name});
+                                for (auto c : wxGetApp().sidebar().combos_filament()) c->update();
+                                break;
+                            }
+                        }
+                    });
+                });
+            }
+            ams.set_key_value("filament_colour", new ConfigOptionStrings{"#" + tray.second->color});
+            filament_ams_list.emplace_back(std::move(ams));
+        }
+    }
+    wxGetApp().preset_bundle->filament_ams_list = filament_ams_list;
+    for (auto c : p->combos_filament)
+        c->update();
 }
 
 // BBS
@@ -4301,7 +4345,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     // So, use GetSelection() from event parameter
     int selection = evt.GetSelection();
 
-    auto idx = combo->get_extruder_idx();
+    auto idx = combo->get_filament_idx();
 
     //! Because of The MSW and GTK version of wxBitmapComboBox derived from wxComboBox,
     //! but the OSX version derived from wxOwnerDrawnCombo.

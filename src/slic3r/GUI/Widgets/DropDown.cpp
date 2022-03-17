@@ -122,6 +122,8 @@ void DropDown::SetUseContentWidth(bool use)
     messureSize();
 }
 
+void DropDown::SetAlignIcon(bool align) { align_icon = align; }
+
 void DropDown::Rescale()
 {
     need_sync = true;
@@ -252,6 +254,11 @@ void DropDown::render(wxDC &dc)
             }
             pt.x += iconSize.x + 5;
             pt.y = rcContent.y;
+        } else if (icon.IsOk()) {
+            pt.y += (rcContent.height - icon.GetSize().y) / 2;
+            dc.DrawBitmap(icon, pt);
+            pt.x += icon.GetWidth() + 5;
+            pt.y = rcContent.y;
         }
         auto text = texts[i];
         if (!text.IsEmpty()) {
@@ -272,28 +279,28 @@ void DropDown::messureSize()
 {
     if (!need_sync) return;
     textSize = wxSize();
-    wxClientDC dc(GetParent() ? GetParent() : this);
-    for (auto & text : texts) {
-        wxSize size = dc.GetMultiLineTextExtent(text);
-        if (size.x > textSize.x) textSize = size;
-    }
     iconSize = wxSize();
-    for (auto &icon : icons) {
-        if (icon.IsOk()) {
-            wxSize size = icon.GetSize();
-            if (size.x > iconSize.x) iconSize = size;
+    wxClientDC dc(GetParent() ? GetParent() : this);
+    for (size_t i = 0; i < texts.size(); ++i) {
+        wxSize size1 = dc.GetMultiLineTextExtent(texts[i]);
+        if (icons[i].IsOk()) {
+            wxSize size2 = icons[i].GetSize();
+            if (size2.x > iconSize.x) iconSize = size2;
+            if (!align_icon) {
+                size1.x += size2.x + 5;
+            }
         }
+        if (size1.x > textSize.x) textSize = size1;
     }
+    if (!align_icon) iconSize.x = 0;
     wxSize szContent = textSize;
     szContent.x += 10;
     if (check_bitmap.bmp().IsOk()) {
         auto szBmp = check_bitmap.bmp().GetSize();
         szContent.x += szBmp.x + 5;
     }
-    if (iconSize.x > 0) {
-        szContent.x += iconSize.x + 5;
-        if (iconSize.y > szContent.y) szContent.y = iconSize.y;
-    }
+    if (iconSize.x > 0) szContent.x += iconSize.x + 5;
+    if (iconSize.y > szContent.y) szContent.y = iconSize.y;
     szContent.y += 10;
     if (texts.size() > 15) szContent.x += 6;
     if (GetParent()) {

@@ -374,7 +374,8 @@ public:
 	void            update_saved_preset_from_current_preset();
 
 	DynamicPrintConfig*	get_config() { return m_config; }
-	PresetCollection*	get_presets() { return m_presets; }
+    PresetCollection *  get_presets() { return m_presets; }
+    TabPresetComboBox *  get_combo_box() { return m_presets_choice; }
 
 	virtual void    on_value_change(const std::string& opt_key, const boost::any& value);
 

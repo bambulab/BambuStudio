@@ -44,6 +44,7 @@ class PartPlateList;
 class SlicingStatusEvent;
 enum SLAPrintObjectStep : unsigned int;
 enum class ConversionType : int;
+class Ams;
 
 using ModelInstancePtrs = std::vector<ModelInstance*>;
 
@@ -106,6 +107,7 @@ public:
     void jump_to_option(const std::string& opt_key, Preset::Type type, const std::wstring& category);
     // BBS. Add on_filaments_change() method.
     void on_filaments_change(size_t num_filaments);
+    void load_ams_list(std::map<std::string, Ams *> const & list);
 
     // BBS
     //ObjectManipulation*     obj_manipul();

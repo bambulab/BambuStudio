@@ -127,19 +127,11 @@ void machine_conn_callback::message_arrived(mqtt::const_message_ptr msg)
 
 void AmsTray::update_color_from_str(std::string color)
 {
-    if (last_color.compare(color) == 0)
+    if (this->color.compare(color) == 0)
         return;
-    
-    wxUint32 rgba;
-    try {
-        rgba = stoi(color);
-    }
-    catch (...) {
-        return;
-    }
 
-    wx_color.SetRGBA(rgba);
-    last_color = color;
+    wx_color = "#" + wxString::FromUTF8(color);
+    this->color = color;
 }
 
 MachineObject::MachineObject(AccountManager& acc, std::string name, std::string id, std::string ip)
@@ -701,7 +693,9 @@ int MachineObject::parse_json(std::string topic, std::string payload)
 
                 /* ams */
                 try {
-                    if (print.get_child_optional("ams") != boost::none) {
+                    auto ams = print.get_child_optional("ams");
+                    if (ams != boost::none) {
+                        auto &print = ams.value();
                         // reconnect amsList.clear();
 
                         // for ams changed event
@@ -712,11 +706,11 @@ int MachineObject::parse_json(std::string topic, std::string payload)
                         int last_ams_exist_bits = ams_exist_bits;
                         int last_tray_exist_bits = tray_exist_bits;
                         if (ams_exist_bits_str.has_value())
-                            ams_exist_bits = stoi(ams_exist_bits_str.value());
+                            ams_exist_bits = stoi(ams_exist_bits_str.value(), nullptr, 16);
                         if (tray_exist_bits_str.has_value())
-                            tray_exist_bits = stoi(tray_exist_bits_str.value());
+                            tray_exist_bits = stoi(tray_exist_bits_str.value(), nullptr, 16);
                         if (tray_is_bbl_bits_str.has_value())
-                            tray_is_bbl_bits = stoi(tray_is_bbl_bits_str.value());
+                            tray_is_bbl_bits = stoi(tray_is_bbl_bits_str.value(), nullptr, 16);
 
                         if (ams_exist_bits != last_ams_exist_bits
                             || last_tray_exist_bits != last_tray_exist_bits) {
@@ -751,19 +745,24 @@ int MachineObject::parse_json(std::string topic, std::string payload)
 
                             for (auto tray = tray_list.begin(); tray != tray_list.end(); ++tray) {
                                 std::string tray_id     = tray->second.get_optional<std::string>("id").value();
-                                std::string color       = tray->second.get_optional<std::string>("color").value();
-                                bool is_bbl             = tray->second.get_optional<std::string>("is_bbl").value().compare("true") ? true : false;
+                                //bool is_bbl             = tray->second.get_optional<std::string>("is_bbl").value().compare("true") ? true : false;
 
-                                boost::optional<std::string> rfid_id            = tray->second.get_optional<std::string>("rfid_id");
-                                boost::optional<std::string> tray_diameter      = tray->second.get_optional<std::string>("tray_diameter");
-                                boost::optional<std::string> tray_manufacturer  = tray->second.get_optional<std::string>("tray_manufacturer");
-                                boost::optional<std::string> tray_meterial      = tray->second.get_optional<std::string>("tray_meterial");
-                                boost::optional<std::string> tray_saturability  = tray->second.get_optional<std::string>("tray_saturability");
-                                boost::optional<std::string> tray_smooth        = tray->second.get_optional<std::string>("tray_smooth");
-                                boost::optional<std::string> tray_sn            = tray->second.get_optional<std::string>("tray_sn");
-                                boost::optional<std::string> tray_time          = tray->second.get_optional<std::string>("tray_time");
-                                boost::optional<std::string> tray_transmittance = tray->second.get_optional<std::string>("tray_transmittance");
+                                boost::optional<std::string> id                 = tray->second.get_optional<std::string>("id");
+                                boost::optional<std::string> tag_uid            = tray->second.get_optional<std::string>("tag_uid");
+                                boost::optional<std::string> tray_info_idx      = tray->second.get_optional<std::string>("tray_info_idx");
+                                boost::optional<std::string> tray_type          = tray->second.get_optional<std::string>("tray_type");
+                                boost::optional<std::string> tray_sub_brands    = tray->second.get_optional<std::string>("tray_sub_brands");
+                                boost::optional<std::string> tray_color         = tray->second.get_optional<std::string>("tray_color");
                                 boost::optional<std::string> tray_weight        = tray->second.get_optional<std::string>("tray_weight");
+                                boost::optional<std::string> tray_diameter      = tray->second.get_optional<std::string>("tray_diameter");
+                                boost::optional<std::string> tray_temp          = tray->second.get_optional<std::string>("tray_temp");
+                                boost::optional<std::string> tray_time          = tray->second.get_optional<std::string>("tray_time");
+                                boost::optional<std::string> bed_temp_type      = tray->second.get_optional<std::string>("bed_temp_type");
+                                boost::optional<std::string> bed_temp           = tray->second.get_optional<std::string>("bed_temp");
+                                boost::optional<std::string> hot_end_temp_max   = tray->second.get_optional<std::string>("hot_end_temp_max");
+                                boost::optional<std::string> hot_end_temp_limit = tray->second.get_optional<std::string>("hot_end_temp_limit");
+                                boost::optional<std::string> xcam_info          = tray->second.get_optional<std::string>("xcam_info");
+                                boost::optional<std::string> tray_uuid          = tray->second.get_optional<std::string>("tray_uuid");
 
                                 if (tray_id.empty()) continue;
 
@@ -781,22 +780,24 @@ int MachineObject::parse_json(std::string topic, std::string payload)
 
                                 // update properties
                                 if (curr_tray) {
-                                    curr_tray->update_color_from_str(color);
-                                    curr_tray->sn           = tray_sn.has_value() ? tray_sn.value() : "";
-                                    curr_tray->is_bbl       = is_bbl;
-                                    curr_tray->meterial     = tray_meterial.has_value() ? tray_meterial.value() : "";
-                                    curr_tray->saturability = tray_saturability.has_value() ? tray_saturability.value() : "";
-                                    curr_tray->smooth       = tray_smooth.has_value() ? tray_smooth.value() : "";
-                                    curr_tray->time         = tray_time.has_value() ? tray_time.value() : "";
-                                    curr_tray->transmittance= tray_transmittance.has_value() ? tray_transmittance.value() : "";
+                                    curr_tray->id           = id.has_value() ? id.value() : "";
+                                    //curr_tray->is_bbl       = is_bbl;
+                                    curr_tray->tag_uid      = tag_uid.has_value() ? tag_uid.value() : "";
+                                    curr_tray->setting_id   = tray_info_idx.has_value() ? tray_info_idx.value() : "";
+                                    curr_tray->type         = tray_type.has_value() ? tray_type.value() : "";
+                                    curr_tray->sub_brands   = tray_sub_brands.has_value() ? tray_sub_brands.value() : "";
                                     curr_tray->weight       = tray_weight.has_value() ? tray_weight.value() : "";
-                                    curr_tray->manufacturer = tray_manufacturer.has_value() ? tray_manufacturer.value() : "";
-                                    try {
-                                        curr_tray->diameter = std::stod(tray_diameter.has_value() ? tray_diameter.value() : "0.0");
-                                    }
-                                    catch (...) {
-                                        ;
-                                    }
+                                    curr_tray->diameter     = tray_diameter.has_value() ? tray_diameter.value() : "";
+                                    curr_tray->temp         = tray_temp.has_value() ? tray_temp.value() : "";
+                                    curr_tray->time         = tray_time.has_value() ? tray_time.value() : "";
+                                    curr_tray->bed_temp_type = bed_temp_type.has_value() ? bed_temp_type.value() : "";
+                                    curr_tray->bed_temp      = bed_temp.has_value() ? bed_temp.value() : "";
+                                    curr_tray->hot_end_temp_max = hot_end_temp_max.has_value() ? hot_end_temp_max.value() : "";
+                                    curr_tray->hot_end_temp_limit = hot_end_temp_limit.has_value() ? hot_end_temp_limit.value() : "";
+                                    curr_tray->xcam_info          = xcam_info.has_value() ? xcam_info.value() : "";
+                                    curr_tray->uuid               = tray_uuid.has_value() ? tray_uuid.value() : "";
+                                    auto color = tray_color.has_value() ? tray_color.value() : "";
+                                    curr_tray->update_color_from_str(color);
                                 }
                             }
                         }

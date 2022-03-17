@@ -152,7 +152,7 @@ void TrayListModel::update(MachineObject* obj)
                     m_titleColValues.push_back(title_text);
                     wxString color_text = wxString::Format("%s", tray->wx_color.GetAsString());
                     m_colorColValues.push_back(color_text);
-                    wxString meterial_text = wxString::Format("%s", tray->meterial);
+                    wxString meterial_text = wxString::Format("%s", tray->type);
                     m_meterialColValues.push_back(meterial_text);
                     wxString weight_text = wxString::Format("%sg", tray->weight);
                     m_weightColValues.push_back(weight_text);
@@ -160,16 +160,17 @@ void TrayListModel::update(MachineObject* obj)
                     m_diameterColValues.push_back(diameter_text);
                     wxString time_text = wxString::Format("%s", tray->time);
                     m_timeColValues.push_back(time_text);
-                    wxString sn_text = wxString::Format("%s", tray->sn);
+                    wxString sn_text = wxString::Format("%s", tray->uuid);
                     m_snColValues.push_back(sn_text);
-                    wxString manufacturer_text = wxString::Format("%s", tray->manufacturer);
+                    wxString manufacturer_text = wxString::Format("%s", tray->sub_brands);
                     m_manufacturerColValues.push_back(manufacturer_text);
-                    wxString saturability_text = wxString::Format("%s", tray->saturability);
-                    m_saturabilityColValues.push_back(saturability_text);
-                    wxString transmittance_text = wxString::Format("%s", tray->transmittance);
-                    m_transmittanceColValues.push_back(transmittance_text);
-                    wxString smooth_text = wxString::Format("%s", tray->smooth);
-                    m_smoothColValues.push_back(smooth_text);
+                    // TODO: 
+                    //wxString saturability_text = wxString::Format("%s", tray->saturability);
+                    //m_saturabilityColValues.push_back(saturability_text);
+                    //wxString transmittance_text = wxString::Format("%s", tray->transmittance);
+                    //m_transmittanceColValues.push_back(transmittance_text);
+                    //wxString smooth_text = wxString::Format("%s", tray->smooth);
+                    //m_smoothColValues.push_back(smooth_text);
                 }
             }
         }

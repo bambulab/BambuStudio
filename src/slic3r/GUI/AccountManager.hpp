@@ -406,7 +406,7 @@ public:
 
     /* preset settings api */
     int get_setting_list(Http::ErrorFn errFn = nullptr);
-    void get_setting(Preset* &preset, bool sync = false);
+    void get_setting(Preset* &preset, std::function<void(void)> callback = {});
     int request_setting_id(Preset* &preset, unsigned int& http_code);
     int put_setting(Preset* preset, unsigned int& http_code);
     int del_setting(std::string setting_id, unsigned int& http_code);

@@ -27,6 +27,7 @@
 #include "format.hpp"
 #include "MediaPlayCtrl.h"
 #include "MediaFilePanel.h"
+#include "Plater.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -177,6 +178,8 @@ void MonitorPanel::set_default()
 
     /* reset time lapse panel */
     m_media_file_panel->SetMachineObject(nullptr);
+
+    wxGetApp().sidebar().load_ams_list({});
 }
 
  wxBoxSizer* MonitorPanel::create_side_tools()
