@@ -61,6 +61,7 @@ enum class NotificationType
 	// Notification on the start of BambuSlicer, when updates of system profiles are detected.
 	// Contains a hyperlink to execute installation of the new system profiles.
 	PresetUpdateAvailable,
+	PresetUpdateFinished,
 //	LoadingFailed,
 	// Errors emmited by Print::validate
 	// difference from Slicing error is that they disappear not grey out at update_background_process

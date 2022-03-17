@@ -146,22 +146,25 @@ struct Incompat
 	fs::path bundle;
 	Version version;
 	std::string vendor;
+	//BBS: add directory support
+	bool is_directory {false};
 
-	Incompat(fs::path &&bundle, const Version &version, std::string vendor)
+	Incompat(fs::path &&bundle, const Version &version, std::string vendor, bool is_dir = false)
 		: bundle(std::move(bundle))
 		, version(version)
 		, vendor(std::move(vendor))
+		, is_directory(is_dir)
 	{}
 
 	void remove() {
 		// Remove the bundle file
-		fs::remove(bundle);
-
-		// Look for an installed index and remove it too if any
-		//BBS: set to json for configs
-		const fs::path installed_idx = bundle.replace_extension("json");
-		if (fs::exists(installed_idx)) {
-			fs::remove(installed_idx);
+		if (is_directory) {
+			if (fs::exists(bundle))
+                fs::remove_all(bundle);
+		}
+		else {
+			if (fs::exists(bundle))
+				fs::remove(bundle);
 		}
 	}
 
@@ -742,12 +745,16 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
                 Semver vendor_ver = get_version_from_json(path_in_vendor.string());
 
                 std::map<std::string, std::string> key_values;
-                std::vector<std::string> keys(2);
+                std::vector<std::string> keys(3);
 				Semver cache_ver;
                 keys[0] = BBL_JSON_KEY_VERSION;
                 keys[1] = BBL_JSON_KEY_DESCRIPTION;
+                keys[2] = BBL_JSON_KEY_FORCE_UPDATE;
                 get_values_from_json(file_path, keys, key_values);
                 std::string description = key_values[BBL_JSON_KEY_DESCRIPTION];
+                bool force_update = false;
+                if (key_values.find(BBL_JSON_KEY_FORCE_UPDATE) != key_values.end())
+                    force_update = (key_values[BBL_JSON_KEY_FORCE_UPDATE] == "1")?true:false;
                 auto config_version = Semver::parse(key_values[BBL_JSON_KEY_VERSION]);
                 if (config_version)
                     cache_ver = *config_version;
@@ -771,17 +778,17 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
                         version.config_version = cache_ver;
                         version.comment = description;
 
-                        updates.updates.emplace_back(std::move(file_path), std::move(path_in_vendor.string()), std::move(version), vendor_name, changelog, description);
+                        updates.updates.emplace_back(std::move(file_path), std::move(path_in_vendor.string()), std::move(version), vendor_name, changelog, description, force_update, false);
 
                         //BBS: add directory support
                         auto print_in_vendors = (vendor_path / vendor_name / PRESET_PRINT_NAME);
-                        updates.updates.emplace_back(std::move(print_in_cache), std::move(print_in_vendors.string()), Version(), vendor_name, "", "", false, true);
+                        updates.updates.emplace_back(std::move(print_in_cache), std::move(print_in_vendors.string()), Version(), vendor_name, "", "", force_update, true);
 
                         auto filament_in_vendors = (vendor_path / vendor_name / PRESET_FILAMENT_NAME);
-                        updates.updates.emplace_back(std::move(filament_in_cache), std::move(filament_in_vendors.string()), Version(), vendor_name, "", "", false, true);
+                        updates.updates.emplace_back(std::move(filament_in_cache), std::move(filament_in_vendors.string()), Version(), vendor_name, "", "", force_update, true);
 
                         auto machine_in_vendors = (vendor_path / vendor_name / PRESET_PRINTER_NAME);
-                        updates.updates.emplace_back(std::move(machine_in_cache), std::move(machine_in_vendors.string()), Version(), vendor_name, "", "", false, true);
+                        updates.updates.emplace_back(std::move(machine_in_cache), std::move(machine_in_vendors.string()), Version(), vendor_name, "", "", force_update, true);
                     }
                 }
             }
@@ -796,41 +803,38 @@ bool PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
 {
     //std::string vendor_path;
     //std::string vendor_name;
-	if (updates.incompats.size() > 0) {
-		//if (snapshot) {
-		//	BOOST_LOG_TRIVIAL(info) << "Taking a snapshot...";
-		//	if (! GUI::Config::take_config_snapshot_cancel_on_error(*GUI::wxGetApp().app_config, Snapshot::SNAPSHOT_DOWNGRADE, "",
-		//		_u8L("Continue and install configuration updates?")))
-		//		return false;
-		//}
-		
-		BOOST_LOG_TRIVIAL(info) << format("[BBL Updater]:Deleting %1% incompatible bundles", updates.incompats.size());
+    if (updates.incompats.size() > 0) {
+        //if (snapshot) {
+        //	BOOST_LOG_TRIVIAL(info) << "Taking a snapshot...";
+        //	if (! GUI::Config::take_config_snapshot_cancel_on_error(*GUI::wxGetApp().app_config, Snapshot::SNAPSHOT_DOWNGRADE, "",
+        //		_u8L("Continue and install configuration updates?")))
+        //		return false;
+        //}
+        BOOST_LOG_TRIVIAL(info) << format("[BBL Updater]:Deleting %1% incompatible bundles", updates.incompats.size());
 
-		for (auto &incompat : updates.incompats) {
-			BOOST_LOG_TRIVIAL(info) << '\t' << incompat;
-			incompat.remove();
-		}
+        for (auto &incompat : updates.incompats) {
+            BOOST_LOG_TRIVIAL(info) << '\t' << incompat;
+            incompat.remove();
+        }
+    } else if (updates.updates.size() > 0) {
+        //if (snapshot) {
+        //	BOOST_LOG_TRIVIAL(info) << "Taking a snapshot...";
+        //	if (! GUI::Config::take_config_snapshot_cancel_on_error(*GUI::wxGetApp().app_config, Snapshot::SNAPSHOT_UPGRADE, "",
+        //		_u8L("Continue and install configuration updates?")))
+        //		return false;
+        //}
 
-		
-	} else if (updates.updates.size() > 0) {
-		//if (snapshot) {
-		//	BOOST_LOG_TRIVIAL(info) << "Taking a snapshot...";
-		//	if (! GUI::Config::take_config_snapshot_cancel_on_error(*GUI::wxGetApp().app_config, Snapshot::SNAPSHOT_UPGRADE, "",
-		//		_u8L("Continue and install configuration updates?")))
-		//		return false;
-		//}
+        BOOST_LOG_TRIVIAL(info) << format("[BBL Updater]:Performing %1% updates", updates.updates.size());
 
-		BOOST_LOG_TRIVIAL(info) << format("[BBL Updater]:Performing %1% updates", updates.updates.size());
+        for (const auto &update : updates.updates) {
+            BOOST_LOG_TRIVIAL(info) << '\t' << update;
 
-		for (const auto &update : updates.updates) {
-			BOOST_LOG_TRIVIAL(info) << '\t' << update;
-
-			update.install();
+            update.install();
             //if (!update.is_directory) {
             //    vendor_path = update.source.parent_path().string();
             //    vendor_name = update.vendor;
             //}
-		}
+        }
 
         //if (!vendor_path.empty()) {
         //    PresetBundle bundle;
@@ -850,7 +854,7 @@ bool PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
         //}
     }
 
-	return true;
+    return true;
 }
 
 void PresetUpdater::priv::set_waiting_updates(Updates u)
@@ -922,128 +926,120 @@ static bool reload_configs_update_gui()
 //BBS: refine the preset updater logic
 PresetUpdater::UpdateResult PresetUpdater::config_update(const Semver& old_slic3r_version, UpdateParams params) const
 {
- 	if (! p->enabled_config_update) { return R_NOOP; }
+    if (! p->enabled_config_update) { return R_NOOP; }
 
-	auto updates = p->get_config_updates(old_slic3r_version);
-	//if (updates.incompats.size() > 0) {
-	//	BOOST_LOG_TRIVIAL(info) << format("%1% bundles incompatible. Asking for action...", updates.incompats.size());
+    auto updates = p->get_config_updates(old_slic3r_version);
+    //if (updates.incompats.size() > 0) {
+    //	BOOST_LOG_TRIVIAL(info) << format("%1% bundles incompatible. Asking for action...", updates.incompats.size());
 
-	//	std::unordered_map<std::string, wxString> incompats_map;
-	//	for (const auto &incompat : updates.incompats) {
-	//		const auto min_slic3r = incompat.version.min_slic3r_version;
-	//		const auto max_slic3r = incompat.version.max_slic3r_version;
-	//		wxString restrictions;
-	//		if (min_slic3r != Semver::zero() && max_slic3r != Semver::inf()) {
- //               restrictions = GUI::format_wxstr(_L("requires min. %s and max. %s"),
- //                   min_slic3r.to_string(),
- //                   max_slic3r.to_string());
-	//		} else if (min_slic3r != Semver::zero()) {
-	//			restrictions = GUI::format_wxstr(_L("requires min. %s"), min_slic3r.to_string());
-	//			BOOST_LOG_TRIVIAL(debug) << "Bundle is not downgrade, user will now have to do whole wizard. This should not happen.";
-	//		} else {
- //               restrictions = GUI::format_wxstr(_L("requires max. %s"), max_slic3r.to_string());
-	//		}
+    //	std::unordered_map<std::string, wxString> incompats_map;
+    //	for (const auto &incompat : updates.incompats) {
+    //		const auto min_slic3r = incompat.version.min_slic3r_version;
+    //		const auto max_slic3r = incompat.version.max_slic3r_version;
+    //		wxString restrictions;
+    //		if (min_slic3r != Semver::zero() && max_slic3r != Semver::inf()) {
+    //               restrictions = GUI::format_wxstr(_L("requires min. %s and max. %s"),
+    //                   min_slic3r.to_string(),
+    //                   max_slic3r.to_string());
+    //		} else if (min_slic3r != Semver::zero()) {
+    //			restrictions = GUI::format_wxstr(_L("requires min. %s"), min_slic3r.to_string());
+    //			BOOST_LOG_TRIVIAL(debug) << "Bundle is not downgrade, user will now have to do whole wizard. This should not happen.";
+    //		} else {
+    //               restrictions = GUI::format_wxstr(_L("requires max. %s"), max_slic3r.to_string());
+    //		}
 
-	//		incompats_map.emplace(std::make_pair(incompat.vendor, std::move(restrictions)));
-	//	}
+    //		incompats_map.emplace(std::make_pair(incompat.vendor, std::move(restrictions)));
+    //	}
 
-	//	GUI::MsgDataIncompatible dlg(std::move(incompats_map));
-	//	const auto res = dlg.ShowModal();
-	//	if (res == wxID_REPLACE) {
-	//		BOOST_LOG_TRIVIAL(info) << "User wants to re-configure...";
+    //	GUI::MsgDataIncompatible dlg(std::move(incompats_map));
+    //	const auto res = dlg.ShowModal();
+    //	if (res == wxID_REPLACE) {
+    //		BOOST_LOG_TRIVIAL(info) << "User wants to re-configure...";
 
-	//		// This effectively removes the incompatible bundles:
-	//		// (snapshot is taken beforehand)
-	//		if (! p->perform_updates(std::move(updates)) ||
-	//			! GUI::wxGetApp().run_wizard(GUI::ConfigWizard::RR_DATA_INCOMPAT))
-	//			return R_INCOMPAT_EXIT;
+    //		// This effectively removes the incompatible bundles:
+    //		// (snapshot is taken beforehand)
+    //		if (! p->perform_updates(std::move(updates)) ||
+    //			! GUI::wxGetApp().run_wizard(GUI::ConfigWizard::RR_DATA_INCOMPAT))
+    //			return R_INCOMPAT_EXIT;
 
-	//		return R_INCOMPAT_CONFIGURED;
-	//	}
-	//	else {
-	//		BOOST_LOG_TRIVIAL(info) << "User wants to exit Slic3r, bye...";
-	//		return R_INCOMPAT_EXIT;
-	//	}
+    //		return R_INCOMPAT_CONFIGURED;
+    //	}
+    //	else {
+    //		BOOST_LOG_TRIVIAL(info) << "User wants to exit Slic3r, bye...";
+    //		return R_INCOMPAT_EXIT;
+    //	}
 
-	//} else 
-	if (updates.updates.size() > 0) {
+    //} else 
+    if (updates.updates.size() > 0) {
 
-		bool incompatible_version = false;
-		for (const auto& update : updates.updates) {
-			incompatible_version = (update.forced_update ? true : incompatible_version);
-			//td::cout << update.forced_update << std::endl;
-			//BOOST_LOG_TRIVIAL(info) << format("Update requires higher version.");
-		}
+        bool force_update = false;
+        for (const auto& update : updates.updates) {
+            force_update = (update.forced_update ? true : force_update);
+            //td::cout << update.forced_update << std::endl;
+            //BOOST_LOG_TRIVIAL(info) << format("Update requires higher version.");
+        }
 
-		//forced update
-		if (incompatible_version)
-		{
-			BOOST_LOG_TRIVIAL(info) << format("Update of %1% bundles available. At least one requires higher version of Slicer.", updates.updates.size());
+        //forced update
+        if (force_update)
+        {
+            BOOST_LOG_TRIVIAL(info) << format("[BBL Updater]:Force updating will start, size %1% ", updates.updates.size());
+            bool ret = p->perform_updates(std::move(updates));
+            if (!ret) {
+                BOOST_LOG_TRIVIAL(warning) << format("[BBL Updater]:perform_updates failed");
+                return R_INCOMPAT_EXIT;
+            }
 
-			std::vector<GUI::MsgUpdateForced::Update> updates_msg;
-			for (const auto& update : updates.updates) {
-				//BBS: skip directory
-				if (update.is_directory)
-					continue;
-				std::string changelog = update.change_log;
-				updates_msg.emplace_back(update.vendor, update.version.config_version, update.descriptions, std::move(changelog));
-			}
+            ret = reload_configs_update_gui();
+            if (!ret) {
+                BOOST_LOG_TRIVIAL(warning) << format("[BBL Updater]:reload_configs_update_gui failed");
+                return R_INCOMPAT_EXIT;
+            }
+            Semver cur_ver = GUI::wxGetApp().preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE);
 
-			GUI::MsgUpdateForced dlg(updates_msg);
+            GUI::wxGetApp().plater()->get_notification_manager()->push_notification(GUI::NotificationType::PresetUpdateFinished, GUI::NotificationManager::NotificationLevel::ImportantNotificationLevel,  _u8L("Configuration package updated to ")+cur_ver.to_string());
 
-			const auto res = dlg.ShowModal();
-			if (res == wxID_OK) {
-				BOOST_LOG_TRIVIAL(info) << "User wants to update...";
-				if (! p->perform_updates(std::move(updates)) ||
-					! reload_configs_update_gui())
-					return R_INCOMPAT_EXIT;
-				return R_UPDATE_INSTALLED;
-			}
-			else {
-				BOOST_LOG_TRIVIAL(info) << "User wants to exit Slic3r, bye...";
-				return R_INCOMPAT_EXIT;
-			}
-		}
+            return R_UPDATE_INSTALLED;
+        }
 
-		// regular update
-		if (params == UpdateParams::SHOW_NOTIFICATION) {
-			p->set_waiting_updates(updates);
-			GUI::wxGetApp().plater()->get_notification_manager()->push_notification(GUI::NotificationType::PresetUpdateAvailable);
-		}
-		else {
-			BOOST_LOG_TRIVIAL(info) << format("Update of %1% bundles available. Asking for confirmation ...", p->waiting_updates.updates.size());
+        // regular update
+        if (params == UpdateParams::SHOW_NOTIFICATION) {
+            p->set_waiting_updates(updates);
+            GUI::wxGetApp().plater()->get_notification_manager()->push_notification(GUI::NotificationType::PresetUpdateAvailable);
+        }
+        else {
+            BOOST_LOG_TRIVIAL(info) << format("[BBL Updater]:Configuration package available. size %1%, need to confirm...", p->waiting_updates.updates.size());
 
-			std::vector<GUI::MsgUpdateConfig::Update> updates_msg;
-			for (const auto& update : updates.updates) {
-				//BBS: skip directory
-				if (update.is_directory)
-					continue;
-				std::string changelog = update.change_log;
-				updates_msg.emplace_back(update.vendor, update.version.config_version, update.descriptions, std::move(changelog));
-			}
+            std::vector<GUI::MsgUpdateConfig::Update> updates_msg;
+            for (const auto& update : updates.updates) {
+                //BBS: skip directory
+                if (update.is_directory)
+                    continue;
+                std::string changelog = update.change_log;
+                updates_msg.emplace_back(update.vendor, update.version.config_version, update.descriptions, std::move(changelog));
+            }
 
-			GUI::MsgUpdateConfig dlg(updates_msg, params == UpdateParams::FORCED_BEFORE_WIZARD);
+            GUI::MsgUpdateConfig dlg(updates_msg, params == UpdateParams::FORCED_BEFORE_WIZARD);
 
-			const auto res = dlg.ShowModal();
-			if (res == wxID_OK) {
-				BOOST_LOG_TRIVIAL(debug) << "User agreed to perform the update";
-				if (! p->perform_updates(std::move(updates)) ||
-					! reload_configs_update_gui())
-					return R_ALL_CANCELED;
-				return R_UPDATE_INSTALLED;
-			}
-			else {
-				BOOST_LOG_TRIVIAL(info) << "User refused the update";
-				if (params == UpdateParams::FORCED_BEFORE_WIZARD && res == wxID_CANCEL)
-					return R_ALL_CANCELED;
-				return R_UPDATE_REJECT;
-			}
-		}
+            const auto res = dlg.ShowModal();
+            if (res == wxID_OK) {
+                BOOST_LOG_TRIVIAL(debug) << "[BBL Updater]:selected yes to update";
+                if (! p->perform_updates(std::move(updates)) ||
+                    ! reload_configs_update_gui())
+                    return R_ALL_CANCELED;
+                return R_UPDATE_INSTALLED;
+            }
+            else {
+                BOOST_LOG_TRIVIAL(info) << "[BBL Updater]:selected no for updating";
+                if (params == UpdateParams::FORCED_BEFORE_WIZARD && res == wxID_CANCEL)
+                    return R_ALL_CANCELED;
+                return R_UPDATE_REJECT;
+            }
+        }
 		
-		// MsgUpdateConfig will show after the notificaation is clicked
-	} else {
-		BOOST_LOG_TRIVIAL(info) << "No configuration updates available.";
-	}
+        // MsgUpdateConfig will show after the notificaation is clicked
+    } else {
+        BOOST_LOG_TRIVIAL(info) << "[BBL Updater]:No configuration updates available.";
+    }
 
 	return R_NOOP;
 }

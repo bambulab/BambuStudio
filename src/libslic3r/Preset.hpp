@@ -32,6 +32,7 @@
 #define BBL_JSON_KEY_URL            "url"
 #define BBL_JSON_KEY_NAME           "name"
 #define BBL_JSON_KEY_DESCRIPTION    "description"
+#define BBL_JSON_KEY_FORCE_UPDATE   "force_update"
 #define BBL_JSON_KEY_MACHINE_MODEL_LIST     "machine_model_list"
 #define BBL_JSON_KEY_PROCESS_LIST   "process_list"
 #define BBL_JSON_KEY_SUB_PATH       "sub_path"
