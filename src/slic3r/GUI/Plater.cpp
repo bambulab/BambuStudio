@@ -1315,7 +1315,12 @@ struct Plater::priv
 
     bool is_project_dirty() const { return dirty_state.is_dirty(); }
     bool is_presets_dirty() const { return dirty_state.is_presets_dirty(); }
-    void update_project_dirty_from_presets() { dirty_state.update_from_presets(); }
+    void update_project_dirty_from_presets()
+    {
+        // BBS: backup
+        Slic3r::put_other_changes();
+        dirty_state.update_from_presets();
+    }
     int save_project_if_dirty(const wxString& reason) {
         int res = wxID_NO;
         if (dirty_state.is_dirty()) {
@@ -5788,6 +5793,8 @@ void Plater::load_project(wxString const& filename2,
 
     if (!load_restore)
         up_to_date(true, false);
+    else
+        p->dirty_state.update_from_undo_redo_stack(true);
     up_to_date(true, true);
 }
 

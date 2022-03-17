@@ -603,6 +603,7 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
 
                 //wxGetApp().get_tab(Preset::TYPE_PRINTER)->load_config(cfg_new);
                 cfg->apply(cfg_new);
+                wxGetApp().plater()->update_project_dirty_from_presets();
                 update();
                 wxGetApp().plater()->on_config_change(cfg_new);
             }

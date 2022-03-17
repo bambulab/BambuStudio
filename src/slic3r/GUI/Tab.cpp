@@ -3787,8 +3787,6 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
         apply_config_from_cache();
 
         load_current_preset();
-        //backup
-        Slic3r::put_other_changes();
     }
 
     if (technology_changed)
@@ -4740,8 +4738,6 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
 //!        wxTheApp->CallAfter([this, opt_key, value]() {
             static_cast<Tab*>(tab)->update_dirty();
             static_cast<Tab*>(tab)->on_value_change(opt_key, value);
-            // BBS: backup
-            Slic3r::put_other_changes();
 //!        });
     };
 
