@@ -168,7 +168,7 @@ MsgUpdateForced::MsgUpdateForced(const std::vector<Update>& updates) :
     MsgDialog(nullptr, _(L("Configuration incompatible")), _(L("the Configuration package is imcompatible with current APP.")) + " ", wxOK | wxICON_ERROR)
 {
 	auto* text = new wxStaticText(this, wxID_ANY, wxString::Format(_(L(
-		"The configuration is incompatible with current APP.\n"
+		"The configuration package is incompatible with current APP.\n"
 		"%s will update the configuration package, Otherwise it won't be able to start"
 	)), SLIC3R_APP_NAME));
 	
