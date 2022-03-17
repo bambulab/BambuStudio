@@ -62,7 +62,6 @@ int GUI_Run(GUI_InitParams &params)
         wxMessageBox(format_wxstr(_L("Fatal error, exception: %1%"), ex.what()), _L("Application initialization failed"), wxICON_STOP);
         throw;
     }*/
-
     // error
     return 1;
 }
