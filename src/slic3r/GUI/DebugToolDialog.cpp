@@ -99,7 +99,7 @@ void GcodePrintJob::process()
     fs::path gcode_path(m_gcode_file_str);
     fs::path _3mf_path(wxStandardPaths::Get().GetTempDir().utf8_str().data());
     _3mf_path /= gcode_path.filename().string();
-    std::string dst_gcode_file_str = "Metadata/" + gcode_path.filename().string();
+    std::string dst_gcode_file_str = "Metadata/plate_1.gcode";
 
     /* zip gcode to 3mf */
     std::string _3mf_file_str = _3mf_path.replace_extension("3mf").string();

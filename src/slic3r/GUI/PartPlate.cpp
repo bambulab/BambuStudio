@@ -3106,27 +3106,27 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 		}
 
 		if (with_gcode) {
-			if (m_plate_list[i]->get_slice_result() && m_plate_list[i]->is_slice_result_valid()) {
-				// BBS only include current palte_idx
-				if (plate_idx >= 0 && i != plate_idx) continue;
-					plate_data_item->gcode_file = m_plate_list[i]->m_gcode_result->filename;
-				plate_data_item->is_sliced_valid = true;
-				plate_data_item->gcode_prediction = std::to_string((int)m_plate_list[i]->get_slice_result()->print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time);
-				plate_data_item->toolpath_outside = m_plate_list[i]->m_gcode_result->toolpath_outside;
-				Print* print = nullptr;
-				m_plate_list[i]->get_print((PrintBase**)&print, nullptr, nullptr);
-				if (print) {
-					const PrintStatistics& ps = print->print_statistics();
-					if (ps.total_weight != 0.0) {
-						plate_data_item->gcode_weight = wxString::Format("%.2f", ps.total_weight).ToStdString();
-					}
-				}
-				else {
-					BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("print is null!");
-				}
-			} else {
-				BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "slice result = " <<m_plate_list[i]->get_slice_result() << ", result valid = " << m_plate_list[i]->is_slice_result_valid();
-			}
+            if (m_plate_list[i]->get_slice_result() && m_plate_list[i]->is_slice_result_valid()) {
+                // BBS only include current palte_idx
+                if (plate_idx == i) {
+                    plate_data_item->gcode_file       = m_plate_list[i]->m_gcode_result->filename;
+                    plate_data_item->is_sliced_valid  = true;
+                    plate_data_item->gcode_prediction = std::to_string(
+                        (int) m_plate_list[i]->get_slice_result()->print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time);
+                    plate_data_item->toolpath_outside = m_plate_list[i]->m_gcode_result->toolpath_outside;
+                    Print *print                      = nullptr;
+                    m_plate_list[i]->get_print((PrintBase **) &print, nullptr, nullptr);
+                    if (print) {
+                        const PrintStatistics &ps = print->print_statistics();
+                        if (ps.total_weight != 0.0) { plate_data_item->gcode_weight = wxString::Format("%.2f", ps.total_weight).ToStdString(); }
+                    } else {
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("print is null!");
+                    }
+                } else {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "slice result = " << m_plate_list[i]->get_slice_result()
+                                            << ", result valid = " << m_plate_list[i]->is_slice_result_valid();
+                }
+            }
 		}
 		
 		plate_data_list.push_back(plate_data_item);

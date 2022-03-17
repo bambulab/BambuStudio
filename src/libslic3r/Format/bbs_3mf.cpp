@@ -5155,6 +5155,8 @@ namespace Slic3r {
                 if (!plate_data->gcode_file.empty()) {
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << GCODE_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->gcode_file<< "\"/>\n";
                     gcode_paths.push_back(plate_data->gcode_file);
+                } else {
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << GCODE_FILE_ATTR << "\" " << VALUE_ATTR << "=\"\" />\n";
                 }
                 if (instance_size > 0)
                 {
