@@ -2319,9 +2319,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         dlg.Fit();
 
         const bool type_3mf     = std::regex_match(path.string(), pattern_3mf);
-        const bool type_zip_amf = !type_3mf && std::regex_match(path.string(), pattern_zip_amf);
+        //const bool type_zip_amf = !type_3mf && std::regex_match(path.string(), pattern_zip_amf);
         const bool type_any_amf = !type_3mf && std::regex_match(path.string(), pattern_any_amf);
-        const bool type_prusa   = std::regex_match(path.string(), pattern_prusa);
+        //const bool type_prusa   = std::regex_match(path.string(), pattern_prusa);
 
         Slic3r::Model model;
         // BBS: add auxiliary files related logic
@@ -2331,10 +2331,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             strategy = strategy | LoadStrategy::LoadAuxiliary;
         }
         if (load_config) strategy = strategy | LoadStrategy::CheckVersion;
-        bool is_project_file = type_prusa;
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": is_project_file %1%, type_3mf %2%, type_prusa %3%") % is_project_file % type_3mf % type_prusa;
+        bool is_project_file = false;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": is_project_file %1%, type_3mf %2%") % is_project_file % type_3mf;
         try {
-            if (type_3mf || type_zip_amf) {
+            if (type_3mf) {
                 DynamicPrintConfig config;
                 Semver             file_version;
                 {
@@ -2510,10 +2510,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 PlateDataPtrs plate_data;
                 // BBS: project embedded settings
                 std::vector<Preset *> project_presets;
-                bool                  is_bbs_3mf;
+                bool                  is_xxx;
                 Semver                file_version;
                 model = Slic3r::Model::read_from_file(
-                    path.string(), nullptr, nullptr, strategy, &plate_data, &project_presets, &is_bbs_3mf, &file_version, nullptr,
+                    path.string(), nullptr, nullptr, strategy, &plate_data, &project_presets, &is_xxx, &file_version, nullptr,
                     [&dlg, filename, progress_percent](int import_stage, int current, int total, bool &cancel) {
                         bool     cont = true;
                         wxString msg  = wxString::Format("Loading file: %s", from_path(filename));
@@ -2525,6 +2525,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             Slic3r::GUI::show_info(nullptr, _L("Name of components inside step file is not UTF8 format!") + "\n\n" + _L("The name may show garbage characters!"),
                                                    _L("Attention!"));
                     });
+
+                if (type_any_amf && is_xxx)
+                    imperial_units = true;
 
                 for (auto obj : model.objects)
                     if (obj->name.empty()) obj->name = fs::path(obj->input_file).filename().string();
@@ -2642,7 +2645,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
         int model_idx = 0;
         for (ModelObject *model_object : model.objects) {
-            if (!type_3mf && !type_zip_amf) model_object->center_around_origin(false);
+            if (!type_3mf && !type_any_amf) model_object->center_around_origin(false);
 
             // BBS
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_LOAD_MODEL_OBJECTS \n");
@@ -6518,7 +6521,9 @@ bool Plater::load_files(const wxArrayString& filenames)
     // searches for project files
     for (std::vector<fs::path>::const_reverse_iterator it = paths.rbegin(); it != paths.rend(); ++it) {
         std::string filename = (*it).filename().string();
-        if (boost::algorithm::iends_with(filename, ".3mf") || boost::algorithm::iends_with(filename, ".amf")) {
+        //BBS: only 3mf will be treated as project file
+        if (boost::algorithm::iends_with(filename, ".3mf")) {
+        //if (boost::algorithm::iends_with(filename, ".3mf") || boost::algorithm::iends_with(filename, ".amf")) {
             LoadType load_type = LoadType::Unknown;
             if (!model().objects.empty()) {
                 bool show_drop_project_dialog = true;
@@ -7210,7 +7215,8 @@ void Plater::export_stl(bool extended, bool selection_only)
     Slic3r::store_stl(path_u8.c_str(), &mesh, true);
 }
 
-void Plater::export_amf()
+//BBS: remove amf export
+/*void Plater::export_amf()
 {
     if (p->model.objects.empty()) { return; }
 
@@ -7227,7 +7233,7 @@ void Plater::export_amf()
     } else {
         ; // store failed
     }
-}
+}*/
 
 // BBS: backup
 int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy strategy, int export_plate_idx, Export3mfProgressFn proFn)

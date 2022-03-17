@@ -889,10 +889,10 @@ int CLI::run(int argc, char **argv)
                 model.add_default_instances();
             if (! this->export_models(IO::OBJ))
                 return 1;
-        } else if (opt_key == "export_amf") {
+        }/* else if (opt_key == "export_amf") {
             if (! this->export_models(IO::AMF))
                 return 1;
-        } else if (opt_key == "export_3mf") {
+        } */else if (opt_key == "export_3mf") {
             export_to_3mf = true;
             export_3mf_file = m_config.opt_string(opt_key);
         //} else if (opt_key == "export_gcode" || opt_key == "export_sla" || opt_key == "slice") {
@@ -1274,7 +1274,7 @@ bool CLI::export_models(IO::ExportFormat format)
         const std::string path = this->output_filepath(model, format);
         bool success = false;
         switch (format) {
-            case IO::AMF: success = Slic3r::store_amf(path.c_str(), &model, nullptr, false); break;
+            //case IO::AMF: success = Slic3r::store_amf(path.c_str(), &model, nullptr, false); break;
             case IO::OBJ: success = Slic3r::store_obj(path.c_str(), &model);          break;
             case IO::STL: success = Slic3r::store_stl(path.c_str(), &model, true);    break;
             //BBS: use bbs 3mf instead of original

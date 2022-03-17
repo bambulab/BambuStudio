@@ -133,7 +133,7 @@ Model::~Model()
 // BBS: backup & restore
 // Loading model from a file, it may be a simple geometry file as STL or OBJ, however it may be a project file as well.
 Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions,
-                            LoadStrategy options, PlateDataPtrs* plate_data, std::vector<Preset*>* project_presets, bool *is_bbl_3mf, Semver* file_version, Import3mfProgressFn proFn,
+                            LoadStrategy options, PlateDataPtrs* plate_data, std::vector<Preset*>* project_presets, bool *is_xxx, Semver* file_version, Import3mfProgressFn proFn,
                             ImportStepProgressFn stepFn, StepIsUtf8Fn stepIsUtf8Fn, BBLProject* project)
 {
     Model model;
@@ -146,12 +146,12 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
         config_substitutions = &temp_config_substitutions_context;
     //BBS: plate_data
     PlateDataPtrs temp_plate_data;
-    bool temp_is_bbl_3mf;
+    bool temp_is_xxx;
     Semver temp_version;
     if (plate_data == nullptr)
         plate_data = &temp_plate_data;
-    if (is_bbl_3mf == nullptr)
-        is_bbl_3mf = &temp_is_bbl_3mf;
+    if (is_xxx == nullptr)
+        is_xxx = &temp_is_xxx;
     if (file_version == nullptr)
         file_version = &temp_version;
 
@@ -163,13 +163,17 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
         result = load_stl(input_file.c_str(), &model);
     else if (boost::algorithm::iends_with(input_file, ".obj"))
         result = load_obj(input_file.c_str(), &model);
-    else if (boost::algorithm::iends_with(input_file, ".amf") || boost::algorithm::iends_with(input_file, ".amf.xml"))
-        result = load_amf(input_file.c_str(), config, config_substitutions, &model, options & LoadStrategy::CheckVersion);
+    //BBS: remove the old .amf.xml files
+    //else if (boost::algorithm::iends_with(input_file, ".amf") || boost::algorithm::iends_with(input_file, ".amf.xml"))
+    else if (boost::algorithm::iends_with(input_file, ".amf"))
+        //BBS: is_xxx is used for is_inches when load amf
+        result = load_amf(input_file.c_str(), config, config_substitutions, &model, is_xxx);
     else if (boost::algorithm::iends_with(input_file, ".3mf"))
         //BBS: add part plate related logic
         // BBS: backup & restore
-        //FIXME options & LoadStrategy::CheckVersion ? 
-        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, is_bbl_3mf, file_version, proFn, options, project);
+        //FIXME options & LoadStrategy::CheckVersion ?
+        //BBS: is_xxx is used for is_bbs_3mf when load 3mf
+        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, is_xxx, file_version, proFn, options, project);
     else
         throw Slic3r::RuntimeError("Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension.");
 
@@ -209,7 +213,7 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
         // BBS: backup & restore
         result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, is_bbl_3mf, file_version, proFn, options, project);
     else if (boost::algorithm::iends_with(input_file, ".zip.amf"))
-        result = load_amf(input_file.c_str(), config, config_substitutions, &model, options & LoadStrategy::CheckVersion);
+        result = load_amf(input_file.c_str(), config, config_substitutions, &model, is_bbl_3mf);
     else
         throw Slic3r::RuntimeError("Unknown file format. Input file must have .3mf or .zip.amf extension.");
 

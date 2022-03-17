@@ -1217,11 +1217,12 @@ public:
 
     //BBS: add part plate related logic
     // BBS: backup
+    //BBS: is_xxx is used for is_bbs_3mf when loading 3mf, is used for is_inches when loading amf
     static Model read_from_file(
         const std::string& input_file, 
         DynamicPrintConfig* config = nullptr, ConfigSubstitutionContext* config_substitutions = nullptr,
         LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr,
-        std::vector<Preset*>* project_presets = nullptr, bool* is_bbl_3mf = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr,
+        std::vector<Preset*>* project_presets = nullptr, bool* is_xxx = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr,
         ImportStepProgressFn stepFn = nullptr, StepIsUtf8Fn stepIsUtf8Fn = nullptr, BBLProject* project = nullptr);
 
     // BBS: backup
