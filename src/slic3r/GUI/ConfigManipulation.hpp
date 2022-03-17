@@ -14,6 +14,7 @@
 namespace Slic3r {
 
 class ModelConfig;
+class ObjectBase;
 
 namespace GUI {
 
@@ -65,7 +66,7 @@ public:
     // FFF print
     void    update_print_fff_config(DynamicPrintConfig* config, const bool is_global_config = false);
     void    toggle_print_fff_options(DynamicPrintConfig* config);
-    void    apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys);
+    void    apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys, std::map<ObjectBase*, ModelConfig*> const & configs);
 
     // SLA print
     void    update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config = false);

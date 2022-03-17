@@ -2089,7 +2089,7 @@ void TabPrintModel::update_model_config()
         }
         // except those than all equal on
         m_config->apply_only(local_config, local_keys);
-        m_config_manipulation.apply_null_fff_config(m_config, m_null_keys);
+        m_config_manipulation.apply_null_fff_config(m_config, m_null_keys, m_object_configs);
     }
     update_dirty();
     TabPrint::reload_config();

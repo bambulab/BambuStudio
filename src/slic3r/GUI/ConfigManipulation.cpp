@@ -234,13 +234,13 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     if (has_wipe_tower && config->opt_bool("enable_support") && !config->opt_bool("independent_support_layer_height")) {
         double layer_height = config->opt_float("layer_height");
         double top_gap_raw = config->opt_float("support_top_z_distance");
-        double bottom_gap_raw = config->opt_float("support_bottom_z_distance");
+        //double bottom_gap_raw = config->opt_float("support_bottom_z_distance");
         double top_gap = std::round(top_gap_raw / layer_height) * layer_height;
-        double bottom_gap = std::round(bottom_gap_raw / layer_height) * layer_height;
-        if (top_gap != top_gap_raw || bottom_gap != bottom_gap_raw) {
+        //double bottom_gap = std::round(bottom_gap_raw / layer_height) * layer_height;
+        if (top_gap != top_gap_raw /* || bottom_gap != bottom_gap_raw*/) {
             DynamicPrintConfig new_conf = *config;
             new_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(top_gap));
-            new_conf.set_key_value("support_bottom_z_distance", new ConfigOptionFloat(bottom_gap));
+            //new_conf.set_key_value("support_bottom_z_distance", new ConfigOptionFloat(bottom_gap));
             apply(config, &new_conf);
 
             //wxMessageBox(_L("Support top/bottom Z distance is automatically changed to multiple of layer height."));
@@ -325,7 +325,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 }
 
-void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys)
+void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys, std::map<ObjectBase *, ModelConfig *> const &configs)
 {
     for (auto &k : keys) {
         if (k == "adaptive_layer_height" || k == "independent_support_layer_height" || k == "enable_support" || k == "detect_thin_wall")
@@ -334,8 +334,14 @@ void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::
             config->set_key_value(k, new ConfigOptionInt(0));
         else if (k == "top_shell_layers" || k == "support_material_enforce_layers")
             config->set_key_value(k, new ConfigOptionInt(1));
-        else if (k == "sparse_infill_density")
-            config->set_key_value(k, new ConfigOptionPercent(100)); // sparse_infill_pattern
+        else if (k == "sparse_infill_density") {
+            double v = config->option<ConfigOptionPercent>(k)->value;
+            for (auto &c : configs) {
+                auto o = c.second->get().option<ConfigOptionPercent>(k);
+                if (o && o->value > v) v = o->value;
+            }
+            config->set_key_value(k, new ConfigOptionPercent(v)); // sparse_infill_pattern
+        }
         else if (k == "detect_overhang_wall")
             config->set_key_value(k, new ConfigOptionBool(false));
         else if (k == "sparse_infill_pattern")
