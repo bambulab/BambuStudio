@@ -4047,6 +4047,7 @@ bool GLCanvas3D::_render_orient_menu(float left, float right, float bottom, floa
     ImGui::Separator();
 
     if (imgui->button(_L("Orient"))) {
+        wxGetApp().plater()->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
         wxGetApp().plater()->orient();
     }
 
@@ -4165,6 +4166,7 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     ImGui::Separator();
 
     if (imgui->button(_L("Arrange"))) {
+        wxGetApp().plater()->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
         wxGetApp().plater()->arrange();
     }
 
