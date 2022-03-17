@@ -24,13 +24,7 @@ protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
 
 private:
-    void submit();
-
-private:
     AuxiliaryList * m_aux_list;
-    wxButton* m_btn_submit;
-
-    wxWindowDisabler * m_winDisabler = nullptr;
 };
 
 } // namespace GUI

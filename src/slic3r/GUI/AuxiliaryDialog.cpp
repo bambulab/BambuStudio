@@ -22,16 +22,6 @@ AuxiliaryDialog::AuxiliaryDialog(wxWindow * parent)
 
 	Layout();
 	Center();
-
-	Bind(wxEVT_SHOW, [this](auto & event) {
-		if (IsShown()) {
-			m_winDisabler = new wxWindowDisabler(this);
-		}
-		else {
-			delete m_winDisabler;
-			m_winDisabler = nullptr;
-		}
-	});
 }
 
 void AuxiliaryDialog::on_dpi_changed(const wxRect& suggested_rect)

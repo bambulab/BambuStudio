@@ -278,7 +278,7 @@ struct Sidebar::priv
 
     ObjectList          *m_object_list{ nullptr };
     wxPanel             *m_object_panel;
-    AuxiliaryDialog     *m_auxiliary_dialog;
+    AuxiliaryDialog     *m_auxiliary_dialog{ nullptr };
     ObjectSettings      *object_settings{ nullptr };
     ObjectLayers        *object_layers{ nullptr };
 
@@ -443,7 +443,7 @@ Sidebar::Sidebar(Plater *parent)
     ScalableButton* set_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "settings");
     set_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e){
         p->editing_filament = -1;
-        wxGetApp().params_dialog()->Show();
+        wxGetApp().params_dialog()->Popup();
         wxGetApp().get_tab(Preset::TYPE_FILAMENT)->restore_last_select_item();
     });
 
@@ -1127,7 +1127,8 @@ bool Sidebar::show_object_list(bool show) const
 
 bool Sidebar::show_auxiliary_dialog() const
 {
-    return p->m_auxiliary_dialog->Show();
+    p->m_auxiliary_dialog->Reparent(wxGetApp().mainframe);
+    return p->m_auxiliary_dialog->ShowModal();
 }
 
 std::vector<PlaterPresetComboBox*>& Sidebar::combos_filament()

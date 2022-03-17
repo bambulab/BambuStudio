@@ -1,6 +1,8 @@
 #include "ParamsDialog.hpp"
 #include "I18N.hpp"
 #include "ParamsPanel.hpp"
+#include "GUI_App.hpp"
+#include "MainFrame.hpp"
 
 #include "libslic3r/Utils.hpp"
 
@@ -13,18 +15,12 @@ namespace GUI {
 
 ParamsDialog::ParamsDialog(wxWindow * parent)
 	: DPIDialog(parent, wxID_ANY,  _L(""), wxDefaultPosition,
-		wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+		wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER)
 {
 	m_panel = new ParamsPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
 
-	//m_btn_submit = new wxButton(this, wxID_ANY, _L("Submit"), wxDefaultPosition, wxDefaultSize);
-	//m_btn_submit->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
-	//		this->submit();
-	//	});
-
 	auto* topsizer = new wxBoxSizer(wxVERTICAL);
 	topsizer->Add(m_panel, 1, wxALL | wxEXPAND, 5, NULL);
-	//topsizer->Add(m_btn_submit, 0, wxRIGHT, 20);
 	topsizer->Add(-1, 5);
 
 	SetSizerAndFit(topsizer);
@@ -32,25 +28,24 @@ ParamsDialog::ParamsDialog(wxWindow * parent)
 
 	Layout();
 	Center();
-
-	Bind(wxEVT_SHOW, [this](auto & event) {
-		if (IsShown()) {
-			m_winDisabler = new wxWindowDisabler(this);
-			m_panel->OnActivate();
-		}
-		else {
-			delete m_winDisabler;
-			m_winDisabler = nullptr;
-		}
-	});
+    Bind(wxEVT_SHOW, [this](auto &event) {
+        if (IsShown()) {
+            m_winDisabler = new wxWindowDisabler(this);
+        } else {
+            delete m_winDisabler;
+            m_winDisabler = nullptr;
+        }
+    });
 }
 
-void ParamsDialog::submit()
+void ParamsDialog::Popup()
 {
-	this->Hide();
+    Reparent(wxGetApp().mainframe);
+    Center();
+    Show();
 }
 
-void ParamsDialog::on_dpi_changed(const wxRect& suggested_rect)
+void ParamsDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
 	Fit();
 	SetSize({100 * em_unit(), 60 * em_unit()});

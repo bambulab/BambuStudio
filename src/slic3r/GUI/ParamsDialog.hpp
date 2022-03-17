@@ -20,17 +20,14 @@ public:
 
     ParamsPanel * panel() { return m_panel; }
 
+    void Popup();
+
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
 
 private:
-    void submit();
-
-private:
     ParamsPanel * m_panel;
-    wxButton* m_btn_submit;
-
-    wxWindowDisabler * m_winDisabler = nullptr;
+    wxWindowDisabler *m_winDisabler = nullptr;
 };
 
 } // namespace GUI

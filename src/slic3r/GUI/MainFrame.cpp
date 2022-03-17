@@ -739,7 +739,7 @@ void MainFrame::create_preset_tabs()
 
     //BBS: GUI refactor
     //m_param_panel = new ParamsPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
-    m_param_dialog = new ParamsDialog(this);
+    m_param_dialog = new ParamsDialog(nullptr);
 
     add_created_tab(new TabPrint(m_param_panel), "cog");
     add_created_tab(new TabPrintObject(m_param_panel), "cog");
@@ -1644,7 +1644,7 @@ void MainFrame::init_menubar_as_editor()
         }
         case ConfigMenuModeSimple:
         {
-            wxGetApp().params_dialog()->Show();
+            wxGetApp().params_dialog()->Popup();
             wxGetApp().get_tab(Preset::TYPE_PRINTER)->restore_last_select_item();
             break;
         }
@@ -1967,7 +1967,7 @@ void MainFrame::select_tab(wxPanel* panel)
     if (panel == m_param_panel) {
         panel = m_plater;
     } else if (dynamic_cast<ParamsPanel*>(panel)) {
-        wxGetApp().params_dialog()->Show();
+        wxGetApp().params_dialog()->Popup();
         return;
     }
     int page_idx = m_tabpanel->FindPage(panel);

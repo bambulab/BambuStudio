@@ -683,7 +683,7 @@ void PlaterPresetComboBox::switch_to_tab()
     if (tab->GetParent() == wxGetApp().params_panel())
         wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
     else
-        wxGetApp().params_dialog()->Show();
+        wxGetApp().params_dialog()->Popup();
     tab->restore_last_select_item();
 
     const Preset* selected_filament_preset = nullptr;
