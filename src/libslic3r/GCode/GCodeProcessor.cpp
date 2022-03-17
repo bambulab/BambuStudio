@@ -3693,17 +3693,18 @@ void GCodeProcessor::process_T(const std::string_view command)
     if (command.length() > 1) {
         int eid = 0;
         if (! parse_number(command.substr(1), eid) || eid < 0 || eid > 255) {
-            if ((m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware) && (command == "Tx" || command == "Tc" || command == "T?"))
+            //BBS: T1000 and T1100 is used as special command for BBL machine and does not cost time. return directly
+            if ((m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware) && (command == "Tx" || command == "Tc" || command == "T?" || eid == 1000 || eid == 1100))
                 return;
 
             // T-1 is a valid gcode line for RepRap Firmwares (used to deselects all tools)
             if ((m_flavor != gcfRepRapFirmware && m_flavor != gcfRepRapSprinter) || eid != -1)
-                BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid toolchange (" << command << ").";
+                BOOST_LOG_TRIVIAL(error) << "Invalid T command (" << command << ").";
         } else {
             unsigned char id = static_cast<unsigned char>(eid);
             if (m_extruder_id != id) {
                 if (id >= m_result.extruders_count)
-                    BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid toolchange, maybe from a custom gcode.";
+                    BOOST_LOG_TRIVIAL(error) << "Invalid T command (" << command << ").";
                 else {
                     unsigned char old_extruder_id = m_extruder_id;
                     process_filaments(CustomGCode::ToolChange);
