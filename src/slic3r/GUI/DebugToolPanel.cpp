@@ -764,9 +764,10 @@ DebugToolPanel::DebugToolPanel( wxWindow* parent, wxWindowID id, const wxPoint& 
 	bSizer39->Add( m_staticText_select_version, 0, wxALL, 5 );
 
 	cb_upgrade_version = new wxComboBox( m_panel_upgrade, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, NULL, 0 );
+    cb_upgrade_version->Append( wxT("V6") );
 	cb_upgrade_version->Append( wxT("V5") );
 	cb_upgrade_version->Append( wxT("V4") );
-	cb_upgrade_version->SetSelection( 0 );
+	cb_upgrade_version->SetSelection( 1 );
 	cb_upgrade_version->SetMinSize( wxSize( 100,-1 ) );
 
 	bSizer39->Add( cb_upgrade_version, 0, wxALL, 5 );

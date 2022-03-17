@@ -2190,8 +2190,16 @@ void DebugToolDialog::refresh_firmware_list(bool show_error)
     }
     UPGRADE_MODULE upgrade_module = (UPGRADE_MODULE)cb_upgrade_module->GetCurrentSelection();
     UPGRADE_MODE upgrade_mode = (UPGRADE_MODE)cb_upgrade_mode->GetCurrentSelection();
-    std::string hardware_version = cb_upgrade_version->GetCurrentSelection() == 0 ? "v5": "v4";
-
+    std::string hardware_version;
+    if (cb_upgrade_version->GetCurrentSelection() == 0) {
+        hardware_version = "v6";
+    } else if (cb_upgrade_version->GetCurrentSelection() == 1) {
+        hardware_version = "v5";
+    } else if (cb_upgrade_version->GetCurrentSelection() == 2) {
+        hardware_version = "v4";
+    } else {
+        hardware_version = "v5";
+    }
 
     int server_sel = m_radioBox_server->GetSelection();
     if (server_sel == 1) {
