@@ -2387,6 +2387,13 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             for (ModelVolume *model_volume : model_object->volumes) model_volume->config.reset();
                         }
                     }
+                    else if (!load_config) {
+                        for (ModelObject *model_object : model.objects) {
+                            model_object->config.reset();
+                            // Is there any modifier or advanced config data?
+                            for (ModelVolume *model_volume : model_object->volumes) model_volume->config.reset();
+                        }
+                    }
 
                     // BBS:: project embedded presets
                     if ((project_presets.size() > 0) && load_config) {
