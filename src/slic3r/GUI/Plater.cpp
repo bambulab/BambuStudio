@@ -4920,17 +4920,18 @@ void Plater::priv::set_project_filename(const wxString& filename)
 {
     boost::filesystem::path full_path = into_path(filename);
     boost::filesystem::path ext = full_path.extension();
-    if (boost::iequals(ext.string(), ".amf")) {
-        // Remove the first extension.
-        full_path.replace_extension("");
-        // It may be ".zip.amf".
-        if (boost::iequals(full_path.extension().string(), ".zip"))
-            // Remove the 2nd extension.
-            full_path.replace_extension("");
-    } else {
-        // Remove just one extension.
-        full_path.replace_extension("");
-    }
+    //if (boost::iequals(ext.string(), ".amf")) {
+    //    // Remove the first extension.
+    //    full_path.replace_extension("");
+    //    // It may be ".zip.amf".
+    //    if (boost::iequals(full_path.extension().string(), ".zip"))
+    //        // Remove the 2nd extension.
+    //        full_path.replace_extension("");
+    //} else {
+    //    // Remove just one extension.
+    //    full_path.replace_extension("");
+    //}
+    full_path.replace_extension("");
 
     m_project_folder = full_path.parent_path();
 

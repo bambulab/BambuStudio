@@ -244,11 +244,11 @@ public:
     bool        load_config_file(const std::string &path);
 
     //BBS: export current config bundle as BBL default reference
-    void        export_current_configbundle();
+    //void        export_current_configbundle();
     //BBS: export all the system preset configs to seperate files
-    void        export_system_configs();
-    void        export_configbundle(bool export_physical_printers = false);
-    void        load_configbundle(wxString file = wxEmptyString);
+    //void        export_system_configs();
+    //void        export_configbundle(bool export_physical_printers = false);
+    //void        load_configbundle(wxString file = wxEmptyString);
     void        load_config(const DynamicPrintConfig& config);
     //BBS: jump to monitor
     void        jump_to_monitor(std::string dev_id = "");

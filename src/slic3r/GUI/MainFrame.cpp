@@ -1856,8 +1856,8 @@ bool MainFrame::load_config_file(const std::string &path)
 }
 
 //BBS: export current config bundle as BBL default reference
-void MainFrame::export_current_configbundle()
-{
+//void MainFrame::export_current_configbundle()
+//{
     // BBS do not export profile
    // if (!wxGetApp().check_and_save_current_preset_changes(_L("Exporting current profile bundle"),
    //     _L("Some presets are modified and the unsaved changes will not be exported into profile bundle."), false, true))
@@ -1886,10 +1886,10 @@ void MainFrame::export_current_configbundle()
 			//show_error(this, ex.what());
    //     }
    // }
-}
+//}
 
 //BBS: export all the system preset configs to seperate files
-void MainFrame::export_system_configs()
+/*void MainFrame::export_system_configs()
 {
     // Ask user for a file name.
     wxDirDialog dlg(this, _L("choose a directory"),
@@ -1906,20 +1906,20 @@ void MainFrame::export_system_configs()
             show_error(this, ex.what());
         }
     }
-}
+}*/
 
-void MainFrame::export_configbundle(bool export_physical_printers /*= false*/)
-{
-    ; //BBS do not export config bundle
-}
+//void MainFrame::export_configbundle(bool export_physical_printers /*= false*/)
+//{
+////    ; //BBS do not export config bundle
+//}
 
 // Loading a config bundle with an external file name used to be used
 // to auto - install a config bundle on a fresh user account,
 // but that behavior was not documented and likely buggy.
-void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool reset_user_profile*/)
-{
-    ; //BBS do not import config bundle
-}
+//void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool reset_user_profile*/)
+//{
+//    ; //BBS do not import config bundle
+//}
 
 // Load a provied DynamicConfig into the Print / Filament / Printer tabs, thus modifying the active preset.
 // Also update the plater with the new presets.

@@ -494,7 +494,7 @@ void PresetBundle::remove_users_preset(AppConfig& config)
 
 // Load system presets into this PresetBundle.
 // For each vendor, there will be a single PresetBundle loaded.
-std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_presets(ForwardCompatibilitySubstitutionRule compatibility_rule)
+/*std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_presets(ForwardCompatibilitySubstitutionRule compatibility_rule)
 {
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, compatibility_rule %1%")%compatibility_rule;
@@ -551,7 +551,7 @@ std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_pre
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished, errors_cummulative %1%")%errors_cummulative;
     return std::make_pair(std::move(substitutions), errors_cummulative);
-}
+}*/
 
 //BBS: add json related logic, load system presets from json
 std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_presets_from_json(ForwardCompatibilitySubstitutionRule compatibility_rule)
@@ -1192,9 +1192,10 @@ ConfigSubstitutions PresetBundle::load_config_file(const std::string &path, Forw
 	}
 
     //BBS: add config related logs
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, configfile %1%, compatibility_rule %2%")%path %compatibility_rule;
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" can not load config file %1% not from gcode")%path ;
+    throw Slic3r::RuntimeError(std::string("Unknown configuration file: ") + path);   
     // 1) Try to load the config file into a boost property tree.
-    boost::property_tree::ptree tree;
+    /*boost::property_tree::ptree tree;
     try {
         boost::nowide::ifstream ifs(path);
         boost::property_tree::read_ini(ifs, tree);
@@ -1240,7 +1241,7 @@ ConfigSubstitutions PresetBundle::load_config_file(const std::string &path, Forw
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" finished, should not be here");
     // This shall never happen. Suppres compiler warnings.
-    assert(false);
+    assert(false);*/
     return ConfigSubstitutions{};
 }
 
@@ -1513,7 +1514,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 }
 
 // Load the active configuration of a config bundle from a boost property_tree. This is a private method called from load_config_file.
-ConfigSubstitutions PresetBundle::load_config_file_config_bundle(
+/*ConfigSubstitutions PresetBundle::load_config_file_config_bundle(
     const std::string &path, const boost::property_tree::ptree &tree, ForwardCompatibilitySubstitutionRule compatibility_rule)
 {
     // 1) Load the config bundle into a temp data.
@@ -1594,7 +1595,7 @@ ConfigSubstitutions PresetBundle::load_config_file_config_bundle(
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": finished, got %1% substitutions")%config_substitutions.size();
     return config_substitutions;
-}
+}*/
 
 // Process the Config Bundle loaded as a Boost property tree.
 // For each print, filament and printer preset (group defined by group_name), apply the inherited presets.
@@ -1602,7 +1603,7 @@ ConfigSubstitutions PresetBundle::load_config_file_config_bundle(
 // removed through the flattening process by this function.
 // This function will never fail, but it will produce error messages through boost::log.
 // system_profiles will not be flattened, and they will be kept inside the "inherits" field
-static void flatten_configbundle_hierarchy(boost::property_tree::ptree &tree, const std::string &group_name, const std::vector<std::string> &system_profiles)
+/*static void flatten_configbundle_hierarchy(boost::property_tree::ptree &tree, const std::string &group_name, const std::vector<std::string> &system_profiles)
 {
     namespace pt = boost::property_tree;
 
@@ -1724,21 +1725,21 @@ static void flatten_configbundle_hierarchy(boost::property_tree::ptree &tree, co
             // Keep the preset.
             ++ it_section;
     }
-}
+}*/
 
 // preset_bundle is set when loading user config bundles, which must not overwrite the system profiles.
-static void flatten_configbundle_hierarchy(boost::property_tree::ptree &tree, const PresetBundle *preset_bundle)
+/*static void flatten_configbundle_hierarchy(boost::property_tree::ptree &tree, const PresetBundle *preset_bundle)
 {
     flatten_configbundle_hierarchy(tree, "print",           preset_bundle ? preset_bundle->prints.system_preset_names()        : std::vector<std::string>());
     flatten_configbundle_hierarchy(tree, "filament",        preset_bundle ? preset_bundle->filaments.system_preset_names()     : std::vector<std::string>());
     flatten_configbundle_hierarchy(tree, "sla_print",       preset_bundle ? preset_bundle->sla_prints.system_preset_names()    : std::vector<std::string>());
     flatten_configbundle_hierarchy(tree, "sla_material",    preset_bundle ? preset_bundle->sla_materials.system_preset_names() : std::vector<std::string>());
     flatten_configbundle_hierarchy(tree, "printer",         preset_bundle ? preset_bundle->printers.system_preset_names()      : std::vector<std::string>());
-}
+}*/
 
 // Load a config bundle file, into presets and store the loaded presets into separate files
 // of the local configuration directory.
-std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_configbundle(
+/*std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_configbundle(
     const std::string &path, LoadConfigBundleAttributes flags, ForwardCompatibilitySubstitutionRule compatibility_rule)
 {
     // Enable substitutions for user config bundle, throw an exception when loading a system profile.
@@ -2073,7 +2074,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_configbundle(
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", finished, presets_loaded %1%, ph_printers_loaded %2%")%presets_loaded %ph_printers_loaded;
     return std::make_pair(std::move(substitutions), presets_loaded + ph_printers_loaded);
-}
+}*/
 
 //BBS: Load a config bundle file from json
 std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_from_json(
@@ -2647,7 +2648,7 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
 }
 
 //BBS: add a API to dump current configbundle as default configbundle
-void PresetBundle::export_current_configbundle(const std::string &path)
+/*void PresetBundle::export_current_configbundle(const std::string &path)
 {
     boost::nowide::ofstream c;
     c.open(path, std::ios::out | std::ios::trunc);
@@ -2726,73 +2727,73 @@ void PresetBundle::export_current_configbundle(const std::string &path)
     }
 
     c.close();
-}
+}*/
 
 
-void PresetBundle::export_configbundle(const std::string &path, bool export_system_settings, bool export_physical_printers/* = false*/)
-{
-    boost::nowide::ofstream c;
-    c.open(path, std::ios::out | std::ios::trunc);
-
-    // Put a comment at the first line including the time stamp and Slic3r version.
-    c << "# " << Slic3r::header_slic3r_generated() << std::endl;
-
-    // Export the print, filament and printer profiles.
-
-	for (const PresetCollection *presets : { 
-		(const PresetCollection*)&this->prints, (const PresetCollection*)&this->filaments, 
-		(const PresetCollection*)&this->sla_prints, (const PresetCollection*)&this->sla_materials, 
-		(const PresetCollection*)&this->printers }) {
-        for (const Preset &preset : (*presets)()) {
-            //BBS: add project embedded preset logic and refine is_external
-            if (preset.is_default || preset.is_project_embedded || (preset.is_system && ! export_system_settings))
-            //if (preset.is_default || preset.is_external || (preset.is_system && ! export_system_settings))
-                // Only export the common presets, not external files or the default preset.
-                continue;
-            c << std::endl << "[" << presets->section_name() << ":" << preset.name << "]" << std::endl;
-            for (const std::string &opt_key : preset.config.keys())
-                c << opt_key << " = " << preset.config.opt_serialize(opt_key) << std::endl;
-        }
-    }
-
-    if (export_physical_printers) {
-        for (const PhysicalPrinter& ph_printer : this->physical_printers) {
-            c << std::endl << "[physical_printer:" << ph_printer.name << "]" << std::endl;
-            for (const std::string& opt_key : ph_printer.config.keys())
-                c << opt_key << " = " << ph_printer.config.opt_serialize(opt_key) << std::endl;
-        }
-    }
-
-    // Export the names of the active presets.
-    c << std::endl << "[presets]" << std::endl;
-    c << "print = " << this->prints.get_selected_preset_name() << std::endl;
-    c << "sla_print = " << this->sla_prints.get_selected_preset_name() << std::endl;
-    c << "sla_material = " << this->sla_materials.get_selected_preset_name() << std::endl;
-    c << "printer = " << this->printers.get_selected_preset_name() << std::endl;
-    for (size_t i = 0; i < this->filament_presets.size(); ++ i) {
-        char suffix[64];
-        if (i > 0)
-            sprintf(suffix, "_%d", (int)i);
-        else
-            suffix[0] = 0;
-        c << "filament" << suffix << " = " << this->filament_presets[i] << std::endl;
-    }
-
-    if (export_physical_printers && this->physical_printers.get_selected_idx() >= 0)
-        c << "physical_printer = " << this->physical_printers.get_selected_printer_name() << std::endl;
-#if 0
-    // Export the following setting values from the provided setting repository.
-    static const char *settings_keys[] = { "autocenter" };
-    c << "[settings]" << std::endl;
-    for (size_t i = 0; i < sizeof(settings_keys) / sizeof(settings_keys[0]); ++ i)
-        c << settings_keys[i] << " = " << settings.serialize(settings_keys[i]) << std::endl;
-#endif
-
-    c.close();
-}
+//void PresetBundle::export_configbundle(const std::string &path, bool export_system_settings, bool export_physical_printers/* = false*/)
+//{
+//    boost::nowide::ofstream c;
+//    c.open(path, std::ios::out | std::ios::trunc);
+//
+//    // Put a comment at the first line including the time stamp and Slic3r version.
+//    c << "# " << Slic3r::header_slic3r_generated() << std::endl;
+//
+//    // Export the print, filament and printer profiles.
+//
+//	for (const PresetCollection *presets : { 
+//		(const PresetCollection*)&this->prints, (const PresetCollection*)&this->filaments, 
+//		(const PresetCollection*)&this->sla_prints, (const PresetCollection*)&this->sla_materials, 
+//		(const PresetCollection*)&this->printers }) {
+//        for (const Preset &preset : (*presets)()) {
+//            //BBS: add project embedded preset logic and refine is_external
+//            if (preset.is_default || preset.is_project_embedded || (preset.is_system && ! export_system_settings))
+//            //if (preset.is_default || preset.is_external || (preset.is_system && ! export_system_settings))
+//                // Only export the common presets, not external files or the default preset.
+//                continue;
+//            c << std::endl << "[" << presets->section_name() << ":" << preset.name << "]" << std::endl;
+//            for (const std::string &opt_key : preset.config.keys())
+//                c << opt_key << " = " << preset.config.opt_serialize(opt_key) << std::endl;
+//        }
+//    }
+//
+//    if (export_physical_printers) {
+//        for (const PhysicalPrinter& ph_printer : this->physical_printers) {
+//            c << std::endl << "[physical_printer:" << ph_printer.name << "]" << std::endl;
+//            for (const std::string& opt_key : ph_printer.config.keys())
+//                c << opt_key << " = " << ph_printer.config.opt_serialize(opt_key) << std::endl;
+//        }
+//    }
+//
+//    // Export the names of the active presets.
+//    c << std::endl << "[presets]" << std::endl;
+//    c << "print = " << this->prints.get_selected_preset_name() << std::endl;
+//    c << "sla_print = " << this->sla_prints.get_selected_preset_name() << std::endl;
+//    c << "sla_material = " << this->sla_materials.get_selected_preset_name() << std::endl;
+//    c << "printer = " << this->printers.get_selected_preset_name() << std::endl;
+//    for (size_t i = 0; i < this->filament_presets.size(); ++ i) {
+//        char suffix[64];
+//        if (i > 0)
+//            sprintf(suffix, "_%d", (int)i);
+//        else
+//            suffix[0] = 0;
+//        c << "filament" << suffix << " = " << this->filament_presets[i] << std::endl;
+//    }
+//
+//    if (export_physical_printers && this->physical_printers.get_selected_idx() >= 0)
+//        c << "physical_printer = " << this->physical_printers.get_selected_printer_name() << std::endl;
+//#if 0
+//    // Export the following setting values from the provided setting repository.
+//    static const char *settings_keys[] = { "autocenter" };
+//    c << "[settings]" << std::endl;
+//    for (size_t i = 0; i < sizeof(settings_keys) / sizeof(settings_keys[0]); ++ i)
+//        c << settings_keys[i] << " = " << settings.serialize(settings_keys[i]) << std::endl;
+//#endif
+//
+//    c.close();
+//}
 
 //BBS: add export system preset functions
-void PresetBundle::export_system_configs(const std::string &path)
+/*void PresetBundle::export_system_configs(const std::string &path)
 {
     // Export the print, filament and printer profiles.
     for (const PresetCollection *presets : {
@@ -2818,7 +2819,7 @@ void PresetBundle::export_system_configs(const std::string &path)
             }
         }
     }
-}
+}*/
 
 // Set the filament preset name. As the name could come from the UI selection box, 
 // an optional "(modified)" suffix will be removed from the filament name.
