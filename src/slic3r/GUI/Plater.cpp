@@ -931,6 +931,9 @@ void Sidebar::on_filaments_change(size_t num_filaments)
     if (num_filaments == choices.size())
         return;
 
+    if (choices.size() == 1 || num_filaments == 1)
+        choices[0]->GetDropDown().Invalidate();
+
     wxWindowUpdateLocker noUpdates_scrolled_panel(this);
 
     size_t i = choices.size();

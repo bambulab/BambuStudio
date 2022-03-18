@@ -113,6 +113,15 @@ void DropDown::SetSelectorBackgroundColor(StateColor const &color)
     paintNow();
 }
 
+void DropDown::SetUseContentWidth(bool use)
+{
+    if (use_content_width == use)
+        return;
+    use_content_width = use;
+    need_sync = true;
+    messureSize();
+}
+
 void DropDown::Rescale()
 {
     need_sync = true;
@@ -214,7 +223,7 @@ void DropDown::render(wxDC &dc)
 
     // draw Text
     rcContent.x += 5;
-    rcContent.width -= 10;
+    rcContent.width -= 5;
     if (check_bitmap.bmp().IsOk()) {
         auto szBmp = check_bitmap.bmp().GetSize();
         if (selection >= 0) {
@@ -276,12 +285,22 @@ void DropDown::messureSize()
         }
     }
     wxSize szContent = textSize;
+    szContent.x += 10;
+    if (check_bitmap.bmp().IsOk()) {
+        auto szBmp = check_bitmap.bmp().GetSize();
+        szContent.x += szBmp.x + 5;
+    }
     if (iconSize.x > 0) {
         szContent.x += iconSize.x + 5;
         if (iconSize.y > szContent.y) szContent.y = iconSize.y;
     }
     szContent.y += 10;
-    if (GetParent()) szContent.x = GetParent()->GetSize().x;
+    if (texts.size() > 15) szContent.x += 6;
+    if (GetParent()) {
+        auto x = GetParent()->GetSize().x;
+        if (!use_content_width || x > szContent.x)
+            szContent.x = x;
+    }
     rowSize = szContent;
     szContent.y *= std::min((size_t)15, texts.size());
     szContent.y += texts.size() > 15 ? rowSize.y / 2 : 0;
@@ -310,6 +329,7 @@ void DropDown::autoPosition()
         // may exceed
         auto drect = wxDisplay(wxDisplay::GetFromWindow(this)).GetGeometry();
         if (GetPosition().y + size.y + 10 > drect.GetBottom()) {
+            if (use_content_width && texts.size() <= 15) size.x += 6;
             size.y = drect.GetBottom() - GetPosition().y - 10;
             wxWindow::SetSize(size);
             if (selection >= 0) {

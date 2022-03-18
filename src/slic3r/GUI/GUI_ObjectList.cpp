@@ -321,7 +321,7 @@ void ObjectList::create_objects_ctrl()
     });
 
     wxDataViewColumn* name_col = new wxDataViewColumn(_L("Name"), bmp_text_renderer,
-        colName, 28 * em, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
+        colName, 26 * em, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
     //name_col->SetBitmap(create_scaled_bitmap("organize", nullptr, FromDIP(18)));
     AppendColumn(name_col);
 
@@ -348,7 +348,7 @@ void ObjectList::create_objects_ctrl()
     // Therefore, force set column width.
     if (wxOSX)
     {
-        GetColumn(colName)->SetWidth(28*em);
+        GetColumn(colName)->SetWidth(26*em);
         GetColumn(colPrint)->SetWidth(3*em);
         GetColumn(colFilament)->SetWidth(8*em);
         GetColumn(colEditing) ->SetWidth(3*em);
@@ -726,7 +726,7 @@ void ObjectList::set_filament_column_hidden(const bool hide) const
 {
     GetColumn(colFilament)->SetHidden(hide);
     auto em = em_unit(const_cast<ObjectList*>(this));
-    GetColumn(colName)->SetWidth(hide ? 36 * em : 28 * em);
+    GetColumn(colName)->SetWidth(hide ? 34 * em : 26 * em);
 }
 
 void ObjectList::update_filament_in_config(const wxDataViewItem& item)

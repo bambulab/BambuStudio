@@ -544,6 +544,8 @@ bool PresetComboBox::selection_is_changed_according_to_physical_printers()
 PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset_type) :
     PresetComboBox(parent, preset_type, wxSize(15 * wxGetApp().em_unit(), -1))
 {
+    GetDropDown().SetUseContentWidth(true);
+
     if (m_type == Preset::TYPE_FILAMENT)
     {
         // BBS: not show color picker

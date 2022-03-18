@@ -14,6 +14,8 @@ class DropDown : public wxPopupTransientWindow
     int                         hover_item = -1;
 
     double radius = 0;
+    bool use_content_width = false;
+
     wxSize textSize;
     wxSize iconSize;
     wxSize rowSize;
@@ -29,9 +31,6 @@ class DropDown : public wxPopupTransientWindow
     boost::posix_time::ptime dismissTime;
     wxPoint                  offset; // x not used
     wxPoint                  dragStart;
-
-    static const int DropDownWidth = 200;
-    static const int DropDownHeight = 50;
 
 public:
     DropDown(wxWindow *     parent,
@@ -59,6 +58,8 @@ public:
     void SetTextColor(StateColor const &color);
 
     void SetSelectorBackgroundColor(StateColor const &color);
+
+    void SetUseContentWidth(bool use);
     
 public:
     void Rescale();
