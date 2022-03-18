@@ -92,7 +92,7 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CAT
                     {"top_shell_thickness", L("Top Minimum Shell Thickness"),1}, {"bottom_shell_thickness", L("Bottom Minimum Shell Thickness"),1}
                     }},
     { L("Infill"), {{"sparse_infill_density", "",1},{"sparse_infill_pattern", "",1},{"top_surface_pattern", "",1},{"bottom_surface_pattern", "",1},
-                    {"infill_combination", "",1}, {"infill_angle", "",1}, {"infill_wall_overlap", "",1}
+                    {"infill_combination", "",1}, {"infill_direction", "",1}, {"infill_wall_overlap", "",1}
                     }},
     { L("Speed"), {{"inner_wall_speed", "",1},{"outer_wall_speed", "",1},{"sparse_infill_speed", "",1},{"internal_solid_infill_speed", "",1},
                     {"top_surface_speed", "",1}, {"gap_infill_speed", "",1}
@@ -126,7 +126,7 @@ std::vector<SimpleSettingData> SettingsFactory::get_visible_options(const std::s
         //Shell
         "wall_loops", "top_shell_layers", "bottom_shell_layers", "top_shell_thickness", "bottom_shell_thickness",
         //Infill
-        "sparse_infill_density", "sparse_infill_pattern", "top_surface_pattern", "bottom_surface_pattern", "infill_combination", "infill_angle", "infill_wall_overlap",
+        "sparse_infill_density", "sparse_infill_pattern", "top_surface_pattern", "bottom_surface_pattern", "infill_combination", "infill_direction", "infill_wall_overlap",
         //speed
         "inner_wall_speed", "outer_wall_speed", "sparse_infill_speed", "internal_solid_infill_speed", "top_surface_speed", "gap_infill_speed"
         };

@@ -1683,7 +1683,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame, AccountManager* acc)
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
         "printable_area", "bed_exclude_area", "print_sequence", "extruder_clearance_radius", "skirt_loops", "skirt_distance",
         "brim_width", "brim_object_gap", "brim_type", "nozzle_diameter", "single_extruder_multi_material",
-        "enable_wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_brim_width", "wiping_volume",
+        "enable_prime_tower", "wipe_tower_x", "wipe_tower_y", "prime_tower_width", "wipe_tower_rotation_angle", "wipe_tower_brim_width", "prime_volume",
         "extruder_colour", "filament_colour", "material_colour", "printable_height", "printer_model", "printer_technology",
         // These values are necessary to construct SlicingParameters by the Canvas3D variable layer height editor.
         "layer_height", "initial_layer_print_height", "min_layer_height", "max_layer_height",
@@ -3360,7 +3360,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         }
         // In FDM mode, we need to reload the 3D scene because of the wipe tower preview box.
         // In SLA mode, we need to reload the 3D scene every time to show the support structures.
-        if (printer_technology == ptSLA || (printer_technology == ptFFF && config->opt_bool("enable_wipe_tower")))
+        if (printer_technology == ptSLA || (printer_technology == ptFFF && config->opt_bool("enable_prime_tower")))
             return_state |= UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE;
 
         notification_manager->set_slicing_progress_hidden();
@@ -7920,12 +7920,13 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             bed_shape_changed = true;
             update_scheduled = true;
         }
-        else if (boost::starts_with(opt_key, "enable_wipe_tower") ||
+        else if (boost::starts_with(opt_key, "enable_prime_tower") ||
+            boost::starts_with(opt_key, "prime_tower") ||
             boost::starts_with(opt_key, "wipe_tower") ||
             // opt_key == "filament_minimal_purge_on_wipe_tower" // ? #ys_FIXME
             opt_key == "single_extruder_multi_material" ||
             // BBS
-            opt_key == "wiping_volume") {
+            opt_key == "prime_volume") {
             update_scheduled = true;
         }
         else if(opt_key == "extruder_colour") {

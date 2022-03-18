@@ -45,8 +45,8 @@ enum class FuzzySkinType {
 #define HAS_LIGHTNING_INFILL 0
 
 enum InfillPattern : int {
-    ipRectilinear, ipMonotonic, ipAlignedRectilinear, ipGrid, ipTriangles, ipStars, ipCubic, ipLine, ipConcentric, ipHoneycomb, ip3DHoneycomb,
-    ipGyroid, ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipAdaptiveCubic, ipSupportCubic, ipSupportBase, ipConcentricGapFill,
+    ipConcentric, ipRectilinear, ipGrid, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipAlignedRectilinear, ip3DHoneycomb,
+    ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipSupportCubic, ipSupportBase, ipConcentricGapFill,
 #if HAS_LIGHTNING_INFILL
     ipLightning, 
 #endif // HAS_LIGHTNING_INFILL
@@ -104,7 +104,7 @@ enum SupportType {
 };
 
 enum SeamPosition {
-    spRandom, spNearest, spAligned, spRear
+    spNearest, spAligned, spRear, spRandom
 };
 
 enum SLAMaterial {
@@ -522,8 +522,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               raft_first_layer_expansion))
     ((ConfigOptionInt,                 raft_layers))
     ((ConfigOptionEnum<SeamPosition>,  seam_position))
-//  ((ConfigOptionFloat,               seam_preferred_direction))
-//  ((ConfigOptionFloat,               seam_preferred_direction_jitter))
     ((ConfigOptionFloat,               slice_closing_radius))
     ((ConfigOptionEnum<SlicingMode>,   slicing_mode))
     ((ConfigOptionBool,                enable_support))
@@ -594,19 +592,18 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatOrPercent,       outer_wall_line_width))
     ((ConfigOptionFloatOrPercent,       outer_wall_speed))
     ((ConfigOptionBool,                 extra_perimeters))
-    ((ConfigOptionFloat,                infill_angle))
+    ((ConfigOptionFloat,                infill_direction))
     ((ConfigOptionPercent,              sparse_infill_density))
     ((ConfigOptionEnum<InfillPattern>,  sparse_infill_pattern))
     ((ConfigOptionEnum<FuzzySkinType>,  fuzzy_skin))
     ((ConfigOptionFloat,                fuzzy_skin_thickness))
     ((ConfigOptionFloat,                fuzzy_skin_point_distance))
-    ((ConfigOptionBool,                 gap_fill_enabled))
     ((ConfigOptionFloat,                gap_infill_speed))
     ((ConfigOptionFloatOrPercent,       infill_anchor))
     ((ConfigOptionFloatOrPercent,       infill_anchor_max))
     ((ConfigOptionInt,                  infill_extruder))
     ((ConfigOptionFloatOrPercent,       sparse_infill_line_width))
-    ((ConfigOptionFloatOrPercent,       infill_wall_overlap))
+    ((ConfigOptionPercent,              infill_wall_overlap))
     ((ConfigOptionFloat,                sparse_infill_speed))
     //BBS
     ((ConfigOptionBool,                 infill_combination))
@@ -780,7 +777,6 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,               reduce_infill_retraction))
     ((ConfigOptionBool,               ooze_prevention))
     ((ConfigOptionString,             filename_format))
-    ((ConfigOptionStrings,            post_process))
     ((ConfigOptionString,             printer_model))
     ((ConfigOptionFloat,              resolution))
     ((ConfigOptionFloats,             retraction_minimum_travel))
@@ -795,11 +791,11 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBools,              wipe))
     // BBS
     ((ConfigOptionFloats,             wipe_distance))
-    ((ConfigOptionBool,               enable_wipe_tower))
+    ((ConfigOptionBool,               enable_prime_tower))
     // BBS: change wipe_tower_x and wipe_tower_y data type to floats to add partplate logic
     ((ConfigOptionFloats,             wipe_tower_x))
     ((ConfigOptionFloats,             wipe_tower_y))
-    ((ConfigOptionFloat,              wipe_tower_width))
+    ((ConfigOptionFloat,              prime_tower_width))
     ((ConfigOptionFloat,              wipe_tower_per_color_wipe))
     ((ConfigOptionFloat,              wipe_tower_rotation_angle))
     ((ConfigOptionFloat,              wipe_tower_brim_width))
@@ -807,7 +803,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloats,             flush_volumes_matrix))
     ((ConfigOptionFloats,             flush_volumes_vector))
     // BBS: wipe tower is only used for priming
-    ((ConfigOptionFloat,              wiping_volume))
+    ((ConfigOptionFloat,              prime_volume))
     //((ConfigOptionFloat,              z_offset))
     // BBS: project filaments
     ((ConfigOptionFloats,             filament_colour_new))

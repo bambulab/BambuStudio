@@ -189,7 +189,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     // BBS
     int filament_cnt = wxGetApp().preset_bundle->filament_presets.size();
-    bool has_wipe_tower = filament_cnt > 1 && config->opt_bool("enable_wipe_tower");
+    bool has_wipe_tower = filament_cnt > 1 && config->opt_bool("enable_prime_tower");
     if (has_wipe_tower && (config->opt_bool("adaptive_layer_height") || config->opt_bool("independent_support_layer_height"))) {
         wxString msg_text;
         if (config->opt_bool("adaptive_layer_height") && config->opt_bool("independent_support_layer_height")) {
@@ -224,7 +224,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                 new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
         }
         else
-            new_conf.set_key_value("enable_wipe_tower", new ConfigOptionBool(false));
+            new_conf.set_key_value("enable_prime_tower", new ConfigOptionBool(false));
 
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
@@ -375,7 +375,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
                     "internal_solid_infill_line_width", "internal_solid_infill_speed" })
         toggle_field(el, has_solid_infill);
 
-    for (auto el : { "infill_angle", "sparse_infill_line_width",
+    for (auto el : { "infill_direction", "sparse_infill_line_width",
                     "sparse_infill_speed", "bridge_speed" })
         toggle_field(el, have_infill || has_solid_infill);
 
@@ -454,8 +454,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig* config)
     bool have_ooze_prevention = config->opt_bool("ooze_prevention");
     toggle_field("standby_temperature_delta", have_ooze_prevention);
 
-    bool have_wipe_tower = config->opt_bool("enable_wipe_tower");
-    for (auto el : { "wipe_tower_width", "wiping_volume"})
+    bool have_wipe_tower = config->opt_bool("enable_prime_tower");
+    for (auto el : { "prime_tower_width", "prime_volume"})
         toggle_field(el, have_wipe_tower);
 
     bool have_avoid_crossing_perimeters = config->opt_bool("reduce_crossing_wall");

@@ -1354,7 +1354,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
-    if (opt_key == "enable_wipe_tower" || opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
+    if (opt_key == "enable_prime_tower" || opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
         update_wiping_button_visibility();
 
     // BBS
@@ -1376,7 +1376,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 void Tab::update_wiping_button_visibility() {
     if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
         return; // ys_FIXME
-    bool wipe_tower_enabled = dynamic_cast<ConfigOptionBool*>(  (m_preset_bundle->prints.get_edited_preset().config  ).option("enable_wipe_tower"))->value;
+    bool wipe_tower_enabled = dynamic_cast<ConfigOptionBool*>(  (m_preset_bundle->prints.get_edited_preset().config  ).option("enable_prime_tower"))->value;
     bool multiple_extruders = dynamic_cast<ConfigOptionFloats*>((m_preset_bundle->printers.get_edited_preset().config).option("nozzle_diameter"))->values.size() > 1;
 
     auto wiping_dialog_button = wxGetApp().sidebar().get_wiping_dialog_button();
@@ -1712,8 +1712,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("detect_overhang_wall");
         optgroup->append_single_option_line("reduce_crossing_wall");
         optgroup->append_single_option_line("max_travel_detour_distance");
-        //optgroup->append_single_option_line("thick_bridges");
-        //optgroup->append_single_option_line("gap_fill_enabled");
+        optgroup->append_single_option_line("thick_bridges");
 
     page = add_options_page(L("Strength"), "wrench");
         optgroup = page->new_optgroup(L("Walls"));
@@ -1733,10 +1732,10 @@ void TabPrint::build()
         optgroup->append_single_option_line("bottom_surface_pattern");
 
         optgroup = page->new_optgroup(L("Advanced"));
-        optgroup->append_single_option_line("infill_combination");
         optgroup->append_single_option_line("infill_wall_overlap");
-        optgroup->append_single_option_line("infill_angle");
+        optgroup->append_single_option_line("infill_direction");
         optgroup->append_single_option_line("minimum_sparse_infill_area");
+        optgroup->append_single_option_line("infill_combination");
         optgroup->append_single_option_line("detect_narrow_internal_solid_infill");
         optgroup->append_single_option_line("reduce_infill_retraction");
 
@@ -1805,8 +1804,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("inner_wall_speed");
         //optgroup->append_single_option_line("small_perimeter_speed");
         optgroup->append_single_option_line("sparse_infill_speed");
-        optgroup->append_single_option_line("top_surface_speed");
         optgroup->append_single_option_line("internal_solid_infill_speed");
+        optgroup->append_single_option_line("top_surface_speed");
         Line line = { L("Overhang"), "" };
         line.append_option(optgroup->get_option("overhang_1_4_speed"));
         line.append_option(optgroup->get_option("overhang_2_4_speed"));
@@ -1832,10 +1831,10 @@ void TabPrint::build()
 #endif /* HAS_PRESSURE_EQUALIZER */
 
     page = add_options_page(L("Others"), "advanced");
-        optgroup = page->new_optgroup(L("Wipe tower"));
-        optgroup->append_single_option_line("enable_wipe_tower");
-        optgroup->append_single_option_line("wipe_tower_width");
-        optgroup->append_single_option_line("wiping_volume");
+        optgroup = page->new_optgroup(L("Prime tower"));
+        optgroup->append_single_option_line("enable_prime_tower");
+        optgroup->append_single_option_line("prime_tower_width");
+        optgroup->append_single_option_line("prime_volume");
 
         optgroup = page->new_optgroup(L("Special mode"));
         optgroup->append_single_option_line("print_sequence");
@@ -1868,17 +1867,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("remove_bed_leveling");
         optgroup->append_single_option_line("remove_extrusion_calibration");
 
-        optgroup = page->new_optgroup(L("Post-processing scripts"), 0);
-        line = { "", "" };
-        line.full_width = 1;
-        line.widget = [this](wxWindow* parent) {
-            return description_line_widget(parent, &m_post_process_explanation);
-        };
-        optgroup->append_line(line);
-        option = optgroup->get_option("post_process");
-        option.opt.full_width = true;
-        option.opt.height = 5;//50;
-        optgroup->append_single_option_line(option);
 #if 0
     //page = add_options_page(L("Dependencies"), "advanced.png");
     //    optgroup = page->new_optgroup(L("Profile dependencies"));

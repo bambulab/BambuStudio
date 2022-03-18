@@ -12,6 +12,6 @@
     "support_interface_speed": "50%",
     "support_material_extruder": "0",
     "support_material_interface_extruder": "4",
-    "enable_wipe_tower": "1",
+    "enable_prime_tower": "1",
     "support_material_synchronize_layers": "1"
 }

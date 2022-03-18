@@ -157,7 +157,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		                    (surface.is_top() ? erTopSolidInfill : (surface.is_bottom()? erBottomSurface : erSolidInfill)) :
 		                    erInternalInfill);
 		        params.bridge_angle = float(surface.bridge_angle);
-		        params.angle 		= float(Geometry::deg2rad(region_config.infill_angle.value));
+		        params.angle 		= float(Geometry::deg2rad(region_config.infill_direction.value));
 		        
 		        // Calculate the actual flow we'll be using for this infill.
 		        params.bridge = is_bridge || Fill::use_bridge_flow(params.pattern);
@@ -290,7 +290,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 	            params.pattern 		 = layerm.region().config().top_surface_pattern == ipMonotonic ? ipMonotonic : ipRectilinear;
 	            params.density 		 = 100.f;
 		        params.extrusion_role = erInternalInfill;
-		        params.angle 		= float(Geometry::deg2rad(layerm.region().config().infill_angle.value));
+		        params.angle 		= float(Geometry::deg2rad(layerm.region().config().infill_direction.value));
 		        // calculate the actual flow we'll be using for this infill
 				params.flow = layerm.flow(frSolidInfill);
 		        params.spacing = params.flow.spacing();	        
@@ -560,7 +560,7 @@ void Layer::make_ironing()
 				ironing_params.line_spacing = config.ironing_spacing;
 				ironing_params.height 		= default_layer_height * 0.01 * config.ironing_flow;
 				ironing_params.speed 		= config.ironing_speed;
-				ironing_params.angle 		= config.infill_angle * M_PI / 180.;
+				ironing_params.angle 		= config.infill_direction * M_PI / 180.;
 				ironing_params.layerm 		= layerm;
 				by_extruder.emplace_back(ironing_params);
 			}

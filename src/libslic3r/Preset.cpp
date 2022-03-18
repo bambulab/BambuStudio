@@ -345,12 +345,7 @@ void Preset::normalize(DynamicPrintConfig &config)
                 static_cast<ConfigOptionStrings*>(opt)->values.resize(n, std::string());
         }
     }
-    if (const auto *gap_infill_speed = config.option<ConfigOptionFloat>("gap_infill_speed", false); gap_infill_speed && gap_infill_speed->value <= 0.) {
-        // Legacy conversion. If the gap fill speed is zero, it means the gap fill is not enabled.
-        // Set the new gap_fill_enabled value, so that it will show up in the UI as disabled.
-        if (auto *gap_fill_enabled = config.option<ConfigOptionBool>("gap_fill_enabled", false); gap_fill_enabled)
-            gap_fill_enabled->value = false;
-    }
+
     if (auto *initial_layer_print_height = config.option<ConfigOptionFloatOrPercent>("initial_layer_print_height", false); initial_layer_print_height && initial_layer_print_height->percent)
         if (const auto *layer_height = config.option<ConfigOptionFloat>("layer_height", false); layer_height) {
             // Legacy conversion - initial_layer_print_height moved from PrintObject setting to a Print setting, thus we are getting rid of the dependency
@@ -629,7 +624,7 @@ static std::vector<std::string> s_Preset_print_options {
     "top_shell_layers", "top_shell_thickness", "bottom_shell_layers", "bottom_shell_thickness",
     "extra_perimeters", "reduce_crossing_wall", "detect_thin_wall", "detect_overhang_wall",
     "seam_position", "wall_infill_order", "sparse_infill_density", "sparse_infill_pattern", "top_surface_pattern", "bottom_surface_pattern",
-    "infill_angle",
+    "infill_direction",
     "minimum_sparse_infill_area", "reduce_infill_retraction",
     "ironing_type", "ironing_flow", "ironing_speed", "ironing_spacing",
     "max_print_speed", "max_volumetric_speed", "max_travel_detour_distance",
@@ -639,7 +634,7 @@ static std::vector<std::string> s_Preset_print_options {
 #endif /* HAS_PRESSURE_EQUALIZER */
     "inner_wall_speed", "small_perimeter_speed", "outer_wall_speed", "sparse_infill_speed", "internal_solid_infill_speed",
     "top_surface_speed", "support_speed", "support_object_xy_distance", "support_interface_speed",
-    "bridge_speed", "gap_infill_speed", "gap_fill_enabled", "travel_speed", "travel_speed_z", "initial_layer_speed",
+    "bridge_speed", "gap_infill_speed", "travel_speed", "travel_speed_z", "initial_layer_speed",
     "initial_layer_acceleration", "default_acceleration", "skirt_loops", "skirt_distance", "skirt_height", "draft_shield",
     "brim_width", "brim_object_gap", "brim_type", "enable_support", "support_type", "support_threshold_angle", "support_material_enforce_layers",
     "raft_layers", "raft_first_layer_density", "raft_first_layer_expansion", "raft_contact_distance", "raft_expansion",
@@ -648,13 +643,13 @@ static std::vector<std::string> s_Preset_print_options {
     "support_material_pattern", "support_interface_spacing", "support_material_interface_contact_loops", 
     "support_top_z_distance", "support_bottom_z_distance",
     "support_on_build_plate_only", "bridge_no_support", "thick_bridges", "print_sequence", "extruder_clearance_radius",
-    "gcode_label_objects", "filename_format", "post_process", "perimeter_extruder",
+    "gcode_label_objects", "filename_format", "perimeter_extruder",
     "infill_extruder", "solid_infill_extruder", "support_material_extruder", "support_material_interface_extruder",
     "ooze_prevention", "standby_temperature_delta", "interface_shells", "line_width", "initial_layer_line_width",
     "inner_wall_line_width", "outer_wall_line_width", "sparse_infill_line_width", "internal_solid_infill_line_width",
     "top_surface_line_width", "support_line_width", "infill_wall_overlap", "infill_anchor", "infill_anchor_max", "bridge_flow",
-    "elefant_foot_compensation", "xy_contour_compensation", "xy_hole_compensation", "resolution", "enable_wipe_tower",
-    "wipe_tower_width", "wipe_tower_brim_width", "wipe_tower_bridging", "wiping_volume", "single_extruder_multi_material_priming", "mmu_segmented_region_max_width",
+    "elefant_foot_compensation", "xy_contour_compensation", "xy_hole_compensation", "resolution", "enable_prime_tower",
+    "prime_tower_width", "wipe_tower_brim_width", "wipe_tower_bridging", "prime_volume", "single_extruder_multi_material_priming", "mmu_segmented_region_max_width",
     "wipe_tower_no_sparse_layers", "compatible_printers", "compatible_printers_condition", "inherits",
     // BBS
     "tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter", "tree_support_with_infill",

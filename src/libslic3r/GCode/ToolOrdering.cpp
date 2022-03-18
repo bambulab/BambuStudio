@@ -437,7 +437,7 @@ void ToolOrdering::reorder_extruders(unsigned int last_extruder_id)
 
             // On first layer with wipe tower, prefer a soluble extruder
             // at the beginning, so it is not wiped on the first layer.
-            if (lt == m_layer_tools[0] && m_print_config_ptr && m_print_config_ptr->enable_wipe_tower) {
+            if (lt == m_layer_tools[0] && m_print_config_ptr && m_print_config_ptr->enable_prime_tower) {
                 for (size_t i = 0; i<lt.extruders.size(); ++i)
                     if (m_print_config_ptr->filament_soluble.get_at(lt.extruders[i]-1)) { // 1-based...
                         std::swap(lt.extruders[i], lt.extruders.front());

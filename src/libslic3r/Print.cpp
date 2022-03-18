@@ -109,7 +109,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
 #endif /* HAS_PRESSURE_EQUALIZER */
         "reduce_infill_retraction",
         "filename_format",
-        "post_process",
         "retraction_minimum_travel",
         "retract_before_wipe",
         "retract_when_changing_layer",
@@ -173,14 +172,14 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "gcode_flavor"
             || opt_key == "single_extruder_multi_material"
             || opt_key == "nozzle_temperature"
-            || opt_key == "enable_wipe_tower"
-            || opt_key == "wipe_tower_width"
+            || opt_key == "enable_prime_tower"
+            || opt_key == "prime_tower_width"
             || opt_key == "wipe_tower_brim_width"
             || opt_key == "wipe_tower_bridging"
             || opt_key == "wipe_tower_no_sparse_layers"
             || opt_key == "flush_volumes_matrix"
             // BBS
-            || opt_key == "wiping_volume"
+            || opt_key == "prime_volume"
             || opt_key == "initial_layer_infill_speed"
             || opt_key == "travel_speed"
             || opt_key == "travel_speed_z"
@@ -591,14 +590,14 @@ StringObjectException Print::validate(StringObjectException *warning) const
         if (m_config.ooze_prevention)
             return {L("Ooze prevention is currently not supported with the wipe tower enabled.")};
         if ((m_config.print_sequence == PrintSequence::ByObject) && extruders.size() > 1)
-            return {L("The Wipe Tower is currently not supported for multimaterial sequential prints."), nullptr, "enable_wipe_tower"};
+            return {L("The Prime Tower is currently not supported for multimaterial sequential prints."), nullptr, "enable_prime_tower"};
         
         // BBS: When wipe tower is on, object layer and support layer must be aligned. So support gap should be multiple of object layer height.
         for (size_t i = 0; i < m_objects.size(); i++) {
             const PrintObject* object = m_objects[i];
             const SlicingParameters& slicing_params = object->slicing_parameters();
             if (object->config().adaptive_layer_height) {
-                return  { L("The Wipe Tower requires that object has the same layer height."), object, "adaptive_layer_height" };
+                return  { L("The Prime Tower requires that object has the same layer height."), object, "adaptive_layer_height" };
             }
             
             if (!object->config().enable_support)
@@ -1303,7 +1302,7 @@ std::vector<Point> Print::first_layer_wipe_tower_corners() const
 {
     std::vector<Point> corners;
     if (has_wipe_tower() && ! m_wipe_tower_data.tool_changes.empty()) {
-        double width = m_config.wipe_tower_width + 2*m_wipe_tower_data.brim_width;
+        double width = m_config.prime_tower_width + 2*m_wipe_tower_data.brim_width;
         double depth = m_wipe_tower_data.depth + 2*m_wipe_tower_data.brim_width;
         Vec2d pt0(-m_wipe_tower_data.brim_width, -m_wipe_tower_data.brim_width);
         for (Vec2d pt : {
@@ -1338,7 +1337,7 @@ bool Print::has_wipe_tower() const
 {
     return 
         ! m_config.spiral_mode.value &&
-        m_config.enable_wipe_tower.value && 
+        m_config.enable_prime_tower.value && 
         m_config.filament_diameter.values.size() > 1;
 }
 
@@ -1347,9 +1346,9 @@ const WipeTowerData& Print::wipe_tower_data(size_t filaments_cnt) const
     // If the wipe tower wasn't created yet, make sure the depth and brim_width members are set to default.
     if (! is_step_done(psWipeTower) && filaments_cnt !=0) {
         // BBS
-        double width = m_config.wipe_tower_width;
+        double width = m_config.prime_tower_width;
         double layer_height = 0.08f; // hard code layer height
-        double wipe_volume = m_config.wiping_volume;
+        double wipe_volume = m_config.prime_volume;
         const_cast<Print*>(this)->m_wipe_tower_data.depth = wipe_volume * (filaments_cnt - 1) / (layer_height * width);
         const_cast<Print*>(this)->m_wipe_tower_data.brim_width = m_config.wipe_tower_brim_width;
     }
@@ -1422,7 +1421,7 @@ void Print::_make_wipe_tower()
 
     // Initialize the wipe tower.
     // BBS: in BBL machine, wipe tower is only use to prime extruder. So just use a global wipe volume.
-    WipeTower wipe_tower(m_config, m_plate_index, m_origin, m_config.wiping_volume, m_wipe_tower_data.tool_ordering.first_extruder());
+    WipeTower wipe_tower(m_config, m_plate_index, m_origin, m_config.prime_volume, m_wipe_tower_data.tool_ordering.first_extruder());
 
     //wipe_tower.set_retract();
     //wipe_tower.set_zhop();
@@ -1448,7 +1447,7 @@ void Print::_make_wipe_tower()
                 // BBS: priming logic is removed, so no need to do toolchange for first extruder
                 if (/*(first_layer && extruder_id == m_wipe_tower_data.tool_ordering.all_extruders().back()) || */extruder_id != current_extruder_id) {
                     // BBS: in BBL machine, wipe tower is only use to prime extruder. So just use a global wipe volume.
-                    float volume_to_wipe = m_config.wiping_volume;
+                    float volume_to_wipe = m_config.prime_volume;
                     // Not all of that can be used for infill purging:
                     volume_to_wipe -= (float)m_config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
 

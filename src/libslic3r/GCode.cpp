@@ -3828,7 +3828,7 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     }
 
     // Set the temperature if the wipe tower didn't (not needed for non-single extruder MM)
-    if (m_config.single_extruder_multi_material && !m_config.enable_wipe_tower) {
+    if (m_config.single_extruder_multi_material && !m_config.enable_prime_tower) {
         int temp = (m_layer_index <= 0 ? m_config.nozzle_temperature_initial_layer.get_at(extruder_id) :
                                          m_config.nozzle_temperature.get_at(extruder_id));
 

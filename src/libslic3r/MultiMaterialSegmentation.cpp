@@ -1447,7 +1447,7 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                 out.extrusion_width     = std::max<float>(out.extrusion_width, float(config.inner_wall_line_width));
                 out.top_shell_layers    = std::max<int>(out.top_shell_layers, config.top_shell_layers);
                 out.bottom_shell_layers = std::max<int>(out.bottom_shell_layers, config.bottom_shell_layers);
-                out.small_region_threshold = config.gap_fill_enabled.value && config.gap_infill_speed.value > 0 ?
+                out.small_region_threshold = config.gap_infill_speed.value > 0 ?
                                              // Gap fill enabled. Enable a single line of 1/2 extrusion width.
                                              0.5f * float(config.inner_wall_line_width) :
                                              // Gap fill disabled. Enable two lines slightly overlapping.

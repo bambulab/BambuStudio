@@ -356,7 +356,7 @@ void PerimeterGenerator::process()
     // internal flow which is unrelated.
     coord_t min_spacing         = coord_t(perimeter_spacing      * (1 - INSET_OVERLAP_TOLERANCE));
     coord_t ext_min_spacing     = coord_t(ext_perimeter_spacing  * (1 - INSET_OVERLAP_TOLERANCE));
-    bool    has_gap_fill 		= this->config->gap_fill_enabled.value && this->config->gap_infill_speed.value > 0;
+    bool    has_gap_fill 		= this->config->gap_infill_speed.value > 0;
 
     // BBS: this flow is for smaller external perimeter for small area
     coord_t ext_min_spacing_smaller = coord_t(ext_perimeter_spacing * (1 - SMALLER_EXT_INSET_OVERLAP_TOLERANCE));
@@ -661,7 +661,7 @@ void PerimeterGenerator::process()
         // only apply infill overlap if we actually have one perimeter
         coord_t infill_peri_overlap = 0;
         if (inset > 0) {
-            infill_peri_overlap = coord_t(scale_(this->config->get_abs_value("infill_wall_overlap", unscale<double>(inset + solid_infill_spacing / 2))));
+            infill_peri_overlap = coord_t(scale_(this->config->infill_wall_overlap.get_abs_value(unscale<double>(inset + solid_infill_spacing / 2))));
             inset -= infill_peri_overlap;
         }
         // simplify infill contours according to resolution

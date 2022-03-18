@@ -17,7 +17,6 @@
 #include "GCode/GCodeProcessor.hpp"
 #include "EdgeGrid.hpp"
 #include "GCode/ThumbnailData.hpp"
-#include "GCode/SpeedGenerator.hpp"
 #include "libslic3r/ObjectID.hpp"
 
 #include <memory>
@@ -76,7 +75,7 @@ public:
         const std::vector<std::vector<WipeTower::ToolChangeResult>> &tool_changes,
         const WipeTower::ToolChangeResult                           &final_purge) :
         m_left(/*float(print_config.wipe_tower_x.value)*/ 0.f),
-        m_right(float(/*print_config.wipe_tower_x.value +*/ print_config.wipe_tower_width.value)),
+        m_right(float(/*print_config.wipe_tower_x.value +*/ print_config.prime_tower_width.value)),
         m_wipe_tower_pos(float(print_config.wipe_tower_x.get_at(plate_idx)), float(print_config.wipe_tower_y.get_at(plate_idx))),
         m_wipe_tower_rotation(float(print_config.wipe_tower_rotation_angle)),
         m_extruder_offsets(print_config.extruder_offset.values),
@@ -403,8 +402,6 @@ private:
     std::set<ObjectID>              m_objSupportsWithBrim; // indicates the objs' supports with brim
     // Cache for custom seam enforcers/blockers for each layer.
     SeamPlacer                          m_seam_placer;
-
-    SpeedGenerator                      m_speed_generator;
 
     /* Origin of print coordinates expressed in unscaled G-code coordinates.
        This affects the input arguments supplied to the extrude*() and travel_to()

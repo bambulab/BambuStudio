@@ -2735,7 +2735,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
 
         const double max_z = print.objects()[0]->model_object()->get_model()->bounding_box().max(2);
         const PrintConfig& config = print.config();
-        if (extruders_count > 1 && config.enable_wipe_tower && (config.print_sequence == PrintSequence::ByLayer)) {
+        if (extruders_count > 1 && config.enable_prime_tower && (config.print_sequence == PrintSequence::ByLayer)) {
             const float depth = print.wipe_tower_data(extruders_count).depth;
             const float brim_width = print.wipe_tower_data(extruders_count).brim_width;
 
@@ -2743,7 +2743,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
             Vec3d plate_origin = print.get_plate_origin();
             double wipe_tower_x = config.wipe_tower_x.get_at(plate_idx) + plate_origin(0);
             double wipe_tower_y = config.wipe_tower_y.get_at(plate_idx) + plate_origin(1);
-            m_shells.volumes.load_wipe_tower_preview(1000, wipe_tower_x, wipe_tower_y, config.wipe_tower_width, depth, max_z, config.wipe_tower_rotation_angle,
+            m_shells.volumes.load_wipe_tower_preview(1000, wipe_tower_x, wipe_tower_y, config.prime_tower_width, depth, max_z, config.wipe_tower_rotation_angle,
                 !print.is_step_done(psWipeTower), brim_width, initialized);
         }
     }

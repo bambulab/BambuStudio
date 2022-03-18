@@ -504,10 +504,10 @@ WipeTower::ToolChangeResult WipeTower::construct_tcr(WipeTowerWriter& writer,
 
 
 
-WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origin, const float wiping_volume, size_t initial_tool) :
+WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origin, const float prime_volume, size_t initial_tool) :
     m_semm(config.single_extruder_multi_material.value),
     m_wipe_tower_pos(config.wipe_tower_x.get_at(plate_idx), config.wipe_tower_y.get_at(plate_idx)),
-    m_wipe_tower_width(float(config.wipe_tower_width)),
+    m_wipe_tower_width(float(config.prime_tower_width)),
     m_wipe_tower_rotation_angle(float(config.wipe_tower_rotation_angle)),
     m_wipe_tower_brim_width(float(config.wipe_tower_brim_width)),
     m_y_shift(0.f),
@@ -518,7 +518,7 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_travel_speed(config.travel_speed),
     m_current_tool(initial_tool),
     //wipe_volumes(flush_matrix)
-    m_wipe_volume(wiping_volume)
+    m_wipe_volume(prime_volume)
 {
     // Read absolute value of first layer speed, if given as percentage,
     // it is taken over following default. Speeds from config are not
