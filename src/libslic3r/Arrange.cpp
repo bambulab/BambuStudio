@@ -506,13 +506,15 @@ public:
                             progressind(rem, "Arranging "+last_packed.name);
                         if (on_packed)
                             on_packed(ap);
+                        BOOST_LOG_TRIVIAL(debug) << "arrange " + last_packed.name + " succeed!"
+                            << ", plate id=" << ap.bed_idx;
                     }
                 });
 
         if (progressind) {
             m_pck.unfitIndicator([this, progressind](std::string name) {
                 progressind(100, name+" not fit!");
-                BOOST_LOG_TRIVIAL(debug) << "arrange " + name + " not fit!";
+                BOOST_LOG_TRIVIAL(debug) << "arrange not fit: " + name;
                 });
         }
 

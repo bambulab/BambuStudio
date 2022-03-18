@@ -3,7 +3,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-23 23:39+0800\n"
+"POT-Creation-Date: 2022-03-24 10:56+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -157,7 +157,8 @@ msgstr ""
 #: src/slic3r/GUI/BedShapeDialog.cpp:64 src/slic3r/GUI/ConfigWizard.cpp:279
 #: src/slic3r/GUI/ConfigWizard.cpp:1346 src/slic3r/GUI/ConfigWizard.cpp:1360
 #: src/slic3r/GUI/GCodeViewer.cpp:3893 src/slic3r/GUI/GCodeViewer.cpp:3899
-#: src/slic3r/GUI/GCodeViewer.cpp:3907 src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:202
+#: src/slic3r/GUI/GCodeViewer.cpp:3907
+#: src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:202
 #: src/slic3r/GUI/Gizmos/GizmoObjectManipulation.cpp:51
 #: src/slic3r/GUI/Gizmos/GizmoObjectManipulation.cpp:67
 #: src/slic3r/GUI/GUI_ObjectLayers.cpp:145
@@ -165,29 +166,30 @@ msgstr ""
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:408
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:476
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:477
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:149 src/libslic3r/PrintConfig.cpp:256
-#: src/libslic3r/PrintConfig.cpp:265 src/libslic3r/PrintConfig.cpp:272
-#: src/libslic3r/PrintConfig.cpp:375 src/libslic3r/PrintConfig.cpp:453
-#: src/libslic3r/PrintConfig.cpp:482 src/libslic3r/PrintConfig.cpp:706
-#: src/libslic3r/PrintConfig.cpp:716 src/libslic3r/PrintConfig.cpp:724
-#: src/libslic3r/PrintConfig.cpp:743 src/libslic3r/PrintConfig.cpp:832
-#: src/libslic3r/PrintConfig.cpp:1066 src/libslic3r/PrintConfig.cpp:1075
-#: src/libslic3r/PrintConfig.cpp:1335 src/libslic3r/PrintConfig.cpp:1501
-#: src/libslic3r/PrintConfig.cpp:1571 src/libslic3r/PrintConfig.cpp:1587
-#: src/libslic3r/PrintConfig.cpp:1683 src/libslic3r/PrintConfig.cpp:1692
-#: src/libslic3r/PrintConfig.cpp:1711 src/libslic3r/PrintConfig.cpp:1731
-#: src/libslic3r/PrintConfig.cpp:1739 src/libslic3r/PrintConfig.cpp:1761
-#: src/libslic3r/PrintConfig.cpp:1771 src/libslic3r/PrintConfig.cpp:1780
-#: src/libslic3r/PrintConfig.cpp:1788 src/libslic3r/PrintConfig.cpp:1796
-#: src/libslic3r/PrintConfig.cpp:1833 src/libslic3r/PrintConfig.cpp:2012
-#: src/libslic3r/PrintConfig.cpp:2093 src/libslic3r/PrintConfig.cpp:2113
-#: src/libslic3r/PrintConfig.cpp:2225 src/libslic3r/PrintConfig.cpp:2234
-#: src/libslic3r/PrintConfig.cpp:2244 src/libslic3r/PrintConfig.cpp:2304
-#: src/libslic3r/PrintConfig.cpp:2373 src/libslic3r/PrintConfig.cpp:2385
-#: src/libslic3r/PrintConfig.cpp:2411 src/libslic3r/PrintConfig.cpp:2503
-#: src/libslic3r/PrintConfig.cpp:2535 src/libslic3r/PrintConfig.cpp:2593
-#: src/libslic3r/PrintConfig.cpp:2641 src/libslic3r/PrintConfig.cpp:2651
-#: src/libslic3r/PrintConfig.cpp:3221 src/libslic3r/PrintConfig.cpp:3362
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:149
+#: src/libslic3r/PrintConfig.cpp:256 src/libslic3r/PrintConfig.cpp:265
+#: src/libslic3r/PrintConfig.cpp:272 src/libslic3r/PrintConfig.cpp:375
+#: src/libslic3r/PrintConfig.cpp:453 src/libslic3r/PrintConfig.cpp:482
+#: src/libslic3r/PrintConfig.cpp:706 src/libslic3r/PrintConfig.cpp:716
+#: src/libslic3r/PrintConfig.cpp:724 src/libslic3r/PrintConfig.cpp:743
+#: src/libslic3r/PrintConfig.cpp:832 src/libslic3r/PrintConfig.cpp:1066
+#: src/libslic3r/PrintConfig.cpp:1075 src/libslic3r/PrintConfig.cpp:1335
+#: src/libslic3r/PrintConfig.cpp:1501 src/libslic3r/PrintConfig.cpp:1571
+#: src/libslic3r/PrintConfig.cpp:1587 src/libslic3r/PrintConfig.cpp:1683
+#: src/libslic3r/PrintConfig.cpp:1692 src/libslic3r/PrintConfig.cpp:1711
+#: src/libslic3r/PrintConfig.cpp:1731 src/libslic3r/PrintConfig.cpp:1739
+#: src/libslic3r/PrintConfig.cpp:1761 src/libslic3r/PrintConfig.cpp:1771
+#: src/libslic3r/PrintConfig.cpp:1780 src/libslic3r/PrintConfig.cpp:1788
+#: src/libslic3r/PrintConfig.cpp:1796 src/libslic3r/PrintConfig.cpp:1833
+#: src/libslic3r/PrintConfig.cpp:2012 src/libslic3r/PrintConfig.cpp:2093
+#: src/libslic3r/PrintConfig.cpp:2113 src/libslic3r/PrintConfig.cpp:2225
+#: src/libslic3r/PrintConfig.cpp:2234 src/libslic3r/PrintConfig.cpp:2244
+#: src/libslic3r/PrintConfig.cpp:2304 src/libslic3r/PrintConfig.cpp:2373
+#: src/libslic3r/PrintConfig.cpp:2385 src/libslic3r/PrintConfig.cpp:2411
+#: src/libslic3r/PrintConfig.cpp:2503 src/libslic3r/PrintConfig.cpp:2535
+#: src/libslic3r/PrintConfig.cpp:2593 src/libslic3r/PrintConfig.cpp:2641
+#: src/libslic3r/PrintConfig.cpp:2651 src/libslic3r/PrintConfig.cpp:3221
+#: src/libslic3r/PrintConfig.cpp:3362
 msgid "mm"
 msgstr "mm"
 
@@ -3063,31 +3065,36 @@ msgstr "Kategorie"
 msgid "Search in English"
 msgstr "Suche in Englisch"
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:334
-msgid "Object "
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:263
+msgid "Arranging..."
 msgstr ""
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:348
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:335
+#, c-format, boost-format
+msgid "Object %s has zero size and can't be arranged!"
+msgstr ""
+
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:351
 msgid "Could not arrange model objects! Some geometries may be invalid."
 msgstr ""
 "Modellobjekte konnten nicht angeordnet werden! Einige Geometrien können "
 "ungültig sein."
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:470
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:473
 msgid "Arranging canceled."
 msgstr "Anordnen abgebrochen."
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:471
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:474
 msgid ""
-"Arranging done but we have unpacked items! Reduce spacing or bed_shrink and "
-"try again!"
+"Arranging is done but there are unpacked items! Reduce spacing or bed_shrink "
+"and try again!"
 msgstr ""
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:471
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:474
 msgid "Arranging done."
 msgstr "Anordnung beendet."
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:572
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:575
 #, c-format, boost-format
 msgid ""
 "Arrangement ignored the following objects which can't fit into a single "
@@ -3098,18 +3105,6 @@ msgstr ""
 "der Anordnung ignoriert:\n"
 "%s"
 
-#: src/slic3r/GUI/Jobs/FillBedJob.cpp:210
-msgid "Filling bed"
-msgstr "Bett füllen"
-
-#: src/slic3r/GUI/Jobs/FillBedJob.cpp:221
-msgid "Bed filling canceled."
-msgstr "Bettfüllen abgebrochen."
-
-#: src/slic3r/GUI/Jobs/FillBedJob.cpp:222
-msgid "Bed filling done."
-msgstr "Bett füllen abgeschlossen."
-
 #: src/slic3r/GUI/Jobs/Job.cpp:111
 msgid "Error! Unable to create thread!"
 msgstr ""
@@ -3117,18 +3112,6 @@ msgstr ""
 #: src/slic3r/GUI/Jobs/PlaterJob.cpp:13
 msgid "Exception"
 msgstr ""
-
-#: src/slic3r/GUI/Jobs/RotoptimizeJob.cpp:59
-msgid "Searching for optimal orientation"
-msgstr "Suche nach der optimalen Orientierung"
-
-#: src/slic3r/GUI/Jobs/RotoptimizeJob.cpp:77
-msgid "Orientation search canceled."
-msgstr "Ausrichtungssuche abgebrochen."
-
-#: src/slic3r/GUI/Jobs/RotoptimizeJob.cpp:78
-msgid "Orientation found."
-msgstr "Ausrichtung gefunden."
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:18 src/slic3r/GUI/MainFrame.cpp:1340
 msgid "Keyboard Shortcuts"
@@ -4384,7 +4367,8 @@ msgstr "Bereich"
 
 #: src/slic3r/GUI/ObjectDataViewModel.cpp:273
 #: src/slic3r/GUI/ObjectDataViewModel.cpp:515
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:731 src/libslic3r/PrintConfig.cpp:694
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:731
+#: src/libslic3r/PrintConfig.cpp:694
 msgid "default"
 msgstr "Standard"
 
@@ -8477,6 +8461,24 @@ msgstr ""
 msgid "Slicing mesh"
 msgstr ""
 
+#~ msgid "Bed filling canceled."
+#~ msgstr "Bettfüllen abgebrochen."
+
+#~ msgid "Bed filling done."
+#~ msgstr "Bett füllen abgeschlossen."
+
+#~ msgid "Orientation search canceled."
+#~ msgstr "Ausrichtungssuche abgebrochen."
+
+#~ msgid "Orientation found."
+#~ msgstr "Ausrichtung gefunden."
+
+#~ msgid "Filling bed"
+#~ msgstr "Bett füllen"
+
+#~ msgid "Searching for optimal orientation"
+#~ msgstr "Suche nach der optimalen Orientierung"
+
 #~ msgid "Tool position"
 #~ msgstr "Werkzeugposition"
 
@@ -8516,7 +8518,6 @@ msgstr ""
 #~ msgid "Show normal mode"
 #~ msgstr "Normalen Modus zeigen"
 
-#, boost-format
 #~ msgid ""
 #~ "Copying of the temporary G-code to the output G-code failed. Maybe the SD "
 #~ "card is write locked?\n"
@@ -8526,7 +8527,6 @@ msgstr ""
 #~ "fehlgeschlagen. Vielleicht ist die SD-Karte schreibgeschützt?\n"
 #~ "Fehlermeldung: %1%"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "%s has encountered an error. It was likely caused by running out of "
 #~ "memory. If you are sure you have enough RAM on your system, this may also "
@@ -8537,7 +8537,6 @@ msgstr ""
 #~ "genügend RAM auf Ihrem System haben, kann dies auch ein Programmfehler "
 #~ "sein, und wir würden uns freuen, wenn Sie ihn melden würden."
 
-#, boost-format
 #~ msgid "Masked SLA file exported to %1%"
 #~ msgstr "Maskierte SLA-Datei exportiert nach %1%"
 
@@ -8547,7 +8546,6 @@ msgstr ""
 #~ msgid "Unknown error occured during exporting G-code."
 #~ msgstr "Unbekannter Fehler trat beim Exportieren von G-Code auf."
 
-#, boost-format
 #~ msgid ""
 #~ "Copying of the temporary G-code to the output G-code failed. There might "
 #~ "be problem with target device, please try exporting again or using "
@@ -8558,7 +8556,6 @@ msgstr ""
 #~ "versuchen Sie erneut zu exportieren oder ein anderes Gerät zu verwenden. "
 #~ "Der beschädigte Ausgabe-G-Code liegt in %1%.tmp."
 
-#, boost-format
 #~ msgid ""
 #~ "Renaming of the G-code after copying to the selected destination folder "
 #~ "has failed. Current path is %1%.tmp. Please try exporting again."
@@ -8567,7 +8564,6 @@ msgstr ""
 #~ "Zielordner ist fehlgeschlagen. Der aktuelle Pfad ist %1%.tmp. Bitte "
 #~ "versuchen Sie erneut zu exportieren."
 
-#, boost-format
 #~ msgid ""
 #~ "Copying of the temporary G-code has finished but the original code at %1% "
 #~ "couldn't be opened during copy check. The output G-code is at %2%.tmp."
@@ -8576,7 +8572,6 @@ msgstr ""
 #~ "Originalcode aus %1% konnte während der Kopierprüfung nicht geöffnet "
 #~ "werden. Der ausgegebene G-Code liegt in %2%.tmp."
 
-#, boost-format
 #~ msgid ""
 #~ "Copying of the temporary G-code has finished but the exported code "
 #~ "couldn't be opened during copy check. The output G-code is at %1%.tmp."
@@ -8585,11 +8580,9 @@ msgstr ""
 #~ "exportierte Code konnte während der Kopierprüfung nicht geöffnet werden. "
 #~ "Der Ausgabe-G-Code liegt in %1%.tmp."
 
-#, boost-format
 #~ msgid "G-code file exported to %1%"
 #~ msgstr "G-Code Datei exportiert nach %1%"
 
-#, boost-format
 #~ msgid ""
 #~ "If estimated layer time is below ~%1%s, fan will run at %2%%% and print "
 #~ "speed will be reduced so that no less than %3%s are spent on that layer "
@@ -8600,7 +8593,6 @@ msgstr ""
 #~ "als %3%s für diese Schicht verwendet werden (die Geschwindigkeit wird "
 #~ "jedoch nie unter %4%mm/s reduziert)."
 
-#, boost-format
 #~ msgid ""
 #~ "If estimated layer time is greater, but still below ~%1%s, fan will run "
 #~ "at a proportionally decreasing speed between %2%%% and %3%%%."
@@ -8609,7 +8601,6 @@ msgstr ""
 #~ "%1%s ist, wird der Lüfter mit einer sich proportional verringernden "
 #~ "Geschwindigkeit zwischen %2%%% und %3%%% laufen."
 
-#, boost-format
 #~ msgid ""
 #~ "If estimated layer time is greater, but still below ~%1%s, fan will run "
 #~ "at %2%%%"
@@ -8617,22 +8608,18 @@ msgstr ""
 #~ "Wenn die geschätzte Schichtzeit größer ist, aber immer noch unter ~%1%s "
 #~ "liegt, läuft der Lüfter mit %2%%%"
 
-#, boost-format
 #~ msgid ""
 #~ "Fan speed will be ramped from zero at layer %1% to %2%%% at layer %3%."
 #~ msgstr ""
 #~ "Die Lüfterdrehzahl wird rampenförmig von Null bei Schicht %1% auf %2%%% "
 #~ "bei Schicht %3% erhöht."
 
-#, boost-format
 #~ msgid "During the other layers, fan will always run at %1%%%"
 #~ msgstr "Bei den anderen Schichten läuft der Lüfter immer mit %1%%%"
 
-#, boost-format
 #~ msgid "Fan will always run at %1%%%"
 #~ msgstr "Der Lüfter läuft immer mit %1%%%"
 
-#, boost-format
 #~ msgid "except for the first %1% layers."
 #~ msgstr "außer für die ersten %1% Schichten."
 
@@ -8687,7 +8674,6 @@ msgstr ""
 #~ msgid "with a volumetric rate"
 #~ msgstr "mit einer Volumenrate von"
 
-#, c-format, boost-format
 #~ msgid "%3.2f mm³/s at filament speed %3.2f mm/s."
 #~ msgstr "%3.2f mm³/s mit einer Filamentgeschwindigkeit von %3.2f mm/s."
 
@@ -8698,13 +8684,11 @@ msgstr ""
 #~ "Empfohlene Stärke der dünnen Wände des Objekts: Nicht verfügbar wegen "
 #~ "unzulässiger Schichthöhe."
 
-#, c-format, boost-format
 #~ msgid "Recommended object thin wall thickness for layer height %.2f and"
 #~ msgstr ""
 #~ "Empfohlene Stärke der dünnen Wände des Objekts für die Schichthöhe %.2f "
 #~ "und"
 
-#, c-format, boost-format
 #~ msgid "%d lines: %.2f mm"
 #~ msgstr "%d Linien: %.2f mm"
 
@@ -8722,22 +8706,18 @@ msgstr ""
 #~ "Hinweis zur Ober-/Bodenschalestärke: Nicht verfügbar wegen ungültiger "
 #~ "Schichthöhe."
 
-#, boost-format
 #~ msgid "Top shell is %1% mm thick for layer height %2% mm."
 #~ msgstr "Die obere Schale ist %1% mm stark für eine Schichthöhe von %2% mm."
 
-#, boost-format
 #~ msgid "Minimum top shell thickness is %1% mm."
 #~ msgstr "Die Mindeststärke der Oberschale beträgt %1% mm."
 
 #~ msgid "Top is open."
 #~ msgstr "Oben ist offen."
 
-#, boost-format
 #~ msgid "Bottom shell is %1% mm thick for layer height %2% mm."
 #~ msgstr "Die Bodenschale ist %1% mm stark für eine Schichthöhe von %2% mm."
 
-#, boost-format
 #~ msgid "Minimum bottom shell thickness is %1% mm."
 #~ msgstr "Die Mindeststärke der Bodenschale beträgt %1% mm."
 
@@ -8752,14 +8732,12 @@ msgstr ""
 #~ msgid "There is an object with no extrusions in the first layer."
 #~ msgstr "In der ersten Schicht gibt es ein Objekt ohne Extrusionen."
 
-#, boost-format
 #~ msgid "Empty layer between %1% and %2%."
 #~ msgstr "Leere Schicht zwischen %1% und %2%."
 
 #~ msgid "(Some lines not shown)"
 #~ msgstr "(Einige Zeilen nicht gezeigt)"
 
-#, boost-format
 #~ msgid "Object name: %1%"
 #~ msgstr "Objekt Name: %1%"
 
@@ -8807,7 +8785,6 @@ msgstr ""
 #~ msgid "Wipe tower"
 #~ msgstr "Reinigungsturm"
 
-#, boost-format
 #~ msgid ""
 #~ "Cannot calculate extrusion width for %1%: Variable \"%2%\" not accessible."
 #~ msgstr ""
@@ -8864,7 +8841,6 @@ msgstr ""
 #~ msgid "Support Generator"
 #~ msgstr "Stütz-Generator"
 
-#, boost-format
 #~ msgid "The %1% infill pattern is not supposed to work at 100%% density."
 #~ msgstr ""
 #~ "Das %1% Füllmuster ist nicht für die Arbeit mit 100%% Dichte vorgesehen."
@@ -8894,7 +8870,6 @@ msgstr ""
 #~ msgid "Decimate ratio"
 #~ msgstr "Dezimierungsverhältnis"
 
-#, boost-format
 #~ msgid ""
 #~ "Processing model '%1%' with more than 1M triangles could be slow. It is "
 #~ "highly recommend to reduce amount of triangles."
@@ -8930,7 +8905,6 @@ msgstr ""
 #~ msgid "Extra low"
 #~ msgstr "Sehr niedrig"
 
-#, c-format, boost-format
 #~ msgid "%d triangles"
 #~ msgstr "%d Dreiecke"
 
@@ -8944,7 +8918,6 @@ msgstr ""
 #~ msgid "Can't apply when proccess preview."
 #~ msgstr "Kann nicht angewendet werden, wenn die Vorschau bearbeitet wird."
 
-#, boost-format
 #~ msgid "Process %1% / 100"
 #~ msgstr "Bearbeite %1% / 100"
 
@@ -9036,7 +9009,7 @@ msgstr ""
 #~ msgid "Extra perimeters if needed"
 #~ msgstr "Extra Konturen wenn notwendig"
 
-#, fuzzy, c-format, boost-format
+#, fuzzy
 #~ msgid ""
 #~ "Add more perimeters when needed for avoiding gaps in sloping walls. "
 #~ "Slic3r keeps adding perimeters, until more than 70% of the loop "
@@ -9471,7 +9444,7 @@ msgstr ""
 #~ msgstr ""
 #~ "Diese Einstellung bestimmt die maximale Geschwindigkeit Ihres Lüfters."
 
-#, fuzzy, c-format, boost-format
+#, fuzzy
 #~ msgid ""
 #~ "This is the highest printable layer height for this extruder, used to cap "
 #~ "the variable layer height and support layer height. Maximum recommended "
@@ -12005,8 +11978,8 @@ msgstr ""
 #~ msgstr "Erweiterte Daten gefunden"
 
 #~ msgid ""
-#~ "You can't to add the object(s) from %s because of one or some of them "
-#~ "is(are) multi-part"
+#~ "You can't to add the object(s) from %s because of one or some of them is"
+#~ "(are) multi-part"
 #~ msgstr ""
 #~ "Sie können die Objekte aus %s nicht hinzufügen, weil eines oder einige "
 #~ "von ihnen mehrteilig ist (sind)"
@@ -14757,8 +14730,8 @@ msgstr ""
 #~ "default extruder and bed temperature are reset using non-wait command; "
 #~ "however if M104, M109, M140 or M190 are detected in this custom code, "
 #~ "Slic3r will not add temperature commands. Note that you can use "
-#~ "placeholder variables for all Slic3r settings, so you can put a \"M109 "
-#~ "S[first_layer_temperature]\" command wherever you want."
+#~ "placeholder variables for all Slic3r settings, so you can put a \"M109 S"
+#~ "[first_layer_temperature]\" command wherever you want."
 #~ msgstr ""
 #~ "Dieser Code wird beim sequentiellen Drucken zwischen Objekten eingefügt. "
 #~ "Standardmäßig werden Extruder- und Betttemperatur mit dem Befehl, der "
@@ -15479,15 +15452,15 @@ msgstr ""
 #~ msgid ""
 #~ "This experimental setting uses outputs the E values in cubic millimeters "
 #~ "instead of linear millimeters. If your firmware doesn't already know "
-#~ "filament diameter(s), you can put commands like 'M200 "
-#~ "D[filament_diameter_0] T0' in your start G-code in order to turn "
+#~ "filament diameter(s), you can put commands like 'M200 D"
+#~ "[filament_diameter_0] T0' in your start G-code in order to turn "
 #~ "volumetric mode on and use the filament diameter associated to the "
 #~ "filament selected in Slic3r. This is only supported in recent Marlin."
 #~ msgstr ""
 #~ "Diese experimentelle Einstellung generiert E-Koordinaten in "
 #~ "Kubikmillimetern stat in linearen Millimetern.  Wenn die Firmware den "
-#~ "Filamentdurchmesser noch nicht kennt, können Sie Befehle wie 'M200 "
-#~ "D[filament_diameter_0] T0' in den Start-G-Code eingeben, um den "
+#~ "Filamentdurchmesser noch nicht kennt, können Sie Befehle wie 'M200 D"
+#~ "[filament_diameter_0] T0' in den Start-G-Code eingeben, um den "
 #~ "volumetrischen Modus zu aktivieren und den in PrusaSlicer angegebenen "
 #~ "Filamentdurchmesser zu benutzen. Dies wird nur von neueren Marlin-"
 #~ "Versionen unterstützt."
@@ -16364,8 +16337,8 @@ msgstr ""
 
 #~ msgid "Note: some shortcuts work in (non)editing mode only."
 #~ msgstr ""
-#~ "Hinweis: Einige Tastenkombinationen funktionieren nur im "
-#~ "(Nicht-)Bearbeitungsmodus."
+#~ "Hinweis: Einige Tastenkombinationen funktionieren nur im (Nicht-)"
+#~ "Bearbeitungsmodus."
 
 #~ msgid "Left click"
 #~ msgstr "Linker Mausklick"
@@ -17087,16 +17060,16 @@ msgstr ""
 #~ "Befehle nicht automatisch vorangestellt, so dass Sie die Reihenfolge der "
 #~ "Heizbefehle und andere benutzerdefinierte Aktionen anpassen können. "
 #~ "Beachten Sie, dass Sie Platzhaltervariablen für alle PrusaSlicer-"
-#~ "Einstellungen verwenden können, so dass Sie einen Befehl \"M109 "
-#~ "S[first_layer_temperature]\" beliebig platzieren können. Wenn Sie mehrere "
+#~ "Einstellungen verwenden können, so dass Sie einen Befehl \"M109 S"
+#~ "[first_layer_temperature]\" beliebig platzieren können. Wenn Sie mehrere "
 #~ "Extruder haben, wird der gcode in Extruderreihenfolge verarbeitet."
 
 #~ msgid ""
 #~ "This custom code is inserted before every toolchange. Placeholder "
 #~ "variables for all PrusaSlicer settings as well as {toolchange_z}, "
 #~ "{previous_extruder} and {next_extruder} can be used. When a tool-changing "
-#~ "command which changes to the correct extruder is included (such as "
-#~ "T{next_extruder}), PrusaSlicer will emit no other such command. It is "
+#~ "command which changes to the correct extruder is included (such as T"
+#~ "{next_extruder}), PrusaSlicer will emit no other such command. It is "
 #~ "therefore possible to script custom behaviour both before and after the "
 #~ "toolchange."
 #~ msgstr ""

@@ -260,7 +260,7 @@ void ArrangeJob::prepare_partplate() {
 void ArrangeJob::prepare()
 {
     wxGetApp().plater()->get_notification_manager()->push_notification(NotificationType::ArrangeOngoing,
-        NotificationManager::NotificationLevel::RegularNotificationLevel, "Arranging...");
+        NotificationManager::NotificationLevel::RegularNotificationLevel, into_u8(_L("Arranging...")));
 
     int state = m_plater->get_prepare_state();
     if (state == Job::JobPrepareState::PREPARE_STATE_DEFAULT) {
@@ -331,7 +331,10 @@ void ArrangeJob::check_unprintable()
 #endif
 
             m_unprintable.push_back(*it);
-            wxGetApp().plater()->get_notification_manager()->push_plater_warning_notification((L("Object " + it->name + " has zero size and can't be arranged!")));
+            auto msg = (boost::format(
+                _utf8(L("Object %s has zero size and can't be arranged!")))
+                % _utf8(it->name)).str();
+            wxGetApp().plater()->get_notification_manager()->push_plater_warning_notification(msg);
             it = m_selected.erase(it);
         }
         else
@@ -402,7 +405,7 @@ void ArrangeJob::process()
     shrinkFun(bedpts, scaled(params.bed_shrink_x), 0);
     shrinkFun(bedpts, scaled(params.bed_shrink_y), 1);
 
-    BOOST_LOG_TRIVIAL(debug) << "bed_shrink_x=" << params.bed_shrink_x
+    BOOST_LOG_TRIVIAL(debug) << "arrange bed_shrink_x=" << params.bed_shrink_x
         << ", brim_max= "<<brim_max<<", "
         << "; bedpts:" << bedpts[0].transpose() << ", " << bedpts[1].transpose() << ", " << bedpts[2].transpose() << ", " << bedpts[3].transpose();
     
@@ -422,11 +425,11 @@ void ArrangeJob::process()
     }
 
     {
-        BOOST_LOG_TRIVIAL(debug) << "items selected before arranging: ";
+        BOOST_LOG_TRIVIAL(debug) << "items selected before arrange: ";
         for (auto selected : m_selected)
             BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << selected.extrude_id << ", bed: " << selected.bed_idx
-            << ", trans: " << selected.translation.transpose();
-        BOOST_LOG_TRIVIAL(debug) << "items unselected before arranging: ";
+            << ", bed_temp: " << selected.first_bed_temp << ", print_temp: " << selected.print_temp;
+        BOOST_LOG_TRIVIAL(debug) << "items unselected before arrange: ";
         for (auto item : m_unselected)
             if (!item.is_virt_object)
                 BOOST_LOG_TRIVIAL(debug) << item.name << ", extruder: " << item.extrude_id << ", bed: " << item.bed_idx
@@ -438,11 +441,11 @@ void ArrangeJob::process()
     // sort by item id
     std::sort(m_selected.begin(), m_selected.end(), [](auto a, auto b) {return a.itemid < b.itemid; });
     {
-        BOOST_LOG_TRIVIAL(debug) << "items selected after arranging: ";
+        BOOST_LOG_TRIVIAL(debug) << "items selected after arrange: ";
         for (auto selected : m_selected)
             BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << selected.extrude_id << ", bed: " << selected.bed_idx
-            << ", trans: " << selected.translation.transpose();
-        BOOST_LOG_TRIVIAL(debug) << "items unselected after arranging: ";
+            << ", bed_temp: " << selected.first_bed_temp << ", print_temp: " << selected.print_temp;
+        BOOST_LOG_TRIVIAL(debug) << "items unselected after arrange: ";
         for (auto item : m_unselected)
             if (!item.is_virt_object)
                 BOOST_LOG_TRIVIAL(debug) << item.name << ", extruder: " << item.extrude_id << ", bed: " << item.bed_idx
@@ -468,7 +471,7 @@ void ArrangeJob::process()
     // finalize just here.
     update_status(int(count),
         was_canceled() ? _(L("Arranging canceled.")) :
-        we_have_unpackable_items ? _(L("Arranging done but we have unpacked items! Reduce spacing or bed_shrink and try again!")) : _(L("Arranging done.")));
+        we_have_unpackable_items ? _(L("Arranging is done but there are unpacked items! Reduce spacing or bed_shrink and try again!")) : _(L("Arranging done.")));
 }
 
 static std::string concat_strings(const std::set<std::string> &strings,
@@ -504,7 +507,7 @@ void ArrangeJob::finalize() {
 
         beds = std::max(ap.bed_idx, beds);
 
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":selected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": arrange selected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
     }
 
     //BBS: adjust the bed_index, create new plates, get the max bed_index
@@ -518,7 +521,7 @@ void ArrangeJob::finalize() {
             plate_list.postprocess_bed_index_for_unselected(ap);
 
         beds = std::max(ap.bed_idx, beds);
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":unselected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":arrange unselected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
     }
 
     for (ArrangePolygon& ap : m_locked) {
@@ -556,7 +559,7 @@ void ArrangeJob::finalize() {
         plate_list.postprocess_arrange_polygon(ap, true);
 
         ap.apply();
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":m_unprintable: name: %4%, bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":arrange m_unprintable: name: %4%, bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
     }
 
     m_plater->update();

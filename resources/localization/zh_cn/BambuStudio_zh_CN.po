@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-23 23:39+0800\n"
+"POT-Creation-Date: 2022-03-24 10:56+0800\n"
 "PO-Revision-Date: 2022-03-17 16:26+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -161,7 +161,8 @@ msgstr "G-code 0,0 坐标相对于矩形框左前角落的距离。"
 #: src/slic3r/GUI/BedShapeDialog.cpp:64 src/slic3r/GUI/ConfigWizard.cpp:279
 #: src/slic3r/GUI/ConfigWizard.cpp:1346 src/slic3r/GUI/ConfigWizard.cpp:1360
 #: src/slic3r/GUI/GCodeViewer.cpp:3893 src/slic3r/GUI/GCodeViewer.cpp:3899
-#: src/slic3r/GUI/GCodeViewer.cpp:3907 src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:202
+#: src/slic3r/GUI/GCodeViewer.cpp:3907
+#: src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:202
 #: src/slic3r/GUI/Gizmos/GizmoObjectManipulation.cpp:51
 #: src/slic3r/GUI/Gizmos/GizmoObjectManipulation.cpp:67
 #: src/slic3r/GUI/GUI_ObjectLayers.cpp:145
@@ -169,29 +170,30 @@ msgstr "G-code 0,0 坐标相对于矩形框左前角落的距离。"
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:408
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:476
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:477
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:149 src/libslic3r/PrintConfig.cpp:256
-#: src/libslic3r/PrintConfig.cpp:265 src/libslic3r/PrintConfig.cpp:272
-#: src/libslic3r/PrintConfig.cpp:375 src/libslic3r/PrintConfig.cpp:453
-#: src/libslic3r/PrintConfig.cpp:482 src/libslic3r/PrintConfig.cpp:706
-#: src/libslic3r/PrintConfig.cpp:716 src/libslic3r/PrintConfig.cpp:724
-#: src/libslic3r/PrintConfig.cpp:743 src/libslic3r/PrintConfig.cpp:832
-#: src/libslic3r/PrintConfig.cpp:1066 src/libslic3r/PrintConfig.cpp:1075
-#: src/libslic3r/PrintConfig.cpp:1335 src/libslic3r/PrintConfig.cpp:1501
-#: src/libslic3r/PrintConfig.cpp:1571 src/libslic3r/PrintConfig.cpp:1587
-#: src/libslic3r/PrintConfig.cpp:1683 src/libslic3r/PrintConfig.cpp:1692
-#: src/libslic3r/PrintConfig.cpp:1711 src/libslic3r/PrintConfig.cpp:1731
-#: src/libslic3r/PrintConfig.cpp:1739 src/libslic3r/PrintConfig.cpp:1761
-#: src/libslic3r/PrintConfig.cpp:1771 src/libslic3r/PrintConfig.cpp:1780
-#: src/libslic3r/PrintConfig.cpp:1788 src/libslic3r/PrintConfig.cpp:1796
-#: src/libslic3r/PrintConfig.cpp:1833 src/libslic3r/PrintConfig.cpp:2012
-#: src/libslic3r/PrintConfig.cpp:2093 src/libslic3r/PrintConfig.cpp:2113
-#: src/libslic3r/PrintConfig.cpp:2225 src/libslic3r/PrintConfig.cpp:2234
-#: src/libslic3r/PrintConfig.cpp:2244 src/libslic3r/PrintConfig.cpp:2304
-#: src/libslic3r/PrintConfig.cpp:2373 src/libslic3r/PrintConfig.cpp:2385
-#: src/libslic3r/PrintConfig.cpp:2411 src/libslic3r/PrintConfig.cpp:2503
-#: src/libslic3r/PrintConfig.cpp:2535 src/libslic3r/PrintConfig.cpp:2593
-#: src/libslic3r/PrintConfig.cpp:2641 src/libslic3r/PrintConfig.cpp:2651
-#: src/libslic3r/PrintConfig.cpp:3221 src/libslic3r/PrintConfig.cpp:3362
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:149
+#: src/libslic3r/PrintConfig.cpp:256 src/libslic3r/PrintConfig.cpp:265
+#: src/libslic3r/PrintConfig.cpp:272 src/libslic3r/PrintConfig.cpp:375
+#: src/libslic3r/PrintConfig.cpp:453 src/libslic3r/PrintConfig.cpp:482
+#: src/libslic3r/PrintConfig.cpp:706 src/libslic3r/PrintConfig.cpp:716
+#: src/libslic3r/PrintConfig.cpp:724 src/libslic3r/PrintConfig.cpp:743
+#: src/libslic3r/PrintConfig.cpp:832 src/libslic3r/PrintConfig.cpp:1066
+#: src/libslic3r/PrintConfig.cpp:1075 src/libslic3r/PrintConfig.cpp:1335
+#: src/libslic3r/PrintConfig.cpp:1501 src/libslic3r/PrintConfig.cpp:1571
+#: src/libslic3r/PrintConfig.cpp:1587 src/libslic3r/PrintConfig.cpp:1683
+#: src/libslic3r/PrintConfig.cpp:1692 src/libslic3r/PrintConfig.cpp:1711
+#: src/libslic3r/PrintConfig.cpp:1731 src/libslic3r/PrintConfig.cpp:1739
+#: src/libslic3r/PrintConfig.cpp:1761 src/libslic3r/PrintConfig.cpp:1771
+#: src/libslic3r/PrintConfig.cpp:1780 src/libslic3r/PrintConfig.cpp:1788
+#: src/libslic3r/PrintConfig.cpp:1796 src/libslic3r/PrintConfig.cpp:1833
+#: src/libslic3r/PrintConfig.cpp:2012 src/libslic3r/PrintConfig.cpp:2093
+#: src/libslic3r/PrintConfig.cpp:2113 src/libslic3r/PrintConfig.cpp:2225
+#: src/libslic3r/PrintConfig.cpp:2234 src/libslic3r/PrintConfig.cpp:2244
+#: src/libslic3r/PrintConfig.cpp:2304 src/libslic3r/PrintConfig.cpp:2373
+#: src/libslic3r/PrintConfig.cpp:2385 src/libslic3r/PrintConfig.cpp:2411
+#: src/libslic3r/PrintConfig.cpp:2503 src/libslic3r/PrintConfig.cpp:2535
+#: src/libslic3r/PrintConfig.cpp:2593 src/libslic3r/PrintConfig.cpp:2641
+#: src/libslic3r/PrintConfig.cpp:2651 src/libslic3r/PrintConfig.cpp:3221
+#: src/libslic3r/PrintConfig.cpp:3362
 msgid "mm"
 msgstr "mm"
 
@@ -3010,46 +3012,39 @@ msgstr ""
 msgid "Search in English"
 msgstr ""
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:334
-msgid "Object "
-msgstr ""
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:263
+msgid "Arranging..."
+msgstr "布局中..."
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:348
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:335
+#, c-format, boost-format
+msgid "Object %s has zero size and can't be arranged!"
+msgstr "对象%s的尺寸为0故无法摆放！"
+
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:351
 msgid "Could not arrange model objects! Some geometries may be invalid."
 msgstr "无法排列模型对象！某些几何图形可能无效。"
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:470
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:473
 msgid "Arranging canceled."
-msgstr "排列布局已取消。"
+msgstr "布局已取消。"
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:471
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:474
 msgid ""
-"Arranging done but we have unpacked items! Reduce spacing or bed_shrink and "
-"try again!"
-msgstr ""
+"Arranging is done but there are unpacked items! Reduce spacing or bed_shrink "
+"and try again!"
+msgstr "布局已完成，但有一些无法摆放的组件！请减小间距或热床收缩参数再尝试！"
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:471
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:474
 msgid "Arranging done."
 msgstr "布局完成."
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:572
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:575
 #, c-format, boost-format
 msgid ""
 "Arrangement ignored the following objects which can't fit into a single "
 "bed:\n"
 "%s"
-msgstr ""
-
-#: src/slic3r/GUI/Jobs/FillBedJob.cpp:210
-msgid "Filling bed"
-msgstr ""
-
-#: src/slic3r/GUI/Jobs/FillBedJob.cpp:221
-msgid "Bed filling canceled."
-msgstr ""
-
-#: src/slic3r/GUI/Jobs/FillBedJob.cpp:222
-msgid "Bed filling done."
 msgstr ""
 
 #: src/slic3r/GUI/Jobs/Job.cpp:111
@@ -3059,18 +3054,6 @@ msgstr "发生错误，无法创建线程！"
 #: src/slic3r/GUI/Jobs/PlaterJob.cpp:13
 msgid "Exception"
 msgstr "异常"
-
-#: src/slic3r/GUI/Jobs/RotoptimizeJob.cpp:59
-msgid "Searching for optimal orientation"
-msgstr "搜索最佳方向"
-
-#: src/slic3r/GUI/Jobs/RotoptimizeJob.cpp:77
-msgid "Orientation search canceled."
-msgstr "方向搜索已取消。"
-
-#: src/slic3r/GUI/Jobs/RotoptimizeJob.cpp:78
-msgid "Orientation found."
-msgstr "找到方向。"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:18 src/slic3r/GUI/MainFrame.cpp:1340
 msgid "Keyboard Shortcuts"
@@ -4298,7 +4281,8 @@ msgstr ""
 
 #: src/slic3r/GUI/ObjectDataViewModel.cpp:273
 #: src/slic3r/GUI/ObjectDataViewModel.cpp:515
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:731 src/libslic3r/PrintConfig.cpp:694
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:731
+#: src/libslic3r/PrintConfig.cpp:694
 msgid "default"
 msgstr "缺省"
 
@@ -8377,6 +8361,24 @@ msgstr "生成支撑"
 msgid "Slicing mesh"
 msgstr "Mesh切片"
 
+#~ msgid "has zero size and can't be arranged!"
+#~ msgstr "大小为0因此无法摆放！"
+
+#~ msgid "Filling bed "
+#~ msgstr "填充热床"
+
+#~ msgid "Searching for optimal orientation..."
+#~ msgstr "搜索最佳方向..."
+
+#~ msgid "Orientation search canceled."
+#~ msgstr "方向搜索已取消。"
+
+#~ msgid "Orientation found."
+#~ msgstr "找到方向。"
+
+#~ msgid "Searching for optimal orientation"
+#~ msgstr "搜索最佳方向"
+
 #~ msgid "Feature type"
 #~ msgstr "功能类型"
 
@@ -8423,7 +8425,6 @@ msgstr "Mesh切片"
 #~ msgid "No object can be printed, maybe too small"
 #~ msgstr "没有可打印的模型，可能尺寸过小。"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "%s has encountered an error. It was likely caused by running out of "
 #~ "memory. If you are sure you have enough RAM on your system, this may also "
@@ -8432,14 +8433,12 @@ msgstr "Mesh切片"
 #~ "%s 遇到错误。这可能是由于内存不足造成的。如果您确定您的系统上有足够的内"
 #~ "存，这可能也是一个软件错误，欢迎你向我们提交问题报告。"
 
-#, boost-format
 #~ msgid "Masked SLA file exported to %1%"
 #~ msgstr "已将 贴面过 SLA 文件导出到 %1%"
 
 #~ msgid "Running post-processing scripts"
 #~ msgstr "运行后处理脚本"
 
-#, boost-format
 #~ msgid "G-code file exported to %1%"
 #~ msgstr "G 代码文件导出到 %1%"
 
@@ -8479,7 +8478,6 @@ msgstr "Mesh切片"
 #~ msgid "Decimate ratio"
 #~ msgstr "简化率"
 
-#, boost-format
 #~ msgid ""
 #~ "Processing model '%1%' with more than 1M triangles could be slow. It is "
 #~ "highly recommend to reduce amount of triangles."
@@ -8512,7 +8510,6 @@ msgstr "Mesh切片"
 #~ msgid "Extra low"
 #~ msgstr "非常低"
 
-#, c-format, boost-format
 #~ msgid "%d triangles"
 #~ msgstr "%d 个三角形"
 
@@ -8525,7 +8522,6 @@ msgstr "Mesh切片"
 #~ msgid "Can't apply when proccess preview."
 #~ msgstr "处理预览的过程中无法应用。"
 
-#, boost-format
 #~ msgid "Process %1% / 100"
 #~ msgstr "处理 %1% / 100"
 

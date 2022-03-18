@@ -115,9 +115,6 @@ public:
                     score_all_plates = std::accumulate(placers.begin(), placers.begin() + j, score,
                         [](double sum, const Placer& elem) { return sum + elem.score(); });
 
-                    if(this->unfitindicator_)
-                        this->unfitindicator_(it->get().name + " j="+std::to_string(j) + ",score=" + std::to_string(score)+", score_all_plates"+std::to_string(score_all_plates));
-
                     if(score >= 0 && score < LARGE_COST_TO_REJECT) {
                         if (bed_id_firstfit == -1) {
                             bed_id_firstfit = j;
@@ -157,6 +154,11 @@ public:
                 }
 
                 if(!was_packed){
+                    if (this->unfitindicator_)
+                        this->unfitindicator_(it->get().name + " ,plate_id=" + std::to_string(j) + ",score=" + std::to_string(score)
+                            + ", score_all_plates=" + std::to_string(score_all_plates)
+                            + ", overfit=" + std::to_string(result.overfit()));
+
                     placers.emplace_back(bin);
                     placers.back().plateID(placers.size() - 1);
                     placers.back().configure(pconfig);

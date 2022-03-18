@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-23 23:39+0800\n"
+"POT-Creation-Date: 2022-03-24 10:56+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -155,7 +155,8 @@ msgstr ""
 #: src/slic3r/GUI/BedShapeDialog.cpp:64 src/slic3r/GUI/ConfigWizard.cpp:279
 #: src/slic3r/GUI/ConfigWizard.cpp:1346 src/slic3r/GUI/ConfigWizard.cpp:1360
 #: src/slic3r/GUI/GCodeViewer.cpp:3893 src/slic3r/GUI/GCodeViewer.cpp:3899
-#: src/slic3r/GUI/GCodeViewer.cpp:3907 src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:202
+#: src/slic3r/GUI/GCodeViewer.cpp:3907
+#: src/slic3r/GUI/Gizmos/GLGizmoCut.cpp:202
 #: src/slic3r/GUI/Gizmos/GizmoObjectManipulation.cpp:51
 #: src/slic3r/GUI/Gizmos/GizmoObjectManipulation.cpp:67
 #: src/slic3r/GUI/GUI_ObjectLayers.cpp:145
@@ -163,29 +164,30 @@ msgstr ""
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:408
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:476
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:477
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:149 src/libslic3r/PrintConfig.cpp:256
-#: src/libslic3r/PrintConfig.cpp:265 src/libslic3r/PrintConfig.cpp:272
-#: src/libslic3r/PrintConfig.cpp:375 src/libslic3r/PrintConfig.cpp:453
-#: src/libslic3r/PrintConfig.cpp:482 src/libslic3r/PrintConfig.cpp:706
-#: src/libslic3r/PrintConfig.cpp:716 src/libslic3r/PrintConfig.cpp:724
-#: src/libslic3r/PrintConfig.cpp:743 src/libslic3r/PrintConfig.cpp:832
-#: src/libslic3r/PrintConfig.cpp:1066 src/libslic3r/PrintConfig.cpp:1075
-#: src/libslic3r/PrintConfig.cpp:1335 src/libslic3r/PrintConfig.cpp:1501
-#: src/libslic3r/PrintConfig.cpp:1571 src/libslic3r/PrintConfig.cpp:1587
-#: src/libslic3r/PrintConfig.cpp:1683 src/libslic3r/PrintConfig.cpp:1692
-#: src/libslic3r/PrintConfig.cpp:1711 src/libslic3r/PrintConfig.cpp:1731
-#: src/libslic3r/PrintConfig.cpp:1739 src/libslic3r/PrintConfig.cpp:1761
-#: src/libslic3r/PrintConfig.cpp:1771 src/libslic3r/PrintConfig.cpp:1780
-#: src/libslic3r/PrintConfig.cpp:1788 src/libslic3r/PrintConfig.cpp:1796
-#: src/libslic3r/PrintConfig.cpp:1833 src/libslic3r/PrintConfig.cpp:2012
-#: src/libslic3r/PrintConfig.cpp:2093 src/libslic3r/PrintConfig.cpp:2113
-#: src/libslic3r/PrintConfig.cpp:2225 src/libslic3r/PrintConfig.cpp:2234
-#: src/libslic3r/PrintConfig.cpp:2244 src/libslic3r/PrintConfig.cpp:2304
-#: src/libslic3r/PrintConfig.cpp:2373 src/libslic3r/PrintConfig.cpp:2385
-#: src/libslic3r/PrintConfig.cpp:2411 src/libslic3r/PrintConfig.cpp:2503
-#: src/libslic3r/PrintConfig.cpp:2535 src/libslic3r/PrintConfig.cpp:2593
-#: src/libslic3r/PrintConfig.cpp:2641 src/libslic3r/PrintConfig.cpp:2651
-#: src/libslic3r/PrintConfig.cpp:3221 src/libslic3r/PrintConfig.cpp:3362
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:149
+#: src/libslic3r/PrintConfig.cpp:256 src/libslic3r/PrintConfig.cpp:265
+#: src/libslic3r/PrintConfig.cpp:272 src/libslic3r/PrintConfig.cpp:375
+#: src/libslic3r/PrintConfig.cpp:453 src/libslic3r/PrintConfig.cpp:482
+#: src/libslic3r/PrintConfig.cpp:706 src/libslic3r/PrintConfig.cpp:716
+#: src/libslic3r/PrintConfig.cpp:724 src/libslic3r/PrintConfig.cpp:743
+#: src/libslic3r/PrintConfig.cpp:832 src/libslic3r/PrintConfig.cpp:1066
+#: src/libslic3r/PrintConfig.cpp:1075 src/libslic3r/PrintConfig.cpp:1335
+#: src/libslic3r/PrintConfig.cpp:1501 src/libslic3r/PrintConfig.cpp:1571
+#: src/libslic3r/PrintConfig.cpp:1587 src/libslic3r/PrintConfig.cpp:1683
+#: src/libslic3r/PrintConfig.cpp:1692 src/libslic3r/PrintConfig.cpp:1711
+#: src/libslic3r/PrintConfig.cpp:1731 src/libslic3r/PrintConfig.cpp:1739
+#: src/libslic3r/PrintConfig.cpp:1761 src/libslic3r/PrintConfig.cpp:1771
+#: src/libslic3r/PrintConfig.cpp:1780 src/libslic3r/PrintConfig.cpp:1788
+#: src/libslic3r/PrintConfig.cpp:1796 src/libslic3r/PrintConfig.cpp:1833
+#: src/libslic3r/PrintConfig.cpp:2012 src/libslic3r/PrintConfig.cpp:2093
+#: src/libslic3r/PrintConfig.cpp:2113 src/libslic3r/PrintConfig.cpp:2225
+#: src/libslic3r/PrintConfig.cpp:2234 src/libslic3r/PrintConfig.cpp:2244
+#: src/libslic3r/PrintConfig.cpp:2304 src/libslic3r/PrintConfig.cpp:2373
+#: src/libslic3r/PrintConfig.cpp:2385 src/libslic3r/PrintConfig.cpp:2411
+#: src/libslic3r/PrintConfig.cpp:2503 src/libslic3r/PrintConfig.cpp:2535
+#: src/libslic3r/PrintConfig.cpp:2593 src/libslic3r/PrintConfig.cpp:2641
+#: src/libslic3r/PrintConfig.cpp:2651 src/libslic3r/PrintConfig.cpp:3221
+#: src/libslic3r/PrintConfig.cpp:3362
 msgid "mm"
 msgstr ""
 
@@ -2984,46 +2986,39 @@ msgstr ""
 msgid "Search in English"
 msgstr ""
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:334
-msgid "Object "
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:263
+msgid "Arranging..."
 msgstr ""
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:348
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:335
+#, c-format, boost-format
+msgid "Object %s has zero size and can't be arranged!"
+msgstr ""
+
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:351
 msgid "Could not arrange model objects! Some geometries may be invalid."
 msgstr ""
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:470
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:473
 msgid "Arranging canceled."
 msgstr ""
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:471
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:474
 msgid ""
-"Arranging done but we have unpacked items! Reduce spacing or bed_shrink and "
-"try again!"
+"Arranging is done but there are unpacked items! Reduce spacing or bed_shrink "
+"and try again!"
 msgstr ""
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:471
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:474
 msgid "Arranging done."
 msgstr ""
 
-#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:572
+#: src/slic3r/GUI/Jobs/ArrangeJob.cpp:575
 #, c-format, boost-format
 msgid ""
 "Arrangement ignored the following objects which can't fit into a single "
 "bed:\n"
 "%s"
-msgstr ""
-
-#: src/slic3r/GUI/Jobs/FillBedJob.cpp:210
-msgid "Filling bed"
-msgstr ""
-
-#: src/slic3r/GUI/Jobs/FillBedJob.cpp:221
-msgid "Bed filling canceled."
-msgstr ""
-
-#: src/slic3r/GUI/Jobs/FillBedJob.cpp:222
-msgid "Bed filling done."
 msgstr ""
 
 #: src/slic3r/GUI/Jobs/Job.cpp:111
@@ -3032,18 +3027,6 @@ msgstr ""
 
 #: src/slic3r/GUI/Jobs/PlaterJob.cpp:13
 msgid "Exception"
-msgstr ""
-
-#: src/slic3r/GUI/Jobs/RotoptimizeJob.cpp:59
-msgid "Searching for optimal orientation"
-msgstr ""
-
-#: src/slic3r/GUI/Jobs/RotoptimizeJob.cpp:77
-msgid "Orientation search canceled."
-msgstr ""
-
-#: src/slic3r/GUI/Jobs/RotoptimizeJob.cpp:78
-msgid "Orientation found."
 msgstr ""
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:18 src/slic3r/GUI/MainFrame.cpp:1340
@@ -4276,7 +4259,8 @@ msgstr ""
 
 #: src/slic3r/GUI/ObjectDataViewModel.cpp:273
 #: src/slic3r/GUI/ObjectDataViewModel.cpp:515
-#: src/slic3r/GUI/ObjectDataViewModel.cpp:731 src/libslic3r/PrintConfig.cpp:694
+#: src/slic3r/GUI/ObjectDataViewModel.cpp:731
+#: src/libslic3r/PrintConfig.cpp:694
 msgid "default"
 msgstr ""
 

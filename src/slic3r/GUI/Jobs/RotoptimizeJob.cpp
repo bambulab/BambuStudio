@@ -55,8 +55,9 @@ void RotoptimizeJob::process()
             .statucb([this, &prev_status](int s)
         {
             if (s > 0 && s < 100)
-                update_status(prev_status + s / m_selected_object_ids.size(),
-                              _(L("Searching for optimal orientation")));
+                ;
+                // update_status(prev_status + s / m_selected_object_ids.size(),
+                //               _(L("Searching for optimal orientation...")));
 
             return !was_canceled();
         });
@@ -74,8 +75,8 @@ void RotoptimizeJob::process()
         if (was_canceled()) break;
     }
 
-    update_status(100, was_canceled() ? _(L("Orientation search canceled.")) :
-                                        _(L("Orientation found.")));
+    // update_status(100, was_canceled() ? _(L("Orientation search canceled.")) :
+    //                                     _(L("Orientation found.")));
 }
 
 void RotoptimizeJob::finalize()
