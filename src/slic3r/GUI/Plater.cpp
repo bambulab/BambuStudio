@@ -5530,18 +5530,18 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
             ConfigOptionFloats* tower_x_opt = const_cast<ConfigOptionFloats*>(proj_cfg.option<ConfigOptionFloats>("wipe_tower_x"));
             ConfigOptionFloats* tower_y_opt = const_cast<ConfigOptionFloats*>(proj_cfg.option<ConfigOptionFloats>("wipe_tower_y"));
             // BBS: don't support wipe tower rotation
-            //double current_rotation = current_config.opt_float("wipe_tower_rotation_angle");
+            //double current_rotation = proj_cfg.opt_float("wipe_tower_rotation_angle");
             bool need_update = false;
             if (tower_x_opt->values.size() != model.wipe_tower.positions.size()) {
                 tower_x_opt->clear();
-                ConfigOptionFloat default_tower_x(180.f);
+                ConfigOptionFloat default_tower_x(40.f);
                 tower_x_opt->resize(model.wipe_tower.positions.size(), &default_tower_x);
                 need_update = true;
             }
 
             if (tower_y_opt->values.size() != model.wipe_tower.positions.size()) {
                 tower_y_opt->clear();
-                ConfigOptionFloat default_tower_y(140.f);
+                ConfigOptionFloat default_tower_y(200.f);
                 tower_y_opt->resize(model.wipe_tower.positions.size(), &default_tower_y);
                 need_update = true;
             }

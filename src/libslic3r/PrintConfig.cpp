@@ -2821,7 +2821,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     // BBS: change data type to floats to add partplate logic
-    def->set_default_value(new ConfigOptionFloats{ 180. });
+    def->set_default_value(new ConfigOptionFloats{ 40. });
 
     def = this->add("wipe_tower_y", coFloats);
     def->label = L("Position Y");
@@ -2829,7 +2829,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     // BBS: change data type to floats to add partplate logic
-    def->set_default_value(new ConfigOptionFloats{ 140. });
+    def->set_default_value(new ConfigOptionFloats{ 200. });
 
     def = this->add("wipe_tower_width", coFloat);
     def->label = L("Width");

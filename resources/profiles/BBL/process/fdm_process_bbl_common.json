@@ -122,14 +122,7 @@
     "enable_wipe_tower": "1",
     "wipe_tower_bridging": "10",
     "wipe_tower_no_sparse_layers": "0",
-    "wipe_tower_rotation_angle": "0",
     "wipe_tower_width": "20",
-    "wipe_tower_x": [
-        "40"
-    ],
-    "wipe_tower_y": [
-        "200"
-    ],
     "xy_hole_compensation": "0",
     "xy_contour_compensation": "0"
 }
