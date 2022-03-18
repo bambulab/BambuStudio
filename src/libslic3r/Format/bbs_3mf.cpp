@@ -1296,13 +1296,15 @@ namespace Slic3r {
             ++object_idx;
         }
 
+        const ConfigOptionStrings* filament_ids_opt = config.option<ConfigOptionStrings>("filament_settings_id");
+        int max_filament_id = filament_ids_opt ? filament_ids_opt->size() : std::numeric_limits<int>::max();
         for (ModelObject* mo : m_model->objects) {
             const ConfigOptionInt* extruder_opt = dynamic_cast<const ConfigOptionInt*>(mo->config.option("extruder"));
             int extruder_id = 0;
             if (extruder_opt != nullptr)
                 extruder_id = extruder_opt->getInt();
 
-            if (extruder_id == 0)
+            if (extruder_id == 0 || extruder_id > max_filament_id)
                 mo->config.set_key_value("extruder", new ConfigOptionInt(1));
 
             if (mo->volumes.size() == 1) {
@@ -1311,8 +1313,13 @@ namespace Slic3r {
             else {
                 for (ModelVolume* mv : mo->volumes) {
                     const ConfigOptionInt* vol_extruder_opt = dynamic_cast<const ConfigOptionInt*>(mv->config.option("extruder"));
-                    if (vol_extruder_opt && vol_extruder_opt->getInt() == 0)
+                    if (vol_extruder_opt == nullptr)
+                        continue;
+
+                    if (vol_extruder_opt->getInt() == 0)
                         mv->config.erase("extruder");
+                    else if (vol_extruder_opt->getInt() > max_filament_id)
+                        mv->config.set_key_value("extruder", new ConfigOptionInt(1));
                 }
             }
         }
