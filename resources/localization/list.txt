@@ -48,6 +48,7 @@ src/slic3r/GUI/NotificationManager.cpp
 src/slic3r/GUI/ObjectDataViewModel.cpp
 src/slic3r/GUI/OpenGLManager.cpp
 src/slic3r/GUI/OptionsGroup.cpp
+src/slic3r/GUI/ParamsPanel.cpp
 src/slic3r/GUI/Plater.cpp
 src/slic3r/GUI/Preferences.cpp
 src/slic3r/GUI/PresetComboBoxes.cpp

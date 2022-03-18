@@ -601,7 +601,7 @@ class TabSLAPrint : public Tab
 public:
 	//BBS: GUI refactor
     TabSLAPrint(ParamsPanel* parent) :
-        Tab(parent, _(L("Print Settings")), Slic3r::Preset::TYPE_SLA_PRINT) {}
+        Tab(parent, _(L("Process Settings")), Slic3r::Preset::TYPE_SLA_PRINT) {}
     ~TabSLAPrint() {}
 
 	ogStaticText* m_support_object_elevation_description_line = nullptr;

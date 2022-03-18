@@ -49,15 +49,15 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
         m_top_panel = new StaticBox(this, wxID_ANY, wxDefaultPosition);
         m_top_panel->SetBackgroundColor(0xF8F8F8);
         m_top_panel->SetBackgroundColor2(0xF1F1F1);
-        m_title_label = new Label(Label::Body_14, wxT("Process"), m_top_panel);
+        m_title_label = new Label(Label::Body_14, _L("Process"), m_top_panel);
         m_title_label->Wrap( -1 );
 
         //int width, height;
         // BBS: new layout
         m_mode_region = new SwitchButton(m_top_panel);
-        m_mode_region->SetLabels(wxT("Global"), wxT("Objects"));
+        m_mode_region->SetLabels(_L("Global"), _L("Objects"));
         //m_mode_region->GetSize(&width, &height);
-        m_title_view = new Label(Label::Body_14, wxT("Advance"), m_top_panel);
+        m_title_view = new Label(Label::Body_14, _L("Advance"), m_top_panel);
         m_title_view->Wrap( -1 );
         m_mode_view = new SwitchButton(m_top_panel, wxID_ABOUT);
 
