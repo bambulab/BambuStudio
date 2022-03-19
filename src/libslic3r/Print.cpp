@@ -520,14 +520,43 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
         convex_hulls_temp.push_back(convex_hull);
         if (!intersection(convex_hulls_other, convex_hulls_temp).empty()) {
             if (warning) {
-                warning->string = "Object " + inst->model_instance->get_object()->name + " is too close to others; your extruder will collide with them.";
+                warning->string = "Object " + inst->model_instance->get_object()->name + " is too close to others; your extruder will collide with them.\n";
                 warning->object = inst->model_instance->get_object();
                 }
         }
         if (!intersection(exclude_polys, convex_hull).empty()) {
-            return {"Object " + inst->model_instance->get_object()->name + " is too close to exclusion area; your extruder will collide with them.", inst->model_instance->get_object()};
+            return {"Object " + inst->model_instance->get_object()->name + " is too close to exclusion area; your extruder will collide with them.\n", inst->model_instance->get_object()};
         }
         convex_hulls_other.emplace_back(convex_hull);
+    }
+
+    //BBS: add the wipe tower check logic
+    const PrintConfig &       config   = print.config();
+    int                 filaments_count = print.extruders().size();
+    int                 plate_index = print.get_plate_index();
+    const Vec3d         plate_origin = print.get_plate_origin();
+    float               x            = config.wipe_tower_x.get_at(plate_index) + plate_origin(0);
+    float               y            = config.wipe_tower_y.get_at(plate_index) + plate_origin(1);
+    float               width        = config.wipe_tower_width.value;
+    float               a            = config.wipe_tower_rotation_angle.value;
+    //float               v            = config.wiping_volume.value;
+
+    float        depth                     = print.wipe_tower_data(filaments_count).depth;
+    //float        brim_width                = print.wipe_tower_data(filaments_count).brim_width;
+
+    Polygon     wipe_tower_convex_hull;
+    wipe_tower_convex_hull.points.emplace_back(scale_(x), scale_(y));
+    wipe_tower_convex_hull.points.emplace_back(scale_(x + width), scale_(y));
+    wipe_tower_convex_hull.points.emplace_back(scale_(x + width), scale_(y + depth));
+    wipe_tower_convex_hull.points.emplace_back(scale_(x), scale_(y + depth));
+    wipe_tower_convex_hull.rotate(a);
+
+    Polygons convex_hulls_temp;
+    convex_hulls_temp.push_back(wipe_tower_convex_hull);
+    if (!intersection(convex_hulls_other, convex_hulls_temp).empty()) {
+        if (warning) {
+            warning->string += "Prime Tower is too close to others; your extruder will collide with them.";
+        }
     }
 
     return {};

@@ -3283,11 +3283,11 @@ void Plater::priv::process_validation_warning(const std::string &warning, Object
     if (warning.empty())
         notification_manager->close_notification_of_type(NotificationType::ValidateWarning);
     else {
-        ; //BBS disable support enforcer
-        //std::string text = warning;
-        //std::string hypertext = "";
-        //std::function<bool(wxEvtHandler*)> action_fn = [](wxEvtHandler*){ return false; };
+        std::string text = warning;
+        std::string hypertext = "";
+        std::function<bool(wxEvtHandler*)> action_fn = [](wxEvtHandler*){ return false; };
 
+        // BBS disable support enforcer
         //if (text == "_SUPPORTS_OFF") {
         //    text = _u8L("An object has custom support enforcers which will not be used "
         //                "because supports are disabled.")+"\n";
@@ -3305,11 +3305,11 @@ void Plater::priv::process_validation_warning(const std::string &warning, Object
         //    };
         //}
 
-        //notification_manager->push_notification(
-        //    NotificationType::ValidateWarning,
-        //    NotificationManager::NotificationLevel::WarningNotificationLevel,
-        //    _u8L("WARNING:") + "\n" + text, hypertext, action_fn
-        //);
+        notification_manager->push_notification(
+            NotificationType::ValidateWarning,
+            NotificationManager::NotificationLevel::WarningNotificationLevel,
+            _u8L("WARNING:") + "\n" + text, hypertext, action_fn
+        );
     }
 }
 
