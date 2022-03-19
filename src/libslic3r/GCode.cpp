@@ -2331,11 +2331,6 @@ GCode::LayerResult GCode::process_layer(
 
     //BBS
     if (first_layer) {
-        //BBS: scan bed before print first layer
-        if (print.config().scan_first_layer.value) {
-            gcode += ";scan bed before print first layer\n";
-            gcode += "M976 S2 P1\nM400 S5\n";
-        }
         //BBS: set first layer global acceleration
         if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
             double acceleration = m_config.initial_layer_acceleration.value;
